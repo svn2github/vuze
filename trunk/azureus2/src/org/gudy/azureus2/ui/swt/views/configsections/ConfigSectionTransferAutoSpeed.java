@@ -106,26 +106,9 @@ public class ConfigSectionTransferAutoSpeed implements UISWTConfigSection {
 		gridData = new GridData();
 		gridData.widthHint = 40;
 		max_upload.setLayoutData(gridData);
-		
-		BooleanParameter enable_au = new BooleanParameter(
-				cSection, "Auto Upload Speed Enabled",
-				CFG_PREFIX + "enableauto" );
-		gridData = new GridData();
-		gridData.horizontalSpan = 2;
-		enable_au.setLayoutData(gridData);
 
-		
-		BooleanParameter enable_au_seeding = new BooleanParameter(
-				cSection, "Auto Upload Speed Seeding Enabled",
-				CFG_PREFIX + "enableautoseeding" );
-		gridData = new GridData();
-		gridData.horizontalSpan = 2;
-		enable_au_seeding.setLayoutData(gridData);
-
-		enable_au.setAdditionalActionPerformer(
-	    		new ChangeSelectionActionPerformer( enable_au_seeding.getControls(), true ));
-		
-		if ( userMode > 0 ){
+        
+        if ( userMode > 0 ){
 			
 			BooleanParameter enable_down_adj = new BooleanParameter(
 					cSection, "AutoSpeed Download Adj Enable",

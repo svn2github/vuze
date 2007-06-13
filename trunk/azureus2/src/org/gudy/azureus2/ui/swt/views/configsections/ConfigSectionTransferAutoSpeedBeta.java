@@ -2,7 +2,6 @@ package org.gudy.azureus2.ui.swt.views.configsections;
 
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.config.*;
-import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -204,34 +203,11 @@ public class ConfigSectionTransferAutoSpeedBeta
         gridData = new GridData(GridData.FILL_HORIZONTAL);
         modeGroup.setLayoutData(gridData);
 
-        //To enable the beta.
-        gridData = new GridData();
-        gridData.widthHint = 50;
-        gridData.horizontalAlignment = GridData.END;
-        enableV2AutoSpeedBeta = new BooleanParameter(modeGroup,SpeedManagerAlgorithmProviderV2.SETTING_V2_BETA_ENABLED);
-        enableV2AutoSpeedBeta.setLayoutData(gridData);
-
-        enableV2AutoSpeedBeta.addChangeListener( new GroupModeChangeListener() );
-
-        Label enableLabel = new Label(modeGroup, SWT.NULL);
-        enableLabel.setText("Enable AutoSpeed Beta");
-        gridData = new GridData();
-        gridData.widthHint = 40;
-        cSection.setLayoutData(gridData);
-
-
-        //spacer
-        Label enableSpacer = new Label(modeGroup, SWT.NULL);
-        gridData = new GridData();
-        gridData.horizontalSpan=3;
-        enableSpacer.setLayoutData(gridData);
-
-
         //Need a drop down to select which method will be used.
         Label label = new Label(modeGroup, SWT.NULL);
-        label.setText("algorithm: ");
+        label.setText("Input Data: ");
         gridData = new GridData();
-        gridData.widthHint = 50;
+        gridData.widthHint = 60;
         label.setLayoutData(gridData);
 
         //Set DHT as the default 
@@ -320,86 +296,6 @@ public class ConfigSectionTransferAutoSpeedBeta
         gridData.horizontalSpan=3;
         spacer.setLayoutData(gridData);
 
-        //////////////////////////
-        //Vivaldi Median Distance Group
-        //////////////////////////
-
-        //Vivaldi grouping.
-        vivaldiGroup = new Group(cSection, SWT.NULL);
-        //Messages.setLanguageText
-        vivaldiGroup.setText("Data: Vivaldi");
-        //GridLayout vivaldiLayout = new GridLayout();
-        //vivaldiLayout.numColumns = 3;
-        vivaldiGroup.setLayout(subPanel);
-
-        gridData = new GridData(GridData.FILL_HORIZONTAL);
-        gridData.horizontalSpan = 3;
-        vivaldiGroup.setLayoutData(gridData);
-
-        //label column for Vivaldi limits
-        Label vivaldiSetting = new Label(vivaldiGroup, SWT.NULL);
-        gridData = new GridData();
-        gridData.widthHint=80;
-        vivaldiSetting.setText("Vivaldi Settings: ");
-        //Messages.setLanguageText //ToDo: internationalize
-
-        Label vSet = new Label(vivaldiGroup,SWT.NULL);
-        gridData = new GridData();
-        vSet.setLayoutData(gridData);
-        vSet.setText("set point (ms)");
-        //Messages.setLanguageText //ToDo: internationalize
-
-        Label vTol = new Label(vivaldiGroup, SWT.NULL);
-        gridData = new GridData();
-        vTol.setLayoutData(gridData);
-        vTol.setText("tolerance (ms)");
-        //Messages.setLanguageText //ToDo: internationalize
-
-        //good
-        Label vGoodLbl = new Label(vivaldiGroup, SWT.NULL);
-        gridData = new GridData();
-        vGoodLbl.setLayoutData(gridData);
-        vGoodLbl.setText("Good: ");
-        //Messages.setLanguageText //ToDo: internationalize
-
-        
-        gridData = new GridData();
-        gridData.widthHint = 50;
-        vGood = new IntParameter(vivaldiGroup, SpeedManagerAlgorithmProviderV2.SETTING_VIVALDI_GOOD_SET_POINT);
-        vGood.setLayoutData( gridData );
-
-
-        //ToDo: calculate this limit as 10% of upper limit, or 5 kb/s which ever is greater.
-        gridData = new GridData();
-        gridData.widthHint = 50;
-        vGoodTol = new IntParameter(vivaldiGroup, SpeedManagerAlgorithmProviderV2.SETTING_VIVALDI_GOOD_TOLERANCE);
-        vGoodTol.setLayoutData( gridData );
-
-        //bad
-        Label vBadLbl = new Label(vivaldiGroup, SWT.NULL);
-        gridData = new GridData();
-        vBadLbl.setLayoutData(gridData);
-        vBadLbl.setText("Bad: ");
-        //Messages.setLanguageText //ToDo: internationalize
-
-
-        gridData = new GridData();
-        gridData.widthHint = 50;
-        vBad = new IntParameter(vivaldiGroup, SpeedManagerAlgorithmProviderV2.SETTING_VIVALDI_BAD_SET_POINT);
-        vBad.setLayoutData( gridData );
-
-        
-        //ToDo: calculate this limit as 10% of upper limit, or 5 kb/s which ever is greater.
-        gridData = new GridData();
-        gridData.widthHint = 50;
-        vBadTol = new IntParameter(vivaldiGroup, SpeedManagerAlgorithmProviderV2.SETTING_VIVALDI_BAD_TOLERANCE);
-        vBadTol.setLayoutData( gridData );
-
-        //spacer
-        spacer = new Label(cSection, SWT.NULL);
-        gridData = new GridData();
-        gridData.horizontalSpan=3;
-        spacer.setLayoutData(gridData);
 
         //////////////////////////
         //DHT Ping Group
@@ -513,6 +409,88 @@ public class ConfigSectionTransferAutoSpeedBeta
         gridData = new GridData();
         gridData.widthHint = 50;
         skipAfterAdjustment.setLayoutData(gridData);
+
+
+        //////////////////////////
+        //Vivaldi Median Distance Group
+        //////////////////////////
+
+        //Vivaldi grouping.
+        vivaldiGroup = new Group(cSection, SWT.NULL);
+        //Messages.setLanguageText
+        vivaldiGroup.setText("Data: Vivaldi");
+        vivaldiGroup.setLayout(subPanel);
+
+        gridData = new GridData(GridData.FILL_HORIZONTAL);
+        gridData.horizontalSpan = 3;
+        vivaldiGroup.setLayoutData(gridData);
+
+        //label column for Vivaldi limits
+        Label vivaldiSetting = new Label(vivaldiGroup, SWT.NULL);
+        gridData = new GridData();
+        gridData.widthHint=80;
+        vivaldiSetting.setText("Vivaldi Settings: ");
+        //Messages.setLanguageText //ToDo: internationalize
+
+        Label vSet = new Label(vivaldiGroup,SWT.NULL);
+        gridData = new GridData();
+        vSet.setLayoutData(gridData);
+        vSet.setText("set point (ms)");
+        //Messages.setLanguageText //ToDo: internationalize
+
+        Label vTol = new Label(vivaldiGroup, SWT.NULL);
+        gridData = new GridData();
+        vTol.setLayoutData(gridData);
+        vTol.setText("tolerance (ms)");
+        //Messages.setLanguageText //ToDo: internationalize
+
+        //good
+        Label vGoodLbl = new Label(vivaldiGroup, SWT.NULL);
+        gridData = new GridData();
+        vGoodLbl.setLayoutData(gridData);
+        vGoodLbl.setText("Good: ");
+        //Messages.setLanguageText //ToDo: internationalize
+
+
+        gridData = new GridData();
+        gridData.widthHint = 50;
+        vGood = new IntParameter(vivaldiGroup, SpeedManagerAlgorithmProviderV2.SETTING_VIVALDI_GOOD_SET_POINT);
+        vGood.setLayoutData( gridData );
+
+
+        //ToDo: calculate this limit as 10% of upper limit, or 5 kb/s which ever is greater.
+        gridData = new GridData();
+        gridData.widthHint = 50;
+        vGoodTol = new IntParameter(vivaldiGroup, SpeedManagerAlgorithmProviderV2.SETTING_VIVALDI_GOOD_TOLERANCE);
+        vGoodTol.setLayoutData( gridData );
+
+        //bad
+        Label vBadLbl = new Label(vivaldiGroup, SWT.NULL);
+        gridData = new GridData();
+        vBadLbl.setLayoutData(gridData);
+        vBadLbl.setText("Bad: ");
+        //Messages.setLanguageText //ToDo: internationalize
+
+
+        gridData = new GridData();
+        gridData.widthHint = 50;
+        vBad = new IntParameter(vivaldiGroup, SpeedManagerAlgorithmProviderV2.SETTING_VIVALDI_BAD_SET_POINT);
+        vBad.setLayoutData( gridData );
+
+
+        //ToDo: calculate this limit as 10% of upper limit, or 5 kb/s which ever is greater.
+        gridData = new GridData();
+        gridData.widthHint = 50;
+        vBadTol = new IntParameter(vivaldiGroup, SpeedManagerAlgorithmProviderV2.SETTING_VIVALDI_BAD_TOLERANCE);
+        vBadTol.setLayoutData( gridData );
+
+        //spacer
+        spacer = new Label(cSection, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan=3;
+        spacer.setLayoutData(gridData);
+        
+
 
         //Hide the group that is not selected.
         String value = strategyList.getValue();

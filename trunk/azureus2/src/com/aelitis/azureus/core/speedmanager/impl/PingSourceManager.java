@@ -266,7 +266,17 @@ public class PingSourceManager
 
     public void addPingTime(SpeedManagerPingSource source){
 
+        if(source==null){
+            return;
+        }
+
         PingSourceStats pss = (PingSourceStats) pingAverages.get(source);
+
+        if(pss==null){
+            pingSourceFound(source,false);
+            SpeedManagerLogger.trace("added new source from addPingTime.");
+        }
+
         int pingTime = source.getPingTime();
         if(pingTime>0){
             pss.addPingTime( source.getPingTime() );

@@ -56,7 +56,8 @@ SpeedManagerImpl
 	
 	private static boolean				DEBUG;
 
-	public  static final String	CONFIG_VERSION			= "Auto Upload Speed Version";
+    public  static final String CONFIG_VERSION_STR      = "Auto_Upload_Speed_Version_String"; //Shadow of CONFIG_VERSION for config.
+    public  static final String	CONFIG_VERSION			= "Auto Upload Speed Version";
 	private static final String	CONFIG_AVAIL			= "AutoSpeed Available";	// informative only
 
 	private static final String	CONFIG_DEBUG			= "Auto Upload Speed Debug Enabled";
