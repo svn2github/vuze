@@ -167,6 +167,7 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
                 SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING,
                 downDefaultConfidenceLevel,
                 confName, confValue,true);
+        downConfLevel.setValue( downDefaultConfidenceLevel );
 
         //upload limit label.
         Label ul = new Label(panel, SWT.NULL );
@@ -258,6 +259,9 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
                 if( downloadMinKBPS<5){
                     downloadMinKBPS = 5;
                 }
+
+                COConfigurationManager.setParameter( SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT, uploadMinKBPS*1024 );
+                COConfigurationManager.setParameter( SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MIN_LIMIT, downloadMinKBPS*1024 );
 
 
                 String downConfValue = downConfLevel.getValue();

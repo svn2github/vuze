@@ -36,6 +36,8 @@ import org.gudy.azureus2.core3.tracker.server.TRTrackerServer;
 import org.gudy.azureus2.core3.util.*;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProviderV2;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerImpl;
+import com.aelitis.azureus.core.speedmanager.impl.SpeedLimitMonitor;
+import com.aelitis.azureus.core.speedmanager.impl.SpeedLimitConfidence;
 
 /**
  *
@@ -502,6 +504,8 @@ public class ConfigurationDefaults {
 
     //section
     def.put(SpeedManagerImpl.CONFIG_VERSION, new Long(1) );
+    def.put( SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING, SpeedLimitConfidence.NONE.getString() );
+    def.put( SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING, SpeedLimitConfidence.NONE.getString() );
 
   }
   
