@@ -342,10 +342,11 @@ public class MainWindow
 			long now = SystemTime.getCurrentTime();
 			long mdRefreshOn = PlatformTorrentUtils.getMetaDataRefreshOn(torrent);
 			if (mdRefreshOn < now) {
-				PlatformTorrentUtils.log("addDM, update MD NOW");
+				PlatformTorrentUtils.log(torrent, "addDM, update MD NOW");
 				PlatformTorrentUtils.updateMetaData(torrent, 5000);
 			} else {
-				PlatformTorrentUtils.log("addDM, update MD on " + new Date(mdRefreshOn));
+				PlatformTorrentUtils.log(torrent, "addDM, update MD on "
+						+ new Date(mdRefreshOn));
 				SimpleTimer.addEvent("Update MD", mdRefreshOn,
 						new TimerEventPerformer() {
 							public void perform(TimerEvent event) {
