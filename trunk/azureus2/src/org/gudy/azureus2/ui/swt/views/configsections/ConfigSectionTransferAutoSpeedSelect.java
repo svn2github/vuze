@@ -7,6 +7,7 @@ import org.gudy.azureus2.ui.swt.config.ParameterChangeListener;
 import org.gudy.azureus2.ui.swt.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -158,7 +159,7 @@ public class ConfigSectionTransferAutoSpeedSelect
         gridData.widthHint = 50;
         gridData.horizontalAlignment = GridData.END;
         enableAutoSpeed = new BooleanParameter(modeGroup,
-                SpeedManagerAlgorithmProviderV2.SETTING_V2_BETA_ENABLED);//ToDo: this must change.
+                TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY);
         enableAutoSpeed.setLayoutData(gridData);
 
         //enableAutoSpeed.addChangeListener( new GroupModeChangeListener() );
