@@ -67,6 +67,8 @@ IpFilterImpl
     
   
 	private List	listeners = new ArrayList();
+	
+	FrequencyLimitedDispatcher blockedListChangedDispatcher;
 
 	private IpFilterAutoLoaderImpl ipFilterAutoLoader;
 	
@@ -78,6 +80,21 @@ IpFilterImpl
 	  
 	  ipsBlocked = new LinkedList();
 	  
+		blockedListChangedDispatcher = new FrequencyLimitedDispatcher(
+				new AERunnable() {
+					public void runSupport() {
+						Object[] listenersArray = listeners.toArray();
+						for (int i = 0; i < listenersArray.length; i++) {
+							try {
+								IPFilterListener l = (IPFilterListener) listenersArray[i];
+								l.IPBlockedListChanged(IpFilterImpl.this);
+							} catch (Exception e) {
+								Debug.out(e);
+							}
+						}
+					}
+				}, 10000);
+
 		ipFilterAutoLoader = new IpFilterAutoLoaderImpl(this);
 		
 		try{
@@ -1136,15 +1153,7 @@ IpFilterImpl
 	{
 	  	last_update_time	= SystemTime.getCurrentTime();
 	  	
-	  	Object[] listenersArray = listeners.toArray();
-	  	for (int i = 0; i < listenersArray.length; i++) {
-	  		try {
-  				IPFilterListener l = (IPFilterListener) listenersArray[i];
-  				l.IPBlockedListChanged(this);
-	  		} catch (Exception e) {
-	  			Debug.out(e);
-	  		}
-			}
+	  	blockedListChangedDispatcher.dispatch();
 	}
 
 	public long
