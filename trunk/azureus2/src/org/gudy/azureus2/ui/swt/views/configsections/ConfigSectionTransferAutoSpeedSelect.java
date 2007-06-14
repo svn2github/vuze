@@ -5,6 +5,7 @@ import org.gudy.azureus2.ui.swt.config.BooleanParameter;
 import org.gudy.azureus2.ui.swt.config.StringListParameter;
 import org.gudy.azureus2.ui.swt.config.ParameterChangeListener;
 import org.gudy.azureus2.ui.swt.config.Parameter;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
@@ -134,6 +135,7 @@ public class ConfigSectionTransferAutoSpeedSelect
                 "AutoSpeed (classic)",
                 "Azureus SpeedSense (beta)"
         };
+        
         String[] modes = {
                 "1",
                 "2"

@@ -85,12 +85,7 @@ SpeedManagerAlgorithmProviderV2
 		adapter	= _adapter;
 		adapter.setLoggingEnabled( true );
 
-        //strategy = new SpeedManagerAlgorithmProviderSpeedSense(_adapter);
         strategy = new SpeedManagerAlgorithmProviderVivaldi(_adapter);
-
-        //ToDo: use factory to set strategy.
-        //String strategyName = System.getProperty( "azureus.autospeed.alg.provider.v2.strategy" );//ToDo: name in factory.
-        //strategy = SpeedManagerAlgorithmProviderV2Factory(_adapter, strategyName );
     }
 	
 	public void

@@ -201,9 +201,8 @@ public class ConfigSectionTransferAutoSpeedBeta
         //Beta-mode grouping.
         Group modeGroup = new Group(cSection, SWT.NULL);
         //Messages.setLanguageText
-        modeGroup.setText("AutoSpeed-Beta mode");
+        modeGroup.setText("AutoSpeed-Beta settings");
         GridLayout modeLayout = new GridLayout();
-        //modeLayout.numColumns = 3;
         modeLayout.numColumns = 4;
         modeGroup.setLayout(modeLayout);
         gridData = new GridData(GridData.FILL_HORIZONTAL);
@@ -218,8 +217,8 @@ public class ConfigSectionTransferAutoSpeedBeta
 
         //Set DHT as the default 
         String[] modeNames = {
-                "SpeedSense - Vivaldi",
-                "SpeedSense - DHT"
+                "Vivaldi Media Distance",
+                "DHT Ping time"
         };
         String[] modes = {
                 SpeedManagerAlgorithmProviderV2.VALUE_SOURCE_VIVALDI,
@@ -236,7 +235,6 @@ public class ConfigSectionTransferAutoSpeedBeta
         //spacer
         Label spacer = new Label(modeGroup, SWT.NULL);
         gridData = new GridData();
-        //gridData.horizontalSpan=3;
         gridData.horizontalSpan=4;
         spacer.setLayoutData(gridData);
 
@@ -273,12 +271,12 @@ public class ConfigSectionTransferAutoSpeedBeta
         //Messages.setLanguageText //ToDo: internationalize
 
         gridData = new GridData();
-        gridData.widthHint = 50;
+        gridData.widthHint = 80;
         downMaxLim = new IntParameter(modeGroup,SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT);
         downMaxLim.setLayoutData( gridData );
 
         gridData = new GridData();
-        gridData.widthHint = 50;
+        gridData.widthHint = 80;
         downMinLim = new IntParameter(modeGroup,SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MIN_LIMIT);
         downMinLim.setLayoutData( gridData );
 
@@ -554,9 +552,19 @@ public class ConfigSectionTransferAutoSpeedBeta
 
 
         //only enable the comment section if the beta is enabled.
-        boolean isBetaEnabled = COConfigurationManager.getBooleanParameter(SpeedManagerAlgorithmProviderV2.SETTING_V2_BETA_ENABLED);
+        //boolean isBetaEnabled = COConfigurationManager.getBooleanParameter(SpeedManagerAlgorithmProviderV2.SETTING_V2_BETA_ENABLED);
+        boolean isBothEnabled = COConfigurationManager.getBooleanParameter( TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY );
+        boolean isSeedingEnabled = COConfigurationManager.getBooleanParameter( TransferSpeedValidator.AUTO_UPLOAD_SEEDING_ENABLED_CONFIGKEY );
+        long version = COConfigurationManager.getLongParameter( SpeedManagerImpl.CONFIG_VERSION );
+
+        boolean isV2Enabled = false;
+        if( (isBothEnabled || isSeedingEnabled) && version==2 ){
+            isV2Enabled = true;
+        }
+
         if( commentGroup!=null){
-            if( isBetaEnabled ){
+            //if( isBetaEnabled ){
+            if( isV2Enabled ){
                 //make this section visible.
                 commentGroup.setEnabled(true);
                 commentGroup.setVisible(true);

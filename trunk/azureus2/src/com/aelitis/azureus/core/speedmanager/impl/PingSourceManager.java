@@ -141,7 +141,7 @@ public class PingSourceManager
         }
 
         return false;
-    }
+    }//forcePingSourceChange
 
     /**
      * A slow source is something that is 2x the slower then the two fastest.
@@ -274,6 +274,7 @@ public class PingSourceManager
 
         if(pss==null){
             pingSourceFound(source,false);
+            pss = (PingSourceStats) pingAverages.get(source);
             SpeedManagerLogger.trace("added new source from addPingTime.");
         }
 
