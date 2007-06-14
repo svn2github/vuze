@@ -472,21 +472,21 @@ public class PlatformTorrentUtils
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-
-					// crappy way of updating the display name
-					try {
-						GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-						DownloadManager dm = gm.getDownloadManager(torrent);
-						String title = PlatformTorrentUtils.getContentTitle(torrent);
-						if (title != null && title.length() > 0
-								&& dm.getDownloadState().getDisplayName() == null) {
-							dm.getDownloadState().setDisplayName(title);
-						}
-					} catch (Exception e) {
-
-					}
-					triggerMetaDataUpdateListeners(torrent);
 				}
+
+				// crappy way of updating the display name
+				try {
+					GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+					DownloadManager dm = gm.getDownloadManager(torrent);
+					String title = PlatformTorrentUtils.getContentTitle(torrent);
+					if (title != null && title.length() > 0
+							&& dm.getDownloadState().getDisplayName() == null) {
+						dm.getDownloadState().setDisplayName(title);
+					}
+				} catch (Exception e) {
+
+				}
+				triggerMetaDataUpdateListeners(torrent);
 
 				long refreshOn;
 				if (expireyMins > 0) {
