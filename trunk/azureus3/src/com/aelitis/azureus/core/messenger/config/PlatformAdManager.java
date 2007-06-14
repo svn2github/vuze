@@ -278,7 +278,8 @@ public class PlatformAdManager
 				public void replyReceived(PlatformMessage message, String replyType,
 						Map reply) {
 					if (!replyType.equals(PlatformMessenger.REPLY_RESULT)) {
-						debug("sending " + fSendingImpressions + " impressions failed");
+						debug("sending " + fSendingImpressions + " impressions failed. "
+								+ reply);
 						try {
 							mon_unsentImpressions.enter();
 
@@ -345,7 +346,7 @@ public class PlatformAdManager
 		try {
 			mon_unsentImpressions.enter();
 
-			Map map = FileUtil.readResilientConfigFile("unsentdata.config");
+			Map map = BDecoder.decodeStrings(FileUtil.readResilientConfigFile("unsentdata.config"));
 			Object value = map.get("unsent");
 			if (value instanceof List) {
 				unsentImpressions = (List) value;

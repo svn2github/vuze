@@ -280,7 +280,11 @@ public class AdManager
 				System.err.println("DM for Ad not found. CHEATER!!");
 			}
 			
-			dm.setData("LastASX", null);
+			DownloadManager dmContent = core.getGlobalManager().getDownloadManager(
+					new HashWrapper(Base32.decode(contentHash)));
+			if (dmContent != null) {
+				dmContent.setData("LastASX", null);
+			}
 
 			PlatformAdManager.storeImpresssion(spyID, SystemTime.getCurrentTime(),
 					contentHash, 5000);
