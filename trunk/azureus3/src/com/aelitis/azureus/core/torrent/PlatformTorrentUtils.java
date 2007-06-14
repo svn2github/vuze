@@ -495,7 +495,7 @@ public class PlatformTorrentUtils
 					long newLastUpdated = getContentLastUpdated(torrent);
 
 					long diff = newLastUpdated - oldLastUpdated;
-					log("Last Updated: new " + new Date(newLastUpdated) + ";old "
+					log(torrent, "Last Updated: new " + new Date(newLastUpdated) + ";old "
 							+ new Date(oldLastUpdated) + ";diff=" + diff);
 					if (diff > 0 && oldLastUpdated != 0) {
 						diff *= 2;
