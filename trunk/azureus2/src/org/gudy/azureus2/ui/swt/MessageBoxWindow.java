@@ -58,7 +58,7 @@ MessageBoxWindow
 		int remembered = RememberedDecisionsManager.getRememberedDecision(id,
 				remember_map);
 		
-		if ( remembered != SWT.NULL ){
+		if ( remembered > 0 ){
 			
 			return( remembered );
 		}
