@@ -111,7 +111,8 @@ public class AdManager
 			public void metaDataUpdated(TOTorrent torrent) {
 				GlobalManager gm = core.getGlobalManager();
 				DownloadManager dm = gm.getDownloadManager(torrent);
-				if (dm != null) {
+				if (dm != null
+						&& PlatformTorrentUtils.isContentAdEnabled(dm.getTorrent())) {
 					hookDM(new DownloadManager[] {
 						dm
 					});
@@ -155,13 +156,15 @@ public class AdManager
 						list.add(dm);
 						if (!adSupportedDMList.contains(dm)) {
 							adSupportedDMList.add(dm);
-							dm.addListener(new DownloadManagerAdapter() {
-								public void downloadComplete(DownloadManager manager) {
-									// good chance we still have internet here, so get/cache
-									// the asx
-									createASX(dm, null);
-								}
-							});
+							if (!dm.getAssumedComplete()) {
+  							dm.addListener(new DownloadManagerAdapter() {
+  								public void downloadComplete(DownloadManager manager) {
+  									// good chance we still have internet here, so get/cache
+  									// the asx
+  									createASX(dm, null);
+  								}
+  							});
+							}
 						}
 					}
 				}
