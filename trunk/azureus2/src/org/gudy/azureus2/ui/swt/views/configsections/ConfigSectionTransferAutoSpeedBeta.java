@@ -217,7 +217,7 @@ public class ConfigSectionTransferAutoSpeedBeta
 
         //Set DHT as the default 
         String[] modeNames = {
-                "Vivaldi Media Distance",
+                "Vivaldi Distance",
                 "DHT Ping time"
         };
         String[] modes = {
@@ -231,6 +231,8 @@ public class ConfigSectionTransferAutoSpeedBeta
 
         strategyList.addChangeListener( new GroupModeChangeListener() );
 
+
+        //ToDo: switch layout managers here.
 
         //spacer
         Label spacer = new Label(modeGroup, SWT.NULL);
@@ -301,13 +303,13 @@ public class ConfigSectionTransferAutoSpeedBeta
 
 
         gridData = new GridData();
-        gridData.widthHint = 50;
+        gridData.widthHint = 80;
         uploadMaxLim = new IntParameter(modeGroup, SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT);
         uploadMaxLim.setLayoutData( gridData );
 
 
         gridData = new GridData();
-        gridData.widthHint = 50;
+        gridData.widthHint = 80;
         uploadMinLim = new IntParameter(modeGroup, SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT, 800, 5000);
         uploadMinLim.setLayoutData( gridData );
 
