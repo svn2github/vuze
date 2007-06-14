@@ -46,9 +46,14 @@ import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
  */
 public class PlatformTorrentUtils
 {
-	private static final long RETRY_METADATA 		= 10 * 60 * 1000;
-	private static final long MIN_SPEED_DEFAULT		= 100 * 1024;
-	
+	private static final long RETRY_METADATA = 10 * 60 * 1000;
+
+	private static final long MIN_SPEED_DEFAULT = 100 * 1024;
+
+	private static final long MIN_MD_REFRESH_MS = 1000 * 60;
+
+	private static final long MAX_MD_REFRESH_MS = 1000L * 60 * 60 * 24 * 30;
+
 	public static final boolean DEBUG_CACHING = System.getProperty(
 			"az3.debug.caching", "0").equals("1");
 
@@ -85,7 +90,7 @@ public class PlatformTorrentUtils
 	private static final String TOR_AZ_PROP_MIN_SPEED = "Min Speed Bps";
 
 	private static final String TOR_AZ_PROP_DRM = "DRM";
-	
+
 	private static final String TOR_AZ_PROP_QOS_CLASS = "QOS Class";
 
 	private static final String TOR_AZ_PROP_AD_ID = "Ad ID";
@@ -168,15 +173,16 @@ public class PlatformTorrentUtils
 		return null;
 	}
 
-	private static void setContentMapString(TOTorrent torrent, String key, String value) {
+	private static void setContentMapString(TOTorrent torrent, String key,
+			String value) {
 		if (torrent == null) {
 			return;
 		}
 
 		Map mapContent = getContentMap(torrent);
-		mapContent.put( key, value );
+		mapContent.put(key, value);
 	}
-	
+
 	private static long getContentMapLong(TOTorrent torrent, String key, long def) {
 		if (torrent == null) {
 			return def;
@@ -201,13 +207,14 @@ public class PlatformTorrentUtils
 		return def;
 	}
 
-	private static void setContentMapLong(TOTorrent torrent, String key, long value) {
+	private static void setContentMapLong(TOTorrent torrent, String key,
+			long value) {
 		if (torrent == null) {
 			return;
 		}
 
 		Map mapContent = getContentMap(torrent);
-		mapContent.put( key, new Long(value));
+		mapContent.put(key, new Long(value));
 	}
 
 	public static String getContentHash(TOTorrent torrent) {
@@ -247,11 +254,11 @@ public class PlatformTorrentUtils
 	}
 
 	public static long getQOSClass(TOTorrent torrent) {
-		return getContentMapLong(torrent, TOR_AZ_PROP_QOS_CLASS, 0 );
+		return getContentMapLong(torrent, TOR_AZ_PROP_QOS_CLASS, 0);
 	}
 
 	public static void setQOSClass(TOTorrent torrent, long cla) {
-		setContentMapLong(torrent, TOR_AZ_PROP_QOS_CLASS, cla );
+		setContentMapLong(torrent, TOR_AZ_PROP_QOS_CLASS, cla);
 	}
 
 	private static void putOrRemove(Map map, String key, Object obj) {
@@ -378,7 +385,6 @@ public class PlatformTorrentUtils
 		return false;
 	}
 
-
 	public static String getAdId(TOTorrent torrent) {
 		return getContentMapString(torrent, TOR_AZ_PROP_AD_ID);
 	}
@@ -400,13 +406,12 @@ public class PlatformTorrentUtils
 	 */
 	public static void updateMetaData(final TOTorrent torrent, long maxDelayMS) {
 		if (!isContent(torrent)) {
-			log("torrent " + new String(torrent.getName()) + " not az content");
+			log(torrent, "torrent " + new String(torrent.getName())
+					+ " not az content");
 			return;
 		}
 
-		if (DEBUG_CACHING) {
-			log("updateMD");
-		}
+		log(torrent, "updateMD");
 
 		PlatformTorrentMessenger.getMetaData(new TOTorrent[] {
 			torrent
@@ -427,15 +432,11 @@ public class PlatformTorrentUtils
 
 		if (replyType.equals(PlatformMessenger.REPLY_EXCEPTION)) {
 			// try again in a bit
-			if (DEBUG_CACHING) {
-				log("Exception, retrying later");
-			}
+			log(torrent, "Exception, retrying later");
 			SimpleTimer.addEvent("Update MD Retry", SystemTime.getCurrentTime()
 					+ RETRY_METADATA, new TimerEventPerformer() {
 				public void perform(TimerEvent event) {
-					if (DEBUG_CACHING) {
-						log("retry time");
-					}
+					log(torrent, "retry time");
 					PlatformTorrentUtils.updateMetaData(torrent, 15000);
 				}
 			});
@@ -446,8 +447,7 @@ public class PlatformTorrentUtils
 				} catch (TOTorrentException e) {
 				}
 			}
-			Map jsonMapMetaData = hash == null ? null
-					: (Map) mapHashes.get(hash);
+			Map jsonMapMetaData = hash == null ? null : (Map) mapHashes.get(hash);
 			if (jsonMapMetaData != null) {
 				long oldLastUpdated = getContentLastUpdated(torrent);
 				long expireyMins = 0;
@@ -493,22 +493,26 @@ public class PlatformTorrentUtils
 					refreshOn = SystemTime.getCurrentTime() + (expireyMins * 60 * 1000L);
 				} else {
 					long newLastUpdated = getContentLastUpdated(torrent);
-					
-					System.out.println("new " + new Date(newLastUpdated) + ";old " + new Date(oldLastUpdated));
 
 					long diff = newLastUpdated - oldLastUpdated;
+					log("Last Updated: new " + new Date(newLastUpdated) + ";old "
+							+ new Date(oldLastUpdated) + ";diff=" + diff);
 					if (diff > 0 && oldLastUpdated != 0) {
-						refreshOn = SystemTime.getCurrentTime() + (diff * 2);
+						diff *= 2;
+						if (diff < MIN_MD_REFRESH_MS) {
+							diff = MIN_MD_REFRESH_MS;
+						} else if (diff > MAX_MD_REFRESH_MS) {
+							diff = MAX_MD_REFRESH_MS;
+						}
+						refreshOn = SystemTime.getOffsetTime(diff);
 					} else {
 						refreshOn = SystemTime.getCurrentTime()
 								+ (7 * 24 * 60 * 60 * 1000L);
 					}
 				}
 
-				if (DEBUG_CACHING) {
-					log("got MD. Next refresh in "
-							+ (refreshOn - SystemTime.getCurrentTime()));
-				}
+				log(torrent, "got MD. Next refresh in "
+						+ (refreshOn - SystemTime.getCurrentTime()));
 				setMetaDataRefreshOn(torrent, refreshOn);
 				SimpleTimer.addEvent("Update MD", refreshOn, new TimerEventPerformer() {
 					public void perform(TimerEvent event) {
@@ -519,10 +523,7 @@ public class PlatformTorrentUtils
 				long refreshOn = SystemTime.getCurrentTime()
 						+ (30 * 24 * 60 * 60 * 1000L);
 				setMetaDataRefreshOn(torrent, refreshOn);
-				if (DEBUG_CACHING) {
-					log("no hash in reply for " + torrent + ". Next refresh on "
-							+ new Date(refreshOn));
-				}
+				log(torrent, "no hash in reply. Next refresh on " + new Date(refreshOn));
 			}
 		}
 	}
@@ -562,7 +563,7 @@ public class PlatformTorrentUtils
 	}
 
 	public static long getContentMinimumSpeedBps(TOTorrent torrent) {
-		return getContentMapLong(torrent, TOR_AZ_PROP_MIN_SPEED, MIN_SPEED_DEFAULT );
+		return getContentMapLong(torrent, TOR_AZ_PROP_MIN_SPEED, MIN_SPEED_DEFAULT);
 	}
 
 	public static boolean isContentAdEnabled(TOTorrent torrent) {
@@ -589,10 +590,26 @@ public class PlatformTorrentUtils
 	}
 
 	public static void log(String str) {
+		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.MD");
+		diag_logger.log(str);
 		if (DEBUG_CACHING) {
-			AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.MD");
-			diag_logger.log(str);
-			System.out.println(str);
+			System.out.println(Thread.currentThread().getName() + "|"
+					+ System.currentTimeMillis() + "] " + str);
 		}
+	}
+
+	/**
+	 * @param torrent
+	 * @param string
+	 *
+	 * @since 3.0.1.5
+	 */
+	public static void log(TOTorrent torrent, String string) {
+		String hash = "";
+		try {
+			hash = torrent.getHashWrapper().toBase32String();
+		} catch (TOTorrentException e) {
+		}
+		log(hash + "] " + string);
 	}
 }
