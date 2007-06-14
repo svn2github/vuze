@@ -260,6 +260,7 @@ public class PlatformAdManager
 
 			sendingImpressions = unsentImpressions;
 			unsentImpressions = new ArrayList();
+			saveUnsentImpressions();
 		} finally {
 			mon_unsentImpressions.exit();
 		}
