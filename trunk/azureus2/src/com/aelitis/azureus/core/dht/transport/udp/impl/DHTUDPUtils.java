@@ -440,7 +440,7 @@ DHTUDPUtils
 			
 			version	= -1;
 			
-			int distance = is.readInt();
+			// int distance = is.readInt();
 			
 			//System.out.println( "read:" + distance );
 		}

@@ -60,7 +60,6 @@ public class ConfigSectionFileTorrents implements UISWTConfigSection {
     Image imgOpenFolder = ImageRepository.getImage("openFolderButton");
     GridData gridData;
     GridLayout layout;
-    Label label;
 
     // Sub-Section: File -> Torrent
     // ----------------------------

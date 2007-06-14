@@ -102,7 +102,7 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 			return cSection;
 		}
 		
-		LinkLabel linkLabel = new LinkLabel(cSection, gridData, CFG_PREFIX
+		new LinkLabel(cSection, gridData, CFG_PREFIX
 				+ "info.link", MessageText.getString(CFG_PREFIX + "url"));
 
 		///////////////////////   ADVANCED SOCKET SETTINGS GROUP //////////

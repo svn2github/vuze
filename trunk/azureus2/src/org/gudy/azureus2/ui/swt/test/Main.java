@@ -81,7 +81,7 @@ public class Main {
     bApply.setLayoutData(gridData);
     
     for (int i=0; i<2; i++) {
-      TableColumn column = new TableColumn(table, SWT.NONE);    
+      new TableColumn(table, SWT.NONE);    
     }
     for (int i=0; i<12; i++) {
       createTableRow(-1,"Toto" + i , false);

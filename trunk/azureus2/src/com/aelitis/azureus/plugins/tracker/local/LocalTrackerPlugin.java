@@ -106,13 +106,13 @@ LocalTrackerPlugin
 		
 		enabled = config.addBooleanParameter2( "Plugin.localtracker.enable", "Plugin.localtracker.enable", true );
 
-		LabelParameter	lp1 = config.addLabelParameter2( "Plugin.localtracker.networks.info" );
+		config.addLabelParameter2( "Plugin.localtracker.networks.info" );
 		
 		final StringParameter subnets = config.addStringParameter2( "Plugin.localtracker.networks", "Plugin.localtracker.networks", "" );
 
 		final BooleanParameter include_wellknown = config.addBooleanParameter2( "Plugin.localtracker.wellknownlocals", "Plugin.localtracker.wellknownlocals", true );
 		
-		LabelParameter	lp2 = config.addLabelParameter2( "Plugin.localtracker.autoadd.info" );
+		config.addLabelParameter2( "Plugin.localtracker.autoadd.info" );
 		
 		final StringParameter autoadd = config.addStringParameter2( "Plugin.localtracker.autoadd", "Plugin.localtracker.autoadd", "" );
 		
