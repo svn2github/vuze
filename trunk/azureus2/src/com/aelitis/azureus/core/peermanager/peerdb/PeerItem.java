@@ -65,10 +65,6 @@ public class PeerItem implements PeerDescriptor {
     handshake = _handshake;
     crypto_level = _crypto_level;
     up_speed = (short)_up_speed;
-    
-    if( address.length != 4 ) {
-      System.out.println( "PeerItem OUT: address byte size=" +address.length);
-    }
   }
   
 
@@ -90,10 +86,6 @@ public class PeerItem implements PeerDescriptor {
     udp_port = (short)_udp_port;
     crypto_level = PeerItemFactory.CRYPTO_LEVEL_1;	// TODO: serialise this...
     up_speed = 0; // TODO:...
-    
-    if( address.length > 15 ) {
-      System.out.println( "PeerItem IN: address byte size=" +address.length);
-    }
   }
     
   
