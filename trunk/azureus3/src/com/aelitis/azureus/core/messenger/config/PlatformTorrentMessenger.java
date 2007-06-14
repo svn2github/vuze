@@ -41,14 +41,54 @@ public class PlatformTorrentMessenger
 
 	public static String OP_GETMETADATA = "get-metadata";
 
-	public static void getMetaData(String[] torrentHashes, long maxDelayMS,
+	public static interface GetMetaDataReplyListener
+	{
+		public void messageSent();
+
+		public void replyReceived(String replyType, Map mapHashes);
+	}
+
+	/**
+	 * @param torrent
+	 * @param maxDelayMS
+	 * @param replyListener
+	 *
+	 * @since 3.0.0.7
+	 */
+	public static void getMetaData(TOTorrent[] torrents, long maxDelayMS,
 			final GetMetaDataReplyListener replyListener) {
+		Map mapParameters = new HashMap();
+		List listContent = new ArrayList();
+		List listHashes = new ArrayList();
+		mapParameters.put("content-list", listContent);
+		if (PlatformConfigMessenger.getRPCVersion() == 0) {
+			// legacy support
+			mapParameters.put("hashes", listHashes);
+		}
+
+		for (int i = 0; i < torrents.length; i++) {
+			TOTorrent torrent = torrents[i];
+			String hash = null;
+			try {
+				hash = torrent.getHashWrapper().toBase32String();
+			} catch (TOTorrentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			if (hash != null) {
+				listHashes.add(hash);
+
+				Map jsonSubObject = new HashMap();
+				listContent.add(jsonSubObject);
+				jsonSubObject.put("hash", hash);
+				jsonSubObject.put("last-revision", new Long(
+						PlatformTorrentUtils.getContentLastUpdated(torrent)));
+			}
+		}
 
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
-				OP_GETMETADATA, new Object[] {
-					"hashes",
-					torrentHashes,
-				}, maxDelayMS);
+				OP_GETMETADATA, mapParameters, maxDelayMS);
 
 		PlatformMessengerListener listener = new PlatformMessengerListener() {
 			public void messageSent(PlatformMessage message) {
@@ -66,88 +106,5 @@ public class PlatformTorrentMessenger
 		};
 
 		PlatformMessenger.queueMessage(message, listener);
-	}
-
-	public static interface GetMetaDataReplyListener
-	{
-		public void messageSent();
-
-		public void replyReceived(String replyType, Map mapHashes);
-	}
-
-	/**
-	 * @param torrent
-	 * @param maxDelayMS
-	 * @param replyListener
-	 *
-	 * @since 3.0.0.7
-	 */
-	public static void getMetaData(TOTorrent[] torrents, long maxDelayMS,
-			final GetMetaDataReplyListener replyListener) {
-		if (PlatformConfigMessenger.getRPCVersion() > 0) {
-			// We can use the better function
-
-			Map mapParameters = new HashMap();
-			List listHashes = new ArrayList();
-			mapParameters.put("hashes", listHashes);
-
-			for (int i = 0; i < torrents.length; i++) {
-				TOTorrent torrent = torrents[i];
-				String hash = null;
-				try {
-					hash = torrent.getHashWrapper().toBase32String();
-				} catch (TOTorrentException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-
-				if (hash != null) {
-					Map jsonSubObject = new HashMap();
-					listHashes.add(mapParameters);
-					jsonSubObject.put("hash", hash);
-					jsonSubObject.put("last-revision", new Long(
-							PlatformTorrentUtils.getContentLastUpdated(torrent)));
-				}
-			}
-
-			PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
-					OP_GETMETADATA, mapParameters, maxDelayMS);
-
-			PlatformMessengerListener listener = new PlatformMessengerListener() {
-				public void messageSent(PlatformMessage message) {
-					replyListener.messageSent();
-				}
-
-				public void replyReceived(PlatformMessage message, String replyType,
-						Map reply) {
-					if (reply != null) {
-						replyListener.replyReceived(replyType, reply);
-					} else {
-						replyListener.replyReceived(replyType, new HashMap());
-					}
-				}
-			};
-
-			PlatformMessenger.queueMessage(message, listener);
-		} else {
-			// use the old one
-			ArrayList hashes = new ArrayList();
-			for (int i = 0; i < torrents.length; i++) {
-				TOTorrent torrent = torrents[i];
-				try {
-					String hash = torrent.getHashWrapper().toBase32String();
-					if (hash != null) {
-						hashes.add(hash);
-					}
-				} catch (TOTorrentException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-
-			PlatformTorrentMessenger.getMetaData(
-					(String[]) hashes.toArray(new String[hashes.size()]), maxDelayMS,
-					replyListener);
-		}
 	}
 }
