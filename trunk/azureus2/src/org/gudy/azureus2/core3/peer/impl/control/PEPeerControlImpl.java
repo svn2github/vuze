@@ -546,7 +546,7 @@ PEPeerControlImpl
 
 		final PEPeerTransport	transport = (PEPeerTransport)_transport;
 
-		if (!ip_filter.isInRange(transport.getIp(), adapter.getDisplayName(), getTorrentHash())) {
+		if (!ip_filter.isInRange(transport.getIp(), getDisplayName(), getTorrentHash())) {
 
 			final ArrayList peer_transports = peer_transports_cow;
 
@@ -800,7 +800,7 @@ PEPeerControlImpl
 	{    
 		//make sure this connection isn't filtered
    
-		if( ip_filter.isInRange( address, adapter.getDisplayName(), getTorrentHash())) {
+		if( ip_filter.isInRange( address, getDisplayName(), getTorrentHash())) {
 			return "IPFilter block";
 		}
 		
@@ -1412,7 +1412,7 @@ PEPeerControlImpl
 	}
 
 	public void addPeerTransport( PEPeerTransport transport ) {
-    if (!ip_filter.isInRange(transport.getIp(), adapter.getDisplayName(), getTorrentHash())) {
+    if (!ip_filter.isInRange(transport.getIp(), getDisplayName(), getTorrentHash())) {
 		final ArrayList peer_transports = peer_transports_cow;
 			
 			if (!peer_transports.contains( transport )) {
@@ -2590,7 +2590,7 @@ PEPeerControlImpl
 									
 									if (	pt !=null &&
 											pt.getReservedPieceNumber() ==-1 &&
-											!ip_filter.isInRange(writer, adapter.getDisplayName(),getTorrentHash())){
+											!ip_filter.isInRange(writer, getDisplayName(),getTorrentHash())){
 									
 										bestWriter = writer;
 										
@@ -2696,7 +2696,7 @@ PEPeerControlImpl
 			
 					// if a block-ban occurred, check other connections
 				
-				if (ip_filter.ban(ip, adapter.getDisplayName(), false )){
+				if (ip_filter.ban(ip, getDisplayName(), false )){
 				
 					checkForBannedConnections();
 				}
@@ -2934,10 +2934,14 @@ PEPeerControlImpl
   		ArrayList to_close = null;
     	
 		final ArrayList peer_transports = peer_transports_cow;
+		
+		String name 	= getDisplayName();
+		byte[]	hash	= getTorrentHash();
+		
   		for (int i=0; i < peer_transports.size(); i++) {
   			final PEPeerTransport conn = (PEPeerTransport)peer_transports.get( i );
   			
-  			if ( ip_filter.isInRange( conn.getIp(), adapter.getDisplayName(),getTorrentHash())) {        	
+  			if ( ip_filter.isInRange( conn.getIp(), name, hash )) {        	
   				if( to_close == null )  to_close = new ArrayList();
   				to_close.add( conn );
   			}
@@ -3644,11 +3648,14 @@ PEPeerControlImpl
 	public void IPBlockedListChanged(IpFilter filter) {
 		Iterator	it = peer_transports_cow.iterator();
 		
+		String	name 	= getDisplayName();
+		byte[]	hash	= getTorrentHash();
+		
 		while( it.hasNext()){
 			try {
   			PEPeerTransport	peer = (PEPeerTransport)it.next();
   			
-  			if (filter.isInRange(peer.getIp(), adapter.getDisplayName(),getTorrentHash())) {
+  			if (filter.isInRange(peer.getIp(), name, hash )) {
   				peer.closeConnection( "IP address blocked by filters" );
   			}
 			} catch (Exception e) {
