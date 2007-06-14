@@ -282,15 +282,23 @@ public class ConfigSectionTransferAutoSpeedBeta
         downMinLim = new IntParameter(modeGroup,SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MIN_LIMIT);
         downMinLim.setLayoutData( gridData );
 
-        String[] confStrings = {
+        String[] confLevelNames = {
                 SpeedLimitConfidence.ABSOLUTE.getInternationalizedString(),
                 SpeedLimitConfidence.HIGH.getInternationalizedString(),
                 SpeedLimitConfidence.MED.getInternationalizedString(),
+                SpeedLimitConfidence.LOW.getInternationalizedString()
+        };
+
+        String[] confLevelValues = {
+                SpeedLimitConfidence.ABSOLUTE.getString(),
+                SpeedLimitConfidence.HIGH.getString(),
+                SpeedLimitConfidence.MED.getString(),
+                SpeedLimitConfidence.LOW.getString()
         };
 
         gridData = new GridData();
         gridData.widthHint = 80;
-        confDownload = new StringListParameter(modeGroup, SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING, confStrings, confStrings);
+        confDownload = new StringListParameter(modeGroup, SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING, confLevelNames, confLevelValues);
         confDownload.setLayoutData( gridData );
 
 
@@ -315,7 +323,7 @@ public class ConfigSectionTransferAutoSpeedBeta
 
         gridData = new GridData();
         gridData.widthHint = 80;
-        confUpload = new StringListParameter(modeGroup, SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING,confStrings,confStrings);
+        confUpload = new StringListParameter(modeGroup, SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING,confLevelNames,confLevelValues);
         confUpload.setLayoutData( gridData );
 
         //spacer

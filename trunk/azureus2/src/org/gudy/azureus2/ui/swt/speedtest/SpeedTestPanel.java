@@ -620,7 +620,7 @@ SpeedTestPanel
         SpeedTestData persist = SpeedTestData.getInstance();
         persist.setLastTestData( textMessages.getText() );
 
-        return new SetUploadLimitPanel( wizard, this, uploadTest, downloadTest);
+        return new SpeedTestSetLimitPanel( wizard, this, uploadTest, downloadTest);
     }
 
 

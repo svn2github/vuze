@@ -40,7 +40,7 @@ import com.aelitis.azureus.core.speedmanager.impl.SpeedLimitMonitor;
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  */
 
-public class SetUploadLimitPanel extends AbstractWizardPanel {
+public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
 
     int measuredUploadKbps, measuredDownloadKbps;
 
@@ -56,7 +56,7 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
 
 
 
-    public SetUploadLimitPanel(Wizard wizard, IWizardPanel previousPanel, int upload, int download) {
+    public SpeedTestSetLimitPanel(Wizard wizard, IWizardPanel previousPanel, int upload, int download) {
         super(wizard, previousPanel);
         measuredUploadKbps =upload/1024;
         measuredDownloadKbps =download/1024;
@@ -155,12 +155,18 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
                 SpeedLimitConfidence.MED.getInternationalizedString(),
                 SpeedLimitConfidence.LOW.getInternationalizedString()
         };
+        String[] confValue = {
+                SpeedLimitConfidence.ABSOLUTE.getString(),
+                SpeedLimitConfidence.HIGH.getString(),
+                SpeedLimitConfidence.MED.getString(),
+                SpeedLimitConfidence.LOW.getString()
+        };
 
         String downDefaultConfidenceLevel = setDefaultConfidenceLevel(measuredDownloadKbps,SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING);
         downConfLevel = new StringListParameter(panel,
                 SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING,
                 downDefaultConfidenceLevel,
-                confName, confName,true);
+                confName, confValue,true);
 
         //upload limit label.
         Label ul = new Label(panel, SWT.NULL );
@@ -201,7 +207,8 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
         upConfLevel = new StringListParameter(panel,
                 SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING,
                 upDefaultConfidenceLevel,
-                confName, confName, true);
+                confName, confValue, true);
+        upConfLevel.setValue( upDefaultConfidenceLevel );
 
 
         //spacer col
@@ -464,10 +471,6 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
     public int determineDownloadSetting(){
 
         int retVal = measuredUploadKbps;
-
-        if( retVal < measuredDownloadKbps ){
-            retVal = measuredDownloadKbps;
-        }
 
         //get AutoSpeedV2 download setting.
         int autoSpeedV2Limit = COConfigurationManager.getIntParameter(
