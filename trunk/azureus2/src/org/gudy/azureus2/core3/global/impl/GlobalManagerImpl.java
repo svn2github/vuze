@@ -1249,8 +1249,8 @@ public class GlobalManagerImpl
       
       long	now = SystemTime.getCurrentTime();
       
-	  if(progress_listener != null &&  SystemTime.getCurrentTime() - lastListenerUpdate > 100) {
-		  lastListenerUpdate = SystemTime.getCurrentTime();
+	  if(progress_listener != null &&  now - lastListenerUpdate > 100) {
+		  lastListenerUpdate = now;
 
 		  int	currentDownload = i+1;
 		  
