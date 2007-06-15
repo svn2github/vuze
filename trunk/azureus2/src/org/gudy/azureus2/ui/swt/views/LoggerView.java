@@ -52,7 +52,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
  */
 public class LoggerView extends AbstractIView implements ILogEventListener,
 		ParameterListener {
-	private final static LogIDs LOGID = LogIDs.GUI;
+	//private final static LogIDs LOGID = LogIDs.GUI;
 
 	private static final int COLOR_INFO = 0;
 

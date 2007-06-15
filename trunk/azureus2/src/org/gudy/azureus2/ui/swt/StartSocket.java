@@ -33,7 +33,7 @@ import com.aelitis.azureus.core.impl.AzureusCoreSingleInstanceClient;
 
 
 public class StartSocket {
-	private static final LogIDs LOGID = LogIDs.GUI;
+	//private static final LogIDs LOGID = LogIDs.GUI;
 
 		private final String[] args;
 	

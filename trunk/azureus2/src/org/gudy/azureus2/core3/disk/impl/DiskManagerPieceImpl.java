@@ -31,12 +31,11 @@ package org.gudy.azureus2.core3.disk.impl;
 
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
-import org.gudy.azureus2.core3.logging.*;
 
 public class DiskManagerPieceImpl
 	implements DiskManagerPiece
 {
-    private static final LogIDs LOGID = LogIDs.PIECES;
+    //private static final LogIDs LOGID = LogIDs.PIECES;
 
     public static final int	PIECE_STATUS_NEEDED		=0x01;	//want to have the piece
     public static final int	PIECE_STATUS_WRITTEN	=0x20;	//piece fully written to storage
