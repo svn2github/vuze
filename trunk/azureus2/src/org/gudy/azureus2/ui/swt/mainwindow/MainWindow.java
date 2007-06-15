@@ -327,7 +327,7 @@ MainWindow
 					public void handleEvent(Event e) {
 						if (Constants.isOSX
 								&& COConfigurationManager.getBooleanParameter(
-										"Password enabled", false)) {
+										"Password enabled")) {
 							e.doit = false;
 							shell.setVisible(false);
 							PasswordWindow.showPasswordWindow(display);
@@ -592,7 +592,7 @@ MainWindow
     	showMyShares();
     }
 
-    if (COConfigurationManager.getBooleanParameter("Open MyTorrents", true)) {
+    if (COConfigurationManager.getBooleanParameter("Open MyTorrents")) {
     	showMyTorrents();
     }
 
@@ -600,17 +600,16 @@ MainWindow
 
     new ProgressWindow();
 
-    if (COConfigurationManager.getBooleanParameter("Open Console", false)) {
+    if (COConfigurationManager.getBooleanParameter("Open Console")) {
     	showConsole();
     }
     events = null;
 
-    if (COConfigurationManager.getBooleanParameter("Open Config", false)) {
+    if (COConfigurationManager.getBooleanParameter("Open Config")) {
     	showConfig();
     }
 
-    if (COConfigurationManager.getBooleanParameter("Open Stats On Start",
-    		false)) {
+    if (COConfigurationManager.getBooleanParameter("Open Stats On Start")) {
     	showStats();
     }
 
@@ -695,10 +694,10 @@ MainWindow
 				.getBooleanParameter("Enable System Tray")
 				&& (!Constants.isOSX || SWT.getVersion() > 3300);
 		boolean bPassworded = COConfigurationManager.getBooleanParameter(
-				"Password enabled", false);
+				"Password enabled");
 		boolean bStartMinimize = bEnableTray
 				&& (bPassworded || COConfigurationManager.getBooleanParameter(
-						"Start Minimized", false));
+						"Start Minimized"));
 
 		if (!bStartMinimize) {
 	    shell.layout();
@@ -827,7 +826,7 @@ MainWindow
   {
 	  Logger.log(new LogEvent(LOGID, "MainWindow::destroyRequest"));
 
-	  if ( COConfigurationManager.getBooleanParameter("Password enabled", false )){
+	  if ( COConfigurationManager.getBooleanParameter("Password enabled")){
 		  
 	  	if (!PasswordWindow.showPasswordWindow(display)) {
 		  	Logger.log(new LogEvent(LOGID, "    denied - password is enabled"));
@@ -934,8 +933,7 @@ MainWindow
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (visible && !shell.getVisible()) {
-					if (COConfigurationManager.getBooleanParameter("Password enabled",
-							false)) {
+					if (COConfigurationManager.getBooleanParameter("Password enabled")) {
 						if (!PasswordWindow.showPasswordWindow(display)) {
 							shell.setVisible(false);
 							return;
