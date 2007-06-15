@@ -110,7 +110,7 @@ ConfigurationChecker
 	    	}
 	  	}else{
 	  		
-		    if ( COConfigurationManager.getBooleanParameter("Enable.Proxy", false) ) {
+		    if ( COConfigurationManager.getBooleanParameter("Enable.Proxy") ) {
 		      String host = COConfigurationManager.getStringParameter("Proxy.Host");
 		      String port = COConfigurationManager.getStringParameter("Proxy.Port");
 		      String user = COConfigurationManager.getStringParameter("Proxy.Username");
@@ -120,7 +120,7 @@ ConfigurationChecker
 		    	  user = "";
 		      }
 		      
-		      if ( COConfigurationManager.getBooleanParameter("Enable.SOCKS", false) ) {
+		      if ( COConfigurationManager.getBooleanParameter("Enable.SOCKS") ) {
 		        System.setProperty("socksProxyHost", host);
 		        System.setProperty("socksProxyPort", port);
 		        
@@ -413,7 +413,7 @@ ConfigurationChecker
 	      boolean sound = COConfigurationManager.getBooleanParameter("Play Download Finished",true);
 	      // Command + Q destroys the window, then notifies SWT, making it
 	      // hard to do a confirmation exit.
-	      boolean confirmExit = COConfigurationManager.getBooleanParameter("confirmationOnExit",false);
+	      boolean confirmExit = COConfigurationManager.getBooleanParameter("confirmationOnExit");
 	      
 	      if ( sound || confirmExit ) {
 	        COConfigurationManager.setParameter("Play Download Finished",false);

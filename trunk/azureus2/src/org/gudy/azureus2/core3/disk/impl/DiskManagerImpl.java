@@ -391,7 +391,7 @@ DiskManagerImpl
     {
             //if the data file is already in the completed files dir, we want to use it
 
-        boolean moveWhenDone = COConfigurationManager.getBooleanParameter("Move Completed When Done", false);
+        boolean moveWhenDone = COConfigurationManager.getBooleanParameter("Move Completed When Done");
 
         String moveToDir = COConfigurationManager.getStringParameter("Completed Files Directory", "");
 
