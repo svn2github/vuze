@@ -228,10 +228,10 @@ public class NatPMPDeviceImpl implements NatPMPDevice
 	        byte reqBuf[] = {NATMAP_VER, NATOp_AddrRequest};
 	        DatagramPacket dstPkt = new DatagramPacket(reqBuf, reqBuf.length);     
 	        byte recBuf[] = new byte[NATAddrReplyLen];
-	        DatagramPacket recPkt = sendNATMsg(natPriInet, dstPkt, recBuf);
+	        /* DatagramPacket recPkt = */ sendNATMsg(natPriInet, dstPkt, recBuf);
 	        
-	        int recVer = unsigned8ByteArrayToInt( recBuf, 0 ); 
-	        int recOp  = unsigned8ByteArrayToInt( recBuf, 1 ); 
+	        //int recVer = unsigned8ByteArrayToInt( recBuf, 0 ); 
+	        //int recOp  = unsigned8ByteArrayToInt( recBuf, 1 ); 
 	        int recErr = unsigned16ByteArrayToInt( recBuf, 2 ); 
 	        int recEpoch  = unsigned32ByteArrayToInt( recBuf, 4 );
 	        String recPubAddr = unsigned8ByteArrayToInt( recBuf, 8 ) + "." +
@@ -301,7 +301,7 @@ public class NatPMPDeviceImpl implements NatPMPDevice
          * delete the mapping and return a public port of 0
          **/
          // check for actual connection
-        int result = portMappingProtocol(tcp, publicPort, privatePort, 0);
+        /*int result = */ portMappingProtocol(tcp, publicPort, privatePort, 0);
         
     }
     
@@ -337,14 +337,14 @@ public class NatPMPDeviceImpl implements NatPMPDevice
         
         DatagramPacket dstPkt = new DatagramPacket(dstBuf, dstBuf.length);       
         byte recBuf[] = new byte[NATPortMapReplyLen];
-        DatagramPacket recPkt = sendNATMsg(natPriInet, dstPkt, recBuf);
+        /* DatagramPacket recPkt = */ sendNATMsg(natPriInet, dstPkt, recBuf);
 
         // Unpack this and check codes
-        int recVers = unsigned8ByteArrayToInt( recBuf, 0 );
+        //int recVers = unsigned8ByteArrayToInt( recBuf, 0 );
         int recOP =  unsigned8ByteArrayToInt( recBuf, 1 ); 
         int recCode = unsigned16ByteArrayToInt( recBuf, 2 );
         int recEpoch = unsigned32ByteArrayToInt( recBuf, 4);
-        int recPriPort = unsigned16ByteArrayToInt( recBuf, 8 );
+        //int recPriPort = unsigned16ByteArrayToInt( recBuf, 8 );
         int recPubPort = unsigned16ByteArrayToInt( recBuf, 10 );
         int recLifetime = unsigned32ByteArrayToInt( recBuf, 12);
         
