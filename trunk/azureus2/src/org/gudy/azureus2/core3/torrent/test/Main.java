@@ -75,19 +75,22 @@ Main
 		try{
 			if ( test_type == TT_ENCODE ){
 				
+				/*
 				File f = new File("D:\\az2060-broken.torrent");
 						
 				TOTorrent torrent = TOTorrentFactory.deserialiseFromBEncodedFile( f );
 			
-				//TOTorrentAnnounceURLSet set = torrent.getAnnounceURLGroup().createAnnounceURLSet(new URL[]{ new URL("http://localhost:6970/announce"), new URL("http://localhost:6969/announce")});
+				TOTorrentAnnounceURLSet set = torrent.getAnnounceURLGroup().createAnnounceURLSet(new URL[]{ new URL("http://localhost:6970/announce"), new URL("http://localhost:6969/announce")});
 				
-				//torrent.getAnnounceURLGroup().setAnnounceURLSets( new TOTorrentAnnounceURLSet[]{ set });
+				torrent.getAnnounceURLGroup().setAnnounceURLSets( new TOTorrentAnnounceURLSet[]{ set });
 				
-				//torrent.setAdditionalStringProperty( "Wibble", "wobble" );
+				torrent.setAdditionalStringProperty( "Wibble", "wobble" );
 				
-				//torrent.print();
+				torrent.print();
 			
-				//torrent.serialiseToBEncodedFile( new File("c:\\temp\\test2.torrent"));
+				torrent.serialiseToBEncodedFile( new File("c:\\temp\\test2.torrent"));
+				
+				*/
 			
 			}else if ( test_type == TT_DECODE ){
 							 

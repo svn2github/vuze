@@ -83,7 +83,6 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
   //Note: this comparator imposes orderings that are inconsistent with equals.
   class PeerComparator implements Comparator {
     public int compare(Object arg0, Object arg1) {
-      int result;
       PEPeer peer0 = (PEPeer) arg0;
       PEPeer peer1 = (PEPeer) arg1;
 

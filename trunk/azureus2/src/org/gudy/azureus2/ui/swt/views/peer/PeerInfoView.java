@@ -278,7 +278,7 @@ public class PeerInfoView extends AbstractIView implements ObfusticateImage {
 
 		sc.setContent(peerInfoCanvas);
 
-		Composite legend = Legend.createLegendComposite(peerInfoComposite,
+		Legend.createLegendComposite(peerInfoComposite,
 				blockColors, new String[] { "PeersView.BlockView.Avail.Have",
 						"PeersView.BlockView.Avail.NoHave",
 						"PeersView.BlockView.NoAvail.Have",

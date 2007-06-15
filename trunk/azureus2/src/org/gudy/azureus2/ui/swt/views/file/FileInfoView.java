@@ -254,8 +254,7 @@ public class FileInfoView extends AbstractIView {
 
 		sc.setContent(fileInfoCanvas);
 
-		Composite legend = 
-			Legend.createLegendComposite(fileInfoComposite,
+		Legend.createLegendComposite(fileInfoComposite,
 				blockColors, 
 				new String[] { 
 						"FileView.BlockView.Done",
