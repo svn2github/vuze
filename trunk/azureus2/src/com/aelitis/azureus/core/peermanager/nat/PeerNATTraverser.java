@@ -324,7 +324,8 @@ PeerNATTraverser
 					
 				if ( requests == null ){
 	
-					Debug.out( "initiator not found" );
+					// we get here when download stopped at same time
+					// Debug.out( "initiator not found" );
 					
 					adapter.failed();
 					
