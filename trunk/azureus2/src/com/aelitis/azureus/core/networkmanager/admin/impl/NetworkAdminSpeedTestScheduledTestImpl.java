@@ -339,7 +339,11 @@ NetworkAdminSpeedTestScheduledTestImpl
                 
                 responseType = (Long) result.get("reply_type");
             }
-            
+
+            if( responseType == null ){
+                throw new IllegalStateException("No challenge response returned from speed test scheduling service");
+            }
+
             if( responseType.intValue()==0 ){
                 	//a test has been scheduled.
                 	//set the Map properly.
