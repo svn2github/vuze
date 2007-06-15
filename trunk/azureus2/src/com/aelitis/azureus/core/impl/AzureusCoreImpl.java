@@ -555,8 +555,8 @@ AzureusCoreImpl
 			AzureusCoreImpl.this.stop();
 	     }
 	   });	
-	   
-	   checkBadNatives();
+	   	   
+	   AEDiagnostics.checkDumpsAndNatives();
 	   
 	   NetworkAdmin.getSingleton().runInitialChecks();
 	}
@@ -574,61 +574,6 @@ AzureusCoreImpl
 			}
 		}
 	}
-  
-	protected void
-	checkBadNatives()
-	{
-		PlatformManager	p_man = PlatformManagerFactory.getPlatformManager();
-		
-		if ( 	p_man.getPlatformType() == PlatformManager.PT_WINDOWS &&
-				p_man.hasCapability( PlatformManagerCapabilities.TestNativeAvailability )){
-		
-	
-			String[]	dlls = { 	"niphk", 
-									"nvappfilter", 
-									"netdog", 
-									"vlsp", 
-									"imon", 
-									"sarah", 
-									"MxAVLsp", 
-									"mclsp", 
-									"radhslib", 
-									"winsflt",
-									"nl_lsp",
-									"AxShlex",
-									"iFW_Xfilter",
-						};
-			
-			for (int i=0;i<dlls.length;i++){
-				
-				String	dll = dlls[i];
-				
-				if ( !COConfigurationManager.getBooleanParameter( "platform.win32.dll_found." + dll, false )){
-							
-					try{
-						if ( p_man.testNativeAvailability( dll + ".dll" )){
-							
-							COConfigurationManager.setParameter( "platform.win32.dll_found." + dll, true );
-
-							String	detail = MessageText.getString( "platform.win32.baddll." + dll );
-							
-							Logger.logTextResource(
-									new LogAlert(
-											LogAlert.REPEATABLE, 
-											LogAlert.AT_WARNING,
-											"platform.win32.baddll.info" ),	
-									new String[]{ dll + ".dll", detail });
-						}
-			
-					}catch( Throwable e ){
-						
-						Debug.printStackTrace(e);
-					}
-				}
-			}
-		}
-	}
- 
 	
 	private void
 	runNonDaemon(

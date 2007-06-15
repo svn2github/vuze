@@ -23,7 +23,11 @@
 package org.gudy.azureus2.core3.util;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerCapabilities;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
 
 /**
  * @author parg
@@ -426,6 +430,164 @@ AEDiagnostics
 			COConfigurationManager.save();
 			
 		}catch( Throwable e ){
+			
+			Debug.printStackTrace( e );
+		}
+	}
+	
+	public static void
+	checkDumpsAndNatives()
+	{
+		try{
+			PlatformManager	p_man = PlatformManagerFactory.getPlatformManager();
+			
+			if ( 	p_man.getPlatformType() == PlatformManager.PT_WINDOWS &&
+					p_man.hasCapability( PlatformManagerCapabilities.TestNativeAvailability )){
+			
+		
+				String[]	dlls = { 	"niphk", 
+										"nvappfilter", 
+										"netdog", 
+										"vlsp", 
+										"imon", 
+										"sarah", 
+										"MxAVLsp", 
+										"mclsp", 
+										"radhslib", 
+										"winsflt",
+										"nl_lsp",
+										"AxShlex",
+										"iFW_Xfilter",
+							};
+				
+				for (int i=0;i<dlls.length;i++){
+					
+					String	dll = dlls[i];
+					
+					if ( !COConfigurationManager.getBooleanParameter( "platform.win32.dll_found." + dll, false )){
+								
+						try{
+							if ( p_man.testNativeAvailability( dll + ".dll" )){
+								
+								COConfigurationManager.setParameter( "platform.win32.dll_found." + dll, true );
+	
+								String	detail = MessageText.getString( "platform.win32.baddll." + dll );
+								
+								Logger.logTextResource(
+										new LogAlert(
+												LogAlert.REPEATABLE, 
+												LogAlert.AT_WARNING,
+												"platform.win32.baddll.info" ),	
+										new String[]{ dll + ".dll", detail });
+							}
+				
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+						}
+					}
+				}
+			}
+			
+			File app_dir = new File( SystemProperties.getApplicationPath());
+			
+			if ( app_dir.canRead()){
+				
+				File[]	files = app_dir.listFiles();
+				
+				File	most_recent_dump 	= null;
+				long	most_recent_time	= 0;
+				
+				for (int i=0;i<files.length;i++){
+					
+					File	f = files[i];
+					
+					String	name = f.getName();
+					
+					if ( name.startsWith( "hs_err_pid" )){
+						
+						long	last_mod = f.lastModified();
+						
+						if ( last_mod > most_recent_time ){
+							
+							most_recent_dump 	= f;
+							most_recent_time	= last_mod;
+						}
+					}
+				}
+				
+				if ( most_recent_dump!= null ){
+					
+					long	last_done = COConfigurationManager.getLongParameter( "diagnostics.dump.lasttime", 0 );
+					
+					if ( last_done < most_recent_time ){
+						
+						COConfigurationManager.setParameter( "diagnostics.dump.lasttime", most_recent_time );
+						
+						analyseDump( most_recent_dump );
+					}
+				}
+			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+	}
+	
+	protected static void
+	analyseDump(
+		File	file )
+	{
+		System.out.println( "Analysing " + file );
+		
+		try{
+			LineNumberReader lnr = new LineNumberReader( new FileReader( file ));
+			
+			try{
+				boolean	float_excep	= false;
+				boolean	alcohol		= false;
+				
+				String	alcohol_dll = "AxShlex";
+
+				String	alcohol_dll_uc = alcohol_dll.toUpperCase();
+				
+				while( true ){
+					
+					String	line = lnr.readLine();
+					
+					if ( line == null ){
+						
+						break;
+					}
+					
+					line = line.toUpperCase();
+					
+					if (line.indexOf( "EXCEPTION_FLT") != -1 ){
+						
+						float_excep	= true;
+						
+					}else if ( line.indexOf( alcohol_dll_uc ) != -1 ){
+						
+						alcohol = true;
+					}
+				}
+				
+				if ( float_excep && alcohol ){
+										
+					String	detail = MessageText.getString( "platform.win32.baddll." + alcohol_dll );
+					
+					Logger.logTextResource(
+							new LogAlert(
+									LogAlert.REPEATABLE, 
+									LogAlert.AT_WARNING,
+									"platform.win32.baddll.info" ),	
+							new String[]{ alcohol_dll + ".dll", detail });
+				}
+			}finally{
+				
+				lnr.close();
+			}
+		}catch( Throwable e){
 			
 			Debug.printStackTrace( e );
 		}
