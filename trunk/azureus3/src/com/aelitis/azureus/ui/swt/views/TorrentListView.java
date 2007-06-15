@@ -331,7 +331,7 @@ public class TorrentListView
 						DownloadManager dm = (DownloadManager) selectedDataSources[i];
 						if (dm != null) {
 							TOTorrent torrent = dm.getTorrent();
-							if ((e.stateMask & SWT.CONTROL) > 0) {
+							if ((e.stateMask & SWT.MOD1) > 0) {
 								PlatformTorrentUtils.setContentLastUpdated(torrent, 0);
 							}
 							PlatformTorrentUtils.updateMetaData(torrent, 10);
