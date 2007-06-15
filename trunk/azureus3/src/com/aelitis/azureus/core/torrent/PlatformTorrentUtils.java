@@ -553,6 +553,10 @@ public class PlatformTorrentUtils
 	public static long getContentLastUpdated(TOTorrent torrent) {
 		return getContentMapLong(torrent, TOR_AZ_PROP_LASTUPDATED, 0);
 	}
+	
+	public static void setContentLastUpdated(TOTorrent torrent, long lastUpdate) {
+		setContentMapLong(torrent, TOR_AZ_PROP_LASTUPDATED, lastUpdate);
+	}
 
 	public static boolean isContentProgressive(TOTorrent torrent) {
 		return getContentMapLong(torrent, TOR_AZ_PROP_PROGRESSIVE, 0) == 1;
