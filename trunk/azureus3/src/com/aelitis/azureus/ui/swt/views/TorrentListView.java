@@ -331,7 +331,10 @@ public class TorrentListView
 						DownloadManager dm = (DownloadManager) selectedDataSources[i];
 						if (dm != null) {
 							TOTorrent torrent = dm.getTorrent();
-							PlatformTorrentUtils.updateMetaData(torrent, 1);
+							if ((e.stateMask & SWT.CONTROL) > 0) {
+								PlatformTorrentUtils.setContentLastUpdated(torrent, 0);
+							}
+							PlatformTorrentUtils.updateMetaData(torrent, 10);
 						}
 					}
 				}
@@ -656,13 +659,25 @@ public class TorrentListView
 	}
 
 	public void addListener(TorrentListViewListener l) {
-		listeners.add(l);
+		try {
+			listeners_mon.enter();
+
+			listeners.add(l);
+		} finally {
+			listeners_mon.exit();
+		}
 		l.countChanged();
 		l.stateChanged(null);
 	}
 
 	public void removeListener(TorrentListViewListener l) {
-		listeners.remove(l);
+		try {
+			listeners_mon.enter();
+
+			listeners.remove(l);
+		} finally {
+			listeners_mon.exit();
+		}
 	}
 
 	// @see com.aelitis.azureus.ui.swt.views.list.ListView#fillMenu(org.eclipse.swt.widgets.Menu)
