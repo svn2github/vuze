@@ -45,8 +45,6 @@ import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentE
 
 import com.aelitis.net.upnp.*;
 import com.aelitis.net.upnp.impl.device.*;
-import com.aelitis.net.upnp.services.UPnPWANConnectionPortMapping;
-import com.aelitis.net.upnp.services.UPnPWANIPConnection;
 
 public class 
 UPnPImpl
