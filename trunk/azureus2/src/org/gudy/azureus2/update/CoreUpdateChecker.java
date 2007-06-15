@@ -41,6 +41,7 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
+import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 
 import com.aelitis.azureus.core.versioncheck.*;
 
@@ -380,63 +381,164 @@ CoreUpdateChecker
    * Log and display a user message if contained within reply.
    * @param reply from server
    */
-  private void displayUserMessage( Map reply ) {
-    //  pick up any user message in the reply
-    
-    try{
-      byte[]  message = (byte[])reply.get( "message" );
-          
-      if ( message != null && message.length > 0 ){
-        
-        String  s_message = new String(message);
-        
-        String  last = COConfigurationManager.getStringParameter( "CoreUpdateChecker.lastmessage", "" );
-        
-        if ( !s_message.equals( last )){
-          
-          byte[]	signature = (byte[])reply.get( "message_sig" );
-          
-          if ( signature == null ){
-        	  
-        	  Logger.log( new LogEvent( LogIDs.LOGGER, "Signature missing from message" ));
-        	  
-        	  return;
-          }
-          
-          try{
-	          AEVerifier.verifyData( s_message, signature );
-	          
-          }catch( Throwable e ){
-        	  
-           	  Logger.log( new LogEvent( LogIDs.LOGGER, "Message signature check failed", e  ));
-           	      
-           	  return;
-          }
-          
-          int   alert_type    = LogAlert.AT_WARNING;
-          String  alert_text    = s_message;
-          
-          if ( alert_text.startsWith("i:" )){
-          
-            alert_type = LogAlert.AT_INFORMATION;
-            
-            alert_text = alert_text.substring(2);
-          }
-          
-          plugin_interface.getPluginProperties().setProperty( MESSAGE_PROPERTY, alert_text );
+  private void 
+  displayUserMessage( 
+	Map reply ) 
+  {
+	  //  pick up any user message in the reply
 
+	  try{
+		  Iterator it = reply.keySet().iterator();
+		  
+		  while( it.hasNext()){
+			  
+			  String	key = (String)it.next();
+		  
+			  	// support message + message_sig
+			  	//		message_1 + message_sig_1   etc
+			  
+			  if ( key.startsWith( "message_sig" ) || !key.startsWith( "message" )){
+				  
+				  continue;
+			  }
+			  
+			  byte[]  message_bytes = (byte[])reply.get( key );
+	
+			  if ( message_bytes != null && message_bytes.length > 0 ){
+	
+				  String  message = new String(message_bytes);
+	
+				  String sig_key;
+				  
+				  int	pos = key.indexOf('_');
+				  
+				  if ( pos == -1 ){
+					  
+					  sig_key = "message_sig";
+					  
+				  }else{
+					  
+					  sig_key = "message_sig" + key.substring( pos );
+				  }
+				  
+				  String	last_message_key = "CoreUpdateChecker.last" + key;
+				  
+				  String  last = COConfigurationManager.getStringParameter( last_message_key, "" );
+	
+				  if ( !message.equals( last )){
+	
+					  byte[]	signature = (byte[])reply.get( sig_key );
+	
+					  if ( signature == null ){
+	
+						  Logger.log( new LogEvent( LogIDs.LOGGER, "Signature missing from message" ));
+	
+						  return;
+					  }
+	
+					  try{
+						  AEVerifier.verifyData( message, signature );
+	
+					  }catch( Throwable e ){
+	
+						  Logger.log( new LogEvent( LogIDs.LOGGER, "Message signature check failed", e  ));
+	
+						  return;
+					  }
+	
+					  boolean	completed = false;
+					  
+					  if ( message.startsWith( "x:" )){
+						  
+						  	// emergency patch application
+						  
+						  try{
+							  URL jar_url = new URL( message.substring(2));
+							  
+							  Logger.log( new LogEvent( LogIDs.LOGGER, "Patch application requsted: url=" + jar_url ));
 
-          Logger.log(new LogAlert(LogAlert.UNREPEATABLE, alert_type, alert_text));
-          
-          COConfigurationManager.setParameter( "CoreUpdateChecker.lastmessage", s_message );
-          
-          COConfigurationManager.save();
-        }
-      }
-    }catch( Throwable e ){
-      
-      Debug.printStackTrace( e );
-    }
+							  File	temp_dir = AETemporaryFileHandler.createTempDir();
+							  
+							  File	jar_file = new File( temp_dir, "patch.jar" );
+							  
+							  InputStream is = rdf.create( jar_url ).download();
+							  
+							  try{
+								  FileUtil.copyFile( is, jar_file );
+								  
+								  is = null;
+								  
+								  AEVerifier.verifyData( jar_file );
+								  
+								  ClassLoader cl = CoreUpdateChecker.class.getClassLoader();
+								      		
+								  if ( cl instanceof URLClassLoader ){
+
+									  URL[]	old = ((URLClassLoader)cl).getURLs();
+
+									  URL[]	new_urls = new URL[old.length+1];
+
+									  System.arraycopy( old, 0, new_urls, 1, old.length );
+
+									  new_urls[0]= jar_file.toURL();
+
+									  cl = new URLClassLoader( new_urls, cl );
+
+								  }else{
+
+									  cl = new URLClassLoader( new URL[]{jar_file.toURL()}, cl );
+								  }
+	
+								  Class cla = cl.loadClass( "org.gudy.azureus2.update.version.Patch" );
+								  
+								  cla.newInstance();
+								  
+								  completed = true;
+								  
+							  }finally{
+								  
+								  if ( is != null ){
+								  
+									  is.close();
+								  }
+							  }
+						  }catch( Throwable e ){
+							  
+							  Logger.log( new LogEvent( LogIDs.LOGGER, "Patch application failed", e  ));
+						  }
+					  }else{
+						  
+						  int   alert_type    = LogAlert.AT_WARNING;
+						  
+						  String  alert_text    = message;
+		
+						  if ( alert_text.startsWith("i:" )){
+		
+							  alert_type = LogAlert.AT_INFORMATION;
+		
+							  alert_text = alert_text.substring(2);
+						  }
+		
+						  plugin_interface.getPluginProperties().setProperty( MESSAGE_PROPERTY, alert_text );
+		
+						  Logger.log(new LogAlert(LogAlert.UNREPEATABLE, alert_type, alert_text));
+						  
+						  completed = true;
+					  }
+					  
+					  if ( completed ){
+						  
+						  COConfigurationManager.setParameter( last_message_key, message );
+	
+						  COConfigurationManager.save();
+					  }
+				  }
+			  }
+		  }
+	  }catch( Throwable e ){
+
+		  Debug.printStackTrace( e );
+	  }
   } 
 	
 	protected ResourceDownloader[]
