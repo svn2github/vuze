@@ -132,40 +132,8 @@ public class Logger {
 	 * 
 	 * @param aListener
 	 *            Listener to call when an event is logged
-	 * @deprecated
-	 */
-	public static void addListener(ILoggerListener aListener) {
-		loggerImpl.addListener(aListener);
-	}
-
-	/**
-	 * Remove a previously added log listener
-	 * 
-	 * @param aListener
-	 *            Listener to remove
-	 * @deprecated
-	 */
-	public static void removeListener(ILoggerListener aListener) {
-		loggerImpl.removeListener(aListener);
-	}
-
-	/**
-	 * Add a listener that's triggered when an event is logged.
-	 * 
-	 * @param aListener
-	 *            Listener to call when an event is logged
 	 */
 	public static void addListener(ILogEventListener aListener) {
-		loggerImpl.addListener(aListener);
-	}
-
-	/**
-	 * Add a listener that's triggered when an alert is logged.
-	 * 
-	 * @param aListener
-	 *            Listener to call when an alert is logged
-	 */
-	public static void addListener(LGAlertListener aListener) {
 		loggerImpl.addListener(aListener);
 	}
 
@@ -186,16 +154,6 @@ public class Logger {
 	 *            Listener to remove
 	 */
 	public static void removeListener(ILogEventListener aListener) {
-		loggerImpl.removeListener(aListener);
-	}
-
-	/**
-	 * Remove a previously added log listener
-	 * 
-	 * @param aListener
-	 *            Listener to remove
-	 */
-	public static void removeListener(LGAlertListener aListener) {
 		loggerImpl.removeListener(aListener);
 	}
 

@@ -29,8 +29,6 @@ import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.ILogAlertListener;
 import org.gudy.azureus2.core3.logging.ILogEventListener;
-import org.gudy.azureus2.core3.logging.ILoggerListener;
-import org.gudy.azureus2.core3.logging.LGAlertListener;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
@@ -209,10 +207,6 @@ public class LoggerImpl {
 					Object listener = logListeners.get(i);
 					if (listener instanceof ILogEventListener)
 						((ILogEventListener) listener).log(event);
-					else
-						// XXX ComponentID
-						((ILoggerListener) listener).log(0, event.entryType, event.entryType,
-								event.text);
 				} catch (Throwable e) {
 					if (psOldErr != null) {
 						psOldErr.println("Error while logging: " + e.getMessage());
@@ -235,24 +229,6 @@ public class LoggerImpl {
 	public void logTextResource(LogEvent event, String params[]) {
 		event.text = MessageText.getString(event.text, params);
 		log(event);
-	}
-
-	/**
-	 * 
-	 * @param aListener
-	 * @deprecated
-	 */
-	public void addListener(ILoggerListener aListener) {
-		logListeners.add(aListener);
-	}
-
-	/**
-	 * 
-	 * @param aListener
-	 * @deprecated
-	 */
-	public void removeListener(ILoggerListener aListener) {
-		logListeners.remove(aListener);
 	}
 
 	public void addListener(ILogEventListener aListener) {
@@ -288,14 +264,6 @@ public class LoggerImpl {
 				Object listener = alertListeners.get(i);
 				if (listener instanceof ILogAlertListener)
 					((ILogAlertListener) listener).alertRaised(alert);
-				else if (listener instanceof LGAlertListener) {
-					if (alert.err == null)
-						((LGAlertListener) listener).alertRaised(alert.entryType,
-								alert.text, alert.repeatable);
-					else
-						((LGAlertListener) listener).alertRaised(alert.text, alert.err,
-								alert.repeatable);
-				}
 			} catch (Throwable f) {
 				if (psOldErr != null) {
 					psOldErr.println("Error while alerting: " + f.getMessage());
@@ -313,23 +281,6 @@ public class LoggerImpl {
 	public void logTextResource(LogAlert alert, String params[]) {
 		alert.text = MessageText.getString(alert.text, params);
 		log(alert);
-	}
-
-	public void addListener(LGAlertListener l) {
-		alertListeners.add(l);
-
-		for (int i = 0; i < alertHistory.size(); i++) {
-			LogAlert alert = (LogAlert) alertHistory.get(i);
-
-			if (alert.err == null)
-				l.alertRaised(alert.entryType, alert.text, alert.repeatable);
-			else
-				l.alertRaised(alert.text, alert.err, alert.repeatable);
-		}
-	}
-
-	public void removeListener(LGAlertListener l) {
-		alertListeners.remove(l);
 	}
 
 	public void addListener(ILogAlertListener l) {
