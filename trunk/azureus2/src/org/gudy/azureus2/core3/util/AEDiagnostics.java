@@ -498,6 +498,10 @@ AEDiagnostics
 				File	most_recent_dump 	= null;
 				long	most_recent_time	= 0;
 				
+				long	now = SystemTime.getCurrentTime();
+				
+				long	one_week_ago = now - 7*24*60*60*1000;
+				
 				for (int i=0;i<files.length;i++){
 					
 					File	f = files[i];
@@ -508,7 +512,7 @@ AEDiagnostics
 						
 						long	last_mod = f.lastModified();
 						
-						if ( last_mod > most_recent_time ){
+						if ( last_mod > most_recent_time && last_mod > one_week_ago){
 							
 							most_recent_dump 	= f;
 							most_recent_time	= last_mod;
@@ -518,7 +522,8 @@ AEDiagnostics
 				
 				if ( most_recent_dump!= null ){
 					
-					long	last_done = COConfigurationManager.getLongParameter( "diagnostics.dump.lasttime", 0 );
+					long	last_done = 
+						COConfigurationManager.getLongParameter( "diagnostics.dump.lasttime", 0 ); 
 					
 					if ( last_done < most_recent_time ){
 						
