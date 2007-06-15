@@ -154,8 +154,8 @@ public class SpeedManagerAlgorithmProviderVivaldi
             log(" Error: failed to get DHT Plugin ");
         }//if
 
-        pingMapOfDownloadMode = new PingSpaceMapper(metricGoodResult,metricBadResult);
-        pingMapOfSeedingMode = new PingSpaceMapper(metricGoodResult,metricBadResult);
+        pingMapOfDownloadMode = new PingSpaceMapper(metricGoodResult+metricGoodTolerance,metricBadResult);
+        pingMapOfSeedingMode = new PingSpaceMapper(metricGoodResult+metricGoodTolerance,metricBadResult);
     }
 
     /**
@@ -300,7 +300,13 @@ public class SpeedManagerAlgorithmProviderVivaldi
             log( "conf-test-limit:"+limitMonitor.confTestStatus() );
 
             if( limitMonitor.isConfLimitTestFinished() ){
-                SpeedLimitMonitor.Update update = limitMonitor.endLimitTesting();
+                int dmDownLimitGuess = pingMapOfDownloadMode.guessDownloadLimit();
+                int dmUpLimitGuess = pingMapOfDownloadMode.guessUploadLimit();
+                int smUpLimitGuess = pingMapOfSeedingMode.guessUploadLimit();
+
+                SpeedLimitMonitor.Update update = limitMonitor.endLimitTesting(dmDownLimitGuess,
+                        Math.max(dmUpLimitGuess,smUpLimitGuess) );
+                //SpeedLimitMonitor.Update update = limitMonitor.endLimitTesting();
 
                 //print out the PingMap data to compare.
                 logPingMapData();

@@ -613,6 +613,17 @@ public class SpeedLimitMonitor
         return currTestDone;
     }
 
+    public synchronized Update endLimitTesting(int downloadCapacityGuess, int uploadCapacityGuess){
+
+        SpeedManagerLogger.trace(" repalce highestDownloadRate: "+highestDownloadRate+" with "+downloadCapacityGuess);
+        SpeedManagerLogger.trace(" replace highestUploadRate: "+highestUploadRate+" with "+uploadCapacityGuess);
+
+        highestDownloadRate = downloadCapacityGuess;
+        highestUploadRate = uploadCapacityGuess;
+
+        return endLimitTesting();
+    }
+
     /**
      * Call this method to end the limit testing.
      * @return - Update
@@ -679,7 +690,7 @@ public class SpeedLimitMonitor
             settingMaxLimitName = SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT;
             settingMinLimitName = SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT;
             preTestValue = preTestUploadCapacity;
-            highestValue = Math.round( highestUploadRate* 0.75f );//ToDo: replace with a SpeedTest like check.
+            highestValue = highestUploadRate;//Math.round( highestUploadRate* 0.75f );//ToDo: replace with a SpeedTest like check.
         }else{
             //
             SpeedManagerLogger.log("IllegalState in determineConfidenceLevel(). Setting level to NONE.");
@@ -687,17 +698,17 @@ public class SpeedLimitMonitor
         }
 
         float percentDiff = (float)Math.abs( highestValue-preTestValue )/(float)(Math.max(highestValue,preTestValue));
-        if( percentDiff>0.25f){
-            retVal = SpeedLimitConfidence.LOW;
-        }else if(percentDiff>0.15f){
+        if( percentDiff<0.15f){
             retVal = SpeedLimitConfidence.MED;
+        }else{
+            retVal = SpeedLimitConfidence.LOW;
         }
 
         //update the values.
         COConfigurationManager.setParameter(settingConfidenceName, retVal.getString() );
-        int newMaxLimitSetting = Math.max(highestValue,preTestValue);
+        int newMaxLimitSetting = highestValue;//Math.max(highestValue,preTestValue);
         COConfigurationManager.setParameter(settingMaxLimitName, newMaxLimitSetting);
-        int newMinLimitSetting = Math.max( Math.round( newMaxLimitSetting * 0.1f ), 5000 );
+        int newMinLimitSetting = Math.max( Math.round( newMaxLimitSetting * 0.1f ), 5120 );
         COConfigurationManager.setParameter(settingMinLimitName, newMinLimitSetting );
 
         //temp fix.  //Need a param listener above and all rules need to be one method.
