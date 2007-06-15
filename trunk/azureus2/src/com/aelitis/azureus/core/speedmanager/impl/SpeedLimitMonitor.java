@@ -738,6 +738,11 @@ public class SpeedLimitMonitor
      */
     public boolean areSettingsInSpec(int currUploadLimit, int currDownloadLimit){
 
+        //during a confidence level test, anything goes.
+        if( isConfTestingLimits() ){
+            return true;
+        }
+
         boolean retVal = true;
         if( currUploadLimit>uploadLinespeedCapacity ){
             retVal = false;

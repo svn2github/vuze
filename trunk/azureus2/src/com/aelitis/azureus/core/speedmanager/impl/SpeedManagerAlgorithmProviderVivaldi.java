@@ -83,6 +83,10 @@ public class SpeedManagerAlgorithmProviderVivaldi
     //for managing ping sources.
     PingSourceManager pingSourceManager = new PingSourceManager();
 
+    //session ping data.
+    PingSpaceMapper pingMapOfDownloadMode;
+    PingSpaceMapper pingMapOfSeedingMode;
+
 
     static{
         COConfigurationManager.addListener(
@@ -150,6 +154,8 @@ public class SpeedManagerAlgorithmProviderVivaldi
             log(" Error: failed to get DHT Plugin ");
         }//if
 
+        pingMapOfDownloadMode = new PingSpaceMapper(metricGoodResult,metricBadResult);
+        pingMapOfSeedingMode = new PingSpaceMapper(metricGoodResult,metricBadResult);
     }
 
     /**
@@ -170,6 +176,9 @@ public class SpeedManagerAlgorithmProviderVivaldi
         log("user-comment:log");
 
         log("pin:upload-status,download-status,upload-unpin-timer,download-unpin-timer");
+
+        pingMapOfDownloadMode.reset();
+        pingMapOfSeedingMode.reset();
     }
 
     /**
@@ -183,16 +192,16 @@ public class SpeedManagerAlgorithmProviderVivaldi
         int currUploadLimit = adapter.getCurrentUploadLimit();
         int currDataUploadSpeed = adapter.getCurrentDataUploadSpeed();
         int currProtoUploadSpeed = adapter.getCurrentProtocolUploadSpeed();
-        int upRate = currDataUploadSpeed + currProtoUploadSpeed;
+        int upRateBitsPerSec = currDataUploadSpeed + currProtoUploadSpeed;
 
         int currDownLimit = adapter.getCurrentDownloadLimit();
         int downDataRate = adapter.getCurrentDataDownloadSpeed();
         int downProtoRate = adapter.getCurrentProtocolDownloadSpeed();
-        int downRate = downDataRate+downProtoRate;
+        int downRateBitsPerSec = downDataRate+downProtoRate;
 
         //update the bandwidth status
-        limitMonitor.setDownloadBandwidthMode(downRate,currDownLimit);
-        limitMonitor.setUploadBandwidthMode(upRate,currUploadLimit);
+        limitMonitor.setDownloadBandwidthMode(downRateBitsPerSec,currDownLimit);
+        limitMonitor.setUploadBandwidthMode(upRateBitsPerSec,currUploadLimit);
 
         //update the limts status.  (is it near a forced max or min?)
         limitMonitor.setDownloadLimitSettingMode(currDownLimit);
@@ -201,11 +210,17 @@ public class SpeedManagerAlgorithmProviderVivaldi
         limitMonitor.updateTransferMode();
 
         if( limitMonitor.isConfTestingLimits() ){
-            limitMonitor.updateLimitTestingData(downRate,upRate);
+            limitMonitor.updateLimitTestingData(downRateBitsPerSec,upRateBitsPerSec);
         }
 
+        //update ping maps
+        pingMapOfDownloadMode.setCurrentTransferRates(downRateBitsPerSec,upRateBitsPerSec);
+        pingMapOfSeedingMode.setCurrentTransferRates(downRateBitsPerSec,upRateBitsPerSec);
+
         //"curr-data" ....
-        logCurrentData(downRate, currDownLimit, upRate, currUploadLimit);
+        logCurrentData(downRateBitsPerSec, currDownLimit, upRateBitsPerSec, currUploadLimit);
+
+        
     }
 
     /**
@@ -287,6 +302,9 @@ public class SpeedManagerAlgorithmProviderVivaldi
             if( limitMonitor.isConfLimitTestFinished() ){
                 SpeedLimitMonitor.Update update = limitMonitor.endLimitTesting();
 
+                //print out the PingMap data to compare.
+                logPingMapData();
+
                 //log
                 logNewLimits(update);
                 //setting new
@@ -312,74 +330,20 @@ public class SpeedManagerAlgorithmProviderVivaldi
 
         if(!useVivaldi){
             //use the DHT ping times instead.
-
-            //Don't count this data point, if we skip the next ping times after an adjustment.
-            if(skipIntervalAfterAdjustment && hadAdjustmentLastInterval){
-                hadAdjustmentLastInterval=false;
-                pingTimeList = new ArrayList();
-                intervalCount=0;
+            if ( calculateMediaDHTPingTime() ){
                 return;
             }
-
-            //have we accululated enough data to make an adjustment?
-            if( intervalCount < numIntervalsBetweenCal ){
-                //get more data before making another calculation.
-                return;
-            }
-
-            //we have enough data. find the median ping time.
-            Collections.sort( pingTimeList );
-
-            //if we don't have any pings, then either the connection is lost or very bad network congestion.
-            //force an adjustment down.
-            if( pingTimeList.size()==0 ){
-                lastMetricValue =10000;  //This is a high value to force an adjusment down.
-            }else{
-                int medianIndex = pingTimeList.size()/2;
-
-                Integer medianPingTime = (Integer) pingTimeList.get(medianIndex);
-                lastMetricValue = medianPingTime.intValue();
-            }
-
-            //we have now consumed this data. reset the counters.
-            intervalCount=0;
-            pingTimeList = new ArrayList();
 
         }else{
             //if we have not initialized the core yet, then try now.
-            if(dhtPlugin==null){
-                try{
-                    dhtPlugin = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
-                }catch(AzureusCoreException ace){
-                    log("Warning: AzureusCore was not initialized on startup.");
-                    return;
-                }
-            }//if
-
-            DHT[] dhts = ((DHTPlugin)dhtPlugin.getPlugin()).getDHTs();
-
-            if(dhts==null){
-                log("No DHTs to process try later");
+            if ( calculateMediaVivaldiDistance(currTime) ){
                 return;
             }
-
-            if(dhts.length<2){
-                log("Not enough DHT nodes. length="+dhts.length);
-                return;
-            }
-
-            int currVivaldiDistance = calculateMedianVivaldiDistance(dhts);
-
-            if(lastMetricValue == currVivaldiDistance){
-                //don't use this result.
-                log("vivaldi not updated don't use this data.");
-                return;
-            }
-            timeSinceLastUpdate = currTime;
-
-            lastMetricValue = currVivaldiDistance;
         }
         log("metric:"+ lastMetricValue);
+
+        //update the metric data
+        addToPingMapData();
 
         float signalStrength = determineSignalStrength(lastMetricValue);
 
@@ -418,10 +382,118 @@ public class SpeedManagerAlgorithmProviderVivaldi
         pingSourceManager.checkPingSources(sources);
     }
 
+    /**
+     * Just log this data until we decide if it is useful.
+     */
+    private void logPingMapData() {
+
+        int downLimGuess = pingMapOfDownloadMode.guessDownloadLimit();
+        int upLimGuess = pingMapOfDownloadMode.guessUploadLimit();
+        int seedingUpLimGuess = pingMapOfSeedingMode.guessUploadLimit();
+
+        StringBuffer sb = new StringBuffer("ping-map: ");
+        sb.append(":down=").append(downLimGuess);
+        sb.append(":up=").append(upLimGuess);
+        sb.append(":(seed)up=").append(seedingUpLimGuess);
+
+        SpeedManagerLogger.log( sb.toString()  );
+    }
+
+    /**
+     * Add more data to PingMap data.
+     */
+    private void addToPingMapData() {
+        String transferModeStr = limitMonitor.getTransferModeAsString();
+        if( transferModeStr.equalsIgnoreCase(TransferMode.State.DOWNLOADING.getString())){
+            pingMapOfDownloadMode.addMetricToMap(lastMetricValue);
+        }else if( transferModeStr.equalsIgnoreCase(TransferMode.State.SEEDING.getString()) ){
+            pingMapOfSeedingMode.addMetricToMap(lastMetricValue);
+        }
+    }
+
+    /**
+     * Vivaldi media distance is one of the metrics used. Calculate it here.
+     * @param currTime -
+     * @return - true if should exit early from calculate method.
+     */
+    private boolean calculateMediaVivaldiDistance(long currTime) {
+        if(dhtPlugin==null){
+                try{
+                    dhtPlugin = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
+            }catch(AzureusCoreException ace){
+                log("Warning: AzureusCore was not initialized on startup.");
+                    return true;
+                }
+        }//if
+
+        DHT[] dhts = ((DHTPlugin)dhtPlugin.getPlugin()).getDHTs();
+
+        if(dhts==null){
+                log("No DHTs to process try later");
+            return true;
+        }
+
+        if(dhts.length<2){
+                log("Not enough DHT nodes. length="+dhts.length);
+            return true;
+        }
+
+        int currVivaldiDistance = calculateMedianVivaldiDistance(dhts);
+
+        if(lastMetricValue == currVivaldiDistance){
+            //don't use this result.
+            log("vivaldi not updated don't use this data.");
+            return true;
+        }
+        timeSinceLastUpdate = currTime;
+
+        lastMetricValue = currVivaldiDistance;
+        return false;
+    }
+
+    /**
+     * DHT Ping data is one of the metrics used. Calculate it here.
+     * @return - true if should exit early from the caluculate method.
+     */
+    private boolean calculateMediaDHTPingTime() {
+        //Don't count this data point, if we skip the next ping times after an adjustment.
+        if(skipIntervalAfterAdjustment && hadAdjustmentLastInterval){
+            hadAdjustmentLastInterval=false;
+            pingTimeList = new ArrayList();
+            intervalCount=0;
+            return true;
+        }
+
+        //have we accululated enough data to make an adjustment?
+        if( intervalCount < numIntervalsBetweenCal ){
+            //get more data before making another calculation.
+            return true;
+        }
+
+        //we have enough data. find the median ping time.
+        Collections.sort( pingTimeList );
+
+        //if we don't have any pings, then either the connection is lost or very bad network congestion.
+        //force an adjustment down.
+        if( pingTimeList.size()==0 ){
+            lastMetricValue =10000;  //This is a high value to force an adjusment down.
+        }else{
+            int medianIndex = pingTimeList.size()/2;
+
+            Integer medianPingTime = (Integer) pingTimeList.get(medianIndex);
+            lastMetricValue = medianPingTime.intValue();
+        }
+
+        //we have now consumed this data. reset the counters.
+        intervalCount=0;
+        pingTimeList = new ArrayList();
+        return false;
+    }
+
     private void logNewLimits(SpeedLimitMonitor.Update update) {
         if( update.hasNewUploadLimit ){
             int kbpsUpoadLimit = update.newUploadLimit/1024;
-            log(" setting new limit to: "+ kbpsUpoadLimit +" kb/s");
+            log(" new up limit  : "+ kbpsUpoadLimit +" kb/s");
         }
 
         if( update.hasNewDownloadLimit ){

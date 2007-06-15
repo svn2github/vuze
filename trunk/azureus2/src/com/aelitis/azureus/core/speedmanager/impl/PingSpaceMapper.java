@@ -116,8 +116,15 @@ public class PingSpaceMapper
             return 0;
         }
 
-        //ToDo: continue.
-        return 0; //till completed.
+        if(meshIndex<=10){
+            bytesPerSec = meshIndex*10;
+        }else if(meshIndex<=18){
+            bytesPerSec = 100 + (meshIndex-10) * 50;
+        }else{
+            bytesPerSec = 500 + (meshIndex-18) * 100;
+        }
+
+        return bytesPerSec*1024;
     }//convertMeshIndex2bitsPerSec
 
     public void setCurrentTransferRates(int downloadBitPerSec, int uploadBitsPerSec){
@@ -154,12 +161,14 @@ public class PingSpaceMapper
     public static final int RESULT_DOWNLOAD_INDEX = 1;
 
     private Result getHighestMeshIndexWithGoodPing(){
-        return null;//ToDo: finish
+       Result[] retVal = calculate();
+       return retVal[0];
     }
 
 
     private Result getHighestMeshIndexWithAnyPing(){
-        return null;//ToDo: finish
+        Result[] retVal = calculate();
+        return retVal[1];
     }
 
     /**
@@ -196,14 +205,26 @@ public class PingSpaceMapper
         return retVal;
     }
 
+    /**
+     * Make a guess at the upload capacity based on metric data.
+     * @return -
+     */
     public int guessUploadLimit(){
 
-        //walk over the entire grid looking for the highest value with a good count.
-        return 0;//ToDo: finish
+        Result result = getHighestMeshIndexWithGoodPing();
+        int upMeshIndex = result.getUploadIndex();
+        return convertMeshIndex2bitsPerSec( upMeshIndex );
     }
 
+    /**
+     * Make a guess at the download capacity based on metric data.
+     * @return -
+     */
     public int guessDownloadLimit(){
-        return 0;//ToDo: finish
+
+        Result result = getHighestMeshIndexWithGoodPing();
+        int downMeshIndex = result.getDownloadIndex();
+        return convertMeshIndex2bitsPerSec( downMeshIndex );
     }
 
     /**
@@ -259,17 +280,17 @@ public class PingSpaceMapper
 
         public float getRating(){
 
-            float retVal = 0.0f;
-
             int total = getTotal();
 
             if( total==0 ){
                 return 0.0f;
             }
 
-            retVal = ( (float) (pingCount[INDEX_PING_GOOD]-pingCount[INDEX_PING_BAD])  / (float)total );
+            float score = (pingCount[INDEX_PING_GOOD]
+                    + 0.5f * pingCount[INDEX_PING_NEUTRAL]
+                    - pingCount[INDEX_PING_BAD]);
 
-            return retVal;
+            return ( score / (float) total );
         }//getRating
 
         public int getTotal(){
