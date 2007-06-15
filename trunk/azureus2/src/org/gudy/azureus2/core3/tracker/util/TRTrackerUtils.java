@@ -147,8 +147,8 @@ TRTrackerUtils
 		boolean	allow_incoming )
 	{
 		boolean socks_peer_inform	= 	
-			COConfigurationManager.getBooleanParameter("Proxy.Data.Enable", false)&&
-			COConfigurationManager.getBooleanParameter("Proxy.Data.SOCKS.inform", true );
+			COConfigurationManager.getBooleanParameter("Proxy.Data.Enable")&&
+			COConfigurationManager.getBooleanParameter("Proxy.Data.SOCKS.inform");
 		
 				// we currently don't support incoming connections when SOCKs proxying
   		
@@ -368,7 +368,7 @@ TRTrackerUtils
 				
 		if ( tracker_host.length() > 0 ){
 			
-			if ( COConfigurationManager.getBooleanParameter( "Tracker Port Enable", false )){
+			if ( COConfigurationManager.getBooleanParameter( "Tracker Port Enable")){
 										
 				int port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
 				
@@ -392,7 +392,7 @@ TRTrackerUtils
 				}
 			}
 			
-			if ( COConfigurationManager.getBooleanParameter( "Tracker Port SSL Enable", false )){
+			if ( COConfigurationManager.getBooleanParameter( "Tracker Port SSL Enable")){
 				
 				int port = COConfigurationManager.getIntParameter("Tracker Port SSL", TRHost.DEFAULT_PORT_SSL );
 				

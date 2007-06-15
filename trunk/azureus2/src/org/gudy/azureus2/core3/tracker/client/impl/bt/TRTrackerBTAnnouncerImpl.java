@@ -197,7 +197,7 @@ TRTrackerBTAnnouncerImpl
 	try{
 	    tracker_peer_id = ClientIDManagerImpl.getSingleton().generatePeerID( torrent, true );
 	
-	    if ( COConfigurationManager.getBooleanParameter("Tracker Separate Peer IDs", false)){
+	    if ( COConfigurationManager.getBooleanParameter("Tracker Separate Peer IDs")){
 	    	
 	    	data_peer_id = ClientIDManagerImpl.getSingleton().generatePeerID( torrent, false );
 	    	
