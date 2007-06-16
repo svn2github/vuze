@@ -318,7 +318,7 @@ public class ConfigSectionTransferAutoSpeedBeta
 
         gridData = new GridData();
         gridData.widthHint = 80;
-        uploadMinLim = new IntParameter(modeGroup, SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT, 800, 5000);
+        uploadMinLim = new IntParameter(modeGroup, SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT);
         uploadMinLim.setLayoutData( gridData );
 
         gridData = new GridData();

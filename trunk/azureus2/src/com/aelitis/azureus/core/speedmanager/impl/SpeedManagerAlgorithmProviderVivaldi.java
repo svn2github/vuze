@@ -177,6 +177,8 @@ public class SpeedManagerAlgorithmProviderVivaldi
 
         log("pin:upload-status,download-status,upload-unpin-timer,download-unpin-timer");
 
+        log("limits:down-max:down-min:down-conf:up-max:up-min:up-conf");
+
         pingMapOfDownloadMode.reset();
         pingMapOfSeedingMode.reset();
     }
@@ -347,6 +349,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
             }
         }
         log("metric:"+ lastMetricValue);
+        logLimitStatus();
 
         //update the metric data
         addToPingMapData();
@@ -389,6 +392,24 @@ public class SpeedManagerAlgorithmProviderVivaldi
     }
 
     /**
+     * Log the limit status. Max, Min and Conf.
+     * log("limits:down-max:down-min:down-conf:up-max:up-min:up-conf");
+     */
+    private void logLimitStatus(){
+
+        StringBuffer msg = new StringBuffer();
+        msg.append("limits:");
+        msg.append(limitMonitor.getUploadLineCapacity()).append(":");
+        msg.append(limitMonitor.getUploadMinLimit()).append(":");
+        msg.append(limitMonitor.getUploadConfidence()).append(":");
+        msg.append(limitMonitor.getDownloadLineCapacity()).append(":");
+        msg.append(limitMonitor.getDownloadMinLimit()).append(":");
+        msg.append(limitMonitor.getDownloadConfidence());
+
+        SpeedManagerLogger.log( msg.toString() );
+    }//logLimitStatus
+
+    /**
      * Just log this data until we decide if it is useful.
      */
     private void logPingMapData() {
@@ -409,13 +430,23 @@ public class SpeedManagerAlgorithmProviderVivaldi
      * Add more data to PingMap data.
      */
     private void addToPingMapData() {
-        String transferModeStr = limitMonitor.getTransferModeAsString();
-        if( transferModeStr.equalsIgnoreCase(TransferMode.State.DOWNLOADING.getString())){
+        String modeStr = limitMonitor.getTransferModeAsString();
+
+        if(    modeStr.equalsIgnoreCase(TransferMode.State.DOWNLOADING.getString())
+            || modeStr.equalsIgnoreCase(TransferMode.State.DOWNLOAD_LIMIT_SEARCH.getString())  )
+        {
+            //add point to map for download mode
             pingMapOfDownloadMode.addMetricToMap(lastMetricValue);
-        }else if( transferModeStr.equalsIgnoreCase(TransferMode.State.SEEDING.getString()) ){
-            pingMapOfSeedingMode.addMetricToMap(lastMetricValue);
+
         }
-    }
+        else if(     modeStr.equalsIgnoreCase(TransferMode.State.SEEDING.getString())
+                  || modeStr.equalsIgnoreCase(TransferMode.State.UPLOAD_LIMIT_SEARCH.getString()) )
+        {
+            //add point to map for seeding mode.
+            pingMapOfSeedingMode.addMetricToMap(lastMetricValue);
+
+        }
+    }//addToPingMapData
 
     /**
      * Vivaldi media distance is one of the metrics used. Calculate it here.

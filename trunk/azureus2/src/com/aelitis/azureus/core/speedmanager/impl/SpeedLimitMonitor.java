@@ -155,6 +155,22 @@ public class SpeedLimitMonitor
         return downloadLinespeedCapacity;
     }
 
+    public int getUploadMinLimit(){
+        return uploadLimitMin;
+    }
+
+    public int getDownloadMinLimit(){
+        return downloadLimitMin;
+    }
+
+    public String getUploadConfidence(){
+        return uploadLimitConf.getString();
+    }
+
+    public String getDownloadConfidence(){
+        return downloadLimitConf.getString();
+    }
+
     public SaturatedMode getDownloadBandwidthMode(){
         return downloadBandwidthStatus;
     }
