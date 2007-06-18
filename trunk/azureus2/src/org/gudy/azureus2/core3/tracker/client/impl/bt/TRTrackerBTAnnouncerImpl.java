@@ -2845,16 +2845,20 @@ TRTrackerBTAnnouncerImpl
 						// decode could fail if the tracker's returned, say, an HTTP response
 						// indicating server overload
 	 				 				
-	 				String	trace_data = new String(data);
+	 				String	trace_data;
+	 				
+	 				if ( data.length <= 150 ){
+	 					
+	 					trace_data = new String(data);
+	 					
+	 				}else{
+	 					
+	 					trace_data = new String(data,0,150) + "...";
+	 				}
 	 				
 	 				if (Logger.isEnabled())
 						Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_ERROR,
 								"TRTrackerAnnouncer::invalid reply: " + trace_data));
-	 				
-	 				if ( trace_data.length() > 150 ){
-	 					
-	 					trace_data = trace_data.substring(0,150) + "...";
-	 				}
 	 				
 	 				failure_reason = "invalid reply: " + trace_data;
 	 			}	 				
