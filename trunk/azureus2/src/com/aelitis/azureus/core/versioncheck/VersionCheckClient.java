@@ -798,6 +798,16 @@ public class VersionCheckClient {
       long  max_mem = Runtime.getRuntime().maxMemory()/(1024*1024);
       message.put( "javamx", new Long( max_mem ) );
       
+      String java_rt_name = System.getProperty("java.runtime.name");
+      if (java_rt_name != null) {
+      	message.put( "java_rt_name", java_rt_name);
+      }
+
+      String java_rt_version = System.getProperty("java.runtime.version");
+      if (java_rt_version != null) {
+      	message.put( "java_rt_version", java_rt_version);
+      }
+
       OverallStats	stats = StatsFactory.getStats();
       
       if ( stats != null ){
@@ -845,7 +855,17 @@ public class VersionCheckClient {
       if (ui.length() > 0) {
       	message.put("ui", ui);
       }
-      
+
+      // send locale, so we can determine which languages need attention
+      message.put("locale", Locale.getDefault().toString());
+      String originalLocale = System.getProperty("user.language") + "_"
+					+ System.getProperty("user.country");
+      String variant = System.getProperty("user.variant");
+      if (variant != null && variant.length() > 0) {
+      	originalLocale += "_" + variant;
+      }
+      message.put("orig_locale", originalLocale);
+
       if ( AzureusCoreFactory.isCoreAvailable()){
       	
 	      //installed plugin IDs
