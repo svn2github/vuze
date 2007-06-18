@@ -70,6 +70,8 @@ StringInterner
 	
 	private static boolean general_interning_enabled = false;
 	
+	private static TimerEventPeriodic	cleaner;
+	
 	static{
 		
 			// can't use config here as too early in init!
@@ -84,29 +86,6 @@ StringInterner
 	
 	// private final static ReferenceQueue queue = new ReferenceQueue();
 
-	static{
-		SimpleTimer.addPeriodicEvent(
-			"StringInterner:gc",
-			TICK_PERIOD,
-			new TimerEventPerformer()
-			{
-				private int	tick_count;
-				
-				public void 
-				perform(
-					TimerEvent	 event )
-				{
-					tick_count++;
-					
-					synchronized( StringInterner.class ){
-									
-							// one off start of day clear-down to get rid off init vars
-						
-						tidy( tick_count == TOTAL_CLEAN_TICKS );
-					}
-				}
-			});
-	}
 	
 	public static String
 	intern(
@@ -129,6 +108,32 @@ StringInterner
 		}
 		
 		synchronized( StringInterner.class ){
+			
+			if ( cleaner == null ){
+				
+				cleaner = 
+					SimpleTimer.addPeriodicEvent(
+						"StringInterner:gc",
+						TICK_PERIOD,
+						new TimerEventPerformer()
+						{
+							private int	tick_count;
+							
+							public void 
+							perform(
+								TimerEvent	 event )
+							{
+								tick_count++;
+								
+								synchronized( StringInterner.class ){
+												
+										// one off start of day clear-down to get rid off init vars
+									
+									tidy( tick_count == TOTAL_CLEAN_TICKS );
+								}
+							}
+						});
+			}
 			
 			entryDetails entry;
 			
