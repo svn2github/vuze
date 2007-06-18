@@ -416,11 +416,13 @@ public class PublishTransaction extends Transaction
 		loader.data = new ImageData[] { data
 		};
 		
-		if (SWT.getVersion() >= 3400) {
+		String ext;
+		if (SWT.getVersion() >= 3500) {
 			// XXX Bug in SWT which borks some PNGs.. thus we can't use PNG saving
 			//     at all until they fix it.. See 
 			//     https://bugs.eclipse.org/bugs/show_bug.cgi?id=172290
 			loader.save(baos, SWT.IMAGE_PNG);
+			ext = ".png";
 		} else {
 			try {
 				Class cJPGFF = Class.forName("org.eclipse.swt.internal.image.JPEGFileFormat");
@@ -470,12 +472,13 @@ public class PublishTransaction extends Transaction
 				// (0.75) quality...
 				loader.save(baos, SWT.IMAGE_JPEG);
 			}
+			ext = ".jpg";
 		}
 
 
 		byte[] bs = baos.toByteArray();
 
-		File fDest = File.createTempFile("thumbnail", ".png");
+		File fDest = File.createTempFile("thumbnail", ext);
 		FileOutputStream fos = new FileOutputStream(fDest);
 		fos.write(bs);
 		fos.close();
