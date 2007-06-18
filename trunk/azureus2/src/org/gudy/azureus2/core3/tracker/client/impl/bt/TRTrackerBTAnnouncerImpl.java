@@ -2739,6 +2739,14 @@ TRTrackerBTAnnouncerImpl
 
 				    		valid_meta_peers.add( peer );
 				    	}
+				    }else if ( meta_peers_peek instanceof Map ){
+
+				    		// some trackers incorrectly return an empty Map when no peers available
+				    	
+				    	if (((Map)meta_peers_peek).size() != 0 ){
+				    	
+							throw( new IOException( "peers missing from response" ));
+				    	}
 				    }else{
 						
 						throw( new IOException( "peers missing from response" ));
