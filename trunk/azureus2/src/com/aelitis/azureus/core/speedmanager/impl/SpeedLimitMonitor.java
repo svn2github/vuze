@@ -707,7 +707,7 @@ public class SpeedLimitMonitor
             settingMaxLimitName = SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT;
             settingMinLimitName = SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT;
             preTestValue = preTestUploadCapacity;
-            highestValue = highestUploadRate;//Math.round( highestUploadRate* 0.75f );//ToDo: replace with a SpeedTest like check.
+            highestValue = highestUploadRate;
         }else{
             //
             SpeedManagerLogger.log("IllegalState in determineConfidenceLevel(). Setting level to NONE.");
@@ -723,7 +723,7 @@ public class SpeedLimitMonitor
 
         //update the values.
         COConfigurationManager.setParameter(settingConfidenceName, retVal.getString() );
-        int newMaxLimitSetting = highestValue;//Math.max(highestValue,preTestValue);
+        int newMaxLimitSetting = highestValue;
         COConfigurationManager.setParameter(settingMaxLimitName, newMaxLimitSetting);
         int newMinLimitSetting = Math.max( Math.round( newMaxLimitSetting * 0.1f ), 5120 );
         COConfigurationManager.setParameter(settingMinLimitName, newMinLimitSetting );
@@ -744,6 +744,16 @@ public class SpeedLimitMonitor
             sb.append("new download limits: ");
             downloadLinespeedCapacity=newMaxLimitSetting;
             downloadLimitMin=newMinLimitSetting;
+            //upload capacity should never be 10x less then download.
+            if( uploadLinespeedCapacity*10<downloadLinespeedCapacity ){
+                uploadLinespeedCapacity = downloadLinespeedCapacity/10;
+                COConfigurationManager.setParameter(
+                        SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_LINESPEED_CAPACITY,uploadLinespeedCapacity);
+                uploadLimitMin = Math.max( uploadLinespeedCapacity/10, 5120 );
+                COConfigurationManager.setParameter(
+                        SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT,uploadLimitMin);
+            }//if
+            
         }
         upDownRatio = ((float)downloadLinespeedCapacity/(float)uploadLinespeedCapacity);
         COConfigurationManager.setParameter(

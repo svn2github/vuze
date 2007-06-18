@@ -1,22 +1,25 @@
 package org.gudy.azureus2.ui.swt.views.configsections;
 
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
-import org.gudy.azureus2.ui.swt.config.BooleanParameter;
-import org.gudy.azureus2.ui.swt.config.StringListParameter;
-import org.gudy.azureus2.ui.swt.config.ParameterChangeListener;
-import org.gudy.azureus2.ui.swt.config.Parameter;
-import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.SWT;
-import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProviderV2;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerImpl;
+
 
 /**
  * Created on Jun 13, 2007
@@ -48,6 +51,7 @@ public class ConfigSectionTransferAutoSpeedSelect
     StringListParameter versionList;
 
     BooleanParameter enableAutoSpeed;
+    BooleanParameter enableAutoSpeedWhileSeeding;
 
     /**
      * Returns section you want your configuration panel to be under.
@@ -116,24 +120,25 @@ public class ConfigSectionTransferAutoSpeedSelect
         //Beta-mode grouping.
         Group modeGroup = new Group(cSection, SWT.NULL);
         //Messages.setLanguageText
-        modeGroup.setText("AutoSpeed selector");
+        modeGroup.setText("Auto-Speed selector");
         GridLayout modeLayout = new GridLayout();
         modeLayout.numColumns = 3;
         modeGroup.setLayout(modeLayout);
-        gridData = new GridData(GridData.FILL_HORIZONTAL);
+        gridData = new GridData();
+        gridData.widthHint = 350;
         modeGroup.setLayoutData(gridData);
 
         //Need a drop down to select which method will be used.
         Label label = new Label(modeGroup, SWT.NULL);
-        label.setText("algorithm: ");
+        label.setText("Algorithm: ");
         gridData = new GridData();
         gridData.widthHint = 50;
         label.setLayoutData(gridData);
 
         //ToDo: get from the message bundle.
         String[] modeNames = {
-                "AutoSpeed (classic)",
-                "Azureus SpeedSense (beta)"
+                "Auto-Speed (classic)",
+                "Auto-Speed (beta)"
         };
         
         String[] modes = {
@@ -155,33 +160,72 @@ public class ConfigSectionTransferAutoSpeedSelect
         gridData.horizontalSpan=3;
         spacer.setLayoutData(gridData);
 
-
         //To enable the beta.
         gridData = new GridData();
-        gridData.widthHint = 50;
-        gridData.horizontalAlignment = GridData.END;
+        gridData.horizontalIndent = 20;
+        gridData.horizontalSpan = 2;
         enableAutoSpeed = new BooleanParameter(modeGroup,
-                TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY);
+                TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY,CFG_PREFIX+"enableauto");
         enableAutoSpeed.setLayoutData(gridData);
 
         //enableAutoSpeed.addChangeListener( new GroupModeChangeListener() );
 
-        Label enableLabel = new Label(modeGroup, SWT.NULL);
-        enableLabel.setText("Enable Auto Speed Adjustments");
+        Label spacerGroup = new Label(modeGroup, SWT.NULL);
         gridData = new GridData();
-        gridData.widthHint = 40;
-        cSection.setLayoutData(gridData);
+        gridData.horizontalSpan=1;
+        spacerGroup.setLayoutData(gridData);
 
-        BooleanParameter enable_au_seeding = new BooleanParameter(
-				modeGroup, "Auto Upload Speed Seeding Enabled",
-				CFG_PREFIX + "enableautoseeding" );
-		gridData = new GridData();
-		gridData.horizontalSpan = 2;
-        //gridData.horizontalAlignment
-        enable_au_seeding.setLayoutData(gridData);
+        //AutoSpeed while seeding enabled.
+        enableAutoSpeedWhileSeeding = new BooleanParameter(modeGroup,
+                "Auto Upload Speed Seeding Enabled",CFG_PREFIX+"enableautoseeding");
+        gridData = new GridData();
+        gridData.horizontalIndent = 20;
+        gridData.horizontalSpan = 2;
+        enableAutoSpeedWhileSeeding.setLayoutData(gridData);
 
-//		enableAutoSpeed.setAdditionalActionPerformer(
-//	    		new ChangeSelectionActionPerformer( enable_au_seeding.getControls(), true ));       
+		enableAutoSpeed.setAdditionalActionPerformer(
+	    		new ChangeSelectionActionPerformer( enableAutoSpeedWhileSeeding.getControls(), true ));       
+
+
+        //Add listeners to disable setting when needed.
+                
+
+        //spacer
+        Label spacer2 = new Label(cSection, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan=3;
+        spacer2.setLayoutData(gridData);
+
+        /////////////////////////////////////////
+        //Add group to link to Azureus Wiki page.
+        /////////////////////////////////////////
+        Group azWiki = new Group(cSection, SWT.WRAP);
+        gridData = new GridData();
+        gridData.widthHint = 350;
+        azWiki.setLayoutData(gridData);
+        GridLayout layout = new GridLayout();
+        layout.numColumns = 1;
+        layout.marginHeight = 1;
+        azWiki.setLayout(layout);
+
+        azWiki.setText(MessageText.getString("Utils.link.visit"));
+
+        final Label linkLabel = new Label(azWiki, SWT.NULL);
+        linkLabel.setText( "Azureus Wiki AutoSpeed (beta)" );
+        linkLabel.setData("http://azureus.aelitis.com/wiki/index.php/Auto_Speed");
+        linkLabel.setCursor(Cursors.handCursor);
+        linkLabel.setForeground(Colors.blue);
+        gridData = new GridData();
+        gridData.horizontalIndent = 10;
+        linkLabel.setLayoutData( gridData );
+	    linkLabel.addMouseListener(new MouseAdapter() {
+	      public void mouseDoubleClick(MouseEvent arg0) {
+	      	Utils.launch((String) ((Label) arg0.widget).getData());
+	      }
+	      public void mouseUp(MouseEvent arg0) {
+	      	Utils.launch((String) ((Label) arg0.widget).getData());
+	      }
+	    });
 
 
         return cSection;
