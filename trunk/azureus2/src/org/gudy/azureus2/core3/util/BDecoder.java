@@ -274,10 +274,20 @@ public class BDecoder {
       return -1;
     }
 
-    return Long.parseLong(sb.toString());
+    String str = sb.toString();
+    
+    	// support some borked impls that sometimes don't bother encoding anything
+    
+    if ( str.length() == 0 ){
+    	
+    	return( 0 );
+    }
+    
+    return Long.parseLong(str);
   }
 
   // This one causes lots of "Query Information" calls to the filesystem
+  /*
   private long getNumberFromStreamOld(InputStream bais, char parseChar) throws IOException {
     int length = 0;
 
@@ -319,7 +329,8 @@ public class BDecoder {
 
     return Long.parseLong(str_value);
   }
-
+  */
+  
   private byte[] getByteArrayFromStream(InputStream bais) throws IOException {
     int length = (int) getNumberFromStream(bais, ':');
 
