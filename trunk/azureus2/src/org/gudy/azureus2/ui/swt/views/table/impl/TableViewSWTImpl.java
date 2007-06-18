@@ -3048,6 +3048,9 @@ public class TableViewSWTImpl
 				int[] newSelectedRowIndices = new int[selectedRows.length];
 				Arrays.sort(selectedRowIndices);
 				for (int i = 0; i < selectedRows.length; i++) {
+					if (selectedRows[i] == null) {
+						continue;
+					}
 					int index = selectedRows[i].getIndex();
 					int iNewPos = (selectedRows[i] == focusedRow) ? 0 : pos++;
 					newSelectedRowIndices[iNewPos] = index;
