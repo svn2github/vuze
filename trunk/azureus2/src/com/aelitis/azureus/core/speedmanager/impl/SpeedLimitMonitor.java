@@ -268,7 +268,8 @@ public class SpeedLimitMonitor
         int usedUploadLimit = uploadLinespeedCapacity;
         float usedUpDownRatio = upDownRatio;
         if( transferMode.isDownloadMode() ){
-            usedUploadLimit = Math.round( 0.8f * uploadLinespeedCapacity );
+            //ToDo: this needs to be configurable.
+            usedUploadLimit = Math.round( 0.7f * uploadLinespeedCapacity );
             //re-calculate the up-down ratio.
             usedUpDownRatio = ( (float) downloadLinespeedCapacity /(float) usedUploadLimit);
         }

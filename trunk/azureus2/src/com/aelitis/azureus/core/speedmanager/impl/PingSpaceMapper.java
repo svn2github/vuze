@@ -287,7 +287,7 @@ public class PingSpaceMapper
             }
 
             float score = (pingCount[INDEX_PING_GOOD]
-                    + 0.5f * pingCount[INDEX_PING_NEUTRAL]
+                    + 0.3f * pingCount[INDEX_PING_NEUTRAL]
                     - pingCount[INDEX_PING_BAD]);
 
             return ( score / (float) total );

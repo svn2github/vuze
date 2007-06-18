@@ -313,6 +313,10 @@ public class SpeedManagerAlgorithmProviderVivaldi
                 //print out the PingMap data to compare.
                 logPingMapData();
 
+                //reset Ping Space Map for next round.
+                pingMapOfDownloadMode.reset();
+                pingMapOfSeedingMode.reset();
+
                 //log
                 logNewLimits(update);
                 //setting new

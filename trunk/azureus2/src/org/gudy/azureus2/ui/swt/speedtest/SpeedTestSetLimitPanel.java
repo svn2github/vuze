@@ -480,9 +480,7 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
         int autoSpeedV2Limit = COConfigurationManager.getIntParameter(
                 SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT )/1024;
 
-        if( retVal < autoSpeedV2Limit ){
-            retVal = autoSpeedV2Limit;
-        }
+        retVal = autoSpeedV2Limit;
 
         //The result cannot be less then 20 kbytes/sec.
         if(retVal < 20 ){
