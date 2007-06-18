@@ -351,6 +351,8 @@ public class TrackerStatus {
 			boolean disable_stopped_scrapes = !COConfigurationManager
 					.getBooleanParameter("Tracker Client Scrape Stopped Enable");
 
+			byte[]	scrape_reply = null;
+			
 			try {
 				// if URL already includes a query component then just append our
 				// params
@@ -479,7 +481,9 @@ public class TrackerStatus {
 					redirect_url = scrapeHTTP(reqUrl, message);
 				}
 
-				Map map = BDecoder.decode(message.toByteArray());
+				scrape_reply = message.toByteArray();
+				
+				Map map = BDecoder.decode( scrape_reply );
 								
 				boolean	this_is_az_tracker = map.get( "aztracker" ) != null;
 				
@@ -832,6 +836,22 @@ public class TrackerStatus {
 
 				String msg = Debug.getNestedExceptionMessage(e);
 
+				if ( scrape_reply != null ){
+
+	 				String	trace_data;
+	 				
+	 				if ( scrape_reply.length <= 150 ){
+	 					
+	 					trace_data = new String(scrape_reply);
+	 					
+	 				}else{
+	 					
+	 					trace_data = new String(scrape_reply,0,150) + "...";
+	 				}
+	 				
+	 				msg += " [" + trace_data + "]";
+				}
+				
 				for (int i = 0; i < responses.size(); i++) {
 					TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl) responses
 							.get(i);
