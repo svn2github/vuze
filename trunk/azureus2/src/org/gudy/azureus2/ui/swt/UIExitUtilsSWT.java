@@ -23,6 +23,7 @@ package org.gudy.azureus2.ui.swt;
 import java.util.ArrayList;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -41,11 +42,21 @@ import org.gudy.azureus2.core3.util.SystemProperties;
  */
 public class UIExitUtilsSWT
 {
+	private static boolean skipCloseCheck = false;
+	
+	public static void setSkipCloseCheck(boolean b) {
+		skipCloseCheck = b;
+	}
+	
 	/**
 	 * @return
 	 */
 	public static boolean canClose(GlobalManager globalManager,
 			boolean bForRestart) {
+		if (skipCloseCheck) {
+			return true;
+		}
+		
 		if (COConfigurationManager.getBooleanParameter("confirmationOnExit")) {
 			if (!getExitConfirmation(bForRestart)) {
 				return false;

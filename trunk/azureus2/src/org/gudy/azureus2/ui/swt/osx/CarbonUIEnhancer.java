@@ -21,6 +21,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.platform.macosx.access.jnilib.OSXAccess;
+import org.gudy.azureus2.ui.swt.UIExitUtilsSWT;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.speedtest.SpeedTestWizard;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
@@ -150,16 +151,34 @@ public class CarbonUIEnhancer {
 				openDocProc, 0, false);
 
 		if (result != OS.noErr) {
-			Debug.out("OSX: Could Install OpenDocs Event Handler. Error: " + result);
+			Debug.out("OSX: Could not Install OpenDocs Event Handler. Error: " + result);
 			return;
 		}
 
 		result = OS.AEInstallEventHandler(kURLEventClass, kURLEventClass,
 				openDocProc, 0, false);
 		if (result != OS.noErr) {
-			Debug.out("OSX: Could Install URLEventClass Event Handler. Error: " + result);
+			Debug.out("OSX: Could not Install URLEventClass Event Handler. Error: " + result);
 			return;
 		}
+		
+		///
+		
+		Callback quitAppCallback = new Callback(target, "quitAppProc", 3);
+		int quitAppProc = quitAppCallback.getAddress();
+		if (quitAppProc == 0) {
+			Debug.out("OSX: Could not find Callback 'quitApp'");
+			quitAppCallback.dispose();
+		} else {
+			result = OS.AEInstallEventHandler(kCoreEventClass, OS.kAEQuitApplication,
+					quitAppProc, 0, false);
+			if (result != OS.noErr) {
+				Debug.out("OSX: Could not install QuitApplication Event Handler. Error: "
+						+ result);
+			}
+		}
+
+		///
 
 		int appTarget = OS.GetApplicationEventTarget();
 		Callback appleEventCallback = new Callback(this, "appleEventProc", 3);
@@ -229,6 +248,15 @@ public class CarbonUIEnhancer {
                case kHICommandSpeedTest:
                  new SpeedTestWizard(AzureusCoreFactory.getSingleton(), display);  
                  return OS.noErr;
+                 
+               case OS.kAEQuitApplication:
+           			UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+          			if (uiFunctions != null) {
+          				uiFunctions.dispose(false, false);
+            			return OS.noErr;
+          			} else {
+          				UIExitUtilsSWT.setSkipCloseCheck(true);
+          			}
                default:
                   break;
                }
@@ -352,7 +380,8 @@ public class CarbonUIEnhancer {
 			if (aeEventID[0] != kAEOpenDocuments 
 					&& aeEventID[0] != kURLEventClass
 					&& aeEventID[0] != kAEReopenApplication 
-					&& aeEventID[0] != kAEOpenContents) {
+					&& aeEventID[0] != kAEOpenContents
+					&& aeEventID[0] != OS.kAEQuitApplication) {
 				return OS.eventNotHandledErr;
 			}
 
@@ -440,6 +469,17 @@ public class CarbonUIEnhancer {
 	}
 
   final static Object target = new Object() {
+		int quitAppProc(int theAppleEvent, int reply, int handlerRefcon) {
+			UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+			if (uiFunctions != null) {
+				uiFunctions.dispose(false, false);
+			} else {
+				UIExitUtilsSWT.setSkipCloseCheck(true);
+				Display.getDefault().dispose();
+			}
+			return OS.noErr;
+		}
+  	
 		int openDocProc(int theAppleEvent, int reply, int handlerRefcon) {
 			AEDesc aeDesc = new AEDesc();
 			EventRecord eventRecord = new EventRecord();
