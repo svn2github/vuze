@@ -7,9 +7,10 @@ import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
+import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
+import org.gudy.azureus2.core3.config.impl.ConfigurationParameterNotFoundException;
 
 import org.eclipse.swt.widgets.*;
 import org.eclipse.swt.layout.GridData;
@@ -77,6 +78,8 @@ public class ConfigSectionTransferAutoSpeedBeta
     //general ping set-points.
     IntParameter adjustmentInterval;
     BooleanParameter skipAfterAdjustment;
+
+    Button reset;
 
     SpeedManagerChangeListener speedManagerListener = new SpeedManagerChangeListener();
 
@@ -418,7 +421,28 @@ public class ConfigSectionTransferAutoSpeedBeta
         //confidence
         currUpConfSetting = createCurrentValueLabel(modeGroup, SWT.NULL,
                 SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING);
-        
+
+
+        //spacer
+        spacer = new Label(modeGroup, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan=4;
+        spacer.setLayoutData(gridData);
+
+        //Restore Defaults:
+        Label restorDef = new Label(modeGroup, SWT.NULL);
+        gridData = new GridData();
+        restorDef.setLayoutData(gridData);
+        restorDef.setText("Restore Defaults:");
+
+        //Button and listener here.
+        reset = new Button(modeGroup, SWT.PUSH);
+        reset.setText("reset");  //ToDo: internationalize.
+        gridData = new GridData();
+        gridData.widthHint = 70;
+        reset.setLayoutData(gridData);
+        reset.addListener(SWT.Selection, new RestoreDefaultsListener());
+        //
 
         //spacer
         spacer = new Label(cSection, SWT.NULL);
@@ -887,5 +911,34 @@ public class ConfigSectionTransferAutoSpeedBeta
         }
 
     }//class SpeedManagerChangeListener
+
+    class RestoreDefaultsListener implements Listener {
+
+        public void handleEvent(Event event) {
+
+            ConfigurationDefaults configDefs = ConfigurationDefaults.getInstance();
+            try{
+                long downMax = configDefs.getLongParameter( SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT );
+                long downMin = configDefs.getLongParameter( SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MIN_LIMIT );
+                String downConf = configDefs.getStringParameter( SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING );
+                long upMax = configDefs.getLongParameter( SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT );
+                long upMin = configDefs.getLongParameter( SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT );
+                String upConf = configDefs.getStringParameter( SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING );
+
+                COConfigurationManager.setParameter(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT,downMax);
+                COConfigurationManager.setParameter(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MIN_LIMIT,downMin);
+                COConfigurationManager.setParameter(SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING,downConf);
+                COConfigurationManager.setParameter(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT,upMax);
+                COConfigurationManager.setParameter(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT,upMin);
+                COConfigurationManager.setParameter(SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING,upConf);
+
+            }catch(ConfigurationParameterNotFoundException cpnfe){
+                //ToDo: log this.    
+            }
+
+
+        }//handleEvent
+
+    }//class
 
 }
