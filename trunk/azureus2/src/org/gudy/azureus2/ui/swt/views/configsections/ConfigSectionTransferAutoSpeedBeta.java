@@ -347,11 +347,51 @@ public class ConfigSectionTransferAutoSpeedBeta
         confDownload = new StringListParameter(modeGroup, SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING, confLevelNames, confLevelValues);
         confDownload.setLayoutData( gridData );
 
+
+        //upload settings
+        Label setUp = new Label(modeGroup, SWT.NULL);
+        gridData = new GridData();
+        setUp.setLayoutData(gridData);
+        setUp.setText("Upload: ");
+        //Messages.setLanguageText //ToDo: internationalize
+
+        gridData = new GridData();
+        gridData.widthHint = 80;
+        uploadMaxLim = new IntParameter(modeGroup, SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT);
+        uploadMaxLim.setLayoutData( gridData );
+
+        gridData = new GridData();
+        gridData.widthHint = 80;
+        uploadMinLim = new IntParameter(modeGroup, SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT);
+        uploadMinLim.setLayoutData( gridData );
+
+        gridData = new GridData();
+        gridData.widthHint = 80;
+        confUpload = new StringListParameter(modeGroup, SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING,confLevelNames,confLevelValues);
+        confUpload.setLayoutData( gridData );
+
+        //spacer
+        spacer = new Label(modeGroup, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan=4;
+        spacer.setLayoutData(gridData);
+
+        //spacer row with label.
+        Label settingsLabel = new Label(modeGroup, SWT.NULL);
+        gridData = new GridData();
+        settingsLabel.setLayoutData(gridData);
+        settingsLabel.setText("Current Settings:");
+
+        Label settingSpace = new Label(modeGroup, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan = 3;
+        settingSpace.setLayoutData(gridData);
+
         //current download value row.
         Label downCurrVal = new Label(modeGroup, SWT.NULL);
         gridData = new GridData();
         downCurrVal.setLayoutData(gridData);
-        downCurrVal.setText("current settings:");
+        downCurrVal.setText("Download:");
         //max
         //currDownCapacitySetting = new Label(modeGroup, SWT.NULL);
         currDownCapacitySetting = createCurrentValueLabel(modeGroup, SWT.NULL,
@@ -364,35 +404,11 @@ public class ConfigSectionTransferAutoSpeedBeta
                 SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING);
 
 
-        //upload settings
-        Label setUp = new Label(modeGroup, SWT.NULL);
-        gridData = new GridData();
-        setUp.setLayoutData(gridData);
-        setUp.setText("Upload: ");
-        //Messages.setLanguageText //ToDo: internationalize
-
-
-        gridData = new GridData();
-        gridData.widthHint = 80;
-        uploadMaxLim = new IntParameter(modeGroup, SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT);
-        uploadMaxLim.setLayoutData( gridData );
-
-
-        gridData = new GridData();
-        gridData.widthHint = 80;
-        uploadMinLim = new IntParameter(modeGroup, SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT);
-        uploadMinLim.setLayoutData( gridData );
-
-        gridData = new GridData();
-        gridData.widthHint = 80;
-        confUpload = new StringListParameter(modeGroup, SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING,confLevelNames,confLevelValues);
-        confUpload.setLayoutData( gridData );
-
         //current download value row.
         Label upCurrVal = new Label(modeGroup, SWT.NULL);
         gridData = new GridData();
         upCurrVal.setLayoutData(gridData);
-        upCurrVal.setText("current settings:");
+        upCurrVal.setText("Upload:");
         //max
         currUpCapacitySetting = createCurrentValueLabel(modeGroup, SWT.NULL,
                 SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT);
