@@ -356,11 +356,11 @@ public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTim
 						"Next scrape will be "
 								+ nextResponseScraping.getURL()
 								+ " in "
-								+ (nextResponseScraping.getNextScrapeStartTime() - SystemTime.getCurrentTime())
-								+ ";"
+								+ ((nextResponseScraping.getNextScrapeStartTime() - SystemTime.getCurrentTime())/1000)
+								+ " sec,type="
 								+ (nextResponseScraping.getTrackerStatus().getSupportsMultipeHashScrapes()
-										? "Multi" : "Single")
-										+ nextResponseScraping.getTrackerStatus().getNumActiveScrapes()));
+										? "multi" : "single")
+										+ ",active="+nextResponseScraping.getTrackerStatus().getNumActiveScrapes()));
 			}
 		}
 	}
