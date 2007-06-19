@@ -738,7 +738,8 @@ public class SpeedLimitMonitor
             if( downloadLinespeedCapacity<uploadLinespeedCapacity ){
                 downloadLinespeedCapacity=uploadLinespeedCapacity;
                 COConfigurationManager.setParameter(
-                        SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_LINESPEED_CAPACITY,downloadLinespeedCapacity);
+                        SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT,downloadLinespeedCapacity);
+                        //SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_LINESPEED_CAPACITY,downloadLinespeedCapacity);
             }
         }else{
             sb.append("new download limits: ");
@@ -748,7 +749,8 @@ public class SpeedLimitMonitor
             if( uploadLinespeedCapacity*10<downloadLinespeedCapacity ){
                 uploadLinespeedCapacity = downloadLinespeedCapacity/10;
                 COConfigurationManager.setParameter(
-                        SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_LINESPEED_CAPACITY,uploadLinespeedCapacity);
+                         SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT,uploadLinespeedCapacity);
+                        //SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_LINESPEED_CAPACITY,uploadLinespeedCapacity);
                 uploadLimitMin = Math.max( uploadLinespeedCapacity/10, 5120 );
                 COConfigurationManager.setParameter(
                         SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT,uploadLimitMin);

@@ -146,10 +146,23 @@ public class ConfigSectionTransferAutoSpeedSelect
                 "2"
         };
 
-        versionList = new StringListParameter(modeGroup,
-                SpeedManagerImpl.CONFIG_VERSION_STR,
-                "1",
-                modeNames,modes,true);
+        //versionList = new StringListParameter(modeGroup,
+        //        SpeedManagerImpl.CONFIG_VERSION_STR,
+        //        "1",
+        //        modeNames,modes,true);
+        versionList = new StringListParameter(modeGroup,SpeedManagerImpl.CONFIG_VERSION_STR, modeNames, modes);
+        long verNum = COConfigurationManager.getLongParameter( SpeedManagerImpl.CONFIG_VERSION );
+        if( verNum==1 ){
+            //SpeedManagerAlgorithmProviderV1
+            versionList.setValue(modes[0]);
+        }else if( verNum==2 ){
+            //SpeedManagerAlgorithmProviderV2
+            versionList.setValue(modes[1]);
+        }else{
+            //Default is currently version ...V1.
+            versionList.setValue(modes[0]);
+            //ToDo: log this condition.
+        }
 
         versionList.addChangeListener( new ConvertToLongChangeListener() );
 

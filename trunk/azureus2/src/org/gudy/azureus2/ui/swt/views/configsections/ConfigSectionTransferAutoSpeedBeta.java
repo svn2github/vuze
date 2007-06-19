@@ -2,9 +2,13 @@ package org.gudy.azureus2.ui.swt.views.configsections;
 
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.COConfigurationListener;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 
 import org.eclipse.swt.widgets.*;
@@ -74,6 +78,15 @@ public class ConfigSectionTransferAutoSpeedBeta
     IntParameter adjustmentInterval;
     BooleanParameter skipAfterAdjustment;
 
+    SpeedManagerChangeListener speedManagerListener = new SpeedManagerChangeListener();
+
+    //The labels that change based on SpeedManagerChangeListener
+    Label currDownCapacitySetting;
+    Label currDownMinSetting;
+    Label currDownConfSetting;
+    Label currUpCapacitySetting;
+    Label currUpMinSetting;
+    Label currUpConfSetting;
 
 
     /**
@@ -119,6 +132,39 @@ public class ConfigSectionTransferAutoSpeedBeta
      * Config view is closing
      */
     public void configSectionDelete() {
+
+        if( speedManagerListener==null ){
+            //ToDo: log this condition.
+            return;
+        }
+
+        //Need to remove all the listeners attached at the end of the createSection method.
+        COConfigurationManager.removeParameterListener(
+                SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT,
+                speedManagerListener);
+        COConfigurationManager.removeParameterListener(
+                SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT,
+                speedManagerListener);
+        COConfigurationManager.removeParameterListener(
+                SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MIN_LIMIT,
+                speedManagerListener);
+        COConfigurationManager.removeParameterListener(
+                SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT,
+                speedManagerListener);
+        COConfigurationManager.removeParameterListener(
+                SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING,
+                speedManagerListener);
+        COConfigurationManager.removeParameterListener(
+                SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING,
+                speedManagerListener);
+        
+        COConfigurationManager.removeParameterListener(
+                TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY,
+                speedManagerListener);
+        COConfigurationManager.removeParameterListener(
+                "Auto Upload Speed Seeding Enabled",
+                speedManagerListener);
+
     }
 
 
@@ -244,19 +290,19 @@ public class ConfigSectionTransferAutoSpeedBeta
         Label limits = new Label(modeGroup, SWT.NULL);
         gridData = new GridData();
         gridData.widthHint=80;
-        limits.setText("Speed Test Limits: ");
+        limits.setText("Line Speed Limits: ");
         //Messages.setLanguageText //ToDo: internationalize
 
         Label limMax = new Label(modeGroup,SWT.NULL);
         gridData = new GridData();
         limMax.setLayoutData(gridData);
-        limMax.setText("max");
+        limMax.setText("max - capacity");
         //Messages.setLanguageText //ToDo: internationalize
 
         Label limMin = new Label(modeGroup, SWT.NULL);
         gridData = new GridData();
         limMin.setLayoutData(gridData);
-        limMin.setText("min");
+        limMin.setText("min - setting");
         //Messages.setLanguageText //ToDo: internationalize
 
         Label confLevel = new Label(modeGroup, SWT.NULL);
@@ -301,6 +347,22 @@ public class ConfigSectionTransferAutoSpeedBeta
         confDownload = new StringListParameter(modeGroup, SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING, confLevelNames, confLevelValues);
         confDownload.setLayoutData( gridData );
 
+        //current download value row.
+        Label downCurrVal = new Label(modeGroup, SWT.NULL);
+        gridData = new GridData();
+        downCurrVal.setLayoutData(gridData);
+        downCurrVal.setText("current settings:");
+        //max
+        //currDownCapacitySetting = new Label(modeGroup, SWT.NULL);
+        currDownCapacitySetting = createCurrentValueLabel(modeGroup, SWT.NULL,
+                SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT);
+        //min
+        currDownMinSetting = createCurrentValueLabel(modeGroup, SWT.NULL,
+                SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MIN_LIMIT);
+        //confidence
+        currDownConfSetting = createCurrentValueLabel(modeGroup, SWT.NULL,
+                SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING);
+
 
         //upload settings
         Label setUp = new Label(modeGroup, SWT.NULL);
@@ -325,6 +387,22 @@ public class ConfigSectionTransferAutoSpeedBeta
         gridData.widthHint = 80;
         confUpload = new StringListParameter(modeGroup, SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING,confLevelNames,confLevelValues);
         confUpload.setLayoutData( gridData );
+
+        //current download value row.
+        Label upCurrVal = new Label(modeGroup, SWT.NULL);
+        gridData = new GridData();
+        upCurrVal.setLayoutData(gridData);
+        upCurrVal.setText("current settings:");
+        //max
+        currUpCapacitySetting = createCurrentValueLabel(modeGroup, SWT.NULL,
+                SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT);
+        //min
+        currUpMinSetting = createCurrentValueLabel(modeGroup, SWT.NULL,
+                SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT);
+        //confidence
+        currUpConfSetting = createCurrentValueLabel(modeGroup, SWT.NULL,
+                SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING);
+        
 
         //spacer
         spacer = new Label(cSection, SWT.NULL);
@@ -417,7 +495,7 @@ public class ConfigSectionTransferAutoSpeedBeta
         gridData.horizontalSpan=2;
         gridData.horizontalAlignment=GridData.BEGINNING;
         iCount.setLayoutData(gridData);
-        iCount.setText("adjustment interval: ");
+        iCount.setText("Adjustment interval: ");
 
         adjustmentInterval = new IntParameter(dhtGroup, SpeedManagerAlgorithmProviderV2.SETTING_INTERVALS_BETWEEN_ADJUST);
         gridData = new GridData();
@@ -436,7 +514,7 @@ public class ConfigSectionTransferAutoSpeedBeta
         gridData.horizontalSpan=2;
         gridData.horizontalAlignment=GridData.BEGINNING;
         skip.setLayoutData(gridData);
-        skip.setText("skip after adjustment: ");
+        skip.setText("Skip after adjustment: ");
 
         skipAfterAdjustment = new BooleanParameter(dhtGroup, SpeedManagerAlgorithmProviderV2.SETTING_WAIT_AFTER_ADJUST);
         gridData = new GridData();
@@ -522,15 +600,77 @@ public class ConfigSectionTransferAutoSpeedBeta
         gridData = new GridData();
         gridData.horizontalSpan=3;
         spacer.setLayoutData(gridData);
-        
-
 
         //Hide the group that is not selected.
         String value = strategyList.getValue();
         enableGroups(value);
 
+
+        //Add ChangeListeners to specific parameters.
+        COConfigurationManager.addParameterListener(
+                SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT,
+                speedManagerListener);
+        COConfigurationManager.addParameterListener(
+                SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT,
+                speedManagerListener);
+        COConfigurationManager.addParameterListener(
+                SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MIN_LIMIT,
+                speedManagerListener);
+        COConfigurationManager.addParameterListener(
+                SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT,
+                speedManagerListener);
+        COConfigurationManager.addParameterListener(
+                SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING,
+                speedManagerListener);
+        COConfigurationManager.addParameterListener(
+                SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING,
+                speedManagerListener);
+
+        //These parameters enable and disable the "Add Comment" group.
+        COConfigurationManager.addParameterListener(
+                TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY,
+                speedManagerListener);
+        COConfigurationManager.addParameterListener(
+                "Auto Upload Speed Seeding Enabled",
+                speedManagerListener);
+
+
         return cSection;
     }
+
+    /**
+     *
+     * @param group - Group this label belongs too.
+     * @param SWTSetting - SWT setting for label.  ex. SWT.NULL
+     * @param paramName - parameter name it shadows. Only works with the following params.
+     * @return - Label
+     */
+    private Label createCurrentValueLabel(Group group, int SWTSetting, String paramName){
+
+        Label retVal = new Label(group, SWT.NULL);
+        String value="";
+
+        try{
+            if( paramName.startsWith("SpeedLimitMonitor.setting.") ){
+                //read one of two confidence level settings which are Strings.
+                String s = COConfigurationManager.getStringParameter(paramName);
+                value = SpeedLimitConfidence.parseString(s).getInternationalizedString();
+            }else{
+                //read one of four limit settings which are Longs.
+                long val = COConfigurationManager.getLongParameter(paramName);
+                value = ""+val;
+            }
+        }catch(Throwable t){
+            //ToDo: log this condition.
+        }
+
+        retVal.setText(value);
+        GridData gd = new GridData();
+        gd.horizontalIndent = 8;
+        retVal.setLayoutData(gd);
+
+        return retVal;
+    }//createCurrentValueLabel
 
     void enableGroups(String strategyListValue){
         if(strategyListValue==null){
@@ -562,7 +702,6 @@ public class ConfigSectionTransferAutoSpeedBeta
 
 
         //only enable the comment section if the beta is enabled.
-        //boolean isBetaEnabled = COConfigurationManager.getBooleanParameter(SpeedManagerAlgorithmProviderV2.SETTING_V2_BETA_ENABLED);
         boolean isBothEnabled = COConfigurationManager.getBooleanParameter( TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY );
         boolean isSeedingEnabled = COConfigurationManager.getBooleanParameter( TransferSpeedValidator.AUTO_UPLOAD_SEEDING_ENABLED_CONFIGKEY );
         long version = COConfigurationManager.getLongParameter( SpeedManagerImpl.CONFIG_VERSION );
@@ -573,15 +712,15 @@ public class ConfigSectionTransferAutoSpeedBeta
         }
 
         if( commentGroup!=null){
-            //if( isBetaEnabled ){
             if( isV2Enabled ){
                 //make this section visible.
                 commentGroup.setEnabled(true);
                 commentGroup.setVisible(true);
 
                 //Need to also set "Auto Upload Speed Enabled" for DHT Pings and "Auto Speed Upload Version" to 2
-                COConfigurationManager.setParameter( TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY, true );
-                COConfigurationManager.setParameter( SpeedManagerImpl.CONFIG_VERSION, 2 );
+                //ToDo: verify these parameters really need to be set. Recent changes might deprecate them!!
+                //COConfigurationManager.setParameter( TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY, true );
+                //COConfigurationManager.setParameter( SpeedManagerImpl.CONFIG_VERSION, 2 );
 
             }else{
                 //make it invisible.
@@ -590,11 +729,12 @@ public class ConfigSectionTransferAutoSpeedBeta
 
                 //Set to V1, then set "Auto Upload Speed Enabled" to false.
                 //ToDo: V1 will need a different set of parameters, to decoule from the global parameter.
-                COConfigurationManager.setParameter( SpeedManagerImpl.CONFIG_VERSION, 1 );
-                COConfigurationManager.setParameter( TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY, false );
+                //ToDo: verify these parameters really need to be set. Recent changes might deprecate them!!
+                //COConfigurationManager.setParameter( SpeedManagerImpl.CONFIG_VERSION, 1 );
+                //COConfigurationManager.setParameter( TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY, false );
             }
         }
-    }
+    }//enableGroups
 
     /**
      * Listen for changes in the drop down, then enable/disable the appropriate
@@ -631,6 +771,105 @@ public class ConfigSectionTransferAutoSpeedBeta
         public void floatParameterChanging(Parameter owner, double toValue) {
             //nothing to do here.
         }
-    }
+    }//class GroupModeChangeListener
+
+
+    class SpeedManagerChangeListener implements ParameterListener {
+
+
+        /**
+         * Called, when a parameter has changed.
+         * The listener could only react if the parameter name is relevant.
+         * Or the listener can just read all parameters again.
+         *
+         * @param parameterName the name of the parameter that has changed
+         */
+        public void parameterChanged(String parameterName) {
+
+
+            if(parameterName==null){
+                return;
+            }
+
+
+            //check the parameters.
+            if( parameterName.equalsIgnoreCase(
+                    SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT ) )
+            {
+                updateLabel(currDownCapacitySetting, parameterName);
+
+            }else if( parameterName.equalsIgnoreCase(
+                    SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT ) )
+            {
+                updateLabel(currUpCapacitySetting, parameterName);
+
+            }else if( parameterName.equalsIgnoreCase(
+                    SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MIN_LIMIT ) )
+            {
+                updateLabel(currDownMinSetting, parameterName);
+
+            }else if( parameterName.equalsIgnoreCase(
+                    SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT ) )
+            {
+                updateLabel(currUpMinSetting, parameterName);
+
+            }else if( parameterName.equalsIgnoreCase(
+                    SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING ) )
+            {
+                updateLabelConfLimit( currDownConfSetting, parameterName);
+
+            }else if( parameterName.equalsIgnoreCase(
+                    SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING ) )
+            {
+                updateLabelConfLimit( currUpConfSetting, parameterName );
+            }else if( parameterName.equalsIgnoreCase(
+                    TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY ) )
+            {
+                updateAddCommentGroup();
+            }else if( parameterName.equalsIgnoreCase(
+                    "Auto Upload Speed Seeding Enabled" ) )
+            {
+                updateAddCommentGroup();
+            }
+
+        }//parameterChanged
+
+        private void updateLabel(final Label lbl, final String param ){
+            Utils.execSWTThread(new AERunnable(){
+                public void runSupport(){
+                    long setting = COConfigurationManager.getLongParameter(param);
+                    lbl.setText(""+setting);
+                }
+            });
+        }
+
+        private void updateLabelConfLimit(final Label label, final String param ){
+            Utils.execSWTThread(new AERunnable(){
+                public void runSupport(){
+                    String value = COConfigurationManager.getStringParameter(param);
+                    String setting = SpeedLimitConfidence.parseString(value).getInternationalizedString();
+                    label.setText(""+setting);
+                }
+            });
+        }
+
+        private void updateAddCommentGroup() {
+            Utils.execSWTThread(new AERunnable(){
+                public void runSupport(){
+                    boolean enabled = COConfigurationManager.getBooleanParameter(
+                            TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY);
+                    boolean seedEnabled = COConfigurationManager.getBooleanParameter(
+                            "Auto Upload Speed Seeding Enabled");
+
+                    if( enabled || seedEnabled ){
+                        commentGroup.setVisible(true);
+                    }else{
+                        commentGroup.setVisible(false);
+                    }
+                }//runSupport
+            });
+        }
+
+    }//class SpeedManagerChangeListener
 
 }
