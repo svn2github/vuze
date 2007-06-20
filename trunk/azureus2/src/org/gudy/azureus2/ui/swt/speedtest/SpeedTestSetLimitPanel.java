@@ -315,8 +315,8 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
             int download = result.getDownloadSpeed();
 
             createResultLabels(resultsPanel,false);
-            createResultData(resultsPanel, MessageText.getString("GeneralView.label.uploadspeed") ,upload);
             createResultData(resultsPanel, MessageText.getString("GeneralView.label.downloadspeed"), download);
+            createResultData(resultsPanel, MessageText.getString("GeneralView.label.uploadspeed") ,upload);            
             createTestDesc(resultsPanel);
         }
 

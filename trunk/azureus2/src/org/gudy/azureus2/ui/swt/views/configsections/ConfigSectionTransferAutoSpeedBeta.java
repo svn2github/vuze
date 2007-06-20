@@ -707,6 +707,7 @@ public class ConfigSectionTransferAutoSpeedBeta
         retVal.setText(value);
         GridData gd = new GridData();
         gd.horizontalIndent = 8;
+        gd.widthHint = 50;
         retVal.setLayoutData(gd);
 
         return retVal;

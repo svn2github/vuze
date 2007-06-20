@@ -88,7 +88,7 @@ public class SpeedLimitMonitor
 
     public static final String UPLOAD_CONF_LIMIT_SETTING="SpeedLimitMonitor.setting.upload.limit.conf";
     public static final String DOWNLOAD_CONF_LIMIT_SETTING="SpeedLimitMonitor.setting.download.limit.conf";
-    private static final long CONF_LIMIT_TEST_LENGTH=1000*40;//ToDo: make this configurable.
+    private static final long CONF_LIMIT_TEST_LENGTH=1000*60;//ToDo: make this configurable.
 
 
     //these methods are used to see how high limits can go.
@@ -547,20 +547,6 @@ public class SpeedLimitMonitor
         return ( uploadLimitConf.compareTo(SpeedLimitConfidence.ABSOLUTE)==0 );
     }
 
-    /**
-     * Give the status of confidence testing as a String.
-     * @return -
-     */
-    public String confTestStatus(){
-        //ToDo: figure out what information is relevant here.
-        //current download speed. highest current download speed.
-        //current upload speed. hight current upload speed.
-        //Is this a download or an upload?
-        //current limit confidence.
-        //Time to complete.
-        return "";//ToDo: complete this.
-    }
-
 
     /**
      *
@@ -657,7 +643,7 @@ public class SpeedLimitMonitor
             SpeedManagerLogger.trace("pre-upload-setting="+ preTestUploadCapacity +" up-capacity"+uploadLinespeedCapacity
                     +" pre-download-setting="+ preTestDownloadCapacity +" down-capacity="+downloadLinespeedCapacity);
 
-            retVal = new Update(preTestUploadLimit,true, preTestDownloadLimit,true);
+            retVal = new Update(uploadLinespeedCapacity,true, downloadLinespeedCapacity,true);
             //change back to original mode.
             transferMode.setMode( TransferMode.State.DOWNLOADING );
 
@@ -666,7 +652,7 @@ public class SpeedLimitMonitor
             uploadLimitConf = determineConfidenceLevel();
 
             //set that value.
-            retVal = new Update(preTestUploadLimit,true, preTestDownloadLimit,true);
+            retVal = new Update(uploadLinespeedCapacity,true, downloadLinespeedCapacity,true);
             //change back to original mode.
             transferMode.setMode( TransferMode.State.SEEDING );
 
@@ -677,6 +663,10 @@ public class SpeedLimitMonitor
         }
 
         currTestDone=true;
+
+        //reset the counter
+        uploadAtLimitStartTime = SystemTime.getCurrentTime();
+        downloadAtLimitStartTime = SystemTime.getCurrentTime();
 
         return retVal;
     }

@@ -298,9 +298,6 @@ public class SpeedManagerAlgorithmProviderVivaldi
         //if we are in a limit finding mode then don't even bother with this calculation.
         if( limitMonitor.isConfTestingLimits() ){
 
-            //just log this fact and wait for the result.
-            log( "conf-test-limit:"+limitMonitor.confTestStatus() );
-
             if( limitMonitor.isConfLimitTestFinished() ){
                 int dmDownLimitGuess = pingMapOfDownloadMode.guessDownloadLimit();
                 int dmUpLimitGuess = pingMapOfDownloadMode.guessUploadLimit();
@@ -308,7 +305,6 @@ public class SpeedManagerAlgorithmProviderVivaldi
 
                 SpeedLimitMonitor.Update update = limitMonitor.endLimitTesting(dmDownLimitGuess,
                         Math.max(dmUpLimitGuess,smUpLimitGuess) );
-                //SpeedLimitMonitor.Update update = limitMonitor.endLimitTesting();
 
                 //print out the PingMap data to compare.
                 logPingMapData();
@@ -394,6 +390,8 @@ public class SpeedManagerAlgorithmProviderVivaldi
         //determine if we need to drop a ping source.
         pingSourceManager.checkPingSources(sources);
     }
+
+
 
     /**
      * Log the limit status. Max, Min and Conf.
