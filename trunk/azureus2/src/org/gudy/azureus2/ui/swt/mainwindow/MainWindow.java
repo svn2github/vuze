@@ -1486,9 +1486,6 @@ MainWindow
 		try {
 			writer.indent();
 
-			writer.println("SWT Version:" + SWT.getVersion() + "/"
-					+ SWT.getPlatform());
-
 			writer.println("MyTorrents");
 
 			Tab t = mytorrents;

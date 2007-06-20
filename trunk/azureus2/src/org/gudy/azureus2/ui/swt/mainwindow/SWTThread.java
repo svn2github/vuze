@@ -32,10 +32,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 
 import com.aelitis.azureus.ui.IUIIntializer;
@@ -99,6 +96,22 @@ public class SWTThread {
     }
     
     Display.setAppName("Azureus");
+    
+    AEDiagnostics.addEvidenceGenerator(new AEDiagnosticsEvidenceGenerator() {
+			public void generate(IndentWriter writer) {
+				writer.println("SWT");
+
+				try {
+					writer.indent();
+
+					writer.println("SWT Version:" + SWT.getVersion() + "/"
+							+ SWT.getPlatform());
+				} finally {
+
+					writer.exdent();
+				}
+			}
+		});
     
     if ( Constants.isOSX ){
     	
