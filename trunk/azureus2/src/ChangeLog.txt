@@ -6,6 +6,9 @@ AZUREUS CHANGELOG
 FEATURE: Core | IP Filter Autoloading. Supports DAT (eMule), P2P (PeerGardian, splist), and P2B v1,2,3 (Peer Gardian 2) formats. [TuxPaper]
 FEATURE: UI   | Option to display divider lines every 60 updates on the Statistics view [amc1]
 FEATURE: Plug | Added helper class to make listening to download events across all downloads easier [amc1]
+FEATURE: Core | Azureus SpeedSense (beta) [ranul]
+
+BUGFIX: Core | Plugin installation/updates using Vista [parg,tuxpaper]
 
 
 2007.05.24 | Azureus 3.0.1.4
