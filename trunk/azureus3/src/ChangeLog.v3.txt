@@ -1,11 +1,13 @@
 AZUREUS v3 CHANGELOG
 --------------------
 
-2007.0x.xx | Azureus 3.0.1.5
+2007.06.20 | Azureus 3.0.1.6
 
-FEATURE: Azureus SpeedSense (beta) via Advanced UI
+FEATURE: Azureus AutoSpeed v2 Beta via Advanced UI
 
 BUGFIX: Plugin installation/updates using Vista
+
+
 
 
 2007.05.24 | Azureus 3.0.1.4
