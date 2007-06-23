@@ -135,26 +135,38 @@ public class BrowserMessage
             decodedParams = null;
         }
         else {
-            // operation with parameters
-            operationId = text.substring(delimOperation + 1, delimParams);
-            params = text.substring(delimParams + 1);
-            char leading = params.charAt(0);
-            switch ( leading ) {
-            case '{':
-                paramType = OBJECT_PARAM;
-                decodedParams = JSONUtils.decodeJSON(params);
-                break;
+        	// operation with parameters
+        	operationId = text.substring(delimOperation + 1, delimParams);
+        	params = text.substring(delimParams + 1);
+        	char leading = params.charAt(0);
+        	try {
+        		switch ( leading ) {
+        			case '{':
+        				paramType = OBJECT_PARAM;
+        				decodedParams = JSONUtils.decodeJSON(params);
+        				break;
 
-            case '[':
-                paramType = ARRAY_PARAM;
-                decodedParams = JSONUtils.decodeJSON(params).get("value");
-                break;
+        			case '[':
+        				paramType = ARRAY_PARAM;
+        				Map decodeJSON = JSONUtils.decodeJSON(params);
+        				if (decodeJSON != null) {
+        					decodedParams = decodeJSON.get("value");
+        				} else {
+        					decodedParams = null;
+        				}
+        				break;
 
-            default:
-                paramType = LIST_PARAM;
-                decodedParams = JSFunctionParametersParser.parse(params);
-                break;
-            }
+        			default:
+        				paramType = LIST_PARAM;
+        			decodedParams = JSFunctionParametersParser.parse(params);
+        			break;
+        		}
+        	} catch (Exception e) {
+        		decodedParams = null;
+        	}
+        	if (decodedParams == null) {
+        		paramType = NO_PARAM;
+        	}
         }
     }
 
