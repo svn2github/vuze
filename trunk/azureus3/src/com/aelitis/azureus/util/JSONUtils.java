@@ -22,6 +22,7 @@ package com.aelitis.azureus.util;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -37,20 +38,39 @@ public class JSONUtils
 	/**
 	 * decodes JSON formatted text into a map.
 	 * 
+	 * @return Map parsed from a JSON formatted string
+	 * <p>
 	 *  If the json text is not a map, a map with the key "value" will be returned.
 	 *  the value of "value" will either be an List, String, Number, Boolean, or null
+	 *  <p>
+	 *  if the String is formatted badly, null is returned
 	 */
 	public static Map decodeJSON(String json) {
-		Object object = JSONValue.parse(json);
-		if (object instanceof Map) {
-			return (Map) object;
+		try {
+			Object object = JSONValue.parse(json);
+			if (object instanceof Map) {
+				return (Map) object;
+			}
+			// could be : ArrayList, String, Number, Boolean
+			Map map = new HashMap();
+			map.put("value", object);
+			return map;
+		} catch (Throwable t) {
+			Debug.out("Warning: Bad JSON String: " + json, t);
+			return null;
 		}
-		// could be : ArrayList, String, Number, Boolean
-		Map map = new HashMap();
-		map.put("value", object);
-		return map;
 	}
-	
+
+	/**
+	 * encodes a map into a JSONObject.
+	 * <P>
+	 * It's recommended that you use {@link #encodeToJSON(Map)} instead
+	 * 
+	 * @param map
+	 * @return
+	 *
+	 * @since 3.0.1.5
+	 */
 	public static Map encodeToJSONObject(Map map) {
 		Map newMap = new JSONObject();
 		
@@ -65,6 +85,17 @@ public class JSONUtils
 		return newMap;
 	}
 	
+	/**
+	 * Encodes a map into a JSON formatted string.
+	 * <p>
+	 * Handles multiple layers of Maps and Lists.  Handls String, Number,
+	 * Boolean, and null values.
+	 * 
+	 * @param map Map to change into a JSON formatted string
+	 * @return JSON formatted string
+	 *
+	 * @since 3.0.1.5
+	 */
 	public static String encodeToJSON(Map map) {
 		return encodeToJSONObject(map).toString();
 	}
