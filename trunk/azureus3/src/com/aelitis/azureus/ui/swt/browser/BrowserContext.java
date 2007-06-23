@@ -19,7 +19,6 @@
  */
 package com.aelitis.azureus.ui.swt.browser;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
@@ -32,14 +31,13 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContextImpl;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageListener;
 import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.JSONUtils;
 
 /**
  * Manages the context for a single SWT {@link Browser} component,
@@ -211,7 +209,7 @@ public class BrowserContext
 			}
 
 			public void changing(LocationEvent event) {
-				//System.out.println("cing " + event.location);
+				//System.out.println("cing " + event.location); 
 				if (event.location.startsWith("javascript")
 						&& event.location.indexOf("back()") > 0) {
 					if (browser.isBackEnabled()) {
@@ -337,8 +335,7 @@ public class BrowserContext
 		msg.append("az.msg.dispatch('").append(key).append("', '").append(op).append(
 				"'");
 		if (params != null) {
-			JSONObject json = new JSONObject(params);
-			msg.append(", ").append(json.toString());
+			msg.append(", ").append(JSONUtils.encodeToJSON(params));
 		}
 		msg.append(")");
 
@@ -350,8 +347,7 @@ public class BrowserContext
 		msg.append("az.msg.dispatch('").append(key).append("', '").append(op).append(
 				"'");
 		if (params != null) {
-			JSONArray json = new JSONArray(params);
-			msg.append(", ").append(json.toString());
+			msg.append(", ").append(JSONUtils.encodeToJSON(params));
 		}
 		msg.append(")");
 
