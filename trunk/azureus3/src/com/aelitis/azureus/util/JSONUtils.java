@@ -84,7 +84,7 @@ public class JSONUtils
 		}
 		return newMap;
 	}
-	
+
 	/**
 	 * Encodes a map into a JSON formatted string.
 	 * <p>
@@ -100,6 +100,10 @@ public class JSONUtils
 		return encodeToJSONObject(map).toString();
 	}
 	
+	public static String encodeToJSON(Collection list) {
+		return encodeToJSONArray(list).toString();
+	}
+
 	private static Object coerce(Object value) {
 		if ((value instanceof Map) && !(value instanceof JSONObject)) {
 			value = encodeToJSONObject((Map)value);
@@ -118,7 +122,7 @@ public class JSONUtils
 	 *
 	 * @since 3.0.1.5
 	 */
-	private static List encodeToJSONArray(List list) {
+	private static List encodeToJSONArray(Collection list) {
 		List newList = new JSONArray(list);
 
 		for (int i = 0; i < newList.size(); i++) {
@@ -128,5 +132,25 @@ public class JSONUtils
 		}
 		
 		return newList;
+	}
+	
+	public static void main(String[] args) {
+		Map map = new HashMap();
+		map.put("Test", "TestValue");
+		Map map2 = new HashMap();
+		map2.put("Test2", "test2value");
+		map.put("TestMap", map2);
+		
+		List list = new ArrayList();
+		list.add(new Long(5));
+		list.add("five");
+		map2.put("ListTest", list);
+
+		Map map3 = new HashMap();
+		map3.put("Test3", "test3value");
+		list.add(map3);
+
+		System.out.println(encodeToJSON(map));
+		System.out.println(encodeToJSON(list));
 	}
 }
