@@ -46,6 +46,10 @@ public interface AZMessage extends Message {
   public static final byte[] ID_AZ_REQUEST_HINT_BYTES  = ID_AZ_REQUEST_HINT.getBytes();
   public static final int SUBID_ID_AZ_REQUEST_HINT		= 3;
 
+  public static final String ID_AZ_HAVE	    			= "AZ_HAVE";
+  public static final byte[] ID_AZ_HAVE_BYTES 			= ID_AZ_HAVE.getBytes();
+  public static final int SUBID_ID_AZ_HAVE				= 4;
+
   
   //TODO
 

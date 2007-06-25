@@ -69,9 +69,7 @@ StringInterner
 	}
 	
 	private static boolean general_interning_enabled = false;
-	
-	private static TimerEventPeriodic	cleaner;
-	
+		
 	static{
 		
 			// can't use config here as too early in init!
@@ -81,6 +79,33 @@ StringInterner
 		if ( str != null && str.equals( "1" )){
 			
 			general_interning_enabled = true;
+			
+			Thread t = 
+				new Thread("StringInterner:cleaner")
+				{
+					private int	tick_count;
+					
+					public void
+					run()
+					{
+						while( true ){
+							try{
+								Thread.sleep( TICK_PERIOD );
+								
+								tick_count++;
+								
+								tidy( tick_count == TOTAL_CLEAN_TICKS );
+								
+							}catch( Throwable e ){
+								
+							}
+						}
+					}
+				};
+				
+			t.setDaemon( true );
+			
+			t.start();
 		}
 	}
 	
@@ -109,31 +134,6 @@ StringInterner
 		
 		synchronized( StringInterner.class ){
 			
-			if ( cleaner == null ){
-				
-				cleaner = 
-					SimpleTimer.addPeriodicEvent(
-						"StringInterner:gc",
-						TICK_PERIOD,
-						new TimerEventPerformer()
-						{
-							private int	tick_count;
-							
-							public void 
-							perform(
-								TimerEvent	 event )
-							{
-								tick_count++;
-								
-								synchronized( StringInterner.class ){
-												
-										// one off start of day clear-down to get rid off init vars
-									
-									tidy( tick_count == TOTAL_CLEAN_TICKS );
-								}
-							}
-						});
-			}
 			
 			entryDetails entry;
 			

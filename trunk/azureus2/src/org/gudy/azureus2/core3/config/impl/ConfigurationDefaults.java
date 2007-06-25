@@ -125,6 +125,8 @@ public class ConfigurationDefaults {
     def.put("HTTP.Data.Listen.Port.Override", ZERO);
     def.put("HTTP.Data.Listen.Port.Enable", FALSE );
     
+    def.put("IPV6 Prefer Addresses",FALSE);
+    	
     def.put("max active torrents", new Long(4));
     def.put("max downloads", new Long(4));
     def.put("min downloads", ONE);

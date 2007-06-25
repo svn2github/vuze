@@ -324,9 +324,17 @@ public class AZMessageDecoder implements MessageStreamDecoder {
           Message msg = AZMessageFactory.createAZMessage( ref_buff );
           messages_last_read.add( msg );
         }
-        catch( MessageException me ) {
-          ref_buff.returnToPool();
-          throw new IOException( "AZ message decode failed: " + me.getMessage() );
+        catch( Throwable e ) {	
+          ref_buff.returnToPoolIfNotFree();
+          
+          	// maintain unexpected erorrs as such so they get logged later
+          
+          if ( e instanceof RuntimeException ){
+        	  
+        	  throw((RuntimeException)e );
+          }
+          
+          throw new IOException( "AZ message decode failed: " + e.getMessage() );
         }
         
         reading_length_mode = true;  //see if we've already read the next message's length

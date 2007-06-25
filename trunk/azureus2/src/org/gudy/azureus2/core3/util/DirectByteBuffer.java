@@ -678,7 +678,6 @@ DirectByteBuffer
 		return( buffer );
 	}
   
-
 	public void 
 	returnToPool() 
 	{				
@@ -695,6 +694,34 @@ DirectByteBuffer
 					Debug.out( "Buffer already returned to pool");
 					
 				}else{
+	    	
+					pool.returnBuffer( this );
+					
+					buffer	= null;
+				}
+			}
+		}
+	}
+	
+		/**
+		 * Normally you should know when a buffer is/isn't free and NOT CALL THIS METHOD
+		 * However, there are some error situations where the existing code doesn't correctly
+		 * manage things - we know this and don't want spurious logs occuring as per the above
+		 * normal method
+		 */
+	
+	public void 
+	returnToPoolIfNotFree() 
+	{				
+		if ( pool != null ){
+				
+				// we can't afford to return a buffer more than once to the pool as it'll get
+				// handed out twice in parallel and cause weird problems. We haven't been able
+				// to totally eliminiate duplicate returnToPool calls....
+			
+			synchronized( this ){
+				
+				if ( buffer != null ){
 	    	
 					pool.returnBuffer( this );
 					

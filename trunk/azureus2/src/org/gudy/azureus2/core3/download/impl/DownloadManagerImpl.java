@@ -544,7 +544,11 @@ DownloadManagerImpl
 				
 				 download_manager_state	= 
 					 	DownloadManagerStateImpl.getDownloadState(
-					 			this, torrentFileName, torrent_hash, initial_state == DownloadManager.STATE_STOPPED );
+					 			this, 
+					 			torrentFileName, 
+					 			torrent_hash, 
+					 			initial_state == DownloadManager.STATE_STOPPED || 
+					 			initial_state == DownloadManager.STATE_QUEUED );
 				 
 				 readParameters();
 				 
@@ -1409,6 +1413,8 @@ DownloadManagerImpl
 			return;
 		}
    
+		download_manager_state.setActive( true );
+		
 		try{
 			try{
 				this_mon.enter();
@@ -1561,7 +1567,13 @@ DownloadManagerImpl
   		boolean	remove_torrent,
   		boolean	remove_data )
   	{
-  		controller.stopIt( state_after_stopping, remove_torrent, remove_data );
+  		try{
+  			controller.stopIt( state_after_stopping, remove_torrent, remove_data );
+  			
+  		}finally{
+  			
+			download_manager_state.setActive( false );
+  		}
   	}
   	
 	public boolean

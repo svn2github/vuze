@@ -284,6 +284,10 @@ DownloadManagerState
 	public boolean hasAttribute(String name);
 	
 	public void
+	setActive(
+		boolean	active );
+	
+	public void
 	save();
 	
 		/**

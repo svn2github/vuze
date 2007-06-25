@@ -31,6 +31,7 @@ import java.net.InetSocketAddress;
 import java.util.Properties;
 
 
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -83,8 +84,7 @@ import com.aelitis.azureus.plugins.dht.impl.DHTPluginStorageManager;
 public class 
 DHTPluginImpl
 {
-	private static final String	SEED_ADDRESS	= "dht.aelitis.com";
-	private static final String	SEED_IP			= "85.31.105.2";	// fallback in case DNS resolution fails
+	private static final String	SEED_ADDRESS	= Constants.DHT_SEED_ADDRESS;
 	private static final int	SEED_PORT		= 6881;
 		
 	private static final long	MIN_ROOT_SEED_IMPORT_PERIOD	= 8*60*60*1000;
@@ -621,16 +621,10 @@ outer:
 			return( InetAddress.getByName( SEED_ADDRESS ));
 			
 		}catch( Throwable e ){
+				
+			Debug.printStackTrace( e );
 			
-			try{
-				return( InetAddress.getByName( SEED_IP ));
-				
-			}catch( Throwable f ){
-				
-				log.log(f);
-				
-				return( null );
-			}
+			return( null );
 		}
 	}
 	

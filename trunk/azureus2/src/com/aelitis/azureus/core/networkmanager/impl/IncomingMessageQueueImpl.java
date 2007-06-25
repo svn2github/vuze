@@ -101,8 +101,19 @@ public class IncomingMessageQueueImpl implements IncomingMessageQueue{
       throw new IOException( "no queue listeners registered!" );
     }
     
-    //perform decode op
-    int bytes_read = stream_decoder.performStreamDecode( connection.getTransport(), max_bytes );
+    int bytes_read;
+    
+    try{
+	    	//perform decode op
+    	
+	    bytes_read = stream_decoder.performStreamDecode( connection.getTransport(), max_bytes );
+    
+    }catch( RuntimeException e ){
+    	
+    	Debug.out( "Stream decode for " + connection.getString() + " failed: " + Debug.getNestedExceptionMessageAndStack(e));
+    	
+    	throw( e );
+    }
     
     //check if anything was decoded and notify listeners if so
     Message[] messages = stream_decoder.removeDecodedMessages();

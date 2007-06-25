@@ -24,6 +24,8 @@ package org.gudy.azureus2.core3.config.impl;
 
 import java.util.HashMap;
 import java.io.*;
+import java.lang.reflect.Field;
+import java.net.InetAddress;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.security.*;
@@ -72,6 +74,41 @@ ConfigurationChecker
 	  	
 	  	COConfigurationManager.preInitialise();
       
+	  		// kinda hard to do this system property setting early enough as we musn't load the 
+	  		// config until after checking the "pass to existing process" code and this loads the
+	  		// class InetAddress that caches the current system prop
+	  	
+	  	COConfigurationManager.addAndFireParameterListener(
+	  		"IPV6 Prefer Addresses",
+	  		new ParameterListener()
+	  		{
+	  			public void 
+	  			parameterChanged(
+	  				String name )
+	  			{
+	  			  	boolean	prefer_ipv6 	= COConfigurationManager.getBooleanParameter( name );
+	  		  		
+	  			  	boolean existing = !System.getProperty( "java.net.preferIPv6Addresses", "false" ).equalsIgnoreCase( "false" );
+	  			  	
+	  			  	if ( existing != prefer_ipv6 ){
+	  			  		
+		  		  		System.setProperty( "java.net.preferIPv6Addresses", prefer_ipv6?"true":"false" );
+		  		  		
+		  		  		try{
+		  		  			Field field = InetAddress.class.getDeclaredField( "preferIPv6Address" );
+		  		  			
+		  		  			field.setAccessible( true );
+		  		  			
+		  		  			field.setBoolean( null, prefer_ipv6 );
+		  		  			
+		  		  		}catch( Throwable e ){
+		  		  			
+		  		  			Debug.out( "Failed to update 'preferIPv6Address'", e );
+		  		  		}
+	  			  	}
+	  			}
+	  		});
+	  	
       // socket connect/read timeouts
 	  	
 	  	int	connect_timeout = COConfigurationManager.getIntParameter( "Tracker Client Connect Timeout");
@@ -488,7 +525,7 @@ ConfigurationChecker
   	
   	ConfigurationDefaults.getInstance().runVerifiers();
   }
-  
+  	
 	public static final boolean
 	isNewInstall()
 	{

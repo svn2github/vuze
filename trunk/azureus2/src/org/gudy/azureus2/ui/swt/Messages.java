@@ -27,6 +27,7 @@ import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 
 import java.util.regex.Pattern;
 
@@ -274,9 +275,10 @@ public class Messages {
         else if(widget instanceof Shell) 
           ((Shell) widget).setText(message);
         else if(widget instanceof ToolItem) 
-          ((ToolItem) widget).setText(message);
-        else
-          System.out.println("No cast for " + widget.getClass().getName());
+            ((ToolItem) widget).setText(message);
+        else{
+          Debug.out( "No cast for " + widget.getClass().getName());
+        }
       } 
   }
 

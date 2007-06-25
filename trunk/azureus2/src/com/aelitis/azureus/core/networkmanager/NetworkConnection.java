@@ -104,5 +104,8 @@ NetworkConnection
      * @param error exception
      */
     public void exceptionThrown( Throwable error );
+    
+    public String
+    getDescription();
   }
 }

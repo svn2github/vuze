@@ -28,6 +28,8 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 
 import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.peermanager.messaging.*;
+import com.aelitis.azureus.core.peermanager.messaging.azureus.AZHave;
+import com.aelitis.azureus.core.peermanager.messaging.azureus.AZMessage;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
 
 
@@ -42,7 +44,9 @@ public class OutgoingBTHaveMessageAggregator {
   private final ArrayList 	pending_haves 		= new ArrayList();
   private final AEMonitor	pending_haves_mon	= new AEMonitor( "OutgoingBTHaveMessageAggregator:PH");
 
-  private byte have_version;
+  private byte bt_have_version;
+  private byte az_have_version;
+  
   private boolean destroyed = false;
   
   private final OutgoingMessageQueue outgoing_message_q;
@@ -52,7 +56,10 @@ public class OutgoingBTHaveMessageAggregator {
     
     public void messageQueued( Message message ) {
       //if another message is going to be sent anyway, add our haves as well
-      if( !message.getID().equals( BTMessage.ID_BT_HAVE ) ) {
+    
+      String message_id = message.getID();
+      
+      if( ! ( message_id.equals( BTMessage.ID_BT_HAVE ) || message_id.equals( AZMessage.ID_AZ_HAVE ))) {
         sendPendingHaves();
       }
     }
@@ -69,17 +76,26 @@ public class OutgoingBTHaveMessageAggregator {
    * Create a new aggregator, which will send messages out the given queue.
    * @param outgoing_message_q
    */
-  public OutgoingBTHaveMessageAggregator( OutgoingMessageQueue outgoing_message_q, byte _have_version ) {
+  public 
+  OutgoingBTHaveMessageAggregator( 
+	OutgoingMessageQueue 	outgoing_message_q, 
+	byte 					_bt_have_version,
+	byte					_az_have_version )
+  {
     this.outgoing_message_q = outgoing_message_q;
-    have_version = _have_version;
+    bt_have_version = _bt_have_version;
+    az_have_version	= _az_have_version;
+    
     outgoing_message_q.registerQueueListener( added_message_listener );
   }
   
   public void
   setHaveVersion(
-	byte	version )
+	byte	bt_version,
+	byte	az_version )
   {
-	  have_version = version;
+	  bt_have_version 	= bt_version;
+	  az_have_version	= az_version;
   }
   /**
    * Queue a new have message for aggregated sending.
@@ -143,17 +159,49 @@ public class OutgoingBTHaveMessageAggregator {
   public boolean hasPending() {  return !pending_haves.isEmpty();  }
   
   
-  private void sendPendingHaves() {
-    if( destroyed )  return;
+  private void 
+  sendPendingHaves() 
+  {
+    if ( destroyed ){
+    	
+    	return;
+    }
     
     try{
       pending_haves_mon.enter();
     
-      for( int i=0; i < pending_haves.size(); i++ ) {
-        Integer piece_num = (Integer)pending_haves.get( i ); 
-        outgoing_message_q.addMessage( new BTHave( piece_num.intValue(), have_version ), true );
+      int	num_haves = pending_haves.size();
+      
+      if ( num_haves == 0 ){
+    	  
+    	  return;
       }
+      
+      	// single have -> use BT
+      	
+      if ( num_haves == 1 || az_have_version < BTMessageFactory.MESSAGE_VERSION_SUPPORTS_PADDING ){
+    	        
+	      for( int i=0; i < num_haves; i++ ){
+	    	  
+	        Integer piece_num = (Integer)pending_haves.get( i );
+	        
+	        outgoing_message_q.addMessage( new BTHave( piece_num.intValue(), bt_have_version ), true );
+	      }
+      }else{
+    	  
+    	  int[]	piece_numbers = new int[num_haves];
+    	  
+	      for( int i=0; i < num_haves; i++ ) {
+
+	    	  piece_numbers[i] = ((Integer)pending_haves.get( i )).intValue(); 
+	      }
+	      
+	      outgoing_message_q.addMessage( new AZHave( piece_numbers, az_have_version ), true );
+
+      }
+      
       outgoing_message_q.doListenerNotifications();
+      
       pending_haves.clear();
       
     }finally{

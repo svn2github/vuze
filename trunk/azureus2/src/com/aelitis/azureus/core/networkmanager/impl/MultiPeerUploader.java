@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.networkmanager.impl;
 
+import java.io.IOException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
@@ -331,6 +332,11 @@ public class MultiPeerUploader implements RateControlledEntity {
                   System.out.println( "MP: write exception [" +conn.getTransportBase().getDescription()+ "]: " +e.getMessage() );
                 }
               }
+            }
+            
+            if (! (e instanceof IOException )){
+            	
+          	  Debug.printStackTrace(e);
             }
             
             connections_to_notify_of_exception.put( conn, e );  //do exception notification outside of sync'd block

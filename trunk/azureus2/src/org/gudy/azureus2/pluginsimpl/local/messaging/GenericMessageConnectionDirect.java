@@ -141,6 +141,12 @@ GenericMessageConnectionDirect
 						
 						connection.close();
 					}
+					
+					public String 
+					getDescription() 
+					{
+						return( "generic connection: " + connection.getString());
+					}
 				});
 	}
 	
@@ -255,6 +261,12 @@ GenericMessageConnectionDirect
 						listener.connectFailure( error );
 						
 						connection.close();
+					}
+					
+					public String 
+					getDescription() 
+					{
+						return( "generic connection: " + connection.getString());
 					}
 				});
 	}

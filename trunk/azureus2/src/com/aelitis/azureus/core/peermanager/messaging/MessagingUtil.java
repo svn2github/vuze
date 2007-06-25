@@ -74,13 +74,17 @@ public class MessagingUtil {
     }
 
     byte[] raw = new byte[ stream.remaining( DirectByteBuffer.SS_MSG ) ];
+    
     stream.get( DirectByteBuffer.SS_MSG, raw );
-    stream.returnToPool();
-      
+  
     try {
-      return BDecoder.decode( raw );
-    }
-    catch( Throwable t ) {
+     Map result = BDecoder.decode( raw );
+     
+     stream.returnToPool();
+     
+     return( result );
+     
+    }catch( Throwable t ) {
       throw new MessageException( "[" +id+ "] payload stream b-decode error: " +t.getMessage() );
     } 
   }

@@ -89,6 +89,8 @@ DownloadManagerStateImpl
 			
 			default_attributes.put( ATTRIBUTE_DEFAULTS[i][0], ATTRIBUTE_DEFAULTS[i][1] );
 		}
+		
+		TorrentUtils.registerMapFluff( TRACKER_CACHE_KEY );
 	}
 	
 	private static AEMonitor	class_mon	= new AEMonitor( "DownloadManagerState:class" );
@@ -99,7 +101,7 @@ DownloadManagerStateImpl
 	
 	private DownloadManagerImpl			download_manager;
 	
-	private TOTorrent					torrent;
+	private TorrentUtils.ExtendedTorrent	torrent;
 	
 	private boolean						write_required;
 	
@@ -123,8 +125,8 @@ DownloadManagerStateImpl
 	private static DownloadManagerState
 	getDownloadState(
 		DownloadManagerImpl	download_manager,
-		TOTorrent			original_torrent,
-		TOTorrent			target_torrent )
+		TOTorrent						original_torrent,
+		TorrentUtils.ExtendedTorrent	target_torrent )
 	
 		throws TOTorrentException
 	{
@@ -179,14 +181,14 @@ DownloadManagerStateImpl
 		
 		// System.out.println( "getDownloadState: hash = " + ByteFormatter.encodeString(torrent_hash));
 		
-		TOTorrent saved_state	= null;
+		TorrentUtils.ExtendedTorrent saved_state	= null;
 				
 		File	saved_file = getStateFile( torrent_hash ); 
 		
 		if ( saved_file.exists()){
 			
 			try{
-				saved_state = TorrentUtils.readFromFile( saved_file, true );
+				saved_state = TorrentUtils.readDelegateFromFile( saved_file, false );
 				
 			}catch( Throwable e ){
 				
@@ -200,7 +202,7 @@ DownloadManagerStateImpl
 		
 			TorrentUtils.copyToFile( original_torrent, saved_file );
 			
-			saved_state = TorrentUtils.readFromFile( saved_file, true );
+			saved_state = TorrentUtils.readDelegateFromFile( saved_file, false );
 		}
 
 		return( getDownloadState( null, original_torrent, saved_state ));
@@ -211,7 +213,7 @@ DownloadManagerStateImpl
 		DownloadManagerImpl	download_manager,
 		String				torrent_file,
 		byte[]				torrent_hash,
-		boolean				force_piece_discard )
+		boolean				inactive )
 	
 		throws TOTorrentException
 	{
@@ -219,8 +221,8 @@ DownloadManagerStateImpl
 		
 		// System.out.println( "getDownloadState: hash = " + (torrent_hash==null?"null":ByteFormatter.encodeString(torrent_hash) + ", file = " + torrent_file ));
 
-		TOTorrent	original_torrent	= null;
-		TOTorrent 	saved_state			= null;
+		TOTorrent						original_torrent	= null;
+		TorrentUtils.ExtendedTorrent 	saved_state			= null;
 		
 			// first, if we already have the hash then see if we can load the saved state
 		
@@ -235,14 +237,15 @@ DownloadManagerStateImpl
 					
 					if ( cached_state != null ){
 						
-						CachedStateWrapper wrapper = new CachedStateWrapper( download_manager, torrent_file, torrent_hash, cached_state, force_piece_discard );
+						CachedStateWrapper wrapper = new CachedStateWrapper( download_manager, torrent_file, torrent_hash, cached_state, inactive );
 						
 						global_state_cache_wrappers.add( wrapper );
 						
 						saved_state	= wrapper;
+						
 					}else{
 						
-						saved_state = TorrentUtils.readFromFile( saved_file, true, discard_pieces );
+						saved_state = TorrentUtils.readDelegateFromFile( saved_file, discard_pieces );
 					}
 					
 				}catch( Throwable e ){
@@ -256,7 +259,7 @@ DownloadManagerStateImpl
 		
 		if ( saved_state == null ){
 		
-			original_torrent = TorrentUtils.readFromFile( new File(torrent_file), true, discard_pieces );
+			original_torrent = TorrentUtils.readDelegateFromFile( new File(torrent_file), discard_pieces );
 			
 			torrent_hash = original_torrent.getHash();
 			
@@ -265,7 +268,7 @@ DownloadManagerStateImpl
 			if ( saved_file.exists()){
 				
 				try{
-					saved_state = TorrentUtils.readFromFile( saved_file, true, discard_pieces );
+					saved_state = TorrentUtils.readDelegateFromFile( saved_file, discard_pieces );
 					
 				}catch( Throwable e ){
 					
@@ -282,11 +285,18 @@ DownloadManagerStateImpl
 				
 				TorrentUtils.copyToFile( original_torrent, saved_file );
 				
-				saved_state = TorrentUtils.readFromFile( saved_file, true, discard_pieces );
+				saved_state = TorrentUtils.readDelegateFromFile( saved_file, discard_pieces );
 			}
 		}
 
-		return( getDownloadState( download_manager, original_torrent, saved_state ));
+		DownloadManagerState res = getDownloadState( download_manager, original_torrent, saved_state );
+		
+		if ( inactive ){
+			
+			res.setActive( false );
+		}
+		
+		return( res );
 	}
 	
 	protected static File
@@ -435,8 +445,8 @@ DownloadManagerStateImpl
 
 	protected
 	DownloadManagerStateImpl(
-		DownloadManagerImpl	_download_manager,
-		TOTorrent			_torrent )
+		DownloadManagerImpl				_download_manager,
+		TorrentUtils.ExtendedTorrent	_torrent )
 	{
 		download_manager	= _download_manager;
 		torrent				= _torrent;
@@ -667,6 +677,13 @@ DownloadManagerStateImpl
 	getTorrent()
 	{
 		return( torrent );
+	}
+	
+	public void
+	setActive(
+		boolean		active )
+	{
+		torrent.setDiscardFluff( !active );
 	}
 	
 	public void
@@ -2391,6 +2408,11 @@ DownloadManagerStateImpl
 			return( new CaseSensitiveFileMap());
 		}
 		
+		public void 
+		setActive(boolean active )
+		{
+		}
+		
 		public void
 		save()
 		{	
@@ -2453,8 +2475,8 @@ DownloadManagerStateImpl
 	
 	protected static class
 	CachedStateWrapper
-		extends LogRelation
-		implements TOTorrent
+		extends 	LogRelation
+		implements 	TorrentUtils.ExtendedTorrent
 	{
 		private DownloadManagerImpl	download_manager;
 		
@@ -2463,11 +2485,13 @@ DownloadManagerStateImpl
 		private Map			cache;	
 		private Map			cache_attributes;
 		
-		private TOTorrent			delegate;
-		private TOTorrentException	fixup_failure;
+		private TorrentUtils.ExtendedTorrent		delegate;
+		private TOTorrentException					fixup_failure;
 		
 		private boolean		discard_pieces;
 		private boolean		logged_failure;
+		
+		private volatile boolean		discard_fluff;
 		
 		protected
 		CachedStateWrapper(
@@ -2558,6 +2582,11 @@ DownloadManagerStateImpl
 		
 					delegate = loadRealState();
 				
+					if ( discard_fluff ){
+					
+						delegate.setDiscardFluff( discard_fluff );
+					}
+
 					if ( cache != null ){
 						
 						Debug.out( "Cache miss forced fixup" );
@@ -2601,7 +2630,7 @@ DownloadManagerStateImpl
 			return( false );
 		}
 		
-		protected TOTorrent
+		protected TorrentUtils.ExtendedTorrent
 		loadRealState()
 		
 			throws TOTorrentException
@@ -2614,7 +2643,7 @@ DownloadManagerStateImpl
 				
 				try{
 					
-					return( TorrentUtils.readFromFile( saved_file, true, discard_pieces ));
+					return( TorrentUtils.readDelegateFromFile( saved_file, discard_pieces ));
 					
 				}catch( Throwable e ){
 					
@@ -2633,7 +2662,7 @@ DownloadManagerStateImpl
 			if ( saved_file.exists()){
 				
 				try{
-					return( TorrentUtils.readFromFile( saved_file, true, discard_pieces ));
+					return( TorrentUtils.readDelegateFromFile( saved_file, discard_pieces ));
 					
 				}catch( Throwable e ){
 					
@@ -2648,7 +2677,7 @@ DownloadManagerStateImpl
 			
 			TorrentUtils.copyToFile( original_torrent, saved_file );
 			
-			return( TorrentUtils.readFromFile( saved_file, true, discard_pieces ));
+			return( TorrentUtils.readDelegateFromFile( saved_file, discard_pieces ));
 		}
 		
 		
@@ -2835,17 +2864,24 @@ DownloadManagerStateImpl
     		throws TOTorrentException
     	{
     		if ( fixup()){
-    			
-    			if ( delegate instanceof TorrentUtils.torrentDelegate ){
-    				
-    				return(((TorrentUtils.torrentDelegate)delegate).peekPieces());
-    			}
-    			
-    			return( delegate.getPieces());
+    			    				
+    			return( delegate.peekPieces());
     		}
     		
 	   		throw( fixup_failure );
     	}
+    	
+    	public void 
+    	setDiscardFluff(
+    		boolean discard )
+    	{
+    		discard_fluff	= discard;
+    		
+    		if ( delegate != null ){
+    			
+    			delegate.setDiscardFluff( discard_fluff );
+    		}
+     	}
     	
     	public long
     	getPieceLength()

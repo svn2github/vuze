@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.networkmanager.impl;
 
+import java.io.IOException;
+
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -88,6 +90,11 @@ public class SinglePeerDownloader implements RateControlledEntity {
             System.out.println( "SP: read exception [" +connection.getTransportBase().getDescription()+ "]: " +e.getMessage() );
           }
         }
+      }
+      
+      if (! (e instanceof IOException )){
+      	
+    	  Debug.printStackTrace(e);
       }
       
       connection.notifyOfException( e );

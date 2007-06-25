@@ -55,6 +55,12 @@ public class ConnectionImpl implements Connection {
       
       public void connectFailure( Throwable failure_msg ) {  listener.connectFailure( failure_msg );  }
       public void exceptionThrown( Throwable error ) {  listener.exceptionThrown( error );  }
+      
+      public String
+      getDescription()
+      {
+    	  return( "plugin connection: " + core_connection.getString());
+      }
     });
   }
   

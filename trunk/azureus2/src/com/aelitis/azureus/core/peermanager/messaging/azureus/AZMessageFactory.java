@@ -75,6 +75,7 @@ public class AZMessageFactory {
       MessageManager.getSingleton().registerMessageType( new AZHandshake( new byte[20], "", "", 0, 0, 0, new String[0], new byte[0], 0, MESSAGE_VERSION_SUPPORTS_PADDING ) );
       MessageManager.getSingleton().registerMessageType( new AZPeerExchange( new byte[20], null, null, MESSAGE_VERSION_SUPPORTS_PADDING ));
       MessageManager.getSingleton().registerMessageType( new AZRequestHint( -1, -1, -1, -1, MESSAGE_VERSION_SUPPORTS_PADDING ));
+      MessageManager.getSingleton().registerMessageType( new AZHave( new int[0], MESSAGE_VERSION_SUPPORTS_PADDING ));
       /*
       MessageManager.getSingleton().registerMessageType( new AZSessionSyn( new byte[20], -1, null) );
       MessageManager.getSingleton().registerMessageType( new AZSessionAck( new byte[20], -1, null) );
@@ -214,19 +215,29 @@ public class AZMessageFactory {
       raw_buffs[i+1] = payload[i];
     }
      
-    LegacyData ld = (LegacyData)legacy_data.get( base_message.getID() );  //determine if a legacy BT message
+    String message_id = base_message.getID();
+    
+    LegacyData ld = (LegacyData)legacy_data.get( message_id );  //determine if a legacy BT message
     
     if( ld != null ) {  //legacy message, use pre-configured values
       return new RawMessageImpl( base_message, raw_buffs, ld.priority, ld.is_no_delay, ld.to_remove );
     }
     
-     int priority;
+    	// these should really be properties of the message...
     
-    if ( base_message.getID() == AZMessage.ID_AZ_HANDSHAKE ){
+    int 	priority;
+    boolean	no_delay	= true;
+    
+    if ( message_id == AZMessage.ID_AZ_HANDSHAKE ){
     	
     		// handshake needs to go out first - if not high then bitfield can get in front of it...
     	
     	priority = RawMessage.PRIORITY_HIGH;
+    	
+    }else if ( message_id == AZMessage.ID_AZ_HAVE ){
+    	
+    	priority 	= RawMessage.PRIORITY_LOW;
+    	no_delay	= false;
     	
     }else{
     	
@@ -235,7 +246,7 @@ public class AZMessageFactory {
     	priority = base_message.getType() == Message.TYPE_DATA_PAYLOAD ? RawMessage.PRIORITY_LOW : RawMessage.PRIORITY_NORMAL;
     }
         
-    return new RawMessageImpl( base_message, raw_buffs, priority, true, null );
+    return new RawMessageImpl( base_message, raw_buffs, priority, no_delay, null );
   }
   
   

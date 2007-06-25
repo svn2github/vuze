@@ -261,6 +261,6 @@ NetworkConnectionImpl
 	getString()
 	{
 		return( "tran=" + (transport==null?"null":transport.getDescription()+",w_ready=" + transport.isReadyForWrite(null)+",r_ready=" + transport.isReadyForRead( null ))+ ",in=" + incoming_message_queue.getPercentDoneOfCurrentMessage() + 
-				",out=" + outgoing_message_queue.getTotalSize());
+				",out=" + outgoing_message_queue.getTotalSize() + ",owner=" + (connection_listener==null?"null":connection_listener.getDescription()));
 	}
 }

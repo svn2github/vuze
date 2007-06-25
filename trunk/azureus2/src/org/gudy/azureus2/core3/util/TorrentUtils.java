@@ -77,8 +77,7 @@ TorrentUtils
 		COConfigurationManager.addAndFireParameterListener("Save Torrent Backup",
 				new ParameterListener() {
 					public void parameterChanged(String parameterName) {
-						bSaveTorrentBackup = COConfigurationManager.getBooleanParameter(
-								parameterName, false);
+						bSaveTorrentBackup = COConfigurationManager.getBooleanParameter(parameterName);
 					}
 				});
 		
@@ -115,6 +114,16 @@ TorrentUtils
 		 * @return
 		 * @throws TOTorrentException
 		 */
+	
+	public static ExtendedTorrent
+	readDelegateFromFile(
+		File		file,
+		boolean		force_initial_discard )
+		
+		throws TOTorrentException
+	{
+		return((ExtendedTorrent)readFromFile( file, true, force_initial_discard ));
+	}
 	
 	public static TOTorrent
 	readFromFile(
@@ -240,10 +249,17 @@ TorrentUtils
 	   try{
 	   		torrent.getMonitor().enter();
 	    	
-	   			// we've got to re-obtain the pieces here in case they've been thrown
+	   			// we've got to re-obtain the pieces etc. here in case they've been thrown
 	   			// away to save memory *before* we rename the torrent file!
-	   		
+	   		   		
 	   		torrent.getPieces();
+	   		
+	   			// restore fluff too
+	   		
+	   		if  ( torrent_map_fluff != null ){
+	   			
+	   			torrent.getAdditionalMapProperty( torrent_map_fluff );
+	   		}
 	   		
 	    	String str = torrent.getAdditionalStringProperty("torrent filename");
 	    	
@@ -259,7 +275,7 @@ TorrentUtils
 	    	
 	    	File torrent_file = new File(str);
 	    	
-	    	if ( 	( force_backup ||COConfigurationManager.getBooleanParameter("Save Torrent Backup", false)) &&
+	    	if ( 	( force_backup ||COConfigurationManager.getBooleanParameter("Save Torrent Backup")) &&
 	    			torrent_file.exists()) {
 	    		
 	    		File torrent_file_bak = new File(str + ".bak");
@@ -335,20 +351,7 @@ TorrentUtils
 
 		throws TOTorrentException 
 	{
-		try{
-	   		torrent.getMonitor().enter();
-	    	
-	   			// we've got to re-obtain the pieces here in case they've been thrown
-	   			// away to save memory *before* we rename the torrent file!
-	   		
-	   		torrent.getPieces();
-	   			      
-	    	torrent.serialiseToBEncodedFile(file);
-			
-	   	}finally{
-	   		
-	   		torrent.getMonitor().exit();
-	   	}	
+	   	torrent.serialiseToBEncodedFile(file);
 	}
 	
 	public static void
@@ -1338,16 +1341,51 @@ TorrentUtils
 			});
 	}
 	
-	public static class
+	private static String	torrent_map_fluff;
+	private static Map		discarded_map = new HashMap(1);
+	
+	public static void
+	registerMapFluff(
+		String		_fluff )
+	{
+		synchronized( TorrentUtils.class ){
+			
+				// lazyness - currently only one fluff item 
+			
+			if ( torrent_map_fluff != null ){
+				
+				Debug.out( "Excessive fluff detected" );
+				
+			}else{
+				
+				torrent_map_fluff = _fluff;
+			}
+		}
+	}
+	
+	public interface
+	ExtendedTorrent
+		extends TOTorrent
+	{
+		public byte[][]
+		peekPieces()
+		    		
+			throws TOTorrentException;
+		
+		public void
+		setDiscardFluff(
+			boolean	discard );
+	}
+	
+	private static class
 	torrentDelegate
 		extends LogRelation
-		implements TOTorrent
+		implements ExtendedTorrent
 	{
 		private TOTorrent		delegate;
 		private File			file;
 		
 		private long			last_pieces_read_time	= SystemTime.getCurrentTime();
-		private byte[][]		pieces;
 		
 		protected
 		torrentDelegate(
@@ -1360,6 +1398,26 @@ TorrentUtils
 			synchronized( torrent_delegates ){
 				
 				torrent_delegates.put( this, null );
+			}
+		}
+		
+		public void
+		setDiscardFluff(
+			boolean	discard )
+		{
+			if ( discard && torrent_map_fluff != null ){
+				
+				//System.out.println( "Discarded fluff for " + new String(getName()));
+				
+				try{
+			   		getMonitor().enter();
+					
+					delegate.setAdditionalMapProperty( torrent_map_fluff, discarded_map );
+					
+				}finally{
+					
+					getMonitor().exit();
+				}
 			}
 		}
 		
@@ -1484,11 +1542,9 @@ TorrentUtils
 				try{
 			   		getMonitor().enter();
 
-			   		TOTorrent	temp = readFromFile( file, false );
-					
-			   		res	= temp.getPieces();
-					
-			   		delegate.setPieces( res );
+			   		restoreState( true, false );
+			   		
+			   		res = delegate.getPieces();
 			   		
 				}finally{
 					
@@ -1499,6 +1555,58 @@ TorrentUtils
 			return( res );
 		}
 
+		/**
+		 * monitor must be held before calling me
+		 * @param do_pieces
+		 * @param do_fluff
+		 * @throws TOTorrentException
+		 */
+		
+		protected boolean[]
+		restoreState(
+			boolean		do_pieces,
+			boolean		do_fluff )
+		
+			throws TOTorrentException
+		{
+	   		boolean	had_pieces = delegate.getPieces() != null;
+	   		
+	   		boolean	had_fluff = 
+	   			torrent_map_fluff == null || 
+	   			delegate.getAdditionalMapProperty( torrent_map_fluff ) != discarded_map;
+
+	   		if ( had_pieces ){
+	   			
+	   			do_pieces = false;
+	   		}
+	   		
+	   		if ( had_fluff ){
+	   			
+	   			do_fluff = false;
+	   		}
+	   		
+	   		if ( do_pieces || do_fluff ){
+	   		
+		   		TOTorrent	temp = readFromFile( file, false );
+				
+		   		if ( do_pieces ){
+		   		
+		   			byte[][] res	= temp.getPieces();
+				
+		   			delegate.setPieces( res );
+		   		}
+		   		
+		   		if ( do_fluff ){
+		   			
+		   			delegate.setAdditionalMapProperty(
+		   					torrent_map_fluff, 
+		   					temp.getAdditionalMapProperty( torrent_map_fluff ));
+		   		}
+	   		}
+	   		
+	   		return(new boolean[]{ do_pieces, do_fluff });
+		}
+		
 			/**
 			 * peeks the pieces, will return null if they are discarded
 			 * @return
@@ -1651,13 +1759,58 @@ TorrentUtils
 			String		name,
 			Map			value )
 		{
-			delegate.setAdditionalMapProperty( name, value );
+			if ( torrent_map_fluff != null && name.equals( torrent_map_fluff )){
+
+				//System.out.println( "Set fluff for " + new String(getName()) + " to " + value );
+
+				try{
+					getMonitor().enter();
+
+					delegate.setAdditionalMapProperty( name, value );
+					
+				}finally{
+					
+					getMonitor().exit();
+				}
+			}else{
+				
+				delegate.setAdditionalMapProperty( name, value );	
+			}
 		}
 			
 		public Map
 		getAdditionalMapProperty(
 			String		name )
 		{
+			if ( torrent_map_fluff != null && name.equals( torrent_map_fluff )){
+				
+				try{
+					getMonitor().enter();
+
+					Map	result = delegate.getAdditionalMapProperty( name );
+					
+					if ( result == discarded_map ){
+					
+						try{
+							restoreState( false, true );
+							
+							Map res = delegate.getAdditionalMapProperty( name );
+
+							//System.out.println( "Restored fluff for " + new String(getName()) + " to " + res );
+
+							return( res );
+							
+						}catch( Throwable e ){
+							
+							Debug.out( "Property '" + name + " lost due to torrent read error", e );
+						}
+					}
+				}finally{
+					
+					getMonitor().exit();
+				}
+			}
+			
 			return( delegate.getAdditionalMapProperty( name ));
 		}
 		
@@ -1681,15 +1834,13 @@ TorrentUtils
 			String name )
 		{
 			delegate.removeAdditionalProperty( name );
-		}
-		
+		}	
 		
 		public void
 		removeAdditionalProperties()
 		{
 			delegate.removeAdditionalProperties();
-		}
-		
+		}		
 
 		public void
 		serialiseToBEncodedFile(
@@ -1701,16 +1852,19 @@ TorrentUtils
 			
 			try{
 		   		getMonitor().enter();
+		   				   		
+		   		boolean[]	restored = restoreState( true, true );
 		   		
-		   		boolean	had_pieces = delegate.getPieces() != null;
-		   		
-		   		getPieces();
-			
 		   		delegate.serialiseToBEncodedFile( target_file );
 		   		
-		   		if ( !had_pieces ){
+		   		if ( restored[0] ){
 		   			
 		   			discardPieces( SystemTime.getCurrentTime(), true );
+		   		}
+		   		
+		   		if ( restored[1] ){
+		   			
+		   			delegate.setAdditionalMapProperty( torrent_map_fluff, discarded_map );
 		   		}
 			}finally{
 				
@@ -1729,15 +1883,18 @@ TorrentUtils
 			try{
 		   		getMonitor().enter();
 		   		
-		   		boolean	had_pieces = delegate.getPieces() != null;
-
-		   		getPieces();
+		   		boolean[]	restored = restoreState( true, true );
 			
 		   		Map	result = delegate.serialiseToMap();
 		   		
-		   		if ( !had_pieces ){
+		   		if ( restored[0] ){
 		   			
 		   			discardPieces( SystemTime.getCurrentTime(), true );
+		   		}
+		   		
+		   		if ( restored[1] ){
+		   			
+		   			delegate.setAdditionalMapProperty( torrent_map_fluff, discarded_map );
 		   		}
 		   		
 		   		return( result );
@@ -1751,7 +1908,7 @@ TorrentUtils
 
 		public void
 		serialiseToXMLFile(
-				File		target_file )
+			File		target_file )
 			  
 		   throws TOTorrentException
 		{
@@ -1760,15 +1917,18 @@ TorrentUtils
 			try{
 		   		getMonitor().enter();
 		   		
-		   		boolean	had_pieces = delegate.getPieces() != null;
-
-		   		getPieces();
+		   		boolean[]	restored = restoreState( true, true );
 			
 		   		delegate.serialiseToXMLFile( target_file );
 			
-		   		if ( !had_pieces ){
+		   		if ( restored[0] ){
 		   			
 		   			discardPieces( SystemTime.getCurrentTime(), true );
+		   		}
+		   		
+		   		if ( restored[1] ){
+		   			
+		   			delegate.setAdditionalMapProperty( torrent_map_fluff, discarded_map );
 		   		}
 			}finally{
 				

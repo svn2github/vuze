@@ -67,7 +67,7 @@ public class VersionCheckClient {
 	public static final String	REASON_SECONDARY_CHECK			= "sc";
 	
 
-  private static final String 	AZ_MSG_SERVER_ADDRESS 	= "version.azureusplatform.com";
+  private static final String 	AZ_MSG_SERVER_ADDRESS 	= Constants.VERSION_SERVER;
   private static final int 		AZ_MSG_SERVER_PORT 		= 27001;
   private static final String 	MESSAGE_TYPE_ID 		= "AZVER";
   
@@ -285,6 +285,8 @@ public class VersionCheckClient {
 			
 		}catch( Exception e ){
 		
+			Debug.printStackTrace( e );
+			
 			error = e;
 		}
 	}
