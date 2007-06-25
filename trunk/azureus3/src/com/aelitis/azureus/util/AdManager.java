@@ -47,7 +47,7 @@ import com.aelitis.net.magneturi.MagnetURIHandler;
 public class AdManager
 {
 	private final static long EXPIRE_ASX = 1000L * 60 * 10; // 10 min
-	
+
 	private final static AdManager instance;
 
 	static {
@@ -157,13 +157,13 @@ public class AdManager
 						if (!adSupportedDMList.contains(dm)) {
 							adSupportedDMList.add(dm);
 							if (!dm.getAssumedComplete()) {
-  							dm.addListener(new DownloadManagerAdapter() {
-  								public void downloadComplete(DownloadManager manager) {
-  									// good chance we still have internet here, so get/cache
-  									// the asx
-  									createASX(dm, null);
-  								}
-  							});
+								dm.addListener(new DownloadManagerAdapter() {
+									public void downloadComplete(DownloadManager manager) {
+										// good chance we still have internet here, so get/cache
+										// the asx
+										createASX(dm, null);
+									}
+								});
 							}
 						}
 					}
@@ -196,7 +196,7 @@ public class AdManager
 										try {
 											PlatformAdManager.debug("Ad: "
 													+ new String(torrent.getName()));
-											
+
 											TorrentUtils.setFlag(torrent,
 													TorrentUtils.TORRENT_FLAG_LOW_NOISE, true);
 
@@ -279,7 +279,7 @@ public class AdManager
 			if (dm == null) {
 				System.err.println("DM for Ad not found. CHEATER!!");
 			}
-			
+
 			DownloadManager dmContent = core.getGlobalManager().getDownloadManager(
 					new HashWrapper(Base32.decode(contentHash)));
 			if (dmContent != null) {
@@ -313,60 +313,77 @@ public class AdManager
 	}
 
 	public void createASX(final DownloadManager dm, final ASXCreatedListener l) {
-		TOTorrent torrent = dm.getTorrent();
-		if (torrent == null || !PlatformTorrentUtils.isContent(torrent)) {
-			return;
-		}
-
-		Object lastASXObject = dm.getData("LastASX");
-		if (lastASXObject instanceof Long) {
-			long lastASX = ((Long)lastASXObject).longValue();
-			if (SystemTime.getCurrentTime() - lastASX < EXPIRE_ASX) {
-				File saveLocation = dm.getAbsoluteSaveLocation();
-				File asxFile = new File(saveLocation.isFile()
-						? saveLocation.getParentFile() : saveLocation, "play.asx");
-				if (asxFile.isFile()) {
-					PlatformAdManager.debug("playing using existing asx");
-					if (l != null) {
-						l.asxCreated(asxFile);
-					}
-					return;
-				}
+		try {
+			TOTorrent torrent = dm.getTorrent();
+			if (torrent == null || !PlatformTorrentUtils.isContent(torrent)) {
+				return;
 			}
-		}
 
-		String contentHash = PlatformTorrentUtils.getContentHash(torrent);
-
-		PlatformAdManager.debug("getting asx");
-		PlatformAdManager.getPlayList(dm, "http://127.0.0.1:"
-				+ MagnetURIHandler.getSingleton().getPort()
-				+ "/setinfo?name=adtracker&contentHash=" + contentHash, 0,
-				new PlatformAdManager.GetPlaylistReplyListener() {
-					public void replyReceived(String replyType, String playlist) {
-						if (playlist == null) {
-							PlatformAdManager.debug("no asx in reply");
-							if (l != null) {
-								l.asxFailed();
-							}
-							return;
-						}
-						PlatformAdManager.debug("got asx");
-						File saveLocation = dm.getAbsoluteSaveLocation();
-						File asxFile = new File(saveLocation.isFile()
-								? saveLocation.getParentFile() : saveLocation, "play.asx");
-						FileUtil.writeBytesAsFile(asxFile.getAbsolutePath(),
-								playlist.getBytes());
-						
-						dm.setData("LastASX", new Long(SystemTime.getCurrentTime()));
-
+			Object lastASXObject = dm.getData("LastASX");
+			if (lastASXObject instanceof Long) {
+				long lastASX = ((Long) lastASXObject).longValue();
+				if (SystemTime.getCurrentTime() - lastASX < EXPIRE_ASX) {
+					File asxFile = buildASXFileLocation(dm);
+					if (asxFile.isFile()) {
+						PlatformAdManager.debug("playing using existing asx: " + asxFile);
 						if (l != null) {
 							l.asxCreated(asxFile);
 						}
+						return;
 					}
+				}
+			}
 
-					public void messageSent() {
-					}
-				});
+			String contentHash = PlatformTorrentUtils.getContentHash(torrent);
+
+			PlatformAdManager.debug("getting asx");
+			PlatformAdManager.getPlayList(dm, "http://127.0.0.1:"
+					+ MagnetURIHandler.getSingleton().getPort()
+					+ "/setinfo?name=adtracker&contentHash=" + contentHash, 0,
+					new PlatformAdManager.GetPlaylistReplyListener() {
+						public void replyReceived(String replyType, String playlist) {
+							try {
+								if (playlist == null) {
+									PlatformAdManager.debug("no asx in reply");
+									if (l != null) {
+										l.asxFailed();
+									}
+									return;
+								}
+								File asxFile = buildASXFileLocation(dm);
+								PlatformAdManager.debug("got asx. Writing to " + asxFile);
+								FileUtil.writeBytesAsFile(asxFile.getAbsolutePath(),
+										playlist.getBytes());
+
+								dm.setData("LastASX", new Long(SystemTime.getCurrentTime()));
+
+								if (l != null) {
+									l.asxCreated(asxFile);
+								}
+							} catch (Exception e) {
+								if (l != null) {
+									l.asxFailed();
+								}
+							}
+						}
+
+						public void messageSent() {
+						}
+					});
+		} catch (Exception e) {
+			if (l != null) {
+				l.asxFailed();
+			}
+		}
+	}
+
+	private File buildASXFileLocation(DownloadManager dm) {
+		File saveLocation = dm.getAbsoluteSaveLocation();
+		if (saveLocation.isFile()) {
+			return new File(saveLocation.getAbsolutePath() + ".asx");
+		}
+		// directory, just use 'play.asx'
+		return new File(saveLocation, "play.asx");
 	}
 
 	public interface ASXCreatedListener
