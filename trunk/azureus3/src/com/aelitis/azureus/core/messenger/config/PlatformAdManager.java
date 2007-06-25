@@ -264,6 +264,10 @@ public class PlatformAdManager
 		} finally {
 			mon_unsentImpressions.exit();
 		}
+		
+		if (sendingImpressions.size() == 0) {
+			return;
+		}
 
 		final List fSendingImpressions = sendingImpressions;
 
