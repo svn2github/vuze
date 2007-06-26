@@ -110,4 +110,11 @@ public interface TableViewSWT
 	 * @since 3.0.0.7
 	 */
 	TableCellSWT getTableCell(int x, int y);
+
+	/**
+	 * @return
+	 *
+	 * @since 3.0.1.7
+	 */
+	TableCellSWT getTableCellWithCursor();
 }

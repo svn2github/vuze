@@ -659,7 +659,7 @@ public class TableViewSWTImpl
 				}
 			});
 		}
-		
+
 		table.addListener(SWT.MeasureItem, new Listener() {
 			public void handleEvent(Event event) {
 				int defaultHeight = getRowDefaultHeight();
@@ -706,10 +706,13 @@ public class TableViewSWTImpl
 				if (cell != null && tc != null) {
 					TableCellMouseEvent event = createMouseEvent(cell, e,
 							TableCellMouseEvent.EVENT_MOUSEUP);
-					tc.invokeCellMouseListeners(event);
-					cell.invokeMouseListeners(event);
-					if (event.skipCoreFunctionality)
-						lCancelSelectionTriggeredOn = System.currentTimeMillis();
+					if (event != null) {
+						tc.invokeCellMouseListeners(event);
+						cell.invokeMouseListeners(event);
+						if (event.skipCoreFunctionality) {
+							lCancelSelectionTriggeredOn = System.currentTimeMillis();
+						}
+					}
 				}
 			}
 
@@ -724,10 +727,13 @@ public class TableViewSWTImpl
 					}
 					TableCellMouseEvent event = createMouseEvent(cell, e,
 							TableCellMouseEvent.EVENT_MOUSEDOWN);
-					tc.invokeCellMouseListeners(event);
-					cell.invokeMouseListeners(event);
-					if (event.skipCoreFunctionality)
-						lCancelSelectionTriggeredOn = System.currentTimeMillis();
+					if (event != null) {
+						tc.invokeCellMouseListeners(event);
+						cell.invokeMouseListeners(event);
+						if (event.skipCoreFunctionality) {
+							lCancelSelectionTriggeredOn = System.currentTimeMillis();
+						}
+					}
 				}
 
 				iMouseX = e.x;
@@ -777,8 +783,6 @@ public class TableViewSWTImpl
 			int lastCursorID = -1;
 
 			public void mouseMove(MouseEvent e) {
-				// XXX this may not be needed if all platforms process mouseDown
-				//     before the menu
 				try {
 					iMouseX = e.x;
 
@@ -900,8 +904,8 @@ public class TableViewSWTImpl
 								event.doit = false;
 							}
 							break;
-							
-						case '+' : {
+
+						case '+': {
 							if (Constants.isUnix) {
 								TableColumn[] tableColumnsSWT = table.getColumns();
 								for (int i = 0; i < tableColumnsSWT.length; i++) {
@@ -1061,7 +1065,7 @@ public class TableViewSWTImpl
 
 					TableColumnCore tc = (TableColumnCore) column.getData("TableColumnCore");
 					if (tc != null) {
-						Long lPadding = (Long)column.getData("widthOffset");
+						Long lPadding = (Long) column.getData("widthOffset");
 						int padding = (lPadding == null) ? 0 : lPadding.intValue();
 						tc.setWidth(column.getWidth() - padding);
 					}
@@ -1142,14 +1146,14 @@ public class TableViewSWTImpl
 			column.setData("TableColumnCore", tableColumns[i]);
 			column.setData("configName", "Table." + sTableID + "." + sName);
 			column.setData("Name", sName);
-			
+
 			Rectangle bounds = tempTI.getBounds(adjusted_position);
 			if (bounds.width > 0) {
-  			int ofs = bounds.width - tableColumns[i].getWidth();
-  			if (ofs > 0) {
-  				column.setWidth(tableColumns[i].getWidth() + ofs);
-  			}
-  			column.setData("widthOffset", new Long(ofs));
+				int ofs = bounds.width - tableColumns[i].getWidth();
+				if (ofs > 0) {
+					column.setWidth(tableColumns[i].getWidth() + ofs);
+				}
+				column.setData("widthOffset", new Long(ofs));
 			}
 
 			column.addControlListener(resizeListener);
@@ -2219,7 +2223,7 @@ public class TableViewSWTImpl
 				break;
 			}
 		}
-		Long lOfs = (Long)column.getData("widthOffset");
+		Long lOfs = (Long) column.getData("widthOffset");
 		if (lOfs != null) {
 			newWidth += lOfs.intValue();
 		}
@@ -2228,13 +2232,13 @@ public class TableViewSWTImpl
 			return;
 
 		if (Constants.isUnix) {
-  		final int fNewWidth = newWidth;
-  		final TableColumn fTableColumn = column; 
-  		column.getDisplay().asyncExec(new AERunnable() {
-  			public void runSupport() {
-  				fTableColumn.setWidth(fNewWidth);
-  			}
-  		});
+			final int fNewWidth = newWidth;
+			final TableColumn fTableColumn = column;
+			column.getDisplay().asyncExec(new AERunnable() {
+				public void runSupport() {
+					fTableColumn.setWidth(fNewWidth);
+				}
+			});
 		} else {
 			column.setWidth(newWidth);
 		}
@@ -3464,5 +3468,11 @@ public class TableViewSWTImpl
 	// @see org.gudy.azureus2.ui.swt.views.TableViewSWT#setMainPanelCreator(org.gudy.azureus2.ui.swt.views.TableViewMainPanelCreator)
 	public void setMainPanelCreator(TableViewSWTPanelCreator mainPanelCreator) {
 		this.mainPanelCreator = mainPanelCreator;
+	}
+	
+	public TableCellSWT getTableCellWithCursor() {
+		Point pt = table.getDisplay().getCursorLocation();
+		pt = table.toControl(pt);
+		return getTableCell(pt.x, pt.y);
 	}
 }

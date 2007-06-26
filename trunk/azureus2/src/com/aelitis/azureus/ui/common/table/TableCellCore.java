@@ -156,6 +156,12 @@ public interface TableCellCore extends TableCell, Comparable
 	 * @param cursor_hand
 	 */
 	public void setCursorID(int cursorID);
+	
+	/**
+	 * 
+	 * @since 3.0.1.7
+	 */
+	public boolean isMouseOver();
 
 	/**
 	 * Returns whether the cell has visually changed since the last refresh call.
