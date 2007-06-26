@@ -54,6 +54,8 @@ public class SWTSkinObjectText2
 
 	private Canvas canvas;
 
+	private boolean bUnderline;
+
 	private static Font font = null;
 
 	public SWTSkinObjectText2(SWTSkin skin, SWTSkinProperties skinProperties,
@@ -108,14 +110,20 @@ public class SWTSkinObjectText2
 				pt.y += border;
 				gc.dispose();
 
-				if (pt.x > ptMax.x) {
-					ptMax.x = pt.x;
-				}
-				if (pt.y > ptMax.y) {
-					ptMax.y = pt.y;
+				if (bUnderline) {
+					pt.y++;
 				}
 
-				return ptMax;
+				if (isVisible()) {
+					if (pt.x > ptMax.x) {
+						ptMax.x = pt.x;
+					}
+					if (pt.y > ptMax.y) {
+						ptMax.y = pt.y;
+					}
+				}
+
+				return pt;
 			}
 		};
 
@@ -231,7 +239,8 @@ public class SWTSkinObjectText2
 						bNewFont = true;
 					}
 
-					if (s.equals("underline")) {
+					bUnderline = s.equals("underline");
+					if (bUnderline) {
 						canvas.addPaintListener(new PaintListener() {
 							public void paintControl(PaintEvent e) {
 								Point size = ((Control) e.widget).getSize();
@@ -328,6 +337,7 @@ public class SWTSkinObjectText2
 		if (existingColor != null) {
 			e.gc.setForeground(existingColor);
 		}
+//		e.gc.drawText(sText, 0, 0, true);
 		GCStringPrinter.printString(e.gc, sText, clientArea, true, false, style
 				| SWT.TOP);
 	}
