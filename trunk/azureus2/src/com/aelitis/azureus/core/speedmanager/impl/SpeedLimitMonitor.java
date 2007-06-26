@@ -104,6 +104,10 @@ public class SpeedLimitMonitor
     private float percentUploadCapacityDownloadMode = 0.6f;
     private float percentUploadCapacitySeedingMode = 0.9f;
 
+
+    //Testing
+    LimitSlider slider = new LimitSlider();
+
     public SpeedLimitMonitor(){
         //
     }
@@ -255,6 +259,45 @@ public class SpeedLimitMonitor
         }
         return false;
     }
+
+    /**
+     * True if the upload bandwidth usage is HIGH or AT_LIMIT.
+     * @return -
+     */
+    public boolean isUploadBandwidthUsageHigh(){
+        if( uploadBandwidthStatus.compareTo(SaturatedMode.AT_LIMIT)==0 ||
+                uploadBandwidthStatus.compareTo(SaturatedMode.HIGH)==0){
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Does the same as createNewLimit except it drops the upload rate first when in download mode.
+     * @param signalStrength -
+     * @param multiple -
+     * @param currUpLimit -
+     * @param currDownLimit -
+     * @return  -
+     */
+    public Update modifyLimits(float signalStrength, float multiple, int currUpLimit, int currDownLimit){
+
+        //this flag is set in a previous method.
+        if( isStartLimitTestFlagSet() ){
+            return startLimitTesting(currUpLimit, currDownLimit);
+        }
+
+        //The amount we adjust is signalStrength * multiple
+        float adjustmentAmount = Math.abs( signalStrength*multiple );
+        if( signalStrength<0.0f ){
+            slider.decrease( adjustmentAmount );
+        }else{
+            slider.increase( adjustmentAmount );
+        }
+
+        return slider.createUpdate(uploadLinespeedCapacity,uploadLimitMin,
+                downloadLinespeedCapacity,downloadLimitMin);
+    }//modifyLimits
 
     /**
      * Here we need to handle several cases.
@@ -870,7 +913,8 @@ public class SpeedLimitMonitor
         public boolean hasNewUploadLimit;
         public boolean hasNewDownloadLimit;
 
-        public Update(int upLimit, boolean newUpLimit, int downLimit, boolean newDownLimit){
+        public Update(int upLimit, boolean newUpLimit, int downLimit, boolean newDownLimit)
+        {
             newUploadLimit = upLimit;
             newDownloadLimit = downLimit;
 
@@ -881,5 +925,48 @@ public class SpeedLimitMonitor
     }
 
 
+    static class LimitSlider{
+        private float value;//number between 0 - 100.
+
+        public void increase(float delta){
+            value += delta;
+
+            if( value>1.0f ){
+                value = 1.0f;
+            }//if
+        }//increase
+
+
+        public void decrease(float delta){
+            value -= delta;
+
+            if( value<0.0f ){
+                value = 0.0f;
+            }//if
+        }//decrease
+
+
+        //Return new upload and download values based on setting.
+        public Update createUpdate(int upMax, int upMin, int downMax, int downMin)
+        {
+            int upLimit;
+            int downLimit;
+
+            //just based on the value return a new upload.
+
+
+            if( value > 0.5f ){
+
+                upLimit = upMax;
+                downLimit = Math.round( (downMax-downMin)*((value-0.5f)*2.0f) + downMin );
+            }else{
+                downLimit = downMin;
+                upLimit = Math.round( (upMax-upMin)*  (value*2.0f) + upMin );
+            }
+
+            return new Update(upLimit,true,downLimit,true);
+        }//getUpdate
+
+    }//LimitSlider
 
 }//SpeedLimitMonitor
