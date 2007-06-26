@@ -95,10 +95,25 @@ public class SystemTraySWT
 				showMainWindow();
 			}
 		});
+
 		
 		trayItem.addListener(SWT.Selection, new Listener() {
+			long lastTime = 0;
+
 			public void handleEvent(Event arg0) {
-				if(Constants.isOSX) {
+				// Bug in Windows (seems to have started around SWT 3.3 Release 
+				// Candidates) where double click isn't interpreted as DefaultSelection
+				// Since we "know" SWT.Selection is actually a mouse down, check
+				// if two mouse downs happen in a short timespan and fake a 
+				// DefaultSelection
+				if (Constants.isWindows) {
+					long now = SystemTime.getCurrentTime();
+					if (now - lastTime < 200) {
+						showMainWindow();
+					} else {
+						lastTime = now;
+					}
+				} else if (Constants.isOSX) {
 					trayItem.setImage(ImageRepository.getImage("azureus_white"));
 					menu.setVisible(true);
 				}
