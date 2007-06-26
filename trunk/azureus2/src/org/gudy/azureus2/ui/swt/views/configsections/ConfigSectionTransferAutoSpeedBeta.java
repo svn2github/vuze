@@ -62,6 +62,8 @@ public class ConfigSectionTransferAutoSpeedBeta
     //add a comment to the auto-speed debug logs.
     Group commentGroup;
 
+    Group uploadCapGroup;
+
     //vivaldi set-points
     Group vivaldiGroup;
     IntParameter vGood;
@@ -91,6 +93,8 @@ public class ConfigSectionTransferAutoSpeedBeta
     Label currUpMinSetting;
     Label currUpConfSetting;
 
+    IntListParameter downloadModeUsedCap;
+    IntListParameter seedModeUsedCap;
 
     /**
      * Create your own configuration panel here.  It can be anything that inherits
@@ -450,9 +454,88 @@ public class ConfigSectionTransferAutoSpeedBeta
         gridData.horizontalSpan=4;
         spacer.setLayoutData(gridData);
 
+        ///////////////////////////
+        // Upload Capacity used settings.
+        ///////////////////////////
+        uploadCapGroup = new Group(cSection, SWT.NULL);
+        uploadCapGroup.setText("Upload Capacity Usage");
+        //uploadCapGroup.setLayout(subPanel);
+
+        GridLayout uCapLayout = new GridLayout();
+        uCapLayout.numColumns = 2;
+        uploadCapGroup.setLayout(uCapLayout);
+
+        gridData = new GridData(GridData.FILL_HORIZONTAL);
+        gridData.horizontalSpan = 3;
+        uploadCapGroup.setLayoutData(gridData);
+
+        //Label column
+        Label upCapModeLbl = new Label(uploadCapGroup, SWT.NULL);
+        gridData = new GridData();
+        gridData.widthHint = 80;
+        upCapModeLbl.setText("Mode:");
+        upCapModeLbl.setLayoutData(gridData);
+
+        Label ucSetLbl = new Label(uploadCapGroup, SWT.NULL);
+        gridData = new GridData();
+        gridData.widthHint = 80;
+        gridData.horizontalSpan = 2;
+        ucSetLbl.setText("% Capacity Used");
+
+        Label dlModeLbl = new Label(uploadCapGroup, SWT.NULL);
+        gridData = new GridData();
+        gridData.widthHint = 80;
+        dlModeLbl.setText("Downloading:");
+
+        //add a drop down.
+        String[] downloadModeNames = {
+                " 80%",
+                " 70%",
+                " 60%",
+                " 50%"
+        };
+
+        int[] downloadModeValues = {
+                80,
+                70,
+                60,
+                50
+        };
+
+        downloadModeUsedCap = new IntListParameter(uploadCapGroup,
+                SpeedLimitMonitor.USED_UPLOAD_CAPACITY_DOWNLOAD_MODE,
+                downloadModeNames, downloadModeValues);
+
+        Label sdModeLbl = new Label(uploadCapGroup, SWT.NULL);
+        gridData = new GridData();
+        gridData.widthHint = 80;
+        sdModeLbl.setText("Seeding:");
+
+        //add a drop down.
+        String[] seedModeNames = {
+                "100%",
+                " 90%",
+                " 80%"
+        };
+
+        int[] seedModeValues = {
+                100,
+                90,
+                80
+        };
+
+        seedModeUsedCap = new IntListParameter(uploadCapGroup,
+                SpeedLimitMonitor.USED_UPLOAD_CAPACITY_SEEDING_MODE,
+                seedModeNames,seedModeValues);
+
+        //spacer
+        spacer = new Label(cSection, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan=4;
+        spacer.setLayoutData(gridData);
 
         //////////////////////////
-        //DHT Ping Group
+        // DHT Ping Group
         //////////////////////////
 
         dhtGroup = new Group(cSection, SWT.NULL);
@@ -757,22 +840,10 @@ public class ConfigSectionTransferAutoSpeedBeta
                 //make this section visible.
                 commentGroup.setEnabled(true);
                 commentGroup.setVisible(true);
-
-                //Need to also set "Auto Upload Speed Enabled" for DHT Pings and "Auto Speed Upload Version" to 2
-                //ToDo: verify these parameters really need to be set. Recent changes might deprecate them!!
-                //COConfigurationManager.setParameter( TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY, true );
-                //COConfigurationManager.setParameter( SpeedManagerImpl.CONFIG_VERSION, 2 );
-
             }else{
                 //make it invisible.
                 commentGroup.setEnabled(false);
                 commentGroup.setVisible(false);
-
-                //Set to V1, then set "Auto Upload Speed Enabled" to false.
-                //ToDo: V1 will need a different set of parameters, to decoule from the global parameter.
-                //ToDo: verify these parameters really need to be set. Recent changes might deprecate them!!
-                //COConfigurationManager.setParameter( SpeedManagerImpl.CONFIG_VERSION, 1 );
-                //COConfigurationManager.setParameter( TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY, false );
             }
         }
     }//enableGroups

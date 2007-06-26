@@ -88,8 +88,7 @@ public class SpeedLimitMonitor
 
     public static final String UPLOAD_CONF_LIMIT_SETTING="SpeedLimitMonitor.setting.upload.limit.conf";
     public static final String DOWNLOAD_CONF_LIMIT_SETTING="SpeedLimitMonitor.setting.download.limit.conf";
-    private static final long CONF_LIMIT_TEST_LENGTH=1000*60;//ToDo: make this configurable.
-
+    private static final long CONF_LIMIT_TEST_LENGTH=1000*60;
 
     //these methods are used to see how high limits can go.
     private boolean isUploadMaxPinned=true;
@@ -97,9 +96,13 @@ public class SpeedLimitMonitor
     private long uploadAtLimitStartTime =SystemTime.getCurrentTime();
     private long downloadAtLimitStartTime = SystemTime.getCurrentTime();
 
-    //private static final long TIME_AT_LIMIT_BEFORE_UNPINNING = 5 * 60 * 1000; //five minutes.//ToDo: make this configurable.
-    private static final long TIME_AT_LIMIT_BEFORE_UNPINNING = 1 * 60 * 1000; //ToDo: REMOVE THIS IS FOR TESTING ONLY.
+    private static final long TIME_AT_LIMIT_BEFORE_UNPINNING = 60 * 1000; //One minute.
 
+    //which percent of the measured upload capacity to use in download and seeding mode.
+    public static final String USED_UPLOAD_CAPACITY_DOWNLOAD_MODE = "SpeedLimitMonitor.setting.upload.used.download.mode";
+    public static final String USED_UPLOAD_CAPACITY_SEEDING_MODE = "SpeedLimitMonitor.setting.upload.used.seeding.mode";
+    private float percentUploadCapacityDownloadMode = 0.6f;
+    private float percentUploadCapacitySeedingMode = 0.9f;
 
     public SpeedLimitMonitor(){
         //
@@ -121,6 +124,12 @@ public class SpeedLimitMonitor
                 COConfigurationManager.getStringParameter( SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING ));
         downloadLimitConf = SpeedLimitConfidence.parseString(
                 COConfigurationManager.getStringParameter( SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING));
+
+        percentUploadCapacityDownloadMode = (float)
+                COConfigurationManager.getIntParameter(SpeedLimitMonitor.USED_UPLOAD_CAPACITY_DOWNLOAD_MODE, 60)/100.0f;
+
+        percentUploadCapacitySeedingMode = (float)
+                COConfigurationManager.getIntParameter(SpeedLimitMonitor.USED_UPLOAD_CAPACITY_SEEDING_MODE, 90)/100.0f;
 
     }
 
@@ -144,7 +153,13 @@ public class SpeedLimitMonitor
     }
 
     public void setUploadLimitSettingMode(int currLimit){
-        uploadLimitSettingStatus = SaturatedMode.getSaturatedMode(currLimit, uploadLinespeedCapacity);
+        if( !transferMode.isDownloadMode() ){
+            uploadLimitSettingStatus = SaturatedMode.getSaturatedMode(currLimit,
+                    Math.round(uploadLinespeedCapacity * percentUploadCapacitySeedingMode));
+        }else{
+            uploadLimitSettingStatus = SaturatedMode.getSaturatedMode(currLimit,
+                    uploadLinespeedCapacity);
+        }
     }
 
     public int getUploadLineCapacity(){
@@ -268,11 +283,22 @@ public class SpeedLimitMonitor
         int usedUploadLimit = uploadLinespeedCapacity;
         float usedUpDownRatio = upDownRatio;
         if( transferMode.isDownloadMode() ){
-            //ToDo: this needs to be configurable.
-            usedUploadLimit = Math.round( 0.7f * uploadLinespeedCapacity );
-            //re-calculate the up-down ratio.
-            usedUpDownRatio = ( (float) downloadLinespeedCapacity /(float) usedUploadLimit);
+            usedUploadLimit = Math.round( percentUploadCapacityDownloadMode * uploadLinespeedCapacity );
+            SpeedManagerLogger.trace("download mode usedUploadLimit="+usedUploadLimit
+                    +" % used="+percentUploadCapacityDownloadMode);
+        }else{
+            usedUploadLimit = Math.round( percentUploadCapacitySeedingMode * uploadLinespeedCapacity );
+            SpeedManagerLogger.trace("seeding mode usedUploadLimit="+usedUploadLimit
+                    +" % used="+percentUploadCapacitySeedingMode);
         }
+        
+        if(usedUploadLimit<5120){
+            usedUploadLimit=5120;
+        }
+
+
+        //re-calculate the up-down ratio.
+        usedUpDownRatio = ( (float) downloadLinespeedCapacity /(float) usedUploadLimit);
 
         //The amount to move it against the new limit is.
         float multi = Math.abs( signalStrength * multiple * 0.3f );
