@@ -3422,4 +3422,10 @@ public class ListView
 			}
 		}
 	}
+	
+	public TableCellSWT getTableCellWithCursor() {
+		Point pt = listCanvas.getDisplay().getCursorLocation();
+		pt = listCanvas.toControl(pt);
+		return getTableCell(pt.x, pt.y);
+	}
 }
