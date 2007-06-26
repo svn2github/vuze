@@ -89,7 +89,7 @@ public class SWTSkinObjectContainer
 
 	protected void setViewID(String viewID) {
 		super.setViewID(viewID);
-		if (SWTSkin.DEBUGLAYOUT) {
+		if (SWTSkin.DEBUGLAYOUT && control != null) {
 			((Group) control).setText("[" + viewID + "]");
 		}
 	}
@@ -124,7 +124,8 @@ public class SWTSkinObjectContainer
 	public String switchSuffix(String suffix, int level, boolean walkUp) {
 		String sFullsuffix = super.switchSuffix(suffix, level, walkUp);
 
-		if (bPropogate && suffix != null && control != null && !control.isDisposed()) {
+		if (bPropogate && suffix != null && control != null
+				&& !control.isDisposed()) {
 			SWTSkinObject[] children = getChildren();
 			for (int i = 0; i < children.length; i++) {
 				children[i].switchSuffix(suffix, level, false);
