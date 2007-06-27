@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
@@ -44,8 +45,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.ui.UIRuntimeException;
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableColumn;
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
@@ -83,6 +83,10 @@ public class ListRow
 	private Color bg;
 
 	private boolean bRowVisuallyChangedSinceRefresh;
+
+	private ArrayList mouseListeners;
+
+	private AEMonitor this_mon = new AEMonitor("ListRow");
 
 	/**
 	 * @param position 
@@ -736,4 +740,48 @@ public class ListRow
 		return view.rowGetVisibleYOffset(this);
 	}
 
+	public void addMouseListener(TableRowMouseListener listener) {
+		try {
+			this_mon.enter();
+
+			if (mouseListeners == null)
+				mouseListeners = new ArrayList(1);
+
+			mouseListeners.add(listener);
+
+		} finally {
+			this_mon.exit();
+		}
+	}
+
+	public void removeMouseListener(TableRowMouseListener listener) {
+		try {
+			this_mon.enter();
+
+			if (mouseListeners == null)
+				return;
+
+			mouseListeners.remove(listener);
+
+		} finally {
+			this_mon.exit();
+		}
+	}
+
+  public void invokeMouseListeners(TableRowMouseEvent event) {
+		ArrayList listeners = mouseListeners;
+		if (listeners == null)
+			return;
+		
+		for (int i = 0; i < listeners.size(); i++) {
+			try {
+				TableRowMouseListener l = (TableRowMouseListener) (listeners.get(i));
+
+				l.rowMouseTrigger(event);
+
+			} catch (Throwable e) {
+				Debug.printStackTrace(e);
+			}
+		}
+	}
 }

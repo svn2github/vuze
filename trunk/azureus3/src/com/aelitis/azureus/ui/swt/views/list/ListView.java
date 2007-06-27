@@ -321,6 +321,7 @@ public class ListView
 		selectionListener l = new selectionListener();
 		listCanvas.addListener(SWT.MouseDown, l);
 		listCanvas.addListener(SWT.MouseUp, l);
+		listCanvas.addListener(SWT.MouseMove, l);
 
 		listCanvas.addListener(SWT.MouseDoubleClick, this);
 		listCanvas.addListener(SWT.FocusIn, this);
@@ -330,6 +331,115 @@ public class ListView
 		listCanvas.addKeyListener(this);
 
 		listCanvas.setMenu(createMenu());
+
+		Listener mouseListener = new Listener() {
+			TableCellSWT lastCell = null;
+
+			TableRowCore lastRow = null;
+
+			int lastCursorID = -1;
+
+			public void handleEvent(Event e) {
+				try {
+					boolean bExited = e.type == SWT.MouseExit;
+					TableRowCore row = bExited ? null : getRow(e.x, e.y);
+					TableCellSWT cell = bExited ? null : getTableCell(e.x, e.y);
+					int iCursorID = -1;
+
+					boolean changedCell = lastCell != cell;
+					boolean changedRow = row != lastRow;
+
+					// Exit previous
+					if (changedCell && lastCell != null && !lastCell.isDisposed()) {
+						TableCellMouseEvent event = createMouseEvent(lastCell, e,
+								TableCellMouseEvent.EVENT_MOUSEEXIT);
+						if (event != null) {
+							TableColumnCore tc = ((TableColumnCore) lastCell.getTableColumn());
+							tc.invokeCellMouseListeners(event);
+							lastCell.invokeMouseListeners(event);
+						}
+					}
+
+					if (changedRow && lastRow != null && !lastRow.isRowDisposed()) {
+						TableCellMouseEvent event = createMouseEvent(lastCell, e,
+								TableCellMouseEvent.EVENT_MOUSEEXIT);
+						if (event != null) {
+							event.row = lastRow;
+							lastRow.invokeMouseListeners(event);
+						}
+					}
+
+					// Enter new
+					if (cell == null) {
+						lastCell = null;
+					} else {
+						if (changedCell) {
+							TableCellMouseEvent event = createMouseEvent(cell, e,
+									TableCellMouseEvent.EVENT_MOUSEENTER);
+							if (event != null) {
+								TableColumnCore tc = ((TableColumnCore) cell.getTableColumn());
+								tc.invokeCellMouseListeners(event);
+								cell.invokeMouseListeners(event);
+							}
+							iCursorID = cell.getCursorID();
+							lastCell = cell;
+						}
+					}
+
+					if (row == null) {
+						lastRow = null;
+					} else {
+						if (changedRow) {
+							TableCellMouseEvent event = createMouseEvent(cell, e,
+									TableCellMouseEvent.EVENT_MOUSEENTER);
+							if (event != null) {
+								event.row = row;
+								row.invokeMouseListeners(event);
+							}
+							lastRow = row;
+						}
+					}
+
+					// cursor
+					if (iCursorID != lastCursorID) {
+						lastCursorID = iCursorID;
+
+						if (iCursorID >= 0) {
+							listCanvas.setCursor(listCanvas.getDisplay().getSystemCursor(
+									iCursorID));
+						} else {
+							listCanvas.setCursor(null);
+						}
+					}
+
+					// mouse move for good gesture
+					if (cell != null) {
+						TableCellMouseEvent event = createMouseEvent(cell, e,
+								TableCellMouseEvent.EVENT_MOUSEMOVE);
+						if (event != null) {
+							TableColumnCore tc = ((TableColumnCore) cell.getTableColumn());
+							if (tc.hasCellMouseMoveListener()) {
+								((TableColumnCore) cell.getTableColumn()).invokeCellMouseListeners(event);
+							}
+							cell.invokeMouseListeners(event);
+						}
+					}
+					if (row != null) {
+						TableCellMouseEvent event = createMouseEvent(cell, e,
+								TableCellMouseEvent.EVENT_MOUSEMOVE);
+						if (event != null) {
+							event.row = row;
+							row.invokeMouseListeners(event);
+						}
+					}
+				} catch (Exception ex) {
+					Debug.out(ex);
+				}
+			}
+		};
+
+		listCanvas.addListener(SWT.MouseMove, mouseListener);
+		listCanvas.addListener(SWT.MouseExit, mouseListener);
 
 		new TableTooltips(this, listCanvas);
 
@@ -1514,6 +1624,15 @@ public class ListView
 					TableCellMouseEvent event = createMouseEvent(cell, e, mouseEventType);
 					((TableColumnCore) tc).invokeCellMouseListeners(event);
 					cell.invokeMouseListeners(event);
+					if (event.skipCoreFunctionality) {
+						lCancelSelectionTriggeredOn = System.currentTimeMillis();
+					}
+				}
+
+				TableCellMouseEvent event = createMouseEvent(cell, e, mouseEventType);
+				if (event != null) {
+					event.row = row;
+					row.invokeMouseListeners(event);
 					if (event.skipCoreFunctionality) {
 						lCancelSelectionTriggeredOn = System.currentTimeMillis();
 					}
