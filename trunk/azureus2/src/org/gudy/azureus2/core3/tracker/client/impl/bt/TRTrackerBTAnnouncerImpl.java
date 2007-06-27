@@ -2443,13 +2443,34 @@ TRTrackerBTAnnouncerImpl
 							try{
 								byte[]		ip_bytes = (byte[])peer.get("i");
 	
-					    		int	ip1 = 0xff & ip_bytes[0];
-					    		int	ip2 = 0xff & ip_bytes[1];
-					    		int	ip3 = 0xff & ip_bytes[2];
-					    		int	ip4 = 0xff & ip_bytes[3];
-	
-					    		String	ip 			= ip1 + "." + ip2 + "." + ip3 + "." + ip4;
-					    		
+								String	ip;
+								
+								if ( ip_bytes.length == 4 ){
+									
+						    		int	ip1 = 0xff & ip_bytes[0];
+						    		int	ip2 = 0xff & ip_bytes[1];
+						    		int	ip3 = 0xff & ip_bytes[2];
+						    		int	ip4 = 0xff & ip_bytes[3];
+		
+						    		ip 	= ip1 + "." + ip2 + "." + ip3 + "." + ip4;
+								}else{
+								
+									StringBuffer sb = new StringBuffer(39);
+									
+									for ( int j=0; j<16; j+=2 ){
+										
+										sb.append(	
+									    	Integer.toHexString(((ip_bytes[j]<<8) & 0xff00) | (ip_bytes[j+1]&0x00ff)));
+									    
+									    if (j < 14 ){
+									    	
+									       sb.append( ":" );
+									    }
+									}
+
+									ip = sb.toString();
+								}
+								
 					    		byte[]	tcp_bytes	= (byte[])peer.get("t");
 					    		
 					    		int		tcp_port 	= ((tcp_bytes[0]&0xff) << 8 ) + (tcp_bytes[1]&0xff );

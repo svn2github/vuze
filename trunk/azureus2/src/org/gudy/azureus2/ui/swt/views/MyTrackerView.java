@@ -288,31 +288,37 @@ public class MyTrackerView
 		// Calculate code copied from TrackerTableItem
 		TableRowCore[] rows = tv.getRows();
 		for (int x = 0; x < rows.length; x++) {
-		  if (rows[x] == null)
+		  TableRowSWT row = (TableRowSWT)rows[x];
+		  
+		  if (row == null){
 		    continue;
-      TRHostTorrent	host_torrent = (TRHostTorrent)rows[x].getDataSource(true);
-      if (host_torrent == null)
-        continue;
- 		 		
-  		long	uploaded	= host_torrent.getTotalUploaded();
-  		long	downloaded	= host_torrent.getTotalDownloaded();
-  		long	left		= host_torrent.getTotalLeft();
-  		
-  		int		seed_count	= host_torrent.getSeedCount();
-  		
-  		host_torrent.setData("GUI_PeerCount", new Long(host_torrent.getLeecherCount()));
-  		host_torrent.setData("GUI_SeedCount", new Long(seed_count));
-  		host_torrent.setData("GUI_BadNATCount", new Long(host_torrent.getBadNATCount()));
-  		host_torrent.setData("GUI_Uploaded", new Long(uploaded));
-  		host_torrent.setData("GUI_Downloaded", new Long(downloaded));
-  		host_torrent.setData("GUI_Left", new Long(left));
+		  }
+		  
+		  TRHostTorrent	host_torrent = (TRHostTorrent)rows[x].getDataSource(true);
+		  
+		  if (host_torrent == null){
+			  continue;
+		  }
+		  
+		  long	uploaded	= host_torrent.getTotalUploaded();
+		  long	downloaded	= host_torrent.getTotalDownloaded();
+		  long	left		= host_torrent.getTotalLeft();
 
-      if ( seed_count != 0 ){
-        if (!((TableRowSWT)rows[x]).getForeground().equals(Colors.blues[Colors.BLUES_MIDDARK])) {
-          ((TableRowSWT)rows[x]).setForeground(Colors.blues[Colors.BLUES_MIDDARK]);
-        }
-      }
-    }
+		  int		seed_count	= host_torrent.getSeedCount();
+
+		  host_torrent.setData("GUI_PeerCount", new Long(host_torrent.getLeecherCount()));
+		  host_torrent.setData("GUI_SeedCount", new Long(seed_count));
+		  host_torrent.setData("GUI_BadNATCount", new Long(host_torrent.getBadNATCount()));
+		  host_torrent.setData("GUI_Uploaded", new Long(uploaded));
+		  host_torrent.setData("GUI_Downloaded", new Long(downloaded));
+		  host_torrent.setData("GUI_Left", new Long(left));
+
+		  if ( seed_count != 0 ){
+			  if (!row.getForeground().equals(Colors.blues[Colors.BLUES_MIDDARK])) {
+				  row.setForeground(Colors.blues[Colors.BLUES_MIDDARK]);
+			  }
+		  }
+		}
 	}	 
 
   private boolean start,stop,remove;

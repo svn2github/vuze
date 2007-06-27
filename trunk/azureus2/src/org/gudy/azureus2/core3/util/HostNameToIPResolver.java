@@ -105,7 +105,7 @@ HostNameToIPResolver
 		HostNameToIPResolverListener	l )
 	{
 		byte[]	bytes = textToNumericFormat( host );
-		
+				
 		if ( bytes != null ){
 		
 			try{
@@ -181,23 +181,38 @@ HostNameToIPResolver
 	hostAddressToBytes(
 		String		host )
 	{
-		return( textToNumericFormat( host ));
+		byte[] res = textToNumericFormat( host );
+		
+		return( res );
 	}
-	
-		// this has been copied from Inet4Address - need to change for IPv6
-	
+		
 	final static int INADDRSZ	= 4;
 	
-	static byte[] textToNumericFormat(String src)
-	    {
+	static byte[] 
+	textToNumericFormat(
+		String src )
+	{
 		if (src.length() == 0) {
 		    return null;
+		}
+	
+		if ( src.indexOf(':') != -1 ){
+		
+				// v6
+			try{
+				return( InetAddress.getByName(src).getAddress());
+				
+			}catch( Throwable e ){
+				
+				return( null );
+			}
 		}
 		
 		int octets;
 		char ch;
 		byte[] dst = new byte[INADDRSZ];
-	        char[] srcb = src.toCharArray();
+	
+		char[] srcb = src.toCharArray();
 		boolean saw_digit = false;
 
 		octets = 0;
