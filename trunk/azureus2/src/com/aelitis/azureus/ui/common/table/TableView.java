@@ -299,7 +299,8 @@ public interface TableView
 	 * @param defaultSortColumnID
 	 * @param titleIsMinWidth TODO
 	 */
-	void setColumnList(TableColumnCore[] columns, String defaultSortColumnID,
+	public void setColumnList(TableColumnCore[] columns,
+			String defaultSortColumnID, boolean defaultSortAscending,
 			boolean titleIsMinWidth);
 
 	/**

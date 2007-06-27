@@ -324,7 +324,8 @@ public class TableViewSWTImpl
 	// @see com.aelitis.azureus.ui.common.table.TableView#setColumnList(com.aelitis.azureus.ui.common.table.TableColumnCore[], java.lang.String)
 	// XXX This isn't right
 	public void setColumnList(TableColumnCore[] columns,
-			String defaultSortColumnID, boolean titleIsMinWidth) {
+			String defaultSortColumnID, boolean defaultSortOrder,
+			boolean titleIsMinWidth) {
 		// XXX Adding Columns only has to be done once per TableID.  
 		// Doing it more than once won't harm anything, but it's a waste.
 		TableColumnManager tcManager = TableColumnManager.getInstance();
