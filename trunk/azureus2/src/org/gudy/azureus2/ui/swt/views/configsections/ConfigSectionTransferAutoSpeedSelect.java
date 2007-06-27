@@ -138,12 +138,14 @@ public class ConfigSectionTransferAutoSpeedSelect
         //ToDo: get from the message bundle.
         String[] modeNames = {
                 "Auto-Speed (classic)",
-                "Auto-Speed (beta)"
+                "Auto-Speed (beta)",
+                "Unlimited! (test)"
         };
         
         String[] modes = {
                 "1",
-                "2"
+                "2",
+                "3",
         };
 
         //versionList = new StringListParameter(modeGroup,
@@ -158,6 +160,9 @@ public class ConfigSectionTransferAutoSpeedSelect
         }else if( verNum==2 ){
             //SpeedManagerAlgorithmProviderV2
             versionList.setValue(modes[1]);
+        }else if( verNum==3 ){
+            //SpeedManagerAlgorithmProviderV2
+            versionList.setValue(modes[2]);
         }else{
             //Default is currently version ...V1.
             versionList.setValue(modes[0]);

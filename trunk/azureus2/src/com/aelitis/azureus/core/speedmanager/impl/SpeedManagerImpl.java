@@ -164,12 +164,23 @@ SpeedManagerImpl
 				
 				provider = new SpeedManagerAlgorithmProviderV1( this );
 			}
-		}else{
+		}else if ( provider_version == 2 ){
 			
 			if ( !( provider instanceof SpeedManagerAlgorithmProviderV2 )){
 				
 				provider = new SpeedManagerAlgorithmProviderV2( this );
 			}
+		}else if ( provider_version == 3 ){
+			
+			if ( !( provider instanceof SMUnlimited )){
+				
+				provider = new SMUnlimited();
+			}
+		}else{
+			
+			Debug.out( "Unknown provider version " + provider_version );
+			
+			return;
 		}
 		
 		provider.reset();
@@ -611,6 +622,78 @@ SpeedManagerImpl
 		destroy()
 		{
 			contact.destroy();
+		}
+	}
+	
+	protected class
+	SMUnlimited
+		implements SpeedManagerAlgorithmProvider
+	{
+		public void
+		reset()
+		{
+			adapter.setCurrentDownloadLimit( 0 );
+			adapter.setCurrentUploadLimit( 0 );
+		}
+		
+		public void
+		updateStats()
+		{
+		}
+		
+		public void
+		pingSourceFound(
+			SpeedManagerPingSource		source,
+			boolean						is_replacement )
+		{
+		}
+		
+		public void
+		pingSourceFailed(
+			SpeedManagerPingSource		source )
+		{
+		}
+				
+		public void
+		calculate(
+			SpeedManagerPingSource[]	sources )
+		{
+		}
+				
+		public int
+		getIdlePingMillis()
+		{
+			return( 0 );
+		}
+		
+		public int
+		getCurrentPingMillis()
+		{
+			return( 0 );
+		}
+		
+		public int
+		getMaxPingMillis()
+		{
+			return( 0 );
+		}
+				
+		public int
+		getCurrentChokeSpeed()
+		{
+			return( 0 );
+		}
+		
+		public int
+		getMaxUploadSpeed()
+		{
+			return( 0 );
+		}
+			
+		public boolean
+		getAdjustsDownloadLimits()
+		{
+			return( true );
 		}
 	}
 }
