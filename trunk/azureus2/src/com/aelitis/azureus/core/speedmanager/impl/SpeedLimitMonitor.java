@@ -287,16 +287,12 @@ public class SpeedLimitMonitor
             return startLimitTesting(currUpLimit, currDownLimit);
         }
 
-        //The amount we adjust is signalStrength * multiple
-        float adjustmentAmount = Math.abs( signalStrength*multiple );
-        if( signalStrength<0.0f ){
-            slider.decrease( adjustmentAmount );
-        }else{
-            slider.increase( adjustmentAmount );
-        }
-
-        return slider.createUpdate(uploadLinespeedCapacity,uploadLimitMin,
+        slider.updateLimits(uploadLinespeedCapacity,uploadLimitMin,
                 downloadLinespeedCapacity,downloadLimitMin);
+        slider.updateStatus(currUpLimit,uploadLimitSettingStatus,
+                currDownLimit, downloadLimitSettingStatus);
+
+        return slider.adjust( signalStrength*multiple );
     }//modifyLimits
 
     /**
@@ -922,56 +918,96 @@ public class SpeedLimitMonitor
             hasNewDownloadLimit = newDownLimit;
         }
 
-    }
+    }//class Update
 
 
     static class LimitSlider{
-        private float value=75.0f;//number between 0 - 100.
+        private float valueUp=1.0f;//number between 0.0 - 1.0
+        int upMax;
+        int upCurr;
+        int upMin;
+        SaturatedMode upUsage;
 
-        public void increase(float delta){
-            value += delta;
-
-            if( value>1.0f ){
-                value = 1.0f;
-            }//if
-        }//increase
-
-
-        public void decrease(float delta){
-            value -= delta;
-
-            if( value<0.0f ){
-                value = 0.0f;
-            }//if
-        }//decrease
+        private float valueDown=0.5f;
+        int downMax;
+        int downCurr;
+        int downMin;
+        SaturatedMode downUsage;
 
 
-        //Return new upload and download values based on setting.
-        public Update createUpdate(int upMax, int upMin, int downMax, int downMin)
-        {
+        public void updateStatus(int currUpLimit, SaturatedMode uploadUsage, int currDownLimit, SaturatedMode downloadUsage){
+            upCurr = currUpLimit;
+            upUsage = uploadUsage;
+            downCurr = currDownLimit;
+            downUsage = downloadUsage;
+        }
+
+
+        public void updateLimits(int _upMax, int _upMin, int _downMax, int _downMin){
+            upMax = _upMax;
+            upMin = _upMin;
+            downMax = _downMax;
+            downMin = _downMin;
+        }
+
+
+        public Update adjust( float amount ){
+
+            boolean increase = true;
+            if( amount<0.0f ){
+                increase = false;
+            }
+
+            float factor = Math.abs( amount/3.0f );
+
+            if( increase ){
+                //increase download first
+                if( valueDown<0.99f ){
+                    valueDown = calculateNewValue(valueDown,factor);
+                }else{
+                    valueUp = calculateNewValue(valueUp,factor);
+                }
+            }else{
+                //decrease upload first
+                if( valueUp > 0.01f){
+                    valueUp = calculateNewValue(valueUp,factor);
+                }else{
+                    valueDown = calculateNewValue(valueDown,factor);
+                }
+            }
+
+            return update();
+
+        }//adjust
+
+        private Update update(){
             int upLimit;
             int downLimit;
 
-            //just based on the value return a new upload.
-
-
-            if( value > 0.5f ){
-
-                downLimit = downMax;
-                upLimit = Math.round( (upMax-upMin)*((value-0.5f)*2.0f) + upMin );
-            }else{
-                upLimit = upMin;
-                downLimit = Math.round( (downMax-downMin)*  (value*2.0f) + downMin );
-            }
+            upLimit = Math.round( ((upMax-upMin)*valueUp)+upMin );
+            downLimit = Math.round( ((downMax-downMin)*valueDown)+downMin );
 
             //log this change.
-            String msg = " create-update: value="+value+",upLimit="+upLimit+",downLimit="+downLimit
-                    +",upMax="+upMax+",upMin="+upMin+",downMax="+downMax+",downMin"+downMin;
+            String msg = " create-update: valueUp="+valueUp+",upLimit="+upLimit+",valueDown="+valueDown
+                    +",downLimit="+downLimit+",upMax="+upMax+",upMin="+upMin+",downMax="+downMax
+                    +",downMin"+downMin;
             SpeedManagerLogger.log( msg );
 
             return new Update(upLimit,true,downLimit,true);
-        }//getUpdate
+        }
+
+        private float calculateNewValue(float curr, float amount){
+            curr += amount;
+            if( curr > 1.0f){
+                curr = 1.0f;
+            }
+            if( curr < 0.0f ){
+                curr = 0.0f;
+            }
+            return curr;
+        }
 
     }//LimitSlider
+
 
 }//SpeedLimitMonitor
