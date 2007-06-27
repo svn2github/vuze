@@ -77,7 +77,7 @@ TRTrackerServerProcessorTCP
 	{
 		server	= _server;
 		
-		server_url = (server.isSSL()?"https":"http") + "://" + server.getHost() + ":" + server.getPort();
+		server_url = (server.isSSL()?"https":"http") + "://" + UrlUtils.convertIPV6Host(server.getHost()) + ":" + server.getPort();
 	}	
 
 	protected boolean
@@ -399,7 +399,7 @@ TRTrackerServerProcessorTCP
 								
 								char	c = rhs.charAt(i);
 								
-								if ( c != '.' && !Character.isDigit( c )){
+								if ( c != '.' && c != ':' && !Character.isDigit( c )){
 									
 									throw( new Exception( "IP override address must be resolved by the client" ));
 								}	
@@ -794,7 +794,7 @@ TRTrackerServerProcessorTCP
 					try{
 						String	resource_str = 
 							( server.isSSL()?"https":"http" ) + "://" +
-								server.getHost() + ":" + server.getPort() + url_path;
+								UrlUtils.convertIPV6Host(server.getHost()) + ":" + server.getPort() + url_path;
 						
 						URL	resource = new URL( resource_str );
 					
@@ -832,7 +832,7 @@ TRTrackerServerProcessorTCP
 					try{
 						String	resource_str = 
 							( server.isSSL()?"https":"http" ) + "://" +
-								server.getHost() + ":" + server.getPort() + url_path;
+							UrlUtils.convertIPV6Host(server.getHost()) + ":" + server.getPort() + url_path;
 						
 						URL	resource = new URL( resource_str );
 					

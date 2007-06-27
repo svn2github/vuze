@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.TrackersUtil;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
@@ -114,7 +115,7 @@ public class ModePanel extends AbstractWizardPanel {
     	
       Messages.setLanguageText(labelLocalAnnounce, "wizard.announceUrl");
     	
-      localTrackerUrl[0] = "http://" + localTrackerHost + ":" + localTrackerPort + "/announce";
+      localTrackerUrl[0] = "http://" + UrlUtils.convertIPV6Host(localTrackerHost) + ":" + localTrackerPort + "/announce";
       localTrackerValue.setText(localTrackerUrl[0]);
       btnSSL.setEnabled( SSLEnabled );
 
@@ -351,9 +352,9 @@ public class ModePanel extends AbstractWizardPanel {
 		  	String	url;
 		  	
 			if ( btnSSL.getSelection()){
-				url = "https://" + localTrackerHost + ":" + localTrackerPortSSL + "/announce";
+				url = "https://" + UrlUtils.convertIPV6Host(localTrackerHost) + ":" + localTrackerPortSSL + "/announce";
 			}else{
-				url = "http://" + localTrackerHost + ":" + localTrackerPort + "/announce";
+				url = "http://" + UrlUtils.convertIPV6Host(localTrackerHost) + ":" + localTrackerPort + "/announce";
 			}
 			
 			localTrackerValue.setText(url);

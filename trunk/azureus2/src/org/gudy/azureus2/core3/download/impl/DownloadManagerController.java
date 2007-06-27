@@ -1918,7 +1918,7 @@ DownloadManagerController
 	
 				List urls = new ArrayList();
 				
-				String	seed_url = "http://" + address + ":" + port + "/webseed";
+				String	seed_url = "http://" + UrlUtils.convertIPV6Host(address) + ":" + port + "/webseed";
 				
 				urls.add( seed_url.getBytes());
 	

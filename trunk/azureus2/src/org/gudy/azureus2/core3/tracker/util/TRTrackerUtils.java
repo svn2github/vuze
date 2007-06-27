@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.UrlUtils;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminPropertyChangeListener;
@@ -309,6 +310,8 @@ TRTrackerUtils
 	{
 		tracker_ip 		= COConfigurationManager.getStringParameter("Tracker IP", "");
 	
+		tracker_ip = UrlUtils.expandIPV6Host( tracker_ip );
+		
 		String override_ips		= COConfigurationManager.getStringParameter("Override Ip", "");
 		
 		StringTokenizer	tok = new StringTokenizer( override_ips, ";" );
@@ -344,7 +347,7 @@ TRTrackerUtils
 		URL		url_in )
 	{
 		return( tracker_ip.length() > 0  &&
-				url_in.getHost().equalsIgnoreCase( tracker_ip ));
+				UrlUtils.expandIPV6Host(url_in.getHost()).equalsIgnoreCase( tracker_ip ));
 	}
 	
 	public static String
@@ -375,13 +378,13 @@ TRTrackerUtils
 				try{
 					List	l = new ArrayList();
 					
-					l.add( new URL( "http://" + tracker_host + ":" + port + "/announce" ));
+					l.add( new URL( "http://" + UrlUtils.convertIPV6Host( tracker_host ) + ":" + port + "/announce" ));
 					
 					List	ports = stringToPorts( COConfigurationManager.getStringParameter("Tracker Port Backups" ));
 					
 					for (int i=0;i<ports.size();i++){
 						
-						l.add( new URL( "http://" + tracker_host + ":" + ((Integer)ports.get(i)).intValue() + "/announce" ));
+						l.add( new URL( "http://" + UrlUtils.convertIPV6Host( tracker_host ) + ":" + ((Integer)ports.get(i)).intValue() + "/announce" ));
 					}
 
 					urls.add( l );
@@ -399,13 +402,13 @@ TRTrackerUtils
 				try{
 					List	l = new ArrayList();
 					
-					l.add( new URL( "https://" + tracker_host + ":" + port + "/announce" ));
+					l.add( new URL( "https://" + UrlUtils.convertIPV6Host( tracker_host ) + ":" + port + "/announce" ));
 					
 					List	ports = stringToPorts( COConfigurationManager.getStringParameter("Tracker Port SSL Backups" ));
 					
 					for (int i=0;i<ports.size();i++){
 						
-						l.add( new URL( "https://" + tracker_host + ":" + ((Integer)ports.get(i)).intValue() + "/announce" ));
+						l.add( new URL( "https://" + UrlUtils.convertIPV6Host( tracker_host ) + ":" + ((Integer)ports.get(i)).intValue() + "/announce" ));
 					}
 
 					urls.add( l );
@@ -426,7 +429,7 @@ TRTrackerUtils
 				try{
 					List	l = new ArrayList();
 					
-					l.add( new URL( "udp://" + tracker_host + ":" + port + "/announce" +
+					l.add( new URL( "udp://" + UrlUtils.convertIPV6Host( tracker_host ) + ":" + port + "/announce" +
 										(auth?"?auth":"" )));
 				
 					urls.add( l );

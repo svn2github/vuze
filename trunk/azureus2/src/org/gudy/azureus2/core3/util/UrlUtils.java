@@ -21,6 +21,7 @@ package org.gudy.azureus2.core3.util;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -253,5 +254,35 @@ public class UrlUtils
 			ret = ret.replaceAll(escapeEntry[1], escapeEntry[0]);
 		}
 		return ret;
+	}
+	
+	public static String
+	convertIPV6Host(
+		String	host )
+	{
+		if ( host.indexOf(':') != -1 ){
+			
+			return( "[" + host + "]" );
+		}
+		
+		return( host );
+	}
+	
+	public static String
+	expandIPV6Host(
+		String	host )
+	{
+		if ( host.indexOf(':') != -1 ){
+			
+			try{
+				return( InetAddress.getByAddress(InetAddress.getByName( host ).getAddress()).getHostAddress());
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+		
+		return( host );
 	}
 }

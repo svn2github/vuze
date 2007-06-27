@@ -963,7 +963,7 @@ TRHostImpl
 			int port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
 	
 			try{
-				TOTorrent	external_torrent = new TRHostExternalTorrent(hash, new URL( "http://" + tracker_ip + ":" + port + "/announce"));
+				TOTorrent	external_torrent = new TRHostExternalTorrent(hash, new URL( "http://" + UrlUtils.convertIPV6Host(tracker_ip) + ":" + port + "/announce"));
 			
 				addTorrent( external_torrent, state, true, false, date_added );	
 				

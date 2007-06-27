@@ -707,7 +707,9 @@ public class ConfigurationDefaults {
 			  
 			  char	c = value.charAt(i);
 			  
-			  if ( Character.isLetterOrDigit( c ) || c == '.' || c == '-' ){
+			  	// : for IPv6
+			  
+			  if ( Character.isLetterOrDigit( c ) || c == '.' || c == '-' || c == ':' ){
 				  
 			  }else{
 				  
