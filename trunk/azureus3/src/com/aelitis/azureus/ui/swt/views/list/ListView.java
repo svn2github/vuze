@@ -56,6 +56,7 @@ import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 
 import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
+import org.gudy.azureus2.plugins.ui.tables.TableRow;
 
 /**
  * @author TuxPaper
@@ -82,6 +83,8 @@ public class ListView
 	private static final boolean DEBUG_SORTER = false;
 
 	private static final boolean DEBUG_COLUMNSIZE = false;
+	
+	private static final boolean DEMO_DRAGROW = false;
 
 	private static final boolean DELAY_SCROLL = false;
 
@@ -1550,12 +1553,18 @@ public class ListView
 			}
 			int mouseEventType = -1;
 			switch (e.type) {
-				case SWT.MouseDown: {
-					mouseEventType = TableCellMouseEvent.EVENT_MOUSEDOWN;
+				case SWT.MouseMove:
+					if (DEMO_DRAGROW && (e.stateMask & SWT.BUTTON1) > 0 && imgMove != null
+							&& !imgMove.isDisposed()) {
+						listCanvas.redraw();
+						listCanvas.update();
+						GC gc = new GC(listCanvas);
+						gc.drawImage(imgMove, e.x - mouseDownAt.x, e.y - mouseDownAt.y);
+						gc.dispose();
+					}
 					break;
-				}
 
-				case SWT.MouseUp: {
+				case SWT.MouseDown: {
 					boolean MOD1 = (e.stateMask & SWT.MOD1) > 0; // ctrl(Win)
 					boolean MOD2 = (e.stateMask & SWT.MOD2) > 0; // shift(Win)
 					boolean MOD4 = (e.stateMask & SWT.MOD4) > 0; // ctrl(OSX)
@@ -1612,6 +1621,32 @@ public class ListView
 						return;
 					}
 					listCanvas.setFocus();
+
+					if (DEMO_DRAGROW) {
+  					Utils.disposeSWTObjects(new Object[] {
+  						imgMove
+  					});
+  					Rectangle rowArea = listCanvas.getClientArea();
+  					rowArea.y = row.getVisibleYOffset();
+  					rowArea.height = row.ROW_HEIGHT;
+  					mouseDownAt = new Point(e.x, e.y - rowArea.y);
+  
+  					imgMove = new Image(listCanvas.getDisplay(), rowArea.width,
+  							rowArea.height);
+  					GC gc = new GC(listCanvas);
+  					gc.copyArea(imgMove, rowArea.x, rowArea.y);
+  					gc.dispose();
+					}
+
+					mouseEventType = TableCellMouseEvent.EVENT_MOUSEDOWN;
+					break;
+				}
+
+				case SWT.MouseUp: {
+					if (DEMO_DRAGROW) {
+						listCanvas.redraw();
+						listCanvas.update();
+					}
 					mouseEventType = TableCellMouseEvent.EVENT_MOUSEUP;
 					break;
 				}
@@ -2653,6 +2688,9 @@ public class ListView
 				}
 			}
 		});
+		if (tableColumn.equals(getSortColumn())) {
+			sortTable(true);
+		}
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableStructureModificationListener#columnOrderChanged(int[])
