@@ -468,11 +468,23 @@ public class TorrentListView
 					return bOurDL1 ? -1 : 1;
 				}
 
-				long l1 = dm1 == null ? 0 : dm1.getDownloadState().getLongParameter(
-						DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME);
-				long l2 = dm2 == null ? 0 : dm2.getDownloadState().getLongParameter(
-						DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME);
+				long l1 = getSortValue(dm1);
+				long l2 = getSortValue(dm2);
 				return l1 == l2 ? 0 : l1 > l2 ? -1 : 1;
+			}
+
+			private long getSortValue(DownloadManager dm) {
+				if (dm != null) {
+					long completedTime = dm.getDownloadState().getLongParameter(
+							DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME);
+					if (completedTime <= 0) {
+						return dm.getDownloadState().getLongParameter(
+								DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME);
+					} else {
+						return completedTime;
+					}
+				}
+				return 0;
 			}
 		});
 		return dmsArray;
