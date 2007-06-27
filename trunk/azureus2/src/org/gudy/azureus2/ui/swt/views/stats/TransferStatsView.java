@@ -43,6 +43,8 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
 import org.gudy.azureus2.ui.swt.components.Legend;
 import org.gudy.azureus2.ui.swt.components.graphics.PingGraphic;
+import org.gudy.azureus2.ui.swt.components.graphics.Plot3D;
+import org.gudy.azureus2.ui.swt.components.graphics.ValueFormater;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -69,8 +71,9 @@ public class TransferStatsView extends AbstractIView {
   StackLayout autoSpeedPanelLayout;
   Composite autoSpeedInfoPanel;
   Composite autoSpeedDisabledPanel;
-  Canvas  pingCanvas;  
   PingGraphic pingGraph;
+  Plot3D plotGraph;
+
   BufferedLabel idlePing,maxPing,maxUp,currentPing;
   
   
@@ -230,13 +233,47 @@ public class TransferStatsView extends AbstractIView {
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     currentPing.setLayoutData(gridData);
     
-    pingCanvas = new Canvas(autoSpeedInfoPanel,SWT.NO_BACKGROUND);
+    Canvas pingCanvas = new Canvas(autoSpeedInfoPanel,SWT.NO_BACKGROUND);
     gridData = new GridData(GridData.FILL_BOTH);
-    gridData.horizontalSpan = 8;
+    gridData.horizontalSpan = 4;
     pingCanvas.setLayoutData(gridData);
     
     pingGraph = PingGraphic.getInstance();
     pingGraph.initialize(pingCanvas);
+    
+    Canvas plotCanvas = new Canvas(autoSpeedInfoPanel,SWT.NO_BACKGROUND);
+    gridData = new GridData(GridData.FILL_BOTH);
+    gridData.horizontalSpan = 4;
+    plotCanvas.setLayoutData(gridData);
+    
+    ValueFormater speed_formatter = 
+    	new ValueFormater()
+	    {
+	    	public String 
+	    	format(
+	    		int value) 
+	    	{
+	    		return( DisplayFormatters.formatByteCountToKiBEtc( value ));
+	    	}
+	    };
+	    
+    ValueFormater time_formatter = 
+    	new ValueFormater()
+	    {
+	    	public String 
+	    	format(
+	    		int value) 
+	    	{
+	    		return( value + " ms" );
+	    	}
+	    };
+		    
+    ValueFormater[] formatters = new ValueFormater[]{ speed_formatter, speed_formatter, time_formatter };
+    
+    plotGraph = new Plot3D( new String[]{ "up", "down", "ping" }, formatters );
+    
+    plotGraph.initialize(plotCanvas);
+    
     
     autoSpeedDisabledPanel = new Composite(autoSpeedPanel,SWT.NULL);
     autoSpeedDisabledPanel.setLayout(new GridLayout());
@@ -265,6 +302,7 @@ public class TransferStatsView extends AbstractIView {
   public void delete() {
     Utils.disposeComposite(generalPanel);
     pingGraph.dispose();
+    plotGraph.dispose();
   }
 
   public String getFullTitle() {
@@ -368,7 +406,7 @@ public class TransferStatsView extends AbstractIView {
         }
         average = average / sources.length;        
         pingGraph.refresh();        
-        
+        plotGraph.refresh();
         currentPing.setText(average + " ms");
         idlePing.setText(speedManager.getIdlePingMillis() + " ms");
         maxPing.setText(speedManager.getMaxPingMillis() + " ms");
@@ -393,6 +431,10 @@ public class TransferStatsView extends AbstractIView {
           pings[i] = sources[i].getPingTime();
         }
         pingGraph.addIntsValue(pings);
+        
+        int[][]	history = speedManager.getPingHistory();
+        
+        plotGraph.update(history);
       }
     }
   }

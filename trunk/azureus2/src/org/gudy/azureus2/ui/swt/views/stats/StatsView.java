@@ -77,25 +77,31 @@ public class StatsView extends AbstractIView {
 			super("StatsView Update Thread");
 		}
     
-    public void run() {
-      try {
-        bContinue = true;
-        while(bContinue) {   
-          ((ActivityView)viewActivity).periodicUpdate();
-          ((CacheView)viewCache).periodicUpdate(); 
-          ((DHTView)viewDHT).periodicUpdate();
-          ((TransferStatsView)viewStats).periodicUpdate();
-          
-          if( viewDHTcvs != null ) {
-            ((DHTView)viewDHTcvs).periodicUpdate();
-          }
-          
-          Thread.sleep(1000);
-        }
-      } catch(Exception e) {
-      	Debug.printStackTrace( e );  
-      }
-    }
+		public void run() {
+			bContinue = true;
+			while(bContinue) {  
+				try {
+
+					((ActivityView)viewActivity).periodicUpdate();
+					((CacheView)viewCache).periodicUpdate(); 
+					((DHTView)viewDHT).periodicUpdate();
+					((TransferStatsView)viewStats).periodicUpdate();
+
+					if( viewDHTcvs != null ) {
+						((DHTView)viewDHTcvs).periodicUpdate();
+					}
+				} catch(Exception e) {
+					Debug.printStackTrace( e );  
+				}
+				try{
+					Thread.sleep(1000);
+				}catch( Throwable e ){
+
+					Debug.out( e );
+					break;
+				}
+			}
+		}
     
     public void stopIt() {
       bContinue = false;

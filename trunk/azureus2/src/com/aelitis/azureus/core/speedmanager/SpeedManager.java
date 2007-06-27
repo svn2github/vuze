@@ -71,4 +71,7 @@ SpeedManager
 	
 	public SpeedManagerPingSource[]
 	getPingSources();
+	
+	public int[][]
+	getPingHistory();
 }

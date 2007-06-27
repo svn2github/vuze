@@ -101,6 +101,8 @@ SpeedManagerImpl
 	
 	private AsyncDispatcher	dispatcher = new AsyncDispatcher();
 	
+	private LinkedList	ping_histories = new LinkedList();
+	
 	public
 	SpeedManagerImpl(
 		AzureusCore			_core,
@@ -278,6 +280,11 @@ SpeedManagerImpl
 					
 						boolean	miss = false;
 						
+						int	worst_value	= -1;
+						
+						int	num_values	= 0;
+						int	total		= 0;
+						
 						synchronized( contacts ){
 
 							for (int i=0;i<st_contacts.length;i++){
@@ -286,7 +293,21 @@ SpeedManagerImpl
 								
 								if ( source != null ){
 									
-									source.setPingTime( round_trip_times[i] );
+									int	rtt = round_trip_times[i];
+									
+									if ( rtt > 0 ){
+										
+										if ( rtt > worst_value ){
+											
+											worst_value = rtt;
+										}
+										
+										num_values++;
+										
+										total += rtt;
+									}
+									
+									source.setPingTime( rtt );
 									
 								}else{
 									
@@ -302,6 +323,19 @@ SpeedManagerImpl
 						}else{
 						
 							provider.calculate( sources );
+							
+								// remove worst value if we have > 1
+							
+							if ( num_values > 1 ){
+								
+								total -= worst_value;
+								num_values--;
+							}
+
+							if ( num_values> 0 ){
+								
+								addPingHistory( total/num_values );
+							}
 						}
 					}
 				});
@@ -320,7 +354,23 @@ SpeedManagerImpl
 			});
 	}
 	
-
+	protected void
+	addPingHistory(
+		int	rtt )
+	{
+		int	down = adapter.getCurrentDataDownloadSpeed() + adapter.getCurrentProtocolDownloadSpeed();
+		int	up	 = adapter.getCurrentDataUploadSpeed() + adapter.getCurrentProtocolUploadSpeed();
+		
+		synchronized( ping_histories ){
+			
+			ping_histories.addLast( new int[]{ up, down, rtt });
+			
+			if ( ping_histories.size() > 1000 ){
+				
+				ping_histories.removeFirst();
+			}
+		}
+	}
 	
 	public boolean
 	isAvailable()
@@ -405,6 +455,15 @@ SpeedManagerImpl
 	getPingSources()
 	{
 		return( contacts_array );
+	}
+	
+	public int[][]
+	getPingHistory()
+	{
+		synchronized( ping_histories ){
+			
+			return((int[][])ping_histories.toArray(new int[ping_histories.size()][]));
+		}
 	}
 	
 	public int
