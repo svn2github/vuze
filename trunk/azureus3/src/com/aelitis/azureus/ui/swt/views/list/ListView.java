@@ -752,6 +752,9 @@ public class ListView
 		headerArea.addPaintListener(new PaintListener() {
 			public void paintControl(PaintEvent e) {
 				TableColumnCore[] columns = lastVisibleColumns;
+				if (columns == null) {
+					return;
+				}
 
 				if (skinProperties != null) {
 					e.gc.setForeground(skinProperties.getColor("color.list.header.fg"));
@@ -1398,25 +1401,37 @@ public class ListView
 		}, !bImmediate);
 	}
 
+	// XXX Copied from TableViewSWTImpl!
+	private TableCellMouseEvent createMouseEvent(TableCellSWT cell, Event e,
+			int type) {
+		TableCellMouseEvent event = new TableCellMouseEvent();
+		event.cell = cell;
+		if (cell != null) {
+			event.row = cell.getTableRow();
+		}
+		event.eventType = type;
+		event.button = e.button;
+		// TODO: Change to not use SWT masks
+		event.keyboardState = e.stateMask;
+		event.skipCoreFunctionality = false;
+
+		if (cell != null) {
+  		Rectangle r = cell.getBounds();
+  		event.x = e.x - r.x;
+  		event.y = e.y - r.y;
+  		if (event.x < 0 || event.y < 0 || event.x >= r.width || event.y >= r.height) {
+  			//			return null; // borks mouseenter/exit
+  		}
+		}
+		return event;
+	}
+
 	private class selectionListener
 		implements Listener
 	{
-		// XXX Copied from TableView!
-		private TableCellMouseEvent createMouseEvent(TableCellSWT cell, Event e,
-				int type) {
-			TableCellMouseEvent event = new TableCellMouseEvent();
-			event.cell = cell;
-			event.eventType = type;
-			event.button = e.button;
-			// TODO: Change to not use SWT masks
-			event.keyboardState = e.stateMask;
-			event.skipCoreFunctionality = false;
+		Image imgMove;
 
-			Rectangle r = cell.getBounds();
-			event.x = e.x - r.x;
-			event.y = e.y - r.y;
-			return event;
-		}
+		Point mouseDownAt;
 
 		public void handleEvent(Event e) {
 			ListRow row = (ListRow) getRow(e.x, e.y);
@@ -2505,6 +2520,10 @@ public class ListView
 
 	public void columnInvalidate(TableColumnCore tableColumn,
 			final boolean bMustRefresh) {
+		if (tableColumn == null) {
+			return;
+		}
+
 		final String sColumnName = tableColumn.getName();
 
 		runForAllRows(new TableGroupRowRunner() {
