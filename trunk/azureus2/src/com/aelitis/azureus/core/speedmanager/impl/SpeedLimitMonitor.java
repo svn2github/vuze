@@ -922,13 +922,13 @@ public class SpeedLimitMonitor
 
 
     static class LimitSlider{
-        private float valueUp=1.0f;//number between 0.0 - 1.0
+        private float valueUp=0.5f;//number between 0.0 - 1.0
         int upMax;
         int upCurr;
         int upMin;
         SaturatedMode upUsage;
 
-        private float valueDown=0.5f;
+        private float valueDown=1.0f;
         int downMax;
         int downCurr;
         int downMin;
@@ -958,7 +958,7 @@ public class SpeedLimitMonitor
                 increase = false;
             }
 
-            float factor = Math.abs( amount/3.0f );
+            float factor = amount/3.0f;
 
             if( increase ){
                 //increase download first
@@ -990,7 +990,7 @@ public class SpeedLimitMonitor
             //log this change.
             String msg = " create-update: valueUp="+valueUp+",upLimit="+upLimit+",valueDown="+valueDown
                     +",downLimit="+downLimit+",upMax="+upMax+",upMin="+upMin+",downMax="+downMax
-                    +",downMin"+downMin;
+                    +",downMin="+downMin;
             SpeedManagerLogger.log( msg );
 
             return new Update(upLimit,true,downLimit,true);
