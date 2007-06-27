@@ -2058,7 +2058,8 @@ public class ListView
 	}
 
 	public void setColumnList(TableColumnCore[] columns,
-			String defaultSortColumnID, boolean titleIsMinWidth) {
+			String defaultSortColumnID, boolean defaultSortAscending,
+			boolean titleIsMinWidth) {
 		this.bTitleIsMinWidth = titleIsMinWidth;
 		// XXX Adding Columns only has to be done once per TableID.  
 		// Doing it more than once won't harm anything, but it's a waste.
@@ -2095,7 +2096,7 @@ public class ListView
 		// Initialize the sorter after the columns have been added
 		// TODO: Restore sort column and direction from config (list in TVSWTImpl)
 		String sSortColumn = defaultSortColumnID;
-		boolean bSortAscending = false;
+		boolean bSortAscending = defaultSortAscending;
 
 		TableColumnCore tc = tcManager.getTableColumnCore(sTableID, sSortColumn);
 		if (tc == null) {

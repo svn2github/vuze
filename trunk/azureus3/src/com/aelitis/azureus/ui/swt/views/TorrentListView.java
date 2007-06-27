@@ -113,7 +113,7 @@ public class TorrentListView
 					new ColumnDateAdded2Liner(TableManager.TABLE_MYTORRENTS_INCOMPLETE,
 							false),
 				};
-				setColumnList(tableColumns, "date_added", true);
+				setColumnList(tableColumns, "date_added", false, true);
 				String[] autoHideOrder = new String[] {
 					ColumnSpeed.COLUMN_ID,
 					ColumnQuality.COLUMN_ID,
@@ -135,7 +135,7 @@ public class TorrentListView
 					new ColumnDateAdded2Liner(TableManager.TABLE_MYTORRENTS_INCOMPLETE,
 							false),
 				};
-				setColumnList(tableColumns, "date_added", true);
+				setColumnList(tableColumns, "date_added", false, true);
 				String[] autoHideOrder = new String[] {
 					ColumnQuality.COLUMN_ID,
 					ColumnAzProduct.COLUMN_ID,
@@ -159,7 +159,7 @@ public class TorrentListView
 							false),
 				};
 
-				setColumnList(tableColumns, ColumnDateCompleted2Liner.COLUMN_ID, true);
+				setColumnList(tableColumns, ColumnDateCompleted2Liner.COLUMN_ID, false, true);
 				String[] autoHideOrder = new String[] {
 					ColumnQuality.COLUMN_ID,
 					ColumnAzProduct.COLUMN_ID,
@@ -184,7 +184,7 @@ public class TorrentListView
 							false),
 				};
 
-				setColumnList(tableColumns, "date_added", true);
+				setColumnList(tableColumns, "date_added", false, true);
 				String[] autoHideOrder = new String[] {
 					ColumnQuality.COLUMN_ID,
 					ColumnAzProduct.COLUMN_ID,
@@ -205,7 +205,7 @@ public class TorrentListView
 				new ColumnRateUpDown(TABLE_MYMEDIA),
 				new ColumnRate(TABLE_MYMEDIA),
 			};
-			setColumnList(tableColumns, ColumnDateCompleted2Liner.COLUMN_ID, true);
+			setColumnList(tableColumns, ColumnDateCompleted2Liner.COLUMN_ID, false, true);
 			String[] autoHideOrder = new String[] {
 				ColumnDateAdded2Liner.COLUMN_ID,
 				ColumnQuality.COLUMN_ID,

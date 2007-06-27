@@ -56,7 +56,7 @@ public class RateItListView
 
 		lv.setColumnList(new TableColumnCore[] {
 			new ColumnRate("RateItList")
-		}, null, true);
+		}, null, false, true);
 
 		lv.addDataSources(ICON_NAMES, false);
 	}
