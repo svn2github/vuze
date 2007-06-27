@@ -672,32 +672,19 @@ public class TableViewSWTImpl
 
 		// Deselect rows if user clicks on a black spot (a spot with no row)
 		table.addMouseListener(new MouseAdapter() {
-			private TableCellMouseEvent createMouseEvent(TableCellSWT cell,
-					MouseEvent e, int type) {
-				TableCellMouseEvent event = new TableCellMouseEvent();
-				event.cell = cell;
-				event.eventType = type;
-				event.button = e.button;
-				// TODO: Change to not use SWT masks
-				event.keyboardState = e.stateMask;
-				event.skipCoreFunctionality = false;
-				Rectangle r = cell.getBounds();
-				event.x = e.x - r.x
-						+ VerticalAligner.getTableAdjustHorizontallyBy(table);
-				event.y = e.y - r.y + VerticalAligner.getTableAdjustVerticalBy(table);
-				return event;
-			}
-
 			public void mouseDoubleClick(MouseEvent e) {
 				TableColumnCore tc = getTableColumnByOffset(e.x);
 				TableCellSWT cell = getTableCell(e.x, e.y);
 				if (cell != null && tc != null) {
 					TableCellMouseEvent event = createMouseEvent(cell, e,
 							TableCellMouseEvent.EVENT_MOUSEDOUBLECLICK);
-					tc.invokeCellMouseListeners(event);
-					cell.invokeMouseListeners(event);
-					if (event.skipCoreFunctionality)
-						lCancelSelectionTriggeredOn = System.currentTimeMillis();
+					if (event != null) {
+						tc.invokeCellMouseListeners(event);
+						cell.invokeMouseListeners(event);
+						if (event.skipCoreFunctionality) {
+							lCancelSelectionTriggeredOn = System.currentTimeMillis();
+						}
+					}
 				}
 			}
 
@@ -960,6 +947,31 @@ public class TableViewSWTImpl
 		table.setHeaderVisible(true);
 
 		initializeTableColumns(table);
+	}
+
+	private TableCellMouseEvent createMouseEvent(TableCellSWT cell, MouseEvent e,
+			int type) {
+		TableCellMouseEvent event = new TableCellMouseEvent();
+		event.cell = cell;
+		if (cell != null) {
+			event.row = cell.getTableRow();
+		}
+		event.eventType = type;
+		event.button = e.button;
+		// TODO: Change to not use SWT masks
+		event.keyboardState = e.stateMask;
+		event.skipCoreFunctionality = false;
+		Rectangle r = cell.getBounds();
+		event.x = e.x - r.x + VerticalAligner.getTableAdjustHorizontallyBy(table);
+		if (event.x < 0) {
+			return null;
+		}
+		event.y = e.y - r.y + VerticalAligner.getTableAdjustVerticalBy(table);
+		if (event.y < 0) {
+			return null;
+		}
+
+		return event;
 	}
 
 	/**
