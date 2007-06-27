@@ -1126,5 +1126,20 @@ TorrentInfoView
 			// TODO Auto-generated method stub
 			return null;
 		}
+		// @see org.gudy.azureus2.plugins.ui.tables.TableRow#addMouseListener(org.gudy.azureus2.plugins.ui.tables.TableRowMouseListener)
+		public void addMouseListener(TableRowMouseListener listener) {
+			// TODO Auto-generated method stub
+			
+		}
+		// @see org.gudy.azureus2.plugins.ui.tables.TableRow#removeMouseListener(org.gudy.azureus2.plugins.ui.tables.TableRowMouseListener)
+		public void removeMouseListener(TableRowMouseListener listener) {
+			// TODO Auto-generated method stub
+			
+		}
+		// @see com.aelitis.azureus.ui.common.table.TableRowCore#invokeMouseListeners(org.gudy.azureus2.plugins.ui.tables.TableRowMouseEvent)
+		public void invokeMouseListeners(TableRowMouseEvent event) {
+			// TODO Auto-generated method stub
+			
+		}
 	}
 }

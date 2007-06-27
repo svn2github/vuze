@@ -77,6 +77,7 @@ public class TableCellImpl
   private ArrayList disposeListeners;
   private ArrayList tooltipListeners;
 	private ArrayList cellMouseListeners;
+	private ArrayList cellMouseMoveListeners;
 	private ArrayList cellVisibilityListeners;
   private TableColumnCore tableColumn;
   private boolean valid;
@@ -686,6 +687,33 @@ public class TableCellImpl
 		}
 	}
 
+	public void addMouseMoveListener(TableCellMouseMoveListener listener) {
+		try {
+			this_mon.enter();
+
+			if (cellMouseMoveListeners == null)
+				cellMouseMoveListeners = new ArrayList(1);
+
+			cellMouseMoveListeners.add(listener);
+			
+		} finally {
+			this_mon.exit();
+		}
+	}
+
+	public void removeMouseMoveListener(TableCellMouseMoveListener listener) {
+		try {
+			this_mon.enter();
+
+			if (cellMouseMoveListeners == null)
+				return;
+
+			cellMouseMoveListeners.remove(listener);
+
+		} finally {
+			this_mon.exit();
+		}
+	}
 
 	public void addVisibilityListener(TableCellVisibilityListener listener) {
 		try {
@@ -725,8 +753,13 @@ public class TableCellImpl
 		if (listenerObject instanceof TableCellToolTipListener)
 			addToolTipListener((TableCellToolTipListener)listenerObject);
 
-		if (listenerObject instanceof TableCellMouseListener)
-			addMouseListener((TableCellMouseListener)listenerObject);
+		if (listenerObject instanceof TableCellMouseMoveListener) {
+			addMouseMoveListener((TableCellMouseMoveListener) listenerObject);
+		}
+
+		if (listenerObject instanceof TableCellMouseListener) {
+			addMouseListener((TableCellMouseListener) listenerObject);
+		}
 
 		if (listenerObject instanceof TableCellVisibilityListener)
 			addVisibilityListener((TableCellVisibilityListener)listenerObject);
@@ -1038,13 +1071,18 @@ public class TableCellImpl
   }
 
   public void invokeMouseListeners(TableCellMouseEvent event) {
-		if (cellMouseListeners == null)
+		ArrayList listeners = event.eventType == TableCellMouseEvent.EVENT_MOUSEMOVE
+				? cellMouseMoveListeners : cellMouseListeners;
+		if (listeners == null)
 			return;
-
-		for (int i = 0; i < cellMouseListeners.size(); i++) {
+		
+		if (event.cell != null && event.row == null) {
+			event.row = event.cell.getTableRow();
+		}
+		
+		for (int i = 0; i < listeners.size(); i++) {
 			try {
-				TableCellMouseListener l = (TableCellMouseListener) (cellMouseListeners
-						.get(i));
+				TableCellMouseListener l = (TableCellMouseListener) (listeners.get(i));
 
 				l.cellMouseTrigger(event);
 

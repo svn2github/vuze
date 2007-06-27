@@ -77,4 +77,20 @@ public interface TableRow {
    * @return selection status
    */
   boolean isSelected();
+
+  /**
+	 * Adds a listener that triggers when this TableRow has a mouse event.
+	 * 
+	 * @param listener
+	 * 
+	 * @since 3.0.1.7
+	 */
+	public void addMouseListener(TableRowMouseListener listener);
+
+	/** Remove a previously added TableRowMouseListener
+	 *
+	 * @param listener Previously added listener
+	 * @since 3.0.1.7
+	 */
+	public void removeMouseListener(TableRowMouseListener listener);
 }

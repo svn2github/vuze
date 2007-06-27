@@ -22,6 +22,7 @@ package com.aelitis.azureus.ui.common.table;
 import java.util.List;
 
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
+import org.gudy.azureus2.plugins.ui.tables.TableRowMouseEvent;
 
 /** 
  * Core Table Row functions are those available to plugins plus
@@ -119,4 +120,11 @@ public interface TableRowCore extends TableRow
 	 * @return
 	 */
 	public TableView getView();
+
+	/**
+	 * @param event
+	 *
+	 * @since 3.0.1.7
+	 */
+	void invokeMouseListeners(TableRowMouseEvent event);
 }

@@ -21,25 +21,15 @@
 package org.gudy.azureus2.plugins.ui.tables;
 
 /** 
- * A listener that triggers on various mouse events (see 
+ * A listener that triggers on mouse move events (see 
  * {@link org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent}) that occur
- * on a TableCell, excluding mouse move events.
+ * on a TableCell.
  * 
- * @see TableCell#addMouseListener(TableCellMouseListener)
- * @see TableColumn#addCellMouseListener(TableCellMouseListener)
+ * @see TableCell#addMouseListener(TableCellMouseMoveListener)
+ * @see TableColumn#addCellMouseListener(TableCellMouseMoveListener)
  *
  * @author TuxPaper
- * @created Jan 10, 2006
- * @since 2.3.0.7
+ * @since 3.0.1.7
  */
-public interface TableCellMouseListener {
-	/**
-	 * triggered when a mouse event for the TableCell occurs, excluding
-	 * mouse move.
-	 * 
-	 * @param event Mouse event information
-	 * 
-	 * @since 2.3.0.7
-	 */
-	public void cellMouseTrigger(TableCellMouseEvent event);
+public interface TableCellMouseMoveListener extends TableCellMouseListener {
 }

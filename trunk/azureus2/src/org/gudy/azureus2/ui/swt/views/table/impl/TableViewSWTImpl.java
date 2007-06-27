@@ -792,6 +792,18 @@ public class TableViewSWTImpl
 							table.setCursor(null);
 						}
 					}
+
+					if (cell != null) {
+						TableCellMouseEvent event = createMouseEvent(cell, e,
+								TableCellMouseEvent.EVENT_MOUSEMOVE);
+						if (event != null) {
+  						TableColumnCore tc = ((TableColumnCore) cell.getTableColumn());
+  						if (tc.hasCellMouseMoveListener()) {
+  							((TableColumnCore) cell.getTableColumn()).invokeCellMouseListeners(event);
+  						}
+  						cell.invokeMouseListeners(event);
+						}
+					}
 				} catch (Exception ex) {
 					Debug.out(ex);
 				}

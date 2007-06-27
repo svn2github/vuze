@@ -89,6 +89,8 @@ public class TableColumnImpl
 
 	private ArrayList cellMouseListeners;
 
+	private ArrayList cellMouseMoveListeners;
+
 	private ArrayList cellVisibilityListeners;
 
 	private int iConsecutiveErrCount;
@@ -463,6 +465,40 @@ public class TableColumnImpl
 			this_mon.exit();
 		}
 	}
+	
+	public boolean hasCellMouseMoveListener() {
+		return cellMouseMoveListeners != null && cellMouseMoveListeners.size() > 0;
+	}
+
+	public void addCellMouseMoveListener(TableCellMouseMoveListener listener) {
+		try {
+			this_mon.enter();
+
+			if (cellMouseMoveListeners == null) {
+				cellMouseMoveListeners = new ArrayList(1);
+			}
+
+			cellMouseMoveListeners.add(listener);
+
+		} finally {
+			this_mon.exit();
+		}
+	}
+
+	public void removeCellMouseMoveListener(TableCellMouseMoveListener listener) {
+		try {
+			this_mon.enter();
+
+			if (cellMouseMoveListeners == null) {
+				return;
+			}
+
+			cellMouseMoveListeners.remove(listener);
+
+		} finally {
+			this_mon.exit();
+		}
+	}
 
 	public void addCellVisibilityListener(TableCellVisibilityListener listener) {
 		try {
@@ -520,6 +556,10 @@ public class TableColumnImpl
 		if (listenerObject instanceof TableCellAddedListener) {
 			addCellAddedListener((TableCellAddedListener) listenerObject);
 		}
+
+		if (listenerObject instanceof TableCellMouseMoveListener) {
+			addCellMouseMoveListener((TableCellMouseMoveListener) listenerObject);
+		} 
 
 		if (listenerObject instanceof TableCellMouseListener) {
 			addCellMouseListener((TableCellMouseListener) listenerObject);
@@ -635,13 +675,15 @@ public class TableColumnImpl
 	}
 
 	public void invokeCellMouseListeners(TableCellMouseEvent event) {
-		if (cellMouseListeners == null) {
+		ArrayList listeners = event.eventType == TableCellMouseEvent.EVENT_MOUSEMOVE
+				? cellMouseMoveListeners : this.cellMouseListeners;
+		if (listeners == null) {
 			return;
 		}
 
-		for (int i = 0; i < cellMouseListeners.size(); i++) {
+		for (int i = 0; i < listeners.size(); i++) {
 			try {
-				TableCellMouseListener l = (TableCellMouseListener) (cellMouseListeners.get(i));
+				TableCellMouseListener l = (TableCellMouseListener) (listeners.get(i));
 
 				l.cellMouseTrigger(event);
 
@@ -815,7 +857,8 @@ public class TableColumnImpl
 			writer.println("Listeners: refresh="
 					+ getListCountString(cellRefreshListeners) + "; dispose="
 					+ getListCountString(cellDisposeListeners) + "; mouse="
-					+ getListCountString(cellMouseListeners) + "; vis="
+					+ getListCountString(cellMouseListeners) + "; mm="
+					+ getListCountString(cellMouseMoveListeners) + "; vis="
 					+ getListCountString(cellVisibilityListeners) + "; added="
 					+ getListCountString(cellAddedListeners) + "; tooltip="
 					+ getListCountString(cellToolTipListeners));

@@ -288,4 +288,11 @@ public interface TableColumnCore
 	 * @since 2.5.0.2
 	 */
 	void setSortAscending(boolean bAscending);
+
+	/**
+	 * @return
+	 *
+	 * @since 3.0.1.1
+	 */
+	boolean hasCellMouseMoveListener();
 }

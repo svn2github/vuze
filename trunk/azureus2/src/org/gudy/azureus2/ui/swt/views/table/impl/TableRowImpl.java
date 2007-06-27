@@ -46,8 +46,7 @@ import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableView;
 
 import org.gudy.azureus2.plugins.download.DownloadException;
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
@@ -80,8 +79,9 @@ public class TableRowImpl
   private boolean bSetNotUpToDateLastRefresh = false;
 	private TableView tableView;
 
-  private static AEMonitor sortedDisposal_mon = new AEMonitor( "TableRowImpl" );
-  
+  private static AEMonitor this_mon = new AEMonitor( "TableRowImpl" );
+	private ArrayList mouseListeners;
+
   // XXX add rowVisuallyupdated bool like in ListRow
 
   /**
@@ -149,12 +149,57 @@ public class TableRowImpl
   		return null;
     return (TableCell)mTableCells.get(field);
   }
-  
+
+	public void addMouseListener(TableRowMouseListener listener) {
+		try {
+			this_mon.enter();
+
+			if (mouseListeners == null)
+				mouseListeners = new ArrayList(1);
+
+			mouseListeners.add(listener);
+
+		} finally {
+			this_mon.exit();
+		}
+	}
+
+	public void removeMouseListener(TableRowMouseListener listener) {
+		try {
+			this_mon.enter();
+
+			if (mouseListeners == null)
+				return;
+
+			mouseListeners.remove(listener);
+
+		} finally {
+			this_mon.exit();
+		}
+	}
+
+  public void invokeMouseListeners(TableRowMouseEvent event) {
+		ArrayList listeners = mouseListeners;
+		if (listeners == null)
+			return;
+		
+		for (int i = 0; i < listeners.size(); i++) {
+			try {
+				TableRowMouseListener l = (TableRowMouseListener) (listeners.get(i));
+
+				l.rowMouseTrigger(event);
+
+			} catch (Throwable e) {
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+
   /* Start Core-Only functions */
   ///////////////////////////////
 
   public void delete() {
-		sortedDisposal_mon.enter();
+		this_mon.enter();
 
 		try {
 			if (bDisposed)
@@ -172,7 +217,7 @@ public class TableRowImpl
 
 			bDisposed = true;
 		} finally {
-			sortedDisposal_mon.exit();
+			this_mon.exit();
 		}
 	}
   
