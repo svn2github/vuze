@@ -798,7 +798,7 @@ public class SpeedLimitMonitor
                 downloadLinespeedCapacity=uploadLinespeedCapacity;
                 COConfigurationManager.setParameter(
                         SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT,downloadLinespeedCapacity);
-                        //SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_LINESPEED_CAPACITY,downloadLinespeedCapacity);
+                
             }
         }else{
             sb.append("new download limits: ");
@@ -809,7 +809,7 @@ public class SpeedLimitMonitor
                 uploadLinespeedCapacity = downloadLinespeedCapacity/10;
                 COConfigurationManager.setParameter(
                          SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT,uploadLinespeedCapacity);
-                        //SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_LINESPEED_CAPACITY,uploadLinespeedCapacity);
+
                 uploadLimitMin = Math.max( uploadLinespeedCapacity/10, 5120 );
                 COConfigurationManager.setParameter(
                         SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT,uploadLimitMin);
@@ -926,7 +926,7 @@ public class SpeedLimitMonitor
 
 
     static class LimitSlider{
-        private float value;//number between 0 - 100.
+        private float value=75.0f;//number between 0 - 100.
 
         public void increase(float delta){
             value += delta;
@@ -957,12 +957,17 @@ public class SpeedLimitMonitor
 
             if( value > 0.5f ){
 
-                upLimit = upMax;
-                downLimit = Math.round( (downMax-downMin)*((value-0.5f)*2.0f) + downMin );
+                downLimit = downMax;
+                upLimit = Math.round( (upMax-upMin)*((value-0.5f)*2.0f) + upMin );
             }else{
-                downLimit = downMin;
-                upLimit = Math.round( (upMax-upMin)*  (value*2.0f) + upMin );
+                upLimit = upMin;
+                downLimit = Math.round( (downMax-downMin)*  (value*2.0f) + downMin );
             }
+
+            //log this change.
+            String msg = " create-update: value="+value+",upLimit="+upLimit+",downLimit="+downLimit
+                    +",upMax="+upMax+",upMin="+upMin+",downMax="+downMax+",downMin"+downMin;
+            SpeedManagerLogger.log( msg );
 
             return new Update(upLimit,true,downLimit,true);
         }//getUpdate
