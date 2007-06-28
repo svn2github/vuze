@@ -137,6 +137,16 @@ public class Average {
 	  return( DisplayFormatters.formatDecimal( getDoubleAverage(), precision ));
   }
   
+  public long
+  getPointValue()
+  {
+	  long timeFactor = getEffectiveTime() / refreshRate;
+	  //We first update the buffer
+	  update(timeFactor);
+
+	  return(values[(int)((timeFactor-1)% nbElements)]);
+  }
+  
   protected final long getSum() {
     //We get the current timeFactor
     long timeFactor = getEffectiveTime() / refreshRate;

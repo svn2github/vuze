@@ -130,12 +130,17 @@ GlobalManagerStatsImpl
 	public int getDataReceiveRateNoLAN() {
 		return (int)data_receive_speed_no_lan.getAverage();
 	}
-
+	public int getDataReceiveRateNoLAN(boolean average) {
+		return (int)(average?data_receive_speed_no_lan.getAverage():data_receive_speed_no_lan.getPointValue());
+	}
 	public int getProtocolReceiveRate() {
 		return (int)protocol_receive_speed.getAverage();
 	}
 	public int getProtocolReceiveRateNoLAN() {
 		return (int)protocol_receive_speed_no_lan.getAverage();
+	}	
+	public int getProtocolReceiveRateNoLAN(boolean average) {
+		return (int)(average?protocol_receive_speed_no_lan.getAverage():protocol_receive_speed_no_lan.getPointValue());
 	}
 
 	public int getDataAndProtocolReceiveRate(){
@@ -148,11 +153,18 @@ GlobalManagerStatsImpl
 	public int getDataSendRateNoLAN() {
 		return (int)data_send_speed_no_lan.getAverage();
 	}
+	public int getDataSendRateNoLAN(boolean average) {
+		return (int)(average?data_send_speed_no_lan.getAverage():data_send_speed_no_lan.getPointValue());
+	}
+	
 	public int getProtocolSendRate() {
 		return (int)protocol_send_speed.getAverage();
 	}
 	public int getProtocolSendRateNoLAN() {
 		return (int)protocol_send_speed_no_lan.getAverage();
+	}
+	public int getProtocolSendRateNoLAN(boolean average) {
+		return (int)(average?protocol_send_speed_no_lan.getAverage():protocol_send_speed_no_lan.getPointValue());
 	}
 
 	public int getDataAndProtocolSendRate(){

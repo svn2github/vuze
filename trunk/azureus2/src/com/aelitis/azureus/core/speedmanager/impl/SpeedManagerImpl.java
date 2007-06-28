@@ -369,8 +369,8 @@ SpeedManagerImpl
 	addPingHistory(
 		int	rtt )
 	{
-		int	down = adapter.getCurrentDataDownloadSpeed() + adapter.getCurrentProtocolDownloadSpeed();
-		int	up	 = adapter.getCurrentDataUploadSpeed() + adapter.getCurrentProtocolUploadSpeed();
+		int	down = getCurrentDataDownloadSpeed() + getCurrentProtocolDownloadSpeed();
+		int	up	 = getCurrentDataUploadSpeed() + getCurrentProtocolUploadSpeed();
 		
 		synchronized( ping_histories ){
 			
@@ -511,19 +511,7 @@ SpeedManagerImpl
 	{
 		return( provider.getMaxUploadSpeed());
 	}
-	
-	public int
-	getCurrentProtocolUploadSpeed()
-	{
-		return( adapter.getCurrentProtocolUploadSpeed());
-	}
-	
-	public int
-	getCurrentDataUploadSpeed()
-	{
-		return( adapter.getCurrentDataUploadSpeed());
-	}
-	
+
 	public int
 	getCurrentUploadLimit()
 	{
@@ -539,34 +527,52 @@ SpeedManagerImpl
 			adapter.setCurrentUploadLimit( bytes_per_second );
 		}
 	}
-
-    public int
-    getCurrentDataDownloadSpeed()
-    {
-        return( adapter.getCurrentDataDownloadSpeed() );
-    }
-
-    public int
-    getCurrentProtocolDownloadSpeed()
-    {
-        return( adapter.getCurrentProtocolDownloadSpeed() );
-    }
-
-    public int
+	
+	public int
 	getCurrentDownloadLimit()
 	{
 		return( adapter.getCurrentDownloadLimit());
 	}
 
-    /**
-     * NOTE: added for V2 SpeedManagerAlgorithmProvider. Need to move upload and download
-     * independently within a range.
-     * @param bytes_per_second
-     */
-    public void setCurrentDownloadLimit(int bytes_per_second) {
-        adapter.setCurrentDownloadLimit( bytes_per_second );
-    }
+	public void 
+	setCurrentDownloadLimit(
+		int bytes_per_second) 
+	{
+		adapter.setCurrentDownloadLimit( bytes_per_second );
+	}
+		
+	public int
+	getCurrentProtocolUploadSpeed()
+	{
+		//System.out.println("pu:" + adapter.getCurrentProtocolUploadSpeed(true) + "/" + adapter.getCurrentProtocolUploadSpeed(false));
+		
+		return( adapter.getCurrentProtocolUploadSpeed(true));
+	}
 	
+	public int
+	getCurrentDataUploadSpeed()
+	{
+		//System.out.println("du:" + adapter.getCurrentDataUploadSpeed(true) + "/" + adapter.getCurrentDataUploadSpeed(false));
+
+		return( adapter.getCurrentDataUploadSpeed(true));
+	}
+	
+    public int
+    getCurrentDataDownloadSpeed()
+    {
+		//System.out.println("dd:" + adapter.getCurrentDataDownloadSpeed(true) + "/" + adapter.getCurrentDataDownloadSpeed(false));
+
+        return( adapter.getCurrentDataDownloadSpeed(true) );
+    }
+
+    public int
+    getCurrentProtocolDownloadSpeed()
+    {
+		//System.out.println("pd:" + adapter.getCurrentProtocolDownloadSpeed(true) + "/" + adapter.getCurrentProtocolDownloadSpeed(false));
+
+        return( adapter.getCurrentProtocolDownloadSpeed(true) );
+    }
+
 	public void
 	setLoggingEnabled(
 		boolean	enabled )

@@ -197,13 +197,14 @@ AzureusCoreImpl
 						private boolean setting_limits;
 						
 						public int
-						getCurrentProtocolUploadSpeed()
+						getCurrentProtocolUploadSpeed(
+							boolean	average )
 						{
 							if ( global_manager != null ){
 								
 								GlobalManagerStats stats = global_manager.getStats();
 								
-								return( stats.getProtocolSendRateNoLAN());
+								return( stats.getProtocolSendRateNoLAN( average ));
 								
 							}else{
 								
@@ -212,13 +213,14 @@ AzureusCoreImpl
 						}
 						
 						public int
-						getCurrentDataUploadSpeed()
+						getCurrentDataUploadSpeed(
+							boolean	average )
 						{
 							if ( global_manager != null ){
 								
 								GlobalManagerStats stats = global_manager.getStats();
 								
-								return( stats.getDataSendRateNoLAN());
+								return( stats.getDataSendRateNoLAN( average ));
 								
 							}else{
 								
@@ -227,27 +229,29 @@ AzureusCoreImpl
 						}
 
                         public int
-                        getCurrentProtocolDownloadSpeed()
+                        getCurrentProtocolDownloadSpeed(
+                        	boolean	average )
                         {
                             if( global_manager != null ){
                                 GlobalManagerStats stats = global_manager.getStats();
-                                return (stats.getProtocolReceiveRateNoLAN() );
+                                return (stats.getProtocolReceiveRateNoLAN( average ) );
                             }else{
                                 return(0);
                             }
                         }
 
                         public int
-                        getCurrentDataDownloadSpeed()
+                        getCurrentDataDownloadSpeed(
+                        	boolean	average )
                         {
                             if( global_manager != null ){
                                 GlobalManagerStats stats = global_manager.getStats();
-                                return (stats.getDataReceiveRateNoLAN() );
+                                return (stats.getDataReceiveRateNoLAN( average ) );
                             }else{
                                 return(0);
                             }
                         }
-
+                        
                         public int
 						getCurrentUploadLimit()
 						{

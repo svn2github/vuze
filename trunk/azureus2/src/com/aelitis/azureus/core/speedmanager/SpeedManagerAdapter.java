@@ -26,10 +26,12 @@ public interface
 SpeedManagerAdapter 
 {
 	public int
-	getCurrentProtocolUploadSpeed();
+	getCurrentProtocolUploadSpeed(
+		boolean	average );
 	
 	public int
-	getCurrentDataUploadSpeed();
+	getCurrentDataUploadSpeed(
+		boolean	average );
 	
 	public int
 	getCurrentUploadLimit();
@@ -46,10 +48,12 @@ SpeedManagerAdapter
 		int		bytes_per_second );
 
     public int
-    getCurrentProtocolDownloadSpeed();
+    getCurrentProtocolDownloadSpeed(
+    	boolean	average );
 
     public int
-    getCurrentDataDownloadSpeed();
+    getCurrentDataDownloadSpeed(
+    	boolean	average );
 
     public Object
 	getLimits();

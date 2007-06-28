@@ -30,20 +30,24 @@ GlobalManagerStats
 {
 	public int getDataReceiveRate();
 	public int getDataReceiveRateNoLAN();
+	public int getDataReceiveRateNoLAN(boolean average);
 
 	public int getProtocolReceiveRate();
 	public int getProtocolReceiveRateNoLAN();
+	public int getProtocolReceiveRateNoLAN(boolean average);
 	
 	public int getDataAndProtocolReceiveRate();
-	
+		
 	public int getDataSendRate();
 	public int getDataSendRateNoLAN();
+	public int getDataSendRateNoLAN(boolean average);
 	  
 	public int getProtocolSendRate();
 	public int getProtocolSendRateNoLAN();
-  
+	public int getProtocolSendRateNoLAN(boolean average);
+	  
 	public int getDataAndProtocolSendRate();
-
+	
 	public int getDataSendRateAtClose();
   
 	public long getTotalDataBytesReceived();
