@@ -734,7 +734,7 @@ public class SpeedLimitMonitor
             SpeedManagerLogger.trace("pre-upload-setting="+ preTestUploadCapacity +" up-capacity"+uploadLinespeedCapacity
                     +" pre-download-setting="+ preTestDownloadCapacity +" down-capacity="+downloadLinespeedCapacity);
 
-            retVal = new Update(uploadLinespeedCapacity,true, downloadLinespeedCapacity,true);
+            retVal = new Update(preTestUploadLimit,true, downloadLinespeedCapacity,true);
             //change back to original mode.
             transferMode.setMode( TransferMode.State.DOWNLOADING );
 
