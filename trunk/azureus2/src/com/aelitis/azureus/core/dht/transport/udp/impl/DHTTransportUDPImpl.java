@@ -92,6 +92,7 @@ DHTTransportUDPImpl
 	
 	private byte				protocol_version;
 	private int					network;
+	private boolean				v6;
 	private String				ip_override;
 	private int					port;
 	private int					max_fails_for_live;
@@ -201,6 +202,7 @@ DHTTransportUDPImpl
 	DHTTransportUDPImpl(
 		byte			_protocol_version,
 		int				_network,
+		boolean			_v6,
 		String			_ip,
 		String			_default_ip,
 		int				_port,
@@ -217,6 +219,7 @@ DHTTransportUDPImpl
 	{
 		protocol_version		= _protocol_version;
 		network					= _network;
+		v6						= _v6;
 		ip_override				= _ip;
 		port					= _port;
 		max_fails_for_live		= _max_fails_for_live;
@@ -255,7 +258,7 @@ DHTTransportUDPImpl
 				}
 			});
 		
-		String	default_ip = _default_ip==null?"127.0.0.1":_default_ip;
+		String	default_ip = _default_ip==null?(v6?"::1":"127.0.0.1"):_default_ip;
 				
 		getExternalAddress( default_ip, logger );
 		
@@ -523,7 +526,7 @@ DHTTransportUDPImpl
 				
 				if ( TEST_EXTERNAL_IP ){
 					
-					new_external_address	= "127.0.0.1";
+					new_external_address	= v6?"::1":"127.0.0.1";
 					
 					log.log( "    External IP address obtained from test data: " + new_external_address );
 				}
@@ -611,7 +614,7 @@ DHTTransportUDPImpl
 				
 				if ( new_external_address == null ){
 			
-					InetAddress public_address = logger.getPluginInterface().getUtilities().getPublicAddress();
+					InetAddress public_address = logger.getPluginInterface().getUtilities().getPublicAddress( v6 );
 											
 					if ( public_address != null ){
 							

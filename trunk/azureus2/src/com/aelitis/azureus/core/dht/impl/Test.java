@@ -904,6 +904,7 @@ Test
 			transport = DHTTransportFactory.createUDP( 
 							protocol,
 							network, 
+							false,
 							null, 
 							null, 
 							6890 + next_port.intValue(), 

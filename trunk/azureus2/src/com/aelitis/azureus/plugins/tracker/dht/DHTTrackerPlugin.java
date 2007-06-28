@@ -1179,6 +1179,7 @@ DHTTrackerPlugin
 	
 						public void
 						complete(
+							byte[]	key,
 							boolean	timeout_occurred )
 						{
 							log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
@@ -1328,6 +1329,7 @@ DHTTrackerPlugin
 	
 						public void
 						complete(
+							byte[]	key,
 							boolean	timeout_occurred )
 						{
 							log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
@@ -1684,6 +1686,7 @@ DHTTrackerPlugin
 		
 							public void
 							complete(
+								byte[]	key,
 								boolean	timeout_occurred )
 							{
 								log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
@@ -1915,6 +1918,7 @@ DHTTrackerPlugin
 								
 								public void
 								complete(
+									byte[]	key,
 									boolean	timeout_occurred )
 								{
 									// System.out.println( "    presence query for " + f_ready_download.getName() + "->" + total + "/div = " + diversified );
@@ -1981,6 +1985,7 @@ DHTTrackerPlugin
 													
 													public void
 													complete(
+														byte[]	key,
 														boolean	timeout_occurred )
 													{
 													}
@@ -2091,6 +2096,7 @@ DHTTrackerPlugin
 
 					public void
 					complete(
+						byte[]	key,
 						boolean	timeout_occurred )
 					{
 						sem.release();

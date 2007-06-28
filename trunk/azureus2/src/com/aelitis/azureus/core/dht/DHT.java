@@ -69,6 +69,7 @@ DHT
 	
 	public static final int		NW_MAIN			= 0;
 	public static final int		NW_CVS			= 1;
+	public static final int		NW_MAIN_V6		= 3;
 	
 	public void
 	put(

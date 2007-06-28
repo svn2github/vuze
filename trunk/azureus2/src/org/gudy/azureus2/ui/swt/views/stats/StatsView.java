@@ -21,6 +21,9 @@
  */
 package org.gudy.azureus2.ui.swt.views.stats;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -39,6 +42,7 @@ import org.gudy.azureus2.ui.swt.views.AbstractIView;
 import org.gudy.azureus2.ui.swt.views.IView;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 
 /**
  * 
@@ -53,15 +57,13 @@ public class StatsView extends AbstractIView {
   TabItem itemActivity;
   TabItem itemStats;
   TabItem itemCache;
-  TabItem itemDHT;
-  TabItem itemDHTcvs;
+  TabItem[] itemDHTs;
   TabItem itemVivaldi;
   
-  IView viewActivity;
-  IView viewStats;
-  IView viewCache;
-  IView viewDHT;
-  IView viewDHTcvs;
+  ActivityView viewActivity;
+  TransferStatsView viewStats;
+  CacheView viewCache;
+  DHTView[] viewDHTs;
   IView viewVivaldi;
   UpdateThread updateThread;
   
@@ -82,13 +84,12 @@ public class StatsView extends AbstractIView {
 			while(bContinue) {  
 				try {
 
-					((ActivityView)viewActivity).periodicUpdate();
-					((CacheView)viewCache).periodicUpdate(); 
-					((DHTView)viewDHT).periodicUpdate();
-					((TransferStatsView)viewStats).periodicUpdate();
+					viewActivity.periodicUpdate();
+					viewCache.periodicUpdate(); 
+					viewStats.periodicUpdate();
 
-					if( viewDHTcvs != null ) {
-						((DHTView)viewDHTcvs).periodicUpdate();
+					for (int i=0;i<viewDHTs.length;i++){
+						viewDHTs[i].periodicUpdate();
 					}
 				} catch(Exception e) {
 					Debug.printStackTrace( e );  
@@ -112,29 +113,53 @@ public class StatsView extends AbstractIView {
     folder = new TabFolder(composite, SWT.LEFT);
     folder.setBackground(Colors.background);
     
+    List	dhts = new ArrayList();
+
+    dhts.add( new DHTView( DHTView.DHT_TYPE_MAIN ));  
+
+    if ( NetworkAdmin.getSingleton().hasIPV6Potential()){
+  
+    	dhts.add(  new DHTView( DHTView.DHT_TYPE_MAIN_V6 ));
+    }
+    
+    if( Constants.isCVSVersion()){
+    	
+       	dhts.add(  new DHTView( DHTView.DHT_TYPE_CVS ));
+    }
+    
+    viewDHTs = new DHTView[dhts.size()];
+    
+    dhts.toArray( viewDHTs );
+    
     itemActivity = new TabItem(folder, SWT.NULL);
     itemStats = new TabItem(folder, SWT.NULL);
     itemCache  = new TabItem(folder, SWT.NULL);
-    itemDHT  = new TabItem(folder, SWT.NULL);
-    if( Constants.isCVSVersion() )  itemDHTcvs  = new TabItem(folder, SWT.NULL);
+    
+    itemDHTs = new TabItem[viewDHTs.length];
+    
+    for (int i=0;i<itemDHTs.length;i++){
+    	itemDHTs[i] = new TabItem(folder, SWT.NULL);
+    }
+  
     itemVivaldi = new TabItem(folder,SWT.NULL);
 
     viewActivity = new ActivityView(manager);
     viewStats = new TransferStatsView(manager,core);
     viewCache = new CacheView();
-    viewDHT = new DHTView( DHTView.DHT_TYPE_MAIN );  
-    if( Constants.isCVSVersion() )  viewDHTcvs = new DHTView( DHTView.DHT_TYPE_CVS );
+    
+ 
+    
+    
     viewVivaldi = new VivaldiView();
     
     Messages.setLanguageText(itemActivity, viewActivity.getData());
     Messages.setLanguageText(itemStats, viewStats.getData());
     Messages.setLanguageText(itemCache, viewCache.getData());
-    Messages.setLanguageText(itemDHT, viewDHT.getData());
     
-    if( viewDHTcvs != null ) {
-      Messages.setLanguageText(itemDHTcvs, viewDHTcvs.getData());
+    for (int i=0;i<viewDHTs.length;i++){
+    	Messages.setLanguageText(itemDHTs[i], viewDHTs[i].getData());
     }
-    
+       
     Messages.setLanguageText(itemVivaldi, viewVivaldi.getData());
     
     TabItem items[] = {itemActivity};
@@ -149,12 +174,9 @@ public class StatsView extends AbstractIView {
     viewCache.initialize(folder);
     itemCache.setControl(viewCache.getComposite());
     
-    viewDHT.initialize(folder);
-    itemDHT.setControl(viewDHT.getComposite());
-
-    if( viewDHTcvs != null ) {
-      viewDHTcvs.initialize(folder);
-      itemDHTcvs.setControl(viewDHTcvs.getComposite());
+    for (int i=0;i<viewDHTs.length;i++){
+    	viewDHTs[i].initialize(folder);
+    	itemDHTs[i].setControl(viewDHTs[i].getComposite());
     }
     
     viewVivaldi.initialize(folder);
@@ -200,28 +222,15 @@ public class StatsView extends AbstractIView {
         return;
       }
       
-      if( index == 3 ) {
-        if (viewDHT != null && !itemDHT.isDisposed())  viewDHT.refresh();
-        return;
+      if ( index-3 < viewDHTs.length ){
+    	  if ( !itemDHTs[index-3].isDisposed()){
+    		  viewDHTs[index-3].refresh();
+    	  }
+    	  return;
       }
       
-      if( Constants.isCVSVersion() ) {
-        if( index == 4 ) {
-          if (viewDHTcvs != null && !itemDHTcvs.isDisposed())  viewDHTcvs.refresh();
-          return;
-        }
-        
-        if( index == 5 ) {
-          if (viewVivaldi != null && !itemVivaldi.isDisposed())  viewVivaldi.refresh();
-          return;
-        }
-      }
-      
-      if( index == 4 ) {
-        if (viewVivaldi != null && !itemVivaldi.isDisposed())  viewVivaldi.refresh();
-        return;
-      }
-
+      if (viewVivaldi != null && !itemVivaldi.isDisposed())  viewVivaldi.refresh();
+  
     } catch (Exception e) {
     	Debug.printStackTrace( e );
     }
@@ -236,7 +245,7 @@ public class StatsView extends AbstractIView {
   public void
   showDHT()
   {
-	  folder.setSelection( new TabItem[]{ itemDHT });
+	  folder.setSelection( new TabItem[]{ itemDHTs[0] });
   }
   
   public Composite getComposite() {
@@ -266,8 +275,11 @@ public class StatsView extends AbstractIView {
     viewActivity.delete();
     viewStats.delete();
     viewCache.delete();
-    viewDHT.delete();
-    if( viewDHTcvs != null )  viewDHTcvs.delete();
+    
+    for (int i=0;i<viewDHTs.length;i++){
+    	viewDHTs[i].delete();
+    }
+
     if(! folder.isDisposed()) {
       Utils.disposeComposite(folder);
     }

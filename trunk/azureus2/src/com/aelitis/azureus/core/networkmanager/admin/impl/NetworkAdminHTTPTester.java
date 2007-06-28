@@ -57,7 +57,7 @@ NetworkAdminHTTPTester
 		}
 		
 		try{
-			return( VersionCheckClient.getSingleton().getExternalIpAddressHTTP());
+			return( VersionCheckClient.getSingleton().getExternalIpAddressHTTP(false));
 			
 		}catch( Throwable e ){
 			

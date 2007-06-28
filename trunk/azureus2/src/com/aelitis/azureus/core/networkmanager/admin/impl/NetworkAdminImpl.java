@@ -25,6 +25,8 @@ package com.aelitis.azureus.core.networkmanager.admin.impl;
 
 import java.io.PrintWriter;
 import java.net.Authenticator;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.PasswordAuthentication;
@@ -348,6 +350,85 @@ NetworkAdminImpl
 		}
 		
 		return( str );
+	}
+	
+	public boolean
+	hasIPV4Potential()
+	{
+		Set	interfaces = old_network_interfaces;
+		
+		if ( interfaces == null ){
+			
+			return( false );
+		}
+		
+		Iterator	it = interfaces.iterator();
+				
+		while( it.hasNext()){
+			
+			NetworkInterface ni = (NetworkInterface)it.next();
+			
+			Enumeration addresses = ni.getInetAddresses();
+
+			while( addresses.hasMoreElements()){
+								
+				InetAddress	ia = (InetAddress)addresses.nextElement();
+				
+				if ( ia.isLoopbackAddress()){
+					
+					continue;
+				}
+				
+				if ( ia instanceof Inet4Address ){
+					
+					return( true );
+				}
+			}
+		}
+		
+		return( false );	
+	}
+	
+	public boolean
+	hasIPV6Potential()
+	{
+		Set	interfaces = old_network_interfaces;
+		
+		if ( interfaces == null ){
+			
+			return( false );
+		}
+		
+		Iterator	it = interfaces.iterator();
+				
+		while( it.hasNext()){
+			
+			NetworkInterface ni = (NetworkInterface)it.next();
+			
+			Enumeration addresses = ni.getInetAddresses();
+
+			while( addresses.hasMoreElements()){
+								
+				InetAddress	ia = (InetAddress)addresses.nextElement();
+				
+				if ( ia.isLoopbackAddress()){
+					
+					continue;
+				}
+				
+				if ( ia instanceof Inet6Address ){
+					
+					Inet6Address v6 = (Inet6Address)ia;
+					
+					if ( !v6.isLinkLocalAddress()){
+	
+						return( true );
+					}
+				}
+			}
+		}
+		
+		return( false );			
 	}
 	
 	protected void

@@ -57,6 +57,12 @@ NetworkAdmin
 	public abstract NetworkAdminNetworkInterface[]
 	getInterfaces();
 	
+	public abstract boolean
+	hasIPV4Potential();
+	
+	public abstract boolean
+	hasIPV6Potential();
+
 	public abstract NetworkAdminProtocol[]
 	getOutboundProtocols();
 	

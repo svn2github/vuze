@@ -52,7 +52,7 @@ NetworkAdminTCPTester
 		throws NetworkAdminException
 	{
 		try{
-			return( VersionCheckClient.getSingleton().getExternalIpAddressTCP(bind_ip, bind_port));
+			return( VersionCheckClient.getSingleton().getExternalIpAddressTCP(bind_ip, bind_port,false));
 			
 		}catch( Throwable e ){
 			

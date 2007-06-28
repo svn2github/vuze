@@ -218,6 +218,10 @@ Utilities
 	public InetAddress
 	getPublicAddress();
 	
+	public InetAddress
+	getPublicAddress(
+		boolean		ipv6 );
+	
 		/**
 		 * attempts a reverse DNS lookup of an address, null if it fails
 		 * @param address

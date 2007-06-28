@@ -162,7 +162,10 @@ DHTImpl
 				o_rep, c_rep, c_n,
 				logger );
 		
-		nat_puncher	= DHTNATPuncherFactory.create( nat_adapter, this );
+		if ( nat_adapter != null ){
+			
+			nat_puncher	= DHTNATPuncherFactory.create( nat_adapter, this );
+		}
 		
 		speed_tester = DHTSpeedTesterFactory.create( this );
 	}
@@ -287,13 +290,19 @@ DHTImpl
 	{
 		control.seed( full_wait );	
 		
-		nat_puncher.start();
+		if ( nat_puncher!= null ){
+			
+			nat_puncher.start();
+		}
 	}
 	
 	public void
 	destroy()
 	{
-		nat_puncher.destroy();
+		if ( nat_puncher != null ){
+			
+			nat_puncher.destroy();
+		}
 		
 		DHTNetworkPositionManager.destroy( storage_adapter );
 	}

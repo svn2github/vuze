@@ -45,7 +45,7 @@ public class
 NetworkAdminSocksProxyImpl 
 	implements NetworkAdminSocksProxy
 {
-	private final String	TARGET_HOST	= VersionCheckClient.HTTP_SERVER_ADDRESS;
+	private final String	TARGET_HOST	= VersionCheckClient.HTTP_SERVER_ADDRESS_V4;
 	private final int		TARGET_PORT	= VersionCheckClient.HTTP_SERVER_PORT;
 	
 	private String		host;

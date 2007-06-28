@@ -194,7 +194,7 @@ AZMyInstanceImpl
 		
 		if ( dht == null || dht.getStatus() != DHTPlugin.STATUS_RUNNING ){
 		
-			String	str_address = VersionCheckClient.getSingleton().getExternalIpAddress( true );
+			String	str_address = VersionCheckClient.getSingleton().getExternalIpAddress( true, false );
 		
 			if ( str_address != null ){
 				

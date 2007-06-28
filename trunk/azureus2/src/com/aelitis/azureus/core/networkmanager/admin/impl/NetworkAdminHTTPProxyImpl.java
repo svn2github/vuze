@@ -50,7 +50,7 @@ NetworkAdminHTTPProxyImpl
 {
 	private static final String	NL = "\015\012";
 	
-	private final String	TARGET_HOST	= VersionCheckClient.HTTP_SERVER_ADDRESS;
+	private final String	TARGET_HOST	= VersionCheckClient.HTTP_SERVER_ADDRESS_V4;
 	private final int		TARGET_PORT	= VersionCheckClient.HTTP_SERVER_PORT;
 
 	private String	http_host;
@@ -179,7 +179,7 @@ NetworkAdminHTTPProxyImpl
 						final long start_time = SystemTime.getCurrentTime();
 						
 						try{
-							String	get_str = VersionCheckClient.getSingleton().getHTTPGetString( true );
+							String	get_str = VersionCheckClient.getSingleton().getHTTPGetString( true, false );
 							
 							ByteBuffer	request = ByteBuffer.wrap( get_str.getBytes());
 							

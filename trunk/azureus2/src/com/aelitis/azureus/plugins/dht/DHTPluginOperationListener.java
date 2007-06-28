@@ -45,5 +45,6 @@ DHTPluginOperationListener
 	
 	public void
 	complete(
-		boolean	timeout_occurred );
+		byte[]				key,
+		boolean				timeout_occurred );
 }

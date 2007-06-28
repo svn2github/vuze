@@ -71,7 +71,7 @@ NetworkAdminUDPTester
 		throws NetworkAdminException
 	{
 		try{
-			return( VersionCheckClient.getSingleton().getExternalIpAddressUDP(bind_ip, bind_port));
+			return( VersionCheckClient.getSingleton().getExternalIpAddressUDP(bind_ip, bind_port,false));
 			
 		}catch( Throwable e ){
 		

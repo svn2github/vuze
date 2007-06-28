@@ -47,6 +47,7 @@ DHTTransportFactory
 	createUDP(
 		byte			protocol_version,
 		int				network,
+		boolean			v6,
 		String			ip,
 		String			default_ip,
 		int				port,
@@ -64,6 +65,7 @@ DHTTransportFactory
 		return( new DHTTransportUDPImpl(
 					protocol_version,
 					network, 
+					v6,
 					ip, 
 					default_ip, 
 					port, 

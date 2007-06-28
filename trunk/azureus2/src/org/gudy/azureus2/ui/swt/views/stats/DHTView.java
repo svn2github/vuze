@@ -51,6 +51,7 @@ import com.aelitis.azureus.core.dht.control.DHTControlActivity;
 import com.aelitis.azureus.core.dht.control.DHTControlListener;
 import com.aelitis.azureus.core.dht.control.DHTControlStats;
 import com.aelitis.azureus.core.dht.db.DHTDBStats;
+import com.aelitis.azureus.core.dht.nat.DHTNATPuncher;
 import com.aelitis.azureus.core.dht.router.DHTRouterStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportStats;
@@ -61,9 +62,10 @@ import com.aelitis.azureus.plugins.dht.DHTPlugin;
  */
 public class DHTView extends AbstractIView {
   
-  public static final int DHT_TYPE_MAIN = 0;
-  public static final int DHT_TYPE_CVS  = 1;
-  
+  public static final int DHT_TYPE_MAIN 	= DHT.NW_MAIN;
+  public static final int DHT_TYPE_CVS  	= DHT.NW_CVS;
+  public static final int DHT_TYPE_MAIN_V6 	= DHT.NW_MAIN_V6;
+
   DHT dht;
   
   Composite panel;
@@ -116,12 +118,18 @@ public class DHTView extends AbstractIView {
          
       DHT[] dhts = ((DHTPlugin)dht_pi.getPlugin()).getDHTs();
       
-      if( dhts.length <= dht_type ){
-        return;
+      for (int i=0;i<dhts.length;i++){
+    	  if ( dhts[i].getTransport().getNetwork() == dht_type ){
+    		  dht = dhts[i];
+    		  break;
+    	  }
       }
 	  
-	  dht	= dhts[ dht_type ];
-	  
+      if ( dht == null ){
+    	  
+    	  return;
+      }
+      
       controlListener = new DHTControlListener() {
         public void activityChanged(DHTControlActivity activity,int type) {
           activityChanged = true;
@@ -512,7 +520,17 @@ public class DHTView extends AbstractIView {
   }
 
   public String getFullTitle() {
-    return dht_type == DHT_TYPE_MAIN ? MessageText.getString("DHTView.title.full") : MessageText.getString("DHTView.title.fullcvs");
+	  if ( dht_type == DHT_TYPE_MAIN ){
+
+		  return( "DHTView.title.full" );
+
+	  }else if ( dht_type == DHT_TYPE_CVS ){
+
+		  return( "DHTView.title.fullcvs" );
+	  }else{
+
+		  return( "DHTView.title.full_v6" );
+	  }
   }
   
   public Composite getComposite() {
@@ -541,7 +559,18 @@ public class DHTView extends AbstractIView {
     lblUpTime.setText(TimeFormatter.format(controlStats.getRouterUptime() / 1000));
     lblNumberOfUsers.setText("" + controlStats.getEstimatedDHTSize());
     lblReachable.setText(dht.getTransport().isReachable()?yes_str:no_str);
-    lblRendezvous.setText(dht.getTransport().isReachable()?"":(dht.getNATPuncher().operational()?yes_str:no_str));
+    
+    DHTNATPuncher puncher = dht.getNATPuncher();
+    
+    String	puncher_str;
+    
+    if ( puncher == null ){
+    	puncher_str = "";
+    }else{
+    	puncher_str = puncher.operational()?yes_str:no_str;
+    }
+    
+    lblRendezvous.setText(dht.getTransport().isReachable()?"":puncher_str);
     long[] stats = routerStats.getStats();
     lblNodes.setText("" + stats[DHTRouterStats.ST_NODES]);
     lblLeaves.setText("" + stats[DHTRouterStats.ST_LEAVES]);
@@ -627,9 +656,8 @@ public class DHTView extends AbstractIView {
   }
   
   public String getData() {
-    return dht_type == DHT_TYPE_MAIN ? "DHTView.title.full" :"DHTView.title.fullcvs";
+	  return( getFullTitle());
   }
-    
 }
 
 

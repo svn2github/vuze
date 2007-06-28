@@ -34,6 +34,7 @@ import java.net.*;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.stats.transfer.*;
@@ -67,19 +68,24 @@ public class VersionCheckClient {
 	public static final String	REASON_SECONDARY_CHECK			= "sc";
 	
 
-  private static final String 	AZ_MSG_SERVER_ADDRESS 	= Constants.VERSION_SERVER;
-  private static final int 		AZ_MSG_SERVER_PORT 		= 27001;
-  private static final String 	MESSAGE_TYPE_ID 		= "AZVER";
+  private static final String 	AZ_MSG_SERVER_ADDRESS_V4 	= Constants.VERSION_SERVER_V4;
+  private static final int 		AZ_MSG_SERVER_PORT 			= 27001;
+  private static final String 	MESSAGE_TYPE_ID 			= "AZVER";
   
-  public static final String 	HTTP_SERVER_ADDRESS 	= AZ_MSG_SERVER_ADDRESS;
-  public static final int 		HTTP_SERVER_PORT 		= 80;
+  public static final String 	HTTP_SERVER_ADDRESS_V4		= AZ_MSG_SERVER_ADDRESS_V4;
+  public static final int 		HTTP_SERVER_PORT 			= 80;
 
-  public static final String 	TCP_SERVER_ADDRESS 		= AZ_MSG_SERVER_ADDRESS;
-  public static final int 		TCP_SERVER_PORT 		= 80;
+  public static final String 	TCP_SERVER_ADDRESS_V4		= AZ_MSG_SERVER_ADDRESS_V4;
+  public static final int 		TCP_SERVER_PORT 			= 80;
 
-  public static final String 	UDP_SERVER_ADDRESS 		= AZ_MSG_SERVER_ADDRESS;
-  public static final int 		UDP_SERVER_PORT 		= 2080;
+  public static final String 	UDP_SERVER_ADDRESS_V4		= AZ_MSG_SERVER_ADDRESS_V4;
+  public static final int 		UDP_SERVER_PORT 			= 2080;
 
+  public static final String	AZ_MSG_SERVER_ADDRESS_V6 	= Constants.VERSION_SERVER_V6;
+  public static final String	HTTP_SERVER_ADDRESS_V6 		= AZ_MSG_SERVER_ADDRESS_V6;
+  public static final String	TCP_SERVER_ADDRESS_V6 		= AZ_MSG_SERVER_ADDRESS_V6;
+  public static final String	UDP_SERVER_ADDRESS_V6 		= AZ_MSG_SERVER_ADDRESS_V6;
+  
   
   private static final long		CACHE_PERIOD	= 5*60*1000;
   private static boolean secondary_check_done;
@@ -89,10 +95,36 @@ public class VersionCheckClient {
 	  VersionCheckClientUDPCodecs.registerCodecs();
   }
   
+  private static boolean	prefer_v6;
+  
+  static{
+	  
+	  COConfigurationManager.addAndFireParameterListener(
+			  "IPV6 Prefer Addresses",
+			  new ParameterListener()
+			  {
+				 public void 
+				 parameterChanged(
+					String 	name )
+				 {
+					 prefer_v6 = COConfigurationManager.getBooleanParameter( name );
+				 } 
+			  });
+  }
+  
+  private static final int	AT_V4		= 1;
+  private static final int	AT_V6		= 2;
+  private static final int	AT_EITHER	= 3;
+  
   private static final VersionCheckClient instance = new VersionCheckClient();
-  private Map last_check_data = null;
+  
+  private Map last_check_data_v4 = null;
+  private Map last_check_data_v6 = null;
+  
   private final AEMonitor check_mon = new AEMonitor( "versioncheckclient" );
-  private long last_check_time = 0; 
+  
+  private long last_check_time_v4 = 0; 
+  private long last_check_time_v6 = 0; 
   
   
   private VersionCheckClient() {
@@ -113,58 +145,145 @@ public class VersionCheckClient {
    * Get the version check reply info.
    * @return reply data, possibly cached, if the server was already checked within the last minute
    */
-  public Map getVersionCheckInfo( String reason ) {
-	  return( getVersionCheckInfoSupport( reason, false, false ));
+  
+  public Map 
+  getVersionCheckInfo( 
+	String 	reason )
+  {
+	  return( getVersionCheckInfo( reason, AT_EITHER ));
+  }
+  
+  public Map 
+  getVersionCheckInfo( 
+	String 	reason,
+	int		address_type )
+  {
+	  if ( address_type == AT_V4 ){
+		  
+		  return( getVersionCheckInfoSupport( reason, false, false, false ));
+
+	  }else if ( address_type == AT_V6 ){
+		  
+		  return( getVersionCheckInfoSupport( reason, false, false, true ));
+
+	  }else{
+		  
+		  Map	reply = getVersionCheckInfoSupport( reason, false, false, prefer_v6 );
+		  
+		  if ( reply == null ){
+			  
+			  reply =  getVersionCheckInfoSupport( reason, false, false, !prefer_v6 );
+		  }
+		  
+		  return( reply );
+	  }
   }
 
  
   protected Map 
   getVersionCheckInfoSupport( 
-		  String 	reason, 
-		  boolean 	only_if_cached, 
-		  boolean 	force )
+	  String 	reason, 
+	  boolean 	only_if_cached, 
+	  boolean 	force,
+	  boolean	v6 )
   {
-    try {  check_mon.enter();
-    
-      long time_diff = SystemTime.getCurrentTime() - last_check_time;
-     
-      force = force || time_diff > CACHE_PERIOD || time_diff < 0;
-      
-      if( last_check_data == null || last_check_data.size() == 0 || force ) {
-    	  // if we've never checked before then we go ahead even if the "only_if_cached"
-    	  // flag is set as its had not chance of being cached yet!
-    	if ( only_if_cached && last_check_data != null ){
-    		return( new HashMap() );
-    	}
-        try {
-          last_check_data = performVersionCheck( constructVersionCheckMessage( reason ), true, true );
-        }
-        catch( UnknownHostException t ) {
-        	// no internet
-        	Debug.out(t.getClass().getName() + ": " + t.getMessage());
-        }
-        catch( Throwable t ) {
-        	Debug.out(t);
-          last_check_data = new HashMap();
-        }
-      }
-      else {
-      	Logger.log(new LogEvent(LOGID, "VersionCheckClient is using "
-						+ "cached version check info. Using " + last_check_data.size()
-						+ " reply keys.")); 
-      }
-    }
-    finally {  check_mon.exit();  }
-    
-    if( last_check_data == null )  last_check_data = new HashMap();
-    
-    return last_check_data;
+  	if ( v6 ){
+
+	    try {  check_mon.enter();
+	    
+	      long time_diff = SystemTime.getCurrentTime() - last_check_time_v6;
+	     
+	      force = force || time_diff > CACHE_PERIOD || time_diff < 0;
+	      
+	      if( last_check_data_v6 == null || last_check_data_v6.size() == 0 || force ) {
+	    	  // if we've never checked before then we go ahead even if the "only_if_cached"
+	    	  // flag is set as its had not chance of being cached yet!
+	    	if ( only_if_cached && last_check_data_v6 != null ){
+	    		return( new HashMap() );
+	    	}
+	        try {
+	          last_check_data_v6 = performVersionCheck( constructVersionCheckMessage( reason ), true, true, true );
+	        }
+	        catch( UnknownHostException t ) {
+	        	// no internet
+	        	Debug.out(t.getClass().getName() + ": " + t.getMessage());
+	        }
+	        catch( Throwable t ) {
+	        	Debug.out(t);
+	          last_check_data_v6 = new HashMap();
+	        }
+	      }
+	      else {
+	      	Logger.log(new LogEvent(LOGID, "VersionCheckClient is using "
+							+ "cached version check info. Using " + last_check_data_v6.size()
+							+ " reply keys.")); 
+	      }
+	    }
+	    finally {  check_mon.exit();  }
+	    
+	    if( last_check_data_v6 == null )  last_check_data_v6 = new HashMap();
+	    
+	    return last_check_data_v6;
+	    
+  	}else{
+  		
+  	   try {  check_mon.enter();
+	    
+	      long time_diff = SystemTime.getCurrentTime() - last_check_time_v4;
+	     
+	      force = force || time_diff > CACHE_PERIOD || time_diff < 0;
+	      
+	      if( last_check_data_v4 == null || last_check_data_v4.size() == 0 || force ) {
+	    	  // if we've never checked before then we go ahead even if the "only_if_cached"
+	    	  // flag is set as its had not chance of being cached yet!
+	    	if ( only_if_cached && last_check_data_v4 != null ){
+	    		return( new HashMap() );
+	    	}
+	        try {
+	          last_check_data_v4 = performVersionCheck( constructVersionCheckMessage( reason ), true, true, false );
+	        }
+	        catch( UnknownHostException t ) {
+	        	// no internet
+	        	Debug.out(t.getClass().getName() + ": " + t.getMessage());
+	        }
+	        catch( Throwable t ) {
+	        	Debug.out(t);
+	          last_check_data_v4 = new HashMap();
+	        }
+	      }
+	      else {
+	      	Logger.log(new LogEvent(LOGID, "VersionCheckClient is using "
+							+ "cached version check info. Using " + last_check_data_v4.size()
+							+ " reply keys.")); 
+	      }
+	    }
+	    finally {  check_mon.exit();  }
+	    
+	    if( last_check_data_v4 == null )  last_check_data_v4 = new HashMap();
+	    
+	    return last_check_data_v4;
+  	}
   }
   
   private boolean
-  isVersionCheckDataValid()
+  isVersionCheckDataValid(
+	int		address_type )
   {  	
-  	return( last_check_data != null && last_check_data.size() > 0 ); 
+	  boolean v6_ok = last_check_data_v6 != null && last_check_data_v6.size() > 0;
+	  boolean v4_ok = last_check_data_v4 != null && last_check_data_v4.size() > 0;
+
+	  if ( address_type == AT_V4 ){
+		  
+		  return( v4_ok );
+		  
+	  }else if ( address_type == AT_V6 ){
+		  
+		  return( v6_ok );
+		  
+	  }else{
+		  
+		  return( v4_ok | v6_ok );
+	  }
   }
   
   /**
@@ -172,11 +291,13 @@ public class VersionCheckClient {
    * NOTE: This information may be cached, see getVersionCheckInfo().
    * @return external ip address, or empty string if no address information found
    */
+  
   public String 
   getExternalIpAddress(
-		boolean	only_if_cached )
+	  boolean	only_if_cached,
+	  boolean	v6 )
   {
-    Map reply = getVersionCheckInfoSupport( REASON_EXTERNAL_IP, only_if_cached, false );
+    Map reply = getVersionCheckInfoSupport( REASON_EXTERNAL_IP, only_if_cached, false, v6 );
     
     byte[] address = (byte[])reply.get( "source_ip_address" );
     if( address != null ) {
@@ -192,7 +313,7 @@ public class VersionCheckClient {
    * @return true if DHT can be enabled, false if it should not be enabled
    */
   public boolean DHTEnableAllowed() {
-    Map reply = getVersionCheckInfo( REASON_DHT_ENABLE_ALLOWED );
+    Map reply = getVersionCheckInfo( REASON_DHT_ENABLE_ALLOWED, AT_EITHER );
     
     boolean	res = false;
     
@@ -207,7 +328,7 @@ public class VersionCheckClient {
 	// and enable the DHT (i.e. we're being optimistic)
 
     if ( !res ){
-    	res = !isVersionCheckDataValid();
+    	res = !isVersionCheckDataValid( AT_EITHER );
     }
     
     return res;
@@ -219,7 +340,7 @@ public class VersionCheckClient {
    * @return true if extended DHT use is allowed, false if not allowed
    */
   public boolean DHTExtendedUseAllowed() {
-    Map reply = getVersionCheckInfo( REASON_DHT_EXTENDED_ALLOWED );
+    Map reply = getVersionCheckInfo( REASON_DHT_EXTENDED_ALLOWED, AT_EITHER );
     
     boolean	res = false;
     
@@ -231,7 +352,7 @@ public class VersionCheckClient {
     	// be generous and enable extended use if check failed
     
     if ( !res ){
-    	res = !isVersionCheckDataValid();
+    	res = !isVersionCheckDataValid( AT_EITHER );
     }
     
     return res;
@@ -240,7 +361,7 @@ public class VersionCheckClient {
   public String[]
   getRecommendedPlugins()
   {
-	  Map reply = getVersionCheckInfo( REASON_RECOMMENDED_PLUGINS );
+	  Map reply = getVersionCheckInfo( REASON_RECOMMENDED_PLUGINS, AT_EITHER );
 
 	  List	l = (List)reply.get( "recommended_plugins" );
 	  
@@ -269,7 +390,8 @@ public class VersionCheckClient {
   performVersionCheck( 
 	Map 	data_to_send,
 	boolean	use_az_message,
-	boolean	use_http ) 
+	boolean	use_http,
+	boolean	v6 )
   
   	throws Exception 
   {
@@ -279,7 +401,7 @@ public class VersionCheckClient {
 	if ( use_az_message ){
 	
 		try{
-			reply = executeAZMessage( data_to_send );
+			reply = executeAZMessage( data_to_send, v6 );
 			
 			reply.put( "protocol_used", "AZMSG" );
 			
@@ -294,7 +416,7 @@ public class VersionCheckClient {
 	if ( reply == null && use_http ){
 		
 		try{
-			reply = executeHTTP( data_to_send );
+			reply = executeHTTP( data_to_send, v6 );
 			
 			reply.put( "protocol_used", "HTTP" );
 			
@@ -316,32 +438,42 @@ public class VersionCheckClient {
 						+ "version check successful. Received " + reply.size()
 						+ " reply keys."));
 
-    last_check_time = SystemTime.getCurrentTime();
-      
+	if ( v6 ){
+	
+		last_check_time_v6 = SystemTime.getCurrentTime();
+		
+	}else{
+		
+		last_check_time_v4 = SystemTime.getCurrentTime();
+	}
+	
     return reply;
   }
   
   private Map
   executeAZMessage(
-	Map	data_to_send )
+	Map		data_to_send,
+	boolean	v6 )
   
   	throws Exception
   {
+	  String	host = v6?AZ_MSG_SERVER_ADDRESS_V6:AZ_MSG_SERVER_ADDRESS_V4;
+	  
 	  if (Logger.isEnabled())
 		  Logger.log(new LogEvent(LOGID, "VersionCheckClient retrieving "
-				  + "version information from " + AZ_MSG_SERVER_ADDRESS + ":" + AZ_MSG_SERVER_PORT)); 
+				  + "version information from " + host + ":" + AZ_MSG_SERVER_PORT)); 
 
 	  ClientMessageService 	msg_service = null;
 	  Map 					reply		= null;	
 
 	  try{
-		  msg_service = ClientMessageServiceClient.getServerService( AZ_MSG_SERVER_ADDRESS, AZ_MSG_SERVER_PORT, MESSAGE_TYPE_ID );
+		  msg_service = ClientMessageServiceClient.getServerService( host, AZ_MSG_SERVER_PORT, MESSAGE_TYPE_ID );
 
 		  msg_service.sendMessage( data_to_send );  //send our version message
 
 		  reply = msg_service.receiveMessage();  //get the server reply
 
-		  preProcessReply( reply );
+		  preProcessReply( reply, v6 );
 		  
 	  }finally{
 
@@ -356,15 +488,18 @@ public class VersionCheckClient {
   
   private Map
   executeHTTP(
-	Map	data_to_send )
+	Map		data_to_send,
+	boolean	v6 )
   
   	throws Exception
   {
+	  String	host = v6?HTTP_SERVER_ADDRESS_V6:HTTP_SERVER_ADDRESS_V4;
+
 	  if (Logger.isEnabled())
 		  Logger.log(new LogEvent(LOGID, "VersionCheckClient retrieving "
-				  + "version information from " + HTTP_SERVER_ADDRESS + ":" + HTTP_SERVER_PORT + " via HTTP" )); 
+				  + "version information from " + host + ":" + HTTP_SERVER_PORT + " via HTTP" )); 
 
-	  String	url_str = "http://" + HTTP_SERVER_ADDRESS + (HTTP_SERVER_PORT==80?"":(":" + HTTP_SERVER_PORT)) + "/version?";
+	  String	url_str = "http://" + host + (HTTP_SERVER_PORT==80?"":(":" + HTTP_SERVER_PORT)) + "/version?";
 
 	  url_str += URLEncoder.encode( new String( BEncoder.encode( data_to_send ), "ISO-8859-1" ), "ISO-8859-1" );
 	  
@@ -379,7 +514,7 @@ public class VersionCheckClient {
 		  
 		  Map	reply = BDecoder.decode( new BufferedInputStream( is ));
 		  
-		  preProcessReply( reply );
+		  preProcessReply( reply, v6 );
 
 		  return( reply );
 		  
@@ -391,17 +526,21 @@ public class VersionCheckClient {
   
   public String
   getHTTPGetString(
-	boolean	for_proxy )
+	boolean	for_proxy,
+	boolean	v6 )
   {
-	  return( getHTTPGetString( new HashMap(), for_proxy));
+	  return( getHTTPGetString( new HashMap(), for_proxy, v6 ));
   }
   
   private String
   getHTTPGetString(
 	Map		content,
-	boolean	for_proxy )
+	boolean	for_proxy,
+	boolean	v6 )
   {
-	  String	get_str = "GET " + (for_proxy?("http://" + HTTP_SERVER_ADDRESS + ":" + HTTP_SERVER_PORT ):"") +"/version?";
+	  String	host = v6?HTTP_SERVER_ADDRESS_V6:HTTP_SERVER_ADDRESS_V4;
+
+	  String	get_str = "GET " + (for_proxy?("http://" + host + ":" + HTTP_SERVER_PORT ):"") +"/version?";
 
 	  try{
 		  get_str += URLEncoder.encode( new String( BEncoder.encode( content ), "ISO-8859-1" ), "ISO-8859-1" );
@@ -418,15 +557,18 @@ public class VersionCheckClient {
   executeTCP(
 	Map				data_to_send,
 	InetAddress		bind_ip,
-	int				bind_port )
+	int				bind_port,
+	boolean			v6 )
   
   	throws Exception
   {
+	  String	host = v6?TCP_SERVER_ADDRESS_V6:TCP_SERVER_ADDRESS_V4;
+
 	  if (Logger.isEnabled())
 		  Logger.log(new LogEvent(LOGID, "VersionCheckClient retrieving "
-				  + "version information from " + TCP_SERVER_ADDRESS + ":" + TCP_SERVER_PORT + " via TCP" )); 
+				  + "version information from " + host + ":" + TCP_SERVER_PORT + " via TCP" )); 
 
-	  String	get_str = getHTTPGetString( data_to_send, false );
+	  String	get_str = getHTTPGetString( data_to_send, false, v6 );
 	  
 	  Socket	socket = null;
 	  
@@ -444,7 +586,7 @@ public class VersionCheckClient {
 		  
 		  socket.setSoTimeout( 10000 );
 		
-		  socket.connect( new InetSocketAddress( TCP_SERVER_ADDRESS, TCP_SERVER_PORT ), 10000 );
+		  socket.connect( new InetSocketAddress( host, TCP_SERVER_PORT ), 10000 );
 		  
 		  OutputStream	os = socket.getOutputStream();
 		  
@@ -490,7 +632,7 @@ public class VersionCheckClient {
 			  		  
 				  Map reply = BDecoder.decode( new BufferedInputStream( new ByteArrayInputStream( reply_bytes, i+1, reply_bytes.length - (i+1 ))));
 				  
-				  preProcessReply( reply );
+				  preProcessReply( reply, v6 );
 
 				  return( reply );
 			  }
@@ -516,10 +658,13 @@ public class VersionCheckClient {
   executeUDP(
 	Map				data_to_send,
 	InetAddress		bind_ip,
-	int				bind_port )
+	int				bind_port,
+	boolean			v6 )
   
   	throws Exception
   {
+	  String	host = v6?UDP_SERVER_ADDRESS_V6:UDP_SERVER_ADDRESS_V4;
+
 	  PRUDPReleasablePacketHandler handler = PRUDPPacketHandlerFactory.getReleasableHandler( bind_port );
 	  	  
 	  PRUDPPacketHandler	packet_handler = handler.getHandler();
@@ -545,11 +690,11 @@ public class VersionCheckClient {
 				  
 				  request_packet.setPayload( data_to_send );
 				  
-				  VersionCheckClientUDPReply reply_packet = (VersionCheckClientUDPReply)packet_handler.sendAndReceive( null, request_packet, new InetSocketAddress( UDP_SERVER_ADDRESS, UDP_SERVER_PORT ), timeout );
+				  VersionCheckClientUDPReply reply_packet = (VersionCheckClientUDPReply)packet_handler.sendAndReceive( null, request_packet, new InetSocketAddress( host, UDP_SERVER_PORT ), timeout );
 		
 				  Map	reply = reply_packet.getPayload();
 				  
-				  preProcessReply( reply );
+				  preProcessReply( reply, v6 );
 				  
 				  return( reply );
 				  
@@ -578,7 +723,8 @@ public class VersionCheckClient {
   
   protected void
   preProcessReply(
-	Map		reply )
+	Map					reply,
+	final boolean		v6 )
   {
 	  	// two cases where we automatically attempt to resolve the ASN (to minimise load on ASN
 	  	// provider)
@@ -655,7 +801,7 @@ public class VersionCheckClient {
 					 public void
 					 runSupport()
 					 {
-						 getVersionCheckInfoSupport( REASON_SECONDARY_CHECK, false, true );
+						 getVersionCheckInfoSupport( REASON_SECONDARY_CHECK, false, true, v6 );
 					 }
 				 }.start();
 			 }			 
@@ -712,11 +858,12 @@ public class VersionCheckClient {
   }
   
   public InetAddress
-  getExternalIpAddressHTTP()
+  getExternalIpAddressHTTP(
+	boolean		v6 )
   
   	throws Exception
   {
-	  Map reply = executeHTTP( new HashMap());
+	  Map reply = executeHTTP( new HashMap(), v6 );
 	  
 	  byte[] address = (byte[])reply.get( "source_ip_address" );
 	  
@@ -726,11 +873,12 @@ public class VersionCheckClient {
   public InetAddress
   getExternalIpAddressTCP(
 	InetAddress	 	bind_ip,
-	int				bind_port )
+	int				bind_port,
+	boolean			v6 )
   
   	throws Exception
   {
-	  Map reply = executeTCP( new HashMap(), bind_ip, bind_port );
+	  Map reply = executeTCP( new HashMap(), bind_ip, bind_port, v6 );
 	  
 	  byte[] address = (byte[])reply.get( "source_ip_address" );
 	  
@@ -740,11 +888,12 @@ public class VersionCheckClient {
   public InetAddress
   getExternalIpAddressUDP(
 	InetAddress	 	bind_ip,
-	int				bind_port )
+	int				bind_port,
+	boolean			v6 )
   
   	throws Exception
   {
-	  Map reply = executeUDP( new HashMap(), bind_ip, bind_port );
+	  Map reply = executeUDP( new HashMap(), bind_ip, bind_port, v6 );
 	  
 	  byte[] address = (byte[])reply.get( "source_ip_address" );
 	  
@@ -943,9 +1092,11 @@ public class VersionCheckClient {
 	  try{
 		  COConfigurationManager.initialise();
 		  
-		  System.out.println( "UDP:  " + getSingleton().getExternalIpAddressUDP(null,0));
-		  System.out.println( "TCP:  " + getSingleton().getExternalIpAddressTCP(null,0));
-		  System.out.println( "HTTP: " + getSingleton().getExternalIpAddressHTTP());
+		  boolean v6= false;
+		  
+		  System.out.println( "UDP:  " + getSingleton().getExternalIpAddressUDP(null,0,v6));
+		  System.out.println( "TCP:  " + getSingleton().getExternalIpAddressTCP(null,0,v6));
+		  System.out.println( "HTTP: " + getSingleton().getExternalIpAddressHTTP(v6));
 		  
 	  }catch( Throwable e){
 		  e.printStackTrace();

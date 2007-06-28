@@ -35,6 +35,10 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -56,12 +60,14 @@ import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTLogger;
 
 import com.aelitis.azureus.core.dht.control.DHTControlActivity;
+import com.aelitis.azureus.core.dht.nat.DHTNATPuncher;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportListener;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTTransportUDPImpl;
 
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.plugins.dht.impl.DHTPluginImpl;
@@ -103,9 +109,10 @@ DHTPlugin
 	private static final String	PLUGIN_NAME		= "Distributed DB";
 	private static final String	PLUGIN_CONFIGSECTION_ID	= "plugins.dht";
 	
-	private static final boolean	TRACE_NON_MAIN = false;
-	private static final boolean	MAIN_DHT_ENABLE	= true;
-	private static final boolean	CVS_DHT_ENABLE	= true;
+	private static final boolean	TRACE_NON_MAIN 		= false;
+	private static final boolean	MAIN_DHT_ENABLE		= true;
+	private static final boolean	CVS_DHT_ENABLE		= true;
+	private static final boolean	MAIN_DHT_V6_ENABLE	= true;
 	
 	
 	static{
@@ -120,6 +127,9 @@ DHTPlugin
 	
 	private int					status		= STATUS_INITALISING;
 	private DHTPluginImpl[]		dhts;
+	private DHTPluginImpl		main_dht;
+	private DHTPluginImpl		cvs_dht;
+	private DHTPluginImpl		main_v6_dht;
 	
 	private ActionParameter		reseed;
 		
@@ -275,6 +285,7 @@ DHTPlugin
 				
 				public void
 				complete(
+					byte[]	key,
 					boolean	timeout_occurred )
 				{
 					log.log( "complete: timeout = " + timeout_occurred );
@@ -365,8 +376,12 @@ DHTPlugin
 												
 												originator_data.put( "hello", "mum" );
 
-												dht.getNATPuncher().punch( "Test", transport.getLocalContact(), null, originator_data );
+												DHTNATPuncher puncher = dht.getNATPuncher();
 												
+												if ( puncher != null ){
+												
+													puncher.punch( "Test", transport.getLocalContact(), null, originator_data );
+												}
 											}else if ( lhs.equals( "stats" )){
 												
 												try{
@@ -748,34 +763,63 @@ DHTPlugin
 							
 							if ( MAIN_DHT_ENABLE ){
 								
-								DHTPluginImpl plug = new DHTPluginImpl(
+								main_dht = 
+									new DHTPluginImpl(
 												plugin_interface,
 												AzureusCoreFactory.getSingleton().getNATTraverser(),
 												DHTTransportUDP.PROTOCOL_VERSION_MAIN,
 												DHT.NW_MAIN,
+												false,
 												override_ip,
 												dht_data_port,
 												reseed,
 												warn_user,
 												logging,
 												log, dht_log );
+																
+								plugins.add( main_dht );
+							}
+							
+							if ( MAIN_DHT_V6_ENABLE ){
 								
-								plugins.add( plug );
+								if ( NetworkAdmin.getSingleton().hasIPV6Potential()){
+									
+									main_v6_dht = 
+										new DHTPluginImpl(
+											plugin_interface,
+											AzureusCoreFactory.getSingleton().getNATTraverser(),
+											DHTTransportUDP.PROTOCOL_VERSION_MAIN,
+											DHT.NW_MAIN_V6,
+											true,
+											null,
+											dht_data_port,
+											reseed,
+											warn_user,
+											logging,
+											log, dht_log );
+																
+									plugins.add( main_v6_dht );
+								}
 							}
 							
 							if ( Constants.isCVSVersion() && CVS_DHT_ENABLE ){
 								
-								plugins.add( new DHTPluginImpl(
+								cvs_dht = 
+									new DHTPluginImpl(
 										plugin_interface,
 										AzureusCoreFactory.getSingleton().getNATTraverser(),
 										DHTTransportUDP.PROTOCOL_VERSION_CVS,
 										DHT.NW_CVS,
+										false,
 										override_ip,
 										dht_data_port,
 										reseed,
 										warn_user,
 										logging,
-										log, dht_log ));
+										log, dht_log );
+								
+								
+								plugins.add( cvs_dht );
 							}
 							
 							DHTPluginImpl[]	_dhts = new DHTPluginImpl[plugins.size()];
@@ -940,7 +984,7 @@ DHTPlugin
 
 			final int f_i	= i;
 			
-			new AEThread( "mutli-dht: put", true )
+			new AEThread( "multi-dht: put", true )
 			{
 				public void
 				runSupport()
@@ -969,16 +1013,17 @@ DHTPlugin
 									DHTPluginValue		value )
 								{
 									if ( TRACE_NON_MAIN ){
-										System.out.println( "DHT_" + f_i + ":put valueWritten" );
+										System.out.println( "DHT_" + f_i + ":put valueWritten - " + description + " " + target.getAddress() + " <- " + new String(value.getValue()));
 									}
 								}
 								
 								public void
 								complete(
+									byte[]	key,
 									boolean	timeout_occurred )
 								{
 									if ( TRACE_NON_MAIN ){
-										System.out.println( "DHT_" + f_i + ":put complete, timeout=" + timeout_occurred );
+										System.out.println( "DHT_" + f_i + ":put complete - " + description + " -> timeout=" + timeout_occurred );
 									}
 								}
 							});
@@ -1002,19 +1047,163 @@ DHTPlugin
 			
 			throw( new RuntimeException( "DHT isn't enabled" ));
 		}
-				
-		dhts[0].get( key, description, flags, max_values, timeout, exhaustive, high_priority, listener );
-		
-		for (int i=1;i<dhts.length;i++){
-
-			final int f_i	= i;
 			
-			new AEThread( "mutli-dht: get", true )
+		if ( main_dht != null && main_v6_dht == null ){
+			
+			main_dht.get( key, description, flags, max_values, timeout, exhaustive, high_priority, listener );
+			
+		}else if ( main_dht == null && main_v6_dht != null ){
+			
+			main_v6_dht.get( key, description, flags, max_values, timeout, exhaustive, high_priority, listener );
+
+		}else{
+			
+				// both DHTs active. Initially (at least :) V6 is going to be very sparse. We therefore
+				// don't want to be blocking the "get" operation waiting for V6 to timeout when V4 is
+				// returning hits 
+			
+			final	byte[]	v4_key	= key;
+			final	byte[]	v6_key	= (byte[])key.clone();
+			
+			DHTPluginOperationListener	dual_listener =
+				new DHTPluginOperationListener()
+				{
+					private long start_time = SystemTime.getCurrentTime();
+
+					private int	complete_count 	= 0;
+					private int	result_count	= 0;
+					
+					public void
+					diversified()
+					{
+					}
+					
+					public void
+					valueRead(
+						DHTPluginContact	originator,
+						DHTPluginValue		value )
+					{
+						if ( TRACE_NON_MAIN ){
+							System.out.println( "DHT_dual:get valueRead - " + description + " " + originator.getAddress() + " -> " + new String(value.getValue()));
+						}
+												
+						synchronized( this ){
+
+							result_count++;
+	
+								// only report if not yet complete
+							
+							if ( complete_count < 2 ){
+						
+								listener.valueRead( originator, value );
+							}
+						}
+					}
+					
+					public void
+					valueWritten(
+						DHTPluginContact	target,
+						DHTPluginValue		value )
+					{
+						Debug.out( "eh?" );
+					}
+					
+					public void
+					complete(
+						final byte[]		timeout_key,
+						final boolean		timeout_occurred )
+					{
+							// we are guaranteed to come through here at least twice
+						
+						if ( TRACE_NON_MAIN ){
+							System.out.println( "DHT_dual:get complete - " + description + " -> timeout=" + timeout_occurred );
+						}
+						
+						synchronized( this ){
+							
+							complete_count++;
+							
+							if ( complete_count == 2 ){
+								
+								if ( TRACE_NON_MAIN ){
+									System.out.println( "    completion informed" );
+								}
+
+									// if we have reported any results then we can't report 
+									// timeout!
+								
+								listener.complete( key, result_count>0?false:timeout_occurred );
+								
+								return;
+								
+							}else if ( complete_count > 2 ){
+								
+								return;
+							}
+						
+								// One of the two gets, see how much longer we're happy to hang around for
+								// Only of interest if timeout then uninterested as the other will be 
+								// about to timeout
+								
+							if ( timeout_occurred ){
+								
+								return;
+							}
+							
+								// ignore a v6 completion ahead of a v4
+							
+							if ( timeout_key == v6_key ){
+								
+								return;
+							}
+
+							long	now = SystemTime.getCurrentTime();
+							
+							long	elapsed = now - start_time;
+							
+							long	rem = timeout - elapsed;
+							
+							if ( rem <= 0 ){
+								
+								complete( timeout_key, true );
+								
+							}else{
+								
+								SimpleTimer.addEvent(
+									"DHTPlugin:dual_dht_early_timeout",
+									now + rem,
+									new TimerEventPerformer()
+									{
+										public void 
+										perform(
+											TimerEvent event) 
+										{
+											complete( timeout_key, true );
+										}
+									});
+							}
+						}
+					}
+				};
+			
+				// hack - use different keys so we can distinguish which completion event we
+				// have received above
+				
+			main_dht.get( v4_key, description, flags, max_values, timeout, exhaustive, high_priority, dual_listener );
+			
+			main_v6_dht.get( v6_key, description, flags, max_values, timeout, exhaustive, high_priority, dual_listener );
+		}
+		
+			// we don't really care about cvs as this is just for load testing not results
+
+		if ( cvs_dht != null ){
+			
+			new AEThread( "multi-dht: get", true )
 			{
 				public void
 				runSupport()
 				{
-					dhts[f_i].get( 
+					cvs_dht.get( 
 							key, description, flags, max_values, timeout, exhaustive, high_priority,
 							new DHTPluginOperationListener()
 							{
@@ -1029,7 +1218,7 @@ DHTPlugin
 									DHTPluginValue		value )
 								{
 									if ( TRACE_NON_MAIN ){
-										System.out.println( "DHT_" + f_i + ":get valueRead" );
+										System.out.println( "DHT_CVS:get valueRead - " + description + " " + originator.getAddress() + " -> " + new String(value.getValue()));
 									}
 								}
 								
@@ -1039,16 +1228,17 @@ DHTPlugin
 									DHTPluginValue		value )
 								{
 									if ( TRACE_NON_MAIN ){
-										System.out.println( "DHT_" + f_i + ":get valueWritten" );
+										System.out.println( "DHT_CVS:get valueWritten" );
 									}
 								}
 								
 								public void
 								complete(
+									byte[]	key,
 									boolean	timeout_occurred )
 								{
 									if ( TRACE_NON_MAIN ){
-										System.out.println( "DHT_" + f_i + ":get complete, timeout=" + timeout_occurred );
+										System.out.println( "DHT_CVS:get complete - " + description + " -> timeout=" + timeout_occurred );
 									}
 								}
 							});
@@ -1086,7 +1276,7 @@ DHTPlugin
 
 			final int f_i	= i;
 			
-			new AEThread( "mutli-dht: remove", true )
+			new AEThread( "multi-dht: remove", true )
 			{
 				public void
 				runSupport()
@@ -1122,6 +1312,7 @@ DHTPlugin
 								
 								public void
 								complete(
+									byte[]	key,
 									boolean	timeout_occurred )
 								{
 									if ( TRACE_NON_MAIN ){

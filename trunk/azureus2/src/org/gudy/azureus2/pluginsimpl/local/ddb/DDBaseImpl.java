@@ -777,6 +777,7 @@ DDBaseImpl
 
 		public void
 		complete(
+			byte[]	timeout_key,
 			boolean	timeout_occurred )
 		{
 			if ( !complete_disabled ){

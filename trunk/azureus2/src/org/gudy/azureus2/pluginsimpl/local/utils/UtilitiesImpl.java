@@ -358,6 +358,32 @@ UtilitiesImpl
 	}
 	
 	public InetAddress
+	getPublicAddress(
+		boolean	v6 )
+	{
+		if ( v6 ){
+			
+			String	vc_ip = VersionCheckClient.getSingleton().getExternalIpAddress( false, true );
+			
+			if ( vc_ip != null && vc_ip.length() > 0 ){
+				
+				try{
+					return( InetAddress.getByName( vc_ip ));
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace( e );
+				}
+			}
+			
+			return( null );
+		}else{
+			
+			return( getPublicAddress());
+		}
+	}
+	
+	public InetAddress
 	getPublicAddress()
 	{
 		long	now = SystemTime.getCurrentTime();
@@ -378,7 +404,7 @@ UtilitiesImpl
 		
 		try{
 			
-			String	vc_ip = VersionCheckClient.getSingleton().getExternalIpAddress( false );
+			String	vc_ip = VersionCheckClient.getSingleton().getExternalIpAddress( false, false );
 			
 			if ( vc_ip != null && vc_ip.length() > 0 ){
 								

@@ -84,7 +84,8 @@ import com.aelitis.azureus.plugins.dht.impl.DHTPluginStorageManager;
 public class 
 DHTPluginImpl
 {
-	private static final String	SEED_ADDRESS	= Constants.DHT_SEED_ADDRESS;
+	private static final String	SEED_ADDRESS_V4	= Constants.DHT_SEED_ADDRESS_V4;
+	private static final String	SEED_ADDRESS_V6	= Constants.DHT_SEED_ADDRESS_V6;
 	private static final int	SEED_PORT		= 6881;
 		
 	private static final long	MIN_ROOT_SEED_IMPORT_PERIOD	= 8*60*60*1000;
@@ -101,10 +102,10 @@ DHTPluginImpl
 	private DHT					dht;
 	private int					port;
 	private byte				protocol_version;
-	private int					network;		
+	private int					network;	
+	private boolean				v6;
 	private DHTTransportUDP		transport;
-	private long				integrated_time;
-		
+
 	private DHTPluginStorageManager storage_manager;
 
 	private long				last_root_seed_import_time;
@@ -120,6 +121,7 @@ DHTPluginImpl
 		DHTNATPuncherAdapter	_nat_adapter,
 		byte					_protocol_version,
 		int						_network,
+		boolean					_v6,
 		String					_ip,
 		int						_port,
 		ActionParameter			_reseed,
@@ -131,6 +133,7 @@ DHTPluginImpl
 		plugin_interface	= _plugin_interface;
 		protocol_version	= _protocol_version;
 		network				= _network;
+		v6					= _v6;
 		port				= _port;
 		reseed_param		= _reseed;
 		warn_user_param		= _warn_user_param;
@@ -155,6 +158,7 @@ DHTPluginImpl
 				DHTTransportFactory.createUDP( 
 						_protocol_version,
 						_network,
+						_v6,
 						_ip,
 						storage_manager.getMostRecentAddress(),
 						_port, 
@@ -445,9 +449,7 @@ DHTPluginImpl
 			}
 			
 			long	end = SystemTime.getCurrentTime();
-	
-			integrated_time	= end;
-			
+				
 			log.log( "DHT " + (first?"":"re-") + "integration complete: elapsed = " + (end-start));
 			
 			dht.print();
@@ -484,7 +486,7 @@ DHTPluginImpl
 					// only try boostrapping off connected peers on the main network as it is unlikely
 					// any of them are running CVS and hence the boostrap will fail
 				
-				if ( network == DHT.NW_MAIN ){
+				if ( network == DHT.NW_MAIN || network == DHT.NW_MAIN_V6 ){
 					
 						// first look for peers to directly import
 					
@@ -618,7 +620,7 @@ outer:
 	getSeedAddress()
 	{
 		try{
-			return( InetAddress.getByName( SEED_ADDRESS ));
+			return( InetAddress.getByName( v6?SEED_ADDRESS_V6:SEED_ADDRESS_V4 ));
 			
 		}catch( Throwable e ){
 				
@@ -707,7 +709,7 @@ outer:
 						
 							if ( listener != null ){
 								
-								listener.complete( timeout );
+								listener.complete( key, timeout );
 							}
 						}
 					});
@@ -803,7 +805,7 @@ outer:
 							
 							if ( listener != null ){
 								
-								listener.complete( _timeout );
+								listener.complete( key, _timeout );
 							}
 						}
 					});
@@ -874,7 +876,7 @@ outer:
 							
 								if ( listener != null ){
 								
-									listener.complete( timeout );
+									listener.complete( key, timeout );
 								}
 							}			
 						});
