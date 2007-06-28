@@ -196,6 +196,57 @@ Plot3D
 			double	y_ratio = ((float)usable_height/2) / max_y;
 			double	z_ratio = ((float)usable_height/2) / max_z;
 			
+				// grid
+			
+			int x_axis_left_x = PAD_LEFT;
+			int x_axis_left_y = usable_height + PAD_TOP;
+
+			int x_axis_right_x = PAD_LEFT + usable_width;
+			int x_axis_right_y	= usable_height + PAD_TOP;
+			
+
+			int y_axis_left_x = PAD_LEFT;
+			int y_axis_left_y = usable_height + PAD_TOP;
+			
+			int y_axis_right_x = PAD_LEFT + (int)((usable_height/2) / ANGLE_TAN );
+			int y_axis_right_y = usable_height / 2;
+			
+			Rectangle old_clip = image.getClipping();
+
+			image.setClipping( new Rectangle( PAD_LEFT, PAD_RIGHT, usable_width, usable_height ));
+			
+			image.setForeground( Colors.light_grey );
+
+			int	x_lines = 10;
+			
+			for (int i=1;i<x_lines;i++){
+				
+				int	x1 = x_axis_left_x + (( y_axis_right_x - y_axis_left_x )*i/x_lines);
+				int	y1 = x_axis_left_y - (( y_axis_left_y - y_axis_right_y )*i/x_lines);
+				
+				int x2 = x_axis_right_x;
+				int y2 = y1;
+				
+				image.drawLine( x1, y1, x2, y2 );
+			}
+			
+			int	y_lines = 10;
+
+			for (int i=1;i<y_lines;i++){
+				
+				int	x1 = y_axis_left_x + (( x_axis_right_x - x_axis_left_x )*i/x_lines);
+				int	y1 = y_axis_left_y;
+				
+				int x2 = y_axis_right_x + (( x_axis_right_x - x_axis_left_x )*i/x_lines);
+				int y2 = y_axis_right_y;
+				
+				image.drawLine( x1, y1, x2, y2 );
+			}
+			
+			image.setClipping( old_clip );
+			
+				// now values
+			
 			for (int i=0;i<values.length;i++){
 				
 				int[]	entry = (int[])values[i];
@@ -224,16 +275,13 @@ Plot3D
 			
 				// x axis
 			
-			int arrow_x = PAD_LEFT + usable_width;
-			int arrow_y	= usable_height + PAD_TOP;
-			
-			image.drawLine( PAD_LEFT, usable_height + PAD_TOP, arrow_x, arrow_y );
-			image.drawLine( usable_width, usable_height + PAD_TOP - 4, arrow_x, arrow_y );
-			image.drawLine( usable_width, usable_height + PAD_TOP + 4, arrow_x, arrow_y );
+			image.drawLine( x_axis_left_x, x_axis_left_y, x_axis_right_x, x_axis_right_y );
+			image.drawLine( usable_width, x_axis_right_y - 4, x_axis_right_x, x_axis_right_y );
+			image.drawLine( usable_width, x_axis_right_y + 4, x_axis_right_x, x_axis_right_y );
 
 			String x_text = labels[0] + " - " + formatters[0].format( max_x );
 			
-			image.drawText( x_text, arrow_x - 20 - x_text.length()*char_width, arrow_y - font_height - 2 );
+			image.drawText( x_text, x_axis_right_x - 20 - x_text.length()*char_width, x_axis_right_y - font_height - 2 );
 			
 				// z axis
 			
@@ -247,18 +295,16 @@ Plot3D
 
 				// y axis
 			
-			arrow_x = PAD_LEFT + (int)((usable_height/2) / ANGLE_TAN );
-			arrow_y = usable_height / 2;
+			image.drawLine( y_axis_left_x, y_axis_left_y, y_axis_right_x, y_axis_right_y );
 			
-			image.drawLine( PAD_LEFT, usable_height + PAD_TOP, 	arrow_x, arrow_y );
+			image.drawLine( y_axis_right_x-6, y_axis_right_y,	y_axis_right_x, y_axis_right_y );
 			
-			image.drawLine( arrow_x-6, arrow_y,	arrow_x, arrow_y );
+			image.drawLine( y_axis_right_x, y_axis_right_y + 6, y_axis_right_x, y_axis_right_y );
 			
-			image.drawLine( arrow_x, arrow_y + 6, arrow_x, arrow_y );
-
 			String	y_text = labels[1] + " - " + formatters[1].format( max_y );
 			
-			image.drawText( y_text, arrow_x - (y_text.length() * char_width), arrow_y - font_height - 2);
+			image.drawText( y_text, y_axis_right_x - (y_text.length() * char_width), y_axis_right_y - font_height - 2);
+
 
 			image.dispose();
 
