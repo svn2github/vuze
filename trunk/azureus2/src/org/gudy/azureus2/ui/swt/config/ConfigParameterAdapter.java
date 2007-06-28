@@ -37,36 +37,36 @@ public class ConfigParameterAdapter extends GenericParameterAdapter
 
 	private boolean changedExternally = false;
 
-	protected ConfigParameterAdapter(Parameter _owner, String configID) {
+	protected ConfigParameterAdapter(Parameter _owner, final String configID) {
 		owner = _owner;
 
 		COConfigurationManager.addParameterListener(configID,
 				new ParameterListener() {
 					public void parameterChanged(String parameterName) {
-						if (owner.isDisposed()) {
-							COConfigurationManager.removeParameterListener(parameterName, this);
-							return;
+						try {
+  						if (owner.isDisposed()) {
+  							COConfigurationManager.removeParameterListener(parameterName, this);
+  							return;
+  						}
+  
+  						informChanged(true);
+  						
+  						Object valueObject = owner.getValueObject();
+  
+  						if (valueObject instanceof Boolean) {
+  							boolean b = COConfigurationManager.getBooleanParameter(parameterName);
+  							owner.setValue(new Boolean(b));
+  						} else if (valueObject instanceof Integer) {
+  							int i = COConfigurationManager.getIntParameter(parameterName);
+  							owner.setValue(new Integer(i));
+  						} else if (valueObject instanceof String) {
+  							String s = COConfigurationManager.getStringParameter(parameterName);
+  							owner.setValue(s);
+  						}
+						} catch (Exception e) {
+							Debug.out("parameterChanged trigger from ConfigParamAdapter "
+									+ configID, e);
 						}
-
-						informChanged(changedExternally);
-
-/* Not ready for next release
- * Needs to handle recursion
-						informChanged(true);
-						
-						Object valueObject = owner.getValueObject();
-
-						if (valueObject instanceof Boolean) {
-							boolean b = COConfigurationManager.getBooleanParameter(parameterName);
-							owner.setValue(new Boolean(b));
-						} else if (owner instanceof IntParameter) {
-							int i = COConfigurationManager.getIntParameter(parameterName);
-							owner.setValue(new Integer(i));
-						} else if (valueObject instanceof String) {
-							String s = COConfigurationManager.getStringParameter(parameterName);
-							owner.setValue(s);
-						}
-*/
 					}
 				});
 	}
