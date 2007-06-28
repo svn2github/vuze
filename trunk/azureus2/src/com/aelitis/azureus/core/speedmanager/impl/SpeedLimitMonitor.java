@@ -96,7 +96,7 @@ public class SpeedLimitMonitor
     private long uploadAtLimitStartTime =SystemTime.getCurrentTime();
     private long downloadAtLimitStartTime = SystemTime.getCurrentTime();
 
-    private static final long TIME_AT_LIMIT_BEFORE_UNPINNING = 60 * 1000; //One minute.
+    private static final long TIME_AT_LIMIT_BEFORE_UNPINNING = 30 * 1000; //30 seconds.
 
     //which percent of the measured upload capacity to use in download and seeding mode.
     public static final String USED_UPLOAD_CAPACITY_DOWNLOAD_MODE = "SpeedLimitMonitor.setting.upload.used.download.mode";
@@ -519,7 +519,6 @@ public class SpeedLimitMonitor
             //check to see if we have been here for the time limit.
             if( uploadAtLimitStartTime+TIME_AT_LIMIT_BEFORE_UNPINNING < currTime ){
 
-                //if( transferMode.isDownloadConfidenceLow()  ){
                 if( isUploadConfidenceLow() ){
                     if( !transferMode.isDownloadMode() ){
                         triggerLimitTestingFlag();
@@ -636,6 +635,8 @@ public class SpeedLimitMonitor
 
     /**
      * Call this method to start the limit testing.
+     * @param currUploadLimit -
+     * @param currDownloadLimit -
      * @return - Update
      */
     public Update startLimitTesting(int currUploadLimit, int currDownloadLimit){
@@ -656,18 +657,45 @@ public class SpeedLimitMonitor
         Update retVal;
         if( transferMode.isDownloadMode() ){
             //test the download limit.
-            retVal = new Update(uploadLimitMin,true,0,true);
+            //retVal = new Update(uploadLimitMin,true,0,true);//ToDo: remvoe if ramping works better then unlimited mode.
+            retVal = new Update(uploadLimitMin,true,
+                        Math.round(downloadLinespeedCapacity*1.2f),true);
             preTestDownloadCapacity = downloadLinespeedCapacity;
             transferMode.setMode( TransferMode.State.DOWNLOAD_LIMIT_SEARCH );
         }else{
             //test the upload limit.
-            retVal = new Update(0,true,downloadLimitMin,true);
+            //retVal = new Update(0,true,downloadLimitMin,true);//ToDo: remove it ramping works better then unlimited mode.
+            retVal = new Update( Math.round(uploadLinespeedCapacity*1.2f),true,
+                        downloadLimitMin,true);
             preTestUploadCapacity = uploadLinespeedCapacity;
             transferMode.setMode( TransferMode.State.UPLOAD_LIMIT_SEARCH );
         }
 
         return retVal;
     }
+
+    /**
+     * Ramp the upload and download rates higher, so ping-times are relevant.
+     * @param uploadLimit -
+     * @param downloadLimit -
+     * @return -
+     */
+    public Update rampTestingLimit(int uploadLimit, int downloadLimit){
+        Update retVal;
+        if( transferMode.getMode() == TransferMode.State.DOWNLOAD_LIMIT_SEARCH ){
+            downloadLimit *= 1.2f;
+            retVal = new Update(uploadLimit,false,downloadLimit,true);
+        //}else{
+        }else if( transferMode.getMode() == TransferMode.State.UPLOAD_LIMIT_SEARCH ){
+            uploadLimit *= 1.2f;
+            retVal = new Update(uploadLimit,true,downloadLimit,false);
+        }else{
+            retVal = new Update(uploadLimit,false,downloadLimit,false);
+            SpeedManagerLogger.trace("ERROR: rampTestLimit should only be called during limit testing. ");
+        }
+
+        return retVal;
+    }//rampTestingLimit
 
     public void triggerLimitTestingFlag(){
         beginLimitTest=true;

@@ -318,8 +318,16 @@ public class SpeedManagerAlgorithmProviderVivaldi
                 //setting new
                 setNewLimits( update );
                 return;
-            }//if
-        }
+            }else{
+                //will increase the limit each cycle.
+                SpeedLimitMonitor.Update ramp = limitMonitor.rampTestingLimit(
+                                    adapter.getCurrentUploadLimit(),
+                                    adapter.getCurrentDownloadLimit()
+                    );
+                logNewLimits( ramp );
+                setNewLimits( ramp );
+            }
+        }//if - isConfTestingLimits
 
         
         long currTime = SystemTime.getCurrentTime();

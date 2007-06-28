@@ -42,7 +42,7 @@ public class TransferMode
 
     private long lastTimeDownloadDetected = SystemTime.getCurrentTime();
 
-    private static final long WAIT_TIME_FOR_SEEDING_MODE = 1000 * 60 * 5;//ToDo: make configurable. currently 5 minutes.
+    private static final long WAIT_TIME_FOR_SEEDING_MODE = 1000 * 60;
 
 
 
