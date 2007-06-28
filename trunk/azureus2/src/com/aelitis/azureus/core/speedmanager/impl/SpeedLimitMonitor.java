@@ -657,14 +657,12 @@ public class SpeedLimitMonitor
         Update retVal;
         if( transferMode.isDownloadMode() ){
             //test the download limit.
-            //retVal = new Update(uploadLimitMin,true,0,true);//ToDo: remvoe if ramping works better then unlimited mode.
             retVal = new Update(uploadLimitMin,true,
                         Math.round(downloadLinespeedCapacity*1.2f),true);
             preTestDownloadCapacity = downloadLinespeedCapacity;
             transferMode.setMode( TransferMode.State.DOWNLOAD_LIMIT_SEARCH );
         }else{
             //test the upload limit.
-            //retVal = new Update(0,true,downloadLimitMin,true);//ToDo: remove it ramping works better then unlimited mode.
             retVal = new Update( Math.round(uploadLinespeedCapacity*1.2f),true,
                         downloadLimitMin,true);
             preTestUploadCapacity = uploadLinespeedCapacity;
@@ -683,11 +681,11 @@ public class SpeedLimitMonitor
     public Update rampTestingLimit(int uploadLimit, int downloadLimit){
         Update retVal;
         if( transferMode.getMode() == TransferMode.State.DOWNLOAD_LIMIT_SEARCH ){
-            downloadLimit *= 1.2f;
+            downloadLimit *= 1.15f;
             retVal = new Update(uploadLimit,false,downloadLimit,true);
         //}else{
         }else if( transferMode.getMode() == TransferMode.State.UPLOAD_LIMIT_SEARCH ){
-            uploadLimit *= 1.2f;
+            uploadLimit *= 1.15f;
             retVal = new Update(uploadLimit,true,downloadLimit,false);
         }else{
             retVal = new Update(uploadLimit,false,downloadLimit,false);
@@ -986,7 +984,7 @@ public class SpeedLimitMonitor
                 increase = false;
             }
 
-            float factor = amount/3.0f;
+            float factor = amount/10.0f;
 
             if( increase ){
                 //increase download first
