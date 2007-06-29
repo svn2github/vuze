@@ -110,7 +110,7 @@ public class VivaldiPanel {
 								e.width, e.height);
 					}
 				} else {
-					e.gc.drawText(MessageText.getString("VivaldiView.notavailable"), 5,
+					e.gc.drawText(MessageText.getString("VivaldiView.notAvailable"), 5,
 							5, true);
 				}
 			}
