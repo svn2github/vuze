@@ -565,7 +565,7 @@ UPnPImpl
 			}
 		}catch( Throwable e ){
 				
-			adapter.log( e );
+			adapter.log( Debug.getNestedExceptionMessageAndStack(e));
 
 			if (e instanceof UPnPException ){
 				
