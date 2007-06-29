@@ -164,33 +164,42 @@ public class Debug {
 		killAWTThreads( threadGroup );
 	}
 
-	private static String getCompressedStackTrace(Throwable t,
-			int frames_to_skip) {
+	private static String 
+	getCompressedStackTrace(
+		Throwable t,
+		int frames_to_skip) 
+	{
 		return getCompressedStackTrace(t, frames_to_skip, 200);
 	}
 
-	private static String getCompressedStackTrace(Throwable t,
-			int frames_to_skip, int iMaxLines) {
+	private static String 
+	getCompressedStackTrace(
+		Throwable t,
+		int frames_to_skip, 
+		int iMaxLines) 
+	{
 		String sStackTrace = "";
-  	StackTraceElement[]	st = t.getStackTrace();
-	   
-  	int iMax = Math.min(st.length, iMaxLines + frames_to_skip);
-    for (int i = frames_to_skip; i < iMax; i++) {
-    	
-    	if (i > frames_to_skip)
-    		sStackTrace += ",";
-    	
-    	String cn = st[i].getClassName();
-    	cn = cn.substring( cn.lastIndexOf(".")+1);
-    	
-    	sStackTrace += cn +"::"+st[i].getMethodName()+"::"+st[i].getLineNumber();
-    }
-    
-    if (t.getCause() != null) {
-    	sStackTrace += "\n\tCaused By: " + getCompressedStackTrace(t, 0);
-    }
-    
-    return sStackTrace;
+		StackTraceElement[]	st = t.getStackTrace();
+
+		int iMax = Math.min(st.length, iMaxLines + frames_to_skip);
+		for (int i = frames_to_skip; i < iMax; i++) {
+
+			if (i > frames_to_skip)
+				sStackTrace += ",";
+
+			String cn = st[i].getClassName();
+			cn = cn.substring( cn.lastIndexOf(".")+1);
+
+			sStackTrace += cn +"::"+st[i].getMethodName()+"::"+st[i].getLineNumber();
+		}
+
+		Throwable cause = t.getCause();
+
+		if (cause != null) {
+			sStackTrace += "\n\tCaused By: " + getCompressedStackTrace(cause, 0);
+		}
+
+		return sStackTrace;
 	}
 
 	public static String getStackTrace(boolean bCompressed, boolean bIncludeSelf) {
