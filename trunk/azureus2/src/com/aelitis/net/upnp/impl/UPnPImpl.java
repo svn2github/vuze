@@ -265,9 +265,11 @@ UPnPImpl
 					
 					}catch( UPnPException e ){
 						
-						log( e.toString());
+						String msg = Debug.getNestedExceptionMessageAndStack( e );
 						
-						adapter.log(e);
+						log( msg );
+						
+						adapter.log( msg );
 					}
 				}
 			});
