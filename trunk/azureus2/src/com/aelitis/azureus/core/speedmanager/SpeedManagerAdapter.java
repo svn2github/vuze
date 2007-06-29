@@ -27,11 +27,11 @@ SpeedManagerAdapter
 {
 	public int
 	getCurrentProtocolUploadSpeed(
-		boolean	average );
+		int	average_period );
 	
 	public int
 	getCurrentDataUploadSpeed(
-		boolean	average );
+		int	average_period );
 	
 	public int
 	getCurrentUploadLimit();
@@ -49,11 +49,11 @@ SpeedManagerAdapter
 
     public int
     getCurrentProtocolDownloadSpeed(
-    	boolean	average );
+    	int	average_period );
 
     public int
     getCurrentDataDownloadSpeed(
-    	boolean	average );
+    	int	average_period );
 
     public Object
 	getLimits();

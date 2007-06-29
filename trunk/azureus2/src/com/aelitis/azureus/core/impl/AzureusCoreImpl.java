@@ -198,13 +198,13 @@ AzureusCoreImpl
 						
 						public int
 						getCurrentProtocolUploadSpeed(
-							boolean	average )
+							int	average_period )
 						{
 							if ( global_manager != null ){
 								
 								GlobalManagerStats stats = global_manager.getStats();
 								
-								return( stats.getProtocolSendRateNoLAN( average ));
+								return( stats.getProtocolSendRateNoLAN( average_period ));
 								
 							}else{
 								
@@ -214,13 +214,13 @@ AzureusCoreImpl
 						
 						public int
 						getCurrentDataUploadSpeed(
-							boolean	average )
+							int	average_period )
 						{
 							if ( global_manager != null ){
 								
 								GlobalManagerStats stats = global_manager.getStats();
 								
-								return( stats.getDataSendRateNoLAN( average ));
+								return( stats.getDataSendRateNoLAN( average_period ));
 								
 							}else{
 								
@@ -230,11 +230,11 @@ AzureusCoreImpl
 
                         public int
                         getCurrentProtocolDownloadSpeed(
-                        	boolean	average )
+                        	int	average_period )
                         {
                             if( global_manager != null ){
                                 GlobalManagerStats stats = global_manager.getStats();
-                                return (stats.getProtocolReceiveRateNoLAN( average ) );
+                                return (stats.getProtocolReceiveRateNoLAN( average_period ) );
                             }else{
                                 return(0);
                             }
@@ -242,11 +242,11 @@ AzureusCoreImpl
 
                         public int
                         getCurrentDataDownloadSpeed(
-                        	boolean	average )
+                        	int	average_period )
                         {
                             if( global_manager != null ){
                                 GlobalManagerStats stats = global_manager.getStats();
-                                return (stats.getDataReceiveRateNoLAN( average ) );
+                                return (stats.getDataReceiveRateNoLAN( average_period ) );
                             }else{
                                 return(0);
                             }

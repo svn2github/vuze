@@ -137,6 +137,29 @@ public class Average {
 	  return( DisplayFormatters.formatDecimal( getDoubleAverage(), precision ));
   }
   
+  public long getAverage(int average_period )
+  {
+	  int	slots = average_period<=0?(nbElements - 2):(average_period / refreshRate);
+	  
+	  if ( slots <= 0 ){
+		  
+		  slots = 1;
+		  
+	  }else if ( slots > nbElements - 2 ){
+		  
+		  slots = nbElements - 2;
+	  }
+	 
+	  if ( slots == 1 ){
+		 
+		  return( getPointValue());
+	  }
+	  
+	  long res = getSum(slots) / ( period * slots / ( nbElements - 2 ));
+	  
+	  return( res );
+  }
+  
   public long
   getPointValue()
   {
@@ -166,6 +189,38 @@ public class Average {
     //We return the sum divided by the period
     return(sum);
   }
+  
+  protected final long getSum(int slots) {
+	    //We get the current timeFactor
+	    long timeFactor = getEffectiveTime() / refreshRate;
+	    //We first update the buffer
+	    update(timeFactor);
+
+	    //The sum of all elements used for the average.
+	    long sum = 0;
+	    
+	    if ( slots < 1 ){
+	    	
+	    	slots = 1;
+	    	
+	    }else if ( slots > nbElements-2 ){
+	    	
+	    	slots = nbElements-2;
+	    }
+	    
+	    //Starting on oldest one (the one after the next one)
+	    //Ending on last one fully updated (the one previous current one)
+	    
+	    long end_slot 	= timeFactor + nbElements;
+	    long start_slot = end_slot - slots;
+	    
+	    for (long i = start_slot; i< end_slot;i++ ){
+	      sum += values[(int) (i % nbElements)];
+	    }
+
+	    //We return the sum divided by the period
+	    return(sum);
+	  }
   
   protected long
   getEffectiveTime()

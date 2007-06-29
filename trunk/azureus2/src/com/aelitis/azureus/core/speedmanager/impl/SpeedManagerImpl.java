@@ -544,33 +544,25 @@ SpeedManagerImpl
 	public int
 	getCurrentProtocolUploadSpeed()
 	{
-		//System.out.println("pu:" + adapter.getCurrentProtocolUploadSpeed(true) + "/" + adapter.getCurrentProtocolUploadSpeed(false));
-		
-		return( adapter.getCurrentProtocolUploadSpeed(true));
+		return( adapter.getCurrentProtocolUploadSpeed(-1));
 	}
 	
 	public int
 	getCurrentDataUploadSpeed()
 	{
-		//System.out.println("du:" + adapter.getCurrentDataUploadSpeed(true) + "/" + adapter.getCurrentDataUploadSpeed(false));
-
-		return( adapter.getCurrentDataUploadSpeed(true));
+		return( adapter.getCurrentDataUploadSpeed(-1));
 	}
 	
     public int
     getCurrentDataDownloadSpeed()
     {
-		//System.out.println("dd:" + adapter.getCurrentDataDownloadSpeed(true) + "/" + adapter.getCurrentDataDownloadSpeed(false));
-
-        return( adapter.getCurrentDataDownloadSpeed(true) );
+        return( adapter.getCurrentDataDownloadSpeed(-1) );
     }
 
     public int
     getCurrentProtocolDownloadSpeed()
     {
-		//System.out.println("pd:" + adapter.getCurrentProtocolDownloadSpeed(true) + "/" + adapter.getCurrentProtocolDownloadSpeed(false));
-
-        return( adapter.getCurrentProtocolDownloadSpeed(true) );
+        return( adapter.getCurrentProtocolDownloadSpeed(-1) );
     }
 
 	public void

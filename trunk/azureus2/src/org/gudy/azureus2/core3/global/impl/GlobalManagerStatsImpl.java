@@ -130,8 +130,8 @@ GlobalManagerStatsImpl
 	public int getDataReceiveRateNoLAN() {
 		return (int)data_receive_speed_no_lan.getAverage();
 	}
-	public int getDataReceiveRateNoLAN(boolean average) {
-		return (int)(average?data_receive_speed_no_lan.getAverage():data_receive_speed_no_lan.getPointValue());
+	public int getDataReceiveRateNoLAN(int average_period) {
+		return (int)(average_period<=0?data_receive_speed_no_lan.getAverage():data_receive_speed_no_lan.getAverage(average_period));
 	}
 	public int getProtocolReceiveRate() {
 		return (int)protocol_receive_speed.getAverage();
@@ -139,8 +139,8 @@ GlobalManagerStatsImpl
 	public int getProtocolReceiveRateNoLAN() {
 		return (int)protocol_receive_speed_no_lan.getAverage();
 	}	
-	public int getProtocolReceiveRateNoLAN(boolean average) {
-		return (int)(average?protocol_receive_speed_no_lan.getAverage():protocol_receive_speed_no_lan.getPointValue());
+	public int getProtocolReceiveRateNoLAN(int average_period) {
+		return (int)(average_period<=0?protocol_receive_speed_no_lan.getAverage():protocol_receive_speed_no_lan.getAverage(average_period));
 	}
 
 	public int getDataAndProtocolReceiveRate(){
@@ -153,8 +153,8 @@ GlobalManagerStatsImpl
 	public int getDataSendRateNoLAN() {
 		return (int)data_send_speed_no_lan.getAverage();
 	}
-	public int getDataSendRateNoLAN(boolean average) {
-		return (int)(average?data_send_speed_no_lan.getAverage():data_send_speed_no_lan.getPointValue());
+	public int getDataSendRateNoLAN(int average_period) {
+		return (int)(average_period<=0?data_send_speed_no_lan.getAverage():data_send_speed_no_lan.getAverage(average_period));
 	}
 	
 	public int getProtocolSendRate() {
@@ -163,8 +163,8 @@ GlobalManagerStatsImpl
 	public int getProtocolSendRateNoLAN() {
 		return (int)protocol_send_speed_no_lan.getAverage();
 	}
-	public int getProtocolSendRateNoLAN(boolean average) {
-		return (int)(average?protocol_send_speed_no_lan.getAverage():protocol_send_speed_no_lan.getPointValue());
+	public int getProtocolSendRateNoLAN(int average_period) {
+		return (int)(average_period<=0?protocol_send_speed_no_lan.getAverage():protocol_send_speed_no_lan.getAverage(average_period));
 	}
 
 	public int getDataAndProtocolSendRate(){

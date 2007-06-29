@@ -490,7 +490,6 @@ UPnPPlugin
 						log(
 							Throwable	e )
 						{
-
 							String	nested = Debug.getNestedExceptionMessage(e);
 							
 							if ( !exception_traces.contains( nested )){

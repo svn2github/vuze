@@ -30,21 +30,21 @@ GlobalManagerStats
 {
 	public int getDataReceiveRate();
 	public int getDataReceiveRateNoLAN();
-	public int getDataReceiveRateNoLAN(boolean average);
+	public int getDataReceiveRateNoLAN(int average_period);
 
 	public int getProtocolReceiveRate();
 	public int getProtocolReceiveRateNoLAN();
-	public int getProtocolReceiveRateNoLAN(boolean average);
+	public int getProtocolReceiveRateNoLAN(int average_period);
 	
 	public int getDataAndProtocolReceiveRate();
 		
 	public int getDataSendRate();
 	public int getDataSendRateNoLAN();
-	public int getDataSendRateNoLAN(boolean average);
+	public int getDataSendRateNoLAN(int average_period);
 	  
 	public int getProtocolSendRate();
 	public int getProtocolSendRateNoLAN();
-	public int getProtocolSendRateNoLAN(boolean average);
+	public int getProtocolSendRateNoLAN(int average_period);
 	  
 	public int getDataAndProtocolSendRate();
 	
