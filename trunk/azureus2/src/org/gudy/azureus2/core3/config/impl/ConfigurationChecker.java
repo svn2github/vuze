@@ -23,6 +23,9 @@ package org.gudy.azureus2.core3.config.impl;
 
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Properties;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.net.InetAddress;
@@ -74,6 +77,18 @@ ConfigurationChecker
 	  	
 	  	COConfigurationManager.preInitialise();
       
+	  		//
+	  	
+	  	String	app_path 	=  SystemProperties.getApplicationPath();
+	  	String	user_path 	=  SystemProperties.getUserPath();
+	  	
+	  	loadProperties( app_path );
+	  	
+	  	if ( !app_path.equals( user_path )){
+	  		
+	  		loadProperties( user_path );
+	  	}
+	  	
 	  		// kinda hard to do this system property setting early enough as we musn't load the 
 	  		// config until after checking the "pass to existing process" code and this loads the
 	  		// class InetAddress that caches the current system prop
@@ -185,6 +200,47 @@ ConfigurationChecker
   		
   		class_mon.exit();
   	}
+  }
+  
+  protected static void
+  loadProperties(
+	  String	dir )
+  {
+	  try{
+		  File	prop_file = new File( dir, "azureus.properties" );
+
+		  if ( prop_file.exists()){
+
+			  Logger.log(new LogEvent(LOGID, "Loading properties file from " + prop_file.getAbsolutePath()));
+			  
+			  Properties props = new Properties();
+
+			  InputStream is = new FileInputStream( prop_file );
+
+			  try{
+				  props.load( is );
+
+				  Iterator it = props.entrySet().iterator();
+
+				  while( it.hasNext()){
+
+					  Map.Entry entry = (Map.Entry)it.next();
+
+					  String	key 	= (String)entry.getKey();
+					  String	value 	= (String)entry.getValue();
+					  
+					  Logger.log(new LogEvent(LOGID, "    " + key + "=" + value ));
+					  
+					  System.setProperty( key, value );
+				  }
+			  }finally{
+
+				  is.close();
+			  }
+		  }
+	  }catch( Throwable e ){
+
+	  }
   }
   
   public static void 
