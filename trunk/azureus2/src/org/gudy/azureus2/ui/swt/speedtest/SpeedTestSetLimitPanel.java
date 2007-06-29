@@ -43,6 +43,7 @@ import com.aelitis.azureus.core.speedmanager.impl.SpeedLimitMonitor;
 public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
 
     int measuredUploadKbps, measuredDownloadKbps;
+    boolean downloadTestRan,uploadTestRan = true;
 
     Label explain;
 
@@ -59,7 +60,16 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
     public SpeedTestSetLimitPanel(Wizard wizard, IWizardPanel previousPanel, int upload, int download) {
         super(wizard, previousPanel);
         measuredUploadKbps =upload/1024;
+        if(measuredUploadKbps<5){
+            uploadTestRan = false;
+        }
+
+
         measuredDownloadKbps =download/1024;
+        if(measuredDownloadKbps<5){
+            downloadTestRan = false;
+        }
+
     }
 
     /**
@@ -134,7 +144,10 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
         gridData.widthHint=80;
         downloadLimitSetting.setLayoutData(gridData);
 
-        int bestDownloadSetting = determineDownloadSetting();
+        int bestDownloadSetting = determineRateSetting(measuredDownloadKbps,downloadTestRan,
+                SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT,
+                SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING);
+
         downloadLimitSetting.setText( ""+bestDownloadSetting );
         downloadLimitSetting.addListener(SWT.Verify, new NumberListener(downloadLimitSetting) );
 
@@ -142,6 +155,7 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
         final Label downEcho = new Label(panel, SWT.NULL);
         gridData = new GridData();
         gridData.horizontalSpan = 1;
+        gridData.widthHint = 80;
         downEcho.setLayoutData(gridData);
         downEcho.setText( DisplayFormatters.formatByteCountToBitsPerSec(bestDownloadSetting*1024) );
 
@@ -162,7 +176,9 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
                 SpeedLimitConfidence.LOW.getString()
         };
 
-        String downDefaultConfidenceLevel = setDefaultConfidenceLevel(measuredDownloadKbps,SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING);
+        String downDefaultConfidenceLevel = setDefaultConfidenceLevel(measuredDownloadKbps
+                    ,SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING,downloadTestRan);
+
         downConfLevel = new StringListParameter(panel,
                 SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING,
                 downDefaultConfidenceLevel,
@@ -182,7 +198,10 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
         gridData = new GridData(GridData.BEGINNING);
         gridData.widthHint=80;
         uploadLimitSetting.setLayoutData(gridData);
-        int uploadCapacity = calculatePercent(measuredUploadKbps,100);
+
+        int uploadCapacity = determineRateSetting(measuredUploadKbps,uploadTestRan,
+                SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT,
+                SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING);
 
         //don't accept any value less the 20 kb/s
         if(uploadCapacity<20)
@@ -196,6 +215,7 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
         final Label echo = new Label(panel, SWT.NULL);
         gridData = new GridData();
         gridData.horizontalSpan = 1;
+        gridData.widthHint = 80;
         echo.setLayoutData(gridData);
         echo.setText( DisplayFormatters.formatByteCountToBitsPerSec(uploadCapacity*1024) );
         //This space has a change listener the updates in bits/sec.
@@ -204,7 +224,9 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
         uploadLimitSetting.addListener(SWT.Modify, new ByteConversionListener(echo,uploadLimitSetting));
 
         //upload confidence setting.
-        String upDefaultConfidenceLevel = setDefaultConfidenceLevel(measuredUploadKbps,SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING);
+        String upDefaultConfidenceLevel = setDefaultConfidenceLevel(measuredUploadKbps
+                    ,SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING,uploadTestRan);
+
         upConfLevel = new StringListParameter(panel,
                 SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING,
                 upDefaultConfidenceLevel,
@@ -216,6 +238,7 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
         Label c1 = new Label(panel, SWT.NULL);
         gridData = new GridData();
         gridData.horizontalSpan = 1;
+        gridData.widthHint = 80;
         c1.setLayoutData(gridData);
 
 
@@ -326,25 +349,31 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
      * Set the default Confidence setting to high, unless the value is close to 500 KBytes/sec.
      * In this case it is very possible that the real limit is higher.
      * @param transferRateKBPS - in kBytes/sec
-     * @param paramName - configuration param to set. 
+     * @param paramName - configuration param to set.
+     * @param testRan - Was this type of test ran?
      * @return - String -  Absolute | High | Med | Low | None
      */
-    private static String setDefaultConfidenceLevel(int transferRateKBPS, String paramName){
+    private static String setDefaultConfidenceLevel(int transferRateKBPS, String paramName, boolean testRan){
+
+        //Need to over-ride the parameter.
+        String prevSetting = COConfigurationManager.getStringParameter(paramName,
+                SpeedLimitConfidence.LOW.getString() );
+
+        //if it was previous set to ABSOLUTE then leave it alone.
+        if( prevSetting.equalsIgnoreCase( SpeedLimitConfidence.ABSOLUTE.getString() ) )
+        {
+            return prevSetting;
+        }
+
+        //if no test was run then leave the confidence level alone.
+        if( !testRan ){
+            return prevSetting;
+        }
 
         //if the transfer rate is near limit it is less likely to be the true limit.
         //decide here if we should have low setting.
         //ToDo: these limits shouldn't be hard coded since the Service can change at any time.
         if( transferRateKBPS < 550 && transferRateKBPS > 450 ){
-
-            //Need to over-ride the parameter.
-            String prevSetting = COConfigurationManager.getStringParameter(paramName,
-                    SpeedLimitConfidence.LOW.getString() );
-
-            //if it was previous set to ABSOLUTE then leave it alone.
-            if( prevSetting.equalsIgnoreCase( SpeedLimitConfidence.ABSOLUTE.getString() ) )
-            {
-                return prevSetting;
-            }
 
             //set to low, when near limit and previous not set to ABSOLUTE
             COConfigurationManager.setParameter( paramName, SpeedLimitConfidence.LOW.getString() );
@@ -457,38 +486,47 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
 
     }
 
-    public int calculatePercent(int value, int percent){
-        return  Math.round( ((float)value/100.0f)*(percent) );
-    }
-
+    
     /**
-     * Estimate a resonable download setting given available data.
      *
-     * Here is the algorithm used.
-     * #1) The download-rate can never be less then the upload rate.
-     * #2) Get the setting from the AutoSpeedV2 panel. If it is higher then the
-     *     highest test result, use it.
-     * #3) If an download test in this session is higher use it.
-     *
-     * @return - value in kilo-bytes per second.
+     * @param measuredRate - upload or download rate measured by speed test.
+     * @param testRan - was this test upload/download ran?
+     * @param maxSettingParamName - ex. SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT
+     * @param confSettingParamName - ex. SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING
+     * @return - recommended rate.
      */
-    public int determineDownloadSetting(){
-
-        int retVal = measuredUploadKbps;
+    public static int determineRateSetting(int measuredRate, boolean testRan,
+                                String maxSettingParamName , String confSettingParamName)
+    {
+        int retVal = measuredRate;
 
         //get AutoSpeedV2 download setting.
         int autoSpeedV2Limit = COConfigurationManager.getIntParameter(
-                SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT )/1024;
+                maxSettingParamName )/1024;
 
-        retVal = autoSpeedV2Limit;
+        //Use a low value to indicate the download test was NOT run.
+        if( !testRan ){
+            retVal = autoSpeedV2Limit;
+        }
+
+        //Need to over-ride the parameter.
+        String downConf = COConfigurationManager.getStringParameter(confSettingParamName,
+                SpeedLimitConfidence.LOW.getString() );
+
+        //if it was previous set to ABSOLUTE then leave it alone.
+        if( downConf.equalsIgnoreCase( SpeedLimitConfidence.ABSOLUTE.getString() ) )
+        {
+            retVal= autoSpeedV2Limit;
+        }
 
         //The result cannot be less then 20 kbytes/sec.
         if(retVal < 20 ){
             retVal = 20;
         }
 
-        return retVal;        
+        return retVal;
     }
+
 
     public void finish(){
         wizard.switchToClose();
