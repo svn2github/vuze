@@ -104,6 +104,12 @@ public class SpeedLimitMonitor
     private float percentUploadCapacityDownloadMode = 0.6f;
     private float percentUploadCapacitySeedingMode = 0.9f;
 
+    //PingSpaceMaps for the entire session.
+    PingSpaceMapper pingMapOfDownloadMode;
+    PingSpaceMapper pingMapOfSeedingMode;
+
+    //Short-term PingSpaceMap to decide if a limit is too high.
+    PingSpaceMonitor pingMonitor;
 
     //Testing
     LimitSlider slider = new LimitSlider();
@@ -923,6 +929,131 @@ public class SpeedLimitMonitor
         SpeedManagerLogger.log(str);
     }//log
 
+
+
+    public void initPingSpaceMap(int maxGoodPing, int minBadPing){
+        pingMapOfDownloadMode = new PingSpaceMapper(maxGoodPing,minBadPing);
+        pingMapOfSeedingMode = new PingSpaceMapper(maxGoodPing,minBadPing);
+
+        pingMonitor = new PingSpaceMonitor(maxGoodPing,minBadPing,transferMode);
+    }
+
+    public int guessDownloadLimit(){
+        return pingMapOfDownloadMode.guessDownloadLimit();
+    }
+
+    public int guessUploadLimit(){
+        int dmUpLimitGuess = pingMapOfDownloadMode.guessUploadLimit();
+        int smUpLimitGuess = pingMapOfSeedingMode.guessUploadLimit();
+
+        return Math.max(dmUpLimitGuess,smUpLimitGuess);
+    }
+
+
+    /**
+     * Just log this data until we decide if it is useful.
+     */
+    public void logPingMapData() {
+
+        int downLimGuess = pingMapOfDownloadMode.guessDownloadLimit();
+        int upLimGuess = pingMapOfDownloadMode.guessUploadLimit();
+        int seedingUpLimGuess = pingMapOfSeedingMode.guessUploadLimit();
+
+        StringBuffer sb = new StringBuffer("ping-map: ");
+        sb.append(":down=").append(downLimGuess);
+        sb.append(":up=").append(upLimGuess);
+        sb.append(":(seed)up=").append(seedingUpLimGuess);
+
+        SpeedManagerLogger.log( sb.toString()  );
+    }
+
+    public void setCurrentTransferRates(int downRate, int upRate){
+        pingMapOfDownloadMode.setCurrentTransferRates(downRate,upRate);
+        pingMapOfSeedingMode.setCurrentTransferRates(downRate,upRate);
+    }
+
+    public void resetPingSpace(){
+        pingMapOfDownloadMode.reset();
+        pingMapOfSeedingMode.reset();        
+    }
+
+    public void addToPingMapData(int lastMetricValue){
+        String modeStr = getTransferModeAsString();
+
+        if(    modeStr.equalsIgnoreCase(TransferMode.State.DOWNLOADING.getString())
+            || modeStr.equalsIgnoreCase(TransferMode.State.DOWNLOAD_LIMIT_SEARCH.getString())  )
+        {
+            //add point to map for download mode
+            pingMapOfDownloadMode.addMetricToMap(lastMetricValue);
+
+        }
+        else if(     modeStr.equalsIgnoreCase(TransferMode.State.SEEDING.getString())
+                  || modeStr.equalsIgnoreCase(TransferMode.State.UPLOAD_LIMIT_SEARCH.getString()) )
+        {
+            //add point to map for seeding mode.
+            pingMapOfSeedingMode.addMetricToMap(lastMetricValue);
+
+        }
+
+        boolean dropLimits = pingMonitor.addToPingMapData(lastMetricValue,transferMode);
+        if( dropLimits ){
+
+            handleDropLimitRequest();
+
+        }
+
+    }//addToPingMapData
+
+    /**
+     * PingSpaceMonitor is requesting the limits be dropped. Handle this
+     * request.
+     * Rules:
+     * #1) IGNORE if confidence limit is HIGH or ABSOLUTE.
+     * #2)
+     */
+    private void handleDropLimitRequest(){
+
+        int newLimit = pingMonitor.getNewLimit();
+        int type = pingMonitor.limitType();
+
+        if( type == PingSpaceMonitor.DOWNLOAD ){
+
+            if( SpeedLimitConfidence.HIGH.isGreater( downloadLimitConf ) ){
+                //We have a MED,LOW,NONE setting move it lower.
+                SpeedManagerLogger.log("PingSpaceMonitor lower download limit="+newLimit);
+
+                uploadLinespeedCapacity = newLimit;
+                COConfigurationManager.setParameter(
+                        SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT,
+                        newLimit);
+
+            }else{
+                //we have high confidence in these limits, don't change them.
+                SpeedManagerLogger.trace(" PingSpaceMonitor - keeping same limits, since conf interval is high.");
+            }
+
+        }else if( type == PingSpaceMonitor.UPLOAD ){
+
+            if( SpeedLimitConfidence.HIGH.isGreater( uploadLimitConf ) ){
+                SpeedManagerLogger.log("PingSpaceMonitor lower upload-limit="+newLimit);
+
+                downloadLinespeedCapacity = newLimit;
+                COConfigurationManager.setParameter(
+                        SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT,
+                        newLimit);
+
+            }else{
+                SpeedManagerLogger.trace(" PingSpaceMonitor - keeping same limits, since conf interval is high.");
+            }
+
+        }
+
+        //we have consumed this request, now reset it.
+        pingMonitor.resetNewLimit();
+
+    }//handleDropLimitRequest
+
+    /** Internal classes here **/
 
     /**
      * Class for sending update data.

@@ -83,6 +83,21 @@ public class SpeedLimitConfidence
         return MessageText.getString( MESSAGE_BUNDLE_PREFIX + name.toLowerCase() );
     }
 
+
+    /**
+     * compareTo to with boolean syntax.
+     *
+     * @param limitConf -
+     * @return - true if greater then, false if equal or less.
+     */
+    public boolean isGreater(SpeedLimitConfidence limitConf)
+    {
+        if( this.compareTo(limitConf)>0 ){
+            return true;
+        }
+        return false;
+    }
+
     /**
      * Comparable interface
      * @param limitConf - Item to compare with.

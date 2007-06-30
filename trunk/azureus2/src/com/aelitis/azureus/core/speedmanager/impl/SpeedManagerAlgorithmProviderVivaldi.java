@@ -83,10 +83,6 @@ public class SpeedManagerAlgorithmProviderVivaldi
     //for managing ping sources.
     PingSourceManager pingSourceManager = new PingSourceManager();
 
-    //session ping data.
-    PingSpaceMapper pingMapOfDownloadMode;
-    PingSpaceMapper pingMapOfSeedingMode;
-
 
     static{
         COConfigurationManager.addListener(
@@ -111,6 +107,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
                                         SpeedManagerAlgorithmProviderV2.SETTING_VIVALDI_BAD_SET_POINT);
                                 metricBadTolerance =COConfigurationManager.getIntParameter(
                                         SpeedManagerAlgorithmProviderV2.SETTING_VIVALDI_BAD_TOLERANCE);
+
                             }else{
                                 //DHT Ping is data source
                                 useVivaldi = false;
@@ -129,6 +126,8 @@ public class SpeedManagerAlgorithmProviderVivaldi
                                         SpeedManagerAlgorithmProviderV2.SETTING_INTERVALS_BETWEEN_ADJUST);
 
                             }
+
+                            limitMonitor.initPingSpaceMap(metricGoodResult+metricGoodTolerance,metricBadResult);
 
                         }catch( Throwable t ){
                             SpeedManagerLogger.log(t.getMessage());
@@ -154,8 +153,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
             log(" Error: failed to get DHT Plugin ");
         }//if
 
-        pingMapOfDownloadMode = new PingSpaceMapper(metricGoodResult+metricGoodTolerance,metricBadResult);
-        pingMapOfSeedingMode = new PingSpaceMapper(metricGoodResult+metricGoodTolerance,metricBadResult);
+        limitMonitor.initPingSpaceMap(metricGoodResult+metricGoodTolerance,metricBadResult);
     }
 
     /**
@@ -178,9 +176,8 @@ public class SpeedManagerAlgorithmProviderVivaldi
         log("pin:upload-status,download-status,upload-unpin-timer,download-unpin-timer");
 
         log("limits:down-max:down-min:down-conf:up-max:up-min:up-conf");
-
-        pingMapOfDownloadMode.reset();
-        pingMapOfSeedingMode.reset();
+        
+        limitMonitor.resetPingSpace();
     }
 
     /**
@@ -216,13 +213,10 @@ public class SpeedManagerAlgorithmProviderVivaldi
         }
 
         //update ping maps
-        pingMapOfDownloadMode.setCurrentTransferRates(downRateBitsPerSec,upRateBitsPerSec);
-        pingMapOfSeedingMode.setCurrentTransferRates(downRateBitsPerSec,upRateBitsPerSec);
+        limitMonitor.setCurrentTransferRates(downRateBitsPerSec,upRateBitsPerSec);
 
         //"curr-data" ....
         logCurrentData(downRateBitsPerSec, currDownLimit, upRateBitsPerSec, currUploadLimit);
-
-        
     }
 
     /**
@@ -299,19 +293,17 @@ public class SpeedManagerAlgorithmProviderVivaldi
         if( limitMonitor.isConfTestingLimits() ){
 
             if( limitMonitor.isConfLimitTestFinished() ){
-                int dmDownLimitGuess = pingMapOfDownloadMode.guessDownloadLimit();
-                int dmUpLimitGuess = pingMapOfDownloadMode.guessUploadLimit();
-                int smUpLimitGuess = pingMapOfSeedingMode.guessUploadLimit();
+                int downLimitGuess = limitMonitor.guessDownloadLimit();
+                int upLimitGuess = limitMonitor.guessUploadLimit();
 
-                SpeedLimitMonitor.Update update = limitMonitor.endLimitTesting(dmDownLimitGuess,
-                        Math.max(dmUpLimitGuess,smUpLimitGuess) );
+                SpeedLimitMonitor.Update update = limitMonitor.endLimitTesting(downLimitGuess,
+                        upLimitGuess );
 
                 //print out the PingMap data to compare.
-                logPingMapData();
+                limitMonitor.logPingMapData();
 
                 //reset Ping Space Map for next round.
-                pingMapOfDownloadMode.reset();
-                pingMapOfSeedingMode.reset();
+                limitMonitor.resetPingSpace();
 
                 //log
                 logNewLimits(update);
@@ -360,7 +352,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
         logLimitStatus();
 
         //update the metric data
-        addToPingMapData();
+        limitMonitor.addToPingMapData(lastMetricValue);
 
         float signalStrength = determineSignalStrength(lastMetricValue);
 
@@ -422,45 +414,6 @@ public class SpeedManagerAlgorithmProviderVivaldi
 
         SpeedManagerLogger.log( msg.toString() );
     }//logLimitStatus
-
-    /**
-     * Just log this data until we decide if it is useful.
-     */
-    private void logPingMapData() {
-
-        int downLimGuess = pingMapOfDownloadMode.guessDownloadLimit();
-        int upLimGuess = pingMapOfDownloadMode.guessUploadLimit();
-        int seedingUpLimGuess = pingMapOfSeedingMode.guessUploadLimit();
-
-        StringBuffer sb = new StringBuffer("ping-map: ");
-        sb.append(":down=").append(downLimGuess);
-        sb.append(":up=").append(upLimGuess);
-        sb.append(":(seed)up=").append(seedingUpLimGuess);
-
-        SpeedManagerLogger.log( sb.toString()  );
-    }
-
-    /**
-     * Add more data to PingMap data.
-     */
-    private void addToPingMapData() {
-        String modeStr = limitMonitor.getTransferModeAsString();
-
-        if(    modeStr.equalsIgnoreCase(TransferMode.State.DOWNLOADING.getString())
-            || modeStr.equalsIgnoreCase(TransferMode.State.DOWNLOAD_LIMIT_SEARCH.getString())  )
-        {
-            //add point to map for download mode
-            pingMapOfDownloadMode.addMetricToMap(lastMetricValue);
-
-        }
-        else if(     modeStr.equalsIgnoreCase(TransferMode.State.SEEDING.getString())
-                  || modeStr.equalsIgnoreCase(TransferMode.State.UPLOAD_LIMIT_SEARCH.getString()) )
-        {
-            //add point to map for seeding mode.
-            pingMapOfSeedingMode.addMetricToMap(lastMetricValue);
-
-        }
-    }//addToPingMapData
 
     /**
      * Vivaldi media distance is one of the metrics used. Calculate it here.
