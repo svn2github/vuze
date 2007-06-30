@@ -25,6 +25,16 @@ package com.aelitis.azureus.core.speedmanager.impl;
 import java.net.InetSocketAddress;
 import java.util.*;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Canvas;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -32,6 +42,7 @@ import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
@@ -100,8 +111,9 @@ SpeedManagerImpl
 	private Object	original_limits;
 	
 	private AsyncDispatcher	dispatcher = new AsyncDispatcher();
+
+	private pingMapper		ping_mapper = new pingMapper();
 	
-	private LinkedList	ping_histories = new LinkedList();
 	
 	public
 	SpeedManagerImpl(
@@ -365,22 +377,18 @@ SpeedManagerImpl
 			});
 	}
 	
+
+
 	protected void
 	addPingHistory(
 		int	rtt )
 	{
-		int	down = getCurrentDataDownloadSpeed() + getCurrentProtocolDownloadSpeed();
-		int	up	 = getCurrentDataUploadSpeed() + getCurrentProtocolUploadSpeed();
+		int	average_period = 3000;
 		
-		synchronized( ping_histories ){
-			
-			ping_histories.addLast( new int[]{ up, down, rtt });
-			
-			if ( ping_histories.size() > 1000 ){
+		int	x 	= (adapter.getCurrentDataDownloadSpeed(average_period) + adapter.getCurrentProtocolDownloadSpeed(average_period))/1024;
+		int	y	= (adapter.getCurrentDataUploadSpeed(average_period) + adapter.getCurrentProtocolUploadSpeed(average_period))/1024;
 				
-				ping_histories.removeFirst();
-			}
-		}
+		// ping_mapper.addPing( x, y, rtt );
 	}
 	
 	public boolean
@@ -471,10 +479,7 @@ SpeedManagerImpl
 	public int[][]
 	getPingHistory()
 	{
-		synchronized( ping_histories ){
-			
-			return((int[][])ping_histories.toArray(new int[ping_histories.size()][]));
-		}
+		return( new int[0][] );
 	}
 	
 	public int
@@ -693,5 +698,670 @@ SpeedManagerImpl
 		{
 			return( true );
 		}
+	}
+	
+	protected static class
+	pingMapper
+	{
+		private Random	random = new Random();
+		
+		private SortedSet x_set = 
+			new TreeSet(
+				new Comparator()
+				{
+					public int 
+					compare(
+						Object o1, 
+						Object o2) 
+					{
+						region	r1 = (region)o1;
+						region  r2 = (region)o2;
+						
+						int	diff = r1.getX1() - r2.getX1();
+						
+						if ( diff != 0 ){
+							
+							return( diff );
+						}
+						
+						return( r1.getY1() - r2.getY1() );
+					}
+				});
+
+		private SortedSet y_set = 
+			new TreeSet(
+				new Comparator()
+				{
+					public int 
+					compare(
+						Object o1, 
+						Object o2) 
+					{
+						region	r1 = (region)o1;
+						region  r2 = (region)o2;
+						
+						int	diff = r1.getY1() - r2.getY1();
+						
+						if ( diff != 0 ){
+							
+							return( diff );
+						}
+						
+						return( r1.getX1() - r2.getX1() );
+					}
+				});
+	
+		private int	x_splits;
+		private int y_splits;
+		
+		protected
+		pingMapper()
+		{
+			region r = new region( 0, 0, 65535, 65535 );
+			
+			addRegion( r );
+		}
+		
+		protected synchronized void
+		addPing(
+			int		x,
+			int		y,
+			int		rtt )
+		{
+			if ( x > 65535 )x = 65535;
+			if ( y > 65535 )y = 65535;
+			if ( rtt > 65535 )rtt = 65535;
+			if ( rtt == 0 )rtt = 1;
+			
+			Object[]	xs = x_set.toArray();
+			Object[]	ys = y_set.toArray();
+			
+			region hit = null;
+			
+			int	x_index = -1;
+			
+			for (int i=0;i<xs.length;i++){
+				
+				region r = (region)xs[i];
+				
+				if ( r.contains( x, y )){
+					
+					x_index = i;
+					
+					hit = r;
+					
+					break;
+				}
+			}
+			
+			int	y_index = -1;
+			
+			for (int i=0;i<ys.length;i++){
+				
+				if ( ys[i] == hit ){
+					
+					y_index = i;
+					
+					break;
+				}
+			}
+			
+			if ( x_index == -1 || y_index == -1 ){
+				
+				System.out.println( "bork bork" );
+				
+				return;
+			}
+			
+			long	ping = createPing( x, y, rtt, SystemTime.getCurrentTime());
+
+			addPing( hit, x, y, rtt, ping );
+		}
+		
+		protected void
+		addPing(
+			region	r,
+			int		x,
+			int		y,
+			int		rtt,
+			long	ping )
+		{
+			long[]	existing_pings = r.getPings();
+			
+			if ( existing_pings == null ){
+				
+				r.addPing( ping );
+				
+			}else{
+				int	hit_x1 = r.getX1();
+				int	hit_x2 = r.getX2();
+				int	hit_y1 = r.getY1();
+				int	hit_y2 = r.getY2();
+				
+				int	width 	= ( hit_x2 - hit_x1 )+1;
+				int height 	= ( hit_y2 - hit_y1 )+1;
+				
+				if ( width == 1 && height == 1 ){
+					
+					r.addPing( ping );
+					
+				}else{
+					
+					
+					region r1;
+					region r2;
+					
+					if ( width > height || ( width == height && random.nextInt( 2 ) == 1 )){
+						
+						x_splits++;
+						
+						int	split_x = hit_x1 + ((width-1) / 2 );
+					
+						r1 = new region( hit_x1, hit_y1, split_x, hit_y2 );
+						r2 = new region( split_x+1, hit_y1, hit_x2, hit_y2 );
+							
+					}else{
+						
+						y_splits++;
+						
+						int	split_y = hit_y1 + ((height-1) / 2 );
+						
+						r1 = new region( hit_x1, hit_y1, hit_x2, split_y );
+						r2 = new region( hit_x1, split_y+1, hit_x2, hit_y2 );
+					}
+					
+					System.out.println( "x_s=" + x_splits + ",y_s=" + y_splits );
+					
+					splitPings( existing_pings, r1, r2 );
+					
+					removeRegion( r );
+					
+					addRegion( r1 );
+					
+					addRegion( r2 );
+					
+					if ( r1.contains( x, y )){
+						
+						addPing( r1, x, y, rtt, ping );
+						
+					}else{
+						
+						addPing( r2, x, y, rtt, ping );
+					}
+				}
+			}
+		}
+		
+		protected long
+		createPing(
+			int		x,
+			int		y,
+			int		rtt,
+			long	now )
+		{
+			return( ((long)x) | 
+					(((long)y<< 16) &0x00000000ffff0000L) |
+					(((long)rtt<<32)&0x0000ffff00000000L) |
+					(((long)now<<48)&0xffff000000000000L));
+		}
+		
+		protected void
+		splitPings(
+			long[]	pings,
+			region	r1,
+			region	r2 )
+		{
+			for (int i=0;i<pings.length;i++){
+			
+				long	ping = pings[i];
+				
+				if ( r1.contains( getPingX( ping ), getPingY( ping ))){
+					
+					r1.addPing( ping );
+					
+				}else{
+					
+					r2.addPing( ping );
+				}
+			}
+		}
+		protected int
+		getPingX(
+			long	ping )
+		{
+			return(((int)(ping))&0x0000ffff );
+		}
+		
+		protected int
+		getPingY(
+			long	ping )
+		{
+			return(((int)(ping>>16))&0x0000ffff );
+		}
+		
+		protected int
+		getPingRTT(
+			long	ping )
+		{
+			return(((int)(ping>>32))&0x0000ffff );
+		}
+		
+		protected int
+		getPingTime(
+			long	ping )
+		{
+			return(((int)(ping>>48))&0x0000ffff );
+		}
+		
+		protected void
+		addRegion(
+			region	r )
+		{
+			x_set.add( r );
+			y_set.add( r );
+		}
+		
+		protected void
+		removeRegion(
+			region	r )
+		{
+			x_set.remove( r );
+			y_set.remove( r );
+		}
+		
+		protected synchronized List
+		getRegions()
+		{				
+			return( new ArrayList( x_set ));
+		}
+		
+		protected synchronized void
+		checkConsistency()
+		{
+			Iterator it = x_set.iterator();
+							
+			int	max_x = 0;
+			int	max_y = 0;
+			
+			while( it.hasNext()){
+				
+				region r = (region)it.next();
+				
+				if ( r.getPings() == null ){
+					
+					continue;
+				}
+				
+				max_x = Math.max( max_x, r.getX2());
+				max_y = Math.max( max_y, r.getY2());
+			}
+				
+			boolean[][]	grid = new boolean[max_x+1][max_y+1];
+			
+			it = x_set.iterator();
+			
+			while( it.hasNext()){
+				
+				region r = (region)it.next();
+				
+				if ( r.getPings() != null ){
+					
+					for (int i=r.getX1();i<=r.getX2();i++){
+					
+						for (int j=r.getY1();j<=r.getY2();j++){
+							
+							grid[i][j] = true;
+						}
+					}
+				}
+			}
+			
+			for (int i=0;i<=max_x;i++){
+				
+				String str = "";
+				
+				for (int j=0;j<max_y;j++){
+					
+					str += grid[i][j]?".":" ";
+				}
+				
+				System.out.println( str );
+			}
+			
+			grid = new boolean[max_x+1][max_y+1];
+
+			it = x_set.iterator();
+
+			boolean	bad = false;
+			
+			while( it.hasNext()){
+				
+				region r = (region)it.next();
+				
+				if ( r.getX1() <= max_x && r.getY1() <= max_y ){
+					
+					for (int i=r.getX1();i<=r.getX2() && i <= max_x;i++){
+					
+						for (int j=r.getY1();j<=r.getY2() && j <= max_y;j++){
+							
+							if ( grid[i][j]){
+								
+								System.out.println( "Inconsistent at " + i + "," + j );
+								
+								bad	= true;
+								
+							}else{
+								
+								grid[i][j] = true;
+							}
+						}
+					}
+				}
+			}
+			
+			for (int i=0;i<=max_x;i++){
+				
+				for (int j=0;j<max_y;j++){
+					
+					if ( !grid[i][j]){
+						
+						System.out.println( "Inconsistent at " + i + "," + j );
+						
+						bad	= true;
+					}
+				}
+			}
+			
+			System.out.println( "All regions" );
+			
+			it = x_set.iterator();
+
+			while( it.hasNext()){
+				
+				region r = (region)it.next();
+				
+				if ( r.getX1() <= max_x && r.getY1() <= max_y ){
+
+					System.out.println( "    " + r.getX1() + "," + r.getY1() + "," + r.getX2() + "," + r.getY2());
+				}
+			}
+			
+			if ( !bad ){
+				
+				System.out.println( "Consistent!" );
+			}
+		}
+		
+		class
+		region
+		{
+			private short		x1;
+			private short		y1;
+			private short		x2;
+			private short		y2;
+			
+			private long[]		pings;
+			
+			protected
+			region(
+				int		_x1,
+				int		_y1,
+				int		_x2,
+				int		_y2 )
+			{
+				x1		= (short)_x1;
+				y1		= (short)_y1;
+				x2		= (short)_x2;
+				y2		= (short)_y2;
+			}
+			
+			public int
+			getX1()
+			{
+				return(((int)x1)&0xffff );
+			}
+			
+			public int
+			getY1()
+			{
+				return(((int)y1)&0xffff );
+			}
+			
+			public int
+			getX2()
+			{
+				return(((int)x2)&0xffff );
+			}
+			
+			public int
+			getY2()
+			{
+				return(((int)y2)&0xffff );
+			}
+			
+			public long[]
+			getPings()
+			{
+				return( pings );
+			}
+			
+			public void
+			setPings(
+				long[]	_pings )
+			{
+				pings = _pings;
+			}
+			
+			public void
+			addPing(
+				long	ping )
+			{
+				if ( pings == null ){
+					
+					pings = new long[]{ ping };
+					
+				}else{
+					
+					long[]	new_pings = new long[pings.length+1];
+					
+					new_pings[0] = ping;
+					
+					System.arraycopy( pings, 0, new_pings, 1, pings.length );
+					
+					pings = new_pings;
+				}
+			}
+			
+			public boolean
+			contains(
+				int		x,
+				int		y )
+			{
+				return( getX1() <= x && getX2() >= x && getY1() <= y && getY2() >= y );
+			}
+		}
+	}
+	
+	protected static void
+	runTest(
+		final Canvas	canvas )
+	{
+		final pingMapper pm = new pingMapper();
+		
+		new Thread()
+		{
+			int MAX = 100;
+			
+			private Color colour_ping = new Color(canvas.getDisplay(),0,0,0);
+			private Color colour_no_ping = new Color(canvas.getDisplay(),255,0,0);
+			
+			public void
+			run()
+			{	
+				Display d = canvas.getDisplay();
+				
+				Random	r = new Random();
+				
+				for (int i=0;i<5000;i++){
+					
+					pm.addPing( r.nextInt(MAX), r.nextInt(MAX), r.nextInt(MAX));
+					
+					if ( d.isDisposed()){
+						
+						break;
+					}
+					
+					repaint( d );
+				
+					try{
+						Thread.sleep(10);
+						
+					}catch( Throwable e ){
+						
+					}
+				}
+				
+				pm.checkConsistency();
+
+				while( true ){
+					
+					if ( d.isDisposed()){
+						
+						break;
+					}
+					
+					repaint( d );
+					
+					try{
+						Thread.sleep(10);
+						
+					}catch( Throwable e ){
+						
+					}
+				}
+			}
+			
+			protected void
+			repaint(
+				Display	d )
+			{
+				if ( d.isDisposed()){
+					
+					return;
+				}
+				
+				d.asyncExec(
+						new Runnable()
+						{
+							public void
+							run()
+							{
+								repaintSupport();
+							}
+						});
+			}
+			
+			protected void
+			repaintSupport()
+			{
+				if ( canvas == null || canvas.isDisposed()){
+					
+					return;
+				}
+				
+				Rectangle bounds = canvas.getClientArea();
+				
+				if ( bounds.height < 1 || bounds.height < 1 ){
+					
+					return;
+				}
+				
+				GC canvas_gc = new GC(canvas);
+				
+				Image image = new Image( canvas.getDisplay(), bounds );
+
+				GC gc = new GC( image );
+				
+				
+				Iterator it = pm.getRegions().iterator();
+				
+				int	max_x = 0;
+				int	max_y = 0;
+				
+				while( it.hasNext()){
+					
+					pingMapper.region r = (pingMapper.region)it.next();
+					
+					if ( r.getPings() != null ){
+						
+						max_x = Math.max( max_x, r.getX2());
+						max_y = Math.max( max_y, r.getY2());
+					}
+				}
+								
+				it = pm.getRegions().iterator();
+				
+				while( it.hasNext()){
+					
+					pingMapper.region r = (pingMapper.region)it.next();
+					
+					if ( r.getPings() != null ){
+						
+						gc.setBackground( colour_ping );
+						
+						gc.fillRectangle(
+								r.getX1()*bounds.width/max_x, 
+								r.getY1()*bounds.height/max_y,
+								(r.getX2()-r.getX1()+2)*bounds.width/max_x-1, 
+								(r.getY2()-r.getY1()+2)*bounds.height/max_y-1 );
+						
+					}else if ( r.getX1() <= max_x && r.getY1() <= max_y ){
+						
+						gc.setBackground( colour_no_ping );
+						
+						gc.fillRectangle(
+								r.getX1()*bounds.width/max_x, 
+								r.getY1()*bounds.height/max_y,
+								(r.getX2()-r.getX1()+2)*bounds.width/max_x-1, 
+								(r.getY2()-r.getY1()+2)*bounds.height/max_y-2 );
+					}
+				}
+				
+				gc.dispose();
+				
+				canvas_gc.drawImage( image, bounds.x, bounds.y );
+				
+				image.dispose();
+				
+				canvas_gc.dispose();   	
+			}
+		}.start();
+	}
+	
+	public static void
+	main(
+		String[]	args )
+	{
+		Display   display = new Display();
+		Shell shell = new Shell(display);
+		shell.setText("Test");
+		GridLayout layout = new GridLayout();
+		shell.setLayout(layout);
+		GridData gridData = new GridData( GridData.FILL_BOTH );
+		shell.setLayoutData( gridData );
+		
+	    Canvas canvas = new Canvas(shell,SWT.NO_BACKGROUND);
+		gridData = new GridData( GridData.FILL_BOTH );
+		canvas.setLayoutData( gridData );
+
+		shell.setSize(600,600);
+		shell.open ();
+		
+	    runTest( canvas );
+	    
+		while (!shell.isDisposed ()) {
+			if (!display.readAndDispatch ()) display.sleep ();
+		}
+		display.dispose ();
 	}
 }
