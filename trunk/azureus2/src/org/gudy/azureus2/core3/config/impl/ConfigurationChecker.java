@@ -97,6 +97,8 @@ ConfigurationChecker
 	  		"IPV6 Prefer Addresses",
 	  		new ParameterListener()
 	  		{
+	  			private boolean done_something = false;
+	  			
 	  			public void 
 	  			parameterChanged(
 	  				String name )
@@ -105,8 +107,18 @@ ConfigurationChecker
 	  		  		
 	  			  	boolean existing = !System.getProperty( "java.net.preferIPv6Addresses", "false" ).equalsIgnoreCase( "false" );
 	  			  	
+	  			  		// if user has overridden with a -D at az start then we don't want to let our config
+	  			  		// setting (which currently defaults to FALSE) to set this back
+	  			  	
+	  			  	if ( existing && !done_something ){
+	  			  		
+	  			  		return;
+	  			  	}
+	  			  	
 	  			  	if ( existing != prefer_ipv6 ){
 	  			  		
+	  			  		done_something = true;
+	  			  	
 		  		  		System.setProperty( "java.net.preferIPv6Addresses", prefer_ipv6?"true":"false" );
 		  		  		
 		  		  		try{
