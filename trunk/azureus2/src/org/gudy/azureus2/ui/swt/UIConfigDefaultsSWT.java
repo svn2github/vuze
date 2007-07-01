@@ -62,7 +62,7 @@ public class UIConfigDefaultsSWT
 		def.addParameter("Message Popup Autoclose in Seconds", 15);
 
 		def.addParameter("Add URL Silently", false);
-		def.addParameter("config.style.dropdiraction", "1");
+		def.addParameter("config.style.dropdiraction", "0");
 		def.addParameter("MyTorrents.SplitAt", 30);
 
 		def.addParameter("Wizard Completed", false);
