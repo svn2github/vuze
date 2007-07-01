@@ -214,6 +214,11 @@ public class TorrentFolderWatcher {
 			to_delete.clear();
 
 			String[] currentFileList = folder.list(filename_filter);
+			if (currentFileList == null) {
+				Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+						"There was a problem trying to get a listing of torrents from " + folder));
+				return;
+			}
 
 			for (int i = 0; i < currentFileList.length; i++) {
 
