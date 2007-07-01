@@ -3077,7 +3077,7 @@ DownloadManagerImpl
 
 	  DiskManager	dm = getDiskManager();
 	  
-	  if ( dm == null ){
+	  if ( dm == null || dm.getFiles() == null){
 
 		  if ( !old_file.exists()){
 				  
