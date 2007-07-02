@@ -34,7 +34,7 @@ SFPluginDetailsImpl
 	implements SFPluginDetails
 {
 	private SFPluginDetailsLoaderImpl		loader;
-	private boolean						fully_loaded;
+	private boolean							fully_loaded;
 	
 	private String		id;
 	private String		name;
@@ -164,7 +164,7 @@ SFPluginDetailsImpl
 	public String
 	getDescription()
 	
-	throws SFPluginDetailsException
+		throws SFPluginDetailsException
 	{
 		checkLoaded();
 		
@@ -179,5 +179,11 @@ SFPluginDetailsImpl
 		checkLoaded();
 		
 		return( comment );
+	}
+	
+	public String
+	getRelativeURLBase()
+	{
+		return( loader.getRelativeURLBase());
 	}
 }

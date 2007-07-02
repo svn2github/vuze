@@ -42,6 +42,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.LinkArea;
 import org.gudy.azureus2.ui.swt.components.StringListChooser;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
@@ -73,7 +74,7 @@ UpdateWindow
   
   Shell updateWindow;
   Table table;
-  StyledText stDescription;
+  LinkArea link_area;
   ProgressBar progress;
   Label status;
   
@@ -82,12 +83,6 @@ UpdateWindow
   
   Button btnCancel;
   Listener lCancel;
-  
-  // list of linkInfo for tracking where the links are
-  // could have just used stDecription.getStyleRanges() since we underline
-  // the links, but I didn't want to risk a chance of any other styles
-  // being in there that I don't know about (plus managing the URL)
-  ArrayList links = new ArrayList();
   
   
   
@@ -238,69 +233,7 @@ UpdateWindow
       }
     });
     
-    stDescription = new StyledText(sash,SWT.BORDER | SWT.READ_ONLY | SWT.H_SCROLL | SWT.V_SCROLL);    
-    stDescription.setWordWrap(true);
-    
-    stDescription.addListener(SWT.MouseUp, new Listener() {
-    	public void handleEvent(Event event) {
-    		if (links.size() == 0) {
-    			return;
-    		}
-    		try {
-    			int ofs = stDescription.getOffsetAtLocation(new Point(event.x, event.y));
-    			for (int i = 0; i < links.size(); i++) {
-						linkInfo linkInfo = (linkInfo)links.get(i);
-						if (ofs >= linkInfo.ofsStart && ofs <= linkInfo.ofsEnd) {
-							Utils.launch(linkInfo.url);
-							break;
-						}
-					}
-    		} catch (Exception e) {
-    			
-    		}
-    	}
-    });
-
-    final Cursor handCursor = new Cursor(display, SWT.CURSOR_HAND);
-    stDescription.addListener(SWT.MouseMove, new Listener() {
-    	Cursor curCursor = null;
-
-    	public void handleEvent(Event event) {
-    		if (links.size() == 0) {
-    			return;
-    		}
-  			boolean onLink = false;
-    		try {
-    			int ofs = stDescription.getOffsetAtLocation(new Point(event.x, event.y));
-    			for (int i = 0; i < links.size(); i++) {
-						linkInfo linkInfo = (linkInfo)links.get(i);
-						if (ofs >= linkInfo.ofsStart && ofs <= linkInfo.ofsEnd) {
-							onLink = true;
-							break;
-						}
-					}
-    		} catch (Exception e) {
-    			
-    		}
-    		
-    		try {
-	  			Cursor cursor = onLink ? handCursor : null;
-	  			if (curCursor != cursor) {
-	  				stDescription.setCursor(cursor);
-	  				curCursor = cursor;
-	  			}
-    		} catch (Exception e) {
-    			
-    		}
-    	}
-    });
-    
-    stDescription.addListener(SWT.Dispose, new Listener() {
-    	public void handleEvent(Event event) {
-  			stDescription.setCursor(null);
-  			handCursor.dispose();
-    	}
-    });
+    link_area = new LinkArea( sash );
 
     progress = new ProgressBar(updateWindow,SWT.NULL);
     progress.setMinimum(0);
@@ -389,37 +322,14 @@ UpdateWindow
     if(items.length == 0) return;
     Update update = (Update) items[0].getData();        
     String[] descriptions = update.getDescription();
-    stDescription.setText("");
-    int ofs = 0;
+    
+    link_area.reset();
+    
+    link_area.setRelativeURLBase( update.getRelativeURLBase());
+    
     for(int i = 0 ; i < descriptions.length ; i++) {
-    	String s = descriptions[i].replaceAll("<.*a\\s++.*href=\"?([^\\'\"\\s>]++).*", "$1");
-      stDescription.append(s + "\n");
-      
-      try {
-	      int iURLStart = s.indexOf("http");
-	      if (iURLStart >= 0) {
-	      	int iURLEnd = s.indexOf(' ', iURLStart);
-	      	String url;
-	      	if (iURLEnd >= 0) {
-	      		url = s.substring(iURLStart, iURLEnd);
-	      	} else {
-	      		url = s.substring(iURLStart);
-	      	}
-	      	linkInfo info = new linkInfo(iURLStart + ofs, iURLStart + ofs
-							+ url.length(), url);
-	      	links.add(info);
-	      	
-	      	StyleRange sr = new StyleRange();
-	      	sr.start = info.ofsStart;
-	      	sr.length = url.length();
-	      	sr.underline = true;
-	      	
-	      	stDescription.setStyleRange(sr);
-	      }
-	      ofs += s.length() + 1;
-      } catch (Exception e) {
-      	Debug.out(e);
-      }
+
+    	link_area.addLine( descriptions[i] );
     }
   }
   
@@ -555,7 +465,9 @@ UpdateWindow
     btnOk.setEnabled(false);    
     Messages.setLanguageText(btnCancel,"UpdateWindow.cancel");
     table.setEnabled(false);
-    stDescription.setText("");
+    
+    link_area.reset();
+    
     TableItem[] items = table.getItems();
     
     totalDownloadSize = 0;   
@@ -571,7 +483,7 @@ UpdateWindow
         try {
           totalDownloadSize += rds[j].getSize();
         } catch (Exception e) {
-          stDescription.append(MessageText.getString("UpdateWindow.no_size") + rds[j].getName() +"\n");
+          link_area.addLine(MessageText.getString("UpdateWindow.no_size") + rds[j].getName());
         }        
       }
     }
@@ -698,8 +610,7 @@ UpdateWindow
     
     display.asyncExec(new AERunnable(){
       public void runSupport() {
-        if(stDescription != null && !stDescription.isDisposed())
-          stDescription.append(text + "\n");
+    	  link_area.addLine( text );
       }
     });  
   }
@@ -731,17 +642,5 @@ UpdateWindow
   isDisposed()
   {
   	return( display == null || display.isDisposed() || updateWindow == null || updateWindow.isDisposed());
-  }
-  
-  public static class linkInfo {
-  	int ofsStart;
-  	int ofsEnd;
-  	String url;
-  	
-  	linkInfo(int s, int e, String url) {
-  		ofsStart = s;
-  		ofsEnd = e;
-  		this.url = url;
-  	}
   }
 }

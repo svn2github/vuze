@@ -303,6 +303,12 @@ FilePluginInstallerImpl
 		return( file.toString());
 	}
 		
+	public String
+	getRelativeURLBase()
+	{
+		return( "" );
+	}
+
 	public PluginInterface
 	getAlreadyInstalledPlugin()
 	{

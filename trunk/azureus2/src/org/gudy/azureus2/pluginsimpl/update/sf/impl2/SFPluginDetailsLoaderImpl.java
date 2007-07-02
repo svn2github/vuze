@@ -130,6 +130,12 @@ SFPluginDetailsLoaderImpl
 		reset();
 	}
 	
+	protected String
+	getRelativeURLBase()
+	{
+		return( site_prefix );
+	}
+	
 	protected void
 	loadPluginList()
 	

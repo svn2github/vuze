@@ -42,6 +42,7 @@ UpdateImpl
 	private UpdateCheckInstanceImpl	instance;
 	private String					name;
 	private String[]				description;
+	private String					relative_url_base	= "";
 	private String					new_version;
 	private ResourceDownloader[]	downloaders;
 	private boolean					mandatory;
@@ -105,6 +106,19 @@ UpdateImpl
 	getDescription()
 	{
 		return( description );
+	}
+	
+	public String
+	getRelativeURLBase()
+	{
+		return( relative_url_base );
+	}
+	
+	public void
+	setRelativeURLBase(
+		String	base )
+	{
+		relative_url_base = base;
 	}
 	
 	public String

@@ -45,6 +45,9 @@ InstallablePlugin
 	public String
 	getDescription();
 	
+	public String
+	getRelativeURLBase();
+	
 		/**
 		 * Returns the plugin's interface if already installed, null if it isn't
 		 * @return

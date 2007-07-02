@@ -45,6 +45,7 @@ import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.installer.StandardPlugin;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.components.LinkArea;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.Wizard;
@@ -57,7 +58,8 @@ import org.gudy.azureus2.ui.swt.wizard.Wizard;
 public class IPWListPanel extends AbstractWizardPanel {
 
   Table pluginList;
-  StyledText txtDescription;
+ 
+  LinkArea	link_area;
   
   public 
   IPWListPanel(
@@ -110,13 +112,11 @@ public class IPWListPanel extends AbstractWizardPanel {
 	Label lblDescription = new Label(panel,SWT.NULL);
 	Messages.setLanguageText(lblDescription,"installPluginsWizard.list.description");
 	
-	txtDescription = new StyledText(panel,SWT.BORDER | SWT.READ_ONLY | SWT.H_SCROLL | SWT.V_SCROLL);
-	txtDescription.setWordWrap(true);
-	txtDescription.setEditable(false);
+	link_area = new LinkArea( panel );
 	
 	data = new GridData(GridData.FILL_HORIZONTAL);
 	data.heightHint = 100;
-	txtDescription.setLayoutData(data);
+	link_area.getComponent().setLayoutData(data);
 
 	AEThread listLoader = new AEThread("Plugin List Loader") {
 	  public void runSupport() {
@@ -142,7 +142,7 @@ public class IPWListPanel extends AbstractWizardPanel {
 	    	Debug.printStackTrace(e);
 		    wizard.getDisplay().asyncExec(new AERunnable() {
 			      public void runSupport() {
-			      	txtDescription.setText( Debug.getNestedExceptionMessage(e));
+			      	link_area.addLine( Debug.getNestedExceptionMessage(e));
 			      }
 		    });
 		    
@@ -210,7 +210,9 @@ public class IPWListPanel extends AbstractWizardPanel {
   	loadPluginDetails(
   		final TableItem	selected_item )
   	{
-	      txtDescription.setText( MessageText.getString( "installPluginsWizard.details.loading"));
+  		link_area.reset();
+  		
+	    link_area.addLine( MessageText.getString( "installPluginsWizard.details.loading"));
 	   
 	      final StandardPlugin plugin = (StandardPlugin) selected_item.getData();
 	      
@@ -224,9 +226,12 @@ public class IPWListPanel extends AbstractWizardPanel {
 			          return;
 			        if(pluginList.getSelection()[0] != selected_item)
 			          return;
-			      	if(txtDescription == null || txtDescription.isDisposed())
-			      	  return;			      	
-			        txtDescription.setText(description);
+			     
+			        link_area.reset();
+			        
+			        link_area.setRelativeURLBase( plugin.getRelativeURLBase());
+			        
+			        link_area.addLine(description);
 			      }
 		      	});
 	        }

@@ -45,6 +45,13 @@ Update
 	getDescription();
 	
 	public String
+	getRelativeURLBase();
+	
+	public void
+	setRelativeURLBase(
+		String	base );
+
+	public String
 	getNewVersion();
 	
 	public ResourceDownloader[]

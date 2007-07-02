@@ -94,6 +94,12 @@ StandardPluginImpl
 		}
 	}
 	
+	public String
+	getRelativeURLBase()
+	{
+		return( details.getRelativeURLBase());
+	}
+	
 		/**
 		 * Returns the plugin's interface if already installed, null if it isn't
 		 * @return

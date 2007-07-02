@@ -81,4 +81,6 @@ SFPluginDetails
 	
 		throws SFPluginDetailsException;
 
+	public String
+	getRelativeURLBase();
 }

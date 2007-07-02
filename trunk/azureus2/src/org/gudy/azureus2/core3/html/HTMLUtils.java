@@ -27,6 +27,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
+
 /**
  * @author parg
  *
@@ -313,5 +315,142 @@ HTMLUtils
 		}
 			
 		return( res );
+	}
+	
+	public static Object[]
+	getLinks(
+		String	content_in )
+	{
+		int	pos	= 0;
+
+		List	urls = new ArrayList();
+		
+		String	content_out = "";
+		
+		String	current_url				= null;
+		int		current_url_start		= -1;
+		
+		while(true){
+			
+			int	p1 = content_in.indexOf( "<", pos );
+			
+			if ( p1 == -1 ){
+				
+				break;
+			}
+			
+			p1++;
+			
+			int	p2 = content_in.indexOf( ">", p1 );
+			
+			if ( p2 == -1 ){
+				
+				break;
+			}
+			
+			if ( p1 > pos ){
+				
+				content_out += content_in.substring( pos, p1-1 );
+			}
+			
+			int	old_pos = pos;
+			
+			pos	= p2+1;
+			
+			String	tag 	= content_in.substring( p1, p2 ).trim();
+			
+			String	lc_tag 	= tag.toLowerCase();
+						
+			if ( lc_tag.startsWith("a " )){
+				
+				int	hr_start = lc_tag.indexOf( "href");
+				
+				if ( hr_start == -1 ){
+					
+					continue;
+				}
+				
+				hr_start = lc_tag.indexOf("=", hr_start);
+				
+				if ( hr_start == -1 ){
+					
+					continue;
+				}
+				
+				hr_start += 1;
+				
+				while( 	hr_start < lc_tag.length() &&
+						Character.isWhitespace(lc_tag.charAt(hr_start))){
+					
+					hr_start++;
+				}
+				
+				int hr_end = lc_tag.length()-1;
+				
+				while(	hr_end >= lc_tag.length() &&
+						Character.isWhitespace(lc_tag.charAt(hr_end))){
+										
+					hr_end--;
+				}
+				
+				String	href = tag.substring(hr_start, hr_end+1 ).trim();
+				
+				if ( href.startsWith("\"")){
+					
+					href = href.substring(1,href.length()-1);
+				}
+				
+				current_url = href;
+				
+				current_url_start = content_out.length();
+								
+			}else if ( lc_tag.startsWith( "/" ) && lc_tag.substring(1).trim().equals( "a" )){
+				
+				if ( current_url != null ){
+										
+					int	len = content_out.length() - current_url_start;
+					
+					urls.add( new Object[]{ current_url, new int[]{ current_url_start, len }});
+				}
+				
+				current_url = null;
+			}
+		}
+		
+		if ( pos < content_in.length()){
+			
+			content_out += content_in.substring( pos );
+		}
+		
+		return( new Object[]{ content_out, urls });
+	}
+	
+	public static String
+	expand(
+		String		str )
+	{
+		str = XUXmlWriter.unescapeXML( str );
+		
+		str = str.replaceAll( "&nbsp;", " " );
+		
+		return( str );
+	}
+	
+	public static void
+	main(
+		String[]	args )
+	{
+		Object[] obj = getLinks( "aaaaaaa <a href=\"http://here/parp  \">link< / a > prute <a href=\"http://here/pa\">klink</a>" );
+		
+		System.out.println( obj[0] );
+		
+		List	urls = (List)obj[1];
+		
+		for (int i=0;i<urls.size();i++){
+			
+			Object[]	entry = (Object[])urls.get(i);
+			
+			System.out.println( "    " + entry[0] + ((int[])entry[1])[0] + "," + ((int[])entry[1])[1] );
+		}
 	}
 }

@@ -161,7 +161,7 @@ XUXmlWriter
 		}
 	}
 	
-	protected String
+	public static String
 	escapeXML(
 		String	str )
 	{
@@ -176,6 +176,24 @@ XUXmlWriter
 		str = str.replaceAll( "\"", "&quot;" );
 		str = str.replaceAll( "--", "&#45;&#45;" );
 		
+		return( str );
+	}
+	
+	public static String
+	unescapeXML(
+		String	str )
+	{
+		if ( str == null ){
+			
+			return( "" );
+			
+		}
+		str = str.replaceAll( "&gt;", ">" );
+		str = str.replaceAll( "&lt;", "<" );
+		str = str.replaceAll( "&quot;", "\"" );
+		str = str.replaceAll( "&#45;&#45;", "--" );
+		str = str.replaceAll( "&amp;", "&" );
+
 		return( str );
 	}
 	

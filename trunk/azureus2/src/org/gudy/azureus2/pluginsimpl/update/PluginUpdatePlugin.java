@@ -636,7 +636,8 @@ PluginUpdatePlugin
 							
 						num_updates_found++;
 						
-						addUpdate( 
+						Update update = 
+							addUpdate( 
 								pi_being_checked,
 								checker,
 								plugin_id + "/" + plugin_names,
@@ -647,7 +648,8 @@ PluginUpdatePlugin
 								plugin_unloadable?Update.RESTART_REQUIRED_NO:Update.RESTART_REQUIRED_YES,
 								true );
 			
-						}
+						update.setRelativeURLBase( details.getRelativeURLBase());
+					}
 				}catch( Throwable e ){
 					
 					log.log("    Plugin check failed", e ); 
@@ -670,7 +672,7 @@ PluginUpdatePlugin
 		return( num_updates_found );
 	}
 	
-	public void
+	public Update
 	addUpdate(
 		final PluginInterface			pi_for_update,
 		final UpdateChecker				checker,
@@ -743,6 +745,8 @@ PluginUpdatePlugin
 					}
 				}
 			});	
+		
+		return( update );
 	}
 	
 	
