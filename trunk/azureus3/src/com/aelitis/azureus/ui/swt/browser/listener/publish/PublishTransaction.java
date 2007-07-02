@@ -378,7 +378,15 @@ public class PublishTransaction extends Transaction
 			final int height, float quality) throws Exception {
 		ImageLoader loader = new ImageLoader();
 		final Display display = shell.getDisplay();
-		Image source = new Image(shell.getDisplay(), f.getAbsolutePath());
+		Image source = null;
+		try {
+			source = new Image(shell.getDisplay(), f.getAbsolutePath());
+		} catch (Error e) {
+		}
+		
+		if (source == null) {
+			throw new ImageResizeException("Unable to read image.  Please choose another.");
+		}
 
 		// If size is already an exact match, and the file isn't too big, use
 		// original file
