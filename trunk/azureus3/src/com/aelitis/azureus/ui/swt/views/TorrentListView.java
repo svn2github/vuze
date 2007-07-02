@@ -632,7 +632,7 @@ public class TorrentListView
 			l.countChanged();
 		}
 
-		if (countArea != null && bSkipUpdateCount) {
+		if (countArea != null && !bSkipUpdateCount) {
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					if (countArea == null) {
