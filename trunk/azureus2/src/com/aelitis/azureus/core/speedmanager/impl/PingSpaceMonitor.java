@@ -118,15 +118,29 @@ public class PingSpaceMonitor
 
                     //recommend a new downloading limit.
                     newLimit = pingMap.guessDownloadLimit();
+
+                    //download limit cannot be less the 20k
+                    if(newLimit<20480){
+                        newLimit=20480;
+                    }
+
                     hasNewLimit = true;
                     limitType = DOWNLOAD;
+                    reset(mode);
                     return true;
                 }else{
 
                     //only seeding mode is left recommend a new upload limit.
                     newLimit = pingMap.guessUploadLimit();
+
+                    //upload limit cannot be less the 20k
+                    if(newLimit<5120){
+                        newLimit=5120;
+                    }
+
                     hasNewLimit = true;
                     limitType = UPLOAD;
+                    reset(mode);
                     return true;
                 }
             }else{
@@ -144,9 +158,9 @@ public class PingSpaceMonitor
     {
         int totalPings = nGoodPings+nBadPings+nNeutralPings;
 
-        float percentBad = nBadPings/totalPings;
+        float percentBad = (float)nBadPings/(float)totalPings;
 
-        if(percentBad>0.2f){
+        if(percentBad>0.1f){
             return true;
         }else{
             return false;

@@ -127,7 +127,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
 
                             }
 
-                            limitMonitor.initPingSpaceMap(metricGoodResult+metricGoodTolerance,metricBadResult);
+                            limitMonitor.initPingSpaceMap(metricGoodResult+metricGoodTolerance,metricBadResult-metricBadTolerance);
 
                         }catch( Throwable t ){
                             SpeedManagerLogger.log(t.getMessage());
@@ -153,7 +153,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
             log(" Error: failed to get DHT Plugin ");
         }//if
 
-        limitMonitor.initPingSpaceMap(metricGoodResult+metricGoodTolerance,metricBadResult);
+        limitMonitor.initPingSpaceMap(metricGoodResult+metricGoodTolerance,metricBadResult-metricBadTolerance);
     }
 
     /**

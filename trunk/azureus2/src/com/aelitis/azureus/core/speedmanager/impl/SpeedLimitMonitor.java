@@ -1022,7 +1022,7 @@ public class SpeedLimitMonitor
                 //We have a MED,LOW,NONE setting move it lower.
                 SpeedManagerLogger.log("PingSpaceMonitor lower download limit="+newLimit);
 
-                uploadLinespeedCapacity = newLimit;
+                downloadLinespeedCapacity = newLimit;
                 COConfigurationManager.setParameter(
                         SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT,
                         newLimit);
@@ -1037,7 +1037,7 @@ public class SpeedLimitMonitor
             if( SpeedLimitConfidence.HIGH.isGreater( uploadLimitConf ) ){
                 SpeedManagerLogger.log("PingSpaceMonitor lower upload-limit="+newLimit);
 
-                downloadLinespeedCapacity = newLimit;
+                uploadLinespeedCapacity = newLimit;
                 COConfigurationManager.setParameter(
                         SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT,
                         newLimit);
