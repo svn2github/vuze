@@ -42,7 +42,6 @@ import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SimpleTimer;
-import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
@@ -54,6 +53,7 @@ import com.aelitis.azureus.core.dht.speed.DHTSpeedTesterListener;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerAdapter;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingSource;
+import com.aelitis.azureus.core.speedmanager.SpeedManagerPingZone;
 
 
 public class 
@@ -216,6 +216,8 @@ SpeedManagerImpl
 		speed_tester.addListener(
 				new DHTSpeedTesterListener()
 				{
+					private int	tick_count;
+					
 					public void 
 					contactAdded(
 						DHTSpeedTesterContact contact )
@@ -357,7 +359,7 @@ SpeedManagerImpl
 
 							if ( num_values> 0 ){
 								
-								addPingHistory( total/num_values );
+								addPingHistory( tick_count++, total/num_values );
 							}
 						}
 					}
@@ -381,14 +383,15 @@ SpeedManagerImpl
 
 	protected void
 	addPingHistory(
-		int	rtt )
+		int		tick_count,
+		int		rtt )
 	{
 		int	average_period = 3000;
 		
-		int	x 	= (adapter.getCurrentDataDownloadSpeed(average_period) + adapter.getCurrentProtocolDownloadSpeed(average_period))/1024;
-		int	y	= (adapter.getCurrentDataUploadSpeed(average_period) + adapter.getCurrentProtocolUploadSpeed(average_period))/1024;
+		int	x	= (adapter.getCurrentDataUploadSpeed(average_period) + adapter.getCurrentProtocolUploadSpeed(average_period))/1024;
+		int	y 	= (adapter.getCurrentDataDownloadSpeed(average_period) + adapter.getCurrentProtocolDownloadSpeed(average_period))/1024;
 				
-		// ping_mapper.addPing( x, y, rtt );
+		ping_mapper.addPing( tick_count, x, y, rtt );
 	}
 	
 	public boolean
@@ -479,7 +482,13 @@ SpeedManagerImpl
 	public int[][]
 	getPingHistory()
 	{
-		return( new int[0][] );
+		return( ping_mapper.getPings());
+	}
+	
+	public SpeedManagerPingZone[] 
+	getPingZones() 
+	{
+		return( ping_mapper.getZones());
 	}
 	
 	public int
@@ -705,6 +714,8 @@ SpeedManagerImpl
 	{
 		private Random	random = new Random();
 		
+		private int	ping_count;
+		
 		private SortedSet x_set = 
 			new TreeSet(
 				new Comparator()
@@ -750,10 +761,7 @@ SpeedManagerImpl
 						return( r1.getX1() - r2.getX1() );
 					}
 				});
-	
-		private int	x_splits;
-		private int y_splits;
-		
+			
 		protected
 		pingMapper()
 		{
@@ -764,10 +772,19 @@ SpeedManagerImpl
 		
 		protected synchronized void
 		addPing(
+			int		tick_count,
 			int		x,
 			int		y,
 			int		rtt )
 		{
+				// TODO:!!!!
+			if ( ping_count > 1000 ){
+				
+				return;
+			}
+			
+			ping_count++;
+			
 			if ( x > 65535 )x = 65535;
 			if ( y > 65535 )y = 65535;
 			if ( rtt > 65535 )rtt = 65535;
@@ -813,7 +830,7 @@ SpeedManagerImpl
 				return;
 			}
 			
-			long	ping = createPing( x, y, rtt, SystemTime.getCurrentTime());
+			long	ping = createPing( x, y, rtt, tick_count );
 
 			addPing( hit, x, y, rtt, ping );
 		}
@@ -852,26 +869,20 @@ SpeedManagerImpl
 					region r2;
 					
 					if ( width > height || ( width == height && random.nextInt( 2 ) == 1 )){
-						
-						x_splits++;
-						
+												
 						int	split_x = hit_x1 + ((width-1) / 2 );
 					
 						r1 = new region( hit_x1, hit_y1, split_x, hit_y2 );
 						r2 = new region( split_x+1, hit_y1, hit_x2, hit_y2 );
 							
 					}else{
-						
-						y_splits++;
-						
+												
 						int	split_y = hit_y1 + ((height-1) / 2 );
 						
 						r1 = new region( hit_x1, hit_y1, hit_x2, split_y );
 						r2 = new region( hit_x1, split_y+1, hit_x2, hit_y2 );
 					}
-					
-					System.out.println( "x_s=" + x_splits + ",y_s=" + y_splits );
-					
+										
 					splitPings( existing_pings, r1, r2 );
 					
 					removeRegion( r );
@@ -925,6 +936,42 @@ SpeedManagerImpl
 				}
 			}
 		}
+		
+		protected synchronized int[][]
+		getPings()
+		{
+			List	result = new ArrayList();
+
+			Iterator it = x_set.iterator();
+						
+			while( it.hasNext()){
+				
+				region r = (region)it.next();
+				
+				long[] pings = r.getPings();
+					
+				if ( pings == null ){
+					
+					continue;
+				}
+				
+				for (int i=0;i<pings.length;i++){
+				
+					long	ping = pings[i];
+				
+					result.add( new int[]{ 1024*getPingX( ping ), 1024*getPingY(ping), getPingRTT( ping )} );
+				}
+			}
+			
+			return((int[][])result.toArray( new int[result.size()][]));
+		}
+		
+		protected synchronized SpeedManagerPingZone[]
+		getZones()
+		{
+			return((SpeedManagerPingZone[])x_set.toArray( new SpeedManagerPingZone[x_set.size()] ));
+		}
+		
 		protected int
 		getPingX(
 			long	ping )
@@ -1094,6 +1141,7 @@ SpeedManagerImpl
 		
 		class
 		region
+			implements SpeedManagerPingZone
 		{
 			private short		x1;
 			private short		y1;
@@ -1179,6 +1227,37 @@ SpeedManagerImpl
 			{
 				return( getX1() <= x && getX2() >= x && getY1() <= y && getY2() >= y );
 			}
+			
+			
+			public int
+			getUploadStartKBPerSec()
+			{
+				return( getX1()*1024 );
+			}
+			
+			public int
+			getUploadEndKBPerSec()
+			{
+				return( getX2()*1024 + 1023 );
+			}
+			
+			public int
+			getDownloadStartKBPerSec()
+			{
+				return( getY1()*1024 );
+			}
+			
+			public int
+			getDownloadEndKBPerSec()
+			{
+				return( getY2()*1024 + 1023 );
+			}
+			
+			public int
+			getMetric()
+			{
+				return( pings==null?0:getPingRTT( pings[0] ));
+			}
 		}
 	}
 	
@@ -1204,7 +1283,7 @@ SpeedManagerImpl
 				
 				for (int i=0;i<5000;i++){
 					
-					pm.addPing( r.nextInt(MAX), r.nextInt(MAX), r.nextInt(MAX));
+					pm.addPing( i, r.nextInt(MAX), r.nextInt(MAX), r.nextInt(MAX));
 					
 					if ( d.isDisposed()){
 						

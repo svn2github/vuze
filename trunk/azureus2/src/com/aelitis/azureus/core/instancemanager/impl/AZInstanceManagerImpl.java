@@ -480,7 +480,7 @@ AZInstanceManagerImpl
 			}
 		}catch( Throwable e ){
 			
-			Debug.printStackTrace(e);
+			Debug.out( "Invalid packet received from " + originator, e );
 		}
 	}
 	

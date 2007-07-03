@@ -1,7 +1,7 @@
 /*
- * Created on 16-Mar-2006
+ * Created on Jul 2, 2007
  * Created by Paul Gardner
- * Copyright (C) 2006 Aelitis, All Rights Reserved.
+ * Copyright (C) 2007 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,66 +15,29 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  * 
- * AELITIS, SAS au capital de 46,603.30 euros
+ * AELITIS, SAS au capital de 63.529,40 euros
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  *
  */
 
+
 package com.aelitis.azureus.core.speedmanager;
 
-import com.aelitis.azureus.core.dht.speed.DHTSpeedTester;
-
 public interface 
-SpeedManager 
+SpeedManagerPingZone 
 {
-	public boolean
-	isAvailable();
-		
-	public void
-	setEnabled(
-		boolean		enabled );
-	
-	public boolean
-	isEnabled();
+	public int
+	getUploadStartKBPerSec();
 	
 	public int
-	getIdlePingMillis();
+	getUploadEndKBPerSec();
 	
 	public int
-	getCurrentPingMillis();
+	getDownloadStartKBPerSec();
 	
 	public int
-	getMaxPingMillis();
-	
-		/**
-		 * Returns the current view of when choking occurs
-		 * @return speed in bytes/sec
-		 */
+	getDownloadEndKBPerSec();
 	
 	public int
-	getCurrentChokeSpeed();
-	
-		/**
-		 * Returns the maximum sustained upload speed 
-		 * @return speed in bytes/sec
-		 */
-	
-	public int
-	getMaxUploadSpeed();
-	
-	public void
-	setSpeedTester(
-		DHTSpeedTester	tester );
-	
-	public DHTSpeedTester
-	getSpeedTester();
-	
-	public SpeedManagerPingSource[]
-	getPingSources();
-	
-	public int[][]
-	getPingHistory();
-	
-	public SpeedManagerPingZone[]
-	getPingZones();
+	getMetric();
 }

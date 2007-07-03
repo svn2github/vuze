@@ -26,12 +26,18 @@ import java.text.DecimalFormat;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.TabFolder;
+import org.eclipse.swt.widgets.TabItem;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -45,11 +51,13 @@ import org.gudy.azureus2.ui.swt.components.Legend;
 import org.gudy.azureus2.ui.swt.components.graphics.PingGraphic;
 import org.gudy.azureus2.ui.swt.components.graphics.Plot3D;
 import org.gudy.azureus2.ui.swt.components.graphics.ValueFormater;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingSource;
+import com.aelitis.azureus.core.speedmanager.SpeedManagerPingZone;
 
 /**
  * 
@@ -73,7 +81,8 @@ public class TransferStatsView extends AbstractIView {
   Composite autoSpeedDisabledPanel;
   PingGraphic pingGraph;
   Plot3D plotGraph;
-
+  zoneView zone_view;
+  
   BufferedLabel idlePing,maxPing,maxUp,currentPing;
   
   
@@ -241,9 +250,17 @@ public class TransferStatsView extends AbstractIView {
     pingGraph = PingGraphic.getInstance();
     pingGraph.initialize(pingCanvas);
     
-    Canvas plotCanvas = new Canvas(autoSpeedInfoPanel,SWT.NO_BACKGROUND);
+    TabFolder folder = new TabFolder(autoSpeedInfoPanel, SWT.LEFT);
     gridData = new GridData(GridData.FILL_BOTH);
     gridData.horizontalSpan = 4;
+    folder.setLayoutData(gridData);
+    folder.setBackground(Colors.background);
+    
+    TabItem plot_item = new TabItem(folder, SWT.NULL);
+    plot_item.setText( "Pings" );
+    
+    Canvas plotCanvas = new Canvas(folder,SWT.NO_BACKGROUND);
+    gridData = new GridData(GridData.FILL_BOTH);
     plotCanvas.setLayoutData(gridData);
     
     ValueFormater speed_formatter = 
@@ -270,10 +287,24 @@ public class TransferStatsView extends AbstractIView {
 		    
     ValueFormater[] formatters = new ValueFormater[]{ speed_formatter, speed_formatter, time_formatter };
     
-    plotGraph = new Plot3D( new String[]{ "up", "down", "ping" }, formatters );
+    String[] labels = new String[]{ "up", "down", "ping" };
+    
+    plotGraph = new Plot3D( labels, formatters );
     
     plotGraph.initialize(plotCanvas);
     
+    plot_item.setControl( plotCanvas );
+    
+    TabItem zones_item = new TabItem(folder, SWT.NULL);
+    zones_item.setText( "Zones" );
+    
+    Canvas zoneCanvas = new Canvas(folder,SWT.NO_BACKGROUND);
+    gridData = new GridData(GridData.FILL_BOTH);
+    zoneCanvas.setLayoutData(gridData);
+
+    zone_view = new zoneView( zoneCanvas, labels, formatters );
+    
+    zones_item.setControl( zoneCanvas );
     
     autoSpeedDisabledPanel = new Composite(autoSpeedPanel,SWT.NULL);
     autoSpeedDisabledPanel.setLayout(new GridLayout());
@@ -407,6 +438,7 @@ public class TransferStatsView extends AbstractIView {
         average = average / sources.length;        
         pingGraph.refresh();        
         plotGraph.refresh();
+        zone_view.refresh();
         currentPing.setText(average + " ms");
         idlePing.setText(speedManager.getIdlePingMillis() + " ms");
         maxPing.setText(speedManager.getMaxPingMillis() + " ms");
@@ -435,6 +467,8 @@ public class TransferStatsView extends AbstractIView {
         int[][]	history = speedManager.getPingHistory();
         
         plotGraph.update(history);
+        
+        zone_view.update( speedManager.getPingZones());
       }
     }
   }
@@ -442,6 +476,173 @@ public class TransferStatsView extends AbstractIView {
   public String getData() {
     return "TransferStatsView.title.full";
   }
-    
+
+  class
+  zoneView
+  {
+	  private SpeedManagerPingZone[] zones = new SpeedManagerPingZone[0];
+	  
+
+	  private Canvas			canvas;
+	  
+	  private ValueFormater[] formatters;
+
+	  private String[] labels;
+
+	  protected
+	  zoneView(
+		  Canvas 			_canvas,
+		  String[]			_labels,
+		  ValueFormater[]	_formatters )
+	  {
+		  canvas		= _canvas;
+		  labels		= _labels;
+		  formatters	= _formatters;
+	  }
+
+	  protected void
+	  update(
+		SpeedManagerPingZone[]	_zones )
+	  {
+		  zones	= _zones;
+	  }
+	  
+	  private void
+	  refresh()
+	  {
+		  final int	PAD_TOP		= 10;
+		  final int	PAD_BOTTOM	= 10;
+		  final int	PAD_RIGHT	= 10;
+		  final int	PAD_LEFT	= 10;
+
+		  if ( canvas.isDisposed()){
+
+			  return;
+		  }
+
+		  Rectangle bounds = canvas.getClientArea();
+
+		  if ( bounds.height < 1 || bounds.height < 1 ){
+
+			  return;
+		  }
+
+		  GC canvas_gc = new GC(canvas);
+
+		  Image image = new Image( canvas.getDisplay(), bounds );
+
+		  int usable_width 	= bounds.width - PAD_LEFT - PAD_RIGHT;
+		  int usable_height	= bounds.height - PAD_TOP - PAD_BOTTOM;
+
+		  GC gc = new GC( image );
+
+		  gc.setAntialias( SWT.ON );
+
+		  Color[] colours = plotGraph.getColours();
+
+		  int	max_x 		= 0;
+		  int	max_y 		= 0;
+
+		  if ( zones.length > 0 ){
+			 
+			  int	max_metric	= 0;
+	
+			  for (int i=0;i<zones.length;i++){
+	
+				  SpeedManagerPingZone zone = zones[i];
+	
+				  int	metric 	= zone.getMetric();
+	
+				  if ( metric > 0 ){
+	
+					  max_metric = Math.max( max_metric, metric );
+	
+					  max_x = Math.max( max_x, zone.getUploadEndKBPerSec());
+					  max_y = Math.max( max_y, zone.getDownloadEndKBPerSec());
+				  }
+			  }
+
+			  if ( max_x > 0 && max_y > 0 ){
+			  
+				  for (int i=0;i<zones.length;i++){
+		
+					  SpeedManagerPingZone zone = zones[i];
+		
+					  int	metric 	= zone.getMetric();
+					  int	x1		= zone.getUploadStartKBPerSec();
+					  int	y1 		= zone.getDownloadStartKBPerSec();
+					  int	x2 		= zone.getUploadEndKBPerSec();
+					  int	y2		= zone.getDownloadEndKBPerSec();
+							  
+					  if ( metric > 0 ){
+		
+						  int	colour_index = (int)((float)metric*colours.length/max_metric);
+		
+						  if ( colour_index >= colours.length ){
+		
+							  colour_index = colours.length-1;
+						  }
+		
+						  gc.setBackground( colours[colour_index] );
+		
+						  gc.fillRectangle(
+								  PAD_LEFT + x1*usable_width/max_x, 
+								  PAD_TOP  + y1*usable_height/max_y,
+								  (x2-x1+1)*usable_width/max_x, 
+								  (y2-y1+1)*usable_height/max_y );
+					  }
+				  }
+			  }
+		  }
+
+		  int font_height 	= gc.getFontMetrics().getHeight();
+		  int char_width 	= gc.getFontMetrics().getAverageCharWidth();
+		  
+		  	// x axis
+
+		  int x_axis_left_x = PAD_LEFT;
+		  int x_axis_left_y = usable_height + PAD_TOP;
+
+		  int x_axis_right_x = PAD_LEFT + usable_width;
+		  int x_axis_right_y = x_axis_left_y;
+
+
+		  gc.drawLine( x_axis_left_x, x_axis_left_y, x_axis_right_x, x_axis_right_y );
+		  gc.drawLine( usable_width, x_axis_right_y - 4, x_axis_right_x, x_axis_right_y );
+		  gc.drawLine( usable_width, x_axis_right_y + 4, x_axis_right_x, x_axis_right_y );
+
+		  String x_text = labels[0] + " - " + formatters[0].format( max_x+1 );
+
+		  gc.drawText( 	x_text, 
+				  		x_axis_right_x - 20 - x_text.length()*char_width, 
+				  		x_axis_right_y - font_height - 2, 
+				  		SWT.DRAW_TRANSPARENT );
+
+		  	// y axis
+
+		  int y_axis_bottom_x = PAD_LEFT;
+		  int y_axis_bottom_y = usable_height + PAD_TOP;
+
+		  int y_axis_top_x 	= PAD_LEFT;
+		  int y_axis_top_y 	= PAD_TOP;
+
+		  gc.drawLine( y_axis_bottom_x, y_axis_bottom_y, y_axis_top_x, y_axis_top_y );
+
+		  gc.drawLine( y_axis_top_x-4, y_axis_top_y+4,	y_axis_top_x, y_axis_top_y );
+		  gc.drawLine( y_axis_top_x+4, y_axis_top_y+4,	y_axis_top_x, y_axis_top_y );
+
+		  String	y_text = labels[1] + " - " + formatters[1].format( max_y+1 );
+
+		  gc.drawText( y_text, y_axis_top_x+4, y_axis_top_y + 2, SWT.DRAW_TRANSPARENT );
+
+		  gc.dispose();
+
+		  canvas_gc.drawImage( image, bounds.x, bounds.y );
+
+		  image.dispose();
+
+		  canvas_gc.dispose();   	
+	  }
+  }
 }
 

@@ -23,7 +23,6 @@
 
 package org.gudy.azureus2.ui.swt.components.graphics;
 
-import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
@@ -101,6 +100,12 @@ Plot3D
 		}
 	}
 
+	public Color[]
+	getColours()
+	{
+		return( colours );
+	}
+	
 	public void 
 	refresh()
 	{
