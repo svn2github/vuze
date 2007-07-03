@@ -1,5 +1,5 @@
 /*
- * Created on Jul 2, 2007
+ * Created on Jul 3, 2007
  * Created by Paul Gardner
  * Copyright (C) 2007 Aelitis, All Rights Reserved.
  *
@@ -24,23 +24,14 @@
 package com.aelitis.azureus.core.speedmanager;
 
 public interface 
-SpeedManagerPingZone 
+SpeedManagerPingMapper 
 {
-	public int
-	getUploadStartKBPerSec();
+	public String
+	getName();
 	
-	public int
-	getUploadEndKBPerSec();
-	
-	public int
-	getDownloadStartKBPerSec();
-	
-	public int
-	getDownloadEndKBPerSec();
-	
-	public int
-	getMetric();
-	
-	public int
-	getHits();
+	public int[][]
+	getHistory();
+	         	
+	public SpeedManagerPingZone[]
+	getZones();
 }

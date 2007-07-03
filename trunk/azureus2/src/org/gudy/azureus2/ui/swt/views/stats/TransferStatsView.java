@@ -23,6 +23,8 @@ package org.gudy.azureus2.ui.swt.views.stats;
 
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
@@ -56,6 +58,7 @@ import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
+import com.aelitis.azureus.core.speedmanager.SpeedManagerPingMapper;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingSource;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingZone;
 
@@ -67,6 +70,7 @@ public class TransferStatsView extends AbstractIView {
   GlobalManager manager;
   AzureusCore core;
   GlobalManagerStats stats;
+  SpeedManager speedManager;
   
   OverallStats totalStats;
   
@@ -80,8 +84,9 @@ public class TransferStatsView extends AbstractIView {
   Composite autoSpeedInfoPanel;
   Composite autoSpeedDisabledPanel;
   PingGraphic pingGraph;
-  Plot3D plotGraph;
-  zoneView zone_view;
+
+  plotView[]	plot_views;
+  zoneView[] 	zone_views;
   
   BufferedLabel idlePing,maxPing,maxUp,currentPing;
   
@@ -95,6 +100,8 @@ public class TransferStatsView extends AbstractIView {
     this.manager = manager;
     this.stats = manager.getStats();
     this.totalStats = StatsFactory.getStats();
+    
+    speedManager = core.getSpeedManager();
   }
   
   public void initialize(Composite composite) {
@@ -256,13 +263,6 @@ public class TransferStatsView extends AbstractIView {
     folder.setLayoutData(gridData);
     folder.setBackground(Colors.background);
     
-    TabItem plot_item = new TabItem(folder, SWT.NULL);
-    plot_item.setText( "Pings" );
-    
-    Canvas plotCanvas = new Canvas(folder,SWT.NO_BACKGROUND);
-    gridData = new GridData(GridData.FILL_BOTH);
-    plotCanvas.setLayoutData(gridData);
-    
     ValueFormater speed_formatter = 
     	new ValueFormater()
 	    {
@@ -289,22 +289,38 @@ public class TransferStatsView extends AbstractIView {
     
     String[] labels = new String[]{ "up", "down", "ping" };
     
-    plotGraph = new Plot3D( labels, formatters );
+    SpeedManagerPingMapper[] mappers = speedManager.getMappers();
     
-    plotGraph.initialize(plotCanvas);
+    plot_views	= new plotView[mappers.length];
+    zone_views	= new zoneView[mappers.length];
     
-    plot_item.setControl( plotCanvas );
+    for (int i=0;i<mappers.length;i++){
     
-    TabItem zones_item = new TabItem(folder, SWT.NULL);
-    zones_item.setText( "Zones" );
-    
-    Canvas zoneCanvas = new Canvas(folder,SWT.NO_BACKGROUND);
-    gridData = new GridData(GridData.FILL_BOTH);
-    zoneCanvas.setLayoutData(gridData);
-
-    zone_view = new zoneView( zoneCanvas, labels, formatters );
-    
-    zones_item.setControl( zoneCanvas );
+    	SpeedManagerPingMapper mapper = mappers[i];
+    	
+	    TabItem plot_item = new TabItem(folder, SWT.NULL);
+	    
+	    plot_item.setText( "Plot " + mapper.getName());
+	    
+	    Canvas plotCanvas = new Canvas(folder,SWT.NO_BACKGROUND);
+	    gridData = new GridData(GridData.FILL_BOTH);
+	    plotCanvas.setLayoutData(gridData);
+	    
+	    plot_views[i] = new plotView( mapper, plotCanvas, labels, formatters );
+	    
+	    plot_item.setControl( plotCanvas );
+	    
+	    TabItem zones_item = new TabItem(folder, SWT.NULL);
+	    zones_item.setText( "Zones " + mapper.getName() );
+	    
+	    Canvas zoneCanvas = new Canvas(folder,SWT.NO_BACKGROUND);
+	    gridData = new GridData(GridData.FILL_BOTH);
+	    zoneCanvas.setLayoutData(gridData);
+	
+	    zone_views[i] = new zoneView( mapper, zoneCanvas, labels, formatters );
+	    
+	    zones_item.setControl( zoneCanvas );
+    }
     
     autoSpeedDisabledPanel = new Composite(autoSpeedPanel,SWT.NULL);
     autoSpeedDisabledPanel.setLayout(new GridLayout());
@@ -333,7 +349,16 @@ public class TransferStatsView extends AbstractIView {
   public void delete() {
     Utils.disposeComposite(generalPanel);
     pingGraph.dispose();
-    plotGraph.dispose();
+ 
+    for (int i=0;i<plot_views.length;i++){
+
+    	plot_views[i].dispose();
+    }
+
+    for (int i=0;i<zone_views.length;i++){
+
+    	zone_views[i].dispose();
+    }
   }
 
   public String getFullTitle() {
@@ -437,8 +462,15 @@ public class TransferStatsView extends AbstractIView {
         }
         average = average / sources.length;        
         pingGraph.refresh();        
-        plotGraph.refresh();
-        zone_view.refresh();
+        for (int i=0;i<plot_views.length;i++){
+
+        	plot_views[i].refresh();
+        }
+
+        for (int i=0;i<zone_views.length;i++){
+
+        	zone_views[i].refresh();
+        }
         currentPing.setText(average + " ms");
         idlePing.setText(speedManager.getIdlePingMillis() + " ms");
         maxPing.setText(speedManager.getMaxPingMillis() + " ms");
@@ -454,7 +486,6 @@ public class TransferStatsView extends AbstractIView {
   }
   
   public void periodicUpdate() {
-    SpeedManager speedManager = core.getSpeedManager();
     if(speedManager.isAvailable() && speedManager.isEnabled()) {
       SpeedManagerPingSource sources[] = speedManager.getPingSources();
       if(sources.length > 0) {
@@ -464,11 +495,15 @@ public class TransferStatsView extends AbstractIView {
         }
         pingGraph.addIntsValue(pings);
         
-        int[][]	history = speedManager.getPingHistory();
+        for (int i=0;i<plot_views.length;i++){
+        	
+        	plot_views[i].update();
+        }
         
-        plotGraph.update(history);
-        
-        zone_view.update( speedManager.getPingZones());
+        for (int i=0;i<zone_views.length;i++){
+        	
+        	zone_views[i].update();
+        }
       }
     }
   }
@@ -478,11 +513,53 @@ public class TransferStatsView extends AbstractIView {
   }
 
   class
+  plotView
+  {
+	  private SpeedManagerPingMapper	mapper;
+	  private Plot3D 					plotGraph;
+	  
+	  protected
+	  plotView(
+		  SpeedManagerPingMapper	_mapper,
+		  Canvas					_canvas,
+		  String[]					_labels,
+		  ValueFormater[]			_formatters )
+	  {
+		  mapper	= _mapper;
+		  
+		  plotGraph = new Plot3D( _labels, _formatters );
+
+		  plotGraph.initialize(_canvas);
+	  }
+	  
+	  protected void
+	  update()
+	  {
+		  int[][]	history = mapper.getHistory();
+
+		  plotGraph.update(history);
+	  }
+	  
+	  protected void
+	  refresh()
+	  {
+		  plotGraph.refresh();
+	  }
+	  
+	  protected void
+	  dispose()
+	  {
+		  plotGraph.dispose();
+	  }
+  }
+  
+  class
   zoneView
   {
+	  private SpeedManagerPingMapper	mapper;
+	  
 	  private SpeedManagerPingZone[] zones = new SpeedManagerPingZone[0];
 	  
-
 	  private Canvas			canvas;
 	  
 	  private ValueFormater[] formatters;
@@ -491,20 +568,21 @@ public class TransferStatsView extends AbstractIView {
 
 	  protected
 	  zoneView(
-		  Canvas 			_canvas,
-		  String[]			_labels,
-		  ValueFormater[]	_formatters )
+		  SpeedManagerPingMapper		_mapper,
+		  Canvas 						_canvas,
+		  String[]						_labels,
+		  ValueFormater[]				_formatters )
 	  {
+		  mapper		= _mapper;
 		  canvas		= _canvas;
 		  labels		= _labels;
 		  formatters	= _formatters;
 	  }
 
 	  protected void
-	  update(
-		SpeedManagerPingZone[]	_zones )
+	  update()
 	  {
-		  zones	= _zones;
+		  zones	= mapper.getZones();
 	  }
 	  
 	  private void
@@ -538,7 +616,11 @@ public class TransferStatsView extends AbstractIView {
 
 		  gc.setAntialias( SWT.ON );
 
-		  Color[] colours = plotGraph.getColours();
+		  int font_height 	= gc.getFontMetrics().getHeight();
+		  int char_width 	= gc.getFontMetrics().getAverageCharWidth();
+
+
+		  Color[] colours = plot_views[0].plotGraph.getColours();
 
 		  int	max_x 		= 0;
 		  int	max_y 		= 0;
@@ -564,6 +646,11 @@ public class TransferStatsView extends AbstractIView {
 
 			  if ( max_x > 0 && max_y > 0 ){
 			  
+				  double x_ratio = (double)usable_width/max_x;
+				  double y_ratio = (double)usable_height/max_y;
+				  
+				  List	texts = new ArrayList();
+				  
 				  for (int i=0;i<zones.length;i++){
 		
 					  SpeedManagerPingZone zone = zones[i];
@@ -585,18 +672,43 @@ public class TransferStatsView extends AbstractIView {
 		
 						  gc.setBackground( colours[colour_index] );
 		
-						  gc.fillRectangle(
-								  PAD_LEFT + x1*usable_width/max_x, 
-								  PAD_TOP  + y1*usable_height/max_y,
-								  (x2-x1+1)*usable_width/max_x, 
-								  (y2-y1+1)*usable_height/max_y );
+						  int	x 		= PAD_LEFT + (int)(x1*x_ratio);
+						  int	y 		= PAD_TOP  + (int)(y1*y_ratio);
+						  int	width 	= (int)Math.ceil((x2-x1+1)*x_ratio);
+						  int	height	= (int)Math.ceil((y2-y1+1)*y_ratio );
+						  
+						  int	y_draw = usable_height + PAD_TOP + PAD_TOP - y - height;
+						  
+						  gc.fillRectangle( x, y_draw, width, height );
+						  
+						  int hits = zone.getHits();
+						  
+						  if ( hits > 1 ){
+							  
+							  String	str = String.valueOf(hits);
+							  
+							  texts.add( 
+									  new Object[]{ 
+										str, 
+										new int[]{
+											x + ((width-str.length()*char_width)/2),
+											y_draw + ((height-font_height)/2)
+										}
+									  });
+						  }
 					  }
+				  }
+				  
+				  for (int i=0;i<texts.size();i++){
+					  
+					  Object[]	entry = (Object[])texts.get(i);
+					  
+					  int[]	coords = (int[])entry[1];
+					  
+					  gc.drawText((String)entry[0], coords[0], coords[1], SWT.DRAW_TRANSPARENT );
 				  }
 			  }
 		  }
-
-		  int font_height 	= gc.getFontMetrics().getHeight();
-		  int char_width 	= gc.getFontMetrics().getAverageCharWidth();
 		  
 		  	// x axis
 
@@ -611,6 +723,13 @@ public class TransferStatsView extends AbstractIView {
 		  gc.drawLine( usable_width, x_axis_right_y - 4, x_axis_right_x, x_axis_right_y );
 		  gc.drawLine( usable_width, x_axis_right_y + 4, x_axis_right_x, x_axis_right_y );
 
+		  for (int i=1;i<10;i++){
+			  
+			  int	x = x_axis_left_x + ( x_axis_right_x - x_axis_left_x )*i/10;
+			  
+			  gc.drawLine( x, x_axis_left_y, x, x_axis_left_y+4 );
+		  }
+		  
 		  String x_text = labels[0] + " - " + formatters[0].format( max_x+1 );
 
 		  gc.drawText( 	x_text, 
@@ -628,9 +747,16 @@ public class TransferStatsView extends AbstractIView {
 
 		  gc.drawLine( y_axis_bottom_x, y_axis_bottom_y, y_axis_top_x, y_axis_top_y );
 
-		  gc.drawLine( y_axis_top_x-4, y_axis_top_y+4,	y_axis_top_x, y_axis_top_y );
-		  gc.drawLine( y_axis_top_x+4, y_axis_top_y+4,	y_axis_top_x, y_axis_top_y );
+		  gc.drawLine( y_axis_top_x-4, y_axis_top_y+PAD_TOP,	y_axis_top_x, y_axis_top_y );
+		  gc.drawLine( y_axis_top_x+4, y_axis_top_y+PAD_TOP,	y_axis_top_x, y_axis_top_y );
 
+		  for (int i=1;i<10;i++){
+			  
+			  int	y = y_axis_bottom_y + ( y_axis_top_y - y_axis_bottom_y )*i/10;
+			  
+			  gc.drawLine( y_axis_bottom_x, y, y_axis_bottom_x-4, y );
+		  }
+		  
 		  String	y_text = labels[1] + " - " + formatters[1].format( max_y+1 );
 
 		  gc.drawText( y_text, y_axis_top_x+4, y_axis_top_y + 2, SWT.DRAW_TRANSPARENT );
@@ -642,6 +768,11 @@ public class TransferStatsView extends AbstractIView {
 		  image.dispose();
 
 		  canvas_gc.dispose();   	
+	  }
+	  
+	  protected void
+	  dispose()
+	  {
 	  }
   }
 }

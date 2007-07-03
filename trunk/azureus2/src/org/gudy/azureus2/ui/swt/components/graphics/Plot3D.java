@@ -205,17 +205,24 @@ Plot3D
 			
 			int x_axis_left_x = PAD_LEFT;
 			int x_axis_left_y = usable_height + PAD_TOP;
-
 			int x_axis_right_x = PAD_LEFT + usable_width;
 			int x_axis_right_y	= usable_height + PAD_TOP;
 			
 
 			int y_axis_left_x = PAD_LEFT;
-			int y_axis_left_y = usable_height + PAD_TOP;
-			
+			int y_axis_left_y = usable_height + PAD_TOP;			
 			int y_axis_right_x = PAD_LEFT + (int)((usable_height/2) / ANGLE_TAN );
 			int y_axis_right_y = usable_height / 2;
 			
+			int z_axis_bottom_x = PAD_LEFT;
+			int z_axis_bottom_y = usable_height + PAD_TOP;
+			int z_axis_top_x	= PAD_LEFT;
+			int z_axis_top_y	= PAD_TOP;
+			
+			image.drawLine( z_axis_bottom_x, z_axis_bottom_y, z_axis_top_x, z_axis_top_y );
+			image.drawLine( PAD_LEFT-4, PAD_TOP + PAD_BOTTOM, PAD_LEFT, PAD_TOP );
+			image.drawLine( PAD_LEFT+4, PAD_TOP + PAD_BOTTOM, PAD_LEFT, PAD_TOP );
+
 			Rectangle old_clip = image.getClipping();
 
 			image.setClipping( new Rectangle( PAD_LEFT, PAD_RIGHT, usable_width, usable_height ));
@@ -249,6 +256,15 @@ Plot3D
 			}
 			
 			image.setClipping( old_clip );
+			
+			int	z_lines = 10;
+
+			for (int i=1;i<z_lines;i++){
+
+				int	z = z_axis_bottom_y + ( z_axis_top_y - z_axis_bottom_y )*i/z_lines;
+
+				image.drawLine( z_axis_bottom_x, z, z_axis_bottom_x-4, z );
+			}
 			
 				// now values
 			
