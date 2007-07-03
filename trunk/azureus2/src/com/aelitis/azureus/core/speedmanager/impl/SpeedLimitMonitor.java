@@ -293,6 +293,11 @@ public class SpeedLimitMonitor
             return startLimitTesting(currUpLimit, currDownLimit);
         }
 
+        if( !isUploadMaxPinned || !isDownloadMaxPinned ){
+            return calculateNewUnpinnedLimits(signalStrength);
+        }
+
+
         slider.updateLimits(uploadLinespeedCapacity,uploadLimitMin,
                 downloadLinespeedCapacity,downloadLimitMin);
         slider.updateStatus(currUpLimit,uploadLimitSettingStatus,
@@ -301,6 +306,8 @@ public class SpeedLimitMonitor
         return slider.adjust( signalStrength*multiple );
     }//modifyLimits
 
+    
+//ToDo: remove if method is no longer needed.
     /**
      * Here we need to handle several cases.
      * (a) If the download bandwidth is HIGH, then we need to back off on the upload limit to 80% of max.
@@ -336,7 +343,7 @@ public class SpeedLimitMonitor
             SpeedManagerLogger.trace("seeding mode usedUploadLimit="+usedUploadLimit
                     +" % used="+percentUploadCapacitySeedingMode);
         }
-        
+
         if(usedUploadLimit<5120){
             usedUploadLimit=5120;
         }
@@ -403,6 +410,7 @@ public class SpeedLimitMonitor
         int newDownloadLimit = Math.round( newLimit*usedUpDownRatio );
         return new Update(newLimit, true, newDownloadLimit, true );
     }
+
 
     /**
      * Log debug info needed during beta period.
@@ -1027,6 +1035,12 @@ public class SpeedLimitMonitor
                         SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT,
                         newLimit);
 
+                //Automatically set the confidence limit back to LOW
+                COConfigurationManager.setParameter(
+                        SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING,
+                        SpeedLimitConfidence.LOW.getString() );
+
+
             }else{
                 //we have high confidence in these limits, don't change them.
                 SpeedManagerLogger.trace(" PingSpaceMonitor - keeping same limits, since conf interval is high.");
@@ -1041,6 +1055,11 @@ public class SpeedLimitMonitor
                 COConfigurationManager.setParameter(
                         SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT,
                         newLimit);
+
+                //Automatically set the confidence limit back to LOW
+                COConfigurationManager.setParameter(
+                        SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING,
+                        SpeedLimitConfidence.LOW.getString() );
 
             }else{
                 SpeedManagerLogger.trace(" PingSpaceMonitor - keeping same limits, since conf interval is high.");
