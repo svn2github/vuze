@@ -119,9 +119,15 @@ public class PingSpaceMonitor
                     //recommend a new downloading limit.
                     newLimit = pingMap.guessDownloadLimit();
 
-                    //download limit cannot be less the 20k
-                    if(newLimit<20480){
-                        newLimit=20480;
+                    SpeedManagerLogger.trace("PingSpaceMonitor -> guessDownloadLimit: newLimit="+newLimit);
+
+                    //on cable modems uploads can be over-estimated by 3x. 
+                    int uploadLimitGuess = pingMap.guessUploadLimit();
+                    SpeedManagerLogger.trace("PingSpaceMonitor -> guessUploadLimit: guessUploadLimit="+uploadLimitGuess);
+
+                    //download limit cannot be less the 40k
+                    if(newLimit<40960){
+                        newLimit=40960;
                     }
 
                     hasNewLimit = true;
@@ -134,8 +140,8 @@ public class PingSpaceMonitor
                     newLimit = pingMap.guessUploadLimit();
 
                     //upload limit cannot be less the 20k
-                    if(newLimit<5120){
-                        newLimit=5120;
+                    if(newLimit<20480){
+                        newLimit=20480;
                     }
 
                     hasNewLimit = true;

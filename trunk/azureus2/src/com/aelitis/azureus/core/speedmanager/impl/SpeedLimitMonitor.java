@@ -535,7 +535,8 @@ public class SpeedLimitMonitor
 
                 if( isUploadConfidenceLow() ){
                     if( !transferMode.isDownloadMode() ){
-                        triggerLimitTestingFlag();
+                        //triggerLimitTestingFlag();//ToDo: restore after test.
+                        isUploadMaxPinned = false; //slower search to prevent over-estimates on cable modem.
                     }
                 }else{
                     //Don't unpin the limit is we have absolute confidence in it.
