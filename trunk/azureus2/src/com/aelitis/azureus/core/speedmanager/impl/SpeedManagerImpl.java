@@ -64,6 +64,12 @@ SpeedManagerImpl
 	private static final int CONTACT_NUMBER		= 3;
 	private static final int CONTACT_PING_SECS	= 5;
 	
+	private static final int LONG_PERIOD_SECS	= 30*60;
+	private static final int SHORT_PERIOD_SECS	= 30;
+	
+	private static final int LONG_PERIOD_TICKS 	= LONG_PERIOD_SECS / CONTACT_PING_SECS;
+	private static final int SHORT_PERIOD_TICKS = SHORT_PERIOD_SECS / CONTACT_PING_SECS;
+	
 		// config items start
 	
 	private static boolean				DEBUG;
@@ -113,11 +119,11 @@ SpeedManagerImpl
 	
 	private AsyncDispatcher	dispatcher = new AsyncDispatcher();
 
-	private pingMapper		long_ping_abs_mapper 	= new pingMapper( "l_abs", 1000, false );
-	private pingMapper		short_ping_abs_mapper 	= new pingMapper( "s_abs", 10, false );
+	private pingMapper		long_ping_abs_mapper 	= new pingMapper( "l_abs", LONG_PERIOD_TICKS, false );
+	private pingMapper		short_ping_abs_mapper 	= new pingMapper( "s_abs", SHORT_PERIOD_TICKS, false );
 	
-	private pingMapper		long_ping_var_mapper 	= new pingMapper( "l_var", 1000, true);
-	private pingMapper		short_ping_var_mapper 	= new pingMapper( "s_var", 10, true );
+	private pingMapper		long_ping_var_mapper 	= new pingMapper( "l_var", LONG_PERIOD_TICKS, true);
+	private pingMapper		short_ping_var_mapper 	= new pingMapper( "s_var", SHORT_PERIOD_TICKS, true );
 
 	private pingMapper[] ping_mappers = 
 		new pingMapper[]{ 
@@ -726,7 +732,7 @@ SpeedManagerImpl
 		
 		private int	ping_count;
 		
-		long[]	pings;
+		private pingValue[]	pings;
 		
 		private List	regions;
 			
@@ -746,7 +752,7 @@ SpeedManagerImpl
 			MAX_PINGS 	= _entries;
 			variance	= _variance;
 			
-			pings	= new long[MAX_PINGS];
+			pings	= new pingValue[MAX_PINGS];
 			
 			init();
 		}
@@ -843,32 +849,32 @@ SpeedManagerImpl
 				
 				for (int i=0;i<ping_count;i++){
 					
-					long	p = pings[i];
+					pingValue	p = pings[i];
+										
+					p.setIndex( i );
 					
-					p = setPingIndex( p, i );
-					
-					addPingSupport( getPingX(p), getPingY(p),getPingMetric(p), p );
+					addPing( p );
 				}
 			}
 			
 			int	index = ping_count++;
 			
-			long	ping = createPing( x, y, metric, index );
+			pingValue	ping = new pingValue( x, y, metric, index );
 
 			pings[index] = ping;
 			
-			addPingSupport( x, y, metric, ping );
+			addPing( ping );
 		}
 		
 		protected void
-		addPingSupport(
-			int		x,
-			int		y,
-			int		metric,
-			long	ping )
+		addPing(
+			pingValue	ping )
 		{			
 			region hit = null;
-						
+					
+			int	x = ping.getX();
+			int	y = ping.getY();
+			
 			for (int i=0;i<regions.size();i++){
 				
 				region r = (region)regions.get(i);
@@ -888,18 +894,15 @@ SpeedManagerImpl
 				return;
 			}
 			
-			addPing( hit, x, y, metric, ping );
+			addPing( hit, ping );
 		}
 		
 		protected void
 		addPing(
-			region	r,
-			int		x,
-			int		y,
-			int		metric,
-			long	ping )
+			region		r,
+			pingValue	ping )
 		{
-			long[]	existing_pings = r.getPings();
+			pingValue[]	existing_pings = r.getPings();
 			
 			if ( existing_pings == null ){
 				
@@ -935,9 +938,9 @@ SpeedManagerImpl
 			
 			for (int i=0;i<existing_pings.length;i++){
 				
-				long	p = existing_pings[i];
+				pingValue	p = existing_pings[i];
 				
-				int	p_metric = getPingMetric( p );
+				int	p_metric = p.getMetric();
 				
 				if ( p_metric < min_existing ){
 					
@@ -951,6 +954,8 @@ SpeedManagerImpl
 			}
 			
 				// X% bigger than smallest and X% smaller than biggest
+			
+			int	metric = ping.getMetric();
 			
 			boolean	merge = 
 					( metric >= min_existing && metric <= min_existing + min_existing*NEAR_PERCENT/100 ) ||
@@ -992,44 +997,35 @@ SpeedManagerImpl
 			
 			addRegion( r2 );
 			
+			int	x = ping.getX();
+			int y = ping.getY();
+			
 			if ( r1.contains( x, y )){
 				
-				addPing( r1, x, y, metric, ping );
+				addPing( r1, ping );
 				
 				//System.out.println( "    splitting regions -> " + r1.getString() );
 
 			}else{
 				
-				addPing( r2, x, y, metric, ping );
+				addPing( r2, ping );
 				
 				//System.out.println( "    splitting regions -> " + r2.getString() );
 			}
 		}
 		
-		protected long
-		createPing(
-			int		x,
-			int		y,
-			int		p_metric,
-			int		index )
-		{
-			return( ((long)x) | 
-					(((long)y<< 16) &0x00000000ffff0000L) |
-					(((long)p_metric<<32)&0x0000ffff00000000L) |
-					(((long)index<<48)&0xffff000000000000L));
-		}
 		
 		protected void
 		splitPings(
-			long[]	pings,
-			region	r1,
-			region	r2 )
+			pingValue[]	pings,
+			region		r1,
+			region		r2 )
 		{
 			for (int i=0;i<pings.length;i++){
 			
-				long	ping = pings[i];
+				pingValue	ping = pings[i];
 				
-				if ( r1.contains( getPingX( ping ), getPingY( ping ))){
+				if ( r1.contains( ping.getX(), ping.getY())){
 					
 					r1.addPing( ping );
 					
@@ -1051,7 +1047,7 @@ SpeedManagerImpl
 				
 				region r = (region)it.next();
 				
-				long[] pings = r.getPings();
+				pingValue[] pings = r.getPings();
 					
 				if ( pings == null ){
 					
@@ -1060,9 +1056,9 @@ SpeedManagerImpl
 				
 				for (int i=0;i<pings.length;i++){
 				
-					long	ping = pings[i];
+					pingValue	ping = pings[i];
 				
-					result.add( new int[]{ 1024*getPingX( ping ), 1024*getPingY(ping), getPingMetric( ping )} );
+					result.add( new int[]{ 1024*ping.getX(), 1024*ping.getY(), ping.getMetric()} );
 				}
 			}
 			
@@ -1075,48 +1071,102 @@ SpeedManagerImpl
 			return((SpeedManagerPingZone[])regions.toArray( new SpeedManagerPingZone[regions.size()] ));
 		}
 		
-		protected int
-		getPingX(
-			long	ping )
+		public int
+		getEstimatedUploadLimit()
 		{
-			return(((int)(ping))&0x0000ffff );
+			return( 0 );
 		}
 		
-		protected int
-		getPingY(
-			long	ping )
+		public int
+		getEstimatedDownloadLimit()
 		{
-			return(((int)(ping>>16))&0x0000ffff );
+			return( 0 );
+		}
+
+		public synchronized double
+		getCurrentMetricRating()
+		{
+			int	latest_metric = pings[ping_count-1].getMetric();
+			
+			if ( variance ){
+				
+				if ( latest_metric < 50 ){
+					
+					return( -1 );
+					
+				}else if ( latest_metric > 150 ){
+					
+					return( +1 );
+					
+				}else{
+					
+					return( ((double)latest_metric - 50 )/50 - 1 );
+				}
+			}else{
+				
+				pingValue[] p = (pingValue[])pings.clone();
+				
+				if ( ping_count < 3 ){
+					
+					return(0);
+				}
+				
+				Arrays.sort(
+					p,
+					0,
+					ping_count,
+					new Comparator()
+					{
+						public int 
+						compare(
+							Object o1, 
+							Object o2 ) 
+						{
+							return(((pingValue)o1).getMetric()-((pingValue)o2).getMetric());
+						}
+					});
+				
+				int	p1 = ping_count/3;
+				int	p2 = ping_count*2/3;
+				
+				long	total1 = 0;
+				
+				for (int i=0;i<p1;i++){
+				
+					total1 += p[i].getMetric();
+				}
+				
+				long	a1 = total1/p1;
+								
+				long	total3 = 0;
+				
+				for (int i=p1;i<ping_count;i++){
+				
+					total3 += p[i].getMetric();
+				}
+				
+				long	a3 = total3/(ping_count-p2);
+				
+				if ( latest_metric <= a1 ){
+					
+					return( -1 );
+					
+				}else if ( latest_metric >= a3 ){
+					
+					return( +1 );
+					
+				}else{
+					
+					long	diff = a3 - a1;
+					
+					double	pos = latest_metric - a1;
+					
+					return(( pos / (diff/2)) - 1 );
+				}
+			}
 		}
 		
-		protected int
-		getPingMetric(
-			long	ping )
-		{
-			return(((int)(ping>>32))&0x0000ffff );
-		}
-		
-		protected int
-		getPingIndex(
-			long	ping )
-		{
-			return(((int)(ping>>48))&0x0000ffff );
-		}
-		
-		protected long
-		setPingIndex(
-			long	ping,
-			int		index )
-		{
-			return(( ping&0x0000ffffffffffffL ) | (index<<48));
-		}
-		
-		protected String
-		getPingString(
-			long	ping )
-		{
-			return("x=" + getPingX(ping)+",y=" + getPingY(ping) +",m=" + getPingMetric( ping ));
-		}
+
 		
 		protected void
 		addRegion(
@@ -1256,6 +1306,65 @@ SpeedManagerImpl
 		}
 		
 		class
+		pingValue
+		{
+			private short	x;
+			private short	y;
+			private short	metric;
+			private short	index;
+			
+			protected
+			pingValue(
+				int		_x,
+				int		_y,
+				int		_m,
+				int		_i )
+			{
+				x		= (short)_x;
+				y		= (short)_y;
+				metric	= (short)_m;
+				index	= (short)_i;
+			}
+			
+			protected int
+			getX()
+			{
+				return(((int)(x))&0xffff );
+			}
+			
+			protected int
+			getY()
+			{
+				return(((int)(y))&0xffff );
+			}
+			
+			protected int
+			getMetric()
+			{
+				return(((int)(metric))&0xffff );
+			}
+			
+			protected int
+			getIndex()
+			{
+				return(((int)(index))&0xffff );
+			}
+			
+			protected void
+			setIndex(
+				int		i )
+			{
+				index	= (short)i;
+			}
+			
+			protected String
+			getString()
+			{
+				return("x=" + getX()+",y=" + getY() +",m=" + getMetric());
+			}
+		}
+		
+		class
 		region
 			implements SpeedManagerPingZone
 		{
@@ -1264,7 +1373,7 @@ SpeedManagerImpl
 			private short		x2;
 			private short		y2;
 			
-			private long[]		pings;
+			private pingValue[]		pings;
 			
 			protected
 			region(
@@ -1303,30 +1412,23 @@ SpeedManagerImpl
 				return(((int)y2)&0xffff );
 			}
 			
-			public long[]
+			public pingValue[]
 			getPings()
 			{
 				return( pings );
 			}
 			
 			public void
-			setPings(
-				long[]	_pings )
-			{
-				pings = _pings;
-			}
-			
-			public void
 			addPing(
-				long	ping )
+				pingValue	ping )
 			{
 				if ( pings == null ){
 					
-					pings = new long[]{ ping };
+					pings = new pingValue[]{ ping };
 					
 				}else{
 					
-					long[]	new_pings = new long[pings.length+1];
+					pingValue[]	new_pings = new pingValue[pings.length+1];
 					
 					new_pings[0] = ping;
 					
@@ -1372,7 +1474,7 @@ SpeedManagerImpl
 			public int
 			getMetric()
 			{
-				long[] p = pings;
+				pingValue[] p = pings;
 				
 				if ( p == null || p.length == 0 ){
 					
@@ -1383,7 +1485,7 @@ SpeedManagerImpl
 				
 				for (int i=0;i<p.length;i++){
 					
-					total += getPingMetric( p[i] );
+					total += p[i].getMetric();
 				}
 				
 				return((int)( total/p.length ));
@@ -1392,7 +1494,7 @@ SpeedManagerImpl
 			public int
 			getHits()
 			{
-				long[] p = pings;
+				pingValue[] p = pings;
 
 				return( p==null?0:p.length );
 			}
@@ -1404,7 +1506,7 @@ SpeedManagerImpl
 				
 				for (int i=0;i<pings.length;i++){
 					
-					ping_str += (i==0?"":",") + getPingString(pings[i]);
+					ping_str += (i==0?"":",") + pings[i].getString();
 				}
 				
 				return( "x="+getX1() + ",y="+getY1()+",w=" + (getX2()-getX1()+1) +",h=" + (getY2()-getY1()+1) +",p=[" + ping_str + "]" );

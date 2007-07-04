@@ -44,6 +44,7 @@ Plot3D
 {
 	private Canvas		canvas;
 	
+	private String			title	= "";
 	private String[]		labels;
 	private ValueFormater[]	formatters;
 	
@@ -100,6 +101,13 @@ Plot3D
 		}
 	}
 
+	public void
+	setTitle(
+		String	str )
+	{
+		title	= str;
+	}
+	
 	public Color[]
 	getColours()
 	{
@@ -302,13 +310,17 @@ Plot3D
 
 			String x_text = labels[0] + " - " + formatters[0].format( max_x );
 			
-			image.drawText( x_text, x_axis_right_x - 20 - x_text.length()*char_width, x_axis_right_y - font_height - 2 );
+			image.drawText( 
+					x_text, 
+					x_axis_right_x - 20 - x_text.length()*char_width, 
+					x_axis_right_y - font_height - 2,
+					SWT.DRAW_TRANSPARENT );
 			
 				// z axis
 			
 			String z_text = labels[2] + " - " + formatters[2].format( max_z );
 			
-			image.drawText( z_text, PAD_LEFT + 4, PAD_TOP + 10 );
+			image.drawText( z_text, PAD_LEFT + 4, PAD_TOP + 10, SWT.DRAW_TRANSPARENT );
 			
 			image.drawLine( PAD_LEFT, usable_height + PAD_TOP, PAD_LEFT, PAD_TOP );
 			image.drawLine( PAD_LEFT-4, PAD_TOP + PAD_BOTTOM, PAD_LEFT, PAD_TOP );
@@ -324,8 +336,14 @@ Plot3D
 			
 			String	y_text = labels[1] + " - " + formatters[1].format( max_y );
 			
-			image.drawText( y_text, y_axis_right_x - (y_text.length() * char_width), y_axis_right_y - font_height - 2);
+			image.drawText( 
+					y_text, 
+					y_axis_right_x - (y_text.length() * char_width), 
+					y_axis_right_y - font_height - 2,
+					SWT.DRAW_TRANSPARENT );
 
+
+			image.drawText( title, ( bounds.width - title.length()*char_width )/2, 1, SWT.DRAW_TRANSPARENT );
 
 			image.dispose();
 

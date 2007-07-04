@@ -45,6 +45,7 @@ import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.stats.transfer.OverallStats;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -512,6 +513,14 @@ public class TransferStatsView extends AbstractIView {
     return "TransferStatsView.title.full";
   }
 
+  protected String
+  getMapperTitle(
+		SpeedManagerPingMapper mapper )
+  {
+	  return( "ul=" + DisplayFormatters.formatByteCountToKiBEtc(mapper.getEstimatedUploadLimit()) + 
+			  ",dl="+ DisplayFormatters.formatByteCountToKiBEtc( mapper.getEstimatedDownloadLimit()) +
+			  ",mr=" + DisplayFormatters.formatDecimal( mapper.getCurrentMetricRating(),2));
+  }
   class
   plotView
   {
@@ -538,6 +547,8 @@ public class TransferStatsView extends AbstractIView {
 		  int[][]	history = mapper.getHistory();
 
 		  plotGraph.update(history);
+		  
+		  plotGraph.setTitle( getMapperTitle( mapper ));
 	  }
 	  
 	  protected void
@@ -566,6 +577,8 @@ public class TransferStatsView extends AbstractIView {
 
 	  private String[] labels;
 
+	  private String	title = "";
+	  
 	  protected
 	  zoneView(
 		  SpeedManagerPingMapper		_mapper,
@@ -583,6 +596,8 @@ public class TransferStatsView extends AbstractIView {
 	  update()
 	  {
 		  zones	= mapper.getZones();
+		  
+		  title = getMapperTitle( mapper );
 	  }
 	  
 	  private void
@@ -761,6 +776,8 @@ public class TransferStatsView extends AbstractIView {
 
 		  gc.drawText( y_text, y_axis_top_x+4, y_axis_top_y + 2, SWT.DRAW_TRANSPARENT );
 
+		  gc.drawText( title, ( bounds.width - title.length()*char_width )/2, 1, SWT.DRAW_TRANSPARENT );
+		  
 		  gc.dispose();
 
 		  canvas_gc.drawImage( image, bounds.x, bounds.y );

@@ -34,4 +34,20 @@ SpeedManagerPingMapper
 	         	
 	public SpeedManagerPingZone[]
 	getZones();
+	
+	public int
+	getEstimatedUploadLimit();
+	
+	public int
+	getEstimatedDownloadLimit();
+	
+		/**
+		 * -1 : good
+		 * +1 : bad
+		 * >-1 <+1 : relative goodness/badness
+		 * @return
+		 */
+	
+	public double
+	getCurrentMetricRating();
 }
