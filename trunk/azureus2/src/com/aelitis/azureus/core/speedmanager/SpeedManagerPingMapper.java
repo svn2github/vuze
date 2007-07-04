@@ -42,8 +42,8 @@ SpeedManagerPingMapper
 	getEstimatedDownloadLimit();
 	
 		/**
-		 * -1 : good
-		 * +1 : bad
+		 * +1 : good
+		 * -1 : bad
 		 * >-1 <+1 : relative goodness/badness
 		 * @return
 		 */

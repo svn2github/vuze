@@ -1092,15 +1092,15 @@ SpeedManagerImpl
 				
 				if ( latest_metric < 50 ){
 					
-					return( -1 );
+					return( +1 );
 					
 				}else if ( latest_metric > 150 ){
 					
-					return( +1 );
+					return( -1 );
 					
 				}else{
 					
-					return( ((double)latest_metric - 50 )/50 - 1 );
+					return( 1 - ((double)latest_metric - 50 )/50 );
 				}
 			}else{
 				
@@ -1149,11 +1149,11 @@ SpeedManagerImpl
 				
 				if ( latest_metric <= a1 ){
 					
-					return( -1 );
+					return( +1 );
 					
 				}else if ( latest_metric >= a3 ){
 					
-					return( +1 );
+					return( -1 );
 					
 				}else{
 					
@@ -1161,7 +1161,7 @@ SpeedManagerImpl
 					
 					double	pos = latest_metric - a1;
 					
-					return(( pos / (diff/2)) - 1 );
+					return( 1 - ( pos / (diff/2)));
 				}
 			}
 		}
