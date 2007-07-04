@@ -56,9 +56,9 @@ public class SpeedLimitMonitor
 {
 
     //use for home network.
-    private int uploadLinespeedCapacity = 40000;
+    private int uploadLimitMax = 40000;
     private int uploadLimitMin = 5000;
-    private int downloadLinespeedCapacity = 80000;
+    private int downloadLimitMax = 80000;
     private int downloadLimitMin = 8000;
 
     private static float upDownRatio=2.0f;
@@ -120,13 +120,13 @@ public class SpeedLimitMonitor
 
     public void updateFromCOConfigManager(){
 
-        uploadLinespeedCapacity = COConfigurationManager.getIntParameter(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT);
+        uploadLimitMax = COConfigurationManager.getIntParameter(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT);
         uploadLimitMin=COConfigurationManager.getIntParameter(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT);
-        downloadLinespeedCapacity =COConfigurationManager.getIntParameter(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT);
+        downloadLimitMax =COConfigurationManager.getIntParameter(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT);
         downloadLimitMin=COConfigurationManager.getIntParameter(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MIN_LIMIT);
 
         //tie the upload and download ratios together.
-        upDownRatio = ( (float) downloadLinespeedCapacity /(float) uploadLinespeedCapacity);
+        upDownRatio = ( (float) downloadLimitMax /(float) uploadLimitMax);
         COConfigurationManager.setParameter(
                 SpeedManagerAlgorithmProviderV2.SETTING_V2_UP_DOWN_RATIO, upDownRatio);
 
@@ -159,25 +159,25 @@ public class SpeedLimitMonitor
     }
 
     public void setDownloadLimitSettingMode(int currLimit){
-        downloadLimitSettingStatus = SaturatedMode.getSaturatedMode(currLimit, downloadLinespeedCapacity);
+        downloadLimitSettingStatus = SaturatedMode.getSaturatedMode(currLimit, downloadLimitMax);
     }
 
     public void setUploadLimitSettingMode(int currLimit){
         if( !transferMode.isDownloadMode() ){
             uploadLimitSettingStatus = SaturatedMode.getSaturatedMode(currLimit,
-                    Math.round(uploadLinespeedCapacity * percentUploadCapacitySeedingMode));
+                    Math.round(uploadLimitMax * percentUploadCapacitySeedingMode));
         }else{
             uploadLimitSettingStatus = SaturatedMode.getSaturatedMode(currLimit,
-                    uploadLinespeedCapacity);
+                    uploadLimitMax);
         }
     }
 
     public int getUploadLineCapacity(){
-        return uploadLinespeedCapacity;
+        return uploadLimitMax;
     }
 
     public int getDownloadLineCapacity(){
-        return downloadLinespeedCapacity;
+        return downloadLimitMax;
     }
 
     public int getUploadMinLimit(){
@@ -298,8 +298,8 @@ public class SpeedLimitMonitor
         }
 
 
-        slider.updateLimits(uploadLinespeedCapacity,uploadLimitMin,
-                downloadLinespeedCapacity,downloadLimitMin);
+        slider.updateLimits(uploadLimitMax,uploadLimitMin,
+                downloadLimitMax,downloadLimitMin);
         slider.updateStatus(currUpLimit,uploadLimitSettingStatus,
                 currDownLimit, downloadLimitSettingStatus);
 
@@ -332,14 +332,14 @@ public class SpeedLimitMonitor
 
         int newLimit;
 
-        int usedUploadLimit = uploadLinespeedCapacity;
+        int usedUploadLimit = uploadLimitMax;
         float usedUpDownRatio = upDownRatio;
         if( transferMode.isDownloadMode() ){
-            usedUploadLimit = Math.round( percentUploadCapacityDownloadMode * uploadLinespeedCapacity );
+            usedUploadLimit = Math.round( percentUploadCapacityDownloadMode * uploadLimitMax);
             SpeedManagerLogger.trace("download mode usedUploadLimit="+usedUploadLimit
                     +" % used="+percentUploadCapacityDownloadMode);
         }else{
-            usedUploadLimit = Math.round( percentUploadCapacitySeedingMode * uploadLinespeedCapacity );
+            usedUploadLimit = Math.round( percentUploadCapacitySeedingMode * uploadLimitMax);
             SpeedManagerLogger.trace("seeding mode usedUploadLimit="+usedUploadLimit
                     +" % used="+percentUploadCapacitySeedingMode);
         }
@@ -350,7 +350,7 @@ public class SpeedLimitMonitor
 
 
         //re-calculate the up-down ratio.
-        usedUpDownRatio = ( (float) downloadLinespeedCapacity /(float) usedUploadLimit);
+        usedUpDownRatio = ( (float) downloadLimitMax /(float) usedUploadLimit);
 
         //The amount to move it against the new limit is.
         float multi = Math.abs( signalStrength * multiple * 0.3f );
@@ -468,32 +468,49 @@ public class SpeedLimitMonitor
 
         if(updateUpload && !transferMode.isDownloadMode() ){
             //increase limit by calculated amount, but only if not in downloading mode.
-            uploadLinespeedCapacity += calculateUnpinnedStepSize(uploadLinespeedCapacity);
+            uploadLimitMax += calculateUnpinnedStepSize(uploadLimitMax);
             uploadChanged=true;
             COConfigurationManager.setParameter(
-                    SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT, uploadLinespeedCapacity);
+                    SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT, uploadLimitMax);
         }
         if(updateDownload){
             //increase limit by calculated amount.
-            downloadLinespeedCapacity += calculateUnpinnedStepSize(downloadLinespeedCapacity);
+            downloadLimitMax += calculateUnpinnedStepSize(downloadLimitMax);
             downloadChanged=true;
             COConfigurationManager.setParameter(
-                    SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT, downloadLinespeedCapacity);
+                    SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT, downloadLimitMax);
         }
 
         //apply any rules that need applied.
         //The download limit can never be less then the upload limit.
-        if( uploadLinespeedCapacity > downloadLinespeedCapacity){
-            downloadLinespeedCapacity = uploadLinespeedCapacity;
+        if( uploadLimitMax > downloadLimitMax){
+            downloadLimitMax = uploadLimitMax;
             downloadChanged=true;
+            COConfigurationManager.setParameter(
+                    SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT, downloadLimitMax);
         }
 
+        //The min rate is alway 10% of the max rate.
+        if(  uploadLimitMin*10 < uploadLimitMax){
+            //increase the upload limit min.
+            uploadLimitMin = uploadLimitMax /10;
+            COConfigurationManager.setParameter(
+                    SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT, uploadLimitMin);
+        }
+
+        if( downloadLimitMin*10 < downloadLimitMax){
+            //increase the download limit min.
+            downloadLimitMin = downloadLimitMax /10;
+            COConfigurationManager.setParameter(
+                    SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MIN_LIMIT, downloadLimitMin);
+        }
+        
         //calculate the new ratio.
-        upDownRatio = ( (float) downloadLinespeedCapacity /(float) uploadLinespeedCapacity);
+        upDownRatio = ( (float) downloadLimitMax /(float) uploadLimitMax);
         COConfigurationManager.setParameter(
                 SpeedManagerAlgorithmProviderV2.SETTING_V2_UP_DOWN_RATIO, upDownRatio);
 
-        return new Update(uploadLinespeedCapacity,uploadChanged, downloadLinespeedCapacity,downloadChanged);
+        return new Update(uploadLimitMax,uploadChanged, downloadLimitMax,downloadChanged);
     }//calculateNewUnpinnedLimits
 
     /**
@@ -673,14 +690,14 @@ public class SpeedLimitMonitor
         if( transferMode.isDownloadMode() ){
             //test the download limit.
             retVal = new Update(uploadLimitMin,true,
-                        Math.round(downloadLinespeedCapacity*1.2f),true);
-            preTestDownloadCapacity = downloadLinespeedCapacity;
+                        Math.round(downloadLimitMax *1.2f),true);
+            preTestDownloadCapacity = downloadLimitMax;
             transferMode.setMode( TransferMode.State.DOWNLOAD_LIMIT_SEARCH );
         }else{
             //test the upload limit.
-            retVal = new Update( Math.round(uploadLinespeedCapacity*1.2f),true,
+            retVal = new Update( Math.round(uploadLimitMax *1.2f),true,
                         downloadLimitMin,true);
-            preTestUploadCapacity = uploadLinespeedCapacity;
+            preTestUploadCapacity = uploadLimitMax;
             transferMode.setMode( TransferMode.State.UPLOAD_LIMIT_SEARCH );
         }
 
@@ -746,10 +763,10 @@ public class SpeedLimitMonitor
             downloadLimitConf = determineConfidenceLevel();
 
             //set that value.
-            SpeedManagerLogger.trace("pre-upload-setting="+ preTestUploadCapacity +" up-capacity"+uploadLinespeedCapacity
-                    +" pre-download-setting="+ preTestDownloadCapacity +" down-capacity="+downloadLinespeedCapacity);
+            SpeedManagerLogger.trace("pre-upload-setting="+ preTestUploadCapacity +" up-capacity"+ uploadLimitMax
+                    +" pre-download-setting="+ preTestDownloadCapacity +" down-capacity="+ downloadLimitMax);
 
-            retVal = new Update(preTestUploadLimit,true, downloadLinespeedCapacity,true);
+            retVal = new Update(preTestUploadLimit,true, downloadLimitMax,true);
             //change back to original mode.
             transferMode.setMode( TransferMode.State.DOWNLOADING );
 
@@ -758,7 +775,7 @@ public class SpeedLimitMonitor
             uploadLimitConf = determineConfidenceLevel();
 
             //set that value.
-            retVal = new Update(uploadLinespeedCapacity,true, downloadLinespeedCapacity,true);
+            retVal = new Update(uploadLimitMax,true, downloadLimitMax,true);
             //change back to original mode.
             transferMode.setMode( TransferMode.State.SEEDING );
 
@@ -828,32 +845,32 @@ public class SpeedLimitMonitor
         StringBuffer sb = new StringBuffer();
         if( transferMode.getMode()==TransferMode.State.UPLOAD_LIMIT_SEARCH ){
             sb.append("new upload limits: ");
-            uploadLinespeedCapacity=newMaxLimitSetting;
+            uploadLimitMax =newMaxLimitSetting;
             uploadLimitMin=newMinLimitSetting;
             //downloadCapacity can never be less then upload capacity.
-            if( downloadLinespeedCapacity<uploadLinespeedCapacity ){
-                downloadLinespeedCapacity=uploadLinespeedCapacity;
+            if( downloadLimitMax < uploadLimitMax){
+                downloadLimitMax = uploadLimitMax;
                 COConfigurationManager.setParameter(
-                        SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT,downloadLinespeedCapacity);
+                        SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT, downloadLimitMax);
                 
             }
         }else{
             sb.append("new download limits: ");
-            downloadLinespeedCapacity=newMaxLimitSetting;
+            downloadLimitMax =newMaxLimitSetting;
             downloadLimitMin=newMinLimitSetting;
-            //upload capacity should never be 10x less then download.
-            if( uploadLinespeedCapacity*10<downloadLinespeedCapacity ){
-                uploadLinespeedCapacity = downloadLinespeedCapacity/10;
+            //upload capacity should never be 20x less then download.
+            if( uploadLimitMax *20< downloadLimitMax){
+                uploadLimitMax = downloadLimitMax /20;
                 COConfigurationManager.setParameter(
-                         SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT,uploadLinespeedCapacity);
+                         SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT, uploadLimitMax);
 
-                uploadLimitMin = Math.max( uploadLinespeedCapacity/10, 5120 );
+                uploadLimitMin = Math.max( uploadLimitMax /20, 5120 );
                 COConfigurationManager.setParameter(
                         SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT,uploadLimitMin);
             }//if
             
         }
-        upDownRatio = ((float)downloadLinespeedCapacity/(float)uploadLinespeedCapacity);
+        upDownRatio = ((float) downloadLimitMax /(float) uploadLimitMax);
         COConfigurationManager.setParameter(
                 SpeedManagerAlgorithmProviderV2.SETTING_V2_UP_DOWN_RATIO, upDownRatio);
 
@@ -880,10 +897,10 @@ public class SpeedLimitMonitor
         }
 
         boolean retVal = true;
-        if( currUploadLimit>uploadLinespeedCapacity ){
+        if( currUploadLimit> uploadLimitMax){
             retVal = false;
         }
-        if(  currDownloadLimit>downloadLinespeedCapacity){
+        if(  currDownloadLimit> downloadLimitMax){
             retVal = false;
         }
         return retVal;
@@ -904,14 +921,14 @@ public class SpeedLimitMonitor
         boolean downloadChanged = false;
 
         //check for the case when the line-speed capacity is below the current limit.
-        if( currUploadLimit>uploadLinespeedCapacity ){
-            newUploadLimit = uploadLinespeedCapacity;
+        if( currUploadLimit> uploadLimitMax){
+            newUploadLimit = uploadLimitMax;
             uploadChanged = true;
         }
 
         //check for the case when the min setting has been moved above the current limit.
-        if( currDownloadLimit>downloadLinespeedCapacity ){
-            newDownloadLimit = downloadLinespeedCapacity;
+        if( currDownloadLimit> downloadLimitMax){
+            newDownloadLimit = downloadLimitMax;
             downloadChanged = true;
         }
 
@@ -1031,7 +1048,7 @@ public class SpeedLimitMonitor
                 //We have a MED,LOW,NONE setting move it lower.
                 SpeedManagerLogger.log("PingSpaceMonitor lower download limit="+newLimit);
 
-                downloadLinespeedCapacity = newLimit;
+                downloadLimitMax = newLimit;
                 COConfigurationManager.setParameter(
                         SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT,
                         newLimit);
@@ -1052,7 +1069,7 @@ public class SpeedLimitMonitor
             if( SpeedLimitConfidence.HIGH.isGreater( uploadLimitConf ) ){
                 SpeedManagerLogger.log("PingSpaceMonitor lower upload-limit="+newLimit);
 
-                uploadLinespeedCapacity = newLimit;
+                uploadLimitMax = newLimit;
                 COConfigurationManager.setParameter(
                         SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT,
                         newLimit);

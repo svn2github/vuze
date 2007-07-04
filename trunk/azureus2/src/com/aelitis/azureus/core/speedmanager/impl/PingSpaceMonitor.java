@@ -159,14 +159,14 @@ public class PingSpaceMonitor
     }
 
 
-    //Simple test currently. 20% bad pings.
+    //Simple test currently. 15% bad pings.
     private boolean checkForLowerLimits()
     {
         int totalPings = nGoodPings+nBadPings+nNeutralPings;
 
         float percentBad = (float)nBadPings/(float)totalPings;
 
-        if(percentBad>0.1f){
+        if(percentBad>0.15f){
             return true;
         }else{
             return false;
