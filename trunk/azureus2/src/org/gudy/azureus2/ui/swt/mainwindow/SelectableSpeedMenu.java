@@ -24,11 +24,7 @@ package org.gudy.azureus2.ui.swt.mainwindow;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
@@ -43,6 +39,19 @@ import com.aelitis.azureus.core.AzureusCore;
 
 public class SelectableSpeedMenu {
 
+	private final static int[] increases = {
+		1,
+		1,
+		3,
+		5, // totals 10
+		10,
+		40, // totals 50
+		50, // 100
+		50,
+		50,
+		100
+	};
+	
 	public static void generateMenuItems(final Menu parent,
 			final AzureusCore core, final GlobalManager globalManager, final boolean up_menu)
 	{
@@ -110,25 +119,38 @@ public class SelectableSpeedMenu {
         	speed_limits = parseSpeedPartitionString(COConfigurationManager.getStringParameter(config_prefix + "values", ""));
         }
 
-        if (speed_limits == null) {
-        	java.util.List l = new java.util.ArrayList(); 
-	        int delta = 0;
-	        for (int i = 0; i < speedPartitions; i++) {
-	            final int[] valuePair;
-	              if (delta == 0)
-	                valuePair = new int[] { maxBandwidth };
-	              else
-	                valuePair = new int[] { maxBandwidth - delta, maxBandwidth + delta };
-	
-	              for (int j = 0; j < valuePair.length; j++) {
-	            	  if (j==0) {l.add(0, new Integer(valuePair[j]));}
-	            	  else {l.add(new Integer(valuePair[j]));}
-	              }
-	
-	              delta += (delta >= 50) ? 50 : (delta >= 10) ? 10 : (delta >= 5) ? 5 : (delta >= 2) ? 3 : 1;
-	        }
-	        speed_limits = (Integer[])l.toArray(new Integer[l.size()]);
-        }
+		if (speed_limits == null) {
+			java.util.List l = new java.util.ArrayList();
+			int delta = 0;
+			int increaseLevel = 0;
+			for (int i = 0; i < speedPartitions; i++) {
+				final int[] valuePair;
+				if (delta == 0) {
+					valuePair = new int[] {
+						maxBandwidth
+					};
+				} else {
+					valuePair = new int[] {
+						maxBandwidth - delta * (maxBandwidth <= 1024 ? 1 : 1024),
+						maxBandwidth + delta * (maxBandwidth < 1024 ? 1 : 1024)
+					};
+				}
+
+				for (int j = 0; j < valuePair.length; j++) {
+					if (j == 0) {
+						l.add(0, new Integer(valuePair[j]));
+					} else {
+						l.add(new Integer(valuePair[j]));
+					}
+				}
+
+				delta += increases[increaseLevel];
+				if (increaseLevel < increases.length - 1) {
+					increaseLevel++;
+				}
+			}
+			speed_limits = (Integer[]) l.toArray(new Integer[l.size()]);
+		}
         
         for (int i=0; i<speed_limits.length; i++) {
         	Integer i_value = speed_limits[i]; 
