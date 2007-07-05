@@ -2235,6 +2235,11 @@ DownloadManagerImpl
 	addListener(
 		DownloadManagerListener	listener )
 	{
+		if (listener == null) {
+			Debug.out("Warning: null listener");
+			return;
+		}
+
 		try{
 			listeners_mon.enter();
 
@@ -2244,6 +2249,10 @@ DownloadManagerImpl
 
 				// we DON'T dispatch a downloadComplete event here as this event is used to mark the
 				// transition between downloading and seeding, NOT purely to inform of seeding status
+			
+		} catch (Throwable t) {
+			
+			Debug.out("adding listener", t);
 			
 		}finally{
 			
