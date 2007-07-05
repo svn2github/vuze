@@ -654,8 +654,8 @@ public class TransferStatsView extends AbstractIView {
 	
 					  max_metric = Math.max( max_metric, metric );
 	
-					  max_x = Math.max( max_x, zone.getUploadEndKBPerSec());
-					  max_y = Math.max( max_y, zone.getDownloadEndKBPerSec());
+					  max_x = Math.max( max_x, zone.getUploadEndBytesPerSec());
+					  max_y = Math.max( max_y, zone.getDownloadEndBytesPerSec());
 				  }
 			  }
 
@@ -671,10 +671,10 @@ public class TransferStatsView extends AbstractIView {
 					  SpeedManagerPingZone zone = zones[i];
 		
 					  int	metric 	= zone.getMetric();
-					  int	x1		= zone.getUploadStartKBPerSec();
-					  int	y1 		= zone.getDownloadStartKBPerSec();
-					  int	x2 		= zone.getUploadEndKBPerSec();
-					  int	y2		= zone.getDownloadEndKBPerSec();
+					  int	x1		= zone.getUploadStartBytesPerSec();
+					  int	y1 		= zone.getDownloadStartBytesPerSec();
+					  int	x2 		= zone.getUploadEndBytesPerSec();
+					  int	y2		= zone.getDownloadEndBytesPerSec();
 							  
 					  if ( metric > 0 ){
 		
@@ -695,18 +695,18 @@ public class TransferStatsView extends AbstractIView {
 						  int	y_draw = usable_height + PAD_TOP + PAD_TOP - y - height;
 						  
 						  gc.fillRectangle( x, y_draw, width, height );
-						  
-						  int hits = zone.getHits();
-						  
-						  if ( hits > 1 ){
+						  						  							  
+						  String	str = String.valueOf(zone.getMetric());
 							  
-							  String	str = String.valueOf(hits);
+						  int	str_width = str.length()*char_width;
+						  
+						  if ( width >= str_width && height >= font_height ){
 							  
 							  texts.add( 
 									  new Object[]{ 
 										str, 
 										new int[]{
-											x + ((width-str.length()*char_width)/2),
+											x + ((width-str_width)/2),
 											y_draw + ((height-font_height)/2)
 										}
 									  });

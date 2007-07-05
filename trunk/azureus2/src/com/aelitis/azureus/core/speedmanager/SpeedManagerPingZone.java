@@ -27,20 +27,17 @@ public interface
 SpeedManagerPingZone 
 {
 	public int
-	getUploadStartKBPerSec();
+	getUploadStartBytesPerSec();
 	
 	public int
-	getUploadEndKBPerSec();
+	getUploadEndBytesPerSec();
 	
 	public int
-	getDownloadStartKBPerSec();
+	getDownloadStartBytesPerSec();
 	
 	public int
-	getDownloadEndKBPerSec();
+	getDownloadEndBytesPerSec();
 	
 	public int
 	getMetric();
-	
-	public int
-	getHits();
 }
