@@ -45,7 +45,6 @@ import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.stats.transfer.OverallStats;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
-import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -59,6 +58,7 @@ import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
+import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingMapper;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingSource;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingZone;
@@ -517,8 +517,11 @@ public class TransferStatsView extends AbstractIView {
   getMapperTitle(
 		SpeedManagerPingMapper mapper )
   {
-	  return( "ul=" + DisplayFormatters.formatByteCountToKiBEtc(mapper.getEstimatedUploadLimit()) + 
-			  ",dl="+ DisplayFormatters.formatByteCountToKiBEtc( mapper.getEstimatedDownloadLimit()) +
+	  SpeedManagerLimitEstimate up 		= mapper.getEstimatedUploadLimit();
+	  SpeedManagerLimitEstimate down 	= mapper.getEstimatedUploadLimit();
+	  
+	  return( "ul=" + (up==null?"":(DisplayFormatters.formatByteCountToKiBEtc(up.getBytesPerSec()) + "/" + up.getMetric())) + 
+			  ",dl=" + (down==null?"":(DisplayFormatters.formatByteCountToKiBEtc(down.getBytesPerSec()) + "/" + down.getMetric())) + 
 			  ",mr=" + DisplayFormatters.formatDecimal( mapper.getCurrentMetricRating(),2));
   }
   class
@@ -745,6 +748,54 @@ public class TransferStatsView extends AbstractIView {
 			  gc.drawLine( x, x_axis_left_y, x, x_axis_left_y+4 );
 		  }
 		  
+		  SpeedManagerLimitEstimate le = mapper.getEstimatedUploadLimit();
+		  
+		  if ( le != null ){
+			  
+			  gc.setForeground(Colors.grey );
+			  
+			  int[][] segs = le.getSegments();
+			  
+			  if ( segs.length > 0 ){
+				  
+				  int	max_metric 	= 0;
+				  int	max_pos		= 0;
+				  
+				  for (int i=0;i<segs.length;i++){
+					  
+					  int[]	seg = segs[i];
+					  
+					  max_metric 	= Math.max( max_metric, seg[0] );
+					  max_pos 		= Math.max( max_pos, seg[2] );
+				  }
+				  
+				  double	metric_ratio 	= max_metric==0?1:((float)50/max_metric);
+				  double	pos_ratio 		= max_pos==0?1:((float)usable_width/max_pos);
+				  
+				  int	prev_x	= 0;
+				  int	prev_y	= 0;
+				  
+				  for (int i=0;i<segs.length;i++){
+					  
+					  int[]	seg = segs[i];
+					  
+					  int	next_x 	= (int)((seg[1] + (seg[2]-seg[1])/2)*pos_ratio);
+					  int	next_y	= (int)((seg[0])*metric_ratio);
+					  
+					  gc.drawLine(
+								x_axis_left_x + prev_x,
+								x_axis_left_y - prev_y,
+								x_axis_left_x + next_x,
+								x_axis_left_y - next_y );
+														
+					  prev_x = next_x;
+					  prev_y = next_y;
+				  }
+			  }
+			  
+			  gc.setForeground( Colors.black );
+		  }
+		  
 		  String x_text = labels[0] + " - " + formatters[0].format( max_x+1 );
 
 		  gc.drawText( 	x_text, 
@@ -770,6 +821,54 @@ public class TransferStatsView extends AbstractIView {
 			  int	y = y_axis_bottom_y + ( y_axis_top_y - y_axis_bottom_y )*i/10;
 			  
 			  gc.drawLine( y_axis_bottom_x, y, y_axis_bottom_x-4, y );
+		  }
+		  
+		  le = mapper.getEstimatedDownloadLimit();
+		  
+		  if ( le != null ){
+			  
+			  gc.setForeground(Colors.grey );
+			  
+			  int[][] segs = le.getSegments();
+			  
+			  if ( segs.length > 0 ){
+				  
+				  int	max_metric 	= 0;
+				  int	max_pos		= 0;
+				  
+				  for (int i=0;i<segs.length;i++){
+					  
+					  int[]	seg = segs[i];
+					  
+					  max_metric 	= Math.max( max_metric, seg[0] );
+					  max_pos 		= Math.max( max_pos, seg[2] );
+				  }
+				  
+				  double	metric_ratio 	= max_metric==0?1:((float)50/max_metric);
+				  double	pos_ratio 		= max_pos==0?1:((float)usable_height/max_pos);
+				  
+				  int	prev_x	= 0;
+				  int	prev_y	= 0;
+				  
+				  for (int i=0;i<segs.length;i++){
+					  
+					  int[]	seg = segs[i];
+					  
+					  int	next_x	= (int)((seg[0])*metric_ratio);
+					  int	next_y 	= (int)((seg[1] + (seg[2]-seg[1])/2)*pos_ratio);
+					  
+					  gc.drawLine(
+							y_axis_bottom_x + prev_x,
+							y_axis_bottom_y - prev_y,
+							y_axis_bottom_x + next_x,
+							y_axis_bottom_y - next_y );
+														
+					  prev_x = next_x;
+					  prev_y = next_y;
+				  }
+			  }
+			  
+			  gc.setForeground( Colors.black );
 		  }
 		  
 		  String	y_text = labels[1] + " - " + formatters[1].format( max_y+1 );

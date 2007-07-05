@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
@@ -42,6 +43,7 @@ import com.aelitis.azureus.core.dht.speed.DHTSpeedTesterContactListener;
 import com.aelitis.azureus.core.dht.speed.DHTSpeedTesterListener;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerAdapter;
+import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingMapper;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingSource;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingZone;
@@ -728,7 +730,6 @@ SpeedManagerImpl
 	pingMapper
 		implements SpeedManagerPingMapper
 	{
-		// private final int NEAR_PERCENT	= 33;
 		private final int MAX_PINGS;
 		
 		private String	name;
@@ -740,13 +741,16 @@ SpeedManagerImpl
 		
 		private pingValue	prev_ping;
 		
-		private List	regions;
+		private LinkedList	regions;
 			
 		private int last_x;
 		private int	last_y;
 		
 		private int[]	recent_metrics = new int[3];
 		private int		recent_metrics_next;
+		
+		private limitEstimate[]	up_estimate		= new limitEstimate[0];
+		private limitEstimate[]	down_estimate	= new limitEstimate[0];
 		
 		protected
 		pingMapper(
@@ -760,26 +764,13 @@ SpeedManagerImpl
 			
 			pings	= new pingValue[MAX_PINGS];
 			
-			init();
+			regions	= new LinkedList();
 		}
 		
 		public String
 		getName()
 		{
 			return( name );
-		}
-		
-		protected void
-		init()
-		{
-			regions = new ArrayList();
-			
-			prev_ping	= null;
-			/*
-			region r = new region( 0, 0, 65535, 65535 );
-			
-			addRegion( r );
-			*/
 		}
 		
 		protected synchronized void
@@ -843,9 +834,7 @@ SpeedManagerImpl
 			if ( ping_count == MAX_PINGS ){
 
 					// discard oldest pings and reset 
-				
-				//System.out.println( "Clean up!" );
-				
+								
 				int	to_discard = MAX_PINGS/10;
 				
 				if ( to_discard < 3 ){
@@ -857,21 +846,15 @@ SpeedManagerImpl
 
 				System.arraycopy(pings, to_discard, pings, 0, MAX_PINGS - to_discard );
 				
-				init();
-				
-				for (int i=0;i<ping_count;i++){
+				for (int i=0;i<to_discard;i++ ){
 					
-					pingValue	p = pings[i];
-										
-					p.setIndex( i );
-					
-					addPing( p );
+					regions.removeFirst();
 				}
 			}
 			
 			int	index = ping_count++;
 			
-			pingValue	ping = new pingValue( x, y, metric, index );
+			pingValue	ping = new pingValue( x, y, metric );
 
 			pings[index] = ping;
 			
@@ -888,316 +871,9 @@ SpeedManagerImpl
 			}
 			
 			prev_ping = ping;
+			
+			updateLimitEstimates();
 		}
-		
-		/*
-		protected void
-		addPing(
-			pingValue	ping )
-		{			
-			region hit = null;
-					
-			int	x = ping.getX();
-			int	y = ping.getY();
-			
-			for (int i=0;i<regions.size();i++){
-				
-				region r = (region)regions.get(i);
-				
-				if ( r.contains( x, y )){
-										
-					hit = r;
-					
-					break;
-				}
-			}
-			
-			if ( hit == null ){
-				
-				System.out.println( "bork bork" );
-				
-				return;
-			}
-			
-			addPing( hit, ping );
-		}
-		
-		protected void
-		addPing(
-			region		r,
-			pingValue	ping )
-		{
-			pingValue[]	existing_pings = r.getPings();
-			
-			if ( existing_pings == null ){
-				
-				r.addPing( ping );
-				
-				//System.out.println( "    adding ping as region empty: " + r.getString());
-
-				return;
-			}
-			
-			int	hit_x1 = r.getX1();
-			int	hit_x2 = r.getX2();
-			int	hit_y1 = r.getY1();
-			int	hit_y2 = r.getY2();
-			
-			int	width 	= ( hit_x2 - hit_x1 )+1;
-			int height 	= ( hit_y2 - hit_y1 )+1;
-			
-			if ( width == 1 && height == 1 ){
-				
-				r.addPing( ping );
-				
-				//System.out.println( "    merging ping due region being minimal: " + r.getString());
-
-				return;
-			}		
-			
-				// if we're within X% of existing values for this region then just add to the
-				// region rather than splitting
-			
-			int	min_existing = Integer.MAX_VALUE;
-			int	max_existing = 0;
-			
-			for (int i=0;i<existing_pings.length;i++){
-				
-				pingValue	p = existing_pings[i];
-				
-				int	p_metric = p.getMetric();
-				
-				if ( p_metric < min_existing ){
-					
-					min_existing = p_metric;
-				}
-				
-				if ( p_metric > max_existing ){
-					
-					max_existing = p_metric;
-				}
-			}
-			
-				// X% bigger than smallest and X% smaller than biggest
-			
-			int	metric = ping.getMetric();
-			
-			boolean	merge = 
-					( metric >= min_existing && metric <= min_existing + min_existing*NEAR_PERCENT/100 ) ||
-					( metric <= max_existing && metric >= max_existing - max_existing*NEAR_PERCENT/100 );
-				
-			if ( merge ){
-				
-				r.addPing( ping );
-				
-				//System.out.println( "    merging ping due to closeness: " + r.getString());
-				
-				return;
-			}
-			
-
-			region r1;
-			region r2;
-			
-			if ( width > height || ( width == height && random.nextInt( 2 ) == 1 )){
-										
-				int	split_x = hit_x1 + ((width-1) / 2 );
-			
-				r1 = new region( hit_x1, hit_y1, split_x, hit_y2 );
-				r2 = new region( split_x+1, hit_y1, hit_x2, hit_y2 );
-					
-			}else{
-										
-				int	split_y = hit_y1 + ((height-1) / 2 );
-				
-				r1 = new region( hit_x1, hit_y1, hit_x2, split_y );
-				r2 = new region( hit_x1, split_y+1, hit_x2, hit_y2 );
-			}
-				
-			splitPings( existing_pings, r1, r2 );
-			
-			removeRegion( r );
-			
-			addRegion( r1 );
-			
-			addRegion( r2 );
-			
-			int	x = ping.getX();
-			int y = ping.getY();
-			
-			if ( r1.contains( x, y )){
-				
-				addPing( r1, ping );
-				
-				//System.out.println( "    splitting regions -> " + r1.getString() );
-
-			}else{
-				
-				addPing( r2, ping );
-				
-				//System.out.println( "    splitting regions -> " + r2.getString() );
-			}
-		}
-		
-		
-		protected void
-		splitPings(
-			pingValue[]	pings,
-			region		r1,
-			region		r2 )
-		{
-			for (int i=0;i<pings.length;i++){
-			
-				pingValue	ping = pings[i];
-				
-				if ( r1.contains( ping.getX(), ping.getY())){
-					
-					r1.addPing( ping );
-					
-				}else{
-					
-					r2.addPing( ping );
-				}
-			}
-		}
-				protected void
-		addRegion(
-			region	r )
-		{
-			regions.add( r );
-		}
-		
-		protected void
-		removeRegion(
-			region	r )
-		{
-			regions.remove( r );
-		}
-				
-		protected synchronized List
-		getRegions()
-		{				
-			return( new ArrayList( regions ));
-		}
-		
-		protected synchronized void
-		checkConsistency()
-		{
-			Iterator it = regions.iterator();
-							
-			int	max_x = 0;
-			int	max_y = 0;
-			
-			while( it.hasNext()){
-				
-				region r = (region)it.next();
-				
-				if ( r.getPings() == null ){
-					
-					continue;
-				}
-				
-				max_x = Math.max( max_x, r.getX2());
-				max_y = Math.max( max_y, r.getY2());
-			}
-				
-			boolean[][]	grid = new boolean[max_x+1][max_y+1];
-			
-			it = regions.iterator();
-			
-			while( it.hasNext()){
-				
-				region r = (region)it.next();
-				
-				if ( r.getPings() != null ){
-					
-					for (int i=r.getX1();i<=r.getX2();i++){
-					
-						for (int j=r.getY1();j<=r.getY2();j++){
-							
-							grid[i][j] = true;
-						}
-					}
-				}
-			}
-			
-			for (int i=0;i<=max_x;i++){
-				
-				String str = "";
-				
-				for (int j=0;j<max_y;j++){
-					
-					str += grid[i][j]?".":" ";
-				}
-				
-				System.out.println( str );
-			}
-			
-			grid = new boolean[max_x+1][max_y+1];
-
-			it = regions.iterator();
-
-			boolean	bad = false;
-			
-			while( it.hasNext()){
-				
-				region r = (region)it.next();
-				
-				if ( r.getX1() <= max_x && r.getY1() <= max_y ){
-					
-					for (int i=r.getX1();i<=r.getX2() && i <= max_x;i++){
-					
-						for (int j=r.getY1();j<=r.getY2() && j <= max_y;j++){
-							
-							if ( grid[i][j]){
-								
-								System.out.println( "Inconsistent at " + i + "," + j );
-								
-								bad	= true;
-								
-							}else{
-								
-								grid[i][j] = true;
-							}
-						}
-					}
-				}
-			}
-			
-			for (int i=0;i<=max_x;i++){
-				
-				for (int j=0;j<max_y;j++){
-					
-					if ( !grid[i][j]){
-						
-						System.out.println( "Inconsistent at " + i + "," + j );
-						
-						bad	= true;
-					}
-				}
-			}
-			
-			System.out.println( "All regions" );
-			
-			it = regions.iterator();
-
-			while( it.hasNext()){
-				
-				region r = (region)it.next();
-				
-				if ( r.getX1() <= max_x && r.getY1() <= max_y ){
-
-					System.out.println( "    " + r.getX1() + "," + r.getY1() + "," + r.getX2() + "," + r.getY2());
-				}
-			}
-			
-			if ( !bad ){
-				
-				System.out.println( "Consistent!" );
-			}
-		}
-		
-		*/
 		
 		public synchronized int[][]
 		getHistory()
@@ -1234,28 +910,73 @@ SpeedManagerImpl
 			return((SpeedManagerPingZone[])regions.toArray( new SpeedManagerPingZone[regions.size()] ));
 		}
 		
-		public synchronized int
+		public synchronized SpeedManagerLimitEstimate
 		getEstimatedUploadLimit()
+		{
+			return( getEstimatedLimit( up_estimate ));
+		}
+		
+		public synchronized SpeedManagerLimitEstimate
+		getEstimatedDownloadLimit()
+		{
+			return( getEstimatedLimit( down_estimate ));
+		}
+
+		protected synchronized SpeedManagerLimitEstimate
+		getEstimatedLimit(
+			limitEstimate[]	estimates )
+		{
+			if ( estimates.length == 0 ){
+				
+				return( null );
+			}
+			
+			for (int i=0;i<estimates.length;i++){
+				
+				limitEstimate e = estimates[i];
+				
+				if ( e.getMetric() >= VARIANCE_BAD_VALUE ){
+					
+					return( e );
+				}
+			}
+			
+			return( estimates[estimates.length-1] );
+		}
+
+		protected void
+		updateLimitEstimates()
+		{
+			up_estimate 	= getEstimatedLimit( true );
+			
+			down_estimate 	= getEstimatedLimit( false );
+		}
+		
+		protected limitEstimate[]
+		getEstimatedLimit(
+			boolean		up )
 		{
 			if ( !variance ){
 				
-				return( -1 );
+				return( new limitEstimate[0] );
 			}
-			
-			int	max_end = 0;
 			
 			int	num_samples = regions.size();
 			
 			if ( num_samples == 0 ){
 				
-				return( -1 );
+				return( new limitEstimate[0] );
 			}
 			
-			for (int i=0;i<regions.size();i++){
+			Iterator	it = regions.iterator();
+			
+			int	max_end = 0;
+			
+			while( it.hasNext()){
 				
-				region r = (region)regions.get(i);
+				region r = (region)it.next();
 				
-				int	end		= r.getUploadEndBytesPerSec()/SPEED_DIVISOR;
+				int	end		= (up?r.getUploadEndBytesPerSec():r.getDownloadEndBytesPerSec())/SPEED_DIVISOR;
 				
 				if ( end > max_end ){
 					
@@ -1278,39 +999,84 @@ SpeedManagerImpl
 				samples = new int[]{ num_samples };
 			}
 			
-			int[]	results = new int[samples.length];
+			limitEstimate[]	results = new limitEstimate[samples.length];
+			
+				// flatten out all observations 
 			
 			for (int sample=0;sample<samples.length;sample++){
 				
-				int[]	totals 	= new int[max_end+1];
-				short[]	hits	= new short[max_end+1];				
-				short[] when	= new short[max_end+1];
+				int	sample_end = max_end + 1;
+				
+				int[]	totals 			= new int[sample_end];
+				short[]	hits			= new short[sample_end];				
+				short[] when			= new short[sample_end];
+				short[]	worst_var_type	= new short[sample_end];
 				
 				int	sample_count = samples[sample];
 				
-				for (int i=1;i<=sample_count;i++){
+				ListIterator sample_it = regions.listIterator( num_samples );
+								
+				for (int i=0;i<sample_count;i++){
 
-					region r = (region)regions.get( num_samples-i );
+					region r = (region)sample_it.previous();
 				
-					int	start 	= r.getUploadStartBytesPerSec()/SPEED_DIVISOR;
-					int	end		= r.getUploadEndBytesPerSec()/SPEED_DIVISOR;
+					int	start 	= (up?r.getUploadStartBytesPerSec():r.getDownloadStartBytesPerSec())/SPEED_DIVISOR;
+					int	end		= (up?r.getUploadEndBytesPerSec():r.getDownloadEndBytesPerSec())/SPEED_DIVISOR;
 					int	metric	= r.getMetric();
 				
-					for (int j=start;j<=end;j++){
+					int	weighted_start;
+					
+					short	this_var_type;
+					
+					if ( metric < VARIANCE_GOOD_VALUE ){
+					
+							// a good variance applies to all speeds up to this one. This means
+							// that previously occuring bad variance will get flattened out by
+							// subsequent good variance
+						
+						weighted_start 	= 0;
+						
+						this_var_type 	= 0;
+						
+					}else if ( metric < VARIANCE_BAD_VALUE ){
+						
+						weighted_start 	= start;
+						
+						this_var_type	= VARIANCE_GOOD_VALUE;
+
+					}else{
+						
+						weighted_start 	= start;
+						this_var_type	= VARIANCE_BAD_VALUE;
+					}
+					
+					for (int j=weighted_start;j<=end;j++){
+					
+							// a bad variance resets totals as we have encountered this after (in time)
+							// the existing data and is this more relevant
+						
+						if ( worst_var_type[j] < this_var_type ){
+							
+							totals[j]	= 0;
+							hits[j]		= 0;
+							when[j]		= 0;
+							
+							worst_var_type[j] = this_var_type;
+						}
 						
 						totals[j] += metric;
 						hits[j]++;
 						
-						if ( j > when[j] ){
+						if ( i > when[j] ){
 							
-							when[j] = (short)j;
+							when[j] = (short)(sample_count-i);
 						}
 					}
 				}
 				
-				int	worst = 0;
-				
-				for (int i=0;i<totals.length;i++){
+					// find the worst composite variance that we have
+								
+				for (int i=0;i<sample_end;i++){
 					
 					int	hit = hits[i];
 					
@@ -1319,104 +1085,113 @@ SpeedManagerImpl
 						int	average = totals[i]/hit;
 						
 						totals[i] = average;
-						
-						if ( average >= VARIANCE_BAD_VALUE ){
-							
-							worst = VARIANCE_BAD_VALUE;
-							
-						}else if ( average >= VARIANCE_GOOD_VALUE && worst < VARIANCE_GOOD_VALUE ){
-							
-							worst = VARIANCE_GOOD_VALUE;
-						}
 					}
 				}
 				
 				int	estimate		= -1;
-				int	estimate_when	= -1;
+				int	estimate_when	= 0;
+				int	estimate_hits	= -1;
+									
+				int	zone_start		= -1;
+				int	zone_max_hit	= 0;
+				int	zone_max_time	= 0;
 				
-				if ( worst > 0 ){
+				int	worst_average	= 0;
+				
+				int	last_average 		= -1;
+				int	last_average_change	= 0;
+				
+				List segments = new ArrayList(totals.length);
+				
+				for (int i=0;i<sample_end;i++){
 					
-					int	zone_start		= -1;
-					int	zone_max_hit	= 0;
-					int	zone_max_time	= -1;
+					int	average = totals[i];
+					int	hit 	= hits[i];
 					
-					for (int i=0;i<totals.length;i++){
+					if ( i == 0 ){
 						
-						int	average = totals[i];
-						int	hit 	= hits[i];
+						last_average = average;
 						
-						if ( average >= worst && hit >= zone_max_hit ){
-							
-							if ( zone_start == -1 || hit > zone_max_hit ){
-								
-								zone_start 		= i;
-								zone_max_hit	= hit;
-							}
-							
-							int	w = when[i];
-							
-							if ( w > zone_max_time ){
-								
-								zone_max_time = w;
-							}
-						}else{
-							
-							if ( zone_start != -1 ){
-								
-								if ( zone_max_time > estimate_when ){
-								
-									estimate 		= zone_start + (i-zone_start)/2;
-									estimate_when	= zone_max_time;
-								}
-								
-								zone_start		= -1;
-								zone_max_hit	= 0;
-								zone_max_time	= 0;
-
-							}
-						}
+					}else if ( last_average != average ){
+						
+						segments.add( new int[]{ last_average, last_average_change*SPEED_DIVISOR, (i-1)*SPEED_DIVISOR });
+						
+						last_average 		= average;
+						last_average_change	= i;
 					}
 					
-					if ( zone_start != -1 ){
+					if ( average >= worst_average && hit >= zone_max_hit ){
 						
-						if ( zone_max_time > estimate_when ){
+						worst_average = average;
 						
-							estimate 		= zone_start + (totals.length-zone_start)/2;
-							estimate_when	= zone_max_time;
+						if ( zone_start == -1 || hit > zone_max_hit ){
+							
+							zone_start 		= i;
+							zone_max_hit	= hit;
+						}
+						
+						int	w = when[i];
+						
+						if ( w > zone_max_time ){
+							
+							zone_max_time = w;
+						}
+					}else{
+						
+						if ( zone_start != -1 ){
+							
+							if ( zone_max_time > estimate_when ){
+							
+								estimate 		= zone_start + (i-zone_start)/2;
+								estimate_when	= zone_max_time;
+								estimate_hits	= zone_max_hit;
+							}
+							
+							zone_start		= -1;
+							zone_max_hit	= 0;
+							zone_max_time	= 0;
 						}
 					}
 				}
 				
-				results[sample] = estimate;
+				if ( zone_start != -1 ){
+					
+					if ( zone_max_time > estimate_when ){
+					
+						estimate 		= zone_start + (totals.length-zone_start)/2;
+						estimate_when	= zone_max_time;
+						estimate_hits	= zone_max_hit;
+					}
+				}
+				
+				if ( last_average_change != sample_end - 1 ){
+				
+					segments.add( new int[]{ last_average, last_average_change*SPEED_DIVISOR, (sample_end-1)*SPEED_DIVISOR });
+				}
+				
+				results[sample] = 
+					new limitEstimate(
+							estimate==-1?-1:(estimate*SPEED_DIVISOR),
+							worst_average, 
+							estimate_hits, 
+							estimate_when,
+							(int[][])segments.toArray(new int[segments.size()][]));
 			}
 			
 			String	str = "";
-			
-			int	result = -1;
-			
+						
 			for (int i=0;i<results.length;i++){
 				
-				int	r = results[i];
+				limitEstimate	r = results[i];
 				
-				str += (i==0?"":",") + r;
-				
-				if ( r != -1 && result == -1 ){
-					
-					result = r;
-				}
+				str += (i==0?"":",") + r.getString();
 			}
 			
-			System.out.println( "Estimate up->" + str );
+			System.out.println( "Estimate (samples=" + num_samples + ")" + (up?"up":"down") + "->" + str );
 			
-			return( result );
+			return( results );
 		}
 		
-		public int
-		getEstimatedDownloadLimit()
-		{
-			return( 0 );
-		}
-
 		public synchronized double
 		getCurrentMetricRating()
 		{
@@ -1509,19 +1284,16 @@ SpeedManagerImpl
 			private short	x;
 			private short	y;
 			private short	metric;
-			private short	index;
 			
 			protected
 			pingValue(
 				int		_x,
 				int		_y,
-				int		_m,
-				int		_i )
+				int		_m )
 			{
 				x		= (short)_x;
 				y		= (short)_y;
 				metric	= (short)_m;
-				index	= (short)_i;
 			}
 			
 			protected int
@@ -1542,167 +1314,13 @@ SpeedManagerImpl
 				return(((int)(metric))&0xffff );
 			}
 			
-			protected int
-			getIndex()
-			{
-				return(((int)(index))&0xffff );
-			}
-			
-			protected void
-			setIndex(
-				int		i )
-			{
-				index	= (short)i;
-			}
-			
 			protected String
 			getString()
 			{
 				return("x=" + getX()+",y=" + getY() +",m=" + getMetric());
 			}
 		}
-		/*
-		class
-		region
-			implements SpeedManagerPingZone
-		{
-			private short		x1;
-			private short		y1;
-			private short		x2;
-			private short		y2;
-			
-			private pingValue[]		pings;
-			
-			protected
-			region(
-				int		_x1,
-				int		_y1,
-				int		_x2,
-				int		_y2 )
-			{
-				x1		= (short)_x1;
-				y1		= (short)_y1;
-				x2		= (short)_x2;
-				y2		= (short)_y2;
-			}
-			
-			public int
-			getX1()
-			{
-				return(((int)x1)&0xffff );
-			}
-			
-			public int
-			getY1()
-			{
-				return(((int)y1)&0xffff );
-			}
-			
-			public int
-			getX2()
-			{
-				return(((int)x2)&0xffff );
-			}
-			
-			public int
-			getY2()
-			{
-				return(((int)y2)&0xffff );
-			}
-			
-			public pingValue[]
-			getPings()
-			{
-				return( pings );
-			}
-			
-			public void
-			addPing(
-				pingValue	ping )
-			{
-				if ( pings == null ){
-					
-					pings = new pingValue[]{ ping };
-					
-				}else{
-					
-					pingValue[]	new_pings = new pingValue[pings.length+1];
-					
-					new_pings[0] = ping;
-					
-					System.arraycopy( pings, 0, new_pings, 1, pings.length );
-					
-					pings = new_pings;
-				}
-			}
-			
-			public boolean
-			contains(
-				int		x,
-				int		y )
-			{
-				return( getX1() <= x && getX2() >= x && getY1() <= y && getY2() >= y );
-			}
-			
-			
-			public int
-			getUploadStartBytesPerSec()
-			{
-				return( getX1()*SPEED_DIVISOR );
-			}
-			
-			public int
-			getUploadEndBytesPerSec()
-			{
-				return( getX2()*SPEED_DIVISOR + (SPEED_DIVISOR-1));
-			}
-			
-			public int
-			getDownloadStartBytesPerSec()
-			{
-				return( getY1()*SPEED_DIVISOR );
-			}
-			
-			public int
-			getDownloadEndBytesPerSec()
-			{
-				return( getY2()*SPEED_DIVISOR + (SPEED_DIVISOR-1));
-			}
-			
-			public int
-			getMetric()
-			{
-				pingValue[] p = pings;
-				
-				if ( p == null || p.length == 0 ){
-					
-					return( 0 );
-				}
-				
-				long	total = 0;
-				
-				for (int i=0;i<p.length;i++){
-					
-					total += p[i].getMetric();
-				}
-				
-				return((int)( total/p.length ));
-			}
-						
-			public String
-			getString()
-			{
-				String	ping_str = "";
-				
-				for (int i=0;i<pings.length;i++){
-					
-					ping_str += (i==0?"":",") + pings[i].getString();
-				}
-				
-				return( "x="+getX1() + ",y="+getY1()+",w=" + (getX2()-getX1()+1) +",h=" + (getY2()-getY1()+1) +",p=[" + ping_str + "]" );
-			}
-		}
-		*/
+
 		class
 		region
 			implements SpeedManagerPingZone
@@ -1790,6 +1408,93 @@ SpeedManagerImpl
 				}
 				
 				return( "x="+getX1() + ",y="+getY1()+",w=" + (getX2()-getX1()+1) +",h=" + (getY2()-getY1()+1) +",p=[" + ping_str + "]" );
+			}
+		}
+		
+		class
+		limitEstimate
+			implements SpeedManagerLimitEstimate
+		{
+			private int		speed;
+			private int		metric;
+			private int		when;
+			private int		hits;
+			
+			private int[][]	segs;
+			
+			protected
+			limitEstimate(
+				int			_speed,
+				int			_metric,
+				int			_hits,
+				int			_when,
+				int[][]		_segs )
+			{
+				speed		= _speed;
+				metric		= _metric;
+				hits		= _hits;
+				when		= _when;
+				segs		= _segs;
+			}
+			
+			public int
+			getBytesPerSec()
+			{
+				return( speed );
+			}
+			
+			public int
+			getMetric()
+			{
+				return( metric );
+			}
+			
+			public int[][]
+			getSegments()
+			{
+				return( segs );
+			}
+			
+			protected String
+			getString()
+			{
+				return( "speed=" + DisplayFormatters.formatByteCountToKiBEtc( speed )+
+						",metric=" + metric + ",segs=" + segs.length + ",hits=" + hits + ",when=" + when );
+			}
+		}
+	}
+	
+	public static void
+	main(
+		String[]	args )
+	{
+		pingMapper pm = new pingMapper( "test", 100, true );
+		
+		Random rand = new Random();
+		
+		int[][] phases = { 
+				{ 50, 0, 100000, 50 },
+				{ 50, 100000, 200000, 200 },
+				{ 50, 50000, 50000, 200 },
+				{ 50, 0, 100000, 50 },
+
+		};
+		
+		for (int i=0;i<phases.length;i++){
+			
+			int[]	phase = phases[i];
+			
+			System.out.println( "**** phase " + i );
+			
+			for (int j=0;j<phase[0];j++){
+			
+				int	x_base 	= phase[1];
+				int	x_var	= phase[2];
+				int r = phase[3];
+				
+				pm.addPing( x_base + rand.nextInt( x_var ), x_base + rand.nextInt( x_var ), rand.nextInt( r ));
+			
+				System.out.println( pm.getEstimatedUploadLimit() + "," + pm.getEstimatedDownloadLimit());
 			}
 		}
 	}
