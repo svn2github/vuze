@@ -1,6 +1,7 @@
 package com.aelitis.azureus.core.speedmanager.impl;
 
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingSource;
+import com.aelitis.azureus.core.speedmanager.TestInterface;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreException;
 import com.aelitis.azureus.core.dht.DHT;
@@ -267,6 +268,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
 
         pingSourceManager.pingSourceFailed(source);
     }
+
 
     /**
      * Called whenever a new set of ping values is available for processing

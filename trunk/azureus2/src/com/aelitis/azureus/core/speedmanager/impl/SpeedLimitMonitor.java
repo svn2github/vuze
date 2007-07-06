@@ -906,6 +906,37 @@ public class SpeedLimitMonitor
         return retVal;
     }
 
+    public void setRefLimits(int uploadMax, int uploadMin, int downloadMax, int downloadMin){
+
+        if( uploadLimitMax != uploadMax ){
+            uploadLimitMax=uploadMax;
+            COConfigurationManager.setParameter(
+                                    SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT, uploadLimitMax);
+        }
+
+        if( uploadLimitMin != uploadMin ){
+            uploadMin = Math.max( uploadMin, 5120 );
+            uploadLimitMin = uploadMin;
+            COConfigurationManager.setParameter(
+                                    SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT, uploadLimitMin);
+        }
+
+        if( downloadLimitMax != downloadMax){
+            downloadLimitMax = downloadMax;
+            COConfigurationManager.setParameter(
+                                    SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT, downloadLimitMax);
+
+        }
+
+        if( downloadLimitMin != downloadMin ){
+            downloadMin = Math.max( downloadMin, 20480 );
+            downloadLimitMin = downloadMin;
+            COConfigurationManager.setParameter(
+                                    SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MIN_LIMIT, downloadLimitMin);
+        }
+
+    }
+
     /**
      * It is likely the user adjusted the "line speed capacity" on the configuration panel.
      * We need to adjust the current limits down to adjust.
@@ -994,13 +1025,19 @@ public class SpeedLimitMonitor
     }
 
     public void setCurrentTransferRates(int downRate, int upRate){
-        pingMapOfDownloadMode.setCurrentTransferRates(downRate,upRate);
-        pingMapOfSeedingMode.setCurrentTransferRates(downRate,upRate);
+
+        if( pingMapOfDownloadMode!=null && pingMapOfSeedingMode!=null){
+            pingMapOfDownloadMode.setCurrentTransferRates(downRate,upRate);
+            pingMapOfSeedingMode.setCurrentTransferRates(downRate,upRate);
+        }
     }
 
     public void resetPingSpace(){
-        pingMapOfDownloadMode.reset();
-        pingMapOfSeedingMode.reset();        
+
+        if( pingMapOfDownloadMode!=null && pingMapOfSeedingMode!=null){
+            pingMapOfDownloadMode.reset();
+            pingMapOfSeedingMode.reset();
+        }
     }
 
     public void addToPingMapData(int lastMetricValue){
