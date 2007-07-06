@@ -23,6 +23,8 @@
 
 package com.aelitis.azureus.core.speedmanager.impl;
 
+import com.aelitis.azureus.core.speedmanager.SpeedManagerPingMapper;
+
 public interface 
 SpeedManagerAlgorithmProviderAdapter 
 {
@@ -51,6 +53,9 @@ SpeedManagerAlgorithmProviderAdapter
     public void
     setCurrentDownloadLimit(int bytes_per_second);
 	
+    public SpeedManagerPingMapper
+    getPingMapper();
+    
 	public void
 	setLoggingEnabled(
 		boolean	enabled );

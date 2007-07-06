@@ -54,6 +54,7 @@ import com.aelitis.azureus.core.speedmanager.SpeedManagerPingMapper;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingSource;
 import com.aelitis.azureus.core.speedmanager.impl.v1.SpeedManagerAlgorithmProviderV1;
 import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedManagerAlgorithmProviderV2;
+import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedManagerAlgorithmTI;
 
 
 public class 
@@ -259,6 +260,14 @@ SpeedManagerImpl
 				
 				provider = new SMUnlimited();
 			}
+		}else if ( provider_version == 4 ){
+			
+			provider = new SpeedManagerAlgorithmTI( this, true );
+			
+		}else if ( provider_version == 5 ){
+			
+			provider = new SpeedManagerAlgorithmTI( this, false );
+			
 		}else{
 			
 			Debug.out( "Unknown provider version " + provider_version );
@@ -597,6 +606,12 @@ SpeedManagerImpl
 	getPingSources()
 	{
 		return( contacts_array );
+	}
+	
+	public SpeedManagerPingMapper
+	getPingMapper()
+	{
+		return( ping_mapper );
 	}
 	
 	public SpeedManagerPingMapper[]

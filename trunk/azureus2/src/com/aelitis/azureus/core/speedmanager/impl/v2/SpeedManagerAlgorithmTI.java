@@ -2,6 +2,8 @@ package com.aelitis.azureus.core.speedmanager.impl.v2;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreException;
+import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
+import com.aelitis.azureus.core.speedmanager.SpeedManagerPingMapper;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingSource;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProvider;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProviderAdapter;
@@ -98,10 +100,47 @@ public class SpeedManagerAlgorithmTI
             );
         }//static
 
-        SpeedManagerAlgorithmTI(SpeedManagerAlgorithmProviderAdapter _adapter){
+        private TestInterface testIfc;
+        
+        private TestInterface alan_testIfc = new TestInterfaceImpl();
+        
+        private TestInterface paul_testIfc =
+        	new TestInterface()
+        	{
+        	   	public float 
+        	   	getCurrentMetric()
+        	   	{
+        	   		return((float)adapter.getPingMapper().getCurrentMetricRating());
+        	   	}
+
+   
+        	    public int[] 
+        	    getLimits()
+        	    {
+        	    	SpeedManagerPingMapper pm = adapter.getPingMapper();
+        	    	
+          	    	SpeedManagerLimitEstimate ue = pm.getEstimatedUploadLimit();
+          	    	SpeedManagerLimitEstimate de = pm.getEstimatedDownloadLimit();
+        	    	
+          	    	return( new int[]{
+          	    			ue==null?0:ue.getBytesPerSec(),
+          	    			de==null?0:ue.getBytesPerSec() });		
+        	    }
+        	};
+        
+
+        
+        public
+        SpeedManagerAlgorithmTI(
+        	SpeedManagerAlgorithmProviderAdapter 	_adapter,
+        	boolean									_alan_pingmapper ){
 
             adapter = _adapter;
 
+            testIfc = _alan_pingmapper?alan_testIfc:paul_testIfc;
+            
+            adapter.log( "T1: ping_mapper=" + (_alan_pingmapper?"alan":"paul" ));
+            
             try{
                 dhtPlugin = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
             }catch(AzureusCoreException ace){
@@ -317,9 +356,7 @@ public class SpeedManagerAlgorithmTI
          *
          * @param sources -
          */
-        static TestInterface testIfc = new TestInterfaceImpl();
-        
-        public void calculate(SpeedManagerPingSource[] sources) {
+         public void calculate(SpeedManagerPingSource[] sources) {
 
             //turn the source values into -1 to +1
             calculate( testIfc );
