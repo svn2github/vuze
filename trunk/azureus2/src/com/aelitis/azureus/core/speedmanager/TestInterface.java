@@ -31,13 +31,11 @@ public interface TestInterface {
 
     /**
      * The current min and max limits allowed.
-     * @return int[4] , with maxUpload, minUpload, maxDownload and minDownload respectively.
+     * @return int[2] , with maxUpload, minUpload, maxDownload and minDownload respectively.
      */
     public int[] getLimits();
 
     static final int UPLOAD_MAX_INDEX = 0;
-    static final int UPLOAD_MIN_INDEX = 1;
-    static final int DOWNLOAD_MAX_INDEX = 2;
-    static final int DOWNLOAD_MIN_INDEX = 3;
+    static final int DOWNLOAD_MAX_INDEX = 1;
     
 }

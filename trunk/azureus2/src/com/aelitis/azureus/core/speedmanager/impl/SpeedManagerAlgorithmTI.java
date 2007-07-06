@@ -253,7 +253,7 @@ public class SpeedManagerAlgorithmTI
                 int currUpLimit = adapter.getCurrentUploadLimit();
                 int currDownLimit = adapter.getCurrentDownloadLimit();
 
-                //NOTE: int[4] with min/max  upload/download   limits.
+                //NOTE: int[2] with only max  upload/download   limits.
                 int[] limits = tf.getLimits();
 
                 SpeedLimitMonitor.Update update = modifyLimits(signalStrength,multiple,currUpLimit,currDownLimit, limits);
@@ -286,24 +286,20 @@ public class SpeedManagerAlgorithmTI
         static{
             slider = new LimitSlider();
         }
-        static final int UPLOAD_MAX_INDEX = 0;
-        static final int UPLOAD_MIN_INDEX = 1;
-        static final int DOWNLOAD_MAX_INDEX = 2;
-        static final int DOWNLOAD_MIN_INDEX = 3;
+
         SpeedLimitMonitor.Update modifyLimits(float signalStrength, float multiple, int currUpLimit, int currDownLimit, int[] limits){
 
-            int uploadLimitMax = limits[UPLOAD_MAX_INDEX];
-            int uploadLimitMin = limits[UPLOAD_MIN_INDEX];
-            int downloadLimitMax = limits[DOWNLOAD_MAX_INDEX];
-            int downloadLimitMin = limits[DOWNLOAD_MIN_INDEX];
+            int uploadLimitMax = limits[TestInterface.UPLOAD_MAX_INDEX];
+            int downloadLimitMax = limits[TestInterface.DOWNLOAD_MAX_INDEX];
 
             SaturatedMode uploadLimitSettingStatus = limitMonitor.getUploadLimitSettingMode();
             SaturatedMode downloadLimitSettingStatus = limitMonitor.getDownloadLimitSettingMode();
 
-            //NOTE::  IF the SpeedLimitMonitor is no longer setting MAX/MIN limits then it needs to
-            //        learn of updates.
-            limitMonitor.setRefLimits(uploadLimitMax,uploadLimitMin,downloadLimitMax,downloadLimitMin);
-            //ToDo: This is critical.
+            //Mapper is now trying to determine the limits.
+            limitMonitor.setRefLimits(uploadLimitMax,downloadLimitMax);
+
+            int downloadLimitMin = limitMonitor.getDownloadMinLimit();
+            int uploadLimitMin = limitMonitor.getUploadMinLimit();
 
             slider.updateLimits(uploadLimitMax,uploadLimitMin,
                     downloadLimitMax,downloadLimitMin);

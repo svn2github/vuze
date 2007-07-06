@@ -55,6 +55,6 @@ public class TestInterfaceImpl implements TestInterface {
      * @return int[4] , with maxUpload, minUpload, maxDownload and minDownload respectively.
      */
     public int[] getLimits() {
-        return ( new int[] {80000,8000,35000,7000} );  
+        return ( new int[] {35000,80000} );  
     }
 }

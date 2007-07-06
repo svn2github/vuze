@@ -906,33 +906,33 @@ public class SpeedLimitMonitor
         return retVal;
     }
 
-    public void setRefLimits(int uploadMax, int uploadMin, int downloadMax, int downloadMin){
+    public void setRefLimits(int uploadMax, int downloadMax){
 
         if( uploadLimitMax != uploadMax ){
             uploadLimitMax=uploadMax;
             COConfigurationManager.setParameter(
-                                    SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT, uploadLimitMax);
+                    SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT, uploadLimitMax);
         }
 
+        int uploadMin = Math.max( uploadMax/10, 5120 );
         if( uploadLimitMin != uploadMin ){
-            uploadMin = Math.max( uploadMin, 5120 );
             uploadLimitMin = uploadMin;
             COConfigurationManager.setParameter(
-                                    SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT, uploadLimitMin);
+                    SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT, uploadLimitMin);
         }
 
         if( downloadLimitMax != downloadMax){
             downloadLimitMax = downloadMax;
             COConfigurationManager.setParameter(
-                                    SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT, downloadLimitMax);
+                    SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT, downloadLimitMax);
 
         }
 
+        int downloadMin = Math.max( downloadMax/10, 20480 );
         if( downloadLimitMin != downloadMin ){
-            downloadMin = Math.max( downloadMin, 20480 );
             downloadLimitMin = downloadMin;
             COConfigurationManager.setParameter(
-                                    SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MIN_LIMIT, downloadLimitMin);
+                    SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MIN_LIMIT, downloadLimitMin);
         }
 
     }
