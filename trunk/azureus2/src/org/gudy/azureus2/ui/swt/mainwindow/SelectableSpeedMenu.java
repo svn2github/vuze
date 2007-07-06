@@ -34,8 +34,10 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.shells.InputShell;
+import org.gudy.azureus2.ui.swt.shells.SpeedScaleShell;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 
 public class SelectableSpeedMenu {
 
@@ -282,6 +284,49 @@ public class SelectableSpeedMenu {
 	           }
 	       };
 	   }
+
+	/**
+	 * @since 3.0.1.7
+	 */
+	public static void invokeSlider(boolean isUpSpeed) {
+		final String prefix = MessageText.getString(isUpSpeed
+				? "GeneralView.label.maxuploadspeed"
+				: "GeneralView.label.maxdownloadspeed");
+
+		GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+
+		final String configKey = isUpSpeed
+				? TransferSpeedValidator.getActiveUploadParameter(gm)
+				: "Max Download Speed KBs";
+		int maxBandwidth = COConfigurationManager.getIntParameter(configKey);
+		final boolean unlim = (maxBandwidth == 0);
+		if (unlim && !isUpSpeed) {
+			GlobalManagerStats stats = gm.getStats();
+			int dataReceive = stats.getDataReceiveRate();
+			if (dataReceive >= 1024) {
+				maxBandwidth = dataReceive / 1024;
+			}
+		}
+
+		SpeedScaleShell speedScale = new SpeedScaleShell() {
+			public String getStringValue() {
+				int value = getValue();
+				return prefix
+						+ ": "
+						+ (value == 0 ? MessageText.getString("ConfigView.unlimited")
+								: DisplayFormatters.formatByteCountToKiBEtcPerSec(
+										getValue() * 1024, true));
+			}
+		};
+		int max = unlim ? (isUpSpeed ? 100 : 500) : maxBandwidth * 5;
+		if (max < 50) {
+			max = 50;
+		}
+		speedScale.setMaxValue(max);
+		if (speedScale.open(maxBandwidth, true)) {
+			COConfigurationManager.setParameter(configKey, speedScale.getValue());
+		}
+	}
 	
 }
  

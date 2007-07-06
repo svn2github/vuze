@@ -27,6 +27,7 @@ import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
@@ -53,6 +54,7 @@ import org.gudy.azureus2.ui.swt.BlockedIpsWindow;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.shells.SpeedScaleShell;
 import org.gudy.azureus2.ui.swt.update.UpdateProgressWindow;
 import org.gudy.azureus2.ui.swt.update.UpdateWindow;
 
@@ -437,6 +439,27 @@ public class MainStatusBar {
 		});
 		statusUp.setMenu(menuUpSpeed);
 
+		statusUp.addMouseListener(new MouseAdapter() {
+			public void mouseDown(MouseEvent e) {
+				if (e.button != 1) {
+					return;
+				}
+				Event event = new Event();
+				event.type = SWT.MouseUp;
+				event.widget = e.widget;
+				event.stateMask = e.stateMask;
+				event.button = e.button;
+				e.widget.getDisplay().post(event);
+				
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						SelectableSpeedMenu.invokeSlider(true);
+					}
+				});
+			}
+		});
+
+		
 		final Menu menuDownSpeed = new Menu(statusBar.getShell(), SWT.POP_UP);
 		menuDownSpeed.addListener(SWT.Show, new Listener() {
 			public void handleEvent(Event e) {
@@ -445,6 +468,26 @@ public class MainStatusBar {
 			}
 		});
 		statusDown.setMenu(menuDownSpeed);
+		
+		statusDown.addMouseListener(new MouseAdapter() {
+			public void mouseDown(MouseEvent e) {
+				if (e.button != 1) {
+					return;
+				}
+				Event event = new Event();
+				event.type = SWT.MouseUp;
+				event.widget = e.widget;
+				event.stateMask = e.stateMask;
+				event.button = e.button;
+				e.widget.getDisplay().post(event);
+				
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						SelectableSpeedMenu.invokeSlider(false);
+					}
+				});
+			}
+		});
 
 		addUpdateListener();
 
