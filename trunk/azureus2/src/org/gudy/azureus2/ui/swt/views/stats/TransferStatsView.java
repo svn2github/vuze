@@ -704,7 +704,7 @@ public class TransferStatsView extends AbstractIView {
 						  
 						  String text = String.valueOf( metric );
 							  
-						  int	text_width = text.length()*char_width;
+						  int	text_width = text.length()*char_width + 4;
 						  
 						  if ( width >= text_width && height >= font_height ){
 							  
