@@ -536,8 +536,14 @@ PluginInterfaceImpl
   
   	throws PluginException
   {
-  	unload();
-  		
+	  	// we use the "reload" method to load disabled plugins regardless of whether they are
+	  	// unloadable. If currently disabled then no unloading to do anyway
+	  
+	if ( isUnloadable() || isOperational()){
+		
+	  unload();
+	}
+	  
   	initialiser.reloadPlugin( this );
   }
   
