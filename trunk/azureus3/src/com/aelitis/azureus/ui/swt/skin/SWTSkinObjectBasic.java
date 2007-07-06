@@ -14,6 +14,7 @@ import org.eclipse.swt.widgets.Control;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 
@@ -79,6 +80,12 @@ public class SWTSkinObjectBasic
 
 		SWTSkinUtils.addMouseImageChangeListeners(control);
 		switchSuffix("", 1, false);
+
+		// setvisible is one time only
+		if (properties.getStringValue(sConfigID + ".visible", "true").equalsIgnoreCase(
+				"false")) {
+			setVisible(false);
+		}
 	}
 
 	public Control getControl() {
@@ -238,11 +245,6 @@ public class SWTSkinObjectBasic
 			return suffix;
 		}
 
-		if (properties.getStringValue(sConfigID + ".visible", "true").equalsIgnoreCase(
-				"false")) {
-			setVisible(false);
-		}
-		
 		Color color = properties.getColor(sConfigID + ".color" + suffix);
 		if (color != null) {
 			control.setBackground(color);
