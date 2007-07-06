@@ -518,7 +518,7 @@ public class TransferStatsView extends AbstractIView {
 		SpeedManagerPingMapper mapper )
   {
 	  SpeedManagerLimitEstimate up 		= mapper.getEstimatedUploadLimit();
-	  SpeedManagerLimitEstimate down 	= mapper.getEstimatedUploadLimit();
+	  SpeedManagerLimitEstimate down 	= mapper.getEstimatedDownloadLimit();
 	  
 	  return( "ul=" + (up==null?"":(DisplayFormatters.formatByteCountToKiBEtc(up.getBytesPerSec()) + "/" + up.getMetric())) + 
 			  ",dl=" + (down==null?"":(DisplayFormatters.formatByteCountToKiBEtc(down.getBytesPerSec()) + "/" + down.getMetric())) + 

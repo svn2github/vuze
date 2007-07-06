@@ -952,7 +952,7 @@ SpeedManagerImpl
 			down_estimate 	= getEstimatedLimit( false );
 		}
 		
-		protected limitEstimate[]
+		protected synchronized limitEstimate[]
 		getEstimatedLimit(
 			boolean		up )
 		{
@@ -1001,8 +1001,6 @@ SpeedManagerImpl
 			
 			limitEstimate[]	results = new limitEstimate[samples.length];
 			
-				// flatten out all observations 
-			
 			for (int sample=0;sample<samples.length;sample++){
 				
 				int	sample_end = max_end + 1;
@@ -1012,13 +1010,19 @@ SpeedManagerImpl
 				short[] when			= new short[sample_end];
 				short[]	worst_var_type	= new short[sample_end];
 				
+					// take the last 'n' samples (at end of list)
+				
 				int	sample_count = samples[sample];
 				
-				ListIterator sample_it = regions.listIterator( num_samples );
-								
-				for (int i=0;i<sample_count;i++){
+				int	pos = num_samples - sample_count;
+				
+				ListIterator sample_it = regions.listIterator( pos );
+					
+					// flatten out all observations into a single munged metric
 
-					region r = (region)sample_it.previous();
+				for (int i=pos;i<num_samples;i++){
+
+					region r = (region)sample_it.next();
 				
 					int	start 	= (up?r.getUploadStartBytesPerSec():r.getDownloadStartBytesPerSec())/SPEED_DIVISOR;
 					int	end		= (up?r.getUploadEndBytesPerSec():r.getDownloadEndBytesPerSec())/SPEED_DIVISOR;
@@ -1034,17 +1038,19 @@ SpeedManagerImpl
 							// that previously occuring bad variance will get flattened out by
 							// subsequent good variance
 						
-						weighted_start 	= 0;
-						
+						weighted_start 	= 0;						
 						this_var_type 	= 0;
 						
 					}else if ( metric < VARIANCE_BAD_VALUE ){
 						
-						weighted_start 	= start;
+							// medium values, treat at face value
 						
+						weighted_start 	= start;
 						this_var_type	= VARIANCE_GOOD_VALUE;
 
 					}else{
+						
+							// bad ones, treat at face value
 						
 						weighted_start 	= start;
 						this_var_type	= VARIANCE_BAD_VALUE;
@@ -1053,9 +1059,10 @@ SpeedManagerImpl
 					for (int j=weighted_start;j<=end;j++){
 					
 							// a bad variance resets totals as we have encountered this after (in time)
-							// the existing data and is this more relevant
+							// the existing data and this is more relevant and replaces any feel good
+							// factor we might have accumulated via prior observations
 						
-						if ( worst_var_type[j] < this_var_type ){
+						if ( this_var_type == VARIANCE_BAD_VALUE && worst_var_type[j] < this_var_type ){
 							
 							totals[j]	= 0;
 							hits[j]		= 0;
@@ -1066,15 +1073,17 @@ SpeedManagerImpl
 						
 						totals[j] += metric;
 						hits[j]++;
+							
+							// keep track of most recent observation pertaining to this value
 						
 						if ( i > when[j] ){
 							
-							when[j] = (short)(sample_count-i);
+							when[j] = (short)i;
 						}
 					}
 				}
-				
-					// find the worst composite variance that we have
+
+					// now average out values based on history computed above
 								
 				for (int i=0;i<sample_end;i++){
 					
@@ -1085,8 +1094,23 @@ SpeedManagerImpl
 						int	average = totals[i]/hit;
 						
 						totals[i] = average;
+						
+						if ( average < VARIANCE_GOOD_VALUE ){
+		
+							worst_var_type[i] = 0;
+						
+						}else if ( average < VARIANCE_BAD_VALUE ){
+						
+							worst_var_type[i] = VARIANCE_GOOD_VALUE;
+
+						}else{
+							
+							worst_var_type[i] = VARIANCE_BAD_VALUE;
+						}
 					}
 				}
+				
+					// now we look for the most recent worst area of contiguous badness
 				
 				int	estimate		= -1;
 				int	estimate_when	= 0;
@@ -1096,7 +1120,7 @@ SpeedManagerImpl
 				int	zone_max_hit	= 0;
 				int	zone_max_time	= 0;
 				
-				int	worst_average	= 0;
+				int	worst_var		= 0;
 				
 				int	last_average 		= -1;
 				int	last_average_change	= 0;
@@ -1105,8 +1129,10 @@ SpeedManagerImpl
 				
 				for (int i=0;i<sample_end;i++){
 					
-					int	average = totals[i];
+					int var		= worst_var_type[i];
 					int	hit 	= hits[i];
+					
+					int average = totals[i];
 					
 					if ( i == 0 ){
 						
@@ -1120,15 +1146,28 @@ SpeedManagerImpl
 						last_average_change	= i;
 					}
 					
-					if ( average >= worst_average && hit >= zone_max_hit ){
+					if ( var >= worst_var ){
 						
-						worst_average = average;
-						
-						if ( zone_start == -1 || hit > zone_max_hit ){
+						if ( var > worst_var || zone_start == -1 ){
+					
+							// start a new zone and discard any previous results as things have got worse
+							
+							worst_var		= var;
 							
 							zone_start 		= i;
 							zone_max_hit	= hit;
+							zone_max_time	= 0;
+							
+							estimate_when	= 0;	// forget any previous zone stats
+							
+						}else{
+							
+								// continuation of zone
+						
+							zone_max_hit = Math.max( zone_max_hit, hit );
 						}
+						
+							// keep track of most recent contribution to this zone
 						
 						int	w = when[i];
 						
@@ -1138,11 +1177,24 @@ SpeedManagerImpl
 						}
 					}else{
 						
+							// zone ended - capture details if this is more recent
+						
 						if ( zone_start != -1 ){
 							
 							if ( zone_max_time > estimate_when ){
 							
-								estimate 		= zone_start + (i-zone_start)/2;
+									// if zone has contiguous time region at start then take middle of this
+						
+								int	start_when = when[zone_start];
+								
+								int	k;
+								
+								for (k=zone_start+1;k<i;k++){
+								
+									if ( when[k] != start_when )break;
+								}
+								
+								estimate 		= zone_start + (k-zone_start)/2;
 								estimate_when	= zone_max_time;
 								estimate_hits	= zone_max_hit;
 							}
@@ -1156,9 +1208,22 @@ SpeedManagerImpl
 				
 				if ( zone_start != -1 ){
 					
+						// capture any trailing zone
+					
 					if ( zone_max_time > estimate_when ){
 					
-						estimate 		= zone_start + (totals.length-zone_start)/2;
+						
+						int	start_when = when[zone_start];
+						
+						int	k;
+						
+						for (k=zone_start+1;k<sample_end;k++){
+						
+							if ( when[k] != start_when )break;
+						}
+						
+						estimate 		= zone_start + (k-zone_start)/2;
+						
 						estimate_when	= zone_max_time;
 						estimate_hits	= zone_max_hit;
 					}
@@ -1172,7 +1237,7 @@ SpeedManagerImpl
 				results[sample] = 
 					new limitEstimate(
 							estimate==-1?-1:(estimate*SPEED_DIVISOR),
-							worst_average, 
+							worst_var, 
 							estimate_hits, 
 							estimate_when,
 							(int[][])segments.toArray(new int[segments.size()][]));
@@ -1455,7 +1520,7 @@ SpeedManagerImpl
 				return( segs );
 			}
 			
-			protected String
+			public String
 			getString()
 			{
 				return( "speed=" + DisplayFormatters.formatByteCountToKiBEtc( speed )+
@@ -1494,7 +1559,13 @@ SpeedManagerImpl
 				
 				pm.addPing( x_base + rand.nextInt( x_var ), x_base + rand.nextInt( x_var ), rand.nextInt( r ));
 			
-				System.out.println( pm.getEstimatedUploadLimit() + "," + pm.getEstimatedDownloadLimit());
+				SpeedManagerLimitEstimate up 	= pm.getEstimatedUploadLimit();
+				SpeedManagerLimitEstimate down 	= pm.getEstimatedDownloadLimit();
+				
+				if ( up != null && down != null ){
+					
+					System.out.println( up.getString() + "," + down.getString());
+				}
 			}
 		}
 	}
