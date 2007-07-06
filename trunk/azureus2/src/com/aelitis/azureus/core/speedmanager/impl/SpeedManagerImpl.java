@@ -519,6 +519,10 @@ SpeedManagerImpl
 			if ( _enabled ){
 				
 				original_limits	= adapter.getLimits();
+				
+			}else{
+				
+				ping_mapper.saveHistory();
 			}
 			
 			reset();

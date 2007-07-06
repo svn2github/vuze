@@ -24,6 +24,7 @@ package org.gudy.azureus2.ui.swt.views.stats;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -705,52 +706,41 @@ public class TransferStatsView extends AbstractIView {
 							  
 						  int	text_width = text.length()*char_width;
 						  
-						  Rectangle text_rect = 
-							new Rectangle(
-									x + ((width-text_width)/2), 
-									y_draw + ((height-font_height)/2), 
-									text_width, font_height );
+						  if ( width >= text_width && height >= font_height ){
+							  
+
+							  Rectangle text_rect = 
+								new Rectangle(
+										x + ((width-text_width)/2), 
+										y_draw + ((height-font_height)/2), 
+										text_width, font_height );
 									
-						  	// check for overlap with existing
-						  
-						  boolean	force = false;
-						  
-						  for (int j=0;j<texts.size();j++){
+							  	// check for overlap with existing and delete older
 							  
-							  Object[]	old = (Object[])texts.get(j);
+							  Iterator it = texts.iterator();
 							  
-							  Rectangle old_coords = (Rectangle)old[1];
-							  
-							  if ( old_coords.intersects( text_rect )){
+							  while( it.hasNext()){
 								  
-								  int	old_metric = ((Integer)old[0]).intValue();
-								  								  
-								  text_metric = Math.max( old_metric, metric );
-
-								  text = String.valueOf( text_metric );
-
-								  text_rect = 
-										new Rectangle(
-												x + ((width-text_width)/2), 
-												y_draw + ((height-font_height)/2), 
-												text_width, font_height );
-
-								  texts.remove( j );
+								  Object[]	old = (Object[])it.next();
 								  
-								  force = true;
+								  Rectangle old_coords = (Rectangle)old[1];
 								  
-								  break;
+								  if ( old_coords.intersects( text_rect )){
+									
+									  it.remove();
+								  }
 							  }
-						  }
-						  
-						  if ( force || ( width >= text_width && height >= font_height )){
 							  
 							  texts.add( new Object[]{ new Integer( text_metric ), text_rect });  
 						  }
 					  }
 				  }
 				  
-				  for (int i=0;i<texts.size();i++){
+				  	// only do the last 100 texts as things get a little cluttered
+				  
+				  int	text_num = texts.size();
+				  
+				  for (int i=(text_num>100?(text_num-100):0);i<text_num;i++){
 					  
 					  Object[]	entry = (Object[])texts.get(i);
 					  
