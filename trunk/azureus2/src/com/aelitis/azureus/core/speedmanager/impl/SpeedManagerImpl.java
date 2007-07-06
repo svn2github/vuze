@@ -237,6 +237,8 @@ SpeedManagerImpl
 	{
 		total_contacts		= 0;
 		
+		SpeedManagerAlgorithmProvider	old_provider = provider;
+		
 		if ( provider_version == 1 ){
 			
 			if ( !( provider instanceof SpeedManagerAlgorithmProviderV1 )){
@@ -260,6 +262,11 @@ SpeedManagerImpl
 			Debug.out( "Unknown provider version " + provider_version );
 			
 			return;
+		}
+		
+		if ( old_provider != provider ){
+		
+			log( "Algorithm set to " + provider.getClass().getName());
 		}
 		
 		provider.reset();
@@ -544,6 +551,8 @@ SpeedManagerImpl
 		boolean	_enabled )
 	{
 		if ( enabled != _enabled ){
+			
+			log( "Enabled set to " + _enabled );
 			
 			if ( _enabled ){
 				
