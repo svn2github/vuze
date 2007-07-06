@@ -1,7 +1,10 @@
-package com.aelitis.azureus.core.speedmanager;
+package com.aelitis.azureus.core.speedmanager.impl.v2;
+
+
+import java.util.Random;
 
 /**
- * Created on Jul 5, 2007
+ * Created on Jul 6, 2007
  * Created by Alan Snyder
  * Copyright (C) 2007 Aelitis, All Rights Reserved.
  * <p/>
@@ -21,21 +24,36 @@ package com.aelitis.azureus.core.speedmanager;
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  */
 
-public interface TestInterface {
+public class TestInterfaceImpl implements TestInterface {
+
 
     /**
      * Negative values are bad, positive values are good.
+     *
      * @return - values from -1.0 to +1.0
      */
-    public float getCurrentMetric();
+    public float getCurrentMetric() {
+
+        Random r = new Random();
+
+        boolean rBool = r.nextBoolean();
+
+        //half the time give a random number.
+        float retVal = 0.0f;
+        if(rBool){
+            int rInt = r.nextInt(200) - 100;
+            retVal = (rInt/100.0f);
+        }
+
+        return retVal;
+    }
 
     /**
      * The current min and max limits allowed.
-     * @return int[2] , with maxUpload, minUpload, maxDownload and minDownload respectively.
+     *
+     * @return int[4] , with maxUpload, minUpload, maxDownload and minDownload respectively.
      */
-    public int[] getLimits();
-
-    static final int UPLOAD_MAX_INDEX = 0;
-    static final int DOWNLOAD_MAX_INDEX = 1;
-    
+    public int[] getLimits() {
+        return ( new int[] {35000,80000} );  
+    }
 }

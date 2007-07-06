@@ -20,9 +20,11 @@
  *
  */
 
-package com.aelitis.azureus.core.speedmanager.impl;
+package com.aelitis.azureus.core.speedmanager.impl.v2;
 
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingSource;
+import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProvider;
+import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProviderAdapter;
 
 public class 
 SpeedManagerAlgorithmProviderV2 
@@ -74,7 +76,7 @@ SpeedManagerAlgorithmProviderV2
     public static final String SETTING_V2_UP_DOWN_RATIO = "SpeedManagerAlgorithmProviderV2.setting.updown.ratio";
 
 
-    protected
+    public
 	SpeedManagerAlgorithmProviderV2(
 		SpeedManagerAlgorithmProviderAdapter	_adapter )
 	{

@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.azureus.core.speedmanager.impl;
+package com.aelitis.azureus.core.speedmanager.impl.v2;
 
 public class SaturatedMode implements Comparable {
     public static final SaturatedMode AT_LIMIT = new SaturatedMode("AT_LIMIT",0.95f);

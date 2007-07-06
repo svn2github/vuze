@@ -1,9 +1,10 @@
-package com.aelitis.azureus.core.speedmanager.impl;
+package com.aelitis.azureus.core.speedmanager.impl.v2;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreException;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingSource;
-import com.aelitis.azureus.core.speedmanager.TestInterface;
+import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProvider;
+import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProviderAdapter;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.core3.config.COConfigurationManager;

@@ -34,10 +34,10 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServer;
 import org.gudy.azureus2.core3.util.*;
-import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProviderV2;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerImpl;
-import com.aelitis.azureus.core.speedmanager.impl.SpeedLimitMonitor;
-import com.aelitis.azureus.core.speedmanager.impl.SpeedLimitConfidence;
+import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedLimitConfidence;
+import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedLimitMonitor;
+import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedManagerAlgorithmProviderV2;
 
 /**
  *

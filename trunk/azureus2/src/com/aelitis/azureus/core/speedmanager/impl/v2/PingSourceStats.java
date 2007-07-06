@@ -1,4 +1,4 @@
-package com.aelitis.azureus.core.speedmanager.impl;
+package com.aelitis.azureus.core.speedmanager.impl.v2;
 
 import com.aelitis.azureus.core.util.average.AverageFactory;
 import com.aelitis.azureus.core.util.average.Average;

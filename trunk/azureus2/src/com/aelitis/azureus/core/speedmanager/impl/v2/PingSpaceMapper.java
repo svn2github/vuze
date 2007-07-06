@@ -1,4 +1,4 @@
-package com.aelitis.azureus.core.speedmanager.impl;
+package com.aelitis.azureus.core.speedmanager.impl.v2;
 
 /**
  * Created on Jun 14, 2007

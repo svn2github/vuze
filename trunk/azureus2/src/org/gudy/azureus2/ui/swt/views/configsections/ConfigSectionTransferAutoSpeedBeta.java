@@ -13,10 +13,10 @@ import org.eclipse.swt.widgets.*;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.SWT;
-import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProviderV2;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerImpl;
-import com.aelitis.azureus.core.speedmanager.impl.SpeedLimitMonitor;
-import com.aelitis.azureus.core.speedmanager.impl.SpeedLimitConfidence;
+import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedLimitConfidence;
+import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedLimitMonitor;
+import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedManagerAlgorithmProviderV2;
 
 /**
  * Created on May 15, 2007

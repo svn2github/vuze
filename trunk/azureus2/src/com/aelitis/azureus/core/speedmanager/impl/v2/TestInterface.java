@@ -1,13 +1,7 @@
-package com.aelitis.azureus.core.speedmanager.impl;
-
-import org.gudy.azureus2.core3.logging.LogIDs;
-import org.gudy.azureus2.core3.logging.LogEvent;
-import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
-import org.gudy.azureus2.core3.util.AEDiagnostics;
+package com.aelitis.azureus.core.speedmanager.impl.v2;
 
 /**
- * Created on Jun 1, 2007
+ * Created on Jul 5, 2007
  * Created by Alan Snyder
  * Copyright (C) 2007 Aelitis, All Rights Reserved.
  * <p/>
@@ -27,29 +21,21 @@ import org.gudy.azureus2.core3.util.AEDiagnostics;
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  */
 
-public class SpeedManagerLogger
-{
-    private static final LogIDs ID = LogIDs.NWMAN;
-    private static final AEDiagnosticsLogger dLog = AEDiagnostics.getLogger("v3.AutoSpeed_Beta_Debug");
-
-    private SpeedManagerLogger(){}
-
-    public static void log(String str){
-
-        LogEvent e = new LogEvent(ID,str);
-        Logger.log(e);
-
-        if(dLog!=null){
-            dLog.log(str);
-        }
-
-    }//log
+public interface TestInterface {
 
     /**
-     * Same as log, but intended for debug statements.
-     * @param str -
+     * Negative values are bad, positive values are good.
+     * @return - values from -1.0 to +1.0
      */
-    public static void trace(String str){
-        log("-trace-> "+str);
-    }//trace
+    public float getCurrentMetric();
+
+    /**
+     * The current min and max limits allowed.
+     * @return int[2] , with maxUpload, minUpload, maxDownload and minDownload respectively.
+     */
+    public int[] getLimits();
+
+    static final int UPLOAD_MAX_INDEX = 0;
+    static final int DOWNLOAD_MAX_INDEX = 1;
+    
 }

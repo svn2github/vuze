@@ -1,11 +1,13 @@
-package com.aelitis.azureus.core.speedmanager.impl;
+package com.aelitis.azureus.core.speedmanager.impl.v2;
 
-import com.aelitis.azureus.core.speedmanager.TestInterface;
-
-import java.util.Random;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
+import org.gudy.azureus2.core3.util.AEDiagnostics;
 
 /**
- * Created on Jul 6, 2007
+ * Created on Jun 1, 2007
  * Created by Alan Snyder
  * Copyright (C) 2007 Aelitis, All Rights Reserved.
  * <p/>
@@ -25,36 +27,29 @@ import java.util.Random;
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  */
 
-public class TestInterfaceImpl implements TestInterface {
+public class SpeedManagerLogger
+{
+    private static final LogIDs ID = LogIDs.NWMAN;
+    private static final AEDiagnosticsLogger dLog = AEDiagnostics.getLogger("v3.AutoSpeed_Beta_Debug");
 
+    private SpeedManagerLogger(){}
 
-    /**
-     * Negative values are bad, positive values are good.
-     *
-     * @return - values from -1.0 to +1.0
-     */
-    public float getCurrentMetric() {
+    public static void log(String str){
 
-        Random r = new Random();
+        LogEvent e = new LogEvent(ID,str);
+        Logger.log(e);
 
-        boolean rBool = r.nextBoolean();
-
-        //half the time give a random number.
-        float retVal = 0.0f;
-        if(rBool){
-            int rInt = r.nextInt(200) - 100;
-            retVal = (rInt/100.0f);
+        if(dLog!=null){
+            dLog.log(str);
         }
 
-        return retVal;
-    }
+    }//log
 
     /**
-     * The current min and max limits allowed.
-     *
-     * @return int[4] , with maxUpload, minUpload, maxDownload and minDownload respectively.
+     * Same as log, but intended for debug statements.
+     * @param str -
      */
-    public int[] getLimits() {
-        return ( new int[] {35000,80000} );  
-    }
+    public static void trace(String str){
+        log("-trace-> "+str);
+    }//trace
 }

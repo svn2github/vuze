@@ -21,7 +21,7 @@
  */
 
 
-package com.aelitis.azureus.core.speedmanager.impl;
+package com.aelitis.azureus.core.speedmanager.impl.v1;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,6 +30,8 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingSource;
+import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProvider;
+import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProviderAdapter;
 import com.aelitis.azureus.core.util.average.Average;
 import com.aelitis.azureus.core.util.average.AverageFactory;
 
@@ -151,7 +153,7 @@ SpeedManagerAlgorithmProviderV1
 	
 	private int		max_upload_average;
 
-	protected
+	public
 	SpeedManagerAlgorithmProviderV1(
 		SpeedManagerAlgorithmProviderAdapter	_adapter )
 	{
