@@ -77,14 +77,35 @@ public class BTPeerIDByteDecoder {
       if( (decoded = decodeAzStyle( peerID, "SZ", "Shareaza" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "KT", "KTorrent" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "TR", "Transmission" )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "CD", "CTorrent" )) != null ) return decoded;      
+      if( (decoded = decodeAzStyle( peerID, "CD", "Enhanced CTorrent" )) != null ) return decoded;      
       if( (decoded = decodeAzStyle( peerID, "RT", "Retriever" )) != null ) return decoded;      
       if( (decoded = decodeAzStyle( peerID, "LP", "Lphant" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "PC", PeerClassifier.CACHE_LOGIC )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "BR", "BitRocket" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "XX", "Xtorrent" )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "XL", "\u8FC5\u96F7\u5728\u7EBF (Xunlei)" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "FG", "FlashGet", false )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "FT", "FoxTorrent/RedSwoosh", false )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "UL", "uLeecher!", false )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "TT", "TouTu", false )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "ST", "SharkTorrent", false )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "SB", "~Swiftbit", false )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "S~", "Shareaza alpha/beta", false )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "qB", "qBittorrent", false )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "PD", "Pando", false )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "MP", "MooPolice", false )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "LH", "LH-ABC", false )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "HN", "Hydranode", false )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "HL", "Halite", false )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "ES", "Electric Sheep", false )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "EB", "EBit", false )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "DP", "Propogate Data Client", false )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "DE", "DelugeTorrent", false )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "AX", "BitPump", false )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "AV", "Avicora", false )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "AG", "Ares", false )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "A~", "Ares", false )) != null ) return decoded;
+      
       
       if( (decoded = decodeTornadoStyle( peerID, "T", "BitTornado" )) != null ) return decoded;
       if( (decoded = decodeTornadoStyle( peerID, "A", "ABC" )) != null ) return decoded;
