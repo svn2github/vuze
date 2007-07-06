@@ -441,7 +441,7 @@ public class MainStatusBar {
 
 		statusUp.addMouseListener(new MouseAdapter() {
 			public void mouseDown(MouseEvent e) {
-				if (e.button != 3) {
+				if (e.button != 2) {
 					return;
 				}
 				Event event = new Event();
@@ -471,7 +471,7 @@ public class MainStatusBar {
 		
 		statusDown.addMouseListener(new MouseAdapter() {
 			public void mouseDown(MouseEvent e) {
-				if (e.button != 3) {
+				if (e.button != 2) {
 					return;
 				}
 				Event event = new Event();
