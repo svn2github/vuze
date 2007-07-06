@@ -891,7 +891,10 @@ SpeedManagerImpl
 			
 			prev_ping = ping;
 			
-			System.out.println( "Ping: " + ping.getString() + (new_region==null?"":(", region=" + new_region.getString())));
+			if ( variance ){
+			
+				System.out.println( "Ping: " + ping.getString() + (new_region==null?"":(", region=" + new_region.getString())));
+			}
 			
 			updateLimitEstimates();
 		}
@@ -1274,7 +1277,10 @@ SpeedManagerImpl
 				str += (i==0?"":",") + r.getString();
 			}
 			
-			System.out.println( "Estimate (samples=" + num_samples + ")" + (up?"up":"down") + "->" + str );
+			if ( variance ){
+			
+				System.out.println( "Estimate (samples=" + num_samples + ")" + (up?"up":"down") + "->" + str );
+			}
 			
 			return( results );
 		}
@@ -1462,7 +1468,7 @@ SpeedManagerImpl
 			public int
 			getY2()
 			{
-				return( x2 & 0x0000ffff );
+				return( y2 & 0x0000ffff );
 			}
 						
 			public int
