@@ -139,7 +139,7 @@ SpeedManagerPingMapperImpl
 							last_y	= 0;						
 						}
 						
-						addPingSupport( x, y, metric );
+						addPingSupport( x, y, -1, metric, false );
 					}
 				}
 				
@@ -153,7 +153,7 @@ SpeedManagerPingMapperImpl
 				
 				pingValue	ping = old_pings[i];
 				
-				addPingSupport( ping.getX(), ping.getY(), ping.getMetric());
+				addPingSupport( ping.getX(), ping.getY(), -1, ping.getMetric(), false );
 			}
 			
 		}catch( Throwable e ){
@@ -220,19 +220,20 @@ SpeedManagerPingMapperImpl
 	addPing(
 		int		x,
 		int		y,
-		int		metric )
+		int		rtt,
+		boolean	re_base )
 	{
 		x = x/SPEED_DIVISOR;
 		y = y/SPEED_DIVISOR;
 		
 		if ( x > 65535 )x = 65535;
 		if ( y > 65535 )y = 65535;
-		if ( metric > 65535 )metric = 65535;
-		if ( metric == 0 )metric = 1;
+		if ( rtt > 65535 )rtt = 65535;
+		if ( rtt == 0 )rtt = 1;
 		
 			// ping time won't refer to current x+y due to latencies, apply to average between
 			// current and previous
-		
+				
 		int	average_x = (x + last_x )/2;
 		int	average_y = (y + last_y )/2;
 		
@@ -242,8 +243,17 @@ SpeedManagerPingMapperImpl
 		x	= average_x;
 		y	= average_y;
 		
+		int	metric = rtt;
+		
 		if ( variance ){
 			
+			if ( re_base ){
+				
+				log( "Re-based variance" );
+				
+				recent_metrics_next = 0;
+			}
+
 			recent_metrics[recent_metrics_next++%recent_metrics.length] = metric;
 			
 			metric = 0;
@@ -274,7 +284,7 @@ SpeedManagerPingMapperImpl
 			}
 		}
 		
-		addPingSupport( x, y, metric );
+		addPingSupport( x, y, rtt, metric, true );
 		
 		updateLimitEstimates();
 	}
@@ -283,7 +293,9 @@ SpeedManagerPingMapperImpl
 	addPingSupport(
 		int		x,
 		int		y,
-		int		metric )
+		int		rtt,
+		int		metric,
+		boolean	log )
 	{
 		if ( ping_count == pings.length ){
 
@@ -321,9 +333,9 @@ SpeedManagerPingMapperImpl
 		
 		prev_ping = ping;
 		
-		if ( variance ){
+		if ( variance && log ){
 		
-			log( "Ping: " + ping.getString() + (new_region==null?"":(", region=" + new_region.getString())));
+			log( "Ping: " + (rtt>0?("rtt="+rtt+","):"") + ping.getString() + (new_region==null?"":(", region=" + new_region.getString())));
 		}
 	}
 	
@@ -467,6 +479,7 @@ SpeedManagerPingMapperImpl
 				int	metric	= r.getMetric();
 			
 				int	weighted_start;
+				int	weighted_end;
 				
 				short	this_var_type;
 				
@@ -476,7 +489,8 @@ SpeedManagerPingMapperImpl
 						// that previously occuring bad variance will get flattened out by
 						// subsequent good variance
 					
-					weighted_start 	= 0;						
+					weighted_start 	= 0;	
+					weighted_end	= end;
 					this_var_type 	= 0;
 					
 				}else if ( metric < VARIANCE_BAD_VALUE ){
@@ -484,6 +498,7 @@ SpeedManagerPingMapperImpl
 						// medium values, treat at face value
 					
 					weighted_start 	= start;
+					weighted_end	= end;
 					this_var_type	= VARIANCE_GOOD_VALUE;
 
 				}else{
@@ -491,10 +506,11 @@ SpeedManagerPingMapperImpl
 						// bad ones, treat at face value
 					
 					weighted_start 	= start;
+					weighted_end	= max_end;
 					this_var_type	= VARIANCE_BAD_VALUE;
 				}
 				
-				for (int j=weighted_start;j<=end;j++){
+				for (int j=weighted_start;j<=weighted_end;j++){
 				
 						// a bad variance resets totals as we have encountered this after (in time)
 						// the existing data and this is more relevant and replaces any feel good
@@ -970,7 +986,7 @@ SpeedManagerPingMapperImpl
 				int	x_var	= phase[2];
 				int r = phase[3];
 				
-				pm.addPing( x_base + rand.nextInt( x_var ), x_base + rand.nextInt( x_var ), rand.nextInt( r ));
+				pm.addPing( x_base + rand.nextInt( x_var ), x_base + rand.nextInt( x_var ), rand.nextInt( r ), false);
 			
 				SpeedManagerLimitEstimate up 	= pm.getEstimatedUploadLimit();
 				SpeedManagerLimitEstimate down 	= pm.getEstimatedDownloadLimit();

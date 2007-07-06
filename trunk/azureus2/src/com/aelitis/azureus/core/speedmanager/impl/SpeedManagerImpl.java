@@ -285,6 +285,8 @@ SpeedManagerImpl
 				{
 					private int	tick_count;
 					
+					private DHTSpeedTesterContact[]	last_contact_group = new DHTSpeedTesterContact[0];
+					
 					public void 
 					contactAdded(
 						DHTSpeedTesterContact contact )
@@ -368,6 +370,32 @@ SpeedManagerImpl
 							return;
 						}
 						
+						boolean	sources_changed = false;
+						
+						for (int i=0;i<st_contacts.length;i++){
+							
+							boolean	found = false;
+							
+							for (int j=0;j<last_contact_group.length;j++){
+							
+								if ( st_contacts[i] == last_contact_group[j] ){
+									
+									found = true;
+									
+									break;
+								}
+							}
+							
+							if ( !found ){
+									
+								sources_changed = true;
+								
+								break;
+							}
+						}
+						
+						last_contact_group = st_contacts;
+						
 						pingContact[]	sources = new pingContact[st_contacts.length];
 					
 						boolean	miss = false;
@@ -426,7 +454,7 @@ SpeedManagerImpl
 
 							if ( num_values> 0 ){
 								
-								addPingHistory( total/num_values );
+								addPingHistory( total/num_values, sources_changed );
 							}
 							
 							tick_count++;
@@ -457,7 +485,8 @@ SpeedManagerImpl
 
 	protected void
 	addPingHistory(
-		int		rtt )
+		int			rtt,
+		boolean		re_base )
 	{
 		int	average_period = 3000;
 		
@@ -466,7 +495,7 @@ SpeedManagerImpl
 		
 		for (int i=0;i<ping_mappers.length;i++){
 			
-			ping_mappers[i].addPing( x, y, rtt );
+			ping_mappers[i].addPing( x, y, rtt, re_base );
 		}
 	}
 	
