@@ -654,6 +654,8 @@ SpeedManagerImpl
 	SMUnlimited
 		implements SpeedManagerAlgorithmProvider
 	{
+		private int	good_signals;
+		
 		public void
 		reset()
 		{
@@ -687,9 +689,18 @@ SpeedManagerImpl
 			
 			if ( est != null ){
 				
+				if ( est.getMetric() >= 0 ){
+				
+					good_signals++;
+					
+				}else{
+					
+					good_signals = 0;
+				}
+				
 				if ( est.getMetric() > 100 ){
 					
-					adapter.setCurrentUploadLimit( est.getBytesPerSec() - 1024 );
+					adapter.setCurrentUploadLimit( est.getBytesPerSec() + (good_signals < 3?-1024:1024 ));
 					
 				}else if ( est.getMetric() >= 50 ){
 						
@@ -701,7 +712,6 @@ SpeedManagerImpl
 
 				}
 			}
-			
 		}
 				
 		public int
@@ -1305,72 +1315,11 @@ SpeedManagerImpl
 					return( 1 - ((double)latest_metric - VARIANCE_GOOD_VALUE )/50 );
 				}
 			}else{
-				
-				pingValue[] p = (pingValue[])pings.clone();
-				
-				if ( ping_count < 3 ){
-					
-					return(0);
-				}
-				
-				Arrays.sort(
-					p,
-					0,
-					ping_count,
-					new Comparator()
-					{
-						public int 
-						compare(
-							Object o1, 
-							Object o2 ) 
-						{
-							return(((pingValue)o1).getMetric()-((pingValue)o2).getMetric());
-						}
-					});
-				
-				int	p1 = ping_count/3;
-				int	p2 = ping_count*2/3;
-				
-				long	total1 = 0;
-				
-				for (int i=0;i<p1;i++){
-				
-					total1 += p[i].getMetric();
-				}
-				
-				long	a1 = total1/p1;
-								
-				long	total3 = 0;
-				
-				for (int i=p1;i<ping_count;i++){
-				
-					total3 += p[i].getMetric();
-				}
-				
-				long	a3 = total3/(ping_count-p2);
-				
-				if ( latest_metric <= a1 ){
-					
-					return( +1 );
-					
-				}else if ( latest_metric >= a3 ){
-					
-					return( -1 );
-					
-				}else{
-					
-					long	diff = a3 - a1;
-					
-					double	pos = latest_metric - a1;
-					
-					return( 1 - ( pos / (diff/2)));
-				}
+			
+				return( 0 );
 			}
 		}
 		
-
-		
-
 		class
 		pingValue
 		{
