@@ -57,18 +57,14 @@ SpeedManagerImpl
 	private static final int CONTACT_PING_SECS	= 5;
 	
 	private static final int LONG_PERIOD_SECS	= 30*60;
-	private static final int SHORT_PERIOD_SECS	= 30;
 	
 	private static final int LONG_PERIOD_TICKS 	= LONG_PERIOD_SECS / CONTACT_PING_SECS;
-	private static final int SHORT_PERIOD_TICKS = SHORT_PERIOD_SECS / CONTACT_PING_SECS;
 	
 	private static final int SHORT_ESTIMATE_SECS	= 15;
 	private static final int MEDIUM_ESTIMATE_SECS	= 150;
-	private static final int LONG_ESTIMATE_SECS		= 1500;
 	
 	private static final int SHORT_ESTIMATE_SAMPLES		= SHORT_ESTIMATE_SECS/CONTACT_PING_SECS;
 	private static final int MEDIUM_ESTIMATE_SAMPLES	= MEDIUM_ESTIMATE_SECS/CONTACT_PING_SECS;
-	private static final int LONG_ESTIMATE_SAMPLES		= LONG_ESTIMATE_SECS/CONTACT_PING_SECS;
 
 	private static final int VARIANCE_GOOD_VALUE		= 50;
 	private static final int VARIANCE_BAD_VALUE			= 150;
@@ -124,15 +120,15 @@ SpeedManagerImpl
 	
 	private AsyncDispatcher	dispatcher = new AsyncDispatcher();
 
-	//private pingMapper		long_ping_abs_mapper 	= new pingMapper( "l_abs", LONG_PERIOD_TICKS, false );
+	private pingMapper		long_ping_abs_mapper 	= new pingMapper( "Abs", LONG_PERIOD_TICKS, false );
 	//private pingMapper		short_ping_abs_mapper 	= new pingMapper( "s_abs", SHORT_PERIOD_TICKS, false );
 	
-	private pingMapper		long_ping_var_mapper 	= new pingMapper( "l_var", LONG_PERIOD_TICKS, true);
+	private pingMapper		long_ping_var_mapper 	= new pingMapper( "Var", LONG_PERIOD_TICKS, true);
 	//private pingMapper		short_ping_var_mapper 	= new pingMapper( "s_var", SHORT_PERIOD_TICKS, true );
 
 	private pingMapper[] ping_mappers = 
 		new pingMapper[]{ 
-			//long_ping_abs_mapper, 
+			long_ping_abs_mapper, 
 			// short_ping_abs_mapper,
 			long_ping_var_mapper, 
 			// short_ping_var_mapper 
@@ -687,6 +683,25 @@ SpeedManagerImpl
 		calculate(
 			SpeedManagerPingSource[]	sources )
 		{
+			SpeedManagerLimitEstimate est = long_ping_var_mapper.getEstimatedUploadLimit();
+			
+			if ( est != null ){
+				
+				if ( est.getMetric() > 100 ){
+					
+					adapter.setCurrentUploadLimit( est.getBytesPerSec() - 1024 );
+					
+				}else if ( est.getMetric() >= 50 ){
+						
+					adapter.setCurrentUploadLimit( est.getBytesPerSec() + 1024 );
+						
+				}else if ( est.getMetric() < 50 ){
+					
+					adapter.setCurrentUploadLimit( est.getBytesPerSec() + 5*1024);
+
+				}
+			}
+			
 		}
 				
 		public int
@@ -865,12 +880,18 @@ SpeedManagerImpl
 		addPing(
 			pingValue	ping )
 		{			
+			region	new_region = null;
+			
 			if ( prev_ping != null ){
 				
-				regions.add( new region(prev_ping,ping));
+				new_region = new region(prev_ping,ping);
+				
+				regions.add( new_region );
 			}
 			
 			prev_ping = ping;
+			
+			System.out.println( "Ping: " + ping.getString() + (new_region==null?"":(", region=" + new_region.getString())));
 			
 			updateLimitEstimates();
 		}
@@ -878,30 +899,16 @@ SpeedManagerImpl
 		public synchronized int[][]
 		getHistory()
 		{
-			List	result = new ArrayList();
+			int[][]	result = new int[ping_count][];
 
-			Iterator it = regions.iterator();
-						
-			while( it.hasNext()){
+			for (int i=0;i<ping_count;i++){
 				
-				region r = (region)it.next();
+				pingValue	ping = pings[i];
 				
-				pingValue[] pings = r.getPings();
-					
-				if ( pings == null ){
-					
-					continue;
-				}
-				
-				for (int i=0;i<pings.length;i++){
-				
-					pingValue	ping = pings[i];
-				
-					result.add( new int[]{ SPEED_DIVISOR*ping.getX(), SPEED_DIVISOR*ping.getY(), ping.getMetric()} );
-				}
+				result[i] = new int[]{ SPEED_DIVISOR*ping.getX(), SPEED_DIVISOR*ping.getY(), ping.getMetric()};
 			}
 			
-			return((int[][])result.toArray( new int[result.size()][]));
+			return( result );
 		}
 		
 		public synchronized SpeedManagerPingZone[]
@@ -1184,17 +1191,26 @@ SpeedManagerImpl
 							if ( zone_max_time > estimate_when ){
 							
 									// if zone has contiguous time region at start then take middle of this
-						
-								int	start_when = when[zone_start];
+									// when bad variance as we want to err on the side of caution
 								
-								int	k;
-								
-								for (k=zone_start+1;k<i;k++){
-								
-									if ( when[k] != start_when )break;
+								if ( worst_var == VARIANCE_BAD_VALUE ){
+									
+									int	start_when = when[zone_start];
+									
+									int	k;
+									
+									for (k=zone_start+1;k<i;k++){
+									
+										if ( when[k] != start_when )break;
+									}
+									
+									estimate 		= zone_start + (k-zone_start)/2;
+									
+								}else{
+									
+									estimate		= i-1;
 								}
 								
-								estimate 		= zone_start + (k-zone_start)/2;
 								estimate_when	= zone_max_time;
 								estimate_hits	= zone_max_hit;
 							}
@@ -1212,17 +1228,23 @@ SpeedManagerImpl
 					
 					if ( zone_max_time > estimate_when ){
 					
-						
-						int	start_when = when[zone_start];
-						
-						int	k;
-						
-						for (k=zone_start+1;k<sample_end;k++){
-						
-							if ( when[k] != start_when )break;
+						if ( worst_var == VARIANCE_BAD_VALUE ){
+
+							int	start_when = when[zone_start];
+							
+							int	k;
+							
+							for (k=zone_start+1;k<sample_end;k++){
+							
+								if ( when[k] != start_when )break;
+							}
+							
+							estimate 		= zone_start + (k-zone_start)/2;
+							
+						}else{
+							
+							estimate		= sample_end-1;
 						}
-						
-						estimate 		= zone_start + (k-zone_start)/2;
 						
 						estimate_when	= zone_max_time;
 						estimate_hits	= zone_max_hit;
@@ -1390,48 +1412,59 @@ SpeedManagerImpl
 		region
 			implements SpeedManagerPingZone
 		{
-			private pingValue	ping1;
-			private pingValue	ping2;
+			private short	x1;
+			private short	y1;
+			private short	x2;
+			private short	y2;
+			private short	metric;
 			
 			protected
 			region(
 				pingValue		p1,
 				pingValue		p2 )
 			{
-				ping1 	= p1;
-				ping2	= p2;
+				x1 = (short)p1.getX();
+				y1 = (short)p1.getY();
+				x2 = (short)p2.getX();
+				y2 = (short)p2.getY();
+				
+				if ( x2 < x1 ){
+					short t = x1;
+					x1 = x2;
+					x2 = t;
+				}
+				if ( y2 < y1 ){
+					short t = y1;
+					y1 = y2;
+					y2 = t;
+				}
+				metric = (short)((p1.getMetric()+p2.getMetric())/2);
 			}
 			
 			public int
 			getX1()
 			{
-				return(ping1.getX());
+				return( x1 & 0x0000ffff );
 			}
 			
 			public int
 			getY1()
 			{
-				return(ping1.getY());
+				return( y1 & 0x0000ffff );
 			}
 			
 			public int
 			getX2()
 			{
-				return(ping2.getX());
+				return( x2 & 0x0000ffff );
 			}
 			
 			public int
 			getY2()
 			{
-				return(ping2.getY());
+				return( x2 & 0x0000ffff );
 			}
-			
-			public pingValue[]
-			getPings()
-			{
-				return( new pingValue[]{ ping1, ping2 });
-			}
-			
+						
 			public int
 			getUploadStartBytesPerSec()
 			{
@@ -1459,20 +1492,14 @@ SpeedManagerImpl
 			public int
 			getMetric()
 			{
-				return(( ping1.getMetric() + ping2.getMetric())/2);
+				return( metric & 0x0000ffff );
+
 			}
 						
 			public String
 			getString()
-			{
-				String	ping_str = "";
-				
-				for (int i=0;i<pings.length;i++){
-					
-					ping_str += (i==0?"":",") + pings[i].getString();
-				}
-				
-				return( "x="+getX1() + ",y="+getY1()+",w=" + (getX2()-getX1()+1) +",h=" + (getY2()-getY1()+1) +",p=[" + ping_str + "]" );
+			{				
+				return( "x="+getX1() + ",y="+getY1()+",w=" + (getX2()-getX1()+1) +",h=" + (getY2()-getY1()+1));
 			}
 		}
 		
