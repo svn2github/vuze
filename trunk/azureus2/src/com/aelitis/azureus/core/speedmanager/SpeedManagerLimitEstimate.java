@@ -29,8 +29,8 @@ SpeedManagerLimitEstimate
 	public int
 	getBytesPerSec();
 	
-	public int
-	getMetric();
+	public double
+	getMetricRating();
 	
 	public int[][]
 	getSegments();

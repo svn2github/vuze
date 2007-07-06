@@ -520,8 +520,8 @@ public class TransferStatsView extends AbstractIView {
 	  SpeedManagerLimitEstimate up 		= mapper.getEstimatedUploadLimit();
 	  SpeedManagerLimitEstimate down 	= mapper.getEstimatedDownloadLimit();
 	  
-	  return( "ul=" + (up==null?"":(DisplayFormatters.formatByteCountToKiBEtc(up.getBytesPerSec()) + "/" + up.getMetric())) + 
-			  ",dl=" + (down==null?"":(DisplayFormatters.formatByteCountToKiBEtc(down.getBytesPerSec()) + "/" + down.getMetric())) + 
+	  return( "ul=" + (up==null?"":(DisplayFormatters.formatByteCountToKiBEtc(up.getBytesPerSec()) + "/" + DisplayFormatters.formatDecimal(up.getMetricRating(),2))) + 
+			  ",dl=" + (down==null?"":(DisplayFormatters.formatByteCountToKiBEtc(down.getBytesPerSec()) + "/" + DisplayFormatters.formatDecimal(down.getMetricRating(),2))) + 
 			  ",mr=" + DisplayFormatters.formatDecimal( mapper.getCurrentMetricRating(),2));
   }
   class
@@ -698,21 +698,54 @@ public class TransferStatsView extends AbstractIView {
 						  int	y_draw = usable_height + PAD_TOP + PAD_TOP - y - height;
 						  
 						  gc.fillRectangle( x, y_draw, width, height );
-						  						  							  
-						  String	str = String.valueOf(zone.getMetric());
-							  
-						  int	str_width = str.length()*char_width;
+						  		
+						  int	text_metric = zone.getMetric();
 						  
-						  if ( width >= str_width && height >= font_height ){
+						  String text = String.valueOf( metric );
 							  
-							  texts.add( 
-									  new Object[]{ 
-										str, 
-										new int[]{
-											x + ((width-str_width)/2),
-											y_draw + ((height-font_height)/2)
-										}
-									  });
+						  int	text_width = text.length()*char_width;
+						  
+						  Rectangle text_rect = 
+							new Rectangle(
+									x + ((width-text_width)/2), 
+									y_draw + ((height-font_height)/2), 
+									text_width, font_height );
+									
+						  	// check for overlap with existing
+						  
+						  boolean	force = false;
+						  
+						  for (int j=0;j<texts.size();j++){
+							  
+							  Object[]	old = (Object[])texts.get(j);
+							  
+							  Rectangle old_coords = (Rectangle)old[1];
+							  
+							  if ( old_coords.intersects( text_rect )){
+								  
+								  int	old_metric = ((Integer)old[0]).intValue();
+								  								  
+								  text_metric = Math.max( old_metric, metric );
+
+								  text = String.valueOf( text_metric );
+
+								  text_rect = 
+										new Rectangle(
+												x + ((width-text_width)/2), 
+												y_draw + ((height-font_height)/2), 
+												text_width, font_height );
+
+								  texts.remove( j );
+								  
+								  force = true;
+								  
+								  break;
+							  }
+						  }
+						  
+						  if ( force || ( width >= text_width && height >= font_height )){
+							  
+							  texts.add( new Object[]{ new Integer( text_metric ), text_rect });  
 						  }
 					  }
 				  }
@@ -721,9 +754,11 @@ public class TransferStatsView extends AbstractIView {
 					  
 					  Object[]	entry = (Object[])texts.get(i);
 					  
-					  int[]	coords = (int[])entry[1];
+					  String	str = String.valueOf(entry[0]);
 					  
-					  gc.drawText((String)entry[0], coords[0], coords[1], SWT.DRAW_TRANSPARENT );
+					  Rectangle	rect = (Rectangle)entry[1];
+					  
+					  gc.drawText(str, rect.x, rect.y, SWT.DRAW_TRANSPARENT );
 				  }
 			  }
 		  }
