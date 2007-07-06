@@ -79,7 +79,7 @@ public class SWTSkinObjectBrowser
 
 		AzureusCore core = AzureusCoreFactory.getSingleton();
 
-		cArea = (Composite) parent.getControl();
+		cArea = parent == null ? skin.getShell() : (Composite) parent.getControl();
 
 		browser = new Browser(cArea, SWT.NONE);
 
