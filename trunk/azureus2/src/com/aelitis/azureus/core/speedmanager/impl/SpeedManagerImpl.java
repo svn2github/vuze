@@ -804,7 +804,7 @@ SpeedManagerImpl
 			
 			if ( est != null ){
 				
-				double	metric_rating = est.getMetricRating();
+				double	metric_rating = ping_mapper.getCurrentMetricRating();
 				
 				if ( metric_rating == 1 ){
 				
