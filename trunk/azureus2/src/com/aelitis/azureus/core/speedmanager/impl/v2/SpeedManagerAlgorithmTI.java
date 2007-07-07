@@ -124,7 +124,7 @@ public class SpeedManagerAlgorithmTI
         	    	
           	    	return( new int[]{
           	    			ue==null?0:ue.getBytesPerSec(),
-          	    			de==null?0:ue.getBytesPerSec() });		
+          	    			de==null?0:de.getBytesPerSec() });		
         	    }
         	};
         
@@ -269,6 +269,38 @@ public class SpeedManagerAlgorithmTI
 
         public void calculate( TestInterface tf ){
 
+        //if we are in a limit finding mode then don't even bother with this calculation.
+        if( limitMonitor.isConfTestingLimits() ){
+
+            if( limitMonitor.isConfLimitTestFinished() ){
+                int downLimitGuess = limitMonitor.guessDownloadLimit();
+                int upLimitGuess = limitMonitor.guessUploadLimit();
+
+                SpeedLimitMonitor.Update update = limitMonitor.endLimitTesting(downLimitGuess,
+                        upLimitGuess );
+
+                //print out the PingMap data to compare.
+                limitMonitor.logPingMapData();
+
+                //reset Ping Space Map for next round.
+                limitMonitor.resetPingSpace();
+
+                //log
+                logNewLimits(update);
+                //setting new
+                setNewLimits( update );
+                return;
+            }else{
+                //will increase the limit each cycle.
+                SpeedLimitMonitor.Update ramp = limitMonitor.rampTestingLimit(
+                                    adapter.getCurrentUploadLimit(),
+                                    adapter.getCurrentDownloadLimit()
+                    );
+                logNewLimits( ramp );
+                setNewLimits( ramp );
+            }
+        }//if - isConfTestingLimits
+
             long currTime = SystemTime.getCurrentTime();
 
             if( timeSinceLastUpdate==0 ){
@@ -286,8 +318,8 @@ public class SpeedManagerAlgorithmTI
             float signalStrength = determineSignalStrength(lastMetric);
 
             //if are are NOT looking for limits and we have a signal then make an adjustment.
-            if( signalStrength!=0.0f ){//&& !limitMonitor.isConfTestingLimits() ){
-                //hadAdjustmentLastInterval=true;
+            if( signalStrength!=0.0f && !limitMonitor.isConfTestingLimits() ){
+                hadAdjustmentLastInterval=true;
 
                 float multiple = consectiveMultiplier();
                 int currUpLimit = adapter.getCurrentUploadLimit();
@@ -305,7 +337,7 @@ public class SpeedManagerAlgorithmTI
                 setNewLimits( update );
 
             }else{
-                //hadAdjustmentLastInterval=false;
+                hadAdjustmentLastInterval=false;
 
                 //verify the limits. It is possible for the user to adjust the capacity down below the current limit, so check that condition here.
                 int currUploadLimit = adapter.getCurrentUploadLimit();
