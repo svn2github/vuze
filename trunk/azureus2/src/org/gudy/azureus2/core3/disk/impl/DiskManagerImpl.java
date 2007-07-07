@@ -901,9 +901,11 @@ DiskManagerImpl
 
                         }else {
 
-                                //fully allocate
+                                //fully allocate. XFS borks with zero length files though
 
-                            if( COConfigurationManager.getBooleanParameter("XFS Allocation") ) {
+                            if ( 	target_length > 0 && 
+                            		COConfigurationManager.getBooleanParameter("XFS Allocation") ){
+                            	
                                 fileInfo.getCacheFile().setLength( target_length );
                                 String[] cmd = {"/usr/sbin/xfs_io","-c", "resvsp 0 " + target_length, data_file.getAbsolutePath()};
                                 ByteArrayOutputStream os = new ByteArrayOutputStream();
