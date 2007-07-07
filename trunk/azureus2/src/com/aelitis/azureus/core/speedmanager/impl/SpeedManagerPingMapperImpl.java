@@ -744,16 +744,11 @@ SpeedManagerPingMapperImpl
 							
 							if ( worst_var == VARIANCE_BAD_VALUE ){
 								
-								int	start_when = when[zone_start];
+								estimate 		= zone_start;
 								
-								int	k;
+							}else if ( worst_var == VARIANCE_GOOD_VALUE ){
 								
-								for (k=zone_start+1;k<i;k++){
-								
-									if ( when[k] != start_when )break;
-								}
-								
-								estimate 		= zone_start + (k-zone_start)/2;
+								estimate 		= zone_start + (i-1-zone_start)/2;
 								
 							}else{
 								
@@ -778,18 +773,13 @@ SpeedManagerPingMapperImpl
 				if ( zone_max_time > estimate_when ){
 				
 					if ( worst_var == VARIANCE_BAD_VALUE ){
+						
+						estimate 		= zone_start;
+										
+					}else if ( worst_var == VARIANCE_GOOD_VALUE ){
+						
+						estimate 		= zone_start + (sample_end-1-zone_start)/2;
 
-						int	start_when = when[zone_start];
-						
-						int	k;
-						
-						for (k=zone_start+1;k<sample_end;k++){
-						
-							if ( when[k] != start_when )break;
-						}
-						
-						estimate 		= zone_start + (k-zone_start)/2;
-						
 					}else{
 						
 						estimate		= sample_end-1;
