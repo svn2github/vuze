@@ -70,6 +70,9 @@ SpeedManagerPingMapperImpl
 	private limitEstimate[]	up_estimate		= new limitEstimate[0];
 	private limitEstimate[]	down_estimate	= new limitEstimate[0];
 	
+	private limitEstimate	last_bad_up;
+	private limitEstimate	last_bad_down;
+	
 	private File	history_file;
 	
 	protected
@@ -143,6 +146,9 @@ SpeedManagerPingMapperImpl
 					}
 				}
 				
+				last_bad_up 	= loadLimit( map, "lbu" );
+				last_bad_down 	= loadLimit( map, "lbd" );
+				
 				log( "Loaded " + p.size() + " entries from " + history_file );
 				
 				updateLimitEstimates();
@@ -190,6 +196,9 @@ SpeedManagerPingMapperImpl
 				m.put( "m", new Long(ping.getMetric()));
 			}
 			
+			saveLimit( map, "lbu", last_bad_up );
+			saveLimit( map, "lbd", last_bad_down );
+
 			FileUtil.writeResilientFile( history_file, map );
 			
 			log( "Saved " + p.size() + " entries to " + history_file );
@@ -198,6 +207,48 @@ SpeedManagerPingMapperImpl
 			
 			Debug.printStackTrace(e);
 		}
+	}
+	
+	protected limitEstimate
+	loadLimit(
+		Map		map,
+		String	name )
+	{
+		Map	m = (Map)map.get(name);
+		
+		if ( m == null ){
+			
+			return( null );
+		}
+		
+		int	speed = ((Long)m.get( "s" )).intValue();
+		
+		double	metric = Double.parseDouble( new String((byte[])m.get("m")));
+		
+		int	hits = ((Long)m.get( "h" )).intValue();
+
+		return( new limitEstimate( speed, metric, hits, -1, new int[0][] ));
+	}
+	
+	protected void
+	saveLimit(
+		Map				map,
+		String			name,
+		limitEstimate	limit )
+	{
+		if ( limit == null ){
+			
+			return;
+		}
+		
+		Map	m = new HashMap();
+		
+		m.put( "s", new Long( limit.getBytesPerSec()));
+		
+		m.put( "m", String.valueOf( limit.getMetricRating()));
+		
+		m.put( "h", new Long( limit.getHits()));
+
 	}
 	
 	protected void
@@ -361,18 +412,55 @@ SpeedManagerPingMapperImpl
 	}
 	
 	public synchronized SpeedManagerLimitEstimate
-	getEstimatedUploadLimit()
+	getEstimatedUploadLimit(
+		boolean	persistent )
 	{
-		return( getEstimatedLimit( up_estimate ));
+		return( adjustForPersistence( getEstimatedLimit( up_estimate ), last_bad_up, persistent ));
 	}
 	
 	public synchronized SpeedManagerLimitEstimate
-	getEstimatedDownloadLimit()
+	getEstimatedDownloadLimit(
+		boolean	persistent )
 	{
-		return( getEstimatedLimit( down_estimate ));
+		return( adjustForPersistence( getEstimatedLimit( down_estimate ), last_bad_down, persistent ));
 	}
 
-	protected synchronized SpeedManagerLimitEstimate
+	protected SpeedManagerLimitEstimate
+	adjustForPersistence(
+		SpeedManagerLimitEstimate	estimate,
+		SpeedManagerLimitEstimate	last_bad,	
+		boolean	persistent )
+	{
+		if ( estimate == null ){
+			
+			return( null );
+		}
+		
+		if ( persistent ){
+			
+			if ( estimate.getMetricRating() == -1 || last_bad == null ){
+				
+				return( estimate );
+			}
+			
+				// current estimate isn't bad and we have an old bad one
+			
+			if ( last_bad.getBytesPerSec() >= estimate.getBytesPerSec()){
+				
+				return( last_bad );
+			}
+			
+				// current estimate is > last bad - use current estimate
+			
+			return( estimate );
+			
+		}else{
+			
+			return( estimate );
+		}
+	}
+		
+	protected synchronized limitEstimate
 	getEstimatedLimit(
 		limitEstimate[]	estimates )
 	{
@@ -399,7 +487,21 @@ SpeedManagerPingMapperImpl
 	{
 		up_estimate 	= getEstimatedLimit( true );
 		
+		limitEstimate up = getEstimatedLimit( up_estimate );
+		
+		if ( up != null && up.getMetricRating() == -1 ){
+			
+			last_bad_up = up;
+		}
+		
 		down_estimate 	= getEstimatedLimit( false );
+		
+		limitEstimate down = getEstimatedLimit( down_estimate );
+		
+		if ( down != null && down.getMetricRating() == -1 ){
+			
+			last_bad_down = down;
+		}
 	}
 	
 	protected synchronized limitEstimate[]
@@ -949,6 +1051,12 @@ SpeedManagerPingMapperImpl
 			return( segs );
 		}
 		
+		public int
+		getHits()
+		{
+			return( hits );
+		}
+		
 		public String
 		getString()
 		{
@@ -988,8 +1096,8 @@ SpeedManagerPingMapperImpl
 				
 				pm.addPing( x_base + rand.nextInt( x_var ), x_base + rand.nextInt( x_var ), rand.nextInt( r ), false);
 			
-				SpeedManagerLimitEstimate up 	= pm.getEstimatedUploadLimit();
-				SpeedManagerLimitEstimate down 	= pm.getEstimatedDownloadLimit();
+				SpeedManagerLimitEstimate up 	= pm.getEstimatedUploadLimit( false );
+				SpeedManagerLimitEstimate down 	= pm.getEstimatedDownloadLimit( false );
 				
 				if ( up != null && down != null ){
 					

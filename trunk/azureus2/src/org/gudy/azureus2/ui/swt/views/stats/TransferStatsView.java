@@ -518,8 +518,8 @@ public class TransferStatsView extends AbstractIView {
   getMapperTitle(
 		SpeedManagerPingMapper mapper )
   {
-	  SpeedManagerLimitEstimate up 		= mapper.getEstimatedUploadLimit();
-	  SpeedManagerLimitEstimate down 	= mapper.getEstimatedDownloadLimit();
+	  SpeedManagerLimitEstimate up 		= mapper.getEstimatedUploadLimit(false);
+	  SpeedManagerLimitEstimate down 	= mapper.getEstimatedDownloadLimit(false);
 	  
 	  return( "ul=" + (up==null?"":(DisplayFormatters.formatByteCountToKiBEtc(up.getBytesPerSec()) + "/" + DisplayFormatters.formatDecimal(up.getMetricRating(),2))) + 
 			  ",dl=" + (down==null?"":(DisplayFormatters.formatByteCountToKiBEtc(down.getBytesPerSec()) + "/" + DisplayFormatters.formatDecimal(down.getMetricRating(),2))) + 
@@ -773,7 +773,7 @@ public class TransferStatsView extends AbstractIView {
 			  gc.drawLine( x, x_axis_left_y, x, x_axis_left_y+4 );
 		  }
 		  
-		  SpeedManagerLimitEstimate le = mapper.getEstimatedUploadLimit();
+		  SpeedManagerLimitEstimate le = mapper.getEstimatedUploadLimit( false );
 		  
 		  if ( le != null ){
 			  
@@ -848,7 +848,7 @@ public class TransferStatsView extends AbstractIView {
 			  gc.drawLine( y_axis_bottom_x, y, y_axis_bottom_x-4, y );
 		  }
 		  
-		  le = mapper.getEstimatedDownloadLimit();
+		  le = mapper.getEstimatedDownloadLimit( false );
 		  
 		  if ( le != null ){
 			  

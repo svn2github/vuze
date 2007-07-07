@@ -800,7 +800,7 @@ SpeedManagerImpl
 		{
 				// trivial test implementation
 			
-			SpeedManagerLimitEstimate est = ping_mapper.getEstimatedUploadLimit();
+			SpeedManagerLimitEstimate est = ping_mapper.getEstimatedUploadLimit( true );
 			
 			if ( est != null ){
 				
@@ -819,7 +819,7 @@ SpeedManagerImpl
 					
 					adapter.setCurrentUploadLimit( est.getBytesPerSec() + (good_signals < 3?-1024:1024 ));
 					
-				}else if ( metric_rating >= 0 ){
+				}else if ( metric_rating <= 0 ){
 						
 					adapter.setCurrentUploadLimit( est.getBytesPerSec() + 1024 );
 						

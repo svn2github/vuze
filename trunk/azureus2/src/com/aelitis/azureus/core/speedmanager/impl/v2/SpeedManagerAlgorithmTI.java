@@ -119,8 +119,8 @@ public class SpeedManagerAlgorithmTI
         	    {
         	    	SpeedManagerPingMapper pm = adapter.getPingMapper();
         	    	
-          	    	SpeedManagerLimitEstimate ue = pm.getEstimatedUploadLimit();
-          	    	SpeedManagerLimitEstimate de = pm.getEstimatedDownloadLimit();
+          	    	SpeedManagerLimitEstimate ue = pm.getEstimatedUploadLimit( true );
+          	    	SpeedManagerLimitEstimate de = pm.getEstimatedDownloadLimit( true );
         	    	
           	    	return( new int[]{
           	    			ue==null?0:ue.getBytesPerSec(),

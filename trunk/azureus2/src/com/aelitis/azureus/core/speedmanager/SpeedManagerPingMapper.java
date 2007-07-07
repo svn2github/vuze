@@ -36,10 +36,12 @@ SpeedManagerPingMapper
 	getZones();
 	
 	public SpeedManagerLimitEstimate
-	getEstimatedUploadLimit();
+	getEstimatedUploadLimit(
+		boolean		persistent );
 	
 	public SpeedManagerLimitEstimate
-	getEstimatedDownloadLimit();
+	getEstimatedDownloadLimit(
+		boolean		persistent );
 	
 		/**
 		 * +1 : good
