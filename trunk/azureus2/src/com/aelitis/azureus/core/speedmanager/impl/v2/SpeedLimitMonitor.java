@@ -859,13 +859,13 @@ public class SpeedLimitMonitor
             sb.append("new download limits: ");
             downloadLimitMax =newMaxLimitSetting;
             downloadLimitMin=newMinLimitSetting;
-            //upload capacity should never be 20x less then download.
-            if( uploadLimitMax *20< downloadLimitMax){
-                uploadLimitMax = downloadLimitMax /20;
+            //upload capacity should never be 40x less then download.
+            if( uploadLimitMax * 40 < downloadLimitMax){
+                uploadLimitMax = downloadLimitMax /40;
                 COConfigurationManager.setParameter(
                          SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT, uploadLimitMax);
 
-                uploadLimitMin = Math.max( uploadLimitMax /20, 5120 );
+                uploadLimitMin = Math.max( uploadLimitMax/10, 5120 );
                 COConfigurationManager.setParameter(
                         SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT,uploadLimitMin);
             }//if

@@ -83,8 +83,8 @@ SpeedManagerAlgorithmProviderV2
 		adapter	= _adapter;
 		adapter.setLoggingEnabled( true );
 
-        //strategy = new SpeedManagerAlgorithmProviderVivaldi(_adapter);
-        strategy = new SpeedManagerAlgorithmTI(_adapter, true );
+        strategy = new SpeedManagerAlgorithmProviderVivaldi(_adapter);
+        //strategy = new SpeedManagerAlgorithmTI(_adapter, true );
     }
 	
 	public void

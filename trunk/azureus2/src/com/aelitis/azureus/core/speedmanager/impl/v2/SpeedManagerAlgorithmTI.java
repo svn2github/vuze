@@ -124,8 +124,8 @@ public class SpeedManagerAlgorithmTI
         	    	
           	    	return( new int[]{
           	    			ue==null?0:ue.getBytesPerSec(),
-          	    			de==null?0:de.getBytesPerSec() });		
-        	    }
+          	    			de==null?0:de.getBytesPerSec() });	
+                }
         	};
         
 
