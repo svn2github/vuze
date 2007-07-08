@@ -35,605 +35,303 @@ import java.io.*;
  * Used for identifying clients by their peerID.
  */
 public class BTPeerIDByteDecoder {
-	
+
 	final static boolean LOG_UNKNOWN;
-		
+
 	static {
 		String	prop = System.getProperty("log.unknown.peerids");
 		LOG_UNKNOWN = prop != null && prop.equals("1");
 	}
-	
-  /**
-   * Decodes the given peerID, returning an identification string.
-   */  
-  public static String decode(byte[] peer_id) {   
-    String decoded = null;
-    byte[] peerID = new byte[peer_id.length];
-    System.arraycopy(peer_id, 0, peerID, 0, peer_id.length);
-            
-    FileWriter log = null;
-    File logFile = FileUtil.getUserFile("identification.log");
-    
-    int iFirstNonZeroPos = 0;
-    try {
-      if( (decoded = decodeAzStyle( peerID, "AZ", "Azureus" )) != null ) return decoded;      
-      if( (decoded = decodeAzStyle( peerID, "UT", "\u00B5Torrent" )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "BC", "BitComet" )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "LT", "libtorrent (Rasterbar)" )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "lt", "libTorrent (Rakshasa)" )) != null ) return decoded;
-//      if( (decoded = decodeAzStyle( peerID, "AR", "Arctic Torrent" )) != null ) return decoded; //based on libtorrent but same peerid for different versions
-      if( (decoded = decodeAzStyle( peerID, "TS", "TorrentStorm" )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "MT", "MoonlightTorrent" )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "XT", "XanTorrent" )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "bk", "BitKitten (libtorrent)" )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "CT", "CTorrent" )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "SN", "ShareNET" )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "BB", "BitBuddy" )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "SS", "SwarmScope" )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "BS", "BTSlave" )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "BX", "BittorrentX" )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "TN", "Torrent.NET" )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "ZT", "ZipTorrent" )) != null ) return decoded; 
-      if( (decoded = decodeAzStyle( peerID, "SZ", "Shareaza" )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "KT", "KTorrent" )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "TR", "Transmission" )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "CD", "Enhanced CTorrent" )) != null ) return decoded;      
-      if( (decoded = decodeAzStyle( peerID, "RT", "Retriever" )) != null ) return decoded;      
-      if( (decoded = decodeAzStyle( peerID, "LP", "Lphant" )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "PC", PeerClassifier.CACHE_LOGIC )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "BR", "BitRocket" )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "XX", "Xtorrent" )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "XL", "\u8FC5\u96F7\u5728\u7EBF (Xunlei)" )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "FG", "FlashGet", false )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "FT", "FoxTorrent/RedSwoosh", false )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "UL", "uLeecher!", false )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "TT", "TouTu", false )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "ST", "SharkTorrent", false )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "SB", "~Swiftbit", false )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "S~", "Shareaza alpha/beta", false )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "qB", "qBittorrent", false )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "PD", "Pando", false )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "MP", "MooPolice", false )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "LH", "LH-ABC", false )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "HN", "Hydranode", false )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "HL", "Halite", false )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "ES", "Electric Sheep", false )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "EB", "EBit", false )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "DP", "Propogate Data Client", false )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "DE", "DelugeTorrent", false )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "AX", "BitPump", false )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "AV", "Avicora", false )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "AG", "Ares", false )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "A~", "Ares", false )) != null ) return decoded;
-      
-      
-      if( (decoded = decodeTornadoStyle( peerID, "T", "BitTornado" )) != null ) return decoded;
-      if( (decoded = decodeTornadoStyle( peerID, "A", "ABC" )) != null ) return decoded;
-      if( (decoded = decodeTornadoStyle( peerID, "O", "Osprey permaseed" )) != null ) return decoded;
-      if( (decoded = decodeTornadoStyle( peerID, "R", "Tribler" )) != null ) return decoded;
-     
-      if( (decoded = decodeMainlineStyle( peerID, "M", "Mainline" )) != null ) return decoded;
-      
-      // Not sure what BitTyrant's numbering scheme will be in the future - at the moment, it just
-      // tries to announce what Azureus version it's based on. 
-      if( (decoded = decodeSimpleStyle( peerID, 0, "AZ2500BT", "BitTyrant" )) != null ) return decoded;
-      if( (decoded = decodeSimpleStyle( peerID, 0, "martini", "Martini Man" )) != null ) return decoded;
-      if( (decoded = decodeSimpleStyle( peerID, 0, "oernu", "BTugaXP" )) != null ) return decoded;
-      if( (decoded = decodeSimpleStyle( peerID, 0, "BTDWV-", "Deadman Walking" )) != null ) return decoded;
-      if( (decoded = decodeSimpleStyle( peerID, 0, "PRC.P---", "BitTorrent Plus! II" )) != null ) return decoded;
-      if( (decoded = decodeSimpleStyle( peerID, 0, "P87.P---", "BitTorrent Plus!" )) != null ) return decoded;
-      if( (decoded = decodeSimpleStyle( peerID, 0, "S587Plus", "BitTorrent Plus!" )) != null ) return decoded;
-      if( (decoded = decodeSimpleStyle( peerID, 5, "Azureus", "Azureus 2.0.3.2" )) != null ) return decoded;
-      if( (decoded = decodeSimpleStyle( peerID, 0, "-G3", "G3 Torrent" )) != null ) return decoded;
-      if( (decoded = decodeSimpleStyle( peerID, 0, "-AR", "Arctic Torrent" )) != null ) return decoded; //no way to know the version (see above)
-      if( (decoded = decodeSimpleStyle( peerID, 0, "-BF", "Bitflu" )) != null ) return decoded; //no way to know the version (see above)
-      if( (decoded = decodeSimpleStyle( peerID, 4, "btfans", "SimpleBT" )) != null ) return decoded;
-      if( (decoded = decodeSimpleStyle( peerID, 0, "btuga", "BTugaXP" )) != null ) return decoded;
-      if( (decoded = decodeSimpleStyle( peerID, 5, "BTuga", "BTugaXP" )) != null ) return decoded;
-      if( (decoded = decodeSimpleStyle( peerID, 0, "DansClient", "XanTorrent" )) != null ) return decoded;
-      if( (decoded = decodeSimpleStyle( peerID, 0, "Deadman Walking-", "Deadman" )) != null ) return decoded;
-      if( (decoded = decodeSimpleStyle( peerID, 0, "346-", "TorrentTopia" )) != null ) return decoded;
-      if( (decoded = decodeSimpleStyle( peerID, 0, "271-", "GreedBT 2.7.1" )) != null ) return decoded;
-      if( (decoded = decodeSimpleStyle( peerID, 10, "BG", "BTGetit" )) != null ) return decoded;
-      if( (decoded = decodeSimpleStyle( peerID, 0, "BLZ", "Blizzard Downloader" )) != null ) return decoded;
-      
-      
-      if( (decoded = decodeSimpleStyle( peerID, 0, "a00---0", "Swarmy" )) != null ) return decoded;
-      if( (decoded = decodeSimpleStyle( peerID, 0, "a02---0", "Swarmy" )) != null ) return decoded;
-      if( (decoded = decodeSimpleStyle( peerID, 0, "T00---0", "Teeweety" )) != null ) return decoded;
-      
-      if( (decoded = decodeSimpleStyle( peerID, 0, "10-------", "JVtorrent" )) != null ) return decoded;
 
-      if( (decoded = decodeSimpleStyle( peerID, 0, "LIME", "Limewire" )) != null ) return decoded;
-      
-      if (decodeSimpleStyle(peerID, 0, "OP", "Opera") != null) {
-    	  return "Opera (Build " + new String(peerID, 2, 4) + ")";
-      }
-      
-      String burst = new String(peerID, 0, 5, Constants.BYTE_ENCODING);
-      if( burst.equals( "Mbrst" ) ) {
-        String major = new String(peerID, 5, 1, Constants.BYTE_ENCODING);
-        String minor = new String(peerID, 7, 1, Constants.BYTE_ENCODING);
-        String sub   = new String(peerID, 9, 1, Constants.BYTE_ENCODING);
-        return "Burst! " + major + "." + minor + "." + sub;
-      }
-            
-      String turbobt = new String(peerID, 0, 7, Constants.BYTE_ENCODING);
-      if (turbobt.equals("turbobt")) {
-        return "TurboBT " + new String(peerID, 7, 5, Constants.BYTE_ENCODING);
-      }
-      
-      
-      String btpd = new String( peerID, 0, 4, Constants.BYTE_ENCODING );
-      if( btpd.equals( "btpd" ) ) {
-      	return "BT Protocol Daemon " + new String( peerID, 5, 3, Constants.BYTE_ENCODING );
-      }
-      
-      
-      //not 100% sure on this one
-      String plus = new String(peerID, 0, 4, Constants.BYTE_ENCODING);
-      if( plus.equals( "Plus" ) ) {
-        String v1 = new String(peerID, 4, 1, Constants.BYTE_ENCODING);
-        String v2 = new String(peerID, 5, 1, Constants.BYTE_ENCODING);
-        String v3 = new String(peerID, 6, 1, Constants.BYTE_ENCODING);
-        return "Plus! " + v1 + "." + v2 + "." + v3;
-      }
-      
-      String xbt = new String(peerID, 0, 3, Constants.BYTE_ENCODING);
-      if( xbt.equals( "XBT" ) ) {
-        String v1 = new String(peerID, 3, 1, Constants.BYTE_ENCODING);
-        String v2 = new String(peerID, 4, 1, Constants.BYTE_ENCODING);
-        String v3 = new String(peerID, 5, 1, Constants.BYTE_ENCODING);
-        return "XBT " + v1 + "." + v2 + "." + v3;
-      }
-      
-      String bow = new String(peerID, 1, 3, Constants.BYTE_ENCODING);
-      if( bow.equals( "BOW" ) ) {
-    	  
-    	/**
-    	 * BitsOnWheels v1.0.6 starts with:
-    	 *    -BOWA0C
-    	 *    
-    	 * BitsOnWheels v1.0.5 starts with:
-    	 *    -BOWA0B
-    	 *    
-    	 * Don't know why this is, but we'll replace the version with something
-    	 * better (if we happen to know what the version is).
-    	 */ 
-        String version = new String(peerID, 4, 3, Constants.BYTE_ENCODING);
-        if (version.equals("A0C")) {version = "1.0.6";}
-        else if (version.equals("A0B")) {version = "1.0.5";}
-        return "BitsOnWheels " + version;
-      }
-      
-      String exeem = new String(peerID, 0, 2, Constants.BYTE_ENCODING);
-      if( exeem.equals( "eX" ) ) {
-        String user = new String(peerID, 2, 18, Constants.BYTE_ENCODING);
-        return "eXeem [" +user+ "]";
-      }
-      
-      
-      String shadow = new String(peerID, 0, 1, Constants.BYTE_ENCODING);
-      if (shadow.equals("S")) {
-        try {
-          if ( (peerID[6] == (byte)45) && (peerID[7] == (byte)45) && (peerID[8] == (byte)45) ) {
-            String name = "Shad0w ";
-            for (int i = 1; i < 3; i++) {
-              String v = new String(peerID, i, 1, Constants.BYTE_ENCODING);
-              name = name.concat( Integer.parseInt(v, 16) + "." );
-            }
-            String v = new String(peerID, 3, 1, Constants.BYTE_ENCODING);
-            name = name.concat( "" + Integer.parseInt(v, 16) );
-            return name;
-          }
-        
-          if (peerID[8] == (byte)0) {
-            String name = "Shad0w ";
-            for (int i = 1; i < 3; i++) {
-              name = name.concat(String.valueOf(peerID[i]) + ".");
-            }
-            name = name + String.valueOf(peerID[3]);
-            return name;
-          }
-        }
-        catch( Exception e ) {
-          /* NumberFormatException, for peerid like [S-----------A---$H-"] */
-        }
-      }
-      
-	  	String bitspirit = new String(peerID, 2, 2, Constants.BYTE_ENCODING);
-	  	if (bitspirit.equals("BS")) {
-	  		if (peerID[1] == (byte)0)  return "BitSpirit v1";
-	        if (peerID[1] == (byte)2)  return "BitSpirit v2";
-      	}
-            
-      String upnp = new String(peerID, 0, 1, Constants.BYTE_ENCODING);
-      if (upnp.equals("U")) {
-        if (peerID[8] == (byte)45) {
-          String version = new String(peerID, 1, 3, Constants.BYTE_ENCODING);
-          String name = "UPnP ";
-          for (int i = 0; i < 2; i++) {
-            name = name.concat(version.charAt(i) + ".");
-          }
-          name = name + version.charAt(2);
-          return name;
-        }  
-      }
-      
-      
-      String bitcomet = new String(peerID, 0, 4, Constants.BYTE_ENCODING);
-      if (bitcomet.equals("exbc") || bitcomet.equals("FUTB") || bitcomet.equals("xUTB")) {
-      	String lord = new String(peerID, 6, 4, Constants.BYTE_ENCODING);
-      	String name;
-		if ( lord.equals( "LORD" ) ) {
-			name = "BitLord ";
-			String versionNumber = String.valueOf(peerID[4]);
-			name = name.concat(versionNumber + ".");
-			if (versionNumber.equals( "0" )) { // still follows the old BitComet decoding
-				name = name.concat(String.valueOf(peerID[5]/10));
-        		name = name.concat(String.valueOf(peerID[5]%10));
-			} else {
-				name = name.concat(String.valueOf(peerID[5]%10));
-			}
-        	
-		} else {
-			name = "BitComet ";
-        	if ( bitcomet.equals("FUTB")) name = name.concat("Mod1 ");
-        	if ( bitcomet.equals("xUTB")) name = name.concat("Mod2 ");
-        	name = name.concat(String.valueOf(peerID[4]) + ".");
-        	name = name.concat(String.valueOf(peerID[5]/10));
-        	name = name.concat(String.valueOf(peerID[5]%10));
-        }
+	private static void logUnknownClient0(byte[] peer_id_bytes, Writer log) throws IOException {
+		String text = new String(peer_id_bytes, 0, 20, Constants.BYTE_ENCODING);
+		text = text.replace((char)12, (char)32);
+		text = text.replace((char)10, (char)32);
 
-        return name;
-      }
-      
-      String rufus = new String(peerID, 2, 2, Constants.BYTE_ENCODING);
-      if (rufus.equals("RS")) {
-        String name = "Rufus ";
-        name = name.concat(String.valueOf(peerID[0]) + ".");
-        name = name.concat(String.valueOf(peerID[1]/10) + ".");
-        name = name.concat(String.valueOf(peerID[1]%10));
-        return name;
-      }
-    
-      String mldonkey = new String(peerID, 1, 2, Constants.BYTE_ENCODING);
-      if (mldonkey.equals("ML")) {
-    	  String name = "mldonkey ";
-    	  String v1 = new String(peerID, 3, 1, Constants.BYTE_ENCODING);
-    	  String v2 = new String(peerID, 5, 1, Constants.BYTE_ENCODING);
-    	  String v3 = new String(peerID, 7, 1, Constants.BYTE_ENCODING);
-    	  return name + v1 + "." + v2 + "." + v3;
-      }
-            
-      iFirstNonZeroPos = 20;
-      for( int i=0; i < 20; i++ ) {
-        if( peerID[i] != (byte)0 ) {
-          iFirstNonZeroPos = i;
-          break;
-        }
-      }
-      
-      
-      //Shareaza check
-      if( iFirstNonZeroPos == 0 ) {
-        boolean bShareaza = true;
-        for( int i=0; i < 16; i++ ) {
-          if( peerID[i] == (byte)0 ) {
-            bShareaza = false;
-            break;
-          }
-        }
-        if( bShareaza ) {
-          for( int i=16; i < 20; i++ ) {
-            if( peerID[i] != ( peerID[i % 16] ^ peerID[15 - (i % 16)] ) ) {
-              bShareaza = false;
-              break;
-            }
-          }
-          if( bShareaza )  return "Shareaza";
-        }
-      }
-          
-
-//      if( iFirstNonZeroPos == 8 ) {
-        if( (decoded = decodeSimpleStyle( peerID, 16, "UDP0", "BitComet UDP" )) != null ) return decoded;
-        if( (decoded = decodeSimpleStyle( peerID, 14, "HTTPBT", "BitComet HTTP" )) != null ) return decoded;
-        
-//      }
-      
-      byte three = (byte)3;
-      if ((iFirstNonZeroPos == 9)
-          && (peerID[9] == three)
-          && (peerID[10] == three)
-          && (peerID[11] == three)) {
-        return "Snark";
-      }
-      
-      if ((iFirstNonZeroPos == 12) && (peerID[12] == (byte)97) && (peerID[13] == (byte)97)) {
-        return "Experimental 3.2.1b2";
-      }
-      if ((iFirstNonZeroPos == 12) && (peerID[12] == (byte)0) && (peerID[13] == (byte)0)) {
-        return "Experimental 3.1";
-      }
-      if (iFirstNonZeroPos == 12) return "Mainline";
-      
-    }
-    catch (Exception e) {
-      e.printStackTrace();
-      Debug.out( "[" +new String( peerID )+ "]", e );
-    }
-    
-    if (LOG_UNKNOWN) {
-      try {
-        log = new FileWriter( logFile, true );
-
-        String text = new String(peerID, 0, 20, Constants.BYTE_ENCODING);
-        text = text.replace((char)12, (char)32);
-        text = text.replace((char)10, (char)32);
-        
-        log.write("[" + text + "] ");
-        
-        for (int i=0; i < 20; i++) {
-          log.write(i+"=" + peerID[i] + " ");
-        }
-        log.write("\n");
-        
-      }
-      catch (Exception e) {
-        Debug.out(e.toString());
-      }
-      finally {
-        try {
-          if (log != null) log.close();
-        }
-        catch (IOException ignore) {/*ignore*/}
-      }
-      
-    }
-
-    String sPeerID = getPrintablePeerID( peerID, iFirstNonZeroPos );
-
-    
-    return MessageText.getString("PeerSocket.unknown") + " " + iFirstNonZeroPos +"[" + sPeerID + "]";
-}
-  
-  
-  private static String decodeAzStyle(byte[] id, String ident, String name) {
-	  return decodeAzStyle(id, ident, name, true);
-  }
-  
-  private static String decodeAzStyle(byte[] id, String ident, String name, boolean require_end_dash) {
-		try {
-			if ((id[0] == (byte) 45) && (!require_end_dash || (id[7] == (byte) 45))) {
-				String decoded = new String(id, 1, 2, Constants.BYTE_ENCODING);
-				if (decoded.equals(ident)) {
-					if (ident.equals("BC")) {
-						// 4.56
-						String v2 = parseOneByteVersionNumber(id, 4);
-						String v3 = parseOneByteVersionNumber(id, 5);
-						String v4 = parseOneByteVersionNumber(id, 6);
-						return name + " " + v2 + "." + v3 + v4;
-					}
-					if (ident.equals("KT")) {
-						// 3.4.5=[RD].6
-						String v2 = parseOneByteVersionNumber(id, 3);
-						String v3 = parseOneByteVersionNumber(id, 4);
-						String v4 = new String(id, 5, 1, Constants.BYTE_ENCODING);
-						String v5 = parseOneByteVersionNumber(id, 6);
-						return name
-								+ " "
-								+ v2
-								+ "."
-								+ v3
-								+ (v4.equals("R") ? (" RC" + v5) : (v4.equals("D") ? " Dev"
-										: ""));
-					}
-					if (ident.equals("UT")) {
-						// 3.4.5
-						String v2 = parseOneByteVersionNumber(id, 3);
-						String v3 = parseOneByteVersionNumber(id, 4);
-						String v4 = parseOneByteVersionNumber(id, 5);
-						return name + " " + v2 + "." + v3 + "." + v4;
-					}
-					if (ident.equals("TR") || ident.equals("CD") || ident.equals("FG")) {
-						// 34.56
-						String v2 = new String(id, 3, 2, Constants.BYTE_ENCODING);
-						String v3 = new String(id, 5, 2, Constants.BYTE_ENCODING);
-						return name + " " + Integer.parseInt(v2) + "."
-								+ Integer.parseInt(v3);
-					}
-					if (ident.equals("BR")) {
-						// 3.4(56)
-						String v2 = parseOneByteVersionNumber(id, 3);
-						String v3 = parseOneByteVersionNumber(id, 4);
-						String v4 = new String(id, 5, 2, Constants.BYTE_ENCODING);
-						return name + " " + v2 + "." + v3 + "(" + Integer.parseInt(v4)
-								+ ")";
-					}
-
-					if (ident.equals("XX")) {
-						// v1234
-						String v = new String(id, 3, 4, Constants.BYTE_ENCODING);
-						return name + " v" + Integer.parseInt(v);
-					}
-
-					String v1 = parseOneByteVersionNumber(id, 3);
-					String v2 = parseOneByteVersionNumber(id, 4);
-					String v3 = parseOneByteVersionNumber(id, 5);
-					String v4 = parseOneByteVersionNumber(id, 6);
-					return name + " " + v1 + "." + v2 + "." + v3 + "." + v4;
-				}
-			}
-		} catch (Exception e) {
-			return null;
+		log.write("[" + text + "] "); // Readable
+		log.write(ByteFormatter.encodeString(peer_id_bytes) + " "); // Usable for assertion tests.
+		for (int i=0; i < 20; i++) {
+			log.write(i+"=" + peer_id_bytes[i] + " "); // In case we want the old format...
 		}
+		log.write("\n");
+	}
+
+	static void logUnknownClient(byte[] peer_id_bytes) {
+		if (!LOG_UNKNOWN) {return;}
+		FileWriter log = null;
+		File log_file = FileUtil.getUserFile("identification.log");
+		try {
+			log = new FileWriter(log_file, true);
+			logUnknownClient0(peer_id_bytes, log);
+		}
+		catch (Exception e) {
+			Debug.printStackTrace(e);
+		}
+		finally {
+			try {if (log != null) log.close();}
+			catch (IOException ignore) {/*ignore*/}
+		}
+	}
+
+	static void logUnknownClient(String peer_id) {
+		try {logUnknownClient(peer_id.getBytes(Constants.BYTE_ENCODING));}
+		catch (UnsupportedEncodingException uee) {}
+	}
+
+	public static String decode0(byte[] peer_id_bytes) {
+		String peer_id = null;
+		try {peer_id = new String(peer_id_bytes, Constants.BYTE_ENCODING);}
+		catch (UnsupportedEncodingException uee) {return "";}
+
+		// We store the result here.
+		String client = null;
+
+		/**
+		 * If the client reuses parts of the peer ID of other peers, then try to determine this
+		 * first (before we misidentify the client).
+		 */
+		if (BTPeerIDByteDecoderUtils.isPossibleSpoofClient(peer_id)) {
+			client = decodeBitSpiritClient(peer_id, peer_id_bytes);
+			if (client != null) {return client;}
+			client = decodeBitCometClient(peer_id, peer_id_bytes);
+			if (client != null) {return client;}
+			return "BitSpirit (bad peer ID)";
+		}
+
+		/**
+		 * See if the client uses Az style identification.
+		 */
+		if (BTPeerIDByteDecoderUtils.isAzStyle(peer_id)) {
+			client = BTPeerIDByteDecoderDefinitions.getAzStyleClientName(peer_id);
+			if (client != null) {
+				String client_with_version = BTPeerIDByteDecoderDefinitions.getAzStyleClientVersion(client, peer_id);
+				if (client_with_version != null) {return client_with_version;}
+				return client;
+			}
+		}
+
+		/**
+		 * See if the client uses Shadow style identification.
+		 */
+		if (BTPeerIDByteDecoderUtils.isShadowStyle(peer_id)) {
+			client = BTPeerIDByteDecoderDefinitions.getShadowStyleClientName(peer_id);
+			if (client != null) {
+				String client_ver = BTPeerIDByteDecoderUtils.getShadowStyleVersionNumber(peer_id);
+				if (client_ver != null) {return client + " " + client_ver;}
+				return client;
+			}
+		}
+
+		/**
+		 * See if the client uses Mainline style identification.
+		 */
+		client = BTPeerIDByteDecoderDefinitions.getMainlineStyleClientName(peer_id);
+		if (client != null) {
+			/**
+			 * We haven't got a good way of detecting whether this is a Mainline style
+			 * version of peer ID until we start decoding peer ID information. So for
+			 * that reason, we wait until we get client version information here - if
+			 * we don't manage to determine a version number, then we assume that it
+			 * has been misidentified and carry on with it.
+			 */
+			String client_ver = BTPeerIDByteDecoderUtils.getMainlineStyleVersionNumber(peer_id);
+			if (client_ver != null) {return client + " " + client_ver;}
+		}
+
+		/**
+		 * Check for BitSpirit / BitComet (non possible spoof client mode).
+		 */
+		client = decodeBitSpiritClient(peer_id, peer_id_bytes);
+		if (client != null) {return client;}
+		client = decodeBitCometClient(peer_id, peer_id_bytes);
+		if (client != null) {return client;}
+
+
+		/**
+		 * See if the client identifies itself using a particular substring.
+		 */
+		BTPeerIDByteDecoderDefinitions.ClientData client_data = BTPeerIDByteDecoderDefinitions.getSubstringStyleClient(peer_id); 
+		if (client_data != null) {
+			client = client_data.client_name;
+			String client_with_version = BTPeerIDByteDecoderDefinitions.getSubstringStyleClientVersion(client_data, peer_id, peer_id_bytes);
+			if (client_with_version != null) {return client_with_version;}
+			return client;
+		}
+
+		client = identifyAwkwardClient(peer_id_bytes);
+		if (client != null) {return client;}
 		return null;
 	}
-  
-  private static String decodeTornadoStyle( byte[] id, String ident, String name ) {
-    try {
-     if( (id[4] == (byte)45) && (id[5] == (byte)45) ) {
-      if( (id[6] == (byte)45) && (id[7] == (byte)45) && (id[8] == (byte)45)) {
-        String decoded = new String( id, 0, 1, Constants.BYTE_ENCODING );
-        if( decoded.equals( ident ) ) {
-          String v1 = parseOneByteVersionNumber(id, 1);
-          String v2 = parseOneByteVersionNumber(id, 2);
-          String v3 = parseOneByteVersionNumber(id, 3);
-          return name + " " + v1 + "." + v2 + "." + v3;
-        }
-      }
-      
-      if( (id[6] == (byte)48) ) {
-          String decoded = new String( id, 0, 1, Constants.BYTE_ENCODING );
-          if( decoded.equals( ident ) ) {
-            String v1 = parseOneByteVersionNumber(id, 1);
-            String v2 = parseOneByteVersionNumber(id, 2);
-            String v3 = parseOneByteVersionNumber(id, 3);
-            if(ident.equals("T")){
-            	return name + " LM" + " " + v1 + "." + v2 + "." + v3;
-            } else {
-            	return name +  " " + v1 + "." + v2 + "." + v3;
-            }
-          }
-        }
-     }
-     if( (id[4] == (byte)48) && (id[5] == (byte)45) && (id[6] == (byte)45)  ) {
-         String decoded = new String( id, 0, 1, Constants.BYTE_ENCODING );
-         if( decoded.equals( ident ) ) {
-           return "TorrentFlux";
-         }
-     }
-    }
-    catch( Exception e ) {  return null;  }
-    return null;
-  }
-  
-  
-  private static String decodeSimpleStyle( byte[] id, int start_pos, String ident, String name ) {
-    try {
-      String decoded = new String( id, start_pos, ident.length(), Constants.BYTE_ENCODING );
-      if( decoded.equals( ident ) ) return name;
-    }
-    catch( Exception e ) {  return null;  }
-    return null;
-  }
-  
-  
-  private static String decodeMainlineStyle( byte[] id, String ident, String name ) {
-    try {
-    	
-    	// Mx-y-z--
-    	// where version = x.y.z
-      if ( (id[2] == (byte)45) && (id[4] == (byte)45) && (id[6] == (byte)45) && (id[7] == (byte)45) ) {
-        String decoded = new String( id, 0, 1, Constants.BYTE_ENCODING );
-        if( decoded.equals( ident ) ) {
-          String v1 = new String( id, 1, 1, Constants.BYTE_ENCODING );
-          String v2 = new String( id, 3, 1, Constants.BYTE_ENCODING );
-          String v3 = new String( id, 5, 1, Constants.BYTE_ENCODING );
-          return name + " " + v1 + "." + v2 + "." + v3;
-        }
-      }
-    	// Mx-yy-z-
-    	// where version = x.yy.z
-      if ( (id[2] == (byte)45) && (id[5] == (byte)45) && (id[7] == (byte)45) ) {
-        String decoded = new String( id, 0, 1, Constants.BYTE_ENCODING );
-        if( decoded.equals( ident ) ) {
-          String v1 = new String( id, 1, 1, Constants.BYTE_ENCODING );
-          String v2 = new String( id, 3, 2, Constants.BYTE_ENCODING );
-          String v3 = new String( id, 6, 1, Constants.BYTE_ENCODING );
-          return name + " " + v1 + "." + v2 + "." + v3;
-        }
-      }
-    }
-    catch( Exception e ) {  return null;  }
-    return null;
-  }
-  
-  
 
-  protected static String
-  getPrintablePeerID(
-  	byte[]		peer_id,
-  	int iStartAtPos )
-  {
-  	String	sPeerID = "";
-  	byte[] peerID = new byte[ peer_id.length ];
-    System.arraycopy( peer_id, 0, peerID, 0, peer_id.length );
-    
-    try {
-    	for (int i = iStartAtPos; i < peerID.length; i++) {
-    	  int b = (0xFF & peerID[i]);
-    		if (b < 32 || b > 127)
-    			peerID[i] = '-';
-    	}
-    	sPeerID = new String(peerID, iStartAtPos, peerID.length - iStartAtPos, 
-    	                     Constants.BYTE_ENCODING);
-    }
-    catch (UnsupportedEncodingException ignore) {}
-    catch (Exception e) {}
-    
-    return( sPeerID );
-  }
-  
-  public static String parseOneByteVersionNumber(byte[] byteArray, int pos) {
-		try {
-			return ""
-					+ Integer.parseInt(new String(byteArray, pos, 1,
-							Constants.BYTE_ENCODING), 36);
-		} catch (Exception e) {
+	/**
+	 * Decodes the given peerID, returning an identification string.
+	 */  
+	public static String decode(byte[] peer_id) {
+		String client = null;
+		try {client = decode0(peer_id);}
+		catch (Exception e) {Debug.printStackTrace(e);}
+
+		if (client != null) {return client;}
+		logUnknownClient(peer_id);
+		String sPeerID = getPrintablePeerID(peer_id);
+		return MessageText.getString("PeerSocket.unknown") + "[" + sPeerID + "]";
+	}
+
+	public static String identifyAwkwardClient(byte[] peer_id) { 
+
+		int iFirstNonZeroPos = 0;
+
+		iFirstNonZeroPos = 20;
+		for( int i=0; i < 20; i++ ) {
+			if( peer_id[i] != (byte)0 ) {
+				iFirstNonZeroPos = i;
+				break;
+			}
+		}      
+
+		//Shareaza check
+		if( iFirstNonZeroPos == 0 ) {
+			boolean bShareaza = true;
+			for( int i=0; i < 16; i++ ) {
+				if( peer_id[i] == (byte)0 ) {
+					bShareaza = false;
+					break;
+				}
+			}
+			if( bShareaza ) {
+				for( int i=16; i < 20; i++ ) {
+					if( peer_id[i] != ( peer_id[i % 16] ^ peer_id[15 - (i % 16)] ) ) {
+						bShareaza = false;
+						break;
+					}
+				}
+				if( bShareaza )  return "Shareaza";
+			}
 		}
 
-		return "" + byteArray[pos];
+		byte three = (byte)3;
+		if ((iFirstNonZeroPos == 9)
+				&& (peer_id[9] == three)
+				&& (peer_id[10] == three)
+				&& (peer_id[11] == three)) {
+			return "Snark";
+		}
+
+		if ((iFirstNonZeroPos == 12) && (peer_id[12] == (byte)97) && (peer_id[13] == (byte)97)) {
+			return "Experimental 3.2.1b2";
+		}
+		if ((iFirstNonZeroPos == 12) && (peer_id[12] == (byte)0) && (peer_id[13] == (byte)0)) {
+			return "Experimental 3.1";
+		}
+		if (iFirstNonZeroPos == 12) return "Mainline";
+
+		return null;
+
 	}
-  
-  private static void assertDecode(String client_result, String peer_id) throws Exception {
-	  if (peer_id.length() > 40) {
-		  peer_id = peer_id.replaceAll("[ ]", "");
-	  }
-	  
-	  byte[] byte_peer_id = null;
-	  if (peer_id.length() == 40) {
-		  byte_peer_id = ByteFormatter.decodeString(peer_id);
-	  }
-	  else if (peer_id.length() == 20) {
-		  byte_peer_id = peer_id.getBytes(Constants.BYTE_ENCODING);
-	  }
-	  else {
-		  throw new IllegalArgumentException(peer_id);
-	  }
-	  assertDecode(client_result, byte_peer_id);
-  }
-	  
-  private static void assertDecode(String client_result, byte[] peer_id) throws Exception {
-	  String peer_id_as_string = new String(peer_id, Constants.BYTE_ENCODING);
-	  System.out.println("Testing for " + client_result + ", peer ID: " + peer_id_as_string);
-	  String decoded_result = decode(peer_id);
-	  if (decoded_result.equals(client_result)) {return;}
-	  throw new RuntimeException("assertion failure - expected \"" + client_result + "\", got \"" + decoded_result + "\": " + peer_id_as_string);
-  }
-  
-  public static void main(String[] args) throws Exception {
-	  //assertDecode("BitTornado 0.3.9", "T0390----5uL5NvjBe2z"); // currently reported as TorrentFlux
-	  assertDecode("Mainline", "0000000000000000000000004C53441933104277");
-	  assertDecode("Shareaza 2.1.3.2", "2D535A323133322D000000000000000000000000");
-	  //assertDecode("ABC 2.6.9", "413236392D2D2D2D345077199FAEC4A673BECA01");
-	  assertDecode("BitComet 0.56", "6578626300387A4463102D6E9AD6723B339F35A9");
-	  assertDecode("Azureus 2.2.0.0", "2D415A323230302D3677664732776B3677574C63");
-	  assertDecode("BitSpirit v2", "000242539B7ED3E058A8384AA748485454504254");
-	  // assertDecode("Mainline 4.0.2", "4D342D302D322D2D6898D9D0CAF25E4555445030"); // BitSpirit spoofing Mainline.
-	  assertDecode("BitLord 0.56", "6578626300384C4F52443200048ECED57BD71028");
-	  assertDecode("BitTornado 0.3.10", "543033412D2D2D2D2D6351374B5848424E733264");
-	  assertDecode("Azureus 2.0.3.2", "2D2D2D2D2D417A757265757354694E7A2A6454A7");
-	  assertDecode("Opera (Build 7685)", "OP7685f2c1495b1680bf");
-	  assertDecode("KTorrent 1.1 RC1", "-KT11R1-693649213030");
-	  // assertDecode("BitComet UDP", "00034253 07248896 44C59530 8A5FF2CA 55445030"); // This is BitSpirit v3.
-	  //assertDecode("", "2D545432 3130772D 6471216E 57667E51 63657874"); // TuoTu
-	  //assertDecode("", "2D415432 3532302D 76454574 30774F36 76306372"); // Cyber Artemis
-	  //assertDecode("", "-AG2053-Em6o1EmvwLtD"); // Ares
-	  assertDecode("FlashGet 1.80", "2D464730 31383075 F8005782 1359D64B B3DFD265");
-	  assertDecode("Mainline 5.0.7", "4D352D30 2D372D2D 39616137 35376566 64356265");
-	  assertDecode("BitTornado 0.3.12", "54303343 2D2D2D2D 2D367459 6F6C7868 56554653");
-	  assertDecode("Rufus 0.6.9", "00455253 416E6F6E 796D6F75 7382BE42 75024AE3");
-  }
+
+	private static String decodeBitSpiritClient(String peer_id, byte[] peer_id_bytes) {
+		if (!peer_id.substring(2, 4).equals("BS")) {return null;}
+		String version = BTPeerIDByteDecoderUtils.decodeNumericValueOfByte(peer_id_bytes[1]);
+		if ("0".equals(version)) {version = "1";}
+		return "BitSpirit v" + version;
+	}
+
+	private static String decodeBitCometClient(String peer_id, byte[] peer_id_bytes) {
+		String mod_name = null;
+		if (peer_id.startsWith("exbc")) {mod_name = "";}
+		else if (peer_id.startsWith("FUTB")) {mod_name  = "(Mod 1) ";}
+		else if (peer_id.startsWith("xUTB")) {mod_name  = "(Mod 2) ";}
+		else {return null;}
+
+		boolean is_bitlord = (peer_id.substring(6, 10).equals("LORD"));
+
+		/**
+		 * Older versions of BitLord are of the form x.yy, whereas new versions (1 and onwards),
+		 * are of the form x.y. BitComet is of the form x.yy.
+		 */
+		String client_name = (is_bitlord) ? "BitLord " : "BitComet ";
+		String maj_version = BTPeerIDByteDecoderUtils.decodeNumericValueOfByte(peer_id_bytes[4]);
+		int min_version_length = (is_bitlord && !maj_version.equals("0")) ? 1 : 2;
+
+		return client_name + mod_name + maj_version + "." +
+		BTPeerIDByteDecoderUtils.decodeNumericValueOfByte(peer_id_bytes[5], min_version_length);	  
+	}
+
+
+	protected static String getPrintablePeerID(  	byte[]		peer_id)
+	{
+		String	sPeerID = "";
+		byte[] peerID = new byte[ peer_id.length ];
+		System.arraycopy( peer_id, 0, peerID, 0, peer_id.length );
+
+		try {
+			for (int i = 0; i < peerID.length; i++) {
+				int b = (0xFF & peerID[i]);
+				if (b < 32 || b > 127)
+					peerID[i] = '-';
+			}
+			sPeerID = new String(peerID, Constants.BYTE_ENCODING);
+		}
+		catch (UnsupportedEncodingException ignore) {}
+		catch (Exception e) {}
+
+		return( sPeerID );
+	}
+
+	private static void assertDecode(String client_result, String peer_id) throws Exception {
+		if (peer_id.length() > 40) {
+			peer_id = peer_id.replaceAll("[ ]", "");
+		}
+
+		byte[] byte_peer_id = null;
+		if (peer_id.length() == 40) {
+			byte_peer_id = ByteFormatter.decodeString(peer_id);
+		}
+		else if (peer_id.length() == 20) {
+			byte_peer_id = peer_id.getBytes(Constants.BYTE_ENCODING);
+		}
+		else {
+			throw new IllegalArgumentException(peer_id);
+		}
+		assertDecode(client_result, byte_peer_id);
+	}
+
+	private static void assertDecode(String client_result, byte[] peer_id) throws Exception {
+		String peer_id_as_string = new String(peer_id, Constants.BYTE_ENCODING);
+		System.out.println("Testing for " + client_result + ", peer ID: " + peer_id_as_string);
+		String decoded_result = decode0(peer_id);
+		if (client_result.equals(decoded_result)) {return;}
+		throw new RuntimeException("assertion failure - expected \"" + client_result + "\", got \"" + decoded_result + "\": " + peer_id_as_string);
+	}
+
+	public static void main(String[] args) throws Exception {
+		assertDecode("BitTornado 0.3.9", "T0390----5uL5NvjBe2z");
+		assertDecode("Mainline", "0000000000000000000000004C53441933104277");
+		assertDecode("Shareaza 2.1.3.2", "2D535A323133322D000000000000000000000000");
+		assertDecode("ABC 2.6.9", "413236392D2D2D2D345077199FAEC4A673BECA01");
+		assertDecode("BitComet 0.56", "6578626300387A4463102D6E9AD6723B339F35A9");
+		assertDecode("Azureus 2.2.0.0", "2D415A323230302D3677664732776B3677574C63");
+		assertDecode("BitSpirit v2", "000242539B7ED3E058A8384AA748485454504254");
+		assertDecode("BitSpirit (bad peer ID)", "4D342D302D322D2D6898D9D0CAF25E4555445030");
+		assertDecode("BitLord 0.56", "6578626300384C4F52443200048ECED57BD71028");
+		assertDecode("BitTornado 0.3.10", "543033412D2D2D2D2D6351374B5848424E733264");
+		assertDecode("Azureus 2.0.3.2", "2D2D2D2D2D417A757265757354694E7A2A6454A7");
+		assertDecode("Opera (Build 7685)", "OP7685f2c1495b1680bf");
+		assertDecode("KTorrent 1.1 RC1", "-KT11R1-693649213030");
+		assertDecode("BitSpirit v3", "00034253 07248896 44C59530 8A5FF2CA 55445030");
+		assertDecode("TuoTu 2.1.0", "2D545432 3130772D 6471216E 57667E51 63657874");
+		assertDecode("CyberArtemis 2.5.2.0", "2D415432 3532302D 76454574 30774F36 76306372");
+		assertDecode("Ares 2.0.5", "-AG2053-Em6o1EmvwLtD");
+		assertDecode("FlashGet 1.80", "2D464730 31383075 F8005782 1359D64B B3DFD265");
+		assertDecode("Mainline 5.0.7", "4D352D30 2D372D2D 39616137 35376566 64356265");
+		assertDecode("BitTornado 0.3.12", "54303343 2D2D2D2D 2D367459 6F6C7868 56554653");
+		assertDecode("Rufus 0.6.9", "00455253 416E6F6E 796D6F75 7382BE42 75024AE3");
+		assertDecode("Azureus 1", "417A7572 65757300 00000000 000000A0 76F0AEF7");
+		assertDecode("Halite 0.2.9", "-HL0290-xUO*9ugvENUE");
+		assertDecode("Transmission 0.72", "2D545230 3037322D 38766436 68726D70 3034616E");
+		assertDecode("\u00B5Torrent 1.7.0 Beta", "2D555431 3730422D 92844644 1DB0A094 A01C01E5");
+		//assertDecode("", "2D4E50303230312DCA5D53B5485C6AA1C52B4960"); // Unknown client "-NP0201-"...
+		assertDecode("libTorrent (Rakshasa) 0.11.2", "2D6C74304232302D0D739B93E6BE21FEBB557B20");
+		System.out.println("Done.");
+	}
 }

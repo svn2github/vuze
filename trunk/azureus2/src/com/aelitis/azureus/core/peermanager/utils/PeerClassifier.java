@@ -46,7 +46,7 @@ public class PeerClassifier {
    * @return printable peerID
    */
   public static String getPrintablePeerID( byte[] peer_id ) {
-    return BTPeerIDByteDecoder.getPrintablePeerID( peer_id, 0 );
+    return BTPeerIDByteDecoder.getPrintablePeerID(peer_id);
   }
   
 
