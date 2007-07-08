@@ -93,7 +93,16 @@ public class TableViewSWTImpl
 	extends TableViewImpl
 	implements ParameterListener, TableViewSWT,
 	TableStructureModificationListener, ObfusticateImage
+	
 {
+
+	/** Helpful output when trying to debug add/removal of rows */
+	public final static boolean DEBUGADDREMOVE;
+	static {
+		String prop = System.getProperty("debug.swt.table.addremove");
+		DEBUGADDREMOVE = prop != null && prop.equals("1");
+	}
+	
 	private final static LogIDs LOGID = LogIDs.GUI;
 
 	/** Virtual Tables still a work in progress */
@@ -2039,7 +2048,7 @@ public class TableViewSWTImpl
 					return;
 				}
 
-				StringBuffer sbWillRemove;
+				StringBuffer sbWillRemove = null;
 				if (DEBUGADDREMOVE) {
 					debug(">>> Remove rows.  Start w/" + mapDataSourceToRow.size()
 							+ "ds; tc=" + table.getItemCount() + ";"
