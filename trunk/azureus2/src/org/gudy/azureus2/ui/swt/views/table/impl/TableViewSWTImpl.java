@@ -2880,6 +2880,13 @@ public class TableViewSWTImpl
 		return row.getTableCellSWT(sCellName);
 	}
 
+	public TableRowSWT getTableRow(int x, int y) {
+		TableItem item = table.getItem(new Point(2, y));
+		if (item == null)
+			return null;
+		return (TableRowSWT) getRow(item);
+	}
+
 	private TableColumnCore getTableColumnByOffset(int x) {
 		int iColumn = getColumnNo(x);
 		if (iColumn < 0)
@@ -3314,6 +3321,9 @@ public class TableViewSWTImpl
 	}
 
 	void debug(String s) {
+		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("table");
+		diag_logger.log(s);
+
 		System.out.println(SystemTime.getCurrentTime() + ": " + sTableID + ": " + s);
 	}
 
@@ -3494,10 +3504,17 @@ public class TableViewSWTImpl
 	public void setMainPanelCreator(TableViewSWTPanelCreator mainPanelCreator) {
 		this.mainPanelCreator = mainPanelCreator;
 	}
-	
-	public TableCellSWT getTableCellWithCursor() {
+
+	public TableCellCore getTableCellWithCursor() {
 		Point pt = table.getDisplay().getCursorLocation();
 		pt = table.toControl(pt);
 		return getTableCell(pt.x, pt.y);
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#getTableRowWithCursor()
+	public TableRowCore getTableRowWithCursor() {
+		Point pt = table.getDisplay().getCursorLocation();
+		pt = table.toControl(pt);
+		return getTableRow(pt.x, pt.y);
 	}
 }
