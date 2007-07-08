@@ -402,7 +402,7 @@ TorrentOptionsView
 									
 									boolean	value = manager.getDownloadState().getBooleanParameter( key );
 									
-									bool_param.setValue( value );
+									bool_param.setSelected( value );
 									
 								}else{
 									
