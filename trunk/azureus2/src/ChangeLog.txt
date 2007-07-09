@@ -3,7 +3,8 @@ AZUREUS CHANGELOG
 
 2007.xx.xx | Azureus 3.1? (probably not)
 
-CHANGE: Core  | Much better peer ID identification code added, multiple more clients correctly identified [amc1]
+CHANGE: Core  | Much better peer ID identification code added, many more clients now correctly identified [amc1]
+CHANGE: Core  | Core changes in some places to allow "Default save path" to be used without requiring "Use default data dir" to be enabled [hasturkun]
 
 2007.06.20 | Azureus 3.0.1.6
 
