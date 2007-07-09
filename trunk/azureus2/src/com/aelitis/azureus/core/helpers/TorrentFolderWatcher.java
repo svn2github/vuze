@@ -144,10 +144,6 @@ public class TorrentFolderWatcher {
 			String data_save_path = COConfigurationManager
 					.getStringParameter("Default save path");
 
-			boolean default_data_dir_enabled = COConfigurationManager
-					.getBooleanParameter("Use default data dir")
-					&& data_save_path.length() > 0;
-
 			File folder = null;
 
 			if (folder_path != null && folder_path.length() > 0) {
@@ -173,19 +169,37 @@ public class TorrentFolderWatcher {
 				return;
 			}
 
-			if (!default_data_dir_enabled) {
-				if (Logger.isEnabled())
-					Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
-							"[Use default data dir] " + "not enabled"));
-				Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR,
-						"'Save to default data dir' " + "[Use default data dir] "
-								+ "needs to be enabled for " + "auto-.torrent-import to work"));
-				return;
+			File f = null;
+			if (data_save_path != null && data_save_path.length() > 0) {
+				f = new File(data_save_path);
+				
+				// Path is not an existing directory.
+				if (!f.isDirectory()) {
+					if (!f.exists()) {FileUtil.mkdirs(f);}
+					
+					// If path is still not a directory, abort.
+					if (!f.isDirectory()) {
+						if (Logger.isEnabled()) {
+							Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+									"[Default save path] does not exist or is not a dir"));
+						}
+						Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR,
+								"[Default save path] does not exist or is not a dir"));
+						return;
+					}
+				}
 			}
-
-			File f = new File(data_save_path);
-			FileUtil.mkdirs(f); // Will return false if it already exists.
-
+			
+			// If we get here, and this is true, then data_save_path isn't valid.
+			if (f == null){
+				if (Logger.isEnabled()) {
+ 					Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+						"[Default save path] needs to be set for auto-.torrent-import to work"));
+				}
+				Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR,
+						"[Default save path] needs to be set for auto-.torrent-import to work"));
+			}
+			
 			// if we are saving torrents to the same location as we import them from
 			// then we can't assume that its safe to delete the torrent after import! 
 
