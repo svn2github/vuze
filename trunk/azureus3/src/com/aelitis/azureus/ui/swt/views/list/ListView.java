@@ -76,8 +76,6 @@ public class ListView
 
 	private final static LogIDs LOGID = LogIDs.UI3;
 
-	private static final boolean DEBUGADDREMOVE = false;
-
 	private static final boolean DEBUGPAINT = false;
 
 	private static final boolean DEBUG_SORTER = false;
@@ -1190,10 +1188,7 @@ public class ListView
 		// in a refresh cycle.  This is a huge benefit to tables that have
 		// many rows being added and removed in rapid succession
 		if (!bImmediate) {
-			int count;
-			if (DEBUGADDREMOVE) {
-				count = 0;
-			}
+			int count = 0;
 
 			try {
 				row_mon.enter();
