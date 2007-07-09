@@ -838,7 +838,7 @@ DownloadImpl
 		
 		latest_state	= convertState(state);
 		
-		// System.out.println("Plug:prev = " + prev_state + ", curr = " + latest_state );
+		// System.out.println("Plug: dl = " + getName() + ", prev = " + prev_state + ", curr = " + latest_state + ", signalled state = " + state);
 		
 		boolean curr_forcedStart = isForceStart();
 	
