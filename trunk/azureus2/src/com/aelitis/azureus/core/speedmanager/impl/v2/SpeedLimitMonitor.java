@@ -173,11 +173,11 @@ public class SpeedLimitMonitor
         }
     }
 
-    public int getUploadLineCapacity(){
+    public int getUploadMaxLimit(){
         return uploadLimitMax;
     }
 
-    public int getDownloadLineCapacity(){
+    public int getDownloadMaxLimit(){
         return downloadLimitMax;
     }
 
@@ -220,6 +220,10 @@ public class SpeedLimitMonitor
 
     public String getTransferModeAsString(){
         return transferMode.getString();
+    }
+
+    public TransferMode getTransferMode(){
+        return transferMode;
     }
 
 
@@ -302,7 +306,7 @@ public class SpeedLimitMonitor
         slider.updateLimits(uploadLimitMax,uploadLimitMin,
                 downloadLimitMax,downloadLimitMin);
         slider.updateStatus(currUpLimit,uploadLimitSettingStatus,
-                currDownLimit, downloadLimitSettingStatus);
+                currDownLimit, downloadLimitSettingStatus,transferMode);
 
         return slider.adjust( signalStrength*multiple );
     }//modifyLimits
@@ -909,7 +913,7 @@ public class SpeedLimitMonitor
 
     public void setRefLimits(int uploadMax, int downloadMax){
 
-        if( uploadLimitMax != uploadMax ){
+        if( (uploadLimitMax!=uploadMax) && (uploadMax>0) ){
             uploadLimitMax=uploadMax;
             COConfigurationManager.setParameter(
                     SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT, uploadLimitMax);
@@ -922,7 +926,7 @@ public class SpeedLimitMonitor
                     SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT, uploadLimitMin);
         }
 
-        if( downloadLimitMax != downloadMax){
+        if( (downloadLimitMax!=downloadMax) && (downloadMax>0) ){
             downloadLimitMax = downloadMax;
             COConfigurationManager.setParameter(
                     SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT, downloadLimitMax);
@@ -1151,95 +1155,6 @@ public class SpeedLimitMonitor
         }
 
     }//class Update
-
-
-    static class LimitSlider{
-        private float valueUp=0.5f;//number between 0.0 - 1.0
-        int upMax;
-        int upCurr;
-        int upMin;
-        SaturatedMode upUsage;
-
-        private float valueDown=1.0f;
-        int downMax;
-        int downCurr;
-        int downMin;
-        SaturatedMode downUsage;
-
-
-        public void updateStatus(int currUpLimit, SaturatedMode uploadUsage, int currDownLimit, SaturatedMode downloadUsage){
-            upCurr = currUpLimit;
-            upUsage = uploadUsage;
-            downCurr = currDownLimit;
-            downUsage = downloadUsage;
-        }
-
-
-        public void updateLimits(int _upMax, int _upMin, int _downMax, int _downMin){
-            upMax = _upMax;
-            upMin = _upMin;
-            downMax = _downMax;
-            downMin = _downMin;
-        }
-
-
-        public Update adjust( float amount ){
-
-            boolean increase = true;
-            if( amount<0.0f ){
-                increase = false;
-            }
-
-            float factor = amount/10.0f;
-
-            if( increase ){
-                //increase download first
-                if( valueDown<0.99f ){
-                    valueDown = calculateNewValue(valueDown,factor);
-                }else{
-                    valueUp = calculateNewValue(valueUp,factor);
-                }
-            }else{
-                //decrease upload first
-                if( valueUp > 0.01f){
-                    valueUp = calculateNewValue(valueUp,factor);
-                }else{
-                    valueDown = calculateNewValue(valueDown,factor);
-                }
-            }
-
-            return update();
-
-        }//adjust
-
-        private Update update(){
-            int upLimit;
-            int downLimit;
-
-            upLimit = Math.round( ((upMax-upMin)*valueUp)+upMin );
-            downLimit = Math.round( ((downMax-downMin)*valueDown)+downMin );
-
-            //log this change.
-            String msg = " create-update: valueUp="+valueUp+",upLimit="+upLimit+",valueDown="+valueDown
-                    +",downLimit="+downLimit+",upMax="+upMax+",upMin="+upMin+",downMax="+downMax
-                    +",downMin="+downMin;
-            SpeedManagerLogger.log( msg );
-
-            return new Update(upLimit,true,downLimit,true);
-        }
-
-        private float calculateNewValue(float curr, float amount){
-            curr += amount;
-            if( curr > 1.0f){
-                curr = 1.0f;
-            }
-            if( curr < 0.0f ){
-                curr = 0.0f;
-            }
-            return curr;
-        }
-
-    }//LimitSlider
 
 
 }//SpeedLimitMonitor

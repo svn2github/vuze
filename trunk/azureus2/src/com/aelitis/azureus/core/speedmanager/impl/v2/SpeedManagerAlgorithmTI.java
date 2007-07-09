@@ -39,7 +39,6 @@ import org.gudy.azureus2.core3.util.SystemTime;
 public class SpeedManagerAlgorithmTI
         implements SpeedManagerAlgorithmProvider
     {
-        //private static final byte VIVALDI_VERSION = DHTNetworkPosition.POSITION_TYPE_VIVALDI_V1;
 
         private SpeedManagerAlgorithmProviderAdapter adapter;
         private PluginInterface dhtPlugin;
@@ -63,6 +62,8 @@ public class SpeedManagerAlgorithmTI
         int intervalCount=0;
 
         float lastMetric = 0.0f;
+
+        int sessionMaxUploadRate = 0;
 
         static{
             COConfigurationManager.addListener(
@@ -214,6 +215,11 @@ public class SpeedManagerAlgorithmTI
             //update ping maps
             limitMonitor.setCurrentTransferRates(downRateBitsPerSec,upRateBitsPerSec);
 
+            //only for the UI.
+            if( upRateBitsPerSec > sessionMaxUploadRate ){
+                sessionMaxUploadRate = upRateBitsPerSec;
+            }
+
             //"curr-data" ....
             logCurrentData(downRateBitsPerSec, currDownLimit, upRateBitsPerSec, currUploadLimit);
         }
@@ -227,11 +233,11 @@ public class SpeedManagerAlgorithmTI
          */
         private void logCurrentData(int downRate, int currDownLimit, int upRate, int currUploadLimit) {
             StringBuffer sb = new StringBuffer("curr-data:"+downRate+":"+currDownLimit+":");
-            sb.append( limitMonitor.getDownloadLineCapacity() ).append(":");
+            sb.append( limitMonitor.getDownloadMaxLimit() ).append(":");
             sb.append(limitMonitor.getDownloadBandwidthMode()).append(":");
             sb.append(limitMonitor.getDownloadLimitSettingMode()).append(":");
             sb.append(upRate).append(":").append(currUploadLimit).append(":");
-            sb.append( limitMonitor.getUploadLineCapacity() ).append(":");
+            sb.append( limitMonitor.getUploadMaxLimit() ).append(":");
             sb.append(limitMonitor.getUploadBandwidthMode()).append(":");
             sb.append(limitMonitor.getUploadLimitSettingMode()).append(":");
             sb.append( limitMonitor.getUpDownRatio() ).append(":");
@@ -275,6 +281,7 @@ public class SpeedManagerAlgorithmTI
             if( limitMonitor.isConfLimitTestFinished() ){
                 int downLimitGuess = limitMonitor.guessDownloadLimit();
                 int upLimitGuess = limitMonitor.guessUploadLimit();
+                //ToDo: ask the PingMapper from one level higher?
 
                 SpeedLimitMonitor.Update update = limitMonitor.endLimitTesting(downLimitGuess,
                         upLimitGuess );
@@ -351,7 +358,7 @@ public class SpeedManagerAlgorithmTI
             }
 
 
-        }//
+        }//calculate
 
         //NOTE:  we need to move the LimitSlider to here!!
         static LimitSlider slider;
@@ -361,22 +368,29 @@ public class SpeedManagerAlgorithmTI
 
         SpeedLimitMonitor.Update modifyLimits(float signalStrength, float multiple, int currUpLimit, int currDownLimit, int[] limits){
 
-            int uploadLimitMax = limits[TestInterface.UPLOAD_MAX_INDEX];
-            int downloadLimitMax = limits[TestInterface.DOWNLOAD_MAX_INDEX];
+            int upLimitMax = limits[TestInterface.UPLOAD_MAX_INDEX];
+            int downLimitMax = limits[TestInterface.DOWNLOAD_MAX_INDEX];
 
             SaturatedMode uploadLimitSettingStatus = limitMonitor.getUploadLimitSettingMode();
             SaturatedMode downloadLimitSettingStatus = limitMonitor.getDownloadLimitSettingMode();
 
-            //Mapper is now trying to determine the limits.
-            limitMonitor.setRefLimits(uploadLimitMax,downloadLimitMax);
+            //Mapper is now trying to determine the limits. - Check if limits are useful.
+            SpeedManagerLogger.trace("Recommended Limits from mapper- up="+upLimitMax+" down="+downLimitMax);
+            
+            limitMonitor.setRefLimits(upLimitMax,downLimitMax);
 
+            int downloadLimitMax = limitMonitor.getDownloadMaxLimit();
             int downloadLimitMin = limitMonitor.getDownloadMinLimit();
+
+            int uploadLimitMax = limitMonitor.getUploadMaxLimit();
             int uploadLimitMin = limitMonitor.getUploadMinLimit();
 
-            slider.updateLimits(uploadLimitMax,uploadLimitMin,
-                    downloadLimitMax,downloadLimitMin);
+            TransferMode tMode = limitMonitor.getTransferMode();
+
+            slider.updateLimits(downloadLimitMax,uploadLimitMin,
+                    uploadLimitMax,downloadLimitMin);
             slider.updateStatus(currUpLimit,uploadLimitSettingStatus,
-                    currDownLimit, downloadLimitSettingStatus);
+                    currDownLimit, downloadLimitSettingStatus,tMode);
 
             return slider.adjust( signalStrength*multiple );
 
@@ -405,10 +419,10 @@ public class SpeedManagerAlgorithmTI
 
             StringBuffer msg = new StringBuffer();
             msg.append("limits:");
-            msg.append(limitMonitor.getUploadLineCapacity()).append(":");
+            msg.append(limitMonitor.getUploadMaxLimit()).append(":");
             msg.append(limitMonitor.getUploadMinLimit()).append(":");
             msg.append(limitMonitor.getUploadConfidence()).append(":");
-            msg.append(limitMonitor.getDownloadLineCapacity()).append(":");
+            msg.append(limitMonitor.getDownloadMaxLimit()).append(":");
             msg.append(limitMonitor.getDownloadMinLimit()).append(":");
             msg.append(limitMonitor.getDownloadConfidence());
 
@@ -679,7 +693,7 @@ public class SpeedManagerAlgorithmTI
         }
 
         public int getMaxUploadSpeed() {
-            return 3;
+            return sessionMaxUploadRate;
         }
 
         public boolean getAdjustsDownloadLimits() {
@@ -691,98 +705,5 @@ public class SpeedManagerAlgorithmTI
             SpeedManagerLogger.log(str);
         }//log
 
-
- /**********  static classes below here  ****************/
-
-        /**
-         * Imported from SpeedLimitMonitor
-         */
-    static class LimitSlider{
-        private float valueUp=0.5f;//number between 0.0 - 1.0
-        int upMax;
-        int upCurr;
-        int upMin;
-        SaturatedMode upUsage;
-
-        private float valueDown=1.0f;
-        int downMax;
-        int downCurr;
-        int downMin;
-        SaturatedMode downUsage;
-
-
-        public void updateStatus(int currUpLimit, SaturatedMode uploadUsage, int currDownLimit, SaturatedMode downloadUsage){
-            upCurr = currUpLimit;
-            upUsage = uploadUsage;
-            downCurr = currDownLimit;
-            downUsage = downloadUsage;
-        }
-
-
-        public void updateLimits(int _upMax, int _upMin, int _downMax, int _downMin){
-            upMax = _upMax;
-            upMin = _upMin;
-            downMax = _downMax;
-            downMin = _downMin;
-        }
-
-
-        public SpeedLimitMonitor.Update adjust( float amount ){
-
-            boolean increase = true;
-            if( amount<0.0f ){
-                increase = false;
-            }
-
-            float factor = amount/10.0f;
-
-            if( increase ){
-                //increase download first
-                if( valueDown<0.99f ){
-                    valueDown = calculateNewValue(valueDown,factor);
-                }else{
-                    valueUp = calculateNewValue(valueUp,factor);
-                }
-            }else{
-                //decrease upload first
-                if( valueUp > 0.01f){
-                    valueUp = calculateNewValue(valueUp,factor);
-                }else{
-                    valueDown = calculateNewValue(valueDown,factor);
-                }
-            }
-
-            return update();
-
-        }//adjust
-
-        private SpeedLimitMonitor.Update update(){
-            int upLimit;
-            int downLimit;
-
-            upLimit = Math.round( ((upMax-upMin)*valueUp)+upMin );
-            downLimit = Math.round( ((downMax-downMin)*valueDown)+downMin );
-
-            //log this change.
-            String msg = " create-update: valueUp="+valueUp+",upLimit="+upLimit+",valueDown="+valueDown
-                    +",downLimit="+downLimit+",upMax="+upMax+",upMin="+upMin+",downMax="+downMax
-                    +",downMin="+downMin;
-            SpeedManagerLogger.log( msg );
-
-            return new SpeedLimitMonitor.Update(upLimit,true,downLimit,true);
-        }
-
-        private float calculateNewValue(float curr, float amount){
-            curr += amount;
-            if( curr > 1.0f){
-                curr = 1.0f;
-            }
-            if( curr < 0.0f ){
-                curr = 0.0f;
-            }
-            return curr;
-        }
-
-    }//LimitSlider
 
 }

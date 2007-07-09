@@ -85,6 +85,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
     //for managing ping sources.
     PingSourceManager pingSourceManager = new PingSourceManager();
 
+    int sessionMaxUploadRate = 0;
 
     static{
         COConfigurationManager.addListener(
@@ -217,6 +218,11 @@ public class SpeedManagerAlgorithmProviderVivaldi
         //update ping maps
         limitMonitor.setCurrentTransferRates(downRateBitsPerSec,upRateBitsPerSec);
 
+        //only for the UI.
+        if( upRateBitsPerSec > sessionMaxUploadRate ){
+            sessionMaxUploadRate = upRateBitsPerSec;
+        }
+
         //"curr-data" ....
         logCurrentData(downRateBitsPerSec, currDownLimit, upRateBitsPerSec, currUploadLimit);
     }
@@ -230,11 +236,11 @@ public class SpeedManagerAlgorithmProviderVivaldi
      */
     private void logCurrentData(int downRate, int currDownLimit, int upRate, int currUploadLimit) {
         StringBuffer sb = new StringBuffer("curr-data:"+downRate+":"+currDownLimit+":");
-        sb.append( limitMonitor.getDownloadLineCapacity() ).append(":");
+        sb.append( limitMonitor.getDownloadMaxLimit() ).append(":");
         sb.append(limitMonitor.getDownloadBandwidthMode()).append(":");
         sb.append(limitMonitor.getDownloadLimitSettingMode()).append(":");
         sb.append(upRate).append(":").append(currUploadLimit).append(":");
-        sb.append( limitMonitor.getUploadLineCapacity() ).append(":");
+        sb.append( limitMonitor.getUploadMaxLimit() ).append(":");
         sb.append(limitMonitor.getUploadBandwidthMode()).append(":");
         sb.append(limitMonitor.getUploadLimitSettingMode()).append(":");        
         sb.append( limitMonitor.getUpDownRatio() ).append(":");
@@ -408,10 +414,10 @@ public class SpeedManagerAlgorithmProviderVivaldi
 
         StringBuffer msg = new StringBuffer();
         msg.append("limits:");
-        msg.append(limitMonitor.getUploadLineCapacity()).append(":");
+        msg.append(limitMonitor.getUploadMaxLimit()).append(":");
         msg.append(limitMonitor.getUploadMinLimit()).append(":");
         msg.append(limitMonitor.getUploadConfidence()).append(":");
-        msg.append(limitMonitor.getDownloadLineCapacity()).append(":");
+        msg.append(limitMonitor.getDownloadMaxLimit()).append(":");
         msg.append(limitMonitor.getDownloadMinLimit()).append(":");
         msg.append(limitMonitor.getDownloadConfidence());
 
@@ -768,7 +774,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
     }
 
     public int getMaxUploadSpeed() {
-        return 3;
+        return sessionMaxUploadRate;
     }
 
     public boolean getAdjustsDownloadLimits() {
