@@ -95,14 +95,6 @@ public class TableViewSWTImpl
 	TableStructureModificationListener, ObfusticateImage
 	
 {
-
-	/** Helpful output when trying to debug add/removal of rows */
-	public final static boolean DEBUGADDREMOVE;
-	static {
-		String prop = System.getProperty("debug.swt.table.addremove");
-		DEBUGADDREMOVE = prop != null && prop.equals("1");
-	}
-	
 	private final static LogIDs LOGID = LogIDs.GUI;
 
 	/** Virtual Tables still a work in progress */
@@ -3514,7 +3506,7 @@ public class TableViewSWTImpl
 		this.mainPanelCreator = mainPanelCreator;
 	}
 
-	public TableCellCore getTableCellWithCursor() {
+	public TableCellSWT getTableCellWithCursor() {
 		Point pt = table.getDisplay().getCursorLocation();
 		pt = table.toControl(pt);
 		return getTableCell(pt.x, pt.y);

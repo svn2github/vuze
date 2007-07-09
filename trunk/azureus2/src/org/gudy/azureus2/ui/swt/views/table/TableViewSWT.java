@@ -41,6 +41,9 @@ import com.aelitis.azureus.ui.common.table.TableView;
 public interface TableViewSWT
 	extends TableView
 {
+	/** Helpful output when trying to debug add/removal of rows */
+	public final static boolean DEBUGADDREMOVE = System.getProperty("debug.swt.table.addremove", "0").equals("1");
+
 	void addKeyListener(KeyListener listener);
 
 	public void addMenuFillListener(TableViewSWTMenuFillListener l);
