@@ -2063,7 +2063,10 @@ public class TableViewSWTImpl
 
 					TableRowSWT item = (TableRowSWT) mapDataSourceToRow.get(dataSources[i]);
 					if (item != null) {
-						int index = item.getIndex();
+						// use sortedRows position instead of item.getIndex(), because
+						// getIndex may have a wrong value (unless we fillRowGaps() which
+						// is more time consuming and we do afterwards anyway)
+						int index = sortedRows.indexOf(item);
 						if (!bRefresh) {
 							bRefresh = index >= iTopIndex || index <= iBottomIndex;
 						}
