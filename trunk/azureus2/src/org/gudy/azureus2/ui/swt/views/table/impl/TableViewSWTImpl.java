@@ -2081,6 +2081,7 @@ public class TableViewSWTImpl
 
 				if (DEBUGADDREMOVE) {
 					debug(sbWillRemove.toString());
+					debug("#swtItemsToRemove=" + swtItemsToRemove.size());
 				}
 
 				// pass 2: remove from map and list, add removed to seperate list
