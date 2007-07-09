@@ -80,7 +80,7 @@ DownloadManagerImpl
 		}
 	}
 	
-	private AzureusCore				azureus_core;
+	//private AzureusCore				azureus_core;
 	private GlobalManager			global_manager;
 	private DownloadManagerStats	stats;
 	private DownloadEventNotifierImpl global_dl_notifier;
@@ -97,7 +97,7 @@ DownloadManagerImpl
 	DownloadManagerImpl(
 		AzureusCore	_azureus_core )
 	{
-		azureus_core	= _azureus_core;
+		//azureus_core	= _azureus_core;
 		global_manager	= _azureus_core.getGlobalManager();
 		
 		stats = new DownloadManagerStatsImpl( global_manager );
