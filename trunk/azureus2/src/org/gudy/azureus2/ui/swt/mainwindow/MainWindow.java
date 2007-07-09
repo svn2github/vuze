@@ -151,6 +151,8 @@ MainWindow
 
 	private boolean bShowMainWindow;
 
+	private boolean bSettingVisibility = false;
+
   public
   MainWindow(
   	AzureusCore		_azureus_core,
@@ -301,6 +303,9 @@ MainWindow
 
 				shell.addShellListener(new ShellAdapter() {
 					public void shellClosed(ShellEvent event) {
+						if (bSettingVisibility) {
+							return;
+						}
 						if (systemTraySWT != null
 								&& COConfigurationManager.getBooleanParameter("Enable System Tray")
 								&& COConfigurationManager.getBooleanParameter("Close To Tray")) {
@@ -312,6 +317,9 @@ MainWindow
 					}
 
 					public void shellIconified(ShellEvent event) {
+						if (bSettingVisibility) {
+							return;
+						}
 						if (systemTraySWT != null
 								&& COConfigurationManager.getBooleanParameter("Enable System Tray")
 								&& COConfigurationManager.getBooleanParameter(
@@ -325,6 +333,9 @@ MainWindow
 
 				shell.addListener(SWT.Deiconify, new Listener() {
 					public void handleEvent(Event e) {
+						if (bSettingVisibility) {
+							return;
+						}
 						if (Constants.isOSX
 								&& COConfigurationManager.getBooleanParameter(
 										"Password enabled")) {
@@ -932,58 +943,63 @@ MainWindow
   public void setVisible(final boolean visible) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				if (visible && !shell.getVisible()) {
-					if (COConfigurationManager.getBooleanParameter("Password enabled")) {
-						if (!PasswordWindow.showPasswordWindow(display)) {
-							shell.setVisible(false);
-							return;
-						}
-					}
-				}
-
-				boolean bHideAndShow = visible && Constants.isWindows
-						&& display.getActiveShell() != shell;
-				if (bHideAndShow) {
-					// We don't want the window to just flash and not open, so:
-					// -Minimize main shell
-					// -Set all shells invisible
-					try {
-  					shell.setMinimized(true);
-  					Shell[] shells = shell.getDisplay().getShells();
-  					for (int i = 0; i < shells.length; i++) {
-  						shells[i].setVisible(false);
+				bSettingVisibility = true;
+				try {
+  				if (visible && !shell.getVisible()) {
+  					if (COConfigurationManager.getBooleanParameter("Password enabled")) {
+  						if (!PasswordWindow.showPasswordWindow(display)) {
+  							shell.setVisible(false);
+  							return;
+  						}
   					}
-  				} catch (Exception e) {
   				}
-				}
-
-				
-				shell.setVisible(visible);
-				if (visible) {
-					if (downloadBasket != null) {
-						downloadBasket.setVisible(false);
-						downloadBasket.setMoving(false);
-					}
-
-					/*
-					 if (trayIcon != null)
-					 trayIcon.showIcon();
-					 */
-					shell.forceActive();
-					shell.setMinimized(false);
-
-					if (bHideAndShow) {
+  
+  				boolean bHideAndShow = visible && Constants.isWindows
+  						&& display.getActiveShell() != shell;
+  				if (bHideAndShow) {
+  					// We don't want the window to just flash and not open, so:
+  					// -Minimize main shell
+  					// -Set all shells invisible
   					try {
+    					shell.setMinimized(true);
     					Shell[] shells = shell.getDisplay().getShells();
     					for (int i = 0; i < shells.length; i++) {
-    						if (shells[i] != shell) {
-    							shells[i].setVisible(visible);
-    							shells[i].setFocus();
-    						}
+    						shells[i].setVisible(false);
     					}
-  					} catch (Exception e) {
+    				} catch (Exception e) {
+    				}
+  				}
+  
+  				
+  				shell.setVisible(visible);
+  				if (visible) {
+  					if (downloadBasket != null) {
+  						downloadBasket.setVisible(false);
+  						downloadBasket.setMoving(false);
   					}
-					}
+  
+  					/*
+  					 if (trayIcon != null)
+  					 trayIcon.showIcon();
+  					 */
+  					shell.forceActive();
+  					shell.setMinimized(false);
+  
+  					if (bHideAndShow) {
+    					try {
+      					Shell[] shells = shell.getDisplay().getShells();
+      					for (int i = 0; i < shells.length; i++) {
+      						if (shells[i] != shell) {
+      							shells[i].setVisible(visible);
+      							shells[i].setFocus();
+      						}
+      					}
+    					} catch (Exception e) {
+    					}
+  					}
+  				}
+				} finally {
+					bSettingVisibility = false;
 				}
 
 			}
