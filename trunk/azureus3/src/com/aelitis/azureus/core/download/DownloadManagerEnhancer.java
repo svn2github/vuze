@@ -113,6 +113,8 @@ DownloadManagerEnhancer
 				public void
 				destroyInitiated()
 				{
+					// resume any downloads we paused
+					core.getGlobalManager().resumeDownloads();
 				}
 					
 				public void

@@ -32,7 +32,10 @@ import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
+import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
+import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPeerManagerStats;
@@ -153,6 +156,7 @@ EnhancedDownloadManager
 	private List		disconnected_cache_peers;
 	
 	private CachePeer[]	lookup_peers;
+	private DownloadManagerListener dmListener;
 	
 	private void
 	resetVars()
@@ -986,6 +990,47 @@ EnhancedDownloadManager
 			}			
 
 			log( "Progressive mode changed to " + active );
+
+			final GlobalManager gm = download_manager.getGlobalManager(); 
+			if (active) {
+				if (dmListener == null) {
+					dmListener = new DownloadManagerAdapter() {
+						public void downloadComplete(DownloadManager manager) {
+							gm.resumeDownloads();
+						}
+					};
+				}
+				download_manager.addListener(dmListener);
+				
+				// Check existing downloading torrents and turn off any
+				// existing progressive/downloading
+				Object[] dms = gm.getDownloadManagers().toArray();
+				for (int i = 0; i < dms.length; i++) {
+					DownloadManager dmCheck = (DownloadManager) dms[i];
+					if (dmCheck == download_manager) {
+						continue;
+					}
+
+					if (!dmCheck.isDownloadComplete(false)
+							&& PlatformTorrentUtils.getAdId(dmCheck.getTorrent()) == null) {
+						int state = dmCheck.getState();
+						if (state == DownloadManager.STATE_DOWNLOADING
+								|| state == DownloadManager.STATE_QUEUED) {
+							dmCheck.pause();
+						}
+						EnhancedDownloadManager edmCheck = enhancer.getEnhancedDownload(dmCheck);
+						if (edmCheck != null && edmCheck.getProgressiveMode()) {
+							edmCheck.setProgressiveMode(false);
+						}
+					}
+				}
+				if (download_manager.isPaused()) {
+					download_manager.resume();
+				}
+			} else {
+				download_manager.removeListener(dmListener);
+				gm.resumeDownloads();
+			}
 			
 			progressive_active	= active;
 
@@ -1026,7 +1071,8 @@ EnhancedDownloadManager
 			download_manager.requestTrackerAnnounce( true );
 		}
 	}
-	
+
+
 	public boolean
 	getProgressiveMode()
 	{

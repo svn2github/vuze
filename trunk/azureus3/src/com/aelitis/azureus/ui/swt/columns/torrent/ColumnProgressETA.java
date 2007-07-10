@@ -408,48 +408,8 @@ public class ColumnProgressETA
 			if (edm == null) {
 				return;
 			}
-
-			GlobalManager gm = dm.getGlobalManager(); 
-			if (edm.getProgressiveMode()) {
-				edm.setProgressiveMode(false);
-				resumeIncomplete(gm);
-			} else {
-				// Check existing downloading torrents and turn off any
-				// existing progressive/downloading
-				Object[] dms = gm.getDownloadManagers().toArray();
-				for (int i = 0; i < dms.length; i++) {
-					DownloadManager dmCheck = (DownloadManager) dms[i];
-					if (dmCheck == dm) {
-						continue;
-					}
-
-					if (!dmCheck.isDownloadComplete(false)) {
-						int state = dmCheck.getState();
-						if (state == DownloadManager.STATE_DOWNLOADING
-								|| state == DownloadManager.STATE_QUEUED) {
-							dmCheck.pause();
-						}
-						EnhancedDownloadManager edmCheck = getEDM(dmCheck);
-						if (edmCheck != null && edmCheck.getProgressiveMode()) {
-							edmCheck.setProgressiveMode(false);
-						}
-					}
-				}
-				if (dm.isPaused()) {
-					dm.resume();
-				}
-				edm.setProgressiveMode(true);
-			}
-		}
-
-		private void resumeIncomplete(GlobalManager gm) {
-			Object[] dms = gm.getDownloadManagers().toArray();
-			for (int i = 0; i < dms.length; i++) {
-				DownloadManager dmCheck = (DownloadManager) dms[i];
-				if (dmCheck.isPaused()) {
-					dmCheck.resume();
-				}
-			}
+			
+			edm.setProgressiveMode(!edm.getProgressiveMode());
 		}
 
 		private void disposeExisting(TableCell cell) {
