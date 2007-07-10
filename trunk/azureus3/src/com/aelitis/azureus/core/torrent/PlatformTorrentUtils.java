@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformTorrentMessenger;
@@ -273,11 +274,21 @@ public class PlatformTorrentUtils
 		Map mapContent = getContentMap(torrent);
 		putOrRemove(mapContent, TOR_AZ_PROP_QUALITY, sQualityID);
 
-		try {
-			TorrentUtils.writeToFile(torrent);
-		} catch (TOTorrentException e) {
-			Debug.out(e);
+		writeTorrentIfExists(torrent);
+	}
+
+	private static void writeTorrentIfExists(TOTorrent torrent) {
+		AzureusCore core = AzureusCoreFactory.getSingleton();
+		if (core == null) {
+			return;
 		}
+
+		GlobalManager gm = core.getGlobalManager();
+		if (gm == null || gm.getDownloadManager(torrent) == null) {
+			return;
+		}
+
+		writeTorrentIfExists(torrent);
 	}
 
 	public static byte[] getContentThumbnail(TOTorrent torrent) {
@@ -295,31 +306,19 @@ public class PlatformTorrentUtils
 		Map mapContent = getContentMap(torrent);
 		putOrRemove(mapContent, TOR_AZ_PROP_THUMBNAIL, thumbnail);
 
-		try {
-			TorrentUtils.writeToFile(torrent);
-		} catch (TOTorrentException e) {
-			Debug.out(e);
-		}
+		writeTorrentIfExists(torrent);
 	}
 
 	public static void setUserRating(TOTorrent torrent, int rating) {
 		Map mapContent = getTempContentMap(torrent);
 		mapContent.put(TOR_AZ_PROP_USER_RATING, new Long(rating));
-		try {
-			TorrentUtils.writeToFile(torrent);
-		} catch (TOTorrentException e) {
-			Debug.out(e);
-		}
+		writeTorrentIfExists(torrent);
 	}
 
 	public static void removeUserRating(TOTorrent torrent) {
 		Map mapContent = getTempContentMap(torrent);
-		try {
-			if (mapContent.remove(TOR_AZ_PROP_USER_RATING) != null) {
-				TorrentUtils.writeToFile(torrent);
-			}
-		} catch (TOTorrentException e) {
-			Debug.out(e);
+		if (mapContent.remove(TOR_AZ_PROP_USER_RATING) != null) {
+			writeTorrentIfExists(torrent);
 		}
 	}
 
@@ -349,11 +348,7 @@ public class PlatformTorrentUtils
 	public static void setMetaDataRefreshOn(TOTorrent torrent, long refreshOn) {
 		Map mapContent = getTempContentMap(torrent);
 		mapContent.put(TOR_AZ_PROP_METADATA_REFRESHON, new Long(refreshOn));
-		try {
-			TorrentUtils.writeToFile(torrent);
-		} catch (TOTorrentException e) {
-			Debug.out(e);
-		}
+		writeTorrentIfExists(torrent);
 	}
 
 	public static boolean isContent(TOTorrent torrent) {
@@ -393,11 +388,7 @@ public class PlatformTorrentUtils
 		Map mapContent = getContentMap(torrent);
 		putOrRemove(mapContent, TOR_AZ_PROP_AD_ID, sID);
 
-		try {
-			TorrentUtils.writeToFile(torrent);
-		} catch (TOTorrentException e) {
-			Debug.out(e);
-		}
+		writeTorrentIfExists(torrent);
 	}
 
 	/**
@@ -466,12 +457,7 @@ public class PlatformTorrentUtils
 					} else {
 						contentMap.put(key, value);
 					}
-					try {
-						TorrentUtils.writeToFile(torrent);
-					} catch (TOTorrentException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+					writeTorrentIfExists(torrent);
 				}
 
 				// crappy way of updating the display name
@@ -495,8 +481,8 @@ public class PlatformTorrentUtils
 					long newLastUpdated = getContentLastUpdated(torrent);
 
 					long diff = newLastUpdated - oldLastUpdated;
-					log(torrent, "Last Updated: new " + new Date(newLastUpdated) + ";old "
-							+ new Date(oldLastUpdated) + ";diff=" + diff);
+					log(torrent, "Last Updated: new " + new Date(newLastUpdated)
+							+ ";old " + new Date(oldLastUpdated) + ";diff=" + diff);
 					if (diff > 0 && oldLastUpdated != 0) {
 						diff *= 2;
 						if (diff < MIN_MD_REFRESH_MS) {
@@ -553,7 +539,7 @@ public class PlatformTorrentUtils
 	public static long getContentLastUpdated(TOTorrent torrent) {
 		return getContentMapLong(torrent, TOR_AZ_PROP_LASTUPDATED, 0);
 	}
-	
+
 	public static void setContentLastUpdated(TOTorrent torrent, long lastUpdate) {
 		setContentMapLong(torrent, TOR_AZ_PROP_LASTUPDATED, lastUpdate);
 	}
@@ -586,11 +572,7 @@ public class PlatformTorrentUtils
 	public static void setExpiresOn(TOTorrent torrent, long expiresOn) {
 		Map mapContent = getContentMap(torrent);
 		mapContent.put(TOR_AZ_PROP_EXPIRESON, new Long(expiresOn));
-		try {
-			TorrentUtils.writeToFile(torrent);
-		} catch (TOTorrentException e) {
-			Debug.out(e);
-		}
+		writeTorrentIfExists(torrent);
 	}
 
 	public static void log(String str) {
