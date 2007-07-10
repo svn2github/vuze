@@ -668,6 +668,10 @@ public class SpeedLimitMonitor
             SpeedManagerLogger.trace("finished limit search test.");
             currTestDone=true;
         }
+
+        //ToDo: test using a bad-ping or several neutral pings in a row as the condition to stop the test.
+        
+
     }
 
     /**
@@ -717,13 +721,18 @@ public class SpeedLimitMonitor
      */
     public Update rampTestingLimit(int uploadLimit, int downloadLimit){
         Update retVal;
-        if( transferMode.getMode() == TransferMode.State.DOWNLOAD_LIMIT_SEARCH ){
+        if( transferMode.getMode() == TransferMode.State.DOWNLOAD_LIMIT_SEARCH
+                && downloadBandwidthStatus.isGreater( SaturatedMode.MED ) )
+        {
             downloadLimit *= 1.15f;
             retVal = new Update(uploadLimit,false,downloadLimit,true);
-        //}else{
-        }else if( transferMode.getMode() == TransferMode.State.UPLOAD_LIMIT_SEARCH ){
+
+        }else if( transferMode.getMode() == TransferMode.State.UPLOAD_LIMIT_SEARCH
+                && uploadBandwidthStatus.isGreater( SaturatedMode.MED ))
+        {
             uploadLimit *= 1.15f;
             retVal = new Update(uploadLimit,true,downloadLimit,false);
+            
         }else{
             retVal = new Update(uploadLimit,false,downloadLimit,false);
             SpeedManagerLogger.trace("ERROR: rampTestLimit should only be called during limit testing. ");

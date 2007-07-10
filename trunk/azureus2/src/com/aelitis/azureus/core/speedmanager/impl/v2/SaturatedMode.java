@@ -71,6 +71,18 @@ public class SaturatedMode implements Comparable {
     }
 
     /**
+     *
+     * @param mode
+     * @return
+     */
+    public boolean isGreater( SaturatedMode mode )
+    {
+        if( this.compareTo(mode)>0 ){
+            return true;
+        }
+        return false;
+    }
+    /**
      * @param satMode the SaturatedMode to be compared.
      * @return a negative integer, zero, or a positive integer as this object
      *         is less than, equal to, or greater than the specified object.
