@@ -43,9 +43,25 @@ SpeedManager
 	public SpeedManagerLimitEstimate
 	getEstimatedUploadCapacityBytesPerSec();
 	
+		/**
+		 * 
+		 * @param bytes_per_sec
+		 * @param rating see constants above for help
+		 */
+	
+	public void
+	setEstimatedUploadCapacityBytesPerSec(
+		int		bytes_per_sec,
+		float	rating );
+	
 	public SpeedManagerLimitEstimate
 	getEstimatedDownloadCapacityBytesPerSec();
 	
+	public void
+	setEstimatedDownloadCapacityBytesPerSec(
+		int		bytes_per_sec,
+		float	rating );
+
 	public void
 	setSpeedTester(
 		DHTSpeedTester	tester );

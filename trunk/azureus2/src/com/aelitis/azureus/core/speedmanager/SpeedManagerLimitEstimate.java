@@ -26,10 +26,16 @@ package com.aelitis.azureus.core.speedmanager;
 public interface 
 SpeedManagerLimitEstimate 
 {
+	public static final float RATING_UNKNOWN			= -0.1f;
+	public static final float RATING_ESTIMATED			=  0.0f;
+	public static final float RATING_MEASURED_MIN		= +0.8f;
+	public static final float RATING_MEASURED			= +0.9f;
+	public static final float RATING_MANUAL				= +0.1f;
+	
 	public int
 	getBytesPerSec();
 	
-	public double
+	public float
 	getMetricRating();
 	
 	public int[][]

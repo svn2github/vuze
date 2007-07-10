@@ -24,17 +24,13 @@ package com.aelitis.azureus.core.speedmanager.impl;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Random;
-import java.util.Set;
-import java.util.TreeSet;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
@@ -59,6 +55,9 @@ SpeedManagerPingMapperImpl
 	
 	static final int SPEED_DIVISOR = 256;
 	
+	private static final int SPEED_HISTORY_PERIOD	= 1*60*1000;
+	private static final int SPEED_HISTORY_COUNT	= SPEED_HISTORY_PERIOD / SpeedManagerImpl.UPDATE_PERIOD_MILLIS;
+		
 	private SpeedManagerImpl	speed_manager;
 	private String				name;
 	private boolean				variance;
@@ -68,6 +67,11 @@ SpeedManagerPingMapperImpl
 	private pingValue[]	pings;
 	
 	private pingValue	prev_ping;
+	
+	private int[]		x_speeds = new int[ SPEED_HISTORY_COUNT ];
+	private int[]		y_speeds = new int[ SPEED_HISTORY_COUNT ];
+	
+	private int speeds_next;
 	
 	private LinkedList	regions;
 		
@@ -89,8 +93,8 @@ SpeedManagerPingMapperImpl
 	private limitEstimate	last_bad_down;
 	private boolean			bad_down_in_progress;
 
-	private limitEstimate	up_capacity;
-	private limitEstimate	down_capacity;
+	private limitEstimate	up_capacity		= getNullLimit();
+	private limitEstimate	down_capacity	= getNullLimit();
 	
 	private File	history_file;
 	
@@ -385,6 +389,63 @@ SpeedManagerPingMapperImpl
 	}
 	
 	protected synchronized void
+	addSpeed(
+		int		x,
+		int		y )
+	{
+		x = x/SPEED_DIVISOR;
+		y = y/SPEED_DIVISOR;
+		
+		if ( x > 65535 )x = 65535;
+		if ( y > 65535 )y = 65535;
+
+		addSpeedSupport( x, y );
+	}
+	
+	protected synchronized void
+	addSpeedSupport(
+		int		x,
+		int		y )
+	{
+		x_speeds[speeds_next] = x;
+		y_speeds[speeds_next] = y;
+				
+		speeds_next = (speeds_next+1)%SPEED_HISTORY_COUNT;
+		
+		int	min_x	= Integer.MAX_VALUE;
+		int	min_y	= Integer.MAX_VALUE;
+		
+		for (int i=0;i<SPEED_HISTORY_COUNT;i++){
+			
+			min_x = Math.min( min_x, x_speeds[i] );
+			min_y = Math.min( min_y, y_speeds[i] );
+		}
+		
+		min_x *= SPEED_DIVISOR;
+		min_y *= SPEED_DIVISOR;
+				
+		if ( up_capacity.getMetricRating() < 1 ){
+			
+			if ( min_x > up_capacity.getBytesPerSec()){
+				
+				up_capacity.setBytesPerSec( min_x );
+				
+				up_capacity.setMetricRating( 0 );
+			}
+		}
+		
+		if ( down_capacity.getMetricRating() < 1 ){
+			
+			if ( min_y > down_capacity.getBytesPerSec()){
+				
+				down_capacity.setBytesPerSec( min_y );
+				
+				down_capacity.setMetricRating( 0 );
+			}
+		}
+	}
+	
+	protected synchronized void
 	addPing(
 		int		x,
 		int		y,
@@ -449,6 +510,15 @@ SpeedManagerPingMapperImpl
 				}
 				
 				metric = (int)Math.sqrt( total_deviation );
+			}
+			
+			if ( metric < VARIANCE_BAD_VALUE ){
+				
+				addSpeedSupport( x, y );
+				
+			}else{
+				
+				addSpeedSupport( 0, 0 );
 			}
 		}
 		
@@ -1006,10 +1076,28 @@ SpeedManagerPingMapperImpl
 		return( up_capacity );
 	}
 	
+	public void
+	setEstimatedDownloadCapacityBytesPerSec(
+		int		bytes_per_sec,
+		float	metric )
+	{
+		down_capacity.setBytesPerSec( bytes_per_sec );
+		down_capacity.setMetricRating( metric );
+	}
+	
 	public SpeedManagerLimitEstimate
 	getEstimatedDownloadCapacityBytesPerSec()
 	{
 		return( down_capacity );
+	}
+	
+	public void
+	setEstimatedUploadCapacityBytesPerSec(
+		int		bytes_per_sec,
+		float	metric )
+	{
+		up_capacity.setBytesPerSec( bytes_per_sec );
+		up_capacity.setMetricRating( metric );
 	}
 	
 	protected double
@@ -1200,10 +1288,24 @@ SpeedManagerPingMapperImpl
 			return( speed );
 		}
 		
-		public double
+		protected void
+		setBytesPerSec(
+			int		s )
+		{
+			speed	= s;
+		}
+		
+		public float
 		getMetricRating()
 		{
 			return( metric_rating );
+		}
+		
+		protected void
+		setMetricRating(
+			float	d )
+		{
+			metric_rating	= d;
 		}
 		
 		public int[][]

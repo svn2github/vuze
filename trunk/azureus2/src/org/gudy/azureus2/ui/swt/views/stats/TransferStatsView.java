@@ -95,6 +95,8 @@ public class TransferStatsView extends AbstractIView {
   
   String	msg_text_unknown;
   String	msg_text_estimate;
+  String	msg_text_measured_min;
+  String	msg_text_measured;
   String	msg_text_manual;
   
   
@@ -251,6 +253,8 @@ public class TransferStatsView extends AbstractIView {
 	  
 	  msg_text_unknown		= MessageText.getString("SpeedView.stats.unknown" );
 	  msg_text_estimate		= MessageText.getString("SpeedView.stats.estimate" );
+	  msg_text_measured		= MessageText.getString("SpeedView.stats.measured" );
+	  msg_text_measured_min	= MessageText.getString("SpeedView.stats.measuredmin" );
 	  msg_text_manual		= MessageText.getString("SpeedView.stats.manual" );
   }
   
@@ -482,7 +486,7 @@ public class TransferStatsView extends AbstractIView {
 
 	  estUpCap.setText(getLimitText(speedManager.getEstimatedUploadCapacityBytesPerSec()));
 
-	  estDownCap.setText(getLimitText(speedManager.getEstimatedUploadCapacityBytesPerSec()));
+	  estDownCap.setText(getLimitText(speedManager.getEstimatedDownloadCapacityBytesPerSec()));
   }
   
   private void refreshPingPanel() {
@@ -523,13 +527,21 @@ public class TransferStatsView extends AbstractIView {
 
 	  double metric = limit.getMetricRating();
 
-	  if ( metric == -1 ){
+	  if ( metric == SpeedManagerLimitEstimate.RATING_UNKNOWN){
 
 		  text = msg_text_unknown;
 		  
-	  }else if ( metric == +1 ){
+	  }else if ( metric == SpeedManagerLimitEstimate.RATING_MANUAL ){
 
 		  text = msg_text_manual;
+
+	  }else if ( metric == SpeedManagerLimitEstimate.RATING_MEASURED ){
+
+		  text = msg_text_measured;
+
+	  }else if ( metric == SpeedManagerLimitEstimate.RATING_MEASURED_MIN ){
+
+		  text = msg_text_measured_min;
 
 	  }else{
 
@@ -573,8 +585,13 @@ public class TransferStatsView extends AbstractIView {
 	  SpeedManagerLimitEstimate up 		= mapper.getEstimatedUploadLimit(false);
 	  SpeedManagerLimitEstimate down 	= mapper.getEstimatedDownloadLimit(false);
 	  
-	  return( "ul=" + (up==null?"":(DisplayFormatters.formatByteCountToKiBEtc(up.getBytesPerSec()) + "/" + DisplayFormatters.formatDecimal(up.getMetricRating(),2))) + 
-			  ",dl=" + (down==null?"":(DisplayFormatters.formatByteCountToKiBEtc(down.getBytesPerSec()) + "/" + DisplayFormatters.formatDecimal(down.getMetricRating(),2))) + 
+	  if ( up == null || down == null ){
+		  
+		  return( "" );
+	  }
+	  
+	  return( "ul=" + DisplayFormatters.formatByteCountToKiBEtc(up.getBytesPerSec()) + "/" + DisplayFormatters.formatDecimal(up.getMetricRating(),2) + 
+			  ",dl=" + DisplayFormatters.formatByteCountToKiBEtc(down.getBytesPerSec()) + "/" + DisplayFormatters.formatDecimal(down.getMetricRating(),2) + 
 			  ",mr=" + DisplayFormatters.formatDecimal( mapper.getCurrentMetricRating(),2));
   }
   class

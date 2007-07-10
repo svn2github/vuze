@@ -74,7 +74,8 @@ SpeedTestPanel
 
     //measured upload and download results.
     int uploadTest, downloadTest;
-
+    long maxUploadTest, maxDownloadTest;
+    
     WizardListener clListener;
 
     private static final String START_VALUES = "   -         ";
@@ -319,6 +320,10 @@ SpeedTestPanel
 
                 scheduled_test.addListener( this );
 				scheduled_test.getTester().addListener( this );
+				
+				maxUploadTest 	= scheduled_test.getMaxUpBytePerSec();
+				maxDownloadTest = scheduled_test.getMaxDownBytePerSec();
+				
 				scheduled_test.start();
 				
 			}catch( Throwable e ){
@@ -620,7 +625,7 @@ SpeedTestPanel
         SpeedTestData persist = SpeedTestData.getInstance();
         persist.setLastTestData( textMessages.getText() );
 
-        return new SpeedTestSetLimitPanel( wizard, this, uploadTest, downloadTest);
+        return new SpeedTestSetLimitPanel( wizard, this, uploadTest, maxUploadTest, downloadTest, maxDownloadTest);
     }
 
 

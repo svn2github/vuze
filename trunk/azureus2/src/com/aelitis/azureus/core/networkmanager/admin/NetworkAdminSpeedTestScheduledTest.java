@@ -29,6 +29,17 @@ NetworkAdminSpeedTestScheduledTest
 	public NetworkAdminSpeedTester
 	getTester();
 	
+		/**
+		 * These are the limits up to which the test can run, not the result of the test
+		 * @return
+		 */
+	
+	public long
+	getMaxUpBytePerSec();
+
+	public long
+	getMaxDownBytePerSec();
+	    
 	public boolean
 	start();
 	

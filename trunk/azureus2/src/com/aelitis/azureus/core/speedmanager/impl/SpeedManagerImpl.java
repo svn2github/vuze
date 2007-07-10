@@ -61,8 +61,11 @@ public class
 SpeedManagerImpl 
 	implements SpeedManager, SpeedManagerAlgorithmProviderAdapter
 {
+	protected static final int UPDATE_PERIOD_MILLIS	= 5000;
+
 	private static final int CONTACT_NUMBER		= 3;
-	private static final int CONTACT_PING_SECS	= 5;
+	private static final int CONTACT_PING_SECS	= UPDATE_PERIOD_MILLIS/1000;
+	
 	
 		// keep history for 1 hour
 	
@@ -79,6 +82,7 @@ SpeedManagerImpl
 	private static final int SAVE_PERIOD_SECS	= 15*60;
 	private static final int SAVE_PERIOD_TICKS 	= SAVE_PERIOD_SECS / CONTACT_PING_SECS;
 
+	private static final int SPEED_AVERAGE_PERIOD	= 3000;
 	
 		// config items start
 	
@@ -237,6 +241,40 @@ SpeedManagerImpl
 			});
 		
 		COConfigurationManager.setParameter( CONFIG_AVAIL, false );
+		
+		SimpleTimer.addPeriodicEvent(
+			"SpeedManager:timer",
+			UPDATE_PERIOD_MILLIS,
+			new TimerEventPerformer()
+			{
+				private int	tick_count;
+				
+				public void 
+				perform(
+					TimerEvent event ) 
+				{
+						// if enabled the ping stream drives the stats update for the ping mappers
+						// When not enabled we do it here instead
+					
+					if ( !enabled ){
+											
+						int	x	= (adapter.getCurrentDataUploadSpeed(SPEED_AVERAGE_PERIOD) + adapter.getCurrentProtocolUploadSpeed(SPEED_AVERAGE_PERIOD));
+						int	y 	= (adapter.getCurrentDataDownloadSpeed(SPEED_AVERAGE_PERIOD) + adapter.getCurrentProtocolDownloadSpeed(SPEED_AVERAGE_PERIOD));
+						
+						for (int i=0;i<ping_mappers.length;i++){
+							
+							ping_mappers[i].addSpeed( x, y );
+						}
+					}
+					
+					tick_count++;
+					
+					if ( tick_count % SAVE_PERIOD_TICKS == 0 ){
+						
+						ping_mapper.saveHistory();
+					}
+				}
+			});
 	}
 	
 	public String
@@ -251,10 +289,26 @@ SpeedManagerImpl
 		return( ping_mapper.getEstimatedUploadCapacityBytesPerSec());	
 	}
 	
+	public void
+	setEstimatedUploadCapacityBytesPerSec(
+		int		bytes_per_sec,
+		float	metric )
+	{
+		ping_mapper.setEstimatedUploadCapacityBytesPerSec( bytes_per_sec, metric );	
+	}
+
 	public SpeedManagerLimitEstimate
 	getEstimatedDownloadCapacityBytesPerSec()
 	{
 		return( ping_mapper.getEstimatedDownloadCapacityBytesPerSec());	
+	}
+	
+	public void
+	setEstimatedDownloadCapacityBytesPerSec(
+		int		bytes_per_sec,
+		float	metric )
+	{
+		ping_mapper.setEstimatedDownloadCapacityBytesPerSec( bytes_per_sec, metric );	
 	}
 	
 	protected void
@@ -323,8 +377,6 @@ SpeedManagerImpl
 		speed_tester.addListener(
 				new DHTSpeedTesterListener()
 				{
-					private int	tick_count;
-					
 					private DHTSpeedTesterContact[]	last_contact_group = new DHTSpeedTesterContact[0];
 					
 					public void 
@@ -496,13 +548,6 @@ SpeedManagerImpl
 								
 								addPingHistory( total/num_values, sources_changed );
 							}
-							
-							tick_count++;
-							
-							if ( tick_count % SAVE_PERIOD_TICKS == 0 ){
-								
-								ping_mapper.saveHistory();
-							}
 						}
 					}
 				});
@@ -528,10 +573,8 @@ SpeedManagerImpl
 		int			rtt,
 		boolean		re_base )
 	{
-		int	average_period = 3000;
-		
-		int	x	= (adapter.getCurrentDataUploadSpeed(average_period) + adapter.getCurrentProtocolUploadSpeed(average_period));
-		int	y 	= (adapter.getCurrentDataDownloadSpeed(average_period) + adapter.getCurrentProtocolDownloadSpeed(average_period));
+		int	x	= (adapter.getCurrentDataUploadSpeed(SPEED_AVERAGE_PERIOD) + adapter.getCurrentProtocolUploadSpeed(SPEED_AVERAGE_PERIOD));
+		int	y 	= (adapter.getCurrentDataDownloadSpeed(SPEED_AVERAGE_PERIOD) + adapter.getCurrentProtocolDownloadSpeed(SPEED_AVERAGE_PERIOD));
 		
 		for (int i=0;i<ping_mappers.length;i++){
 			

@@ -13,7 +13,11 @@ import org.eclipse.swt.widgets.*;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.SWT;
+
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTesterResult;
+import com.aelitis.azureus.core.speedmanager.SpeedManager;
+import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
 import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedLimitConfidence;
 import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedLimitMonitor;
 import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedManagerAlgorithmProviderV2;
@@ -44,6 +48,7 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
 
     int measuredUploadKbps, measuredDownloadKbps;
     boolean downloadTestRan,uploadTestRan = true;
+    boolean downloadHitLimit, uploadHitLimit;
 
     Label explain;
 
@@ -57,8 +62,12 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
 
 
 
-    public SpeedTestSetLimitPanel(Wizard wizard, IWizardPanel previousPanel, int upload, int download) {
+    public SpeedTestSetLimitPanel(Wizard wizard, IWizardPanel previousPanel, int upload, long maxup, int download, long maxdown) {
         super(wizard, previousPanel);
+        
+        downloadHitLimit 	= download > maxdown - 20*1024;
+        uploadHitLimit 		= upload > maxup - 20*1024;
+        
         measuredUploadKbps =upload/1024;
         if(measuredUploadKbps<5){
             uploadTestRan = false;
@@ -242,6 +251,24 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
         c1.setLayoutData(gridData);
 
 
+        SpeedManager sm = AzureusCoreFactory.getSingleton().getSpeedManager();
+
+        if ( uploadTestRan ){
+        	
+        	sm.setEstimatedUploadCapacityBytesPerSec( 
+        			measuredUploadKbps*1024,
+        			uploadHitLimit?
+        				SpeedManagerLimitEstimate.RATING_MEASURED_MIN:SpeedManagerLimitEstimate.RATING_MEASURED );
+        }
+
+        if ( downloadTestRan ){
+        	
+        	sm.setEstimatedDownloadCapacityBytesPerSec( 
+        			measuredDownloadKbps*1024,
+        			downloadHitLimit?
+        				SpeedManagerLimitEstimate.RATING_MEASURED_MIN:SpeedManagerLimitEstimate.RATING_MEASURED );
+        }
+
         apply = new Button(panel, SWT.PUSH);
         Messages.setLanguageText(apply, "SpeedTestWizard.set.upload.button.apply" );
         gridData = new GridData();
@@ -291,8 +318,7 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
                 String upConfValue = upConfLevel.getValue();
                 COConfigurationManager.setParameter( SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING, downConfValue );
                 COConfigurationManager.setParameter( SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING, upConfValue );
-
-
+                		
                 wizard.setFinishEnabled(true);
                 wizard.setPreviousEnabled(false);
             }

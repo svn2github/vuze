@@ -143,6 +143,18 @@ NetworkAdminSpeedTestScheduledTestImpl
 		return( tester );
 	}
 	
+	public long
+	getMaxUpBytePerSec()
+	{
+		return( max_speed );
+	}
+
+	public long
+	getMaxDownBytePerSec()
+	{
+		return( max_speed );
+	}
+	    
 	public boolean
 	start()
 	{
