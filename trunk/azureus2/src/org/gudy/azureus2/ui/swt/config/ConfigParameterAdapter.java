@@ -92,7 +92,9 @@ public class ConfigParameterAdapter extends GenericParameterAdapter
 
 			if (changingCount > CHANGINGCOUNT_BREAKER) {
 				Debug.out("Preventing StackOverflow on setting " + key + " to " + value
-						+ " via " + Debug.getCompressedStackTrace());
+						+ " (was " + getIntValue(key) + ") via "
+						+ Debug.getCompressedStackTrace());
+				changingCount = 1;
 			} else {
 				informChanging(value);
 
