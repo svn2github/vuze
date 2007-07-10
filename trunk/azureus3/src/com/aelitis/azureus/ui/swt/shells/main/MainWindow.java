@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
@@ -365,6 +366,24 @@ public class MainWindow
 								GlobalRatingUtils.updateFromPlatform(torrent, 15000);
 							}
 						});
+			}
+			
+			long expiresOn = PlatformTorrentUtils.getExpiresOn(torrent);
+			if (expiresOn > now) {
+				SimpleTimer.addEvent("dm Expirey", expiresOn, new TimerEventPerformer() {
+					public void perform(TimerEvent event) {
+						try {
+							dm.stopIt(DownloadManager.STATE_STOPPED, true, true);
+							dm.getGlobalManager().removeDownloadManager(dm);
+						} catch (GlobalManagerDownloadRemovalVetoException f) {
+							if (!f.isSilent()) {
+								Alerts.showErrorMessageBoxUsingResourceString(new Object[] {
+									dm
+								}, "globalmanager.download.remove.veto", f);
+							}
+						}
+					}
+				});
 			}
 		}
 	}
@@ -1827,7 +1846,11 @@ public class MainWindow
 	public void showURL(String url, String target) {
 
 		SWTSkinObject skinObject = skin.getSkinObject(target);
-
+		
+		if (skinObject == null) {
+			return;
+		}
+		
 		skin.activateTab(skinObject);
 
 		if (skinObject instanceof SWTSkinObjectBrowser) {
