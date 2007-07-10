@@ -95,12 +95,13 @@ public class ConfigParameterAdapter extends GenericParameterAdapter
 						+ " via " + Debug.getCompressedStackTrace());
 			} else {
 				informChanging(value);
+
+				if (!changedExternally) {
+					COConfigurationManager.setParameter(key, value);
+					changedExternally = true;
+				}
 			}
 
-			if (!changedExternally) {
-				COConfigurationManager.setParameter(key, value);
-				changedExternally = true;
-			}
 		} finally {
 			changingCount--;
 		}
