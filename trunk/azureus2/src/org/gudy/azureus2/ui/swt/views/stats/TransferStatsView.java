@@ -93,6 +93,9 @@ public class TransferStatsView extends AbstractIView {
   plotView[]	plot_views;
   zoneView[] 	zone_views;
   
+  String	msg_text_unknown;
+  String	msg_text_estimate;
+  String	msg_text_manual;
   
   
   private final DecimalFormat formatter = new DecimalFormat( "##.#" );
@@ -245,6 +248,10 @@ public class TransferStatsView extends AbstractIView {
 
 	  label = new Label(blahPanel,SWT.NONE);
 	  label = new Label(blahPanel,SWT.NONE);
+	  
+	  msg_text_unknown		= MessageText.getString("SpeedView.stats.unknown" );
+	  msg_text_estimate		= MessageText.getString("SpeedView.stats.estimate" );
+	  msg_text_manual		= MessageText.getString("SpeedView.stats.manual" );
   }
   
   
@@ -489,17 +496,35 @@ public class TransferStatsView extends AbstractIView {
         	zone_views[i].refresh();
         }
  
-        asn.setText(speedManager.getASN());
-        estUpCap.setText(DisplayFormatters.formatByteCountToKiBEtc(speedManager.getEstimatedUploadCapacityBytesPerSec().getBytesPerSec()));
-        estDownCap.setText(DisplayFormatters.formatByteCountToKiBEtc(speedManager.getEstimatedDownloadCapacityBytesPerSec().getBytesPerSec()));
-         
       }
     } else {
       autoSpeedPanelLayout.topControl = autoSpeedDisabledPanel;
       autoSpeedPanel.layout();
-    }
-    
-    
+    }  
+  }
+  
+  protected String
+  getLimitText(
+	 SpeedManagerLimitEstimate	limit )
+  {
+	  String	text;
+
+	  double metric = limit.getMetricRating();
+
+	  if ( metric == -1 ){
+
+		  text = msg_text_unknown;
+		  
+	  }else if ( metric == +1 ){
+
+		  text = msg_text_manual;
+
+	  }else{
+
+		  text = msg_text_estimate;
+	  }
+	  
+	  return( DisplayFormatters.formatByteCountToKiBEtc(limit.getBytesPerSec()) + " (" + text + ")");
   }
   
   public void periodicUpdate() {
@@ -523,6 +548,13 @@ public class TransferStatsView extends AbstractIView {
         }
       }
     }
+
+    asn.setText(speedManager.getASN());
+    
+    estUpCap.setText(getLimitText(speedManager.getEstimatedUploadCapacityBytesPerSec()));
+    
+    estDownCap.setText(getLimitText(speedManager.getEstimatedUploadCapacityBytesPerSec()));
+
   }
   
   public String getData() {
