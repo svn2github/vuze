@@ -399,6 +399,8 @@ public class TransferStatsView extends AbstractIView {
 
     refreshGeneral();
     
+    refreshBlahPanel();
+    
     refreshPingPanel();
     
   }
@@ -472,6 +474,16 @@ public class TransferStatsView extends AbstractIView {
     total_ratio.setText( t_ratio );
     session_ratio.setText( s_ratio );
   }  
+  
+  private void
+  refreshBlahPanel()
+  {
+	  asn.setText(speedManager.getASN());
+
+	  estUpCap.setText(getLimitText(speedManager.getEstimatedUploadCapacityBytesPerSec()));
+
+	  estDownCap.setText(getLimitText(speedManager.getEstimatedUploadCapacityBytesPerSec()));
+  }
   
   private void refreshPingPanel() {
     SpeedManager speedManager = core.getSpeedManager();
@@ -548,13 +560,6 @@ public class TransferStatsView extends AbstractIView {
         }
       }
     }
-
-    asn.setText(speedManager.getASN());
-    
-    estUpCap.setText(getLimitText(speedManager.getEstimatedUploadCapacityBytesPerSec()));
-    
-    estDownCap.setText(getLimitText(speedManager.getEstimatedUploadCapacityBytesPerSec()));
-
   }
   
   public String getData() {
