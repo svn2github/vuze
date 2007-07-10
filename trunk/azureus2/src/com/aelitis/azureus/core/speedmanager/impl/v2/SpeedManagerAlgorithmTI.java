@@ -322,6 +322,9 @@ public class SpeedManagerAlgorithmTI
 
             logLimitStatus();
 
+            //inform limit test of a bad ping value.
+            limitMonitor.updateLimitTestingPing(lastMetric);
+
             float signalStrength = determineSignalStrength(lastMetric);
 
             //if are are NOT looking for limits and we have a signal then make an adjustment.
@@ -354,7 +357,6 @@ public class SpeedManagerAlgorithmTI
                     logNewLimits( update );
                     setNewLimits( update );
                 }
-
             }
 
 

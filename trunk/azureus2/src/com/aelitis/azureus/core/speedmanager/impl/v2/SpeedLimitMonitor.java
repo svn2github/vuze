@@ -77,7 +77,10 @@ public class SpeedLimitMonitor
     //How much confidence to we have in the current limits?
     private SpeedLimitConfidence uploadLimitConf = SpeedLimitConfidence.NONE;
     private SpeedLimitConfidence downloadLimitConf = SpeedLimitConfidence.NONE;
-    private long confLimitTestStartTime=-1;
+
+    private long clLastIncreaseTime =-1;
+    private long clFirstBadPingTime=-1;
+
     private boolean currTestDone;
     private boolean beginLimitTest;
     private int highestUploadRate=0;
@@ -89,7 +92,7 @@ public class SpeedLimitMonitor
 
     public static final String UPLOAD_CONF_LIMIT_SETTING="SpeedLimitMonitor.setting.upload.limit.conf";
     public static final String DOWNLOAD_CONF_LIMIT_SETTING="SpeedLimitMonitor.setting.download.limit.conf";
-    private static final long CONF_LIMIT_TEST_LENGTH=1000*60;
+    private static final long CONF_LIMIT_TEST_LENGTH=1000*30;
 
     //these methods are used to see how high limits can go.
     private boolean isUploadMaxPinned=true;
@@ -662,17 +665,45 @@ public class SpeedLimitMonitor
             highestUploadRate=uploadRate;
         }
 
+        //The exit criteria for this test is 30 seconds without an increase in the limits.
         long currTime = SystemTime.getCurrentTime();
-        if(currTime>  confLimitTestStartTime+CONF_LIMIT_TEST_LENGTH){
+        if( currTime > clLastIncreaseTime+CONF_LIMIT_TEST_LENGTH){
             //set the test done flag.
-            SpeedManagerLogger.trace("finished limit search test.");
             currTestDone=true;
         }
+        // or 30 seconds after its first bad ping.
+        if( clFirstBadPingTime!=-1){
+            if( currTime > clFirstBadPingTime+CONF_LIMIT_TEST_LENGTH){
+                //set the test done flag.
+                currTestDone=true;
+            }
+        }
 
-        //ToDo: test using a bad-ping or several neutral pings in a row as the condition to stop the test.
-        
+    }//updateLimitTestingData.
 
+
+    /**
+     * Convert raw ping value to new metric.
+     * @param lastMetric
+     */
+    public void updateLimitTestingPing(int lastMetric){
+        //Convert raw - pings into a rating.
+        if(lastMetric>500){
+            updateLimitTestingPing(-1.0f);
+        }
     }
+
+    /**
+     * New metric from the PingMapper is value between -1.0 and +1.0f.
+     * @param lastMetric
+     */
+    public void updateLimitTestingPing(float lastMetric){
+        if( lastMetric<-0.3f){
+            //Setting this time is a signal to end soon.
+            clFirstBadPingTime = SystemTime.getCurrentTime();
+        }
+    }
+
 
     /**
      * Call this method to start the limit testing.
@@ -682,7 +713,9 @@ public class SpeedLimitMonitor
      */
     public Update startLimitTesting(int currUploadLimit, int currDownloadLimit){
 
-        confLimitTestStartTime=SystemTime.getCurrentTime();
+        clLastIncreaseTime =SystemTime.getCurrentTime();
+        clFirstBadPingTime =-1;
+
         highestUploadRate=0;
         highestDownloadRate=0;
         currTestDone=false;
@@ -725,12 +758,14 @@ public class SpeedLimitMonitor
                 && downloadBandwidthStatus.isGreater( SaturatedMode.MED ) )
         {
             downloadLimit *= 1.15f;
+            clLastIncreaseTime = SystemTime.getCurrentTime();
             retVal = new Update(uploadLimit,false,downloadLimit,true);
 
         }else if( transferMode.getMode() == TransferMode.State.UPLOAD_LIMIT_SEARCH
                 && uploadBandwidthStatus.isGreater( SaturatedMode.MED ))
         {
             uploadLimit *= 1.15f;
+            clLastIncreaseTime = SystemTime.getCurrentTime();
             retVal = new Update(uploadLimit,true,downloadLimit,false);
             
         }else{
@@ -1078,6 +1113,9 @@ public class SpeedLimitMonitor
             handleDropLimitRequest();
 
         }
+
+        //if confidence limit testing, inform of bad ping.
+        updateLimitTestingPing(lastMetricValue);
 
     }//addToPingMapData
 
