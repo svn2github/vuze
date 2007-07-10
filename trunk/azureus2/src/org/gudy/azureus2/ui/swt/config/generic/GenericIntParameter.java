@@ -178,7 +178,7 @@ public class GenericIntParameter
 			public void runSupport() {
 				spinner.setMinimum(value);
 			}
-		}, false);
+		});
 	}
 
 	public void setMaximumValue(int value) {
@@ -190,33 +190,44 @@ public class GenericIntParameter
 			public void runSupport() {
 				spinner.setMaximum(iMaxValue == -1 ? Integer.MAX_VALUE : iMaxValue);
 			}
-		}, false);
+		});
 	}
 
 	public String getName() {
 		return (sParamName);
 	}
 
-	public void setValue(final int value) {
+	public void setValue(int value) {
+		int newValue;
+		if (iMaxValue != -1 && value > iMaxValue) {
+			newValue = iMaxValue;
+		} else if (iMinValue > 0 && value < iMinValue) {
+			newValue = iMinValue;
+		} else {
+			newValue = value;
+		}
+		
+		final int finalNewValue = newValue;
+		
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (!spinner.isDisposed()) {
-					if (spinner.getSelection() != value) {
+					if (spinner.getSelection() != finalNewValue) {
 						if (DEBUG) {
-							debug("spinner.setSelection(" + value + ")");
+							debug("spinner.setSelection(" + finalNewValue + ")");
 						}
-						spinner.setSelection(value);
+						spinner.setSelection(finalNewValue);
 					}
 					if (DEBUG) {
 						debug("setIntValue to " + spinner.getSelection()
 								+ " via setValue(int)");
 					}
-					adapter.setIntValue(sParamName, spinner.getSelection());
-				} else {
-					adapter.setIntValue(sParamName, value);
 				}
 			}
-		}, false);
+		});
+		if (finalNewValue != getValue()) {
+			adapter.setIntValue(sParamName, finalNewValue);
+		}
 	}
 
 	public void setValue(final int value, boolean force_adapter_set) {
@@ -229,7 +240,7 @@ public class GenericIntParameter
 						spinner.setSelection(value);
 					}
 				}
-			}, false);
+			});
 		}
 	}
 

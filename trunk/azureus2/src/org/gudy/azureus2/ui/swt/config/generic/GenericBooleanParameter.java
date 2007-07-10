@@ -168,7 +168,7 @@ public class GenericBooleanParameter
 						checkBox.setSelection(selected);
 					}
 				}
-			}, false);
+			});
 		}
 	}
 
