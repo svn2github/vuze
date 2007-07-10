@@ -78,6 +78,9 @@ public class TransferStatsView extends AbstractIView {
   
   Composite mainPanel;  
   
+  Composite blahPanel;
+  BufferedLabel asn,estUpCap,estDownCap;
+
   Composite generalPanel;
   BufferedLabel nowUp, nowDown, sessionDown, sessionUp, session_ratio, sessionTime, totalDown, totalUp, total_ratio, totalTime;
   
@@ -90,7 +93,6 @@ public class TransferStatsView extends AbstractIView {
   plotView[]	plot_views;
   zoneView[] 	zone_views;
   
-  BufferedLabel idlePing,maxPing,maxUp,currentPing;
   
   
   private final DecimalFormat formatter = new DecimalFormat( "##.#" );
@@ -113,6 +115,8 @@ public class TransferStatsView extends AbstractIView {
     mainPanel.setLayout(mainLayout);
     
     createGeneralPanel();
+    
+    createBlahPanel();
     
     createAutoSpeedPanel();
   }
@@ -206,6 +210,43 @@ public class TransferStatsView extends AbstractIView {
     totalTime.setLayoutData(gridData);
   }
   
+  private void
+  createBlahPanel()
+  {
+	  blahPanel = new Composite(mainPanel,SWT.NONE);
+	  GridData blahPanelData = new GridData(GridData.FILL_HORIZONTAL);
+	  blahPanel.setLayoutData(blahPanelData);
+
+	  GridLayout panelLayout = new GridLayout();
+	  panelLayout.numColumns = 8;
+	  blahPanel.setLayout(panelLayout);
+
+
+	  Label label;
+	  GridData gridData;
+
+	  label = new Label(blahPanel,SWT.NONE);
+	  Messages.setLanguageText(label,"SpeedView.stats.asn");    
+	  asn = new BufferedLabel(blahPanel,SWT.NONE);
+	  gridData = new GridData(GridData.FILL_HORIZONTAL);
+	  asn.setLayoutData(gridData);
+
+	  label = new Label(blahPanel,SWT.NONE);
+	  Messages.setLanguageText(label,"SpeedView.stats.estupcap");    
+	  estUpCap = new BufferedLabel(blahPanel,SWT.NONE);
+	  gridData = new GridData(GridData.FILL_HORIZONTAL);
+	  estUpCap.setLayoutData(gridData);
+
+	  label = new Label(blahPanel,SWT.NONE);
+	  Messages.setLanguageText(label,"SpeedView.stats.estdowncap");    
+	  estDownCap = new BufferedLabel(blahPanel,SWT.NONE);
+	  gridData = new GridData(GridData.FILL_HORIZONTAL);
+	  estDownCap.setLayoutData(gridData);
+
+	  label = new Label(blahPanel,SWT.NONE);
+	  label = new Label(blahPanel,SWT.NONE);
+  }
+  
   
   private void createAutoSpeedPanel() {
     autoSpeedPanel = new Group(mainPanel,SWT.NONE);
@@ -223,36 +264,9 @@ public class TransferStatsView extends AbstractIView {
     layout.numColumns = 8;
     layout.makeColumnsEqualWidth = true;
     autoSpeedInfoPanel.setLayout(layout);
-    
-    Label label;
-    GridData gridData;
-    
-    label = new Label(autoSpeedInfoPanel,SWT.NONE);
-    Messages.setLanguageText(label,"SpeedView.stats.idlePing");    
-    idlePing = new BufferedLabel(autoSpeedInfoPanel,SWT.NONE);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    idlePing.setLayoutData(gridData);
-    
-    label = new Label(autoSpeedInfoPanel,SWT.NONE);
-    Messages.setLanguageText(label,"SpeedView.stats.maxPing");    
-    maxPing = new BufferedLabel(autoSpeedInfoPanel,SWT.NONE);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    maxPing.setLayoutData(gridData);
-    
-    label = new Label(autoSpeedInfoPanel,SWT.NONE);
-    Messages.setLanguageText(label,"SpeedView.stats.maxUp");    
-    maxUp = new BufferedLabel(autoSpeedInfoPanel,SWT.NONE);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    maxUp.setLayoutData(gridData);
-    
-    label = new Label(autoSpeedInfoPanel,SWT.NONE);
-    Messages.setLanguageText(label,"SpeedView.stats.currentPing");    
-    currentPing = new BufferedLabel(autoSpeedInfoPanel,SWT.NONE);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    currentPing.setLayoutData(gridData);
-    
+       
     Canvas pingCanvas = new Canvas(autoSpeedInfoPanel,SWT.NO_BACKGROUND);
-    gridData = new GridData(GridData.FILL_BOTH);
+    GridData gridData = new GridData(GridData.FILL_BOTH);
     gridData.horizontalSpan = 4;
     pingCanvas.setLayoutData(gridData);
     
@@ -349,7 +363,8 @@ public class TransferStatsView extends AbstractIView {
   }
   
   public void delete() {
-    Utils.disposeComposite(generalPanel);
+	Utils.disposeComposite(generalPanel);
+	Utils.disposeComposite(blahPanel);
     pingGraph.dispose();
  
     for (int i=0;i<plot_views.length;i++){
@@ -473,11 +488,11 @@ public class TransferStatsView extends AbstractIView {
 
         	zone_views[i].refresh();
         }
-        currentPing.setText(average + " ms");
-        idlePing.setText(speedManager.getIdlePingMillis() + " ms");
-        maxPing.setText(speedManager.getMaxPingMillis() + " ms");
-        maxUp.setText(DisplayFormatters.formatByteCountToBase10KBEtcPerSec(speedManager.getMaxUploadSpeed()));
-        
+ 
+        asn.setText(speedManager.getASN());
+        estUpCap.setText(DisplayFormatters.formatByteCountToKiBEtc(speedManager.getEstimatedUploadCapacityBytesPerSec().getBytesPerSec()));
+        estDownCap.setText(DisplayFormatters.formatByteCountToKiBEtc(speedManager.getEstimatedDownloadCapacityBytesPerSec().getBytesPerSec()));
+         
       }
     } else {
       autoSpeedPanelLayout.topControl = autoSpeedDisabledPanel;

@@ -225,12 +225,8 @@ Plot3D
 			int z_axis_bottom_x = PAD_LEFT;
 			int z_axis_bottom_y = usable_height + PAD_TOP;
 			int z_axis_top_x	= PAD_LEFT;
-			int z_axis_top_y	= PAD_TOP;
+			int z_axis_top_y	= PAD_TOP + usable_height / 2;
 			
-			image.drawLine( z_axis_bottom_x, z_axis_bottom_y, z_axis_top_x, z_axis_top_y );
-			image.drawLine( PAD_LEFT-4, PAD_TOP + PAD_BOTTOM, PAD_LEFT, PAD_TOP );
-			image.drawLine( PAD_LEFT+4, PAD_TOP + PAD_BOTTOM, PAD_LEFT, PAD_TOP );
-
 			Rectangle old_clip = image.getClipping();
 
 			image.setClipping( new Rectangle( PAD_LEFT, PAD_RIGHT, usable_width, usable_height ));
@@ -320,18 +316,16 @@ Plot3D
 			
 			String z_text = labels[2] + " - " + formatters[2].format( max_z );
 			
-			image.drawText( z_text, PAD_LEFT + 4, PAD_TOP + 10, SWT.DRAW_TRANSPARENT );
+			image.drawText( z_text, z_axis_top_x + 4, z_axis_top_y + 10, SWT.DRAW_TRANSPARENT );
 			
-			image.drawLine( PAD_LEFT, usable_height + PAD_TOP, PAD_LEFT, PAD_TOP );
-			image.drawLine( PAD_LEFT-4, PAD_TOP + PAD_BOTTOM, PAD_LEFT, PAD_TOP );
-			image.drawLine( PAD_LEFT+4, PAD_TOP + PAD_BOTTOM, PAD_LEFT, PAD_TOP );
+			image.drawLine( z_axis_bottom_x, z_axis_bottom_y, z_axis_top_x, z_axis_top_y );
+			image.drawLine( z_axis_top_x-4, z_axis_top_y + 10, z_axis_top_x, z_axis_top_y );
+			image.drawLine( z_axis_top_x+4, z_axis_top_y + 10, z_axis_top_x, z_axis_top_y );
 
 				// y axis
 			
-			image.drawLine( y_axis_left_x, y_axis_left_y, y_axis_right_x, y_axis_right_y );
-			
-			image.drawLine( y_axis_right_x-6, y_axis_right_y,	y_axis_right_x, y_axis_right_y );
-			
+			image.drawLine( y_axis_left_x, y_axis_left_y, y_axis_right_x, y_axis_right_y );			
+			image.drawLine( y_axis_right_x-6, y_axis_right_y,	y_axis_right_x, y_axis_right_y );			
 			image.drawLine( y_axis_right_x, y_axis_right_y + 6, y_axis_right_x, y_axis_right_y );
 			
 			String	y_text = labels[1] + " - " + formatters[1].format( max_y );

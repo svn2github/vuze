@@ -24,17 +24,22 @@ package com.aelitis.azureus.core.speedmanager.impl;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingMapper;
@@ -46,6 +51,11 @@ SpeedManagerPingMapperImpl
 {
 	static final int VARIANCE_GOOD_VALUE		= 50;
 	static final int VARIANCE_BAD_VALUE			= 150;
+	static final int VARIANCE_MAX				= VARIANCE_BAD_VALUE*10;
+	
+	static final int RTT_MAX					= 30*1000;
+
+	static final int MAX_BAD_LIMIT_HISTORY		= 32;
 	
 	static final int SPEED_DIVISOR = 256;
 	
@@ -70,8 +80,17 @@ SpeedManagerPingMapperImpl
 	private limitEstimate[]	up_estimate		= new limitEstimate[0];
 	private limitEstimate[]	down_estimate	= new limitEstimate[0];
 	
+	private LinkedList	last_bad_ups	= new LinkedList();
+	private LinkedList	last_bad_downs	= new LinkedList();
+	
 	private limitEstimate	last_bad_up;
+	private boolean			bad_up_in_progress;
+	
 	private limitEstimate	last_bad_down;
+	private boolean			bad_down_in_progress;
+
+	private limitEstimate	up_capacity;
+	private limitEstimate	down_capacity;
 	
 	private File	history_file;
 	
@@ -107,14 +126,7 @@ SpeedManagerPingMapperImpl
 			}
 			
 			history_file = file;
-			
-				// obviously any pings we already have are valid regardless of history file
-				// so we inject the stored values first and then re-inject the existing ones
-				// after
-			
-			pingValue[]	old_pings 		= pings;
-			int			old_ping_count	= ping_count;
-			
+						
 			pings		= new pingValue[pings.length];
 			ping_count	= 0;
 			
@@ -142,26 +154,66 @@ SpeedManagerPingMapperImpl
 							last_y	= 0;						
 						}
 						
+						if ( variance ){
+							
+							if ( metric > VARIANCE_MAX ){
+						
+								metric = VARIANCE_MAX;
+							}
+						}else{
+							
+							if ( metric > RTT_MAX ){
+								
+								metric = RTT_MAX;
+							}						
+						}
+						
 						addPingSupport( x, y, -1, metric, false );
 					}
 				}
 				
-				last_bad_up 	= loadLimit( map, "lbu" );
-				last_bad_down 	= loadLimit( map, "lbd" );
+				prev_ping = null;
 				
-				log( "Loaded " + p.size() + " entries from " + history_file );
+				last_bad_ups 	= loadLimits( map, "lbus" );
+				last_bad_downs 	= loadLimits( map, "lbds" );
 				
-				updateLimitEstimates();
-		
+				up_capacity 	= loadLimit((Map)map.get( "upcap" ));
+				down_capacity 	= loadLimit((Map)map.get( "downcap" ));
+				
+				log( "Loaded " + p.size() + " entries from " + history_file + ": bad_up=" + getLimitString(last_bad_ups) + ", bad_down=" + getLimitString(last_bad_downs));
+				
+				updateLimitEstimates();	
 			}
-			
-			for (int i=0;i<old_ping_count;i++){
 				
-				pingValue	ping = old_pings[i];
+			/*
+			if ( variance ){
 				
-				addPingSupport( ping.getX(), ping.getY(), -1, ping.getMetric(), false );
+				Iterator	it = regions.iterator();
+				
+				while( it.hasNext()){
+					
+					region r = (region)it.next();
+					
+					if ( r.getMetric() >= VARIANCE_BAD_VALUE ){
+					
+						for (int i=0;i<r.getX1();i++){
+						
+							System.out.print( " " );
+						}
+					
+						for (int i=r.getX1();i<=r.getX2();i++){
+							
+							System.out.print( "*" );
+						}
+						
+						System.out.println( 
+								": " + r.getMetric() + "/" + 
+								DisplayFormatters.formatByteCountToKiBEtc(r.getX1()*SPEED_DIVISOR ) + "," +
+								DisplayFormatters.formatByteCountToKiBEtc(r.getX2()*SPEED_DIVISOR ));
+					}
+				}
 			}
-			
+			*/
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace(e);
@@ -196,8 +248,11 @@ SpeedManagerPingMapperImpl
 				m.put( "m", new Long(ping.getMetric()));
 			}
 			
-			saveLimit( map, "lbu", last_bad_up );
-			saveLimit( map, "lbd", last_bad_down );
+			saveLimits( map, "lbus", last_bad_ups );
+			saveLimits( map, "lbds", last_bad_downs );
+
+			map.put( "upcap", 	saveLimit( up_capacity ));
+			map.put( "downcap", saveLimit( down_capacity ));
 
 			FileUtil.writeResilientFile( history_file, map );
 			
@@ -209,16 +264,35 @@ SpeedManagerPingMapperImpl
 		}
 	}
 	
-	protected limitEstimate
-	loadLimit(
+	protected LinkedList
+	loadLimits(
 		Map		map,
 		String	name )
 	{
-		Map	m = (Map)map.get(name);
+		LinkedList	result = new LinkedList();
 		
+		List	l = (List)map.get(name);
+		
+		if ( l != null ){
+			
+			for (int i=0;i<l.size();i++){
+				
+				Map m = (Map)l.get(i);
+							
+				result. add(loadLimit( m ));
+			}
+		}
+		
+		return( result );
+	}
+	
+	protected limitEstimate
+	loadLimit(
+		Map	m )
+	{
 		if ( m == null ){
 			
-			return( null );
+			return( getNullLimit());
 		}
 		
 		int	speed = ((Long)m.get( "s" )).intValue();
@@ -227,18 +301,38 @@ SpeedManagerPingMapperImpl
 		
 		int	hits = ((Long)m.get( "h" )).intValue();
 
-		return( new limitEstimate( speed, metric, hits, -1, new int[0][] ));
+		long	when = ((Long)m.get("w")).longValue();
+		
+		return( new limitEstimate( speed, metric, hits, when, new int[0][] ));
 	}
 	
 	protected void
-	saveLimit(
+	saveLimits(
 		Map				map,
 		String			name,
+		List			limits )
+	{
+		List	l = new ArrayList();
+		
+		for (int i=0;i<limits.size();i++){
+			
+			limitEstimate limit = (limitEstimate)limits.get(i);
+			
+			Map	m = saveLimit( limit );
+			
+			l.add( m );
+		}
+		
+		map.put( name, l );
+	}
+	
+	protected Map
+	saveLimit(
 		limitEstimate	limit )
 	{
 		if ( limit == null ){
 			
-			return;
+			limit = getNullLimit();
 		}
 		
 		Map	m = new HashMap();
@@ -248,7 +342,30 @@ SpeedManagerPingMapperImpl
 		m.put( "m", String.valueOf( limit.getMetricRating()));
 		
 		m.put( "h", new Long( limit.getHits()));
-
+		
+		m.put( "w", new Long( limit.getWhen()));	
+		
+		return( m );
+	}
+	
+	protected limitEstimate
+	getNullLimit()
+	{
+		return( new limitEstimate( 0, -1, 0, 0, new int[0][] ));
+	}
+	
+	protected String
+	getLimitString(
+		List	limits )
+	{
+		String	str = "";
+		
+		for (int i=0;i<limits.size();i++){
+	
+			str += (i==0?"":",") + ((limitEstimate)limits.get(i)).getString();
+		}
+		
+		return( str );
 	}
 	
 	protected void
@@ -279,7 +396,7 @@ SpeedManagerPingMapperImpl
 		
 		if ( x > 65535 )x = 65535;
 		if ( y > 65535 )y = 65535;
-		if ( rtt > 65535 )rtt = 65535;
+		if ( rtt > 65535 )rtt = variance?VARIANCE_MAX:RTT_MAX;
 		if ( rtt == 0 )rtt = 1;
 		
 			// ping time won't refer to current x+y due to latencies, apply to average between
@@ -428,8 +545,8 @@ SpeedManagerPingMapperImpl
 	protected SpeedManagerLimitEstimate
 	adjustForPersistence(
 		SpeedManagerLimitEstimate	estimate,
-		SpeedManagerLimitEstimate	last_bad,	
-		boolean	persistent )
+		limitEstimate				last_bad,	
+		boolean						persistent )
 	{
 		if ( estimate == null ){
 			
@@ -489,18 +606,60 @@ SpeedManagerPingMapperImpl
 		
 		limitEstimate up = getEstimatedLimit( up_estimate );
 		
-		if ( up != null && up.getMetricRating() == -1 ){
+		if ( up != null ){
 			
-			last_bad_up = up;
+			double metric = up.getMetricRating();
+			
+			if ( metric == -1 ){
+			
+				if ( !bad_up_in_progress ){
+					
+					last_bad_ups.addLast( up );
+					
+					if ( last_bad_ups.size() > MAX_BAD_LIMIT_HISTORY ){
+						
+						last_bad_ups.removeFirst();
+					}
+				}
+				
+				bad_up_in_progress	= true;
+				
+				last_bad_up = up;
+				
+			}else if ( metric == 1 ){
+				
+				bad_up_in_progress	= false;
+			}
 		}
 		
 		down_estimate 	= getEstimatedLimit( false );
 		
 		limitEstimate down = getEstimatedLimit( down_estimate );
 		
-		if ( down != null && down.getMetricRating() == -1 ){
+		if ( down != null ){
 			
-			last_bad_down = down;
+			double metric = down.getMetricRating();
+			
+			if ( metric == -1 ){
+			
+				if ( !bad_down_in_progress ){
+					
+					last_bad_downs.addLast( down );
+					
+					if ( last_bad_downs.size() > MAX_BAD_LIMIT_HISTORY ){
+						
+						last_bad_downs.removeFirst();
+					}
+				}
+				
+				bad_down_in_progress	= true;
+				
+				last_bad_down = up;
+				
+			}else if ( metric == 1 ){
+				
+				bad_down_in_progress	= false;
+			}	
 		}
 	}
 	
@@ -800,7 +959,7 @@ SpeedManagerPingMapperImpl
 						estimate==-1?-1:(estimate*SPEED_DIVISOR),
 						convertMetricToRating( worst_var ), 
 						estimate_hits, 
-						estimate_when,
+						SystemTime.getCurrentTime(),
 						(int[][])segments.toArray(new int[segments.size()][]));
 		}
 		
@@ -839,6 +998,18 @@ SpeedManagerPingMapperImpl
 		
 			return( 0 );
 		}
+	}
+	
+	public SpeedManagerLimitEstimate
+	getEstimatedUploadCapacityBytesPerSec()
+	{
+		return( up_capacity );
+	}
+	
+	public SpeedManagerLimitEstimate
+	getEstimatedDownloadCapacityBytesPerSec()
+	{
+		return( down_capacity );
 	}
 	
 	protected double
@@ -1003,7 +1174,7 @@ SpeedManagerPingMapperImpl
 	{
 		private int		speed;
 		private float	metric_rating;
-		private int		when;
+		private long	when;
 		private int		hits;
 		
 		private int[][]	segs;
@@ -1013,7 +1184,7 @@ SpeedManagerPingMapperImpl
 			int			_speed,
 			double		_metric_rating,
 			int			_hits,
-			int			_when,
+			long		_when,
 			int[][]		_segs )
 		{
 			speed				= _speed;
@@ -1041,10 +1212,16 @@ SpeedManagerPingMapperImpl
 			return( segs );
 		}
 		
-		public int
+		protected int
 		getHits()
 		{
 			return( hits );
+		}
+		
+		protected long
+		getWhen()
+		{
+			return( when );
 		}
 		
 		public String

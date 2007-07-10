@@ -136,6 +136,8 @@ SpeedManagerImpl
 
 	private AEDiagnosticsLogger	logger;
 	
+	private String		asn;
+	
 	public
 	SpeedManagerImpl(
 		AzureusCore			_core,
@@ -179,6 +181,8 @@ SpeedManagerImpl
 					File history = new File( config_dir, "pm_" + FileUtil.convertOSSpecificChars( as ) + ".dat" );
 					
 					ping_mapper.loadHistory( history );
+					
+					asn = COConfigurationManager.getStringParameter( "ASN ASN", "Unknown" );
 				}
 			});
 		
@@ -233,6 +237,24 @@ SpeedManagerImpl
 			});
 		
 		COConfigurationManager.setParameter( CONFIG_AVAIL, false );
+	}
+	
+	public String
+	getASN()
+	{
+		return( asn );
+	}
+	
+	public SpeedManagerLimitEstimate
+	getEstimatedUploadCapacityBytesPerSec()
+	{
+		return( ping_mapper.getEstimatedUploadCapacityBytesPerSec());	
+	}
+	
+	public SpeedManagerLimitEstimate
+	getEstimatedDownloadCapacityBytesPerSec()
+	{
+		return( ping_mapper.getEstimatedDownloadCapacityBytesPerSec());	
 	}
 	
 	protected void

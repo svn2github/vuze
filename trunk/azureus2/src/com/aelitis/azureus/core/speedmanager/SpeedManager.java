@@ -37,30 +37,14 @@ SpeedManager
 	public boolean
 	isEnabled();
 	
-	public int
-	getIdlePingMillis();
+	public String
+	getASN();
 	
-	public int
-	getCurrentPingMillis();
+	public SpeedManagerLimitEstimate
+	getEstimatedUploadCapacityBytesPerSec();
 	
-	public int
-	getMaxPingMillis();
-	
-		/**
-		 * Returns the current view of when choking occurs
-		 * @return speed in bytes/sec
-		 */
-	
-	public int
-	getCurrentChokeSpeed();
-	
-		/**
-		 * Returns the maximum sustained upload speed 
-		 * @return speed in bytes/sec
-		 */
-	
-	public int
-	getMaxUploadSpeed();
+	public SpeedManagerLimitEstimate
+	getEstimatedDownloadCapacityBytesPerSec();
 	
 	public void
 	setSpeedTester(
