@@ -35,6 +35,7 @@ import java.util.Random;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
@@ -1150,6 +1151,36 @@ SpeedManagerPingMapperImpl
 			
 			return( 1 - ((double)metric - VARIANCE_GOOD_VALUE )/50 );
 		}
+	}
+	
+	protected void 
+	generateEvidence(
+		IndentWriter writer ) 
+	{
+		writer.println( "up_cap=" + up_capacity.getString());
+		writer.println( "down_cap=" + down_capacity.getString());
+		
+		String	bad_up_str = "";
+		
+		Iterator	it = last_bad_ups.iterator();
+		
+		while( it.hasNext()){
+			
+			bad_up_str += (bad_up_str.length()==0?"":",") + ((limitEstimate)it.next()).getString();
+		}
+		
+		writer.println( "bad_up=" + bad_up_str );
+		
+		String	bad_down_str = "";
+		
+		it = last_bad_downs.iterator();
+		
+		while( it.hasNext()){
+			
+			bad_down_str += (bad_down_str.length()==0?"":",") + ((limitEstimate)it.next()).getString();
+		}
+		
+		writer.println( "bad_down=" + bad_down_str );
 	}
 	
 	class

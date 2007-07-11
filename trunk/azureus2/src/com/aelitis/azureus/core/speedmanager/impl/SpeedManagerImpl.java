@@ -29,6 +29,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
+import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
 import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
@@ -36,6 +37,7 @@ import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.TimerEvent;
@@ -61,7 +63,7 @@ import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public class 
 SpeedManagerImpl 
-	implements SpeedManager, SpeedManagerAlgorithmProviderAdapter
+	implements SpeedManager, SpeedManagerAlgorithmProviderAdapter, AEDiagnosticsEvidenceGenerator
 {
 	protected static final int UPDATE_PERIOD_MILLIS	= 5000;
 
@@ -154,6 +156,8 @@ SpeedManagerImpl
 		core			= _core;
 		adapter			= _adapter;
 
+		AEDiagnostics.addEvidenceGenerator( this );
+		
 		logger = AEDiagnostics.getLogger( "SpeedMan" );
 		
 		ping_mapper	= new SpeedManagerPingMapperImpl( this, "Var", LONG_PERIOD_TICKS, true);
@@ -841,6 +845,23 @@ SpeedManagerImpl
 		SpeedManagerListener		l )
 	{
 		listeners.remove( l );
+	}
+	
+	public void 
+	generate(
+		IndentWriter writer) 
+	{
+		writer.println( "SpeedManager: enabled=" + enabled + ",provider=" + provider );
+		
+		try{
+			writer.indent();
+			
+			ping_mapper.generateEvidence( writer );
+			
+		}finally{
+			
+			writer.exdent();
+		}
 	}
 	
 	protected class
