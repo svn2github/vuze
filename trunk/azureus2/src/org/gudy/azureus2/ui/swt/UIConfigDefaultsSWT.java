@@ -91,6 +91,8 @@ public class UIConfigDefaultsSWT
 		def.addParameter("Status Area Show IPF", true);
 		
 		def.addParameter("GUI_SWT_share_count_at_close", 0 );
+
+		def.addParameter("GUI_SWT_bOldSpeedMenu", false);
 		
 		def.addParameter("ui", "az2");
 		

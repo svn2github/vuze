@@ -295,6 +295,9 @@ public class SelectableSpeedMenu {
 
 		GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 
+		final String configAutoKey = TransferSpeedValidator.getActiveAutoUploadParameter(gm);
+		boolean auto = COConfigurationManager.getBooleanParameter(configAutoKey);
+
 		final String configKey = isUpSpeed
 				? TransferSpeedValidator.getActiveUploadParameter(gm)
 				: "Max Download Speed KBs";
@@ -311,6 +314,12 @@ public class SelectableSpeedMenu {
 		SpeedScaleShell speedScale = new SpeedScaleShell() {
 			public String getStringValue() {
 				int value = getValue();
+				if (value == 0) {
+					return MessageText.getString("MyTorrentsView.menu.setSpeed.unlimited");
+				}
+				if (value == -1) {
+					return MessageText.getString("ConfigView.auto");
+				}
 				return prefix
 						+ ": "
 						+ (value == 0 ? MessageText.getString("ConfigView.unlimited")
@@ -323,8 +332,37 @@ public class SelectableSpeedMenu {
 			max = 50;
 		}
 		speedScale.setMaxValue(max);
-		if (speedScale.open(maxBandwidth, true)) {
-			COConfigurationManager.setParameter(configKey, speedScale.getValue());
+		speedScale.setMaxTextValue(9999999);
+
+		final String config_prefix = "config.ui.speed.partitions.manual."
+				+ (isUpSpeed ? "upload" : "download") + ".";
+		if (COConfigurationManager.getBooleanParameter(config_prefix + "enabled",
+				false)) {
+			Integer[] speed_limits = parseSpeedPartitionString(COConfigurationManager.getStringParameter(
+					config_prefix + "values", ""));
+			for (int i = 0; i < speed_limits.length; i++) {
+				int value = speed_limits[i].intValue();
+				speedScale.addOption(DisplayFormatters.formatByteCountToKiBEtcPerSec(
+						value * 1024, true), value);
+			}
+		}
+		speedScale.addOption(
+				MessageText.getString("MyTorrentsView.menu.setSpeed.unlimited"), 0);
+		speedScale.addOption(MessageText.getString("ConfigView.auto"), -1);
+
+		if (speedScale.open(auto ? -1 : maxBandwidth, true)) {
+			int value = speedScale.getValue();
+			if (value >= 0) {
+				COConfigurationManager.setParameter(configKey, value);
+				if (auto) {
+					COConfigurationManager.setParameter(configAutoKey, false);
+				}
+				COConfigurationManager.save();
+			} else {
+				// autospeed
+				COConfigurationManager.setParameter(configAutoKey, true);
+				COConfigurationManager.save();
+			}
 		}
 	}
 	
