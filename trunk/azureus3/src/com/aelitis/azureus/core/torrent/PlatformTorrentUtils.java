@@ -288,7 +288,11 @@ public class PlatformTorrentUtils
 			return;
 		}
 
-		writeTorrentIfExists(torrent);
+		try {
+			TorrentUtils.writeToFile(torrent);
+		} catch (TOTorrentException e) {
+			Debug.out(e);
+		}
 	}
 
 	public static byte[] getContentThumbnail(TOTorrent torrent) {
