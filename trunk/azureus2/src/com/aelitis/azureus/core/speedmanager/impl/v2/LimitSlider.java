@@ -71,7 +71,7 @@ public class LimitSlider
         return Math.round( usedUpMax );
     }
 
-    public SpeedLimitMonitor.Update adjust( float amount ){
+    public SMUpdate adjust( float amount ){
 
         boolean increase = true;
         if( amount<0.0f ){
@@ -101,7 +101,7 @@ public class LimitSlider
         return update();
     }//adjust
 
-    private SpeedLimitMonitor.Update update(){
+    private SMUpdate update(){
         int upLimit;
         int downLimit;
 
@@ -116,7 +116,7 @@ public class LimitSlider
                 +",downMin="+downMin+",transferMode="+mode.getString();
         SpeedManagerLogger.log( msg );
 
-        return new SpeedLimitMonitor.Update(upLimit,true,downLimit,true);
+        return new SMUpdate(upLimit,true,downLimit,true);
     }
 
     private float calculateNewValue(float curr, float amount){

@@ -3,6 +3,8 @@ package com.aelitis.azureus.core.speedmanager.impl.v2;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.SystemTime;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
+import com.aelitis.azureus.core.speedmanager.SpeedManagerPingMapper;
+import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProviderAdapter;
 
 /**
  * Created on May 23, 2007
@@ -113,6 +115,8 @@ public class SpeedLimitMonitor
 
     //Short-term PingSpaceMap to decide if a limit is too high.
     PingSpaceMonitor pingMonitor;
+
+    boolean usePersistentMap = false;
 
     //Testing
     LimitSlider slider = new LimitSlider();
@@ -285,6 +289,10 @@ public class SpeedLimitMonitor
         return false;
     }
 
+    public boolean isEitherLimitUnpinned(){
+        return ( !isUploadMaxPinned || !isDownloadMaxPinned );
+    }
+
     /**
      * Does the same as createNewLimit except it drops the upload rate first when in download mode.
      * @param signalStrength -
@@ -293,14 +301,15 @@ public class SpeedLimitMonitor
      * @param currDownLimit -
      * @return  -
      */
-    public Update modifyLimits(float signalStrength, float multiple, int currUpLimit, int currDownLimit){
+    public SMUpdate modifyLimits(float signalStrength, float multiple, int currUpLimit, int currDownLimit){
 
         //this flag is set in a previous method.
         if( isStartLimitTestFlagSet() ){
             return startLimitTesting(currUpLimit, currDownLimit);
         }
 
-        if( !isUploadMaxPinned || !isDownloadMaxPinned ){
+        //if( !isUploadMaxPinned || !isDownloadMaxPinned ){
+        if( isEitherLimitUnpinned() ){
             return calculateNewUnpinnedLimits(signalStrength);
         }
 
@@ -315,108 +324,108 @@ public class SpeedLimitMonitor
 
     
 //ToDo: remove if method is no longer needed.
-    /**
-     * Here we need to handle several cases.
-     * (a) If the download bandwidth is HIGH, then we need to back off on the upload limit to 80% of max.
-     * (b) If upload bandwidth and limits are AT_LIMIT for a period of time then need to "unpin" that max limit
-     *      to see how high it will go.
-     * (c) If the download bandwidth and limits are AT_LIMIT for a period of time then need to "unpin" the max
-     *      limit to see how high it will go.
-     *
-     *
-     * @param signalStrength -
-     * @param multiple -
-     * @param currUpLimit -
-     * @param currDownLimit -
-     * @return -
-     */
-    public Update createNewLimit(float signalStrength, float multiple, int currUpLimit, int currDownLimit){
-
-        //this flag is set in a previous method.
-        if( isStartLimitTestFlagSet() ){
-            return startLimitTesting(currUpLimit,currDownLimit);
-        }
-
-        int newLimit;
-
-        int usedUploadLimit = uploadLimitMax;
-        float usedUpDownRatio = upDownRatio;
-        if( transferMode.isDownloadMode() ){
-            usedUploadLimit = Math.round( percentUploadCapacityDownloadMode * uploadLimitMax);
-            SpeedManagerLogger.trace("download mode usedUploadLimit="+usedUploadLimit
-                    +" % used="+percentUploadCapacityDownloadMode);
-        }else{
-            usedUploadLimit = Math.round( percentUploadCapacitySeedingMode * uploadLimitMax);
-            SpeedManagerLogger.trace("seeding mode usedUploadLimit="+usedUploadLimit
-                    +" % used="+percentUploadCapacitySeedingMode);
-        }
-
-        if(usedUploadLimit<5120){
-            usedUploadLimit=5120;
-        }
-
-
-        //re-calculate the up-down ratio.
-        usedUpDownRatio = ( (float) downloadLimitMax /(float) usedUploadLimit);
-
-        //The amount to move it against the new limit is.
-        float multi = Math.abs( signalStrength * multiple * 0.3f );
-
-        //If we are in an unpinned limits mode then consider consider
-        if( !isUploadMaxPinned || !isDownloadMaxPinned ){
-            //we are in a mode that is moving the limits.
-            return calculateNewUnpinnedLimits(signalStrength);
-        }//if
-
-        //Force the value to the limit.
-        if(multi>1.0f){
-            if( signalStrength>0.0f ){
-                log("forcing: max upload limit.");
-                int newDownloadLimit = Math.round( usedUploadLimit*usedUpDownRatio );
-                return new Update(usedUploadLimit, true,newDownloadLimit, true);
-            }else{
-                log("forcing: min upload limit.");
-                int newDownloadLimit = Math.round( uploadLimitMin*usedUpDownRatio );
-                return new Update(uploadLimitMin, true, newDownloadLimit, true);
-            }
-        }
-
-        //don't move it all the way.
-        int maxStep;
-        int currStep;
-        int minStep=1024;
-
-        if(signalStrength>0.0f){
-            maxStep = Math.round( usedUploadLimit -currUpLimit );
-        }else{
-            maxStep = Math.round( currUpLimit- uploadLimitMin);
-        }
-
-        currStep = Math.round(maxStep*multi);
-        if(currStep<minStep){
-            currStep=minStep;
-        }
-
-        if( signalStrength<0.0f ){
-            currStep = -1 * currStep;
-        }
-
-        newLimit = currUpLimit+currStep;
-        newLimit = (( newLimit + 1023 )/1024) * 1024;
-
-        if(newLimit> usedUploadLimit){
-            newLimit= usedUploadLimit;
-        }
-        if(newLimit< uploadLimitMin){
-            newLimit= uploadLimitMin;
-        }
-
-
-        log( "new-limit:"+newLimit+":"+currStep+":"+signalStrength+":"+multiple+":"+currUpLimit+":"+maxStep+":"+ usedUploadLimit +":"+uploadLimitMin );
-
-        int newDownloadLimit = Math.round( newLimit*usedUpDownRatio );
-        return new Update(newLimit, true, newDownloadLimit, true );
-    }
+//    /**
+//     * Here we need to handle several cases.
+//     * (a) If the download bandwidth is HIGH, then we need to back off on the upload limit to 80% of max.
+//     * (b) If upload bandwidth and limits are AT_LIMIT for a period of time then need to "unpin" that max limit
+//     *      to see how high it will go.
+//     * (c) If the download bandwidth and limits are AT_LIMIT for a period of time then need to "unpin" the max
+//     *      limit to see how high it will go.
+//     *
+//     *
+//     * @param signalStrength -
+//     * @param multiple -
+//     * @param currUpLimit -
+//     * @param currDownLimit -
+//     * @return -
+//     */
+//    public SMUpdate createNewLimit(float signalStrength, float multiple, int currUpLimit, int currDownLimit){
+//
+//        //this flag is set in a previous method.
+//        if( isStartLimitTestFlagSet() ){
+//            return startLimitTesting(currUpLimit,currDownLimit);
+//        }
+//
+//        int newLimit;
+//
+//        int usedUploadLimit = uploadLimitMax;
+//        float usedUpDownRatio = upDownRatio;
+//        if( transferMode.isDownloadMode() ){
+//            usedUploadLimit = Math.round( percentUploadCapacityDownloadMode * uploadLimitMax);
+//            SpeedManagerLogger.trace("download mode usedUploadLimit="+usedUploadLimit
+//                    +" % used="+percentUploadCapacityDownloadMode);
+//        }else{
+//            usedUploadLimit = Math.round( percentUploadCapacitySeedingMode * uploadLimitMax);
+//            SpeedManagerLogger.trace("seeding mode usedUploadLimit="+usedUploadLimit
+//                    +" % used="+percentUploadCapacitySeedingMode);
+//        }
+//
+//        if(usedUploadLimit<5120){
+//            usedUploadLimit=5120;
+//        }
+//
+//
+//        //re-calculate the up-down ratio.
+//        usedUpDownRatio = ( (float) downloadLimitMax /(float) usedUploadLimit);
+//
+//        //The amount to move it against the new limit is.
+//        float multi = Math.abs( signalStrength * multiple * 0.3f );
+//
+//        //If we are in an unpinned limits mode then consider consider
+//        if( !isUploadMaxPinned || !isDownloadMaxPinned ){
+//            //we are in a mode that is moving the limits.
+//            return calculateNewUnpinnedLimits(signalStrength);
+//        }//if
+//
+//        //Force the value to the limit.
+//        if(multi>1.0f){
+//            if( signalStrength>0.0f ){
+//                log("forcing: max upload limit.");
+//                int newDownloadLimit = Math.round( usedUploadLimit*usedUpDownRatio );
+//                return new SMUpdate(usedUploadLimit, true,newDownloadLimit, true);
+//            }else{
+//                log("forcing: min upload limit.");
+//                int newDownloadLimit = Math.round( uploadLimitMin*usedUpDownRatio );
+//                return new SMUpdate(uploadLimitMin, true, newDownloadLimit, true);
+//            }
+//        }
+//
+//        //don't move it all the way.
+//        int maxStep;
+//        int currStep;
+//        int minStep=1024;
+//
+//        if(signalStrength>0.0f){
+//            maxStep = Math.round( usedUploadLimit -currUpLimit );
+//        }else{
+//            maxStep = Math.round( currUpLimit- uploadLimitMin);
+//        }
+//
+//        currStep = Math.round(maxStep*multi);
+//        if(currStep<minStep){
+//            currStep=minStep;
+//        }
+//
+//        if( signalStrength<0.0f ){
+//            currStep = -1 * currStep;
+//        }
+//
+//        newLimit = currUpLimit+currStep;
+//        newLimit = (( newLimit + 1023 )/1024) * 1024;
+//
+//        if(newLimit> usedUploadLimit){
+//            newLimit= usedUploadLimit;
+//        }
+//        if(newLimit< uploadLimitMin){
+//            newLimit= uploadLimitMin;
+//        }
+//
+//
+//        log( "new-limit:"+newLimit+":"+currStep+":"+signalStrength+":"+multiple+":"+currUpLimit+":"+maxStep+":"+ usedUploadLimit +":"+uploadLimitMin );
+//
+//        int newDownloadLimit = Math.round( newLimit*usedUpDownRatio );
+//        return new SMUpdate(newLimit, true, newDownloadLimit, true );
+//    }
 
 
     /**
@@ -446,7 +455,7 @@ public class SpeedLimitMonitor
      * @param signalStrength -
      * @return -
      */
-    private Update calculateNewUnpinnedLimits(float signalStrength){
+    public SMUpdate calculateNewUnpinnedLimits(float signalStrength){
 
         //first verify that is this is an up signal.
         if(signalStrength<0.0f){
@@ -517,7 +526,7 @@ public class SpeedLimitMonitor
         COConfigurationManager.setParameter(
                 SpeedManagerAlgorithmProviderV2.SETTING_V2_UP_DOWN_RATIO, upDownRatio);
 
-        return new Update(uploadLimitMax,uploadChanged, downloadLimitMax,downloadChanged);
+        return new SMUpdate(uploadLimitMax,uploadChanged, downloadLimitMax,downloadChanged);
     }//calculateNewUnpinnedLimits
 
     /**
@@ -624,7 +633,7 @@ public class SpeedLimitMonitor
 
     /**
      * Return true if we are confidence testing the limits.
-     * @return - Update
+     * @return - SMUpdate
      */
     public boolean isConfTestingLimits(){
         return transferMode.isConfTestingLimits();
@@ -683,7 +692,7 @@ public class SpeedLimitMonitor
 
     /**
      * Convert raw ping value to new metric.
-     * @param lastMetric
+     * @param lastMetric -
      */
     public void updateLimitTestingPing(int lastMetric){
         //Convert raw - pings into a rating.
@@ -694,7 +703,7 @@ public class SpeedLimitMonitor
 
     /**
      * New metric from the PingMapper is value between -1.0 and +1.0f.
-     * @param lastMetric
+     * @param lastMetric -
      */
     public void updateLimitTestingPing(float lastMetric){
         if( lastMetric<-0.3f){
@@ -708,9 +717,9 @@ public class SpeedLimitMonitor
      * Call this method to start the limit testing.
      * @param currUploadLimit -
      * @param currDownloadLimit -
-     * @return - Update
+     * @return - SMUpdate
      */
-    public Update startLimitTesting(int currUploadLimit, int currDownloadLimit){
+    public SMUpdate startLimitTesting(int currUploadLimit, int currDownloadLimit){
 
         clLastIncreaseTime =SystemTime.getCurrentTime();
         clFirstBadPingTime =-1;
@@ -727,16 +736,16 @@ public class SpeedLimitMonitor
         preTestDownloadLimit = currDownloadLimit;
 
         //configure the limits for this test. One will be at min and the other unlimited.
-        Update retVal;
+        SMUpdate retVal;
         if( transferMode.isDownloadMode() ){
             //test the download limit.
-            retVal = new Update(uploadLimitMin,true,
+            retVal = new SMUpdate(uploadLimitMin,true,
                         Math.round(downloadLimitMax *1.2f),true);
             preTestDownloadCapacity = downloadLimitMax;
             transferMode.setMode( TransferMode.State.DOWNLOAD_LIMIT_SEARCH );
         }else{
             //test the upload limit.
-            retVal = new Update( Math.round(uploadLimitMax *1.2f),true,
+            retVal = new SMUpdate( Math.round(uploadLimitMax *1.2f),true,
                         downloadLimitMin,true);
             preTestUploadCapacity = uploadLimitMax;
             transferMode.setMode( TransferMode.State.UPLOAD_LIMIT_SEARCH );
@@ -751,24 +760,24 @@ public class SpeedLimitMonitor
      * @param downloadLimit -
      * @return -
      */
-    public Update rampTestingLimit(int uploadLimit, int downloadLimit){
-        Update retVal;
+    public SMUpdate rampTestingLimit(int uploadLimit, int downloadLimit){
+        SMUpdate retVal;
         if( transferMode.getMode() == TransferMode.State.DOWNLOAD_LIMIT_SEARCH
                 && downloadBandwidthStatus.isGreater( SaturatedMode.MED ) )
         {
             downloadLimit *= 1.15f;
             clLastIncreaseTime = SystemTime.getCurrentTime();
-            retVal = new Update(uploadLimit,false,downloadLimit,true);
+            retVal = new SMUpdate(uploadLimit,false,downloadLimit,true);
 
         }else if( transferMode.getMode() == TransferMode.State.UPLOAD_LIMIT_SEARCH
                 && uploadBandwidthStatus.isGreater( SaturatedMode.MED ))
         {
             uploadLimit *= 1.15f;
             clLastIncreaseTime = SystemTime.getCurrentTime();
-            retVal = new Update(uploadLimit,true,downloadLimit,false);
+            retVal = new SMUpdate(uploadLimit,true,downloadLimit,false);
             
         }else{
-            retVal = new Update(uploadLimit,false,downloadLimit,false);
+            retVal = new SMUpdate(uploadLimit,false,downloadLimit,false);
             SpeedManagerLogger.trace("ERROR: rampTestLimit should only be called during limit testing. ");
         }
 
@@ -776,6 +785,7 @@ public class SpeedLimitMonitor
     }//rampTestingLimit
 
     public void triggerLimitTestingFlag(){
+        SpeedManagerLogger.trace("triggerd fast limit test.");
         beginLimitTest=true;
     }
 
@@ -787,7 +797,7 @@ public class SpeedLimitMonitor
         return currTestDone;
     }
 
-    public synchronized Update endLimitTesting(int downloadCapacityGuess, int uploadCapacityGuess){
+    public synchronized SMUpdate endLimitTesting(int downloadCapacityGuess, int uploadCapacityGuess){
 
         SpeedManagerLogger.trace(" repalce highestDownloadRate: "+highestDownloadRate+" with "+downloadCapacityGuess);
         SpeedManagerLogger.trace(" replace highestUploadRate: "+highestUploadRate+" with "+uploadCapacityGuess);
@@ -800,11 +810,11 @@ public class SpeedLimitMonitor
 
     /**
      * Call this method to end the limit testing.
-     * @return - Update
+     * @return - SMUpdate
      */
-    public synchronized Update endLimitTesting(){
+    public synchronized SMUpdate endLimitTesting(){
 
-        Update retVal;
+        SMUpdate retVal;
         //determine if the new setting is different then the old setting.
         if( transferMode.getMode()==TransferMode.State.DOWNLOAD_LIMIT_SEARCH ){
 
@@ -814,7 +824,7 @@ public class SpeedLimitMonitor
             SpeedManagerLogger.trace("pre-upload-setting="+ preTestUploadCapacity +" up-capacity"+ uploadLimitMax
                     +" pre-download-setting="+ preTestDownloadCapacity +" down-capacity="+ downloadLimitMax);
 
-            retVal = new Update(preTestUploadLimit,true, downloadLimitMax,true);
+            retVal = new SMUpdate(preTestUploadLimit,true, downloadLimitMax,true);
             //change back to original mode.
             transferMode.setMode( TransferMode.State.DOWNLOADING );
 
@@ -823,14 +833,14 @@ public class SpeedLimitMonitor
             uploadLimitConf = determineConfidenceLevel();
 
             //set that value.
-            retVal = new Update(uploadLimitMax,true, downloadLimitMax,true);
+            retVal = new SMUpdate(uploadLimitMax,true, downloadLimitMax,true);
             //change back to original mode.
             transferMode.setMode( TransferMode.State.SEEDING );
 
         }else{
             //This is an "illegal state" make it in the logs, but try to recover by setting back to original state.
             SpeedManagerLogger.log("SpeedLimitMonitor had IllegalState during endLimitTesting.");
-            retVal = new Update(preTestUploadLimit,true, preTestDownloadLimit,true);
+            retVal = new SMUpdate(preTestUploadLimit,true, preTestDownloadLimit,true);
         }
 
         currTestDone=true;
@@ -971,8 +981,8 @@ public class SpeedLimitMonitor
 
     /**
      * Make some choices about how usable the limits are before passing them on.
-     * @param estUp
-     * @param estDown
+     * @param estUp -
+     * @param estDown -
      */
     public void setRefLimits(SpeedManagerLimitEstimate estUp,SpeedManagerLimitEstimate estDown){
 
@@ -1020,7 +1030,7 @@ public class SpeedLimitMonitor
      * @param currDownloadLimit -
      * @return - Updates as needed.
      */
-    public Update adjustLimitsToSpec(int currUploadLimit, int currDownloadLimit){
+    public SMUpdate adjustLimitsToSpec(int currUploadLimit, int currDownloadLimit){
 
         int newUploadLimit = currUploadLimit;
         boolean uploadChanged = false;
@@ -1053,7 +1063,7 @@ public class SpeedLimitMonitor
         SpeedManagerLogger.trace("Adjusting limits due to out of spec: new-up="+newUploadLimit
                 +" new-down="+newDownloadLimit);
 
-        return new Update(newUploadLimit,uploadChanged,newDownloadLimit,downloadChanged);
+        return new SMUpdate(newUploadLimit,uploadChanged,newDownloadLimit,downloadChanged);
     }
 
 
@@ -1069,18 +1079,48 @@ public class SpeedLimitMonitor
         pingMapOfSeedingMode = new PingSpaceMapper(maxGoodPing,minBadPing);
 
         pingMonitor = new PingSpaceMonitor(maxGoodPing,minBadPing,transferMode);
+
+        usePersistentMap = false;
+    }
+
+    public void initPingSpaceMap(){
+        usePersistentMap = true;
     }
 
     public int guessDownloadLimit(){
-        return pingMapOfDownloadMode.guessDownloadLimit();
-    }
+
+        if( !usePersistentMap ){
+            return pingMapOfDownloadMode.guessDownloadLimit();
+        }else{
+
+            SMInstance pm = SMInstance.getInstance();
+            SpeedManagerAlgorithmProviderAdapter adapter = pm.getAdapter();
+            SpeedManagerPingMapper persistentMap = adapter.getPingMapper();
+
+            SpeedManagerLimitEstimate est = persistentMap.getEstimatedDownloadLimit(false);
+            return est.getBytesPerSec();
+        }
+    }//guessDownloadLimit
 
     public int guessUploadLimit(){
-        int dmUpLimitGuess = pingMapOfDownloadMode.guessUploadLimit();
-        int smUpLimitGuess = pingMapOfSeedingMode.guessUploadLimit();
 
-        return Math.max(dmUpLimitGuess,smUpLimitGuess);
-    }
+        if( !usePersistentMap ){
+
+            int dmUpLimitGuess = pingMapOfDownloadMode.guessUploadLimit();
+            int smUpLimitGuess = pingMapOfSeedingMode.guessUploadLimit();
+
+            return Math.max(dmUpLimitGuess,smUpLimitGuess);
+
+        }else{
+            SMInstance pm = SMInstance.getInstance();
+            SpeedManagerAlgorithmProviderAdapter adapter = pm.getAdapter();
+            SpeedManagerPingMapper persistentMap = adapter.getPingMapper();
+
+            SpeedManagerLimitEstimate est = persistentMap.getEstimatedUploadLimit(false);
+            return est.getBytesPerSec();
+        }
+
+    }//guessUploadLimit
 
 
     /**
@@ -1088,17 +1128,42 @@ public class SpeedLimitMonitor
      */
     public void logPingMapData() {
 
-        int downLimGuess = pingMapOfDownloadMode.guessDownloadLimit();
-        int upLimGuess = pingMapOfDownloadMode.guessUploadLimit();
-        int seedingUpLimGuess = pingMapOfSeedingMode.guessUploadLimit();
+        if( !usePersistentMap ){
+            int downLimGuess = pingMapOfDownloadMode.guessDownloadLimit();
+            int upLimGuess = pingMapOfDownloadMode.guessUploadLimit();
+            int seedingUpLimGuess = pingMapOfSeedingMode.guessUploadLimit();
 
-        StringBuffer sb = new StringBuffer("ping-map: ");
-        sb.append(":down=").append(downLimGuess);
-        sb.append(":up=").append(upLimGuess);
-        sb.append(":(seed)up=").append(seedingUpLimGuess);
+            StringBuffer sb = new StringBuffer("ping-map: ");
+            sb.append(":down=").append(downLimGuess);
+            sb.append(":up=").append(upLimGuess);
+            sb.append(":(seed)up=").append(seedingUpLimGuess);
 
-        SpeedManagerLogger.log( sb.toString()  );
-    }
+            SpeedManagerLogger.log( sb.toString()  );
+        }else{
+            SMInstance pm = SMInstance.getInstance();
+            SpeedManagerAlgorithmProviderAdapter adapter = pm.getAdapter();
+            SpeedManagerPingMapper persistentMap = adapter.getPingMapper();
+
+            SpeedManagerLimitEstimate estUp = persistentMap.getEstimatedUploadLimit(false);
+            SpeedManagerLimitEstimate estDown = persistentMap.getEstimatedDownloadLimit(false);
+
+            int downLimGuess = estDown.getBytesPerSec();
+            float downConf = estDown.getMetricRating();
+            int upLimGuess = estUp.getBytesPerSec();
+            float upConf = estUp.getMetricRating();
+
+            String name = persistentMap.getName();
+
+            StringBuffer sb = new StringBuffer("new-ping-map: ");
+            sb.append(" name=").append(name);
+            sb.append(", down=").append(downLimGuess);
+            sb.append(", down-conf=").append(downConf);
+            sb.append(", up=").append(upLimGuess);
+            sb.append(", up-conf=").append(upConf);
+
+            SpeedManagerLogger.log( sb.toString() );
+        }
+    }//logPingMapData
 
     public void setCurrentTransferRates(int downRate, int upRate){
 
@@ -1205,30 +1270,6 @@ public class SpeedLimitMonitor
         pingMonitor.resetNewLimit();
 
     }//handleDropLimitRequest
-
-    /** Internal classes here **/
-
-    /**
-     * Class for sending update data.
-     */
-    static class Update{
-
-        public int newUploadLimit;
-        public int newDownloadLimit;
-
-        public boolean hasNewUploadLimit;
-        public boolean hasNewDownloadLimit;
-
-        public Update(int upLimit, boolean newUpLimit, int downLimit, boolean newDownLimit)
-        {
-            newUploadLimit = upLimit;
-            newDownloadLimit = downLimit;
-
-            hasNewUploadLimit = newUpLimit;
-            hasNewDownloadLimit = newDownLimit;
-        }
-
-    }//class Update
 
 
 }//SpeedLimitMonitor

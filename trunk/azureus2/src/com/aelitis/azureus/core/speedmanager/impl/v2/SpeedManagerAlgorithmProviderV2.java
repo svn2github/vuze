@@ -83,7 +83,7 @@ SpeedManagerAlgorithmProviderV2
 		adapter	= _adapter;
 		adapter.setLoggingEnabled( true );
 
-        strategy = new SpeedManagerAlgorithmProviderVivaldi(_adapter);
+        strategy = new SpeedManagerAlgorithmProviderDHTPing(_adapter);
         //strategy = new SpeedManagerAlgorithmTI(_adapter, true );
     }
 	

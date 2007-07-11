@@ -305,7 +305,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
                 int downLimitGuess = limitMonitor.guessDownloadLimit();
                 int upLimitGuess = limitMonitor.guessUploadLimit();
 
-                SpeedLimitMonitor.Update update = limitMonitor.endLimitTesting(downLimitGuess,
+                SMUpdate update = limitMonitor.endLimitTesting(downLimitGuess,
                         upLimitGuess );
 
                 //print out the PingMap data to compare.
@@ -321,7 +321,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
                 return;
             }else{
                 //will increase the limit each cycle.
-                SpeedLimitMonitor.Update ramp = limitMonitor.rampTestingLimit(
+                SMUpdate ramp = limitMonitor.rampTestingLimit(
                                     adapter.getCurrentUploadLimit(),
                                     adapter.getCurrentDownloadLimit()
                     );
@@ -375,10 +375,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
 
             limitMonitor.checkForUnpinningCondition();
 
-
-            //SpeedLimitMonitor.Update update = limitMonitor.createNewLimit(signalStrength,multiple,currUpLimit,currDownLimit);
-
-            SpeedLimitMonitor.Update update = limitMonitor.modifyLimits(signalStrength,multiple,currUpLimit, currDownLimit);
+            SMUpdate update = limitMonitor.modifyLimits(signalStrength,multiple,currUpLimit, currDownLimit);
 
             //log
             logNewLimits(update);
@@ -393,7 +390,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
             int currUploadLimit = adapter.getCurrentUploadLimit();
             int currDownloadLimit = adapter.getCurrentDownloadLimit();
             if( !limitMonitor.areSettingsInSpec(currUploadLimit, currDownloadLimit) ){
-                SpeedLimitMonitor.Update update = limitMonitor.adjustLimitsToSpec(currUploadLimit, currDownloadLimit);
+                SMUpdate update = limitMonitor.adjustLimitsToSpec(currUploadLimit, currDownloadLimit);
                 logNewLimits( update );
                 setNewLimits( update );
             }
@@ -503,7 +500,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
         return false;
     }
 
-    private void logNewLimits(SpeedLimitMonitor.Update update) {
+    private void logNewLimits(SMUpdate update) {
         if( update.hasNewUploadLimit ){
             int kbpsUpoadLimit = update.newUploadLimit/1024;
             log(" new up limit  : "+ kbpsUpoadLimit +" kb/s");
@@ -517,9 +514,9 @@ public class SpeedManagerAlgorithmProviderVivaldi
 
     /**
      * Just update the limits.
-     * @param update - SpeedLimitMonitor.Update
+     * @param update - SMUpdate
      */
-    private void setNewLimits( SpeedLimitMonitor.Update update ){
+    private void setNewLimits( SMUpdate update ){
 
         adapter.setCurrentUploadLimit( update.newUploadLimit );
         adapter.setCurrentDownloadLimit( update.newDownloadLimit );

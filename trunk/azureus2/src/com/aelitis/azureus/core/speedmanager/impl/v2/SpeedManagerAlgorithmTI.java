@@ -5,7 +5,6 @@ import com.aelitis.azureus.core.AzureusCoreException;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingMapper;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingSource;
-import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProvider;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProviderAdapter;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
@@ -139,6 +138,8 @@ public class SpeedManagerAlgorithmTI
 
             adapter = _adapter;
 
+            SMInstance.init( _adapter );
+
             testIfc = _alan_pingmapper?alan_testIfc:paul_testIfc;
             
             adapter.log( "T1: ping_mapper=" + (_alan_pingmapper?"alan":"paul" ));
@@ -154,7 +155,7 @@ public class SpeedManagerAlgorithmTI
                 log(" Error: failed to get DHT Plugin ");
             }//if
 
-//            limitMonitor.initPingSpaceMap(metricGoodResult+metricGoodTolerance,metricBadResult-metricBadTolerance);
+            limitMonitor.initPingSpaceMap();
         }
 
         /**
@@ -284,7 +285,7 @@ public class SpeedManagerAlgorithmTI
                 int upLimitGuess = limitMonitor.guessUploadLimit();
                 //ToDo: ask the PingMapper from one level higher?
 
-                SpeedLimitMonitor.Update update = limitMonitor.endLimitTesting(downLimitGuess,
+                SMUpdate update = limitMonitor.endLimitTesting(downLimitGuess,
                         upLimitGuess );
 
                 //print out the PingMap data to compare.
@@ -300,7 +301,7 @@ public class SpeedManagerAlgorithmTI
                 return;
             }else{
                 //will increase the limit each cycle.
-                SpeedLimitMonitor.Update ramp = limitMonitor.rampTestingLimit(
+                SMUpdate ramp = limitMonitor.rampTestingLimit(
                                     adapter.getCurrentUploadLimit(),
                                     adapter.getCurrentDownloadLimit()
                     );
@@ -334,9 +335,9 @@ public class SpeedManagerAlgorithmTI
 
                 float multiple = consectiveMultiplier();
 
-                //ToDo: modify result here.
-                SpeedLimitMonitor.Update update = modifyLimits(signalStrength,multiple);
-                //SpeedLimitMonitor.Update update = modifyLimits(signalStrength,multiple,currUpLimit,currDownLimit, limits);
+                limitMonitor.checkForUnpinningCondition();
+
+                SMUpdate update = modifyLimits(signalStrength,multiple);
 
                 //log
                 logNewLimits(update);
@@ -351,7 +352,7 @@ public class SpeedManagerAlgorithmTI
                 int currUploadLimit = adapter.getCurrentUploadLimit();
                 int currDownloadLimit = adapter.getCurrentDownloadLimit();
                 if( !limitMonitor.areSettingsInSpec(currUploadLimit, currDownloadLimit) ){
-                    SpeedLimitMonitor.Update update = limitMonitor.adjustLimitsToSpec(currUploadLimit, currDownloadLimit);
+                    SMUpdate update = limitMonitor.adjustLimitsToSpec(currUploadLimit, currDownloadLimit);
                     logNewLimits( update );
                     setNewLimits( update );
                 }
@@ -366,11 +367,19 @@ public class SpeedManagerAlgorithmTI
             slider = new LimitSlider();
         }
 
-        SpeedLimitMonitor.Update modifyLimits(float signalStrength, float multiple){
+        SMUpdate modifyLimits(float signalStrength, float multiple){
 
             //actual enforced limits.
             int currUpLimit = adapter.getCurrentUploadLimit();
             int currDownLimit = adapter.getCurrentDownloadLimit();
+
+            if( limitMonitor.isStartLimitTestFlagSet() ){
+                return limitMonitor.startLimitTesting(currUpLimit,currDownLimit);
+            }
+
+            if( limitMonitor.isEitherLimitUnpinned() ){
+                return limitMonitor.calculateNewUnpinnedLimits(signalStrength);
+            }
 
             //current usage status.
             SaturatedMode uploadLimitSettingStatus = limitMonitor.getUploadLimitSettingMode();
@@ -391,8 +400,8 @@ public class SpeedManagerAlgorithmTI
 
             TransferMode tMode = limitMonitor.getTransferMode();
 
-            slider.updateLimits(downloadLimitMax,uploadLimitMin,
-                    uploadLimitMax,downloadLimitMin);
+            slider.updateLimits(uploadLimitMax,uploadLimitMin,
+                    downloadLimitMax,downloadLimitMin);
             slider.updateStatus(currUpLimit,uploadLimitSettingStatus,
                     currDownLimit, downloadLimitSettingStatus,tMode);
 
@@ -463,7 +472,7 @@ public class SpeedManagerAlgorithmTI
             return false;
         }
 
-        private void logNewLimits(SpeedLimitMonitor.Update update) {
+        private void logNewLimits( SMUpdate update ) {
             if( update.hasNewUploadLimit ){
                 int kbpsUpoadLimit = update.newUploadLimit/1024;
                 log(" new up limit  : "+ kbpsUpoadLimit +" kb/s");
@@ -477,9 +486,9 @@ public class SpeedManagerAlgorithmTI
 
         /**
          * Just update the limits.
-         * @param update - SpeedLimitMonitor.Update
+         * @param update - SMUpdate
          */
-        private void setNewLimits( SpeedLimitMonitor.Update update ){
+        private void setNewLimits( SMUpdate update ){
 
             adapter.setCurrentUploadLimit( update.newUploadLimit );
             adapter.setCurrentDownloadLimit( update.newDownloadLimit );
