@@ -1,4 +1,4 @@
- /*
+/*
  * Created on Jun 25, 2003
  * Modified Apr 13, 2004 by Alon Rohter
  * Modified Apr 17, 2004 by Olivier Chalouhi (OSX system menu)
@@ -480,9 +480,10 @@ MainWindow
                   }
                 }
               }
-              if (iconBar != null)
-									iconBar.setCurrentEnabler(MainWindow.this);
+              if (iconBar != null) {iconBar.setCurrentEnabler(MainWindow.this);}
+              refreshTorrentMenu();
 	          }
+	          
           });       
       }
     };
@@ -770,6 +771,7 @@ MainWindow
   	} else {
   		my_tracker_tab.setFocus();
   		refreshIconBar();
+  		refreshTorrentMenu();
   	}
   }
   
@@ -786,6 +788,7 @@ MainWindow
   	} else {
   		my_shares_tab.setFocus();
   		refreshIconBar();
+  		refreshTorrentMenu();
   	}
   }
   
@@ -802,6 +805,7 @@ MainWindow
       mytorrents.setFocus();
     }
     refreshIconBar();
+    refreshTorrentMenu();
   }
 	
   private void minimizeToTray(ShellEvent event) {
@@ -888,6 +892,7 @@ MainWindow
         Tab tab = (Tab) downloadViews.get(downloadManager);
         tab.setFocus();
         refreshIconBar();
+        refreshTorrentMenu();
       }
       else {
         Tab tab = new Tab(new ManagerView(azureus_core, downloadManager));
@@ -1288,8 +1293,16 @@ MainWindow
   }
 
 	public void refreshIconBar() {
-		if (iconBar != null)
-			iconBar.setCurrentEnabler(this);
+		if (iconBar != null) {iconBar.setCurrentEnabler(this);}
+	}
+	
+	public void refreshTorrentMenu() {
+		if (this.getCurrentView() instanceof ManagerView) {
+			this.mainMenu.setTorrentMenuDownload(((ManagerView)this.getCurrentView()).getDownload());
+		}
+		else {
+			this.mainMenu.setTorrentMenuDownload(null);
+		}		
 	}
 
   public void close() {

@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
@@ -105,6 +106,12 @@ public class MainMenu {
   private Map plugin_view_info_map = new TreeMap();
   private Map plugin_logs_view_info_map = new TreeMap();
   private AzureusCore core;
+  
+  private MenuItem torrentItem;
+  public void setTorrentMenuDownload(org.gudy.azureus2.core3.download.DownloadManager dl) {
+	  torrentItem.setData(dl);
+	  torrentItem.setEnabled(dl != null);
+  }
 
   /**
    * <p>Creates the main menu bar and attaches it to a shell that is not the main window</p>
@@ -336,9 +343,11 @@ public class MainMenu {
         if(Constants.isOSX) {
             addViewMenu(parent, notMainWindow);
             addTransferMenu(parent, isModal, notMainWindow);
+            createTorrentMenu(parent, isModal);
         }
         else { // previous ordering
             addTransferMenu(parent, isModal, notMainWindow);
+            createTorrentMenu(parent, isModal);
             addViewMenu(parent, notMainWindow);
         }
 
@@ -411,7 +420,7 @@ public class MainMenu {
       if (Constants.isCVSVersion()) {
       	addDebugMenu(menuBar);
       }
-
+      
       //The Help Menu
       MenuItem helpItem = new MenuItem(menuBar, SWT.CASCADE);
       Messages.setLanguageText(helpItem, "MainWindow.menu.help"); //$NON-NLS-1$
@@ -572,6 +581,22 @@ public class MainMenu {
 	  while (itr.hasNext()) {
 		  createIViewInfoMenuItem(parent, (IViewInfo)itr.next());
 	  }
+  }
+  
+  private void createTorrentMenu(final Shell parent, boolean isModal) {
+      // The Torrents menu.
+      torrentItem = new MenuItem(menuBar, SWT.CASCADE);
+      Messages.setLanguageText(torrentItem, "MainWindow.menu.torrent");
+      final Menu torrentMenu = new Menu(parent, SWT.DROP_DOWN);
+      torrentItem.setMenu(torrentMenu);
+      if(isModal) {performOneTimeDisable(torrentItem, true);}
+      MenuBuildUtils.addMaintenanceListenerForMenu(torrentMenu, new MenuBuildUtils.MenuBuilder() {
+      	public void buildMenu(Menu menu) {
+      		DownloadManager current_dl = (DownloadManager)torrentItem.getData();
+      		if (current_dl == null) {return;}
+      		TorrentUtil.fillTorrentMenu(menu, new DownloadManager[] {current_dl}, core, attachedShell, false, 0);
+      	}
+      });
   }
   
   private void buildPluginMenu(Shell parent, Menu pluginMenu, boolean notMainWindow) {

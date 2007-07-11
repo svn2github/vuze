@@ -328,7 +328,7 @@ ViewUtils
 		});
 	}
 	
-	protected interface
+	public interface
 	SpeeedAdapter
 	{
 		public void

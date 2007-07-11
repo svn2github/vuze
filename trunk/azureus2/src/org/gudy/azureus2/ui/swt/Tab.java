@@ -227,6 +227,7 @@ public class Tab {
     
     if (bFocus) {
     	mainwindow.refreshIconBar();
+    	mainwindow.refreshTorrentMenu();
     	selectedItem = tabItem;
     }
 

@@ -465,4 +465,6 @@ public class ManagerView extends AbstractIView implements
     return DisplayFormatters.formatPercentFromThousands(completed) + " : " + manager;
 	}
 	
+	public DownloadManager getDownload() {return manager;}
+	
 }
