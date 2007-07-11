@@ -353,10 +353,10 @@ public class SelectableSpeedMenu {
 		if (speedScale.open(auto ? -1 : maxBandwidth, true)) {
 			int value = speedScale.getValue();
 			if (value >= 0) {
-				COConfigurationManager.setParameter(configKey, value);
 				if (auto) {
 					COConfigurationManager.setParameter(configAutoKey, false);
 				}
+				COConfigurationManager.setParameter(configKey, value);
 				COConfigurationManager.save();
 			} else {
 				// autospeed
