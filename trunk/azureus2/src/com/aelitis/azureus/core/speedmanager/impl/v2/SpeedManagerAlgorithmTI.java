@@ -74,23 +74,10 @@ public class SpeedManagerAlgorithmTI
 
                                 limitMonitor.updateFromCOConfigManager();
 
-                                String mode=COConfigurationManager.getStringParameter( SpeedManagerAlgorithmProviderV2.SETTING_DATA_SOURCE_INPUT );
-                                //what mode are we?
-                                if( SpeedManagerAlgorithmProviderV2.VALUE_SOURCE_VIVALDI.equals(mode) )
-                                {
-                                    //Vivadi is data source
-
-                                }else{
-                                    //DHT Ping is data source
-
-                                    skipIntervalAfterAdjustment=COConfigurationManager.getBooleanParameter(
-                                            SpeedManagerAlgorithmProviderV2.SETTING_WAIT_AFTER_ADJUST);
-                                    numIntervalsBetweenCal=COConfigurationManager.getIntParameter(
-                                            SpeedManagerAlgorithmProviderV2.SETTING_INTERVALS_BETWEEN_ADJUST);
-
-                                }
-
-//                                limitMonitor.initPingSpaceMap(metricGoodResult+metricGoodTolerance,metricBadResult-metricBadTolerance);
+                                skipIntervalAfterAdjustment=COConfigurationManager.getBooleanParameter(
+                                        SpeedManagerAlgorithmProviderV2.SETTING_WAIT_AFTER_ADJUST);
+                                numIntervalsBetweenCal=COConfigurationManager.getIntParameter(
+                                        SpeedManagerAlgorithmProviderV2.SETTING_INTERVALS_BETWEEN_ADJUST);
 
                             }catch( Throwable t ){
                                 SpeedManagerLogger.log(t.getMessage());

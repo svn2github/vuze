@@ -494,10 +494,6 @@ public class ConfigurationDefaults {
     def.put(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MIN_LIMIT, new Long(6144) );
     def.put(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT, new Long(30720) );
     def.put(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT, new Long(5120) );
-    def.put(SpeedManagerAlgorithmProviderV2.SETTING_VIVALDI_GOOD_SET_POINT, new Long(100) );
-    def.put(SpeedManagerAlgorithmProviderV2.SETTING_VIVALDI_GOOD_TOLERANCE, new Long(300) );
-    def.put(SpeedManagerAlgorithmProviderV2.SETTING_VIVALDI_BAD_SET_POINT, new Long(1300) );
-    def.put(SpeedManagerAlgorithmProviderV2.SETTING_VIVALDI_BAD_TOLERANCE, new Long(300) );
 
     def.put(SpeedManagerAlgorithmProviderV2.SETTING_DHT_GOOD_SET_POINT, new Long(50) );
     def.put(SpeedManagerAlgorithmProviderV2.SETTING_DHT_GOOD_TOLERANCE, new Long(100) );

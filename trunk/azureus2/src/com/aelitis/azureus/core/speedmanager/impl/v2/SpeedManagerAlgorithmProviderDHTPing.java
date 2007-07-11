@@ -5,10 +5,6 @@ import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProvider;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProviderAdapter;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreException;
-import com.aelitis.azureus.core.dht.DHT;
-import com.aelitis.azureus.core.dht.control.DHTControlContact;
-import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
-import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -48,22 +44,18 @@ import java.util.*;
 public class SpeedManagerAlgorithmProviderDHTPing
         implements SpeedManagerAlgorithmProvider
 {
-	private static final byte VIVALDI_VERSION = DHTNetworkPosition.POSITION_TYPE_VIVALDI_V1;
-	
+
     private SpeedManagerAlgorithmProviderAdapter adapter;
     private PluginInterface dhtPlugin;
 
 
     private long timeSinceLastUpdate;
-    private static final long VIVALDI_TIME_BETWEEN_UPDATES = 15000;
 
     //metric values for DHT Ping times and Vivaldi
     private static int metricGoodResult = 100;
     private static int metricGoodTolerance = 300;
     private static int metricBadResult = 1300;
     private static int metricBadTolerance = 300;
-    private static boolean useVivaldi = false;
-
 
     private int consecutiveUpticks=0;
     private int consecutiveDownticks=0;
@@ -96,39 +88,19 @@ public class SpeedManagerAlgorithmProviderDHTPing
 
                             limitMonitor.updateFromCOConfigManager();
 
-                            String mode=COConfigurationManager.getStringParameter( SpeedManagerAlgorithmProviderV2.SETTING_DATA_SOURCE_INPUT );
-                            //what mode are we?
-                            if( SpeedManagerAlgorithmProviderV2.VALUE_SOURCE_VIVALDI.equals(mode) )
-                            {
-                                //Vivadi is data source
-                                useVivaldi = true;
-                                metricGoodResult =COConfigurationManager.getIntParameter(
-                                        SpeedManagerAlgorithmProviderV2.SETTING_VIVALDI_GOOD_SET_POINT);
-                                metricGoodTolerance =COConfigurationManager.getIntParameter(
-                                        SpeedManagerAlgorithmProviderV2.SETTING_VIVALDI_GOOD_TOLERANCE);
-                                metricBadResult =COConfigurationManager.getIntParameter(
-                                        SpeedManagerAlgorithmProviderV2.SETTING_VIVALDI_BAD_SET_POINT);
-                                metricBadTolerance =COConfigurationManager.getIntParameter(
-                                        SpeedManagerAlgorithmProviderV2.SETTING_VIVALDI_BAD_TOLERANCE);
+                            metricGoodResult =COConfigurationManager.getIntParameter(
+                                    SpeedManagerAlgorithmProviderV2.SETTING_DHT_GOOD_SET_POINT);
+                            metricGoodTolerance =COConfigurationManager.getIntParameter(
+                                    SpeedManagerAlgorithmProviderV2.SETTING_DHT_GOOD_TOLERANCE);
+                            metricBadResult =COConfigurationManager.getIntParameter(
+                                    SpeedManagerAlgorithmProviderV2.SETTING_DHT_BAD_SET_POINT);
+                            metricBadTolerance =COConfigurationManager.getIntParameter(
+                                    SpeedManagerAlgorithmProviderV2.SETTING_DHT_BAD_TOLERANCE);
 
-                            }else{
-                                //DHT Ping is data source
-                                useVivaldi = false;
-                                metricGoodResult =COConfigurationManager.getIntParameter(
-                                        SpeedManagerAlgorithmProviderV2.SETTING_DHT_GOOD_SET_POINT);
-                                metricGoodTolerance =COConfigurationManager.getIntParameter(
-                                        SpeedManagerAlgorithmProviderV2.SETTING_DHT_GOOD_TOLERANCE);
-                                metricBadResult =COConfigurationManager.getIntParameter(
-                                        SpeedManagerAlgorithmProviderV2.SETTING_DHT_BAD_SET_POINT);
-                                metricBadTolerance =COConfigurationManager.getIntParameter(
-                                        SpeedManagerAlgorithmProviderV2.SETTING_DHT_BAD_TOLERANCE);
-
-                                skipIntervalAfterAdjustment=COConfigurationManager.getBooleanParameter(
-                                        SpeedManagerAlgorithmProviderV2.SETTING_WAIT_AFTER_ADJUST);
-                                numIntervalsBetweenCal=COConfigurationManager.getIntParameter(
-                                        SpeedManagerAlgorithmProviderV2.SETTING_INTERVALS_BETWEEN_ADJUST);
-
-                            }
+                            skipIntervalAfterAdjustment=COConfigurationManager.getBooleanParameter(
+                                    SpeedManagerAlgorithmProviderV2.SETTING_WAIT_AFTER_ADJUST);
+                            numIntervalsBetweenCal=COConfigurationManager.getIntParameter(
+                                    SpeedManagerAlgorithmProviderV2.SETTING_INTERVALS_BETWEEN_ADJUST);
 
                             limitMonitor.initPingSpaceMap(metricGoodResult+metricGoodTolerance,metricBadResult-metricBadTolerance);
 
@@ -336,26 +308,11 @@ public class SpeedManagerAlgorithmProviderDHTPing
             timeSinceLastUpdate=currTime;
         }
 
-        //If Vivaldi calculate results on a time interval.
-        if( timeSinceLastUpdate+ VIVALDI_TIME_BETWEEN_UPDATES > currTime && useVivaldi){
-            //still waiting for the next time to update the value.
-            log("calculate-deferred");
+        //use the DHT ping times instead.
+        if ( calculateMediaDHTPingTime() ){
             return;
         }
 
-
-        if(!useVivaldi){
-            //use the DHT ping times instead.
-            if ( calculateMediaDHTPingTime() ){
-                return;
-            }
-
-        }else{
-            //if we have not initialized the core yet, then try now.
-            if ( calculateMediaVivaldiDistance(currTime) ){
-                return;
-            }
-        }
         log("metric:"+ lastMetricValue);
         logLimitStatus();
 
@@ -421,46 +378,6 @@ public class SpeedManagerAlgorithmProviderDHTPing
     }//logLimitStatus
 
     /**
-     * Vivaldi media distance is one of the metrics used. Calculate it here.
-     * @param currTime -
-     * @return - true if should exit early from calculate method.
-     */
-    private boolean calculateMediaVivaldiDistance(long currTime) {
-        if(dhtPlugin==null){
-                try{
-                    dhtPlugin = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
-            }catch(AzureusCoreException ace){
-                log("Warning: AzureusCore was not initialized on startup.");
-                    return true;
-                }
-        }//if
-
-        DHT[] dhts = ((DHTPlugin)dhtPlugin.getPlugin()).getDHTs();
-
-        if(dhts==null){
-                log("No DHTs to process try later");
-            return true;
-        }
-
-        if(dhts.length<2){
-                log("Not enough DHT nodes. length="+dhts.length);
-            return true;
-        }
-
-        int currVivaldiDistance = calculateMedianVivaldiDistance(dhts);
-
-        if(lastMetricValue == currVivaldiDistance){
-            //don't use this result.
-            log("vivaldi not updated don't use this data.");
-            return true;
-        }
-        timeSinceLastUpdate = currTime;
-
-        lastMetricValue = currVivaldiDistance;
-        return false;
-    }
-
-    /**
      * DHT Ping data is one of the metrics used. Calculate it here.
      * @return - true if should exit early from the caluculate method.
      */
@@ -521,45 +438,6 @@ public class SpeedManagerAlgorithmProviderDHTPing
         adapter.setCurrentDownloadLimit( update.newDownloadLimit );
 
     }
-
-
-    private static int calculateMedianVivaldiDistance(DHT[] dhts) {
-        DHT forSelf = dhts[dhts.length-1];
-        DHTTransportContact c = forSelf.getControl().getTransport().getLocalContact();
-
-        DHTNetworkPosition ownLocation = c.getNetworkPosition( VIVALDI_VERSION );
- 
-        List l = forSelf.getControl().getContacts();
-        Iterator itr = l.iterator();
-        List forMedian = new ArrayList( l.size() );//List<Float>
-        
-        while( itr.hasNext() ){
-        	
-            DHTControlContact contact = (DHTControlContact) itr.next();
-            
-            DHTNetworkPosition _pos = contact.getTransportContact().getNetworkPosition( VIVALDI_VERSION );
-            
-            if( _pos==null ){
-                continue;
-            }
-            
-            float rtt = ownLocation.estimateRTT( _pos );
-            
-            if( !Float.isNaN( rtt )){
-               
-                forMedian.add( new Float( rtt ));
-            }
-        }
-
-        Collections.sort(forMedian);
-
-        //The mean value should be in middle value. (Is this any more meaningful the ave. ping time?)
-        int size = forMedian.size();
-        Float meanDistance = (Float) forMedian.get( size/2 );
-
-        //We now have meanDistance!!! use it to set the upload limit!!!
-        return Math.round( meanDistance.floatValue() );
-    }//calculateMediaVivaldiDistance
 
 
     /**

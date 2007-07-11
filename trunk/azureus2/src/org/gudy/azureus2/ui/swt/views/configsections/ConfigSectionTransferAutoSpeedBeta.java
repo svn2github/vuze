@@ -45,8 +45,6 @@ public class ConfigSectionTransferAutoSpeedBeta
 
     BooleanParameter enableV2AutoSpeedBeta;
 
-    StringListParameter strategyList;
-
     //upload/download limits
     IntParameter downMaxLim;
     IntParameter downMinLim;
@@ -60,13 +58,6 @@ public class ConfigSectionTransferAutoSpeedBeta
     Group commentGroup;
 
     Group uploadCapGroup;
-
-    //vivaldi set-points
-    Group vivaldiGroup;
-    IntParameter vGood;
-    IntParameter vGoodTol;
-    IntParameter vBad;
-    IntParameter vBadTol;
 
     //DHT ping set-points
     Group dhtGroup;
@@ -131,8 +122,6 @@ public class ConfigSectionTransferAutoSpeedBeta
 
 
     public Composite configSectionCreate(final Composite parent) {
-
-        //ToDo: for now we are NOT going to internationalize this panel. Wait until the panel is in its final format.
 
         GridData gridData;
 
@@ -215,32 +204,6 @@ public class ConfigSectionTransferAutoSpeedBeta
         modeGroup.setLayout(modeLayout);
         gridData = new GridData(GridData.FILL_HORIZONTAL);
         modeGroup.setLayoutData(gridData);
-
-        //Need a drop down to select which method will be used.
-        Label label = new Label(modeGroup, SWT.NULL);
-        label.setText("Input Data: ");
-        gridData = new GridData();
-        gridData.widthHint = 60;
-        label.setLayoutData(gridData);
-
-        //Set DHT as the default 
-        String[] modeNames = {
-                "Vivaldi Distance",
-                "DHT Ping time"
-        };
-        String[] modes = {
-                SpeedManagerAlgorithmProviderV2.VALUE_SOURCE_VIVALDI,
-                SpeedManagerAlgorithmProviderV2.VALUE_SOURCE_DHT
-        };
-        strategyList = new StringListParameter(modeGroup,
-                SpeedManagerAlgorithmProviderV2.SETTING_DATA_SOURCE_INPUT,
-                SpeedManagerAlgorithmProviderV2.VALUE_SOURCE_DHT,
-                modeNames,modes,true);
-
-        strategyList.addChangeListener( new GroupModeChangeListener() );
-
-
-        //ToDo: switch layout managers here.
 
         //spacer
         Label spacer = new Label(modeGroup, SWT.NULL);
@@ -551,89 +514,11 @@ public class ConfigSectionTransferAutoSpeedBeta
         gridData.widthHint = 50;
         skipAfterAdjustment.setLayoutData(gridData);
 
-
-        //////////////////////////
-        //Vivaldi Median Distance Group
-        //////////////////////////
-
-        //Vivaldi grouping.
-        vivaldiGroup = new Group(cSection, SWT.NULL);
-        //Messages.setLanguageText
-        vivaldiGroup.setText("Data: Vivaldi");
-        vivaldiGroup.setLayout(subPanel);
-
-        gridData = new GridData(GridData.FILL_HORIZONTAL);
-        gridData.horizontalSpan = 3;
-        vivaldiGroup.setLayoutData(gridData);
-
-        //label column for Vivaldi limits
-        Label vivaldiSetting = new Label(vivaldiGroup, SWT.NULL);
-        gridData = new GridData();
-        gridData.widthHint=80;
-        vivaldiSetting.setText("Vivaldi Settings: ");
-        //Messages.setLanguageText //ToDo: internationalize
-
-        Label vSet = new Label(vivaldiGroup,SWT.NULL);
-        gridData = new GridData();
-        vSet.setLayoutData(gridData);
-        vSet.setText("set point (ms)");
-        //Messages.setLanguageText //ToDo: internationalize
-
-        Label vTol = new Label(vivaldiGroup, SWT.NULL);
-        gridData = new GridData();
-        vTol.setLayoutData(gridData);
-        vTol.setText("tolerance (ms)");
-        //Messages.setLanguageText //ToDo: internationalize
-
-        //good
-        Label vGoodLbl = new Label(vivaldiGroup, SWT.NULL);
-        gridData = new GridData();
-        vGoodLbl.setLayoutData(gridData);
-        vGoodLbl.setText("Good: ");
-        //Messages.setLanguageText //ToDo: internationalize
-
-
-        gridData = new GridData();
-        gridData.widthHint = 50;
-        vGood = new IntParameter(vivaldiGroup, SpeedManagerAlgorithmProviderV2.SETTING_VIVALDI_GOOD_SET_POINT);
-        vGood.setLayoutData( gridData );
-
-
-        //ToDo: calculate this limit as 10% of upper limit, or 5 kb/s which ever is greater.
-        gridData = new GridData();
-        gridData.widthHint = 50;
-        vGoodTol = new IntParameter(vivaldiGroup, SpeedManagerAlgorithmProviderV2.SETTING_VIVALDI_GOOD_TOLERANCE);
-        vGoodTol.setLayoutData( gridData );
-
-        //bad
-        Label vBadLbl = new Label(vivaldiGroup, SWT.NULL);
-        gridData = new GridData();
-        vBadLbl.setLayoutData(gridData);
-        vBadLbl.setText("Bad: ");
-        //Messages.setLanguageText //ToDo: internationalize
-
-
-        gridData = new GridData();
-        gridData.widthHint = 50;
-        vBad = new IntParameter(vivaldiGroup, SpeedManagerAlgorithmProviderV2.SETTING_VIVALDI_BAD_SET_POINT);
-        vBad.setLayoutData( gridData );
-
-
-        //ToDo: calculate this limit as 10% of upper limit, or 5 kb/s which ever is greater.
-        gridData = new GridData();
-        gridData.widthHint = 50;
-        vBadTol = new IntParameter(vivaldiGroup, SpeedManagerAlgorithmProviderV2.SETTING_VIVALDI_BAD_TOLERANCE);
-        vBadTol.setLayoutData( gridData );
-
         //spacer
         spacer = new Label(cSection, SWT.NULL);
         gridData = new GridData();
         gridData.horizontalSpan=3;
         spacer.setLayoutData(gridData);
-
-        //Hide the group that is not selected.
-        String value = strategyList.getValue();
-        enableGroups(value);
 
         return cSection;
     }
@@ -643,30 +528,6 @@ public class ConfigSectionTransferAutoSpeedBeta
         if(strategyListValue==null){
             return;
         }
-            if( SpeedManagerAlgorithmProviderV2.VALUE_SOURCE_VIVALDI.equals(strategyListValue) ){
-                //enable the Vivaldi median distance group.
-                if( vivaldiGroup!=null ){
-                    vivaldiGroup.setEnabled(true);
-                    vivaldiGroup.setVisible(true);
-                }
-                if( dhtGroup!=null ){
-                    dhtGroup.setEnabled(false);
-                    dhtGroup.setVisible(false);
-                }
-
-            }
-            else if( SpeedManagerAlgorithmProviderV2.VALUE_SOURCE_DHT.equals(strategyListValue) ){
-                //enable the DHT group
-                if( vivaldiGroup!=null){
-                    vivaldiGroup.setEnabled(false);
-                    vivaldiGroup.setVisible(false);
-                }
-                if( dhtGroup!=null ){
-                    dhtGroup.setEnabled(true);
-                    dhtGroup.setVisible(true);
-                }
-            }
-
 
         //only enable the comment section if the beta is enabled.
         boolean isBothEnabled = COConfigurationManager.getBooleanParameter( TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY );
@@ -703,8 +564,7 @@ public class ConfigSectionTransferAutoSpeedBeta
          * @param caused_internally  -
          */
         public void parameterChanged(Parameter p, boolean caused_internally) {
-            String value = strategyList.getValue();
-            enableGroups(value);
+
         }
 
 
