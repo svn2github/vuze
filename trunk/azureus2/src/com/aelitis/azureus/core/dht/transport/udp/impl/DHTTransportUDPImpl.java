@@ -2893,7 +2893,12 @@ DHTTransportUDPImpl
 
 			requestReceiveRequestProcessor( originating_contact, request );
 			
-			if ( !originating_contact.addressMatchesID()){
+			boolean	bad_originator = !originating_contact.addressMatchesID();
+			
+				// bootstrap node returns details regardless of whether the originator ID matches
+				// as the details will help the sender discover their correct ID (hopefully)
+			
+			if ( bad_originator && !bootstrap_node ){
 				
 				String	contact_string = originating_contact.getString();
 
@@ -2922,7 +2927,25 @@ DHTTransportUDPImpl
 
 			}else{
 				
-				contactAlive( originating_contact );
+				if ( bad_originator ){
+				
+						// we need to patch the originator up otherwise we'll be populating our
+						// routing table with crap
+					
+					originating_contact = 
+						new DHTTransportUDPContactImpl( 
+								false,
+								this, 
+								transport_address, 
+								transport_address, 		// set originator address to transport
+								request.getOriginatorVersion(),
+								request.getOriginatorInstanceID(),
+								request.getClockSkew());
+
+				}else{
+					
+					contactAlive( originating_contact );
+				}
 				
 				if ( request instanceof DHTUDPPacketRequestPing ){
 					
