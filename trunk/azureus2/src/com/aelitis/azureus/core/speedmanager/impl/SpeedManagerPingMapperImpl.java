@@ -237,6 +237,8 @@ SpeedManagerPingMapperImpl
 			
 			List p = new ArrayList(ping_count);
 			
+				// NOTE: add to this you will need to modify the "reset" method appropriately
+			
 			map.put( "pings", p );
 			
 			for (int i=0;i<ping_count;i++){
@@ -424,23 +426,27 @@ SpeedManagerPingMapperImpl
 		min_x *= SPEED_DIVISOR;
 		min_y *= SPEED_DIVISOR;
 				
-		if ( up_capacity.getMetricRating() < 1 ){
+		if ( up_capacity.getMetricRating() < SpeedManagerLimitEstimate.RATING_MANUAL ){
 			
 			if ( min_x > up_capacity.getBytesPerSec()){
 				
 				up_capacity.setBytesPerSec( min_x );
 				
 				up_capacity.setMetricRating( 0 );
+				
+				speed_manager.informUpCapChanged();
 			}
 		}
 		
-		if ( down_capacity.getMetricRating() < 1 ){
+		if ( down_capacity.getMetricRating() < SpeedManagerLimitEstimate.RATING_MANUAL ){
 			
 			if ( min_y > down_capacity.getBytesPerSec()){
 				
 				down_capacity.setBytesPerSec( min_y );
 				
 				down_capacity.setMetricRating( 0 );
+				
+				speed_manager.informDownCapChanged();
 			}
 		}
 	}
@@ -1081,8 +1087,13 @@ SpeedManagerPingMapperImpl
 		int		bytes_per_sec,
 		float	metric )
 	{
-		down_capacity.setBytesPerSec( bytes_per_sec );
-		down_capacity.setMetricRating( metric );
+		if ( down_capacity.getBytesPerSec() != bytes_per_sec || down_capacity.getMetricRating() != metric ){
+			
+			down_capacity.setBytesPerSec( bytes_per_sec );
+			down_capacity.setMetricRating( metric );
+			
+			speed_manager.informDownCapChanged();
+		}
 	}
 	
 	public SpeedManagerLimitEstimate
@@ -1096,8 +1107,31 @@ SpeedManagerPingMapperImpl
 		int		bytes_per_sec,
 		float	metric )
 	{
-		up_capacity.setBytesPerSec( bytes_per_sec );
-		up_capacity.setMetricRating( metric );
+		if ( up_capacity.getBytesPerSec() != bytes_per_sec || up_capacity.getMetricRating() != metric ){
+
+			up_capacity.setBytesPerSec( bytes_per_sec );
+			up_capacity.setMetricRating( metric );
+			
+			speed_manager.informUpCapChanged();
+		}
+	}
+	
+	protected synchronized void
+	reset()
+	{
+		setEstimatedDownloadCapacityBytesPerSec( 0, SpeedManagerLimitEstimate.RATING_UNKNOWN );
+		setEstimatedUploadCapacityBytesPerSec( 0, SpeedManagerLimitEstimate.RATING_UNKNOWN );
+		
+		ping_count	= 0;
+		regions.clear();
+		
+		last_bad_down	= null;
+		last_bad_downs.clear();
+		
+		last_bad_up		= null;
+		last_bad_ups.clear();
+		
+		saveHistory();
 	}
 	
 	protected double

@@ -1,7 +1,10 @@
 package org.gudy.azureus2.ui.swt.views.configsections;
 
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionTransferAutoSpeedBeta.RestoreDefaultsListener;
+import org.gudy.azureus2.ui.swt.views.stats.TransferStatsView;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -9,15 +12,24 @@ import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.speedmanager.SpeedManager;
+import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
+import com.aelitis.azureus.core.speedmanager.SpeedManagerListener;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerImpl;
 
 
@@ -104,7 +116,7 @@ public class ConfigSectionTransferAutoSpeedSelect
         GridData gridData;
 
         Composite cSection = new Composite(parent, SWT.NULL);
-
+        
         gridData = new GridData(GridData.VERTICAL_ALIGN_FILL|GridData.HORIZONTAL_ALIGN_FILL);
         cSection.setLayoutData(gridData);
         GridLayout subPanel = new GridLayout();
@@ -125,7 +137,7 @@ public class ConfigSectionTransferAutoSpeedSelect
         modeLayout.numColumns = 3;
         modeGroup.setLayout(modeLayout);
         gridData = new GridData();
-        gridData.widthHint = 350;
+        gridData = new GridData(GridData.FILL_HORIZONTAL);
         modeGroup.setLayoutData(gridData);
 
         //Need a drop down to select which method will be used.
@@ -198,10 +210,7 @@ public class ConfigSectionTransferAutoSpeedSelect
 
         //enableAutoSpeed.addChangeListener( new GroupModeChangeListener() );
 
-        Label spacerGroup = new Label(modeGroup, SWT.NULL);
-        gridData = new GridData();
-        gridData.horizontalSpan=1;
-        spacerGroup.setLayoutData(gridData);
+        spacer = new Label(modeGroup, SWT.NULL);
 
         //AutoSpeed while seeding enabled.
         enableAutoSpeedWhileSeeding = new BooleanParameter(modeGroup,
@@ -215,14 +224,261 @@ public class ConfigSectionTransferAutoSpeedSelect
 	    		new ChangeSelectionActionPerformer( enableAutoSpeedWhileSeeding.getControls(), true ));       
 
 
+        spacer = new Label(modeGroup, SWT.NULL);
+
+  	  	spacer = new Label(cSection, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan=3;
+        spacer.setLayoutData(gridData);
+
+        	// NETWORK GROUP
+        
+        Group networkGroup = new Group(cSection, SWT.NULL);
+        //networkGroup.addControlListener(new Utils.LabelWrapControlListener());
+
+        Messages.setLanguageText(networkGroup,CFG_PREFIX+"networks");    
+        GridLayout networksLayout = new GridLayout();
+        networksLayout.numColumns = 4;
+        networkGroup.setLayout(networksLayout);
+        gridData = new GridData();
+        gridData = new GridData(GridData.FILL_HORIZONTAL);
+        networkGroup.setLayoutData(gridData);
+
+        	// asn
+        
+        label = new Label(networkGroup, SWT.NULL);
+  	  	Messages.setLanguageText(label,"SpeedView.stats.asn");    
+		
+        final Label asn_label = new Label(networkGroup, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan = 3;
+        gridData.grabExcessHorizontalSpace = true;
+        asn_label.setLayoutData(gridData);
+
+        	// up cap
+        
+        label = new Label(networkGroup, SWT.NULL);
+  	  	Messages.setLanguageText(label,"SpeedView.stats.estupcap");    
+        gridData = new GridData();
+        gridData.horizontalIndent = 20;
+        label.setLayoutData(gridData);
+
+        final Label up_cap = new Label(networkGroup, SWT.NULL);
+        gridData = new GridData(GridData.FILL_HORIZONTAL);
+        gridData.horizontalSpan = 3;
+        up_cap.setLayoutData(gridData);
+
+        	// down cap
+
+        label = new Label(networkGroup, SWT.NULL);
+  	  	Messages.setLanguageText(label,"SpeedView.stats.estdowncap");    
+        gridData = new GridData();
+        gridData.horizontalIndent = 20;
+        label.setLayoutData(gridData);
+        
+        final Label down_cap = new Label(networkGroup, SWT.NULL);
+        gridData = new GridData(GridData.FILL_HORIZONTAL);
+        gridData.horizontalSpan = 3;
+        down_cap.setLayoutData(gridData);
+
+        final SpeedManager sm = AzureusCoreFactory.getSingleton().getSpeedManager();  
+        
+        final TransferStatsView.limitToTextHelper	limit_to_text = new TransferStatsView.limitToTextHelper();
+        
+        sm.addListener(
+        	new SpeedManagerListener()
+        	{
+        		private final SpeedManagerListener	listener = this;
+        		
+        		public void 
+        		propertyChanged(
+        			final int property )  
+        		{
+        			Utils.execSWTThread(
+        				new Runnable()
+        				{
+        					public void
+        					run()
+        					{
+			        			if ( asn_label.isDisposed()){
+			        				
+			        				sm.removeListener( listener );
+			        				
+			        			}else{
+			        				
+			        				if ( property == SpeedManagerListener.PR_ASN ){
+			        					
+			        					asn_label.setText( sm.getASN());
+			        					
+				       				}else if ( property == SpeedManagerListener.PR_UP_CAPACITY ){
+				        					
+				        				up_cap.setText( limit_to_text.getLimitText( sm.getEstimatedUploadCapacityBytesPerSec()));
+				        					
+				       				}else if ( property == SpeedManagerListener.PR_DOWN_CAPACITY ){
+				    					
+				    					down_cap.setText( limit_to_text.getLimitText( sm.getEstimatedDownloadCapacityBytesPerSec()));
+			        				}
+			        			}
+        					}
+        				});
+        		}
+        	});
+        
+        asn_label.setText( sm.getASN());
+        up_cap.setText( limit_to_text.getLimitText( sm.getEstimatedUploadCapacityBytesPerSec()));
+        down_cap.setText( limit_to_text.getLimitText( sm.getEstimatedDownloadCapacityBytesPerSec()));
+       
+        	// space
+        
+ 	  	spacer = new Label(networkGroup, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan=4;
+        spacer.setLayoutData(gridData);
+        
+        	// info
+        
+	    Label info_label = new Label(networkGroup, SWT.WRAP );
+	    Messages.setLanguageText(
+	    		info_label, CFG_PREFIX + "network.info",
+	    		new String[]{ DisplayFormatters.getRateUnit( DisplayFormatters.UNIT_KB )});
+	    info_label.setLayoutData(Utils.getWrappableLabelGridData(4, 0));
+        
+	    	// up set
+	    
+	    label = new Label(networkGroup, SWT.NULL);
+	    Messages.setLanguageText(label,"SpeedView.stats.estupcap");    
+	    gridData = new GridData();
+	    gridData.horizontalIndent = 20;
+	    label.setLayoutData(gridData);
+
+		String co_up		= "AutoSpeed Network Upload Speed (temp)";
+		String co_up_type 	= "AutoSpeed Network Upload Speed Type (temp)";
+
+		COConfigurationManager.setParameter( co_up, 0);
+		COConfigurationManager.setParameter( co_up_type, "" );
+		
+		final IntParameter max_upload = new IntParameter(networkGroup, co_up );
+	    	
+		final StringListParameter max_upload_type = 
+			new StringListParameter(networkGroup, co_up_type, limit_to_text.getSetableTypes(),limit_to_text.getSetableTypes() );
+	
+		max_upload_type.addChangeListener(
+			new ParameterChangeAdapter()
+			{
+				public void 
+				parameterChanged(
+					Parameter 	p, 
+					boolean 	caused_internally )
+				{
+					if ( max_upload.isDisposed()){
+					
+						return;
+					}
+					
+					float metric = limit_to_text.textToMetric( max_upload_type.getValue());
+					
+					if ( metric == SpeedManagerLimitEstimate.RATING_UNKNOWN ){
+						
+						return;
+					}
+					
+					int	value = max_upload.getValue();
+					
+					if ( value != 0 ){
+						
+						max_upload.setValue( 0 );
+						
+						sm.setEstimatedUploadCapacityBytesPerSec( value*1024, metric );
+					}
+					
+					max_upload_type.setValue( "" );
+				}
+			});
+			    
+	    label = new Label(networkGroup, SWT.NULL);
+
+	    	// down set
+	    
+	    label = new Label(networkGroup, SWT.NULL);
+	    Messages.setLanguageText(label,"SpeedView.stats.estdowncap");    
+	    gridData = new GridData();
+	    gridData.horizontalIndent = 20;
+	    label.setLayoutData(gridData);
+
+		String co_down			= "AutoSpeed Network Download Speed (temp)";
+		String co_down_type 	= "AutoSpeed Network Download Speed Type (temp)";
+
+		COConfigurationManager.setParameter( co_down, 0);
+		COConfigurationManager.setParameter( co_down_type, "" );
+
+		final IntParameter max_download = new IntParameter(networkGroup, co_down );
+	    
+		final StringListParameter max_download_type = 
+			new StringListParameter(networkGroup, co_down_type, limit_to_text.getSetableTypes(),limit_to_text.getSetableTypes() );
+
+		max_download_type.addChangeListener(
+			new ParameterChangeAdapter()
+			{
+				public void 
+				parameterChanged(
+					Parameter 	p, 
+					boolean 	caused_internally )
+				{
+					if ( max_download.isDisposed()){
+					
+						return;
+					}
+					
+					float metric = limit_to_text.textToMetric( max_download_type.getValue());
+					
+					if ( metric == SpeedManagerLimitEstimate.RATING_UNKNOWN ){
+						
+						return;
+					}
+					
+					int	value = max_download.getValue();
+					
+					if ( value != 0 ){
+						
+						max_download.setValue( 0 );
+						
+						sm.setEstimatedDownloadCapacityBytesPerSec( value*1024, metric );
+					}
+					
+					max_download_type.setValue( "" );
+				}
+			});
+		
+	    label = new Label(networkGroup, SWT.NULL);
+
+	    	// reset
+	    
+	    Label reset_label = new Label(networkGroup, SWT.NULL );
+	    Messages.setLanguageText(reset_label, CFG_PREFIX + "resetnetwork");
+
+	    Button reset_button = new Button(networkGroup, SWT.PUSH);
+
+	    Messages.setLanguageText(reset_button, CFG_PREFIX + "reset.button" );
+
+	    reset_button.addListener(SWT.Selection, 
+	    		new Listener() 
+				{
+			        public void 
+					handleEvent(Event event) 
+			        {
+			        	sm.reset();
+			        }
+			    });
+        
         //Add listeners to disable setting when needed.
                 
 
         //spacer
-        Label spacer2 = new Label(cSection, SWT.NULL);
+        
+        spacer = new Label(cSection, SWT.NULL);
         gridData = new GridData();
         gridData.horizontalSpan=3;
-        spacer2.setLayoutData(gridData);
+        spacer.setLayoutData(gridData);
 
         /////////////////////////////////////////
         //Add group to link to Azureus Wiki page.

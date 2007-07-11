@@ -74,4 +74,15 @@ SpeedManager
 	
 	public SpeedManagerPingMapper[]
 	getMappers();
+	
+	public void
+	reset();
+	
+	public void
+	addListener(
+		SpeedManagerListener		l );
+	
+	public void
+	removeListener(
+		SpeedManagerListener		l );
 }

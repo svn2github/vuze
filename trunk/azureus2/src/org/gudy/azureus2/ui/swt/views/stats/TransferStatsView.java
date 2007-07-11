@@ -93,12 +93,7 @@ public class TransferStatsView extends AbstractIView {
   plotView[]	plot_views;
   zoneView[] 	zone_views;
   
-  String	msg_text_unknown;
-  String	msg_text_estimate;
-  String	msg_text_measured_min;
-  String	msg_text_measured;
-  String	msg_text_manual;
-  
+  limitToTextHelper	limit_to_text = new limitToTextHelper();
   
   private final DecimalFormat formatter = new DecimalFormat( "##.#" );
   
@@ -250,12 +245,6 @@ public class TransferStatsView extends AbstractIView {
 
 	  label = new Label(blahPanel,SWT.NONE);
 	  label = new Label(blahPanel,SWT.NONE);
-	  
-	  msg_text_unknown		= MessageText.getString("SpeedView.stats.unknown" );
-	  msg_text_estimate		= MessageText.getString("SpeedView.stats.estimate" );
-	  msg_text_measured		= MessageText.getString("SpeedView.stats.measured" );
-	  msg_text_measured_min	= MessageText.getString("SpeedView.stats.measuredmin" );
-	  msg_text_manual		= MessageText.getString("SpeedView.stats.manual" );
   }
   
   
@@ -484,9 +473,9 @@ public class TransferStatsView extends AbstractIView {
   {
 	  asn.setText(speedManager.getASN());
 
-	  estUpCap.setText(getLimitText(speedManager.getEstimatedUploadCapacityBytesPerSec()));
+	  estUpCap.setText(limit_to_text.getLimitText(speedManager.getEstimatedUploadCapacityBytesPerSec()));
 
-	  estDownCap.setText(getLimitText(speedManager.getEstimatedDownloadCapacityBytesPerSec()));
+	  estDownCap.setText(limit_to_text.getLimitText(speedManager.getEstimatedDownloadCapacityBytesPerSec()));
   }
   
   private void refreshPingPanel() {
@@ -517,38 +506,6 @@ public class TransferStatsView extends AbstractIView {
       autoSpeedPanelLayout.topControl = autoSpeedDisabledPanel;
       autoSpeedPanel.layout();
     }  
-  }
-  
-  protected String
-  getLimitText(
-	 SpeedManagerLimitEstimate	limit )
-  {
-	  String	text;
-
-	  double metric = limit.getMetricRating();
-
-	  if ( metric == SpeedManagerLimitEstimate.RATING_UNKNOWN){
-
-		  text = msg_text_unknown;
-		  
-	  }else if ( metric == SpeedManagerLimitEstimate.RATING_MANUAL ){
-
-		  text = msg_text_manual;
-
-	  }else if ( metric == SpeedManagerLimitEstimate.RATING_MEASURED ){
-
-		  text = msg_text_measured;
-
-	  }else if ( metric == SpeedManagerLimitEstimate.RATING_MEASURED_MIN ){
-
-		  text = msg_text_measured_min;
-
-	  }else{
-
-		  text = msg_text_estimate;
-	  }
-	  
-	  return( DisplayFormatters.formatByteCountToKiBEtc(limit.getBytesPerSec()) + " (" + text + ")");
   }
   
   public void periodicUpdate() {
@@ -983,6 +940,90 @@ public class TransferStatsView extends AbstractIView {
 	  protected void
 	  dispose()
 	  {
+	  }
+  }
+  
+  public static class
+  limitToTextHelper
+  {
+	  String	msg_text_unknown;
+	  String	msg_text_estimate;
+	  String	msg_text_measured_min;
+	  String	msg_text_measured;
+	  String	msg_text_manual;
+	  
+	  String[]	setable_types;
+	  
+	  public
+	  limitToTextHelper()
+	  {
+		  msg_text_unknown		= MessageText.getString("SpeedView.stats.unknown" );
+		  msg_text_estimate		= MessageText.getString("SpeedView.stats.estimate" );
+		  msg_text_measured		= MessageText.getString("SpeedView.stats.measured" );
+		  msg_text_measured_min	= MessageText.getString("SpeedView.stats.measuredmin" );
+		  msg_text_manual		= MessageText.getString("SpeedView.stats.manual" );
+		  
+		  setable_types =  new String[]{ "", msg_text_estimate, msg_text_measured, msg_text_manual };
+	  }
+	  
+	  public String[]
+	  getSetableTypes()
+	  {
+		  return( setable_types );
+	  }
+	  
+	  public float
+	  textToMetric(
+		String	text )
+	  {
+		  if ( text.equals( msg_text_estimate )){
+			  
+			  return( SpeedManagerLimitEstimate.RATING_ESTIMATED );
+			  
+		  }else if ( text.equals( msg_text_measured )){
+			  
+			  return( SpeedManagerLimitEstimate.RATING_MEASURED );
+			  
+		  }else if ( text.equals( msg_text_manual )){
+			  
+			  return( SpeedManagerLimitEstimate.RATING_MANUAL );
+			  
+		  }else{
+			  
+			  return( SpeedManagerLimitEstimate.RATING_UNKNOWN );
+		  }
+	  }
+	  
+	  public String
+	  getLimitText(
+		 SpeedManagerLimitEstimate	limit )
+	  {
+		  String	text;
+
+		  double metric = limit.getMetricRating();
+
+		  if ( metric == SpeedManagerLimitEstimate.RATING_UNKNOWN){
+
+			  text = msg_text_unknown;
+			  
+		  }else if ( metric == SpeedManagerLimitEstimate.RATING_MANUAL ){
+
+			  text = msg_text_manual;
+
+		  }else if ( metric == SpeedManagerLimitEstimate.RATING_MEASURED ){
+
+			  text = msg_text_measured;
+
+		  }else if ( metric == SpeedManagerLimitEstimate.RATING_MEASURED_MIN ){
+
+			  text = msg_text_measured_min;
+
+		  }else{
+
+			  text = msg_text_estimate;
+		  }
+		  
+		  return( DisplayFormatters.formatByteCountToKiBEtc(limit.getBytesPerSec()) + " (" + text + ")");
 	  }
   }
 }

@@ -50,11 +50,13 @@ import com.aelitis.azureus.core.dht.speed.DHTSpeedTesterListener;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerAdapter;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
+import com.aelitis.azureus.core.speedmanager.SpeedManagerListener;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingMapper;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingSource;
 import com.aelitis.azureus.core.speedmanager.impl.v1.SpeedManagerAlgorithmProviderV1;
 import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedManagerAlgorithmProviderV2;
 import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedManagerAlgorithmTI;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 
 public class 
@@ -142,6 +144,8 @@ SpeedManagerImpl
 	
 	private String		asn;
 	
+	private CopyOnWriteList	listeners = new CopyOnWriteList();
+	
 	public
 	SpeedManagerImpl(
 		AzureusCore			_core,
@@ -187,6 +191,8 @@ SpeedManagerImpl
 					ping_mapper.loadHistory( history );
 					
 					asn = COConfigurationManager.getStringParameter( "ASN ASN", "Unknown" );
+					
+					informListeners( SpeedManagerListener.PR_ASN );
 				}
 			});
 		
@@ -233,7 +239,7 @@ SpeedManagerImpl
 								
 								if ( do_reset ){
 									
-									reset();
+									enableOrAlgChanged();
 								}
 							}
 						});
@@ -311,8 +317,14 @@ SpeedManagerImpl
 		ping_mapper.setEstimatedDownloadCapacityBytesPerSec( bytes_per_sec, metric );	
 	}
 	
-	protected void
+	public void
 	reset()
+	{
+		ping_mapper.reset();
+	}
+	
+	protected void
+	enableOrAlgChanged()
 	{
 		total_contacts		= 0;
 		
@@ -639,7 +651,7 @@ SpeedManagerImpl
 				ping_mapper.saveHistory();
 			}
 			
-			reset();
+			enableOrAlgChanged();
 			
 			enabled	= _enabled;
 			
@@ -785,6 +797,50 @@ SpeedManagerImpl
 		String		str )
 	{
 		logger.log( str );
+	}
+	
+	protected void
+	informDownCapChanged()
+	{
+		informListeners( SpeedManagerListener.PR_DOWN_CAPACITY );
+	}
+	
+	protected void
+	informUpCapChanged()
+	{
+		informListeners( SpeedManagerListener.PR_UP_CAPACITY );
+	}
+	
+	protected void
+	informListeners(
+		int		type )
+	{
+		Iterator	it = listeners.iterator();
+		
+		while( it.hasNext()){
+			
+			try{
+				((SpeedManagerListener)it.next()).propertyChanged( type );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+	
+	public void
+	addListener(
+		SpeedManagerListener		l )
+	{
+		listeners.add( l );
+	}
+	
+	public void
+	removeListener(
+		SpeedManagerListener		l )
+	{
+		listeners.remove( l );
 	}
 	
 	protected class
