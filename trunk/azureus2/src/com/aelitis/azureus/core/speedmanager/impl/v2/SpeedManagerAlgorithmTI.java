@@ -381,7 +381,7 @@ public class SpeedManagerAlgorithmTI
             SpeedManagerLimitEstimate estDown = smpm.getEstimatedDownloadLimit(true);
             SpeedManagerLimitEstimate estUp = smpm.getEstimatedUploadLimit(true);
 
-            limitMonitor.setRefLimits(estDown,estUp);
+            limitMonitor.setRefLimits(estUp,estDown);
 
             int downloadLimitMax = limitMonitor.getDownloadMaxLimit();
             int downloadLimitMin = limitMonitor.getDownloadMinLimit();
