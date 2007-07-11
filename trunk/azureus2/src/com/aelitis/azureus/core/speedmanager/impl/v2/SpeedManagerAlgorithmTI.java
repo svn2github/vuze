@@ -165,7 +165,7 @@ public class SpeedManagerAlgorithmTI
         public void reset() {
             log("reset");
 
-            log("curr-data: curr-down-rate : curr-down-limit : down-capacity : down-bandwith-mode : down-limit-mode : curr-up-rate : curr-up-limit : up-capacity : upload-bandwidth-mode : upload-limit-mode : up-down-ratio : transfer-mode");
+            log("curr-data: curr-down-rate : curr-down-limit : down-capacity : down-bandwith-mode : down-limit-mode : curr-up-rate : curr-up-limit : up-capacity : upload-bandwidth-mode : upload-limit-mode : transfer-mode");
 
             log("new-limit:newLimit:currStep:signalStrength:multiple:currUpLimit:maxStep:uploadLimitMax:uploadLimitMin:transferMode" );
 
@@ -242,7 +242,6 @@ public class SpeedManagerAlgorithmTI
             sb.append( limitMonitor.getUploadMaxLimit() ).append(":");
             sb.append(limitMonitor.getUploadBandwidthMode()).append(":");
             sb.append(limitMonitor.getUploadLimitSettingMode()).append(":");
-            sb.append( limitMonitor.getUpDownRatio() ).append(":");
             sb.append(limitMonitor.getTransferModeAsString());
 
             SpeedManagerLogger.log( sb.toString() );

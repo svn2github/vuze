@@ -63,8 +63,6 @@ public class SpeedLimitMonitor
     private int downloadLimitMax = 80000;
     private int downloadLimitMin = 8000;
 
-    private static float upDownRatio=2.0f;
-
     private TransferMode transferMode = new TransferMode();
 
     //Upload and Download bandwidth usage modes. Compare usage to current limit.
@@ -132,11 +130,6 @@ public class SpeedLimitMonitor
         downloadLimitMax =COConfigurationManager.getIntParameter(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT);
         downloadLimitMin=COConfigurationManager.getIntParameter(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MIN_LIMIT);
 
-        //tie the upload and download ratios together.
-        upDownRatio = ( (float) downloadLimitMax /(float) uploadLimitMax);
-        COConfigurationManager.setParameter(
-                SpeedManagerAlgorithmProviderV2.SETTING_V2_UP_DOWN_RATIO, upDownRatio);
-
         uploadLimitConf = SpeedLimitConfidence.parseString(
                 COConfigurationManager.getStringParameter( SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING ));
         downloadLimitConf = SpeedLimitConfidence.parseString(
@@ -151,10 +144,6 @@ public class SpeedLimitMonitor
     }
 
     //SpeedLimitMonitorStatus
-
-    public float getUpDownRatio(){
-        return upDownRatio;
-    }
 
 
     public void setDownloadBandwidthMode(int rate, int limit){
@@ -322,111 +311,6 @@ public class SpeedLimitMonitor
         return slider.adjust( signalStrength*multiple );
     }//modifyLimits
 
-    
-//ToDo: remove if method is no longer needed.
-//    /**
-//     * Here we need to handle several cases.
-//     * (a) If the download bandwidth is HIGH, then we need to back off on the upload limit to 80% of max.
-//     * (b) If upload bandwidth and limits are AT_LIMIT for a period of time then need to "unpin" that max limit
-//     *      to see how high it will go.
-//     * (c) If the download bandwidth and limits are AT_LIMIT for a period of time then need to "unpin" the max
-//     *      limit to see how high it will go.
-//     *
-//     *
-//     * @param signalStrength -
-//     * @param multiple -
-//     * @param currUpLimit -
-//     * @param currDownLimit -
-//     * @return -
-//     */
-//    public SMUpdate createNewLimit(float signalStrength, float multiple, int currUpLimit, int currDownLimit){
-//
-//        //this flag is set in a previous method.
-//        if( isStartLimitTestFlagSet() ){
-//            return startLimitTesting(currUpLimit,currDownLimit);
-//        }
-//
-//        int newLimit;
-//
-//        int usedUploadLimit = uploadLimitMax;
-//        float usedUpDownRatio = upDownRatio;
-//        if( transferMode.isDownloadMode() ){
-//            usedUploadLimit = Math.round( percentUploadCapacityDownloadMode * uploadLimitMax);
-//            SpeedManagerLogger.trace("download mode usedUploadLimit="+usedUploadLimit
-//                    +" % used="+percentUploadCapacityDownloadMode);
-//        }else{
-//            usedUploadLimit = Math.round( percentUploadCapacitySeedingMode * uploadLimitMax);
-//            SpeedManagerLogger.trace("seeding mode usedUploadLimit="+usedUploadLimit
-//                    +" % used="+percentUploadCapacitySeedingMode);
-//        }
-//
-//        if(usedUploadLimit<5120){
-//            usedUploadLimit=5120;
-//        }
-//
-//
-//        //re-calculate the up-down ratio.
-//        usedUpDownRatio = ( (float) downloadLimitMax /(float) usedUploadLimit);
-//
-//        //The amount to move it against the new limit is.
-//        float multi = Math.abs( signalStrength * multiple * 0.3f );
-//
-//        //If we are in an unpinned limits mode then consider consider
-//        if( !isUploadMaxPinned || !isDownloadMaxPinned ){
-//            //we are in a mode that is moving the limits.
-//            return calculateNewUnpinnedLimits(signalStrength);
-//        }//if
-//
-//        //Force the value to the limit.
-//        if(multi>1.0f){
-//            if( signalStrength>0.0f ){
-//                log("forcing: max upload limit.");
-//                int newDownloadLimit = Math.round( usedUploadLimit*usedUpDownRatio );
-//                return new SMUpdate(usedUploadLimit, true,newDownloadLimit, true);
-//            }else{
-//                log("forcing: min upload limit.");
-//                int newDownloadLimit = Math.round( uploadLimitMin*usedUpDownRatio );
-//                return new SMUpdate(uploadLimitMin, true, newDownloadLimit, true);
-//            }
-//        }
-//
-//        //don't move it all the way.
-//        int maxStep;
-//        int currStep;
-//        int minStep=1024;
-//
-//        if(signalStrength>0.0f){
-//            maxStep = Math.round( usedUploadLimit -currUpLimit );
-//        }else{
-//            maxStep = Math.round( currUpLimit- uploadLimitMin);
-//        }
-//
-//        currStep = Math.round(maxStep*multi);
-//        if(currStep<minStep){
-//            currStep=minStep;
-//        }
-//
-//        if( signalStrength<0.0f ){
-//            currStep = -1 * currStep;
-//        }
-//
-//        newLimit = currUpLimit+currStep;
-//        newLimit = (( newLimit + 1023 )/1024) * 1024;
-//
-//        if(newLimit> usedUploadLimit){
-//            newLimit= usedUploadLimit;
-//        }
-//        if(newLimit< uploadLimitMin){
-//            newLimit= uploadLimitMin;
-//        }
-//
-//
-//        log( "new-limit:"+newLimit+":"+currStep+":"+signalStrength+":"+multiple+":"+currUpLimit+":"+maxStep+":"+ usedUploadLimit +":"+uploadLimitMin );
-//
-//        int newDownloadLimit = Math.round( newLimit*usedUpDownRatio );
-//        return new SMUpdate(newLimit, true, newDownloadLimit, true );
-//    }
-
 
     /**
      * Log debug info needed during beta period.
@@ -520,11 +404,7 @@ public class SpeedLimitMonitor
             COConfigurationManager.setParameter(
                     SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MIN_LIMIT, downloadLimitMin);
         }
-        
-        //calculate the new ratio.
-        upDownRatio = ( (float) downloadLimitMax /(float) uploadLimitMax);
-        COConfigurationManager.setParameter(
-                SpeedManagerAlgorithmProviderV2.SETTING_V2_UP_DOWN_RATIO, upDownRatio);
+
 
         return new SMUpdate(uploadLimitMax,uploadChanged, downloadLimitMax,downloadChanged);
     }//calculateNewUnpinnedLimits
@@ -928,12 +808,6 @@ public class SpeedLimitMonitor
             }//if
             
         }
-        upDownRatio = ((float) downloadLimitMax /(float) uploadLimitMax);
-        COConfigurationManager.setParameter(
-                SpeedManagerAlgorithmProviderV2.SETTING_V2_UP_DOWN_RATIO, upDownRatio);
-
-
-        sb.append(newMaxLimitSetting).append(":").append(newMinLimitSetting).append(":").append(upDownRatio);
 
         SpeedManagerLogger.trace( sb.toString() );
 

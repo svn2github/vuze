@@ -45,8 +45,8 @@ import java.util.*;
  * lower the limit. If it getting closer it will increase the upload limit.
  */
 
-public class SpeedManagerAlgorithmProviderVivaldi
-    implements SpeedManagerAlgorithmProvider
+public class SpeedManagerAlgorithmProviderDHTPing
+        implements SpeedManagerAlgorithmProvider
 {
 	private static final byte VIVALDI_VERSION = DHTNetworkPosition.POSITION_TYPE_VIVALDI_V1;
 	
@@ -141,7 +141,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
         );
     }//static
 
-    SpeedManagerAlgorithmProviderVivaldi(SpeedManagerAlgorithmProviderAdapter _adapter){
+    SpeedManagerAlgorithmProviderDHTPing(SpeedManagerAlgorithmProviderAdapter _adapter){
 
         adapter = _adapter;
 
@@ -166,7 +166,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
     public void reset() {
         log("reset");
 
-        log("curr-data: curr-down-rate : curr-down-limit : down-capacity : down-bandwith-mode : down-limit-mode : curr-up-rate : curr-up-limit : up-capacity : upload-bandwidth-mode : upload-limit-mode : up-down-ratio : transfer-mode");
+        log("curr-data: curr-down-rate : curr-down-limit : down-capacity : down-bandwith-mode : down-limit-mode : curr-up-rate : curr-up-limit : up-capacity : upload-bandwidth-mode : upload-limit-mode : transfer-mode");
 
         log("new-limit:newLimit:currStep:signalStrength:multiple:currUpLimit:maxStep:uploadLimitMax:uploadLimitMin:transferMode" );
 
@@ -242,8 +242,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
         sb.append(upRate).append(":").append(currUploadLimit).append(":");
         sb.append( limitMonitor.getUploadMaxLimit() ).append(":");
         sb.append(limitMonitor.getUploadBandwidthMode()).append(":");
-        sb.append(limitMonitor.getUploadLimitSettingMode()).append(":");        
-        sb.append( limitMonitor.getUpDownRatio() ).append(":");
+        sb.append(limitMonitor.getUploadLimitSettingMode()).append(":");
         sb.append(limitMonitor.getTransferModeAsString());
 
         SpeedManagerLogger.log( sb.toString() );
@@ -500,7 +499,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
         return false;
     }
 
-    private void logNewLimits(SMUpdate update) {
+    private void logNewLimits( SMUpdate update ) {
         if( update.hasNewUploadLimit ){
             int kbpsUpoadLimit = update.newUploadLimit/1024;
             log(" new up limit  : "+ kbpsUpoadLimit +" kb/s");
