@@ -241,7 +241,8 @@ public class FileUtil {
           return;
         }
 
-        if (f.listFiles().length == 0) {
+        File[] files_inside = f.listFiles();
+        if (files_inside.length == 0) {
         	
           if ( !f.delete()){
           	
@@ -251,7 +252,7 @@ public class FileUtil {
           }
         }else{
         	if ( log_warnings ){
-        		Debug.out("Empty folder delete: "+f.listFiles().length+" file(s)/folder(s) still in " + f + ". Not removing.");
+        		Debug.out("Empty folder delete:  " + files_inside.length + " file(s)/folder(s) still in \"" + f + "\" - first listed item is \"" + files_inside[0].getName() + "\". Not removing.");
         	}
         }
       }
