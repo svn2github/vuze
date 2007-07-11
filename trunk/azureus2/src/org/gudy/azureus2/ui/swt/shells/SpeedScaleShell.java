@@ -363,10 +363,11 @@ public class SpeedScaleShell
 				new TimerEventPerformer() {
 					boolean on = false;
 
-					public void perform(TimerEvent event) {
+					public void perform(final TimerEvent event) {
 						Utils.execSWTThread(new AERunnable() {
 							public void runSupport() {
 								if (composite.isDisposed()) {
+									event.cancel();
 									return;
 								}
 
