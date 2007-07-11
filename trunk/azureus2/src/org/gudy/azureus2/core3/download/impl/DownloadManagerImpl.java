@@ -3112,7 +3112,8 @@ DownloadManagerImpl
 			  // nothing to do
 			  
 		  }else if ((	!torrent.isSimpleTorrent()) &&
-				  new_save_location.getPath().startsWith( old_file.getPath())){
+				  //new_save_location.getPath().startsWith( old_file.getPath())){
+				  FileUtil.isAncestorOf(old_file, new_save_location)) {
 		    		
 	            Logger.logTextResource(new LogAlert(this, LogAlert.REPEATABLE,
 						LogAlert.AT_ERROR, "DiskManager.alert.movefilefails"),

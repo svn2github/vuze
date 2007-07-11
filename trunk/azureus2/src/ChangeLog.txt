@@ -9,6 +9,8 @@ CHANGE: Core  | Much better peer ID identification code added, many more clients
 CHANGE: Core  | Core changes in some places to allow "Default save path" to be used without requiring "Use default data dir" to be enabled [hasturkun]
 CHANGE: UI    | UL/DL speed selection on right click of status bar changed from menu to scale widget. [TuxPaper]
                 Usage: (1) MouseDown+Drag+MouseUp  (2) Click+Move+Click  (3) Click+type number+Enter
+                
+BUGFIX: Core  | Fixed bug where renaming a download in some conditions would generate "Target is sub-directory" errors [amc1]                
 
 
 2007.06.20 | Azureus 3.0.1.6

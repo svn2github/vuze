@@ -1669,7 +1669,8 @@ DiskManagerImpl
                 return true;
             }else{
                 if ( !download_manager.getTorrent().isSimpleTorrent()){
-                    if ( to_file.getPath().startsWith( save_location.getPath())){
+                	if (FileUtil.isAncestorOf(save_location, to_file)) {
+                    //if ( to_file.getPath().startsWith( save_location.getPath())){
                         String msg = "Target is sub-directory of files";
                         logMoveFileError(save_location.toString(), msg);
                         return true;
@@ -1687,6 +1688,10 @@ DiskManagerImpl
     }
 
     private boolean moveDataFiles0(String move_to_dir, boolean change_to_read_only) throws Exception {
+    	
+    	// No files array? Can't do it.
+    	if (files == null) {return false;}
+    	
         File save_location = download_manager.getAbsoluteSaveLocation();
         String move_from_dir = save_location.getParent();
         
