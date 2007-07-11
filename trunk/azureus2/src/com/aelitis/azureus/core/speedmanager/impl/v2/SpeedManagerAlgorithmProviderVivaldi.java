@@ -235,7 +235,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
      * @param currUploadLimit -
      */
     private void logCurrentData(int downRate, int currDownLimit, int upRate, int currUploadLimit) {
-        StringBuffer sb = new StringBuffer("curr-data:"+downRate+":"+currDownLimit+":");
+        StringBuffer sb = new StringBuffer("curr-data-v:"+downRate+":"+currDownLimit+":");
         sb.append( limitMonitor.getDownloadMaxLimit() ).append(":");
         sb.append(limitMonitor.getDownloadBandwidthMode()).append(":");
         sb.append(limitMonitor.getDownloadLimitSettingMode()).append(":");

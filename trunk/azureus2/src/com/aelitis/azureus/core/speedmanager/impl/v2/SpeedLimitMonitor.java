@@ -2,8 +2,7 @@ package com.aelitis.azureus.core.speedmanager.impl.v2;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.SystemTime;
-
-
+import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
 
 /**
  * Created on May 23, 2007
@@ -953,6 +952,34 @@ public class SpeedLimitMonitor
             retVal = false;
         }
         return retVal;
+    }
+
+    private int choseBestLimit(SpeedManagerLimitEstimate estimate, int currMaxLimit) {
+        float rating = estimate.getMetricRating();
+        int chosenLimit;
+        if(  rating==SpeedManagerLimitEstimate.RATING_MANUAL ){
+            chosenLimit = estimate.getBytesPerSec();
+//        }else if( rating==SpeedManagerLimitEstimate.RATING_MEASURED){
+//            //What to do with measured limits? Are they real or temp. network congestion?        
+        }else if( rating>SpeedManagerLimitEstimate.RATING_UNKNOWN ){
+            chosenLimit = Math.max( estimate.getBytesPerSec(), currMaxLimit );
+        }else{
+            chosenLimit = currMaxLimit;
+        }
+        return chosenLimit;
+    }
+
+    /**
+     * Make some choices about how usable the limits are before passing them on.
+     * @param estUp
+     * @param estDown
+     */
+    public void setRefLimits(SpeedManagerLimitEstimate estUp,SpeedManagerLimitEstimate estDown){
+
+        int upMax = choseBestLimit(estUp, uploadLimitMax);
+        int downMax = choseBestLimit(estDown, downloadLimitMax);
+
+        setRefLimits(upMax,downMax);
     }
 
     public void setRefLimits(int uploadMax, int downloadMax){

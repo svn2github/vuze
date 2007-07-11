@@ -5,6 +5,7 @@ import com.aelitis.azureus.core.AzureusCoreException;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingMapper;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingSource;
+import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProvider;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProviderAdapter;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
@@ -134,7 +135,7 @@ public class SpeedManagerAlgorithmTI
         public
         SpeedManagerAlgorithmTI(
         	SpeedManagerAlgorithmProviderAdapter 	_adapter,
-        	boolean									_alan_pingmapper ){
+            boolean									_alan_pingmapper ){
 
             adapter = _adapter;
 
@@ -232,7 +233,7 @@ public class SpeedManagerAlgorithmTI
          * @param currUploadLimit -
          */
         private void logCurrentData(int downRate, int currDownLimit, int upRate, int currUploadLimit) {
-            StringBuffer sb = new StringBuffer("curr-data:"+downRate+":"+currDownLimit+":");
+            StringBuffer sb = new StringBuffer("curr-data-s:"+downRate+":"+currDownLimit+":");
             sb.append( limitMonitor.getDownloadMaxLimit() ).append(":");
             sb.append(limitMonitor.getDownloadBandwidthMode()).append(":");
             sb.append(limitMonitor.getDownloadLimitSettingMode()).append(":");
@@ -332,13 +333,10 @@ public class SpeedManagerAlgorithmTI
                 hadAdjustmentLastInterval=true;
 
                 float multiple = consectiveMultiplier();
-                int currUpLimit = adapter.getCurrentUploadLimit();
-                int currDownLimit = adapter.getCurrentDownloadLimit();
 
-                //NOTE: int[2] with only max  upload/download   limits.
-                int[] limits = tf.getLimits();
-
-                SpeedLimitMonitor.Update update = modifyLimits(signalStrength,multiple,currUpLimit,currDownLimit, limits);
+                //ToDo: modify result here.
+                SpeedLimitMonitor.Update update = modifyLimits(signalStrength,multiple);
+                //SpeedLimitMonitor.Update update = modifyLimits(signalStrength,multiple,currUpLimit,currDownLimit, limits);
 
                 //log
                 logNewLimits(update);
@@ -368,18 +366,22 @@ public class SpeedManagerAlgorithmTI
             slider = new LimitSlider();
         }
 
-        SpeedLimitMonitor.Update modifyLimits(float signalStrength, float multiple, int currUpLimit, int currDownLimit, int[] limits){
+        SpeedLimitMonitor.Update modifyLimits(float signalStrength, float multiple){
 
-            int upLimitMax = limits[TestInterface.UPLOAD_MAX_INDEX];
-            int downLimitMax = limits[TestInterface.DOWNLOAD_MAX_INDEX];
+            //actual enforced limits.
+            int currUpLimit = adapter.getCurrentUploadLimit();
+            int currDownLimit = adapter.getCurrentDownloadLimit();
 
+            //current usage status.
             SaturatedMode uploadLimitSettingStatus = limitMonitor.getUploadLimitSettingMode();
             SaturatedMode downloadLimitSettingStatus = limitMonitor.getDownloadLimitSettingMode();
 
-            //Mapper is now trying to determine the limits. - Check if limits are useful.
-            SpeedManagerLogger.trace("Recommended Limits from mapper- up="+upLimitMax+" down="+downLimitMax);
-            
-            limitMonitor.setRefLimits(upLimitMax,downLimitMax);
+            //Estimate of the persistent line capacity is.
+            SpeedManagerPingMapper smpm = adapter.getPingMapper();
+            SpeedManagerLimitEstimate estDown = smpm.getEstimatedDownloadLimit(true);
+            SpeedManagerLimitEstimate estUp = smpm.getEstimatedUploadLimit(true);
+
+            limitMonitor.setRefLimits(estDown,estUp);
 
             int downloadLimitMax = limitMonitor.getDownloadMaxLimit();
             int downloadLimitMin = limitMonitor.getDownloadMinLimit();
