@@ -45,18 +45,6 @@ SpeedManagerAlgorithmProviderV2
 
     //sets the input source,  vivaldi, DHT ping, ICMP pint, etc ....
     public static final String SETTING_DATA_SOURCE_INPUT = "SpeedManagerAlgorithmProviderV2.source.data.input";
-    //modes for the data source.
-    public static final String VALUE_SOURCE_VIVALDI = "vivaldi";
-    public static final String VALUE_SOURCE_DHT = "dht";
-
-    //Vivaldi settings.
-    public static final String SETTING_VIVALDI_GOOD_SET_POINT = "SpeedManagerAlgorithmProviderV2.setting.vivaldi.good.setpoint";
-    public static final String SETTING_VIVALDI_GOOD_TOLERANCE = "SpeedManagerAlgorithmProviderV2.setting.vivaldi.good.tolerance";
-    public static final String SETTING_VIVALDI_BAD_SET_POINT = "SpeedManagerAlgorithmProviderV2.setting.vivaldi.bad.setpoint";
-    public static final String SETTING_VIVALDI_BAD_TOLERANCE = "SpeedManagerAlgorithmProviderV2.setting.vivaldi.good.tolerance";
-
-    //adjustments up should be smaller then down.
-    public static final String SETTING_UPTICK_DAMPING_FACTOR = "SpeedManagerAlgorithmProviderV2.uptick.adjust.factor";
 
     //DHT ping settings.
     public static final String SETTING_DHT_GOOD_SET_POINT = "SpeedManagerAlgorithmProviderV2.setting.dht.good.setpoint";
@@ -72,10 +60,6 @@ SpeedManagerAlgorithmProviderV2
     public static final String SETTING_V2_BETA_ENABLED = "SpeedManagerAlgorithmProviderV2.setting.beta.enabled";
 
 
-    //the ratio of upload/download speed when making adjustments.
-    public static final String SETTING_V2_UP_DOWN_RATIO = "SpeedManagerAlgorithmProviderV2.setting.updown.ratio";
-
-
     public
 	SpeedManagerAlgorithmProviderV2(
 		SpeedManagerAlgorithmProviderAdapter	_adapter )
@@ -84,7 +68,6 @@ SpeedManagerAlgorithmProviderV2
 		adapter.setLoggingEnabled( true );
 
         strategy = new SpeedManagerAlgorithmProviderDHTPing(_adapter);
-        //strategy = new SpeedManagerAlgorithmTI(_adapter, true );
     }
 	
 	public void
