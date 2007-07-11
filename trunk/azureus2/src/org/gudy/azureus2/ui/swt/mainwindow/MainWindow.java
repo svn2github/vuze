@@ -1297,6 +1297,7 @@ MainWindow
 	}
 	
 	public void refreshTorrentMenu() {
+		if (this.mainMenu == null) {return;}
 		if (this.getCurrentView() instanceof ManagerView) {
 			this.mainMenu.setTorrentMenuDownload(((ManagerView)this.getCurrentView()).getDownload());
 		}
