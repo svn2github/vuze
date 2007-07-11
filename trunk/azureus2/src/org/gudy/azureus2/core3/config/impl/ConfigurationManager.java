@@ -694,25 +694,25 @@ ConfigurationManager
   }
     
   private void notifyParameterListeners(String parameter) {
-    Vector parameterListener = (Vector) parameterListeners.get(parameter);
-    if(parameterListener != null) {
-    	try{
-    		for (int i=0;i<parameterListener.size();i++){
-        
-    			ParameterListener	listener = (ParameterListener)parameterListener.get(i);
-    			
-    			if(listener != null) {
-    				listener.parameterChanged(parameter);
-    			}
-    		}
-    	}catch( Throwable e ){
-    		
-    			// we're not synchronized so possible but unlikely error here
-    		
-    		Debug.printStackTrace( e );
-      }
-    }
-   }
+		Vector parameterListener = (Vector) parameterListeners.get(parameter);
+		if (parameterListener == null) {
+			return;
+		}
+
+		Object[] listeners = parameterListener.toArray();
+		for (int i = 0; i < listeners.length; i++) {
+			ParameterListener listener = (ParameterListener) listeners[i];
+
+			if (listener != null) {
+				try {
+					listener.parameterChanged(parameter);
+				} catch (Throwable e) {
+					// we're not synchronized so possible but unlikely error here
+					Debug.printStackTrace(e);
+				}
+			}
+		}
+	}
 
   public void addParameterListener(String parameter, ParameterListener listener){
   	try{
