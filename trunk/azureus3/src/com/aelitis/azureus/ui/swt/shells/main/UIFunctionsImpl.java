@@ -681,4 +681,8 @@ public class UIFunctionsImpl
 			}
 		});
 	}
+	
+	public void setTorrentMenuContextObjects(Object[] context) {
+		// Not supported yet.
+	}
 }
