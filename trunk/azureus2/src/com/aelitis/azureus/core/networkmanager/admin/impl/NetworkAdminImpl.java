@@ -32,9 +32,11 @@ import java.net.NetworkInterface;
 import java.net.PasswordAuthentication;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -61,6 +63,10 @@ import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.instancemanager.AZInstance;
+import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
+import com.aelitis.azureus.core.instancemanager.AZInstanceManagerListener;
+import com.aelitis.azureus.core.instancemanager.AZInstanceTracked;
 import com.aelitis.azureus.core.networkmanager.admin.*;
 import com.aelitis.azureus.core.networkmanager.impl.http.HTTPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
@@ -111,6 +117,13 @@ NetworkAdminImpl
 				return( true );
 			}
 		};
+		
+	private static final int ASN_MIN_CHECK = 30*60*1000;
+	
+	private long last_asn_lookup_time;
+	
+	private List asn_ips_checked = new ArrayList(0);
+	
 		
 	public
 	NetworkAdminImpl()
@@ -439,7 +452,13 @@ NetworkAdminImpl
 		
 		while( it.hasNext()){
 			
-			((NetworkAdminPropertyChangeListener)it.next()).propertyChanged( property );
+			try{
+				((NetworkAdminPropertyChangeListener)it.next()).propertyChanged( property );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 	}
 	
@@ -635,28 +654,213 @@ NetworkAdminImpl
 		return((NetworkAdminNATDevice[])devices.toArray(new NetworkAdminNATDevice[devices.size()]));
 	}
 	
-	public NetworkAdminASNLookup
+	public NetworkAdminASN 
+	getCurrentASN() 
+	{
+		List	asns = COConfigurationManager.getListParameter( "ASN Details", new ArrayList());
+		
+		if ( asns.size() == 0 ){
+	
+				// migration from when we only persisted a single AS
+			
+			String as 	= "";
+			String asn 	= "";
+			String bgp 	= "";
+
+			try{
+				as 		= COConfigurationManager.getStringParameter( "ASN AS" );
+				asn 	= COConfigurationManager.getStringParameter( "ASN ASN" );
+				bgp 	= COConfigurationManager.getStringParameter( "ASN BGP" );
+					
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+			
+			COConfigurationManager.removeParameter( "ASN AS" );
+			COConfigurationManager.removeParameter( "ASN ASN" );
+			COConfigurationManager.removeParameter( "ASN BGP" );
+			COConfigurationManager.removeParameter( "ASN Autocheck Performed Time" );
+			
+			asns.add(ASNToMap(new NetworkAdminASNImpl(as, asn, bgp )));
+			
+			COConfigurationManager.setParameter( "ASN Details", asns );
+		}
+		
+		if ( asns.size() > 0 ){
+			
+			Map	m = (Map)asns.get(0);
+			
+			return( ASNFromMap( m ));
+		}
+		
+		return( new NetworkAdminASNImpl( "", "", "" ));
+	}
+	
+	protected Map
+	ASNToMap(
+		NetworkAdminASNImpl	x )
+	{
+		Map	m = new HashMap();
+		
+		byte[]	as	= new byte[0];
+		byte[]	asn	= new byte[0];
+		byte[]	bgp	= new byte[0];
+		
+		try{	
+			as	= x.getAS().getBytes("UTF-8");
+			asn	= x.getASName().getBytes("UTF-8");
+			bgp	= x.getBGPPrefix().getBytes("UTF-8");
+	
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+		
+		m.put( "as", as );
+		m.put( "name", asn );
+		m.put( "bgp", bgp );
+		
+		return( m );
+	}
+	
+	protected NetworkAdminASNImpl
+	ASNFromMap(
+		Map	m )
+	{
+		String	as		= "";
+		String	asn		= "";
+		String	bgp		= "";
+		
+		try{
+			as	= new String((byte[])m.get("as"),"UTF-8");
+			asn	= new String((byte[])m.get("name"),"UTF-8");
+			bgp	= new String((byte[])m.get("bgp"),"UTF-8");
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+		
+		return( new NetworkAdminASNImpl( as, asn, bgp ));
+	}
+	
+	public NetworkAdminASN
 	lookupASN(
 		InetAddress		address )
 	
 		throws NetworkAdminException
 	{
-		return( new NetworkAdminASNLookupImpl( address ));
+		System.out.println( "lookupASN: " + address );
+		
+		NetworkAdminASN current = getCurrentASN();
+		
+		if ( current.matchesCIDR( address )){
+			
+			return( current );
+		}
+		
+		List	asns = COConfigurationManager.getListParameter( "ASN Details", new ArrayList());
+
+		for (int i=0;i<asns.size();i++){
+			
+			Map	m = (Map)asns.get(i);
+			
+			NetworkAdminASN x = ASNFromMap( m );
+			
+			if ( x.matchesCIDR( address )){
+				
+				asns.remove(i);
+				
+				asns.add( 0, m );
+				
+				firePropertyChange( PR_AS );
+				
+				return( x );
+			}
+		}
+		
+		if ( asn_ips_checked.contains( address )){
+			
+			return( current );
+		}
+				
+		long now = SystemTime.getCurrentTime();
+
+		if ( now < last_asn_lookup_time || now - last_asn_lookup_time > ASN_MIN_CHECK ){
+
+			last_asn_lookup_time	= now;
+
+			NetworkAdminASNLookupImpl lookup = new NetworkAdminASNLookupImpl( address );
+
+			NetworkAdminASNImpl x = lookup.lookup();
+			
+			asn_ips_checked.add( address );
+			
+			asns.add( 0, ASNToMap( x ));
+			
+			firePropertyChange( PR_AS );
+
+			return( x );
+		}
+		
+		return( current );
 	}
-	
-	public boolean
-	matchesCIDR(
-		String		cidr,
-		InetAddress	address )
-	
-		throws NetworkAdminException
-	{
-		return( NetworkAdminASNLookupImpl.matchesCIDR( cidr, address ));
-	}
-	
+		
 	public void
 	runInitialChecks()
 	{
+		AZInstanceManager i_man = AzureusCoreFactory.getSingleton().getInstanceManager();
+		
+		final AZInstance	my_instance = i_man.getMyInstance();
+		
+		i_man.addListener(
+			new AZInstanceManagerListener()
+			{
+				private InetAddress external_address;
+				
+				public void
+				instanceFound(
+					AZInstance		instance )
+				{
+				}
+				
+				public void
+				instanceChanged(
+					AZInstance		instance )
+				{
+					if ( instance == my_instance ){
+						
+						InetAddress address = instance.getExternalAddress();
+						
+						if ( external_address == null || !external_address.equals( address )){
+							
+							external_address = address;
+							
+							try{
+								lookupASN( address );
+								
+							}catch( Throwable e ){
+								
+								Debug.printStackTrace(e);
+							}
+						}
+					}
+				}
+				
+				public void
+				instanceLost(
+					AZInstance		instance )
+				{
+				}
+				
+				public void
+				instanceTracked(
+					AZInstanceTracked	instance )
+				{
+				}
+			});
+		
 		if ( COConfigurationManager.getBooleanParameter( "Proxy.Check.On.Start" )){
 			
 			NetworkAdminSocksProxy[]	socks = getSocksProxies();
@@ -711,6 +915,24 @@ NetworkAdminImpl
 		NetworkAdminPropertyChangeListener	listener )
 	{
 		listeners.add( listener );
+	}
+	
+	public void
+	addAndFirePropertyChangeListener(
+		NetworkAdminPropertyChangeListener	listener )
+	{
+		listeners.add( listener );
+		
+		for (int i=0;i<NetworkAdmin.PR_NAMES.length;i++){
+			
+			try{
+				listener.propertyChanged( PR_NAMES[i] );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
 	}
 	
 	public void
@@ -989,7 +1211,7 @@ NetworkAdminImpl
 			InetAddress	pub_address = (InetAddress)it.next();
 			
 			try{
-				NetworkAdminASNLookup	res = lookupASN( pub_address );
+				NetworkAdminASN	res = lookupASN( pub_address );
 				
 				iw.println( "    " + pub_address.getHostAddress() + " -> " + res.getAS() + "/" + res.getASName());
 				

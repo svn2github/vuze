@@ -71,6 +71,7 @@ import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.plugins.dht.impl.DHTPluginImpl;
+import com.aelitis.azureus.plugins.dht.impl.DHTPluginImplAdapter;
 
 import com.aelitis.azureus.plugins.upnp.UPnPMapping;
 import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
@@ -761,12 +762,29 @@ DHTPlugin
 							
 							List	plugins = new ArrayList();
 							
+								// adapter only added to first DHTPluginImpl we create
+							
+							DHTPluginImplAdapter adapter = 
+					        		new DHTPluginImplAdapter()
+					        		{
+					        			public void
+					        			localContactChanged(
+					        				DHTPluginContact	local_contact )
+					        			{
+					        				for (int i=0;i<listeners.size();i++){
+					        					
+					        					((DHTPluginListener)listeners.get(i)).localAddressChanged( local_contact );
+					        				}
+					        			}
+					        		};
+					        		
 							if ( MAIN_DHT_ENABLE ){
 								
 								main_dht = 
 									new DHTPluginImpl(
 												plugin_interface,
 												AzureusCoreFactory.getSingleton().getNATTraverser(),
+												adapter,
 												DHTTransportUDP.PROTOCOL_VERSION_MAIN,
 												DHT.NW_MAIN,
 												false,
@@ -778,6 +796,8 @@ DHTPlugin
 												log, dht_log );
 																
 								plugins.add( main_dht );
+								
+								adapter = null;
 							}
 							
 							if ( MAIN_DHT_V6_ENABLE ){
@@ -788,6 +808,7 @@ DHTPlugin
 										new DHTPluginImpl(
 											plugin_interface,
 											AzureusCoreFactory.getSingleton().getNATTraverser(),
+											adapter,
 											DHTTransportUDP.PROTOCOL_VERSION_MAIN,
 											DHT.NW_MAIN_V6,
 											true,
@@ -799,6 +820,8 @@ DHTPlugin
 											log, dht_log );
 																
 									plugins.add( main_v6_dht );
+									
+									adapter = null;
 								}
 							}
 							
@@ -808,6 +831,7 @@ DHTPlugin
 									new DHTPluginImpl(
 										plugin_interface,
 										AzureusCoreFactory.getSingleton().getNATTraverser(),
+										adapter,
 										DHTTransportUDP.PROTOCOL_VERSION_CVS,
 										DHT.NW_CVS,
 										false,
@@ -817,9 +841,10 @@ DHTPlugin
 										warn_user,
 										logging,
 										log, dht_log );
-								
-								
+							
 								plugins.add( cvs_dht );
+								
+								adapter = null;
 							}
 							
 							DHTPluginImpl[]	_dhts = new DHTPluginImpl[plugins.size()];
@@ -830,33 +855,7 @@ DHTPlugin
 							
 							status = dhts[0].getStatus();
 							
-							status_area.setText( dhts[0].getStatusText());
-						
-							dhts[0].getDHT().getTransport().addListener(
-					        		new DHTTransportListener()
-					        		{
-					        			public void
-					        			localContactChanged(
-					        				DHTTransportContact	local_contact )
-					        			{
-					        				for (int i=0;i<listeners.size();i++){
-					        					
-					        					((DHTPluginListener)listeners.get(i)).localAddressChanged(dhts[0].getLocalAddress());
-					        				}
-					        			}
-					        			
-					        			public void
-					        			currentAddress(
-					        				String		address )
-					        			{
-					        			}
-					        			
-					        			public void
-					        			reachabilityChanged(
-					        				boolean	reacheable )
-					        			{
-					        			}
-					        		});							
+							status_area.setText( dhts[0].getStatusText());			
 							
 						}else{
 							

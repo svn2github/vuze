@@ -49,6 +49,9 @@ import com.aelitis.azureus.core.dht.speed.DHTSpeedTester;
 import com.aelitis.azureus.core.dht.speed.DHTSpeedTesterContact;
 import com.aelitis.azureus.core.dht.speed.DHTSpeedTesterContactListener;
 import com.aelitis.azureus.core.dht.speed.DHTSpeedTesterListener;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminASN;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminPropertyChangeListener;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerAdapter;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
@@ -180,23 +183,37 @@ SpeedManagerImpl
 			config_dir.mkdirs();
 		}
 		
-		COConfigurationManager.addAndFireParameterListener( 
-			"ASN AS",
-			new ParameterListener()
+		NetworkAdmin.getSingleton().addAndFirePropertyChangeListener(
+			new NetworkAdminPropertyChangeListener()
 			{
 				public void
-				parameterChanged(
-					final String name )
+				propertyChanged(
+					String		property )
 				{
-					String	as = COConfigurationManager.getStringParameter( name, "default" );
-					
-					File history = new File( config_dir, "pm_" + FileUtil.convertOSSpecificChars( as ) + ".dat" );
-					
-					ping_mapper.loadHistory( history );
-					
-					asn = COConfigurationManager.getStringParameter( "ASN ASN", "Unknown" );
-					
-					informListeners( SpeedManagerListener.PR_ASN );
+					if ( property == NetworkAdmin.PR_AS ){
+						
+					    NetworkAdminASN net_asn = NetworkAdmin.getSingleton().getCurrentASN();
+
+						String	as = net_asn.getAS();
+						
+						if ( as.length() == 0 ){
+							
+							as = "default";
+						}
+						
+						File history = new File( config_dir, "pm_" + FileUtil.convertOSSpecificChars( as ) + ".dat" );
+						
+						ping_mapper.loadHistory( history );
+						
+						asn = net_asn.getASName();
+						
+						if ( asn.length() == 0 ){
+							
+							asn = "Unknown";
+						}
+						
+						informListeners( SpeedManagerListener.PR_ASN );
+					}
 				}
 			});
 		

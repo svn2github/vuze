@@ -119,6 +119,7 @@ DHTPluginImpl
 	DHTPluginImpl(
 		PluginInterface			_plugin_interface,
 		DHTNATPuncherAdapter	_nat_adapter,
+		DHTPluginImplAdapter	_adapter,
 		byte					_protocol_version,
 		int						_network,
 		boolean					_v6,
@@ -139,6 +140,8 @@ DHTPluginImpl
 		warn_user_param		= _warn_user_param;
 		log					= _log;
 		dht_log				= _dht_log;
+		
+		final DHTPluginImplAdapter	adapter = _adapter;
 		
 		try{
 			storage_manager = new DHTPluginStorageManager( network, dht_log, getDataDir( _network ));
@@ -179,6 +182,11 @@ DHTPluginImpl
 						DHTTransportContact	local_contact )
 					{
 						storage_manager.localContactChanged( local_contact );
+						
+						if ( adapter != null ){
+							
+							adapter.localContactChanged( getLocalAddress());
+						}
 					}
 					
 					public void

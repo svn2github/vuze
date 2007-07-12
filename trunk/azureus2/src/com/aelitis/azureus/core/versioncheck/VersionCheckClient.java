@@ -45,7 +45,7 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.clientmessageservice.*;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminASNLookup;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminASN;
 import com.aelitis.net.udp.uc.PRUDPPacketHandler;
 import com.aelitis.net.udp.uc.PRUDPPacketHandlerFactory;
 import com.aelitis.net.udp.uc.PRUDPReleasablePacketHandler;
@@ -284,6 +284,13 @@ public class VersionCheckClient {
 		  
 		  return( v4_ok | v6_ok );
 	  }
+  }
+  
+  public long
+  getCacheTime(
+		  boolean v6 )
+  {
+	  return( v6?last_check_time_v6:last_check_time_v4);
   }
   
   /**
@@ -726,96 +733,47 @@ public class VersionCheckClient {
 	Map					reply,
 	final boolean		v6 )
   {
-	  	// two cases where we automatically attempt to resolve the ASN (to minimise load on ASN
-	  	// provider)
-	  	// 1) new installs
-	  	// 2) where we have an asn and public IP has changed outside of prefix range
-	 
-	 final long ASN_MIN_CHECK = 7*24*60*60*1000L;
-		 
-	 boolean	check_asn 	= false;
-	 
-	 long now = SystemTime.getCurrentTime();
-	 	 
-	 long	asn_check_time = COConfigurationManager.getLongParameter( "ASN Autocheck Performed Time" );
-	 		 
-	 if ( now < asn_check_time || now - asn_check_time > ASN_MIN_CHECK ){
-		 
-		 String bgp_prefix	= COConfigurationManager.getStringParameter( "ASN BGP", null );
-		 String asn			= COConfigurationManager.getStringParameter( "ASN ASN", null );
-		 
-		 if ( 	asn == null || asn.length() == 0 ||
-				bgp_prefix == null || bgp_prefix.length() == 0 ){
-			
-			 	// during 2502 introduction we ran DNS based queries as fallback without support
-			 	// for reading ASN - pick up blank ASNs now and force recheck
-			 
-			 check_asn = true;
-			 
-		 }else{
-			 					 
-			 try{
-				 byte[] address = (byte[])reply.get( "source_ip_address" );
-				  
-				 InetAddress	ip = InetAddress.getByName( new String( address ));
+	  NetworkAdmin admin = NetworkAdmin.getSingleton();
+	  
+	  try{
+		  byte[] address = (byte[])reply.get( "source_ip_address" );
 
-				 	// if we've got a prefix only recheck if outside existing range
-			 
-				 if ( !NetworkAdmin.getSingleton().matchesCIDR( bgp_prefix, ip )){
-				 
-					 check_asn = true;
-				 }
-				 
-			 }catch( Throwable e ){
-				 
-				 check_asn = true;
-				 
-				 Debug.printStackTrace(e);
-			 }
-		}
-	 }
-	 
-	 if ( check_asn ){
-		 
-		 COConfigurationManager.setParameter( "ASN Autocheck Performed Time", now );
+		  InetAddress my_ip = InetAddress.getByName( new String( address ));
+		  
+		  NetworkAdminASN old_asn = admin.getCurrentASN();
+		  	  
+		  NetworkAdminASN new_asn = admin.lookupASN( my_ip );
 
-		 try{
-			 byte[] address = (byte[])reply.get( "source_ip_address" );
-			  
-			 InetAddress	ip = InetAddress.getByName( new String( address ));
-		 
-			 NetworkAdminASNLookup	asn = NetworkAdmin.getSingleton().lookupASN( ip );
-			 				 
-			 COConfigurationManager.setParameter( "ASN AS", 	asn.getAS());
-			 COConfigurationManager.setParameter( "ASN ASN", 	asn.getASName());
-			 COConfigurationManager.setParameter( "ASN BGP", 	asn.getBGPPrefix());
+		  if ( !new_asn.sameAs( old_asn )){
+
+			  // kick off a secondary version check to communicate the new information
+
+			  if ( !secondary_check_done ){
+
+				  secondary_check_done	= true;
+
+				  new AEThread( "Secondary version check", true )
+				  {
+					  public void
+					  runSupport()
+					  {
+						  getVersionCheckInfoSupport( REASON_SECONDARY_CHECK, false, true, v6 );
+					  }
+				  }.start();
+			  }
+		  }
+	 }catch( Throwable e ){
 			 
-			 	// kick off a secondary version check to communicate the new information
-			 
-			 if ( !secondary_check_done ){
-				 
-				 secondary_check_done	= true;
-				 
-				 new AEThread( "Secondary version check", true )
-				 {
-					 public void
-					 runSupport()
-					 {
-						 getVersionCheckInfoSupport( REASON_SECONDARY_CHECK, false, true, v6 );
-					 }
-				 }.start();
-			 }			 
-		 }catch( Throwable e ){		
-			 
-			 Debug.printStackTrace(e);
-		 }
+		 Debug.printStackTrace(e);
 	 }
 	 
 	 Long	as_advice = (Long)reply.get( "as_advice" );
 	 
 	 if ( as_advice != null ){
 		 
-	     String	asn = COConfigurationManager.getStringParameter( "ASN ASN", null );
+		 NetworkAdminASN current_asn = admin.getCurrentASN();
+
+	     String	asn = current_asn.getASName();
 
 	     if ( asn != null ){
 	    	

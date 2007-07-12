@@ -1704,7 +1704,27 @@ DHTTransportUDPImpl
 							
 							stats.findNodeOK();
 								
-							handler.findNodeReply( contact, reply.getContacts());
+							DHTTransportContact[] contacts = reply.getContacts();
+							
+								// scavenge any contacts here to help bootstrap process
+								// when ip wrong and no import history
+							
+							for (int i=0; contact_history.size() < CONTACT_HISTORY_MAX && i<contacts.length;i++){
+								
+								DHTTransportUDPContact c = (DHTTransportUDPContact)contacts[i];
+								
+								try{
+									this_mon.enter();
+									
+									contact_history.put( c.getTransportAddress(), c );
+
+								}finally{
+									
+									this_mon.exit();
+								}
+							}
+							
+							handler.findNodeReply( contact, contacts );
 							
 						}catch( DHTUDPPacketHandlerException e ){
 							
@@ -3118,7 +3138,9 @@ DHTTransportUDPImpl
 					
 					if ( bootstrap_node ){
 						
-						acceptable = Arrays.equals( find_request.getID(), originating_contact.getID());
+							// let bad originators through to aid bootstrapping with bad IP
+						
+						acceptable = bad_originator || Arrays.equals( find_request.getID(), originating_contact.getID());
 												
 					}else{
 						

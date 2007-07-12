@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.PluginInterface;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
@@ -60,10 +61,11 @@ AZMyInstanceImpl
 	
 	private long				last_upnp_read;
 	
+	private InetAddress			dht_address;
+	private long				dht_address_time;
+	
 	private long				last_force_read_ext;
 	private InetAddress			last_external_address;
-	
-	private boolean				dht_listener_added;
 	
 	protected
 	AZMyInstanceImpl(
@@ -94,6 +96,43 @@ AZMyInstanceImpl
 			});
 		
 		readConfig( true );
+		
+		core.addLifecycleListener(
+			new AzureusCoreLifecycleAdapter()
+			{
+				public void
+				started(
+					AzureusCore		core )
+				{
+					core.removeLifecycleListener( this );
+					
+				    PluginInterface dht_pi = core.getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
+		        	
+				    DHTPlugin dht = null;
+				    
+				    if ( dht_pi != null ){
+			    	
+				    	dht = (DHTPlugin)dht_pi.getPlugin();
+				    	
+				    	if ( dht != null ){
+				    		
+				        	dht.addListener(
+				        		new DHTPluginListener()
+				        		{
+				        			public void
+				        			localAddressChanged(
+				        				DHTPluginContact	local_contact )
+				        			{
+				        				dht_address 		= local_contact.getAddress().getAddress();
+				        				dht_address_time	= SystemTime.getCurrentTime();
+				        				
+				        				manager.informChanged( AZMyInstanceImpl.this );
+				        			}
+				        		});
+				    	}
+				    }
+				}
+			});
 	}
 	
 	protected void
@@ -162,38 +201,32 @@ AZMyInstanceImpl
 		}
 		
 	    PluginInterface dht_pi = core.getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
-        
-		
+        	
 	    DHTPlugin dht = null;
 	    
 	    if ( dht_pi != null ){
     	
 	    	dht = (DHTPlugin)dht_pi.getPlugin();
-	    	
-	    	if ( dht != null ){
-	    		
-	        	if ( !dht_listener_added ){
-	        		
-	        		dht_listener_added	= true;
-	        		
-		        	dht.addListener(
-		        		new DHTPluginListener()
-		        		{
-		        			public void
-		        			localAddressChanged(
-		        				DHTPluginContact	local_contact )
-		        			{
-		        				manager.informChanged( AZMyInstanceImpl.this );
-		        			}
-		        		});
-	        	}
-	    	}
 	    }
 	    
-			// use cached version if available and the DHT isn't
+	    	// if DHT has informed us of an address then we use this - most reliable up to date one
+	    	// unless the version server cache time is more recent
+	    
+	    if ( dht_address != null && dht_address_time <= SystemTime.getCurrentTime()){
+	    	
+	    	long cache_time = VersionCheckClient.getSingleton().getCacheTime( false );
+	    	 
+	    	if ( cache_time <= dht_address_time ){
+	    		
+	    		external_address = dht_address;
+	    	}
+	    }
+
+	    if ( 	external_address == null &&
+	    		( dht == null || dht.getStatus() != DHTPlugin.STATUS_RUNNING )){
 		
-		if ( dht == null || dht.getStatus() != DHTPlugin.STATUS_RUNNING ){
-		
+	    		// use cached version if available and the DHT isn't
+
 			String	str_address = VersionCheckClient.getSingleton().getExternalIpAddress( true, false );
 		
 			if ( str_address != null ){

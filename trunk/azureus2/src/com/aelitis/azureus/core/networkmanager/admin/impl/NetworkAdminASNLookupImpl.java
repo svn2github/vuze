@@ -38,36 +38,39 @@ import java.util.StringTokenizer;
 import javax.naming.*;
 import javax.naming.directory.*;
 
-import org.gudy.azureus2.core3.tracker.protocol.PRHelpers;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminASNLookup;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminException;
 
 public class 
 NetworkAdminASNLookupImpl 
-	implements NetworkAdminASNLookup
 {
 	private static final String	WHOIS_ADDRESS 	= "whois.cymru.com";
 	private static final int	WHOIS_PORT		= 43;
 	
 	private static final int	TIMEOUT			= 30000;
 	
-	private String		as;
-	private String		asn;
-	private String		bgp_prefix;
+	private InetAddress		address;
 	
 	protected 
 	NetworkAdminASNLookupImpl(
-		InetAddress		address )
+		InetAddress		_address )
+	{
+		address= _address;
+	}
+	
+	protected NetworkAdminASNImpl
+	lookup()
 	
 		throws NetworkAdminException
 	{
-		lookupDNS( address );
+		Debug.out( "ASN for '" + address + "'" );
+		
+		return( lookupDNS( address ));
 	}
 	
-	protected void
+	protected NetworkAdminASNImpl
 	lookupTCP(			
 		InetAddress		address )
 	
@@ -124,7 +127,7 @@ NetworkAdminASNLookupImpl
 					result += new String( buffer, 0, len );
 				}
 
-				processResult( result );
+				return( processResult( result ));
 
 			}finally{
 				
@@ -136,7 +139,7 @@ NetworkAdminASNLookupImpl
 		}	
 	}
 	
-	protected void
+	protected NetworkAdminASNImpl
 	lookupDNS(
 		InetAddress		address )
 	
@@ -157,11 +160,12 @@ NetworkAdminASNLookupImpl
 
 		String	ip_result = lookupDNS( ip_query );
 					
-		processResult( 
+		NetworkAdminASNImpl result = 
+			processResult( 
 				"AS | BGP Prefix | CC | Reg | Date | AS Name" + "\n" + 
 				ip_result + " | n/a" );
 
-		String	as = getAS();
+		String	as = result.getAS();
 		
 		if ( as.length() > 0 ){
 			
@@ -181,7 +185,9 @@ NetworkAdminASNLookupImpl
 					
 					if ( pos != -1 ){
 						
-						asn = asn_result.substring( pos+1 ).trim();
+						String asn = asn_result.substring( pos+1 ).trim();
+						
+						result.setASName( asn );
 					}
 				}
 			}catch( Throwable e ){
@@ -189,6 +195,8 @@ NetworkAdminASNLookupImpl
 				Debug.outNoStack( "ASN lookup for '" + asn_query+ "' failed: " + e.getMessage());
 			}
 		}
+		
+		return( result );
 	}
 		
 	protected String
@@ -262,7 +270,7 @@ NetworkAdminASNLookupImpl
 	}
 	
 	
-	protected void
+	protected NetworkAdminASNImpl
 	processResult(
 		String		result )
 	{
@@ -315,9 +323,9 @@ NetworkAdminASNLookupImpl
 			}
 		}
 		
-		as 			= (String)map.get( "as" );
-		asn 		= (String)map.get( "as name" );
-		bgp_prefix	= (String)map.get( "bgp prefix" );
+		String as 			= (String)map.get( "as" );
+		String asn 		= (String)map.get( "as name" );
+		String bgp_prefix	= (String)map.get( "bgp prefix" );
 		
 		if ( bgp_prefix != null ){
 			
@@ -333,142 +341,11 @@ NetworkAdminASNLookupImpl
 				bgp_prefix = null;
 			}
 		}
-	}
-	
-	public String
-	getAS()
-	{
-		return( as==null?"":as );
-	}
-	
-	public String
-	getASName()
-	{
-		return( asn==null?"":asn );
-	}
-	
-	public String
-	getBGPPrefix()
-	{
-		return( bgp_prefix==null?"":bgp_prefix );
-	}
-	
-	public InetAddress
-	getBGPStartAddress()
-	{
-		if ( bgp_prefix == null ){
-			
-			return( null );
-		}
-	
-		try{
-			return( getCIDRStartAddress( bgp_prefix ));
-			
-		}catch( NetworkAdminException e ){
-			
-			Debug.out(e);
-			
-			return( null );
-		}
-	}
-	
-	protected static InetAddress
-	getCIDRStartAddress(
-		String	cidr )
-	
-		throws NetworkAdminException
-	{
-	
-		int	pos = cidr.indexOf('/');
 		
-		try{
-			return( InetAddress.getByName( cidr.substring(0,pos)));
-			
-		}catch( Throwable e ){
-			
-			throw( new NetworkAdminException( "Parse failure for '" + cidr + "'", e ));
-		}
+		return( new NetworkAdminASNImpl( as, asn, bgp_prefix ));
 	}
 	
-	public InetAddress
-	getBGPEndAddress()
-	{
-		if ( bgp_prefix == null ){
-			
-			return( null );
-		}
-		
-		try{
-			return( getCIDREndAddress( bgp_prefix ));
-			
-		}catch( NetworkAdminException e ){
-			
-			Debug.out(e);
-			
-			return( null );
-		}
-	}
-	
-	public static InetAddress
-	getCIDREndAddress(
-		String	cidr )
-	
-		throws NetworkAdminException
-	{
 
-		int	pos = cidr.indexOf('/');
-		
-		try{
-			InetAddress	start = InetAddress.getByName( cidr.substring(0,pos));
-			
-			int	cidr_mask = Integer.parseInt( cidr.substring( pos+1 ));
-			
-			int	rev_mask = 0;
-			
-			for (int i=0;i<32-cidr_mask;i++){
-				
-			
-				rev_mask = ( rev_mask << 1 ) | 1;
-			}
-			
-			byte[]	bytes = start.getAddress();
-			
-			bytes[0] |= (rev_mask>>24)&0xff;
-			bytes[1] |= (rev_mask>>16)&0xff;
-			bytes[2] |= (rev_mask>>8)&0xff;
-			bytes[3] |= (rev_mask)&0xff;
-			
-			return( InetAddress.getByAddress( bytes ));
-			
-		}catch( Throwable e ){
-			
-			throw( new NetworkAdminException( "Parse failure for '" + cidr + "'", e ));
-		}		
-	}
-	
-	protected static boolean
-	matchesCIDR(
-		String		cidr,
-		InetAddress	address )
-	
-		throws NetworkAdminException
-	{
-		InetAddress	start	= getCIDRStartAddress( cidr );
-		InetAddress	end		= getCIDREndAddress( cidr );
-		
-		long	l_start = PRHelpers.addressToLong( start );
-		long	l_end	= PRHelpers.addressToLong( end );
-		
-		long	test = PRHelpers.addressToLong( address );
-		
-		return( test >= l_start && test <= l_end );
-	}
-	
-	public String
-	getString()
-	{
-		return( "as=" + getAS() + ",asn=" + getASName() + ", bgp_prefx=" + getBGPPrefix() + "[" +getBGPStartAddress() + "-" + getBGPEndAddress() + "]" );
-	}
 	
 	public static void
 	main(
@@ -478,7 +355,7 @@ NetworkAdminASNLookupImpl
 			
 			NetworkAdminASNLookupImpl lookup = new NetworkAdminASNLookupImpl( InetAddress.getByName( "64.71.8.82" ));
 			
-			System.out.println( lookup.getString());
+			System.out.println( lookup.lookup().getString());
 			
 			
 			/*

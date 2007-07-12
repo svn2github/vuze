@@ -1,7 +1,7 @@
 /*
- * Created on 1 Nov 2006
+ * Created on Jul 11, 2007
  * Created by Paul Gardner
- * Copyright (C) 2006 Aelitis, All Rights Reserved.
+ * Copyright (C) 2007 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,28 +21,14 @@
  */
 
 
-package com.aelitis.azureus.core.networkmanager.admin;
+package com.aelitis.azureus.plugins.dht.impl;
 
-import java.net.InetAddress;
+import com.aelitis.azureus.plugins.dht.DHTPluginContact;
 
 public interface 
-NetworkAdminASNLookup
+DHTPluginImplAdapter 
 {
-	public String
-	getAS();
-	
-	public String
-	getASName();
-	
-	public String
-	getBGPPrefix();
-	
-	public InetAddress
-	getBGPStartAddress();
-	
-	public InetAddress
-	getBGPEndAddress();
-	
-	public String
-	getString();
+	public void
+	localContactChanged(
+		DHTPluginContact	contact );
 }

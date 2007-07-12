@@ -36,6 +36,13 @@ NetworkAdmin
 	
 	public static final String PR_NETWORK_INTERFACES	= "Network Interfaces";
 	public static final String PR_DEFAULT_BIND_ADDRESS	= "Default Bind IP";
+	public static final String PR_AS					= "AS";
+	
+	public static final String[]	PR_NAMES = {
+		PR_NETWORK_INTERFACES,
+		PR_DEFAULT_BIND_ADDRESS,
+		PR_AS
+	};
 	
 	public static synchronized NetworkAdmin
 	getSingleton()
@@ -84,23 +91,23 @@ NetworkAdmin
 	public abstract NetworkAdminNATDevice[]
 	getNATDevices();
 	
-	public abstract NetworkAdminASNLookup
+	public abstract NetworkAdminASN
 	lookupASN(
 		InetAddress		address )
 	
 		throws NetworkAdminException;
 	
-	public abstract boolean
-	matchesCIDR(
-		String		cidr,
-		InetAddress	address )
-	
-		throws NetworkAdminException;
-	
+	public abstract NetworkAdminASN
+	getCurrentASN();
+		
 	public abstract void
 	addPropertyChangeListener(
 		NetworkAdminPropertyChangeListener	listener );
 	
+	public abstract void
+	addAndFirePropertyChangeListener(
+		NetworkAdminPropertyChangeListener	listener );
+
 	public abstract void
 	removePropertyChangeListener(
 		NetworkAdminPropertyChangeListener	listener );

@@ -31,6 +31,8 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 
 import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminASN;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -150,8 +152,10 @@ public class NatChecker {
     	  urlStr += "&upnp=" + URLEncoder.encode( upnp_str, "UTF8" );
       }
       
-      String	as 	= COConfigurationManager.getStringParameter( "ASN AS", "" );
-      String	asn = COConfigurationManager.getStringParameter( "ASN ASN", "" );
+      NetworkAdminASN net_asn = NetworkAdmin.getSingleton().getCurrentASN();
+      
+      String	as 	= net_asn.getAS();
+      String	asn = net_asn.getASName();
       
       if ( as.length() > 0 ){
     	

@@ -35,6 +35,8 @@ import org.gudy.azureus2.plugins.PluginInterface;
 
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminASN;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminException;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
@@ -142,12 +144,18 @@ NetworkAdminUDPTester
 			data_to_send.put( "upnp", upnp_str );
 		}
 
-		String	as 	= COConfigurationManager.getStringParameter( "ASN AS", "" );
-		String	asn = COConfigurationManager.getStringParameter( "ASN ASN", "" );
+	    NetworkAdminASN net_asn = NetworkAdmin.getSingleton().getCurrentASN();
+
+		String	as 	= net_asn.getAS();
+		String	asn = net_asn.getASName();
 
 		if ( as.length() > 0 ){
 
 			data_to_send.put( "as", as );
+		}
+		
+		if ( asn.length() > 0 ){
+
 			data_to_send.put( "asn", asn );
 		}
 

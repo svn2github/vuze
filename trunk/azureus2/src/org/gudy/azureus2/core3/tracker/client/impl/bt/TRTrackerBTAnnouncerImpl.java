@@ -59,6 +59,7 @@ import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPositionManager;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.net.udp.uc.PRUDPPacket;
 import com.aelitis.net.udp.uc.PRUDPPacketHandler;
@@ -1859,8 +1860,8 @@ TRTrackerBTAnnouncerImpl
 			request.append( "&azup=" + up );
 		}
 		
-	    String	as = COConfigurationManager.getStringParameter( "ASN AS", "" );
-
+		String as = NetworkAdmin.getSingleton().getCurrentASN().getAS();
+		
 	    if ( as.length() > 0 ){
 	    	
 	    	request.append( "&azas=" + URLEncoder.encode( as, "UTF8" ));

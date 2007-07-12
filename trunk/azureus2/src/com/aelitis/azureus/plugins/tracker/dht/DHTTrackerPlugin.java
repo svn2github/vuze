@@ -68,6 +68,8 @@ import org.gudy.azureus2.plugins.utils.UTTimerEvent;
 import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
 
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminASN;
 import com.aelitis.azureus.plugins.dht.*;
 
 /**
@@ -1714,10 +1716,12 @@ DHTTrackerPlugin
 			result.add( new trackerTarget( torrent_hash, REG_TYPE_FULL, "" ));
 		}
 		
-		String as 	= COConfigurationManager.getStringParameter( "ASN AS", null );
-		String asn 	= COConfigurationManager.getStringParameter( "ASN ASN", null );
+	    NetworkAdminASN net_asn = NetworkAdmin.getSingleton().getCurrentASN();
+	      
+	    String	as 	= net_asn.getAS();
+	    String	asn = net_asn.getASName();
 
-		if ( as != null && as.length() > 0 && asn != null && asn.length() > 0 ){
+		if ( as.length() > 0 && asn.length() > 0 ){
 			 
 			String	key = "azderived:asn:" + as;
 			
