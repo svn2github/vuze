@@ -65,6 +65,9 @@ public class SpeedManagerAlgorithmTI
 
         int sessionMaxUploadRate = 0;
 
+        static LimitSlider slider = new LimitSlider();
+
+
         static{
             COConfigurationManager.addListener(
                     new COConfigurationListener(){
@@ -346,12 +349,6 @@ public class SpeedManagerAlgorithmTI
 
 
         }//calculate
-
-        //NOTE:  we need to move the LimitSlider to here!!
-        static LimitSlider slider;
-        static{
-            slider = new LimitSlider();
-        }
 
         SMUpdate modifyLimits(float signalStrength, float multiple){
 

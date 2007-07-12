@@ -36,8 +36,10 @@ public class LimitSlider
     int downMin;
     SaturatedMode downUsage;
 
+
     TransferMode mode;
 
+    float usedUpMaxDownloadMode=0.6f;
 
     public void updateStatus(int currUpLimit, SaturatedMode uploadUsage,
                              int currDownLimit, SaturatedMode downloadUsage,
@@ -64,11 +66,28 @@ public class LimitSlider
     private int usedUploadCapacity(){
 
         float usedUpMax = upMax;
-        if( !mode.equals(TransferMode.State.SEEDING) ){
-            usedUpMax = upMax*0.6f;
+        if( mode.getMode() == TransferMode.State.SEEDING ){
+            usedUpMax = upMax;
+        }else if( mode.getMode()==TransferMode.State.DOWNLOADING ){
+            usedUpMax = upMax*usedUpMaxDownloadMode;
+        }else if( mode.getMode()==TransferMode.State.DOWNLOAD_LIMIT_SEARCH ){
+            usedUpMax = upMax*usedUpMaxDownloadMode;
+        }else if( mode.getMode()==TransferMode.State.UPLOAD_LIMIT_SEARCH ){    
+            usedUpMax = upMax;
+        }else{
+
+            SpeedManagerLogger.trace("LimitSlider -> unrecognized transfer mode. ");
         }
 
         return Math.round( usedUpMax );
+    }
+
+    public void updateSeedSettings(float downloadModeUsed)
+    {
+        if( downloadModeUsed < 1.0f && downloadModeUsed > 0.1f){
+            usedUpMaxDownloadMode = downloadModeUsed;
+            SpeedManagerLogger.trace("LimitSlider %used upload used while downloading: "+downloadModeUsed);
+        }
     }
 
     public SMUpdate adjust( float amount ){

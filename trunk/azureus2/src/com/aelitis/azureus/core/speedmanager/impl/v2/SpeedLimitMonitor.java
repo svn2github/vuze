@@ -141,6 +141,8 @@ public class SpeedLimitMonitor
         percentUploadCapacitySeedingMode = (float)
                 COConfigurationManager.getIntParameter(SpeedLimitMonitor.USED_UPLOAD_CAPACITY_SEEDING_MODE, 90)/100.0f;
 
+        slider.updateSeedSettings(percentUploadCapacityDownloadMode);
+
     }
 
     //SpeedLimitMonitorStatus
@@ -419,9 +421,9 @@ public class SpeedLimitMonitor
     private int calculateUnpinnedStepSize(int currLimitMax){
         if(currLimitMax<102400){
             return 1024;
-        }else if(currLimitMax<512000){
+        }else if(currLimitMax<409600){
             return 1024*5;
-        }else if(currLimitMax>=51200){
+        }else if(currLimitMax>=409600){
             return 1024*10;
         }
         return 1024;
@@ -448,8 +450,8 @@ public class SpeedLimitMonitor
 
                 if( isUploadConfidenceLow() ){
                     if( !transferMode.isDownloadMode() ){
-                        //triggerLimitTestingFlag();//ToDo: restore after test.
-                        isUploadMaxPinned = false; //slower search to prevent over-estimates on cable modem.
+                        //alway slow search the upload limit.
+                        isUploadMaxPinned = false; 
                     }
                 }else{
                     //Don't unpin the limit is we have absolute confidence in it.
@@ -765,8 +767,10 @@ public class SpeedLimitMonitor
             return SpeedLimitConfidence.NONE;
         }
 
+        boolean hadChockingPing = hadChockingPing();
         float percentDiff = (float)Math.abs( highestValue-preTestValue )/(float)(Math.max(highestValue,preTestValue));
-        if( percentDiff<0.15f){
+        if( percentDiff<0.15f  && hadChockingPing ){
+            //Only set to medium if had both a chocking ping and two tests with similar results.
             retVal = SpeedLimitConfidence.MED;
         }else{
             retVal = SpeedLimitConfidence.LOW;
@@ -972,7 +976,13 @@ public class SpeedLimitMonitor
             SpeedManagerPingMapper persistentMap = adapter.getPingMapper();
 
             SpeedManagerLimitEstimate est = persistentMap.getEstimatedDownloadLimit(false);
-            return est.getBytesPerSec();
+
+            if( est.getMetricRating() > SpeedManagerLimitEstimate.RATING_UNKNOWN ){
+                return est.getBytesPerSec();
+            }else{
+                return pingMapOfDownloadMode.guessDownloadLimit();                    
+            }
+
         }
     }//guessDownloadLimit
 
@@ -996,6 +1006,24 @@ public class SpeedLimitMonitor
 
     }//guessUploadLimit
 
+
+    /**
+     * Should return true if had a recent chocking ping.
+     * @return - true if
+     */
+    public boolean hadChockingPing(){
+        if( !usePersistentMap ){
+
+            return pingMapOfDownloadMode.hadChockingPing(true);
+
+        }else{
+            SpeedManagerPingMapper pm = SMInstance.getInstance().getAdapter().getPingMapper();
+            //ToDo: need a way to get chocking ping from other PingMapper.
+            //always return true till implemented.
+
+            return true;
+        }
+    }//hadChockingPing
 
     /**
      * Just log this data until we decide if it is useful.

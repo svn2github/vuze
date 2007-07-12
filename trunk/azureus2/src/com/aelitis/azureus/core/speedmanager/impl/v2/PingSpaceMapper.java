@@ -162,14 +162,41 @@ public class PingSpaceMapper
 
     private Result getHighestMeshIndexWithGoodPing(){
        Result[] retVal = calculate();
-       return retVal[0];
+       return retVal[GOOD_PING_INDEX];
     }
 
 
     private Result getHighestMeshIndexWithAnyPing(){
         Result[] retVal = calculate();
-        return retVal[1];
+        return retVal[ANY_PING_INDEX];
     }
+
+    /**
+     * Try to determine if a chocking ping occured during this test.
+     * @param isDownloadTest - set true if this is a download_search_test. set false if upload search test.
+     * @return - true if it appears a chocking ping occured.
+     */
+    public boolean hadChockingPing(boolean isDownloadTest){
+
+        Result[] res = calculate();
+
+        int goodPingIndex;
+        int highPingIndex;
+
+        if( isDownloadTest ){
+            goodPingIndex = res[GOOD_PING_INDEX].getDownloadIndex();
+            highPingIndex = res[ANY_PING_INDEX].getDownloadIndex();
+        }else{
+            goodPingIndex = res[GOOD_PING_INDEX].getUploadIndex();
+            highPingIndex = res[ANY_PING_INDEX].getUploadIndex();
+        }
+
+        return (highPingIndex>goodPingIndex);
+    }
+
+
+    static final int GOOD_PING_INDEX = 0;
+    static final int ANY_PING_INDEX = 1;
 
     /**
      * Look at the Map and find the highest index for each catagory.
@@ -177,12 +204,9 @@ public class PingSpaceMapper
      */
     private Result[] calculate(){
 
-        final int goodPing=0;
-        final int anyPing=1;
-
         Result[] retVal = new Result[2];
-        retVal[goodPing] = new Result();
-        retVal[anyPing] = new Result();
+        retVal[GOOD_PING_INDEX] = new Result();
+        retVal[ANY_PING_INDEX] = new Result();
 
         for(int upIndex=0;upIndex<maxMeshIndex;upIndex++){
             for(int downIndex=0;downIndex<maxMeshIndex;downIndex++)
@@ -190,13 +214,13 @@ public class PingSpaceMapper
                 //Register this grid point if it has more good then bad pings.
                 float rating = gridRegion[upIndex][downIndex].getRating();
                 if( rating>0.0f ){
-                    retVal[goodPing].checkAndUpdate(upIndex,downIndex);
+                    retVal[GOOD_PING_INDEX].checkAndUpdate(upIndex,downIndex);
                 }
 
                 //Register this grid point if it has any ping values.
                 int count = gridRegion[upIndex][downIndex].getTotal();
                 if( count>0 ){
-                    retVal[anyPing].checkAndUpdate(upIndex,downIndex);
+                    retVal[ANY_PING_INDEX].checkAndUpdate(upIndex,downIndex);
                 }
 
             }//for

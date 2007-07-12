@@ -376,27 +376,28 @@ public class ConfigSectionTransferAutoSpeedBeta
                 SpeedLimitMonitor.USED_UPLOAD_CAPACITY_DOWNLOAD_MODE,
                 downloadModeNames, downloadModeValues);
 
-        Label sdModeLbl = new Label(uploadCapGroup, SWT.NULL);
-        gridData = new GridData();
-        gridData.widthHint = 80;
-        sdModeLbl.setText("Seeding:");
-
-        //add a drop down.
-        String[] seedModeNames = {
-                "100%",
-                " 90%",
-                " 80%"
-        };
-
-        int[] seedModeValues = {
-                100,
-                90,
-                80
-        };
-
-        seedModeUsedCap = new IntListParameter(uploadCapGroup,
-                SpeedLimitMonitor.USED_UPLOAD_CAPACITY_SEEDING_MODE,
-                seedModeNames,seedModeValues);
+//        Label sdModeLbl = new Label(uploadCapGroup, SWT.NULL);
+//        gridData = new GridData();
+//        gridData.widthHint = 80;
+//        sdModeLbl.setText("Seeding:");
+//
+//        //ToDo: add a selection for how quickly to drop the upload and download.
+//        //add a drop down.
+//        String[] seedModeNames = {
+//                "100%",
+//                " 90%",
+//                " 80%"
+//        };
+//
+//        int[] seedModeValues = {
+//                100,
+//                90,
+//                80
+//        };
+//
+//        seedModeUsedCap = new IntListParameter(uploadCapGroup,
+//                SpeedLimitMonitor.USED_UPLOAD_CAPACITY_SEEDING_MODE,
+//                seedModeNames,seedModeValues);
 
         //spacer
         spacer = new Label(cSection, SWT.NULL);
