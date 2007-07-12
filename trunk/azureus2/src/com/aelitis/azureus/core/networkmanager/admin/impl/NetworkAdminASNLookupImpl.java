@@ -65,7 +65,7 @@ NetworkAdminASNLookupImpl
 	
 		throws NetworkAdminException
 	{
-		Debug.out( "ASN for '" + address + "'" );
+		Debug.outDiagLoggerOnly( "ASN lookup for '" + address + "'" );
 		
 		return( lookupDNS( address ));
 	}

@@ -751,8 +751,6 @@ NetworkAdminImpl
 	
 		throws NetworkAdminException
 	{
-		System.out.println( "lookupASN: " + address );
-		
 		NetworkAdminASN current = getCurrentASN();
 		
 		if ( current.matchesCIDR( address )){
