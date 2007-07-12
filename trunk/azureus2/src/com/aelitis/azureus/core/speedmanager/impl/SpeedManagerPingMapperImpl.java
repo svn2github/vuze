@@ -62,10 +62,12 @@ SpeedManagerPingMapperImpl
 	private SpeedManagerImpl	speed_manager;
 	private String				name;
 	private boolean				variance;
+	private boolean				trans;
 			
 	private int	ping_count;
 	
 	private pingValue[]	pings;
+	private int			max_pings;
 	
 	private pingValue	prev_ping;
 	
@@ -82,11 +84,11 @@ SpeedManagerPingMapperImpl
 	private int[]	recent_metrics = new int[3];
 	private int		recent_metrics_next;
 	
-	private limitEstimate[]	up_estimate		= new limitEstimate[0];
-	private limitEstimate[]	down_estimate	= new limitEstimate[0];
+	private limitEstimate	up_estimate;
+	private limitEstimate	down_estimate;
 	
-	private LinkedList	last_bad_ups	= new LinkedList();
-	private LinkedList	last_bad_downs	= new LinkedList();
+	private LinkedList	last_bad_ups;
+	private LinkedList	last_bad_downs;
 	
 	private limitEstimate	last_bad_up;
 	private boolean			bad_up_in_progress;
@@ -104,15 +106,43 @@ SpeedManagerPingMapperImpl
 		SpeedManagerImpl		_speed_manager,
 		String					_name,
 		int						_entries ,
-		boolean					_variance )
+		boolean					_variance,
+		boolean					_transient )
 	{
 		speed_manager	= _speed_manager;
 		name			= _name;
+		max_pings		= _entries;
 		variance		= _variance;
+		trans			= _transient;	
 		
-		pings	= new pingValue[_entries];
+		init();
+	}
+	
+	protected void
+	init()
+	{
+		pings		= new pingValue[max_pings];
+		ping_count	= 0;
 		
 		regions	= new LinkedList();
+		
+		up_estimate		= getNullLimit();
+		down_estimate	= getNullLimit();
+
+		last_bad_ups		= new LinkedList();
+		last_bad_downs		= new LinkedList();
+		
+		last_bad_up				= null;
+		bad_up_in_progress		= false;
+		
+		last_bad_down			= null;
+		bad_down_in_progress	= false;
+		
+		up_capacity 	= getNullLimit();
+		down_capacity 	= getNullLimit();
+
+		prev_ping 			= null;
+		recent_metrics_next	= 0;
 	}
 	
 	protected synchronized void
@@ -131,12 +161,9 @@ SpeedManagerPingMapperImpl
 			}
 			
 			history_file = file;
-						
-			pings		= new pingValue[pings.length];
-			ping_count	= 0;
+
+			init();
 			
-			regions	= new LinkedList();
-	
 			if ( history_file.exists()){
 							
 				Map map = FileUtil.readResilientFile( history_file );
@@ -176,49 +203,21 @@ SpeedManagerPingMapperImpl
 						addPingSupport( x, y, -1, metric, false );
 					}
 				}
-				
-				prev_ping = null;
-				
+								
 				last_bad_ups 	= loadLimits( map, "lbus" );
 				last_bad_downs 	= loadLimits( map, "lbds" );
 				
 				up_capacity 	= loadLimit((Map)map.get( "upcap" ));
 				down_capacity 	= loadLimit((Map)map.get( "downcap" ));
 				
-				log( "Loaded " + p.size() + " entries from " + history_file + ": bad_up=" + getLimitString(last_bad_ups) + ", bad_down=" + getLimitString(last_bad_downs));
-				
-				updateLimitEstimates();	
+				log( "Loaded " + ping_count + " entries from " + history_file + ": bad_up=" + getLimitString(last_bad_ups) + ", bad_down=" + getLimitString(last_bad_downs));
 			}
+		
+			prev_ping 			= null;
+			recent_metrics_next	= 0;
+			
+			updateLimitEstimates();	
 				
-			/*
-			if ( variance ){
-				
-				Iterator	it = regions.iterator();
-				
-				while( it.hasNext()){
-					
-					region r = (region)it.next();
-					
-					if ( r.getMetric() >= VARIANCE_BAD_VALUE ){
-					
-						for (int i=0;i<r.getX1();i++){
-						
-							System.out.print( " " );
-						}
-					
-						for (int i=r.getX1();i<=r.getX2();i++){
-							
-							System.out.print( "*" );
-						}
-						
-						System.out.println( 
-								": " + r.getMetric() + "/" + 
-								DisplayFormatters.formatByteCountToKiBEtc(r.getX1()*SPEED_DIVISOR ) + "," +
-								DisplayFormatters.formatByteCountToKiBEtc(r.getX2()*SPEED_DIVISOR ));
-					}
-				}
-			}
-			*/
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace(e);
@@ -353,6 +352,12 @@ SpeedManagerPingMapperImpl
 		m.put( "w", new Long( limit.getWhen()));	
 		
 		return( m );
+	}
+	
+	public boolean
+	isActive()
+	{
+		return( variance );
 	}
 	
 	protected limitEstimate
@@ -609,16 +614,28 @@ SpeedManagerPingMapperImpl
 	getEstimatedUploadLimit(
 		boolean	persistent )
 	{
-		return( adjustForPersistence( getEstimatedLimit( up_estimate ), last_bad_up, persistent ));
+		return( adjustForPersistence( up_estimate, last_bad_up, persistent ));
 	}
 	
 	public synchronized SpeedManagerLimitEstimate
 	getEstimatedDownloadLimit(
 		boolean	persistent )
 	{
-		return( adjustForPersistence( getEstimatedLimit( down_estimate ), last_bad_down, persistent ));
+		return( adjustForPersistence( down_estimate, last_bad_down, persistent ));
 	}
 
+	public SpeedManagerLimitEstimate
+	getLastBadUploadLimit()
+	{
+		return( last_bad_up );
+	}
+	
+	public SpeedManagerLimitEstimate
+	getLastBadDownloadLimit()
+	{
+		return( last_bad_down );
+	}
+	
 	protected SpeedManagerLimitEstimate
 	adjustForPersistence(
 		SpeedManagerLimitEstimate	estimate,
@@ -654,44 +671,20 @@ SpeedManagerPingMapperImpl
 		}
 	}
 		
-	protected synchronized limitEstimate
-	getEstimatedLimit(
-		limitEstimate[]	estimates )
-	{
-		if ( estimates.length == 0 ){
-			
-			return( null );
-		}
-		
-		for (int i=0;i<estimates.length;i++){
-			
-			limitEstimate e = estimates[i];
-			
-			if ( e.getMetricRating() == -1 ){
-				
-				return( e );
-			}
-		}
-		
-		return( estimates[estimates.length-1] );
-	}
-
 	protected void
 	updateLimitEstimates()
 	{
 		up_estimate 	= getEstimatedLimit( true );
-		
-		limitEstimate up = getEstimatedLimit( up_estimate );
-		
-		if ( up != null ){
+				
+		if ( up_estimate != null ){
 			
-			double metric = up.getMetricRating();
+			double metric = up_estimate.getMetricRating();
 			
 			if ( metric == -1 ){
 			
 				if ( !bad_up_in_progress ){
 					
-					last_bad_ups.addLast( up );
+					last_bad_ups.addLast( up_estimate );
 					
 					if ( last_bad_ups.size() > MAX_BAD_LIMIT_HISTORY ){
 						
@@ -701,7 +694,7 @@ SpeedManagerPingMapperImpl
 				
 				bad_up_in_progress	= true;
 				
-				last_bad_up = up;
+				last_bad_up = up_estimate;
 				
 			}else if ( metric == 1 ){
 				
@@ -710,18 +703,16 @@ SpeedManagerPingMapperImpl
 		}
 		
 		down_estimate 	= getEstimatedLimit( false );
-		
-		limitEstimate down = getEstimatedLimit( down_estimate );
-		
-		if ( down != null ){
+				
+		if ( down_estimate != null ){
 			
-			double metric = down.getMetricRating();
+			double metric = down_estimate.getMetricRating();
 			
 			if ( metric == -1 ){
 			
 				if ( !bad_down_in_progress ){
 					
-					last_bad_downs.addLast( down );
+					last_bad_downs.addLast( down_estimate );
 					
 					if ( last_bad_downs.size() > MAX_BAD_LIMIT_HISTORY ){
 						
@@ -731,7 +722,7 @@ SpeedManagerPingMapperImpl
 				
 				bad_down_in_progress	= true;
 				
-				last_bad_down = up;
+				last_bad_down = down_estimate;
 				
 			}else if ( metric == 1 ){
 				
@@ -740,20 +731,20 @@ SpeedManagerPingMapperImpl
 		}
 	}
 	
-	protected synchronized limitEstimate[]
+	protected synchronized limitEstimate
 	getEstimatedLimit(
 		boolean		up )
 	{
 		if ( !variance ){
 			
-			return( new limitEstimate[0] );
+			return( getNullLimit() );
 		}
 		
 		int	num_samples = regions.size();
 		
 		if ( num_samples == 0 ){
 			
-			return( new limitEstimate[0] );
+			return( getNullLimit());
 		}
 		
 		Iterator	it = regions.iterator();
@@ -1040,21 +1031,14 @@ SpeedManagerPingMapperImpl
 						(int[][])segments.toArray(new int[segments.size()][]));
 		}
 		
-		String	str = "";
-					
-		for (int i=0;i<results.length;i++){
-			
-			limitEstimate	r = results[i];
-			
-			str += (i==0?"":",") + r.getString();
-		}
-		
 		if ( variance ){
 		
-			log( "Estimate (samples=" + num_samples + ")" + (up?"up":"down") + "->" + str );
+			log( "Estimate (samples=" + num_samples + ")" + (up?"up":"down") + "->" + results[0].getString());
 		}
+						
+			// just go for the long-term view
 		
-		return( results );
+		return( results[results.length-1] );
 	}
 	
 	public synchronized double
@@ -1181,6 +1165,19 @@ SpeedManagerPingMapperImpl
 		}
 		
 		writer.println( "bad_down=" + bad_down_str );
+	}
+	
+	public void
+	destroy()
+	{
+		if ( trans ){
+			
+			speed_manager.destroy( this );
+			
+		}else{
+	
+			Debug.out( "Attempt to destroy non-transient mapper!" );
+		}
 	}
 	
 	class
@@ -1404,7 +1401,7 @@ SpeedManagerPingMapperImpl
 	main(
 		String[]	args )
 	{
-		SpeedManagerPingMapperImpl pm = new SpeedManagerPingMapperImpl( null, "test", 100, true );
+		SpeedManagerPingMapperImpl pm = new SpeedManagerPingMapperImpl( null, "test", 100, true, false );
 		
 		Random rand = new Random();
 		

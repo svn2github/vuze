@@ -539,18 +539,19 @@ public class TransferStatsView extends AbstractIView {
   getMapperTitle(
 		SpeedManagerPingMapper mapper )
   {
-	  SpeedManagerLimitEstimate up 		= mapper.getEstimatedUploadLimit(false);
-	  SpeedManagerLimitEstimate down 	= mapper.getEstimatedDownloadLimit(false);
-	  
-	  if ( up == null || down == null ){
+	  if ( mapper.isActive()){
 		  
-		  return( "" );
+		  SpeedManagerLimitEstimate up 		= mapper.getEstimatedUploadLimit(false);
+		  SpeedManagerLimitEstimate down 	= mapper.getEstimatedDownloadLimit(false);
+		  
+		  return( "ul=" + DisplayFormatters.formatByteCountToKiBEtc(up.getBytesPerSec()) + "/" + DisplayFormatters.formatDecimal(up.getMetricRating(),2) + 
+				  ",dl=" + DisplayFormatters.formatByteCountToKiBEtc(down.getBytesPerSec()) + "/" + DisplayFormatters.formatDecimal(down.getMetricRating(),2) + 
+				  ",mr=" + DisplayFormatters.formatDecimal( mapper.getCurrentMetricRating(),2));
 	  }
 	  
-	  return( "ul=" + DisplayFormatters.formatByteCountToKiBEtc(up.getBytesPerSec()) + "/" + DisplayFormatters.formatDecimal(up.getMetricRating(),2) + 
-			  ",dl=" + DisplayFormatters.formatByteCountToKiBEtc(down.getBytesPerSec()) + "/" + DisplayFormatters.formatDecimal(down.getMetricRating(),2) + 
-			  ",mr=" + DisplayFormatters.formatDecimal( mapper.getCurrentMetricRating(),2));
+	  return( "" );
   }
+  
   class
   plotView
   {

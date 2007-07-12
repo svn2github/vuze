@@ -144,6 +144,7 @@ SpeedManagerImpl
 
 	private SpeedManagerPingMapperImpl[] 	ping_mappers;
 	
+	private CopyOnWriteList		transient_mappers = new CopyOnWriteList();
 
 	private AEDiagnosticsLogger	logger;
 	
@@ -163,11 +164,11 @@ SpeedManagerImpl
 		
 		logger = AEDiagnostics.getLogger( "SpeedMan" );
 		
-		ping_mapper	= new SpeedManagerPingMapperImpl( this, "Var", LONG_PERIOD_TICKS, true);
+		ping_mapper	= new SpeedManagerPingMapperImpl( this, "Var", LONG_PERIOD_TICKS, true, false );
 
 		if ( Constants.isCVSVersion()){
 			
-			SpeedManagerPingMapperImpl		pm2 	= new SpeedManagerPingMapperImpl( this, "Abs", LONG_PERIOD_TICKS, false );
+			SpeedManagerPingMapperImpl		pm2 	= new SpeedManagerPingMapperImpl( this, "Abs", LONG_PERIOD_TICKS, false, false );
 
 			ping_mappers = new SpeedManagerPingMapperImpl[]{ pm2, ping_mapper };
 			
@@ -388,8 +389,27 @@ SpeedManagerImpl
 		
 			log( "Algorithm set to " + provider.getClass().getName());
 		}
-		
+				
+		transient_mappers.clear();
+
 		provider.reset();
+	}
+	
+	public SpeedManagerPingMapper
+	createTransientPingMapper()
+	{
+		SpeedManagerPingMapper res = new SpeedManagerPingMapperImpl( this, "Transient", LONG_PERIOD_TICKS, true, true );
+		
+		transient_mappers.add( res );
+		
+		return( res );
+	}
+	
+	protected void
+	destroy(
+		SpeedManagerPingMapper	mapper )
+	{
+		transient_mappers.remove( mapper );
 	}
 	
 	public void
@@ -613,6 +633,13 @@ SpeedManagerImpl
 			
 			ping_mappers[i].addPing( x, y, rtt, re_base );
 		}
+		
+		Iterator it = transient_mappers.iterator();
+		
+		while( it.hasNext()){
+			
+			((SpeedManagerPingMapperImpl)it.next()).addPing( x, y, rtt, re_base );
+		}
 	}
 	
 	public boolean
@@ -707,9 +734,15 @@ SpeedManagerImpl
 	}
 	
 	public SpeedManagerPingMapper
-	getPingMapper()
+	getActiveMapper()
 	{
 		return( ping_mapper );
+	}
+	
+	public SpeedManagerPingMapper
+	getPingMapper()
+	{
+		return( getActiveMapper());
 	}
 	
 	public SpeedManagerPingMapper[]

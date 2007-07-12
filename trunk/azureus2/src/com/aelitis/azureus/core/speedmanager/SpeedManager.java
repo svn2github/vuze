@@ -72,6 +72,9 @@ SpeedManager
 	public SpeedManagerPingSource[]
 	getPingSources();
 	
+	public SpeedManagerPingMapper
+	getActiveMapper();
+	
 	public SpeedManagerPingMapper[]
 	getMappers();
 	

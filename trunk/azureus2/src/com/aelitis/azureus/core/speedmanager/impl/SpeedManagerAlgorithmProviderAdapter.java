@@ -56,6 +56,14 @@ SpeedManagerAlgorithmProviderAdapter
     public SpeedManagerPingMapper
     getPingMapper();
     
+    	/**
+    	 * Creates a mapper starting from current time. Must be destroyed by calling "destroy" when
+    	 * done with
+    	 * @return
+    	 */
+    public SpeedManagerPingMapper
+    createTransientPingMapper();
+
 	public void
 	setLoggingEnabled(
 		boolean	enabled );

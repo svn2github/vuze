@@ -738,7 +738,11 @@ public class VersionCheckClient {
 	  try{
 		  byte[] address = (byte[])reply.get( "source_ip_address" );
 
-		  InetAddress my_ip = InetAddress.getByName( new String( address ));
+		  //InetAddress my_ip = InetAddress.getByName( new String( address ));
+		  InetAddress my_ip = InetAddress.getByName( "129.42.58.212" );
+		  //InetAddress my_ip = InetAddress.getByName( "64.233.167.99" );
+
+		  reply.put( "source_ip_address", my_ip.getHostAddress().getBytes());
 		  
 		  NetworkAdminASN old_asn = admin.getCurrentASN();
 		  	  

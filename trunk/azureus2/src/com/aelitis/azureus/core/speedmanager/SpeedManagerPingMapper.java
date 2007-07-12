@@ -52,4 +52,16 @@ SpeedManagerPingMapper
 	
 	public double
 	getCurrentMetricRating();
+	
+	public SpeedManagerLimitEstimate
+	getLastBadUploadLimit();
+	
+	public SpeedManagerLimitEstimate
+	getLastBadDownloadLimit();
+
+	public boolean
+	isActive();
+	
+	public void
+	destroy();
 }
