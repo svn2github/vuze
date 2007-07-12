@@ -841,6 +841,29 @@ public class TransferStatsView extends AbstractIView {
 			  gc.setForeground( Colors.black );
 		  }
 		  
+		  SpeedManagerLimitEstimate[] bad_up = mapper.getBadUploadHistory();
+		  
+		  if ( bad_up.length > 0 ){
+			  
+			  gc.setForeground( Colors.red );
+
+			  for (int i=0;i<bad_up.length;i++){
+				  
+				  int speed = bad_up[i].getBytesPerSec();
+				  
+				  int	x = speed * usable_width / max_x;
+			  
+				  gc.drawLine(
+							x_axis_left_x + x,
+							x_axis_left_y - 0,
+							x_axis_left_x + x,
+							x_axis_left_y - 10 );
+
+			  }
+			  
+			  gc.setForeground( Colors.black );
+		  }
+		  
 		  String x_text = labels[0] + " - " + formatters[0].format( max_x+1 );
 
 		  gc.drawText( 	x_text, 
@@ -911,6 +934,28 @@ public class TransferStatsView extends AbstractIView {
 					  prev_x = next_x;
 					  prev_y = next_y;
 				  }
+			  }
+			  
+			  gc.setForeground( Colors.black );
+		  }
+		  
+		  SpeedManagerLimitEstimate[] bad_down = mapper.getBadDownloadHistory();
+		  
+		  if ( bad_down.length > 0 ){
+			  
+			  gc.setForeground( Colors.red );
+
+			  for (int i=0;i<bad_down.length;i++){
+				  
+				  int speed = bad_down[i].getBytesPerSec();
+				  
+				  int	y = speed * usable_height / max_y;
+			  
+				  gc.drawLine(
+						  	y_axis_bottom_x + 0,
+						  	y_axis_bottom_y - y,
+							y_axis_bottom_x + 10,
+							y_axis_bottom_y - y );
 			  }
 			  
 			  gc.setForeground( Colors.black );

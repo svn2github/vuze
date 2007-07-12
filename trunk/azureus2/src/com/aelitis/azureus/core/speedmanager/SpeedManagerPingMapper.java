@@ -59,6 +59,12 @@ SpeedManagerPingMapper
 	public SpeedManagerLimitEstimate
 	getLastBadDownloadLimit();
 
+	public SpeedManagerLimitEstimate[]
+	getBadUploadHistory();
+	
+	public SpeedManagerLimitEstimate[]
+	getBadDownloadHistory();
+	
 	public boolean
 	isActive();
 	

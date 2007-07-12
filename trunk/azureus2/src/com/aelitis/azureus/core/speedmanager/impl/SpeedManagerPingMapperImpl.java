@@ -636,6 +636,18 @@ SpeedManagerPingMapperImpl
 		return( last_bad_down );
 	}
 	
+	public synchronized SpeedManagerLimitEstimate[]
+	getBadUploadHistory()
+	{
+		return((SpeedManagerLimitEstimate[])last_bad_ups.toArray(new SpeedManagerLimitEstimate[last_bad_ups.size()]));
+	}
+
+	public synchronized SpeedManagerLimitEstimate[]
+	getBadDownloadHistory()
+	{
+		return((SpeedManagerLimitEstimate[])last_bad_downs.toArray(new SpeedManagerLimitEstimate[last_bad_downs.size()]));	
+	}
+	                             	
 	protected SpeedManagerLimitEstimate
 	adjustForPersistence(
 		SpeedManagerLimitEstimate	estimate,
