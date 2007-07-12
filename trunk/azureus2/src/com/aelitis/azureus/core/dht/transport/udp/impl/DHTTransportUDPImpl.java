@@ -32,11 +32,13 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Average;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -134,7 +136,7 @@ DHTTransportUDPImpl
 	
 	
 	private static final int CONTACT_HISTORY_MAX 		= 32;
-	private static final int CONTACT_HISTORY_PING_SIZE	= 16;
+	private static final int CONTACT_HISTORY_PING_SIZE	= 24;
 	
 	private Map	contact_history = 
 		new LinkedHashMap(CONTACT_HISTORY_MAX,0.75f,true)
@@ -198,6 +200,8 @@ DHTTransportUDPImpl
 	
 	private AEMonitor	this_mon	= new AEMonitor( "DHTTransportUDP" );
 
+	private boolean		initial_address_change_deferred;
+	
 	public
 	DHTTransportUDPImpl(
 		byte			_protocol_version,
@@ -492,7 +496,7 @@ DHTTransportUDPImpl
 			DHTTransportUDPContactImpl c1 = (DHTTransportUDPContactImpl)it.next();
 			DHTTransportUDPContactImpl c2 = (DHTTransportUDPContactImpl)it.next();
 			
-			externalAddressChange( c1, c2.getExternalAddress());
+			externalAddressChange( c1, c2.getExternalAddress(), true );
 			//externalAddressChange( c, new InetSocketAddress( "192.168.0.7", 6881 ));
 			
 		}catch( Throwable e ){
@@ -667,8 +671,9 @@ DHTTransportUDPImpl
 		
 	protected void
 	externalAddressChange(
-		DHTTransportUDPContactImpl	reporter,
-		InetSocketAddress			new_address )
+		final DHTTransportUDPContactImpl	reporter,
+		final InetSocketAddress				new_address,
+		boolean								force )
 	
 		throws DHTTransportException
 	{
@@ -713,6 +718,35 @@ DHTTransportUDPImpl
 			long	now = SystemTime.getCurrentTime();
 	
 			if ( now - last_address_change < 5*60*1000 ){
+				
+				return;
+			}
+						
+			if ( contact_history.size() < CONTACT_HISTORY_MAX && !force ){
+				
+				if ( !initial_address_change_deferred ){
+					
+					initial_address_change_deferred = true;
+					
+					logger.log( "Node " + reporter.getString() + " has reported that the external IP address is '" + new_address + "': deferring new checks" );
+
+					new DelayedEvent(
+						"DHTTransportUDP:delayAC",
+						30*1000,
+						new AERunnable()
+						{
+							public void
+							runSupport()
+							{
+								try{
+									externalAddressChange( reporter, new_address, true );
+									
+								}catch( Throwable e ){
+									
+								}
+							}
+						});
+				}
 				
 				return;
 			}
@@ -3397,7 +3431,7 @@ DHTTransportUDPImpl
 				case DHTUDPPacketReplyError.ET_ORIGINATOR_ADDRESS_WRONG:
 				{
 					try{
-						externalAddressChange( remote_contact, error.getOriginatingAddress());
+						externalAddressChange( remote_contact, error.getOriginatingAddress(), false );
 						
 					}catch( DHTTransportException e ){
 						
