@@ -483,25 +483,18 @@ public class TransferStatsView extends AbstractIView {
     if(speedManager.isAvailable() && speedManager.isEnabled()) {
       autoSpeedPanelLayout.topControl = autoSpeedInfoPanel;
       autoSpeedPanel.layout();
-      SpeedManagerPingSource sources[] = speedManager.getPingSources();
-      if(sources.length > 0) {
-        int average = 0;
-        for(int i = 0 ; i < sources.length ; i++) {
-          average += sources[i].getPingTime();
-        }
-        average = average / sources.length;        
-        pingGraph.refresh();        
-        for (int i=0;i<plot_views.length;i++){
+   
+      pingGraph.refresh();        
+      for (int i=0;i<plot_views.length;i++){
 
-        	plot_views[i].refresh();
-        }
-
-        for (int i=0;i<zone_views.length;i++){
-
-        	zone_views[i].refresh();
-        }
- 
+    	  plot_views[i].refresh();
       }
+
+      for (int i=0;i<zone_views.length;i++){
+
+    	  zone_views[i].refresh();
+      }
+
     } else {
       autoSpeedPanelLayout.topControl = autoSpeedDisabledPanel;
       autoSpeedPanel.layout();
