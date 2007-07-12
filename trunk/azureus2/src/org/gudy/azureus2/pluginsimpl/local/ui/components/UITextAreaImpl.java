@@ -28,10 +28,14 @@ package org.gudy.azureus2.pluginsimpl.local.ui.components;
  */
 
 import java.io.*;
+import java.util.Iterator;
+import java.util.LinkedList;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.FrequencyLimitedDispatcher;
 
 import org.gudy.azureus2.plugins.ui.components.*;
 
@@ -50,6 +54,21 @@ UITextAreaImpl
 	boolean useFile = true;
 	
 	AEMonitor file_mon = new AEMonitor("filemon");
+	
+	LinkedList	delay_text	= new LinkedList();
+	int			delay_size	= 0;
+	
+	FrequencyLimitedDispatcher	dispatcher = 
+		new FrequencyLimitedDispatcher(
+			new AERunnable()
+			{
+				public void
+				runSupport()
+				{
+					delayAppend();
+				}
+			},
+			500 );
 	
 	public
 	UITextAreaImpl()
@@ -115,7 +134,58 @@ UITextAreaImpl
 			}
 		}
 
+		synchronized( this ){
+			
+			delay_text.addLast( text );
+			
+			delay_size += text.length();
+			
+			while( delay_size > max_size ){
+		
+				if ( delay_text.size() == 0 ){
+					
+					break;
+				}
+				
+				String	s = (String)delay_text.removeFirst();
+				
+				delay_size -= s.length();
+			}
+		}
+		
+		dispatcher.dispatch();
+	}
+	
+	protected void
+	delayAppend()
+	{
 		String	str = getText();
+
+		String	text;
+		
+		synchronized( this ){
+
+			if ( delay_text.size() == 1 ){
+				
+				text = (String)delay_text.get(0);
+				
+			}else{
+				
+				StringBuffer sb = new StringBuffer( delay_size );
+				
+				Iterator	it = delay_text.iterator();
+				
+				while( it.hasNext()){
+				
+					sb.append((String)it.next());
+				}
+				
+				text = sb.toString();
+			}
+			
+			delay_text.clear();
+			delay_size = 0;
+		}
 		
 		if ( str == null ){
 			
