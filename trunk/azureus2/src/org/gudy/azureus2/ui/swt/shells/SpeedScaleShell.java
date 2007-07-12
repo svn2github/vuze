@@ -46,7 +46,7 @@ public class SpeedScaleShell
 
 	private static final int OPTION_HEIGHT = 15;
 
-	private static final int TEXT_HEIGHT = 16;
+	private static final int TEXT_HEIGHT = 32;
 
 	private static final int SCALER_HEIGHT = 20;
 
@@ -64,7 +64,7 @@ public class SpeedScaleShell
 
 	private int value;
 
-	private boolean cancelled = true;
+	private boolean cancelled;
 
 	private int minValue;
 
@@ -99,6 +99,7 @@ public class SpeedScaleShell
 		speedScaleWidget.addOption("Preset: 20b/s", 20);
 		speedScaleWidget.addOption("Preset: 1b/s", 1);
 		speedScaleWidget.addOption("Preset: 1000b/s", 1000);
+		speedScaleWidget.addOption("Preset: A really long preset", 2000);
 		System.out.println("returns " + speedScaleWidget.open(1000) + " w/"
 				+ speedScaleWidget.getValue());
 	}
@@ -109,6 +110,7 @@ public class SpeedScaleShell
 		maxTextValue = -1;
 		pageIncrement = 10;
 		bigPageIncrement = 100;
+		cancelled = true;
 	}
 
 	/**
@@ -189,16 +191,36 @@ public class SpeedScaleShell
 		});
 
 		composite.addMouseTrackListener(new MouseTrackListener() {
+			boolean mouseIsOut = false;
+
+			private boolean exitCancelled = false;
 
 			public void mouseHover(MouseEvent e) {
 			}
 
 			public void mouseExit(MouseEvent e) {
-				setCancelled(true);
-				shell.dispose();
+				mouseIsOut = true;
+				SimpleTimer.addEvent("close scaler", SystemTime.getOffsetTime(1000),
+						new TimerEventPerformer() {
+							public void perform(TimerEvent event) {
+								Utils.execSWTThread(new AERunnable() {
+									public void runSupport() {
+										if (!exitCancelled) {
+											shell.dispose();
+										} else {
+											exitCancelled = false;
+										}
+									}
+								});
+							}
+						});
 			}
 
 			public void mouseEnter(MouseEvent e) {
+				if (mouseIsOut) {
+					exitCancelled = true;
+				}
+				mouseIsOut = false;
 			}
 		});
 
@@ -220,7 +242,9 @@ public class SpeedScaleShell
 					if (e.y > HEIGHT - SCALER_HEIGHT) {
 						setValue(getValueFromMousePos(e.x));
 						setCancelled(false);
-						shell.dispose();
+						if (assumeMouseDown) {
+							shell.dispose();
+						}
 					} else if (e.y > TEXT_HEIGHT) {
 						int idx = (e.y - TEXT_HEIGHT) / OPTION_HEIGHT;
 						Iterator iterator = mapOptions.keySet().iterator();
@@ -334,22 +358,22 @@ public class SpeedScaleShell
 
 				// typed value
 				if (sValue.length() > 0) {
+					Point extent = e.gc.textExtent(sValue);
+					if (extent.x > WIDTH - 10) {
+						extent.x = WIDTH - 10;
+					}
+					Rectangle rect = new Rectangle(WIDTH - 8 - extent.x, 14,
+							extent.x + 5, extent.y + 4);
+					e.gc.setBackground(display.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+					e.gc.fillRectangle(rect);
+
 					try {
 						e.gc.setAlpha(TYPED_TEXT_ALPHA);
 					} catch (Exception ex) {
 					}
 					e.gc.setBackground(display.getSystemColor(SWT.COLOR_LIST_BACKGROUND));
 					e.gc.setForeground(display.getSystemColor(SWT.COLOR_LIST_FOREGROUND));
-
-					Point extent = e.gc.textExtent(sValue);
-					if (extent.x > WIDTH - 10) {
-						extent.x = WIDTH - 10;
-					}
-					Rectangle rect = new Rectangle(WIDTH - 8 - extent.x, y
-							- OPTION_HEIGHT - (OPTION_HEIGHT / 2) - 2, extent.x + 5,
-							extent.y + 4);
-					e.gc.fillRectangle(rect);
-					e.gc.drawRectangle(rect);
+					//e.gc.drawRectangle(rect);
 
 					GCStringPrinter.printString(e.gc, sValue, new Rectangle(rect.x + 2,
 							rect.y + 2, WIDTH - 5, OPTION_HEIGHT), true, false, SWT.LEFT
@@ -377,15 +401,14 @@ public class SpeedScaleShell
 								try {
 									gc.setLineWidth(2);
 									if (!on) {
-										gc.setForeground(gc.getBackground());
+										gc.setForeground(display.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
 									} else {
 										try {
 											gc.setAlpha(TYPED_TEXT_ALPHA);
 										} catch (Exception e) {
 										}
 									}
-									int y = (OPTION_HEIGHT * (mapOptions.size() - 1))
-											- (OPTION_HEIGHT / 2) + TEXT_HEIGHT;
+									int y = 15;
 									gc.drawLine(WIDTH - 5, y + 1, WIDTH - 5, y + OPTION_HEIGHT);
 								} finally {
 									gc.dispose();
