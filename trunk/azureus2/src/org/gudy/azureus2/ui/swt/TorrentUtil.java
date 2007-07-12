@@ -541,6 +541,14 @@ public class TorrentUtil {
 			}
 		});
 
+		MenuItem itemFileClearResume = new MenuItem(menuFiles, SWT.CHECK);
+		Messages.setLanguageText(itemFileClearResume, "MyTorrentsView.menu.clear_resume_data");
+		itemFileClearResume.addListener(SWT.Selection, new DMTask(dms) {
+			public void run(DownloadManager dm) {
+				dm.getDownloadState().clearResumeData();
+			}
+		});
+		
 		itemFileRescan.setSelection(allScanSelected);
 		itemFileRescan.setEnabled(fileRescan);
 
