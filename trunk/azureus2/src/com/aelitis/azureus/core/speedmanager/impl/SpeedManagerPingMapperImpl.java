@@ -762,283 +762,222 @@ SpeedManagerPingMapperImpl
 				max_end = end;
 			}
 		}
+						
+		int	sample_end = max_end + 1;
 		
-		int[]	samples;
-		
-		if ( num_samples >= SpeedManagerImpl.MEDIUM_ESTIMATE_SAMPLES ){
+		int[]	totals 			= new int[sample_end];
+		short[]	hits			= new short[sample_end];				
+		short[]	worst_var_type	= new short[sample_end];
+											
+		ListIterator sample_it = regions.listIterator( 0 );
 			
-			samples = new int[]{ SpeedManagerImpl.SHORT_ESTIMATE_SAMPLES, SpeedManagerImpl.MEDIUM_ESTIMATE_SAMPLES, num_samples };
-			
-		}else if ( num_samples >= SpeedManagerImpl.SHORT_ESTIMATE_SAMPLES ){
-			
-			samples = new int[]{ SpeedManagerImpl.SHORT_ESTIMATE_SAMPLES, num_samples };
+			// flatten out all observations into a single munged metric
 
-		}else{
+		while( sample_it.hasNext()){
 			
-			samples = new int[]{ num_samples };
+			region r = (region)sample_it.next();
+		
+			int	start 	= (up?r.getUploadStartBytesPerSec():r.getDownloadStartBytesPerSec())/SPEED_DIVISOR;
+			int	end		= (up?r.getUploadEndBytesPerSec():r.getDownloadEndBytesPerSec())/SPEED_DIVISOR;
+			int	metric	= r.getMetric();
+		
+			int	weighted_start;
+			int	weighted_end;
+			
+			short	this_var_type;
+			
+			if ( metric < VARIANCE_GOOD_VALUE ){
+			
+					// a good variance applies to all speeds up to this one. This means
+					// that previously occuring bad variance will get flattened out by
+					// subsequent good variance
+				
+				weighted_start 	= 0;	
+				weighted_end	= end;
+				this_var_type 	= 0;
+				
+			}else if ( metric < VARIANCE_BAD_VALUE ){
+				
+					// medium values, treat at face value
+				
+				weighted_start 	= start;
+				weighted_end	= end;
+				this_var_type	= VARIANCE_GOOD_VALUE;
+
+			}else{
+				
+					// bad ones, treat at face value
+				
+				weighted_start 	= start;
+				weighted_end	= max_end;
+				this_var_type	= VARIANCE_BAD_VALUE;
+			}
+			
+			for (int j=weighted_start;j<=weighted_end;j++){
+			
+					// a bad variance resets totals as we have encountered this after (in time)
+					// the existing data and this is more relevant and replaces any feel good
+					// factor we might have accumulated via prior observations
+				
+				if ( this_var_type == VARIANCE_BAD_VALUE && worst_var_type[j] < this_var_type ){
+					
+					totals[j]	= 0;
+					hits[j]		= 0;
+					
+					worst_var_type[j] = this_var_type;
+				}
+				
+				totals[j] += metric;
+				hits[j]++;
+			}
 		}
-		
-		limitEstimate[]	results = new limitEstimate[samples.length];
-		
-		for (int sample=0;sample<samples.length;sample++){
-			
-			int	sample_end = max_end + 1;
-			
-			int[]	totals 			= new int[sample_end];
-			short[]	hits			= new short[sample_end];				
-			short[] when			= new short[sample_end];
-			short[]	worst_var_type	= new short[sample_end];
-			
-				// take the last 'n' samples (at end of list)
-			
-			int	sample_count = samples[sample];
-			
-			int	pos = num_samples - sample_count;
-			
-			ListIterator sample_it = regions.listIterator( pos );
-				
-				// flatten out all observations into a single munged metric
 
-			for (int i=pos;i<num_samples;i++){
+			// now average out values based on history computed above
+						
+		for (int i=0;i<sample_end;i++){
+			
+			int	hit = hits[i];
+			
+			if ( hit > 0 ){
+				
+				int	average = totals[i]/hit;
+				
+				totals[i] = average;
+				
+				if ( average < VARIANCE_GOOD_VALUE ){
 
-				region r = (region)sample_it.next();
-			
-				int	start 	= (up?r.getUploadStartBytesPerSec():r.getDownloadStartBytesPerSec())/SPEED_DIVISOR;
-				int	end		= (up?r.getUploadEndBytesPerSec():r.getDownloadEndBytesPerSec())/SPEED_DIVISOR;
-				int	metric	= r.getMetric();
-			
-				int	weighted_start;
-				int	weighted_end;
+					worst_var_type[i] = 0;
 				
-				short	this_var_type;
+				}else if ( average < VARIANCE_BAD_VALUE ){
 				
-				if ( metric < VARIANCE_GOOD_VALUE ){
-				
-						// a good variance applies to all speeds up to this one. This means
-						// that previously occuring bad variance will get flattened out by
-						// subsequent good variance
-					
-					weighted_start 	= 0;	
-					weighted_end	= end;
-					this_var_type 	= 0;
-					
-				}else if ( metric < VARIANCE_BAD_VALUE ){
-					
-						// medium values, treat at face value
-					
-					weighted_start 	= start;
-					weighted_end	= end;
-					this_var_type	= VARIANCE_GOOD_VALUE;
+					worst_var_type[i] = VARIANCE_GOOD_VALUE;
 
 				}else{
 					
-						// bad ones, treat at face value
-					
-					weighted_start 	= start;
-					weighted_end	= max_end;
-					this_var_type	= VARIANCE_BAD_VALUE;
-				}
-				
-				for (int j=weighted_start;j<=weighted_end;j++){
-				
-						// a bad variance resets totals as we have encountered this after (in time)
-						// the existing data and this is more relevant and replaces any feel good
-						// factor we might have accumulated via prior observations
-					
-					if ( this_var_type == VARIANCE_BAD_VALUE && worst_var_type[j] < this_var_type ){
-						
-						totals[j]	= 0;
-						hits[j]		= 0;
-						when[j]		= 0;
-						
-						worst_var_type[j] = this_var_type;
-					}
-					
-					totals[j] += metric;
-					hits[j]++;
-						
-						// keep track of most recent observation pertaining to this value
-					
-					if ( i > when[j] ){
-						
-						when[j] = (short)i;
-					}
+					worst_var_type[i] = VARIANCE_BAD_VALUE;
 				}
 			}
-
-				// now average out values based on history computed above
-							
-			for (int i=0;i<sample_end;i++){
+		}
+			
+			// break history up into segments of same speed 
+		
+		int	last_average 			= -1;
+		int	last_average_change		= 0;
+		int last_average_worst_var	= 0;
+		int	last_max_hits			= 0;
+		
+		int	worst_var	= 0;
+		
+		List segments = new ArrayList(totals.length);
+		
+		for (int i=0;i<sample_end;i++){
+			
+			int var		= worst_var_type[i];
+			int	hit 	= hits[i];
+			
+			if ( var > worst_var ){
 				
-				int	hit = hits[i];
-				
-				if ( hit > 0 ){
-					
-					int	average = totals[i]/hit;
-					
-					totals[i] = average;
-					
-					if ( average < VARIANCE_GOOD_VALUE ){
-	
-						worst_var_type[i] = 0;
-					
-					}else if ( average < VARIANCE_BAD_VALUE ){
-					
-						worst_var_type[i] = VARIANCE_GOOD_VALUE;
-
-					}else{
-						
-						worst_var_type[i] = VARIANCE_BAD_VALUE;
-					}
-				}
+				worst_var = var;
 			}
 			
-				// now we look for the most recent worst area of contiguous badness
+			int average = totals[i];
 			
-			int	estimate		= -1;
-			int	estimate_when	= 0;
-			int	estimate_hits	= -1;
-								
-			int	zone_start		= -1;
-			int	zone_max_hit	= 0;
-			int	zone_max_time	= 0;
-			
-			int	worst_var		= 0;
-			
-			int	last_average 		= -1;
-			int	last_average_change	= 0;
-			
-			List segments = new ArrayList(totals.length);
-			
-			for (int i=0;i<sample_end;i++){
+			if ( i == 0 ){
 				
-				int var		= worst_var_type[i];
-				int	hit 	= hits[i];
+				last_average = average;
 				
-				int average = totals[i];
+			}else if ( last_average != average ){
 				
-				if ( i == 0 ){
-					
-					last_average = average;
-					
-				}else if ( last_average != average ){
-					
-					segments.add( new int[]{ last_average, last_average_change*SPEED_DIVISOR, (i-1)*SPEED_DIVISOR });
-					
-					last_average 		= average;
-					last_average_change	= i;
-				}
+				segments.add( new int[]{ last_average, last_average_change*SPEED_DIVISOR, (i-1)*SPEED_DIVISOR, last_average_worst_var, last_max_hits });
+				
+				last_average 			= average;
+				last_average_change		= i;
+				last_average_worst_var	= var;
+				last_max_hits			= hit;
+			}else{
+				
+				last_average_worst_var 	= Math.max( var, last_average_worst_var );
+				last_max_hits			= Math.max( hit, last_max_hits );
+			}
+		}
+		
+		if ( last_average_change != sample_end - 1 ){
+		
+			segments.add( new int[]{ last_average, last_average_change*SPEED_DIVISOR, (sample_end-1)*SPEED_DIVISOR, last_average_worst_var, last_max_hits });
+		}
+		
+		int[]	estimate_seg 	= null;
+		
+			// take smallest bad value and largest good
+		
+		if ( worst_var == VARIANCE_BAD_VALUE ){
+			
+			for (int i=segments.size()-1;i>=0;i-- ){
+						
+				int[]	seg = (int[])segments.get(i);
+				
+				int	var = seg[3];
 				
 				if ( var >= worst_var ){
-					
-					if ( var > worst_var || zone_start == -1 ){
-				
-						// start a new zone and discard any previous results as things have got worse
 						
-						worst_var		= var;
-						
-						zone_start 		= i;
-						zone_max_hit	= hit;
-						zone_max_time	= 0;
-						
-						estimate_when	= 0;	// forget any previous zone stats
-						
-					}else{
-						
-							// continuation of zone
-					
-						zone_max_hit = Math.max( zone_max_hit, hit );
-					}
-					
-						// keep track of most recent contribution to this zone
-					
-					int	w = when[i];
-					
-					if ( w > zone_max_time ){
-						
-						zone_max_time = w;
-					}
-				}else{
-					
-						// zone ended - capture details if this is more recent
-					
-					if ( zone_start != -1 ){
-						
-						if ( zone_max_time > estimate_when ){
-						
-								// if zone has contiguous time region at start then take middle of this
-								// when bad variance as we want to err on the side of caution
-							
-							if ( worst_var == VARIANCE_BAD_VALUE ){
-								
-								estimate 		= zone_start;
-								
-							}else if ( worst_var == VARIANCE_GOOD_VALUE ){
-								
-								estimate 		= zone_start + (i-1-zone_start)/2;
-								
-							}else{
-								
-								estimate		= i-1;
-							}
-							
-							estimate_when	= zone_max_time;
-							estimate_hits	= zone_max_hit;
-						}
-						
-						zone_start		= -1;
-						zone_max_hit	= 0;
-						zone_max_time	= 0;
-					}
+					estimate_seg = seg;
 				}
 			}
+		}else{
+			for (int i=0;i<segments.size();i++){
 			
-			if ( zone_start != -1 ){
+				int[]	seg = (int[])segments.get(i);
+			
+				int	var = seg[3];
+			
+				if ( var >= worst_var ){
 				
-					// capture any trailing zone
-				
-				if ( zone_max_time > estimate_when ){
-				
-					if ( worst_var == VARIANCE_BAD_VALUE ){
-						
-						estimate 		= zone_start;
-										
-					}else if ( worst_var == VARIANCE_GOOD_VALUE ){
-						
-						estimate 		= zone_start + (sample_end-1-zone_start)/2;
-
-					}else{
-						
-						estimate		= sample_end-1;
-					}
-					
-					estimate_when	= zone_max_time;
-					estimate_hits	= zone_max_hit;
+					estimate_seg = seg;
 				}
 			}
-			
-			if ( last_average_change != sample_end - 1 ){
-			
-				segments.add( new int[]{ last_average, last_average_change*SPEED_DIVISOR, (sample_end-1)*SPEED_DIVISOR });
-			}
-			
-			results[sample] = 
-				new limitEstimate(
-						estimate==-1?-1:(estimate*SPEED_DIVISOR),
-						convertMetricToRating( worst_var ), 
-						estimate_hits, 
-						SystemTime.getCurrentTime(),
-						(int[][])segments.toArray(new int[segments.size()][]));
 		}
+		
+		int	estimate_speed;
+		int	estimate_hits;
+		
+		if ( estimate_seg == null ){
+			
+			estimate_speed 	= -1;
+			estimate_hits	= 0;
+		}else{
+			
+			estimate_speed 	= -1;
+			
+			if ( worst_var == 0 ){
+				
+				estimate_speed = estimate_seg[2];
+				
+			}else if ( worst_var == VARIANCE_GOOD_VALUE ){
+				
+				estimate_speed = ( estimate_seg[1] + estimate_seg[2])/2;
+
+			}else{
+				
+				estimate_speed = estimate_seg[1];
+			}
+			
+			estimate_hits = estimate_seg[4];
+		}
+			
+		limitEstimate result = 
+			new limitEstimate(
+					estimate_speed,
+					convertMetricToRating( worst_var ), 
+					estimate_hits, 
+					SystemTime.getCurrentTime(),
+					(int[][])segments.toArray(new int[segments.size()][]));
 		
 		if ( variance ){
 		
-			log( "Estimate (samples=" + num_samples + ")" + (up?"up":"down") + "->" + results[0].getString());
+			log( "Estimate (samples=" + num_samples + ")" + (up?"up":"down") + "->" + result.getString());
 		}
-						
-			// just go for the long-term view
-		
-		return( results[results.length-1] );
+								
+		return( result );
 	}
 	
 	public synchronized double
