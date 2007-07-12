@@ -366,4 +366,8 @@ public class UIFunctionsImpl
 				buttons, defaultOption);
 		return mb;
 	}
+	
+	public void setTorrentMenuContextObjects(Object[] context) {
+		mainwindow.getMenu().setTorrentMenuContext(context);
+	}
 }

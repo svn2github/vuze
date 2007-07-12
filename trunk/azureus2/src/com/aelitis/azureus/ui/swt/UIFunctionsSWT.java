@@ -125,4 +125,6 @@ public interface UIFunctionsSWT extends UIFunctions
 	public Menu getMenu(int id);
 
 	public UISWTInstance getUISWTInstance();
+
+	public void setTorrentMenuContextObjects(Object[] context);
 }

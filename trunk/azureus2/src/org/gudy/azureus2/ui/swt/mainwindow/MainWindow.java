@@ -1299,10 +1299,13 @@ MainWindow
 	public void refreshTorrentMenu() {
 		if (this.mainMenu == null) {return;}
 		if (this.getCurrentView() instanceof ManagerView) {
-			this.mainMenu.setTorrentMenuDownload(((ManagerView)this.getCurrentView()).getDownload());
+			DownloadManager[] dm = new DownloadManager[] {
+				((ManagerView)this.getCurrentView()).getDownload(),
+			};
+			this.mainMenu.setTorrentMenuContext(dm);
 		}
 		else {
-			this.mainMenu.setTorrentMenuDownload(null);
+			this.mainMenu.setTorrentMenuContext(null);
 		}		
 	}
 

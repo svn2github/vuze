@@ -22,6 +22,7 @@
  */
 package org.gudy.azureus2.ui.swt.mainwindow;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
@@ -108,9 +109,15 @@ public class MainMenu {
   private AzureusCore core;
   
   private MenuItem torrentItem;
-  public void setTorrentMenuDownload(org.gudy.azureus2.core3.download.DownloadManager dl) {
-	  torrentItem.setData(dl);
-	  torrentItem.setEnabled(dl != null);
+  public void setTorrentMenuContext(Object[] context) {
+	  if (context == null) {context = new Object[0];}
+	  ArrayList result = new ArrayList(context.length);
+	  for (int i=0; i<context.length; i++) {
+		  if (context[i] instanceof DownloadManager) {result.add(context[i]);}
+		  // We don't expect anything else for now.
+	  }
+	  torrentItem.setData((DownloadManager[])result.toArray(new DownloadManager[result.size()]));
+	  torrentItem.setEnabled(!result.isEmpty());
   }
 
   /**
@@ -592,9 +599,9 @@ public class MainMenu {
       if(isModal) {performOneTimeDisable(torrentItem, true);}
       MenuBuildUtils.addMaintenanceListenerForMenu(torrentMenu, new MenuBuildUtils.MenuBuilder() {
       	public void buildMenu(Menu menu) {
-      		DownloadManager current_dl = (DownloadManager)torrentItem.getData();
-      		if (current_dl == null) {return;}
-      		TorrentUtil.fillTorrentMenu(menu, new DownloadManager[] {current_dl}, core, attachedShell, false, 0);
+      		DownloadManager[] current_dls = (DownloadManager[])torrentItem.getData();
+      		if (current_dls == null) {return;}
+      		TorrentUtil.fillTorrentMenu(menu, current_dls, core, attachedShell, false, 0);
       	}
       });
   }

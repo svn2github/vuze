@@ -65,6 +65,7 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.common.table.*;
 
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
@@ -729,16 +730,19 @@ public class MyTorrentsView
   // @see com.aelitis.azureus.ui.common.table.TableSelectionListener#selected(com.aelitis.azureus.ui.common.table.TableRowCore[])
   public void selected(TableRowCore[] rows) {
   	refreshIconBar();
+  	refreshTorrentMenu();
   }
 
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#deselected(com.aelitis.azureus.ui.common.table.TableRowCore[])
 	public void deselected(TableRowCore[] rows) {
   	refreshIconBar();
+  	refreshTorrentMenu();
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#focusChanged(com.aelitis.azureus.ui.common.table.TableRowCore)
 	public void focusChanged(TableRowCore focus) {
   	refreshIconBar();
+  	refreshTorrentMenu();
 	}
 
   private void refreshIconBar() {
@@ -748,6 +752,14 @@ public class MyTorrentsView
   		uiFunctions.refreshIconBar();
   	}
   }
+  
+	private void refreshTorrentMenu() {
+		Object[] data_sources = tv.getSelectedDataSources();
+		UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+		if (uiFunctions != null && uiFunctions instanceof UIFunctionsSWT) {
+			((UIFunctionsSWT)uiFunctions).setTorrentMenuContextObjects(data_sources);
+		}
+	}
 
   // @see com.aelitis.azureus.ui.common.table.TableSelectionListener#defaultSelected(com.aelitis.azureus.ui.common.table.TableRowCore[])
   public void defaultSelected(TableRowCore[] rows) {
@@ -975,6 +987,7 @@ public class MyTorrentsView
     isTrackerOn = TRTrackerUtils.isTrackerEnabled();
     
     refreshIconBar();
+    refreshTorrentMenu();
   }
 
 
