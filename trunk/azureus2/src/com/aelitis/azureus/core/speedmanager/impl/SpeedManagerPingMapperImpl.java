@@ -24,6 +24,8 @@ package com.aelitis.azureus.core.speedmanager.impl;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -52,11 +54,14 @@ SpeedManagerPingMapperImpl
 	
 	static final int RTT_MAX					= 30*1000;
 
-	static final int MAX_BAD_LIMIT_HISTORY		= 32;
+		// don't make this too large as we don't start considering capacity decreases until this
+		// is full
+	
+	static final int MAX_BAD_LIMIT_HISTORY		= 16;
 	
 	static final int SPEED_DIVISOR = 256;
 	
-	private static final int SPEED_HISTORY_PERIOD	= 1*60*1000;
+	private static final int SPEED_HISTORY_PERIOD	= 1*60*1000 + 30*1000;	// 1.5 min
 	private static final int SPEED_HISTORY_COUNT	= SPEED_HISTORY_PERIOD / SpeedManagerImpl.UPDATE_PERIOD_MILLIS;
 		
 	private SpeedManagerImpl	speed_manager;
@@ -550,7 +555,7 @@ SpeedManagerPingMapperImpl
 					total_deviation += deviation * deviation;
 				}
 				
-				metric = (int)Math.sqrt( total_deviation );
+				metric = (int)Math.sqrt( total_deviation / entries );
 			}
 			
 			if ( metric < VARIANCE_BAD_VALUE ){
@@ -773,6 +778,8 @@ SpeedManagerPingMapperImpl
 						
 						last_bad_ups.removeFirst();
 					}
+					
+					checkCapacityDecrease( true, up_capacity, last_bad_ups );
 				}
 				
 				bad_up_in_progress	= true;
@@ -813,6 +820,8 @@ SpeedManagerPingMapperImpl
 						
 						last_bad_downs.removeFirst();
 					}
+					
+					checkCapacityDecrease( false, down_capacity, last_bad_downs );
 				}
 				
 				bad_down_in_progress	= true;
@@ -835,6 +844,105 @@ SpeedManagerPingMapperImpl
 				
 				bad_down_in_progress	= false;
 			}	
+		}
+	}
+	
+	protected void
+	checkCapacityDecrease(
+		boolean			is_up,
+		limitEstimate	capacity,
+		LinkedList		bads )
+	{
+		if ( capacity.getMetricRating() == SpeedManagerLimitEstimate.RATING_MANUAL ){
+			
+			return;
+		}
+		
+		if ( bads.size() < MAX_BAD_LIMIT_HISTORY ){
+			
+			return;
+		}
+		
+		int	cap = capacity.getBytesPerSec();
+		
+			// sanity check
+		
+		if ( cap < 10*1024 ){
+		
+			return;
+		}
+		
+		List b = new ArrayList( bads );
+		
+		Collections.sort(
+			b,
+			new Comparator()
+			{
+				public int 
+				compare(
+					Object o1, 
+					Object o2 )
+				{
+					limitEstimate	l1 = (limitEstimate)o1;
+					limitEstimate	l2 = (limitEstimate)o2;
+					
+					return( l1.getBytesPerSec() - l2.getBytesPerSec());
+				}
+			});
+		
+			// drop top bottom quarter of measurements
+		
+		int	start 	= MAX_BAD_LIMIT_HISTORY/4;
+		int	end		= MAX_BAD_LIMIT_HISTORY - start;
+		
+		int	total 	= 0;
+		int	num		= 0;
+		
+		for (int i=start;i<end;i++){
+		
+			int	s = ((limitEstimate)b.get(i)).getBytesPerSec();
+			
+			total += s;
+			
+			num++;
+		}
+		
+		int	average = total/num;
+		
+			// only consider decreases!
+		
+		if ( average >= cap ){
+			
+			return;
+		}
+		
+		int	total_deviation = 0;
+		
+		for (int i=start;i<end;i++){
+			
+			int	s = ((limitEstimate)b.get(i)).getBytesPerSec();
+
+			int	deviation = s - average;
+			
+			total_deviation += deviation * deviation;
+		}
+		
+		int	deviation = (int)Math.sqrt( total_deviation / num );
+		
+			// adjust if deviation within 10% of capacity
+		
+		if ( deviation < cap/10 ){
+			
+			log( "Reducing " + (is_up?"up":"down") + " capacity from " + cap + " to " + average + " due to frequent lower chokes" );
+			
+			capacity.setBytesPerSec( average );
+			
+				// remove the last 1/4 bad stats so we don't reconsider adjusting until more data collected
+			
+			for (int i=0;i<start;i++){
+				
+				bads.removeFirst();
+			}
 		}
 	}
 	
