@@ -861,7 +861,6 @@ public class TrackerStatus {
 						Logger.log(new LogEvent(TorrentUtils.getDownloadManager(hash), LOGID,
 								LogEvent.LT_ERROR, "Error from scrape interface " + scrapeURL
 										+ " : " + msg + " (" + e.getClass() + ")"));
-						Debug.out(e);
 					}
 
 					response.setNextScrapeStartTime(SystemTime.getCurrentTime()
