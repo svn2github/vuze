@@ -96,6 +96,9 @@ SpeedManagerPingMapperImpl
 	private limitEstimate	last_bad_down;
 	private boolean			bad_down_in_progress;
 
+	private limitEstimate	best_good_up;
+	private limitEstimate	best_good_down;
+	
 	private limitEstimate	up_capacity		= getNullLimit();
 	private limitEstimate	down_capacity	= getNullLimit();
 	
@@ -137,6 +140,9 @@ SpeedManagerPingMapperImpl
 		
 		last_bad_down			= null;
 		bad_down_in_progress	= false;
+		
+		best_good_up 	= null;
+		best_good_down	= null;
 		
 		up_capacity 	= getNullLimit();
 		down_capacity 	= getNullLimit();
@@ -207,6 +213,19 @@ SpeedManagerPingMapperImpl
 				last_bad_ups 	= loadLimits( map, "lbus" );
 				last_bad_downs 	= loadLimits( map, "lbds" );
 				
+				if ( last_bad_ups.size() > 0 ){
+					
+					last_bad_up	= (limitEstimate)last_bad_ups.get(last_bad_ups.size()-1);
+				}
+				
+				if ( last_bad_downs.size() > 0 ){
+					
+					last_bad_down	= (limitEstimate)last_bad_downs.get(last_bad_downs.size()-1);
+				}
+
+				best_good_up	= loadLimit((Map)map.get( "bgu" ));
+				best_good_down	= loadLimit((Map)map.get( "bgd" ));
+				
 				up_capacity 	= loadLimit((Map)map.get( "upcap" ));
 				down_capacity 	= loadLimit((Map)map.get( "downcap" ));
 				
@@ -256,6 +275,16 @@ SpeedManagerPingMapperImpl
 			
 			saveLimits( map, "lbus", last_bad_ups );
 			saveLimits( map, "lbds", last_bad_downs );
+
+			if ( best_good_up != null ){
+				
+				map.put( "bgu", saveLimit( best_good_up ));
+			}
+			
+			if ( best_good_down != null ){
+				
+				map.put( "bgd", saveLimit( best_good_down ));
+			}
 
 			map.put( "upcap", 	saveLimit( up_capacity ));
 			map.put( "downcap", saveLimit( down_capacity ));
@@ -614,14 +643,14 @@ SpeedManagerPingMapperImpl
 	getEstimatedUploadLimit(
 		boolean	persistent )
 	{
-		return( adjustForPersistence( up_estimate, last_bad_up, persistent ));
+		return( adjustForPersistence( up_estimate, best_good_up, last_bad_up, persistent ));
 	}
 	
 	public synchronized SpeedManagerLimitEstimate
 	getEstimatedDownloadLimit(
 		boolean	persistent )
 	{
-		return( adjustForPersistence( down_estimate, last_bad_down, persistent ));
+		return( adjustForPersistence( down_estimate, best_good_down, last_bad_down, persistent ));
 	}
 
 	public SpeedManagerLimitEstimate
@@ -650,9 +679,10 @@ SpeedManagerPingMapperImpl
 	                             	
 	protected SpeedManagerLimitEstimate
 	adjustForPersistence(
-		SpeedManagerLimitEstimate	estimate,
-		limitEstimate				last_bad,	
-		boolean						persistent )
+		limitEstimate		estimate,
+		limitEstimate		best_good,	
+		limitEstimate		last_bad,	
+		boolean				persistent )
 	{
 		if ( estimate == null ){
 			
@@ -661,22 +691,63 @@ SpeedManagerPingMapperImpl
 		
 		if ( persistent ){
 			
-			if ( estimate.getMetricRating() == -1 || last_bad == null ){
+				// if result is bad then we return this
+			
+			if ( estimate.getMetricRating() == -1 ){
 				
 				return( estimate );
 			}
 			
-				// current estimate isn't bad and we have an old bad one
+				// see if best good/last bad are relevant
 			
-			if ( last_bad.getBytesPerSec() >= estimate.getBytesPerSec()){
+			limitEstimate	persistent_limit = null;
+			
+			if ( best_good != null && last_bad != null ){
 				
-				return( last_bad );
+				if ( last_bad.getWhen() > best_good.getWhen()){
+					
+					persistent_limit = last_bad;
+					
+				}else{
+					
+					if ( best_good.getBytesPerSec() > last_bad.getBytesPerSec()){
+						
+						persistent_limit = best_good;
+						
+					}else{
+						
+						persistent_limit = last_bad;
+					}
+				}
+			}else if ( best_good != null ){
+				
+				persistent_limit = best_good;
+				
+			}else if ( last_bad != null ){
+				
+				persistent_limit = last_bad;
 			}
 			
-				// current estimate is > last bad - use current estimate
-			
-			return( estimate );
-			
+			if ( persistent_limit == null ){
+				
+				return( estimate );
+			}
+
+			if ( estimate.getBytesPerSec() > persistent_limit.getBytesPerSec()){
+				
+				return( estimate );
+				
+			}else{
+									
+				// need to convert this into a good rating to correspond to the 
+				// actual estimate type we have
+					
+				limitEstimate res = estimate.getClone();
+				
+				res.setBytesPerSec(persistent_limit.getBytesPerSec());
+
+				return( res );
+			}
 		}else{
 			
 			return( estimate );
@@ -710,6 +781,18 @@ SpeedManagerPingMapperImpl
 				
 			}else if ( metric == 1 ){
 				
+				if ( best_good_up == null ){
+					
+					best_good_up = up_estimate;
+					
+				}else{
+					
+					if ( best_good_up.getBytesPerSec() < up_estimate.getBytesPerSec()){
+						
+						best_good_up = up_estimate;
+					}
+				}
+				
 				bad_up_in_progress	= false;
 			}
 		}
@@ -737,6 +820,18 @@ SpeedManagerPingMapperImpl
 				last_bad_down = down_estimate;
 				
 			}else if ( metric == 1 ){
+				
+				if ( best_good_down == null ){
+					
+					best_good_down = down_estimate;
+					
+				}else{
+					
+					if ( best_good_down.getBytesPerSec() < down_estimate.getBytesPerSec()){
+						
+						best_good_down = down_estimate;
+					}
+				}
 				
 				bad_down_in_progress	= false;
 			}	
@@ -1271,7 +1366,7 @@ SpeedManagerPingMapperImpl
 	
 	class
 	limitEstimate
-		implements SpeedManagerLimitEstimate
+		implements SpeedManagerLimitEstimate, Cloneable
 	{
 		private int		speed;
 		private float	metric_rating;
@@ -1337,6 +1432,18 @@ SpeedManagerPingMapperImpl
 		getWhen()
 		{
 			return( when );
+		}
+		
+		public limitEstimate
+		getClone()
+		{
+			try{
+				return((limitEstimate)clone());
+				
+			}catch( Throwable e ){
+								
+				return( null );
+			}
 		}
 		
 		public String
