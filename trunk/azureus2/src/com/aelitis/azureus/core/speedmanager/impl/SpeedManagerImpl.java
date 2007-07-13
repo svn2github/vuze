@@ -390,8 +390,6 @@ SpeedManagerImpl
 			log( "Algorithm set to " + provider.getClass().getName());
 		}
 				
-		transient_mappers.clear();
-
 		provider.reset();
 	}
 	
@@ -401,6 +399,11 @@ SpeedManagerImpl
 		SpeedManagerPingMapper res = new SpeedManagerPingMapperImpl( this, "Transient", LONG_PERIOD_TICKS, true, true );
 		
 		transient_mappers.add( res );
+		
+		if ( transient_mappers.size() > 32 ){
+			
+			Debug.out( "Transient mappers are growing too large" );
+		}
 		
 		return( res );
 	}
@@ -431,7 +434,7 @@ SpeedManagerImpl
 				new DHTSpeedTesterListener()
 				{
 					private DHTSpeedTesterContact[]	last_contact_group = new DHTSpeedTesterContact[0];
-					
+										
 					public void 
 					contactAdded(
 						DHTSpeedTesterContact contact )
