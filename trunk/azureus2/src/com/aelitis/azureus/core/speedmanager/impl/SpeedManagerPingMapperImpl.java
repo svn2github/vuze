@@ -1074,7 +1074,7 @@ SpeedManagerPingMapperImpl
 		limitEstimate result = 
 			new limitEstimate(
 					estimate_speed,
-					convertMetricToRating( worst_var ), 
+					SpeedManagerLimitEstimate.RATING_ESTIMATED, 
 					estimate_hits, 
 					SystemTime.getCurrentTime(),
 					(int[][])segments.toArray(new int[segments.size()][]));

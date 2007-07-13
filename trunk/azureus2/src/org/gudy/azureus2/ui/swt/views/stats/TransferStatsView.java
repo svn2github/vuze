@@ -534,11 +534,13 @@ public class TransferStatsView extends AbstractIView {
   {
 	  if ( mapper.isActive()){
 		  
-		  SpeedManagerLimitEstimate up 		= mapper.getEstimatedUploadLimit(false);
-		  SpeedManagerLimitEstimate down 	= mapper.getEstimatedDownloadLimit(false);
+		  SpeedManagerLimitEstimate up_1 		= mapper.getEstimatedUploadLimit(false);
+		  SpeedManagerLimitEstimate up_2 		= mapper.getEstimatedUploadLimit(true);
+		  SpeedManagerLimitEstimate down_1 	= mapper.getEstimatedDownloadLimit(false);
+		  SpeedManagerLimitEstimate down_2 	= mapper.getEstimatedDownloadLimit(true);
 		  
-		  return( "ul=" + DisplayFormatters.formatByteCountToKiBEtc(up.getBytesPerSec()) + "/" + DisplayFormatters.formatDecimal(up.getMetricRating(),2) + 
-				  ",dl=" + DisplayFormatters.formatByteCountToKiBEtc(down.getBytesPerSec()) + "/" + DisplayFormatters.formatDecimal(down.getMetricRating(),2) + 
+		  return( "ul=" + DisplayFormatters.formatByteCountToKiBEtc(up_1.getBytesPerSec()) + ":" + DisplayFormatters.formatByteCountToKiBEtc(up_2.getBytesPerSec())+ 
+				  ",dl=" + DisplayFormatters.formatByteCountToKiBEtc(down_1.getBytesPerSec()) + ":" + DisplayFormatters.formatByteCountToKiBEtc(down_2.getBytesPerSec()) + 
 				  ",mr=" + DisplayFormatters.formatDecimal( mapper.getCurrentMetricRating(),2));
 	  }
 	  
@@ -845,6 +847,8 @@ public class TransferStatsView extends AbstractIView {
 		  
 		  if ( bad_up.length > 0 ){
 			  
+			  gc.setLineWidth( 3 );
+			  
 			  gc.setForeground( Colors.red );
 
 			  for (int i=0;i<bad_up.length;i++){
@@ -862,6 +866,8 @@ public class TransferStatsView extends AbstractIView {
 			  }
 			  
 			  gc.setForeground( Colors.black );
+			  
+			  gc.setLineWidth( 1 );
 		  }
 		  
 		  String x_text = labels[0] + " - " + formatters[0].format( max_x+1 );
@@ -945,6 +951,8 @@ public class TransferStatsView extends AbstractIView {
 			  
 			  gc.setForeground( Colors.red );
 
+			  gc.setLineWidth( 3 );
+			  
 			  for (int i=0;i<bad_down.length;i++){
 				  
 				  int speed = bad_down[i].getBytesPerSec();
@@ -959,6 +967,8 @@ public class TransferStatsView extends AbstractIView {
 			  }
 			  
 			  gc.setForeground( Colors.black );
+			  
+			  gc.setLineWidth( 1 );
 		  }
 		  
 		  String	y_text = labels[1] + " - " + formatters[1].format( max_y+1 );
@@ -1062,7 +1072,7 @@ public class TransferStatsView extends AbstractIView {
 			  text = msg_text_estimate;
 		  }
 		  
-		  return( DisplayFormatters.formatByteCountToKiBEtc(limit.getBytesPerSec()) + " (" + text + ")");
+		  return( DisplayFormatters.formatByteCountToKiBEtcPerSec(limit.getBytesPerSec()) + " (" + text + ")");
 	  }
   }
 }
