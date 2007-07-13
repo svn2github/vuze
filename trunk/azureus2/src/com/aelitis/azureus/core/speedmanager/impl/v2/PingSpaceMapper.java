@@ -38,6 +38,9 @@ package com.aelitis.azureus.core.speedmanager.impl.v2;
  */
 public class PingSpaceMapper
 {
+
+    //ToDo: use the SpeedManagerPingMapper interface and move this up a level.
+
     GridRegion[][] gridRegion; //here upIndex,downIndex
 
     int lastDownloadBitsPerSec;

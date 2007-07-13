@@ -112,12 +112,13 @@ public class SpeedLimitMonitor
     PingSpaceMapper pingMapOfSeedingMode;
 
     //Short-term PingSpaceMap to decide if a limit is too high.
-    PingSpaceMonitor pingMonitor;
+    //PingSpaceMonitor pingMonitor; //Don't let the limits get too high.
 
-    boolean usePersistentMap = false;
+    boolean useVariancePingMap = false;
+    SpeedManagerPingMapper transientPingMap;
 
     //Testing
-    LimitSlider slider = new LimitSlider();
+    LimitControlDropUploadFirst slider = new LimitControlDropUploadFirst();
 
     public SpeedLimitMonitor(){
         //
@@ -299,11 +300,10 @@ public class SpeedLimitMonitor
             return startLimitTesting(currUpLimit, currDownLimit);
         }
 
-        //if( !isUploadMaxPinned || !isDownloadMaxPinned ){
+
         if( isEitherLimitUnpinned() ){
             return calculateNewUnpinnedLimits(signalStrength);
         }
-
 
         slider.updateLimits(uploadLimitMax,uploadLimitMin,
                 downloadLimitMax,downloadLimitMin);
@@ -669,6 +669,19 @@ public class SpeedLimitMonitor
     public void triggerLimitTestingFlag(){
         SpeedManagerLogger.trace("triggerd fast limit test.");
         beginLimitTest=true;
+
+        //if we are using a persistent PingSource then get that here.
+        if( useVariancePingMap ){
+            SMInstance pm = SMInstance.getInstance();
+            SpeedManagerAlgorithmProviderAdapter adapter = pm.getAdapter();
+
+            //start a new transientPingMap;
+            if(transientPingMap!=null){
+                transientPingMap.destroy();
+            }
+            transientPingMap = adapter.createTransientPingMapper();
+        }
+
     }
 
     public synchronized boolean isStartLimitTestFlagSet(){
@@ -844,7 +857,14 @@ public class SpeedLimitMonitor
 
     private int choseBestLimit(SpeedManagerLimitEstimate estimate, int currMaxLimit) {
         float rating = estimate.getMetricRating();
+        int estBytesPerSec = estimate.getBytesPerSec();
         int chosenLimit;
+
+        //no estimate less then 20k accepted.
+        if( (estBytesPerSec<currMaxLimit) && estBytesPerSec<20480 ){
+            return currMaxLimit;
+        }
+
         if(  rating==SpeedManagerLimitEstimate.RATING_MANUAL ){
             chosenLimit = estimate.getBytesPerSec();
 //        }else if( rating==SpeedManagerLimitEstimate.RATING_MEASURED){
@@ -866,6 +886,12 @@ public class SpeedLimitMonitor
 
         int upMax = choseBestLimit(estUp, uploadLimitMax);
         int downMax = choseBestLimit(estDown, downloadLimitMax);
+
+        if(downMax<upMax){
+            SpeedManagerLogger.trace("down max-limit was less then up-max limit. increasing down max-limit. upMax="
+                    +upMax+" downMax="+downMax);
+            downMax = upMax;
+        }
 
         setRefLimits(upMax,downMax);
     }
@@ -956,31 +982,113 @@ public class SpeedLimitMonitor
         pingMapOfDownloadMode = new PingSpaceMapper(maxGoodPing,minBadPing);
         pingMapOfSeedingMode = new PingSpaceMapper(maxGoodPing,minBadPing);
 
-        pingMonitor = new PingSpaceMonitor(maxGoodPing,minBadPing,transferMode);
+        //pingMonitor = new PingSpaceMonitor(maxGoodPing,minBadPing,transferMode);
 
-        usePersistentMap = false;
+        useVariancePingMap = false;
     }
 
     public void initPingSpaceMap(){
-        usePersistentMap = true;
+        useVariancePingMap = true;
+
+
+        //ToDo: remove after beta-testing - just to characterize the different methods.
+        pingMapOfDownloadMode = new PingSpaceMapper(150,500);
+        pingMapOfSeedingMode = new PingSpaceMapper(150,500);
+
     }
+
+    /**
+     * This is a lot of data, but is important debug info.
+     * @param name -
+     * @param transEst -
+     * @param hadChockPing -
+     * @param permEst -
+     * @param downMode -
+     * @param seedMode -
+     */
+    public void betaLogPingMapperEstimates(String name,
+                                           SpeedManagerLimitEstimate transEst,
+                                           boolean hadChockPing,
+                                           SpeedManagerLimitEstimate permEst,
+                                           PingSpaceMapper downMode,
+                                           PingSpaceMapper seedMode)
+    {
+        StringBuffer sb = new StringBuffer("beta-ping-maps-").append(name).append(": ");
+
+        if(transEst!=null){
+            int rate = transEst.getBytesPerSec();
+            float conf = transEst.getMetricRating();
+            sb.append("transient-").append(rate).append("(").append(conf).append(")");
+        }
+        sb.append(" chockPing=").append(hadChockPing);
+ 
+
+        if(permEst!=null){
+            int rate = permEst.getBytesPerSec();
+            float conf = permEst.getMetricRating();
+            sb.append("; perm-").append(rate).append("(").append(conf).append(")");
+        }
+
+        if(downMode!=null){
+            int rateDown = downMode.guessDownloadLimit();
+            int rateUp = downMode.guessUploadLimit();
+            boolean downChockPing = downMode.hadChockingPing(true);
+            boolean upChockPing = downMode.hadChockingPing(false);
+
+            sb.append("; downMode- ");
+            sb.append("rateDown=").append(rateDown).append(" ");
+            sb.append("rateUp=").append(rateUp).append(" ");
+            sb.append("downChockPing=").append(downChockPing).append(" ");
+            sb.append("upChockPing=").append(upChockPing).append(" ");
+        }
+
+        if(seedMode!=null){
+            int rateDown = seedMode.guessDownloadLimit();
+            int rateUp = seedMode.guessUploadLimit();
+            boolean downChockPing = seedMode.hadChockingPing(true);
+            boolean upChockPing = seedMode.hadChockingPing(false);
+
+            sb.append("; seedMode- ");
+            sb.append("rateDown=").append(rateDown).append(" ");
+            sb.append("rateUp=").append(rateUp).append(" ");
+            sb.append("downChockPing=").append(downChockPing).append(" ");
+            sb.append("upChockPing=").append(upChockPing).append(" ");
+        }
+        SpeedManagerLogger.log( sb.toString() );
+    }//betaLogPingMapperEstimates
 
     public int guessDownloadLimit(){
 
-        if( !usePersistentMap ){
+        if( !useVariancePingMap){
             return pingMapOfDownloadMode.guessDownloadLimit();
         }else{
 
+            boolean wasChocked=true;
+            SpeedManagerLimitEstimate transientEst=null;
+            if(transientPingMap!=null){
+                transientEst = transientPingMap.getLastBadDownloadLimit();
+                if(transientEst==null){
+                    wasChocked=false;
+                    transientEst = transientPingMap.getEstimatedDownloadLimit(false);
+                }
+            }
+
+            //NOTE: Currently just getting the persistentMap for temp logging purposes.
             SMInstance pm = SMInstance.getInstance();
             SpeedManagerAlgorithmProviderAdapter adapter = pm.getAdapter();
             SpeedManagerPingMapper persistentMap = adapter.getPingMapper();
+            SpeedManagerLimitEstimate persistentEst = persistentMap.getEstimatedDownloadLimit(false);
 
-            SpeedManagerLimitEstimate est = persistentMap.getEstimatedDownloadLimit(false);
+            //log the different ping-mappers for beta.
+            betaLogPingMapperEstimates("down",transientEst,wasChocked,persistentEst,pingMapOfDownloadMode,pingMapOfSeedingMode);
 
-            if( est.getMetricRating() > SpeedManagerLimitEstimate.RATING_UNKNOWN ){
-                return est.getBytesPerSec();
+            if( transientEst!=null &&
+                transientEst.getMetricRating() > SpeedManagerLimitEstimate.RATING_UNKNOWN )
+            {
+                return transientEst.getBytesPerSec();
             }else{
-                return pingMapOfDownloadMode.guessDownloadLimit();                    
+                //keep the previous estimate.
+                return downloadLimitMax;                    
             }
 
         }
@@ -988,7 +1096,7 @@ public class SpeedLimitMonitor
 
     public int guessUploadLimit(){
 
-        if( !usePersistentMap ){
+        if( !useVariancePingMap){
 
             int dmUpLimitGuess = pingMapOfDownloadMode.guessUploadLimit();
             int smUpLimitGuess = pingMapOfSeedingMode.guessUploadLimit();
@@ -996,12 +1104,34 @@ public class SpeedLimitMonitor
             return Math.max(dmUpLimitGuess,smUpLimitGuess);
 
         }else{
+
+            boolean wasChocked=true;
+            SpeedManagerLimitEstimate transientEst=null;
+            if(transientPingMap!=null){
+                transientEst = transientPingMap.getLastBadDownloadLimit();
+                if(transientEst==null){
+                    wasChocked=false;
+                    transientEst = transientPingMap.getEstimatedDownloadLimit(false);
+                }
+            }
+
+            //NOTE: Currently just getting the persistentMap for temp logging purposes.
             SMInstance pm = SMInstance.getInstance();
             SpeedManagerAlgorithmProviderAdapter adapter = pm.getAdapter();
             SpeedManagerPingMapper persistentMap = adapter.getPingMapper();
+            SpeedManagerLimitEstimate persistentEst = persistentMap.getEstimatedUploadLimit(false);
 
-            SpeedManagerLimitEstimate est = persistentMap.getEstimatedUploadLimit(false);
-            return est.getBytesPerSec();
+            //log the different ping-mappers for beta.
+            betaLogPingMapperEstimates("up",transientEst,wasChocked,persistentEst,pingMapOfDownloadMode,pingMapOfSeedingMode);
+
+            if( transientEst!=null &&
+                transientEst.getMetricRating() > SpeedManagerLimitEstimate.RATING_UNKNOWN )
+            {
+                return transientEst.getBytesPerSec();
+            }else{
+                //keep the previous estimate.
+                return downloadLimitMax;                    
+            }
         }
 
     }//guessUploadLimit
@@ -1012,7 +1142,7 @@ public class SpeedLimitMonitor
      * @return - true if
      */
     public boolean hadChockingPing(){
-        if( !usePersistentMap ){
+        if( !useVariancePingMap){
 
             return pingMapOfDownloadMode.hadChockingPing(true);
 
@@ -1030,7 +1160,7 @@ public class SpeedLimitMonitor
      */
     public void logPingMapData() {
 
-        if( !usePersistentMap ){
+        if( !useVariancePingMap){
             int downLimGuess = pingMapOfDownloadMode.guessDownloadLimit();
             int upLimGuess = pingMapOfDownloadMode.guessUploadLimit();
             int seedingUpLimGuess = pingMapOfSeedingMode.guessUploadLimit();
@@ -1101,77 +1231,80 @@ public class SpeedLimitMonitor
 
         }
 
-        boolean dropLimits = pingMonitor.addToPingMapData(lastMetricValue,transferMode);
-        if( dropLimits ){
-
-            handleDropLimitRequest();
-
-        }
+//ToDo: delete if we get rid of PingSpaceMonitor...
+//        boolean dropLimits = pingMonitor.addToPingMapData(lastMetricValue,transferMode);
+//        if( dropLimits ){
+//
+//            handleDropLimitRequest();
+//
+//        }
+//
 
         //if confidence limit testing, inform of bad ping.
         updateLimitTestingPing(lastMetricValue);
 
     }//addToPingMapData
 
-    /**
-     * PingSpaceMonitor is requesting the limits be dropped. Handle this
-     * request.
-     * Rules:
-     * #1) IGNORE if confidence limit is HIGH or ABSOLUTE.
-     * #2)
-     */
-    private void handleDropLimitRequest(){
-
-        int newLimit = pingMonitor.getNewLimit();
-        int type = pingMonitor.limitType();
-
-        if( type == PingSpaceMonitor.DOWNLOAD ){
-
-            if( SpeedLimitConfidence.HIGH.isGreater( downloadLimitConf ) ){
-                //We have a MED,LOW,NONE setting move it lower.
-                SpeedManagerLogger.log("PingSpaceMonitor lower download limit="+newLimit);
-
-                downloadLimitMax = newLimit;
-                COConfigurationManager.setParameter(
-                        SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT,
-                        newLimit);
-
-                //Automatically set the confidence limit back to LOW
-                COConfigurationManager.setParameter(
-                        SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING,
-                        SpeedLimitConfidence.LOW.getString() );
-
-
-            }else{
-                //we have high confidence in these limits, don't change them.
-                SpeedManagerLogger.trace(" PingSpaceMonitor - keeping same limits, since conf interval is high.");
-            }
-
-        }else if( type == PingSpaceMonitor.UPLOAD ){
-
-            if( SpeedLimitConfidence.HIGH.isGreater( uploadLimitConf ) ){
-                SpeedManagerLogger.log("PingSpaceMonitor lower upload-limit="+newLimit);
-
-                uploadLimitMax = newLimit;
-                COConfigurationManager.setParameter(
-                        SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT,
-                        newLimit);
-
-                //Automatically set the confidence limit back to LOW
-                COConfigurationManager.setParameter(
-                        SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING,
-                        SpeedLimitConfidence.LOW.getString() );
-
-            }else{
-                SpeedManagerLogger.trace(" PingSpaceMonitor - keeping same limits, since conf interval is high.");
-            }
-
-        }
-
-        //we have consumed this request, now reset it.
-        pingMonitor.resetNewLimit();
-
-    }//handleDropLimitRequest
+//ToDo:  delete if we get rid of PingSpaceMonitor...
+//    /**
+//     * PingSpaceMonitor is requesting the limits be dropped. Handle this
+//     * request.
+//     * Rules:
+//     * #1) IGNORE if confidence limit is HIGH or ABSOLUTE.
+//     * #2)
+//     */
+//    private void handleDropLimitRequest(){
+//
+//        int newLimit = pingMonitor.getNewLimit();
+//        int type = pingMonitor.limitType();
+//
+//        if( type == PingSpaceMonitor.DOWNLOAD ){
+//
+//            if( SpeedLimitConfidence.HIGH.isGreater( downloadLimitConf ) ){
+//                //We have a MED,LOW,NONE setting move it lower.
+//                SpeedManagerLogger.log("PingSpaceMonitor lower download limit="+newLimit);
+//
+//                downloadLimitMax = newLimit;
+//                COConfigurationManager.setParameter(
+//                        SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT,
+//                        newLimit);
+//
+//                //Automatically set the confidence limit back to LOW
+//                COConfigurationManager.setParameter(
+//                        SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING,
+//                        SpeedLimitConfidence.LOW.getString() );
+//
+//
+//            }else{
+//                //we have high confidence in these limits, don't change them.
+//                SpeedManagerLogger.trace(" PingSpaceMonitor - keeping same limits, since conf interval is high.");
+//            }
+//
+//        }else if( type == PingSpaceMonitor.UPLOAD ){
+//
+//            if( SpeedLimitConfidence.HIGH.isGreater( uploadLimitConf ) ){
+//                SpeedManagerLogger.log("PingSpaceMonitor lower upload-limit="+newLimit);
+//
+//                uploadLimitMax = newLimit;
+//                COConfigurationManager.setParameter(
+//                        SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT,
+//                        newLimit);
+//
+//                //Automatically set the confidence limit back to LOW
+//                COConfigurationManager.setParameter(
+//                        SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING,
+//                        SpeedLimitConfidence.LOW.getString() );
+//
+//            }else{
+//                SpeedManagerLogger.trace(" PingSpaceMonitor - keeping same limits, since conf interval is high.");
+//            }
+//
+//        }
+//
+//        //we have consumed this request, now reset it.
+//        pingMonitor.resetNewLimit();
+//
+//    }//handleDropLimitRequest
 
 
 }//SpeedLimitMonitor

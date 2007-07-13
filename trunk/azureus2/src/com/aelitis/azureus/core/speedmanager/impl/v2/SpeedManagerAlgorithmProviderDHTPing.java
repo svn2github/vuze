@@ -273,22 +273,7 @@ public class SpeedManagerAlgorithmProviderDHTPing
         if( limitMonitor.isConfTestingLimits() ){
 
             if( limitMonitor.isConfLimitTestFinished() ){
-                int downLimitGuess = limitMonitor.guessDownloadLimit();
-                int upLimitGuess = limitMonitor.guessUploadLimit();
-
-                SMUpdate update = limitMonitor.endLimitTesting(downLimitGuess,
-                        upLimitGuess );
-
-                //print out the PingMap data to compare.
-                limitMonitor.logPingMapData();
-
-                //reset Ping Space Map for next round.
-                limitMonitor.resetPingSpace();
-
-                //log
-                logNewLimits(update);
-                //setting new
-                setNewLimits( update );
+                endLimitTesting();
                 return;
             }else{
                 //will increase the limit each cycle.
@@ -357,6 +342,24 @@ public class SpeedManagerAlgorithmProviderDHTPing
         pingSourceManager.checkPingSources(sources);
     }
 
+    private void endLimitTesting() {
+        int downLimitGuess = limitMonitor.guessDownloadLimit();
+        int upLimitGuess = limitMonitor.guessUploadLimit();
+
+        SMUpdate update = limitMonitor.endLimitTesting(downLimitGuess,
+                upLimitGuess );
+
+        //print out the PingMap data to compare.
+        limitMonitor.logPingMapData();
+
+        //reset Ping Space Map for next round.
+        limitMonitor.resetPingSpace();
+
+        //log
+        logNewLimits(update);
+        //setting new
+        setNewLimits( update );
+    }
 
 
     /**
