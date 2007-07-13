@@ -50,10 +50,12 @@ public class PieUtils {
     Color background = gc.getBackground();
     gc.setForeground(Colors.blue);
     int angle = (percent * 360) / 100;
+    if(angle<4)
+    	angle = 0; // workaround fillArc rendering bug
     gc.setBackground(Colors.white);
     gc.fillArc(x,y,width,height,0,360);
     gc.setBackground(background);
-    gc.fillArc(x,y,width,height,90-angle,angle);
+    gc.fillArc(x,y,width,height,90,angle*-1);
     gc.drawOval(x , y , width-1, height-1);
   }
   
