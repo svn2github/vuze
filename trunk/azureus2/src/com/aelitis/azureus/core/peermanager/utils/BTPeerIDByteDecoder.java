@@ -57,6 +57,13 @@ public class BTPeerIDByteDecoder {
 	}
 
 	static void logUnknownClient(byte[] peer_id_bytes) {
+		
+		// Enable this block for now - just until we get more feedback about
+		// unknown clients.
+		if (Constants.isCVSVersion()) {
+			Debug.out("Unable to decode peer correctly - peer ID bytes: " + ByteFormatter.encodeString(peer_id_bytes));
+		}
+		
 		if (!LOG_UNKNOWN) {return;}
 		FileWriter log = null;
 		File log_file = FileUtil.getUserFile("identification.log");
