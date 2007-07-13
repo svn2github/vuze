@@ -64,7 +64,7 @@ public class BTPeerIDByteDecoder {
 			log = new FileWriter(log_file, true);
 			logUnknownClient0(peer_id_bytes, log);
 		}
-		catch (Exception e) {
+		catch (Throwable e) {
 			Debug.printStackTrace(e);
 		}
 		finally {
@@ -169,7 +169,7 @@ public class BTPeerIDByteDecoder {
 	public static String decode(byte[] peer_id) {
 		String client = null;
 		try {client = decode0(peer_id);}
-		catch (Exception e) {Debug.printStackTrace(e);}
+		catch (Throwable e) {Debug.printStackTrace(e);}
 
 		if (client != null) {return client;}
 		logUnknownClient(peer_id);
@@ -273,7 +273,7 @@ public class BTPeerIDByteDecoder {
 			sPeerID = new String(peerID, Constants.BYTE_ENCODING);
 		}
 		catch (UnsupportedEncodingException ignore) {}
-		catch (Exception e) {}
+		catch (Throwable e) {}
 
 		return( sPeerID );
 	}
