@@ -147,12 +147,10 @@ public class ConfigSectionTransferAutoSpeedSelect
         gridData.widthHint = 50;
         label.setLayoutData(gridData);
 
-        //ToDo: get from the message bundle.
+        //ToDo: get from the message bundle. NOTE Unlimited and Auto-Speed(beta old pm) are temp removed.
         String[] modeNames = {
                 "Auto-Speed (classic)",
                 "Auto-Speed (beta)",
-                "Unlimited! (test)",
-                "Auto-Speed (beta old pm)",
                 "Auto-Speed (beta new pm)",
                                       };
         
@@ -160,8 +158,6 @@ public class ConfigSectionTransferAutoSpeedSelect
                 "1",
                 "2",
                 "3",
-                "4",
-                "5",
         };
 
         //versionList = new StringListParameter(modeGroup,
@@ -176,15 +172,9 @@ public class ConfigSectionTransferAutoSpeedSelect
         }else if( verNum==2 ){
             //SpeedManagerAlgorithmProviderV2
             versionList.setValue(modes[1]);
-        }else if( verNum==3 ){
-            //SpeedManagerAlgorithmProviderV2
-            versionList.setValue(modes[2]);
-        }else if( verNum==4 ){
-            //SpeedManagerAlgorithmProviderV2
-            versionList.setValue(modes[3]);
         }else if( verNum==5 ){
             //SpeedManagerAlgorithmProviderV2
-            versionList.setValue(modes[4]);
+            versionList.setValue(modes[2]);
         }else{
             //Default is currently version ...V1.
             versionList.setValue(modes[0]);

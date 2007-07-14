@@ -364,17 +364,8 @@ SpeedManagerImpl
 				
 				provider = new SpeedManagerAlgorithmProviderV2( this );
 			}
-		}else if ( provider_version == 3 ){
-			
-			if ( !( provider instanceof SMUnlimited )){
-				
-				provider = new SMUnlimited();
-			}
-		}else if ( provider_version == 4 ){
-			
-			provider = new SpeedManagerAlgorithmTI( this, true );
-			
-		}else if ( provider_version == 5 ){
+            
+        }else if ( provider_version == 3 ){
 			
 			provider = new SpeedManagerAlgorithmTI( this, false );
 			
