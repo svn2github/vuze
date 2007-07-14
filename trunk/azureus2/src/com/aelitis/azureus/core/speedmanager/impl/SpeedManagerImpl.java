@@ -126,11 +126,11 @@ SpeedManagerImpl
 	private DHTSpeedTester		speed_tester;
 	private SpeedManagerAdapter	adapter;
 	
-	private SpeedManagerAlgorithmProvider	provider;
+	private SpeedManagerAlgorithmProvider	provider = new nullProvider();
 	
 	
-	private	int					provider_version	= -1;
-	private boolean				enabled;
+	private	int							provider_version	= -1;
+	private boolean						enabled;
 
     private Map							contacts	= new HashMap();
 	private volatile int				total_contacts;
@@ -370,10 +370,13 @@ SpeedManagerImpl
 			provider = new SpeedManagerAlgorithmTI( this, false );
 			
 		}else{
-			
+						
 			Debug.out( "Unknown provider version " + provider_version );
 			
-			return;
+			if ( !( provider instanceof nullProvider )){
+				
+				provider = new nullProvider();
+			}
 		}
 		
 		if ( old_provider != provider ){
@@ -1051,6 +1054,76 @@ SpeedManagerImpl
 		getAdjustsDownloadLimits()
 		{
 			return( true );
+		}
+	}
+	
+	protected class
+	nullProvider
+		implements SpeedManagerAlgorithmProvider
+	{		
+		public void
+		reset()
+		{
+		}
+		
+		public void
+		updateStats()
+		{
+		}
+		
+		public void
+		pingSourceFound(
+			SpeedManagerPingSource		source,
+			boolean						is_replacement )
+		{
+		}
+		
+		public void
+		pingSourceFailed(
+			SpeedManagerPingSource		source )
+		{
+		}
+				
+		public void
+		calculate(
+			SpeedManagerPingSource[]	sources )
+		{
+		}
+				
+		public int
+		getIdlePingMillis()
+		{
+			return( 0 );
+		}
+		
+		public int
+		getCurrentPingMillis()
+		{
+			return( 0 );
+		}
+		
+		public int
+		getMaxPingMillis()
+		{
+			return( 0 );
+		}
+				
+		public int
+		getCurrentChokeSpeed()
+		{
+			return( 0 );
+		}
+		
+		public int
+		getMaxUploadSpeed()
+		{
+			return( 0 );
+		}
+			
+		public boolean
+		getAdjustsDownloadLimits()
+		{
+			return( false );
 		}
 	}
 }
