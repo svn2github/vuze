@@ -32,6 +32,7 @@ import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -41,6 +42,8 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -592,6 +595,7 @@ public class TransferStatsView extends AbstractIView {
   
   class
   zoneView
+  	implements ParameterListener
   {
 	  private SpeedManagerPingMapper	mapper;
 	  
@@ -605,6 +609,12 @@ public class TransferStatsView extends AbstractIView {
 
 	  private String	title = "";
 	  
+	  private int 	refresh_count;
+	  private int 	graphicsUpdate;
+	  private Point old_size;
+
+	  protected Image buffer_image;
+
 	  protected
 	  zoneView(
 		  SpeedManagerPingMapper		_mapper,
@@ -616,6 +626,16 @@ public class TransferStatsView extends AbstractIView {
 		  canvas		= _canvas;
 		  labels		= _labels;
 		  formatters	= _formatters;
+		  
+		  COConfigurationManager.addAndFireParameterListener( "Graphics Update", this ); 
+	  }
+
+	  public void 
+	  parameterChanged(
+		  String name ) 
+	  {
+		  graphicsUpdate = COConfigurationManager.getIntParameter( name );
+
 	  }
 
 	  protected void
@@ -629,11 +649,6 @@ public class TransferStatsView extends AbstractIView {
 	  private void
 	  refresh()
 	  {
-		  final int	PAD_TOP		= 10;
-		  final int	PAD_BOTTOM	= 10;
-		  final int	PAD_RIGHT	= 10;
-		  final int	PAD_LEFT	= 10;
-
 		  if ( canvas.isDisposed()){
 
 			  return;
@@ -641,17 +656,55 @@ public class TransferStatsView extends AbstractIView {
 
 		  Rectangle bounds = canvas.getClientArea();
 
-		  if ( bounds.height < 1 || bounds.height < 1 ){
-
+		  if ( bounds.height < 30 || bounds.width  < 100 || bounds.width > 2000 || bounds.height > 2000 ){
+			  
 			  return;
 		  }
+		  
+		  boolean size_changed = (old_size == null || old_size.x != bounds.width || old_size.y != bounds.height);
 
-		  GC canvas_gc = new GC(canvas);
+		  old_size = new Point(bounds.width,bounds.height);
 
-		  Image image = new Image( canvas.getDisplay(), bounds );
+		  refresh_count++;
+
+		  if ( refresh_count > graphicsUpdate ){
+
+			  refresh_count = 0;
+		  }
+
+		  if ( refresh_count == 0 || size_changed ){
+
+			  if ( buffer_image != null && ! buffer_image.isDisposed()){
+
+				  buffer_image.dispose();
+			  }
+			  
+			  buffer_image = draw( bounds );
+		  }
+
+		  if ( buffer_image != null ){
+			  
+			  GC gc = new GC( canvas );
+	
+			  gc.drawImage( buffer_image, bounds.x, bounds.y );
+	
+			  gc.dispose();   
+		  }
+	  }
+	  
+	  private Image
+	  draw(
+		Rectangle	bounds )
+	  {
+		  final int	PAD_TOP		= 10;
+		  final int	PAD_BOTTOM	= 10;
+		  final int	PAD_RIGHT	= 10;
+		  final int	PAD_LEFT	= 10;
 
 		  int usable_width 	= bounds.width - PAD_LEFT - PAD_RIGHT;
 		  int usable_height	= bounds.height - PAD_TOP - PAD_BOTTOM;
+
+		  Image image = new Image( canvas.getDisplay(), bounds );
 
 		  GC gc = new GC( image );
 
@@ -855,7 +908,7 @@ public class TransferStatsView extends AbstractIView {
 				  
 				  int speed = bad_up[i].getBytesPerSec();
 				  
-				  int	x = speed * usable_width / max_x;
+				  int	x = max_x == 0?0:(speed * usable_width / max_x);
 			  
 				  gc.drawLine(
 							x_axis_left_x + x,
@@ -957,7 +1010,7 @@ public class TransferStatsView extends AbstractIView {
 				  
 				  int speed = bad_down[i].getBytesPerSec();
 				  
-				  int	y = speed * usable_height / max_y;
+				  int	y = max_y==0?0:( speed * usable_height / max_y );
 			  
 				  gc.drawLine(
 						  	y_axis_bottom_x + 0,
@@ -979,16 +1032,18 @@ public class TransferStatsView extends AbstractIView {
 		  
 		  gc.dispose();
 
-		  canvas_gc.drawImage( image, bounds.x, bounds.y );
-
-		  image.dispose();
-
-		  canvas_gc.dispose();   	
+		  return( image );
 	  }
 	  
 	  protected void
 	  dispose()
 	  {
+			if ( buffer_image != null && ! buffer_image.isDisposed()){
+				
+				buffer_image.dispose();
+			}
+			
+			COConfigurationManager.removeParameterListener("Graphics Update",this);
 	  }
   }
   
