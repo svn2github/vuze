@@ -194,18 +194,53 @@ class BTPeerIDByteDecoderUtils {
 		if (peer_id.charAt(0) != '-') {return false;}
 		if (peer_id.charAt(7) == '-') {return true;}
 		
-		// Hack for FlashGet - it doesn't use the trailing
+		// Hack for FlashGet - it doesn't use the trailing dash.
 		return peer_id.substring(1, 3).equals("FG");
 	}
 	
+	/**
+	 * Checking whether a peer ID is Shadow style or not is a bit tricky.
+	 * 
+	 * The BitTornado peer ID convention code is explained here:
+	 *   http://forums.degreez.net/viewtopic.php?t=7070
+	 *   
+	 * The main thing we are interested in is the first six characters.
+	 * Although the other characters are base64 characters, there's no
+	 * guarantee that other clients which follow that style will follow
+	 * that convention (though the fact that some of these clients use
+	 * BitTornado in the core does blur the lines a bit between what is
+	 * "style" and what is just common across clients).
+	 * 
+	 * So if we base it on the version number information, there's another
+	 * problem - there isn't the use of absolute delimiters (no fixed dash
+	 * character, for example).
+	 * 
+	 * There are various things we can do to determine how likely the peer
+	 * ID is to be of that style, but for now, I'll keep it to a relatively
+	 * simple check.
+	 * 
+	 * We'll assume that no client uses the fifth version digit, so we'll
+	 * expect a dash.
+	 */ 
 	public static boolean isShadowStyle(String peer_id) {
 		if (peer_id.charAt(5) != '-') {return false;}
-		if (peer_id.charAt(6) != '-') {return false;}
-		if (peer_id.charAt(7) == '-') {return true;}
+		if (!Character.isLetter(peer_id.charAt(0))) {return false;}
 		
-		// Hack for ABC, it only uses two trailing dashes
-		// rather than 3.
-		return peer_id.charAt(0) == 'A';
+		// Find where the version number string ends.
+		int last_ver_num_index = 4;
+		for (; last_ver_num_index>0; last_ver_num_index--) {
+			if (peer_id.charAt(last_ver_num_index) != '-') {break;} 
+		}
+		
+		// For each digit in the version string, check it is a valid version identifier.
+		char c;
+		for (int i=1; i<=last_ver_num_index; i++) {
+			c = peer_id.charAt(i);
+			if (c == '-') {return false;}
+			if (decodeAlphaNumericChar(c) == null) {return false;}
+		}
+		
+		return true;
 	}
 	
 	public static boolean isMainlineStyle(String peer_id) {
@@ -242,8 +277,7 @@ class BTPeerIDByteDecoderUtils {
 			if (c == '-') {break;}
 			ver_number = joinAsDotted(ver_number, decodeAlphaNumericChar(peer_id.charAt(i)));
 		}
-		// We'll strip off trailing redundant zeroes - BitTornado seems to have the 0
-		// present in the peer ID, but doesn't mention the fourth digit on their site..
+		// We'll strip off trailing redundant zeroes.
 		while (ver_number.endsWith(".0")) {ver_number = ver_number.substring(0, ver_number.length()-2);}
 		return ver_number;
 	}
