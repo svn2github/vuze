@@ -229,7 +229,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("KT", "KTorrent", VER_AZ_KTORRENT_STYLE);
 		addAzStyle("LH", "LH-ABC");
 		addAzStyle("LP", "Lphant", VER_AZ_TWO_MAJ_TWO_MIN);
-		addAzStyle("LT", "libtorrent (Rasterbar)");
+		addAzStyle("LT", "libtorrent (Rasterbar)", VER_AZ_THREE_ALPHANUMERIC_DIGITS);
 		addAzStyle("lt", "libTorrent (Rakshasa)", VER_AZ_THREE_ALPHANUMERIC_DIGITS);
 		addAzStyle("MP", "MooPolice", VER_AZ_THREE_DIGITS);
 		addAzStyle("MT", "MoonlightTorrent");
@@ -241,7 +241,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("SB", "SwiftBit");
 		addAzStyle("SN", "ShareNET");
 		addAzStyle("SS", "SwarmScope");
-		addAzStyle("ST", "SharkTorrent");
+		addAzStyle("ST", "SharkTorrent"); // Note: Also clashes with "SymTorrent" -> SymTorrent 1.17 is -ST0117-.
 		addAzStyle("SZ", "Shareaza");
 		addAzStyle("TN", "Torrent.NET");
 		addAzStyle("TR", "Transmission", VER_AZ_TWO_MAJ_TWO_MIN);
@@ -266,6 +266,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addMainlineStyle('Q', "Queen Bee");
 		
 		// Simple clients with no version number.
+		addSimpleClient("\u00B5Torrent 1.7.0 RC", "-UT170-"); // http://forum.utorrent.com/viewtopic.php?pid=260927#p260927
 		addSimpleClient("Azureus 1", "Azureus");
 		addSimpleClient("Azureus 2.0.3.2", "Azureus", 5);
 		addSimpleClient("BitTorrent Plus! II", "PRC.P---");
