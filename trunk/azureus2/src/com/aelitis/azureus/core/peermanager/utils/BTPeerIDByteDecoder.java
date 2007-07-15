@@ -304,7 +304,7 @@ public class BTPeerIDByteDecoder {
 	}
 
 	private static void assertDecode(String client_result, byte[] peer_id) throws Exception {
-		String peer_id_as_string = new String(peer_id, Constants.BYTE_ENCODING);
+		String peer_id_as_string = new String(peer_id, Constants.BYTE_ENCODING).replace('\n', ' ').replace('\r', ' ');
 		System.out.println("Testing for " + client_result + ", peer ID: " + peer_id_as_string);
 		String decoded_result = decode0(peer_id);
 		if (client_result.equals(decoded_result)) {return;}
@@ -339,6 +339,13 @@ public class BTPeerIDByteDecoder {
 		assertDecode("\u00B5Torrent 1.7.0 Beta", "2D555431 3730422D 92844644 1DB0A094 A01C01E5");
 		//assertDecode("", "2D4E50303230312DCA5D53B5485C6AA1C52B4960"); // Unknown client "-NP0201-"...
 		assertDecode("libTorrent (Rakshasa) 0.11.2", "2D6C74304232302D0D739B93E6BE21FEBB557B20");
+		assertDecode("ABC 3.1", "413331302D2D303031763547797372344E784E4B");
+		assertDecode("\u00B5Torrent 1.7.0 RC", "2D55543137302D00AF8BC5ACCC4631481EB3EB60");
+		assertDecode("libtorrent (Rasterbar) 0.13.0", "2D4C54304430302D655A305077614444722D7E76"); // The latest version at time of writing is v0.12, but I'll assume this is valid.
+		assertDecode("Tribler 3.7", "5233372D2D2D30303375417048793835312D5071");
+		//assertDecode("", "2D4244303330302D31534769525A387557705748"); // Unknown client "-BD0300-"....
+		assertDecode("BitTornado 0.3.18", "543033492D2D3030386759366942364171323743");
+
 		System.out.println("Done.");
 	}
 }
