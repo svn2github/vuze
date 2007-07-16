@@ -364,17 +364,9 @@ public class PlatformTorrentUtils
 			return true;
 		}
 
-		try {
-			URL announceURL = torrent.getAnnounceURL();
-			if (announceURL == null) {
-				return false;
-			}
-			String url = announceURL.toString().toLowerCase();
-			return url.indexOf("tracker.aelitis.com") >= 0
-					|| url.indexOf("azureusplatform.com") >= 0;
-		} catch (Exception e) {
-			return false;
-		}
+			// fallback to checking tracker host for legacy content
+		
+		return( isPlatformTracker( torrent ));
 	}
 
 	public static boolean isContent(Torrent torrent) {
@@ -384,6 +376,52 @@ public class PlatformTorrentUtils
 		return false;
 	}
 
+	public static boolean isPlatformHost( String host )
+	{
+		String[]	domains = Constants.AZUREUS_DOMAINS;
+		
+		host = host.toLowerCase();
+		
+		for (int i=0;i<domains.length;i++){
+			
+			String	domain = domains[i];
+			
+			if ( domain.equals( host )){
+				
+				return( true );
+			}
+			
+			if ( host.endsWith( "." + domain )){
+				
+				return( true );
+			}
+		}
+		
+		return( false );
+	}
+	
+	public static boolean isPlatformTracker(TOTorrent torrent) {
+		if (torrent == null) {
+			return false;
+		}
+	
+		URL announceURL = torrent.getAnnounceURL();
+		if (announceURL == null) {
+			return false;
+		}
+
+		String	host = announceURL.getHost();
+
+		return( isPlatformHost( host ));
+	}
+	
+	public static boolean isPlatformTracker(Torrent torrent) {
+		if (torrent instanceof TorrentImpl) {
+			return isPlatformTracker(((TorrentImpl) torrent).getTorrent());
+		}
+		return false;
+	}
+	
 	public static String getAdId(TOTorrent torrent) {
 		return getContentMapString(torrent, TOR_AZ_PROP_AD_ID);
 	}

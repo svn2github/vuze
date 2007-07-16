@@ -28,9 +28,11 @@ import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.peer.cache.CacheDiscovery;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
+import org.gudy.azureus2.plugins.torrent.Torrent;
 
 public class InitialisationFunctions
 {
@@ -68,11 +70,28 @@ public class InitialisationFunctions
 			{
 					// only add the azid to platform content
 				
-				if ( !PlatformTorrentUtils.isContent( download.getTorrent())){
+				Torrent t = download.getTorrent();
+				
+				if ( t == null ){
+					
+					return;
+				}
+				
+				if ( !PlatformTorrentUtils.isContent( t )){
 					
 					return;
 				}
 
+					// ensure this is a platform tracker as anyone can spoof the content
+					// test 
+				
+				if ( !PlatformTorrentUtils.isPlatformTracker( t )){
+					
+					Debug.outNoStack( "Download '" + download.getName() + "' is marked as content but does not have a platform tracker (" + t.getAnnounceURL() + ")" );
+					
+					return;
+				}
+				
 				DownloadUtils.addTrackerExtension( download, EXTENSION_PREFIX, Constants.AZID );
 			}
 
