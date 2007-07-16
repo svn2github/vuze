@@ -61,7 +61,7 @@ public class BTPeerIDByteDecoder {
 		// Enable this block for now - just until we get more feedback about
 		// unknown clients.
 		if (Constants.isCVSVersion()) {
-			Debug.out("Unable to decode peer correctly - peer ID bytes: " + ByteFormatter.encodeString(peer_id_bytes));
+			Debug.outNoStack("Unable to decode peer correctly - peer ID bytes: " + ByteFormatter.encodeString(peer_id_bytes));
 		}
 		
 		if (!LOG_UNKNOWN) {return;}
