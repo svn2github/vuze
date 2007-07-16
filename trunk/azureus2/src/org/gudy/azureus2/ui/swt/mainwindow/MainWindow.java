@@ -1302,10 +1302,10 @@ MainWindow
 			DownloadManager[] dm = new DownloadManager[] {
 				((ManagerView)this.getCurrentView()).getDownload(),
 			};
-			this.mainMenu.setTorrentMenuContext(dm);
+			this.mainMenu.setTorrentMenuContext(dm, true);
 		}
 		else {
-			this.mainMenu.setTorrentMenuContext(null);
+			this.mainMenu.setTorrentMenuContext(null, false);
 		}		
 	}
 

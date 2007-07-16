@@ -368,6 +368,6 @@ public class UIFunctionsImpl
 	}
 	
 	public void setTorrentMenuContextObjects(Object[] context) {
-		mainwindow.getMenu().setTorrentMenuContext(context);
+		mainwindow.getMenu().setTorrentMenuContext(context, false);
 	}
 }

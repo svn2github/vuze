@@ -109,15 +109,20 @@ public class MainMenu {
   private AzureusCore core;
   
   private MenuItem torrentItem;
-  public void setTorrentMenuContext(Object[] context) {
+  public void setTorrentMenuContext(Object[] context, final boolean is_detailed_view) {
 	  if (context == null) {context = new Object[0];}
-	  ArrayList result = new ArrayList(context.length);
+	  final ArrayList result = new ArrayList(context.length);
 	  for (int i=0; i<context.length; i++) {
 		  if (context[i] instanceof DownloadManager) {result.add(context[i]);}
 		  // We don't expect anything else for now.
 	  }
-	  torrentItem.setData((DownloadManager[])result.toArray(new DownloadManager[result.size()]));
-	  torrentItem.setEnabled(!result.isEmpty());
+	  Utils.execSWTThread(new AERunnable() {
+		  public void runSupport() {
+			  torrentItem.setData("downloads", (DownloadManager[])result.toArray(new DownloadManager[result.size()]));
+			  torrentItem.setData("is_detailed_view", Boolean.valueOf(is_detailed_view));
+			  torrentItem.setEnabled(!result.isEmpty());
+		  }
+	  }, true); // async
   }
 
   /**
@@ -599,9 +604,10 @@ public class MainMenu {
       if(isModal) {performOneTimeDisable(torrentItem, true);}
       MenuBuildUtils.addMaintenanceListenerForMenu(torrentMenu, new MenuBuildUtils.MenuBuilder() {
       	public void buildMenu(Menu menu) {
-      		DownloadManager[] current_dls = (DownloadManager[])torrentItem.getData();
+      		DownloadManager[] current_dls = (DownloadManager[])torrentItem.getData("downloads");
       		if (current_dls == null) {return;}
-      		TorrentUtil.fillTorrentMenu(menu, current_dls, core, attachedShell, false, 0);
+      		boolean is_detailed_view = ((Boolean)torrentItem.getData("is_detailed_view")).booleanValue();
+      		TorrentUtil.fillTorrentMenu(menu, current_dls, core, attachedShell, !is_detailed_view, 0);
       	}
       });
   }
