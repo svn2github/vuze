@@ -132,7 +132,7 @@ DiskManagerImpl
 
     private DiskManagerPieceImpl[]  pieces;
     
-	private DMPieceList[]			piece_map_use_accessor;
+	private DMPieceMap				piece_map_use_accessor;
 	private long					piece_map_use_accessor_time;
 
     private DiskManagerFileInfoImpl[]   files;
@@ -1337,18 +1337,18 @@ DiskManagerImpl
 	getPieceList(
 		int	piece_number )
 	{
-		DMPieceList[]	list = piece_map_use_accessor;
+		DMPieceMap	map = piece_map_use_accessor;
 		
-		if ( list == null ){
+		if ( map == null ){
 				
 			// System.out.println( "Creating piece list for " + new String( torrent.getName()));
 			
-			piece_map_use_accessor = list = piece_mapper.getPieceMap();			
+			piece_map_use_accessor = map = piece_mapper.getPieceMap();			
 		}
 		
 		piece_map_use_accessor_time = SystemTime.getCurrentTime();
 
-		return( list[piece_number] );
+		return( map.getPieceList( piece_number ));
 	}
 		
 	public void

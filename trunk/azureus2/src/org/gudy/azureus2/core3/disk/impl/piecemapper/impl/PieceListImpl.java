@@ -69,11 +69,7 @@ PieceListImpl
 	public int size() {
 		return pieces.length;	
 	}
-	
-	public boolean isEmpty() {
-		return size() == 0;	
-	}
-	
+		
 	public DMPieceMapEntry get(int index) {
 		return pieces[index];	
 	}

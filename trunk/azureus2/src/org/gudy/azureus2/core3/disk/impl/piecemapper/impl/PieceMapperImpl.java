@@ -28,6 +28,7 @@ import java.util.List;
 
 import org.gudy.azureus2.core3.disk.impl.DiskManagerFileInfoImpl;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
+import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMap;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapper;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapperFile;
 
@@ -172,91 +173,99 @@ PieceMapperImpl
 	
 	
 	
-	public DMPieceList[] 
+	public DMPieceMap  
 	getPieceMap()
 	{
-		int piece_length	= (int)torrent.getPieceLength();
-		
-		int piece_count		= torrent.getNumberOfPieces();
-		
-		long total_length	= torrent.getSize();
-
-		DMPieceList[]	pieceMap = new DMPieceList[piece_count];
-
-
-		//for every piece, except the last one
-		//add files to the piece list until we have built enough space to hold the piece
-		//see how much space is available in the file
-		//if the space available isnt 0
-		//add the file to the piece->file mapping list
-		//if there is enough space available, stop  
-
-			//fix for 1 piece torrents
-	
-		int	modified_piece_length	= piece_length;
-		
-		if (total_length < modified_piece_length) {
+		if ( btFileList.size() == 1 ){
 			
-			modified_piece_length = (int)total_length;
-		}
-
-		long fileOffset = 0;
-		int currentFile = 0;
-		for (int i = 0;(1 == piece_count && i < piece_count) || i < piece_count - 1; i++) {
-			ArrayList pieceToFileList = new ArrayList();
-			int usedSpace = 0;
-			while (modified_piece_length > usedSpace) {
-				fileInfo tempFile = (fileInfo)btFileList.get(currentFile);
-				long length = tempFile.getLength();
-
-				//get the available space
-				long availableSpace = length - fileOffset;
-
-				PieceMapEntryImpl tempPieceEntry = null;
-
-				//how much space do we need to use?                               
-				if (availableSpace <= (modified_piece_length - usedSpace)) {
-					//use the rest of the file's space
-						tempPieceEntry =
-							new PieceMapEntryImpl(tempFile.getFileInfo(), fileOffset, (int)availableSpace //safe to convert here
-	);
-
-					//update the used space
-					usedSpace += availableSpace;
-					//update the file offset
-					fileOffset = 0;
-					//move the the next file
-					currentFile++;
-				} else //we don't need to use the whole file
-					{
-					tempPieceEntry = new PieceMapEntryImpl(tempFile.getFileInfo(), fileOffset, modified_piece_length - usedSpace);
-
-					//update the file offset
-					fileOffset += modified_piece_length - usedSpace;
-					//udate the used space
-					usedSpace += modified_piece_length - usedSpace;
-				}
-
-				//add the temp pieceEntry to the piece list
-				pieceToFileList.add(tempPieceEntry);
-			}
-
-			//add the list to the map
-			pieceMap[i] = PieceListImpl.convert(pieceToFileList);
-		}
-
-		//take care of final piece if there was more than 1 piece in the torrent
-		if (piece_count > 1) {
-			pieceMap[piece_count - 1] =
-				PieceListImpl.convert(
-						buildLastPieceToFileList(
-									btFileList, 
-									currentFile, 
-									fileOffset ));
-
-		}
+				// optimise for the single file case
+			
+			return( new DMPieceMapSimple( torrent, ((fileInfo)btFileList.get(0)).getFileInfo()));
+			
+		}else{
+			int piece_length	= (int)torrent.getPieceLength();
+			
+			int piece_count		= torrent.getNumberOfPieces();
+			
+			long total_length	= torrent.getSize();
+	
+			DMPieceList[]	pieceMap = new DMPieceList[piece_count];
+	
+	
+			//for every piece, except the last one
+			//add files to the piece list until we have built enough space to hold the piece
+			//see how much space is available in the file
+			//if the space available isnt 0
+			//add the file to the piece->file mapping list
+			//if there is enough space available, stop  
+	
+				//fix for 1 piece torrents
 		
-		return( pieceMap );
+			int	modified_piece_length	= piece_length;
+			
+			if (total_length < modified_piece_length) {
+				
+				modified_piece_length = (int)total_length;
+			}
+	
+			long fileOffset = 0;
+			int currentFile = 0;
+			for (int i = 0;(1 == piece_count && i < piece_count) || i < piece_count - 1; i++) {
+				ArrayList pieceToFileList = new ArrayList();
+				int usedSpace = 0;
+				while (modified_piece_length > usedSpace) {
+					fileInfo tempFile = (fileInfo)btFileList.get(currentFile);
+					long length = tempFile.getLength();
+	
+					//get the available space
+					long availableSpace = length - fileOffset;
+	
+					PieceMapEntryImpl tempPieceEntry = null;
+	
+					//how much space do we need to use?                               
+					if (availableSpace <= (modified_piece_length - usedSpace)) {
+						//use the rest of the file's space
+							tempPieceEntry =
+								new PieceMapEntryImpl(tempFile.getFileInfo(), fileOffset, (int)availableSpace //safe to convert here
+		);
+	
+						//update the used space
+						usedSpace += availableSpace;
+						//update the file offset
+						fileOffset = 0;
+						//move the the next file
+						currentFile++;
+					} else //we don't need to use the whole file
+						{
+						tempPieceEntry = new PieceMapEntryImpl(tempFile.getFileInfo(), fileOffset, modified_piece_length - usedSpace);
+	
+						//update the file offset
+						fileOffset += modified_piece_length - usedSpace;
+						//udate the used space
+						usedSpace += modified_piece_length - usedSpace;
+					}
+	
+					//add the temp pieceEntry to the piece list
+					pieceToFileList.add(tempPieceEntry);
+				}
+	
+				//add the list to the map
+				pieceMap[i] = PieceListImpl.convert(pieceToFileList);
+			}
+	
+			//take care of final piece if there was more than 1 piece in the torrent
+			if (piece_count > 1) {
+				pieceMap[piece_count - 1] =
+					PieceListImpl.convert(
+							buildLastPieceToFileList(
+										btFileList, 
+										currentFile, 
+										fileOffset ));
+	
+			}
+			
+			return( new DMPieceMapImpl( pieceMap ));
+		}
 	}
 
 	
