@@ -540,17 +540,17 @@ public class TorrentUtil {
 						itemFileRescan.getSelection());
 			}
 		});
+		itemFileRescan.setSelection(allScanSelected);
+		itemFileRescan.setEnabled(fileRescan);
 
-		MenuItem itemFileClearResume = new MenuItem(menuFiles, SWT.CHECK);
+		MenuItem itemFileClearResume = new MenuItem(menuFiles, SWT.PUSH);
 		Messages.setLanguageText(itemFileClearResume, "MyTorrentsView.menu.clear_resume_data");
 		itemFileClearResume.addListener(SWT.Selection, new DMTask(dms) {
 			public void run(DownloadManager dm) {
 				dm.getDownloadState().clearResumeData();
 			}
 		});
-		
-		itemFileRescan.setSelection(allScanSelected);
-		itemFileRescan.setEnabled(fileRescan);
+		itemFileClearResume.setEnabled(allStopped);
 
 		// === advanced > export ===
 		// =========================
