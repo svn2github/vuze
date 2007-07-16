@@ -132,7 +132,7 @@ public class SWTVersionGetter {
       msg += " url=" + mirrors[0];
     }
     
-    byte[] info_bytes = (byte[])reply.get( "info_url" );
+    byte[] info_bytes = (byte[])reply.get( "swt_info_url" );
     if( info_bytes != null ) {
     	try {
     		infoURL = new String( info_bytes );
