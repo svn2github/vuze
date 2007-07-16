@@ -41,10 +41,26 @@ ClientIDPlugin
 {
 	private PluginInterface		plugin_interface;
 	
+	private static boolean		send_os;
+	
 	public static void
 	load(
 		final PluginInterface	plugin_interface )
 	{
+		final String	param = "Tracker Client Send OS and Java Version";
+		
+		send_os = plugin_interface.getPluginconfig().getBooleanParameter( param );
+
+		plugin_interface.getPluginconfig().addListener(
+			new PluginConfigListener()
+			{
+				public void 
+				configSaved() 
+				{
+					send_os = plugin_interface.getPluginconfig().getBooleanParameter( param );				
+				}
+			});
+		
 		plugin_interface.getClientIDManager().setGenerator( 
 			new ClientIDGenerator()
 			{
@@ -80,7 +96,7 @@ ClientIDPlugin
 		plugin_interface	= _plugin_interface;
 		
 		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
-		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		"Client ID" );		
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		"Client ID" );
 	}
 	
 
@@ -104,7 +120,7 @@ ClientIDPlugin
 		
 		String	agent = Constants.AZUREUS_NAME + " " + version;
 				
-		if ( plugin_interface.getPluginconfig().getBooleanParameter("Tracker Client Send OS and Java Version")){
+		if ( send_os ){
 							
 			agent += ";" + Constants.OSName;
 		
