@@ -345,6 +345,17 @@ CoreUpdateChecker
 						top_downloader,
 						Update.RESTART_REQUIRED_YES );
 			
+			byte[] info_url = (byte[])decoded.get("info_url");
+			if (info_url != null) {
+				try {
+					String sInfoURL = new String(info_url);
+					
+					update.setDescriptionURL(sInfoURL);
+				} catch (Exception e) {
+					Debug.out(e);
+				}
+			}
+			
 			top_downloader.addListener( 
 					new ResourceDownloaderAdapter()
 					{

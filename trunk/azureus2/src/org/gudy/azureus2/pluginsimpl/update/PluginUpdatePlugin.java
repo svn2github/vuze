@@ -649,6 +649,7 @@ PluginUpdatePlugin
 								true );
 			
 						update.setRelativeURLBase( details.getRelativeURLBase());
+						update.setDescriptionURL(details.getInfoURL());
 					}
 				}catch( Throwable e ){
 					

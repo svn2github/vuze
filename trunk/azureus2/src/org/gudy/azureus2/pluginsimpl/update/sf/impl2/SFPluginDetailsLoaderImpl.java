@@ -319,6 +319,12 @@ SFPluginDetailsLoaderImpl
 						
 						plugin_cvs_download = site_prefix + cvs_dl_links[0];
 					}
+					
+					String info_url = null;
+					if (rows[9].getCells().length > 1) {
+						info_url = rows[9].getCells()[1].getContent();
+					}
+
 
 					// System.out.println( "got plugin:" + plugin_name + "/" + plugin_version + "/" + plugin_download + "/" + plugin_auth );
 					
@@ -327,7 +333,8 @@ SFPluginDetailsLoaderImpl
 									plugin_auth,
 									plugin_cvs_download,
 									rows[6].getCells()[0].getContent(),
-									rows[9].getCells()[0].getContent());
+									rows[9].getCells()[0].getContent(),
+									info_url);
 					
 					return( true );
 				}

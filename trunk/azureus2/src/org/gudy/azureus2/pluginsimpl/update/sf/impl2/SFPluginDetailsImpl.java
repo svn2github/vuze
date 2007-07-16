@@ -47,6 +47,7 @@ SFPluginDetailsImpl
 
 	private String		desc;
 	private String		comment;
+	private String		info_url;
 	
 	protected
 	SFPluginDetailsImpl(
@@ -71,7 +72,8 @@ SFPluginDetailsImpl
 		String	_author,
 		String	_cvs_download_url,
 		String	_desc,
-		String	_comment )
+		String	_comment,
+		String	_info_url)
 	{
 		fully_loaded		= true;
 		
@@ -80,6 +82,7 @@ SFPluginDetailsImpl
 		cvs_download_url	= _cvs_download_url;
 		desc				= _desc;
 		comment				= _comment;
+		info_url = _info_url;
 	}
 	
 	protected boolean
@@ -185,5 +188,9 @@ SFPluginDetailsImpl
 	getRelativeURLBase()
 	{
 		return( loader.getRelativeURLBase());
+	}
+
+	public String getInfoURL() {
+		return info_url;
 	}
 }

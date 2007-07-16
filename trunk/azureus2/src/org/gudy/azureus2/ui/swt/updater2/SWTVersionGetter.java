@@ -50,6 +50,8 @@ public class SWTVersionGetter {
   private UpdateChecker	checker;
   
   private String[] mirrors;
+
+	private String infoURL;
   
   public 
   SWTVersionGetter(
@@ -130,6 +132,15 @@ public class SWTVersionGetter {
       msg += " url=" + mirrors[0];
     }
     
+    byte[] info_bytes = (byte[])reply.get( "info_url" );
+    if( info_bytes != null ) {
+    	try {
+    		infoURL = new String( info_bytes );
+    	} catch (Exception e) {
+    		Logger.log(new LogEvent(LOGID, "swt info_url", e));
+    	}
+    }
+
     if (Logger.isEnabled())
 			Logger.log(new LogEvent(LOGID, msg));
   }
@@ -160,4 +171,8 @@ public class SWTVersionGetter {
   public String[] getMirrors() {
     return mirrors;
   }
+
+	public String getInfoURL() {
+		return infoURL;
+	}
 }

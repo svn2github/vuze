@@ -51,6 +51,24 @@ Update
 	setRelativeURLBase(
 		String	base );
 
+	/**
+	 * 
+	 * @param url URL to load instead of showing the description text)
+	 *
+	 * @since 3.0.1.7
+	 */
+	public void
+	setDescriptionURL(
+		String url);
+	
+	/**
+	 * @return null if no description url
+	 *
+	 * @since 3.0.1.7
+	 */
+	public String 
+	getDesciptionURL();
+
 	public String
 	getNewVersion();
 	

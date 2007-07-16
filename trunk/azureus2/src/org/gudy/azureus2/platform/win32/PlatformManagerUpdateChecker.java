@@ -227,6 +227,8 @@ PlatformManagerUpdateChecker
 						alternate_rdl,
 						Update.RESTART_REQUIRED_YES );
 				
+				update.setDescriptionURL(sf_details.getInfoURL());
+				
 				alternate_rdl.addListener( 
 						new ResourceDownloaderAdapter()
 						{

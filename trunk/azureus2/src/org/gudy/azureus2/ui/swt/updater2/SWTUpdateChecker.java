@@ -215,7 +215,9 @@ public class SWTUpdateChecker implements UpdatableComponent
 		          "" + versionGetter.getLatestVersion(),
 		          swtDownloader,
 		          Update.RESTART_REQUIRED_YES
-	          );      
+	          );
+	      
+	      update.setDescriptionURL(versionGetter.getInfoURL());
 	      
 	      swtDownloader.addListener(new ResourceDownloaderAdapter() {
 		        

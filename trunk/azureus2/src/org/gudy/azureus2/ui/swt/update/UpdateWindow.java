@@ -27,14 +27,13 @@ import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -92,6 +91,7 @@ UpdateWindow
   private long totalDownloadSize;
   private List downloaders;
   private Iterator iterDownloaders;
+	private Browser browser;
   
   private static final int COL_NAME = 0;
   private static final int COL_VERSION = 1;
@@ -219,9 +219,9 @@ UpdateWindow
        
     table = new Table(sash,SWT.CHECK | SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION);
     String[] names = {"name" , "version" , "size"};
-    int[] sizes = {220,80,80};
+    int[] sizes = {350,100,100};
     for(int i = 0 ; i < names.length ; i++) {
-      TableColumn column = new TableColumn(table,SWT.LEFT);
+      TableColumn column = new TableColumn(table, i == 0 ? SWT.LEFT : SWT.RIGHT);
       Messages.setLanguageText(column,"UpdateWindow.columns." + names[i]);
       column.setWidth(sizes[i]);
     }
@@ -233,7 +233,27 @@ UpdateWindow
       }
     });
     
-    link_area = new LinkArea( sash );
+    Composite cInfoArea = new Composite(sash, SWT.NONE);
+    cInfoArea.setLayout(new FormLayout());
+    
+    link_area = new LinkArea(cInfoArea);
+    FormData fd = new FormData();
+    fd.top = new FormAttachment(0, 0);
+    fd.bottom = new FormAttachment(100, 0);
+    fd.right = new FormAttachment(100, 0);
+    fd.left = new FormAttachment(0, 0);
+    link_area.getComponent().setLayoutData(fd);
+    
+    try {
+    	browser = new Browser(cInfoArea, SWT.BORDER);
+      fd = new FormData();
+      fd.top = new FormAttachment(0, 0);
+      fd.bottom = new FormAttachment(100, 0);
+      fd.right = new FormAttachment(100, 0);
+      fd.left = new FormAttachment(0, 0);
+      browser.setLayoutData(fd);
+    } catch (Throwable t) {
+    }
 
     progress = new ProgressBar(updateWindow,SWT.NULL);
     progress.setMinimum(0);
@@ -309,7 +329,9 @@ UpdateWindow
     formData.bottom = new FormAttachment(100,0);
     btnOk.setLayoutData(formData);
     
-    updateWindow.setSize(400,400);
+    sash.setWeights(new int[] { 25, 75 });
+    
+    updateWindow.setSize(600,450);
     //updateWindow.open();
   }
   
@@ -320,16 +342,27 @@ UpdateWindow
     checkRestartNeeded();
     TableItem[] items = table.getSelection();
     if(items.length == 0) return;
-    Update update = (Update) items[0].getData();        
-    String[] descriptions = update.getDescription();
+    Update update = (Update) items[0].getData();
     
-    link_area.reset();
+    String desciptionURL = update.getDesciptionURL();
+    if (desciptionURL != null && browser != null) {
+    	browser.setUrl(desciptionURL);
+    	browser.setVisible(true);
+    	link_area.getComponent().setVisible(false);
+    } else {
+    	browser.setVisible(false);
+    	link_area.getComponent().setVisible(true);
     
-    link_area.setRelativeURLBase( update.getRelativeURLBase());
-    
-    for(int i = 0 ; i < descriptions.length ; i++) {
-
-    	link_area.addLine( descriptions[i] );
+      String[] descriptions = update.getDescription();
+      
+      link_area.reset();
+      
+      link_area.setRelativeURLBase( update.getRelativeURLBase());
+      
+      for(int i = 0 ; i < descriptions.length ; i++) {
+  
+      	link_area.addLine( descriptions[i] );
+      }
     }
   }
   
@@ -467,6 +500,8 @@ UpdateWindow
     table.setEnabled(false);
     
     link_area.reset();
+  	browser.setVisible(false);
+  	link_area.getComponent().setVisible(true);
     
     TableItem[] items = table.getItems();
     

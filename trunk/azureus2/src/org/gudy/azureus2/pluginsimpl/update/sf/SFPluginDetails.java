@@ -83,4 +83,12 @@ SFPluginDetails
 
 	public String
 	getRelativeURLBase();
+
+	/**
+	 * @return
+	 *
+	 * @since 3.0.1.7
+	 */
+	String
+	getInfoURL();
 }

@@ -51,6 +51,7 @@ UpdateImpl
 	private Object					user_object;
 	
 	private List					listeners = new ArrayList();
+	private String description_url;
 	
 	protected
 	UpdateImpl(
@@ -119,6 +120,20 @@ UpdateImpl
 		String	base )
 	{
 		relative_url_base = base;
+	}
+	
+	// @see org.gudy.azureus2.plugins.update.Update#getDesciptionURL()
+	public String
+	getDesciptionURL()
+	{
+		return description_url;
+	}
+	
+	// @see org.gudy.azureus2.plugins.update.Update#setDescriptionURL(java.lang.String)
+	public void
+	setDescriptionURL(String url)
+	{
+		description_url = url;
 	}
 	
 	public String
