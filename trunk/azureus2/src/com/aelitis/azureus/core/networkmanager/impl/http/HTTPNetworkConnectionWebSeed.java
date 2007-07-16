@@ -29,6 +29,7 @@ import java.util.StringTokenizer;
 
 import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
+import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 
@@ -56,108 +57,123 @@ HTTPNetworkConnectionWebSeed
 			return;
 		}
 		
-		int	pos = header.indexOf( NL );
-		
-		String	line = header.substring(4,pos);
-		
-		pos = line.lastIndexOf( ' ' );
-		
-		String	url = line.substring( 0, pos ).trim();
-		
-		StringTokenizer	tok = new StringTokenizer( url, "&" );
-		
-		int		piece 	= -1;
-		List	ranges 	= new ArrayList();
-		
-		while( tok.hasMoreElements()){
+		try{
+			int	pos = header.indexOf( NL );
 			
-			String	token = tok.nextToken();
+			String	line = header.substring(4,pos);
 			
-			pos = token.indexOf('=');
+			pos = line.lastIndexOf( ' ' );
 			
-			if ( pos != -1 ){
+			String	url = line.substring( 0, pos ).trim();
+			
+			StringTokenizer	tok = new StringTokenizer( url, "&" );
+			
+			int		piece 	= -1;
+			List	ranges 	= new ArrayList();
+			
+			while( tok.hasMoreElements()){
 				
-				String	lhs = token.substring(0,pos).toLowerCase();
-				String	rhs = token.substring(pos+1);
+				String	token = tok.nextToken();
 				
-				if ( lhs.equals( "piece" )){
+				pos = token.indexOf('=');
+				
+				if ( pos != -1 ){
 					
-					try{
-						piece = Integer.parseInt( rhs );
-						
-					}catch( Throwable e ){
-						
-						throw( new IOException( "Invalid piece number '" + rhs +"'" ));
-					}
-				}else if ( lhs.equals( "ranges" )){
+					String	lhs = token.substring(0,pos).toLowerCase();
+					String	rhs = token.substring(pos+1);
 					
-					StringTokenizer	range_tok = new StringTokenizer( rhs, "," );
-					
-					while( range_tok.hasMoreTokens()){
-						
-						String	range = range_tok.nextToken();
-						
-						int	sep = range.indexOf( '-' );
-						
-						if ( sep == -1 ){
-							
-							throw( new IOException( "Invalid range specification '" + rhs + "'" ));
-						}
+					if ( lhs.equals( "piece" )){
 						
 						try{
-							ranges.add( 
-									new int[]{ 
-										Integer.parseInt( range.substring(0,sep)), 
-										Integer.parseInt( range.substring( sep+1 ))});
+							piece = Integer.parseInt( rhs );
 							
 						}catch( Throwable e ){
 							
-							throw( new IOException( "Invalid range specification '" + rhs + "'" ));
+							throw( new IOException( "Invalid piece number '" + rhs +"'" ));
+						}
+					}else if ( lhs.equals( "ranges" )){
+						
+						StringTokenizer	range_tok = new StringTokenizer( rhs, "," );
+						
+						while( range_tok.hasMoreTokens()){
+							
+							String	range = range_tok.nextToken();
+							
+							int	sep = range.indexOf( '-' );
+							
+							if ( sep == -1 ){
+								
+								throw( new IOException( "Invalid range specification '" + rhs + "'" ));
+							}
+							
+							try{
+								ranges.add( 
+										new int[]{ 
+											Integer.parseInt( range.substring(0,sep)), 
+											Integer.parseInt( range.substring( sep+1 ))});
+								
+							}catch( Throwable e ){
+								
+								throw( new IOException( "Invalid range specification '" + rhs + "'" ));
+							}
 						}
 					}
 				}
 			}
-		}
-		
-		if ( piece == -1 ){
 			
-			throw( new IOException( "Piece number not specified" ));
-		}
-		
-		boolean	keep_alive = header.toLowerCase().indexOf( "keep-alive" ) != -1;
-		
-		PEPeerControl	control = getPeerControl();
-		
-		int	this_piece_size = control.getPieceLength( piece );
-		
-		if ( ranges.size() == 0 ){
-			
-			ranges.add( new int[]{ 0, this_piece_size-1});
-		}
+			if ( piece == -1 ){
 				
-		long[]	offsets	= new long[ranges.size()];
-		long[]	lengths	= new long[ranges.size()];
-		
-		long	piece_offset = piece * control.getPieceLength(0);
-		
-		for (int i=0;i<ranges.size();i++){
-			
-			int[]	range = (int[])ranges.get(i);
-			
-			int	start 	= range[0];
-			int end		= range[1];
-			
-			if ( 	start < 0 || start >= this_piece_size ||
-					end < 0 || end >= this_piece_size ||
-					start > end ){
-				
-				throw( new IOException( "Invalid range specification '" + start + "-" + end + "'" ));
+				throw( new IOException( "Piece number not specified" ));
 			}
 			
-			offsets[i] 	= piece_offset + start;
-			lengths[i]	= ( end - start ) + 1; 
+			boolean	keep_alive = header.toLowerCase().indexOf( "keep-alive" ) != -1;
+			
+			PEPeerControl	control = getPeerControl();
+			
+			int	this_piece_size = control.getPieceLength( piece );
+			
+			if ( ranges.size() == 0 ){
+				
+				ranges.add( new int[]{ 0, this_piece_size-1});
+			}
+					
+			long[]	offsets	= new long[ranges.size()];
+			long[]	lengths	= new long[ranges.size()];
+			
+			long	piece_offset = piece * control.getPieceLength(0);
+			
+			for (int i=0;i<ranges.size();i++){
+				
+				int[]	range = (int[])ranges.get(i);
+				
+				int	start 	= range[0];
+				int end		= range[1];
+				
+				if ( 	start < 0 || start >= this_piece_size ||
+						end < 0 || end >= this_piece_size ||
+						start > end ){
+					
+					throw( new IOException( "Invalid range specification '" + start + "-" + end + "'" ));
+				}
+				
+				offsets[i] 	= piece_offset + start;
+				lengths[i]	= ( end - start ) + 1; 
+			}
+			
+			addRequest( new httpRequest( offsets, lengths, false, keep_alive ));
+			
+		}catch( Throwable e ){
+			
+			Debug.outNoStack( "Decode of '" + (header.length()>128?(header.substring(0,128) + "..."):header) + "' - " + Debug.getNestedExceptionMessage(e));
+			
+			if ( e instanceof IOException ){
+				
+				throw((IOException)e);
+				
+			}else{
+				
+				throw( new IOException( "Decode failed: " + Debug.getNestedExceptionMessage(e)));
+			}
 		}
-		
-		addRequest( new httpRequest( offsets, lengths, false, keep_alive ));
 	}
 }
