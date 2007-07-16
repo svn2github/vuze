@@ -246,6 +246,9 @@ public class TableCellImpl
   
   // @see org.gudy.azureus2.plugins.ui.tables.TableCell#getForeground()
   public int[] getForeground() {
+  	if (bufferedTableItem == null) {
+  		return new int[] { 0, 0, 0 };
+  	}
 		Color color = bufferedTableItem.getForeground();
 
 		if (color == null) {
@@ -328,10 +331,16 @@ public class TableCellImpl
   public String getText() {
   	if (bSortValueIsText && sortValue instanceof String)
   		return (String)sortValue;
+  	if (bufferedTableItem == null) {
+  		return null;
+  	}
     return bufferedTableItem.getText();
   }
 
   public boolean isShown() {
+  	if (bufferedTableItem == null) {
+  		return false;
+  	}
     return bufferedTableItem.isShown();
   }
   
@@ -427,6 +436,10 @@ public class TableCellImpl
 	
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getMaxLines()
 	public int getMaxLines() {
+		if (bufferedTableItem == null) {
+			// use 1 in case some plugin borks on div by zero
+			return 1;
+		}
 		return bufferedTableItem.getMaxLines();
 	}
   
@@ -797,7 +810,9 @@ public class TableCellImpl
 
   	if (bMustRefresh) {
   		this.bMustRefresh = true;
-  		bufferedTableItem.invalidate();
+  		if (bufferedTableItem != null) {
+  			bufferedTableItem.invalidate();
+  		}
   	}
   }
   
@@ -956,10 +971,16 @@ public class TableCellImpl
   }
   
   public Image getIcon() {
+  	if (bufferedTableItem == null) {
+  		return null;
+  	}
   	return bufferedTableItem.getIcon();
   }
 
   public boolean needsPainting() {
+  	if (bufferedTableItem == null) {
+  		return false;
+  	}
     return bufferedTableItem.needsPainting();
   }
   
@@ -979,7 +1000,9 @@ public class TableCellImpl
   }
 
   public void locationChanged() {
-    bufferedTableItem.locationChanged();
+  	if (bufferedTableItem != null) {
+  		bufferedTableItem.locationChanged();
+  	}
   }
 
   public TableRowCore getTableRowCore() {
@@ -1173,6 +1196,9 @@ public class TableCellImpl
 	}
 
 	public Image getBackgroundImage() {
+		if (bufferedTableItem == null) {
+			return null;
+		}
   	return bufferedTableItem.getBackgroundImage();
 	}
 	
