@@ -41,7 +41,6 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
-import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 
 import com.aelitis.azureus.core.versioncheck.*;
 
@@ -326,6 +325,66 @@ CoreUpdateChecker
 				}
 			}
 			
+			byte[] info_url_bytes = (byte[])decoded.get("info_url");
+			
+			String info_url = null;
+			
+			if ( info_url_bytes != null ){
+				
+				try{
+					info_url = new String( info_url_bytes );
+					
+				}catch( Exception e ){
+					
+					Debug.out(e);
+				}
+			}
+			
+			if ( info != null || info_url != null ){
+				
+				String	check;
+				
+				if ( info == null ){
+					
+					check = info_url;
+					
+				}else if ( info_url == null ){
+					
+					check = info;
+					
+				}else{
+					
+					check = info + "|" + info_url;
+				}
+				
+				byte[]	sig = (byte[])decoded.get( "info_sig" );
+
+				boolean	ok = false;
+				
+				if ( sig == null ){
+				
+					Logger.log( new LogEvent( LogIDs.LOGGER, "info signature check failed - missing signature" ));
+
+				}else{
+					
+					try{
+						AEVerifier.verifyData( check, sig );
+
+						ok = true;
+						
+					}catch( Throwable e ){
+
+						Logger.log( new LogEvent( LogIDs.LOGGER, "info signature check failed", e  ));
+					}			
+				}
+				
+				if ( !ok ){
+					
+					info		= null;
+					info_url	= null;
+				}
+			}
+			
 			String[]	desc;
 			
 			if ( info == null ){
@@ -337,6 +396,8 @@ CoreUpdateChecker
 				desc = new String[]{"Core Azureus Version", info };
 			}
 			
+
+
 			final Update update = 
 				checker.addUpdate(
 						"Core Azureus Version",
@@ -345,15 +406,9 @@ CoreUpdateChecker
 						top_downloader,
 						Update.RESTART_REQUIRED_YES );
 			
-			byte[] info_url = (byte[])decoded.get("info_url");
-			if (info_url != null) {
-				try {
-					String sInfoURL = new String(info_url);
-					
-					update.setDescriptionURL(sInfoURL);
-				} catch (Exception e) {
-					Debug.out(e);
-				}
+			if ( info_url != null ){
+				
+				update.setDescriptionURL(info_url);
 			}
 			
 			top_downloader.addListener( 

@@ -27,6 +27,7 @@ import java.util.Map;
 import org.eclipse.swt.SWT;
 
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.util.AEVerifier;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
@@ -133,12 +134,34 @@ public class SWTVersionGetter {
     }
     
     byte[] info_bytes = (byte[])reply.get( "swt_info_url" );
-    if( info_bytes != null ) {
-    	try {
-    		infoURL = new String( info_bytes );
-    	} catch (Exception e) {
-    		Logger.log(new LogEvent(LOGID, "swt info_url", e));
-    	}
+    
+    if ( info_bytes != null ){
+    	
+    	byte[] sig = (byte[])reply.get( "swt_info_sig" );
+
+		if ( sig == null ){
+			
+			Logger.log( new LogEvent( LogIDs.LOGGER, "swt info signature check failed - missing signature" ));
+
+		}else{
+			
+		  	try{
+	    		infoURL = new String( info_bytes );
+	    		
+	    		try{
+					AEVerifier.verifyData( infoURL, sig );
+					
+				}catch( Throwable e ){
+
+					Logger.log( new LogEvent( LogIDs.LOGGER, "swt info signature check failed", e  ));
+					
+					infoURL = null;
+				}
+	    	}catch ( Exception e ){
+	    		
+	    		Logger.log(new LogEvent(LOGID, "swt info_url", e));
+	    	}
+		}
     }
 
     if (Logger.isEnabled())
