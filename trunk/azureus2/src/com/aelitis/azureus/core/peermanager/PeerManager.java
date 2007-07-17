@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.peer.util.PeerIdentityManager;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -1017,6 +1018,14 @@ public class PeerManager implements AzureusCoreStatsProvider{
         }
         
         control.addPeerTransport( pt );
+	}
+	
+	public String
+	getDescription()
+	{
+		PEPeerControl	control = active_control;
+		
+		return( ByteFormatter.encodeString( hash.getBytes()) + ", control=" + (control==null?null:control.getDisplayName()) + ": " + adapter.getDescription());
 	}
   }
 }

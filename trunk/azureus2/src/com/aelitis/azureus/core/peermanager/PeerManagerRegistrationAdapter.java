@@ -37,4 +37,7 @@ PeerManagerRegistrationAdapter
 	public void
 	deactivateRequest(
 		InetSocketAddress		remote_address );
+	
+	public String
+	getDescription();
 }

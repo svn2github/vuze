@@ -23,7 +23,9 @@
 package com.aelitis.azureus.core.networkmanager.impl.http;
 
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -57,6 +59,8 @@ HTTPNetworkConnectionWebSeed
 			return;
 		}
 		
+		PEPeerControl	control = getPeerControl();
+		
 		try{
 			int	pos = header.indexOf( NL );
 			
@@ -65,6 +69,13 @@ HTTPNetworkConnectionWebSeed
 			pos = line.lastIndexOf( ' ' );
 			
 			String	url = line.substring( 0, pos ).trim();
+			
+			pos = url.indexOf( '?' );
+			
+			if ( pos != -1 ){
+				
+				url = url.substring( pos+1 );
+			}
 			
 			StringTokenizer	tok = new StringTokenizer( url, "&" );
 			
@@ -82,7 +93,15 @@ HTTPNetworkConnectionWebSeed
 					String	lhs = token.substring(0,pos).toLowerCase();
 					String	rhs = token.substring(pos+1);
 					
-					if ( lhs.equals( "piece" )){
+					if ( lhs.equals( "info_hash" )){
+						
+	    				byte[]	hash = URLDecoder.decode( rhs, "ISO-8859-1" ).getBytes( "ISO-8859-1" );
+
+						if ( !Arrays.equals( hash, control.getHash())){
+							
+							throw( new IOException( "Hash switched" ));
+						}
+					}else if ( lhs.equals( "piece" )){
 						
 						try{
 							piece = Integer.parseInt( rhs );
@@ -127,8 +146,6 @@ HTTPNetworkConnectionWebSeed
 			}
 			
 			boolean	keep_alive = header.toLowerCase().indexOf( "keep-alive" ) != -1;
-			
-			PEPeerControl	control = getPeerControl();
 			
 			int	this_piece_size = control.getPieceLength( piece );
 			

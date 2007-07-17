@@ -1939,6 +1939,12 @@ DownloadManagerController
 		}
 	}
 	
+	public String 
+	getDescription() 
+	{
+		return( download_manager.getDisplayName());
+	}
+	
 	public LogRelation
 	getLogRelation()
 	{

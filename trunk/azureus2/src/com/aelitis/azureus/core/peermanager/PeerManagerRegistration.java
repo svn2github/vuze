@@ -52,4 +52,7 @@ PeerManagerRegistration
 	
 	public void
 	unregister();
+	
+	public String
+	getDescription();
 }
