@@ -76,6 +76,7 @@ public class SpeedManagerAlgorithmTI
                             try{
 
                                 limitMonitor.updateFromCOConfigManager();
+                                //limitMonitor.updateSettingsFromCOConfigManager();//switch since now get persistent limits from level higher.
 
                                 skipIntervalAfterAdjustment=COConfigurationManager.getBooleanParameter(
                                         SpeedManagerAlgorithmProviderV2.SETTING_WAIT_AFTER_ADJUST);

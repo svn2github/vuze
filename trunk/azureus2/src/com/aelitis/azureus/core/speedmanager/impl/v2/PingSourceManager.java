@@ -130,7 +130,7 @@ public class PingSourceManager
 
         }//for
 
-        //regardless of result, reset the timer.
+        //regardless of result, resetTimer the timer.
         resetTimer();
         //only replace the slowest if it is twice the fastest.
         if( slowestPing > 2*fastestPing ){
@@ -286,7 +286,7 @@ public class PingSourceManager
     }//addPingTime
 
     /**
-     * After a ping-source has been removed, need to reset the timer.
+     * After a ping-source has been removed, need to resetTimer the timer.
      */
     private void resetTimer(){
         lastPingRemoval = SystemTime.getCurrentTime();

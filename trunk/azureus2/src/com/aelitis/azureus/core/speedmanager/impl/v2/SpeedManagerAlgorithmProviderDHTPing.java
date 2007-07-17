@@ -195,6 +195,8 @@ public class SpeedManagerAlgorithmProviderDHTPing
             sessionMaxUploadRate = upRateBitsPerSec;
         }
 
+        
+
         //"curr-data" ....
         logCurrentData(downRateBitsPerSec, currDownLimit, upRateBitsPerSec, currUploadLimit);
     }

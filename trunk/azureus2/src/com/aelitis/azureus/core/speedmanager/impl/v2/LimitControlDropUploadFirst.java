@@ -99,7 +99,6 @@ public class LimitControlDropUploadFirst implements LimitControl
 
         float factor = amount/10.0f;
         int usedUpMax = usedUploadCapacity();
-        //float gamma = (float)(usedUpMax-upMin)/(float)(downMax-downMin);
         float gamma = (float) usedUpMax/downMax;
 
         if( increase ){
@@ -107,7 +106,12 @@ public class LimitControlDropUploadFirst implements LimitControl
             if( valueDown<0.99f ){
                 valueDown = calculateNewValue(valueDown,factor);
             }else{
-                valueUp = calculateNewValue(valueUp,gamma*factor);
+                //only increase upload if used.
+                if( upUsage==SaturatedMode.AT_LIMIT ){
+                    valueUp = calculateNewValue(valueUp,gamma*factor);
+                }else{
+                    SpeedManagerLogger.trace("LmitControlDropUploadFirst not increasing limit, since not AT_LIMIT.");
+                }
             }
         }else{
             //decrease upload first

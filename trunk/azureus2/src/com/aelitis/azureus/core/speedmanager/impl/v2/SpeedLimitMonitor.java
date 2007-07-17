@@ -54,7 +54,7 @@ import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProviderA
  *
  */
 
-public class SpeedLimitMonitor
+public class SpeedLimitMonitor implements PSMonitorListener
 {
 
     //use for home network.
@@ -115,11 +115,46 @@ public class SpeedLimitMonitor
     boolean useVariancePingMap = false;
     SpeedManagerPingMapper transientPingMap;
 
+    PingSpaceMon longTermMonitor = new PingSpaceMon();
+
     //Testing
-    LimitControlDropUploadFirst slider = new LimitControlDropUploadFirst();
+    LimitControl slider = new LimitControlDropUploadFirst();
 
     public SpeedLimitMonitor(){
+
         //
+        longTermMonitor.addListener( this );
+    }
+
+
+    /**
+     * Spliting the limits out from other setting for SpeedManagerAlgorithmTI.
+     */
+//    public void updateLimitsFromCOConfigManager(){
+//        uploadLimitMax = COConfigurationManager.getIntParameter(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT);
+//        uploadLimitMin=COConfigurationManager.getIntParameter(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT);
+//        downloadLimitMax =COConfigurationManager.getIntParameter(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT);
+//        downloadLimitMin=COConfigurationManager.getIntParameter(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MIN_LIMIT);
+//
+//        uploadLimitConf = SpeedLimitConfidence.parseString(
+//                COConfigurationManager.getStringParameter( SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING ));
+//        downloadLimitConf = SpeedLimitConfidence.parseString(
+//                COConfigurationManager.getStringParameter( SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING));
+//
+//    }
+
+    /**
+     * Splitting the limits our from other setting for SpeedManagerAlgorithmTI.
+     */
+    public void updateSettingsFromCOConfigManager(){
+        percentUploadCapacityDownloadMode = (float)
+                COConfigurationManager.getIntParameter(SpeedLimitMonitor.USED_UPLOAD_CAPACITY_DOWNLOAD_MODE, 60)/100.0f;
+
+        percentUploadCapacitySeedingMode = (float)
+                COConfigurationManager.getIntParameter(SpeedLimitMonitor.USED_UPLOAD_CAPACITY_SEEDING_MODE, 90)/100.0f;
+
+        slider.updateSeedSettings(percentUploadCapacityDownloadMode);
+
     }
 
     public void updateFromCOConfigManager(){
@@ -305,8 +340,9 @@ public class SpeedLimitMonitor
 
         slider.updateLimits(uploadLimitMax,uploadLimitMin,
                 downloadLimitMax,downloadLimitMin);
-        slider.updateStatus(currUpLimit,uploadLimitSettingStatus,
-                currDownLimit, downloadLimitSettingStatus,transferMode);
+        
+        slider.updateStatus(currUpLimit,uploadBandwidthStatus,
+                currDownLimit, downloadBandwidthStatus,transferMode);
 
         return slider.adjust( signalStrength*multiple );
     }//modifyLimits
@@ -490,7 +526,7 @@ public class SpeedLimitMonitor
     }
 
     /**
-     * If we have a down-tick signal then reset all the counters for increasing the limits.
+     * If we have a down-tick signal then resetTimer all the counters for increasing the limits.
      */
     public void notifyOfDownSingal(){
 
@@ -645,14 +681,14 @@ public class SpeedLimitMonitor
         if( transferMode.getMode() == TransferMode.State.DOWNLOAD_LIMIT_SEARCH
                 && downloadBandwidthStatus.isGreater( SaturatedMode.MED ) )
         {
-            downloadLimit *= 1.15f;
+            downloadLimit *= 1.1f;
             clLastIncreaseTime = SystemTime.getCurrentTime();
             retVal = new SMUpdate(uploadLimit,false,downloadLimit,true);
 
         }else if( transferMode.getMode() == TransferMode.State.UPLOAD_LIMIT_SEARCH
                 && uploadBandwidthStatus.isGreater( SaturatedMode.MED ))
         {
-            uploadLimit *= 1.15f;
+            uploadLimit *= 1.1f;
             clLastIncreaseTime = SystemTime.getCurrentTime();
             retVal = new SMUpdate(uploadLimit,true,downloadLimit,false);
             
@@ -1233,6 +1269,34 @@ public class SpeedLimitMonitor
         //if confidence limit testing, inform of bad ping.
         updateLimitTestingPing(lastMetricValue);
 
+        longTermMonitor.updateStatus(transferMode);
+
     }//addToPingMapData
 
+    public void notifyUpload(SpeedManagerLimitEstimate estimate) {
+        int bestLimit = choseBestLimit(estimate,uploadLimitMax);
+
+        SpeedManagerLogger.trace("notifyUpload");
+
+        if(bestLimit!=uploadLimitMax){
+            //update COConfiguration
+            SpeedManagerLogger.log("persistent PingMap changed upload limit to "+bestLimit);
+            COConfigurationManager.setParameter(
+                    SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT, uploadLimitMax);
+        }
+
+    }
+
+    public void notifyDownload(SpeedManagerLimitEstimate estimate) {
+        int bestLimit = choseBestLimit(estimate,downloadLimitMax);
+
+        SpeedManagerLogger.trace("notifyDownload");
+
+        if(downloadLimitMax!=bestLimit){
+            //update COConfiguration
+            SpeedManagerLogger.log( "persistent PingMap changed download limit to "+bestLimit );
+            COConfigurationManager.setParameter(
+                    SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT, bestLimit);
+        }
+    }
 }//SpeedLimitMonitor
