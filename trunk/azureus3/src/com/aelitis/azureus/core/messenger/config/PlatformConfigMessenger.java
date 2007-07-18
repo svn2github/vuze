@@ -56,6 +56,8 @@ public class PlatformConfigMessenger
 		DEFAULT_WHITELIST
 	};
 
+	private static String playAfterURL = null;
+	
 	public static void getBrowseSections(String sectionType, long maxDelayMS,
 			final GetBrowseSectionsReplyListener replyListener) {
 
@@ -144,6 +146,9 @@ public class PlatformConfigMessenger
 						}
 						sURLWhiteList = sNewWhiteList;
 					}
+					
+					playAfterURL = (String) MapUtils.getMapString(reply,
+							"play-after-url", null);
 				} catch (Exception e) {
 					Debug.out(e);
 				}
@@ -211,5 +216,9 @@ public class PlatformConfigMessenger
 	 */
 	public static int getRPCVersion() {
 		return iRPCVersion;
+	}
+
+	public static String getPlayAfterURL() {
+		return playAfterURL;
 	}
 }
