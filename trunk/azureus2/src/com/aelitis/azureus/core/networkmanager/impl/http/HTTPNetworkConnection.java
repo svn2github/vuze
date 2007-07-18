@@ -885,13 +885,15 @@ HTTPNetworkConnection
 	flushRequests(
 		final flushListener		l )
 	{
+		boolean	sync_fire = false;
+		
 		synchronized( outstanding_requests ){
 
 			final int request_count = outstanding_requests.size();
 						
 			if ( request_count == 0 ){
 				
-				flushRequestsSupport( l );
+				sync_fire = true;
 				
 			}else{
 				
@@ -920,6 +922,11 @@ HTTPNetworkConnection
 						}
 					});
 			}
+		}
+		
+		if ( sync_fire ){
+			
+			flushRequestsSupport( l );
 		}
 	}
 	
