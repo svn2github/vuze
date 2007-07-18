@@ -515,6 +515,8 @@ public class TorrentListViewsUtils
 				"asf",
 				"mp3",
 				"wma",
+				"wav",
+				"h264",
 			};
 		}
 
