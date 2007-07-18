@@ -47,9 +47,12 @@ public class BTPeerIDByteDecoderDefinitions {
 	// Version number formats.
 	static String VER_AZ_THREE_DIGITS = "1.2.3";
 	static String VER_AZ_THREE_DIGITS_PLUS_MNEMONIC = "1.2.3 [4]";
+	static String VER_AZ_ONE_MAJ_TWO_MIN_PLUS_MNEMONIC = "1.23 [4]";
 	static String VER_AZ_FOUR_DIGITS = "1.2.3.4";
 	static String VER_AZ_TWO_MAJ_TWO_MIN = "12.34";
+	static String VER_AZ_SKIP_FIRST_ONE_MAJ_TWO_MIN = "2.34";
 	static String VER_AZ_KTORRENT_STYLE = "1.2.3=[RD].4";
+	static String VER_AZ_TRANSMISSION_STYLE = "transmission";
 	static String VER_AZ_LAST_THREE_DIGITS = "2.3.4";
 	static String VER_AZ_THREE_ALPHANUMERIC_DIGITS = "2.33.4"; // So 'B' = 11, for example, like Shadow's style of numbering.
 	
@@ -134,7 +137,6 @@ public class BTPeerIDByteDecoderDefinitions {
 		}
 		catch (Exception e) {
 			BTPeerIDByteDecoder.logUnknownClient(peer_id);
-			Debug.printStackTrace(e);
 			return null;
 		}
 	}
@@ -172,7 +174,6 @@ public class BTPeerIDByteDecoderDefinitions {
 		}
 		catch (Exception e) {
 			BTPeerIDByteDecoder.logUnknownClient(peer_id);
-			Debug.printStackTrace(e);
 			return null;
 		}
 	}
@@ -209,7 +210,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("AX", "BitPump", VER_AZ_TWO_MAJ_TWO_MIN);
 		addAzStyle("AT", "CyberArtemis");
 		addAzStyle("BB", "BitBuddy", "1.234");
-		addAzStyle("BC", "BitComet", VER_AZ_LAST_THREE_DIGITS);
+		addAzStyle("BC", "BitComet", VER_AZ_SKIP_FIRST_ONE_MAJ_TWO_MIN);
 		addAzStyle("BF", "BitFlu", NO_VERSION);
 		addAzStyle("BG", "BTG", VER_AZ_FOUR_DIGITS);
 		addAzStyle("bk", "BitKitten (libtorrent)");
@@ -222,8 +223,9 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("DE", "DelugeTorrent", VER_AZ_THREE_DIGITS);
 		addAzStyle("EB", "EBit");
 		addAzStyle("ES", "Electric Sheep", VER_AZ_THREE_DIGITS);
-		addAzStyle("FG", "FlashGet", VER_AZ_LAST_THREE_DIGITS);
+		addAzStyle("FG", "FlashGet", VER_AZ_SKIP_FIRST_ONE_MAJ_TWO_MIN);
 		addAzStyle("FT", "FoxTorrent/RedSwoosh");
+		addAzStyle("GR", "GetRight", "1.2");
 		addAzStyle("HL", "Halite", VER_AZ_THREE_DIGITS);
 		addAzStyle("HN", "Hydranode");
 		addAzStyle("KT", "KTorrent", VER_AZ_KTORRENT_STYLE);
@@ -241,14 +243,16 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("SB", "SwiftBit");
 		addAzStyle("SN", "ShareNET");
 		addAzStyle("SS", "SwarmScope");
-		addAzStyle("ST", "SharkTorrent"); // Note: Also clashes with "SymTorrent" -> SymTorrent 1.17 is -ST0117-.
+		addAzStyle("ST", "SymTorrent", "2.34");
+		addAzStyle("st", "SharkTorrent");
 		addAzStyle("SZ", "Shareaza");
 		addAzStyle("TN", "Torrent.NET");
-		addAzStyle("TR", "Transmission", VER_AZ_TWO_MAJ_TWO_MIN);
+		addAzStyle("TR", "Transmission", VER_AZ_TRANSMISSION_STYLE);
 		addAzStyle("TS", "TorrentStorm");
 		addAzStyle("TT", "TuoTu", VER_AZ_THREE_DIGITS);
 		addAzStyle("UL", "uLeecher!");
 		addAzStyle("UT", "\u00B5Torrent", VER_AZ_THREE_DIGITS_PLUS_MNEMONIC);
+		addAzStyle("WY", "Wyzo");
 		addAzStyle("XL", "\u8FC5\u96F7\u5728\u7EBF (Xunlei)");
 		addAzStyle("XT", "XanTorrent");
 		addAzStyle("XX", "Xtorrent", "v1234");
