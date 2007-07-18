@@ -108,7 +108,7 @@ public class TorrentListViewsUtils
 									+ ".html#share?" + Constants.URL_SUFFIX;
 
 							UIFunctions functions = UIFunctionsManager.getUIFunctions();
-							functions.viewURL(url, "browse", 0, 0, false);
+							functions.viewURL(url, "browse", 0, 0, false, false);
 						} catch (TOTorrentException e) {
 							Debug.out(e);
 						}
@@ -201,7 +201,7 @@ public class TorrentListViewsUtils
 					+ Constants.URL_SUFFIX;
 
 			UIFunctions functions = UIFunctionsManager.getUIFunctions();
-			functions.viewURL(url, "browse", 0, 0, false);
+			functions.viewURL(url, "browse", 0, 0, false, false);
 		} catch (TOTorrentException e) {
 			Debug.out(e);
 		}
@@ -228,7 +228,7 @@ public class TorrentListViewsUtils
 									+ ".html?" + Constants.URL_SUFFIX;
 
 							UIFunctions functions = UIFunctionsManager.getUIFunctions();
-							functions.viewURL(url, "browse", 0, 0, false);
+							functions.viewURL(url, "browse", 0, 0, false, false);
 						} catch (TOTorrentException e) {
 							Debug.out(e);
 						}

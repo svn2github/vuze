@@ -236,7 +236,7 @@ public class DisplayListener
 					display.asyncExec(new AERunnable() {
 						public void runSupport() {
 							BrowserWindow window = new BrowserWindow(
-									display.getActiveShell(), url, w, h, allowResize);
+									display.getActiveShell(), url, w, h, allowResize, false);
 							window.waitUntilClosed();
 							message.complete(false, true, null);
 						}
@@ -249,7 +249,7 @@ public class DisplayListener
 
 		AEThread thread = new AEThread("show browser " + url) {
 			public void runSupport() {
-				functions.viewURL(url, target, w, h, allowResize);
+				functions.viewURL(url, target, w, h, allowResize, false);
 				message.complete(false, true, null);
 			}
 		};

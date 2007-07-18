@@ -608,13 +608,30 @@ public class UIFunctionsImpl
 	}
 
 	public boolean viewURL(final String url, final String target, final int w,
-			final int h, final boolean allowResize) {
+			final int h, final boolean allowResize, final boolean isModal) {
 
 		mainWindow.shell.getDisplay().syncExec(new AERunnable() {
 			public void runSupport() {
 				if (target == null) {
 					BrowserWindow window = new BrowserWindow(mainWindow.shell, url, w, h,
-							allowResize);
+							allowResize, isModal);
+					window.waitUntilClosed();
+				} else {
+					mainWindow.showURL(url, target);
+				}
+			}
+		});
+		return true;
+	}
+
+	public boolean viewURL(final String url, final String target, final double w,
+			final double h, final boolean allowResize, final boolean isModal) {
+
+		mainWindow.shell.getDisplay().syncExec(new AERunnable() {
+			public void runSupport() {
+				if (target == null) {
+					BrowserWindow window = new BrowserWindow(mainWindow.shell, url, w, h,
+							allowResize, isModal);
 					window.waitUntilClosed();
 				} else {
 					mainWindow.showURL(url, target);

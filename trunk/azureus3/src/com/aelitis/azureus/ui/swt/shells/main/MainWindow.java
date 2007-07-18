@@ -1515,7 +1515,7 @@ public class MainWindow
 
 		UIFunctions functions = UIFunctionsManager.getUIFunctions();
 		if (functions != null) {
-			functions.viewURL(sURL, "browse", 0, 0, false);
+			functions.viewURL(sURL, "browse", 0, 0, false, false);
 			return;
 		}
 

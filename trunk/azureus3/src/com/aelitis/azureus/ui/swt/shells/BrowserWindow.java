@@ -22,6 +22,7 @@ package com.aelitis.azureus.ui.swt.shells;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.*;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -45,6 +46,17 @@ public class BrowserWindow
 
 	private Shell shell;
 
+	public BrowserWindow(Shell parent, String url, double wPct, double hPct,
+			boolean allowResize, boolean isModal) {
+		if (parent == null) {
+			init(parent, url, 0, 0, allowResize, isModal);
+		} else {
+			Rectangle clientArea = parent.getClientArea();
+			init(parent, url, (int) (clientArea.width * wPct),
+					(int) (clientArea.height * hPct), allowResize, isModal);
+		}
+	}
+
 	/**
 	 * @param url
 	 * @param w
@@ -52,10 +64,18 @@ public class BrowserWindow
 	 * @param allowResize 
 	 */
 	public BrowserWindow(Shell parent, String url, int w, int h,
-			boolean allowResize) {
+			boolean allowResize, boolean isModal) {
+		init(parent, url, w, h, allowResize, isModal);
+	}
+
+	public void init(Shell parent, String url, int w, int h,
+			boolean allowResize, boolean isModal) {
 		int style = SWT.DIALOG_TRIM;
 		if (allowResize) {
 			style |= SWT.RESIZE;
+		}
+		if (isModal) {
+			style |= SWT.APPLICATION_MODAL;
 		}
 		shell = ShellFactory.createShell(parent, style);
 
@@ -116,7 +136,7 @@ public class BrowserWindow
 		Display display = new Display();
 		Shell shell = new Shell(display, SWT.DIALOG_TRIM);
 
-		new BrowserWindow(shell, "http://google.com", 500, 200, true);
+		new BrowserWindow(shell, "http://google.com", 500, 200, true, false);
 
 		shell.pack();
 		shell.open();
