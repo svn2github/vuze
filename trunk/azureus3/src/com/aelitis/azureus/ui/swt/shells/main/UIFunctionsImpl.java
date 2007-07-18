@@ -148,11 +148,16 @@ public class UIFunctionsImpl
 
 	// @see com.aelitis.azureus.ui.UIFunctions#bringToFront()
 	public void bringToFront() {
+		bringToFront(true);
+	}
+
+	// @see com.aelitis.azureus.ui.UIFunctions#bringToFront(boolean)
+	public void bringToFront(final boolean tryTricks) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				try {
 					// this will force active and set !minimized after PW test
-					mainWindow.setVisible(true);
+					mainWindow.setVisible(true, tryTricks);
 
 				} catch (Exception e) {
 					Logger.log(new LogEvent(LOGID, "bringToFront", e));
