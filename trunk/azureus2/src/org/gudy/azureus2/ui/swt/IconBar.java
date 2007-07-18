@@ -25,18 +25,28 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.ui.swt.components.*;
+import org.gudy.azureus2.ui.swt.components.BufferedToolItem;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
+
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 
 /**
  * @author Olivier
  *
  */
 public class IconBar {
+	private final boolean OVERRIDE_SHOW_UISWITCHER = System.getProperty(
+			"ui.toolbar.switcher", "0").equals("1");
   
   CoolBar coolBar;
   Composite parent;    
@@ -49,7 +59,7 @@ public class IconBar {
     this.parent = parent;
     cIconBar = new Composite(parent, SWT.NONE);
     
-    GridLayout layout = new GridLayout();
+    GridLayout layout = new GridLayout(2, false);
     layout.marginHeight = 0;
     layout.marginWidth = 0;
     layout.horizontalSpacing = 0;
@@ -64,11 +74,41 @@ public class IconBar {
     this.coolBar.setLocked(true);
     
     coolBar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-    
 
-    Label separator = new Label(cIconBar, SWT.SEPARATOR | SWT.HORIZONTAL);
-    separator.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+    // We could setup a listener on the parameter and dynamically remove/add
+    // ui switcher button, but it's not worth the effort
+		boolean enableUISwitcher = OVERRIDE_SHOW_UISWITCHER
+				|| COConfigurationManager.getBooleanParameter("ui.toolbar.uiswitcher");
     
+		if (enableUISwitcher) {
+			ToolBar tbSwitch = new ToolBar(cIconBar, SWT.FLAT);
+			GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+			tbSwitch.setLayoutData(gridData);
+			ToolItem tiSwitch = new ToolItem(tbSwitch, SWT.PUSH);
+			tiSwitch.setImage(ImageRepository.getImage("cb_switch"));
+			Messages.setLanguageText(tiSwitch, "iconBar.switch.tooltip", true);
+			tiSwitch.addSelectionListener(new SelectionListener() {
+				public void widgetSelected(SelectionEvent e) {
+					UISwitcherUtil.openSwitcherWindow(true);
+					int result = MessageBoxShell.open(IconBar.this.parent.getShell(),
+							MessageText.getString("dialog.uiswitcher.restart.title"),
+							MessageText.getString("dialog.uiswitcher.restart.text"),
+							new String[] {
+								MessageText.getString("UpdateWindow.restart"),
+								MessageText.getString("UpdateWindow.restartLater"),
+							}, 0);
+					if (result == 0) {
+  					UIFunctions uif = UIFunctionsManager.getUIFunctions();
+  					if (uif != null) {
+  						uif.dispose(true, false);
+  					}
+					}
+				}
+
+				public void widgetDefaultSelected(SelectionEvent e) {
+				}
+			});
+		}
 	}
 
 	public void setEnabled(String itemKey,boolean enabled) {

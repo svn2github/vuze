@@ -94,6 +94,8 @@ public class UIConfigDefaultsSWT
 
 		def.addParameter("GUI_SWT_bOldSpeedMenu", false);
 		
+		def.addParameter("ui.toolbar.uiswitcher", false);
+		
 		def.addParameter("ui", "az2");
 		
 		
