@@ -83,7 +83,19 @@ public class BrowserWindow
 
 		Utils.setShellIcon(shell);
 
-		Browser browser = new Browser(shell, SWT.None);
+		Browser browser = null;
+		
+		try {
+			browser = new Browser(shell, SWT.None);
+		} catch (Throwable t) {
+			shell.dispose();
+			return;
+		}
+		
+		if (browser == null) {
+			shell.dispose();
+			return;
+		}
 
 		final ClientMessageContext context = new BrowserContext("browser-window"
 				+ Math.random(), browser, null);
