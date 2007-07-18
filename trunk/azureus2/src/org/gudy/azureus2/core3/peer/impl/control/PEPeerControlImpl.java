@@ -2417,8 +2417,6 @@ PEPeerControlImpl
 	private void processPieceCheckResult(DiskManagerCheckRequest request, int outcome)
 	{
 		final int check_type =((Integer) request.getUserData()).intValue();
-
-		outcome = 0;
 		
 		try{
 		
