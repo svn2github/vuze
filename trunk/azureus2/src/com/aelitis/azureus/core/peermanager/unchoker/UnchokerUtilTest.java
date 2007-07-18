@@ -199,6 +199,10 @@ public class UnchokerUtilTest {
 		public void setHaveAggregationEnabled(boolean enabled) {
 			// TODO Auto-generated method stub
 		}
+		public int getOutboundDataQueueSize() {
+			// TODO Auto-generated method stub
+			return 0;
+		}
       };
       
      f_stats[0] = new PEPeerStats() {

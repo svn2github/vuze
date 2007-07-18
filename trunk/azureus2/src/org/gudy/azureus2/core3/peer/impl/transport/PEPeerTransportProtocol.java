@@ -2852,6 +2852,12 @@ PEPeerTransportProtocol
 	  return( getNbRequests());
   }
  
+  public int 
+  getOutboundDataQueueSize() 
+  {
+	  return( connection.getOutgoingMessageQueue().getTotalSize());
+  }
+  
   public boolean 
   isStalledPendingLoad()
   {

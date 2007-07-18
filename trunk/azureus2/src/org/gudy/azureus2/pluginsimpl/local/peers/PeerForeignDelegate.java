@@ -30,6 +30,7 @@ package org.gudy.azureus2.pluginsimpl.local.peers;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
@@ -37,6 +38,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.pluginsimpl.local.messaging.MessageAdapter;
+import org.gudy.azureus2.pluginsimpl.local.peers.PeerForeignNetworkConnection.tp;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.networkmanager.NetworkConnectionBase;
@@ -770,6 +772,13 @@ PeerForeignDelegate
 		return( res );
 	}
 
+	public int getOutboundDataQueueSize()
+	{
+			// don't know, assume all requests are queued and block size
+		
+		return( getOutgoingRequestCount() * DiskManager.BLOCK_SIZE );
+	}
+	
 	public int getLastPiece()
 	{
 		return _lastPiece;

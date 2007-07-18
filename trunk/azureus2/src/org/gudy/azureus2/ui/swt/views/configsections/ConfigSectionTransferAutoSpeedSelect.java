@@ -373,13 +373,10 @@ public class ConfigSectionTransferAutoSpeedSelect
 					}
 					
 					int	value = max_upload.getValue();
-					
-					if ( value != 0 ){
+											
+					max_upload.setValue( 0 );
 						
-						max_upload.setValue( 0 );
-						
-						sm.setEstimatedUploadCapacityBytesPerSec( value*1024, metric );
-					}
+					sm.setEstimatedUploadCapacityBytesPerSec( value*1024, metric );
 					
 					max_upload_type.setValue( "" );
 				}
@@ -427,13 +424,10 @@ public class ConfigSectionTransferAutoSpeedSelect
 					}
 					
 					int	value = max_download.getValue();
-					
-					if ( value != 0 ){
+											
+					max_download.setValue( 0 );
 						
-						max_download.setValue( 0 );
-						
-						sm.setEstimatedDownloadCapacityBytesPerSec( value*1024, metric );
-					}
+					sm.setEstimatedDownloadCapacityBytesPerSec( value*1024, metric );
 					
 					max_download_type.setValue( "" );
 				}

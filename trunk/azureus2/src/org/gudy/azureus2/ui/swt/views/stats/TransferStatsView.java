@@ -1055,17 +1055,20 @@ public class TransferStatsView extends AbstractIView {
 	  String	msg_text_measured_min;
 	  String	msg_text_measured;
 	  String	msg_text_manual;
+	  String	msg_unlimited;
 	  
 	  String[]	setable_types;
 	  
 	  public
 	  limitToTextHelper()
 	  {
-		  msg_text_unknown		= MessageText.getString("SpeedView.stats.unknown" );
-		  msg_text_estimate		= MessageText.getString("SpeedView.stats.estimate" );
-		  msg_text_measured		= MessageText.getString("SpeedView.stats.measured" );
-		  msg_text_measured_min	= MessageText.getString("SpeedView.stats.measuredmin" );
-		  msg_text_manual		= MessageText.getString("SpeedView.stats.manual" );
+		  msg_text_unknown		= MessageText.getString( "SpeedView.stats.unknown" );
+		  msg_text_estimate		= MessageText.getString( "SpeedView.stats.estimate" );
+		  msg_text_measured		= MessageText.getString( "SpeedView.stats.measured" );
+		  msg_text_measured_min	= MessageText.getString( "SpeedView.stats.measuredmin" );
+		  msg_text_manual		= MessageText.getString( "SpeedView.stats.manual" );
+		  
+		  msg_unlimited			= MessageText.getString( "ConfigView.unlimited" );
 		  
 		  setable_types =  new String[]{ "", msg_text_estimate, msg_text_measured, msg_text_manual };
 	  }
@@ -1127,7 +1130,16 @@ public class TransferStatsView extends AbstractIView {
 			  text = msg_text_estimate;
 		  }
 		  
-		  return( DisplayFormatters.formatByteCountToKiBEtcPerSec(limit.getBytesPerSec()) + " (" + text + ")");
+		  int	l = limit.getBytesPerSec();
+		  
+		  if ( l == 0 ){
+			  
+			  return( msg_unlimited + " (" + text + ")");
+			  
+		  }else{
+		  
+			  return( DisplayFormatters.formatByteCountToKiBEtcPerSec( l ) + " (" + text + ")");
+		  }
 	  }
   }
 }
