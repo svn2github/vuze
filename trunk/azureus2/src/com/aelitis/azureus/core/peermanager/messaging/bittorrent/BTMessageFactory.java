@@ -160,7 +160,7 @@ public class BTMessageFactory {
   public static int getMessageType( DirectByteBuffer stream_payload ) {
   	byte id = stream_payload.get( DirectByteBuffer.SS_MSG, 0 );
   	if( id == 84 )  return Message.TYPE_PROTOCOL_PAYLOAD;  //handshake message byte in position 4
-  	if ( id < id_to_name.length ){
+  	if ( id >= 0 && id < id_to_name.length ){
   		return MessageManager.getSingleton().lookupMessage( id_to_name[ id ] ).getType();
   	}
   	// invalid, return whatever
