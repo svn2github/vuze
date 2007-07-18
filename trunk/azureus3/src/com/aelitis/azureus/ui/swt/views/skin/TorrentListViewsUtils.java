@@ -50,6 +50,7 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.download.EnhancedDownloadManager;
+import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -58,6 +59,7 @@ import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
 import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
@@ -73,6 +75,7 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
 
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 
 /**
@@ -418,6 +421,15 @@ public class TorrentListViewsUtils
 		} else {
 			Utils.launch(runFile);
 		}
+		
+		String playAfterURL = PlatformConfigMessenger.getPlayAfterURL();
+		if (playAfterURL != null) {
+			if (!playAfterURL.startsWith("http")) {
+				playAfterURL = Constants.URL_PREFIX + playAfterURL;
+			}
+  		BrowserWindow bw = new BrowserWindow(Utils.findAnyShell(), playAfterURL
+					+ PlatformTorrentUtils.getContentHash(torrent), 0.9, 0.9, true, true);
+		}
 	}
 
 	/**
@@ -588,14 +600,34 @@ public class TorrentListViewsUtils
 		}
 
 		try {
-			pi.getIPC().invoke("playDownload", new Object[] {
+			pi.getIPC().invoke("getContentURL", new Object[] {
 				download
 			});
+			final DownloadManager dm = ((DownloadImpl) download).getDownload();
+			TOTorrent torrent = dm.getTorrent();
+			if (PlatformTorrentUtils.isContentAdEnabled(torrent)) {
+				AdManager.getInstance().createASX(dm,
+						new AdManager.ASXCreatedListener() {
+							public void asxCreated(File asxFile) {
+								runFile(dm.getTorrent(), asxFile.getAbsolutePath());
+							}
 
+							public void asxFailed() {
+								runFile(dm.getTorrent(), dm.getSaveLocation().toString());
+							}
+						});
+			} else {
+				runFile(dm.getTorrent(), dm.getSaveLocation().toString());
+			}
 		} catch (Throwable e) {
-
-			Logger.log(new LogEvent(LogIDs.UI3, "IPC to media server plugin failed",
-					e));
+			try {
+				pi.getIPC().invoke("playDownload", new Object[] {
+					download
+				});
+			} catch (Throwable e2) {
+				Logger.log(new LogEvent(LogIDs.UI3,
+						"IPC to media server plugin failed", e2));
+			}
 		}
 	}
 
