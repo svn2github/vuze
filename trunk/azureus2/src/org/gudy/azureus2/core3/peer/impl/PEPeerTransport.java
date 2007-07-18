@@ -64,6 +64,10 @@ PEPeerTransport
 	sendCancel(
 		DiskManagerReadRequest	request );
 	
+	public void
+	sendBadPiece(
+		int		piece_number );
+	
 		/**
 		 * Two methods that allow a peer to aggregate the individual requests generated during an
 		 * allocation cycle if so desired

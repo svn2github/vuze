@@ -511,6 +511,12 @@ PeerForeignDelegate
 	{
 	}
 	
+	public void 
+	sendBadPiece(
+		int piece_number) 
+	{
+	}
+	
 	public boolean
 	isTCP()
 	{

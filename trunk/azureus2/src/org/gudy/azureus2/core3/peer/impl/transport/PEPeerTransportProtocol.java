@@ -2133,7 +2133,7 @@ PEPeerTransportProtocol
         }
     }
   
-    public boolean
+    public void
     sendBadPiece(
   	  int		piece_number )
     {
@@ -2142,12 +2142,6 @@ PEPeerTransportProtocol
   		  AZBadPiece	bp = new AZBadPiece( piece_number, other_peer_az_bad_piece_version );
   		  
   		  connection.getOutgoingMessageQueue().addMessage( bp, false );
-
-  		  return( true );
-  		  
-  	  }else{
-  		  
-  		  return( false );
   	  }
     }
     protected void 
@@ -2157,13 +2151,8 @@ PEPeerTransportProtocol
         final int piece_number = bad_piece.getPieceNumber();
         
         bad_piece.destroy();
-
-        if ( closing ){
-        	
-            return;
-        }
         
-        Debug.out( "Bad piece #" + piece_number + " reported by " + getIp());
+        Debug.outNoStack( manager.getDisplayName() + ": bad piece #" + piece_number + " reported by " + getIp());
     }
     
   protected void decodeRequest( BTRequest request ) {

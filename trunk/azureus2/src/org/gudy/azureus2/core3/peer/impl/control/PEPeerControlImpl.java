@@ -2418,6 +2418,8 @@ PEPeerControlImpl
 	{
 		final int check_type =((Integer) request.getUserData()).intValue();
 
+		outcome = 0;
+		
 		try{
 		
 			final int pieceNumber = request.getPieceNumber();
@@ -2564,7 +2566,17 @@ PEPeerControlImpl
 						{
 							// Very simple case, only 1 peer contributed for that piece,
 							// so, let's mark it as a bad peer
-							badPeerDetected((String)uniqueWriters.get(0), true);
+							
+							String	bad_ip = (String)uniqueWriters.get(0);
+							
+							PEPeerTransport bad_peer = getTransportFromAddress( bad_ip );
+						
+							if ( bad_peer != null ){
+								
+								bad_peer.sendBadPiece( pieceNumber );
+							}
+							
+							badPeerDetected( bad_ip, true);
 	
 								// and let's reset the whole piece
 							
