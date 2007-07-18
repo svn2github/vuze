@@ -888,7 +888,7 @@ HTTPNetworkConnection
 		synchronized( outstanding_requests ){
 
 			final int request_count = outstanding_requests.size();
-			
+						
 			if ( request_count == 0 ){
 				
 				flushRequestsSupport( l );
@@ -927,9 +927,11 @@ HTTPNetworkConnection
 	flushRequestsSupport(
 		final flushListener		l )
 	{
+		OutgoingMessageQueue omq = getConnection().getOutgoingMessageQueue();
+		
 		final Message	http_message = new HTTPMessage( new byte[0] );
 		
-		getConnection().getOutgoingMessageQueue().registerQueueListener(
+		omq.registerQueueListener(
 			new OutgoingMessageQueue.MessageQueueListener()
 			{
 				public boolean 
@@ -974,7 +976,15 @@ HTTPNetworkConnection
 			    }
 			});
 		
-		getConnection().getOutgoingMessageQueue().addMessage( http_message, false );
+		omq.addMessage( http_message, false );
+		
+			// if after adding the message there's no bytes on the queue then we need to trigger an
+			// immediate flushed event as the queue won't get processed (0 bytes on it...)
+		
+		if ( omq.getTotalSize() == 0 ){
+			
+			l.flushed();
+		}
 	}
 	
 	protected class

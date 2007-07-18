@@ -110,7 +110,7 @@ HTTPNetworkConnectionWebSeed
 	    				final byte[]	new_hash = URLDecoder.decode( rhs, "ISO-8859-1" ).getBytes( "ISO-8859-1" );
 
 						if ( !Arrays.equals( new_hash, old_hash )){
-																
+															
 							switching		= true;
 							
 							decoder.pauseInternally();
@@ -118,9 +118,21 @@ HTTPNetworkConnectionWebSeed
 							flushRequests(
 								new flushListener()
 								{
+									private boolean triggered;
+									
 									public void 
 									flushed() 
 									{
+										synchronized( this ){
+											
+											if ( triggered ){
+												
+												return;
+											}
+											
+											triggered = true;
+										}
+										
 										getManager().reRoute( 
 												HTTPNetworkConnectionWebSeed.this, 
 												old_hash, new_hash, header );
