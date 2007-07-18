@@ -343,7 +343,7 @@ public class SystemTraySWT
 	}
 
 	private void showMainWindow() {
-		uiFunctions.bringToFront();
+		uiFunctions.bringToFront(false);
 	}
 
 	public void updateLanguage() {

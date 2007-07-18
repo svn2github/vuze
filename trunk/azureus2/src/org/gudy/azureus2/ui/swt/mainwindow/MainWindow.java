@@ -946,6 +946,10 @@ MainWindow
   }
 
   public void setVisible(final boolean visible) {
+  	setVisible(visible, true);
+  }
+
+  public void setVisible(final boolean visible, final boolean tryTricks) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				bSettingVisibility = true;
@@ -959,9 +963,11 @@ MainWindow
   					}
   				}
   
-  				boolean bHideAndShow = visible && Constants.isWindows
+  				ArrayList wasVisibleList = null;
+  				boolean bHideAndShow = tryTricks && visible && Constants.isWindows
   						&& display.getActiveShell() != shell;
   				if (bHideAndShow) {
+  					wasVisibleList = new ArrayList();
   					// We don't want the window to just flash and not open, so:
   					// -Minimize main shell
   					// -Set all shells invisible
@@ -969,7 +975,10 @@ MainWindow
     					shell.setMinimized(true);
     					Shell[] shells = shell.getDisplay().getShells();
     					for (int i = 0; i < shells.length; i++) {
-    						shells[i].setVisible(false);
+    						if (shells[i].isVisible()) {
+    							wasVisibleList.add(shells[i]);
+      						shells[i].setVisible(false);
+    						}
     					}
     				} catch (Exception e) {
     				}
@@ -995,7 +1004,9 @@ MainWindow
       					Shell[] shells = shell.getDisplay().getShells();
       					for (int i = 0; i < shells.length; i++) {
       						if (shells[i] != shell) {
-      							shells[i].setVisible(visible);
+      							if (wasVisibleList.contains(shells[i])) {
+      								shells[i].setVisible(visible);
+      							}
       							shells[i].setFocus();
       						}
       					}

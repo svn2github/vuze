@@ -68,6 +68,15 @@ public interface UIFunctions
 	void bringToFront();
 
 	/**
+	 * Bring main window to the front
+	 * 
+	 * @param noTricks Don't try any tricks to force it to the top
+	 *
+	 * @since 3.0.1.7
+	 */
+	void bringToFront(boolean noTricks);
+	
+	/**
 	 * Request the UI be shut down.
 	 * 
 	 * @return true - request granted, UI is being shut down

@@ -62,13 +62,17 @@ public class UIFunctionsImpl
 
 	// UIFunctions
 	public void bringToFront() {
+		bringToFront(true);
+	}
+
+	public void bringToFront(final boolean tryTricks) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				mainwindow.setVisible(true);
+				mainwindow.setVisible(true, tryTricks);
 			}
 		});
 	}
-
+	
 	// UIFunctions
 	public void addPluginView(final PluginView view) {
 		Utils.execSWTThread(new AERunnable() {
