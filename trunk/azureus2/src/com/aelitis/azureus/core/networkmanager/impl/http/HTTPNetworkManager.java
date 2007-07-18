@@ -391,6 +391,8 @@ HTTPNetworkManager
 		if ( reg_data == null ){
 			
 			old_http_connection.close( "Re-routing failed - registration not found" );
+			
+			return;
 		}
 	
 		final Transport transport = old_connection.detachTransport();
