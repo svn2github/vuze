@@ -813,6 +813,17 @@ public class VersionCheckClient {
 			 }
 	     }
 	 }
+	 
+		// set ui.toolbar.uiswitcher based on instructions from tracker
+		// Really shouldn't be in VersionCheck client, but instead have some 
+		// listener and have the code elsewhere.  Simply calling 
+		//getVersionCheckInfo from "code elsewhere" (to get the cached result) 
+		//caused a deadlock at startup.
+		Long lEnabledUISwitcher = (Long) reply.get("ui.toolbar.uiswitcher");
+		if (lEnabledUISwitcher != null) {
+			COConfigurationManager.setBooleanDefault("ui.toolbar.uiswitcher",
+					lEnabledUISwitcher.longValue() == 1);
+		}
   }
   
   public InetAddress
