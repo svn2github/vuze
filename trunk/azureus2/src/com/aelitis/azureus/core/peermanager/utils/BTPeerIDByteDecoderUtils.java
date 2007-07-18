@@ -30,6 +30,8 @@ class BTPeerIDByteDecoderUtils {
 			case 'b':
 			case 'B':
 				return "Beta";
+			case 'Z':
+				return "(Dev)"; // Just for Transmission at the moment.
 		}
 		return null;
 	}
@@ -288,13 +290,43 @@ class BTPeerIDByteDecoderUtils {
 		char c = version_data.charAt(2);
 		char d = version_data.charAt(3);
 		
+		/**
+		 * Specialness for Transmission - thanks to BentMyWookie for the information,
+		 * I'm sure he'll be reading this comment anyway... ;)
+		 */  
+		if (version_scheme == BTPeerIDByteDecoderDefinitions.VER_AZ_TRANSMISSION_STYLE) {
+			// Very old client style: -TR0006- is 0.6.
+			if (version_data.startsWith("000")) {
+				version_scheme = "3.4";
+			}
+			
+			// Previous client style: -TR0072- is 0.72.
+			else if (version_data.startsWith("00")) {
+				version_scheme = BTPeerIDByteDecoderDefinitions.VER_AZ_SKIP_FIRST_ONE_MAJ_TWO_MIN;
+			}
+			
+			// Current client style: -TR072Z- is 0.72 (Dev).
+			else {
+				version_scheme = BTPeerIDByteDecoderDefinitions.VER_AZ_ONE_MAJ_TWO_MIN_PLUS_MNEMONIC;
+			}
+		}
+		
 		if (version_scheme == BTPeerIDByteDecoderDefinitions.VER_AZ_FOUR_DIGITS) {
 			return intchar(a) + "." + intchar(b) + "." + intchar(c) + "." + intchar(d);
 		}
 		else if (version_scheme == BTPeerIDByteDecoderDefinitions.VER_AZ_THREE_DIGITS ||
-				version_scheme == BTPeerIDByteDecoderDefinitions.VER_AZ_THREE_DIGITS_PLUS_MNEMONIC) {
-			String result = intchar(a) + "." + intchar(b) + "." + intchar(c);
-			if (version_scheme == BTPeerIDByteDecoderDefinitions.VER_AZ_THREE_DIGITS_PLUS_MNEMONIC) {
+				version_scheme == BTPeerIDByteDecoderDefinitions.VER_AZ_THREE_DIGITS_PLUS_MNEMONIC ||
+				version_scheme == BTPeerIDByteDecoderDefinitions.VER_AZ_ONE_MAJ_TWO_MIN_PLUS_MNEMONIC) {
+			
+			String result;
+			if (version_scheme == BTPeerIDByteDecoderDefinitions.VER_AZ_ONE_MAJ_TWO_MIN_PLUS_MNEMONIC) {
+				result = intchar(a) + "." + intchar(b) + intchar(c);
+			}
+			else {
+				result = intchar(a) + "." + intchar(b) + "." + intchar(c);
+			}
+			if (version_scheme == BTPeerIDByteDecoderDefinitions.VER_AZ_THREE_DIGITS_PLUS_MNEMONIC ||
+					version_scheme == BTPeerIDByteDecoderDefinitions.VER_AZ_ONE_MAJ_TWO_MIN_PLUS_MNEMONIC) {
 				String mnemonic = decodeMnemonic(d);
 				if (mnemonic != null) {result += " " + mnemonic;}
 			}
@@ -304,10 +336,13 @@ class BTPeerIDByteDecoderUtils {
 			return (a == '0' ? "" : intchar(a)) + intchar(b) + "." + intchar(c) + intchar(d);
 		}
 		else if (version_scheme == BTPeerIDByteDecoderDefinitions.VER_AZ_LAST_THREE_DIGITS) {
-			return intchar(b) + "." + intchar(c) + intchar(d);
+			return intchar(b) + "." + intchar(c) + "." + intchar(d);
 		}
 		else if (version_scheme == BTPeerIDByteDecoderDefinitions.VER_AZ_THREE_ALPHANUMERIC_DIGITS) {
 			return decodeAlphaNumericChar(a) + "." + decodeAlphaNumericChar(b) + "." + decodeAlphaNumericChar(c);
+		}
+		else if (version_scheme == BTPeerIDByteDecoderDefinitions.VER_AZ_SKIP_FIRST_ONE_MAJ_TWO_MIN) {
+			return intchar(b) + "." + intchar(c) + intchar(d);
 		}
 		else if (version_scheme == BTPeerIDByteDecoderDefinitions.VER_AZ_KTORRENT_STYLE) {
 			// Either something like this:
@@ -334,6 +369,12 @@ class BTPeerIDByteDecoderUtils {
 		}
 		else if (version_scheme.equals("v1234")) {
 			return "v" + intchar(a) + intchar(b) + intchar(c) + intchar(d);
+		}
+		else if (version_scheme.equals("1.2")) {
+			return intchar(a) + "." + intchar(b);
+		}
+		else if (version_scheme.equals("3.4")) {
+			return intchar(c) + "." + intchar(d);
 		}
 		else {
 			throw new RuntimeException("unknown AZ style version number scheme - " + version_scheme);
