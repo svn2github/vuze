@@ -421,10 +421,10 @@ OutgoingMessageQueueImpl
 
 		  if( !queue.isEmpty() ){
 			  
-			  final int MAX_BUFFERS = 256;
+			  int buffer_limit 		= 256;
 			  
-			  ByteBuffer[] 	raw_buffers 	= new ByteBuffer[MAX_BUFFERS];
-			  int[]		 	orig_positions	= new int[MAX_BUFFERS];
+			  ByteBuffer[] 	raw_buffers 	= new ByteBuffer[buffer_limit];
+			  int[]		 	orig_positions	= new int[buffer_limit];
 			  int			buffer_count	= 0;
 			  
 			  int total_sofar = 0;
@@ -451,11 +451,20 @@ outer:
 						  break outer;
 					  }
 					  
-					  if ( buffer_count == MAX_BUFFERS ) {
+					  if ( buffer_count == buffer_limit ) {
 							
-						  Debug.out( "Buffer limit reached" );
+						  int	new_buffer_limit	= buffer_limit * 2;
 						  
-						  break outer;
+						  ByteBuffer[] 	new_raw_buffers 	= new ByteBuffer[new_buffer_limit];
+						  int[]		 	new_orig_positions	= new int[new_buffer_limit];
+						  
+						  System.arraycopy( raw_buffers, 0, new_raw_buffers, 0, buffer_limit );
+						  System.arraycopy( orig_positions, 0, new_orig_positions, 0, buffer_limit );
+						  
+						  raw_buffers 		= new_raw_buffers;
+						  orig_positions	= new_orig_positions;
+						  
+						  buffer_limit 		= new_buffer_limit;
 					  }
 				  }
 			  }
