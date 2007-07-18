@@ -74,7 +74,19 @@ public class SimpleBrowserWindow
 
 		Utils.setShellIcon(shell);
 
-		Browser browser = new Browser(shell, SWT.None);
+		Browser browser = null;
+		
+		try {
+			browser = new Browser(shell, SWT.None);
+		} catch (Throwable t) {
+			shell.dispose();
+			return;
+		}
+		
+		if (browser == null) {
+			shell.dispose();
+			return;
+		}
 
 		browser.addProgressListener(new ProgressListener() {
 			public void completed(ProgressEvent event) {
