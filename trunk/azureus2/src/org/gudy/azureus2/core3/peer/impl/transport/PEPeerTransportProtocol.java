@@ -146,20 +146,21 @@ PEPeerTransportProtocol
   
   private boolean az_messaging_mode = false;
   private Message[] supported_messages = null;
-  private byte	other_peer_bitfield_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-  private byte	other_peer_cancel_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-  private byte	other_peer_choke_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-  private byte	other_peer_handshake_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-  private byte	other_peer_bt_have_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-  private byte	other_peer_az_have_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-  private byte	other_peer_interested_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-  private byte	other_peer_keep_alive_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-  private byte	other_peer_pex_version			= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-  private byte	other_peer_piece_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-  private byte	other_peer_request_hint_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-  private byte	other_peer_unchoke_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-  private byte	other_peer_uninterested_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-  private byte	other_peer_request_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+  private byte	other_peer_bitfield_version			= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+  private byte	other_peer_cancel_version			= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+  private byte	other_peer_choke_version			= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+  private byte	other_peer_handshake_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+  private byte	other_peer_bt_have_version			= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+  private byte	other_peer_az_have_version			= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+  private byte	other_peer_interested_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+  private byte	other_peer_keep_alive_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+  private byte	other_peer_pex_version				= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+  private byte	other_peer_piece_version			= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+  private byte	other_peer_unchoke_version			= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+  private byte	other_peer_uninterested_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+  private byte	other_peer_request_version			= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+  private byte	other_peer_az_request_hint_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+  private byte	other_peer_az_bad_piece_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
   
   private final AEMonitor closing_mon	= new AEMonitor( "PEPeerTransportProtocol:closing" );
   private final AEMonitor general_mon  	= new AEMonitor( "PEPeerTransportProtocol:data" );
@@ -218,6 +219,7 @@ PEPeerTransportProtocol
   protected PeerMessageLimiter message_limiter;
   
   private boolean request_hint_supported;
+  private boolean bad_piece_supported;
   
   private boolean have_aggregation_disabled;
   
@@ -1888,9 +1890,11 @@ PEPeerTransportProtocol
         }else if ( id == AZMessage.ID_AZ_PEER_EXCHANGE ){
         	other_peer_pex_version = supported_version;
         }else if ( id == AZMessage.ID_AZ_REQUEST_HINT ){
-        	other_peer_request_hint_version = supported_version;
+        	other_peer_az_request_hint_version = supported_version;
         }else if ( id == AZMessage.ID_AZ_HAVE ){
         	other_peer_az_have_version = supported_version;
+        }else if ( id == AZMessage.ID_AZ_BAD_PIECE ){
+        	other_peer_az_bad_piece_version = supported_version;
         }else{
         	// we expect unmatched ones here at the moment as we're not dealing with them yet or they don't make sense.
         	// for example AZVER
@@ -2129,6 +2133,39 @@ PEPeerTransportProtocol
         }
     }
   
+    public boolean
+    sendBadPiece(
+  	  int		piece_number )
+    {
+  	  if ( bad_piece_supported ){
+  		  
+  		  AZBadPiece	bp = new AZBadPiece( piece_number, other_peer_az_bad_piece_version );
+  		  
+  		  connection.getOutgoingMessageQueue().addMessage( bp, false );
+
+  		  return( true );
+  		  
+  	  }else{
+  		  
+  		  return( false );
+  	  }
+    }
+    protected void 
+    decodeAZBadPiece( 
+    	AZBadPiece bad_piece )
+    {
+        final int piece_number = bad_piece.getPieceNumber();
+        
+        bad_piece.destroy();
+
+        if ( closing ){
+        	
+            return;
+        }
+        
+        Debug.out( "Bad piece #" + piece_number + " reported by " + getIp());
+    }
+    
   protected void decodeRequest( BTRequest request ) {
     final int number = request.getPieceNumber();
     final int offset = request.getPieceOffset();
@@ -2422,6 +2459,11 @@ PEPeerTransportProtocol
             decodeAZHave((AZHave)message );
             return true;
         }
+        
+        if( message_id.equals( AZMessage.ID_AZ_BAD_PIECE ) ) {        	
+            decodeAZBadPiece((AZBadPiece)message );
+            return true;
+        }
         return false;
       }
       
@@ -2644,7 +2686,8 @@ PEPeerTransportProtocol
       }
     }
     
-    request_hint_supported = peerSupportsMessageType( AZMessage.ID_AZ_REQUEST_HINT );
+    request_hint_supported 	= peerSupportsMessageType( AZMessage.ID_AZ_REQUEST_HINT );
+    bad_piece_supported 	= peerSupportsMessageType( AZMessage.ID_AZ_BAD_PIECE );
   }
   
   
@@ -2731,7 +2774,7 @@ PEPeerTransportProtocol
   {
 	  if ( request_hint_supported ){
 		  
-		  AZRequestHint	rh = new AZRequestHint( piece_number, offset, length, life, other_peer_request_hint_version );
+		  AZRequestHint	rh = new AZRequestHint( piece_number, offset, length, life, other_peer_az_request_hint_version );
 		  
 		  connection.getOutgoingMessageQueue().addMessage( rh, false );
 

@@ -76,6 +76,8 @@ public class AZMessageFactory {
       MessageManager.getSingleton().registerMessageType( new AZPeerExchange( new byte[20], null, null, MESSAGE_VERSION_SUPPORTS_PADDING ));
       MessageManager.getSingleton().registerMessageType( new AZRequestHint( -1, -1, -1, -1, MESSAGE_VERSION_SUPPORTS_PADDING ));
       MessageManager.getSingleton().registerMessageType( new AZHave( new int[0], MESSAGE_VERSION_SUPPORTS_PADDING ));
+      MessageManager.getSingleton().registerMessageType( new AZBadPiece( -1, MESSAGE_VERSION_SUPPORTS_PADDING ));
+
       /*
       MessageManager.getSingleton().registerMessageType( new AZSessionSyn( new byte[20], -1, null) );
       MessageManager.getSingleton().registerMessageType( new AZSessionAck( new byte[20], -1, null) );

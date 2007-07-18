@@ -49,7 +49,10 @@ public interface AZMessage extends Message {
   public static final String ID_AZ_HAVE	    			= "AZ_HAVE";
   public static final byte[] ID_AZ_HAVE_BYTES 			= ID_AZ_HAVE.getBytes();
   public static final int SUBID_ID_AZ_HAVE				= 4;
-
+  
+  public static final String ID_AZ_BAD_PIECE	    	= "AZ_BAD_PIECE";
+  public static final byte[] ID_AZ_BAD_PIECE_BYTES 		= ID_AZ_BAD_PIECE.getBytes();
+  public static final int SUBID_ID_AZ_BAD_PIECE			= 5;
   
   //TODO
 
