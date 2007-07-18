@@ -132,7 +132,12 @@ public interface UIFunctions
 	 * @param allowResize 
 	 * @return success level
 	 */
-	boolean viewURL(String url, String target, int w, int h, boolean allowResize);
+	boolean viewURL(String url, String target, int w, int h, boolean allowResize,
+			boolean isModal);
+
+	boolean viewURL(String url, String target, double wPct, double hPct,
+			boolean allowResize, boolean isModal);
+
 
 	public UIFunctionsUserPrompter getUserPrompter(String title, String text,
 			String[] buttons, int defaultOption);
