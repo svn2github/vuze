@@ -345,6 +345,17 @@ public class BTPeerIDByteDecoder {
 		assertDecode("Tribler 3.7", "5233372D2D2D30303375417048793835312D5071");
 		//assertDecode("", "2D4244303330302D31534769525A387557705748"); // Unknown client "-BD0300-"....
 		assertDecode("BitTornado 0.3.18", "543033492D2D3030386759366942364171323743");
+		//assertDecode("", "2D7746323230302D9DFF296B56AFC2DF751C609C"); // Unknown client "-wF2200-"....
+		//assertDecode("", "2D4D52303030312D4B23FE8E0AACBD228FF37728"); // Unknown client "-MR0001-"....
+		assertDecode("GetRight 6.3", "-GR6300-13s3iFKmbArc");
+		assertDecode("Tribler 1", "523130302D2D3030336852367330375857636F76"); // Seen recently - is this really Tribler?
+		assertDecode("Wyzo 0.3.0.0", "-WY0300-6huHF5Pr7Vde");
+		assertDecode("Transmission 0.72 (Dev)", "-TR072Z-zihst5yvg22f");
+		assertDecode("Transmission 0.6", "-TR0006-01234567890!");
+		assertDecode("SymTorrent 1.17", "-ST0117-01234567890!");
+		//assertDecode("", "E7F163BB0E5FCD35005C09A11BC274C42385A1A0"); // Unknown client - random bytes?
+		//assertDecode("", "2D4C57303030312D02425C18A04BC4A0FA0ADEA9"); // Unknown client "-LW0001-"....
+		//assertDecode("", "000000DF05020020100020200008000000004028"); // Unknown client - random bytes?
 
 		System.out.println("Done.");
 	}
