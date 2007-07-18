@@ -1,6 +1,7 @@
 package com.aelitis.azureus.core.speedmanager.impl.v2;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
 
 /**
  * Created on Jun 5, 2007
@@ -26,18 +27,20 @@ import org.gudy.azureus2.core3.internat.MessageText;
 public class SpeedLimitConfidence
     implements Comparable
 {
-    public static final SpeedLimitConfidence NONE = new SpeedLimitConfidence("NONE",0);
-    public static final SpeedLimitConfidence LOW = new SpeedLimitConfidence("LOW",1);
-    public static final SpeedLimitConfidence MED = new SpeedLimitConfidence("MED",2);
-    public static final SpeedLimitConfidence HIGH = new SpeedLimitConfidence("HIGH",3);
-    public static final SpeedLimitConfidence ABSOLUTE = new SpeedLimitConfidence("ABSOLUTE",4);
+    public static final SpeedLimitConfidence NONE = new SpeedLimitConfidence("NONE",0, SpeedManagerLimitEstimate.RATING_UNKNOWN);
+    public static final SpeedLimitConfidence LOW = new SpeedLimitConfidence("LOW",1, SpeedManagerLimitEstimate.RATING_ESTIMATED);
+    public static final SpeedLimitConfidence MED = new SpeedLimitConfidence("MED",2, SpeedManagerLimitEstimate.RATING_MEASURED_MIN);
+    public static final SpeedLimitConfidence HIGH = new SpeedLimitConfidence("HIGH",3, SpeedManagerLimitEstimate.RATING_MEASURED);
+    public static final SpeedLimitConfidence ABSOLUTE = new SpeedLimitConfidence("ABSOLUTE",4, SpeedManagerLimitEstimate.RATING_MANUAL);
 
     private final String name;
     private final int order;
+    private final float rating;
 
-    private SpeedLimitConfidence(String _name, int _order){
+    private SpeedLimitConfidence(String _name, int _order, float _speedLimitEstimateValue){
         name = _name;
         order = _order;
+        rating = _speedLimitEstimateValue;
     }
 
     /**
@@ -65,6 +68,10 @@ public class SpeedLimitConfidence
         }
 
         return retVal;
+    }
+
+    public float asRating(){
+        return rating;
     }
 
     public String getString(){

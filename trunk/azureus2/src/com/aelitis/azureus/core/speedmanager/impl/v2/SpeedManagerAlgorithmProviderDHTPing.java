@@ -117,6 +117,8 @@ public class SpeedManagerAlgorithmProviderDHTPing
 
         adapter = _adapter;
 
+        SMInstance.init( _adapter );
+
         try{
             dhtPlugin = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
         }catch(AzureusCoreException ace){

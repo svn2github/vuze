@@ -34,6 +34,8 @@ public class PingSpaceMon
 {
 
     private static final long INTERVAL = 1000 * 60 * 15L;
+
+
     long nextCheck = System.currentTimeMillis() + INTERVAL;
 
     TransferMode mode;
@@ -72,8 +74,11 @@ public class PingSpaceMon
             for(int i=0; i<listeners.size(); i++ ){
                 PSMonitorListener l =(PSMonitorListener) listeners.get(i);
 
-                l.notifyUpload( getUploadLimit() );
-
+                if(l!=null){
+                    l.notifyUpload( getUploadLimit() );
+                }else{
+                    SpeedManagerLogger.trace("listener index _"+i+"_ was null.");
+                }
             }
 
             resetTimer();
@@ -113,13 +118,14 @@ public class PingSpaceMon
             SMInstance pm = SMInstance.getInstance();
             SpeedManagerAlgorithmProviderAdapter adapter = pm.getAdapter();
             SpeedManagerPingMapper persistentMap = adapter.getPingMapper();
-            return persistentMap.getEstimatedUploadLimit(false);
-
+            return persistentMap.getEstimatedUploadLimit(true);
+            
         }catch(Throwable t){
             //log this event and
             SpeedManagerLogger.log( t.toString() );
+            t.printStackTrace();
 
-            //something to return 0 and -1.0f results.
+            //something to return 1 and -1.0f results.
             return new DefaultLimitEstimate();
         }
     }//getUploadLimit
@@ -129,11 +135,12 @@ public class PingSpaceMon
             SMInstance pm = SMInstance.getInstance();
             SpeedManagerAlgorithmProviderAdapter adapter = pm.getAdapter();
             SpeedManagerPingMapper persistentMap = adapter.getPingMapper();
-            return persistentMap.getEstimatedDownloadLimit(false);
+            return persistentMap.getEstimatedDownloadLimit(true);
 
         }catch(Throwable t){
             //log this event and
             SpeedManagerLogger.log( t.toString() );
+            t.printStackTrace();
 
             //something to return 0 and -1.0f results.
             return new DefaultLimitEstimate();
@@ -144,11 +151,11 @@ public class PingSpaceMon
     {
 
         public int getBytesPerSec() {
-            return 0;
+            return 1;
         }
 
         public float getMetricRating() {
-            return 1.0f;
+            return -1.0f;
         }
 
         public int[][] getSegments() {

@@ -330,11 +330,13 @@ public class SpeedLimitMonitor implements PSMonitorListener
 
         //this flag is set in a previous method.
         if( isStartLimitTestFlagSet() ){
+            SpeedManagerLogger.trace("modifyLimits - startLimitTesting.");
             return startLimitTesting(currUpLimit, currDownLimit);
         }
 
 
         if( isEitherLimitUnpinned() ){
+            SpeedManagerLogger.trace("modifyLimits - calculateNewUnpinnedLimits");
             return calculateNewUnpinnedLimits(signalStrength);
         }
 
@@ -889,7 +891,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
         return retVal;
     }
 
-    private int choseBestLimit(SpeedManagerLimitEstimate estimate, int currMaxLimit) {
+    private int choseBestLimit(SpeedManagerLimitEstimate estimate, int currMaxLimit, SpeedLimitConfidence conf) {
         float rating = estimate.getMetricRating();
         int estBytesPerSec = estimate.getBytesPerSec();
         int chosenLimit;
@@ -900,13 +902,16 @@ public class SpeedLimitMonitor implements PSMonitorListener
         }
 
         if(  rating==SpeedManagerLimitEstimate.RATING_MANUAL ){
-            chosenLimit = estimate.getBytesPerSec();
-//        }else if( rating==SpeedManagerLimitEstimate.RATING_MEASURED){
-//            //What to do with measured limits? Are they real or temp. network congestion?        
-        }else if( rating>SpeedManagerLimitEstimate.RATING_UNKNOWN ){
-            chosenLimit = Math.max( estimate.getBytesPerSec(), currMaxLimit );
+            chosenLimit = estBytesPerSec;
+        }else if( rating==SpeedManagerLimitEstimate.RATING_UNKNOWN ){
+            chosenLimit = Math.max( estBytesPerSec, currMaxLimit );
         }else{
-            chosenLimit = currMaxLimit;
+            //select one with higher confidence.
+            if( rating>=conf.asRating() ){
+                chosenLimit = estBytesPerSec;
+            }else{
+                chosenLimit = currMaxLimit;
+            }
         }
         return chosenLimit;
     }
@@ -918,8 +923,8 @@ public class SpeedLimitMonitor implements PSMonitorListener
      */
     public void setRefLimits(SpeedManagerLimitEstimate estUp,SpeedManagerLimitEstimate estDown){
 
-        int upMax = choseBestLimit(estUp, uploadLimitMax);
-        int downMax = choseBestLimit(estDown, downloadLimitMax);
+        int upMax = choseBestLimit(estUp, uploadLimitMax, uploadLimitConf);
+        int downMax = choseBestLimit(estDown, downloadLimitMax, downloadLimitConf);
 
         if(downMax<upMax){
             SpeedManagerLogger.trace("down max-limit was less then up-max limit. increasing down max-limit. upMax="
@@ -1118,7 +1123,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
 
             if( transientEst!=null )
             {
-                return choseBestLimit(transientEst,downloadLimitMax);
+                return choseBestLimit(transientEst,downloadLimitMax,downloadLimitConf);
             }else{
                 return downloadLimitMax;
             }
@@ -1158,7 +1163,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
 
             if( transientEst!=null )
             {
-                return choseBestLimit(transientEst,uploadLimitMax);
+                return choseBestLimit(transientEst,uploadLimitMax,uploadLimitConf);
             }else{
                 return uploadLimitMax;
             }
@@ -1274,13 +1279,15 @@ public class SpeedLimitMonitor implements PSMonitorListener
     }//addToPingMapData
 
     public void notifyUpload(SpeedManagerLimitEstimate estimate) {
-        int bestLimit = choseBestLimit(estimate,uploadLimitMax);
+        int bestLimit = choseBestLimit(estimate,uploadLimitMax,uploadLimitConf);
 
-        SpeedManagerLogger.trace("notifyUpload");
+        SpeedManagerLogger.trace("notifyUpload uploadLimitMax="+uploadLimitMax);
+        tempLogEstimate(estimate);
 
         if(bestLimit!=uploadLimitMax){
             //update COConfiguration
             SpeedManagerLogger.log("persistent PingMap changed upload limit to "+bestLimit);
+            uploadLimitMax = bestLimit;
             COConfigurationManager.setParameter(
                     SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT, uploadLimitMax);
         }
@@ -1288,15 +1295,37 @@ public class SpeedLimitMonitor implements PSMonitorListener
     }
 
     public void notifyDownload(SpeedManagerLimitEstimate estimate) {
-        int bestLimit = choseBestLimit(estimate,downloadLimitMax);
+        int bestLimit = choseBestLimit(estimate,downloadLimitMax,downloadLimitConf);
 
-        SpeedManagerLogger.trace("notifyDownload");
+        SpeedManagerLogger.trace("notifyDownload downloadLimitMax="+downloadLimitMax);
+        tempLogEstimate(estimate);
 
         if(downloadLimitMax!=bestLimit){
             //update COConfiguration
             SpeedManagerLogger.log( "persistent PingMap changed download limit to "+bestLimit );
+            downloadLimitMax = bestLimit;
             COConfigurationManager.setParameter(
                     SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT, bestLimit);
         }
     }
+
+    private void tempLogEstimate(SpeedManagerLimitEstimate est){
+
+        if(est==null){
+            SpeedManagerLogger.trace( "notify log: SpeedManagerLimitEstimate was null" );
+        }
+
+        StringBuffer sb = new StringBuffer();
+        float metric = est.getMetricRating();
+        int rate = est.getBytesPerSec();
+        String str = est.getString();
+
+        sb.append("notify log: ").append(str);
+        sb.append(" metric=").append(metric);
+        sb.append(" rate=").append(rate);
+
+        SpeedManagerLogger.trace( sb.toString() );
+
+    }//tempLogEstimate
+
 }//SpeedLimitMonitor
