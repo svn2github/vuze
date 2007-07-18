@@ -23,6 +23,7 @@
 package com.aelitis.azureus.core.networkmanager.impl;
 
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.util.AddressUtils;
@@ -30,6 +31,7 @@ import org.gudy.azureus2.core3.util.Debug;
 
 
 import com.aelitis.azureus.core.networkmanager.*;
+import com.aelitis.azureus.core.networkmanager.Transport.ConnectListener;
 import com.aelitis.azureus.core.peermanager.messaging.MessageStreamDecoder;
 import com.aelitis.azureus.core.peermanager.messaging.MessageStreamEncoder;
 
@@ -171,7 +173,17 @@ NetworkConnectionImpl
     }
   }
   
-
+  public Transport 
+  detachTransport()
+  {
+	  Transport	t = transport;
+	  
+	  transport = new bogusTransport( transport );
+	  
+	  close();
+	  
+	  return( t );
+  }
   
   public void close() {
   	NetworkManager.getSingleton().stopTransferProcessing( this );   
@@ -262,5 +274,148 @@ NetworkConnectionImpl
 	{
 		return( "tran=" + (transport==null?"null":transport.getDescription()+",w_ready=" + transport.isReadyForWrite(null)+",r_ready=" + transport.isReadyForRead( null ))+ ",in=" + incoming_message_queue.getPercentDoneOfCurrentMessage() + 
 				",out=" + outgoing_message_queue.getTotalSize() + ",owner=" + (connection_listener==null?"null":connection_listener.getDescription()));
+	}
+	
+	protected static class
+	bogusTransport
+		implements Transport
+	{
+		private Transport transport;
+		
+		protected
+		bogusTransport(
+			Transport	_transport )
+		{
+			transport = _transport;
+		}
+		
+		public boolean 
+		isReadyForWrite( 
+			EventWaiter waiter )
+		{
+			return( false );
+		}
+		  		
+		public boolean 
+		isReadyForRead( 
+			EventWaiter waiter )
+		{
+			return( false );
+		}
+		
+		public boolean 
+		isTCP()
+		{
+			return( transport.isTCP());
+		}
+		
+		public String 
+		getDescription()
+		{
+			return( transport.getDescription());
+		}
+		
+		public int
+		getMssSize()
+		{
+			return( transport.getMssSize());
+		}
+
+		public void 
+		setAlreadyRead( 
+			ByteBuffer bytes_already_read )
+		{
+			Debug.out( "Bogus Transport Operation" );
+		}
+
+		public TransportEndpoint 
+		getTransportEndpoint()
+		{
+			return( transport.getTransportEndpoint());
+		}
+
+		public boolean 
+		isEncrypted()
+		{
+			return( transport.isEncrypted());
+		}
+
+		public String 
+		getEncryption()
+		{
+			return( transport.getEncryption());
+		}
+
+		public void 
+		setReadyForRead()
+		{
+			Debug.out( "Bogus Transport Operation" );
+		}
+
+		public long 
+		write( 
+			ByteBuffer[] buffers, 
+			int array_offset, 
+			int length ) 
+		
+			throws IOException
+		{
+			Debug.out( "Bogus Transport Operation" );
+
+			throw( new IOException( "Bogus transport!" ));
+		}
+
+		public long 
+		read( 
+			ByteBuffer[] buffers, int array_offset, int length )
+		
+			throws IOException
+		{
+			Debug.out( "Bogus Transport Operation" );
+
+			throw( new IOException( "Bogus transport!" ));
+		}
+
+		public void 
+		setTransportMode( 
+			int mode )
+		{
+			Debug.out( "Bogus Transport Operation" );
+		}
+
+		public int 
+		getTransportMode()
+		{
+			return( transport.getTransportMode());
+		}
+
+		public void
+		connectOutbound(
+			ByteBuffer			initial_data,
+			ConnectListener 	listener )
+		{
+			Debug.out( "Bogus Transport Operation" );
+			
+			listener.connectFailure( new Throwable( "Bogus Transport" ));
+		}
+
+		public void
+		connectedInbound()
+		{
+			Debug.out( "Bogus Transport Operation" );
+		}
+		
+		public void 
+		close( 
+			String reason )
+		{
+			// we get here after detaching a transport and then closing the peer connection
+		}
+
+		public void
+		setTrace(
+			boolean	on )
+		{
+		}
 	}
 }

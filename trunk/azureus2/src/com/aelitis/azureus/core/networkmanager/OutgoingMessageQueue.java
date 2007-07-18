@@ -68,6 +68,8 @@ OutgoingMessageQueue
    */
   public void destroy();
  
+  public boolean
+  isDestroyed();
   
   /**
    * Get the total number of bytes ready to be transported.

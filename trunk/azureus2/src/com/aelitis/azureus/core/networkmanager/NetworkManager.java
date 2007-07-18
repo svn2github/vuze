@@ -279,6 +279,15 @@ public class NetworkManager {
     });
   }
  
+  public NetworkConnection
+  bindTransport(
+	Transport				transport,
+	MessageStreamEncoder	encoder,
+	MessageStreamDecoder	decoder )
+  {
+	  return( NetworkConnectionFactory.create( transport, encoder, decoder ));
+  }
+		
   
   /**
    * Cancel a request for inbound connection routing.

@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.networkmanager.impl.http;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -38,9 +39,12 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.BEncoder;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
+import com.aelitis.azureus.core.networkmanager.NetworkConnectionFactory;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.networkmanager.Transport;
 import com.aelitis.azureus.core.networkmanager.impl.TransportHelper;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.IncomingSocketChannelManager;
 import com.aelitis.azureus.core.peermanager.PeerManager;
@@ -369,6 +373,76 @@ HTTPNetworkManager
 	          public MessageStreamEncoder createEncoder() {  return new HTTPMessageEncoder();  }
 	          public MessageStreamDecoder createDecoder() {  return new HTTPMessageDecoder();  }
 	        });
+	}
+	
+	
+	protected void
+	reRoute(
+		final HTTPNetworkConnection		old_http_connection,
+		final byte[]					old_hash,
+		final byte[]					new_hash,
+		final String					header )
+	{
+		final NetworkConnection	old_connection = old_http_connection.getConnection();
+		
+		PeerManagerRegistration reg_data = 
+			PeerManager.getSingleton().manualMatchHash( 
+					old_connection.getEndpoint().getNotionalAddress(), 
+					new_hash );
+
+		if ( reg_data == null ){
+			
+			old_http_connection.close( "Re-routing failed - registration not found" );
+		}
+	
+		final Transport transport = old_connection.detachTransport();
+		
+		old_http_connection.close( "Switching torrents" );
+		
+		final NetworkConnection new_connection = 
+			NetworkManager.getSingleton().bindTransport(
+					transport,
+					new HTTPMessageEncoder(),
+					new HTTPMessageDecoder( header ));
+		
+		PeerManager.getSingleton().manualRoute(
+				reg_data, 
+				new_connection,
+				new PeerManagerRoutingListener()
+				{
+					public boolean
+					routed(
+						PEPeerTransport		peer )
+					{
+						HTTPNetworkConnection new_http_connection;
+						
+						if ( header.indexOf( "/webseed" ) != -1 ){
+							
+							new_http_connection = new HTTPNetworkConnectionWebSeed( HTTPNetworkManager.this, new_connection, peer );
+							
+						}else if ( header.indexOf( "/files/" ) != -1 ){
+
+							new_http_connection = new HTTPNetworkConnectionFile( HTTPNetworkManager.this, new_connection, peer );
+						
+						}else{
+							
+							return( false );
+						}
+						
+							// fake a wakeup so pre-read header is processed
+						
+						new_http_connection.readWakeup();
+						
+						/*
+						System.out.println( 
+								"Re-routed " + new_connection.getEndpoint().getNotionalAddress() +
+								" from " + ByteFormatter.encodeString( old_hash ) + " to " +
+								 ByteFormatter.encodeString( new_hash ) );
+						*/
+						
+						return( true );
+					}
+				});
 	}
 	
 	public boolean

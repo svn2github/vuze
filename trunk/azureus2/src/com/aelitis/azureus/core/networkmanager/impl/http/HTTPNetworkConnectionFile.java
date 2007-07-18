@@ -54,7 +54,8 @@ HTTPNetworkConnectionFile
 	
 	protected void
 	decodeHeader(
-		String		header )
+		HTTPMessageDecoder		decoder,
+		String					header )
 	
 		throws IOException
 	{

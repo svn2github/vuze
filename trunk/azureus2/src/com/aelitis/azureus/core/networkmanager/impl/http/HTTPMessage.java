@@ -49,6 +49,13 @@ HTTPMessage
 		data = new DirectByteBuffer[]{ new DirectByteBuffer( ByteBuffer.wrap( stuff.getBytes())) };
 	}
 	
+	protected
+	HTTPMessage(
+		byte[]	stuff )
+	{
+		data = new DirectByteBuffer[]{ new DirectByteBuffer( ByteBuffer.wrap( stuff )) };
+	}
+	
 	public String 
 	getID()
 	{

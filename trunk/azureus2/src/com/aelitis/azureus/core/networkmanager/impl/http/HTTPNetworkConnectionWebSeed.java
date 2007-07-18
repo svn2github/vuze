@@ -39,6 +39,8 @@ public class
 HTTPNetworkConnectionWebSeed
 	extends HTTPNetworkConnection
 {
+	private boolean	switching;
+
 	protected
 	HTTPNetworkConnectionWebSeed(
 		HTTPNetworkManager		_manager,
@@ -50,10 +52,18 @@ HTTPNetworkConnectionWebSeed
 	
 	protected void
 	decodeHeader(
-		String		header )
+		final HTTPMessageDecoder	decoder,
+		final String				header )
 	
 		throws IOException
 	{
+		if ( switching ){
+		
+			Debug.out( "new header received while paused" );
+			
+			throw( new IOException( "Bork" ));
+		}
+		
 		if ( !isSeed()){
 			
 			return;
@@ -95,11 +105,29 @@ HTTPNetworkConnectionWebSeed
 					
 					if ( lhs.equals( "info_hash" )){
 						
-	    				byte[]	hash = URLDecoder.decode( rhs, "ISO-8859-1" ).getBytes( "ISO-8859-1" );
+	    				final byte[]	old_hash = control.getHash();
+	    				
+	    				final byte[]	new_hash = URLDecoder.decode( rhs, "ISO-8859-1" ).getBytes( "ISO-8859-1" );
 
-						if ( !Arrays.equals( hash, control.getHash())){
+						if ( !Arrays.equals( new_hash, old_hash )){
+																
+							switching		= true;
 							
-							throw( new IOException( "Hash switched" ));
+							decoder.pauseInternally();
+								
+							flushRequests(
+								new flushListener()
+								{
+									public void 
+									flushed() 
+									{
+										getManager().reRoute( 
+												HTTPNetworkConnectionWebSeed.this, 
+												old_hash, new_hash, header );
+									}
+								});
+								
+							return;
 						}
 					}else if ( lhs.equals( "piece" )){
 						

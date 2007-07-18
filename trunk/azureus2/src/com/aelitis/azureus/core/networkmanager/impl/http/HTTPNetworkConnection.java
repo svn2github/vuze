@@ -55,6 +55,7 @@ import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTHave;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTInterested;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTPiece;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTRequest;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.HTTPUtils;
 
 public abstract class 
@@ -236,6 +237,7 @@ HTTPNetworkConnection
 	private String	last_modified_date;
 	private String	content_type	= DEFAULT_CONTENT_TYPE;
 	
+	private CopyOnWriteList	request_listeners = null;
 	
 	protected
 	HTTPNetworkConnection(
@@ -285,8 +287,11 @@ HTTPNetworkConnection
 			}
 		}
 		
-		decoder.setConnection( this );
+			// note that the decoder can synchronously call-back if is preloaded with a header
+			// here...
+		
 		encoder.setConnection( this );
+		decoder.setConnection( this );
 	}
 	
 	protected boolean
@@ -388,7 +393,8 @@ HTTPNetworkConnection
 	
 	protected abstract void
 	decodeHeader(
-		String		header )
+		HTTPMessageDecoder		decoder,
+		String					header )
 	
 		throws IOException;
 
@@ -693,6 +699,16 @@ HTTPNetworkConnection
 			
 			req.logQueued();
 			
+			if ( request_listeners != null ){
+				
+				Iterator it = request_listeners.iterator();
+			
+				while( it.hasNext()){
+					
+					((requestListener)it.next()).requestComplete( req );
+				}
+			}
+			
 			raw_messages[i] = 
 				new RawMessageImpl( 
 						this_piece, 
@@ -865,6 +881,102 @@ HTTPNetworkConnection
 		getConnection().getOutgoingMessageQueue().addMessage( http_message, false );
 	}
 	
+	protected void
+	flushRequests(
+		final flushListener		l )
+	{
+		synchronized( outstanding_requests ){
+
+			final int request_count = outstanding_requests.size();
+			
+			if ( request_count == 0 ){
+				
+				flushRequestsSupport( l );
+				
+			}else{
+				
+				if ( request_listeners == null ){
+					
+					request_listeners = new CopyOnWriteList();
+				}
+				
+				request_listeners.add(
+					new requestListener()
+					{
+						int	num_to_go = request_count;
+						
+						public void
+						requestComplete(
+							pendingRequest r )
+						{
+							num_to_go--;
+							
+							if ( num_to_go == 0 ){
+								
+								request_listeners.remove( this );
+								
+								flushRequestsSupport( l );
+							}
+						}
+					});
+			}
+		}
+	}
+	
+	protected void
+	flushRequestsSupport(
+		final flushListener		l )
+	{
+		final Message	http_message = new HTTPMessage( new byte[0] );
+		
+		getConnection().getOutgoingMessageQueue().registerQueueListener(
+			new OutgoingMessageQueue.MessageQueueListener()
+			{
+				public boolean 
+				messageAdded( 
+					Message message )
+				{	
+					return( true );
+				}
+				   
+				public void 
+				messageQueued( 
+					Message message )
+				{			
+				}
+				    
+				public void 
+				messageRemoved( 
+					Message message )
+				{
+				}
+				    
+				public void 
+				messageSent( 
+					Message message )
+				{
+					if ( message == http_message ){
+						
+						l.flushed();
+					}
+				}
+				    
+			    public void 
+			    protocolBytesSent( 
+			    	int byte_count )
+			    {	
+			    }
+				 
+			    public void 
+			    dataBytesSent( 
+			    	int byte_count )
+			    {	
+			    }
+			});
+		
+		getConnection().getOutgoingMessageQueue().addMessage( http_message, false );
+	}
+	
 	protected class
 	httpRequest
 	{
@@ -958,6 +1070,21 @@ HTTPNetworkConnection
 		{
 			return( keep_alive );
 		}
+	}
+	
+	protected interface
+	flushListener
+	{
+		public void
+		flushed();
+	}
+	
+	protected interface
+	requestListener
+	{
+		public void
+		requestComplete(
+			pendingRequest	request );
 	}
 	
 	protected class

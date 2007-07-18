@@ -72,7 +72,9 @@ public class SinglePeerUploader implements RateControlledEntity {
     
     int num_bytes_available = connection.getOutgoingMessageQueue().getTotalSize();
     if( num_bytes_available < 1 ) {
-      Debug.out("dW:not avail");
+      if ( !connection.getOutgoingMessageQueue().isDestroyed()){
+    	  Debug.out("dW:not avail");
+      }
       return false;
     }
     

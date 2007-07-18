@@ -256,6 +256,12 @@ PeerForeignNetworkConnection
 		{
 		}
 		 
+		public boolean 
+		isDestroyed() 
+		{
+			return false;
+		}
+		
 		public int 
 		getTotalSize()
 		{

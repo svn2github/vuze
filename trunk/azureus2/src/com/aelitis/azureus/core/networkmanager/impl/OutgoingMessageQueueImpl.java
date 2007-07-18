@@ -612,6 +612,11 @@ OutgoingMessageQueueImpl
     return data_written + protocol_written;
   }
   
+  public boolean
+  isDestroyed()
+  {
+	  return( destroyed );
+  }
   
   /**
    * Manually send any unsent listener notifications.

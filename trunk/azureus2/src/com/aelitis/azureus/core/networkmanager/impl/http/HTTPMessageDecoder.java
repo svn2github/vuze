@@ -42,14 +42,30 @@ HTTPMessageDecoder
 	private HTTPNetworkConnection	http_connection;
 	
 	private volatile boolean		paused;
+	private volatile boolean		paused_internally;
 	private volatile boolean		destroyed;
 	
 	private StringBuffer	header_so_far = new StringBuffer();
+	private boolean			header_ready;
 	
 	private List			messages = new ArrayList();
 	
 	private int				protocol_bytes_read;
 		
+	public 
+	HTTPMessageDecoder()
+	{
+	}
+	
+	public
+	HTTPMessageDecoder(
+		String		pre_read_header )
+	{
+		header_so_far.append( pre_read_header );
+		
+		header_ready	= true;
+	}
+	
 	public void
 	setConnection(
 		HTTPNetworkConnection	_http_connection )
@@ -82,50 +98,69 @@ HTTPMessageDecoder
 		
 		protocol_bytes_read	= 0;
 		
-		int	rem = max_bytes;
-		
-		byte[]	bytes = new byte[1];
-		
-		ByteBuffer		bb	= ByteBuffer.wrap( bytes );
-		
-		ByteBuffer[]	bbs = { bb };
-		
-		while( rem > 0 && !paused ){
+		if ( paused_internally ){
 			
-			if ( transport.read( bbs,0, 1 ) == 0 ){
-				
-				break;
-			}
-			
-			rem--;
-			
-			protocol_bytes_read++;
-			
-			bb.flip();
-			
-			char	c = (char)(bytes[0]&0xff);
-			
-			header_so_far.append( c );
-			
-			if ( header_so_far.length() > MAX_HEADER ){
-				
-				throw( new IOException( "HTTP header exceeded maximum of " + MAX_HEADER ));
-			}
-			
-			if ( c == '\n' ){
-				
-				String	header_str = header_so_far.toString();
-				
-				if ( header_str.endsWith( NL + NL )){
-					
-					http_connection.decodeHeader( header_str );
-				
-					header_so_far.setLength(0);
-				}
-			}
+			return( 0 );
 		}
 		
-		return( max_bytes - rem );
+		if ( header_ready ){
+			
+			header_ready = false;
+			
+			int	len = header_so_far.length();
+			
+			http_connection.decodeHeader( this, header_so_far.toString());
+			
+			header_so_far.setLength(0);
+
+			return( len );
+			
+		}else{
+			int	rem = max_bytes;
+			
+			byte[]	bytes = new byte[1];
+			
+			ByteBuffer		bb	= ByteBuffer.wrap( bytes );
+			
+			ByteBuffer[]	bbs = { bb };
+			
+			while( rem > 0 && !( paused || paused_internally )){
+				
+				if ( transport.read( bbs,0, 1 ) == 0 ){
+					
+					break;
+				}
+				
+				rem--;
+				
+				protocol_bytes_read++;
+				
+				bb.flip();
+				
+				char	c = (char)(bytes[0]&0xff);
+				
+				header_so_far.append( c );
+				
+				if ( header_so_far.length() > MAX_HEADER ){
+					
+					throw( new IOException( "HTTP header exceeded maximum of " + MAX_HEADER ));
+				}
+				
+				if ( c == '\n' ){
+					
+					String	header_str = header_so_far.toString();
+					
+					if ( header_str.endsWith( NL + NL )){
+						
+						http_connection.decodeHeader( this, header_str );
+					
+						header_so_far.setLength(0);
+					}
+				}
+			}
+			
+			return( max_bytes - rem );
+		}
 	}
 	  
 
@@ -178,6 +213,12 @@ HTTPMessageDecoder
 		return( 0 );
 	}
 	  
+	protected void
+	pauseInternally()
+	{
+		paused_internally = true;
+	}
+	
 	public void 
 	pauseDecoding()
 	{

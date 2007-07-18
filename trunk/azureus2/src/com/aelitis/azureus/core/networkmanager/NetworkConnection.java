@@ -63,6 +63,12 @@ NetworkConnection
    */
   public void enableEnhancedMessageProcessing( boolean enable );
   
+  /**
+   * Decouples the transport from this network connection so it can be reused
+   * @return null if detach failed
+   */
+  
+  public Transport detachTransport();
   
   /**
    * Get the connection's data transport interface.
