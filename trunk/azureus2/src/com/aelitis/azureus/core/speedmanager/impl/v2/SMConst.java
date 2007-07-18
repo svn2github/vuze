@@ -1,7 +1,7 @@
 package com.aelitis.azureus.core.speedmanager.impl.v2;
 
 /**
- * Created on Jul 12, 2007
+ * Created on Jul 18, 2007
  * Created by Alan Snyder
  * Copyright (C) 2007 Aelitis, All Rights Reserved.
  * <p/>
@@ -21,17 +21,31 @@ package com.aelitis.azureus.core.speedmanager.impl.v2;
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  */
 
-public interface LimitControl
+public class SMConst
 {
-    SMUpdate adjust(float amount);
 
-    void updateLimits(int upMax, int upMin, int downMax, int downMin);
+    //strictly a utility class.
+    private SMConst(){}
 
-    void updateSeedSettings(float downloadModeUsed);
+    public static final int START_DOWNLOAD_RATE_MAX = 61440;
+    public static final int START_UPLOAD_RATE_MAX = 30720;
 
-    void updateStatus(int currUpLimit, SaturatedMode uploadUsage,
-                             int currDownLimit, SaturatedMode downloadUsage,
-                             TransferMode transferMode);
+    public static final int MIN_BYTES_PER_SEC = 5120;
 
-    void setDownloadUnlimitedMode(boolean isUnlimited);
+    public static final int RATE_UNLIMITED = 0;
+
+
+    /**
+     * No limit should go below 5k bytes/sec.
+     * @param rateBytesPerSec
+     * @return
+     */
+    public static int checkForMinValue(int rateBytesPerSec){
+
+        if( rateBytesPerSec < MIN_BYTES_PER_SEC ){
+            return MIN_BYTES_PER_SEC;
+        }
+        return rateBytesPerSec;        
+    }
+
 }

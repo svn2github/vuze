@@ -58,10 +58,10 @@ public class SpeedLimitMonitor implements PSMonitorListener
 {
 
     //use for home network.
-    private int uploadLimitMax = 40000;
-    private int uploadLimitMin = 5000;
-    private int downloadLimitMax = 80000;
-    private int downloadLimitMin = 8000;
+    private int uploadLimitMax = SMConst.START_UPLOAD_RATE_MAX;
+    private int uploadLimitMin = SMConst.checkForMinValue( uploadLimitMax/10 );
+    private int downloadLimitMax = SMConst.START_DOWNLOAD_RATE_MAX;
+    private int downloadLimitMin = SMConst.checkForMinValue( downloadLimitMax );
 
     private TransferMode transferMode = new TransferMode();
 
@@ -177,11 +177,22 @@ public class SpeedLimitMonitor implements PSMonitorListener
 
         slider.updateSeedSettings(percentUploadCapacityDownloadMode);
 
-    }
+        slider.setDownloadUnlimitedMode( readDownloadUnlimitedMode() );
+
+    }//updateFromCOConfigManager
+
+    
+    private boolean readDownloadUnlimitedMode(){
+        int maxDownSpeedKbs = COConfigurationManager.getIntParameter("Max Download Speed KBs");
+        boolean dUnlimit = ( maxDownSpeedKbs==0 );
+
+        if(dUnlimit){
+            SpeedManagerLogger.trace("detected download set in unlimited mode");
+        }
+        return dUnlimit;
+    }//eadDownloadUnlimitedMode
 
     //SpeedLimitMonitorStatus
-
-
     public void setDownloadBandwidthMode(int rate, int limit){
         downloadBandwidthStatus = SaturatedMode.getSaturatedMode(rate,limit);
     }

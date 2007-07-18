@@ -41,6 +41,8 @@ public class LimitControlDropUploadFirst implements LimitControl
 
     float usedUpMaxDownloadMode=0.6f;
 
+    boolean isDownloadUnlimited = false;
+
     public void updateStatus(int currUpLimit, SaturatedMode uploadUsage,
                              int currDownLimit, SaturatedMode downloadUsage,
                              TransferMode transferMode){
@@ -50,6 +52,10 @@ public class LimitControlDropUploadFirst implements LimitControl
         downUsage = downloadUsage;
 
         mode=transferMode;
+    }
+
+    public void setDownloadUnlimitedMode(boolean isUnlimited) {
+        isDownloadUnlimited = isUnlimited;
     }
 
 
@@ -110,7 +116,7 @@ public class LimitControlDropUploadFirst implements LimitControl
                 if( upUsage==SaturatedMode.AT_LIMIT ){
                     valueUp = calculateNewValue(valueUp,gamma*factor);
                 }else{
-                    SpeedManagerLogger.trace("LmitControlDropUploadFirst not increasing limit, since not AT_LIMIT.");
+                    SpeedManagerLogger.trace("LimitControlDropUploadFirst not increasing limit, since not AT_LIMIT.");
                 }
             }
         }else{
@@ -131,13 +137,19 @@ public class LimitControlDropUploadFirst implements LimitControl
 
         int usedUpMax = usedUploadCapacity();
 
+
         upLimit = Math.round( ((usedUpMax-upMin)*valueUp)+upMin );
-        downLimit = Math.round( ((downMax-downMin)*valueDown)+downMin );
+
+        if(isDownloadUnlimited){
+            downLimit = SMConst.RATE_UNLIMITED;  //zero means to unlimit the download rate.
+        }else{
+            downLimit = Math.round( ((downMax-downMin)*valueDown)+downMin );
+        }
 
         //log this change.
         String msg = " create-update: valueUp="+valueUp+",upLimit="+upLimit+",valueDown="+valueDown
                 +",downLimit="+downLimit+",upMax="+upMax+",usedUpMax="+usedUpMax+",upMin="+upMin+",downMax="+downMax
-                +",downMin="+downMin+",transferMode="+mode.getString();
+                +",downMin="+downMin+",transferMode="+mode.getString()+",isDownUnlimited="+isDownloadUnlimited;
         SpeedManagerLogger.log( msg );
 
         return new SMUpdate(upLimit,true,downLimit,true);

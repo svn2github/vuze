@@ -40,6 +40,8 @@ public class LimitControlPreferDownload implements LimitControl
     TransferMode mode;
     float percentUpMaxUsed=0.6f;
 
+    boolean isDownloadUnlimited=false;
+
     public SMUpdate adjust(float amount) {
 
         setting.adjust( amount );
@@ -75,5 +77,9 @@ public class LimitControlPreferDownload implements LimitControl
 
     public void updateStatus(int currUpLimit, SaturatedMode uploadUsage, int currDownLimit, SaturatedMode downloadUsage, TransferMode transferMode) {
         //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public void setDownloadUnlimitedMode(boolean isUnlimited) {
+        isDownloadUnlimited = isUnlimited;
     }
 }
