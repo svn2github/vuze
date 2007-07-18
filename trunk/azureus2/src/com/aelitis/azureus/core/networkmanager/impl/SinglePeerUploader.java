@@ -61,7 +61,7 @@ public class SinglePeerUploader implements RateControlledEntity {
   
   public boolean doProcessing(EventWaiter waiter) {
     if( !connection.getTransportBase().isReadyForWrite(waiter) )  {
-      Debug.out("dW:not ready");
+      //Debug.out("dW:not ready"); happens sometimes, just live with it as non-fatal
       return false;
     }
     
@@ -73,7 +73,7 @@ public class SinglePeerUploader implements RateControlledEntity {
     int num_bytes_available = connection.getOutgoingMessageQueue().getTotalSize();
     if( num_bytes_available < 1 ) {
       if ( !connection.getOutgoingMessageQueue().isDestroyed()){
-    	  Debug.out("dW:not avail");
+    	  //Debug.out("dW:not avail"); happens sometimes, just live with it as non-fatal
       }
       return false;
     }
