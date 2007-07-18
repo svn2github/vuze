@@ -401,215 +401,231 @@ OutgoingMessageQueueImpl
    * @return number of bytes delivered
    * @throws IOException on delivery error
    */
-  public int deliverToTransport( int max_bytes, boolean manual_listener_notify ) throws IOException {    
-    if( max_bytes < 1 ) {
-      Debug.out( "max_bytes < 1: " +max_bytes );
-      return 0;
-    }
-    
-    if ( transport == null ){
-    	throw( new IOException( "not ready to deliver data" ));
-    }
-    int data_written = 0;
-    int protocol_written = 0;
-    
-    ArrayList messages_sent = null;
-    
-    try{
-      queue_mon.enter();
+  
+   public int deliverToTransport( int max_bytes, boolean manual_listener_notify ) throws IOException {    
+	  if( max_bytes < 1 ) {
+		  Debug.out( "max_bytes < 1: " +max_bytes );
+		  return 0;
+	  }
 
-    	if( !queue.isEmpty() ) {
-        ArrayList raw_buffers = new ArrayList();
-        ArrayList orig_positions = new ArrayList();
-        int total_sofar = 0;
-        
-        for( Iterator i = queue.iterator(); i.hasNext(); ) {
-          DirectByteBuffer[] payloads = ((RawMessage)i.next()).getRawData();
-          boolean stop = false;
-          
-          for( int x=0; x < payloads.length; x++ ) {
-            ByteBuffer buff = payloads[x].getBuffer( DirectByteBuffer.SS_NET );
-            raw_buffers.add( buff );
-            orig_positions.add( new Integer( buff.position() ) );
-            total_sofar += buff.remaining();
-            
-            if( total_sofar >= max_bytes ) {
-              stop = true;
-              break;
-            }
-          }
-          
-          if( stop )  break;
-        }
-                
-        int num_raw = raw_buffers.size();
-        
-        ByteBuffer last_buff = (ByteBuffer)raw_buffers.get( num_raw - 1 );
-        int orig_last_limit = last_buff.limit();
-    		if( total_sofar > max_bytes ) {
-          last_buff.limit( orig_last_limit - (total_sofar - max_bytes) );
-    		}
-        
-        ByteBuffer[] buffs = new ByteBuffer[ num_raw ];
-        raw_buffers.toArray( buffs );
-        
-        transport.write( buffs, 0, num_raw );
-        
-        last_buff.limit( orig_last_limit );
-        
-        int pos = 0;
-        boolean stop = false;
-        
-        while( !queue.isEmpty() && !stop ) {
-          RawMessage msg = (RawMessage)queue.get( 0 );
-          DirectByteBuffer[] payloads = msg.getRawData();
-                    
-          for( int x=0; x < payloads.length; x++ ) {
-            ByteBuffer bb = payloads[x].getBuffer( DirectByteBuffer.SS_NET );
-            
-            int bytes_written = (bb.limit() - bb.remaining()) - ((Integer)orig_positions.get( pos )).intValue();
-            total_size -= bytes_written;
-            
-            if( x > 0 && msg.getType() == Message.TYPE_DATA_PAYLOAD ) {  //assumes the first buffer is message header
-              data_written += bytes_written;
-            }
-            else {
-              protocol_written += bytes_written;
-            }
-            
-            if( bb.hasRemaining() ) {  //still data left to send in this message
-              stop = true;  //so don't bother checking later messages for completion
-              
-              //compute send percentage
-              int message_size = 0;
-              int written = 0;
-              
-              for( int i=0; i < payloads.length; i++ ) {
-                ByteBuffer buff = payloads[i].getBuffer( DirectByteBuffer.SS_NET );
-                
-                message_size += buff.limit();
-                
-                if( i < x ) {  //if in front of non-empty buffer
-                  written += buff.limit();
-                }
-                else if( i == x ) {  //is non-empty buffer
-                  written += buff.position();
-                }
-              }
-              
-              percent_complete = (written * 100) / message_size;
+	  if ( transport == null ){
+		  throw( new IOException( "not ready to deliver data" ));
+	  }
+	  int data_written = 0;
+	  int protocol_written = 0;
 
-              break;
-            }
-            else if( x == payloads.length - 1 ) {  //last payload buffer of message is empty
-              if( msg == urgent_message ) urgent_message = null;
-            
-              queue.remove( 0 );
-              
-              
-              if( TRACE_HISTORY ) {
-              	prev_sent.addLast( msg );
-              	if( prev_sent.size() > MAX_HISTORY_TRACES )  prev_sent.removeFirst();
-              }
-              
-              
-              percent_complete = -1;  //reset send percentage
-                            
-              if( manual_listener_notify ) {
-                NotificationItem item = new NotificationItem( NotificationItem.MESSAGE_SENT );
-                item.message = msg;
-                try {  delayed_notifications_mon.enter();
-                  delayed_notifications.add( item );
-                } finally {  delayed_notifications_mon.exit();  }
-              }
-              else {
-                if( messages_sent == null ) {
-                  messages_sent = new ArrayList();
-                }
-                messages_sent.add( msg );
-              }
-            }
-            
-            pos++;
-            if( pos >= num_raw ) {
-              stop = true;
-              break;
-            }
-          }
-        }
-    	}
-    }finally{
-      queue_mon.exit();
-    }
-    
-    	// we can have messages that end up getting serialised as 0 bytes (for http
-    	// connections for example) - we still need to notify them of being sent...
-    
-    if( data_written + protocol_written > 0 || messages_sent != null ) {
-    	
-      if ( trace ){
-    	TimeFormatter.milliTrace( "omq:deliver: " + (data_written + protocol_written) + ", q=" + queue.size() + "/" + total_size );
-      }
-      
-      if( manual_listener_notify ) {
-        
-        if( data_written > 0 ) {  //data bytes notify
-          NotificationItem item = new NotificationItem( NotificationItem.DATA_BYTES_SENT );
-          item.byte_count = data_written;
-          try {
-            delayed_notifications_mon.enter();
-            
-            delayed_notifications.add( item );
-          }
-          finally {
-            delayed_notifications_mon.exit();
-          }
-        }
+	  ArrayList messages_sent = null;
 
-        if( protocol_written > 0 ) {  //protocol bytes notify
-          NotificationItem item = new NotificationItem( NotificationItem.PROTOCOL_BYTES_SENT );
-          item.byte_count = protocol_written;
-          try {
-            delayed_notifications_mon.enter();
-            
-            delayed_notifications.add( item );
-          }
-          finally {
-            delayed_notifications_mon.exit();
-          }
-        }
-      }
-      else {  //do listener notification now
-        ArrayList listeners_ref = listeners;
-        
-        int num_listeners = listeners_ref.size();
-        for( int i=0; i < num_listeners; i++ ) {
-          MessageQueueListener listener = (MessageQueueListener)listeners_ref.get( i );
+	  try{
+		  queue_mon.enter();
 
-          if( data_written > 0 )  listener.dataBytesSent( data_written );
-          if( protocol_written > 0 )  listener.protocolBytesSent( protocol_written );
-          
-          if ( messages_sent != null ){
-          	
-	          for( int x=0; x < messages_sent.size(); x++ ) {
-	            RawMessage msg = (RawMessage)messages_sent.get( x );
-	
-	            listener.messageSent( msg.getBaseMessage() );
-	            
-	            if( i == num_listeners - 1 ) {  //the last listener notification, so destroy
-	              msg.destroy();
-	            }
-	          }
-          }
-        }
-      }
-    }else{
-    	if ( trace ){
-    		TimeFormatter.milliTrace( "omq:deliver: 0, q=" + queue.size() + "/" + total_size );
-    	}
-    }
-    
-    return data_written + protocol_written;
+		  if( !queue.isEmpty() ){
+			  
+			  final int MAX_BUFFERS = 256;
+			  
+			  ByteBuffer[] 	raw_buffers 	= new ByteBuffer[MAX_BUFFERS];
+			  int[]		 	orig_positions	= new int[MAX_BUFFERS];
+			  int			buffer_count	= 0;
+			  
+			  int total_sofar = 0;
+
+outer:
+			  for( Iterator i = queue.iterator(); i.hasNext(); ){
+				  
+				  DirectByteBuffer[] payloads = ((RawMessage)i.next()).getRawData();
+
+				  for( int x=0; x < payloads.length; x++ ){
+					  
+					  ByteBuffer buff = payloads[x].getBuffer( DirectByteBuffer.SS_NET );
+					  
+					  raw_buffers[buffer_count] = buff;
+					  
+					  orig_positions[buffer_count] = buff.position();
+					  
+					  total_sofar += buff.remaining();
+
+					  buffer_count++;
+					  
+					  if ( total_sofar >= max_bytes ){
+						
+						  break outer;
+					  }
+					  
+					  if ( buffer_count == MAX_BUFFERS ) {
+							
+						  Debug.out( "Buffer limit reached" );
+						  
+						  break outer;
+					  }
+				  }
+			  }
+
+			  ByteBuffer last_buff = (ByteBuffer)raw_buffers[buffer_count - 1 ];
+			  
+			  int orig_last_limit = last_buff.limit();
+			  
+			  if ( total_sofar > max_bytes ){
+				  
+				  last_buff.limit( orig_last_limit - (total_sofar - max_bytes) );
+			  }
+
+			  transport.write( raw_buffers, 0, buffer_count );
+
+			  last_buff.limit( orig_last_limit );
+
+			  int pos = 0;
+			  boolean stop = false;
+
+			  while( !queue.isEmpty() && !stop ) {
+				  RawMessage msg = (RawMessage)queue.get( 0 );
+				  DirectByteBuffer[] payloads = msg.getRawData();
+
+				  for( int x=0; x < payloads.length; x++ ) {
+					  ByteBuffer bb = payloads[x].getBuffer( DirectByteBuffer.SS_NET );
+
+					  int bytes_written = (bb.limit() - bb.remaining()) - orig_positions[ pos ];
+					  total_size -= bytes_written;
+
+					  if( x > 0 && msg.getType() == Message.TYPE_DATA_PAYLOAD ) {  //assumes the first buffer is message header
+						  data_written += bytes_written;
+					  }
+					  else {
+						  protocol_written += bytes_written;
+					  }
+
+					  if( bb.hasRemaining() ) {  //still data left to send in this message
+						  stop = true;  //so don't bother checking later messages for completion
+
+						  //compute send percentage
+						  int message_size = 0;
+						  int written = 0;
+
+						  for( int i=0; i < payloads.length; i++ ) {
+							  ByteBuffer buff = payloads[i].getBuffer( DirectByteBuffer.SS_NET );
+
+							  message_size += buff.limit();
+
+							  if( i < x ) {  //if in front of non-empty buffer
+								  written += buff.limit();
+							  }
+							  else if( i == x ) {  //is non-empty buffer
+								  written += buff.position();
+							  }
+						  }
+
+						  percent_complete = (written * 100) / message_size;
+
+						  break;
+					  }
+					  else if( x == payloads.length - 1 ) {  //last payload buffer of message is empty
+						  if( msg == urgent_message ) urgent_message = null;
+
+						  queue.remove( 0 );
+
+
+						  if( TRACE_HISTORY ) {
+							  prev_sent.addLast( msg );
+							  if( prev_sent.size() > MAX_HISTORY_TRACES )  prev_sent.removeFirst();
+						  }
+
+
+						  percent_complete = -1;  //reset send percentage
+
+						  if( manual_listener_notify ) {
+							  NotificationItem item = new NotificationItem( NotificationItem.MESSAGE_SENT );
+							  item.message = msg;
+							  try {  delayed_notifications_mon.enter();
+							  delayed_notifications.add( item );
+							  } finally {  delayed_notifications_mon.exit();  }
+						  }
+						  else {
+							  if( messages_sent == null ) {
+								  messages_sent = new ArrayList();
+							  }
+							  messages_sent.add( msg );
+						  }
+					  }
+
+					  pos++;
+					  if( pos >= buffer_count ) {
+						  stop = true;
+						  break;
+					  }
+				  }
+			  }
+		  }
+	  }finally{
+		  queue_mon.exit();
+	  }
+
+	  // we can have messages that end up getting serialised as 0 bytes (for http
+	  // connections for example) - we still need to notify them of being sent...
+
+	  if( data_written + protocol_written > 0 || messages_sent != null ) {
+
+		  if ( trace ){
+			  TimeFormatter.milliTrace( "omq:deliver: " + (data_written + protocol_written) + ", q=" + queue.size() + "/" + total_size );
+		  }
+
+		  if( manual_listener_notify ) {
+
+			  if( data_written > 0 ) {  //data bytes notify
+				  NotificationItem item = new NotificationItem( NotificationItem.DATA_BYTES_SENT );
+				  item.byte_count = data_written;
+				  try {
+					  delayed_notifications_mon.enter();
+
+					  delayed_notifications.add( item );
+				  }
+				  finally {
+					  delayed_notifications_mon.exit();
+				  }
+			  }
+
+			  if( protocol_written > 0 ) {  //protocol bytes notify
+				  NotificationItem item = new NotificationItem( NotificationItem.PROTOCOL_BYTES_SENT );
+				  item.byte_count = protocol_written;
+				  try {
+					  delayed_notifications_mon.enter();
+
+					  delayed_notifications.add( item );
+				  }
+				  finally {
+					  delayed_notifications_mon.exit();
+				  }
+			  }
+		  }
+		  else {  //do listener notification now
+			  ArrayList listeners_ref = listeners;
+
+			  int num_listeners = listeners_ref.size();
+			  for( int i=0; i < num_listeners; i++ ) {
+				  MessageQueueListener listener = (MessageQueueListener)listeners_ref.get( i );
+
+				  if( data_written > 0 )  listener.dataBytesSent( data_written );
+				  if( protocol_written > 0 )  listener.protocolBytesSent( protocol_written );
+
+				  if ( messages_sent != null ){
+
+					  for( int x=0; x < messages_sent.size(); x++ ) {
+						  RawMessage msg = (RawMessage)messages_sent.get( x );
+
+						  listener.messageSent( msg.getBaseMessage() );
+
+						  if( i == num_listeners - 1 ) {  //the last listener notification, so destroy
+							  msg.destroy();
+						  }
+					  }
+				  }
+			  }
+		  }
+	  }else{
+		  if ( trace ){
+			  TimeFormatter.milliTrace( "omq:deliver: 0, q=" + queue.size() + "/" + total_size );
+		  }
+	  }
+
+	  return data_written + protocol_written;
   }
   
   public boolean
