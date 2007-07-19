@@ -1343,6 +1343,8 @@ MainWindow
 			});
     }else{
       config.setFocus();
+	  refreshIconBar();
+  	  refreshTorrentMenu();
     }
     return config_view;
   }
@@ -1371,6 +1373,8 @@ MainWindow
       });
     } else {
       console.setFocus();
+      refreshIconBar();
+  	  refreshTorrentMenu();
     }
   }
   
@@ -1384,6 +1388,8 @@ MainWindow
 			});
     } else {
       stats_tab.setFocus();
+      refreshIconBar();
+  	  refreshTorrentMenu();
     }
   }
 
