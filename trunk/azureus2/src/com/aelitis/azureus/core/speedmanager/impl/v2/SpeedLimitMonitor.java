@@ -903,7 +903,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
     }
 
     private int choseBestLimit(SpeedManagerLimitEstimate estimate, int currMaxLimit, SpeedLimitConfidence conf) {
-        float rating = estimate.getMetricRating();
+        float type = estimate.getEstimateType();
         int estBytesPerSec = estimate.getBytesPerSec();
         int chosenLimit;
 
@@ -912,13 +912,13 @@ public class SpeedLimitMonitor implements PSMonitorListener
             return currMaxLimit;
         }
 
-        if(  rating==SpeedManagerLimitEstimate.RATING_MANUAL ){
+        if(  type==SpeedManagerLimitEstimate.RATING_MANUAL ){
             chosenLimit = estBytesPerSec;
-        }else if( rating==SpeedManagerLimitEstimate.RATING_UNKNOWN ){
+        }else if( type==SpeedManagerLimitEstimate.RATING_UNKNOWN ){
             chosenLimit = Math.max( estBytesPerSec, currMaxLimit );
         }else{
             //select one with higher confidence.
-            if( rating>=conf.asRating() ){
+            if( estimate.getMetricRating()>=conf.asRating() ){
                 chosenLimit = estBytesPerSec;
             }else{
                 chosenLimit = currMaxLimit;

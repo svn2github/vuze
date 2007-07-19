@@ -154,6 +154,9 @@ public class PingSpaceMon
             return 1;
         }
 
+        public float getEstimateType() {
+        	return -1.0f;
+        }
         public float getMetricRating() {
             return -1.0f;
         }

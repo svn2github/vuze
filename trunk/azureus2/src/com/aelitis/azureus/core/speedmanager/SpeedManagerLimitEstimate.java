@@ -35,6 +35,22 @@ SpeedManagerLimitEstimate
 	public int
 	getBytesPerSec();
 	
+		/**
+		 * One of the above constants
+		 * @return
+		 */
+	
+	public float
+	getEstimateType();
+	
+		/**
+		 * For estimated limits:
+		 * -1 = estimate derived from bad metrics
+		 * +1 = estimate derived from good metric
+		 * <1 x > -1 = relative goodness of metric
+		 * @return
+		 */
+	
 	public float
 	getMetricRating();
 	

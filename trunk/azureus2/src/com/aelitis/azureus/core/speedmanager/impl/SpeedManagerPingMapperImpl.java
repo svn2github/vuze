@@ -343,7 +343,11 @@ SpeedManagerPingMapperImpl
 
 		long	when = ((Long)m.get("w")).longValue();
 		
-		return( new limitEstimate( speed, metric, hits, when, new int[0][] ));
+		byte[]	t_bytes = (byte[])m.get("t");
+		
+		double type = t_bytes==null?SpeedManagerLimitEstimate.RATING_ESTIMATED:Double.parseDouble( new String( t_bytes ));
+		
+		return( new limitEstimate( speed, type, metric, hits, when, new int[0][] ));
 	}
 	
 	protected void
@@ -381,6 +385,8 @@ SpeedManagerPingMapperImpl
 		
 		m.put( "m", String.valueOf( limit.getMetricRating()));
 		
+		m.put( "t", String.valueOf( limit.getEstimateType()));
+		
 		m.put( "h", new Long( limit.getHits()));
 		
 		m.put( "w", new Long( limit.getWhen()));	
@@ -397,7 +403,7 @@ SpeedManagerPingMapperImpl
 	protected limitEstimate
 	getNullLimit()
 	{
-		return( new limitEstimate( 0, -1, 0, 0, new int[0][] ));
+		return( new limitEstimate( 0, SpeedManagerLimitEstimate.RATING_UNKNOWN, 0, 0, 0, new int[0][] ));
 	}
 	
 	protected String
@@ -1123,6 +1129,8 @@ SpeedManagerPingMapperImpl
 		
 		int[]	estimate_seg 	= null;
 		
+		int estimate_var	= 0;
+
 			// take smallest bad value and largest good
 		
 		if ( worst_var == VARIANCE_BAD_VALUE ){
@@ -1135,7 +1143,8 @@ SpeedManagerPingMapperImpl
 				
 				if ( var >= worst_var ){
 						
-					estimate_seg = seg;
+					estimate_seg 	= seg;
+					estimate_var	= var;
 				}
 			}
 		}else{
@@ -1147,7 +1156,8 @@ SpeedManagerPingMapperImpl
 			
 				if ( var >= worst_var ){
 				
-					estimate_seg = seg;
+					estimate_seg 	= seg;
+					estimate_var	= var;
 				}
 			}
 		}
@@ -1159,6 +1169,7 @@ SpeedManagerPingMapperImpl
 			
 			estimate_speed 	= -1;
 			estimate_hits	= 0;
+
 		}else{
 			
 			estimate_speed 	= -1;
@@ -1178,11 +1189,20 @@ SpeedManagerPingMapperImpl
 			
 			estimate_hits = estimate_seg[4];
 		}
+		
+			// override any estimates < 5K to be OK ones as there's little point in recording negative
+			// values lower than this
+		
+		if ( estimate_speed < 5*1024 ){
 			
+			estimate_var = VARIANCE_GOOD_VALUE;
+		}
+		
 		limitEstimate result = 
 			new limitEstimate(
 					estimate_speed,
 					SpeedManagerLimitEstimate.RATING_ESTIMATED, 
+					convertMetricToRating( estimate_var ),
 					estimate_hits, 
 					SystemTime.getCurrentTime(),
 					(int[][])segments.toArray(new int[segments.size()][]));
@@ -1477,6 +1497,7 @@ SpeedManagerPingMapperImpl
 		implements SpeedManagerLimitEstimate, Cloneable
 	{
 		private int		speed;
+		private float	estimate_type;
 		private float	metric_rating;
 		private long	when;
 		private int		hits;
@@ -1486,12 +1507,14 @@ SpeedManagerPingMapperImpl
 		protected
 		limitEstimate(
 			int			_speed,
+			double		_estimate_type,
 			double		_metric_rating,
 			int			_hits,
 			long		_when,
 			int[][]		_segs )
 		{
 			speed				= _speed;
+			estimate_type		= (float)_estimate_type;
 			metric_rating		= (float)_metric_rating;
 			hits				= _hits;
 			when				= _when;
@@ -1509,6 +1532,12 @@ SpeedManagerPingMapperImpl
 			int		s )
 		{
 			speed	= s;
+		}
+		
+		public float
+		getEstimateType()
+		{
+			return( estimate_type );
 		}
 		
 		public float

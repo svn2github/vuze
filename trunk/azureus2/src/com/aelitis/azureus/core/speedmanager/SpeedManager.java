@@ -52,7 +52,7 @@ SpeedManager
 	public void
 	setEstimatedUploadCapacityBytesPerSec(
 		int		bytes_per_sec,
-		float	rating );
+		float	estimate_type );
 	
 	public SpeedManagerLimitEstimate
 	getEstimatedDownloadCapacityBytesPerSec();
@@ -60,7 +60,7 @@ SpeedManager
 	public void
 	setEstimatedDownloadCapacityBytesPerSec(
 		int		bytes_per_sec,
-		float	rating );
+		float	estimate_type );
 
 	public void
 	setSpeedTester(

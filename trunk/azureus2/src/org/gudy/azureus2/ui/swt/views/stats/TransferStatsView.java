@@ -872,15 +872,15 @@ public class TransferStatsView extends AbstractIView {
 				  double	metric_ratio 	= max_metric==0?1:((float)50/max_metric);
 				  double	pos_ratio 		= max_pos==0?1:((float)usable_width/max_pos);
 				  
-				  int	prev_x	= 0;
-				  int	prev_y	= 0;
+				  int	prev_x	= 1;
+				  int	prev_y	= 1;
 				  
 				  for (int i=0;i<segs.length;i++){
 					  
 					  int[]	seg = segs[i];
 					  
-					  int	next_x 	= (int)((seg[1] + (seg[2]-seg[1])/2)*pos_ratio);
-					  int	next_y	= (int)((seg[0])*metric_ratio);
+					  int	next_x 	= (int)((seg[1] + (seg[2]-seg[1])/2)*pos_ratio) + 1;
+					  int	next_y	= (int)((seg[0])*metric_ratio) + 1;
 					  
 					  gc.drawLine(
 								x_axis_left_x + prev_x,
@@ -974,15 +974,15 @@ public class TransferStatsView extends AbstractIView {
 				  double	metric_ratio 	= max_metric==0?1:((float)50/max_metric);
 				  double	pos_ratio 		= max_pos==0?1:((float)usable_height/max_pos);
 				  
-				  int	prev_x	= 0;
-				  int	prev_y	= 0;
+				  int	prev_x	= 1;
+				  int	prev_y	= 1;
 				  
 				  for (int i=0;i<segs.length;i++){
 					  
 					  int[]	seg = segs[i];
 					  
-					  int	next_x	= (int)((seg[0])*metric_ratio);
-					  int	next_y 	= (int)((seg[1] + (seg[2]-seg[1])/2)*pos_ratio);
+					  int	next_x	= (int)((seg[0])*metric_ratio) + 1;
+					  int	next_y 	= (int)((seg[1] + (seg[2]-seg[1])/2)*pos_ratio) + 1;
 					  
 					  gc.drawLine(
 							y_axis_bottom_x + prev_x,
@@ -1107,7 +1107,7 @@ public class TransferStatsView extends AbstractIView {
 	  {
 		  String	text;
 
-		  double metric = limit.getMetricRating();
+		  double metric = limit.getEstimateType();
 
 		  if ( metric == SpeedManagerLimitEstimate.RATING_UNKNOWN){
 
