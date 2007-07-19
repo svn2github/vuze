@@ -26,6 +26,7 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
@@ -56,7 +57,7 @@ public class CommentIconItem
 		if (event.button != 1) {return;}
 		event.skipCoreFunctionality = true;
 		
-		CommentItem.openEditCommentWindow(dm);
+		TorrentUtil.promptUserForComment(new DownloadManager[]{dm});
 		refresh(event.cell);
   }
   

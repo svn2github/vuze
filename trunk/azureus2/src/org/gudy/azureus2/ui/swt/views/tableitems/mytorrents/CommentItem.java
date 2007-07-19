@@ -29,6 +29,7 @@ import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
+import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 /**
@@ -65,32 +66,13 @@ public class CommentItem
 		
 		event.skipCoreFunctionality = true;
 		if (event.eventType != TableCellMouseEvent.EVENT_MOUSEDOUBLECLICK) {return;}
-		openEditCommentWindow(dm);
+		TorrentUtil.promptUserForComment(new DownloadManager[] {dm});
 	}
 	
 	public String getObfusticatedText(TableCell cell) {
 		DownloadManager dm = (DownloadManager)cell.getDataSource();
 		return Integer.toHexString(dm.hashCode());
 	}
-	
-	/* Package private - used by CommentIconItem too. */
-	static void openEditCommentWindow(DownloadManager dm) {
-		
-		// Create dialog box.
-		String suggested = dm.getDownloadState().getUserComment(); 
-		String msg_key_prefix = "MyTorrentsView.menu.edit_comment.enter.";
-		SimpleTextEntryWindow text_entry = new SimpleTextEntryWindow(Display.getCurrent());
-		text_entry.setTitle(msg_key_prefix + "title");
-		text_entry.setMessage(msg_key_prefix + "message");
-		text_entry.setPreenteredText(suggested, false);
-		text_entry.setMultiLine(true);
-		text_entry.prompt();
-		if (text_entry.hasSubmittedInput()) {
-			String value = text_entry.getSubmittedInput();
-			String value_to_set = (value.length() == 0) ? null : value;
-			dm.getDownloadState().setUserComment(value_to_set);
-		}
-	}	
 
   
 }

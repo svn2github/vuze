@@ -28,6 +28,7 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Listener;
@@ -980,34 +981,12 @@ public class TorrentUtil {
 		final MenuItem itemEditComment = new MenuItem(menu, SWT.CASCADE);
 		Messages.setLanguageText(itemEditComment, "MyTorrentsView.menu.edit_comment");
 		itemEditComment.setEnabled(dms.length > 0);
-		if (itemEditComment.isEnabled()) {
-			itemEditComment.setData("suggested_text", first_selected.getDownloadState().getUserComment());
-		}
 
-		Listener edit_comment_listener = new Listener() {
-			public void handleEvent(Event event) {
-				MenuItem mi = (MenuItem) event.widget;
-				String suggested = (String) mi.getData("suggested_text");
-				String msg_key_prefix = "MyTorrentsView.menu.edit_comment.enter.";
-				SimpleTextEntryWindow text_entry = new SimpleTextEntryWindow(composite.getDisplay());
-				text_entry.setTitle(msg_key_prefix + "title");
-				text_entry.setMessage(msg_key_prefix + "message");
-				text_entry.setPreenteredText(suggested, false);
-				text_entry.prompt();
-				if (text_entry.hasSubmittedInput()) {
-					String value = text_entry.getSubmittedInput();
-					final String value_to_set = (value.length() == 0) ? null : value;
-					DMTask task = new DMTask(dms) {
-						public void run(DownloadManager dm) {
-							dm.getDownloadState().setUserComment(value_to_set);
-						}
-					};
-					task.go();
-				}
+		itemEditComment.addListener(SWT.Selection, new DMTask(dms) {
+			public void run(DownloadManager[] dms) {
+				promptUserForComment(dms);
 			}
-		};
-
-		itemEditComment.addListener(SWT.Selection, edit_comment_listener);
+		});
 
 		// ---
 		new MenuItem(menu, SWT.SEPARATOR);
@@ -1298,6 +1277,33 @@ public class TorrentUtil {
 		};
 		task.go();
 	}
+	
+	public static void promptUserForComment(DownloadManager[] dms) {
+		if (dms.length == 0) {return;}
+		DownloadManager dm = dms[0];
+		
+		// Create dialog box.
+		String suggested = dm.getDownloadState().getUserComment(); 
+		String msg_key_prefix = "MyTorrentsView.menu.edit_comment.enter.";
+		SimpleTextEntryWindow text_entry = new SimpleTextEntryWindow(Display.getCurrent());
+		text_entry.setTitle(msg_key_prefix + "title");
+		text_entry.setMessage(msg_key_prefix + "message");
+		text_entry.setPreenteredText(suggested, false);
+		text_entry.setMultiLine(true);
+		text_entry.prompt();
+		
+		if (text_entry.hasSubmittedInput()) {
+			String value = text_entry.getSubmittedInput();
+			final String value_to_set = (value.length() == 0) ? null : value;
+			DMTask task = new DMTask(dms) {
+				public void run(DownloadManager dm) {
+					dm.getDownloadState().setUserComment(value_to_set);
+				}
+			};
+			task.go();
+		}
+	}
+
 
 	private static DownloadManager[] toDMS(Object[] objects) {
 		if (objects instanceof DownloadManager[]) { return (DownloadManager[]) objects; }
