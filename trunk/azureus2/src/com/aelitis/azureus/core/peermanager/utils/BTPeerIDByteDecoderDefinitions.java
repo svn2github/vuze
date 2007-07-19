@@ -20,8 +20,6 @@
  */
 package com.aelitis.azureus.core.peermanager.utils;
 
-import org.gudy.azureus2.core3.util.Debug;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -286,6 +284,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addSimpleClient("Deadman", "Deadman Walking-");
 		addSimpleClient("G3 Torrent", "-G3");
 		addSimpleClient("GreedBT 2.7.1", "271-");
+		addSimpleClient("Hurricane Electric", "arclight");
 		addSimpleClient("JVtorrent", "10-------");
 		addSimpleClient("Limewire", "LIME");
 		addSimpleClient("Martini Man", "martini");
