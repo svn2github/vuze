@@ -472,7 +472,7 @@ SpeedManagerPingMapperImpl
 		min_x *= SPEED_DIVISOR;
 		min_y *= SPEED_DIVISOR;
 				
-		if ( up_capacity.getMetricRating() < SpeedManagerLimitEstimate.RATING_MANUAL ){
+		if ( up_capacity.getEstimateType() < SpeedManagerLimitEstimate.RATING_MANUAL ){
 			
 			if ( min_x > up_capacity.getBytesPerSec()){
 				
@@ -484,7 +484,7 @@ SpeedManagerPingMapperImpl
 			}
 		}
 		
-		if ( down_capacity.getMetricRating() < SpeedManagerLimitEstimate.RATING_MANUAL ){
+		if ( down_capacity.getEstimateType() < SpeedManagerLimitEstimate.RATING_MANUAL ){
 			
 			if ( min_y > down_capacity.getBytesPerSec()){
 				
@@ -859,7 +859,7 @@ SpeedManagerPingMapperImpl
 		limitEstimate	capacity,
 		LinkedList		bads )
 	{
-		if ( capacity.getMetricRating() == SpeedManagerLimitEstimate.RATING_MANUAL ){
+		if ( capacity.getEstimateType() == SpeedManagerLimitEstimate.RATING_MANUAL ){
 			
 			return;
 		}
@@ -1244,12 +1244,12 @@ SpeedManagerPingMapperImpl
 	public void
 	setEstimatedDownloadCapacityBytesPerSec(
 		int		bytes_per_sec,
-		float	metric )
+		float	estimate_type )
 	{
-		if ( down_capacity.getBytesPerSec() != bytes_per_sec || down_capacity.getMetricRating() != metric ){
+		if ( down_capacity.getBytesPerSec() != bytes_per_sec || down_capacity.getEstimateType() != estimate_type ){
 			
 			down_capacity.setBytesPerSec( bytes_per_sec );
-			down_capacity.setMetricRating( metric );
+			down_capacity.setEstimateType( estimate_type );
 			
 			speed_manager.informDownCapChanged();
 		}
@@ -1264,12 +1264,12 @@ SpeedManagerPingMapperImpl
 	public void
 	setEstimatedUploadCapacityBytesPerSec(
 		int		bytes_per_sec,
-		float	metric )
+		float	estimate_type )
 	{
-		if ( up_capacity.getBytesPerSec() != bytes_per_sec || up_capacity.getMetricRating() != metric ){
+		if ( up_capacity.getBytesPerSec() != bytes_per_sec || up_capacity.getEstimateType() != estimate_type ){
 
 			up_capacity.setBytesPerSec( bytes_per_sec );
-			up_capacity.setMetricRating( metric );
+			up_capacity.setEstimateType( estimate_type );
 			
 			speed_manager.informUpCapChanged();
 		}
@@ -1540,6 +1540,13 @@ SpeedManagerPingMapperImpl
 			return( estimate_type );
 		}
 		
+		public void
+		setEstimateType(
+			float	et )
+		{
+			estimate_type = et;
+		}
+		
 		public float
 		getMetricRating()
 		{
@@ -1548,9 +1555,9 @@ SpeedManagerPingMapperImpl
 		
 		protected void
 		setMetricRating(
-			float	d )
+			float	mr )
 		{
-			metric_rating	= d;
+			metric_rating	= mr;
 		}
 		
 		public int[][]
