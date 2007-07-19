@@ -565,7 +565,9 @@ SpeedManagerPingMapperImpl
 					total_deviation += deviation * deviation;
 				}
 				
-				metric = (int)Math.sqrt( total_deviation / entries );
+					// we deliberately don't divide by num samples as this accentuates larger deviations
+				
+				metric = (int)Math.sqrt( total_deviation );
 			}
 			
 			if ( metric < VARIANCE_BAD_VALUE ){
@@ -1305,13 +1307,26 @@ SpeedManagerPingMapperImpl
 			
 			return( +1 );
 			
-		}else if ( metric > VARIANCE_BAD_VALUE ){
+		}else if ( metric >= VARIANCE_BAD_VALUE ){
 			
 			return( -1 );
 			
 		}else{
 			
-			return( 1 - ((double)metric - VARIANCE_GOOD_VALUE )/50 );
+			double val =  1 - ((double)metric - VARIANCE_GOOD_VALUE )/50;
+			
+				// sanitize
+			
+			if ( val < -1 ){
+				
+				val = -1;
+				
+			}else if ( val > 1 ){
+				
+				val = 1;
+			}
+			
+			return( val );
 		}
 	}
 	
