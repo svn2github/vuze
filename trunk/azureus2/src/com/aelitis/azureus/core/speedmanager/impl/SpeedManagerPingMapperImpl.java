@@ -480,6 +480,8 @@ SpeedManagerPingMapperImpl
 				
 				up_capacity.setMetricRating( 0 );
 				
+				up_capacity.setMetricRating( SpeedManagerLimitEstimate.RATING_ESTIMATED );
+				
 				speed_manager.informUpCapChanged();
 			}
 		}
@@ -492,6 +494,8 @@ SpeedManagerPingMapperImpl
 				
 				down_capacity.setMetricRating( 0 );
 				
+				down_capacity.setMetricRating( SpeedManagerLimitEstimate.RATING_ESTIMATED );
+
 				speed_manager.informDownCapChanged();
 			}
 		}
