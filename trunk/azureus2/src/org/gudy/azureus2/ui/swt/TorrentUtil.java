@@ -356,7 +356,7 @@ public class TorrentUtil {
 
 		ViewUtils.addSpeedMenu(menu.getShell(), menuAdvanced, hasSelection, downSpeedDisabled, downSpeedUnlimited,
 				totalDownSpeed, downSpeedSetMax, maxDownload, upSpeedDisabled, upSpeedUnlimited, totalUpSpeed,
-				upSpeedSetMax, maxUpload, dms.length, new ViewUtils.SpeeedAdapter() {
+				upSpeedSetMax, maxUpload, dms.length, new ViewUtils.SpeedAdapter() {
 					public void setDownSpeed(final int speed) {
 						DMTask task = new DMTask(dms) {
 							public void run(DownloadManager dm) {

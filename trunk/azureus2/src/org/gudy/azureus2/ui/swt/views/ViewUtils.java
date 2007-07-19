@@ -58,7 +58,7 @@ ViewUtils
 		long			upSpeedSetMax,
 		long			maxUpload,
 		final int		num_entries,
-		final SpeeedAdapter	adapter )
+		final SpeedAdapter	adapter )
 	{
 		// advanced > Download Speed Menu //
 		final MenuItem itemDownSpeed = new MenuItem(menuAdvanced, SWT.CASCADE);
@@ -329,7 +329,7 @@ ViewUtils
 	}
 	
 	public interface
-	SpeeedAdapter
+	SpeedAdapter
 	{
 		public void
 		setUpSpeed(

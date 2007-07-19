@@ -54,7 +54,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
 import org.gudy.azureus2.ui.swt.shells.InputShell;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
-import org.gudy.azureus2.ui.swt.views.ViewUtils.SpeeedAdapter;
+import org.gudy.azureus2.ui.swt.views.ViewUtils.SpeedAdapter;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTPanelCreator;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
@@ -595,7 +595,7 @@ public class MyTorrentsView
         		        		false, down_speed==0, down_speed, down_speed, maxDownload, 
         		        		false, up_speed==0, up_speed, up_speed, maxUpload, 
         		        		1, 
-        		        		new SpeeedAdapter()
+        		        		new SpeedAdapter()
         		        		{
         		        			public void 
         		        			setDownSpeed(int val) 
