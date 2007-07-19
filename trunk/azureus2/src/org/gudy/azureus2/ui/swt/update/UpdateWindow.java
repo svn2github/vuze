@@ -29,11 +29,9 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.SashForm;
-import org.eclipse.swt.custom.StyleRange;
-import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.graphics.Cursor;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.layout.*;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -350,7 +348,9 @@ UpdateWindow
     	browser.setVisible(true);
     	link_area.getComponent().setVisible(false);
     } else {
-    	browser.setVisible(false);
+    	if (browser != null) {
+    		browser.setVisible(false);
+    	}
     	link_area.getComponent().setVisible(true);
     
       String[] descriptions = update.getDescription();
