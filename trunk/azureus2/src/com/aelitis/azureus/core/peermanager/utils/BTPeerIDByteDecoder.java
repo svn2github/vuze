@@ -356,6 +356,10 @@ public class BTPeerIDByteDecoder {
 		//assertDecode("", "E7F163BB0E5FCD35005C09A11BC274C42385A1A0"); // Unknown client - random bytes?
 		//assertDecode("", "2D4C57303030312D02425C18A04BC4A0FA0ADEA9"); // Unknown client "-LW0001-"....
 		//assertDecode("", "000000DF05020020100020200008000000004028"); // Unknown client - random bytes?
+		assertDecode("BitRocket 0.3(32)", "2D425230 3333322D 21585663 65536E28 2A4B496C");
+		assertDecode("Burst! 1.1.3", "Mbrst1-1-32e3c394b43");
+		//assertDecode("KTorrent 2.2", "-KT22B1-695754334315"); // We could use the B1 information...
+		assertDecode("Hurricane Electric", "6172636c696768742e68652ea5860c157a5adc35");
 
 		System.out.println("Done.");
 	}
