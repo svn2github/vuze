@@ -229,7 +229,7 @@ TRTrackerServerProcessor
 				
 				boolean	stopped 	= event != null && event.equalsIgnoreCase("stopped");
 				
-				root_out[0] = torrent.exportAnnounceToMap( pre_map, peer, left > 0, stopped?0:num_want, interval, min_interval, no_peer_id, compact_mode, crypto_level, network_position );
+				root_out[0] = torrent.exportAnnounceToMap( client_ip_address, pre_map, peer, left > 0, stopped?0:num_want, interval, min_interval, no_peer_id, compact_mode, crypto_level, network_position );
 				
 				peer_out[0]	= peer;	
 				
@@ -263,7 +263,7 @@ TRTrackerServerProcessor
 				
 				long	interval = server.getAnnounceRetryInterval( torrent );
 
-				root_out[0] = torrent.exportAnnounceToMap( new HashMap(), null, true, num_want, interval, server.getMinAnnounceRetryInterval(), true, compact_mode, crypto_level, network_position );
+				root_out[0] = torrent.exportAnnounceToMap( client_ip_address, new HashMap(), null, true, num_want, interval, server.getMinAnnounceRetryInterval(), true, compact_mode, crypto_level, network_position );
 
 			}else{
 				

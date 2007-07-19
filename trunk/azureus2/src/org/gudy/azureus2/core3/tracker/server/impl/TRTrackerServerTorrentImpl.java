@@ -370,9 +370,7 @@ TRTrackerServerTorrentImpl
 					peer_list.add( peer );
 									
 					peer_reuse_map.put( reuse_key, peer );
-					
-					Set	b = server.getBiasedPeers();
-					
+										
 					if ( biased ){
 							
 						peer.setBiased( true );
@@ -1026,6 +1024,7 @@ TRTrackerServerTorrentImpl
 	
 	public Map
 	exportAnnounceToMap(
+		String						ip_address,
 		HashMap						preprocess_map,
 		TRTrackerServerPeerImpl		requesting_peer,		// maybe null for an initial announce from a stopped peer
 		boolean						include_seeds,
@@ -1159,9 +1158,29 @@ TRTrackerServerTorrentImpl
 				}					
 			}
 			
+			boolean	requester_is_biased;
+			
+			if ( requesting_peer == null ){
+				
+				Set bp = server.getBiasedPeers();
+				
+				if ( bp == null ){
+					
+					requester_is_biased = false;
+					
+				}else{
+					
+					requester_is_biased = bp.contains( ip_address );
+				}
+			}else{
+				
+				requester_is_biased = requesting_peer.isBiased();
+			}
+			
 			if ( 	caching_enabled &&
 					explicit_limited_peers == null &&
 					explicit_biased_peers == null &&
+					!requester_is_biased && 
 					remove_ips == null && 
 					(!nat_warning) &&
 					preprocess_map.size() == 0 &&	// don't cache if we've got pre-process stuff to add
@@ -2080,7 +2099,7 @@ TRTrackerServerTorrentImpl
 			
 				// also include scrape details
 			
-			root.put( "complete", new Long( getSeedCount() ));
+			root.put( "complete", new Long( getSeedCountForScrape( requester_is_biased )));
 			root.put( "incomplete", new Long( getLeecherCount() ));
 			root.put( "downloaded", new Long(stats.getCompletedCount()));
 			
@@ -2209,7 +2228,20 @@ TRTrackerServerTorrentImpl
 			last_scrape 			= new TreeMap();
 			last_scrape_calc_time	= now;
 			
-			last_scrape.put( "complete", new Long( getSeedCount()));
+			boolean requester_is_biased;
+			
+			Set bp = server.getBiasedPeers();
+			
+			if ( bp == null ){
+				
+				requester_is_biased = false;
+				
+			}else{
+				
+				requester_is_biased = bp.contains( ip_address );
+			}
+			
+			last_scrape.put( "complete", new Long( getSeedCountForScrape( requester_is_biased )));
 			last_scrape.put( "incomplete", new Long( getLeecherCount()));
 			last_scrape.put( "downloaded", new Long(stats.getCompletedCount()));
 			
@@ -2364,6 +2396,46 @@ TRTrackerServerTorrentImpl
 		}
 				
 		return( seed_count + lightweight_seed_map.size());
+	}
+	
+	protected int
+	getSeedCountForScrape(
+		boolean	requester_is_biased )
+	{
+		int seeds	= getSeedCount();
+		
+		if ( biased_peers != null && !requester_is_biased ){
+			
+			int	bpc = 0;
+			
+			Iterator it = biased_peers.iterator();
+			
+			while( it.hasNext()){
+				
+				TRTrackerServerPeerImpl bp = (TRTrackerServerPeerImpl)it.next();
+				
+				if ( bp.isSeed()){
+					
+					seeds--;
+					
+					bpc++;
+				}
+			}
+			
+			if ( seeds < 0 ){
+				
+				seeds = 0;
+			}
+			
+				// retain at least one biased seed
+			
+			if ( bpc > 0 ){
+				
+				seeds++;
+			}
+		}
+		
+		return( seeds );
 	}
 	
 	protected int
