@@ -88,4 +88,9 @@ PEPeerControl
 	public void decNbPeersSnubbed();
 	public void setNbPeersSnubbed(int n);
 	public int getNbPeersSnubbed();
+	
+	public void
+	badPieceReported(
+		PEPeerTransport		originator,
+		int					piece_number );
 }

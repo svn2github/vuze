@@ -2151,8 +2151,8 @@ PEPeerTransportProtocol
         final int piece_number = bad_piece.getPieceNumber();
         
         bad_piece.destroy();
-        
-        Debug.outNoStack( manager.getDisplayName() + ": bad piece #" + piece_number + " reported by " + getIp());
+    
+        manager.badPieceReported( this, piece_number );
     }
     
   protected void decodeRequest( BTRequest request ) {

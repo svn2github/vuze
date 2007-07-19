@@ -78,6 +78,7 @@ PEPeerControlImpl
 	private static final int	CHECK_REASON_COMPLETE			= 2;
 	private static final int	CHECK_REASON_SCAN				= 3;
 	private static final int	CHECK_REASON_SEEDING_CHECK		= 4;
+	private static final int	CHECK_REASON_BAD_PIECE_CHECK	= 5;
 
 	private static final int	SEED_CHECK_WAIT_MARKER	= 65526;
 
@@ -192,6 +193,8 @@ PEPeerControlImpl
 	
 	
 	private PeerDatabase	peer_database = PeerDatabaseFactory.createPeerDatabase();
+	
+	private int				bad_piece_reported		= -1;
 	
 	private int				next_rescan_piece		= -1;
 	private long			rescan_piece_time		= -1;
@@ -395,6 +398,8 @@ PEPeerControlImpl
 				checkCompletedPieces();		//check to see if we've completed anything else
 			}
 			
+			checkBadPieces();
+
 			updateStats();
 			
             checkInterested();      // see if need to recheck Interested on all peers
@@ -406,7 +411,7 @@ PEPeerControlImpl
 			if ( seeding_mode ){
 				
 				checkSeeds();
-
+				
 			}else{
 					// if we're not finished
 				
@@ -1080,8 +1085,46 @@ PEPeerControlImpl
 	}
 
 	private void
+	checkBadPieces()
+	{
+		if ( mainloop_loop_count % MAINLOOP_SIXTY_SECOND_INTERVAL == 0 ){
+
+			if ( bad_piece_reported != -1 ){
+				
+				DiskManagerCheckRequest	req = 
+					disk_mgr.createCheckRequest(
+						bad_piece_reported, 
+						new Integer( CHECK_REASON_BAD_PIECE_CHECK ));	
+				
+				req.setLowPriority( true );
+				
+			   	if ( Logger.isEnabled()){
+			   		
+					Logger.log(
+							new LogEvent(
+								disk_mgr.getTorrent(), LOGID,
+								"Rescanning reported-bad piece " + bad_piece_reported ));
+							
+			   	}
+			   	
+				bad_piece_reported	= -1;
+
+				try{
+					disk_mgr.enqueueCheckRequest( req, this );
+					
+				}catch( Throwable e ){
+					
+					
+					Debug.printStackTrace(e);
+				}
+			}
+		}		
+	}
+	
+	private void
 	checkRescan()
 	{
+
 		if ( rescan_piece_time == 0 ){
 			
 				// pending a piece completion
@@ -1145,6 +1188,10 @@ PEPeerControlImpl
 				next_rescan_piece	= -1;
 			}
 			
+				// this functionality is to pick up pieces that have been downloaded OUTSIDE of
+				// Azureus - e.g. when two torrents are sharing a single file. Hence the check on
+				// the piece NOT being done
+			
 			if ( pePieces[this_piece] == null && !dm_pieces[this_piece].isDone()){
 				
 				DiskManagerCheckRequest	req = 
@@ -1179,7 +1226,22 @@ PEPeerControlImpl
 			}
 		}
 	}
-	
+
+	public void
+	badPieceReported(
+		PEPeerTransport		originator,
+		int					piece_number )
+	{
+		Debug.outNoStack( getDisplayName() + ": bad piece #" + piece_number + " reported by " + originator.getIp());
+		
+		if ( piece_number < 0 || piece_number >= _nbPieces ){
+			
+			return;
+		}
+		
+		bad_piece_reported = piece_number;
+	}
+
 	/**
 	 * This method checks if the downloading process is finished.
 	 * 
@@ -2417,7 +2479,7 @@ PEPeerControlImpl
 	private void processPieceCheckResult(DiskManagerCheckRequest request, int outcome)
 	{
 		final int check_type =((Integer) request.getUserData()).intValue();
-		
+					
 		try{
 		
 			final int pieceNumber = request.getPieceNumber();
@@ -2447,16 +2509,23 @@ PEPeerControlImpl
 				
 				return;
 				
-			}else if ( check_type == CHECK_REASON_SEEDING_CHECK ){
+			}else if ( check_type == CHECK_REASON_SEEDING_CHECK || check_type == CHECK_REASON_BAD_PIECE_CHECK ){
 				
 				if ( outcome == 0 ){
 					
-					Debug.out(getDisplayName() + "Piece #" +pieceNumber +" failed recheck while seeding. Re-downloading...");
-
+					if ( check_type == CHECK_REASON_SEEDING_CHECK ){
+						
+						Debug.out(getDisplayName() + "Piece #" +pieceNumber +" failed recheck while seeding. Re-downloading...");
+	
+					}else{
+						
+						Debug.out(getDisplayName() + "Piece #" +pieceNumber +" failed recheck after being reported as bad. Re-downloading...");
+					}
+				
 					Logger.log(new LogAlert(this, LogAlert.REPEATABLE, LogAlert.AT_ERROR,
 							"Download '" + getDisplayName() + "': piece " + pieceNumber
 									+ " has been corrupted, re-downloading"));
-                    
+					
 					if ( !restart_initiated ){
 						
 						restart_initiated = true;
