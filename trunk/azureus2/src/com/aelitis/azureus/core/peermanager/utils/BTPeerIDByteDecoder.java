@@ -360,6 +360,7 @@ public class BTPeerIDByteDecoder {
 		assertDecode("Burst! 1.1.3", "Mbrst1-1-32e3c394b43");
 		//assertDecode("KTorrent 2.2", "-KT22B1-695754334315"); // We could use the B1 information...
 		assertDecode("Hurricane Electric", "6172636c696768742e68652ea5860c157a5adc35");
+		assertDecode("BitsOnWheels", "-BOWP05-EPICNZOGQPHP"); // Seen in the wild - no idea what version that's meant to be - a pre-release?
 
 		System.out.println("Done.");
 	}
