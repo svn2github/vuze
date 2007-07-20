@@ -43,6 +43,8 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import java.util.ArrayList;
 import java.util.List;
 /**
+ * Download Basket
+ * 
  * @author Olivier
  * 
  */
@@ -166,6 +168,14 @@ public class TrayWindow implements GlobalManagerListener {
 
     new MenuItem(menu, SWT.SEPARATOR);
 
+    MenuItem file_close = new MenuItem(menu, SWT.NULL);
+    Messages.setLanguageText(file_close, "TrayWindow.menu.close");
+    file_close.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        COConfigurationManager.setParameter("Show Download Basket", false);
+      }
+    });
+
     MenuItem file_exit = new MenuItem(menu, SWT.NULL);
     Messages.setLanguageText(file_exit, "TrayWindow.menu.exit"); //$NON-NLS-1$
     file_exit.addListener(SWT.Selection, new Listener() {
@@ -180,7 +190,7 @@ public class TrayWindow implements GlobalManagerListener {
   }
 
   public void setVisible(boolean visible) {
-    if(visible || !COConfigurationManager.getBooleanParameter("Show Download Basket", false)) {
+    if(visible || !COConfigurationManager.getBooleanParameter("Show Download Basket")) {
       minimized.setVisible(visible);
       if (!visible)
         moving = false;
@@ -192,7 +202,7 @@ public class TrayWindow implements GlobalManagerListener {
   }
 
   public void restore() {
-    if(!COConfigurationManager.getBooleanParameter("Show Download Basket", false))
+    if(!COConfigurationManager.getBooleanParameter("Show Download Basket"))
       minimized.setVisible(false);
     main.setVisible(true);
     moving = false;
