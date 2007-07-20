@@ -21,16 +21,24 @@
  
 package org.gudy.azureus2.ui.swt;
 
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FilenameFilter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
+import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.internal.mozilla.nsIWebBrowser;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.GridData;
@@ -1334,6 +1342,131 @@ public class Utils {
 		gridData.horizontalSpan = hspan;
 		gridData.widthHint = 0;
 		return gridData;
+	}
+	
+	public static boolean verifyBrowserAvailable(Composite parent) {
+		if (Constants.isUnix) {
+			final String[] confList = {
+				"/etc/gre64.conf",
+				"/etc/gre.d/gre64.conf",
+				"/etc/gre.conf",
+				"/etc/gre.d/gre.conf",
+				"/etc/gre.d/xulrunner.conf",
+				"/etc/gre.d/libxul0d.conf"
+			};
+
+			try {
+				Browser browserTest = new Browser(parent, SWT.NONE);
+				browserTest.dispose();
+			} catch (Throwable t) {
+				System.out.println("Auto-scanning for GRE/XULRunner.  You can skip this by setting MOZILLA_FIVE_HOME to your GRE path.");
+				try {
+					String grePath = null;
+					Pattern pat = Pattern.compile("GRE_PATH=(.*)", Pattern.CASE_INSENSITIVE);
+					for (int i = 0; i < confList.length; i++) {
+						File file = new File(confList[i]);
+						if (file.isFile() && file.canRead()) {
+							System.out.println("  checking " + file + " for GRE_PATH");
+							String fileText = FileUtil.readFileAsString(file, 16384);
+							if (fileText != null) {
+								Matcher matcher = pat.matcher(fileText);
+								if (matcher.find()) {
+									String possibleGrePath = matcher.group(1);
+									if (isValidGrePath(new File(possibleGrePath))) {
+										grePath = possibleGrePath;
+										break;
+									}
+								}
+							}
+						}
+					}
+
+					if (grePath == null) {
+						final ArrayList possibleDirs = new ArrayList();
+						File libDir = new File("/usr");
+						libDir.listFiles(new FileFilter() {
+							public boolean accept(File pathname) {
+								if (pathname.getName().startsWith("lib")) {
+									possibleDirs.add(pathname);
+								}
+								return false;
+							}
+						});
+						possibleDirs.add(new File("/usr/local"));
+						possibleDirs.add(new File("/opt"));
+
+						final String[] possibleDirNames = {
+							"mozilla",
+							"firefox",
+							"seamonkey",
+							"xulrunner",
+						};
+
+						FileFilter ffIsPossibleDir = new FileFilter() {
+							public boolean accept(File pathname) {
+								String name = pathname.getName().toLowerCase();
+								for (int i = 0; i < possibleDirNames.length; i++) {
+									if (name.startsWith(possibleDirNames[i])) {
+										return true;
+									}
+								}
+								return false;
+							}
+						};
+
+						for (Iterator iter = possibleDirs.iterator(); iter.hasNext();) {
+							File dir = (File) iter.next();
+
+							File[] possibleFullDirs = dir.listFiles(ffIsPossibleDir);
+
+							for (int i = 0; i < possibleFullDirs.length; i++) {
+								System.out.println("  checking " + possibleFullDirs[i]
+										+ " for GRE");
+								if (isValidGrePath(possibleFullDirs[i])) {
+									grePath = possibleFullDirs[i].getAbsolutePath();
+									break;
+								}
+							}
+							if (grePath != null) {
+								break;
+							}
+						}
+					}
+
+					if (grePath != null) {
+						System.out.println("GRE found at " + grePath
+								+ ".  If this is incorrect, you should set MOZILLA_FIVE_HOME.");
+						System.setProperty("org.eclipse.swt.browser.XULRunnerPath", grePath);
+					}
+					Browser browserTest = new Browser(parent, SWT.NONE);
+					browserTest.dispose();
+					return true;
+				} catch (Throwable t2) {
+					t2.printStackTrace();
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	private static boolean isValidGrePath(File dir) {
+		if (!dir.isDirectory()) {
+			return false;
+		}
+		if (new File(dir, "components/libwidget_gtk.so").exists()
+				|| new File(dir, "libwidget_gtk.so").exists()) {
+			System.out.println("Can not use GRE from " + dir
+					+ " as it's too old (GTK2 version required).");
+			return false;
+		}
+		if (!new File(dir, "components/libwidget_gtk2.so").exists()
+				&& !new File(dir, "libwidget_gtk2.so").exists()) {
+			System.out.println("Can not use GRE from " + dir
+					+ " because it's missing components/libwidget_gtk2.so.");
+			return false;
+		}
+		return true;
 	}
 }
 
