@@ -299,20 +299,6 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
                 COConfigurationManager.setParameter(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT, uploadLimitKBPS*1024);
                 COConfigurationManager.setParameter(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT, downlaodLimitKBPS*1024);
 
-                //set the min values as the greater of 10% of max, or 5 kBytes/sec.
-                int uploadMinKBPS = uploadLimitKBPS/10;
-                int downloadMinKBPS = downlaodLimitKBPS/10;
-
-                if( uploadMinKBPS<5 ){
-                    uploadMinKBPS = 5;
-                }
-                if( downloadMinKBPS<5){
-                    downloadMinKBPS = 5;
-                }
-
-                COConfigurationManager.setParameter( SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT, uploadMinKBPS*1024 );
-                COConfigurationManager.setParameter( SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MIN_LIMIT, downloadMinKBPS*1024 );
-
 
                 String downConfValue = downConfLevel.getValue();
                 String upConfValue = upConfLevel.getValue();

@@ -49,6 +49,8 @@ SpeedManagerAlgorithmProviderV2
     public static final String SETTING_DOWNLOAD_MAX_LIMIT_TEMP = "AutoSpeed Network Download Speed (temp)";
     public static final String SETTING_DOWNLOAD_MAX_LIMIT_CONF_TYPE_TEMP = "AutoSpeed Network Download Speed Type (temp)";
 
+    public static final String SETTING_LAST_ASN = "SpeedManagerAlgorithmProviderV2.setting.last.asn";
+
 
     //sets the input source,  vivaldi, DHT ping, ICMP pint, etc ....
     public static final String SETTING_DATA_SOURCE_INPUT = "SpeedManagerAlgorithmProviderV2.source.data.input";

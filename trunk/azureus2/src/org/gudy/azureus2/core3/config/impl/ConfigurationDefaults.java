@@ -491,9 +491,7 @@ public class ConfigurationDefaults {
 
     //temp section for SpeedManagerAlgorithmProviderV2
     def.put(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT, new Long(61440) );
-    def.put(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MIN_LIMIT, new Long(6144) );
     def.put(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT, new Long(30720) );
-    def.put(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT, new Long(5120) );
 
     def.put(SpeedManagerAlgorithmProviderV2.SETTING_DHT_GOOD_SET_POINT, new Long(50) );
     def.put(SpeedManagerAlgorithmProviderV2.SETTING_DHT_GOOD_TOLERANCE, new Long(100) );

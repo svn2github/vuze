@@ -17,6 +17,7 @@ import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerImpl;
 import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedLimitConfidence;
 import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedLimitMonitor;
 import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedManagerAlgorithmProviderV2;
+import com.aelitis.azureus.core.speedmanager.impl.v2.SMConst;
 
 /**
  * Created on May 15, 2007
@@ -43,16 +44,15 @@ public class ConfigSectionTransferAutoSpeedBeta
         implements UISWTConfigSection
 {
 
-    BooleanParameter enableV2AutoSpeedBeta;
-
     //upload/download limits
     IntParameter downMaxLim;
-    IntParameter downMinLim;
     IntParameter uploadMaxLim;
-    IntParameter uploadMinLim;
 
     StringListParameter confDownload;
     StringListParameter confUpload;
+
+    Label upMinLabel;
+    Label downMinLabel;
 
     //add a comment to the auto-speed debug logs.
     Group commentGroup;
@@ -248,10 +248,13 @@ public class ConfigSectionTransferAutoSpeedBeta
         downMaxLim = new IntParameter(modeGroup,SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT);
         downMaxLim.setLayoutData( gridData );
 
+        //ToDo: remove all references to MIN upload/download settings.
         gridData = new GridData();
         gridData.widthHint = 80;
-        downMinLim = new IntParameter(modeGroup,SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MIN_LIMIT);
-        downMinLim.setLayoutData( gridData );
+        downMinLabel = new Label(modeGroup, SWT.NULL);
+        downMinLabel.setLayoutData( gridData );
+        downMinLabel.setText(  ""+SMConst.calculateMinDownload(downMaxLim.getValue() ) );
+
 
         String[] confLevelNames = {
                 SpeedLimitConfidence.ABSOLUTE.getInternationalizedString(),
@@ -289,8 +292,9 @@ public class ConfigSectionTransferAutoSpeedBeta
 
         gridData = new GridData();
         gridData.widthHint = 80;
-        uploadMinLim = new IntParameter(modeGroup, SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT);
-        uploadMinLim.setLayoutData( gridData );
+        upMinLabel = new Label(modeGroup, SWT.NULL);
+        upMinLabel.setLayoutData( gridData );
+        upMinLabel.setText( ""+SMConst.calculateMinUpload( uploadMaxLim.getValue() ) );
 
         gridData = new GridData();
         gridData.widthHint = 80;
@@ -376,28 +380,6 @@ public class ConfigSectionTransferAutoSpeedBeta
                 SpeedLimitMonitor.USED_UPLOAD_CAPACITY_DOWNLOAD_MODE,
                 downloadModeNames, downloadModeValues);
 
-//        Label sdModeLbl = new Label(uploadCapGroup, SWT.NULL);
-//        gridData = new GridData();
-//        gridData.widthHint = 80;
-//        sdModeLbl.setText("Seeding:");
-//
-//        //ToDo: add a selection for how quickly to drop the upload and download.
-//        //add a drop down.
-//        String[] seedModeNames = {
-//                "100%",
-//                " 90%",
-//                " 80%"
-//        };
-//
-//        int[] seedModeValues = {
-//                100,
-//                90,
-//                80
-//        };
-//
-//        seedModeUsedCap = new IntListParameter(uploadCapGroup,
-//                SpeedLimitMonitor.USED_UPLOAD_CAPACITY_SEEDING_MODE,
-//                seedModeNames,seedModeValues);
 
         //spacer
         spacer = new Label(cSection, SWT.NULL);
@@ -450,8 +432,6 @@ public class ConfigSectionTransferAutoSpeedBeta
         dGood = new IntParameter(dhtGroup, SpeedManagerAlgorithmProviderV2.SETTING_DHT_GOOD_SET_POINT);
         dGood.setLayoutData( gridData );
 
-
-        //ToDo: calculate this limit as 10% of upper limit, or 5 kb/s which ever is greater.
         gridData = new GridData();
         gridData.widthHint = 50;
         dGoodTol = new IntParameter(dhtGroup, SpeedManagerAlgorithmProviderV2.SETTING_DHT_GOOD_TOLERANCE);
@@ -471,7 +451,6 @@ public class ConfigSectionTransferAutoSpeedBeta
         dBad.setLayoutData( gridData );
 
 
-        //ToDo: calculate this limit as 10% of upper limit, or 5 kb/s which ever is greater.
         gridData = new GridData();
         gridData.widthHint = 50;
         dBadTol = new IntParameter(dhtGroup, SpeedManagerAlgorithmProviderV2.SETTING_DHT_BAD_TOLERANCE);
@@ -595,20 +574,20 @@ public class ConfigSectionTransferAutoSpeedBeta
         public void handleEvent(Event event) {
 
             ConfigurationDefaults configDefs = ConfigurationDefaults.getInstance();
+
             try{
                 long downMax = configDefs.getLongParameter( SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT );
-                long downMin = configDefs.getLongParameter( SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MIN_LIMIT );
                 String downConf = configDefs.getStringParameter( SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING );
                 long upMax = configDefs.getLongParameter( SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT );
-                long upMin = configDefs.getLongParameter( SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT );
                 String upConf = configDefs.getStringParameter( SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING );
 
                 COConfigurationManager.setParameter(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT,downMax);
-                COConfigurationManager.setParameter(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MIN_LIMIT,downMin);
                 COConfigurationManager.setParameter(SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING,downConf);
                 COConfigurationManager.setParameter(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT,upMax);
-                COConfigurationManager.setParameter(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT,upMin);
                 COConfigurationManager.setParameter(SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING,upConf);
+
+                downMinLabel.setText( ""+SMConst.calculateMinDownload( (int) downMax) );
+                upMinLabel.setText( ""+SMConst.calculateMinUpload( (int) upMax) );
 
             }catch(ConfigurationParameterNotFoundException cpnfe){
                 //ToDo: log this.    
