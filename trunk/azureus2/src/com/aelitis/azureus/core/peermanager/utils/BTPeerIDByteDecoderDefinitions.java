@@ -206,7 +206,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("AR", "ArcticTorrent", NO_VERSION); //based on libtorrent but same peerid for different versions
 		addAzStyle("AV", "Avicora");
 		addAzStyle("AX", "BitPump", VER_AZ_TWO_MAJ_TWO_MIN);
-		addAzStyle("AT", "CyberArtemis");
+		addAzStyle("AT", "Artemis");
 		addAzStyle("BB", "BitBuddy", "1.234");
 		addAzStyle("BC", "BitComet", VER_AZ_SKIP_FIRST_ONE_MAJ_TWO_MIN);
 		addAzStyle("BF", "BitFlu", NO_VERSION);
