@@ -7,6 +7,7 @@ FEATURE: UI   | New "Torrent" menu in the menu bar [amc1]
 FEATURE: UI   | "Clear Resume Data" menu option added [amc1]
 
 CHANGE: Core  | Much better peer ID identification code added, many more clients now correctly identified [amc1]
+CHANGE: Core  | Changes made to identify some "fake" clients (or other clients which identify themselves in a problematic way) [amc1]
 CHANGE: Core  | Core changes in some places to allow "Default save path" to be used without requiring "Use default data dir" to be enabled [hasturkun]
 CHANGE: UI    | UL/DL speed selection on right click of status bar changed from menu to scale widget. [TuxPaper]
                 Usage: (1) MouseDown+Drag+MouseUp  (2) Click+Move+Click  (3) Click+type number+Enter
