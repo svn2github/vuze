@@ -37,26 +37,30 @@ public class DiskManagerPieceImpl
 {
     //private static final LogIDs LOGID = LogIDs.PIECES;
 
-    public static final int	PIECE_STATUS_NEEDED		=0x01;	//want to have the piece
-    public static final int	PIECE_STATUS_WRITTEN	=0x20;	//piece fully written to storage
-    public static final int	PIECE_STATUS_CHECKING	=0x40;	//piece is being hash checked
+	private static final byte	PIECE_STATUS_NEEDED		= 0x01;	//want to have the piece
+	private static final byte	PIECE_STATUS_WRITTEN	= 0x20;	//piece fully written to storage
+	private static final byte	PIECE_STATUS_CHECKING	= 0x40;	//piece is being hash checked
        
-    private static final int PIECE_STATUS_MASK_DOWNLOADABLE	=
+    private static final byte PIECE_STATUS_MASK_DOWNLOADABLE	=
     	PIECE_STATUS_CHECKING | PIECE_STATUS_WRITTEN | PIECE_STATUS_NEEDED;
 
     										// 0x65;    // Needed IS once again included in this
 		
-	private static final int PIECE_STATUS_MASK_NEEDS_CHECK 	= PIECE_STATUS_CHECKING | PIECE_STATUS_WRITTEN;
+	private static final byte PIECE_STATUS_MASK_NEEDS_CHECK 	= PIECE_STATUS_CHECKING | PIECE_STATUS_WRITTEN;
 
     //private static boolean statusTested =false;
 
     private final DiskManagerHelper	diskManager;
 	private final int				pieceNumber;
 
-	/** the number of bytes in this piece */
+		/** the number of bytes in this piece */
+	
 	private final int				length;
-	/** the number of blocks in this piece */
-	private final int				nbBlocks;
+	
+		/** the number of blocks in this piece: can be short as this gives up to .5GB piece sizes with 16K blocks */
+	
+	private final short				nbBlocks;
+	
 	// to save memory the "written" field is only maintained for pieces that are
 	// downloading. A value of "null" means that either the piece hasn't started 
 	// download or that it is complete.
@@ -66,9 +70,11 @@ public class DiskManagerPieceImpl
 	// however, this issue can be worked around by working on a reference to the written data
 	// as problems only occur when switching from all-written to done=true, both of which signify
 	// the same state of affairs.
+	
 	protected volatile boolean[]	written;
 
-    private int         statusFlags;
+    private byte         statusFlags;
+    
 	/** it's *very* important to accurately maintain the "done" state of a piece. Currently the statusFlags
 	 * are updated in a non-thread-safe manner so a 'done' field is maintained seperatly.  Synchronizing
 	 * access to statusFlags or done would cause a tremendous performance hit.
@@ -86,7 +92,7 @@ public class DiskManagerPieceImpl
 			length =diskManager.getPieceLength();
 		else
 			length =diskManager.getLastPieceLength();
-		nbBlocks =(length +DiskManager.BLOCK_SIZE -1) /DiskManager.BLOCK_SIZE;
+		nbBlocks =(short)((length +DiskManager.BLOCK_SIZE -1) /DiskManager.BLOCK_SIZE);
 
 		statusFlags =PIECE_STATUS_NEEDED;
 
