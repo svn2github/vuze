@@ -1538,6 +1538,17 @@ SpeedManagerPingMapperImpl
 			hits				= _hits;
 			when				= _when;
 			segs				= _segs;
+			
+				// sanitize
+			
+			if ( metric_rating < -1 ){
+				
+				metric_rating = -1;
+				
+			}else if ( metric_rating > 1 ){
+				
+				metric_rating = 1;
+			}
 		}
 		
 		public int
