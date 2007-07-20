@@ -211,7 +211,7 @@ SpeedManagerPingMapperImpl
 							}						
 						}
 						
-						addPingSupport( x, y, -1, metric, false );
+						addPingSupport( x, y, -1, metric );
 					}
 				}
 								
@@ -580,18 +580,35 @@ SpeedManagerPingMapperImpl
 			}
 		}
 		
-		addPingSupport( x, y, rtt, metric, true );
+		region new_region = addPingSupport( x, y, rtt, metric );
 		
 		updateLimitEstimates();
+		
+		if ( variance ){
+		
+			String up_e 	= getShortString( getEstimatedUploadLimit( false )) + "," + 
+								getShortString(getEstimatedUploadLimit( true )) + "," +
+								getShortString(getEstimatedUploadCapacityBytesPerSec());
+			
+			String down_e 	= getShortString(getEstimatedDownloadLimit( false )) + "," + 
+								getShortString(getEstimatedDownloadLimit( true )) + "," +
+								getShortString(getEstimatedDownloadCapacityBytesPerSec());
+			
+			log( "Ping: rtt="+rtt+",x="+x+",y="+y+",m="+metric + 
+					(new_region==null?"":(",region=" + new_region.getString())) + 
+					",mr=" + getCurrentMetricRating() + 
+					",up=[" + up_e + (best_good_up==null?"":(":"+getShortString(best_good_up))) + 
+						"],down=[" + down_e + (best_good_down==null?"":(":"+getShortString(best_good_down))) + "]" +
+					",bu="+getLimitStr(last_bad_ups,true)+",bd="+getLimitStr(last_bad_downs,true));
+		}
 	}
 	
-	protected void
+	protected region
 	addPingSupport(
 		int		x,
 		int		y,
 		int		rtt,
-		int		metric,
-		boolean	log )
+		int		metric )
 	{
 		if ( ping_count == pings.length ){
 
@@ -628,11 +645,8 @@ SpeedManagerPingMapperImpl
 		}
 		
 		prev_ping = ping;
-		
-		if ( variance && log ){
-		
-			log( "Ping: " + (rtt>0?("rtt="+rtt+","):"") + ping.getString() + (new_region==null?"":(", region=" + new_region.getString())));
-		}
+
+		return( new_region );
 	}
 	
 	public synchronized int[][]
@@ -1213,11 +1227,6 @@ SpeedManagerPingMapperImpl
 					SystemTime.getCurrentTime(),
 					(int[][])segments.toArray(new int[segments.size()][]));
 		
-		if ( variance ){
-		
-			log( "Estimate (samples=" + num_samples + ")" + (up?"up":"down") + "->" + result.getString());
-		}
-								
 		return( result );
 	}
 	
@@ -1330,34 +1339,57 @@ SpeedManagerPingMapperImpl
 		}
 	}
 	
+	protected String
+	getLimitStr(
+		List	limits,
+		boolean	short_form )
+	{
+		String	str = "";
+		
+		if ( limits != null ){
+			
+			Iterator	it = limits.iterator();
+			
+			while( it.hasNext()){
+				
+				str += (str.length()==0?"":",");
+				
+				limitEstimate	l = (limitEstimate)it.next();
+				
+				if ( short_form ){
+					str += getShortString( l );
+				}else{
+					str += l.getString();
+				}
+			}
+		}
+		
+		return( str );
+	}
+	
+	protected String
+	getShortString(
+		SpeedManagerLimitEstimate l )
+	{
+		return( DisplayFormatters.formatByteCountToKiBEtcPerSec( l.getBytesPerSec()));
+	}
+	
 	protected void 
 	generateEvidence(
 		IndentWriter writer ) 
 	{
 		writer.println( "up_cap=" + up_capacity.getString());
 		writer.println( "down_cap=" + down_capacity.getString());
+				
+		writer.println( "bad_up=" + getLimitStr( last_bad_ups, false ));			
+		writer.println( "bad_down=" + getLimitStr( last_bad_downs, false ));
 		
-		String	bad_up_str = "";
-		
-		Iterator	it = last_bad_ups.iterator();
-		
-		while( it.hasNext()){
-			
-			bad_up_str += (bad_up_str.length()==0?"":",") + ((limitEstimate)it.next()).getString();
+		if ( best_good_up != null ){
+			writer.println( "best_up=" + best_good_up );
 		}
-		
-		writer.println( "bad_up=" + bad_up_str );
-		
-		String	bad_down_str = "";
-		
-		it = last_bad_downs.iterator();
-		
-		while( it.hasNext()){
-			
-			bad_down_str += (bad_down_str.length()==0?"":",") + ((limitEstimate)it.next()).getString();
+		if ( best_good_down != null ){
+			writer.println( "best_down=" + best_good_down );
 		}
-		
-		writer.println( "bad_down=" + bad_down_str );
 	}
 	
 	public void
