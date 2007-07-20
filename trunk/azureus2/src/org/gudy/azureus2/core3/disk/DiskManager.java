@@ -181,9 +181,10 @@ DiskManager
 	public int
 	getPieceLength();
 	
-	public int 
-	getLastPieceLength();
-
+	public int
+	getPieceLength(
+		int	piece_number );
+	
 	public long
 	getRemaining();
 	

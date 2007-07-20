@@ -718,7 +718,7 @@ PEPeerTransportProtocol
 		
 		if ( peerHavePieces.flags[nbPieces -1] ){
 			
-			total_done = ((long)(peerHavePieces.nbSet -1) *diskManager.getPieceLength()) +diskManager.getLastPieceLength();
+			total_done = ((long)(peerHavePieces.nbSet -1) *diskManager.getPieceLength()) +diskManager.getPieceLength( nbPieces -1 );
 			
 		}else{
 			

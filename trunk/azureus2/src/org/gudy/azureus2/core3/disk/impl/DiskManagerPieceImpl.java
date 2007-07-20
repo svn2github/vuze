@@ -52,10 +52,6 @@ public class DiskManagerPieceImpl
 
     private final DiskManagerHelper	diskManager;
 	private final int				pieceNumber;
-
-		/** the number of bytes in this piece */
-	
-	private final int				length;
 	
 		/** the number of blocks in this piece: can be short as this gives up to .5GB piece sizes with 16K blocks */
 	
@@ -83,19 +79,14 @@ public class DiskManagerPieceImpl
     
     private boolean		done;
     
-	public DiskManagerPieceImpl(final DiskManagerHelper _disk_manager, final int pieceIndex)
+	public DiskManagerPieceImpl(final DiskManagerHelper _disk_manager, final int pieceIndex, int length )
 	{
 		diskManager =_disk_manager;
-		pieceNumber =pieceIndex;
-		final int nbPieces =diskManager.getNbPieces();
-		if (pieceNumber !=nbPieces -1)
-			length =diskManager.getPieceLength();
-		else
-			length =diskManager.getLastPieceLength();
+		pieceNumber = pieceIndex;
+		
 		nbBlocks =(short)((length +DiskManager.BLOCK_SIZE -1) /DiskManager.BLOCK_SIZE);
 
-		statusFlags =PIECE_STATUS_NEEDED;
-
+		statusFlags = PIECE_STATUS_NEEDED;
 	}
 	
 	public DiskManager getManager()
@@ -113,7 +104,7 @@ public class DiskManagerPieceImpl
 	 */
 	public int getLength()
 	{
-		return length;
+		return( diskManager.getPieceLength( pieceNumber ));
 	}
 	
 	public int getNbBlocks()
@@ -136,11 +127,16 @@ public class DiskManagerPieceImpl
 	
     public int getBlockSize(final int blockNumber)
     {
-        if (blockNumber ==nbBlocks -1)
-        {
-            if ((length %DiskManager.BLOCK_SIZE) !=0)
-                return (length %DiskManager.BLOCK_SIZE);
+        if ( blockNumber == nbBlocks -1 ){
+        
+        	int	len = getLength() % DiskManager.BLOCK_SIZE;
+        	
+        	if ( len != 0 ){
+        		
+        		return( len );
+        	}
         }
+        
         return DiskManager.BLOCK_SIZE;
     }
     

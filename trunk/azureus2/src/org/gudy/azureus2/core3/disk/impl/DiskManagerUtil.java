@@ -78,9 +78,8 @@ DiskManagerUtil
 						+ dm.getNbPieces()));
 			return false;
 		}
-		int pLength = dm.getPieceLength();
-		if (pieceNumber == dm.getNbPieces() - 1)
-			pLength = dm.getLastPieceLength();
+		int pLength = dm.getPieceLength(pieceNumber);
+
 		if (offset < 0) {
 			if (Logger.isEnabled())
 				Logger.log(new LogEvent(dm, LOGID, LogEvent.LT_ERROR,

@@ -1948,9 +1948,9 @@ PEPeerControlImpl
 	}
 	
 	public int getPieceLength(int pieceNumber) {
-		if (pieceNumber ==_nbPieces -1)
-			return disk_mgr.getLastPieceLength();
-		return disk_mgr.getPieceLength();
+				
+		return disk_mgr.getPieceLength(pieceNumber);
+
 	}
 
 	public int 

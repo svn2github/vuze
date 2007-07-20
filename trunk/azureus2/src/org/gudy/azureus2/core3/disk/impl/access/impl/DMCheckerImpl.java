@@ -81,12 +81,7 @@ DMCheckerImpl
 	private boolean	started;
 	
 	protected volatile boolean	stopped;
-	
-	private int			pieceLength;
-	private int			lastPieceLength;
-	
-	protected int		nbPieces;
-	
+			
 	private volatile boolean	complete_recheck_in_progress;
 	private volatile int		complete_recheck_progress;
 	
@@ -99,11 +94,6 @@ DMCheckerImpl
 		DiskManagerHelper	_disk_manager )
 	{
 		disk_manager	= _disk_manager;
-		
-		pieceLength		= disk_manager.getPieceLength();
-		lastPieceLength	= disk_manager.getLastPieceLength();
-		
-		nbPieces		= disk_manager.getNbPieces();
 	}
 
 	public void
@@ -270,6 +260,8 @@ DMCheckerImpl
 	  				int	checks_submitted	= 0;
 	  				           
 		            final AESemaphore	 run_sem = new AESemaphore( "DMChecker::completeRecheck:runsem", 2 );
+		            
+		            int nbPieces = disk_manager.getNbPieces();
 		            
 	  				for ( int i=0; i < nbPieces; i++ ){
 	  					
@@ -574,7 +566,7 @@ DMCheckerImpl
 				return;
 			}
 			
-			int this_piece_length = pieceNumber < nbPieces - 1 ? pieceLength : lastPieceLength;
+			int this_piece_length = disk_manager.getPieceLength( pieceNumber );
 
 			DiskManagerReadRequest read_request = disk_manager.createReadRequest( pieceNumber, 0, this_piece_length );
 			

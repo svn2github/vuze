@@ -283,9 +283,10 @@ DiskManagerImpl
         lastPieceLength = piece_mapper.getLastPieceLength();
 
         pieces      = new DiskManagerPieceImpl[nbPieces];
+        
         for (int i =0; i <nbPieces; i++)
         {
-            pieces[i] =new DiskManagerPieceImpl(this, i);
+            pieces[i] =new DiskManagerPieceImpl(this, i, i==nbPieces-1?lastPieceLength:pieceLength);
         }
 
         reader          = DMAccessFactory.createReader(this);
@@ -1223,6 +1224,20 @@ DiskManagerImpl
         return pieceLength;
     }
 
+    public int
+    getPieceLength(
+    	int		piece_number )
+    {
+		if (piece_number == nbPieces -1 ){
+			
+			return( lastPieceLength );
+			
+		}else{
+			
+			return( pieceLength );
+		}
+    }
+    
     public long getTotalLength() {
         return totalLength;
     }
