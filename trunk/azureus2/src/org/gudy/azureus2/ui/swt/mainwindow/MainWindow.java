@@ -265,6 +265,8 @@ MainWindow
 				shell.setText("Azureus"); //$NON-NLS-1$
 				Utils.setShellIcon(shell);
 
+				Utils.verifyBrowserAvailable(shell);
+
 				if (parent == null) {
 					parent = shell;
 				}
