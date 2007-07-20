@@ -106,6 +106,12 @@ public class SWTThread {
 
 					writer.println("SWT Version:" + SWT.getVersion() + "/"
 							+ SWT.getPlatform());
+					
+					writer.println("org.eclipse.swt.browser.XULRunnerPath: "
+							+ System.getProperty("org.eclipse.swt.browser.XULRunnerPath", ""));
+					writer.println("MOZILLA_FIVE_HOME: "
+							+ SystemProperties.getEnvironmentalVariable("MOZILLA_FIVE_HOME"));
+					
 				} finally {
 
 					writer.exdent();
