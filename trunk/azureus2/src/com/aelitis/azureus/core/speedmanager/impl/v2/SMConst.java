@@ -37,8 +37,8 @@ public class SMConst
 
     /**
      * No limit should go below 5k bytes/sec.
-     * @param rateBytesPerSec
-     * @return
+     * @param rateBytesPerSec -
+     * @return - "bytes/sec" rate.
      */
     public static int checkForMinValue(int rateBytesPerSec){
 

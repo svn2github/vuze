@@ -43,6 +43,13 @@ SpeedManagerAlgorithmProviderV2
     public static final String SETTING_UPLOAD_MAX_LIMIT = "SpeedManagerAlgorithmProviderV2.setting.upload.max.limit";
     public static final String SETTING_UPLOAD_MIN_LIMIT = "SpeedManagerAlgorithmProviderV2.setting.upload.min.limit";
 
+    //temporary two names for upload/download max until we sort out which.
+    public static final String SETTING_UPLOAD_MAX_LIMIT_TEMP = "AutoSpeed Network Upload Speed (temp)";
+    public static final String SETTING_UPLOAD_MAX_LIMIT_CONF_TYPE_TEMP = "AutoSpeed Network Upload Speed Type (temp)";
+    public static final String SETTING_DOWNLOAD_MAX_LIMIT_TEMP = "AutoSpeed Network Download Speed (temp)";
+    public static final String SETTING_DOWNLOAD_MAX_LIMIT_CONF_TYPE_TEMP = "AutoSpeed Network Download Speed Type (temp)";
+
+
     //sets the input source,  vivaldi, DHT ping, ICMP pint, etc ....
     public static final String SETTING_DATA_SOURCE_INPUT = "SpeedManagerAlgorithmProviderV2.source.data.input";
 

@@ -31,6 +31,8 @@ import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerListener;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerImpl;
+import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProvider;
+import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedManagerAlgorithmProviderV2;
 
 
 /**
@@ -136,7 +138,7 @@ public class ConfigSectionTransferAutoSpeedSelect
         GridLayout modeLayout = new GridLayout();
         modeLayout.numColumns = 3;
         modeGroup.setLayout(modeLayout);
-        gridData = new GridData();
+        
         gridData = new GridData(GridData.FILL_HORIZONTAL);
         modeGroup.setLayoutData(gridData);
 
@@ -230,7 +232,7 @@ public class ConfigSectionTransferAutoSpeedSelect
         GridLayout networksLayout = new GridLayout();
         networksLayout.numColumns = 4;
         networkGroup.setLayout(networksLayout);
-        gridData = new GridData();
+
         gridData = new GridData(GridData.FILL_HORIZONTAL);
         networkGroup.setLayoutData(gridData);
 
@@ -341,10 +343,12 @@ public class ConfigSectionTransferAutoSpeedSelect
 	    gridData.horizontalIndent = 20;
 	    label.setLayoutData(gridData);
 
-		String co_up		= "AutoSpeed Network Upload Speed (temp)";
-		String co_up_type 	= "AutoSpeed Network Upload Speed Type (temp)";
+		//String co_up		= "AutoSpeed Network Upload Speed (temp)";
+        //String co_up_type 	= "AutoSpeed Network Upload Speed Type (temp)";
+        String co_up = SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT_TEMP;
+        String co_up_type 	= SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT_CONF_TYPE_TEMP;
 
-		COConfigurationManager.setParameter( co_up, 0);
+        COConfigurationManager.setParameter( co_up, 0);
 		COConfigurationManager.setParameter( co_up_type, "" );
 		
 		final IntParameter max_upload = new IntParameter(networkGroup, co_up );
@@ -392,10 +396,12 @@ public class ConfigSectionTransferAutoSpeedSelect
 	    gridData.horizontalIndent = 20;
 	    label.setLayoutData(gridData);
 
-		String co_down			= "AutoSpeed Network Download Speed (temp)";
-		String co_down_type 	= "AutoSpeed Network Download Speed Type (temp)";
+		//String co_down			= "AutoSpeed Network Download Speed (temp)";
+		//String co_down_type 	= "AutoSpeed Network Download Speed Type (temp)";
+        String co_down			= SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT_TEMP;
+		String co_down_type 	= SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT_CONF_TYPE_TEMP;
 
-		COConfigurationManager.setParameter( co_down, 0);
+        COConfigurationManager.setParameter( co_down, 0);
 		COConfigurationManager.setParameter( co_down_type, "" );
 
 		final IntParameter max_download = new IntParameter(networkGroup, co_down );

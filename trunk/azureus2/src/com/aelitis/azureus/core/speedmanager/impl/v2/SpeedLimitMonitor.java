@@ -179,6 +179,16 @@ public class SpeedLimitMonitor implements PSMonitorListener
 
         slider.setDownloadUnlimitedMode( readDownloadUnlimitedMode() );
 
+        //for testing.
+        int tmpUMax = COConfigurationManager.getIntParameter(
+                SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT_TEMP);
+        float tmpUMaxConf = COConfigurationManager.getFloatParameter(
+                SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT_CONF_TYPE_TEMP);
+        int tmpDMax = COConfigurationManager.getIntParameter(
+                SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT_TEMP);
+        float tmpDMaxConf = COConfigurationManager.getFloatParameter(
+                SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT_CONF_TYPE_TEMP);
+
     }//updateFromCOConfigManager
 
     
@@ -912,18 +922,26 @@ public class SpeedLimitMonitor implements PSMonitorListener
             return currMaxLimit;
         }
 
+        String reason="";
         if(  type==SpeedManagerLimitEstimate.RATING_MANUAL ){
             chosenLimit = estBytesPerSec;
+            reason="manual";
         }else if( type==SpeedManagerLimitEstimate.RATING_UNKNOWN ){
             chosenLimit = Math.max( estBytesPerSec, currMaxLimit );
+            reason="unknown";
         }else{
             //select one with higher confidence.
-            if( estimate.getMetricRating()>=conf.asRating() ){
+            if( estimate.getEstimateType()>=conf.asRating() ){
                 chosenLimit = estBytesPerSec;
+                reason="estimate greater "+estimate.getEstimateType()+"=>"+conf.asRating();
             }else{
                 chosenLimit = currMaxLimit;
+                reason="curr greater"+estimate.getEstimateType()+"<"+conf.asRating();;
             }
         }
+
+        SpeedManagerLogger.trace("bestChosenLimit: reason="+reason+",chosenLimit="+chosenLimit);
+
         return chosenLimit;
     }
 
@@ -1308,7 +1326,8 @@ public class SpeedLimitMonitor implements PSMonitorListener
     public void notifyDownload(SpeedManagerLimitEstimate estimate) {
         int bestLimit = choseBestLimit(estimate,downloadLimitMax,downloadLimitConf);
 
-        SpeedManagerLogger.trace("notifyDownload downloadLimitMax="+downloadLimitMax);
+        SpeedManagerLogger.trace("notifyDownload downloadLimitMax="+downloadLimitMax
+                +" conf="+downloadLimitConf.getString()+" ("+downloadLimitConf.asRating()+")");
         tempLogEstimate(estimate);
 
         if(downloadLimitMax!=bestLimit){
@@ -1328,12 +1347,15 @@ public class SpeedLimitMonitor implements PSMonitorListener
 
         StringBuffer sb = new StringBuffer();
         float metric = est.getMetricRating();
+        float type = est.getEstimateType();
         int rate = est.getBytesPerSec();
+
         String str = est.getString();
 
         sb.append("notify log: ").append(str);
-        sb.append(" metric=").append(metric);
+        sb.append(" metricRating=").append(metric);
         sb.append(" rate=").append(rate);
+        sb.append(" type=").append(type);
 
         SpeedManagerLogger.trace( sb.toString() );
 
