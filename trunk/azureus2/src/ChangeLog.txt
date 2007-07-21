@@ -14,6 +14,7 @@ CHANGE: UI    | UL/DL speed selection on right click of status bar changed from 
                 
 BUGFIX: Core  | Fixed bug where renaming a download in some conditions would generate "Target is sub-directory" errors [amc1]                
 BUGFIX: Core  | Fixed swarm view rendering bug where some incomplete peers were shown as full circles [The8472]
+BUGFIX: Plug  | Fixed bug where previously removed child menu items would still be present when generating some menus [amc1]
 
 
 2007.06.20 | Azureus 3.0.1.6

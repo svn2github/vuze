@@ -248,13 +248,6 @@ public class MenuBuildUtils {
 				}
 			});
 
-			if (is_container) {
-				Menu this_menu = new Menu(composite.getShell(), SWT.DROP_DOWN);
-				menuItem.setMenu(this_menu);
-				addPluginMenuItems(composite, az_menuitem.getItems(), this_menu, false,
-						enable_items, controller);
-			}
-
 			if (enable_items) {
 				controller.notifyFillListeners(az_menuitem);
 
@@ -272,6 +265,13 @@ public class MenuBuildUtils {
 				}
 			}
 
+			if (is_container) {
+				Menu this_menu = new Menu(composite.getShell(), SWT.DROP_DOWN);
+				menuItem.setMenu(this_menu);
+				addPluginMenuItems(composite, az_menuitem.getItems(), this_menu, false,
+						enable_items, controller);
+			}
+			
 			String custom_title = az_menuitem.getText();
 			menuItem.setText(custom_title);
 
