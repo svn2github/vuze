@@ -202,7 +202,7 @@ TRTrackerServerProcessor
 						request,
 						event, 
 						peer_id, port, udp_port, http_port, crypto_level, az_ver,
-						client_ip_address, ip_override, loopback, key,
+						real_ip_address, client_ip_address, ip_override, loopback, key,
 						uploaded, downloaded, left,
 						interval,
 						up_speed, network_position );

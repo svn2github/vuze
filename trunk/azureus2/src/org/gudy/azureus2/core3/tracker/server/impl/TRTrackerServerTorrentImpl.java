@@ -178,6 +178,7 @@ TRTrackerServerTorrentImpl
 		int					http_port,
 		byte				crypto_level,
 		byte				az_ver,
+		String				original_address,
 		String				ip_address,
 		boolean				ip_override,
 		boolean				loopback,
@@ -317,7 +318,11 @@ TRTrackerServerTorrentImpl
 				
 				if ( event_type != TRTrackerServerTorrentPeerListener.ET_STOPPED ){			
 						
-					if ( ip_override && ip_override_count >= MAX_IP_OVERRIDE_PEERS && !loopback ){
+					Set	biased_peer_set = server.getBiasedPeers();
+					
+					boolean biased = biased_peer_set != null && biased_peer_set.contains( ip_address );
+
+					if ( ip_override && ip_override_count >= MAX_IP_OVERRIDE_PEERS && !( loopback || biased )){
 					
 							// bail out - the peer will still get an announce response but we don't
 							// want too many override peers on a torrent as these can be spoofed
@@ -348,18 +353,19 @@ TRTrackerServerTorrentImpl
 									last_NAT_status,
 									up_speed,
 									network_position );
-					
-					Set	biased_peer_set = server.getBiasedPeers();
-					
-					boolean biased = biased_peer_set != null && biased_peer_set.contains( peer.getIPRaw());
-				
+									
 					if ( ip_override ){
 				
 							// never allow an ip-override to take on the guise of a biased peer
 						
 						if ( biased ){
 							
-							throw( new TRTrackerServerException( "IP Override denied" ));
+								// UNLESS the originating IP is biased too 
+							
+							if ( !biased_peer_set.contains( original_address )){
+								
+								throw( new TRTrackerServerException( "IP Override denied" ));
+							}
 						}
 						
 						ip_override_count++;
@@ -427,7 +433,14 @@ TRTrackerServerTorrentImpl
 					
 					if ( peer.isBiased()){
 						
-						throw( new TRTrackerServerException( "IP Override denied" ));
+							// UNLESS the originating IP is biased too 
+						
+						Set	biased_peer_set = server.getBiasedPeers();
+
+						if ( biased_peer_set == null || !biased_peer_set.contains( original_address )){
+
+							throw( new TRTrackerServerException( "IP Override denied" ));
+						}
 					}
 					
 						// prevent an ip_override peer from affecting a non-override entry
