@@ -1679,6 +1679,10 @@ TRTrackerBTAnnouncerImpl
   	request.append("&uploaded=").append(announce_data_provider.getTotalSent());
   	request.append("&downloaded=").append(announce_data_provider.getTotalReceived());
   	request.append("&left=").append(announce_data_provider.getRemaining());
+  	
+  		// 3017: added at request of tracker admins who want to be able to monitor swarm poisoning
+  	
+  	request.append("&corrupt=").append(announce_data_provider.getFailedHashCheck());
 	
     
     //TrackerID extension

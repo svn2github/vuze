@@ -350,6 +350,12 @@ DownloadManagerController
 	    				return( temp.getRemaining());
 	    			}
 					
+	    			public long 
+	    			getFailedHashCheck() 
+	    			{
+	    				return( temp.getStats().getTotalHashFailBytes());
+	    			}
+	    			
 					public String
 					getExtensions()
 					{

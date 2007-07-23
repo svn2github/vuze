@@ -41,6 +41,9 @@ TRTrackerAnnouncerDataProvider
 	public long
 	getRemaining();
 	
+	public long
+	getFailedHashCheck();
+
 	public String
 	getExtensions();
 	
