@@ -11,6 +11,7 @@ CHANGE: Core  | Changes made to identify some "fake" clients (or other clients w
 CHANGE: Core  | Core changes in some places to allow "Default save path" to be used without requiring "Use default data dir" to be enabled [hasturkun]
 CHANGE: UI    | UL/DL speed selection on right click of status bar changed from menu to scale widget. [TuxPaper]
                 Usage: (1) MouseDown+Drag+MouseUp  (2) Click+Move+Click  (3) Click+type number+Enter
+CHANGE: UI    | Open Torrent Window now asks to create directories if they don't exist yet, instead of evilly auto-creating them when you click the Browse button [The_8472] 
                 
 BUGFIX: Core  | Fixed bug where renaming a download in some conditions would generate "Target is sub-directory" errors [amc1]                
 BUGFIX: Core  | Fixed swarm view rendering bug where some incomplete peers were shown as full circles [The8472]
