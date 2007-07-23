@@ -306,7 +306,11 @@ public class Colors implements ParameterListener {
   
   public Colors() {
     instance = this;
-    display = SWTThread.getInstance().getDisplay();
+    try {
+    	display = SWTThread.getInstance().getDisplay();
+    } catch (Exception e) {
+    	display = Display.getDefault();
+    }
     allocateDynamicColors();
     allocateNonDynamicColors();
 
