@@ -73,7 +73,8 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
  * 
  * TODO Category Option
  */
-public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
+public class OpenTorrentWindow
+	implements TorrentDownloaderCallBackInterface
 {
 
 	/**
@@ -88,6 +89,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 	 * that the torrent consists of multiple signature files.
 	 */
 	private final static int MIN_NODOWNLOAD_SIZE = 64 * 1024;
+
 	private final static int MAX_NODOWNLOAD_COUNT = 3;
 
 	private final static int MIN_BUTTON_HEIGHT = Constants.isWindows ? 24 : -1;
@@ -533,28 +535,25 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 				String sSavePath;
 				String sDefPath = cmbDataDir.getText();
 
+				File f = new File(sDefPath);
 				if (sDefPath.length() > 0) {
-					File f = new File(sDefPath);
-
-					if (!f.exists()) {
-						FileUtil.mkdirs(f);
+					while (!f.exists()) {
+						System.out.println(f);
+						f = f.getParentFile();
+						if (f == null) {
+							f = new File(sDefPath);
+							break;
+						}
 					}
 				}
 
 				DirectoryDialog dDialog = new DirectoryDialog(shell, SWT.SYSTEM_MODAL);
-				dDialog.setFilterPath(sDefPath);
+				dDialog.setFilterPath(f.getAbsolutePath());
 				dDialog.setMessage(MessageText.getString("MainWindow.dialog.choose.savepath_forallfiles"));
 				sSavePath = dDialog.open();
 
 				if (sSavePath != null) {
 					cmbDataDir.setText(sSavePath);
-				}
-
-				File file = new File(sDestDir);
-				if (!file.isDirectory()) {
-					cmbDataDir.setBackground(Colors.colorErrorBG);
-				} else {
-					cmbDataDir.setBackground(null);
 				}
 			}
 		});
@@ -673,7 +672,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 		}
 
 		File file = new File(cmbDataDir.getText());
-		
+
 		File fileDefSavePath = new File(
 				COConfigurationManager.getStringParameter(PARAM_DEFSAVEPATH));
 
@@ -681,15 +680,30 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 			FileUtil.mkdirs(fileDefSavePath);
 		}
 
-		if (cmbDataDir.getText().length() == 0 || !file.isDirectory()) {
+		boolean isPathInvalid = cmbDataDir.getText().length() == 0 || file.isFile();
+		if (!isPathInvalid && !file.isDirectory()) {
+			int doCreate = Utils.openMessageBox(shellForChildren, SWT.YES | SWT.NO
+					| SWT.ICON_QUESTION, "OpenTorrentWindow.mb.askCreateDir",
+					new String[] {
+						file.toString()
+					});
+
+			if (doCreate == SWT.YES)
+				isPathInvalid = !FileUtil.mkdirs(file);
+			else {
+				cmbDataDir.setFocus();
+				return;
+			}
+		}
+
+		if (isPathInvalid) {
 			Utils.openMessageBox(shellForChildren, SWT.OK | SWT.ICON_ERROR,
-					"OpenTorrentWindow.mb.noGlobalDestDir",
-					new String[] { file.toString()
+					"OpenTorrentWindow.mb.noGlobalDestDir", new String[] {
+						file.toString()
 					});
 			cmbDataDir.setFocus();
 			return;
 		}
-
 
 		String sExistingFiles = "";
 		int iNumExistingFiles = 0;
@@ -708,12 +722,12 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 
 			if (!info.isValid) {
 				Utils.openMessageBox(shellForChildren, SWT.OK | SWT.ICON_ERROR,
-						"OpenTorrentWindow.mb.notValid",
-						new String[] { info.getTorrentName()
+						"OpenTorrentWindow.mb.notValid", new String[] {
+							info.getTorrentName()
 						});
 				return;
 			}
-			
+
 			TorrentFileInfo[] files = info.getFiles();
 			for (int j = 0; j < files.length; j++) {
 				TorrentFileInfo fileInfo = files[j];
@@ -729,11 +743,12 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 				}
 			}
 		}
-		
+
 		if (sExistingFiles.length() > 0) {
 			if (Utils.openMessageBox(shellForChildren, SWT.OK | SWT.CANCEL
 					| SWT.ICON_WARNING, "OpenTorrentWindow.mb.existingFiles",
-					new String[] { sExistingFiles
+					new String[] {
+						sExistingFiles
 					}) != SWT.OK) {
 				return;
 			}
@@ -864,7 +879,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 		if (cmbStartMode == null)
 			return;
 
-		int[] indexes = tableTorrents.getSelectionIndices(); 
+		int[] indexes = tableTorrents.getSelectionIndices();
 		String[] sItemsText = new String[startModes.length];
 		int iMaxMatches = 0;
 		int iIndexToSelect = getDefaultStartMode();
@@ -1173,7 +1188,8 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 
 					TorrentFileInfo[] files = info.getFiles();
 					if (files.length == 1) {
-						chageFileDestination(new int[] { 0
+						chageFileDestination(new int[] {
+							0
 						});
 					} else {
 						DirectoryDialog dDialog = new DirectoryDialog(shellForChildren,
@@ -1357,7 +1373,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 			}
 		});
 	}
-	
+
 	private void deleteSelected(Table table, ArrayList list) {
 		int[] indexes = table.getSelectionIndices();
 		Arrays.sort(indexes);
@@ -1623,7 +1639,8 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 			}
 
 		if (lines == null)
-			lines = new String[] { sClipText
+			lines = new String[] {
+				sClipText
 			};
 
 		// Check if URL, 20 byte hash, Dir, or file
@@ -1856,8 +1873,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 		DownloadManager existingDownload = null;
 		if (sExistingName == null) {
 			// Check if torrent already exists in gm, and add if not
-			existingDownload = (gm == null) ? null
-					: gm.getDownloadManager(torrent);
+			existingDownload = (gm == null) ? null : gm.getDownloadManager(torrent);
 			if (existingDownload != null) {
 				sExistingName = existingDownload.getDisplayName();
 			}
@@ -1880,7 +1896,9 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 								"OpenTorrentWindow.mb.alreadyExists", null, new String[] {
 									sOriginatingLocation,
 									sfExistingName
-								}, new Object[] { fExistingDownload });
+								}, new Object[] {
+									fExistingDownload
+								});
 					else
 						Utils.openMessageBox(shell, SWT.OK,
 								"OpenTorrentWindow.mb.alreadyExists", new String[] {
@@ -2086,7 +2104,8 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 							new String[] {
 								inf.getURL(),
 								""
-							}), new String[] { MessageText.getString("Button.ok")
+							}), new String[] {
+						MessageText.getString("Button.ok")
 					}, 0);
 			boxShell.setHtml(html);
 			boxShell.open();
@@ -2404,14 +2423,16 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 				}
 			}
 		}
-		
-		private Boolean has_multiple_small_files = null; 
+
+		private Boolean has_multiple_small_files = null;
+
 		private boolean hasMultipleSmallFiles() {
 			TorrentFileInfo[] tfi_files = getFiles();
-			if (tfi_files.length <= MAX_NODOWNLOAD_COUNT) return false;
-			
+			if (tfi_files.length <= MAX_NODOWNLOAD_COUNT)
+				return false;
+
 			int small_files_counted = 0;
-			for (int i=0; i<tfi_files.length; i++) {
+			for (int i = 0; i < tfi_files.length; i++) {
 				if (tfi_files[i].lSize < MIN_NODOWNLOAD_SIZE) {
 					small_files_counted++;
 					if (small_files_counted > MAX_NODOWNLOAD_COUNT) {
@@ -2419,25 +2440,26 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 					}
 				}
 			}
-			
+
 			return false;
 		}
-			
+
 		// Indicates whether all files in this torrent can be deselected
 		// (if not, then it occurs on a per-file basis).
 		public boolean okToDisableAll() {
-			if (iStartID == STARTMODE_SEEDING) return true;
-			
+			if (iStartID == STARTMODE_SEEDING)
+				return true;
+
 			// Do we have multiple small files? We'll allow all of them to
 			// be disabled if we do.
 			if (has_multiple_small_files == null) {
 				has_multiple_small_files = new Boolean(hasMultipleSmallFiles());
 			}
-			
+
 			// You can disable all files if there are lots of small files.
 			return has_multiple_small_files.booleanValue();
 		}
-		
+
 	}
 
 	/**
@@ -2496,7 +2518,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 
 			return new File(parent.sDestDir, sFullFileName).getParent();
 		}
-		
+
 		public File getDestFile() {
 			if (sDestFileName != null) {
 				return new File(sDestFileName);
@@ -2506,7 +2528,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 		}
 
 		public boolean okToDisable() {
-			return lSize >= MIN_NODOWNLOAD_SIZE	|| parent.okToDisableAll();
+			return lSize >= MIN_NODOWNLOAD_SIZE || parent.okToDisableAll();
 		}
 	}
 
@@ -2566,6 +2588,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 		Display display = Display.getDefault();
 
 		ImageRepository.loadImages(display);
+		Colors.getInstance();
 
 		invoke(null, core.getGlobalManager());
 		//OpenTorrentWindow window = new OpenTorrentWindow(null, null, true);
