@@ -42,6 +42,8 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.ThreadPool;
 import org.gudy.azureus2.core3.util.ThreadPoolTask;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.PluginManagerDefaults;
 import org.gudy.azureus2.plugins.clientid.ClientIDException;
 import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
 import org.gudy.azureus2.plugins.clientid.ClientIDManager;
@@ -278,6 +280,10 @@ ClientIDManagerImpl
 		ClassLoader	cl = gen.getClass().getClassLoader();
 		
 		if ( cl != null && cl != ClientIDManager.class.getClassLoader()){
+			
+				// if early in the day we can try to get the default one working here
+			
+			PluginManager.getDefaults().setDefaultPluginEnabled( PluginManagerDefaults.PID_CLIENT_ID, true );
 			
 			Debug.out( "Generator isn't trusted - " + gen );
 			
