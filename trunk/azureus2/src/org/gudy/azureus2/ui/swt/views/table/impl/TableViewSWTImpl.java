@@ -1981,7 +1981,7 @@ public class TableViewSWTImpl
 			visibleRowsChanged();
 		}
 
-		if (columnPaddingAdjusted && table.getItemCount() > 0 && bWas0Rows) {
+		if (!columnPaddingAdjusted && table.getItemCount() > 0 && bWas0Rows) {
 			TableColumn[] tableColumnsSWT = table.getColumns();
 			TableItem item = table.getItem(0);
 			for (int i = 0; i < tableColumnsSWT.length; i++) {
@@ -1989,7 +1989,6 @@ public class TableViewSWTImpl
 				if (tc != null) {
 					Rectangle bounds = item.getBounds(i);
 					int ofs = tc.getWidth() - bounds.width;
-					System.out.println(i + ";" + tc.getWidth() + ";" + bounds.width + ";;" + ofs);
 					if (ofs > 0) {
 						tableColumnsSWT[i].setResizable(true);
 						tableColumnsSWT[i].setData("widthOffset", new Long(ofs));
@@ -1997,6 +1996,7 @@ public class TableViewSWTImpl
 					}
 				}
 			}
+			columnPaddingAdjusted = true;
 		}
 		if (DEBUGADDREMOVE)
 			debug("<< " + sortedRows.size());
