@@ -29,7 +29,6 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.eclipse.swt.SWT;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.platform.PlatformManager;
@@ -1099,7 +1098,7 @@ public class FileUtil {
 	    	
 	    	str = str.replace( '.', '/' ) + ".class";
 	    	
-	        URL url = SWT.class.getClassLoader().getResource( str );
+	        URL url = cla.getClassLoader().getResource( str );
 	        
 	        if ( url != null ){
 	        	
