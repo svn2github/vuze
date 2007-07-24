@@ -24,6 +24,7 @@ import java.io.File;
 import java.net.URL;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTError;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -81,7 +82,13 @@ public class SWTSkinObjectBrowser
 
 		cArea = parent == null ? skin.getShell() : (Composite) parent.getControl();
 
-		browser = new Browser(cArea, SWT.NONE);
+
+		try {
+			browser = new Browser(cArea, SWT.NONE);
+		} catch (SWTError e) {
+			System.err.println("Browser: " + e.toString());
+			return;
+		}
 
 		Control widgetIndicator = null;
 		String sIndicatorWidgetID = properties.getStringValue(sConfigID
