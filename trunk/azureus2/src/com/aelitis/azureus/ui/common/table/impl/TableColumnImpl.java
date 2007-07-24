@@ -144,7 +144,7 @@ public class TableColumnImpl
 		iConsecutiveErrCount = 0;
 		lLastSortValueChange = 0;
 		bVisible = true;
-		iMinWidth = 10;
+		iMinWidth = 16;
 		setPosition(POSITION_INVISIBLE);
 	}
 
@@ -158,7 +158,7 @@ public class TableColumnImpl
 		this.iAlignment = iAlignment;
 		setPosition(iPosition);
 		this.iWidth = iWidth;
-		this.iMinWidth = 10;
+		this.iMinWidth = 16;
 		this.iInterval = iInterval;
 	}
 
@@ -171,7 +171,7 @@ public class TableColumnImpl
 		this.iAlignment = iAlignment;
 		setPosition(iPosition);
 		this.iWidth = iWidth;
-		this.iMinWidth = 10;
+		this.iMinWidth = 16;
 	}
 
 	public String getName() {
@@ -226,7 +226,7 @@ public class TableColumnImpl
 		}
 	}
 
-	private void triggerColumnSizeChange() {
+	public void triggerColumnSizeChange() {
 		TableStructureEventDispatcher tsed = TableStructureEventDispatcher.getInstance(sTableID);
 		tsed.columnSizeChanged(this);
 		if (iType == TYPE_GRAPHIC) {

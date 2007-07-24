@@ -295,4 +295,6 @@ public interface TableColumnCore
 	 * @since 3.0.1.1
 	 */
 	boolean hasCellMouseMoveListener();
+
+	void triggerColumnSizeChange();
 }

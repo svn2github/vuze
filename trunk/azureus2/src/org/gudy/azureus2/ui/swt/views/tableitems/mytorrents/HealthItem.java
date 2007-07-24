@@ -47,7 +47,7 @@ public class HealthItem
        extends CoreTableColumn 
        implements TableCellAddedListener
 {
-	static final int COLUMN_WIDTH = 19;
+	static final int COLUMN_WIDTH = 16;
 	
 	static TRHost	tracker_host	= AzureusCoreFactory.getSingleton().getTrackerHost();
 	

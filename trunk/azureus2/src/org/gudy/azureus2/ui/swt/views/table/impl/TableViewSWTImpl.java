@@ -257,6 +257,8 @@ public class TableViewSWTImpl
 	private TableViewSWTPanelCreator mainPanelCreator;
 
 	private List listenersKey = new ArrayList();
+	
+	private boolean columnPaddingAdjusted = false;
 
 	/**
 	 * Main Initializer
@@ -1842,6 +1844,7 @@ public class TableViewSWTImpl
 
 		boolean bBrokeEarly = false;
 		boolean bReplacedVisible = false;
+		boolean bWas0Rows = table.getItemCount() == 0;
 		try {
 			dataSourceToRow_mon.enter();
 			sortedRows_mon.enter();
@@ -1976,6 +1979,24 @@ public class TableViewSWTImpl
 			lastBottomIndex = -1;
 			fillRowGaps(false);
 			visibleRowsChanged();
+		}
+
+		if (columnPaddingAdjusted && table.getItemCount() > 0 && bWas0Rows) {
+			TableColumn[] tableColumnsSWT = table.getColumns();
+			TableItem item = table.getItem(0);
+			for (int i = 0; i < tableColumnsSWT.length; i++) {
+				TableColumnCore tc = (TableColumnCore) tableColumnsSWT[i].getData("TableColumnCore");
+				if (tc != null) {
+					Rectangle bounds = item.getBounds(i);
+					int ofs = tc.getWidth() - bounds.width;
+					System.out.println(i + ";" + tc.getWidth() + ";" + bounds.width + ";;" + ofs);
+					if (ofs > 0) {
+						tableColumnsSWT[i].setResizable(true);
+						tableColumnsSWT[i].setData("widthOffset", new Long(ofs));
+						tc.triggerColumnSizeChange();
+					}
+				}
+			}
 		}
 		if (DEBUGADDREMOVE)
 			debug("<< " + sortedRows.size());
