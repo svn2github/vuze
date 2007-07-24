@@ -27,21 +27,35 @@ import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
 public class SpeedLimitConfidence
     implements Comparable
 {
-    public static final SpeedLimitConfidence NONE = new SpeedLimitConfidence("NONE",0, SpeedManagerLimitEstimate.RATING_UNKNOWN);
-    public static final SpeedLimitConfidence LOW = new SpeedLimitConfidence("LOW",1, SpeedManagerLimitEstimate.RATING_ESTIMATED);
-    public static final SpeedLimitConfidence MED = new SpeedLimitConfidence("MED",2, SpeedManagerLimitEstimate.RATING_CHOKE_ESTIMATED);
-    public static final SpeedLimitConfidence HIGH = new SpeedLimitConfidence("HIGH",3, SpeedManagerLimitEstimate.RATING_MEASURED_MIN);
-    public static final SpeedLimitConfidence ABSOLUTE = new SpeedLimitConfidence("ABSOLUTE",4, SpeedManagerLimitEstimate.RATING_MANUAL);
+    public static final SpeedLimitConfidence NONE = new SpeedLimitConfidence("NONE",0, SpeedManagerLimitEstimate.TYPE_UNKNOWN);
+    public static final SpeedLimitConfidence LOW = new SpeedLimitConfidence("LOW",1, SpeedManagerLimitEstimate.TYPE_ESTIMATED);
+    public static final SpeedLimitConfidence MED = new SpeedLimitConfidence("MED",2, SpeedManagerLimitEstimate.TYPE_CHOKE_ESTIMATED);
+    public static final SpeedLimitConfidence HIGH = new SpeedLimitConfidence("HIGH",3, SpeedManagerLimitEstimate.TYPE_MEASURED_MIN);
+    public static final SpeedLimitConfidence ABSOLUTE = new SpeedLimitConfidence("ABSOLUTE",4, SpeedManagerLimitEstimate.TYPE_MANUAL);
 
     private final String name;
     private final int order;
-    private final float rating;
+    private final float estimateType;
 
-    private SpeedLimitConfidence(String _name, int _order, float _speedLimitEstimateValue){
+    private SpeedLimitConfidence(String _name, int _order, float _speedLimitEstimateType){
         name = _name;
         order = _order;
-        rating = _speedLimitEstimateValue;
+        estimateType = _speedLimitEstimateType;
     }
+
+    public static SpeedLimitConfidence convertType( float type ){
+        if( type <= SpeedLimitConfidence.NONE.estimateType ){
+            return NONE;
+        }else if( type <= SpeedLimitConfidence.LOW.estimateType ){
+            return LOW;
+        }else if( type <= SpeedLimitConfidence.MED.estimateType ){
+            return MED;
+        }else if( type <= SpeedLimitConfidence.HIGH.estimateType ){
+            return HIGH;
+        }else{
+            return ABSOLUTE;
+        }
+    }//convertType
 
     /**
      * Turns a string into a SpeedLimitConfidence class.
@@ -70,8 +84,8 @@ public class SpeedLimitConfidence
         return retVal;
     }
 
-    public float asRating(){
-        return rating;
+    public float asEstimateType(){
+        return estimateType;
     }
 
     public String getString(){

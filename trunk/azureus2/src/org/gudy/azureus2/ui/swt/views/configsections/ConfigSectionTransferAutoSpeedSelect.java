@@ -1,7 +1,6 @@
 package org.gudy.azureus2.ui.swt.views.configsections;
 
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionTransferAutoSpeedBeta.RestoreDefaultsListener;
 import org.gudy.azureus2.ui.swt.views.stats.TransferStatsView;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -25,13 +24,11 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 
-import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerListener;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerImpl;
-import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProvider;
 import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedManagerAlgorithmProviderV2;
 
 
@@ -371,7 +368,7 @@ public class ConfigSectionTransferAutoSpeedSelect
 					
 					float metric = limit_to_text.textToMetric( max_upload_type.getValue());
 					
-					if ( metric == SpeedManagerLimitEstimate.RATING_UNKNOWN ){
+					if ( metric == SpeedManagerLimitEstimate.TYPE_UNKNOWN){
 						
 						return;
 					}
@@ -424,7 +421,7 @@ public class ConfigSectionTransferAutoSpeedSelect
 					
 					float metric = limit_to_text.textToMetric( max_download_type.getValue());
 					
-					if ( metric == SpeedManagerLimitEstimate.RATING_UNKNOWN ){
+					if ( metric == SpeedManagerLimitEstimate.TYPE_UNKNOWN){
 						
 						return;
 					}

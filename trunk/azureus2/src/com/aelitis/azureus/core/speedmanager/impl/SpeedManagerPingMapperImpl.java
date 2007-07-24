@@ -347,7 +347,7 @@ SpeedManagerPingMapperImpl
 		
 		byte[]	t_bytes = (byte[])m.get("t");
 		
-		double type = t_bytes==null?SpeedManagerLimitEstimate.RATING_ESTIMATED:Double.parseDouble( new String( t_bytes ));
+		double type = t_bytes==null?SpeedManagerLimitEstimate.TYPE_ESTIMATED :Double.parseDouble( new String( t_bytes ));
 		
 		return( new limitEstimate( speed, type, metric, hits, when, new int[0][] ));
 	}
@@ -405,7 +405,7 @@ SpeedManagerPingMapperImpl
 	protected limitEstimate
 	getNullLimit()
 	{
-		return( new limitEstimate( 0, SpeedManagerLimitEstimate.RATING_UNKNOWN, 0, 0, 0, new int[0][] ));
+		return( new limitEstimate( 0, SpeedManagerLimitEstimate.TYPE_UNKNOWN, 0, 0, 0, new int[0][] ));
 	}
 	
 	protected String
@@ -474,7 +474,7 @@ SpeedManagerPingMapperImpl
 		min_x *= SPEED_DIVISOR;
 		min_y *= SPEED_DIVISOR;
 				
-		if ( up_capacity.getEstimateType() < SpeedManagerLimitEstimate.RATING_MANUAL ){
+		if ( up_capacity.getEstimateType() < SpeedManagerLimitEstimate.TYPE_MANUAL){
 			
 			if ( min_x > up_capacity.getBytesPerSec()){
 				
@@ -482,13 +482,13 @@ SpeedManagerPingMapperImpl
 				
 				up_capacity.setMetricRating( 0 );
 				
-				up_capacity.setEstimateType( SpeedManagerLimitEstimate.RATING_ESTIMATED );
+				up_capacity.setEstimateType( SpeedManagerLimitEstimate.TYPE_ESTIMATED);
 				
 				speed_manager.informUpCapChanged();
 			}
 		}
 		
-		if ( down_capacity.getEstimateType() < SpeedManagerLimitEstimate.RATING_MANUAL ){
+		if ( down_capacity.getEstimateType() < SpeedManagerLimitEstimate.TYPE_MANUAL){
 			
 			if ( min_y > down_capacity.getBytesPerSec()){
 				
@@ -496,7 +496,7 @@ SpeedManagerPingMapperImpl
 				
 				down_capacity.setMetricRating( 0 );
 				
-				down_capacity.setEstimateType( SpeedManagerLimitEstimate.RATING_ESTIMATED );
+				down_capacity.setEstimateType( SpeedManagerLimitEstimate.TYPE_ESTIMATED);
 
 				speed_manager.informDownCapChanged();
 			}
@@ -899,7 +899,7 @@ SpeedManagerPingMapperImpl
 		limitEstimate	capacity,
 		LinkedList		bads )
 	{
-		if ( capacity.getEstimateType() == SpeedManagerLimitEstimate.RATING_MANUAL ){
+		if ( capacity.getEstimateType() == SpeedManagerLimitEstimate.TYPE_MANUAL){
 			
 			return;
 		}
@@ -983,7 +983,7 @@ SpeedManagerPingMapperImpl
 			
 			capacity.setBytesPerSec( average );
 			
-			capacity.setEstimateType( SpeedManagerLimitEstimate.RATING_CHOKE_ESTIMATED );
+			capacity.setEstimateType( SpeedManagerLimitEstimate.TYPE_CHOKE_ESTIMATED);
 
 				// remove the last 1/4 bad stats so we don't reconsider adjusting until more data collected
 			
@@ -1243,7 +1243,7 @@ SpeedManagerPingMapperImpl
 		limitEstimate result = 
 			new limitEstimate(
 					estimate_speed,
-					SpeedManagerLimitEstimate.RATING_ESTIMATED, 
+					SpeedManagerLimitEstimate.TYPE_ESTIMATED,
 					convertMetricToRating( estimate_var ),
 					estimate_hits, 
 					SystemTime.getCurrentTime(),
@@ -1315,8 +1315,8 @@ SpeedManagerPingMapperImpl
 	protected synchronized void
 	reset()
 	{
-		setEstimatedDownloadCapacityBytesPerSec( 0, SpeedManagerLimitEstimate.RATING_UNKNOWN );
-		setEstimatedUploadCapacityBytesPerSec( 0, SpeedManagerLimitEstimate.RATING_UNKNOWN );
+		setEstimatedDownloadCapacityBytesPerSec( 0, SpeedManagerLimitEstimate.TYPE_UNKNOWN);
+		setEstimatedUploadCapacityBytesPerSec( 0, SpeedManagerLimitEstimate.TYPE_UNKNOWN);
 		
 		ping_count	= 0;
 		regions.clear();

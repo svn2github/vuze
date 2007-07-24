@@ -260,7 +260,7 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
             sm.setEstimatedUploadCapacityBytesPerSec(
         			measuredUploadKbps*1024,
         			uploadHitLimit?
-        				SpeedManagerLimitEstimate.RATING_MEASURED_MIN:SpeedManagerLimitEstimate.RATING_MEASURED );
+        				SpeedManagerLimitEstimate.TYPE_MEASURED_MIN :SpeedManagerLimitEstimate.TYPE_MEASURED);
         }
 
         if ( downloadTestRan ){
@@ -268,7 +268,7 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
         	sm.setEstimatedDownloadCapacityBytesPerSec( 
         			measuredDownloadKbps*1024,
         			downloadHitLimit?
-        				SpeedManagerLimitEstimate.RATING_MEASURED_MIN:SpeedManagerLimitEstimate.RATING_MEASURED );
+        				SpeedManagerLimitEstimate.TYPE_MEASURED_MIN :SpeedManagerLimitEstimate.TYPE_MEASURED);
         }
 
         apply = new Button(panel, SWT.PUSH);

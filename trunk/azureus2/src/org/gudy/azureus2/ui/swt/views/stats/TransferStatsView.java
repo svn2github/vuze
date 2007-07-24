@@ -1087,23 +1087,23 @@ public class TransferStatsView extends AbstractIView {
 	  {
 		  if ( text.equals( msg_text_estimate )){
 			  
-			  return( SpeedManagerLimitEstimate.RATING_ESTIMATED );
+			  return( SpeedManagerLimitEstimate.TYPE_ESTIMATED);
 			  
 		  }else if ( text.equals( msg_text_choke_estimate )){
 			  
-			  return( SpeedManagerLimitEstimate.RATING_CHOKE_ESTIMATED );
+			  return( SpeedManagerLimitEstimate.TYPE_CHOKE_ESTIMATED);
 			  
 		  }else if ( text.equals( msg_text_measured )){
 			  
-			  return( SpeedManagerLimitEstimate.RATING_MEASURED );
+			  return( SpeedManagerLimitEstimate.TYPE_MEASURED);
 			  
 		  }else if ( text.equals( msg_text_manual )){
 			  
-			  return( SpeedManagerLimitEstimate.RATING_MANUAL );
+			  return( SpeedManagerLimitEstimate.TYPE_MANUAL);
 			  
 		  }else{
 			  
-			  return( SpeedManagerLimitEstimate.RATING_UNKNOWN );
+			  return( SpeedManagerLimitEstimate.TYPE_UNKNOWN);
 		  }
 	  }
 	  
@@ -1115,23 +1115,23 @@ public class TransferStatsView extends AbstractIView {
 
 		  double metric = limit.getEstimateType();
 
-		  if ( metric == SpeedManagerLimitEstimate.RATING_UNKNOWN){
+		  if ( metric == SpeedManagerLimitEstimate.TYPE_UNKNOWN){
 
 			  text = msg_text_unknown;
 			  
-		  }else if ( metric == SpeedManagerLimitEstimate.RATING_MANUAL ){
+		  }else if ( metric == SpeedManagerLimitEstimate.TYPE_MANUAL){
 
 			  text = msg_text_manual;
 
-		  }else if ( metric == SpeedManagerLimitEstimate.RATING_MEASURED ){
+		  }else if ( metric == SpeedManagerLimitEstimate.TYPE_MEASURED){
 
 			  text = msg_text_measured;
 
-		  }else if ( metric == SpeedManagerLimitEstimate.RATING_MEASURED_MIN ){
+		  }else if ( metric == SpeedManagerLimitEstimate.TYPE_MEASURED_MIN){
 
 			  text = msg_text_measured_min;
 
-		  }else if ( metric == SpeedManagerLimitEstimate.RATING_CHOKE_ESTIMATED ){
+		  }else if ( metric == SpeedManagerLimitEstimate.TYPE_CHOKE_ESTIMATED){
 
 			  text = msg_text_choke_estimate;
 

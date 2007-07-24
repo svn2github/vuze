@@ -205,14 +205,41 @@ public class SpeedLimitMonitor implements PSMonitorListener
 
         slider.setDownloadUnlimitedMode( readDownloadUnlimitedMode() );
 
-
-
     }//updateFromCOConfigManager
 
+    /**
+     * replaces - updateFromCOConfigManager()
+     */
+    public void updateFromCOConfigManagerEx(){
+        //get persistent mapper.
+        SpeedManager sm = AzureusCoreFactory.getSingleton().getSpeedManager();
+
+        //get upload estimate.
+        SpeedManagerLimitEstimate uEst = SMConst.filterEstimate(
+                                            sm.getEstimatedUploadCapacityBytesPerSec(),
+                                            SMConst.START_UPLOAD_RATE_MAX );
+
+        uploadLimitMax = uEst.getBytesPerSec();
+        uploadLimitMin = SMConst.calculateMinUpload( uploadLimitMax );
+
+        //get download estimate.
+        SpeedManagerLimitEstimate dEst = SMConst.filterEstimate(
+                                            sm.getEstimatedDownloadCapacityBytesPerSec(),
+                                            SMConst.START_DOWNLOAD_RATE_MAX );
+
+        downloadLimitMax = dEst.getBytesPerSec();
+        downloadLimitMin = SMConst.calculateMinDownload( downloadLimitMax );
+
+        uploadLimitConf = SpeedLimitConfidence.convertType( uEst.getEstimateType() );
+        downloadLimitConf = SpeedLimitConfidence.convertType( dEst.getEstimateType() );
+
+        percentUploadCapacityDownloadMode = (float)
+                    COConfigurationManager.getIntParameter(SpeedLimitMonitor.USED_UPLOAD_CAPACITY_DOWNLOAD_MODE, 60)/100.0f;        
+    }
 
     private void logPMData(int oRate, SpeedLimitConfidence oConf, int nRate, float nConf, String type){
 
-        SpeedManagerLogger.log("speed-limit-conf: "+type+" rate="+oRate+" conf="+oConf.getString()+"("+oConf.asRating()
+        SpeedManagerLogger.log("speed-limit-conf: "+type+" rate="+oRate+" conf="+oConf.getString()+"("+oConf.asEstimateType()
                 +") pm-rate="+nRate+" pm-conf="+nConf);
 
     }//logPMData
@@ -964,20 +991,20 @@ public class SpeedLimitMonitor implements PSMonitorListener
         }
 
         String reason="";
-        if(  type==SpeedManagerLimitEstimate.RATING_MANUAL ){
+        if(  type==SpeedManagerLimitEstimate.TYPE_MANUAL){
             chosenLimit = estBytesPerSec;
             reason="manual";
-        }else if( type==SpeedManagerLimitEstimate.RATING_UNKNOWN ){
+        }else if( type==SpeedManagerLimitEstimate.TYPE_UNKNOWN){
             chosenLimit = Math.max( estBytesPerSec, currMaxLimit );
             reason="unknown";
         }else{
             //select one with higher confidence.
-            if( estimate.getEstimateType()>=conf.asRating() ){
+            if( estimate.getEstimateType()>=conf.asEstimateType() ){
                 chosenLimit = estBytesPerSec;
-                reason="estimate greater "+estimate.getEstimateType()+"=>"+conf.asRating()+" "+conf.getString();
+                reason="estimate greater "+estimate.getEstimateType()+"=>"+conf.asEstimateType()+" "+conf.getString();
             }else{
                 chosenLimit = currMaxLimit;
-                reason="curr greater"+estimate.getEstimateType()+"<"+conf.asRating();
+                reason="curr greater"+estimate.getEstimateType()+"<"+conf.asEstimateType();
             }
         }
 
@@ -1360,7 +1387,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
         int bestLimit = choseBestLimit(estimate,downloadLimitMax,downloadLimitConf);
 
         SpeedManagerLogger.trace("notifyDownload downloadLimitMax="+downloadLimitMax
-                +" conf="+downloadLimitConf.getString()+" ("+downloadLimitConf.asRating()+")");
+                +" conf="+downloadLimitConf.getString()+" ("+downloadLimitConf.asEstimateType()+")");
         tempLogEstimate(estimate);
 
         if(downloadLimitMax!=bestLimit){

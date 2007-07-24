@@ -78,18 +78,23 @@ public class SMConst
      * Early in the search process the ping-mapper can give estimates that are too low due to
      * a lack of information. The starting upload and download limits is 60K/30K should not go
      * below the starting value a slow DSL lines should.
-     * @param downEst - download rate estimate.
+     * @param estimate - download rate estimate.
      * @param startValue - starting upload/download value.
      * @return -
      */
-    public static SpeedManagerLimitEstimate filterEstimate(SpeedManagerLimitEstimate downEst, int startValue){
+    public static SpeedManagerLimitEstimate filterEstimate(SpeedManagerLimitEstimate estimate, int startValue){
 
-        int estBytesPerSec = Math.max(downEst.getBytesPerSec(), startValue);
+        int estBytesPerSec = Math.max(estimate.getBytesPerSec(), startValue);
+
+        // Zero is unlimited. Don't filter that value.
+        if( estBytesPerSec==0 ){
+            return estimate;
+        }
 
         return new FilteredLimitEstimate(estBytesPerSec,
-                                        downEst.getEstimateType(),
-                                        downEst.getMetricRating(),
-                                        downEst.getString() );
+                                        estimate.getEstimateType(),
+                                        estimate.getMetricRating(),
+                                        estimate.getString() );
 
     }//filterDownEstimate
 
