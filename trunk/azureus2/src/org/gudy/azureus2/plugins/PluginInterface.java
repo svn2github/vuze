@@ -335,15 +335,7 @@ public interface PluginInterface {
   
   public boolean
   isBuiltIn();
-  
-  	/**
-  	 * @since 3017
-  	 * @return
-  	 */
-  
-  public boolean
-  isSigned();
-  
+    
   /**
    * gives access to the plugin config interface
    * @return the PluginConfig object associated with this plugin

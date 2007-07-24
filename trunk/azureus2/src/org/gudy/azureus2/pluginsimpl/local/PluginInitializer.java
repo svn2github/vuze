@@ -1122,9 +1122,7 @@ PluginInitializer
 				UtilitiesImpl.setPluginThreadContext( plugin_interface );
 				
   				plugin.initialize(plugin_interface);
-      	
-  				System.out.println( "Plugin " + plugin_interface.getPluginID() + " -> " + plugin_interface.isSigned());
-  				
+      	  				
   				if (!(plugin instanceof FailedPlugin)){
   					
   					plugin_interface.setOperational( true );

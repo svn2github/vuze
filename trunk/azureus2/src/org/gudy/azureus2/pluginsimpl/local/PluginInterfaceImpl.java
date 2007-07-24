@@ -98,8 +98,6 @@ PluginInterfaceImpl
   private String				plugin_version;
   private boolean				operational;
   private boolean				disabled;
-  private boolean				signing_checked;
-  private boolean				is_signed;
   private Logger				logger;
   private IPCInterface			ipc_interface;
   private List					children		= new ArrayList();
@@ -307,43 +305,6 @@ PluginInterfaceImpl
   		return( dir.length() == 0 || getPluginID().equals( "azupdater" ));
   }
   
-  	public boolean
-	isSigned()
-	{
-  		if ( isBuiltIn()){
-  			
-  			return( true );
-  		}
-  		
-  		if ( !signing_checked ){
-  		
-	  		try{
-	  		
-	  			File jar = FileUtil.getJarFileFromClass( plugin.getClass());
-	  			
-	  			if ( jar == null || !jar.exists()){
-	  				
-	  				return( false );
-	  			}
-	  			
-	  			try{
-	  				AEVerifier.verifyData( jar );
-	  				
-	  				is_signed = true;
-	  				
-	  			}catch( Throwable e ){
-	  				
-	  				return( false );
-	  			}
-	  		}finally{
-	  			
-	  			signing_checked = true;
-	  		}
-  		}
-  		
-		return( is_signed );
-	}
-  	
 	public void
 	setDisabled(
 		boolean	_disabled )
@@ -575,8 +536,6 @@ PluginInterfaceImpl
   	setOperational(false);
 
   	class_loader = null;
-  	
-  	signing_checked = false;
   }
   
   public void
@@ -606,7 +565,7 @@ PluginInterfaceImpl
 	 public ClientIDManager
 	 getClientIDManager()
 	 {
-	 	return( ClientIDManagerImpl.getManager( this ));
+	 	return( ClientIDManagerImpl.getSingleton());
 	 }
 	 
    
