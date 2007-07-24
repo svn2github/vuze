@@ -983,7 +983,7 @@ SpeedManagerPingMapperImpl
 			
 			capacity.setBytesPerSec( average );
 			
-			capacity.setEstimateType( SpeedManagerLimitEstimate.RATING_ESTIMATED );
+			capacity.setEstimateType( SpeedManagerLimitEstimate.RATING_CHOKE_ESTIMATED );
 
 				// remove the last 1/4 bad stats so we don't reconsider adjusting until more data collected
 			
