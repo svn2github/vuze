@@ -95,11 +95,13 @@ SpeedManagerPingMapperImpl
 	private LinkedList	last_bad_ups;
 	private LinkedList	last_bad_downs;
 	
+	private static final int BAD_PROGRESS_COUNTDOWN	= 5;
+	
 	private limitEstimate	last_bad_up;
-	private boolean			bad_up_in_progress;
+	private int				bad_up_in_progress_count;
 	
 	private limitEstimate	last_bad_down;
-	private boolean			bad_down_in_progress;
+	private int				bad_down_in_progress_count;
 
 	private limitEstimate	best_good_up;
 	private limitEstimate	best_good_down;
@@ -140,11 +142,11 @@ SpeedManagerPingMapperImpl
 		last_bad_ups		= new LinkedList();
 		last_bad_downs		= new LinkedList();
 		
-		last_bad_up				= null;
-		bad_up_in_progress		= false;
+		last_bad_up					= null;
+		bad_up_in_progress_count	= 0;
 		
-		last_bad_down			= null;
-		bad_down_in_progress	= false;
+		last_bad_down				= null;
+		bad_down_in_progress_count	= 0;
 		
 		best_good_up 	= null;
 		best_good_down	= null;
@@ -788,6 +790,8 @@ SpeedManagerPingMapperImpl
 	protected void
 	updateLimitEstimates()
 	{
+		double cm = getCurrentMetricRating();
+		
 		up_estimate 	= getEstimatedLimit( true );
 				
 		if ( up_estimate != null ){
@@ -796,7 +800,9 @@ SpeedManagerPingMapperImpl
 			
 			if ( metric == -1 ){
 			
-				if ( !bad_up_in_progress ){
+				if ( bad_up_in_progress_count == 0 ){
+					
+					bad_up_in_progress_count = BAD_PROGRESS_COUNTDOWN;
 					
 					last_bad_ups.addLast( up_estimate );
 					
@@ -807,9 +813,7 @@ SpeedManagerPingMapperImpl
 					
 					checkCapacityDecrease( true, up_capacity, last_bad_ups );
 				}
-				
-				bad_up_in_progress	= true;
-				
+								
 				last_bad_up = up_estimate;
 				
 			}else if ( metric == 1 ){
@@ -825,10 +829,18 @@ SpeedManagerPingMapperImpl
 						best_good_up = up_estimate;
 					}
 				}
+			}
+			
+			if ( cm == -1 ){ 
 				
-				bad_up_in_progress	= false;
+				bad_up_in_progress_count = MAX_BAD_LIMIT_HISTORY;
+				
+			}else if ( cm == 1 ){
+			
+				bad_up_in_progress_count--;
 			}
 		}
+	
 		
 		down_estimate 	= getEstimatedLimit( false );
 				
@@ -838,7 +850,7 @@ SpeedManagerPingMapperImpl
 			
 			if ( metric == -1 ){
 			
-				if ( !bad_down_in_progress ){
+				if ( bad_down_in_progress_count == 0 ){
 					
 					last_bad_downs.addLast( down_estimate );
 					
@@ -849,9 +861,7 @@ SpeedManagerPingMapperImpl
 					
 					checkCapacityDecrease( false, down_capacity, last_bad_downs );
 				}
-				
-				bad_down_in_progress	= true;
-				
+								
 				last_bad_down = down_estimate;
 				
 			}else if ( metric == 1 ){
@@ -867,9 +877,19 @@ SpeedManagerPingMapperImpl
 						best_good_down = down_estimate;
 					}
 				}
+			}
+			
+			if ( bad_down_in_progress_count > 0 ){
 				
-				bad_down_in_progress	= false;
-			}	
+				if ( cm == -1 ){ 
+			
+					bad_down_in_progress_count = MAX_BAD_LIMIT_HISTORY;
+					
+				}else if ( cm == 1 ){
+				
+					bad_down_in_progress_count--;
+				}
+			}
 		}
 	}
 	
@@ -963,6 +983,8 @@ SpeedManagerPingMapperImpl
 			
 			capacity.setBytesPerSec( average );
 			
+			capacity.setEstimateType( SpeedManagerLimitEstimate.RATING_ESTIMATED );
+
 				// remove the last 1/4 bad stats so we don't reconsider adjusting until more data collected
 			
 			for (int i=0;i<start;i++){

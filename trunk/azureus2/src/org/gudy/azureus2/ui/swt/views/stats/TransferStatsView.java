@@ -1052,6 +1052,7 @@ public class TransferStatsView extends AbstractIView {
   {
 	  String	msg_text_unknown;
 	  String	msg_text_estimate;
+	  String	msg_text_choke_estimate;
 	  String	msg_text_measured_min;
 	  String	msg_text_measured;
 	  String	msg_text_manual;
@@ -1062,11 +1063,12 @@ public class TransferStatsView extends AbstractIView {
 	  public
 	  limitToTextHelper()
 	  {
-		  msg_text_unknown		= MessageText.getString( "SpeedView.stats.unknown" );
-		  msg_text_estimate		= MessageText.getString( "SpeedView.stats.estimate" );
-		  msg_text_measured		= MessageText.getString( "SpeedView.stats.measured" );
-		  msg_text_measured_min	= MessageText.getString( "SpeedView.stats.measuredmin" );
-		  msg_text_manual		= MessageText.getString( "SpeedView.stats.manual" );
+		  msg_text_unknown			= MessageText.getString( "SpeedView.stats.unknown" );
+		  msg_text_estimate			= MessageText.getString( "SpeedView.stats.estimate" );
+		  msg_text_choke_estimate	= MessageText.getString( "SpeedView.stats.estimatechoke" );
+		  msg_text_measured			= MessageText.getString( "SpeedView.stats.measured" );
+		  msg_text_measured_min		= MessageText.getString( "SpeedView.stats.measuredmin" );
+		  msg_text_manual			= MessageText.getString( "SpeedView.stats.manual" );
 		  
 		  msg_unlimited			= MessageText.getString( "ConfigView.unlimited" );
 		  
@@ -1086,6 +1088,10 @@ public class TransferStatsView extends AbstractIView {
 		  if ( text.equals( msg_text_estimate )){
 			  
 			  return( SpeedManagerLimitEstimate.RATING_ESTIMATED );
+			  
+		  }else if ( text.equals( msg_text_choke_estimate )){
+			  
+			  return( SpeedManagerLimitEstimate.RATING_CHOKE_ESTIMATED );
 			  
 		  }else if ( text.equals( msg_text_measured )){
 			  
@@ -1124,6 +1130,10 @@ public class TransferStatsView extends AbstractIView {
 		  }else if ( metric == SpeedManagerLimitEstimate.RATING_MEASURED_MIN ){
 
 			  text = msg_text_measured_min;
+
+		  }else if ( metric == SpeedManagerLimitEstimate.RATING_CHOKE_ESTIMATED ){
+
+			  text = msg_text_choke_estimate;
 
 		  }else{
 
