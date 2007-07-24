@@ -39,7 +39,7 @@ public class ScriptBeforeStartup
 					+ "fi\n";
 			sysout.println(s);
 			log("setting LD_LIBRARY_PATH to: $LD_LIBRARY_PATH");
-			log("echo setting MOZILLA_FIVE_HOME to: $MOZILLA_FIVE_HOME");
+			log("setting MOZILLA_FIVE_HOME to: $MOZILLA_FIVE_HOME");
 		} else {
 			log("GRE/XULRunner automatically found");
 		}
