@@ -297,7 +297,14 @@ PluginInterfaceImpl
   public boolean
   isBuiltIn()
   {
-  	return( getPluginDirectoryName().length() == 0 || getPluginID().equals( "azupdater" ));
+	  String	dir = getPluginDirectoryName();
+	  
+	  if ( dir == null ){
+		  
+		  return( PluginInitializer.isLoadingBuiltin());
+	  }
+	  
+  		return( dir.length() == 0 || getPluginID().equals( "azupdater" ));
   }
   
   	public boolean
@@ -599,7 +606,7 @@ PluginInterfaceImpl
 	 public ClientIDManager
 	 getClientIDManager()
 	 {
-	 	return( ClientIDManagerImpl.getSingleton());
+	 	return( ClientIDManagerImpl.getManager( this ));
 	 }
 	 
    

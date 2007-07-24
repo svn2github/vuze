@@ -199,6 +199,8 @@ PluginInitializer
   
   private List		loaded_pi_list		= new ArrayList();
   
+  private static boolean	loading_builtin;
+  
   private List		plugins				= new ArrayList();
   private List		plugin_interfaces	= new ArrayList();
   
@@ -279,7 +281,11 @@ PluginInitializer
 	}  	
   }
   
- 
+  protected static boolean
+  isLoadingBuiltin()
+  {
+	  return( loading_builtin );
+  }
   
   protected 
   PluginInitializer(
@@ -374,6 +380,8 @@ PluginInitializer
   			if ( def.isDefaultPluginEnabled( builtin_plugins[i][0])){
     		
   				try{
+  					loading_builtin	= true;
+  					
   						// lazyness here, for builtin we use static load method with default plugin interface
   						// if we need to improve on this then we'll have to move to a system more akin to
   						// the dir-loaded plugins
@@ -397,6 +405,9 @@ PluginInitializer
 						Logger.log(new LogAlert(LogAlert.UNREPEATABLE,
 								"Load of built in plugin '" + builtin_plugins[i][2] + "' fails", e));
 					}
+  				}finally{
+  					
+  					loading_builtin = false;
   				}
   			}else{
   				if (Logger.isEnabled())
@@ -1112,6 +1123,8 @@ PluginInitializer
 				
   				plugin.initialize(plugin_interface);
       	
+  				System.out.println( "Plugin " + plugin_interface.getPluginID() + " -> " + plugin_interface.isSigned());
+  				
   				if (!(plugin instanceof FailedPlugin)){
   					
   					plugin_interface.setOperational( true );

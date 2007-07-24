@@ -40,10 +40,14 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.ThreadPool;
 import org.gudy.azureus2.core3.util.ThreadPoolTask;
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.clientid.ClientIDException;
 import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
 import org.gudy.azureus2.plugins.clientid.ClientIDManager;
+import org.gudy.azureus2.pluginsimpl.PluginUtils;
+import org.gudy.azureus2.pluginsimpl.local.PluginInterfaceImpl;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
+import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 
@@ -69,6 +73,31 @@ ClientIDManagerImpl
 		return( singleton );
 	}
 
+	public static ClientIDManager
+	getManager(
+		final PluginInterface		pi )
+	{
+		return(
+			new ClientIDManager()
+			{
+				public void
+				setGenerator(
+					ClientIDGenerator	generator,
+					boolean				use_http_filter )
+				{
+					UtilitiesImpl.setPluginThreadContext( pi );
+					
+					getSingleton().setGenerator(generator, use_http_filter);
+				}
+				
+				public ClientIDGenerator
+				getGenerator()
+				{
+					return( getSingleton().getGenerator());
+				}
+			});
+	}
+	
 	private ClientIDGenerator		generator;
 	private boolean					use_filter;
 	private boolean					filter_override;
@@ -81,6 +110,13 @@ ClientIDManagerImpl
 		ClientIDGenerator	_generator,
 		boolean				_use_filter )
 	{
+		PluginInterface pi = UtilitiesImpl.getPluginThreadContext();
+		
+		if ( pi == null || !pi.isSigned()){
+			
+			throw( new RuntimeException( "Plugin must be signed" ));
+		}
+		
 		generator	= _generator;
 		use_filter	= _use_filter;
 		
