@@ -413,8 +413,6 @@ public class MainWindow
 
 		shell = new Shell(display, SWT.SHELL_TRIM);
 		
-		Utils.verifyBrowserAvailable(shell);
-		
 		try {
   		shell.setData("class", this);
   		shell.setText("Azureus");
