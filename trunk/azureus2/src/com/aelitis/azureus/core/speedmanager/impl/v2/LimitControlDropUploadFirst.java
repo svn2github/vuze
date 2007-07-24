@@ -114,9 +114,7 @@ public class LimitControlDropUploadFirst implements LimitControl
             }else{
                 //only increase upload if used.
                 if( upUsage==SaturatedMode.AT_LIMIT ){
-                    valueUp = calculateNewValue(valueUp,gamma*factor);
-                }else{
-                    SpeedManagerLogger.trace("LimitControlDropUploadFirst not increasing limit, since not AT_LIMIT.");
+                    valueUp = calculateNewValue(valueUp,gamma*0.5f*factor);
                 }
             }
         }else{

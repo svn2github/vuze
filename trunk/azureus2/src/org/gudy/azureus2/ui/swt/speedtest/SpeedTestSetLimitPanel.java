@@ -254,8 +254,10 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
         SpeedManager sm = AzureusCoreFactory.getSingleton().getSpeedManager();
 
         if ( uploadTestRan ){
-        	
-        	sm.setEstimatedUploadCapacityBytesPerSec( 
+
+            //ToDo: cable modem might over-estimate speed. Might need to drop result accordingly.
+
+            sm.setEstimatedUploadCapacityBytesPerSec(
         			measuredUploadKbps*1024,
         			uploadHitLimit?
         				SpeedManagerLimitEstimate.RATING_MEASURED_MIN:SpeedManagerLimitEstimate.RATING_MEASURED );
@@ -358,7 +360,10 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
     }//show
 
     /**
-     * Set the default Confidence setting to high, unless the value is close to 500 KBytes/sec.
+     * Set the default Confidence setting to medium, unless the value is close to 500 KBytes/sec.
+     *
+     * Note: This had to drop confidence down to medium, since upload rates can be over-estimated.
+     *
      * In this case it is very possible that the real limit is higher.
      * @param transferRateKBPS - in kBytes/sec
      * @param paramName - configuration param to set.
@@ -392,9 +397,9 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
             return SpeedLimitConfidence.LOW.getString();
         }
 
-        //In all other cases set to HIGH.
-        COConfigurationManager.setParameter( paramName, SpeedLimitConfidence.HIGH.getString() );
-        return SpeedLimitConfidence.HIGH.getString();
+        //In all other cases set to MED. This will allow for lowering of the limits if a chocking ping is found.
+        COConfigurationManager.setParameter( paramName, SpeedLimitConfidence.MED.getString() );
+        return SpeedLimitConfidence.MED.getString();
     }
 
     /**

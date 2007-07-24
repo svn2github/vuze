@@ -260,6 +260,10 @@ public class SpeedManagerAlgorithmProviderDHTPing
 
     public void calculate(SpeedManagerPingSource[] sources) {
 
+        
+        limitMonitor.logPMDataEx();
+
+
         //Get new data to ping-source-manager.
         int len = sources.length;
         for(int i=0; i<len; i++){

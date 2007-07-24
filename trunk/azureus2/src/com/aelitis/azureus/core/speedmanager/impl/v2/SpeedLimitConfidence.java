@@ -29,8 +29,8 @@ public class SpeedLimitConfidence
 {
     public static final SpeedLimitConfidence NONE = new SpeedLimitConfidence("NONE",0, SpeedManagerLimitEstimate.RATING_UNKNOWN);
     public static final SpeedLimitConfidence LOW = new SpeedLimitConfidence("LOW",1, SpeedManagerLimitEstimate.RATING_ESTIMATED);
-    public static final SpeedLimitConfidence MED = new SpeedLimitConfidence("MED",2, SpeedManagerLimitEstimate.RATING_MEASURED_MIN);
-    public static final SpeedLimitConfidence HIGH = new SpeedLimitConfidence("HIGH",3, SpeedManagerLimitEstimate.RATING_MEASURED);
+    public static final SpeedLimitConfidence MED = new SpeedLimitConfidence("MED",2, SpeedManagerLimitEstimate.RATING_CHOKE_ESTIMATED);
+    public static final SpeedLimitConfidence HIGH = new SpeedLimitConfidence("HIGH",3, SpeedManagerLimitEstimate.RATING_MEASURED_MIN);
     public static final SpeedLimitConfidence ABSOLUTE = new SpeedLimitConfidence("ABSOLUTE",4, SpeedManagerLimitEstimate.RATING_MANUAL);
 
     private final String name;

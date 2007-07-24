@@ -1,5 +1,7 @@
 package com.aelitis.azureus.core.speedmanager.impl.v2;
 
+import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
+
 /**
  * Created on Jul 18, 2007
  * Created by Alan Snyder
@@ -71,5 +73,59 @@ public class SMConst
         int min = maxBytesPerSec/10;
         return checkForMinDownloadValue( min );
     }
+
+        /**
+     * Early in the search process the ping-mapper can give estimates that are too low due to
+     * a lack of information. The starting upload and download limits is 60K/30K should not go
+     * below the starting value a slow DSL lines should.
+     * @param downEst - download rate estimate.
+     * @param startValue - starting upload/download value.
+     * @return -
+     */
+    public static SpeedManagerLimitEstimate filterEstimate(SpeedManagerLimitEstimate downEst, int startValue){
+
+        int estBytesPerSec = Math.max(downEst.getBytesPerSec(), startValue);
+
+        return new FilteredLimitEstimate(estBytesPerSec,
+                                        downEst.getEstimateType(),
+                                        downEst.getMetricRating(),
+                                        downEst.getString() );
+
+    }//filterDownEstimate
+
+    static class FilteredLimitEstimate implements SpeedManagerLimitEstimate
+    {
+        int bytesPerSec;
+        float type;
+        float metric;
+        String name;
+
+        public FilteredLimitEstimate(int _bytesPerSec, float _type, float _metric, String _name){
+            bytesPerSec = _bytesPerSec;
+            type = _type;
+            metric = _metric;
+            name = _name;
+        }
+
+        public int getBytesPerSec() {
+            return bytesPerSec;
+        }
+
+        public float getEstimateType() {
+        	return type;
+        }
+        public float getMetricRating() {
+            return metric;
+        }
+
+        public int[][] getSegments() {
+            return new int[0][];
+        }
+
+        public String getString() {
+            return name;
+        }
+    }//static class
+    
 
 }
