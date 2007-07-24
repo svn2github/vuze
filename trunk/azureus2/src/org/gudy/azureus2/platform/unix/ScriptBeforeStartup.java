@@ -2,6 +2,8 @@ package org.gudy.azureus2.platform.unix;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -9,25 +11,44 @@ import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 
 public class ScriptBeforeStartup
 {
+	private static PrintStream sysout;
+
+	private static Object display;
+
 	public static void main(String[] args) {
+		// Since stdout will be is a shell script, redirect any stdout not coming
+		// from us to stderr 
+		sysout = System.out;
+		try {
+			System.setOut(new PrintStream("/dev/stderr"));
+		} catch (FileNotFoundException e) {
+		}
+
 		String moz = getNewGreDir();
 
 		if (moz != null) {
-			System.out.println("export MOZILLA_FIVE_HOME=\"" + moz + "\"\n"
+			String s = "export MOZILLA_FIVE_HOME=\"" + moz + "\"\n"
 					+ "if [ \"$LD_LIBRARY_PATH x\" = \" x\" ] ; then\n"
 					+ "	export LD_LIBRARY_PATH=$MOZILLA_FIVE_HOME;\n" + "else\n"
 					+ "	export LD_LIBRARY_PATH=$MOZILLA_FIVE_HOME:$LD_LIBRARY_PATH\n"
-					+ "fi\n");
+					+ "fi\n";
+			sysout.println(s);
+			log("setting LD_LIBRARY_PATH to: $LD_LIBRARY_PATH");
+			log("echo setting MOZILLA_FIVE_HOME to: $MOZILLA_FIVE_HOME");
 		} else {
 			log("GRE/XULRunner automatically found");
 		}
 	}
 
 	public static String getNewGreDir() {
+		// TODO: Store last successful dir somewhere and check that first
+		//       COConfigurationManager probably a bad idea, since that may load
+		//       Logger and who knows what other libraries
 		String grePath = null;
 		final String[] confList = {
 			"/etc/gre64.conf",
@@ -42,7 +63,7 @@ public class ScriptBeforeStartup
 			return null;
 		}
 
-		log("Auto-scanning for GRE/XULRunner.  You can skip this by setting MOZILLA_FIVE_HOME to your GRE path.");
+		log("Auto-scanning for GRE/XULRunner.  You can skip this by appending the GRE path to LD_LIBRARY_PATH and setting MOZILLA_FIVE_HOME.");
 		try {
 			Pattern pat = Pattern.compile("GRE_PATH=(.*)", Pattern.CASE_INSENSITIVE);
 			for (int i = 0; i < confList.length; i++) {
@@ -115,17 +136,18 @@ public class ScriptBeforeStartup
 			}
 
 			if (grePath != null) {
-				log("GRE found at " + grePath
-						+ ".  If this is incorrect, you should set MOZILLA_FIVE_HOME.");
+				log("GRE found at " + grePath + ".");
 				System.setProperty("org.eclipse.swt.browser.XULRunnerPath", grePath);
 			}
-		} catch (Throwable t2) {
-			//t2.printStackTrace();
+		} catch (Throwable t) {
+			log("Error trying to find suitable GRE: "
+					+ Debug.getNestedExceptionMessage(t));
 			grePath = null;
 		}
 
 		if (!canOpenBrowser()) {
-			log("Can't create browser.");
+			log("Can't create browser.  Will try to set LD_LIBRARY_PATH and hope "
+					+ " Azureus has better luck.");
 		}
 
 		return grePath;
@@ -134,8 +156,9 @@ public class ScriptBeforeStartup
 	private static boolean canOpenBrowser() {
 		try {
 			Class claDisplay = Class.forName("org.eclipse.swt.widgets.Display");
-			Object display = claDisplay.newInstance();
-
+			if (display != null) {
+				display = claDisplay.newInstance();
+			}
 			Class claShell = Class.forName("org.eclipse.swt.widgets.Shell");
 			Constructor shellConstruct = claShell.getConstructor(new Class[] {
 				claDisplay,
@@ -163,10 +186,12 @@ public class ScriptBeforeStartup
 					break;
 				}
 			}
+			Method methDisposeShell = claShell.getMethod("dispose", new Class[] {});
+			methDisposeShell.invoke(shell, new Object[] {});
 
 			return true;
 		} catch (Throwable e) {
-			e.printStackTrace();
+			log("Browser check failed with: " + Debug.getNestedExceptionMessage(e));
 			return false;
 		}
 
@@ -178,13 +203,13 @@ public class ScriptBeforeStartup
 		}
 		if (new File(dir, "components/libwidget_gtk.so").exists()
 				|| new File(dir, "libwidget_gtk.so").exists()) {
-			log("Can not use GRE from " + dir
+			log("	Can not use GRE from " + dir
 					+ " as it's too old (GTK2 version required).");
 			return false;
 		}
 		if (!new File(dir, "components/libwidget_gtk2.so").exists()
 				&& !new File(dir, "libwidget_gtk2.so").exists()) {
-			log("Can not use GRE from " + dir
+			log("	Can not use GRE from " + dir
 					+ " because it's missing components/libwidget_gtk2.so.");
 			return false;
 		}
@@ -192,6 +217,6 @@ public class ScriptBeforeStartup
 	}
 
 	private static void log(String string) {
-		System.out.println("echo \"" + string.replaceAll("\"", "\\\"") + "\"");
+		sysout.println("echo \"" + string.replaceAll("\"", "\\\"") + "\"");
 	}
 }
