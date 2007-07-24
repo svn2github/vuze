@@ -416,6 +416,14 @@ RPPluginInterface
 		return( false );
 	}
     
+    public boolean
+	isSigned()
+	{
+		notSupported();
+		
+		return( false );
+	}
+    
     public boolean isOperational()
 	{
 		notSupported();
