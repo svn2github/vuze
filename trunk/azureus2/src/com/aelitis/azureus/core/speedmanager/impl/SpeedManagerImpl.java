@@ -611,7 +611,10 @@ SpeedManagerImpl
 				perform(
 					TimerEvent	event )
 				{
-					provider.updateStats();
+					if ( enabled ){
+					
+						provider.updateStats();
+					}
 				}
 			});
 	}
