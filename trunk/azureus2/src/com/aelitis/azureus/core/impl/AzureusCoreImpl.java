@@ -563,6 +563,12 @@ AzureusCoreImpl
 	   NetworkAdmin.getSingleton().runInitialChecks();
 	}
 	
+	public boolean
+	isStarted()
+	{
+		return( started );
+	}
+	
 	public void triggerLifeCycleComponentCreated(AzureusCoreComponent component) {
 		for (int i = 0; i < lifecycle_listeners.size(); i++) {
 

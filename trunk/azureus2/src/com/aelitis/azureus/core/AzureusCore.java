@@ -47,6 +47,9 @@ AzureusCore
 	
 		throws AzureusCoreException;
 	
+	public boolean
+	isStarted();
+	
 		/**
 		 * stop the core and inform lifecycle listeners of stopping
 		 * @throws AzureusCoreException
