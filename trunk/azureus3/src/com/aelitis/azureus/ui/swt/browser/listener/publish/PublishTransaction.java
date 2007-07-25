@@ -243,6 +243,7 @@ public class PublishTransaction extends Transaction
             Torrent torrent = pluginInterface.getTorrentManager().createFromBEncodedData(torrent_data);
            
             torrent.setDefaultEncoding();
+            torrent.setComplete(dataFile);
 
             final Download download = pluginInterface.getDownloadManager().addDownload(torrent, null, dataFile );
             
