@@ -254,6 +254,7 @@ public class AdManager
 	}
 
 	protected void spyOnYou(Map values) {
+		final String PREFIX = "Yum";
 		try {
 			String spyID = (String) values.get("impressionTracker");
 			if (spyID == null || spyID.equals(lastSpyID)) {
@@ -271,6 +272,8 @@ public class AdManager
 				PlatformAdManager.debug("No Content Hash!");
 				return;
 			}
+			
+			String adID = (String) values.get(PREFIX +"eURI");
 
 			PlatformAdManager.debug("spy " + spyID + " commencing on " + contentHash);
 
@@ -287,7 +290,7 @@ public class AdManager
 			}
 
 			PlatformAdManager.storeImpresssion(spyID, SystemTime.getCurrentTime(),
-					contentHash, 5000);
+					contentHash, adHash, adID, 5000);
 
 		} catch (Exception e) {
 			Debug.out(e);

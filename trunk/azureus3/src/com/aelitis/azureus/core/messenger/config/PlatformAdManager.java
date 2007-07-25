@@ -229,7 +229,7 @@ public class PlatformAdManager
 	}
 
 	public static void storeImpresssion(String trackingID, long viewedOn,
-			String contentHash, long maxDelayMS) {
+			String contentHash, String adHash, String adID, long maxDelayMS) {
 		// pass in contentHash instead of DownloadManager in case the user removed
 		// the DM (and we are retrying)
 		try {
@@ -238,6 +238,12 @@ public class PlatformAdManager
 			ad.put("tracking-id", trackingID);
 			ad.put("viewed-on", new Long(viewedOn));
 			ad.put("content-hash", contentHash);
+			if (adHash != null) {
+				ad.put("hash", adHash);
+			}
+			if (adID != null) {
+				ad.put("id", adID);
+			}
 
 			try {
 				mon_unsentImpressions.enter();
