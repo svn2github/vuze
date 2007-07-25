@@ -802,16 +802,22 @@ SpeedManagerPingMapperImpl
 			
 				if ( bad_up_in_progress_count == 0 ){
 					
-					bad_up_in_progress_count = BAD_PROGRESS_COUNTDOWN;
+						// don't count the duplicates we naturally get when sitting here with a bad limit
+						// and nothing going on to change this situation
 					
-					last_bad_ups.addLast( up_estimate );
-					
-					if ( last_bad_ups.size() > MAX_BAD_LIMIT_HISTORY ){
+					if ( last_bad_up == null || last_bad_up.getBytesPerSec() != up_estimate.getBytesPerSec()){
 						
-						last_bad_ups.removeFirst();
+						bad_up_in_progress_count = BAD_PROGRESS_COUNTDOWN;
+						
+						last_bad_ups.addLast( up_estimate );
+						
+						if ( last_bad_ups.size() > MAX_BAD_LIMIT_HISTORY ){
+							
+							last_bad_ups.removeFirst();
+						}
+						
+						checkCapacityDecrease( true, up_capacity, last_bad_ups );
 					}
-					
-					checkCapacityDecrease( true, up_capacity, last_bad_ups );
 				}
 								
 				last_bad_up = up_estimate;
@@ -852,14 +858,17 @@ SpeedManagerPingMapperImpl
 			
 				if ( bad_down_in_progress_count == 0 ){
 					
-					last_bad_downs.addLast( down_estimate );
-					
-					if ( last_bad_downs.size() > MAX_BAD_LIMIT_HISTORY ){
+					if ( last_bad_down == null || last_bad_down.getBytesPerSec() != down_estimate.getBytesPerSec()){
+
+						last_bad_downs.addLast( down_estimate );
 						
-						last_bad_downs.removeFirst();
+						if ( last_bad_downs.size() > MAX_BAD_LIMIT_HISTORY ){
+							
+							last_bad_downs.removeFirst();
+						}
+						
+						checkCapacityDecrease( false, down_capacity, last_bad_downs );
 					}
-					
-					checkCapacityDecrease( false, down_capacity, last_bad_downs );
 				}
 								
 				last_bad_down = down_estimate;
