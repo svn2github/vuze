@@ -28,6 +28,8 @@ import org.gudy.azureus2.platform.win32.PlatformManagerUpdateChecker;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.update.UpdatableComponent;
+import org.gudy.azureus2.plugins.update.UpdateChecker;
 
 /**
  * @author TuxPaper
@@ -35,7 +37,7 @@ import org.gudy.azureus2.plugins.PluginInterface;
  *
  */
 public class PlatformManagerPluginDelegate
-	implements Plugin
+	implements Plugin, UpdatableComponent	// we have to implement this as it used as a mixin to declare that this plugin handles its own update process
 {
 	// @see org.gudy.azureus2.plugins.Plugin#initialize(org.gudy.azureus2.plugins.PluginInterface)
 	public void initialize(PluginInterface pluginInterface)
@@ -56,5 +58,24 @@ public class PlatformManagerPluginDelegate
 			pluginProperties.setProperty("plugin.version.info",
 					"Not required for this platform");
 		}
+	}
+	
+	public String
+	getName()
+	{
+		return( "Mixin only" );
+	}
+	
+	
+	public int
+	getMaximumCheckTime()
+	{
+		return( 0 );
+	}
+	
+	public void
+	checkForUpdate(
+		UpdateChecker	checker )
+	{
 	}
 }
