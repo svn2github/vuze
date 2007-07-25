@@ -64,7 +64,7 @@ public class AdManager
 
 	private List adSupportedDMList = new ArrayList();
 
-	private Object lastSpyID;
+	private Object lastImpressionID;
 
 	public void intialize(final AzureusCore core) {
 		this.core = core;
@@ -76,7 +76,7 @@ public class AdManager
 				}
 
 				if (name.equals("adtracker")) {
-					spyOnYou(values);
+					processImpression(values);
 					return true;
 				}
 
@@ -253,14 +253,14 @@ public class AdManager
 		thread.run();
 	}
 
-	protected void spyOnYou(Map values) {
+	protected void processImpression(Map values) {
 		final String PREFIX = "Yum";
 		try {
-			String spyID = (String) values.get("impressionTracker");
-			if (spyID == null || spyID.equals(lastSpyID)) {
+			String impressionID = (String) values.get("impressionTracker");
+			if (impressionID == null || impressionID.equals(lastImpressionID)) {
 				return;
 			}
-			lastSpyID = spyID;
+			lastImpressionID = impressionID;
 
 			String adHash = (String) values.get("srcURL");
 			if (adHash == null) {
@@ -275,7 +275,7 @@ public class AdManager
 			
 			String adID = (String) values.get(PREFIX +"eURI");
 
-			PlatformAdManager.debug("spy " + spyID + " commencing on " + contentHash);
+			PlatformAdManager.debug("imp " + impressionID + " commencing on " + contentHash);
 
 			DownloadManager dm = core.getGlobalManager().getDownloadManager(
 					new HashWrapper(Base32.decode(adHash)));
@@ -289,7 +289,7 @@ public class AdManager
 				dmContent.setData("LastASX", null);
 			}
 
-			PlatformAdManager.storeImpresssion(spyID, SystemTime.getCurrentTime(),
+			PlatformAdManager.storeImpresssion(impressionID, SystemTime.getCurrentTime(),
 					contentHash, adHash, adID, 5000);
 
 		} catch (Exception e) {
