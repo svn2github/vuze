@@ -1082,7 +1082,7 @@ SpeedManagerPingMapperImpl
 					// the existing data and this is more relevant and replaces any feel good
 					// factor we might have accumulated via prior observations
 				
-				if ( this_var_type == VARIANCE_BAD_VALUE && worst_var_type[j] < this_var_type ){
+				if ( this_var_type == VARIANCE_BAD_VALUE && worst_var_type[j] <= this_var_type ){
 					
 					totals[j]	= 0;
 					hits[j]		= 0;
