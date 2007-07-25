@@ -22,6 +22,7 @@ package com.aelitis.azureus.core.peermanager.utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import org.gudy.azureus2.core3.internat.MessageText;
 
 public class BTPeerIDByteDecoderDefinitions {
 
@@ -138,7 +139,7 @@ public class BTPeerIDByteDecoderDefinitions {
 			return null;
 		}
 	}
-	
+
 	public static ClientData getSubstringStyleClient(String peer_id) {
 		ClientData cd = null;
 		for (int i=0; i<custom_style_client_list.size(); i++) {
@@ -174,6 +175,19 @@ public class BTPeerIDByteDecoderDefinitions {
 			BTPeerIDByteDecoder.logUnknownClient(peer_id);
 			return null;
 		}
+	}
+	
+	public static String formatUnknownAzStyleClient(String peer_id) {
+		String version_string = peer_id.substring(3, 7);
+		try {
+		    version_string = BTPeerIDByteDecoderUtils.decodeAzStyleVersionNumber(
+		    		version_string, VER_AZ_FOUR_DIGITS);
+		}
+		catch (Exception e) {/* Just use the unformatted string */}
+
+		return MessageText.getString("PeerSocket.unknown_az_style", new String[] {
+		    peer_id.substring(1, 3), version_string
+		});
 	}
 	
 	

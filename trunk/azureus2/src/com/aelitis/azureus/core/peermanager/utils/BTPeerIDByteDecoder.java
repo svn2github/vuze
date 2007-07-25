@@ -55,13 +55,18 @@ public class BTPeerIDByteDecoder {
 		}
 		log.write("\n");
 	}
+	
+	private static boolean client_logging_allowed = true;
 
-	static void logUnknownClient(byte[] peer_id_bytes) {
+	static void logUnknownClient(byte[] peer_id_bytes) {logUnknownClient(peer_id_bytes, true);}
+	static void logUnknownClient(byte[] peer_id_bytes, boolean to_debug_out) {
+		
+		if (!client_logging_allowed) {return;}
 		
 		// Enable this block for now - just until we get more feedback about
 		// unknown clients.
-		if (Constants.isCVSVersion()) {
-			Debug.outNoStack("Unable to decode peer correctly - peer ID bytes: " + ByteFormatter.encodeString(peer_id_bytes));
+		if (to_debug_out && Constants.isCVSVersion()) {
+			Debug.outNoStack("Unable to decode peer correctly - peer ID bytes: " + makePeerIDReadableAndUsable(peer_id_bytes));
 		}
 		
 		if (!LOG_UNKNOWN) {return;}
@@ -86,6 +91,11 @@ public class BTPeerIDByteDecoder {
 	}
 
 	public static String decode0(byte[] peer_id_bytes) {
+
+		final String UNKNOWN = MessageText.getString("PeerSocket.unknown");
+		final String FAKE = MessageText.getString("PeerSocket.fake_client");
+		final String BAD_PEER_ID = MessageText.getString("PeerSocket.bad_peer_id");
+		
 		String peer_id = null;
 		try {peer_id = new String(peer_id_bytes, Constants.BYTE_ENCODING);}
 		catch (UnsupportedEncodingException uee) {return "";}
@@ -102,7 +112,7 @@ public class BTPeerIDByteDecoder {
 			if (client != null) {return client;}
 			client = decodeBitCometClient(peer_id, peer_id_bytes);
 			if (client != null) {return client;}
-			return "BitSpirit (bad peer ID)";
+			return "BitSpirit (" + BAD_PEER_ID + ")";
 		}
 
 		/**
@@ -112,9 +122,22 @@ public class BTPeerIDByteDecoder {
 			client = BTPeerIDByteDecoderDefinitions.getAzStyleClientName(peer_id);
 			if (client != null) {
 				String client_with_version = BTPeerIDByteDecoderDefinitions.getAzStyleClientVersion(client, peer_id);
+
+				/**
+				 * Hack for fake ZipTorrent clients - there seems to be some clients
+				 * which use the same identifier, but they aren't valid ZipTorrent clients.
+				 */ 
+				if (client.startsWith("ZipTorrent") && peer_id.startsWith("bLAde", 8)) {
+					String client_name = (client_with_version == null) ? client : client_with_version; 
+					return UNKNOWN + " [" + FAKE  + ": " + client_name + "]";
+				}
+
+				
 				if (client_with_version != null) {return client_with_version;}
+				
 				return client;
 			}
+		
 		}
 
 		/**
@@ -178,10 +201,21 @@ public class BTPeerIDByteDecoder {
 		try {client = decode0(peer_id);}
 		catch (Throwable e) {Debug.printStackTrace(e);}
 
+		String peer_id_as_string = null;
+		try {peer_id_as_string = new String(peer_id, Constants.BYTE_ENCODING);}
+		catch (UnsupportedEncodingException uee) {return "";}
+		
+		boolean is_az_style = BTPeerIDByteDecoderUtils.isAzStyle(peer_id_as_string);
+		
 		if (client != null) {return client;}
-		logUnknownClient(peer_id);
+		logUnknownClient(peer_id, !is_az_style);
+
+		if (is_az_style) {
+			return BTPeerIDByteDecoderDefinitions.formatUnknownAzStyleClient(peer_id_as_string);
+		}
+		
 		String sPeerID = getPrintablePeerID(peer_id);
-		return MessageText.getString("PeerSocket.unknown") + "[" + sPeerID + "]";
+		return MessageText.getString("PeerSocket.unknown") + " [" + sPeerID + "]";
 	}
 
 	public static String identifyAwkwardClient(byte[] peer_id) { 
@@ -265,7 +299,7 @@ public class BTPeerIDByteDecoder {
 	}
 
 
-	protected static String getPrintablePeerID(  	byte[]		peer_id)
+	protected static String getPrintablePeerID(byte[] peer_id)
 	{
 		String	sPeerID = "";
 		byte[] peerID = new byte[ peer_id.length ];
@@ -284,6 +318,22 @@ public class BTPeerIDByteDecoder {
 
 		return( sPeerID );
 	}
+	
+	private static String makePeerIDReadableAndUsable(byte[] peer_id) {
+		boolean as_ascii = true;
+		for (int i=0; i<peer_id.length; i++) {
+			int b = 0xFF & peer_id[i];
+			if (b < 32 || b > 127 || b == 10 || b == 9 || b==13) {
+				as_ascii = false;
+				break;
+			}
+		}
+		if (as_ascii) {
+			try {return new String(peer_id, Constants.BYTE_ENCODING);}
+			catch (UnsupportedEncodingException uee) {return "";}
+		}
+		else {return ByteFormatter.encodeString(peer_id);}
+	}
 
 	private static void assertDecode(String client_result, String peer_id) throws Exception {
 		if (peer_id.length() > 40) {
@@ -293,6 +343,10 @@ public class BTPeerIDByteDecoder {
 		byte[] byte_peer_id = null;
 		if (peer_id.length() == 40) {
 			byte_peer_id = ByteFormatter.decodeString(peer_id);
+			String readable_peer_id = makePeerIDReadableAndUsable(byte_peer_id);
+			if (!peer_id.equals(readable_peer_id)) {
+				throw new RuntimeException("Use alternative format for peer ID - from " + peer_id + " to " + readable_peer_id);
+			}
 		}
 		else if (peer_id.length() == 20) {
 			byte_peer_id = peer_id.getBytes(Constants.BYTE_ENCODING);
@@ -302,65 +356,112 @@ public class BTPeerIDByteDecoder {
 		}
 		assertDecode(client_result, byte_peer_id);
 	}
-
+	
 	private static void assertDecode(String client_result, byte[] peer_id) throws Exception {
-		String peer_id_as_string = new String(peer_id, Constants.BYTE_ENCODING).replace('\n', ' ').replace('\r', ' ');
-		System.out.println("Testing for " + client_result + ", peer ID: " + peer_id_as_string);
-		String decoded_result = decode0(peer_id);
+		String peer_id_as_string = new String(peer_id, Constants.BYTE_ENCODING).replace('\n', ' ').replace('\r', ' ').replace('\t', ' ');
+		System.out.println("   " + client_result + ", peer ID: " + peer_id_as_string);
+		
+		// Do not log any clients.
+		String decoded_result = decode(peer_id);
 		if (client_result.equals(decoded_result)) {return;}
 		throw new RuntimeException("assertion failure - expected \"" + client_result + "\", got \"" + decoded_result + "\": " + peer_id_as_string);
 	}
 
 	public static void main(String[] args) throws Exception {
-		assertDecode("BitTornado 0.3.9", "T0390----5uL5NvjBe2z");
-		assertDecode("Mainline", "0000000000000000000000004C53441933104277");
-		assertDecode("Shareaza 2.1.3.2", "2D535A323133322D000000000000000000000000");
-		assertDecode("ABC 2.6.9", "413236392D2D2D2D345077199FAEC4A673BECA01");
-		assertDecode("BitComet 0.56", "6578626300387A4463102D6E9AD6723B339F35A9");
-		assertDecode("Azureus 2.2.0.0", "2D415A323230302D3677664732776B3677574C63");
-		assertDecode("BitSpirit v2", "000242539B7ED3E058A8384AA748485454504254");
-		assertDecode("BitSpirit (bad peer ID)", "4D342D302D322D2D6898D9D0CAF25E4555445030");
-		assertDecode("BitLord 0.56", "6578626300384C4F52443200048ECED57BD71028");
-		assertDecode("BitTornado 0.3.10", "543033412D2D2D2D2D6351374B5848424E733264");
-		assertDecode("Azureus 2.0.3.2", "2D2D2D2D2D417A757265757354694E7A2A6454A7");
-		assertDecode("Opera (Build 7685)", "OP7685f2c1495b1680bf");
-		assertDecode("KTorrent 1.1 RC1", "-KT11R1-693649213030");
-		assertDecode("BitSpirit v3", "00034253 07248896 44C59530 8A5FF2CA 55445030");
-		assertDecode("TuoTu 2.1.0", "2D545432 3130772D 6471216E 57667E51 63657874");
-		assertDecode("CyberArtemis 2.5.2.0", "2D415432 3532302D 76454574 30774F36 76306372");
+		client_logging_allowed = false;
+		
+		final String FAKE = MessageText.getString("PeerSocket.fake_client");
+		final String UNKNOWN = MessageText.getString("PeerSocket.unknown");
+		final String BAD_PEER_ID = MessageText.getString("PeerSocket.bad_peer_id");
+		
+		System.out.println("Testing AZ style clients...");
 		assertDecode("Ares 2.0.5", "-AG2053-Em6o1EmvwLtD");
+		assertDecode("Artemis 2.5.2.0", "-AT2520-vEEt0wO6v0cr");
+		assertDecode("Azureus 2.2.0.0", "-AZ2200-6wfG2wk6wWLc");
+		assertDecode("BitRocket 0.3(32)", "-BR0332-!XVceSn(*KIl");
 		assertDecode("FlashGet 1.80", "2D464730 31383075 F8005782 1359D64B B3DFD265");
-		assertDecode("Mainline 5.0.7", "4D352D30 2D372D2D 39616137 35376566 64356265");
-		assertDecode("BitTornado 0.3.12", "54303343 2D2D2D2D 2D367459 6F6C7868 56554653");
-		assertDecode("Rufus 0.6.9", "00455253 416E6F6E 796D6F75 7382BE42 75024AE3");
-		assertDecode("Azureus 1", "417A7572 65757300 00000000 000000A0 76F0AEF7");
-		assertDecode("Halite 0.2.9", "-HL0290-xUO*9ugvENUE");
-		assertDecode("Transmission 0.72", "2D545230 3037322D 38766436 68726D70 3034616E");
-		assertDecode("\u00B5Torrent 1.7.0 Beta", "2D555431 3730422D 92844644 1DB0A094 A01C01E5");
-		//assertDecode("", "2D4E50303230312DCA5D53B5485C6AA1C52B4960"); // Unknown client "-NP0201-"...
-		assertDecode("libTorrent (Rakshasa) 0.11.2", "2D6C74304232302D0D739B93E6BE21FEBB557B20");
-		assertDecode("ABC 3.1", "413331302D2D303031763547797372344E784E4B");
-		assertDecode("\u00B5Torrent 1.7.0 RC", "2D55543137302D00AF8BC5ACCC4631481EB3EB60");
-		assertDecode("libtorrent (Rasterbar) 0.13.0", "2D4C54304430302D655A305077614444722D7E76"); // The latest version at time of writing is v0.12, but I'll assume this is valid.
-		assertDecode("Tribler 3.7", "5233372D2D2D30303375417048793835312D5071");
-		//assertDecode("", "2D4244303330302D31534769525A387557705748"); // Unknown client "-BD0300-"....
-		assertDecode("BitTornado 0.3.18", "543033492D2D3030386759366942364171323743");
-		//assertDecode("", "2D7746323230302D9DFF296B56AFC2DF751C609C"); // Unknown client "-wF2200-"....
-		//assertDecode("", "2D4D52303030312D4B23FE8E0AACBD228FF37728"); // Unknown client "-MR0001-"....
 		assertDecode("GetRight 6.3", "-GR6300-13s3iFKmbArc");
-		assertDecode("Tribler 1", "523130302D2D3030336852367330375857636F76"); // Seen recently - is this really Tribler?
-		assertDecode("Wyzo 0.3.0.0", "-WY0300-6huHF5Pr7Vde");
-		assertDecode("Transmission 0.72 (Dev)", "-TR072Z-zihst5yvg22f");
-		assertDecode("Transmission 0.6", "-TR0006-01234567890!");
+		assertDecode("Halite 0.2.9", "-HL0290-xUO*9ugvENUE");
+		assertDecode("KTorrent 1.1 RC1", "-KT11R1-693649213030");
+		assertDecode("libTorrent (Rakshasa) 0.11.2", "2D6C74304232302D0D739B93E6BE21FEBB557B20");
+		assertDecode("libtorrent (Rasterbar) 0.13.0", "-LT0D00-eZ0PwaDDr-~v"); // The latest version at time of writing is v0.12, but I'll assume this is valid.
+		assertDecode("Shareaza 2.1.3.2", "2D535A323133322D000000000000000000000000");
 		assertDecode("SymTorrent 1.17", "-ST0117-01234567890!");
-		//assertDecode("", "E7F163BB0E5FCD35005C09A11BC274C42385A1A0"); // Unknown client - random bytes?
-		//assertDecode("", "2D4C57303030312D02425C18A04BC4A0FA0ADEA9"); // Unknown client "-LW0001-"....
-		//assertDecode("", "000000DF05020020100020200008000000004028"); // Unknown client - random bytes?
-		assertDecode("BitRocket 0.3(32)", "2D425230 3333322D 21585663 65536E28 2A4B496C");
-		assertDecode("Burst! 1.1.3", "Mbrst1-1-32e3c394b43");
-		//assertDecode("KTorrent 2.2", "-KT22B1-695754334315"); // We could use the B1 information...
-		assertDecode("Hurricane Electric", "6172636c696768742e68652ea5860c157a5adc35");
+		assertDecode("Transmission 0.6", "-TR0006-01234567890!");
+		assertDecode("Transmission 0.72 (Dev)", "-TR072Z-zihst5yvg22f");
+		assertDecode("Transmission 0.72", "-TR0072-8vd6hrmp04an");
+		assertDecode("TuoTu 2.1.0", "-TT210w-dq!nWf~Qcext");
+		assertDecode("\u00B5Torrent 1.7.0 Beta", "2D555431 3730422D 92844644 1DB0A094 A01C01E5");
+		assertDecode("Wyzo 0.3.0.0", "-WY0300-6huHF5Pr7Vde");
+		System.out.println();
+
+		// Shadow style clients.
+		System.out.println("Testing Shadow style clients...");
+		assertDecode("ABC 2.6.9", "413236392D2D2D2D345077199FAEC4A673BECA01");
+		assertDecode("ABC 3.1", "A310--001v5Gysr4NxNK");
+		assertDecode("BitTornado 0.3.12", "T03C-----6tYolxhVUFS");
+		assertDecode("BitTornado 0.3.18", "T03I--008gY6iB6Aq27C");
+		assertDecode("BitTornado 0.3.9", "T0390----5uL5NvjBe2z");
+		assertDecode("Tribler 1", "R100--003hR6s07XWcov"); // Seen recently - is this really Tribler?
+		assertDecode("Tribler 3.7", "R37---003uApHy851-Pq");
+		System.out.println();
+
+		// Simple substring style clients.
+		System.out.println("Testing simple substring clients...");
+		assertDecode("Azureus 1", "417A7572 65757300 00000000 000000A0 76F0AEF7");
+		assertDecode("Azureus 2.0.3.2", "2D2D2D2D2D417A757265757354694E7A2A6454A7");
+		assertDecode("Hurricane Electric", "6172636C696768742E68652EA5860C157A5ADC35");
+		assertDecode("\u00B5Torrent 1.7.0 RC", "2D55543137302D00AF8BC5ACCC4631481EB3EB60");
+		System.out.println();
+		
+		// Version substring style clients.
+		System.out.println("Testing versioned substring clients...");
 		assertDecode("BitsOnWheels", "-BOWP05-EPICNZOGQPHP"); // Seen in the wild - no idea what version that's meant to be - a pre-release?
+		assertDecode("Burst! 1.1.3", "Mbrst1-1-32e3c394b43");
+		assertDecode("Opera (Build 7685)", "OP7685f2c1495b1680bf");
+		assertDecode("Rufus 0.6.9", "00455253 416E6F6E 796D6F75 7382BE42 75024AE3");
+		System.out.println();
+		
+		// BitComet/Lord/Spirit
+		System.out.println("Testing BitComet/Lord/Spirit clients...");
+		assertDecode("BitComet 0.56", "6578626300387A4463102D6E9AD6723B339F35A9");
+		assertDecode("BitLord 0.56", "6578626300384C4F52443200048ECED57BD71028");
+		assertDecode("BitSpirit (" + BAD_PEER_ID + ")", "4D342D302D322D2D6898D9D0CAF25E4555445030");
+		assertDecode("BitSpirit v2", "000242539B7ED3E058A8384AA748485454504254");
+		assertDecode("BitSpirit v3", "00034253 07248896 44C59530 8A5FF2CA 55445030");
+		System.out.println();
+
+		// Mainline style clients.
+		System.out.println("Testing new mainline style clients...");
+		assertDecode("Mainline 5.0.7", "M5-0-7--9aa757efd5be");
+		System.out.println();
+		
+		// Various specialised clients.
+		System.out.println("Testing various specialised clients...");
+		assertDecode("Mainline", "0000000000000000000000004C53441933104277");
+		assertDecode(UNKNOWN + " [" + FAKE + ": ZipTorrent 1.6.0.0]", "-ZT1600-bLAdeY9rdjbe");
+		System.out.println();
+		
+		// Unknown clients - may be random bytes.
+		System.out.println("Testing unknown (random byte?) clients...");
+		assertDecode(UNKNOWN + " [--------1}-/---A---<]", "0000000000000000317DA32F831FF041A515FE3C");
+		assertDecode(UNKNOWN + " [------- --  ------@(]", "000000DF05020020100020200008000000004028");
+		assertDecode(UNKNOWN + " [--c--_-5-\\----t-#---]", "E7F163BB0E5FCD35005C09A11BC274C42385A1A0");
+		System.out.println();
+		
+		// Unknown AZ style clients.
+		System.out.println("Testing unknown AZ style clients...");
+		String unknown_az;
+		unknown_az = MessageText.getString("PeerSocket.unknown_az_style", new String[]{"BD", "0.3.0.0"});
+		assertDecode(unknown_az, "-BD0300-1SGiRZ8uWpWH");
+		unknown_az = MessageText.getString("PeerSocket.unknown_az_style", new String[]{"wF", "2.2.0.0"});
+		assertDecode(unknown_az, "2D7746323230302D9DFF296B56AFC2DF751C609C");
+		unknown_az = MessageText.getString("PeerSocket.unknown_az_style", new String[]{"X1", "0.0.6.4"});
+		assertDecode(unknown_az, "2D5831303036342D12FB8A5B954153A114267F1F");
+		System.out.println();
+
+		// TODO
+		//assertDecode("KTorrent 2.2", "-KT22B1-695754334315"); // We could use the B1 information...
 
 		System.out.println("Done.");
 	}
