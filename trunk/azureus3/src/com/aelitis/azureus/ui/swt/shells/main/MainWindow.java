@@ -273,10 +273,12 @@ public class MainWindow
 			dm.getDownloadState().setDisplayName(title);
 		}
 
+		boolean isContent = PlatformTorrentUtils.isContent(torrent, true);
+
 		// Show a popup when user adds a download
 		// if it wasn't added recently, it's not a new download
 		if (skin != null
-				&& PlatformTorrentUtils.isContent(torrent)
+				&& isContent
 				&& SystemTime.getCurrentTime()
 						- dm.getDownloadState().getLongParameter(
 								DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME) < 10000
@@ -315,7 +317,7 @@ public class MainWindow
 		}
 		final String fHash = hash;
 
-		if (PlatformTorrentUtils.isContent(torrent)) {
+		if (isContent) {
 			if (PlatformTorrentUtils.getUserRating(torrent) == -2) {
 				PlatformTorrentUtils.setUserRating(torrent, -1);
 				PlatformRatingMessenger.getUserRating(new String[] {

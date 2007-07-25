@@ -194,7 +194,7 @@ public class TorrentListViewsUtils
 		if (dm == null) {
 			return;
 		}
-		if (!PlatformTorrentUtils.isContent(dm.getTorrent())) {
+		if (!PlatformTorrentUtils.isContent(dm.getTorrent(), true)) {
 			return;
 		}
 
@@ -675,7 +675,7 @@ public class TorrentListViewsUtils
 					for (int i = 0; i < rows.length; i++) {
 						TableRowCore row = rows[i];
 						DownloadManager dm = (DownloadManager) row.getDataSource(true);
-						if (!PlatformTorrentUtils.isContent(dm.getTorrent())) {
+						if (!PlatformTorrentUtils.isContent(dm.getTorrent(), true)) {
 							bDisabled = true;
 							break;
 						}

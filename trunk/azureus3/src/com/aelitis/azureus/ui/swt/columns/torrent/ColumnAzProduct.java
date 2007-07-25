@@ -76,8 +76,7 @@ public class ColumnAzProduct
 				return;
 			}
 			TOTorrent torrent = dm.getTorrent();
-			// Thumbnail temporary until we have contentid
-			boolean isContent = PlatformTorrentUtils.isContent(torrent);
+			boolean isContent = PlatformTorrentUtils.isContent(torrent, true);
 
 			long sortVal = (isContent) ? 1 : 0;
 

@@ -103,6 +103,10 @@ public class PlatformTorrentUtils
 
 	private static final ArrayList metaDataListeners = new ArrayList();
 
+	private static ArrayList listPlatformHosts = null;
+
+	private static final Map mapPlatformTrackerTorrents = new WeakHashMap();
+
 	public static Map getContentMap(TOTorrent torrent) {
 		if (torrent == null) {
 			return new HashMap();
@@ -356,36 +360,57 @@ public class PlatformTorrentUtils
 		writeTorrentIfExists(torrent);
 	}
 
-	public static boolean isContent(TOTorrent torrent) {
+	public static boolean isContent(TOTorrent torrent,
+			boolean requirePlatformTracker) {
 		if (torrent == null) {
 			return false;
 		}
 		boolean bContent = PlatformTorrentUtils.getContentHash(torrent) != null;
-		if (bContent) {
-			return true;
+		if (!bContent || (bContent && !requirePlatformTracker)) {
+			return bContent;
 		}
 
-			// fallback to checking tracker host for legacy content
-		
-		return( isPlatformTracker( torrent ));
+		return isPlatformTracker(torrent);
 	}
 
-	public static boolean isContent(Torrent torrent) {
+	public static boolean isContent(Torrent torrent,
+			boolean requirePlatformTracker) {
 		if (torrent instanceof TorrentImpl) {
-			return isContent(((TorrentImpl) torrent).getTorrent());
+			return isContent(((TorrentImpl) torrent).getTorrent(),
+					requirePlatformTracker);
 		}
 		return false;
+	}
+	
+	public static List getPlatformHosts() {
+		if (listPlatformHosts == null) {
+			listPlatformHosts = new ArrayList();
+			for (int i = 0; i < Constants.AZUREUS_DOMAINS.length; i++) {
+				listPlatformHosts.add(Constants.AZUREUS_DOMAINS[i].toLowerCase());
+			}
+		}
+		return listPlatformHosts;
+	}
+	
+	public static void addPlatformHost(String host) {
+		List platformHosts = getPlatformHosts();
+		host = host.toLowerCase();
+		
+		if (!platformHosts.contains(host)) {
+			platformHosts.add(platformHosts);
+			mapPlatformTrackerTorrents.clear();
+		}
 	}
 
 	public static boolean isPlatformHost( String host )
 	{
-		String[]	domains = Constants.AZUREUS_DOMAINS;
+		Object[] domains = getPlatformHosts().toArray();
 		
 		host = host.toLowerCase();
 		
 		for (int i=0;i<domains.length;i++){
 			
-			String	domain = domains[i];
+			String	domain = (String)domains[i];
 			
 			if ( domain.equals( host )){
 				
@@ -410,7 +435,12 @@ public class PlatformTorrentUtils
 				
 				return false;
 			}
-		
+			
+			Object oCache = mapPlatformTrackerTorrents.get(torrent);
+			if (oCache instanceof Boolean) {
+				return ((Boolean)oCache).booleanValue();
+			}
+			
 				// check them all incase someone includes one of our trackers in a multi-tracker
 				// torrent
 			
@@ -420,6 +450,7 @@ public class PlatformTorrentUtils
 	
 				if ( !isPlatformHost( announceURL.getHost())){
 					
+					mapPlatformTrackerTorrents.put(torrent, new Boolean(false));
 					return( false );
 				}
 			}
@@ -434,17 +465,21 @@ public class PlatformTorrentUtils
 					
 					if ( !isPlatformHost( urls[j].getHost())){
 						
+						mapPlatformTrackerTorrents.put(torrent, new Boolean(false));
 						return( false );
 					}
 				}
 			}
 			
-			return( announceURL != null );
+			boolean b = announceURL != null;
+			mapPlatformTrackerTorrents.put(torrent, new Boolean(b));
+			return b;
 			
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace(e);
 			
+			mapPlatformTrackerTorrents.put(torrent, new Boolean(false));
 			return( false );
 		}
 	}
@@ -472,7 +507,7 @@ public class PlatformTorrentUtils
 	 * @param maxDelayMS TODO
 	 */
 	public static void updateMetaData(final TOTorrent torrent, long maxDelayMS) {
-		if (!isContent(torrent)) {
+		if (!isContent(torrent, true)) {
 			log(torrent, "torrent " + new String(torrent.getName())
 					+ " not az content");
 			return;

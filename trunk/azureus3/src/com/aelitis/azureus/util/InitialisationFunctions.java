@@ -77,17 +77,7 @@ public class InitialisationFunctions
 					return;
 				}
 				
-				if ( !PlatformTorrentUtils.isContent( t )){
-					
-					return;
-				}
-
-					// ensure this is a platform tracker as anyone can spoof the content
-					// test 
-				
-				if ( !PlatformTorrentUtils.isPlatformTracker( t )){
-					
-					Debug.outNoStack( "Download '" + download.getName() + "' is marked as content but does not have a platform tracker (" + t.getAnnounceURL() + ")" );
+				if ( !PlatformTorrentUtils.isContent( t, true )){
 					
 					return;
 				}

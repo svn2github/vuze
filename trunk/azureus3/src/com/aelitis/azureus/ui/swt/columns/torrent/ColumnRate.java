@@ -89,7 +89,8 @@ public class ColumnRate
 
 			DownloadManager dm = (DownloadManager) cell.getDataSource();
 			if (dm != null) {
-				boolean isContent = PlatformTorrentUtils.isContent(dm.getTorrent());
+				boolean isContent = PlatformTorrentUtils.isContent(dm.getTorrent(),
+						true);
 				if (!isContent) {
 					rating = "";
 					return;

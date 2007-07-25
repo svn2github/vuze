@@ -115,7 +115,7 @@ public class ColumnRateUpDown
 			if (dm == null) {
 				return;
 			}
-			if (!PlatformTorrentUtils.isContent(dm.getTorrent())) {
+			if (!PlatformTorrentUtils.isContent(dm.getTorrent(), true)) {
 				return;
 			}
 			if (!dm.isDownloadComplete(false)) {
@@ -212,7 +212,7 @@ public class ColumnRateUpDown
 				return;
 			}
 
-			if (!PlatformTorrentUtils.isContent(dm.getTorrent())) {
+			if (!PlatformTorrentUtils.isContent(dm.getTorrent(), true)) {
 				return;
 			}
 

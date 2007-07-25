@@ -215,7 +215,7 @@ EnhancedDownloadManager
 				
 		if ( torrent != null ){
 			
-			platform_content = PlatformTorrentUtils.isContent( torrent );
+			platform_content = PlatformTorrentUtils.isContent( torrent, true );
 			
 			calculateSpeeds();
 		}
@@ -383,7 +383,7 @@ EnhancedDownloadManager
 		
 		if ( torrent != null ){
 			
-			return( PlatformTorrentUtils.isContent( torrent ));
+			return( PlatformTorrentUtils.isContent( torrent, true ));
 		}
 
 		return( false );

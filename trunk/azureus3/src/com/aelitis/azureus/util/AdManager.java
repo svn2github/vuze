@@ -150,7 +150,7 @@ public class AdManager
 						}
 					}
 
-					if (PlatformTorrentUtils.isContent(torrent)
+					if (PlatformTorrentUtils.isContent(torrent, true)
 							&& PlatformTorrentUtils.getContentHash(torrent) != null
 							&& PlatformTorrentUtils.isContentAdEnabled(torrent)) {
 						list.add(dm);
@@ -315,7 +315,7 @@ public class AdManager
 	public void createASX(final DownloadManager dm, final ASXCreatedListener l) {
 		try {
 			TOTorrent torrent = dm.getTorrent();
-			if (torrent == null || !PlatformTorrentUtils.isContent(torrent)) {
+			if (torrent == null || !PlatformTorrentUtils.isContent(torrent, true)) {
 				return;
 			}
 
