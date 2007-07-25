@@ -103,6 +103,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
   BufferedLabel peers;
   Group gInfo;
   BufferedLabel fileName;
+  BufferedLabel torrentStatus;
   BufferedLabel fileSize;
   BufferedLabel saveIn;
   BufferedLabel hash;
@@ -322,10 +323,10 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     fileName.setLayoutData(gridData);
 
     label = new Label(gInfo, SWT.LEFT);
-    Messages.setLanguageText(label, "GeneralView.label.totalsize"); //$NON-NLS-1$
-    fileSize = new BufferedLabel(gInfo, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.status"); //$NON-NLS-1$
+    torrentStatus = new BufferedLabel(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    fileSize.setLayoutData(gridData);
+    torrentStatus.setLayoutData(gridData);
 
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.savein"); //$NON-NLS-1$
@@ -333,6 +334,18 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     saveIn.setLayoutData(gridData);
 
+    label = new Label(gInfo, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.totalsize"); //$NON-NLS-1$
+    fileSize = new BufferedLabel(gInfo, SWT.LEFT);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    fileSize.setLayoutData(gridData);
+
+    label = new Label(gInfo, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.numberofpieces"); //$NON-NLS-1$
+    pieceNumber = new BufferedLabel(gInfo, SWT.LEFT);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    pieceNumber.setLayoutData(gridData);
+    
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.hash"); //$NON-NLS-1$
     hash = new BufferedLabel(gInfo, SWT.LEFT);
@@ -367,18 +380,6 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     			new Clipboard(display).setContents(new Object[] {hash_str.replaceAll(" ","")}, new Transfer[] {TextTransfer.getInstance()});
     	}
     });
-    
-    label = new Label(gInfo, SWT.LEFT);
-    Messages.setLanguageText(label, "GeneralView.label.numberofpieces"); //$NON-NLS-1$
-    pieceNumber = new BufferedLabel(gInfo, SWT.LEFT);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    pieceNumber.setLayoutData(gridData);
-
-    label = new Label(gInfo, SWT.LEFT);
-    Messages.setLanguageText(label, "GeneralView.label.size"); //$NON-NLS-1$
-    pieceSize = new BufferedLabel(gInfo, SWT.LEFT);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    pieceSize.setLayoutData(gridData);
 
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.trackerurl"); //$NON-NLS-1$
@@ -529,25 +530,30 @@ public class GeneralView extends AbstractIView implements ParameterListener,
 		});
     
     
-    label = new Label(gInfo, SWT.LEFT);
-    Messages.setLanguageText(label, "GeneralView.label.creationdate"); //$NON-NLS-1$
-    creation_date = new BufferedLabel(gInfo, SWT.LEFT);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 1;
-    creation_date.setLayoutData(gridData);
-    
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 1;
     trackerUrlValue.setLayoutData(gridData);
 
+    label = new Label(gInfo, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.size"); //$NON-NLS-1$
+    pieceSize = new BufferedLabel(gInfo, SWT.LEFT);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    pieceSize.setLayoutData(gridData);
     
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.tracker"); //$NON-NLS-1$
     tracker_status = new BufferedTruncatedLabel(gInfo, SWT.LEFT,150);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 3;
+    //gridData.horizontalSpan = 3;
     tracker_status.setLayoutData(gridData);    
-        
+
+    label = new Label(gInfo, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.creationdate"); //$NON-NLS-1$
+    creation_date = new BufferedLabel(gInfo, SWT.LEFT);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    //gridData.horizontalSpan = 1;
+    creation_date.setLayoutData(gridData);
+    
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.updatein"); //$NON-NLS-1$
     trackerUpdateIn = new BufferedLabel(gInfo, SWT.LEFT);
@@ -741,6 +747,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     setInfos(
       manager.getDisplayName(),
 	  DisplayFormatters.formatByteCountToKiBEtc(manager.getSize()),
+	  DisplayFormatters.formatDownloadStatus(manager),
       manager.getSaveLocation().toString(),
       TorrentUtils.nicePrintTorrentHash(torrent),
       manager.getNbPieces(),
@@ -1170,6 +1177,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
   private void setInfos(
     final String _fileName,
     final String _fileSize,
+    final String _torrentStatus,
     final String _path,
     final String _hash,
     final int _pieceNumber,
@@ -1183,6 +1191,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
 			public void runSupport() {
 				fileName.setText(_fileName );
 				fileSize.setText(_fileSize);
+				torrentStatus.setText(_torrentStatus);
 				saveIn.setText(_path);
 				hash.setText(_hash);
 				pieceNumber.setText("" + _pieceNumber); //$NON-NLS-1$
