@@ -85,10 +85,9 @@ public class SpeedManagerAlgorithmProviderDHTPing
                     public void configurationSaved(){
 
                         try{
-                            
-                            //limitMonitor.updateFromCOConfigManager();
-                            limitMonitor.updateFromCOConfigManagerEx();
 
+                            limitMonitor.readFromPersistentMap();
+                            limitMonitor.updateFromCOConfigManager();
 
                             metricGoodResult =COConfigurationManager.getIntParameter(
                                     SpeedManagerAlgorithmProviderV2.SETTING_DHT_GOOD_SET_POINT);

@@ -123,28 +123,20 @@ public class SpeedLimitMonitor implements PSMonitorListener
     //Testing
     LimitControl slider = new LimitControlDropUploadFirst();
 
+    SpeedLimitListener persistentMapListener;
+
     public SpeedLimitMonitor(){
 
         //
         longTermMonitor.addListener( this );
+        
+        persistentMapListener = new SpeedLimitListener( this );
+
+        SpeedManager sm = AzureusCoreFactory.getSingleton().getSpeedManager();
+
+        sm.addListener( persistentMapListener );
     }
 
-
-    /**
-     * Spliting the limits out from other setting for SpeedManagerAlgorithmTI.
-     */
-//    public void updateLimitsFromCOConfigManager(){
-//        uploadLimitMax = COConfigurationManager.getIntParameter(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT);
-//        uploadLimitMin=COConfigurationManager.getIntParameter(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT);
-//        downloadLimitMax =COConfigurationManager.getIntParameter(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT);
-//        downloadLimitMin=COConfigurationManager.getIntParameter(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MIN_LIMIT);
-//
-//        uploadLimitConf = SpeedLimitConfidence.parseString(
-//                COConfigurationManager.getStringParameter( SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING ));
-//        downloadLimitConf = SpeedLimitConfidence.parseString(
-//                COConfigurationManager.getStringParameter( SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING));
-//
-//    }
 
     /**
      * Splitting the limits our from other setting for SpeedManagerAlgorithmTI.
@@ -158,51 +150,21 @@ public class SpeedLimitMonitor implements PSMonitorListener
 
     public void updateFromCOConfigManager(){
 
-        //ToDo: determine if the ASN associated with these settings have changed.
+        uploadLimitMax = COConfigurationManager.getIntParameter(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT);
+        uploadLimitMin = SMConst.calculateMinUpload( uploadLimitMax );
 
-        lastASN = COConfigurationManager.getStringParameter(SpeedManagerAlgorithmProviderV2.SETTING_LAST_ASN);
-        boolean isNewAsn=false;
-        //isNewAsn = checkAsn(lastASN);
+        downloadLimitMax =COConfigurationManager.getIntParameter(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT);
+        downloadLimitMin=SMConst.calculateMinDownload( downloadLimitMax );
 
-        if( !isNewAsn )
-        {
-            //ToDo: switch to getting value from persistent map.
-            uploadLimitMax = COConfigurationManager.getIntParameter(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT);
-            uploadLimitMin = SMConst.calculateMinUpload( uploadLimitMax );
+        uploadLimitConf = SpeedLimitConfidence.parseString(
+                COConfigurationManager.getStringParameter( SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING ));
+        downloadLimitConf = SpeedLimitConfidence.parseString(
+                COConfigurationManager.getStringParameter( SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING));
 
-            // for testing .
-            int tmpUMax = COConfigurationManager.getIntParameter(
-                    SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT_TEMP);
-            float tmpUMaxConf = COConfigurationManager.getFloatParameter(
-                    SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT_CONF_TYPE_TEMP);
-
-
-            downloadLimitMax =COConfigurationManager.getIntParameter(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT);
-            downloadLimitMin=SMConst.calculateMinDownload( downloadLimitMax );
-
-            //for testing.
-            int tmpDMax = COConfigurationManager.getIntParameter(
-                    SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT_TEMP);
-            float tmpDMaxConf = COConfigurationManager.getFloatParameter(
-                    SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT_CONF_TYPE_TEMP);
-
-            uploadLimitConf = SpeedLimitConfidence.parseString(
-                    COConfigurationManager.getStringParameter( SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING ));
-            downloadLimitConf = SpeedLimitConfidence.parseString(
-                    COConfigurationManager.getStringParameter( SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING));
-
-            //
-            logPMData(uploadLimitMax, uploadLimitConf, tmpUMax, tmpUMaxConf, "upload" );
-            logPMData(downloadLimitMax, downloadLimitConf, tmpDMax, tmpDMaxConf, "download" );
-
-            percentUploadCapacityDownloadMode = (float)
-                    COConfigurationManager.getIntParameter(SpeedLimitMonitor.USED_UPLOAD_CAPACITY_DOWNLOAD_MODE, 60)/100.0f;
-        }else{
-            //getNewAsnSettings();
-        }
+        percentUploadCapacityDownloadMode = (float)
+                COConfigurationManager.getIntParameter(SpeedLimitMonitor.USED_UPLOAD_CAPACITY_DOWNLOAD_MODE, 60)/100.0f;
 
         slider.updateSeedSettings(percentUploadCapacityDownloadMode);
-
         slider.setDownloadUnlimitedMode( readDownloadUnlimitedMode() );
 
     }//updateFromCOConfigManager
@@ -210,7 +172,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
     /**
      * replaces - updateFromCOConfigManager()
      */
-    public void updateFromCOConfigManagerEx(){
+    public void readFromPersistentMap(){
         //get persistent mapper.
         SpeedManager sm = AzureusCoreFactory.getSingleton().getSpeedManager();
 
@@ -234,7 +196,17 @@ public class SpeedLimitMonitor implements PSMonitorListener
         downloadLimitConf = SpeedLimitConfidence.convertType( dEst.getEstimateType() );
 
         percentUploadCapacityDownloadMode = (float)
-                    COConfigurationManager.getIntParameter(SpeedLimitMonitor.USED_UPLOAD_CAPACITY_DOWNLOAD_MODE, 60)/100.0f;        
+                    COConfigurationManager.getIntParameter(SpeedLimitMonitor.USED_UPLOAD_CAPACITY_DOWNLOAD_MODE, 60)/100.0f;
+
+        saveToCOConfiguration();
+    }
+
+
+    public void saveToCOConfiguration(){
+        COConfigurationManager.setParameter(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT,uploadLimitMax);
+        COConfigurationManager.setParameter(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT,downloadLimitMax);
+        COConfigurationManager.setParameter(SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING, uploadLimitConf.getString() );
+        COConfigurationManager.setParameter(SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING, downloadLimitConf.getString() );
     }
 
     private void logPMData(int oRate, SpeedLimitConfidence oConf, int nRate, float nConf, String type){
@@ -894,7 +866,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
         }else if(transferMode.getMode()==TransferMode.State.UPLOAD_LIMIT_SEARCH){
 
             settingConfidenceName = UPLOAD_CONF_LIMIT_SETTING;
-            settingMaxLimitName = SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT;           
+            settingMaxLimitName = SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT;
             isDownload=false;
             preTestValue = preTestUploadCapacity;
             highestValue = highestUploadRate;

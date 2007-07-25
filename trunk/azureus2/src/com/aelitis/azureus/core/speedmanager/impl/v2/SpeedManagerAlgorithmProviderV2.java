@@ -42,11 +42,10 @@ SpeedManagerAlgorithmProviderV2
     public static final String SETTING_UPLOAD_MAX_LIMIT = "SpeedManagerAlgorithmProviderV2.setting.upload.max.limit";
 
     //temporary two names for upload/download max until we sort out which.
-    public static final String SETTING_UPLOAD_MAX_LIMIT_TEMP = "AutoSpeed Network Upload Speed (temp)";
-    public static final String SETTING_UPLOAD_MAX_LIMIT_CONF_TYPE_TEMP = "AutoSpeed Network Upload Speed Type (temp)";
-    public static final String SETTING_DOWNLOAD_MAX_LIMIT_TEMP = "AutoSpeed Network Download Speed (temp)";
-    public static final String SETTING_DOWNLOAD_MAX_LIMIT_CONF_TYPE_TEMP = "AutoSpeed Network Download Speed Type (temp)";
+    public static final String SETTING_UPLOAD_LIMIT_ESTIMATE_TYPE_STRING = "AutoSpeed Network Upload Speed Type (temp)";
+    public static final String SETTING_DOWNLOAD_LIMIT_ESTIMATE_TYPE_STRING = "AutoSpeed Network Download Speed Type (temp)";
 
+    //ToDo: remove.
     public static final String SETTING_LAST_ASN = "SpeedManagerAlgorithmProviderV2.setting.last.asn";
 
 

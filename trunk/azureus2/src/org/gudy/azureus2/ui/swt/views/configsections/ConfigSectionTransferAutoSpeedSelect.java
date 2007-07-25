@@ -30,6 +30,8 @@ import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerListener;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerImpl;
 import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedManagerAlgorithmProviderV2;
+import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedLimitConfidence;
+import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedLimitMonitor;
 
 
 /**
@@ -340,10 +342,8 @@ public class ConfigSectionTransferAutoSpeedSelect
 	    gridData.horizontalIndent = 20;
 	    label.setLayoutData(gridData);
 
-		//String co_up		= "AutoSpeed Network Upload Speed (temp)";
-        //String co_up_type 	= "AutoSpeed Network Upload Speed Type (temp)";
-        String co_up = SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT_TEMP;
-        String co_up_type 	= SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT_CONF_TYPE_TEMP;
+        String co_up		= "AutoSpeed Network Upload Speed (temp)";
+        String co_up_type 	= "AutoSpeed Network Upload Speed Type (temp)";
 
         COConfigurationManager.setParameter( co_up, 0);
 		COConfigurationManager.setParameter( co_up_type, "" );
@@ -378,8 +378,8 @@ public class ConfigSectionTransferAutoSpeedSelect
 					max_upload.setValue( 0 );
 						
 					sm.setEstimatedUploadCapacityBytesPerSec( value*1024, metric );
-					
-					max_upload_type.setValue( "" );
+
+                    max_upload_type.setValue( "" );
 				}
 			});
 			    
@@ -393,13 +393,14 @@ public class ConfigSectionTransferAutoSpeedSelect
 	    gridData.horizontalIndent = 20;
 	    label.setLayoutData(gridData);
 
-		//String co_down			= "AutoSpeed Network Download Speed (temp)";
-		//String co_down_type 	= "AutoSpeed Network Download Speed Type (temp)";
-        String co_down			= SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT_TEMP;
-		String co_down_type 	= SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT_CONF_TYPE_TEMP;
+
+        String co_down			= "AutoSpeed Network Download Speed (temp)";
+		String co_down_type 	= "AutoSpeed Network Download Speed Type (temp)";
+        //String co_down			= SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT_TEMP;
+		//String co_down_type 	= SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT_CONF_TYPE_TEMP;
 
         COConfigurationManager.setParameter( co_down, 0);
-		COConfigurationManager.setParameter( co_down_type, "" );
+        COConfigurationManager.setParameter( co_down_type, "" );
 
 		final IntParameter max_download = new IntParameter(networkGroup, co_down );
 	    
@@ -431,8 +432,8 @@ public class ConfigSectionTransferAutoSpeedSelect
 					max_download.setValue( 0 );
 						
 					sm.setEstimatedDownloadCapacityBytesPerSec( value*1024, metric );
-					
-					max_download_type.setValue( "" );
+
+                    max_download_type.setValue( "" );
 				}
 			});
 		
@@ -501,7 +502,6 @@ public class ConfigSectionTransferAutoSpeedSelect
 
         return cSection;
     }//configSectionCreate
-
 
     class ConvertToLongChangeListener implements ParameterChangeListener{
 

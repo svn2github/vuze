@@ -104,7 +104,6 @@ public class SpeedLimitConfidence
         return MessageText.getString( MESSAGE_BUNDLE_PREFIX + name.toLowerCase() );
     }
 
-
     /**
      * compareTo to with boolean syntax.
      *

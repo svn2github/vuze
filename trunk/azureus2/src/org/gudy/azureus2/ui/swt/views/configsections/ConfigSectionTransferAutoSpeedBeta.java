@@ -14,10 +14,8 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.SWT;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerImpl;
-import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedLimitConfidence;
 import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedLimitMonitor;
 import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedManagerAlgorithmProviderV2;
-import com.aelitis.azureus.core.speedmanager.impl.v2.SMConst;
 
 /**
  * Created on May 15, 2007
@@ -50,9 +48,6 @@ public class ConfigSectionTransferAutoSpeedBeta
 
     StringListParameter confDownload;
     StringListParameter confUpload;
-
-    Label upMinLabel;
-    Label downMinLabel;
 
     //add a comment to the auto-speed debug logs.
     Group commentGroup;
@@ -110,7 +105,7 @@ public class ConfigSectionTransferAutoSpeedBeta
      * parameters.
      */
     public void configSectionSave() {
-
+        
     }
 
     /**
@@ -195,139 +190,119 @@ public class ConfigSectionTransferAutoSpeedBeta
         ///////////////////////////////////
         // AutoSpeed Beta mode group
         ///////////////////////////////////
-        //Beta-mode grouping.
-        Group modeGroup = new Group(cSection, SWT.NULL);
-        //Messages.setLanguageText
-        modeGroup.setText("AutoSpeed-Beta settings");
-        GridLayout modeLayout = new GridLayout();
-        modeLayout.numColumns = 4;
-        modeGroup.setLayout(modeLayout);
-        gridData = new GridData(GridData.FILL_HORIZONTAL);
-        modeGroup.setLayoutData(gridData);
-
-        //spacer
-        Label spacer = new Label(modeGroup, SWT.NULL);
-        gridData = new GridData();
-        gridData.horizontalSpan=4;
-        spacer.setLayoutData(gridData);
-
-        //label column for speed test results
-        Label limits = new Label(modeGroup, SWT.NULL);
-        gridData = new GridData();
-        gridData.widthHint=80;
-        limits.setText("Line Speed Limits: ");
-        //Messages.setLanguageText //ToDo: internationalize
-
-        Label limMax = new Label(modeGroup,SWT.NULL);
-        gridData = new GridData();
-        limMax.setLayoutData(gridData);
-        limMax.setText("max - capacity");
-        //Messages.setLanguageText //ToDo: internationalize
-
-        Label limMin = new Label(modeGroup, SWT.NULL);
-        gridData = new GridData();
-        limMin.setLayoutData(gridData);
-        limMin.setText("min - setting");
-        //Messages.setLanguageText //ToDo: internationalize
-
-        Label confLevel = new Label(modeGroup, SWT.NULL);
-        gridData =  new GridData();
-        confLevel.setLayoutData(gridData);
-        confLevel.setText("confidence level");
-        //Messages.setLanguageText //ToDo: internationalize
-
-        //download settings
-        Label setDown = new Label(modeGroup, SWT.NULL);
-        gridData = new GridData();
-        setDown.setLayoutData(gridData);
-        setDown.setText("Download: ");
-        //Messages.setLanguageText //ToDo: internationalize
-
-        gridData = new GridData();
-        gridData.widthHint = 80;
-        downMaxLim = new IntParameter(modeGroup,SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT);
-        downMaxLim.setLayoutData( gridData );
-
-        //ToDo: remove all references to MIN upload/download settings.
-        gridData = new GridData();
-        gridData.widthHint = 80;
-        downMinLabel = new Label(modeGroup, SWT.NULL);
-        downMinLabel.setLayoutData( gridData );
-        downMinLabel.setText(  ""+SMConst.calculateMinDownload(downMaxLim.getValue() ) );
-
-
-        String[] confLevelNames = {
-                SpeedLimitConfidence.ABSOLUTE.getInternationalizedString(),
-                SpeedLimitConfidence.HIGH.getInternationalizedString(),
-                SpeedLimitConfidence.MED.getInternationalizedString(),
-                SpeedLimitConfidence.LOW.getInternationalizedString(),
-                SpeedLimitConfidence.NONE.getInternationalizedString()
-        };
-
-        String[] confLevelValues = {
-                SpeedLimitConfidence.ABSOLUTE.getString(),
-                SpeedLimitConfidence.HIGH.getString(),
-                SpeedLimitConfidence.MED.getString(),
-                SpeedLimitConfidence.LOW.getString(),
-                SpeedLimitConfidence.NONE.getString()
-        };
-
-        gridData = new GridData();
-        gridData.widthHint = 80;
-        confDownload = new StringListParameter(modeGroup, SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING, confLevelNames, confLevelValues);
-        confDownload.setLayoutData( gridData );
-
-
-        //upload settings
-        Label setUp = new Label(modeGroup, SWT.NULL);
-        gridData = new GridData();
-        setUp.setLayoutData(gridData);
-        setUp.setText("Upload: ");
-        //Messages.setLanguageText //ToDo: internationalize
-
-        gridData = new GridData();
-        gridData.widthHint = 80;
-        uploadMaxLim = new IntParameter(modeGroup, SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT);
-        uploadMaxLim.setLayoutData( gridData );
-
-        gridData = new GridData();
-        gridData.widthHint = 80;
-        upMinLabel = new Label(modeGroup, SWT.NULL);
-        upMinLabel.setLayoutData( gridData );
-        upMinLabel.setText( ""+SMConst.calculateMinUpload( uploadMaxLim.getValue() ) );
-
-        gridData = new GridData();
-        gridData.widthHint = 80;
-        confUpload = new StringListParameter(modeGroup, SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING,confLevelNames,confLevelValues);
-        confUpload.setLayoutData( gridData );
-
-        //spacer
-        spacer = new Label(modeGroup, SWT.NULL);
-        gridData = new GridData();
-        gridData.horizontalSpan=4;
-        spacer.setLayoutData(gridData);
-
-        //Restore Defaults:
-        Label restorDef = new Label(modeGroup, SWT.NULL);
-        gridData = new GridData();
-        restorDef.setLayoutData(gridData);
-        restorDef.setText("Restore Defaults:");
-
-        //Button and listener here.
-        reset = new Button(modeGroup, SWT.PUSH);
-        reset.setText("Reset");  //ToDo: internationalize.
-        gridData = new GridData();
-        gridData.widthHint = 70;
-        reset.setLayoutData(gridData);
-        reset.addListener(SWT.Selection, new RestoreDefaultsListener());
-        //
-
-        //spacer
-        spacer = new Label(cSection, SWT.NULL);
-        gridData = new GridData();
-        gridData.horizontalSpan=4;
-        spacer.setLayoutData(gridData);
-
+//        //Beta-mode grouping.
+//        Group modeGroup = new Group(cSection, SWT.NULL);
+//        //Messages.setLanguageText
+//        modeGroup.setText("AutoSpeed-Beta settings");
+//        GridLayout modeLayout = new GridLayout();
+//        modeLayout.numColumns = 3;
+//        modeGroup.setLayout(modeLayout);
+//        gridData = new GridData(GridData.FILL_HORIZONTAL);
+//        modeGroup.setLayoutData(gridData);
+//
+//        //spacer
+//        Label cSpacer = new Label(modeGroup, SWT.NULL);
+//        gridData = new GridData();
+//        gridData.horizontalSpan=4;
+//        cSpacer.setLayoutData(gridData);
+//
+//        //label column for speed test results
+//        Label limits = new Label(modeGroup, SWT.NULL);
+//        gridData = new GridData();
+//        gridData.widthHint=80;
+//        limits.setText("Line Speed Limits: ");
+//        //Messages.setLanguageText //ToDo: internationalize
+//
+//        Label limMax = new Label(modeGroup,SWT.NULL);
+//        gridData = new GridData();
+//        limMax.setLayoutData(gridData);
+//        limMax.setText("max - capacity");
+//        //Messages.setLanguageText //ToDo: internationalize
+//
+//        Label confLevel = new Label(modeGroup, SWT.NULL);
+//        gridData =  new GridData();
+//        confLevel.setLayoutData(gridData);
+//        confLevel.setText("confidence level");
+//        //Messages.setLanguageText //ToDo: internationalize
+//
+//        //download settings
+//        Label setDown = new Label(modeGroup, SWT.NULL);
+//        gridData = new GridData();
+//        setDown.setLayoutData(gridData);
+//        setDown.setText("Download: ");
+//        //Messages.setLanguageText //ToDo: internationalize
+//
+//        gridData = new GridData();
+//        gridData.widthHint = 80;
+//        downMaxLim = new IntParameter(modeGroup,SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT);
+//        downMaxLim.setLayoutData( gridData );
+//
+//        String[] confLevelNames = {
+//                SpeedLimitConfidence.ABSOLUTE.getInternationalizedString(),
+//                SpeedLimitConfidence.HIGH.getInternationalizedString(),
+//                SpeedLimitConfidence.MED.getInternationalizedString(),
+//                SpeedLimitConfidence.LOW.getInternationalizedString(),
+//                SpeedLimitConfidence.NONE.getInternationalizedString()
+//        };
+//
+//        String[] confLevelValues = {
+//                SpeedLimitConfidence.ABSOLUTE.getString(),
+//                SpeedLimitConfidence.HIGH.getString(),
+//                SpeedLimitConfidence.MED.getString(),
+//                SpeedLimitConfidence.LOW.getString(),
+//                SpeedLimitConfidence.NONE.getString()
+//        };
+//
+//        gridData = new GridData();
+//        gridData.widthHint = 80;
+//        confDownload = new StringListParameter(modeGroup, SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING, confLevelNames, confLevelValues);
+//        confDownload.setLayoutData( gridData );
+//
+//
+//        //upload settings
+//        Label setUp = new Label(modeGroup, SWT.NULL);
+//        gridData = new GridData();
+//        setUp.setLayoutData(gridData);
+//        setUp.setText("Upload: ");
+//        //Messages.setLanguageText //ToDo: internationalize
+//
+//        gridData = new GridData();
+//        gridData.widthHint = 80;
+//        uploadMaxLim = new IntParameter(modeGroup, SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT);
+//        uploadMaxLim.setLayoutData( gridData );
+//
+//        gridData = new GridData();
+//        gridData.widthHint = 80;
+//        confUpload = new StringListParameter(modeGroup, SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING,confLevelNames,confLevelValues);
+//        confUpload.setLayoutData( gridData );
+//
+//        //spacer
+//        cSpacer = new Label(modeGroup, SWT.NULL);
+//        gridData = new GridData();
+//        gridData.horizontalSpan=4;
+//        cSpacer.setLayoutData(gridData);
+//
+//        //Restore Defaults:
+//        Label restorDef = new Label(modeGroup, SWT.NULL);
+//        gridData = new GridData();
+//        restorDef.setLayoutData(gridData);
+//        restorDef.setText("Restore Defaults:");
+//
+//        //Button and listener here.
+//        reset = new Button(modeGroup, SWT.PUSH);
+//        reset.setText("Reset");  //ToDo: internationalize.
+//        gridData = new GridData();
+//        gridData.widthHint = 70;
+//        reset.setLayoutData(gridData);
+//        reset.addListener(SWT.Selection, new RestoreDefaultsListener());
+//        //
+//
+//        //spacer
+//        cSpacer = new Label(cSection, SWT.NULL);
+//        gridData = new GridData();
+//        gridData.horizontalSpan=4;
+//        cSpacer.setLayoutData(gridData);
+//
         ///////////////////////////
         // Upload Capacity used settings.
         ///////////////////////////
@@ -382,10 +357,11 @@ public class ConfigSectionTransferAutoSpeedBeta
 
 
         //spacer
-        spacer = new Label(cSection, SWT.NULL);
+        //Label cSpacer = new Label(modeGroup, SWT.NULL);
+        Label cSpacer = new Label(cSection, SWT.NULL);
         gridData = new GridData();
         gridData.horizontalSpan=4;
-        spacer.setLayoutData(gridData);
+        cSpacer.setLayoutData(gridData);
 
         //////////////////////////
         // DHT Ping Group
@@ -457,10 +433,10 @@ public class ConfigSectionTransferAutoSpeedBeta
         dBadTol.setLayoutData( gridData );
 
         //spacer
-        spacer = new Label(cSection, SWT.NULL);
+        cSpacer = new Label(cSection, SWT.NULL);
         gridData = new GridData();
         gridData.horizontalSpan=1;
-        spacer.setLayoutData(gridData);
+        cSpacer.setLayoutData(gridData);
 
         //how much data to accumulate before making an adjustment.
         Label iCount = new Label(dhtGroup, SWT.NULL);
@@ -476,10 +452,10 @@ public class ConfigSectionTransferAutoSpeedBeta
         adjustmentInterval.setLayoutData(gridData);
 
         //spacer
-        spacer = new Label(cSection, SWT.NULL);
+        cSpacer = new Label(cSection, SWT.NULL);
         gridData = new GridData();
         gridData.horizontalSpan=1;
-        spacer.setLayoutData(gridData);
+        cSpacer.setLayoutData(gridData);
 
         //how much data to accumulate before making an adjustment.
         Label skip = new Label(dhtGroup, SWT.NULL);
@@ -495,10 +471,10 @@ public class ConfigSectionTransferAutoSpeedBeta
         skipAfterAdjustment.setLayoutData(gridData);
 
         //spacer
-        spacer = new Label(cSection, SWT.NULL);
+        cSpacer = new Label(cSection, SWT.NULL);
         gridData = new GridData();
         gridData.horizontalSpan=3;
-        spacer.setLayoutData(gridData);
+        cSpacer.setLayoutData(gridData);
 
         return cSection;
     }
@@ -576,7 +552,7 @@ public class ConfigSectionTransferAutoSpeedBeta
             ConfigurationDefaults configDefs = ConfigurationDefaults.getInstance();
 
             try{
-                long downMax = configDefs.getLongParameter( SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT );
+                long downMax = configDefs.getLongParameter( SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT);
                 String downConf = configDefs.getStringParameter( SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING );
                 long upMax = configDefs.getLongParameter( SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT );
                 String upConf = configDefs.getStringParameter( SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING );
@@ -584,10 +560,7 @@ public class ConfigSectionTransferAutoSpeedBeta
                 COConfigurationManager.setParameter(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT,downMax);
                 COConfigurationManager.setParameter(SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING,downConf);
                 COConfigurationManager.setParameter(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT,upMax);
-                COConfigurationManager.setParameter(SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING,upConf);
-
-                downMinLabel.setText( ""+SMConst.calculateMinDownload( (int) downMax) );
-                upMinLabel.setText( ""+SMConst.calculateMinUpload( (int) upMax) );
+                COConfigurationManager.setParameter(SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING,upConf); 
 
             }catch(ConfigurationParameterNotFoundException cpnfe){
                 //ToDo: log this.    

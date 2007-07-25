@@ -75,8 +75,8 @@ public class SpeedManagerAlgorithmTI
 
                             try{
 
-                                limitMonitor.updateFromCOConfigManagerEx();
-                                //limitMonitor.updateFromCOConfigManager();
+                                limitMonitor.readFromPersistentMap();
+                                limitMonitor.updateFromCOConfigManager();
 
                                 //limitMonitor.updateSettingsFromCOConfigManager();//switch since now get persistent limits from level higher.
 
