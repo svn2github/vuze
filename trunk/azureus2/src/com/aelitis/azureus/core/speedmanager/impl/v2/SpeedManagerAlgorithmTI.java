@@ -37,7 +37,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
  */
 
 public class SpeedManagerAlgorithmTI
-        implements SpeedManagerAlgorithmProvider
+        implements SpeedManagerAlgorithmProvider, COConfigurationListener
     {
 
         private SpeedManagerAlgorithmProviderAdapter adapter;
@@ -50,7 +50,7 @@ public class SpeedManagerAlgorithmTI
         private int consecutiveDownticks=0;
 
         //SpeedLimitMonitor
-        private static SpeedLimitMonitor limitMonitor = new SpeedLimitMonitor();
+        private static SpeedLimitMonitor limitMonitor;
 
 
         //for managing ping sources.
@@ -67,32 +67,6 @@ public class SpeedManagerAlgorithmTI
 
         static LimitControlDropUploadFirst slider = new LimitControlDropUploadFirst();
 
-
-        static{
-            COConfigurationManager.addListener(
-                    new COConfigurationListener(){
-                        public void configurationSaved(){
-
-                            try{
-
-                                limitMonitor.readFromPersistentMap();
-                                limitMonitor.updateFromCOConfigManager();
-
-                                //limitMonitor.updateSettingsFromCOConfigManager();//switch since now get persistent limits from level higher.
-
-                                skipIntervalAfterAdjustment=COConfigurationManager.getBooleanParameter(
-                                        SpeedManagerAlgorithmProviderV2.SETTING_WAIT_AFTER_ADJUST);
-                                numIntervalsBetweenCal=COConfigurationManager.getIntParameter(
-                                        SpeedManagerAlgorithmProviderV2.SETTING_INTERVALS_BETWEEN_ADJUST);
-
-                            }catch( Throwable t ){
-                                SpeedManagerLogger.log(t.getMessage());
-                            }
-
-                        }//configurationSaved
-                    }
-            );
-        }//static
 
         private TestInterface testIfc;
         
@@ -131,6 +105,10 @@ public class SpeedManagerAlgorithmTI
 
             adapter = _adapter;
 
+            limitMonitor = new SpeedLimitMonitor( adapter.getSpeedManager());
+            
+            COConfigurationManager.addListener( this );
+            
             SMInstance.init( _adapter );
 
             testIfc = _alan_pingmapper?alan_testIfc:paul_testIfc;
@@ -151,6 +129,32 @@ public class SpeedManagerAlgorithmTI
             limitMonitor.initPingSpaceMap();
         }
 
+        public void configurationSaved(){
+
+            try{
+
+                limitMonitor.readFromPersistentMap();
+                limitMonitor.updateFromCOConfigManager();
+
+                //limitMonitor.updateSettingsFromCOConfigManager();//switch since now get persistent limits from level higher.
+
+                skipIntervalAfterAdjustment=COConfigurationManager.getBooleanParameter(
+                        SpeedManagerAlgorithmProviderV2.SETTING_WAIT_AFTER_ADJUST);
+                numIntervalsBetweenCal=COConfigurationManager.getIntParameter(
+                        SpeedManagerAlgorithmProviderV2.SETTING_INTERVALS_BETWEEN_ADJUST);
+
+            }catch( Throwable t ){
+                SpeedManagerLogger.log(t.getMessage());
+            }
+
+        }//configurationSaved
+ 
+        public void
+        destroy()
+        {
+        	COConfigurationManager.removeListener( this );
+        }
+        
         /**
          * Reset any state to start of day values
          */

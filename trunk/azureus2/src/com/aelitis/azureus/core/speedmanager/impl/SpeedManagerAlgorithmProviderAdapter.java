@@ -23,11 +23,15 @@
 
 package com.aelitis.azureus.core.speedmanager.impl;
 
+import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingMapper;
 
 public interface 
 SpeedManagerAlgorithmProviderAdapter 
 {
+	public SpeedManager
+	getSpeedManager();
+	
 	public int
 	getCurrentProtocolUploadSpeed();
 	

@@ -305,6 +305,12 @@ SpeedManagerImpl
 			});
 	}
 	
+	public SpeedManager
+	getSpeedManager()
+	{
+		return( this );
+	}
+	
 	public String
 	getASN()
 	{
@@ -383,7 +389,12 @@ SpeedManagerImpl
 		
 			log( "Algorithm set to " + provider.getClass().getName());
 		}
-				
+		
+		if ( old_provider != null ){
+			
+			old_provider.destroy();
+		}
+		
 		provider.reset();
 	}
 	
@@ -961,6 +972,11 @@ SpeedManagerImpl
 	{
 		private int	good_signals;
 		
+		public void 
+		destroy() 
+		{
+		}
+		
 		public void
 		reset()
 		{
@@ -1066,6 +1082,11 @@ SpeedManagerImpl
 	{		
 		public void
 		reset()
+		{
+		}
+		
+		public void 
+		destroy() 
 		{
 		}
 		

@@ -107,4 +107,8 @@ SpeedManagerAlgorithmProvider
 	
 	public boolean
 	getAdjustsDownloadLimits();
+	
+	
+	public void
+	destroy();
 }

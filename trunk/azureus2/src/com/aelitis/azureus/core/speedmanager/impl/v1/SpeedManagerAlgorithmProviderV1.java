@@ -160,7 +160,11 @@ SpeedManagerAlgorithmProviderV1
 		adapter	= _adapter;
 	}
 		
-	
+    public void
+    destroy()
+    {
+    }
+    
 	public void
 	updateStats()
 	{

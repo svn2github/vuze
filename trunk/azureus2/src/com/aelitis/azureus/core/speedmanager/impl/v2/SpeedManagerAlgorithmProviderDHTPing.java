@@ -1,5 +1,6 @@
 package com.aelitis.azureus.core.speedmanager.impl.v2;
 
+import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingSource;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProvider;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProviderAdapter;
@@ -42,7 +43,7 @@ import java.util.*;
  */
 
 public class SpeedManagerAlgorithmProviderDHTPing
-        implements SpeedManagerAlgorithmProvider
+        implements SpeedManagerAlgorithmProvider, COConfigurationListener
 {
 
     private SpeedManagerAlgorithmProviderAdapter adapter;
@@ -61,7 +62,7 @@ public class SpeedManagerAlgorithmProviderDHTPing
     private int consecutiveDownticks=0;
 
     //SpeedLimitMonitor
-    private static SpeedLimitMonitor limitMonitor = new SpeedLimitMonitor();
+    private SpeedLimitMonitor limitMonitor;
 
     //variables for display and vivaldi.
     private int lastMetricValue;
@@ -79,45 +80,16 @@ public class SpeedManagerAlgorithmProviderDHTPing
 
     int sessionMaxUploadRate = 0;
 
-    static{
-        COConfigurationManager.addListener(
-                new COConfigurationListener(){
-                    public void configurationSaved(){
 
-                        try{
-
-                            limitMonitor.readFromPersistentMap();
-                            limitMonitor.updateFromCOConfigManager();
-
-                            metricGoodResult =COConfigurationManager.getIntParameter(
-                                    SpeedManagerAlgorithmProviderV2.SETTING_DHT_GOOD_SET_POINT);
-                            metricGoodTolerance =COConfigurationManager.getIntParameter(
-                                    SpeedManagerAlgorithmProviderV2.SETTING_DHT_GOOD_TOLERANCE);
-                            metricBadResult =COConfigurationManager.getIntParameter(
-                                    SpeedManagerAlgorithmProviderV2.SETTING_DHT_BAD_SET_POINT);
-                            metricBadTolerance =COConfigurationManager.getIntParameter(
-                                    SpeedManagerAlgorithmProviderV2.SETTING_DHT_BAD_TOLERANCE);
-
-                            skipIntervalAfterAdjustment=COConfigurationManager.getBooleanParameter(
-                                    SpeedManagerAlgorithmProviderV2.SETTING_WAIT_AFTER_ADJUST);
-                            numIntervalsBetweenCal=COConfigurationManager.getIntParameter(
-                                    SpeedManagerAlgorithmProviderV2.SETTING_INTERVALS_BETWEEN_ADJUST);
-
-                            limitMonitor.initPingSpaceMap(metricGoodResult+metricGoodTolerance,metricBadResult-metricBadTolerance);
-
-                        }catch( Throwable t ){
-                            SpeedManagerLogger.log(t.getMessage());
-                        }
-
-                    }//configurationSaved
-                }
-        );
-    }//static
 
     SpeedManagerAlgorithmProviderDHTPing(SpeedManagerAlgorithmProviderAdapter _adapter){
 
         adapter = _adapter;
 
+        limitMonitor = new SpeedLimitMonitor( adapter.getSpeedManager());
+        
+        COConfigurationManager.addListener( this );
+ 
         SMInstance.init( _adapter );
 
         try{
@@ -134,6 +106,41 @@ public class SpeedManagerAlgorithmProviderDHTPing
         limitMonitor.initPingSpaceMap(metricGoodResult+metricGoodTolerance,metricBadResult-metricBadTolerance);
     }
 
+    public void
+    destroy()
+    {
+    	COConfigurationManager.removeListener( this );
+    }
+    
+    public void 
+    configurationSaved(){
+
+        try{
+
+            limitMonitor.readFromPersistentMap();
+            limitMonitor.updateFromCOConfigManager();
+
+            metricGoodResult =COConfigurationManager.getIntParameter(
+                    SpeedManagerAlgorithmProviderV2.SETTING_DHT_GOOD_SET_POINT);
+            metricGoodTolerance =COConfigurationManager.getIntParameter(
+                    SpeedManagerAlgorithmProviderV2.SETTING_DHT_GOOD_TOLERANCE);
+            metricBadResult =COConfigurationManager.getIntParameter(
+                    SpeedManagerAlgorithmProviderV2.SETTING_DHT_BAD_SET_POINT);
+            metricBadTolerance =COConfigurationManager.getIntParameter(
+                    SpeedManagerAlgorithmProviderV2.SETTING_DHT_BAD_TOLERANCE);
+
+            skipIntervalAfterAdjustment=COConfigurationManager.getBooleanParameter(
+                    SpeedManagerAlgorithmProviderV2.SETTING_WAIT_AFTER_ADJUST);
+            numIntervalsBetweenCal=COConfigurationManager.getIntParameter(
+                    SpeedManagerAlgorithmProviderV2.SETTING_INTERVALS_BETWEEN_ADJUST);
+
+            limitMonitor.initPingSpaceMap(metricGoodResult+metricGoodTolerance,metricBadResult-metricBadTolerance);
+
+        }catch( Throwable t ){
+            SpeedManagerLogger.log(t.getMessage());
+        }
+
+    }//configurationSaved
     /**
      * Reset any state to start of day values
      */

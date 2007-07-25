@@ -125,14 +125,12 @@ public class SpeedLimitMonitor implements PSMonitorListener
 
     SpeedLimitListener persistentMapListener;
 
-    public SpeedLimitMonitor(){
+    public SpeedLimitMonitor(SpeedManager sm){
 
         //
         longTermMonitor.addListener( this );
         
         persistentMapListener = new SpeedLimitListener( this );
-
-        SpeedManager sm = AzureusCoreFactory.getSingleton().getSpeedManager();
 
         sm.addListener( persistentMapListener );
     }
