@@ -1076,9 +1076,45 @@ public class TransferStatsView extends AbstractIView {
 	  }
 	  
 	  public String[]
-	  getSetableTypes()
+	  getSettableTypes()
 	  {
 		  return( setable_types );
+	  }
+	  
+	  public String
+	  getSettableType(
+		  SpeedManagerLimitEstimate limit )
+	  {
+		  double type = limit.getEstimateType();
+
+		  String	text;
+		  
+		  if ( type == SpeedManagerLimitEstimate.TYPE_UNKNOWN){
+
+			  text = msg_text_unknown;
+			  
+		  }else if ( type == SpeedManagerLimitEstimate.TYPE_MANUAL){
+
+			  text = msg_text_manual;
+
+		  }else if ( type == SpeedManagerLimitEstimate.TYPE_MEASURED){
+
+			  text = msg_text_measured;
+
+		  }else if ( type == SpeedManagerLimitEstimate.TYPE_MEASURED_MIN){
+
+			  text = msg_text_measured_min;
+
+		  }else if ( type == SpeedManagerLimitEstimate.TYPE_CHOKE_ESTIMATED){
+
+			  text = msg_text_choke_estimate;
+
+		  }else{
+
+			  text = msg_text_estimate;
+		  }
+		  
+		  return( text );
 	  }
 	  
 	  public float
@@ -1111,34 +1147,7 @@ public class TransferStatsView extends AbstractIView {
 	  getLimitText(
 		 SpeedManagerLimitEstimate	limit )
 	  {
-		  String	text;
-
-		  double metric = limit.getEstimateType();
-
-		  if ( metric == SpeedManagerLimitEstimate.TYPE_UNKNOWN){
-
-			  text = msg_text_unknown;
-			  
-		  }else if ( metric == SpeedManagerLimitEstimate.TYPE_MANUAL){
-
-			  text = msg_text_manual;
-
-		  }else if ( metric == SpeedManagerLimitEstimate.TYPE_MEASURED){
-
-			  text = msg_text_measured;
-
-		  }else if ( metric == SpeedManagerLimitEstimate.TYPE_MEASURED_MIN){
-
-			  text = msg_text_measured_min;
-
-		  }else if ( metric == SpeedManagerLimitEstimate.TYPE_CHOKE_ESTIMATED){
-
-			  text = msg_text_choke_estimate;
-
-		  }else{
-
-			  text = msg_text_estimate;
-		  }
+		  String	text = getSettableType( limit );
 		  
 		  int	l = limit.getBytesPerSec();
 		  

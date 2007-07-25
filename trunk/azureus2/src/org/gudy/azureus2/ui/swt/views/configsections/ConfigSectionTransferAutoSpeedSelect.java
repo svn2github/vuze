@@ -29,9 +29,6 @@ import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerListener;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerImpl;
-import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedManagerAlgorithmProviderV2;
-import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedLimitConfidence;
-import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedLimitMonitor;
 
 
 /**
@@ -345,15 +342,17 @@ public class ConfigSectionTransferAutoSpeedSelect
         String co_up		= "AutoSpeed Network Upload Speed (temp)";
         String co_up_type 	= "AutoSpeed Network Upload Speed Type (temp)";
 
-        COConfigurationManager.setParameter( co_up, 0);
-		COConfigurationManager.setParameter( co_up_type, "" );
+        SpeedManagerLimitEstimate up_lim = sm.getEstimatedUploadCapacityBytesPerSec();
+        
+        COConfigurationManager.setParameter( co_up, up_lim.getBytesPerSec()/1024 );
+		COConfigurationManager.setParameter( co_up_type, limit_to_text.getSettableType( up_lim ));
 		
 		final IntParameter max_upload = new IntParameter(networkGroup, co_up );
 	    	
 		final StringListParameter max_upload_type = 
-			new StringListParameter(networkGroup, co_up_type, limit_to_text.getSetableTypes(),limit_to_text.getSetableTypes() );
+			new StringListParameter(networkGroup, co_up_type, limit_to_text.getSettableTypes(),limit_to_text.getSettableTypes() );
 	
-		max_upload_type.addChangeListener(
+		ParameterChangeAdapter up_listener = 
 			new ParameterChangeAdapter()
 			{
 				public void 
@@ -361,27 +360,27 @@ public class ConfigSectionTransferAutoSpeedSelect
 					Parameter 	p, 
 					boolean 	caused_internally )
 				{
-					if ( max_upload.isDisposed()){
+					if ( max_upload.isDisposed() || max_upload_type.isDisposed()){
 					
 						return;
 					}
 					
 					float metric = limit_to_text.textToMetric( max_upload_type.getValue());
 					
-					if ( metric == SpeedManagerLimitEstimate.TYPE_UNKNOWN){
+					if ( metric == SpeedManagerLimitEstimate.TYPE_UNKNOWN ){
 						
 						return;
 					}
 					
 					int	value = max_upload.getValue();
-											
-					max_upload.setValue( 0 );
-						
+																	
 					sm.setEstimatedUploadCapacityBytesPerSec( value*1024, metric );
-
-                    max_upload_type.setValue( "" );
 				}
-			});
+			};
+			
+		max_upload_type.addChangeListener( up_listener );
+		max_upload.addChangeListener( up_listener );
+
 			    
 	    label = new Label(networkGroup, SWT.NULL);
 
@@ -393,21 +392,20 @@ public class ConfigSectionTransferAutoSpeedSelect
 	    gridData.horizontalIndent = 20;
 	    label.setLayoutData(gridData);
 
+        SpeedManagerLimitEstimate down_lim = sm.getEstimatedDownloadCapacityBytesPerSec();
 
         String co_down			= "AutoSpeed Network Download Speed (temp)";
 		String co_down_type 	= "AutoSpeed Network Download Speed Type (temp)";
-        //String co_down			= SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT_TEMP;
-		//String co_down_type 	= SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT_CONF_TYPE_TEMP;
-
-        COConfigurationManager.setParameter( co_down, 0);
-        COConfigurationManager.setParameter( co_down_type, "" );
+ 
+        COConfigurationManager.setParameter( co_down, down_lim.getBytesPerSec()/1024 );
+        COConfigurationManager.setParameter( co_down_type, limit_to_text.getSettableType( down_lim ));
 
 		final IntParameter max_download = new IntParameter(networkGroup, co_down );
 	    
 		final StringListParameter max_download_type = 
-			new StringListParameter(networkGroup, co_down_type, limit_to_text.getSetableTypes(),limit_to_text.getSetableTypes() );
+			new StringListParameter(networkGroup, co_down_type, limit_to_text.getSettableTypes(),limit_to_text.getSettableTypes() );
 
-		max_download_type.addChangeListener(
+		ParameterChangeAdapter down_listener = 
 			new ParameterChangeAdapter()
 			{
 				public void 
@@ -415,7 +413,7 @@ public class ConfigSectionTransferAutoSpeedSelect
 					Parameter 	p, 
 					boolean 	caused_internally )
 				{
-					if ( max_download.isDisposed()){
+					if ( max_download.isDisposed() || max_download_type.isDisposed()){
 					
 						return;
 					}
@@ -429,13 +427,12 @@ public class ConfigSectionTransferAutoSpeedSelect
 					
 					int	value = max_download.getValue();
 											
-					max_download.setValue( 0 );
-						
 					sm.setEstimatedDownloadCapacityBytesPerSec( value*1024, metric );
-
-                    max_download_type.setValue( "" );
 				}
-			});
+			};
+			
+		max_download_type.addChangeListener( down_listener );
+		max_download.addChangeListener( down_listener );
 		
 	    label = new Label(networkGroup, SWT.NULL);
 
