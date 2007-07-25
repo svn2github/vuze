@@ -3,6 +3,7 @@ package org.gudy.azureus2.platform.unix;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -25,7 +26,7 @@ public class ScriptBeforeStartup
 		// from us to stderr 
 		sysout = System.out;
 		try {
-			System.setOut(new PrintStream("/dev/stderr"));
+			System.setOut(new PrintStream(new FileOutputStream("/dev/stderr")));
 		} catch (FileNotFoundException e) {
 		}
 
