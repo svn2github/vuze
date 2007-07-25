@@ -82,6 +82,7 @@ public class SpeedManagerAlgorithmProviderDHTPing
 
 
 
+
     SpeedManagerAlgorithmProviderDHTPing(SpeedManagerAlgorithmProviderAdapter _adapter){
 
         adapter = _adapter;
@@ -135,6 +136,8 @@ public class SpeedManagerAlgorithmProviderDHTPing
                     SpeedManagerAlgorithmProviderV2.SETTING_INTERVALS_BETWEEN_ADJUST);
 
             limitMonitor.initPingSpaceMap(metricGoodResult+metricGoodTolerance,metricBadResult-metricBadTolerance);
+
+            SpeedManagerLogger.trace("..DHTPing - configurationSaved called.");
 
         }catch( Throwable t ){
             SpeedManagerLogger.log(t.getMessage());
