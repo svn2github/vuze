@@ -28,6 +28,7 @@ import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
 
@@ -400,19 +401,52 @@ public class PlatformTorrentUtils
 		return( false );
 	}
 	
-	public static boolean isPlatformTracker(TOTorrent torrent) {
-		if (torrent == null) {
-			return false;
-		}
+	public static boolean 
+	isPlatformTracker(
+		TOTorrent torrent )
+	{
+		try{
+			if ( torrent == null ) {
+				
+				return false;
+			}
+		
+				// check them all incase someone includes one of our trackers in a multi-tracker
+				// torrent
+			
+			URL announceURL = torrent.getAnnounceURL();
+			
+			if ( announceURL != null ) {
 	
-		URL announceURL = torrent.getAnnounceURL();
-		if (announceURL == null) {
-			return false;
+				if ( !isPlatformHost( announceURL.getHost())){
+					
+					return( false );
+				}
+			}
+			
+			TOTorrentAnnounceURLSet[] sets = torrent.getAnnounceURLGroup().getAnnounceURLSets();
+			
+			for (int i=0;i<sets.length;i++){
+				
+				URL[] urls = sets[i].getAnnounceURLs();
+				
+				for (int j=0;j<urls.length;j++){
+					
+					if ( !isPlatformHost( urls[j].getHost())){
+						
+						return( false );
+					}
+				}
+			}
+			
+			return( announceURL != null );
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+			
+			return( false );
 		}
-
-		String	host = announceURL.getHost();
-
-		return( isPlatformHost( host ));
 	}
 	
 	public static boolean isPlatformTracker(Torrent torrent) {
