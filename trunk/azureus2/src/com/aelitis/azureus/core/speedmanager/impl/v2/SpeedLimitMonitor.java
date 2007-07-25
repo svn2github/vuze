@@ -59,8 +59,6 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 public class SpeedLimitMonitor implements PSMonitorListener
 {
 
-    private String lastASN;
-
     //use for home network.
     private int uploadLimitMax = SMConst.START_UPLOAD_RATE_MAX;
     private int uploadLimitMin = SMConst.calculateMinUpload( uploadLimitMax );
@@ -904,8 +902,8 @@ public class SpeedLimitMonitor implements PSMonitorListener
                 downloadLimitMax = uploadLimitMax;
                 COConfigurationManager.setParameter(
                         SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT, downloadLimitMax);
-
             }
+            sb.append(uploadLimitMax);
         }else{
             sb.append("new download limits: ");
             downloadLimitMax =newMaxLimitSetting;
@@ -918,7 +916,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
 
                 uploadLimitMin = SMConst.calculateMinUpload( uploadLimitMax );
             }//if
-            
+            sb.append(downloadLimitMax);
         }
 
         SpeedManagerLogger.trace( sb.toString() );
@@ -1022,6 +1020,8 @@ public class SpeedLimitMonitor implements PSMonitorListener
         }
 
         downloadLimitMin = SMConst.calculateMinDownload(downloadMax);
+
+        SpeedManagerLogger.trace("setRefLimits uploadMax="+uploadMax+" uploadLimitMax="+uploadLimitMax+", downloadMax="+downloadMax+" downloadLimitMax="+downloadLimitMax);
 
     }
 
