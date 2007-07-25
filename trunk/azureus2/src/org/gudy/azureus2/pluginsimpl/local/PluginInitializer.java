@@ -132,7 +132,7 @@ PluginInitializer
    					"CorePatcher",
 					"true" },
 	   		{	 PluginManagerDefaults.PID_PLATFORM_CHECKER, 
-   					"org.gudy.azureus2.platform.win32.PlatformManagerUpdateChecker", 
+   					"org.gudy.azureus2.platform.PlatformManagerPluginDelegate", 
    					"azplatform2", 
    					"azplatform2",
 					"true" },
