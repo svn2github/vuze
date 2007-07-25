@@ -29,6 +29,7 @@ import org.gudy.azureus2.platform.PlatformManagerFactory;
 import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
+import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.MapUtils;
 
@@ -146,14 +147,31 @@ public class PlatformConfigMessenger
 						}
 						sURLWhiteList = sNewWhiteList;
 					}
-					
-					playAfterURL = (String) MapUtils.getMapString(reply,
-							"play-after-url", null);
 				} catch (Exception e) {
 					Debug.out(e);
 				}
 
-				iRPCVersion = MapUtils.getMapInt(reply, "rpc-version", 0);
+				try {
+					List listDomains = (List) MapUtils.getMapObject(reply, "tracker-domains",
+							null, List.class);
+					if (listDomains != null) {
+						for (int i = 0; i < listDomains.size(); i++) {
+							String s = (String) listDomains.get(i);
+							PlatformTorrentUtils.addPlatformHost(s);
+							PlatformMessenger.debug("v3.login: got tracker domain of " + s);
+						}
+					}
+				} catch (Exception e) {
+					Debug.out(e);
+				}
+
+				try {
+  				iRPCVersion = MapUtils.getMapInt(reply, "rpc-version", 0);
+  				playAfterURL = (String) MapUtils.getMapString(reply,
+  						"play-after-url", null);
+				} catch (Exception e) {
+					Debug.out(e);
+				}
 			}
 
 			public void messageSent(PlatformMessage message) {
