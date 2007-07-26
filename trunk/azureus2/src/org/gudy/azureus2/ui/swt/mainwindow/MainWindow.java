@@ -1309,15 +1309,23 @@ MainWindow
 	
 	public void refreshTorrentMenu() {
 		if (this.mainMenu == null) {return;}
+		DownloadManager[] dm;
+		boolean detailed_view;
 		if (this.getCurrentView() instanceof ManagerView) {
-			DownloadManager[] dm = new DownloadManager[] {
+			dm = new DownloadManager[] {
 				((ManagerView)this.getCurrentView()).getDownload(),
 			};
-			this.mainMenu.setTorrentMenuContext(dm, true);
+			detailed_view = true;
+		}
+		else if (this.getCurrentView() instanceof MyTorrentsSuperView) {
+			dm = ((MyTorrentsSuperView)this.getCurrentView()).getSelectedDownloads();
+			detailed_view = false;
 		}
 		else {
-			this.mainMenu.setTorrentMenuContext(null, false);
-		}		
+			dm = null;
+			detailed_view = false;
+		}
+		this.mainMenu.setTorrentMenuContext(dm, detailed_view);
 	}
 
   public void close() {

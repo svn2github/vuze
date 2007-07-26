@@ -754,11 +754,17 @@ public class MyTorrentsView
   }
   
 	private void refreshTorrentMenu() {
-		Object[] data_sources = tv.getSelectedDataSources();
 		UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 		if (uiFunctions != null && uiFunctions instanceof UIFunctionsSWT) {
-			((UIFunctionsSWT)uiFunctions).setTorrentMenuContextObjects(data_sources);
+			((UIFunctionsSWT)uiFunctions).refreshTorrentMenu();
 		}
+	}
+	
+	public DownloadManager[] getSelectedDownloads() {
+		Object[] data_sources = tv.getSelectedDataSources();
+		DownloadManager[] result = new DownloadManager[data_sources.length];
+		System.arraycopy(data_sources, 0, result, 0, result.length);
+		return result;
 	}
 
   // @see com.aelitis.azureus.ui.common.table.TableSelectionListener#defaultSelected(com.aelitis.azureus.ui.common.table.TableRowCore[])

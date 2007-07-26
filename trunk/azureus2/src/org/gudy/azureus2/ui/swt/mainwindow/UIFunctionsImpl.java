@@ -210,6 +210,14 @@ public class UIFunctionsImpl
 		});
 	}
 
+	public void closeGlobalTransferBar() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				AllTransfersBar.close(mainwindow.getGlobalManager());
+			}
+		});
+	}
+	
 	public UISWTInstanceImpl getSWTPluginInstanceImpl() {
 		return mainwindow.getUISWTInstanceImpl();
 	}
@@ -392,7 +400,7 @@ public class UIFunctionsImpl
 		return mb;
 	}
 	
-	public void setTorrentMenuContextObjects(Object[] context) {
-		mainwindow.getMenu().setTorrentMenuContext(context, false);
+	public void refreshTorrentMenu() {
+		mainwindow.refreshTorrentMenu();
 	}
 }
