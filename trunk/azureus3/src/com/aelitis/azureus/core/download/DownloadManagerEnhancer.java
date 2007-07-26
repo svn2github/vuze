@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.torrent.MetaDataUpdateListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.swt.utils.PublishUtils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.disk.DiskManagerChannel;
@@ -48,7 +49,9 @@ import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerChannelImpl;
 public class 
 DownloadManagerEnhancer 
 {
-	public static final int	TICK_PERIOD	= 1000;
+	public static final int	TICK_PERIOD				= 1000;
+	public static final int	PUBLISHING_CHECK_PERIOD	= 15000;
+	public static final int	PUBLISHING_CHECK_TICKS	= PUBLISHING_CHECK_PERIOD / TICK_PERIOD;
 	
 	private static DownloadManagerEnhancer		singleton;
 	
@@ -167,16 +170,28 @@ DownloadManagerEnhancer
 					{
 						tick_count++;
 						
+						boolean	check_publish = tick_count % PUBLISHING_CHECK_TICKS == 0;
+						
 						List	downloads = core.getGlobalManager().getDownloadManagers();
 						
 						for ( int i=0;i<downloads.size();i++){
 							
 							DownloadManager download = (DownloadManager)downloads.get(i);
 							
-							if ( 	download.getState() == DownloadManager.STATE_DOWNLOADING ||
-									download.getState() == DownloadManager.STATE_SEEDING ){
+							int	state = download.getState();
+							
+							if ( 	state == DownloadManager.STATE_DOWNLOADING ||
+									state == DownloadManager.STATE_SEEDING ){
 								
-								getEnhancedDownload( download ).updateStats( tick_count );
+								EnhancedDownloadManager edm = getEnhancedDownload( download );
+								
+								edm.updateStats( tick_count );
+							
+								if ( 	state == DownloadManager.STATE_SEEDING &&
+										check_publish ){
+											
+									edm.checkPublishing();
+								}
 							}
 						}
 					}

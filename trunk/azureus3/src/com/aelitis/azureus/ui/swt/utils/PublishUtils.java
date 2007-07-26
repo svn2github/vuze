@@ -29,7 +29,8 @@ public class PublishUtils
 {
 	private static final String CONTENTMAP_KEY = "Plugin.azdirector.ContentMap";
 
-	private static final String REMOVAL_ATTRIBUTE_KEY = "REMOVAL ALLOWED";
+	private static final String REMOVAL_ATTRIBUTE_KEY 	= "REMOVAL ALLOWED";
+	private static final String COMPLETE_ATTRIBUTE_KEY 	= "COMPLETE";
 
 	public static void setupContext(ClientMessageContext context,
 			PluginInterface pi, DownloadStateAndRemoveListener downloadListener) {
@@ -112,6 +113,39 @@ public class PublishUtils
 		}
 	}
 
+	public static void setPublishComplete(DownloadManager dm) {
+		try {
+			Map mapAttr = dm.getDownloadState().getMapAttribute(CONTENTMAP_KEY);
+
+			if ( mapAttr == null ){
+				
+				mapAttr = new HashMap();
+			}
+			
+			mapAttr.put( COMPLETE_ATTRIBUTE_KEY, new Long(1));
+			
+			dm.getDownloadState().setMapAttribute(CONTENTMAP_KEY, mapAttr);
+			
+		} catch (Exception e) {
+			
+			Debug.out("baH", e);
+		}
+	}
+
+	public static boolean isPublishComplete( DownloadManager dm ){
+		
+		Map mapAttr = dm.getDownloadState().getMapAttribute(CONTENTMAP_KEY);
+
+		if ( mapAttr == null ){
+			
+			return( false );
+		}
+		
+		Long complete = (Long)mapAttr.get( COMPLETE_ATTRIBUTE_KEY );
+
+		return( complete != null );
+	}
+	
 	public static boolean isRemovalAllowed(Download d) {
 		try {
 			DownloadManager dm = ((DownloadImpl) d).getDownload();

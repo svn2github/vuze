@@ -42,6 +42,7 @@ import org.gudy.azureus2.core3.peer.PEPeerManagerStats;
 import org.gudy.azureus2.core3.peer.PEPeerStats;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
 import org.gudy.azureus2.core3.util.ConcurrentHasher;
@@ -58,6 +59,7 @@ import com.aelitis.azureus.core.peermanager.piecepicker.PieceRTAProvider;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.average.Average;
 import com.aelitis.azureus.core.util.average.AverageFactory;
+import com.aelitis.azureus.ui.swt.utils.PublishUtils;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.DownloadUtils;
 
@@ -157,6 +159,12 @@ EnhancedDownloadManager
 	
 	private CachePeer[]	lookup_peers;
 	private DownloadManagerListener dmListener;
+	
+	private static final int	STALLED_TIMEOUT	= 2*60*1000;
+	
+	private boolean		publish_handling_complete;
+	private long		publish_sent		= -1;
+	private long		publish_sent_time;
 	
 	private void
 	resetVars()
@@ -1136,6 +1144,100 @@ EnhancedDownloadManager
 				marked_active = true;
 
 				ConcurrentHasher.getSingleton().addRealTimeTask();
+			}
+		}
+	}
+	
+	protected void
+	checkPublishing()
+	{
+		if ( publish_handling_complete ){
+			
+			return;
+		}
+		
+		if ( PublishUtils.isPublished( download_manager )){
+			
+			if ( PublishUtils.isPublishComplete( download_manager )){
+				
+				publish_handling_complete = true;
+				
+			}else{
+				
+				TRTrackerScraperResponse scrape = download_manager.getTrackerScrapeResponse();
+				
+				if ( scrape == null || scrape.getStatus() != TRTrackerScraperResponse.ST_ONLINE ){
+					
+					return;
+				}
+				
+				if ( scrape.getSeeds() >= 2 ){
+									
+					PublishUtils.setPublishComplete( download_manager );
+					
+					publish_handling_complete = true;
+					
+				}else{
+					
+					PEPeerManager pm = download_manager.getPeerManager();
+				
+					if ( pm != null ){
+				
+						long	now = SystemTime.getCurrentTime();
+						
+						long	pub_sent = download_manager.getStats().getTotalDataBytesSent();
+						
+						if ( pub_sent != publish_sent ){
+							
+							publish_sent = pub_sent;
+						
+							publish_sent_time = now;
+						}
+						
+						if ( publish_sent_time > now ){
+							
+							publish_sent_time = now;
+						}
+						
+						if ( now - publish_sent_time > STALLED_TIMEOUT ){
+							
+							publish_sent_time = now;
+							
+							log( "Publish: upload stalled - switching transports" );
+							
+								// no data uploded recently. 
+							
+							pm.setPreferUDP( !pm.getPreferUDP());
+							
+							List peers = pm.getPeers();
+							
+							for (int i=0;i<peers.size();i++){
+								
+								PEPeer peer = (PEPeer)peers.get(i);
+								
+								pm.removePeer( peer, "Transport switch" );
+							}
+							
+							download_manager.requestTrackerAnnounce( true );					
+
+						}else if ( pm.getNbPeers() == 0 ){
+									
+							log( "Publish: no connected peers, forcing announce" );
+							
+							download_manager.requestTrackerAnnounce( true );					
+						}
+					}
+				}
+			}	
+			
+		}else{
+			
+				// we've only got to handle the possible small delay here between a download being
+				// added and the flag being set
+			
+			if ( SystemTime.getCurrentTime() - time_download_started > 120*1000 ){
+				
+				publish_handling_complete = true;
 			}
 		}
 	}
