@@ -241,10 +241,10 @@ SimpleXMLParserDocumentImpl
 	
     private static class MyErrorHandler implements ErrorHandler {
         /** Error handler output goes here */
-        private PrintWriter out;
+        //private PrintWriter out;
 
         MyErrorHandler(PrintWriter out) {
-            this.out = out;
+            //this.out = out;
         }
 
         /**
