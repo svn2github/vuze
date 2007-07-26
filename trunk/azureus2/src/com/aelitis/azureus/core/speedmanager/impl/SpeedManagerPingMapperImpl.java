@@ -474,7 +474,7 @@ SpeedManagerPingMapperImpl
 		min_x *= SPEED_DIVISOR;
 		min_y *= SPEED_DIVISOR;
 				
-		if ( up_capacity.getEstimateType() < SpeedManagerLimitEstimate.TYPE_MANUAL){
+		if ( up_capacity.getEstimateType() != SpeedManagerLimitEstimate.TYPE_MANUAL){
 			
 			if ( min_x > up_capacity.getBytesPerSec()){
 				
@@ -488,7 +488,7 @@ SpeedManagerPingMapperImpl
 			}
 		}
 		
-		if ( down_capacity.getEstimateType() < SpeedManagerLimitEstimate.TYPE_MANUAL){
+		if ( down_capacity.getEstimateType() != SpeedManagerLimitEstimate.TYPE_MANUAL){
 			
 			if ( min_y > down_capacity.getBytesPerSec()){
 				
