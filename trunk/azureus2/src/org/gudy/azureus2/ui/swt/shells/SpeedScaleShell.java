@@ -333,21 +333,33 @@ public class SpeedScaleShell
 					String text = (String) mapOptions.get(value);
 
 					Rectangle area = new Rectangle(0, y, WIDTH, OPTION_HEIGHT);
+					Color bg;
 					if (area.contains(mousePos)) {
-						e.gc.setBackground(display.getSystemColor(SWT.COLOR_LIST_SELECTION));
+						bg = display.getSystemColor(SWT.COLOR_LIST_SELECTION);
+						e.gc.setBackground(bg);
 						e.gc.setForeground(display.getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT));
 						e.gc.fillRectangle(area);
 					} else {
-						e.gc.setBackground(display.getSystemColor(SWT.COLOR_LIST_BACKGROUND));
+						bg = display.getSystemColor(SWT.COLOR_LIST_BACKGROUND);
+						e.gc.setBackground(bg);
 						e.gc.setForeground(display.getSystemColor(SWT.COLOR_LIST_FOREGROUND));
 					}
 
 					int ovalSize = OPTION_HEIGHT - 6;
 					if (getValue() == value.intValue()) {
 						Color saveColor = e.gc.getBackground();
-						e.gc.setBackground(display.getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT));
-						e.gc.fillOval(2, y + 3, ovalSize, ovalSize);
+						e.gc.setBackground(e.gc.getForeground());
+						e.gc.fillOval(4, y + 5, ovalSize - 3, ovalSize - 3);
 						e.gc.setBackground(saveColor);
+					}
+					if (Constants.isLinux) {
+						// Hack: on linux, drawing oval seems to draw a line from last pos
+						// to start of oval.. drawing a point (anywhere) seems to clear the
+						// path
+						Color saveColor = e.gc.getForeground();
+						e.gc.setForeground(bg);
+						e.gc.drawPoint(2, y + 3);
+						e.gc.setForeground(saveColor);
 					}
 					e.gc.drawOval(2, y + 3, ovalSize, ovalSize);
 
