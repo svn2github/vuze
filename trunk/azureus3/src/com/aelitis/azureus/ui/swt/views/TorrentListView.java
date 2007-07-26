@@ -528,6 +528,8 @@ public class TorrentListView
 		removeDataSource(dm, true);
 		if (!bAllowScrolling) {
 			regetDownloads();
+		} else {
+			updateCount();
 		}
 	}
 
