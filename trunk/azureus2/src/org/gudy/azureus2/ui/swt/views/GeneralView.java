@@ -119,7 +119,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
   BufferedLabel pieceSize;
   Control lblComment;
   BufferedLabel creation_date;
-  BufferedLabel user_comment;
+  Control user_comment;
   BufferedLabel hashFails;
   BufferedLabel shareRatio;
   Button		updateButton;
@@ -579,7 +579,18 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     label.setCursor(Cursors.handCursor);
     label.setForeground(Colors.blue);
     Messages.setLanguageText(label, "GeneralView.label.user_comment"); //$NON-NLS-1$
-    user_comment = new BufferedLabel(gInfo, SWT.LEFT);
+
+    try {
+    	user_comment = new Link(gInfo, SWT.LEFT | SWT.WRAP);
+    	((Link)user_comment).addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e) {
+					Utils.launch(e.text);
+				}
+			});
+    } catch (Throwable e) {
+    	user_comment = new Label(gInfo, SWT.LEFT | SWT.WRAP);
+    }
+    
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
     user_comment.setLayoutData(gridData);
@@ -596,8 +607,8 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     label = new Label(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
     label.setLayoutData(gridData);
-    
     Messages.setLanguageText(label, "GeneralView.label.comment"); //$NON-NLS-1$
+
     try {
     	lblComment = new Link(gInfo, SWT.LEFT | SWT.WRAP);
     	((Link)lblComment).addSelectionListener(new SelectionAdapter() {
@@ -1206,51 +1217,42 @@ public class GeneralView extends AbstractIView implements ParameterListener,
 				hash.setText(_hash);
 				pieceNumber.setText("" + _pieceNumber); //$NON-NLS-1$
 				pieceSize.setText(_pieceLength);
-
-				String sOldComment = (String) lblComment.getData("comment");
-
-				if (!_comment.equals(sOldComment)) {
-					if (lblComment instanceof Label) {
-						((Label) lblComment).setText(_comment);
-					} else if (lblComment instanceof Link) {
-						String sNewComment;
-
-						sNewComment = _comment.replaceAll(
-								"([^=\">][\\s]+|^)(http://[\\S]+)", "$1<A HREF=\"$2\">$2</A>");
-						// need quotes around url
-						sNewComment = sNewComment.replaceAll("(href=)(htt[^\\s>]+)",
-								"$1\"$2\"");
-
-						// Examples:
-						// http://cowbow.com/fsdjl&sdfkj=34.sk9391 moo
-						// <A HREF=http://cowbow.com/fsdjl&sdfkj=34.sk9391>moo</a>
-						// <A HREF="http://cowbow.com/fsdjl&sdfkj=34.sk9391">moo</a>
-						// <A HREF="http://cowbow.com/fsdjl&sdfkj=34.sk9391">http://moo.com</a>
-
-						((Link) lblComment).setText(sNewComment);
-					}
-
-				}
-
 				creation_date.setText(_creation_date);
-				String old_user_comment = user_comment.getText();
-				boolean do_relayout;
-				if (old_user_comment == null) {
-					do_relayout = _user_comment != null; 
-				}
-				else {
-					do_relayout = !old_user_comment.equals(_user_comment);
-				}
-				user_comment.setText(_user_comment);
 				
-				if (do_relayout) {
-					gInfo.layout();
-				}
+				boolean do_relayout = false;
+				do_relayout = setCommentAndFormatLinks(lblComment, _comment) | do_relayout;
+				do_relayout = setCommentAndFormatLinks(user_comment, _user_comment) | do_relayout;
+				if (do_relayout) {gInfo.layout();}
 				
 			}
 		});
 	}
  
+  private static boolean setCommentAndFormatLinks(Control c, String new_comment) {
+	  String old_comment = (String)c.getData("comment");
+	  if (new_comment == null) {new_comment = "";}
+	  if (new_comment.equals(old_comment)) {return false;}
+
+	  c.setData("comment", new_comment);
+	  if (c instanceof Label) {
+		  ((Label) c).setText(new_comment);
+	  } else if (c instanceof Link) {
+		  String sNewComment;
+		  sNewComment = new_comment.replaceAll(
+					"([^=\">][\\s]+|^)(http://[\\S]+)", "$1<A HREF=\"$2\">$2</A>");
+		  // need quotes around url
+		  sNewComment = sNewComment.replaceAll("(href=)(htt[^\\s>]+)", "$1\"$2\"");
+
+		  // Examples:
+		  // http://cowbow.com/fsdjl&sdfkj=34.sk9391 moo
+		  // <A HREF=http://cowbow.com/fsdjl&sdfkj=34.sk9391>moo</a>
+		  // <A HREF="http://cowbow.com/fsdjl&sdfkj=34.sk9391">moo</a>
+		  // <A HREF="http://cowbow.com/fsdjl&sdfkj=34.sk9391">http://moo.com</a>
+		  ((Link)c).setText(sNewComment);
+	  }
+	  return true;
+
+	}
 
   public void parameterChanged(String parameterName) {
     graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
