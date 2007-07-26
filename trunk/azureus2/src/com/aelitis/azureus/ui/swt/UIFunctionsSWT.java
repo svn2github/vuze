@@ -86,6 +86,7 @@ public interface UIFunctionsSWT extends UIFunctions
 	
 	public boolean isGlobalTransferBarShown();
 	public void showGlobalTransferBar();
+	public void closeGlobalTransferBar();
 
 	/**
 	 * @return
@@ -126,5 +127,5 @@ public interface UIFunctionsSWT extends UIFunctions
 
 	public UISWTInstance getUISWTInstance();
 
-	public void setTorrentMenuContextObjects(Object[] context);
+	public void refreshTorrentMenu();
 }
