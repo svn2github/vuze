@@ -217,8 +217,8 @@ PEPeerControlImpl
 			}
 		};	
 		
-	private int udp_traversal_count;
-		
+	private int 	udp_traversal_count;
+	private boolean	prefer_udp;
 		
 	private final LimitedRateGroup upload_limited_rate_group = new LimitedRateGroup() {
 		public int getRateLimitBytesPerSecond() {
@@ -710,11 +710,14 @@ PEPeerControlImpl
 			
 			String fail_reason;
 			
-			if ( TCPNetworkManager.TCP_OUTGOING_ENABLED && tcp_port > 0){
+			boolean	tcp_ok = TCPNetworkManager.TCP_OUTGOING_ENABLED && tcp_port > 0;
+			boolean udp_ok = UDPNetworkManager.UDP_OUTGOING_ENABLED && udp_port > 0;
+			
+			if ( 	tcp_ok && !( prefer_udp && udp_ok )){
 
 				fail_reason = makeNewOutgoingConnection( PEPeerSource.PS_PLUGIN, ip_address, tcp_port, udp_port, true, use_crypto, crypto_level );  //directly inject the the imported peer
 				
-			}else if ( UDPNetworkManager.UDP_OUTGOING_ENABLED && udp_port > 0 ){
+			}else if ( udp_ok ){
 				
 				fail_reason = makeNewOutgoingConnection( PEPeerSource.PS_PLUGIN, ip_address, tcp_port, udp_port, false, use_crypto, crypto_level );  //directly inject the the imported peer
 
@@ -3360,9 +3363,15 @@ PEPeerControlImpl
 
 						final boolean use_crypto = item.getHandshakeType() == PeerItemFactory.HANDSHAKE_TYPE_CRYPTO;
 
-						if ( TCPNetworkManager.TCP_OUTGOING_ENABLED && item.getTCPPort() > 0 && tcp_remaining > 0 ){
+						int	tcp_port = item.getTCPPort();
+						int	udp_port = item.getUDPPort();
+						
+						boolean	tcp_ok = TCPNetworkManager.TCP_OUTGOING_ENABLED && tcp_port > 0 && tcp_remaining > 0;
+						boolean udp_ok = UDPNetworkManager.UDP_OUTGOING_ENABLED && udp_port > 0 && udp_remaining > 0;
+
+						if ( tcp_ok && !( prefer_udp && udp_ok )){
 							
-							if ( makeNewOutgoingConnection( source, item.getAddressString(), item.getTCPPort(), item.getUDPPort(), true, use_crypto, item.getCryptoLevel()) == null) {
+							if ( makeNewOutgoingConnection( source, item.getAddressString(), tcp_port, udp_port, true, use_crypto, item.getCryptoLevel()) == null) {
 								
 								tcp_remaining--;
 								
@@ -3370,9 +3379,9 @@ PEPeerControlImpl
 								
 								remaining--;
 							}
-						}else if ( UDPNetworkManager.UDP_OUTGOING_ENABLED && item.getUDPPort() > 0 && udp_remaining > 0 ){
+						}else if ( udp_ok ){
 								
-							if ( makeNewOutgoingConnection( source, item.getAddressString(), item.getTCPPort(), item.getUDPPort(), false, use_crypto, item.getCryptoLevel() ) == null) {
+							if ( makeNewOutgoingConnection( source, item.getAddressString(), tcp_port, udp_port, false, use_crypto, item.getCryptoLevel() ) == null) {
 									
 								udp_remaining--;
 								
@@ -3881,6 +3890,19 @@ PEPeerControlImpl
 	public int getNbPeersSnubbed()
 	{
 		return nbPeersSnubbed;
+	}
+	
+	public boolean
+	getPreferUDP()
+	{
+		return( prefer_udp );
+	}
+	
+	public void
+	setPreferUDP(
+		boolean	prefer )
+	{
+		 prefer_udp = prefer;
 	}
 	
 	public void

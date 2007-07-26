@@ -341,6 +341,13 @@ PEPeerManager
 	 */
 	public PEPeerTransport getTransportFromAddress(String peer);
 	
+	public boolean
+	getPreferUDP();
+	
+	public void
+	setPreferUDP(
+		boolean	prefer );
+	
 	public void
 	addRateLimiter(
 		LimitedRateGroup	group,
