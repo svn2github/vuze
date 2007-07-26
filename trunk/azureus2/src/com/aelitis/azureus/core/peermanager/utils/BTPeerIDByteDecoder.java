@@ -446,6 +446,7 @@ public class BTPeerIDByteDecoder {
 		System.out.println("Testing unknown (random byte?) clients...");
 		assertDecode(UNKNOWN + " [--------1}-/---A---<]", "0000000000000000317DA32F831FF041A515FE3C");
 		assertDecode(UNKNOWN + " [------- --  ------@(]", "000000DF05020020100020200008000000004028");
+		assertDecode(UNKNOWN + " [-----------D-y-I--aO]", "0000000000000000F106CE44F179A2498FAC614F");
 		assertDecode(UNKNOWN + " [--c--_-5-\\----t-#---]", "E7F163BB0E5FCD35005C09A11BC274C42385A1A0");
 		System.out.println();
 		
