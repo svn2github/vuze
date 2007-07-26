@@ -54,6 +54,7 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
 import org.gudy.azureus2.ui.swt.components.BufferedTruncatedLabel;
@@ -544,14 +545,12 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     Messages.setLanguageText(label, "GeneralView.label.tracker"); //$NON-NLS-1$
     tracker_status = new BufferedTruncatedLabel(gInfo, SWT.LEFT,150);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    //gridData.horizontalSpan = 3;
     tracker_status.setLayoutData(gridData);    
 
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.creationdate"); //$NON-NLS-1$
     creation_date = new BufferedLabel(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    //gridData.horizontalSpan = 1;
     creation_date.setLayoutData(gridData);
     
     label = new Label(gInfo, SWT.LEFT);
@@ -577,11 +576,22 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     	// row
 
     label = new Label(gInfo, SWT.LEFT);
+    label.setCursor(Cursors.handCursor);
+    label.setForeground(Colors.blue);
     Messages.setLanguageText(label, "GeneralView.label.user_comment"); //$NON-NLS-1$
     user_comment = new BufferedLabel(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
     user_comment.setLayoutData(gridData);
+    
+    label.addMouseListener(new MouseAdapter() {
+    	private void editComment() {
+    		TorrentUtil.promptUserForComment(new DownloadManager[] {manager});
+    	}
+    	
+        public void mouseDoubleClick(MouseEvent arg0) {editComment();}
+        public void mouseDown(MouseEvent arg0) {editComment();}
+      });
 
     label = new Label(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
@@ -1223,7 +1233,20 @@ public class GeneralView extends AbstractIView implements ParameterListener,
 				}
 
 				creation_date.setText(_creation_date);
+				String old_user_comment = user_comment.getText();
+				boolean do_relayout;
+				if (old_user_comment == null) {
+					do_relayout = _user_comment != null; 
+				}
+				else {
+					do_relayout = !old_user_comment.equals(_user_comment);
+				}
 				user_comment.setText(_user_comment);
+				
+				if (do_relayout) {
+					gInfo.layout();
+				}
+				
 			}
 		});
 	}
