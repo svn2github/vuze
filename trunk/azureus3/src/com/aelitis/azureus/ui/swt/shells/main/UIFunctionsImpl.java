@@ -704,7 +704,16 @@ public class UIFunctionsImpl
 		});
 	}
 	
-	public void setTorrentMenuContextObjects(Object[] context) {
+	public void closeGlobalTransferBar() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				AllTransfersBar.close(
+						AzureusCoreFactory.getSingleton().getGlobalManager());
+			}
+		});
+	} 
+	
+	public void refreshTorrentMenu() {
 		// Not supported yet.
 	}
 }
