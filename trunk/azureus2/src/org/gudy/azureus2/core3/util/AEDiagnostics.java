@@ -435,6 +435,24 @@ AEDiagnostics
 		}
 	}
 	
+	private static final String[][]
+	   	bad_dlls = { 
+			{	"niphk", 			"y", },
+	   		{	"nvappfilter", 		"y", },
+	   		{	"netdog", 			"y", },
+	   		{	"vlsp", 			"y", },
+	   		{	"imon", 			"y", },
+	   		{	"sarah", 			"y", },
+	   		{	"MxAVLsp", 			"y", },
+	   		{	"mclsp", 			"y", },
+	   		{	"radhslib", 		"y", },
+	   		{	"winsflt",			"y", },
+	   		{	"nl_lsp",			"y", },
+	   		{	"AxShlex",			"y", },
+	   		{	"iFW_Xfilter",		"y", },
+	   		{	"WSOCKHK",			"n", },
+	};
+
 	public static void
 	checkDumpsAndNatives()
 	{
@@ -442,27 +460,17 @@ AEDiagnostics
 			PlatformManager	p_man = PlatformManagerFactory.getPlatformManager();
 			
 			if ( 	p_man.getPlatformType() == PlatformManager.PT_WINDOWS &&
-					p_man.hasCapability( PlatformManagerCapabilities.TestNativeAvailability )){
-			
-		
-				String[]	dlls = { 	"niphk", 
-										"nvappfilter", 
-										"netdog", 
-										"vlsp", 
-										"imon", 
-										"sarah", 
-										"MxAVLsp", 
-										"mclsp", 
-										"radhslib", 
-										"winsflt",
-										"nl_lsp",
-										"AxShlex",
-										"iFW_Xfilter",
-							};
-				
-				for (int i=0;i<dlls.length;i++){
+					p_man.hasCapability( PlatformManagerCapabilities.TestNativeAvailability )){	
+
+				for (int i=0;i<bad_dlls.length;i++){
 					
-					String	dll = dlls[i];
+					String	dll 	= bad_dlls[i][0];
+					String	load	= bad_dlls[i][1];
+					
+					if ( load.equalsIgnoreCase( "n" )){
+						
+						continue;
+					}
 					
 					if ( !COConfigurationManager.getBooleanParameter( "platform.win32.dll_found." + dll, false )){
 								
@@ -550,11 +558,19 @@ AEDiagnostics
 			
 			try{
 				boolean	float_excep	= false;
-				boolean	alcohol		= false;
+				
+				String[]	bad_dlls_uc = new String[bad_dlls.length];
+				
+				for (int i=0;i<bad_dlls.length;i++){
+					
+					String	dll 	= bad_dlls[i][0];
+
+					bad_dlls_uc[i] = (dll + ".dll" ).toUpperCase();
+				}
 				
 				String	alcohol_dll = "AxShlex";
-
-				String	alcohol_dll_uc = alcohol_dll.toUpperCase();
+				
+				List	matches = new ArrayList();
 				
 				while( true ){
 					
@@ -571,22 +587,44 @@ AEDiagnostics
 						
 						float_excep	= true;
 						
-					}else if ( line.indexOf( alcohol_dll_uc ) != -1 ){
+					}else{
 						
-						alcohol = true;
+						for (int i=0;i<bad_dlls_uc.length;i++){
+							
+							String b_uc = bad_dlls_uc[i];
+							
+							if ( line.indexOf( b_uc ) != -1 ){
+								
+								String	dll = bad_dlls[i][0];
+								
+								if ( dll.equals( alcohol_dll )){
+									
+									if ( float_excep ){
+										
+										matches.add( dll );
+									}
+									
+								}else{
+									
+									matches.add( dll );
+								}
+							}
+						}
 					}
 				}
 				
-				if ( float_excep && alcohol ){
-										
-					String	detail = MessageText.getString( "platform.win32.baddll." + alcohol_dll );
+				for (int i=0;i<matches.size();i++){
+					
+					String	dll = (String)matches.get(i);
+					
+					String	detail = MessageText.getString( "platform.win32.baddll." + dll );
 					
 					Logger.logTextResource(
 							new LogAlert(
 									LogAlert.REPEATABLE, 
 									LogAlert.AT_WARNING,
 									"platform.win32.baddll.info" ),	
-							new String[]{ alcohol_dll + ".dll", detail });
+							new String[]{ dll + ".dll", detail });
 				}
 			}finally{
 				
