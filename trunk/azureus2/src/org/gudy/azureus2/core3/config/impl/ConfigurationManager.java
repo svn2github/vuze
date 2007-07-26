@@ -472,8 +472,7 @@ ConfigurationManager
   }
   
   public float getFloatParameter(String parameter) {
-	  ConfigurationDefaults def = ConfigurationDefaults.getInstance();
-	  return( getFloatParameter( parameter, def.def_float ));
+	  return( getFloatParameter( parameter, ConfigurationDefaults.def_float ));
   }
 
   public float getFloatParameter(String parameter, float def_val) {
