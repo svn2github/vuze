@@ -1818,6 +1818,37 @@ public class OpenTorrentWindow
 			// XXX Should error instead?
 			torrentFile = new File(sFileName);
 		}
+		
+		// Do a quick check to see if it's a torrent
+		String sFirstChunk = null;
+		try {
+			sFirstChunk = FileUtil.readFileAsString(torrentFile, 16384).toLowerCase();
+		} catch (IOException e) {
+			Debug.out("warning", e);
+		}
+		if (sFirstChunk != null && !sFirstChunk.startsWith("d")) {
+			boolean isHTML = sFirstChunk.indexOf("<html") >= 0;
+			MessageBoxShell boxShell = new MessageBoxShell(shellForChildren,
+					MessageText.getString("OpenTorrentWindow.mb.notTorrent.title"),
+					MessageText.getString("OpenTorrentWindow.mb.notTorrent.text",
+							new String[] {
+								torrentFile.getName(),
+								isHTML ? "" : sFirstChunk
+							}), new String[] {
+						MessageText.getString("Button.ok")
+					}, 0);
+			if (isHTML) {
+				boxShell.setHtml(sFirstChunk);
+			}
+			boxShell.open();
+
+			if (bDeleteFileOnCancel)
+				torrentFile.delete();
+
+			return null;
+		}
+
+
 
 		// Load up the torrent, see it it's real
 		try {
