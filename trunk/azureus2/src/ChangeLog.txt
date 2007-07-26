@@ -5,6 +5,7 @@ AZUREUS CHANGELOG
 
 FEATURE: UI   | New "Torrent" menu in the menu bar [amc1]
 FEATURE: UI   | "Clear Resume Data" menu option added [amc1]
+FEATURE: UI   | "Clear remembered save paths" option added (for the Open Torrent dialog) [amc1]
 
 CHANGE: Core  | Much better peer ID identification code added, many more clients now correctly identified [amc1]
 CHANGE: Core  | Changes made to identify some "fake" clients (or other clients which identify themselves in a problematic way) [amc1]

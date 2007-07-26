@@ -30,6 +30,7 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
+import org.gudy.azureus2.core3.config.impl.StringListImpl;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -223,6 +224,19 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		clear_tracker_button.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				TrackersUtil.getInstance().clearAllTrackers(true);
+			}
+		});
+		
+		final Label clear_save_path_label = new Label(cArea, SWT.NULL);
+		Messages.setLanguageText(clear_save_path_label, KEY_PREFIX + "clearsavepaths");
+
+		final Button clear_save_path_button = new Button(cArea, SWT.PUSH);
+		Messages.setLanguageText(clear_save_path_button, KEY_PREFIX
+				+ "clearsavepathsbutton");
+		
+		clear_save_path_button.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				COConfigurationManager.setParameter("saveTo_list", new StringListImpl());
 			}
 		});
 		
