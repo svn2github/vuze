@@ -46,7 +46,7 @@ public class IPWModePanel extends AbstractWizardPanel {
   
   private static final int MODE_FROM_LIST = 0;
   private static final int MODE_FROM_FILE = 1;
-  private static final int MODE_FROM_URL  = 2;
+  //private static final int MODE_FROM_URL  = 2;
   
   private int mode = MODE_FROM_LIST;
   
