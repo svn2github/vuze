@@ -140,7 +140,7 @@ public class SystemTraySWT
 		Messages.setLanguageText(itemCloseAll,
 				"SystemTray.menu.closealldownloadbars");
 		
-		final MenuItem itemShowGlobalTransferBar = new MenuItem(menu, SWT.NULL);
+		final MenuItem itemShowGlobalTransferBar = new MenuItem(menu, SWT.CHECK);
 		Messages.setLanguageText(itemShowGlobalTransferBar,
 			"SystemTray.menu.open_global_transfer_bar");
 
@@ -215,16 +215,18 @@ public class SystemTraySWT
 			}
 		});
 		
+		itemShowGlobalTransferBar.setSelection(uiFunctions.isGlobalTransferBarShown());
 		itemShowGlobalTransferBar.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event arg0) {
-				uiFunctions.showGlobalTransferBar();
+				if (uiFunctions.isGlobalTransferBarShown()) {
+					uiFunctions.closeGlobalTransferBar();
+				}
+				else {
+					uiFunctions.showGlobalTransferBar();
+				}
 			}
 		});
 		
-		if (uiFunctions.isGlobalTransferBarShown()) {
-			itemShowGlobalTransferBar.setEnabled(false);
-		}
-
 		itemExit.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event arg0) {
 				uiFunctions.requestShutdown();

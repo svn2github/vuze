@@ -1272,22 +1272,25 @@ public class MainMenu {
     return item;
   }
 
-  public MenuItem addTransferBarToMenu(Menu menu) {
-	    final MenuItem item = addMenuItem(menu, "MainWindow.menu.view.open_global_transfer_bar", new Listener() {
-	      public void handleEvent(Event e) {
-	    	  AllTransfersBar.open(core.getGlobalManager(), attachedShell);
-	      }
-	    });
+	private MenuItem addTransferBarToMenu(Menu menu) {
+		final MenuItem item = addMenuItem(menu, SWT.CHECK,
+			"MainWindow.menu.view.open_global_transfer_bar",
+			new Listener() {
+				public void handleEvent(Event e) {
+					if (AllTransfersBar.getManager().isOpen(core.getGlobalManager())) {
+						AllTransfersBar.close(core.getGlobalManager());
+					}
+					else {
+						AllTransfersBar.open(core.getGlobalManager(), attachedShell);
+					}
+				}
+			});
 
-	    final ShellManagerIsEmptyPredicate pred = new ShellManagerIsEmptyPredicate();
-	    final Listener enableHandler = getEnableHandler(item, pred, AllTransfersBar.getManager().getShellManager());
-
-	    menu.addListener(SWT.Show, enableHandler);
-	    attachedShell.addListener(SWT.FocusIn,  enableHandler);
-	    setHandlerForShellManager(item, AllTransfersBar.getManager().getShellManager(), enableHandler);
-
+	    final NotPredicate pred = new NotPredicate(new ShellManagerIsEmptyPredicate());
+	    final Listener selectHandler = getSelectionHandler(item, pred, MiniBarManager.getManager().getShellManager());
+	    menu.addListener(SWT.Show, selectHandler);
 	    return item;
-	  }
+	}
   
     // utility methods
 
@@ -1331,6 +1334,17 @@ public class MainMenu {
         public void handleEvent(Event event) {
             if(!item.isDisposed() && !event.widget.isDisposed())
               item.setEnabled(pred.evaluate(evalObj));
+        }
+      };
+      return enableHandler;
+  }
+  
+  private static Listener getSelectionHandler(final MenuItem item, final Predicable pred, final Object evalObj)
+  {
+      Listener enableHandler = new Listener() {
+        public void handleEvent(Event event) {
+            if(!item.isDisposed() && !event.widget.isDisposed())
+              item.setSelection(pred.evaluate(evalObj));
         }
       };
       return enableHandler;
