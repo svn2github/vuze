@@ -377,7 +377,7 @@ DownloadManagerImpl
 		
 		if ( dm == null ){
 			
-			throw( new DownloadException( "DownloadManager::addDownload - failed"));
+			throw( new DownloadException( "DownloadManager::addDownload - failed, download may already in the process of being added"));
 		}
 		
 		addDownloadManager( dm );
