@@ -432,8 +432,7 @@ public class TorrentListViewsUtils
 				playAfterURL += "azid=" + Constants.AZID + "&torrentHash="
 						+ torrent.getHashWrapper().toBase32String();
 
-				BrowserWindow bw = new BrowserWindow(Utils.findAnyShell(), playAfterURL
-						+ PlatformTorrentUtils.getContentHash(torrent), 0.9, 0.9, true,
+				new BrowserWindow(Utils.findAnyShell(), playAfterURL, 0.9, 0.9, true,
 						true);
 			} catch (Exception e) {
 			}
