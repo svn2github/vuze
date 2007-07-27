@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
+import org.gudy.azureus2.ui.swt.views.utils.CoordinateTransform;
 
 import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
 
@@ -108,8 +109,8 @@ public class PieceDistributionView
 		
 		for(int i=0;i<nbPieces;i++)
 		{
-			if(availabilties[i] >= upperBound) 
-				return; // availability lists and peer lists are OOS, just wait for the next round
+			//if(availabilties[i] >= upperBound) 
+				//return; // availability lists and peer lists are OOS, just wait for the next round
 			final int newPeak;
 			if(avlPeak < (newPeak = ++piecesPerAvailabiltiy[availabilties[i]]))
 			{
@@ -130,10 +131,14 @@ public class PieceDistributionView
 
 		try
 		{
+			CoordinateTransform t = new CoordinateTransform(rect);
+			t.calcFromDimensions(upperBound, avlPeak, 0, 0, 10, 0, true, false);
+			System.out.println("bound:"+upperBound+" peak:"+avlPeak);
+			
 			scaler.translate(0,rect.height);
 			scaler.scale(1F, -1F);
 			scaler.scale(1F*rect.width/upperBound, 1F*(rect.height-1F)/(avlPeak+1F));
-			gc.setTransform(scaler);
+			//gc.setTransform(scaler);
 			
 			gc.setForeground(Colors.green);
 			for(int i=0;i<connected;i++)
@@ -141,13 +146,30 @@ public class PieceDistributionView
 				if(i==seeds)
 					gc.setForeground(Colors.blue);
 				if(i==minAvail)
-					gc.setBackground(Colors.fadedRed);
-				gc.drawRectangle(i, 0, 1, piecesPerAvailabiltiy[i]+1);
+				{
+					gc.setBackground(Colors.blue);
+					gc.fillRectangle(i, 0, 1, piecesPerAvailabiltiy[i]+2);
+				}
+				//gc.drawRectangle(i, 0, 1, piecesPerAvailabiltiy[i]+1);
+				gc.drawRectangle(t.x(i),t.y(0), t.w(1),t.h(piecesPerAvailabiltiy[i]+2));
 			}
+			
+			gc.setTransform(null);
+			
+			t = new CoordinateTransform(rect);
+			
+			t.shiftExternal(rect.width, 0);
+			t.scale(-1.0, 1.0);
+			
+			gc.setForeground(Colors.green);
+			gc.setBackground(Colors.background);
+			gc.drawRectangle(t.x(40),t.y(40),t.w(10),t.h(10));
+			gc.drawString("Seed Avl Contribution",t.x(150),t.y(10));
+
+			
 		} finally
 		{
 			gc.dispose();
-			scaler.dispose();
 		}
 
 		
@@ -157,6 +179,8 @@ public class PieceDistributionView
 
 	public void refresh() {
 		super.refresh();
+		if(!initialized)
+			return;
 		updateDistribution();
 		if(img != null && !img.isDisposed())
 			pieceDistGC.drawImage(img, 0, 0);
@@ -178,6 +202,7 @@ public class PieceDistributionView
 			return;
 		initialized = false;
 		super.delete();
+		comp.dispose();
 		pieceDistCanvas.dispose();
 		pieceDistGC.dispose();
 		if(img != null && !img.isDisposed())
