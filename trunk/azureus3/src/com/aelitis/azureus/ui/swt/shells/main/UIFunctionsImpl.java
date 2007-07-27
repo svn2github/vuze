@@ -714,6 +714,16 @@ public class UIFunctionsImpl
 	} 
 	
 	public void refreshTorrentMenu() {
-		// Not supported yet.
+		try {
+			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
+			if (uiFunctions == null) {
+				return;
+			}
+
+			uiFunctions.refreshTorrentMenu();
+
+		} catch (Exception e) {
+			Logger.log(new LogEvent(LOGID, "refreshIconBar", e));
+		}
 	}
 }
