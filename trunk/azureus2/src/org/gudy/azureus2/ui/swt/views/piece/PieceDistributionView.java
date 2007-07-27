@@ -90,9 +90,6 @@ public class PieceDistributionView
 			return;
 		if(img != null)
 			img.dispose();
-		img = new Image(pieceDistGC.getDevice(),pieceDistCanvas.getBounds());
-		
-		GC gc = new GC(img);
 	
 		PiecePicker picker = dlm.getPeerManager().getPiecePicker();
 		
@@ -111,6 +108,8 @@ public class PieceDistributionView
 		
 		for(int i=0;i<nbPieces;i++)
 		{
+			if(availabilties[i] >= upperBound) 
+				return; // availability lists and peer lists are OOS, just wait for the next round
 			final int newPeak;
 			if(avlPeak < (newPeak = ++piecesPerAvailabiltiy[availabilties[i]]))
 			{
@@ -123,21 +122,32 @@ public class PieceDistributionView
 		int marginBottom = 10;
 		int marginLeft = 10;
 		int marginRight = 10;
+
+		img = new Image(pieceDistGC.getDevice(),pieceDistCanvas.getBounds());
 		
+		GC gc = new GC(img);
 		Transform scaler = new Transform(gc.getDevice());
-		scaler.translate(0,rect.height);
-		scaler.scale(1F, -1F);
-		scaler.scale(1F*rect.width/upperBound, 1F*(rect.height-1F)/(avlPeak+1F));
-		gc.setTransform(scaler);
-		
-		gc.setForeground(Colors.green);
-		for(int i=0;i<connected;i++)
+
+		try
 		{
-			if(i==seeds)
-				gc.setForeground(Colors.blue);
-			if(i==minAvail)
-				gc.setBackground(Colors.fadedRed);
-			gc.drawRectangle(i, 0, 1, piecesPerAvailabiltiy[i]+1);
+			scaler.translate(0,rect.height);
+			scaler.scale(1F, -1F);
+			scaler.scale(1F*rect.width/upperBound, 1F*(rect.height-1F)/(avlPeak+1F));
+			gc.setTransform(scaler);
+			
+			gc.setForeground(Colors.green);
+			for(int i=0;i<connected;i++)
+			{
+				if(i==seeds)
+					gc.setForeground(Colors.blue);
+				if(i==minAvail)
+					gc.setBackground(Colors.fadedRed);
+				gc.drawRectangle(i, 0, 1, piecesPerAvailabiltiy[i]+1);
+			}
+		} finally
+		{
+			gc.dispose();
+			scaler.dispose();
 		}
 
 		
@@ -164,7 +174,13 @@ public class PieceDistributionView
 	 * @see org.gudy.azureus2.ui.swt.views.AbstractIView#delete()
 	 */
 	public void delete() {
-		super.delete();
+		if(!initialized)
+			return;
 		initialized = false;
+		super.delete();
+		pieceDistCanvas.dispose();
+		pieceDistGC.dispose();
+		if(img != null && !img.isDisposed())
+			img.dispose();
 	}
 }
