@@ -2279,7 +2279,9 @@ public class TableViewSWTImpl
 			final TableColumn fTableColumn = column;
 			column.getDisplay().asyncExec(new AERunnable() {
 				public void runSupport() {
-					fTableColumn.setWidth(fNewWidth);
+					if (!fTableColumn.isDisposed()) {
+						fTableColumn.setWidth(fNewWidth);
+					}
 				}
 			});
 		} else {
