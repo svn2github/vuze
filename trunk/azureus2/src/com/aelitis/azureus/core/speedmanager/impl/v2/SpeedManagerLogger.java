@@ -30,7 +30,7 @@ import org.gudy.azureus2.core3.util.AEDiagnostics;
 public class SpeedManagerLogger
 {
     private static final LogIDs ID = LogIDs.NWMAN;
-    private static final AEDiagnosticsLogger dLog = AEDiagnostics.getLogger("v3.AutoSpeed_Beta_Debug");
+    private static final AEDiagnosticsLogger dLog = AEDiagnostics.getLogger("AutoSpeed");
 
     private SpeedManagerLogger(){}
 

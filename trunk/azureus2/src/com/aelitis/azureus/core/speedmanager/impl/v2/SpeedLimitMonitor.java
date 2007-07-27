@@ -1404,6 +1404,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
 
         if( !isUploadMaxPinned ){
             SpeedManagerLogger.trace("notifyUpload ignoring update while upload limit is unpinned.");
+            return;
         }
 
         if(bestLimit!=uploadLimitMax){
