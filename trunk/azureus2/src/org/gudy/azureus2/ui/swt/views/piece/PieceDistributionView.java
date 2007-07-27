@@ -20,10 +20,13 @@
 
 package org.gudy.azureus2.ui.swt.views.piece;
 
+import java.util.Arrays;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.*;
+import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -102,28 +105,27 @@ public class PieceDistributionView
 		final int maxAvail = picker.getMaxAvailability();
 		final int nbPieces = picker.getNumberOfPieces();
 		final int[] availabilties = picker.getAvailability();
-		final int[] piecesPerAvailabiltiy = new int[upperBound];
+		final DiskManagerPiece[] dmPieces = dlm.getDiskManager().getPieces();
+		final int[] piecesPerAvailability = new int[upperBound];
+		final int[] ourPiecesPerAvailability = new int[upperBound];
 		
 		int avlPeak = 0;
 		int avlPeakIdx = -1;
 		
 		for(int i=0;i<nbPieces;i++)
 		{
-			//if(availabilties[i] >= upperBound) 
-				//return; // availability lists and peer lists are OOS, just wait for the next round
+			if(availabilties[i] >= upperBound) 
+				return; // availability lists and peer lists are OOS, just wait for the next round
 			final int newPeak;
-			if(avlPeak < (newPeak = ++piecesPerAvailabiltiy[availabilties[i]]))
+			if(avlPeak < (newPeak = ++piecesPerAvailability[availabilties[i]]))
 			{
 				 avlPeak = newPeak;
 				 avlPeakIdx = availabilties[i];
 			}
+			if(dmPieces[i].isDone())
+				++ourPiecesPerAvailability[availabilties[i]];
 		}
 		
-		int marginTop = 10;
-		int marginBottom = 10;
-		int marginLeft = 10;
-		int marginRight = 10;
-
 		img = new Image(pieceDistGC.getDevice(),pieceDistCanvas.getBounds());
 		
 		GC gc = new GC(img);
@@ -131,40 +133,68 @@ public class PieceDistributionView
 
 		try
 		{
-			CoordinateTransform t = new CoordinateTransform(rect);
-			t.calcFromDimensions(upperBound, avlPeak, 0, 0, 10, 0, true, false);
-			System.out.println("bound:"+upperBound+" peak:"+avlPeak);
+			//System.out.println("bound:"+upperBound+" peak:"+avlPeak);
 			
 			scaler.translate(0,rect.height);
 			scaler.scale(1F, -1F);
-			scaler.scale(1F*rect.width/upperBound, 1F*(rect.height-1F)/(avlPeak+1F));
-			//gc.setTransform(scaler);
+			scaler.scale(1F*rect.width/(upperBound), 1F*(rect.height-1F)/(avlPeak+1F));
+			gc.setTransform(scaler);
 			
 			gc.setForeground(Colors.green);
 			for(int i=0;i<connected;i++)
 			{
-				if(i==seeds)
-					gc.setForeground(Colors.blue);
+				Color curColor;
+				if(i<seeds)
+					curColor = Colors.green;
+				else
+					curColor = Colors.blue;
 				if(i==minAvail)
-				{
-					gc.setBackground(Colors.blue);
-					gc.fillRectangle(i, 0, 1, piecesPerAvailabiltiy[i]+2);
-				}
-				//gc.drawRectangle(i, 0, 1, piecesPerAvailabiltiy[i]+1);
-				gc.drawRectangle(t.x(i),t.y(0), t.w(1),t.h(piecesPerAvailabiltiy[i]+2));
+					curColor = Colors.red;
+				gc.setBackground(curColor);
+				gc.setForeground(curColor);
+				gc.drawLine(i, 0, (i+1), 0);
+				gc.drawRectangle(i, 0, 1, piecesPerAvailability[i]);
+				gc.fillRectangle(i, 0, 1, ourPiecesPerAvailability[i]);
+				
 			}
 			
 			gc.setTransform(null);
 			
-			t = new CoordinateTransform(rect);
+			CoordinateTransform t = new CoordinateTransform(rect);
 			
-			t.shiftExternal(rect.width, 0);
+			t.shiftExternal(rect.width,0);
 			t.scale(-1.0, 1.0);
 			
 			gc.setForeground(Colors.green);
 			gc.setBackground(Colors.background);
-			gc.drawRectangle(t.x(40),t.y(40),t.w(10),t.h(10));
-			gc.drawString("Seed Avl Contribution",t.x(150),t.y(10));
+			int charWidth = gc.getFontMetrics().getAverageCharWidth();
+			int charHeight = gc.getFontMetrics().getHeight();
+			
+			String[] boxContent = new String[] {
+				"Seed Avl Contribution",
+				"Peer Avl Contribution",
+				"Rarest Pieces: "+piecesPerAvailability[minAvail]+" (Avl:"+minAvail+")"
+				};
+			
+			int maxBoxWidth = 0;
+			int maxBoxOffset = 0;
+			for(int i=0;i<boxContent.length;i++)
+				maxBoxWidth = Math.max(maxBoxWidth, boxContent[i].length());
+			
+			maxBoxOffset = (maxBoxWidth+5) * charWidth;
+			maxBoxWidth = ++maxBoxWidth * charWidth;
+			
+		
+			gc.drawRectangle(t.x(maxBoxOffset),t.y(charHeight*1),maxBoxWidth,charHeight);
+			gc.drawString(boxContent[0],t.x(maxBoxOffset-5),t.y(charHeight*1),true);
+			
+			gc.setForeground(Colors.blue);
+			gc.drawRectangle(t.x(maxBoxOffset),t.y(charHeight*3),maxBoxWidth,charHeight);
+			gc.drawString(boxContent[1],t.x(maxBoxOffset-5),t.y(charHeight*3),true);
+			
+			gc.setForeground(Colors.red);
+			gc.drawRectangle(t.x(maxBoxOffset),t.y(charHeight*5),maxBoxWidth,charHeight);
+			gc.drawString(boxContent[2],t.x(maxBoxOffset-5),t.y(charHeight*5),true);
 
 			
 		} finally
