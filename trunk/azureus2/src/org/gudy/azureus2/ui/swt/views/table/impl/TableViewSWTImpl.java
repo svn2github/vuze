@@ -1135,7 +1135,6 @@ public class TableViewSWTImpl
 
 		ColumnSelectionListener columnSelectionListener = new ColumnSelectionListener();
 
-		TableItem tempTI = new TableItem(table, SWT.NONE);
 		//Assign length and titles
 		//We can only do it after ALL columns are created, as position (order)
 		//may not be in the natural order (if the user re-order the columns).
@@ -1175,21 +1174,11 @@ public class TableViewSWTImpl
 			column.setData("configName", "Table." + sTableID + "." + sName);
 			column.setData("Name", sName);
 
-			Rectangle bounds = tempTI.getBounds(adjusted_position);
-			if (bounds.width > 0) {
-				int ofs = bounds.width - tableColumns[i].getWidth();
-				if (ofs > 0) {
-					column.setWidth(tableColumns[i].getWidth() + ofs);
-				}
-				column.setData("widthOffset", new Long(ofs));
-			}
-
 			column.addControlListener(resizeListener);
 			// At the time of writing this SWT (3.0RC1) on OSX doesn't call the 
 			// selection listener for tables
 			column.addListener(SWT.Selection, columnSelectionListener);
 		}
-		table.remove(0);
 
 		// Initialize the sorter after the columns have been added
 		String sSortColumn = configMan.getStringParameter(sTableID + ".sortColumn",
@@ -1988,11 +1977,14 @@ public class TableViewSWTImpl
 				TableColumnCore tc = (TableColumnCore) tableColumnsSWT[i].getData("TableColumnCore");
 				if (tc != null) {
 					Rectangle bounds = item.getBounds(i);
-					int ofs = tc.getWidth() - bounds.width;
-					if (ofs > 0) {
-						tableColumnsSWT[i].setResizable(true);
-						tableColumnsSWT[i].setData("widthOffset", new Long(ofs));
-						tc.triggerColumnSizeChange();
+					int tcWidth = tc.getWidth();
+					if (tcWidth != 0 && bounds.width != 0) {
+  					int ofs = tc.getWidth() - bounds.width;
+  					if (ofs > 0) {
+  						tableColumnsSWT[i].setResizable(true);
+  						tableColumnsSWT[i].setData("widthOffset", new Long(ofs));
+  						tc.triggerColumnSizeChange();
+  					}
 					}
 				}
 			}
@@ -2928,7 +2920,7 @@ public class TableViewSWTImpl
 
 		try {
 			dataSourceToRow_mon.enter();
-
+ 
 			writer.println("DataSources scheduled to Add/Remove: "
 					+ dataSourcesToAdd.size() + "/" + dataSourcesToRemove.size());
 
@@ -2951,6 +2943,20 @@ public class TableViewSWTImpl
 				}
 			} finally {
 				writer.exdent();
+			}
+			
+			try {
+  			writer.println("Columns:");
+  			writer.indent();
+  			TableColumn[] tableColumnsSWT = table.getColumns();
+  			for (int i = 0; i < tableColumnsSWT.length; i++) {
+  				final TableColumnCore tc = (TableColumnCore) tableColumnsSWT[i].getData("TableColumnCore");
+  				if (tc != null) {
+  					writer.println(tc.getName() + ";w=" + tc.getWidth() + ";w-offset="
+								+ tableColumnsSWT[i].getData("widthOffset"));
+  				}
+  			}
+			} catch (Throwable t) {
 			}
 		} finally {
 
