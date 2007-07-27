@@ -21,6 +21,7 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import java.net.URL;
+import java.text.DecimalFormat;
 import java.util.Iterator;
 import java.util.List;
 
@@ -100,6 +101,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
   //Text maxUploads;
   BufferedLabel totalSpeed;
   BufferedLabel ave_completion;
+  BufferedLabel distributedCopies;
   BufferedLabel seeds;
   BufferedLabel peers;
   Group gInfo;
@@ -302,10 +304,15 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     Messages.setLanguageText(label, "GeneralView.label.swarm_average_completion"); 
     ave_completion = new BufferedLabel(gTransfer, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 3;
     ave_completion.setLayoutData(gridData);
     
+    label = new Label(gTransfer, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.distributedCopies"); 
+    distributedCopies = new BufferedLabel(gTransfer, SWT.LEFT);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    distributedCopies.setLayoutData(gridData);
     
+
     ////////////////////////
 
     gInfo = new Group(genComposite, SWT.SHADOW_OUT);
@@ -346,7 +353,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     pieceNumber = new BufferedLabel(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     pieceNumber.setLayoutData(gridData);
-    
+
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.hash"); //$NON-NLS-1$
     hash = new BufferedLabel(gInfo, SWT.LEFT);
@@ -381,7 +388,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     			new Clipboard(display).setContents(new Object[] {hash_str.replaceAll(" ","")}, new Transfer[] {TextTransfer.getInstance()});
     	}
     });
-
+    
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.trackerurl"); //$NON-NLS-1$
     label.setCursor(Cursors.handCursor);
@@ -534,7 +541,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 1;
     trackerUrlValue.setLayoutData(gridData);
-
+    
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.size"); //$NON-NLS-1$
     pieceSize = new BufferedLabel(gInfo, SWT.LEFT);
@@ -552,7 +559,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     creation_date = new BufferedLabel(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     creation_date.setLayoutData(gridData);
-    
+        
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.updatein"); //$NON-NLS-1$
     trackerUpdateIn = new BufferedLabel(gInfo, SWT.LEFT);
@@ -574,7 +581,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     label = new Label(gInfo, SWT.LEFT);
     
     	// row
-
+    
     label = new Label(gInfo, SWT.LEFT);
     label.setCursor(Cursors.handCursor);
     label.setForeground(Colors.blue);
@@ -599,7 +606,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     	private void editComment() {
     		TorrentUtil.promptUserForComment(new DownloadManager[] {manager});
     	}
-    	
+
         public void mouseDoubleClick(MouseEvent arg0) {editComment();}
         public void mouseDown(MouseEvent arg0) {editComment();}
       });
@@ -608,7 +615,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
     label.setLayoutData(gridData);
     Messages.setLanguageText(label, "GeneralView.label.comment"); //$NON-NLS-1$
-
+    
     try {
     	lblComment = new Link(gInfo, SWT.LEFT | SWT.WRAP);
     	((Link)lblComment).addSelectionListener(new SelectionAdapter() {
@@ -737,6 +744,8 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     String swarm_speed = DisplayFormatters.formatByteCountToKiBEtcPerSec( stats.getTotalAverage() ) + " ( " +DisplayFormatters.formatByteCountToKiBEtcPerSec( stats.getTotalAveragePerPeer())+ " " +MessageText.getString("GeneralView.label.averagespeed") + " )";    
     
     String swarm_completion = "";
+    String distributedCopies = "0.000";
+    String piecesDoneAndSum = ""+manager.getNbPieces();
     
     PEPeerManager pm = manager.getPeerManager();
     if( pm != null ) {
@@ -744,7 +753,14 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     	if( comp >= 0 ) {
     		swarm_completion = DisplayFormatters.formatPercentFromThousands( comp );
     	}
+    	
+    	piecesDoneAndSum = pm.getPiecePicker().getNbPiecesDone() + "/" + piecesDoneAndSum;
+    	
+    	distributedCopies = new DecimalFormat("#.###").format(pm.getPiecePicker().getMinAvailability()-pm.getNbSeeds());
+    	
     }
+    
+    
 
     setStats(
     		DisplayFormatters.formatDownloaded(stats),
@@ -758,7 +774,8 @@ public class GeneralView extends AbstractIView implements ParameterListener,
       	peers_str,
       	DisplayFormatters.formatHashFails(manager),
       	_shareRatio,
-      	swarm_completion
+      	swarm_completion,
+      	distributedCopies
     );
       
     setTracker(manager);
@@ -771,7 +788,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
 	  DisplayFormatters.formatDownloadStatus(manager),
       manager.getSaveLocation().toString(),
       TorrentUtils.nicePrintTorrentHash(torrent),
-      manager.getNbPieces(),
+      piecesDoneAndSum,
       manager.getPieceLength(),
       manager.getTorrentComment(),
       DisplayFormatters.formatDate(manager.getTorrentCreationDate()*1000),
@@ -1091,7 +1108,9 @@ public class GeneralView extends AbstractIView implements ParameterListener,
 	String p,
 	String hash_fails,
 	String share_ratio,
-	String ave_comp ) 
+	String ave_comp,
+	String distr_copies
+	) 
   {
     if (display == null || display.isDisposed())
       return;
@@ -1102,6 +1121,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
 	uploadSpeed.setText( uls );
 	totalSpeed.setText( ts );
 	ave_completion.setText( ave_comp );
+	distributedCopies.setText(distr_copies);
 	
 	/*
 	if ( !maxDLSpeed.getText().equals( dl_speed )){
@@ -1201,24 +1221,24 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     final String _torrentStatus,
     final String _path,
     final String _hash,
-    final int _pieceNumber,
+    final String _pieceData,
     final String _pieceLength,
     final String _comment,
 	final String _creation_date,
 	final String _user_comment) {
-		if (display == null || display.isDisposed())
-			return;
-		Utils.execSWTThread(new AERunnable() {
-			public void runSupport() {
+    if (display == null || display.isDisposed())
+      return;
+    Utils.execSWTThread(new AERunnable(){
+      public void runSupport() {
 				fileName.setText(_fileName );
-				fileSize.setText(_fileSize);
+		fileSize.setText( _fileSize);
 				torrentStatus.setText(_torrentStatus);
-				saveIn.setText(_path);
-				hash.setText(_hash);
-				pieceNumber.setText("" + _pieceNumber); //$NON-NLS-1$
-				pieceSize.setText(_pieceLength);
+		saveIn.setText( _path);
+		hash.setText( _hash);
+		pieceNumber.setText( _pieceData); //$NON-NLS-1$
+		pieceSize.setText( _pieceLength);
 				creation_date.setText(_creation_date);
-				
+
 				boolean do_relayout = false;
 				do_relayout = setCommentAndFormatLinks(lblComment, _comment) | do_relayout;
 				do_relayout = setCommentAndFormatLinks(user_comment, _user_comment) | do_relayout;
@@ -1232,27 +1252,27 @@ public class GeneralView extends AbstractIView implements ParameterListener,
 	  String old_comment = (String)c.getData("comment");
 	  if (new_comment == null) {new_comment = "";}
 	  if (new_comment.equals(old_comment)) {return false;}
-
+	
 	  c.setData("comment", new_comment);
 	  if (c instanceof Label) {
 		  ((Label) c).setText(new_comment);
 	  } else if (c instanceof Link) {
-		  String sNewComment;
+						String sNewComment;
 		  sNewComment = new_comment.replaceAll(
-					"([^=\">][\\s]+|^)(http://[\\S]+)", "$1<A HREF=\"$2\">$2</A>");
-		  // need quotes around url
+								"([^=\">][\\s]+|^)(http://[\\S]+)", "$1<A HREF=\"$2\">$2</A>");
+						// need quotes around url
 		  sNewComment = sNewComment.replaceAll("(href=)(htt[^\\s>]+)", "$1\"$2\"");
 
-		  // Examples:
-		  // http://cowbow.com/fsdjl&sdfkj=34.sk9391 moo
-		  // <A HREF=http://cowbow.com/fsdjl&sdfkj=34.sk9391>moo</a>
-		  // <A HREF="http://cowbow.com/fsdjl&sdfkj=34.sk9391">moo</a>
-		  // <A HREF="http://cowbow.com/fsdjl&sdfkj=34.sk9391">http://moo.com</a>
+						// Examples:
+						// http://cowbow.com/fsdjl&sdfkj=34.sk9391 moo
+						// <A HREF=http://cowbow.com/fsdjl&sdfkj=34.sk9391>moo</a>
+						// <A HREF="http://cowbow.com/fsdjl&sdfkj=34.sk9391">moo</a>
+						// <A HREF="http://cowbow.com/fsdjl&sdfkj=34.sk9391">http://moo.com</a>
 		  ((Link)c).setText(sNewComment);
-	  }
+			  	        	}
 	  return true;
-
-	}
+			  	    
+			          }
 
   public void parameterChanged(String parameterName) {
     graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
@@ -1264,5 +1284,5 @@ public class GeneralView extends AbstractIView implements ParameterListener,
 		UIDebugGenerator.obfusticateArea(image, (Control) saveIn.getWidget(),
 				shellOffset, Debug.secretFileName(saveIn.getText()));
 		return image;
-	}
+}
 }

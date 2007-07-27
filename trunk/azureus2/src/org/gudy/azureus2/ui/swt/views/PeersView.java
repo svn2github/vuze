@@ -80,6 +80,7 @@ public class PeersView
     new OptimisticUnchokeItem(),
     new UpItem(),
     new UpDownRatioItem(),
+    new GainItem(),
     new StatUpItem(),
     new SnubbedItem(),
     new TotalDownSpeedItem(),

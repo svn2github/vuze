@@ -59,6 +59,7 @@ public interface PiecePicker
     public int      getAvailability(final int pieceNumber);
     
     public float    getMinAvailability();
+    public int		getMaxAvailability();
     public float    getAvgAvail();
 
 	public void		allocateRequests();
@@ -76,8 +77,11 @@ public interface PiecePicker
 	public void 	addEndGameBlocks(final PEPiece pePiece);
 	public void		removeFromEndGameModeChunks(final int pieceNumber, final int offset);
 	
-	public int
-	getNumberOfPieces();
+	public int	getNumberOfPieces();
+	
+	
+	public int		getNbPiecesDone();
+	
 	
 	public void
 	addRTAProvider(
@@ -90,7 +94,7 @@ public interface PiecePicker
 	public List
 	getRTAProviders();
 	
-	public void
+	public void 
 	addPriorityProvider(
 		PiecePriorityProvider		shaper );
 	
