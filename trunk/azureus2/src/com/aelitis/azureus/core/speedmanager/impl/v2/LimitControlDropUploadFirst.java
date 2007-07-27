@@ -43,6 +43,16 @@ public class LimitControlDropUploadFirst implements LimitControl
 
     boolean isDownloadUnlimited = false;
 
+    //  Here is how the LimitControl will handle the "unlimited" case.
+    // #1) Download is allowed to be unlimited.
+    // #2) Upload is not allowed to be unlimited.
+
+    // a) Only the isDownloadUlimited boolean and upCurr value - used for unlimited case.
+    // b) In upload unlimited. valueDown is set to 1.0.
+    // c) upMax and upMin values keep there non-zero values.
+
+
+
     public void updateStatus(int currUpLimit, SaturatedMode uploadUsage,
                              int currDownLimit, SaturatedMode downloadUsage,
                              TransferMode transferMode){
@@ -56,12 +66,34 @@ public class LimitControlDropUploadFirst implements LimitControl
 
     public void setDownloadUnlimitedMode(boolean isUnlimited) {
         isDownloadUnlimited = isUnlimited;
+        if(isUnlimited){
+            valueUp = 1.0f;
+        }
+    }
+
+    public boolean isDownloadUnlimitedMode(){
+        return isDownloadUnlimited;
     }
 
 
     public void updateLimits(int _upMax, int _upMin, int _downMax, int _downMin){
         
         //verify the limits.
+        if(_upMax < SMConst.START_UPLOAD_RATE_MAX ){
+            _upMax = SMConst.START_UPLOAD_RATE_MAX;
+        }
+        if(_downMax < SMConst.START_DOWNLOAD_RATE_MAX){
+            _downMax = SMConst.START_DOWNLOAD_RATE_MAX;
+        }
+
+        if(_downMax<_upMax){
+            _downMax=_upMax;
+        }
+
+        _upMin = SMConst.calculateMinUpload(_upMax);
+        _downMin = SMConst.calculateMinDownload(_downMax);
+
+
         upMax = _upMax;
         upMin = _upMin;
         downMax = _downMax;
@@ -138,6 +170,12 @@ public class LimitControlDropUploadFirst implements LimitControl
 
         upLimit = Math.round( ((usedUpMax-upMin)*valueUp)+upMin );
 
+        //ToDo: remove diagnotics later.
+        if( upLimit>upMax || valueUp==Float.NaN ){
+            SpeedManagerLogger.trace("Limit - should upload have an unlimited condition? Setting to usedUpMax");
+            upLimit = usedUpMax;
+        }
+
         if(isDownloadUnlimited){
             downLimit = SMConst.RATE_UNLIMITED;  //zero means to unlimit the download rate.
         }else{
@@ -154,6 +192,14 @@ public class LimitControlDropUploadFirst implements LimitControl
     }
 
     private float calculateNewValue(float curr, float amount){
+
+        if(curr==Float.NaN){
+            SpeedManagerLogger.trace("calculateNewValue - curr=NaN");
+        }
+        if(amount==Float.NaN){
+            SpeedManagerLogger.trace("calculateNewValue = amount=NaN");
+        }
+
         curr += amount;
         if( curr > 1.0f){
             curr = 1.0f;
@@ -161,6 +207,11 @@ public class LimitControlDropUploadFirst implements LimitControl
         if( curr < 0.0f ){
             curr = 0.0f;
         }
+
+        if( curr==Float.NaN){
+            curr=0.0f;
+        }
+
         return curr;
     }
 

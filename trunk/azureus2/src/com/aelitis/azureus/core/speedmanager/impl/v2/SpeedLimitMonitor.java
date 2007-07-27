@@ -160,8 +160,13 @@ public class SpeedLimitMonitor implements PSMonitorListener
         percentUploadCapacityDownloadMode = (float)
                 COConfigurationManager.getIntParameter(SpeedLimitMonitor.USED_UPLOAD_CAPACITY_DOWNLOAD_MODE, 60)/100.0f;
 
+        slider.updateLimits(uploadLimitMax,uploadLimitMin,downloadLimitMax,downloadLimitMin);
         slider.updateSeedSettings(percentUploadCapacityDownloadMode);
-        slider.setDownloadUnlimitedMode( readDownloadUnlimitedMode() );
+        //slider.setDownloadUnlimitedMode( readDownloadUnlimitedMode() );
+        //ToDo:NEED WAY TO KNOW UNLIMIT CAME FROM UI.
+        if( requestForUnlimitFromUI() ){
+            slider.setDownloadUnlimitedMode( readDownUnlimitModeFromUI() );
+        }
 
     }//updateFromCOConfigManager
 
@@ -177,7 +182,13 @@ public class SpeedLimitMonitor implements PSMonitorListener
                                             sm.getEstimatedUploadCapacityBytesPerSec(),
                                             SMConst.START_UPLOAD_RATE_MAX );
 
-        uploadLimitMax = uEst.getBytesPerSec();
+        int upPingMapLimit = uEst.getBytesPerSec();
+        if(upPingMapLimit<SMConst.START_UPLOAD_RATE_MAX){
+            //will find upload limit via slow search.
+            uploadLimitMax = SMConst.START_UPLOAD_RATE_MAX;
+        }else{
+            uploadLimitMax = upPingMapLimit;
+        }
         uploadLimitMin = SMConst.calculateMinUpload( uploadLimitMax );
 
         //get download estimate.
@@ -185,7 +196,20 @@ public class SpeedLimitMonitor implements PSMonitorListener
                                             sm.getEstimatedDownloadCapacityBytesPerSec(),
                                             SMConst.START_DOWNLOAD_RATE_MAX );
 
-        downloadLimitMax = dEst.getBytesPerSec();
+        //downloadLimitMax = dEst.getBytesPerSec();
+        int downPingMapLimit = dEst.getBytesPerSec();
+        if( downPingMapLimit==0 ){
+            slider.setDownloadUnlimitedMode(true);
+        }else{
+            //ToDo: NEED A WAY TO KNOW IF USER SET VALUE FROM PANEL OR PING_MAPPER SET IT!!
+            slider.setDownloadUnlimitedMode(false);
+        }
+
+        if(downPingMapLimit<SMConst.START_DOWNLOAD_RATE_MAX){
+            downloadLimitMax = SMConst.START_DOWNLOAD_RATE_MAX;        
+        }else{
+            downloadLimitMax = downPingMapLimit;
+        }
         downloadLimitMin = SMConst.calculateMinDownload( downloadLimitMax );
 
         uploadLimitConf = SpeedLimitConfidence.convertType( uEst.getEstimateType() );
@@ -241,15 +265,27 @@ public class SpeedLimitMonitor implements PSMonitorListener
         
     }//logPMDataEx
 
-    private boolean readDownloadUnlimitedMode(){
-        int maxDownSpeedKbs = COConfigurationManager.getIntParameter("Max Download Speed KBs");
-        boolean dUnlimit = ( maxDownSpeedKbs==0 );
+//ToDo: need a way to get unlimited from UI.
+//    private boolean readDownloadUnlimitedMode(){
+//        int maxDownSpeedKbs = COConfigurationManager.getIntParameter("Max Download Speed KBs");
+//        boolean dUnlimit = ( maxDownSpeedKbs==0 );
+//
+//        if(dUnlimit){
+//            SpeedManagerLogger.trace("detected download set in unlimited mode");
+//        }
+//        return dUnlimit;
+//    }//eadDownloadUnlimitedMode
 
-        if(dUnlimit){
-            SpeedManagerLogger.trace("detected download set in unlimited mode");
-        }
-        return dUnlimit;
-    }//eadDownloadUnlimitedMode
+
+    private boolean requestForUnlimitFromUI(){
+        //ToDo: Create a param that UI sets.
+        return false;
+    }
+
+    private boolean readDownUnlimitModeFromUI(){
+        //ToDo: Get value from parameter.
+        return false;
+    }
 
     //SpeedLimitMonitorStatus
     public void setDownloadBandwidthMode(int rate, int limit){
@@ -479,7 +515,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
             COConfigurationManager.setParameter(
                     SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT, uploadLimitMax);
         }
-        if(updateDownload){
+        if(updateDownload && !slider.isDownloadUnlimitedMode() ){
             //increase limit by calculated amount.
             downloadLimitMax += calculateUnpinnedStepSize(downloadLimitMax);
             downloadChanged=true;
@@ -488,7 +524,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
         }
 
         //apply any rules that need applied.
-        //The download limit can never be less then the upload limit.
+        //The download limit can never be less then the upload limit. (Unless zero. UNLIMITED)
         if( uploadLimitMax > downloadLimitMax){
             downloadLimitMax = uploadLimitMax;
             downloadChanged=true;
@@ -498,6 +534,11 @@ public class SpeedLimitMonitor implements PSMonitorListener
 
         uploadLimitMin = SMConst.calculateMinUpload( uploadLimitMax );
         downloadLimitMin = SMConst.calculateMinDownload( downloadLimitMax );
+
+        if( slider.isDownloadUnlimitedMode() ){
+            SpeedManagerLogger.trace("upload unpinned while download is unlimited.");
+            return new SMUpdate(uploadLimitMax,uploadChanged, 0,false);
+        }
 
         return new SMUpdate(uploadLimitMax,uploadChanged, downloadLimitMax,downloadChanged);
     }//calculateNewUnpinnedLimits
@@ -919,6 +960,8 @@ public class SpeedLimitMonitor implements PSMonitorListener
             sb.append(downloadLimitMax);
         }
 
+        slider.updateLimits(uploadLimitMax,uploadLimitMin,downloadLimitMax,downloadLimitMin);
+
         SpeedManagerLogger.trace( sb.toString() );
 
         return retVal;
@@ -942,7 +985,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
         if( currUploadLimit> uploadLimitMax){
             retVal = false;
         }
-        if(  currDownloadLimit> downloadLimitMax){
+        if(  currDownloadLimit> downloadLimitMax && slider.isDownloadUnlimitedMode() ){
             retVal = false;
         }
         return retVal;
@@ -1023,6 +1066,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
 
         SpeedManagerLogger.trace("setRefLimits uploadMax="+uploadMax+" uploadLimitMax="+uploadLimitMax+", downloadMax="+downloadMax+" downloadLimitMax="+downloadLimitMax);
 
+        slider.updateLimits(uploadLimitMax,uploadLimitMin,downloadLimitMax,downloadLimitMin);
     }
 
     /**
@@ -1039,31 +1083,46 @@ public class SpeedLimitMonitor implements PSMonitorListener
         int newDownloadLimit = currDownloadLimit;
         boolean downloadChanged = false;
 
+        StringBuffer reason = new StringBuffer();
+
         //check for the case when the line-speed capacity is below the current limit.
-        if( currUploadLimit> uploadLimitMax){
+        if( currUploadLimit> uploadLimitMax && uploadLimitMax!=0){
+
             newUploadLimit = uploadLimitMax;
             uploadChanged = true;
+
+            reason.append(" (a) upload line-speed cap below current limit. ");
+        }
+
+        if(uploadLimitMax==0){
+            reason.append("** uploadLimitMax=0 (Unlimited)! ** ");
         }
 
         //check for the case when the min setting has been moved above the current limit.
-        if( currDownloadLimit> downloadLimitMax){
+        if( currDownloadLimit> downloadLimitMax && !slider.isDownloadUnlimitedMode() ){
             newDownloadLimit = downloadLimitMax;
             downloadChanged = true;
+
+            reason.append(" (b) download line-speed cap below current limit. ");
         }
 
         //Another possibility is the min limits have been raised.
         if( currUploadLimit<uploadLimitMin ){
             newUploadLimit = uploadLimitMin;
             uploadChanged = true;
+
+            reason.append(" (c) min upload limit raised. ");
         }
 
         if( currDownloadLimit<downloadLimitMin ){
             newDownloadLimit = downloadLimitMin;
             downloadChanged = true;
+
+            reason.append(" (d)  min download limit raised. ");
         }
 
         SpeedManagerLogger.trace("Adjusting limits due to out of spec: new-up="+newUploadLimit
-                +" new-down="+newDownloadLimit);
+                +" new-down="+newDownloadLimit+"  reasons: "+reason.toString());
 
         return new SMUpdate(newUploadLimit,uploadChanged,newDownloadLimit,downloadChanged);
     }
@@ -1343,6 +1402,10 @@ public class SpeedLimitMonitor implements PSMonitorListener
         SpeedManagerLogger.trace("notifyUpload uploadLimitMax="+uploadLimitMax);
         tempLogEstimate(estimate);
 
+        if( !isUploadMaxPinned ){
+            SpeedManagerLogger.trace("notifyUpload ignoring update while upload limit is unpinned.");
+        }
+
         if(bestLimit!=uploadLimitMax){
             //update COConfiguration
             SpeedManagerLogger.log("persistent PingMap changed upload limit to "+bestLimit);
@@ -1350,6 +1413,9 @@ public class SpeedLimitMonitor implements PSMonitorListener
             COConfigurationManager.setParameter(
                     SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT, uploadLimitMax);
         }
+
+        SMConst.calculateMinUpload(uploadLimitMax);
+        slider.updateLimits(uploadLimitMax,uploadLimitMin,downloadLimitMax,downloadLimitMin);
 
     }
 
@@ -1367,6 +1433,16 @@ public class SpeedLimitMonitor implements PSMonitorListener
             COConfigurationManager.setParameter(
                     SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT, bestLimit);
         }
+
+        SMConst.calculateMinDownload(downloadLimitMax);
+        slider.updateLimits(uploadLimitMax,uploadLimitMin,downloadLimitMax,downloadLimitMin);
+
+        if(downloadLimitMax!=0){
+            slider.setDownloadUnlimitedMode(false);
+        }else{
+            slider.setDownloadUnlimitedMode(true);
+        }
+        
     }
 
     private void tempLogEstimate(SpeedManagerLimitEstimate est){

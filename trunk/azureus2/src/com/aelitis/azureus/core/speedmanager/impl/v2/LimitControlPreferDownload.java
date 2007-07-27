@@ -82,4 +82,8 @@ public class LimitControlPreferDownload implements LimitControl
     public void setDownloadUnlimitedMode(boolean isUnlimited) {
         isDownloadUnlimited = isUnlimited;
     }
+
+    public boolean isDownloadUnlimitedMode() {
+        return isDownloadUnlimited;  
+    }
 }

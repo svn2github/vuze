@@ -34,4 +34,6 @@ public interface LimitControl
                              TransferMode transferMode);
 
     void setDownloadUnlimitedMode(boolean isUnlimited);
+
+    boolean isDownloadUnlimitedMode();
 }
