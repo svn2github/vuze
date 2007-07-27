@@ -97,6 +97,9 @@ public class Tab {
     this.view = _view;
     this.folder = _folder;
 
+    if (folder.isDisposed()) {
+    	return;
+    }
     if (useCustomTab) {
     	CTabFolder tabFolder = (CTabFolder) folder;
       tabItem = new CTabItem(tabFolder, SWT.NULL,
