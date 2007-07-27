@@ -265,6 +265,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("UL", "uLeecher!");
 		addAzStyle("UT", "\u00B5Torrent", VER_AZ_THREE_DIGITS_PLUS_MNEMONIC);
 		addAzStyle("WY", "Wyzo");
+		addAzStyle("VG", "\u54c7\u560E (Vagaa)", VER_AZ_FOUR_DIGITS);
 		addAzStyle("XL", "\u8FC5\u96F7\u5728\u7EBF (Xunlei)");
 		addAzStyle("XT", "XanTorrent");
 		addAzStyle("XX", "Xtorrent", "v1234");
@@ -311,6 +312,10 @@ public class BTPeerIDByteDecoderDefinitions {
 		
 		// Clients with their own custom format and version number style.
 		ClientData client = null;
+		
+		// DNA01000 becomes version 1.0 - we'll ignore the other digits for now.
+		client = addSimpleClient("BitTorrent DNA", "DNA");
+		addVersionedClient(client, VER_BYTE_BLOCK_DOTTED_CHAR, 2, 4);
 		
 		client = addSimpleClient("Opera", "OP");
 		addVersionedClient(client, VER_BLOCK, 4, " (Build %s)");

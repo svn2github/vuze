@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 
 import java.io.*;
+import java.util.HashSet;
 
 
 /**
@@ -58,14 +59,23 @@ public class BTPeerIDByteDecoder {
 	
 	private static boolean client_logging_allowed = true;
 
+	// I don't expect this to grow too big, and it won't grow if there's no logging going on.
+	private static HashSet logged_ids = new HashSet();
 	static void logUnknownClient(byte[] peer_id_bytes) {logUnknownClient(peer_id_bytes, true);}
 	static void logUnknownClient(byte[] peer_id_bytes, boolean to_debug_out) {
 		
 		if (!client_logging_allowed) {return;}
 		
+		// Avoid logging the same client ID multiple times.
+		boolean log_to_debug_out = to_debug_out && Constants.isCVSVersion();
+		if (log_to_debug_out || LOG_UNKNOWN) {
+			// If the ID has been recorded before, then avoid doing it again.
+			if (!logged_ids.add(makePeerIDReadableAndUsable(peer_id_bytes))) {return;}
+		}
+		
 		// Enable this block for now - just until we get more feedback about
 		// unknown clients.
-		if (to_debug_out && Constants.isCVSVersion()) {
+		if (log_to_debug_out) {
 			Debug.outNoStack("Unable to decode peer correctly - peer ID bytes: " + makePeerIDReadableAndUsable(peer_id_bytes));
 		}
 		
@@ -130,6 +140,13 @@ public class BTPeerIDByteDecoder {
 				if (client.startsWith("ZipTorrent") && peer_id.startsWith("bLAde", 8)) {
 					String client_name = (client_with_version == null) ? client : client_with_version; 
 					return UNKNOWN + " [" + FAKE  + ": " + client_name + "]";
+				}
+				
+				/**
+				 * BitTorrent 6.0 Beta currently misidentifies itself.
+				 */
+				if ("\u00B5Torrent 6.0.0 Beta".equals(client_with_version)) {
+					return "BitTorrent 6.0 Beta";
 				}
 
 				
@@ -299,8 +316,11 @@ public class BTPeerIDByteDecoder {
 	}
 
 
-	protected static String getPrintablePeerID(byte[] peer_id)
-	{
+	protected static String getPrintablePeerID(byte[] peer_id) {
+		return getPrintablePeerID(peer_id, '-');
+	}
+	
+	protected static String getPrintablePeerID(byte[] peer_id, char fallback_char) {
 		String	sPeerID = "";
 		byte[] peerID = new byte[ peer_id.length ];
 		System.arraycopy( peer_id, 0, peerID, 0, peer_id.length );
@@ -309,7 +329,7 @@ public class BTPeerIDByteDecoder {
 			for (int i = 0; i < peerID.length; i++) {
 				int b = (0xFF & peerID[i]);
 				if (b < 32 || b > 127)
-					peerID[i] = '-';
+					peerID[i] = (byte)fallback_char;
 			}
 			sPeerID = new String(peerID, Constants.BYTE_ENCODING);
 		}
@@ -358,8 +378,8 @@ public class BTPeerIDByteDecoder {
 	}
 	
 	private static void assertDecode(String client_result, byte[] peer_id) throws Exception {
-		String peer_id_as_string = new String(peer_id, Constants.BYTE_ENCODING).replace('\n', ' ').replace('\r', ' ').replace('\t', ' ');
-		System.out.println("   " + client_result + ", peer ID: " + peer_id_as_string);
+		String peer_id_as_string = getPrintablePeerID(peer_id, '*');
+		System.out.println("   Peer ID: " + peer_id_as_string + "   Client: " + client_result);
 		
 		// Do not log any clients.
 		String decoded_result = decode(peer_id);
@@ -379,6 +399,7 @@ public class BTPeerIDByteDecoder {
 		assertDecode("Artemis 2.5.2.0", "-AT2520-vEEt0wO6v0cr");
 		assertDecode("Azureus 2.2.0.0", "-AZ2200-6wfG2wk6wWLc");
 		assertDecode("BitRocket 0.3(32)", "-BR0332-!XVceSn(*KIl");
+		assertDecode("BitTorrent 6.0 Beta", "2D555436 3030422D A78DC290 C3F7BDE0 15EC3CC7");
 		assertDecode("FlashGet 1.80", "2D464730 31383075 F8005782 1359D64B B3DFD265");
 		assertDecode("GetRight 6.3", "-GR6300-13s3iFKmbArc");
 		assertDecode("Halite 0.2.9", "-HL0290-xUO*9ugvENUE");
@@ -392,6 +413,7 @@ public class BTPeerIDByteDecoder {
 		assertDecode("Transmission 0.72", "-TR0072-8vd6hrmp04an");
 		assertDecode("TuoTu 2.1.0", "-TT210w-dq!nWf~Qcext");
 		assertDecode("\u00B5Torrent 1.7.0 Beta", "2D555431 3730422D 92844644 1DB0A094 A01C01E5");
+		assertDecode("\u54c7\u560E (Vagaa) 2.6.4.4", "2D5647323634342D4FD62CDA69E235717E3BB94B");
 		assertDecode("Wyzo 0.3.0.0", "-WY0300-6huHF5Pr7Vde");
 		System.out.println();
 
@@ -420,6 +442,7 @@ public class BTPeerIDByteDecoder {
 		assertDecode("Burst! 1.1.3", "Mbrst1-1-32e3c394b43");
 		assertDecode("Opera (Build 7685)", "OP7685f2c1495b1680bf");
 		assertDecode("Rufus 0.6.9", "00455253 416E6F6E 796D6F75 7382BE42 75024AE3");
+		assertDecode("BitTorrent DNA 1.0", "444E413031303030DD01C9B2DA689E6E02803E91");
 		System.out.println();
 		
 		// BitComet/Lord/Spirit
