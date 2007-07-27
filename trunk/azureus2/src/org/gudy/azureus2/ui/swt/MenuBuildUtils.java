@@ -197,6 +197,10 @@ public class MenuBuildUtils {
 		
 		for (int i = 0; i < items.length; i++) {
 			final MenuItemImpl az_menuitem = (MenuItemImpl) items[i];
+			
+			controller.notifyFillListeners(az_menuitem);
+			if (!az_menuitem.isVisible()) {continue;}
+			
 			final int style = az_menuitem.getStyle();
 			final int swt_style;
 
@@ -233,23 +237,7 @@ public class MenuBuildUtils {
 
 			prev_was_separator = this_is_separator;
 
-			final Listener main_listener = controller
-					.makeSelectionListener(az_menuitem);
-			menuItem.addListener(SWT.Selection, new Listener() {
-				public void handleEvent(Event e) {
-					if (az_menuitem.getStyle() == MenuItem.STYLE_CHECK
-							|| az_menuitem.getStyle() == MenuItem.STYLE_RADIO) {
-						if (!menuItem.isDisposed()) {
-							az_menuitem.setData(new Boolean(menuItem
-									.getSelection()));
-						}
-					}
-					main_listener.handleEvent(e);
-				}
-			});
-
 			if (enable_items) {
-				controller.notifyFillListeners(az_menuitem);
 
 				if (style == TableContextMenuItem.STYLE_CHECK
 						|| style == TableContextMenuItem.STYLE_RADIO) {
@@ -264,7 +252,20 @@ public class MenuBuildUtils {
 					menuItem.setSelection(selection_value.booleanValue());
 				}
 			}
-
+			
+			final Listener main_listener = controller.makeSelectionListener(az_menuitem);
+			menuItem.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event e) {
+					if (az_menuitem.getStyle() == MenuItem.STYLE_CHECK
+							|| az_menuitem.getStyle() == MenuItem.STYLE_RADIO) {
+						if (!menuItem.isDisposed()) {
+							az_menuitem.setData(new Boolean(menuItem.getSelection()));
+						}
+					}
+					main_listener.handleEvent(e);
+				}
+			});
+			
 			if (is_container) {
 				Menu this_menu = new Menu(composite.getShell(), SWT.DROP_DOWN);
 				menuItem.setMenu(this_menu);

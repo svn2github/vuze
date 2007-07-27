@@ -217,5 +217,17 @@ public interface MenuItem
 	 * @since 3.0.0.7
 	 */
 	public void removeAllChildItems();
-
+	
+	/**
+	 * Sets whether the menu item is visible or not.
+	 * @since 3.0.2
+	 */
+	public void setVisible(boolean visible);
+	
+	/**
+	 * Returns whether the menu item is visible or not.
+	 * @since 3.0.2
+	 */
+	public boolean isVisible();
+	
 }

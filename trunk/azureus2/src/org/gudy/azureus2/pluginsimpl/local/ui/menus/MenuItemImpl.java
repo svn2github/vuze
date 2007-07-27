@@ -55,6 +55,8 @@ public class MenuItemImpl implements MenuItem {
 	private MenuItemImpl parent = null;
 
 	private String display_text = null;
+	
+	private boolean visible = true;
 
 	public MenuItemImpl(String menuID, String key) {
 		sMenuID = menuID;
@@ -227,5 +229,8 @@ public class MenuItemImpl implements MenuItem {
 			for (int i=0; i<children.length; i++) {children[i].remove();}
 		}
 	}
+	
+	public boolean isVisible() {return visible;}
+	public void setVisible(boolean visible) {this.visible = visible;}
 
 }
