@@ -2945,9 +2945,9 @@ public class TableViewSWTImpl
 				writer.exdent();
 			}
 			
+			writer.println("Columns:");
+			writer.indent();
 			try {
-  			writer.println("Columns:");
-  			writer.indent();
   			TableColumn[] tableColumnsSWT = table.getColumns();
   			for (int i = 0; i < tableColumnsSWT.length; i++) {
   				final TableColumnCore tc = (TableColumnCore) tableColumnsSWT[i].getData("TableColumnCore");
@@ -2957,7 +2957,10 @@ public class TableViewSWTImpl
   				}
   			}
 			} catch (Throwable t) {
+			} finally {
+				writer.exdent();
 			}
+
 		} finally {
 
 			dataSourceToRow_mon.exit();
