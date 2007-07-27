@@ -422,19 +422,21 @@ public class TorrentListViewsUtils
 			Utils.launch(runFile);
 		}
 
-		String playAfterURL = PlatformConfigMessenger.getPlayAfterURL();
-		if (playAfterURL != null) {
-			try {
-				if (!playAfterURL.startsWith("http")) {
-					playAfterURL = Constants.URL_PREFIX + playAfterURL;
+		if (PlatformTorrentUtils.isContent(torrent, true)) {
+			String playAfterURL = PlatformConfigMessenger.getPlayAfterURL();
+			if (playAfterURL != null) {
+				try {
+					if (!playAfterURL.startsWith("http")) {
+						playAfterURL = Constants.URL_PREFIX + playAfterURL;
+					}
+					playAfterURL += playAfterURL.indexOf("?") > 0 ? "&" : "?";
+					playAfterURL += "azid=" + Constants.AZID + "&torrentHash="
+							+ torrent.getHashWrapper().toBase32String();
+	
+					new BrowserWindow(Utils.findAnyShell(), playAfterURL, 0.9, 0.9, true,
+							true);
+				} catch (Exception e) {
 				}
-				playAfterURL += playAfterURL.indexOf("?") > 0 ? "&" : "?";
-				playAfterURL += "azid=" + Constants.AZID + "&torrentHash="
-						+ torrent.getHashWrapper().toBase32String();
-
-				new BrowserWindow(Utils.findAnyShell(), playAfterURL, 0.9, 0.9, true,
-						true);
-			} catch (Exception e) {
 			}
 		}
 	}
