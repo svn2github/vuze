@@ -860,6 +860,8 @@ SpeedManagerPingMapperImpl
 					
 					if ( last_bad_down == null || last_bad_down.getBytesPerSec() != down_estimate.getBytesPerSec()){
 
+						bad_down_in_progress_count = BAD_PROGRESS_COUNTDOWN;
+
 						last_bad_downs.addLast( down_estimate );
 						
 						if ( last_bad_downs.size() > MAX_BAD_LIMIT_HISTORY ){
@@ -918,11 +920,13 @@ SpeedManagerPingMapperImpl
 			return;
 		}
 		
+			// remeber, 0 means UNLIMITED!!!
+		
 		int	cap = capacity.getBytesPerSec();
 		
 			// sanity check
 		
-		if ( cap < 10*1024 ){
+		if ( cap > 0 && cap < 10*1024 ){
 		
 			return;
 		}
@@ -966,7 +970,7 @@ SpeedManagerPingMapperImpl
 		
 			// only consider decreases!
 		
-		if ( average >= cap ){
+		if ( cap > 0 && average >= cap ){
 			
 			return;
 		}
@@ -986,7 +990,7 @@ SpeedManagerPingMapperImpl
 		
 			// adjust if deviation within 10% of capacity
 		
-		if ( deviation < cap/10 ){
+		if ( cap <= 0 || deviation < cap/10 ){
 			
 			log( "Reducing " + (is_up?"up":"down") + " capacity from " + cap + " to " + average + " due to frequent lower chokes" );
 			
@@ -1247,6 +1251,13 @@ SpeedManagerPingMapperImpl
 		if ( estimate_speed < 5*1024 ){
 			
 			estimate_var = VARIANCE_GOOD_VALUE;
+			
+				// value of 0 means unlimited
+			
+			if ( estimate_speed <= 0 ){
+				
+				estimate_speed = 1;
+			}
 		}
 		
 		limitEstimate result = 
