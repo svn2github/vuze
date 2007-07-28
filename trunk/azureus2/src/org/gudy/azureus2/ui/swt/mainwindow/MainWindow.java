@@ -563,6 +563,11 @@ MainWindow
     	uiSWTInstanceImpl.init();
     }
 
+    // check if any plugins shut us down
+    if (isAlreadyDead) {
+    	return;
+    }
+
     if (azureus_core.getTrackerHost().getTorrents().length > 0) {
     	showMyTracker();
     }
