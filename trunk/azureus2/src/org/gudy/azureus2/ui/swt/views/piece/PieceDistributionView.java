@@ -27,7 +27,9 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 import org.gudy.azureus2.ui.swt.views.utils.CoordinateTransform;
@@ -46,7 +48,6 @@ public class PieceDistributionView
 	private Composite comp;
 	private Canvas pieceDistCanvas;
 	private GC pieceDistGC;
-	private Image img;
 	private DownloadManager dlm;
 	private boolean initialized = false;
 
@@ -91,13 +92,12 @@ public class PieceDistributionView
 		Rectangle rect = pieceDistCanvas.getBounds();
 		if(rect.height <= 0 || rect.width <= 0)
 			return;
-		if(img != null)
-			img.dispose();
 	
-		PiecePicker picker = dlm.getPeerManager().getPiecePicker();
+		PEPeerManager pm = dlm.getPeerManager();
+		PiecePicker picker = pm.getPiecePicker();
 		
-		final int seeds = dlm.getPeerManager().getNbSeeds();
-		final int connected = dlm.getPeerManager().getNbPeers() + seeds;
+		final int seeds = pm.getNbSeeds()+(pm.isSeeding()?1:0);
+		final int connected = pm.getNbPeers() + seeds + (pm.isSeeding()?0:1);
 		final int upperBound = 1+(1<<(int)Math.ceil(Math.log(connected+0.0)/Math.log(2.0)));
 		//System.out.println("conn:"+connected+" bound:"+upperBound);
 		final int minAvail = (int)picker.getMinAvailability();
@@ -115,7 +115,7 @@ public class PieceDistributionView
 		
 		for(int i=0;i<nbPieces;i++)
 		{
-			if(availabilties[i] >= upperBound) 
+			if(availabilties[i] >= upperBound)
 				return; // availability and peer lists are OOS, just wait for the next round
 			final int newPeak;
 			if(avlPeak < (newPeak = ++piecesPerAvailability[availabilties[i]]))
@@ -129,7 +129,7 @@ public class PieceDistributionView
 				downloading[availabilties[i]] = true;
 		}
 		
-		img = new Image(pieceDistGC.getDevice(),pieceDistCanvas.getBounds());
+		Image img = new Image(pieceDistGC.getDevice(),pieceDistCanvas.getBounds());
 		
 		GC gc = new GC(img);
 
@@ -139,7 +139,7 @@ public class PieceDistributionView
 			int barGap = 2;
 			int barWidth = stepWidthX-barGap;
 			int barFillingWidth = barWidth-1;
-			int stepWidthY = (int)Math.floor(rect.height/avlPeak);
+			double stepWidthY = 1.0*rect.height/avlPeak;
 			int offsetY = rect.height;
 			
 			gc.setForeground(Colors.green);
@@ -164,18 +164,16 @@ public class PieceDistributionView
 					gc.setLineWidth(1);
 					if(downloading[i])
 						gc.setLineStyle(SWT.LINE_DASH);
-					gc.fillRectangle(stepWidthX*i+1, offsetY, barFillingWidth, stepWidthY*ourPiecesPerAvailability[i]*-1);
-					gc.drawRectangle(stepWidthX*i, offsetY, barWidth, (stepWidthY*piecesPerAvailability[i]+1)*-1);
+					gc.fillRectangle(stepWidthX*i+1, offsetY, barFillingWidth, (int)(Math.ceil(stepWidthY*ourPiecesPerAvailability[i])*-1));
+					gc.drawRectangle(stepWidthX*i, offsetY, barWidth, (int)(Math.ceil(stepWidthY*piecesPerAvailability[i])+1)*-1);
 				}
 				
 				gc.setLineStyle(SWT.LINE_SOLID);
 			}
+			gc.setLineWidth(1);
 			
-			gc.setLineWidth(1);			
-			gc.setTransform(null);
 			
 			CoordinateTransform t = new CoordinateTransform(rect);
-			
 			t.shiftExternal(rect.width,0);
 			t.scale(-1.0, 1.0);
 			
@@ -231,18 +229,16 @@ public class PieceDistributionView
 		{
 			gc.dispose();
 		}
-	
 		
+		pieceDistGC.drawImage(img, 0, 0);
+		img.dispose();
 	}
 
 	public void refresh() {
-		super.refresh();
 		if(!initialized)
 			return;
 		updateDistribution();
-		if(img != null && !img.isDisposed())
-			pieceDistGC.drawImage(img, 0, 0);
-
+		super.refresh();
 	}
 
 	/* (non-Javadoc)
@@ -259,11 +255,7 @@ public class PieceDistributionView
 		if(!initialized)
 			return;
 		initialized = false;
+		Utils.disposeSWTObjects(new Object[] {pieceDistGC,pieceDistCanvas,comp});
 		super.delete();
-		comp.dispose();
-		pieceDistCanvas.dispose();
-		pieceDistGC.dispose();
-		if(img != null && !img.isDisposed())
-			img.dispose();
 	}
 }
