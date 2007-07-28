@@ -100,6 +100,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
     private boolean isDownloadMaxPinned=true; 
     private long uploadAtLimitStartTime =SystemTime.getCurrentTime();
     private long downloadAtLimitStartTime = SystemTime.getCurrentTime();
+    private int numDownticks = 1;
 
     private static final long TIME_AT_LIMIT_BEFORE_UNPINNING = 30 * 1000; //30 seconds.
 
@@ -578,7 +579,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
             uploadAtLimitStartTime = currTime;
         }else{
             //check to see if we have been here for the time limit.
-            if( uploadAtLimitStartTime+TIME_AT_LIMIT_BEFORE_UNPINNING < currTime ){
+            if( uploadAtLimitStartTime+(TIME_AT_LIMIT_BEFORE_UNPINNING*numDownticks) < currTime ){
 
                 if( isUploadConfidenceLow() ){
                     if( !transferMode.isDownloadMode() ){
@@ -629,13 +630,18 @@ public class SpeedLimitMonitor implements PSMonitorListener
     public void notifyOfDownSingal(){
 
         if( !isUploadMaxPinned ){
-            SpeedManagerLogger.trace("pinning the upload max limit, due to downtick signal.");
+            numDownticks++;
+            SpeedManagerLogger.trace("pinning the upload max limit, due to downtick signal. #downtick="+numDownticks);
         }
 
         if( !isDownloadMaxPinned ){
             SpeedManagerLogger.trace("pinning the download max limit, due to downtick signal.");
         }
 
+        resetPinSearch();
+    }
+
+    void resetPinSearch(){
         long currTime = SystemTime.getCurrentTime();
 
         uploadAtLimitStartTime = currTime;
@@ -644,6 +650,14 @@ public class SpeedLimitMonitor implements PSMonitorListener
         isDownloadMaxPinned = true;
     }
 
+    void resetPinSearch(SpeedManagerLimitEstimate estimate){
+        //chocking ping needs higher limit.
+        float type = estimate.getEstimateType();
+        if(type>=SpeedManagerLimitEstimate.TYPE_CHOKE_ESTIMATED){
+            numDownticks++;
+        }
+        resetPinSearch();
+    }
 
     /**
      * Return true if we are confidence testing the limits.
@@ -1396,6 +1410,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
 
     }//addToPingMapData
 
+    
     public void notifyUpload(SpeedManagerLimitEstimate estimate) {
         int bestLimit = choseBestLimit(estimate,uploadLimitMax,uploadLimitConf);
 
@@ -1410,12 +1425,15 @@ public class SpeedLimitMonitor implements PSMonitorListener
         if(bestLimit!=uploadLimitMax){
             //update COConfiguration
             SpeedManagerLogger.log("persistent PingMap changed upload limit to "+bestLimit);
+
+            resetPinSearch(estimate);
+
             uploadLimitMax = bestLimit;
             COConfigurationManager.setParameter(
                     SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT, uploadLimitMax);
         }
 
-        SMConst.calculateMinUpload(uploadLimitMax);
+        uploadLimitMin = SMConst.calculateMinUpload(uploadLimitMax);
         slider.updateLimits(uploadLimitMax,uploadLimitMin,downloadLimitMax,downloadLimitMin);
 
     }
@@ -1435,7 +1453,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
                     SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT, bestLimit);
         }
 
-        SMConst.calculateMinDownload(downloadLimitMax);
+        downloadLimitMin = SMConst.calculateMinDownload(downloadLimitMax);
         slider.updateLimits(uploadLimitMax,uploadLimitMin,downloadLimitMax,downloadLimitMin);
 
         if(downloadLimitMax!=0){

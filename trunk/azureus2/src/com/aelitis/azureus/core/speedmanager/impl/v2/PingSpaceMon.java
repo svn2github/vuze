@@ -113,7 +113,7 @@ public class PingSpaceMon
         SpeedManagerLogger.trace("Monitor resetting time. Next check in interval.");
     }
 
-    SpeedManagerLimitEstimate getUploadLimit(){
+    public static SpeedManagerLimitEstimate getUploadLimit(){
         try{
             SMInstance pm = SMInstance.getInstance();
             SpeedManagerAlgorithmProviderAdapter adapter = pm.getAdapter();
@@ -130,7 +130,7 @@ public class PingSpaceMon
         }
     }//getUploadLimit
 
-    SpeedManagerLimitEstimate getDownloadLimit(){
+    public static SpeedManagerLimitEstimate getDownloadLimit(){
         try{
             SMInstance pm = SMInstance.getInstance();
             SpeedManagerAlgorithmProviderAdapter adapter = pm.getAdapter();

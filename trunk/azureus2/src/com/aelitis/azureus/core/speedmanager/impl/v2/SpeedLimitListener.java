@@ -38,16 +38,17 @@ public class SpeedLimitListener implements SpeedManagerListener {
         String type="unknown";
         if( property == SpeedManagerListener.PR_ASN ){
             type = "ASN change";
+            mon.readFromPersistentMap();
+            mon.updateFromCOConfigManager();
         }else if( property == SpeedManagerListener.PR_DOWN_CAPACITY ){
             type = "download capacity";
+            mon.notifyDownload( PingSpaceMon.getDownloadLimit() );
         }else if( property == SpeedManagerListener.PR_UP_CAPACITY ){
             type = "upload capacity";
+            mon.notifyUpload( PingSpaceMon.getUploadLimit() );
         }
 
-        SpeedManagerLogger.log("Update from SpeedManagerPingMapper property="+type);
-
-        mon.readFromPersistentMap();
-        mon.updateFromCOConfigManager();
+        SpeedManagerLogger.log("Updated from SpeedManagerPingMapper property="+type);
 
     }
 
