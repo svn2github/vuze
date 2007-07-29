@@ -51,9 +51,6 @@ public class BTPeerIDByteDecoder {
 
 		log.write("[" + text + "] "); // Readable
 		log.write(ByteFormatter.encodeString(peer_id_bytes) + " "); // Usable for assertion tests.
-		for (int i=0; i < 20; i++) {
-			log.write(i+"=" + peer_id_bytes[i] + " "); // In case we want the old format...
-		}
 		log.write("\n");
 	}
 	
