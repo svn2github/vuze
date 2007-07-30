@@ -1133,7 +1133,7 @@ public class Utils {
 		heightInPixels++;
 
 		// This isn't accurate, but gets us close
-		int size = Utils.pixelsToPoint(heightInPixels, device.getDPI().y);
+		int size = Utils.pixelsToPoint(heightInPixels, device.getDPI().y) + 1;
 		if (size <= 0) {
 			return 0;
 		}
@@ -1175,7 +1175,7 @@ public class Utils {
 		heightInPixels++;
 
 		// This isn't accurate, but gets us close
-		int size = Utils.pixelsToPoint(heightInPixels, device.getDPI().y);
+		int size = Utils.pixelsToPoint(heightInPixels, device.getDPI().y) + 1;
 		if (size <= 0) {
 			return 0;
 		}
@@ -1212,8 +1212,11 @@ public class Utils {
 		Font font = null;
 		Device device = baseFont.getDevice();
 
+		// hack..
+		heightInPixels++;
+		
 		// This isn't accurate, but gets us close
-		int size = Utils.pixelsToPoint(heightInPixels, device.getDPI().y);
+		int size = Utils.pixelsToPoint(heightInPixels, device.getDPI().y) + 1;
 		if (size <= 0) {
 			size = 2;
 		}
