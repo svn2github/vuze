@@ -926,12 +926,12 @@ public class Utils {
 	
 	public static int pixelsToPoint(int pixels, int dpi) {
     int ret = (int) Math.round((pixels * 72.0) / dpi);
-    return isGTK ? ret - 2 : ret;
+    return ret;
 	}
 	
 	public static int pixelsToPoint(double pixels, int dpi) {
     int ret = (int) Math.round((pixels * 72.0) / dpi);
-    return isGTK ? ret - 2 : ret;
+    return ret;
 	}
 
 	public static boolean drawImage(GC gc, Image image, Rectangle dstRect,
@@ -1128,9 +1128,17 @@ public class Utils {
 	public static int getFontHeightFromPX(Font baseFont, GC gc, int heightInPixels) {
 		Font font = null;
 		Device device = baseFont.getDevice();
+		
+		if (isGTK) {
+			// hack..
+			heightInPixels++;
+		}
 
 		// This isn't accurate, but gets us close
 		int size = Utils.pixelsToPoint(heightInPixels, device.getDPI().y);
+		if (size <= 0) {
+			return 0;
+		}
 
 		boolean bOurGC = gc == null || gc.isDisposed();
 		try {
@@ -1165,8 +1173,16 @@ public class Utils {
 			GC gc, int heightInPixels) {
 		Font font = null;
 
+		if (isGTK) {
+			// hack..
+			heightInPixels++;
+		}
+
 		// This isn't accurate, but gets us close
 		int size = Utils.pixelsToPoint(heightInPixels, device.getDPI().y);
+		if (size <= 0) {
+			return 0;
+		}
 
 		boolean bOurGC = gc == null || gc.isDisposed();
 		try {
