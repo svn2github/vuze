@@ -28,6 +28,10 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
+
+import org.gudy.azureus2.plugins.PluginInterface;
+
 /**
  * Utility functions for Updater Plugin.
  * <p>
@@ -186,4 +190,18 @@ public class UpdaterUtils
 			return( user_props );	
 		}
 	}	
+	
+	public static String
+	getUpdaterPluginVersion()
+	{
+		try {
+  		PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(AZUPDATER_PLUGIN_ID);
+  		if (pi == null) {
+  			return "0";
+  		}
+  		return pi.getPluginVersion();
+		} catch (Throwable t) {
+		}
+		return "0";
+	}
 }
