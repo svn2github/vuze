@@ -1512,6 +1512,19 @@ DownloadImpl
  			throw( new DownloadException("move operation failed", e ));
  		}
   	}
+
+	public void moveDataFiles(File new_parent_dir, String new_name)
+  	
+  		throws DownloadException
+  	{
+ 		try{
+ 			download_manager.moveDataFiles( new_parent_dir, new_name );
+ 			
+ 		}catch( DownloadManagerException e ){
+ 			
+ 			throw( new DownloadException("move / rename operation failed", e ));
+ 		}
+  	}
 	
 	public void renameDownload(String new_name) throws DownloadException {
 		try {download_manager.renameDownload(new_name);}

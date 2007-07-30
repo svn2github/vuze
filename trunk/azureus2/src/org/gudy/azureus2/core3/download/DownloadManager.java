@@ -230,6 +230,12 @@ DownloadManager
     setTorrentSaveDir(
         String sPath );
 
+    /**
+     * changes the save directory. Only call this if you know what you are doing!!!!
+     * @param sPath
+     */
+    public void setTorrentSaveDir(String parent_dir, String dl_name);
+
     public boolean isForceStart();
 
     public void setForceStart(boolean forceStart);
@@ -434,6 +440,16 @@ DownloadManager
      * @throws DownloadManagerException
      */
     public void renameDownload(String new_name) throws DownloadManagerException;
+    
+    /**
+     * Move the files and rename a download in one go.
+     * 
+     * For convenience - either argument can be null, but not both.
+     * 
+     * @see #moveDataFiles(File)
+     * @see #renameDownload(String)
+     */
+    public void moveDataFiles(File new_parent_dir, String new_name) throws DownloadManagerException;
 
         /**
          * Move torrent file to new location. Download must be stopped/error

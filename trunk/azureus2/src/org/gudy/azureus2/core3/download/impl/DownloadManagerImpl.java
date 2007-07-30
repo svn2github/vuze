@@ -1858,14 +1858,11 @@ DownloadManagerImpl
   		return( torrent_save_location );
   	}
   	
-	public void 
-	setTorrentSaveDir(
-		String 	new_dir ) 
-	{
-		
-		String dl_name = this.temporary_new_save_path_name;
-		if (dl_name == null) {dl_name = this.getAbsoluteSaveLocation().getName();}
+	public void setTorrentSaveDir(String new_dir) {
+		setTorrentSaveDir(new_dir, this.getAbsoluteSaveLocation().getName());
+	}
 
+	public void setTorrentSaveDir(String new_dir, String dl_name) {
 		File old_location = torrent_save_location;
 		File new_location = new File(new_dir, dl_name);
 		
@@ -2989,14 +2986,11 @@ DownloadManagerImpl
   
   	throws DownloadManagerException
   {
-	  this.moveDataFiles(new_parent_dir, false);
+	  this.moveDataFiles(new_parent_dir, null);
   }
   
   public void renameDownload(String new_name) throws DownloadManagerException {
-	  new_name = FileUtil.convertOSSpecificChars(new_name);
-	  this.temporary_new_save_path_name = new_name;
-	  try {this.moveDataFiles(new File(new_name), true);}
-	  finally {this.temporary_new_save_path_name = null;}
+      this.moveDataFiles(null, new_name);
   }
   
   /**
@@ -3008,10 +3002,13 @@ DownloadManagerImpl
   public void 
   moveDataFiles(
 	final File 		destination, 
-	final boolean 	destination_is_rename) 
+	final String    new_name) 
   
   	throws DownloadManagerException 
   {
+	  if (destination == null && new_name == null) {
+		  throw new NullPointerException("destination and new name are both null");
+	  }
 	  try{
 		  FileUtil.runAsTask(
 				new AzureusCoreOperationTask()
@@ -3021,7 +3018,7 @@ DownloadManagerImpl
 						AzureusCoreOperation operation) 
 					{
 						try{
-							moveDataFilesSupport( destination, destination_is_rename );
+							moveDataFilesSupport( destination, new_name );
 							
 						}catch( DownloadManagerException e ){
 							
@@ -3044,8 +3041,8 @@ DownloadManagerImpl
   
   private void 
   moveDataFilesSupport(
-	final File destination, 
-	boolean destination_is_rename) 
+	File new_parent_dir, 
+	String new_filename) 
   
   	throws DownloadManagerException 
   	{
@@ -3053,23 +3050,19 @@ DownloadManagerImpl
 		  
 		  throw( new DownloadManagerException( "Download is not persistent" ));
 	  }
+	  
+	  if (new_filename != null) {new_filename = FileUtil.convertOSSpecificChars(new_filename);}
 	  		  
 			// old file will be a "file" for simple torrents, a dir for non-simple
 
-	  File new_parent_dir = (destination_is_rename) ? null : destination;
-	  String new_filename = (destination_is_rename) ? destination.getName() : null;
-	  
 	  File	old_file = getSaveLocation();
 		  
 	  try{
 		  old_file = old_file.getCanonicalFile();
-			  
-		  if (!destination_is_rename) {new_parent_dir = new_parent_dir.getCanonicalFile();}
+		  if (new_parent_dir != null) {new_parent_dir = new_parent_dir.getCanonicalFile();}
 			  
 	  }catch( Throwable e ){
-			  
 		  Debug.printStackTrace(e);
-			  
 		  throw( new DownloadManagerException( "Failed to get canonical paths", e ));
 	  }
 
@@ -3094,7 +3087,7 @@ DownloadManagerImpl
 				  
 		  	FileUtil.mkdirs(new_save_location.getParentFile());
 				  
-			  setTorrentSaveDir(new_save_location.getParent().toString());
+			  setTorrentSaveDir(new_save_location.getParent().toString(), new_save_location.getName());
 			  
 			  return;
 		  }
@@ -3153,7 +3146,7 @@ DownloadManagerImpl
 			  
 			  if ( FileUtil.renameFile( old_file, new_save_location, false, ff )){
 		  			  
-				  setTorrentSaveDir( new_save_location.getParentFile().toString());
+				  setTorrentSaveDir( new_save_location.getParentFile().toString(), new_save_location.getName());
 			  
 			  }else{
 				  
@@ -3161,7 +3154,7 @@ DownloadManagerImpl
 			  }
 		  }
 	  }else{
-		  dm.moveDataFiles( new_save_location.getParentFile() );
+		  dm.moveDataFiles( new_save_location.getParentFile(), new_save_location.getName());
 	  }
   }
   

@@ -878,6 +878,10 @@ RPDownload
   	{
  		notSupported();
   	}
+ 	
+ 	public void moveDataFiles(File new_parent_dir, String new_name) throws DownloadException {
+ 		notSupported();
+ 	}
   	
   	public void
   	moveTorrentFile(

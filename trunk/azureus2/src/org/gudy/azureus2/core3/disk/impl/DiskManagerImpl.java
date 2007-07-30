@@ -1604,7 +1604,7 @@ DiskManagerImpl
         if (move_details == null) {return false;}
 
         //Debug.out("Moving data files: -> " + mdi.location);
-        moveFiles(move_details.transfer_destination.getPath(), move_details.move_torrent && torrent_file_exists, true);
+        moveFiles(move_details.transfer_destination.getPath(), null, move_details.move_torrent && torrent_file_exists, true);
         return true;
 
       }
@@ -1626,12 +1626,16 @@ DiskManagerImpl
     moveDataFiles(
         File    new_parent_dir )
     {
-        moveFiles( new_parent_dir.toString(), false, false );
+        moveFiles(new_parent_dir.toString(), null, false, false );
+    }
+    
+    public void moveDataFiles(File new_parent_dir, String new_name) {
+    	moveFiles(new_parent_dir.toString(), new_name, false, false);
     }
 
-    protected void moveFiles(String move_to_dir, boolean move_torrent, boolean change_to_read_only) {
+    protected void moveFiles(String move_to_dir, String new_name, boolean move_torrent, boolean change_to_read_only) {
 
-        boolean move_files = !isFileDestinationIsItself(move_to_dir);
+        boolean move_files = !isFileDestinationIsItself(move_to_dir, new_name);
         try {
             start_stop_mon.enter();
 
@@ -1641,7 +1645,7 @@ DiskManagerImpl
              */
             boolean files_moved = true;
             if (move_files) {
-                files_moved = moveDataFiles0(move_to_dir, change_to_read_only);
+                files_moved = moveDataFiles0(move_to_dir, new_name, change_to_read_only);
             }
 
             if (move_torrent && files_moved) {
@@ -1665,15 +1669,22 @@ DiskManagerImpl
                       new String[] {destination_path, message});
   }
 	  
-  private boolean isFileDestinationIsItself(String move_to_dir) {
+  private boolean isFileDestinationIsItself(String move_to_dir, String new_name) {
 
         File save_location = download_manager.getAbsoluteSaveLocation();
         String move_from_dir = save_location.getParent();
 
          // sanity check - never move a dir into itself
         try{
-            File from_file = new File(move_from_dir).getCanonicalFile();
-            File to_file   = new File(move_to_dir).getCanonicalFile();
+            File from_file, to_file;
+            if (new_name == null) {
+            	from_file = new File(move_from_dir).getCanonicalFile();
+            	to_file   = new File(move_to_dir).getCanonicalFile();
+            }
+            else {
+            	from_file = save_location.getCanonicalFile();
+            	to_file   = new File(move_to_dir, new_name);
+            }
 
             save_location   = save_location.getCanonicalFile();
 
@@ -1702,19 +1713,21 @@ DiskManagerImpl
         return false;
     }
 
-    private boolean moveDataFiles0(String move_to_dir, boolean change_to_read_only) throws Exception {
+    private boolean moveDataFiles0(String move_to_dir_arg, String new_name, boolean change_to_read_only) throws Exception {
     	
     	// No files array? Can't do it.
     	if (files == null) {return false;}
     	
         File save_location = download_manager.getAbsoluteSaveLocation();
-        String move_from_dir = save_location.getParent();
+        
+        String move_from_dir = (new_name == null) ? save_location.getParent() : save_location.getPath();
+        String move_to_dir_calc = (new_name == null) ? move_to_dir_arg : new File(move_to_dir_arg, new_name).toString();
         
         // It is important that we are able to get the canonical form of the directory to
         // move to, because later code determining new file paths will break otherwise.
         move_from_dir = new File(move_from_dir).getCanonicalFile().getPath();
         
-        if (isFileDestinationIsItself(move_to_dir)) {return false;}
+        if (isFileDestinationIsItself(move_to_dir_arg, new_name)) {return false;}
 
         // first of all check that no destination files already exist
         File[]    new_files   = new File[files.length];
@@ -1784,11 +1797,11 @@ DiskManagerImpl
              * Need to get canonical form of the old file, because that's what we are using for determining
              * the relative path.
              */ 
-            String old_parent_path = old_file.getCanonicalFile().getParent();
+            String old_parent_path = (new_name == null) ? old_file.getCanonicalFile().getParent() : old_file.getCanonicalPath();
             String sub_path = null;
 
             /**
-             * Calculate the sub path of where the file lives compared to the save location.
+             * Calculate the sub path of where the file lives compared to the new save location.
              * 
              * The code here has changed from what it used to be to fix bug 1636342:
              *   https://sourceforge.net/tracker/?func=detail&atid=575154&aid=1636342&group_id=84122
@@ -1797,7 +1810,7 @@ DiskManagerImpl
             	sub_path = old_parent_path.substring(move_from_dir.length());
             }
             else {
-            	logMoveFileError(move_to_dir, "Could not determine relative path for file - " + old_parent_path);
+            	logMoveFileError(move_to_dir_arg, "Could not determine relative path for file - " + old_parent_path);
             	throw new IOException("relative path assertion failed: move_from_dir=\"" + move_from_dir + "\", old_parent_path=\"" + old_parent_path + "\"");
             }
             
@@ -1806,7 +1819,7 @@ DiskManagerImpl
                 sub_path = sub_path.substring(1);
             }
 
-            File destDir = new File(move_to_dir, sub_path);
+            File destDir = new File(move_to_dir_calc, sub_path);
 
               //create the destination file pointer
 
@@ -1891,7 +1904,7 @@ DiskManagerImpl
 
               // NOTE: this operation FIXES up any file links
 
-            download_manager.setTorrentSaveDir( move_to_dir );
+            download_manager.setTorrentSaveDir( move_to_dir_arg, new_name );
 
         return true;
 
@@ -2397,7 +2410,7 @@ DiskManagerImpl
         return( types );
     }
 
-    protected static boolean
+    private static boolean
     setFileLink(
         DownloadManager         download_manager,
         DiskManagerFileInfo[]   info,
@@ -2708,7 +2721,7 @@ DiskManagerImpl
                         {
                             return( setFileLink( download_manager, res, this, data_file, link_destination ));
                         }
-
+                        
                         public File
                         getLink()
                         {

@@ -207,6 +207,8 @@ DiskManager
 	moveDataFiles(
 		File	new_parent_dir );
 	
+	public void moveDataFiles(File new_parent_dir, String dl_name);
+	
 		/**
 		 * returns -1 if no recheck in progress, percentage complete in 1000 notation otherwise
 		 * @return

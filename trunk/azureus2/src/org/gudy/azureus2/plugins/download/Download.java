@@ -729,6 +729,21 @@ Download extends DownloadEventNotifier
   	
   		throws DownloadException;
   	
+  	/**
+  	 * Move a download's data files to a new location, and rename the download at the same time.
+  	 * Download must be stopped and persistent. This is equivalent to calling <tt>moveDataFiles[File]</tt>
+  	 * and then <tt>renameDownload[String]</tt>.
+  	 * 
+  	 * For convenience, either argument can be <tt>null</tt>, but not both.
+  	 * 
+  	 * @since 3.0.2
+  	 * @throws DownloadException
+  	 * @see {@link #moveDataFiles(File)}
+  	 * @see {@link #renameDownload(String)}
+  	 */
+  	public void moveDataFiles(File new_parent_dir, String new_name) throws DownloadException;
+  	
+  	
   		/**
 		 * Move a download's torrent file to a new location. Download must be stopped and persistent
 		 * @since 2.3.0.5
