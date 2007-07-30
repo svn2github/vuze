@@ -200,8 +200,9 @@ public class SWTSkinObjectText2
 						iFontSize = (int) (fd[0].height - dSize);
 					} else {
 						if (sSize.endsWith("px")) {
-							iFontSize = Utils.pixelsToPoint(dSize,
-									canvas.getDisplay().getDPI().y);
+							iFontSize = Utils.getFontHeightFromPX(canvas.getFont(), null,
+									(int) dSize);
+//							iFontSize = Utils.pixelsToPoint(dSize, canvas.getDisplay().getDPI().y);
 						} else {
 							iFontSize = (int) dSize;
 						}
