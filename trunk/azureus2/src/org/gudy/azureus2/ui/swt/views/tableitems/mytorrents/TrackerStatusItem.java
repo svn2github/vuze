@@ -43,7 +43,6 @@ public class TrackerStatusItem extends CoreTableColumn implements
 	public TrackerStatusItem(String sTableID) {
 		super("tracker", POSITION_LAST, 90, sTableID);
 		setRefreshInterval(15); // Slow update while no responses from tracker
-		setMinWidth(200);
 	}
 
 	public void cellAdded(TableCell cell) {
