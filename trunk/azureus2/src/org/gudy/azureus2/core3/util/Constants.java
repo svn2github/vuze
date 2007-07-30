@@ -41,10 +41,10 @@ Constants
   public static final String AZUREUS_WIKI 			= "http://www.azureuswiki.com/index.php/";
   
   public static final String  VERSION_SERVER_V4 	= "version.azureusplatform.com";
-  public static final String  VERSION_SERVER_V6 	= "cl-149.qas-01.us.sixxs.net";
+  public static final String  VERSION_SERVER_V6 	= "version6.azureusplatform.com";
 
   public static final String DHT_SEED_ADDRESS_V4	= "dht.aelitis.com";
-  public static final String DHT_SEED_ADDRESS_V6	= "cl-149.qas-01.us.sixxs.net";
+  public static final String DHT_SEED_ADDRESS_V6	= "dht6.azureusplatform.com";
   
   public static final String NAT_TEST_SERVER		= "nettest.azureusplatform.com";
   public static final String NAT_TEST_SERVER_HTTP	= "http://nettest.azureusplatform.com/";
