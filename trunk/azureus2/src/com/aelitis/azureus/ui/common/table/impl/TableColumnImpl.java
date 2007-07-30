@@ -200,7 +200,7 @@ public class TableColumnImpl
 			return;
 		}
 
-		if (iMinWidth > 0 && width < iMinWidth && width != 0) {
+		if (iMinWidth > 0 && width < iMinWidth) {
 			return;
 		}
 
