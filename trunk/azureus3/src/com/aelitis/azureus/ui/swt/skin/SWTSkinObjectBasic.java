@@ -12,9 +12,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 
@@ -152,7 +150,9 @@ public class SWTSkinObjectBasic
 			painter.setImage(imageBGLeft, imageBGRight, imageBG);
 		}
 
-		control.update();
+		// XXX Is this needed?  It causes flicker and slows things down.
+		//     Maybe a redraw instead (if anything at all)?
+		//control.update();
 	}
 
 	// @see java.lang.Object#toString()
@@ -229,7 +229,7 @@ public class SWTSkinObjectBasic
 			}
 		}
 		
-		//System.out.println(SystemTime.getCurrentTime() + ": " + sConfigID + suffix + "; switchy");
+		//System.out.println(SystemTime.getCurrentTime() + ": " + this + suffix + "; switchy");
 		if (suffixes == null) {
 			suffixes = new String[level];
 		} else if (suffixes.length < level) {
