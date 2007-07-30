@@ -1085,8 +1085,15 @@ public class TransferStatsView extends AbstractIView {
 	  getSettableType(
 		  SpeedManagerLimitEstimate limit )
 	  {
-		  double type = limit.getEstimateType();
+		  float type = limit.getEstimateType();
 
+		  return( typeToText( type ));
+	  }
+	  
+	  public String
+	  typeToText(
+		float 	type )
+	  {
 		  String	text;
 		  
 		  if ( type == SpeedManagerLimitEstimate.TYPE_UNKNOWN){
@@ -1114,11 +1121,11 @@ public class TransferStatsView extends AbstractIView {
 			  text = msg_text_estimate;
 		  }
 		  
-		  return( text );
+		  return( text );  
 	  }
 	  
 	  public float
-	  textToMetric(
+	  textToType(
 		String	text )
 	  {
 		  if ( text.equals( msg_text_estimate )){

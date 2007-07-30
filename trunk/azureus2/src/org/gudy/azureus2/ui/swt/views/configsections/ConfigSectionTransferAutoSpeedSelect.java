@@ -365,16 +365,16 @@ public class ConfigSectionTransferAutoSpeedSelect
 						return;
 					}
 					
-					float metric = limit_to_text.textToMetric( max_upload_type.getValue());
+					float type = limit_to_text.textToType( max_upload_type.getValue());
 					
-					if ( metric == SpeedManagerLimitEstimate.TYPE_UNKNOWN ){
+					if ( type == SpeedManagerLimitEstimate.TYPE_UNKNOWN ){
 						
 						return;
 					}
 					
 					int	value = max_upload.getValue();
 																	
-					sm.setEstimatedUploadCapacityBytesPerSec( value*1024, metric );
+					sm.setEstimatedUploadCapacityBytesPerSec( value*1024, type );
 				}
 			};
 			
@@ -418,16 +418,16 @@ public class ConfigSectionTransferAutoSpeedSelect
 						return;
 					}
 					
-					float metric = limit_to_text.textToMetric( max_download_type.getValue());
+					float type = limit_to_text.textToType( max_download_type.getValue());
 					
-					if ( metric == SpeedManagerLimitEstimate.TYPE_UNKNOWN){
+					if ( type == SpeedManagerLimitEstimate.TYPE_UNKNOWN){
 						
 						return;
 					}
 					
 					int	value = max_download.getValue();
 											
-					sm.setEstimatedDownloadCapacityBytesPerSec( value*1024, metric );
+					sm.setEstimatedDownloadCapacityBytesPerSec( value*1024, type );
 				}
 			};
 			
@@ -452,6 +452,14 @@ public class ConfigSectionTransferAutoSpeedSelect
 					handleEvent(Event event) 
 			        {
 			        	sm.reset();
+			        	
+			        	max_download_type.setValue( limit_to_text.typeToText( SpeedManagerLimitEstimate.TYPE_UNKNOWN ));
+			        	
+			        	max_download.setValue( 0 );
+			        	
+			        	max_upload_type.setValue( limit_to_text.typeToText( SpeedManagerLimitEstimate.TYPE_UNKNOWN ));
+			        	
+			        	max_upload.setValue( 0 );
 			        }
 			    });
         
