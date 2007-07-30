@@ -30,6 +30,9 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.download.DownloadManagerStateEvent;
+import org.gudy.azureus2.core3.download.DownloadManagerStateListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
@@ -58,7 +61,8 @@ import com.aelitis.azureus.ui.common.table.*;
 public class FilesView
 	extends TableViewTab
 	implements TableDataSourceChangedListener, TableSelectionListener,
-	TableViewSWTMenuFillListener, TableRefreshListener
+	TableViewSWTMenuFillListener, TableRefreshListener, DownloadManagerStateListener,
+	TableLifeCycleListener
 {
 	boolean refreshing = false;
 
@@ -103,17 +107,26 @@ public class FilesView
 		tv.addRefreshListener(this, true);
 		tv.addSelectionListener(this, false);
 		tv.addMenuFillListener(this);
+		tv.addLifeCycleListener(this);
 	}
 
   
   // @see com.aelitis.azureus.ui.common.table.TableDataSourceChangedListener#tableDataSourceChanged(java.lang.Object)
   public void tableDataSourceChanged(Object newDataSource) {
+	  DownloadManager old_manager = manager;
 		if (newDataSource == null)
 			manager = null;
 		else if (newDataSource instanceof Object[])
 			manager = (DownloadManager)((Object[])newDataSource)[0];
 		else
 			manager = (DownloadManager)newDataSource;
+		
+		if (old_manager != null) {
+			old_manager.getDownloadState().removeListener(this);
+		}
+		if (manager != null) {
+			manager.getDownloadState().addListener(this);
+		}
 
 		tv.removeAllTableRows();
 	}
@@ -364,13 +377,15 @@ public class FilesView
 		// this behaviour should be put further down in the core but I'd rather not
 		// do so close to release :(
 		final boolean[] result = { false };
-		
+
+		is_changing_links = true;
 		FileUtil.runAsTask(new AzureusCoreOperationTask() {
 			public void run(AzureusCoreOperation operation) {
 					result[0] = fileInfo.setLink(target);
 				}
 			}
 		);
+		is_changing_links = false;
 
 		if (!result[0]){
 			MessageBox mb = new MessageBox(Utils.findAnyShell(), SWT.ICON_ERROR | SWT.OK);
@@ -617,6 +632,7 @@ public class FilesView
   }
 
   // @see com.aelitis.azureus.ui.common.table.TableRefreshListener#tableRefresh()
+  private boolean force_refresh = false;
   public void tableRefresh() {
   	if (refreshing)
   		return;
@@ -628,7 +644,8 @@ public class FilesView
 	
 	    DiskManagerFileInfo files[] = getFileInfo();
 
-	    if (files != null && !doAllExist(files)) {
+	    if (files != null && (this.force_refresh || !doAllExist(files))) {
+	    	this.force_refresh = false;
 	    	tv.removeAllTableRows();
 
 		    Object filesCopy[] = new Object[files.length]; 
@@ -701,4 +718,22 @@ public class FilesView
   		return null;
 	  return( manager.getDiskManagerFileInfo());
   }
+  
+  // Used to notify us of when we need to refresh - normally for external changes to the
+  // file links.
+  private boolean is_changing_links = false;
+  public void stateChanged(DownloadManagerState state, DownloadManagerStateEvent event) {
+	  if (is_changing_links) {return;}
+	  if (!DownloadManagerState.AT_FILE_LINKS.equals(event.getData())) {return;}
+	  if (event.getType() != DownloadManagerStateEvent.ET_ATTRIBUTE_WRITTEN) {return;}
+	  this.force_refresh = true;
+  }
+  
+  public void tableViewInitialized() {}
+  public void tableViewDestroyed() {
+	  if (manager != null) {
+		  manager.getDownloadState().removeListener(this);
+	  }
+  }
+  
 }
