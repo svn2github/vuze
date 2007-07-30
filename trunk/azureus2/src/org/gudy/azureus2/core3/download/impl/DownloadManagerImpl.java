@@ -3104,17 +3104,22 @@ DownloadManagerImpl
 			  
 			  // nothing to do
 			  
-		  }else if ((	!torrent.isSimpleTorrent()) &&
-				  //new_save_location.getPath().startsWith( old_file.getPath())){
-				  FileUtil.isAncestorOf(old_file, new_save_location)) {
-		    		
-	            Logger.logTextResource(new LogAlert(this, LogAlert.REPEATABLE,
-						LogAlert.AT_ERROR, "DiskManager.alert.movefilefails"),
-						new String[] {old_file.toString(), "Target is sub-directory of files" });
-	            
-	            throw( new DownloadManagerException( "rename operation failed" ));
-	            
+		  } else if (torrent.isSimpleTorrent()) {
+			  // Have to keep the file name in sync if we're renaming.
+			  if (controller.getDiskManagerFileInfo()[0].setLinkAtomic(new_save_location)) {
+				  setTorrentSaveDir( new_save_location.getParentFile().toString(), new_save_location.getName());
+			  } else {throw new DownloadManagerException( "rename operation failed");}
+			  
 		  }else{
+
+			  if (FileUtil.isAncestorOf(old_file, new_save_location)) {
+		    		
+		            Logger.logTextResource(new LogAlert(this, LogAlert.REPEATABLE,
+							LogAlert.AT_ERROR, "DiskManager.alert.movefilefails"),
+							new String[] {old_file.toString(), "Target is sub-directory of files" });
+		            
+		            throw( new DownloadManagerException( "rename operation failed" ));
+				}
 			  
 			  // The files we move must be limited to those mentioned in the torrent.
 			  final HashSet files_to_move = new HashSet();

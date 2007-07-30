@@ -46,10 +46,19 @@ DiskManagerFileInfo
 	
 	public void setSkipped(boolean b);
 	 
-	
+	/**
+	 * Relink the file to the destination given - this method deals with if the file
+	 * is part of a simple torrent or not (so it may set the download name to keep it
+	 * in sync). If you just want a simple relink, use setLinkAtomic.
+	 * 
+	 * @param link_destination
+	 * @return
+	 */
 	public boolean
 	setLink(
 		File	link_destination );
+	
+	public boolean setLinkAtomic(File link_destination);
 	
 		// gets the current link, null if none
 	

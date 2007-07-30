@@ -207,6 +207,15 @@ DiskManagerFileInfoImpl
 		return( false );
 	}
 
+	public boolean
+	setLinkAtomic(
+		File	link_destination )
+	{
+		Debug.out( "setLink: download must be stopped" );
+		
+		return( false );
+	}
+	
 	public File
 	getLink()
 	{

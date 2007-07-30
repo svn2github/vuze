@@ -1822,8 +1822,14 @@ DiskManagerImpl
             File destDir = new File(move_to_dir_calc, sub_path);
 
               //create the destination file pointer
-
-            File newFile = new File(destDir, old_file.getName());
+            // We may be doing a rename, and if this is a simple torrent, we have to keep the names in sync.
+            File newFile;
+            if (new_name != null && this.download_manager.getTorrent().isSimpleTorrent()) {
+            	newFile = new File(destDir, new_name);
+            }
+            else {
+            	newFile = new File(destDir, old_file.getName());
+            }
 
             new_files[i]  = newFile;
 
@@ -2717,6 +2723,27 @@ DiskManagerImpl
 
                         public boolean
                         setLink(
+                            File    link_destination )
+                        {
+                        	/**
+                        	 * If we a simple torrent, then we'll redirect the call to the download and move the
+                        	 * data files that way - that'll keep everything in sync.
+                        	 */  
+                        	if (download_manager.getTorrent().isSimpleTorrent()) {
+                        		try {
+                        			download_manager.moveDataFiles(link_destination.getParentFile(), link_destination.getName());
+                        			return true;
+                        		}
+                        		catch (DownloadManagerException e) {
+                        			// What should we do with the error?
+                        			return false;
+                        		}
+                        	}
+                            return setLinkAtomic(link_destination);
+                        }
+
+                        public boolean
+                        setLinkAtomic(
                             File    link_destination )
                         {
                             return( setFileLink( download_manager, res, this, data_file, link_destination ));

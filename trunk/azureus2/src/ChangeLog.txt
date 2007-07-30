@@ -21,6 +21,7 @@ CHANGE: UI    | User Comment field more useful in General torrent view - easy ed
 CHANGE: UI    | "Show Transfer Bar" menu option is now a checkbox menu item - so you can now hide the transfer bar using the menu item [amc1]
 CHANGE: Plug  | Added setVisible method for plugin menu items.
                 
+BUGFIX: Core  | Fixed bug where renaming a download for a single file torrent would sometimes cause data to get out of sync and cause file errors [amc1]
 BUGFIX: Core  | Fixed bug where renaming a download in some conditions would generate "Target is sub-directory" errors [amc1]                
 BUGFIX: Core  | Fixed swarm view rendering bug where some incomplete peers were shown as full circles [The 8472]
 BUGFIX: Plug  | Fixed bug where previously removed child menu items would still be present when generating some menus [amc1]

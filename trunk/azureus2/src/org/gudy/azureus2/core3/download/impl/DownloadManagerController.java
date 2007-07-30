@@ -2191,6 +2191,13 @@ DownloadManagerController
 		{
 			return( delegate.setLink( link_destination ));
 		}
+
+		public boolean
+		setLinkAtomic(
+			File	link_destination )
+		{
+			return( delegate.setLinkAtomic( link_destination ));
+		}
 		
 		public File
 		getLink()
