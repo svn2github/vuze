@@ -1129,10 +1129,8 @@ public class Utils {
 		Font font = null;
 		Device device = baseFont.getDevice();
 		
-		if (isGTK || Constants.isWindows) {
-			// hack..
-			heightInPixels++;
-		}
+		// hack..
+		heightInPixels++;
 
 		// This isn't accurate, but gets us close
 		int size = Utils.pixelsToPoint(heightInPixels, device.getDPI().y);
@@ -1173,10 +1171,8 @@ public class Utils {
 			GC gc, int heightInPixels) {
 		Font font = null;
 
-		if (isGTK || Constants.isWindows) {
-			// hack..
-			heightInPixels++;
-		}
+		// hack..
+		heightInPixels++;
 
 		// This isn't accurate, but gets us close
 		int size = Utils.pixelsToPoint(heightInPixels, device.getDPI().y);
