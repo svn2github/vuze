@@ -29,8 +29,10 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.platform.unix.ScriptAfterShutdown;
 import org.gudy.azureus2.platform.win32.access.AEWin32Access;
 import org.gudy.azureus2.platform.win32.access.AEWin32Manager;
+import org.gudy.azureus2.update.UpdaterUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -545,6 +547,16 @@ AzureusRestarterImpl
   
   
   
+  private int getUnixScriptVersion() {
+		String sVersion = System.getProperty("azureus.script.version", "0");
+		int version = 0;
+		try {
+			version = Integer.parseInt(sVersion);
+		} catch (Throwable t) {
+		}
+		return version;
+  }
+
   private void 
   restartAzureus_Unix(
     PrintWriter log,
@@ -559,13 +571,30 @@ AzureusRestarterImpl
       exec += properties[i] + " ";
     }
     
+    int scriptVersion = getUnixScriptVersion();
+    boolean restartByScript = Constants.compareVersions(
+				UpdaterUtils.getUpdaterPluginVersion(), "1.8.5") >= 0
+				&& scriptVersion > 0; 
+    if (restartByScript) {
+    	exec += "-Dazureus.script.version=\"" + scriptVersion + "\" ";
+    }
+    
     exec += mainClass ;
     
     for(int i = 0 ; i < parameters.length ; i++) {
       exec += " \"" + parameters[i] + "\"";
     }
     
-    runExternalCommandViaUnixShell( log, exec );
+  	if (restartByScript) {
+  		// run script after az shutdown to launch updater and then re-run az
+  		ScriptAfterShutdown.addExtraCommand("echo \"Applying (possible) patches before restarting..\"\n"
+  				+ exec + "\n"
+					+ "echo \"Restarting Azureus..\"\n"
+					+ "$0\n");
+			ScriptAfterShutdown.setRequiresExit(true);
+  	} else {
+  		runExternalCommandViaUnixShell( log, exec );
+  	}
   }
   
   
