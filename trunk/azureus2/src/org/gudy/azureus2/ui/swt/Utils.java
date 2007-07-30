@@ -1129,7 +1129,7 @@ public class Utils {
 		Font font = null;
 		Device device = baseFont.getDevice();
 		
-		if (isGTK) {
+		if (isGTK || Constants.isWindows) {
 			// hack..
 			heightInPixels++;
 		}
@@ -1173,7 +1173,7 @@ public class Utils {
 			GC gc, int heightInPixels) {
 		Font font = null;
 
-		if (isGTK) {
+		if (isGTK || Constants.isWindows) {
 			// hack..
 			heightInPixels++;
 		}
