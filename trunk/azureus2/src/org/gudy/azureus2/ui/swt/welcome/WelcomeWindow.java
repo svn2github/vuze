@@ -148,7 +148,7 @@ public class WelcomeWindow {
 			}
 		}
 
-		if (sWhatsNew.indexOf("<html") > 0 || sWhatsNew.indexOf("<HTML") > 0) {
+		if (sWhatsNew.indexOf("<html") >= 0 || sWhatsNew.indexOf("<HTML") >= 0) {
 			try {
 				Browser browser = new Browser(cWhatsNew, SWT.NONE);
 				browser.setText(sWhatsNew);
