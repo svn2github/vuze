@@ -48,11 +48,19 @@ public class PasswordWindow {
   
   private static boolean bOk;
   
+  private static long lastSuccess = 0;
+
+  final private static long REMEMBER_SUCCESS_MS = 5000;
+  
   protected static AESemaphore class_sem = new AESemaphore("PasswordWindow");
 
 	private static PasswordWindow window = null;
 
   public static boolean showPasswordWindow(final Display display) {
+  	if (lastSuccess + REMEMBER_SUCCESS_MS >= SystemTime.getCurrentTime()) {
+  		return true;
+  	}
+  	
 		final boolean bSWTThread = display.getThread() == Thread.currentThread ();
 		display.syncExec(new AERunnable() {
 			public void runSupport() {
@@ -71,6 +79,8 @@ public class PasswordWindow {
 		if (!bSWTThread) {
 			class_sem.reserve();
 		}
+		
+		lastSuccess = bOk ? SystemTime.getCurrentTime() : 0;
 		return bOk;
 	}
   protected PasswordWindow(Display display) {
@@ -168,6 +178,9 @@ public class PasswordWindow {
     });
 
     shell.pack();
+    
+    Utils.centreWindow(shell);
+    
     shell.open();
   }
   
