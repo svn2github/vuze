@@ -329,23 +329,16 @@ MainWindow
 						}
 					}
 
+				  public void shellDeiconified(ShellEvent e) {
+	  				if (Constants.isOSX
+	  						&& COConfigurationManager.getBooleanParameter("Password enabled")) {
+	  					shell.setVisible(false);
+	  					if (PasswordWindow.showPasswordWindow(display)) {
+	  						shell.setVisible(true);
+	  					}
+	  				}
+				  }  
 				});
-
-				shell.addListener(SWT.Deiconify, new Listener() {
-					public void handleEvent(Event e) {
-						if (bSettingVisibility) {
-							return;
-						}
-						if (Constants.isOSX
-								&& COConfigurationManager.getBooleanParameter(
-										"Password enabled")) {
-							e.doit = false;
-							shell.setVisible(false);
-							PasswordWindow.showPasswordWindow(display);
-						}
-					}
-				});
-
 
 				// Separator between menu and icon bar
 				Label separator = new Label(parent, SWT.SEPARATOR | SWT.HORIZONTAL);
@@ -959,14 +952,16 @@ MainWindow
 			public void runSupport() {
 				bSettingVisibility = true;
 				try {
-  				if (visible && !shell.getVisible()) {
-  					if (COConfigurationManager.getBooleanParameter("Password enabled")) {
-  						if (!PasswordWindow.showPasswordWindow(display)) {
-  							shell.setVisible(false);
-  							return;
-  						}
-  					}
-  				}
+					boolean currentlyVisible = shell.getVisible() && !shell.getMinimized();
+					if (visible && !currentlyVisible) {
+						if (COConfigurationManager.getBooleanParameter("Password enabled",
+								false)) {
+							if (!PasswordWindow.showPasswordWindow(display)) {
+								shell.setVisible(false);
+								return;
+							}
+						}
+					}
   
   				ArrayList wasVisibleList = null;
   				boolean bHideAndShow = tryTricks && visible && Constants.isWindows
@@ -989,7 +984,10 @@ MainWindow
     				}
   				}
   
-  				
+  				if (visible) {
+  					shell.setMinimized(false);
+  				}
+  				  				
   				shell.setVisible(visible);
   				if (visible) {
   					if (downloadBasket != null) {
@@ -1002,7 +1000,6 @@ MainWindow
   					 trayIcon.showIcon();
   					 */
   					shell.forceActive();
-  					shell.setMinimized(false);
   
   					if (bHideAndShow) {
     					try {

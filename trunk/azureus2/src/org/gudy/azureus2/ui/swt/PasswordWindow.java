@@ -50,7 +50,7 @@ public class PasswordWindow {
   
   private static long lastSuccess = 0;
 
-  final private static long REMEMBER_SUCCESS_MS = 5000;
+  final private static long REMEMBER_SUCCESS_MS = 3000;
   
   protected static AESemaphore class_sem = new AESemaphore("PasswordWindow");
 
