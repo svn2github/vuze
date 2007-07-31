@@ -243,6 +243,17 @@ public class ConfigSectionFile implements UISWTConfigSection {
     	checkOnComp.setLayoutData(gridData);
     }
     
+    sCurConfigID = "Seeding Piece Check Recheck Enable";
+    allConfigIDs.add(sCurConfigID);
+    if( userMode > 0 ) {
+    	// check on complete
+    	BooleanParameter checkOnSeeding = new BooleanParameter(gFile, sCurConfigID,
+                                                        "ConfigView.label.checkOnSeeding");
+    	gridData = new GridData();
+    	gridData.horizontalSpan = 2;
+    	checkOnSeeding.setLayoutData(gridData);
+    }
+    
 
     sCurConfigID = "File.strict.locking";
     allConfigIDs.add(sCurConfigID);

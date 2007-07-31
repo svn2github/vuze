@@ -81,9 +81,25 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 	private static final int	SEED_CHECK_WAIT_MARKER	= 65526;
 
-	private static boolean disconnect_seeds_when_seeding = COConfigurationManager.getBooleanParameter("Disconnect Seed");
-	private static boolean enable_seeding_piece_rechecks = COConfigurationManager.getBooleanParameter("Seeding Piece Check Recheck Enable");
+	private static boolean disconnect_seeds_when_seeding;
+	private static boolean enable_seeding_piece_rechecks;
 
+	static{
+		
+		COConfigurationManager.addAndFireParameterListeners(
+			new String[]{},
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String name )
+				{
+					disconnect_seeds_when_seeding = COConfigurationManager.getBooleanParameter("Disconnect Seed");
+					enable_seeding_piece_rechecks = COConfigurationManager.getBooleanParameter("Seeding Piece Check Recheck Enable");
+				}
+			});
+	}
+	
 	private static IpFilter ip_filter = IpFilterManagerFactory.getSingleton().getIPFilter();
 
 	private volatile boolean	is_running = false;  
@@ -251,7 +267,6 @@ DiskManagerCheckRequestListener, IPFilterListener
 		piecePicker = PiecePickerFactory.create( this );
 
 		COConfigurationManager.addParameterListener("Ip Filter Enabled", this);
-		COConfigurationManager.addParameterListener( "Disconnect Seed", this );
 
 		ip_filter.addListener( this );
 
@@ -360,7 +375,6 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 		// 5. Remove listeners
 		COConfigurationManager.removeParameterListener("Ip Filter Enabled", this);
-		COConfigurationManager.removeParameterListener("Disconnect Seed", this);
 
 		ip_filter.removeListener(this);
 
@@ -2993,8 +3007,6 @@ DiskManagerCheckRequestListener, IPFilterListener
 	parameterChanged(
 			String parameterName)
 	{   
-		disconnect_seeds_when_seeding = COConfigurationManager.getBooleanParameter( "Disconnect Seed" );
-
 		if ( parameterName.equals("Ip Filter Enabled")){
 
 			checkForBannedConnections();
