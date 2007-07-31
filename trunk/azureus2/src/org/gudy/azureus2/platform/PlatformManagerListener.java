@@ -26,6 +26,8 @@ public interface
 PlatformManagerListener 
 {
 	public static final int	ET_SHUTDOWN	= 1;
+	public static final int	ET_SUSPEND	= 2;
+	public static final int	ET_RESUME	= 3;
 	
 	public void
 	eventOccurred(

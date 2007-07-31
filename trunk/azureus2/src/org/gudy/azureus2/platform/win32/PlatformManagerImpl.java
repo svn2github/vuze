@@ -936,6 +936,14 @@ PlatformManagerImpl
 			
 			t_type = PlatformManagerListener.ET_SHUTDOWN;
 			
+		}else if ( type == AEWin32AccessListener.ET_SUSPEND ){
+			
+			t_type = PlatformManagerListener.ET_SUSPEND;
+				
+		}else if ( type == AEWin32AccessListener.ET_RESUME ){
+			
+			t_type = PlatformManagerListener.ET_RESUME;
+				
 		}else{
 			
 			return;

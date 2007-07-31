@@ -22,12 +22,12 @@
 
 package org.gudy.azureus2.platform.win32.access;
 
-import org.gudy.azureus2.platform.win32.access.impl.AEWin32AccessInterface;
-
 public interface 
 AEWin32AccessListener 
 {
-	public static final int ET_SHUTDOWN	= AEWin32AccessInterface.WM_ENDSESSION;
+	public static final int ET_SHUTDOWN		= 0x0001;
+	public static final int ET_SUSPEND		= 0x0002;
+	public static final int ET_RESUME		= 0x0003;
 	
 	public void
 	eventOccurred(

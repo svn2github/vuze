@@ -29,7 +29,6 @@ package org.gudy.azureus2.core3.global.impl;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.NetworkInterface;
 import java.net.URL;
 import java.util.*;
 
@@ -179,10 +178,7 @@ public class GlobalManagerImpl
 	
 	private int 	nat_status				= ConnectionManager.NAT_UNKNOWN;
 	private boolean	nat_status_probably_ok;
-	
-	private Set		old_network_interfaces;
-	private long	last_network_change;
-	
+		
    private CopyOnWriteList	dm_adapters = new CopyOnWriteList();
 
    /** delay loading of torrents */
@@ -202,7 +198,6 @@ public class GlobalManagerImpl
     private static final int waitTime = 10*1000;
     // 5 minutes save resume data interval (default)
     private int saveResumeLoopCount = 5*60*1000 / waitTime;
-    private int netCheckLoopCount	= 60*1000 / waitTime;
     private int natCheckLoopCount	= 30*1000 / waitTime;
     private int seedPieceCheckCount	= 30*1000 / waitTime;
            
@@ -236,12 +231,7 @@ public class GlobalManagerImpl
 	          	
 	        	saveDownloads( true );
 	        }
-	        
-	        if ((loopFactor % netCheckLoopCount == 0)) {
-          	
-	        	checkNetwork();
-	        }
-	        
+	        	        
 	        if ((loopFactor % natCheckLoopCount == 0)) {
 	          	
 	        	computeNATStatus();
@@ -497,10 +487,16 @@ public class GlobalManagerImpl
     		public void
     		announceDetailsChanged()
     		{	
-				Logger.log(new LogEvent(LOGID,
-						"Announce details have changed, updating trackers"));
+				Logger.log( new LogEvent(LOGID, "Announce details have changed, updating trackers" ));
 
-    			trackerAnnounceAll();
+				List	managers = managers_cow;
+				
+				for (int i=0;i<managers.size();i++){
+					
+					DownloadManager	manager = (DownloadManager)managers.get(i);
+					
+					manager.requestTrackerAnnounce( true );
+				}
     		}
     	});
   }
@@ -2403,79 +2399,6 @@ public class GlobalManagerImpl
 	getNATStatus()
 	{	
 		return( nat_status );
-	}
-	
-	protected void
-	checkNetwork()
-	{
-		try{
-			Enumeration 	nis = NetworkInterface.getNetworkInterfaces();
-		
-			Set	network_interfaces = new HashSet();
-			
-			boolean	changed	= false;
-			
-			while( nis.hasMoreElements()){
-				
-				Object	 ni = nis.nextElement();
-				
-					// NetworkInterface's "equals" method is based on ni name + addresses
-				
-				if ( old_network_interfaces != null && !old_network_interfaces.contains( ni )){
-					
-					changed	= true;
-				}
-				
-				network_interfaces.add( ni );
-			}
-						
-			if ( changed ){
-				
-				long now	= SystemTime.getCurrentTime();
-				
-					// don't pick up "change" on first time through
-				
-				if ( last_network_change > 0 ){
-					
-					if ( now - last_network_change > 30*60*1000 ){
-					
-						Logger.log(new LogEvent(LOGID,
-								"Network interfaces have changed, updating trackers"));
-						
-						trackerAnnounceAll();
-					}else{
-						
-						Logger.log(new LogEvent(LOGID, "Network interfaces have changed, "
-								+ "not updating trackers as too soon after previous change"));
-	
-					}
-				}
-				
-				last_network_change	= now;
-			}
-			
-			old_network_interfaces	= network_interfaces;
-			
-		}catch( Throwable e ){
-		}
-	}
-	 
-	protected void
-	trackerAnnounceAll()
-	{
-		List	managers = managers_cow;
-		
-		for (int i=0;i<managers.size();i++){
-			
-			DownloadManager	manager = (DownloadManager)managers.get(i);
-			
-			TRTrackerAnnouncer	announcer = manager.getTrackerClient();
-			
-			if ( announcer != null ){
-				
-				announcer.update( true );
-			}
-		}
 	}
 	
 	protected void

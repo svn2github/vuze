@@ -84,14 +84,35 @@ AEWin32AccessImpl
 		int		param1,
 		long	param2 )
 	{
-		for (int i=0;i<listeners.size();i++){
+		int	type	= -1;
+		
+		if ( msg == AEWin32AccessInterface.WM_ENDSESSION ){
+		
+			type = AEWin32AccessListener.ET_SHUTDOWN;
 			
-			try{
-				((AEWin32AccessListener)listeners.get(i)).eventOccurred( msg );
+		}else if ( msg == AEWin32AccessInterface.WM_POWERBROADCAST ){
+
+			if ( param1 == AEWin32AccessInterface.PBT_APMQUERYSUSPEND ){
+
+				type = AEWin32AccessListener.ET_SUSPEND;
+			
+			}else if ( param1 == AEWin32AccessInterface.PBT_APMRESUMESUSPEND ){
 				
-			}catch( Throwable e ){
+				type = AEWin32AccessListener.ET_RESUME;
+			}
+		}
+		
+		if ( type != -1 ){
+					
+			for (int i=0;i<listeners.size();i++){
 				
-				e.printStackTrace();
+				try{
+					((AEWin32AccessListener)listeners.get(i)).eventOccurred( type );
+					
+				}catch( Throwable e ){
+					
+					e.printStackTrace();
+				}
 			}
 		}
 		

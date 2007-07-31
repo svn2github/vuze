@@ -39,8 +39,12 @@ AEWin32AccessInterface
 	public static final int	HKEY_LOCAL_MACHINE		= AEWin32Access.HKEY_LOCAL_MACHINE;
 	public static final int	HKEY_CURRENT_USER		= AEWin32Access.HKEY_CURRENT_USER;
 
-	public static final int	WM_QUERYENDSESSION		=       0x0011;
-	public static final int	WM_ENDSESSION           =       0x0016;
+	public static final int	WM_QUERYENDSESSION		= 0x0011;
+	public static final int	WM_ENDSESSION           = 0x0016;
+	public static final int	WM_POWERBROADCAST       = 0x0218;
+	public static final int	PBT_APMQUERYSUSPEND     = 0x0000;
+	public static final int	PBT_APMSUSPEND          = 0x0004;
+	public static final int	PBT_APMRESUMESUSPEND    = 0x0007;
 	
 	private static boolean						enabled;
 	private static boolean						enabled_set;
@@ -109,10 +113,9 @@ AEWin32AccessInterface
 		long	param2 )
 	{
 		if ( cb == null ){
-			
-			System.out.println( "callback: " + msg + "/" + param1 + "/" + param2 );
-			
+						
 			return( -1 );
+			
 		}else{
 			
 			return( cb.windowsMessage( msg, param1, param2 ));

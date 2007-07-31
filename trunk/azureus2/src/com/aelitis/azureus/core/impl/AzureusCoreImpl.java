@@ -27,6 +27,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManagerFactory;
@@ -51,6 +52,7 @@ import com.aelitis.azureus.core.instancemanager.AZInstanceManagerFactory;
 import com.aelitis.azureus.core.nat.NATTraverser;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminPropertyChangeListener;
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.download.session.TorrentSessionManager;
 import com.aelitis.azureus.core.peermanager.nat.PeerNATTraverser;
@@ -171,6 +173,22 @@ AzureusCoreImpl
 						}
 						
 						stop();
+						
+					}else if ( type == ET_SUSPEND ){
+						
+						if (Logger.isEnabled()){
+							Logger.log(new LogEvent(LOGID, "Platform manager requested suspend"));
+						}
+						
+						COConfigurationManager.save();
+						
+					}else if ( type == ET_RESUME ){
+		
+						if (Logger.isEnabled()){
+							Logger.log(new LogEvent(LOGID, "Platform manager requested resume"));
+						}
+						
+						announceAll();
 					}
 				}
 			});
@@ -380,6 +398,22 @@ AzureusCoreImpl
 				});
 	}
 	
+	protected void
+	announceAll()
+	{
+		GlobalManager gm = getGlobalManager();
+		
+		if ( gm != null ){
+			
+			List	downloads = gm.getDownloadManagers();
+			
+			for (int i=0;i<downloads.size();i++){
+				
+				((DownloadManager)downloads.get(i)).requestTrackerAnnounce( true );
+			}
+		}
+	}
+	
 	public LocaleUtil
 	getLocaleUtil()
 	{
@@ -560,7 +594,43 @@ AzureusCoreImpl
 	   	   
 	   AEDiagnostics.checkDumpsAndNatives();
 	   
-	   NetworkAdmin.getSingleton().runInitialChecks();
+	   NetworkAdmin na = NetworkAdmin.getSingleton();
+	   
+	   na.runInitialChecks();
+	   
+	   
+	   na.addPropertyChangeListener(
+			   new NetworkAdminPropertyChangeListener()
+			   {
+				   	private long last_network_change = SystemTime.getCurrentTime();
+				   	
+					public void
+					propertyChanged(
+						String		property )
+					{
+						if ( property.equals( NetworkAdmin.PR_NETWORK_INTERFACES )){
+							
+							long now	= SystemTime.getCurrentTime();
+							
+								// don't pick up "change" on first time through
+
+							if ( now - last_network_change > 15*60*1000 ){
+								
+								Logger.log(	new LogEvent(LOGID,
+											"Network interfaces have changed, updating trackers"));
+								
+								announceAll();
+								
+								last_network_change	= now;
+
+							}else{
+
+								Logger.log(new LogEvent(LOGID, "Network interfaces have changed, "
+										+ "not updating trackers as too soon after previous change"));
+							}
+						}
+					}
+			   });
 	}
 	
 	public boolean
