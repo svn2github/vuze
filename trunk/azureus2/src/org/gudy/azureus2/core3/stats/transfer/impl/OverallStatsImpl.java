@@ -20,13 +20,9 @@
  */
 package org.gudy.azureus2.core3.stats.transfer.impl;
 
-import java.io.File;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.StringTokenizer;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
@@ -35,7 +31,6 @@ import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.global.impl.GlobalManagerAdpater;
 import org.gudy.azureus2.core3.stats.transfer.OverallStats;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -52,34 +47,8 @@ OverallStatsImpl
 	extends GlobalManagerAdpater 
 	implements OverallStats
 {
-	
-	
-	//TODO additional types?  rar (r01 etc) handling?
-	//TODO filter out really small sizes?
-	
-  private static final int download_stats_version = 1;
-  private static final String[]	exts = { "mp3;ogg;wav;wma;flac", "avi;mpg;mpeg;wmv;vob;mp4;divx;mov;mkv", "zip;rar;iso;bin;tar;sit;dmg" };
-  private static Set[]	ext_sets;
   
   	// sizes in MB
-  
-  private long[]	file_sizes = { 400, 800, 1600 };
-  
-  static{
-	ext_sets = new Set[exts.length];
-	  
-	for (int i=0;i<exts.length;i++){
-		
-		StringTokenizer	tok = new StringTokenizer( exts[i], ";" );
-		
-		Set	set = ext_sets[i] = new HashSet();
-		
-		while( tok.hasMoreTokens()){
-			
-			set.add( tok.nextToken());
-		}
-	}
-  }
   
   private static final long TEN_YEARS 		= 60*60*24*365*10L;
   
@@ -101,7 +70,6 @@ OverallStatsImpl
   long session_start_time = SystemTime.getCurrentTime();
   
   long	downloadCount;
-  Map	downloadTypes	= new HashMap();
   
   protected AEMonitor	this_mon	= new AEMonitor( "OverallStats" );
 
@@ -155,7 +123,6 @@ OverallStatsImpl
 	totalUptime = getLong( overallMap, "uptime" );	    
 	    
 	downloadCount = getLong( overallMap, "download_count" );
-	downloadTypes = getMap( overallMap,  "download_types" );
 	
 	dl_average 		= (int)getLong( overallMap, "download_average" );
 	seed_average 	= (int)getLong( overallMap, "seed_average" );
@@ -283,27 +250,6 @@ OverallStatsImpl
     return (SystemTime.getCurrentTime() - session_start_time) / 1000;
   }
   
-  // removed due to complaints about anonymous stats collection
-  /*
-  public Map getDownloadStats(){
-	  Map	res = new HashMap();
-	  
-	  res.put( "tot", new Long(downloadCount));
-	  
-	  res.put( "type", downloadTypes );
-	  
-	  res.put( "ver", new Long( download_stats_version ) );
-	  	  
-	  res.put( "cur", new Long( core.getGlobalManager().getDownloadManagers().size()));
-	  
-	  res.put( "curp", new Long( public_count ));
-	  res.put( "curr", new Long( running_count ));
-	  res.put( "curd", new Long( dl_average ));
-	  res.put( "curs", new Long( seed_average ));
-	  
-	  return( res );
-  }
-*/
 	public void 
 	downloadManagerAdded(
 		DownloadManager dm) 
@@ -321,99 +267,6 @@ OverallStatsImpl
 		if ( !dm.getDownloadState().getBooleanParameter( DownloadManagerState.PARAM_STATS_COUNTED )){
 			
 			downloadCount++;
-			
-			TOTorrent	t = dm.getTorrent();
-			
-			if ( t == null ){
-				
-				return;
-			}
-			
-			TOTorrentFile[]	files = t.getFiles();
-			
-			Map	ext_sizes = new HashMap();
-			
-			long	largest		= 0;
-			String	largest_ext	= null;
-			
-			for (int i=0;i<files.length;i++){
-				
-				TOTorrentFile	file = files[i];
-				
-				String	path = file.getRelativePath();
-				
-				int	pos = path.lastIndexOf(File.separator);
-				
-				if ( pos != -1 ){
-					
-					path = path.substring(pos+1);
-				}
-				
-				pos	= path.lastIndexOf('.');
-				
-				String	ext;
-				
-				if ( pos == -1 ){
-				
-					ext	= "?";
-				}else{
-					
-					ext = path.substring(pos+1).toLowerCase();
-				}
-				
-				Long	old_tot = (Long)ext_sizes.get( ext );
-				
-				long	new_tot	= 0;
-				
-				if ( old_tot != null ){
-					
-					new_tot = ((Long)old_tot).longValue();
-				}
-				
-				new_tot += file.getLength();
-				
-				if ( new_tot > largest ){
-					
-					largest		= new_tot;
-					largest_ext	= ext;
-				}
-				
-				ext_sizes.put( ext, new Long( new_tot ));
-			}
-			
-			int	size_id = 0;
-			int	type_id	= 0;
-			
-			long	size_mb = t.getSize()/(1024*1024);
-			
-			for (int i=0;i<file_sizes.length;i++){
-				size_id = i + 1;
-				if ( size_mb < file_sizes[i] ){					
-					break;
-				}
-			}
-			
-			for (int i=0;i<ext_sets.length;i++){
-				if ( ext_sets[i].contains(largest_ext) ){
-					
-					type_id = i+1;
-					break;
-				}
-			}
-			
-			String	key = String.valueOf( size_id*1024+type_id );
-			
-			Object	old_val = downloadTypes.get(key);
-			long	val		= 0;
-			
-			if ( old_val instanceof Long ){
-				
-				val = ((Long)old_val).longValue();
-			}
-			
-			val++;
-			
-			downloadTypes.put( key, new Long( val ));
 			
 			dm.getDownloadState().setBooleanParameter( DownloadManagerState.PARAM_STATS_COUNTED, true );
 		}
@@ -541,7 +394,6 @@ OverallStatsImpl
 	    overallMap.put("uploaded",new Long(totalUploaded));
 	    overallMap.put("uptime",new Long(totalUptime));
 	    overallMap.put("download_count",new Long(downloadCount));
-	    overallMap.put("download_types", downloadTypes);
 	    overallMap.put("download_average", new Long(dl_average));
 	    overallMap.put("seed_average", new Long(seed_average));
 	    overallMap.put("public", new Long(public_count));
