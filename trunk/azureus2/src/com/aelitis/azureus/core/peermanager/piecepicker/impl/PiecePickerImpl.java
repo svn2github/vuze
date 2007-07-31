@@ -1913,7 +1913,7 @@ implements PiecePicker
 			// either the torrent is done or something unusual happened
 			// cleanup anyway and allow a proper re-entry into endgame mode if neccessary
 			endGameMode = false;
-			endGameModeChunks = null;
+			endGameModeChunks.clear();
 			timeEndGameModeEntered = 0;
 		} finally
 		{
@@ -1935,7 +1935,7 @@ implements PiecePicker
 			while (iter.hasNext())
 			{
 				EndGameModeChunk chunk =(EndGameModeChunk) iter.next();
-				if (chunk.equals(pieceNumber, offset))
+				if (chunk == null || chunk.equals(pieceNumber, offset))
 					iter.remove();
 			}
 		} finally
