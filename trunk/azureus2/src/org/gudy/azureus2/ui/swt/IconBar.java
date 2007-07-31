@@ -46,7 +46,7 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
  */
 public class IconBar {
 	private final boolean OVERRIDE_SHOW_UISWITCHER = System.getProperty(
-			"ui.toolbar.switcher", "0").equals("1");
+			"ui.toolbar.uiswitcher", "0").equals("1");
   
   CoolBar coolBar;
   Composite parent;    

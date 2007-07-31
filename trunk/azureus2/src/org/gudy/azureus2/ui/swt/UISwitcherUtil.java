@@ -38,31 +38,25 @@ public class UISwitcherUtil
 	private static boolean NOT_GOOD_ENOUGH_FOR_AZ2_USERS_YET = true;
 
 	public static String openSwitcherWindow(boolean bForceAsk) {
+		Class uiswClass = null;
+		try {
+			uiswClass = Class.forName("com.aelitis.azureus.ui.swt.shells.uiswitcher.UISwitcherWindow");
+		} catch (ClassNotFoundException e1) {
+		}
+		if (uiswClass == null) {
+			return "az2";
+		}
+
 		if (!bForceAsk) {
 			String forceUI = System.getProperty("force.ui");
 			if (forceUI != null) {
 				return forceUI;
 			}
 
-			forceUI = System.getProperty("ui.temp");
-			if (forceUI != null) {
-				COConfigurationManager.setParameter("ui", forceUI);
-				return forceUI;
-			}
-
 			boolean asked = COConfigurationManager.getBooleanParameter("ui.asked",
 					false);
 
-			// NOT_GOOD_ENOUGH_FOR_AZ2_USERS_YET Notes:
-			//
-			// AZ2 users will always get az2 because they startup with "org.gudy.."
-			// and that sets "ui.temp" to az2.  Likewise, people starting with 
-			// "org.gudy.azureus2.ui.swt.mainwindow.Initializer" will have "ui.temp"
-			// set to "az3".
-			// The third, "com.aelitis.azureus.ui.Main" starting point does not
-			// set "ui.temp", so for now it will default to "az3" if azureus was never
-			// run before with the other 2 starting points.
-			if (NOT_GOOD_ENOUGH_FOR_AZ2_USERS_YET || asked) {
+			if (asked) {
 				return COConfigurationManager.getStringParameter("ui", "az3");
 			}
 
@@ -70,7 +64,14 @@ public class UISwitcherUtil
 			// and cry at the advanced coolness of the az2 ui
 			String sFirstVersion = COConfigurationManager.getStringParameter("First Recorded Version");
 			if (Constants.compareVersions(sFirstVersion, "3.0.0.0") >= 0) {
+				COConfigurationManager.setParameter("ui", "az3");
 				return "az3";
+			}
+
+			// Short Circuit: We don't want to ask az2 users yet
+			if (NOT_GOOD_ENOUGH_FOR_AZ2_USERS_YET) {
+				COConfigurationManager.setParameter("ui", "az2");
+				return "az2";
 			}
 		}
 
@@ -82,16 +83,16 @@ public class UISwitcherUtil
 				-1
 			};
 
+			final Class fuiswClass = uiswClass;
+
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					try {
-						final Class uiswClass = Class.forName("com.aelitis.azureus.ui.swt.shells.uiswitcher.UISwitcherWindow");
-
-						final Constructor constructor = uiswClass.getConstructor(new Class[] {});
+						final Constructor constructor = fuiswClass.getConstructor(new Class[] {});
 
 						Object object = constructor.newInstance(new Object[] {});
 
-						Method method = uiswClass.getMethod("open", new Class[] {});
+						Method method = fuiswClass.getMethod("open", new Class[] {});
 
 						Object resultObj = method.invoke(object, new Object[] {});
 
@@ -115,12 +116,22 @@ public class UISwitcherUtil
 			} else if (result[0] == 2) {
 				COConfigurationManager.setParameter("ui", "az2");
 			}
-			
+
 			COConfigurationManager.setParameter("ui.asked", true);
 		} catch (Exception e) {
 			Debug.printStackTrace(e);
 		}
 
 		return COConfigurationManager.getStringParameter("ui");
+	}
+	
+	public static boolean isAZ3Avail() {
+		Class uiswClass = null;
+		try {
+			uiswClass = Class.forName("com.aelitis.azureus.ui.swt.shells.uiswitcher.UISwitcherWindow");
+			return true;
+		} catch (ClassNotFoundException e1) {
+		}
+		return false;
 	}
 }
