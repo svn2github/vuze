@@ -198,6 +198,7 @@ public class BTPeerIDByteDecoderDefinitions {
 	 *  http://wiki.theory.org/BitTorrentSpecification
 	 *  http://transmission.m0k.org/trac/browser/trunk/libtransmission/clients.c (hello Transmission authors!) :)
 	 *  http://rufus.cvs.sourceforge.net/rufus/Rufus/g3peerid.py?view=log (for older clients)
+	 *  http://shareaza.svn.sourceforge.net/viewvc/shareaza/trunk/shareaza/BTClient.cpp?view=markup
 	 *  
 	 * By default - if you are unsure about a client's versioning scheme, you should
 	 * register it without passing an explicit value.
@@ -209,6 +210,8 @@ public class BTPeerIDByteDecoderDefinitions {
 	 * ID which strictly matches the Az-style specification (0'th char is '-', 7'th char
 	 * is '-'), then we should include it in this list - if there's no derivable version
 	 * information, then we flag it as NO_VERSION.
+	 * 
+	 * Oh, and hello any closed source BitTorrent client authors who may be reading! ;)
 	 */
 	static {
 		// We define ourselves first... :)
@@ -235,6 +238,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("DE", "DelugeTorrent", VER_AZ_THREE_DIGITS);
 		addAzStyle("EB", "EBit");
 		addAzStyle("ES", "Electric Sheep", VER_AZ_THREE_DIGITS);
+		addAzStyle("FC", "FileCroc");
 		addAzStyle("FG", "FlashGet", VER_AZ_SKIP_FIRST_ONE_MAJ_TWO_MIN);
 		addAzStyle("FT", "FoxTorrent/RedSwoosh");
 		addAzStyle("GR", "GetRight", "1.2");
@@ -344,8 +348,16 @@ public class BTPeerIDByteDecoderDefinitions {
 		client = addSimpleClient("MLdonkey", "-ML");
 		addVersionedClient(client, VER_DOTTED_BLOCK, 5);
 		
+		client = addSimpleClient("BTuga Revolution", "BTM");
+		addVersionedClient(client, VER_BYTE_BLOCK_DOTTED_CHAR, 2);
+		
 		client = addSimpleClient("Rufus", "RS", 2);
 		addVersionedClient(client, VER_TWO_BYTE_THREE_PART, 2, 0);
+		
+		// BitMagnet - predecessor to Rufus.
+		client = addSimpleClient("BitMagnet", "BM", 2);
+		addVersionedClient(client, VER_TWO_BYTE_THREE_PART, 2, 0);
+
 	}
 	
 	static class ClientData {
