@@ -440,6 +440,7 @@ public class BTPeerIDByteDecoder {
 		assertDecode("Opera (Build 7685)", "OP7685f2c1495b1680bf");
 		assertDecode("Rufus 0.6.9", "00455253 416E6F6E 796D6F75 7382BE42 75024AE3");
 		assertDecode("BitTorrent DNA 1.0", "444E413031303030DD01C9B2DA689E6E02803E91");
+		assertDecode("BTuga Revolution 2.1", "BTM21abcdefghijklmno");
 		System.out.println();
 		
 		// BitComet/Lord/Spirit
@@ -483,6 +484,8 @@ public class BTPeerIDByteDecoder {
 
 		// TODO
 		//assertDecode("KTorrent 2.2", "-KT22B1-695754334315"); // We could use the B1 information...
+		//assertDecode("", "C8F2D9CD3A90455354426578626300362D2D2D92"); // Looks like a BitLord client - ESTBexbc?
+		//assertDecode("", "M4-4-0--164d2e4a0fba"); // BitThief masquerading as Mainline 4.4.0. Anything we can do about it?
 
 		System.out.println("Done.");
 	}
