@@ -1935,7 +1935,7 @@ implements PiecePicker
 			while (iter.hasNext())
 			{
 				EndGameModeChunk chunk =(EndGameModeChunk) iter.next();
-				if (chunk == null || chunk.equals(pieceNumber, offset))
+				if ( chunk.equals(pieceNumber, offset))
 					iter.remove();
 			}
 		} finally
