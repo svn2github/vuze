@@ -576,12 +576,18 @@ CoreUpdateChecker
 							  Logger.log( new LogEvent( LogIDs.LOGGER, "Patch application failed", e  ));
 						  }
 					  } else if ( message.startsWith("u:") && message.length() > 4 ) {
-					  	String type = message.substring(2, 3);
-					  	String url = message.substring(4);
-					  	UIFunctions uif = UIFunctionsManager.getUIFunctions();
-					  	if (uif != null) {
-					  		uif.viewURL(url, null, 0.9, 0.9, true, type.equals("1"));
+					  	try {
+  					  	String type = message.substring(2, 3);
+  					  	String url = message.substring(4);
+  					  	UIFunctions uif = UIFunctionsManager.getUIFunctions();
+  					  	if (uif != null) {
+  					  		uif.viewURL(url, null, 0.9, 0.9, true, type.equals("1"));
+  					  	}
+					  	} catch (Throwable t) {
+							  Logger.log( new LogEvent( LogIDs.LOGGER, "URL message failed", t  ));
 					  	}
+					  	// mark as complete even if errored
+						  completed = true;
 					  }else{
 						  
 						  int   alert_type    = LogAlert.AT_WARNING;
