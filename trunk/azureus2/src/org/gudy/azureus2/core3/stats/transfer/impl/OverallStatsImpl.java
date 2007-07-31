@@ -1,5 +1,5 @@
 /*
- * File    : StatsStorage.java
+ * File    : OverallStatsImpl.java
  * Created : 2 mars 2004
  * By      : Olivier
  *
@@ -21,16 +21,12 @@
 package org.gudy.azureus2.core3.stats.transfer.impl;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.global.impl.GlobalManagerAdpater;
 import org.gudy.azureus2.core3.stats.transfer.OverallStats;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -53,9 +49,6 @@ OverallStatsImpl
   private static final long TEN_YEARS 		= 60*60*24*365*10L;
   
   private static final long	STATS_PERIOD	= 60*1000;	// 1 min
-  private static final long DL_STATE_TICKS	= 15;		// 15 min
-  private static final int DL_AVERAGE_CELLS = (int)( 12*60*60*1000 / ( STATS_PERIOD * DL_STATE_TICKS ));
- 
   
   AzureusCore	core;
    
@@ -69,18 +62,9 @@ OverallStatsImpl
   
   long session_start_time = SystemTime.getCurrentTime();
   
-  long	downloadCount;
-  
   protected AEMonitor	this_mon	= new AEMonitor( "OverallStats" );
 
   private int 	tick_count;
-  private int	dl_cell_pos;
-  private int[]	dl_average_cells 	= new int[DL_AVERAGE_CELLS];
-  private int[]	seed_average_cells	= new int[DL_AVERAGE_CELLS];
-  private int	dl_average;
-  private int	seed_average;
-  private int	running_count;
-  private int	public_count;
   
   private Map 
   load(String filename) 
@@ -121,27 +105,6 @@ OverallStatsImpl
     totalDownloaded = getLong( overallMap, "downloaded" );
 	totalUploaded = getLong( overallMap, "uploaded" );
 	totalUptime = getLong( overallMap, "uptime" );	    
-	    
-	downloadCount = getLong( overallMap, "download_count" );
-	
-	dl_average 		= (int)getLong( overallMap, "download_average" );
-	seed_average 	= (int)getLong( overallMap, "seed_average" );
-	
-	if ( dl_average < 0 || dl_average > 32000 ){
-		dl_average = 0;
-	}
-	
-	if ( seed_average < 0 || seed_average > 32000 ){
-		seed_average = 0;
-	}
-	
-	dl_average_cells[0]		= dl_average;
-	seed_average_cells[0]	= seed_average;
-	
-	running_count 	= (int)getLong( overallMap, "running" );
-	public_count 	= (int)getLong( overallMap, "public" );
-
-	dl_cell_pos	= 1;
   }
   
   protected long
@@ -160,24 +123,6 @@ OverallStatsImpl
 	  }
 	
 	  return(((Long)obj).longValue());
-  }
-  
-  protected Map
-  getMap(
-	Map		map,
-	String	name )
-  {
-	  if ( map == null ){
-		  return( new HashMap());
-	  }
-	
-	  Object	obj = map.get(name);
-	
-	  if (!(obj instanceof Map )){
-		return(new HashMap());
-	  }
-	
-	  return((Map)obj);
   }
   
   public 
@@ -250,28 +195,6 @@ OverallStatsImpl
     return (SystemTime.getCurrentTime() - session_start_time) / 1000;
   }
   
-	public void 
-	downloadManagerAdded(
-		DownloadManager dm) 
-	{
-		if ( !dm.isPersistent()){
-				// don't count shares
-			return;
-		}
-		
-		if ( dm.getStats().getDownloadCompleted(false) > 0 ){
-				// don't count downloads added as seeding
-			return;
-		}
-		
-		if ( !dm.getDownloadState().getBooleanParameter( DownloadManagerState.PARAM_STATS_COUNTED )){
-			
-			downloadCount++;
-			
-			dm.getDownloadState().setBooleanParameter( DownloadManagerState.PARAM_STATS_COUNTED, true );
-		}
-	}
-	
   public void destroyInitiated() {
     updateStats( true );
   }
@@ -320,84 +243,12 @@ OverallStatsImpl
 	    lastUptime = current_time;
 	    
 	    tick_count++;
-	    
-	    if ( force || tick_count % DL_STATE_TICKS == 0 ){
-	    	
-	      try{
-		  	  List	managers = core.getGlobalManager().getDownloadManagers();
-			  		  
-			  int	dl		= 0;
-			  int	seed	= 0;
-			  int	run		= 0;
-			  int	pub		= 0;
-			  
-			  for (int i=0;i<managers.size();i++){
-				  
-				  DownloadManager	dm = (DownloadManager)managers.get(i);
-				  			  
-				  int	state = dm.getState();
-				  
-				  if ( state == DownloadManager.STATE_DOWNLOADING ){
-						  
-					  dl++;
-						  
-				  }else if ( state == DownloadManager.STATE_SEEDING ){
-						  
-					  seed++;
-				  }
-				  
-				  TOTorrent	torrent = dm.getTorrent();
-				  
-				  if ( torrent != null && !torrent.getPrivate()){
-					  
-					  pub++;
-				  }
-				  				  
-				  if (	 state != DownloadManager.STATE_ERROR &&
-						 state != DownloadManager.STATE_STOPPED ){
-					  
-					  run++;
-				  }
-			  }
-		    
-			  dl_average_cells[dl_cell_pos%DL_AVERAGE_CELLS]	= dl;
-		    	
-			  seed_average_cells[dl_cell_pos%DL_AVERAGE_CELLS]	= seed;
-		    	
-			  dl_cell_pos++;
-			  
-			  int	cells = Math.min( dl_cell_pos, DL_AVERAGE_CELLS );
-			  
-			  dl_average	= 0;
-			  seed_average	= 0;
-			  
-			  for (int i=0;i<cells;i++){
-				  dl_average += dl_average_cells[i];
-				  seed_average += seed_average_cells[i];
-			  }
-			  
-			  dl_average 	= dl_average/cells;
-			  seed_average 	= seed_average/cells;
-			 		
-			  running_count	= run;
-			  public_count	= pub;
-			  
-	      }catch( Throwable e ){
-	    	  
-	    	  Debug.printStackTrace(e);
-	      }
-	    }
-	    
+    
 	    HashMap	overallMap = new HashMap();
 	    
 	    overallMap.put("downloaded",new Long(totalDownloaded));
 	    overallMap.put("uploaded",new Long(totalUploaded));
 	    overallMap.put("uptime",new Long(totalUptime));
-	    overallMap.put("download_count",new Long(downloadCount));
-	    overallMap.put("download_average", new Long(dl_average));
-	    overallMap.put("seed_average", new Long(seed_average));
-	    overallMap.put("public", new Long(public_count));
-	    overallMap.put("running", new Long(running_count));
 
 	    Map	map = new HashMap();
 	    
