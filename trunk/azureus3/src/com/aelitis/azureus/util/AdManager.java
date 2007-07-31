@@ -148,6 +148,19 @@ public class AdManager
 						if (!adsDMList.contains(dm)) {
 							adsDMList.add(dm);
 						}
+						if (dm.getAssumedComplete()) {
+							dm.setForceStart(false);
+						} else {
+							dm.addListener(new DownloadManagerAdapter() {
+								public void downloadComplete(DownloadManager manager) {
+									if (!adsDMList.contains(manager)) {
+										adsDMList.add(manager);
+									}
+									manager.setForceStart(false);
+									manager.removeListener(this);
+								}
+							});
+						}
 					}
 
 					if (PlatformTorrentUtils.isContent(torrent, true)
@@ -221,11 +234,15 @@ public class AdManager
 											if (adDM != null) {
 												if (adDM.getAssumedComplete()) {
 													adsDMList.add(adDM);
+													adDM.setForceStart(false);
 												} else {
 													adDM.setForceStart(true);
 													adDM.addListener(new DownloadManagerAdapter() {
 														public void downloadComplete(DownloadManager manager) {
-															adsDMList.add(manager);
+															if (!adsDMList.contains(manager)) {
+																adsDMList.add(manager);
+															}
+															manager.setForceStart(false);
 															manager.removeListener(this);
 														}
 													});
