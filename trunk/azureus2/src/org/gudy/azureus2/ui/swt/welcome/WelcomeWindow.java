@@ -156,6 +156,8 @@ public class WelcomeWindow {
 				try {
 					File tempFile = File.createTempFile("AZU", ".html");
 					tempFile.deleteOnExit();
+					FileUtil.writeBytesAsFile(tempFile.getAbsolutePath(),
+							sWhatsNew.getBytes("utf8"));
 					Utils.launch(tempFile.getAbsolutePath());
 					shell.dispose();
 					return;
