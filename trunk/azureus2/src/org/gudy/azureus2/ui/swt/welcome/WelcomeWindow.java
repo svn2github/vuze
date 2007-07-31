@@ -22,6 +22,7 @@
  */
 package org.gudy.azureus2.ui.swt.welcome;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -148,8 +149,19 @@ public class WelcomeWindow {
 		}
 
 		if (sWhatsNew.indexOf("<html") > 0 || sWhatsNew.indexOf("<HTML") > 0) {
-			Browser browser = new Browser(cWhatsNew, SWT.NONE);
-			browser.setText(sWhatsNew);
+			try {
+				Browser browser = new Browser(cWhatsNew, SWT.NONE);
+				browser.setText(sWhatsNew);
+			} catch (Throwable t) {
+				try {
+					File tempFile = File.createTempFile("AZU", ".html");
+					tempFile.deleteOnExit();
+					Utils.launch(tempFile.getAbsolutePath());
+					shell.dispose();
+					return;
+				} catch (IOException e) {
+				}
+			}
 		} else {
 
 			StyledText helpPanel = new StyledText(cWhatsNew, SWT.VERTICAL);
