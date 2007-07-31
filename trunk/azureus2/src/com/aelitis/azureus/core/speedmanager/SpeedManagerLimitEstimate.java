@@ -31,7 +31,7 @@ SpeedManagerLimitEstimate
 	public static final float TYPE_CHOKE_ESTIMATED =  0.5f;
 	public static final float TYPE_MEASURED_MIN =  0.8f;
 	public static final float TYPE_MEASURED =  0.9f;
-	public static final float TYPE_MANUAL =  0.1f;
+	public static final float TYPE_MANUAL =  1.0f;
 	
 	public int
 	getBytesPerSec();

@@ -38,6 +38,7 @@ import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerImpl;
 import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedLimitConfidence;
 import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedLimitMonitor;
 import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedManagerAlgorithmProviderV2;
+import com.aelitis.azureus.core.speedmanager.impl.v2.SMConst;
 
 /**
  *
@@ -490,18 +491,19 @@ public class ConfigurationDefaults {
     def.put("FilesView.separate_rename_and_retarget", FALSE);      
 
     //temp section for SpeedManagerAlgorithmProviderV2
-    def.put(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT, new Long(61440) );
-    def.put(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT, new Long(30720) );
+    def.put(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT, new Long(SMConst.START_DOWNLOAD_RATE_MAX) );
+    def.put(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT, new Long(SMConst.START_UPLOAD_RATE_MAX) );
 
     def.put(SpeedManagerAlgorithmProviderV2.SETTING_DHT_GOOD_SET_POINT, new Long(50) );
     def.put(SpeedManagerAlgorithmProviderV2.SETTING_DHT_GOOD_TOLERANCE, new Long(100) );
-    def.put(SpeedManagerAlgorithmProviderV2.SETTING_DHT_BAD_SET_POINT, new Long(1000) );
-    def.put(SpeedManagerAlgorithmProviderV2.SETTING_DHT_BAD_TOLERANCE, new Long(300) );
+    def.put(SpeedManagerAlgorithmProviderV2.SETTING_DHT_BAD_SET_POINT, new Long(900) );
+    def.put(SpeedManagerAlgorithmProviderV2.SETTING_DHT_BAD_TOLERANCE, new Long(500) );
 
     //default confidence limits are NONE
     def.put(SpeedManagerImpl.CONFIG_VERSION, new Long(1) );
     def.put( SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING, SpeedLimitConfidence.NONE.getString() );
     def.put( SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING, SpeedLimitConfidence.NONE.getString() );
+    def.put( SpeedLimitMonitor.UPLOAD_CHOKE_PING_COUNT, new Long(1) );
 
     //default V2 algorithm seeding and download mode useage, stored as an Int
     def.put( SpeedLimitMonitor.USED_UPLOAD_CAPACITY_SEEDING_MODE, new Long(90) );  

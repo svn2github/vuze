@@ -47,8 +47,8 @@ public class SpeedLimitListener implements SpeedManagerListener {
             SpeedManagerLimitEstimate pmEst = PingSpaceMon.getDownloadLimit();
             SpeedManagerLimitEstimate smEst = PingSpaceMon.getDownloadEstCapacity();
 
-            SMSearchLogger.log( " download - pmEst: "+pmEst );
-            SMSearchLogger.log( " download - smEst: "+smEst );
+            SMSearchLogger.log( " download - pmEst: "+pmEst.getString() );
+            SMSearchLogger.log( " download - smEst: "+smEst.getString() );
 
             mon.notifyDownload( pmEst );
         }else if( property == SpeedManagerListener.PR_UP_CAPACITY ){
@@ -56,8 +56,8 @@ public class SpeedLimitListener implements SpeedManagerListener {
             SpeedManagerLimitEstimate pmEst = PingSpaceMon.getUploadLimit();
             SpeedManagerLimitEstimate smEst = PingSpaceMon.getUploadEstCapacity();
 
-            SMSearchLogger.log( " upload - pmEst: "+pmEst );
-            SMSearchLogger.log( " upload - smEst: "+smEst );
+            SMSearchLogger.log( " upload - pmEst: "+pmEst.getString() );
+            SMSearchLogger.log( " upload - smEst: "+smEst.getString() );
 
             mon.notifyUpload( pmEst );
         }

@@ -93,6 +93,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
 
     public static final String UPLOAD_CONF_LIMIT_SETTING="SpeedLimitMonitor.setting.upload.limit.conf";
     public static final String DOWNLOAD_CONF_LIMIT_SETTING="SpeedLimitMonitor.setting.download.limit.conf";
+    public static final String UPLOAD_CHOKE_PING_COUNT="SpeedLimitMonitor.setting.choke.ping.count";
     private static final long CONF_LIMIT_TEST_LENGTH=1000*30;
 
     //these methods are used to see how high limits can go.
@@ -100,7 +101,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
     private boolean isDownloadMaxPinned=true; 
     private long uploadAtLimitStartTime =SystemTime.getCurrentTime();
     private long downloadAtLimitStartTime = SystemTime.getCurrentTime();
-    private int numDownticks = 1;
+    private int uploadChokePingCount = 1;
 
     private static final long TIME_AT_LIMIT_BEFORE_UNPINNING = 30 * 1000; //30 seconds.
 
@@ -161,12 +162,16 @@ public class SpeedLimitMonitor implements PSMonitorListener
         percentUploadCapacityDownloadMode = (float)
                 COConfigurationManager.getIntParameter(SpeedLimitMonitor.USED_UPLOAD_CAPACITY_DOWNLOAD_MODE, 60)/100.0f;
 
+        uploadChokePingCount = Math.min(
+                    COConfigurationManager.getIntParameter(SpeedLimitMonitor.UPLOAD_CHOKE_PING_COUNT),
+                    30 );
+
         slider.updateLimits(uploadLimitMax,uploadLimitMin,downloadLimitMax,downloadLimitMin);
         slider.updateSeedSettings(percentUploadCapacityDownloadMode);
-        //slider.setDownloadUnlimitedMode( readDownloadUnlimitedMode() );
-        //ToDo:NEED WAY TO KNOW UNLIMIT CAME FROM UI.
-        if( requestForUnlimitFromUI() ){
-            slider.setDownloadUnlimitedMode( readDownUnlimitModeFromUI() );
+
+
+        if( isSettingDownloadUnlimited() ){
+            slider.setDownloadUnlimitedMode( true );
         }
 
     }//updateFromCOConfigManager
@@ -192,17 +197,17 @@ public class SpeedLimitMonitor implements PSMonitorListener
         }
         uploadLimitMin = SMConst.calculateMinUpload( uploadLimitMax );
 
+
         //get download estimate.
         SpeedManagerLimitEstimate dEst = SMConst.filterEstimate(
                                             sm.getEstimatedDownloadCapacityBytesPerSec(),
                                             SMConst.START_DOWNLOAD_RATE_MAX );
 
-        //downloadLimitMax = dEst.getBytesPerSec();
+
         int downPingMapLimit = dEst.getBytesPerSec();
-        if( downPingMapLimit==0 ){
+        if( isSettingDownloadUnlimited() ){
             slider.setDownloadUnlimitedMode(true);
         }else{
-            //ToDo: NEED A WAY TO KNOW IF USER SET VALUE FROM PANEL OR PING_MAPPER SET IT!!
             slider.setDownloadUnlimitedMode(false);
         }
 
@@ -228,6 +233,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
         COConfigurationManager.setParameter(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT,downloadLimitMax);
         COConfigurationManager.setParameter(SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING, uploadLimitConf.getString() );
         COConfigurationManager.setParameter(SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING, downloadLimitConf.getString() );
+        COConfigurationManager.setParameter(SpeedLimitMonitor.UPLOAD_CHOKE_PING_COUNT,uploadChokePingCount);
     }
 
     private void logPMData(int oRate, SpeedLimitConfidence oConf, int nRate, float nConf, String type){
@@ -267,21 +273,30 @@ public class SpeedLimitMonitor implements PSMonitorListener
     }//logPMDataEx
 
 
-    private boolean requestForUnlimitFromUI(){
-        //ToDo: Create a param that UI sets.
+    /**
+     * The criteria for download being unlimited is if the ConfigPanel has the
+     * "download == 0 " && "type==fixed"
+     * @return - true
+     */
+    private boolean isSettingDownloadUnlimited(){
 
-        //Get the download limit "type" setting.
-        //COConfigurationManager.getFloatParameter( ?? );
+        SpeedManagerAlgorithmProviderAdapter adpter = SMInstance.getInstance().getAdapter();
 
-        //If someone tries to unlimit the "upload" the turn off "auto-speed"
+        SpeedManager sm = adpter.getSpeedManager();
+        SpeedManagerLimitEstimate dEst = sm.getEstimatedDownloadCapacityBytesPerSec();
 
-        return false;
-    }
+        int rate = dEst.getBytesPerSec();
+        float type = dEst.getEstimateType();
 
-    private boolean readDownUnlimitModeFromUI(){
-        //ToDo: Get value from parameter.
+        //user or plug-in want the download rate unlimited.
+        if( rate==0 && type==SpeedManagerLimitEstimate.TYPE_MANUAL ){
+            return true;
+        }
 
-        //Not sure if this is needed. ??
+        //start the search in unlimited mode.
+        if( rate==0 && type==SpeedManagerLimitEstimate.TYPE_UNKNOWN){
+            return true;
+        }
 
         return false;
     }
@@ -568,6 +583,8 @@ public class SpeedLimitMonitor implements PSMonitorListener
 
         long currTime = SystemTime.getCurrentTime();
 
+        //verify the download is not unlimited.
+        slider.setDownloadUnlimitedMode( isSettingDownloadUnlimited() );
 
         //upload useage must be at limits for a set period of time before unpinning.
         if( !uploadBandwidthStatus.equals(SaturatedMode.AT_LIMIT) ||
@@ -577,7 +594,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
             uploadAtLimitStartTime = currTime;
         }else{
             //check to see if we have been here for the time limit.
-            if( uploadAtLimitStartTime+(TIME_AT_LIMIT_BEFORE_UNPINNING*numDownticks) < currTime ){
+            if( uploadAtLimitStartTime+(TIME_AT_LIMIT_BEFORE_UNPINNING* uploadChokePingCount) < currTime ){
 
                 if( isUploadConfidenceLow() ){
                     if( !transferMode.isDownloadMode() ){
@@ -628,8 +645,8 @@ public class SpeedLimitMonitor implements PSMonitorListener
     public void notifyOfDownSignal(){
 
         if( !isUploadMaxPinned ){
-            numDownticks++;
-            String msg = "pinning the upload max limit, due to downtick signal. #downtick="+numDownticks;
+            uploadChokePingCount++;
+            String msg = "pinning the upload max limit, due to downtick signal. #downtick="+ uploadChokePingCount;
             SpeedManagerLogger.trace(msg);
             SMSearchLogger.log(msg);
         }
@@ -656,7 +673,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
         //chocking ping needs higher limit.
         float type = estimate.getEstimateType();
         if(type>=SpeedManagerLimitEstimate.TYPE_CHOKE_ESTIMATED){
-            numDownticks++;
+            uploadChokePingCount++;
         }
         resetPinSearch();
     }
@@ -1317,11 +1334,16 @@ public class SpeedLimitMonitor implements PSMonitorListener
 
         }else{
             SpeedManagerPingMapper pm = SMInstance.getInstance().getAdapter().getPingMapper();
-            //ToDo: need a way to get chocking ping from other PingMapper.
-            //always return true till implemented.
 
-            return true;
-        }
+            //if either had a choking ping.
+            SpeedManagerLimitEstimate dEst = pm.getEstimatedDownloadLimit(true);
+            SpeedManagerLimitEstimate uEst = pm.getEstimatedUploadLimit(true);
+
+            boolean hadChokePingUp = (uEst.getEstimateType()==SpeedManagerLimitEstimate.TYPE_CHOKE_ESTIMATED);
+            boolean hadChokePingDown = (dEst.getEstimateType()==SpeedManagerLimitEstimate.TYPE_CHOKE_ESTIMATED);
+
+            return ( hadChokePingUp || hadChokePingDown );
+        }        
     }//hadChockingPing
 
     /**
@@ -1459,7 +1481,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
         downloadLimitMin = SMConst.calculateMinDownload(downloadLimitMax);
         slider.updateLimits(uploadLimitMax,uploadLimitMin,downloadLimitMax,downloadLimitMin);
 
-        //if(downloadLimitMax!=0){
+
         if(estimate.getBytesPerSec()!=0){
             slider.setDownloadUnlimitedMode(false);
         }else{
