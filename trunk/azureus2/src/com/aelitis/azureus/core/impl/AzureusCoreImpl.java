@@ -52,6 +52,8 @@ import com.aelitis.azureus.core.instancemanager.AZInstanceManagerFactory;
 import com.aelitis.azureus.core.nat.NATTraverser;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterface;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterfaceAddress;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminPropertyChangeListener;
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.download.session.TorrentSessionManager;
@@ -598,38 +600,64 @@ AzureusCoreImpl
 	   
 	   na.runInitialChecks();
 	   
-	   
 	   na.addPropertyChangeListener(
 			   new NetworkAdminPropertyChangeListener()
 			   {
-				   	private long last_network_change = SystemTime.getCurrentTime();
-				   	
-					public void
-					propertyChanged(
-						String		property )
-					{
-						if ( property.equals( NetworkAdmin.PR_NETWORK_INTERFACES )){
-							
-							long now	= SystemTime.getCurrentTime();
-							
-								// don't pick up "change" on first time through
+				   private long last_network_change = SystemTime.getCurrentTime();
 
-							if ( now - last_network_change > 15*60*1000 ){
-								
-								Logger.log(	new LogEvent(LOGID,
-											"Network interfaces have changed, updating trackers"));
-								
-								announceAll();
-								
-								last_network_change	= now;
+				   public void
+				   propertyChanged(
+						   String		property )
+				   {
+					   if ( property.equals( NetworkAdmin.PR_NETWORK_INTERFACES )){
 
-							}else{
+						   NetworkAdmin na = NetworkAdmin.getSingleton();
 
-								Logger.log(new LogEvent(LOGID, "Network interfaces have changed, "
-										+ "not updating trackers as too soon after previous change"));
-							}
-						}
-					}
+						   boolean	found_usable = false;
+						   
+						   NetworkAdminNetworkInterface[] intf = na.getInterfaces();
+						   
+						   for (int i=0;i<intf.length;i++){
+							   
+							   NetworkAdminNetworkInterfaceAddress[] addresses = intf[i].getAddresses();
+							   
+							   for (int j=0;j<addresses.length;j++){
+								   
+								   if ( !addresses[j].isLoopback()){
+									   
+									   found_usable = true;
+								   }
+							   }
+						   }
+						   
+						   		// ignore event if nothing usable
+						   
+						   if ( !found_usable ){
+							   
+							   return;
+						   }
+						   
+						   long now	= SystemTime.getCurrentTime();
+
+						   	// don't pick up "change" on first time through. rate limit in case of
+						   	// some network madness
+
+						   if ( now - last_network_change > 15*60*1000 ){
+
+							   Logger.log(	new LogEvent(LOGID,
+									   "Network interfaces have changed, updating trackers"));
+
+							   announceAll();
+
+							   last_network_change	= now;
+
+						   }else{
+
+							   Logger.log(new LogEvent(LOGID, "Network interfaces have changed, "
+									   + "not updating trackers as too soon after previous change"));
+						   }
+					   }
+				   }
 			   });
 	}
 	
