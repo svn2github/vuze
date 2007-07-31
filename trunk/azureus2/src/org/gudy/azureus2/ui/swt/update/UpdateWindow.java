@@ -500,7 +500,9 @@ UpdateWindow
     table.setEnabled(false);
     
     link_area.reset();
-  	browser.setVisible(false);
+    if (browser != null) {
+    	browser.setVisible(false);
+    }
   	link_area.getComponent().setVisible(true);
     
     TableItem[] items = table.getItems();
