@@ -266,25 +266,23 @@ public class SpeedLimitMonitor implements PSMonitorListener
         
     }//logPMDataEx
 
-//ToDo: need a way to get unlimited from UI.
-//    private boolean readDownloadUnlimitedMode(){
-//        int maxDownSpeedKbs = COConfigurationManager.getIntParameter("Max Download Speed KBs");
-//        boolean dUnlimit = ( maxDownSpeedKbs==0 );
-//
-//        if(dUnlimit){
-//            SpeedManagerLogger.trace("detected download set in unlimited mode");
-//        }
-//        return dUnlimit;
-//    }//eadDownloadUnlimitedMode
-
 
     private boolean requestForUnlimitFromUI(){
         //ToDo: Create a param that UI sets.
+
+        //Get the download limit "type" setting.
+        //COConfigurationManager.getFloatParameter( ?? );
+
+        //If someone tries to unlimit the "upload" the turn off "auto-speed"
+
         return false;
     }
 
     private boolean readDownUnlimitModeFromUI(){
         //ToDo: Get value from parameter.
+
+        //Not sure if this is needed. ??
+
         return false;
     }
 
@@ -627,15 +625,19 @@ public class SpeedLimitMonitor implements PSMonitorListener
     /**
      * If we have a down-tick signal then resetTimer all the counters for increasing the limits.
      */
-    public void notifyOfDownSingal(){
+    public void notifyOfDownSignal(){
 
         if( !isUploadMaxPinned ){
             numDownticks++;
-            SpeedManagerLogger.trace("pinning the upload max limit, due to downtick signal. #downtick="+numDownticks);
+            String msg = "pinning the upload max limit, due to downtick signal. #downtick="+numDownticks;
+            SpeedManagerLogger.trace(msg);
+            SMSearchLogger.log(msg);
         }
 
         if( !isDownloadMaxPinned ){
-            SpeedManagerLogger.trace("pinning the download max limit, due to downtick signal.");
+            String msg = "pinning the download max limit, due to downtick signal.";
+            SpeedManagerLogger.trace(msg);
+            SMSearchLogger.log(msg);
         }
 
         resetPinSearch();
@@ -1005,7 +1007,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
         return retVal;
     }
 
-    private int choseBestLimit(SpeedManagerLimitEstimate estimate, int currMaxLimit, SpeedLimitConfidence conf) {
+    private int choseBestLimit(SpeedManagerLimitEstimate estimate, int currMaxLimit, SpeedLimitConfidence currConf) {
         float type = estimate.getEstimateType();
         int estBytesPerSec = estimate.getBytesPerSec();
         int chosenLimit;
@@ -1024,12 +1026,12 @@ public class SpeedLimitMonitor implements PSMonitorListener
             reason="unknown";
         }else{
             //select one with higher confidence.
-            if( estimate.getEstimateType()>=conf.asEstimateType() ){
+            if( estimate.getEstimateType()>=currConf.asEstimateType() ){
                 chosenLimit = estBytesPerSec;
-                reason="estimate greater "+estimate.getEstimateType()+"=>"+conf.asEstimateType()+" "+conf.getString();
+                reason="estimate greater "+estimate.getEstimateType()+"=>"+currConf.asEstimateType()+" "+currConf.getString();
             }else{
                 chosenLimit = currMaxLimit;
-                reason="curr greater"+estimate.getEstimateType()+"<"+conf.asEstimateType();
+                reason="curr greater"+estimate.getEstimateType()+"<"+currConf.asEstimateType();
             }
         }
 
@@ -1436,6 +1438,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
         uploadLimitMin = SMConst.calculateMinUpload(uploadLimitMax);
         slider.updateLimits(uploadLimitMax,uploadLimitMin,downloadLimitMax,downloadLimitMin);
 
+        SMSearchLogger.log("upload "+uploadLimitMax);
     }
 
     public void notifyDownload(SpeedManagerLimitEstimate estimate) {
@@ -1456,12 +1459,14 @@ public class SpeedLimitMonitor implements PSMonitorListener
         downloadLimitMin = SMConst.calculateMinDownload(downloadLimitMax);
         slider.updateLimits(uploadLimitMax,uploadLimitMin,downloadLimitMax,downloadLimitMin);
 
-        if(downloadLimitMax!=0){
+        //if(downloadLimitMax!=0){
+        if(estimate.getBytesPerSec()!=0){
             slider.setDownloadUnlimitedMode(false);
         }else{
             slider.setDownloadUnlimitedMode(true);
         }
-        
+
+        SMSearchLogger.log("download "+downloadLimitMax );         
     }
 
     private void tempLogEstimate(SpeedManagerLimitEstimate est){

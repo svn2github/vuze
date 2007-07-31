@@ -1,8 +1,10 @@
+package com.aelitis.azureus.core.speedmanager.impl.v2;
+
 /**
- * Created on Jul 11, 2007
+ * Created on Jul 30, 2007
  * Created by Alan Snyder
  * Copyright (C) 2007 Aelitis, All Rights Reserved.
- *
+ * <p/>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -14,42 +16,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *
+ * <p/>
  * AELITIS, SAS au capital de 63.529,40 euros
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
- *
  */
 
-package com.aelitis.azureus.core.speedmanager.impl.v2;
+/**
+ * deals with when a search should start. uses the history of previous searches
+ * more effectively.
+ */
+public interface SMSearchManager
+{
 
-import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProviderAdapter;
+    public static final String UPLOAD = "Upload";
+    public static final String DOWNLOAD = "Download";
 
-public class SMInstance {
+    public void setEndOfSearch(String type, int measuredRate);
 
-    private static SMInstance instance = new SMInstance();
+    public void setEndOfSearch(String type, int measuredRate, int pingMapType);
 
-    private static SpeedManagerAlgorithmProviderAdapter adapter;
-    private static SMConfigurationAdapter conf;
-
-
-    public static void init(SpeedManagerAlgorithmProviderAdapter _adapter){
-        adapter = _adapter;
-        conf = new SMConfigurationAdapterImpl();
-    }
-
-    public static SMInstance getInstance() {
-        return instance;
-    }
-
-    private SMInstance() {
-    }
-
-    public SpeedManagerAlgorithmProviderAdapter getAdapter(){
-        return adapter;
-    }
-
-    public SMConfigurationAdapter getConfigManager(){
-        return conf;
-    }
+    public boolean startSearch(String type);
 
 }

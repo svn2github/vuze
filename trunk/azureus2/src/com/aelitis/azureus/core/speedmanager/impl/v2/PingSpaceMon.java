@@ -3,6 +3,7 @@ package com.aelitis.azureus.core.speedmanager.impl.v2;
 import org.gudy.azureus2.core3.util.SystemTime;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingMapper;
+import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProviderAdapter;
 
 import java.util.List;
@@ -113,12 +114,18 @@ public class PingSpaceMon
         SpeedManagerLogger.trace("Monitor resetting time. Next check in interval.");
     }
 
+    /**
+     * Get the current estimated upload limit from the ping mapper.
+     * @return - SpeedManagerLimitEstimate.
+     */
     public static SpeedManagerLimitEstimate getUploadLimit(){
         try{
             SMInstance pm = SMInstance.getInstance();
             SpeedManagerAlgorithmProviderAdapter adapter = pm.getAdapter();
             SpeedManagerPingMapper persistentMap = adapter.getPingMapper();
-            return persistentMap.getEstimatedUploadLimit(true);
+            SpeedManagerLimitEstimate upEst = persistentMap.getEstimatedUploadLimit(true);
+
+            return upEst;
             
         }catch(Throwable t){
             //log this event and
@@ -130,12 +137,38 @@ public class PingSpaceMon
         }
     }//getUploadLimit
 
+    public static SpeedManagerLimitEstimate getUploadEstCapacity()
+    {
+        try{
+            SMInstance pm = SMInstance.getInstance();
+            SpeedManagerAlgorithmProviderAdapter adapter = pm.getAdapter();
+            SpeedManager sm = adapter.getSpeedManager();
+            SpeedManagerLimitEstimate upEstCapacity = sm.getEstimatedUploadCapacityBytesPerSec();
+
+            return upEstCapacity;
+
+        }catch(Throwable t){
+            //log this event and
+            SpeedManagerLogger.log( t.toString() );
+            t.printStackTrace();
+
+            //something to return 1 and -1.0f results.
+            return new DefaultLimitEstimate();
+        }
+    }
+
+    /**
+     * Get the current estimated download limit from the ping mapper.
+     * @return - SpeedManagerLimitEstimate
+     */
     public static SpeedManagerLimitEstimate getDownloadLimit(){
         try{
             SMInstance pm = SMInstance.getInstance();
             SpeedManagerAlgorithmProviderAdapter adapter = pm.getAdapter();
             SpeedManagerPingMapper persistentMap = adapter.getPingMapper();
-            return persistentMap.getEstimatedDownloadLimit(true);
+            SpeedManagerLimitEstimate downEst = persistentMap.getEstimatedDownloadLimit(true);
+
+            return downEst;
 
         }catch(Throwable t){
             //log this event and
@@ -146,6 +179,30 @@ public class PingSpaceMon
             return new DefaultLimitEstimate();
         }
     }//getDownloadLimit
+
+    /**
+     * Get the estimated download capacity from the SpeedManager.
+     * @return - SpeedManagerLimitEstimate
+     */
+    public static SpeedManagerLimitEstimate getDownloadEstCapacity()
+    {
+        try{
+            SMInstance pm = SMInstance.getInstance();
+            SpeedManagerAlgorithmProviderAdapter adapter = pm.getAdapter();
+            SpeedManager sm = adapter.getSpeedManager();
+            SpeedManagerLimitEstimate downEstCapacity = sm.getEstimatedDownloadCapacityBytesPerSec();
+
+            return downEstCapacity;
+
+        }catch(Throwable t){
+            //log this event and
+            SpeedManagerLogger.log( t.toString() );
+            t.printStackTrace();
+
+            //something to return 0 and -1.0f results.
+            return new DefaultLimitEstimate();
+        }
+    }
 
     static class DefaultLimitEstimate implements SpeedManagerLimitEstimate
     {

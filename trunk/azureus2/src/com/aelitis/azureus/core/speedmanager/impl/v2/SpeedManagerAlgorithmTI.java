@@ -559,7 +559,7 @@ public class SpeedManagerAlgorithmTI
                 multiple = calculateUpTickMultiple(consecutiveUpticks);
             }else{
                 multiple = calculateDownTickMultiple(consecutiveDownticks);
-                limitMonitor.notifyOfDownSingal();
+                limitMonitor.notifyOfDownSignal();
             }
 
             return multiple;

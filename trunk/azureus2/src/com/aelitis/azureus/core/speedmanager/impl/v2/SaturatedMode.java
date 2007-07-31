@@ -48,6 +48,13 @@ public class SaturatedMode implements Comparable {
      * @return - SaturatedMode
      */
     public static SaturatedMode getSaturatedMode(int currentRate,int limit){
+
+        //unlimited mode has this value as zero.
+        if(limit==0){
+            //put a value in so it will not stay in downloading mode.
+            limit = SMConst.START_DOWNLOAD_RATE_MAX;    
+        }
+
         float percent = (float)currentRate/(float)limit;
 
         if( percent > AT_LIMIT.getThreshold() ){

@@ -1,6 +1,7 @@
 package com.aelitis.azureus.core.speedmanager.impl.v2;
 
 import com.aelitis.azureus.core.speedmanager.SpeedManagerListener;
+import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
 
 /**
  * Created on Jul 24, 2007
@@ -40,16 +41,28 @@ public class SpeedLimitListener implements SpeedManagerListener {
             type = "ASN change";
             mon.readFromPersistentMap();
             mon.updateFromCOConfigManager();
+            SMSearchLogger.log("ASN change.");
         }else if( property == SpeedManagerListener.PR_DOWN_CAPACITY ){
             type = "download capacity";
-            mon.notifyDownload( PingSpaceMon.getDownloadLimit() );
+            SpeedManagerLimitEstimate pmEst = PingSpaceMon.getDownloadLimit();
+            SpeedManagerLimitEstimate smEst = PingSpaceMon.getDownloadEstCapacity();
+
+            SMSearchLogger.log( " download - pmEst: "+pmEst );
+            SMSearchLogger.log( " download - smEst: "+smEst );
+
+            mon.notifyDownload( pmEst );
         }else if( property == SpeedManagerListener.PR_UP_CAPACITY ){
             type = "upload capacity";
-            mon.notifyUpload( PingSpaceMon.getUploadLimit() );
+            SpeedManagerLimitEstimate pmEst = PingSpaceMon.getUploadLimit();
+            SpeedManagerLimitEstimate smEst = PingSpaceMon.getUploadEstCapacity();
+
+            SMSearchLogger.log( " upload - pmEst: "+pmEst );
+            SMSearchLogger.log( " upload - smEst: "+smEst );
+
+            mon.notifyUpload( pmEst );
         }
 
-        SpeedManagerLogger.log("Updated from SpeedManagerPingMapper property="+type);
-
+        SpeedManagerLogger.log("Updated from SpeedManagerPingMapper property="+type);        
     }
 
 }//class
