@@ -531,18 +531,16 @@ public class MainWindow
   					minimizeToTray(event);
   				}
   			}
-  
-  		});
-  
-  		shell.addListener(SWT.Deiconify, new Listener() {
-  			public void handleEvent(Event e) {
+
+			  public void shellDeiconified(ShellEvent e) {
   				if (Constants.isOSX
   						&& COConfigurationManager.getBooleanParameter("Password enabled")) {
-  					e.doit = false;
   					shell.setVisible(false);
-  					PasswordWindow.showPasswordWindow(display);
+  					if (PasswordWindow.showPasswordWindow(display)) {
+  						shell.setVisible(true);
+  					}
   				}
-  			}
+			  }  
   		});
   
   		try {
@@ -818,7 +816,8 @@ public class MainWindow
   public void setVisible(final boolean visible, final boolean tryTricks) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				if (visible && !shell.getVisible()) {
+				boolean currentlyVisible = shell.getVisible() && !shell.getMinimized();
+				if (visible && !currentlyVisible) {
 					if (COConfigurationManager.getBooleanParameter("Password enabled",
 							false)) {
 						if (!PasswordWindow.showPasswordWindow(display)) {
@@ -849,10 +848,13 @@ public class MainWindow
   				}
 				}
 
+				if (visible) {
+					shell.setMinimized(false);
+				}
+				
 				shell.setVisible(visible);
 				if (visible) {
 					shell.forceActive();
-					shell.setMinimized(false);
 
 					if (bHideAndShow) {
   					try {
@@ -1299,8 +1301,8 @@ public class MainWindow
 			SWTSkinButtonUtility btnPrev = new SWTSkinButtonUtility(soPrev);
 			btnPrev.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					System.out.println("prev click " + activeTopBar + " ; "
-							+ topbarViews.size());
+					//System.out.println("prev click " + activeTopBar + " ; "
+					//		+ topbarViews.size());
 					if (activeTopBar == null || topbarViews.size() <= 1) {
 						return;
 					}
@@ -1318,7 +1320,7 @@ public class MainWindow
 			SWTSkinButtonUtility btnNext = new SWTSkinButtonUtility(soNext);
 			btnNext.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					System.out.println("next click");
+					//System.out.println("next click");
 					if (activeTopBar == null || topbarViews.size() <= 1) {
 						return;
 					}
@@ -1366,7 +1368,7 @@ public class MainWindow
 		activeTopBar.getComposite().setVisible(true);
 
 		SWTSkinObject soTitle = skin.getSkinObject("topbar-plugin-title");
-		System.out.println("Hello" + soTitle);
+		//System.out.println("Hello" + soTitle);
 		if (soTitle != null) {
 			soTitle.getControl().redraw();
 		}
