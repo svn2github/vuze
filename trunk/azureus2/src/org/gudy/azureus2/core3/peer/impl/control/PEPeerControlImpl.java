@@ -2871,7 +2871,16 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 		for (int i=0;i<dm_pieces.length;i++){
 
-			int	num = dm_pieces[i].getReadCount()&0xffff;
+				// skip dnd pieces
+			
+			DiskManagerPiece	dm_piece = dm_pieces[i];
+			
+			if ( !dm_piece.isDone()){
+				
+				continue;
+			}
+			
+			int	num = dm_piece.getReadCount()&0xffff;
 
 			if ( num > SEED_CHECK_WAIT_MARKER ){
 
@@ -2884,7 +2893,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 					num = 0;
 				}
 
-				dm_pieces[i].setReadCount((short)num);
+				dm_piece.setReadCount((short)num);
 
 			}else{
 
