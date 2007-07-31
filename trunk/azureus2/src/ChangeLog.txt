@@ -7,7 +7,10 @@ FEATURE: UI   | New "Torrent" menu in the menu bar [amc1]
 FEATURE: UI   | "Clear Resume Data" menu option added [amc1]
 FEATURE: UI   | "Clear remembered save paths" option added (for the Open Torrent dialog) [amc1]
 FEATURE: UI   | New "Piece Distribution" subview in the pieces tab [The 8472]
-
+FEATURE: Core | Act on suspend/resume events on Windows [Parg]
+FEATURE: Core | Added new AZ message to inform of bad pieces [Parg]
+FEATURE: Core | IPv6 support - dht, version server, tracker and improved transport [Parg]
+FEATURE: UI   | Auto-speed ping views [Parg]
 
 CHANGE: Core  | Much better peer ID identification code added, many more clients now correctly identified [amc1]
 CHANGE: Core  | Changes made to identify some "fake" clients (or other clients which identify themselves in a problematic way) [amc1]
@@ -19,13 +22,15 @@ CHANGE: UI    | Open Torrent Window now asks to create directories if they don't
 CHANGE: UI    | Added download status, distributed copies and completed piece count to the General torrent view [amc1, The 8472]
 CHANGE: UI    | User Comment field more useful in General torrent view - easy edit link, hyperlink formatting, auto-resizing [amc1]
 CHANGE: UI    | "Show Transfer Bar" menu option is now a checkbox menu item - so you can now hide the transfer bar using the menu item [amc1]
-CHANGE: Plug  | Added setVisible method for plugin menu items.
-                
+CHANGE: Plug  | Added setVisible method for plugin menu items [amc1]
+CHANGE: Core  | Optimise memory usage for single-file downloads [Parg]
+             
 BUGFIX: Core  | Fixed bug where renaming a download for a single file torrent would sometimes cause data to get out of sync and cause file errors [amc1]
 BUGFIX: Core  | Fixed bug where renaming a download in some conditions would generate "Target is sub-directory" errors [amc1]                
 BUGFIX: Core  | Fixed swarm view rendering bug where some incomplete peers were shown as full circles [The 8472]
 BUGFIX: Plug  | Fixed bug where previously removed child menu items would still be present when generating some menus [amc1]
-
+BUGFIX: Core  | Allow pipelined http seed requests to switch torrents [Parg]
+BUGFIX: Core  | Bootstrap DHT better when no contacts [Parg]
 
 2007.06.20 | Azureus 3.0.1.6
 
