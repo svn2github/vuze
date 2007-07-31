@@ -43,6 +43,9 @@ import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
 import com.aelitis.azureus.core.versioncheck.*;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 
 public class 
@@ -572,6 +575,13 @@ CoreUpdateChecker
 							  
 							  Logger.log( new LogEvent( LogIDs.LOGGER, "Patch application failed", e  ));
 						  }
+					  } else if ( message.startsWith("u:") && message.length() > 4 ) {
+					  	String type = message.substring(2, 3);
+					  	String url = message.substring(4);
+					  	UIFunctions uif = UIFunctionsManager.getUIFunctions();
+					  	if (uif != null) {
+					  		uif.viewURL(url, null, 0.9, 0.9, true, type.equals("1"));
+					  	}
 					  }else{
 						  
 						  int   alert_type    = LogAlert.AT_WARNING;
