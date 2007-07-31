@@ -83,6 +83,7 @@ public class UISwitcherWindow
 			shell = ShellFactory.createShell(parentShell, SWT.BORDER | SWT.TITLE
 					| SWT.RESIZE);
 			shell.setText(MessageText.getString(CFG_PREFIX + "title"));
+			Utils.setShellIcon(shell);
 
 			shell.addDisposeListener(new DisposeListener() {
 				public void widgetDisposed(DisposeEvent e) {
