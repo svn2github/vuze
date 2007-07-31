@@ -9,6 +9,7 @@ FEATURE: UI   | "Clear remembered save paths" option added (for the Open Torrent
 FEATURE: UI   | New "Piece Distribution" subview in the pieces tab [The 8472]
 FEATURE: Core | Act on suspend/resume events on Windows [Parg]
 FEATURE: Core | Added new AZ message to inform of bad pieces [Parg]
+FEATURE: Core | Added new stacked HAVE message to reduce peer-peer overhead [Parg]
 FEATURE: Core | IPv6 support - dht, version server, tracker and improved transport [Parg]
 FEATURE: UI   | Auto-speed ping views [Parg]
 
@@ -24,6 +25,7 @@ CHANGE: UI    | User Comment field more useful in General torrent view - easy ed
 CHANGE: UI    | "Show Transfer Bar" menu option is now a checkbox menu item - so you can now hide the transfer bar using the menu item [amc1]
 CHANGE: Plug  | Added setVisible method for plugin menu items [amc1]
 CHANGE: Core  | Optimise memory usage for single-file downloads [Parg]
+CHANGE: Core  | Optimise memory usage for queued torrents (no need to keep resume data in memory) [Parg]
              
 BUGFIX: Core  | Fixed bug where renaming a download for a single file torrent would sometimes cause data to get out of sync and cause file errors [amc1]
 BUGFIX: Core  | Fixed bug where renaming a download in some conditions would generate "Target is sub-directory" errors [amc1]                
