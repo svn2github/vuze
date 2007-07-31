@@ -294,7 +294,7 @@ public class BTPeerIDByteDecoder {
 	private static String decodeBitCometClient(String peer_id, byte[] peer_id_bytes) {
 		String mod_name = null;
 		if (peer_id.startsWith("exbc")) {mod_name = "";}
-		else if (peer_id.startsWith("FUTB")) {mod_name  = "(Mod 1) ";}
+		else if (peer_id.startsWith("FUTB")) {mod_name  = "(Solidox Mod) ";}
 		else if (peer_id.startsWith("xUTB")) {mod_name  = "(Mod 2) ";}
 		else {return null;}
 
@@ -480,6 +480,8 @@ public class BTPeerIDByteDecoder {
 		assertDecode(unknown_az, "2D7746323230302D9DFF296B56AFC2DF751C609C");
 		unknown_az = MessageText.getString("PeerSocket.unknown_az_style", new String[]{"X1", "0.0.6.4"});
 		assertDecode(unknown_az, "2D5831303036342D12FB8A5B954153A114267F1F");
+		unknown_az = MessageText.getString("PeerSocket.unknown_az_style", new String[]{"bF", "2q00"}); // I made this one up.
+		assertDecode(unknown_az, "2D6246327130302D9DFF296B56AFC2DF751C609C");
 		System.out.println();
 
 		// TODO
