@@ -48,9 +48,9 @@ public class UISwitcherWindow
 	private static String RESOURCE_LOC = "com/aelitis/azureus/ui/swt/shells/uiswitcher/images/";
 
 	private static String[] IMAGES = {
-		"NewUI_134.png",
-		"AdvancedUI_134.png",
-		"ClassicUI_134.png"
+		"NewUI_130.png",
+		"AdvancedUI_130.png",
+		"ClassicUI_130.png"
 	};
 
 	private static String[] IDS = {
