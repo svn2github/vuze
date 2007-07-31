@@ -78,7 +78,8 @@ public class IconBar {
     // We could setup a listener on the parameter and dynamically remove/add
     // ui switcher button, but it's not worth the effort
 		boolean enableUISwitcher = OVERRIDE_SHOW_UISWITCHER
-				|| COConfigurationManager.getBooleanParameter("ui.toolbar.uiswitcher");
+				|| COConfigurationManager.getBooleanParameter("ui.toolbar.uiswitcher")
+				|| COConfigurationManager.getBooleanParameter("ui.asked", false);
     
 		if (enableUISwitcher) {
 			ToolBar tbSwitch = new ToolBar(cIconBar, SWT.FLAT);
