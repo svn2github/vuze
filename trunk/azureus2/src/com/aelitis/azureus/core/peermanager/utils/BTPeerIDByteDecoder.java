@@ -179,7 +179,22 @@ public class BTPeerIDByteDecoder {
 			 * has been misidentified and carry on with it.
 			 */
 			String client_ver = BTPeerIDByteDecoderUtils.getMainlineStyleVersionNumber(peer_id);
-			if (client_ver != null) {return client + " " + client_ver;}
+			
+			if (client_ver != null) {
+				String result = client + " " + client_ver;
+
+				/**
+				 * BitThief identifies itself as Mainline 4.4.0. It uses the same character set for
+				 * the random part as Mainline does, so we can't distinguish between the two at all
+				 * (not from peer ID's, anyway) - so note that it might be BitThief.
+				 */
+				if ("Mainline 4.4.0".equals(result)) {
+					return result + " / BitThief";
+				}
+				
+				return result;
+
+			}
 		}
 
 		/**
@@ -462,6 +477,7 @@ public class BTPeerIDByteDecoder {
 		System.out.println("Testing various specialised clients...");
 		assertDecode("Mainline", "0000000000000000000000004C53441933104277");
 		assertDecode(UNKNOWN + " [" + FAKE + ": ZipTorrent 1.6.0.0]", "-ZT1600-bLAdeY9rdjbe");
+		assertDecode("Mainline 4.4.0 / BitThief", "M4-4-0--164d2e4a0fba"); // BitThief generated ID - it masquerades itself as Mainline 4.4.0.
 		System.out.println();
 		
 		// Unknown clients - may be random bytes.
@@ -488,7 +504,6 @@ public class BTPeerIDByteDecoder {
 		// TODO
 		//assertDecode("KTorrent 2.2", "-KT22B1-695754334315"); // We could use the B1 information...
 		//assertDecode("", "C8F2D9CD3A90455354426578626300362D2D2D92"); // Looks like a BitLord client - ESTBexbc?
-		//assertDecode("", "M4-4-0--164d2e4a0fba"); // BitThief masquerading as Mainline 4.4.0. Anything we can do about it?
 
 		System.out.println("Done.");
 	}
