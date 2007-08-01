@@ -1620,14 +1620,6 @@ DiskManagerImpl
 
       }
     }
-
-
-    public void
-    moveDataFiles(
-        File    new_parent_dir )
-    {
-        moveFiles(new_parent_dir.toString(), null, false, false );
-    }
     
     public void moveDataFiles(File new_parent_dir, String new_name) {
     	moveFiles(new_parent_dir.toString(), new_name, false, false);
@@ -1713,23 +1705,46 @@ DiskManagerImpl
         return false;
     }
 
-    private boolean moveDataFiles0(String move_to_dir_arg, String new_name, boolean change_to_read_only) throws Exception {
+    private boolean 
+    moveDataFiles0(
+    	final String 		move_to_dir, 
+    	final String 		new_name, 
+    	final boolean 		change_to_read_only )
+    
+    	throws Exception 
+    {
+    		// consider the two cases:
+    		//		simple torrent:  /temp/simple.avi
+    		// 		complex torrent: /temp/complex[/other.avi]
     	
-    	// No files array? Can't do it.
-    	if (files == null) {return false;}
+    		// we are moving the files to the "move_to_arg" /M and possibly renaming to "wibble.x"
+    		//		/temp/simple.avi, null	->  /M/simple.avi
+    		//		/temp, "wibble.x"		->	/M/wibble.x
     	
-        File save_location = download_manager.getAbsoluteSaveLocation();
-        
-        String move_from_dir = (new_name == null) ? save_location.getParent() : save_location.getPath();
-        String move_to_dir_calc = (new_name == null) ? move_to_dir_arg : new File(move_to_dir_arg, new_name).toString();
-        
-        // It is important that we are able to get the canonical form of the directory to
-        // move to, because later code determining new file paths will break otherwise.
-        move_from_dir = new File(move_from_dir).getCanonicalFile().getPath();
-        
-        if (isFileDestinationIsItself(move_to_dir_arg, new_name)) {return false;}
+    		//		/temp/complex[/other.avi], null		->	/M/complex[/other.avi]
+    		//		/temp, "wibble.x"					->	/M/wibble.x[/other.avi]
+    	
+   	
+    	if ( files == null ){return false;}
+    	
+        if ( isFileDestinationIsItself( move_to_dir, new_name )) {return false;}
 
-        // first of all check that no destination files already exist
+
+        
+    	boolean simple_torrent = download_manager.getTorrent().isSimpleTorrent();
+    	
+    		// absolute save location does not follow links
+    		// 		for simple: /temp/simple.avi
+    		//		for complex: /temp/complex
+    	
+        final File save_location = download_manager.getAbsoluteSaveLocation();
+        
+        	// It is important that we are able to get the canonical form of the directory to
+        	// move to, because later code determining new file paths will break otherwise.
+ 
+        final String move_from_dir	= save_location.getParentFile().getCanonicalFile().getPath();        
+         
+         
         File[]    new_files   = new File[files.length];
         File[]    old_files   = new File[files.length];
         boolean[] link_only   = new boolean[files.length];
@@ -1740,14 +1755,13 @@ DiskManagerImpl
 
             File linked_file = FMFileManagerFactory.getSingleton().getFileLink( torrent, old_file );
 
-            if (!linked_file.equals(old_file)) {
+            if ( !linked_file.equals(old_file)){
 
-                if ( save_location.isDirectory()){
+                if ( simple_torrent ){
 
-                      // if we are linked to a file outside of the torrent's save directory then we don't
-                      // move the file
+                    // simple torrent, only handle a link if its a simple rename
 
-                    if ( linked_file.getCanonicalPath().startsWith( save_location.getCanonicalPath())){
+                    if ( linked_file.getParentFile().getCanonicalPath().equals( save_location.getParentFile().getCanonicalPath())){
 
                         old_file  = linked_file;
 
@@ -1755,11 +1769,12 @@ DiskManagerImpl
 
                         link_only[i] = true;
                     }
+                    
                 }else{
+                      // if we are linked to a file outside of the torrent's save directory then we don't
+                      // move the file
 
-                      // simple torrent, only handle a link if its a simple rename
-
-                    if ( linked_file.getParentFile().getCanonicalPath().equals( save_location.getParentFile().getCanonicalPath())){
+                    if ( linked_file.getCanonicalPath().startsWith( save_location.getCanonicalPath())){
 
                         old_file  = linked_file;
 
@@ -1789,6 +1804,7 @@ DiskManagerImpl
              * inside the new download save location - if the file currently exists outside of the save
              * location, we will not move it.
              */
+            
             old_files[i] = old_file;
             
             /**
@@ -1797,8 +1813,10 @@ DiskManagerImpl
              * Need to get canonical form of the old file, because that's what we are using for determining
              * the relative path.
              */ 
-            String old_parent_path = (new_name == null) ? old_file.getCanonicalFile().getParent() : old_file.getCanonicalPath();
-            String sub_path = null;
+            
+            String old_parent_path = old_file.getCanonicalFile().getParent();
+            
+            String sub_path;
 
             /**
              * Calculate the sub path of where the file lives compared to the new save location.
@@ -1806,36 +1824,58 @@ DiskManagerImpl
              * The code here has changed from what it used to be to fix bug 1636342:
              *   https://sourceforge.net/tracker/?func=detail&atid=575154&aid=1636342&group_id=84122
              */
-            if (old_parent_path.startsWith(move_from_dir)) {
+            
+            if ( old_parent_path.startsWith(move_from_dir)){
+            	
             	sub_path = old_parent_path.substring(move_from_dir.length());
-            }
-            else {
-            	logMoveFileError(move_to_dir_arg, "Could not determine relative path for file - " + old_parent_path);
+            	
+            }else{
+            	
+            	logMoveFileError(move_to_dir, "Could not determine relative path for file - " + old_parent_path);
+            	
             	throw new IOException("relative path assertion failed: move_from_dir=\"" + move_from_dir + "\", old_parent_path=\"" + old_parent_path + "\"");
             }
             
               //create the destination dir
+            
             if ( sub_path.startsWith( File.separator )){
+            	
                 sub_path = sub_path.substring(1);
             }
 
-            File destDir = new File(move_to_dir_calc, sub_path);
-
-              //create the destination file pointer
-            // We may be doing a rename, and if this is a simple torrent, we have to keep the names in sync.
-            File newFile;
-            if (new_name != null && this.download_manager.getTorrent().isSimpleTorrent()) {
-            	newFile = new File(destDir, new_name);
+            	// We may be doing a rename, and if this is a simple torrent, we have to keep the names in sync.
+            
+            File new_file;
+            
+            if ( new_name == null ){
+            	
+            	new_file = new File( new File( move_to_dir, sub_path ), old_file.getName());
+            	
+            }else{
+            	
+            		// renaming
+            	
+            	if ( simple_torrent ){
+            		
+                   	new_file = new File( new File( move_to_dir, sub_path ), new_name );
+                    
+            	}else{
+            		
+            			// subpath includes the old dir name, replace this with new
+            		
+            		int	pos = sub_path.indexOf( File.separator );
+            		
+            		String	new_path = new_name + (pos==-1?"":sub_path.substring( pos ));
+            		
+                   	new_file = new File( new File( move_to_dir, new_path ), old_file.getName());
+            	}
             }
-            else {
-            	newFile = new File(destDir, old_file.getName());
-            }
 
-            new_files[i]  = newFile;
+            new_files[i]  = new_file;
 
             if ( !link_only[i] ){
 
-                if ( newFile.exists()){
+                if ( new_file.exists()){
 
                     String msg = "" + linked_file.getName() + " already exists in MoveTo destination dir";
 
@@ -1851,7 +1891,7 @@ DiskManagerImpl
                     return false;
                 }
 
-                FileUtil.mkdirs(destDir);
+                FileUtil.mkdirs(new_file.getParentFile());
             }
         }
 
@@ -1910,7 +1950,7 @@ DiskManagerImpl
 
               // NOTE: this operation FIXES up any file links
 
-            download_manager.setTorrentSaveDir( move_to_dir_arg, new_name );
+            download_manager.setTorrentSaveDir( move_to_dir, new_name );
 
         return true;
 

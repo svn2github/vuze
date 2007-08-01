@@ -202,10 +202,6 @@ DiskManager
 
     public void
     downloadRemoved();
-
-	public void
-	moveDataFiles(
-		File	new_parent_dir );
 	
 	public void moveDataFiles(File new_parent_dir, String dl_name);
 	

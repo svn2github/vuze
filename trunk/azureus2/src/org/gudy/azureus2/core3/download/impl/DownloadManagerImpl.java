@@ -2992,13 +2992,7 @@ DownloadManagerImpl
   public void renameDownload(String new_name) throws DownloadManagerException {
       this.moveDataFiles(null, new_name);
   }
-  
-  /**
-   * destination_is_rename:
-   *    If false, then this is the new parent directory.
-   *    If true, then this is the new name of the file.
-   */ 
-  
+    
   public void 
   moveDataFiles(
 	final File 		destination, 
