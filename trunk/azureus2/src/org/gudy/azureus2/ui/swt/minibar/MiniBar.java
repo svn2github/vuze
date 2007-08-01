@@ -84,12 +84,15 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	
 	protected MiniBar(MiniBarManager manager) {
 		this.manager = manager;
+		setPrebuildValues();
+		this.separateDataProt = DisplayFormatters.isDataProtSeparate();
+	}
+	
+	private void setPrebuildValues() {
 		this.constructing = false;
 		this.constructed = false;
 		this.xSize = 0;
 		this.hSize = -1;
-		
-		this.separateDataProt = DisplayFormatters.isDataProtSeparate();
 	}
 	
 	//
@@ -252,6 +255,12 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 		});
 		
 	    this.screen = main.getDisplay().getClientArea();
+	    build();
+	}
+	
+	private void build() {
+		
+		
 	    
 	    lDrag = new Label(splash, SWT.NULL);
 	    if(!Constants.isOSX) {
@@ -314,7 +323,7 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	    this.mMoveListener = null;
 	    this.menu = null;
 
-	    // Avoid doing a refresh on construction
+	    // Avoid doing a refresh on construction.
 	    this.refresh();
 	    this.constructing = false;
 	    this.constructed = true;
@@ -461,30 +470,32 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 		this.stucked = mw;
 	}
 
-	public void close() {
+	public final void close() {
 		if (!splash.isDisposed()) {
 			Display display = splash.getDisplay();
 			if (display != null && !display.isDisposed()) {
 				display.asyncExec(new AERunnable() {
-					public void runSupport() {
-						if (!splash.isDisposed()) {
-							splash.dispose();
-						}
-						if (bold_font != null && !bold_font.isDisposed()) {
-							bold_font.dispose();
-						}
-					}
+					public void runSupport() {dispose();}
 				});
 			}
 		}
 		manager.unregister(this);
 	}
 	
+	public void dispose() {
+		if (!splash.isDisposed()) {splash.dispose();}
+		if (bold_font != null && !bold_font.isDisposed()) {bold_font.dispose();}
+	}
+	
+	public final void refresh() {
+		if (splash.isDisposed()) {return;}
+		refresh0();
+	}
 
 	//
 	// Subclass methods.
 	//
-	protected abstract void refresh();
+	protected abstract void refresh0();
 	protected abstract void beginConstruction();
 	protected abstract Object getContextObject();
 	

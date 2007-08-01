@@ -137,7 +137,7 @@ public class AllTransfersBar extends MiniBar {
 		super.buildMenu(menu);
 	}
 	
-	public void refresh() {
+	protected void refresh0() {
 		GlobalManagerStats stats = g_manager.getStats();
 		
 		if ( isSeparateDataProt()){

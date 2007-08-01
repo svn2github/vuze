@@ -131,7 +131,7 @@ public class DownloadBar extends MiniBar {
 		super.buildMenu(menu);
 	}
 	
-	public void refresh() {
+	protected void refresh0() {
 		DownloadManagerStats stats = download.getStats();
 
         download_name.setText(download.getDisplayName());
