@@ -47,7 +47,7 @@ public class RememberedDecisionsManager
 				"MessageBoxWindow.decisions", new HashMap());
 
 		Long l = (Long) remembered_decisions.get(id);
-		System.out.println("getR " + id + " -> " + l);
+		//System.out.println("getR " + id + " -> " + l);
 		if (l != null) {
 			int i = l.intValue();
 			if (onlyIfInMask == -1 || (i & onlyIfInMask) != 0) {
