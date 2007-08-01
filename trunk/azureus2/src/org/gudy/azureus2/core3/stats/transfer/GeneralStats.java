@@ -46,8 +46,6 @@ public interface GeneralStats {
    */
   public long getSessionUpTime();
   
-  // public Map getDownloadStats();
-  
   /**
    * @return the average download speed in bytes per second
    */
