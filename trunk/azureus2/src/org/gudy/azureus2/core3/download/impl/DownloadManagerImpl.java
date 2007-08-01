@@ -288,10 +288,7 @@ DownloadManagerImpl
 	
 	private String	display_name	= "";
 	private String	internal_name	= "";
-	
-	//	 Used by setTorrentSaveDir and renameDownload.
-	private String  temporary_new_save_path_name = null;
-	
+		
 		// for simple torrents this refers to the torrent file itself. For non-simple it refers to the
 		// folder containing the torrent's files
 	

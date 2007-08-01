@@ -1941,17 +1941,24 @@ DiskManagerImpl
             }
         }
 
-              //remove the old dir
+        //remove the old dir
 
-            if (  save_location.isDirectory()){
+        if (  save_location.isDirectory()){
 
-                TorrentUtils.recursiveEmptyDirDelete( save_location, false );
-            }
+        	TorrentUtils.recursiveEmptyDirDelete( save_location, false );
+        }
 
-              // NOTE: this operation FIXES up any file links
+        // NOTE: this operation FIXES up any file links
 
-            download_manager.setTorrentSaveDir( move_to_dir, new_name );
+        if ( new_name == null ){
+        	
+           	download_manager.setTorrentSaveDir( move_to_dir );
 
+        }else{
+        	
+        	download_manager.setTorrentSaveDir( move_to_dir, new_name );
+        }
+        
         return true;
 
     }
