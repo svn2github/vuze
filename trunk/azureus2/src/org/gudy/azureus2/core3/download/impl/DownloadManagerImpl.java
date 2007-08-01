@@ -721,7 +721,9 @@ DownloadManagerImpl
 						
 						if ( has_ever_been_started ){
 				 		
-							throw( new NoStackException( MessageText.getString("DownloadManager.error.datamissing") + " " + linked_target.toString()));
+							throw (new NoStackException(
+									MessageText.getString("DownloadManager.error.datamissing")
+											+ " " + Debug.secretFileName(linked_target.toString())));
 						}
 				 	}
 				 }	
