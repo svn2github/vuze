@@ -646,13 +646,15 @@ AzureusCoreImpl
 	   na.addPropertyChangeListener(
 			   new NetworkAdminPropertyChangeListener()
 			   {
+				   private String	last_as;
+				   
 				   public void
 				   propertyChanged(
 						   String		property )
 				   {
-					   if ( property.equals( NetworkAdmin.PR_NETWORK_INTERFACES )){
+					   NetworkAdmin na = NetworkAdmin.getSingleton();
 
-						   NetworkAdmin na = NetworkAdmin.getSingleton();
+					   if ( property.equals( NetworkAdmin.PR_NETWORK_INTERFACES )){
 
 						   boolean	found_usable = false;
 						   
@@ -681,6 +683,23 @@ AzureusCoreImpl
 						   Logger.log(	new LogEvent(LOGID, "Network interfaces have changed (new=" + na.getNetworkInterfacesAsString() + ")"));
 
 						   announceAll( false );
+						   
+					   }else if ( property.equals( NetworkAdmin.PR_AS )){
+						   
+						   String	as = na.getCurrentASN().getAS();
+						   
+						   if ( last_as == null ){
+							   
+							   last_as = as;
+							   
+						   }else if ( !as.equals( last_as )){
+							   
+							   Logger.log(	new LogEvent(LOGID, "AS has changed (new=" + as + ")" ));
+
+							   last_as = as;
+							   
+							   announceAll( false );
+						   }
 					   }
 				   }
 			   });
