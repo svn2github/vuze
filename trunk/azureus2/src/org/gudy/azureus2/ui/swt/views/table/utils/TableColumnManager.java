@@ -123,8 +123,11 @@ public class TableColumnManager {
     }
   }
 
-  /** Add an extension from the deprecated PluginMyTorrentsItemFactory */
-  public void addExtension(String name, PluginMyTorrentsItemFactory item) {
+  /**
+   *  Add an extension from the deprecated PluginMyTorrentsItemFactory
+   *  @deprecated
+   */
+  public void addExtension(String name, org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory item) {
     String sAlign = item.getOrientation();
     int iAlign;
     if (sAlign.equals(PluginMyTorrentsItemFactory.ORIENT_RIGHT))
@@ -149,8 +152,11 @@ public class TableColumnManager {
     }
   }
 
-  /** Add an extension from the deprecated PluginPeerItemFactory */
-  public void addExtension(String name, PluginPeerItemFactory item) {
+  /** 
+   * Add an extension from the deprecated PluginPeerItemFactory
+   * @deprecated
+   */
+  public void addExtension(String name, org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory item) {
     TableColumnCore tci = new OldPeerPluginItem(TableManager.TABLE_TORRENT_PEERS,
                                             name, item);
     tci.initialize(TableColumnCore.ALIGN_LEAD, 

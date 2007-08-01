@@ -36,8 +36,9 @@ import com.aelitis.azureus.ui.common.table.impl.TableColumnImpl;
  *
  * @author Olivier
  * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
+ * @deprecated
  */
-/** Link the old PluginMyTorrentsItemFactory to the new generic stuff */
+// Link the old PluginMyTorrentsItemFactory to the new generic stuff
 public class OldPeerPluginItem
        extends TableColumnImpl
        implements TableCellAddedListener
@@ -59,6 +60,9 @@ public class OldPeerPluginItem
     new Cell(cell);
   }
 
+  /**
+   * @deprecated
+   */
   private class Cell
           implements TableCellRefreshListener, PeerTableItem
   {

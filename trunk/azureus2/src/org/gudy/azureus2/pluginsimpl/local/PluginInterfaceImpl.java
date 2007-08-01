@@ -173,6 +173,9 @@ PluginInterfaceImpl
 	}
 	
 
+	/**
+	 * @deprecated
+	 */
   public void addView(PluginView view)
   {
     getUIManager().getSWTManager().addView(view);
