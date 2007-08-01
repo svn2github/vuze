@@ -987,12 +987,7 @@ TRTrackerServerTorrentImpl
 					 this_peer.setBiased( biased );
 					 
 					 if ( biased ){
-						 
-						 if ( this_peer.isIPOverride()){
-							 
-							 Debug.out( "IPOverride peer set to biased!!!!" );
-						 }
-						 
+						 						 
 						 if ( !biased_peers.contains( this_peer )){
 							 
 							 biased_peers.add( this_peer );
