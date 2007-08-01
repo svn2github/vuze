@@ -2035,12 +2035,35 @@ DHTTrackerPlugin
 	}
  
 	public void
+	announceAll()
+	{
+		log.log( "Announce-all requested" );
+		
+		Long now = new Long( SystemTime.getCurrentTime());
+		
+		try{
+			this_mon.enter();
+
+			Iterator it = query_map.entrySet().iterator();
+			
+			while( it.hasNext()){
+				
+				Map.Entry	entry = (Map.Entry)it.next();
+				
+				entry.setValue( now );
+			}
+		}finally{
+			
+			this_mon.exit();
+		}		
+	}
+	
+	public void
 	positionChanged(
 		Download		download, 
 		int 			oldPosition,
 		int 			newPosition )
 	{
-		
 	}
 	
 	protected void

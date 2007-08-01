@@ -38,6 +38,8 @@ import org.gudy.azureus2.core3.ipfilter.IpFilterManager;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.security.SESecurityManager;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponse;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
@@ -65,6 +67,7 @@ import com.aelitis.azureus.core.speedmanager.SpeedManagerAdapter;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerFactory;
 import com.aelitis.azureus.core.update.AzureusRestarterFactory;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
+import com.aelitis.azureus.plugins.tracker.dht.DHTTrackerPlugin;
 
 /**
  * @author parg
@@ -78,6 +81,8 @@ AzureusCoreImpl
 	private final static LogIDs LOGID = LogIDs.CORE;
 	protected static AzureusCore		singleton;
 	protected static AEMonitor			class_mon	= new AEMonitor( "AzureusCore:class" );
+	
+	private static final String DM_ANNOUNCE_KEY	= "AzureusCore:announce_key";
 	
 	public static AzureusCore
 	create()
@@ -128,6 +133,9 @@ AzureusCoreImpl
 	private CryptoManager		crypto_manager;
 	private NATTraverser		nat_traverser;
 	
+	private long create_time = SystemTime.getCurrentTime();
+
+
 	private boolean				started;
 	private boolean				stopped;
 	private List				listeners				= new ArrayList();
@@ -409,11 +417,37 @@ AzureusCoreImpl
 			
 			List	downloads = gm.getDownloadManagers();
 			
+			long now	= SystemTime.getCurrentTime();
+
 			for (int i=0;i<downloads.size();i++){
 				
-				((DownloadManager)downloads.get(i)).requestTrackerAnnounce( true );
+				DownloadManager	dm = (DownloadManager)downloads.get(i);
+				
+				Long	last_announce_l = (Long)dm.getData( DM_ANNOUNCE_KEY );
+				
+				long	last_announce	= last_announce_l==null?create_time:last_announce_l.longValue();
+				
+				TRTrackerAnnouncer an = dm.getTrackerClient();
+				
+				TRTrackerAnnouncerResponse last_announce_response = an==null?null:an.getLastResponse();
+				
+				if ( 	now - last_announce > 15*60*1000 ||
+						last_announce_response == null ||
+						last_announce_response.getStatus() == TRTrackerAnnouncerResponse.ST_OFFLINE ){
+
+					dm.setData( DM_ANNOUNCE_KEY, new Long( now ));
+					
+					dm.requestTrackerAnnounce( true );
+				}
 			}
 		}
+		
+	    PluginInterface dht_tracker_pi = getPluginManager().getPluginInterfaceByClass( DHTTrackerPlugin.class );
+
+	    if ( dht_tracker_pi != null ){
+	    	
+	    	((DHTTrackerPlugin)dht_tracker_pi.getPlugin()).announceAll();
+	    }
 	}
 	
 	public LocaleUtil
@@ -603,8 +637,6 @@ AzureusCoreImpl
 	   na.addPropertyChangeListener(
 			   new NetworkAdminPropertyChangeListener()
 			   {
-				   private long last_network_change = SystemTime.getCurrentTime();
-
 				   public void
 				   propertyChanged(
 						   String		property )
@@ -637,25 +669,9 @@ AzureusCoreImpl
 							   return;
 						   }
 						   
-						   long now	= SystemTime.getCurrentTime();
+						   Logger.log(	new LogEvent(LOGID, "Network interfaces have changed, updating trackers"));
 
-						   	// don't pick up "change" on first time through. rate limit in case of
-						   	// some network madness
-
-						   if ( now - last_network_change > 15*60*1000 ){
-
-							   Logger.log(	new LogEvent(LOGID,
-									   "Network interfaces have changed, updating trackers"));
-
-							   announceAll();
-
-							   last_network_change	= now;
-
-						   }else{
-
-							   Logger.log(new LogEvent(LOGID, "Network interfaces have changed, "
-									   + "not updating trackers as too soon after previous change"));
-						   }
+						   announceAll();
 					   }
 				   }
 			   });
