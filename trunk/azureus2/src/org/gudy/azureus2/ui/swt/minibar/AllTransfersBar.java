@@ -80,11 +80,11 @@ public class AllTransfersBar extends MiniBar {
 
 		// Download speed.
 		this.createFixedTextLabel("ConfigView.download.abbreviated", false, false);
-		this.down_speed = this.createDataLabel(getDataLabelWidth());
+		this.down_speed = this.createSpeedLabel();
 		
 		// Upload speed.
 		this.createFixedTextLabel("ConfigView.upload.abbreviated", false, false);
-		this.up_speed = this.createDataLabel(getDataLabelWidth());
+		this.up_speed = this.createSpeedLabel();
 	}
 	
 	public void buildMenu(Menu menu) {
@@ -139,15 +139,8 @@ public class AllTransfersBar extends MiniBar {
 	
 	protected void refresh0() {
 		GlobalManagerStats stats = g_manager.getStats();
-		
-		if ( isSeparateDataProt()){
-		   	this.down_speed.setText(DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(stats.getDataReceiveRate(),stats.getProtocolReceiveRate()));
-	    	this.up_speed.setText(DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(stats.getDataSendRate(),stats.getProtocolSendRate()));
-
-		}else{
-	    	this.down_speed.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDataReceiveRate()));
-	    	this.up_speed.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDataSendRate()));
-		}
+		this.updateSpeedLabel(down_speed, stats.getDataReceiveRate(),stats.getProtocolReceiveRate());
+		this.updateSpeedLabel(up_speed, stats.getDataSendRate(),stats.getProtocolSendRate());
 	}
 	
 	public String getPluginMenuIdentifier(Object context) {

@@ -91,11 +91,11 @@ public class DownloadBar extends MiniBar {
 		
 		// Download speed.
 		this.createFixedTextLabel("ConfigView.download.abbreviated", false, false);
-		this.down_speed = this.createDataLabel(getDataLabelWidth());
+		this.down_speed = this.createSpeedLabel();
 		
 		// Upload speed.
 		this.createFixedTextLabel("ConfigView.upload.abbreviated", false, false);
-		this.up_speed = this.createDataLabel(getDataLabelWidth());
+		this.up_speed = this.createSpeedLabel();
 		
 		// ETA.
 		this.createFixedTextLabel("MyTorrentsView.eta", true, false);
@@ -137,15 +137,9 @@ public class DownloadBar extends MiniBar {
         download_name.setText(download.getDisplayName());
         int percent = stats.getCompleted();
         
-		if ( isSeparateDataProt()){
-		   	this.down_speed.setText(DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(stats.getDataReceiveRate(),stats.getProtocolReceiveRate()));
-	    	this.up_speed.setText(DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(stats.getDataSendRate(),stats.getProtocolSendRate()));
-
-		}else{
-	    	this.down_speed.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDataReceiveRate()));
-	    	this.up_speed.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDataSendRate()));
-		}
-		
+        this.updateSpeedLabel(down_speed, stats.getDataReceiveRate(), stats.getProtocolReceiveRate());
+        this.updateSpeedLabel(up_speed, stats.getDataSendRate(), stats.getProtocolSendRate());
+        
         eta.setText(DisplayFormatters.formatETA(stats.getETA()));
         if (progress_bar.getSelection() != percent) {
         	progress_bar.setSelection(percent);

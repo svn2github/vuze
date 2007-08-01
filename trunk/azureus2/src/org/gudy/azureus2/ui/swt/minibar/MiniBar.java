@@ -151,9 +151,9 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	    this.xSize += result.getSize().x + 3;
 	}
 	
-	protected final Label createDataLabel(int width) {
+	protected final Label createDataLabel(int width, boolean centered) {
 		assertConstructing();
-	    Label result = new Label(splash, SWT.CENTER);
+	    Label result = new Label(splash, (centered ? SWT.CENTER : SWT.NULL));
 	    result.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
 	    result.setText("");
 	    result.addMouseListener(this.mListener);
@@ -166,6 +166,23 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	    result.setMenu(this.menu);
 	    this.xSize += width + 3;
 	    return result;
+	}
+
+	protected final Label createDataLabel(int width) {
+		return createDataLabel(width, false);
+	}
+
+	protected final Label createSpeedLabel() {
+		return createDataLabel(separateDataProt ? 110 : 65, separateDataProt); 
+	}
+	
+	protected void updateSpeedLabel(Label label, long data_rate, long protocol_rate) {
+		if (separateDataProt) {
+			label.setText(DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(data_rate, protocol_rate));
+		}
+		else {
+			label.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(data_rate));
+		}
 	}
 	
 	protected final ProgressBar createProgressBar(int min, int max, int width, final ProgressBarText pbt) {
@@ -207,25 +224,6 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 				return DisplayFormatters.formatPercentFromThousands(value);
 			}
 		});
-	}
-	
-	protected int
-	getDataLabelWidth()
-	{
-		if ( separateDataProt ){
-			
-			return( 110 );
-			
-		}else{
-			
-			return( 65 );
-		}
-	}
-	
-	protected boolean
-	isSeparateDataProt()
-	{
-		return( separateDataProt );
 	}
 	
 	protected static interface ProgressBarText {
