@@ -43,7 +43,7 @@ public class
 DisplayFormatters
 {
 	final private static boolean ROUND_NO = true;
-	final private static boolean ROUND_YES = false;
+	//final private static boolean ROUND_YES = false;
 	final private static boolean TRUNCZEROS_NO = false;
 	final private static boolean TRUNCZEROS_YES = true;
 	
