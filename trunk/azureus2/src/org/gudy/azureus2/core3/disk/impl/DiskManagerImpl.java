@@ -1864,8 +1864,34 @@ DiskManagerImpl
             			// subpath includes the old dir name, replace this with new
             		
             		int	pos = sub_path.indexOf( File.separator );
-            		
-            		String	new_path = new_name + (pos==-1?"":sub_path.substring( pos ));
+            		String	new_path;
+            		if (pos == -1) {
+            			new_path = new_name;
+            		}
+            		else {
+            			// Assertion check.
+            			String sub_sub_path = sub_path.substring(pos);
+            			String expected_old_name = sub_path.substring(0, pos);
+            			new_path = new_name + sub_sub_path;
+            			boolean assert_expected_old_name = expected_old_name.equals(save_location.getName());
+            			if (!assert_expected_old_name) {
+            				Debug.out("Assertion check for renaming file in multi-name torrent " + (assert_expected_old_name ? "passed" : "failed") + "\n" +
+            						"  Old parent path: " + old_parent_path + "\n" +
+            						"  Subpath: " + sub_path + "\n" +
+            						"  Sub-subpath: " + sub_sub_path + "\n" +
+            						"  Expected old name: " + expected_old_name + "\n" +
+            						"  Torrent pre-move name: " + save_location.getName() + "\n" +
+            						"  New torrent name: " + new_name + "\n" +
+            						"  Old file: " + old_file + "\n" +
+            						"  Linked file: " + linked_file + "\n" +
+            						"\n" +
+            						"  Move-to-dir: " + move_to_dir + "\n" +
+            						"  New path: " + new_path + "\n" +
+            						"  Old file [name]: " + old_file.getName() + "\n"
+            						);
+            			}
+            		}
+            			
             		
                    	new_file = new File( new File( move_to_dir, new_path ), old_file.getName());
             	}
