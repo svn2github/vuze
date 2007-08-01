@@ -97,6 +97,12 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 
 		new BooleanParameter(cDisplay, "Open Details", LBLKEY_PREFIX
 				+ "opendetails");
+
+		/**
+		 * Old-style speed menus.
+		 */
+		new BooleanParameter(cDisplay, "GUI_SWT_bOldSpeedMenu", LBLKEY_PREFIX
+				+ "use_old_speed_menus");
 		
 		Composite cBars = new Composite(cDisplay, SWT.NULL);
 		layout = new GridLayout();
