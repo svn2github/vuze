@@ -457,7 +457,7 @@ public class FilesView
 	}
 	
 	
-  protected void
+  private void
   changePriority(
 	  int				type ,
 	  TableRowCore[]	rows )
@@ -509,7 +509,7 @@ public class FilesView
 		}
   }
   
-  protected boolean
+  private boolean
   setSkipped(
 	 DiskManagerFileInfo	info,
 	 boolean				skipped,
