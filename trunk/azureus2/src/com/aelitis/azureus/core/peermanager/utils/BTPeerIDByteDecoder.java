@@ -435,6 +435,7 @@ public class BTPeerIDByteDecoder {
 		
 		// Version substring style clients.
 		System.out.println("Testing versioned substring clients...");
+		assertDecode("Bitlet 0.1", "4269744C657430319AEA4E02A09E318D70CCF47D");
 		assertDecode("BitsOnWheels", "-BOWP05-EPICNZOGQPHP"); // Seen in the wild - no idea what version that's meant to be - a pre-release?
 		assertDecode("Burst! 1.1.3", "Mbrst1-1-32e3c394b43");
 		assertDecode("Opera (Build 7685)", "OP7685f2c1495b1680bf");

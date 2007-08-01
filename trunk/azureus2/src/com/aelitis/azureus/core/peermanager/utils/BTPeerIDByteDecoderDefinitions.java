@@ -199,6 +199,7 @@ public class BTPeerIDByteDecoderDefinitions {
 	 *  http://transmission.m0k.org/trac/browser/trunk/libtransmission/clients.c (hello Transmission authors!) :)
 	 *  http://rufus.cvs.sourceforge.net/rufus/Rufus/g3peerid.py?view=log (for older clients)
 	 *  http://shareaza.svn.sourceforge.net/viewvc/shareaza/trunk/shareaza/BTClient.cpp?view=markup
+	 *  http://libtorrent.rakshasa.no/browser/trunk/libtorrent/src/torrent/peer/client_list.cc
 	 *  
 	 * By default - if you are unsure about a client's versioning scheme, you should
 	 * register it without passing an explicit value.
@@ -347,6 +348,9 @@ public class BTPeerIDByteDecoderDefinitions {
 		
 		client = addSimpleClient("MLdonkey", "-ML");
 		addVersionedClient(client, VER_DOTTED_BLOCK, 5);
+		
+		client = addSimpleClient("Bitlet", "BitLet");
+		addVersionedClient(client, VER_BYTE_BLOCK_DOTTED_CHAR, 2);
 		
 		client = addSimpleClient("BTuga Revolution", "BTM");
 		addVersionedClient(client, VER_BYTE_BLOCK_DOTTED_CHAR, 2);
