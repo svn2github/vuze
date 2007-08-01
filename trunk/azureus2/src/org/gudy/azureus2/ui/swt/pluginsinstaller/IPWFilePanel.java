@@ -105,6 +105,7 @@ public class IPWFilePanel extends AbstractWizardPanel {
   
   private void checkValidFile() {
     String fileName = txtFile.getText();
+    String error_message = null;
     try {
       File f = new File(fileName);
       if(f.exists() && (f.getName().endsWith(".jar") || f.getName().endsWith(".zip")) ) {
@@ -116,14 +117,19 @@ public class IPWFilePanel extends AbstractWizardPanel {
         ((InstallPluginWizard)wizard).plugins = list;
         valid = true;
         return;
-      }           
+      }
+    } catch (org.gudy.azureus2.plugins.PluginException e) {
+    	error_message = e.getMessage();
+    	Debug.printStackTrace(e);
     } catch(Exception e) {    
-    	
+    	error_message = null;
     	Debug.printStackTrace(e);
     }
     valid = false;
     if (!fileName.equals("")) {
-    	wizard.setErrorMessage(MessageText.getString("installPluginsWizard.file.invalidfile"));
+    	String error_message_full = MessageText.getString("installPluginsWizard.file.invalidfile");
+    	if (error_message != null) {error_message_full += " (" + error_message + ")";}
+    	wizard.setErrorMessage(error_message_full);
     	wizard.setNextEnabled(false);
     }
   }
