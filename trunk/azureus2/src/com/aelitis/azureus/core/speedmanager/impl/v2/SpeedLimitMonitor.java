@@ -102,6 +102,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
     private long uploadAtLimitStartTime =SystemTime.getCurrentTime();
     private long downloadAtLimitStartTime = SystemTime.getCurrentTime();
     private int uploadChokePingCount = 1;
+    private int uploadPinCounter = 0;
 
     private static final long TIME_AT_LIMIT_BEFORE_UNPINNING = 30 * 1000; //30 seconds.
 
@@ -523,11 +524,15 @@ public class SpeedLimitMonitor implements PSMonitorListener
 
 
         if(updateUpload && !transferMode.isDownloadMode() ){
-            //increase limit by calculated amount, but only if not in downloading mode.
-            uploadLimitMax += calculateUnpinnedStepSize(uploadLimitMax);
-            uploadChanged=true;
-            COConfigurationManager.setParameter(
-                    SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT, uploadLimitMax);
+            //slow the upload rate the more.
+            uploadPinCounter++;
+            if( uploadPinCounter%(Math.ceil(Math.sqrt(uploadChokePingCount)))==0 ){
+                //increase limit by calculated amount, but only if not in downloading mode.
+                uploadLimitMax += calculateUnpinnedStepSize(uploadLimitMax);
+                uploadChanged=true;
+                COConfigurationManager.setParameter(
+                        SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT, uploadLimitMax);
+            }//if
         }
         if(updateDownload && !slider.isDownloadUnlimitedMode() ){
             //increase limit by calculated amount.
