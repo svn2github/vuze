@@ -198,7 +198,7 @@ AzureusCoreImpl
 							Logger.log(new LogEvent(LOGID, "Platform manager requested resume"));
 						}
 						
-						announceAll();
+						announceAll( true );
 					}
 				}
 			});
@@ -409,8 +409,11 @@ AzureusCoreImpl
 	}
 	
 	protected void
-	announceAll()
+	announceAll(
+		boolean	force )
 	{
+		Logger.log(	new LogEvent(LOGID, "Updating trackers" ));
+
 		GlobalManager gm = getGlobalManager();
 		
 		if ( gm != null ){
@@ -429,15 +432,21 @@ AzureusCoreImpl
 				
 				TRTrackerAnnouncer an = dm.getTrackerClient();
 				
-				TRTrackerAnnouncerResponse last_announce_response = an==null?null:an.getLastResponse();
-				
-				if ( 	now - last_announce > 15*60*1000 ||
-						last_announce_response == null ||
-						last_announce_response.getStatus() == TRTrackerAnnouncerResponse.ST_OFFLINE ){
-
-					dm.setData( DM_ANNOUNCE_KEY, new Long( now ));
+				if ( an != null ){
 					
-					dm.requestTrackerAnnounce( true );
+					TRTrackerAnnouncerResponse last_announce_response = an.getLastResponse();
+					
+					if ( 	now - last_announce > 15*60*1000 ||
+							last_announce_response == null ||
+							last_announce_response.getStatus() == TRTrackerAnnouncerResponse.ST_OFFLINE ||
+							force ){
+	
+						dm.setData( DM_ANNOUNCE_KEY, new Long( now ));
+						
+						Logger.log(	new LogEvent(LOGID, "    updating tracker for " + dm.getDisplayName()));
+	
+						dm.requestTrackerAnnounce( true );
+					}
 				}
 			}
 		}
@@ -669,9 +678,9 @@ AzureusCoreImpl
 							   return;
 						   }
 						   
-						   Logger.log(	new LogEvent(LOGID, "Network interfaces have changed, updating trackers"));
+						   Logger.log(	new LogEvent(LOGID, "Network interfaces have changed (new=" + na.getNetworkInterfacesAsString() + ")"));
 
-						   announceAll();
+						   announceAll( false );
 					   }
 				   }
 			   });
