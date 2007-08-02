@@ -9,7 +9,6 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.ui.swt.config.StringListParameter;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
@@ -19,10 +18,6 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTesterResult;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
-import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedLimitConfidence;
-import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedLimitMonitor;
-import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedManagerAlgorithmProviderV2;
-
 
 /**
  * Created on May 1, 2007
@@ -58,9 +53,11 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
     Text uploadText;
     Button apply;
 
-    StringListParameter downConfLevel;
-    StringListParameter upConfLevel;
+    Combo downConfLevelCombo;
+    Combo upConfLevelCombo;
 
+    SpeedManager speedManager;
+    TransferStatsView.limitToTextHelper helper;
 
 
     public SpeedTestSetLimitPanel(Wizard wizard, IWizardPanel previousPanel, int upload, long maxup, int download, long maxdown) {
@@ -80,6 +77,8 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
             downloadTestRan = false;
         }
 
+        speedManager = AzureusCoreFactory.getSingleton().getSpeedManager();
+        helper = new TransferStatsView.limitToTextHelper();
     }
 
     /**
@@ -153,9 +152,7 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
         gridData.widthHint=80;
         uploadLimitSetting.setLayoutData(gridData);
 
-        int uploadCapacity = determineRateSetting(measuredUploadKbps,uploadTestRan,
-                SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT,
-                SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING);
+        int uploadCapacity = determineRateSettingEx(measuredUploadKbps,uploadTestRan,true);
 
         //don't accept any value less the 20 kb/s
         if(uploadCapacity<20)
@@ -177,25 +174,15 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
         //want a change listener to update the echo label which has the value in bits/sec.
         uploadLimitSetting.addListener(SWT.Modify, new ByteConversionListener(echo,uploadLimitSetting));
 
-        final TransferStatsView.limitToTextHelper	limit_to_text = new TransferStatsView.limitToTextHelper();
-
-        //download confidence setting.
-
-        //ToDo: Set the speed-manager with these "limit estimate" types but not the COConfigManger settings.
-        String[] confName = limit_to_text.getSettableTypes();
-
-        String[] confValue = limit_to_text.getSettableTypes();
+        //confidence setting.
+        final String[] confName = helper.getSettableTypes();
+        final String[] confValue = helper.getSettableTypes();
 
         //upload confidence setting.
-        String upDefaultConfidenceLevel = setDefaultConfidenceLevel(measuredUploadKbps
-                    ,SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING,uploadTestRan);
-
-        upConfLevel = new StringListParameter(panel,
-                SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING,
-                upDefaultConfidenceLevel,
-                confName, confValue, true);
-        upConfLevel.setValue( upDefaultConfidenceLevel );
-
+        int uploadDropIndex = setDefaultConfidenceLevelEx(measuredUploadKbps,uploadTestRan,true,confValue);
+        upConfLevelCombo = new Combo(panel, SWT.READ_ONLY );
+        addDropElements(upConfLevelCombo,confName);
+        upConfLevelCombo.select(uploadDropIndex);
 
 
         //download limit label.
@@ -212,9 +199,7 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
         gridData.widthHint=80;
         downloadLimitSetting.setLayoutData(gridData);
 
-        int bestDownloadSetting = determineRateSetting(measuredDownloadKbps,downloadTestRan,
-                SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT,
-                SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING);
+        int bestDownloadSetting = determineRateSettingEx(measuredDownloadKbps,downloadTestRan,false);
 
         downloadLimitSetting.setText( ""+bestDownloadSetting );
         downloadLimitSetting.addListener(SWT.Verify, new NumberListener(downloadLimitSetting) );
@@ -229,16 +214,11 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
 
         //convert bytes to bits on the fly for user.
         downloadLimitSetting.addListener(SWT.Modify, new ByteConversionListener(downEcho, downloadLimitSetting) );
+        int downIndex = setDefaultConfidenceLevelEx(measuredDownloadKbps,downloadTestRan,false,confValue);
 
-        String downDefaultConfidenceLevel = setDefaultConfidenceLevel(measuredDownloadKbps
-                    ,SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING,downloadTestRan);
-
-        downConfLevel = new StringListParameter(panel,
-                SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING,
-                downDefaultConfidenceLevel,
-                confName, confValue,true);
-        downConfLevel.setValue( downDefaultConfidenceLevel );
-
+        downConfLevelCombo = new Combo(panel, SWT.READ_ONLY );
+        addDropElements(downConfLevelCombo,confName);
+        downConfLevelCombo.select(downIndex);
 
         //spacer col
         Label c1 = new Label(panel, SWT.NULL);
@@ -247,13 +227,11 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
         gridData.widthHint = 80;
         c1.setLayoutData(gridData);
 
-
         SpeedManager sm = AzureusCoreFactory.getSingleton().getSpeedManager();
 
         if ( uploadTestRan ){
 
-            //ToDo: cable modem might over-estimate speed. Might need to drop result accordingly.
-
+            //Since cable modems can over estimate upload need to drop type setting to estimate.
             sm.setEstimatedUploadCapacityBytesPerSec(
         			measuredUploadKbps*1024,
         			uploadHitLimit?
@@ -290,19 +268,23 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
                 }
 
                 //set upload limits
-                COConfigurationManager.setParameter( "AutoSpeed Max Upload KBs", uploadLimitKBPS ); //ToDo: does this go in TransferSpeedValidator?
+                COConfigurationManager.setParameter( "AutoSpeed Max Upload KBs", uploadLimitKBPS );
                 COConfigurationManager.setParameter( TransferSpeedValidator.UPLOAD_CONFIGKEY, uploadLimitKBPS );
                 COConfigurationManager.setParameter( TransferSpeedValidator.UPLOAD_SEEDING_CONFIGKEY , uploadLimitKBPS );
+                // - Do we set these?
+                //COConfigurationManager.setParameter( TransferSpeedValidator.DOWNLOAD_CONFIGKEY, downlaodLimitKBPS );
 
-                //provide the linkage to Auto-Speed V2 configuration settings.
-                //COConfigurationManager.setParameter(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT, uploadLimitKBPS*1024);
-                //COConfigurationManager.setParameter(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT, downlaodLimitKBPS*1024);
-                //ToDo: these setting now arrive via speed manager. test implications.
-                //String downConfValue = downConfLevel.getValue();
-                //String upConfValue = upConfLevel.getValue();
-                //COConfigurationManager.setParameter( SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING, downConfValue );
-                //COConfigurationManager.setParameter( SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING, upConfValue );
-                		
+                if(downloadTestRan){
+                    int dIndex = downConfLevelCombo.getSelectionIndex();
+                    float downEstType = helper.textToType( confValue[dIndex] );
+                    speedManager.setEstimatedUploadCapacityBytesPerSec( downlaodLimitKBPS , downEstType );
+                }
+                if(uploadTestRan){
+                    int uIndex = upConfLevelCombo.getSelectionIndex();
+                    float upEstType = helper.textToType( confValue[uIndex] );
+                    speedManager.setEstimatedUploadCapacityBytesPerSec( uploadLimitKBPS , upEstType );
+                }
+
                 wizard.setFinishEnabled(true);
                 wizard.setPreviousEnabled(false);
             }
@@ -355,56 +337,68 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
 
     }//show
 
+    private void addDropElements(Combo combo, String[] elements){
+        if(elements==null){
+            return;
+        }
+
+        int n = elements.length;
+        for(int i=0;i<n;i++){
+            combo.add(elements[i]);
+        }
+    }//
+
     /**
-     * Set the default Confidence setting to medium, unless the value is close to 500 KBytes/sec.
      *
-     * Note: This had to drop confidence down to medium, since upload rates can be over-estimated.
-     *
-     * In this case it is very possible that the real limit is higher.
-     * @param transferRateKBPS - in kBytes/sec
-     * @param paramName - configuration param to set.
-     * @param testRan - Was this type of test ran?
-     * @return - String - Estimated | Measured | Manual
-//     * @return - String -  Absolute | High | Med | Low | None
+     * @param transferRateKBPS -
+     * @param testRan -
+     * @param isUpload -
+     * @param values -
+     * @return - index of dropdown that matches or -1 to indicate no match.
      */
-    private static String setDefaultConfidenceLevel(int transferRateKBPS, String paramName, boolean testRan){
+    private int setDefaultConfidenceLevelEx(int transferRateKBPS, boolean testRan, boolean isUpload, String[] values){
 
-        //Need to over-ride the parameter.
-        String prevSetting = COConfigurationManager.getStringParameter(paramName,
-                SpeedLimitConfidence.LOW.getString() );
+        float retValType;
+        SpeedManagerLimitEstimate est;
+        if(isUpload){
+            est = speedManager.getEstimatedUploadCapacityBytesPerSec();
+        }else{
+            est = speedManager.getEstimatedDownloadCapacityBytesPerSec();
+        }
+        float originalEstType = est.getEstimateType();
 
-        //if it was previous set to ABSOLUTE then leave it alone.
-        if( prevSetting.equalsIgnoreCase( SpeedLimitConfidence.ABSOLUTE.getString() ) )
-        {
-            return SpeedLimitConfidence.asEstimateTypeString( SpeedManagerLimitEstimate.TYPE_MANUAL );
-            //return prevSetting;
+        //if it was previous Fixed leave it alone.
+        if( originalEstType==SpeedManagerLimitEstimate.TYPE_MANUAL ){
+            retValType = originalEstType;
+        }else if( !testRan ){
+            //if no test was run leave then confidence level alone.
+            retValType = originalEstType;
+        }else if( isUpload ){
+            //Since cable modems can burst data, need to downgrade rating for uploads (unfortunately)
+            retValType = SpeedManagerLimitEstimate.TYPE_ESTIMATED;
+        }else if( transferRateKBPS < 550 && transferRateKBPS > 450 ){
+            retValType = SpeedManagerLimitEstimate.TYPE_ESTIMATED;
+        }else{
+            //Otherwise we can rate result as measured.
+            retValType = SpeedManagerLimitEstimate.TYPE_MEASURED;
         }
 
-        //if no test was run then leave the confidence level alone.
-        if( !testRan ){
-            //return prevSetting;
-            return SpeedLimitConfidence.asEstimateTypeString(
-                    SpeedLimitConfidence.parseString(prevSetting).asEstimateType() );
+        String cType = helper.typeToText(retValType);
+
+        //find the index for this string.
+        if(cType==null){
+            return -1;
         }
 
+        for(int i=0; i<values.length;i++){
+            if( cType.equalsIgnoreCase( values[i] ) ){
+                return i;
+            }
+        }
 
-        //Since cable modems can bust data through long enough for a SpeedTest limits are only estimates.
-        return SpeedLimitConfidence.asEstimateTypeString( SpeedManagerLimitEstimate.TYPE_ESTIMATED );
+        return -1;
+    }//setDef
 
-        //if the transfer rate is near limit it is less likely to be the true limit.
-        //decide here if we should have low setting.
-        //ToDo: these limits shouldn't be hard coded since the Service can change at any time.
-//        if( transferRateKBPS < 550 && transferRateKBPS > 450 ){
-//
-//            //set to low, when near limit and previous not set to ABSOLUTE
-//            COConfigurationManager.setParameter( paramName, SpeedLimitConfidence.LOW.getString() );
-//            return SpeedLimitConfidence.LOW.getString();
-//        }
-//
-//        //In all other cases set to MED. This will allow for lowering of the limits if a chocking ping is found.
-//        COConfigurationManager.setParameter( paramName, SpeedLimitConfidence.MED.getString() );
-//        return SpeedLimitConfidence.MED.getString();
-    }
 
     /**
      * Create a label for the test. The layout is assumed to be five across. If an error
@@ -507,42 +501,27 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
 
     }
 
-    
-    /**
-     *
-     * @param measuredRate - upload or download rate measured by speed test.
-     * @param testRan - was this test upload/download ran?
-     * @param maxSettingParamName - ex. SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT
-     * @param confSettingParamName - ex. SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING
-     * @return - recommended rate.
-     */
-    public static int determineRateSetting(int measuredRate, boolean testRan,
-                                String maxSettingParamName , String confSettingParamName)
+
+    public int determineRateSettingEx(int measuredRate, boolean testRan, boolean isUpload)
     {
         int retVal = measuredRate;
 
-        //get AutoSpeedV2 download setting.
-        int autoSpeedV2Limit = COConfigurationManager.getIntParameter(
-                maxSettingParamName )/1024;
+        //get speed-manager setting.
+        SpeedManagerLimitEstimate est;
+        if( isUpload ){
+            est = speedManager.getEstimatedUploadCapacityBytesPerSec();
+        }else{
+            est = speedManager.getEstimatedDownloadCapacityBytesPerSec();
+        }
 
-        //Use a low value to indicate the download test was NOT run.
+        //Use previous value if no test of this type ran.
         if( !testRan ){
-            retVal = autoSpeedV2Limit;
+            retVal = est.getBytesPerSec()/1024;
         }
 
-        //Need to over-ride the parameter.
-        String downConf = COConfigurationManager.getStringParameter(confSettingParamName,
-                SpeedLimitConfidence.LOW.getString() );
-
-        //if it was previous set to ABSOLUTE then leave it alone.
-        if( downConf.equalsIgnoreCase( SpeedLimitConfidence.ABSOLUTE.getString() ) )
-        {
-            retVal= autoSpeedV2Limit;
-        }
-
-        //The result cannot be less then 20 kbytes/sec.
-        if(retVal < 20 ){
-            retVal = 20;
+        //if the previous set to Manually use that value.
+        if( est.getEstimateType()==SpeedManagerLimitEstimate.TYPE_MANUAL ){
+            retVal = est.getBytesPerSec()/1024;
         }
 
         return retVal;
