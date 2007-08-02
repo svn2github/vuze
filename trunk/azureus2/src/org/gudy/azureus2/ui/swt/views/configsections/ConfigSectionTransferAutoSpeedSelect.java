@@ -588,6 +588,6 @@ public class ConfigSectionTransferAutoSpeedSelect
     	TransferStatsView.limitToTextHelper		helper,
     	long 									value )
     {
-    	return("(="+(value==0?helper.getUnlimited():DisplayFormatters.formatByteCountToBitsPerSec( value ))+")" );
+    	return("("+(value==0?helper.getUnlimited():DisplayFormatters.formatByteCountToBitsPerSec( value ))+")" );
     }
 }
