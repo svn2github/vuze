@@ -1167,6 +1167,12 @@ public class TransferStatsView extends AbstractIView {
 			  return( DisplayFormatters.formatByteCountToKiBEtcPerSec( l ) + " (" + text + ")");
 		  }
 	  }
+	  
+	  public String
+	  getUnlimited()
+	  {
+		  return( msg_unlimited );
+	  }
   }
 }
 
