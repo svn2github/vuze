@@ -149,13 +149,11 @@ public class ConfigSectionTransferAutoSpeedSelect
         String[] modeNames = {
                 "Auto-Speed (classic)",
                 "Auto-Speed (beta)",
-                "Auto-Speed (beta new pm)",
-                                      };
+               };
         
         String[] modes = {
                 "1",
                 "2",
-                "3",
         };
 
         //versionList = new StringListParameter(modeGroup,
@@ -170,9 +168,6 @@ public class ConfigSectionTransferAutoSpeedSelect
         }else if( verNum==2 ){
             //SpeedManagerAlgorithmProviderV2
             versionList.setValue(modes[1]);
-        }else if( verNum==5 ){
-            //SpeedManagerAlgorithmProviderV2
-            versionList.setValue(modes[2]);
         }else{
             //Default is currently version ...V1.
             versionList.setValue(modes[0]);
