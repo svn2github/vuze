@@ -25,6 +25,8 @@ package org.gudy.azureus2.ui.swt.speedtest;
 
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -38,6 +40,9 @@ import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.WizardListener;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestScheduledTest;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestScheduledTestListener;
@@ -109,6 +114,44 @@ SpeedTestPanel
         GridData gridData = new GridData(GridData.FILL_BOTH);
 		panel.setLayoutData(gridData);
 
+        /////////////////////////////////////////
+        //Add group to link to Azureus Wiki page.
+        /////////////////////////////////////////
+        Group azWiki = new Group(panel, SWT.WRAP);
+        GridData azwGridData = new GridData();
+        azwGridData.widthHint = 350;
+        azwGridData.horizontalSpan = 4; 
+        azWiki.setLayoutData(azwGridData);
+        GridLayout azwLayout = new GridLayout();
+        azwLayout.numColumns = 1;
+        //azwLayout.marginHeight = 1;
+        azWiki.setLayout(azwLayout);
+
+        azWiki.setText(MessageText.getString("Utils.link.visit"));
+
+        final Label linkLabel = new Label(azWiki, SWT.NULL);
+        linkLabel.setText( "Azureus Wiki Speed Test" );
+        linkLabel.setData("http://azureus.aelitis.com/wiki/index.php/Speed_Test_FAQ");
+        linkLabel.setCursor(Cursors.handCursor);
+        linkLabel.setForeground(Colors.blue);
+        azwGridData = new GridData();
+        azwGridData.horizontalIndent = 10;
+        linkLabel.setLayoutData( azwGridData );
+	    linkLabel.addMouseListener(new MouseAdapter() {
+	      public void mouseDoubleClick(MouseEvent arg0) {
+	      	Utils.launch((String) ((Label) arg0.widget).getData());
+	      }
+	      public void mouseUp(MouseEvent arg0) {
+	      	Utils.launch((String) ((Label) arg0.widget).getData());
+	      }
+	    });
+
+        //space line
+        Label spacer = new Label(panel, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan = 4;
+        spacer.setLayoutData(gridData);
+
         //label explain section.
         layout = new GridLayout();
         layout.numColumns = 4;
@@ -119,9 +162,10 @@ SpeedTestPanel
         gridData.horizontalSpan = 4;
         explain.setLayoutData(gridData);
         Messages.setLanguageText(explain,"SpeedTestWizard.test.panel.explain");
+                
 
         //space line
-        Label spacer = new Label(panel, SWT.NULL);
+        spacer = new Label(panel, SWT.NULL);
         gridData = new GridData();
         gridData.horizontalSpan = 4;
         spacer.setLayoutData(gridData);
@@ -403,12 +447,8 @@ SpeedTestPanel
                         textMessages.append(uploadSpeedStr+" " + DisplayFormatters.formatByteCountToKiBEtcPerSec(result.getUploadSpeed()) + Text.DELIMITER);
 			            textMessages.append(downlaodSpeedStr+" " + DisplayFormatters.formatByteCountToKiBEtcPerSec(result.getDownloadSpeed()) + Text.DELIMITER);
 
-			            
-                        if( result.getTest().getMode() == NetworkAdminSpeedTester.TEST_TYPE_DOWNLOAD_ONLY ){
-                            //only the combined test will allow the next step.
-                        }else{
-                            wizard.setNextEnabled(true);
-                        }
+                        wizard.setNextEnabled(true);
+
                         abort.setEnabled(false);
                         test.setEnabled(true);
                         encryptToggle.setEnabled(true);
@@ -620,7 +660,7 @@ SpeedTestPanel
 
     public boolean isNextEnabled(){
         //only enable after the test completes correctly.
-        return (uploadTest>0 && !test_running);
+        return ( (uploadTest>0 || downloadTest>0) && !test_running);
     }//isNextEnabled
 
     public IWizardPanel getNextPanel() {

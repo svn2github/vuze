@@ -138,70 +138,14 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
         confLevel.setLayoutData(gridData);
         Messages.setLanguageText(confLevel,"SpeedTestWizard.set.limit.conf.level");
 
-
-        //download limit label.
-        Label dl = new Label( panel, SWT.NULL );
-        gridData = new GridData();
-        dl.setLayoutData(gridData);
-        Messages.setLanguageText(
-                dl,
-                "SpeedTestWizard.set.download.label",
-                new String[] { DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB)});
-
-        final Text downloadLimitSetting = new Text(panel, SWT.BORDER);
-        gridData = new GridData(GridData.BEGINNING);
-        gridData.widthHint=80;
-        downloadLimitSetting.setLayoutData(gridData);
-
-        int bestDownloadSetting = determineRateSetting(measuredDownloadKbps,downloadTestRan,
-                SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT,
-                SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING);
-
-        downloadLimitSetting.setText( ""+bestDownloadSetting );
-        downloadLimitSetting.addListener(SWT.Verify, new NumberListener(downloadLimitSetting) );
-
-        //echo
-        final Label downEcho = new Label(panel, SWT.NULL);
-        gridData = new GridData();
-        gridData.horizontalSpan = 1;
-        gridData.widthHint = 80;
-        downEcho.setLayoutData(gridData);
-        downEcho.setText( DisplayFormatters.formatByteCountToBitsPerSec(bestDownloadSetting*1024) );
-
-        //convert bytes to bits on the fly for user.
-        downloadLimitSetting.addListener(SWT.Modify, new ByteConversionListener(downEcho, downloadLimitSetting) );
-
-        //download confidence setting.
-        String[] confName = {
-                SpeedLimitConfidence.ABSOLUTE.getInternationalizedString(),
-                SpeedLimitConfidence.HIGH.getInternationalizedString(),
-                SpeedLimitConfidence.MED.getInternationalizedString(),
-                SpeedLimitConfidence.LOW.getInternationalizedString()
-        };
-        String[] confValue = {
-                SpeedLimitConfidence.ABSOLUTE.getString(),
-                SpeedLimitConfidence.HIGH.getString(),
-                SpeedLimitConfidence.MED.getString(),
-                SpeedLimitConfidence.LOW.getString()
-        };
-
-        String downDefaultConfidenceLevel = setDefaultConfidenceLevel(measuredDownloadKbps
-                    ,SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING,downloadTestRan);
-
-        downConfLevel = new StringListParameter(panel,
-                SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING,
-                downDefaultConfidenceLevel,
-                confName, confValue,true);
-        downConfLevel.setValue( downDefaultConfidenceLevel );
-
         //upload limit label.
         Label ul = new Label(panel, SWT.NULL );
         gridData = new GridData();
         ul.setLayoutData(gridData);
         Messages.setLanguageText(
-        		ul, 
-        		"SpeedTestWizard.set.upload.label", 
-        		new String[] { DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB)});
+        		ul,
+                "SpeedView.stats.estupcap",
+                new String[] { DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB)});
 
         final Text uploadLimitSetting = new Text(panel, SWT.BORDER );
         gridData = new GridData(GridData.BEGINNING);
@@ -232,6 +176,20 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
         //want a change listener to update the echo label which has the value in bits/sec.
         uploadLimitSetting.addListener(SWT.Modify, new ByteConversionListener(echo,uploadLimitSetting));
 
+        //download confidence setting.
+        String[] confName = {
+                SpeedLimitConfidence.ABSOLUTE.getInternationalizedString(),
+                SpeedLimitConfidence.HIGH.getInternationalizedString(),
+                SpeedLimitConfidence.MED.getInternationalizedString(),
+                SpeedLimitConfidence.LOW.getInternationalizedString()
+        };
+        String[] confValue = {
+                SpeedLimitConfidence.ABSOLUTE.getString(),
+                SpeedLimitConfidence.HIGH.getString(),
+                SpeedLimitConfidence.MED.getString(),
+                SpeedLimitConfidence.LOW.getString()
+        };        
+
         //upload confidence setting.
         String upDefaultConfidenceLevel = setDefaultConfidenceLevel(measuredUploadKbps
                     ,SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING,uploadTestRan);
@@ -241,6 +199,49 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
                 upDefaultConfidenceLevel,
                 confName, confValue, true);
         upConfLevel.setValue( upDefaultConfidenceLevel );
+
+
+
+        //download limit label.
+        Label dl = new Label( panel, SWT.NULL );
+        gridData = new GridData();
+        dl.setLayoutData(gridData);
+        Messages.setLanguageText(
+                dl,
+                "SpeedView.stats.estdowncap",
+                new String[] { DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB)});
+
+        final Text downloadLimitSetting = new Text(panel, SWT.BORDER);
+        gridData = new GridData(GridData.BEGINNING);
+        gridData.widthHint=80;
+        downloadLimitSetting.setLayoutData(gridData);
+
+        int bestDownloadSetting = determineRateSetting(measuredDownloadKbps,downloadTestRan,
+                SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT,
+                SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING);
+
+        downloadLimitSetting.setText( ""+bestDownloadSetting );
+        downloadLimitSetting.addListener(SWT.Verify, new NumberListener(downloadLimitSetting) );
+
+        //echo
+        final Label downEcho = new Label(panel, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan = 1;
+        gridData.widthHint = 80;
+        downEcho.setLayoutData(gridData);
+        downEcho.setText( DisplayFormatters.formatByteCountToBitsPerSec(bestDownloadSetting*1024) );
+
+        //convert bytes to bits on the fly for user.
+        downloadLimitSetting.addListener(SWT.Modify, new ByteConversionListener(downEcho, downloadLimitSetting) );
+
+        String downDefaultConfidenceLevel = setDefaultConfidenceLevel(measuredDownloadKbps
+                    ,SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING,downloadTestRan);
+
+        downConfLevel = new StringListParameter(panel,
+                SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING,
+                downDefaultConfidenceLevel,
+                confName, confValue,true);
+        downConfLevel.setValue( downDefaultConfidenceLevel );
 
 
         //spacer col
@@ -352,8 +353,8 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
             int download = result.getDownloadSpeed();
 
             createResultLabels(resultsPanel,false);
-            createResultData(resultsPanel, MessageText.getString("GeneralView.label.downloadspeed"), download);
-            createResultData(resultsPanel, MessageText.getString("GeneralView.label.uploadspeed") ,upload);            
+            createResultData(resultsPanel, MessageText.getString("GeneralView.label.uploadspeed") ,upload);
+            createResultData(resultsPanel, MessageText.getString("GeneralView.label.downloadspeed"), download);                        
             createTestDesc(resultsPanel);
         }
 
