@@ -21,6 +21,7 @@
 package org.gudy.azureus2.ui.swt;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
@@ -31,9 +32,8 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
-import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 /**
  * @author TuxPaper
@@ -85,32 +85,69 @@ public class UIExitUtilsSWT
 			}
 
 			if (listUnfinished.size() > 0) {
-				int result;
+				boolean allowQuit;
+				final List flistUnfinished = listUnfinished;
 				if (listUnfinished.size() == 1) {
-					result = Utils.openMessageBox(Utils.findAnyShell(), SWT.YES | SWT.NO,
-							"Content.alert.notuploaded", new String[] {
-								((DownloadManager) listUnfinished.get(0)).getDisplayName(),
-								MessageText.getString("Content.alert.notuploaded.quit")
+					allowQuit = Utils.execSWTThreadWithBool("quitSeeding",
+							new AERunnableBoolean() {
+								public boolean runSupport() {
+									String title = MessageText.getString("Content.alert.notuploaded.title");
+									String text = MessageText.getString(
+											"Content.alert.notuploaded.text",
+											new String[] {
+												((DownloadManager) flistUnfinished.get(0)).getDisplayName(),
+												MessageText.getString("Content.alert.notuploaded.quit")
+											});
+
+									MessageBoxShell mb = new MessageBoxShell(
+											Utils.findAnyShell(),
+											title,
+											text,
+											new String[] {
+												MessageText.getString("UpdateWindow.quit"),
+												MessageText.getString("Content.alert.notuploaded.button.abort")
+											}, 1, null, null, false, 0);
+									mb.setRelatedObject(((DownloadManager) flistUnfinished.get(0)));
+
+									return mb.open() == 0;
+								}
 							});
 				} else {
-					String sList = "";
-					for (int i = 0; i < listUnfinished.size() && i < 5; i++) {
-						DownloadManager dm = ((DownloadManager) listUnfinished.get(i));
-						if (sList != "") {
-							sList += "\n";
-						}
-						sList += dm.getDisplayName();
-					}
-					result = Utils.openMessageBox(Utils.findAnyShell(), SWT.YES | SWT.NO,
-							"Content.alert.notuploaded.multi", new String[] {
-								"" + listUnfinished.size(),
-								MessageText.getString("Content.alert.notuploaded.quit"),
-								sList
+					allowQuit = Utils.execSWTThreadWithBool("quitSeeding",
+							new AERunnableBoolean() {
+								public boolean runSupport() {
+									String sList = "";
+									for (int i = 0; i < flistUnfinished.size() && i < 5; i++) {
+										DownloadManager dm = ((DownloadManager) flistUnfinished.get(i));
+										if (sList != "") {
+											sList += "\n";
+										}
+										sList += dm.getDisplayName();
+									}
+
+									String title = MessageText.getString("Content.alert.notuploaded.multi.title");
+									String text = MessageText.getString(
+											"Content.alert.notuploaded.multi.text",
+											new String[] {
+												"" + flistUnfinished.size(),
+												MessageText.getString("Content.alert.notuploaded.quit"),
+												sList
+											});
+
+									MessageBoxShell mb = new MessageBoxShell(
+											Utils.findAnyShell(),
+											title,
+											text,
+											new String[] {
+												MessageText.getString("UpdateWindow.quit"),
+												MessageText.getString("Content.alert.notuploaded.button.abort")
+											}, 1, null, null, false, 0);
+
+									return mb.open() == 0;
+								}
 							});
 				}
-				if (result != SWT.YES) {
-					return false;
-				}
+				return allowQuit;
 			}
 		}
 

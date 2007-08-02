@@ -43,6 +43,7 @@ import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -228,7 +229,7 @@ public class ManagerUtils {
   
   public static void 
   stop(
-  		DownloadManager dm,
+  		final DownloadManager dm,
 		Shell shell,
 		int stateAfterStopped ) 
   {
@@ -272,14 +273,26 @@ public class ManagerUtils {
 	        numSeeds--;
 	      
 	      if (numSeeds == 0) {
-					if (shell == null) {
-						shell = Utils.findAnyShell();
-					}
-					int result = Utils.openMessageBox(shell, SWT.YES | SWT.NO,
-							"Content.alert.notuploaded", new String[] {
-									dm.getDisplayName(),
-									MessageText.getString("Content.alert.notuploaded.stop") });
-					stopme = result == SWT.YES;
+	  			stopme = Utils.execSWTThreadWithBool("stopSeeding",
+	  					new AERunnableBoolean() {
+	  						public boolean runSupport() {
+	  							String title = MessageText.getString("Content.alert.notuploaded.title");
+	  							String text = MessageText.getString("Content.alert.notuploaded.text",
+	  									new String[] {
+	  										dm.getDisplayName(),
+	  										MessageText.getString("Content.alert.notuploaded.stop")
+	  									});
+
+	  							MessageBoxShell mb = new MessageBoxShell(Utils.findAnyShell(),
+	  									title, text, new String[] {
+	  										MessageText.getString("Content.alert.notuploaded.button.stop"),
+	  										MessageText.getString("Content.alert.notuploaded.button.continue")
+	  									}, 1, null, null, false, 0);
+	  							mb.setRelatedObject(dm);
+
+	  							return mb.open() == 0;
+	  						}
+	  					});
 	      }
 			}
 		}
