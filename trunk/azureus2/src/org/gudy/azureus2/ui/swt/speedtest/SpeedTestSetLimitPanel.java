@@ -257,7 +257,7 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
             sm.setEstimatedUploadCapacityBytesPerSec(
         			measuredUploadKbps*1024,
         			uploadHitLimit?
-        				SpeedManagerLimitEstimate.TYPE_MEASURED_MIN :SpeedManagerLimitEstimate.TYPE_MEASURED);
+        				SpeedManagerLimitEstimate.TYPE_ESTIMATED :SpeedManagerLimitEstimate.TYPE_ESTIMATED);
         }
 
         if ( downloadTestRan ){
