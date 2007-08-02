@@ -4,6 +4,7 @@ import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.Wizard;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.views.stats.TransferStatsView;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -176,19 +177,14 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
         //want a change listener to update the echo label which has the value in bits/sec.
         uploadLimitSetting.addListener(SWT.Modify, new ByteConversionListener(echo,uploadLimitSetting));
 
+        final TransferStatsView.limitToTextHelper	limit_to_text = new TransferStatsView.limitToTextHelper();
+
         //download confidence setting.
-        String[] confName = {
-                SpeedLimitConfidence.ABSOLUTE.getInternationalizedString(),
-                SpeedLimitConfidence.HIGH.getInternationalizedString(),
-                SpeedLimitConfidence.MED.getInternationalizedString(),
-                SpeedLimitConfidence.LOW.getInternationalizedString()
-        };
-        String[] confValue = {
-                SpeedLimitConfidence.ABSOLUTE.getString(),
-                SpeedLimitConfidence.HIGH.getString(),
-                SpeedLimitConfidence.MED.getString(),
-                SpeedLimitConfidence.LOW.getString()
-        };        
+
+        //ToDo: Set the speed-manager with these "limit estimate" types but not the COConfigManger settings.
+        String[] confName = limit_to_text.getSettableTypes();
+
+        String[] confValue = limit_to_text.getSettableTypes();
 
         //upload confidence setting.
         String upDefaultConfidenceLevel = setDefaultConfidenceLevel(measuredUploadKbps
@@ -299,14 +295,13 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
                 COConfigurationManager.setParameter( TransferSpeedValidator.UPLOAD_SEEDING_CONFIGKEY , uploadLimitKBPS );
 
                 //provide the linkage to Auto-Speed V2 configuration settings.
-                COConfigurationManager.setParameter(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT, uploadLimitKBPS*1024);
-                COConfigurationManager.setParameter(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT, downlaodLimitKBPS*1024);
-
-
-                String downConfValue = downConfLevel.getValue();
-                String upConfValue = upConfLevel.getValue();
-                COConfigurationManager.setParameter( SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING, downConfValue );
-                COConfigurationManager.setParameter( SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING, upConfValue );
+                //COConfigurationManager.setParameter(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT, uploadLimitKBPS*1024);
+                //COConfigurationManager.setParameter(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT, downlaodLimitKBPS*1024);
+                //ToDo: these setting now arrive via speed manager. test implications.
+                //String downConfValue = downConfLevel.getValue();
+                //String upConfValue = upConfLevel.getValue();
+                //COConfigurationManager.setParameter( SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING, downConfValue );
+                //COConfigurationManager.setParameter( SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING, upConfValue );
                 		
                 wizard.setFinishEnabled(true);
                 wizard.setPreviousEnabled(false);
@@ -369,7 +364,8 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
      * @param transferRateKBPS - in kBytes/sec
      * @param paramName - configuration param to set.
      * @param testRan - Was this type of test ran?
-     * @return - String -  Absolute | High | Med | Low | None
+     * @return - String - Estimated | Measured | Manual
+//     * @return - String -  Absolute | High | Med | Low | None
      */
     private static String setDefaultConfidenceLevel(int transferRateKBPS, String paramName, boolean testRan){
 
@@ -380,27 +376,34 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
         //if it was previous set to ABSOLUTE then leave it alone.
         if( prevSetting.equalsIgnoreCase( SpeedLimitConfidence.ABSOLUTE.getString() ) )
         {
-            return prevSetting;
+            return SpeedLimitConfidence.asEstimateTypeString( SpeedManagerLimitEstimate.TYPE_MANUAL );
+            //return prevSetting;
         }
 
         //if no test was run then leave the confidence level alone.
         if( !testRan ){
-            return prevSetting;
+            //return prevSetting;
+            return SpeedLimitConfidence.asEstimateTypeString(
+                    SpeedLimitConfidence.parseString(prevSetting).asEstimateType() );
         }
+
+
+        //Since cable modems can bust data through long enough for a SpeedTest limits are only estimates.
+        return SpeedLimitConfidence.asEstimateTypeString( SpeedManagerLimitEstimate.TYPE_ESTIMATED );
 
         //if the transfer rate is near limit it is less likely to be the true limit.
         //decide here if we should have low setting.
         //ToDo: these limits shouldn't be hard coded since the Service can change at any time.
-        if( transferRateKBPS < 550 && transferRateKBPS > 450 ){
-
-            //set to low, when near limit and previous not set to ABSOLUTE
-            COConfigurationManager.setParameter( paramName, SpeedLimitConfidence.LOW.getString() );
-            return SpeedLimitConfidence.LOW.getString();
-        }
-
-        //In all other cases set to MED. This will allow for lowering of the limits if a chocking ping is found.
-        COConfigurationManager.setParameter( paramName, SpeedLimitConfidence.MED.getString() );
-        return SpeedLimitConfidence.MED.getString();
+//        if( transferRateKBPS < 550 && transferRateKBPS > 450 ){
+//
+//            //set to low, when near limit and previous not set to ABSOLUTE
+//            COConfigurationManager.setParameter( paramName, SpeedLimitConfidence.LOW.getString() );
+//            return SpeedLimitConfidence.LOW.getString();
+//        }
+//
+//        //In all other cases set to MED. This will allow for lowering of the limits if a chocking ping is found.
+//        COConfigurationManager.setParameter( paramName, SpeedLimitConfidence.MED.getString() );
+//        return SpeedLimitConfidence.MED.getString();
     }
 
     /**
@@ -553,6 +556,10 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
     public IWizardPanel getFinishPanel(){
 
         return new SpeedTestFinishPanel(wizard,this);
+    }
+
+    public boolean isFinishEnabled(){
+        return true;
     }
 
     public boolean isNextEnabled(){

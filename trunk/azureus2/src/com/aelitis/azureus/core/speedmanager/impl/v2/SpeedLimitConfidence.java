@@ -57,6 +57,7 @@ public class SpeedLimitConfidence
         }
     }//convertType
 
+
     /**
      * Turns a string into a SpeedLimitConfidence class.
      * @param setting - String is expected to be one of: NONE, LOW, MED, HIGH, ABSOLUE.
@@ -86,6 +87,18 @@ public class SpeedLimitConfidence
 
     public float asEstimateType(){
         return estimateType;
+    }
+
+    public static String asEstimateTypeString(float type){
+        //ToDo: move to proper class. This is to do something now.
+        if( type==SpeedManagerLimitEstimate.TYPE_UNKNOWN ){
+            return "Unknown";
+        }else if( type==SpeedManagerLimitEstimate.TYPE_ESTIMATED){
+            return "Estimate";
+        }else if( type==SpeedManagerLimitEstimate.TYPE_MANUAL){
+            return "Fixed";
+        }
+        return "";
     }
 
     public String getString(){
