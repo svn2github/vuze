@@ -226,7 +226,7 @@ public class ConfigSectionTransferAutoSpeedSelect
 
         Messages.setLanguageText(networkGroup,CFG_PREFIX+"networks");    
         GridLayout networksLayout = new GridLayout();
-        networksLayout.numColumns = 4;
+        networksLayout.numColumns = 5;
         networkGroup.setLayout(networksLayout);
 
         gridData = new GridData(GridData.FILL_HORIZONTAL);
@@ -239,7 +239,7 @@ public class ConfigSectionTransferAutoSpeedSelect
 		
         final Label asn_label = new Label(networkGroup, SWT.NULL);
         gridData = new GridData();
-        gridData.horizontalSpan = 3;
+        gridData.horizontalSpan = 4;
         gridData.grabExcessHorizontalSpace = true;
         asn_label.setLayoutData(gridData);
 
@@ -253,7 +253,7 @@ public class ConfigSectionTransferAutoSpeedSelect
 
         final Label up_cap = new Label(networkGroup, SWT.NULL);
         gridData = new GridData(GridData.FILL_HORIZONTAL);
-        gridData.horizontalSpan = 3;
+        gridData.horizontalSpan = 4;
         up_cap.setLayoutData(gridData);
 
         	// down cap
@@ -266,7 +266,7 @@ public class ConfigSectionTransferAutoSpeedSelect
         
         final Label down_cap = new Label(networkGroup, SWT.NULL);
         gridData = new GridData(GridData.FILL_HORIZONTAL);
-        gridData.horizontalSpan = 3;
+        gridData.horizontalSpan = 4;
         down_cap.setLayoutData(gridData);
 
         final SpeedManager sm = AzureusCoreFactory.getSingleton().getSpeedManager();  
@@ -320,7 +320,7 @@ public class ConfigSectionTransferAutoSpeedSelect
         
  	  	spacer = new Label(networkGroup, SWT.NULL);
         gridData = new GridData();
-        gridData.horizontalSpan=4;
+        gridData.horizontalSpan=5;
         spacer.setLayoutData(gridData);
         
         	// info
@@ -329,7 +329,7 @@ public class ConfigSectionTransferAutoSpeedSelect
 	    Messages.setLanguageText(
 	    		info_label, CFG_PREFIX + "network.info",
 	    		new String[]{ DisplayFormatters.getRateUnit( DisplayFormatters.UNIT_KB )});
-	    info_label.setLayoutData(Utils.getWrappableLabelGridData(4, 0));
+	    info_label.setLayoutData(Utils.getWrappableLabelGridData(5, 0));
         
 	    	// up set
 	    
@@ -349,6 +349,12 @@ public class ConfigSectionTransferAutoSpeedSelect
 		
 		final IntParameter max_upload = new IntParameter(networkGroup, co_up );
 	    	
+		final Label upload_bits = new Label(networkGroup, SWT.NULL);
+	    gridData = new GridData();
+	    gridData.widthHint = 80;
+	    upload_bits.setLayoutData(gridData);
+	    upload_bits.setText(getMBitLimit(limit_to_text,(up_lim.getBytesPerSec()/1024)*1024));
+		
 		final StringListParameter max_upload_type = 
 			new StringListParameter(networkGroup, co_up_type, limit_to_text.getSettableTypes(),limit_to_text.getSettableTypes() );
 	
@@ -372,9 +378,11 @@ public class ConfigSectionTransferAutoSpeedSelect
 						return;
 					}
 					
-					int	value = max_upload.getValue();
+					int	value = max_upload.getValue()*1024;
 																	
-					sm.setEstimatedUploadCapacityBytesPerSec( value*1024, type );
+					sm.setEstimatedUploadCapacityBytesPerSec( value, type );
+					
+				    upload_bits.setText(getMBitLimit(limit_to_text,value));
 				}
 			};
 			
@@ -402,6 +410,12 @@ public class ConfigSectionTransferAutoSpeedSelect
 
 		final IntParameter max_download = new IntParameter(networkGroup, co_down );
 	    
+		final Label download_bits = new Label(networkGroup, SWT.NULL);
+	    gridData = new GridData();
+	    gridData.widthHint = 80;
+	    download_bits.setLayoutData(gridData);
+	    download_bits.setText(getMBitLimit(limit_to_text,(down_lim.getBytesPerSec()/1024)*1024));
+	    
 		final StringListParameter max_download_type = 
 			new StringListParameter(networkGroup, co_down_type, limit_to_text.getSettableTypes(),limit_to_text.getSettableTypes() );
 
@@ -425,9 +439,11 @@ public class ConfigSectionTransferAutoSpeedSelect
 						return;
 					}
 					
-					int	value = max_download.getValue();
+					int	value = max_download.getValue() * 1024;
 											
-					sm.setEstimatedDownloadCapacityBytesPerSec( value*1024, type );
+					sm.setEstimatedDownloadCapacityBytesPerSec( value, type );
+					
+					download_bits.setText(getMBitLimit(limit_to_text,value));
 				}
 			};
 			
@@ -572,4 +588,11 @@ public class ConfigSectionTransferAutoSpeedSelect
         }
     }
 
+    protected String
+    getMBitLimit(
+    	TransferStatsView.limitToTextHelper		helper,
+    	long 									value )
+    {
+    	return("(="+(value==0?helper.getUnlimited():DisplayFormatters.formatByteCountToBitsPerSec( value ))+")" );
+    }
 }
