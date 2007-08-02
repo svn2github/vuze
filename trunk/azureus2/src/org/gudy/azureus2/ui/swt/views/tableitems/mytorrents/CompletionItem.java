@@ -136,9 +136,9 @@ public class CompletionItem
         gcImage.fillRectangle(limit+1, 1, x1-limit, y1);
       }
       
-			if (fontText == null || true) {
+			if (fontText == null) {
 				fontText = Utils.getFontWithHeight(gcImage.getFont(), gcImage,
-						newHeight);
+						newHeight - 1);
 			}
 			gcImage.setFont(fontText);
 			gcImage.setForeground(Colors.black);
