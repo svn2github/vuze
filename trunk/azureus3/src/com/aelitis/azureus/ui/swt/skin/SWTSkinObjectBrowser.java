@@ -38,7 +38,6 @@ import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.ConfigListener;
 import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
-import com.aelitis.azureus.ui.swt.browser.listener.publish.DownloadStateAndRemoveListener;
 import com.aelitis.azureus.ui.swt.browser.listener.publish.LocalHoster;
 import com.aelitis.azureus.ui.swt.browser.listener.publish.PublishListener;
 import com.aelitis.azureus.ui.swt.utils.PublishUtils;
@@ -105,13 +104,8 @@ public class SWTSkinObjectBrowser
 		context.addMessageListener(new TorrentListener(core));
 		context.addMessageListener(new DisplayListener(browser));
 		context.addMessageListener(new ConfigListener(browser));
-
-		PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface();
-		context.addMessageListener(new PublishListener(skin.getShell(), pi, this));
-		DownloadStateAndRemoveListener downloadListener = new DownloadStateAndRemoveListener(
-				pi, browser.getDisplay());
-		pi.getDownloadManager().addListener(downloadListener);
-		PublishUtils.setupContext(getContext(), pi, downloadListener);
+		context.addMessageListener(new PublishListener(skin.getShell(), this));
+		PublishUtils.setupContext(context);
 
 		
 		setControl(browser);

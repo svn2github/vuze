@@ -228,7 +228,7 @@ public class TorrentListViewsUtils
 						try {
 							String url = Constants.URL_PREFIX + Constants.URL_COMMENTS
 									+ dm.getTorrent().getHashWrapper().toBase32String()
-									+ ".html?" + Constants.URL_SUFFIX;
+									+ ".html?" + Constants.URL_SUFFIX + "&rnd=" + Math.random();
 
 							UIFunctions functions = UIFunctionsManager.getUIFunctions();
 							functions.viewURL(url, "browse", 0, 0, false, false);
@@ -720,8 +720,8 @@ public class TorrentListViewsUtils
 
 		Shell shell = Utils.findAnyShell();
 		if (PublishUtils.isPublished(dm)) {
-			String title = MessageText.getString("v3.mb.stopSeeding.title");
-			String text = MessageText.getString("v3.mb.stopSeeding.text",
+			String title = MessageText.getString("v3.mb.delPublished.title");
+			String text = MessageText.getString("v3.mb.delPublished.text",
 					new String[] {
 						dm.getDisplayName(),
 						Constants.URL_PREFIX,
@@ -731,8 +731,8 @@ public class TorrentListViewsUtils
 
 			MessageBoxShell mb = new MessageBoxShell(shell, title, text,
 					new String[] {
-						MessageText.getString("v3.mb.stopSeeding.delete"),
-						MessageText.getString("v3.mb.stopSeeding.cancel")
+						MessageText.getString("v3.mb.delPublished.delete"),
+						MessageText.getString("v3.mb.delPublished.cancel")
 					}, 1);
 			mb.setRelatedObject(dm);
 

@@ -49,6 +49,8 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.torrent.*;
 
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+
 
 /**
  * Tracks the progress of creating a torrent during the publish process.
@@ -67,7 +69,6 @@ public class PublishTransaction extends Transaction
 	private static final int   DEFAULT_IMAGE_BOX_SIZE = 320;
 	private static final float DEFAULT_JPEG_QUALITY = 0.85f;
 	
-	private PluginInterface pluginInterface;
 	private Shell shell;
 	
 	private LocalHoster hoster;
@@ -76,10 +77,6 @@ public class PublishTransaction extends Transaction
 	private TorrentCreatorListener creatorListener;
 	private File dataFile;
 	
-	public void setPluginInterface(PluginInterface pluginInterface) {
-		this.pluginInterface = pluginInterface;
-	}
-
 	public void setShell(Shell shell) {
 		this.shell = shell;
 	}
@@ -230,34 +227,40 @@ public class PublishTransaction extends Transaction
 		}
 	}
 
-    protected void torrentIsReady ( String strTorrent ) {
-    	
-        try{
-        	strTorrent = strTorrent.replaceAll("\\n", "");
-            debug( "data file path = [" + dataFile.getPath()+"]" );
-            debug("Torrent is ready, size = " + strTorrent.length() + ", content (base64) : " + strTorrent);
-            
-            byte[] torrent_data = Base64.decode(strTorrent);
-            
-            debug("Torrent Byte Length: " + torrent_data.length /* + ", content : " + new String(torrent_data) */ );
-            Torrent torrent = pluginInterface.getTorrentManager().createFromBEncodedData(torrent_data);
-           
-            torrent.setDefaultEncoding();
-            torrent.setComplete(dataFile);
+    protected void torrentIsReady(String strTorrent) {
 
-            final Download download = pluginInterface.getDownloadManager().addDownload(torrent, null, dataFile );
-            
-            PublishUtils.setPublished(download);
-            
-            download.setForceStart( true );
-  
-            //Transaction is finished
-            stop();
-        }
-        catch( Throwable t ) {
-            t.printStackTrace();
-        }
-    } 
+		try {
+			strTorrent = strTorrent.replaceAll("\\n", "");
+			debug("data file path = [" + dataFile.getPath() + "]");
+			debug("Torrent is ready, size = " + strTorrent.length()
+					+ ", content (base64) : " + strTorrent);
+
+			byte[] torrent_data = Base64.decode(strTorrent);
+
+			debug("Torrent Byte Length: " + torrent_data.length /* + ", content : " + new String(torrent_data) */);
+
+			// use PluginInterface since it has nice functions for
+			// setting complete and adding a download via Torrent
+			PluginInterface pi = PluginInitializer.getDefaultInterface();
+			Torrent torrent = pi.getTorrentManager().createFromBEncodedData(
+					torrent_data);
+
+			torrent.setDefaultEncoding();
+			torrent.setComplete(dataFile);
+
+			final Download download = pi.getDownloadManager().addDownload(torrent,
+					null, dataFile);
+
+			PublishUtils.setPublished(download);
+
+			download.setForceStart(true);
+
+			//Transaction is finished
+			stop();
+		} catch (Throwable t) {
+			Debug.out("torrentIsReady", t);
+		}
+	} 
 
 
     private void torrentCreationFailed(Exception cause) {
@@ -275,7 +278,9 @@ public class PublishTransaction extends Transaction
     	if(file != null) {   		
     		dataFile = new File(file);
     		try {
-    			creator = pluginInterface.getTorrentManager().createFromDataFileEx(dataFile, new URL("http://xxxxxxxxxxxxxxxxx:6969/announce"), false);
+    			PluginInterface pi = PluginInitializer.getDefaultInterface();
+    			creator = pi.getTorrentManager().createFromDataFileEx(dataFile,
+						new URL("http://xxxxxxxxxxxxxxxxx:6969/announce"), false);
 
     			creatorListener = new TorrentCreatorListener() {
 

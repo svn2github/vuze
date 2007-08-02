@@ -8,11 +8,9 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
-import com.aelitis.azureus.ui.swt.browser.listener.publish.DownloadStateAndRemoveListener;
 import com.aelitis.azureus.ui.swt.browser.listener.publish.PublishTransaction;
 import com.aelitis.azureus.ui.swt.browser.listener.publish.SeedingListener;
 
-import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 
@@ -29,14 +27,11 @@ public class PublishUtils
 {
 	private static final String CONTENTMAP_KEY = "Plugin.azdirector.ContentMap";
 
-	private static final String REMOVAL_ATTRIBUTE_KEY 	= "REMOVAL ALLOWED";
 	private static final String COMPLETE_ATTRIBUTE_KEY 	= "COMPLETE";
 
-	public static void setupContext(ClientMessageContext context,
-			PluginInterface pi, DownloadStateAndRemoveListener downloadListener) {
-
+	public static void setupContext(ClientMessageContext context) {
 		context.registerTransactionType("publish", PublishTransaction.class);
-		context.addMessageListener(new SeedingListener(pi, downloadListener));
+		context.addMessageListener(new SeedingListener());
 	}
 
 	public static boolean isPublished(DownloadManager dm) {
@@ -93,6 +88,25 @@ public class PublishUtils
 		}
 	}
 
+	public static void setPublished(DownloadManager dm, boolean isPublishedContent) {
+		if (isPublishedContent) {
+			setPublished(dm);
+			return;
+		}
+		
+		try {
+			Map mapAttr = dm.getDownloadState().getMapAttribute(CONTENTMAP_KEY);
+
+			if (mapAttr == null) {
+				return;
+			}
+			mapAttr.remove(PublishTransaction.PUBLISH_ATTRIBUTE_KEY);
+			dm.getDownloadState().setMapAttribute(CONTENTMAP_KEY, mapAttr);
+		} catch (Exception e) {
+			Debug.out(e);
+		}
+	}
+
 	public static void setPublished(DownloadManager dm) {
 		try {
 			Map mapAttr = dm.getDownloadState().getMapAttribute(CONTENTMAP_KEY);
@@ -144,41 +158,5 @@ public class PublishUtils
 		Long complete = (Long)mapAttr.get( COMPLETE_ATTRIBUTE_KEY );
 
 		return( complete != null );
-	}
-	
-	public static boolean isRemovalAllowed(Download d) {
-		try {
-			DownloadManager dm = ((DownloadImpl) d).getDownload();
-			Map mapAttr = dm.getDownloadState().getMapAttribute(CONTENTMAP_KEY);
-
-			if (mapAttr != null
-					&& mapAttr.containsKey(REMOVAL_ATTRIBUTE_KEY)) {
-				return true;
-			}
-
-			// Somehow the torrent is in stoppped state and the removal attribute wasn't set
-			// Allow removal
-			if (d.getState() == Download.ST_STOPPED) {
-				return true;
-			}
-		} catch (Exception e) {
-			Debug.out("baH", e);
-		}
-		return false;
-	}
-
-	public static void setRemovalAllowed(Download d) {
-		try {
-			DownloadManager dm = ((DownloadImpl) d).getDownload();
-			Map mapAttr = dm.getDownloadState().getMapAttribute(CONTENTMAP_KEY);
-
-			if (mapAttr == null) {
-				mapAttr = new HashMap();
-			}
-			mapAttr.put(REMOVAL_ATTRIBUTE_KEY, new Long(1));
-			dm.getDownloadState().setMapAttribute(CONTENTMAP_KEY, mapAttr);
-		} catch (Exception e) {
-			Debug.out("baH", e);
-		}
 	}
 }

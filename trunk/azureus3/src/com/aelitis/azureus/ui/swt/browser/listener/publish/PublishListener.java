@@ -20,7 +20,6 @@
 package com.aelitis.azureus.ui.swt.browser.listener.publish;
 
 import org.eclipse.swt.widgets.Shell;
-import org.gudy.azureus2.plugins.PluginInterface;
 
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 import com.aelitis.azureus.ui.swt.browser.txn.AbstractTransactionalListener;
@@ -50,19 +49,17 @@ public class PublishListener extends AbstractTransactionalListener
     public static final String OP_CANCEL = "cancel";
     
     
-    private PluginInterface pluginInterface;
     private Shell shell;
     
     private LocalHoster hoster;
-    
-    public PublishListener (Shell s,PluginInterface pi,LocalHoster hoster) {
-        this(s,pi,DEFAULT_LISTENER_ID,hoster);
-    }
 
-    public PublishListener (Shell s,PluginInterface pi, String id,LocalHoster hoster ) {
+	public PublishListener(Shell s, LocalHoster hoster) {
+		this(s, DEFAULT_LISTENER_ID, hoster);
+	}
+
+	public PublishListener(Shell s, String id, LocalHoster hoster) {
         super(id);
         
-        this.pluginInterface = pi;
         this.shell = s;
         this.hoster = hoster;
         
@@ -83,7 +80,6 @@ public class PublishListener extends AbstractTransactionalListener
     public void handleTxnlMessage ( BrowserMessage message , Transaction txn ) {
         PublishTransaction realTxn = (PublishTransaction) txn;
         
-        realTxn.setPluginInterface(pluginInterface);
         realTxn.setShell(shell);
         realTxn.setLocalHoster(hoster);
         

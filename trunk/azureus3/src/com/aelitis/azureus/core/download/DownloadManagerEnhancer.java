@@ -39,7 +39,6 @@ import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.torrent.MetaDataUpdateListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
-import com.aelitis.azureus.ui.swt.utils.PublishUtils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.disk.DiskManagerChannel;
@@ -277,5 +276,14 @@ DownloadManagerEnhancer
 		}
 		
 		return( progressive_enabled );
+	}
+	
+	public DownloadManager[]
+	getDownloadManagers() {
+		if (download_map == null) {
+			return new DownloadManager[0];
+		}
+		return (DownloadManager[]) download_map.keySet().toArray(
+				new DownloadManager[0]);
 	}
 }

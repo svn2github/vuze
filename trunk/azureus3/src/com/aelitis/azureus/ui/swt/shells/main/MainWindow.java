@@ -37,9 +37,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
-import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
-import org.gudy.azureus2.core3.global.GlobalManagerListener;
+import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
@@ -164,7 +162,8 @@ public class MainWindow
 							13).getTimeInMillis()) {
 				// install older than 3016
 				GlobalManager gm = core.getGlobalManager();
-				if (gm != null && gm.getDownloadManagers().size() == 0
+				if (gm != null
+						&& gm.getDownloadManagers().size() == 0
 						&& gm.getStats().getTotalProtocolBytesReceived() < 1024 * 1024 * 100) {
 					File fileTestWrite = FileUtil.getApplicationFile("testwrite.dll");
 					fileTestWrite.deleteOnExit();
@@ -193,7 +192,7 @@ public class MainWindow
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				try {
-  				createWindow(splash);
+					createWindow(splash);
 				} catch (Throwable e) {
 					Logger.log(new LogAlert(false, "Error Initialize MainWindow", e));
 				}
@@ -202,7 +201,7 @@ public class MainWindow
 				}
 			}
 		});
-
+		
 		// When a download is added, check for new meta data and
 		// un-"wait state" the rating
 		// TODO: smart refreshing of meta data ("Refresh On" attribute)
@@ -227,6 +226,36 @@ public class MainWindow
 			}
 
 		}, false);
+
+		gm.addDownloadWillBeRemovedListener(new GlobalManagerDownloadWillBeRemovedListener() {
+			public void downloadWillBeRemoved(DownloadManager dm)
+					throws GlobalManagerDownloadRemovalVetoException {
+				if (PublishUtils.isPublished(dm)) {
+					String title = MessageText.getString("v3.mb.delPublished.title");
+					String text = MessageText.getString("v3.mb.delPublished.text",
+							new String[] {
+								dm.getDisplayName(),
+								Constants.URL_PREFIX,
+								Constants.DEFAULT_ADDRESS,
+								Constants.URL_PUBLISH_INFO
+							});
+
+					MessageBoxShell mb = new MessageBoxShell(shell, title, text,
+							new String[] {
+								MessageText.getString("v3.mb.delPublished.delete"),
+								MessageText.getString("v3.mb.delPublished.cancel")
+							}, 1);
+					mb.setRelatedObject(dm);
+
+					int result = mb.open();
+					if (result == 0) {
+						PublishUtils.setPublished(dm, false);
+					} else {
+						throw new GlobalManagerDownloadRemovalVetoException("", true);
+					}
+				}
+			}
+		});
 	}
 
 	private void processStartupDMS() {
@@ -369,25 +398,31 @@ public class MainWindow
 							}
 						});
 			}
-			
+
 			long expiresOn = PlatformTorrentUtils.getExpiresOn(torrent);
 			if (expiresOn > now) {
-				SimpleTimer.addEvent("dm Expirey", expiresOn, new TimerEventPerformer() {
-					public void perform(TimerEvent event) {
-						try {
-							dm.stopIt(DownloadManager.STATE_STOPPED, true, true);
-							dm.getGlobalManager().removeDownloadManager(dm);
-						} catch (GlobalManagerDownloadRemovalVetoException f) {
-							if (!f.isSilent()) {
-								Alerts.showErrorMessageBoxUsingResourceString(new Object[] {
-									dm
-								}, "globalmanager.download.remove.veto", f);
+				SimpleTimer.addEvent("dm Expirey", expiresOn,
+						new TimerEventPerformer() {
+							public void perform(TimerEvent event) {
+								try {
+									dm.stopIt(DownloadManager.STATE_STOPPED, true, true);
+									dm.getGlobalManager().removeDownloadManager(dm);
+								} catch (GlobalManagerDownloadRemovalVetoException f) {
+									if (!f.isSilent()) {
+										Alerts.showErrorMessageBoxUsingResourceString(new Object[] {
+											dm
+										}, "globalmanager.download.remove.veto", f);
+									}
+								}
 							}
-						}
-					}
-				});
+						});
 			}
-		}
+			
+			if (PublishUtils.isPublished(dm) && dm.getStats().getShareRatio() < 1000
+					&& !dm.isForceStart()) {
+				dm.setForceStart(true);
+			}
+		} // isContent
 	}
 
 	/**
@@ -809,11 +844,11 @@ public class MainWindow
 		isReady = true;
 	}
 
-  public void setVisible(final boolean visible) {
-  	setVisible(visible, true);
-  }
+	public void setVisible(final boolean visible) {
+		setVisible(visible, true);
+	}
 
-  public void setVisible(final boolean visible, final boolean tryTricks) {
+	public void setVisible(final boolean visible, final boolean tryTricks) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				boolean currentlyVisible = shell.getVisible() && !shell.getMinimized();
@@ -836,16 +871,16 @@ public class MainWindow
 					// -Minimize main shell
 					// -Set all shells invisible
 					try {
-  					shell.setMinimized(true);
-  					Shell[] shells = shell.getDisplay().getShells();
-  					for (int i = 0; i < shells.length; i++) {
-  						if (shells[i].isVisible()) {
-  							wasVisibleList.add(shells[i]);
-    						shells[i].setVisible(false);
-  						}
-  					}
-  				} catch (Exception e) {
-  				}
+						shell.setMinimized(true);
+						Shell[] shells = shell.getDisplay().getShells();
+						for (int i = 0; i < shells.length; i++) {
+							if (shells[i].isVisible()) {
+								wasVisibleList.add(shells[i]);
+								shells[i].setVisible(false);
+							}
+						}
+					} catch (Exception e) {
+					}
 				}
 
 				if (visible) {
@@ -857,18 +892,18 @@ public class MainWindow
 					shell.forceActive();
 
 					if (bHideAndShow) {
-  					try {
-    					Shell[] shells = shell.getDisplay().getShells();
-    					for (int i = 0; i < shells.length; i++) {
-    						if (shells[i] != shell) {
-    							if (wasVisibleList.contains(shells[i])) {
-    								shells[i].setVisible(visible);
-    							}
-    							shells[i].setFocus();
-    						}
-    					}
-  					} catch (Exception e) {
-  					}
+						try {
+							Shell[] shells = shell.getDisplay().getShells();
+							for (int i = 0; i < shells.length; i++) {
+								if (shells[i] != shell) {
+									if (wasVisibleList.contains(shells[i])) {
+										shells[i].setVisible(visible);
+									}
+									shells[i].setFocus();
+								}
+							}
+						} catch (Exception e) {
+						}
 					}
 				}
 
@@ -882,7 +917,7 @@ public class MainWindow
 			event.doit = false;
 		}
 		shell.setVisible(false);
-    MiniBarManager.getManager().setAllVisible(true);
+		MiniBarManager.getManager().setAllVisible(true);
 	}
 
 	/**
@@ -1270,10 +1305,10 @@ public class MainWindow
 				Object[] views = topbarViews.toArray();
 				for (int i = 0; i < views.length; i++) {
 					try {
-  					IView view = (IView) views[i];
-  					if (view.getComposite().isVisible()) {
-  						view.refresh();
-  					}
+						IView view = (IView) views[i];
+						if (view.getComposite().isVisible()) {
+							view.refresh();
+						}
 					} catch (Exception e) {
 						Debug.out(e);
 					}
@@ -1392,23 +1427,23 @@ public class MainWindow
 	 */
 	private void attachSearchBox(SWTSkinObject skinObject) {
 		Composite cArea = (Composite) skinObject.getControl();
-		
+
 		Text text = null;
-		
+
 		if (Constants.isOSX) {
 			try {
-  			cArea.setVisible(false);
-  			cArea.getParent().setBackgroundImage(null);
-  
-  			text = new Text(cArea.getParent(), SWT.SEARCH | SWT.CANCEL);
-  
-  			FormData filledFormData = Utils.getFilledFormData();
-  			text.setLayoutData(filledFormData);
-  
-  			FormData fd = (FormData)cArea.getParent().getLayoutData();
-  			fd.height = text.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
-  			cArea.getParent().setLayoutData(fd);
-  			cArea.getParent().layout(true);
+				cArea.setVisible(false);
+				cArea.getParent().setBackgroundImage(null);
+
+				text = new Text(cArea.getParent(), SWT.SEARCH | SWT.CANCEL);
+
+				FormData filledFormData = Utils.getFilledFormData();
+				text.setLayoutData(filledFormData);
+
+				FormData fd = (FormData) cArea.getParent().getLayoutData();
+				fd.height = text.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
+				cArea.getParent().setLayoutData(fd);
+				cArea.getParent().layout(true);
 			} catch (Throwable t) {
 				// >= 3.3 has the SWT.SEARCH type 
 			}
@@ -1787,11 +1822,13 @@ public class MainWindow
 								// of the parent composite, even when backgroundmode is
 								// INHERIT_NONE
 								// The hack fix is to not use the exact color :(
-  							if (c.getRed() > 0) {
-  								c = ColorCache.getColor(display, c.getRed() - 1, c.getGreen(), c.getBlue());
-  							} else {
-  								c = ColorCache.getColor(display, c.getRed() + 1, c.getGreen(), c.getBlue());
-  							}
+								if (c.getRed() > 0) {
+									c = ColorCache.getColor(display, c.getRed() - 1,
+											c.getGreen(), c.getBlue());
+								} else {
+									c = ColorCache.getColor(display, c.getRed() + 1,
+											c.getGreen(), c.getBlue());
+								}
 							}
 							cArea.setBackground(c);
 
@@ -1861,11 +1898,11 @@ public class MainWindow
 	public void showURL(String url, String target) {
 
 		SWTSkinObject skinObject = skin.getSkinObject(target);
-		
+
 		if (skinObject == null) {
 			return;
 		}
-		
+
 		skin.activateTab(skinObject);
 
 		if (skinObject instanceof SWTSkinObjectBrowser) {
