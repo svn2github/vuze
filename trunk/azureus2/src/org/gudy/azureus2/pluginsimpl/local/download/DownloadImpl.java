@@ -727,14 +727,8 @@ DownloadImpl
 			GlobalManager globalManager = download_manager.getGlobalManager();
 			
 			try{
-				globalManager.canDownloadManagerBeRemoved(download_manager );
 				
-				if ( delete_torrent || delete_data ){
-					
-					download_manager.stopIt( dl_state, delete_torrent, delete_data );
-				}
-				
-				globalManager.removeDownloadManager(download_manager);
+				globalManager.removeDownloadManager(download_manager, delete_torrent, delete_data);
 				
 			}catch( GlobalManagerDownloadRemovalVetoException e ){
 				

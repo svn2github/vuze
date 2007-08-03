@@ -361,37 +361,7 @@ public class ManagerView extends AbstractIView implements
 		}
 		
 		if (itemKey.equals("remove")) {
-
-			if (COConfigurationManager.getBooleanParameter("confirm_torrent_removal")) {
-				MessageBox mb = new MessageBox(folder.getShell(), SWT.ICON_WARNING
-						| SWT.YES | SWT.NO);
-				mb.setText(MessageText.getString("deletedata.title"));
-				mb.setMessage(MessageText
-						.getString("MyTorrentsView.confirm_torrent_removal")
-						+ manager.getDisplayName());
-				if (mb.open() == SWT.NO) {
-					return;
-				}
-			}
-
-			new AEThread("asyncStop", true) {
-				public void runSupport() {
-					try {
-
-						manager.stopIt(DownloadManager.STATE_STOPPED, false, false);
-						manager.getGlobalManager().removeDownloadManager(manager);
-
-					} catch (GlobalManagerDownloadRemovalVetoException e) {
-
-						if(!e.isSilent()) {
-							Alerts.showErrorMessageBoxUsingResourceString(
-									new Object[] { manager },
-									"globalmanager.download.remove.veto", e);	
-						}
-						
-					}
-				}
-			}.start();
+			ManagerUtils.remove(manager, null, false, false);
 		}
 	}
   

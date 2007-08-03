@@ -347,4 +347,15 @@ public interface GlobalManager extends AzureusCoreComponent {
 	 * @param trigger
 	 */
 	void addListener(GlobalManagerListener listener, boolean trigger);
+
+	/**
+	 * @param manager
+	 * @param remove_torrent
+	 * @param remove_data
+	 * @throws GlobalManagerDownloadRemovalVetoException
+	 *
+	 * @since 3.0.1.7
+	 */
+	void removeDownloadManager(DownloadManager manager, boolean remove_torrent,
+			boolean remove_data) throws GlobalManagerDownloadRemovalVetoException;
 }

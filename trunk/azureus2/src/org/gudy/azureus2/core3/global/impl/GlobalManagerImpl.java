@@ -1055,9 +1055,21 @@ public class GlobalManagerImpl
   	}
   }
   
+
   public void 
   removeDownloadManager(
-  	DownloadManager manager) 
+  	DownloadManager manager)
+  
+  	throws GlobalManagerDownloadRemovalVetoException
+  {
+  	removeDownloadManager(manager, false, false);
+  }
+
+  public void 
+  removeDownloadManager(
+  	DownloadManager manager,
+		boolean	remove_torrent,
+		boolean	remove_data )
   
   	throws GlobalManagerDownloadRemovalVetoException
   {
@@ -1069,6 +1081,8 @@ public class GlobalManagerImpl
 	  }
 	  
   	canDownloadManagerBeRemoved( manager );
+  	
+  	manager.stopIt(DownloadManager.STATE_STOPPED, remove_torrent, remove_data);
   	
     try{
     	managers_mon.enter();

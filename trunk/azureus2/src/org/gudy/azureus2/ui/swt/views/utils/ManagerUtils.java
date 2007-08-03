@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
@@ -301,70 +302,96 @@ public class ManagerUtils {
 			asyncStop(dm, stateAfterStopped);
 		}
 	}
-  
-  public static void
-  remove(final DownloadManager dm, Shell shell,
+
+  public static void remove(final DownloadManager dm, Shell shell,
 			final boolean bDeleteTorrent, final boolean bDeleteData) {
-		if (COConfigurationManager.getBooleanParameter("confirm_torrent_removal")) {
+  	remove(dm, shell, bDeleteTorrent, bDeleteData, null);
+	}
+  
+  public static void remove(final DownloadManager dm, Shell shell,
+			final boolean bDeleteTorrent, final boolean bDeleteData,
+			final AERunnable deleteFailed) {
 
-			MessageBox mb = new MessageBox(shell, SWT.ICON_WARNING | SWT.YES | SWT.NO);
+		if (!dm.getDownloadState().getFlag(DownloadManagerState.FLAG_LOW_NOISE)) {
+			if (COConfigurationManager.getBooleanParameter("confirm_torrent_removal")) {
 
-			mb.setText(MessageText.getString("deletedata.title"));
+				String title = MessageText.getString("deletedata.title");
+				String text = MessageText.getString("deletetorrent.message1")
+						+ dm.getDisplayName() + " :\n" + dm.getTorrentFileName()
+						+ MessageText.getString("deletetorrent.message2");
 
-			mb.setMessage(MessageText.getString("deletetorrent.message1")
-					+ dm.getDisplayName() + " :\n" + dm.getTorrentFileName()
-					+ MessageText.getString("deletetorrent.message2"));
+				MessageBoxShell mb = new MessageBoxShell(shell, title, text,
+						new String[] {
+							MessageText.getString("Button.yes"),
+							MessageText.getString("Button.no"),
+						}, 1);
+				mb.setRelatedObject(dm);
 
-			if (mb.open() == SWT.NO) {
-				return;
+				int result = mb.open();
+				if (result != 0) {
+					if (deleteFailed != null) {
+						deleteFailed.runSupport();
+					}
+					return;
+				}
+			}
+
+			boolean confirmDataDelete = COConfigurationManager.getBooleanParameter(
+					"Confirm Data Delete");
+
+			if (confirmDataDelete && bDeleteData) {
+				String path = dm.getSaveLocation().toString();
+
+				String title = MessageText.getString("deletedata.title");
+				String text = MessageText.getString("deletedata.message1")
+						+ dm.getDisplayName() + " :\n" + path
+						+ MessageText.getString("deletedata.message2");
+
+				MessageBoxShell mb = new MessageBoxShell(shell, title, text,
+						new String[] {
+							MessageText.getString("Button.yes"),
+							MessageText.getString("Button.no"),
+						}, 1);
+				mb.setRelatedObject(dm);
+
+				int result = mb.open();
+				if (result != 0) {
+					if (deleteFailed != null) {
+						deleteFailed.runSupport();
+					}
+					return;
+				}
 			}
 		}
 
-		boolean confirmDataDelete = COConfigurationManager.getBooleanParameter(
-				"Confirm Data Delete", true);
-
-		int choice;
-		if (confirmDataDelete && bDeleteData) {
-			String path = dm.getSaveLocation().toString();
-
-			MessageBox mb = new MessageBox(shell, SWT.ICON_WARNING | SWT.YES | SWT.NO);
-
-			mb.setText(MessageText.getString("deletedata.title"));
-
-			mb.setMessage(MessageText.getString("deletedata.message1")
-					+ dm.getDisplayName() + " :\n" + path
-					+ MessageText.getString("deletedata.message2"));
-
-			choice = mb.open();
-		} else {
-			choice = SWT.YES;
-		}
-
-		if (choice == SWT.YES) {
-			asyncStopDelete(dm, DownloadManager.STATE_STOPPED, bDeleteTorrent,
-					bDeleteData);
-		}
-
+		asyncStopDelete(dm, DownloadManager.STATE_STOPPED, bDeleteTorrent,
+				bDeleteData, deleteFailed);
 	}
   
   public static void asyncStopDelete(final DownloadManager dm,
 			final int stateAfterStopped, final boolean bDeleteTorrent,
-			final boolean bDeleteData) {
+			final boolean bDeleteData, final AERunnable deleteFailed) {
 
 		new AEThread("asyncStop", true) {
 			public void runSupport() {
 
 				try {
-					dm.stopIt(DownloadManager.STATE_STOPPED, bDeleteTorrent, bDeleteData);
-					dm.getGlobalManager().removeDownloadManager(dm);
+					dm.getGlobalManager().removeDownloadManager(dm, bDeleteTorrent,
+							bDeleteData);
 				} catch (GlobalManagerDownloadRemovalVetoException f) {
 					if (!f.isSilent()) {
 						Alerts.showErrorMessageBoxUsingResourceString(new Object[] {
 							dm
 						}, "globalmanager.download.remove.veto", f);
 					}
+					if (deleteFailed != null) {
+						deleteFailed.runSupport();
+					}
 				} catch (Exception ex) {
 					Debug.printStackTrace(ex);
+					if (deleteFailed != null) {
+						deleteFailed.runSupport();
+					}
 				}
 			}
 		}.start();
