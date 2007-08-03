@@ -51,17 +51,6 @@ public interface TableContextMenuItem
    	 * @since 2.5.0.2
    	 */
    	public void addMultiListener(MenuItemListener l);
-   	
-      /**
-       * Removes a selection listener from this menu item.
-       * 
-       * You only use this method to remove a listener added via
-       * {@link #addMultiListener(MenuItemListener)}.
-       * 
-       * @param l listener to remove
-       * @since 2.5.0.2
-       */
-   	public void removeMultiListener(MenuItemListener l);
 
   /**
    * Retrieve the Table ID that the menu item belongs to

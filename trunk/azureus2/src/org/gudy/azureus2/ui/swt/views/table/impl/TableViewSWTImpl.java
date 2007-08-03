@@ -1282,7 +1282,7 @@ public class TableViewSWTImpl
 								final org.gudy.azureus2.plugins.ui.menus.MenuItem plugin_menu_item) {
 							return new TableSelectedRowsListener(TableViewSWTImpl.this) {
 								public boolean run(TableRowCore[] rows) {
-									((TableContextMenuItemImpl) plugin_menu_item).invokeListeners(rows);
+									((TableContextMenuItemImpl) plugin_menu_item).invokeListenersMulti(rows);
 									return true;
 								}
 							};
@@ -1388,7 +1388,7 @@ public class TableViewSWTImpl
 				menuItem.addListener(SWT.Selection,
 						new TableSelectedRowsListener(this) {
 							public boolean run(TableRowCore[] rows) {
-								contextMenuItem.invokeListeners(rows);
+								contextMenuItem.invokeListenersMulti(rows);
 								return true;
 							}
 						});

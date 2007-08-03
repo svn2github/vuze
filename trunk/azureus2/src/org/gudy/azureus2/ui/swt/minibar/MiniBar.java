@@ -333,13 +333,17 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	public void buildMenu(Menu menu) {
 		org.gudy.azureus2.plugins.ui.menus.MenuItem[] menu_items;
 		Object plugin_context_obj = this.getPluginMenuContextObject();
+		Object[] plugin_context_obj_arg = null;
+		if (plugin_context_obj != null) {
+			plugin_context_obj_arg = new Object[]{plugin_context_obj};
+		}
 		String plugin_menu_id = this.getPluginMenuIdentifier(plugin_context_obj);
 		if (plugin_menu_id != null) {
 			menu_items = MenuItemManager.getInstance().getAllAsArray(plugin_menu_id);
 			if (menu_items.length > 0) {
 				MenuBuildUtils.addPluginMenuItems(splash, menu_items, menu, true, true,
 						// This will retrieve the plugin download object for associated menus.
-						new MenuBuildUtils.MenuItemPluginMenuControllerImpl(plugin_context_obj)
+						new MenuBuildUtils.MenuItemPluginMenuControllerImpl(plugin_context_obj_arg)
 				);
 				new MenuItem(menu, SWT.SEPARATOR);
 			}

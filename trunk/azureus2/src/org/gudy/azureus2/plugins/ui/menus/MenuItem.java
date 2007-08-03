@@ -133,13 +133,39 @@ public interface MenuItem
 	public Graphic
 	getGraphic();
 		
-	public void
-	addFillListener(
-		MenuItemFillListener	listener );
+	/**
+	 * Adds a listener to be notified when the menu item is about to be
+	 * displayed. The "context" object provided is always going to be either
+	 * be <tt>null</tt> (if there is no context) or an array of objects
+	 * (such as an array of TableRows or an array of Download objects).
+	 * @param listener
+	 */
+	public void	addFillListener(MenuItemFillListener listener);
 	
-	public void
-	removeFillListener(
-		MenuItemFillListener	listener );
+	public void	removeFillListener(MenuItemFillListener	listener);
+	
+   	/**
+   	 * Adds a selection listener for this menu item.
+   	 * 
+   	 * This differs from {@link #addListener(MenuItemListener)}, in that the
+   	 * <tt>target</tt> object which will be passed to the listener will be an
+   	 * array of objects, rather than just a single object.
+   	 * 
+   	 * @param l listener to be notified when user has selected the menu item.
+   	 * @since 3.0.2
+   	 */
+   	public void addMultiListener(MenuItemListener l);
+   	
+    /**
+     * Removes a selection listener from this menu item.
+     * 
+     * You only use this method to remove a listener added via
+     * {@link #addMultiListener(MenuItemListener)}.
+     * 
+     * @param l listener to remove
+     * @since 3.0.2
+     */
+ 	public void removeMultiListener(MenuItemListener l);
 
 	/**
 	 * Adds a selection listener for this menu item.

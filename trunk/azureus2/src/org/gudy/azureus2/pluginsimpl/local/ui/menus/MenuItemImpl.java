@@ -47,6 +47,7 @@ public class MenuItemImpl implements MenuItem {
 	private Graphic graphic;
 
 	private List listeners = new ArrayList();
+	private List m_listeners = new ArrayList();
 
 	private List fill_listeners = new ArrayList();
 
@@ -132,8 +133,26 @@ public class MenuItemImpl implements MenuItem {
 	public void removeFillListener(MenuItemFillListener listener) {
 		fill_listeners.remove(listener);
 	}
+	
+	  // Currently used by TableView (and other places).
+	  public void invokeListenersMulti(Object[] rows) {
+		  // We invoke the multi listeners first...
+		  invokeListenersOnList(this.m_listeners, rows);
+		  if (rows == null) {invokeListenersSingle(null); return;}
+		  for (int i=0; i<rows.length; i++) {
+			  invokeListenersSingle(rows[i]);
+		  }
+	  }
+	 
+	  public void addMultiListener(MenuItemListener l) {
+		  m_listeners.add(l);
+	  }
+	  
+	  public void removeMultiListener(MenuItemListener l) {
+		  m_listeners.remove(l);
+	  }
 
-	public void invokeListeners(Object o) {
+	private void invokeListenersSingle(Object o) {
 		invokeListenersOnList(this.listeners, o);
 	}
 
@@ -215,7 +234,7 @@ public class MenuItemImpl implements MenuItem {
 		this.graphic = null;
 		this.listeners.clear();
 		this.fill_listeners.clear();
-		
+		this.m_listeners.clear();		
 	}
 	
 	public void remove() {

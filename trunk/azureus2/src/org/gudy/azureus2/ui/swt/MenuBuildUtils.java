@@ -141,23 +141,23 @@ public class MenuBuildUtils {
 	public static class MenuItemPluginMenuControllerImpl implements
 			PluginMenuController {
 
-		private Object object;
+		private Object[] objects;
 
-		public MenuItemPluginMenuControllerImpl(Object o) {
-			this.object = o;
+		public MenuItemPluginMenuControllerImpl(Object[] o) {
+			this.objects = o;
 		}
 
 		public Listener makeSelectionListener(MenuItem menu_item) {
 			final MenuItemImpl mii = (MenuItemImpl) menu_item;
 			return new Listener() {
 				public void handleEvent(Event e) {
-					mii.invokeListeners(object);
+					mii.invokeListenersMulti(objects);
 				}
 			};
 		}
 
 		public void notifyFillListeners(MenuItem menu_item) {
-			((MenuItemImpl) menu_item).invokeMenuWillBeShownListeners(object);
+			((MenuItemImpl) menu_item).invokeMenuWillBeShownListeners(objects);
 		}
 
 	}
