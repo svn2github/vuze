@@ -169,7 +169,7 @@ public class PieceDistributionView
 					gc.setLineWidth(1);
 					if(downloading[i])
 						gc.setLineStyle(SWT.LINE_DASH);
-					gc.fillRectangle(stepWidthX*i+1, offsetY, barFillingWidth, (int)(Math.ceil(stepWidthY*ourPiecesPerAvailability[i])*-1));
+					gc.fillRectangle(stepWidthX*i+1, offsetY-1, barFillingWidth, (int)(Math.ceil(stepWidthY*ourPiecesPerAvailability[i]-1)*-1));
 					gc.drawRectangle(stepWidthX*i, offsetY, barWidth, (int)(Math.ceil(stepWidthY*piecesPerAvailability[i])+1)*-1);
 				}
 				
