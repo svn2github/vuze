@@ -278,12 +278,21 @@ DownloadManagerEnhancer
 		return( progressive_enabled );
 	}
 	
+	/*
 	public DownloadManager[]
-	getDownloadManagers() {
-		if (download_map == null) {
-			return new DownloadManager[0];
+	getDownloadManagers() 
+	{
+		synchronized( download_map ){
+
+			if (download_map == null){
+				
+				return new DownloadManager[0];
+			}
+			
+			Set downloads = download_map.keySet();
+
+			return((DownloadManager[])downloads.toArray(new DownloadManager[downloads.size()]));
 		}
-		return (DownloadManager[]) download_map.keySet().toArray(
-				new DownloadManager[0]);
 	}
+	*/
 }
