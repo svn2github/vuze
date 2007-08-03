@@ -418,6 +418,7 @@ public class BTPeerIDByteDecoder {
 		assertDecode("KTorrent 1.1 RC1", "-KT11R1-693649213030");
 		assertDecode("libTorrent (Rakshasa) 0.11.2", "2D6C74304232302D0D739B93E6BE21FEBB557B20");
 		assertDecode("libtorrent (Rasterbar) 0.13.0", "-LT0D00-eZ0PwaDDr-~v"); // The latest version at time of writing is v0.12, but I'll assume this is valid.
+		assertDecode("LimeWire", "2D4C57303030312D31E0B3A0B46F7D4E954F4103");
 		assertDecode("Shareaza 2.1.3.2", "2D535A323133322D000000000000000000000000");
 		assertDecode("SymTorrent 1.17", "-ST0117-01234567890!");
 		assertDecode("Transmission 0.6", "-TR0006-01234567890!");
