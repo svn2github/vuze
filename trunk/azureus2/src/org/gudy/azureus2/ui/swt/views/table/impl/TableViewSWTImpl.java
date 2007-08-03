@@ -40,6 +40,7 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.Timer;
+import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -63,6 +64,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 
 /** 
@@ -1274,7 +1276,17 @@ public class TableViewSWTImpl
 
 		TableContextMenuItem[] items = TableContextMenuManager.getInstance().getAllAsArray(
 				sTableID);
-		if (items.length > 0) {
+		
+		// We'll add download-context specific menu items - if the table is download specific.
+		// We need a better way to determine this...
+		org.gudy.azureus2.plugins.ui.menus.MenuItem[] menu_items = null;
+		if ("MySeeders".equals(sTableID) || "MyTorrents".equals(sTableID)) {
+			menu_items = MenuItemManager.getInstance().getAllAsArray("download_context");
+		}
+		else {
+			menu_items = MenuItemManager.getInstance().getAllAsArray((String)null);
+		}
+		if (items.length > 0 || menu_items != null) {
 			new org.eclipse.swt.widgets.MenuItem(menu, SWT.SEPARATOR);
 			MenuBuildUtils.addPluginMenuItems(getComposite(), items, menu, true,
 					enable_items, new MenuBuildUtils.PluginMenuController() {
@@ -1282,7 +1294,9 @@ public class TableViewSWTImpl
 								final org.gudy.azureus2.plugins.ui.menus.MenuItem plugin_menu_item) {
 							return new TableSelectedRowsListener(TableViewSWTImpl.this) {
 								public boolean run(TableRowCore[] rows) {
-									((TableContextMenuItemImpl) plugin_menu_item).invokeListenersMulti(rows);
+									if (rows.length != 0) {
+										((TableContextMenuItemImpl) plugin_menu_item).invokeListenersMulti(rows);
+									}
 									return true;
 								}
 							};
@@ -1293,6 +1307,14 @@ public class TableViewSWTImpl
 							((TableContextMenuItemImpl) menu_item).invokeMenuWillBeShownListeners(getSelectedRows());
 						}
 					});
+			
+			// Add download context menu items.
+			if (menu_items != null) {
+				// getSelectedDataSources(false) returns us plugin items.
+    			MenuBuildUtils.addPluginMenuItems(getComposite(), menu_items, menu, true, true,
+						new MenuBuildUtils.MenuItemPluginMenuControllerImpl(getSelectedDataSources(false))
+    			);				
+			}
 		}
 	}
 

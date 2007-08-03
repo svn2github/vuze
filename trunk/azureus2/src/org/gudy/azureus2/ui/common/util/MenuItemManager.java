@@ -103,6 +103,8 @@ public class MenuItemManager {
 			return new MenuItem[0];
 		}
 		
+		if (sMenuID == null) {local_menu_item_map = null;}
+		
 		ArrayList l = new ArrayList();
 		if (local_menu_item_map != null) {l.addAll(local_menu_item_map.values());}
 		if (global_menu_item_map != null) {l.addAll(global_menu_item_map.values());}
