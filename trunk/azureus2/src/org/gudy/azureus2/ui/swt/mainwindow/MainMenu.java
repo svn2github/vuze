@@ -42,6 +42,7 @@ import org.gudy.azureus2.core3.predicate.AllPredicate;
 import org.gudy.azureus2.core3.predicate.NotPredicate;
 import org.gudy.azureus2.core3.predicate.Predicable;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
@@ -609,11 +610,14 @@ public class MainMenu {
       		boolean is_detailed_view = ((Boolean)torrentItem.getData("is_detailed_view")).booleanValue();
       		TorrentUtil.fillTorrentMenu(menu, current_dls, core, attachedShell, !is_detailed_view, 0);
     		org.gudy.azureus2.plugins.ui.menus.MenuItem[] menu_items;
-    		menu_items = MenuItemManager.getInstance().getAllAsArray("torrentmenu");
+    		menu_items = MenuItemManager.getInstance().getAllAsArray(
+    				new String[] {"torrentmenu", "download_context"}
+    		);
     		if (menu_items.length > 0) {
         		new MenuItem(menu, SWT.SEPARATOR);
+    			Object[] plugin_dls = DownloadManagerImpl.getDownloadStatic(current_dls);
     			MenuBuildUtils.addPluginMenuItems(parent, menu_items, menu, true, true,
-						new MenuBuildUtils.MenuItemPluginMenuControllerImpl(current_dls)
+						new MenuBuildUtils.MenuItemPluginMenuControllerImpl(plugin_dls)
     			);
     		}
       	}

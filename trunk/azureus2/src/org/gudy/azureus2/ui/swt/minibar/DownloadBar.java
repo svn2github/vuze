@@ -147,9 +147,9 @@ public class DownloadBar extends MiniBar {
         }
 	}
 	
-	public String getPluginMenuIdentifier(Object context) {
+	public String[] getPluginMenuIdentifiers(Object context) {
 		if (context == null) {return null;}
-		return "downloadbar";
+		return new String[] {"downloadbar", "download_context"};
 	}
 	
 	public Object getPluginMenuContextObject() {

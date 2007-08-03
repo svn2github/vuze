@@ -447,6 +447,15 @@ DownloadManagerImpl
 		
 		return( dl );
 	}
+	
+	public static DownloadImpl[] getDownloadStatic(DownloadManager[] dm) {
+		ArrayList res = new ArrayList(dm.length);
+		for (int i=0; i<dm.length; i++) {
+			try {res.add(getDownloadStatic(dm[i]));}
+			catch (DownloadException de) {}
+		}
+		return (DownloadImpl[])res.toArray(new DownloadImpl[res.size()]);
+	}
 
 	/**
 	 * Retrieve the plugin Downlaod object related to the DownloadManager

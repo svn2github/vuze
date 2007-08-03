@@ -108,5 +108,19 @@ public class MenuItemManager {
 		if (global_menu_item_map != null) {l.addAll(global_menu_item_map.values());}
 		return (MenuItem[]) l.toArray(new MenuItem[l.size()]);
 	}
+	
+	public MenuItem[] getAllAsArray(String[] menu_ids) {
+		ArrayList l  = new ArrayList();
+		for (int i=0; i<menu_ids.length; i++) {
+			addMenuItems(menu_ids[i], l);
+		}
+		addMenuItems(null, l);
+		return (MenuItem[]) l.toArray(new MenuItem[l.size()]);
+	}
+	
+	private void addMenuItems(String menu_id, ArrayList l) {
+		Map menu_map = (Map)this.items.get(menu_id);
+		if (menu_map != null) {l.addAll(menu_map.values());}
+	}
 
 }

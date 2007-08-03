@@ -337,9 +337,9 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 		if (plugin_context_obj != null) {
 			plugin_context_obj_arg = new Object[]{plugin_context_obj};
 		}
-		String plugin_menu_id = this.getPluginMenuIdentifier(plugin_context_obj);
-		if (plugin_menu_id != null) {
-			menu_items = MenuItemManager.getInstance().getAllAsArray(plugin_menu_id);
+		String[] plugin_menu_ids = this.getPluginMenuIdentifiers(plugin_context_obj);
+		if (plugin_menu_ids != null) {
+			menu_items = MenuItemManager.getInstance().getAllAsArray(plugin_menu_ids);
 			if (menu_items.length > 0) {
 				MenuBuildUtils.addPluginMenuItems(splash, menu_items, menu, true, true,
 						// This will retrieve the plugin download object for associated menus.
@@ -501,7 +501,7 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	protected abstract void beginConstruction();
 	protected abstract Object getContextObject();
 	
-	public String getPluginMenuIdentifier(Object context) {
+	public String[] getPluginMenuIdentifiers(Object context) {
 		return null;
 	}
 	
