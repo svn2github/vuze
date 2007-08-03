@@ -27,17 +27,11 @@ package org.gudy.azureus2.ui.swt.views.configsections;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.UISwitcherUtil;
-import org.gudy.azureus2.ui.swt.config.ButtonParameter;
 import org.gudy.azureus2.ui.swt.config.BooleanParameter;
 import org.gudy.azureus2.ui.swt.config.ChangeSelectionActionPerformer;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
@@ -93,17 +87,24 @@ public class ConfigSectionInterfaceStart implements UISWTConfigSection {
 		}
   
 	// UI switcher window.
-	final Label ui_switcher_label = new Label(cStart, SWT.NULL);
-	Messages.setLanguageText(ui_switcher_label, "ConfigView.label.ui_switcher");
+    Composite cUISwitcher = new Composite(cStart, SWT.NONE);
+    layout = new GridLayout(2, false);
+    layout.marginHeight = 0;
+    layout.marginWidth = 0;
+		cUISwitcher.setLayout(layout);
 
-	final Button ui_switcher_button = new Button(cStart, SWT.PUSH);
-	Messages.setLanguageText(ui_switcher_button, "ConfigView.label.ui_switcher_button");
-	
-	ui_switcher_button.addListener(SWT.Selection, new Listener() {
-		public void handleEvent(Event event) {
-			UISwitcherUtil.openSwitcherWindow(true); // Force asking.
-		}
-	});
+		final Label ui_switcher_label = new Label(cUISwitcher, SWT.NULL);
+		Messages.setLanguageText(ui_switcher_label, "ConfigView.label.ui_switcher");
+
+		final Button ui_switcher_button = new Button(cUISwitcher, SWT.PUSH);
+		Messages.setLanguageText(ui_switcher_button,
+				"ConfigView.label.ui_switcher_button");
+
+		ui_switcher_button.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				UISwitcherUtil.openSwitcherWindow(true); // Force asking.
+			}
+		});
     
     return cStart;
   }
