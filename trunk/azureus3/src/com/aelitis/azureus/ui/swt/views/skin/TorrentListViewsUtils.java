@@ -28,10 +28,10 @@ import java.util.Arrays;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Shell;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.ForceRecheckListener;
+import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
@@ -39,9 +39,7 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
-import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
@@ -715,136 +713,20 @@ public class TorrentListViewsUtils
 	public static void removeDownload(final DownloadManager dm,
 			final TableView tableView, final boolean bDeleteTorrent,
 			final boolean bDeleteData) {
-
-		TOTorrent torrent = dm.getTorrent();
-
-		Shell shell = Utils.findAnyShell();
+		
+		tableView.removeDataSource(dm, true);
+		
+		AERunnable failure = new AERunnable() {
+			public void runSupport() {
+				tableView.addDataSource(dm, true);
+			}
+		};
+		
 		if (PublishUtils.isPublished(dm)) {
-			String title = MessageText.getString("v3.mb.delPublished.title");
-			String text = MessageText.getString("v3.mb.delPublished.text",
-					new String[] {
-						dm.getDisplayName(),
-						Constants.URL_PREFIX,
-						Constants.DEFAULT_ADDRESS,
-						Constants.URL_PUBLISH_INFO
-					});
-
-			MessageBoxShell mb = new MessageBoxShell(shell, title, text,
-					new String[] {
-						MessageText.getString("v3.mb.delPublished.delete"),
-						MessageText.getString("v3.mb.delPublished.cancel")
-					}, 1);
-			mb.setRelatedObject(dm);
-
-			int result = mb.open();
-			if (result == 0) {
-				// overide parameters.. never delete published content data!
-				ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED, false,
-						false);
-			}
-		} else if (PlatformTorrentUtils.isContentDRM(torrent)) {
-
-			String prefix = "v3.mb.deletePurchased.";
-			String title = MessageText.getString(prefix + "title");
-			String text = MessageText.getString(prefix + "text", new String[] {
-				dm.getDisplayName()
-			});
-
-			MessageBoxShell mb = new MessageBoxShell(shell, title, text,
-					new String[] {
-						MessageText.getString(prefix + "button.delete"),
-						MessageText.getString(prefix + "button.cancel")
-					}, 1);
-			mb.setRelatedObject(dm);
-
-			int result = mb.open();
-			if (result == 0) {
-				ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED,
-						bDeleteTorrent, bDeleteData);
-			}
-
+			ManagerUtils.remove(dm, null, false, false, failure);
 		} else {
-			// This is copied from ManagerUtils.java and modified so we
-			// can remove the list row before stopping and removing
-
-			if (COConfigurationManager.getBooleanParameter("confirm_torrent_removal")) {
-
-				String prefix = "v3.mb.deletePurchased.";
-				String title = MessageText.getString("deletedata.title");
-				String text = MessageText.getString("deletetorrent.message1")
-						+ dm.getDisplayName() + " :\n" + dm.getTorrentFileName()
-						+ MessageText.getString("deletetorrent.message2");
-
-				MessageBoxShell mb = new MessageBoxShell(shell, title, text,
-						new String[] {
-							MessageText.getString(prefix + "button.delete"),
-							MessageText.getString(prefix + "button.cancel")
-						}, 0);
-				mb.setRelatedObject(dm);
-				int result = mb.open();
-
-				if (result != 0) {
-					return;
-				}
-			}
-
-			boolean confirmDataDelete = COConfigurationManager.getBooleanParameter("Confirm Data Delete");
-
-			int choice;
-			if (confirmDataDelete && bDeleteData) {
-				String path = dm.getSaveLocation().toString();
-
-				String prefix = "v3.mb.deletePurchased.";
-				String title = MessageText.getString("deletedata.title");
-				String text = MessageText.getString("deletedata.message1")
-						+ dm.getDisplayName() + " :\n" + path
-						+ MessageText.getString("deletedata.message2");
-
-				MessageBoxShell mb = new MessageBoxShell(shell, title, text,
-						new String[] {
-							MessageText.getString(prefix + "button.delete"),
-							MessageText.getString(prefix + "button.cancel")
-						}, 0);
-				mb.setRelatedObject(dm);
-				choice = mb.open();
-			} else {
-				choice = 0;
-			}
-
-			if (choice == 0) {
-				try {
-					dm.getGlobalManager().canDownloadManagerBeRemoved(dm);
-					tableView.removeDataSource(dm, true);
-					new AEThread("asyncStop", true) {
-						public void runSupport() {
-
-							try {
-								dm.stopIt(DownloadManager.STATE_STOPPED, bDeleteTorrent,
-										bDeleteData);
-								dm.getGlobalManager().removeDownloadManager(dm);
-							} catch (GlobalManagerDownloadRemovalVetoException f) {
-								if (!f.isSilent()) {
-									Alerts.showErrorMessageBoxUsingResourceString(new Object[] {
-										dm
-									}, "globalmanager.download.remove.veto", f);
-								}
-								tableView.addDataSource(dm, true);
-							} catch (Exception ex) {
-								tableView.addDataSource(dm, true);
-								Debug.printStackTrace(ex);
-							}
-						}
-					}.start();
-				} catch (GlobalManagerDownloadRemovalVetoException f) {
-					if (!f.isSilent()) {
-						Alerts.showErrorMessageBoxUsingResourceString(new Object[] {
-							dm
-						}, "globalmanager.download.remove.veto", f);
-					}
-				}
-			}
+			ManagerUtils.remove(dm, null, bDeleteTorrent, bDeleteData, failure);
 		}
-
 	}
 
 	public static void main(String[] args) {

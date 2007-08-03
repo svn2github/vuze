@@ -57,6 +57,7 @@ import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.stats.VivaldiView;
+import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -230,6 +231,7 @@ public class MainWindow
 		gm.addDownloadWillBeRemovedListener(new GlobalManagerDownloadWillBeRemovedListener() {
 			public void downloadWillBeRemoved(DownloadManager dm)
 					throws GlobalManagerDownloadRemovalVetoException {
+				TOTorrent torrent = dm.getTorrent();
 				if (PublishUtils.isPublished(dm)) {
 					String title = MessageText.getString("v3.mb.delPublished.title");
 					String text = MessageText.getString("v3.mb.delPublished.text",
@@ -248,9 +250,26 @@ public class MainWindow
 					mb.setRelatedObject(dm);
 
 					int result = mb.open();
-					if (result == 0) {
-						PublishUtils.setPublished(dm, false);
-					} else {
+					if (result != 0) {
+						throw new GlobalManagerDownloadRemovalVetoException("", true);
+					}
+				} else if (PlatformTorrentUtils.isContentDRM(torrent)) {
+
+					String prefix = "v3.mb.deletePurchased.";
+					String title = MessageText.getString(prefix + "title");
+					String text = MessageText.getString(prefix + "text", new String[] {
+						dm.getDisplayName()
+					});
+
+					MessageBoxShell mb = new MessageBoxShell(shell, title, text,
+							new String[] {
+								MessageText.getString(prefix + "button.delete"),
+								MessageText.getString(prefix + "button.cancel")
+							}, 1);
+					mb.setRelatedObject(dm);
+
+					int result = mb.open();
+					if (result != 0) {
 						throw new GlobalManagerDownloadRemovalVetoException("", true);
 					}
 				}
@@ -404,16 +423,8 @@ public class MainWindow
 				SimpleTimer.addEvent("dm Expirey", expiresOn,
 						new TimerEventPerformer() {
 							public void perform(TimerEvent event) {
-								try {
-									dm.stopIt(DownloadManager.STATE_STOPPED, true, true);
-									dm.getGlobalManager().removeDownloadManager(dm);
-								} catch (GlobalManagerDownloadRemovalVetoException f) {
-									if (!f.isSilent()) {
-										Alerts.showErrorMessageBoxUsingResourceString(new Object[] {
-											dm
-										}, "globalmanager.download.remove.veto", f);
-									}
-								}
+								dm.getDownloadState().setFlag(DownloadManagerState.FLAG_LOW_NOISE, true);
+								ManagerUtils.remove(dm, null, true, true);
 							}
 						});
 			}

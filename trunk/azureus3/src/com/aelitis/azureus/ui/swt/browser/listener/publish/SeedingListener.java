@@ -4,9 +4,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.util.Base32;
-import org.gudy.azureus2.core3.util.HashWrapper;
-import org.gudy.azureus2.core3.util.TimeFormatter;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -81,11 +79,15 @@ public class SeedingListener
 	}
 
 	private void removeTorrent(String id) {
-		DownloadManager dm = getDM(id);
+		final DownloadManager dm = getDM(id);
 
-		if (dm != null) {
-			ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED, false,
-					false);
+		if (PublishUtils.isPublished(dm)) {
+			PublishUtils.setPublished(dm, false);
+			ManagerUtils.remove(dm, null, false, false, new AERunnable() {
+				public void runSupport() {
+					PublishUtils.setPublished(dm);
+				}
+			});
 		}
 	}
 
