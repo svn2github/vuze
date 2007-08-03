@@ -4,6 +4,7 @@ import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.Wizard;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.views.stats.TransferStatsView;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -13,6 +14,9 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.SWT;
+import com.aelitis.azureus.core.speedmanager.SpeedManager;
+import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 
 /**
  * Created on May 3, 2007
@@ -37,8 +41,17 @@ import org.eclipse.swt.SWT;
 
 public class SpeedTestFinishPanel extends AbstractWizardPanel
 {
+
+    SpeedManager speedManager;
+    TransferStatsView.limitToTextHelper helper;
+
+
+
     public SpeedTestFinishPanel(Wizard wizard, IWizardPanel previousPanel) {
         super(wizard, previousPanel);
+
+        speedManager = AzureusCoreFactory.getSingleton().getSpeedManager();
+        helper = new TransferStatsView.limitToTextHelper();
     }
 
 
@@ -70,44 +83,15 @@ public class SpeedTestFinishPanel extends AbstractWizardPanel
         label.setLayoutData(gridData);
         Messages.setLanguageText(label,"SpeedTestWizard.finish.panel.click.close");
 
-        //show the setting for upload speed.
-        int maxUploadKbs = COConfigurationManager.getIntParameter( TransferSpeedValidator.UPLOAD_CONFIGKEY );
-        int maxUploadSeedingKbs = COConfigurationManager.getIntParameter( TransferSpeedValidator.UPLOAD_SEEDING_CONFIGKEY );
-        int maxDownloadKbs = COConfigurationManager.getIntParameter( TransferSpeedValidator.DOWNLOAD_CONFIGKEY );
+        //show the setting for upload speed
+        SpeedManagerLimitEstimate upEst = speedManager.getEstimatedUploadCapacityBytesPerSec();
+        int maxUploadKbs = upEst.getBytesPerSec()/1024;
+        SpeedManagerLimitEstimate downEst = speedManager.getEstimatedDownloadCapacityBytesPerSec();
+        int maxDownloadKbs = downEst.getBytesPerSec()/1024;
+
         //boolean setting.
         boolean autoSpeedEnabled = COConfigurationManager.getBooleanParameter( TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY );
         boolean autoSpeedSeedingEnabled = COConfigurationManager.getBooleanParameter( TransferSpeedValidator.AUTO_UPLOAD_SEEDING_ENABLED_CONFIGKEY );
-
-        //spacer 1
-        Label s1 = new Label(panel, SWT.NULL);
-        gridData = new GridData();
-        gridData.horizontalSpan = 3;
-        s1.setLayoutData(gridData);
-
-        //displays a bytes/sec column and a bits/sec column
-        createHeaderLine(panel);
-
-        //
-        String maxUpload = MessageText.getString("SpeedTestWizard.finish.panel.max.upload");
-        String maxUploadVal = DisplayFormatters.formatByteCountToKiBEtcPerSec( maxUploadKbs*1024 );
-
-        createDataLine(panel, maxUpload, maxUploadVal, maxUploadKbs);
-
-
-        String maxSeedingUpload = MessageText.getString("SpeedTestWizard.finish.panel.max.seeding.upload");
-        String maxSeedingUploadVal = DisplayFormatters.formatByteCountToKiBEtcPerSec( maxUploadSeedingKbs*1024 );
-
-        createDataLine(panel, maxSeedingUpload, maxSeedingUploadVal, maxUploadSeedingKbs);
-
-        String maxDownload = MessageText.getString("SpeedTestWizard.finish.panel.max.download");
-        String maxDownloadVal;
-        if(maxDownloadKbs==0){
-            maxDownloadVal = MessageText.getString("ConfigView.unlimited");
-        }else{
-            maxDownloadVal = DisplayFormatters.formatByteCountToKiBEtcPerSec( maxDownloadKbs*1024 );
-        }
-
-        createDataLine(panel, maxDownload, maxDownloadVal, maxDownloadKbs);
 
         //spacer 2
         Label s2 = new Label(panel, SWT.NULL);
@@ -120,6 +104,21 @@ public class SpeedTestFinishPanel extends AbstractWizardPanel
 
         String autoSpeedWhileSeeding = MessageText.getString("SpeedTestWizard.finish.panel.auto.speed.seeding");
         createStatusLine(panel, autoSpeedWhileSeeding, autoSpeedSeedingEnabled);
+
+        //spacer 1
+        Label s1 = new Label(panel, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan = 3;
+        s1.setLayoutData(gridData);
+
+        //displays a bytes/sec column and a bits/sec column
+        createHeaderLine(panel);
+
+        String maxUploadLbl = MessageText.getString("SpeedView.stats.estupcap");
+        createDataLine(panel, maxUploadLbl, maxUploadKbs, upEst);
+
+        String maxDownloadLbl = MessageText.getString("SpeedView.stats.estdowncap");       
+        createDataLine(panel, maxDownloadLbl, maxDownloadKbs, downEst);
 
     }//show
 
@@ -190,10 +189,10 @@ public class SpeedTestFinishPanel extends AbstractWizardPanel
      * One line of data in the UI
      * @param panel -
      * @param label - label
-     * @param value - bytes/sec
      * @param maxKbps - bits/sec
+     * @param estimate -
      */
-    private void createDataLine(Composite panel, String label, String value, int maxKbps) {
+    private void createDataLine(Composite panel, String label, int maxKbps, SpeedManagerLimitEstimate estimate) {
         GridData gridData;
         Label c1 = new Label(panel, SWT.NULL);//max upload
         gridData = new GridData();
@@ -207,7 +206,8 @@ public class SpeedTestFinishPanel extends AbstractWizardPanel
         gridData.horizontalSpan = 1;
         gridData.horizontalAlignment = GridData.CENTER;
         c2.setLayoutData(gridData);
-        c2.setText(value);
+        String estString  = helper.getLimitText( estimate );
+        c2.setText(estString);
 
         Label c3 = new Label(panel,SWT.NULL);//kbits/sec
         gridData = new GridData();
@@ -215,7 +215,13 @@ public class SpeedTestFinishPanel extends AbstractWizardPanel
         gridData.horizontalAlignment = GridData.BEGINNING;
         c3.setLayoutData(gridData);
 
-        String maxBitsPerSec = DisplayFormatters.formatByteCountToBitsPerSec(maxKbps*1024);
+        String maxBitsPerSec;
+        if(maxKbps==0){
+            maxBitsPerSec = MessageText.getString("ConfigView.unlimited");
+        }else{
+            maxBitsPerSec = DisplayFormatters.formatByteCountToKiBEtcPerSec( maxKbps );
+        }
+
         c3.setText(maxBitsPerSec);
     }
 
