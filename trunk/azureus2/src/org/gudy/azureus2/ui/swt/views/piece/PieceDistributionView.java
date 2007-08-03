@@ -136,29 +136,34 @@ public class PieceDistributionView
 		try
 		{
 			int stepWidthX = (int)Math.floor(rect.width/upperBound);
-			int barGap = 2;
-			int barWidth = stepWidthX-barGap;
+			int barGap = 1;
+			int barWidth = stepWidthX-barGap-1;
 			int barFillingWidth = barWidth-1;
-			double stepWidthY = 1.0*rect.height/avlPeak;
+			double stepWidthY = 1.0*(rect.height-1)/avlPeak;
 			int offsetY = rect.height;
 			
 			gc.setForeground(Colors.green);
-			for(int i=0;i<connected;i++)
+			for(int i=0;i<=connected;i++)
 			{
 				Color curColor;
-				if(i<seeds)
+				if(i==0)
+					curColor = Colors.colorError;
+				else if(i<=seeds)
 					curColor = Colors.green;
 				else
 					curColor = Colors.blues[Colors.BLUES_DARKEST];
-				if(i==minAvail)
-					curColor = Colors.blue;
+
+					
 				gc.setBackground(curColor);
 				gc.setForeground(curColor);
 				
+				if(i==minAvail)
+					gc.setForeground(Colors.blue);
+				
 				if(piecesPerAvailability[i] == 0)
 				{
-					gc.setLineWidth(3);
-					gc.drawLine(stepWidthX*i, offsetY-1, stepWidthX*i+barWidth, offsetY-1);
+					gc.setLineWidth(2);
+					gc.drawLine(stepWidthX*i, offsetY-1, stepWidthX*(i+1)-barGap, offsetY-1);
 				} else
 				{
 					gc.setLineWidth(1);
@@ -178,6 +183,7 @@ public class PieceDistributionView
 			t.scale(-1.0, 1.0);
 			
 			String[] boxContent = new String[] {
+				MessageText.getString("PiecesView.DistributionView.NoAvl"),
 				MessageText.getString("PiecesView.DistributionView.SeedAvl"),
 				MessageText.getString("PiecesView.DistributionView.PeerAvl"),
 				MessageText.getString("PiecesView.DistributionView.RarestAvl",new String[] {piecesPerAvailability[minAvail]+"",minAvail+""}),
@@ -196,32 +202,44 @@ public class PieceDistributionView
 			maxBoxOffsetX = (maxBoxWidth+5) * charWidth;
 			maxBoxWidth = ++maxBoxWidth * charWidth;
 			
-
+			
+			int boxNum = 1;
+			gc.setForeground(Colors.colorError);
+			gc.setBackground(Colors.background);
+			gc.drawRectangle(t.x(maxBoxOffsetX),t.y(maxBoxOffsetY*boxNum),maxBoxWidth,charHeight);
+			gc.drawString(boxContent[boxNum-1],t.x(maxBoxOffsetX-5),t.y(maxBoxOffsetY*boxNum),true);
+			
+			boxNum++;
 			gc.setForeground(Colors.green);
 			gc.setBackground(Colors.background);
-			gc.drawRectangle(t.x(maxBoxOffsetX),t.y(maxBoxOffsetY),maxBoxWidth,charHeight);
-			gc.drawString(boxContent[0],t.x(maxBoxOffsetX-5),t.y(maxBoxOffsetY),true);
+			gc.drawRectangle(t.x(maxBoxOffsetX),t.y(maxBoxOffsetY*boxNum),maxBoxWidth,charHeight);
+			gc.drawString(boxContent[boxNum-1],t.x(maxBoxOffsetX-5),t.y(maxBoxOffsetY*boxNum),true);
 			
+			boxNum++;
 			gc.setForeground(Colors.blues[Colors.BLUES_DARKEST]);
-			gc.drawRectangle(t.x(maxBoxOffsetX),t.y(maxBoxOffsetY*2),maxBoxWidth,charHeight);
-			gc.drawString(boxContent[1],t.x(maxBoxOffsetX-5),t.y(maxBoxOffsetY*2),true);
-
-			gc.setForeground(Colors.blue);
-			gc.drawRectangle(t.x(maxBoxOffsetX),t.y(maxBoxOffsetY*3),maxBoxWidth,charHeight);
-			gc.drawString(boxContent[2],t.x(maxBoxOffsetX-5),t.y(maxBoxOffsetY*3),true);
+			gc.drawRectangle(t.x(maxBoxOffsetX),t.y(maxBoxOffsetY*boxNum),maxBoxWidth,charHeight);
+			gc.drawString(boxContent[boxNum-1],t.x(maxBoxOffsetX-5),t.y(maxBoxOffsetY*boxNum),true);
 			
+			boxNum++;
+			gc.setForeground(Colors.blue);
+			gc.drawRectangle(t.x(maxBoxOffsetX),t.y(maxBoxOffsetY*boxNum),maxBoxWidth,charHeight);
+			gc.drawString(boxContent[boxNum-1],t.x(maxBoxOffsetX-5),t.y(maxBoxOffsetY*boxNum),true);
+			
+			boxNum++;
 			gc.setForeground(Colors.black);
 			gc.setBackground(Colors.black);
-			gc.drawRectangle(t.x(maxBoxOffsetX),t.y(maxBoxOffsetY*4),maxBoxWidth,charHeight);
-			gc.fillRectangle(t.x(maxBoxOffsetX),t.y(maxBoxOffsetY*4),maxBoxWidth/2,charHeight);
+			gc.drawRectangle(t.x(maxBoxOffsetX),t.y(maxBoxOffsetY*boxNum),maxBoxWidth,charHeight);
+			gc.fillRectangle(t.x(maxBoxOffsetX),t.y(maxBoxOffsetY*boxNum),maxBoxWidth/2,charHeight);
 			gc.setForeground(Colors.grey);
 			gc.setBackground(Colors.background);
-			gc.drawString(boxContent[3],t.x(maxBoxOffsetX-5),t.y(maxBoxOffsetY*4),true);
+			gc.drawString(boxContent[boxNum-1],t.x(maxBoxOffsetX-5),t.y(maxBoxOffsetY*boxNum),true);
 			
+			boxNum++;
 			gc.setForeground(Colors.black);
 			gc.setLineStyle(SWT.LINE_DASH);
-			gc.drawRectangle(t.x(maxBoxOffsetX),t.y(maxBoxOffsetY*5),maxBoxWidth,charHeight);
-			gc.drawString(boxContent[4],t.x(maxBoxOffsetX-5),t.y(maxBoxOffsetY*5),true);
+			gc.drawRectangle(t.x(maxBoxOffsetX),t.y(maxBoxOffsetY*boxNum),maxBoxWidth,charHeight);
+			gc.drawString(boxContent[boxNum-1],t.x(maxBoxOffsetX-5),t.y(maxBoxOffsetY*boxNum),true);
+			
 			
 			gc.setLineStyle(SWT.LINE_SOLID);
 		
