@@ -31,7 +31,11 @@ import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.session.SessionAuthenticator;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 
-/** Management of a Torrent's activity.
+/**
+ * Management of a Torrent's activity.
+ * 
+ * <b>Note:</b> All listener based methods are now located in {@link DownloadEventNotifier}.
+ * 
  * <PRE>
  * A download's lifecycle:
  * torrent gets added
