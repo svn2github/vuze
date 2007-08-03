@@ -917,7 +917,9 @@ public class TableCellImpl
     		debug("refresh done; visual change? " + ret + ";" + Debug.getCompressedStackTrace());
     } catch (Throwable e) {
       refreshErrLoopCount++;
-      tableColumn.setConsecutiveErrCount(++iErrCount);
+      if (tableColumn != null) {
+      	tableColumn.setConsecutiveErrCount(++iErrCount);
+      }
       pluginError(e);
       if (refreshErrLoopCount > 2)
       	Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
