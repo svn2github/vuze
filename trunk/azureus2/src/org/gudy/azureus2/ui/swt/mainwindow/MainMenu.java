@@ -608,6 +608,14 @@ public class MainMenu {
       		if (current_dls == null) {return;}
       		boolean is_detailed_view = ((Boolean)torrentItem.getData("is_detailed_view")).booleanValue();
       		TorrentUtil.fillTorrentMenu(menu, current_dls, core, attachedShell, !is_detailed_view, 0);
+    		org.gudy.azureus2.plugins.ui.menus.MenuItem[] menu_items;
+    		menu_items = MenuItemManager.getInstance().getAllAsArray("torrentmenu");
+    		if (menu_items.length > 0) {
+        		new MenuItem(menu, SWT.SEPARATOR);
+    			MenuBuildUtils.addPluginMenuItems(parent, menu_items, menu, true, true,
+						new MenuBuildUtils.MenuItemPluginMenuControllerImpl(current_dls)
+    			);
+    		}
       	}
       });
   }

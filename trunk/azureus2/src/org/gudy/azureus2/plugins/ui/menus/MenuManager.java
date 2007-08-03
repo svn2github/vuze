@@ -63,6 +63,13 @@ public interface MenuManager {
 	public static final String MENU_TRANSFERSBAR = "transfersbar";
 	
 	/**
+	 * The "Torrents" menu.
+	 * 
+	 * @since 3.0.2
+	 */
+	public static final String MENU_TORRENT_MENU = "torrentmenu";
+	
+	/**
 	 * Creates a menu item for the appropriate menu.
 	 * 
 	 * @param menuID The <tt>MENU_</tt> identifier as defined above. 
