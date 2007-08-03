@@ -22,6 +22,7 @@ package com.aelitis.azureus.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -174,7 +175,12 @@ public class AdManager
 									public void downloadComplete(DownloadManager manager) {
 										// good chance we still have internet here, so get/cache
 										// the asx
-										createASX(dm, null);
+										String url = dm.getSaveLocation().toString();
+										try {
+											url = new File(url).toURL().toString();
+										} catch (MalformedURLException e) {
+										}
+										createASX(dm, url, null);
 									}
 								});
 							}
@@ -332,7 +338,8 @@ public class AdManager
 		return (DownloadManager[]) ads.toArray(new DownloadManager[0]);
 	}
 
-	public void createASX(final DownloadManager dm, final ASXCreatedListener l) {
+	public void createASX(final DownloadManager dm, String URLToPlay,
+			final ASXCreatedListener l) {
 		try {
 			TOTorrent torrent = dm.getTorrent();
 			if (torrent == null || !PlatformTorrentUtils.isContent(torrent, true)) {
@@ -357,7 +364,8 @@ public class AdManager
 			String contentHash = PlatformTorrentUtils.getContentHash(torrent);
 
 			PlatformAdManager.debug("getting asx");
-			PlatformAdManager.getPlayList(dm, "http://127.0.0.1:"
+			PlatformAdManager.getPlayList(dm, URLToPlay,
+					"http://127.0.0.1:"
 					+ MagnetURIHandler.getSingleton().getPort()
 					+ "/setinfo?name=adtracker&contentHash=" + contentHash, 0,
 					new PlatformAdManager.GetPlaylistReplyListener() {

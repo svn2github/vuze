@@ -152,17 +152,16 @@ public class PlatformAdManager
 		public void replyReceived(String replyType, Map mapHashes);
 	}
 
-	public static void getPlayList(DownloadManager dmToPlay, String trackingURL,
-			long maxDelayMS, final GetPlaylistReplyListener replyListener) {
+	public static void getPlayList(DownloadManager dmToPlay, String URLToPlay,
+			String trackingURL, long maxDelayMS,
+			final GetPlaylistReplyListener replyListener) {
 
 		try {
 			Map parameters = new HashMap();
 
-			String sFile = dmToPlay.getDownloadState().getPrimaryFile();
-
 			parameters.put("hash",
 					dmToPlay.getTorrent().getHashWrapper().toBase32String());
-			parameters.put("content-url", new File(sFile).toURL().toString());
+			parameters.put("content-url", URLToPlay);
 			parameters.put("tracking-urls", new String[] {
 				trackingURL
 			});

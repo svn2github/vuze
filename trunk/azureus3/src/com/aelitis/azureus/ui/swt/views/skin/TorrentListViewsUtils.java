@@ -22,6 +22,7 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -389,7 +390,13 @@ public class TorrentListViewsUtils
 		if (bComplete) {
 			TOTorrent torrent = dm.getTorrent();
 			if (PlatformTorrentUtils.isContentAdEnabled(torrent)) {
-				AdManager.getInstance().createASX(dm,
+				String url;
+				try {
+					url = file.toURL().toString();
+				} catch (MalformedURLException e) {
+					url = sFile;
+				}
+				AdManager.getInstance().createASX(dm, url,
 						new AdManager.ASXCreatedListener() {
 							public void asxCreated(File asxFile) {
 								runFile(dm.getTorrent(), asxFile.getAbsolutePath());
@@ -609,24 +616,36 @@ public class TorrentListViewsUtils
 		}
 
 		try {
-			pi.getIPC().invoke("getContentURL", new Object[] {
+			final DownloadManager dm = ((DownloadImpl) download).getDownload();
+
+			String url = dm.getSaveLocation().toString();
+			try {
+				url = new File(url).toURL().toString();
+			} catch (MalformedURLException e) {
+			}
+
+			Object urlObj = pi.getIPC().invoke("getContentURL", new Object[] {
 				download
 			});
-			final DownloadManager dm = ((DownloadImpl) download).getDownload();
+			if (urlObj instanceof String) {
+				url = (String)urlObj;
+			}
+			final String fURL = url;
+			
 			TOTorrent torrent = dm.getTorrent();
 			if (PlatformTorrentUtils.isContentAdEnabled(torrent)) {
-				AdManager.getInstance().createASX(dm,
+				AdManager.getInstance().createASX(dm, fURL,
 						new AdManager.ASXCreatedListener() {
 							public void asxCreated(File asxFile) {
 								runFile(dm.getTorrent(), asxFile.getAbsolutePath());
 							}
 
 							public void asxFailed() {
-								runFile(dm.getTorrent(), dm.getSaveLocation().toString());
+								runFile(dm.getTorrent(), fURL);
 							}
 						});
 			} else {
-				runFile(dm.getTorrent(), dm.getSaveLocation().toString());
+				runFile(dm.getTorrent(), url);
 			}
 		} catch (Throwable e) {
 			try {
