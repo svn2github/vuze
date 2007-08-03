@@ -40,7 +40,6 @@ public class TorrentRemove extends TorrentCommand {
 
 	protected boolean performCommand(ConsoleInput ci, DownloadManager dm, List args) {
 		try {
-			dm.stopIt( DownloadManager.STATE_STOPPED, false, false );
 			ci.getGlobalManager().removeDownloadManager(dm);
 		} catch (GlobalManagerDownloadRemovalVetoException e) {
 			ci.out.println("> Veto when removing torrent (" + e.getMessage() + ")");
