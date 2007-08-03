@@ -31,10 +31,7 @@ public interface
 ClientIDManager 
 {
 		/**
-		 * Sets the generator for client id artifacts. Note that the filter approach doesn't
-		 * currently work with HTTPS
-		 * @param generator
-		 * @param use_http_filter
+		 * <b>No longer supported - will be removed in future.</b>
 		 */
 	
 	public void
