@@ -292,6 +292,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addSimpleClient("\u00B5Torrent 1.7.0 RC", "-UT170-"); // http://forum.utorrent.com/viewtopic.php?pid=260927#p260927
 		addSimpleClient("Azureus 1", "Azureus");
 		addSimpleClient("Azureus 2.0.3.2", "Azureus", 5);
+		addSimpleClient("Aria 2", "-aria2-");
 		addSimpleClient("BitTorrent Plus! II", "PRC.P---");
 		addSimpleClient("BitTorrent Plus!", "P87.P---");
 		addSimpleClient("BitTorrent Plus!", "S587Plus");
