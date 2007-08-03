@@ -35,6 +35,9 @@ public class PublishUtils
 	}
 
 	public static boolean isPublished(DownloadManager dm) {
+		if (dm == null) {
+			return false;
+		}
 		try {
 			Map mapAttr = dm.getDownloadState().getMapAttribute(CONTENTMAP_KEY);
 
@@ -100,8 +103,11 @@ public class PublishUtils
 			if (mapAttr == null) {
 				return;
 			}
-			mapAttr.remove(PublishTransaction.PUBLISH_ATTRIBUTE_KEY);
-			dm.getDownloadState().setMapAttribute(CONTENTMAP_KEY, mapAttr);
+			mapAttr = new HashMap(mapAttr);
+			Object remove = mapAttr.remove(PublishTransaction.PUBLISH_ATTRIBUTE_KEY);
+			if (remove != null) {
+				dm.getDownloadState().setMapAttribute(CONTENTMAP_KEY, mapAttr);
+			}
 		} catch (Exception e) {
 			Debug.out(e);
 		}
@@ -113,6 +119,8 @@ public class PublishUtils
 
 			if (mapAttr == null) {
 				mapAttr = new HashMap();
+			} else {
+				mapAttr = new HashMap(mapAttr);
 			}
 			mapAttr.put(PublishTransaction.PUBLISH_ATTRIBUTE_KEY, new Long(1));
 			dm.getDownloadState().setMapAttribute(CONTENTMAP_KEY, mapAttr);
