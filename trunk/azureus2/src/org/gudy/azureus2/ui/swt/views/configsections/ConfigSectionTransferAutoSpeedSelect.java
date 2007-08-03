@@ -129,8 +129,7 @@ public class ConfigSectionTransferAutoSpeedSelect
         ///////////////////////////////////
         //Beta-mode grouping.
         Group modeGroup = new Group(cSection, SWT.NULL);
-        //Messages.setLanguageText
-        modeGroup.setText("Auto-Speed selector");
+        Messages.setLanguageText(modeGroup,"ConfigTransferAutoSpeed.algorithm.selector");
         GridLayout modeLayout = new GridLayout();
         modeLayout.numColumns = 3;
         modeGroup.setLayout(modeLayout);
@@ -145,10 +144,11 @@ public class ConfigSectionTransferAutoSpeedSelect
         gridData.widthHint = 50;
         label.setLayoutData(gridData);
 
-        //ToDo: get from the message bundle. NOTE Unlimited and Auto-Speed(beta old pm) are temp removed.
+        String AutoSpeedClassic = MessageText.getString("ConfigTransferAutoSpeed.auto.speed.classic");
+        String AutoSpeedBeta = MessageText.getString("ConfigTransferAutoSpeed.auto.speed.beta");
         String[] modeNames = {
-                "Auto-Speed (classic)",
-                "Auto-Speed (beta)",
+                AutoSpeedClassic,
+                AutoSpeedBeta
                };
         
         String[] modes = {

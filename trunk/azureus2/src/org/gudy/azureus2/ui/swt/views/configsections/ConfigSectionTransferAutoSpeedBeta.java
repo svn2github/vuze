@@ -135,7 +135,7 @@ public class ConfigSectionTransferAutoSpeedBeta
         ///////////////////////////////////
         //comment grouping.
         commentGroup = new Group(cSection, SWT.NULL);
-        commentGroup.setText("Add comment to debug log");
+        Messages.setLanguageText(commentGroup,"ConfigTransferAutoSpeed.add.comment.to.log.group");
         GridLayout commentLayout = new GridLayout();
         commentLayout.numColumns = 3;
         commentGroup.setLayout(commentLayout);
@@ -144,7 +144,7 @@ public class ConfigSectionTransferAutoSpeedBeta
 
         //Label
         Label commentLabel = new Label(commentGroup,SWT.NULL);
-        commentLabel.setText("Add Comment: ");
+        Messages.setLanguageText(commentLabel,"ConfigTransferAutoSpeed.add.comment.to.log");
         gridData = new GridData();
         gridData.widthHint = 70;
         gridData.horizontalSpan=1;
@@ -166,11 +166,11 @@ public class ConfigSectionTransferAutoSpeedBeta
         gridData.widthHint = 70;
         gridData.horizontalSpan=1;
         commentButton.setLayoutData(gridData);
-        commentButton.setText("Log");
+        Messages.setLanguageText(commentButton,"ConfigTransferAutoSpeed.log.button");
         commentButton.addListener(SWT.Selection, new Listener(){
             public void handleEvent(Event event){
                 //Add a file to the log.
-                AEDiagnosticsLogger dLog = AEDiagnostics.getLogger("v3.AutoSpeed_Beta_Debug");
+                AEDiagnosticsLogger dLog = AEDiagnostics.getLogger("AutoSpeed");
                 String comment = commentBox.getText();
                 if(comment!=null){
                     if( comment.length()>0){
