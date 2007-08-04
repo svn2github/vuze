@@ -266,7 +266,7 @@ public class TorrentListViewsUtils
 				if (selectedRows.length <= 0) {
 					return;
 				}
-				playOrStream((DownloadManager) selectedRows[0].getDataSource(true));
+				playOrStream((DownloadManager) selectedRows[0].getDataSource(true), btn);
 			}
 		});
 
@@ -313,107 +313,131 @@ public class TorrentListViewsUtils
 	}
 
 	public static void playOrStream(final DownloadManager dm) {
+		playOrStream(dm, null);
+	}
+
+	public static void playOrStream(final DownloadManager dm,
+			final SWTSkinButtonUtility btn) {
 		if (dm == null) {
 			return;
 		}
+		if (btn != null) {
+			btn.setDisabled(true);
+		}
 
-		boolean bComplete = dm.isDownloadComplete(false);
+		boolean reenableButton = false;
+		try {
+			boolean bComplete = dm.isDownloadComplete(false);
 
-		if (!bComplete) {
-			DownloadManagerEnhancer dmEnhancer = DownloadManagerEnhancer.getSingleton();
-			if (dmEnhancer != null) {
-				EnhancedDownloadManager edm = dmEnhancer.getEnhancedDownload(dm);
-				if (edm != null
-						&& (!edm.supportsProgressiveMode() || edm.getProgressivePlayETA() > 0)) {
+			if (!bComplete) {
+				DownloadManagerEnhancer dmEnhancer = DownloadManagerEnhancer.getSingleton();
+				if (dmEnhancer != null) {
+					EnhancedDownloadManager edm = dmEnhancer.getEnhancedDownload(dm);
+					if (edm != null
+							&& (!edm.supportsProgressiveMode() || edm.getProgressivePlayETA() > 0)) {
+						return;
+					}
+				}
+			}
+
+			File file;
+			String sFile = dm.getDownloadState().getPrimaryFile();
+			if (sFile == null || sFile.length() == 0 || !new File(sFile).exists()) {
+				DiskManagerFileInfo[] diskManagerFileInfo = dm.getDiskManagerFileInfo();
+				if (diskManagerFileInfo == null && diskManagerFileInfo.length == 0) {
+					return;
+				}
+				file = diskManagerFileInfo[0].getFile(true);
+			} else {
+				file = new File(sFile);
+			}
+
+			if (!file.exists()) {
+				handleNoFileExists(dm);
+				return;
+			}
+			String ext = FileUtil.getExtension(file.getName());
+
+			boolean untrusted = isUntrustworthyContent(ext);
+			boolean trusted = isTrustedContent(ext);
+
+			if (untrusted || !trusted) {
+				String sPrefix = untrusted ? "v3.mb.notTrusted."
+						: "v3.mb.UnknownContent.";
+
+				UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
+				if (functionsSWT == null) {
+					return;
+				}
+				Program program = Program.findProgram(ext);
+				String sTextID;
+				String sFileType;
+				if (program == null) {
+					sTextID = sPrefix + "noapp.text";
+					sFileType = ext;
+				} else {
+					sTextID = sPrefix + "text";
+					sFileType = program.getName();
+				}
+
+				MessageBoxShell mb = new MessageBoxShell(functionsSWT.getMainShell(),
+						MessageText.getString(sPrefix + "title"), MessageText.getString(
+								sTextID, new String[] {
+									dm.getDisplayName(),
+									sFileType,
+									ext
+								}), new String[] {
+							MessageText.getString(sPrefix + "button.run"),
+							MessageText.getString(sPrefix + "button.cancel")
+						}, 1);
+				mb.setRelatedObject(dm);
+				int i = mb.open();
+				if (i != 0) {
 					return;
 				}
 			}
-		}
 
-		File file;
-		String sFile = dm.getDownloadState().getPrimaryFile();
-		if (sFile == null || sFile.length() == 0 || !new File(sFile).exists()) {
-			DiskManagerFileInfo[] diskManagerFileInfo = dm.getDiskManagerFileInfo();
-			if (diskManagerFileInfo == null && diskManagerFileInfo.length == 0) {
-				return;
-			}
-			file = diskManagerFileInfo[0].getFile(true);
-		} else {
-			file = new File(sFile);
-		}
+			if (bComplete) {
+				TOTorrent torrent = dm.getTorrent();
+				if (PlatformTorrentUtils.isContentAdEnabled(torrent)) {
+					String url;
+					try {
+						url = file.toURL().toString();
+					} catch (MalformedURLException e) {
+						url = sFile;
+					}
+					AdManager.getInstance().createASX(dm, url,
+							new AdManager.ASXCreatedListener() {
+								public void asxCreated(File asxFile) {
+									if (btn != null) {
+										System.out.println("cows2");
+										btn.setDisabled(false);
+									}
+									runFile(dm.getTorrent(), asxFile.getAbsolutePath());
+								}
 
-		if (!file.exists()) {
-			handleNoFileExists(dm);
-			return;
-		}
-		String ext = FileUtil.getExtension(file.getName());
-
-		boolean untrusted = isUntrustworthyContent(ext);
-		boolean trusted = isTrustedContent(ext);
-
-		if (untrusted || !trusted) {
-			String sPrefix = untrusted ? "v3.mb.notTrusted."
-					: "v3.mb.UnknownContent.";
-
-			UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
-			if (functionsSWT == null) {
-				return;
-			}
-			Program program = Program.findProgram(ext);
-			String sTextID;
-			String sFileType;
-			if (program == null) {
-				sTextID = sPrefix + "noapp.text";
-				sFileType = ext;
-			} else {
-				sTextID = sPrefix + "text";
-				sFileType = program.getName();
-			}
-
-			MessageBoxShell mb = new MessageBoxShell(functionsSWT.getMainShell(),
-					MessageText.getString(sPrefix + "title"), MessageText.getString(
-							sTextID, new String[] {
-								dm.getDisplayName(),
-								sFileType,
-								ext
-							}), new String[] {
-						MessageText.getString(sPrefix + "button.run"),
-						MessageText.getString(sPrefix + "button.cancel")
-					}, 1);
-			mb.setRelatedObject(dm);
-			int i = mb.open();
-			if (i != 0) {
-				return;
-			}
-		}
-
-		if (bComplete) {
-			TOTorrent torrent = dm.getTorrent();
-			if (PlatformTorrentUtils.isContentAdEnabled(torrent)) {
-				String url;
-				try {
-					url = file.toURL().toString();
-				} catch (MalformedURLException e) {
-					url = sFile;
+								public void asxFailed() {
+									if (btn != null) {
+										btn.setDisabled(false);
+									}
+									runFile(dm.getTorrent(), dm.getSaveLocation().toString());
+								}
+							});
+				} else {
+					reenableButton = true;
+					runFile(dm.getTorrent(), dm.getSaveLocation().toString());
 				}
-				AdManager.getInstance().createASX(dm, url,
-						new AdManager.ASXCreatedListener() {
-							public void asxCreated(File asxFile) {
-								runFile(dm.getTorrent(), asxFile.getAbsolutePath());
-							}
-
-							public void asxFailed() {
-								runFile(dm.getTorrent(), dm.getSaveLocation().toString());
-							}
-						});
 			} else {
-				runFile(dm.getTorrent(), dm.getSaveLocation().toString());
+				reenableButton = true;
+				try {
+					playViaMediaServer(DownloadManagerImpl.getDownloadStatic(dm));
+				} catch (DownloadException e) {
+					Debug.out(e);
+				}
 			}
-		} else {
-			try {
-				playViaMediaServer(DownloadManagerImpl.getDownloadStatic(dm));
-			} catch (DownloadException e) {
-				Debug.out(e);
+		} finally {
+			if (btn != null && reenableButton) {
+				btn.setDisabled(false);
 			}
 		}
 	}
@@ -437,7 +461,7 @@ public class TorrentListViewsUtils
 					playAfterURL += playAfterURL.indexOf("?") > 0 ? "&" : "?";
 					playAfterURL += "azid=" + Constants.AZID + "&torrentHash="
 							+ torrent.getHashWrapper().toBase32String();
-	
+
 					new BrowserWindow(Utils.findAnyShell(), playAfterURL, 0.9, 0.9, true,
 							true);
 				} catch (Exception e) {
@@ -628,10 +652,10 @@ public class TorrentListViewsUtils
 				download
 			});
 			if (urlObj instanceof String) {
-				url = (String)urlObj;
+				url = (String) urlObj;
 			}
 			final String fURL = url;
-			
+
 			TOTorrent torrent = dm.getTorrent();
 			if (PlatformTorrentUtils.isContentAdEnabled(torrent)) {
 				AdManager.getInstance().createASX(dm, fURL,
@@ -732,15 +756,15 @@ public class TorrentListViewsUtils
 	public static void removeDownload(final DownloadManager dm,
 			final TableView tableView, final boolean bDeleteTorrent,
 			final boolean bDeleteData) {
-		
+
 		tableView.removeDataSource(dm, true);
-		
+
 		AERunnable failure = new AERunnable() {
 			public void runSupport() {
 				tableView.addDataSource(dm, true);
 			}
 		};
-		
+
 		if (PublishUtils.isPublished(dm)) {
 			ManagerUtils.remove(dm, null, false, false, failure);
 		} else {
