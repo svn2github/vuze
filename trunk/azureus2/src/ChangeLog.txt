@@ -19,6 +19,7 @@ CHANGE: Core  | Much better peer ID identification code added, many more clients
 CHANGE: Core  | Changes made to identify some "fake" clients (or other clients which identify themselves in a problematic way) [amc1]
 CHANGE: Core  | Biased optimistic disconnect slightly against leechy peers [The 8472]
 CHANGE: Core  | Core changes in some places to allow "Default save path" to be used without requiring "Use default data dir" to be enabled [hasturkun]
+CHANGE: Core  | Reduce CPU usage when many (queued) torrents are present and in the the pieces view [The 8472]
 CHANGE: UI    | UL/DL speed selection on right click of status bar changed from menu to scale widget. [TuxPaper]
                 Usage: (1) MouseDown+Drag+MouseUp  (2) Click+Move+Click  (3) Click+type number+Enter
 CHANGE: UI    | Open Torrent Window now asks to create directories if they don't exist yet, instead of evilly auto-creating them when you click the Browse button [The 8472] 

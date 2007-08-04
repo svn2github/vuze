@@ -1488,7 +1488,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		//    c) other
 		// 7) Seeding Torrent changes to Queued.  Go to step 1.
 
-		int numPeers = calcPeersNoUs(download);
+		int numPeers = dlData.lastModifiedScrapeResultPeers;
 		boolean isFP = false;
 
 		if (bDebugLog) {

@@ -181,6 +181,9 @@ public class DefaultRankCalculator implements Comparable {
 			"StartStopRules:downloadData");
 
 	private final StartStopRulesDefaultPlugin rules;
+	
+	int lastModifiedScrapeResultPeers = 0;
+	int lastModifiedScrapeResultSeeds = 0;
 
 	/**
 	 * Default Initializer
@@ -291,8 +294,8 @@ public class DefaultRankCalculator implements Comparable {
 
 		if (iRankType != StartStopRulesDefaultPlugin.RANK_TIMED) {
 			// Test Large/Small Swarm pref
-			int numPeersThem = rules.calcPeersNoUs(dlData.dl);
-			int numPeersUs = rules.calcPeersNoUs(dl);
+			int numPeersThem = dlData.lastModifiedScrapeResultPeers;
+			int numPeersUs = lastModifiedScrapeResultPeers;
 			if (bPreferLargerSwarms)
 				value = numPeersThem - numPeersUs;
 			else
@@ -456,11 +459,11 @@ public class DefaultRankCalculator implements Comparable {
 
 			int shareRatio = stats.getShareRatio();
 
-			int numPeers = rules.calcPeersNoUs(dl);
-			int numSeeds = rules.calcSeedsNoUs(dl);
+			lastModifiedScrapeResultPeers = rules.calcPeersNoUs(dl);
+			lastModifiedScrapeResultSeeds = rules.calcSeedsNoUs(dl);
 
-			boolean bScrapeResultsOk = (numPeers > 0 || numSeeds > 0
-					|| scrapeResultOk(dl)) && (numPeers >= 0 && numSeeds >= 0);
+			boolean bScrapeResultsOk = (lastModifiedScrapeResultPeers > 0 || lastModifiedScrapeResultSeeds > 0
+					|| scrapeResultOk(dl)) && (lastModifiedScrapeResultPeers >= 0 && lastModifiedScrapeResultSeeds >= 0);
 
 			if (!isFirstPriority()) {
 				// Check Ignore Rules
@@ -469,7 +472,7 @@ public class DefaultRankCalculator implements Comparable {
 
 				//0 means unlimited
 				if (iIgnoreShareRatio != 0 && shareRatio >= iIgnoreShareRatio
-						&& (numSeeds >= iIgnoreShareRatio_SeedStart || !scrapeResultOk(dl))
+						&& (lastModifiedScrapeResultSeeds >= iIgnoreShareRatio_SeedStart || !scrapeResultOk(dl))
 						&& shareRatio != -1) {
 					
 					if (rules.bDebugLog)
@@ -481,13 +484,13 @@ public class DefaultRankCalculator implements Comparable {
 				} else if (rules.bDebugLog && iIgnoreShareRatio != 0
 						&& shareRatio >= iIgnoreShareRatio) {
 					sExplainSR += "  shareratio NOT met: ";
-					if (numSeeds >= iIgnoreShareRatio_SeedStart) 
-						sExplainSR += numSeeds + " below seed threshold of "
+					if (lastModifiedScrapeResultSeeds >= iIgnoreShareRatio_SeedStart) 
+						sExplainSR += lastModifiedScrapeResultSeeds + " below seed threshold of "
 								+ iIgnoreShareRatio_SeedStart;
 					sExplainSR += "\n";
 				}
 
-				if (numPeers == 0 && bScrapeResultsOk) {
+				if (lastModifiedScrapeResultPeers == 0 && bScrapeResultsOk) {
 					// If both bIgnore0Peers and bFirstPriorityIgnore0Peer are on,
 					// we won't know which one it is at this point.
 					// We have to use the normal SR_0PEERS in case it isn't FP
@@ -506,7 +509,7 @@ public class DefaultRankCalculator implements Comparable {
 //						dl.setSeedingRank(SR_FP0PEERS);
 //						return SR_FP0PEERS;
 //					}
-				} else if (rules.bDebugLog && numPeers == 0) {
+				} else if (rules.bDebugLog && lastModifiedScrapeResultPeers == 0) {
 					sExplainSR += "  0 Peer Ignore rule NOT applied: Scrape invalid\n";
 				}
 
@@ -523,10 +526,10 @@ public class DefaultRankCalculator implements Comparable {
 //				}
 
 				//0 means disabled
-				if ((iIgnoreSeedCount != 0) && (numSeeds >= iIgnoreSeedCount)) {
+				if ((iIgnoreSeedCount != 0) && (lastModifiedScrapeResultSeeds >= iIgnoreSeedCount)) {
 					if (rules.bDebugLog)
 						sExplainSR += "  SeedCount Ignore rule met.  numSeeds("
-								+ numSeeds + " >= iIgnoreSeedCount(" + iIgnoreSeedCount + ")\n"; 
+								+ lastModifiedScrapeResultSeeds + " >= iIgnoreSeedCount(" + iIgnoreSeedCount + ")\n"; 
 
 					dl.setSeedingRank(SR_NUMSEEDSMET);
 					return SR_NUMSEEDSMET;
@@ -535,10 +538,10 @@ public class DefaultRankCalculator implements Comparable {
 				// Ignore when P:S ratio met
 				// (More Peers for each Seed than specified in Config)
 				//0 means never stop
-				if (iIgnoreRatioPeers != 0 && numSeeds != 0) {
-					float ratio = (float) numPeers / numSeeds;
+				if (iIgnoreRatioPeers != 0 && lastModifiedScrapeResultSeeds != 0) {
+					float ratio = (float) lastModifiedScrapeResultPeers / lastModifiedScrapeResultSeeds;
 					if (ratio <= iIgnoreRatioPeers
-							&& numSeeds >= iIgnoreRatioPeers_SeedStart) {
+							&& lastModifiedScrapeResultSeeds >= iIgnoreRatioPeers_SeedStart) {
 
 						if (rules.bDebugLog)
 							sExplainSR += "  P:S Ignore rule met.  ratio(" + ratio
@@ -621,21 +624,21 @@ public class DefaultRankCalculator implements Comparable {
 			// SeedCount and SPRatio require Scrape Results..
 			if (bScrapeResultsOk) {
 				if ((iRankType == StartStopRulesDefaultPlugin.RANK_SEEDCOUNT)
-						&& (iRankTypeSeedFallback == 0 || iRankTypeSeedFallback > numSeeds)) {
-					if (numSeeds < 10000)
-						newSR = 10000 - numSeeds;
+						&& (iRankTypeSeedFallback == 0 || iRankTypeSeedFallback > lastModifiedScrapeResultSeeds)) {
+					if (lastModifiedScrapeResultSeeds < 10000)
+						newSR = 10000 - lastModifiedScrapeResultSeeds;
 					else
 						newSR = 1;
 					// shift over to make way for fallback
 					newSR *= SEEDONLY_SHIFT;
 
 				} else { // iRankType == RANK_SPRATIO or we are falling back
-					if (numPeers != 0) {
-						if (numSeeds == 0) {
-							if (numPeers >= minPeersToBoostNoSeeds)
+					if (lastModifiedScrapeResultPeers != 0) {
+						if (lastModifiedScrapeResultSeeds == 0) {
+							if (lastModifiedScrapeResultPeers >= minPeersToBoostNoSeeds)
 								newSR += SPRATIO_BASE_LIMIT;
 						} else { // numSeeds != 0 && numPeers != 0
-							float x = (float) numSeeds / numPeers;
+							float x = (float) lastModifiedScrapeResultSeeds / lastModifiedScrapeResultPeers;
 							newSR += SPRATIO_BASE_LIMIT / ((x + 1) * (x + 1));
 						}
 					}
@@ -699,20 +702,17 @@ public class DefaultRankCalculator implements Comparable {
 			return false;
 		}
 		
-		int numPeers = rules.calcPeersNoUs(dl);
-		int numSeeds = rules.calcSeedsNoUs(dl);
-		
 		List listeners = rules.getFPListeners();
 		for (Iterator iter = listeners.iterator(); iter.hasNext();) {
 			StartStopRulesFPListener l = (StartStopRulesFPListener) iter.next();
-			if (l.isFirstPriority(dl, numSeeds, numPeers)) {
+			if (l.isFirstPriority(dl, lastModifiedScrapeResultSeeds, lastModifiedScrapeResultPeers)) {
 				return true;
 			}
 		}
 
 		// FP doesn't apply when S:P >= set SPratio (SPratio = 0 means ignore)
-		if (numPeers > 0 && numSeeds > 0
-				&& (numSeeds / numPeers) >= iFirstPriorityIgnoreSPRatio
+		if (lastModifiedScrapeResultPeers > 0 && lastModifiedScrapeResultSeeds > 0
+				&& (lastModifiedScrapeResultSeeds / lastModifiedScrapeResultPeers) >= iFirstPriorityIgnoreSPRatio
 				&& iFirstPriorityIgnoreSPRatio != 0) {
 			if (rules.bDebugLog)
 				sExplainFP += "Not FP: S:P >= " + iFirstPriorityIgnoreSPRatio + ":1\n";
@@ -720,7 +720,7 @@ public class DefaultRankCalculator implements Comparable {
 		}
 
 		//not FP if no peers  //Nolar, 2105 - Gouss, 2203
-		if (numPeers == 0 && scrapeResultOk(dl) && bFirstPriorityIgnore0Peer) {
+		if (lastModifiedScrapeResultPeers == 0 && scrapeResultOk(dl) && bFirstPriorityIgnore0Peer) {
 			if (rules.bDebugLog)
 				sExplainFP += "Not FP: 0 peers\n";
 			return false;
