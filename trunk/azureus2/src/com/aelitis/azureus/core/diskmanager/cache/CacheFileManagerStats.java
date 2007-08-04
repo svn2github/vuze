@@ -76,10 +76,5 @@ CacheFileManagerStats
 	
 		// returns the number of bytes in the requested range that are in cache
 	
-	public long
-	getBytesInCache(
-		TOTorrent		torrent,
-		int				piece_number,
-		int				offset,
-		long			length );
+	public boolean[] getBytesInCache(TOTorrent torrent, long[] absoluteOffsets, long[] lengths);
 }

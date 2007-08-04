@@ -1166,53 +1166,86 @@ CacheFileWithCache
 		flushOldDirtyData( oldest_dirty_time, -1 );
 	}
 	
-	protected long
+	protected void
 	getBytesInCache(
-		long	offset,
-		long	length )
+		boolean[] toModify,
+		long[]	absoluteOffsets,
+		long[]	lengths )
 	{
-		try{
-			this_mon.enter();
-			
-			long	result	= 0;
-			
-			Iterator	it = cache.iterator();
-			
-			long	start_pos	= offset;
-			long	end_pos		= offset + length;
-			
-			while( it.hasNext()){
-			
-				CacheEntry	entry = (CacheEntry)it.next();
-				
-				long	this_start 		= entry.getFilePosition();
-				int		entry_length	= entry.getLength();
-				
-				long	this_end	= this_start + entry_length;
-				
-				if ( this_end <= start_pos ){
-					
-					continue;
-				}
-				
-				if ( end_pos <= this_start ){
-					
-					break;
-				}
-				
-				long	bit_start	= start_pos<this_start?this_start:start_pos;
-				long	bit_end		= end_pos>=this_end?this_end:end_pos;
 
-				result	+= bit_end - bit_start;
+		final long baseOffset = file_offset_in_torrent;
+
+		int i = 0;
+
+		long first = absoluteOffsets[0];
+		long last = absoluteOffsets[absoluteOffsets.length-1]+lengths[lengths.length-1];
+		long lastEnd = Math.max(absoluteOffsets[0],baseOffset); // chunk might span file boundaries
+
+		boolean doSkipping = true;
+
+		try {
+			this_mon.enter();
+
+			Iterator it = cache.iterator();
+
+			while(it.hasNext())
+			{
+				CacheEntry	entry = (CacheEntry)it.next();
+				long startPos = entry.getFilePosition()+baseOffset;
+				long endPos = startPos+entry.getLength();
+				// the following check ensures that we are within the interesting region
+				if(startPos < first)
+					continue; // skip forward until we reach a chunk
+
+				// perform skipping from the previous round
+				if(doSkipping)
+					while(i < absoluteOffsets.length && absoluteOffsets[i] < startPos)
+					{
+						toModify[i] = false;
+						i++;
+					}
+
+				if(i >= absoluteOffsets.length)
+					break;
+
+				doSkipping = false;
+
+				if(startPos >= absoluteOffsets[i] && endPos >= absoluteOffsets[i]+lengths[i])
+				{ // chunk completely falls into cache entry -> don't invalidate
+					i++;
+					doSkipping = true;
+				} else if(startPos >= lastEnd)
+				{ // chunk spans multiple cache entries AND we skipped -> invalidate
+					doSkipping = true;
+				} else if(startPos >= absoluteOffsets[i]+lengths[i]) 
+				{  // end of a spanning chunk -> don't invalidate
+					i++;
+					doSkipping = true;
+				}
+
+				if(endPos > last)
+					break;
+
+				lastEnd = endPos;
 			}
-			
-			return( result );
-			
-		}finally{
-			
+
+		} finally {
 			this_mon.exit();
 		}
+
+		if(doSkipping) // we fell through the loop but there's still cleanup to do
+			while(i<absoluteOffsets.length)
+			{
+				if(absoluteOffsets[i]+lengths[i] < baseOffset || absoluteOffsets[i] > torrent_file.getLength())
+				{
+					i++;
+					continue;
+				}
+				toModify[i] = false;
+				i++;
+			}
 	}
+	
 	
 		// support methods
 	

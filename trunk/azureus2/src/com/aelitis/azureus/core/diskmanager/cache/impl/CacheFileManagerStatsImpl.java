@@ -195,16 +195,8 @@ CacheFileManagerStatsImpl
 		return( manager.getFileWriteCount());
 	}
 	
-	public long
-	getBytesInCache(
-		TOTorrent		torrent,
-		int				piece_number,
-		int				offset,
-		long			length )
+	public boolean[] getBytesInCache(TOTorrent torrent, long[] absoluteOffsets, long[] lengths)
 	{
-		
-		long	res = manager.getBytesInCache( torrent, piece_number, offset, length );
-				
-		return( res );
+		return manager.getBytesInCache( torrent, absoluteOffsets, lengths);
 	}
 }

@@ -20,6 +20,8 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.pieces;
 
+import java.util.Arrays;
+
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
@@ -153,6 +155,18 @@ public class BlocksItem
       boolean	piece_written 	= pePiece.isWritten();
       int	drawnWidth	= 0;
       int	blockStep	= 0;
+
+      
+      int pieceNumber = pePiece.getPieceNumber();
+      long[] offsets = new long[(int)lNumBlocks];
+      long[] lengths = offsets.clone();
+      Arrays.fill(offsets, pePiece.getManager().getDiskManager().getPieceLength()*pieceNumber);
+      for (int i = 0; i<lNumBlocks;lengths[i]=pePiece.getBlockSize(i),offsets[i]+=DiskManager.BLOCK_SIZE * i,i++ );
+      
+      boolean[] isCached = cacheStats == null ? null : cacheStats.getBytesInCache(torrent,offsets,lengths); 
+
+
+      
       
       for (int i = 0; i < lNumBlocks; i+=blocksPerPixel) {
         int nextWidth = iPixelsPerBlock;
@@ -183,16 +197,14 @@ public class BlocksItem
   
         gcImage.setBackground(color);
         gcImage.fillRectangle(drawnWidth + 1,1,nextWidth,y1);
-        
-        int pieceNumber = pePiece.getPieceNumber();
-        int length = pePiece.getBlockSize(i);
-        int offset = DiskManager.BLOCK_SIZE * i;        
-        long bytes = cacheStats == null ? 0 : cacheStats.getBytesInCache(torrent,pieceNumber,offset,length);
-        // System.out.println(pieceNumber + "," + offset + " : "  + bytes + " / " + length);
-        if(bytes == length) {
+
+        if(isCached[i]) {
           gcImage.setBackground(colors[COLOR_INCACHE]);
           gcImage.fillRectangle(drawnWidth + 1,1,nextWidth,3);
+          
+
         }
+    
         drawnWidth += nextWidth;
         
       }

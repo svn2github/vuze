@@ -811,63 +811,55 @@ CacheFileManagerImpl
 		}
 	}
 	
-	protected long
-	getBytesInCache(
-		TOTorrent		torrent,
-		int				piece_number,
-		int				offset,
-		long			length )
-	{
-			// copied on update, grab local ref to access
-		
+    protected boolean[] getBytesInCache(TOTorrent torrent, long[] absoluteOffsets, long[] lengths)
+    {
+    	//sanity checks
+    	if(absoluteOffsets.length != lengths.length)
+    		throw new IllegalArgumentException("Offsets/Lengths mismatch");
+    	long prevEnding = 0;
+    	for(int i = 0;i<lengths.length;i++)
+    	{
+    		if(absoluteOffsets[i]<prevEnding || lengths[i] <= 0 )
+    			throw new IllegalArgumentException("Offsets/Lengths are not in ascending order");
+    		prevEnding = absoluteOffsets[i]+lengths[i];
+    	}
+    	
+    	
 		Map	map = torrent_to_cache_file_map;
 		
 		TOTorrentFile[]	files = torrent.getFiles();
+	
+		boolean[] results = new boolean[absoluteOffsets.length];
+		Arrays.fill(results, true); // assume everything to be cached, then check for the opposite 
 		
-		long	piece_size = torrent.getPieceLength();
+		final long first = absoluteOffsets[0];
+		final long last = absoluteOffsets[absoluteOffsets.length-1]+lengths[lengths.length-1];
 		
-		long	target_start 	= piece_number*piece_size + offset;
-		long	target_end		= target_start + length;
-		
-		long	pos = 0;
-		
-		long	result	= 0;
-		
+		long fileOffset = 0;
 		for (int i=0;i<files.length;i++){
-			
 			TOTorrentFile	tf = files[i];
-			
-			long	len = tf.getLength();
-			
-			long	this_start 	= pos;
-			
-			pos	+= len;
-			
-			long	this_end	= pos;
-				
-			if ( this_end <= target_start ){
-				
-				continue;
-			}
-			
-			if ( target_end <= this_start ){
-				
-				break;
-			}
-			
-			long	bit_start	= target_start>this_start?target_start:this_start;
-			long	bit_end		= target_end<this_end?target_end:this_end;
 			
 			CacheFileWithCache	cache_file = (CacheFileWithCache)map.get( tf );
 			
-			if ( cache_file != null ){
-				
-				result	+= cache_file.getBytesInCache( bit_start - this_start, bit_end - bit_start );
-			}
+			long length = tf.getLength();
+			
+			
+			if(fileOffset > last || fileOffset+length < first)
+				continue; // no chunk falls within that file, skip it
+			
+			if(cache_file != null)
+				cache_file.getBytesInCache(results,absoluteOffsets,lengths);				
+			else // we have no cache file and thus no cache entries
+				for(int j=0;j<results.length;j++) // check if any chunks fall into this non-file
+					if((absoluteOffsets[j] < fileOffset+length && absoluteOffsets[j] > fileOffset) || (absoluteOffsets[j]+lengths[j] < fileOffset+length &&  absoluteOffsets[j]+lengths[j] > fileOffset))
+						results[j] = false; // no file -> no cache entry
+			
+			fileOffset += length;
 		}
 		
-		return( result );
-	}
+
+    	return results;
+    }
 	
 	protected void
 	rethrow(
