@@ -369,11 +369,32 @@ public class PlatformAdManager
 	}
 
 	public static void debug(String string) {
-		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.ads");
-		diag_logger.log(string);
-		if (Constants.DIAG_TO_STDOUT || DEBUG_ADS) {
-			System.out.println(Thread.currentThread().getName() + "|ADS|"
-					+ System.currentTimeMillis() + "] " + string);
+		debug(string, null);
+	}
+
+	/**
+	 * @param string
+	 * @param e
+	 *
+	 * @since 3.0.1.7
+	 */
+	public static void debug(String string, Throwable e) {
+		try {
+			AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.ads");
+			diag_logger.log(string);
+			if (e != null) {
+				diag_logger.log(e);
+				Debug.out(string, e);
+			}
+			if (Constants.DIAG_TO_STDOUT || DEBUG_ADS) {
+				System.out.println(Thread.currentThread().getName() + "|ADS|"
+						+ System.currentTimeMillis() + "] " + string);
+				if (e != null) {
+					e.printStackTrace();
+				}
+			}
+		} catch (Throwable t) {
+			// ignore
 		}
 	}
 
