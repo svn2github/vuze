@@ -160,7 +160,12 @@ public class SWTSkinObjectText2
 			}
 		}
 
-		updateFont(suffix);
+		final String fSuffix = suffix;
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				updateFont(fSuffix);
+			}
+		});
 		return suffix;
 	}
 
