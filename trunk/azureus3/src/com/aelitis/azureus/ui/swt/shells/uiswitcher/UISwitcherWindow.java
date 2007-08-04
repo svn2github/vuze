@@ -268,8 +268,6 @@ public class UISwitcherWindow
 			Point point = shell.computeSize(630, SWT.DEFAULT);
 			shell.setSize(point);
 			
-			System.out.println(point);
-
 			Utils.centreWindow(shell);
 		} catch (Exception e) {
 			e.printStackTrace();
