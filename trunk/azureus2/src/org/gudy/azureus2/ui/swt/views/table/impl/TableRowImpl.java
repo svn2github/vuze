@@ -235,7 +235,11 @@ public class TableRowImpl
     // If this were called from a plugin, we'd have to refresh the sorted column
     // even if we weren't visible
     ArrayList list = new ArrayList();
-    
+
+  	if (bDisposed) {
+  		return list;
+  	}
+
     if (!bVisible) {
     	if (!bSetNotUpToDateLastRefresh) {
     		setUpToDate(false);
