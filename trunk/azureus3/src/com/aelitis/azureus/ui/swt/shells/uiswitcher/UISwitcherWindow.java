@@ -99,7 +99,7 @@ public class UISwitcherWindow
 			layout.horizontalSpacing = 0;
 			layout.marginWidth = 5;
 			layout.marginHeight = 0;
-			layout.verticalSpacing = 0;
+			layout.verticalSpacing = 1;
 			shell.setLayout(layout);
 
 			Label title = new Label(shell, SWT.WRAP);
@@ -155,7 +155,7 @@ public class UISwitcherWindow
 				GridLayout gridLayout = new GridLayout(2, false);
 				gridLayout.horizontalSpacing = 0;
 				gridLayout.marginWidth = 5;
-				gridLayout.marginHeight = 1;
+				gridLayout.marginHeight = 3;
 				gridLayout.verticalSpacing = 0;
 				c.setLayout(gridLayout);
 				c.setData("INDEX", new Long(i));
@@ -231,8 +231,23 @@ public class UISwitcherWindow
 				Messages.setLanguageText(info, CFG_PREFIX + IDS[i] + ".text");
 				info.addListener(SWT.MouseDown, radioListener);
 			}
+			
+			Composite cBottom = new Composite(shell, SWT.NONE);
+			layout = new GridLayout(2, false);
+			layout.marginHeight = 0;
+			layout.marginWidth = 0;
+			cBottom.setLayout(layout);
+			cBottom.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			
+			Label lblBottom = new Label(cBottom, SWT.WRAP);
+			Messages.setLanguageText(lblBottom, "window.uiswitcher.bottom.text");
+			gd = Utils.getWrappableLabelGridData(1,
+					GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER);
+			gd.horizontalIndent = 10;
+			lblBottom.setLayoutData(gd);
+			
 
-			btnOk = new Button(shell, SWT.PUSH);
+			btnOk = new Button(cBottom, SWT.PUSH);
 			Messages.setLanguageText(btnOk, "Button.ok");
 			shell.setDefaultButton(btnOk);
 			btnOk.addListener(SWT.Selection, new Listener() {
@@ -246,13 +261,14 @@ public class UISwitcherWindow
 					shell.close();
 				}
 			});
-			gd = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
-			gd.horizontalSpan = 3;
+			gd = new GridData(GridData.HORIZONTAL_ALIGN_END);
 			gd.widthHint = 80;
 			btnOk.setLayoutData(gd);
 
-			Point point = shell.computeSize(640, SWT.DEFAULT);
+			Point point = shell.computeSize(630, SWT.DEFAULT);
 			shell.setSize(point);
+			
+			System.out.println(point);
 
 			Utils.centreWindow(shell);
 		} catch (Exception e) {
