@@ -64,6 +64,11 @@ public class AdManager
 	private List adsDMList = new ArrayList();
 
 	private List adSupportedDMList = new ArrayList();
+	
+	// key = DM, value = Semaphore
+	private Map asxInProgress = new HashMap();
+	
+	private AEMonitor asxInProgress_mon = new AEMonitor("asxInProgress"); 
 
 	private Object lastImpressionID;
 
@@ -361,7 +366,35 @@ public class AdManager
 				}
 			}
 
-			String contentHash = PlatformTorrentUtils.getContentHash(torrent);
+			final String contentHash = PlatformTorrentUtils.getContentHash(torrent);
+			
+			try {
+				asxInProgress_mon.enter();
+
+				AESemaphore sem = (AESemaphore) asxInProgress.get(contentHash);
+				if (sem != null) {
+					PlatformAdManager.debug("already getting asx.. waiting..");
+					asxInProgress_mon.exit();
+					
+					sem.reserve();
+					
+					asxInProgress_mon.enter();
+					
+					File asxFile = buildASXFileLocation(dm);
+					if (asxFile.isFile()) {
+						PlatformAdManager.debug("playing using existing asx: " + asxFile);
+						if (l != null) {
+							l.asxCreated(asxFile);
+						}
+						return;
+					}
+				} else {
+					asxInProgress.put(contentHash, new AESemaphore(contentHash));
+				}
+
+			} finally {
+				asxInProgress_mon.exit();
+			}
 
 			PlatformAdManager.debug("getting asx");
 			PlatformAdManager.getPlayList(dm, URLToPlay,
@@ -389,9 +422,23 @@ public class AdManager
 									l.asxCreated(asxFile);
 								}
 							} catch (Exception e) {
+								PlatformAdManager.debug("asx reply", e);
 								if (l != null) {
 									l.asxFailed();
 								}
+							} finally {
+  							try {
+  								asxInProgress_mon.enter();
+  								
+  								AESemaphore sem = (AESemaphore) asxInProgress.remove(contentHash);
+  								if (sem != null) {
+  									sem.releaseForever();
+  								} else {
+  								}
+  								
+    						} finally {
+    							asxInProgress_mon.exit();
+    						}
 							}
 						}
 
