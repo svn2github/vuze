@@ -11,8 +11,10 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 
@@ -106,7 +108,11 @@ public class SWTBGImagePainter
 	public void setImage(Image bgImageLeft, Image bgImageRight, Image bgImage) {
 		setImages(bgImageLeft, bgImageRight, bgImage);
 		if (bDirty) {
-			buildBackground(control);
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					buildBackground(control);
+				}
+			});
 		}
 	}
 
