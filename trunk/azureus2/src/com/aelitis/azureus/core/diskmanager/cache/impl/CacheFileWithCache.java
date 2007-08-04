@@ -1179,7 +1179,11 @@ CacheFileWithCache
 
 		long first = absoluteOffsets[0];
 		long last = absoluteOffsets[absoluteOffsets.length-1]+lengths[lengths.length-1];
-		long lastEnd = Math.max(absoluteOffsets[0],baseOffset); // chunk might span file boundaries
+		
+		// chunk might span file boundaries
+		long lastEnd = Math.max(absoluteOffsets[0],baseOffset);
+		while(absoluteOffsets[i]+lengths[i] < baseOffset)
+			i++;
 
 		boolean doSkipping = true;
 
