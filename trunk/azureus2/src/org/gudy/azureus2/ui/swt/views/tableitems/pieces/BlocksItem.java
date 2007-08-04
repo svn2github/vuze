@@ -160,9 +160,9 @@ public class BlocksItem
       int pieceNumber = pePiece.getPieceNumber();
       long[] offsets = new long[(int)lNumBlocks];
       long[] lengths = (long[])offsets.clone();
-      Arrays.fill(offsets, pePiece.getManager().getDiskManager().getPieceLength()*pieceNumber);
+      Arrays.fill(offsets, (long)pePiece.getManager().getDiskManager().getPieceLength()*(long)pieceNumber);
       for (int i = 0; i<lNumBlocks;lengths[i]=pePiece.getBlockSize(i),offsets[i]+=DiskManager.BLOCK_SIZE * i,i++ );
-      
+
       boolean[] isCached = cacheStats == null ? null : cacheStats.getBytesInCache(torrent,offsets,lengths); 
 
 

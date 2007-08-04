@@ -834,7 +834,7 @@ CacheFileManagerImpl
 		
 		final long first = absoluteOffsets[0];
 		final long last = absoluteOffsets[absoluteOffsets.length-1]+lengths[lengths.length-1];
-		
+		boolean foundFile = false;
 		long fileOffset = 0;
 		for (int i=0;i<files.length;i++){
 			TOTorrentFile	tf = files[i];
@@ -845,10 +845,16 @@ CacheFileManagerImpl
 			
 			
 			if(fileOffset > last || fileOffset+length < first)
+			{
+				fileOffset += length;
 				continue; // no chunk falls within that file, skip it
+			}
+				
+			
+			foundFile = true;
 			
 			if(cache_file != null)
-				cache_file.getBytesInCache(results,absoluteOffsets,lengths);				
+				cache_file.getBytesInCache(results,absoluteOffsets,lengths);
 			else // we have no cache file and thus no cache entries
 				for(int j=0;j<results.length;j++) // check if any chunks fall into this non-file
 					if((absoluteOffsets[j] < fileOffset+length && absoluteOffsets[j] > fileOffset) || (absoluteOffsets[j]+lengths[j] < fileOffset+length &&  absoluteOffsets[j]+lengths[j] > fileOffset))
@@ -856,6 +862,9 @@ CacheFileManagerImpl
 			
 			fileOffset += length;
 		}
+		
+		if(!foundFile)
+			Arrays.fill(results, false);
 		
 
     	return results;

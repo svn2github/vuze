@@ -1196,7 +1196,7 @@ CacheFileWithCache
 				// the following check ensures that we are within the interesting region
 				if(startPos < first)
 					continue; // skip forward until we reach a chunk
-
+				
 				// perform skipping from the previous round
 				if(doSkipping)
 					while(i < absoluteOffsets.length && absoluteOffsets[i] < startPos)
@@ -1236,7 +1236,7 @@ CacheFileWithCache
 		if(doSkipping) // we fell through the loop but there's still cleanup to do
 			while(i<absoluteOffsets.length)
 			{
-				if(absoluteOffsets[i]+lengths[i] < baseOffset || absoluteOffsets[i] > torrent_file.getLength())
+				if(absoluteOffsets[i]+lengths[i] < baseOffset || absoluteOffsets[i] > baseOffset+torrent_file.getLength())
 				{
 					i++;
 					continue;
