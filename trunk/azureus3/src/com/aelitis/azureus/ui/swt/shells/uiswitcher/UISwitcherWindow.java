@@ -68,20 +68,23 @@ public class UISwitcherWindow
 	private List disposeList = new ArrayList();
 
 	public UISwitcherWindow() {
-		this(null);
+		this(null, false);
 	}
 
 	/**
 	 * 
 	 */
-	public UISwitcherWindow(Shell parentShell) {
+	public UISwitcherWindow(Shell parentShell, final boolean allowCancel) {
 		try {
 			final Image[] images = new Image[IMAGES.length];
 			final Button[] buttons = new Button[IMAGES.length];
 			GridData gd;
 
-			shell = ShellFactory.createShell(parentShell, SWT.BORDER | SWT.TITLE
-					| SWT.RESIZE);
+			int style = SWT.BORDER | SWT.TITLE | SWT.RESIZE;
+			if (allowCancel) {
+				style |= SWT.CLOSE;
+			}
+			shell = ShellFactory.createShell(parentShell, style);
 			shell.setText(MessageText.getString(CFG_PREFIX + "title"));
 			Utils.setShellIcon(shell);
 
@@ -203,6 +206,12 @@ public class UISwitcherWindow
 							e.doit = false;
 						} else if (e.detail == SWT.TRAVERSE_RETURN) {
 							e.doit = true;
+						} else if (e.detail == SWT.TRAVERSE_ESCAPE) {
+							e.doit = false;
+							if (allowCancel) {
+								ui = -1;
+								shell.dispose();
+							}
 						} else {
 							e.doit = false;
 						}
@@ -274,20 +283,6 @@ public class UISwitcherWindow
 		}
 	}
 
-	private String randomSentence() {
-		String s = "";
-		int r = (int) (Math.random() * 40 + 10);
-		for (int j = 0; j < r; j++) {
-			s += "M";
-			int w = (int) (Math.random() * 10 + 4);
-			for (int k = 0; k < w; k++) {
-				s += "o";
-			}
-			s += " ";
-		}
-		return s;
-	}
-
 	public int open() {
 		shell.open();
 
@@ -301,7 +296,7 @@ public class UISwitcherWindow
 
 	public static void main(String[] args) {
 		Display display = Display.getDefault();
-		UISwitcherWindow window = new UISwitcherWindow(null);
+		UISwitcherWindow window = new UISwitcherWindow(null, false);
 		System.out.println(window.open());
 	}
 }
