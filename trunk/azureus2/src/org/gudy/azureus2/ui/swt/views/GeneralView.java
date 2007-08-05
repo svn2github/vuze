@@ -756,7 +756,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     	
     	piecesDoneAndSum = pm.getPiecePicker().getNbPiecesDone() + "/" + piecesDoneAndSum;
     	
-    	distributedCopies = new DecimalFormat("#.000").format(pm.getPiecePicker().getMinAvailability()-pm.getNbSeeds()-(pm.isSeeding()&&stats.getDownloadCompleted(false)==1000?1:0));
+    	distributedCopies = new DecimalFormat("0.000").format(pm.getPiecePicker().getMinAvailability()-pm.getNbSeeds()-(pm.isSeeding()&&stats.getDownloadCompleted(false)==1000?1:0));
     }
     
     
