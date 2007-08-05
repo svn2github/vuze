@@ -72,7 +72,8 @@ SpeedManagerAlgorithmProviderV2
 		adapter	= _adapter;
 		adapter.setLoggingEnabled( true );
 
-        strategy = new SpeedManagerAlgorithmProviderDHTPing(_adapter);
+        //strategy = new SpeedManagerAlgorithmProviderDHTPing(_adapter);
+        strategy = new SpeedManagerAlgorithmProviderPingMap(_adapter);
     }
 	
     public void

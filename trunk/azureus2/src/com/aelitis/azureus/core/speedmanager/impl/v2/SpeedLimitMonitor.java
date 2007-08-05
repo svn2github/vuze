@@ -1187,8 +1187,8 @@ public class SpeedLimitMonitor implements PSMonitorListener
 
 
         //ToDo: remove after beta-testing - just to characterize the different methods.
-        pingMapOfDownloadMode = new PingSpaceMapper(150,500);
-        pingMapOfSeedingMode = new PingSpaceMapper(150,500);
+//        pingMapOfDownloadMode = new PingSpaceMapper(150,500);
+//        pingMapOfSeedingMode = new PingSpaceMapper(150,500);
 
     }
 
