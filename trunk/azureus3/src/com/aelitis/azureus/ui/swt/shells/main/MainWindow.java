@@ -874,8 +874,9 @@ public class MainWindow
 				}
 
 				ArrayList wasVisibleList = null;
-				boolean bHideAndShow = tryTricks && visible && Constants.isWindows
-						&& display.getActiveShell() != shell;
+				boolean bHideAndShow = false;
+				// temp disabled
+				//tryTricks && visible && Constants.isWindows && display.getActiveShell() != shell;
 				if (bHideAndShow) {
 					wasVisibleList = new ArrayList();
 					// We don't want the window to just flash and not open, so:
