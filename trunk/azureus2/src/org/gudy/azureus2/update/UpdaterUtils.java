@@ -196,10 +196,12 @@ public class UpdaterUtils
 	{
 		try {
   		PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(AZUPDATER_PLUGIN_ID);
-  		if (pi == null) {
-  			return "0";
+  		if (pi != null) {
+  			String version = pi.getPluginVersion();
+  			if (version != null) {
+  				return version;
+  			}
   		}
-  		return pi.getPluginVersion();
 		} catch (Throwable t) {
 		}
 		return "0";
