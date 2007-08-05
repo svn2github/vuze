@@ -30,11 +30,16 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.UISwitcherUtil;
 import org.gudy.azureus2.ui.swt.config.BooleanParameter;
 import org.gudy.azureus2.ui.swt.config.ChangeSelectionActionPerformer;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
+
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 
@@ -102,7 +107,20 @@ public class ConfigSectionInterfaceStart implements UISWTConfigSection {
 
 		ui_switcher_button.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				UISwitcherUtil.openSwitcherWindow(true); // Force asking.
+				UISwitcherUtil.openSwitcherWindow(true);
+				int result = MessageBoxShell.open(parent.getShell(),
+						MessageText.getString("dialog.uiswitcher.restart.title"),
+						MessageText.getString("dialog.uiswitcher.restart.text"),
+						new String[] {
+							MessageText.getString("UpdateWindow.restart"),
+							MessageText.getString("UpdateWindow.restartLater"),
+						}, 0);
+				if (result == 0) {
+					UIFunctions uif = UIFunctionsManager.getUIFunctions();
+					if (uif != null) {
+						uif.dispose(true, false);
+					}
+				}
 			}
 		});
     
