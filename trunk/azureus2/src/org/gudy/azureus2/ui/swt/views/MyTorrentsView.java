@@ -1065,7 +1065,6 @@ public class MyTorrentsView
 					e.doit = false;
 					break;
 				case SWT.END:
-					System.out.println("MOVEND");
 					moveSelectedTorrentsEnd();
 					e.doit = false;
 					break;
@@ -1666,18 +1665,24 @@ public class MyTorrentsView
 	/**
 	 * 
 	 */
+	private boolean refreshingTableLabel = false;
 	private void updateTableLabel() {
-		if (lblHeader == null || lblHeader.isDisposed()) {
+		if (refreshingTableLabel || lblHeader == null || lblHeader.isDisposed()) {
 			return;
 		}
-		Utils.execSWTThread(new AERunnable() {
+		refreshingTableLabel = true;
+		lblHeader.getDisplay().asyncExec(new AERunnable() {
 			public void runSupport() {
-				if (lblHeader != null && !lblHeader.isDisposed()) {
-					String sText = MessageText.getString(tv.getTableID() + "View"
-							+ ".header")
-							+ " (" + tv.size(true) + ")";
-					lblHeader.setText(sText);
-					lblHeader.getParent().layout();
+				try {
+					if (lblHeader != null && !lblHeader.isDisposed()) {
+						String sText = MessageText.getString(tv.getTableID() + "View"
+								+ ".header")
+								+ " (" + tv.size(true) + ")";
+						lblHeader.setText(sText);
+						lblHeader.getParent().layout();
+					}
+				} finally {
+					refreshingTableLabel = false;
 				}
 			}
 		});
