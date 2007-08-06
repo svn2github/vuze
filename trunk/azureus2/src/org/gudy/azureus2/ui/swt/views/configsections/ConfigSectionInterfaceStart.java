@@ -107,19 +107,22 @@ public class ConfigSectionInterfaceStart implements UISWTConfigSection {
 
 		ui_switcher_button.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				UISwitcherUtil.openSwitcherWindow(true);
-				int result = MessageBoxShell.open(parent.getShell(),
-						MessageText.getString("dialog.uiswitcher.restart.title"),
-						MessageText.getString("dialog.uiswitcher.restart.text"),
-						new String[] {
-							MessageText.getString("UpdateWindow.restart"),
-							MessageText.getString("UpdateWindow.restartLater"),
-						}, 0);
-				if (result == 0) {
-					UIFunctions uif = UIFunctionsManager.getUIFunctions();
-					if (uif != null) {
-						uif.dispose(true, false);
-					}
+				String uiOld = COConfigurationManager.getStringParameter("ui");
+				String uiNew = UISwitcherUtil.openSwitcherWindow(true);
+				if (!uiOld.equals(uiNew)) {
+  				int result = MessageBoxShell.open(parent.getShell(),
+  						MessageText.getString("dialog.uiswitcher.restart.title"),
+  						MessageText.getString("dialog.uiswitcher.restart.text"),
+  						new String[] {
+  							MessageText.getString("UpdateWindow.restart"),
+  							MessageText.getString("UpdateWindow.restartLater"),
+  						}, 0);
+  				if (result == 0) {
+  					UIFunctions uif = UIFunctionsManager.getUIFunctions();
+  					if (uif != null) {
+  						uif.dispose(true, false);
+  					}
+  				}
 				}
 			}
 		});

@@ -90,18 +90,21 @@ public class IconBar {
 			Messages.setLanguageText(tiSwitch, "iconBar.switch.tooltip", true);
 			tiSwitch.addSelectionListener(new SelectionListener() {
 				public void widgetSelected(SelectionEvent e) {
-					UISwitcherUtil.openSwitcherWindow(true);
-					int result = MessageBoxShell.open(IconBar.this.parent.getShell(),
-							MessageText.getString("dialog.uiswitcher.restart.title"),
-							MessageText.getString("dialog.uiswitcher.restart.text"),
-							new String[] {
-								MessageText.getString("UpdateWindow.restart"),
-								MessageText.getString("UpdateWindow.restartLater"),
-							}, 0);
-					if (result == 0) {
-  					UIFunctions uif = UIFunctionsManager.getUIFunctions();
-  					if (uif != null) {
-  						uif.dispose(true, false);
+					String uiOld = COConfigurationManager.getStringParameter("ui");
+					String uiNew = UISwitcherUtil.openSwitcherWindow(true);
+					if (!uiOld.equals(uiNew)) {
+  					int result = MessageBoxShell.open(IconBar.this.parent.getShell(),
+  							MessageText.getString("dialog.uiswitcher.restart.title"),
+  							MessageText.getString("dialog.uiswitcher.restart.text"),
+  							new String[] {
+  								MessageText.getString("UpdateWindow.restart"),
+  								MessageText.getString("UpdateWindow.restartLater"),
+  							}, 0);
+  					if (result == 0) {
+    					UIFunctions uif = UIFunctionsManager.getUIFunctions();
+    					if (uif != null) {
+    						uif.dispose(true, false);
+    					}
   					}
 					}
 				}
