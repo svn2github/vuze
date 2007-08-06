@@ -67,7 +67,7 @@ public class LimitControlDropUploadFirst implements LimitControl
     public void setDownloadUnlimitedMode(boolean isUnlimited) {
         isDownloadUnlimited = isUnlimited;
         if(isUnlimited){
-            valueUp = 1.0f;
+            valueDown = 1.0f;
         }
     }
 
