@@ -883,7 +883,7 @@ DownloadManagerImpl
 				
 					// make sure we know what networks to use for this download
 				
-				if ( download_manager_state.getNetworks().length == 0 ){
+				if ( download_manager_state.getNetworks().length == 0 && torrent != null){
 					
 					String[] networks = AENetworkClassifier.getNetworks( torrent, display_name );
 					
