@@ -1,7 +1,7 @@
 AZUREUS CHANGELOG
 -----------------
 
-2007.xx.xx | Azureus 3.0.2
+2007.08.xx | Azureus 3.0.2.0
 
 FEATURE: Core | Act on suspend/resume events on Windows [Parg]
 FEATURE: Core | Added new AZ message to inform of bad pieces [Parg]
@@ -12,6 +12,7 @@ FEATURE: UI   | New "Piece Distribution" subview in the pieces tab [The 8472]
 FEATURE: UI   | Auto-speed ping views [Parg]
 FEATURE: UI   | "Clear Resume Data" menu option added [amc1]
 FEATURE: UI   | "Clear remembered save paths" option added (for the Open Torrent dialog) [amc1]
+FEATURE: UI   | Ping Mapper in Tools->Statistics->Transfers when Auto Speed is enabled [Parg]
 
 CHANGE: Core  | Optimise memory usage for single-file downloads [Parg]
 CHANGE: Core  | Optimise memory usage for queued torrents (no need to keep resume data in memory) [Parg]
@@ -20,6 +21,7 @@ CHANGE: Core  | Changes made to identify some "fake" clients (or other clients w
 CHANGE: Core  | Biased optimistic disconnect slightly against leechy peers [The 8472]
 CHANGE: Core  | Core changes in some places to allow "Default save path" to be used without requiring "Use default data dir" to be enabled [hasturkun]
 CHANGE: Core  | Reduce CPU usage when many (queued) torrents are present and in the the pieces view [The 8472]
+CHANGE: Core  | *nix: New startup script to detect Gecko/XULRunner and to allow better restarting [TuxPaper]
 CHANGE: UI    | UL/DL speed selection on right click of status bar changed from menu to scale widget. [TuxPaper]
                 Usage: (1) MouseDown+Drag+MouseUp  (2) Click+Move+Click  (3) Click+type number+Enter
 CHANGE: UI    | Open Torrent Window now asks to create directories if they don't exist yet, instead of evilly auto-creating them when you click the Browse button [The 8472] 
@@ -34,6 +36,8 @@ BUGFIX: Core  | Bootstrap DHT better when no contacts [Parg]
 BUGFIX: Core  | Fixed bug where renaming a download in some conditions would generate "Target is sub-directory" errors [amc1]                
 BUGFIX: UI    | Fixed swarm view rendering bug where some incomplete peers were shown as full circles [The 8472]
 BUGFIX: Plug  | Fixed bug where previously removed child menu items would still be present when generating some menus [amc1]
+
+
 
 2007.06.20 | Azureus 3.0.1.6
 
