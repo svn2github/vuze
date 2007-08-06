@@ -125,7 +125,7 @@ public class SWTSkinObjectBrowser
 			sStartURL = url;
 			browser.setData("StartURL", url);
 		}
-		System.out.println(SystemTime.getCurrentTime() + "] Set URL: " + url);
+		//System.out.println(SystemTime.getCurrentTime() + "] Set URL: " + url);
 	}
 
 	public void restart() {
