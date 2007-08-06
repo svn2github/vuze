@@ -68,7 +68,8 @@ public class UISwitcherWindow
 	private List disposeList = new ArrayList();
 
 	public UISwitcherWindow() {
-		this(null, false);
+		// XXX forcing to allowCancel is temporary
+		this(null, true);
 	}
 
 	/**
