@@ -108,14 +108,12 @@ public class TorrentListView
 					new ColumnTitle(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
 					new ColumnQuality(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
 					new SizeItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-					new ColumnSpeed(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
 					new ColumnProgressETA(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
 					new ColumnDateAdded2Liner(TableManager.TABLE_MYTORRENTS_INCOMPLETE,
 							false),
 				};
 				setColumnList(tableColumns, "date_added", false, true);
 				String[] autoHideOrder = new String[] {
-					ColumnSpeed.COLUMN_ID,
 					ColumnQuality.COLUMN_ID,
 					ColumnAzProduct.COLUMN_ID,
 					SizeItem.COLUMN_ID,
@@ -130,7 +128,6 @@ public class TorrentListView
 					new ColumnRate(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
 					new ColumnQuality(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
 					new SizeItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-					new ColumnSpeed(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
 					new ColumnProgressETA(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
 					new ColumnDateAdded2Liner(TableManager.TABLE_MYTORRENTS_INCOMPLETE,
 							false),
@@ -176,7 +173,6 @@ public class TorrentListView
 					new ColumnTitle(TableManager.TABLE_MYTORRENTS_COMPLETE),
 					new ColumnRate(TableManager.TABLE_MYTORRENTS_COMPLETE),
 					new SizeItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-					new ColumnSpeed(TableManager.TABLE_MYTORRENTS_COMPLETE),
 					new UpItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
 					new ColumnRateUpDown(TableManager.TABLE_MYTORRENTS_COMPLETE),
 					new ColumnIsPrivate(TableManager.TABLE_MYTORRENTS_COMPLETE),
