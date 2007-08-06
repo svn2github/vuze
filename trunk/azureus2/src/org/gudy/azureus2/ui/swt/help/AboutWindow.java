@@ -101,7 +101,9 @@ public class AboutWindow {
   
     Text txtTrans = new Text(gTranslators, SWT.READ_ONLY | SWT.MULTI | SWT.WRAP | SWT.NO_FOCUS);
     txtTrans.setText(properties.getProperty("translators")); //$NON-NLS-1$ //$NON-NLS-2$
-    txtTrans.setLayoutData(gridData = new GridData());
+    gridData = new GridData(GridData.FILL_BOTH);
+    txtTrans.setLayoutData(gridData);
+    txtTrans.setBackground(display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
     
     Group gInternet = new Group(window, SWT.NULL);
     GridLayout gridLayout = new GridLayout();
