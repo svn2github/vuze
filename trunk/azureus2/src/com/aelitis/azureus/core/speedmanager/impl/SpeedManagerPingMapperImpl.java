@@ -837,13 +837,16 @@ SpeedManagerPingMapperImpl
 				}
 			}
 			
-			if ( cm == -1 ){ 
+			if ( bad_up_in_progress_count > 0 ){
 				
-				bad_up_in_progress_count = MAX_BAD_LIMIT_HISTORY;
+				if ( cm == -1 ){ 
+					
+					bad_up_in_progress_count = BAD_PROGRESS_COUNTDOWN;
+					
+				}else if ( cm == 1 ){
 				
-			}else if ( cm == 1 ){
-			
-				bad_up_in_progress_count--;
+					bad_up_in_progress_count--;
+				}
 			}
 		}
 	
@@ -894,7 +897,7 @@ SpeedManagerPingMapperImpl
 				
 				if ( cm == -1 ){ 
 			
-					bad_down_in_progress_count = MAX_BAD_LIMIT_HISTORY;
+					bad_down_in_progress_count = BAD_PROGRESS_COUNTDOWN;
 					
 				}else if ( cm == 1 ){
 				
