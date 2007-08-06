@@ -170,6 +170,9 @@ runJavaOutput "org.gudy.azureus2.platform.unix.ScriptBeforeStartup";
 echo $MSG_LOADING
 
 echo "${JAVA_PROGRAM_DIR}java ${JAVA_ARGS} -cp \"${CLASSPATH}\" -Djava.library.path=\"${PROGRAM_DIR}\" -Dazureus.install.path=\"${PROGRAM_DIR}\" -Dazureus.script=\"$0\" $JAVA_PROPS $START_CLASS $@"
+# Don't use "exec -a Azureus ..." here as exec quits this script after completion,
+# preventing ScriptAfterShutdown from running, which installs updates and does
+# restarts
 ${JAVA_PROGRAM_DIR}java "${JAVA_ARGS}" \
 	-cp "${CLASSPATH}" \
 	-Djava.library.path="${PROGRAM_DIR}" \
