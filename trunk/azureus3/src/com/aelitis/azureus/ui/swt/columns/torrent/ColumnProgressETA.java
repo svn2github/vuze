@@ -7,7 +7,6 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
@@ -19,6 +18,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.download.EnhancedDownloadManager;
@@ -403,14 +403,25 @@ public class ColumnProgressETA
 			}
 			bMouseDowned = false;
 		}
-		
+
 		private void flipProgressiveMode(DownloadManager dm) {
 			EnhancedDownloadManager edm = getEDM(dm);
 			if (edm == null) {
 				return;
 			}
-			
+
 			edm.setProgressiveMode(!edm.getProgressiveMode());
+			if (edm.getProgressiveMode()) {
+				// Make sure download can start by moving out of stop state
+				// and putting at top
+				if (dm.getState() == DownloadManager.STATE_STOPPED) {
+					ManagerUtils.start(dm);
+				}
+
+				if (dm.getPosition() != 1) {
+					dm.getGlobalManager().moveTo(dm, 1);
+				}
+			}
 		}
 
 		private void disposeExisting(TableCell cell) {
