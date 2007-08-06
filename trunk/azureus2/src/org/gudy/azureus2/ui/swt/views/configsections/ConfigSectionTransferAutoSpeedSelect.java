@@ -139,7 +139,7 @@ public class ConfigSectionTransferAutoSpeedSelect
 
         //Need a drop down to select which method will be used.
         Label label = new Label(modeGroup, SWT.NULL);
-        label.setText("Algorithm: ");
+        Messages.setLanguageText(label,"ConfigTransferAutoSpeed.algorithm");
         gridData = new GridData();
         gridData.widthHint = 50;
         label.setLayoutData(gridData);

@@ -188,127 +188,11 @@ public class ConfigSectionTransferAutoSpeedBeta
         commentSpacer.setLayoutData(gridData);
 
                 
-        ///////////////////////////////////
-        // AutoSpeed Beta mode group
-        ///////////////////////////////////
-//        //Beta-mode grouping.
-//        Group modeGroup = new Group(cSection, SWT.NULL);
-//        //Messages.setLanguageText
-//        modeGroup.setText("AutoSpeed-Beta settings");
-//        GridLayout modeLayout = new GridLayout();
-//        modeLayout.numColumns = 3;
-//        modeGroup.setLayout(modeLayout);
-//        gridData = new GridData(GridData.FILL_HORIZONTAL);
-//        modeGroup.setLayoutData(gridData);
-//
-//        //spacer
-//        Label cSpacer = new Label(modeGroup, SWT.NULL);
-//        gridData = new GridData();
-//        gridData.horizontalSpan=4;
-//        cSpacer.setLayoutData(gridData);
-//
-//        //label column for speed test results
-//        Label limits = new Label(modeGroup, SWT.NULL);
-//        gridData = new GridData();
-//        gridData.widthHint=80;
-//        limits.setText("Line Speed Limits: ");
-//        //Messages.setLanguageText
-//
-//        Label limMax = new Label(modeGroup,SWT.NULL);
-//        gridData = new GridData();
-//        limMax.setLayoutData(gridData);
-//        limMax.setText("max - capacity");
-//        //Messages.setLanguageText
-//
-//        Label confLevel = new Label(modeGroup, SWT.NULL);
-//        gridData =  new GridData();
-//        confLevel.setLayoutData(gridData);
-//        confLevel.setText("confidence level");
-//        //Messages.setLanguageText
-//
-//        //download settings
-//        Label setDown = new Label(modeGroup, SWT.NULL);
-//        gridData = new GridData();
-//        setDown.setLayoutData(gridData);
-//        setDown.setText("Download: ");
-//        //Messages.setLanguageText
-//
-//        gridData = new GridData();
-//        gridData.widthHint = 80;
-//        downMaxLim = new IntParameter(modeGroup,SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT);
-//        downMaxLim.setLayoutData( gridData );
-//
-//        String[] confLevelNames = {
-//                SpeedLimitConfidence.ABSOLUTE.getInternationalizedString(),
-//                SpeedLimitConfidence.HIGH.getInternationalizedString(),
-//                SpeedLimitConfidence.MED.getInternationalizedString(),
-//                SpeedLimitConfidence.LOW.getInternationalizedString(),
-//                SpeedLimitConfidence.NONE.getInternationalizedString()
-//        };
-//
-//        String[] confLevelValues = {
-//                SpeedLimitConfidence.ABSOLUTE.getString(),
-//                SpeedLimitConfidence.HIGH.getString(),
-//                SpeedLimitConfidence.MED.getString(),
-//                SpeedLimitConfidence.LOW.getString(),
-//                SpeedLimitConfidence.NONE.getString()
-//        };
-//
-//        gridData = new GridData();
-//        gridData.widthHint = 80;
-//        confDownload = new StringListParameter(modeGroup, SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING, confLevelNames, confLevelValues);
-//        confDownload.setLayoutData( gridData );
-//
-//
-//        //upload settings
-//        Label setUp = new Label(modeGroup, SWT.NULL);
-//        gridData = new GridData();
-//        setUp.setLayoutData(gridData);
-//        setUp.setText("Upload: ");
-//        //Messages.setLanguageText
-//
-//        gridData = new GridData();
-//        gridData.widthHint = 80;
-//        uploadMaxLim = new IntParameter(modeGroup, SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT);
-//        uploadMaxLim.setLayoutData( gridData );
-//
-//        gridData = new GridData();
-//        gridData.widthHint = 80;
-//        confUpload = new StringListParameter(modeGroup, SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING,confLevelNames,confLevelValues);
-//        confUpload.setLayoutData( gridData );
-//
-//        //spacer
-//        cSpacer = new Label(modeGroup, SWT.NULL);
-//        gridData = new GridData();
-//        gridData.horizontalSpan=4;
-//        cSpacer.setLayoutData(gridData);
-//
-//        //Restore Defaults:
-//        Label restorDef = new Label(modeGroup, SWT.NULL);
-//        gridData = new GridData();
-//        restorDef.setLayoutData(gridData);
-//        restorDef.setText("Restore Defaults:");
-//
-//        //Button and listener here.
-//        reset = new Button(modeGroup, SWT.PUSH);
-//        reset.setText("Reset");
-//        gridData = new GridData();
-//        gridData.widthHint = 70;
-//        reset.setLayoutData(gridData);
-//        reset.addListener(SWT.Selection, new RestoreDefaultsListener());
-//        //
-//
-//        //spacer
-//        cSpacer = new Label(cSection, SWT.NULL);
-//        gridData = new GridData();
-//        gridData.horizontalSpan=4;
-//        cSpacer.setLayoutData(gridData);
-//
+
         ///////////////////////////
         // Upload Capacity used settings.
         ///////////////////////////
         uploadCapGroup = new Group(cSection, SWT.NULL);
-        //uploadCapGroup.setText("Upload Capacity Usage");//ToDo: internationalize.
         Messages.setLanguageText(uploadCapGroup,"ConfigTransferAutoSpeed.upload.capacity.usage");
 
         GridLayout uCapLayout = new GridLayout();
@@ -324,7 +208,6 @@ public class ConfigSectionTransferAutoSpeedBeta
         gridData = new GridData();
         gridData.widthHint = 80;
         upCapModeLbl.setLayoutData(gridData);
-        //upCapModeLbl.setText("Mode:");//ToDo: internationalize.
         Messages.setLanguageText(upCapModeLbl,"ConfigTransferAutoSpeed.mode");
 
 
@@ -332,13 +215,11 @@ public class ConfigSectionTransferAutoSpeedBeta
         gridData = new GridData();
         gridData.widthHint = 80;
         gridData.horizontalSpan = 2;
-        //ucSetLbl.setText("% Capacity Used");//ToDo: internationalize.
         Messages.setLanguageText(ucSetLbl,"ConfigTransferAutoSpeed.capacity.used");
 
         Label dlModeLbl = new Label(uploadCapGroup, SWT.NULL);
         gridData = new GridData();
         gridData.widthHint = 80;
-        //dlModeLbl.setText("Downloading:");//ToDo: internationalize.
         Messages.setLanguageText(dlModeLbl,"ConfigTransferAutoSpeed.while.downloading");
 
         //add a drop down.
@@ -372,75 +253,74 @@ public class ConfigSectionTransferAutoSpeedBeta
         //////////////////////////
 
         dhtGroup = new Group(cSection, SWT.NULL);
-        //Messages.setLanguageText
-        dhtGroup.setText("Data: DHT Pings");
+        Messages.setLanguageText(dhtGroup,"ConfigTransferAutoSpeed.data.update.frequency");
         dhtGroup.setLayout(subPanel);
 
         gridData = new GridData(GridData.FILL_HORIZONTAL);
         gridData.horizontalSpan = 3;
         dhtGroup.setLayoutData(gridData);
 
-        //label column for Vivaldi limits
-        Label dhtSetting = new Label(dhtGroup, SWT.NULL);
-        gridData = new GridData();
-        gridData.widthHint=80;
-        //dhtSetting.setText("DHT Ping Settings: ");
-        Messages.setLanguageText(dhtSetting,"ConfigTransferAutoSpeed.set.dht.ping"); //ToDo: internationalize
-
-        Label dSet = new Label(dhtGroup,SWT.NULL);
-        gridData = new GridData();
-        dSet.setLayoutData(gridData);
-        //dSet.setText("set point (ms)");
-        Messages.setLanguageText(dSet,"ConfigTransferAutoSpeed.set.point"); //ToDo: internationalize
-
-        Label dTol = new Label(dhtGroup, SWT.NULL);
-        gridData = new GridData();
-        dTol.setLayoutData(gridData);
-        //dTol.setText("tolerance (ms)");
-        Messages.setLanguageText(dTol,"ConfigTransferAutoSpeed.set.tolerance"); //ToDo: internationalize
-
-        //good
-        Label dGoodLbl = new Label(dhtGroup, SWT.NULL);
-        gridData = new GridData();
-        dGoodLbl.setLayoutData(gridData);
-        //dGoodLbl.setText("Good: ");
-        Messages.setLanguageText(dGoodLbl,"ConfigTransferAutoSpeed.ping.time.good"); //ToDo: internationalize
-
-
-        gridData = new GridData();
-        gridData.widthHint = 50;
-        dGood = new IntParameter(dhtGroup, SpeedManagerAlgorithmProviderV2.SETTING_DHT_GOOD_SET_POINT);
-        dGood.setLayoutData( gridData );
-
-        gridData = new GridData();
-        gridData.widthHint = 50;
-        dGoodTol = new IntParameter(dhtGroup, SpeedManagerAlgorithmProviderV2.SETTING_DHT_GOOD_TOLERANCE);
-        dGoodTol.setLayoutData( gridData );
-
-        //bad
-        Label dBadLbl = new Label(dhtGroup, SWT.NULL);
-        gridData = new GridData();
-        dBadLbl.setLayoutData(gridData);
-        //dBadLbl.setText("Bad: ");
-        Messages.setLanguageText(dBadLbl,"ConfigTransferAutoSpeed.ping.time.bad"); //ToDo: internationalize
-
-
-        gridData = new GridData();
-        gridData.widthHint = 50;
-        dBad = new IntParameter(dhtGroup, SpeedManagerAlgorithmProviderV2.SETTING_DHT_BAD_SET_POINT);
-        dBad.setLayoutData( gridData );
-
-
-        gridData = new GridData();
-        gridData.widthHint = 50;
-        dBadTol = new IntParameter(dhtGroup, SpeedManagerAlgorithmProviderV2.SETTING_DHT_BAD_TOLERANCE);
-        dBadTol.setLayoutData( gridData );
-
-        //spacer
-        cSpacer = new Label(cSection, SWT.NULL);
-        gridData = new GridData();
-        gridData.horizontalSpan=1;
-        cSpacer.setLayoutData(gridData);
+//        //label column for Vivaldi limits
+//        Label dhtSetting = new Label(dhtGroup, SWT.NULL);
+//        gridData = new GridData();
+//        gridData.widthHint=80;
+//        //dhtSetting.setText("DHT Ping Settings: ");
+//        Messages.setLanguageText(dhtSetting,"ConfigTransferAutoSpeed.set.dht.ping");
+//
+//        Label dSet = new Label(dhtGroup,SWT.NULL);
+//        gridData = new GridData();
+//        dSet.setLayoutData(gridData);
+//        //dSet.setText("set point (ms)");
+//        Messages.setLanguageText(dSet,"ConfigTransferAutoSpeed.set.point");
+//
+//        Label dTol = new Label(dhtGroup, SWT.NULL);
+//        gridData = new GridData();
+//        dTol.setLayoutData(gridData);
+//        //dTol.setText("tolerance (ms)");
+//        Messages.setLanguageText(dTol,"ConfigTransferAutoSpeed.set.tolerance");
+//
+//        //good
+//        Label dGoodLbl = new Label(dhtGroup, SWT.NULL);
+//        gridData = new GridData();
+//        dGoodLbl.setLayoutData(gridData);
+//        //dGoodLbl.setText("Good: ");
+//        Messages.setLanguageText(dGoodLbl,"ConfigTransferAutoSpeed.ping.time.good");
+//
+//
+//        gridData = new GridData();
+//        gridData.widthHint = 50;
+//        dGood = new IntParameter(dhtGroup, SpeedManagerAlgorithmProviderV2.SETTING_DHT_GOOD_SET_POINT);
+//        dGood.setLayoutData( gridData );
+//
+//        gridData = new GridData();
+//        gridData.widthHint = 50;
+//        dGoodTol = new IntParameter(dhtGroup, SpeedManagerAlgorithmProviderV2.SETTING_DHT_GOOD_TOLERANCE);
+//        dGoodTol.setLayoutData( gridData );
+//
+//        //bad
+//        Label dBadLbl = new Label(dhtGroup, SWT.NULL);
+//        gridData = new GridData();
+//        dBadLbl.setLayoutData(gridData);
+//        //dBadLbl.setText("Bad: ");
+//        Messages.setLanguageText(dBadLbl,"ConfigTransferAutoSpeed.ping.time.bad"); 
+//
+//
+//        gridData = new GridData();
+//        gridData.widthHint = 50;
+//        dBad = new IntParameter(dhtGroup, SpeedManagerAlgorithmProviderV2.SETTING_DHT_BAD_SET_POINT);
+//        dBad.setLayoutData( gridData );
+//
+//
+//        gridData = new GridData();
+//        gridData.widthHint = 50;
+//        dBadTol = new IntParameter(dhtGroup, SpeedManagerAlgorithmProviderV2.SETTING_DHT_BAD_TOLERANCE);
+//        dBadTol.setLayoutData( gridData );
+//
+//        //spacer
+//        cSpacer = new Label(cSection, SWT.NULL);
+//        gridData = new GridData();
+//        gridData.horizontalSpan=1;
+//        cSpacer.setLayoutData(gridData);
 
         //how much data to accumulate before making an adjustment.
         Label iCount = new Label(dhtGroup, SWT.NULL);
