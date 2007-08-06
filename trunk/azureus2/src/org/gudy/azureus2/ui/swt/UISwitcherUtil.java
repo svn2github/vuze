@@ -117,7 +117,9 @@ public class UISwitcherUtil
 				COConfigurationManager.setParameter("ui", "az2");
 			}
 
-			COConfigurationManager.setParameter("ui.asked", true);
+			if (result[0] != -1) {
+				COConfigurationManager.setParameter("ui.asked", true);
+			}
 		} catch (Exception e) {
 			Debug.printStackTrace(e);
 		}
