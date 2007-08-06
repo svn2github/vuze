@@ -823,7 +823,10 @@ SpeedManagerImpl
 	setCurrentDownloadLimit(
 		int bytes_per_second) 
 	{
-		adapter.setCurrentDownloadLimit( bytes_per_second );
+		if ( enabled ){
+
+			adapter.setCurrentDownloadLimit( bytes_per_second );
+		}
 	}
 		
 	public int
