@@ -63,7 +63,7 @@ public class UISwitcherWindow
 
 	private Button btnOk;
 
-	private int ui = 0;
+	private int ui = -1;
 
 	private List disposeList = new ArrayList();
 
@@ -108,6 +108,7 @@ public class UISwitcherWindow
 
 			Label title = new Label(shell, SWT.WRAP);
 			gd = new GridData(GridData.FILL_HORIZONTAL);
+			gd.verticalIndent = 3;
 			title.setLayoutData(gd);
 
 			Messages.setLanguageText(title, CFG_PREFIX + "text");
@@ -241,6 +242,10 @@ public class UISwitcherWindow
 				Messages.setLanguageText(info, CFG_PREFIX + IDS[i] + ".text");
 				info.addListener(SWT.MouseDown, radioListener);
 			}
+
+			Event eventSelectFirst = new Event();
+			eventSelectFirst.widget = buttons[0];
+			radioListener.handleEvent(eventSelectFirst);
 			
 			Composite cBottom = new Composite(shell, SWT.NONE);
 			layout = new GridLayout(2, false);
@@ -268,7 +273,7 @@ public class UISwitcherWindow
 							break;
 						}
 					}
-					shell.close();
+					shell.dispose();
 				}
 			});
 			gd = new GridData(GridData.HORIZONTAL_ALIGN_END);
