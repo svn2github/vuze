@@ -268,45 +268,6 @@ public class ConfigSectionTransferAutoSpeedSelect
         
         final TransferStatsView.limitToTextHelper	limit_to_text = new TransferStatsView.limitToTextHelper();
         
-        sm.addListener(
-        	new SpeedManagerListener()
-        	{
-        		private final SpeedManagerListener	listener = this;
-        		
-        		public void 
-        		propertyChanged(
-        			final int property )  
-        		{
-        			Utils.execSWTThread(
-        				new Runnable()
-        				{
-        					public void
-        					run()
-        					{
-			        			if ( asn_label.isDisposed()){
-			        				
-			        				sm.removeListener( listener );
-			        				
-			        			}else{
-			        				
-			        				if ( property == SpeedManagerListener.PR_ASN ){
-			        					
-			        					asn_label.setText( sm.getASN());
-			        					
-				       				}else if ( property == SpeedManagerListener.PR_UP_CAPACITY ){
-				        					
-				        				up_cap.setText( limit_to_text.getLimitText( sm.getEstimatedUploadCapacityBytesPerSec()));
-				        					
-				       				}else if ( property == SpeedManagerListener.PR_DOWN_CAPACITY ){
-				    					
-				    					down_cap.setText( limit_to_text.getLimitText( sm.getEstimatedDownloadCapacityBytesPerSec()));
-			        				}
-			        			}
-        					}
-        				});
-        		}
-        	});
-        
         asn_label.setText( sm.getASN());
         up_cap.setText( limit_to_text.getLimitText( sm.getEstimatedUploadCapacityBytesPerSec()));
         down_cap.setText( limit_to_text.getLimitText( sm.getEstimatedDownloadCapacityBytesPerSec()));
@@ -352,8 +313,8 @@ public class ConfigSectionTransferAutoSpeedSelect
 		
 		final StringListParameter max_upload_type = 
 			new StringListParameter(networkGroup, co_up_type, limit_to_text.getSettableTypes(),limit_to_text.getSettableTypes() );
-	
-		ParameterChangeAdapter up_listener = 
+			
+		max_upload_type.addChangeListener( 
 			new ParameterChangeAdapter()
 			{
 				public void 
@@ -361,30 +322,46 @@ public class ConfigSectionTransferAutoSpeedSelect
 					Parameter 	p, 
 					boolean 	caused_internally )
 				{
-					if ( max_upload.isDisposed() || max_upload_type.isDisposed()){
+					if ( max_upload_type.isDisposed()){
 					
 						return;
 					}
 					
 					float type = limit_to_text.textToType( max_upload_type.getValue());
+							
+					SpeedManagerLimitEstimate existing = sm.getEstimatedUploadCapacityBytesPerSec();
 					
-					if ( type == SpeedManagerLimitEstimate.TYPE_UNKNOWN ){
-						
+					if ( existing.getEstimateType() != type ){
+					
+						sm.setEstimatedUploadCapacityBytesPerSec( existing.getBytesPerSec(), type );
+					}
+				}
+			});
+			
+		max_upload.addChangeListener(
+			new ParameterChangeAdapter()
+			{
+				public void 
+				parameterChanged(
+					Parameter 	p, 
+					boolean 	caused_internally )
+				{
+					if ( max_upload.isDisposed()){
+					
 						return;
 					}
+										
+					int	value = max_upload.getValue() * 1024;
+								
+					SpeedManagerLimitEstimate existing = sm.getEstimatedUploadCapacityBytesPerSec();
 					
-					int	value = max_upload.getValue()*1024;
-																	
-					sm.setEstimatedUploadCapacityBytesPerSec( value, type );
+					if ( existing.getBytesPerSec() != value ){
 					
-				    upload_bits.setText(getMBitLimit(limit_to_text,value));
+						sm.setEstimatedUploadCapacityBytesPerSec( value, existing.getEstimateType());
+					}
 				}
-			};
-			
-		max_upload_type.addChangeListener( up_listener );
-		max_upload.addChangeListener( up_listener );
-
-			    
+			});			
+		
 	    label = new Label(networkGroup, SWT.NULL);
 
 	    	// down set
@@ -414,7 +391,7 @@ public class ConfigSectionTransferAutoSpeedSelect
 		final StringListParameter max_download_type = 
 			new StringListParameter(networkGroup, co_down_type, limit_to_text.getSettableTypes(),limit_to_text.getSettableTypes() );
 
-		ParameterChangeAdapter down_listener = 
+		max_download_type.addChangeListener( 
 			new ParameterChangeAdapter()
 			{
 				public void 
@@ -422,28 +399,45 @@ public class ConfigSectionTransferAutoSpeedSelect
 					Parameter 	p, 
 					boolean 	caused_internally )
 				{
-					if ( max_download.isDisposed() || max_download_type.isDisposed()){
+					if ( max_download_type.isDisposed()){
 					
 						return;
 					}
 					
 					float type = limit_to_text.textToType( max_download_type.getValue());
+							
+					SpeedManagerLimitEstimate existing = sm.getEstimatedDownloadCapacityBytesPerSec();
 					
-					if ( type == SpeedManagerLimitEstimate.TYPE_UNKNOWN){
-						
+					if ( existing.getEstimateType() != type ){
+					
+						sm.setEstimatedDownloadCapacityBytesPerSec( existing.getBytesPerSec(), type );
+					}
+				}
+			});
+		
+		max_download.addChangeListener(
+			new ParameterChangeAdapter()
+			{
+				public void 
+				parameterChanged(
+					Parameter 	p, 
+					boolean 	caused_internally )
+				{
+					if ( max_download.isDisposed()){
+					
 						return;
 					}
-					
+										
 					int	value = max_download.getValue() * 1024;
-											
-					sm.setEstimatedDownloadCapacityBytesPerSec( value, type );
+								
+					SpeedManagerLimitEstimate existing = sm.getEstimatedDownloadCapacityBytesPerSec();
 					
-					download_bits.setText(getMBitLimit(limit_to_text,value));
+					if ( existing.getBytesPerSec() != value ){
+					
+						sm.setEstimatedDownloadCapacityBytesPerSec( value, existing.getEstimateType());
+					}
 				}
-			};
-			
-		max_download_type.addChangeListener( down_listener );
-		max_download.addChangeListener( down_listener );
+			});
 		
 	    label = new Label(networkGroup, SWT.NULL);
 
@@ -457,23 +451,71 @@ public class ConfigSectionTransferAutoSpeedSelect
 	    Messages.setLanguageText(reset_button, CFG_PREFIX + "reset.button" );
 
 	    reset_button.addListener(SWT.Selection, 
-	    		new Listener() 
-				{
-			        public void 
-					handleEvent(Event event) 
-			        {
-			        	sm.reset();
-			        	
-			        	max_download_type.setValue( limit_to_text.typeToText( SpeedManagerLimitEstimate.TYPE_UNKNOWN ));
-			        	
-			        	max_download.setValue( 0 );
-			        	
-			        	max_upload_type.setValue( limit_to_text.typeToText( SpeedManagerLimitEstimate.TYPE_UNKNOWN ));
-			        	
-			        	max_upload.setValue( 0 );
-			        }
-			    });
+    		new Listener() 
+			{
+		        public void 
+				handleEvent(Event event) 
+		        {
+		        	sm.reset();
+		        }
+		    });
         
+	   sm.addListener(
+           	new SpeedManagerListener()
+           	{
+           		private final SpeedManagerListener	listener = this;
+           		
+           		public void 
+           		propertyChanged(
+           			final int property )  
+           		{
+           			Utils.execSWTThread(
+           				new Runnable()
+           				{
+           					public void
+           					run()
+           					{
+   			        			if ( asn_label.isDisposed()){
+   			        				
+   			        				sm.removeListener( listener );
+   			        				
+   			        			}else{
+   			        				
+   			        				if ( property == SpeedManagerListener.PR_ASN ){
+   			        					
+   			        					asn_label.setText( sm.getASN());
+   			        					
+   				       				}else if ( property == SpeedManagerListener.PR_UP_CAPACITY ){
+   				        					
+   				       					SpeedManagerLimitEstimate limit = sm.getEstimatedUploadCapacityBytesPerSec();
+   				       					
+   				        				up_cap.setText( limit_to_text.getLimitText( limit ));
+   				        					
+   				        				upload_bits.setText(getMBitLimit(limit_to_text, limit.getBytesPerSec()));
+   				        				
+   				        				max_upload.setValue( limit.getBytesPerSec()/1024 );
+   				        				
+   							        	max_upload_type.setValue( limit_to_text.getSettableType( limit ));
+   							        	
+   				       				}else if ( property == SpeedManagerListener.PR_DOWN_CAPACITY ){
+   				    					
+   				       					SpeedManagerLimitEstimate limit = sm.getEstimatedDownloadCapacityBytesPerSec();
+
+   				    					down_cap.setText( limit_to_text.getLimitText( limit ));
+   				    					
+   				    					download_bits.setText(getMBitLimit(limit_to_text, limit.getBytesPerSec()));
+   				        				
+   				        				max_download.setValue( limit.getBytesPerSec()/1024 );
+   				        				
+   							        	max_download_type.setValue( limit_to_text.getSettableType( limit ));
+   						
+   			        				}
+   			        			}
+           					}
+           				});
+           		}
+           	});
+	           
         //Add listeners to disable setting when needed.
                 
 
