@@ -357,7 +357,7 @@ public class TorrentListView
 		//		globalManager.removeListener(this);
 		removeAllTableRows();
 
-		System.out.println("reget");
+		//System.out.println("reget");
 		//		globalManager.addListener(this, false);
 
 		fixupRowCount();
