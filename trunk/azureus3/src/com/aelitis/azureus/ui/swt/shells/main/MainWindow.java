@@ -619,7 +619,8 @@ public class MainWindow
   						return false;
   					}
   					BrowserMessage browserMsg = new BrowserMessage(value);
-  					if (browserMsg.getOperationId().equals(DisplayListener.OP_OPEN_URL)) {
+  					String opId = browserMsg.getOperationId();
+  					if (opId.equals(DisplayListener.OP_OPEN_URL)) {
   						Map decodedMap = browserMsg.getDecodedMap();
   						String url = MapUtils.getMapString(decodedMap, "url", null);
   						if (decodedMap.containsKey("target")
@@ -639,11 +640,19 @@ public class MainWindow
   						} else {
   							context.debug("no target or open url");
   						}
-  					} else if (browserMsg.getOperationId().equals("is-ready")) {
+  					} else if (opId.equals(TorrentListener.OP_LOAD_TORRENT)) {
+  						Map decodedMap = browserMsg.getDecodedMap();
+  						if (decodedMap.containsKey("b64")) {
+  							String b64 = MapUtils.getMapString(decodedMap, "b64", null);
+  							return TorrentListener.loadTorrentByB64(core, b64);
+  						} else {
+  							return false;
+  						}
+  					} else if (opId.equals("is-ready")) {
   						// The platform needs to know when it can call open-url, and it
   						// determines this by the is-ready function
   						return isReady;
-  					} else if (browserMsg.getOperationId().equals("is-version-ge")) {
+  					} else if (opId.equals("is-version-ge")) {
   						Map decodedMap = browserMsg.getDecodedMap();
   						if (decodedMap.containsKey("version")) {
   							String id = MapUtils.getMapString(decodedMap, "id", "client");
@@ -656,7 +665,7 @@ public class MainWindow
   								return false;
   							}
   						}
-  					} else if (browserMsg.getOperationId().equals("is-active-tab")) {
+  					} else if (opId.equals("is-active-tab")) {
   						Map decodedMap = browserMsg.getDecodedMap();
   						if (decodedMap.containsKey("tab")) {
   							String tabID = MapUtils.getMapString(decodedMap, "tab", "");
