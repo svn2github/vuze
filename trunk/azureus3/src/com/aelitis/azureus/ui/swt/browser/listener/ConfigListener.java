@@ -24,8 +24,6 @@ import java.util.Map;
 
 import org.eclipse.swt.browser.Browser;
 
-import org.gudy.azureus2.core3.util.AEDiagnostics;
-import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
 import org.gudy.azureus2.core3.util.Constants;
 
 import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
@@ -60,27 +58,20 @@ public class ConfigListener
 
 	// @see com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener#handleMessage(com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage)
 	public void handleMessage(BrowserMessage message) {
-		String opid = message.getOperationId();
-		
-		if (OP_GET_VERSION.equals(opid)) {
-			Map decodedMap = message.getDecodedMap();
-			String callback = MapUtils.getMapString(decodedMap, "callback", null);
-			if (callback != null && browser != null) {
-				browser.execute(callback + "('" + Constants.AZUREUS_VERSION + "')");
-			} else {
-				debug(message, "bad or no callback param");
+		try {
+			String opid = message.getOperationId();
+
+			if (OP_GET_VERSION.equals(opid)) {
+				Map decodedMap = message.getDecodedMap();
+				String callback = MapUtils.getMapString(decodedMap, "callback", null);
+				if (callback != null && browser != null) {
+					browser.execute(callback + "('" + Constants.AZUREUS_VERSION + "')");
+				} else {
+					message.debug("bad or no callback param");
+				}
 			}
-		}
-
-	}
-
-	public void debug(BrowserMessage bm, String message) {
-		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.CMsgr");
-		String out = "[" + bm.getListenerId() + ":" + bm.getOperationId() + "] "
-				+ message;
-		diag_logger.log(out);
-		if (com.aelitis.azureus.util.Constants.DIAG_TO_STDOUT) {
-			System.out.println(out);
+		} catch (Throwable t) {
+			message.debug("handle Config message", t);
 		}
 	}
 }

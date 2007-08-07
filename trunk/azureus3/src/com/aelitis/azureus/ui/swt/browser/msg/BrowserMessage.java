@@ -21,6 +21,8 @@ package com.aelitis.azureus.ui.swt.browser.msg;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AEDiagnostics;
+import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.util.JSFunctionParametersParser;
@@ -298,5 +300,29 @@ public class BrowserMessage
 
 		public void setReferer(String referer) {
 			this.referer = referer;
+		}
+
+		public void debug(String message) {
+			debug(message, null);
+		}
+
+		public void debug(String message, Throwable t) {
+			try {
+  			AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.CMsgr");
+  			String out = "[" + getListenerId() + ":" + getOperationId() + "] "
+  					+ message;
+  			diag_logger.log(out);
+  			if (t != null) {
+  				diag_logger.log(t);
+  			}
+  			if (com.aelitis.azureus.util.Constants.DIAG_TO_STDOUT) {
+  				System.out.println(out);
+  				if (t != null) {
+  					t.printStackTrace();
+  				}
+  			}
+			} catch (Throwable t2) {
+				Debug.out(t2);
+			}
 		}
 }
