@@ -1280,7 +1280,7 @@ public class TableViewSWTImpl
 		else {
 			menu_items = MenuItemManager.getInstance().getAllAsArray((String)null);
 		}
-		if (items.length > 0 || menu_items != null) {
+		if (items.length > 0 || menu_items.length > 0) {
 			new org.eclipse.swt.widgets.MenuItem(menu, SWT.SEPARATOR);
 			MenuBuildUtils.addPluginMenuItems(getComposite(), items, menu, true,
 					enable_items, new MenuBuildUtils.PluginMenuController() {
