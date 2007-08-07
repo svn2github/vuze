@@ -14,7 +14,7 @@ JAVA_ARGS="-Xmx128m"
 
 ######## YOU PROBABLY DO NOT WANT TO TOUCH ANYTHING BELOW! ########
 
-SCRIPT_VERSION=1
+SCRIPT_VERSION=2
 START_CLASS="org.gudy.azureus2.ui.swt.Main"
 
 MSG_LOADING="Loading Azureus:"
@@ -116,7 +116,13 @@ runJavaOutput()
 {
 	# assume we can write to the user's home..
 
-	${JAVA_PROGRAM_DIR}java "${JAVA_ARGS}" -cp "${CLASSPATH}" -Djava.library.path="${PROGRAM_DIR}" -Dazureus.install.path="${PROGRAM_DIR}" -Dazureus.script="$0" $JAVA_PROPS ${1} > ~/azScript
+	${JAVA_PROGRAM_DIR}java "${JAVA_ARGS}" \
+		-cp "${CLASSPATH}" \
+		-Djava.library.path="${PROGRAM_DIR}" \
+		-Dazureus.install.path="${PROGRAM_DIR}" \
+		-Dazureus.script="$0" \
+		$JAVA_PROPS \
+		"$@" > ~/azScript
 	if [ -f ~/azScript ]; then
 		chmod +x ~/azScript
 		. ~/azScript
@@ -165,7 +171,7 @@ fi
 # remove all symlinks in user's plugin directory
 find ~/.azureus/plugins -maxdepth 1 -type l -xtype d  -exec rm {} \;
 
-runJavaOutput "org.gudy.azureus2.platform.unix.ScriptBeforeStartup";
+runJavaOutput "org.gudy.azureus2.platform.unix.ScriptBeforeStartup" "$@";
 
 echo $MSG_LOADING
 
@@ -183,6 +189,6 @@ ${JAVA_PROGRAM_DIR}java "${JAVA_ARGS}" \
 
 echo $MSG_AZEXIT
 
-runJavaOutput "org.gudy.azureus2.platform.unix.ScriptAfterShutdown";
+runJavaOutput "org.gudy.azureus2.platform.unix.ScriptAfterShutdown" "$@";
 
 echo $MSG_TERMINATED
