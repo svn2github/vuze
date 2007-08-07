@@ -60,7 +60,6 @@ import com.aelitis.azureus.core.speedmanager.SpeedManagerPingMapper;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingSource;
 import com.aelitis.azureus.core.speedmanager.impl.v1.SpeedManagerAlgorithmProviderV1;
 import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedManagerAlgorithmProviderV2;
-import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedManagerAlgorithmTI;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 
@@ -372,10 +371,10 @@ SpeedManagerImpl
 			}
             
         }else if ( provider_version == 3 ){
-			
-			provider = new SpeedManagerAlgorithmTI( this, false );
-			
-		}else{
+
+            provider = new SpeedManagerAlgorithmProviderV2( this );
+
+        }else{
 						
 			Debug.out( "Unknown provider version " + provider_version );
 			
