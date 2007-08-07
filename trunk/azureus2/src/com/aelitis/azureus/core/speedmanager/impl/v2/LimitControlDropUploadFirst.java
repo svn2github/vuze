@@ -182,11 +182,19 @@ public class LimitControlDropUploadFirst implements LimitControl
             downLimit = Math.round( ((downMax-downMin)*valueDown)+downMin );
         }
 
+        //Don't show a download limit unless it is needed.
+        if( valueDown == 1.0 ){
+            downLimit = SMConst.RATE_UNLIMITED; //only apply a limit to the download when needed.
+        }
+        
         //log this change.
-        String msg = " create-update: valueUp="+valueUp+",upLimit="+upLimit+",valueDown="+valueDown
-                +",downLimit="+downLimit+",upMax="+upMax+",usedUpMax="+usedUpMax+",upMin="+upMin+",downMax="+downMax
-                +",downMin="+downMin+",transferMode="+mode.getString()+",isDownUnlimited="+isDownloadUnlimited;
-        SpeedManagerLogger.log( msg );
+        StringBuffer msg = new StringBuffer(" create-update: valueUp="+valueUp+",upLimit="+upLimit+",valueDown=");
+        if(valueDown== 1.0 ) msg.append("_unlimited_");
+        else msg.append(valueDown);
+        msg.append(",downLimit="+downLimit+",upMax="+upMax+",usedUpMax="+usedUpMax+",upMin="+upMin+",downMax="+downMax);
+        msg.append(",downMin="+downMin+",transferMode="+mode.getString()+",isDownUnlimited="+isDownloadUnlimited);
+
+        SpeedManagerLogger.log( msg.toString() );
 
         return new SMUpdate(upLimit,true,downLimit,true);
     }
