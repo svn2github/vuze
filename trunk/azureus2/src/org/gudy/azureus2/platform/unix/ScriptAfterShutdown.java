@@ -9,7 +9,7 @@ public class ScriptAfterShutdown
 	private static PrintStream sysout;
 
 	public static void main(String[] args) {
-		// Since stdout will be is a shell script, redirect any stdout not coming
+		// Since stdout will be in a shell script, redirect any stdout not coming
 		// from us to stderr 
 		sysout = System.out;
 		try {
