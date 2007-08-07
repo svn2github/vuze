@@ -326,6 +326,7 @@ public class ManagerUtils {
 							MessageText.getString("Button.no"),
 						}, 1);
 				mb.setRelatedObject(dm);
+				mb.setLeftImage(SWT.ICON_WARNING);
 
 				int result = mb.open();
 				if (result != 0) {
@@ -353,6 +354,7 @@ public class ManagerUtils {
 							MessageText.getString("Button.no"),
 						}, 1);
 				mb.setRelatedObject(dm);
+				mb.setLeftImage(SWT.ICON_WARNING);
 
 				int result = mb.open();
 				if (result != 0) {

@@ -597,6 +597,17 @@ public class MessageBoxShell
 	public void setLeftImage(Image imgLeft) {
 		this.imgLeft = imgLeft;
 	}
+	
+	/**
+	 * Replaces Image on left with icon
+	 * 
+	 * @param icon SWT.ICON_ERROR, ICON_INFORMATION, ICON_QUESTION, ICON_WARNING, ICON_WORKING
+	 *
+	 * @since 3.0.1.7
+	 */
+	public void setLeftImage(int icon) {
+		setLeftImage(Display.getDefault().getSystemImage(icon));
+	}
 
 	public static void main(String[] args) {
 		Display display = Display.getDefault();
