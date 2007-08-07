@@ -1,10 +1,22 @@
 package org.gudy.azureus2.platform.unix;
 
+import java.io.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 
 public class ScriptAfterShutdown
 {
+	private static PrintStream sysout;
+
 	public static void main(String[] args) {
+		// Since stdout will be is a shell script, redirect any stdout not coming
+		// from us to stderr 
+		sysout = System.out;
+		try {
+			System.setOut(new PrintStream(new FileOutputStream("/dev/stderr")));
+		} catch (FileNotFoundException e) {
+		}
+
 		String extraCmds = COConfigurationManager.getStringParameter(
 				"scriptaftershutdown", null);
 		if (extraCmds != null) {
@@ -15,10 +27,12 @@ public class ScriptAfterShutdown
 			}
 			COConfigurationManager.removeParameter("scriptaftershutdown");
 			COConfigurationManager.save();
-			System.out.println(extraCmds);
+			sysout.println(extraCmds);
 			if (exit) {
-				System.out.println("exit");
+				sysout.println("exit");
 			}
+		} else {
+			log("No shutdown tasks to do");
 		}
 	}
 
@@ -37,5 +51,9 @@ public class ScriptAfterShutdown
 		if (requiresExit) {
 			COConfigurationManager.setParameter("scriptaftershutdown.exit", true);
 		}
+	}
+	
+	private static void log(String string) {
+		sysout.println("echo \"" + string.replaceAll("\"", "\\\"") + "\"");
 	}
 }
