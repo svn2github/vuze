@@ -1,10 +1,6 @@
 package org.gudy.azureus2.platform.unix;
 
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -12,8 +8,11 @@ import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
+
+import com.aelitis.azureus.core.impl.AzureusCoreSingleInstanceClient;
 
 public class ScriptBeforeStartup
 {
@@ -28,6 +27,40 @@ public class ScriptBeforeStartup
 		try {
 			System.setOut(new PrintStream(new FileOutputStream("/dev/stderr")));
 		} catch (FileNotFoundException e) {
+		}
+
+		boolean argsSent = new AzureusCoreSingleInstanceClient().sendArgs(args, 500);
+		if (argsSent) {
+			// azureus was open..
+			String msg = "Passing startup args to already-running Azureus java process listening on [127.0.0.1: 6880]";
+			log(msg);
+			sysout.println("exit");
+
+			return;
+		}
+
+		// If the after shutdown script didn't run or crapped out, then
+		// don't run again..
+		String scriptAfterShutdown = COConfigurationManager.getStringParameter(
+				"scriptaftershutdown", null);
+
+		COConfigurationManager.removeParameter("scriptaftershutdown.exit");
+		COConfigurationManager.removeParameter("scriptaftershutdown");
+		COConfigurationManager.save();
+		if (scriptAfterShutdown != null) {
+			log("Script after Azureus shutdown did not run.. running now");
+
+			sysout.println(scriptAfterShutdown);
+
+			if (scriptAfterShutdown.indexOf("$0") < 0) {
+				// doesn't have a restart.. add one
+				sysout.println("echo \"Restarting Azureus..\"");
+				sysout.println("$0\n");
+			}
+			// exit is a requirement
+			sysout.println("exit");
+
+			return;
 		}
 
 		String moz = getNewGreDir();
