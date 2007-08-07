@@ -42,6 +42,9 @@ DMPieceMapper
 	getFiles();
 	
 	public int
+	getPieceLength();
+	
+	public int
 	getLastPieceLength();
 	
 	public long

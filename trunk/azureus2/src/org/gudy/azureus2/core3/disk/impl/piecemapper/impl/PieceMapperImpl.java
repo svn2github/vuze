@@ -324,6 +324,12 @@ PieceMapperImpl
 	}
 
 	public int
+	getPieceLength()
+	{
+		return((int)torrent.getPieceLength());
+	}
+	
+	public int
 	getLastPieceLength()
 	{
 		return( last_piece_length );
