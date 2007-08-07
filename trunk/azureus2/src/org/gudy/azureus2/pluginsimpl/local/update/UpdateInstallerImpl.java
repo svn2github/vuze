@@ -35,6 +35,7 @@ import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.update.*;
 
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 
 public class 
@@ -80,8 +81,7 @@ UpdateInstallerImpl
 				
 				if ( found_failure ){
 					Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR,
-							"Installation of at least one component failed"
-									+ " - see 'update.log' for details"));
+							MessageText.getString("Alert.failed.update")));
 				}
 			}
 		}catch( Throwable e ){
