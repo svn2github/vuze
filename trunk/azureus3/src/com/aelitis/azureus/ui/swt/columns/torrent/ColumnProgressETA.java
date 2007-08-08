@@ -236,14 +236,15 @@ public class ColumnProgressETA
 									sSpeed
 								});
 					} else {
-						String sETA = TimeFormatter.format(edm.getProgressivePlayETA());
-						if (sETA.length() == 0) {
+						long newETA = edm.getProgressivePlayETA();
+						if (newETA <= 0) {
 							sETALine = MessageText.getString(
 									"MyTorrents.column.ColumnProgressETA.StreamReady",
 									new String[] {
 										sSpeed
 									});
 						} else {
+							String sETA = TimeFormatter.format(newETA);
 							sETALine = MessageText.getString(
 									"MyTorrents.column.ColumnProgressETA.PlayableIn",
 									new String[] {
