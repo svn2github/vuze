@@ -234,13 +234,17 @@ public class BTPeerIDByteDecoder {
 		try {peer_id_as_string = new String(peer_id, Constants.BYTE_ENCODING);}
 		catch (UnsupportedEncodingException uee) {return "";}
 		
-		boolean is_az_style = BTPeerIDByteDecoderUtils.isAzStyle(peer_id_as_string);
-		
 		if (client != null) {return client;}
-		logUnknownClient(peer_id, !is_az_style);
+
+		boolean is_az_style = BTPeerIDByteDecoderUtils.isAzStyle(peer_id_as_string);
+		boolean is_shadow_style = BTPeerIDByteDecoderUtils.isShadowStyle(peer_id_as_string);
+		logUnknownClient(peer_id, !(is_az_style || is_shadow_style));
 
 		if (is_az_style) {
 			return BTPeerIDByteDecoderDefinitions.formatUnknownAzStyleClient(peer_id_as_string);
+		}
+		else if (is_shadow_style) {
+			return BTPeerIDByteDecoderDefinitions.formatUnknownShadowStyleClient(peer_id_as_string);
 		}
 		
 		String sPeerID = getPrintablePeerID(peer_id);
@@ -500,6 +504,13 @@ public class BTPeerIDByteDecoder {
 		assertDecode(unknown_az, "2D5831303036342D12FB8A5B954153A114267F1F");
 		unknown_az = MessageText.getString("PeerSocket.unknown_az_style", new String[]{"bF", "2q00"}); // I made this one up.
 		assertDecode(unknown_az, "2D6246327130302D9DFF296B56AFC2DF751C609C");
+		System.out.println();
+		
+		// Unknown Shadow style clients.
+		System.out.println("Testing unknown Shadow style clients...");
+		String unknown_shadow;
+		unknown_shadow = MessageText.getString("PeerSocket.unknown_shadow_style", new String[]{"B", "1.2"});
+		assertDecode(unknown_shadow, "B12------xgTofhetSVQ");
 		System.out.println();
 
 		// TODO

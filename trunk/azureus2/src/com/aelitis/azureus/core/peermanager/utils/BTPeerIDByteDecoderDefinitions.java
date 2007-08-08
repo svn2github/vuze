@@ -190,6 +190,13 @@ public class BTPeerIDByteDecoderDefinitions {
 		});
 	}
 	
+	public static String formatUnknownShadowStyleClient(String peer_id) {
+		String version_string = BTPeerIDByteDecoderUtils.getShadowStyleVersionNumber(peer_id);
+		return MessageText.getString("PeerSocket.unknown_shadow_style", new String[] {
+			peer_id.substring(0, 1), version_string
+		});
+	}
+	
 	
 	/**
      * OK - here's where we store the definitions.
