@@ -2275,11 +2275,12 @@ public class OpenTorrentWindow
 			String sSmartDir = sDestDir;
 			try {
 				String name = getTorrentName();
+				String torrentFileName = new File(sFileName).getName().replaceFirst("\\.torrent$", "");
 				int totalSegmentsLengths = 0;
 
 				String[][] segments = {
 					name.split("[^a-zA-Z]+"),
-					sFileName.split("[^a-zA-Z]+")
+					torrentFileName.split("[^a-zA-Z]+")
 				};
 				List downloadManagers = gm.getDownloadManagers();
 
