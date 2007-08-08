@@ -10,7 +10,6 @@ Azureus 3.0.2.0 brings the version numbering back into line and should reduce co
 
 !1.1 Torrent Menu
    * There is now a Torrent Menu on the main menu bar that contains the right click menu of My Torrents.
-   * Option to clear resume data has been added to the menu.
 
 !1.2 Piece Distribution Sub-view
    * Pieces tab now contains a Piece Distribution Sub-view
@@ -61,7 +60,7 @@ Azureus 3.0.2.0 brings the version numbering back into line and should reduce co
 
 + What's New for the Vuze User Interface
 
-The following is a list of key features added or changed between 3.0.0.6 and 3.0.2.0:
+The following is a list of key features added or changed since 3.0.0.6:
 
 !1.12 Progressive download and streaming via UPnP Media Server
 	* Certain content will have the ability to progressively download so you can start watching it sooner.  Look for the "Stream" button in the Progress column of the Currently Downloading section.  Click it, and in a few moments a "Play" button will appear which will allow you to watch the content while it's being downloaded.
@@ -163,7 +162,7 @@ The following is a list of key features added or changed between 3.0.0.6 and 3.0
 !4.3 Support
  Before contacting the support team, be sure to check the available resources at :
  - The official WebSite : http://azureus.sourceforge.net/
- - The official Wiki : http://azureus.aelitis.com/wiki/
+ - The official Wiki : http://azureuswiki.com/
  - The official IRC Channel : #azureus-users on irc.freenode.net
  - The official SF forums : http://sourceforge.net/forum/?group_id=84122
  - IF (and only IF) you can't solve your issue after trying ALL those mediums, you can contact us at azureus@gmail.com

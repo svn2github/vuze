@@ -1,31 +1,116 @@
 $ 
-$    Welcome to Azureus 2.5.0.4
+$    Welcome to Azureus 3.0.2.0
 $ 
 
- 2.5.0.4 is a maintenance release to fix up a few minor, but relatively annoying problems with 2.5.0.2.
+Azureus 3.0.2.0 brings the version numbering back into line and should reduce confusion over which 2.x version maps to which 3.x version.  Existing 2.x users will get the classic UI, while new and existing 3.x users will get the Vuze client UI, with the option to switch back to the 2.x UI if you choose.
 
-+1. What's new in Azureus 2.5.0.2/4
++1. What's new in Azureus 3.0.2.0
 
-!1.1 Less memory footprint
++ What's New for the Classic UI (Advanced View) and Azureus Core since 2.5.0.4
+
+!1.1 Torrent Menu
+   * There is now a Torrent Menu on the main menu bar that contains the right click menu of My Torrents.
+
+!1.2 Piece Distribution Sub-view
+   * Pieces tab now contains a Piece Distribution Sub-view
+
+!1.3 Speed Selector Slider
+   * There is now a slider when changing the upload or download speed via right click on the status bar.  Features include:
+      - Ability to click down, drag to the correct speed, and then release the mouse button for immediate changes
+      - Direct speed entry via keyboard
+      - Up/down arrows to adjust the speed by 1
+      - Page Up/Page Down to adjust speed by 10
+      - Control Page Up/Control Page Down to adjust speed by 100
+      - Ability to add a preconfigured list of speeds
+
+!1.4 IP Filter Autoloading
+   * You can now specify a IP Filter file or URL to load at start-up. Supports DAT (eMule), P2P (PeerGuardian, splist), and P2B v1,2,3 (Peer Guardian 2) formats.
+   
+!1.5 Piece Map Sub-view
+   * Pieces tab now contains a piece map, which gives an overall view of the piece distribution amongst the clients you are connected to, which pieces you are downloading (big down arrow), pieces you are planning to download (small down arrow), pieces you are uploading (big up arrow), and pieces you are going to upload next (small up arrow).  Rarest pieces are marked with a solid border.  Next rarest pieces are marked with a dotted border.
+
+!1.6 Speed Tester Wizard
+   * Find out what Azureus thinks your maximum upload and download speeds are.
+
+!1.7 New Auto-Speed Algorithm
+   * We've developed a new auto-speed algorithm that should be more accurate in setting your limits, and more giving while you are browsing the web.  To enable this, change the Auto Speed algorithm in Options->Transfer->Auto-Speed to "Auto-speed(beta)".  Any feedback would be greatly appreciated.
+
+!1.8 More control
+   * Per-peer and per-category upload/download speed limits
+   * Per-torrent super seeding mode
+   * Option to clear stored tracker list used for creating torrents
+
+!1.9 More information
+   * Download status, distributed copies and completed piece count to the General torrent view
+   * Date Completion column added to My Torrents view
+   * Added a Transfer Bar (similar to Download Bar)
+  
+!1.10 Memory usage optimizations
+   * Memory optimizations were made related to single file downloads and queued torrents
+
+!1.11 Other Notables
+   * Better handling when system suspends/resumed [Windows]
+   * At least 30 more clients are identifiable, as well as some common "fake" clients.  Identification of existing clients have also been improved.
+   * Peer messages to inform of bad pieces
+   * IPv6 Support in DHT, version server, and tracker
+   * New unix startup script to handle different java installation locations, GRE/Xulrunner searching, restarts, and plugin updates.
+   * Better handling of updates when using Vista and it's lovely security system.
+   * Fixed 100% CPU problem in network code under some conditions
+
+
++ What's New for the Vuze User Interface
+
+The following is a list of key features added or changed since 3.0.0.6:
+
+!1.12 Progressive download and streaming via UPnP Media Server
+	* Certain content will have the ability to progressively download so you can start watching it sooner.  Look for the "Stream" button in the Progress column of the Currently Downloading section.  Click it, and in a few moments a "Play" button will appear which will allow you to watch the content while it's being downloaded.
+
+!1.13 Column Changes
+  * The Speed Indicator column in the Currently Downloading section was removed. (3.0.2.0)
+  * Date Completed column added to Library View. (3.0.1.0)
+  * A video quality column was added to the Currently Downloading section and the Library View. (3.0.0.6)
+
+!1.14 Stylized Message Boxes (3.0.1.0)
+  * Message boxes and prompts related to a piece of content now display the thumbnail of the content.
+
+!1.15 Column Auto-Hiding (3.0.0.6)
+	* Columns in Currently Downloading, Last Downloaded and Library View will auto-hide when there's not enough room to properly display them.
+
+!1.16 Extra Deletion Warnings (3.0.0.6)
+  * When you are about to delete a piece of content that you had to get a license for (such as paid for content), an extra verification step is required before deleting it.
+  
+!1.17 Auto-Download Updates (3.0.0.6)
+  * Azureus updates are now downloaded and installed automatically.
+
+!1.18 Filtering for Library View (3.0.0.6)
+  * The library view can now be filtered based on a phrase or multiple phrases.  To filter on multiple phrases, split each phrase with a semicolon or a pipe |.
+
+  
+    Full ChangeLog http://azureus.sourceforge.net/changelog.php?version=3.0.2.0
+
+
++2. What's new in Azureus 2.5.0.2/4
+
+!2.1 Less memory footprint
   Most noteably, torrent piece information is now removed from memory when not used.
   
-!1.2 Minimum # of Simultaneous Active Downloads
+!2.2 Minimum # of Simultaneous Active Downloads
   The ability to always have at least x number of active downloads running.
   
-!1.3 New columns
+!2.3 New columns
   Custom user comment (My Torrents view)
   File extension (Files view)
 
-!1.4 Faster startup times on large lists
+!2.4 Faster startup times on large lists
   Startup times when Azureus has a large list of torrents is now faster (up to 400% faster in some cases).
   Some plugins may negate this optimization if the plugin accesses every torrents information immediately at startup.
 
-!1.5 Other
+!2.5 Other
   Various user interface improvements.
   Bug fixes.
   Less memory leaks.
  
-!1.6 Java 5.0 note
+!2.6 Java 5.0 note
   Java 5, Update 10 fixes a handle leak commonly seen in Azureus installations.  It is highly recommended that you upgrade to this version or a later version.  You can download the update at http://java.com/en/download/manual.jsp
 
     Full ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.5.0.4
@@ -35,15 +120,15 @@ $
 $    Bienvenue dans Azureus 2.5.0.0
 $ 
 
-+1. Quoi de neuf dans Azureus 2.5.0.0
++3. Quoi de neuf dans Azureus 2.5.0.0
 
-!1.1 Send to a friend
+!3.1 Send to a friend
   A wizard to simplify sending a link to content to a friend or to embed in a web page (e.g. a blog).
 
-!1.2 Auto upload speed
+!3.2 Auto upload speed
   This feature controls your upload speed based on the latency of your internet connection as gauged by pinging other members of the Distributed Database.
 
-!1.3 Other new features
+!3.3 Other new features
   OSX: Open .torrent files into Azureus via Finder/Desktop/etc.
   'Do not download' files handled more consistently with respect to download completion.
   Renaming of a download directories.
@@ -56,97 +141,31 @@ $
   Don't forget to check the plugins - http://azureus.sourceforge.net/plugin_list.php
      New remote control plugin - AzSMRC
      
-!1.4 Bug fixes and performance improvements
+!3.4 Bug fixes and performance improvements
  Notable fixes:
     LAN Peer Finder retains peers more effectively; explicit LAN peer identification.
     Reduced CPU usage when connected to large numbers of peers.
     
     Full ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.5.0.0
-    
-+2. Quoi de neuf dans Azureus 2.4.0.0
+     
 
-!2.1 Transfert de données encryptées/obfusquées
- Supporte l'encryption de données entre Azureus et les autres clients compatibles. Cela procure à la fois une couche de protection des données et peut aider avec les limitations imposées par certains fournisseurs d'accés à Internet.
-  
-!2.2 Transfert sur LAN à haute vitesse
- Plusieurs Azureus sur un réseau local téléchargeant le même torrent établissent des connections à haute vitesse entre eux.
++4. Problèmes courants
 
-!2.3 Algorithme de téléchargement optimisé
- L'algorithme utilisé pour déterminer quelles pièces demander à quel client a été retravaillé pour améliorer son efficacité.
-
-!2.4 Support des "Webseeds"
- Un support basique des webseeds est inclus. Les webseeds be sont utilisés que losque la disponibilité du torrent est inférieure à 1.
-
-!2.5 Autre
-
- Diverses améliorations de l'interface utilisateur.
- Améliorations de performance.
- Réglages de bogues.
-    
-    Note: Le nouveau lanceur pour Windows requiert de laisser passer "Azureus.exe" dans le pare-feu (à la place de "javaw.exe").
-    
-    ChangeLog complet: http://azureus.sourceforge.net/changelog.php?version=2.4.0.0
-
-    Voir http://azureus.sourceforge.net/changelog.php?version=2.3.0.6, 2.3.0.4 et 2.3.0.2 pour les changements précédents.
-    
-+3. Quoi de neuf dans Azureus 2.3.0.0
-
-!3.1 Base de données Distribuée
- Azureus a maintenant une base de données distribuée et décentralisée qui peut être utilisée pour tracker des torrents décentralisés. Cela permet les torrents "sans tracker" et la gestion des essaims dont le tracker vient à disparaitre ou dont le torrent a été enlevé du tracker.
- Elle utilise le protocol UDP, donc si vous avez un pare-feu ou un routeur, vous devrez ouvrir ou forwarder le port UDP tout comme vous l'avez fait avec le port TCP pour télécharger des données.
- 
-*3.1.1 Liens Magnet
- Pour les torrents décentralisés, Azureus peut exporter un "lien Magnet" ("une Magnet"), de la forme "magnet:?xt=urn:btih:..." et qui peut être utilisé pour télécharger le torrent à partir de la base de données distribuée via le menu "Fichier > Ouvrir > URL" ( ou directement Ctrl + L).
- Voir: http://azureus.aelitis.com/wiki/index.php/Magnet_link
- 
-!3.2 Protocol Avancé
- Azureus a maintenant un protocol de communication inter-client avancé, qui a pour but de permettre aux plugins d'utiliser les connexions créées par Azureus pour ajouter des fonctionalités au programme. Les spécifications de ce protocol, destinées aux développeurs de clients BitTorrent, sont disponibles à http://azureus.aelitis.com/wiki/index.php/AzureusMessagingProtocol . Les développeurs de plugins sont invités à regarder les javadocs pour savoir comment s'en servir.
- Par exemple, les plugins Chat et JPC utilisent cette extension.
-
-!3.3 JPC
- Joltid Peer Cache (JPC) est maintenant intégré à Azureus. Pour les utilisateurs dont l'ISP le supporte, JPC doit permettre des téléchargements plus rapides, tout en réduisant les coûts de bande passante pour l'ISP. Le plugin JPC est sûr dans le sens où votre ISP ne peut pas savoir ce que vous téléchargez et ne peut pas vous espionner. Le plugin peut être désactivé dans Outils > Options > Plugins > JPC.
-  
-!3.4 Nouveaux Plugins
- La base de données distribuée et le protocole avancé nous ont permis de développer de nouveaux plugins. Ils ne sont pas auto-installés, mais nous vous encourageons à le faire vous-même grâce au menu Plugins > Assistant d'installation...
- 
-*3.4.1 Chat
- Ce plugin crée un canal de discussion par torrent que vous téléchargez. Chaque canal est indépendant et vous êtes libre de discuter comme bon vous semble. Ce plugin utilie le protocol avancé. Les développeurs d'autres clients voulant implémenter ce plugin peuvent lire les spécifications relativement simples à cette adresse : http://azureus.aelitis.com/wiki/index.php/ChatPlugin .
- Vous pouvez aussi créer/joindre un canal arbitraire en entrant son nom dans le plugin: cela aura pour effect de créer un torrent "virtuel", sans sources, pour permettre aux utilisateurs de créer des connexions pour discuter. Les torrents "virtuels" utilisent la base de données distribuée comme tracker, donc, si vous pouvez utiliser le plugin Chat sans activer la base de données distribuée, vous ne pouvez utiliser de canal virtuel que si la base de données distribuée est activée.
- 
-*3.4.2 Notes & Commentaires
- Ce plugin vous permet de voir les notes et commentaires des autres utilisateurs, et également de noter et commenter un torrent vous-même (clic droit sur le torrent dans "Mes Torrents" et "ratings & comments". Ce plugin utilise la base de données distribuée, donc celle-ci doit être activée.
- 
-
-+4. Mise à niveau conseillée
-
-!4.1 Java 5.0
- Azureus est écrit en Java et fonctionne avec le Java JRE. Nous recomendaons la version 5.0 de Java (aussi connue en tant que 1.5) qui a des meilleures performances et une meilleure fiabilité - veuillez mettre à jour si nécessaire.
- Vous trouverez le dernier Java là : http://azureus.sourceforge.net/download.php
- Télécharger Java, fermer Azureus, désinstaller votre précédente version de Java, installer la dernière et relancer Azureus.
- Les utilisateurs de WinXP devront ré-activer l'option Outils > Options > Interface > Affichage > "Activer le style XP".
- 
-!4.2 NOD32
- NOD32 (http://www.nod32.com/) est un antivirus connu pour avoir des problèmes avec Azureus, provoquant une utilisation à 100% du processeur.
- Voir http://azureus.aelitis.com/wiki/index.php/LikelyNetworkDisconnectReconnect
- 
-
-+5. Problèmes courants
-
-!5.1 "Erreur" NAT
+!4.1 "Erreur" NAT
  NAT signifie "Network Address Translation" ("traduction d'adresse réseau"). Le test NAT d'Azureus vous dit si vous êtes accessibles de l'extérieur (Internet). Vous obtiendrez de meilleures performances si vous êtres accessibles.
  Pour régler vos problèmes NAT, voir:
  - http://azureus.aelitis.com/wiki/index.php/PortForwarding
  - http://www.portforward.com
  
 
-!5.2 Azureus plante
+!4.2 Azureus plante
  Si votre Azureus plante, la raison la plus probable est un problème de composants réseau (carte, drivers, système d'exploitation). Nous vous recommendons donc de mettre à jour tous ces composants. Si le problème persiste, votre système n'est peut-être pas capable de gérer beaucoup de connexions simultanées.
  Diminuez le nombre de connexions dans Azureus (Outils > Options > Transfert > Nombre maximum de connexions par torrent / en tout), en essayant une valeur basse (30 par exemple).
 
-!5 Support
+!4.3 Support
  Veuillez utiliser les ressources disponibles avant de vous adressez directement à l'équipe:
  - Site officiel : http://azureus.sourceforge.net/
- - Wiki officiel : http://azureus.aelitis.com/wiki/
+ - Wiki officiel : http://azureuswiki.com
  - Canal IRC officiel : #azureus-users on irc.freenode.net
  - Forums SF officiels : http://sourceforge.net/forum/?group_id=84122
  - Si (et seulement si) vous n'avez toujours pas résolu votre problème, vous pouvez nous contacter à azureus@gmail.com

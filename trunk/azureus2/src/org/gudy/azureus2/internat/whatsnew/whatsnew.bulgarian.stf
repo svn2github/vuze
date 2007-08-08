@@ -1,53 +1,130 @@
 $ 
-$    Приветствия от Azureus 3.x.x.x
+$    Welcome to Azureus 3.0.2.0
 $ 
 
- Това е междинна (т.нар. CVS snapshot) версия на Azureus. Благодарности за изпитанията на бета Azureus.
+Azureus 3.0.2.0 brings the version numbering back into line and should reduce confusion over which 2.x version maps to which 3.x version.  Existing 2.x users will get the classic UI, while new and existing 3.x users will get the Vuze client UI, with the option to switch back to the 2.x UI if you choose.
 
- Потребителите на Azureus 2, ще забележат, че версията е сменена на 3. Това не означава, че по принуда ще се премине към Vuze потребителски интерфейс. Тъй като Azureus 3 и Azureus 2 използват един и същ изходен код, няма смисъл CVS snapshot версиите да продължават номерцацията "2.5.0.x".
++1. What's new in Azureus 3.0.2.0
 
-$ 
-$    Приветствия от Azureus 2.5.0.4
-$ 
++ What's New for the Classic UI (Advanced View) and Azureus Core since 2.5.0.4
 
- 2.5.0.4 е поправъчно издание за поправка на малки, но относително досадни неизправности в 2.5.0.2.
+!1.1 Torrent Menu
+   * There is now a Torrent Menu on the main menu bar that contains the right click menu of My Torrents.
 
-+1. Какво ново в Azureus 2.5.0.2/4
+!1.2 Piece Distribution Sub-view
+   * Pieces tab now contains a Piece Distribution Sub-view
 
-!1.1 По-малък отпечатък в паметта
+!1.3 Speed Selector Slider
+   * There is now a slider when changing the upload or download speed via right click on the status bar.  Features include:
+      - Ability to click down, drag to the correct speed, and then release the mouse button for immediate changes
+      - Direct speed entry via keyboard
+      - Up/down arrows to adjust the speed by 1
+      - Page Up/Page Down to adjust speed by 10
+      - Control Page Up/Control Page Down to adjust speed by 100
+      - Ability to add a preconfigured list of speeds
+
+!1.4 IP Filter Autoloading
+   * You can now specify a IP Filter file or URL to load at start-up. Supports DAT (eMule), P2P (PeerGuardian, splist), and P2B v1,2,3 (Peer Guardian 2) formats.
+   
+!1.5 Piece Map Sub-view
+   * Pieces tab now contains a piece map, which gives an overall view of the piece distribution amongst the clients you are connected to, which pieces you are downloading (big down arrow), pieces you are planning to download (small down arrow), pieces you are uploading (big up arrow), and pieces you are going to upload next (small up arrow).  Rarest pieces are marked with a solid border.  Next rarest pieces are marked with a dotted border.
+
+!1.6 Speed Tester Wizard
+   * Find out what Azureus thinks your maximum upload and download speeds are.
+
+!1.7 New Auto-Speed Algorithm
+   * We've developed a new auto-speed algorithm that should be more accurate in setting your limits, and more giving while you are browsing the web.  To enable this, change the Auto Speed algorithm in Options->Transfer->Auto-Speed to "Auto-speed(beta)".  Any feedback would be greatly appreciated.
+
+!1.8 More control
+   * Per-peer and per-category upload/download speed limits
+   * Per-torrent super seeding mode
+   * Option to clear stored tracker list used for creating torrents
+
+!1.9 More information
+   * Download status, distributed copies and completed piece count to the General torrent view
+   * Date Completion column added to My Torrents view
+   * Added a Transfer Bar (similar to Download Bar)
+  
+!1.10 Memory usage optimizations
+   * Memory optimizations were made related to single file downloads and queued torrents
+
+!1.11 Other Notables
+   * Better handling when system suspends/resumed [Windows]
+   * At least 30 more clients are identifiable, as well as some common "fake" clients.  Identification of existing clients have also been improved.
+   * Peer messages to inform of bad pieces
+   * IPv6 Support in DHT, version server, and tracker
+   * New unix startup script to handle different java installation locations, GRE/Xulrunner searching, restarts, and plugin updates.
+   * Better handling of updates when using Vista and it's lovely security system.
+   * Fixed 100% CPU problem in network code under some conditions
+
+
++ What's New for the Vuze User Interface
+
+The following is a list of key features added or changed since 3.0.0.6:
+
+!1.12 Progressive download and streaming via UPnP Media Server
+	* Certain content will have the ability to progressively download so you can start watching it sooner.  Look for the "Stream" button in the Progress column of the Currently Downloading section.  Click it, and in a few moments a "Play" button will appear which will allow you to watch the content while it's being downloaded.
+
+!1.13 Column Changes
+  * The Speed Indicator column in the Currently Downloading section was removed. (3.0.2.0)
+  * Date Completed column added to Library View. (3.0.1.0)
+  * A video quality column was added to the Currently Downloading section and the Library View. (3.0.0.6)
+
+!1.14 Stylized Message Boxes (3.0.1.0)
+  * Message boxes and prompts related to a piece of content now display the thumbnail of the content.
+
+!1.15 Column Auto-Hiding (3.0.0.6)
+	* Columns in Currently Downloading, Last Downloaded and Library View will auto-hide when there's not enough room to properly display them.
+
+!1.16 Extra Deletion Warnings (3.0.0.6)
+  * When you are about to delete a piece of content that you had to get a license for (such as paid for content), an extra verification step is required before deleting it.
+  
+!1.17 Auto-Download Updates (3.0.0.6)
+  * Azureus updates are now downloaded and installed automatically.
+
+!1.18 Filtering for Library View (3.0.0.6)
+  * The library view can now be filtered based on a phrase or multiple phrases.  To filter on multiple phrases, split each phrase with a semicolon or a pipe |.
+
+  
+    Full ChangeLog http://azureus.sourceforge.net/changelog.php?version=3.0.2.0
+
+
++2. Какво ново в Azureus 2.5.0.2/4
+
+!2.1 По-малък отпечатък в паметта
   Най-забележимо, информацията за парче от torrent се премахва от паметта, когато не се ползва.
 
-!1.2 Минимален брой едновременни активни сваляния
+!2.2 Минимален брой едновременни активни сваляния
   Възможността да има винаги най-малко X бр. активни сваляния работещи.
 
-!1.3 Нови колони
+!2.3 Нови колони
   Потребителски коментар (изглед 'Местни торенти')
   Файлови разширения (изглед 'Файлове')
 
-!1.4 По-малко време за стартиране при големи списъци
+!2.4 По-малко време за стартиране при големи списъци
   Времето за стартиране, когато Azureus има голям списък от торенти е по-малко (до 400 % по-бързо в някои случаи).
   Някои приставки може да обезсилят тази оптимизация, ако приставката достъпва информацията на всеки торент веднага при стартиране.
 
-!1.5 Други
+!2.5 Други
   Различни подобрения в потребителския интерфейс.
   Отстранени неизправности.
   По-малки утечки в паметта.
 
-!1.6 Java 5.0 бележка
+!2.6 Java 5.0 бележка
   Java 5, Update 10 поправя утечка в дръжките, често срещана при Azureus инсталациите. Силно се препоръчва да се надгради до тази или по-късна версия. Може да бъде свалена от at http://java.com/en/download/manual.jsp
 
     Пълен дневник на промените http://azureus.sourceforge.net/changelog.php?version=2.5.0.4
 
 
-+2. Какво ново в Azureus 2.5.0.0
++3. Какво ново в Azureus 2.5.0.0
 
-!2.1 Изпращане на приятел
+!3.1 Изпращане на приятел
   Помощник за по-лесно изпращане на връзка до съдържание до приятел или за вмъкване в уеб-страница (напр. блог).
 
-!2.2 Автоматична скорост на качване
+!3.2 Автоматична скорост на качване
   Тази характеристика контролира скоростта на качване, базирана на ненатовареността на връзката с Интернет, измерена чрез ping до другите членове на разпределената база данни.
 
-!2.3 Други нови характеристики
+!3.3 Други нови характеристики
   OSX: Отваряне на .torrent файлове в Azureus през Finder/Desktop/etc.
   Файлове 'Не за сваляне' се поддържат по-пълно с отчитане на завършеността на сваляне.
   Преименуване на директориите за сваляне.
@@ -60,67 +137,30 @@ $
   Да не се забравя и проверка на приставките - http://azureus.sourceforge.net/plugin_list.php
     Нова приставка за отдалечен контрол - AzSMRC
 
-!2.4 Отстранени неизправности и подобрения в представянето
+!3.4 Отстранени неизправности и подобрения в представянето
  Видими поправки:
     Търсачът на равнопоставени в локална мрежа поддържа равнопоставените по-ефективно; неотменима идентификация на равнопоставен в локална мрежа.
     Намалена употреба на процесора при връзка с голям брой равнопоставени.
 
     Пълен дневник на промените http://azureus.sourceforge.net/changelog.php?version=2.5.0.0
 
-+3. Какво ново в Azureus 2.4.0.0
 
-!3.1 Шифрован/завоалиран трансфер на данни
- Включена е поддръжка на шифроване на данните между Azureus и други съвместими клиенти. Това едновременно дава ниво на защита на данните и може да помогне при доставчици на Интернет, които блокират или ограничават peer-to-peer трафик.
++4. Други
 
-!3.2 Високи скорости на трансфер в локална мрежа
- Множество копия на Azureus, които работят в една и съща локална мрежа поддържат високоскоростни директни връзки.
-
-!3.3 Подобрен алгоритъм на свалянията
- Алгоритъмът, използван за определяне кои парчета от някое сваляне от кои равнопоставени да се искат, е пренаписан изцяло, за да се подобри държанието и представянето му.
-
-!3.4 Поддръжка на уеб-сеене
- Включена е проста поддръжка на уеб-сеене. Уеб-сеене ще се използва само, когато наличността на някое сваляне е под 1.0.
-
-!3.5 Други
-
- Множество подобрения в потребителския интерфейс.
- Подобрения в представянето.
- Поправки на неизправности.
-
-    Пълен дневник на промените http://azureus.sourceforge.net/changelog.php?version=2.4.0.0
-
-    Да се види http://azureus.sourceforge.net/changelog.php?version=2.3.0.6, 2.3.0.4 и 2.3.0.2 за предишни промени.
-
-
-+4. Съвет за надграждане
-
-!4.1 Java 5.0
- Azureus е написан на Java и изисква Java runtime. Препоръчва се Java 5.0 (позната и като 1.5), защото има по-добро представяне и надеждност - да се надгради, ако е необходимо.
- Торенти за надграждане на Java има на: http://azureus.sourceforge.net/download.php
- Да се свали съответстващата на конкретната система, да се затвори Azureus, да се изпълни сваления файл и да се стартира Azureus отново.
- Потребители с Windows XP да отворят Инструменти -> Конфигурация -> Интерфейс -> Показване и преотметнат опцията "Както е в XP".
-
-!4.2 NOD32
- NOD32 (http://www.nod32.com/) е антивирус, който създава проблеми с Azureus, предизвиквайки 100 % процесорна натовареност.
- Да се види http://azureus.aelitis.com/wiki/index.php/LikelyNetworkDisconnectReconnect
-
-
-+5. Други
-
-!5.1 МАП (NAT) "грешка"
+!4.1 МАП (NAT) "грешка"
  МАП (NAT) означава "Мрежов Адресен Превод". МАП (NAT) тестът в Azureus показва дали има свързаност с други в Интернет или не. Ще има по-добри скорости, ако има свързаност.
  Не се приемат заявки за решаване на проблеми с МАП (NAT), тъй като има многобройни ресурси по въпроса в Интернет. Да се провери:
  - http://azureus.aelitis.com/wiki/index.php/PortForwarding
  - http://www.portforward.com
 
-!5.2 Azureus се чупи
+!4.2 Azureus се чупи
  Ако Azureus се чупи, най-вероятната причина е свързана с мрежовите компоненти (платка, драйвери, ОС). Препоръчва се да се надградят всички компоненти имащи отношение към мрежата. Ако това не помогне, най-вероятно системата не може да поеме толкова много връзки с равнопоставени.
  Да се намали броят връзки в Azureus (Инструменти -> Конфигурация -> Трансфер -> Максимум връзки глобално), да се опита малка стойност като 30 първо.
 
-!5.3 Поддръжка
+!4.3 Поддръжка
  Преди търсене на екипа за поддръжка, да се проверят наличните ресурси в:
  - Официална страница: http://azureus.sourceforge.net/
- - Официален Wiki: http://azureus.aelitis.com/wiki/
+ - Официален Wiki: http://azureuswiki.com/
  - Официален ИРЧ (IRC) канал: #azureus-users on irc.freenode.net
  - Официални форуми в SF: http://sourceforge.net/forum/?group_id=84122
  - АКО (и само АКО) конкретният проблем не може да се разреши след опит с ВСИЧКИ изброени средства, може да се изпрати запитване до azureus@gmail.com
