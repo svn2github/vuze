@@ -222,11 +222,13 @@ class BTPeerIDByteDecoderUtils {
 	 * simple check.
 	 * 
 	 * We'll assume that no client uses the fifth version digit, so we'll
-	 * expect a dash.
+	 * expect a dash. We'll also assume that no client has reached version 10
+	 * yet, so we expect the first two characters to be "letter,digit".
 	 */ 
 	public static boolean isShadowStyle(String peer_id) {
 		if (peer_id.charAt(5) != '-') {return false;}
 		if (!Character.isLetter(peer_id.charAt(0))) {return false;}
+		if (!Character.isDigit(peer_id.charAt(1))) {return false;}
 		
 		// Find where the version number string ends.
 		int last_ver_num_index = 4;
