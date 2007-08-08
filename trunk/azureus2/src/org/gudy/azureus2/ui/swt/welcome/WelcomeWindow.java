@@ -62,8 +62,9 @@ public class WelcomeWindow {
   
   
   public WelcomeWindow(Shell parentShell) {
-		this(parentShell, URL_WHATSNEW + "?version=" + Constants.AZUREUS_VERSION + "&locale="
-				+ Locale.getDefault().toString());
+		this(parentShell, URL_WHATSNEW + "?version=" + Constants.AZUREUS_VERSION
+				+ "&locale=" + Locale.getDefault().toString() + "&ui="
+				+ COConfigurationManager.getStringParameter("ui"));
 	}
   
   public WelcomeWindow(Shell parentShell, String url) {
