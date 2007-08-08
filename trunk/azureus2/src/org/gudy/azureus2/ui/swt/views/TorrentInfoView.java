@@ -434,8 +434,8 @@ TorrentInfoView
 			for (int i=0;i<cells.length;i++){
 				
 				ExternalCell	cell = cells[i];
-				
-				cell.refresh();
+				try {cell.refresh();}
+				catch (Exception e) {Debug.printStackTrace(e, "Error refreshing cell: " + cells[i].getName());}
 			}
 		}
 	}
