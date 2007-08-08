@@ -551,7 +551,7 @@ public class FileUtil {
 	  			Map	res = null;
 	  			
 	  			try{
-	  				res = readResilientFile( parent_dir, file_name, 0, false );
+	  				res = readResilientFile( file_name, parent_dir, file_name, 0, false );
 	  			
 	  			}catch( Throwable e ){
 	  				
@@ -560,7 +560,7 @@ public class FileUtil {
 	  			
 	  			if ( res == null && attempt_recovery ){
 	  				
-	  				res = readResilientFile( parent_dir, file_name, 0, true );
+	  				res = readResilientFile( file_name, parent_dir, file_name, 0, true );
 	  				
 	  				if ( res != null ){
 	  					Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING,
@@ -589,6 +589,7 @@ public class FileUtil {
   	
 	private static Map
 	readResilientFile(
+		String		original_file_name,
 		File		parent_dir,
 		String		file_name,
 		int			fail_count,
@@ -615,7 +616,7 @@ public class FileUtil {
 	  					// we only alert the user if at least one file was found and failed
 	  					// otherwise it could be start of day when neither file exists yet
 	  					Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR,
-								"Load of '" + file_name + "' fails, no usable file or backup"));
+								"Load of '" + original_file_name + "' fails, no usable file or backup"));
 	  				}else{
 	  					// drop this log, it doesn't really help to inform about the failure to 
 	  					// find a .saving file
@@ -639,7 +640,7 @@ public class FileUtil {
 //								+ file_name + "' failed, " + "file not found or 0-sized."));
   			}
   			
-  			return( readResilientFile( parent_dir, file_name + ".saving", 0, recovery_mode ));
+  			return( readResilientFile( original_file_name, parent_dir, file_name + ".saving", 0, recovery_mode ));
   		}
 
   		BufferedInputStream bin = null;
@@ -662,8 +663,7 @@ public class FileUtil {
   					}
   	 				
   	 				if (Logger.isEnabled())
-							Logger.log(new LogEvent(LOGID, "Failed to open '" + file.toString()
-								+ "', retrying", e));
+							Logger.log(new LogEvent(LOGID, "Failed to open '" + file.toString()	+ "', retrying", e));
   					
   					Thread.sleep(500);
   				}
@@ -680,9 +680,9 @@ public class FileUtil {
 	    	
 	    	if ( using_backup && !recovery_mode ){
   		
-	    		Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING,
-						"Load of '" + file_name.substring(0, file_name.length() - 7)
-								+ "' had to revert to backup file")); 
+	    		Logger.log(
+	    				new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING,
+						"Load of '" + original_file_name + "' had to revert to backup file")); 
 	    	}
 	    	
 	    	return( res );
@@ -730,7 +730,7 @@ public class FileUtil {
 
 		    	if (Logger.isEnabled())
 						Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING, "Read of '"
-								+ file_name + "' failed, decoding error. " + "Renaming to "
+								+ original_file_name + "' failed, decoding error. " + "Renaming to "
 								+ bad.getName()));
 	
 		    		// copy it so its left in place for possible recovery
@@ -742,13 +742,13 @@ public class FileUtil {
 		
 	    		if ( !recovery_mode ){
 	    			Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR,
-							"Load of '" + file_name + "' fails, no usable file or backup")); 
+							"Load of '" + original_file_name + "' fails, no usable file or backup")); 
 	    		}
 	    			
 	    		return( null );
 	    	}
 	    	
-	    	return( readResilientFile( parent_dir, file_name + ".saving", 1, recovery_mode ));
+	    	return( readResilientFile( original_file_name, parent_dir, file_name + ".saving", 1, recovery_mode ));
  			 
 	    }finally{
 	    	
