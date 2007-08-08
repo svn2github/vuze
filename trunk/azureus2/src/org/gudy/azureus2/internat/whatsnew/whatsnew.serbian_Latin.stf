@@ -38,7 +38,7 @@ Azureus 3.0.2.0 brings the version numbering back into line and should reduce co
 !1.8 More control
    * Per-peer and per-category upload/download speed limits
    * Per-torrent super seeding mode
-   * Option to clear stored tracker list used for creating torrents
+   * More options to clear remembered settings
 
 !1.9 More information
    * Download status, distributed copies and completed piece count to the General torrent view
@@ -49,7 +49,7 @@ Azureus 3.0.2.0 brings the version numbering back into line and should reduce co
    * Memory optimizations were made related to single file downloads and queued torrents
 
 !1.11 Other Notables
-   * Better handling when system suspends/resumed [Windows]
+   * Better handling when system suspends/resumes[Windows]
    * At least 30 more clients are identifiable, as well as some common "fake" clients.  Identification of existing clients have also been improved.
    * Peer messages to inform of bad pieces
    * IPv6 Support in DHT, version server, and tracker
