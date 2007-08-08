@@ -118,6 +118,9 @@ SpeedManagerImpl
 				});
 		
 	}
+	
+	private static boolean	emulated_ping_source;
+	
 		// config end
 	
 	
@@ -302,6 +305,15 @@ SpeedManagerImpl
 					}
 				}
 			});
+		
+		emulated_ping_source	= false;
+		
+		if ( emulated_ping_source ){
+			
+			Debug.out( "Emulated ping source!!!!" );
+		
+			setSpeedTester( new TestPingSourceRandom( this ));
+		}
 	}
 	
 	public SpeedManager
@@ -425,7 +437,10 @@ SpeedManagerImpl
 	{
 		if ( speed_tester != null ){
 			
-			Debug.out( "speed tester already set!" );
+			if ( !emulated_ping_source ){
+			
+				Debug.out( "speed tester already set!" );
+			}
 			
 			return;
 		}
@@ -443,12 +458,12 @@ SpeedManagerImpl
 					contactAdded(
 						DHTSpeedTesterContact contact )
 					{
-						if ( core.getInstanceManager().isLANAddress(contact.getContact().getAddress().getAddress())){
+						if ( core.getInstanceManager().isLANAddress(contact.getAddress().getAddress())){
 							
 							contact.destroy();
 							
 						}else{
-							log( "activePing: " + contact.getContact().getString());
+							log( "activePing: " + contact.getString());
 							
 							contact.setPingPeriod( CONTACT_PING_SECS );
 							
@@ -487,7 +502,7 @@ SpeedManagerImpl
 									contactDied(
 										DHTSpeedTesterContact	contact )
 									{
-										log( "deadPing: " + contact.getContact().getString());
+										log( "deadPing: " + contact.getString());
 										
 										synchronized( contacts ){
 											
@@ -952,7 +967,7 @@ SpeedManagerImpl
 		public InetSocketAddress
 		getAddress()
 		{
-			return( contact.getContact().getAddress());	
+			return( contact.getAddress());	
 		}
 		
 		public int

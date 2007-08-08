@@ -1,7 +1,7 @@
 /*
- * Created on 15-Mar-2006
+ * Created on Aug 8, 2007
  * Created by Paul Gardner
- * Copyright (C) 2006 Aelitis, All Rights Reserved.
+ * Copyright (C) 2007 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,44 +15,39 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  * 
- * AELITIS, SAS au capital de 46,603.30 euros
+ * AELITIS, SAS au capital de 63.529,40 euros
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  *
  */
 
-package com.aelitis.azureus.core.dht.speed;
 
-import java.net.InetSocketAddress;
+package com.aelitis.azureus.core.speedmanager.impl;
 
-public interface 
-DHTSpeedTesterContact 
+import java.util.Random;
+
+import com.aelitis.azureus.core.speedmanager.SpeedManager;
+
+
+public class 
+TestPingSourceRandom 
+	extends TestPingSourceImpl
 {
-	public InetSocketAddress
-	getAddress();
+	private Random	random	= new Random();
 	
-	public int
-	getPingPeriod();
+	protected
+	TestPingSourceRandom(
+		SpeedManagerAlgorithmProviderAdapter	adapter )
+	{
+		super( adapter );
+	}
 	
-	public void
-	setPingPeriod(
-		int		period_secs );
-	
-		/**
-		 * If you don't like the ping times from this contact you can always kill it, a new one will be
-		 * created in its place
-		 */
-	
-	public void
-	destroy();
-	
-	public void
-	addListener(
-		DHTSpeedTesterContactListener	listener );
-	
-	public void
-	removeListener(
-		DHTSpeedTesterContactListener	listener );
-	
-	public String
-	getString();
+	protected void 
+	updateSources(
+		testSource[] sources )
+	{
+		for (int i=0;i<sources.length;i++){
+			
+			sources[i].setRTT( random.nextInt( 500 ));
+		}
+	}
 }

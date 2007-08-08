@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.dht.speed.impl;
 
+import java.net.InetSocketAddress;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
@@ -615,6 +616,18 @@ DHTSpeedTesterImpl
 		getContact()
 		{
 			return( best_pingee );
+		}
+		
+		public InetSocketAddress 
+		getAddress() 
+		{
+			return( getContact().getAddress());
+		}
+		
+		public String
+		getString()
+		{
+			return( getContact().getString());
 		}
 		
 		public int
