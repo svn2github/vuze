@@ -203,7 +203,7 @@ public class PingGraphic extends ScaledGraphic implements ParameterListener {
 	        if ( x > 1 ){	        	
 		        	int h1 = bounds.height - scale.getScaledValue(targetValue) - 2;
 		        	int h2 = bounds.height - scale.getScaledValue(oldTargetValue) - 2;
-              gcImage.setForeground( z <= 3 ? colors[z+1] : colors[4]);
+              gcImage.setForeground( z <= 2 ? colors[z+1] : colors[3]);
 	            gcImage.drawLine(xDraw,h1,xDraw+1, h2);	        	
 	        }
 	        
