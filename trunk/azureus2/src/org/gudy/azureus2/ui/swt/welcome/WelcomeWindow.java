@@ -133,9 +133,6 @@ public class WelcomeWindow {
 		if (sWhatsNew == null || sWhatsNew.length() == 0) {
 			String helpFile = MessageText.getString("window.welcome.file");
 			String helpFullPath = "/org/gudy/azureus2/internat/whatsnew/" + helpFile;
-			if (COConfigurationManager.getStringParameter("ui").equals("az3")) {
-				helpFullPath = "/ChangeLog.v3.txt";
-			}
 			InputStream stream = getClass().getResourceAsStream(helpFullPath);
 			if (stream == null) {
 				sWhatsNew = "Welcome Window: Error loading resource: " + helpFullPath;
@@ -314,8 +311,8 @@ public class WelcomeWindow {
   }
   
   public static void main(String[] args) {
-  	Locale.setDefault(new Locale("bg", "BG"));
-  	MessageText.changeLocale(new Locale("bg", "BG"));
+  	//Locale.setDefault(new Locale("bg", "BG"));
+  	//MessageText.changeLocale(new Locale("bg", "BG"));
   	System.out.println(Locale.getDefault().getCountry());
 		new WelcomeWindow(null);
 		Display display = Display.getDefault();
