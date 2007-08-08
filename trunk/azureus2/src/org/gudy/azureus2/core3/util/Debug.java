@@ -418,9 +418,15 @@ public class Debug {
 		return( message );
 	}
 	
+	public static void printStackTrace(Throwable e) {
+		printStackTrace(e, null);
+	}
+
+	
 	public static void
 	printStackTrace(
-		Throwable e )
+		Throwable e,
+		Object context)
 	{
 		String header = "DEBUG::";
 		header = header + new Date(SystemTime.getCurrentTime()).toString() + "::";
@@ -458,13 +464,15 @@ public class Debug {
 			
 			PrintWriter	pw = new PrintWriter( new OutputStreamWriter( baos ));
 			
+			if (context!=null) {pw.print("  "); pw.println(context);}
+			pw.print("  ");
 			e.printStackTrace( pw );
 			
 			pw.close();
 			
 			String	stack = baos.toString();
 					    
-			diagLoggerLogAndOut("  " + stack, true );
+			diagLoggerLogAndOut(stack, true );
 		}catch( Throwable ignore ){
 			
 			e.printStackTrace();
