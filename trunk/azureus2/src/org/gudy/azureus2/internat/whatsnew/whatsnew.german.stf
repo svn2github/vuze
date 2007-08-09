@@ -1,92 +1,92 @@
 $ 
-$    Welcome to Azureus 3.0.2.0
+$    Willkommen zu Azureus 3.0.2.0
 $ 
 
-Azureus 3.0.2.0 brings the version numbering back into line and should reduce confusion over which 2.x version maps to which 3.x version.  Existing 2.x users will get the classic UI, while new and existing 3.x users will get the Vuze client UI, with the option to switch back to the 2.x UI if you choose.
+Azureus 3.0.2.0 fügt die Versionsnummerierung wieder zusammen und sollte damit der Verwirrung ein Ende setzen, welche Version 2.x sich auf welche Version 3.x bezieht. Nutzer von Version 2.x behalten die klassische Oberfläche, wogegen neue Nutzer und jene von Version 3.x die Vuze-Oberfläche erhalten. Die Oberfläche kann jederzeit gewechselt werden.
 
-+1. What's new in Azureus 3.0.2.0
++1. Was ist neu in Azureus 3.0.2.0
 
-+ What's New for the Classic UI (Advanced View) and Azureus Core since 2.5.0.4
++ Was ist neu für die klassische Oberfläche (Fortgeschrittene Ansicht) und den Azureus-Kern seit 2.5.0.4
 
-!1.1 Torrent Menu
-   * There is now a Torrent Menu on the main menu bar that contains the right click menu of My Torrents.
+!1.1 Torrent-Menü
+   * Es gibt jetzt ein Torrent-Menü in der Hauptmenüleiste, welches das Rechtsklick-Menü aus 'Meine Torrents' enthält.
 
-!1.2 Piece Distribution Sub-view
-   * Pieces tab now contains a Piece Distribution Sub-view
+!1.2 Ansicht für die Verteilung der Teile
+   * Das Teile-Tab enthält jetzt eine Ansicht über die Verteilung der Teile
 
-!1.3 Speed Selector Slider
-   * There is now a slider when changing the upload or download speed via right click on the status bar.  Features include:
-      - Ability to click down, drag to the correct speed, and then release the mouse button for immediate changes
-      - Direct speed entry via keyboard
-      - Up/down arrows to adjust the speed by 1
-      - Page Up/Page Down to adjust speed by 10
-      - Control Page Up/Control Page Down to adjust speed by 100
-      - Ability to add a preconfigured list of speeds
+!1.3 Schieberegler für Geschwindigkeit
+   * Zum Ändern der Up- und Download-Geschwindigkeit über das Rechtsklick-Menü der Statusleiste ist nun ein Schieberegler vorhanden. Eigenschaften:
+      - Maustaste drücken, Geschwindigkeit durch ziehen einstellen, Maustaste loslassen - die Geschwindigkeitsänderung wird durchgeführt
+      - Direkte Eingabe über die Tastatur
+      - Pfeil hoch/runter verändert die Geschwindigkeit um 1
+      - Bild hoch/runter verändert die Geschwindigkeit um 10
+      - Strg+ Bild hoch/runter verändert die Geschwindigkeit um 100
+      - Möglichkeit, vorkonfigurierte Geschwindigkeiten zu nutzen
 
-!1.4 IP Filter Autoloading
-   * You can now specify a IP Filter file or URL to load at start-up. Supports DAT (eMule), P2P (PeerGuardian, splist), and P2B v1,2,3 (Peer Guardian 2) formats.
+!1.4 Automatiches Laden des IP-Filters
+   * Es kann nun eine IP-Filter-Datei oder -URL angegeben werden, welche zu Programmbeginn geladen wird. Unterstützt werden DAT (eMule), P2P (PeerGuardian, splist) und P2B v1,2,3 (Peer Guardian 2) als Format.
    
-!1.5 Piece Map Sub-view
-   * Pieces tab now contains a piece map, which gives an overall view of the piece distribution amongst the clients you are connected to, which pieces you are downloading (big down arrow), pieces you are planning to download (small down arrow), pieces you are uploading (big up arrow), and pieces you are going to upload next (small up arrow).  Rarest pieces are marked with a solid border.  Next rarest pieces are marked with a dotted border.
+!1.5 Übersicht der Teile
+   * Das Teile-Tab verfügt über eine Übersicht, die einen Überblick über die Teilverteilung zwischen den Quellen zeigt, zu denen man verbunden ist. Sie zeigt welche Teile heruntergeladen werden (großer Pfeil nach unten), werden sollen (kleiner Pfeil nach unten), hochladende Teile (großer Pfeil nach oben) und Teile, die als nächstes hochgeladen werden sollen (kleiner Pfeil nach oben).  Die seltensten Teile sind mit einem durchgezogenen Rand markiert, die zweitseltensten mit einem gepunkteten Rand.
 
-!1.6 Speed Tester Wizard
-   * Find out what Azureus thinks your maximum upload and download speeds are.
+!1.6 Assistent für Geschwindigkeitstest
+   * Zur Bestimmung der maximalen Down- und Upload-Geschwindigkeit.
 
-!1.7 New Auto-Speed Algorithm
-   * We've developed a new auto-speed algorithm that should be more accurate in setting your limits, and more giving while you are browsing the web.  To enable this, change the Auto Speed algorithm in Options->Transfer->Auto-Speed to "Auto-speed(beta)".  Any feedback would be greatly appreciated.
+!1.7 Neuer Auto-Speed-Algorithmus
+   * Wir haben einen neuen Auto-Speed-Algorithmus entwickelt, der genauer die Limits einstellt und das gleichezeitige Webbrowsen verbessert. Zum Aktivieren den Algorithmus unter Tools -> Konfiguration -> Übertragung -> Auto-Speed auf Auto-Speed(beta) stellen.
 
-!1.8 More control
-   * Per-peer and per-category upload/download speed limits
-   * Per-torrent super seeding mode
-   * More options to clear remembered settings
+!1.8 Mehr Kontrolle
+   * Upload-/Download-Geschwindigkeitslimits pro Quelle und pro Kategorie
+   * Super-Seeding-Modus pro Torrent
+   * Weitere Optionen zum Löschen gespeicherter Einstellungen
 
-!1.9 More information
-   * Download status, distributed copies and completed piece count to the General torrent view
-   * Date Completion column added to My Torrents view
-   * Added a Transfer Bar (similar to Download Bar)
+!1.9 Mehr Informationen
+   * Download-Status, Verteilte Kopien und Anzahl fertiger Teile in den allgemeinen Torrent-Details
+   * Zeitpunkt der Vervollständigung unter 'Meine Torrents'
+   * Übertragungsleiste (ähnlich der Download-Leiste)
   
-!1.10 Memory usage optimizations
-   * Memory optimizations were made related to single file downloads and queued torrents
+!1.10 Optimierte Speichernutzung
+   * Speichernutzung wurde optimiert bezüglich Torrents mit einer Datei und Torrents in der Warteschlange
 
-!1.11 Other Notables
-   * Better handling when system suspends/resumes[Windows]
-   * At least 30 more clients are identifiable, as well as some common "fake" clients.  Identification of existing clients have also been improved.
-   * Peer messages to inform of bad pieces
-   * IPv6 Support in DHT, version server, and tracker
-   * New unix startup script to handle different java installation locations, GRE/Xulrunner searching, restarts, and plugin updates.
-   * Better handling of updates when using Vista and it's lovely security system.
-   * Fixed 100% CPU problem in network code under some conditions
+!1.11 Weiteres
+   * Bessere Handhabung von Suspend/Resume[Windows]
+   * Verbesserung der Erkennung existierender Clients und Erkennung von mindestens 30 weiteren Clients, sowie bekannten "Fake-Clients"
+   * Quellen-Meldungen, um über schlechte Teile zu informieren
+   * IPv6-Unterstützung für DHT, Versionsserver und Tracker
+   * Neues Unix-Start-Skript, um verschiedene Java-Installationen besser zu handhaben, GRE/Xulrunner-Suche, Neustarts, Plugin-Aktualisierungen
+   * Besser Unterstützung von Aktualisierungen unter Vista
+   * Behebung des Problems 100%iger CPU-Nutzung im Netzwerkcode unter gewissen Umständen
 
 
-+ What's New for the Vuze User Interface
++ Neues der Vuze-Oberfläche
 
-The following is a list of key features added or changed since 3.0.0.6:
+Nachfolgend eine Liste von Merkmalen, die seit Version 3.0.0.6 hinzugekommen oder verändert worden sind:
 
-!1.12 Progressive download and streaming via UPnP Media Server
-	* Certain content will have the ability to progressively download so you can start watching it sooner.  Look for the "Stream" button in the Progress column of the Currently Downloading section.  Click it, and in a few moments a "Play" button will appear which will allow you to watch the content while it's being downloaded.
+!1.12 Progressiver Download und Streaming via UPnP Media Server
+	* Bestimmter Inhalt wird die Fähigkeit besitzen, progressiv heruntergeladen zu werden, damit er früher angeschaut werden kann. Schau nach dem "Stream"-Knopf im Bereich der aktuellen Downloads. Klicke ihn und nach einem kurzen Augenblick wird ein "Play"-Knopf erscheinen, welches es ermöglicht den Inhalt schon während des Downloads anzuschauen.
 
-!1.13 Column Changes
-  * The Speed Indicator column in the Currently Downloading section was removed. (3.0.2.0)
-  * Date Completed column added to Library View. (3.0.1.0)
-  * A video quality column was added to the Currently Downloading section and the Library View. (3.0.0.6)
+!1.13 Spaltenänderungen
+  * Der Geschwindigkeitsindikator wurde aus dem Bereich der aktuellen Downloads entfernt. (3.0.2.0)
+  * Spalte für Datum der Vervollständigung hinzugefügt. (3.0.1.0)
+  * Spalte für Videoqualität wurde im Bereich der aktiven und fertigen Downloads hinzugefügt. (3.0.0.6)
 
-!1.14 Stylized Message Boxes (3.0.1.0)
-  * Message boxes and prompts related to a piece of content now display the thumbnail of the content.
+!1.14 Meldungsboxen (3.0.1.0)
+  * Meldungen und Anfragen, die sich auf Vuze-Inhalt beziehen, zeigen ein kleines Übersichtsbild des Inhaltes.
 
-!1.15 Column Auto-Hiding (3.0.0.6)
-	* Columns in Currently Downloading, Last Downloaded and Library View will auto-hide when there's not enough room to properly display them.
+!1.15 Automatisches Ausblenden von Spalten (3.0.0.6)
+	* Spalten werden automatisch ausgeblendet, wenn nicht genug Platz für deren Anzeige zu Verfügung steht.
 
-!1.16 Extra Deletion Warnings (3.0.0.6)
-  * When you are about to delete a piece of content that you had to get a license for (such as paid for content), an extra verification step is required before deleting it.
+!1.16 Extra Warnungen beim Löschen (3.0.0.6)
+  * Für das Löschen eines Inhaltes, für welchen eine Lizenz zu erwerben war, ist eine zusätzliche Bestätigung erforderlich.
   
-!1.17 Auto-Download Updates (3.0.0.6)
-  * Azureus updates are now downloaded and installed automatically.
+!1.17 Automatische Aktualisierung (3.0.0.6)
+  * Azureus-Aktualisierungen werden automatisch heruntergeladen und installiert.
 
-!1.18 Filtering for Library View (3.0.0.6)
-  * The library view can now be filtered based on a phrase or multiple phrases.  To filter on multiple phrases, split each phrase with a semicolon or a pipe |.
+!1.18 Filtern der Bibliothekansicht (3.0.0.6)
+  * Die Bibliothekansicht kann nun nach Stichworten durchsucht werden. Um mehrere Stichworte zu nutzen, muss jedes Wort durch ein Semikolon oder Pipe-Symbol ("|") getrennt werden.
 
   
-    Full ChangeLog http://azureus.sourceforge.net/changelog.php?version=3.0.2.0
+    Ausführliches ChangeLog http://azureus.sourceforge.net/changelog.php?version=3.0.2.0
 
 
 +2. Was ist neu in Azureus 2.5.0.2/2.5.0.4
