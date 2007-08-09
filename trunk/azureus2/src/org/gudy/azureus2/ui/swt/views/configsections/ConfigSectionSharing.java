@@ -78,7 +78,7 @@ public class ConfigSectionSharing implements UISWTConfigSection {
     
 	GridData grid_data = new GridData();
 	grid_data.horizontalSpan = 2;
-	BooleanParameter private_torrent = 
+	final BooleanParameter private_torrent = 
 		new BooleanParameter(gSharing, 	"Sharing Torrent Private", 
                          			"ConfigView.section.sharing.privatetorrent");
 	private_torrent.setLayoutData(grid_data);
@@ -94,6 +94,22 @@ public class ConfigSectionSharing implements UISWTConfigSection {
 
 	private_torrent.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( permit_dht.getControls(), true ));
 
+	private_torrent.addChangeListener(
+		new ParameterChangeAdapter()
+		{
+			public void 
+			parameterChanged(
+				Parameter p, 
+				boolean caused_internally )
+			{
+				if ( private_torrent.isSelected() ){
+					
+					permit_dht.setSelected( false );
+				}
+			}
+	
+		});
+	
     	// row
     gridData = new GridData();
     gridData.horizontalSpan = 2;
