@@ -33,7 +33,9 @@ GlobalManagerDownloadWillBeRemovedListener
 {
 	public void
 	downloadWillBeRemoved(
-		DownloadManager	manager )
+		DownloadManager	manager,
+		boolean remove_torrent,
+		boolean remove_data )
 	
 		throws GlobalManagerDownloadRemovalVetoException;
 }

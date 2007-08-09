@@ -101,7 +101,8 @@ public interface GlobalManager extends AzureusCoreComponent {
 	 * @param dm DownloadManager to check
 	 * @throws GlobalManagerDownloadRemovalVetoException
 	 */
-	public void canDownloadManagerBeRemoved(DownloadManager dm)
+	public void canDownloadManagerBeRemoved(DownloadManager dm,
+			boolean remove_torrent, boolean remove_data)
 			throws GlobalManagerDownloadRemovalVetoException;
 
 	/**

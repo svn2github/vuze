@@ -132,7 +132,11 @@ public class GlobalManagerImpl
 				{					
 					GlobalManagerDownloadWillBeRemovedListener	target = (GlobalManagerDownloadWillBeRemovedListener)_listener;
 					
-					target.downloadWillBeRemoved((DownloadManager)value);
+					DownloadManager dm = (DownloadManager) ((Object[])value)[0];
+					boolean remove_torrent = ((Boolean) ((Object[])value)[1]).booleanValue();
+					boolean remove_data = ((Boolean) ((Object[])value)[2]).booleanValue();
+					
+					target.downloadWillBeRemoved(dm, remove_torrent, remove_data);
 				}
 			});
 	
@@ -1042,12 +1046,17 @@ public class GlobalManagerImpl
   
   public void 
   canDownloadManagerBeRemoved(
-  	DownloadManager manager) 
+  	DownloadManager manager,
+  	boolean remove_torrent, boolean remove_data) 
   
   	throws GlobalManagerDownloadRemovalVetoException
   {
   	try{
-  		removal_listeners.dispatchWithException( LDT_MANAGER_WBR, manager );
+  		removal_listeners.dispatchWithException(LDT_MANAGER_WBR, new Object[] {
+				manager,
+				new Boolean(remove_torrent),
+				new Boolean(remove_data)
+			});
   		
   	}catch( Throwable e ){
   		
@@ -1080,7 +1089,7 @@ public class GlobalManagerImpl
 		  return;
 	  }
 	  
-  	canDownloadManagerBeRemoved( manager );
+  	canDownloadManagerBeRemoved( manager, remove_torrent, remove_data );
   	
   	manager.stopIt(DownloadManager.STATE_STOPPED, remove_torrent, remove_data);
   	
@@ -1594,6 +1603,7 @@ public class GlobalManagerImpl
 			  }
 			  int currentDownload = 0;
 			  while (iter.hasNext()) {
+			  	long lStartTime = System.currentTimeMillis();
 				  currentDownload++;        
 				  Map mDownload = (Map) iter.next();
 				  try {
@@ -1701,6 +1711,11 @@ public class GlobalManagerImpl
 							  }
 						  }
 					  }
+					  
+            long diff = (System.currentTimeMillis() - lStartTime);
+            if (diff > 20) {
+            	System.out.println("loading of download " + new File(fileName).getName() + " took " + diff);
+            }
 				  }
 				  catch (UnsupportedEncodingException e1) {
 					  //Do nothing and process next.

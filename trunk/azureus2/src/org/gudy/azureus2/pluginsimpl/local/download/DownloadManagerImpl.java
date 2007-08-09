@@ -177,7 +177,9 @@ DownloadManagerImpl
 			{
 				public void
 				downloadWillBeRemoved(
-					DownloadManager	dm )
+					DownloadManager	dm,
+					boolean remove_torrent,
+					boolean remove_data )
 				
 					throws GlobalManagerDownloadRemovalVetoException
 				{					

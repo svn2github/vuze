@@ -755,7 +755,7 @@ DownloadImpl
 			GlobalManager globalManager = download_manager.getGlobalManager();
 			
 			try{
-				globalManager.canDownloadManagerBeRemoved(download_manager);
+				globalManager.canDownloadManagerBeRemoved(download_manager, false, false);
 				
 			}catch( GlobalManagerDownloadRemovalVetoException e ){
 				
