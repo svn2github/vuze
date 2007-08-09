@@ -229,8 +229,10 @@ public class MainWindow
 		}, false);
 
 		gm.addDownloadWillBeRemovedListener(new GlobalManagerDownloadWillBeRemovedListener() {
-			public void downloadWillBeRemoved(DownloadManager dm)
-					throws GlobalManagerDownloadRemovalVetoException {
+			public void downloadWillBeRemoved(DownloadManager dm,
+					boolean remove_torrent, boolean remove_data)
+
+			throws GlobalManagerDownloadRemovalVetoException {
 				TOTorrent torrent = dm.getTorrent();
 				if (PublishUtils.isPublished(dm)) {
 					String title = MessageText.getString("v3.mb.delPublished.title");
@@ -253,7 +255,7 @@ public class MainWindow
 					if (result != 0) {
 						throw new GlobalManagerDownloadRemovalVetoException("", true);
 					}
-				} else if (PlatformTorrentUtils.isContentDRM(torrent)) {
+				} else if (PlatformTorrentUtils.isContentDRM(torrent) && remove_data) {
 
 					String prefix = "v3.mb.deletePurchased.";
 					String title = MessageText.getString(prefix + "title");
