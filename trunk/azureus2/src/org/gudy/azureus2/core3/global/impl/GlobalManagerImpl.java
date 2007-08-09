@@ -1603,7 +1603,6 @@ public class GlobalManagerImpl
 			  }
 			  int currentDownload = 0;
 			  while (iter.hasNext()) {
-			  	long lStartTime = System.currentTimeMillis();
 				  currentDownload++;        
 				  Map mDownload = (Map) iter.next();
 				  try {
@@ -1711,11 +1710,6 @@ public class GlobalManagerImpl
 							  }
 						  }
 					  }
-					  
-            long diff = (System.currentTimeMillis() - lStartTime);
-            if (diff > 20) {
-            	System.out.println("loading of download " + new File(fileName).getName() + " took " + diff);
-            }
 				  }
 				  catch (UnsupportedEncodingException e1) {
 					  //Do nothing and process next.
