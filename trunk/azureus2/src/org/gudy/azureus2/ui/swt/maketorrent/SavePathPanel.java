@@ -311,6 +311,11 @@ public class SavePathPanel extends AbstractWizardPanel {
         public void handleEvent(Event event) {
           _wizard.privateTorrent = bPrivateTorrent.getSelection();
 		  
+          if ( _wizard.privateTorrent ){
+        	  
+        	  bAllowDHT.setSelection( false );
+        	  _wizard.permitDHT = false;
+          }
 		  bAllowDHT.setEnabled( !_wizard.privateTorrent );
         }
       });
