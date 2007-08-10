@@ -32,6 +32,8 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.util.Iterator;
+import java.util.Map;
 
 import javax.net.ssl.*;
 
@@ -220,6 +222,12 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
         return;
       }
 
+      Map headerFields = this.con.getHeaderFields();
+      for (Iterator iter = headerFields.keySet().iterator(); iter.hasNext();) {
+				String s = (String) iter.next();
+				System.out.println(s + ":" + headerFields.get(s));
+				
+			}
       this.filename = this.con.getHeaderField("Content-Disposition");
       if ((this.filename!=null) && this.filename.toLowerCase().matches(".*attachment.*")) // Some code to handle b0rked servers.
         while (this.filename.toLowerCase().charAt(0)!='a')
@@ -426,7 +434,13 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 		    	
 	    	this.file = new File(this.directoryname, this.filename);
 	        
-	    	this.file.createNewFile();
+	    	try {
+	    		this.file.createNewFile();
+	    	} catch (Throwable t) {
+	    		this.file = File.createTempFile("AZU", ".torrent", new File(
+							this.directoryname));
+	    		this.file.createNewFile();
+	    	}
 	        
 	        FileOutputStream fileout = new FileOutputStream(this.file, false);
 	        
