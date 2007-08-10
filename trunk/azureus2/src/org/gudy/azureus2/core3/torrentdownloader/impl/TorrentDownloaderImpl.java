@@ -222,12 +222,6 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
         return;
       }
 
-      Map headerFields = this.con.getHeaderFields();
-      for (Iterator iter = headerFields.keySet().iterator(); iter.hasNext();) {
-				String s = (String) iter.next();
-				System.out.println(s + ":" + headerFields.get(s));
-				
-			}
       this.filename = this.con.getHeaderField("Content-Disposition");
       if ((this.filename!=null) && this.filename.toLowerCase().matches(".*attachment.*")) // Some code to handle b0rked servers.
         while (this.filename.toLowerCase().charAt(0)!='a')
