@@ -25,6 +25,7 @@ import com.aelitis.azureus.ui.swt.UISkinnableSWTListener;
 /**
  * A messagebox that allows you config the button
  * 
+ * @todo When key is pressed, cancel auto close timer
  */
 public class MessageBoxShell
 	implements UIFunctionsUserPrompter
@@ -36,6 +37,8 @@ public class MessageBoxShell
 	private final static int MIN_SIZE_Y = 120;
 
 	private final static int MAX_SIZE_X = 500;
+
+	private static final int MIN_BUTTON_SIZE = 70;
 
 	private static int numOpen = 0;
 
@@ -444,6 +447,9 @@ public class MessageBoxShell
 		}
 
 		if (buttonWidth > 0) {
+			if (buttonWidth < MIN_BUTTON_SIZE) {
+				buttonWidth = MIN_BUTTON_SIZE;
+			}
 			for (int i = 0; i < buttons.length; i++) {
 				Point size = swtButtons[i].computeSize(buttonWidth, SWT.DEFAULT);
 				swtButtons[i].setSize(size);
@@ -459,7 +465,20 @@ public class MessageBoxShell
 				}
 			}
 		});
-
+		
+		Listener filterListener = new Listener() {
+			public void handleEvent(Event event) {
+				if (event.detail == SWT.TRAVERSE_ARROW_NEXT) {
+					event.detail = SWT.TRAVERSE_TAB_NEXT;
+					event.doit = true;
+				} else if (event.detail == SWT.TRAVERSE_ARROW_PREVIOUS) {
+					event.detail = SWT.TRAVERSE_TAB_PREVIOUS;						
+					event.doit = true;
+				}
+			}
+		};
+		display.addFilter(SWT.Traverse, filterListener);
+		
 		if (mouseAdapter != null) {
 			addMouseTrackListener(shell, mouseAdapter);
 		}
@@ -491,6 +510,10 @@ public class MessageBoxShell
 			if (!display.readAndDispatch()) {
 				display.sleep();
 			}
+		}
+		
+		if (display != null && !display.isDisposed()) {
+			display.removeFilter(SWT.Traverse, filterListener);
 		}
 
 		return result[0];
