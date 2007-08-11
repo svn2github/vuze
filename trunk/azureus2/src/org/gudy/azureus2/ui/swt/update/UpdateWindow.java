@@ -29,9 +29,7 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.SashForm;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -261,8 +259,12 @@ UpdateWindow
     status = new Label(updateWindow,SWT.NULL);
     
  
+    Composite cButtons = new Composite(updateWindow, SWT.NONE);
+		FillLayout fl = new FillLayout(SWT.HORIZONTAL);
+		fl.spacing = 3;
+		cButtons.setLayout(fl);
     
-    btnOk = new Button(updateWindow,SWT.PUSH);
+    btnOk = new Button(cButtons,SWT.PUSH);
     Messages.setLanguageText(btnOk,res_prefix + ".ok" );
     
     updateWindow.setDefaultButton( btnOk );
@@ -275,7 +277,7 @@ UpdateWindow
     btnOk.addListener(SWT.Selection, lOk);
     btnOk.setEnabled( false );
     
-    btnCancel = new Button(updateWindow,SWT.PUSH);
+    btnCancel = new Button(cButtons,SWT.PUSH);
     
     Messages.setLanguageText(btnCancel,"UpdateWindow.cancel");
     
@@ -312,20 +314,13 @@ UpdateWindow
     formData = new FormData();
     formData.left = new FormAttachment(0,0);
     formData.right = new FormAttachment(100,0);
-    formData.bottom = new FormAttachment(btnCancel);
+    formData.bottom = new FormAttachment(cButtons);
     status.setLayoutData(formData);
     
     formData = new FormData();
-    formData.width = 100;
     formData.right = new FormAttachment(100,0);
     formData.bottom = new FormAttachment(100,0);
-    btnCancel.setLayoutData(formData);
-    
-    formData = new FormData();
-    formData.width = 100;
-    formData.right = new FormAttachment(btnCancel);
-    formData.bottom = new FormAttachment(100,0);
-    btnOk.setLayoutData(formData);
+    cButtons.setLayoutData(formData);
     
     sash.setWeights(new int[] { 25, 75 });
     
@@ -556,9 +551,6 @@ UpdateWindow
           }
         });
         if(restartRequired) {
-          ((FormData)btnOk.getLayoutData()).width = 150;
-          ((FormData)btnCancel.getLayoutData()).width = 150;
-          updateWindow.layout();
           Messages.setLanguageText(btnOk,"UpdateWindow.restart");
           btnCancel.removeListener(SWT.Selection,lCancel);
           Messages.setLanguageText(btnCancel,"UpdateWindow.restartLater");
@@ -567,9 +559,11 @@ UpdateWindow
               finishUpdate(false);
             }
           });
+          updateWindow.layout();
         } else {
           Messages.setLanguageText(btnOk,"UpdateWindow.close");
           btnCancel.setEnabled(false);
+          updateWindow.layout();
         }
       }
     });
