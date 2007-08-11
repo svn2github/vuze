@@ -314,16 +314,22 @@ public class ManagerUtils {
 
 		if (!dm.getDownloadState().getFlag(DownloadManagerState.FLAG_LOW_NOISE)) {
 			if (COConfigurationManager.getBooleanParameter("confirm_torrent_removal")) {
-				
-				int result = Utils.openMessageBox(
-					shell,SWT.YES | SWT.NO | SWT.ICON_WARNING,
-					MessageText.getString("deletedata.title"),
-					MessageText.getString("deletetorrent.message1")
-					+ dm.getDisplayName() + " :\n" + dm.getTorrentFileName()
-					+ MessageText.getString("deletetorrent.message2")
-					);
-				
-				if (result != SWT.YES) {
+
+				String title = MessageText.getString("deletedata.title");
+				String text = MessageText.getString("deletetorrent.message1")
+						+ dm.getDisplayName() + " :\n" + dm.getTorrentFileName()
+						+ MessageText.getString("deletetorrent.message2");
+
+				MessageBoxShell mb = new MessageBoxShell(shell, title, text,
+						new String[] {
+							MessageText.getString("Button.yes"),
+							MessageText.getString("Button.no"),
+						}, 1);
+				mb.setRelatedObject(dm);
+				mb.setLeftImage(SWT.ICON_WARNING);
+
+				int result = mb.open();
+				if (result != 0) {
 					if (deleteFailed != null) {
 						deleteFailed.runSupport();
 					}
@@ -335,16 +341,23 @@ public class ManagerUtils {
 					"Confirm Data Delete");
 
 			if (confirmDataDelete && bDeleteData) {
+				String path = dm.getSaveLocation().toString();
 
-				int result = Utils.openMessageBox(
-					shell,SWT.YES | SWT.NO | SWT.ICON_WARNING,
-					MessageText.getString("deletedata.title"),
-					MessageText.getString("deletedata.message1")
-					+ dm.getDisplayName() + " :\n" + dm.getSaveLocation().toString()
-					+ MessageText.getString("deletedata.message2")
-					);
- 
-				if (result != SWT.YES) {
+				String title = MessageText.getString("deletedata.title");
+				String text = MessageText.getString("deletedata.message1")
+						+ dm.getDisplayName() + " :\n" + path
+						+ MessageText.getString("deletedata.message2");
+
+				MessageBoxShell mb = new MessageBoxShell(shell, title, text,
+						new String[] {
+							MessageText.getString("Button.yes"),
+							MessageText.getString("Button.no"),
+						}, 1);
+				mb.setRelatedObject(dm);
+				mb.setLeftImage(SWT.ICON_WARNING);
+
+				int result = mb.open();
+				if (result != 0) {
 					if (deleteFailed != null) {
 						deleteFailed.runSupport();
 					}
