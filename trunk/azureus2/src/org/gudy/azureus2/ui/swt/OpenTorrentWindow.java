@@ -745,6 +745,14 @@ public class OpenTorrentWindow
 		}
 
 		if (sExistingFiles.length() > 0) {
+			if (iNumExistingFiles > 5) {
+				sExistingFiles += MessageText.getString(
+						"OpenTorrentWindow.mb.existingFiles.partialList", new String[] {
+							"" + iNumExistingFiles
+						})
+						+ "\n";
+			}
+
 			if (Utils.openMessageBox(shellForChildren, SWT.OK | SWT.CANCEL
 					| SWT.ICON_WARNING, "OpenTorrentWindow.mb.existingFiles",
 					new String[] {
