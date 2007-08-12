@@ -1073,6 +1073,8 @@ public class TableViewSWTImpl
 		for (int i = oldColumns.length - 1; i >= 0; i--)
 			oldColumns[i].dispose();
 
+		columnPaddingAdjusted = false;
+
 		// Pre 3.0RC1 SWT on OSX doesn't call this!! :(
 		ControlListener resizeListener = new ControlAdapter() {
 			// Bug: getClientArea() eventually calls back to controlResized,
