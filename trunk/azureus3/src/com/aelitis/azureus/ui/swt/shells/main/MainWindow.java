@@ -908,6 +908,9 @@ public class MainWindow
 
 				if (visible) {
 					shell.setMinimized(false);
+					if (COConfigurationManager.getBooleanParameter("window.maximized")) {
+						shell.setMaximized(true);
+					}
 				}
 				
 				shell.setVisible(visible);
