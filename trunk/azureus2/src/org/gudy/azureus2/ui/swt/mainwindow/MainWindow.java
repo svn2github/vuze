@@ -811,6 +811,9 @@ MainWindow
     if (event != null)
       event.doit = false;
 
+    // XXX hack for release.. should not access param outside Utils.linkShellMetrics
+		COConfigurationManager.setParameter("window.maximized",
+				shell.getMaximized());
     shell.setVisible(false);
 
 		if (downloadBasket != null)
@@ -990,6 +993,10 @@ MainWindow
   					if (COConfigurationManager.getBooleanParameter("window.maximized")) {
   						shell.setMaximized(true);
   					}
+  				} else {
+  			    // XXX hack for release.. should not access param outside Utils.linkShellMetrics
+  					COConfigurationManager.setParameter("window.maximized",
+  							shell.getMaximized());
   				}
   				  				
   				shell.setVisible(visible);
