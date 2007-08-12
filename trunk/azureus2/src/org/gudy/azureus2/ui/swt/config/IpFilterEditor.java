@@ -26,22 +26,16 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableItem;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.*;
 
-import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
+
+import com.aelitis.azureus.core.AzureusCore;
 
 /**
  * @author Olivier
@@ -50,7 +44,6 @@ import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 public class IpFilterEditor {
 
   AzureusCore	azureus_core;
-  Table table;
   
   IpRange range;
 
@@ -60,11 +53,9 @@ public class IpFilterEditor {
   IpFilterEditor(
   		AzureusCore		_azureus_core,
   		Shell parent,
-		Table 			_table, 
 		final IpRange _range) 
   {
   	azureus_core	= _azureus_core;
-    this.table = _table;
     this.range = _range;
     if (range == null) {
       newRange = true;
@@ -120,25 +111,6 @@ public class IpFilterEditor {
         range.checkValid();
         if (newRange) {
           azureus_core.getIpFilterManager().getIPFilter().addRange(range);
-          TableItem item = new TableItem(table,SWT.NULL);
-          item.setData(range);          
-          item.setText(0, range.getDescription());
-          item.setText(1, range.getStartIp());
-          item.setText(2, range.getEndIp());          
-        }else{
-        	TableItem[] items = table.getItems();
-        	
-        	for (int i=0;i<items.length;i++){
-        		
-        		if ( items[i].getData() == range ){
-        			
-        	        items[i].setText(0, range.getDescription());
-        	        items[i].setText(1, range.getStartIp());
-        	        items[i].setText(2, range.getEndIp());
-        	        
-        	        break;
-        	   	}
-        	}
         }
          shell.dispose();
       }

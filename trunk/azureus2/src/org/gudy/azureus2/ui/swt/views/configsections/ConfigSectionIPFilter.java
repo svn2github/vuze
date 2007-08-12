@@ -563,13 +563,13 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
   }
 
   public void editRange(IpRange range) {
-    new IpFilterEditor(azureus_core,table.getShell(), table, range);
+    new IpFilterEditor(azureus_core,table.getShell(), range);
     noChange = false;
     //refresh();
   }
 
   public void addRange() {
-    new IpFilterEditor(azureus_core,table.getShell(), table, null);
+    new IpFilterEditor(azureus_core,table.getShell(), null);
     //noChange = false;
     //refresh();
   }
