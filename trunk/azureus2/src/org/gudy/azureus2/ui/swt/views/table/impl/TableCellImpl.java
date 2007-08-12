@@ -963,13 +963,14 @@ public class TableCellImpl
     sortValue = null;
   }
   
-  public void setIcon(Image img) {
+  public boolean setIcon(Image img) {
   	if (isInvisibleAndCanRefresh())
-  		return;
+  		return false;
 
     bufferedTableItem.setIcon(img);
     graphic = null;
     bCellVisuallyChangedSinceRefresh = true;
+    return true;
   }
   
   public Image getIcon() {

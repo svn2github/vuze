@@ -125,7 +125,8 @@ public class NameItem extends CoreTableColumn implements
 
 					// cheat for core, since we really know it's a TabeCellImpl and want to
 					// use those special functions not available to Plugins
-					((TableCellSWT) cell).setIcon(icon);
+					if(!((TableCellSWT) cell).setIcon(icon) && Constants.isWindows)
+						icon.dispose();
 				} else {
 					if (Constants.isWindows) {
 						disposeCellIcon(cell);

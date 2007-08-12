@@ -62,8 +62,9 @@ public interface TableCellSWT extends com.aelitis.azureus.ui.common.table.TableC
 	 * Set the cell's icon
 	 *
 	 * @param img Cell's new icon
+	 * @return true if the icon will be used
 	 */
-	public void setIcon(Image img);
+	public boolean setIcon(Image img);
 
 	/** Paint the cell (for graphics)
 	 *

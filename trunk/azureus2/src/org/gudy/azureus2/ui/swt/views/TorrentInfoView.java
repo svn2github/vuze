@@ -864,19 +864,23 @@ TorrentInfoView
 			column.invalidateCells();
 		}
 
-		public void 
+		public boolean 
 		setIcon(
 			Image img)
 		{
 			if ( label != null && !label.isDisposed()){
 				
 				label_image = img;
-
+				
 				if ( label.getText().length() == 0 ){
 
 					label.setImage( img );
+					return true;
 				}
+				
+				
 			}
+			return false;
 		}
 		
 		public Image getIcon() {
