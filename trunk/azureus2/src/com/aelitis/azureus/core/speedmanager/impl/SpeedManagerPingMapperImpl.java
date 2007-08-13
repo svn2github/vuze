@@ -975,6 +975,8 @@ SpeedManagerPingMapperImpl
 		
 		if ( cap > 0 && average >= cap ){
 			
+			log( "Not reducing " + (is_up?"up":"down") + " capacity - average=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( average ) + ",capacity=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( cap ));
+
 			return;
 		}
 		
@@ -991,11 +993,11 @@ SpeedManagerPingMapperImpl
 		
 		int	deviation = (int)Math.sqrt( total_deviation / num );
 		
-			// adjust if deviation within 10% of capacity
+			// adjust if deviation within 50% of capacity
 		
-		if ( cap <= 0 || deviation < cap/10 ){
+		if ( cap <= 0 || ( deviation < cap/2 && average < cap )){
 			
-			log( "Reducing " + (is_up?"up":"down") + " capacity from " + cap + " to " + average + " due to frequent lower chokes" );
+			log( "Reducing " + (is_up?"up":"down") + " capacity from " + cap + " to " + average + " due to frequent lower chokes (deviation=" + DisplayFormatters.formatByteCountToKiBEtcPerSec(deviation) + ")" );
 			
 			capacity.setBytesPerSec( average );
 			
@@ -1007,6 +1009,10 @@ SpeedManagerPingMapperImpl
 				
 				bads.removeFirst();
 			}
+		}else{
+			
+			log( "Not reducing " + (is_up?"up":"down") + " capacity - deviation=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( deviation ) + ",capacity=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( cap ));
+
 		}
 	}
 	
