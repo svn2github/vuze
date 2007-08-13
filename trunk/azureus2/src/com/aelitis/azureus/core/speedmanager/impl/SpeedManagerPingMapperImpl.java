@@ -61,7 +61,7 @@ SpeedManagerPingMapperImpl
 	
 	static final int SPEED_DIVISOR = 256;
 	
-	private static final int SPEED_HISTORY_PERIOD	= 1*60*1000 + 30*1000;	// 1.5 min
+	private static final int SPEED_HISTORY_PERIOD	= 3*60*1000; // 3 min
 	private static final int SPEED_HISTORY_COUNT	= SPEED_HISTORY_PERIOD / SpeedManagerImpl.UPDATE_PERIOD_MILLIS;
 		
 	private SpeedManagerImpl	speed_manager;
