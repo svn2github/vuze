@@ -54,9 +54,9 @@ public class PassiveItem
      }
 	  
      if ( item.isPassive() ){
-	     status_text = MessageText.getString( "Button.yes" );
+	     status_text = MessageText.getString( "Button.yes" ).replaceAll("&", "");
      }else{
-		 status_text = MessageText.getString( "Button.no" );
+		 status_text = MessageText.getString( "Button.no" ).replaceAll("&", "");
      }
 
     }
