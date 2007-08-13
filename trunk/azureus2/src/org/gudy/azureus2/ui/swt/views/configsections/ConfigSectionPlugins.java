@@ -229,7 +229,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 				
 				case FIELD_UNLOADABLE: {
 					return MessageText.getString("Button."
-							+ (pluginIF.isUnloadable() ? "yes" : "no"));
+							+ (pluginIF.isUnloadable() ? "yes" : "no")).replaceAll("&", "");
 				}
 			} // switch
 
