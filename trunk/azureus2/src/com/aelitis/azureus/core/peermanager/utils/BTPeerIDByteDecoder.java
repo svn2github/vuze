@@ -189,7 +189,7 @@ public class BTPeerIDByteDecoder {
 				 * (not from peer ID's, anyway) - so note that it might be BitThief.
 				 */
 				if ("Mainline 4.4.0".equals(result)) {
-					return result + " / BitThief";
+					return result + " (BitThief?)";
 				}
 				
 				return result;
@@ -482,7 +482,7 @@ public class BTPeerIDByteDecoder {
 		System.out.println("Testing various specialised clients...");
 		assertDecode("Mainline", "0000000000000000000000004C53441933104277");
 		assertDecode(UNKNOWN + " [" + FAKE + ": ZipTorrent 1.6.0.0]", "-ZT1600-bLAdeY9rdjbe");
-		assertDecode("Mainline 4.4.0 / BitThief", "M4-4-0--164d2e4a0fba"); // BitThief generated ID - it masquerades itself as Mainline 4.4.0.
+		assertDecode("Mainline 4.4.0 (BitThief?)", "M4-4-0--164d2e4a0fba"); // BitThief generated ID - it masquerades itself as Mainline 4.4.0.
 		System.out.println();
 		
 		// Unknown clients - may be random bytes.
