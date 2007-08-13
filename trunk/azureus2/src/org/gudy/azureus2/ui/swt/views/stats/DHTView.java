@@ -148,8 +148,8 @@ public class DHTView extends AbstractIView {
     layout.numColumns = 2;
     panel.setLayout(layout);
     
-    yes_str = MessageText.getString( "Button.yes");
-    no_str 	= MessageText.getString( "Button.no");
+    yes_str = MessageText.getString( "Button.yes").replaceAll("&", "");
+    no_str 	= MessageText.getString( "Button.no").replaceAll("&", "");
     
     initialiseGeneralGroup();
     initialiseDBGroup();
