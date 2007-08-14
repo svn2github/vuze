@@ -121,7 +121,6 @@ public class SpeedLimitMonitor implements PSMonitorListener
 
     PingSpaceMon longTermMonitor = new PingSpaceMon();
 
-    //Testing
     LimitControl slider = new LimitControlDropUploadFirst();
 
     SpeedLimitListener persistentMapListener;
@@ -532,6 +531,8 @@ public class SpeedLimitMonitor implements PSMonitorListener
                 uploadChanged=true;
                 COConfigurationManager.setParameter(
                         SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT, uploadLimitMax);
+                COConfigurationManager.setParameter(
+                        SpeedLimitMonitor.UPLOAD_CHOKE_PING_COUNT,uploadChokePingCount);
             }//if
         }
         if(updateDownload && !slider.isDownloadUnlimitedMode() ){
@@ -611,7 +612,8 @@ public class SpeedLimitMonitor implements PSMonitorListener
                     if( !isUploadConfidenceAbsolute() ){
                         //we have been AT_LIMIT long enough. Time to un-pin the limit see if we can go higher.
                         isUploadMaxPinned = false;
-                        SpeedManagerLogger.trace("unpinning the upload max limit!!");
+                        SpeedManagerLogger.trace("unpinning the upload max limit!! #choke-pings="+uploadChokePingCount+
+                            ", pin-counter="+uploadPinCounter);
                     }
                 }
             }
@@ -1046,15 +1048,9 @@ public class SpeedLimitMonitor implements PSMonitorListener
         }else if( type==SpeedManagerLimitEstimate.TYPE_UNKNOWN){
             chosenLimit = Math.max( estBytesPerSec, currMaxLimit );
             reason="unknown";
-        }else{
-            //select one with higher confidence.
-            if( estimate.getEstimateType()>=currConf.asEstimateType() ){
-                chosenLimit = estBytesPerSec;
-                reason="estimate greater "+estimate.getEstimateType()+"=>"+currConf.asEstimateType()+" "+currConf.getString();
-            }else{
-                chosenLimit = currMaxLimit;
-                reason="curr greater"+estimate.getEstimateType()+"<"+currConf.asEstimateType();
-            }
+        }else{            
+            //chose ping mapper.
+            chosenLimit = estBytesPerSec;
         }
 
         SpeedManagerLogger.trace("bestChosenLimit: reason="+reason+",chosenLimit="+chosenLimit);
@@ -1399,6 +1395,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
             pingMapOfDownloadMode.setCurrentTransferRates(downRate,upRate);
             pingMapOfSeedingMode.setCurrentTransferRates(downRate,upRate);
         }
+
     }
 
     public void resetPingSpace(){
@@ -1446,11 +1443,6 @@ public class SpeedLimitMonitor implements PSMonitorListener
         SpeedManagerLogger.trace("notifyUpload uploadLimitMax="+uploadLimitMax);
         tempLogEstimate(estimate);
 
-        if( !isUploadMaxPinned ){
-            SpeedManagerLogger.trace("notifyUpload ignoring update while upload limit is unpinned.");
-            return;
-        }
-
         if(bestLimit!=uploadLimitMax){
             //update COConfiguration
             SpeedManagerLogger.log("persistent PingMap changed upload limit to "+bestLimit);
@@ -1465,7 +1457,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
         uploadLimitMin = SMConst.calculateMinUpload(uploadLimitMax);
         slider.updateLimits(uploadLimitMax,uploadLimitMin,downloadLimitMax,downloadLimitMin);
 
-        SMSearchLogger.log("upload "+uploadLimitMax);
+        SMSearchLogger.log("new upload rate: "+uploadLimitMax);
     }
 
     public void notifyDownload(SpeedManagerLimitEstimate estimate) {

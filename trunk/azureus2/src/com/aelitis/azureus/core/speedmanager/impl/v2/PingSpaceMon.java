@@ -76,7 +76,7 @@ public class PingSpaceMon
                 PSMonitorListener l =(PSMonitorListener) listeners.get(i);
 
                 if(l!=null){
-                    l.notifyUpload( getUploadLimit() );
+                    l.notifyUpload( getUploadEstCapacity() );
                 }else{
                     SpeedManagerLogger.trace("listener index _"+i+"_ was null.");
                 }
@@ -116,9 +116,10 @@ public class PingSpaceMon
 
     /**
      * Get the current estimated upload limit from the ping mapper.
+     * @param - true if the long-term persistent result should be used.
      * @return - SpeedManagerLimitEstimate.
      */
-    public static SpeedManagerLimitEstimate getUploadLimit(){
+    public static SpeedManagerLimitEstimate getUploadLimit(boolean persistent){
         try{
             SMInstance pm = SMInstance.getInstance();
             SpeedManagerAlgorithmProviderAdapter adapter = pm.getAdapter();

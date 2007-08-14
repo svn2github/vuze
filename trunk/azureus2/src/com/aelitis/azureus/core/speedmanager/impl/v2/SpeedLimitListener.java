@@ -47,19 +47,21 @@ public class SpeedLimitListener implements SpeedManagerListener {
             SpeedManagerLimitEstimate pmEst = PingSpaceMon.getDownloadLimit();
             SpeedManagerLimitEstimate smEst = PingSpaceMon.getDownloadEstCapacity();
 
-            SMSearchLogger.log( " download - pmEst: "+pmEst.getString() );
-            SMSearchLogger.log( " download - smEst: "+smEst.getString() );
+            SMSearchLogger.log( " download - persistent limit: "+pmEst.getString() );
+            SMSearchLogger.log( " download - estimated capacity: "+smEst.getString() );
 
-            mon.notifyDownload( pmEst );
+            mon.notifyDownload( smEst );
         }else if( property == SpeedManagerListener.PR_UP_CAPACITY ){
             type = "upload capacity";
-            SpeedManagerLimitEstimate pmEst = PingSpaceMon.getUploadLimit();
+            SpeedManagerLimitEstimate shortTermLimit = PingSpaceMon.getUploadLimit(false);
+            SpeedManagerLimitEstimate pmEst = PingSpaceMon.getUploadLimit(true);
             SpeedManagerLimitEstimate smEst = PingSpaceMon.getUploadEstCapacity();
 
-            SMSearchLogger.log( " upload - pmEst: "+pmEst.getString() );
-            SMSearchLogger.log( " upload - smEst: "+smEst.getString() );
+            SMSearchLogger.log( " upload - short term limit: "+shortTermLimit.getString() );
+            SMSearchLogger.log( " upload - persistent limit: "+pmEst.getString() );
+            SMSearchLogger.log( " upload - estimated capacity: "+smEst.getString() );
 
-            mon.notifyUpload( pmEst );
+            mon.notifyUpload( smEst );
         }
 
         SpeedManagerLogger.log("Updated from SpeedManagerPingMapper property="+type);        
