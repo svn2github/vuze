@@ -27,6 +27,7 @@ package org.gudy.azureus2.core3.ipfilter.impl;
  */
 
 import java.io.*;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.util.*;
 
@@ -399,7 +400,7 @@ IpFilterImpl
 	}
 	protected boolean
 	isInRange(
-		IpRange	range,
+		IpRange		range,
 		String		address )
 	{
 		return( range_manager.isInRange( range, address ));
@@ -449,17 +450,19 @@ IpFilterImpl
 		  return( false );
 	  }
 	  
-	  //never block lan local addresses
+	  	// don't currently support IPv6
+	  
+	  if ( ipAddress.indexOf( ":" ) != -1 ){
+		  
+		  return( false );
+	  }
+	  
+	  	//never block lan local addresses
+	  
 	  if( AddressUtils.isLANLocalAddress( ipAddress ) != AddressUtils.LAN_LOCAL_NO ) {
 	  	return false;
 	  }
-	  
-	  
-	  if(!COConfigurationManager.getBooleanParameter("Ip Filter Enabled")){
-		  
-	    return false;
-	  }
-	  
+	  	  
 	  boolean allow = COConfigurationManager.getBooleanParameter("Ip Filter Allow");
 	  
 	  IpRange	match = (IpRange)range_manager.isInRange( ipAddress );
@@ -552,17 +555,20 @@ IpFilterImpl
 		  return( false );
 	  }
 	  
-	  //never block lan local addresses
+	  	// don't currently support IPv6
+	  
+	  if ( ipAddress instanceof Inet6Address ){
+		  
+		  return( false );
+	  }
+	  
+	  	//never block lan local addresses
+	  
 	  if( AddressUtils.isLANLocalAddress( ipAddress ) != AddressUtils.LAN_LOCAL_NO ) {
+		  
 	  	return false;
 	  }
-	  
-	  
-	  if(!COConfigurationManager.getBooleanParameter("Ip Filter Enabled")){
-		  
-	    return false;
-	  }
-	  
+	  	  
 	  boolean allow = COConfigurationManager.getBooleanParameter("Ip Filter Allow");
 	  
 	  IpRange	match = (IpRange)range_manager.isInRange( ipAddress );
