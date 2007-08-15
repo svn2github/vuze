@@ -52,6 +52,9 @@ SpeedManagerPingMapperImpl
 	static final int VARIANCE_BAD_VALUE			= 150;
 	static final int VARIANCE_MAX				= VARIANCE_BAD_VALUE*10;
 	
+	static final int RTT_BAD_MIN				= 350;
+	static final int RTT_BAD_MAX				= 500;
+	
 	static final int RTT_MAX					= 30*1000;
 
 		// don't make this too large as we don't start considering capacity decreases until this
@@ -530,7 +533,7 @@ SpeedManagerPingMapperImpl
 		x	= average_x;
 		y	= average_y;
 		
-		int	metric = rtt;
+		int	metric;
 		
 		if ( variance ){
 			
@@ -541,9 +544,10 @@ SpeedManagerPingMapperImpl
 				recent_metrics_next = 0;
 			}
 
-			recent_metrics[recent_metrics_next++%recent_metrics.length] = metric;
+			recent_metrics[recent_metrics_next++%recent_metrics.length] = rtt;
 			
-			metric = 0;
+			int var_metric = 0;
+			int rtt_metric = 0;
 
 			if ( recent_metrics_next > 1 ){
 				
@@ -569,8 +573,38 @@ SpeedManagerPingMapperImpl
 				
 					// we deliberately don't divide by num samples as this accentuates larger deviations
 				
-				metric = (int)Math.sqrt( total_deviation );
+				var_metric = (int)Math.sqrt( total_deviation );
+				
+					// variance is a useful measure. however, under some conditions, in particular high
+					// download speeds, we get elevated ping times with little variance
+					// factor this in
+				
+				if ( entries == recent_metrics.length ){
+					
+					int	total_rtt = 0;
+					
+					for (int i=0;i<entries;i++){
+
+						total_rtt += recent_metrics[i];
+					}
+					
+					int	average_rtt = total_rtt / recent_metrics.length;
+					
+					if ( average_rtt >= RTT_BAD_MAX ){
+						
+						rtt_metric = VARIANCE_BAD_VALUE;
+						
+					}else if ( average_rtt > RTT_BAD_MIN ){
+						
+						int	rtt_diff 	= RTT_BAD_MAX - RTT_BAD_MIN;
+						int	rtt_base	= average_rtt - RTT_BAD_MIN;
+						
+						rtt_metric = VARIANCE_GOOD_VALUE + (( VARIANCE_BAD_VALUE - VARIANCE_GOOD_VALUE ) * rtt_base ) / rtt_diff;
+					}
+				}
 			}
+						
+			metric = Math.max( var_metric, rtt_metric );
 			
 			if ( metric < VARIANCE_BAD_VALUE ){
 				
@@ -580,6 +614,9 @@ SpeedManagerPingMapperImpl
 				
 				addSpeedSupport( 0, 0 );
 			}
+		}else{
+			
+			metric = rtt;
 		}
 		
 		region new_region = addPingSupport( x, y, rtt, metric );
