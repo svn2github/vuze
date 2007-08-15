@@ -60,11 +60,15 @@ public class MessageText {
 
   private static int bundle_fail_count	= 0;
   
+  private static List listeners = new ArrayList();
+  
   static{
 	  setResourceBundle( getResourceBundle(BUNDLE_NAME, LOCALE_DEFAULT, MessageText.class.getClassLoader()));
   }
   
   public static void loadBundle() {
+	  Locale	old_locale = getCurrentLocale();
+	  
 		String savedLocaleString = COConfigurationManager
 				.getStringParameter("locale");
 
@@ -95,8 +99,45 @@ public class MessageText {
 				.setParameter("locale.set.complete.count", COConfigurationManager
 						.getIntParameter("locale.set.complete.count") + 1);
 
+		Locale	new_locale = getCurrentLocale();
+		
+		if ( !old_locale.equals( new_locale )){
+			
+			for (int i=0;i<listeners.size();i++){
+				
+				try{
+					((MessageTextListener)listeners.get(i)).localeChanged( old_locale, new_locale);
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
+		}
 	}
   
+  	public static void
+  	addListener(
+  		MessageTextListener	listener )
+  	{
+  		listeners.add( listener );
+  	}
+ 	public static void
+  	addAndFireListener(
+  		MessageTextListener	listener )
+  	{
+  		listeners.add( listener );
+  		
+  		listener.localeChanged( getCurrentLocale(), getCurrentLocale());
+  	}
+  	
+  	public static void
+  	removeListener(
+  		MessageTextListener	listener )
+  	{
+  		listeners.remove( listener );
+  	}
+  	
   static ResourceBundle
   getResourceBundle(
 	String		name,
@@ -707,5 +748,14 @@ public class MessageText {
     }
     changeLocale(new Locale(language, country, variant));
     COConfigurationManager.removeParameter("locale");
+  }
+  
+  public static interface
+  MessageTextListener
+  {
+	  public void
+	  localeChanged(
+		Locale	old_locale,
+		Locale	new_locale );
   }
 }

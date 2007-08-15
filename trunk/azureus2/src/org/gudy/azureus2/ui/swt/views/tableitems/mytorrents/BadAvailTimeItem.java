@@ -22,11 +22,13 @@
 
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
+import java.util.Locale;
+
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -35,9 +37,25 @@ public class BadAvailTimeItem
 	extends CoreTableColumn
 	implements TableCellRefreshListener
 {
-
+	private static String	now_string;
+	
+	static{
+		
+		MessageText.addAndFireListener(
+			new MessageText.MessageTextListener()
+			{
+				public void 
+				localeChanged(
+					Locale old_locale, 
+					Locale new_locale ) 
+				{
+					now_string = MessageText.getString( "SpeedView.stats.now" );
+				}
+			});
+	}
+	
 	public BadAvailTimeItem(String sTableID) {
-		super("bad_avail_time", ALIGN_TRAIL, POSITION_INVISIBLE, 120, sTableID);
+		super("bad_avail_time", ALIGN_CENTER, POSITION_INVISIBLE, 120, sTableID);
 		setRefreshInterval(INTERVAL_LIVE);
 	}
 
@@ -66,7 +84,7 @@ public class BadAvailTimeItem
 				
 			}else{
 				
-				value = SystemTime.getCurrentTime();
+				value = -2;
 			}
 		}
 		
@@ -74,6 +92,8 @@ public class BadAvailTimeItem
 		
 		if ( value == -1 ){
 			text = "";
+		}else if ( value == -2 ){
+			text = now_string;
 		}else{
 			text = DisplayFormatters.formatDate(value);
 		}
