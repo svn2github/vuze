@@ -32,6 +32,7 @@ import java.net.URL;
 import java.util.Arrays;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.category.Category;
@@ -314,7 +315,9 @@ public class MyTrackerView
 		  host_torrent.setData("GUI_Left", new Long(left));
 
 		  if ( seed_count != 0 ){
-			  if (!row.getForeground().equals(Colors.blues[Colors.BLUES_MIDDARK])) {
+			  Color fg = row.getForeground();
+			  
+			  if (fg != null && fg.equals(Colors.blues[Colors.BLUES_MIDDARK])) {
 				  row.setForeground(Colors.blues[Colors.BLUES_MIDDARK]);
 			  }
 		  }
