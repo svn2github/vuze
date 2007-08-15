@@ -300,7 +300,6 @@ public class MainMenu
 					public void handleEvent(Event event) {
 						SWTSkinObject skinObject = skin.getSkinObject(viewID);
 						if (skinObject != null) {
-							System.out.println(skinObject.isVisible());
 							setVisibility(skin, configID, viewID, !skinObject.isVisible());
 						}
 					}
