@@ -217,7 +217,7 @@ HTTPNetworkConnection
 	
 	private boolean			sent_handshake	= false;
 	
-	private byte[]	peer_id	= PeerUtils.createPeerID();
+	private byte[]	peer_id	= PeerUtils.createWebSeedPeerID();
 
 	private boolean	choked	= true;
 	

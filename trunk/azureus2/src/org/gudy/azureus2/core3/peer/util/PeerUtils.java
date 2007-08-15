@@ -189,4 +189,23 @@ public class PeerUtils {
 
 	 	return( peerId );
 	}
+	
+	public static byte[]
+	createWebSeedPeerID()
+	{
+		byte[] peerId = new byte[20];
+
+		peerId[0] = '-';
+		peerId[1] = 'W';
+		peerId[2] = 'S';
+		
+		for (int i = 3; i < 20; i++) {
+			int pos = (int) ( Math.random() * chars.length());
+			peerId[i] = (byte)chars.charAt(pos);
+		}
+
+		// System.out.println( "generated new peer id:" + ByteFormatter.nicePrint(peerId));
+
+		return( peerId );
+	}
 }

@@ -230,7 +230,7 @@ ExternalSeedReaderGetRight
 			
 			long	request_end = request_start + request_length;
 			
-			System.out.println( "Req: start=" + request_start + ", len=" + request_length );
+			// System.out.println( "Req: start=" + request_start + ", len=" + request_length );
 			
 			final	byte[][] overlap_buffer 			= { null };
 			final	int[]	 overlap_buffer_position 	= { 0 };
@@ -264,7 +264,7 @@ ExternalSeedReaderGetRight
 				
 				ExternalSeedHTTPDownloader http_downloader = http_downloaders[i];
 				
-				System.out.println( "    sub_req: start=" + sub_request_start + ", len=" + sub_len + ",url=" + http_downloader.getURL());
+				// System.out.println( "    sub_req: start=" + sub_request_start + ", len=" + sub_len + ",url=" + http_downloader.getURL());
 				
 				ExternalSeedHTTPDownloaderListener sub_request = 
 					new ExternalSeedHTTPDownloaderListener()

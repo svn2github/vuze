@@ -142,7 +142,7 @@ ExternalSeedReaderFactoryGetRight
 		try{
 			COConfigurationManager.preInitialise();
 			
-			File file = new File  ( "C:\\temp\\test.torrent");
+			File file = new File  ( "C:\\temp\\httpseed.torrent");
 			
 			TOTorrent	torrent = TOTorrentFactory.deserialiseFromBEncodedFile( file );
 			
@@ -150,7 +150,7 @@ ExternalSeedReaderFactoryGetRight
 			
 			List	urls = new ArrayList();
 			
-			urls.add( "http://192.168.1.2:8080/test.dat" );
+			urls.add( "http://127.0.0.1:888/files/%DF%26%5B7w%C9%13I%88%8D%EC%E5b%2C9%0F%8D%0Co%BC/" );
 			
 			map.put( "url-list", urls);
 			

@@ -322,6 +322,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addSimpleClient("Swarmy", "a02---0");
 		addSimpleClient("Teeweety", "T00---0");
 		addSimpleClient("TorrentTopia", "346-");
+		addSimpleClient("HTTP Seed", "-WS" );	// used internally to denote incoming webseed connections
 		addSimpleClient("XanTorrent", "DansClient");
 		
 		// Clients with their own custom format and version number style.
