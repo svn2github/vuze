@@ -407,7 +407,6 @@ public class TorrentListViewsUtils
 							new AdManager.ASXCreatedListener() {
 								public void asxCreated(File asxFile) {
 									if (btn != null) {
-										System.out.println("cows2");
 										btn.setDisabled(false);
 									}
 									runFile(dm.getTorrent(), asxFile.getAbsolutePath());
