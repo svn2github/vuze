@@ -1571,6 +1571,8 @@ DownloadManagerImpl
   			
   		}finally{
   			
+  			download_manager_state.setLongAttribute( DownloadManagerState.AT_TIME_STOPPED, SystemTime.getCurrentTime());
+  			
 			download_manager_state.setActive( false );
   		}
   	}

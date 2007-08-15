@@ -77,6 +77,8 @@ PEPeerManager
 
 	public float getMinAvailability();
 
+	public long getAvailWentBadTime();
+	
 	public boolean hasDownloadablePiece();
 	
     

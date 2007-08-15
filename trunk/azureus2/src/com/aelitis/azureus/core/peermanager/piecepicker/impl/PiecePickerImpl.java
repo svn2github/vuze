@@ -142,6 +142,7 @@ implements PiecePicker
 	private volatile long		availabilityComputeChange;
 	private long			time_last_rebuild;
 
+	private long	timeAvailLessThanOne;
 	private float	globalAvail;
 	private float	globalAvgAvail;
 	private int		nbRarestActive;
@@ -414,7 +415,14 @@ implements PiecePicker
 			}
 		}
 		// copy updated local variables into globals
-		globalAvail =(total /(float) nbPieces) +allMin;
+		float newGlobalAvail = (total /(float) nbPieces) +allMin;
+		if ( globalAvail >= 1.0 &&  newGlobalAvail < 1.0 ){
+			timeAvailLessThanOne = now;
+		}else if ( newGlobalAvail >= 1.0 ){
+			timeAvailLessThanOne= 0;
+		}
+		
+		globalAvail = newGlobalAvail;
 		nbRarestActive =rarestActive;
 		globalAvgAvail =totalAvail /(float)(nbPieces)
 		/(1 +peerControl.getNbSeeds() +peerControl.getNbPeers());
@@ -475,6 +483,11 @@ implements PiecePicker
 	public final float getMinAvailability()
 	{
 		return globalAvail;
+	}
+	
+	public final long getAvailWentBadTime()
+	{
+		return(timeAvailLessThanOne);
 	}
 	
 	public final int getMaxAvailability()

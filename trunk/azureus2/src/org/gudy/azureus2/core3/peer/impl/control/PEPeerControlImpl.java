@@ -102,7 +102,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 	
 	private static IpFilter ip_filter = IpFilterManagerFactory.getSingleton().getIPFilter();
 
-	private volatile boolean	is_running = false;  
+	private volatile boolean	is_running 		= false;  
+	private volatile boolean	is_destroyed 	= false;  
 
 	private volatile ArrayList	peer_transports_cow = new ArrayList();	// Copy on write!
 	private final AEMonitor     peer_transports_mon	= new AEMonitor( "PEPeerControl:PT");
@@ -353,7 +354,6 @@ DiskManagerCheckRequestListener, IPFilterListener
 	{
 		is_running =false;
 
-
 		UploadSlotManager.getSingleton().deregisterHelper( upload_helper );
 
 		PeerControlSchedulerFactory.getSingleton().unregister(this);
@@ -385,8 +385,16 @@ DiskManagerCheckRequestListener, IPFilterListener
 		for( int i=0; i < peer_manager_listeners.size(); i++ ) {
 			((PEPeerManagerListener)peer_manager_listeners.get(i)).destroyed();
 		}
+		
+		is_destroyed = true;
 	}
 
+	public boolean
+	isDestroyed()
+	{
+		return( is_destroyed );
+	}
+	
 	public DiskManager getDiskManager() {  return disk_mgr;   }
 	public PiecePicker getPiecePicker()
 	{
@@ -1485,6 +1493,11 @@ DiskManagerCheckRequestListener, IPFilterListener
 		return piecePicker.getAvgAvail();
 	}
 
+	public long getAvailWentBadTime()
+	{
+		return( piecePicker.getAvailWentBadTime());
+	}
+	
 	public void addPeerTransport( PEPeerTransport transport ) {
     if (!ip_filter.isInRange(transport.getIp(), getDisplayName(), getTorrentHash())) {
 			final ArrayList peer_transports = peer_transports_cow;

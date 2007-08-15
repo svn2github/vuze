@@ -57,10 +57,13 @@ DownloadManagerState
 	public static final String AT_PRIMARY_FILE		 		= "primaryfile";
 	public static final String AT_TIME_SINCE_DOWNLOAD		= "timesincedl";
 	public static final String AT_TIME_SINCE_UPLOAD			= "timesinceul";
+	public static final String AT_AVAIL_BAD_TIME			= "badavail";
+	public static final String AT_TIME_STOPPED				= "timestopped";
 	
 	public static Object[][] ATTRIBUTE_DEFAULTS = {
 		{ AT_TIME_SINCE_DOWNLOAD,					new Integer( -1 )},
 		{ AT_TIME_SINCE_UPLOAD,						new Integer( -1 )},
+		{ AT_AVAIL_BAD_TIME,						new Long( -1 )},
 	};
 	
 	public static final long FLAG_ONLY_EVER_SEEDED			= Download.FLAG_ONLY_EVER_SEEDED;
@@ -78,7 +81,7 @@ DownloadManagerState
 	public static final String	PARAM_MAX_UPLOADS_WHEN_SEEDING_ENABLED	= "max.uploads.when.seeding.enabled";
 	public static final String	PARAM_STATS_COUNTED						= "stats.counted";
 	public static final String	PARAM_DOWNLOAD_ADDED_TIME				= "stats.download.added.time";
-	public static final String	PARAM_DOWNLOAD_COMPLETED_TIME				= "stats.download.completed.time";
+	public static final String	PARAM_DOWNLOAD_COMPLETED_TIME			= "stats.download.completed.time";
 	public static final String	PARAM_MAX_UPLOAD_WHEN_BUSY				= "max.upload.when.busy";
 	public static final String  PARAM_DND_FLAGS							= "dndflags";
 	

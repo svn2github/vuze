@@ -60,6 +60,12 @@ ExternalSeedHTTPDownloader
 		user_agent	= _user_agent;
 	}
 	
+	public URL
+	getURL()
+	{
+		return( url );
+	}
+	
 	public void
 	download(
 		int									length,
@@ -158,17 +164,20 @@ ExternalSeedHTTPDownloader
 				
 				byte[]	buffer 		= null;
 				int		buffer_pos	= 0;
+				int		buffer_len	= 0;
 
 				while( pos < length ){
 					
 					if ( buffer == null ){
 						
-						buffer = listener.getBuffer();
+						buffer 		= listener.getBuffer();						
+						buffer_pos	= listener.getBufferPosition();
+						buffer_len	= listener.getBufferLength();
 					}
 
 					listener.setBufferPosition( buffer_pos );
 					
-					int	to_read = buffer.length-buffer_pos;
+					int	to_read = buffer_len - buffer_pos;
 					
 					int	permitted = listener.getPermittedBytes();
 					
@@ -190,7 +199,7 @@ ExternalSeedHTTPDownloader
 					
 					buffer_pos	+= len;
 					
-					if ( buffer_pos == buffer.length ){
+					if ( buffer_pos == buffer_len ){
 						
 						listener.done();
 						
@@ -400,6 +409,7 @@ ExternalSeedHTTPDownloader
 					
 					byte[]	buffer 		= null;
 					int		buffer_pos	= 0;
+					int		buffer_len	= 0;
 					
 					int	pos = 0;
 					
@@ -407,10 +417,12 @@ ExternalSeedHTTPDownloader
 						
 						if ( buffer == null ){
 							
-							buffer = listener.getBuffer();
+							buffer 		= listener.getBuffer();							
+							buffer_pos	= listener.getBufferPosition();
+							buffer_len	= listener.getBufferLength();
 						}
 						
-						int	to_read = buffer.length-buffer_pos;
+						int	to_read = buffer_len - buffer_pos;
 						
 						int	permitted = listener.getPermittedBytes();
 						
@@ -432,7 +444,7 @@ ExternalSeedHTTPDownloader
 						
 						buffer_pos	+= len;
 						
-						if ( buffer_pos == buffer.length ){
+						if ( buffer_pos == buffer_len ){
 							
 							listener.done();
 							

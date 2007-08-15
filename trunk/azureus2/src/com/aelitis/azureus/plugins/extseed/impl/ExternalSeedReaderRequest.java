@@ -101,6 +101,8 @@ ExternalSeedReaderRequest
 		
 		current_buffer = new byte[ current_request.getLength()];
 		
+		current_position	= 0;
+		
 		return( current_buffer );
 	}
 	        	
@@ -140,6 +142,18 @@ ExternalSeedReaderRequest
 		int	pos )
 	{
 		current_position	= pos;
+	}
+	
+	public int
+	getBufferPosition()
+	{
+		return( current_position );
+	}
+	
+	public int
+	getBufferLength()
+	{
+		return( current_buffer.length );
 	}
 	
 	public int

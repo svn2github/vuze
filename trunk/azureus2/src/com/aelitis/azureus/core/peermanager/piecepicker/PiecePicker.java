@@ -61,7 +61,8 @@ public interface PiecePicker
     public float    getMinAvailability();
     public int		getMaxAvailability();
     public float    getAvgAvail();
-
+	public long 	getAvailWentBadTime();
+	
 	public void		allocateRequests();
 
 	public boolean	isInEndGameMode();

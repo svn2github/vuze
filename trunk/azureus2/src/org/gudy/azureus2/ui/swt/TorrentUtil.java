@@ -21,11 +21,11 @@
 package org.gudy.azureus2.ui.swt;
 
 import java.io.File;
+import java.net.InetAddress;
+import java.net.URLEncoder;
 import java.util.Arrays;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
@@ -53,19 +53,22 @@ import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.IPToHostNameResolver;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
 import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
 import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
-import org.gudy.azureus2.ui.swt.shells.InputShell;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.ViewUtils;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 
@@ -634,6 +637,96 @@ public class TorrentUtil {
 							}
 
 						}
+					}
+				}
+				
+			});
+			
+			// Advanced > Export > WebSeed URL
+			final MenuItem itemWebSeed = new MenuItem(menuExport, SWT.PUSH);
+			Messages.setLanguageText(itemWebSeed, "MyTorrentsView.menu.exporthttpseeds");
+			itemWebSeed.addListener(SWT.Selection, new DMTask(dms) {
+				public void run(DownloadManager[] dms) {
+					final String	NL = "\r\n";
+					String	data = "";
+					
+					boolean http_enable = COConfigurationManager.getBooleanParameter( "HTTP.Data.Listen.Port.Enable" );
+					
+					String	port;
+					
+					if ( http_enable ){
+						
+						int	p = COConfigurationManager.getIntParameter( "HTTP.Data.Listen.Port" );
+						int o = COConfigurationManager.getIntParameter( "HTTP.Data.Listen.Port.Override" );
+					    
+						if ( o == 0 ){
+							
+							port = String.valueOf( p );
+							
+						}else{
+							
+							port = String.valueOf( o );
+						}
+					}else{
+
+						data = "You need to enable the HTTP port or modify the URL(s) appropriately" + NL + NL;
+						
+						port = "<port>";
+					}
+				    
+					String	ip = COConfigurationManager.getStringParameter( "Tracker IP", "" );
+					
+					if ( ip.length() == 0 ){
+						
+						data += "You might need to modify the host address in the URL(s)" + NL + NL;
+						
+						try{
+						
+							InetAddress ia = AzureusCoreFactory.getSingleton().getInstanceManager().getMyInstance().getExternalAddress();
+						
+							if ( ia != null ){
+								
+								ip = IPToHostNameResolver.syncResolve( ia.getHostAddress(), 10000 );
+							}
+						}catch( Throwable e ){
+							
+						}
+						
+						if ( ip.length() == 0 ){
+							
+							ip = "<host>";
+						}
+					}
+					
+					String	base = "http://" + UrlUtils.convertIPV6Host(ip) + ":" + port + "/";
+					
+					for (int i=0;i<dms.length;i++){
+						
+						DownloadManager dm = dms[i];
+						
+						if ( dm == null ){
+							continue;
+						}
+						
+						TOTorrent torrent = dm.getTorrent();
+						
+						if ( torrent == null ){
+							
+							continue;
+						}
+						
+						data += base + "webseed" + NL;
+						
+						try{
+							data += base + "files/" + URLEncoder.encode( new String( torrent.getHash(), "ISO-8859-1"), "ISO-8859-1" ) + "/" + NL + NL;
+							
+						}catch( Throwable e ){
+							
+						}
+					}
+					
+					if ( data.length() > 0){
+						ClipboardCopy.copyToClipBoard( data );
 					}
 				}
 			});

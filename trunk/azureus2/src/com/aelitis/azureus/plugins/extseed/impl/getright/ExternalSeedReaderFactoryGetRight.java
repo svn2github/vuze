@@ -106,11 +106,7 @@ ExternalSeedReaderFactoryGetRight
 						URL	url = new URL(new String((byte[])urls.get(i)));
 						
 						String	protocol = url.getProtocol().toLowerCase();
-						
-                        if (url.toString().endsWith("/")) {
-                            url = new URL(url.toString() + download.getTorrent().getName());
-                        }
-												
+																		
 						if ( protocol.equals( "http" )){
 							
 							readers.add( new ExternalSeedReaderGetRight(plugin, download.getTorrent(), url, params ));

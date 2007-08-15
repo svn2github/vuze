@@ -239,7 +239,7 @@ DownloadManagerStatsImpl
 		
 		return -1;
 	}
-
+	
 	public long 
 	getTimeStartedSeeding() 
 	{
@@ -570,6 +570,36 @@ DownloadManagerStatsImpl
 		return( res );	
 	}
 	
+	public long
+	getAvailWentBadTime()
+	{
+		PEPeerManager	pm = download_manager.getPeerManager();
+
+		if ( pm != null ){
+			
+			long	bad_time = pm.getAvailWentBadTime();
+			
+			if ( bad_time > 0 ){
+				
+					// valid last bad time
+				
+				return( bad_time );
+			}
+			
+			if ( pm.getMinAvailability() >= 1.0 ){
+				
+					// we can believe the fact that it isn't bad (we want to ignore 0 results from
+					// downloads that never get to a 1.0 availbility)
+				
+				return( 0 );
+			}
+		}
+		
+		DownloadManagerState state = download_manager.getDownloadState();
+
+		return( state.getLongAttribute( DownloadManagerState.AT_AVAIL_BAD_TIME ));
+	}
+	
 	protected void
 	saveSessionTotals()
 	{
@@ -591,7 +621,8 @@ DownloadManagerStatsImpl
 
 		state.setIntAttribute( DownloadManagerState.AT_TIME_SINCE_DOWNLOAD, saved_SecondsSinceDownload );
 		state.setIntAttribute( DownloadManagerState.AT_TIME_SINCE_UPLOAD, saved_SecondsSinceUpload );
-
+		
+		state.setLongAttribute( DownloadManagerState.AT_AVAIL_BAD_TIME, getAvailWentBadTime());
 	}
 	
  	protected void

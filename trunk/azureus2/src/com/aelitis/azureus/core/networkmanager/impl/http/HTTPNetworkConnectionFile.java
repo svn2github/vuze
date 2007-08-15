@@ -32,6 +32,7 @@ import java.util.StringTokenizer;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -76,6 +77,8 @@ HTTPNetworkConnectionFile
 			
 			throw( new IOException( "Disk manager unavailable" ));
 		}
+			
+		TOTorrent	to_torrent = dm.getTorrent();
 				
 		char[]	chars = header.toCharArray();
 		
@@ -121,9 +124,18 @@ HTTPNetworkConnectionFile
 					
 					while( tok.hasMoreTokens()){
 						
-						byte[]	bit = URLDecoder.decode( tok.nextToken(), "ISO-8859-1" ).getBytes( "ISO-8859-1" );
-						
-						bits.add( bit );
+						bits.add( URLDecoder.decode(tok.nextToken(), "ISO-8859-1").getBytes( "ISO-8859-1" ));
+					}
+					
+						// latest spec has torrent file name encoded first for non-simple torrents
+						// remove it if we find it so we have some backward compat
+					
+					if ( !to_torrent.isSimpleTorrent() && bits.size() > 1 ){
+					
+						if ( Arrays.equals( to_torrent.getName(), (byte[])bits.get(0))){
+							
+							bits.remove(0);
+						}
 					}
 					
 					DiskManagerFileInfo[]	files = dm.getFiles();
@@ -141,10 +153,8 @@ HTTPNetworkConnectionFile
 							boolean	match = true;
 							
 							for (int k=0;k<comps.length;k++){
-								
-								byte[]	bit = (byte[])bits.get(k);
-								
-								if ( !Arrays.equals( bit, comps[k] )){
+																								
+								if ( !Arrays.equals( comps[k], (byte[])bits.get(k))){
 									
 									match	= false;
 									

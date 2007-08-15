@@ -189,6 +189,8 @@ DownloadManagerStats
 	public int getTimeSinceLastDataReceivedInSeconds();
 	public int getTimeSinceLastDataSentInSeconds();
 	
+	public long getAvailWentBadTime();
+	
 	public void
 	restoreSessionTotals(
 		long		_saved_data_bytes_downloaded,

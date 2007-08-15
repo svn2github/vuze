@@ -101,6 +101,7 @@ public class MyTorrentsSuperView extends AbstractIView implements
     new SwarmAverageSpeed( TableManager.TABLE_MYTORRENTS_INCOMPLETE ),
     new SwarmAverageCompletion( TableManager.TABLE_MYTORRENTS_INCOMPLETE ),
     new DateAddedItem( TableManager.TABLE_MYTORRENTS_INCOMPLETE ),
+    new BadAvailTimeItem( TableManager.TABLE_MYTORRENTS_INCOMPLETE ),
   };
 
   final static TableColumnCore[] tableCompleteItems = {
