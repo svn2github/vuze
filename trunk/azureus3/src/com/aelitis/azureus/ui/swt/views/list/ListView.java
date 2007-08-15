@@ -3065,8 +3065,9 @@ public class ListView
 					gcImgView.setClipping(rect);
 
 					if (!row.isVisible()) {
-						System.out.println("asked for row refresh but not visible "
-								+ row.getIndex() + ";" + Debug.getCompressedStackTrace());
+						// XXX turn this back on after release
+//						System.out.println("asked for row refresh but not visible "
+//								+ row.getIndex() + ";" + Debug.getCompressedStackTrace());
 						return new ArrayList();
 					}
 
