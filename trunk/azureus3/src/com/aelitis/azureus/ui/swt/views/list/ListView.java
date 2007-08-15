@@ -558,7 +558,7 @@ public class ListView
 					}
 
 					long diff = System.currentTimeMillis() - lStart;
-					if (diff > 50) {
+					if (diff > 100) {
 						log(diff + "ms to paint" + start + " - " + (end - 1));
 					}
 				} else {
@@ -1307,7 +1307,7 @@ public class ListView
 	}
 
 	protected void log(String string) {
-		System.out.println(System.currentTimeMillis() + ":" + sTableID + "] "
+		System.err.println(System.currentTimeMillis() + ":" + sTableID + "] "
 				+ string);
 	}
 
