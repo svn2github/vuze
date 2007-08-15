@@ -325,7 +325,7 @@ public class ListRow
 			gc.setClipping(oldClipping);
 		}
 		long diff = System.currentTimeMillis() - lTimeStart;
-		if (diff > 30) {
+		if (diff > 60) {
 			view.log("doPaint took " + diff + "ms. " + this.toString());
 		}
 	}
