@@ -439,7 +439,11 @@ public class TorrentListViewsUtils
 	}
 
 	private static void runFile(TOTorrent torrent, String runFile) {
-		if (PlatformTorrentUtils.isContentDRM(torrent)) {
+		runFile(torrent, runFile, false);
+	}
+	
+	private static void runFile(TOTorrent torrent, String runFile, boolean forceWMP) {
+		if (PlatformTorrentUtils.isContentDRM(torrent) || forceWMP) {
 			if (!runInMediaPlayer(runFile)) {
 				Utils.launch(runFile);
 			}
@@ -513,6 +517,7 @@ public class TorrentListViewsUtils
 					Runtime.getRuntime().exec(wmpEXE + " \"" + mediaFile + "\"");
 					return true;
 				} catch (IOException e) {
+					Debug.out("error playing " + mediaFile + " via WMP " + mediaFile, e);
 				}
 			}
 		}
@@ -657,15 +662,15 @@ public class TorrentListViewsUtils
 				AdManager.getInstance().createASX(dm, fURL,
 						new AdManager.ASXCreatedListener() {
 							public void asxCreated(File asxFile) {
-								runFile(dm.getTorrent(), asxFile.getAbsolutePath());
+								runFile(dm.getTorrent(), asxFile.getAbsolutePath(), true);
 							}
 
 							public void asxFailed() {
-								runFile(dm.getTorrent(), fURL);
+								runFile(dm.getTorrent(), fURL, true);
 							}
 						});
 			} else {
-				runFile(dm.getTorrent(), url);
+				runFile(dm.getTorrent(), url, true);
 			}
 		} catch (Throwable e) {
 			try {
