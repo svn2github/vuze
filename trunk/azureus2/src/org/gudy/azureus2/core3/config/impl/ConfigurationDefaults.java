@@ -508,6 +508,9 @@ public class ConfigurationDefaults {
     //default V2 algorithm seeding and download mode useage, stored as an Int
     def.put( SpeedLimitMonitor.USED_UPLOAD_CAPACITY_SEEDING_MODE, new Long(90) );  
     def.put( SpeedLimitMonitor.USED_UPLOAD_CAPACITY_DOWNLOAD_MODE, new Long(60) );
+
+    def.put( SpeedManagerAlgorithmProviderV2.SETTING_WAIT_AFTER_ADJUST, TRUE );
+    def.put( SpeedManagerAlgorithmProviderV2.SETTING_INTERVALS_BETWEEN_ADJUST, new Long(2) );
   }
   
   protected void
