@@ -56,7 +56,7 @@ public class UISwitcherUtil
 			boolean asked = COConfigurationManager.getBooleanParameter("ui.asked",
 					false);
 
-			if (asked) {
+			if (asked || COConfigurationManager.hasParameter("ui", true)) {
 				return COConfigurationManager.getStringParameter("ui", "az3");
 			}
 
