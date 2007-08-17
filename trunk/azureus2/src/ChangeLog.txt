@@ -1,7 +1,7 @@
 AZUREUS CHANGELOG
 -----------------
 
-2007.08.xx | Azureus 3.0.2.0
+2007.08.16 | Azureus 3.0.2.0
 
 FEATURE: Core | Act on suspend/resume events on Windows [Parg]
 FEATURE: Core | Added new AZ message to inform of bad pieces [Parg]
