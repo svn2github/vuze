@@ -1,7 +1,7 @@
 AZUREUS v3 CHANGELOG
 --------------------
 
-2007.06.20 | Azureus 3.0.1.6
+2007.08.16 | Azureus 3.0.2.0
 
 FEATURE: Azureus AutoSpeed v2 Beta via Advanced UI
 
