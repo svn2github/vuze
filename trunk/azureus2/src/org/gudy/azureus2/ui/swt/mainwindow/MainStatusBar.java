@@ -434,7 +434,7 @@ public class MainStatusBar {
 
   		statusUp.addMouseListener(new MouseAdapter() {
   			public void mouseDown(MouseEvent e) {
-  				if (e.button != 3 || (e.button == 1 && e.stateMask == SWT.CONTROL)) {
+  				if (!(e.button == 3 || (e.button == 1 && e.stateMask == SWT.CONTROL))) {
   					return;
   				}
   				Event event = new Event();
@@ -465,7 +465,7 @@ public class MainStatusBar {
 		} else {
   		statusDown.addMouseListener(new MouseAdapter() {
   			public void mouseDown(MouseEvent e) {
-  				if (e.button != 3 || (e.button == 1 && e.stateMask == SWT.CONTROL)) {
+  				if (!(e.button == 3 || (e.button == 1 && e.stateMask == SWT.CONTROL))) {
   					return;
   				}
   				Event event = new Event();
