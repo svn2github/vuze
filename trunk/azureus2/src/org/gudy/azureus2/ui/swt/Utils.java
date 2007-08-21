@@ -849,7 +849,7 @@ public class Utils {
 		}
 
 		boolean isMaximized = COConfigurationManager.getBooleanParameter(
-				sConfigPrefix + ".maximized");
+				sConfigPrefix + ".maximized") && !Constants.isOSX;
 		shell.setMaximized(isMaximized);
 
 		new ShellMetricsResizeListener(shell, sConfigPrefix);
@@ -876,8 +876,8 @@ public class Utils {
 		}
 
 		private int calcState(Shell shell) {
-			return shell.getMinimized() ? SWT.MIN : shell.getMaximized() ? SWT.MAX
-					: SWT.NONE;
+			return shell.getMinimized() ? SWT.MIN : shell.getMaximized()
+					&& !Constants.isOSX ? SWT.MAX : SWT.NONE;
 		}
 
 		private void saveMetrics() {
