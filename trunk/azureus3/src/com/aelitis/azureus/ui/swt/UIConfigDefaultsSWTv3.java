@@ -136,7 +136,7 @@ public class UIConfigDefaultsSWTv3
 		}
 
 		defaults.addParameter("v3.topbar.show.plugin", false);
-		defaults.addParameter("ui.toolbar.uiswitcher", true);
+		defaults.addParameter("ui.toolbar.uiswitcher", false);
 
 		// by default, turn off some slidey warning
 		// Since they are plugin configs, we need to set the default after the 
