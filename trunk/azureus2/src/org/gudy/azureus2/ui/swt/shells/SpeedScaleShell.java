@@ -130,7 +130,7 @@ public class SpeedScaleShell
 		assumeMouseDown = _assumeMouseDown;
 		cancelled = true;
 
-		shell = new Shell(Utils.findAnyShell(), SWT.DOUBLE_BUFFERED);
+		shell = new Shell(Utils.findAnyShell(), SWT.DOUBLE_BUFFERED | SWT.ON_TOP);
 		shell.setLayout(new FillLayout());
 		final Display display = shell.getDisplay();
 
