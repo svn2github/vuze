@@ -14,6 +14,8 @@ import org.gudy.azureus2.core3.util.FileUtil;
 
 import com.aelitis.azureus.core.impl.AzureusCoreSingleInstanceClient;
 
+import org.gudy.azureus2.plugins.PluginManager;
+
 public class ScriptBeforeStartup
 {
 	private static PrintStream sysout;
@@ -29,14 +31,19 @@ public class ScriptBeforeStartup
 		} catch (FileNotFoundException e) {
 		}
 
-		boolean argsSent = new AzureusCoreSingleInstanceClient().sendArgs(args, 500);
-		if (argsSent) {
-			// azureus was open..
-			String msg = "Passing startup args to already-running Azureus java process listening on [127.0.0.1: 6880]";
-			log(msg);
-			sysout.println("exit");
+  	String mi_str = System.getProperty(PluginManager.PR_MULTI_INSTANCE);
+		boolean mi = mi_str != null && mi_str.equalsIgnoreCase("true");
 
-			return;
+		if (!mi) {
+  		boolean argsSent = new AzureusCoreSingleInstanceClient().sendArgs(args, 500);
+  		if (argsSent) {
+  			// azureus was open..
+  			String msg = "Passing startup args to already-running Azureus java process listening on [127.0.0.1: 6880]";
+  			log(msg);
+  			sysout.println("exit");
+  
+  			return;
+  		}
 		}
 
 		// If the after shutdown script didn't run or crapped out, then
