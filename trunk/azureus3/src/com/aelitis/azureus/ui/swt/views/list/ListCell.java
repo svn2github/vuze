@@ -121,7 +121,11 @@ public class ListCell
 			gc.setBackground(Display.getDefault().getSystemColor(
 					(int) (Math.random() * 13) + 3));
 		}
-		gc.fillRectangle(getBounds());
+		Rectangle bounds = getBounds();
+		if (bounds == null) {
+			return;
+		}
+		gc.fillRectangle(bounds);
 
 		if (((TableCellImpl) cell).bDebug) {
 			((TableCellImpl) cell).debug("drawText " + bounds);
