@@ -84,7 +84,7 @@ ConfigSectionTrackerClient
     scrapeGroup.setLayoutData( gridData );
     
     label = new Label(scrapeGroup, SWT.WRAP);
-    label.setLayoutData(Utils.getWrappableLabelGridData(1, 0));
+    label.setLayoutData(Utils.getWrappableLabelGridData(1, GridData.FILL_HORIZONTAL));
     Messages.setLanguageText(label, "ConfigView.section.tracker.client.scrapeinfo");
 
     BooleanParameter	scrape = 
@@ -147,8 +147,9 @@ ConfigSectionTrackerClient
     
     
     label = new Label(overrideGroup, SWT.WRAP);
-    label.setLayoutData(Utils.getWrappableLabelGridData(1, 0));
+    label.setLayoutData(Utils.getWrappableLabelGridData(1, GridData.FILL_HORIZONTAL));
     Messages.setLanguageText(label, "ConfigView.label.overrideip");
+    
     StringParameter overrideip = new StringParameter(overrideGroup, "Override Ip", "");
     GridData data = new GridData(GridData.FILL_HORIZONTAL);
     data.widthHint = 100;
@@ -156,7 +157,7 @@ ConfigSectionTrackerClient
     
     
     label = new Label(overrideGroup, SWT.WRAP);
-    label.setLayoutData(Utils.getWrappableLabelGridData(1, 0));
+    label.setLayoutData(Utils.getWrappableLabelGridData(1, GridData.FILL_HORIZONTAL));
     Messages.setLanguageText(label, "ConfigView.label.announceport");
 
     StringParameter tcpAnnounce = new StringParameter(overrideGroup, "TCP.Announce.Port", "");
@@ -210,7 +211,7 @@ ConfigSectionTrackerClient
                          "ConfigView.section.tracker.separatepeerids").setLayoutData(gridData);
   
     label = new Label(gMainTab, SWT.WRAP);
-    label.setLayoutData(Utils.getWrappableLabelGridData(1, 0));
+    label.setLayoutData(Utils.getWrappableLabelGridData(1, GridData.FILL_HORIZONTAL));
     Messages.setLanguageText(label,  "ConfigView.section.tracker.separatepeerids.info");
     
     }
