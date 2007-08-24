@@ -72,16 +72,8 @@ public class SelectableSpeedMenu {
 
         int maxBandwidth = COConfigurationManager.getIntParameter(configKey);
         final boolean unlim = (maxBandwidth == 0);
-        if(maxBandwidth == 0 && !up_menu )
-        {
-      		GlobalManagerStats stats = globalManager.getStats();
-      		int dataReceive = stats.getDataReceiveRate();
-      		if (dataReceive < 1024) {
-            maxBandwidth = 275;
-      		} else {
-      			maxBandwidth = dataReceive / 1024;      			
-      		}
-        }
+        maxBandwidth = adjustMaxBandWidth(maxBandwidth, globalManager, configKey,
+				up_menu);
         
         boolean	auto = false;
         
@@ -122,36 +114,7 @@ public class SelectableSpeedMenu {
         }
 
 		if (speed_limits == null) {
-			java.util.List l = new java.util.ArrayList();
-			int delta = 0;
-			int increaseLevel = 0;
-			for (int i = 0; i < speedPartitions; i++) {
-				final int[] valuePair;
-				if (delta == 0) {
-					valuePair = new int[] {
-						maxBandwidth
-					};
-				} else {
-					valuePair = new int[] {
-						maxBandwidth - delta * (maxBandwidth <= 1024 ? 1 : 1024),
-						maxBandwidth + delta * (maxBandwidth < 1024 ? 1 : 1024)
-					};
-				}
-
-				for (int j = 0; j < valuePair.length; j++) {
-					if (j == 0) {
-						l.add(0, new Integer(valuePair[j]));
-					} else {
-						l.add(new Integer(valuePair[j]));
-					}
-				}
-
-				delta += increases[increaseLevel];
-				if (increaseLevel < increases.length - 1) {
-					increaseLevel++;
-				}
-			}
-			speed_limits = (Integer[]) l.toArray(new Integer[l.size()]);
+			speed_limits = getGenericSpeedList(speedPartitions, maxBandwidth);
 		}
         
         for (int i=0; i<speed_limits.length; i++) {
@@ -221,7 +184,28 @@ public class SelectableSpeedMenu {
 		});
     }
 
-	  private static java.util.Map parseSpeedPartitionStringCache = new java.util.HashMap();
+	  /**
+	 * @param configKey
+	 * @return
+	 *
+	 * @since 3.0.1.7
+	 */
+	private static int adjustMaxBandWidth(int maxBandwidth,
+			GlobalManager globalManager, String configKey, boolean up_menu) {
+    if(maxBandwidth == 0 && !up_menu )
+    {
+  		GlobalManagerStats stats = globalManager.getStats();
+  		int dataReceive = stats.getDataReceiveRate();
+  		if (dataReceive < 1024) {
+        maxBandwidth = 275;
+  		} else {
+  			maxBandwidth = dataReceive / 1024;      			
+  		}
+    }
+    return maxBandwidth;
+	}
+
+		private static java.util.Map parseSpeedPartitionStringCache = new java.util.HashMap();
 	  private synchronized static Integer[] parseSpeedPartitionString(String s) {
 		  Integer[] result = (Integer[])parseSpeedPartitionStringCache.get(s);
 		  if (result == null) {
@@ -285,6 +269,41 @@ public class SelectableSpeedMenu {
 	       };
 	   }
 
+	   
+	public static Integer[] getGenericSpeedList(int speedPartitions,
+			int maxBandwidth) {
+		java.util.List l = new java.util.ArrayList();
+		int delta = 0;
+		int increaseLevel = 0;
+		for (int i = 0; i < speedPartitions; i++) {
+			final int[] valuePair;
+			if (delta == 0) {
+				valuePair = new int[] {
+					maxBandwidth
+				};
+			} else {
+				valuePair = new int[] {
+					maxBandwidth - delta * (maxBandwidth <= 1024 ? 1 : 1024),
+					maxBandwidth + delta * (maxBandwidth < 1024 ? 1 : 1024)
+				};
+			}
+
+			for (int j = 0; j < valuePair.length; j++) {
+				if (j == 0) {
+					l.add(0, new Integer(valuePair[j]));
+				} else {
+					l.add(new Integer(valuePair[j]));
+				}
+			}
+
+			delta += increases[increaseLevel];
+			if (increaseLevel < increases.length - 1) {
+				increaseLevel++;
+			}
+		}
+		return (Integer[]) l.toArray(new Integer[l.size()]);
+	}
+	   
 	/**
 	 * @since 3.0.1.7
 	 */
@@ -312,8 +331,10 @@ public class SelectableSpeedMenu {
 		}
 
 		SpeedScaleShell speedScale = new SpeedScaleShell() {
-			public String getStringValue() {
-				int value = getValue();
+			public String getStringValue(int value, String sValue) {
+				if (sValue != null) {
+					return prefix + ": " + sValue;
+				}
 				if (value == 0) {
 					return MessageText.getString("MyTorrentsView.menu.setSpeed.unlimited");
 				}
@@ -336,22 +357,48 @@ public class SelectableSpeedMenu {
 
 		final String config_prefix = "config.ui.speed.partitions.manual."
 				+ (isUpSpeed ? "upload" : "download") + ".";
+		int lastValue = COConfigurationManager.getIntParameter(config_prefix
+				+ "last", -10);
+
+		Integer[] speed_limits;
 		if (COConfigurationManager.getBooleanParameter(config_prefix + "enabled",
 				false)) {
-			Integer[] speed_limits = parseSpeedPartitionString(COConfigurationManager.getStringParameter(
+			speed_limits = parseSpeedPartitionString(COConfigurationManager.getStringParameter(
 					config_prefix + "values", ""));
+		} else {
+			int maxBandwidth2 = COConfigurationManager.getIntParameter(configKey);
+			maxBandwidth = adjustMaxBandWidth(maxBandwidth, gm, configKey, isUpSpeed);
+			speed_limits = getGenericSpeedList(6, maxBandwidth);
+		}
+		if (speed_limits != null) {
 			for (int i = 0; i < speed_limits.length; i++) {
 				int value = speed_limits[i].intValue();
-				speedScale.addOption(DisplayFormatters.formatByteCountToKiBEtcPerSec(
-						value * 1024, true), value);
+				if (value > 0) {
+					speedScale.addOption(DisplayFormatters.formatByteCountToKiBEtcPerSec(
+							value * 1024, true), value);
+					if (value == lastValue) {
+						lastValue = -10;
+					}
+				}
 			}
 		}
 		speedScale.addOption(
 				MessageText.getString("MyTorrentsView.menu.setSpeed.unlimited"), 0);
 		speedScale.addOption(MessageText.getString("ConfigView.auto"), -1);
 
+		if (lastValue > 0) {
+			speedScale.addOption(DisplayFormatters.formatByteCountToKiBEtcPerSec(
+					lastValue * 1024, true), lastValue);
+		}
+
 		if (speedScale.open(auto ? -1 : maxBandwidth, true)) {
 			int value = speedScale.getValue();
+
+			if (!speedScale.wasMenuChosen() || lastValue == value) {
+				COConfigurationManager.setParameter(config_prefix + "last",
+						maxBandwidth);
+			}
+
 			if (value >= 0) {
 				if (auto) {
 					COConfigurationManager.setParameter(configAutoKey, false);
