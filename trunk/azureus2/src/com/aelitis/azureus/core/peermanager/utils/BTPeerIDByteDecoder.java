@@ -436,6 +436,7 @@ public class BTPeerIDByteDecoder {
 
 		// Shadow style clients.
 		System.out.println("Testing Shadow style clients...");
+		assertDecode("ABC", "A--------YMyoBPXYy2L"); // Seen this quite a bit - not sure that it is ABC, but I guess we should default to that...
 		assertDecode("ABC 2.6.9", "413236392D2D2D2D345077199FAEC4A673BECA01");
 		assertDecode("ABC 3.1", "A310--001v5Gysr4NxNK");
 		assertDecode("BitTornado 0.3.12", "T03C-----6tYolxhVUFS");
@@ -450,6 +451,7 @@ public class BTPeerIDByteDecoder {
 		assertDecode("Azureus 1", "417A7572 65757300 00000000 000000A0 76F0AEF7");
 		assertDecode("Azureus 2.0.3.2", "2D2D2D2D2D417A757265757354694E7A2A6454A7");
 		assertDecode("Hurricane Electric", "6172636C696768742E68652EA5860C157A5ADC35");
+		assertDecode("Pando", "Pando-6B511B691CAC2E"); // Seen recently, have they changed peer ID format?
 		assertDecode("\u00B5Torrent 1.7.0 RC", "2D55543137302D00AF8BC5ACCC4631481EB3EB60");
 		System.out.println();
 		
