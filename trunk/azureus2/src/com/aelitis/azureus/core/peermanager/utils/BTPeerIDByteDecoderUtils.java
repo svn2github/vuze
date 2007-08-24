@@ -186,8 +186,8 @@ class BTPeerIDByteDecoderUtils {
 				return "61";
 			case '.':
 				return "62";
-			case '-':
-				return "63";
+			//case '-':
+			//	return "63";
 		}
 		return null;
 	}
@@ -224,11 +224,14 @@ class BTPeerIDByteDecoderUtils {
 	 * We'll assume that no client uses the fifth version digit, so we'll
 	 * expect a dash. We'll also assume that no client has reached version 10
 	 * yet, so we expect the first two characters to be "letter,digit".
+	 * 
+	 * We've seen some clients which don't appear to contain any version
+	 * information, so we need to allow for that.
 	 */ 
 	public static boolean isShadowStyle(String peer_id) {
 		if (peer_id.charAt(5) != '-') {return false;}
 		if (!Character.isLetter(peer_id.charAt(0))) {return false;}
-		if (!Character.isDigit(peer_id.charAt(1))) {return false;}
+		if (!(Character.isDigit(peer_id.charAt(1)) || peer_id.charAt(1) == '-')) {return false;}
 		
 		// Find where the version number string ends.
 		int last_ver_num_index = 4;
