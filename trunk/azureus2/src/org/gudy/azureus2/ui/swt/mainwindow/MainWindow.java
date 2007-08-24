@@ -65,6 +65,8 @@ import org.gudy.azureus2.ui.swt.sharing.progress.ProgressWindow;
 import org.gudy.azureus2.ui.swt.update.UpdateWindow;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import org.gudy.azureus2.ui.swt.welcome.WelcomeWindow;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
@@ -1324,13 +1326,16 @@ MainWindow
 		if (this.mainMenu == null) {return;}
 		DownloadManager[] dm;
 		boolean detailed_view;
-		if (this.getCurrentView() instanceof ManagerView) {
+		TableViewSWT tv = null;
+		IView currentView = getCurrentView();
+		
+		if (currentView instanceof ManagerView) {
 			dm = new DownloadManager[] {
-				((ManagerView)this.getCurrentView()).getDownload(),
+				((ManagerView)currentView).getDownload(),
 			};
 			detailed_view = true;
 		}
-		else if (this.getCurrentView() instanceof MyTorrentsSuperView) {
+		else if (currentView instanceof MyTorrentsSuperView) {
 			dm = ((MyTorrentsSuperView)this.getCurrentView()).getSelectedDownloads();
 			detailed_view = false;
 		}
@@ -1338,7 +1343,11 @@ MainWindow
 			dm = null;
 			detailed_view = false;
 		}
-		this.mainMenu.setTorrentMenuContext(dm, detailed_view);
+		
+		if (currentView instanceof TableViewTab) {
+			tv = ((TableViewTab)currentView).getTableView();
+		}
+		this.mainMenu.setTorrentMenuContext(dm, tv, detailed_view);
 	}
 
   public void close() {

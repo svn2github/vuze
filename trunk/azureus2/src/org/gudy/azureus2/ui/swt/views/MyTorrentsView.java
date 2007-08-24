@@ -825,7 +825,8 @@ public class MyTorrentsView
 				for (int i=0; i<dm_items.length; i++) {
 					dms[i] = (DownloadManager)dm_items[i];
 				}
-				TorrentUtil.fillTorrentMenu(menu, dms, azureus_core, cTablePanel, true, (isSeedingView) ? 2 : 1);
+				TorrentUtil.fillTorrentMenu(menu, dms, azureus_core, cTablePanel, true,
+					(isSeedingView) ? 2 : 1, tv);
 
 				// ---
 				new MenuItem(menu, SWT.SEPARATOR);

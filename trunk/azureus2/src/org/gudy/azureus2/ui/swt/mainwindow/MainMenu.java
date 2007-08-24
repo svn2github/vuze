@@ -70,6 +70,7 @@ import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 import org.gudy.azureus2.ui.swt.speedtest.SpeedTestWizard;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.swt.welcome.WelcomeWindow;
 
@@ -110,7 +111,8 @@ public class MainMenu {
   private AzureusCore core;
   
   private MenuItem torrentItem;
-  public void setTorrentMenuContext(Object[] context, final boolean is_detailed_view) {
+  public void setTorrentMenuContext(Object[] context, final TableViewSWT tv,
+			final boolean is_detailed_view) {
 	  if (context == null) {context = new Object[0];}
 	  final ArrayList result = new ArrayList(context.length);
 	  for (int i=0; i<context.length; i++) {
@@ -120,6 +122,7 @@ public class MainMenu {
 	  Utils.execSWTThread(new AERunnable() {
 		  public void runSupport() {
 			  torrentItem.setData("downloads", (DownloadManager[])result.toArray(new DownloadManager[result.size()]));
+			  torrentItem.setData("TableView", tv);
 			  torrentItem.setData("is_detailed_view", Boolean.valueOf(is_detailed_view));
 			  torrentItem.setEnabled(!result.isEmpty());
 		  }
@@ -608,7 +611,9 @@ public class MainMenu {
       		DownloadManager[] current_dls = (DownloadManager[])torrentItem.getData("downloads");
       		if (current_dls == null) {return;}
       		boolean is_detailed_view = ((Boolean)torrentItem.getData("is_detailed_view")).booleanValue();
-      		TorrentUtil.fillTorrentMenu(menu, current_dls, core, attachedShell, !is_detailed_view, 0);
+      		TableViewSWT tv = (TableViewSWT) torrentItem.getData("TableView");
+						TorrentUtil.fillTorrentMenu(menu, current_dls, core, attachedShell,
+								!is_detailed_view, 0, tv);
     		org.gudy.azureus2.plugins.ui.menus.MenuItem[] menu_items;
     		menu_items = MenuItemManager.getInstance().getAllAsArray(
     				new String[] {"torrentmenu", "download_context"}

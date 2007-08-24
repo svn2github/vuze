@@ -26,6 +26,8 @@ import java.net.URLEncoder;
 import java.util.Arrays;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
@@ -64,13 +66,17 @@ import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
 import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
 import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.shells.InputShell;
 import org.gudy.azureus2.ui.swt.views.ViewUtils;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
 
 /**
  * @author Allan Crooks
@@ -79,8 +85,10 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 public class TorrentUtil {
 
 	// selected_dl_types -> 0 (determine that automatically), +1 (downloading), +2 (seeding), +3 (mixed - not used by anything yet) 
-	public static void fillTorrentMenu(final Menu menu, final DownloadManager[] dms, final AzureusCore azureus_core,
-			final Composite composite, boolean include_show_details, int selected_dl_types) {
+	public static void fillTorrentMenu(final Menu menu,
+			final DownloadManager[] dms, final AzureusCore azureus_core,
+			final Composite composite, boolean include_show_details,
+			int selected_dl_types, final TableViewSWT tv) {
 
 		final boolean isSeedingView;
 		switch (selected_dl_types) {
@@ -850,48 +858,44 @@ public class TorrentUtil {
 			}
 		}
 
-		// Too difficult to figure out how to implement it at the moment, we'll comment it out.
-		/**
 		 final MenuItem itemPositionManual = new MenuItem(menuAdvanced, SWT.PUSH);
-		 Messages.setLanguageText(itemPositionManual,
-		 "MyTorrentsView.menu.reposition.manual");
-		 itemPositionManual.addSelectionListener(new SelectionAdapter() {
-		 public void widgetSelected(SelectionEvent e) {
-		 InputShell is = new InputShell(
-		 "MyTorrentsView.dialog.setPosition.title",
-		 "MyTorrentsView.dialog.setPosition.text");
+		Messages.setLanguageText(itemPositionManual,
+				"MyTorrentsView.menu.reposition.manual");
+		itemPositionManual.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				InputShell is = new InputShell(
+						"MyTorrentsView.dialog.setPosition.title",
+						"MyTorrentsView.dialog.setPosition.text");
 
-		 String sReturn = is.open();
-		 if (sReturn == null)
-		 return;
+				String sReturn = is.open();
+				if (sReturn == null)
+					return;
 
-		 int newPosition = -1;
-		 try {
-		 newPosition = Integer.valueOf(sReturn).intValue();
-		 } catch (NumberFormatException er) {
-		 // Ignore
-		 }
+				int newPosition = -1;
+				try {
+					newPosition = Integer.valueOf(sReturn).intValue();
+				} catch (NumberFormatException er) {
+					// Ignore
+				}
 
-		 int size = azureus_core.getGlobalManager().downloadManagerCount(isSeedingView);
-		 if (newPosition > size)
-		 newPosition = size;
+				int size = azureus_core.getGlobalManager().downloadManagerCount(
+						isSeedingView);
+				if (newPosition > size)
+					newPosition = size;
 
-		 if (newPosition <= 0) {
-		 MessageBox mb = new MessageBox(composite.getShell(),
-		 SWT.ICON_ERROR | SWT.OK);
-		 mb.setText(MessageText
-		 .getString("MyTorrentsView.dialog.NumberError.title"));
-		 mb.setMessage(MessageText
-		 .getString("MyTorrentsView.dialog.NumberError.text"));
+				if (newPosition <= 0) {
+					MessageBox mb = new MessageBox(composite.getShell(), SWT.ICON_ERROR
+							| SWT.OK);
+					mb.setText(MessageText.getString("MyTorrentsView.dialog.NumberError.title"));
+					mb.setMessage(MessageText.getString("MyTorrentsView.dialog.NumberError.text"));
 
-		 mb.open();
-		 return;
-		 }
+					mb.open();
+					return;
+				}
 
-		 moveSelectedTorrentsTo(newPosition);
-		 }
-		 });
-		 **/
+				moveSelectedTorrentsTo(tv, dms, newPosition);
+			}
+		});
 
 		// back to main menu
 		if (userMode > 0 && isTrackerOn) {
@@ -1237,6 +1241,37 @@ public class TorrentUtil {
 		});
 
 	}
+
+  private static void moveSelectedTorrentsTo(TableViewSWT tv,
+			DownloadManager[] dms, int iNewPos) {
+    if (dms == null || dms.length == 0) {
+      return;
+    }
+    
+    TableColumnCore sortColumn = tv == null ? null : tv.getSortColumn();
+    boolean isSortAscending = sortColumn == null ? true
+				: sortColumn.isSortAscending();
+
+    for (int i = 0; i < dms.length; i++) {
+      DownloadManager dm = dms[i];
+      int iOldPos = dm.getPosition();
+      
+      dm.getGlobalManager().moveTo(dm, iNewPos);
+      if (isSortAscending) {
+        if (iOldPos > iNewPos)
+          iNewPos++;
+      } else {
+        if (iOldPos < iNewPos)
+          iNewPos--;
+      }
+    }
+
+    if (tv != null) {
+      boolean bForceSort = sortColumn.getName().equals("#");
+      tv.columnInvalidate("#");
+      tv.refreshTable(bForceSort);
+    }
+  }
 
 	private static void changeDirSelectedTorrents(DownloadManager[] dms, Shell shell) {
 		if (dms.length <= 0) return;
