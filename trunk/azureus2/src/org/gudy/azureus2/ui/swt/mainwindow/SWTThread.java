@@ -156,7 +156,7 @@ public class SWTThread {
             if (!display.readAndDispatch())
               display.sleep();
         }
-        catch (Exception e) {
+        catch (Throwable e) {
 					if (Constants.isOSX && (e instanceof SWTException)
 							&& e.getMessage().endsWith(" is disposed")
 							&& (terminated || Debug.getStackTrace(e).indexOf("DropTarget") > 0)) {
@@ -167,14 +167,10 @@ public class SWTThread {
 						// "cause of"'s stack trace in SWT < 3119
 						if (SWT.getVersion() < 3119)
 							e.printStackTrace();
-						else
-							Debug.printStackTrace(e);
+						Logger.log(new LogAlert(LogAlert.UNREPEATABLE,MessageText.getString("SWT.alert.erroringuithread"),e));
+						
 					}
 				}
-        catch(Error e)
-        {
-        	Logger.log(new LogAlert(LogAlert.UNREPEATABLE,MessageText.getString("SWT.alert.erroringuithread"),e));
-        }
       }
       
      
