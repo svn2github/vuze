@@ -1021,7 +1021,7 @@ public class Utils {
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if (uiFunctions != null) {
 			Shell shell = uiFunctions.getMainShell();
-			if (shell != null && shell.isDisposed()) {
+			if (shell != null && !shell.isDisposed()) {
 				return shell;
 			}
 		}
