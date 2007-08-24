@@ -22,7 +22,6 @@
 
 package com.aelitis.net.magneturi.impl;
 
-import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -39,8 +38,6 @@ import java.net.SocketException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.*;
-
-import javax.imageio.ImageIO;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
@@ -635,22 +632,11 @@ MagnetURIHandlerImpl
 					int	width 	= info.intValue();
 					int	height	= 1;
 					
-					BufferedImage	image = new BufferedImage( width, height, BufferedImage.TYPE_INT_RGB );
+					writeImage(baos, width, height);
 					
-					for (int i=0;i<width;i++){
-						for (int j=0;j<height;j++){
-							int	red 	= i+j;
-							int	green 	= i*255/width;
-							int	blue	= j*255/height;
-							
-							image.setRGB(i,j,((red<<16)&0xff0000)|((green<<8)&0xff00)|((blue)&0xff));
-						}
-					}
-					ImageIO.write( image, "JPG", baos );
-
 					byte[]	data = baos.toByteArray();
 											
-					writeReply( os, "image/jpeg", data );
+					writeReply( os, "image/bmp", data );
 						
 					return( true );
 				}
@@ -681,23 +667,11 @@ MagnetURIHandlerImpl
 				
 				ByteArrayOutputStream	baos = new ByteArrayOutputStream();
 
-				BufferedImage	image = new BufferedImage( width, height, BufferedImage.TYPE_INT_RGB );
+				writeImage(baos, width, height);
 				
-				for (int i=0;i<width;i++){
-					for (int j=0;j<height;j++){
-						int	red 	= i+j;
-						int	green 	= i*255/width;
-						int	blue	= j*255/height;
-						
-						image.setRGB(i,j,((red<<16)&0xff0000)|((green<<8)&0xff00)|((blue)&0xff));
-					}
-				}
-				
-				ImageIO.write( image, "JPG", baos );
-
 				byte[]	data = baos.toByteArray();
 										
-				writeReply( os, "image/jpeg", data );
+				writeReply( os, "image/bmp", data );
 					
 				return( true );
 			}
@@ -706,6 +680,59 @@ MagnetURIHandlerImpl
 		return( true );
 	}
 	
+	/**
+	 * @param os
+	 * @param width
+	 * @param height
+	 *
+	 * @since 3.0.2.1
+	 */
+	private void writeImage(OutputStream os, int width, int height) {
+		int rowWidth = width / 8;
+		if ((rowWidth % 4) != 0) {
+			rowWidth = ((rowWidth / 4) + 1) * 4;
+		}
+		int imageSize = rowWidth * height;
+		int fileSize = 54 + imageSize;
+		try {
+			os.write(new byte[] {
+				'B',
+				'M'
+			});
+			write4Bytes(os, fileSize);
+			write4Bytes(os, 0);
+			write4Bytes(os, 54); // data pos
+
+			write4Bytes(os, 40); // header size
+			write4Bytes(os, width);
+			write4Bytes(os, height);
+			write4Bytes(os, (1 << 16) + 1); // 1 plane and 1 bpp color
+			write4Bytes(os, 0);
+			write4Bytes(os, imageSize);
+			write4Bytes(os, 0);
+			write4Bytes(os, 0);
+			write4Bytes(os, 0);
+			write4Bytes(os, 0);
+
+			byte[] data = new byte[imageSize];
+			os.write(data);
+
+		} catch (IOException e) {
+			Debug.out(e);
+		}
+	}
+	
+	private void write4Bytes(OutputStream os, long l) {
+		try {
+			os.write((int) (l & 0xFF));
+			os.write((int) ((l >> 8) & 0xFF));
+			os.write((int) ((l >> 16) & 0xFF));
+			os.write((int) ((l >> 24) & 0xFF));
+		} catch (IOException e) {
+			Debug.out(e);
+		}
+	}
+
 	protected String
 	getMessageText(
 		String	resource )
