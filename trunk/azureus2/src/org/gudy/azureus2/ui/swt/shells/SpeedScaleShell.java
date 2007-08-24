@@ -85,6 +85,8 @@ public class SpeedScaleShell
 	private String sValue = "";
 
 	private Composite composite;
+	
+	private boolean menuChosen;
 
 	public static void main(String[] args) {
 		SpeedScaleShell speedScaleWidget = new SpeedScaleShell() {
@@ -111,6 +113,7 @@ public class SpeedScaleShell
 		pageIncrement = 10;
 		bigPageIncrement = 100;
 		cancelled = true;
+		menuChosen = false;
 	}
 
 	/**
@@ -255,6 +258,7 @@ public class SpeedScaleShell
 						} while (idx >= 0);
 						value = newValue; // ignore min/max
 						setCancelled(false);
+						setMenuChosen(true);
 						shell.dispose();
 					}
 				}
@@ -584,5 +588,13 @@ public class SpeedScaleShell
 
 	public void setMaxTextValue(int maxTextValue) {
 		this.maxTextValue = maxTextValue;
+	}
+
+	public boolean wasMenuChosen() {
+		return menuChosen;
+	}
+
+	public void setMenuChosen(boolean menuChosen) {
+		this.menuChosen = menuChosen;
 	}
 }
