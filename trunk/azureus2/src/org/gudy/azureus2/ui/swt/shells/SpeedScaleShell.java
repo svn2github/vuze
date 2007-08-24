@@ -62,6 +62,8 @@ public class SpeedScaleShell
 
 	private static final int TYPED_TEXT_ALPHA = 80;
 
+	private static final long CLOSE_DELAY = 600;
+
 	private int value;
 
 	private boolean cancelled;
@@ -85,7 +87,7 @@ public class SpeedScaleShell
 	private String sValue = "";
 
 	private Composite composite;
-	
+
 	private boolean menuChosen;
 
 	public static void main(String[] args) {
@@ -203,8 +205,8 @@ public class SpeedScaleShell
 
 			public void mouseExit(MouseEvent e) {
 				mouseIsOut = true;
-				SimpleTimer.addEvent("close scaler", SystemTime.getOffsetTime(1000),
-						new TimerEventPerformer() {
+				SimpleTimer.addEvent("close scaler",
+						SystemTime.getOffsetTime(CLOSE_DELAY), new TimerEventPerformer() {
 							public void perform(TimerEvent event) {
 								Utils.execSWTThread(new AERunnable() {
 									public void runSupport() {
@@ -563,13 +565,13 @@ public class SpeedScaleShell
 
 	public String _getStringValue() {
 		String name = (String) mapOptions.get(new Integer(value));
-		if (name != null) {
-			return name;
-		}
-		return getStringValue();
+		return getStringValue(value, name);
 	}
 
-	public String getStringValue() {
+	public String getStringValue(int value, String sValue) {
+		if (sValue != null) {
+			return sValue;
+		}
 		return "" + value;
 	}
 
