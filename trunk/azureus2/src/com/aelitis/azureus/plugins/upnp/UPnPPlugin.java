@@ -235,6 +235,10 @@ UPnPPlugin
 				}
 			});
 		
+		trace_to_log = upnp_config.addBooleanParameter2("upnp.trace_to_log", "upnp.trace_to_log", false);
+
+		final boolean	enabled = upnp_enable_param.getValue();
+		
 		upnp_enable_param.addEnabledOnSelection( alert_success_param );
 		upnp_enable_param.addEnabledOnSelection( grab_ports_param );
 		upnp_enable_param.addEnabledOnSelection( refresh_param );
@@ -246,10 +250,7 @@ UPnPPlugin
 		upnp_enable_param.addEnabledOnSelection( ignore_bad_devices );
 		upnp_enable_param.addEnabledOnSelection( ignored_devices_list );
 		upnp_enable_param.addEnabledOnSelection( reset_param );
-		
-		trace_to_log = upnp_config.addBooleanParameter2("upnp.trace_to_log", "upnp.trace_to_log", false);
-
-		final boolean	enabled = upnp_enable_param.getValue();
+		upnp_enable_param.addEnabledOnSelection( trace_to_log );
 		
 		natpmp_enable_param.setEnabled( enabled );
 		
