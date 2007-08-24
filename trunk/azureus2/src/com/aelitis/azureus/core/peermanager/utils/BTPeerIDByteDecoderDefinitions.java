@@ -250,6 +250,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("FG", "FlashGet", VER_AZ_SKIP_FIRST_ONE_MAJ_TWO_MIN);
 		addAzStyle("FT", "FoxTorrent/RedSwoosh");
 		addAzStyle("GR", "GetRight", "1.2");
+		addAzStyle("GS", "GSTorrent"); // TODO: Format is v"abcd"
 		addAzStyle("HL", "Halite", VER_AZ_THREE_DIGITS);
 		addAzStyle("HN", "Hydranode");
 		addAzStyle("KT", "KTorrent", VER_AZ_KTORRENT_STYLE);
@@ -314,15 +315,16 @@ public class BTPeerIDByteDecoderDefinitions {
 		addSimpleClient("G3 Torrent", "-G3");
 		addSimpleClient("GreedBT 2.7.1", "271-");
 		addSimpleClient("Hurricane Electric", "arclight");
+		addSimpleClient("HTTP Seed", "-WS" );	// used internally to denote incoming webseed connections
 		addSimpleClient("JVtorrent", "10-------");
 		addSimpleClient("Limewire", "LIME");
 		addSimpleClient("Martini Man", "martini");
+		addSimpleClient("Pando", "Pando");
 		addSimpleClient("SimpleBT", "btfans", 4);
 		addSimpleClient("Swarmy", "a00---0");
 		addSimpleClient("Swarmy", "a02---0");
 		addSimpleClient("Teeweety", "T00---0");
 		addSimpleClient("TorrentTopia", "346-");
-		addSimpleClient("HTTP Seed", "-WS" );	// used internally to denote incoming webseed connections
 		addSimpleClient("XanTorrent", "DansClient");
 		
 		// Clients with their own custom format and version number style.
