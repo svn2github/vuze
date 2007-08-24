@@ -14,6 +14,10 @@ public class TableViewTab extends AbstractIView
 	public void setTableView(TableViewSWT tv) {
 		this.tv = tv;
 	}
+	
+	public TableViewSWT getTableView() {
+		return tv;
+	}
 
 	public final void initialize(Composite composite) {
 		tv.initialize(composite);
