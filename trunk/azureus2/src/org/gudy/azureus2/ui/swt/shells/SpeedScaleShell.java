@@ -80,8 +80,6 @@ public class SpeedScaleShell
 
 	private Shell shell;
 
-	private boolean assumeMouseDown;
-
 	private LinkedHashMap mapOptions = new LinkedHashMap();
 
 	private String sValue = "";
@@ -89,6 +87,10 @@ public class SpeedScaleShell
 	private Composite composite;
 
 	private boolean menuChosen;
+
+	protected boolean lastMoveHadMouseDown;
+
+	private boolean assumeInitiallyDown;
 
 	public static void main(String[] args) {
 		SpeedScaleShell speedScaleWidget = new SpeedScaleShell() {
@@ -104,7 +106,8 @@ public class SpeedScaleShell
 		speedScaleWidget.addOption("Preset: 1b/s", 1);
 		speedScaleWidget.addOption("Preset: 1000b/s", 1000);
 		speedScaleWidget.addOption("Preset: A really long preset", 2000);
-		System.out.println("returns " + speedScaleWidget.open(1000) + " w/"
+		System.out.println("returns "
+				+ speedScaleWidget.open(1000, Constants.isWindows) + " w/"
 				+ speedScaleWidget.getValue());
 	}
 
@@ -122,17 +125,14 @@ public class SpeedScaleShell
 	 * Borks with 0 or -1 maxValue
 	 * 
 	 * @param startValue
+	 * @param assumeInitiallyDown 
 	 * @return
 	 *
 	 * @since 3.0.1.7
 	 */
-	public boolean open(int startValue) {
-		return open(startValue, false);
-	}
-
-	public boolean open(final int startValue, boolean _assumeMouseDown) {
+	public boolean open(final int startValue, boolean _assumeInitiallyDown) {
 		value = startValue;
-		assumeMouseDown = _assumeMouseDown;
+		this.assumeInitiallyDown = _assumeInitiallyDown;
 		cancelled = true;
 
 		shell = new Shell(Utils.findAnyShell(), SWT.DOUBLE_BUFFERED | SWT.ON_TOP);
@@ -184,8 +184,12 @@ public class SpeedScaleShell
 
 		composite.addMouseMoveListener(new MouseMoveListener() {
 			public void mouseMove(MouseEvent e) {
-				if ((e.stateMask & SWT.BUTTON_MASK) > 0 || assumeMouseDown) {
+				lastMoveHadMouseDown = false;
+				boolean hasButtonDown = (e.stateMask & SWT.BUTTON_MASK) > 0
+						|| assumeInitiallyDown;
+				if (hasButtonDown) {
 					if (e.y > HEIGHT - SCALER_HEIGHT) {
+						lastMoveHadMouseDown = true;
 						setValue(getValueFromMousePos(e.x));
 					}
 					composite.redraw();
@@ -233,11 +237,14 @@ public class SpeedScaleShell
 			boolean bMouseDown = false;
 
 			public void mouseUp(MouseEvent e) {
+				if (assumeInitiallyDown) {
+					assumeInitiallyDown = false;
+				}
 				if (MOUSE_ONLY_UP_EXITS) {
-					if (assumeMouseDown) {
+					if (lastMoveHadMouseDown) {
 						Point mousePos = display.getCursorLocation();
 						if (mousePos.equals(firstMousePos)) {
-							assumeMouseDown = false;
+							lastMoveHadMouseDown = false;
 							return;
 						}
 					}
@@ -247,7 +254,7 @@ public class SpeedScaleShell
 					if (e.y > HEIGHT - SCALER_HEIGHT) {
 						setValue(getValueFromMousePos(e.x));
 						setCancelled(false);
-						if (assumeMouseDown) {
+						if (lastMoveHadMouseDown) {
 							shell.dispose();
 						}
 					} else if (e.y > TEXT_HEIGHT) {
@@ -267,6 +274,11 @@ public class SpeedScaleShell
 			}
 
 			public void mouseDown(MouseEvent e) {
+				if (e.count > 1) {
+					lastMoveHadMouseDown = true;
+					return;
+				}
+				Point mousePos = display.getCursorLocation();
 				if (e.y > HEIGHT - SCALER_HEIGHT) {
 					bMouseDown = true;
 					setValue(getValueFromMousePos(e.x));
@@ -381,7 +393,8 @@ public class SpeedScaleShell
 						extent.x = WIDTH - 10;
 					}
 					Rectangle rect = new Rectangle(WIDTH - 8 - extent.x, 14,
-							extent.x + 5, extent.y + 4);
+							extent.x + 5, extent.y + 4 + 14 > TEXT_HEIGHT ? TEXT_HEIGHT - 15
+									: extent.y + 4);
 					e.gc.setBackground(display.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
 					e.gc.fillRectangle(rect);
 
@@ -488,9 +501,10 @@ public class SpeedScaleShell
 		}
 
 		shell.setBounds(bounds);
-		composite.setFocus();
 
 		shell.open();
+		// must be after, for OSX
+		composite.setFocus();
 
 		try {
 			while (!shell.isDisposed()) {

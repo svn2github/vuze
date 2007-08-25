@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.shells.InputShell;
@@ -391,7 +392,9 @@ public class SelectableSpeedMenu {
 					lastValue * 1024, true), lastValue);
 		}
 
-		if (speedScale.open(auto ? -1 : maxBandwidth, true)) {
+		// SWT BUG: on windows, if mouse is down on shell open, all mouse events
+		// will not reflect this
+		if (speedScale.open(auto ? -1 : maxBandwidth, Constants.isWindows)) {
 			int value = speedScale.getValue();
 
 			if (!speedScale.wasMenuChosen() || lastValue == value) {
