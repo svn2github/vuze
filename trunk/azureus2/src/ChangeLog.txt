@@ -3,7 +3,6 @@ AZUREUS CHANGELOG
 
 2007.09.xx | 3.0.2.1_CVS
 
-CHANGE: Core  | Speedup hash-checking by ~30% / less CPU usage [The 8472]
 CHANGE: UI    | Improved usability of speed scale widget. [TuxPaper]
 CHANGE: UI    | Restored reposition functionality of torrent context menus [TuxPaper]
 
