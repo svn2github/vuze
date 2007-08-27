@@ -709,7 +709,11 @@ DHTTransportUDPImpl
 		if ( 	( ia instanceof Inet4Address && v6  ) ||
 				( ia instanceof Inet6Address && !v6 )){
 			
-			throw( new DHTTransportException( "Address " + new_address + " is incompatible with protocol family for " + external_address ));
+				// reduce debug spam, just return
+			
+			// throw( new DHTTransportException( "Address " + new_address + " is incompatible with protocol family for " + external_address ));
+			
+			return;
 		}
 		
 		final String	new_ip = ia.getHostAddress();
