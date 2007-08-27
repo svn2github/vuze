@@ -647,6 +647,10 @@ public class MainWindow
   						if (decodedMap.containsKey("b64")) {
   							String b64 = MapUtils.getMapString(decodedMap, "b64", null);
   							return TorrentListener.loadTorrentByB64(core, b64);
+  						} else if (decodedMap.containsKey("url")) {
+  							String url = MapUtils.getMapString(decodedMap, "url", null);
+								TorrentListener.loadTorrent(core, url, MapUtils.getMapString(
+										decodedMap, "referer", null));
   						} else {
   							return false;
   						}
