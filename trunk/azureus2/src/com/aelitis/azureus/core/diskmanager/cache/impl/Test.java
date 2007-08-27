@@ -97,6 +97,11 @@ Test
 						{
 							return null;
 						}
+						public boolean
+						forceNoCache()
+						{
+							return( false );
+						}
 					},
 					f, CacheFile.CT_LINEAR );
 			
@@ -157,6 +162,11 @@ Test
 						getCacheFileControlFile(String name) 
 						{
 							return null;
+						}
+						public boolean
+						forceNoCache()
+						{
+							return( false );
 						}
 					},
 					f, CacheFile.CT_LINEAR );
@@ -219,6 +229,11 @@ Test
 						getCacheFileControlFile(String name) 
 						{
 							return null;
+						}
+						public boolean
+						forceNoCache()
+						{
+							return( false );
 						}
 					},
 					new File( "C:\\temp\\cachetest" + i + ".dat" ), CacheFile.CT_LINEAR);

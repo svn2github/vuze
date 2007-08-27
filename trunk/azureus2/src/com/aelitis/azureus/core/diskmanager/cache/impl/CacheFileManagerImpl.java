@@ -229,7 +229,7 @@ CacheFileManagerImpl
 			
 			CacheFile	cf;
 			
-			if (( tf != null && tf.getLength() < cache_files_not_smaller_than  ) || !cache_enabled ){ 
+			if (( tf != null && tf.getLength() < cache_files_not_smaller_than  ) || !cache_enabled || owner.forceNoCache()){ 
 				
 				cf = new CacheFileWithoutCache( this, fm_file, tf );
 				

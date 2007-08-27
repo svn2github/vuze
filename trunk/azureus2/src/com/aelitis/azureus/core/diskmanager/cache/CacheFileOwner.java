@@ -43,4 +43,7 @@ CacheFileOwner
 	public File
 	getCacheFileControlFile(
 		String	name );
+	
+	public boolean
+	forceNoCache();
 }

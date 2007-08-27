@@ -281,6 +281,8 @@ DiskManager
 	
 	public boolean isDone(int pieceNumber);
 
+	public boolean forceNoCache();
+	
 	public void
 	generateEvidence(
 		IndentWriter		writer );

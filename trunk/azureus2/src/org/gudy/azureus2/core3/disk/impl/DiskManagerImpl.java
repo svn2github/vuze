@@ -1313,7 +1313,6 @@ DiskManagerImpl
                 DiskManagerImpl.this.stop( false );
             }
         }.start();
-
     }
 
     public void
@@ -1345,9 +1344,14 @@ DiskManagerImpl
                 RDResumeHandler.recheckFile( download_manager, file );
             }
         }.start();
-
     }
 
+	public boolean
+	forceNoCache()
+	{
+		return( false );
+	}
+	
 	public DMPieceList
 	getPieceList(
 		int	piece_number )
@@ -2875,6 +2879,11 @@ DiskManagerImpl
                                                     {
                                                         return( download_manager.getDownloadState().getStateFile( name ));
                                                     }
+                            						public boolean
+                            						forceNoCache()
+                            						{
+                            							return( false );
+                            						}
                                                 },
                                                 target_file,
                                                 type==ST_LINEAR?CacheFile.CT_LINEAR:CacheFile.CT_COMPACT );
@@ -2991,6 +3000,11 @@ DiskManagerImpl
                                                         {
                                                             return( download_manager.getDownloadState().getStateFile( name ));
                                                         }
+                                						public boolean
+                                						forceNoCache()
+                                						{
+                                							return( false );
+                                						}
                                                     },
                                                     getFile( true ),
                                                     type==ST_LINEAR?CacheFile.CT_LINEAR:CacheFile.CT_COMPACT );
