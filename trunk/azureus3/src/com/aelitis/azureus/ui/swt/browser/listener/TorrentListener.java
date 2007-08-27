@@ -16,9 +16,11 @@ import org.gudy.azureus2.core3.util.TorrentUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
+import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.MapUtils;
 
 public class TorrentListener
@@ -60,7 +62,7 @@ public class TorrentListener
 			Map decodedMap = message.getDecodedMap();
 			String url = MapUtils.getMapString(decodedMap, "url", null);
 			if (url != null) {
-				loadTorrent(url, message.getReferer());
+				loadTorrent(core, url, message.getReferer());
 			} else {
 				loadTorrentByB64(core, message,
 						MapUtils.getMapString(decodedMap, "b64", null));
@@ -96,6 +98,7 @@ public class TorrentListener
 			FileUtil.writeBytesAsFile(filename, decodedTorrent);
 
 			TOTorrent torrent = TorrentUtils.readFromFile(tempTorrentFile, false);
+			// Security: Only allow torrents from whitelisted trackers
 			if (!PlatformTorrentUtils.isPlatformTracker(torrent)) {
 				return false;
 			}
@@ -117,14 +120,26 @@ public class TorrentListener
 		return true;
 	}
 
-	private void loadTorrent(String url, String referer) {
+	public static void loadTorrent(AzureusCore core, String url, String referer) {
+		boolean blocked = PlatformConfigMessenger.isURLBlocked(url);
+		// Security: Only allow torrents from whitelisted urls
+		if (blocked) {
+			return;
+		}
+
 		URL urlReferer = null;
-		try {
-			urlReferer = new URL(referer);
-		} catch (MalformedURLException e) {
-			Debug.out(e);
+		if (referer != null) {
+  		try {
+  			urlReferer = new URL(referer);
+  		} catch (MalformedURLException e) {
+  			Debug.out(e);
+  		}
 		}
 		try {
+			// If it's going to our URLs, add some extra authenication
+			if (url.indexOf("azid=") < 0) {
+				url += (url.indexOf('?') < 0 ? "?" : "&") + Constants.URL_SUFFIX;
+			}
 			core.getPluginManager().getDefaultPluginInterface().getDownloadManager().addDownload(
 					new URL(url), urlReferer);
 		} catch (Exception e) {
