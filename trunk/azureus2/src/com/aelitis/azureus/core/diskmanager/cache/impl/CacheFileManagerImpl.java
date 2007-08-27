@@ -896,53 +896,58 @@ CacheFileManagerImpl
 		try{
 			writer.indent();
 			
+			Iterator it;
+			
+				// grab a copy to avoid potential deadlock as we never take the manager monitor
+				// and then the file's own monitor, always the other way around
+			
 			try{
 				this_mon.enter();
 
-				writer.println( "Entries = " + cache_entries.size());
-				
-				Iterator it = cache_entries.keySet().iterator();
-				
-				Set	files = new HashSet();
-				
-				while( it.hasNext()){
-					
-					CacheEntry	entry = (CacheEntry)it.next();
-					
-					CacheFileWithCache file = entry.getFile();
-					
-					if( !files.contains( file )){
-						
-						files.add( file );
-						
-						TOTorrentFile torrentFile = file.getTorrentFile();
-						String fileLength = "";
-						try {
-							fileLength = "" + file.getLength();
-						} catch (Exception e) {
-							if (torrentFile != null)
-								fileLength = "" + torrentFile.getLength();
-						}
-						String	hash = "<unknown>";
-						
-						try{
-							if (torrentFile != null)
-								hash = ByteFormatter.encodeString( torrentFile.getTorrent().getHash());
-							
-						}catch( Throwable e ){
-						}
-						
-						String name = file.getName();
+				it = new ArrayList( cache_entries.keySet()).iterator();
 
-						writer.println("File: " + Debug.secretFileName(name) + ", size "
-								+ fileLength + ", torrent " + hash + ", access = "
-								+ file.getAccessMode());
-					}
-				}
-				
 			}finally{
 				
 				this_mon.exit();
+			}
+			
+			writer.println( "Entries = " + cache_entries.size());
+							
+			Set	files = new HashSet();
+			
+			while( it.hasNext()){
+				
+				CacheEntry	entry = (CacheEntry)it.next();
+				
+				CacheFileWithCache file = entry.getFile();
+				
+				if( !files.contains( file )){
+					
+					files.add( file );
+					
+					TOTorrentFile torrentFile = file.getTorrentFile();
+					String fileLength = "";
+					try {
+						fileLength = "" + file.getLength();
+					} catch (Exception e) {
+						if (torrentFile != null)
+							fileLength = "" + torrentFile.getLength();
+					}
+					String	hash = "<unknown>";
+					
+					try{
+						if (torrentFile != null)
+							hash = ByteFormatter.encodeString( torrentFile.getTorrent().getHash());
+						
+					}catch( Throwable e ){
+					}
+					
+					String name = file.getName();
+
+					writer.println("File: " + Debug.secretFileName(name) + ", size "
+							+ fileLength + ", torrent " + hash + ", access = "
+							+ file.getAccessMode());
+				}
 			}
 		}finally{
 			
