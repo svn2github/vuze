@@ -305,9 +305,13 @@ public class URLTransfer extends ByteArrayTransfer {
 		for (int i = 0; i < supportedTypeIds.length; i++) {
 			int supportedTypeID = supportedTypeIds[i];
 			for (int j = 0; j < dataTypes.length; j++) {
-				TransferData data = dataTypes[j];
-				if (supportedTypeID == data.type)
-					return data;
+				try {
+  				TransferData data = dataTypes[j];
+  				if (supportedTypeID == data.type)
+  					return data;
+				} catch (Throwable t) {
+					Debug.out("Picking Best Type", t);
+				}
 			}
 		}
 		return def;
