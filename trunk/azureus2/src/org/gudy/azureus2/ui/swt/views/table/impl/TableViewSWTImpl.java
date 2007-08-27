@@ -2507,6 +2507,9 @@ public class TableViewSWTImpl
 		}
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
+				if (table.isDisposed()) {
+					return;
+				}
 				TableItem[] tis = table.getSelection();
 				for (int i = 0; i < tis.length; i++) {
 					TableRowSWT row = (TableRowSWT) getRow(tis[i]);
