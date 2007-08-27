@@ -1,10 +1,14 @@
 AZUREUS CHANGELOG
 -----------------
 
-2007.09.xx | 3.0.2.1_CVS
+2007.08.xx | 3.0.2.1_CVS
 
 CHANGE: UI    | Improved usability of speed scale widget. [TuxPaper]
 CHANGE: UI    | Restored reposition functionality of torrent context menus [TuxPaper]
+
+BUGFIX: Core  | *nix: Allowing multi-instance now works again [TuxPaper]
+BUGFIX: UI    | Mac: Fixed not remembering user turned of Maximized state [TuxPaper]
+BUGFIX: UI    | A few config pages had their labels missing [TuxPaper]
 
 
 2007.08.16 | Azureus 3.0.2.0
