@@ -127,6 +127,7 @@ public class MyTorrentsView
 
   // table item index, where the drag has started
   private int drag_drop_line_start = -1;
+  private TableRowCore[] drag_drop_rows = null;
 
 	private TimerEvent searchUpdateEvent;
   private String sLastSearch = "";
@@ -519,6 +520,7 @@ public class MyTorrentsView
             //System.out.println("DragDrop on Button:" + drag_drop_line_start);
             if(drag_drop_line_start >= 0) {
               drag_drop_line_start = -1;
+              drag_drop_rows = null;
 
               TorrentUtil.assignToCategory(tv.getSelectedDataSources(), (Category)catButton.getData("Category"));
             }
@@ -842,11 +844,10 @@ public class MyTorrentsView
 
   }
 
-  private void createDragDrop() {
-    try {
+	private void createDragDrop() {
+		try {
 
-			Transfer[] types = new Transfer[] { TextTransfer.getInstance()
-			};
+			Transfer[] types = new Transfer[] { TextTransfer.getInstance() };
 
 			if (dragSource != null && !dragSource.isDisposed()) {
 				dragSource.dispose();
@@ -864,16 +865,18 @@ public class MyTorrentsView
 						TableRowCore[] rows = tv.getSelectedRows();
 						if (rows.length != 0) {
 							event.doit = true;
-							//System.out.println("DragStart"); 
+							// System.out.println("DragStart");
 							drag_drop_line_start = rows[0].getIndex();
+							drag_drop_rows = rows;
 						} else {
 							event.doit = false;
 							drag_drop_line_start = -1;
+							drag_drop_rows = null;
 						}
 					}
 
 					public void dragSetData(DragSourceEvent event) {
-						//System.out.println("DragSetData"); 
+						// System.out.println("DragSetData");
 						event.data = "moveRow";
 					}
 				});
@@ -883,18 +886,12 @@ public class MyTorrentsView
 					| DND.DROP_COPY | DND.DROP_LINK | DND.DROP_TARGET_MOVE);
 			if (dropTarget != null) {
 				if (SWT.getVersion() >= 3107) {
-					dropTarget.setTransfer(new Transfer[] {
-						HTMLTransfer.getInstance(),
-						URLTransfer.getInstance(),
-						FileTransfer.getInstance(),
-						TextTransfer.getInstance()
-					});
+					dropTarget.setTransfer(new Transfer[] { HTMLTransfer.getInstance(),
+							URLTransfer.getInstance(), FileTransfer.getInstance(),
+							TextTransfer.getInstance() });
 				} else {
-					dropTarget.setTransfer(new Transfer[] {
-						URLTransfer.getInstance(),
-						FileTransfer.getInstance(),
-						TextTransfer.getInstance()
-					});
+					dropTarget.setTransfer(new Transfer[] { URLTransfer.getInstance(),
+							FileTransfer.getInstance(), TextTransfer.getInstance() });
 				}
 
 				dropTarget.addDropListener(new DropTargetAdapter() {
@@ -904,8 +901,8 @@ public class MyTorrentsView
 					}
 
 					public void dragEnter(DropTargetEvent event) {
-						// no event.data on dragOver, use drag_drop_line_start to determine if
-						// ours
+						// no event.data on dragOver, use drag_drop_line_start to determine
+						// if ours
 						if (drag_drop_line_start < 0) {
 							if (event.detail != DND.DROP_COPY) {
 								if ((event.operations & DND.DROP_LINK) > 0)
@@ -915,10 +912,15 @@ public class MyTorrentsView
 							}
 						} else if (TextTransfer.getInstance().isSupportedType(
 								event.currentDataType)) {
-							event.feedback = DND.FEEDBACK_EXPAND | DND.FEEDBACK_SCROLL
-									| DND.FEEDBACK_SELECT | DND.FEEDBACK_INSERT_BEFORE
-									| DND.FEEDBACK_INSERT_AFTER;
 							event.detail = event.item == null ? DND.DROP_NONE : DND.DROP_MOVE;
+							event.feedback = DND.FEEDBACK_SCROLL | DND.FEEDBACK_INSERT_BEFORE;
+						}
+					}
+
+					public void dragOver(DropTargetEvent event) {
+						if (drag_drop_line_start >= 0) {
+							event.detail = event.item == null ? DND.DROP_NONE : DND.DROP_MOVE;
+							event.feedback = DND.FEEDBACK_SCROLL | DND.FEEDBACK_INSERT_BEFORE;
 						}
 					}
 
@@ -929,6 +931,7 @@ public class MyTorrentsView
 							return;
 						}
 
+						event.detail = DND.DROP_NONE;
 						// Torrent file from shell dropped
 						if (drag_drop_line_start >= 0) { // event.data == null
 							event.detail = DND.DROP_NONE;
@@ -936,29 +939,29 @@ public class MyTorrentsView
 							if (row == null)
 								return;
 							int drag_drop_line_end = row.getIndex();
-					    if (drag_drop_line_end != drag_drop_line_start) {
-								moveSelectedTorrentsTo(row);
-					    }
+							if (drag_drop_line_end != drag_drop_line_start) {
+								DownloadManager dm = (DownloadManager) row.getDataSource(true);
+								moveRowsTo(drag_drop_rows, dm.getPosition());
+								event.detail = DND.DROP_MOVE;
+							}
 							drag_drop_line_start = -1;
+							drag_drop_rows = null;
 						}
 					}
 				});
 			}
 
+		} catch (Throwable t) {
+			Logger.log(new LogEvent(LOGID, "failed to init drag-n-drop", t));
 		}
-    catch( Throwable t ) {
-    	Logger.log(new LogEvent(LOGID, "failed to init drag-n-drop", t));
-    }
-  }
+	}
 
-  private void moveSelectedTorrentsTo(TableRowCore row) {
-    DownloadManager dm = (DownloadManager)row.getDataSource(true);
-    moveSelectedTorrentsTo(dm.getPosition());
+  private void moveSelectedTorrentsTo(int iNewPos) {
+    moveRowsTo(tv.getSelectedRows(), iNewPos);
   }
   
-  private void moveSelectedTorrentsTo(int iNewPos) {
-    TableRowCore[] rows = tv.getSelectedRows();
-    if (rows.length == 0) {
+  private void moveRowsTo(TableRowCore[] rows, int iNewPos) {
+    if (rows == null || rows.length == 0) {
       return;
     }
     
