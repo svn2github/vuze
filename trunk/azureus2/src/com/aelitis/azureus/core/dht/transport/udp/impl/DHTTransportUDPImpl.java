@@ -23,6 +23,8 @@
 package com.aelitis.azureus.core.dht.transport.udp.impl;
 
 import java.io.*;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.security.SecureRandom;
@@ -700,6 +702,14 @@ DHTTransportUDPImpl
 			Debug.out( "reported new external address '" + new_address + "' is unresolved" );
 			
 			throw( new DHTTransportException( "Address '" + new_address + "' is unresolved" ));
+		}
+		
+			// dump addresses incompatible with our protocol
+		
+		if ( 	( ia instanceof Inet4Address && v6  ) ||
+				( ia instanceof Inet6Address && !v6 )){
+			
+			throw( new DHTTransportException( "Address " + new_address + " is incompatible with protocol family for " + external_address ));
 		}
 		
 		final String	new_ip = ia.getHostAddress();
