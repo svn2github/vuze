@@ -157,8 +157,8 @@ public class BrowserContext
 						+ "',"
 						+ "{ 'azv':'"
 						+ org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION
-						+ "' }"
-						+ "); } } catch (e) {}");
+						+ "', 'browser-id':'" + getID() + "' }"
+						+ ");} } catch (e) { }");
 
 				if (org.gudy.azureus2.core3.util.Constants.isCVSVersion()
 						|| System.getProperty("debug.https", null) != null) {

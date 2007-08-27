@@ -99,8 +99,11 @@ public class SWTSkinObjectBrowser
 			}
 		}
 
-		context = new BrowserContext(sID, browser,
-				widgetIndicator);
+		String browserID = properties.getStringValue(sConfigID + ".view");
+		if (browserID == null) {
+			browserID = sID;
+		}
+		context = new BrowserContext(browserID, browser, widgetIndicator);
 		context.addMessageListener(new TorrentListener(core));
 		context.addMessageListener(new DisplayListener(browser));
 		context.addMessageListener(new ConfigListener(browser));
