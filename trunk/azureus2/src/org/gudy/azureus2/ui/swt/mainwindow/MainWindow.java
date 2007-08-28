@@ -1774,6 +1774,17 @@ MainWindow
 	
 	public static void addToVersionCheckMessage(final Map map) {
 		try {
+			if (window == null || window.shell == null || window.shell.isDisposed()) {
+				Point size = getStoredWindowSize();
+				if (size == null) {
+					return;
+				}
+
+				map.put("mainwindow.w", new Long(size.x));
+				map.put("mainwindow.h", new Long(size.y));
+				return;
+			}
+
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					Point size = null;
@@ -1796,7 +1807,7 @@ MainWindow
 				}
 
 			}, false);
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			e.printStackTrace();
 		}
 	}
