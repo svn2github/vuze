@@ -272,7 +272,7 @@ DownloadManagerEnhancer
 		
 		if ( ms_pi != null ){
 			
-			progressive_enabled = true;
+			progressive_enabled = ms_pi.isOperational();
 		}
 		
 		return( progressive_enabled );
