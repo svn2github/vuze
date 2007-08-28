@@ -1,5 +1,5 @@
 $ 
-$    Tervetuloa käyttämään versiota 3.0.2.0
+$    Tervetuloa käyttämään versiota 3.0.2.2
 $ 
 
 Azureus 3.0.2.0 palauttaa versionumeroinnin yhteneväksi ja vähentää näin epäselvyyksiä siitä, mikä 2.x-sarjan versio vastaa mitäkin 3.x-sarjan versiota. Tämänhetkiset 2.x-sarjan käyttäjät saavat päivityksen myötä edelleen perinteisen käyttöliittymän, kun taas uudet ja vanhat 3.x-sarjan käyttäjät saavat oletuksena Vuze-käyttöliittymän. Käyttöliittymästä voi vaihtaa vapaasti toiseen.
