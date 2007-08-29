@@ -1,6 +1,10 @@
 AZUREUS CHANGELOG
 -----------------
 
+2007.09.xx | v3.0.2.3_CVS
+
+
+
 2007.08.29 | v3.0.2.2
 
 CHANGE: UI    | Improved usability of speed scale widget. [TuxPaper]
