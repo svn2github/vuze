@@ -1,16 +1,17 @@
 AZUREUS CHANGELOG
 -----------------
 
-2007.08.xx | 3.0.2.1_CVS
+2007.08.29 | v3.0.2.2
 
 CHANGE: UI    | Improved usability of speed scale widget. [TuxPaper]
 CHANGE: UI    | Restored reposition functionality of torrent context menus [TuxPaper]
 
 BUGFIX: Core  | *nix: Allowing multi-instance now works again [TuxPaper]
-BUGFIX: UI    | Mac: Fixed not remembering user turned of Maximized state [TuxPaper]
-BUGFIX: UI    | Mac: Fixed Drag and Drop for moving torrents in My Torrents view [TuxPaper]
-BUGFIX: UI    | A few config pages had their labels missing [TuxPaper]
 BUGFIX: Core  | IPv6 DHT v4 pollution fix [Parg]
+BUGFIX: UI    | MacOSX: Fixed not remembering user turned off Maximized state [TuxPaper]
+BUGFIX: UI    | MacOSX: Fixed Drag and Drop for moving torrents in My Torrents view [TuxPaper]
+BUGFIX: UI    | A few config pages had their labels missing [TuxPaper]
+
 
 
 2007.08.16 | Azureus 3.0.2.0
