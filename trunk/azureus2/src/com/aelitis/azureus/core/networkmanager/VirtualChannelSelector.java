@@ -94,9 +94,12 @@ public class VirtualChannelSelector {
   }
   
   private void initSafeMode() {
-    if (Logger.isEnabled())
-			Logger.log(new LogEvent(LOGID,
-					"*** SAFE SOCKET SELECTOR MODE ENABLED ***"));
+	System.out.println( "***************** SAFE SOCKET SELECTOR MODE ENABLED *****************" );
+	
+    if (Logger.isEnabled()) {
+    	Logger.log(new LogEvent(LOGID, "***************** SAFE SOCKET SELECTOR MODE ENABLED *****************"));
+    }
+    
     selector_impl = null;
     selectors = new HashMap();
     selectors_mon = new AEMonitor( "VirtualChannelSelector:FM" );

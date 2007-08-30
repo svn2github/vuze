@@ -113,14 +113,14 @@ public class SelectorGuard {
     
     
     if( consecutiveZeroSelects > SELECTOR_SPIN_THRESHOLD ) {
-      if( Constants.isWindows ) {
-        //under windows, it seems that selector spin can sometimes appear when >63 socket channels are registered with a selector
+      if( Constants.isWindows && (Constants.JAVA_VERSION.startsWith("1.4") || Constants.JAVA_VERSION.startsWith("1.5"))) {
+        //Under windows, it seems that selector spin can sometimes appear when >63 socket channels are registered with a selector
+    	//Should be fixed in later 1.5, but play it safe and assume 1.6 or newer only.
         if( !listener.safeModeSelectEnabled() ) {
           String msg = "Likely faulty socket selector detected: reverting to safe-mode socket selection. [JRE " +Constants.JAVA_VERSION+"]\n";
           msg += "Please see " +Constants.AZUREUS_WIKI+ "LikelyFaultySocketSelector for help.";
           Debug.out( msg );
-          Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING,
-							msg));
+          Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING, msg));
         
           consecutiveZeroSelects = 0;
           listener.spinDetected();
