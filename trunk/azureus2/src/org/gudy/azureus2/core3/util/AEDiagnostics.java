@@ -117,7 +117,7 @@ AEDiagnostics
 			
 			debug_save_dir	= new File( debug_dir, "save" );
 			
-			loggers_enabled = COConfigurationManager.getBooleanParameter( "Logger.DebugFiles.Enabled", true );
+			loggers_enabled = COConfigurationManager.getBooleanParameter( "Logger.DebugFiles.Enabled");
 
 			boolean	was_tidy	= COConfigurationManager.getBooleanParameter( CONFIG_KEY );
 			

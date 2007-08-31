@@ -143,7 +143,7 @@ TRHostConfigImpl
 				 	
 				 	}else{
 						
-						if ( COConfigurationManager.getBooleanParameter( "Tracker Public Enable", false )){
+						if ( COConfigurationManager.getBooleanParameter( "Tracker Public Enable")){
 			 		
 				 			host.addExternalTorrent( hash, state, date_added );
 						}
@@ -405,7 +405,7 @@ TRHostConfigImpl
 			   		
 			   		FileUtil.writeResilientConfigFile( "tracker.config", map );
 				   	
-					if ( 	COConfigurationManager.getBooleanParameter( "Tracker Log Enable", false ) &&
+					if ( 	COConfigurationManager.getBooleanParameter( "Tracker Log Enable") &&
 							stats_entries.size() > 0 ){
 				   		
 					   	try{

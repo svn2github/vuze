@@ -421,7 +421,7 @@ TRHostImpl
 					protocol = TRTrackerServerFactory.PR_DHT;
 				}
 				
-				boolean force_external = COConfigurationManager.getBooleanParameter("Tracker Port Force External", false );
+				boolean force_external = COConfigurationManager.getBooleanParameter("Tracker Port Force External");
 				
 				port = announce_url.getPort();
 				

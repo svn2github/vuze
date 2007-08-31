@@ -156,7 +156,7 @@ TRTrackerServerProcessor
 				
 				if ( torrent == null ){
 					
-					if ( !COConfigurationManager.getBooleanParameter( "Tracker Public Enable", false )){
+					if ( !COConfigurationManager.getBooleanParameter( "Tracker Public Enable")){
 						
 						throw( new TRTrackerServerException( "Torrent unauthorised" ));
 						
@@ -316,7 +316,7 @@ TRTrackerServerProcessor
 					
 					if ( torrent == null ){
 						
-						if ( !COConfigurationManager.getBooleanParameter( "Tracker Public Enable", false )){
+						if ( !COConfigurationManager.getBooleanParameter( "Tracker Public Enable")){
 							
 							continue;
 							

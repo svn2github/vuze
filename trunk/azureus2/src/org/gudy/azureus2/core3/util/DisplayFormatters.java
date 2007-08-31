@@ -83,7 +83,7 @@ DisplayFormatters
     private static boolean	data_stats_only;
     
 	static{
-		use_si_units = COConfigurationManager.getBooleanParameter("config.style.useSIUnits", false);
+		use_si_units = COConfigurationManager.getBooleanParameter("config.style.useSIUnits");
 
 		COConfigurationManager.addParameterListener( "config.style.useSIUnits",
 				new ParameterListener()
@@ -92,13 +92,13 @@ DisplayFormatters
 					parameterChanged(
 						String	value )
 					{
-						use_si_units = COConfigurationManager.getBooleanParameter("config.style.useSIUnits", false);
+						use_si_units = COConfigurationManager.getBooleanParameter("config.style.useSIUnits");
 
 						setUnits();
 					}
 				});
 
-		use_units_rate_bits = COConfigurationManager.getBooleanParameter("config.style.useUnitsRateBits", false);
+		use_units_rate_bits = COConfigurationManager.getBooleanParameter("config.style.useUnitsRateBits");
 
 		COConfigurationManager.addParameterListener( "config.style.useUnitsRateBits",
 				new ParameterListener()
@@ -107,13 +107,13 @@ DisplayFormatters
 					parameterChanged(
 						String	value )
 					{
-						use_units_rate_bits = COConfigurationManager.getBooleanParameter("config.style.useUnitsRateBits", false);
+						use_units_rate_bits = COConfigurationManager.getBooleanParameter("config.style.useUnitsRateBits");
 
 						setUnits();
 					}
 				});
 
-	    not_use_GB_TB = COConfigurationManager.getBooleanParameter("config.style.doNotUseGB", false);
+	    not_use_GB_TB = COConfigurationManager.getBooleanParameter("config.style.doNotUseGB");
 	    unitsStopAt = (not_use_GB_TB) ? UNIT_MB : UNIT_TB;
 	
 	    COConfigurationManager.addParameterListener( "config.style.doNotUseGB",
@@ -123,7 +123,7 @@ DisplayFormatters
 	          parameterChanged(
 	            String  value )
 	          {
-	            not_use_GB_TB = COConfigurationManager.getBooleanParameter("config.style.doNotUseGB", false);
+	            not_use_GB_TB = COConfigurationManager.getBooleanParameter("config.style.doNotUseGB");
 	            unitsStopAt = (not_use_GB_TB) ? UNIT_MB : UNIT_TB;
 	
 							setUnits();
@@ -151,8 +151,8 @@ DisplayFormatters
 					parameterChanged(
 						String	x )
 					{
-						separate_prot_data_stats = COConfigurationManager.getBooleanParameter("config.style.separateProtDataStats", false );
-						data_stats_only			 = COConfigurationManager.getBooleanParameter("config.style.dataStatsOnly", false);
+						separate_prot_data_stats = COConfigurationManager.getBooleanParameter("config.style.separateProtDataStats");
+						data_stats_only			 = COConfigurationManager.getBooleanParameter("config.style.dataStatsOnly");
 					}
 				});
 
