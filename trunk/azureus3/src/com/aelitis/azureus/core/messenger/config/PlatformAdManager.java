@@ -161,7 +161,8 @@ public class PlatformAdManager
 
 			parameters.put("hash",
 					dmToPlay.getTorrent().getHashWrapper().toBase32String());
-			parameters.put("content-url", URLToPlay);
+			parameters.put("content-url", URLToPlay.replaceAll("^file:/([^/])",
+					"file:///$1"));
 			parameters.put("tracking-urls", new String[] {
 				trackingURL
 			});
@@ -180,7 +181,9 @@ public class PlatformAdManager
 					mapAd.put("hash", hash);
 					mapAd.put("id", adid);
 					String sAdFile = dm.getDownloadState().getPrimaryFile();
-					mapAd.put("local-url", new File(sAdFile).toURL().toString());
+					String url = new File(sAdFile).toURL().toString().replaceAll(
+							"^file:/([^/])", "file:///$1");
+					mapAd.put("local-url", url);
 
 					ads.add(mapAd);
 				} catch (TOTorrentException e) {
@@ -198,6 +201,7 @@ public class PlatformAdManager
 				public void replyReceived(PlatformMessage message, String replyType,
 						Map reply) {
 					if (!replyType.equals(PlatformMessenger.REPLY_RESULT)) {
+						debug("getPlayList returned error of: " + reply.get("message"));
 						replyListener.replyReceived(replyType, null);
 						return;
 					}
@@ -269,7 +273,7 @@ public class PlatformAdManager
 		} finally {
 			mon_unsentImpressions.exit();
 		}
-		
+
 		if (sendingImpressions.size() == 0) {
 			return;
 		}
