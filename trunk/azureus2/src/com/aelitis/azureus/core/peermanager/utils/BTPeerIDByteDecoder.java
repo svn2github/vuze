@@ -119,7 +119,7 @@ public class BTPeerIDByteDecoder {
 			if (client != null) {return client;}
 			client = decodeBitCometClient(peer_id, peer_id_bytes);
 			if (client != null) {return client;}
-			return "BitSpirit (" + BAD_PEER_ID + ")";
+			return "BitSpirit? (" + BAD_PEER_ID + ")";
 		}
 
 		/**
@@ -145,6 +145,15 @@ public class BTPeerIDByteDecoder {
 				if ("\u00B5Torrent 6.0.0 Beta".equals(client_with_version)) {
 					return "BitTorrent 6.0 Beta";
 				}
+				
+				/**
+				 * If it's the rakshasa libtorrent, then it's probably rTorrent.
+				 */
+				if (client.startsWith("libTorrent (Rakshasa)")) {
+					String client_name = (client_with_version == null) ? client : client_with_version;
+					return client_name + " / rTorrent*";
+				}
+				
 
 				
 				if (client_with_version != null) {return client_with_version;}
@@ -420,7 +429,7 @@ public class BTPeerIDByteDecoder {
 		assertDecode("GetRight 6.3", "-GR6300-13s3iFKmbArc");
 		assertDecode("Halite 0.2.9", "-HL0290-xUO*9ugvENUE");
 		assertDecode("KTorrent 1.1 RC1", "-KT11R1-693649213030");
-		assertDecode("libTorrent (Rakshasa) 0.11.2", "2D6C74304232302D0D739B93E6BE21FEBB557B20");
+		assertDecode("libTorrent (Rakshasa) 0.11.2 / rTorrent*", "2D6C74304232302D0D739B93E6BE21FEBB557B20");
 		assertDecode("libtorrent (Rasterbar) 0.13.0", "-LT0D00-eZ0PwaDDr-~v"); // The latest version at time of writing is v0.12, but I'll assume this is valid.
 		assertDecode("LimeWire", "2D4C57303030312D31E0B3A0B46F7D4E954F4103");
 		assertDecode("Shareaza 2.1.3.2", "2D535A323133322D000000000000000000000000");
@@ -470,7 +479,7 @@ public class BTPeerIDByteDecoder {
 		System.out.println("Testing BitComet/Lord/Spirit clients...");
 		assertDecode("BitComet 0.56", "6578626300387A4463102D6E9AD6723B339F35A9");
 		assertDecode("BitLord 0.56", "6578626300384C4F52443200048ECED57BD71028");
-		assertDecode("BitSpirit (" + BAD_PEER_ID + ")", "4D342D302D322D2D6898D9D0CAF25E4555445030");
+		assertDecode("BitSpirit? (" + BAD_PEER_ID + ")", "4D342D302D322D2D6898D9D0CAF25E4555445030");
 		assertDecode("BitSpirit v2", "000242539B7ED3E058A8384AA748485454504254");
 		assertDecode("BitSpirit v3", "00034253 07248896 44C59530 8A5FF2CA 55445030");
 		System.out.println();
