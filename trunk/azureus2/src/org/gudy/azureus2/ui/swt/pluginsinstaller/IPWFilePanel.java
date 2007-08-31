@@ -108,7 +108,7 @@ public class IPWFilePanel extends AbstractWizardPanel {
     String error_message = null;
     try {
       File f = new File(fileName);
-      if(f.exists() && (f.getName().endsWith(".jar") || f.getName().endsWith(".zip")) ) {
+      if(f.isFile() && (f.getName().endsWith(".jar") || f.getName().endsWith(".zip")) ) {
         wizard.setErrorMessage("");
         wizard.setNextEnabled(true);
         List list = new ArrayList();
@@ -127,7 +127,13 @@ public class IPWFilePanel extends AbstractWizardPanel {
     }
     valid = false;
     if (!fileName.equals("")) {
-    	String error_message_full = MessageText.getString("installPluginsWizard.file.invalidfile");
+    	String error_message_full;
+    	if (new File(fileName).isFile()) {
+    		error_message_full = MessageText.getString("installPluginsWizard.file.invalidfile");
+    	}
+    	else {
+    		error_message_full = MessageText.getString("installPluginsWizard.file.no_such_file");
+    	}
     	if (error_message != null) {error_message_full += " (" + error_message + ")";}
     	wizard.setErrorMessage(error_message_full);
     	wizard.setNextEnabled(false);
