@@ -144,30 +144,15 @@ StartServer
 								+ line + "'"));
       	 
           if (line != null) {
-            StringTokenizer st = new StringTokenizer(line, ";");           
-            int i = 0;
-            if(st.countTokens() > 1) {
-            	String args[] = new String[st.countTokens() - 1];
-            	String checker = st.nextToken();
-            	if(checker.equals(AzureusCoreSingleInstanceClient.ACCESS_STRING)) {
-                	
-            		String debug_str = "";
-                  	
-            		while (st.hasMoreElements()) {              
-            			String bit = st.nextToken().replaceAll("&;", ";").replaceAll("&&", "&");
-                    
-            			debug_str += (debug_str.length()==0?"":" ; ") + bit;
-                    
-            			args[i++] = bit;
-            		}
-                  
-            		Logger.log(new LogEvent(LOGID,
-										"Main::startServer: decoded to '" + debug_str + "'"));
-                  
-              	                  
-                  processArgs(azureus_core,args);
-                }
-            }
+        	  String [] args = parseArgs(line);
+        	  if (args != null && args.length > 0) {
+        		  String debug_str = args[0];
+        		  for (int i=1; i<args.length; i++) {
+        			  debug_str += " ; " + args[i];
+        		  }
+        		  Logger.log(new LogEvent(LOGID, "Main::startServer: decoded to '" + debug_str + "'"));
+        		  processArgs(azureus_core,args);
+        	  }
           }
         }
         sck.close();
@@ -186,7 +171,27 @@ StartServer
       }
     }
   }
+  
+  private static String[] parseArgs(String line) {
+	  if (!line.startsWith(AzureusCoreSingleInstanceClient.ACCESS_STRING + ";")) {return null;}
 
+	  // I'm sure there's a lovely regex which could do this, but I can't be bothered to figure
+	  // it out.
+	  ArrayList parts = new ArrayList();
+	  StringBuffer buf = new StringBuffer();
+	  boolean escape_mode = false;
+	  char c;
+	  for (int i=AzureusCoreSingleInstanceClient.ACCESS_STRING.length() + 1; i<line.length(); i++) {
+		  c = line.charAt(i);
+		  if (escape_mode) {buf.append(c); escape_mode = false;}
+		  else if (c == '&') {escape_mode = true;}
+		  else if (c == ';') {parts.add(buf.toString()); buf.setLength(0);}
+		  else {buf.append(c);}
+	  }
+	  if (buf.length() > 0) {parts.add(buf.toString());}
+	  return (String[])parts.toArray(new String[parts.size()]);
+		  
+  }
   
   protected void 
   processArgs(
@@ -413,6 +418,40 @@ StartServer
    */
   public int getState() {
     return state;
+  }
+  
+  // Test argument parsing code.
+  public static void main(String [] args) {
+	  String[] input_tests = new String[] {
+		  "a;b;c",
+		  "test",
+		  AzureusCoreSingleInstanceClient.ACCESS_STRING + ";b;c;d", // Simple test
+		  AzureusCoreSingleInstanceClient.ACCESS_STRING + ";b;c&;d;e", // Less simple test
+		  AzureusCoreSingleInstanceClient.ACCESS_STRING + ";b;c&&;d;e", // Even less simple test
+		  AzureusCoreSingleInstanceClient.ACCESS_STRING + ";b;c&&&;d;e", // Awkward test
+	  };
+	  
+	  String[][] output_results = new String[][] {
+        null,
+        null,
+        new String[] {"b", "c", "d"},
+        new String[] {"b", "c;d", "e"},
+        new String[] {"b", "c&", "d", "e"},
+        new String[] {"b", "c&;d", "e"},
+	  };
+	  
+	  for (int i=0; i<input_tests.length; i++) {
+		  System.out.println("Testing: " + input_tests[i]);
+		  String[] result = parseArgs(input_tests[i]);
+		  if (result == output_results[i]) {continue;}
+		  if (Arrays.equals(result, output_results[i])) {continue;}
+		  System.out.println("TEST FAILED");
+		  System.out.println("  Expected: " + Arrays.asList(output_results[i]));
+		  System.out.println("  Decoded : " + Arrays.asList(result));
+		  System.exit(1);
+	  }
+	  
+	  System.out.println("Done.");
   }
 
 }
