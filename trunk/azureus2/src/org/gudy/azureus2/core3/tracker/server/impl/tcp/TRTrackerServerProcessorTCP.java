@@ -112,7 +112,9 @@ TRTrackerServerProcessorTCP
 		throws IOException
 	{
 		String	str = url_path;
-				
+			
+		int	request_type	= TRTrackerServerRequest.RT_UNKNOWN;
+
 		try{
 			Map	root = null;
 				
@@ -122,9 +124,8 @@ TRTrackerServerProcessorTCP
 			
 			boolean		xml_output		= false;
 			
-			try{
-				int	request_type;
 			
+			try{
 				if ( str.startsWith( "/announce?" )){
 					
 					request_type	= TRTrackerServerRequest.RT_ANNOUNCE;
@@ -745,7 +746,7 @@ TRTrackerServerProcessorTCP
 					
 			os.write( data );
 			
-			server.updateStats( specific_torrent, input_header.length(), header_len+data.length );
+			server.updateStats( request_type, specific_torrent, input_header.length(), header_len+data.length );
 							
 		}finally{
 			

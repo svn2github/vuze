@@ -566,6 +566,7 @@ TRTrackerServerImpl
 	
 	public void
 	updateStats(
+		int							request_type,					
 		TRTrackerServerTorrentImpl	torrent,
 		int							bytes_in,
 		int							bytes_out )
@@ -573,7 +574,7 @@ TRTrackerServerImpl
 		try{
 			class_mon.enter();
 		
-			stats.update( bytes_in, bytes_out );
+			stats.update( request_type, bytes_in, bytes_out );
 			
 			if ( torrent != null ){
 				

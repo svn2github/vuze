@@ -37,4 +37,10 @@ TRTrackerServerStats
 	
 	public long
 	getBytesOut();
+	
+	public long
+	getAnnounceCount();
+	
+	public long
+	getScrapeCount();
 }

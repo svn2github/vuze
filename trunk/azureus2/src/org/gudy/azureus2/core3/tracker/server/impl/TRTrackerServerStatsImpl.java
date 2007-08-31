@@ -34,8 +34,11 @@ TRTrackerServerStatsImpl
 {
 	private TRTrackerServerImpl	server;
 	
-	protected long		bytes_in;
-	protected long		bytes_out;
+	private long		announces;
+	private long		scrapes;
+	
+	private long		bytes_in;
+	private long		bytes_out;
 	
 	protected
 	TRTrackerServerStatsImpl(
@@ -64,10 +67,31 @@ TRTrackerServerStatsImpl
 	
 	protected void
 	update(
+		int		request_type,
 		int		in,
 		int		out )
 	{
 		bytes_in		+= in;
 		bytes_out		+= out;
+		
+		if ( request_type == TRTrackerServerRequest.RT_ANNOUNCE || request_type == TRTrackerServerRequest.RT_QUERY ){
+			
+			announces++;
+		}else{
+			
+			scrapes++;
+		}
+	}
+	
+	public long
+	getAnnounceCount()
+	{
+		return( announces );
+	}
+	
+	public long
+	getScrapeCount()
+	{
+		return( scrapes );
 	}
 }

@@ -201,6 +201,8 @@ TRTrackerServerProcessorUDP
 				}
 			}
 			
+			int request_type = TRTrackerServerRequest.RT_UNKNOWN;
+			
 			if( reply == null ){
 				
 				try{
@@ -217,6 +219,8 @@ TRTrackerServerProcessorUDP
 						reply 	= (PRUDPPacket)x[0];
 						torrent	= (TRTrackerServerTorrentImpl)x[1];
 				
+						request_type = TRTrackerServerRequest.RT_ANNOUNCE;
+						
 					}else if ( type == PRUDPPacketTracker.ACT_REQUEST_SCRAPE ){
 						
 						Object[] x = handleAnnounceAndScrape( client_ip_address, request, TRTrackerServerRequest.RT_SCRAPE );
@@ -224,6 +228,8 @@ TRTrackerServerProcessorUDP
 						reply 	= (PRUDPPacket)x[0];
 						torrent	= (TRTrackerServerTorrentImpl)x[1];
 	
+						request_type = TRTrackerServerRequest.RT_SCRAPE;
+						
 					}else{
 						
 						reply = new PRUDPPacketReplyError( request.getTransactionId(), "unsupported action");
@@ -258,11 +264,8 @@ TRTrackerServerProcessorUDP
 				DatagramPacket reply_packet = new DatagramPacket(output_buffer, output_buffer.length,address,request_dg.getPort());
 							
 				socket.send( reply_packet );
-				
-				if ( torrent != null ){
-					
-					server.updateStats( torrent, input_buffer.length, output_buffer.length );
-				}
+			
+				server.updateStats( request_type, torrent, input_buffer.length, output_buffer.length );
 			}
 			
 		}catch( Throwable e ){
