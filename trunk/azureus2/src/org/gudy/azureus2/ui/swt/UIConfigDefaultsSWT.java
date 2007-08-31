@@ -98,7 +98,9 @@ public class UIConfigDefaultsSWT
 		def.addParameter("ui.toolbar.uiswitcher", false);
 		
 		def.addParameter("ui", "az2");
-
+		
+		def.addParameter("Remember transfer bar location", true);
+		
 		if ( COConfigurationManager.getBooleanParameter( "Open Bar" )){
 			
 			COConfigurationManager.setParameter( "Open Bar Incomplete", true );

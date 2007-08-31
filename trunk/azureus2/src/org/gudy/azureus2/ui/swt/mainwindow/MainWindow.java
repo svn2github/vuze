@@ -55,6 +55,7 @@ import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateShell;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateTab;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
+import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
 import org.gudy.azureus2.ui.swt.minibar.MiniBarManager;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
@@ -73,6 +74,7 @@ import org.gudy.azureus2.ui.systray.SystemTraySWT;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreException;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UIStatusTextClickListener;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -1067,6 +1069,15 @@ MainWindow
     if(systemTraySWT != null) {
       systemTraySWT.dispose();
     }
+    
+    /**
+     * Explicitly force the transfer bar location to be saved (if appropriate and open).
+     * 
+     * We can't rely that the normal mechanism for doing this won't fail (which it usually does)
+     * when the GUI is being disposed of.
+     */
+	AllTransfersBar transfer_bar = AllTransfersBar.getBarIfOpen(AzureusCoreFactory.getSingleton().getGlobalManager());
+	if (transfer_bar != null) {transfer_bar.forceSaveLocation();}
     
     // close all tabs
     Tab.closeAllTabs();

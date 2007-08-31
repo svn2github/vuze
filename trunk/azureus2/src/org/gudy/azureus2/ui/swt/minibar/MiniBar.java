@@ -326,6 +326,10 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	    this.constructing = false;
 	    this.constructed = true;
 	    
+	    // Allow subclasses to determine the initial position of the splash object.
+	    Point point = this.getInitialLocation();
+	    if (point != null) {splash.setLocation(point);}
+	    
 	    splash.setVisible(true);
 	    
 	}
@@ -471,6 +475,13 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	public void setStucked(MiniBar mw) {
 		this.stucked = mw;
 	}
+	
+	// Have to be in the SWT thread to do this.
+	public final void forceSaveLocation() {
+		if (!splash.isDisposed()) {
+			this.storeLastLocation(splash.getLocation());
+		}
+	}
 
 	public final void close() {
 		if (!splash.isDisposed()) {
@@ -485,7 +496,10 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	}
 	
 	public void dispose() {
-		if (!splash.isDisposed()) {splash.dispose();}
+		if (!splash.isDisposed()) {
+			this.forceSaveLocation();
+			splash.dispose();
+		}
 		if (bold_font != null && !bold_font.isDisposed()) {bold_font.dispose();}
 	}
 	
@@ -507,6 +521,14 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	
 	public Object getPluginMenuContextObject() {
 		return null;
+	}
+	
+	protected Point getInitialLocation() {
+		return null;
+	}
+	
+	protected void storeLastLocation(Point point) {
+		// Do nothing.
 	}
 
 }

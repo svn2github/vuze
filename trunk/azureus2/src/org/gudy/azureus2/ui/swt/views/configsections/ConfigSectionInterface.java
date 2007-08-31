@@ -114,6 +114,7 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 
 		new BooleanParameter(cBars, "Open Bar Incomplete", LBLKEY_PREFIX + "openbar.incomplete");
 		new BooleanParameter(cBars, "Open Bar Complete", LBLKEY_PREFIX + "openbar.complete");
+		new BooleanParameter(cDisplay, "Remember transfer bar location", LBLKEY_PREFIX + "transferbar.remember_location");
 
 		if (!Constants.isOSX || SWT.getVersion() >= 3300) {
 

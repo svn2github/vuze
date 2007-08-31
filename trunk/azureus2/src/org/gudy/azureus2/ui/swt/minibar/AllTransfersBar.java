@@ -26,8 +26,9 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Shell;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -49,8 +50,12 @@ public class AllTransfersBar extends MiniBar {
 		return manager;
 	}
 	
+	public static AllTransfersBar getBarIfOpen(GlobalManager g_manager) {
+		return (AllTransfersBar)manager.getMiniBarForObject(g_manager);
+	}
+	
 	public static AllTransfersBar open(GlobalManager g_manager, Shell main) {
-		AllTransfersBar result = (AllTransfersBar)manager.getMiniBarForObject(g_manager);
+		AllTransfersBar result = getBarIfOpen(g_manager);
 		if (result == null) {
 			result = new AllTransfersBar(g_manager, main);
 		}
@@ -58,7 +63,7 @@ public class AllTransfersBar extends MiniBar {
 	}
 
 	public static void close(GlobalManager g_manager) {
-		AllTransfersBar result = (AllTransfersBar)manager.getMiniBarForObject(g_manager);
+		AllTransfersBar result = getBarIfOpen(g_manager);
 		if (result != null) {result.close();}
 	}
 	
@@ -145,6 +150,23 @@ public class AllTransfersBar extends MiniBar {
 	
 	public String getPluginMenuIdentifier(Object context) {
 		return "transfersbar";
+	}
+	
+	protected void storeLastLocation(Point location) {
+		COConfigurationManager.setParameter("transferbar.x", location.x);
+		COConfigurationManager.setParameter("transferbar.y", location.y);
+	}
+	
+	protected Point getInitialLocation() {
+		if (!COConfigurationManager.getBooleanParameter("Remember transfer bar location")) {
+			return null;
+		}
+		if (!COConfigurationManager.hasParameter("transferbar.x", false)) {
+			return null;
+		}
+		int x = COConfigurationManager.getIntParameter("transferbar.x");
+		int y = COConfigurationManager.getIntParameter("transferbar.y");
+		return new Point(x, y);
 	}
 
 }
