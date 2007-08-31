@@ -23,6 +23,8 @@
 package org.gudy.azureus2.core3.util;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URL;
 import java.util.*;
@@ -52,6 +54,19 @@ public class FileUtil {
 	
   private static List		reserved_file_handles 	= new ArrayList();
   private static AEMonitor	class_mon				= new AEMonitor( "FileUtil:class" );
+  
+  private static Method reflectOnUsableSpace;
+  
+  static {
+
+	  try
+	  {
+		  reflectOnUsableSpace = File.class.getMethod("getUsableSpace", (Class[])null);
+	  } catch (NoSuchMethodException e)
+	  {
+		  reflectOnUsableSpace = null;
+	  }
+  }
 
   public static boolean isAncestorOf(File parent, File child) {
 	  parent = canonise(parent);
@@ -1619,5 +1634,21 @@ public class FileUtil {
 			
 			fis.close();
 		}
+	}
+	
+	public final static boolean getUsableSpaceSupported()
+	{
+		return reflectOnUsableSpace != null;
+	}
+	
+	public final static long getUsableSpace(File f)
+	{
+		try
+		{
+			return ((Long)reflectOnUsableSpace.invoke(f, null)).longValue();
+		} catch (Exception e)
+		{
+			return -1;
+		}		
 	}
 }
