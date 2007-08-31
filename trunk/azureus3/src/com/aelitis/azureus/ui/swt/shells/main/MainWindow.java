@@ -48,6 +48,7 @@ import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.SplashWindow;
+import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.minibar.MiniBarManager;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
@@ -61,6 +62,7 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
@@ -769,6 +771,15 @@ public class MainWindow
 		if (systemTraySWT != null) {
 			systemTraySWT.dispose();
 		}
+		
+	    /**
+	     * Explicitly force the transfer bar location to be saved (if appropriate and open).
+	     * 
+	     * We can't rely that the normal mechanism for doing this won't fail (which it usually does)
+	     * when the GUI is being disposed of.
+	     */
+		AllTransfersBar transfer_bar = AllTransfersBar.getBarIfOpen(AzureusCoreFactory.getSingleton().getGlobalManager());
+		if (transfer_bar != null) {transfer_bar.forceSaveLocation();}
 
 		if (!SWTThread.getInstance().isTerminated()) {
 			SWTThread.getInstance().getInitializer().stopIt(bForRestart, false);
