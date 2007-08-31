@@ -3,6 +3,7 @@ AZUREUS CHANGELOG
 
 2007.09.xx | v3.0.2.3_CVS
 
+CHANGE: Core  | Speedup hash-checking by ~30% / less CPU usage [The 8472]
 
 
 2007.08.29 | v3.0.2.2
