@@ -53,6 +53,7 @@ public class MessageText {
   private static Locale LOCALE_CURRENT = LOCALE_DEFAULT;
   private static final String BUNDLE_NAME = "org.gudy.azureus2.internat.MessagesBundle"; //$NON-NLS-1$
   private static Map pluginLocalizationPaths = new HashMap();
+  private static Collection pluginResourceBundles = new ArrayList();
   private static ResourceBundle RESOURCE_BUNDLE;
   private static Set			platform_specific_keys	= new HashSet();
 	private static final Pattern PAT_PARAM_ALPHA = Pattern.compile("\\{([^0-9].+?)\\}");
@@ -710,10 +711,16 @@ public class MessageText {
     boolean integratedSuccessfully = false;
     if (null != localizationPath && localizationPath.length() != 0 && !pluginLocalizationPaths.containsKey(localizationPath)) {
       pluginLocalizationPaths.put(localizationPath,classLoader);
-	  setResourceBundle( new IntegratedResourceBundle(RESOURCE_BUNDLE, pluginLocalizationPaths));
+	  setResourceBundle( new IntegratedResourceBundle(RESOURCE_BUNDLE, pluginLocalizationPaths, pluginResourceBundles));
       integratedSuccessfully = true;
     }
     return integratedSuccessfully;
+  }
+  
+  public static boolean integratePluginMessages(ResourceBundle bundle) {
+	  pluginResourceBundles.add(bundle);
+	  setResourceBundle( new IntegratedResourceBundle(RESOURCE_BUNDLE, pluginLocalizationPaths, pluginResourceBundles));
+	  return true;
   }
   
 /**

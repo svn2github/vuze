@@ -22,6 +22,8 @@
 package org.gudy.azureus2.plugins.utils;
 
 import java.util.Locale;
+import java.util.Properties;
+import java.util.ResourceBundle;
 
 /**
  * @author parg
@@ -40,6 +42,22 @@ LocaleUtilities
 	public void
 	integrateLocalisedMessageBundle(
 		String		resource_bundle_prefix );
+	
+	/**
+	 * Allows plugins to dynamically pass in a resource bundle to be used
+	 * for message text translation.
+	 * 
+	 * @since 3.0.2.3
+	 */
+	public void integrateLocalisedMessageBundle(ResourceBundle rb);
+
+	/**
+	 * Allows plugins to dynamically pass in a properties object to be used
+	 * for message text translation.
+	 * 
+	 * @since 3.0.2.3
+	 */
+	public void integrateLocalisedMessageBundle(Properties p);
 	
 	public String
 	getLocalisedMessageText(

@@ -26,6 +26,7 @@ package org.gudy.azureus2.pluginsimpl.local.utils;
  *
  */
 
+import java.io.*;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -57,7 +58,26 @@ LocaleUtilitiesImpl
 		String		resource_bundle_prefix )
 	{
 		MessageText.integratePluginMessages(resource_bundle_prefix,pi.getPluginClassLoader());
-	}	
+	}
+	
+	public void integrateLocalisedMessageBundle(ResourceBundle rb) {
+		MessageText.integratePluginMessages(rb);
+	}
+	
+	public void integrateLocalisedMessageBundle(Properties p) {
+		// Surely there's a more convenient way of doing this?
+		ResourceBundle rb = null;
+		try {
+			PipedInputStream in_stream = new PipedInputStream();
+			PipedOutputStream out_stream = new PipedOutputStream(in_stream);
+			p.store(out_stream, "");
+			out_stream.close();
+			rb = new PropertyResourceBundle(in_stream);
+			in_stream.close();
+		}
+		catch (IOException ioe) {return;}
+		integrateLocalisedMessageBundle(rb);
+	}
 	
 	public String
 	getLocalisedMessageText(

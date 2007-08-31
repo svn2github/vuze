@@ -20,6 +20,7 @@
  */
 package org.gudy.azureus2.core3.internat;
 
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -36,11 +37,16 @@ public class IntegratedResourceBundle extends ListResourceBundle {
 	private Locale	locale;
 
   private Object[][] contents;
+  
+  public IntegratedResourceBundle(ResourceBundle main, Map localizationPaths) {
+	  this(main, localizationPaths, null);
+  }
 
   public 
   IntegratedResourceBundle(
 		ResourceBundle main, 
-		Map localizationPaths) 
+		Map localizationPaths,
+		Collection resource_bundles) 
   {
 	  locale = main.getLocale();
 	  
@@ -73,6 +79,12 @@ public class IntegratedResourceBundle extends ListResourceBundle {
 	      addResourceMessages(newResourceBundle, messages);
 	  }
 
+	  if (resource_bundles != null) {
+		  for (Iterator itr = resource_bundles.iterator(); itr.hasNext();) {
+			  addResourceMessages((ResourceBundle)itr.next(), messages);
+		  }
+	  }
+	  
 	 contents = new Object[messages.size()][2];
 	  
 	 int i = 0;
@@ -82,6 +94,7 @@ public class IntegratedResourceBundle extends ListResourceBundle {
 	      contents[i][0] = key;
 	      contents[i++][1] = messages.get(key);
 	 }
+	 
   }
 
   public Locale getLocale() 
