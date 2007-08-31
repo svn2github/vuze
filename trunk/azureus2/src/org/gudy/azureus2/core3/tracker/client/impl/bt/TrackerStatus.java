@@ -806,6 +806,8 @@ public class TrackerStatus {
 				setAllError(e);
 			} catch (UnknownHostException e) {
 				setAllError(e);
+			} catch (BEncodingException e) {
+				setAllError(e);
 			} catch (Exception e) {
 				
 				// for apache we can get error 414 - URL too long. simplest solution
@@ -894,6 +896,11 @@ public class TrackerStatus {
 		}
 
 		String msg = e.getLocalizedMessage();
+		
+		if(e instanceof BEncodingException)
+			if(msg.contains("html"))
+				msg = "could not decode response, appears to be a website instead of tracker scrape: "+msg.replace('\n', ' ');
+			else msg = "bencoing response malformed:"+msg;
 
 		for (int i = 0; i < values.length; i++) {
 			TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl) values[i];

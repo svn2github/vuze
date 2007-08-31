@@ -82,11 +82,11 @@ public class BDecoder {
       
       if ( res == null ){
     	  
-    	  throw( new IOException( "BDecoder: zero length file" ));
+    	  throw( new BEncodingException( "BDecoder: zero length file" ));
     	  
       }else if ( !(res instanceof Map )){
     	  
-    	  throw( new IOException( "BDecoder: top level isn't a Map" ));
+    	  throw( new BEncodingException( "BDecoder: top level isn't a Map" ));
       }
       
       return((Map)res );
@@ -102,11 +102,11 @@ public class BDecoder {
       
       if ( res == null ){
     	  
-    	  throw( new IOException( "BDecoder: zero length file" ));
+    	  throw( new BEncodingException( "BDecoder: zero length file" ));
     	  
       }else if ( !(res instanceof Map )){
     	  
-    	  throw( new IOException( "BDecoder: top level isn't a Map" ));
+    	  throw( new BEncodingException( "BDecoder: top level isn't a Map" ));
       }
       
       return((Map)res );
@@ -167,7 +167,7 @@ public class BDecoder {
 	        bais.reset();
 	        if ( nesting > 0 && tempByte == -1 ){
 	        		        		
-	        	throw( new IOException( "BDecoder: invalid input data, 'e' missing from end of dictionary"));
+	        	throw( new BEncodingException( "BDecoder: invalid input data, 'e' missing from end of dictionary"));
 	        }
         }catch( Throwable e ){
         	
@@ -202,7 +202,7 @@ public class BDecoder {
 	        bais.reset();
 	        if ( nesting > 0 && tempByte == -1 ){
 	        		        		
-	        	throw( new IOException( "BDecoder: invalid input data, 'e' missing from end of list"));
+	        	throw( new BEncodingException( "BDecoder: invalid input data, 'e' missing from end of list"));
 	        }
        }catch( Throwable e ){
         	
@@ -254,7 +254,7 @@ public class BDecoder {
     	  
     	  bais.read( rem_data );
     	  
-    	  throw( new IOException(
+    	  throw( new BEncodingException(
         	"BDecoder: unknown command '" + tempByte + ", remainder = " + new String( rem_data )));
       }
     }
