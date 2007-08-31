@@ -898,7 +898,7 @@ public class TrackerStatus {
 		String msg = e.getLocalizedMessage();
 		
 		if(e instanceof BEncodingException)
-			if(msg.contains("html"))
+			if(msg.indexOf("html") != -1)
 				msg = "could not decode response, appears to be a website instead of tracker scrape: "+msg.replace('\n', ' ');
 			else msg = "bencoing response malformed:"+msg;
 
