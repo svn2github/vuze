@@ -900,7 +900,7 @@ public class TrackerStatus {
 		if(e instanceof BEncodingException)
 			if(msg.indexOf("html") != -1)
 				msg = "could not decode response, appears to be a website instead of tracker scrape: "+msg.replace('\n', ' ');
-			else msg = "bencoing response malformed:"+msg;
+			else msg = "bencoded response malformed:"+msg;
 
 		for (int i = 0; i < values.length; i++) {
 			TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl) values[i];
