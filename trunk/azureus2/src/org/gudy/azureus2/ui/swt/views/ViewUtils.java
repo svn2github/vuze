@@ -151,49 +151,30 @@ ViewUtils
 
 		// ---
 		new MenuItem(menuDownSpeed, SWT.SEPARATOR);
+		
+		String menu_key = "MyTorrentsView.menu.manual";
+		if (num_entries > 1) {menu_key += ".per_torrent";}
 
-		final MenuItem itemDownSpeedManual = new MenuItem(menuDownSpeed, SWT.PUSH);
-		Messages.setLanguageText(itemDownSpeedManual, "MyTorrentsView.menu.manual");
-		itemDownSpeedManual.addSelectionListener(new SelectionAdapter() {
+		final MenuItem itemDownSpeedManualSingle = new MenuItem(menuDownSpeed, SWT.PUSH);
+		Messages.setLanguageText(itemDownSpeedManualSingle, menu_key);
+		itemDownSpeedManualSingle.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				String kbps_str = MessageText.getString("MyTorrentsView.dialog.setNumber.inKbps",
-						new String[]{ DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB ) });
-				
-				InputShell is = new InputShell(
-						"MyTorrentsView.dialog.setSpeed.title",
-						new String[] { MessageText
-								.getString("MyTorrentsView.dialog.setNumber.download") },
-						"MyTorrentsView.dialog.setNumber.text",
-						new String[] {
-								kbps_str,
-								MessageText
-										.getString("MyTorrentsView.dialog.setNumber.download") });
-
-				String sReturn = is.open();
-				if (sReturn == null)
-					return;
-
-				int newSpeed;
-				try {
-					newSpeed = (int) (Double.valueOf(sReturn).doubleValue() * 1024);
-				} catch (NumberFormatException er) {
-					MessageBox mb = new MessageBox(shell,	SWT.ICON_ERROR | SWT.OK);
-					mb.setText(MessageText
-							.getString("MyTorrentsView.dialog.NumberError.title"));
-					mb.setMessage(MessageText
-							.getString("MyTorrentsView.dialog.NumberError.text"));
-
-					mb.open();
-					return;
-				}
-				int	shared = newSpeed/num_entries;
-				if ( shared <= 0 ){
-					shared = 1;
-				}
-				adapter.setDownSpeed(shared);
+				int speed_value = getManualSpeedValue(shell, true);
+				if (speed_value > 0) {adapter.setDownSpeed(speed_value);}
 			}
 		});
-
+		
+		if (num_entries > 1) {
+			final MenuItem itemDownSpeedManualShared = new MenuItem(menuDownSpeed, SWT.PUSH);
+			Messages.setLanguageText(itemDownSpeedManualShared, "MyTorrentsView.menu.manual.shared_torrents");
+			itemDownSpeedManualShared.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e) {
+					int speed_value = getManualSharedSpeedValue(shell, true, num_entries);
+					if (speed_value > 0) {adapter.setDownSpeed(speed_value);}
+				}
+			});
+		}
+		
 		// advanced >Upload Speed Menu //
 		final MenuItem itemUpSpeed = new MenuItem(menuAdvanced, SWT.CASCADE);
 		Messages.setLanguageText(itemUpSpeed, "MyTorrentsView.menu.setUpSpeed"); //$NON-NLS-1$
@@ -286,46 +267,70 @@ ViewUtils
 
 		new MenuItem(menuUpSpeed, SWT.SEPARATOR);
 
-		final MenuItem itemUpSpeedManual = new MenuItem(menuUpSpeed, SWT.PUSH);
-		Messages.setLanguageText(itemUpSpeedManual, "MyTorrentsView.menu.manual");
-		itemUpSpeedManual.addSelectionListener(new SelectionAdapter() {
+		final MenuItem itemUpSpeedManualSingle = new MenuItem(menuUpSpeed, SWT.PUSH);
+		Messages.setLanguageText(itemUpSpeedManualSingle, menu_key);
+		itemUpSpeedManualSingle.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				String kbps_str = MessageText.getString("MyTorrentsView.dialog.setNumber.inKbps",
-						new String[]{ DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB ) });
-
-				InputShell is = new InputShell(
-						"MyTorrentsView.dialog.setSpeed.title",
-						new String[] { MessageText
-								.getString("MyTorrentsView.dialog.setNumber.upload") },
-						"MyTorrentsView.dialog.setNumber.text",
-						new String[] {
-								kbps_str,
-								MessageText.getString("MyTorrentsView.dialog.setNumber.upload") });
-
-				String sReturn = is.open();
-				if (sReturn == null)
-					return;
-
-				int newSpeed;
-				try {
-					newSpeed = (int) (Double.valueOf(sReturn).doubleValue() * 1024);
-				} catch (NumberFormatException er) {
-					MessageBox mb = new MessageBox(shell, SWT.ICON_ERROR | SWT.OK);
-					mb.setText(MessageText
-							.getString("MyTorrentsView.dialog.NumberError.title"));
-					mb.setMessage(MessageText
-							.getString("MyTorrentsView.dialog.NumberError.text"));
-
-					mb.open();
-					return;
-				}
-				int	shared = newSpeed/num_entries;
-				if ( shared <= 0 ){
-					shared = 1;
-				}
-				adapter.setUpSpeed(shared);
+				int speed_value = getManualSpeedValue(shell, true);
+				if (speed_value > 0) {adapter.setUpSpeed(speed_value);}
 			}
 		});
+		
+		if (num_entries > 1) {
+			final MenuItem itemUpSpeedManualShared = new MenuItem(menuUpSpeed, SWT.PUSH);
+			Messages.setLanguageText(itemUpSpeedManualShared, "MyTorrentsView.menu.manual.shared_torrents");
+			itemUpSpeedManualShared.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e) {
+					int speed_value = getManualSharedSpeedValue(shell, true, num_entries);
+					if (speed_value > 0) {adapter.setUpSpeed(speed_value);}
+				}
+			});
+		}
+		
+	}
+	
+	public static int getManualSpeedValue(Shell shell, boolean for_download) {
+		String kbps_str = MessageText.getString("MyTorrentsView.dialog.setNumber.inKbps",
+				new String[]{ DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB ) });
+		
+		String set_num_str = MessageText.getString("MyTorrentsView.dialog.setNumber." +
+				((for_download) ? "download" : "upload"));
+		
+		InputShell is = new InputShell(
+				"MyTorrentsView.dialog.setSpeed.title",
+				new String[] {set_num_str},
+				"MyTorrentsView.dialog.setNumber.text",
+				new String[] {
+						kbps_str,
+						set_num_str
+				});
+
+		String sReturn = is.open();
+		if (sReturn == null)
+			return -1;
+
+		try {
+			int result = (int) (Double.valueOf(sReturn).doubleValue() * 1024);
+			if (result <= 0) {throw new NumberFormatException("non-positive number entered");}
+			return result;
+		} catch (NumberFormatException er) {
+			MessageBox mb = new MessageBox(shell, SWT.ICON_ERROR | SWT.OK);
+			mb.setText(MessageText
+					.getString("MyTorrentsView.dialog.NumberError.title"));
+			mb.setMessage(MessageText
+					.getString("MyTorrentsView.dialog.NumberError.text"));
+
+			mb.open();
+			return -1;
+		}
+	}
+	
+	public static int getManualSharedSpeedValue(Shell shell, boolean for_download, int num_entries) {
+		int result = getManualSpeedValue(shell, for_download);
+		if (result == -1) {return -1;}
+		result = result / num_entries;
+		if (result == 0) {result = 1;}
+		return result;
 	}
 	
 	public interface
