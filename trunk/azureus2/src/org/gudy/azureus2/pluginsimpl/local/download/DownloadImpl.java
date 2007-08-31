@@ -372,7 +372,7 @@ DownloadImpl
 	{
 		if ( !download_manager.canForceRecheck()){
 			
-			throw( new DownloadException( "Download::recheckData: download must be stopped, quued or in error state" ));
+			throw( new DownloadException( "Download::recheckData: download must be stopped, queued or in error state" ));
 		}
 		
 		download_manager.forceRecheck();
@@ -1580,7 +1580,8 @@ DownloadImpl
   public boolean isMessagingEnabled() {  return download_manager.isAZMessagingEnabled();  }
 
   public void setMessagingEnabled( boolean enabled ) {
-    download_manager.setAZMessagingEnabled( enabled );
+	  throw new RuntimeException("setMessagingEnabled is in the process of being removed - if you are seeing this error, let the Azureus developers know that you need this method to stay!");
+    //download_manager.setAZMessagingEnabled( enabled );
   }
   
   
