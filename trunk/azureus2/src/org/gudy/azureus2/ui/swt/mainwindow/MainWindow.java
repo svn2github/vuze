@@ -624,6 +624,10 @@ MainWindow
     if (COConfigurationManager.getBooleanParameter("Open Stats On Start")) {
     	showStats();
     }
+    
+    if (COConfigurationManager.getBooleanParameter("Open Transfer Bar On Start")) {
+    	uiFunctions.showGlobalTransferBar();
+    }
 
     COConfigurationManager.addParameterListener("GUI_SWT_bFancyTab", this);
 

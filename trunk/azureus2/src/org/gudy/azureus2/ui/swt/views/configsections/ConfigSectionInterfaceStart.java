@@ -84,6 +84,7 @@ public class ConfigSectionInterfaceStart implements UISWTConfigSection {
     new BooleanParameter(cStart, "Open Console", "ConfigView.label.openconsole");
     new BooleanParameter(cStart, "Open Stats On Start", "ConfigView.label.openstatsonstart");
     new BooleanParameter(cStart, "Open Config", "ConfigView.label.openconfig");
+    new BooleanParameter(cStart, "Open Transfer Bar On Start", "ConfigView.label.open_transfer_bar_on_start");
     new BooleanParameter(cStart, "Start Minimized", "ConfigView.label.startminimized");
     
     if (COConfigurationManager.getStringParameter("ui").equals("az3")) {

@@ -76,6 +76,7 @@ public class UIConfigDefaultsSWT
 		def.addParameter("Open Config", false);
 		def.addParameter("Open Stats On Start", false);
 		def.addParameter("Start Minimized", false);
+		def.addParameter("Open Transfer Bar On Start", false);
 		
         def.addParameter("Stats Graph Dividers", false);
 		
@@ -97,9 +98,7 @@ public class UIConfigDefaultsSWT
 		def.addParameter("ui.toolbar.uiswitcher", false);
 		
 		def.addParameter("ui", "az2");
-		
-		
-		
+
 		if ( COConfigurationManager.getBooleanParameter( "Open Bar" )){
 			
 			COConfigurationManager.setParameter( "Open Bar Incomplete", true );
