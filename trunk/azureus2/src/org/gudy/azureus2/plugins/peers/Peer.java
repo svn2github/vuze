@@ -260,4 +260,6 @@ Peer
   public Object
   getUserData(
 	Object	key );
+  
+  public byte[] getHandshakeReservedBytes();
 }

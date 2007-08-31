@@ -326,4 +326,6 @@ PEPeer
 	public void
 	setHaveAggregationEnabled(
 		boolean		enabled );
+	
+	public byte[] getHandshakeReservedBytes();
 }

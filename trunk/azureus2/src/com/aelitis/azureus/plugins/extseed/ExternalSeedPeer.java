@@ -855,4 +855,8 @@ ExternalSeedPeer
 		
 		return( user_data.get( key ));
 	}
+	
+	public byte[] getHandshakeReservedBytes() {
+		return null;
+	}
 }

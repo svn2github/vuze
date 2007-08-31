@@ -166,7 +166,8 @@ implements PEPeerTransport
 	private final AEMonitor closing_mon	= new AEMonitor( "PEPeerTransportProtocol:closing" );
 	private final AEMonitor general_mon  	= new AEMonitor( "PEPeerTransportProtocol:data" );
 
-
+	private byte[] handshake_reserved_bytes = null;
+	
 	private LinkedHashMap recent_outgoing_requests;
 	private AEMonitor	recent_outgoing_requests_mon;
 
@@ -662,7 +663,6 @@ implements PEPeerTransport
 	                         manager.isAZMessagingEnabled(), other_peer_handshake_version ), false );
 		}
 	}
-
 
 
 	private void sendAZHandshake() {
@@ -1778,6 +1778,9 @@ implements PEPeerTransport
 
 		if (Logger.isEnabled())
 			Logger.log(new LogEvent(this, LOGID, "In: has sent their handshake"));
+		
+		// Let's store the reserved bits somewhere so they can be examined later (externally).
+		handshake_reserved_bytes = handshake.getReserved();
 
 		/*
 		 * Waiting until we've received the initiating-end's full handshake, before sending back our own,
@@ -2583,6 +2586,10 @@ implements PEPeerTransport
 
 	public boolean supportsMessaging() {
 		return supported_messages != null;
+	}
+	
+	public byte[] getHandshakeReservedBytes() {
+		return this.handshake_reserved_bytes;
 	}
 
 	public void

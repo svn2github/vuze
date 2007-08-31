@@ -203,6 +203,9 @@ public class UnchokerUtilTest {
 			// TODO Auto-generated method stub
 			return 0;
 		}
+		public byte[] getHandshakeReservedBytes() {
+			return null;
+		}
       };
       
      f_stats[0] = new PEPeerStats() {

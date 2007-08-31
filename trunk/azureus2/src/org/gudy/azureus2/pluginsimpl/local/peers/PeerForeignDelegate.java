@@ -549,6 +549,9 @@ PeerForeignDelegate
 		return( foreign.getClient());
 	}
 
+	public byte[] getHandshakeReservedBytes() {
+		return foreign.getHandshakeReservedBytes();
+	}
 
 	public boolean 
 	isOptimisticUnchoke()

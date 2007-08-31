@@ -593,4 +593,8 @@ PeerImpl
 	public Object[] getQueryableInterfaces() {
 		return new Object[] { delegate };
 	}
+	
+	public byte[] getHandshakeReservedBytes() {
+		return delegate.getHandshakeReservedBytes();
+	}
 }
