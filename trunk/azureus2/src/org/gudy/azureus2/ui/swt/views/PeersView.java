@@ -99,7 +99,9 @@ public class PeersView
     new LANItem(),
     new PeerIDItem(),
     new PeerByteIDItem(),
+    new HandshakeReservedBytesItem(),
   };
+  
   private DownloadManager manager;
 	private TableViewSWT tv;
 	private Shell shell;

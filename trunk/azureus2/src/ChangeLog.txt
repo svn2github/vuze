@@ -3,6 +3,8 @@ AZUREUS CHANGELOG
 
 2007.09.xx | v3.0.2.3_CVS
 
+FEATURE: UI   | Added "handshake reserved bytes" column in peer view [amc1]
+
 CHANGE: Core  | Speedup hash-checking by ~30% / less CPU usage [The 8472]
 
 BUGFIX: Core  | Fixed bug when trying to add torrents with semi-colon characters in filename [amc1]
