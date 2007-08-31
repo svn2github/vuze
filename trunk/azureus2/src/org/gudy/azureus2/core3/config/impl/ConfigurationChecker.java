@@ -353,6 +353,20 @@ ConfigurationChecker
 	    	}
 	    }else {  //this is a pre-existing installation, called every time after first
 	    	
+	    	
+	    	
+	    	if // disable safe selector mode enabled at some point in the past if we're on java 6 or higher and/or not on windows
+	    	(	COConfigurationManager.getBooleanParameter("network.tcp.enable_safe_selector_mode")
+	    		&& !(Constants.isWindows &&
+	    			(Constants.JAVA_VERSION.startsWith("1.4") ||
+	    			Constants.JAVA_VERSION.startsWith("1.5"))
+	    		)
+	    	) COConfigurationManager.removeParameter("network.tcp.enable_safe_selector_mode");
+	    		
+	    	
+	    	
+	    	
+	    	
 	   	 //enable Advanced user mode for existing users by default, to ease 2304-->2306 migrations
 	   	 if( !COConfigurationManager.doesParameterNonDefaultExist( "User Mode" ) ) {
 	   		 COConfigurationManager.setParameter( "User Mode", 2 );
