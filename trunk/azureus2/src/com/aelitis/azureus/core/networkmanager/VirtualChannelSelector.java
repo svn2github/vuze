@@ -94,7 +94,7 @@ public class VirtualChannelSelector {
   }
   
   private void initSafeMode() {
-	System.out.println( "***************** SAFE SOCKET SELECTOR MODE ENABLED *****************" );
+	//System.out.println( "***************** SAFE SOCKET SELECTOR MODE ENABLED *****************" );
 	
     if (Logger.isEnabled()) {
     	Logger.log(new LogEvent(LOGID, "***************** SAFE SOCKET SELECTOR MODE ENABLED *****************"));
