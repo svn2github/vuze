@@ -30,4 +30,8 @@ public class MessageException extends Exception {
   public MessageException( String reason ) {
     super( reason );
   }
+  
+  public MessageException( String reason, Throwable cause) {
+	  super(reason, cause);
+  }
 }
