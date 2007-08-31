@@ -58,6 +58,36 @@ ThreadPool
 					debug_thread_pool_log_on 	= COConfigurationManager.getBooleanParameter( "debug.threadpool.debug.trace", false );
 				}
 			});
+		
+		AEDiagnostics.addEvidenceGenerator(
+			new AEDiagnosticsEvidenceGenerator()
+			{
+				public void
+				generate(
+					IndentWriter		writer )
+				{
+					writer.println( "Thread Pools" );
+					
+					try{
+						writer.indent();
+
+						List	pools;	
+						
+						synchronized( busy_pools ){
+							
+							pools	= new ArrayList( busy_pools );
+						}
+						
+						for (int i=0;i<pools.size();i++){
+							
+							((ThreadPool)pools.get(i)).generateEvidence( writer );
+						}
+					}finally{
+					
+						writer.exdent();
+					}
+				}
+			});
 	}
 	
 	private static ThreadLocal		tls	= 
@@ -106,6 +136,10 @@ ThreadPool
 	private int			thread_priority	= Thread.NORM_PRIORITY;
 	private boolean		warn_when_full;
 
+	private long		task_total;
+	private long		task_total_last;
+	private Average		task_average	= Average.getInstance( WARN_TIME, 120 );
+	
 	public
 	ThreadPool(
 		String	_name,
@@ -131,6 +165,13 @@ ThreadPool
 		busy		= new ArrayList( _max_size );
 	}
 
+	private void
+	generateEvidence(
+		IndentWriter		writer )
+	{
+		writer.println( name + ": max=" + max_size +",qwf=" + queue_when_full + ",queue=" + task_queue.size() + ",busy=" + busy.size() + ",pool=" + thread_pool.size() + ",total=" + task_total + ":" + DisplayFormatters.formatDecimal(task_average.getDoubleAverage(),2) + "/sec");
+	}
+	
 	public void
 	setWarnWhenFull()
 	{
@@ -343,6 +384,12 @@ ThreadPool
 	{
 		synchronized( ThreadPool.this ){
 		
+			long	diff = task_total - task_total_last;
+			
+			task_average.addValue( diff );
+			
+			task_total_last = task_total;
+			
 			if ( debug_thread_pool_log_on ){
 				
 				System.out.println( "ThreadPool '" + getName() + "'/" + thread_name_index + ": max=" + max_size + ",sem=[" + thread_sem.getString() + "],pool=" + thread_pool.size() + ",busy=" + busy.size() + ",queue=" + task_queue.size());
@@ -457,6 +504,8 @@ outer:
 											warn_count		= 0;
 											
 											busy.add( threadPoolWorker.this );
+											
+											task_total++;
 											
 											if ( busy.size() == 1 ){
 												
