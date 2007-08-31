@@ -119,7 +119,7 @@ public class FileUtil {
   /**
    * Deletes the given dir and all files/dirs underneath
    */
-  public static void recursiveDelete(File f) {
+  public static boolean recursiveDelete(File f) {
     String defSaveDir = COConfigurationManager.getStringParameter("Default save path");
     String moveToDir = COConfigurationManager.getStringParameter("Completed Files Directory", "");
     
@@ -136,24 +136,35 @@ public class FileUtil {
 
       if (f.getCanonicalPath().equals(moveToDir)) {
         System.out.println("FileUtil::recursiveDelete:: not allowed to delete the MoveTo dir !");
-        return;
+        return( false );
       }
       if (f.getCanonicalPath().equals(defSaveDir)) {
         System.out.println("FileUtil::recursiveDelete:: not allowed to delete the default data dir !");
-        return;
+        return( false );
       }
       
       if (f.isDirectory()) {
         File[] files = f.listFiles();
         for (int i = 0; i < files.length; i++) {
-          recursiveDelete(files[i]);
+          if ( !recursiveDelete(files[i])){
+        	  
+        	  return( false );
+          }
         }
-        f.delete();
+        if ( !f.delete()){
+        	
+        	return( false );
+        }
       }
       else {
-        f.delete();
+        if ( !f.delete()){
+        	
+        	return( false );
+        }
       }
     } catch (Exception ignore) {/*ignore*/}
+    
+    return( true );
   }
   
   public static long
