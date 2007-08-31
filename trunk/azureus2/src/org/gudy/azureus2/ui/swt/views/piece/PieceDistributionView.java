@@ -157,9 +157,6 @@ public class PieceDistributionView
 				gc.setBackground(curColor);
 				gc.setForeground(curColor);
 				
-				if(i==minAvail)
-					gc.setForeground(Colors.blue);
-				
 				if(piecesPerAvailability[i] == 0)
 				{
 					gc.setLineWidth(2);
@@ -172,6 +169,13 @@ public class PieceDistributionView
 					gc.fillRectangle(stepWidthX*i+1, offsetY-1, barFillingWidth, (int)(Math.ceil(stepWidthY*ourPiecesPerAvailability[i]-1)*-1));
 					gc.drawRectangle(stepWidthX*i, offsetY, barWidth, (int)(Math.ceil(stepWidthY*piecesPerAvailability[i])+1)*-1);
 				}
+
+				if(i==minAvail)
+				{
+					gc.setForeground(Colors.blue);
+					gc.drawRectangle(stepWidthX*i+1, offsetY-1, barWidth-2, (int)(Math.ceil(stepWidthY*piecesPerAvailability[i]-1))*-1);
+				}
+				
 				
 				gc.setLineStyle(SWT.LINE_SOLID);
 			}
