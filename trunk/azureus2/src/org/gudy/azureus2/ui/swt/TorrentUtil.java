@@ -1198,8 +1198,22 @@ public class TorrentUtil {
 
 		Category[] categories = CategoryManager.getCategories();
 		Arrays.sort(categories);
+		
+		// Ensure that there is at least one user category available.
+		boolean allow_category_selection = categories.length > 0;
+		if (allow_category_selection) {
+			boolean user_category_found = false;
+			for (i=0; i<categories.length; i++) {
+				if (categories[i].getType() == Category.TYPE_USER) {
+					user_category_found = true;
+					break;
+				}
+			}
+			// It may be the categories array just contains "uncategorised".
+			allow_category_selection = user_category_found;
+		}
 
-		if (categories.length > 0) {
+		if (allow_category_selection) {
 			final Category catUncat = CategoryManager.getCategory(Category.TYPE_UNCATEGORIZED);
 			if (catUncat != null) {
 				final MenuItem itemCategory = new MenuItem(menuCategory, SWT.PUSH);
