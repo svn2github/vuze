@@ -38,12 +38,15 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+import org.gudy.azureus2.pluginsimpl.local.ui.config.LabelParameterImpl;
 
 public class ConfigSectionFile implements UISWTConfigSection {
   public String configSectionGetParentSection() {
@@ -428,13 +431,33 @@ public class ConfigSectionFile implements UISWTConfigSection {
     }catch( Throwable e ){
     	
     }
-    
-    sCurConfigID = "Use Config File Backups";
-    allConfigIDs.add(sCurConfigID);
+
     if( userMode > 0 ) {
+    	Group gConfigSettings = new Group(gFile, SWT.NONE);
+    	Messages.setLanguageText(gConfigSettings, "ConfigView.section.file.config.section");
+    	layout = new GridLayout();
+    	layout.numColumns = 2;
+    	layout.marginHeight = 5;
+    	gConfigSettings.setLayout(layout);
+    	gridData = new GridData(GridData.FILL_HORIZONTAL);
+    	gridData.horizontalSpan = 2;
+    	gConfigSettings.setLayoutData(gridData);
+
+    	// Configuration directory information.
+    	Label config_label = new Label(gConfigSettings, SWT.NULL);
+    	Messages.setLanguageText(config_label, "ConfigView.section.file.config.currentdir");
+    	config_label.setLayoutData(new GridData());
+    	Label config_link = new Label(gConfigSettings, SWT.NULL);
+    	config_link.setText(SystemProperties.getUserPath());
+    	config_link.setLayoutData(new GridData());
+    	LinkLabel.makeLinkedLabel(config_link, SystemProperties.getUserPath());
+    
+    	sCurConfigID = "Use Config File Backups";
+    	allConfigIDs.add(sCurConfigID);
+    	
     	// check on complete
     	BooleanParameter backupConfig = 
-    		new BooleanParameter(gFile, sCurConfigID,
+    		new BooleanParameter(gConfigSettings, sCurConfigID,
                                     "ConfigView.label.backupconfigfiles");
     	gridData = new GridData();
     	gridData.horizontalSpan = 2;
