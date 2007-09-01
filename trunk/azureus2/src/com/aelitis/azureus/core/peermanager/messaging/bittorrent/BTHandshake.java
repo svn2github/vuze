@@ -34,8 +34,17 @@ import com.aelitis.azureus.core.peermanager.utils.PeerClassifier;
  */
 public class BTHandshake implements BTMessage, RawMessage {
   public static final String PROTOCOL = "BitTorrent protocol";
-  public static final byte[] BT_RESERVED = new byte[]{ 0, 0, 0, 0, 0, 0, 0, 0 };  //no reserve bit set
-  public static final byte[] AZ_RESERVED = new byte[]{ (byte)128, 0, 0, 0, 0, 0, 0, 0 };  //set high bit of first byte to indicate advanced AZ messaging support
+  
+  // No reserve bit sets
+  public static final byte[] BT_RESERVED = new byte[]{0, 0, 0, 0, 0, 0, 0, 0 }; 
+
+  // Set first bit of first byte to indicate advanced AZ messaging support. (128)
+  // Set fourth bit of fifth byte to indicate LT messaging support. (16)
+  
+  // Set seventh bit (2) and eight bit (1) to force AZMP over LTEP. [current behaviour]
+  // Set seventh bit (2) only to prefer AZMP over LTEP.
+  // Set eighth bit (1) only to prefer LTEP over AZMP. 
+  public static final byte[] AZ_RESERVED = new byte[]{(byte)128, 0, 0, 0, 0, (byte)19, 0, 0 };
   
   private DirectByteBuffer buffer = null;
   private String description = null;

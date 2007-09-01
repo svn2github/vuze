@@ -160,6 +160,7 @@ implements PEPeerTransport
   private byte	other_peer_unchoke_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
   private byte	other_peer_uninterested_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
   private byte	other_peer_request_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+  private byte  other_peer_bt_lt_ext_version    = BTMessageFactory.MESSAGE_VERSION_INITIAL;
   private byte	other_peer_az_request_hint_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
   private byte	other_peer_az_bad_piece_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
 
@@ -664,6 +665,19 @@ implements PEPeerTransport
 		}
 	}
 
+	private void sendLTExtHandshake() {
+		String client_name = Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION;
+		int local_tcp_port = TCPNetworkManager.getSingleton().getTCPListeningPortNumber();
+		Map data_dict = new HashMap();
+		data_dict.put("m", new HashMap()); // Supported extensions - none!
+		data_dict.put("v", client_name);
+		data_dict.put("p", new Integer(local_tcp_port));
+		BTLTExtensionHandshake lt_handshake = new BTLTExtensionHandshake(
+				data_dict, other_peer_bt_lt_ext_version
+		);
+		System.out.println("Sending LT EXT HS: " + lt_handshake.getBencodedString());
+		connection.getOutgoingMessageQueue().addMessage(lt_handshake, false);
+	}
 
 	private void sendAZHandshake() {
 		final Message[] avail_msgs = MessageManager.getSingleton().getRegisteredMessages();
@@ -1793,44 +1807,39 @@ implements PEPeerTransport
         sendBTHandshake();
       }
 		 */
-
+		
+		// 1 if it is AZMP, 2 if LTEP.
+		int ext_protocol = decideExtensionProtocol(handshake);
 
 		//extended protocol processing
-		if( (handshake.getReserved()[0] & 128) == 128 ) {  //if first (high) bit is set
-			if( !manager.isAZMessagingEnabled() ) {
-				if (Logger.isEnabled())
-					Logger.log(new LogEvent(this, LOGID,
-							"Ignoring peer's extended AZ messaging support,"
-							+ " as disabled for this download."));
+		if (ext_protocol == 1) {
+			/**
+			 * We log when a non-Azureus client claims to support extended messaging...
+			 * Obviously other Azureus clients do, so there's no point logging about them!
+			 */ 
+			if (Logger.isEnabled() && client.indexOf("Azureus") == -1) {
+				Logger.log(new LogEvent(this, LOGID, "Handshake claims extended AZ "
+						+ "messaging support....enabling AZ mode."));
 			}
-			else if( client.indexOf( "Plus!" ) != -1 ) {
-				if (Logger.isEnabled())
-					Logger.log(new LogEvent(this, LOGID, "Handshake mistakingly indicates"
-							+ " extended AZ messaging support...ignoring."));
-			}
-			else {
-				/**
-				 * We log when a non-Azureus client claims to support extended messaging...
-				 * Obviously other Azureus clients do, so there's no point logging about them!
-				 */ 
-				if (Logger.isEnabled() && client.indexOf("Azureus") == -1) {
-					Logger.log(new LogEvent(this, LOGID, "Handshake claims extended AZ "
-							+ "messaging support....enabling AZ mode."));
-				}
 
-				az_messaging_mode = true;
+			this.az_messaging_mode = true;
         
-        Transport transport = connection.getTransport();
+			Transport transport = connection.getTransport();
         
-        boolean enable_padding = transport.isTCP() && transport.isEncrypted();
+			boolean enable_padding = transport.isTCP() && transport.isEncrypted();
         
-				connection.getIncomingMessageQueue().setDecoder( new AZMessageDecoder() );
-        connection.getOutgoingMessageQueue().setEncoder( new AZMessageEncoder( enable_padding ));
+			connection.getIncomingMessageQueue().setDecoder( new AZMessageDecoder() );
+			connection.getOutgoingMessageQueue().setEncoder( new AZMessageEncoder( enable_padding ));
 
-				sendAZHandshake();
-      }
+			sendAZHandshake();
+		}
+		else if (ext_protocol == 2) {
+			if (Logger.isEnabled()) {
+				Logger.log(new LogEvent(this, LOGID, "Enabling LT extension protocol support..."));
 			}
-    
+			this.sendLTExtHandshake();
+		}
+		
     if (!az_messaging_mode) {
     	this.client = ClientIdentifier.getSimpleClientName(this.client);
 		}
@@ -1860,7 +1869,76 @@ implements PEPeerTransport
 		}
 
 	}
+	
+	// 0: No extension.
+	// 1: AZMP
+	// 2: LTEP
+	private int decideExtensionProtocol(BTHandshake handshake) {
+		boolean supports_azmp = (handshake.getReserved()[0] & 128) == 128;
+		boolean supports_ltep = (handshake.getReserved()[5] & 16) == 16;
+		
+		if (!supports_azmp) {return (supports_ltep) ? 2 : 0;}
+		else if (!supports_ltep) {
+			
+			// Check if it is AZMP enabled.
+			if(!manager.isAZMessagingEnabled()) {
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(this, LOGID, "Ignoring peer's extended AZ messaging support,"
+							+ " as disabled for this download."));
+				return 0;
+			}
+			
+			// Check if the client is misbehaving...
+			else if( client.indexOf( "Plus!" ) != -1) {
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(this, LOGID, "Handshake mistakingly indicates"
+							+ " extended AZ messaging support...ignoring."));
+				return 0;
+			}
+			
+			return 1;
+		}
+		
+		boolean enp_major_bit = (handshake.getReserved()[5] & 2) == 2;
+		boolean enp_minor_bit = (handshake.getReserved()[5] & 1) == 1;
+		
+		// Only enable one of the blocks below.
+		String their_ext_preference = ((enp_major_bit == enp_minor_bit) ? "Force " : "Prefer ") + ((enp_major_bit) ? "AZMP" : "LTEP");
+
+		// Force AZMP block.
+		String our_ext_preference = "Force AZMP";
+		boolean use_azmp = enp_major_bit || enp_minor_bit; // Anything other than Force LTEP, then we force AZMP to be used.
+		boolean we_decide = use_azmp;
+		
+		// Prefer AZMP block (untested).
+		/*
+		String our_ext_preference = "Prefer AZMP";
+		boolean use_azmp = enp_major_bit; // Requires other client to prefer or force AZMP.
+		boolean we_decide = use_azmp && !enp_minor_bit; // We decide only if we are using AZMP and the other client didn't force it.
+		*/
+		
+		// Prefer LTEP block (untested).
+		/*
+		String our_ext_preference = "Prefer LTEP";
+		boolean use_azmp = enp_major_bit && enp_minor_bit; // Only use it Force AZMP is enabled.
+		boolean we_decide = enp_minor_bit && !use_azmp; // We decide only if we are using LTEP and the other client didn't force it.
+		*/
+		
+		if (Logger.isEnabled()) {
+			String msg = "Peer supports both AZMP and LTEP: ";
+			msg += "\"" + our_ext_preference + "\"" + (we_decide ? ">" : "<") + ((our_ext_preference.equals(their_ext_preference)) ? "= " : " ");
+			msg += "\"" + their_ext_preference + "\" - using " + (use_azmp ? "AZMP" : "LTEP");
+			Logger.log(new LogEvent(this, LOGID, msg));
+		}
+		
+		return (use_azmp) ? 1 : 2;
+		
+	}
   
+  
+  protected void decodeLTExtHandshake(BTLTExtensionHandshake handshake) {
+	  System.out.println("Received handshake: " + handshake.getDataMap() + ", client: " + handshake.getClientName());
+  }
   
   protected void decodeAZHandshake( AZHandshake handshake ) {
 		String handshake_client = handshake.getClient();
@@ -2420,6 +2498,11 @@ implements PEPeerTransport
 					decodeAZHandshake( (AZHandshake)message );
 					return true;
 				}
+        
+        if (message_id.equals(BTMessage.ID_BT_LT_EXTENSION_HANDSHAKE)) {
+        	decodeLTExtHandshake((BTLTExtensionHandshake)message);
+        	return true;
+        }
 
         if( message_id.equals( BTMessage.ID_BT_BITFIELD ) ) {
 					decodeBitfield( (BTBitfield)message );

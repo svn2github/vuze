@@ -67,6 +67,7 @@ DirectByteBuffer
     public static final byte        AL_MSG_AZ_PAYLOAD     = 24;
     public static final byte        AL_FILE				  = 25;
     public static final byte        AL_NET_CRYPT		  = 26;
+    public static final byte        AL_MSG_LT_EXT_HANDSHAKE = 27;
     
 	public static final String[] AL_DESCS =
 	{ "None", "Ext", "Other", "PeerRead", "PeerLen",
@@ -85,7 +86,8 @@ DirectByteBuffer
     "BTPayload",
     "AZPayload",
     "File",
-    "MsgCrypt"};
+    "MsgCrypt",
+    "LTExtHandshake"};
 	 
     
     

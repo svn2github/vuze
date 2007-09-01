@@ -59,6 +59,7 @@ public class BTMessageFactory {
       MessageManager.getSingleton().registerMessageType( new BTRequest( -1, -1 , -1, MESSAGE_VERSION_SUPPORTS_PADDING ));
       MessageManager.getSingleton().registerMessageType( new BTUnchoke( MESSAGE_VERSION_SUPPORTS_PADDING ));
       MessageManager.getSingleton().registerMessageType( new BTUninterested( MESSAGE_VERSION_SUPPORTS_PADDING ));
+      MessageManager.getSingleton().registerMessageType( new BTLTExtensionHandshake( null, MESSAGE_VERSION_SUPPORTS_PADDING ));
     }
     catch( MessageException me ) {  me.printStackTrace();  }
   }
@@ -66,7 +67,7 @@ public class BTMessageFactory {
   
   
   
-  private static final String[] id_to_name = new String[9];  
+  private static final String[] id_to_name = new String[21];  
   private static final HashMap legacy_data = new HashMap();
   static {
     legacy_data.put( BTMessage.ID_BT_CHOKE, new LegacyData( RawMessage.PRIORITY_HIGH, true, new Message[]{new BTUnchoke((byte)0), new BTPiece( -1, -1, null,(byte)0 )}, (byte)0 ) );
@@ -95,6 +96,9 @@ public class BTMessageFactory {
     
     legacy_data.put( BTMessage.ID_BT_CANCEL, new LegacyData( RawMessage.PRIORITY_HIGH, true, null, (byte)8 ) );
     id_to_name[8] = BTMessage.ID_BT_CANCEL;
+    
+    legacy_data.put( BTMessage.ID_BT_LT_EXTENSION_HANDSHAKE, new LegacyData( RawMessage.PRIORITY_HIGH, true, null, (byte)20 ) );
+    id_to_name[20] = BTMessage.ID_BT_LT_EXTENSION_HANDSHAKE;
   }
   
   
@@ -140,6 +144,7 @@ public class BTMessageFactory {
       case 8:
         return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_CANCEL_BYTES, stream_payload, (byte)1 );
         
+        /*
       case 20:
         //Clients seeing our handshake reserved bit will send us the old 'extended' messaging hello message accidentally.
         //Instead of throwing an exception and dropping the peer connection, we'll just fake it as a keep-alive :)
@@ -148,6 +153,9 @@ public class BTMessageFactory {
 							"Old extended messaging hello received, "
 									+ "ignoring and faking as keep-alive."));
         return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_KEEP_ALIVE_BYTES, null, (byte)1 );
+        */
+      case 20:
+    	  return MessageManager.getSingleton().createMessage(BTMessage.ID_BT_LT_EXTENSION_HANDSHAKE_BYTES, stream_payload, (byte)1);
         
       default: {  System.out.println( "Unknown BT message id [" +id+ "]" );
         					throw new MessageException( "Unknown BT message id [" +id+ "]" );
@@ -160,7 +168,7 @@ public class BTMessageFactory {
   public static int getMessageType( DirectByteBuffer stream_payload ) {
   	byte id = stream_payload.get( DirectByteBuffer.SS_MSG, 0 );
   	if( id == 84 )  return Message.TYPE_PROTOCOL_PAYLOAD;  //handshake message byte in position 4
-  	if ( id >= 0 && id < id_to_name.length ){
+  	if ( id >= 0 && id < id_to_name.length && id_to_name[id] != null){
   		return MessageManager.getSingleton().lookupMessage( id_to_name[ id ] ).getType();
   	}
   	// invalid, return whatever
