@@ -43,6 +43,7 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFact
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocument;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentException;
 
+import com.aelitis.azureus.core.util.HTTPUtils;
 import com.aelitis.net.upnp.*;
 import com.aelitis.net.upnp.impl.device.*;
 
@@ -504,35 +505,7 @@ UPnPImpl
 						
 					pw.flush();
 					
-					InputStream	is = socket.getInputStream();
-									
-					String	reply_header = "";
-					
-					while(true){
-						
-						byte[]	buffer = new byte[1];
-						
-						if ( is.read( buffer ) <= 0 ){
-							
-							throw( new IOException( "Premature end of input stream" ));
-						}
-						
-						reply_header += (char)buffer[0];
-						
-						if ( reply_header.endsWith( NL+NL )){
-							
-							break;
-						}
-					}
-					
-					p1 = reply_header.indexOf( NL );
-					
-					String	first_line = reply_header.substring( 0, p1 ).trim();
-					
-					if ( first_line.indexOf( "200" ) == -1 ){
-						
-						throw( new IOException( "HTTP request failed:" + first_line ));
-					}
+					InputStream	is = HTTPUtils.decodeChunkedEncoding( socket.getInputStream());
 					
 					return( parseXML( is ));
 					
@@ -725,35 +698,7 @@ UPnPImpl
 				
 				pw.flush();
 				
-				InputStream	is = socket.getInputStream();
-				
-				String	reply_header = "";
-				
-				while(true){
-					
-					byte[]	buffer = new byte[1];
-					
-					if ( is.read( buffer ) <= 0 ){
-						
-						throw( new IOException( "Premature end of input stream" ));
-					}
-					
-					reply_header += (char)buffer[0];
-					
-					if ( reply_header.endsWith( NL+NL )){
-						
-						break;
-					}
-				}
-				
-				p1 = reply_header.indexOf( NL );
-				
-				String	first_line = reply_header.substring( 0, p1 ).trim();
-				
-				if ( first_line.indexOf( "200" ) == -1 ){
-					
-					throw( new IOException( "HTTP request failed:" + first_line ));
-				}
+				InputStream	is = HTTPUtils.decodeChunkedEncoding( socket.getInputStream());
 				
 				return( parseXML( is ));
 				

@@ -23,12 +23,18 @@
 
 package com.aelitis.azureus.core.util;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
 public class 
 HTTPUtils 
 {
+	public static final String	NL	= "\r\n";
+
 	private static final String[][]	type_map = {
 			{ "html",		"text/html" },
 			{ "htm",		"text/html" },
@@ -78,5 +84,127 @@ HTTPUtils
 		}
 		
 		return( default_type );
+	}
+	
+	public static InputStream
+	decodeChunkedEncoding(
+		InputStream	is )
+	
+		throws IOException
+	{
+		String	reply_header = "";
+		
+		while(true){
+			
+			byte[]	buffer = new byte[1];
+			
+			if ( is.read( buffer ) <= 0 ){
+				
+				throw( new IOException( "Premature end of input stream" ));
+			}
+			
+			reply_header += (char)buffer[0];
+			
+			if ( reply_header.endsWith( NL+NL )){
+				
+				break;
+			}
+		}
+		
+		int p1 = reply_header.indexOf( NL );
+		
+		String	first_line = reply_header.substring( 0, p1 ).trim();
+		
+		if ( first_line.indexOf( "200" ) == -1 ){
+			
+			throw( new IOException( "HTTP request failed:" + first_line ));
+		}
+		
+		String	lc_reply_header = reply_header.toLowerCase();
+		
+		int	te_pos = lc_reply_header.indexOf( "transfer-encoding" );
+		
+		if ( te_pos != -1 ){
+			
+			String	property = lc_reply_header.substring( te_pos );
+			
+			property = property.substring( property.indexOf(':') + 1, property.indexOf( NL )).trim();
+			
+			if ( property.equals( "chunked" )){
+		
+				ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+				
+				String	chunk = "";
+				
+				int	total_length = 0;
+				
+				while( true ){
+					
+					int	x = is.read();
+					
+					if ( x == -1 ){
+						
+						break;
+					}
+					
+					chunk += (char)x;
+					
+						// second time around the chunk will be prefixed with NL from end of previous
+						// so make sure we ignore this
+					
+					if ( chunk.endsWith( NL ) && chunk.length() > 2 ){
+						
+						int	semi_pos = chunk.indexOf(';');
+						
+						if ( semi_pos != -1 ){
+							
+							chunk = chunk.substring(0,semi_pos);
+						}
+						
+						chunk = chunk.trim();
+						
+						int	chunk_length = Integer.parseInt( chunk, 16 );
+						
+						if ( chunk_length <= 0 ){
+							
+							break;
+						}
+						
+						total_length += chunk_length;
+						
+						if ( total_length > 1024*1024 ){
+							
+							throw( new IOException( "Chunk size " + chunk_length + " too large" ));
+						}
+												
+						byte[] buffer = new byte[chunk_length];
+						
+						int	buffer_pos 	= 0;
+						int	rem			= chunk_length;
+						
+						while( rem > 0 ){
+							
+							int	len = is.read( buffer, buffer_pos, rem );
+							
+							if ( len <= 0 ){
+								
+								throw( new IOException( "Premature end of stream" ));
+							}
+							
+							buffer_pos 	+= len;
+							rem			-= len;
+						}
+							
+						baos.write( buffer );
+
+						chunk	= "";
+					}
+				}
+				
+				return( new ByteArrayInputStream( baos.toByteArray()));
+			}
+		}
+		
+		return( is );
 	}
 }
