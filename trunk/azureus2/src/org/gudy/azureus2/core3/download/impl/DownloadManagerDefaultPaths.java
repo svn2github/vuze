@@ -475,6 +475,10 @@ public class DownloadManagerDefaultPaths {
 		}
 
 	}
+	
+	public static TransferDetails onInitialisation(DownloadManager dm) {
+		return determinePaths(dm, UPDATE_FOR_MOVE_DETAILS[1]); // 1 - incomplete downloads
+	}
 
 	public static TransferDetails onCompletion(DownloadManager dm, boolean set_on_completion_flag) {
 		TransferDetails td = determinePaths(dm, COMPLETION_DETAILS);

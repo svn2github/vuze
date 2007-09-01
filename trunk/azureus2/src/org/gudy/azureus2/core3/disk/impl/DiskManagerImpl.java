@@ -413,6 +413,17 @@ DiskManagerImpl
         checker.start();
 
         writer.start();
+        
+        // If we haven't yet allocated the files, take this chance to determine
+        // whether any relative paths should be taken into account for default
+        // save path calculations.
+        if (!download_manager.isDataAlreadyAllocated()) {
+        	DownloadManagerDefaultPaths.TransferDetails transfer = 
+        		DownloadManagerDefaultPaths.onInitialisation(download_manager);
+        	if (transfer != null) {
+        		download_manager.setTorrentSaveDir(transfer.transfer_destination.getAbsolutePath());
+        	}
+        }
 
             //allocate / check every file
 
@@ -2472,6 +2483,7 @@ DiskManagerImpl
         return( getStorageTypes( download_manager ));
     }
 
+    // Used by DownloadManagerImpl too.
     protected static String[]
     getStorageTypes(
         DownloadManager     download_manager )
