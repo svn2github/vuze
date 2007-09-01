@@ -1832,7 +1832,7 @@ implements PEPeerTransport
 			}
     
     if (!az_messaging_mode) {
-    	this.client = getSimpleClientName(this.client);
+    	this.client = ClientIdentifier.getSimpleClientName(this.client);
 		}
 
 		handshake.destroy();
