@@ -159,7 +159,10 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 			case LOC_DOCUMENTS:
 				try {
 					return new File(OSXAccess.getDocDir());
-				} catch (UnsatisfiedLinkError e) {
+				} catch (Throwable e) {
+					// throws UnsatisfiedLinkError if no osxaccess
+					// Sometimes throws NullPointerException
+
 					// Usually in user.home + Documents
 					return new File(System.getProperty("user.home"), "Documents");
 				}
