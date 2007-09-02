@@ -3062,10 +3062,19 @@ public class TableViewSWTImpl
 			TableRowCore focusedRow = (iFocusIndex == -1) ? null
 					: getRow(iFocusIndex);
 
+			int iTopIndex = table.getTopIndex();
+			int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
+			boolean allSelectedRowsVisible = true;
+
 			int[] selectedRowIndices = table.getSelectionIndices();
 			TableRowCore[] selectedRows = new TableRowCore[selectedRowIndices.length];
 			for (int i = 0; i < selectedRowIndices.length; i++) {
-				selectedRows[i] = getRow(selectedRowIndices[i]);
+				int index = selectedRowIndices[i];
+				selectedRows[i] = getRow(index);
+				if (allSelectedRowsVisible
+						&& (index < iTopIndex || index > iBottomIndex)) {
+					allSelectedRowsVisible = false;
+				}
 				//System.out.println("Selected: " + selectedRowIndices[i] + ";" + selectedRows[i]);
 			}
 
@@ -3100,10 +3109,8 @@ public class TableViewSWTImpl
 					}
 				}
 
-				if (bTableVirtual) {
+				if (bTableVirtual && allSelectedRowsVisible) {
 					int count = sortedRows.size();
-					int iTopIndex = table.getTopIndex();
-					int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
 					if (iBottomIndex >= count) {
 						iBottomIndex = count - 1;
 					}
@@ -3152,15 +3159,16 @@ public class TableViewSWTImpl
 					int index = selectedRows[i].getIndex();
 					int iNewPos = (selectedRows[i] == focusedRow) ? 0 : pos++;
 					newSelectedRowIndices[iNewPos] = index;
-					if (Arrays.binarySearch(selectedRowIndices, index) >= 0)
+					if (Arrays.binarySearch(selectedRowIndices, index) >= 0) {
 						numSame++;
+					}
 				}
 
 				if (numSame < selectedRows.length) {
 					// XXX setSelection calls showSelection().  We don't want the table
 					//     to jump all over.  Quick fix is to reset topIndex, but
 					//     there might be a better way
-					int iTopIndex = 0;
+					iTopIndex = 0;
 					if (!bFollowSelected) {
 						table.setRedraw(false);
 						iTopIndex = table.getTopIndex();
