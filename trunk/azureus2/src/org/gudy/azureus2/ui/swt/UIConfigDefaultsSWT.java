@@ -40,7 +40,7 @@ public class UIConfigDefaultsSWT
 		def.addParameter("useCustomTab", true);
 		def.addParameter("GUI Refresh", 1000);
 		def.addParameter("Graphics Update", 4);
-		def.addParameter("ReOrder Delay", 0);
+		def.addParameter("ReOrder Delay", 4);
 		def.addParameter("Send Version Info", true);
 		def.addParameter("Show Download Basket", false);
 		def.addParameter("config.style.refreshMT", 0);
