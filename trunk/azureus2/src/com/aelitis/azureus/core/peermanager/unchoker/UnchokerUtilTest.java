@@ -147,6 +147,7 @@ public class UnchokerUtilTest {
         public void setData (String key, Object value){}
         public Connection getPluginConnection(){ return null; }
         public boolean supportsMessaging(){ return false;  }
+        public int handshakedMessaging(){ return PEPeer.MESSAGING_BT_ONLY; }
         public Message[] getSupportedMessages(){ return null; }
         public String getEncryption(){ return( "" ); }
         public int getReservedPieceNumber() { return -1; }

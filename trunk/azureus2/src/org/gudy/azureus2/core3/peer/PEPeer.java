@@ -49,11 +49,19 @@ PEPeer
 	public final static int CLOSING      	= 40;
 	public final static int DISCONNECTED 	= 50;
 	
+	
 	// these should be maintained to match above list ordinals /10
 	// if they don't than some debug info won't work right (not too big of a deal)
 	public final static String[] StateNames = { "Twinkle",
 		"Connecting", "Handshaking", "Transfering", "Closing", "Disconnected"
 	};
+	
+	public static final int MESSAGING_BT_ONLY = 1;
+	public static final int MESSAGING_AZMP = 2;
+	public static final int MESSAGING_LTEP = 3;
+	//used for plugins, such es webseeds
+	public static final int MESSAGING_EXTERN = 4;
+	
 	
   /**
    * Add peer listener.
@@ -228,6 +236,13 @@ PEPeer
    * @return true if extended messaging is supported, false if not
    */
   public boolean supportsMessaging();
+  
+  /**
+   * @Return the handshaked messaging type, {@link PEPeer} constants
+   */ 
+  public int handshakedMessaging();
+
+  
   
   /**
    * Returns name of encryption used by the peer

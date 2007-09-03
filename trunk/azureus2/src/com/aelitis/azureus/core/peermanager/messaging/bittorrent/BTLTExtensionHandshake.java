@@ -139,10 +139,29 @@ public class BTLTExtensionHandshake implements BTMessage {
 	}
 	
 	public String getClientName() {
-		byte[] client_name = (byte[])getDataMap().get("v");
+		byte[] client_name = (byte[])data_dict.get("v");
 		if (client_name == null) {return null;}
 		try {return new String(client_name, Constants.DEFAULT_ENCODING);}
 		catch (java.io.IOException ioe) {return null;}
+	}
+	
+	public int getTCPListeningPort()
+	{
+		Long port = (Long)data_dict.get("p");
+		if(port == null)
+			return 0;
+		int val = port.intValue();
+		if(val <= 65535 && val > 0)
+			return val;
+		return 0;
+	}
+	
+	public boolean isCryptoRequested()
+	{
+		Long crypto = (Long)data_dict.get("e");
+		if(crypto == null)
+			return false;
+		return crypto.longValue() == 1;
 	}
 
     // Identification methods.

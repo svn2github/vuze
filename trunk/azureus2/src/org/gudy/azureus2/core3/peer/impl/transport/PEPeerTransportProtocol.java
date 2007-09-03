@@ -145,7 +145,7 @@ implements PEPeerTransport
 
 	private int consecutive_no_request_count;
 
-	private boolean az_messaging_mode = false;
+	private int messaging_mode = MESSAGING_BT_ONLY;
 	private Message[] supported_messages = null;
   private byte	other_peer_bitfield_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
   private byte	other_peer_cancel_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
@@ -1808,11 +1808,10 @@ implements PEPeerTransport
       }
 		 */
 		
-		// 1 if it is AZMP, 2 if LTEP.
-		int ext_protocol = decideExtensionProtocol(handshake);
+		messaging_mode = decideExtensionProtocol(handshake);
 
 		//extended protocol processing
-		if (ext_protocol == 1) {
+		if (messaging_mode == MESSAGING_AZMP) {
 			/**
 			 * We log when a non-Azureus client claims to support extended messaging...
 			 * Obviously other Azureus clients do, so there's no point logging about them!
@@ -1822,7 +1821,7 @@ implements PEPeerTransport
 						+ "messaging support....enabling AZ mode."));
 			}
 
-			this.az_messaging_mode = true;
+			messaging_mode = MESSAGING_AZMP;
         
 			Transport transport = connection.getTransport();
         
@@ -1833,14 +1832,14 @@ implements PEPeerTransport
 
 			sendAZHandshake();
 		}
-		else if (ext_protocol == 2) {
+		else if (messaging_mode == MESSAGING_LTEP) {
 			if (Logger.isEnabled()) {
 				Logger.log(new LogEvent(this, LOGID, "Enabling LT extension protocol support..."));
 			}
 			this.sendLTExtHandshake();
 		}
 		
-    if (!az_messaging_mode) {
+    if (messaging_mode != MESSAGING_AZMP) {
     	this.client = ClientIdentifier.getSimpleClientName(this.client);
 		}
 
@@ -1856,7 +1855,7 @@ implements PEPeerTransport
     }
 		 */
 
-		if( !az_messaging_mode ) {  //otherwise we'll do this after receiving az handshake
+		if( messaging_mode != MESSAGING_AZMP ) {  //otherwise we'll do this after receiving az handshake
 
 			connection.getIncomingMessageQueue().resumeQueueProcessing();  //HACK: because BT decoder is auto-paused after initial handshake, so it doesn't accidentally decode the next AZ message
 
@@ -1870,14 +1869,11 @@ implements PEPeerTransport
 
 	}
 	
-	// 0: No extension.
-	// 1: AZMP
-	// 2: LTEP
 	private int decideExtensionProtocol(BTHandshake handshake) {
 		boolean supports_azmp = (handshake.getReserved()[0] & 128) == 128;
 		boolean supports_ltep = (handshake.getReserved()[5] & 16) == 16;
 		
-		if (!supports_azmp) {return (supports_ltep) ? 2 : 0;}
+		if (!supports_azmp) {return (supports_ltep) ? MESSAGING_LTEP : MESSAGING_BT_ONLY;}
 		else if (!supports_ltep) {
 			
 			// Check if it is AZMP enabled.
@@ -1885,7 +1881,7 @@ implements PEPeerTransport
 				if (Logger.isEnabled())
 					Logger.log(new LogEvent(this, LOGID, "Ignoring peer's extended AZ messaging support,"
 							+ " as disabled for this download."));
-				return 0;
+				return MESSAGING_BT_ONLY;
 			}
 			
 			// Check if the client is misbehaving...
@@ -1893,10 +1889,10 @@ implements PEPeerTransport
 				if (Logger.isEnabled())
 					Logger.log(new LogEvent(this, LOGID, "Handshake mistakingly indicates"
 							+ " extended AZ messaging support...ignoring."));
-				return 0;
+				return MESSAGING_BT_ONLY;
 			}
 			
-			return 1;
+			return MESSAGING_AZMP;
 		}
 		
 		boolean enp_major_bit = (handshake.getReserved()[5] & 2) == 2;
@@ -1931,12 +1927,26 @@ implements PEPeerTransport
 			Logger.log(new LogEvent(this, LOGID, msg));
 		}
 		
-		return (use_azmp) ? 1 : 2;
+		return (use_azmp) ? MESSAGING_AZMP : MESSAGING_LTEP;
 		
 	}
   
   
-  protected void decodeLTExtHandshake(BTLTExtensionHandshake handshake) {
+  protected void decodeLTExtHandshake(BTLTExtensionHandshake handshake)
+  {
+	  client = ClientIdentifier.getExtendedClientName(client, handshake.getClientName());
+	  if(handshake.getTCPListeningPort() != 0)
+	  {
+		  tcp_listen_port = handshake.getTCPListeningPort();
+		  peer_item_identity = PeerItemFactory.createPeerItem(
+			  ip, tcp_listen_port,
+			  PeerItem.convertSourceID(peer_source),
+			  handshake.isCryptoRequested() ? PeerItemFactory.HANDSHAKE_TYPE_CRYPTO : PeerItemFactory.HANDSHAKE_TYPE_PLAIN,
+			  udp_listen_port, // probably none
+			  crypto_level,
+			  0
+			  );
+	  }
 	  System.out.println("Received handshake: " + handshake.getDataMap() + ", client: " + handshake.getClientName());
   }
   
@@ -2669,6 +2679,11 @@ implements PEPeerTransport
 
 	public boolean supportsMessaging() {
 		return supported_messages != null;
+	}
+	
+	public int handshakedMessaging()
+	{
+		return messaging_mode;
 	}
 	
 	public byte[] getHandshakeReservedBytes() {

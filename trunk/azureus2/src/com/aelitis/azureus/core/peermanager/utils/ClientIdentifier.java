@@ -120,6 +120,14 @@ public class ClientIdentifier {
 		  
 		  return client_displayed_name;
 	  }
+	  
+	  
+	  public static String getExtendedClientName(final String peerIdClientName, final String ltepClientName)
+	  {
+		  //TODO sanity checks?
+		  return ltepClientName != null ? ltepClientName+" ("+peerIdClientName+")" : peerIdClientName;
+		  
+	  }
 
 	  
 }

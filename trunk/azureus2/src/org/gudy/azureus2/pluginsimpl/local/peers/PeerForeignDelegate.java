@@ -670,6 +670,11 @@ PeerForeignDelegate
 	{
 		return foreign.supportsMessaging();
 	}
+	
+	public int handshakedMessaging()
+	{
+		return PEPeer.MESSAGING_EXTERN;
+	}
 
 	public String
 	getEncryption()

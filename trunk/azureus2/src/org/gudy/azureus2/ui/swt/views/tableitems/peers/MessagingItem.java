@@ -39,11 +39,31 @@ public class MessagingItem
 
   public void refresh(TableCell cell) {
     PEPeer peer = (PEPeer)cell.getDataSource();
-    long value = (peer == null) ? 0 : (peer.supportsMessaging() ? 1 : 0);
+    int value = (peer == null) ? PEPeer.MESSAGING_BT_ONLY : peer.handshakedMessaging();
 
     if (!cell.setSortValue(value) && cell.isValid())
       return;
-
-    cell.setText((value == 1) ? "*" : "");
+    
+    String text;
+    
+    switch (value) {
+    case PEPeer.MESSAGING_BT_ONLY:
+		text = "Bt";		
+		break;
+	case PEPeer.MESSAGING_LTEP:
+		text = "Lt";		
+		break;
+	case PEPeer.MESSAGING_AZMP:
+		text = "Az";		
+		break;
+	case PEPeer.MESSAGING_EXTERN:
+		text = "Plugin";		
+		break;
+	default:
+		text = "";
+		break;
+	}
+    
+    cell.setText(text);
   }
 }
