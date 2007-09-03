@@ -668,10 +668,13 @@ implements PEPeerTransport
 	private void sendLTExtHandshake() {
 		String client_name = Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION;
 		int local_tcp_port = TCPNetworkManager.getSingleton().getTCPListeningPortNumber();
+		boolean require_crypto = NetworkManager.getCryptoRequired( manager.getAdapter().getCryptoLevel());
+		
 		Map data_dict = new HashMap();
 		data_dict.put("m", new HashMap()); // Supported extensions - none!
 		data_dict.put("v", client_name);
 		data_dict.put("p", new Integer(local_tcp_port));
+		data_dict.put("e", new Long(require_crypto ? 1L : 0L));
 		BTLTExtensionHandshake lt_handshake = new BTLTExtensionHandshake(
 				data_dict, other_peer_bt_lt_ext_version
 		);
