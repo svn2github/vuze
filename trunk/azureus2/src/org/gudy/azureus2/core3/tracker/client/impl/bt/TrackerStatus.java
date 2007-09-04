@@ -525,8 +525,9 @@ public class TrackerStatus {
 								.get("min_request_interval");
 						if (longScrapeValue != null)
 							iMinRequestInterval = longScrapeValue.intValue();
-						// Tracker owners wamt this log entry
-						Logger.log(new LogEvent(LOGID,
+						// Tracker owners want this log entry
+						if (Logger.isEnabled()) {
+							Logger.log(new LogEvent(LOGID,
 								"Received min_request_interval of " + iMinRequestInterval));
 					}
 				}

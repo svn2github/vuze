@@ -127,11 +127,13 @@ ProtocolDecoderInitial
 																		
 								if ( NetworkManager.REQUIRE_CRYPTO_HANDSHAKE && match == ProtocolDecoderAdapter.MATCH_CRYPTO_NO_AUTO_FALLBACK ){
 								
-									if ( NetworkManager.INCOMING_HANDSHAKE_FALLBACK_ALLOWED ){										
-										Logger.log(new LogEvent(LOGID, "Incoming connection ["+ transport.getAddress() + "] is not encrypted but has been accepted as fallback is enabled" ));
+									if ( NetworkManager.INCOMING_HANDSHAKE_FALLBACK_ALLOWED ){
+										if (Logger.isEnabled())
+											Logger.log(new LogEvent(LOGID, "Incoming connection ["+ transport.getAddress() + "] is not encrypted but has been accepted as fallback is enabled" ));
 									}
 									else if( AddressUtils.isLANLocalAddress( transport.getAddress().getAddress().getHostAddress() ) == AddressUtils.LAN_LOCAL_YES ) {
-										Logger.log(new LogEvent(LOGID, "Incoming connection ["+ transport.getAddress() + "] is not encrypted but has been accepted as lan-local" ));
+										if (Logger.isEnabled())
+											Logger.log(new LogEvent(LOGID, "Incoming connection ["+ transport.getAddress() + "] is not encrypted but has been accepted as lan-local" ));
 									}
 									else{										
 										throw( new IOException( "Crypto required but incoming connection has none" ));

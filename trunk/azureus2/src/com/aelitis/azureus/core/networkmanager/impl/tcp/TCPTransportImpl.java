@@ -320,7 +320,8 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
       int snd_real = channel.socket().getSendBufferSize();
       int rcv_real = channel.socket().getReceiveBufferSize();
       
-      Logger.log(new LogEvent(LOGID, "Setting new transport [" + description
+      if (Logger.isEnabled())
+    	  Logger.log(new LogEvent(LOGID, "Setting new transport [" + description
 					+ "] buffer sizes: SND=" + size_in_bytes + " [" + snd_real
 					+ "] , RCV=" + size_in_bytes + " [" + rcv_real + "]"));
     }

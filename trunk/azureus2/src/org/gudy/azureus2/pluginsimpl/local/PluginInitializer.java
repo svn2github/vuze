@@ -787,8 +787,9 @@ PluginInitializer
   					existing_parent.equals( FileUtil.getUserFile( "plugins" ))){
   				
   					// skip this overridden plugin
-  				
-  				Logger.log(new LogEvent(LOGID, "Plugin '" + plugin_name_string
+  	
+  				if (Logger.isEnabled())
+  					Logger.log(new LogEvent(LOGID, "Plugin '" + plugin_name_string
 								+ "/" + plugin_class
 								+ ": shared version overridden by user-specific one"));
   				
@@ -1039,6 +1040,7 @@ PluginInitializer
 
 					initializePluginFromClass(cla, id, key);
 
+					if (Logger.isEnabled())
 					Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
 							"Initialization of built in plugin '" + builtin_plugins[i][2] + "' complete"));
 				} catch (Throwable e) {

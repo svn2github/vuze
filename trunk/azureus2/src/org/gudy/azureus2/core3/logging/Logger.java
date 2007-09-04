@@ -49,21 +49,23 @@ public class Logger {
 
 			fileLogging.initialize();
 
-			log(new LogEvent(LOGID, "**** Logging starts: "
+			if (loggerImpl.isEnabled()) {
+				log(new LogEvent(LOGID, "**** Logging starts: "
 					+ Constants.AZUREUS_VERSION + " ****"));
 
-			log(new LogEvent(LOGID, "java.home=" + System.getProperty("java.home")));
+				log(new LogEvent(LOGID, "java.home=" + System.getProperty("java.home")));
 
-			log(new LogEvent(LOGID, "java.version="
+				log(new LogEvent(LOGID, "java.version="
 					+ System.getProperty("java.version")));
 
-			log(new LogEvent(LOGID, "os=" + System.getProperty("os.arch") + "/"
+				log(new LogEvent(LOGID, "os=" + System.getProperty("os.arch") + "/"
 					+ System.getProperty("os.name") + "/"
 					+ System.getProperty("os.version")));
 
-			log(new LogEvent(LOGID, "user.dir=" + System.getProperty("user.dir")));
+				log(new LogEvent(LOGID, "user.dir=" + System.getProperty("user.dir")));
 
-			log(new LogEvent(LOGID, "user.home=" + System.getProperty("user.home")));
+				log(new LogEvent(LOGID, "user.home=" + System.getProperty("user.home")));
+			}
 		} catch (Throwable t) {
 			t.printStackTrace();
 			Debug.out("Error initializing Logger", t);

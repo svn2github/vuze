@@ -252,7 +252,8 @@ public class VersionCheckClient {
 	        }
 	      }
 	      else {
-	      	Logger.log(new LogEvent(LOGID, "VersionCheckClient is using "
+	    	  if (Logger.isEnabled())
+	    		  Logger.log(new LogEvent(LOGID, "VersionCheckClient is using "
 							+ "cached version check info. Using " + last_check_data_v4.size()
 							+ " reply keys.")); 
 	      }
