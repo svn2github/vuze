@@ -24,6 +24,8 @@ import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.messaging.MessageException;
+import com.aelitis.azureus.core.peermanager.messaging.MessagingUtil;
+
 import java.util.Collections;
 import java.util.Map;
 import org.gudy.azureus2.core3.util.BDecoder;
@@ -64,19 +66,11 @@ public class BTLTExtensionHandshake implements BTMessage {
 		if (message_type != 0) {
 			throw new MessageException( "[" +getID() + "] decode error: no support for extension message ID " + message_type);
 		}
-		int data_size = data.remaining(DirectByteBuffer.SS_MSG);
-		byte[] encoded_data = new byte[data_size];
-		data.get(DirectByteBuffer.SS_MSG, encoded_data);
 		
 		// Try decoding the data now.
-		Map res_data_dict;
-		try {res_data_dict = BDecoder.decode(encoded_data);}
-		catch (java.io.IOException ioe) {
-			throw new MessageException( "[" +getID() + "] decode error: error Bdecoding payload", ioe);
-		}
+		Map res_data_dict = MessagingUtil.convertBencodedByteStreamToPayload(data, 1, getID());
 		
 		BTLTExtensionHandshake result = new BTLTExtensionHandshake(res_data_dict, this.version);
-		result.bencoded_data = encoded_data;
 		return result;
 	}
 
