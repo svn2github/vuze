@@ -113,7 +113,7 @@ public class BTMessageFactory {
    * @throws MessageException if message creation failed
    * NOTE: Does not auto-return given direct buffer on thrown exception.
    */
-  public static Message createBTMessage( DirectByteBuffer stream_payload ) throws MessageException {
+  public static Message createBTMessage( DirectByteBuffer stream_payload) throws MessageException {
     byte id = stream_payload.get( DirectByteBuffer.SS_MSG );
     
     switch( id ) {
@@ -143,19 +143,22 @@ public class BTMessageFactory {
         
       case 8:
         return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_CANCEL_BYTES, stream_payload, (byte)1 );
-        
-        /*
+
       case 20:
-        //Clients seeing our handshake reserved bit will send us the old 'extended' messaging hello message accidentally.
-        //Instead of throwing an exception and dropping the peer connection, we'll just fake it as a keep-alive :)
-      	if (Logger.isEnabled())
-					Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
-							"Old extended messaging hello received, "
-									+ "ignoring and faking as keep-alive."));
-        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_KEEP_ALIVE_BYTES, null, (byte)1 );
-        */
-      case 20:
-    	  return MessageManager.getSingleton().createMessage(BTMessage.ID_BT_LT_EXTENSION_HANDSHAKE_BYTES, stream_payload, (byte)1);
+    	  try {
+    		  return MessageManager.getSingleton().createMessage(BTMessage.ID_BT_LT_EXTENSION_HANDSHAKE_BYTES, stream_payload, (byte)1);
+    	  }
+    	  catch (MessageException e) {
+    		  // Could be malformed LTEP message, or could be a special case as mentioned below...
+    		  //
+    		  //Clients seeing our handshake reserved bit will send us the old 'extended' messaging hello message accidentally.
+    		  //Instead of throwing an exception and dropping the peer connection, we'll just fake it as a keep-alive :)
+  	      	if (Logger.isEnabled())
+  						Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+  								"Old extended messaging hello received (or malformed LT extension message), "
+  										+ "ignoring and faking as keep-alive."));
+  	        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_KEEP_ALIVE_BYTES, null, (byte)1 );
+    	  }
         
       default: {  System.out.println( "Unknown BT message id [" +id+ "]" );
         					throw new MessageException( "Unknown BT message id [" +id+ "]" );
