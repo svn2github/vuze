@@ -2684,7 +2684,7 @@ implements PEPeerTransport
 		return supported_messages != null;
 	}
 	
-	public int handshakedMessaging()
+	public int getMessagingMode()
 	{
 		return messaging_mode;
 	}

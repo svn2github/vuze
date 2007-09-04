@@ -671,7 +671,7 @@ PeerForeignDelegate
 		return foreign.supportsMessaging();
 	}
 	
-	public int handshakedMessaging()
+	public int getMessagingMode()
 	{
 		return PEPeer.MESSAGING_EXTERN;
 	}

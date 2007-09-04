@@ -39,7 +39,7 @@ public class MessagingItem
 
   public void refresh(TableCell cell) {
     PEPeer peer = (PEPeer)cell.getDataSource();
-    int value = (peer == null) ? -1 : peer.handshakedMessaging();
+    int value = (peer == null) ? -1 : peer.getMessagingMode();
 
     if (!cell.setSortValue(value) && cell.isValid())
       return;

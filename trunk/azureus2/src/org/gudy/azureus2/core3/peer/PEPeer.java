@@ -240,7 +240,7 @@ PEPeer
   /**
    * @Return the handshaked messaging type, {@link PEPeer} constants
    */ 
-  public int handshakedMessaging();
+  public int getMessagingMode();
 
   
   
