@@ -182,8 +182,15 @@ public class DefaultRankCalculator implements Comparable {
 
 	private final StartStopRulesDefaultPlugin rules;
 	
+	
+	
+	// state-caches for sorting
+	
 	int lastModifiedScrapeResultPeers = 0;
 	int lastModifiedScrapeResultSeeds = 0;
+	int lastModifiedShareRatio = 0;
+	// modified by a listener in StartStopRulesDefaultPlugin
+	boolean lastScrapeResultOk = false;
 
 	/**
 	 * Default Initializer
@@ -304,9 +311,7 @@ public class DefaultRankCalculator implements Comparable {
 				return value;
 
 			// Test Share Ratio
-			int shareRatioUs = dl.getStats().getShareRatio();
-			int shareRatioThem = dlData.dl.getStats().getShareRatio();
-			value = shareRatioUs - shareRatioThem;
+			value = lastModifiedShareRatio - dlData.lastModifiedShareRatio;
 			if (value != 0)
 				return value;
 		}
@@ -389,7 +394,7 @@ public class DefaultRankCalculator implements Comparable {
 		// when bAutoStart0Peers
 		if (iRankType == StartStopRulesDefaultPlugin.RANK_TIMED
 				&& !isFirstPriority()
-				&& !(bAutoStart0Peers && rules.calcPeersNoUs(dl) == 0 && scrapeResultOk(dl))) {
+				&& !(bAutoStart0Peers && rules.calcPeersNoUs(dl) == 0 && lastScrapeResultOk)) {
 			bIsActive = (state == Download.ST_SEEDING);
 
 		} else if (state != Download.ST_SEEDING
@@ -457,13 +462,12 @@ public class DefaultRankCalculator implements Comparable {
 
 			// here we are seeding
 
-			int shareRatio = stats.getShareRatio();
-
+			lastModifiedShareRatio = stats.getShareRatio();
 			lastModifiedScrapeResultPeers = rules.calcPeersNoUs(dl);
 			lastModifiedScrapeResultSeeds = rules.calcSeedsNoUs(dl);
 
 			boolean bScrapeResultsOk = (lastModifiedScrapeResultPeers > 0 || lastModifiedScrapeResultSeeds > 0
-					|| scrapeResultOk(dl)) && (lastModifiedScrapeResultPeers >= 0 && lastModifiedScrapeResultSeeds >= 0);
+					|| lastScrapeResultOk) && (lastModifiedScrapeResultPeers >= 0 && lastModifiedScrapeResultSeeds >= 0);
 
 			if (!isFirstPriority()) {
 				// Check Ignore Rules
@@ -471,18 +475,18 @@ public class DefaultRankCalculator implements Comparable {
 				// (we don't want leechers circumventing the 0.5 rule)
 
 				//0 means unlimited
-				if (iIgnoreShareRatio != 0 && shareRatio >= iIgnoreShareRatio
-						&& (lastModifiedScrapeResultSeeds >= iIgnoreShareRatio_SeedStart || !scrapeResultOk(dl))
-						&& shareRatio != -1) {
+				if (iIgnoreShareRatio != 0 && lastModifiedShareRatio >= iIgnoreShareRatio
+						&& (lastModifiedScrapeResultSeeds >= iIgnoreShareRatio_SeedStart || !lastScrapeResultOk)
+						&& lastModifiedShareRatio != -1) {
 					
 					if (rules.bDebugLog)
-						sExplainSR += "  shareratio met: shareRatio(" + shareRatio
+						sExplainSR += "  shareratio met: shareRatio(" + lastModifiedShareRatio
 								+ ") >= " + iIgnoreShareRatio + "\n";
 
 					dl.setSeedingRank(SR_SHARERATIOMET);
 					return SR_SHARERATIOMET;
 				} else if (rules.bDebugLog && iIgnoreShareRatio != 0
-						&& shareRatio >= iIgnoreShareRatio) {
+						&& lastModifiedShareRatio >= iIgnoreShareRatio) {
 					sExplainSR += "  shareratio NOT met: ";
 					if (lastModifiedScrapeResultSeeds >= iIgnoreShareRatio_SeedStart) 
 						sExplainSR += lastModifiedScrapeResultSeeds + " below seed threshold of "
@@ -720,7 +724,7 @@ public class DefaultRankCalculator implements Comparable {
 		}
 
 		//not FP if no peers  //Nolar, 2105 - Gouss, 2203
-		if (lastModifiedScrapeResultPeers == 0 && scrapeResultOk(dl) && bFirstPriorityIgnore0Peer) {
+		if (lastModifiedScrapeResultPeers == 0 && lastScrapeResultOk && bFirstPriorityIgnore0Peer) {
 			if (rules.bDebugLog)
 				sExplainFP += "Not FP: 0 peers\n";
 			return false;
@@ -826,7 +830,7 @@ public class DefaultRankCalculator implements Comparable {
 			int numSeeds = rules.calcSeedsNoUs(dl);
 
 			if (iIgnoreShareRatio != 0 && shareRatio >= iIgnoreShareRatio
-					&& (numSeeds >= iIgnoreShareRatio_SeedStart || !scrapeResultOk(dl))
+					&& (numSeeds >= iIgnoreShareRatio_SeedStart || !lastScrapeResultOk)
 					&& shareRatio != -1) {
 				return true;
 			}
@@ -847,10 +851,5 @@ public class DefaultRankCalculator implements Comparable {
 		}
 
 		return false;
-	}
-
-	private boolean scrapeResultOk(Download download) {
-		DownloadScrapeResult sr = download.getLastScrapeResult();
-		return (sr.getResponseType() == DownloadScrapeResult.RT_SUCCESS);
 	}
 }

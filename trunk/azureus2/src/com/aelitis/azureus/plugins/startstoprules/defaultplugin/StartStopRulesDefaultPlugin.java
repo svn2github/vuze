@@ -117,6 +117,11 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 
 	/** Map to relate downloadData to a Download */
 	private static Map downloadDataMap = AEMonitor.getSynchronisedMap(new HashMap());
+	/**
+	 * this is used to reduce the number of comperator invocations
+	 * by keeping a mostly sorted copy around, must be nulled whenever the map is changed
+	 */
+	private volatile DefaultRankCalculator[] sortedArrayCache;
 
 	private volatile boolean closingDown;
 
@@ -482,6 +487,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	{
 		public void scrapeResult(DownloadScrapeResult result) {
 			Download dl = result.getDownload();
+			DefaultRankCalculator dlData = (DefaultRankCalculator) downloadDataMap.get(dl);
 
 			// Skip if error (which happens when listener is first added and the
 			// torrent isn't scraped yet)
@@ -489,11 +495,13 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 				if (bDebugLog)
 					log.log(dl.getTorrent(), LoggerChannel.LT_INFORMATION,
 							"Ignored somethingChanged: new scrapeResult (RT_ERROR)");
+				if (dlData != null)
+					dlData.lastScrapeResultOk = false;
 				return;
 			}
 
-			DefaultRankCalculator dlData = (DefaultRankCalculator) downloadDataMap.get(dl);
 			if (dlData != null) {
+				dlData.lastScrapeResultOk = true;
 				requestProcessCycle(dlData);
 				if (bDebugLog)
 					log.log(dl.getTorrent(), LoggerChannel.LT_INFORMATION,
@@ -559,6 +567,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			} else {
 				dlData = new DefaultRankCalculator(StartStopRulesDefaultPlugin.this,
 						download);
+				sortedArrayCache = null;
 				downloadDataMap.put(download, dlData);
 				download.addListener(download_listener);
 				download.addTrackerListener(download_tracker_listener, false);
@@ -580,6 +589,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			download.removeActivationListener(download_activation_listener);
 
 			if (downloadDataMap.containsKey(download)) {
+				sortedArrayCache = null;
 				downloadDataMap.remove(download);
 			}
 
@@ -1117,8 +1127,11 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			}
 
 			// pull the data into a local array, so we don't have to lock/synchronize
-			DefaultRankCalculator[] dlDataArray;
-			dlDataArray = (DefaultRankCalculator[]) downloadDataMap.values().toArray(
+			DefaultRankCalculator[] dlDataArray;			
+			if(sortedArrayCache != null && sortedArrayCache.length == downloadDataMap.size())
+				dlDataArray = sortedArrayCache;
+			else
+				dlDataArray = sortedArrayCache = (DefaultRankCalculator[]) downloadDataMap.values().toArray(
 					new DefaultRankCalculator[downloadDataMap.size()]);
 
 			TotalsStats totals = new TotalsStats(dlDataArray);
@@ -1508,7 +1521,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		}
 
 		try {
-			boolean bScrapeOk = scrapeResultOk(download);
+			boolean bScrapeOk = dlData.lastScrapeResultOk;
 
 			// Ignore rules and other auto-starting rules do not apply when 
 			// bAutoStart0Peers and peers == 0. So, handle starting 0 peers 
