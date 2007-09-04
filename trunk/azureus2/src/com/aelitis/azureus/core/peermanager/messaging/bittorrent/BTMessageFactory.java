@@ -145,20 +145,16 @@ public class BTMessageFactory {
         return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_CANCEL_BYTES, stream_payload, (byte)1 );
 
       case 20:
-    	  try {
+    	  if (BTHandshake.LTEP_ENABLED) 
     		  return MessageManager.getSingleton().createMessage(BTMessage.ID_BT_LT_EXTENSION_HANDSHAKE_BYTES, stream_payload, (byte)1);
-    	  }
-    	  catch (MessageException e) {
-    		  // Could be malformed LTEP message, or could be a special case as mentioned below...
-    		  //
-    		  //Clients seeing our handshake reserved bit will send us the old 'extended' messaging hello message accidentally.
-    		  //Instead of throwing an exception and dropping the peer connection, we'll just fake it as a keep-alive :)
-  	      	if (Logger.isEnabled())
-  						Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
-  								"Old extended messaging hello received (or malformed LT extension message), "
-  										+ "ignoring and faking as keep-alive."));
+
+    	  //Clients seeing our handshake reserved bit will send us the old 'extended' messaging hello message accidentally.
+   		  //Instead of throwing an exception and dropping the peer connection, we'll just fake it as a keep-alive :)
+  	      if (Logger.isEnabled())
+  					Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+  							"Old extended messaging hello received (or malformed LT extension message), "
+  									+ "ignoring and faking as keep-alive."));
   	        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_KEEP_ALIVE_BYTES, null, (byte)1 );
-    	  }
         
       default: {  System.out.println( "Unknown BT message id [" +id+ "]" );
         					throw new MessageException( "Unknown BT message id [" +id+ "]" );

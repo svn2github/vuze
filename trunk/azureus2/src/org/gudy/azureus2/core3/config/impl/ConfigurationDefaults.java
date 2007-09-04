@@ -511,6 +511,9 @@ public class ConfigurationDefaults {
 
     def.put( SpeedManagerAlgorithmProviderV2.SETTING_WAIT_AFTER_ADJUST, TRUE );
     def.put( SpeedManagerAlgorithmProviderV2.SETTING_INTERVALS_BETWEEN_ADJUST, new Long(2) );
+    
+    // Temporary LTEP support parameter.
+    def.put("LTEP.enabled", TRUE);
   }
   
   protected void

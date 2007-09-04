@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.peermanager.messaging.bittorrent;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.RawMessage;
@@ -35,7 +36,7 @@ import com.aelitis.azureus.core.peermanager.utils.PeerClassifier;
 public class BTHandshake implements BTMessage, RawMessage {
   public static final String PROTOCOL = "BitTorrent protocol";
   
-  // No reserve bit sets
+  // No reserve bits set.
   public static final byte[] BT_RESERVED = new byte[]{0, 0, 0, 0, 0, 0, 0, 0 }; 
 
   // Set first bit of first byte to indicate advanced AZ messaging support. (128)
@@ -45,6 +46,13 @@ public class BTHandshake implements BTMessage, RawMessage {
   // Set seventh bit (2) only to prefer AZMP over LTEP.
   // Set eighth bit (1) only to prefer LTEP over AZMP. 
   public static final byte[] AZ_RESERVED = new byte[]{(byte)128, 0, 0, 0, 0, (byte)19, 0, 0 };
+  
+  // Disable LTEP if not allowed in the configuration.
+  public static final boolean LTEP_ENABLED;
+  static {
+	  LTEP_ENABLED = COConfigurationManager.getBooleanParameter("LTEP.enabled"); 
+	  if (!LTEP_ENABLED) {AZ_RESERVED[5] = (byte)0;}
+  }
   
   private DirectByteBuffer buffer = null;
   private String description = null;

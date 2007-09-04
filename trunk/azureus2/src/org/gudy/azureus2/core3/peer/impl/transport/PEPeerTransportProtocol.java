@@ -1874,10 +1874,23 @@ implements PEPeerTransport
 	
 	private int decideExtensionProtocol(BTHandshake handshake) {
 		boolean supports_azmp = (handshake.getReserved()[0] & 128) == 128;
-		boolean supports_ltep = (handshake.getReserved()[5] & 16) == 16;
+		boolean supports_ltep = (handshake.getReserved()[5] & 16) == 16 && BTHandshake.LTEP_ENABLED;
 		
-		if (!supports_azmp) {return (supports_ltep) ? MESSAGING_LTEP : MESSAGING_BT_ONLY;}
-		else if (!supports_ltep) {
+		if (!supports_azmp) {
+			if (supports_ltep) {
+				if (!manager.isExtendedMessagingEnabled()) {
+					if (Logger.isEnabled()) {
+						Logger.log(new LogEvent(this, LOGID, "Ignoring peer's LT extension protocol support,"
+								+ " as disabled for this download."));
+					}
+					return MESSAGING_BT_ONLY; // LTEP is supported, but disabled.
+				}
+				return MESSAGING_LTEP; // LTEP is supported.
+			}
+			return MESSAGING_BT_ONLY; // LTEP isn't supported.
+		}
+		
+		if (!supports_ltep) {
 			
 			// Check if it is AZMP enabled.
 			if(!manager.isExtendedMessagingEnabled()) {
