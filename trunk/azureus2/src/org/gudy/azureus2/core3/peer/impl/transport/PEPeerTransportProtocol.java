@@ -678,7 +678,6 @@ implements PEPeerTransport
 		BTLTExtensionHandshake lt_handshake = new BTLTExtensionHandshake(
 				data_dict, other_peer_bt_lt_ext_version
 		);
-		System.out.println("Sending LT EXT HS: " + lt_handshake.getBencodedString());
 		connection.getOutgoingMessageQueue().addMessage(lt_handshake, false);
 	}
 
@@ -1963,7 +1962,6 @@ implements PEPeerTransport
 			  0
 			  );
 	  }
-	  System.out.println("Received handshake: " + handshake.getDataMap() + ", client: " + handshake.getClientName());
   }
   
   protected void decodeAZHandshake( AZHandshake handshake ) {
