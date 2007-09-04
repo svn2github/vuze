@@ -48,13 +48,13 @@ public class MessagingItem
     
     switch (value) {
     case PEPeer.MESSAGING_BT_ONLY:
-		text = "Bt";		
+		text = "";		
 		break;
 	case PEPeer.MESSAGING_LTEP:
-		text = "Lt";		
+		text = "LT";		
 		break;
 	case PEPeer.MESSAGING_AZMP:
-		text = "Az";		
+		text = "AZ";		
 		break;
 	case PEPeer.MESSAGING_EXTERN:
 		text = "Plugin";		
