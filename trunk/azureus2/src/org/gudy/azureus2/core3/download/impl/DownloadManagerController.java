@@ -1779,9 +1779,9 @@ DownloadManagerController
 	}
 	
 	public boolean
-	isAZMessagingEnabled()
+	isExtendedMessagingEnabled()
 	{
-		return( download_manager.isAZMessagingEnabled());
+		return( download_manager.isExtendedMessagingEnabled());
 	}
 	
 	public boolean

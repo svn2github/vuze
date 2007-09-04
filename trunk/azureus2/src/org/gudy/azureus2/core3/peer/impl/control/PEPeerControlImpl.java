@@ -3227,9 +3227,9 @@ DiskManagerCheckRequestListener, IPFilterListener
 	}
 
 	public boolean
-	isAZMessagingEnabled()
+	isExtendedMessagingEnabled()
 	{
-		return( adapter.isAZMessagingEnabled());
+		return( adapter.isExtendedMessagingEnabled());
 	}
 
 	public boolean

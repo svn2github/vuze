@@ -1577,7 +1577,7 @@ DownloadImpl
   }
   
   
-  public boolean isMessagingEnabled() {  return download_manager.isAZMessagingEnabled();  }
+  public boolean isMessagingEnabled() {  return download_manager.isExtendedMessagingEnabled();  }
 
   public void setMessagingEnabled( boolean enabled ) {
 	  throw new RuntimeException("setMessagingEnabled is in the process of being removed - if you are seeing this error, let the Azureus developers know that you need this method to stay!");

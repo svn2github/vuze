@@ -51,7 +51,7 @@ PEPeerManagerAdapter
 	getMaxSeedConnections();
 	
 	public boolean
-	isAZMessagingEnabled();
+	isExtendedMessagingEnabled();
 	
 	public boolean
 	isPeerExchangeEnabled();

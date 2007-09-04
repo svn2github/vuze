@@ -529,14 +529,16 @@ DownloadManager
         DownloadScrapeResult    result );
 
   /**
-   * Is advanced AZ messaging enabled for this download.
+   * Is extended messaging enabled for this download (meaning AzMP and LTEP support).
    * @return true if enabled, false if disabled
    */
-    public boolean isAZMessagingEnabled();
+    public boolean isExtendedMessagingEnabled();
 
   /**
-   * Enable or disable advanced AZ messaging for this download.
+   * Enable or disable extended messaging messaging for this download.
    * @param enable true to enabled, false to disabled
+   * 
+   * @deprecated Want to get rid of this if possible.
    */
     public void setAZMessagingEnabled( boolean enable );
 

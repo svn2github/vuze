@@ -36,6 +36,7 @@ import java.net.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.disk.impl.DiskManagerImpl;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.*;
@@ -2959,7 +2960,7 @@ DownloadManagerImpl
   }
   
   
-  public boolean isAZMessagingEnabled() {  return az_messaging_enabled;  }
+  public boolean isExtendedMessagingEnabled() {  return az_messaging_enabled;  }
   
   public void 
   setAZMessagingEnabled( 

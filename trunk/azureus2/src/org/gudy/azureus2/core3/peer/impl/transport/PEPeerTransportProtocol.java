@@ -401,7 +401,7 @@ implements PEPeerTransport
 			DirectByteBuffer[] ddbs = 
 				new BTHandshake( manager.getHash(),
 						manager.getPeerId(),
-                                 manager.isAZMessagingEnabled(), other_peer_handshake_version ).getRawData();
+                                 manager.isExtendedMessagingEnabled(), other_peer_handshake_version ).getRawData();
 
 			int	handshake_len = 0;
 
@@ -661,7 +661,7 @@ implements PEPeerTransport
 			connection.getOutgoingMessageQueue().addMessage(
 					new BTHandshake( manager.getHash(),
 							manager.getPeerId(),
-	                         manager.isAZMessagingEnabled(), other_peer_handshake_version ), false );
+	                         manager.isExtendedMessagingEnabled(), other_peer_handshake_version ), false );
 		}
 	}
 
@@ -1880,7 +1880,7 @@ implements PEPeerTransport
 		else if (!supports_ltep) {
 			
 			// Check if it is AZMP enabled.
-			if(!manager.isAZMessagingEnabled()) {
+			if(!manager.isExtendedMessagingEnabled()) {
 				if (Logger.isEnabled())
 					Logger.log(new LogEvent(this, LOGID, "Ignoring peer's extended AZ messaging support,"
 							+ " as disabled for this download."));

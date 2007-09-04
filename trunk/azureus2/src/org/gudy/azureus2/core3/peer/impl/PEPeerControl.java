@@ -61,7 +61,7 @@ PEPeerControl
 	    int pieceNumber);
 	
 	public boolean
-	isAZMessagingEnabled();
+	isExtendedMessagingEnabled();
   
 	public boolean
 	isPeerExchangeEnabled();
