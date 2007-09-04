@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -38,8 +39,6 @@ import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformTorrentMessenger;
 
 import org.gudy.azureus2.plugins.torrent.Torrent;
-
-import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 
 /**
  * @author TuxPaper
@@ -103,6 +102,8 @@ public class PlatformTorrentUtils
 
 	private static final ArrayList metaDataListeners = new ArrayList();
 
+	private static final String TOR_AZ_PROP_USE_EMP = "useEMP";
+	
 	private static ArrayList listPlatformHosts = null;
 
 	private static final Map mapPlatformTrackerTorrents = new WeakHashMap();
@@ -284,7 +285,7 @@ public class PlatformTorrentUtils
 
 	private static void writeTorrentIfExists(TOTorrent torrent) {
 		AzureusCore core = AzureusCoreFactory.getSingleton();
-		if (core == null || !core.isStarted()){
+		if (core == null || !core.isStarted()) {
 			return;
 		}
 
@@ -381,7 +382,7 @@ public class PlatformTorrentUtils
 		}
 		return false;
 	}
-	
+
 	public static List getPlatformHosts() {
 		if (listPlatformHosts == null) {
 			listPlatformHosts = new ArrayList();
@@ -391,106 +392,102 @@ public class PlatformTorrentUtils
 		}
 		return listPlatformHosts;
 	}
-	
+
 	public static void addPlatformHost(String host) {
 		List platformHosts = getPlatformHosts();
 		host = host.toLowerCase();
-		
+
 		if (!platformHosts.contains(host)) {
 			platformHosts.add(platformHosts);
 			mapPlatformTrackerTorrents.clear();
 		}
 	}
 
-	public static boolean isPlatformHost( String host )
-	{
+	public static boolean isPlatformHost(String host) {
 		Object[] domains = getPlatformHosts().toArray();
-		
+
 		host = host.toLowerCase();
-		
-		for (int i=0;i<domains.length;i++){
-			
-			String	domain = (String)domains[i];
-			
-			if ( domain.equals( host )){
-				
-				return( true );
+
+		for (int i = 0; i < domains.length; i++) {
+
+			String domain = (String) domains[i];
+
+			if (domain.equals(host)) {
+
+				return (true);
 			}
-			
-			if ( host.endsWith( "." + domain )){
-				
-				return( true );
+
+			if (host.endsWith("." + domain)) {
+
+				return (true);
 			}
 		}
-		
-		return( false );
+
+		return (false);
 	}
-	
-	public static boolean 
-	isPlatformTracker(
-		TOTorrent torrent )
-	{
-		try{
-			if ( torrent == null ) {
-				
+
+	public static boolean isPlatformTracker(TOTorrent torrent) {
+		try {
+			if (torrent == null) {
+
 				return false;
 			}
-			
+
 			Object oCache = mapPlatformTrackerTorrents.get(torrent);
 			if (oCache instanceof Boolean) {
-				return ((Boolean)oCache).booleanValue();
+				return ((Boolean) oCache).booleanValue();
 			}
-			
-				// check them all incase someone includes one of our trackers in a multi-tracker
-				// torrent
-			
+
+			// check them all incase someone includes one of our trackers in a multi-tracker
+			// torrent
+
 			URL announceURL = torrent.getAnnounceURL();
-			
-			if ( announceURL != null ) {
-	
-				if ( !isPlatformHost( announceURL.getHost())){
-					
+
+			if (announceURL != null) {
+
+				if (!isPlatformHost(announceURL.getHost())) {
+
 					mapPlatformTrackerTorrents.put(torrent, new Boolean(false));
-					return( false );
+					return (false);
 				}
 			}
-			
+
 			TOTorrentAnnounceURLSet[] sets = torrent.getAnnounceURLGroup().getAnnounceURLSets();
-			
-			for (int i=0;i<sets.length;i++){
-				
+
+			for (int i = 0; i < sets.length; i++) {
+
 				URL[] urls = sets[i].getAnnounceURLs();
-				
-				for (int j=0;j<urls.length;j++){
-					
-					if ( !isPlatformHost( urls[j].getHost())){
-						
+
+				for (int j = 0; j < urls.length; j++) {
+
+					if (!isPlatformHost(urls[j].getHost())) {
+
 						mapPlatformTrackerTorrents.put(torrent, new Boolean(false));
-						return( false );
+						return (false);
 					}
 				}
 			}
-			
+
 			boolean b = announceURL != null;
 			mapPlatformTrackerTorrents.put(torrent, new Boolean(b));
 			return b;
-			
-		}catch( Throwable e ){
-			
+
+		} catch (Throwable e) {
+
 			Debug.printStackTrace(e);
-			
+
 			mapPlatformTrackerTorrents.put(torrent, new Boolean(false));
-			return( false );
+			return (false);
 		}
 	}
-	
+
 	public static boolean isPlatformTracker(Torrent torrent) {
 		if (torrent instanceof TorrentImpl) {
 			return isPlatformTracker(((TorrentImpl) torrent).getTorrent());
 		}
 		return false;
 	}
-	
+
 	public static String getAdId(TOTorrent torrent) {
 		return getContentMapString(torrent, TOR_AZ_PROP_AD_ID);
 	}
@@ -669,6 +666,14 @@ public class PlatformTorrentUtils
 
 	public static boolean isContentAdEnabled(TOTorrent torrent) {
 		return getContentMapLong(torrent, TOR_AZ_PROP_AD_ENABLED, 0) == 1;
+	}
+
+	public static boolean useEMP(TOTorrent torrent) {
+		return getContentMapLong(torrent, TOR_AZ_PROP_USE_EMP, 0) == 1;
+	}
+	
+	public static void setUseEMP(TOTorrent torrent, boolean useEMP) {
+		setContentMapLong(torrent, TOR_AZ_PROP_USE_EMP, useEMP ? 1 : 0);
 	}
 
 	public static long getExpiresOn(TOTorrent torrent) {
