@@ -58,8 +58,8 @@ public class SWTSkinObjectText2
 
 	private static Font font = null;
 
-	public SWTSkinObjectText2(SWTSkin skin, SWTSkinProperties skinProperties,
-			String sID, String sConfigID, String[] typeParams, SWTSkinObject parent) {
+	public SWTSkinObjectText2(SWTSkin skin, final SWTSkinProperties skinProperties,
+			String sID, final String sConfigID, String[] typeParams, SWTSkinObject parent) {
 		super(skin, skinProperties, sID, sConfigID, "text", parent);
 
 		style = SWT.WRAP;
@@ -83,7 +83,7 @@ public class SWTSkinObjectText2
 			createOn = (Composite) parent.getControl();
 		}
 
-		canvas = new Canvas(createOn, SWT.NONE) {
+		canvas = new Canvas(createOn, SWT.DOUBLE_BUFFERED) {
 			Point ptMax = new Point(0, 0);
 
 			// @see org.eclipse.swt.widgets.Composite#computeSize(int, int, boolean)
@@ -112,6 +112,15 @@ public class SWTSkinObjectText2
 
 				if (bUnderline) {
 					pt.y++;
+				}
+				
+				int fixedWidth = skinProperties.getIntValue(sConfigID + ".width", -1);
+				if (fixedWidth >= 0) {
+					pt.x = fixedWidth;
+				}
+				int fixedHeight = skinProperties.getIntValue(sConfigID + ".height", -1);
+				if (fixedHeight >= 0) {
+					pt.y = fixedHeight;
 				}
 
 				if (isVisible()) {
@@ -264,6 +273,10 @@ public class SWTSkinObjectText2
 							}
 						});
 					}
+					
+					if (s.equals("normal")) {
+						bNewFont = true;
+					}
 				}
 			}
 
@@ -319,8 +332,10 @@ public class SWTSkinObjectText2
 		bIsTextDefault = false;
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				canvas.redraw();
-				Utils.relayout(canvas);
+				if (canvas != null && !canvas.isDisposed()) {
+  				canvas.redraw();
+  				Utils.relayout(canvas);
+				}
 			}
 		});
 	}
