@@ -29,9 +29,7 @@ import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
@@ -75,6 +73,7 @@ public class ConfigView extends AbstractIView {
 	private Timer filterDelayTimer;
 	private String filterText = "";
 	private Label lblX;
+	private Listener scResizeListener;
 
   /**
    * Main Initializer
@@ -133,7 +132,10 @@ public class ConfigView extends AbstractIView {
       FormLayout layout = new FormLayout();
       cLeftSide.setLayout(layout);
       
-      final Text txtFilter = new Text(cLeftSide, SWT.BORDER);
+      Composite cFilterArea = new Composite(cLeftSide, SWT.NONE);
+      cFilterArea.setLayout(new FormLayout());
+      
+      final Text txtFilter = new Text(cFilterArea, SWT.BORDER);
       final String sFilterText = MessageText.getString("ConfigView.filter");
       txtFilter.setText(sFilterText);
       txtFilter.selectAll();
@@ -151,7 +153,7 @@ public class ConfigView extends AbstractIView {
 			});
       txtFilter.setFocus();
 
-  		lblX = new Label(cLeftSide, SWT.WRAP);
+  		lblX = new Label(cFilterArea, SWT.WRAP);
       Messages.setLanguageTooltip(lblX, "MyTorrentsView.clearFilter.tooltip");
       lblX.setImage(ImageRepository.getImage("smallx-gray"));
       lblX.addMouseListener(new MouseAdapter() {
@@ -159,19 +161,31 @@ public class ConfigView extends AbstractIView {
       		txtFilter.setText("");
       	}
       });
+      
+      Label lblSearch = new Label(cFilterArea, SWT.NONE);
+      lblSearch.setImage(ImageRepository.getImage("search"));
   
       tree = new Tree(cLeftSide, SWT.NONE);
       FontData[] fontData = tree.getFont().getFontData();
       fontData[0].setStyle(SWT.BOLD);
       filterFoundFont = new Font(d, fontData);
       
-      cLeftSide.setBackground(tree.getBackground());
-      lblX.setBackground(tree.getBackground());
-
       FormData formData;
+
+      formData = new FormData();
+      formData.bottom = new FormAttachment(100, -5);
+      formData.left = new FormAttachment(0, 0);
+      formData.right = new FormAttachment(100, 0);
+      cFilterArea.setLayoutData(formData);
+      
       formData = new FormData();
       formData.top = new FormAttachment(0,5);
-      formData.left = new FormAttachment(0,5);
+      formData.left = new FormAttachment(0, 5);
+      lblSearch.setLayoutData(formData);
+
+      formData = new FormData();
+      formData.top = new FormAttachment(0,5);
+      formData.left = new FormAttachment(lblSearch,5);
       formData.right = new FormAttachment(lblX, -3);
       txtFilter.setLayoutData(formData);
 
@@ -181,10 +195,10 @@ public class ConfigView extends AbstractIView {
       lblX.setLayoutData(formData);
 
       formData = new FormData();
-      formData.top = new FormAttachment(txtFilter,5);
+      formData.top = new FormAttachment(0, 0);
       formData.left = new FormAttachment(0,0);
       formData.right = new FormAttachment(100,0);
-      formData.bottom = new FormAttachment(100,0);
+      formData.bottom = new FormAttachment(cFilterArea,-1);
       tree.setLayoutData(formData);
   
       Composite cRightSide = new Composite(form, SWT.NULL);
@@ -250,6 +264,21 @@ public class ConfigView extends AbstractIView {
     	Logger.log(new LogEvent(LOGID, "Error initializing ConfigView", e));
     }
 
+    scResizeListener = new Listener() {
+			public void handleEvent(Event event) {
+				ScrolledComposite sc = (ScrolledComposite)event.widget;
+
+	      Composite c = (Composite)sc.getContent();
+	      if (c != null) {
+	      	Point size1 = c.computeSize(sc.getClientArea().width,
+							SWT.DEFAULT);
+					Point size = c.computeSize(SWT.DEFAULT, size1.y);
+	      	System.out.println(size);
+	      	sc.setMinSize(size);
+	      }
+	  		sc.getVerticalBar().setPageIncrement(sc.getSize().y);
+			}
+		};
 
 
     // Add sections
@@ -365,12 +394,7 @@ public class ConfigView extends AbstractIView {
           sc.setExpandVertical(true);
           sc.setLayoutData(new GridData(GridData.FILL_BOTH));
       		sc.getVerticalBar().setIncrement(16);
-      		sc.addListener(SWT.Resize, new Listener() {
-      			public void handleEvent(Event event) {
-      				ScrolledComposite sc = (ScrolledComposite)event.widget;
-      	  		sc.getVerticalBar().setPageIncrement(sc.getSize().y);
-      			}
-      		});
+      		sc.addListener(SWT.Resize, scResizeListener);
           
           if(i == 0) {
             Composite c;
@@ -529,9 +553,12 @@ public class ConfigView extends AbstractIView {
     	
       layoutConfigSection.topControl = item;
       
-      Composite c = (Composite)item.getContent();
+//      Composite c = (Composite)item.getContent();
       
-      item.setMinSize(c.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+
+      // resize listener will sc.setMinSize
+//      System.out.println("show");
+//      item.setMinSize(c.computeSize(SWT.DEFAULT, SWT.DEFAULT));
       cConfigSection.layout();
       
       updateHeader(section);
@@ -600,12 +627,7 @@ public class ConfigView extends AbstractIView {
     sc.setExpandVertical(true);
     sc.setLayoutData(new GridData(GridData.FILL_BOTH));
 		sc.getVerticalBar().setIncrement(16);
-		sc.addListener(SWT.Resize, new Listener() {
-			public void handleEvent(Event event) {
-				ScrolledComposite sc = (ScrolledComposite)event.widget;
-	  		sc.getVerticalBar().setPageIncrement(sc.getSize().y);
-			}
-		});
+		sc.addListener(SWT.Resize, scResizeListener);
 
     Composite cConfigSection = new Composite(sc, SWT.NULL);
     
