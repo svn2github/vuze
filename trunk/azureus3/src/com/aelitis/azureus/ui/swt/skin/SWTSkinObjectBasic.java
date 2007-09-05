@@ -190,7 +190,9 @@ public class SWTSkinObjectBasic
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObject#setVisible(boolean)
 	public void setVisible(boolean visible) {
-		control.setVisible(visible);
+		if (control != null && !control.isDisposed()) {
+			control.setVisible(visible);
+		}
 		triggerListeners(visible ? SWTSkinObjectListener.EVENT_SHOW
 				: SWTSkinObjectListener.EVENT_HIDE);
 	}
