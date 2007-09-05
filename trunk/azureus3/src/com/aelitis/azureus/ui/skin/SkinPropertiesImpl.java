@@ -66,11 +66,15 @@ public class SkinPropertiesImpl
 	private Properties properties;
 
 	public SkinPropertiesImpl() {
+		this(PATH_SKIN_DEFS, FILE_SKIN_DEFS);
+	}
+
+	public SkinPropertiesImpl(String skinPath, String mainSkinFile) {
 		properties = new Properties();
 		InputStream is;
 		ClassLoader classLoader = SkinPropertiesImpl.class.getClassLoader();
 
-		is = classLoader.getResourceAsStream(PATH_SKIN_DEFS + FILE_SKIN_DEFS);
+		is = classLoader.getResourceAsStream(skinPath + mainSkinFile);
 		if (is != null) {
 			try {
 				properties.load(is);
@@ -78,8 +82,7 @@ public class SkinPropertiesImpl
 				e.printStackTrace();
 			}
 		} else {
-			Logger.log(new LogEvent(LOGID, PATH_SKIN_DEFS + FILE_SKIN_DEFS
-					+ " not found"));
+			Logger.log(new LogEvent(LOGID, skinPath + mainSkinFile + " not found"));
 		}
 
 		is = classLoader.getResourceAsStream(LOCATION_SKIN);
@@ -95,7 +98,9 @@ public class SkinPropertiesImpl
 		if (sFiles != null) {
 			String[] sFilesArray = sFiles.split(",");
 			for (int i = 0; i < sFilesArray.length; i++) {
-				String sFile = PATH_SKIN_DEFS + sFilesArray[i] + ".properties";
+				String sFile = (sFilesArray[i].startsWith("/")
+						? sFilesArray[i].substring(1) : skinPath + sFilesArray[i])
+						+ ".properties";
 				try {
 					is = classLoader.getResourceAsStream(sFile);
 					if (is != null) {
@@ -261,10 +266,10 @@ public class SkinPropertiesImpl
 		String s = getValue(name, params);
 		return (s == null) ? def : s;
 	}
-	
+
 	// @see com.aelitis.azureus.ui.skin.SkinProperties#getBooleanValue(java.lang.String, boolean)
 	public boolean getBooleanValue(String name, boolean def) {
-		String s = getStringValue(name, (String)null);
+		String s = getStringValue(name, (String) null);
 		if (s == null) {
 			return def;
 		}
