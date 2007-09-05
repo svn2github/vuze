@@ -1073,6 +1073,7 @@ public class Utils {
 		return bMetricsOk;
 	}
 
+
 	/**
 	 * Relayout all composites up from control until there's enough room for the
 	 * control to fit
@@ -1080,19 +1081,39 @@ public class Utils {
 	 * @param control Control that had it's sized changed and needs more room
 	 */
 	public static void relayout(Control control) {
+		relayout(control, false);
+	}
+
+	/**
+	 * Relayout all composites up from control until there's enough room for the
+	 * control to fit
+	 * 
+	 * @param control Control that had it's sized changed and needs more room
+	 */
+	public static void relayout(Control control, boolean expandOnly) {
 		if (control == null || control.isDisposed()) {
 			return;
 		}
 
-		Point size = control.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
 		Composite parent = control.getParent();
+		Point targetSize = control.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
+		Point size = control.getSize();
+		if (size.y == targetSize.y && size.x == targetSize.x) {
+			return;
+		}
+
+		if (expandOnly && size.y >= targetSize.y && size.x >= targetSize.x) {
+			parent.layout();
+			return;
+		}
+		
 		while (parent != null) {
 			parent.layout(true);
 			parent = parent.getParent();
 
 			Point newSize = control.getSize();
 			
-			if (newSize.y >= size.y && newSize.x >= size.x) {
+			if (newSize.y >= targetSize.y && newSize.x >= targetSize.x) {
 				break;
 			}
 		}
