@@ -168,6 +168,7 @@ public class ImageRepository {
 		addPath("org/gudy/azureus2/ui/icons/smallx.png", "smallx");
 		addPath("org/gudy/azureus2/ui/icons/smallx-gray.png", "smallx-gray");
 		addPath("org/gudy/azureus2/ui/icons/working.gif", "working");
+		addPath("org/gudy/azureus2/ui/icons/search.png", "search");
 	}
 
   public static void addPath(String path, String id) {
