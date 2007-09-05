@@ -540,6 +540,11 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 
         Debug.outNoStack(MessageFormat.format("OSAScript execution ended ({0}ms)", new Object[]{String.valueOf(System.currentTimeMillis() - start)}));
 
+        try {
+        	osaProcess.destroy();
+        } catch (Throwable t) {
+        	//ignore
+        }
         if (errorMsg != null)
         {
             throw new IOException(errorMsg);
