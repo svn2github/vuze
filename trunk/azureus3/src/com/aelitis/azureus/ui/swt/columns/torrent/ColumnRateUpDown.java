@@ -111,18 +111,26 @@ public class ColumnRateUpDown
 		}
 
 		public void refresh(TableCell cell) {
-			DownloadManager dm = (DownloadManager) cell.getDataSource();
-			if (dm == null) {
+			Object ds = cell.getDataSource();
+			TOTorrent torrent = null;
+			if (ds instanceof TOTorrent) {
+				torrent = (TOTorrent)ds;
+			} else if (ds instanceof DownloadManager) {
+				torrent = ((DownloadManager)ds).getTorrent();
+				if (!PlatformTorrentUtils.isContentProgressive(torrent)
+						&& !((DownloadManager) ds).isDownloadComplete(false)) {
+					return;
+				}
+			}
+
+			if (torrent == null) {
 				return;
 			}
-			if (!PlatformTorrentUtils.isContent(dm.getTorrent(), true)) {
-				return;
-			}
-			if (!dm.isDownloadComplete(false)) {
+			if (!PlatformTorrentUtils.isContent(torrent, true)) {
 				return;
 			}
 
-			int rating = PlatformTorrentUtils.getUserRating(dm.getTorrent());
+			int rating = PlatformTorrentUtils.getUserRating(torrent);
 
 			if (!cell.setSortValue(rating) && cell.isValid()) {
 				return;
@@ -159,15 +167,28 @@ public class ColumnRateUpDown
 		boolean bMouseDowned = false;
 
 		public void cellMouseTrigger(final TableCellMouseEvent event) {
+			Object ds = event.cell.getDataSource();
+			TOTorrent torrent0 = null;
+			if (ds instanceof TOTorrent) {
+				torrent0 = (TOTorrent)ds;
+			} else if (ds instanceof DownloadManager) {
+				torrent0 = ((DownloadManager)ds).getTorrent();
+				if (!PlatformTorrentUtils.isContentProgressive(torrent0)
+						&& !((DownloadManager) ds).isDownloadComplete(false)) {
+					return;
+				}
+			}
+
+			if (torrent0 == null) {
+				return;
+			}
+
+			final TOTorrent torrent = torrent0;
+
 			// middle button == refresh rate from platform
 			if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP
 					&& event.button == 2) {
-				DownloadManager dm = (DownloadManager) event.cell.getDataSource();
-				if (dm == null) {
-					return;
-				}
 
-				final TOTorrent torrent = dm.getTorrent();
 				try {
 					final String fHash = torrent.getHashWrapper().toBase32String();
 					PlatformRatingMessenger.getUserRating(new String[] {
@@ -203,20 +224,12 @@ public class ColumnRateUpDown
 			}
 
 			// no rating if row isn't selected yet
-			if (!event.cell.getTableRow().isSelected()) {
+			TableRow row = event.cell.getTableRow();
+			if (row != null && !row.isSelected()) {
 				return;
 			}
 
-			DownloadManager dm = (DownloadManager) event.cell.getDataSource();
-			if (dm == null) {
-				return;
-			}
-
-			if (!PlatformTorrentUtils.isContent(dm.getTorrent(), true)) {
-				return;
-			}
-
-			if (!dm.isDownloadComplete(false)) {
+			if (!PlatformTorrentUtils.isContent(torrent, true)) {
 				return;
 			}
 
@@ -237,7 +250,6 @@ public class ColumnRateUpDown
 					if (x >= 0 && y >= 0 && x < boundsRateMe.width
 							&& y < boundsRateMe.height) {
 						try {
-							final TOTorrent torrent = dm.getTorrent();
 							final String hash = torrent.getHashWrapper().toBase32String();
 							final int value = (x < (boundsRateMe.height - y + 1)) ? 1 : 0;
 							PlatformTorrentUtils.setUserRating(torrent, -2);
@@ -266,7 +278,6 @@ public class ColumnRateUpDown
 				} else {
 					// remove setting
 					try {
-						final TOTorrent torrent = dm.getTorrent();
 						final String hash = torrent.getHashWrapper().toBase32String();
 						final int oldValue = PlatformTorrentUtils.getUserRating(torrent);
 						if (oldValue == -2) {
