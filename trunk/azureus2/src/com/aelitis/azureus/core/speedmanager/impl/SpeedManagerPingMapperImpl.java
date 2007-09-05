@@ -1473,10 +1473,10 @@ SpeedManagerPingMapperImpl
 		writer.println( "bad_down=" + getLimitStr( last_bad_downs, false ));
 		
 		if ( best_good_up != null ){
-			writer.println( "best_up=" + best_good_up );
+			writer.println( "best_up=" + best_good_up.getString());
 		}
 		if ( best_good_down != null ){
-			writer.println( "best_down=" + best_good_down );
+			writer.println( "best_down=" + best_good_down.getString());
 		}
 	}
 	
