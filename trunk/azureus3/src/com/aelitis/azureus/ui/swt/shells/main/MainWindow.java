@@ -651,8 +651,9 @@ public class MainWindow
   							return TorrentListener.loadTorrentByB64(core, b64);
   						} else if (decodedMap.containsKey("url")) {
   							String url = MapUtils.getMapString(decodedMap, "url", null);
+  							boolean playNow = MapUtils.getMapBoolean(decodedMap, "play-now", false);
 								TorrentListener.loadTorrent(core, url, MapUtils.getMapString(
-										decodedMap, "referer", null));
+										decodedMap, "referer", null), playNow);
   						} else {
   							return false;
   						}
@@ -1735,7 +1736,7 @@ public class MainWindow
 
 					final Browser browser = new Browser(cArea, SWT.NONE);
 					final ClientMessageContext context = new BrowserContext("search",
-							browser, null);
+							browser, null, true);
 					context.addMessageListener(new TorrentListener(core));
 					browser.setLayoutData(Utils.getFilledFormData());
 					//					browser.setUrl("http://www.google.com/search?num=5&q="
@@ -1751,7 +1752,7 @@ public class MainWindow
 
 					final Browser browser = new Browser(cArea, SWT.NONE);
 					final ClientMessageContext context = new BrowserContext("search",
-							browser, null);
+							browser, null, true);
 
 					browser.setLayoutData(Utils.getFilledFormData());
 

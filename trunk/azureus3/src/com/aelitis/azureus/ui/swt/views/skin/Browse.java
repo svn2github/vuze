@@ -105,7 +105,7 @@ public class Browse
 
 		final Browser browser = new Browser(cArea, SWT.NONE);
 		final ClientMessageContext context = new BrowserContext("big", browser,
-				null);
+				null, true);
 		context.addMessageListener(new TorrentListener(core));
 
 		formData = new FormData();

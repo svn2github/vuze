@@ -103,7 +103,9 @@ public class SWTSkinObjectBrowser
 		if (browserID == null) {
 			browserID = sID;
 		}
-		context = new BrowserContext(browserID, browser, widgetIndicator);
+		
+		context = new BrowserContext(browserID, browser, widgetIndicator,
+				properties.getBooleanValue(sConfigID + ".forceVisibleAfterLoad", true));
 		context.addMessageListener(new TorrentListener(core));
 		context.addMessageListener(new DisplayListener(browser));
 		context.addMessageListener(new ConfigListener(browser));

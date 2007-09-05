@@ -66,6 +66,8 @@ public class BrowserContext
 
 	private String lastValidURL = null;
 
+	private final boolean forceVisibleAfterLoad;
+
 	/**
 	 * Creates a context and registers the given browser.
 	 * 
@@ -73,8 +75,8 @@ public class BrowserContext
 	 * @param browser the browser to be registered
 	 */
 	public BrowserContext(String id, Browser browser,
-			Control widgetWaitingIndicator) {
-		this(id);
+			Control widgetWaitingIndicator, boolean forceVisibleAfterLoad) {
+		this(id, forceVisibleAfterLoad);
 		registerBrowser(browser, widgetWaitingIndicator);
 	}
 
@@ -84,8 +86,9 @@ public class BrowserContext
 	 * 
 	 * @param id unique identifier of this context
 	 */
-	public BrowserContext(String id) {
+	public BrowserContext(String id, boolean forceVisibleAfterLoad) {
 		super(id);
+		this.forceVisibleAfterLoad = forceVisibleAfterLoad;
 	}
 
 	public void registerBrowser(final Browser browser,
@@ -100,8 +103,8 @@ public class BrowserContext
 				if (browser != null && !browser.isDisposed()) {
 					Utils.execSWTThread(new AERunnable() {
 						public void runSupport() {
-							if (browser != null && !browser.isDisposed()
-									&& !browser.isVisible()) {
+							if (forceVisibleAfterLoad && browser != null
+									&& !browser.isDisposed() && !browser.isVisible()) {
 								browser.setVisible(true);
 							}
 						}
@@ -125,7 +128,9 @@ public class BrowserContext
 			}
 		};
 
-		browser.setVisible(false);
+		if (forceVisibleAfterLoad) {
+			browser.setVisible(false);
+		}
 		if (widgetWaitIndicator != null && !widgetWaitIndicator.isDisposed()) {
 			widgetWaitIndicator.setVisible(false);
 		}
@@ -148,7 +153,7 @@ public class BrowserContext
 			}
 
 			public void completed(ProgressEvent event) {
-				if (!browser.isVisible()) {
+				if (forceVisibleAfterLoad && !browser.isVisible()) {
 					browser.setVisible(true);
 				}
 
@@ -157,8 +162,7 @@ public class BrowserContext
 						+ "',"
 						+ "{ 'azv':'"
 						+ org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION
-						+ "', 'browser-id':'" + getID() + "' }"
-						+ ");} } catch (e) { }");
+						+ "', 'browser-id':'" + getID() + "' }" + ");} } catch (e) { }");
 
 				if (org.gudy.azureus2.core3.util.Constants.isCVSVersion()
 						|| System.getProperty("debug.https", null) != null) {
@@ -239,6 +243,7 @@ public class BrowserContext
 				// https://moo.com:80/dr
 
 				boolean blocked = PlatformConfigMessenger.isURLBlocked(event.location);
+				blocked = false;
 
 				if (blocked) {
 					event.doit = false;
@@ -327,7 +332,7 @@ public class BrowserContext
 	}
 
 	public boolean sendBrowserMessage(String key, String op) {
-		return sendBrowserMessage(key, op, (Map)null);
+		return sendBrowserMessage(key, op, (Map) null);
 	}
 
 	public boolean sendBrowserMessage(String key, String op, Map params) {
@@ -341,7 +346,7 @@ public class BrowserContext
 
 		return executeInBrowser(msg.toString());
 	}
-	
+
 	public boolean sendBrowserMessage(String key, String op, Collection params) {
 		StringBuffer msg = new StringBuffer();
 		msg.append("az.msg.dispatch('").append(key).append("', '").append(op).append(

@@ -98,7 +98,7 @@ public class BrowserWindow
 		}
 
 		final ClientMessageContext context = new BrowserContext("browser-window"
-				+ Math.random(), browser, null);
+				+ Math.random(), browser, null, true);
 		context.addMessageListener(new TorrentListener());
 		context.addMessageListener(new DisplayListener(browser));
 		context.addMessageListener(new ConfigListener(browser));
