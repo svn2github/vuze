@@ -1950,7 +1950,7 @@ implements PEPeerTransport
   protected void decodeLTExtHandshake(BTLTExtensionHandshake handshake)
   {
 	  client = ClientIdentifier.getExtendedClientName(client, handshake.getClientName());
-	  if(handshake.getTCPListeningPort() != -1)
+	  if(handshake.getTCPListeningPort() > 0 )
 	  {
 		  // Only use crypto if it was specifically requested. Not sure what the default
 		  // should be if they haven't indicated...
@@ -1960,7 +1960,7 @@ implements PEPeerTransport
 		  peer_item_identity = PeerItemFactory.createPeerItem(
 			  ip, tcp_listen_port,
 			  PeerItem.convertSourceID(peer_source),
-			  handshake_type;
+			  handshake_type,
 			  udp_listen_port, // probably none
 			  crypto_level,
 			  0

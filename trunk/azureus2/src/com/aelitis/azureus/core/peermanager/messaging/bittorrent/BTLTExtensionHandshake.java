@@ -143,11 +143,11 @@ public class BTLTExtensionHandshake implements BTMessage {
 	{
 		Long port = (Long)data_dict.get("p");
 		if(port == null)
-			return -1;
+			return 0;
 		int val = port.intValue();
 		if(val <= 65535 && val > 0)
 			return val;
-		return -1;
+		return 0;
 	}
 	
 	public Boolean isCryptoRequested()
