@@ -39,4 +39,8 @@ public class SWTSkinFactory
 		instance = skin;
 	}
 
+	public static SWTSkin getNonPersistentInstance(String skinPath,
+			String mainSkinFile) {
+		return new SWTSkin(skinPath, mainSkinFile);
+	}
 }

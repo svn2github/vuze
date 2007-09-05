@@ -41,6 +41,21 @@ public class SWTSkinPropertiesImpl
 
 	private static Map mapFallBack = new HashMap();
 
+	/**
+	 * @param skinPath
+	 * @param mainSkinFile
+	 */
+	public SWTSkinPropertiesImpl(String skinPath, String mainSkinFile) {
+		super(skinPath, mainSkinFile);
+	}
+
+	/**
+	 * 
+	 */
+	public SWTSkinPropertiesImpl() {
+		super();
+	}
+
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinProperties#getColor(java.lang.String)
 	public Color getColor(String sID) {
 		Color color;

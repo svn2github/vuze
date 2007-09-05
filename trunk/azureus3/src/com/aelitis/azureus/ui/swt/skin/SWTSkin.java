@@ -82,7 +82,15 @@ public class SWTSkin
 	 * 
 	 */
 	public SWTSkin() {
-		skinProperties = new SWTSkinPropertiesImpl();
+		init(new SWTSkinPropertiesImpl());
+	}
+
+	public SWTSkin(String skinPath, String mainSkinFile) {
+		init(new SWTSkinPropertiesImpl(skinPath, mainSkinFile));
+	}
+		
+	private void init(SWTSkinProperties skinProperties) {
+		this.skinProperties = skinProperties;
 		ImageLoaderFactory.createInstance(Display.getDefault(), skinProperties);
 
 		ontopPaintListener = new Listener() {
@@ -362,7 +370,17 @@ public class SWTSkin
 		FormLayout layout = new FormLayout();
 		shell.setLayout(layout);
 		shell.setBackgroundMode(SWT.INHERIT_DEFAULT);
+		
+		Color bg = skinProperties.getColor(startID + ".color");
+		if (bg != null) {
+			shell.setBackground(bg);
+		}
 
+		Color fg = skinProperties.getColor(startID + ".fgcolor");
+		if (fg != null) {
+			shell.setForeground(fg);
+		}
+		
 		String[] sMainGroups = skinProperties.getStringArray(startID + ".widgets");
 		if (sMainGroups == null) {
 			System.out.println("NO " + startID + ".widgets!!");
@@ -908,6 +926,21 @@ public class SWTSkin
 
 		return skinObject;
 	}
+	
+	private SWTSkinObject createSlider(SWTSkinProperties properties,
+			String sID, String sConfigID, String[] typeParams,
+			SWTSkinObject parentSkinObject) {
+		SWTSkinObject skinObject = new SWTSkinObjectSlider(this, properties, sID,
+				sConfigID, typeParams, parentSkinObject);
+		addToControlMap(skinObject);
+
+		if (bLayoutComplete) {
+			attachControl(skinObject);
+		}
+
+		return skinObject;
+	}
+	
 
 	public Shell getShell() {
 		return shell;
@@ -1108,6 +1141,9 @@ public class SWTSkin
 						parentSkinObject, false);
 			} else if (sType.equals("clone")) {
 				skinObject = createClone(properties, sID, sConfigID, sTypeParams,
+						parentSkinObject);
+			} else if (sType.equals("slider")) {
+				skinObject = createSlider(properties, sID, sConfigID, sTypeParams,
 						parentSkinObject);
 			} else if (sType.equals("hidden")) {
 				return null;
