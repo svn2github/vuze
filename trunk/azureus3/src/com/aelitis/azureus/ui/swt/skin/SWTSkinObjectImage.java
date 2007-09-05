@@ -239,4 +239,9 @@ public class SWTSkinObjectImage
 		label.setImage(image);
 		Utils.relayout(label);
 	}
+
+	protected Image setImageByID(String sConfigID) {
+		customImage = true;
+		return setLabelImage(sConfigID, sConfigID);
+	}
 }
