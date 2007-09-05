@@ -270,20 +270,26 @@ public class SWTBGImagePainter
 
 			Point ofs;
 
-			if (control.getParent() == shell || false) {
+			if (control.getParent() == shell) {
 				ofs = control.getLocation();
 				Rectangle clientArea = shell.getClientArea();
 				ofs.x += clientArea.x;
 				ofs.y += clientArea.y;
 			} else {
-				Composite composite = (control instanceof Composite)
-						? ((Composite) control) : null;
+				Point controlPos = new Point(0, 0);
+				if (control instanceof Composite) {
+					Composite composite = (Composite) control;
+					Rectangle compArea = composite.getClientArea();
+					//System.out.println("comparea=" + compArea);
+					controlPos.x = compArea.x;
+					controlPos.y = compArea.y;
+				}
 
-				Rectangle clientArea = (composite == null) ? control.getBounds()
-						: composite.getClientArea();
-				Point locControl = control.toDisplay(clientArea.x, clientArea.y);
-				clientArea = shell.getClientArea();
-				Point locShell = shell.toDisplay(clientArea.x, clientArea.y);
+				Point locControl = control.toDisplay(controlPos.x, controlPos.y);
+				Rectangle clientArea = shell.getClientArea();
+				Point locShell = control.getParent().toDisplay(clientArea.x,
+						clientArea.y);
+				//System.out.println("locC="+ locControl + ";locS=" + locShell);
 
 				ofs = new Point(locControl.x - locShell.x, locControl.y - locShell.y);
 			}
