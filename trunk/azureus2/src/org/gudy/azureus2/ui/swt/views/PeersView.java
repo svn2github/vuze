@@ -100,6 +100,7 @@ public class PeersView
     new PeerIDItem(),
     new PeerByteIDItem(),
     new HandshakeReservedBytesItem(),
+    new ClientIdentificationItem(),
   };
   
   private DownloadManager manager;
