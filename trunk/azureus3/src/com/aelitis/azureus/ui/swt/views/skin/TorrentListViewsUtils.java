@@ -22,6 +22,8 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -441,14 +443,22 @@ public class TorrentListViewsUtils
 	private static void runFile(TOTorrent torrent, String runFile) {
 		runFile(torrent, runFile, false);
 	}
-	
-	private static void runFile(TOTorrent torrent, String runFile, boolean forceWMP) {
+
+	private static void runFile(TOTorrent torrent, String runFile,
+			boolean forceWMP) {
 		if (PlatformTorrentUtils.isContentDRM(torrent) || forceWMP) {
 			if (!runInMediaPlayer(runFile)) {
 				Utils.launch(runFile);
 			}
 		} else {
-			Utils.launch(runFile);
+			if (PlatformTorrentUtils.isContent(torrent, true)
+					&& PlatformTorrentUtils.useEMP(torrent)) {
+				if (!openInEMP(torrent, runFile)) {
+					Utils.launch(runFile);
+				}
+			} else {
+				Utils.launch(runFile);
+			}
 		}
 
 		if (PlatformTorrentUtils.isContent(torrent, true)) {
@@ -468,6 +478,41 @@ public class TorrentListViewsUtils
 				}
 			}
 		}
+	}
+
+	/**
+	 * @return
+	 *
+	 * @since 3.0.2.3
+	 */
+	private static boolean openInEMP(TOTorrent torrent, String runFile) {
+		Class epwClass = null;
+		try {
+			epwClass = Class.forName("com.azureus.plugins.azemp.ui.swt.emp.EmbeddedPlayerWindowSWT");
+		} catch (ClassNotFoundException e1) {
+			return false;
+		}
+
+		try {
+			Constructor epwConstructor = epwClass.getConstructor(new Class[] {
+				TOTorrent.class,
+				String.class
+			});
+			Object epwObject = epwConstructor.newInstance(new Object[] {
+				torrent,
+				runFile
+			});
+
+			Method method = epwClass.getMethod("open", new Class[] {});
+
+			method.invoke(epwObject, new Object[] {});
+
+			return true;
+		} catch (Throwable e) {
+			Debug.out(e);
+		}
+
+		return false;
 	}
 
 	/**
@@ -556,6 +601,7 @@ public class TorrentListViewsUtils
 				"wma",
 				"wav",
 				"h264",
+				"mkv",
 			};
 		}
 
