@@ -243,7 +243,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("CD", "Enhanced CTorrent", VER_AZ_TWO_MAJ_TWO_MIN);      
 		addAzStyle("CT", "CTorrent", "1.2.34");
 		addAzStyle("DP", "Propogate Data Client");
-		addAzStyle("DE", "DelugeTorrent", VER_AZ_THREE_DIGITS);
+		addAzStyle("DE", "Deluge", VER_AZ_THREE_DIGITS);
 		addAzStyle("EB", "EBit");
 		addAzStyle("ES", "Electric Sheep", VER_AZ_THREE_DIGITS);
 		addAzStyle("FC", "FileCroc");
@@ -260,6 +260,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("lt", "libTorrent (Rakshasa)", VER_AZ_THREE_ALPHANUMERIC_DIGITS);
 		addAzStyle("LW", "LimeWire", NO_VERSION); // The "0001" bytes found after the LW commonly refers to the version of the BT protocol implemented. Documented here: http://www.limewire.org/wiki/index.php?title=BitTorrentRevision
 		addAzStyle("MP", "MooPolice", VER_AZ_THREE_DIGITS);
+		addAzStyle("MO", "MonoTorrent");
 		addAzStyle("MT", "MoonlightTorrent");
 		addAzStyle("PC", PeerClassifier.CACHE_LOGIC);
 		addAzStyle("PD", "Pando");
