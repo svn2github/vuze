@@ -63,7 +63,7 @@ public class BTPeerIDByteDecoder {
 	}
 	
 	private static HashSet logged_discrepancies = new HashSet();
-	public static void logClientDiscrepancy(String peer_id_name, String handshake_name, String discrepancy, String protocol) {
+	public static void logClientDiscrepancy(String peer_id_name, String handshake_name, String discrepancy, String protocol, byte[] peer_id) {
 		if (!client_logging_allowed) {return;}
 		
 		// Generate the string used that we will log.
@@ -78,6 +78,11 @@ public class BTPeerIDByteDecoder {
 		if (log_to_debug_out || LOG_UNKNOWN) {
 			// If this text has been recorded before, then avoid doing it again.
 			if (!logged_discrepancies.add(line_to_log)) {return;}
+		}
+		
+		// Add peer ID bytes.
+		if (peer_id != null) {
+			line_to_log += ", Peer ID: " + ByteFormatter.encodeString(peer_id);
 		}
 		
 		// Enable this block for now - just until we get more feedback about
@@ -203,8 +208,6 @@ public class BTPeerIDByteDecoder {
 					String client_name = (client_with_version == null) ? client : client_with_version;
 					return client_name + " / rTorrent*";
 				}
-				
-
 				
 				if (client_with_version != null) {return client_with_version;}
 				

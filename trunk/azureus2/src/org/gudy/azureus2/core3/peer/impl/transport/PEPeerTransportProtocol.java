@@ -1952,7 +1952,7 @@ implements PEPeerTransport
 	  String lt_handshake_name = handshake.getClientName();
 	  if (lt_handshake_name != null) {
 		  this.client_handshake = lt_handshake_name;
-		  this.client = ClientIdentifier.identifyLTEP(this.client_peer_id, this.client_handshake);
+		  this.client = ClientIdentifier.identifyLTEP(this.client_peer_id, this.client_handshake, this.peer_id);
 	  }
 	  if(handshake.getTCPListeningPort() > 0 )
 	  {
@@ -1976,7 +1976,7 @@ implements PEPeerTransport
   protected void decodeAZHandshake( AZHandshake handshake ) {
 		this.client_handshake = handshake.getClient();
 		this.client_handshake_version = handshake.getClientVersion();
-		this.client = ClientIdentifier.identifyAZMP(this.client_peer_id, client_handshake, client_handshake_version);
+		this.client = ClientIdentifier.identifyAZMP(this.client_peer_id, client_handshake, client_handshake_version, this.peer_id);
 
 		if( handshake.getTCPListenPort() > 0 ) {  //use the ports given in handshake
 			tcp_listen_port = handshake.getTCPListenPort();

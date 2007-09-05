@@ -21,7 +21,7 @@ public class ClientIdentifier {
 		  return asDiscrepancy(null, peer_id_client, "fake_client");
 	}
 	
-	public static String identifyAZMP(String peer_id_client_name, String az_msg_client_name, String az_msg_client_version) {
+	public static String identifyAZMP(String peer_id_client_name, String az_msg_client_name, String az_msg_client_version, byte[] peer_id) {
 		  
 		/**
 		 * Hack for BitTyrant - the handshake resembles this:
@@ -82,14 +82,20 @@ public class ClientIdentifier {
 				  // Our peer ID decoding can't decode it, but the client identifies itself anyway.
 				  // In that case, we won't say that it is a mismatch, and we'll just use the name
 				  // provided to us.
-				  //
-				  // TODO: Log this information somewhere.
 				  client_displayed_name = msg_client_name;
 				  is_mismatch = false;
+				  
+				  // Log it though.
+				  BTPeerIDByteDecoder.logClientDiscrepancy(peer_id_client_name, msg_client_name, "unknown_client", "AZMP", peer_id);
 			  }
 			  else {
-				  // We've got a general mismatch, we don't know what client it is.
-				  // TODO: Log this.
+				  // We've got a general mismatch, we don't know what client it is - in most cases.
+				  
+				  // Ares Galaxy sometimes uses the same peer ID as Arctic Torrent, so allow it to be
+				  // overridden.
+				  if (msg_client_name.startsWith("Ares") && peer_id_client.equals("ArcticTorrent")) {
+					  return msg_client_name;
+				  }
 			  }
 		  }
 		  
@@ -99,20 +105,106 @@ public class ClientIdentifier {
 		  else {discrepancy_type = null;}
 		  
 		  if (discrepancy_type != null) {
-			  return asDiscrepancy(client_displayed_name, peer_id_client, msg_client_name, discrepancy_type, "AZMP");
+			  return asDiscrepancy(client_displayed_name, peer_id_client, msg_client_name, discrepancy_type, "AZMP", peer_id);
 		  }
 		  
 		  return client_displayed_name;
 	  }
 	  
-	public static String identifyLTEP(String peer_id_name, String handshake_name) {
+	public static String identifyLTEP(String peer_id_name, String handshake_name, byte[] peer_id) {
 		if (handshake_name == null) {return peer_id_name;}
-		if (peer_id_name.equals(handshake_name)) {return handshake_name;}
-		return asDiscrepancy(null, peer_id_name, handshake_name, "mismatch_id", "LTEP");
+		
+		/**
+		 * Official BitTorrent clients should still be shown as Mainline.
+		 * This is to be consistent with previous Azureus behaviour.
+		 */
+		String handshake_name_to_process = handshake_name;
+		if (handshake_name.startsWith("BitTorrent ")) {
+			handshake_name_to_process = handshake_name.replaceFirst("BitTorrent", "Mainline");
+		}
+		
+		if (peer_id_name.startsWith("\u00B5Torrent")) {
+
+			// 1.6.0 misidentifies itself as 1.5 in the handshake.
+			if (peer_id_name.equals("\u00B5Torrent 1.6.0")) {
+				return peer_id_name;
+			}
+
+			// Older µTorrent versions will not always use the appropriate character for the
+			// first letter, so compensate here.
+			if (!handshake_name.startsWith("\u00B5Torrent") && handshake_name.substring(1).startsWith("Torrent")) {
+				handshake_name_to_process = "\u00B5" + handshake_name.substring(1);
+			}
+			
+			// Some versions indicate they are the beta version in the peer ID, but not in the
+			// handshake - we prefer to keep the beta identifier.
+			if (peer_id_name.endsWith("Beta") && peer_id_name.startsWith(handshake_name_to_process)) {
+				return peer_id_name;
+			}
+			
+			// Some Mainline 4.x versions identify themselves as µTorrent - we'll just treat them as
+			// Mainline instead (though make a note they are µTorrent based.
+			if (peer_id_name.startsWith("Mainline 4.")) {
+				return peer_id_name + " (" + handshake_name_to_process + ")";
+			}
+			
+		}
+		
+		// We allow a client to have a different version number than the one decoded from
+		// the peer ID.
+		String client_type_peer = peer_id_name.split(" ", 2)[0];
+		String client_type_handshake = handshake_name_to_process.split(" ", 2)[0];
+		
+		if (client_type_peer.equals(client_type_handshake)) {return handshake_name_to_process;}
+		
+		/**
+		 * This means there is a mismatch. There's already one situation we deal with, for BitRocket.
+		 * 
+		 * The peer decoding code will generate a peer ID like this:
+		 *   BitRocket 0.3(32)
+		 *   
+		 * And the handshake will contain something like this:
+		 *   BitRocket/0.3.3(32) libtorrent/0.13.0.0
+		 *   
+		 * It's due to the inconsistent formatting of the client name between the two. We'll make
+		 * an exception for that case.
+		 */
+		if (client_type_peer.equals("BitRocket") && client_type_handshake.startsWith("BitRocket")) {
+			return handshake_name_to_process;
+		}
+		
+		// Bloody XTorrent.
+		if (handshake_name_to_process.equals("Transmission 0.7-svn") && client_type_peer.equals("Azureus")) {
+			return asDiscrepancy("XTorrent", peer_id_name, handshake_name, "fake_client", "LTEP", peer_id);
+		}
+		
+		// Like we do with AZMP peers, allow the handshake to define the client even if we can't extract the
+		// name from the peer ID, but log it so we can possibly identify it in future.
+		if (peer_id_name.startsWith(MessageText.getString("PeerSocket.unknown"))) {
+			BTPeerIDByteDecoder.logClientDiscrepancy(peer_id_name, handshake_name, "unknown_client", "LTEP", peer_id);
+			return handshake_name_to_process;
+		}
+		
+		/**
+		 * libtorrent is... unsurprisingly... a torrent library. Many clients use it, so cope with clients
+		 * which don't identify themselves through the peer ID, but *do* identify themselves through the
+		 * handshake.
+		 */
+		if (peer_id_name.startsWith("libtorrent (Rasterbar)")) {
+			if (handshake_name_to_process.toLowerCase().indexOf("libtorrent") == -1) {
+				handshake_name_to_process += " (" + peer_id_name + ")";
+			}
+			return handshake_name_to_process;
+		}
+		
+		// Can't determine what the client is.
+		return asDiscrepancy(null, peer_id_name, handshake_name, "mismatch_id", "LTEP", peer_id);
 	}
 	  
-	  private static String asDiscrepancy(String client_name, String peer_id_name, String handshake_name, String discrepancy_type, String protocol_type) {
-		  BTPeerIDByteDecoder.logClientDiscrepancy(peer_id_name, handshake_name, discrepancy_type, protocol_type);
+	  private static String asDiscrepancy(String client_name, String peer_id_name, String handshake_name, String discrepancy_type, String protocol_type, byte[] peer_id) {
+		  if (client_name == null) {
+			  BTPeerIDByteDecoder.logClientDiscrepancy(peer_id_name, handshake_name, discrepancy_type, protocol_type, peer_id);
+		  }
 		  return asDiscrepancy(client_name, peer_id_name + "\" / \"" + handshake_name, discrepancy_type);
 	  }
 	  
