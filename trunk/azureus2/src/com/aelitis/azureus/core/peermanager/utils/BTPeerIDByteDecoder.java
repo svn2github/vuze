@@ -54,6 +54,56 @@ public class BTPeerIDByteDecoder {
 		log.write("\n");
 	}
 	
+	private static String asUTF8ByteString(String text) {
+		try {
+			byte[] utf_bytes = text.getBytes(Constants.DEFAULT_ENCODING);
+			return ByteFormatter.encodeString(utf_bytes);
+		}
+		catch (UnsupportedEncodingException uee) {return "";}
+	}
+	
+	private static HashSet logged_discrepancies = new HashSet();
+	public static void logClientDiscrepancy(String peer_id_name, String handshake_name, String discrepancy, String protocol) {
+		if (!client_logging_allowed) {return;}
+		
+		// Generate the string used that we will log.
+		String line_to_log = discrepancy + " [" + protocol + "]: ";
+		line_to_log += "\"" + peer_id_name + "\" / \"" + handshake_name + "\" ";
+		
+		// We'll encode the name in byte form to help us decode it.
+		line_to_log += "[" + asUTF8ByteString(handshake_name) + "]";
+		
+		// Avoid logging the same combination of things again.
+		boolean log_to_debug_out = Constants.isCVSVersion();
+		if (log_to_debug_out || LOG_UNKNOWN) {
+			// If this text has been recorded before, then avoid doing it again.
+			if (!logged_discrepancies.add(line_to_log)) {return;}
+		}
+		
+		// Enable this block for now - just until we get more feedback about
+		// problematic clients.
+		if (log_to_debug_out) {
+			Debug.outNoStack("Conflicting peer identification: " + line_to_log);
+		}
+		
+		if (!LOG_UNKNOWN) {return;}
+		FileWriter log = null;
+		File log_file = FileUtil.getUserFile("identification.log");
+		try {
+			log = new FileWriter(log_file, true);
+			log.write(line_to_log);
+			log.write("\n");
+		}
+		catch (Throwable e) {
+			Debug.printStackTrace(e);
+		}
+		finally {
+			try {if (log != null) log.close();}
+			catch (IOException ignore) {/*ignore*/}
+		}
+		
+	}
+	
 	private static boolean client_logging_allowed = true;
 
 	// I don't expect this to grow too big, and it won't grow if there's no logging going on.

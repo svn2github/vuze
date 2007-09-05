@@ -123,8 +123,10 @@ implements PEPeerTransport
 
 	protected int connection_state = PEPeerTransport.CONNECTION_PENDING;
 
-	//The client name identification	
-	private String client = "";
+	private String client = ""; // Client name to show to user.
+	private String client_peer_id = ""; // Client name derived from the peer ID.
+	private String client_handshake = ""; // Client name derived from the handshake.
+	private String client_handshake_version = ""; // Client version derived from the handshake.
 
 	//When superSeeding, number of unique piece announced
 	private int uniquePiece = -1;
@@ -1677,8 +1679,8 @@ implements PEPeerTransport
 
 		peer_id = handshake.getPeerId();
 
-		//decode a client identification string from the given peerID
-		client = PeerClassifier.getClientDescription( peer_id );
+		// Decode a client identification string from the given peerID
+		this.client_peer_id = this.client = PeerClassifier.getClientDescription( peer_id );
 
 		//make sure the client type is not banned
 		if( !PeerClassifier.isClientTypeAllowed( client ) ) {
@@ -1832,7 +1834,7 @@ implements PEPeerTransport
 			connection.getIncomingMessageQueue().setDecoder( new AZMessageDecoder() );
 			connection.getOutgoingMessageQueue().setEncoder( new AZMessageEncoder( enable_padding ));
 
-			sendAZHandshake();
+			this.sendAZHandshake();
 		}
 		else if (messaging_mode == MESSAGING_LTEP) {
 			if (Logger.isEnabled()) {
@@ -1840,9 +1842,8 @@ implements PEPeerTransport
 			}
 			this.sendLTExtHandshake();
 		}
-		
-    if (messaging_mode != MESSAGING_AZMP) {
-    	this.client = ClientIdentifier.getSimpleClientName(this.client);
+		else {
+			this.client = ClientIdentifier.identifyBTOnly(this.client_peer_id, this.handshake_reserved_bytes);
 		}
 
 		handshake.destroy();
@@ -1947,9 +1948,12 @@ implements PEPeerTransport
 	}
   
   
-  protected void decodeLTExtHandshake(BTLTExtensionHandshake handshake)
-  {
-	  client = ClientIdentifier.getExtendedClientName(client, handshake.getClientName());
+  protected void decodeLTExtHandshake(BTLTExtensionHandshake handshake) {
+	  String lt_handshake_name = handshake.getClientName();
+	  if (lt_handshake_name != null) {
+		  this.client_handshake = lt_handshake_name;
+		  this.client = ClientIdentifier.identifyLTEP(this.client_peer_id, this.client_handshake);
+	  }
 	  if(handshake.getTCPListeningPort() > 0 )
 	  {
 		  // Only use crypto if it was specifically requested. Not sure what the default
@@ -1970,9 +1974,9 @@ implements PEPeerTransport
   }
   
   protected void decodeAZHandshake( AZHandshake handshake ) {
-		String handshake_client = handshake.getClient();
-		String handshake_client_version = handshake.getClientVersion();
-	  client = ClientIdentifier.getExtendedClientName(this.client, handshake_client, handshake_client_version);
+		this.client_handshake = handshake.getClient();
+		this.client_handshake_version = handshake.getClientVersion();
+		this.client = ClientIdentifier.identifyAZMP(this.client_peer_id, client_handshake, client_handshake_version);
 
 		if( handshake.getTCPListenPort() > 0 ) {  //use the ports given in handshake
 			tcp_listen_port = handshake.getTCPListenPort();

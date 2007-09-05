@@ -4,52 +4,37 @@ import org.gudy.azureus2.core3.internat.MessageText;
 
 public class ClientIdentifier {
 	
-	  /**
-	   * This method is used to determine the client name for peers which don't talk
-	   * over an extension protocol.
-	   */
-	  public static String getSimpleClientName(String client) {
+	public static String identifyBTOnly(String peer_id_client, byte[] handshake_bytes) {
+		  // However, we do care if something is claiming to be Azureus when it isn't. If
+		  // it's a recent version of Azureus, but doesn't support advanced messaging, we
+		  // know it's a fake.
+		  if (!peer_id_client.startsWith("Azureus ")) {return peer_id_client;}
 
-		  /** 
-		   * We don't really care about overriding the client name derived by the
-		   * peer decoder. However, we do care if something is claiming to be
-		   * Azureus when it isn't. If it's a recent version of Azureus, but doesn't
-		   * support advanced messaging, we know it's a fake.
-		   */
-		  if (!client.startsWith("Azureus ")) {return client;}
-		  
 		  // Older versions of Azureus won't have support, so discount these first.
-		  String version = client.substring(8);
+		  String version = peer_id_client.substring(8);
 		  if (version.startsWith("1") || version.startsWith("2.0") || 
 				  version.startsWith("2.1") || version.startsWith("2.2")) {
-			  return client;
-		  }
-
+			  return peer_id_client;
+		  } 
+		
 		  // Must be a fake.
-		  return MessageText.getString("PeerSocket.unknown") + " [" +
-		  	MessageText.getString("PeerSocket.fake_client") + ": \"" + client + "\"]"; 
+		  return asDiscrepancy(null, peer_id_client, "fake_client");
+	}
+	
+	public static String identifyAZMP(String peer_id_client_name, String az_msg_client_name, String az_msg_client_version) {
 		  
-	  }
-
-	  /**
-	   * This method is used to determine the client name to specify for Azureus
-	   * messaging protocol peers.
-	   */
-	  public static String getExtendedClientName(final String peer_id_client_name,
-			  final String az_msg_client_name, final String az_msg_client_version) {
-		  
-			/**
-			 * Hack for BitTyrant - the handshake resembles this:
-			 *   Client: AzureusBitTyrant
-			 *   ClientVersion: 2.5.0.0BitTyrant
-			 *   
-			 * Yuck - let's format it so it resembles something pleasant.
-		   */ 
-		  if (az_msg_client_name.endsWith("BitTyrant")) {
+		/**
+		 * Hack for BitTyrant - the handshake resembles this:
+		 *   Client: AzureusBitTyrant
+		 *   ClientVersion: 2.5.0.0BitTyrant
+		 *   
+		 * Yuck - let's format it so it resembles something pleasant.
+ 	     */ 
+		if (az_msg_client_name.endsWith("BitTyrant")) {
 			  return "Azureus BitTyrant " + az_msg_client_version.replaceAll("BitTyrant", "");
 		  }
 		  
-		  final String msg_client_name = az_msg_client_name + " " + az_msg_client_version;
+		  String msg_client_name = az_msg_client_name + " " + az_msg_client_version;
 		  
 		  /**
 		   * Do both names seem to match?
@@ -68,12 +53,12 @@ public class ClientIdentifier {
 		  }
 		  
 		  // There is an inconsistency. Let's try figuring out what we can.
-		  String client_displayed_name = MessageText.getString("PeerSocket.unknown");
+		  String client_displayed_name = null;
 		  boolean is_peer_id_azureus = peer_id_client_name.startsWith("Azureus ");
 		  boolean is_msg_client_azureus = az_msg_client_name.equals("Azureus");
 		  boolean is_fake = false;
 		  boolean is_mismatch = true;
-		  boolean is_peer_id_unknown = peer_id_client_name.startsWith(client_displayed_name);
+		  boolean is_peer_id_unknown = peer_id_client_name.startsWith(MessageText.getString("PeerSocket.unknown"));
 		  
 		  if (is_peer_id_azureus) {
 			  
@@ -114,20 +99,28 @@ public class ClientIdentifier {
 		  else {discrepancy_type = null;}
 		  
 		  if (discrepancy_type != null) {
-			  client_displayed_name += " [" + MessageText.getString("PeerSocket." + discrepancy_type) + ": " +
-			      "\"" + peer_id_client_name + "\" / \"" + msg_client_name + "\"]";
+			  return asDiscrepancy(client_displayed_name, peer_id_client, msg_client_name, discrepancy_type, "AZMP");
 		  }
 		  
 		  return client_displayed_name;
 	  }
 	  
+	public static String identifyLTEP(String peer_id_name, String handshake_name) {
+		if (handshake_name == null) {return peer_id_name;}
+		if (peer_id_name.equals(handshake_name)) {return handshake_name;}
+		return asDiscrepancy(null, peer_id_name, handshake_name, "mismatch_id", "LTEP");
+	}
 	  
-	  public static String getExtendedClientName(final String peerIdClientName, final String ltepClientName)
-	  {
-		  //TODO sanity checks?
-		  return ltepClientName != null ? ltepClientName+" ("+peerIdClientName+")" : peerIdClientName;
-		  
+	  private static String asDiscrepancy(String client_name, String peer_id_name, String handshake_name, String discrepancy_type, String protocol_type) {
+		  BTPeerIDByteDecoder.logClientDiscrepancy(peer_id_name, handshake_name, discrepancy_type, protocol_type);
+		  return asDiscrepancy(client_name, peer_id_name + "\" / \"" + handshake_name, discrepancy_type);
 	  }
-
 	  
+	  private static String asDiscrepancy(String real_client, String dodgy_client, String discrepancy_type) {
+		  if (real_client == null) {
+			  real_client = MessageText.getString("PeerSocket.unknown");
+		  }
+		  return real_client + " [" +
+		  	MessageText.getString("PeerSocket." + discrepancy_type) + ": \"" + dodgy_client + "\"]"; 
+	  }
 }
