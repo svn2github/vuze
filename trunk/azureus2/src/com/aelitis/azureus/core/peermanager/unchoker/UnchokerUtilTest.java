@@ -207,6 +207,8 @@ public class UnchokerUtilTest {
 		public byte[] getHandshakeReservedBytes() {
 			return null;
 		}
+		public String getClientNameFromExtensionHandshake() {return null;}
+		public String getClientNameFromPeerID() {return null;}
       };
       
      f_stats[0] = new PEPeerStats() {

@@ -3148,6 +3148,16 @@ implements PEPeerTransport
 	public void setDownloadRateLimitBytesPerSecond( int bytes ){ connection.setDownloadLimit( bytes ); }
 	public int getUploadRateLimitBytesPerSecond(){ return connection.getUploadLimit(); }
 	public int getDownloadRateLimitBytesPerSecond(){ return connection.getDownloadLimit(); }
+	
+	
+	public String getClientNameFromPeerID() {return this.client_peer_id;}
+	public String getClientNameFromExtensionHandshake() {
+		if (!this.client_handshake.equals("") && !this.client_handshake_version.equals("")) {
+			return this.client_handshake + " " + this.client_handshake_version;
+		}
+		return this.client_handshake;
+	}
+	
 
 	public void
 	generateEvidence(

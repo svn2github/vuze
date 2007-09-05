@@ -343,4 +343,7 @@ PEPeer
 		boolean		enabled );
 	
 	public byte[] getHandshakeReservedBytes();
+	
+	public String getClientNameFromPeerID();
+	public String getClientNameFromExtensionHandshake();
 }

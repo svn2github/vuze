@@ -853,4 +853,8 @@ PeerForeignDelegate
 	{
 		writer.println( "delegate: ip=" + getIp() + ",tcp=" + getTCPListenPort()+",udp="+getUDPListenPort()+",state=" + foreign.getState()+",foreign=" + foreign );
 	}
+	
+	public String getClientNameFromExtensionHandshake() {return null;}
+	public String getClientNameFromPeerID() {return null;}
+	
 }
