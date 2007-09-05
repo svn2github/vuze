@@ -10,14 +10,20 @@ import org.eclipse.swt.widgets.Shell;
 import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
+import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.ui.swt.FileDownloadWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 import com.aelitis.azureus.util.Constants;
@@ -61,11 +67,12 @@ public class TorrentListener
 				|| OP_LOAD_TORRENT_OLD.equals(message.getOperationId())) {
 			Map decodedMap = message.getDecodedMap();
 			String url = MapUtils.getMapString(decodedMap, "url", null);
+			boolean playNow = MapUtils.getMapBoolean(decodedMap, "play-now", false);
 			if (url != null) {
-				loadTorrent(core, url, message.getReferer());
+				loadTorrent(core, url, message.getReferer(), playNow);
 			} else {
-				loadTorrentByB64(core, message,
-						MapUtils.getMapString(decodedMap, "b64", null));
+				loadTorrentByB64(core, message, MapUtils.getMapString(decodedMap,
+						"b64", null));
 			}
 		} else {
 			throw new IllegalArgumentException("Unknown operation: "
@@ -120,28 +127,38 @@ public class TorrentListener
 		return true;
 	}
 
-	public static void loadTorrent(AzureusCore core, String url, String referer) {
+	public static void loadTorrent(AzureusCore core, String url, String referer,
+			boolean playNow) {
 		boolean blocked = PlatformConfigMessenger.isURLBlocked(url);
 		// Security: Only allow torrents from whitelisted urls
 		if (blocked) {
 			return;
 		}
 
-		URL urlReferer = null;
-		if (referer != null) {
-  		try {
-  			urlReferer = new URL(referer);
-  		} catch (MalformedURLException e) {
-  			Debug.out(e);
-  		}
-		}
 		try {
 			// If it's going to our URLs, add some extra authenication
 			if (url.indexOf("azid=") < 0) {
 				url += (url.indexOf('?') < 0 ? "?" : "&") + Constants.URL_SUFFIX;
 			}
-			core.getPluginManager().getDefaultPluginInterface().getDownloadManager().addDownload(
-					new URL(url), urlReferer);
+			UIFunctionsSWT uiFunctions = (UIFunctionsSWT) UIFunctionsManager.getUIFunctions();
+			if (uiFunctions != null) {
+				if (!COConfigurationManager.getBooleanParameter("add_torrents_silently")) {
+					uiFunctions.bringToFront();
+				}
+
+				Shell shell = uiFunctions.getMainShell();
+				if (shell != null) {
+					new FileDownloadWindow(core, shell, url, referer,
+							new TorrentDownloaderCallBackInterface() {
+								public void TorrentDownloaderEvent(int state,
+										TorrentDownloader inf) {
+									if (state == TorrentDownloader.STATE_FINISHED) {
+										TorrentOpener.openTorrent(inf.getFile().getAbsolutePath());
+									}
+								}
+							});
+				}
+			}
 		} catch (Exception e) {
 			Debug.out(e);
 		}
