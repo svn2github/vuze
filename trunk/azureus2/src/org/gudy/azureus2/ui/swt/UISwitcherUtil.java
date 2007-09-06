@@ -22,6 +22,7 @@ package org.gudy.azureus2.ui.swt;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -36,8 +37,28 @@ import org.gudy.azureus2.core3.util.Debug;
 public class UISwitcherUtil
 {
 	private static boolean NOT_GOOD_ENOUGH_FOR_AZ2_USERS_YET = true;
+	
+	public static ArrayList listeners = new ArrayList();
+	
+	public static void addListener(UISwitcherListener l) {
+		listeners.add(l);
+	}
+	
+	public static void removeListener(UISwitcherListener l) {
+		listeners.remove(l);
+	}
 
 	public static String openSwitcherWindow(boolean bForceAsk) {
+		String ui = _openSwitcherWindow(bForceAsk);
+		Object[] array = listeners.toArray();
+		for (int i = 0; i < array.length; i++) {
+			UISwitcherListener l = (UISwitcherListener) array[i];
+			l.uiSwitched(ui);
+		}
+		return ui;
+	}
+	
+	public static String _openSwitcherWindow(boolean bForceAsk) {
 		Class uiswClass = null;
 		try {
 			uiswClass = Class.forName("com.aelitis.azureus.ui.swt.shells.uiswitcher.UISwitcherWindow");
