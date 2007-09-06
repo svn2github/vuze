@@ -1,7 +1,7 @@
 AZUREUS CHANGELOG
 -----------------
 
-2007.09.xx | v3.0.2.3_CVS
+2007.09.xx | Azureus 3.0.2.3_CVS
 
 FEATURE: Core | Added experimental support for LibTorrent extension protocol handshake [amc1]
 FEATURE: UI   | Added available disk space indicators to the torrent open dialog (requires Java 1.6) [The 8472]
@@ -9,13 +9,14 @@ FEATURE: UI   | Added "handshake reserved bytes" column in peer view [amc1]
 FEATURE: UI   | Added "Open Transfer Bar on start" and "Remember Transfer Bar" location options [amc1]
 
 CHANGE: Core  | Speedup hash-checking by ~30% / less CPU usage [The 8472]
+CHANGE: Core  | More improvements to client identification code [amc1]
 CHANGE: UI    | Provide both "per-torrent" and "across-torrents" speed menu options [amc1]
 CHANGE: Plug  | Plugins can now dynamically register language resource bundles [amc1]
 
 BUGFIX: Core  | Fixed bug when trying to add torrents with semi-colon characters in filename [amc1]
 
 
-2007.08.29 | v3.0.2.2
+2007.08.29 | Azureus 3.0.2.2
 
 CHANGE: UI    | Improved usability of speed scale widget. [TuxPaper]
 CHANGE: UI    | Restored reposition functionality of torrent context menus [TuxPaper]

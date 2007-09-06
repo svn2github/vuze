@@ -5,7 +5,13 @@ import org.gudy.azureus2.core3.internat.MessageText;
 public class ClientIdentifier {
 	
 	public static String identifyBTOnly(String peer_id_client, byte[] handshake_bytes) {
-		  // However, we do care if something is claiming to be Azureus when it isn't. If
+		
+		// BitThief check.
+		if (peer_id_client.equals("Mainline 4.4.0") && (handshake_bytes[7] & (byte)1) == 0) {
+			return asDiscrepancy("BitThief*", peer_id_client, "fake_client");
+		}
+		
+		  // We do care if something is claiming to be Azureus when it isn't. If
 		  // it's a recent version of Azureus, but doesn't support advanced messaging, we
 		  // know it's a fake.
 		  if (!peer_id_client.startsWith("Azureus ")) {return peer_id_client;}

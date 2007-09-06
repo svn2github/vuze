@@ -244,18 +244,7 @@ public class BTPeerIDByteDecoder {
 			
 			if (client_ver != null) {
 				String result = client + " " + client_ver;
-
-				/**
-				 * BitThief identifies itself as Mainline 4.4.0. It uses the same character set for
-				 * the random part as Mainline does, so we can't distinguish between the two at all
-				 * (not from peer ID's, anyway) - so note that it might be BitThief.
-				 */
-				if ("Mainline 4.4.0".equals(result)) {
-					return result + " (BitThief?)";
-				}
-				
 				return result;
-
 			}
 		}
 
