@@ -23,6 +23,11 @@
 package org.gudy.azureus2.core3.util;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
+
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.util.test.SHA1Old;
 
 
 /**
@@ -30,6 +35,7 @@ import java.nio.ByteBuffer;
  */
 public final class SHA1Hasher {
   private final SHA1 sha1;
+  private final SHA1Old sha1old;
 
 
   /**
@@ -37,6 +43,7 @@ public final class SHA1Hasher {
    */
   public SHA1Hasher() {
     sha1 = new SHA1();
+    sha1old = new SHA1Old();
   }
 
   
@@ -58,7 +65,12 @@ public final class SHA1Hasher {
    */
   public byte[] calculateHash( ByteBuffer buffer ) {
     sha1.reset();
-    return sha1.digest( buffer );
+    sha1old.reset();
+    byte[] oldResult = sha1old.digest(buffer);
+    byte[] newResult = sha1.digest(buffer);
+    if(!Arrays.equals(oldResult, newResult))
+    	Logger.log(new LogAlert(false,"New/Old Hash mismatch occured hashing buffer:",new Throwable(buffer.toString())));
+    return newResult;
   }
   
   
@@ -89,6 +101,7 @@ public final class SHA1Hasher {
    */
   public void update( ByteBuffer buffer ) {
     sha1.update( buffer );
+    sha1old.update(buffer);
   }
   
 
@@ -97,7 +110,11 @@ public final class SHA1Hasher {
    * @return 20-byte hash
    */
   public byte[] getDigest() {
-  	return sha1.digest();
+    byte[] oldResult = sha1old.digest();
+    byte[] newResult = sha1.digest();
+    if(!Arrays.equals(oldResult, newResult))
+    	Logger.log(new LogAlert(false,"New/Old Hash mismatch occured during hashing",new Throwable("")));
+  	return newResult;
   }
   
   
@@ -106,6 +123,7 @@ public final class SHA1Hasher {
    */
   public void reset() {
     sha1.reset();
+    sha1old.reset();
   }
   
 
@@ -114,6 +132,7 @@ public final class SHA1Hasher {
    */
   public void saveHashState() {
     sha1.saveState();
+    sha1old.saveState();
   }
   
   
@@ -122,6 +141,7 @@ public final class SHA1Hasher {
    */
   public void restoreHashState() {
     sha1.restoreState();
+    sha1old.restoreState();
   }
   
 }
