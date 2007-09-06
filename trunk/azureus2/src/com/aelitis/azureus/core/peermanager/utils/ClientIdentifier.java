@@ -142,10 +142,10 @@ public class ClientIdentifier {
 				return peer_id_name;
 			}
 			
-			// Some Mainline 4.x versions identify themselves as µTorrent - we'll just treat them as
-			// Mainline instead (though make a note they are µTorrent based.
+			// Some Mainline 4.x versions identify themselves as µTorrent - according to alus,
+			// this was a bug, so just identify as Mainline.
 			if (peer_id_name.startsWith("Mainline 4.")) {
-				return peer_id_name + " (" + handshake_name_to_process + ")";
+				return peer_id_name;
 			}
 			
 		}
