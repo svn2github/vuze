@@ -36,9 +36,7 @@ AEMonSem
 	protected static boolean	DEBUG_CHECK_DUPLICATES	= false;
 	
 	protected static long		DEBUG_TIMER				= 30000;
-	
-	protected static AEDiagnosticsLogger				diag_logger;
-	
+		
 	private static ThreadLocal		tls	= 
 		new ThreadLocal()
 		{
@@ -66,30 +64,58 @@ AEMonSem
 	static{
 		if ( DEBUG ){
 			
-				// add known and validated exceptions 
+				// defer this due to initialisation problems
 			
-			debug_recursions.add( "ResourceDownloader" );		// known tree recursion
-			debug_recursions.add( "ConnectionPool:CP" );		// known tree recursion
-			debug_recursions.add( "(S)RDRretry" );				// RDretry sem left on stack after 1st d/l so appears recursive on subsequent
-			
-			diag_logger	= AEDiagnostics.getLogger( "monsem" );
-		
-			new Timer("AEMonSem").addPeriodicEvent(
-					DEBUG_TIMER,
-					new TimerEventPerformer()
-					{
-						public void
-						perform(
-							TimerEvent	event )
+			Thread t = new Thread( "AEMonSem:delay debug init" )
+			{
+				public void 
+				run()
+				{
+					// add known and validated exceptions 
+					
+					debug_recursions.add( "ResourceDownloader" );		// known tree recursion
+					debug_recursions.add( "ConnectionPool:CP" );		// known tree recursion
+					debug_recursions.add( "(S)RDRretry" );				// RDretry sem left on stack after 1st d/l so appears recursive on subsequent
+					
+					try{
+						Thread.sleep(DEBUG_TIMER);
+						
+					}catch( Throwable e ){	
+					}
+					
+					TimerEventPerformer performer = 
+						new TimerEventPerformer()
 						{
-							check();
-						}
-					});
+							AEDiagnosticsLogger diag_logger;
+	
+							public void
+							perform(
+								TimerEvent	event )
+							{
+								if ( diag_logger == null ){
+									
+									diag_logger	= AEDiagnostics.getLogger( "monsem" );
+								}
+								
+								check( diag_logger );
+							}
+						};
+						
+					performer.perform( null );
+					
+					new Timer("AEMonSem").addPeriodicEvent(	DEBUG_TIMER, performer );
+				}
+			};
+			
+			t.setDaemon( true );
+			
+			t.start();
 		}
 	}
 	
 	protected static void
-	check()
+	check(
+		AEDiagnosticsLogger diag_logger )
 	{
 		List	active				= new ArrayList();
 		List	waiting_monitors	= new ArrayList();
