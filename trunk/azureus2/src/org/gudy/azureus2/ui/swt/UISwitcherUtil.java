@@ -40,8 +40,13 @@ public class UISwitcherUtil
 	
 	public static ArrayList listeners = new ArrayList();
 	
+	public static String lastUI = null;
+	
 	public static void addListener(UISwitcherListener l) {
 		listeners.add(l);
+		if (lastUI != null) {
+			triggerListeners(lastUI);
+		}
 	}
 	
 	public static void removeListener(UISwitcherListener l) {
@@ -49,13 +54,17 @@ public class UISwitcherUtil
 	}
 
 	public static String openSwitcherWindow(boolean bForceAsk) {
-		String ui = _openSwitcherWindow(bForceAsk);
+		lastUI = _openSwitcherWindow(bForceAsk);
+		triggerListeners(lastUI);
+		return lastUI;
+	}
+	
+	private static void triggerListeners(String ui) {
 		Object[] array = listeners.toArray();
 		for (int i = 0; i < array.length; i++) {
 			UISwitcherListener l = (UISwitcherListener) array[i];
 			l.uiSwitched(ui);
 		}
-		return ui;
 	}
 	
 	public static String _openSwitcherWindow(boolean bForceAsk) {
