@@ -41,6 +41,7 @@ import org.gudy.azureus2.ui.swt.networks.SWTNetworkSelection;
 import org.gudy.azureus2.ui.swt.pluginsinstaller.InstallPluginWizard;
 import org.gudy.azureus2.ui.swt.progress.ProgressWindow;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
+import org.gudy.azureus2.ui.swt.updater2.PreUpdateChecker;
 import org.gudy.azureus2.ui.swt.updater2.SWTUpdateChecker;
 
 import com.aelitis.azureus.core.*;
@@ -249,6 +250,8 @@ Initializer
 					reportCurrentTaskByKey("splash.openViews");
 
 					SWTUpdateChecker.initialize();
+
+					PreUpdateChecker.initialize(COConfigurationManager.getStringParameter("ui"));
 
 					UpdateMonitor.getSingleton(core); // setup the update monitor
 
