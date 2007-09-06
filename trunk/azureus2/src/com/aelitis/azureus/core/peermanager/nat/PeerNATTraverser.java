@@ -272,6 +272,8 @@ PeerNATTraverser
 	unregister(
 		PeerNATInitiator	initiator )
 	{
+		List	to_cancel;
+		
 		synchronized( initiators ){
 			
 			LinkedList	requests = (LinkedList)initiators.remove( initiator );
@@ -280,17 +282,21 @@ PeerNATTraverser
 				
 				Debug.out( "initiator not present" );
 				
+				return;
+				
 			}else{
 				
-				Iterator	it = requests.iterator();
-				
-				while( it.hasNext()){
-					
-					PeerNATTraversal	traversal = (PeerNATTraversal)it.next();
-					
-					traversal.cancel();
-				}
+				to_cancel = requests;
 			}
+		}
+		
+		Iterator it = to_cancel.iterator();
+		
+		while( it.hasNext()){
+								
+			PeerNATTraversal	traversal = (PeerNATTraversal)it.next();
+			
+			traversal.cancel();
 		}
 	}
 	
@@ -301,25 +307,17 @@ PeerNATTraverser
 		PeerNATTraversalAdapter	adapter )
 	{
 		boolean	bad = false;
-		
-		synchronized( initiators ){
 						
+		synchronized( initiators ){
+			
 			if ( negative_result_bloom.contains( target.toString().getBytes() )){
 				
 				bad	= true;
 				
 				failed_negative_bloom++;
-			}
-		}
-		
-		if ( bad ){
-			
-			adapter.failed();
-			
-		}else{
-			
-			synchronized( initiators ){
 				
+			}else{
+			
 				LinkedList	requests = (LinkedList)initiators.get( initiator );
 					
 				if ( requests == null ){
@@ -327,24 +325,29 @@ PeerNATTraverser
 					// we get here when download stopped at same time
 					// Debug.out( "initiator not found" );
 					
-					adapter.failed();
+					bad	= true;
 					
-					return;
+				}else{
+				
+					PeerNATTraversal	traversal = new PeerNATTraversal( initiator, target, adapter );
+					
+					requests.addLast( traversal );
+							
+					pending_requests.addLast( traversal );
+					
+		          	if (Logger.isEnabled()){
+						Logger.log(
+							new LogEvent(
+								LOGID,
+								"created NAT traversal for " + initiator.getDisplayName() + "/" + target ));
+		          	}
 				}
-				
-				PeerNATTraversal	traversal = new PeerNATTraversal( initiator, target, adapter );
-				
-				requests.addLast( traversal );
-						
-				pending_requests.addLast( traversal );
-				
-	          	if (Logger.isEnabled()){
-					Logger.log(
-						new LogEvent(
-							LOGID,
-							"created NAT traversal for " + initiator.getDisplayName() + "/" + target ));
-	          	}
 			}
+		}
+		
+		if ( bad ){
+			
+			adapter.failed();
 		}
 	}
 	
