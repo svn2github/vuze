@@ -36,6 +36,7 @@ import org.gudy.azureus2.ui.swt.networks.SWTNetworkSelection;
 import org.gudy.azureus2.ui.swt.pluginsinstaller.InstallPluginWizard;
 import org.gudy.azureus2.ui.swt.progress.ProgressWindow;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
+import org.gudy.azureus2.ui.swt.updater2.PreUpdateChecker;
 import org.gudy.azureus2.ui.swt.updater2.SWTUpdateChecker;
 
 import com.aelitis.azureus.core.*;
@@ -215,8 +216,10 @@ public class Initializer
 
 				SWTUpdateChecker.initialize();
 
-				UpdateMonitor.getSingleton(core); // setup the update monitor
+				PreUpdateChecker.initialize(COConfigurationManager.getStringParameter("ui"));
 
+				UpdateMonitor.getSingleton(core); // setup the update monitor
+				
 				//Tell listeners that all is initialized :
 				Alerts.initComplete();
 
@@ -292,6 +295,7 @@ public class Initializer
 		System.out.println("GUI Initializing took "
 				+ (SystemTime.getCurrentTime() - startTime) + "ms");
 	}
+
 
 	public void stopIt(boolean isForRestart, boolean isCloseAreadyInProgress)
 			throws AzureusCoreException {
