@@ -444,7 +444,16 @@ PluginInterfaceImpl
   {
   	String dir = getPluginDirectoryName();
   	
-  		// if not dir based then just test this one
+  		// mechanism to override unloadability 
+  	
+   	boolean	disable_unload = getPluginProperties().getProperty( "plugin.unload.disabled", "" ).equalsIgnoreCase( "true" );
+  	
+  	if ( disable_unload ){
+  		
+  		return( false );
+  	}
+  	
+		// if not dir based then just test this one
   	
   	if ( dir == null || dir.length() == 0 ){
   		
