@@ -244,7 +244,11 @@ public class VersionCheckClient {
 	        }
 	        catch( UnknownHostException t ) {
 	        	// no internet
-	        	Debug.out(t.getClass().getName() + ": " + t.getMessage());
+	        	Debug.outNoStack("VersionCheckClient - " + t.getClass().getName() + ": " + t.getMessage());
+	        }
+	        catch (IOException t) {
+	        	// General connection problem.
+	        	Debug.outNoStack("VersionCheckClient - " + t.getClass().getName() + ": " + t.getMessage());
 	        }
 	        catch( Throwable t ) {
 	        	Debug.out(t);
@@ -412,11 +416,12 @@ public class VersionCheckClient {
 			reply = executeAZMessage( data_to_send, v6 );
 			
 			reply.put( "protocol_used", "AZMSG" );
-			
-		}catch( Exception e ){
-		
+		}
+		catch (IOException e) {
+			error = e;
+		}
+		catch (Exception e) {
 			Debug.printStackTrace( e );
-			
 			error = e;
 		}
 	}
@@ -429,9 +434,12 @@ public class VersionCheckClient {
 			reply.put( "protocol_used", "HTTP" );
 			
 			error = null;
-			
-		}catch( Exception e ){
-		
+		}
+		catch (IOException e) {
+			error = e;
+		}
+		catch (Exception e){
+			Debug.printStackTrace(e);
 			error = e;
 			
 		}
