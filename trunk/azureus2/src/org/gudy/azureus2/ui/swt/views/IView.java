@@ -23,13 +23,14 @@ package org.gudy.azureus2.ui.swt.views;
 import org.eclipse.swt.widgets.Composite;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
+import org.gudy.azureus2.ui.swt.mainwindow.Refreshable;
 
 /**
  * @author Olivier
  */
 
 // XXX This class is used by plugins.  Don't remove any functions from it!
-public interface IView extends IconBarEnabler {
+public interface IView extends IconBarEnabler, Refreshable {
   /**
    * This method is called when the view is instanciated, it should initialize all GUI
    * components. Must NOT be blocking, or it'll freeze the whole GUI.
@@ -50,13 +51,6 @@ public interface IView extends IconBarEnabler {
    * @return the Composite that should be set as the control for the Tab item
    */
   public Composite getComposite();
-  
-  /**
-   * This method is called on each refresh.
-   * The view should not instanciate a Thread to refresh itself, unless this is for async purposes. In which case, don't forget to call the display.asyncexec method.
-   * Called by the GUI Thread
-   */
-  public void refresh();
   
   /**
    * This method is caled when the view is destroyed.

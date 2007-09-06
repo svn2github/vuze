@@ -22,9 +22,12 @@
  */
 package org.gudy.azureus2.ui.swt.mainwindow;
 
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.swt.widgets.Display;
@@ -57,6 +60,8 @@ public class GUIUpdater extends AEThread implements ParameterListener {
   
   boolean finished = false;
   boolean refreshed = true;
+  
+  static List refreshables = new ArrayList();
   
   int waitTime = COConfigurationManager.getIntParameter("GUI Refresh");
   
@@ -158,6 +163,20 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 
 						makeDebugToolTip(lTimeStart, timeMap);
 					}
+					
+					synchronized (refreshables)
+					{
+						for(int i=0;i < refreshables.size();i++)
+						{
+							Refreshable item = (Refreshable)((WeakReference)refreshables.get(i)).get();
+							if(item == null)
+							{
+								refreshables.remove(i--);
+								continue;
+							}
+							item.refresh();								
+						}
+					}
 
 				} catch (Exception e) {
 					Logger.log(new LogEvent(LOGID, "Error while trying to update GUI", e));
@@ -241,4 +260,16 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 		if (mainStatusBar != null)
 			mainStatusBar.setDebugInfo(sb.toString());
 	}
+  
+  
+  public static void addRefreshableItem(Refreshable item)
+  {
+	  synchronized (refreshables)
+	  {
+		  refreshables.add(new WeakReference(item));
+	  }
+  }
 }
+
+
+
