@@ -33,7 +33,7 @@ public class MessagingItem
 {
   /** Default Constructor */
   public MessagingItem() {
-    super("Messaging", ALIGN_CENTER, POSITION_INVISIBLE, 20, TableManager.TABLE_TORRENT_PEERS);
+    super("Messaging", ALIGN_CENTER, POSITION_INVISIBLE, 40, TableManager.TABLE_TORRENT_PEERS);
     setRefreshInterval(INTERVAL_LIVE);
   }
 
