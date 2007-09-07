@@ -62,6 +62,7 @@ import com.aelitis.azureus.core.util.average.AverageFactory;
 import com.aelitis.azureus.ui.swt.utils.PublishUtils;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.DownloadUtils;
+import com.sun.rsasign.av;
 
 public class 
 EnhancedDownloadManager 
@@ -1243,16 +1244,10 @@ EnhancedDownloadManager
 	}
 	
 	public long
-	getContiguousAvailableBytes()
+	getContiguousAvailableBytes(
+		DiskManagerFileInfo		file )
 	{
-		DiskManager dm = download_manager.getDiskManager();
-		
-		if ( dm == null ){
-			
-			return( -1 );
-		}
-		
-		return( getContiguousAvailableBytes( dm.getFiles()[0], 0 ));
+		return( getContiguousAvailableBytes( file, 0 ));
 	}
 	
 	public long
@@ -1284,54 +1279,98 @@ EnhancedDownloadManager
 		}
 		
 		int	first_piece_index 	= (int)( start_index / piece_size );
+		int	first_piece_offset	= (int)( start_index % piece_size );
 		int	last_piece_index	= file.getLastPieceNumber();
 		
 		DiskManagerPiece[]	pieces = dm.getPieces();
 		
 		DiskManagerPiece	first_piece = pieces[first_piece_index];
-		
-			// lazy - if first piece not done then just return 0
+				
+		long	available = 0;
 		
 		if ( !first_piece.isDone()){
 			
-			return( 0 );
-		}
-		
-		long	available = first_piece.getLength() - ( start_index % piece_size ); 
-		
-		for (int i=first_piece_index+1;i<=last_piece_index;i++){
-			
-			DiskManagerPiece piece = pieces[i];
-			
-			if ( piece.isDone()){
+			boolean[] blocks = first_piece.getWritten();
+						
+			if ( blocks == null ){
 				
-				available += piece.getLength();
-				
+				if ( first_piece.isDone()){
+					
+					available = first_piece.getLength() - first_piece_offset;
+				}
 			}else{
-			
-				boolean[] blocks = piece.getWritten();
-						
-				if ( blocks == null ){
 				
-					available = piece.getLength();
+				int	piece_offset = 0;
 				
-				}else{
+				for (int j=0;j<blocks.length;j++){
+				
+					if ( blocks[j] ){
 					
-					for (int j=0;j<blocks.length;j++){
-					
-						if ( blocks[j] ){
+						int	block_size = first_piece.getBlockSize( j );
 						
-							available += piece.getBlockSize( j );
-							
+						piece_offset = piece_offset + block_size;
+						
+						if ( available == 0 ){
+						
+							if ( piece_offset > first_piece_offset ){
+								
+								available = piece_offset - first_piece_offset;
+							}
 						}else{
 							
-							break;
-						}
+							available += block_size;
+						}						
+					}else{
+						
+						break;
 					}
 				}
+			}	
+		}else{
+		
+			available = first_piece.getLength() - first_piece_offset; 
+		
+			for (int i=first_piece_index+1;i<=last_piece_index;i++){
 				
-				break;
+				DiskManagerPiece piece = pieces[i];
+				
+				if ( piece.isDone()){
+					
+					available += piece.getLength();
+					
+				}else{
+				
+					boolean[] blocks = piece.getWritten();
+							
+					if ( blocks == null ){
+					
+						available = piece.getLength();
+					
+					}else{
+						
+						for (int j=0;j<blocks.length;j++){
+						
+							if ( blocks[j] ){
+							
+								available += piece.getBlockSize( j );
+								
+							}else{
+								
+								break;
+							}
+						}
+					}
+					
+					break;
+				}
 			}
+		}
+		
+		long	max_available = file.getLength() - file_start_offset;
+		
+		if ( available > max_available ){
+		
+			available = max_available;
 		}
 		
 		return( available );
