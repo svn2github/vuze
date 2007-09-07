@@ -1806,7 +1806,7 @@ MainWindow
 					
 					if (window != null) {
 						final Shell shell = window.getShell();
-						if (shell != null && !shell.getMinimized()) {
+						if (shell != null && !shell.isDisposed() && !shell.getMinimized()) {
 							size = shell.getSize();
 						}
 					}
