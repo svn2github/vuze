@@ -61,7 +61,7 @@ public class UpdaterUtils
 				plugin_dir = shared_updater_plugin;
 			}
 
-			if (plugin_dir == null) {
+			if ( plugin_dir == null ){
 
 				return (false);
 			}
@@ -111,6 +111,25 @@ public class UpdaterUtils
 		}
 	}
 
+	public static void
+	ensurePluginPresent(
+		String			id,
+		String			cla,
+		String			name )
+	{
+		File target_props = getPropsIfNotPresent( id, false );
+		
+		if ( target_props != null ){
+			
+			writePluginProperties(
+				target_props,
+				new String[]{
+					"plugin.class=" + cla,
+					"plugin.name=" + name,
+					"plugin.id=" + id });
+		}
+	}
+	
 	protected static void
 	writePluginProperties(
 		File		target,

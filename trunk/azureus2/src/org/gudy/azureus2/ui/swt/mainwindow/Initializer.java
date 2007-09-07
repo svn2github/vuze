@@ -251,7 +251,7 @@ Initializer
 
 					SWTUpdateChecker.initialize();
 
-					PreUpdateChecker.initialize(COConfigurationManager.getStringParameter("ui"));
+					PreUpdateChecker.initialize( core, COConfigurationManager.getStringParameter("ui"));
 
 					UpdateMonitor.getSingleton(core); // setup the update monitor
 

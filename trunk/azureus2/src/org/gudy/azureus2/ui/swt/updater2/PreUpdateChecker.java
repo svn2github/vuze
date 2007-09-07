@@ -20,6 +20,10 @@
 
 package org.gudy.azureus2.ui.swt.updater2;
 
+import org.gudy.azureus2.update.UpdaterUtils;
+
+import com.aelitis.azureus.core.AzureusCore;
+
 /**
  * @created Sep 6, 2007
  *
@@ -32,6 +36,20 @@ public class PreUpdateChecker
 	 *
 	 * @since 3.0.2.3
 	 */
-	public static void initialize(String ui) {
+	
+	public static void 
+	initialize(
+		AzureusCore		core,
+		String 			ui )
+	{
+		if ( ui.equals( "az3")){
+			
+			UpdaterUtils.ensurePluginPresent(
+				"azemp",
+				"com.azureus.plugins.azemp.EmbededMediaPlayerPlugin",
+				"Embedded Media Player" );
+			
+			core.getPluginManager().refreshPluginList();
+		}
 	}
 }
