@@ -61,4 +61,11 @@ TrackerWebContext
 	removeAuthenticationListener(
 		TrackerAuthenticationListener l );
 	
+		/**
+		 * @since 3.0.2.3
+		 */
+	
+	public void
+	destroy();
+	
 }

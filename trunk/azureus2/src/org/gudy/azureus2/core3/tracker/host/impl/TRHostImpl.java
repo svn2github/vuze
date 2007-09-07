@@ -1072,6 +1072,13 @@ TRHostImpl
 	}
 	
 	public void
+	serverDestroyed(
+		TRTrackerServer	server )
+	{
+		server.removeRequestListener(this);
+	}
+	
+	public void
 	preProcess(
 		TRTrackerServerRequest	request )
 	

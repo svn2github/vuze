@@ -152,4 +152,10 @@ TrackerWCHelper
 			this_mon.exit();
 		}
 	}	
+	
+	public void
+	destroy()
+	{
+		generators.clear();
+	}
 }

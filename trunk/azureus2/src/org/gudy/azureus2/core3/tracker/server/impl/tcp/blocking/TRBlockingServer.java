@@ -51,7 +51,11 @@ TRBlockingServer
 {
 	private static final LogIDs LOGID = LogIDs.TRACKER;
 
-  public
+	private ServerSocket	server_socket;
+	
+	private volatile boolean	closed;
+	
+	public
 	TRBlockingServer(
 		String		_name,
 		int			_port,
@@ -117,7 +121,7 @@ TRBlockingServer
 						
 						ssl_server_socket.setReuseAddress(true);
 														
-						final SSLServerSocket	f_ss = ssl_server_socket;
+						server_socket = ssl_server_socket;
 						
 						Thread accept_thread = 
 								new AEThread("TRTrackerServer:accept.loop(ssl)")
@@ -125,7 +129,7 @@ TRBlockingServer
 									public void
 									runSupport()
 									{
-										acceptLoop( f_ss );
+										acceptLoop( server_socket );
 									}
 								};
 					
@@ -186,7 +190,7 @@ TRBlockingServer
 					
 					ss.setReuseAddress(true);
 					
-					final ServerSocket	f_ss = ss;
+					server_socket = ss;
 					
 					Thread accept_thread = 
 							new AEThread("TRTrackerServer:accept.loop")
@@ -194,7 +198,7 @@ TRBlockingServer
 								public void
 								runSupport()
 								{
-									acceptLoop( f_ss );
+									acceptLoop( server_socket );
 								}
 							};
 				
@@ -220,7 +224,7 @@ TRBlockingServer
 			
 			if ( !ok ){
 				
-				destroy();
+				destroySupport();
 			}
 		}
 	}
@@ -232,7 +236,7 @@ TRBlockingServer
 		long	successfull_accepts = 0;
 		long	failed_accepts		= 0;
 		
-		while(true){
+		while( !closed ){
 			
 			try{				
 				Socket socket = ss.accept();
@@ -252,24 +256,41 @@ TRBlockingServer
 				
 			}catch( Throwable e ){
 				
-				failed_accepts++;
+				if ( !closed ){
+					
+					failed_accepts++;
+					
+					Logger.log(new LogEvent(LOGID,
+							"TRTrackerServer: listener failed on port " + getPort(), e)); 
+					
+					if ( failed_accepts > 100 && successfull_accepts == 0 ){
+	
+							// looks like its not going to work...
+							// some kind of socket problem
+	
+						Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
+								LogAlert.AT_ERROR, "Network.alert.acceptfail"), new String[] {
+								"" + getPort(), "TCP" });
 				
-				Logger.log(new LogEvent(LOGID,
-						"TRTrackerServer: listener failed on port " + getPort(), e)); 
-				
-				if ( failed_accepts > 100 && successfull_accepts == 0 ){
-
-						// looks like its not going to work...
-						// some kind of socket problem
-
-					Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
-							LogAlert.AT_ERROR, "Network.alert.acceptfail"), new String[] {
-							"" + getPort(), "TCP" });
-			
-					break;
+						break;
+					}
 				}
 			}
 		}
 	}
 
+	protected void 
+	closeSupport() 
+	{
+		closed = true;
+		
+		try{
+			server_socket.close();
+			
+		}catch( Throwable e ){
+			
+		}
+		
+		destroySupport();
+	}
 }

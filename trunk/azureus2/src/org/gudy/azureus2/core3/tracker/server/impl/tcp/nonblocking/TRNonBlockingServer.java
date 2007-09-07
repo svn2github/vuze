@@ -80,6 +80,10 @@ TRNonBlockingServer
 	
 	private final AEMonitor this_mon = new AEMonitor( "TRNonBlockingServer" );
 
+	private VirtualServerChannelSelector accept_server;
+	
+	private volatile boolean	closed;
+	
 	public
 	TRNonBlockingServer(
 		String								_name,
@@ -138,8 +142,7 @@ TRNonBlockingServer
 				address = new InetSocketAddress(  _bind_ip, _port );	
 			}
 			
-			VirtualServerChannelSelector accept_server = VirtualServerChannelSelectorFactory.createBlocking( address, 0, this );
-
+			accept_server = VirtualServerChannelSelectorFactory.createBlocking( address, 0, this );
 			
 			accept_server.start();
 		      
@@ -203,7 +206,7 @@ TRNonBlockingServer
 			
 			if ( !ok ){
 				
-				destroy();
+				destroySupport();
 			}
 		}
 	}
@@ -214,7 +217,7 @@ TRNonBlockingServer
 	{
 		long	last_time	= 0;
 		
-		while( true ){
+		while( !closed ){
 			
 			try{
 				selector.select( 100 );
@@ -507,7 +510,7 @@ TRNonBlockingServer
 		
 		long	delay = default_delay;
 		
-		while( true ){
+		while( !closed ){
 
 				// wait a small amount of time to allow the client to close the connection rather
 				// than us. This prevents a buildup of TIME_WAIT state sockets
@@ -564,5 +567,15 @@ TRNonBlockingServer
 	        
 	        delay = default_delay - duration;
 		}	
+	}
+	
+	protected void 
+	closeSupport() 
+	{
+		closed	= true;
+		
+		accept_server.stop();
+		
+		destroySupport();
 	}
 }

@@ -42,12 +42,17 @@ TRTrackerServerUDP
 	extends 	TRTrackerServerImpl
 {
 	private static final LogIDs LOGID = LogIDs.TRACKER;
-	protected static final int THREAD_POOL_SIZE				= 10;
+	
+	private static final int THREAD_POOL_SIZE				= 10;
 
-	protected ThreadPool	thread_pool;
+	private ThreadPool	thread_pool;
 	
-	protected int		port;
+	private int		port;
 	
+	private DatagramSocket	dg_socket;
+	
+	private volatile boolean	closed;
+
 	public
 	TRTrackerServerUDP(
 		String	_name,
@@ -82,7 +87,8 @@ TRTrackerServerUDP
 			
 			socket.setReuseAddress(true);
 			
-			final DatagramSocket	f_socket 	= socket;
+			dg_socket 	= socket;
+			
 			final InetSocketAddress	f_address	= address;
 			
 			Thread recv_thread = 
@@ -91,7 +97,7 @@ TRTrackerServerUDP
 					public void
 					runSupport()
 					{
-						recvLoop( f_socket, f_address );
+						recvLoop( dg_socket, f_address );
 					}
 				};
 			
@@ -117,7 +123,7 @@ TRTrackerServerUDP
 		long	successful_accepts 	= 0;
 		long	failed_accepts		= 0;
 		
-		while(true){
+		while( !closed ){
 			
 			try{				
 				byte[] buf = new byte[PRUDPPacket.MAX_PACKET_SIZE];
@@ -139,21 +145,24 @@ TRTrackerServerUDP
 				
 			}catch( Throwable e ){
 				
-				failed_accepts++;
-				
-				Logger.log(new LogEvent(LOGID,
-						"TRTrackerServer: receive failed on port " + port, e)); 
-				
-				if (( failed_accepts > 100 && successful_accepts == 0 ) || failed_accepts > 1000 ){
-
-					// looks like its not going to work...
-					// some kind of socket problem
-				
-					Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
-							LogAlert.AT_ERROR, "Network.alert.acceptfail"), new String[] {
-							"" + port, "UDP" });
-							
-					break;
+				if ( !closed ){
+					
+					failed_accepts++;
+					
+					Logger.log(new LogEvent(LOGID,
+							"TRTrackerServer: receive failed on port " + port, e)); 
+					
+					if (( failed_accepts > 100 && successful_accepts == 0 ) || failed_accepts > 1000 ){
+	
+						// looks like its not going to work...
+						// some kind of socket problem
+					
+						Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
+								LogAlert.AT_ERROR, "Network.alert.acceptfail"), new String[] {
+								"" + port, "UDP" });
+								
+						break;
+					}
 				}
 			}
 		}
@@ -187,5 +196,20 @@ TRTrackerServerUDP
 	removeRequestListener(
 		TRTrackerServerRequestListener	l )
 	{
+	}
+	
+	protected void 
+	closeSupport() 
+	{
+		closed = true;
+		
+		try{
+			dg_socket.close();
+			
+		}catch( Throwable e ){
+			
+		}
+		
+		destroySupport();
 	}
 }

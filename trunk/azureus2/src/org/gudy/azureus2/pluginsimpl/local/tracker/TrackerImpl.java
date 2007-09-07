@@ -138,7 +138,7 @@ TrackerImpl
 	publish(
 			Torrent _torrent)
 	
-	throws TrackerException
+		throws TrackerException
 	{
 		TorrentImpl	torrent = (TorrentImpl)_torrent;
 		
@@ -378,5 +378,19 @@ TrackerImpl
 			
 			this_mon.exit();
 		}
+	}
+	
+	public void
+	destroy()
+	{
+		super.destroy();
+		
+		auth_listeners.clear();
+
+		host.removeAuthenticationListener( this );
+		
+		listeners.clear();
+		
+		host.close();
 	}
 }

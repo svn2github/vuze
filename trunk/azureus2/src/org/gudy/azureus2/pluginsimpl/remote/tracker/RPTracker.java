@@ -303,4 +303,10 @@ RPTracker
 	{
 		
 	}
+	
+	public void
+	destroy()
+	{
+		notSupported();
+	}
 }

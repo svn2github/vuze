@@ -126,6 +126,28 @@ TRTrackerServerFactoryImpl
 		}
 	}
 	
+	protected static void
+	close(
+		TRTrackerServerImpl	server )
+	{
+		try{
+			class_mon.enter();
+		
+			server.closeSupport();
+			
+			if ( servers.remove( server )){
+			
+				for (int i=0;i<listeners.size();i++){
+					
+					((TRTrackerServerFactoryListener)listeners.get(i)).serverDestroyed( server );
+				}	
+			}
+		}finally{
+			
+			class_mon.exit();
+		}
+	}
+	
 	public static void
 	addListener(
 		TRTrackerServerFactoryListener	l )

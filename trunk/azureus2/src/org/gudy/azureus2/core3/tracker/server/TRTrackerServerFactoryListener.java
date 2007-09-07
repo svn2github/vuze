@@ -32,4 +32,8 @@ TRTrackerServerFactoryListener
 	public void
 	serverCreated(
 		TRTrackerServer	server );
+	
+	public void
+	serverDestroyed(
+		TRTrackerServer	server );
 }

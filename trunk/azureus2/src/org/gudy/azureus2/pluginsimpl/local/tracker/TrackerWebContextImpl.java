@@ -226,4 +226,16 @@ TrackerWebContextImpl
 			this_mon.exit();
 		}
 	}
+	
+	public void
+	destroy()
+	{
+		super.destroy();
+		
+		auth_listeners.clear();
+		
+		server.removeAuthenticationListener( this );
+		
+		server.close();
+	}
 }

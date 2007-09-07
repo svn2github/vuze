@@ -120,4 +120,7 @@ TRTrackerServer
 	public void
 	removeAuthenticationListener(
 		TRTrackerServerAuthenticationListener	l );
+	
+	public void
+	close();
 }

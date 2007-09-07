@@ -1085,8 +1085,17 @@ TRTrackerServerImpl
 		request_listeners.removeElement(l);
 	}
 	
+	public void
+	close()
+	{
+		TRTrackerServerFactoryImpl.close( this );
+	}
+	
+	protected abstract void
+	closeSupport();
+	
 	protected void
-	destroy()
+	destroySupport()
 	{
 		destroyed	= true;
 		

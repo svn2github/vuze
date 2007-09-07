@@ -71,4 +71,10 @@ TRTrackerServerDHT
 		TRTrackerServerRequestListener	l )
 	{
 	}
+	
+	protected void 
+	closeSupport() 
+	{
+		destroySupport();
+	}
 }
