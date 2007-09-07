@@ -80,6 +80,7 @@ public class UISwitcherUtil
 		if (!bForceAsk) {
 			String forceUI = System.getProperty("force.ui");
 			if (forceUI != null) {
+				COConfigurationManager.setParameter("ui", forceUI);
 				return forceUI;
 			}
 
