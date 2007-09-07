@@ -181,19 +181,16 @@ LocalTrackerPlugin
 					}
 				});
 			
-			// we have to take this off the init thread as any auto-added instances can
-			// cause an attempt to get out external address which unfortunately hangs 
-			// az initalisation if the version server is unavailable and it tries
-			// to use the DHT which is pending completion of this init...
+		processSubNets(subnets.getValue(), include_wellknown.getValue());
+		processAutoAdd(autoadd.getValue());
 
 		// XXX Would be better if we fired this off after (any) UI is complete,
 		//     instead of a timer
+		
 		Utilities utilities = plugin_interface.getUtilities();
 		utilities.createTimer("azlocalplugin:init", Thread.MIN_PRIORITY).addEvent(
 				utilities.getCurrentSystemTime() + 15000, new UTTimerEventPerformer() {
 					public void perform(UTTimerEvent event) {
-						processSubNets(subnets.getValue(), include_wellknown.getValue());
-						processAutoAdd(autoadd.getValue());
 
 						// take this off the main thread to reduce initialisation delay if we
 						// have a lot of torrents

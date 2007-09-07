@@ -39,11 +39,13 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -910,6 +912,19 @@ AZInstanceManagerImpl
 			return( true );
 		}
 		
+		if ( explicit_peers.size() > 0 ){
+			
+			Iterator	it = explicit_peers.iterator();
+			
+			while( it.hasNext()){
+
+				if (((InetSocketAddress)it.next()).getAddress().equals( address )){
+					
+					return( true );
+				}
+			}
+		}
+		
 		return( false );
 	}
 	
@@ -991,7 +1006,7 @@ AZInstanceManagerImpl
 		InetAddress			explicit_address,
 		boolean				force_send_alive )
 	{
-		InetSocketAddress	sad = new InetSocketAddress( explicit_address, MC_GROUP_PORT );
+		final InetSocketAddress	sad = new InetSocketAddress( explicit_address, MC_GROUP_PORT );
 		
 		boolean	new_peer = false;
 		
@@ -1017,7 +1032,22 @@ AZInstanceManagerImpl
 		
 		if ( force_send_alive || new_peer ){
 			
-			sendAlive( sad );
+				// take this off the current thread as there are potential deadlock issues
+				// regarding this during initialisation as sending the event attempts to
+				// get the external address, this may hit DHT and the current thread
+				// maybe initialising the DHT...
+			
+			new DelayedEvent(
+					"AZInstanceManagerImpl:delaySendAlive", 
+					0,
+					new AERunnable()
+					{
+						public void 
+						runSupport()
+						{
+							sendAlive( sad );
+						}
+					});
 		}
 		
 		return( new_peer );
