@@ -284,5 +284,10 @@ BasicPluginConfigModelImpl
 	destroy()
 	{
 		ui_manager.destroy( this );
+		
+		for (int i=0;i<parameters.size();i++){
+			
+			((ParameterImpl)parameters.get(i)).destroy();
+		}
 	}
 }

@@ -259,4 +259,15 @@ ParameterImpl
 			}
 		}
 	}
+	
+	public void
+	destroy()
+	{
+		listeners.clear();
+		impl_listeners.clear();
+		toDisable.clear();
+		toEnable.clear();
+		
+		COConfigurationManager.removeParameterListener( key, this );
+	}
 }
