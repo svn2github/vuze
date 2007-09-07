@@ -3488,4 +3488,16 @@ DownloadManagerImpl
 			}
 		}
 	}
+	
+	public int[] getStorageType(DiskManagerFileInfo[] info) {
+		String[] types = DiskManagerImpl.getStorageTypes(this);
+		int[] result = new int[types.length];
+		boolean is_linear;
+		for (int i=0; i<info.length; i++) {
+			is_linear = types[info[i].getIndex()].equals("L");
+			result[i] = is_linear ? DiskManagerFileInfo.ST_LINEAR : DiskManagerFileInfo.ST_COMPACT;
+		}
+		return result;
+	}
+	
 }

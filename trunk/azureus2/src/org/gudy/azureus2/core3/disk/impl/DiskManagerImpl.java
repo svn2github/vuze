@@ -2484,7 +2484,7 @@ DiskManagerImpl
     }
 
     // Used by DownloadManagerImpl too.
-    protected static String[]
+    public static String[]
     getStorageTypes(
         DownloadManager     download_manager )
     {
@@ -3173,4 +3173,5 @@ DiskManagerImpl
 			writer.exdent();
 		}
 	}
+	
 }

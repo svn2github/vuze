@@ -627,5 +627,7 @@ DownloadManager
     public void
     generateEvidence(
         IndentWriter        writer );
+    
+    public int[] getStorageType(DiskManagerFileInfo[] infos);
 
 }

@@ -28,6 +28,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
@@ -240,6 +241,10 @@ public class FilesView
 		boolean	all_priority		= true;
 		boolean	all_not_priority	= true;
 		
+		DiskManagerFileInfo[] dmi_array = new DiskManagerFileInfo[infos.length];
+		System.arraycopy(infos, 0, dmi_array, 0, infos.length);
+		int[] storage_types = manager.getStorageType(dmi_array);
+		
 		for (int i = 0; i < infos.length; i++) {
 			
 			DiskManagerFileInfo file_info = (DiskManagerFileInfo) infos[i];
@@ -249,7 +254,7 @@ public class FilesView
 				open = false;
 			}
 
-			if (all_compact && file_info.getStorageType() != DiskManagerFileInfo.ST_COMPACT) {
+			if (all_compact && storage_types[i] != DiskManagerFileInfo.ST_COMPACT) {
 				all_compact = false;
 			}
 
