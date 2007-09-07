@@ -28,6 +28,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
@@ -467,38 +468,40 @@ public class FilesView
 	  		return;
 	  	}
   				
-		boolean	paused = false;		
+		boolean	paused = false;
+		boolean has_tried_pausing = false;
 
 		try{
 	
+			int	this_paused;
+			
 			for (int i=0;i<rows.length;i++){
 
 				DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)rows[i].getDataSource(true);
 
-				boolean	this_paused;
-				
 				if ( type == 0){
 					
 		   			fileInfo.setPriority(true);
 		   			
-					this_paused = setSkipped( fileInfo, false, false );
+					this_paused = setSkipped( fileInfo, false, false, !has_tried_pausing);
 					
 				}else if ( type == 1 ){
 					
 		 			fileInfo.setPriority(false);
 		 			
-		 			this_paused = setSkipped( fileInfo, false, false );
+		 			this_paused = setSkipped( fileInfo, false, false, !has_tried_pausing);
 					
 				}else if ( type == 2 ){
 					
-					this_paused = setSkipped( fileInfo, true, false );
+					this_paused = setSkipped( fileInfo, true, false, !has_tried_pausing);
 					
 				}else{
 					
-					this_paused = setSkipped( fileInfo, true, true );
+					this_paused = setSkipped( fileInfo, true, true, !has_tried_pausing);
 				}
 				
-				paused = paused || this_paused;
+				if (this_paused != 0) {has_tried_pausing = true;}
+				paused = paused || (this_paused == 1);
 			}
 		}finally{
 			
@@ -509,11 +512,16 @@ public class FilesView
 		}
   }
   
-  private boolean
+  // Returns:
+  //   -1: Tried to pause, but it didn't need pausing.
+  //    1: Tried to pause, and it was paused.
+  //    0: Didn't attempt to pause.
+  private int
   setSkipped(
 	 DiskManagerFileInfo	info,
 	 boolean				skipped,
-	 boolean				delete_action )
+	 boolean				delete_action,
+	 boolean                try_to_pause)
   {
 		// if we're not managing the download then don't do anything other than
 		// change the file's priority
@@ -522,7 +530,7 @@ public class FilesView
 		
 		info.setSkipped( skipped );
 
-		return( false );
+		return 0;
 	}
 	
 	File	existing_file 			= info.getFile(true);	
@@ -607,13 +615,13 @@ public class FilesView
 	
 	boolean	ok;
 	
-	boolean	paused	= false;
+	int	paused	= 0; // Did we try.
 	
 	if ( existing_storage_type != new_storage_type ){
 		
-		if ( new_storage_type == DiskManagerFileInfo.ST_COMPACT ){
+		if (try_to_pause && new_storage_type == DiskManagerFileInfo.ST_COMPACT ){
 			
-			paused = manager.pause();
+			paused = (manager.pause()) ? 1 : -1;
 		}
 		
 		ok = info.setStorageType( new_storage_type );
