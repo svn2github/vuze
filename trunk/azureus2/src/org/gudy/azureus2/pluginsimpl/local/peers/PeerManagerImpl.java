@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.disk.DiskManager;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.peers.*;
+import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
@@ -249,8 +250,8 @@ PeerManagerImpl
 	addPeer(
 		Peer		peer )
 	{
-		try {if (getDownload().getTorrent().isPrivate()) {return;}}
-		catch (DownloadException e) {}
+			// no private check here, we come through here for webseeds for example
+		
 		manager.addPeer(mapForeignPeer( peer ));
 	}
 	
@@ -274,8 +275,8 @@ PeerManagerImpl
 		String 	ip_address, 
 		int 	tcp_port ) 
 	{
-		try {if (getDownload().getTorrent().isPrivate()) {return;}}
-		catch (DownloadException e) {}
+		checkIfPrivate();
+		
 		manager.addPeer( ip_address, tcp_port, 0, NetworkManager.getCryptoRequired( NetworkManager.CRYPTO_OVERRIDE_NONE ));
 	}
   
@@ -286,8 +287,8 @@ PeerManagerImpl
 		int 		tcp_port, 
 		boolean 	use_crypto ) 
 	{
-		try {if (getDownload().getTorrent().isPrivate()) {return;}}
-		catch (DownloadException e) {}
+		checkIfPrivate();
+		
 		manager.addPeer( ip_address, tcp_port, 0, use_crypto );
 	}
   
@@ -298,9 +299,35 @@ PeerManagerImpl
 		int			udp_port,
 		boolean 	use_crypto ) 
 	{
-		try {if (getDownload().getTorrent().isPrivate()) {return;}}
-		catch (DownloadException e) {}
+		checkIfPrivate();
+		
 		manager.addPeer( ip_address, tcp_port, udp_port, use_crypto );
+	}
+	
+	protected void
+	checkIfPrivate()
+	{
+		Download dl;
+		
+		try{
+			dl = getDownload();
+			
+		}catch( Throwable e ){
+			
+			// if this didn't work then nothing much else will so just fall through
+			
+			return;
+		}
+		
+		Torrent t = dl.getTorrent();
+		
+		if ( t != null ){
+			
+			if ( t.isPrivate()){
+				
+				throw( new RuntimeException( "Torrent is private, peer addition not permitted" ));
+			}
+		}
 	}
 	
 	public Peer[]

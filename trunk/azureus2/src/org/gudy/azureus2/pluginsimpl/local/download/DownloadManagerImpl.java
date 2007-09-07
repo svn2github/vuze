@@ -521,22 +521,25 @@ DownloadManagerImpl
 	
 		throws DownloadException
 	{
-		for (int i=0;i<downloads.size();i++){
+		if ( torrent != null ){
 			
-			Download	dl = (Download)downloads.get(i);
-			
-			TorrentImpl	t = (TorrentImpl)dl.getTorrent();
-			
-				// can be null if broken torrent
-			
-			if ( t == null ){
+			for (int i=0;i<downloads.size();i++){
 				
-				continue;
-			}
-			
-			if ( t.getTorrent().hasSameHashAs( torrent )){
+				Download	dl = (Download)downloads.get(i);
 				
-				return( dl );
+				TorrentImpl	t = (TorrentImpl)dl.getTorrent();
+				
+					// can be null if broken torrent
+				
+				if ( t == null ){
+					
+					continue;
+				}
+				
+				if ( t.getTorrent().hasSameHashAs( torrent )){
+					
+					return( dl );
+				}
 			}
 		}
 		
