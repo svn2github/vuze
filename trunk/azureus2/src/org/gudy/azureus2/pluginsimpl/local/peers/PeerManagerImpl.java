@@ -249,6 +249,8 @@ PeerManagerImpl
 	addPeer(
 		Peer		peer )
 	{
+		try {if (getDownload().getTorrent().isPrivate()) {return;}}
+		catch (DownloadException e) {}
 		manager.addPeer(mapForeignPeer( peer ));
 	}
 	
@@ -272,15 +274,20 @@ PeerManagerImpl
 		String 	ip_address, 
 		int 	tcp_port ) 
 	{
+		try {if (getDownload().getTorrent().isPrivate()) {return;}}
+		catch (DownloadException e) {}
 		manager.addPeer( ip_address, tcp_port, 0, NetworkManager.getCryptoRequired( NetworkManager.CRYPTO_OVERRIDE_NONE ));
 	}
   
+	
 	public void 
 	addPeer( 
 		String 		ip_address, 
 		int 		tcp_port, 
 		boolean 	use_crypto ) 
 	{
+		try {if (getDownload().getTorrent().isPrivate()) {return;}}
+		catch (DownloadException e) {}
 		manager.addPeer( ip_address, tcp_port, 0, use_crypto );
 	}
   
@@ -291,6 +298,8 @@ PeerManagerImpl
 		int			udp_port,
 		boolean 	use_crypto ) 
 	{
+		try {if (getDownload().getTorrent().isPrivate()) {return;}}
+		catch (DownloadException e) {}
 		manager.addPeer( ip_address, tcp_port, udp_port, use_crypto );
 	}
 	
