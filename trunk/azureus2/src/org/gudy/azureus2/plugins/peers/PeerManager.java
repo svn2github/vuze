@@ -48,7 +48,6 @@ PeerManager
 	   * and port.
 	   * @param ip_address of peer to inject
 	   * @param port of peer to inject
-	   * @deprecated
 	   */
 	
 	public void 

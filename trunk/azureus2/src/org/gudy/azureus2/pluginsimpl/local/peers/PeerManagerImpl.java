@@ -41,6 +41,8 @@ import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
 
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
+
 public class 
 PeerManagerImpl
 	implements PeerManager
@@ -270,10 +272,9 @@ PeerManagerImpl
 		String 	ip_address, 
 		int 	tcp_port ) 
 	{
-		manager.addPeer( ip_address, tcp_port, 0, false );
+		manager.addPeer( ip_address, tcp_port, 0, NetworkManager.getCryptoRequired( NetworkManager.CRYPTO_OVERRIDE_NONE ));
 	}
   
-	
 	public void 
 	addPeer( 
 		String 		ip_address, 
