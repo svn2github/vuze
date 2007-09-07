@@ -204,6 +204,7 @@ PluginInitializer
   private List		plugins				= new ArrayList();
   private List		plugin_interfaces	= new ArrayList();
   
+  private Thread	init_thread;
   private boolean	initialisation_complete;
   
   
@@ -320,6 +321,12 @@ PluginInitializer
     plugin_manager = PluginManagerImpl.getSingleton( this );
     
     UpdaterUtils.checkBootstrapPlugins();
+  }
+  
+  protected boolean
+  isInitialisationThread()
+  {
+	  return( Thread.currentThread() == init_thread );
   }
   
   	public List 
@@ -979,120 +986,129 @@ PluginInitializer
     }
   }
   
-  public void initialisePlugins() {
-		for (int i = 0; i < loaded_pi_list.size(); i++) {
-			try {
-				List l = (List) loaded_pi_list.get(i);
-
-				if (l.size() > 0) {
-					PluginInterfaceImpl plugin_interface = (PluginInterfaceImpl) l.get(0);
-
-					if (Logger.isEnabled())
-						Logger.log(new LogEvent(LOGID, "Initializing plugin '"
-								+ plugin_interface.getPluginName() + "'"));
-
-					if (core_operation != null) {
-						core_operation.reportCurrentTask(MessageText
-								.getString("splash.plugin.init")
-								+ plugin_interface.getPluginName());
-					}
-
-					initialisePlugin(l);
-					
-					if (Logger.isEnabled())
-						Logger.log(new LogEvent(LOGID, "Initialization of plugin '"
-								+ plugin_interface.getPluginName() + "' complete"));
-
-				}
-
-			} catch (PluginException e) {
-				// already handled
-			} finally {
-				if (core_operation != null) {
-					core_operation.reportPercent((100 * (i + 1)) / loaded_pi_list.size());
-				}
-			}
-		}
-
-		// some plugins try and steal the logger stdout redirects. 
-		// re-establish them if needed
-		Logger.doRedirects();
-
-		// now do built in ones
-
-		if (Logger.isEnabled())
-			Logger.log(new LogEvent(LOGID, "Initializing built-in plugins"));
-
-		PluginManagerDefaults def = PluginManager.getDefaults();
-
-		for (int i = 0; i < builtin_plugins.length; i++) {
-			if (def.isDefaultPluginEnabled(builtin_plugins[i][0])) {
-				String id = builtin_plugins[i][2];
-				String key = builtin_plugins[i][3];
-
+  public void 
+  initialisePlugins() 
+  {
+	  try{
+		  init_thread = Thread.currentThread();
+		  
+			for (int i = 0; i < loaded_pi_list.size(); i++) {
 				try {
-					Class cla = root_class_loader.loadClass(
-							builtin_plugins[i][1]);
-
-					if (Logger.isEnabled())
-						Logger.log(new LogEvent(LOGID, "Initializing built-in plugin '"
-								+ builtin_plugins[i][2] + "'" ));
-
-					initializePluginFromClass(cla, id, key);
-
-					if (Logger.isEnabled())
-					Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
-							"Initialization of built in plugin '" + builtin_plugins[i][2] + "' complete"));
-				} catch (Throwable e) {
+					List l = (List) loaded_pi_list.get(i);
+	
+					if (l.size() > 0) {
+						PluginInterfaceImpl plugin_interface = (PluginInterfaceImpl) l.get(0);
+	
+						if (Logger.isEnabled())
+							Logger.log(new LogEvent(LOGID, "Initializing plugin '"
+									+ plugin_interface.getPluginName() + "'"));
+	
+						if (core_operation != null) {
+							core_operation.reportCurrentTask(MessageText
+									.getString("splash.plugin.init")
+									+ plugin_interface.getPluginName());
+						}
+	
+						initialisePlugin(l);
+						
+						if (Logger.isEnabled())
+							Logger.log(new LogEvent(LOGID, "Initialization of plugin '"
+									+ plugin_interface.getPluginName() + "' complete"));
+	
+					}
+	
+				} catch (PluginException e) {
+					// already handled
+				} finally {
+					if (core_operation != null) {
+						core_operation.reportPercent((100 * (i + 1)) / loaded_pi_list.size());
+					}
+				}
+			}
+	
+			// some plugins try and steal the logger stdout redirects. 
+			// re-establish them if needed
+			Logger.doRedirects();
+	
+			// now do built in ones
+	
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID, "Initializing built-in plugins"));
+	
+			PluginManagerDefaults def = PluginManager.getDefaults();
+	
+			for (int i = 0; i < builtin_plugins.length; i++) {
+				if (def.isDefaultPluginEnabled(builtin_plugins[i][0])) {
+					String id = builtin_plugins[i][2];
+					String key = builtin_plugins[i][3];
+	
 					try {
-						// replace it with a "broken" plugin instance
-						initializePluginFromClass(FailedPlugin.class, id, key);
-
-					} catch (Throwable f) {
+						Class cla = root_class_loader.loadClass(
+								builtin_plugins[i][1]);
+	
+						if (Logger.isEnabled())
+							Logger.log(new LogEvent(LOGID, "Initializing built-in plugin '"
+									+ builtin_plugins[i][2] + "'" ));
+	
+						initializePluginFromClass(cla, id, key);
+	
+						if (Logger.isEnabled())
+						Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+								"Initialization of built in plugin '" + builtin_plugins[i][2] + "' complete"));
+					} catch (Throwable e) {
+						try {
+							// replace it with a "broken" plugin instance
+							initializePluginFromClass(FailedPlugin.class, id, key);
+	
+						} catch (Throwable f) {
+						}
+	
+						if (builtin_plugins[i][4].equalsIgnoreCase("true")) {
+							Debug.printStackTrace(e);
+							Logger.log(new LogAlert(LogAlert.UNREPEATABLE,
+									"Initialization of built in plugin '" + builtin_plugins[i][2]
+											+ "' fails", e));
+						}
 					}
-
-					if (builtin_plugins[i][4].equalsIgnoreCase("true")) {
-						Debug.printStackTrace(e);
-						Logger.log(new LogAlert(LogAlert.UNREPEATABLE,
-								"Initialization of built in plugin '" + builtin_plugins[i][2]
-										+ "' fails", e));
-					}
-				}
-			} else {
-				if (Logger.isEnabled())
-					Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
-							"Built-in plugin '" + builtin_plugins[i][2] + "' is disabled"));
-			}
-		}
-
-		if (Logger.isEnabled())
-			Logger.log(new LogEvent(LOGID,
-					"Initializing dynamically registered plugins"));
-
-		for (int i = 0; i < registration_queue.size(); i++) {
-			try {
-				Object entry = registration_queue.get(i);
-
-				if (entry instanceof Class) {
-
-					Class cla = (Class) entry;
-
-					singleton.initializePluginFromClass(cla, INTERNAL_PLUGIN_ID, cla
-							.getName());
-
 				} else {
-					Object[] x = (Object[]) entry;
-
-					Plugin plugin = (Plugin) x[0];
-
-					singleton.initializePluginFromInstance(plugin, (String) x[1], plugin
-							.getClass().getName());
+					if (Logger.isEnabled())
+						Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+								"Built-in plugin '" + builtin_plugins[i][2] + "' is disabled"));
 				}
-			} catch (PluginException e) {
 			}
-		}
-
-		registration_queue.clear();
+	
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID,
+						"Initializing dynamically registered plugins"));
+	
+			for (int i = 0; i < registration_queue.size(); i++) {
+				try {
+					Object entry = registration_queue.get(i);
+	
+					if (entry instanceof Class) {
+	
+						Class cla = (Class) entry;
+	
+						singleton.initializePluginFromClass(cla, INTERNAL_PLUGIN_ID, cla
+								.getName());
+	
+					} else {
+						Object[] x = (Object[]) entry;
+	
+						Plugin plugin = (Plugin) x[0];
+	
+						singleton.initializePluginFromInstance(plugin, (String) x[1], plugin
+								.getClass().getName());
+					}
+				} catch (PluginException e) {
+				}
+			}
+	
+			registration_queue.clear();
+	  }finally{
+		  
+		  init_thread = null;
+	  }
 	}
   
   	private void

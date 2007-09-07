@@ -458,6 +458,15 @@ public interface PluginInterface {
   
   	throws PluginException;
   
+  	/**
+  	 * Indicates whether or not the current thread is the one responsible for running
+  	 * plugin initialisation
+  	 * @return
+  	 */
+  
+  public boolean
+  isInitialisationThread();
+  
   /**
    * gives access to the plugin manager
    * @return

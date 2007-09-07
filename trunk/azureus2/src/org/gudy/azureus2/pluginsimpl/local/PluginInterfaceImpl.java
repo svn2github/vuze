@@ -574,6 +574,12 @@ PluginInterfaceImpl
 		PluginInstallerImpl.getSingleton(getPluginManager()).uninstall( this );
 	}
 	
+	public boolean
+	isInitialisationThread()
+	{
+		return( initialiser.isInitialisationThread());
+	}
+	
 	 public ClientIDManager
 	 getClientIDManager()
 	 {

@@ -536,6 +536,14 @@ RPPluginInterface
 		notSupported();
 	}
 	
+	public boolean
+	isInitialisationThread()
+	{
+		notSupported();
+		
+		return( false );
+	}
+
 	 public ClientIDManager
 	 getClientIDManager()
 	 {

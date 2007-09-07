@@ -907,6 +907,16 @@ DHTPlugin
 	public boolean
 	isEnabled()
 	{
+		if ( plugin_interface.isInitialisationThread()){
+			
+			if ( !init_sem.isReleasedForever()){
+
+				Debug.out( "Initialisation deadlock detected" );
+				
+				return( true );
+			}
+		}
+		
 		init_sem.reserve();
 		
 		return( enabled );
