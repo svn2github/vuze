@@ -46,49 +46,51 @@ public class WritersItem
     PEPiece piece = (PEPiece)cell.getDataSource();
     String[] core_writers = piece.getWriters();
     String[] my_writers = new String[core_writers.length];
-    
-    StringBuffer sb = new StringBuffer();
     int writer_count = 0;
-
     Map map = new HashMap();
-    String last_writer = null;
-    int end_range = 0;
-    for(int i = 0 ; i < core_writers.length ; i++) {
-      String	this_writer = core_writers[i];
-      if (last_writer == this_writer ) { // if the writer is the same as before
-        if (this_writer != null)        // and the block has been written
-          end_range = i;               // then keep tracking the range
-      } else {                         // otherwise the writer is different
-        if (end_range != 0) {          // if we were tracking a range, end the range
-          map.put(last_writer, (String)map.get(last_writer) + "-" + end_range);
-          end_range = 0;               // and stop tracking it
-        }
 
-        if (this_writer != null) {
-          String value = (String)map.get(this_writer);
-          if (value == null) {
-            value = Integer.toString(i);
-            my_writers[writer_count++] = this_writer;
-          } else
-            value += "," + i;
-          map.put(this_writer, value);
-        }
-      }
-      last_writer = this_writer;
+    for(int i = 0 ; ; ) {
+	String this_writer = null;
+
+	int start;
+	for (start = i ; start < core_writers.length ; start++ ) {
+	    this_writer = core_writers[start];
+	    if (this_writer != null)
+		break;
+	}
+	if (this_writer == null)
+	    break;
+
+	int end;
+	for (end = start + 1; end < core_writers.length; end++) {
+	    if (! this_writer.equals(core_writers[end]))
+		break;
+	}
+
+	StringBuffer pieces = (StringBuffer) map.get(this_writer);
+	if (pieces == null) {
+	    pieces = new StringBuffer();
+	    map.put(this_writer, pieces);
+	    my_writers[writer_count++] = this_writer;
+	} else {
+	    pieces.append(',');
+	}
+
+	pieces.append(start);
+	if (end-1 > start)
+	    pieces.append('-').append(end-1);
+
+	i=end;
     }
-    
-    if (end_range != 0)
-      map.put(last_writer, (String)map.get(last_writer) + "-" + end_range);
-
+	
+    StringBuffer sb = new StringBuffer();
     for (int i = 0 ; i < writer_count ; i++) {
-			String writer = my_writers[i];
-			if (sb.length() != 0)
-				sb.append(";");
-			sb.append(writer);
-			sb.append("[");
-			sb.append((String)map.get(writer));
-			sb.append("]");
-		}
+	String writer = my_writers[i];
+	StringBuffer pieces = (StringBuffer) map.get(writer);
+	if (i > 0)
+	    sb.append(';');
+	sb.append(writer).append('[').append(pieces).append(']');
+    }
     
     String value = sb.toString();
     if( !cell.setSortValue( value ) && cell.isValid() ) {
