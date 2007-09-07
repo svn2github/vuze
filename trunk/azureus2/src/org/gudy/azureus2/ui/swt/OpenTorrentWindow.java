@@ -1213,7 +1213,7 @@ public class OpenTorrentWindow
 
 					TorrentFileInfo[] files = info.getFiles();
 					if (files.length == 1) {
-						chageFileDestination(new int[] {
+						changeFileDestination(new int[] {
 							0
 						});
 					} else {
@@ -1509,7 +1509,7 @@ public class OpenTorrentWindow
 		item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				int[] indexes = dataFileTable.getSelectionIndices();
-				chageFileDestination(indexes);
+				changeFileDestination(indexes);
 			}
 		});
 
@@ -1591,7 +1591,7 @@ public class OpenTorrentWindow
 	/**
 	 * @param indexes
 	 */
-	protected void chageFileDestination(int[] indexes) {
+	protected void changeFileDestination(int[] indexes) {
 		for (int i = 0; i < indexes.length; i++) {
 			TorrentFileInfo fileInfo = (TorrentFileInfo) dataFiles.get(indexes[i]);
 			int style = (fileInfo.parent.iStartID == STARTMODE_SEEDING) ? SWT.OPEN
