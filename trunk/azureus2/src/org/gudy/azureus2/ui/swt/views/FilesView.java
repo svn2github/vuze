@@ -28,7 +28,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
@@ -242,33 +241,33 @@ public class FilesView
 		boolean	all_not_priority	= true;
 		
 		for (int i = 0; i < infos.length; i++) {
-
+			
 			DiskManagerFileInfo file_info = (DiskManagerFileInfo) infos[i];
 
-			if (file_info.getAccessMode() != DiskManagerFileInfo.READ) {
+			if (open && file_info.getAccessMode() != DiskManagerFileInfo.READ) {
 
 				open = false;
 			}
 
-			if (file_info.getStorageType() != DiskManagerFileInfo.ST_COMPACT) {
-
+			if (all_compact && file_info.getStorageType() != DiskManagerFileInfo.ST_COMPACT) {
 				all_compact = false;
 			}
-			
-			if ( file_info.isSkipped()){
-				
-				all_priority		= false;
-				all_not_priority	= false;
-				
-			}else{
-				all_skipped = false;
-			
-				if ( !file_info.isPriority()){
-					
-					all_priority = false;
+
+			if (all_skipped || all_priority || all_not_priority) {
+				if ( file_info.isSkipped()){
+					all_priority		= false;
+					all_not_priority	= false;
 				}else{
+					all_skipped = false;
 					
-					all_not_priority = false;
+					// Only do this check if we need to.
+					if (all_not_priority || all_priority) {
+						if (file_info.isPriority()){
+							all_not_priority = false;
+						}else{
+							all_priority = false;
+						}
+					}
 				}
 			}
 		}
