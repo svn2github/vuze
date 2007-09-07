@@ -42,8 +42,6 @@ public class TableContextMenuItemImpl extends MenuItemImpl implements TableConte
   }
 
   public void remove() {
-	  removeAllChildItems();
-		
 	  removeWithEvents(UIManagerEvent.ET_REMOVE_TABLE_CONTEXT_MENU_ITEM,
 				UIManagerEvent.ET_REMOVE_TABLE_CONTEXT_SUBMENU_ITEM);
 	}

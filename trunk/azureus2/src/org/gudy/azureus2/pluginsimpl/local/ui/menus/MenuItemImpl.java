@@ -221,7 +221,7 @@ public class MenuItemImpl implements MenuItem {
 	}
 	
 	protected void removeWithEvents(int root_menu_event, int sub_menu_event) {
-		
+		removeAllChildItems();
 		if (this.parent != null) {
 			UIManagerImpl.fireEvent(sub_menu_event, new Object[]{this.parent, this});
 			parent.children.remove(this);
@@ -238,7 +238,6 @@ public class MenuItemImpl implements MenuItem {
 	}
 	
 	public void remove() {
-		removeAllChildItems();
 		removeWithEvents(UIManagerEvent.ET_REMOVE_MENU_ITEM, UIManagerEvent.ET_REMOVE_SUBMENU_ITEM);
 	}
 
