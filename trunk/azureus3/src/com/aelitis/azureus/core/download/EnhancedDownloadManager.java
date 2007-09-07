@@ -1242,6 +1242,101 @@ EnhancedDownloadManager
 		}
 	}
 	
+	public long
+	getContiguousAvailableBytes()
+	{
+		DiskManager dm = download_manager.getDiskManager();
+		
+		if ( dm == null ){
+			
+			return( -1 );
+		}
+		
+		return( getContiguousAvailableBytes( dm.getFiles()[0], 0 ));
+	}
+	
+	public long
+	getContiguousAvailableBytes(
+		DiskManagerFileInfo		file,
+		int						file_start_offset )
+	{
+		DiskManager dm = download_manager.getDiskManager();
+		
+		if ( dm == null ){
+			
+			return( -1 );
+		}
+		
+		int	piece_size = dm.getPieceLength();
+		
+		DiskManagerFileInfo[]	 files = dm.getFiles();
+		
+		long	start_index = file_start_offset;
+		
+		for (int i=0;i<files.length;i++){
+			
+			if ( files[i] == file ){
+				
+				break;
+			}
+			
+			start_index += files[i].getLength();
+		}
+		
+		int	first_piece_index 	= (int)( start_index / piece_size );
+		int	last_piece_index	= file.getLastPieceNumber();
+		
+		DiskManagerPiece[]	pieces = dm.getPieces();
+		
+		DiskManagerPiece	first_piece = pieces[first_piece_index];
+		
+			// lazy - if first piece not done then just return 0
+		
+		if ( !first_piece.isDone()){
+			
+			return( 0 );
+		}
+		
+		long	available = first_piece.getLength() - ( start_index % piece_size ); 
+		
+		for (int i=first_piece_index+1;i<=last_piece_index;i++){
+			
+			DiskManagerPiece piece = pieces[i];
+			
+			if ( piece.isDone()){
+				
+				available += piece.getLength();
+				
+			}else{
+			
+				boolean[] blocks = piece.getWritten();
+						
+				if ( blocks == null ){
+				
+					available = piece.getLength();
+				
+				}else{
+					
+					for (int j=0;j<blocks.length;j++){
+					
+						if ( blocks[j] ){
+						
+							available += piece.getBlockSize( j );
+							
+						}else{
+							
+							break;
+						}
+					}
+				}
+				
+				break;
+			}
+		}
+		
+		return( available );
+	}
+	
 	protected void 
 	destroy()
 	{
