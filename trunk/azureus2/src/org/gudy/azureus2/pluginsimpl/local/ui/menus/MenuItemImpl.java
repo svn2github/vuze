@@ -238,6 +238,7 @@ public class MenuItemImpl implements MenuItem {
 	}
 	
 	public void remove() {
+		removeAllChildItems();
 		removeWithEvents(UIManagerEvent.ET_REMOVE_MENU_ITEM, UIManagerEvent.ET_REMOVE_SUBMENU_ITEM);
 	}
 
