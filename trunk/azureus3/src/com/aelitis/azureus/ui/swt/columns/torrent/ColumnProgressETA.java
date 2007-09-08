@@ -412,17 +412,6 @@ public class ColumnProgressETA
 			}
 
 			edm.setProgressiveMode(!edm.getProgressiveMode());
-			if (edm.getProgressiveMode()) {
-				// Make sure download can start by moving out of stop state
-				// and putting at top
-				if (dm.getState() == DownloadManager.STATE_STOPPED) {
-					ManagerUtils.start(dm);
-				}
-
-				if (dm.getPosition() != 1) {
-					dm.getGlobalManager().moveTo(dm, 1);
-				}
-			}
 		}
 
 		private void disposeExisting(TableCell cell) {
