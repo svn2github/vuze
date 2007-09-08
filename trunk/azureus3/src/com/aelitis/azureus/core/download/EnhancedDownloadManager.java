@@ -1343,9 +1343,15 @@ EnhancedDownloadManager
 					boolean[] blocks = piece.getWritten();
 							
 					if ( blocks == null ){
+						
+						if ( piece.isDone()){
 					
-						available += piece.getLength();
-					
+							available += piece.getLength();
+							
+						}else{
+							
+							break;
+						}
 					}else{
 						
 						for (int j=0;j<blocks.length;j++){
