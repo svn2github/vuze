@@ -29,8 +29,10 @@ import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -120,17 +122,21 @@ public class SWTSkinObjectBrowser
 		return browser;
 	}
 
-	public void setURL(String url) {
-		if (url == null) {
-			browser.setText("");
-		} else {
-			browser.setUrl(url);
-		}
-		if (sStartURL == null) {
-			sStartURL = url;
-			browser.setData("StartURL", url);
-		}
-		//System.out.println(SystemTime.getCurrentTime() + "] Set URL: " + url);
+	public void setURL(final String url) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (url == null) {
+					browser.setText("");
+				} else {
+					browser.setUrl(url);
+				}
+				if (sStartURL == null) {
+					sStartURL = url;
+					browser.setData("StartURL", url);
+				}
+				//System.out.println(SystemTime.getCurrentTime() + "] Set URL: " + url);
+			}
+		});
 	}
 
 	public void restart() {

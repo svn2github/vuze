@@ -13,6 +13,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 
@@ -111,7 +112,7 @@ public class SWTSkinObjectBasic
 		Image imageBG;
 		Image imageBGLeft;
 		Image imageBGRight;
-		
+
 		if (sConfigID == null) {
 			return;
 		}
@@ -189,26 +190,36 @@ public class SWTSkinObjectBasic
 	}
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObject#setVisible(boolean)
-	public void setVisible(boolean visible) {
-		if (control != null && !control.isDisposed()) {
-			control.setVisible(visible);
-		}
-		triggerListeners(visible ? SWTSkinObjectListener.EVENT_SHOW
-				: SWTSkinObjectListener.EVENT_HIDE);
+	public void setVisible(final boolean visible) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (control != null && !control.isDisposed()) {
+					control.setVisible(visible);
+				}
+				triggerListeners(visible ? SWTSkinObjectListener.EVENT_SHOW
+						: SWTSkinObjectListener.EVENT_HIDE);
+			}
+		});
 	}
-	
+
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObject#setDefaultVisibility()
 	public void setDefaultVisibility() {
 		if (sConfigID == null) {
 			return;
 		}
-		
+
 		setVisible(properties.getStringValue(sConfigID + ".visible", "true").equalsIgnoreCase(
 				"true"));
 	}
-	
+
 	public boolean isVisible() {
-		return control != null && !control.isDisposed() && control.isVisible();
+		return Utils.execSWTThreadWithBool("isVisible", new AERunnableBoolean() {
+		
+			public boolean runSupport() {
+				return control != null && !control.isDisposed() && control.isVisible();
+			}
+		
+		}, 30000);
 	}
 
 	public String switchSuffix(String suffix, int level, boolean walkUp) {
@@ -230,7 +241,7 @@ public class SWTSkinObjectBasic
 				return null;
 			}
 		}
-		
+
 		//System.out.println(SystemTime.getCurrentTime() + ": " + this + suffix + "; switchy");
 		if (suffixes == null) {
 			suffixes = new String[level];
@@ -247,33 +258,42 @@ public class SWTSkinObjectBasic
 			return suffix;
 		}
 
-		Color color = properties.getColor(sConfigID + ".color" + suffix);
-		if (color != null) {
-			control.setBackground(color);
-		}
+		final String sSuffix = suffix;
 
-		Color fg = properties.getColor(sConfigID + ".fgcolor" + suffix);
-		if (fg != null) {
-			control.setForeground(fg);
-		}
+		Utils.execSWTThread(new AERunnable() {
 
-		setBackground(sConfigID + ".background", suffix);
+			public void runSupport() {
+				Color color = properties.getColor(sConfigID + ".color" + sSuffix);
+				if (color != null) {
+					control.setBackground(color);
+				}
 
-		String sCursor = properties.getStringValue(sConfigID + ".cursor");
-		if (sCursor != null && sCursor.length() > 0) {
-			if (sCursor.equalsIgnoreCase("hand")) {
-				control.addListener(SWT.MouseEnter,
-						skin.getHandCursorListener(control.getDisplay()));
-				control.addListener(SWT.MouseExit,
-						skin.getHandCursorListener(control.getDisplay()));
+				Color fg = properties.getColor(sConfigID + ".fgcolor" + sSuffix);
+				if (fg != null) {
+					control.setForeground(fg);
+				}
+
+				setBackground(sConfigID + ".background", sSuffix);
+
+				String sCursor = properties.getStringValue(sConfigID + ".cursor");
+				if (sCursor != null && sCursor.length() > 0) {
+					if (sCursor.equalsIgnoreCase("hand")) {
+						control.addListener(SWT.MouseEnter,
+								skin.getHandCursorListener(control.getDisplay()));
+						control.addListener(SWT.MouseExit,
+								skin.getHandCursorListener(control.getDisplay()));
+					}
+				}
+
+				String sTooltip = properties.getStringValue(sConfigID + ".tooltip"
+						+ sSuffix);
+				if (sTooltip != null) {
+					setTooltipAndChildren(control, sTooltip);
+				}
+
 			}
-		}
 
-		String sTooltip = properties.getStringValue(sConfigID + ".tooltip" + suffix);
-		if (sTooltip != null) {
-			setTooltipAndChildren(control, sTooltip);
-		}
-
+		});
 		return suffix;
 	}
 
@@ -376,11 +396,23 @@ public class SWTSkinObjectBasic
 	public String getViewID() {
 		return sViewID;
 	}
-	
+
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObject#dispose()
 	public void dispose() {
 		if (control != null && !control.isDisposed()) {
 			control.dispose();
 		}
+	}
+
+	public boolean isDisposed() {
+		if (control == null) {
+			return false;
+		}
+
+		return Utils.execSWTThreadWithBool("isDisposed", new AERunnableBoolean() {
+			public boolean runSupport() {
+				return control == null || control.isDisposed();
+			}
+		}, 30000);
 	}
 }

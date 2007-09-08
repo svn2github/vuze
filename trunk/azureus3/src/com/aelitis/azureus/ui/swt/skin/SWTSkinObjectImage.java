@@ -10,6 +10,8 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AERunnableObject;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 
@@ -158,47 +160,55 @@ public class SWTSkinObjectImage
 		return setLabelImage(sConfigID, sConfigID);
 	}
 
-	private Image setLabelImage(String sConfigID, String sImageID) {
-		if (label == null || label.isDisposed()) {
-			return null;
-		}
+	private Image setLabelImage(final String sConfigID, final String sImageID) {
+		return (Image) Utils.execSWTThreadWithObject("setLabelImage",
+				new AERunnableObject() {
 
-		ImageLoader imageLoader = skin.getImageLoader(properties);
-		Image image = imageLoader.getImage(sImageID);
+					public Object runSupport() {
+						if (label == null || label.isDisposed()) {
+							return null;
+						}
 
-		Image imageLeft = imageLoader.getImage(sImageID + ".left");
-		if (ImageLoader.isRealImage(imageLeft)) {
-			label.setData("image-left", imageLeft);
-		}
-		Image imageRight = imageLoader.getImage(sImageID + ".right");
-		if (ImageLoader.isRealImage(imageRight)) {
-			label.setData("image-right", imageRight);
-		}
+						ImageLoader imageLoader = skin.getImageLoader(properties);
+						Image image = imageLoader.getImage(sImageID);
 
-		String sDrawMode = properties.getStringValue(sConfigID + ".drawmode");
-		if (sDrawMode == null) {
-			sDrawMode = "";
-		}
+						Image imageLeft = imageLoader.getImage(sImageID + ".left");
+						if (ImageLoader.isRealImage(imageLeft)) {
+							label.setData("image-left", imageLeft);
+						}
+						Image imageRight = imageLoader.getImage(sImageID + ".right");
+						if (ImageLoader.isRealImage(imageRight)) {
+							label.setData("image-right", imageRight);
+						}
 
-		if (sDrawMode.equalsIgnoreCase("tile")) {
-			Rectangle imgBounds = image.getBounds();
-			label.setSize(imgBounds.width, imgBounds.height);
-			label.setData("image", image);
+						String sDrawMode = properties.getStringValue(sConfigID
+								+ ".drawmode");
+						if (sDrawMode == null) {
+							sDrawMode = "";
+						}
 
-			// XXX Huh? A tile of one? :)
-			label.setLayoutData(new FormData(imgBounds.width, imgBounds.height));
+						if (sDrawMode.equalsIgnoreCase("tile")) {
+							Rectangle imgBounds = image.getBounds();
+							label.setSize(imgBounds.width, imgBounds.height);
+							label.setData("image", image);
 
-			// remove in case already added
-			label.removePaintListener(tilePaintListener);
+							// XXX Huh? A tile of one? :)
+							label.setLayoutData(new FormData(imgBounds.width,
+									imgBounds.height));
 
-			label.addPaintListener(tilePaintListener);
-		} else {
-			label.setImage(image);
-			label.setData("ImageID", sImageID);
-		}
+							// remove in case already added
+							label.removePaintListener(tilePaintListener);
 
-		SWTSkinUtils.addMouseImageChangeListeners(label);
-		return image;
+							label.addPaintListener(tilePaintListener);
+						} else {
+							label.setImage(image);
+							label.setData("ImageID", sImageID);
+						}
+
+						SWTSkinUtils.addMouseImageChangeListeners(label);
+						return image;
+					}
+				});
 	}
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObject#setBackground(java.lang.String, java.lang.String)
@@ -241,7 +251,6 @@ public class SWTSkinObjectImage
 	}
 
 	protected Image setImageByID(String sConfigID) {
-		customImage = true;
 		return setLabelImage(sConfigID, sConfigID);
 	}
 }
