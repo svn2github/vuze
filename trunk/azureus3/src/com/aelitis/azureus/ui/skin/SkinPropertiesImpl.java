@@ -195,7 +195,8 @@ public class SkinPropertiesImpl
 		try {
 			result = Integer.parseInt(value);
 		} catch (NumberFormatException e) {
-			e.printStackTrace();
+			// ignore error.. it might be valid to store a non-numeric..
+			//e.printStackTrace();
 		}
 		return result;
 	}
