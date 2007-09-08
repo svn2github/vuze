@@ -62,7 +62,6 @@ import com.aelitis.azureus.core.util.average.AverageFactory;
 import com.aelitis.azureus.ui.swt.utils.PublishUtils;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.DownloadUtils;
-import com.sun.rsasign.av;
 
 public class 
 EnhancedDownloadManager 
