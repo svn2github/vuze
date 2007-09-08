@@ -235,6 +235,7 @@ public class SWTSkinObjectSlider
 			public void runSupport() {
 				if (canvas != null && !canvas.isDisposed()) {
 					canvas.redraw();
+					canvas.update();
 				}
 			}
 		});
