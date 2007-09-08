@@ -9,12 +9,14 @@ import org.eclipse.swt.widgets.Shell;
 
 import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
+import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
@@ -26,6 +28,7 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
+import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.MapUtils;
 
@@ -107,6 +110,7 @@ public class TorrentListener
 			TOTorrent torrent = TorrentUtils.readFromFile(tempTorrentFile, false);
 			// Security: Only allow torrents from whitelisted trackers
 			if (!PlatformTorrentUtils.isPlatformTracker(torrent)) {
+				Debug.out("stopped loading torrent because it's not in whitelist");
 				return false;
 			}
 
@@ -127,11 +131,12 @@ public class TorrentListener
 		return true;
 	}
 
-	public static void loadTorrent(AzureusCore core, String url, String referer,
-			boolean playNow) {
+	public static void loadTorrent(final AzureusCore core, String url,
+			String referer, final boolean playNow) {
 		boolean blocked = PlatformConfigMessenger.isURLBlocked(url);
 		// Security: Only allow torrents from whitelisted urls
 		if (blocked) {
+			Debug.out("stopped loading torrent URL because it's not in whitelist");
 			return;
 		}
 
@@ -153,6 +158,50 @@ public class TorrentListener
 								public void TorrentDownloaderEvent(int state,
 										TorrentDownloader inf) {
 									if (state == TorrentDownloader.STATE_FINISHED) {
+
+										TOTorrent torrent;
+										try {
+											torrent = TorrentUtils.readFromFile(inf.getFile(), false);
+										} catch (TOTorrentException e) {
+											Debug.out(e);
+											return;
+										}
+										// Security: Only allow torrents from whitelisted trackers
+										if (!PlatformTorrentUtils.isPlatformTracker(torrent)) {
+											Debug.out("stopped loading torrent because it's not in whitelist");
+											return;
+										}
+
+										if (playNow) {
+											HashWrapper hw;
+											try {
+												hw = torrent.getHashWrapper();
+											} catch (TOTorrentException e1) {
+												Debug.out(e1);
+												return;
+											}
+
+											final HashWrapper fhw = hw;
+
+											GlobalManagerListener l = new GlobalManagerAdapter() {
+												public void downloadManagerAdded(DownloadManager dm) {
+
+													try {
+														HashWrapper hw = dm.getTorrent().getHashWrapper();
+														if (!hw.equals(fhw)) {
+															return;
+														}
+
+														core.getGlobalManager().removeListener(this);
+
+														TorrentListViewsUtils.playOrStream(dm);
+													} catch (Exception e) {
+														Debug.out(e);
+													}
+												}
+											};
+											core.getGlobalManager().addListener(l, false);
+										}
 										TorrentOpener.openTorrent(inf.getFile().getAbsolutePath());
 									}
 								}
