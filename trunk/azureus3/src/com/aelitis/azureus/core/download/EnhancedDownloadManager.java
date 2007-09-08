@@ -1344,7 +1344,7 @@ EnhancedDownloadManager
 							
 					if ( blocks == null ){
 					
-						available = piece.getLength();
+						available += piece.getLength();
 					
 					}else{
 						
