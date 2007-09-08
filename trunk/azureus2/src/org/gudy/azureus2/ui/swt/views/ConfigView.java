@@ -273,7 +273,6 @@ public class ConfigView extends AbstractIView {
 	      	Point size1 = c.computeSize(sc.getClientArea().width,
 							SWT.DEFAULT);
 					Point size = c.computeSize(SWT.DEFAULT, size1.y);
-	      	System.out.println(size);
 	      	sc.setMinSize(size);
 	      }
 	  		sc.getVerticalBar().setPageIncrement(sc.getSize().y);
