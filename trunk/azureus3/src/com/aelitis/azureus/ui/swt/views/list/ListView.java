@@ -2866,11 +2866,11 @@ public class ListView
 			public boolean runSupport() {
 				return _isRowVisible(row);
 			}
-		});
+		}, 30000);
 	}
 
 	public boolean _isRowVisible(ListRow row) {
-		if (listCanvas == null || listCanvas.isDisposed()) {
+		if (listCanvas == null || listCanvas.isDisposed() || !listCanvas.isVisible()) {
 			return false;
 		}
 
