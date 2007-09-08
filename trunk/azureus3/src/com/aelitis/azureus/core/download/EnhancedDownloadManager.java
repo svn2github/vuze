@@ -1253,22 +1253,26 @@ EnhancedDownloadManager
 		}
 	}
 	
-
-	public long
-	getContiguousAvailableBytes()
+	public DiskManagerFileInfo
+	getPrimaryFile()
 	{
-		if (contigFile == null) {
-  		DiskManager dm = download_manager.getDiskManager();
-  		
-  		if ( dm == null ){
-  			
-  			return( -1 );
-  		}
-  		
-  		contigFile = dm.getFiles()[0];
+		if ( contigFile == null ){
+			
+			int	index = PlatformTorrentUtils.getContentPrimaryFileIndex( download_manager.getTorrent());
+			
+			DiskManagerFileInfo[] files = download_manager.getDiskManagerFileInfo();
+			
+			if ( index >= 0 && index < files.length ){
+				
+				contigFile = files[index];
+				
+			}else{
+			
+				contigFile = files[0];
+			}
 		}
 		
-		return( getContiguousAvailableBytes( contigFile, 0 ));
+		return( contigFile );
 	}
 
 	public long

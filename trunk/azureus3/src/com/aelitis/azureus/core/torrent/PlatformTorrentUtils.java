@@ -99,6 +99,8 @@ public class PlatformTorrentUtils
 	private static final String TOR_AZ_PROP_AD_ENABLED = "Ad Enabled";
 
 	private static final String TOR_AZ_PROP_EXPIRESON = "Expires On";
+	
+	private static final String TOR_AZ_PROP_PRIMARY_FILE = "Primary File Index";
 
 	private static final ArrayList metaDataListeners = new ArrayList();
 
@@ -691,6 +693,10 @@ public class PlatformTorrentUtils
 		writeTorrentIfExists(torrent);
 	}
 
+	public static int getContentPrimaryFileIndex(TOTorrent torrent ){
+		return (int)getContentMapLong(torrent, TOR_AZ_PROP_PRIMARY_FILE, -1 );
+
+	}
 	public static void log(String str) {
 		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.MD");
 		diag_logger.log(str);
