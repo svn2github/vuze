@@ -44,6 +44,8 @@ public class PlatformRatingMessenger
 
 	public static final String RATE_TYPE_CONTENT = "content";
 
+	public static final ArrayList listeners = new ArrayList();
+
 	public static void getUserRating(String[] rateTypes, String[] torrentHashes,
 			long maxDelayMS, final GetRatingReplyListener replyListener) {
 
@@ -174,6 +176,11 @@ public class PlatformRatingMessenger
 		 */
 		public GetRatingReply(Map message) {
 			reply = message == null ? new HashMap() : message;
+			invokeUpdateListeners(this);
+		}
+		
+		public boolean hasHash(String hash) {
+			return reply.get(hash) != null;
 		}
 
 		public long getRatingValue(String hash, String type) {
@@ -283,6 +290,30 @@ public class PlatformRatingMessenger
 		 */
 		public Map getMap() {
 			return reply;
+		}
+	}
+
+	public static interface RatingUpdateListener
+	{
+		public void ratingUpdated(GetRatingReply rating);
+	}
+	
+	public static void addListener(RatingUpdateListener l) {
+		listeners.add(l);
+	}
+	
+	public static void removeListener(RatingUpdateListener l) {
+		listeners.remove(l);
+	}
+	
+	private static void invokeUpdateListeners(GetRatingReply rating) {
+		Object[] listArray = listeners.toArray();
+		for (int i = 0; i < listArray.length; i++) {
+			RatingUpdateListener l = (RatingUpdateListener) listArray[i];
+			try {
+				l.ratingUpdated(rating);
+			} catch (Exception e) {
+			}
 		}
 	}
 }
