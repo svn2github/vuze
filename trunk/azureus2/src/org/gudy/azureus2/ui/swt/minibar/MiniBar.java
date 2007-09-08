@@ -40,6 +40,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -62,7 +63,7 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	//
 	protected Label lDrag;
 	protected MiniBar stucked;
-	protected Rectangle screen;
+	protected Monitor[] screens;
 	protected int xPressed, yPressed;
 	protected boolean moving;
 	protected int hSize;
@@ -252,7 +253,7 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 			}
 		});
 		
-	    this.screen = main.getDisplay().getClientArea();
+	    screens = main.getDisplay().getMonitors();
 	    build();
 	}
 	
@@ -363,12 +364,32 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	}
 	
 	protected final void setSnapLocation(Point currentLoc) {
-		if (currentLoc.x < 10)
-			currentLoc.x = 0;
-		else if (currentLoc.x > screen.width - splash.getBounds().width - 10)
-			currentLoc.x = screen.width - splash.getBounds().width;
-		if (currentLoc.y < 10)
-			currentLoc.y = 0;
+		
+		Rectangle dim = new Rectangle(currentLoc.x,currentLoc.y,splash.getBounds().width,splash.getBounds().height);
+
+		// find the screen we mostly reside in
+		int topIntersectArea = 0;
+		int bestScreen = 0;
+		for(int i=0;i<screens.length;i++)
+		{
+			Rectangle curScreen = screens[i].getClientArea();
+			curScreen.intersect(dim);
+			int area = curScreen.width*curScreen.height;
+			if(area > topIntersectArea)
+			{
+				bestScreen = i;
+				topIntersectArea = area;
+			}
+		}
+		
+		Rectangle screen = screens[bestScreen].getClientArea(); 
+	
+		if (currentLoc.x-screen.x < 10)
+			currentLoc.x = screen.x;
+		else if (currentLoc.x-screen.x > screen.width - dim.width - 10)
+			currentLoc.x = screen.x + screen.width - dim.width;
+		if (currentLoc.y-screen.y < 10)
+			currentLoc.y = screen.y;
 		MiniBar mw = this;
 		int height = 0;
 		while (mw != null) {
@@ -382,8 +403,8 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 					mw = null;
 			}
 		}
-		if (currentLoc.y > screen.height - height - 10)
-			currentLoc.y = screen.height - height;
+		if (currentLoc.y-screen.y > screen.height - height - 10)
+			currentLoc.y = screen.y + screen.height - height;
 
 		MiniBarManager g_manager = MiniBarManager.getManager();
 		try {
