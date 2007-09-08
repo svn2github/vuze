@@ -165,6 +165,7 @@ EnhancedDownloadManager
 	private boolean		publish_handling_complete;
 	private long		publish_sent		= -1;
 	private long		publish_sent_time;
+	private DiskManagerFileInfo contigFile;
 	
 	private void
 	resetVars()
@@ -1035,6 +1036,16 @@ EnhancedDownloadManager
 				if (download_manager.isPaused()) {
 					download_manager.resume();
 				}
+
+				// Make sure download can start by moving out of stop state
+				// and putting at top
+				if (download_manager.getState() == DownloadManager.STATE_STOPPED) {
+					download_manager.setStateWaiting();
+				}
+
+				if (download_manager.getPosition() != 1) {
+					download_manager.getGlobalManager().moveTo(download_manager, 1);
+				}
 			} else {
 				download_manager.removeListener(dmListener);
 				gm.resumeDownloads();
@@ -1242,6 +1253,24 @@ EnhancedDownloadManager
 		}
 	}
 	
+
+	public long
+	getContiguousAvailableBytes()
+	{
+		if (contigFile == null) {
+  		DiskManager dm = download_manager.getDiskManager();
+  		
+  		if ( dm == null ){
+  			
+  			return( -1 );
+  		}
+  		
+  		contigFile = dm.getFiles()[0];
+		}
+		
+		return( getContiguousAvailableBytes( contigFile, 0 ));
+	}
+
 	public long
 	getContiguousAvailableBytes(
 		DiskManagerFileInfo		file )
@@ -2038,5 +2067,9 @@ EnhancedDownloadManager
 					", prov: byte=" + formatBytes( provider_byte_position ) + " secs=" + ( provider_byte_position/content_stream_bps_min ) + " speed=" + formatSpeed((long)provider_speed_average.getAverage()) +
 					" block= " + formatBytes( provider_blocking_byte_position ) + " buffer=" + formatBytes( provider_byte_position - viewer_byte_position ) + "/" + getViewerBufferSeconds());
 		}
+	}
+
+	public DownloadManager getDownloadManager() {
+		return download_manager;
 	}
 }
