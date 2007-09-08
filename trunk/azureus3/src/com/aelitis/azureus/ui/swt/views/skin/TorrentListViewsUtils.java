@@ -39,9 +39,7 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -287,7 +285,8 @@ public class TorrentListViewsUtils
 				if (!bDisabled) {
 					TableRowCore[] rows = view.getSelectedRows();
 					DownloadManager dm = (DownloadManager) rows[0].getDataSource(true);
-					if (!dm.isDownloadComplete(false)) {
+					if (!dm.isDownloadComplete(false)
+							&& !PlatformTorrentUtils.useEMP(dm.getTorrent())) {
 						DownloadManagerEnhancer dmEnhancer = DownloadManagerEnhancer.getSingleton();
 						if (dmEnhancer != null) {
 							EnhancedDownloadManager edm = dmEnhancer.getEnhancedDownload(dm);
@@ -327,8 +326,11 @@ public class TorrentListViewsUtils
 		boolean reenableButton = false;
 		try {
 			boolean bComplete = dm.isDownloadComplete(false);
+			TOTorrent torrent = dm.getTorrent();
+			
+			boolean useEMP = PlatformTorrentUtils.useEMP(torrent);
 
-			if (!bComplete) {
+			if (!bComplete && !useEMP) {
 				DownloadManagerEnhancer dmEnhancer = DownloadManagerEnhancer.getSingleton();
 				if (dmEnhancer != null) {
 					EnhancedDownloadManager edm = dmEnhancer.getEnhancedDownload(dm);
@@ -341,19 +343,23 @@ public class TorrentListViewsUtils
 
 			File file;
 			String sFile = dm.getDownloadState().getPrimaryFile();
-			if (sFile == null || sFile.length() == 0 || !new File(sFile).exists()) {
-				DiskManagerFileInfo[] diskManagerFileInfo = dm.getDiskManagerFileInfo();
-				if (diskManagerFileInfo == null && diskManagerFileInfo.length == 0) {
-					return;
-				}
-				file = diskManagerFileInfo[0].getFile(true);
+			if (!useEMP) {
+  			if (sFile == null || sFile.length() == 0 || !new File(sFile).exists()) {
+  				DiskManagerFileInfo[] diskManagerFileInfo = dm.getDiskManagerFileInfo();
+  				if (diskManagerFileInfo == null && diskManagerFileInfo.length == 0) {
+  					return;
+  				}
+  				file = diskManagerFileInfo[0].getFile(true);
+  			} else {
+  				file = new File(sFile);
+  			}
+  
+  			if (!file.exists()) {
+  				handleNoFileExists(dm);
+  				return;
+  			}
 			} else {
 				file = new File(sFile);
-			}
-
-			if (!file.exists()) {
-				handleNoFileExists(dm);
-				return;
 			}
 			String ext = FileUtil.getExtension(file.getName());
 
@@ -397,7 +403,6 @@ public class TorrentListViewsUtils
 			}
 
 			if (bComplete) {
-				TOTorrent torrent = dm.getTorrent();
 				if (PlatformTorrentUtils.isContentAdEnabled(torrent)) {
 					String url;
 					try {
@@ -444,40 +449,27 @@ public class TorrentListViewsUtils
 		runFile(torrent, runFile, false);
 	}
 
-	private static void runFile(TOTorrent torrent, String runFile,
-			boolean forceWMP) {
-		if (PlatformTorrentUtils.isContentDRM(torrent) || forceWMP) {
-			if (!runInMediaPlayer(runFile)) {
-				Utils.launch(runFile);
-			}
-		} else {
-			if (PlatformTorrentUtils.isContent(torrent, true)
-					&& PlatformTorrentUtils.useEMP(torrent)) {
-				if (!openInEMP(torrent, runFile)) {
+	private static void runFile(final TOTorrent torrent, final String runFile,
+			final boolean forceWMP) {
+
+		AEThread thread = new AEThread("runFile", true) {
+			public void runSupport() {
+				if (PlatformTorrentUtils.useEMP(torrent)) {
+					if (openInEMP(torrent, runFile)) {
+						return;
+					}
+				}
+
+				if (PlatformTorrentUtils.isContentDRM(torrent) || forceWMP) {
+					if (!runInMediaPlayer(runFile)) {
+						Utils.launch(runFile);
+					}
+				} else {
 					Utils.launch(runFile);
 				}
-			} else {
-				Utils.launch(runFile);
 			}
-		}
-
-		if (PlatformTorrentUtils.isContent(torrent, true)) {
-			String playAfterURL = PlatformConfigMessenger.getPlayAfterURL();
-			if (playAfterURL != null) {
-				try {
-					if (!playAfterURL.startsWith("http")) {
-						playAfterURL = Constants.URL_PREFIX + playAfterURL;
-					}
-					playAfterURL += playAfterURL.indexOf("?") > 0 ? "&" : "?";
-					playAfterURL += "azid=" + Constants.AZID + "&torrentHash="
-							+ torrent.getHashWrapper().toBase32String();
-
-					new BrowserWindow(Utils.findAnyShell(), playAfterURL, 0.9, 0.9, true,
-							true);
-				} catch (Exception e) {
-				}
-			}
-		}
+		};
+		thread.start();
 	}
 
 	/**
@@ -503,13 +495,12 @@ public class TorrentListViewsUtils
 				runFile
 			});
 
-			Method method = epwClass.getMethod("open", new Class[] {});
-
-			method.invoke(epwObject, new Object[] {});
-
 			return true;
 		} catch (Throwable e) {
-			Debug.out(e);
+			e.printStackTrace();
+			if (!e.getMessage().endsWith("Only")) {
+				Debug.out(e);
+			}
 		}
 
 		return false;
@@ -689,6 +680,14 @@ public class TorrentListViewsUtils
 		try {
 			final DownloadManager dm = ((DownloadImpl) download).getDownload();
 
+			DownloadManagerEnhancer dmEnhancer = DownloadManagerEnhancer.getSingleton();
+			if (dmEnhancer != null) {
+				EnhancedDownloadManager edm = dmEnhancer.getEnhancedDownload(dm);
+				if (edm != null) {
+					edm.setProgressiveMode(true);
+				}
+			}
+
 			String url = dm.getSaveLocation().toString();
 			try {
 				url = new File(url).toURL().toString();
@@ -716,7 +715,8 @@ public class TorrentListViewsUtils
 							}
 						});
 			} else {
-				runFile(dm.getTorrent(), url, true);
+				// force to WMP if we aren't using EMP
+				runFile(torrent, url, true);
 			}
 		} catch (Throwable e) {
 			try {
