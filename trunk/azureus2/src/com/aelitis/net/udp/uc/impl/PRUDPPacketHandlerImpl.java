@@ -274,6 +274,8 @@ PRUDPPacketHandlerImpl
 	receiveLoop(
 		AESemaphore	init_sem )
 	{
+		long	last_socket_close_time = 0;
+		
 		NetworkAdminPropertyChangeListener prop_listener = 
 			new NetworkAdminPropertyChangeListener()
 	    	{
@@ -392,14 +394,41 @@ PRUDPPacketHandlerImpl
 					
 					}catch( SocketTimeoutException e ){
 											
-					}catch( Throwable e ){
+					}catch( Throwable e ){							
+						
+							// on vista we get periodic socket closures
+						
+						String	message = e.getMessage();
+						
+						if ( 	socket.isClosed() || 
+								( message != null && message.toLowerCase().indexOf( "socket closed" ) != -1 )){
 							
+							long	now = SystemTime.getCurrentTime();
+							
+								// can't guarantee there aren't situations where we get into a screaming
+								// closed loop so guard against this somewhat
+								
+							if ( now - last_socket_close_time < 500 ){
+								
+								Thread.sleep( 250 );
+							}
+							
+							last_socket_close_time = now;
+							
+							if (Logger.isEnabled())
+								Logger.log(new LogEvent(LOGID,
+										"PRUDPPacketReceiver: recycled UDP port " + port + " after close: ok=" + successful_accepts ));
+
+							break;
+						}
+
 						failed_accepts++;
 						
 						if (Logger.isEnabled())
 							Logger.log(new LogEvent(LOGID,
-									"PRUDPPacketReceiver: receive failed on port " + port, e)); 
+									"PRUDPPacketReceiver: receive failed on port " + port + ": ok=" + successful_accepts + ", fails=" + failed_accepts, e)); 
 	
+					
 						if (( failed_accepts > 100 && successful_accepts == 0 ) || failed_accepts > 1000 ){						
 			
 							Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
