@@ -586,6 +586,25 @@ public class FakeTableCell
 						TableCellMouseEvent.EVENT_MOUSEMOVE));
 			}
 		});
+		
+		composite.addMouseTrackListener(new MouseTrackListener() {
+		
+			public void mouseHover(MouseEvent e) {
+				// TODO Auto-generated method stub
+		
+			}
+		
+			public void mouseExit(MouseEvent e) {
+				invokeMouseListeners(buildMouseEvent(e,
+						TableCellMouseEvent.EVENT_MOUSEEXIT));
+			}
+		
+			public void mouseEnter(MouseEvent e) {
+				invokeMouseListeners(buildMouseEvent(e,
+						TableCellMouseEvent.EVENT_MOUSEENTER));
+			}
+		
+		});
 	}
 
 	/**
