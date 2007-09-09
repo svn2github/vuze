@@ -191,8 +191,8 @@ public class PlatformRatingMessenger
 				Map mapValues = (Map) mapRating.get(RATE_TYPE_CONTENT);
 				if (mapValues != null) {
 					Object val = mapValues.get("value");
-					if (val instanceof Double) {
-						rating = ((Double) val).intValue();
+					if (val instanceof Number) {
+						rating = ((Number) val).intValue();
 					}
 				}
 			}
