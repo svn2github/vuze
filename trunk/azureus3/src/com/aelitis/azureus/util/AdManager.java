@@ -94,6 +94,11 @@ public class AdManager
 		gm.addListener(new GlobalManagerAdapter() {
 			public void downloadManagerRemoved(DownloadManager dm) {
 				adsDMList.remove(dm);
+				try {
+					File asxFile = buildASXFileLocation(dm);
+					asxFile.delete();
+				} catch (Exception e) {
+				}
 			}
 
 			public void downloadManagerAdded(final DownloadManager dm) {
