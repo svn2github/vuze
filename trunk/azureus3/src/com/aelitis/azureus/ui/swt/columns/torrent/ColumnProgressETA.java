@@ -8,6 +8,7 @@ import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.TimeFormatter;
@@ -104,8 +105,10 @@ public class ColumnProgressETA
 				return;
 			}
 
+			TOTorrent torrent = dm.getTorrent();
 			EnhancedDownloadManager edm = null;
-			boolean bCanBeProgressive = PlatformTorrentUtils.isContentProgressive(dm.getTorrent());
+			boolean bCanBeProgressive = PlatformTorrentUtils.isContentProgressive(torrent)
+					&& !TorrentListViewsUtils.canUseEMP(torrent);
 			if (bCanBeProgressive) {
 				edm = getEDM(dm);
 				if (edm == null || !edm.supportsProgressiveMode()) {
