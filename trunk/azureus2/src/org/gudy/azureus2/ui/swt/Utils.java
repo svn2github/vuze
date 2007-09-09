@@ -1094,7 +1094,7 @@ public class Utils {
 		if (control == null || control.isDisposed()) {
 			return;
 		}
-
+		
 		Composite parent = control.getParent();
 		Point targetSize = control.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
 		Point size = control.getSize();
@@ -1274,6 +1274,11 @@ public class Utils {
 	
 	public static boolean execSWTThreadWithBool(String ID,
 			AERunnableBoolean code) {
+		return execSWTThreadWithBool(ID, code, 0);
+	}
+
+	public static boolean execSWTThreadWithBool(String ID,
+			AERunnableBoolean code, long millis) {
 		if (code == null) {
 			return false;
 		}
@@ -1293,13 +1298,18 @@ public class Utils {
 			Debug.out(ID, e);
 			sem.release();
 		}
-		sem.reserve(90000);
+		sem.reserve(millis);
 	
 		return returnValueObject[0];
 	}
 
 	public static Object execSWTThreadWithObject(String ID,
 			AERunnableObject code) {
+		return execSWTThreadWithObject(ID, code, 0);
+	}
+
+	public static Object execSWTThreadWithObject(String ID,
+			AERunnableObject code, long millis) {
 		if (code == null) {
 			return null;
 		}
@@ -1318,7 +1328,7 @@ public class Utils {
 			Debug.out(ID, e);
 			sem.release();
 		}
-		sem.reserve(90000);
+		sem.reserve(millis);
 	
 		return returnValueObject[0];
 	}
