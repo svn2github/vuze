@@ -64,15 +64,36 @@ public class ColumnRateUpDown
 
 	private static UISWTGraphicImpl graphicWait;
 
+	private static UISWTGraphicImpl graphicRateMeButton;
+
+	private static UISWTGraphicImpl graphicRateMeButtonEnabled;
+
+	private static UISWTGraphicImpl graphicRateMeButtonDisabled;
+	
 	private static Rectangle boundsRateMe;
 
 	private static int width;
+	
+	private boolean useButton = false;
+
+	private boolean mouseIn = false;
+
+	private boolean disabled = false;
 
 	static {
 		Image img = ImageLoaderFactory.getInstance().getImage("icon.rateme");
 		graphicRateMe = new UISWTGraphicImpl(img);
 		boundsRateMe = img.getBounds();
 		width = boundsRateMe.width;
+
+		img = ImageLoaderFactory.getInstance().getImage("icon.rateme-button");
+		graphicRateMeButtonEnabled = new UISWTGraphicImpl(img);
+		graphicRateMeButton = graphicRateMeButtonEnabled;
+		width = Math.max(width, img.getBounds().width);
+
+		img = ImageLoaderFactory.getInstance().getImage("icon.rateme-button-disabled");
+		graphicRateMeButtonDisabled = new UISWTGraphicImpl(img);
+		width = Math.max(width, img.getBounds().width);
 
 		img = ImageLoaderFactory.getInstance().getImage("icon.rate.up");
 		graphicUp = new UISWTGraphicImpl(img);
@@ -122,7 +143,7 @@ public class ColumnRateUpDown
 					return;
 				}
 			}
-
+			
 			if (torrent == null) {
 				return;
 			}
@@ -146,7 +167,8 @@ public class ColumnRateUpDown
 					break;
 
 				case -1: // unrated
-					graphic = graphicRateMe;
+					graphic = (useButton && !mouseIn) || disabled ? graphicRateMeButton
+							: graphicRateMe;
 					break;
 
 				case 0:
@@ -181,6 +203,16 @@ public class ColumnRateUpDown
 
 			if (torrent0 == null) {
 				return;
+			}
+			
+			if (useButton) {
+				if (event.eventType == TableCellMouseEvent.EVENT_MOUSEENTER) {
+					mouseIn = true;
+					refresh(event.cell);
+				} else if (event.eventType == TableCellMouseEvent.EVENT_MOUSEEXIT) {
+					mouseIn  = false;
+					refresh(event.cell);
+				}
 			}
 
 			final TOTorrent torrent = torrent0;
@@ -310,5 +342,19 @@ public class ColumnRateUpDown
 			}
 			bMouseDowned = false;
 		}
+	}
+
+	public boolean useButton() {
+		return useButton;
+	}
+
+	public void setUseButton(boolean useButton) {
+		this.useButton = useButton;
+	}
+	
+	public void setDisabled(boolean disabled) {
+		this.disabled  = disabled;
+		graphicRateMeButton = disabled ? graphicRateMeButtonDisabled : graphicRateMeButtonEnabled;
+		this.invalidateCells();
 	}
 }
