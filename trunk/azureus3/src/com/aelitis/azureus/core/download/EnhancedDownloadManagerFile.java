@@ -56,4 +56,16 @@ EnhancedDownloadManagerFile
 	{
 		return( file );
 	}
+	
+	public int
+	getHeaderSize()
+	{
+		return( header_size );
+	}
+	
+	public String
+	getString()
+	{
+		return( file.getFile(true).getName()+ ",header=" + header_size );
+	}
 }

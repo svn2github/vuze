@@ -252,14 +252,13 @@ EnhancedDownloadManager
 			}else{
 				
 				primary_file = enhanced_files[0];
-			}
-			
-			calculateSpeeds();
-			
+			}		
 		}else{
 			
 			enhanced_files = new EnhancedDownloadManagerFile[0];
 		}
+		
+		calculateSpeeds();
 		
 		download_manager.addPeerListener(
 			new DownloadManagerPeerListener()
@@ -485,7 +484,7 @@ EnhancedDownloadManager
 		if ( old_content_stream_bps_min == 0 && content_stream_bps_min > 0 ){
 			
 			log( 	"content_stream_bps=" + content_stream_bps_min + " (orig=" + original_stream_bps + ")" +
-					",content_min_bps=" + content_min_bps );
+					",content_min_bps=" + content_min_bps + ",primary=" + (primary_file==null?"null":primary_file.getString()));
 		}
 	}
 	
