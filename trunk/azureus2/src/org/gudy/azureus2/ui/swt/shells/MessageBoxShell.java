@@ -207,7 +207,7 @@ public class MessageBoxShell
 			linkControl = linkLabel;
 
 			linkLabel.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
-			linkLabel.setText(text);
+			linkLabel.setText(text.replaceAll(" &", " &&"));
 			linkLabel.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e) {
 					if (e.text.endsWith(".torrent"))
