@@ -1953,6 +1953,7 @@ public class MainWindow
 			return;
 		}
 
+		setVisible(true);
 		skin.activateTab(skinObject);
 
 		if (skinObject instanceof SWTSkinObjectBrowser) {
