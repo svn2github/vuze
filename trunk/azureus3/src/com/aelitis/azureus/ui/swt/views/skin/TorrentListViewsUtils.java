@@ -82,6 +82,8 @@ import org.gudy.azureus2.plugins.download.DownloadException;
 public class TorrentListViewsUtils
 {
 
+	private static boolean embeddedPlayerAvail = false;
+
 	public static SWTSkinButtonUtility addShareButton(final SWTSkin skin,
 			String PREFIX, final TorrentListView view) {
 		SWTSkinObject skinObject = skin.getSkinObject(PREFIX + "send-selected");
@@ -286,7 +288,7 @@ public class TorrentListViewsUtils
 					TableRowCore[] rows = view.getSelectedRows();
 					DownloadManager dm = (DownloadManager) rows[0].getDataSource(true);
 					if (!dm.isDownloadComplete(false)
-							&& !PlatformTorrentUtils.useEMP(dm.getTorrent())) {
+							&& !canUseEMP(dm.getTorrent())) {
 						DownloadManagerEnhancer dmEnhancer = DownloadManagerEnhancer.getSingleton();
 						if (dmEnhancer != null) {
 							EnhancedDownloadManager edm = dmEnhancer.getEnhancedDownload(dm);
@@ -309,6 +311,10 @@ public class TorrentListViewsUtils
 
 		return btn;
 	}
+	
+	public static boolean canUseEMP(TOTorrent torrent) {
+		return PlatformTorrentUtils.useEMP(torrent) && embeddedPlayerAvail();
+	}
 
 	public static void playOrStream(final DownloadManager dm) {
 		playOrStream(dm, null);
@@ -327,8 +333,8 @@ public class TorrentListViewsUtils
 		try {
 			boolean bComplete = dm.isDownloadComplete(false);
 			TOTorrent torrent = dm.getTorrent();
-			
-			boolean useEMP = PlatformTorrentUtils.useEMP(torrent);
+
+			boolean useEMP = canUseEMP(torrent);
 
 			if (!bComplete && !useEMP) {
 				DownloadManagerEnhancer dmEnhancer = DownloadManagerEnhancer.getSingleton();
@@ -344,20 +350,20 @@ public class TorrentListViewsUtils
 			File file;
 			String sFile = dm.getDownloadState().getPrimaryFile();
 			if (!useEMP) {
-  			if (sFile == null || sFile.length() == 0 || !new File(sFile).exists()) {
-  				DiskManagerFileInfo[] diskManagerFileInfo = dm.getDiskManagerFileInfo();
-  				if (diskManagerFileInfo == null && diskManagerFileInfo.length == 0) {
-  					return;
-  				}
-  				file = diskManagerFileInfo[0].getFile(true);
-  			} else {
-  				file = new File(sFile);
-  			}
-  
-  			if (!file.exists()) {
-  				handleNoFileExists(dm);
-  				return;
-  			}
+				if (sFile == null || sFile.length() == 0 || !new File(sFile).exists()) {
+					DiskManagerFileInfo[] diskManagerFileInfo = dm.getDiskManagerFileInfo();
+					if (diskManagerFileInfo == null && diskManagerFileInfo.length == 0) {
+						return;
+					}
+					file = diskManagerFileInfo[0].getFile(true);
+				} else {
+					file = new File(sFile);
+				}
+
+				if (!file.exists()) {
+					handleNoFileExists(dm);
+					return;
+				}
 			} else {
 				file = new File(sFile);
 			}
@@ -454,7 +460,7 @@ public class TorrentListViewsUtils
 
 		AEThread thread = new AEThread("runFile", true) {
 			public void runSupport() {
-				if (PlatformTorrentUtils.useEMP(torrent)) {
+				if (canUseEMP(torrent)) {
 					if (openInEMP(torrent, runFile)) {
 						return;
 					}
@@ -486,11 +492,13 @@ public class TorrentListViewsUtils
 		}
 
 		try {
-			Constructor epwConstructor = epwClass.getConstructor(new Class[] {
+
+			Method method = epwClass.getMethod("openWindow", new Class[] {
 				TOTorrent.class,
 				String.class
 			});
-			Object epwObject = epwConstructor.newInstance(new Object[] {
+
+			method.invoke(null, new Object[] {
 				torrent,
 				runFile
 			});
@@ -504,6 +512,21 @@ public class TorrentListViewsUtils
 		}
 
 		return false;
+	}
+	
+	private static boolean embeddedPlayerAvail() {
+		// cache true, always recheck false in case plugin installs.
+		if (embeddedPlayerAvail) {
+			return true;
+		}
+
+		try {
+			Class.forName("com.azureus.plugins.azemp.ui.swt.emp.EmbeddedPlayerWindowSWT");
+			embeddedPlayerAvail = true;
+			return true;
+		} catch (ClassNotFoundException e1) {
+			return false;
+		}
 	}
 
 	/**
