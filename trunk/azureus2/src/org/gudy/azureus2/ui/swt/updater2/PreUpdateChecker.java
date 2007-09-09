@@ -46,7 +46,7 @@ public class PreUpdateChecker
 			
 			UpdaterUtils.ensurePluginPresent(
 				"azemp",
-				"com.azureus.plugins.azemp.EmbededMediaPlayerPlugin",
+				"com.azureus.plugins.azemp.EmbeddedMediaPlayerPlugin",
 				"Embedded Media Player" );
 			
 			core.getPluginManager().refreshPluginList();
