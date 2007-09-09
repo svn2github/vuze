@@ -106,6 +106,8 @@ public class PlatformTorrentUtils
 
 	private static final String TOR_AZ_PROP_USE_EMP = "useEMP";
 	
+	private static final String TOR_AZ_PROP_FILE_METADATA = "File MetaData";
+
 	private static ArrayList listPlatformHosts = null;
 
 	private static final Map mapPlatformTrackerTorrents = new WeakHashMap();
@@ -226,6 +228,16 @@ public class PlatformTorrentUtils
 		mapContent.put(key, new Long(value));
 	}
 
+	private static void setContentMapMap(TOTorrent torrent, String key,
+			Map value) {
+		if (torrent == null) {
+			return;
+		}
+
+		Map mapContent = getContentMap(torrent);
+		mapContent.put(key, value);
+	}
+	
 	public static String getContentHash(TOTorrent torrent) {
 		return getContentMapString(torrent, TOR_AZ_PROP_HASH);
 	}
@@ -677,7 +689,11 @@ public class PlatformTorrentUtils
 	public static void setUseEMP(TOTorrent torrent, boolean useEMP) {
 		setContentMapLong(torrent, TOR_AZ_PROP_USE_EMP, useEMP ? 1 : 0);
 	}
-
+	
+	public static void setFileMetaData(TOTorrent torrent, Map map) {
+		setContentMapMap(torrent, TOR_AZ_PROP_FILE_METADATA, map );
+	}
+	
 	public static long getExpiresOn(TOTorrent torrent) {
 		Map mapContent = getContentMap(torrent);
 		Long l = (Long) mapContent.get(TOR_AZ_PROP_EXPIRESON);
