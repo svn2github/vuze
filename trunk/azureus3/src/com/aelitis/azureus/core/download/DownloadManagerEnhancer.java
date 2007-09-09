@@ -23,9 +23,7 @@
 
 package com.aelitis.azureus.core.download;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
@@ -278,21 +276,31 @@ DownloadManagerEnhancer
 		return( progressive_enabled );
 	}
 	
-	/*
-	public DownloadManager[]
-	getDownloadManagers() 
-	{
-		synchronized( download_map ){
+	/**
+	 * @param hash
+	 * @return 
+	 *
+	 * @since 3.0.1.7
+	 */
+	public DownloadManager findDownloadManager(String hash) {
+		synchronized (download_map) {
 
-			if (download_map == null){
-				
-				return new DownloadManager[0];
+			if (download_map == null) {
+				return null;
 			}
-			
-			Set downloads = download_map.keySet();
 
-			return((DownloadManager[])downloads.toArray(new DownloadManager[downloads.size()]));
+			for (Iterator iter = download_map.keySet().iterator(); iter.hasNext();) {
+				DownloadManager dm = (DownloadManager) iter.next();
+
+				TOTorrent torrent = dm.getTorrent();
+				if (PlatformTorrentUtils.isContent(torrent, true)) {
+					String thisHash = PlatformTorrentUtils.getContentHash(torrent);
+					if (hash.equals(thisHash)) {
+						return dm;
+					}
+				}
+			}
 		}
+		return null;
 	}
-	*/
 }
