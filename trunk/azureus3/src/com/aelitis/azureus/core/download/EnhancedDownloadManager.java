@@ -147,6 +147,18 @@ EnhancedDownloadManager
 	private boolean	marked_active;
 	private boolean	destroyed;
 
+	private DownloadManagerListener dmListener;
+	
+	private static final int	STALLED_TIMEOUT	= 2*60*1000;
+	
+	private boolean		publish_handling_complete;
+	private long		publish_sent		= -1;
+	private long		publish_sent_time;
+		
+	private EnhancedDownloadManagerFile[]	enhanced_files;
+	private EnhancedDownloadManagerFile 	primary_file;
+
+	
 		// ********* reset these in resetVars ***********
 	
 	private long	last_speed_increase;
@@ -158,15 +170,7 @@ EnhancedDownloadManager
 	private List		disconnected_cache_peers;
 	
 	private CachePeer[]	lookup_peers;
-	private DownloadManagerListener dmListener;
-	
-	private static final int	STALLED_TIMEOUT	= 2*60*1000;
-	
-	private boolean		publish_handling_complete;
-	private long		publish_sent		= -1;
-	private long		publish_sent_time;
-	private DiskManagerFileInfo contigFile;
-	
+
 	private void
 	resetVars()
 	{
@@ -221,12 +225,40 @@ EnhancedDownloadManager
 		progressive_stats	= new progressiveStats();
 
 		TOTorrent	torrent = download_manager.getTorrent();
-				
+
 		if ( torrent != null ){
 			
 			platform_content = PlatformTorrentUtils.isContent( torrent, true );
+						
+			enhanced_files = new EnhancedDownloadManagerFile[files.length];
+			
+			Map meta_data = PlatformTorrentUtils.getFileMetaData( torrent );
+
+			Map files_info = meta_data==null?null:(Map)meta_data.get( "files" );
+			
+			for (int i=0;i<files.length;i++){
+				
+				Map file_info = files_info==null?null:(Map)files_info.get( "" + i );
+				
+				enhanced_files[i] = new EnhancedDownloadManagerFile( files[i], file_info );
+			}
+				
+			int	primary_index = PlatformTorrentUtils.getContentPrimaryFileIndex( download_manager.getTorrent());
+								
+			if ( primary_index >= 0 && primary_index < files.length ){
+					
+				primary_file = enhanced_files[primary_index];
+					
+			}else{
+				
+				primary_file = enhanced_files[0];
+			}
 			
 			calculateSpeeds();
+			
+		}else{
+			
+			enhanced_files = new EnhancedDownloadManagerFile[0];
 		}
 		
 		download_manager.addPeerListener(
@@ -398,12 +430,18 @@ EnhancedDownloadManager
 		return( false );
 	}
 	
+	public EnhancedDownloadManagerFile[]
+	getFiles()
+	{
+		return( enhanced_files );
+	}
+	
 	protected void
 	refreshMetaData()
 	{
 		calculateSpeeds();
 	}
-	
+		
 	protected void
 	calculateSpeeds()
 	{
@@ -1256,23 +1294,7 @@ EnhancedDownloadManager
 	public DiskManagerFileInfo
 	getPrimaryFile()
 	{
-		if ( contigFile == null ){
-			
-			int	index = PlatformTorrentUtils.getContentPrimaryFileIndex( download_manager.getTorrent());
-			
-			DiskManagerFileInfo[] files = download_manager.getDiskManagerFileInfo();
-			
-			if ( index >= 0 && index < files.length ){
-				
-				contigFile = files[index];
-				
-			}else{
-			
-				contigFile = files[0];
-			}
-		}
-		
-		return( contigFile );
+		return( primary_file.getFile());
 	}
 
 	public long

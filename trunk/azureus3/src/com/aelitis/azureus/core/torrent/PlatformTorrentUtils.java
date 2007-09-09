@@ -218,6 +218,21 @@ public class PlatformTorrentUtils
 		return def;
 	}
 
+	public static Map getContentMapMap(TOTorrent torrent, String key ){
+		if ( torrent == null ){
+			return( null );
+		}
+		
+		Map mapContent = getContentMap(torrent);
+		Object obj = mapContent.get(key);
+		
+		if ( obj instanceof Map ){
+			return((Map)obj);
+		}
+		
+		return( null );
+	}
+	
 	private static void setContentMapLong(TOTorrent torrent, String key,
 			long value) {
 		if (torrent == null) {
@@ -692,6 +707,10 @@ public class PlatformTorrentUtils
 	
 	public static void setFileMetaData(TOTorrent torrent, Map map) {
 		setContentMapMap(torrent, TOR_AZ_PROP_FILE_METADATA, map );
+	}
+	
+	public static Map getFileMetaData(TOTorrent torrent ){
+		return getContentMapMap( torrent, TOR_AZ_PROP_FILE_METADATA );
 	}
 	
 	public static long getExpiresOn(TOTorrent torrent) {
