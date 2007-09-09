@@ -76,7 +76,7 @@ public class SWTSkinObjectSlider
 	private Point maxSize = new Point(0, 0);
 
 	private boolean mouseDown;
-
+	
 	private ArrayList listeners = new ArrayList();
 
 	public SWTSkinObjectSlider(SWTSkin skin, SWTSkinProperties skinProperties,
@@ -118,7 +118,6 @@ public class SWTSkinObjectSlider
 
 		sSuffix = ".thumb";
 		images = imageLoader.getImages(sConfigID + sSuffix);
-		System.out.println(images);
 		if (images.length == 1) {
 			imageThumb = images[0];
 			imageThumbLeft = imageLoader.getImage(sConfigID + sSuffix + "-left");
@@ -129,7 +128,6 @@ public class SWTSkinObjectSlider
 			imageThumbRight = images[2];
 		}
 
-		System.out.println("t=" + imageThumb);
 		if (imageThumb != null) {
 			imageThumbBounds = imageThumb.getBounds();
 		}
@@ -223,7 +221,16 @@ public class SWTSkinObjectSlider
 		if (this.percent == percent) {
 			return;
 		}
-
+		if (triggerListeners) {
+			Object[] listenersArray = listeners.toArray();
+			for (int i = 0; i < listenersArray.length; i++) {
+				SWTSkinListenerSliderSelection l = (SWTSkinListenerSliderSelection) listenersArray[i];
+				if (!l.selectionChanging(this.percent, percent)) {
+					return;
+				}
+			}
+		}
+		
 		if (percent < 0) {
 			percent = 0;
 		} else if (percent > 1) {
@@ -265,6 +272,14 @@ public class SWTSkinObjectSlider
 		}
 		float newPercent = (e.x - offset)
 				/ (float) (sizeX - imageThumbBounds.width);
+		
+		Object[] listenersArray = listeners.toArray();
+		for (int i = 0; i < listenersArray.length; i++) {
+			SWTSkinListenerSliderSelection l = (SWTSkinListenerSliderSelection) listenersArray[i];
+			if (!l.selectionChanging(this.percent, newPercent)) {
+				return;
+			}
+		}
 
 		setPercent(newPercent, true);
 	}
@@ -293,8 +308,15 @@ public class SWTSkinObjectSlider
 		listeners.add(listener);
 	}
 
-	public static interface SWTSkinListenerSliderSelection
+	public static class SWTSkinListenerSliderSelection
 	{
-		public void selectionChanged(double percent);
+		public boolean selectionChanging(double oldPercent, double newPercent) {
+			return true;
+		}
+
+		public void selectionChanged(double percent) {
+			
+		}
 	}
+	
 }
