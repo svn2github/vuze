@@ -39,6 +39,7 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.pluginsimpl.update.sf.*;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.html.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Constants;
@@ -65,6 +66,8 @@ SFPluginDetailsLoaderImpl
 			base_url_params += "&os=" + URLEncoder.encode(System.getProperty( "os.name"),"UTF-8" );
 			
 			base_url_params += "&arch=" + URLEncoder.encode(System.getProperty( "os.arch"),"UTF-8" );
+			
+			base_url_params += "&ui=" + URLEncoder.encode(COConfigurationManager.getStringParameter("ui"),"UTF-8" );
 			
 		}catch( Throwable e ){
 			
