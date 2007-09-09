@@ -26,6 +26,7 @@ import java.net.MalformedURLException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -471,5 +472,27 @@ public class AdManager
 		public void asxCreated(File asxFile);
 
 		public void asxFailed();
+	}
+
+	/**
+	 * @param nowPlaying
+	 *
+	 * @since 3.0.2.3
+	 */
+	public boolean isAd(String nowPlaying) {
+		File file = new File(nowPlaying);
+		DownloadManager[] ads = getAds(true);
+		for (int i = 0; i < ads.length; i++) {
+			DownloadManager downloadManager = ads[i];
+			DiskManagerFileInfo[] fileInfos = downloadManager.getDiskManagerFileInfo();
+			for (int j = 0; j < fileInfos.length; j++) {
+				DiskManagerFileInfo fileinfo = fileInfos[j];
+				File adFile = fileinfo.getFile(true);
+				if (adFile.equals(file)) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 }
