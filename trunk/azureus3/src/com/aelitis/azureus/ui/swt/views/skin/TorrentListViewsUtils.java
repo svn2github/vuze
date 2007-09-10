@@ -486,7 +486,15 @@ public class TorrentListViewsUtils
 	private static boolean openInEMP(TOTorrent torrent, String runFile) {
 		Class epwClass = null;
 		try {
-			epwClass = Class.forName("com.azureus.plugins.azemp.ui.swt.emp.EmbeddedPlayerWindowSWT");
+			PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID("azemp");
+			
+			if ( pi == null ){
+				
+				return( false );
+			}
+			
+			epwClass = pi.getPlugin().getClass().getClassLoader().loadClass("com.azureus.plugins.azemp.ui.swt.emp.EmbeddedPlayerWindowSWT");
+			
 		} catch (ClassNotFoundException e1) {
 			return false;
 		}
@@ -521,12 +529,14 @@ public class TorrentListViewsUtils
 		}
 
 		try {
-			Class.forName("com.azureus.plugins.azemp.ui.swt.emp.EmbeddedPlayerWindowSWT");
-			embeddedPlayerAvail = true;
-			return true;
-		} catch (ClassNotFoundException e1) {
-			return false;
+			if ( AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID("azemp") != null ){
+			
+				embeddedPlayerAvail = true;
+			}
+		} catch (Throwable e1) {
 		}
+		
+		return embeddedPlayerAvail;
 	}
 
 	/**
