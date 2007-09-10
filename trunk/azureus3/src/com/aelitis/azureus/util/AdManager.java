@@ -36,6 +36,8 @@ import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
+import com.aelitis.azureus.core.download.EnhancedDownloadManager;
 import com.aelitis.azureus.core.messenger.config.PlatformAdManager;
 import com.aelitis.azureus.core.torrent.MetaDataUpdateListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
@@ -186,10 +188,18 @@ public class AdManager
 									public void downloadComplete(DownloadManager manager) {
 										// good chance we still have internet here, so get/cache
 										// the asx
-										String url = dm.getSaveLocation().toString();
+										EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(dm);
+										File file;
+										if (edm != null) {
+											file = edm.getPrimaryFile().getFile(true);
+										} else {
+											file = new File(dm.getDownloadState().getPrimaryFile());
+										}
+										String url;
 										try {
-											url = new File(url).toURL().toString();
+											url = file.toURL().toString();
 										} catch (MalformedURLException e) {
+											url = file.getAbsolutePath();
 										}
 										createASX(dm, url, null);
 									}

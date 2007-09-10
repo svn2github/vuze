@@ -336,38 +336,25 @@ public class TorrentListViewsUtils
 
 			boolean useEMP = canUseEMP(torrent);
 
-			if (!bComplete && !useEMP) {
-				DownloadManagerEnhancer dmEnhancer = DownloadManagerEnhancer.getSingleton();
-				if (dmEnhancer != null) {
-					EnhancedDownloadManager edm = dmEnhancer.getEnhancedDownload(dm);
-					if (edm != null
-							&& (!edm.supportsProgressiveMode() || edm.getProgressivePlayETA() > 0)) {
-						return;
-					}
-				}
-			}
-
 			File file;
-			String sFile = dm.getDownloadState().getPrimaryFile();
-			if (!useEMP) {
-				if (sFile == null || sFile.length() == 0 || !new File(sFile).exists()) {
-					DiskManagerFileInfo[] diskManagerFileInfo = dm.getDiskManagerFileInfo();
-					if (diskManagerFileInfo == null && diskManagerFileInfo.length == 0) {
-						return;
-					}
-					file = diskManagerFileInfo[0].getFile(true);
-				} else {
-					file = new File(sFile);
-				}
+			String sFile = null;
 
-				if (!file.exists()) {
-					handleNoFileExists(dm);
-					return;
-				}
+			EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(dm);
+			if (edm != null) {
+				file = edm.getPrimaryFile().getFile(true);
+				sFile = file.getAbsolutePath();
 			} else {
+				sFile = dm.getDownloadState().getPrimaryFile();
 				file = new File(sFile);
 			}
-			String ext = FileUtil.getExtension(file.getName());
+
+			if (!bComplete
+					&& !useEMP
+					&& edm != null
+					&& (!edm.supportsProgressiveMode() || edm.getProgressivePlayETA() > 0)) {
+				return;
+			}
+			String ext = FileUtil.getExtension(sFile);
 
 			boolean untrusted = isUntrustworthyContent(ext);
 			boolean trusted = isTrustedContent(ext);
@@ -416,6 +403,7 @@ public class TorrentListViewsUtils
 					} catch (MalformedURLException e) {
 						url = sFile;
 					}
+					final String sfFile = sFile;
 					AdManager.getInstance().createASX(dm, url,
 							new AdManager.ASXCreatedListener() {
 								public void asxCreated(File asxFile) {
@@ -429,12 +417,12 @@ public class TorrentListViewsUtils
 									if (btn != null) {
 										btn.setDisabled(false);
 									}
-									runFile(dm.getTorrent(), dm.getSaveLocation().toString());
+									runFile(dm.getTorrent(), sfFile);
 								}
 							});
 				} else {
 					reenableButton = true;
-					runFile(dm.getTorrent(), dm.getSaveLocation().toString());
+					runFile(dm.getTorrent(), sFile);
 				}
 			} else {
 				reenableButton = true;
@@ -711,19 +699,18 @@ public class TorrentListViewsUtils
 		}
 
 		try {
+			File file;
 			final DownloadManager dm = ((DownloadImpl) download).getDownload();
-
-			DownloadManagerEnhancer dmEnhancer = DownloadManagerEnhancer.getSingleton();
-			if (dmEnhancer != null) {
-				EnhancedDownloadManager edm = dmEnhancer.getEnhancedDownload(dm);
-				if (edm != null) {
-					edm.setProgressiveMode(true);
-				}
+			EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(dm);
+			if (edm != null) {
+				file = edm.getPrimaryFile().getFile(true);
+			} else {
+				file = new File(dm.getDownloadState().getPrimaryFile());
 			}
 
-			String url = dm.getSaveLocation().toString();
+			String url = null;
 			try {
-				url = new File(url).toURL().toString();
+				url = file.toURL().toString();
 			} catch (MalformedURLException e) {
 			}
 
@@ -732,6 +719,10 @@ public class TorrentListViewsUtils
 			});
 			if (urlObj instanceof String) {
 				url = (String) urlObj;
+			}
+			
+			if (url == null) {
+				url = dm.getDownloadState().getPrimaryFile();
 			}
 			final String fURL = url;
 
