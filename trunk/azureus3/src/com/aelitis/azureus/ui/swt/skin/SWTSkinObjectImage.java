@@ -251,6 +251,7 @@ public class SWTSkinObjectImage
 	}
 
 	protected Image setImageByID(String sConfigID) {
+		customImage = true;
 		return setLabelImage(sConfigID, sConfigID);
 	}
 }
