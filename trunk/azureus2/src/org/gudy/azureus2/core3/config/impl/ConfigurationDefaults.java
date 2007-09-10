@@ -118,6 +118,7 @@ public class ConfigurationDefaults {
     
     def.put("TCP.Listen.Port", new Long( 6881 ));
     def.put("TCP.Listen.Port.Enable", TRUE );
+    def.put("TCP.Listen.Port.Override", "");
     def.put("UDP.Listen.Port", new Long( 6881 ));
     def.put("UDP.Listen.Port.Enable", TRUE );
     def.put("UDP.NonData.Listen.Port", new Long( 6881 ));	// two effective enablers for this, dht + tracker udp client
@@ -306,6 +307,9 @@ public class ConfigurationDefaults {
     def.put( "Tracker Client Read Timeout", new Long(60));
 	def.put( "Tracker Client Send OS and Java Version", TRUE);
 	def.put( "Tracker Client Show Warnings", TRUE);
+	def.put( "Tracker Client Min Announce Interval", ZERO);
+	def.put( "Tracker Client Numwant Limit", new Long(100));
+	def.put( "Tracker Client No Port Announce", FALSE);
 	
     def.put( "Tracker Public Enable", FALSE );
     def.put( "Tracker Log Enable", FALSE );

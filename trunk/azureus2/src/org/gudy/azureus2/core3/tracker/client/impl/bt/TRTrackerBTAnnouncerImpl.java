@@ -89,7 +89,20 @@ TRTrackerBTAnnouncerImpl
 	
     static{
 	  	PRUDPTrackerCodecs.registerCodecs();
-	}
+	  	COConfigurationManager.addAndFireParameterListeners(
+	  		new String[] {
+	  			"Tracker Client Min Announce Interval",
+	  			"Tracker Client Numwant Limit"
+	  			},
+	  		new ParameterListener()
+	  		{
+	  			public void parameterChanged(final String parameterName)
+	  			{
+	  				userMinInterval = COConfigurationManager.getIntParameter("Tracker Client Min Announce Interval");
+	  				userMaxNumwant = COConfigurationManager.getIntParameter("Tracker Client Numwant Limit");
+	  			}	  		
+	  		});
+    }
 	
 	private static AEMonitor 	class_mon 			= new AEMonitor( "TRTrackerBTAnnouncer:class" );
 	private static Map			tracker_report_map	= new HashMap();
@@ -108,6 +121,9 @@ TRTrackerBTAnnouncerImpl
 	private boolean				manual_control;
   
 	private long min_interval = 0;
+	private static int userMinInterval = 0;
+	
+	private static int userMaxNumwant;
   
 	private int  failure_added_time = 0;
     private long failure_time_last_updated = 0;
@@ -1709,7 +1725,7 @@ TRTrackerBTAnnouncerImpl
     	
       //calculate how many peers we should ask for
     	
-      int numwant = calculateNumWant();
+      int numwant = Math.min(calculateNumWant(),userMaxNumwant);
 
 
       request.append("&numwant=").append(numwant);
@@ -2160,6 +2176,8 @@ TRTrackerBTAnnouncerImpl
 										
 					try {
 						time_to_wait = ((Long) metaData.get("interval")).longValue();
+						
+						time_to_wait = Math.max(userMinInterval, time_to_wait);
 
 						Long raw_min_interval = (Long) metaData.get("min interval");
 
@@ -2176,6 +2194,8 @@ TRTrackerBTAnnouncerImpl
 
 						if (raw_min_interval != null) {
 							min_interval = raw_min_interval.longValue();
+							
+							min_interval = Math.max(min_interval, userMinInterval);
 
 							// ignore useless values
 							// Note: Many trackers set min_interval and interval the same.

@@ -74,7 +74,8 @@ TRTrackerUtils
 			new String[]
 			{	"Proxy.Data.Enable",
 				"Proxy.Data.SOCKS.inform",
-				"TCP.Announce.Port",
+				"TCP.Listen.Port.Override",
+				"Tracker Client No Port Announce",
 				"network.transport.encrypted.use.crypto.port",
 				"network.transport.encrypted.require",
 				"network.transport.encrypted.fallback.incoming",
@@ -82,7 +83,9 @@ TRTrackerUtils
 				"UDP.Listen.Port",
 				"HTTP.Data.Listen.Port",
 				"HTTP.Data.Listen.Port.Override",
-				"HTTP.Data.Listen.Port.Enable" },
+				"HTTP.Data.Listen.Port.Enable",
+				"Tracker Client Min Announce Interval"
+				},
 			new ParameterListener()
 			{
 				public void 
@@ -152,6 +155,8 @@ TRTrackerUtils
 			COConfigurationManager.getBooleanParameter("Proxy.Data.SOCKS.inform");
 		
 				// we currently don't support incoming connections when SOCKs proxying
+		
+		allow_incoming &= !COConfigurationManager.getBooleanParameter("Tracker Client No Port Announce");
   		
  		int	tcp_port_num;
  		int	udp_port_num;
@@ -168,7 +173,7 @@ TRTrackerUtils
 	 			udp_port_num	= COConfigurationManager.getIntParameter( "UDP.Listen.Port" );		
 	  		}
 	  		
-	  		String portOverride = COConfigurationManager.getStringParameter("TCP.Announce.Port","");
+	  		String portOverride = COConfigurationManager.getStringParameter("TCP.Listen.Port.Override");
 	  		
 	  		if(! portOverride.equals("")) {
 	  		  

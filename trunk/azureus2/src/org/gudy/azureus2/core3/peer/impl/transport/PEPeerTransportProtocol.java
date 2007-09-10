@@ -35,6 +35,8 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
 
+import sun.awt.SunHints.LCDContrastKey;
+
 import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.ProtocolEndpointTCP;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
@@ -669,13 +671,18 @@ implements PEPeerTransport
 
 	private void sendLTExtHandshake() {
 		String client_name = Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION;
-		int local_tcp_port = TCPNetworkManager.getSingleton().getTCPListeningPortNumber();
+		int localTcpPort = TCPNetworkManager.getSingleton().getTCPListeningPortNumber();
+		String tcpPortOverride = COConfigurationManager.getStringParameter("TCP.Listen.Port.Override");
+		try
+		{
+			localTcpPort = Integer.parseInt(tcpPortOverride);
+		} catch (NumberFormatException e)	{} // ignore as invalid input
 		boolean require_crypto = NetworkManager.getCryptoRequired( manager.getAdapter().getCryptoLevel());
 		
 		Map data_dict = new HashMap();
 		data_dict.put("m", new HashMap()); // Supported extensions - none!
 		data_dict.put("v", client_name);
-		data_dict.put("p", new Integer(local_tcp_port));
+		data_dict.put("p", new Integer(localTcpPort));
 		data_dict.put("e", new Long(require_crypto ? 1L : 0L));
 		BTLTExtensionHandshake lt_handshake = new BTLTExtensionHandshake(
 				data_dict, other_peer_bt_lt_ext_version
@@ -696,6 +703,11 @@ implements PEPeerTransport
 		int local_tcp_port = TCPNetworkManager.getSingleton().getTCPListeningPortNumber();
 		int local_udp_port = UDPNetworkManager.getSingleton().getUDPListeningPortNumber();
 		int local_udp2_port = UDPNetworkManager.getSingleton().getUDPNonDataListeningPortNumber();
+		String tcpPortOverride = COConfigurationManager.getStringParameter("TCP.Listen.Port.Override");
+		try
+		{
+			local_tcp_port = Integer.parseInt(tcpPortOverride);
+		} catch (NumberFormatException e) {} // ignore as invalid input
 
     boolean require_crypto = NetworkManager.getCryptoRequired( manager.getAdapter().getCryptoLevel());
     

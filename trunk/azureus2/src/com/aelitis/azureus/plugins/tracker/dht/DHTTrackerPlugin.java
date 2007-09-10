@@ -923,7 +923,7 @@ DHTTrackerPlugin
 				
 				int	tcp_port = plugin_interface.getPluginconfig().getIntParameter( "TCP.Listen.Port" );
 
-		 		String port_override = COConfigurationManager.getStringParameter("TCP.Announce.Port","");
+		 		String port_override = COConfigurationManager.getStringParameter("TCP.Listen.Port.Override");
 		 		
 		  		if( !port_override.equals("")){
 		 

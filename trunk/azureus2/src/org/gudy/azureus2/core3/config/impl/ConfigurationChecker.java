@@ -361,10 +361,21 @@ ConfigurationChecker
 	    			(Constants.JAVA_VERSION.startsWith("1.4") ||
 	    			Constants.JAVA_VERSION.startsWith("1.5"))
 	    		)
-	    	) COConfigurationManager.removeParameter("network.tcp.enable_safe_selector_mode");
-	    		
+	    	)
+	    	{
+	    		COConfigurationManager.removeParameter("network.tcp.enable_safe_selector_mode");
+	    		changed = true;
+	    	}
+
+	    	// transition from tracker-only port override to global port override
+	    	if(COConfigurationManager.doesParameterNonDefaultExist("TCP.Announce.Port"))
+	    	{
+		    	COConfigurationManager.setParameter("TCP.Listen.Port.Override", COConfigurationManager.getStringParameter("TCP.Announce.Port", ""));
+		    	COConfigurationManager.removeParameter("TCP.Announce.Port");
+		    	changed = true;
+	    	}
 	    	
-	    	
+
 	    	
 	    	
 	   	 //enable Advanced user mode for existing users by default, to ease 2304-->2306 migrations

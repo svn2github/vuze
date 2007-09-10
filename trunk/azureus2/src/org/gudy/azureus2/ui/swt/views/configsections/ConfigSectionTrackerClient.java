@@ -25,11 +25,15 @@
 package org.gudy.azureus2.ui.swt.views.configsections;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowData;
+import org.eclipse.swt.layout.RowLayout;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 
@@ -155,15 +159,56 @@ ConfigSectionTrackerClient
     data.widthHint = 100;
     overrideip.setLayoutData(data);
     
-    
     label = new Label(overrideGroup, SWT.WRAP);
     label.setLayoutData(Utils.getWrappableLabelGridData(1, GridData.FILL_HORIZONTAL));
     Messages.setLanguageText(label, "ConfigView.label.announceport");
-
-    StringParameter tcpAnnounce = new StringParameter(overrideGroup, "TCP.Announce.Port", "");
+    
+    StringParameter tcpOverride = new StringParameter(overrideGroup, "TCP.Listen.Port.Override");
     data = new GridData();
     data.widthHint = 40;
-    tcpAnnounce.setLayoutData(data);
+    tcpOverride.setLayoutData(data);
+    
+    tcpOverride.addChangeListener(new ParameterChangeAdapter() {
+    	public void stringParameterChanging(Parameter p, String toValue)
+    	{
+    		if(toValue == "")
+    			return;
+    		try
+			{
+    			int portVal = Integer.parseInt(toValue);
+				if(portVal >= 0 && portVal <= 65535)
+					return;
+			} catch (NumberFormatException e) {}
+			p.setValue("");
+    	}
+    });
+
+    label = new Label(overrideGroup, SWT.WRAP);
+    label.setLayoutData(Utils.getWrappableLabelGridData(1, GridData.FILL_HORIZONTAL));
+    Messages.setLanguageText(label, "ConfigView.label.noportannounce");
+    
+    BooleanParameter noPortAnnounce = new BooleanParameter(overrideGroup,"Tracker Client No Port Announce");
+    data = new GridData();
+    noPortAnnounce.setLayoutData(data);
+    
+    label = new Label(overrideGroup, SWT.WRAP);
+    label.setLayoutData(Utils.getWrappableLabelGridData(1, GridData.FILL_HORIZONTAL));
+    Messages.setLanguageText(label, "ConfigView.label.maxnumwant");
+    
+    IntParameter numwant = new IntParameter(overrideGroup, "Tracker Client Numwant Limit",0,100);
+    data = new GridData();
+    data.widthHint = 40;
+    numwant.setLayoutData(data);
+    
+    label = new Label(overrideGroup, SWT.WRAP);
+    label.setLayoutData(Utils.getWrappableLabelGridData(1, GridData.FILL_HORIZONTAL));
+    Messages.setLanguageText(label, "ConfigView.label.minannounce");
+    
+    IntParameter minmininterval = new IntParameter(overrideGroup, "Tracker Client Min Announce Interval");
+    data = new GridData();
+    data.widthHint = 40;
+    minmininterval.setLayoutData(data);
+
     
     //////////////////////////
     
