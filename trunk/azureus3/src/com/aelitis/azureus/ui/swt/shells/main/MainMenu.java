@@ -336,14 +336,17 @@ public class MainMenu
 					return;
 				}
 				if (visible) {
+					final FormData fd = (FormData) control.getLayoutData();
 					Point size = (Point) control.getData("v3.oldHeight");
 					//System.out.println("oldHeight = " + size + ";v=" + control.getVisible() + ";s=" + control.getSize());
 					if (size == null && control.getSize().y < 2) {
 						size = control.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+						if (fd.height > 0) {
+							size.y = fd.height;
+						}
 					}
 
 					if (size != null) {
-						final FormData fd = (FormData) control.getLayoutData();
 						if (fd != null && (fd.width != size.x || fd.height != size.y)) {
 							slide(control, fd, size);
 						}
@@ -373,7 +376,7 @@ public class MainMenu
 	}
 
 	private static void slide(final Control control, final FormData fd, final Point size) {
-		System.out.println("slid to " + size);
+		//System.out.println("slid to " + size);
 		AERunnable runnable = new AERunnable() {
 			boolean firstTime = true;
 
@@ -386,7 +389,6 @@ public class MainMenu
 					// sliding out (or visa-versa)
 					fd.width = size.x;
 					fd.height = size.y;
-					System.out.println(size);
 					control.setLayoutData(fd);
 					Utils.relayout(control);
 					return;
