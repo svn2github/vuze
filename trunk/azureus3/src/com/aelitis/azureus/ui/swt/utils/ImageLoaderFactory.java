@@ -36,8 +36,8 @@ public class ImageLoaderFactory
 		return instance;
 	}
 
-	public static void createInstance(Display display,
+	public static void createInstance(ClassLoader classloader, Display display,
 			SkinProperties skinProperties) {
-		instance = new ImageLoader(display, skinProperties);
+		instance = new ImageLoader(classloader, display, skinProperties);
 	}
 }

@@ -45,8 +45,8 @@ public class SWTSkinPropertiesImpl
 	 * @param skinPath
 	 * @param mainSkinFile
 	 */
-	public SWTSkinPropertiesImpl(String skinPath, String mainSkinFile) {
-		super(skinPath, mainSkinFile);
+	public SWTSkinPropertiesImpl(ClassLoader classLoader, String skinPath, String mainSkinFile) {
+		super(classLoader, skinPath, mainSkinFile);
 	}
 
 	/**

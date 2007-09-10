@@ -47,7 +47,11 @@ public class ImageLoader
 
 	private SkinProperties skinProperties;
 
-	public ImageLoader(Display display, SkinProperties skinProperties) {
+	private final ClassLoader classLoader;
+
+	public ImageLoader(ClassLoader classLoader, Display display,
+			SkinProperties skinProperties) {
+		this.classLoader = classLoader;
 		mapImages = new HashMap();
 		notFound = new ArrayList();
 		this.display = display;
@@ -157,8 +161,7 @@ public class ImageLoader
 
 		if (img == null) {
 			try {
-				InputStream is = ImageLoader.class.getClassLoader().getResourceAsStream(
-						res);
+				InputStream is = classLoader.getResourceAsStream(res);
 				if (is != null) {
 					img = new Image(display, is);
 				}

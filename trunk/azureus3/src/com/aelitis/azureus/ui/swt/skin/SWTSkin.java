@@ -78,20 +78,24 @@ public class SWTSkin
 
 	private List listenersLayoutComplete = new ArrayList();
 
+	private final ClassLoader classLoader;
+
 	/**
 	 * 
 	 */
 	public SWTSkin() {
+		this.classLoader = SWTSkin.class.getClassLoader();
 		init(new SWTSkinPropertiesImpl());
 	}
 
-	public SWTSkin(String skinPath, String mainSkinFile) {
-		init(new SWTSkinPropertiesImpl(skinPath, mainSkinFile));
+	public SWTSkin(ClassLoader classLoader, String skinPath, String mainSkinFile) {
+		this.classLoader = classLoader;
+		init(new SWTSkinPropertiesImpl(classLoader, skinPath, mainSkinFile));
 	}
 		
 	private void init(SWTSkinProperties skinProperties) {
 		this.skinProperties = skinProperties;
-		ImageLoaderFactory.createInstance(Display.getDefault(), skinProperties);
+		ImageLoaderFactory.createInstance(classLoader, Display.getDefault(), skinProperties);
 
 		ontopPaintListener = new Listener() {
 			public void handleEvent(Event event) {
@@ -135,7 +139,7 @@ public class SWTSkin
 			return loader;
 		}
 
-		loader = new ImageLoader(Display.getDefault(), properties);
+		loader = new ImageLoader(classLoader, Display.getDefault(), properties);
 		mapImageLoaders.put(properties, loader);
 
 		return loader;

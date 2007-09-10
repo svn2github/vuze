@@ -65,14 +65,16 @@ public class SkinPropertiesImpl
 
 	private Properties properties;
 
+	private final ClassLoader classLoader;
+
 	public SkinPropertiesImpl() {
-		this(PATH_SKIN_DEFS, FILE_SKIN_DEFS);
+		this(SkinPropertiesImpl.class.getClassLoader(), PATH_SKIN_DEFS, FILE_SKIN_DEFS);
 	}
 
-	public SkinPropertiesImpl(String skinPath, String mainSkinFile) {
+	public SkinPropertiesImpl(ClassLoader classLoader, String skinPath, String mainSkinFile) {
+		this.classLoader = classLoader;
 		properties = new Properties();
 		InputStream is;
-		ClassLoader classLoader = SkinPropertiesImpl.class.getClassLoader();
 
 		is = classLoader.getResourceAsStream(skinPath + mainSkinFile);
 		if (is != null) {
