@@ -21,6 +21,7 @@
 package com.aelitis.azureus.core.torrent;
 
 import java.io.UnsupportedEncodingException;
+import java.net.InetAddress;
 import java.net.URL;
 import java.util.*;
 
@@ -452,6 +453,19 @@ public class PlatformTorrentUtils
 			}
 		}
 
+		if ( Constants.isCVSVersion()){
+		
+				// allow local addresses for testing
+			
+			try{
+				InetAddress ia = InetAddress.getByName( host );
+			
+				return( ia.isLoopbackAddress() || ia.isLinkLocalAddress() || ia.isSiteLocalAddress());
+				
+			}catch( Throwable e ){
+			}
+		}
+		
 		return (false);
 	}
 
