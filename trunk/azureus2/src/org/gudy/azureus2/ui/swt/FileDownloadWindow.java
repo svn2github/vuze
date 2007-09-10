@@ -79,7 +79,17 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
    * @param referrer
    * @param listener
    */
-	public FileDownloadWindow(AzureusCore _azureus_core, Shell parent,
+	public FileDownloadWindow(final AzureusCore _azureus_core, final Shell parent,
+			final String url, final String referrer,
+			final TorrentDownloaderCallBackInterface listener) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+		  	init(_azureus_core, parent, url, referrer, listener);
+			}
+		});
+	}
+
+  private void init(AzureusCore _azureus_core, Shell parent,
 			final String url, final String referrer,
 			TorrentDownloaderCallBackInterface listener) {
   	azureus_core	= _azureus_core;
