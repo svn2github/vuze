@@ -1064,7 +1064,7 @@ EnhancedDownloadManager
 				Object[] dms = gm.getDownloadManagers().toArray();
 				for (int i = 0; i < dms.length; i++) {
 					DownloadManager dmCheck = (DownloadManager) dms[i];
-					if (dmCheck == download_manager) {
+					if (dmCheck.equals(download_manager)) {
 						continue;
 					}
 
