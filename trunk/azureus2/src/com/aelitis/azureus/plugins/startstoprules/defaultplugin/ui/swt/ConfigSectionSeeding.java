@@ -83,11 +83,8 @@ public class ConfigSectionSeeding implements UISWTConfigSection {
 
     gridData = new GridData();
     gridData.horizontalSpan = 2;
-    new BooleanParameter(cSeeding, "Disconnect Seed When Seeding", "ConfigView.label.disconnectseedwhenseeding").setLayoutData(gridData);
-    
-    gridData = new GridData();
-    gridData.horizontalSpan = 2;
-    new BooleanParameter(cSeeding, "Disconnect Seed When Downloading", "ConfigView.label.disconnectseedwhendownloading").setLayoutData(gridData);
+    new BooleanParameter(cSeeding, "Disconnect Seed",
+                         "ConfigView.label.disconnetseed").setLayoutData(gridData);
 
     gridData = new GridData();
     gridData.horizontalSpan = 2;

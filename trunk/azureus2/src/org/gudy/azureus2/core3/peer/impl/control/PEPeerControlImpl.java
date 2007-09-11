@@ -81,26 +81,20 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 	private static final int	SEED_CHECK_WAIT_MARKER	= 65526;
 
-	private static boolean disconnectSeedsWhenSeeding;
-	private static boolean disconnectSeedsWhenDownloading;
+	private static boolean disconnect_seeds_when_seeding;
 	private static boolean enable_seeding_piece_rechecks;
 
 	static{
 		
 		COConfigurationManager.addAndFireParameterListeners(
-			new String[]{
-				"Disconnect Seed When Seeding",
-				"Disconnect Seed When Downloading",
-				"Seeding Piece Check Recheck Enable"
-			},
+			new String[]{},
 			new ParameterListener()
 			{
 				public void 
 				parameterChanged(
 					String name )
 				{
-					disconnectSeedsWhenSeeding = COConfigurationManager.getBooleanParameter("Disconnect Seed When Seeding");
-					disconnectSeedsWhenDownloading = COConfigurationManager.getBooleanParameter("Disconnect Seed When Downloading");
+					disconnect_seeds_when_seeding = COConfigurationManager.getBooleanParameter("Disconnect Seed");
 					enable_seeding_piece_rechecks = COConfigurationManager.getBooleanParameter("Seeding Piece Check Recheck Enable");
 				}
 			});
@@ -438,10 +432,11 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 			checkCompletionState();	// pick up changes in completion caused by dnd file changes
 
-			checkSeeds();
+			if ( seeding_mode ){
 
-			if ( !seeding_mode ){
+				checkSeeds();
 
+			}else{
 				// if we're not finished
 
 				checkRequests();
@@ -1609,7 +1604,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 		if ((mainloop_loop_count % MAINLOOP_ONE_SECOND_INTERVAL) != 0)
 			return;
 
-		if ((!disconnectSeedsWhenSeeding && seeding_mode) || (!disconnectSeedsWhenDownloading && !seeding_mode) ){
+		if (!disconnect_seeds_when_seeding ){
 			return;
 		}
 
@@ -1627,7 +1622,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 		if( to_close != null ) {		
 			for( int i=0; i < to_close.size(); i++ ) {  			
-				closeAndRemovePeer( (PEPeerTransport)to_close.get(i), "disconnect other seed when "+(seeding_mode?"seeding":"downloading"), false );
+				closeAndRemovePeer( (PEPeerTransport)to_close.get(i), "disconnect other seed when seeding", false );
 			}
 		}
 	}

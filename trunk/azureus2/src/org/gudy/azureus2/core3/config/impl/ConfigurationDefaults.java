@@ -181,8 +181,7 @@ public class ConfigurationDefaults {
     def.put("Check Pieces on Completion", TRUE);
     def.put("Stop Ratio", new Float(0));
     def.put("Stop Peers Ratio", ZERO);
-    def.put("Disconnect Seed When Seeding", TRUE);
-    def.put("Disconnect Seed When Downloading", FALSE);
+    def.put("Disconnect Seed", TRUE);
     def.put("Seeding Piece Check Recheck Enable", TRUE );
     def.put("priorityExtensions", "");
     def.put("priorityExtensionsIgnoreCase", FALSE);
