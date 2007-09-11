@@ -2146,4 +2146,12 @@ EnhancedDownloadManager
 	public DownloadManager getDownloadManager() {
 		return download_manager;
 	}
+	
+	public void
+	setViewerPosition(
+			DiskManagerFileInfo fileinfo, 
+			long bytes)
+	{
+		
+	}
 }
