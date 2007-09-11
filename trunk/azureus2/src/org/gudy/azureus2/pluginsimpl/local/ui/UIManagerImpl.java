@@ -136,7 +136,7 @@ UIManagerImpl
 	destroy(
 		final BasicPluginViewModel		model )
 	{
-		fireEvent( UIManagerEvent.ET_PLUGIN_VIEW_MODEL_CREATED, model );
+		fireEvent( UIManagerEvent.ET_PLUGIN_VIEW_MODEL_DESTROYED, model );
 	}
 	
 	public BasicPluginConfigModel
