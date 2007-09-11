@@ -5,29 +5,39 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
 
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
 import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
+import com.aelitis.azureus.ui.swt.skin.SWTSkin;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinTabSet;
+import com.aelitis.azureus.ui.swt.utils.PublishUtils;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.MapUtils;
@@ -172,36 +182,41 @@ public class TorrentListener
 											return;
 										}
 
-										if (playNow) {
-											HashWrapper hw;
-											try {
-												hw = torrent.getHashWrapper();
-											} catch (TOTorrentException e1) {
-												Debug.out(e1);
-												return;
-											}
-
-											final HashWrapper fhw = hw;
-
-											GlobalManagerListener l = new GlobalManagerAdapter() {
-												public void downloadManagerAdded(DownloadManager dm) {
-
-													try {
-														HashWrapper hw = dm.getTorrent().getHashWrapper();
-														if (!hw.equals(fhw)) {
-															return;
-														}
-
-														core.getGlobalManager().removeListener(this);
-
-														TorrentListViewsUtils.playOrStream(dm);
-													} catch (Exception e) {
-														Debug.out(e);
-													}
-												}
-											};
-											core.getGlobalManager().addListener(l, false);
+										HashWrapper hw;
+										try {
+											hw = torrent.getHashWrapper();
+										} catch (TOTorrentException e1) {
+											Debug.out(e1);
+											return;
 										}
+
+										final HashWrapper fhw = hw;
+
+										GlobalManagerListener l = new GlobalManagerAdapter() {
+											public void downloadManagerAdded(DownloadManager dm) {
+
+												try {
+													core.getGlobalManager().removeListener(this);
+
+													HashWrapper hw = dm.getTorrent().getHashWrapper();
+													if (!hw.equals(fhw)) {
+														return;
+													}
+
+													boolean showHomeHint = false;
+													if (playNow) {
+														showHomeHint = !TorrentListViewsUtils.playOrStream(dm);
+													}
+													if (showHomeHint) {
+														TorrentListViewsUtils.showHomeHint(dm);
+													}
+												} catch (Exception e) {
+													Debug.out(e);
+												}
+											}
+										};
+										core.getGlobalManager().addListener(l, false);
+
 										TorrentOpener.openTorrent(inf.getFile().getAbsolutePath());
 									}
 								}

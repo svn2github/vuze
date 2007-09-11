@@ -29,9 +29,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.eclipse.swt.program.Program;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.ForceRecheckListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
@@ -56,12 +59,11 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
 import com.aelitis.azureus.ui.common.table.TableView;
+import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
-import com.aelitis.azureus.ui.swt.skin.SWTSkin;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.PublishUtils;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
@@ -316,14 +318,14 @@ public class TorrentListViewsUtils
 		return PlatformTorrentUtils.useEMP(torrent) && embeddedPlayerAvail();
 	}
 
-	public static void playOrStream(final DownloadManager dm) {
-		playOrStream(dm, null);
+	public static boolean playOrStream(final DownloadManager dm) {
+		return playOrStream(dm, null);
 	}
 
-	public static void playOrStream(final DownloadManager dm,
+	public static boolean playOrStream(final DownloadManager dm,
 			final SWTSkinButtonUtility btn) {
 		if (dm == null) {
-			return;
+			return false;
 		}
 		if (btn != null) {
 			btn.setDisabled(true);
@@ -352,7 +354,8 @@ public class TorrentListViewsUtils
 					&& !useEMP
 					&& edm != null
 					&& (!edm.supportsProgressiveMode() || edm.getProgressivePlayETA() > 0)) {
-				return;
+				edm.setProgressiveMode(true);
+				return false;
 			}
 			String ext = FileUtil.getExtension(sFile);
 
@@ -365,7 +368,7 @@ public class TorrentListViewsUtils
 
 				UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
 				if (functionsSWT == null) {
-					return;
+					return false;
 				}
 				Program program = Program.findProgram(ext);
 				String sTextID;
@@ -391,7 +394,7 @@ public class TorrentListViewsUtils
 				mb.setRelatedObject(dm);
 				int i = mb.open();
 				if (i != 0) {
-					return;
+					return false;
 				}
 			}
 
@@ -437,6 +440,7 @@ public class TorrentListViewsUtils
 				btn.setDisabled(false);
 			}
 		}
+		return true;
 	}
 
 	private static void runFile(TOTorrent torrent, String runFile) {
@@ -704,6 +708,7 @@ public class TorrentListViewsUtils
 			EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(dm);
 			if (edm != null) {
 				file = edm.getPrimaryFile().getFile(true);
+				edm.setProgressiveMode(true);
 			} else {
 				file = new File(dm.getDownloadState().getPrimaryFile());
 			}
@@ -847,5 +852,53 @@ public class TorrentListViewsUtils
 		AzureusCoreFactory.create();
 		System.out.println(isTrustedContent(FileUtil.getExtension("moo.exep")));
 		System.out.println(isUntrustworthyContent(FileUtil.getExtension("moo.exe")));
+	}
+
+	/**
+	 * @param dm
+	 *
+	 * @since 3.0.2.3
+	 */
+	public static void showHomeHint(final DownloadManager dm) {
+		// Show a popup when user adds a download
+		// if it wasn't added recently, it's not a new download
+		if (SystemTime.getCurrentTime()
+						- dm.getDownloadState().getLongParameter(
+								DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME) < 10000
+				&& !PublishUtils.isPublished(dm)
+				&& !dm.getDownloadState().getFlag(DownloadManagerState.FLAG_LOW_NOISE)) {
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					SWTSkin skin = SWTSkinFactory.getInstance();
+					SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
+					if (tabSetMain != null
+							&& !tabSetMain.getActiveTab().getSkinObjectID().equals(
+									"maintabs.home")) {
+						Shell shell = tabSetMain.getActiveTab().getControl().getShell();
+						Display current = Display.getCurrent();
+						// checking focusControl for null doesn't really work
+						// Preferably, we'd check to see if the app has the OS' focus
+						// and not display the popup when it doesn't
+						if (current != null && current.getFocusControl() != null
+								&& !MessageBoxShell.isOpen()) {
+							int ret = MessageBoxShell.open(shell,
+									MessageText.getString("v3.HomeReminder.title"),
+									MessageText.getString("v3.HomeReminder.text", new String[] {
+										dm.getDisplayName()
+									}), new String[] {
+										MessageText.getString("Button.ok"),
+										MessageText.getString("v3.HomeReminder.gohome")
+									}, 0, "downloadinhome",
+									MessageText.getString("MessageBoxWindow.nomoreprompting"),
+									false, 15000);
+
+							if (ret == 1) {
+								tabSetMain.setActiveTab("maintabs.home");
+							}
+						}
+					}
+				}
+			});
+		}
 	}
 }

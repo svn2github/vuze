@@ -327,46 +327,6 @@ public class MainWindow
 
 		boolean isContent = PlatformTorrentUtils.isContent(torrent, true);
 
-		// Show a popup when user adds a download
-		// if it wasn't added recently, it's not a new download
-		if (skin != null
-				&& isContent
-				&& SystemTime.getCurrentTime()
-						- dm.getDownloadState().getLongParameter(
-								DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME) < 10000
-				&& !PublishUtils.isPublished(dm)
-				&& !dm.getDownloadState().getFlag(DownloadManagerState.FLAG_LOW_NOISE)) {
-			Utils.execSWTThread(new AERunnable() {
-				public void runSupport() {
-					SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
-					if (tabSetMain != null
-							&& !tabSetMain.getActiveTab().getSkinObjectID().equals(
-									"maintabs.home")) {
-						Display current = Display.getCurrent();
-						// checking focusControl for null doesn't really work
-						// Preferably, we'd check to see if the app has the OS' focus
-						// and not display the popup when it doesn't
-						if (current != null && current.getFocusControl() != null
-								&& !MessageBoxShell.isOpen()) {
-							int ret = MessageBoxShell.open(shell,
-									MessageText.getString("v3.HomeReminder.title"),
-									MessageText.getString("v3.HomeReminder.text", new String[] {
-										dm.getDisplayName()
-									}), new String[] {
-										MessageText.getString("Button.ok"),
-										MessageText.getString("v3.HomeReminder.gohome")
-									}, 0, "downloadinhome",
-									MessageText.getString("MessageBoxWindow.nomoreprompting"),
-									false, 15000);
-
-							if (ret == 1) {
-								tabSetMain.setActiveTab("maintabs.home");
-							}
-						}
-					}
-				}
-			});
-		}
 		final String fHash = hash;
 
 		if (isContent) {
