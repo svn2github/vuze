@@ -43,7 +43,7 @@ public class ExternalUIConst {
 		parameterlegacy.put("Core_fSeedingShareStop", "Stop Ratio");
 		parameterlegacy.put("StartStopManager_bIgnoreRatioPeers", "Stop Peers Ratio");
 		parameterlegacy.put("Core_iSeedingRatioStart", "Start Peers Ratio");
-		parameterlegacy.put("Core_bDisconnectSeed", "Disconnect Seed");
+		parameterlegacy.put("Core_bDisconnectSeed", "Disconnect Seed When Seeding");
 		parameterlegacy.put("Core_bSwitchPriority", "Switch Priority");
 		parameterlegacy.put("Core_bSlowConnect", "Slow Connect");
 		parameterlegacy.put("Core_sPriorityExtensions", "priorityExtensions");
