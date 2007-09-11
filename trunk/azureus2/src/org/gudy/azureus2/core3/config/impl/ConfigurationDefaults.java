@@ -152,6 +152,7 @@ public class ConfigurationDefaults {
     def.put( "Max Upload Speed KBs", ZERO);
     def.put( "Max Upload Speed Seeding KBs", ZERO );
     def.put( "enable.seedingonly.upload.rate", FALSE );
+    def.put( "Max Seeds Per Torrent", ZERO);
     
     //def.put( "Auto Upload Speed Enabled", FALSE );
     def.put( TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY, FALSE ); //"Auto Upload Speed Enabled"

@@ -498,6 +498,7 @@ DownloadManagerStateImpl
 		COConfigurationManager.addParameterListener( "Max.Peer.Connections.Per.Torrent", this );
 		COConfigurationManager.addParameterListener( "Max Uploads", this );
 		COConfigurationManager.addParameterListener( "Max Uploads Seeding", this );
+		COConfigurationManager.addParameterListener( "Max Seeds Per Torrent", this );
 		COConfigurationManager.addParameterListener( "enable.seedingonly.maxuploads", this );
 	}
 	
@@ -509,6 +510,7 @@ DownloadManagerStateImpl
 		COConfigurationManager.removeParameterListener( "Max.Peer.Connections.Per.Torrent", this );
 		COConfigurationManager.removeParameterListener( "Max Uploads", this );
 		COConfigurationManager.removeParameterListener( "Max Uploads Seeding", this );
+		COConfigurationManager.removeParameterListener( "Max Seeds Per Torrent", this );
 		COConfigurationManager.removeParameterListener( "enable.seedingonly.maxuploads", this );
 	}
 	
@@ -916,6 +918,9 @@ DownloadManagerStateImpl
 						int	def = COConfigurationManager.getIntParameter( "Max.Peer.Connections.Per.Torrent.When.Seeding" );
 						
 						value = new Integer( def );
+					}else if ( name == PARAM_MAX_SEEDS)
+					{
+						value = new Integer(COConfigurationManager.getIntParameter( "Max Seeds Per Torrent" ));
 					}
 				}
 			}

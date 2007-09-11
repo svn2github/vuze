@@ -372,6 +372,16 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 			IntParameter paramMaxClientsTotal = new IntParameter(cSection,
 					"Max.Peer.Connections.Total");
 			paramMaxClientsTotal.setLayoutData(gridData);
+			
+			gridData = new GridData();
+			label = new Label(cSection, SWT.NULL);
+			label.setLayoutData(gridData);
+			Messages.setLanguageText(label, "ConfigView.label.maxseedspertorrent");
+
+			gridData = new GridData();
+			gridData.widthHint = 35;
+			new IntParameter(cSection,"Max Seeds Per Torrent").setLayoutData(gridData);
+			
 
 			gridData = new GridData();
 			gridData.horizontalSpan = 2;

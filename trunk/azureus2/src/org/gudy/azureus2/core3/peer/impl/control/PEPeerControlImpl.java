@@ -87,7 +87,10 @@ DiskManagerCheckRequestListener, IPFilterListener
 	static{
 		
 		COConfigurationManager.addAndFireParameterListeners(
-			new String[]{},
+			new String[]{
+				"Disconnect Seed",
+				"Seeding Piece Check Recheck Enable"
+			},
 			new ParameterListener()
 			{
 				public void 
@@ -176,8 +179,8 @@ DiskManagerCheckRequestListener, IPFilterListener
     	COConfigurationManager.addAndFireParameterListeners(
     		new String[]{
 				"Peer.Fast.Initial.Unchoke.Enabled",
-    				"Ip Filter Ban Discard Ratio",
-    				"Ip Filter Ban Discard Min KB",
+   				"Ip Filter Ban Discard Ratio",
+   				"Ip Filter Ban Discard Min KB",
     		},
 				new ParameterListener()
 				{
@@ -185,9 +188,9 @@ DiskManagerCheckRequestListener, IPFilterListener
 					parameterChanged(
 							String name ) 
 					{
-    				fast_unchoke_new_peers 	= COConfigurationManager.getBooleanParameter( "Peer.Fast.Initial.Unchoke.Enabled" );
-    				ban_peer_discard_ratio	= COConfigurationManager.getFloatParameter( "Ip Filter Ban Discard Ratio" );
-    				ban_peer_discard_min_kb	= COConfigurationManager.getIntParameter( "Ip Filter Ban Discard Min KB" );
+						fast_unchoke_new_peers 	= COConfigurationManager.getBooleanParameter( "Peer.Fast.Initial.Unchoke.Enabled" );
+						ban_peer_discard_ratio	= COConfigurationManager.getFloatParameter( "Ip Filter Ban Discard Ratio" );
+						ban_peer_discard_min_kb	= COConfigurationManager.getIntParameter( "Ip Filter Ban Discard Min KB" );
 					}
 				});
 	}
