@@ -356,8 +356,8 @@ public class TorrentListViewsUtils
 			}
 			String ext = FileUtil.getExtension(sFile);
 
-			boolean untrusted = isUntrustworthyContent(ext);
-			boolean trusted = isTrustedContent(ext);
+			boolean untrusted = !useEMP && isUntrustworthyContent(ext);
+			boolean trusted = useEMP && isTrustedContent(ext);
 
 			if (untrusted || !trusted) {
 				String sPrefix = untrusted ? "v3.mb.notTrusted."
