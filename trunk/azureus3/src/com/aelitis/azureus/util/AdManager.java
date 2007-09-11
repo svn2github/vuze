@@ -67,11 +67,11 @@ public class AdManager
 	private List adsDMList = new ArrayList();
 
 	private List adSupportedDMList = new ArrayList();
-	
+
 	// key = DM, value = Semaphore
 	private Map asxInProgress = new HashMap();
-	
-	private AEMonitor asxInProgress_mon = new AEMonitor("asxInProgress"); 
+
+	private AEMonitor asxInProgress_mon = new AEMonitor("asxInProgress");
 
 	private Object lastImpressionID;
 
@@ -188,7 +188,8 @@ public class AdManager
 									public void downloadComplete(DownloadManager manager) {
 										// good chance we still have internet here, so get/cache
 										// the asx
-										EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(dm);
+										EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(
+												dm);
 										File file;
 										if (edm != null) {
 											file = edm.getPrimaryFile().getFile(true);
@@ -316,10 +317,11 @@ public class AdManager
 				PlatformAdManager.debug("No Content Hash!");
 				return;
 			}
-			
-			String adID = (String) values.get(PREFIX +"eURI");
 
-			PlatformAdManager.debug("imp " + impressionID + " commencing on " + contentHash);
+			String adID = (String) values.get(PREFIX + "eURI");
+
+			PlatformAdManager.debug("imp " + impressionID + " commencing on "
+					+ contentHash);
 
 			DownloadManager dm = core.getGlobalManager().getDownloadManager(
 					new HashWrapper(Base32.decode(adHash)));
@@ -333,8 +335,8 @@ public class AdManager
 				dmContent.setData("LastASX", null);
 			}
 
-			PlatformAdManager.storeImpresssion(impressionID, SystemTime.getCurrentTime(),
-					contentHash, adHash, adID, 5000);
+			PlatformAdManager.storeImpresssion(impressionID,
+					SystemTime.getCurrentTime(), contentHash, adHash, adID, 5000);
 
 		} catch (Exception e) {
 			Debug.out(e);
@@ -383,7 +385,7 @@ public class AdManager
 			}
 
 			final String contentHash = PlatformTorrentUtils.getContentHash(torrent);
-			
+
 			try {
 				asxInProgress_mon.enter();
 
@@ -391,11 +393,11 @@ public class AdManager
 				if (sem != null) {
 					PlatformAdManager.debug("already getting asx.. waiting..");
 					asxInProgress_mon.exit();
-					
+
 					sem.reserve();
-					
+
 					asxInProgress_mon.enter();
-					
+
 					File asxFile = buildASXFileLocation(dm);
 					if (asxFile.isFile()) {
 						PlatformAdManager.debug("playing using existing asx: " + asxFile);
@@ -413,8 +415,7 @@ public class AdManager
 			}
 
 			PlatformAdManager.debug("getting asx");
-			PlatformAdManager.getPlayList(dm, URLToPlay,
-					"http://127.0.0.1:"
+			PlatformAdManager.getPlayList(dm, URLToPlay, "http://127.0.0.1:"
 					+ MagnetURIHandler.getSingleton().getPort()
 					+ "/setinfo?name=adtracker&contentHash=" + contentHash, 0,
 					new PlatformAdManager.GetPlaylistReplyListener() {
@@ -443,18 +444,18 @@ public class AdManager
 									l.asxFailed();
 								}
 							} finally {
-  							try {
-  								asxInProgress_mon.enter();
-  								
-  								AESemaphore sem = (AESemaphore) asxInProgress.remove(contentHash);
-  								if (sem != null) {
-  									sem.releaseForever();
-  								} else {
-  								}
-  								
-    						} finally {
-    							asxInProgress_mon.exit();
-    						}
+								try {
+									asxInProgress_mon.enter();
+
+									AESemaphore sem = (AESemaphore) asxInProgress.remove(contentHash);
+									if (sem != null) {
+										sem.releaseForever();
+									} else {
+									}
+
+								} finally {
+									asxInProgress_mon.exit();
+								}
 							}
 						}
 
@@ -469,12 +470,15 @@ public class AdManager
 	}
 
 	private File buildASXFileLocation(DownloadManager dm) {
-		File saveLocation = dm.getAbsoluteSaveLocation();
-		if (saveLocation.isFile()) {
-			return new File(saveLocation.getAbsolutePath() + ".asx");
+		EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(
+				dm);
+		File file;
+		if (edm != null) {
+			file = edm.getPrimaryFile().getFile(true);
+		} else {
+			file = new File(dm.getDownloadState().getPrimaryFile());
 		}
-		// directory, just use 'play.asx'
-		return new File(saveLocation, "play.asx");
+		return new File(file.getAbsolutePath() + ".asx");
 	}
 
 	public interface ASXCreatedListener
