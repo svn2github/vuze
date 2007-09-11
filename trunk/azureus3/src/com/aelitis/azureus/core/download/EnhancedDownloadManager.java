@@ -108,6 +108,9 @@ EnhancedDownloadManager
 	public static final int DISCONNECT_CHECK_PERIOD	= 10*1000;
 	public static final int DISCONNECT_CHECK_TICKS	= DISCONNECT_CHECK_PERIOD/DownloadManagerEnhancer.TICK_PERIOD;
 	
+	public static final int REACTIVATE_PROVIDER_PERIOD			= 5*1000;
+	public static final int REACTIVATE_PROVIDER_PERIOD_TICKS	= REACTIVATE_PROVIDER_PERIOD/DownloadManagerEnhancer.TICK_PERIOD;
+
 	public static final int LOG_PROG_STATS_PERIOD	= 10*1000;
 	public static final int LOG_PROG_STATS_TICKS	= LOG_PROG_STATS_PERIOD/DownloadManagerEnhancer.TICK_PERIOD;
 
@@ -133,6 +136,7 @@ EnhancedDownloadManager
 	private long	content_min_bps;
 		
 	private int		minimum_initial_buffer_secs_for_eta;
+	private int		explicit_minimum_buffer_bytes;
 	
 	private bufferETAProvider	buffer_provider	= new bufferETAProvider();
 	private boostETAProvider	boost_provider	= new boostETAProvider();
@@ -433,6 +437,13 @@ EnhancedDownloadManager
 	getFiles()
 	{
 		return( enhanced_files );
+	}
+	
+	public void
+	setMinimumBufferBytes(
+		int		min )
+	{
+		explicit_minimum_buffer_bytes	= min;
 	}
 	
 	protected void
@@ -1162,8 +1173,18 @@ EnhancedDownloadManager
 			
 			return;
 		}
-			
+					
 		synchronized( this ){
+			
+			if ( tick_count % REACTIVATE_PROVIDER_PERIOD_TICKS == 0 ){
+				
+				PiecePicker piece_picker = current_piece_pickler;
+				
+				if ( piece_picker != null ){
+				
+					buffer_provider.checkActivation( piece_picker );
+				}
+			}
 			
 			progressive_stats.update( tick_count );
 		}
@@ -1512,6 +1533,24 @@ EnhancedDownloadManager
 				
 				piece_rtas	= null;
 			}
+		}
+		
+		protected void
+		checkActivation(
+			PiecePicker		picker )
+		{
+				// might need to re-enable the buffer provider if speeds change
+			
+   			if ( getProgressivePlayETA() > 0 ){
+  
+    			synchronized( EnhancedDownloadManager.this ){
+    					
+    				if ( piece_rtas == null ){
+    						
+    					activate( picker );
+     				}
+    			}
+    		}
 		}
 		
 		public long[]
@@ -1957,6 +1996,16 @@ EnhancedDownloadManager
 			}
 			
 			long min_dl = minimum_initial_buffer_secs_for_eta * content_stream_bps_max;
+			
+				// factor in any explicit minimum buffer bytes
+			
+			min_dl = Math.max( min_dl, explicit_minimum_buffer_bytes );
+			
+				// see if we have any stream-specific advice
+			
+			long advice = primary_file.getInitialBufferBytes( download_rate );
+			
+			min_dl = Math.max( advice, min_dl );
 			
 				// work out number of initial bytes downloaded and stop as soon as a gap is found
 			
