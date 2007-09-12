@@ -28,11 +28,9 @@ import java.util.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.HashWrapper;
-import org.gudy.azureus2.core3.util.SimpleTimer;
-import org.gudy.azureus2.core3.util.TimerEvent;
-import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerChannelImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.torrent.MetaDataUpdateListener;
@@ -40,8 +38,6 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.disk.DiskManagerChannel;
-import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
-import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerChannelImpl;
 
 public class 
 DownloadManagerEnhancer 
@@ -181,6 +177,9 @@ DownloadManagerEnhancer
 									state == DownloadManager.STATE_SEEDING ){
 								
 								EnhancedDownloadManager edm = getEnhancedDownload( download );
+								if (edm == null) {
+									return;
+								}
 								
 								edm.updateStats( tick_count );
 							
@@ -207,7 +206,11 @@ DownloadManagerEnhancer
 						EnhancedDownloadManager edm = 
 							getEnhancedDownload(
 									PluginCoreUtils.unwrap(channel.getFile().getDownload()));
-						
+
+						if (edm == null) {
+							return;
+						}
+
 						if ( !edm.getProgressiveMode()){
 							
 							if ( edm.supportsProgressiveMode()){
@@ -243,6 +246,11 @@ DownloadManagerEnhancer
 	getEnhancedDownload(
 		DownloadManager	manager )
 	{
+		DownloadManager dm2 = manager.getGlobalManager().getDownloadManager(manager.getTorrent());
+		if (dm2 != manager) {
+			return null;
+		}
+
 		synchronized( download_map ){
 			
 			EnhancedDownloadManager	res = (EnhancedDownloadManager)download_map.get( manager );
