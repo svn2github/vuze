@@ -447,6 +447,8 @@ EnhancedDownloadManager
 	setMinimumBufferBytes(
 		int		min )
 	{
+		log( "Explicit min buffer set to " + min );
+		
 		explicit_minimum_buffer_bytes	= min;
 	}
 	
@@ -1494,7 +1496,7 @@ EnhancedDownloadManager
 			diag_logger.log(str);
 		}
 		
-		if (Constants.DIAG_TO_STDOUT) {
+		if ( Constants.DIAG_TO_STDOUT ) {
 			
 			System.out.println(Thread.currentThread().getName() + "|"
 					+ System.currentTimeMillis() + "] " + str);
@@ -2465,6 +2467,14 @@ EnhancedDownloadManager
 					// no advice, fall back to computed min
 				
 				advice = minimum_initial_buffer_secs_for_eta * getStreamBytesPerSecondMax();
+				
+			}else{
+				
+					// currently the player will auto-pause if the buffer falls below the
+					// explicit minimum so we need to add the explicit to the advice to
+					// get a value that will prevent a stall
+				
+				advice += explicit_minimum_buffer_bytes;
 			}
 			
 			min_dl = Math.max( advice, min_dl );

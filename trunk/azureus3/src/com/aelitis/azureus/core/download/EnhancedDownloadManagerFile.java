@@ -108,22 +108,15 @@ EnhancedDownloadManagerFile
 		if ( speeds != null ){
 			
 			int	k_rate = (int)rate/1024;
-		
-			int	hit = -1;
-			
+					
 			for (int i=0;i<speeds.length;i++){
 				
 				if ( k_rate > speeds[i][0] ){
 					
-					hit = i-1;
+					buffer_size = speeds[i][1] * 1024;
 					
 					break;
 				}
-			}
-			
-			if ( hit >= 0 ){
-				
-				buffer_size = speeds[hit][1] * 1024;
 			}
 		}
 		
