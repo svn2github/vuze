@@ -32,16 +32,19 @@ public class
 EnhancedDownloadManagerFile 
 {
 	private DiskManagerFileInfo		file;
-	private int						header_size;
+	private long					offset;
 	
+	private int						header_size;
 	private int[][]					speeds;
 	
 	protected
 	EnhancedDownloadManagerFile(
 		DiskManagerFileInfo		_file,
+		long					_offset,
 		Map						_map )
 	{
 		file		= _file;
+		offset		= _offset;
 		
 		try{
 			if ( _map != null ){
@@ -82,6 +85,12 @@ EnhancedDownloadManagerFile
 	getFile()
 	{
 		return( file );
+	}
+	
+	public long
+	getByteOffestInTorrent()
+	{
+		return( offset );
 	}
 	
 	public int
@@ -126,6 +135,20 @@ EnhancedDownloadManagerFile
 	public String
 	getString()
 	{
-		return( file.getFile(true).getName()+ ",header=" + header_size );
+		String	speeds_str = "";
+		
+		if ( speeds != null ){
+		
+			speeds_str = ",speeds=";
+			
+			for (int i=0;i<speeds.length;i++){
+				
+				int[]	s = speeds[i];
+				
+				speeds_str += (i==0?"":",") + "[" + s[0] + "," + s[1] + "," + s[2] + "]"; 
+			}
+		}
+		
+		return( file.getFile(true).getName()+ ",header=" + header_size + speeds_str );
 	}
 }
