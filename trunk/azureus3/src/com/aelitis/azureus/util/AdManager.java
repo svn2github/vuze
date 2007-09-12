@@ -97,10 +97,13 @@ public class AdManager
 		gm.addListener(new GlobalManagerAdapter() {
 			public void downloadManagerRemoved(DownloadManager dm) {
 				adsDMList.remove(dm);
-				try {
-					File asxFile = buildASXFileLocation(dm);
-					asxFile.delete();
-				} catch (Exception e) {
+				File asxFile = (File) dm.getData("ASX");
+				
+				if (asxFile != null) {
+  				try {
+  					asxFile.delete();
+  				} catch (Exception e) {
+  				}
 				}
 			}
 
@@ -111,6 +114,8 @@ public class AdManager
 					hookDM(new DownloadManager[] {
 						dm
 					});
+				} else if (PlatformTorrentUtils.isContentAdEnabled(torrent)) {
+					dm.setData("ASX", buildASXFileLocation(dm));
 				}
 			}
 		}, false);
@@ -434,6 +439,7 @@ public class AdManager
 										playlist.getBytes());
 
 								dm.setData("LastASX", new Long(SystemTime.getCurrentTime()));
+								dm.setData("ASX", asxFile);
 
 								if (l != null) {
 									l.asxCreated(asxFile);
