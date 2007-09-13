@@ -47,11 +47,12 @@ TRTrackerServerListener
 		
 	public boolean
 	permitted(
-		byte[]	hash,
-		boolean	explicit );
+		String		originator,
+		byte[]		hash,
+		boolean		explicit );
 		
 	public boolean
 	denied(
-		byte[]	hash,
-		boolean	explicit );
+		byte[]		hash,
+		boolean		explicit );
 }

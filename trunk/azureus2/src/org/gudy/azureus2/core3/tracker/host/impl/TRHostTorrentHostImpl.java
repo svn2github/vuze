@@ -125,7 +125,7 @@ TRHostTorrentHostImpl
 			
 			status = TS_STARTED;
 					
-			server_torrent = server.permit( torrent.getHash(), true);
+			server_torrent = server.permit( "", torrent.getHash(), true);
 		
 			if ( disable_reply_caching ){
 				

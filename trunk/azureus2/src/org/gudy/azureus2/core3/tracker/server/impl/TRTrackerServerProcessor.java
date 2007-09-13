@@ -164,7 +164,7 @@ TRTrackerServerProcessor
 						
 						try{
 							
-							torrent = (TRTrackerServerTorrentImpl)server.permit( hash, false );
+							torrent = (TRTrackerServerTorrentImpl)server.permit( real_ip_address, hash, false );
 													
 						}catch( Throwable e ){
 							
@@ -323,7 +323,7 @@ TRTrackerServerProcessor
 						}else{
 							
 							try{							
-								torrent = (TRTrackerServerTorrentImpl)server.permit( hash, false );
+								torrent = (TRTrackerServerTorrentImpl)server.permit( real_ip_address, hash, false );
 									
 							}catch( Throwable e ){
 								

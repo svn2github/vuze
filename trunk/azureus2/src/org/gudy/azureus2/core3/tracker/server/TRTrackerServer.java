@@ -62,6 +62,7 @@ TRTrackerServer
 		
 	public TRTrackerServerTorrent
 	permit(
+		String		originator,
 		byte[]		hash,
 		boolean		explicit  )
 		
@@ -69,6 +70,7 @@ TRTrackerServer
 		
 	public TRTrackerServerTorrent
 	permit(
+		String		originator,
 		byte[]		hash,
 		boolean		explicit,
 		boolean		enabled )

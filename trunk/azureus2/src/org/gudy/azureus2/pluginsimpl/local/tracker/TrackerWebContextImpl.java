@@ -128,6 +128,7 @@ TrackerWebContextImpl
 		
 	public boolean
 	permitted(
+		String	originator,
 		byte[]	hash,
 		boolean	explicit )
 	{

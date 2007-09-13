@@ -720,16 +720,18 @@ TRTrackerServerImpl
 	
 	public TRTrackerServerTorrent
 	permit(
+		String		_originator,
 		byte[]		_hash,
 		boolean		_explicit )
 	
 		throws TRTrackerServerException
 	{
-		return( permit( _hash, _explicit, true ));
+		return( permit( _originator, _hash, _explicit, true ));
 	}
 	
 	public TRTrackerServerTorrent
 	permit(
+		String		_originator,
 		byte[]		_hash,
 		boolean		_explicit,
 		boolean		_enabled )
@@ -758,7 +760,7 @@ TRTrackerServerImpl
 			
 			for (int i=0;i<listeners.size();i++){
 				
-				if ( !((TRTrackerServerListener)listeners.elementAt(i)).permitted( _hash, _explicit )){
+				if ( !((TRTrackerServerListener)listeners.elementAt(i)).permitted( _originator, _hash, _explicit )){
 					
 					throw( new TRTrackerServerException( "operation denied"));			
 				}
