@@ -138,7 +138,7 @@ public class ClientIdentifier {
 
 			// Older µTorrent versions will not always use the appropriate character for the
 			// first letter, so compensate here.
-			if (!handshake_name.startsWith("\u00B5Torrent") && handshake_name.substring(1).startsWith("Torrent")) {
+			if (!handshake_name.startsWith("\u00B5Torrent") && handshake_name.startsWith("Torrent", 1)) {
 				handshake_name_to_process = "\u00B5" + handshake_name.substring(1);
 			}
 			
@@ -147,15 +147,14 @@ public class ClientIdentifier {
 			if (peer_id_name.endsWith("Beta") && peer_id_name.startsWith(handshake_name_to_process)) {
 				return peer_id_name;
 			}
-			
-			// Some Mainline 4.x versions identify themselves as µTorrent - according to alus,
-			// this was a bug, so just identify as Mainline.
-			if (peer_id_name.startsWith("Mainline 4.")) {
-				return peer_id_name;
-			}
-			
 		}
-		
+
+		// Some Mainline 4.x versions identify themselves as µTorrent - according to alus,
+		// this was a bug, so just identify as Mainline.
+		if (peer_id_name.startsWith("Mainline 4.") && handshake_name.startsWith("Torrent", 1)) {
+			return peer_id_name;
+		}
+			
 		// We allow a client to have a different version number than the one decoded from
 		// the peer ID.
 		String client_type_peer = peer_id_name.split(" ", 2)[0];
