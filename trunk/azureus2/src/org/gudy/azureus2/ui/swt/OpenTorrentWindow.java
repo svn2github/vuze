@@ -548,7 +548,6 @@ public class OpenTorrentWindow
 				File f = new File(sDefPath);
 				if (sDefPath.length() > 0) {
 					while (!f.exists()) {
-						System.out.println(f);
 						f = f.getParentFile();
 						if (f == null) {
 							f = new File(sDefPath);
