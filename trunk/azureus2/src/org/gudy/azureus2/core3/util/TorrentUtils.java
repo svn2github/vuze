@@ -1977,8 +1977,7 @@ TorrentUtils
 			throws IOException {
 		File torrentDir;
 		boolean saveTorrents = persistent
-				&& COConfigurationManager.getBooleanParameter("Save Torrent Files",
-						true);
+				&& COConfigurationManager.getBooleanParameter("Save Torrent Files");
 		if (saveTorrents)
 			torrentDir = new File(COConfigurationManager
 					.getDirectoryParameter("General_sDefaultTorrent_Directory"));
@@ -1987,8 +1986,7 @@ TorrentUtils
 
 		//if the torrent is already in the completed files dir, use this
 		//torrent instead of creating a new one in the default dir
-		boolean moveWhenDone = COConfigurationManager.getBooleanParameter(
-				"Move Completed When Done", false);
+		boolean moveWhenDone = COConfigurationManager.getBooleanParameter("Move Completed When Done");
 		String completedDir = COConfigurationManager.getStringParameter(
 				"Completed Files Directory", "");
 		if (moveWhenDone && completedDir.length() > 0) {
