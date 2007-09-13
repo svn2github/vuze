@@ -123,7 +123,7 @@ public class NameItem extends CoreTableColumn implements
 						icon = dstImage;
 					}
 
-					// cheat for core, since we really know it's a TabeCellImpl and want to
+					// cheat for core, since we really know it's a TableCellImpl and want to
 					// use those special functions not available to Plugins
 					if(!((TableCellSWT) cell).setIcon(icon) && Constants.isWindows)
 						icon.dispose();
