@@ -95,9 +95,14 @@ public class OpenTorrentWindow
 	 * 
 	 * If it has several small files, then it would be silly for us to assume
 	 * that the torrent consists of multiple signature files.
+	 * 
+	 * Note: I (amc1) have disabled this now, because it can force users who may want
+	 * to only download one file to download those small files, which may not be in
+	 * an overlapping piece. Since I've now seen comments from people who've complained
+	 * about this, I'm disabling it.
 	 */
-	private final static int MIN_NODOWNLOAD_SIZE = 64 * 1024;
-	private final static int MAX_NODOWNLOAD_COUNT = 3;
+	//private final static int MIN_NODOWNLOAD_SIZE = 64 * 1024;
+    //private final static int MAX_NODOWNLOAD_COUNT = 3;
 
 	private final static int MIN_BUTTON_HEIGHT = Constants.isWindows ? 24 : -1;
 
@@ -2495,6 +2500,7 @@ public class OpenTorrentWindow
 			}
 		}
 		
+		/*
 		private Boolean has_multiple_small_files = null; 
 		private boolean hasMultipleSmallFiles() {
 			TorrentFileInfo[] tfi_files = getFiles();
@@ -2513,10 +2519,14 @@ public class OpenTorrentWindow
 			
 			return false;
 		}
+		*/
 			
 		// Indicates whether all files in this torrent can be deselected
 		// (if not, then it occurs on a per-file basis).
 		public boolean okToDisableAll() {
+			return true;
+			
+			/*
 			if (iStartID == STARTMODE_SEEDING)
 				return true;
 			
@@ -2528,6 +2538,7 @@ public class OpenTorrentWindow
 			
 			// You can disable all files if there are lots of small files.
 			return has_multiple_small_files.booleanValue();
+			*/
 		}
 		
 	}
@@ -2598,7 +2609,7 @@ public class OpenTorrentWindow
 		}
 
 		public boolean okToDisable() {
-			return lSize >= MIN_NODOWNLOAD_SIZE	|| parent.okToDisableAll();
+			return /* lSize >= MIN_NODOWNLOAD_SIZE	|| */ parent.okToDisableAll();
 		}
 	}
 
