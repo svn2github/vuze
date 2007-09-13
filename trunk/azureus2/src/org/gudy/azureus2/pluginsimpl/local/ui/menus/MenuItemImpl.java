@@ -251,5 +251,18 @@ public class MenuItemImpl implements MenuItem {
 	
 	public boolean isVisible() {return visible;}
 	public void setVisible(boolean visible) {this.visible = visible;}
+	
+	public boolean isSelected() {
+		if (style != STYLE_CHECK && style != STYLE_RADIO) {
+			throw new RuntimeException("Style is not STYLE_CHECK or STYLE_RADIO");
+		}
+		if (data == null) {
+			throw new RuntimeException("Item is neither selected or deselected");
+		}
+		if (!(data instanceof Boolean)) {
+			throw new RuntimeException("Invalid data assigned to menu item, should be boolean: " + data);
+		}
+		return ((Boolean)data).booleanValue();
+	}
 
 }

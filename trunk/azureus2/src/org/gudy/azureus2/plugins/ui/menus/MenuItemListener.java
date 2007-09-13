@@ -31,6 +31,14 @@ public interface
 MenuItemListener 
 {
   /** Menu item has been selected by the user.
+   * 
+   * Note - this method will be called when a "deselection" takes place, like
+   * if the MenuItem has <tt>STYLE_CHECK</tt> or <tt>STYLE_RADIO</tt> (where a
+   * previously selected item has been deselected because another item has been
+   * selected instead).
+   * 
+   * Therefore, you should check the state of the MenuItem, rather than assuming
+   * that it has been "activated".
    *
    * @param menu Which menu item was selected
    * @param target What this menu item applies to.  For the default

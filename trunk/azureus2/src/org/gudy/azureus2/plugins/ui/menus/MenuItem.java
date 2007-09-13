@@ -246,14 +246,26 @@ public interface MenuItem
 	
 	/**
 	 * Sets whether the menu item is visible or not.
-	 * @since 3.0.2
+	 * @since 3.0.2.0
 	 */
 	public void setVisible(boolean visible);
 	
 	/**
 	 * Returns whether the menu item is visible or not.
-	 * @since 3.0.2
+	 * @since 3.0.2.0
 	 */
 	public boolean isVisible();
+	
+	/**
+	 * Returns whether the menu item is selected or not.
+	 * 
+	 * This method should only be called if the menu is of type <tt>STYLE_RADIO</tt> or
+	 * type <tt>STYLE_CHECK</tt> and if the menu item has already had a selected or
+	 * deselected state assigned to it.
+	 * 
+	 * @since 3.0.2.4
+	 */
+	public boolean isSelected();
+	
 	
 }
