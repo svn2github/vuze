@@ -68,10 +68,10 @@ EnhancedDownloadManagerFile
 						
 						
 						int		speed 			= ((Long)entry.get(0)).intValue();
-						int		buffer			= ((Long)entry.get(1)).intValue();
-						int		worst_buffer	= ((Long)entry.get(2)).intValue();
+						int		worst_buffer	= ((Long)entry.get(1)).intValue();
+						int		init_buffer		= ((Long)entry.get(2)).intValue();
 						
-						speeds[i] = new int[]{ speed, buffer, worst_buffer };
+						speeds[i] = new int[]{ speed, worst_buffer, init_buffer };
 					}
 				}
 			}
@@ -113,7 +113,9 @@ EnhancedDownloadManagerFile
 				
 				if ( k_rate > speeds[i][0] ){
 					
-					buffer_size = speeds[i][1] * 1024;
+						// use the init buffer rather than the worst one
+					
+					buffer_size = speeds[i][2] * 1024;
 					
 					break;
 				}
