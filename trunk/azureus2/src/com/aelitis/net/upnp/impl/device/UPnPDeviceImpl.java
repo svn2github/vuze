@@ -61,8 +61,8 @@ UPnPDeviceImpl
 	{
 		root_device		= _root_device;
 		
-		device_type		= device_node.getChild("DeviceType").getValue().trim();
-		friendly_name	= device_node.getChild("FriendlyName").getValue().trim();
+		device_type		= getMandatoryField( device_node, "DeviceType" );
+		friendly_name	= getMandatoryField( device_node, "FriendlyName" );
 		
 		/*
 		  <modelName>3Com ADSL 11g</modelName> 
@@ -187,6 +187,23 @@ UPnPDeviceImpl
 		if ( child == null ){
 			
 			return( null);
+		}
+		
+		return( child.getValue().trim());
+	}
+	
+	protected String
+	getMandatoryField(
+		SimpleXMLParserDocumentNode	node,
+		String						name )
+	{
+		SimpleXMLParserDocumentNode	child = node.getChild(name);
+		
+		if ( child == null ){
+			
+			root_device.getUPnP().log( "Mandatory field '" + name + "' is missing" );
+			
+			return( "<missing field '" + name + "'>" );
 		}
 		
 		return( child.getValue().trim());

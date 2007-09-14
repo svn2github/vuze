@@ -113,7 +113,7 @@ UPnPRootDeviceImpl
 			
 		}catch(MalformedURLException e ){
 			
-			upnp.log( "Invalid URLBase - " + url_base_node.getValue());
+			upnp.log( "Invalid URLBase - " + (url_base_node==null?"mill":url_base_node.getValue()));
 			
 			upnp.log( e );
 			
