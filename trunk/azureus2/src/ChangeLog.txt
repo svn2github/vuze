@@ -7,6 +7,7 @@ FEATURE: Core | Added experimental support for LibTorrent extension protocol han
 FEATURE: UI   | Added available disk space indicators to the torrent open dialog (requires Java 1.6) [The 8472]
 FEATURE: UI   | Added "handshake reserved bytes" column in peer view [amc1]
 FEATURE: UI   | Added "Open Transfer Bar on start" and "Remember Transfer Bar" location options [amc1]
+FEATURE: UI   | Added http-seed config to torrent creation wizard [Parg]
 
 CHANGE: Core  | Speedup hash-checking by ~30% / less CPU usage [The 8472]
 CHANGE: Core  | More improvements to client identification code [amc1]
@@ -16,7 +17,7 @@ CHANGE: Plug  | Plugins can now dynamically register language resource bundles [
 CHANGE: UI    | Allow minibars to stick to any screen border in multi monitor setups [The 8472]
 
 BUGFIX: Core  | Fixed bug when trying to add torrents with semi-colon characters in filename [amc1]
-
+BUGFIX: Core  | LAN peer detection for explicit IP addresses was broken [Parg]
 
 2007.08.29 | Azureus 3.0.2.2
 
