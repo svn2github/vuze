@@ -306,7 +306,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addSimpleClient("BitTorrent Plus! II", "PRC.P---");
 		addSimpleClient("BitTorrent Plus!", "P87.P---");
 		addSimpleClient("BitTorrent Plus!", "S587Plus");
-		addSimpleClient("BitTyrant", "AZ2500BT");
+		addSimpleClient("BitTyrant (Azureus Mod)", "AZ2500BT");
 		addSimpleClient("Blizzard Downloader", "BLZ");
 		addSimpleClient("BTGetit", "BG", 10);
 		addSimpleClient("BTugaXP", "btuga");

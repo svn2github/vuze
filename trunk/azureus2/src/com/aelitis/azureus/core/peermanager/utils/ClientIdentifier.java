@@ -37,7 +37,7 @@ public class ClientIdentifier {
 		 * Yuck - let's format it so it resembles something pleasant.
  	     */ 
 		if (az_msg_client_name.endsWith("BitTyrant")) {
-			  return "Azureus BitTyrant " + az_msg_client_version.replaceAll("BitTyrant", "");
+			  return "BitTyrant " + az_msg_client_version.replaceAll("BitTyrant", "") + " (Azureus Mod)";
 		  }
 		  
 		  String msg_client_name = az_msg_client_name + " " + az_msg_client_version;
