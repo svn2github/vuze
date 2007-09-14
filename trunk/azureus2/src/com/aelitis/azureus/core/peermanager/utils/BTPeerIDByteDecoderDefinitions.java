@@ -265,6 +265,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("PC", PeerClassifier.CACHE_LOGIC);
 		addAzStyle("PD", "Pando");
 		addAzStyle("qB", "qBitTorrent", VER_AZ_THREE_DIGITS);
+		addAzStyle("QD", "qqdownload");
 		addAzStyle("RT", "Retriever");
 		addAzStyle("S~", "Shareaza alpha/beta");
 		addAzStyle("SB", "SwiftBit");
