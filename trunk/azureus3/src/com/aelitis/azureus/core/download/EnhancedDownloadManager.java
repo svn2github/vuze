@@ -119,6 +119,28 @@ EnhancedDownloadManager
 	
 	private static final String PM_SEED_TIME_KEY = "EnhancedDownloadManager:seedtime";
 	private static final String PEER_CACHE_KEY = "EnhancedDownloadManager:cachepeer";
+
+	private static int internal_content_stream_bps_increase_ratio		= 5;
+	private static int internal_content_stream_bps_increase_absolute	= 0;
+	
+		// these are here to allow other components (e.g. a plugin) to modify behaviour
+		// while we verify that things work ok
+	
+	public static void
+	setInternalContentStreamBPSIncreaseRatio(
+		String	caller_id,
+		int		ratio )
+	{
+		internal_content_stream_bps_increase_ratio	= ratio;
+	}
+	
+	public static void
+	setInternalContentStreamBPSIncreaseAbsolute(
+		String	caller_id,
+		int		abs )
+	{
+		internal_content_stream_bps_increase_absolute	= abs;
+	}
 	
 	private DownloadManagerEnhancer		enhancer;
 	private DownloadManager				download_manager;
@@ -2437,7 +2459,9 @@ EnhancedDownloadManager
 				
 				// bump it up by a bit to be conservative to deal with fluctuations, discards etc.
 				
-			content_stream_bps_max = content_stream_bps_min + ( content_stream_bps_min / 5 );
+			content_stream_bps_min += internal_content_stream_bps_increase_absolute;
+			
+			content_stream_bps_max = content_stream_bps_min + ( content_stream_bps_min / internal_content_stream_bps_increase_ratio );
 		}
 		
 		protected long
