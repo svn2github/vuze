@@ -21,7 +21,9 @@ package org.gudy.azureus2.ui.swt.maketorrent;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
@@ -85,12 +87,16 @@ NewTorrentWizard
   long	  manual_piece_size;
   
   boolean 			useMultiTracker = false;
+  boolean 			useWebSeed = false;
   
   private boolean 	addOtherHashes	= 	COConfigurationManager.getBooleanParameter( "CreateTorrent.default.addhashes", false );
   
   
   String multiTrackerConfig = "";
   List trackers = new ArrayList();
+  
+  String webSeedConfig = "";
+  Map	webseeds = new HashMap();
   
   boolean autoOpen 			= false;
   boolean autoHost 			= false;

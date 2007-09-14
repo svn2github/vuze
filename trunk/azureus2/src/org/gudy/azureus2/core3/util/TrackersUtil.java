@@ -39,6 +39,7 @@ public class TrackersUtil {
   
   private List trackers;
   private Map multiTrackers; 
+  private Map webseeds;
   
   private static TrackersUtil 	instance;
   private static AEMonitor		class_mon 	= new AEMonitor( "TrackersUtil:class" );
@@ -48,6 +49,7 @@ public class TrackersUtil {
   private TrackersUtil() {
     trackers = new ArrayList();
     multiTrackers = new HashMap();
+    webseeds = new HashMap();
     loadList();
   }
   
@@ -93,10 +95,24 @@ public class TrackersUtil {
   public Map getMultiTrackers() {
     return new HashMap(multiTrackers);
   }
-  
+  public void addWebSeed(String configName, Map ws) {
+	  webseeds.put(configName,ws);
+	  saveList();
+  }
+
+  public void removeWebSeed(String configName) {
+	  webseeds.remove(configName);
+	  saveList();
+  }
+
+  public Map getWebSeeds() {
+	  return new HashMap(webseeds);
+  }
+
   public void clearAllTrackers(boolean save) {
 	  trackers = new ArrayList();
 	  multiTrackers = new HashMap();
+	  webseeds = new HashMap();
 	  if (save) {saveList();}
   }
   
@@ -138,6 +154,13 @@ public class TrackersUtil {
             this.multiTrackers.put(configName,resGroups);
           }
         }
+        webseeds = (Map)map.get( "webseeds" );
+        
+        if ( webseeds == null ){
+        	webseeds = new HashMap();
+        }else{
+        	BDecoder.decodeStrings( webseeds );
+        }
       } catch(Exception e) {
     	  
       	Debug.printStackTrace( e );
@@ -164,6 +187,7 @@ public class TrackersUtil {
     Map map = new HashMap();
     map.put("trackers",trackers);
     map.put("multi-trackers",multiTrackers);
+    map.put("webseeds",webseeds );
     FileOutputStream fos = null;
     try {
       //  Open the file

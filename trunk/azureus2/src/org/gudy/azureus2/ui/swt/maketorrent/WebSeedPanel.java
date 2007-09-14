@@ -20,6 +20,7 @@
 package org.gudy.azureus2.ui.swt.maketorrent;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +46,7 @@ import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
  * @author Olivier
  *  
  */
-public class MultiTrackerPanel extends AbstractWizardPanel implements TrackerEditorListener{
+public class WebSeedPanel extends AbstractWizardPanel implements WebSeedsEditorListener{
 
   private Combo configList;
   private Tree configDetails;
@@ -54,7 +55,7 @@ public class MultiTrackerPanel extends AbstractWizardPanel implements TrackerEdi
   private Button btnEdit;
   private Button btnDelete; 
 
-  public MultiTrackerPanel(NewTorrentWizard wizard, AbstractWizardPanel previous) {
+  public WebSeedPanel(NewTorrentWizard wizard, AbstractWizardPanel previous) {
     super(wizard, previous);
   }
 
@@ -64,7 +65,7 @@ public class MultiTrackerPanel extends AbstractWizardPanel implements TrackerEdi
 	 * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#show()
 	 */
   public void show() {
-    wizard.setTitle(MessageText.getString("wizard.multitracker.title"));
+    wizard.setTitle(MessageText.getString("wizard.webseed.title"));
     wizard.setCurrentInfo("");
     Composite rootPanel = wizard.getPanel();
     GridLayout layout = new GridLayout();
@@ -79,10 +80,10 @@ public class MultiTrackerPanel extends AbstractWizardPanel implements TrackerEdi
     panel.setLayout(layout);
 
     //Line :
-    // Multi-Tracker Configuration
+    // Web Seed Configuration
     
     final Label labelTitle = new Label(panel,SWT.NULL);
-    Messages.setLanguageText(labelTitle, "wizard.multitracker.configuration");
+    Messages.setLanguageText(labelTitle, "wizard.webseed.configuration");
     gridData = new GridData();
     gridData.horizontalSpan = 3;
     labelTitle.setLayoutData(gridData);  
@@ -93,7 +94,7 @@ public class MultiTrackerPanel extends AbstractWizardPanel implements TrackerEdi
     configList.setLayoutData(gridData);
     configList.addListener(SWT.Selection,new Listener() {
       public void handleEvent(Event e) {                
-        updateTrackers();
+        updateWebSeeds();
         refreshDetails();
       }
     });
@@ -105,11 +106,10 @@ public class MultiTrackerPanel extends AbstractWizardPanel implements TrackerEdi
     btnNew.setLayoutData(gridData);
     btnNew.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
-        List group = new ArrayList();
-        List tracker = new ArrayList();
-        tracker.add(((NewTorrentWizard)wizard).trackerURL);
-        group.add(tracker);
-        new MultiTrackerEditor(null,group,MultiTrackerPanel.this);
+    	Map webseeds = new HashMap();
+       	webseeds.put( "getright", new ArrayList());
+       	webseeds.put( "webseed", new ArrayList());
+        new WebSeedsEditor(null,webseeds,WebSeedPanel.this);
       }
     });
     
@@ -122,8 +122,8 @@ public class MultiTrackerPanel extends AbstractWizardPanel implements TrackerEdi
       public void handleEvent(Event e) {
         int selection = configList.getSelectionIndex();
         String selected = configList.getItem(selection);
-        Map multiTrackers = TrackersUtil.getInstance().getMultiTrackers();
-        new MultiTrackerEditor(selected,(List)multiTrackers.get(selected),MultiTrackerPanel.this);
+        Map webseeds = TrackersUtil.getInstance().getWebSeeds();
+        new WebSeedsEditor(selected,(Map)webseeds.get(selected),WebSeedPanel.this);
       }
     });
     
@@ -136,7 +136,7 @@ public class MultiTrackerPanel extends AbstractWizardPanel implements TrackerEdi
       public void handleEvent(Event e) {
         int selection = configList.getSelectionIndex();
         String selected = configList.getItem(selection);
-        TrackersUtil.getInstance().removeMultiTracker(selected);
+        TrackersUtil.getInstance().removeWebSeed(selected);
         refreshList("");
         refreshDetails();
         setEditDeleteEnable();
@@ -153,7 +153,7 @@ public class MultiTrackerPanel extends AbstractWizardPanel implements TrackerEdi
     gridData.horizontalSpan = 3;
     configDetails.setLayoutData(gridData);    
     
-    refreshList(((NewTorrentWizard)wizard).multiTrackerConfig);
+    refreshList(((NewTorrentWizard)wizard).webSeedConfig);
     refreshDetails(); 
     setEditDeleteEnable();
 }
@@ -164,10 +164,6 @@ public class MultiTrackerPanel extends AbstractWizardPanel implements TrackerEdi
 	 * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#getNextPanel()
 	 */
   public IWizardPanel getNextPanel() {
-	  
-	if(((NewTorrentWizard) wizard).useWebSeed)
-	     return new WebSeedPanel((NewTorrentWizard) wizard, this);
-	   
     if (((NewTorrentWizard) wizard).create_from_dir) {
       return new DirectoryPanel(((NewTorrentWizard) wizard), this);
     } else {
@@ -182,13 +178,13 @@ public class MultiTrackerPanel extends AbstractWizardPanel implements TrackerEdi
   
   void refreshDetails() {
     configDetails.removeAll();
-    List trackers = ((NewTorrentWizard) wizard).trackers;
-    Iterator iter = trackers.iterator();
+    Map webseeds = ((NewTorrentWizard) wizard).webseeds;
+    Iterator iter = webseeds.entrySet().iterator();
     while(iter.hasNext()) {
-        List trackerGroup = (List) iter.next();
+        Map.Entry	entry = (Map.Entry)iter.next();
         TreeItem itemRoot = new TreeItem(configDetails,SWT.NULL);
-        Messages.setLanguageText(itemRoot, "wizard.multitracker.group");
-        Iterator iter2 = trackerGroup.iterator();
+        itemRoot.setText((String)entry.getKey());
+        Iterator iter2 = ((List)entry.getValue()).iterator();
         while(iter2.hasNext()) {
           String url = (String) iter2.next();
           new TreeItem(itemRoot,SWT.NULL).setText(url);
@@ -207,20 +203,20 @@ public class MultiTrackerPanel extends AbstractWizardPanel implements TrackerEdi
     }
   }
   
-  public void trackersChanged(String oldName, String newName, List trackers) {
+  public void webSeedsChanged(String oldName, String newName, Map ws) {
     TrackersUtil util = TrackersUtil.getInstance();
     if(oldName != null && !oldName.equals(newName))
-      util.removeMultiTracker(oldName);
-    util.addMultiTracker(newName,trackers);
+      util.removeWebSeed(oldName);
+    util.addWebSeed(newName,ws);
     refreshList(newName);
     refreshDetails();
     setEditDeleteEnable();
   }
   
   private void refreshList(String toBeSelected) {
-    Map multiTrackers = TrackersUtil.getInstance().getMultiTrackers();
+    Map webseeds = TrackersUtil.getInstance().getWebSeeds();
     configList.removeAll();
-    Iterator iter = multiTrackers.keySet().iterator();
+    Iterator iter = webseeds.keySet().iterator();
     while(iter.hasNext()) {
       configList.add((String)iter.next());
     }
@@ -230,47 +226,26 @@ public class MultiTrackerPanel extends AbstractWizardPanel implements TrackerEdi
     } else if(configList.getItemCount() > 0) {
       configList.select(0);      
     }
-    updateTrackers();
+    updateWebSeeds();
   }
   
-  private void updateTrackers() {
+  private void updateWebSeeds() {
     int selection = configList.getSelectionIndex();
     if(selection == -1) {
-      List group = new ArrayList();
-      List tracker = new ArrayList();
-      tracker.add(((NewTorrentWizard)wizard).trackerURL);
-      group.add(tracker);
-      ((NewTorrentWizard)wizard).trackers = group;
-      ((NewTorrentWizard)wizard).multiTrackerConfig = "";
+      ((NewTorrentWizard)wizard).webSeedConfig = "";
+      ((NewTorrentWizard)wizard).webseeds = new HashMap();
       setNext();
       return;
     }
     String selected = configList.getItem(selection);
-    ((NewTorrentWizard)wizard).multiTrackerConfig = selected;
-    Map multiTrackers = TrackersUtil.getInstance().getMultiTrackers();
-    ((NewTorrentWizard)wizard).trackers = (List) multiTrackers.get(selected);
+    ((NewTorrentWizard)wizard).webSeedConfig = selected;
+    Map webseeds = TrackersUtil.getInstance().getWebSeeds();
+    ((NewTorrentWizard)wizard).webseeds = (Map) webseeds.get(selected);
     setNext();
   }
   
   private void setNext() {
-    String trackerUrl = ((NewTorrentWizard)wizard).trackerURL;
-    List groups = ((NewTorrentWizard)wizard).trackers;
-    Iterator iterGroups = groups.iterator();
-    while(iterGroups.hasNext()) {
-      List trackers = (List) iterGroups.next();
-      Iterator iterTrackers = trackers.iterator();      
-      while(iterTrackers.hasNext()) {
-        String tracker = (String) iterTrackers.next();
-        if(trackerUrl.equals(tracker))
-        {
-          wizard.setNextEnabled(true);
-          wizard.setErrorMessage("");
-          return;
-        }
-      }
-    }
-    wizard.setNextEnabled(false);
-    wizard.setErrorMessage(MessageText.getString("wizard.multitracker.noannounce"));
-    
+	  wizard.setNextEnabled(true);
+	  wizard.setErrorMessage("");
   }
 }

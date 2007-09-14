@@ -269,12 +269,12 @@ public class ModePanel extends AbstractWizardPanel {
     label.setLayoutData(gridData);
 
     //Line:
-    // [] add Multi-tracker information
+    // [] add Multi-tracker information [] webseed
     
     final Button btnMultiTracker = new Button(panel,SWT.CHECK);
     Messages.setLanguageText(btnMultiTracker, "wizard.multitracker");
     gridData = new GridData();
-    gridData.horizontalSpan = 4;
+    gridData.horizontalSpan = 2;
     btnMultiTracker.setLayoutData(gridData);
     btnMultiTracker.addListener(SWT.Selection, new Listener() {
 
@@ -285,6 +285,21 @@ public class ModePanel extends AbstractWizardPanel {
     btnMultiTracker.setSelection(((NewTorrentWizard) wizard).useMultiTracker);
     
     btnMultiTracker.setEnabled( tracker_type != NewTorrentWizard.TT_DECENTRAL);
+    
+    final Button btnWebSeed = new Button(panel,SWT.CHECK);
+    Messages.setLanguageText(btnWebSeed, "wizard.webseed");
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    btnWebSeed.setLayoutData(gridData);
+    btnWebSeed.addListener(SWT.Selection, new Listener() {
+
+	    public void handleEvent(Event arg0) {
+	      ((NewTorrentWizard) wizard).useWebSeed = btnWebSeed.getSelection();
+	    }
+    });
+    btnWebSeed.setSelection(((NewTorrentWizard) wizard).useWebSeed);
+    
+    btnWebSeed.setEnabled( tracker_type != NewTorrentWizard.TT_DECENTRAL);
     
     //Line:
     // include hashes for other networks (
@@ -476,6 +491,9 @@ public class ModePanel extends AbstractWizardPanel {
     
     if(((NewTorrentWizard) wizard).useMultiTracker)
       return new MultiTrackerPanel((NewTorrentWizard) wizard, this);
+
+    if(((NewTorrentWizard) wizard).useWebSeed)
+        return new WebSeedPanel((NewTorrentWizard) wizard, this);
 
     if (((NewTorrentWizard) wizard).create_from_dir) {
       return new DirectoryPanel(((NewTorrentWizard) wizard), this);

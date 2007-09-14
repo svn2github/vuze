@@ -23,6 +23,9 @@ package org.gudy.azureus2.ui.swt.maketorrent;
 
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -180,6 +183,32 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
           TorrentUtils.listToAnnounceGroups(((NewTorrentWizard)wizard).trackers, torrent);
          }
 
+      if (_wizard.useWebSeed && _wizard.webseeds.size() > 0 ){
+          this.reportCurrentTask(MessageText.getString("wizard.webseed.adding"));
+          
+          Map	ws = _wizard.webseeds;
+          
+          List	getright = (List)ws.get( "getright" );
+          
+          if ( getright.size() > 0 ){
+          
+        	  for (int i=0;i<getright.size();i++){
+        		  reportCurrentTask( "    GetRight: " + getright.get(i));
+        	  }
+        	  torrent.setAdditionalListProperty( "url-list", new ArrayList( getright ));
+          }
+          
+          List	webseed = (List)ws.get( "webseed" );
+          
+          if ( webseed.size() > 0 ){
+          
+        	  for (int i=0;i<webseed.size();i++){
+        		  reportCurrentTask( "    WebSeed: " + webseed.get(i));
+        	  }
+        	  torrent.setAdditionalListProperty( "httpseeds", new ArrayList( webseed ));
+          }
+          
+      }
       	// must do this last as it saves a copy of the torrent state for future opening...
       
       /*
