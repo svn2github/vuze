@@ -98,12 +98,12 @@ public class AdManager
 			public void downloadManagerRemoved(DownloadManager dm) {
 				adsDMList.remove(dm);
 				File asxFile = (File) dm.getData("ASX");
-				
+
 				if (asxFile != null) {
-  				try {
-  					asxFile.delete();
-  				} catch (Exception e) {
-  				}
+					try {
+						asxFile.delete();
+					} catch (Exception e) {
+					}
 				}
 			}
 
@@ -323,6 +323,8 @@ public class AdManager
 				return;
 			}
 
+			String torrentHash = (String) values.get("hash");
+
 			String adID = (String) values.get(PREFIX + "eURI");
 
 			PlatformAdManager.debug("imp " + impressionID + " commencing on "
@@ -341,7 +343,8 @@ public class AdManager
 			}
 
 			PlatformAdManager.storeImpresssion(impressionID,
-					SystemTime.getCurrentTime(), contentHash, adHash, adID, 5000);
+					SystemTime.getCurrentTime(), contentHash, torrentHash, adHash, adID,
+					5000);
 
 		} catch (Exception e) {
 			Debug.out(e);
@@ -390,11 +393,12 @@ public class AdManager
 			}
 
 			final String contentHash = PlatformTorrentUtils.getContentHash(torrent);
+			final String hash = dm.getTorrent().getHashWrapper().toBase32String();
 
 			try {
 				asxInProgress_mon.enter();
 
-				AESemaphore sem = (AESemaphore) asxInProgress.get(contentHash);
+				AESemaphore sem = (AESemaphore) asxInProgress.get(hash);
 				if (sem != null) {
 					PlatformAdManager.debug("already getting asx.. waiting..");
 					asxInProgress_mon.exit();
@@ -412,7 +416,7 @@ public class AdManager
 						return;
 					}
 				} else {
-					asxInProgress.put(contentHash, new AESemaphore(contentHash));
+					asxInProgress.put(hash, new AESemaphore(hash));
 				}
 
 			} finally {
@@ -422,52 +426,52 @@ public class AdManager
 			PlatformAdManager.debug("getting asx");
 			PlatformAdManager.getPlayList(dm, URLToPlay, "http://127.0.0.1:"
 					+ MagnetURIHandler.getSingleton().getPort()
-					+ "/setinfo?name=adtracker&contentHash=" + contentHash, 0,
-					new PlatformAdManager.GetPlaylistReplyListener() {
-						public void replyReceived(String replyType, String playlist) {
-							try {
-								if (playlist == null) {
-									PlatformAdManager.debug("no asx in reply");
-									if (l != null) {
-										l.asxFailed();
-									}
-									return;
-								}
-								File asxFile = buildASXFileLocation(dm);
-								PlatformAdManager.debug("got asx. Writing to " + asxFile);
-								FileUtil.writeBytesAsFile(asxFile.getAbsolutePath(),
-										playlist.getBytes());
-
-								dm.setData("LastASX", new Long(SystemTime.getCurrentTime()));
-								dm.setData("ASX", asxFile);
-
-								if (l != null) {
-									l.asxCreated(asxFile);
-								}
-							} catch (Exception e) {
-								PlatformAdManager.debug("asx reply", e);
-								if (l != null) {
-									l.asxFailed();
-								}
-							} finally {
-								try {
-									asxInProgress_mon.enter();
-
-									AESemaphore sem = (AESemaphore) asxInProgress.remove(contentHash);
-									if (sem != null) {
-										sem.releaseForever();
-									} else {
-									}
-
-								} finally {
-									asxInProgress_mon.exit();
-								}
+					+ "/setinfo?name=adtracker&contentHash=" + contentHash + "&hash="
+					+ hash, 0, new PlatformAdManager.GetPlaylistReplyListener() {
+				public void replyReceived(String replyType, String playlist) {
+					try {
+						if (playlist == null) {
+							PlatformAdManager.debug("no asx in reply");
+							if (l != null) {
+								l.asxFailed();
 							}
+							return;
 						}
+						File asxFile = buildASXFileLocation(dm);
+						PlatformAdManager.debug("got asx. Writing to " + asxFile);
+						FileUtil.writeBytesAsFile(asxFile.getAbsolutePath(),
+								playlist.getBytes());
 
-						public void messageSent() {
+						dm.setData("LastASX", new Long(SystemTime.getCurrentTime()));
+						dm.setData("ASX", asxFile);
+
+						if (l != null) {
+							l.asxCreated(asxFile);
 						}
-					});
+					} catch (Exception e) {
+						PlatformAdManager.debug("asx reply", e);
+						if (l != null) {
+							l.asxFailed();
+						}
+					} finally {
+						try {
+							asxInProgress_mon.enter();
+
+							AESemaphore sem = (AESemaphore) asxInProgress.remove(hash);
+							if (sem != null) {
+								sem.releaseForever();
+							} else {
+							}
+
+						} finally {
+							asxInProgress_mon.exit();
+						}
+					}
+				}
+
+				public void messageSent() {
+				}
+			});
 		} catch (Exception e) {
 			if (l != null) {
 				l.asxFailed();
