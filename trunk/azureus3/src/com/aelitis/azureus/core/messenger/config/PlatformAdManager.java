@@ -161,8 +161,8 @@ public class PlatformAdManager
 
 			parameters.put("hash",
 					dmToPlay.getTorrent().getHashWrapper().toBase32String());
-			parameters.put("content-url", URLToPlay.replaceAll("^file:/([^/])",
-					"file:///$1"));
+			parameters.put("content-url", URLToPlay);
+			//URLToPlay.replaceAll("^file:/([^/])","file:///$1"));
 			parameters.put("tracking-urls", new String[] {
 				trackingURL
 			});
@@ -232,7 +232,8 @@ public class PlatformAdManager
 	}
 
 	public static void storeImpresssion(String trackingID, long viewedOn,
-			String contentHash, String adHash, String adID, long maxDelayMS) {
+			String contentHash, String adHash, String torrentHash, String adID,
+			long maxDelayMS) {
 		// pass in contentHash instead of DownloadManager in case the user removed
 		// the DM (and we are retrying)
 		try {
@@ -241,6 +242,9 @@ public class PlatformAdManager
 			ad.put("tracking-id", trackingID);
 			ad.put("viewed-on", new Long(viewedOn));
 			ad.put("content-hash", contentHash);
+			if (torrentHash != null) {
+				ad.put("torrent-hash", torrentHash);
+			}
 			if (adHash != null) {
 				ad.put("hash", adHash);
 			}
