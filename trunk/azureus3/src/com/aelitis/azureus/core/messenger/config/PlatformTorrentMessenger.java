@@ -41,6 +41,8 @@ public class PlatformTorrentMessenger
 
 	public static String OP_GETMETADATA = "get-metadata";
 
+	public static String OP_STREAMCOMPLETE = "stream-complete";
+
 	public static interface GetMetaDataReplyListener
 	{
 		public void messageSent();
@@ -106,5 +108,31 @@ public class PlatformTorrentMessenger
 		};
 
 		PlatformMessenger.queueMessage(message, listener);
+	}
+
+	public static void streamComplete(TOTorrent torrent, long waitTime,
+			int maxSeekAheadSecs, int numRebuffers, int numHardRebuffers) {
+		String hash = null;
+		try {
+			hash = torrent.getHashWrapper().toBase32String();
+		} catch (TOTorrentException e) {
+		}
+
+		if (hash == null) {
+			return;
+		}
+
+		Map mapParameters = new HashMap();
+
+		mapParameters.put("torrent-hash", hash);
+		mapParameters.put("wait-time", new Long(waitTime));
+		mapParameters.put("max-seek", new Long(maxSeekAheadSecs));
+		mapParameters.put("num-rebuffers", new Long(numRebuffers));
+		mapParameters.put("num-hard-rebuffers", new Long(numHardRebuffers));
+
+		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
+				OP_STREAMCOMPLETE, mapParameters, 5000);
+
+		PlatformMessenger.queueMessage(message, null);
 	}
 }
