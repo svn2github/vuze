@@ -210,7 +210,6 @@ public class SWTSkinObjectSlider
 
 		int drawWidth = fullWidth - imageThumbBounds.width;
 		int xThumbPos = (int) ((mouseDown && !mouseMoveAdjusts ? draggingPercent : percent) * drawWidth);
-		System.out.println("pc " + drawWidth + ";" + percent + ";" + (drawWidth * percent) + ";" + xThumbPos);
 		e.gc.drawImage(imageThumb, xThumbPos, 0);
 
 	}
