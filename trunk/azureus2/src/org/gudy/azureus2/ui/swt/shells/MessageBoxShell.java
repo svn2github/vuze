@@ -264,6 +264,7 @@ public class MessageBoxShell
 						});
 						browser.addOpenWindowListener(new OpenWindowListener() {
 							public void open(WindowEvent event) {
+								event.required = true;
 							}
 						});
 					}
