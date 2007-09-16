@@ -3087,7 +3087,7 @@ public class TableViewSWTImpl
 						TableRowSWT row = (TableRowSWT) iter.next();
 						TableCellSWT cell = row.getTableCellSWT(sColumnID);
 						if (cell != null) {
-							cell.refresh();
+							cell.refresh(false,false,false);
 						}
 					}
 				}

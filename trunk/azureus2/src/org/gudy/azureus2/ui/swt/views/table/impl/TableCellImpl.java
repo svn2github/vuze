@@ -830,105 +830,109 @@ public class TableCellImpl
 
   private boolean bInRefresh = false;
   public boolean refresh(boolean bDoGraphics, boolean bRowVisible,
-			boolean bCellVisible)
-	{
-  	boolean ret = bCellVisuallyChangedSinceRefresh;
+	  boolean bCellVisible)
+  {
+	  boolean ret = bCellVisuallyChangedSinceRefresh;
 
-  	int iErrCount = 0;
-  	try {
-      if (refreshErrLoopCount > 2) {
-        return bCellVisuallyChangedSinceRefresh;
-      }
+	  int iErrCount = 0;
+	  try {
+		  if (refreshErrLoopCount > 2) {
+			  return bCellVisuallyChangedSinceRefresh;
+		  }
 
-      iErrCount = tableColumn.getConsecutiveErrCount();
-      if (iErrCount > 10) {
-      	refreshErrLoopCount = 3;
-        return bCellVisuallyChangedSinceRefresh;
-      }
-      
-      if (bInRefresh) {
-      	// Skip a Refresh call when being called from within refresh.
-      	// This could happen on virtual tables where SetData calls us again, or
-      	// if we ever introduce plugins to refresh.
-      	if (bDebug)
-      		debug("Calling Refresh from Refresh :) Skipping.");
-      	return bCellVisuallyChangedSinceRefresh;
-      }
-    	bInRefresh = true;
-  
-      // See bIsUpToDate variable comments
-      if (bCellVisible && !bIsUpToDate) {
-      	if (bDebug)
-      		debug("Setting Invalid because visible & not up to date");
-      	valid = false;
-      	bIsUpToDate = true;
-      } else if (!bCellVisible && bIsUpToDate) {
-      	bIsUpToDate = false;
-      }
+		  iErrCount = tableColumn.getConsecutiveErrCount();
+		  if (iErrCount > 10) {
+			  refreshErrLoopCount = 3;
+			  return bCellVisuallyChangedSinceRefresh;
+		  }
 
-    	if (bDebug) {
-    		debug("Cell Valid?" + valid + "; Visible?" + tableRow.isVisible() + "/" + bufferedTableItem.isShown());
-    	}
-      int iInterval = tableColumn.getRefreshInterval();
-    	if (iInterval == TableColumnCore.INTERVAL_INVALID_ONLY && !valid
-    			&& !bMustRefresh && bSortValueIsText && sortValue != null
-					&& tableColumn.getType() == TableColumnCore.TYPE_TEXT_ONLY) {
-    		if (bCellVisible) {
-	      	if (bDebug)
-	      		debug("fast refresh: setText");
-	    		ret = setText((String)sortValue);
-	    		valid = true;
-    		}
-    	} else if ((iInterval == TableColumnCore.INTERVAL_LIVE ||
-          (iInterval == TableColumnCore.INTERVAL_GRAPHIC && bDoGraphics) ||
-          (iInterval > 0 && (loopFactor % iInterval) == 0) ||
-          !valid || bMustRefresh)) 
-      {
-      	boolean bWasValid = isValid();
+		  if (bInRefresh) {
+			  // Skip a Refresh call when being called from within refresh.
+			  // This could happen on virtual tables where SetData calls us again, or
+			  // if we ever introduce plugins to refresh.
+			  if (bDebug)
+				  debug("Calling Refresh from Refresh :) Skipping.");
+			  return bCellVisuallyChangedSinceRefresh;
+		  }
+		  bInRefresh = true;
 
-      	if (bDebug)
-      		debug("invoke refresh; wasValid? " + bWasValid);
+		  // See bIsUpToDate variable comments
+		  if (bCellVisible && !bIsUpToDate) {
+			  if (bDebug)
+				  debug("Setting Invalid because visible & not up to date");
+			  valid = false;
+			  bIsUpToDate = true;
+		  } else if (!bCellVisible && bIsUpToDate) {
+			  bIsUpToDate = false;
+		  }
 
-      	long lTimeStart = SystemTime.getCurrentTime();
-        tableColumn.invokeCellRefreshListeners(this);
-        if (refreshListeners != null) {
-          for (int i = 0; i < refreshListeners.size(); i++) {
-            ((TableCellRefreshListener)(refreshListeners.get(i))).refresh(this);
-          }
-        }
-      	long lTimeEnd = SystemTime.getCurrentTime();
-      	tableColumn.addRefreshTime(lTimeEnd - lTimeStart);
+		  if (bDebug) {
+			  debug("Cell Valid?" + valid + "; Visible?" + tableRow.isVisible() + "/" + bufferedTableItem.isShown());
+		  }
+		  int iInterval = tableColumn.getRefreshInterval();
+		  if (iInterval == TableColumnCore.INTERVAL_INVALID_ONLY && !valid
+			  && !bMustRefresh && bSortValueIsText && sortValue != null
+			  && tableColumn.getType() == TableColumnCore.TYPE_TEXT_ONLY) {
+			  if (bCellVisible) {
+				  if (bDebug)
+					  debug("fast refresh: setText");
+				  ret = setText((String)sortValue);
+				  valid = true;
+			  }
+		  } else if ((iInterval == TableColumnCore.INTERVAL_LIVE ||
+			  (iInterval == TableColumnCore.INTERVAL_GRAPHIC && bDoGraphics) ||
+			  (iInterval > 0 && (loopFactor % iInterval) == 0) ||
+			  !valid || bMustRefresh)) 
+		  {
+			  boolean bWasValid = isValid();
 
-        // Change to valid only if we weren't valid before the listener calls
-        // This is in case the listeners set valid to false when it was true
-        if (!bWasValid) 
-        	valid = true;
-        
-        if (bMustRefresh)
-        	bMustRefresh = false;
-      }
-      loopFactor++;
-      refreshErrLoopCount = 0;
-      if (iErrCount > 0)
-        tableColumn.setConsecutiveErrCount(0);
-      
-    	ret = bCellVisuallyChangedSinceRefresh;
-    	if (bDebug)
-    		debug("refresh done; visual change? " + ret + ";" + Debug.getCompressedStackTrace());
-    } catch (Throwable e) {
-      refreshErrLoopCount++;
-      if (tableColumn != null) {
-      	tableColumn.setConsecutiveErrCount(++iErrCount);
-      }
-      pluginError(e);
-      if (refreshErrLoopCount > 2)
-      	Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
-						"TableCell will not be refreshed anymore this session."));
-    } finally {
-    	bCellVisuallyChangedSinceRefresh = false;
-    	bInRefresh = false;
-    }
-  	return ret;
+			  if (bDebug)
+				  debug("invoke refresh; wasValid? " + bWasValid);
+
+			  long lTimeStart = SystemTime.getCurrentTime();
+			  tableColumn.invokeCellRefreshListeners(this, !bRowVisible || !bCellVisible);
+			  if (refreshListeners != null) {
+				  for (int i = 0; i < refreshListeners.size(); i++) {
+					  TableCellRefreshListener l = (TableCellRefreshListener)refreshListeners.get(i);
+					  if(l instanceof TableCellLightRefreshListener)
+						  ((TableCellLightRefreshListener)l).refresh(this,!bRowVisible || !bCellVisible);
+					  else
+						  l.refresh(this);
+				  }
+			  }
+			  long lTimeEnd = SystemTime.getCurrentTime();
+			  tableColumn.addRefreshTime(lTimeEnd - lTimeStart);
+
+			  // Change to valid only if we weren't valid before the listener calls
+			  // This is in case the listeners set valid to false when it was true
+			  if (!bWasValid) 
+				  valid = true;
+
+			  if (bMustRefresh)
+				  bMustRefresh = false;
+		  }
+		  loopFactor++;
+		  refreshErrLoopCount = 0;
+		  if (iErrCount > 0)
+			  tableColumn.setConsecutiveErrCount(0);
+
+		  ret = bCellVisuallyChangedSinceRefresh;
+		  if (bDebug)
+			  debug("refresh done; visual change? " + ret + ";" + Debug.getCompressedStackTrace());
+	  } catch (Throwable e) {
+		  refreshErrLoopCount++;
+		  if (tableColumn != null) {
+			  tableColumn.setConsecutiveErrCount(++iErrCount);
+		  }
+		  pluginError(e);
+		  if (refreshErrLoopCount > 2)
+			  Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+				  "TableCell will not be refreshed anymore this session."));
+	  } finally {
+		  bCellVisuallyChangedSinceRefresh = false;
+		  bInRefresh = false;
+	  }
+	  return ret;
   }
   
   public boolean getVisuallyChangedSinceRefresh() {

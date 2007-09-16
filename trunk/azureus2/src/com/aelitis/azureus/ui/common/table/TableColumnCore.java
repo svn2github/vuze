@@ -89,7 +89,7 @@ public interface TableColumnCore
 	 *               
 	 * @since 2.1.0.0
 	 */
-	public void invokeCellRefreshListeners(TableCellCore cell) throws Throwable;
+	public void invokeCellRefreshListeners(TableCellCore cell, boolean fastRefresh) throws Throwable;
 
 	/**
 	 * Retrieve all the refresh listeners for the cell

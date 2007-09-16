@@ -588,7 +588,7 @@ public class TableColumnImpl
 		return bCoreDataSource;
 	}
 
-	public void invokeCellRefreshListeners(TableCellCore cell) throws Throwable {
+	public void invokeCellRefreshListeners(TableCellCore cell, boolean fastRefresh) throws Throwable {
 		//System.out.println(this + " :: invokeCellRefreshListeners" + cellRefreshListeners);
 		if (cellRefreshListeners == null) {
 			return;
@@ -598,16 +598,19 @@ public class TableColumnImpl
 
 		//System.out.println(this + " :: invokeCellRefreshListeners" + cellRefreshListeners.size());
 		for (int i = 0; i < cellRefreshListeners.size(); i++) {
+			
+			TableCellRefreshListener l = (TableCellRefreshListener)cellRefreshListeners.get(i); 
 
 			try {
-				((TableCellRefreshListener) (cellRefreshListeners.get(i))).refresh(cell);
-
+				if(l instanceof TableCellLightRefreshListener)
+					((TableCellLightRefreshListener)l).refresh(cell, fastRefresh);
+				else
+					l.refresh(cell);
 			} catch (Throwable e) {
 				
 				if (firstError == null) {
 					firstError = e;
 				}
-
 				Debug.printStackTrace(e);
 			}
 		}

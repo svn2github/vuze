@@ -46,7 +46,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
 public class NameItem extends CoreTableColumn implements
-		TableCellRefreshListener, ObfusticateCellText, TableCellDisposeListener
+		TableCellLightRefreshListener, ObfusticateCellText, TableCellDisposeListener
 {
 	private static boolean bShowIcon;
 
@@ -65,15 +65,16 @@ public class NameItem extends CoreTableColumn implements
 				TableManager.TABLE_TORRENT_FILES);
 		setType(TableColumn.TYPE_TEXT);
 	}
-
-	public void refresh(TableCell cell) {
+	
+	public void refresh(TableCell cell, boolean sortOnlyRefresh)
+	{
 		DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) cell.getDataSource();
 		String name = (fileInfo == null) ? "" : fileInfo.getFile(true).getName();
 		if (name == null)
 			name = "";
 		//setText returns true only if the text is updated
 		if (cell.setText(name) || !cell.isValid()) {
-			if (bShowIcon) {
+			if (bShowIcon && !sortOnlyRefresh) {
 				Image icon;
 				if (fileInfo == null) {
 					icon = null;
@@ -99,6 +100,11 @@ public class NameItem extends CoreTableColumn implements
 				((TableCellSWT) cell).setIcon(icon);
 			}
 		}
+	}
+
+	public void refresh(TableCell cell)
+	{
+		refresh(cell, false);
 	}
 
 	public String getObfusticatedText(TableCell cell) {

@@ -47,7 +47,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
 public class NameItem extends CoreTableColumn implements
-		TableCellRefreshListener, ObfusticateCellText, TableCellDisposeListener
+		TableCellLightRefreshListener, ObfusticateCellText, TableCellDisposeListener
 {
 	private static boolean bShowIcon;
 
@@ -69,7 +69,13 @@ public class NameItem extends CoreTableColumn implements
 		setMinWidth(100);
 	}
 
-	public void refresh(TableCell cell) {
+	public void refresh(TableCell cell)
+	{
+		refresh(cell, false);
+	}
+	
+	public void refresh(TableCell cell, boolean sortOnlyRefresh)
+	{
 		String name = null;
 		DownloadManager dm = (DownloadManager) cell.getDataSource();
 		if (dm != null)
@@ -78,8 +84,8 @@ public class NameItem extends CoreTableColumn implements
 			name = "";
 
 		//setText returns true only if the text is updated
-		if (cell.setText(name) || !cell.isValid()) {
-			if (dm != null && bShowIcon) {
+		if ((cell.setText(name) || !cell.isValid())) {
+			if (dm != null && bShowIcon && !sortOnlyRefresh) {
 				String path = dm.getDownloadState().getPrimaryFile();
 				if (path != null) {
 					// Don't ever dispose of PathIcon, it's cached and may be used elsewhere
