@@ -322,6 +322,7 @@ public class TorrentListView
 
 			public void keyPressed(KeyEvent e) {
 				if (e.keyCode == SWT.F5) {
+					updateCount();
 					Object[] selectedDataSources = getSelectedDataSources();
 					for (int i = 0; i < selectedDataSources.length; i++) {
 						DownloadManager dm = (DownloadManager) selectedDataSources[i];
