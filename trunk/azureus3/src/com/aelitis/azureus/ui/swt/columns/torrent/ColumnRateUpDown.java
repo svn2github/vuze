@@ -189,6 +189,9 @@ public class ColumnRateUpDown
 		boolean bMouseDowned = false;
 
 		public void cellMouseTrigger(final TableCellMouseEvent event) {
+			if (disabled) {
+				return;
+			}
 			Object ds = event.cell.getDataSource();
 			TOTorrent torrent0 = null;
 			if (ds instanceof TOTorrent) {
