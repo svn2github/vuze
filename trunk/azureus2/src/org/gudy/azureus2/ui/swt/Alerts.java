@@ -61,6 +61,8 @@ public class Alerts
 
 	private static transient boolean stopping;
 
+	private static List listeners = new ArrayList();
+
 	private Alerts() {
 	}
 
@@ -74,6 +76,7 @@ public class Alerts
 		showMessageBox(relatedTo, type, MessageText.getString(key), message, null);
 	}
 
+	// All ShowMessageBox* functions should end up here..
 	private static void showMessageBox(Object[] relatedTo, final int type,
 			String title, String message, String details) {
 		final Display display = SWTThread.getInstance().getDisplay();
@@ -129,6 +132,15 @@ public class Alerts
 		MessageSlideShell.recordMessage(type, title, message2 == null ? ""
 				: message2, details, relatedTo);
 
+		
+		for (Iterator iter = listeners.iterator(); iter.hasNext();) {
+			AlertListener l = (AlertListener) iter.next();
+			if (!l.allowPopup(relatedTo, type)) {
+				suppress_popups = true;
+				return;
+			}
+		}
+		
 		if (suppress_popups) {
 			try {
 				alert_queue_mon.enter();
@@ -346,5 +358,14 @@ public class Alerts
 				showAlert(alert);
 			}
 		});
+	}
+
+	
+	public static void addListener(AlertListener l) {
+		listeners .add(l);
+	}
+	
+	public static interface AlertListener {
+		public boolean allowPopup(Object[] relatedObjects, int configID);
 	}
 }
