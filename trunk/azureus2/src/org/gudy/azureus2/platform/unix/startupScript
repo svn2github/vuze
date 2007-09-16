@@ -7,7 +7,7 @@ JAVA_PROGRAM_DIR=""	# use full path to java bin dir, ex. "/usr/java/j2sdk1.4.2/b
 JAVA_ARGS="-Xmx128m"
 
 #export MOZILLA_FIVE_HOME="/path/to/gre"	# Full path to GRE/Mozilla. When commenting out this line, also comment out the next line
-#if [ "$LD_LIBARARY_PATH x" = " x" ]; then export LD_LIBARARY_PATH=$MOZILLA_FIVE_HOME; else export LD_LIBARARY_PATH=$MOZILLA_FIVE_HOME:$LD_LIBRARY_PATH; fi
+#if [ "$LD_LIBRARY_PATH x" = " x" ]; then export LD_LIBRARY_PATH=$MOZILLA_FIVE_HOME; else export LD_LIBRARY_PATH=$MOZILLA_FIVE_HOME:$LD_LIBRARY_PATH; fi
 #######################################
 
 
