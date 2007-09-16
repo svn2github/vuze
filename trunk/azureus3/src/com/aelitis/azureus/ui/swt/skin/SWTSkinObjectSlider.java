@@ -77,7 +77,11 @@ public class SWTSkinObjectSlider
 
 	private boolean mouseDown;
 	
+	private boolean mouseMoveAdjusts = true;
+	
 	private ArrayList listeners = new ArrayList();
+
+	private double draggingPercent;
 
 	public SWTSkinObjectSlider(SWTSkin skin, SWTSkinProperties skinProperties,
 			String sID, String sConfigID, String[] typeParams, SWTSkinObject parent) {
@@ -205,7 +209,9 @@ public class SWTSkinObjectSlider
 		}
 
 		int drawWidth = fullWidth - imageThumbBounds.width;
-		e.gc.drawImage(imageThumb, (int) (drawWidth * percent), 0);
+		int xThumbPos = (int) ((mouseDown && !mouseMoveAdjusts ? draggingPercent : percent) * drawWidth);
+		System.out.println("pc " + drawWidth + ";" + percent + ";" + (drawWidth * percent) + ";" + xThumbPos);
+		e.gc.drawImage(imageThumb, xThumbPos, 0);
 
 	}
 
@@ -221,22 +227,8 @@ public class SWTSkinObjectSlider
 		if (this.percent == percent) {
 			return;
 		}
-		if (triggerListeners) {
-			Object[] listenersArray = listeners.toArray();
-			for (int i = 0; i < listenersArray.length; i++) {
-				SWTSkinListenerSliderSelection l = (SWTSkinListenerSliderSelection) listenersArray[i];
-				if (!l.selectionChanging(this.percent, percent)) {
-					return;
-				}
-			}
-		}
-		
-		if (percent < 0) {
-			percent = 0;
-		} else if (percent > 1) {
-			percent = 1;
-		}
-		this.percent = percent;
+
+		this.percent = validatePercent(percent, triggerListeners);
 
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
@@ -256,6 +248,31 @@ public class SWTSkinObjectSlider
 		}
 	}
 
+	/**
+	 * @return
+	 *
+	 * @since 3.0.2.3
+	 */
+	private double validatePercent(double percent, boolean triggerListeners) {
+		if (triggerListeners) {
+			Object[] listenersArray = listeners.toArray();
+			for (int i = 0; i < listenersArray.length; i++) {
+				SWTSkinListenerSliderSelection l = (SWTSkinListenerSliderSelection) listenersArray[i];
+				Double changedPercent = l.selectionChanging(this.percent, percent);
+				if (changedPercent != null) {
+					return changedPercent.floatValue();
+				}
+			}
+		}
+		
+		if (percent < 0) {
+			return 0;
+		} else if (percent > 1) {
+			return 1;
+		}
+		return percent;
+	}
+
 	// @see org.eclipse.swt.events.MouseListener#mouseDoubleClick(org.eclipse.swt.events.MouseEvent)
 	public void mouseDoubleClick(MouseEvent e) {
 	}
@@ -263,7 +280,6 @@ public class SWTSkinObjectSlider
 	// @see org.eclipse.swt.events.MouseListener#mouseDown(org.eclipse.swt.events.MouseEvent)
 	public void mouseDown(MouseEvent e) {
 		mouseDown = true;
-		System.out.println(e.x);
 
 		int offset = imageThumbBounds.width / 2;
 		int sizeX = maxSize.x;
@@ -273,20 +289,36 @@ public class SWTSkinObjectSlider
 		float newPercent = (e.x - offset)
 				/ (float) (sizeX - imageThumbBounds.width);
 		
-		Object[] listenersArray = listeners.toArray();
-		for (int i = 0; i < listenersArray.length; i++) {
-			SWTSkinListenerSliderSelection l = (SWTSkinListenerSliderSelection) listenersArray[i];
-			if (!l.selectionChanging(this.percent, newPercent)) {
-				return;
-			}
-		}
+		if (mouseMoveAdjusts) {
+			setPercent(newPercent, true);
+		} else {
+			draggingPercent = validatePercent(newPercent, true);
+			
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					if (canvas != null && !canvas.isDisposed()) {
+						canvas.redraw();
+						canvas.update();
+					}
+				}
+			});
 
-		setPercent(newPercent, true);
+		}
 	}
 
 	// @see org.eclipse.swt.events.MouseListener#mouseUp(org.eclipse.swt.events.MouseEvent)
 	public void mouseUp(MouseEvent e) {
 		mouseDown = false;
+		if (!mouseMoveAdjusts) {
+			int offset = imageThumbBounds.width / 2;
+			int sizeX = maxSize.x;
+			if (maxSize.x == 0) {
+				sizeX = canvas.getClientArea().width;
+			}
+			float newPercent = (e.x - offset)
+					/ (float) (sizeX - imageThumbBounds.width);
+			setPercent(newPercent, true);
+		}
 	}
 
 	// @see org.eclipse.swt.events.MouseMoveListener#mouseMove(org.eclipse.swt.events.MouseEvent)
@@ -300,7 +332,21 @@ public class SWTSkinObjectSlider
 			float newPercent = (e.x - offset)
 					/ (float) (sizeX - imageThumbBounds.width);
 
-			setPercent(newPercent, true);
+			if (mouseMoveAdjusts) {
+				setPercent(newPercent, true);
+			} else {
+				draggingPercent = validatePercent(newPercent, true);
+				
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						if (canvas != null && !canvas.isDisposed()) {
+							canvas.redraw();
+							canvas.update();
+						}
+					}
+				});
+
+			}
 		}
 	}
 
@@ -310,13 +356,29 @@ public class SWTSkinObjectSlider
 
 	public static class SWTSkinListenerSliderSelection
 	{
-		public boolean selectionChanging(double oldPercent, double newPercent) {
-			return true;
+		/**
+		 * 
+		 * @param oldPercent
+		 * @param newPercent
+		 * @return return null if you do not wish to change the value
+		 *
+		 * @since 3.0.2.3
+		 */
+		public Double selectionChanging(double oldPercent, double newPercent) {
+			return null;
 		}
 
 		public void selectionChanged(double percent) {
 			
 		}
+	}
+
+	public boolean getMouseMoveAdjusts() {
+		return mouseMoveAdjusts;
+	}
+
+	public void setMouseMoveAdjusts(boolean mouseMoveAdjusts) {
+		this.mouseMoveAdjusts = mouseMoveAdjusts;
 	}
 	
 }
