@@ -51,10 +51,13 @@ public class ScaledGraphic extends BackGroundGraphic {
   }
   
   protected void drawScale(boolean sizeChanged) {
-    if(drawCanvas == null || drawCanvas.isDisposed())
+    if(drawCanvas == null || drawCanvas.isDisposed() || !drawCanvas.isVisible())
       return;
    
     drawBackGround(sizeChanged);
+  	if (bufferBackground == null || bufferBackground.isDisposed()) {
+  		return;
+  	}
    
     boolean scaleChanged = lastMax != scale.getMax();
     

@@ -29,6 +29,7 @@ import org.eclipse.swt.widgets.Listener;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
@@ -202,7 +203,7 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
   }
   
   protected void drawChart(boolean sizeChanged) {
-  	if (drawCanvas == null || drawCanvas.isDisposed()) {
+  	if (drawCanvas == null || drawCanvas.isDisposed() || !drawCanvas.isVisible()) {
   		return;
   	}
    try{
