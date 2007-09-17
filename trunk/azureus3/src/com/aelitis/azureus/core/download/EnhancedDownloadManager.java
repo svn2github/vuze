@@ -2415,6 +2415,8 @@ EnhancedDownloadManager
 		private long	viewer_byte_position;
 		private long	viewer_byte_position_set_time;
 				
+		private long	last_warning;
+		
 		protected
 		progressiveStatsInternal(
 			DownloadManager					dm,
@@ -2523,8 +2525,6 @@ EnhancedDownloadManager
 		protected long
 		getViewerBytePosition()
 		{
-				// we expect regular updates. in their absence we fall back to all we have available
-			
 			long	now = SystemTime.getCurrentTime();
 			
 			if ( now < viewer_byte_position_set_time ){
@@ -2533,7 +2533,15 @@ EnhancedDownloadManager
 				
 			}else if ( now - viewer_byte_position_set_time > 10000 ){
 				
-				log( "Not receiving viewer position updates!" );
+				if ( viewer_byte_position != 0 ){
+				
+					if ( now < last_warning || now - last_warning >= 1000 ){
+					
+						last_warning	= now;
+						
+						log( "No recent viewer position update (current=" + viewer_byte_position + ")" );
+					}
+				}
 			}
 			
 			return( viewer_byte_position );
