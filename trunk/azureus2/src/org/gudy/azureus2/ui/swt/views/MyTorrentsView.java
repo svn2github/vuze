@@ -1197,20 +1197,19 @@ public class MyTorrentsView
 				txtFilter.setSelection(sLastSearch.length());
 			}
 
-			if (sLastSearch.length() > 0) {
 				if (bRegexSearch) {
-					try {
-						Pattern.compile(sLastSearch, Pattern.CASE_INSENSITIVE);
-						txtFilter.setBackground(Colors.colorAltRow);
-						Messages.setLanguageTooltip(txtFilter, "MyTorrentsView.filter.tooltip");
-					} catch (Exception e) {
-						txtFilter.setBackground(Colors.colorErrorBG);
-						txtFilter.setToolTipText(e.getMessage());
-					}
-				} else {
-					txtFilter.setBackground(null);
-					Messages.setLanguageTooltip(txtFilter, "MyTorrentsView.filter.tooltip");
+				try {
+					Pattern.compile(sLastSearch, Pattern.CASE_INSENSITIVE);
+					txtFilter.setBackground(Colors.colorAltRow);
+					Messages.setLanguageTooltip(txtFilter,
+							"MyTorrentsView.filter.tooltip");
+				} catch (Exception e) {
+					txtFilter.setBackground(Colors.colorErrorBG);
+					txtFilter.setToolTipText(e.getMessage());
 				}
+			} else {
+				txtFilter.setBackground(null);
+				Messages.setLanguageTooltip(txtFilter, "MyTorrentsView.filter.tooltip");
 			}
 		}
 		if (lblX != null && !lblX.isDisposed()) {
