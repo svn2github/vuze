@@ -24,17 +24,11 @@
 
 package org.gudy.azureus2.ui.swt;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.IOException;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.WeakHashMap;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
@@ -64,11 +58,7 @@ import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
-import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.GUIUpdater;
-import org.gudy.azureus2.ui.swt.mainwindow.Refreshable;
-import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
-import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
+import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -1864,35 +1854,13 @@ public class OpenTorrentWindow
 		}
 		
 		// Do a quick check to see if it's a torrent
-		String sFirstChunk = null;
-		try {
-			sFirstChunk = FileUtil.readFileAsString(torrentFile, 16384).toLowerCase();
-		} catch (IOException e) {
-			Debug.out("warning", e);
-		}
-		if (sFirstChunk != null && !sFirstChunk.startsWith("d")) {
-			boolean isHTML = sFirstChunk.indexOf("<html") >= 0;
-			MessageBoxShell boxShell = new MessageBoxShell(shellForChildren,
-					MessageText.getString("OpenTorrentWindow.mb.notTorrent.title"),
-					MessageText.getString("OpenTorrentWindow.mb.notTorrent.text",
-							new String[] {
-								torrentFile.getName(),
-								isHTML ? "" : sFirstChunk
-							}), new String[] {
-						MessageText.getString("Button.ok")
-					}, 0);
-			if (isHTML) {
-				boxShell.setHtml(sFirstChunk);
-			}
-			boxShell.open();
-
-			if (bDeleteFileOnCancel)
+		if (!TorrentUtil.isFileTorrent(torrentFile, shellForChildren,
+				torrentFile.getName())) {
+			if (bDeleteFileOnCancel) {
 				torrentFile.delete();
-
+			}
 			return null;
 		}
-
-
 
 		// Load up the torrent, see it it's real
 		try {
@@ -2154,6 +2122,9 @@ public class OpenTorrentWindow
 	// TorrentDownloaderCallBackInterface
 	public void TorrentDownloaderEvent(int state, final TorrentDownloader inf) {
 		// This method is run even if the window is closed.
+		
+		// The default is to delete file on cancel
+		// We set this flag to false if we detected the file was not a torrent
 		if (!inf.getDeleteFileOnCancel()
 				&& (state == TorrentDownloader.STATE_CANCELLED
 						|| state == TorrentDownloader.STATE_ERROR
@@ -2163,28 +2134,12 @@ public class OpenTorrentWindow
 			downloaders.remove(inf);
 
 			File file = inf.getFile();
-			String html = null;
+			// we already know it isn't a torrent.. we are just using the call
+			// to popup the message
+			TorrentUtil.isFileTorrent(file, shellForChildren, inf.getURL());
 			if (file.exists()) {
-				try {
-					html = FileUtil.readFileAsString(file, 16384);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
 				file.delete();
 			}
-			MessageBoxShell boxShell = new MessageBoxShell(shellForChildren,
-					MessageText.getString("OpenTorrentWindow.mb.notTorrent.title"),
-					MessageText.getString("OpenTorrentWindow.mb.notTorrent.text",
-							new String[] {
-								inf.getURL(),
-								""
-							}), new String[] {
-						MessageText.getString("Button.ok")
-					}, 0);
-			boxShell.setHtml(html);
-			boxShell.open();
-
 			return;
 		}
 

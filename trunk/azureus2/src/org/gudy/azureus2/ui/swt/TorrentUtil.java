@@ -21,6 +21,7 @@
 package org.gudy.azureus2.ui.swt;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URLEncoder;
 import java.util.Arrays;
@@ -28,16 +29,8 @@ import java.util.Arrays;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.DirectoryDialog;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.FileDialog;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -52,21 +45,15 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
-import org.gudy.azureus2.core3.util.AENetworkClassifier;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.core3.util.IPToHostNameResolver;
-import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.util.TorrentUtils;
-import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
 import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
 import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
-import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.InputShell;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.ViewUtils;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
@@ -76,7 +63,6 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
-import com.aelitis.azureus.ui.common.table.TableRowCore;
 
 /**
  * @author Allan Crooks
@@ -1495,5 +1481,50 @@ public class TorrentUtil {
 				Debug.printStackTrace(e);
 			}
 		}
+	}
+
+	/**
+	 * quick check to see if a file might be a torrent
+	 * @param torrentFile
+	 * @param deleteFileOnCancel
+	 * @param parentShell non-null: display a window if it's not a torrent
+	 * @return
+	 *
+	 * @since 3.0.2.3
+	 */
+	public static boolean isFileTorrent(File torrentFile, Shell parentShell,
+			String torrentName) {
+		String sFirstChunk = null;
+		try {
+			sFirstChunk = FileUtil.readFileAsString(torrentFile, 16384).toLowerCase();
+		} catch (IOException e) {
+			Debug.out("warning", e);
+		}
+		if (sFirstChunk == null) {
+			sFirstChunk = "";
+		}
+
+		if (!sFirstChunk.startsWith("d")) {
+			if (parentShell != null) {
+  			boolean isHTML = sFirstChunk.indexOf("<html") >= 0;
+  			MessageBoxShell boxShell = new MessageBoxShell(parentShell,
+  					MessageText.getString("OpenTorrentWindow.mb.notTorrent.title"),
+  					MessageText.getString("OpenTorrentWindow.mb.notTorrent.text",
+  							new String[] {
+									torrentName,
+									isHTML ? "" : sFirstChunk
+  							}), new String[] {
+  						MessageText.getString("Button.ok")
+  					}, 0);
+  			if (isHTML) {
+  				boxShell.setHtml(sFirstChunk);
+  			}
+  			boxShell.open();
+			}
+
+			return false;
+		}
+
+		return true;
 	}
 }
