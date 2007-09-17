@@ -326,15 +326,26 @@ public class MainMenu
 
 	public static void setVisibility(SWTSkin skin, String configID,
 			String viewID, boolean visible) {
+		setVisibility(skin, configID, viewID, visible, true);
+	}
+	
+	public static void setVisibility(SWTSkin skin, String configID,
+			String viewID, boolean visible, boolean save) {
 		SWTSkinObject skinObject = skin.getSkinObject(viewID);
 		// XXX Following wont work at startup because main window is invisible..
 		//		if (skinObject != null && skinObject.isVisible() != visible) {
 		if (skinObject != null) {
 			final Control control = skinObject.getControl();
 			if (control != null && !control.isDisposed()) {
+				Boolean wasVisible = (Boolean)control.getData("lastSlideVis");
+				if (wasVisible != null && wasVisible.booleanValue() == visible) {
+					return;
+				}
+				
 				if (control.getData("Sliding") != null) {
 					return;
 				}
+				control.setData("lastSlideVis", new Boolean(visible));
 				if (visible) {
 					final FormData fd = (FormData) control.getLayoutData();
 					Point size = (Point) control.getData("v3.oldHeight");
@@ -369,7 +380,8 @@ public class MainMenu
 				Utils.relayout(control);
 			}
 
-			if (COConfigurationManager.getBooleanParameter(configID) != visible) {
+			if (save
+					&& COConfigurationManager.getBooleanParameter(configID) != visible) {
 				COConfigurationManager.setParameter(configID, visible);
 			}
 		}
