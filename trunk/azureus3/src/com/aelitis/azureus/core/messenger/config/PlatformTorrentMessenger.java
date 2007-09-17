@@ -131,7 +131,7 @@ public class PlatformTorrentMessenger
 		mapParameters.put("num-hard-rebuffers", new Long(numHardRebuffers));
 
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
-				OP_STREAMCOMPLETE, mapParameters, 5000);
+				OP_STREAMCOMPLETE, mapParameters, 3000);
 
 		PlatformMessenger.queueMessage(message, null);
 	}
