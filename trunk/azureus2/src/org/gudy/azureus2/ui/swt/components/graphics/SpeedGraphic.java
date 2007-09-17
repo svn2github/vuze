@@ -238,8 +238,12 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
       int[] maxs = new int[all_values.length];
       for(int x = 0 ; x < bounds.width - 71 ; x++) {
         int position = currentPosition - x -1;
-        if(position < 0)
+        if(position < 0) {
           position+= 2000;
+          if (position < 0) {
+          	position = 0;
+          }
+        }
         for (int z=0;z<all_values.length;z++){
         	int value = all_values[z][position];
         	if(value > maxs[z]){
