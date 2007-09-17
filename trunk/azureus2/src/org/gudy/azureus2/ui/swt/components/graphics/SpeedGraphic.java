@@ -354,7 +354,7 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
         gcImage.drawText(formater.format(computeAverage(currentPosition-6)),bounds.width - 65,height - 12,true);
       }
    } catch (Exception e) {
-			Debug.out("Warning");
+			Debug.out("Warning", e);
    
     }finally{
     	
