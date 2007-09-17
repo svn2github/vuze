@@ -110,13 +110,12 @@ public class AdManager
 			public void downloadManagerAdded(final DownloadManager dm) {
 
 				TOTorrent torrent = dm.getTorrent();
-				if (PlatformTorrentUtils.getAdId(torrent) == null) {
-					hookDM(new DownloadManager[] {
-						dm
-					});
-				} else if (PlatformTorrentUtils.isContentAdEnabled(torrent)) {
+				if (PlatformTorrentUtils.isContentAdEnabled(torrent)) {
 					dm.setData("ASX", buildASXFileLocation(dm));
 				}
+				hookDM(new DownloadManager[] {
+					dm
+				});
 			}
 		}, false);
 		DownloadManager[] dms = (DownloadManager[]) gm.getDownloadManagers().toArray(
@@ -270,6 +269,7 @@ public class AdManager
 													adDM.setForceStart(false);
 												} else {
 													adDM.setForceStart(true);
+													PlatformAdManager.debug("Force Start " + adDM);
 													adDM.addListener(new DownloadManagerAdapter() {
 														public void downloadComplete(DownloadManager manager) {
 															if (!adsDMList.contains(manager)) {
@@ -367,6 +367,19 @@ public class AdManager
 		PlatformAdManager.debug("Get Ads"
 				+ (bIncludeIncomplete ? " including incomplete" : "") + ads.size());
 		return (DownloadManager[]) ads.toArray(new DownloadManager[0]);
+	}
+	
+	public List getIncompleteAds() {
+		ArrayList ads = new ArrayList(adsDMList);
+		for (Iterator iter = ads.iterator(); iter.hasNext();) {
+			DownloadManager dm = (DownloadManager) iter.next();
+			if (dm.getAssumedComplete()) {
+				iter.remove();
+			}
+		}
+
+		PlatformAdManager.debug("Get Incomplate Ads: " + ads.size());
+		return ads;
 	}
 
 	public void createASX(final DownloadManager dm, String URLToPlay,
