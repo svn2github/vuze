@@ -206,6 +206,8 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
   	if (drawCanvas == null || drawCanvas.isDisposed() || !drawCanvas.isVisible()) {
   		return;
   	}
+  	
+  	GC gcImage = null;
    try{
    	  this_mon.enter();
    		
@@ -227,7 +229,7 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
       
       bufferImage = new Image(drawCanvas.getDisplay(),bounds);
       
-      GC gcImage = new GC(bufferImage);
+      gcImage = new GC(bufferImage);
       
       gcImage.drawImage(bufferScale,0,0);
       
@@ -282,8 +284,12 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
       int maxHeight = scale.getScaledValue(max);
       for(int x = 0 ; x < bounds.width - 71 ; x++) {
         int position = currentPosition - x -1;
-        if(position < 0)
+        if(position < 0) {
           position+= 2000;
+          if (position < 0) {
+          	position = 0;
+          }
+        }
         
         int value = all_values[0][position];
         
@@ -348,9 +354,11 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
         gcImage.drawText(formater.format(computeAverage(currentPosition-6)),bounds.width - 65,height - 12,true);
       }    
       
-      gcImage.dispose();
-
     }finally{
+    	
+    	if (gcImage != null) {
+        gcImage.dispose();
+    	}
     	
     	this_mon.exit();
     }
