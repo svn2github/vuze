@@ -221,13 +221,23 @@ public class SWTSkinObjectSlider
 	public void setPercent(double percent) {
 		setPercent(percent, false);
 	}
+	
+	private boolean areDoublesEqual(double a, double b) {
+		return Math.abs(a - b) < 0.000001;
+	}
 
-	private void setPercent(double percent, boolean triggerListeners) {
-		if (this.percent == percent) {
+	private void setPercent(double newPercent, boolean triggerListeners) {
+		if (areDoublesEqual(percent, newPercent)) {
 			return;
 		}
 
-		this.percent = validatePercent(percent, triggerListeners);
+		newPercent = validatePercent(newPercent, triggerListeners);
+
+		if (areDoublesEqual(percent, newPercent)) {
+			return;
+		}
+		
+		this.percent = newPercent;
 
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
@@ -242,7 +252,7 @@ public class SWTSkinObjectSlider
 			Object[] listenersArray = listeners.toArray();
 			for (int i = 0; i < listenersArray.length; i++) {
 				SWTSkinListenerSliderSelection l = (SWTSkinListenerSliderSelection) listenersArray[i];
-				l.selectionChanged(percent);
+				l.selectionChanged(this.percent);
 			}
 		}
 	}
