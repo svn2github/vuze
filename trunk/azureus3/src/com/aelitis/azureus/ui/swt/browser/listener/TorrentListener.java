@@ -7,29 +7,15 @@ import org.eclipse.swt.widgets.Shell;
 
 import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
-import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentException;
-import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
-import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.ui.swt.FileDownloadWindow;
-import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
-import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
-import com.aelitis.azureus.ui.swt.utils.PlayNowList;
-import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.util.MapUtils;
 
 public class TorrentListener
@@ -69,7 +55,7 @@ public class TorrentListener
 			String url = MapUtils.getMapString(decodedMap, "url", null);
 			boolean playNow = MapUtils.getMapBoolean(decodedMap, "play-now", false);
 			if (url != null) {
-				loadTorrent(core, url, message.getReferer(), playNow);
+				TorrentUIUtilsV3.loadTorrent(core, url, message.getReferer(), playNow);
 			} else {
 				loadTorrentByB64(core, message, MapUtils.getMapString(decodedMap,
 						"b64", null));
@@ -126,107 +112,5 @@ public class TorrentListener
 			return false;
 		}
 		return true;
-	}
-
-	public static void loadTorrent(final AzureusCore core, String url,
-			String referer, final boolean playNow) {
-		boolean blocked = PlatformConfigMessenger.isURLBlocked(url);
-		// Security: Only allow torrents from whitelisted urls
-		if (blocked) {
-			Debug.out("stopped loading torrent URL because it's not in whitelist");
-			return;
-		}
-
-		try {
-			// If it's going to our URLs, add some extra authenication
-			if (url.indexOf("azid=") < 0) {
-				url += (url.indexOf('?') < 0 ? "?" : "&") + Constants.URL_SUFFIX;
-			}
-			UIFunctionsSWT uiFunctions = (UIFunctionsSWT) UIFunctionsManager.getUIFunctions();
-			if (uiFunctions != null) {
-				if (!COConfigurationManager.getBooleanParameter("add_torrents_silently")) {
-					uiFunctions.bringToFront();
-				}
-
-				Shell shell = uiFunctions.getMainShell();
-				if (shell != null) {
-					new FileDownloadWindow(core, shell, url, referer,
-							new TorrentDownloaderCallBackInterface() {
-
-								public void TorrentDownloaderEvent(int state,
-										TorrentDownloader inf) {
-									if (state == TorrentDownloader.STATE_FINISHED) {
-
-										TOTorrent torrent;
-										try {
-											torrent = TorrentUtils.readFromFile(inf.getFile(), false);
-										} catch (TOTorrentException e) {
-											Debug.out(e);
-											return;
-										}
-										// Security: Only allow torrents from whitelisted trackers
-										if (!PlatformTorrentUtils.isPlatformTracker(torrent)) {
-											Debug.out("stopped loading torrent because it's not in whitelist");
-											return;
-										}
-
-										HashWrapper hw;
-										try {
-											hw = torrent.getHashWrapper();
-										} catch (TOTorrentException e1) {
-											Debug.out(e1);
-											return;
-										}
-										
-										GlobalManager gm = core.getGlobalManager();
-										
-										if (playNow) {
-  										DownloadManager existingDM = gm.getDownloadManager(hw);
-  										if (existingDM != null) {
-  											TorrentListViewsUtils.playOrStream(existingDM);
-  											return;
-  										}
-										}
-
-										final HashWrapper fhw = hw;
-
-										GlobalManagerListener l = new GlobalManagerAdapter() {
-											public void downloadManagerAdded(DownloadManager dm) {
-
-												try {
-													core.getGlobalManager().removeListener(this);
-
-													HashWrapper hw = dm.getTorrent().getHashWrapper();
-													if (!hw.equals(fhw)) {
-														return;
-													}
-
-													boolean showHomeHint = true;
-													if (playNow) {
-														showHomeHint = !TorrentListViewsUtils.playOrStream(dm);
-													}
-													if (showHomeHint) {
-														TorrentListViewsUtils.showHomeHint(dm);
-													}
-												} catch (Exception e) {
-													Debug.out(e);
-												}
-											}
-										};
-										gm.addListener(l, false);
-
-										if (playNow) {
-											PlayNowList.add(hw);
-										}
-
-										TorrentOpener.openTorrent(inf.getFile().getAbsolutePath());
-									}
-								}
-							});
-				}
-			}
-		} catch (Exception e) {
-			Debug.out(e);
-		}
 	}
 }

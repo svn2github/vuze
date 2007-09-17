@@ -640,7 +640,7 @@ public class MainWindow
 								String url = MapUtils.getMapString(decodedMap, "url", null);
 								boolean playNow = MapUtils.getMapBoolean(decodedMap,
 										"play-now", false);
-								TorrentListener.loadTorrent(core, url, MapUtils.getMapString(
+								TorrentUIUtilsV3.loadTorrent(core, url, MapUtils.getMapString(
 										decodedMap, "referer", null), playNow);
 							} else {
 								return false;
