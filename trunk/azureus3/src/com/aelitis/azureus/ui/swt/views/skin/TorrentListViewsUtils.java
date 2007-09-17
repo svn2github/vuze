@@ -49,6 +49,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
+import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.download.EnhancedDownloadManager;
@@ -73,6 +74,7 @@ import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.win32.Win32Utils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
 
@@ -289,8 +291,7 @@ public class TorrentListViewsUtils
 				if (!bDisabled) {
 					TableRowCore[] rows = view.getSelectedRows();
 					DownloadManager dm = (DownloadManager) rows[0].getDataSource(true);
-					if (!dm.isDownloadComplete(false)
-							&& !canUseEMP(dm.getTorrent())) {
+					if (!dm.isDownloadComplete(false) && !canUseEMP(dm.getTorrent())) {
 						DownloadManagerEnhancer dmEnhancer = DownloadManagerEnhancer.getSingleton();
 						if (dmEnhancer != null) {
 							EnhancedDownloadManager edm = dmEnhancer.getEnhancedDownload(dm);
@@ -313,7 +314,7 @@ public class TorrentListViewsUtils
 
 		return btn;
 	}
-	
+
 	public static boolean canUseEMP(TOTorrent torrent) {
 		return PlatformTorrentUtils.useEMP(torrent) && embeddedPlayerAvail();
 	}
@@ -327,6 +328,15 @@ public class TorrentListViewsUtils
 		if (dm == null) {
 			return false;
 		}
+
+		TOTorrent torrent = dm.getTorrent();
+		if (canUseEMP(torrent)) {
+			if (openInEMP(dm)) {
+				return true;
+			}
+			// fallback to normal
+		}
+
 		if (btn != null) {
 			btn.setDisabled(true);
 		}
@@ -334,14 +344,12 @@ public class TorrentListViewsUtils
 		boolean reenableButton = false;
 		try {
 			boolean bComplete = dm.isDownloadComplete(false);
-			TOTorrent torrent = dm.getTorrent();
-
-			boolean useEMP = canUseEMP(torrent);
 
 			File file;
 			String sFile = null;
 
-			EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(dm);
+			EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(
+					dm);
 			if (edm != null) {
 				file = edm.getPrimaryFile().getFile(true);
 				sFile = file.getAbsolutePath();
@@ -351,7 +359,6 @@ public class TorrentListViewsUtils
 			}
 
 			if (!bComplete
-					&& !useEMP
 					&& edm != null
 					&& (!edm.supportsProgressiveMode() || edm.getProgressivePlayETA() > 0)) {
 				edm.setProgressiveMode(true);
@@ -359,8 +366,8 @@ public class TorrentListViewsUtils
 			}
 			String ext = FileUtil.getExtension(sFile);
 
-			boolean untrusted = !useEMP && isUntrustworthyContent(ext);
-			boolean trusted = useEMP || isTrustedContent(ext);
+			boolean untrusted = isUntrustworthyContent(ext);
+			boolean trusted = isTrustedContent(ext);
 
 			if (untrusted || !trusted) {
 				String sPrefix = untrusted ? "v3.mb.notTrusted."
@@ -453,9 +460,8 @@ public class TorrentListViewsUtils
 		AEThread thread = new AEThread("runFile", true) {
 			public void runSupport() {
 				if (canUseEMP(torrent)) {
-					if (openInEMP(torrent, runFile)) {
-						return;
-					}
+					Debug.out("Can't call runFile with EMP torrent.");
+					return;
 				}
 
 				if (PlatformTorrentUtils.isContentDRM(torrent) || forceWMP) {
@@ -475,18 +481,20 @@ public class TorrentListViewsUtils
 	 *
 	 * @since 3.0.2.3
 	 */
-	private static boolean openInEMP(TOTorrent torrent, String runFile) {
+	private static boolean openInEMP(DownloadManager dm) {
 		Class epwClass = null;
 		try {
-			PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID("azemp");
-			
-			if ( pi == null ){
-				
-				return( false );
+			PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
+					"azemp");
+
+			if (pi == null) {
+
+				return (false);
 			}
-			
-			epwClass = pi.getPlugin().getClass().getClassLoader().loadClass("com.azureus.plugins.azemp.ui.swt.emp.EmbeddedPlayerWindowSWT");
-			
+
+			epwClass = pi.getPlugin().getClass().getClassLoader().loadClass(
+					"com.azureus.plugins.azemp.ui.swt.emp.EmbeddedPlayerWindowSWT");
+
 		} catch (ClassNotFoundException e1) {
 			return false;
 		}
@@ -494,26 +502,24 @@ public class TorrentListViewsUtils
 		try {
 
 			Method method = epwClass.getMethod("openWindow", new Class[] {
-				TOTorrent.class,
-				String.class
+				DownloadManager.class
 			});
 
 			method.invoke(null, new Object[] {
-				torrent,
-				runFile
+				dm
 			});
 
 			return true;
 		} catch (Throwable e) {
 			e.printStackTrace();
-			if (!e.getMessage().endsWith("Only")) {
+			if (e.getMessage() == null || !e.getMessage().endsWith("Only")) {
 				Debug.out(e);
 			}
 		}
 
 		return false;
 	}
-	
+
 	private static boolean embeddedPlayerAvail() {
 		// cache true, always recheck false in case plugin installs.
 		if (embeddedPlayerAvail) {
@@ -521,13 +527,14 @@ public class TorrentListViewsUtils
 		}
 
 		try {
-			if ( AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID("azemp") != null ){
-			
+			if (AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
+					"azemp") != null) {
+
 				embeddedPlayerAvail = true;
 			}
 		} catch (Throwable e1) {
 		}
-		
+
 		return embeddedPlayerAvail;
 	}
 
@@ -668,25 +675,31 @@ public class TorrentListViewsUtils
 		return Arrays.binarySearch(badExts, ext) >= 0;
 	}
 
+	public static String getMediaServerContentURL(DownloadManager dm) {
+		try {
+			return getMediaServerContentURL(DownloadManagerImpl.getDownloadStatic(dm));
+		} catch (DownloadException e) {
+		}
+		return null;
+	}
+
 	/**
-	 * 
+	 * @param dl
+	 *
+	 * @since 3.0.2.3
 	 */
-	public static void playViaMediaServer(Download download) {
-		PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
-				"azupnpav");
+	private static String getMediaServerContentURL(Download dl) {
+		PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
+		PluginInterface pi = pm.getPluginInterfaceByID("azupnpav");
 
 		if (pi == null) {
-
 			Logger.log(new LogEvent(LogIDs.UI3, "Media server plugin not found"));
-
-			return;
+			return null;
 		}
 
 		if (!pi.isOperational()) {
-
 			Logger.log(new LogEvent(LogIDs.UI3, "Media server plugin not operational"));
-
-			return;
+			return null;
 		}
 
 		try {
@@ -697,39 +710,45 @@ public class TorrentListViewsUtils
 			pi.getIPC().invoke("setQuickTimeAvailable", new Object[] {
 				new Boolean(hasQuickTime)
 			});
+
+			Object url = pi.getIPC().invoke("getContentURL", new Object[] {
+				dl
+			});
+			if (url instanceof String) {
+				return (String) url;
+			}
 		} catch (Throwable e) {
 			Logger.log(new LogEvent(LogIDs.UI3, LogEvent.LT_WARNING,
 					"IPC to media server plugin failed", e));
 		}
 
+		return null;
+	}
+
+	/**
+	 * 
+	 */
+	public static void playViaMediaServer(Download download) {
 		try {
-			File file;
+			String contentURL = getMediaServerContentURL(download);
+
 			final DownloadManager dm = ((DownloadImpl) download).getDownload();
-			EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(dm);
-			if (edm != null) {
-				file = edm.getPrimaryFile().getFile(true);
-				edm.setProgressiveMode(true);
-			} else {
-				file = new File(dm.getDownloadState().getPrimaryFile());
+
+			if (contentURL == null) {
+				File file;
+				EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(
+						dm);
+				if (edm != null) {
+					file = edm.getPrimaryFile().getFile(true);
+					edm.setProgressiveMode(true);
+				} else {
+					file = new File(dm.getDownloadState().getPrimaryFile());
+				}
+
+				contentURL = file.getAbsolutePath();
 			}
 
-			String url = null;
-			try {
-				url = file.toURL().toString();
-			} catch (MalformedURLException e) {
-			}
-
-			Object urlObj = pi.getIPC().invoke("getContentURL", new Object[] {
-				download
-			});
-			if (urlObj instanceof String) {
-				url = (String) urlObj;
-			}
-			
-			if (url == null) {
-				url = dm.getDownloadState().getPrimaryFile();
-			}
-			final String fURL = url;
+			final String fURL = contentURL;
 
 			TOTorrent torrent = dm.getTorrent();
 			if (PlatformTorrentUtils.isContentAdEnabled(torrent)) {
@@ -745,17 +764,11 @@ public class TorrentListViewsUtils
 						});
 			} else {
 				// force to WMP if we aren't using EMP
-				runFile(torrent, url, true);
+				runFile(torrent, contentURL, true);
 			}
 		} catch (Throwable e) {
-			try {
-				pi.getIPC().invoke("playDownload", new Object[] {
-					download
-				});
-			} catch (Throwable e2) {
-				Logger.log(new LogEvent(LogIDs.UI3,
-						"IPC to media server plugin failed", e2));
-			}
+			Logger.log(new LogEvent(LogIDs.UI3, "IPC to media server plugin failed",
+					e));
 		}
 	}
 
@@ -863,8 +876,8 @@ public class TorrentListViewsUtils
 		// Show a popup when user adds a download
 		// if it wasn't added recently, it's not a new download
 		if (SystemTime.getCurrentTime()
-						- dm.getDownloadState().getLongParameter(
-								DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME) < 10000
+				- dm.getDownloadState().getLongParameter(
+						DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME) < 10000
 				&& !PublishUtils.isPublished(dm)
 				&& !dm.getDownloadState().getFlag(DownloadManagerState.FLAG_LOW_NOISE)) {
 			Utils.execSWTThread(new AERunnable() {
