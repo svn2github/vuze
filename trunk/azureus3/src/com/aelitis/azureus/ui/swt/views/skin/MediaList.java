@@ -379,30 +379,61 @@ public class MediaList
 
 				int h = txtFilter.getClientArea().height - (Constants.isOSX ? 0 : 2);
 				Font font = Utils.getFontWithHeight(txtFilter.getFont(), null, h);
-				
+
 				composite.getParent().layout();
 
 				if (font != null) {
-  				final Font fFont = font;
-  				txtFilter.setFont(fFont);
-  
-  				txtFilter.addDisposeListener(new DisposeListener() {
-  					public void widgetDisposed(DisposeEvent e) {
-  						if (fFont != null && !fFont.isDisposed()) {
-  							txtFilter.setFont(null);
-  							fFont.dispose();
-  						}
-  					}
-  				});
+					final Font fFont = font;
+					txtFilter.setFont(fFont);
+
+					txtFilter.addDisposeListener(new DisposeListener() {
+						public void widgetDisposed(DisposeEvent e) {
+							if (fFont != null && !fFont.isDisposed()) {
+								txtFilter.setFont(null);
+								fFont.dispose();
+							}
+						}
+					});
 				}
+
+				txtFilter.addKeyListener(new KeyListener() {
+					public void keyReleased(KeyEvent e) {
+					}
+
+					public void keyPressed(KeyEvent e) {
+						int key = e.character;
+						if (key <= 26 && key > 0)
+							key += 'a' - 1;
+						if (e.stateMask == SWT.CONTROL) {
+							if (key == 'x') {
+								bRegexSearch = !bRegexSearch;
+								e.doit = false;
+								updateLastSearch();
+							}
+						}
+					}
+				});
 
 				view.addKeyListener(new KeyListener() {
 					public void keyReleased(KeyEvent e) {
 					}
 
 					public void keyPressed(KeyEvent e) {
+						int key = e.character;
+						if (key <= 26 && key > 0)
+							key += 'a' - 1;
+						if (e.stateMask == SWT.CONTROL) {
+							if (key == 'x') {
+								bRegexSearch = !bRegexSearch;
+								e.doit = false;
+								updateLastSearch();
+								return;
+							}
+						}
+
 						if (e.keyCode != SWT.BS) {
-							if ((e.stateMask & (~SWT.SHIFT)) != 0 || e.character < 32) {
+							if ((e.stateMask & (~SWT.SHIFT)) != 0 || e.character < 32
+									|| e.character == 127) {
 								return;
 							}
 						}
@@ -442,22 +473,23 @@ public class MediaList
 				txtFilter.setSelection(sLastSearch.length());
 			}
 
-			if (sLastSearch.length() > 0) {
-				if (bRegexSearch) {
-					try {
-						Pattern.compile(sLastSearch, Pattern.CASE_INSENSITIVE);
-						txtFilter.setBackground(Colors.colorAltRow);
-						Messages.setLanguageTooltip(txtFilter,
-								"MyTorrentsView.filter.tooltip");
-					} catch (Exception e) {
-						txtFilter.setBackground(Colors.colorErrorBG);
-						txtFilter.setToolTipText(e.getMessage());
-					}
-				} else {
-					txtFilter.setBackground(null);
+			if (bRegexSearch) {
+				try {
+					Pattern.compile(sLastSearch, Pattern.CASE_INSENSITIVE);
+					Display display = txtFilter.getDisplay();
+					txtFilter.setBackground(display.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+					txtFilter.setForeground(display.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
 					Messages.setLanguageTooltip(txtFilter,
 							"MyTorrentsView.filter.tooltip");
+				} catch (Exception e) {
+					txtFilter.setBackground(Colors.colorErrorBG);
+					txtFilter.setForeground(null);
+					txtFilter.setToolTipText(e.getMessage());
 				}
+			} else {
+				txtFilter.setBackground(null);
+				txtFilter.setForeground(null);
+				Messages.setLanguageTooltip(txtFilter, "MyTorrentsView.filter.tooltip");
 			}
 		}
 		if (lblX != null && !lblX.isDisposed()) {
