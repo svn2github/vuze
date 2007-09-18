@@ -82,6 +82,8 @@ public class SWTSkinObjectSlider
 	private ArrayList listeners = new ArrayList();
 
 	private double draggingPercent;
+	
+	private boolean disabled;
 
 	public SWTSkinObjectSlider(SWTSkin skin, SWTSkinProperties skinProperties,
 			String sID, String sConfigID, String[] typeParams, SWTSkinObject parent) {
@@ -288,6 +290,9 @@ public class SWTSkinObjectSlider
 
 	// @see org.eclipse.swt.events.MouseListener#mouseDown(org.eclipse.swt.events.MouseEvent)
 	public void mouseDown(MouseEvent e) {
+		if (disabled) {
+			return;
+		}
 		mouseDown = true;
 
 		int offset = imageThumbBounds.width / 2;
@@ -317,6 +322,9 @@ public class SWTSkinObjectSlider
 
 	// @see org.eclipse.swt.events.MouseListener#mouseUp(org.eclipse.swt.events.MouseEvent)
 	public void mouseUp(MouseEvent e) {
+		if (disabled) {
+			return;
+		}
 		mouseDown = false;
 		if (!mouseMoveAdjusts) {
 			int offset = imageThumbBounds.width / 2;
@@ -332,6 +340,9 @@ public class SWTSkinObjectSlider
 
 	// @see org.eclipse.swt.events.MouseMoveListener#mouseMove(org.eclipse.swt.events.MouseEvent)
 	public void mouseMove(MouseEvent e) {
+		if (disabled) {
+			return;
+		}
 		if (mouseDown) {
 			int offset = imageThumbBounds.width / 2;
 			int sizeX = maxSize.x;
@@ -389,5 +400,18 @@ public class SWTSkinObjectSlider
 	public void setMouseMoveAdjusts(boolean mouseMoveAdjusts) {
 		this.mouseMoveAdjusts = mouseMoveAdjusts;
 	}
-	
+
+	public boolean isDisabled() {
+		return disabled;
+	}
+
+	public void setDisabled(boolean disabled) {
+		if (disabled == this.disabled) {
+			return;
+		}
+		this.disabled = disabled;
+		if (disabled) {
+			mouseDown = false;
+		}
+	}
 }
