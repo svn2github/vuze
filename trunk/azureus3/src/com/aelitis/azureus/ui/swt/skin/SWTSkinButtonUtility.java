@@ -127,7 +127,9 @@ public class SWTSkinButtonUtility
 						skinImageObject.setImageByID(id);
 					}
 				}
-				Utils.relayout(skinObject.getControl());
+				if (skinObject.isVisible()) {
+					Utils.relayout(skinObject.getControl());
+				}
 			}
 		});
 	}
