@@ -43,6 +43,8 @@ public class ColumnTitle
 	implements TableCellRefreshListener, ObfusticateCellText
 {
 	public static String COLUMN_ID = "name";
+	
+	public static boolean SHOW_EXT_INFO = false;
 
 	static public String s = "";
 
@@ -75,7 +77,7 @@ public class ColumnTitle
 			return;
 		}
 
-		if (name.length() > 0) {
+		if (SHOW_EXT_INFO && name.length() > 0) {
 			String path = dm.getDownloadState().getPrimaryFile();
 			if (path != null) {
 				int pos = path.lastIndexOf('.');
