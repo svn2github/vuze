@@ -2952,9 +2952,15 @@ public class ListView
 			cell.doPaint(gcImgView);
 
 			Rectangle rect = cell.getBounds();
-			listCanvas.redraw(rect.x, rect.y, rect.width, rect.height, false);
+			if (rect != null) {
+				listCanvas.redraw(rect.x, rect.y, rect.width, rect.height, false);
+			}
 		} catch (Exception e) {
-			Debug.out(e);
+			if (cell instanceof TableCellCore) {
+				Debug.out(((TableCellCore)cell).getTableColumn().getName(), e);
+			} else {
+				Debug.out(e);
+			}
 		} finally {
 			if (gcImgView != null) {
 				gcImgView.dispose();
