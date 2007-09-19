@@ -295,6 +295,7 @@ public class ListView
 						public void runSupport() {
 							refreshVisible(true, true, true);
 							refreshScrollbar();
+							handleResize(true);
 						}
 					});
 				} else {
