@@ -85,12 +85,14 @@ CopyOnWriteList
 	public Iterator
 	iterator()
 	{
-		return( list.iterator());
+		return( new CopyOnWriteListIterator( list.iterator()));
 	}
 	
 	public List
 	getList()
 	{
+			// TODO: we need to either make this a read-only-list or obey the copy-on-write semantics correctly...
+		
 		return( list );
 	}
 	
@@ -107,4 +109,47 @@ CopyOnWriteList
 		return( version );
 	}
 	*/
+	
+	private class
+	CopyOnWriteListIterator
+		implements Iterator
+	{
+		private Iterator	it;
+		private Object		last;
+		
+		protected
+		CopyOnWriteListIterator(
+			Iterator		_it )
+		{
+			it		= _it;
+		}
+		
+		public boolean
+		hasNext()
+		{
+			return( it.hasNext());
+		}
+		
+		public Object
+		next()
+		{
+			last	= it.next();
+			
+			return( last );
+		}
+		
+		public void
+		remove()
+		{
+				// don't actually remove it from the iterator. can't go backwards with this iterator so this is
+				// not a problem
+			
+			if ( last == null ){
+			
+				throw( new IllegalStateException( "next has not been called!" ));
+			}
+			
+			CopyOnWriteList.this.remove( last );
+		}
+	}
 }

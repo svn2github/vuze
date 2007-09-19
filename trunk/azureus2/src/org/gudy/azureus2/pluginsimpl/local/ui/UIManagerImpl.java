@@ -48,6 +48,8 @@ import org.gudy.azureus2.plugins.ui.model.PluginConfigModel;
 import org.gudy.azureus2.plugins.ui.model.PluginViewModel;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
+import com.aelitis.azureus.core.util.CopyOnWriteList;
+
 
 
 
@@ -62,12 +64,14 @@ UIManagerImpl
 {	
 	protected static AEMonitor	class_mon = new AEMonitor( "UIManager:class" );
 	
-	protected static boolean	initialisation_complete;
-	protected static List		ui_listeners		= new ArrayList();
-	protected static List		ui_event_listeners	= new ArrayList();
+	protected static boolean				initialisation_complete;
+	
+	protected static CopyOnWriteList		ui_listeners		= new CopyOnWriteList();
+	protected static CopyOnWriteList		ui_event_listeners	= new CopyOnWriteList();
+	
 	protected static List		ui_factories		= new ArrayList();
 	protected static List		ui_event_history	= new ArrayList();
-	protected static List configModels = new ArrayList();
+	protected static List 		configModels 		= new ArrayList();
 	
 	
 	protected PluginInterface		pi;
@@ -224,9 +228,11 @@ UIManagerImpl
 
 				UIInstanceFactory	instance = (UIInstanceFactory)ui_factories.get(j);
 				
-  				for (int i=0;i<ui_listeners.size();i++){
+  				Iterator it = ui_listeners.iterator();
 
- 					Object[]	entry = (Object[])ui_listeners.get(i);
+  				while( it.hasNext()){
+  					
+ 					Object[]	entry = (Object[])it.next();
   					
   					try{
   						((UIManagerListener)entry[0]).UIAttached( 
@@ -254,10 +260,12 @@ UIManagerImpl
   			ui_factories.add( factory );
   			
   			if ( initialisation_complete ){
-  				
-  				for (int i=0;i<ui_listeners.size();i++){
-  					
-  					Object[]	entry = (Object[])ui_listeners.get(i);
+  							
+  				Iterator it = ui_listeners.iterator();
+
+  				while( it.hasNext()){
+  					  					
+  					Object[]	entry = (Object[])it.next();
   					
   					try{
   						((UIManagerListener)entry[0]).UIAttached( 
@@ -290,9 +298,11 @@ UIManagerImpl
   			
   			if ( initialisation_complete ){
   				
-  				for (int i=0;i<ui_listeners.size();i++){
+  				Iterator it = ui_listeners.iterator();
+
+  				while( it.hasNext()){
   					
- 					Object[]	entry = (Object[])ui_listeners.get(i);
+ 					Object[]	entry = (Object[])it.next();
   					
   					try{
    						((UIManagerListener)entry[0]).UIDetached( 
@@ -437,10 +447,12 @@ UIManagerImpl
  	{
  		boolean	delivered	= false;
  		
- 		for (int i=0;i<ui_event_listeners.size();i++){
+		Iterator event_it = ui_event_listeners.iterator();
+
+		while( event_it.hasNext()){
  			
  			try{
- 				if (((UIManagerEventListener)ui_event_listeners.get(i)).eventOccurred( event )){
+ 				if (((UIManagerEventListener)event_it.next()).eventOccurred( event )){
  					
  					delivered = true;
  					
@@ -475,11 +487,11 @@ UIManagerImpl
  			
  			delivered = true;
  			
- 			Iterator 	it = ui_event_history.iterator();
+ 			Iterator 	history_it = ui_event_history.iterator();
  			
- 			while( it.hasNext()){
+ 			while( history_it.hasNext()){
  				
- 				UIManagerEvent	e = (UIManagerEvent)it.next();
+ 				UIManagerEvent	e = (UIManagerEvent)history_it.next();
  			
  				int	e_type = e.getType();
  				
@@ -488,7 +500,7 @@ UIManagerImpl
  		 
  					if ( e.getData() == event.getData()){
  						
- 						it.remove();
+ 						history_it.remove();
  						
  						break;
  					}
