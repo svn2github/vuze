@@ -1101,17 +1101,19 @@ public class Utils {
 		if (size.y == targetSize.y && size.x == targetSize.x) {
 			return;
 		}
-
+		
 		if (expandOnly && size.y >= targetSize.y && size.x >= targetSize.x) {
 			parent.layout();
 			return;
 		}
 		
 		while (parent != null) {
-			parent.layout(true);
+			parent.layout(true, true);
 			parent = parent.getParent();
 
 			Point newSize = control.getSize();
+			
+			//System.out.println("new=" + newSize + ";target=" + targetSize);
 			
 			if (newSize.y >= targetSize.y && newSize.x >= targetSize.x) {
 				break;
