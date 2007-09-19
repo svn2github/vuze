@@ -115,12 +115,15 @@ AddressUtils
 		
 		if ( instance_manager == null ){
 			
-			try{
-				instance_manager = AzureusCoreFactory.getSingleton().getInstanceManager();
+			if ( AzureusCoreFactory.isCoreAvailable()){
 				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace(e);
+				try{
+					instance_manager = AzureusCoreFactory.getSingleton().getInstanceManager();
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
 			}
 		}
 		
