@@ -91,12 +91,15 @@ public class SWTBGImagePainter
 		}
 
 		if (bDirty) {
+			if (control.isVisible()) {
 			buildBackground(control);
+			}
 		}
 
 		if (!TEST_SWT_PAINTING) {
 			control.addListener(SWT.Resize, this);
 			control.addListener(SWT.Paint, this);
+			control.getShell().addListener(SWT.Show, this);
 		}
 	}
 
@@ -110,6 +113,9 @@ public class SWTBGImagePainter
 		if (bDirty) {
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
+					if (!control.isVisible()) {
+						return;
+					}
 					buildBackground(control);
 				}
 			});
@@ -425,14 +431,23 @@ public class SWTBGImagePainter
 
 			if (DEBUG) {
 				System.out.println("BGPaint:HE: " + control.getData("ConfigID") + ";"
-						+ event);
+						+ event + ";" + control.isVisible());
 			}
 			buildBackground(control);
 		} else if (event.type == SWT.Paint) {
 			Control control = (Control) event.widget;
 			if (DEBUG) {
 				System.out.println("BGPaint:P: " + control.getData("ConfigID") + ";"
-						+ event);
+						+ event + ";" + control.isVisible());
+			}
+
+			if (!TEST_SWT_PAINTING) {
+				buildBackground(control);
+			}
+		} else if (event.type == SWT.Show) {
+			if (DEBUG) {
+				System.out.println("BGPaint:S: " + control.getData("ConfigID") + ";"
+						+ event + ";" + control.isVisible());
 			}
 
 			if (!TEST_SWT_PAINTING) {
