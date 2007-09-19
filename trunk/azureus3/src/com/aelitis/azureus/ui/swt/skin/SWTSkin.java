@@ -590,7 +590,8 @@ public class SWTSkin
 					// Object, Offset, Alignment
 					String sWidget = sParams[0];
 
-					SWTSkinObject configSkinObject = getSkinObjectByID(sWidget);
+					SWTSkinObject configSkinObject = getSkinObjectByID(sWidget,
+							skinObject.getParent());
 					int iNextPos;
 					if (configSkinObject != null) {
 						control = configSkinObject.getControl();
