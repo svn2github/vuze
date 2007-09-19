@@ -349,11 +349,14 @@ public class MainMenu
 				if (visible) {
 					final FormData fd = (FormData) control.getLayoutData();
 					Point size = (Point) control.getData("v3.oldHeight");
-					//System.out.println("oldHeight = " + size + ";v=" + control.getVisible() + ";s=" + control.getSize());
+					//System.out.println(control.getData("SkinID") + " oldHeight = " + size + ";v=" + control.getVisible() + ";s=" + control.getSize());
 					if (size == null && control.getSize().y < 2) {
 						size = control.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 						if (fd.height > 0) {
 							size.y = fd.height;
+						}
+						if (fd.width > 0) {
+							size.x = fd.width;
 						}
 					}
 
@@ -423,6 +426,7 @@ public class MainMenu
 					fd.height = size.y;
 					//System.out.println(control + "] side to " + size.y + " done");
 					control.setLayoutData(fd);
+					control.setSize(size);
 					Utils.relayout(control);
 					control.setData("Sliding", null);
 				} else {
