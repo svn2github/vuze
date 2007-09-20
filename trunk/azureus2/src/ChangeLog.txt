@@ -4,12 +4,12 @@ AZUREUS CHANGELOG
 2007.09.20 | Azureus 3.0.3.0
 
 FEATURE: Core | Added experimental support for LibTorrent extension protocol handshake [amc1]
+FEATURE: Core | Providing some experimental options for possible workarounds for a particular traffic shaping method
+                 See http://www.azureuswiki.com/index.php/Avoid_traffic_shaping#Level_5 for further details 
 FEATURE: UI   | Added available disk space indicators to the torrent open dialog (requires Java 1.6) [The 8472]
 FEATURE: UI   | Added "handshake reserved bytes" column in peer view [amc1]
 FEATURE: UI   | Added "Open Transfer Bar on start" and "Remember Transfer Bar" location options [amc1]
 FEATURE: UI   | Added http-seed config to torrent creation wizard [Parg]
-FEATURE: Core | Providing some experimental options for possible workarounds for a paticular traffic shaping method
-                 See http://www.azureuswiki.com/index.php/Avoid_traffic_shaping#Level_5 for further details 
 FEATURE: UIv3 | Embedded Media Player [TuxPaper] 
 
 CHANGE: Core  | Speedup hash-checking by ~30% / less CPU usage [The 8472]
