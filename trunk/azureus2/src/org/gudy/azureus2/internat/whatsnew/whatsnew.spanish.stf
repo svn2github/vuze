@@ -1,26 +1,26 @@
 $ 
-$    Welcome to Azureus 3.0.3.0
+$    Bienvenido a Azureus 3.0.3.0
 $ 
 
-+1. What's new in Azureus 3.0.3.0
++1. Lo nuevo en Azureus 3.0.3.0
 
-Noteable changes in this version:
+Cambios destacables en esta versión:
 
-!1.1 Experimental Support for LibTorrent Extension Protocol Handshake
-  * Provides a bridge between Azureus' Peer Exchange and LibTorrent's
+!1.1 Soporte Experimental de la Extensión LibTorrent para el Protocolo Handshake
+  * Proporciona un puente entre el "Intercambio de Pares" de Azureus y el de LibTorrent
 
-!1.2 Disk Space Indicators on the Torrent Open Dialog
-  * Requires Java 1.6
+!1.2 Indicadores del Espacio en Disco sobre el Diálogo "Abrir Torrent"
+  * Necesita Java 1.6
 
-!1.3 (Vuze User Interface) Embedded Media Player
-  * With an embedded media player, we can better guarantee that content downloaded from vuze.com can be played on your system.
+!1.3 (Interfaz de Usuario Vuze) Reproductor de Medios Incorporado
+  * Incluyendo un reproductor de medios, tenemos más garantías para poder reproducir en su sistema el contenido descargado desde vuze.com.
 
-!1.4 Other Noteables
-  * Speedup hash-checking by ~30% / less CPU usage
-  * Bug fixes!
+!1.4 Otros puntos Destacables
+  * Aligerada la comprobación de hash en un ~30% / menor uso de CPU
+  * ¡Arreglo de fallos!
 
 
-    Full ChangeLog http://azureus.sourceforge.net/changelog.php?version=3.0.3.0
+    Listado completo de cambios en http://azureus.sourceforge.net/changelog.php?version=3.0.3.0
 
 
 +2. Lo nuevo en Azureus 3.0.2.0
@@ -47,6 +47,7 @@ Noteable changes in this version:
    
 !2.5 Sub-vista del Mapa de Partes
    * La pestaña de partes contiene ahora un mapa de partes, que te ofrece un vista general de la distribución de partes entre los clientes a los que esta conectado, las partes que estas descargando en ese momento (flecha grande hacia abajo), las partes que planeas descargar (flecha pequeña hacia abajo), las partes que estas enviando (flecha grande hacia arriba), y las siguientes que vas a enviar (flecha pequeña hacia abajo).  Las partes más raras están marcadas con borde sólido, y las siguientes partes mas raras con uno por puntos.
+
 !2.6 Asitente para Pruebas de Velocidad
    * Descubra los valores que Azureus cree que son sus velocidades máximas para envío y descarga.
 
