@@ -1,26 +1,26 @@
 $ 
-$    Welcome to Azureus 3.0.3.0
+$    Willkommen zu Azureus 3.0.3.0
 $ 
 
-+1. What's new in Azureus 3.0.3.0
++1. Was ist neu in Azureus 3.0.3.0
 
-Noteable changes in this version:
+Erwähnenswerte Änderungen in dieser Version:
 
-!1.1 Experimental Support for LibTorrent Extension Protocol Handshake
-  * Provides a bridge between Azureus' Peer Exchange and LibTorrent's
+!1.1 Experimentelle Unterstützung für LibTorrent Extension Protocol Handshake
+  * Ermöglicht PEX (Peer Exchange) zwischen Azureus and LibTorrent
 
-!1.2 Disk Space Indicators on the Torrent Open Dialog
-  * Requires Java 1.6
+!1.2 Anzeige von verfügbarem Speicherplatz beim Öffnen von Torrents
+  * Benötigt Java 1.6
 
-!1.3 (Vuze User Interface) Embedded Media Player
-  * With an embedded media player, we can better guarantee that content downloaded from vuze.com can be played on your system.
+!1.3 (Vuze-Benutzeroberfläche) Eingebetteter Media Player
+  * Mit dem eingebetteten Player kann garantiert werden, dass von vuze.com heruntergeladener Inhalt abgespielt werden kann.
 
-!1.4 Other Noteables
-  * Speedup hash-checking by ~30% / less CPU usage
+!1.4 Weiteres
+  * Beschleunigung der Hash-Überprüfung um ~30% / geringere CPU-Nutzung
   * Bug fixes!
 
 
-    Full ChangeLog http://azureus.sourceforge.net/changelog.php?version=3.0.3.0
+    Ausführliches ChangeLog http://azureus.sourceforge.net/changelog.php?version=3.0.3.0
 
 
 +2. Was ist neu in Azureus 3.0.2.0
