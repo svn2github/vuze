@@ -903,11 +903,7 @@ public class TableColumnImpl
 			}
 
 			int val;
-			if (c0isString && !c1isString) {
-				val = -1;
-			} else if (c1isString && !c0isString) {
-				val = 1;
-			} else if (c1 == null) {
+			if (c1 == null) {
 				if (c0 == null) {
 					return 0;
 				}
@@ -916,6 +912,10 @@ public class TableColumnImpl
 			} else if (c0 == null) {
 				// always place nulls at bottom
 				return 1;
+			} else if (c0isString && !c1isString) {
+				val = -1;
+			} else if (c1isString && !c0isString) {
+				val = 1;
 			} else {
 				val = c1.compareTo(c0);
 			}
