@@ -1,20 +1,39 @@
 $ 
-$    Tervetuloa käyttämään versiota 3.0.2.2
+$    Welcome to Azureus 3.0.3.0
 $ 
 
-Azureus 3.0.2.0 palauttaa versionumeroinnin yhteneväksi ja vähentää näin epäselvyyksiä siitä, mikä 2.x-sarjan versio vastaa mitäkin 3.x-sarjan versiota. Tämänhetkiset 2.x-sarjan käyttäjät saavat päivityksen myötä edelleen perinteisen käyttöliittymän, kun taas uudet ja vanhat 3.x-sarjan käyttäjät saavat oletuksena Vuze-käyttöliittymän. Käyttöliittymästä voi vaihtaa vapaasti toiseen.
++1. What's new in Azureus 3.0.3.0
 
-+1. Mitä uutta on Azureus 3.0.2.0:ssa
+Noteable changes in this version:
+
+!1.1 Experimental Support for LibTorrent Extension Protocol Handshake
+  * Provides a bridge between Azureus' Peer Exchange and LibTorrent's
+
+!1.2 Disk Space Indicators on the Torrent Open Dialog
+  * Requires Java 1.6
+
+!1.3 (Vuze User Interface) Embedded Media Player
+  * With an embedded media player, we can better guarantee that content downloaded from vuze.com can be played on your system.
+
+!1.4 Other Noteables
+  * Speedup hash-checking by ~30% / less CPU usage
+  * Bug fixes!
+
+
+    Full ChangeLog http://azureus.sourceforge.net/changelog.php?version=3.0.3.0
+
+
++2. Mitä uutta on Azureus 3.0.2.0:ssa
 
 + Uudistukset perinteisessä käyttöliittymässä ja Azureuksen ytimessä 2.5.0.4:n jälkeen
 
-!1.1 Torrent-tiedosto-valikko
+!2.1 Torrent-tiedosto-valikko
    * Päävalikkoon sijoitettu uusi valikko tarjoaa samat valinnat kuin Siirrot-ikkunassa hiiren oikealla painikkeella avattu valikko.
 
-!1.2 Osien jakelu -näkymä
+!2.2 Osien jakelu -näkymä
    * Uusi näkymä on valittavissa torrent-tiedoston Osat-välilehdeltä
 
-!1.3 Liukukytkimet lataus- ja lähetysnopeusrajoitusten asettamiselle
+!2.3 Liukukytkimet lataus- ja lähetysnopeusrajoitusten asettamiselle
    * Lataus- ja lähetysnopeusrajoitukset voidaan nyt asettaa liukukytkinten avulla tilarivillä hiiren oikealla painikkeella klikkaamalla. Toiminnot:
       - Paina hiiren painike pohjaan, siirrä liukukytkin haluamaasi nopeuteen ja vapauta painike.
       - Halutun nopeuden voi syöttää myös suoraan näppäimistöltä.
@@ -23,32 +42,32 @@ Azureus 3.0.2.0 palauttaa versionumeroinnin yhteneväksi ja vähentää näin ep
       - Control + Page Up/Control + Page Down säätää nopeutta sadalla.
       - Mahdollisuus asettaa valittavaksi esiasetetut nopeusarvot.
 
-!1.4 IP-suotimien automaattinen lataaminen
+!2.4 IP-suotimien automaattinen lataaminen
    * Voit määrittää paikallisen IP-suodintiedoston tai tiedoston URL-osoitteesta ladattavaksi käynnistettäessä. Tuettuja tiedostomuotoja ovat DAT (eMule), P2P (PeerGuardian, splist) ja P2B:n versiot 1, 2 ja 3 (PeerGuardian 2).
    
-!1.5 Kuvaus osista -näkymä
+!2.5 Kuvaus osista -näkymä
    * Torrent-tiedoston Osat-välilehti sisältää nyt Kuvaus osista -näkymän, joka näyttää yleiskuvan siitä, miten osat ovat jakaantuneet yhdistettyjen käyttäjien kesken, mitä osia lataat parhaillaan (iso nuoli alaspäin), mitä osia aiotaan ladata seuraavaksi (pieni nuoli alaspäin), mitä osia lähetät parhaillaan (iso nuoli ylöspäin) ja mitä osia aiotaan lähettää seuraavaksi (pieni nuoli ylöspäin). Harvinaisimmat osat merkitään yhtenäisellä reunuksella, yleisemmät katkonaisella.
 
-!1.6 Nopeustesti
+!2.6 Nopeustesti
    * Nopeustesti auttaa määrittämään optimaaliset lähetys- ja latausnopeusrajoitukset.
 
-!1.7 Uusi algoritmi automaattiseen lataus- ja lähetysnopeusrajoitusten asettamiseen
+!2.7 Uusi algoritmi automaattiseen lataus- ja lähetysnopeusrajoitusten asettamiseen
    * Uuden algoritmin pitäisi olla aiempaa tarkempi, helpottaen näin esimerkiksi Internet-sivujen selailua. Voit valita uuden algoritmin käyttöön asetuksista (Siirrot | Autom. nopeus) valitsemalla vaihtoehdon "Auto-Speed (beeta)". Palautetta otetaan vastaan!
 
-!1.8 Lisää hallintamahdollisuuksia
+!2.8 Lisää hallintamahdollisuuksia
    * Käyttäjä- ja luokkakohtaiset lataus- ja lähetysnopeusrajoitukset.
    * Torrent-tiedosto-kohtainen tehostettu lähetys.
    * Uusia mahdollisuuksia tyhjentää tallennettuja tietoja ja valintoja.
 
-!1.9 Lisää tietoa
+!2.9 Lisää tietoa
    * Siirron tila, jaetut kopiot ja valmistuneiden osien määrä torrent-tiedoston Yleiset-välilehdellä.
    * Valmistunut-sarake lisätty Siirrot-ikkunaan.
    * Mahdollisuus avata uusi Siirrot-palkki työpöydälle (esittää kaikkien siirtojen edistymisen).
   
-!1.10 Vähentynyt muistinkäyttö
+!2.10 Vähentynyt muistinkäyttö
    * Yksittäisten tiedostojen lataamisen ja jonossa olevien torrent-tiedostojen muistinkäyttöä on optimoitu.
 
-!1.11 Muuta
+!2.11 Muuta
    * Parempi käyttäytyminen järjestelmän mennessä keskeytystilaan ja palautuessa siitä Windows-ympäristössä.
    * Azureus tunnistaa nyt yli 30 uutta asiakasohjelmaa ja joitain yleisimpiä väärennettyjä asiakasohjelmia. Myös vanhojen asiakasohjelmien tunnistamista on parannettu.
    * Käyttäjäviestit korruptoituneista osista ilmoittamiselle.
@@ -61,65 +80,65 @@ Azureus 3.0.2.0 palauttaa versionumeroinnin yhteneväksi ja vähentää näin ep
 
 Seuraavassa tärkeimmät ominaisuudet, jotka on lisätty tai joita on parannettu version 3.0.0.6 jälkeen:
 
-!1.12 Suoratoisto UPnP Media Server -toiminnon avulla
+!2.12 Suoratoisto UPnP Media Server -toiminnon avulla
    * Tietynlaista sisältöä voidaan ladata osa osalta järjestyksessään niin, että voit aloittaa katsomisen ennen kuin lataus on täysin valmistunut. Valitse "Suoratoista"-painike parhaillaan ladattavan kohteen kohdalta, jonka jälkeen näkyviin ilmestyy pian "Toista"-painike. Sen valitseminen käynnistää toiston kesken latauksen.
 
-!1.13 Muutokset saraketiedoissa
+!2.13 Muutokset saraketiedoissa
    * Nopeuden graafisesti ilmaiseva sarake on poistettu parhaillaan ladattavien kohdalta (3.0.2.0).
    * Lisätty Valmistunut-sarake Oma kirjasto -välilehdelle (3.0.1.0).
    * Lisätty videon laadun ilmaiseva sarake parhaillaan ladattavien kohdalle ja Omaan kirjastoon (3.0.0.6).
 
-!1.14 Ulkoasultaan parannetut sanomaikkunat (3.0.1.0)
+!2.14 Ulkoasultaan parannetut sanomaikkunat (3.0.1.0)
    * Siirtoja koskevat sanomaikkunat näyttävät nyt pienoiskuvat siirroista.
 
-!1.15 Sarakkeiden automaattinen piilottaminen (3.0.0.6)
+!2.15 Sarakkeiden automaattinen piilottaminen (3.0.0.6)
    * Sarakkeita piilotetaan automaattisesti parhaillaan ladattavien, viimeksi ladattujen ja Oman kirjaston alueilla, jos kaikille sarakkeille ei ole riittävästi tilaa.
 
-!1.16 Lisävarmistukset sisällön poistamiselle (3.0.0.6)
+!2.16 Lisävarmistukset sisällön poistamiselle (3.0.0.6)
    * Jos olet aikeissa poistaa sisältöä, johon olet hankkinut lisenssin (esimerkiksi sisältö, josta olet maksanut), kysytään poistamisesta lisävarmistus.
   
-!1.17 Automaattiset päivitykset (3.0.0.6)
+!2.17 Automaattiset päivitykset (3.0.0.6)
    * Azureuksen päivitykset ladataan ja asennetaan nyt automaattisesti.
 
-!1.18 Oman kirjaston nimisuodatus (3.0.0.6)
+!2.18 Oman kirjaston nimisuodatus (3.0.0.6)
    * Oman kirjaston kohteita voidaan nyt suodattaa yhden tai useamman merkkijonon perusteella. Suodattaaksesi useilla käytä merkkijonojen välissä puolipistettä tai putkimerkkiä (|).
   
     Kaikki muutokset: http://azureus.sourceforge.net/changelog.php?version=3.0.2.0
 
-+2. Mitä uutta on Azureus 2.5.0.2:ssa/2.5.0.4:ssä (3.0.0.6)
++3. Mitä uutta on Azureus 2.5.0.2:ssa/2.5.0.4:ssä (3.0.0.6)
 
-!2.1 Vähentynyt muistinkäyttö
+!3.1 Vähentynyt muistinkäyttö
    * Huomattavimpana tekijänä se, että torrent-tiedostojen osista ei enää säilytetä tietoja muistissa kun niitä ei tarvita.
   
-!2.2 Yhtäaikaisten aktiivisten latausten vähimmäismäärä
+!3.2 Yhtäaikaisten aktiivisten latausten vähimmäismäärä
    * Mahdollisuus määritellä, että aina ladataan vähintään tiettyä määrää torrent-tiedostoja.
   
-!2.3 Uusia saraketietoja
+!3.3 Uusia saraketietoja
    * Omat kommentit torrent-tiedostoille (Siirrot-ikkuna).
    * Tiedoston tyyppi (Tiedostot-näkymä).
 
-!2.4 Nopeampi käynnistyminen kuormitettuna
+!3.4 Nopeampi käynnistyminen kuormitettuna
    * Käynnistymisnopeutta on parannettu tilanteissa, jolloin ladattuna on suuri määrä torrent-tiedostoja (jopa 400 % nopeammin tietyissä olosuhteissa). Jotkut lisäosat saattavat kuitenkin itse käsitellä kaikkia torrent-tiedostoja heti käynnistettäessä, jolloin eroa on vaikea huomata.
 
-!2.5 Muuta
+!3.5 Muuta
    * Lukuisia parannuksia käyttöliittymään.
    * Ohjelmavirhekorjauksia.
    * Muistivuotopaikkauksia.
  
-!2.6 Java 5.0 -huomautus
+!3.6 Java 5.0 -huomautus
    * Sun Java 5 -sarjan kymmenes päivitys (Update 10) korjaa kahvavuoto-ongelman, joka on haitannut yleisesti Azureuksen toimintaa. Päivittäminen ko. versioon tai uudempaan on suositeltavaa. Voit ladata päivityksen osoitteesta http://java.com/en/download/manual.jsp
 
     Kaikki muutokset: http://azureus.sourceforge.net/changelog.php?version=2.5.0.4
 
-+3. Mitä uutta on Azureus 2.5.0.0:ssa
++4. Mitä uutta on Azureus 2.5.0.0:ssa
 
-!3.1 Lähetä ystävälle/WWW-sivulle
+!4.1 Lähetä ystävälle/WWW-sivulle
    * Tämä toiminto auttaa sisällön levittämisessä sähköpostin tai WWW-sivun välityksellä. Voit siis kertoa hyvästä ladattavasta materiaalista ystävällesi sähköpostin avulla tai kirjoittaa asiasta vaikkapa omaan verkkopäiväkirjaasi.
 
-!3.2 Automaattinen lähetysnopeuden asettaminen
+!4.2 Automaattinen lähetysnopeuden asettaminen
    * Lähetysnopeutta voidaan säädellä tutkimalla Internet-yhteyden vasteaikoja, kun lähetetään tiedustelupaketteja muille hajautetun tietokannan käyttäjille.
 
-!3.3 Muita uusia ominaisuuksia
+!4.3 Muita uusia ominaisuuksia
    * OSX: torrent-tiedostojen avaaminen Azureukseen suoraan esimerkiksi työpöydältä/Finderista.
    * Ei-ladattavia tiedostoja käsitellään johdonmukaisemmin suhteessa latauksen valmistumiseen.
    * Lataushakemiston uudelleennimeäminen.
@@ -132,26 +151,26 @@ Seuraavassa tärkeimmät ominaisuudet, jotka on lisätty tai joita on parannettu
  Älä unohda lisäosia - http://azureus.sourceforge.net/plugin_list.php
    * Uusi etähallinnan mahdollistava lisäosa - AzSMRC
   
-!3.4 Ohjelmavirhekorjauksia ja parannuksia suorituskykyyn
+!4.4 Ohjelmavirhekorjauksia ja parannuksia suorituskykyyn
  Huomattavia korjauksia:
    * Lähiverkkokäyttö tehokkaampaa; käyttäjät tunnistetaan tarkemmin.
    * Suoritinkäytön pienentäminen, kun ollaan yhteydessä suureen määrään käyttäjiä.
     
     Kaikki muutokset: http://azureus.sourceforge.net/changelog.php?version=2.5.0.0
     
-+4. Yleiset ongelmat
++5. Yleiset ongelmat
 
-!4.1 NAT-ongelma
+5.1 NAT-ongelma
  NAT-lyhenne tulee sanoista Network Address Translation. Azureuksen NAT- ja palomuuritesti kertoo, saadaanko sinuun esteittä yhteys ulkoapäin. Esteettömällä yhteydellä saavutetaan paremmat siirtonopeudet.
  Älä suoraan ota yhteyttä Azureuksen kehittäjiin, jos törmäät NAT-ongelmaan. Internetissä on paljon ohjeita ongelman ratkaisemiseksi. Katso ensin:
  - http://azureus.aelitis.com/wiki/index.php/PortForwarding
  - http://www.portforward.com
  
-!4.2 Azureus kaatuu?
+5.2 Azureus kaatuu?
  Jos Azureus kaatuilee usein, todennäköisin syy on tietokoneen verkkokomponenteissa (verkkokortti, sen ajurit, käyttöjärjestelmän verkko-ominaisuudet). Suositus on, että päivität kaikki verkkoyhteyteen vaikuttavien laitteiden ajurit. Jos tämä ei auta, järjestelmä ei todennäköisesti kestä kovin suurta yhteysmäärää kerrallaan.
  Alenna avattavien yhteyksien määrää Azureuksessa (Työkalut | Asetukset | Siirrot | Yhteyksien oletusenimmäismäärä/torrent-tiedosto ja Yhteyksien enimmäismäärä kaikkiaan). Kokeile pieniä arvoja, kuten 30.
 
-!4.3 Tuki
+5.3 Tuki
  Ennen kuin otat yhteyttä Azureuksen tukeen, tarkasta ensin seuraavat resurssit:
  - Viralliset kotisivut: http://azureus.sourceforge.net/
  - Virallinen Wiki-ympäristö: http://azureuswiki.com/
