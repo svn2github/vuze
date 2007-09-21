@@ -39,6 +39,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformTorrentMessenger;
 
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 
 /**
@@ -112,6 +113,8 @@ public class PlatformTorrentUtils
 	private static ArrayList listPlatformHosts = null;
 
 	private static final Map mapPlatformTrackerTorrents = new WeakHashMap();
+
+	private static boolean embeddedPlayerAvail = false;
 
 	public static Map getContentMap(TOTorrent torrent) {
 		if (torrent == null) {
@@ -708,6 +711,11 @@ public class PlatformTorrentUtils
 	}
 
 	public static boolean isContentAdEnabled(TOTorrent torrent) {
+		if (Constants.isOSX && useEMP(torrent) && !embeddedPlayerAvail()) {
+			// Temporarily disable on osx when we want emp and it's not avail
+			// because osx player can't handle emp content
+			return false;
+		}
 		return getContentMapLong(torrent, TOR_AZ_PROP_AD_ENABLED, 0) == 1;
 	}
 
@@ -768,5 +776,24 @@ public class PlatformTorrentUtils
 		} catch (TOTorrentException e) {
 		}
 		log(hash + "] " + string);
+	}
+
+	public static boolean embeddedPlayerAvail() {
+		// cache true, always recheck false in case plugin installs.
+		if (embeddedPlayerAvail) {
+			return true;
+		}
+
+		try {
+			PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
+					"azemp");
+			if (pi != null && pi.isOperational() && !pi.isDisabled()) {
+
+				embeddedPlayerAvail = true;
+			}
+		} catch (Throwable e1) {
+		}
+
+		return embeddedPlayerAvail;
 	}
 }

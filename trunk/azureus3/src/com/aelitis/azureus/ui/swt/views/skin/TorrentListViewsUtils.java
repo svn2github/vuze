@@ -86,8 +86,6 @@ import org.gudy.azureus2.plugins.download.DownloadException;
 public class TorrentListViewsUtils
 {
 
-	private static boolean embeddedPlayerAvail = false;
-
 	public static SWTSkinButtonUtility addShareButton(final SWTSkin skin,
 			String PREFIX, final TorrentListView view) {
 		SWTSkinObject skinObject = skin.getSkinObject(PREFIX + "send-selected");
@@ -316,7 +314,8 @@ public class TorrentListViewsUtils
 	}
 
 	public static boolean canUseEMP(TOTorrent torrent) {
-		if (!PlatformTorrentUtils.useEMP(torrent) || !embeddedPlayerAvail()) {
+		if (!PlatformTorrentUtils.useEMP(torrent)
+				|| !PlatformTorrentUtils.embeddedPlayerAvail()) {
 			return false;
 		}
 
@@ -491,8 +490,7 @@ public class TorrentListViewsUtils
 		AEThread thread = new AEThread("runFile", true) {
 			public void runSupport() {
 				if (canUseEMP(torrent)) {
-					Debug.out("Can't call runFile with EMP torrent.");
-					return;
+					Debug.out("Shouldn't call runFile with EMP torrent.");
 				}
 
 				if (PlatformTorrentUtils.isContentDRM(torrent) || forceWMP) {
@@ -549,25 +547,6 @@ public class TorrentListViewsUtils
 		}
 
 		return false;
-	}
-
-	private static boolean embeddedPlayerAvail() {
-		// cache true, always recheck false in case plugin installs.
-		if (embeddedPlayerAvail) {
-			return true;
-		}
-
-		try {
-			PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
-					"azemp");
-			if (pi != null && pi.isOperational() && !pi.isDisabled()) {
-
-				embeddedPlayerAvail = true;
-			}
-		} catch (Throwable e1) {
-		}
-
-		return embeddedPlayerAvail;
 	}
 
 	/**
