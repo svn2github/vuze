@@ -2524,7 +2524,7 @@ implements PEPeerTransport
 
 					//make sure they're not spamming us
 					if( !message_limiter.countIncomingMessage( message.getID(), 6, 60*1000 ) ) {  //allow max 6 keep-alives per 60sec
-						System.out.println( "Incoming keep-alive message flood detected, dropping spamming peer connection." +PEPeerTransportProtocol.this );
+						System.out.println( manager.getDisplayName() + ": Incoming keep-alive message flood detected, dropping spamming peer connection." +PEPeerTransportProtocol.this );
 						closeConnectionInternally( "Incoming keep-alive message flood detected, dropping spamming peer connection." );
 					}
 
@@ -2879,7 +2879,7 @@ implements PEPeerTransport
 
 		//make sure they're not spamming us
 		if( !message_limiter.countIncomingMessage( exchange.getID(), 7, 120*1000 ) ) {  //allow max 7 PEX per 2min  //TODO reduce max after 2308 release?
-			System.out.println( "Incoming PEX message flood detected, dropping spamming peer connection." +PEPeerTransportProtocol.this );
+			System.out.println( manager.getDisplayName() + ": Incoming PEX message flood detected, dropping spamming peer connection." +PEPeerTransportProtocol.this );
 			closeConnectionInternally( "Incoming PEX message flood detected, dropping spamming peer connection." );
 			return;
 		}
