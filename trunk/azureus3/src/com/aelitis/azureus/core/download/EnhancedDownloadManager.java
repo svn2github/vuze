@@ -1027,6 +1027,10 @@ EnhancedDownloadManager
 				return;
 			}			
 
+			if (active && !supportsProgressiveMode()) {
+				return;
+			}
+			
 			log( "Progressive mode changed to " + active );
 
 			final GlobalManager gm = download_manager.getGlobalManager(); 
