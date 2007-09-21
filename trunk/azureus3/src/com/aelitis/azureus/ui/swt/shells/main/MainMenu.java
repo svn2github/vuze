@@ -119,7 +119,7 @@ public class MainMenu
 						uiFunctions.bringToFront();
 					}
 					AzureusCore core = AzureusCoreFactory.getSingleton();
-					UpdateMonitor.getSingleton(core).performCheck(true, false,
+					UpdateMonitor.getSingleton(core).performCheck(true, false, false,
 							new UpdateCheckInstanceListener() {
 								public void cancelled(UpdateCheckInstance instance) {
 								}
