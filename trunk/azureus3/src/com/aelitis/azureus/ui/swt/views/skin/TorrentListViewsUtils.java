@@ -305,7 +305,7 @@ public class TorrentListViewsUtils
 
 		return btn;
 	}
-	
+
 	public static boolean canPlay(DownloadManager dm) {
 		TOTorrent torrent = dm.getTorrent();
 		if (!PlatformTorrentUtils.isContent(torrent, false)) {
@@ -322,16 +322,17 @@ public class TorrentListViewsUtils
 
 		return canProgressiveOrComplete(torrent);
 	}
-	
+
 	private static boolean canProgressiveOrComplete(TOTorrent torrent) {
 		try {
-			EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(torrent.getHash());
-			
+			EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(
+					torrent.getHash());
+
 			boolean complete = edm.getDownloadManager().isDownloadComplete(false);
 			if (complete) {
 				return true;
 			}
-			
+
 			// not complete
 			if (!edm.supportsProgressiveMode()) {
 				return false;
@@ -339,7 +340,7 @@ public class TorrentListViewsUtils
 		} catch (TOTorrentException e) {
 			return false;
 		}
-		
+
 		return true;
 	}
 
@@ -352,7 +353,7 @@ public class TorrentListViewsUtils
 		if (dm == null) {
 			return false;
 		}
-		
+
 		if (!canPlay(dm)) {
 			return false;
 		}
@@ -557,8 +558,9 @@ public class TorrentListViewsUtils
 		}
 
 		try {
-			if (AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
-					"azemp") != null) {
+			PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
+					"azemp");
+			if (pi != null && pi.isOperational() && !pi.isDisabled()) {
 
 				embeddedPlayerAvail = true;
 			}
