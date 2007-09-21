@@ -52,9 +52,9 @@ public class UpdateMonitor
 
 	private static final String MSG_PREFIX = "UpdateMonitor.messagebox.";
 
-	protected static UpdateMonitor singleton;
+	private static UpdateMonitor singleton;
 
-	protected static AEMonitor class_mon = new AEMonitor("UpdateMonitor:class");
+	private static AEMonitor class_mon = new AEMonitor("UpdateMonitor:class");
 
 	public static UpdateMonitor getSingleton(AzureusCore core) {
 		try {
@@ -73,12 +73,14 @@ public class UpdateMonitor
 		}
 	}
 
-	protected AzureusCore azCore;
+	private AzureusCore azCore;
 
-	protected UpdateWindow current_update_window;
+	private UpdateWindow current_update_window;
 
-	protected UpdateCheckInstance current_update_instance;
+	private UpdateCheckInstance current_update_instance;
 
+	private long last_recheck_time;
+	
 	protected UpdateMonitor(AzureusCore _azureus_core) {
 		azCore = _azureus_core;
 
@@ -145,6 +147,15 @@ public class UpdateMonitor
 		});
 	}
 
+	protected void requestRecheck()
+	{
+		if (Logger.isEnabled()){
+			Logger.log(new LogEvent(LOGID, "UpdateMonitor: recheck requested" ));
+		}
+		
+		performCheck( false, true, true, null );
+	}
+	
 	protected void performAutoCheck(final boolean start_of_day) {
 		boolean check_at_start = false;
 		boolean check_periodic = false;
@@ -166,7 +177,7 @@ public class UpdateMonitor
 
 		if ((check_at_start && start_of_day) || (check_periodic && !start_of_day)) {
 
-			performCheck(bOldSWT, true, null); // this will implicitly do usage stats
+			performCheck(bOldSWT, true, false, null ); // this will implicitly do usage stats
 
 		} else {
 
@@ -185,8 +196,33 @@ public class UpdateMonitor
 		}
 	}
 
-	public void performCheck(final boolean bForce, final boolean automatic,
-			final UpdateCheckInstanceListener l) {
+	public void 
+	performCheck(
+		final boolean 						bForce, 
+		final boolean 						automatic,
+		final boolean						isRecheck,
+		final UpdateCheckInstanceListener 	l ) 
+	{
+		long now = SystemTime.getCurrentTime();
+
+		if ( isRecheck ){
+			
+			if ( last_recheck_time > now || now - last_recheck_time < 23*60*60*1000 ){
+				
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID,
+							"skipping recheck as consecutive recheck too soon"));
+
+				return;
+			}
+			
+			last_recheck_time = now;
+			
+		}else{
+			
+			last_recheck_time	= 0;
+		}
+		
 		if (SystemProperties.isJavaWebStartInstance()) {
 
 			// just in case we get here somehome!
@@ -285,14 +321,13 @@ public class UpdateMonitor
 				if (!autoDownload
 						&& (current_update_window == null || current_update_window.isDisposed())) {
 
-					this_window = current_update_window = new UpdateWindow(azCore,
-							instance);
+					this_window = current_update_window = new UpdateWindow( this, azCore,instance);
 				}
 			} else {
 
 				// always show an installer window
 
-				this_window = new UpdateWindow(azCore, instance);
+				this_window = new UpdateWindow( this, azCore, instance);
 			}
 
 			if (this_window != null) {
@@ -310,7 +345,7 @@ public class UpdateMonitor
 			} else {
 				if (autoDownload) {
 					new UpdateAutoDownloader(us, new UpdateAutoDownloader.cbCompletion() {
-						public void allUpdatesComplete(boolean requiresRestart) {
+						public void allUpdatesComplete(boolean requiresRestart, boolean bHadMandatoryUpdates) {
 							if (requiresRestart) {
 								UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 								if (uiFunctions != null) {
@@ -326,6 +361,11 @@ public class UpdateMonitor
 										uiFunctions.dispose(true, false);
 									}
 								}
+							}else if ( bHadMandatoryUpdates ){
+								
+									// no restart and mandatory -> rescan for optional updates now
+								
+								requestRecheck();
 							}
 						}
 					});

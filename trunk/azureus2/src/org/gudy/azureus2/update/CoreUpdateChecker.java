@@ -45,7 +45,6 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import com.aelitis.azureus.core.versioncheck.*;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 
 public class 

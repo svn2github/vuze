@@ -62,6 +62,7 @@ public class
 UpdateWindow
 	implements 	ResourceDownloaderListener{
   
+  private UpdateMonitor			update_monitor;
   private UpdateCheckInstance	check_instance;
   private int					check_type;
   
@@ -81,8 +82,8 @@ UpdateWindow
   
   
   
-  
-  boolean restartRequired;
+  boolean	hasMandatoryUpdates;
+  boolean 	restartRequired;
   
   private long totalDownloadSize;
   private List downloaders;
@@ -96,9 +97,11 @@ UpdateWindow
   
   public 
   UpdateWindow(
-  		AzureusCore			_azureus_core,
-  		UpdateCheckInstance	_check_instance )
+	UpdateMonitor		_update_monitor,
+  	AzureusCore			_azureus_core,
+  	UpdateCheckInstance	_check_instance )
   {
+	update_monitor	= _update_monitor;
   	check_instance 	= _check_instance;
   	
   	check_type = check_instance.getType();
@@ -383,6 +386,11 @@ UpdateWindow
     if(display == null || display.isDisposed())
       return;
   
+    if ( update.isMandatory()){
+    	
+    	hasMandatoryUpdates = true;
+    }
+    
     display.asyncExec(new AERunnable() {
       public void runSupport() {
         if(table == null || table.isDisposed())
@@ -662,6 +670,11 @@ UpdateWindow
     	if (uiFunctions != null && uiFunctions.dispose(true, false)) {
    			bDisposeUpdateWindow = false;
 			}
+    }else if ( hasMandatoryUpdates && !restartRequired ){
+    	
+    		// run a further update check as we can immediately install non-mandatory updates now
+    	
+    	update_monitor.requestRecheck();
     }
 
     if (bDisposeUpdateWindow) {

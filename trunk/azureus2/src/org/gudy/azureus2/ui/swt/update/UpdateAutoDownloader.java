@@ -49,7 +49,7 @@ public class UpdateAutoDownloader
 
 	public static interface cbCompletion
 	{
-		public void allUpdatesComplete(boolean requiresRestart);
+		public void allUpdatesComplete(boolean requiresRestart, boolean bHadMandatoryUpdates);
 	}
 
 	/**
@@ -99,18 +99,22 @@ public class UpdateAutoDownloader
 	 */
 	private void allDownloadsComplete() {
 		boolean bRequiresRestart = false;
+		boolean bHadMandatoryUpdates = false;
+		
 		for (int i = 0; i < updates.length; i++) {
 			Update update = updates[i];
 				// updates with no downloaders exist for admin purposes only
 			if ( update.getDownloaders().length > 0){
 				if (update.getRestartRequired() != Update.RESTART_REQUIRED_NO) {
 					bRequiresRestart = true;
-					break;
+				}
+				if ( update.isMandatory()){
+					bHadMandatoryUpdates = true;
 				}
 			}
 		}
 
-		completionCallback.allUpdatesComplete(bRequiresRestart);
+		completionCallback.allUpdatesComplete(bRequiresRestart,bHadMandatoryUpdates);
 	}
 
 	// @see org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderListener#completed(org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader, java.io.InputStream)

@@ -202,6 +202,12 @@ CorePatchChecker
 							"Core Patcher: no applicable patch found (highest = " + highest_p
 									+ ")"));
 				
+					// flip back from maybe as we now know it isn't needed
+				
+				if ( updater_update.getRestartRequired() == Update.RESTART_REQUIRED_MAYBE ){
+					
+					updater_update.setRestartRequired( Update.RESTART_REQUIRED_NO );
+				}
 			}else{
 				
 				rd_log.reportActivity( "Applying patch '" + highest_p_file.getName() + "'");
