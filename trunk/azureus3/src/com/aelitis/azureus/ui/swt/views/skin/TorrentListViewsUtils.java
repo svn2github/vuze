@@ -291,16 +291,7 @@ public class TorrentListViewsUtils
 				if (!bDisabled) {
 					TableRowCore[] rows = view.getSelectedRows();
 					DownloadManager dm = (DownloadManager) rows[0].getDataSource(true);
-					if (!dm.isDownloadComplete(false) && !canUseEMP(dm.getTorrent())) {
-						DownloadManagerEnhancer dmEnhancer = DownloadManagerEnhancer.getSingleton();
-						if (dmEnhancer != null) {
-							EnhancedDownloadManager edm = dmEnhancer.getEnhancedDownload(dm);
-							if (edm != null
-									&& (!edm.supportsProgressiveMode() || edm.getProgressivePlayETA() > 0)) {
-								bDisabled = true;
-							}
-						}
-					}
+					bDisabled = !canPlay(dm);
 				}
 				btn.setDisabled(bDisabled);
 			}
@@ -314,9 +305,42 @@ public class TorrentListViewsUtils
 
 		return btn;
 	}
+	
+	public static boolean canPlay(DownloadManager dm) {
+		TOTorrent torrent = dm.getTorrent();
+		if (!PlatformTorrentUtils.isContent(torrent, false)) {
+			return false;
+		}
+
+		return dm.getAssumedComplete() || canUseEMP(torrent);
+	}
 
 	public static boolean canUseEMP(TOTorrent torrent) {
-		return PlatformTorrentUtils.useEMP(torrent) && embeddedPlayerAvail();
+		if (!PlatformTorrentUtils.useEMP(torrent) || !embeddedPlayerAvail()) {
+			return false;
+		}
+
+		return canProgressiveOrComplete(torrent);
+	}
+	
+	private static boolean canProgressiveOrComplete(TOTorrent torrent) {
+		try {
+			EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(torrent.getHash());
+			
+			boolean complete = edm.getDownloadManager().isDownloadComplete(false);
+			if (complete) {
+				return true;
+			}
+			
+			// not complete
+			if (!edm.supportsProgressiveMode()) {
+				return false;
+			}
+		} catch (TOTorrentException e) {
+			return false;
+		}
+		
+		return true;
 	}
 
 	public static boolean playOrStream(final DownloadManager dm) {
@@ -326,6 +350,10 @@ public class TorrentListViewsUtils
 	public static boolean playOrStream(final DownloadManager dm,
 			final SWTSkinButtonUtility btn) {
 		if (dm == null) {
+			return false;
+		}
+		
+		if (!canPlay(dm)) {
 			return false;
 		}
 
@@ -343,7 +371,9 @@ public class TorrentListViewsUtils
 
 		boolean reenableButton = false;
 		try {
-			boolean bComplete = dm.isDownloadComplete(false);
+			if (!canProgressiveOrComplete(torrent)) {
+				return false;
+			}
 
 			File file;
 			String sFile = null;
@@ -351,6 +381,10 @@ public class TorrentListViewsUtils
 			EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(
 					dm);
 			if (edm != null) {
+				if (edm.getProgressiveMode() && edm.getProgressivePlayETA() > 0) {
+					return false;
+				}
+
 				file = edm.getPrimaryFile().getFile(true);
 				sFile = file.getAbsolutePath();
 			} else {
@@ -358,12 +392,6 @@ public class TorrentListViewsUtils
 				file = new File(sFile);
 			}
 
-			if (!bComplete
-					&& edm != null
-					&& (!edm.supportsProgressiveMode() || edm.getProgressivePlayETA() > 0)) {
-				edm.setProgressiveMode(true);
-				return false;
-			}
 			String ext = FileUtil.getExtension(sFile);
 
 			boolean untrusted = isUntrustworthyContent(ext);
@@ -404,6 +432,8 @@ public class TorrentListViewsUtils
 					return false;
 				}
 			}
+
+			boolean bComplete = dm.isDownloadComplete(false);
 
 			if (bComplete) {
 				if (PlatformTorrentUtils.isContentAdEnabled(torrent)) {
