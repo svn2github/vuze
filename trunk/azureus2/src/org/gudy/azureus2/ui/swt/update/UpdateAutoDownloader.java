@@ -101,9 +101,12 @@ public class UpdateAutoDownloader
 		boolean bRequiresRestart = false;
 		for (int i = 0; i < updates.length; i++) {
 			Update update = updates[i];
-			if (update.getRestartRequired() != Update.RESTART_REQUIRED_NO) {
-				bRequiresRestart = true;
-				break;
+				// updates with no downloaders exist for admin purposes only
+			if ( update.getDownloaders().length > 0){
+				if (update.getRestartRequired() != Update.RESTART_REQUIRED_NO) {
+					bRequiresRestart = true;
+					break;
+				}
 			}
 		}
 
