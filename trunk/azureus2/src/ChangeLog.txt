@@ -1,6 +1,13 @@
 AZUREUS CHANGELOG
 -----------------
 
+2007.09.21 | Azureus 3.0.3.2
+
+BUGFIX: Core  | Fixed MacOSX playback bug [TuxPaper]
+BUGFIX: Core  | Fixed update restart bug [Parg]
+
+
+
 2007.09.20 | Azureus 3.0.3.0
 
 FEATURE: Core | Added experimental support for LibTorrent extension protocol handshake [amc1]
