@@ -1,6 +1,10 @@
 AZUREUS CHANGELOG
 -----------------
 
+2007.09.xx | Azureus 3.0.3.3
+
+
+
 2007.09.21 | Azureus 3.0.3.2
 
 BUGFIX: Core  | Fixed MacOSX playback bug [TuxPaper]
