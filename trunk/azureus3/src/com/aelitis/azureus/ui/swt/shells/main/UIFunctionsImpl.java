@@ -723,7 +723,21 @@ public class UIFunctionsImpl
 			uiFunctions.refreshTorrentMenu();
 
 		} catch (Exception e) {
-			Logger.log(new LogEvent(LOGID, "refreshIconBar", e));
+			Logger.log(new LogEvent(LOGID, "refreshTorrentMenu", e));
+		}
+	}
+	
+	public void showAllPeersView() {
+		try {
+			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
+			if (uiFunctions == null) {
+				return;
+			}
+
+			uiFunctions.showAllPeersView();
+
+		} catch (Exception e) {
+			Logger.log(new LogEvent(LOGID, "showAllPeersView", e));
 		}
 	}
 }
