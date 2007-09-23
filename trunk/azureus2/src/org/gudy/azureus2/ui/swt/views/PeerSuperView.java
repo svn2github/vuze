@@ -97,7 +97,6 @@ public class PeerSuperView
 		tv.addMenuFillListener(this);
 		
 		this.g_manager = gm; 
-		registerGlobalManagerListener();
 	}	
   
 	// @see com.aelitis.azureus.ui.common.table.TableLifeCycleListener#tableViewInitialized()
@@ -107,6 +106,7 @@ public class PeerSuperView
 		} else {
 			shell = Utils.findAnyShell();
 		}
+		registerGlobalManagerListener();
 	}
 		
 	public void tableViewDestroyed() {
