@@ -142,7 +142,7 @@ PEPeerManager
   public boolean
   seedPieceRecheck();
   
-  public int getNbRemoteConnections();
+  public int getNbRemoteConnectionsExcludingUDP();
   
   public long getLastRemoteConnectionTime();
   

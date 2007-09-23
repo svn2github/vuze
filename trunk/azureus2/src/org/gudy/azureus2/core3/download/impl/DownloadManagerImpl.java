@@ -2711,7 +2711,7 @@ DownloadManagerImpl
 		  
 			int nbSeeds = getNbSeeds();
 			int nbPeers = getNbPeers();
-			int nbRemotes = peerManager.getNbRemoteConnections();
+			int nbRemotes = peerManager.getNbRemoteConnectionsExcludingUDP();
 			
 			TRTrackerAnnouncerResponse	announce_response = tc.getLastResponse();
 			
@@ -2783,7 +2783,7 @@ DownloadManagerImpl
 	  
 		if ( tc != null && peerManager != null && (state == STATE_DOWNLOADING || state == STATE_SEEDING)) {
 		  			
-			if ( peerManager.getNbRemoteConnections() > 0 ){
+			if ( peerManager.getNbRemoteConnectionsExcludingUDP() > 0 ){
 				
 				return( ConnectionManager.NAT_OK );
 			}

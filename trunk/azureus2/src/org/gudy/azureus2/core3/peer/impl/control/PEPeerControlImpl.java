@@ -133,7 +133,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 	private PEPeerManagerStats        _stats;
 	//private final TRTrackerAnnouncer _tracker;
 	//  private int _maxUploads;
-	private int		_seeds, _peers,_remotes;
+	private int		_seeds, _peers,_remotesNoUdpNoLan;
 	private long last_remote_time;
 	private long	_timeStarted;
 	private long	_timeStartedSeeding = -1;
@@ -1644,7 +1644,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 		int	new_seeds = 0;
 		int new_peers = 0;
-		int new_remotes = 0;
+		int newTcpRemotes = 0;
 
 		for (Iterator it=peer_transports.iterator();it.hasNext();){
 			final PEPeerTransport pc = (PEPeerTransport) it.next();
@@ -1654,15 +1654,15 @@ DiskManagerCheckRequestListener, IPFilterListener
 				else
 					new_peers++;
 
-				if(((PEPeer)pc).isIncoming()) {
-					new_remotes++;
+				if(pc.isIncoming() && pc.isTCP() && !pc.isLANLocal()) {
+					newTcpRemotes++;
 				}
 			}
 		}
 
 		_seeds = new_seeds;
 		_peers = new_peers;
-		_remotes = new_remotes;
+		_remotesNoUdpNoLan = newTcpRemotes;
 	}
 	/**
 	 * The way to unmark a request as being downloaded, or also 
@@ -1990,9 +1990,9 @@ DiskManagerCheckRequestListener, IPFilterListener
 		return _seeds;
 	}
 
-	public int getNbRemoteConnections() 
+	public int getNbRemoteConnectionsExcludingUDP() 
 	{
-		return _remotes;
+		return _remotesNoUdpNoLan;
 	}
 
 	public long getLastRemoteConnectionTime()
