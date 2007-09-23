@@ -5,6 +5,8 @@ AZUREUS CHANGELOG
 
 FEATURE: UI   | Added "All Peers" view [amc1]
 
+CHANGE: UI    | NAT status bar indicator and health icons now ignore UDP and LAN-local connections 
+
 2007.09.21 | Azureus 3.0.3.2
 
 BUGFIX: Core  | Fixed MacOSX playback bug [TuxPaper]
