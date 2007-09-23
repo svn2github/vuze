@@ -271,7 +271,7 @@ ViewUtils
 		Messages.setLanguageText(itemUpSpeedManualSingle, menu_key);
 		itemUpSpeedManualSingle.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				int speed_value = getManualSpeedValue(shell, true);
+				int speed_value = getManualSpeedValue(shell, false);
 				if (speed_value > 0) {adapter.setUpSpeed(speed_value);}
 			}
 		});
