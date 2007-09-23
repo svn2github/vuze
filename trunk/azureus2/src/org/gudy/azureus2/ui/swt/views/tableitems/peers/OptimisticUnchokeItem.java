@@ -37,8 +37,8 @@ public class OptimisticUnchokeItem
        implements TableCellRefreshListener
 {
   /** Default Constructor */
-  public OptimisticUnchokeItem() {
-    super("optunchoke", ALIGN_CENTER, POSITION_INVISIBLE, 20, TableManager.TABLE_TORRENT_PEERS);
+  public OptimisticUnchokeItem(String table_id) {
+    super("optunchoke", ALIGN_CENTER, POSITION_INVISIBLE, 20, table_id);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

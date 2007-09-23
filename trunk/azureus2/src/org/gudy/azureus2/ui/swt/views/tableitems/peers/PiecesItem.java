@@ -59,8 +59,8 @@ public class PiecesItem
   private final static int completionHeight = 2;
 
   /** Default Constructor */
-  public PiecesItem() {
-    super("pieces", TableManager.TABLE_TORRENT_PEERS);
+  public PiecesItem(String table_id) {
+    super("pieces", table_id);
     initializeAsGraphic(POSITION_LAST, 200);
   }
 

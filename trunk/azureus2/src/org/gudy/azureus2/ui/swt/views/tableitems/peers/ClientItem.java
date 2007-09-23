@@ -38,8 +38,8 @@ public class ClientItem
        implements TableCellRefreshListener
 {
   /** Default Constructor */
-  public ClientItem() {
-    super("client", POSITION_LAST, 100, TableManager.TABLE_TORRENT_PEERS);
+  public ClientItem(String table_id) {
+    super("client", POSITION_LAST, 100, table_id);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

@@ -135,6 +135,7 @@ MainWindow
   private AEMonitor	downloadViews_mon			= new AEMonitor( "MainWindow:dlviews" );
 
   private Tab 	mytorrents;
+  private Tab   all_peers;
   private Tab 	my_tracker_tab;
   private Tab 	my_shares_tab;
   private Tab 	stats_tab;
@@ -813,6 +814,22 @@ MainWindow
     refreshIconBar();
     refreshTorrentMenu();
   }
+  
+  protected void showAllPeersView() {
+	    if (all_peers == null) {
+	    	PeerSuperView view = new PeerSuperView(azureus_core.getGlobalManager());
+	    	all_peers = new Tab(view);
+	    	all_peers.getView().getComposite().addDisposeListener(new DisposeListener() {
+	      	public void widgetDisposed(DisposeEvent e) {
+	      		all_peers = null;
+	      	}
+	      });
+	    } else {
+	    	all_peers.setFocus();
+	    }
+	    refreshIconBar();
+	    refreshTorrentMenu();
+	  }
 	
   private void minimizeToTray(ShellEvent event) {
     //Added this test so that we can call this method with null parameter.

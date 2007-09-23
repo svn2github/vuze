@@ -113,6 +113,8 @@ public interface UIFunctions
 	 * 
 	 */
 	void showMyTorrents();
+	
+	void showAllPeersView();
 
 	/**
 	 * @param manager

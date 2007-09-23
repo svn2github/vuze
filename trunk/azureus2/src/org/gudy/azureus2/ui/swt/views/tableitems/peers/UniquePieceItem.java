@@ -40,8 +40,8 @@ public class UniquePieceItem
        implements TableCellRefreshListener
 {
   /** Default Constructor */
-  public UniquePieceItem() {
-    super("uniquepiece", ALIGN_TRAIL, POSITION_INVISIBLE, 60, TableManager.TABLE_TORRENT_PEERS);
+  public UniquePieceItem(String table_id) {
+    super("uniquepiece", ALIGN_TRAIL, POSITION_INVISIBLE, 60, table_id);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

@@ -40,9 +40,8 @@ public class TimeToSendPieceItem
        implements TableCellRefreshListener
 {
   /** Default Constructor */
-  public TimeToSendPieceItem() {
-    super("timetosend", ALIGN_TRAIL, POSITION_INVISIBLE,
-          70, TableManager.TABLE_TORRENT_PEERS);
+  public TimeToSendPieceItem(String table_id) {
+    super("timetosend", ALIGN_TRAIL, POSITION_INVISIBLE, 70, table_id);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

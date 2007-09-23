@@ -40,8 +40,8 @@ public class PercentItem
        implements TableCellRefreshListener
 {
   /** Default Constructor */
-  public PercentItem() {
-    super("%", ALIGN_TRAIL, POSITION_LAST, 55, TableManager.TABLE_TORRENT_PEERS);
+  public PercentItem(String table_id) {
+    super("%", ALIGN_TRAIL, POSITION_LAST, 55, table_id);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

@@ -43,8 +43,8 @@ public class SnubbedItem
        implements TableCellRefreshListener
 {
   /** Default Constructor */
-  public SnubbedItem() {
-    super("S", ALIGN_CENTER, POSITION_INVISIBLE, 20, TableManager.TABLE_TORRENT_PEERS);
+  public SnubbedItem(String table_id) {
+    super("S", ALIGN_CENTER, POSITION_INVISIBLE, 20, table_id);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

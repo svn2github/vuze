@@ -35,6 +35,8 @@ public interface TableManager
   public static final String TABLE_MYTRACKER             = "MyTracker";
   /** Visible for My Shares table */
   public static final String TABLE_MYSHARES              = "MyShares";
+  /** Visible for All Peers table */
+  public static final String TABLE_ALL_PEERS             = "AllPeers";
 
   /** Creates a column for a UI table.
    * In order for this object to be displayed in an Azureus UI table, the

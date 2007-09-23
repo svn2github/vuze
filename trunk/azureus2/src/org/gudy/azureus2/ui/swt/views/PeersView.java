@@ -59,49 +59,54 @@ public class PeersView
 	implements DownloadManagerPeerListener, TableDataSourceChangedListener,
 	TableLifeCycleListener, TableViewSWTMenuFillListener
 {
-  private static final TableColumnCore[] basicItems = {
-    new IpItem(),
-    new ClientItem(),
-    new TypeItem(),
-    new MessagingItem(),
-    new EncryptionItem(),
-    new PiecesItem(),
-    new PercentItem(),
-    new DownSpeedItem(),
-    new UpSpeedItem(),
-    new PeerSourceItem(),
-    new HostNameItem(),
-    new PortItem(),
-    new InterestedItem(),
-    new ChokedItem(),
-    new DownItem(),
-    new InterestingItem(),
-    new ChokingItem(),
-    new OptimisticUnchokeItem(),
-    new UpItem(),
-    new UpDownRatioItem(),
-    new GainItem(),
-    new StatUpItem(),
-    new SnubbedItem(),
-    new TotalDownSpeedItem(),
-    new DiscardedItem(),
-    new UniquePieceItem(),
-    new TimeToSendPieceItem(),
-    new DLedFromOthersItem(),
-    new UpRatioItem(),
-    new StateItem(),
-    new ConnectedTimeItem(),
-    new PieceItem(),
-    new IncomingRequestCountItem(),
-    new OutgoingRequestCountItem(),
-    new UpSpeedLimitItem(),
-    new DownSpeedLimitItem(),
-    new LANItem(),
-    new PeerIDItem(),
-    new PeerByteIDItem(),
-    new HandshakeReservedBytesItem(),
-    new ClientIdentificationItem(),
-  };
+		
+	static TableColumnCore[] getBasicColumnItems(String table_id) {
+		return new TableColumnCore[] {
+			new IpItem(table_id),
+			new ClientItem(table_id),
+			new TypeItem(table_id),
+			new MessagingItem(table_id),
+			new EncryptionItem(table_id),
+			new PiecesItem(table_id),
+			new PercentItem(table_id),
+			new DownSpeedItem(table_id),
+			new UpSpeedItem(table_id),
+			new PeerSourceItem(table_id),
+			new HostNameItem(table_id),
+			new PortItem(table_id),
+			new InterestedItem(table_id),
+			new ChokedItem(table_id),
+			new DownItem(table_id),
+			new InterestingItem(table_id),
+			new ChokingItem(table_id),
+			new OptimisticUnchokeItem(table_id),
+			new UpItem(table_id),
+			new UpDownRatioItem(table_id),
+			new GainItem(table_id),
+			new StatUpItem(table_id),
+			new SnubbedItem(table_id),
+			new TotalDownSpeedItem(table_id),
+			new DiscardedItem(table_id),
+			new UniquePieceItem(table_id),
+			new TimeToSendPieceItem(table_id),
+			new DLedFromOthersItem(table_id),
+			new UpRatioItem(table_id),
+			new StateItem(table_id),
+			new ConnectedTimeItem(table_id),
+			new PieceItem(table_id),
+			new IncomingRequestCountItem(table_id),
+			new OutgoingRequestCountItem(table_id),
+			new UpSpeedLimitItem(table_id),
+			new DownSpeedLimitItem(table_id),
+			new LANItem(table_id),
+			new PeerIDItem(table_id),
+			new PeerByteIDItem(table_id),
+			new HandshakeReservedBytesItem(table_id),
+			new ClientIdentificationItem(table_id),	
+		};
+	}
+	
+  private static final TableColumnCore[] basicItems = getBasicColumnItems(TableManager.TABLE_TORRENT_PEERS);
   
   private DownloadManager manager;
 	private TableViewSWT tv;
@@ -165,11 +170,11 @@ public class PeersView
   		manager.removePeerListener(this);
   	}
 	}
+	
+	public void fillMenu(Menu menu) {fillMenu(menu, tv, shell, true);}
 
-	public void fillMenu(final Menu menu) {
-
-		final MenuItem block_item = new MenuItem(menu, SWT.CHECK);
-
+	public static void fillMenu(final Menu menu, final TableView tv, final Shell shell, boolean download_specific) {
+		
 		Object[] peers = tv.getSelectedDataSources();
 		
 		boolean hasSelection = (peers.length > 0);
@@ -230,26 +235,28 @@ public class PeersView
 			}
 		}
 		
-		PEPeer peer = (PEPeer) tv.getFirstSelectedDataSource();
-
-
-		if ( peer == null || peer.getManager().getDiskManager().getRemainingExcludingDND() > 0 ){
-			// disallow peer upload blocking when downloading
-			block_item.setSelection(false);
-			block_item.setEnabled(false);
-		}
-		else {
-			block_item.setEnabled(true);
-			block_item.setSelection(peer.isSnubbed());
-		}
-
-		Messages.setLanguageText(block_item, "PeersView.menu.blockupload");
-		block_item.addListener(SWT.Selection, new TableSelectedRowsListener(tv) {
-			public void run(TableRowCore row) {
-				((PEPeer) row.getDataSource(true))
-						.setSnubbed(block_item.getSelection());
+		if (download_specific) {
+			final MenuItem block_item = new MenuItem(menu, SWT.CHECK);
+			PEPeer peer = (PEPeer) tv.getFirstSelectedDataSource();
+	
+			if ( peer == null || peer.getManager().getDiskManager().getRemainingExcludingDND() > 0 ){
+				// disallow peer upload blocking when downloading
+				block_item.setSelection(false);
+				block_item.setEnabled(false);
 			}
-		});
+			else {
+				block_item.setEnabled(true);
+				block_item.setSelection(peer.isSnubbed());
+			}
+	
+			Messages.setLanguageText(block_item, "PeersView.menu.blockupload");
+			block_item.addListener(SWT.Selection, new TableSelectedRowsListener(tv) {
+				public void run(TableRowCore row) {
+					((PEPeer) row.getDataSource(true))
+							.setSnubbed(block_item.getSelection());
+				}
+			});
+		}
 
 		final MenuItem ban_item = new MenuItem(menu, SWT.PUSH);
 
@@ -296,14 +303,14 @@ public class PeersView
 				setDownSpeed(
 					int speed ) 
 				{
-					setSelectedPeersDownSpeed( speed );	
+					setSelectedPeersDownSpeed( speed, tv );	
 				}
 				
 				public void 
 				setUpSpeed(
 					int speed ) 
 				{
-					setSelectedPeersUpSpeed( speed );
+					setSelectedPeersUpSpeed( speed, tv );
 				}
 			});
 		new MenuItem(menu, SWT.SEPARATOR);
@@ -312,7 +319,7 @@ public class PeersView
 	public void addThisColumnSubMenu(String columnName, Menu menuThisColumn) {
 	}
 
-	private void setSelectedPeersUpSpeed(int speed) {      
+	private static void setSelectedPeersUpSpeed(int speed, TableView tv) {      
 		Object[] peers = tv.getSelectedDataSources();
 		if(peers.length > 0) {            
 			for (int i = 0; i < peers.length; i++) {
@@ -326,7 +333,7 @@ public class PeersView
 		}
 	}
 
-	private void setSelectedPeersDownSpeed(int speed) {      
+	private static void setSelectedPeersDownSpeed(int speed, TableView tv) {      
 		Object[] peers = tv.getSelectedDataSources();
 		if(peers.length > 0) {            
 			for (int i = 0; i < peers.length; i++) {

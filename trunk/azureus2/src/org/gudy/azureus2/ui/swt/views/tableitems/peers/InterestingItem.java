@@ -37,8 +37,8 @@ public class InterestingItem
        implements TableCellRefreshListener
 {
   /** Default Constructor */
-  public InterestingItem() {
-    super("I2", ALIGN_CENTER, POSITION_INVISIBLE, 20, TableManager.TABLE_TORRENT_PEERS);
+  public InterestingItem(String table_id) {
+    super("I2", ALIGN_CENTER, POSITION_INVISIBLE, 20, table_id);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

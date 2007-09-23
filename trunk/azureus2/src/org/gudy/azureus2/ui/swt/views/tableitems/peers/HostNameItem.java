@@ -38,8 +38,8 @@ HostNameItem
 	implements TableCellRefreshListener
 {
 	 /** Default Constructor */
-	  public HostNameItem() {
-	    super("host", POSITION_INVISIBLE, 100, TableManager.TABLE_TORRENT_PEERS);
+	  public HostNameItem(String table_id) {
+	    super("host", POSITION_INVISIBLE, 100, table_id);
 	    setRefreshInterval(INTERVAL_LIVE);
 	    setObfustication(true);
 	  }

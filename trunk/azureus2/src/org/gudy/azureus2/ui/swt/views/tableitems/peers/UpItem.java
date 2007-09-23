@@ -55,9 +55,8 @@ public class UpItem extends CoreTableColumn implements TableCellRefreshListener
 	}
 
 	/** Default Constructor */
-	public UpItem() {
-		super("upload", ALIGN_TRAIL, POSITION_INVISIBLE, 70,
-				TableManager.TABLE_TORRENT_PEERS);
+	public UpItem(String table_id) {
+		super("upload", ALIGN_TRAIL, POSITION_INVISIBLE, 70, table_id);
 		setRefreshInterval(INTERVAL_LIVE);
 	}
 

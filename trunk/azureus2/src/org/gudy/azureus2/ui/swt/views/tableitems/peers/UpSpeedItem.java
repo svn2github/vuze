@@ -40,8 +40,8 @@ public class UpSpeedItem
        implements TableCellRefreshListener
 {
   /** Default Constructor */
-  public UpSpeedItem() {
-    super("uploadspeed", ALIGN_TRAIL, POSITION_LAST, 65, TableManager.TABLE_TORRENT_PEERS);
+  public UpSpeedItem(String table_id) {
+    super("uploadspeed", ALIGN_TRAIL, POSITION_LAST, 65, table_id);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

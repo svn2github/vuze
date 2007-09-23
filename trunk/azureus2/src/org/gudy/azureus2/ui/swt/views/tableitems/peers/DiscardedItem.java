@@ -39,8 +39,8 @@ public class DiscardedItem
        implements TableCellRefreshListener
 {
   /** Default Constructor */
-  public DiscardedItem() {
-    super("discarded", ALIGN_TRAIL, POSITION_INVISIBLE, 60, TableManager.TABLE_TORRENT_PEERS);
+  public DiscardedItem(String table_id) {
+    super("discarded", ALIGN_TRAIL, POSITION_INVISIBLE, 60, table_id);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

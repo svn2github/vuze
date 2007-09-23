@@ -762,6 +762,23 @@ public class TableColumnImpl
 						+ "View.";
 				if (MessageText.keyExists(sKeyPrefix + sName)) {
 					sTitleLanguageKey = sKeyPrefix + sName;
+					return sTitleLanguageKey;
+				}
+				
+				// The "all peers" view should just share the same peer columns, so reuse them.
+				if (sTableID.equals(TableManager.TABLE_ALL_PEERS)) {
+					sKeyPrefix = TableManager.TABLE_TORRENT_PEERS + ".column.";
+					if (MessageText.keyExists(sKeyPrefix + sName)) {
+						sTitleLanguageKey = sKeyPrefix + sName;
+						return sTitleLanguageKey;
+					}
+					
+					// Or try "PeersView".
+					sKeyPrefix = "PeersView.";
+					if (MessageText.keyExists(sKeyPrefix + sName)) {
+						sTitleLanguageKey = sKeyPrefix + sName;
+						return sTitleLanguageKey;
+					}
 				}
 			}
 			return sTitleLanguageKey;

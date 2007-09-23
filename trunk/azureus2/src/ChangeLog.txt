@@ -3,7 +3,7 @@ AZUREUS CHANGELOG
 
 2007.09.xx | Azureus 3.0.3.3
 
-
+FEATURE: UI   | Added "All Peers" view [amc1]
 
 2007.09.21 | Azureus 3.0.3.2
 

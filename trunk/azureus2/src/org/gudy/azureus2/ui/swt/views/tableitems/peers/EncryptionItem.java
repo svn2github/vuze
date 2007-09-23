@@ -32,8 +32,8 @@ public class EncryptionItem
        implements TableCellRefreshListener
 {
   /** Default Constructor */
-  public EncryptionItem() {
-    super("Encryption", ALIGN_CENTER, POSITION_INVISIBLE, 20, TableManager.TABLE_TORRENT_PEERS);
+  public EncryptionItem(String table_id) {
+    super("Encryption", ALIGN_CENTER, POSITION_INVISIBLE, 20, table_id);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

@@ -40,8 +40,8 @@ public class StatUpItem
        implements TableCellRefreshListener
 {
   /** Default Constructor */
-  public StatUpItem() {
-    super("statup", ALIGN_TRAIL, POSITION_INVISIBLE, 65, TableManager.TABLE_TORRENT_PEERS);
+  public StatUpItem(String table_id) {
+    super("statup", ALIGN_TRAIL, POSITION_INVISIBLE, 65, table_id);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

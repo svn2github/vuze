@@ -819,7 +819,8 @@ public class MainMenu {
       indent(addMySharesMenuItem(viewMenu));
       indent(addViewToolbarMenuItem(viewMenu));
       indent(addTransferBarToMenu(viewMenu));
-
+      indent(addAllPeersMenuItem(viewMenu));
+      
       if(Constants.isOSX) {
           indent(addConsoleMenuItem(viewMenu));
           indent(addStatisticsMenuItem(viewMenu));
@@ -1042,6 +1043,17 @@ public class MainMenu {
       });
   }
 
+  private MenuItem addAllPeersMenuItem(Menu menu) {
+      return addMenuItem(menu, "MainWindow.menu.view.allpeers", new Listener() {
+        public void handleEvent(Event e) {
+        	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+  				if (uiFunctions != null) {
+    				uiFunctions.showAllPeersView();
+  				}
+        }
+      });
+  }
+  
   private MenuItem addMyTrackerMenuItem(Menu menu)
     {
         return addMenuItem(menu, "MainWindow.menu.view.mytracker", new Listener() {

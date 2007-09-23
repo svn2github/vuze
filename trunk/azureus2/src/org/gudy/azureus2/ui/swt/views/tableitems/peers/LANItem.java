@@ -43,8 +43,8 @@ public class LANItem
        implements TableCellRefreshListener
 {
   /** Default Constructor */
-  public LANItem() {
-    super("lan", ALIGN_CENTER, POSITION_INVISIBLE, 20, TableManager.TABLE_TORRENT_PEERS);
+  public LANItem(String table_id) {
+    super("lan", ALIGN_CENTER, POSITION_INVISIBLE, 20, table_id);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

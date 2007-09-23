@@ -32,8 +32,8 @@ public class ConnectedTimeItem
        implements TableCellRefreshListener
 {
   /** Default Constructor */
-  public ConnectedTimeItem() {
-    super( "connected_time", ALIGN_TRAIL, POSITION_INVISIBLE, 70, TableManager.TABLE_TORRENT_PEERS);
+  public ConnectedTimeItem(String table_id) {
+    super( "connected_time", ALIGN_TRAIL, POSITION_INVISIBLE, 70, table_id);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

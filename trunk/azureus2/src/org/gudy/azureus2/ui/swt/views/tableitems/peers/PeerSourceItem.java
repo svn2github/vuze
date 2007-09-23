@@ -38,8 +38,8 @@ public class PeerSourceItem
        implements TableCellRefreshListener
 {
   /** Default Constructor */
-  public PeerSourceItem() {
-    super("source", ALIGN_TRAIL, POSITION_INVISIBLE, 40, TableManager.TABLE_TORRENT_PEERS);
+  public PeerSourceItem(String table_id) {
+    super("source", ALIGN_TRAIL, POSITION_INVISIBLE, 40, table_id);
   }
 
   public void refresh(TableCell cell) {

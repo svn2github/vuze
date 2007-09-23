@@ -1,5 +1,5 @@
 /*
- * Created on 5 Sep 2007
+ * Created on 14 Sep 2007
  * Created by Allan Crooks
  * Copyright (C) 2007 Aelitis, All Rights Reserved.
  *
@@ -21,41 +21,39 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
 import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
+
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 /**
  * @author Allan Crooks
  *
  */
-public class ClientIdentificationItem extends CoreTableColumn implements TableCellRefreshListener {
+public class DownloadNameItem extends CoreTableColumn implements TableCellRefreshListener /*, ObfusticateCellText */ {
 	
-	public ClientIdentificationItem(String table_id) {
-		super("client_identification", POSITION_INVISIBLE, 200, table_id);
+	/** Default Constructor */
+	public DownloadNameItem(String table_id) {
+		super("name", 250, table_id);
+		this.setPosition(0);
+		//setObfustication(true);
 		setRefreshInterval(INTERVAL_LIVE);
+		setType(TableColumn.TYPE_TEXT);
+		setMinWidth(100);
 	}
-	
+
+
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	 */
 	public void refresh(TableCell cell) {
-	    PEPeer peer = (PEPeer)cell.getDataSource();
-	    if (peer == null) {cell.setText(""); return;}
-	    String peer_id_name = peer.getClientNameFromPeerID();
-	    String peer_handshake_name = peer.getClientNameFromExtensionHandshake();
-	    
-	    if (peer_id_name == null) {peer_id_name = "";}
-	    if (peer_handshake_name == null) {peer_handshake_name = "";}
-	    
-	    if (peer_id_name.equals("") && peer_handshake_name.equals("")) {
-	    	cell.setText(""); return;
-	    }
-	    
-	    String result = peer_id_name;
-	    if (!peer_handshake_name.equals("")) {result += " / " + peer_handshake_name;}
-	    cell.setText(result);
+		PEPeer peer = (PEPeer)cell.getDataSource();
+		if (peer == null) {cell.setText(""); return;}
+		PEPeerManager manager = peer.getManager();
+		if (manager == null) {cell.setText(""); return;}
+		cell.setText(manager.getDisplayName());
 	}
 
 }

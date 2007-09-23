@@ -35,8 +35,8 @@ public class StateItem
        implements TableCellRefreshListener
 {
   /** Default Constructor */
-  public StateItem() {
-    super("state", POSITION_LAST, 65, TableManager.TABLE_TORRENT_PEERS);
+  public StateItem(String table_id) {
+    super("state", POSITION_LAST, 65, table_id);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

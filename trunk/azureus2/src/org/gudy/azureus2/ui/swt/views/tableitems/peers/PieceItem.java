@@ -39,8 +39,8 @@ public class PieceItem
        implements TableCellRefreshListener
 {
   /** Default Constructor */
-  public PieceItem() {
-    super("piece", ALIGN_TRAIL, POSITION_INVISIBLE, 40, TableManager.TABLE_TORRENT_PEERS);
+  public PieceItem(String table_id) {
+    super("piece", ALIGN_TRAIL, POSITION_INVISIBLE, 40, table_id);
     setRefreshInterval(INTERVAL_LIVE);
 }
 

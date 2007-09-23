@@ -39,8 +39,8 @@ public class IpItem
 {
 	
   /** Default Constructor */
-  public IpItem() {
-    super("ip", POSITION_LAST, 100, TableManager.TABLE_TORRENT_PEERS);
+  public IpItem(String table_id) {
+    super("ip", POSITION_LAST, 100, table_id);
     setObfustication(true);
    }
 

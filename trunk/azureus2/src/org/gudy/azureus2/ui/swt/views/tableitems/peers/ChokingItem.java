@@ -38,8 +38,8 @@ public class ChokingItem
        implements TableCellRefreshListener
 {
   /** Default Constructor */
-  public ChokingItem() {
-    super("C2", ALIGN_CENTER, POSITION_INVISIBLE, 20, TableManager.TABLE_TORRENT_PEERS);
+  public ChokingItem(String table_id) {
+    super("C2", ALIGN_CENTER, POSITION_INVISIBLE, 20, table_id);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

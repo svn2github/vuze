@@ -39,8 +39,8 @@ public class OutgoingRequestCountItem
        implements TableCellRefreshListener
 {
   /** Default Constructor */
-  public OutgoingRequestCountItem() {
-    super("outgoingreqcount", ALIGN_TRAIL, POSITION_INVISIBLE, 60, TableManager.TABLE_TORRENT_PEERS);
+  public OutgoingRequestCountItem(String table_id) {
+    super("outgoingreqcount", ALIGN_TRAIL, POSITION_INVISIBLE, 60, table_id);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

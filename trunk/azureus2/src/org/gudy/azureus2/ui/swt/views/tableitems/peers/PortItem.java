@@ -38,8 +38,8 @@ public class PortItem
        implements TableCellRefreshListener
 {
   /** Default Constructor */
-  public PortItem() {
-    super("port", ALIGN_TRAIL, POSITION_INVISIBLE, 40, TableManager.TABLE_TORRENT_PEERS);
+  public PortItem(String table_id) {
+    super("port", ALIGN_TRAIL, POSITION_INVISIBLE, 40, table_id);
   }
 
   public void refresh(TableCell cell) {

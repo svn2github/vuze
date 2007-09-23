@@ -33,8 +33,8 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
  */
 public class HandshakeReservedBytesItem extends CoreTableColumn implements TableCellRefreshListener {
 	
-	public HandshakeReservedBytesItem() {
-		super("handshake_reserved", POSITION_INVISIBLE, 80, TableManager.TABLE_TORRENT_PEERS);
+	public HandshakeReservedBytesItem(String table_id) {
+		super("handshake_reserved", POSITION_INVISIBLE, 80, table_id);
 		setRefreshInterval(INTERVAL_LIVE);
 	}
 

@@ -37,8 +37,8 @@ public class DLedFromOthersItem
 { 
   
   /** Default Constructor */
-  public DLedFromOthersItem() {
-    super("DLedFromOthers", ALIGN_TRAIL, POSITION_INVISIBLE, 70, TableManager.TABLE_TORRENT_PEERS);
+  public DLedFromOthersItem(String table_id) {
+    super("DLedFromOthers", ALIGN_TRAIL, POSITION_INVISIBLE, 70, table_id);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

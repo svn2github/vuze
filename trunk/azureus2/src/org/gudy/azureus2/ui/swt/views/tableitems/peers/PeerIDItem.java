@@ -28,9 +28,9 @@ public class PeerIDItem extends CoreTableColumn implements
 		TableCellRefreshListener {
 	
 	/** Default Constructor */
-	public PeerIDItem() {
+	public PeerIDItem(String table_id) {
 		// Uses same values for subclass constructor as ClientItem does.
-		super("peer_id", POSITION_INVISIBLE, 100, TableManager.TABLE_TORRENT_PEERS);
+		super("peer_id", POSITION_INVISIBLE, 100, table_id);
 		setRefreshInterval(INTERVAL_LIVE);
 	}
 

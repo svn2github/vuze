@@ -41,8 +41,8 @@ public class UpSpeedLimitItem
 {
   
 	/** Default Constructor */
-	public UpSpeedLimitItem() {
-	  super("maxupspeed", ALIGN_TRAIL, POSITION_INVISIBLE, 35, TableManager.TABLE_TORRENT_PEERS);
+	public UpSpeedLimitItem(String table_id) {
+	  super("maxupspeed", ALIGN_TRAIL, POSITION_INVISIBLE, 35, table_id);
 	  setRefreshInterval(INTERVAL_LIVE);
 	}
 

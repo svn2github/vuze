@@ -37,8 +37,8 @@ public class UpDownRatioItem
        implements TableCellRefreshListener
 {
   /** Default Constructor */
-  public UpDownRatioItem() {
-    super("UpDownRatio", ALIGN_TRAIL, POSITION_INVISIBLE, 70, TableManager.TABLE_TORRENT_PEERS);
+  public UpDownRatioItem(String table_id) {
+    super("UpDownRatio", ALIGN_TRAIL, POSITION_INVISIBLE, 70, table_id);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

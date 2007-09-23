@@ -32,8 +32,8 @@ public class MessagingItem
        implements TableCellRefreshListener
 {
   /** Default Constructor */
-  public MessagingItem() {
-    super("Messaging", ALIGN_CENTER, POSITION_INVISIBLE, 40, TableManager.TABLE_TORRENT_PEERS);
+  public MessagingItem(String table_id) {
+    super("Messaging", ALIGN_CENTER, POSITION_INVISIBLE, 40, table_id);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

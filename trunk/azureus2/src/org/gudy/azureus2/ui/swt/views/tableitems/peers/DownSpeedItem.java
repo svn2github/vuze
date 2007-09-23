@@ -39,8 +39,8 @@ public class DownSpeedItem
        implements TableCellRefreshListener
 {
   /** Default Constructor */
-  public DownSpeedItem() {
-    super("downloadspeed", ALIGN_TRAIL, POSITION_LAST, 65, TableManager.TABLE_TORRENT_PEERS);
+  public DownSpeedItem(String table_id) {
+    super("downloadspeed", ALIGN_TRAIL, POSITION_LAST, 65, table_id);
     setRefreshInterval(INTERVAL_LIVE);
   }
 
