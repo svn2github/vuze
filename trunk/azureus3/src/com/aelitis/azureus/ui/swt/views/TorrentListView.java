@@ -39,8 +39,10 @@ import com.aelitis.azureus.ui.swt.columns.torrent.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
+import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.ui.swt.views.list.ListRow;
 import com.aelitis.azureus.ui.swt.views.list.ListView;
+import com.aelitis.azureus.util.Constants;
 
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
@@ -86,7 +88,7 @@ public class TorrentListView
 
 	protected boolean bSkipUpdateCount = false;
 
-	public TorrentListView(AzureusCore core, final SWTSkin skin,
+	public TorrentListView(final AzureusCore core, final SWTSkin skin,
 			SWTSkinProperties skinProperties, Composite headerArea,
 			SWTSkinObjectText countArea, final Composite dataArea, int viewMode,
 			final boolean bMiniMode, final boolean bAllowScrolling) {
@@ -332,6 +334,21 @@ public class TorrentListView
 								PlatformTorrentUtils.setContentLastUpdated(torrent, 0);
 							}
 							PlatformTorrentUtils.updateMetaData(torrent, 10);
+						}
+					}
+				} else if (e.character == 15 && e.stateMask == (SWT.SHIFT | SWT.CONTROL)) {
+					Object[] selectedDataSources = getSelectedDataSources();
+					for (int i = 0; i < selectedDataSources.length; i++) {
+						DownloadManager dm = (DownloadManager) selectedDataSources[i];
+						if (dm != null) {
+							TOTorrent torrent = dm.getTorrent();
+							String contentHash = PlatformTorrentUtils.getContentHash(torrent);
+							if (contentHash != null && contentHash.length() > 0) {
+								String url = Constants.URL_PREFIX + Constants.URL_DOWNLOAD
+										+ contentHash + ".torrent?referal=coq";
+								TorrentUIUtilsV3.loadTorrent(core, url, null, false);
+							}
+							
 						}
 					}
 				}
