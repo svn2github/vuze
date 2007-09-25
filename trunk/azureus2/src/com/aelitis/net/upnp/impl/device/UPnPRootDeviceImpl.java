@@ -111,7 +111,7 @@ UPnPRootDeviceImpl
 			
 			upnp.log( "Relative URL base is " + (url_base_for_relative_urls==null?"unspecified":url_base_for_relative_urls.toString()));
 			
-		}catch(MalformedURLException e ){
+		}catch( MalformedURLException e ){
 			
 			upnp.log( "Invalid URLBase - " + (url_base_node==null?"mill":url_base_node.getValue()));
 			
@@ -120,7 +120,14 @@ UPnPRootDeviceImpl
 			Debug.printStackTrace( e );
 		}
 		
-		root_device = new UPnPDeviceImpl( this, "", doc.getChild( "Device" ));
+		SimpleXMLParserDocumentNode device = doc.getChild( "Device" );
+		
+		if ( device == null ){
+			
+			throw( new UPnPException( "Root device '" + usn + "(" + location + ") is missing the device description" ));
+		}
+		
+		root_device = new UPnPDeviceImpl( this, "", device );
 		
 		info = root_device.getFriendlyName();
 		
