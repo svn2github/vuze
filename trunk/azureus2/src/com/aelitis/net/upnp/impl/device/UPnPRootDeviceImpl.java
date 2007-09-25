@@ -65,6 +65,7 @@ UPnPRootDeviceImpl
 	private String		usn;
 	private URL			location;
 	private URL			url_base_for_relative_urls;
+	private URL			saved_url_base_for_relative_urls;
 	
 	private String		info;
 	
@@ -251,6 +252,26 @@ UPnPRootDeviceImpl
 			abs_url = abs_url.substring( 0, p1 );
 			
 			return( abs_url + (url.startsWith("/")?"":"/") + url );
+		}
+	}
+	
+	protected synchronized void
+	clearRelativeBaseURL()
+	{
+		if ( url_base_for_relative_urls != null ){
+			
+			saved_url_base_for_relative_urls 	= url_base_for_relative_urls;
+			url_base_for_relative_urls			= null;
+		}
+	}
+	
+	protected synchronized void
+	restoreRelativeBaseURL()
+	{
+		if ( saved_url_base_for_relative_urls != null ){
+			
+			url_base_for_relative_urls			= saved_url_base_for_relative_urls;
+			saved_url_base_for_relative_urls	= null;
 		}
 	}
 	

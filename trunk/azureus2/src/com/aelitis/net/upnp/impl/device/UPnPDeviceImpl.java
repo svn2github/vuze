@@ -116,6 +116,18 @@ UPnPDeviceImpl
 		return( root_device.getLocalAddress());
 	}
 	
+	public synchronized void
+	clearRelativeBaseURL()
+	{
+		root_device.clearRelativeBaseURL();
+	}
+	
+	public synchronized void
+	restoreRelativeBaseURL()
+	{
+		root_device.restoreRelativeBaseURL();
+	}
+	
 	public UPnPImpl
 	getUPnP()
 	{

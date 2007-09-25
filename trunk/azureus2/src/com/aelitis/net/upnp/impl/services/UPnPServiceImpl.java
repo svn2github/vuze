@@ -44,8 +44,8 @@ UPnPServiceImpl
 	protected UPnPDeviceImpl	device;
 	
 	protected String			service_type;
-	protected String			desc_url;
-	protected String			control_url;
+	protected String			local_desc_url;
+	protected String			local_control_url;
 	
 	protected List				actions;
 	protected List				state_vars;
@@ -62,11 +62,11 @@ UPnPServiceImpl
 		
 		service_type 		= service_node.getChild("ServiceType").getValue().trim();
 		
-		desc_url	= device.getAbsoluteURL(service_node.getChild("SCPDURL").getValue());
+		local_desc_url		= service_node.getChild("SCPDURL").getValue();
 		
-		control_url	= device.getAbsoluteURL(service_node.getChild("controlURL").getValue());
+		local_control_url	= service_node.getChild("controlURL").getValue();
 		
-		device.getUPnP().log( indent + service_type + ":desc=" + desc_url + ", control=" + control_url );
+		device.getUPnP().log( indent + service_type + ":desc=" + device.getAbsoluteURL(local_desc_url) + ", control=" + device.getAbsoluteURL(local_control_url));
 	}
 	
 	public UPnPDevice
@@ -158,7 +158,7 @@ UPnPServiceImpl
 	
 		throws UPnPException
 	{
-		return( getURL( desc_url ));
+		return( getURL( device.getAbsoluteURL( local_desc_url )));
 	}
 	
 	public URL
@@ -166,7 +166,7 @@ UPnPServiceImpl
 	
 		throws UPnPException
 	{
-		return( getURL( control_url ));
+		return( getURL( device.getAbsoluteURL( local_control_url )));
 	}
 	
 	protected URL
@@ -212,7 +212,7 @@ UPnPServiceImpl
 	
 		throws UPnPException
 	{		
-		SimpleXMLParserDocument	doc = device.getUPnP().downloadXML( getDescriptionURL());
+		SimpleXMLParserDocument	doc = device.getUPnP().downloadXML( device, getDescriptionURL());
 
 		parseActions( doc.getChild( "ActionList" ));
 				

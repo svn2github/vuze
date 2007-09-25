@@ -478,7 +478,47 @@ UPnPImpl
 	
 	public SimpleXMLParserDocument
 	downloadXML(
-		URL		url )
+		URL				url )
+	
+		throws UPnPException
+	{
+		return( downloadXML( null, url ));
+	}
+	
+	public SimpleXMLParserDocument
+	downloadXML(
+		UPnPDeviceImpl	device,
+		URL				url )
+	
+		throws UPnPException
+	{
+		try{
+				// some devices have borked relative urls, work around
+			
+			if ( device != null ){
+				
+				device.restoreRelativeBaseURL();
+			}
+			
+			return( downloadXMLSupport( device, url ));
+			
+		}catch( UPnPException e ){
+			
+			if ( device != null ){
+				
+				device.clearRelativeBaseURL();
+				
+				return( downloadXMLSupport( device, url ));
+			}
+			
+			throw( e );
+		}
+	}
+	
+	protected SimpleXMLParserDocument
+	downloadXMLSupport(
+		UPnPDeviceImpl	device,
+		URL				url )
 	
 		throws UPnPException
 	{
@@ -520,6 +560,7 @@ UPnPImpl
 					}
 				}
 			}else{
+				
 				ResourceDownloaderFactory rdf = adapter.getResourceDownloaderFactory();
 				
 				ResourceDownloader rd = rdf.getRetryDownloader( rdf.create( url ), 3 );
