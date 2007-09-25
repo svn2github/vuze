@@ -170,7 +170,7 @@ public class VersionCheckClient {
 		  
 		  Map	reply = getVersionCheckInfoSupport( reason, false, false, prefer_v6 );
 		  
-		  if ( reply == null ){
+		  if ( reply == null || reply.size() == 0 ){
 			  
 			  reply =  getVersionCheckInfoSupport( reason, false, false, !prefer_v6 );
 		  }
