@@ -178,7 +178,9 @@ UPnPServiceImpl
 		try{
 			URL	target;
 			
-			if ( basis.toLowerCase().startsWith( "http" )){
+			String	lc_basis = basis.toLowerCase();
+			
+			if ( lc_basis.startsWith( "http" ) || lc_basis.startsWith( "https" )){
 				
 					// absolute
 				
