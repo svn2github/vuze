@@ -281,7 +281,7 @@ ViewUtils
 			Messages.setLanguageText(itemUpSpeedManualShared, "MyTorrentsView.menu.manual.shared_torrents");
 			itemUpSpeedManualShared.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e) {
-					int speed_value = getManualSharedSpeedValue(shell, true, num_entries);
+					int speed_value = getManualSharedSpeedValue(shell, false, num_entries);
 					if (speed_value > 0) {adapter.setUpSpeed(speed_value);}
 				}
 			});
