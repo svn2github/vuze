@@ -135,4 +135,25 @@ public class PlatformTorrentMessenger
 
 		PlatformMessenger.queueMessage(message, null);
 	}
+
+	public static void streamComplete(TOTorrent torrent, Map info) {
+		String hash = null;
+		try {
+			hash = torrent.getHashWrapper().toBase32String();
+		} catch (TOTorrentException e) {
+		}
+
+		if (hash == null) {
+			return;
+		}
+
+		Map mapParameters = new HashMap(info);
+
+		mapParameters.put("torrent-hash", hash);
+
+		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
+				OP_STREAMCOMPLETE, mapParameters, 3000);
+
+		PlatformMessenger.queueMessage(message, null);
+	}
 }
