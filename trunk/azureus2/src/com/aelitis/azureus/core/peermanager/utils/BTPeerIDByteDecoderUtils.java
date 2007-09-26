@@ -196,8 +196,16 @@ class BTPeerIDByteDecoderUtils {
 		if (peer_id.charAt(0) != '-') {return false;}
 		if (peer_id.charAt(7) == '-') {return true;}
 		
-		// Hack for FlashGet - it doesn't use the trailing dash.
-		return peer_id.substring(1, 3).equals("FG");
+		/**
+		 * Hack for FlashGet - it doesn't use the trailing dash.
+		 * Also, LH-ABC has strayed into "forgetting about the delimiter" territory.
+		 * 
+		 * In fact, the code to generate a peer ID for LH-ABC is based on BitTornado's,
+		 * yet tries to give an Az style peer ID... oh dear.
+		 */
+		if (peer_id.substring(1, 3).equals("FG")) {return true;}
+		if (peer_id.substring(1, 3).equals("LH")) {return true;}
+		return false;
 	}
 	
 	/**
