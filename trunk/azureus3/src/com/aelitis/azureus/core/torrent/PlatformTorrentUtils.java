@@ -699,12 +699,6 @@ public class PlatformTorrentUtils
 	}
 
 	public static boolean isContentProgressive(TOTorrent torrent) {
-		if (Constants.isOSX && useEMP(torrent) && !embeddedPlayerAvail()
-				&& getContentMapLong(torrent, TOR_AZ_PROP_AD_ENABLED, 0) == 1) {
-			// Temporarily disable on osx when we want emp and it's not avail
-			// because osx player can't handle emp content
-			return false;
-		}
 		return getContentMapLong(torrent, TOR_AZ_PROP_PROGRESSIVE, 0) == 1;
 	}
 
@@ -717,11 +711,6 @@ public class PlatformTorrentUtils
 	}
 
 	public static boolean isContentAdEnabled(TOTorrent torrent) {
-		if (Constants.isOSX && useEMP(torrent) && !embeddedPlayerAvail()) {
-			// Temporarily disable on osx when we want emp and it's not avail
-			// because osx player can't handle emp content
-			return false;
-		}
 		return getContentMapLong(torrent, TOR_AZ_PROP_AD_ENABLED, 0) == 1;
 	}
 
@@ -794,7 +783,6 @@ public class PlatformTorrentUtils
 			PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
 					"azemp");
 			if (pi != null && pi.isOperational() && !pi.isDisabled()) {
-
 				embeddedPlayerAvail = true;
 			}
 		} catch (Throwable e1) {
