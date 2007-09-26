@@ -35,6 +35,7 @@ import org.bouncycastle.util.encoders.Base64;
 
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPositionManager;
+import com.aelitis.azureus.core.util.HTTPUtils;
 
 public abstract class 
 TRTrackerServerProcessorTCP
@@ -228,50 +229,8 @@ TRTrackerServerProcessorTCP
 						if ( enc_pos != -1 ){
 							
 							String	accept_encoding = lowercase_input_header.substring(enc_pos+16,e_pos);
-														
-							int gzip_index = accept_encoding.indexOf("gzip");
-							
-							if ( gzip_index != -1 ){
-								
-								gzip_reply	= true;
-								
-								if ( accept_encoding.length() - gzip_index >= 8 ){
-								
-										// gzip;q=0
-										// look to see if there's a q=0 (or 0.0) disabling gzip
-	
-									char[]	chars = accept_encoding.toCharArray();
-									
-									boolean	q_value = false;
-																	
-									for (int i=gzip_index+4;i<chars.length;i++){
-										
-										char	c = chars[i];
-										
-										if ( c == ',' ){
-											
-											break;
-											
-										}else if ( c == '=' ){
-											
-											q_value		= true;
-											gzip_reply	= false;
-											
-										}else{
-											
-											if ( q_value ){
-												
-												if ( c != ' ' && c != '0' && c != '.' ){
-													
-													gzip_reply	= true;
-													
-													break;
-												}
-											}
-										}
-									}
-								}
-							}
+						
+							gzip_reply = HTTPUtils.canGZIP( accept_encoding );
 						}
 					}
 				}
