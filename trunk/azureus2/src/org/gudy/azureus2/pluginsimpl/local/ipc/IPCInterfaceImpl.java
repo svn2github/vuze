@@ -24,8 +24,11 @@ package org.gudy.azureus2.pluginsimpl.local.ipc;
 
 import java.lang.reflect.Method;
 
+import org.gudy.azureus2.plugins.Plugin;
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ipc.IPCException;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 /**
  * @author Damokles
@@ -34,16 +37,21 @@ import org.gudy.azureus2.plugins.ipc.IPCInterface;
 
 public class IPCInterfaceImpl implements IPCInterface {
 
-	Object target;
+	private Plugin 				target_use_accessor;
+	private String				plugin_class;
+	private PluginInitializer	plugin_initializer;
 
-
-	public IPCInterfaceImpl ( Object _target ) {
-		target = _target;
+	public IPCInterfaceImpl ( PluginInitializer _plugin_initializer, Plugin _target ) {
+		plugin_initializer	= _plugin_initializer;
+		target_use_accessor = _target;
+		plugin_class		= _target.getClass().getName();
 	}
 
 	public Object invoke( String methodName, Object[] params )
 	throws IPCException {
 
+		Plugin	target = getTarget();
+		
 		try {
 			if (params == null) {
 				params = new Object[0];
@@ -121,6 +129,48 @@ public class IPCInterfaceImpl implements IPCInterface {
 			return mtd.invoke(target, params);
 		} catch (Exception e) {
 			throw new IPCException(e);
+		}
+	}
+	
+	protected Plugin
+	getTarget()
+	
+		throws IPCException
+	{		
+		synchronized( this ){
+
+			if ( target_use_accessor == null ){
+				
+				PluginInterface[] pis = plugin_initializer.getPlugins();
+				
+				for (int i=0;i<pis.length;i++){
+					
+					PluginInterface pi = pis[i];
+					
+					if ( pi.getPlugin().getClass().getName().equals( plugin_class )){
+						
+						target_use_accessor = pi.getPlugin();
+						
+						break;
+					}
+				}
+			}
+			
+			if ( target_use_accessor == null ){
+				
+				throw( new IPCException( "Plugin has been unloaded" ));
+			}
+			
+			return( target_use_accessor );
+		}
+	}
+	
+	public void
+	unload()
+	{
+		synchronized( this ){
+		
+			target_use_accessor	= null;
 		}
 	}
 }

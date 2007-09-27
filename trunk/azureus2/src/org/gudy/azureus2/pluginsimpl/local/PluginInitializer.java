@@ -1331,6 +1331,8 @@ PluginInitializer
   	
   	plugin_interfaces.remove( pi );
   	
+  	pi.unloadSupport();
+  	
   	for (int i=0;i<loaded_pi_list.size();i++){
   		
   		List	l = (List)loaded_pi_list.get(i);
@@ -1549,7 +1551,7 @@ PluginInitializer
   	return plugin_interfaces;
   }
   
-  protected PluginInterface[]
+  public PluginInterface[]
   getPlugins()
   {
   	List	pis = getPluginInterfacesSupport();

@@ -99,7 +99,7 @@ PluginInterfaceImpl
   private boolean				operational;
   private boolean				disabled;
   private Logger				logger;
-  private IPCInterface			ipc_interface;
+  private IPCInterfaceImpl		ipc_interface;
   private List					children		= new ArrayList();
   private List configSections = new ArrayList();
   
@@ -126,7 +126,7 @@ PluginInterfaceImpl
     config 				= new PluginConfigImpl(this,pluginConfigKey);
     plugin_id			= _plugin_id;
     plugin_version		= _plugin_version;
-    ipc_interface		= new IPCInterfaceImpl( plugin );
+    ipc_interface		= new IPCInterfaceImpl( initialiser, plugin );
   }
   
   	public Plugin
@@ -548,6 +548,12 @@ PluginInterfaceImpl
   	setOperational(false);
 
   	class_loader = null;
+  }
+  
+  protected void
+  unloadSupport()
+  {
+	  ipc_interface.unload();
   }
   
   public void
