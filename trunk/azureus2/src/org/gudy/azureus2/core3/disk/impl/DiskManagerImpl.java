@@ -395,17 +395,23 @@ DiskManagerImpl
         boolean moveWhenDone = COConfigurationManager.getBooleanParameter("Move Completed When Done");
 
         String moveToDir = COConfigurationManager.getStringParameter("Completed Files Directory", "");
+        
+        boolean files_exist = false;
 
         if ( moveWhenDone && moveToDir.length() > 0 && download_manager.isPersistent()){
-
-                //if the data file already resides in the completed files dir
-
-            if ( filesExist( moveToDir )){
-
-                alreadyMoved = true;
-
-                download_manager.setTorrentSaveDir( moveToDir );
-            }
+        	
+        	/**
+        	 * Try one of these candidate directories, see if the data already exists there.
+        	 */
+        	String[] move_to_dirs = new String[] {moveToDir, DownloadManagerDefaultPaths.getCompletionDirectory(download_manager).getAbsolutePath()};
+        	
+        	for (int i=0; i<move_to_dirs.length; i++) {
+        		if (filesExist (move_to_dirs[i])) {
+                    alreadyMoved = files_exist = true;
+                    download_manager.setTorrentSaveDir(move_to_dirs[i]);
+                    break;
+                }
+        	}
         }
 
         reader.start();
@@ -417,11 +423,16 @@ DiskManagerImpl
         // If we haven't yet allocated the files, take this chance to determine
         // whether any relative paths should be taken into account for default
         // save path calculations.
-        if (!download_manager.isDataAlreadyAllocated()) {
-        	DownloadManagerDefaultPaths.TransferDetails transfer = 
-        		DownloadManagerDefaultPaths.onInitialisation(download_manager);
-        	if (transfer != null) {
-        		download_manager.setTorrentSaveDir(transfer.transfer_destination.getAbsolutePath());
+        if (!alreadyMoved && !download_manager.isDataAlreadyAllocated()) {
+        	
+        	// Check the files don't already exist in their current location.
+        	if (!files_exist) {files_exist = this.filesExist();}
+        	if (!files_exist) {
+        		DownloadManagerDefaultPaths.TransferDetails transfer = 
+        			DownloadManagerDefaultPaths.onInitialisation(download_manager);
+        		if (transfer != null) {
+        			download_manager.setTorrentSaveDir(transfer.transfer_destination.getAbsolutePath());
+        		}
         	}
         }
 
@@ -3172,6 +3183,17 @@ DiskManagerImpl
 			
 			writer.exdent();
 		}
+	}
+	
+	public int[] getStorageTypesForFileInfo(DiskManagerFileInfo[] inf) {
+		String[] types = getStorageTypes();
+		int[] result = new int[inf.length];
+		boolean is_linear;
+		for (int i=0; i<inf.length; i++) {
+			is_linear = types[inf[i].getIndex()].equals("L");
+			result[i] = is_linear ? DiskManagerFileInfo.ST_LINEAR : DiskManagerFileInfo.ST_COMPACT;
+		}
+		return result;
 	}
 	
 }

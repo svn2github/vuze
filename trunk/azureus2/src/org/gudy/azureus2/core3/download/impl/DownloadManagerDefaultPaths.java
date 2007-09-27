@@ -248,7 +248,6 @@ public class DownloadManagerDefaultPaths {
 
     /**
      * This does the guts of determining appropriate file paths.
-     * @param assumecomplete 
      */
     private static TransferDetails determinePaths(DownloadManager dm, MovementInformation mi) {
 		LogRelation lr = (dm instanceof LogRelation) ? (LogRelation)dm : null;
@@ -474,6 +473,10 @@ public class DownloadManagerDefaultPaths {
 			return result;
 		}
 
+	}
+	
+	public static File getCompletionDirectory(DownloadManager dm) {
+		return COMPLETION_DETAILS[0].target.getTarget(dm, null, null);
 	}
 	
 	public static TransferDetails onInitialisation(DownloadManager dm) {
