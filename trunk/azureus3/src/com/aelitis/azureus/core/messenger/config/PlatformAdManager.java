@@ -232,7 +232,7 @@ public class PlatformAdManager
 	}
 
 	public static void storeImpresssion(String trackingID, long viewedOn,
-			String contentHash, String adHash, String torrentHash, String adID,
+			String contentHash, String torrentHash, String adHash, String adID,
 			long maxDelayMS) {
 		// pass in contentHash instead of DownloadManager in case the user removed
 		// the DM (and we are retrying)
@@ -286,6 +286,7 @@ public class PlatformAdManager
 
 		Map ads = new HashMap();
 		ads.put("ads", fSendingImpressions);
+		ads.put("rpc-version", new Long(2));
 
 		try {
 			debug("sending " + fSendingImpressions.size() + " impressions");
