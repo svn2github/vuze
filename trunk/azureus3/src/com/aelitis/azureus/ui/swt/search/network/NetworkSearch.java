@@ -62,6 +62,9 @@ public class NetworkSearch
 
 			return;
 		}
+		
+		Logger.log(new LogEvent(LOGID, "Search plugin functionality disabled"));
+		/*
 
 		Map params = new HashMap();
 
@@ -81,6 +84,7 @@ public class NetworkSearch
 
 			Logger.log(new LogEvent(LOGID, "IPC to search plugin failed", e));
 		}
+		*/
 	}
 
 	public void searchCallback(Map params) {
