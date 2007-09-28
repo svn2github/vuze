@@ -168,6 +168,11 @@ public class SWTSkinObjectImage
 						if (label == null || label.isDisposed()) {
 							return null;
 						}
+						
+						if (sImageID.equals(label.getData("ImageID"))) {
+							return label.getImage();
+						}
+						
 
 						ImageLoader imageLoader = skin.getImageLoader(properties);
 						Image image = imageLoader.getImage(sImageID);
