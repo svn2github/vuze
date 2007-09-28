@@ -5,7 +5,11 @@ AZUREUS CHANGELOG
 
 FEATURE: UI   | Added "All Peers" view [amc1]
 
-CHANGE: UI    | NAT status bar indicator and health icons now ignore UDP and LAN-local connections 
+CHANGE: UI    | NAT status bar indicator and health icons now ignore UDP and LAN-local connections [The 8472]
+
+BUGFIX: Core  | Fixed bug where a torrent's save location is "forgotten" when a recheck is done in some circumstances [amc1]
+
+
 
 2007.09.21 | Azureus 3.0.3.2
 
@@ -29,8 +33,8 @@ CHANGE: Core  | Speedup hash-checking by ~30% / less CPU usage [The 8472]
 CHANGE: Core  | More improvements to client identification code [amc1]
 CHANGE: UI    | Provide both "per-torrent" and "across-torrents" speed menu options [amc1]
 CHANGE: UI    | Speed improvements for menu generation and changing file priority in "Files" view [amc1]
-CHANGE: Plug  | Plugins can now dynamically register language resource bundles [amc1]
 CHANGE: UI    | Allow minibars to stick to any screen border in multi monitor setups [The 8472]
+CHANGE: Plug  | Plugins can now dynamically register language resource bundles [amc1]
 
 BUGFIX: Core  | Fixed bug when trying to add torrents with semi-colon characters in filename [amc1]
 BUGFIX: Core  | LAN peer detection for explicit IP addresses was broken [Parg]
