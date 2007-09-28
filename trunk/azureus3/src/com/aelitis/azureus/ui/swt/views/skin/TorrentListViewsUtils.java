@@ -541,7 +541,7 @@ public class TorrentListViewsUtils
 			return true;
 		} catch (Throwable e) {
 			e.printStackTrace();
-			if (e.getMessage() == null || !e.getMessage().endsWith("Only")) {
+			if (e.getMessage() == null || !e.getMessage().toLowerCase().endsWith("Only")) {
 				Debug.out(e);
 			}
 		}
