@@ -81,7 +81,7 @@ public class ListView
 	private static final boolean DEBUG_SORTER = false;
 
 	private static final boolean DEBUG_COLUMNSIZE = false;
-	
+
 	private static final boolean DEMO_DRAGROW = false;
 
 	private static final boolean DELAY_SCROLL = false;
@@ -1088,9 +1088,12 @@ public class ListView
 						if (DEBUGPAINT) {
 							logPAINT("Restarting refresh");
 						}
-						refreshVisible(((Boolean) params[0]).booleanValue(),
-								((Boolean) params[1]).booleanValue(),
-								((Boolean) params[2]).booleanValue());
+						boolean newDoGraphics = ((Boolean) params[0]).booleanValue()
+								|| doGraphics;
+						boolean newForceRedraw = ((Boolean) params[1]).booleanValue()
+								|| bForceRedraw;
+						boolean newAsync = ((Boolean) params[2]).booleanValue();
+						refreshVisible(newDoGraphics, newForceRedraw, newAsync);
 					}
 				}
 			}
@@ -1525,12 +1528,13 @@ public class ListView
 		event.skipCoreFunctionality = false;
 
 		if (cell != null) {
-  		Rectangle r = cell.getBounds();
-  		event.x = e.x - r.x;
-  		event.y = e.y - r.y;
-  		if (event.x < 0 || event.y < 0 || event.x >= r.width || event.y >= r.height) {
-  			//			return null; // borks mouseenter/exit
-  		}
+			Rectangle r = cell.getBounds();
+			event.x = e.x - r.x;
+			event.y = e.y - r.y;
+			if (event.x < 0 || event.y < 0 || event.x >= r.width
+					|| event.y >= r.height) {
+				//			return null; // borks mouseenter/exit
+			}
 		}
 		return event;
 	}
@@ -1550,8 +1554,8 @@ public class ListView
 			int mouseEventType = -1;
 			switch (e.type) {
 				case SWT.MouseMove:
-					if (DEMO_DRAGROW && (e.stateMask & SWT.BUTTON1) > 0 && imgMove != null
-							&& !imgMove.isDisposed()) {
+					if (DEMO_DRAGROW && (e.stateMask & SWT.BUTTON1) > 0
+							&& imgMove != null && !imgMove.isDisposed()) {
 						listCanvas.redraw();
 						listCanvas.update();
 						GC gc = new GC(listCanvas);
@@ -1619,19 +1623,19 @@ public class ListView
 					listCanvas.setFocus();
 
 					if (DEMO_DRAGROW) {
-  					Utils.disposeSWTObjects(new Object[] {
-  						imgMove
-  					});
-  					Rectangle rowArea = listCanvas.getClientArea();
-  					rowArea.y = row.getVisibleYOffset();
-  					rowArea.height = row.ROW_HEIGHT;
-  					mouseDownAt = new Point(e.x, e.y - rowArea.y);
-  
-  					imgMove = new Image(listCanvas.getDisplay(), rowArea.width,
-  							rowArea.height);
-  					GC gc = new GC(listCanvas);
-  					gc.copyArea(imgMove, rowArea.x, rowArea.y);
-  					gc.dispose();
+						Utils.disposeSWTObjects(new Object[] {
+							imgMove
+						});
+						Rectangle rowArea = listCanvas.getClientArea();
+						rowArea.y = row.getVisibleYOffset();
+						rowArea.height = row.ROW_HEIGHT;
+						mouseDownAt = new Point(e.x, e.y - rowArea.y);
+
+						imgMove = new Image(listCanvas.getDisplay(), rowArea.width,
+								rowArea.height);
+						GC gc = new GC(listCanvas);
+						gc.copyArea(imgMove, rowArea.x, rowArea.y);
+						gc.dispose();
 					}
 
 					mouseEventType = TableCellMouseEvent.EVENT_MOUSEDOWN;
@@ -2871,7 +2875,8 @@ public class ListView
 	}
 
 	public boolean _isRowVisible(ListRow row) {
-		if (listCanvas == null || listCanvas.isDisposed() || !listCanvas.isVisible()) {
+		if (listCanvas == null || listCanvas.isDisposed()
+				|| !listCanvas.isVisible()) {
 			return false;
 		}
 
@@ -2957,7 +2962,7 @@ public class ListView
 			}
 		} catch (Exception e) {
 			if (cell instanceof TableCellCore) {
-				Debug.out(((TableCellCore)cell).getTableColumn().getName(), e);
+				Debug.out(((TableCellCore) cell).getTableColumn().getName(), e);
 			} else {
 				Debug.out(e);
 			}
@@ -3073,8 +3078,8 @@ public class ListView
 
 					if (!row.isVisible()) {
 						// XXX turn this back on after release
-//						System.out.println("asked for row refresh but not visible "
-//								+ row.getIndex() + ";" + Debug.getCompressedStackTrace());
+						//System.out.println("asked for row refresh but not visible "
+						//	+ row.getIndex() + ";" + Debug.getCompressedStackTrace());
 						return new ArrayList();
 					}
 
@@ -3602,7 +3607,7 @@ public class ListView
 			}
 		}
 	}
-	
+
 	public TableCellSWT getTableCellWithCursor() {
 		Point pt = listCanvas.getDisplay().getCursorLocation();
 		pt = listCanvas.toControl(pt);
