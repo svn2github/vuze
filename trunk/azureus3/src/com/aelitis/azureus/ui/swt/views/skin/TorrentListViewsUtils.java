@@ -22,7 +22,6 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -32,7 +31,6 @@ import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
-import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.ForceRecheckListener;
@@ -43,17 +41,13 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
-import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
-import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.download.EnhancedDownloadManager;
-import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -63,7 +57,6 @@ import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.PublishUtils;
@@ -77,6 +70,9 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
+
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 
 /**
  * @author TuxPaper
@@ -541,7 +537,7 @@ public class TorrentListViewsUtils
 			return true;
 		} catch (Throwable e) {
 			e.printStackTrace();
-			if (e.getMessage() == null || !e.getMessage().toLowerCase().endsWith("Only")) {
+			if (e.getMessage() == null || !e.getMessage().toLowerCase().endsWith("only")) {
 				Debug.out(e);
 			}
 		}
