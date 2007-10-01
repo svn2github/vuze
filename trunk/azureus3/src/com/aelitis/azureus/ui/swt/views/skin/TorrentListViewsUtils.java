@@ -355,10 +355,16 @@ public class TorrentListViewsUtils
 
 		TOTorrent torrent = dm.getTorrent();
 		if (canUseEMP(torrent)) {
+			debug("Can use EMP");
 			if (openInEMP(dm)) {
 				return true;
+			} else {
+				debug("Open EMP Failed");
 			}
 			// fallback to normal
+		} else {
+			debug("Can't use EMP. torrent says "
+					+ PlatformTorrentUtils.useEMP(torrent));
 		}
 
 		if (btn != null) {
@@ -474,6 +480,17 @@ public class TorrentListViewsUtils
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * @param string
+	 *
+	 * @since 3.0.3.3
+	 */
+	private static void debug(String string) {
+		if (org.gudy.azureus2.core3.util.Constants.isCVSVersion()) {
+			System.out.println(string);
+		}
 	}
 
 	private static void runFile(TOTorrent torrent, String runFile) {
