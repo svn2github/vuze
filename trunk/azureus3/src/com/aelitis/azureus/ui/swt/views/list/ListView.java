@@ -3162,6 +3162,7 @@ public class ListView
 		 */
 		private void doPaint(Event e) {
 			if (imgView == null) {
+				e.gc.fillRectangle(e.x, e.y, e.width, e.height);
 				return;
 			}
 
