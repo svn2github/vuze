@@ -172,6 +172,9 @@ public class SWTSkinObjectText2
 		final String fSuffix = suffix;
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
+				if (canvas == null || canvas.isDisposed()) {
+					return;
+				}
 				updateFont(fSuffix);
 			}
 		});

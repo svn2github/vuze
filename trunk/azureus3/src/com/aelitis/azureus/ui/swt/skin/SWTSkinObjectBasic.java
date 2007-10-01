@@ -263,6 +263,10 @@ public class SWTSkinObjectBasic
 		Utils.execSWTThread(new AERunnable() {
 
 			public void runSupport() {
+				if (control == null || control.isDisposed()) {
+					return;
+				}
+
 				Color color = properties.getColor(sConfigID + ".color" + sSuffix);
 				if (color != null) {
 					control.setBackground(color);
