@@ -280,9 +280,6 @@ AEDiagnostics
 			
 			loggers.put( name, logger );
 			
-			Calendar now = GregorianCalendar.getInstance();
-			log(logger, "\n\n[" + now.get(Calendar.YEAR) + "] Log File Opened for "
-					+ Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + "\n\n");
 		}
 		
 		return( logger );
@@ -333,7 +330,7 @@ AEDiagnostics
 			}
 			
 			Calendar now = GregorianCalendar.getInstance();
-	        
+
 			String timeStamp =
 				"[" + format(now.get(Calendar.DAY_OF_MONTH))+format(now.get(Calendar.MONTH)+1) + " " + 
 				format(now.get(Calendar.HOUR_OF_DAY))+ ":" + format(now.get(Calendar.MINUTE)) + ":" + format(now.get(Calendar.SECOND)) + "] ";        
@@ -345,6 +342,13 @@ AEDiagnostics
 			try{		
 						
 				pw = new PrintWriter(new FileWriter( log_file, true ));
+				
+				if (!logger.isWrittenToThisSession()) {
+					logger.setWrittenToThisSession(true);
+					pw.println("\n\n[" + now.get(Calendar.YEAR)
+							+ "] Log File Opened for " + Constants.AZUREUS_NAME + " "
+							+ Constants.AZUREUS_VERSION + "\n");
+				}
 			
 				pw.println( str );
 		 							

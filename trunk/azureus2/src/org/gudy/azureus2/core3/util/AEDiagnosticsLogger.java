@@ -31,6 +31,7 @@ AEDiagnosticsLogger
 {
 	protected String 		name;
 	protected boolean		first_file	= true;
+	protected boolean		writtenToThisSession = false;
 	
 	protected
 	AEDiagnosticsLogger(
@@ -100,5 +101,18 @@ AEDiagnosticsLogger
 		e.printStackTrace();
 		
 		log( e );
+	}
+
+	public boolean
+	isWrittenToThisSession()
+	{
+		return writtenToThisSession;
+	}
+
+	public void 
+	setWrittenToThisSession(
+			boolean writtenToThisSession ) 
+	{
+		this.writtenToThisSession = writtenToThisSession;
 	}
 }
