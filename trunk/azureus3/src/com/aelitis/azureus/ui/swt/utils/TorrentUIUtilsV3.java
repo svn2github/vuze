@@ -21,6 +21,8 @@
 package com.aelitis.azureus.ui.swt.utils;
 
 import java.io.File;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.swt.widgets.Shell;
 
@@ -33,9 +35,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.HashWrapper;
-import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -56,6 +56,8 @@ import com.aelitis.azureus.util.Constants;
  */
 public class TorrentUIUtilsV3
 {
+	//catches http://www.vuze.com/download/CHJW43PLS277RC7U3S5XRS2PZ4UUG7RS.torrent
+	private static final Pattern hashPattern = Pattern.compile("download/([A-Z0-9]{32})\\.torrent");
 
 	public static void loadTorrent(final AzureusCore core, String url,
 			String referer, final boolean playNow) {
@@ -67,6 +69,22 @@ public class TorrentUIUtilsV3
 		}
 
 		try {
+			if (playNow) {
+  			Matcher m = hashPattern.matcher(url);
+  			if (m.find()) {
+  				String hash = m.group(1);
+  				System.out.println("HASH? " + hash);
+  				GlobalManager gm = core.getGlobalManager();
+  				DownloadManager dm = gm.getDownloadManager(new HashWrapper(Base32.decode(hash)));
+  				if (dm != null) {
+  					Debug.outNoStack("loadTorrent already exists.. playing", false);
+  					TorrentListViewsUtils.playOrStream(dm);
+  					return;
+  				}
+  			}
+			}
+			
+			
 			// If it's going to our URLs, add some extra authenication
 			if (url.indexOf("azid=") < 0) {
 				url += (url.indexOf('?') < 0 ? "?" : "&") + Constants.URL_SUFFIX;
@@ -167,5 +185,4 @@ public class TorrentUIUtilsV3
 			Debug.out(e);
 		}
 	}
-
 }
