@@ -535,7 +535,6 @@ public class BTPeerIDByteDecoder {
 		System.out.println("Testing various specialised clients...");
 		assertDecode("Mainline", "0000000000000000000000004C53441933104277");
 		assertDecode(UNKNOWN + " [" + FAKE + ": ZipTorrent 1.6.0.0]", "-ZT1600-bLAdeY9rdjbe");
-		assertDecode("Mainline 4.4.0 (BitThief?)", "M4-4-0--164d2e4a0fba"); // BitThief generated ID - it masquerades itself as Mainline 4.4.0.
 		System.out.println();
 		
 		// Unknown clients - may be random bytes.
@@ -568,7 +567,9 @@ public class BTPeerIDByteDecoder {
 
 		// TODO
 		//assertDecode("KTorrent 2.2", "-KT22B1-695754334315"); // We could use the B1 information...
+		//assertDecode("KTorrent 2.1.4", "-KT2140-584815613993"); // Currently shows as 2.1.
 		//assertDecode("", "C8F2D9CD3A90455354426578626300362D2D2D92"); // Looks like a BitLord client - ESTBexbc?
+		//assertDecode("", "303030302D2D0000005433585859684B59584C72"); // Seen in the wild, appears to be a modified version of Azureus 2.5.0.0 (that's what was in the AZMP handshake)?
 
 		System.out.println("Done.");
 	}
