@@ -51,7 +51,7 @@ public class ClientIdentifier {
 		   * There may be some discrepancy - a different version number perhaps.
 		   * If the main client name still seems to be the same, then return the one
 		   * given to us in the AZ handshake.
-			 */ 
+		   */ 
 		  String peer_id_client = peer_id_client_name.split(" ", 2)[0];
 		  String az_client_name = az_msg_client_name.split(" ", 2)[0];
 		  if (peer_id_client.equals(az_client_name)) {
@@ -156,27 +156,12 @@ public class ClientIdentifier {
 		}
 			
 		// We allow a client to have a different version number than the one decoded from
-		// the peer ID.
+		// the peer ID. Some clients separate version and client name using a forward slash,
+		// so we split on that as well.
 		String client_type_peer = peer_id_name.split(" ", 2)[0];
-		String client_type_handshake = handshake_name_to_process.split(" ", 2)[0];
+		String client_type_handshake = handshake_name_to_process.split(" ", 2)[0].split("/", 2)[0];
 		
 		if (client_type_peer.equals(client_type_handshake)) {return handshake_name_to_process;}
-		
-		/**
-		 * This means there is a mismatch. There's already one situation we deal with, for BitRocket.
-		 * 
-		 * The peer decoding code will generate a peer ID like this:
-		 *   BitRocket 0.3(32)
-		 *   
-		 * And the handshake will contain something like this:
-		 *   BitRocket/0.3.3(32) libtorrent/0.13.0.0
-		 *   
-		 * It's due to the inconsistent formatting of the client name between the two. We'll make
-		 * an exception for that case.
-		 */
-		if (client_type_peer.equals("BitRocket") && client_type_handshake.startsWith("BitRocket")) {
-			return handshake_name_to_process;
-		}
 		
 		// Bloody XTorrent.
 		if (handshake_name_to_process.equals("Transmission 0.7-svn") && client_type_peer.equals("Azureus")) {
