@@ -508,7 +508,7 @@ public class MainWindow
 				Listener toggleListener = new Listener() {
 					public void handleEvent(Event event) {
 						boolean bVisible = (event.type == SWT.Expand);
-						MainMenu.setVisibility(skin, "SearchBar.visible", "searchbar",
+						SWTSkinUtils.setVisibility(skin, "SearchBar.visible", "searchbar",
 								bVisible);
 					}
 				};

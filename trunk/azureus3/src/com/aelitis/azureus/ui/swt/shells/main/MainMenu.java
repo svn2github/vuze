@@ -27,6 +27,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
 import com.aelitis.azureus.util.Constants;
 
 import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
@@ -140,14 +141,14 @@ public class MainMenu
 			});
 		}
 
-    new MenuItem(helpMenu,SWT.SEPARATOR);
-    MenuItem help_debug = new MenuItem(helpMenu, SWT.NULL);
-    Messages.setLanguageText(help_debug, "MainWindow.menu.help.debug");
-    help_debug.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-      	UIDebugGenerator.generate();
-      }
-    });
+		new MenuItem(helpMenu, SWT.SEPARATOR);
+		MenuItem help_debug = new MenuItem(helpMenu, SWT.NULL);
+		Messages.setLanguageText(help_debug, "MainWindow.menu.help.debug");
+		help_debug.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				UIDebugGenerator.generate();
+			}
+		});
 	}
 
 	private void addViewMenu(Shell parent) {
@@ -286,25 +287,23 @@ public class MainMenu
 	 * @param string2
 	 */
 	public static MenuItem createViewMenuItem(final SWTSkin skin, Menu viewMenu,
-			final String textID,
-			final String configID,
-			final String viewID) {
+			final String textID, final String configID, final String viewID) {
 		MenuItem item;
 
 		if (!ConfigurationDefaults.getInstance().doesParameterDefaultExist(configID)) {
 			COConfigurationManager.setBooleanDefault(configID, true);
 		}
 
-		item = createMenuItem(viewMenu, SWT.CHECK, textID,
-				new Listener() {
-					public void handleEvent(Event event) {
-						SWTSkinObject skinObject = skin.getSkinObject(viewID);
-						if (skinObject != null) {
-							setVisibility(skin, configID, viewID, !skinObject.isVisible());
-						}
-					}
-				});
-		setVisibility(skin, configID, viewID,
+		item = createMenuItem(viewMenu, SWT.CHECK, textID, new Listener() {
+			public void handleEvent(Event event) {
+				SWTSkinObject skinObject = skin.getSkinObject(viewID);
+				if (skinObject != null) {
+					SWTSkinUtils.setVisibility(skin, configID, viewID,
+							!skinObject.isVisible());
+				}
+			}
+		});
+		SWTSkinUtils.setVisibility(skin, configID, viewID,
 				COConfigurationManager.getBooleanParameter(configID));
 
 		final MenuItem itemViewSearchBar = item;
@@ -320,132 +319,20 @@ public class MainMenu
 				COConfigurationManager.removeParameterListener(configID, listener);
 			}
 		});
-		
+
 		return item;
 	}
 
+	// backward compat..
 	public static void setVisibility(SWTSkin skin, String configID,
 			String viewID, boolean visible) {
-		setVisibility(skin, configID, viewID, visible, true);
+		SWTSkinUtils.setVisibility(skin, configID, viewID, visible, true, false);
 	}
-	
+
+	// backward compat..
 	public static void setVisibility(SWTSkin skin, String configID,
 			String viewID, boolean visible, boolean save) {
-		SWTSkinObject skinObject = skin.getSkinObject(viewID);
-		// XXX Following wont work at startup because main window is invisible..
-		//		if (skinObject != null && skinObject.isVisible() != visible) {
-		if (skinObject != null) {
-			final Control control = skinObject.getControl();
-			if (control != null && !control.isDisposed()) {
-				Boolean wasVisible = (Boolean)control.getData("lastSlideVis");
-				if (wasVisible != null && wasVisible.booleanValue() == visible) {
-					return;
-				}
-				
-				if (control.getData("Sliding") != null) {
-					return;
-				}
-				control.setData("lastSlideVis", new Boolean(visible));
-				if (visible) {
-					final FormData fd = (FormData) control.getLayoutData();
-					Point size = (Point) control.getData("v3.oldHeight");
-					//System.out.println(control.getData("SkinID") + " oldHeight = " + size + ";v=" + control.getVisible() + ";s=" + control.getSize());
-					if (size == null && control.getSize().y < 2) {
-						size = control.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-						if (fd.height > 0) {
-							size.y = fd.height;
-						}
-						if (fd.width > 0) {
-							size.x = fd.width;
-						}
-					}
-
-					if (size != null) {
-						if (fd != null && (fd.width != size.x || fd.height != size.y)) {
-							slide(control, fd, size);
-						}
-					}
-					control.setData("v3.oldHeight", null);
-				} else {
-					final FormData fd = (FormData) control.getLayoutData();
-					if (fd != null) {
-						Point oldSize = new Point(fd.width, fd.height);
-						if (oldSize.y <= 0) {
-							oldSize = null;
-						}
-						control.setData("v3.oldHeight", oldSize);
-						final Point size = new Point(0, 0);
-
-						slide(control, fd, size);
-					}
-				}
-				skinObject.setVisible(visible);
-				Utils.relayout(control);
-			}
-
-			if (save
-					&& COConfigurationManager.getBooleanParameter(configID) != visible) {
-				COConfigurationManager.setParameter(configID, visible);
-			}
-		}
-	}
-
-	private static void slide(final Control control, final FormData fd, final Point size) {
-		//System.out.println("slid to " + size);
-		AERunnable runnable = new AERunnable() {
-			boolean firstTime = true;
-
-			public void runSupport() {
-				if (control.isDisposed()) {
-					return;
-				}
-				if (true && false) {
-					// sliding disabled until we prevent slide in being triggered while
-					// sliding out (or visa-versa)
-					fd.width = size.x;
-					fd.height = size.y;
-					control.setLayoutData(fd);
-					Utils.relayout(control);
-					return;
-				}
-				if (firstTime) {
-					firstTime = false;
-					if (control.getData("Sliding") != null) {
-						return;
-					}
-					control.setData("Sliding", "1");
-				}
-
-				int newWidth = (int) (fd.width + (size.x - fd.width) * 0.4);
-				int h = fd.height >= 0 ? fd.height : control.getSize().y;
-				int newHeight = (int) (h + (size.y - h) * 0.4);
-				//System.out.println(control + "] newh=" + newHeight + " to " + size.y);
-				
-				if (newWidth == fd.width && newHeight == h) {
-					fd.width = size.x;
-					fd.height = size.y;
-					//System.out.println(control + "] side to " + size.y + " done");
-					control.setLayoutData(fd);
-					control.setSize(size);
-					Utils.relayout(control);
-					control.setData("Sliding", null);
-				} else {
-					fd.width = newWidth;
-					fd.height = newHeight;
-					control.setLayoutData(fd);
-					Utils.relayout(control);
-
-					final AERunnable r = this;
-					SimpleTimer.addEvent("slide", SystemTime.getCurrentTime() + 10,
-							new TimerEventPerformer() {
-								public void perform(TimerEvent event) {
-									control.getDisplay().asyncExec(r);
-								}
-							});
-				}
-			}
-		};
-		control.getDisplay().asyncExec(runnable);
+		SWTSkinUtils.setVisibility(skin, configID, viewID, visible, save, false);
 	}
 
 	/**
