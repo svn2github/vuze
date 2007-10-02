@@ -158,14 +158,19 @@ public class ClientIdentifier {
 		// We allow a client to have a different version number than the one decoded from
 		// the peer ID. Some clients separate version and client name using a forward slash,
 		// so we split on that as well.
-		String client_type_peer = peer_id_name.split(" ", 2)[0];
-		String client_type_handshake = handshake_name_to_process.split(" ", 2)[0].split("/", 2)[0];
+		String client_type_peer = peer_id_name.split(" ", 2)[0].toLowerCase();
+		String client_type_handshake = handshake_name_to_process.split(" ", 2)[0].split("/", 2)[0].toLowerCase();
 		
 		if (client_type_peer.equals(client_type_handshake)) {return handshake_name_to_process;}
 		
 		// Bloody XTorrent.
 		if (handshake_name_to_process.equals("Transmission 0.7-svn") && client_type_peer.equals("Azureus")) {
 			return asDiscrepancy("XTorrent", peer_id_name, handshake_name, "fake_client", "LTEP", peer_id);
+		}
+		
+		// Bloody Xtorrent.
+		if (handshake_name_to_process.startsWith("Transmission") && client_type_peer.startsWith("XTorrent")) {
+			return asDiscrepancy(client_type_peer, handshake_name_to_process, "fake_client");
 		}
 		
 		// Like we do with AZMP peers, allow the handshake to define the client even if we can't extract the
