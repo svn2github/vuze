@@ -2232,6 +2232,8 @@ EnhancedDownloadManager
 								break;
 							}
 						}
+						
+						break;
 					}
 				}
 									
