@@ -399,6 +399,25 @@ class BTPeerIDByteDecoderUtils {
 		return joinAsDotted(decodeNumericValueOfByte(b1), min_part.substring(0, 1), min_part.substring(1, 2));
 	}
 	
+	/**
+	 * Look at the peer ID and just grab as many readable characters to form the version
+	 * substring as possible.
+	 */
+	public static String extractReadableVersionSubstringFromPeerID(String peer_id) {
+		for (int i=0; i<peer_id.length(); i++) {
+			char c = peer_id.charAt(i);
+			
+			// This is based on All Peers peer ID at the time of writing, e.g:
+			//   AP0.70rc30->>...
+			if (Character.isLetter(c)) continue;
+			if (Character.isDigit(c)) continue;
+			if (c == '.') continue;
+			// Must be delimiter character.
+			return peer_id.substring(0, i);
+		}
+		return peer_id;
+	}
+	
 	public static String decodeCustomVersionNumber(String version_data, String version_scheme) {
 		if (version_scheme == BTPeerIDByteDecoderDefinitions.VER_BLOCK) {
 			return version_data;

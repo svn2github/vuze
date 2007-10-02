@@ -515,6 +515,7 @@ public class BTPeerIDByteDecoder {
 		assertDecode("Rufus 0.6.9", "00455253 416E6F6E 796D6F75 7382BE42 75024AE3");
 		assertDecode("BitTorrent DNA 1.0", "444E413031303030DD01C9B2DA689E6E02803E91");
 		assertDecode("BTuga Revolution 2.1", "BTM21abcdefghijklmno");
+		assertDecode("AllPeers 0.70rc30", "4150302E3730726333302D3E3EB87B31F241DBFE"); // AP0.70rc30->>-{1-A--]"
 		System.out.println();
 		
 		// BitComet/Lord/Spirit

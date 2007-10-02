@@ -162,6 +162,9 @@ public class BTPeerIDByteDecoderDefinitions {
 				int start_byte_index = verdata.pos;
 				version_string = BTPeerIDByteDecoderUtils.getTwoByteThreePartVersion(peer_id_bytes[start_byte_index], peer_id_bytes[start_byte_index+1]);
 			}
+			else if (version_scheme == VER_BLOCK && verdata.length == -1) {
+				version_string = BTPeerIDByteDecoderUtils.extractReadableVersionSubstringFromPeerID(peer_id.substring(verdata.pos, peer_id.length()));
+			}
 			else {
 				version_string = BTPeerIDByteDecoderUtils.decodeCustomVersionNumber(
 					peer_id.substring(verdata.pos, verdata.pos + verdata.length), version_scheme
@@ -264,7 +267,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("MT", "MoonlightTorrent");
 		addAzStyle("PC", PeerClassifier.CACHE_LOGIC);
 		addAzStyle("PD", "Pando");
-		addAzStyle("qB", "qBitTorrent", VER_AZ_THREE_DIGITS);
+		addAzStyle("qB", "qBittorrent", VER_AZ_THREE_DIGITS);
 		addAzStyle("QD", "qqdownload");
 		addAzStyle("RT", "Retriever");
 		addAzStyle("S~", "Shareaza alpha/beta");
@@ -285,7 +288,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("VG", "\u54c7\u560E (Vagaa)", VER_AZ_FOUR_DIGITS);
 		addAzStyle("XL", "\u8FC5\u96F7\u5728\u7EBF (Xunlei)");
 		addAzStyle("XT", "XanTorrent");
-		addAzStyle("XX", "Xtorrent", "v1234");
+		addAzStyle("XX", "XTorrent", "v1234");
 		addAzStyle("ZT", "ZipTorrent"); 
 		
 		addShadowStyle('A', "ABC");
@@ -366,6 +369,9 @@ public class BTPeerIDByteDecoderDefinitions {
 		
 		client = addSimpleClient("Bitlet", "BitLet");
 		addVersionedClient(client, VER_BYTE_BLOCK_DOTTED_CHAR, 2);
+		
+		client = addSimpleClient("AllPeers", "AP");
+		addVersionedClient(client, VER_BLOCK, -1);
 		
 		client = addSimpleClient("BTuga Revolution", "BTM");
 		addVersionedClient(client, VER_BYTE_BLOCK_DOTTED_CHAR, 2);
