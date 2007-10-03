@@ -198,7 +198,7 @@ public class BTPeerIDByteDecoder {
 				 * BitTorrent 6.0 Beta currently misidentifies itself.
 				 */
 				if ("\u00B5Torrent 6.0.0 Beta".equals(client_with_version)) {
-					return "BitTorrent 6.0 Beta";
+					return "Mainline 6.0 Beta";
 				}
 				
 				/**
