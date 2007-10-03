@@ -1,10 +1,11 @@
 AZUREUS CHANGELOG
 -----------------
 
-2007.09.xx | Azureus 3.0.3.3
+2007.10.xx | Azureus 3.0.3.3
 
 FEATURE: UI   | Added "All Peers" view [amc1]
 
+CHANGE: Core  | Added workarounds for some buggy UPnP router implementations [parg]
 CHANGE: UI    | NAT status bar indicator and health icons now ignore UDP and LAN-local connections [The 8472]
 
 BUGFIX: Core  | Fixed bug where a torrent's save location is "forgotten" when a recheck is done in some circumstances [amc1]
@@ -12,6 +13,7 @@ BUGFIX: Core  | Fixed bug where a torrent's save location is "forgotten" when a 
 
 
 2007.09.21 | Azureus 3.0.3.2
+(OSX-only bugfix release)
 
 BUGFIX: Core  | Fixed MacOSX playback bug [TuxPaper]
 BUGFIX: Core  | Fixed update restart bug [Parg]
