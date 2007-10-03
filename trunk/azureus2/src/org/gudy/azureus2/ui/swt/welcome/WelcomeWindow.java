@@ -33,6 +33,7 @@ import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -60,10 +61,12 @@ public class WelcomeWindow {
   Shell shell;
   Color black,white,light,grey,green,blue,fg,bg;
   String sWhatsNew;
+  Font monospace; 
   
   public WelcomeWindow(Shell parentShell) {
     shell = ShellFactory.createShell(parentShell, SWT.BORDER | SWT.TITLE | SWT.CLOSE | SWT.RESIZE);
     Utils.setShellIcon(shell);
+    monospace = new Font(shell.getDisplay(),"Courier New",8,SWT.NORMAL);
 	
     shell.setText(MessageText.getString("window.welcome.title", new String[]{ Constants.AZUREUS_VERSION }));
     
@@ -105,7 +108,7 @@ public class WelcomeWindow {
 		}
 	});
 	
-    shell.setSize(600,400);
+    shell.setSize(800,600);
     Utils.centreWindow(shell);
     shell.layout();
     shell.open();    
@@ -182,12 +185,13 @@ public class WelcomeWindow {
 			}
 		} else {
 
-			StyledText helpPanel = new StyledText(cWhatsNew, SWT.VERTICAL);
+			StyledText helpPanel = new StyledText(cWhatsNew, SWT.VERTICAL | SWT.HORIZONTAL);
 
 			helpPanel.setEditable(false);
 			try {
 				helpPanel.setRedraw(false);
-				helpPanel.setWordWrap(true);
+				helpPanel.setWordWrap(false);
+				helpPanel.setFont(monospace);
 
 				black = ColorCache.getColor(display, 0, 0, 0);
 				white = ColorCache.getColor(display, 255, 255, 255);
@@ -325,6 +329,7 @@ public class WelcomeWindow {
 	}
   
   private void close() {
+	monospace.dispose();
     shell.dispose();
   }
   
