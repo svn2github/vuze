@@ -31,7 +31,7 @@ import java.util.TimeZone;
  */
 public class TimeFormatter {
   // XXX should be i18n'd
-	static final String[] TIME_SUFFIXES = { "s", "m", "h", "d" };
+	static final String[] TIME_SUFFIXES = { "s", "m", "h", "d", "y" };
 
 	
 	private static final SimpleDateFormat http_date_format = 
@@ -51,18 +51,21 @@ public class TimeFormatter {
 	 * @param time time in seconds
 	 * @return Formatted time string
 	 */
-	
-	
 	public static String format(long time) {
-		if (time >= Constants.INFINITY_AS_INT)
+		if (time == Constants.INFINITY_AS_INT || time >= Constants.INFINITE_AS_LONG)
 			return Constants.INFINITY_STRING;
 
 		if (time < 0)
 			return "";
 
 		// secs, mins, hours, days
-		int[] vals = { (int) time % 60, (int) (time / 60) % 60,
-				(int) (time / 3600) % 24, (int) (time / 86400) };
+		int[] vals = {
+			(int) time % 60,
+			(int) (time / 60) % 60,
+			(int) (time / 3600) % 24,
+			(int) (time / 86400) % 365,
+			(int) (time / 31536000)
+			};
 
 		int end = vals.length - 1;
 		while (vals[end] == 0 && end > 0) {
@@ -83,23 +86,25 @@ public class TimeFormatter {
 	}
 
 	/**
-	 * Format time into "[## d] 00:00:00" format
+	 * Format time into "[[# y] # d] 00:00:00" format
 	 * 
 	 * @param time time in seconds
 	 * @return
 	 */
     public static String formatColon(long time)
     {
-      if (time >= Constants.INFINITY_AS_INT) return Constants.INFINITY_STRING;
+      if (time == Constants.INFINITY_AS_INT || time >= Constants.INFINITE_AS_LONG) return Constants.INFINITY_STRING;
       if (time < 0) return "";
 
       int secs = (int) time % 60;
       int mins = (int) (time / 60) % 60;
       int hours = (int) (time /3600) % 24;
-      int days = (int) (time / 86400);
+      int days = (int) (time / 86400) % 365;
+      int years = (int) (time / 31536000);
       
       String result = "";
-      if (days > 0) result = days + "d ";
+      if (years > 0) result += years + "y ";
+      if (years > 0 || days > 0) result += days + "d ";
       result += twoDigits(hours) + ":" + twoDigits(mins) + ":" + twoDigits(secs);
 
       return result;
@@ -119,7 +124,7 @@ public class TimeFormatter {
     parseColon(
     	String	str )
     {
-    	final int[]	multipliers = { 1, 60, 3600, 86400 };
+    	final int[]	multipliers = { 1, 60, 3600, 86400, 31536000 };
     	
     	String[]	bits = str.split( ":" );
     	
