@@ -64,6 +64,13 @@ public class WelcomeWindow {
   Font monospace; 
   
   public WelcomeWindow(Shell parentShell) {
+  	try {
+  		init(parentShell);
+  	} catch (Throwable t) {
+  	}
+  }
+
+  public void init (Shell parentShell) {
     shell = ShellFactory.createShell(parentShell, SWT.BORDER | SWT.TITLE | SWT.CLOSE | SWT.RESIZE);
     Utils.setShellIcon(shell);
     monospace = new Font(shell.getDisplay(),"Courier New",8,SWT.NORMAL);
@@ -108,7 +115,7 @@ public class WelcomeWindow {
 		}
 	});
 	
-    shell.setSize(800,600);
+    shell.setSize(750,500);
     Utils.centreWindow(shell);
     shell.layout();
     shell.open();    
