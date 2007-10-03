@@ -59,15 +59,9 @@ public class WelcomeWindow {
   Display display;
   Shell shell;
   Color black,white,light,grey,green,blue,fg,bg;
-  
+  String sWhatsNew;
   
   public WelcomeWindow(Shell parentShell) {
-		this(parentShell, URL_WHATSNEW + "?version=" + Constants.AZUREUS_VERSION
-				+ "&locale=" + Locale.getDefault().toString() + "&ui="
-				+ COConfigurationManager.getStringParameter("ui"));
-	}
-  
-  public WelcomeWindow(Shell parentShell, String url) {
     shell = ShellFactory.createShell(parentShell, SWT.BORDER | SWT.TITLE | SWT.CLOSE | SWT.RESIZE);
     Utils.setShellIcon(shell);
 	
@@ -111,31 +105,55 @@ public class WelcomeWindow {
 		}
 	});
 	
-    shell.setSize(500,400);
+    shell.setSize(600,400);
     Utils.centreWindow(shell);
     shell.layout();
     shell.open();    
-    fillWhatsNew(cWhatsNew, url);
+    fillWhatsNew(cWhatsNew);
   }
   
-  private void fillWhatsNew(Composite cWhatsNew, String url) {
+  private void fillWhatsNew(Composite cWhatsNew) {
+  	String helpFile;
 
   	Label label = new Label(cWhatsNew, SWT.CENTER);
   	label.setText(MessageText.getString("installPluginsWizard.details.loading"));
   	shell.layout(true, true);
   	shell.update();
   	
-		String sWhatsNew = getWhatsNew(url);
-		if (shell.isDisposed()) {
-			return;
+		// Support external URLs for what's new
+		helpFile = MessageText.getString("window.welcome.file");
+		if (sWhatsNew == null || sWhatsNew.length() == 0) {
+			if (helpFile.toLowerCase().startsWith("http:/")) {
+				sWhatsNew = getWhatsNew(helpFile);
+				if (shell.isDisposed()) {
+					return;
+				}
+			}
 		}
 
 		if (sWhatsNew == null || sWhatsNew.length() == 0) {
-			String helpFile = MessageText.getString("window.welcome.file");
-			String helpFullPath = "/org/gudy/azureus2/internat/whatsnew/" + helpFile;
-			InputStream stream = getClass().getResourceAsStream(helpFullPath);
+  		helpFile = URL_WHATSNEW + "?version=" + Constants.AZUREUS_VERSION
+  				+ "&locale=" + Locale.getDefault().toString() + "&ui="
+  				+ COConfigurationManager.getStringParameter("ui");
+  
+  		sWhatsNew = getWhatsNew(helpFile);
+  		if (shell.isDisposed()) {
+  			return;
+  		}
+		}
+		
+		if (sWhatsNew == null || sWhatsNew.length() == 0) {
+			InputStream stream;
+			stream = getClass().getResourceAsStream(helpFile);
 			if (stream == null) {
-				sWhatsNew = "Welcome Window: Error loading resource: " + helpFullPath;
+				String helpFullPath = "/org/gudy/azureus2/internat/whatsnew/" + helpFile;
+				stream = getClass().getResourceAsStream(helpFullPath);
+			}
+			if (stream == null) {
+				stream = getClass().getResourceAsStream("/changelog.txt");
+			}
+			if (stream == null) {
+				sWhatsNew = "Welcome Window: Error loading resource: " + helpFile;
 			} else {
 				try {
 					sWhatsNew = FileUtil.readInputStreamAsString(stream, 65535, "utf8");
@@ -311,8 +329,8 @@ public class WelcomeWindow {
   }
   
   public static void main(String[] args) {
-  	//Locale.setDefault(new Locale("bg", "BG"));
-  	//MessageText.changeLocale(new Locale("bg", "BG"));
+  	//Locale.setDefault(new Locale("nl", "NL"));
+  	//MessageText.changeLocale(new Locale("nl", "NL"));
   	System.out.println(Locale.getDefault().getCountry());
 		new WelcomeWindow(null);
 		Display display = Display.getDefault();
