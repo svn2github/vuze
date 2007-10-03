@@ -123,7 +123,7 @@ public class WelcomeWindow {
 		// Support external URLs for what's new
 		helpFile = MessageText.getString("window.welcome.file");
 		if (sWhatsNew == null || sWhatsNew.length() == 0) {
-			if (helpFile.toLowerCase().startsWith("http:/")) {
+			if (helpFile.toLowerCase().startsWith(Constants.AZUREUS_WIKI)) {
 				sWhatsNew = getWhatsNew(helpFile);
 				if (shell.isDisposed()) {
 					return;
