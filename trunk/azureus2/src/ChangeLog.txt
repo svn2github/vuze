@@ -1,6 +1,11 @@
 AZUREUS CHANGELOG
 -----------------
 
+
+2007.10.xx | Azureus 3.0.3.5
+
+
+
 2007.10.04 | Azureus 3.0.3.4
 
 FEATURE: UI   | Added "All Peers" view [amc1]
