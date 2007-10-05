@@ -295,6 +295,8 @@ public class ListRow
 			}
 
 			for (int i = 0; i < visibleColumns.length; i++) {
+				long lTimeStart2 = System.currentTimeMillis();
+
 				TableColumnCore column = visibleColumns[i];
 				TableCellSWT cell = (TableCellSWT) mapTableCells.get(column.getName());
 				if (cell == null) {
@@ -320,12 +322,17 @@ public class ListRow
 					//Debug.out(e);
 					System.err.println("column " + column.getName() + ";" + cell);
 				}
+
+				long diff = System.currentTimeMillis() - lTimeStart2;
+				if (diff > 120) {
+					view.log("doPaint " + column.getName() + " took " + diff + "ms. " + this.toString()); 
+				}
 			}
 		} finally {
 			gc.setClipping(oldClipping);
 		}
 		long diff = System.currentTimeMillis() - lTimeStart;
-		if (diff > 60) {
+		if (diff > 90) {
 			view.log("doPaint took " + diff + "ms. " + this.toString());
 		}
 	}
@@ -733,7 +740,8 @@ public class ListRow
 
 	public String toString() {
 		return "ListRow {" + getIndex() + (bDisposed ? ", Disposed" : "") + ","
-				+ view.getTableID() + "}";
+				+ view.getTableID() + "," + (isVisible() ? "visible" : "invisible")
+				+ "}";
 	}
 
 	public int getVisibleYOffset() {
