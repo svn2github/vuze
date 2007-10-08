@@ -4,14 +4,14 @@ AZUREUS CHANGELOG
 
 2007.10.xx | Azureus 3.0.3.5
 
-FEATURE: Core | global download speed limit can also limit the number of outgoing requests, this should improve TCP performance
+FEATURE: Core | global download speed limit can also limit the number of outgoing requests, this should improve TCP performance [The 8472]
                  -it downloads from as few peers as possible when the global limit is reached 
                  -prioritizes downloads which are on the head of the queue
 FEATURE: Core | IP binding now provides primitive round-robin load balancing for users with multiple internet connections
-FEATURE: UI   | Piece distribution view is now also available as a peer subview
+FEATURE: UI   | Piece distribution view is now also available as a peer subview [The 8472]
 
-CHANGE: Core  | Revised piece picking code to deal better with some edge cases and snubbed peers
-CHANGE: UI    | Added private torrent indicator to the general tab
+CHANGE: Core  | Revised piece picking code to deal better with some edge cases and snubbed peers [The 8472]
+CHANGE: UI    | Added private torrent indicator to the general tab [The 8472]
 
 
 
@@ -24,7 +24,7 @@ CHANGE: Core  | Added workarounds for some buggy UPnP router implementations [pa
 CHANGE: UI    | NAT status bar indicator and health icons now ignore UDP and LAN-local connections [The 8472]
 
 BUGFIX: Core  | Fixed bug where a torrent's save location is "forgotten" when a recheck is done in some circumstances [amc1]
-BUGFIX: UI    | times > 365 days (such as the uptime) are now displayed properly
+BUGFIX: UI    | times > 365 days (such as the uptime) are now displayed properly [The 8472]
 
 
 
