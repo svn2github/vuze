@@ -72,7 +72,7 @@ public class ConfigurationDefaults {
   private static final Long TRUE	= ONE;
 
   private static ConfigurationDefaults configdefaults;
-  private static AEMonitor				class_mon	= new AEMonitor( "ConfigDef");
+  static {configdefaults = new ConfigurationDefaults();}
   
   private HashMap def = null;
   
@@ -85,24 +85,7 @@ public class ConfigurationDefaults {
   
   private Hashtable parameter_verifiers	= new Hashtable();
 
-  public static ConfigurationDefaults 
-  getInstance() 
-  {
-  	try{
-  		class_mon.enter();
-  	
-	    if(configdefaults == null){
-	    
-	      configdefaults = new ConfigurationDefaults();
-	    }
-	    
-	    return configdefaults;
-	    
-  	}finally{
-  		
-  		class_mon.exit();
-  	}
-  }
+  public static ConfigurationDefaults getInstance() {return configdefaults;} 
   
   /** Creates a new instance of Defaults */
   protected 
