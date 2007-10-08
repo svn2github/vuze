@@ -40,7 +40,6 @@ public class RemotePieceDistributionView extends PieceDistributionView {
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.ui.swt.views.PieceDistributionView#dataSourceChanged(java.lang.Object)
 	 */
-	@Override
 	public void dataSourceChanged(Object newDataSource) {
 		if (newDataSource instanceof Object[])
 			newDataSource = ((Object[]) newDataSource)[0];
@@ -55,7 +54,6 @@ public class RemotePieceDistributionView extends PieceDistributionView {
 		refresh();
 	}
 
-	@Override
 	public void refresh() {
 		if (pem == null)
 			return;

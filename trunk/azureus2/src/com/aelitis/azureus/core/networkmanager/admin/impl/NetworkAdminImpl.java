@@ -240,7 +240,6 @@ NetworkAdminImpl
 	
 	private int roundRobinCounter = 0; 
 	
-	@Override
 	public InetAddress getMultiHomedOutgoingRoundRobinBindAddress()
 	{
 		roundRobinCounter++;
@@ -248,7 +247,6 @@ NetworkAdminImpl
 		return currentBindIPs[roundRobinCounter];
 	}
 	
-	@Override
 	public InetAddress getMultiHomedServiceBindAddress()
 	{
 		if(currentBindIPs.length > 1)
@@ -256,7 +254,6 @@ NetworkAdminImpl
 		return currentBindIPs[0];
 	}
 	
-	@Override
 	public InetAddress getSingleHomedServiceBindAddress()
 	{
 		return currentBindIPs[0]; 
