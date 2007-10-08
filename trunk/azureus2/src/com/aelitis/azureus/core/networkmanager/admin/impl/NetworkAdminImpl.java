@@ -242,9 +242,10 @@ NetworkAdminImpl
 	
 	public InetAddress getMultiHomedOutgoingRoundRobinBindAddress()
 	{
+		InetAddress[]	addresses = currentBindIPs;
 		roundRobinCounter++;
-		roundRobinCounter %= currentBindIPs.length;
-		return currentBindIPs[roundRobinCounter];
+		int next = ( roundRobinCounter %= addresses.length );
+		return addresses[next];
 	}
 	
 	public InetAddress getMultiHomedServiceBindAddress()
@@ -340,15 +341,13 @@ NetworkAdminImpl
 		String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "").trim();
 		InetAddress[] addrs = calcBindAddresses(bind_ip);
 		changed = !Arrays.equals(currentBindIPs, addrs);
-		if(changed)
+		if(changed){
 			currentBindIPs = addrs;					
-		if (changed)
-		{
 			if (!first_time)
 			{
 				String logmsg = "NetworkAdmin: default bind ip has changed to '";
-				for(int i=0;i<currentBindIPs.length;i++)
-					logmsg+=(currentBindIPs[i] == null ? "none" : currentBindIPs[i].getHostAddress()) + (i<currentBindIPs.length? ";" : "");
+				for(int i=0;i<addrs.length;i++)
+					logmsg+=(addrs[i] == null ? "none" : addrs[i].getHostAddress()) + (i<addrs.length? ";" : "");
 				logmsg+="'";
 				Logger.log(new LogEvent(LOGID, logmsg));
 			}
