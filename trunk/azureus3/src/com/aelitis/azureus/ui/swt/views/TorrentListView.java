@@ -42,6 +42,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.ui.swt.views.list.ListRow;
 import com.aelitis.azureus.ui.swt.views.list.ListView;
+import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 import com.aelitis.azureus.util.Constants;
 
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
@@ -158,7 +159,8 @@ public class TorrentListView
 							false),
 				};
 
-				setColumnList(tableColumns, ColumnDateCompleted2Liner.COLUMN_ID, false, true);
+				setColumnList(tableColumns, ColumnDateCompleted2Liner.COLUMN_ID, false,
+						true);
 				String[] autoHideOrder = new String[] {
 					ColumnQuality.COLUMN_ID,
 					ColumnAzProduct.COLUMN_ID,
@@ -203,7 +205,8 @@ public class TorrentListView
 				new ColumnRateUpDown(TABLE_MYMEDIA),
 				new ColumnRate(TABLE_MYMEDIA),
 			};
-			setColumnList(tableColumns, ColumnDateCompleted2Liner.COLUMN_ID, false, true);
+			setColumnList(tableColumns, ColumnDateCompleted2Liner.COLUMN_ID, false,
+					true);
 			String[] autoHideOrder = new String[] {
 				ColumnDateAdded2Liner.COLUMN_ID,
 				ColumnQuality.COLUMN_ID,
@@ -323,7 +326,14 @@ public class TorrentListView
 			}
 
 			public void keyPressed(KeyEvent e) {
-				if (e.keyCode == SWT.F5) {
+				if (e.keyCode == SWT.DEL) {
+					TableRowCore[] selectedRows = getSelectedRows();
+					for (int i = 0; i < selectedRows.length; i++) {
+						DownloadManager dm = (DownloadManager) selectedRows[i].getDataSource(true);
+						TorrentListViewsUtils.removeDownload(dm, TorrentListView.this,
+								true, true);
+					}
+				} else if (e.keyCode == SWT.F5) {
 					updateCount();
 					Object[] selectedDataSources = getSelectedDataSources();
 					for (int i = 0; i < selectedDataSources.length; i++) {
@@ -336,7 +346,8 @@ public class TorrentListView
 							PlatformTorrentUtils.updateMetaData(torrent, 10);
 						}
 					}
-				} else if (e.character == 15 && e.stateMask == (SWT.SHIFT | SWT.CONTROL)) {
+				} else if (e.character == 15
+						&& e.stateMask == (SWT.SHIFT | SWT.CONTROL)) {
 					Object[] selectedDataSources = getSelectedDataSources();
 					for (int i = 0; i < selectedDataSources.length; i++) {
 						DownloadManager dm = (DownloadManager) selectedDataSources[i];
@@ -348,7 +359,7 @@ public class TorrentListView
 										+ contentHash + ".torrent?referal=coq";
 								TorrentUIUtilsV3.loadTorrent(core, url, null, false);
 							}
-							
+
 						}
 					}
 				}
