@@ -824,12 +824,17 @@ PlatformManagerImpl
         try
         {
         	File file = new File(file_name);
+        	
+        	access.createProcess( "explorer.exe " + ( file.isDirectory() ? "/e," : "/e,/select," ) + "\"" + file_name + "\"", false );
+        	
+        	/*
         	Runtime.getRuntime().exec(
         			new String[] { "explorer.exe",
         					file.isDirectory() ? "/e," : "/e,/select,",
         							"\"" + file_name + "\"" });
+        							*/
         }
-        catch (IOException e)
+        catch (Throwable e)
         {
             throw new PlatformManagerException("Failed to show file " + file_name, e);
         }

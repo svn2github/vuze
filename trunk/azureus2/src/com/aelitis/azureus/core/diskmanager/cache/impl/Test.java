@@ -97,10 +97,10 @@ Test
 						{
 							return null;
 						}
-						public boolean
-						forceNoCache()
+   						public int
+						getCacheMode()
 						{
-							return( false );
+							return( CacheFileOwner.CACHE_MODE_NORMAL );
 						}
 					},
 					f, CacheFile.CT_LINEAR );
@@ -163,10 +163,10 @@ Test
 						{
 							return null;
 						}
-						public boolean
-						forceNoCache()
+   						public int
+						getCacheMode()
 						{
-							return( false );
+							return( CacheFileOwner.CACHE_MODE_NORMAL );
 						}
 					},
 					f, CacheFile.CT_LINEAR );
@@ -230,10 +230,10 @@ Test
 						{
 							return null;
 						}
-						public boolean
-						forceNoCache()
+   						public int
+						getCacheMode()
 						{
-							return( false );
+							return( CacheFileOwner.CACHE_MODE_NORMAL );
 						}
 					},
 					new File( "C:\\temp\\cachetest" + i + ".dat" ), CacheFile.CT_LINEAR);

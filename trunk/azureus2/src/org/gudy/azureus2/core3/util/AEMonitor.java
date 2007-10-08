@@ -140,6 +140,80 @@ AEMonitor
 		}
 	}
 
+		/*
+		 * Try and obtain it
+		 * @return true if got monitor, false otherwise
+		 */
+	
+	public boolean
+	enter(
+		int	max_millis )
+	{
+		if ( DEBUG ){
+			
+			debugEntry();
+		}				
+
+		Thread	current_thread = Thread.currentThread();
+		
+		synchronized( this ){
+			
+			entry_count++;
+			
+			if ( owner == current_thread ){
+				
+				nests++;
+				
+			}else{
+				
+				if ( dont_wait == 0 ){
+
+					try{
+						waiting++;
+
+						last_waiter	= current_thread;
+						
+						wait( max_millis );
+							
+						if ( total_reserve == total_release ){
+								
+							return( false );
+
+						}
+						
+						total_reserve++;
+						
+					}catch( Throwable e ){
+
+							// we know here that someone's got a finally clause to do the
+							// balanced 'exit'. hence we should make it look as if we own it...
+						
+						waiting--;
+
+						owner	= current_thread;
+						
+						Debug.out( "**** monitor interrupted ****" );
+						
+						throw( new RuntimeException("AEMonitor:interrupted" ));
+						
+					}finally{
+						
+						last_waiter = null;
+					}
+				}else{
+					
+					total_reserve++;
+					
+					dont_wait--;
+				}
+			
+				owner	= current_thread;
+			}
+		}
+		
+		return( true );
+	}
+	
 	public void
 	exit()
 	{

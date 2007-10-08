@@ -67,6 +67,7 @@ DiskAccessControllerInstance
 	private long			total_aggregated_bytes;
 	
 	private long			io_time;
+	private long			io_count;
 
 	private requestDispatcher[]	dispatchers;
 	
@@ -175,6 +176,12 @@ DiskAccessControllerInstance
 	getIOTime()
 	{
 		return( io_time );
+	}
+	
+	public long
+	getIOCount()
+	{
+		return( io_count );
 	}
 	
 	protected void
@@ -656,6 +663,8 @@ DiskAccessControllerInstance
 	
 													io_time += ( io_end - io_start );
 													
+													io_count++;
+													
 													for (int i=0;i<requests.length;i++){
 														
 														DiskAccessRequestImpl	r = requests[i];
@@ -676,6 +685,8 @@ DiskAccessControllerInstance
 	
 													io_time += ( io_end - io_start );
 	
+													io_count++;
+													
 													total_single_bytes += request.getSize();
 													
 													releaseSpaceAllowance( request );

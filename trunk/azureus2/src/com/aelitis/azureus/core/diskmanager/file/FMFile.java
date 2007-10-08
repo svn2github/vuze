@@ -135,4 +135,12 @@ FMFile
 	delete()
 	
 		throws FMFileManagerException;
+	
+	public FMFile
+	createClone()
+	
+		throws FMFileManagerException;
+	
+	public boolean
+	isClone();
 }

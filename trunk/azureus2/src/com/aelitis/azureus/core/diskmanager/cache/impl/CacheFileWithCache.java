@@ -1187,9 +1187,14 @@ CacheFileWithCache
 
 		boolean doSkipping = true;
 
-		try {
-			this_mon.enter();
+		if ( !this_mon.enter(250)){
 
+			Debug.outNoStack( "Failed to lock stats, abandoning" );
+			
+			return;
+		}
+
+		try{
 			Iterator it = cache.iterator();
 
 			while(it.hasNext())
@@ -1372,23 +1377,6 @@ CacheFileWithCache
 	getStorageType()
 	{
 		return( file.getStorageType()==FMFile.FT_COMPACT?CT_COMPACT:CT_LINEAR );
-	}
-	
-	public void
-	ensureOpen(
-		String	reason )
-
-		throws CacheFileManagerException
-	{
-		try{
-				// no cache flush required here
-			
-			file.ensureOpen( reason );
-			
-		}catch( FMFileManagerException e ){
-			
-			manager.rethrow(this,e);
-		}	
 	}
 
 	public long

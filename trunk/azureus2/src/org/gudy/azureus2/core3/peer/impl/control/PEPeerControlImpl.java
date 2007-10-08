@@ -81,9 +81,9 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 	private static final int	SEED_CHECK_WAIT_MARKER	= 65526;
 
-	private static boolean disconnect_seeds_when_seeding;
-	private static boolean enable_seeding_piece_rechecks;
-
+	private static boolean 	disconnect_seeds_when_seeding;
+	private static boolean 	enable_seeding_piece_rechecks;
+	private static int		stalled_piece_timeout;
 	static{
 		
 		COConfigurationManager.addAndFireParameterListeners(
@@ -97,8 +97,9 @@ DiskManagerCheckRequestListener, IPFilterListener
 				parameterChanged(
 					String name )
 				{
-					disconnect_seeds_when_seeding = COConfigurationManager.getBooleanParameter("Disconnect Seed");
-					enable_seeding_piece_rechecks = COConfigurationManager.getBooleanParameter("Seeding Piece Check Recheck Enable");
+					disconnect_seeds_when_seeding 	= COConfigurationManager.getBooleanParameter("Disconnect Seed");
+					enable_seeding_piece_rechecks 	= COConfigurationManager.getBooleanParameter("Seeding Piece Check Recheck Enable");
+					stalled_piece_timeout			= COConfigurationManager.getIntParameter( "peercontrol.stalled.piece.write.timeout", 60*1000 );
 				}
 			});
 	}
@@ -1019,7 +1020,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 						if ( pe_piece.isDownloaded()){
 
-							if ( now - pe_piece.getLastDownloadTime(now) > 60*1000 ){
+							if ( now - pe_piece.getLastDownloadTime(now) > stalled_piece_timeout ){
 
 								// people with *very* slow disk writes can trigger this (I've been talking to a user
 								// with a SAN that has .5 second write latencies when checking a file at the same time

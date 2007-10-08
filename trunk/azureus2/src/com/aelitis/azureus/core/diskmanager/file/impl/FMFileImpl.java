@@ -75,6 +75,7 @@ FMFileImpl
 	
 	protected AEMonitor			this_mon	= new AEMonitor( "FMFile" );
 	
+	private boolean				clone;
 	
 	protected
 	FMFileImpl(
@@ -151,6 +152,33 @@ FMFileImpl
 		}
 	}
 
+	protected
+	FMFileImpl(
+		FMFileImpl		basis )
+	
+		throws FMFileManagerException
+	{
+		owner			= basis.owner;
+		manager			= basis.manager;
+		linked_file		= basis.linked_file;
+		canonical_path	= basis.canonical_path;
+			
+		clone			= true;
+		
+		try{
+			file_access = new FMFileAccessController( this, basis.file_access.getStorageType());
+						
+		}catch( Throwable e ){
+						
+			if ( e instanceof FMFileManagerException ){
+				
+				throw((FMFileManagerException)e);
+			}
+			
+			throw( new FMFileManagerException( "initialisation failed", e ));
+		}
+	}
+		
 	protected FMFileManagerImpl
 	getManager()
 	{
@@ -175,6 +203,12 @@ FMFileImpl
 		return( owner );
 	}
 		
+	public boolean
+	isClone()
+	{
+		return( clone );
+	}
+	
 	public void
 	setStorageType(
 		int		new_type )
@@ -522,6 +556,11 @@ FMFileImpl
 	
 		throws FMFileManagerException
 	{
+		if ( clone ){
+			
+			return;
+		}
+		
 		try{
 			file_map_mon.enter();
 			
@@ -566,6 +605,11 @@ FMFileImpl
 	
 		throws FMFileManagerException
 	{
+		if ( clone ){
+			
+			return;
+		}
+		
 		try{
 			file_map_mon.enter();
 			
@@ -665,6 +709,11 @@ FMFileImpl
 	private void
 	releaseFile()
 	{
+		if ( clone ){
+			
+			return;
+		}
+		
 		try{
 			file_map_mon.enter();
 		
@@ -703,6 +752,11 @@ FMFileImpl
 	
 		throws FMFileManagerException
 	{
+		if ( clone ){
+			
+			return;
+		}
+		
 		deleteDirs();
 		
 		File	parent = target.getParentFile();
@@ -743,6 +797,11 @@ FMFileImpl
 	protected void
 	deleteDirs()
 	{
+		if ( clone ){
+			
+			return;
+		}
+		
 		if ( created_dirs_leaf != null ){
 			
 				// delete any dirs we created if the target file doesn't exist

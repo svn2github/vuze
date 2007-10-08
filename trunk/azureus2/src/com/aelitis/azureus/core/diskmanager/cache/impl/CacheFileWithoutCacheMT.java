@@ -1,7 +1,7 @@
 /*
- * Created on 02-Nov-2004
+ * Created on Sep 27, 2007
  * Created by Paul Gardner
- * Copyright (C) 2004, 2005, 2006 Aelitis, All Rights Reserved.
+ * Copyright (C) 2007 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,45 +15,51 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  * 
- * AELITIS, SAS au capital de 46,603.30 euros
+ * AELITIS, SAS au capital de 63.529,40 euros
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  *
  */
 
-package com.aelitis.azureus.core.diskmanager.cache.impl;
 
-/**
- * @author parg
- *
- */
+package com.aelitis.azureus.core.diskmanager.cache.impl;
 
 import java.io.File;
 
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
-import com.aelitis.azureus.core.diskmanager.cache.*;
+import com.aelitis.azureus.core.diskmanager.cache.CacheFile;
+import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerException;
 import com.aelitis.azureus.core.diskmanager.file.FMFile;
 import com.aelitis.azureus.core.diskmanager.file.FMFileManagerException;
 
-public class 
-CacheFileWithoutCache
-	implements CacheFile
+public class
+CacheFileWithoutCacheMT
+implements CacheFile
 {
-	protected CacheFileManagerImpl		manager;
-	protected FMFile					file;
-	protected TOTorrentFile				torrent_file;
+	private static final int MAX_CLONES	= 20;
+	private static int	num_clones;
+	private static int	max_clone_depth;
+	
+	private CacheFileManagerImpl		manager;
+	private FMFile						base_file;
+	private FMFile[]					files;
+	private int[]						files_use_count;
+	private TOTorrentFile				torrent_file;
 
 	protected
-	CacheFileWithoutCache(
+	CacheFileWithoutCacheMT(
 		CacheFileManagerImpl	_manager,
 		FMFile					_file,
 		TOTorrentFile			_torrent_file )
 	{
 		manager			= _manager;
-		file			= _file;
+		base_file		= _file;
 		torrent_file	= _torrent_file;
-		// System.out.println( "without cache = " + file.getFile().toString());
+		
+		files = new FMFile[]{ base_file };
+		
+		files_use_count = new int[]{ 0 };
 	}
 
 	public TOTorrentFile
@@ -65,7 +71,7 @@ CacheFileWithoutCache
 	public boolean
 	exists()
 	{
-		return( file.exists());
+		return( base_file.exists());
 	}
 	
 	public void
@@ -74,13 +80,7 @@ CacheFileWithoutCache
 	
 		throws CacheFileManagerException
 	{
-		try{
-			file.moveFile( new_file );
-			
-		}catch( FMFileManagerException e ){
-			
-			manager.rethrow(this,e);
-		}	
+		throw( new CacheFileManagerException( this, "Not Implemented" ));
 	}
 	
 	public void
@@ -90,9 +90,13 @@ CacheFileWithoutCache
 		throws CacheFileManagerException
 	{
 		try{
+			synchronized( this ){
 			
-			file.setAccessMode( mode==CF_READ?FMFile.FM_READ:FMFile.FM_WRITE );
-			
+				for (int i=0;i<files.length;i++){
+					
+					files[i].setAccessMode( mode==CF_READ?FMFile.FM_READ:FMFile.FM_WRITE );
+				}
+			}
 		}catch( FMFileManagerException e ){
 			
 			manager.rethrow(this,e);
@@ -102,7 +106,7 @@ CacheFileWithoutCache
 	public int
 	getAccessMode()
 	{
-		return( file.getAccessMode()==FMFile.FM_READ?CF_READ:CF_WRITE );
+		return( base_file.getAccessMode()==FMFile.FM_READ?CF_READ:CF_WRITE );
 	}
 	
 	public void
@@ -111,20 +115,13 @@ CacheFileWithoutCache
 	
 		throws CacheFileManagerException
 	{
-		try{
-			
-			file.setStorageType( type==CT_COMPACT?FMFile.FT_COMPACT:FMFile.FT_LINEAR );
-			
-		}catch( FMFileManagerException e ){
-			
-			manager.rethrow(this,e);
-		}			
+		throw( new CacheFileManagerException( this, "Not Implemented" ));	
 	}
 	
 	public int
 	getStorageType()
 	{
-		return( file.getStorageType()==FMFile.FT_COMPACT?CT_COMPACT:CT_LINEAR );
+		return( base_file.getStorageType()==FMFile.FT_COMPACT?CT_COMPACT:CT_LINEAR );
 	}
 
 	public long
@@ -134,7 +131,7 @@ CacheFileWithoutCache
 	{
 		try{
 						
-			return( file.getLength());
+			return( base_file.getLength());
 			
 		}catch( FMFileManagerException e ){
 			
@@ -159,13 +156,115 @@ CacheFileWithoutCache
 	
 		throws CacheFileManagerException
 	{
-		try{
-						
-			file.setLength( length );
+		try{					
+			base_file.setLength( length );
 			
 		}catch( FMFileManagerException e ){
 			
 			manager.rethrow(this,e);
+		}
+	}
+	
+	protected FMFile
+	getFile()
+	
+		throws CacheFileManagerException
+	{
+		synchronized( this ){
+			
+			int	min_index	= -1;
+			int	min			= Integer.MAX_VALUE;
+			
+			for (int i=0;i<files_use_count.length;i++){
+				
+				int	count = files_use_count[i];
+				
+				if ( count < min ){
+					
+					min			= count;
+					min_index	= i;
+				}
+			}
+			
+			if ( min == 0 || files_use_count.length == MAX_CLONES ){
+				
+				files_use_count[min_index]++;
+				
+				return( files[min_index] );
+			}
+			
+				// all files already in use
+			
+			try{
+				FMFile clone = base_file.createClone();
+								
+				//System.out.println( "Created clone " + clone.getName());
+				
+				int	old_num	= files.length;
+				int	new_num = old_num + 1;
+				
+				synchronized( CacheFileWithoutCacheMT.class ){
+					
+					num_clones++;
+					
+					if ( num_clones % 100 == 0 ){
+						
+						System.out.println( "File clones=" + num_clones );
+					}
+					
+					if ( new_num == MAX_CLONES || new_num > max_clone_depth ){
+						
+						max_clone_depth = new_num;
+						
+						System.out.println( "Clone depth of " + new_num + " for " + clone.getName());
+					}
+				}
+
+				FMFile[]	new_files 			= new FMFile[ new_num ];		
+				int[]		new_files_use_count = new int[new_num];
+				
+				System.arraycopy(files, 0, new_files, 0, old_num );
+				System.arraycopy(files_use_count, 0, new_files_use_count, 0, old_num );
+				
+				new_files[old_num]				= clone;
+				new_files_use_count[old_num] 	= 1;
+				
+				files			= new_files;
+				files_use_count	= new_files_use_count;
+				
+				return( clone );
+				
+			}catch( FMFileManagerException e ){
+				
+				manager.rethrow( this, e );
+				
+				return( null );
+			}
+		}
+	}
+	
+	protected void
+	releaseFile(
+		FMFile	file )
+	{
+		synchronized( this ){
+
+			for (int i=0;i<files_use_count.length;i++){
+
+				if ( files[i] == file ){
+					
+					int count = files_use_count[i];
+					
+					if ( count > 0 ){
+						
+						count--;
+					}
+					
+					files_use_count[i] = count;
+					
+					break;
+				}
+			}
 		}
 	}
 	
@@ -184,7 +283,11 @@ CacheFileWithoutCache
 			read_length += buffers[i].remaining(DirectByteBuffer.SS_CACHE);
 		}
 		
-		try{			
+		FMFile file = null;
+		
+		try{	
+			file	= getFile();
+			
 			file.read( buffers, position );
 			
 			manager.fileBytesRead( read_length );
@@ -192,6 +295,10 @@ CacheFileWithoutCache
 		}catch( FMFileManagerException e ){
 				
 			manager.rethrow(this,e);
+			
+		}finally{
+			
+			releaseFile( file );
 		}
 	}
 	
@@ -205,7 +312,11 @@ CacheFileWithoutCache
 	{
 		int	read_length	= buffer.remaining(DirectByteBuffer.SS_CACHE);
 
-		try{			
+		FMFile file = null;
+		
+		try{	
+			file	= getFile();
+			
 			file.read( buffer, position );
 			
 			manager.fileBytesRead( read_length );
@@ -213,6 +324,10 @@ CacheFileWithoutCache
 		}catch( FMFileManagerException e ){
 				
 			manager.rethrow(this,e);
+			
+		}finally{
+			
+			releaseFile( file );
 		}
 	}
 	
@@ -226,7 +341,7 @@ CacheFileWithoutCache
 		int	write_length = buffer.remaining(DirectByteBuffer.SS_CACHE);
 		
 		try{			
-			file.write( buffer, position );
+			base_file.write( buffer, position );
 			
 			manager.fileBytesWritten( write_length );
 
@@ -251,7 +366,7 @@ CacheFileWithoutCache
 		}
 		
 		try{			
-			file.write( buffers, position );
+			base_file.write( buffers, position );
 			
 			manager.fileBytesWritten( write_length );
 
@@ -273,7 +388,7 @@ CacheFileWithoutCache
 		boolean	write_ok	= false;
 		
 		try{			
-			file.write( buffer, position );
+			base_file.write( buffer, position );
 			
 			manager.fileBytesWritten( write_length );
 
@@ -309,7 +424,7 @@ CacheFileWithoutCache
 		boolean	write_ok	= false;
 		
 		try{			
-			file.write( buffers, position );
+			base_file.write( buffers, position );
 			
 			manager.fileBytesWritten( write_length );
 
@@ -337,7 +452,7 @@ CacheFileWithoutCache
 		throws CacheFileManagerException
 	{
 		try{
-			file.flush();
+			base_file.flush();
 		
 		}catch( FMFileManagerException e ){
 		
@@ -357,10 +472,26 @@ CacheFileWithoutCache
 	
 		throws CacheFileManagerException
 	{
-		try{
-			
-			file.close();
-			
+		try{		
+			synchronized( this ){
+				
+				for (int i=0;i<files.length;i++){
+					
+					FMFile file = files[i];
+					
+					if ( file.isClone()){
+					
+						// System.out.println( "Destroyed clone " + file.getName());
+						
+						synchronized( CacheFileWithoutCacheMT.class ){
+							
+							num_clones--;
+						}
+					}
+					
+					file.close();
+				}
+			}			
 		}catch( FMFileManagerException e ){
 			
 			manager.rethrow(this,e);			
@@ -370,7 +501,7 @@ CacheFileWithoutCache
 	public boolean
 	isOpen()
 	{
-		return( file.isOpen());
+		return( base_file.isOpen());
 	}
 	
 	public void
@@ -380,7 +511,7 @@ CacheFileWithoutCache
 	{
 		try{
 			
-			file.delete();
+			base_file.delete();
 			
 		}catch( FMFileManagerException e ){
 			

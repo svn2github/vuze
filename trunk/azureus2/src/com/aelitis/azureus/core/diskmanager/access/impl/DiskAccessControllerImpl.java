@@ -87,6 +87,7 @@ DiskAccessControllerImpl
 		types.add( AzureusCoreStats.ST_DISK_READ_BYTES_SINGLE );
 		types.add( AzureusCoreStats.ST_DISK_READ_BYTES_MULTIPLE );
 		types.add( AzureusCoreStats.ST_DISK_READ_IO_TIME );
+		types.add( AzureusCoreStats.ST_DISK_READ_IO_COUNT );
 		
 		types.add( AzureusCoreStats.ST_DISK_WRITE_QUEUE_LENGTH );
 		types.add( AzureusCoreStats.ST_DISK_WRITE_QUEUE_BYTES );
@@ -155,6 +156,11 @@ DiskAccessControllerImpl
 		if ( types.contains( AzureusCoreStats.ST_DISK_READ_IO_TIME )){
 			
 			values.put( AzureusCoreStats.ST_DISK_READ_IO_TIME, new Long( read_dispatcher.getIOTime()));
+		}
+
+		if ( types.contains( AzureusCoreStats.ST_DISK_READ_IO_COUNT )){
+			
+			values.put( AzureusCoreStats.ST_DISK_READ_IO_COUNT, new Long( read_dispatcher.getIOCount()));
 		}
 
 			// write

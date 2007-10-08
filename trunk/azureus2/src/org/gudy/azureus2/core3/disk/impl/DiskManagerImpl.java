@@ -1368,10 +1368,10 @@ DiskManagerImpl
         }.start();
     }
 
-	public boolean
-	forceNoCache()
+	public int
+	getCacheMode()
 	{
-		return( false );
+		return( CacheFileOwner.CACHE_MODE_NORMAL );
 	}
 	
 	public DMPieceList
@@ -2902,10 +2902,10 @@ DiskManagerImpl
                                                     {
                                                         return( download_manager.getDownloadState().getStateFile( name ));
                                                     }
-                            						public boolean
-                            						forceNoCache()
+                               						public int
+                            						getCacheMode()
                             						{
-                            							return( false );
+                            							return( CacheFileOwner.CACHE_MODE_NORMAL );
                             						}
                                                 },
                                                 target_file,
@@ -3023,10 +3023,10 @@ DiskManagerImpl
                                                         {
                                                             return( download_manager.getDownloadState().getStateFile( name ));
                                                         }
-                                						public boolean
-                                						forceNoCache()
+                                						public int
+                                						getCacheMode()
                                 						{
-                                							return( false );
+                                							return( CacheFileOwner.CACHE_MODE_NORMAL );
                                 						}
                                                     },
                                                     getFile( true ),

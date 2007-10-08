@@ -74,12 +74,6 @@ CacheFile
 	public int
 	getStorageType();
 	
-	public void
-	ensureOpen(
-		String	reason )
-
-		throws CacheFileManagerException;
-
 	public long
 	getLength()
 	

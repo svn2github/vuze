@@ -105,10 +105,10 @@ DiskManagerFileInfoImpl
 		return( diskManager.getDownloadState().getStateFile( name ));
 	}
 	
-	public boolean
-	forceNoCache()
+	public int
+	getCacheMode()
 	{
-		return( diskManager.forceNoCache());
+		return( diskManager.getCacheMode());
 	}
 	
   public void

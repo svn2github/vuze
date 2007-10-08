@@ -50,6 +50,7 @@ AzureusCoreStats
 	public static final String ST_DISK_READ_BYTES_SINGLE		= "disk.read.bytes.single";		// Long
 	public static final String ST_DISK_READ_BYTES_MULTIPLE		= "disk.read.bytes.multiple";	// Long
 	public static final String ST_DISK_READ_IO_TIME				= "disk.read.io.time";			// Long
+	public static final String ST_DISK_READ_IO_COUNT			= "disk.read.io.count";			// Long
 	
 	public static final String ST_DISK_WRITE_QUEUE_LENGTH		= "disk.write.queue.length";	// Long
 	public static final String ST_DISK_WRITE_QUEUE_BYTES		= "disk.write.queue.bytes";		// Long
@@ -119,6 +120,7 @@ AzureusCoreStats
 		{ ST_DISK_READ_BYTES_SINGLE,				CUMULATIVE },
 		{ ST_DISK_READ_BYTES_MULTIPLE,				CUMULATIVE },
 		{ ST_DISK_READ_IO_TIME,						CUMULATIVE },
+		{ ST_DISK_READ_IO_COUNT,					CUMULATIVE },
 				
 		{ ST_DISK_WRITE_QUEUE_LENGTH,				POINT },
 		{ ST_DISK_WRITE_QUEUE_BYTES,				POINT },
@@ -242,6 +244,19 @@ AzureusCoreStats
 					
 					ave_results.put( key + ".average", new Long( average.getAverage()));
 				}
+			}
+			
+			Long disk_read_io_time_average 	= (Long)ave_results.get( "disk.read.io.time.average" );
+			Long disk_read_io_count_average = (Long)ave_results.get( "disk.read.io.count.average" );
+			
+			if ( disk_read_io_time_average != null && disk_read_io_count_average != null ){
+				
+				long l1 = disk_read_io_time_average.longValue();
+				long l2 = disk_read_io_count_average.longValue();
+				
+				ave_results.put( 
+						"disk.read.io.latency.average",
+						new Long( l2==0?-1:(l1/l2)));
 			}
 			
 			result.putAll( ave_results );

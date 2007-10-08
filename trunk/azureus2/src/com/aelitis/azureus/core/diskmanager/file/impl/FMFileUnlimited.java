@@ -48,6 +48,22 @@ FMFileUnlimited
 		super( _owner, _manager, _file, _type );
 	}
 	
+	protected
+	FMFileUnlimited(
+		FMFileUnlimited	basis )
+	
+		throws FMFileManagerException
+	{
+		super( basis );
+	}
+	
+	public FMFile
+	createClone()
+	
+		throws FMFileManagerException
+	{
+		return( new FMFileUnlimited( this ));
+	}
 	
 	public void
 	setAccessMode(

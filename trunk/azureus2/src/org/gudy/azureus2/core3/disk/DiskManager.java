@@ -281,7 +281,7 @@ DiskManager
 	
 	public boolean isDone(int pieceNumber);
 
-	public boolean forceNoCache();
+	public int getCacheMode();
 	
 	public void
 	generateEvidence(

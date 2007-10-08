@@ -49,6 +49,23 @@ FMFileLimited
 		super( _owner, _manager, _file, _type );
 	}
 	
+	protected
+	FMFileLimited(
+		FMFileLimited	basis )
+	
+		throws FMFileManagerException
+	{
+		super( basis );
+	}
+	
+	public FMFile
+	createClone()
+	
+		throws FMFileManagerException
+	{
+		return( new FMFileLimited( this ));
+	}
+	
 	public void
 	ensureOpen(
 		String	reason )
