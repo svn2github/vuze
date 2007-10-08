@@ -30,7 +30,10 @@ import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.PasswordAuthentication;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,6 +41,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -47,7 +51,6 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
-import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.SimpleTimer;
@@ -85,7 +88,7 @@ NetworkAdminImpl
 	private static final LogIDs LOGID = LogIDs.NWMAN;
 	
 	private Set			old_network_interfaces;
-	private InetAddress	old_bind_ip;
+	private InetAddress[]	currentBindIPs = new InetAddress[] {null};
 	
 	private CopyOnWriteList	listeners = new CopyOnWriteList();
 		
@@ -235,134 +238,146 @@ NetworkAdminImpl
 		}
 	}
 	
-	public InetAddress
-	getDefaultBindAddress()
+	private int roundRobinCounter = 0; 
+	
+	@Override
+	public InetAddress getMultiHomedOutgoingRoundRobinBindAddress()
 	{
-		return( old_bind_ip );
+		roundRobinCounter++;
+		roundRobinCounter %= currentBindIPs.length;
+		return currentBindIPs[roundRobinCounter];
 	}
 	
-	protected void
-	checkDefaultBindAddress(
-		boolean	first_time )
+	@Override
+	public InetAddress getMultiHomedServiceBindAddress()
 	{
-		boolean	changed = false;
-		
-		String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "").trim();
-
-		try{
+		if(currentBindIPs.length > 1)
+			return null;
+		return currentBindIPs[0];
+	}
 	
-			if ( bind_ip.length() == 0 && old_bind_ip == null ){
+	@Override
+	public InetAddress getSingleHomedServiceBindAddress()
+	{
+		return currentBindIPs[0]; 
+	}
+	
+	private InetAddress[] calcBindAddresses(final String addressString)
+	{
+		ArrayList addrs = new ArrayList();
+		
+		Pattern addressSplitter = Pattern.compile(";");
+		Pattern interfaceSplitter = Pattern.compile("[\\]\\[]");
+		
+		String[] tokens = addressSplitter.split(addressString);
+
+			addressLoop: for(int i=0;i<tokens.length;i++)
+			{
+				String currentAddress = tokens[i];
+				InetAddress parsedAddress = null;
 				
-			}else if ( bind_ip.length() == 0 ){
+				try
+				{ // literal ipv4 or ipv6 address
+					if(currentAddress.indexOf('.') != -1 || currentAddress.indexOf(':') != -1)
+						parsedAddress = InetAddress.getByName(currentAddress);
+				} catch (UnknownHostException e)
+				{ // ignore, could be an interface name containing a ':'
+				}
 				
-				old_bind_ip = null;
-				
-				changed = true;
-				
-			}else{
-			
-				InetAddress new_bind_ip	= null;
-				
-				if ( bind_ip.indexOf('.') == -1 ){
-				
-						// no dots -> interface name (e.g. eth0 )
+				if(parsedAddress != null)
+				{
+					try
+					{
+						if(!parsedAddress.isAnyLocalAddress() && NetworkInterface.getByInetAddress(parsedAddress) == null)
+							continue;
+					} catch (SocketException e)
+					{
+						Debug.printStackTrace(e);
+						continue;
+					}
+					addrs.add(parsedAddress);
+					continue;
+				}
 					
-					Enumeration 	nis = NetworkInterface.getNetworkInterfaces();
+				// interface name
+				String[] ifaces = interfaceSplitter.split(currentAddress);
 
-					while( nis.hasMoreElements()){
-						
-						NetworkInterface	 ni = (NetworkInterface)nis.nextElement();
+				NetworkInterface netInterface = null;
+				try
+				{
+					netInterface = NetworkInterface.getByName(ifaces[0]);
+				} catch (SocketException e)
+				{
+					e.printStackTrace(); // should not happen
+				}
+				if(netInterface == null)
+					continue;
 
-						if ( bind_ip.equalsIgnoreCase( ni.getName())){
-							
-							Enumeration addresses = ni.getInetAddresses();
-							
-							if ( addresses.hasMoreElements()){
-								
-								new_bind_ip = (InetAddress)addresses.nextElement();
-							}
+				Enumeration interfaceAddresses = netInterface.getInetAddresses();
+				if(ifaces.length != 2)
+					while(interfaceAddresses.hasMoreElements())
+						addrs.add(interfaceAddresses.nextElement());
+				else
+				{
+					int selectedAddress = 0;
+					try { selectedAddress = Integer.parseInt(ifaces[2]); }
+					catch (NumberFormatException e) {} // ignore, user could by typing atm
+					for(int j=0;interfaceAddresses.hasMoreElements();j++,interfaceAddresses.nextElement())
+						if(j==selectedAddress)
+						{
+							addrs.add(interfaceAddresses.nextElement());
+							continue addressLoop;						
 						}
-					}
-					
-					if ( new_bind_ip == null ){
-						
-						Logger.log(
-								new LogAlert(LogAlert.UNREPEATABLE,
-									LogAlert.AT_ERROR, "Bind IP '" + bind_ip + "' is invalid - no matching network interfaces" ));
-
-						return;
-					}
-				}else{
-				
-					new_bind_ip = InetAddress.getByName( bind_ip );
-				}
-				
-				if ( old_bind_ip == null || !old_bind_ip.equals( new_bind_ip )){
-					
-					old_bind_ip = new_bind_ip;
-					
-					changed = true;
 				}
 			}
-			
-			if ( changed ){
-				
-				if ( !first_time ){
-					
-					Logger.log(
-						new LogEvent(LOGID,
-								"NetworkAdmin: default bind ip has changed to '" + (old_bind_ip==null?"none":old_bind_ip.getHostAddress())  + "'"));
-				}
-				
-				firePropertyChange( NetworkAdmin.PR_DEFAULT_BIND_ADDRESS );
+		
+		if(addrs.size() < 1)
+			return new InetAddress[] {null};
+		return (InetAddress[])addrs.toArray(new InetAddress[0]);
+	}
+	
+	
+	protected void checkDefaultBindAddress(boolean first_time)
+	{
+		boolean changed = false;
+		String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "").trim();
+		InetAddress[] addrs = calcBindAddresses(bind_ip);
+		changed = !Arrays.equals(currentBindIPs, addrs);
+		if(changed)
+			currentBindIPs = addrs;					
+		if (changed)
+		{
+			if (!first_time)
+			{
+				String logmsg = "NetworkAdmin: default bind ip has changed to '";
+				for(int i=0;i<currentBindIPs.length;i++)
+					logmsg+=(currentBindIPs[i] == null ? "none" : currentBindIPs[i].getHostAddress()) + (i<currentBindIPs.length? ";" : "");
+				logmsg+="'";
+				Logger.log(new LogEvent(LOGID, logmsg));
 			}
-			
-		}catch( Throwable e ){
-			
-			Logger.log(
-				new LogAlert(LogAlert.UNREPEATABLE,
-					LogAlert.AT_ERROR, "Bind IP '" + bind_ip + "' is invalid" ));
-			
+			firePropertyChange(NetworkAdmin.PR_DEFAULT_BIND_ADDRESS);
 		}
 	}
 	
-	public String
-	getNetworkInterfacesAsString()
+	public String getNetworkInterfacesAsString()
 	{
-		Set	interfaces = old_network_interfaces;
-		
-		if ( interfaces == null ){
-			
-			return( "" );
+		Set interfaces = old_network_interfaces;
+		if (interfaces == null)
+		{
+			return ("");
 		}
-		
-		Iterator	it = interfaces.iterator();
-		
-		String	str = "";
-		
-		while( it.hasNext()){
-			
-			NetworkInterface ni = (NetworkInterface)it.next();
-			
+		Iterator it = interfaces.iterator();
+		String str = "";
+		while (it.hasNext())
+		{
+			NetworkInterface ni = (NetworkInterface) it.next();
 			Enumeration addresses = ni.getInetAddresses();
-
-			if (addresses.hasMoreElements()) {
-				str += (str.length()==0?"":",") + ni.getName() + "=";
-			}
-			
-			int	add_num = 0;
-			
-			while( addresses.hasMoreElements()){
-				
-				add_num++;
-				
-				InetAddress	ia = (InetAddress)addresses.nextElement();
-				
-				str += (add_num==1?"":";") + ia.getHostAddress();
-			}
+			str+=ni.getName()+"\n";
+			int i = 0;
+			while(addresses.hasMoreElements())
+				str+="\t"+ni.getName()+"["+(i++)+"]\t"+((InetAddress)addresses.nextElement()).getHostAddress()+"\n";
 		}
-		
-		return( str );
+		return (str);
 	}
 	
 	public boolean
@@ -1612,8 +1627,6 @@ NetworkAdminImpl
 				Authenticator.setDefault(
 						new Authenticator()
 						{
-							protected AEMonitor	auth_mon = new AEMonitor( "SESecurityManager:auth");
-							
 							protected PasswordAuthentication
 							getPasswordAuthentication()
 							{

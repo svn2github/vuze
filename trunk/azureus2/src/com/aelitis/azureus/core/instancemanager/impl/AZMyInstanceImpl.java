@@ -139,7 +139,7 @@ AZMyInstanceImpl
 	readConfig(
 		boolean	first_time )
 	{
-		InetAddress	new_internal_address	= NetworkAdmin.getSingleton().getDefaultBindAddress();
+		InetAddress	new_internal_address	= NetworkAdmin.getSingleton().getSingleHomedServiceBindAddress();
 		
 		if ( new_internal_address == null ){
 			

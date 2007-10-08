@@ -121,6 +121,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
   BufferedLabel pieceSize;
   Control lblComment;
   BufferedLabel creation_date;
+  BufferedLabel privateStatus;
   Control user_comment;
   BufferedLabel hashFails;
   BufferedLabel shareRatio;
@@ -549,16 +550,43 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     pieceSize.setLayoutData(gridData);
     
     label = new Label(gInfo, SWT.LEFT);
-    Messages.setLanguageText(label, "GeneralView.label.tracker"); //$NON-NLS-1$
-    tracker_status = new BufferedTruncatedLabel(gInfo, SWT.LEFT,150);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    tracker_status.setLayoutData(gridData);    
-
-    label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.creationdate"); //$NON-NLS-1$
     creation_date = new BufferedLabel(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     creation_date.setLayoutData(gridData);
+    
+    label = new Label(gInfo, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.private"); //$NON-NLS-1$
+    privateStatus = new BufferedLabel(gInfo, SWT.LEFT);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    privateStatus.setLayoutData(gridData);    
+
+	// empty row
+    label = new Label(gInfo, SWT.LEFT);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 4;
+    label.setLayoutData(gridData);
+    
+    
+    
+    label = new Label(gInfo, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.tracker"); //$NON-NLS-1$
+    tracker_status = new BufferedTruncatedLabel(gInfo, SWT.LEFT,150);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    tracker_status.setLayoutData(gridData);
+    
+    updateButton = new Button(gInfo, SWT.PUSH);
+    Messages.setLanguageText(updateButton, "GeneralView.label.trackerurlupdate"); //$NON-NLS-1$
+    gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
+    gridData.verticalSpan = 2;
+    gridData.horizontalSpan = 2;
+    updateButton.setLayoutData(gridData);
+    updateButton.addSelectionListener(new SelectionAdapter()
+    {
+    	public void widgetSelected(SelectionEvent event) {
+    		manager.requestTrackerAnnounce(false);
+    	}
+    });
         
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.updatein"); //$NON-NLS-1$
@@ -567,20 +595,15 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     trackerUpdateIn.setLayoutData(gridData);
     
 
-    updateButton = new Button(gInfo, SWT.PUSH);
-    Messages.setLanguageText(updateButton, "GeneralView.label.trackerurlupdate"); //$NON-NLS-1$
-    gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
-		updateButton.setLayoutData(gridData);
-	    
-		updateButton.addSelectionListener(new SelectionAdapter() {
-	      public void widgetSelected(SelectionEvent event) {
-	        manager.requestTrackerAnnounce(false);
-	      }
-	    });
+	// empty row
     
     label = new Label(gInfo, SWT.LEFT);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 4;
+    label.setLayoutData(gridData);
     
-    	// row
+    
+
     
     label = new Label(gInfo, SWT.LEFT);
     label.setCursor(Cursors.handCursor);
@@ -791,7 +814,9 @@ public class GeneralView extends AbstractIView implements ParameterListener,
       manager.getPieceLength(),
       manager.getTorrentComment(),
       DisplayFormatters.formatDate(manager.getTorrentCreationDate()*1000),
-      manager.getDownloadState().getUserComment());
+      manager.getDownloadState().getUserComment(),
+      MessageText.getString("GeneralView."+(manager.getTorrent().getPrivate()?"yes":"no"))
+      );
     
     
     //A special layout, for OS X and Linux, on which for some unknown reason
@@ -1224,25 +1249,29 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     final String _pieceLength,
     final String _comment,
 	final String _creation_date,
-	final String _user_comment) {
+	final String _user_comment,
+	final String isPrivate) {
     if (display == null || display.isDisposed())
-      return;
-    Utils.execSWTThread(new AERunnable(){
-      public void runSupport() {
-				fileName.setText(_fileName );
-		fileSize.setText( _fileSize);
+			return;
+		Utils.execSWTThread(new AERunnable()
+		{
+			public void runSupport() {
+				fileName.setText(_fileName);
+				fileSize.setText(_fileSize);
 				torrentStatus.setText(_torrentStatus);
-		saveIn.setText( _path);
-		hash.setText( _hash);
-		pieceNumber.setText( _pieceData); //$NON-NLS-1$
-		pieceSize.setText( _pieceLength);
+				saveIn.setText(_path);
+				hash.setText(_hash);
+				pieceNumber.setText(_pieceData); //$NON-NLS-1$
+				pieceSize.setText(_pieceLength);
 				creation_date.setText(_creation_date);
-
+				privateStatus.setText(isPrivate);
 				boolean do_relayout = false;
 				do_relayout = setCommentAndFormatLinks(lblComment, _comment) | do_relayout;
 				do_relayout = setCommentAndFormatLinks(user_comment, _user_comment) | do_relayout;
-				if (do_relayout) {gInfo.layout();}
-				
+				if (do_relayout)
+				{
+					gInfo.layout();
+				}
 			}
 		});
 	}

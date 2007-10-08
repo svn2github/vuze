@@ -127,7 +127,7 @@ TRNonBlockingServer
 			
 			if ( _bind_ip == null ){
 				
-				_bind_ip = NetworkAdmin.getSingleton().getDefaultBindAddress();
+				_bind_ip = NetworkAdmin.getSingleton().getSingleHomedServiceBindAddress();
 		
 				if ( _bind_ip == null ){
 					

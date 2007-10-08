@@ -335,7 +335,7 @@ TRTrackerUtils
 		
 		override_map	= new_override_map;
 		
-		InetAddress bad = NetworkAdmin.getSingleton().getDefaultBindAddress();
+		InetAddress bad = NetworkAdmin.getSingleton().getSingleHomedServiceBindAddress();
 		
 		if ( bad == null ){
 			

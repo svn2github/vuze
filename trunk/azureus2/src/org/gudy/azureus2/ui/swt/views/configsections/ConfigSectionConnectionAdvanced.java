@@ -129,20 +129,20 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 
 
 		Label lbind = new Label(gSocket, SWT.NULL);
-
 		Messages.setLanguageText(lbind, "ConfigView.label.bindip" );
+		lbind.setLayoutData(new GridData());
+		
 		StringParameter bindip = new StringParameter(gSocket, "Bind IP", "", false);
 		gridData = new GridData();
 		gridData.widthHint = 100;
 		bindip.setLayoutData(gridData);
 
 		Label lbind2 = new Label(gSocket, SWT.WRAP);
-		lbind2.setLayoutData(Utils.getWrappableLabelGridData(2, 0));
 		Messages.setLanguageText(
 				lbind2,
-				"ConfigView.label.bindip.info",
-				new String[] { NetworkAdmin.getSingleton().getNetworkInterfacesAsString() });
-
+				"ConfigView.label.bindip.details",
+				new String[] {NetworkAdmin.getSingleton().getNetworkInterfacesAsString() });
+		lbind2.setLayoutData(Utils.getWrappableLabelGridData(2, 0));
 
 		Label lpbind = new Label(gSocket, SWT.NULL);
 		Messages.setLanguageText(lpbind, CFG_PREFIX + "bind_port");

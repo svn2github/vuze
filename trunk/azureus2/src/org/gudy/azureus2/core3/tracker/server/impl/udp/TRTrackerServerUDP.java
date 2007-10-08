@@ -66,7 +66,7 @@ TRTrackerServerUDP
 		thread_pool = new ThreadPool( "TrackerServer:UDP:"+port, THREAD_POOL_SIZE );
 		
 		try{
-			InetAddress bind_ip = NetworkAdmin.getSingleton().getDefaultBindAddress();
+			InetAddress bind_ip = NetworkAdmin.getSingleton().getSingleHomedServiceBindAddress();
 			
 			InetSocketAddress	address;
 			

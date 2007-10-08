@@ -96,14 +96,16 @@ public class NetworkManager {
     				 if( max_lan_upload_rate_bps < 1024 )  max_lan_upload_rate_bps = UNLIMITED_RATE;
     				 if( max_lan_upload_rate_bps > UNLIMITED_RATE )  max_lan_upload_rate_bps = UNLIMITED_RATE;
     	        
-    				 max_upload_rate_bps_seeding_only = COConfigurationManager.getIntParameter( "Max Upload Speed Seeding KBs" ) * 1024;
+    				  
+    				 max_upload_rate_bps_seeding_only = COConfigurationManager.getIntParameter( "Max Upload Speed Seeding KBs" ) * 1024; 
     				 if( max_upload_rate_bps_seeding_only < 1024 )  max_upload_rate_bps_seeding_only = UNLIMITED_RATE;
     				 if( max_upload_rate_bps_seeding_only > UNLIMITED_RATE )  max_upload_rate_bps_seeding_only = UNLIMITED_RATE;
     	        
     				 seeding_only_mode_allowed = COConfigurationManager.getBooleanParameter( "enable.seedingonly.upload.rate" );
+    			
     				 
-    				 max_download_rate_bps = COConfigurationManager.getIntParameter( "Max Download Speed KBs" ) * 1024;
-    				 if( max_download_rate_bps < 1024 )  max_download_rate_bps = UNLIMITED_RATE;
+    				 max_download_rate_bps = (int)(COConfigurationManager.getIntParameter( "Max Download Speed KBs" ) * 1024 + 5 * 1024 ); // leave 5KiB/s room for the request limiting  
+    				 if( max_download_rate_bps < 1127 )  max_download_rate_bps = UNLIMITED_RATE;
     				 if( max_download_rate_bps > UNLIMITED_RATE )  max_download_rate_bps = UNLIMITED_RATE;
     	        
     				 lan_rate_enabled = COConfigurationManager.getBooleanParameter("LAN Speed Enabled");
@@ -188,9 +190,12 @@ public class NetworkManager {
     return max_upload_rate_bps_seeding_only;
   }
   
+  /**
+   * This method is for display purposes only, the internal rate limiting is 10% higher than returned by this method!
+   */
   public static int getMaxDownloadRateBPS() {
     if( max_download_rate_bps == UNLIMITED_RATE )  return 0;
-    return max_download_rate_bps; 
+    return (int)(max_download_rate_bps - 5*1024); 
   }
   
   public static final int CRYPTO_OVERRIDE_NONE			= 0;

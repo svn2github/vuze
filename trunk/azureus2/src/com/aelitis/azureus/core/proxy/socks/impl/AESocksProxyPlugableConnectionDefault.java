@@ -157,7 +157,7 @@ AESocksProxyPlugableConnectionDefault
 			
 			target_channel = SocketChannel.open();
 			
-		    InetAddress bindIP = NetworkAdmin.getSingleton().getDefaultBindAddress();
+		    InetAddress bindIP = NetworkAdmin.getSingleton().getMultiHomedOutgoingRoundRobinBindAddress();
 		    
 	        if ( bindIP != null ){
 	        	

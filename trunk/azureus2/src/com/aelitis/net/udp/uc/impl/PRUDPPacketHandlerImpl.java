@@ -114,7 +114,7 @@ PRUDPPacketHandlerImpl
 		port				= _port;
 		explicit_bind_ip	= _bind_ip;
 		
-		default_bind_ip = NetworkAdmin.getSingleton().getDefaultBindAddress();
+		default_bind_ip = NetworkAdmin.getSingleton().getSingleHomedServiceBindAddress();
 		
 		calcBind();
 		
@@ -285,7 +285,7 @@ PRUDPPacketHandlerImpl
 	    		{
 	    			if ( property == NetworkAdmin.PR_DEFAULT_BIND_ADDRESS ){
 	    				
-	    				setDefaultBindAddress( NetworkAdmin.getSingleton().getDefaultBindAddress());
+	    				setDefaultBindAddress( NetworkAdmin.getSingleton().getSingleHomedServiceBindAddress());
 	    			}
 	    		}
 	    	};

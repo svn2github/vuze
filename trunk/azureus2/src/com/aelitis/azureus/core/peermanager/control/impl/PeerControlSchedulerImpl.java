@@ -27,6 +27,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.peermanager.control.PeerControlInstance;
 import com.aelitis.azureus.core.peermanager.control.PeerControlScheduler;
+import com.aelitis.azureus.core.peermanager.control.SpeedTokenDispenser;
 import com.aelitis.azureus.core.stats.AzureusCoreStats;
 import com.aelitis.azureus.core.stats.AzureusCoreStatsProvider;
 
@@ -57,6 +58,10 @@ PeerControlSchedulerImpl
 	private long	wait_count;
 	private long	yield_count;
 	private long	total_wait_time;
+	
+	private final SpeedTokenDispenser tokenDispenser = new SpeedTokenDispenser();
+	
+	
 	
 	protected
 	PeerControlSchedulerImpl()
@@ -106,22 +111,23 @@ PeerControlSchedulerImpl
 		}
 	}
 	
+	public static SpeedTokenDispenser getDispenser()
+	{
+		return singleton.tokenDispenser;
+	}
+	
 	protected void
 	schedule()
 	{
 		latest_time	= SystemTime.getCurrentTime();
-		
 		SystemTime.registerConsumer(
 			new SystemTime.consumer()
 			{
 				public void
-				consume(
-					long	time )
+				consume( long	time )
 				{
 					synchronized( PeerControlSchedulerImpl.this ){
-						
 						latest_time	= time;
-						
 						PeerControlSchedulerImpl.this.notify();
 					}
 				}
@@ -136,88 +142,58 @@ PeerControlSchedulerImpl
 		long 	last_stats_time	= latest_time;
 		
 		while( true ){
-			
 			if ( registrations_changed ){
-				
 				try{
 					this_mon.enter();
-					
 					Iterator	it = instances.iterator();
-					
 					while( it.hasNext()){
-						
 						if (((instanceWrapper)it.next()).isUnregistered()){
-							
 							it.remove();
 						}
 					}
 
-					for (int i=0;i<pending_registrations.size();i++){
-						
+					for (int i=0;i<pending_registrations.size();i++)
 						instances.add( pending_registrations.get(i));
-					}
 					
 					pending_registrations.clear();
-					
 					registrations_changed	= false;
-					
 				}finally{
-					
 					this_mon.exit();
 				}	
 			}
-							
+						
+			tokenDispenser.update(latest_time);
+				
 			for (Iterator it=instances.iterator();it.hasNext();){
-				
 				instanceWrapper	inst = (instanceWrapper)it.next();
-									
 				long	target = inst.getNextTick();
-				
 				long	diff = target - latest_time_used;			
 				
 				if ( diff <= 0 || diff > SCHEDULE_PERIOD_MILLIS ){
-					
 					tick_count++;
-					
 					inst.schedule();
-					
 					long new_target = target + SCHEDULE_PERIOD_MILLIS;
-					
 					diff = new_target - latest_time_used;
-					
-					if ( diff <= 0 || diff > SCHEDULE_PERIOD_MILLIS ){
-						
+					if ( diff <= 0 || diff > SCHEDULE_PERIOD_MILLIS )
 						new_target = latest_time_used + SCHEDULE_PERIOD_MILLIS;
-					}
-					
 					inst.setNextTick( new_target );
 				}
 			}
 						
 			synchronized( this ){
-				
 				if ( latest_time == latest_time_used ){
-					
 					wait_count++;
-					
 					try{
 						long wait_start = SystemTime.getHighPrecisionCounter();
-						
 						wait();
-						
 						long wait_time 	= SystemTime.getHighPrecisionCounter() - wait_start;
-
 						total_wait_time += wait_time;
-						
 					}catch( Throwable e ){
-						
 						Debug.printStackTrace(e);
 					}
 					
 				}else{
-					
 					yield_count++;
-					
 					Thread.yield();
 				}
 				
@@ -227,11 +203,8 @@ PeerControlSchedulerImpl
 			long	stats_diff =  latest_time_used - last_stats_time;
 			
 			if ( stats_diff > 10000 ){
-				
 				// System.out.println( "stats: time = " + stats_diff + ", ticks = " + tick_count + ", inst = " + instances.size());
-				
 				last_stats_time	= latest_time_used;
-				
 				tick_count	= 0;
 			}
 		}

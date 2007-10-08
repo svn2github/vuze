@@ -216,7 +216,7 @@ AuthenticatorWindow
 	
 			String	tracker = protocol + "://" + host + ":" + port + "/";
 	
-			InetAddress bind_ip = NetworkAdmin.getSingleton().getDefaultBindAddress();
+			InetAddress bind_ip = NetworkAdmin.getSingleton().getSingleHomedServiceBindAddress();
 			
 			String	self_addr;
 	

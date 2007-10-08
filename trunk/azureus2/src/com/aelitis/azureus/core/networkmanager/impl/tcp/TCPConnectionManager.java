@@ -241,7 +241,7 @@ public class TCPConnectionManager {
         	request.channel.socket().setReuseAddress( true );
         }
         
-        InetAddress bindIP = NetworkAdmin.getSingleton().getDefaultBindAddress();
+        InetAddress bindIP = NetworkAdmin.getSingleton().getMultiHomedOutgoingRoundRobinBindAddress();
         if ( bindIP != null ) {
         	if (Logger.isEnabled()) 	Logger.log(new LogEvent(LOGID, "Binding outgoing connection [" + request.address + "] to local IP address: " + bindIP));
           request.channel.socket().bind( new InetSocketAddress( bindIP, local_bind_port ) );

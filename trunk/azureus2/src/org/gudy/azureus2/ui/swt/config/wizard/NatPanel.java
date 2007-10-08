@@ -77,7 +77,7 @@ public class NatPanel extends AbstractWizardPanel {
       //if (lowPort <= highPort && (highPort-lowPort < 10)) {
         //for (int port = lowPort; port <= highPort && bContinue; port++) {
           printMessage(MessageText.getString("configureWizard.nat.testing") + " " + TCPListenPort + " ... ");
-          NatChecker checker = new NatChecker(wizard.getAzureusCore(), NetworkAdmin.getSingleton().getDefaultBindAddress(), TCPListenPort, false );
+          NatChecker checker = new NatChecker(wizard.getAzureusCore(), NetworkAdmin.getSingleton().getMultiHomedOutgoingRoundRobinBindAddress(), TCPListenPort, false );
           switch (checker.getResult()) {
             case NatChecker.NAT_OK :
               String	additional_info = checker.getAdditionalInfo();

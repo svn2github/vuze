@@ -42,6 +42,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.peer.PeerInfoView;
+import org.gudy.azureus2.ui.swt.views.peer.RemotePieceDistributionView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
@@ -91,6 +92,7 @@ public class PeerSuperView
 		tv.setEnableTabViews(true);
 		tv.setCoreTabViews(new IView[] {
 			new PeerInfoView(),
+			new RemotePieceDistributionView(),
 			new LoggerView()
 		});
 		tv.addLifeCycleListener(this);

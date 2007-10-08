@@ -130,11 +130,13 @@ ClientIDManagerImpl
 			String	http_proxy 	= System.getProperty( "http.proxyHost" );
 			String	socks_proxy = System.getProperty( "socksProxyHost" );
 			
-		    InetAddress bindIP = NetworkAdmin.getSingleton().getDefaultBindAddress();
+		    InetAddress bindIP = NetworkAdmin.getSingleton().getSingleHomedServiceBindAddress();
 		    
 	        if (	( http_proxy == null || http_proxy.trim().length() == 0 ) &&
 	        		( socks_proxy == null || socks_proxy.trim().length() == 0 ) &&
-	        		bindIP != null ){
+	        		(bindIP != null  && !bindIP.isAnyLocalAddress())
+	        		)
+	        {
 
 	        	int		ips = 0;
 	        	
@@ -516,7 +518,7 @@ ClientIDManagerImpl
 				
 				Socket	target = new Socket();
 				
-			    InetAddress bindIP = NetworkAdmin.getSingleton().getDefaultBindAddress();
+			    InetAddress bindIP = NetworkAdmin.getSingleton().getSingleHomedServiceBindAddress();
 			    
 		        if ( bindIP != null ){
 		        	

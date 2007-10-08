@@ -56,7 +56,7 @@ public class IncomingSocketChannelManager
   
   private int so_rcvbuf_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_RCVBUF" );
   
-  private InetAddress 	default_bind_address = NetworkAdmin.getSingleton().getDefaultBindAddress();
+  private InetAddress 	default_bind_address = NetworkAdmin.getSingleton().getMultiHomedServiceBindAddress();
   private InetAddress 	explicit_bind_address;
   private boolean		explicit_bind_address_set;
   
@@ -118,7 +118,7 @@ public class IncomingSocketChannelManager
     		{
     			if ( property == NetworkAdmin.PR_DEFAULT_BIND_ADDRESS ){
     			
-			        InetAddress address = NetworkAdmin.getSingleton().getDefaultBindAddress();
+			        InetAddress address = NetworkAdmin.getSingleton().getMultiHomedServiceBindAddress();
 			        
 			        if ( address == null && default_bind_address == null ){
 			        	

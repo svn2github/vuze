@@ -71,7 +71,7 @@ TRBlockingServer
 		boolean	ok = false;
 		
 		try{
-			InetAddress bind_ip = NetworkAdmin.getSingleton().getDefaultBindAddress();
+			InetAddress bind_ip = NetworkAdmin.getSingleton().getSingleHomedServiceBindAddress();
 			
 			String tr_bind_ip = COConfigurationManager.getStringParameter("Bind IP for Tracker", "");
 			

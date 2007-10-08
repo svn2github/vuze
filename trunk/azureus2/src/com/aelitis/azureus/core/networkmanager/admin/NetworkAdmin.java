@@ -56,7 +56,13 @@ NetworkAdmin
 	}
 	
 	public abstract InetAddress
-	getDefaultBindAddress();
+	getSingleHomedServiceBindAddress();
+	
+	public abstract InetAddress
+	getMultiHomedServiceBindAddress();
+	
+	public abstract InetAddress
+	getMultiHomedOutgoingRoundRobinBindAddress();
 	
 	public abstract String
 	getNetworkInterfacesAsString();

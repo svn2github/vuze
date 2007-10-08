@@ -30,7 +30,7 @@ import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.ui.swt.components.Legend;
-import org.gudy.azureus2.ui.swt.views.piece.PieceDistributionView;
+import org.gudy.azureus2.ui.swt.views.piece.MyPieceDistributionView;
 import org.gudy.azureus2.ui.swt.views.piece.PieceInfoView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
@@ -79,7 +79,7 @@ public class PiecesView
 	private Composite legendComposite;
 
 	private PieceInfoView pieceInfoView;
-	private PieceDistributionView pieceDistView;
+	private MyPieceDistributionView pieceDistView;
   
 	/**
 	 * Initialize
@@ -92,7 +92,7 @@ public class PiecesView
 		setTableView(tv);
 		tv.setEnableTabViews(true);
 		pieceInfoView = new PieceInfoView();
-		pieceDistView = new PieceDistributionView();
+		pieceDistView = new MyPieceDistributionView();
 		tv.setCoreTabViews(new IView[] {
 			pieceInfoView,pieceDistView
 		});
