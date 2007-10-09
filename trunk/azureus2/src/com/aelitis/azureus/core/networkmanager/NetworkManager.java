@@ -104,9 +104,11 @@ public class NetworkManager {
     				 seeding_only_mode_allowed = COConfigurationManager.getBooleanParameter( "enable.seedingonly.upload.rate" );
     			
     				 
-    				 max_download_rate_bps = (int)(COConfigurationManager.getIntParameter( "Max Download Speed KBs" ) * 1024 + 5 * 1024 ); // leave 5KiB/s room for the request limiting  
-    				 if( max_download_rate_bps < 1127 )  max_download_rate_bps = UNLIMITED_RATE;
-    				 if( max_download_rate_bps > UNLIMITED_RATE )  max_download_rate_bps = UNLIMITED_RATE;
+    				 max_download_rate_bps = (int)(COConfigurationManager.getIntParameter( "Max Download Speed KBs" ) * 1024); // leave 5KiB/s room for the request limiting  
+    				 if( max_download_rate_bps < 1024 || max_download_rate_bps > UNLIMITED_RATE)
+    					 max_download_rate_bps = UNLIMITED_RATE;
+    				 else
+    					 max_download_rate_bps += 5 * 1024;
     	        
     				 lan_rate_enabled = COConfigurationManager.getBooleanParameter("LAN Speed Enabled");
     				 max_lan_download_rate_bps = COConfigurationManager.getIntParameter( "Max LAN Download Speed KBs" ) * 1024;
