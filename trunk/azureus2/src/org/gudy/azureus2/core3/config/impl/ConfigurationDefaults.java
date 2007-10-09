@@ -505,7 +505,8 @@ public class ConfigurationDefaults {
     def.put(SpeedManagerAlgorithmProviderV2.SETTING_DHT_BAD_TOLERANCE, new Long(500) );
 
     //default confidence limits are NONE
-    def.put(SpeedManagerImpl.CONFIG_VERSION, new Long(1) );
+    def.put(SpeedManagerImpl.CONFIG_VERSION, new Long(2) );	// 1 == classic, 2 == beta
+    
     def.put( SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING, SpeedLimitConfidence.NONE.getString() );
     def.put( SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING, SpeedLimitConfidence.NONE.getString() );
     def.put( SpeedLimitMonitor.UPLOAD_CHOKE_PING_COUNT, new Long(1) );
