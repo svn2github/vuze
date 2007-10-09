@@ -250,9 +250,12 @@ NetworkAdminImpl
 	
 	public InetAddress getMultiHomedServiceBindAddress()
 	{
+		InetAddress firstAddr = currentBindIPs[0];
+		if(firstAddr != null && firstAddr.isAnyLocalAddress())
+			return firstAddr;
 		if(currentBindIPs.length > 1)
 			return null;
-		return currentBindIPs[0];
+		return firstAddr;
 	}
 	
 	public InetAddress getSingleHomedServiceBindAddress()
@@ -286,7 +289,8 @@ NetworkAdminImpl
 				{
 					try
 					{
-						if(!parsedAddress.isAnyLocalAddress() && NetworkInterface.getByInetAddress(parsedAddress) == null)
+						// allow wildcard address as 1st address, otherwise only interface addresses
+						if((!parsedAddress.isAnyLocalAddress() || addrs.size() > 0) && NetworkInterface.getByInetAddress(parsedAddress) == null)
 							continue;
 					} catch (SocketException e)
 					{
@@ -318,7 +322,7 @@ NetworkAdminImpl
 				else
 				{
 					int selectedAddress = 0;
-					try { selectedAddress = Integer.parseInt(ifaces[2]); }
+					try { selectedAddress = Integer.parseInt(ifaces[1]); }
 					catch (NumberFormatException e) {} // ignore, user could by typing atm
 					for(int j=0;interfaceAddresses.hasMoreElements();j++,interfaceAddresses.nextElement())
 						if(j==selectedAddress)

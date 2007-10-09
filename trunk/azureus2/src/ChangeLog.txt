@@ -7,7 +7,7 @@ AZUREUS CHANGELOG
 FEATURE: Core | global download speed limit can also limit the number of outgoing requests, this should improve TCP performance [The 8472]
                  -it downloads from as few peers as possible when the global limit is reached 
                  -prioritizes downloads which are on the head of the queue
-FEATURE: Core | IP binding now provides primitive round-robin load balancing for users with multiple internet connections
+FEATURE: Core | IP binding now provides primitive round-robin load balancing for users with multiple internet connections; accepts interface names and IPv6 binding (if supported on the platform) [The 8472] 
 FEATURE: UI   | Piece distribution view is now also available as a peer subview [The 8472]
 
 CHANGE: Core  | Revised piece picking code to deal better with some edge cases and snubbed peers [The 8472]
