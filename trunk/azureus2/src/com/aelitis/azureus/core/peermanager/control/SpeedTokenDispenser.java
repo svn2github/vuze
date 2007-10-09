@@ -6,15 +6,25 @@ import org.gudy.azureus2.core3.util.SystemTime;
 
 public class SpeedTokenDispenser {
 	// crude TBF implementation
-	private static int	rateKiB;
-	static
+	private int	rateKiB;
+
 	{
-		COConfigurationManager.addAndFireParameterListener("Max Download Speed KBs", new ParameterListener()
-		{
-			public void parameterChanged(String parameterName) {
-				rateKiB = COConfigurationManager.getIntParameter("Max Download Speed KBs");
+		COConfigurationManager.addAndFireParameterListeners(
+			new String[] {
+				"Max Download Speed KBs",
+				"Use Request Limiting"
+			},
+			new ParameterListener()
+			{
+				public void parameterChanged(String parameterName) {
+					rateKiB = COConfigurationManager.getIntParameter("Max Download Speed KBs");
+					if(!COConfigurationManager.getBooleanParameter("Use Request Limiting"))
+						rateKiB = 0;
+					lastTime = currentTime;
+					bucket = 0;
+				}
 			}
-		});
+		);
 	}
 	private int			bucket		= 0;
 	private long		lastTime	= SystemTime.getCurrentTime();

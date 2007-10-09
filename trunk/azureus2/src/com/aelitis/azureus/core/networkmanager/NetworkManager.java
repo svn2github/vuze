@@ -65,6 +65,8 @@ public class NetworkManager {
   public static boolean 	REQUIRE_CRYPTO_HANDSHAKE;
   public static boolean 	INCOMING_HANDSHAKE_FALLBACK_ALLOWED;	
   public static boolean 	OUTGOING_HANDSHAKE_FALLBACK_ALLOWED;
+  
+  private static boolean	USE_REQUEST_LIMITING;
 	
 
   static {
@@ -80,13 +82,16 @@ public class NetworkManager {
     									"Max Download Speed KBs",
     									"Max LAN Download Speed KBs",
     									"network.tcp.mtu.size",
-  										"network.udp.mtu.size" },
+  										"network.udp.mtu.size",
+  										"Use Request Limiting"},
   										
     		new ParameterListener()	{
     			 public void  parameterChanged(	String ignore ) {
-    				 REQUIRE_CRYPTO_HANDSHAKE				= COConfigurationManager.getBooleanParameter( "network.transport.encrypted.require");
-    				 INCOMING_HANDSHAKE_FALLBACK_ALLOWED	= COConfigurationManager.getBooleanParameter( "network.transport.encrypted.fallback.incoming");
-    				 OUTGOING_HANDSHAKE_FALLBACK_ALLOWED	= COConfigurationManager.getBooleanParameter( "network.transport.encrypted.fallback.outgoing");
+    				 REQUIRE_CRYPTO_HANDSHAKE				= COConfigurationManager.getBooleanParameter("network.transport.encrypted.require");
+    				 INCOMING_HANDSHAKE_FALLBACK_ALLOWED	= COConfigurationManager.getBooleanParameter("network.transport.encrypted.fallback.incoming");
+    				 OUTGOING_HANDSHAKE_FALLBACK_ALLOWED	= COConfigurationManager.getBooleanParameter("network.transport.encrypted.fallback.outgoing");
+  
+    				 USE_REQUEST_LIMITING					= COConfigurationManager.getBooleanParameter("Use Request Limiting");
     				 
     				 max_upload_rate_bps_normal = COConfigurationManager.getIntParameter( "Max Upload Speed KBs" ) * 1024;
     				 if( max_upload_rate_bps_normal < 1024 )  max_upload_rate_bps_normal = UNLIMITED_RATE;
@@ -107,7 +112,7 @@ public class NetworkManager {
     				 max_download_rate_bps = (int)(COConfigurationManager.getIntParameter( "Max Download Speed KBs" ) * 1024); // leave 5KiB/s room for the request limiting  
     				 if( max_download_rate_bps < 1024 || max_download_rate_bps > UNLIMITED_RATE)
     					 max_download_rate_bps = UNLIMITED_RATE;
-    				 else
+    				 else if(USE_REQUEST_LIMITING)
     					 max_download_rate_bps += 5 * 1024;
     	        
     				 lan_rate_enabled = COConfigurationManager.getBooleanParameter("LAN Speed Enabled");
@@ -197,7 +202,7 @@ public class NetworkManager {
    */
   public static int getMaxDownloadRateBPS() {
     if( max_download_rate_bps == UNLIMITED_RATE )  return 0;
-    return (int)(max_download_rate_bps - 5*1024); 
+    return (int)(max_download_rate_bps - (USE_REQUEST_LIMITING? 5*1024 : 0)); 
   }
   
   public static final int CRYPTO_OVERRIDE_NONE			= 0;

@@ -178,13 +178,13 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 		label = new Label(cSection, SWT.NULL);
 		label.setLayoutData(gridData);
 		Messages.setLanguageText(label, "ConfigView.label.maxdownloadspeed");
-
+		
 		gridData = new GridData();
 		gridData.widthHint = 35;
 		final IntParameter paramMaxDownSpeed = new IntParameter(cSection,
 				"Max Download Speed KBs", 0, -1);
 		paramMaxDownSpeed.setLayoutData(gridData);
-
+		
 		// max upload/download limit dependencies
 		paramMaxUploadSpeed.addChangeListener(new ParameterChangeAdapter() {
 			
@@ -261,6 +261,7 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 		});
 
 		if (userMode > 0) {
+			
 
 			// max uploads
 			gridData = new GridData();
@@ -381,7 +382,13 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 			gridData = new GridData();
 			gridData.widthHint = 35;
 			new IntParameter(cSection,"Max Seeds Per Torrent").setLayoutData(gridData);
+
 			
+			gridData = new GridData();
+			gridData.horizontalSpan = 2;
+			BooleanParameter useReqLimiting = new BooleanParameter(cSection, "Use Request Limiting",
+				"ConfigView.label.userequestlimiting");
+			useReqLimiting.setLayoutData(gridData);
 
 			gridData = new GridData();
 			gridData.horizontalSpan = 2;
