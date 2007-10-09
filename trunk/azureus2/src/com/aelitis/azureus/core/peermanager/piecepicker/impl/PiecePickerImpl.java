@@ -1423,8 +1423,6 @@ implements PiecePicker
 				}
 			}
 
-			Debug.out( "Peer's reserved piece is no longer valid" );
-
 			// reserved piece is no longer valid, dump it
 			pt.setReservedPieceNumber(-1);
 
