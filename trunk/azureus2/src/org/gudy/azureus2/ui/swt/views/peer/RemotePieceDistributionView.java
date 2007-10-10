@@ -44,13 +44,14 @@ public class RemotePieceDistributionView extends PieceDistributionView {
 		if (newDataSource instanceof Object[])
 			newDataSource = ((Object[]) newDataSource)[0];
 		if (newDataSource instanceof PEPeer)
+		{
 			peer = (PEPeer) newDataSource;
-		else
+			pem = peer.getManager();
+		} else
 		{
 			peer = null;
 			pem = null;
 		}
-		pem = peer.getManager();
 		refresh();
 	}
 
