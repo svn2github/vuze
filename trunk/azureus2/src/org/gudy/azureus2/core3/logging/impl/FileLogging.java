@@ -49,7 +49,7 @@ public class FileLogging implements ILogEventListener {
 			LogIDs.DISK, LogIDs.GUI, LogIDs.NET, LogIDs.NWMAN, LogIDs.PEER,
 			LogIDs.PLUGIN, LogIDs.TRACKER, LogIDs.CACHE, LogIDs.PIECES };
 
-	private static final String sTimeStampFormat = "HH:mm:ss.SSS ";
+	private String timeStampFormat;
 	
 	private static final String CFG_ENABLELOGTOFILE = "Logging Enable";
 
@@ -115,6 +115,7 @@ public class FileLogging implements ILogEventListener {
 				bLogToFile = true;
 				sLogDir = ".";
 				iLogFileMaxMB = 2;
+				timeStampFormat = "HH:mm:ss.SSS ";
 
 				for (int i = 0; i < ignoredComponents.length; i++) {
 					ignoredComponents[i].clear();
@@ -125,6 +126,8 @@ public class FileLogging implements ILogEventListener {
 				sLogDir = config.getStringParameter("Logging Dir", "");
 
 				iLogFileMaxMB = config.getIntParameter("Logging Max Size");
+				
+				timeStampFormat = config.getStringParameter("Logging Timestamp")+" ";
 
 				for (int i = 0; i < ignoredComponents.length; i++) {
 					ignoredComponents[i].clear();
@@ -148,7 +151,7 @@ public class FileLogging implements ILogEventListener {
 		synchronized (Logger.class) {
 
 			SimpleDateFormat format;
-			format = new SimpleDateFormat(sTimeStampFormat);
+			format = new SimpleDateFormat(timeStampFormat);
 
 			str = format.format(new Date()) + str;
 

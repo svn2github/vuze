@@ -222,6 +222,7 @@ public class ConfigurationDefaults {
     def.put("Logger.Enabled", FALSE);  //logging in general
     def.put("Logging Enable", FALSE);  //file logging
     def.put("Logging Dir", "");
+    def.put("Logging Timestamp", "HH:mm:ss.SSS");
     def.put("Logging Max Size", new Long(5));
     int[] logComponents = { 0, 1, 2, 4 };
     for (int i = 0; i < logComponents.length; i++)

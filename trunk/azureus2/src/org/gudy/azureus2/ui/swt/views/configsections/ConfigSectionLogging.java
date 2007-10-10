@@ -95,6 +95,8 @@ public class ConfigSectionLogging implements UISWTConfigSection {
     layout = new GridLayout();
     layout.numColumns = 2;
     gLogging.setLayout(layout);
+    
+    int userMode = COConfigurationManager.getIntParameter("User Mode");
 
     
     BooleanParameter enable_logger = new BooleanParameter(gLogging, "Logger.Enabled", CFG_PREFIX + "loggerenable");
@@ -166,6 +168,19 @@ public class ConfigSectionLogging implements UISWTConfigSection {
     gridData = new GridData();
     gridData.horizontalSpan = 2;
     paramMaxSize.setLayoutData(gridData);
+    
+    if(userMode > 1)
+    {
+    	Label timeStampLbl = new Label(cArea, SWT.NULL);
+    	Messages.setLanguageText(timeStampLbl, CFG_PREFIX+"timestamp");
+    	timeStampLbl.setLayoutData(new GridData());
+    	StringParameter timeStamp = new StringParameter(cArea,"Logging Timestamp");
+    	gridData = new GridData();
+    	gridData.horizontalSpan = 2;
+    	gridData.widthHint = 150;
+    	timeStamp.setLayoutData(gridData);
+    }
+    
     
     
     /** FileLogging filter, consisting of a List of types (info, warning, error)
