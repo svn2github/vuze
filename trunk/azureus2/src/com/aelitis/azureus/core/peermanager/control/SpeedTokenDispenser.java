@@ -6,33 +6,31 @@ import org.gudy.azureus2.core3.util.SystemTime;
 
 public class SpeedTokenDispenser {
 	// crude TBF implementation
-	private int	rateKiB;
-
+	private int		rateKiB;
 	{
-		COConfigurationManager.addAndFireParameterListeners(
-			new String[] {
-				"Max Download Speed KBs",
-				"Use Request Limiting"
-			},
-			new ParameterListener()
-			{
-				public void parameterChanged(String parameterName) {
-					rateKiB = COConfigurationManager.getIntParameter("Max Download Speed KBs");
-					if(!COConfigurationManager.getBooleanParameter("Use Request Limiting"))
-						rateKiB = 0;
-					lastTime = currentTime;
-					bucket = 0;
-				}
+		COConfigurationManager.addAndFireParameterListeners(new String[] { "Max Download Speed KBs", "Use Request Limiting" }, new ParameterListener()
+		{
+			public void parameterChanged(String parameterName) {
+				rateKiB = COConfigurationManager.getIntParameter("Max Download Speed KBs");
+				if (!COConfigurationManager.getBooleanParameter("Use Request Limiting"))
+					rateKiB = 0;
+				lastTime = currentTime - 1; // shortest possible delta
+				refill(); // cap buffer to threshold in case something accumulated
 			}
-		);
+		});
 	}
-	private int			bucket		= 0;
-	private long		lastTime	= SystemTime.getCurrentTime();
-	private long		currentTime;
+	private int		bucket		= 0;
+	private long	lastTime	= SystemTime.getCurrentTime();
+	private long	currentTime;
 
 	public void update(long newTime) {
 		currentTime = newTime;
 	}
+
+	// allow at least 2 outstanding requests
+	private static final int	BUCKET_THRESHOLD_LOWER_BOUND	= 2 * 15 * 1024;
+	// 3KiB buffer per 1KiB/s speed, that should be 3 seconds max response time
+	private static final int	BUCKET_THRESHOLD_FACTOR			= 3 * 1024;
 
 	public void refill() {
 		if (lastTime == currentTime || rateKiB == 0)
@@ -42,7 +40,9 @@ public class SpeedTokenDispenser {
 		// upcast to long since we might exceed int-max when rate and delta are
 		// large enough; then downcast again...
 		int tickDelta = (int) (((long) rateKiB * 1024 * delta) / 1000);
-		int threshold = 3 * rateKiB * 1024;
+		int threshold = BUCKET_THRESHOLD_FACTOR * rateKiB;
+		if (threshold < BUCKET_THRESHOLD_LOWER_BOUND)
+			threshold = BUCKET_THRESHOLD_LOWER_BOUND;
 		//System.out.println("threshold:" + threshold + " update: " + bucket + " time delta:" + delta);
 		bucket += tickDelta;
 		if (bucket > threshold)
