@@ -96,7 +96,7 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 	private ArrayList[] ignoredComponents = new ArrayList[3];
 
 	static {
-		dateFormatter = new SimpleDateFormat("[h:mm:ss.SSS] ");
+		dateFormatter = new SimpleDateFormat("[HH:mm:ss.SSS] ");
 		formatPos = new FieldPosition(0);
 	}
 
