@@ -1690,7 +1690,7 @@ implements PiecePicker
 
 			if(secondChoiceResume != -1 && (startCandidates ==null ||startCandidates.nbSet <=0))
 			{
-				System.out.println("second choice resume:"+secondChoiceResume);
+				//System.out.println("second choice resume:"+secondChoiceResume);
 				return secondChoiceResume;
 			}
 
