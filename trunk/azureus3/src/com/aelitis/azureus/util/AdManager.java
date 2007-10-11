@@ -215,7 +215,8 @@ public class AdManager
 				}
 
 				if (list.size() == 0) {
-					PlatformAdManager.debug("no ad enabled content.  skipping ad get.");
+					PlatformAdManager.debug("none of the " + dms.length
+							+ " was ad enabled.  skipping ad get.");
 					return;
 				}
 
