@@ -152,6 +152,11 @@ public class SWTSkinUtils
 								slide(control, fd, size);
 							}
 						}
+					} else {
+						fd.width = SWT.DEFAULT;
+						fd.height = SWT.DEFAULT;
+						control.setLayoutData(fd);
+						Utils.relayout(control);
 					}
 					control.setData("v3.oldHeight", null);
 				} else {
