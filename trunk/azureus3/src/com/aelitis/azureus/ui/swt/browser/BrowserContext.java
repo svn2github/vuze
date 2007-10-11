@@ -243,8 +243,7 @@ public class BrowserContext
 				// https://moo.com:80/dr
 
 				boolean blocked = PlatformConfigMessenger.isURLBlocked(event.location);
-				blocked = false;
-
+ 
 				if (blocked) {
 					event.doit = false;
 					browser.back();
