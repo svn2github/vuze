@@ -45,6 +45,9 @@ import com.aelitis.azureus.util.MapUtils;
  */
 public class PlatformAdManager
 {
+	// one week timeout for unsent impressions
+	private static final int UNSENT_TIMEOUT = 1000 * 3600 * 24 * 7;
+
 	public static String LISTENER_ID = "ads";
 
 	public static String OP_GETADS = "get-ads";
@@ -369,6 +372,21 @@ public class PlatformAdManager
 			Object value = map.get("unsent");
 			if (value instanceof List) {
 				unsentImpressions = (List) value;
+				for (Iterator iter = unsentImpressions.iterator(); iter.hasNext();) {
+					long viewedOn = 0;
+					Map ad = (Map) iter.next();
+					try {
+						if (ad.containsKey("viewed-on")) {
+							viewedOn = ((Long) ad.get("viewed-on")).longValue();
+						}
+					} catch (Exception e) {
+					}
+
+					if (SystemTime.getCurrentTime() - viewedOn > UNSENT_TIMEOUT) {
+						iter.remove();
+						debug("timing out impression " + ad.get("tracking-id"));
+					}
+				}
 			} else {
 				unsentImpressions.clear();
 			}
