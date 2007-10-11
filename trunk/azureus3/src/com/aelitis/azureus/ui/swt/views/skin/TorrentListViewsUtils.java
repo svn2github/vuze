@@ -315,10 +315,10 @@ public class TorrentListViewsUtils
 			return false;
 		}
 
-		return canProgressiveOrComplete(torrent);
+		return canProgressiveOrIsComplete(torrent);
 	}
 
-	private static boolean canProgressiveOrComplete(TOTorrent torrent) {
+	private static boolean canProgressiveOrIsComplete(TOTorrent torrent) {
 		try {
 			EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(
 					torrent.getHash());
@@ -373,7 +373,7 @@ public class TorrentListViewsUtils
 
 		boolean reenableButton = false;
 		try {
-			if (!canProgressiveOrComplete(torrent)) {
+			if (!canProgressiveOrIsComplete(torrent)) {
 				return false;
 			}
 
@@ -383,8 +383,16 @@ public class TorrentListViewsUtils
 			EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(
 					dm);
 			if (edm != null) {
-				if (edm.getProgressiveMode() && edm.getProgressivePlayETA() > 0) {
+				boolean doProgressive = edm.getProgressiveMode();
+				if (doProgressive && edm.getProgressivePlayETA() > 0) {
 					return false;
+				}
+
+				if (!doProgressive && dm.getDiskManagerFileInfo().length > 0
+						&& PlatformTorrentUtils.getContentPrimaryFileIndex(torrent) == -1) {
+					// multi-file torrent that we aren't progressive playing or useEMPing
+					Utils.launch(dm.getSaveLocation().getAbsolutePath());
+					return true;
 				}
 
 				file = edm.getPrimaryFile().getFile(true);
@@ -554,7 +562,8 @@ public class TorrentListViewsUtils
 			return true;
 		} catch (Throwable e) {
 			e.printStackTrace();
-			if (e.getMessage() == null || !e.getMessage().toLowerCase().endsWith("only")) {
+			if (e.getMessage() == null
+					|| !e.getMessage().toLowerCase().endsWith("only")) {
 				Debug.out(e);
 			}
 		}
