@@ -32,6 +32,8 @@ import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
+import com.aelitis.azureus.core.util.CopyOnWriteList;
+
 public class 
 AzureusCoreStats 
 {
@@ -177,6 +179,8 @@ AzureusCoreStats
 	
 	private static boolean 	enable_averages;
 	private static Timer	average_timer;
+	
+	private static CopyOnWriteList provider_listeners = new CopyOnWriteList();
 	
 	public static void
 	addStatsDefinitions(
@@ -336,6 +340,32 @@ AzureusCoreStats
 			
 			providers.add( new Object[]{ types, provider });
 		}
+		
+		fireProvidersChangeListeners();
+	}
+
+	public static void
+	addProvidersChangeListener(
+		providersChangeListener		l )
+	{
+		provider_listeners.add( l );
+	}
+
+	protected static void
+	fireProvidersChangeListeners()
+	{
+		Iterator it = provider_listeners.iterator();
+		
+		while( it.hasNext()){
+			
+			try{
+				((providersChangeListener)it.next()).providersChanged();
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
 	}
 	
 	public static synchronized void
@@ -371,6 +401,8 @@ AzureusCoreStats
 																
 							Iterator	it = stats.entrySet().iterator();
 							
+							boolean	new_averages = false;
+							
 							while( it.hasNext()){
 								
 								Map.Entry	entry = (Map.Entry)it.next();
@@ -394,6 +426,8 @@ AzureusCoreStats
 										
 										ave.put( key, a_entry );
 										
+										new_averages = true;
+										
 									}else{
 										a			= (Average)a_entry[0];
 										last_value	= ((Long)a_entry[1]).longValue();
@@ -411,6 +445,11 @@ AzureusCoreStats
 									
 									a_entry[1] = value;
 								}
+							}
+							
+							if ( new_averages ){
+								
+								fireProvidersChangeListeners();
 							}
 						}
 					});
@@ -432,5 +471,12 @@ AzureusCoreStats
 	getEnableAverages()
 	{
 		return( enable_averages );
+	}
+	
+	public interface
+	providersChangeListener
+	{
+		public void
+		providersChanged();
 	}
 }
