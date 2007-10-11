@@ -181,6 +181,7 @@ AzureusCoreStats
 	private static Timer	average_timer;
 	
 	private static CopyOnWriteList provider_listeners = new CopyOnWriteList();
+	private static CopyOnWriteList derived_generators = new CopyOnWriteList();
 	
 	public static void
 	addStatsDefinitions(
@@ -249,21 +250,22 @@ AzureusCoreStats
 					ave_results.put( key + ".average", new Long( average.getAverage()));
 				}
 			}
-			
-			Long disk_read_io_time_average 	= (Long)ave_results.get( "disk.read.io.time.average" );
-			Long disk_read_io_count_average = (Long)ave_results.get( "disk.read.io.count.average" );
-			
-			if ( disk_read_io_time_average != null && disk_read_io_count_average != null ){
-				
-				long l1 = disk_read_io_time_average.longValue();
-				long l2 = disk_read_io_count_average.longValue();
-				
-				ave_results.put( 
-						"disk.read.io.latency.average",
-						new Long( l2==0?-1:(l1/l2)));
-			}
-			
+						
 			result.putAll( ave_results );
+		}
+		
+		Iterator derived_it = derived_generators.iterator();
+		
+		while( derived_it.hasNext()){
+			
+			try{
+				
+				((derivedStatsGenerator)derived_it.next()).generate( result );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace( e );
+			}
 		}
 		
 		return( result );
@@ -366,6 +368,13 @@ AzureusCoreStats
 				Debug.printStackTrace(e);
 			}
 		}
+	}
+	
+	public static void
+	registerDerivedStatsGenerator(
+		derivedStatsGenerator	gen )
+	{
+		derived_generators.add( gen );
 	}
 	
 	public static synchronized void
@@ -478,5 +487,13 @@ AzureusCoreStats
 	{
 		public void
 		providersChanged();
+	}
+	
+	public interface
+	derivedStatsGenerator
+	{
+		public void
+		generate(
+			Map	map );
 	}
 }
