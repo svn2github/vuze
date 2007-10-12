@@ -1849,6 +1849,8 @@ public class TableViewSWTImpl
 			return;
 		}
 
+		TableRowCore[] selectedRows = getSelectedRows();
+
 		boolean bBrokeEarly = false;
 		boolean bReplacedVisible = false;
 		boolean bWas0Rows = table.getItemCount() == 0;
@@ -2012,6 +2014,8 @@ public class TableViewSWTImpl
 			}
 			columnPaddingAdjusted = true;
 		}
+
+		setSelectedRows(selectedRows);
 		if (DEBUGADDREMOVE)
 			debug("<< " + sortedRows.size());
 	}
@@ -3070,12 +3074,12 @@ public class TableViewSWTImpl
 			TableRowCore[] selectedRows = new TableRowCore[selectedRowIndices.length];
 			for (int i = 0; i < selectedRowIndices.length; i++) {
 				int index = selectedRowIndices[i];
-				selectedRows[i] = getRow(index);
+				selectedRows[i] = getRow(table.getItem(index));
 				if (allSelectedRowsVisible
 						&& (index < iTopIndex || index > iBottomIndex)) {
 					allSelectedRowsVisible = false;
 				}
-				//System.out.println("Selected: " + selectedRowIndices[i] + ";" + selectedRows[i]);
+				//System.out.println("Selected: " + selectedRowIndices[i] + ";" + selectedRows[i].getDataSource(true));
 			}
 
 			try {
@@ -3087,7 +3091,7 @@ public class TableViewSWTImpl
 						TableRowSWT row = (TableRowSWT) iter.next();
 						TableCellSWT cell = row.getTableCellSWT(sColumnID);
 						if (cell != null) {
-							cell.refresh(true,false,false);
+							cell.refresh(true, false, false);
 						}
 					}
 				}
@@ -3158,6 +3162,7 @@ public class TableViewSWTImpl
 					}
 					int index = selectedRows[i].getIndex();
 					int iNewPos = (selectedRows[i] == focusedRow) ? 0 : pos++;
+					//System.out.println("new selected, index=" + index + ";row=" + selectedRows[i].getDataSource(true));
 					newSelectedRowIndices[iNewPos] = index;
 					if (Arrays.binarySearch(selectedRowIndices, index) >= 0) {
 						numSame++;
