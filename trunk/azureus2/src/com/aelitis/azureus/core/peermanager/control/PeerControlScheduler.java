@@ -32,4 +32,6 @@ PeerControlScheduler
 	public void
 	unregister(
 		PeerControlInstance	instance );
+	
+	public void updateScheduleOrdering();
 }

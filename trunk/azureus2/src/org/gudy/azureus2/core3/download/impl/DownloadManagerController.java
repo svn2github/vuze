@@ -1910,6 +1910,10 @@ DownloadManagerController
 		}
 	}
 	
+	public int getPosition() {
+		return download_manager.getPosition();
+	}
+	
 	public void
 	addHTTPSeed(
 		String	address,

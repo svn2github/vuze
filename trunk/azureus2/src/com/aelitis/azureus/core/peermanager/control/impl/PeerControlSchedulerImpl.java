@@ -50,7 +50,6 @@ PeerControlSchedulerImpl
 	private List	pending_registrations = new ArrayList();
 	
 	private volatile boolean	registrations_changed;
-	
 	private volatile long		latest_time;
 	
 	protected AEMonitor	this_mon = new AEMonitor( "PeerControlScheduler" );
@@ -134,11 +133,11 @@ PeerControlSchedulerImpl
 			});
 						
 		
-		List	instances = new LinkedList();
+		ArrayList	instances = new ArrayList();
 
 		long	latest_time_used	= 0;
-		
-		long	tick_count		= 0;
+		int scheduledNext = 0;
+		long	currentScheduleStart = latest_time;
 		long 	last_stats_time	= latest_time;
 		
 		while( true ){
@@ -156,6 +155,19 @@ PeerControlSchedulerImpl
 						instances.add( pending_registrations.get(i));
 					
 					pending_registrations.clear();
+					
+					// order instances by their priority (lowest number first)
+					Collections.sort(instances);
+					
+					if(instances.size() > 0)
+					{
+						for(int i=0;i<instances.size();i++)
+							((instanceWrapper)instances.get(i)).setScheduleOffset((SCHEDULE_PERIOD_MILLIS * i) / instances.size());
+					}
+
+					scheduledNext = 0;			
+					currentScheduleStart = latest_time;
+					
 					registrations_changed	= false;
 				}finally{
 					this_mon.exit();
@@ -163,14 +175,38 @@ PeerControlSchedulerImpl
 			}
 						
 			tokenDispenser.update(latest_time);
+			
+			for (int i = scheduledNext; i < instances.size(); i++)
+			{
+				instanceWrapper inst = (instanceWrapper) instances.get(i);
+				if (currentScheduleStart + inst.getScheduleOffset() > latest_time_used)
+					break; // too early for next task, continue waiting
+				if (i == 0)
+					tokenDispenser.refill();
+				// System.out.println("scheduling "+i+" time:"+latest_time);
+				inst.schedule();
+				scheduledNext++;
+				if (scheduledNext >= instances.size())
+				{
+					scheduledNext = 0;
+					// try to run every task every SCHEDULE_PERIOD_MILLIS on average
+					currentScheduleStart += SCHEDULE_PERIOD_MILLIS;
+					// if tasks hog too much time then delay to prevent massive
+					// catch-up-hammering
+					if (currentScheduleStart < latest_time_used)
+						currentScheduleStart = latest_time_used + SCHEDULE_PERIOD_MILLIS;
+				}
+			}
+			
+			
 				
+			/*
 			for (Iterator it=instances.iterator();it.hasNext();){
 				instanceWrapper	inst = (instanceWrapper)it.next();
 				long	target = inst.getNextTick();
 				long	diff = target - latest_time_used;			
 				
 				if ( diff <= 0 || diff > SCHEDULE_PERIOD_MILLIS ){
-					tick_count++;
 					inst.schedule();
 					long new_target = target + SCHEDULE_PERIOD_MILLIS;
 					diff = new_target - latest_time_used;
@@ -178,7 +214,7 @@ PeerControlSchedulerImpl
 						new_target = latest_time_used + SCHEDULE_PERIOD_MILLIS;
 					inst.setNextTick( new_target );
 				}
-			}
+			}*/
 						
 			synchronized( this ){
 				if ( latest_time == latest_time_used ){
@@ -205,7 +241,6 @@ PeerControlSchedulerImpl
 			if ( stats_diff > 10000 ){
 				// System.out.println( "stats: time = " + stats_diff + ", ticks = " + tick_count + ", inst = " + instances.size());
 				last_stats_time	= latest_time_used;
-				tick_count	= 0;
 			}
 		}
 	}
@@ -216,7 +251,7 @@ PeerControlSchedulerImpl
 	{
 		instanceWrapper wrapper = new instanceWrapper( instance );
 		
-		wrapper.setNextTick( latest_time + random.nextInt( SCHEDULE_PERIOD_MILLIS ));
+		wrapper.setScheduleOffset( latest_time + random.nextInt( SCHEDULE_PERIOD_MILLIS ));
 		
 		try{
 			this_mon.enter();
@@ -267,13 +302,17 @@ PeerControlSchedulerImpl
 		}
 	}
 	
+	public void updateScheduleOrdering() {
+		registrations_changed = true;
+	}
+	
 	protected static class
-	instanceWrapper
+	instanceWrapper implements Comparable
 	{
 		private PeerControlInstance		instance;
 		private boolean					unregistered;
 		
-		private long					next_tick;
+		private long					offset;
 		
 		protected
 		instanceWrapper(
@@ -295,16 +334,16 @@ PeerControlSchedulerImpl
 		}
 		
 		protected void
-		setNextTick(
+		setScheduleOffset(
 			long	t )
 		{
-			next_tick	= t;
+			offset	= t;
 		}
 		
 		protected long
-		getNextTick()
+		getScheduleOffset()
 		{
-			return( next_tick );
+			return( offset );
 		}
 		
 		protected PeerControlInstance
@@ -323,6 +362,10 @@ PeerControlSchedulerImpl
 				
 				Debug.printStackTrace(e);
 			}
+		}
+		
+		public int compareTo(Object o) {
+			return instance.getSchedulePriority()-((instanceWrapper)o).instance.getSchedulePriority();
 		}
 	}
 }

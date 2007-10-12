@@ -85,6 +85,10 @@ public class UploadSlotManager {
 						last_process_time = now;
 					}				
 				}
+				
+				public int getSchedulePriority() {
+					return 0;
+				}
 			});
 		}
 		else {

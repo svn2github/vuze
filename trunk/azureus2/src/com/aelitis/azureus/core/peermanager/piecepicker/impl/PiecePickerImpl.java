@@ -673,7 +673,7 @@ implements PiecePicker
 
 		checkEndGameMode();
 		
-		dispenser.refill();
+		//dispenser.refill();
 		
 		for (int i =0; i <uploadersSize && dispenser.peek(DiskManager.BLOCK_SIZE) > 0; i++){
 			

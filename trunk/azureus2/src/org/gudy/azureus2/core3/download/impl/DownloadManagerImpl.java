@@ -55,6 +55,7 @@ import com.aelitis.azureus.core.AzureusCoreOperation;
 import com.aelitis.azureus.core.AzureusCoreOperationTask;
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.peermanager.control.PeerControlSchedulerFactory;
 import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
@@ -2352,6 +2353,10 @@ DownloadManagerImpl
 				listeners.dispatch( 
 					LDT_POSITIONCHANGED, 
 					new Object[]{ this, new Integer( old_position ), new Integer( new_position )});
+				
+				// an active torrent changed its position, scheduling needs to be updated
+				if(getState() == DownloadManager.STATE_SEEDING || getState() == DownloadManager.STATE_DOWNLOADING)
+					PeerControlSchedulerFactory.getSingleton().updateScheduleOrdering();
 			}
 		}finally{
 			

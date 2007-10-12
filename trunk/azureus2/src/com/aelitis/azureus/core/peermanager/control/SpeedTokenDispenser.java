@@ -69,7 +69,7 @@ public class SpeedTokenDispenser {
 	}
 
 	public int peek(int chunkSize) {
-		if (rateKiB > 0)
+		if (rateKiB != 0)
 			return bucket / chunkSize;
 		else
 			return Integer.MAX_VALUE;

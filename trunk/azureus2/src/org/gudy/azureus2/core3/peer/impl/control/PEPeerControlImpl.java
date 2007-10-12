@@ -3868,6 +3868,10 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 		return( allowed_peers );
 	}
+	
+	public int getSchedulePriority() {
+		return isSeeding() ? Integer.MAX_VALUE : adapter.getPosition();
+	}
 
 	public boolean
 	hasPotentialConnections()

@@ -23,4 +23,6 @@ PeerControlInstance
 {
 	public void
 	schedule();
+	
+	public int getSchedulePriority();
 }

@@ -151,4 +151,6 @@ PEPeerManagerAdapter
 	
 	public LogRelation
 	getLogRelation();
+	
+	public int getPosition();
 }
