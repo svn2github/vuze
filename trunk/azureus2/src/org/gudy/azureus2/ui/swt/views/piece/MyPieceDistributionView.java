@@ -21,6 +21,7 @@
 package org.gudy.azureus2.ui.swt.views.piece;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.ui.swt.views.PieceDistributionView;
 
 
@@ -41,6 +42,16 @@ public class MyPieceDistributionView
 		if (newDataSource instanceof DownloadManager) {
 			pem = ((DownloadManager)newDataSource).getPeerManager();
 			refresh();
-		}
+		} else if(newDataSource instanceof Object[])
+		{
+			newDataSource = ((Object[])newDataSource)[0];
+			if(newDataSource instanceof PEPiece)
+			{
+				PEPiece piece = (PEPiece)newDataSource;
+				pem = piece.getManager();
+			}
+				
+		} else
+			pem = null;
 	}
 }
