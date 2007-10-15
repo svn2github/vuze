@@ -388,16 +388,19 @@ DiskAccessControllerInstance
 					total_single_bytes += request.getSize();
 				}
 				
-				long	io_start = SystemTime.getHighPrecisionCounter();
+					// long	io_start = SystemTime.getHighPrecisionCounter();
 
 				try{
 					request.runRequest();
 					
 				}catch( Throwable e ){
 					
-					long	io_end = SystemTime.getHighPrecisionCounter();
+						// actually, for recursive calls the time of this request will be
+						// included in the timing of the call resulting in the recursion
+						
+						// long	io_end = SystemTime.getHighPrecisionCounter();
 					
-					io_time += ( io_end - io_start );
+						// io_time += ( io_end - io_start );
 
 					io_count++;
 
