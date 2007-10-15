@@ -95,6 +95,8 @@ AEMonitor
 	
 								if ( spurious_count > 1024 ){
 								
+									waiting--;
+									
 									Debug.out( "AEMonitor: spurious wakeup limit exceeded" );
 									
 									throw( new Throwable( "die die die" ));
@@ -177,8 +179,12 @@ AEMonitor
 							
 						if ( total_reserve == total_release ){
 								
+								// failed to obtain it, so we need to mark ourselves as no
+								// longer waiting
+							
+							waiting--;
+							
 							return( false );
-
 						}
 						
 						total_reserve++;
