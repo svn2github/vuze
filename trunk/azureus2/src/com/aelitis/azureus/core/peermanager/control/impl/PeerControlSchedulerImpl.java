@@ -193,7 +193,7 @@ PeerControlSchedulerImpl
 					currentScheduleStart += SCHEDULE_PERIOD_MILLIS;
 					// if tasks hog too much time then delay to prevent massive
 					// catch-up-hammering
-					if (currentScheduleStart < latest_time_used)
+					if (latest_time_used - currentScheduleStart > SCHEDULE_PERIOD_MAX_CATCHUP )
 						currentScheduleStart = latest_time_used + SCHEDULE_PERIOD_MILLIS;
 				}
 			}

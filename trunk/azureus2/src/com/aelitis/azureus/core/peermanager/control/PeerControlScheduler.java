@@ -24,6 +24,7 @@ public interface
 PeerControlScheduler 
 {
 	public static final int SCHEDULE_PERIOD_MILLIS = COConfigurationManager.getIntParameter( "peermanager.schedule.time" );
+	public static final int SCHEDULE_PERIOD_MAX_CATCHUP = SCHEDULE_PERIOD_MILLIS>>2;
 	
 	public void
 	register(
