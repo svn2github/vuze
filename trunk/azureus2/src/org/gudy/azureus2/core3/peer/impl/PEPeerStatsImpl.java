@@ -98,9 +98,16 @@ PEPeerStatsImpl
 
     public void hasNewPiece( int piece_size ) {
       total_bytes_downloaded += piece_size;
-      estimated_download_speed.addValue( piece_size );
       
-      last_new_piece_time = SystemTime.getCurrentTime();
+      	// ignore first few seconds here to avoid lazy-bitfield from totally spamming initial
+      	// stats
+      
+      if ( owner.getTimeSinceConnectionEstablished() > 5000 ){
+    	  
+    	  estimated_download_speed.addValue( piece_size );
+      
+    	  last_new_piece_time = SystemTime.getCurrentTime();
+      }
     }
     
     public long
@@ -114,6 +121,15 @@ PEPeerStatsImpl
     	}
     	
     	long	download_rate = estimated_download_speed.getAverage();
+    	
+    	long	our_send_rate = getDataSendRate();
+    	
+    		// make sure we at least take into account our own send speed
+    	
+    	if ( download_rate < our_send_rate ){
+    		
+    		download_rate = our_send_rate;
+    	}
     	
     	if ( download_rate == 0 ){
     		
