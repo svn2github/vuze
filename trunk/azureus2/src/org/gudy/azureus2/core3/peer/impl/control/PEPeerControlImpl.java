@@ -2284,11 +2284,10 @@ DiskManagerCheckRequestListener, IPFilterListener
 						
 					}else if ( network_failed && seeding_mode && peer.isInterested() && peer.getStats().getEstimatedSecondsToCompletion() > 60 ){
 						
-						
+						System.out.println( "Permature close of stream: " + getDisplayName() + "/" + peer.getIp());
 					}
 				}
 			}
-
 
 			if( peer_transports_cow.contains( peer )) {
 
