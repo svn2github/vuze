@@ -281,7 +281,7 @@ PEPeerManager
    * Notify the manager that the given peer connection has been closed.
    * @param peer closed
    */
-  public void peerConnectionClosed( PEPeerTransport peer, boolean connect_failed );
+  public void peerConnectionClosed( PEPeerTransport peer, boolean connect_failed, boolean network_failed );
   
   
   

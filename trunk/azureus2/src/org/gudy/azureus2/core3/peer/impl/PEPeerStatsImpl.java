@@ -58,6 +58,8 @@ PEPeerStatsImpl
     private int		disk_read_count = 0;
     private int		disk_aggregated_read_count = 0;
 
+    private long	last_new_piece_time;
+    
 	  public PEPeerStatsImpl( PEPeer _owner ) {
 		  owner = _owner;
 	  }
@@ -97,6 +99,42 @@ PEPeerStatsImpl
     public void hasNewPiece( int piece_size ) {
       total_bytes_downloaded += piece_size;
       estimated_download_speed.addValue( piece_size );
+      
+      last_new_piece_time = SystemTime.getCurrentTime();
+    }
+    
+    public long
+    getEstimatedSecondsToCompletion()
+    {
+    	long	remaining = owner.getBytesRemaining();
+    	
+    	if ( remaining == 0 ){
+    		
+    		return( 0 );
+    	}
+    	
+    	long	download_rate = estimated_download_speed.getAverage();
+    	
+    	if ( download_rate == 0 ){
+    		
+    		return( Long.MAX_VALUE );
+    	}
+    	
+    	if ( last_new_piece_time > 0 ){
+    		
+    		long	elapsed_secs = ( SystemTime.getCurrentTime() - last_new_piece_time )/1000;
+    		
+    		remaining -= elapsed_secs * download_rate;
+    	}
+    	
+    	long secs_remaining = remaining / download_rate;
+    	
+    	if ( secs_remaining <= 0 ){
+    		
+    		secs_remaining = 1;
+    	}
+    	
+    	return( secs_remaining );
     }
     
     public void statisticalSentPiece( int piece_size ) {

@@ -2249,8 +2249,14 @@ DiskManagerCheckRequestListener, IPFilterListener
 		return( adapter.getDownloadRateLimitBytesPerSecond());
 	}
 
-//	the peer calls this method itself in closeConnection() to notify this manager
-	public void peerConnectionClosed( PEPeerTransport peer, boolean connect_failed ) {
+		//	the peer calls this method itself in closeConnection() to notify this manager
+	
+	public void 
+	peerConnectionClosed( 
+		PEPeerTransport 	peer, 
+		boolean 			connect_failed,
+		boolean				network_failed ) 
+	{
 		boolean	connection_found = false;
 
 		try{
@@ -2258,7 +2264,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 			int	udp_port = peer.getUDPListenPort();
 
-			if ( is_running && connect_failed && peer.isTCP() && UDPNetworkManager.UDP_OUTGOING_ENABLED && udp_port > 0 ){
+			if ( is_running && peer.isTCP() && UDPNetworkManager.UDP_OUTGOING_ENABLED && udp_port > 0 ){
 
 				PeerItem peer_item = peer.getPeerItemIdentity();
 
@@ -2266,13 +2272,20 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 				if ( self_item == null || !self_item.equals( peer_item )){
 
-					// candidate for a fallback UDP connection attempt
-
-					String	ip = peer.getIp();
-
-					String	key = ip + ":" + udp_port;
-
-					udp_fallbacks.put( key, peer_item );
+					if ( connect_failed ){
+						
+						// candidate for a fallback UDP connection attempt
+	
+						String	ip = peer.getIp();
+	
+						String	key = ip + ":" + udp_port;
+	
+						udp_fallbacks.put( key, peer_item );
+						
+					}else if ( network_failed && seeding_mode && peer.isInterested() && peer.getStats().getEstimatedSecondsToCompletion() > 60 ){
+						
+						
+					}
 				}
 			}
 

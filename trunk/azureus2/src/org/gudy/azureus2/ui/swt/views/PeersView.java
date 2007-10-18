@@ -87,6 +87,7 @@ public class PeersView
 			new StatUpItem(table_id),
 			new SnubbedItem(table_id),
 			new TotalDownSpeedItem(table_id),
+			new TimeUntilCompleteItem(table_id),
 			new DiscardedItem(table_id),
 			new UniquePieceItem(table_id),
 			new TimeToSendPieceItem(table_id),

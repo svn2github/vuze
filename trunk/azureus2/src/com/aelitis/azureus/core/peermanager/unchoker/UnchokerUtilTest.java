@@ -209,6 +209,10 @@ public class UnchokerUtilTest {
 		}
 		public String getClientNameFromExtensionHandshake() {return null;}
 		public String getClientNameFromPeerID() {return null;}
+		public long getBytesRemaining() {
+			// TODO Auto-generated method stub
+			return 0;
+		}
       };
       
      f_stats[0] = new PEPeerStats() {
@@ -244,6 +248,7 @@ public class UnchokerUtilTest {
         public void setDownloadRateLimitBytesPerSecond( int bytes ){}
         public int getUploadRateLimitBytesPerSecond(){return 0;}
         public int getDownloadRateLimitBytesPerSecond(){return 0;}
+        public long getEstimatedSecondsToCompletion(){return(0);};
       };
       peers.add( peer );
     }

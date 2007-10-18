@@ -293,7 +293,7 @@ implements PEPeerTransport
 
 				public final void connectFailure( Throwable failure_msg ) {  //should never happen
 					Debug.out( "ERROR: incoming connect failure: ", failure_msg );
-					closeConnectionInternally( "ERROR: incoming connect failure [" + PEPeerTransportProtocol.this + "] : " + failure_msg.getMessage() );
+					closeConnectionInternally( "ERROR: incoming connect failure [" + PEPeerTransportProtocol.this + "] : " + failure_msg.getMessage(), true, true );
 				}
 
 				public final void exceptionThrown( Throwable error ) {
@@ -301,7 +301,7 @@ implements PEPeerTransport
 						Debug.out( error );
 					}
 
-					closeConnectionInternally( "connection exception: " + error.getMessage() );
+					closeConnectionInternally( "connection exception: " + error.getMessage(), false, true );
 				}
 	      
 	      public String
@@ -449,7 +449,7 @@ implements PEPeerTransport
 					}
 
 					public final void connectFailure( Throwable failure_msg ) {
-						closeConnectionInternally( "failed to establish outgoing connection: " + failure_msg.getMessage(), true );
+						closeConnectionInternally( "failed to establish outgoing connection: " + failure_msg.getMessage(), true, true );
 					}
 
 					public final void exceptionThrown( Throwable error ) {
@@ -457,7 +457,7 @@ implements PEPeerTransport
 							Debug.out( "error.getMessage() == null", error );
 						}
 
-						closeConnectionInternally( "connection exception: " + error.getMessage(), true );
+						closeConnectionInternally( "connection exception: " + error.getMessage(), true, true );
 					}
     			
     			public String
@@ -530,12 +530,12 @@ implements PEPeerTransport
 	 * Close the peer connection from within the PEPeerTransport object.
 	 * @param reason
 	 */
-	protected void closeConnectionInternally( String reason, boolean connect_failed ) {
-		performClose( reason, connect_failed, false );
+	protected void closeConnectionInternally( String reason, boolean connect_failed, boolean network_failure ) {
+		performClose( reason, connect_failed, false, network_failure );
 	}
 
 	protected void closeConnectionInternally( String reason ) {
-		performClose( reason, false, false );
+		performClose( reason, false, false, false );
 	}
 
 
@@ -546,11 +546,11 @@ implements PEPeerTransport
 	 * You probably should not invoke this directly.
 	 */
 	public void closeConnection( String reason ) {
-		performClose( reason, false, true );
+		performClose( reason, false, true, false );
 	}
 
 
-	private void performClose( String reason, boolean connect_failed, boolean externally_closed )
+	private void performClose( String reason, boolean connect_failed, boolean externally_closed, boolean network_failure )
 	{
 		try{
 			closing_mon.enter();
@@ -615,7 +615,7 @@ implements PEPeerTransport
 			Logger.log(new LogEvent(this, LOGID, "Peer connection closed: " + reason));
 
 		if( !externally_closed ) {  //if closed internally, notify manager, otherwise we assume it already knows
-			manager.peerConnectionClosed( this, connect_failed );
+			manager.peerConnectionClosed( this, connect_failed, network_failure );
 		}
 
 	}
@@ -744,20 +744,8 @@ implements PEPeerTransport
 
 	public int getPercentDoneInThousandNotation()
 	{
-		if (peerHavePieces ==null ||peerHavePieces.flags.length ==0)
-			return 0;
-
-		final long	total_done;
-
-		if ( peerHavePieces.flags[nbPieces-1] ){
-
-			total_done = ((long)(peerHavePieces.nbSet -1) *diskManager.getPieceLength()) +diskManager.getPieceLength( nbPieces -1 );
-
-		}else{
-
-			total_done =(long)peerHavePieces.nbSet *diskManager.getPieceLength();
-		}
-
+		long total_done = getBytesDownloaded();
+		
 		return (int)((total_done *1000) /diskManager.getTotalLength());
 	}
 
@@ -2237,7 +2225,7 @@ implements PEPeerTransport
         
         boolean	send_interested = false;
         boolean	new_have		= false;
-        
+               
         for (int i=0;i<pieceNumbers.length;i++){
         	
         	int pieceNumber = pieceNumbers[i];
@@ -2265,9 +2253,9 @@ implements PEPeerTransport
 	            
 	            manager.havePiece(pieceNumber, pieceLength, this);
 	
-			peer_stats.hasNewPiece(pieceLength);
-		}
-	}
+	            peer_stats.hasNewPiece(pieceLength);
+	        }
+        }
 
         if ( new_have ){
         	
@@ -2284,6 +2272,32 @@ implements PEPeerTransport
         }
     }
   
+    protected long
+    getBytesDownloaded()
+    {
+		if (peerHavePieces ==null ||peerHavePieces.flags.length ==0)
+			return 0;
+
+		final long	total_done;
+
+		if ( peerHavePieces.flags[nbPieces-1] ){
+
+			total_done = ((long)(peerHavePieces.nbSet -1) *diskManager.getPieceLength()) +diskManager.getPieceLength( nbPieces -1 );
+
+		}else{
+
+			total_done =(long)peerHavePieces.nbSet *diskManager.getPieceLength();
+		}
+
+		return( Math.min( total_done, diskManager.getTotalLength()));
+    }
+    
+    public long
+    getBytesRemaining()
+    {
+    	return( diskManager.getTotalLength() - getBytesDownloaded());
+    }
+    
     public void
     sendBadPiece(
   	  int		piece_number )

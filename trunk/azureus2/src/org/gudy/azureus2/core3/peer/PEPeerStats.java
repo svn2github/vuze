@@ -144,7 +144,6 @@ PEPeerStats
    */
   public long getTotalBytesDiscarded();
   
-  
   /**
    * Get the estimated total download rate of the peer.
    * @return estimated rate in bytes-per-second
@@ -156,6 +155,8 @@ PEPeerStats
    * @return estimated rate in bytes-per-second
    */
   public long getEstimatedUploadRateOfPeer();
+  
+  public long getEstimatedSecondsToCompletion();
   
   /**
    * Get the number of bytes downloaded in total by this peer

@@ -296,6 +296,9 @@ PEPeer
   public int
   getPercentDoneOfCurrentOutgoingRequest();
   
+  public long
+  getBytesRemaining();
+  
   /**
    * Get the time since this connection was first established.
    * NOTE: This method will always return 0 at any time before

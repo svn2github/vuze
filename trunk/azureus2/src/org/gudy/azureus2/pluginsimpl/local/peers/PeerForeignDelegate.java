@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.plugins.peers.*;
+import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.pluginsimpl.local.messaging.MessageAdapter;
 import org.gudy.azureus2.pluginsimpl.local.peers.PeerForeignNetworkConnection.tp;
 
@@ -542,14 +543,41 @@ PeerForeignDelegate
 		return foreign.getPercentDoneInThousandNotation();
 	}
 
-
+	public long
+	getBytesRemaining()
+	{
+		int	rem_pm = 1000 - getPercentDoneInThousandNotation();
+		
+		if ( rem_pm == 0 ){
+			
+			return( 0 );
+		}
+		
+		try{
+			Torrent t = manager.getDownload().getTorrent();
+			
+			if ( t == null ){
+				
+				return( Long.MAX_VALUE );
+			}
+			
+			return(( t.getSize() * rem_pm ) / 1000 );
+			
+		}catch( Throwable e ){
+			
+			return( Long.MAX_VALUE );
+		}
+	}
+	
 	public String 
 	getClient()
 	{
 		return( foreign.getClient());
 	}
 
-	public byte[] getHandshakeReservedBytes() {
+	public byte[] 
+	getHandshakeReservedBytes() 
+	{
 		return foreign.getHandshakeReservedBytes();
 	}
 
