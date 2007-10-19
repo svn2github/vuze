@@ -223,24 +223,41 @@ DiskManagerCheckRequestListener, IPFilterListener
 	private long			last_eta;
 	private long			last_eta_calculation;
 
+	private static final int MAX_UDP_CONNECTIONS		= 16;
+
 	private static final int UDP_FALLBACK_MAX			= 32;
 	private static final int MAX_UDP_TRAVERSAL_COUNT	= 3;
-	private static final int MAX_UDP_CONNECTIONS		= 10;
 
 	private Map	udp_fallbacks = 
 		new LinkedHashMap(UDP_FALLBACK_MAX,0.75f,true)
 	{
 		protected boolean 
 		removeEldestEntry(
-				Map.Entry eldest) 
+			Map.Entry eldest) 
 		{
 			return size() > UDP_FALLBACK_MAX;
 		}
 	};	
 
 	private int udp_traversal_count;
-	private boolean	prefer_udp;
 
+	private static final int UDP_RECONNECT_MAX			= 16;
+
+	private Map	udp_reconnects = 
+		new LinkedHashMap(UDP_RECONNECT_MAX,0.75f,true)
+	{
+		protected boolean 
+		removeEldestEntry(
+			Map.Entry eldest) 
+		{
+			return size() > UDP_RECONNECT_MAX;
+		}
+	};	
+
+	private static final int UDP_RECONNECT_MIN_MILLIS	= 10*1000;
+	private long	last_udp_reconnect;
+	
+	private boolean	prefer_udp;
 
 	private final LimitedRateGroup upload_limited_rate_group = new LimitedRateGroup() {
 		public int getRateLimitBytesPerSecond() {
@@ -2272,19 +2289,25 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 				if ( self_item == null || !self_item.equals( peer_item )){
 
+					String	ip = peer.getIp();
+					
+					String	key = ip + ":" + udp_port;
+
 					if ( connect_failed ){
 						
-						// candidate for a fallback UDP connection attempt
-	
-						String	ip = peer.getIp();
-	
-						String	key = ip + ":" + udp_port;
-	
+							// candidate for a fallback UDP connection attempt
+				
 						udp_fallbacks.put( key, peer_item );
 						
 					}else if ( network_failed && seeding_mode && peer.isInterested() && peer.getStats().getEstimatedSecondsToCompletion() > 60 ){
 						
-						System.out.println( "Permature close of stream: " + getDisplayName() + "/" + peer.getIp());
+						if (Logger.isEnabled()){
+							Logger.log(new LogEvent(peer, LOGID, LogEvent.LT_WARNING, "Unexpected stream closure detected, attempting recovery" ));
+						}
+
+						System.out.println( "Premature close of stream: " + getDisplayName() + "/" + peer.getIp());
+						
+						udp_reconnects.put( key, peer_item );
 					}
 				}
 			}
@@ -3488,11 +3511,40 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 	private void
 	doUDPConnectionChecks(
-			int		number )
+		int		number )
 	{
 		try{
 			peer_transports_mon.enter();
 
+			long	now = SystemTime.getCurrentTime();
+			
+			if ( udp_reconnects.size() > 0 && now - last_udp_reconnect >= UDP_RECONNECT_MIN_MILLIS ){
+				
+				last_udp_reconnect = now;
+				
+				Iterator it = udp_reconnects.values().iterator();
+				
+				PeerItem	peer_item = (PeerItem)it.next();
+
+				it.remove();
+
+				makeNewOutgoingConnection( 
+						PeerItem.convertSourceString(peer_item.getSource()),
+						peer_item.getAddressString(),
+						peer_item.getTCPPort(),
+						peer_item.getUDPPort(),
+						false,
+						true,
+						peer_item.getCryptoLevel());
+
+				number--;
+				
+				if ( number <= 0 ){
+					
+					return;
+				}
+			}
+			
 			if ( udp_fallbacks.size() == 0 ){
 
 				return;
