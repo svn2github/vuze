@@ -86,7 +86,7 @@ implements PEPeerTransport
 	private final ArrayList requested = new ArrayList();
 	private final AEMonitor	requested_mon = new AEMonitor( "PEPeerTransportProtocol:Req" );
 
-	private HashMap data;
+	private Map data;
 
 	private long lastNeededUndonePieceChange;
 
@@ -232,11 +232,17 @@ implements PEPeerTransport
 
 	//INCOMING
 	public 
-	PEPeerTransportProtocol( PEPeerControl _manager, String _peer_source, NetworkConnection _connection ) {
+	PEPeerTransportProtocol( 
+		PEPeerControl 		_manager, 
+		String 				_peer_source, 
+		NetworkConnection	_connection,
+		Map					_initial_user_data ) 
+	{
 		manager = _manager;
 		peer_source		= _peer_source;
 		connection 		= _connection;
-
+		data			= _initial_user_data;
+		
 		incoming = true;
 
 		diskManager =manager.getDiskManager();
@@ -267,49 +273,59 @@ implements PEPeerTransport
 		if ( incoming ){
 
 			//"fake" a connect request to register our listener
-			connection.connect( new NetworkConnection.ConnectionListener() {
-				public final void connectStarted() {
-					connection_state = PEPeerTransport.CONNECTION_CONNECTING;
-				}
-
-				public final void connectSuccess( ByteBuffer remaining_initial_data ) {  //will be called immediately
-					if (Logger.isEnabled())
-						Logger.log(new LogEvent(PEPeerTransportProtocol.this, LOGID,
-						"In: Established incoming connection"));
-					initializeConnection();
-
-					/*
-					 * Waiting until we've received the initiating-end's full handshake, before sending back our own,
-					 * really should be the "proper" behavior.  However, classic BT trackers running NAT checking will
-					 * only send the first 48 bytes (up to infohash) of the peer handshake, skipping peerid, which means
-					 * we'll never get their complete handshake, and thus never reply, which causes the NAT check to fail.
-					 * So, we need to send our handshake earlier, after we've verified the infohash.
-					 * NOTE:
-					 * This code makes the assumption that the inbound infohash has already been validated,
-					 * as we don't check their handshake fully before sending our own.
-					 */
-					sendBTHandshake();
-				}
-
-				public final void connectFailure( Throwable failure_msg ) {  //should never happen
-					Debug.out( "ERROR: incoming connect failure: ", failure_msg );
-					closeConnectionInternally( "ERROR: incoming connect failure [" + PEPeerTransportProtocol.this + "] : " + failure_msg.getMessage(), true, true );
-				}
-
-				public final void exceptionThrown( Throwable error ) {
-					if( error.getMessage() == null ) {
-						Debug.out( error );
+			connection.connect( 
+				new NetworkConnection.ConnectionListener() 
+				{
+					public final void 
+					connectStarted() {
+						connection_state = PEPeerTransport.CONNECTION_CONNECTING;
 					}
 
-					closeConnectionInternally( "connection exception: " + error.getMessage(), false, true );
-				}
-	      
-	      public String
-	      getDescription()
-	      {
-	    	  return( getString());
-	      }
-			});
+					public final void connectSuccess( ByteBuffer remaining_initial_data ) {  //will be called immediately
+						if (Logger.isEnabled())
+							Logger.log(new LogEvent(PEPeerTransportProtocol.this, LOGID,
+							"In: Established incoming connection"));
+
+						initializeConnection();
+
+						/*
+						 * Waiting until we've received the initiating-end's full handshake, before sending back our own,
+						 * really should be the "proper" behavior.  However, classic BT trackers running NAT checking will
+						 * only send the first 48 bytes (up to infohash) of the peer handshake, skipping peerid, which means
+						 * we'll never get their complete handshake, and thus never reply, which causes the NAT check to fail.
+						 * So, we need to send our handshake earlier, after we've verified the infohash.
+						 * NOTE:
+						 * This code makes the assumption that the inbound infohash has already been validated,
+						 * as we don't check their handshake fully before sending our own.
+						 */
+						sendBTHandshake();
+					}
+
+					public final void 
+					connectFailure( 
+						Throwable failure_msg ) 
+					{  //should never happen
+						Debug.out( "ERROR: incoming connect failure: ", failure_msg );
+						closeConnectionInternally( "ERROR: incoming connect failure [" + PEPeerTransportProtocol.this + "] : " + failure_msg.getMessage(), true, true );
+					}
+
+					public final void 
+					exceptionThrown( 
+							Throwable error ) 
+					{
+						if( error.getMessage() == null ) {
+							Debug.out( error );
+						}
+
+						closeConnectionInternally( "connection exception: " + error.getMessage(), false, true );
+					}
+
+					public String
+					getDescription()
+					{
+						return( getString());
+					}
+				});
 		}else{
 			// not pulled out startup from outbound connections yet...
 		}
@@ -328,7 +344,8 @@ implements PEPeerTransport
 			int 			_udp_port,
 			boolean			_use_tcp,
 			boolean 		_require_crypto_handshake,
-			byte			_crypto_level ) 
+			byte			_crypto_level,
+			Map				_initial_user_data )
 	{
 		manager = _manager;
 		diskManager =manager.getDiskManager();
@@ -336,12 +353,14 @@ implements PEPeerTransport
 		nbPieces =diskManager.getNbPieces();
 		lastNeededUndonePieceChange =Long.MIN_VALUE;
 
-		peer_source	= _peer_source;
-		ip    = _ip;
-		port  = _tcp_port;
+		peer_source		= _peer_source;
+		ip    			= _ip;
+		port  			= _tcp_port;
 		tcp_listen_port = _tcp_port;
 		udp_listen_port	= _udp_port;
 		crypto_level	= _crypto_level;
+		data			= _initial_user_data;
+		
 
 		udp_non_data_port = UDPNetworkManager.getSingleton().getUDPNonDataListeningPortNumber();
 
@@ -430,12 +449,22 @@ implements PEPeerTransport
 
 		connection.connect( 
 				initial_outbound_data,
-				new NetworkConnection.ConnectionListener() {
-					public final void connectStarted() {
+				new NetworkConnection.ConnectionListener() 
+				{
+					private boolean	connect_ok;
+					
+					public final void 
+					connectStarted() 
+					{
 						connection_state = PEPeerTransport.CONNECTION_CONNECTING;
 					}
 
-					public final void connectSuccess( ByteBuffer remaining_initial_data ) {
+					public final void 
+					connectSuccess( 
+						ByteBuffer remaining_initial_data ) 
+					{
+						connect_ok = true;
+						
 						if( closing ) {
 							//Debug.out( "PEPeerTransportProtocol::connectSuccess() called when closing." );
 							return;
@@ -448,23 +477,29 @@ implements PEPeerTransport
 						sendBTHandshake();
 					}
 
-					public final void connectFailure( Throwable failure_msg ) {
+					public final void 
+					connectFailure( 
+						Throwable failure_msg ) 
+					{
 						closeConnectionInternally( "failed to establish outgoing connection: " + failure_msg.getMessage(), true, true );
 					}
 
-					public final void exceptionThrown( Throwable error ) {
+					public final void 
+					exceptionThrown( 
+						Throwable error ) 
+					{
 						if( error.getMessage() == null ) {
 							Debug.out( "error.getMessage() == null", error );
 						}
 
-						closeConnectionInternally( "connection exception: " + error.getMessage(), true, true );
+						closeConnectionInternally( "connection exception: " + error.getMessage(), !connect_ok, true );
 					}
     			
-    			public String
-    			getDescription()
-    			{
-    				return( getString());
-    			}
+					public String
+					getDescription()
+					{
+						return( getString());
+					}
 				});
 
 		if (Logger.isEnabled())
@@ -3158,7 +3193,8 @@ implements PEPeerTransport
 						getUDPListenPort(),
 						use_tcp,
 						use_crypto,
-						crypto_level );
+						crypto_level,
+						null );
 
 			return( new_conn );
 

@@ -81,15 +81,26 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 	private static final int	SEED_CHECK_WAIT_MARKER	= 65526;
 
+		// config
+	
 	private static boolean 	disconnect_seeds_when_seeding;
 	private static boolean 	enable_seeding_piece_rechecks;
 	private static int		stalled_piece_timeout;
+	private static boolean 	fast_unchoke_new_peers;
+    private static float	ban_peer_discard_ratio;
+    private static int		ban_peer_discard_min_kb;
+
+    
 	static{
 		
 		COConfigurationManager.addAndFireParameterListeners(
 			new String[]{
 				"Disconnect Seed",
-				"Seeding Piece Check Recheck Enable"
+				"Seeding Piece Check Recheck Enable",
+				"peercontrol.stalled.piece.write.timeout",
+				"Peer.Fast.Initial.Unchoke.Enabled",
+   				"Ip Filter Ban Discard Ratio",
+   				"Ip Filter Ban Discard Min KB",
 			},
 			new ParameterListener()
 			{
@@ -100,6 +111,9 @@ DiskManagerCheckRequestListener, IPFilterListener
 					disconnect_seeds_when_seeding 	= COConfigurationManager.getBooleanParameter("Disconnect Seed");
 					enable_seeding_piece_rechecks 	= COConfigurationManager.getBooleanParameter("Seeding Piece Check Recheck Enable");
 					stalled_piece_timeout			= COConfigurationManager.getIntParameter( "peercontrol.stalled.piece.write.timeout", 60*1000 );
+					fast_unchoke_new_peers 			= COConfigurationManager.getBooleanParameter( "Peer.Fast.Initial.Unchoke.Enabled" );
+					ban_peer_discard_ratio			= COConfigurationManager.getFloatParameter( "Ip Filter Ban Discard Ratio" );
+					ban_peer_discard_min_kb			= COConfigurationManager.getIntParameter( "Ip Filter Ban Discard Min KB" );
 				}
 			});
 	}
@@ -172,29 +186,6 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 	private List	external_rate_limiters_cow;
 
-	private static boolean fast_unchoke_new_peers;
-    private static float	ban_peer_discard_ratio;
-    private static int		ban_peer_discard_min_kb;
-
-	static{
-    	COConfigurationManager.addAndFireParameterListeners(
-    		new String[]{
-				"Peer.Fast.Initial.Unchoke.Enabled",
-   				"Ip Filter Ban Discard Ratio",
-   				"Ip Filter Ban Discard Min KB",
-    		},
-				new ParameterListener()
-				{
-					public void 
-					parameterChanged(
-							String name ) 
-					{
-						fast_unchoke_new_peers 	= COConfigurationManager.getBooleanParameter( "Peer.Fast.Initial.Unchoke.Enabled" );
-						ban_peer_discard_ratio	= COConfigurationManager.getFloatParameter( "Ip Filter Ban Discard Ratio" );
-						ban_peer_discard_min_kb	= COConfigurationManager.getIntParameter( "Ip Filter Ban Discard Min KB" );
-					}
-				});
-	}
 
 	private final UploadHelper upload_helper = new UploadHelper() {		
 		public int getPriority() {			
@@ -227,7 +218,9 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 	private static final int UDP_FALLBACK_MAX			= 32;
 	private static final int MAX_UDP_TRAVERSAL_COUNT	= 3;
-
+	
+	private static final String	PEER_NAT_TRAVERSE_DONE_KEY	= PEPeerControlImpl.class.getName() + "::nat_trav_done";
+	
 	private Map	udp_fallbacks = 
 		new LinkedHashMap(UDP_FALLBACK_MAX,0.75f,true)
 	{
@@ -754,11 +747,11 @@ DiskManagerCheckRequestListener, IPFilterListener
 			
 			if ( 	tcp_ok && !( prefer_udp && udp_ok )){
 
-				fail_reason = makeNewOutgoingConnection( PEPeerSource.PS_PLUGIN, ip_address, tcp_port, udp_port, true, use_crypto, crypto_level );  //directly inject the the imported peer
+				fail_reason = makeNewOutgoingConnection( PEPeerSource.PS_PLUGIN, ip_address, tcp_port, udp_port, true, use_crypto, crypto_level, null );  //directly inject the the imported peer
 
 			}else if ( udp_ok ){
 
-				fail_reason = makeNewOutgoingConnection( PEPeerSource.PS_PLUGIN, ip_address, tcp_port, udp_port, false, use_crypto, crypto_level );  //directly inject the the imported peer
+				fail_reason = makeNewOutgoingConnection( PEPeerSource.PS_PLUGIN, ip_address, tcp_port, udp_port, false, use_crypto, crypto_level, null );  //directly inject the the imported peer
 
 			}else{
 
@@ -843,7 +836,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 			int			udp_port,
 			boolean		use_tcp,
 			boolean 	require_crypto,
-			byte		crypto_level ) 
+			byte		crypto_level,
+			Map			user_data )
 	{    
 		//make sure this connection isn't filtered
    
@@ -877,10 +871,12 @@ DiskManagerCheckRequestListener, IPFilterListener
 			return "TCP port in ignore list";
 		}
 
-		//start the connection
-		PEPeerTransport real = PEPeerTransportFactory.createTransport( this, peer_source, address, tcp_port, udp_port, use_tcp, require_crypto, crypto_level );
+			//start the connection
+		
+		PEPeerTransport real = PEPeerTransportFactory.createTransport( this, peer_source, address, tcp_port, udp_port, use_tcp, require_crypto, crypto_level, user_data );
 
 		addToPeerTransports( real );
+		
 		return null;
 	}
 
@@ -2275,13 +2271,13 @@ DiskManagerCheckRequestListener, IPFilterListener
 		boolean				network_failed ) 
 	{
 		boolean	connection_found = false;
-
+		
 		try{
 			peer_transports_mon.enter();
 
 			int	udp_port = peer.getUDPListenPort();
 
-			if ( is_running && peer.isTCP() && UDPNetworkManager.UDP_OUTGOING_ENABLED && udp_port > 0 ){
+			if ( is_running && UDPNetworkManager.UDP_OUTGOING_ENABLED && udp_port > 0 ){
 
 				PeerItem peer_item = peer.getPeerItemIdentity();
 
@@ -2293,21 +2289,36 @@ DiskManagerCheckRequestListener, IPFilterListener
 					
 					String	key = ip + ":" + udp_port;
 
-					if ( connect_failed ){
-						
-							// candidate for a fallback UDP connection attempt
-				
-						udp_fallbacks.put( key, peer_item );
-						
-					}else if ( network_failed && seeding_mode && peer.isInterested() && peer.getStats().getEstimatedSecondsToCompletion() > 60 ){
-						
-						if (Logger.isEnabled()){
-							Logger.log(new LogEvent(peer, LOGID, LogEvent.LT_WARNING, "Unexpected stream closure detected, attempting recovery" ));
+					if ( peer.isTCP()){
+									
+						if ( connect_failed ){
+							
+								// candidate for a fallback UDP connection attempt
+					
+							udp_fallbacks.put( key, peer_item );
+							
+						}else if ( network_failed && seeding_mode && peer.isInterested() && peer.getStats().getEstimatedSecondsToCompletion() > 60 ){
+							
+							if (Logger.isEnabled()){
+								Logger.log(new LogEvent(peer, LOGID, LogEvent.LT_WARNING, "Unexpected stream closure detected, attempting recovery" ));
+							}
+	
+							System.out.println( "Premature close of stream: " + getDisplayName() + "/" + peer.getIp());
+							
+							udp_reconnects.put( key, peer_item );
 						}
-
-						System.out.println( "Premature close of stream: " + getDisplayName() + "/" + peer.getIp());
 						
-						udp_reconnects.put( key, peer_item );
+					}else{
+						
+						if ( connect_failed ){
+							
+							if ( peer.getData( PEER_NAT_TRAVERSE_DONE_KEY ) == null ){
+								
+								System.out.println( "Direct reconnect failed, attempting NAT traversal" );
+								
+								udp_fallbacks.put( key, peer_item );
+							}
+						}
 					}
 				}
 			}
@@ -3427,7 +3438,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 						if ( tcp_ok && !( prefer_udp && udp_ok )){
 
-							if ( makeNewOutgoingConnection( source, item.getAddressString(), tcp_port, udp_port, true, use_crypto, item.getCryptoLevel()) == null) {
+							if ( makeNewOutgoingConnection( source, item.getAddressString(), tcp_port, udp_port, true, use_crypto, item.getCryptoLevel(), null) == null) {
 								
 								tcp_remaining--;
 
@@ -3436,7 +3447,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 							}
 						}else if ( udp_ok ){
 
-							if ( makeNewOutgoingConnection( source, item.getAddressString(), tcp_port, udp_port, false, use_crypto, item.getCryptoLevel() ) == null) {
+							if ( makeNewOutgoingConnection( source, item.getAddressString(), tcp_port, udp_port, false, use_crypto, item.getCryptoLevel(), null) == null) {
 									
 								udp_remaining--;
 
@@ -3451,9 +3462,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 				if ( 	UDPNetworkManager.UDP_OUTGOING_ENABLED &&
 						remaining > 0 &&
 						udp_remaining > 0 && 
-						udp_connections < MAX_UDP_CONNECTIONS &&
-						num_waiting_establishments < TCPConnectionManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ){
-
+						udp_connections < MAX_UDP_CONNECTIONS ){
+					
 					doUDPConnectionChecks( remaining );
 				}
 			}
@@ -3528,6 +3538,12 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 				it.remove();
 
+				if (Logger.isEnabled()){
+					Logger.log(new LogEvent(this, LOGID, LogEvent.LT_INFORMATION, "Reconnecting to previous failed peer " + peer_item.getAddressString()));
+				}
+
+				System.out.println( "Making outgoing recovery connection" );
+
 				makeNewOutgoingConnection( 
 						PeerItem.convertSourceString(peer_item.getSource()),
 						peer_item.getAddressString(),
@@ -3535,7 +3551,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 						peer_item.getUDPPort(),
 						false,
 						true,
-						peer_item.getCryptoLevel());
+						peer_item.getCryptoLevel(),
+						null );
 
 				number--;
 				
@@ -3600,6 +3617,10 @@ DiskManagerCheckRequestListener, IPFilterListener
 							{
 								complete();
 
+								Map	user_data = new HashMap();
+								
+								user_data.put( PEER_NAT_TRAVERSE_DONE_KEY, "" );
+								
 								makeNewOutgoingConnection( 
 										PeerItem.convertSourceString(peer_item.getSource()),
 										target.getAddress().getHostAddress(),
@@ -3607,7 +3628,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 										target.getPort(),
 										false,
 										true,
-										peer_item.getCryptoLevel());
+										peer_item.getCryptoLevel(),
+										user_data );
 							}
 
 							public void

@@ -957,7 +957,7 @@ public class PeerManager implements AzureusCoreStatsProvider{
 								+ connection + "] routed to legacy download ["
 								+ control.getDisplayName() + "]"));
         
-        PEPeerTransport	pt = PEPeerTransportFactory.createTransport( control, PEPeerSource.PS_INCOMING, connection );
+        PEPeerTransport	pt = PEPeerTransportFactory.createTransport( control, PEPeerSource.PS_INCOMING, connection, null );
         
         if ( listener != null ){
         	

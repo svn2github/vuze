@@ -56,9 +56,10 @@ PEPeerTransportFactory
 		int					udp_port,
 		boolean				use_tcp,
 		boolean 			require_crypto_handshake,
-		byte				crypto_level )
+		byte				crypto_level,
+		Map					initial_user_data )			
 	{
-		return new PEPeerTransportProtocol( control, peer_source, ip, tcp_port, udp_port, use_tcp, require_crypto_handshake, crypto_level );    
+		return new PEPeerTransportProtocol( control, peer_source, ip, tcp_port, udp_port, use_tcp, require_crypto_handshake, crypto_level, initial_user_data );    
 	}
   
   
@@ -68,9 +69,10 @@ PEPeerTransportFactory
   createTransport( 
   		PEPeerControl 		control,
 		String				peer_source,
-		NetworkConnection 	connection ) 
+		NetworkConnection 	connection,
+		Map					initial_user_data )
   {
-    return new PEPeerTransportProtocol( control, peer_source, connection );
+    return new PEPeerTransportProtocol( control, peer_source, connection, initial_user_data );
   }
   
   
