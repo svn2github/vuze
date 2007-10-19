@@ -2303,7 +2303,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 								Logger.log(new LogEvent(peer, LOGID, LogEvent.LT_WARNING, "Unexpected stream closure detected, attempting recovery" ));
 							}
 	
-							System.out.println( "Premature close of stream: " + getDisplayName() + "/" + peer.getIp());
+							// System.out.println( "Premature close of stream: " + getDisplayName() + "/" + peer.getIp());
 							
 							udp_reconnects.put( key, peer_item );
 						}
@@ -2314,7 +2314,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 							
 							if ( peer.getData( PEER_NAT_TRAVERSE_DONE_KEY ) == null ){
 								
-								System.out.println( "Direct reconnect failed, attempting NAT traversal" );
+								// System.out.println( "Direct reconnect failed, attempting NAT traversal" );
 								
 								udp_fallbacks.put( key, peer_item );
 							}
@@ -3541,8 +3541,6 @@ DiskManagerCheckRequestListener, IPFilterListener
 				if (Logger.isEnabled()){
 					Logger.log(new LogEvent(this, LOGID, LogEvent.LT_INFORMATION, "Reconnecting to previous failed peer " + peer_item.getAddressString()));
 				}
-
-				System.out.println( "Making outgoing recovery connection" );
 
 				makeNewOutgoingConnection( 
 						PeerItem.convertSourceString(peer_item.getSource()),
