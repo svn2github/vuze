@@ -21,6 +21,7 @@ package org.gudy.azureus2.core3.logging.impl;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -48,8 +49,6 @@ public class FileLogging implements ILogEventListener {
 	public static LogIDs[] configurableLOGIDs = {LogIDs.STDOUT, LogIDs.ALERT, LogIDs.CORE,
 			LogIDs.DISK, LogIDs.GUI, LogIDs.NET, LogIDs.NWMAN, LogIDs.PEER,
 			LogIDs.PLUGIN, LogIDs.TRACKER, LogIDs.CACHE, LogIDs.PIECES };
-
-	private String timeStampFormat;
 	
 	private static final String CFG_ENABLELOGTOFILE = "Logging Enable";
 
@@ -109,6 +108,8 @@ public class FileLogging implements ILogEventListener {
 		try {
 			// Shorten from COConfigurationManager To make code more readable
 			final ConfigurationManager config = ConfigurationManager.getInstance();
+			
+			String timeStampFormat;
 
 			boolean overrideLog = System.getProperty("azureus.overridelog") != null;
 			if (overrideLog) {
@@ -139,6 +140,13 @@ public class FileLogging implements ILogEventListener {
 					}
 				}
 			}
+			
+			synchronized (Logger.class) {
+				checkAndSwapLog();
+				format = new SimpleDateFormat(timeStampFormat);
+			}
+			
+			
 		} catch (Throwable t) {
 			Debug.printStackTrace(t);
 		}
@@ -150,49 +158,53 @@ public class FileLogging implements ILogEventListener {
 
 		synchronized (Logger.class) {
 
-			SimpleDateFormat format;
-			format = new SimpleDateFormat(timeStampFormat);
-
 			str = format.format(new Date()) + str;
 
-			PrintWriter pw = null;
-
-			File file_name = new File(sLogDir + File.separator + LOG_FILE_NAME);
-
-			try {
-				pw = new PrintWriter(new FileWriter(file_name, true));
-				if (pw != null)
-					pw.print(str);
-
-			} catch (Throwable e) {
-
-				// can't log this as go recursive!!!!
-
-			} finally {
-
-				if (pw != null) {
-					try {
-						pw.close();
-					} catch (Throwable e) {
-						// can't log as go recursive!!!!
-					}
-
-					// two files so half
-					long lMaxBytes = (iLogFileMaxMB * 1024 * 1024) / 2;
-
-					if (file_name.length() > lMaxBytes) {
-						File back_name = new File(sLogDir + File.separator + BAK_FILE_NAME);
-
-						if ((!back_name.exists()) || back_name.delete()) {
-							if (!file_name.renameTo(back_name))
-								file_name.delete();
-						} else {
-							file_name.delete();
-						}
-					}
-				}
-			} // finally
+			// exception handling is done by FileWriter
+			logFilePrinter.print(str);
+			logFilePrinter.flush();
+			
+			checkAndSwapLog();		
 		} // sync
+	}
+	
+	private SimpleDateFormat format;
+	private PrintWriter logFilePrinter;
+	
+	private void checkAndSwapLog()
+	{
+		long lMaxBytes = (iLogFileMaxMB * 1024 * 1024) / 2;
+		File logFile = new File(sLogDir + File.separator + LOG_FILE_NAME);
+		
+		if (logFile.length() > lMaxBytes)
+		{
+			File back_name = new File(sLogDir + File.separator + BAK_FILE_NAME);
+			if ((!back_name.exists()) || back_name.delete())
+			{
+				if (!logFile.renameTo(back_name))
+				{
+					logFilePrinter.close();
+					logFilePrinter = null;
+					logFile.delete();
+				}
+			} else
+			{
+				logFilePrinter.close();
+				logFilePrinter = null;
+				logFile.delete();
+			}
+		}
+		
+		if(logFilePrinter == null)
+		{
+			try
+			{
+				logFilePrinter = new PrintWriter(new FileWriter(logFile, true));
+			} catch (IOException e)
+			{
+				// don't log, would cause infinite recursion
+			}
+		}
 	}
 
 	private int logTypeToIndex(int entryType) {

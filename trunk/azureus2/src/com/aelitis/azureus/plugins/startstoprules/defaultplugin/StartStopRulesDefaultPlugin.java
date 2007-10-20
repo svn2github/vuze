@@ -1804,14 +1804,14 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			boolean bAlwaysPrintNoChangeLine, DefaultRankCalculator dlData) {
 		boolean bAnyChanged = false;
 		String sDebugLineNoChange = sPrefixFirstLine;
-		String sDebugLineOld = "";
-		String sDebugLineNew = "";
+		StringBuffer sDebugLineOld = new StringBuffer(120);
+		StringBuffer sDebugLineNew = new StringBuffer(120);
 		for (int j = 0; j < oldEntries.length; j++) {
 			if (oldEntries[j].equals(newEntries[j]))
 				sDebugLineNoChange += oldEntries[j] + ";";
 			else {
-				sDebugLineOld += oldEntries[j] + ";";
-				sDebugLineNew += newEntries[j] + ";";
+				sDebugLineOld.append(oldEntries[j]);sDebugLineOld.append(";");
+				sDebugLineNew.append(newEntries[j]);sDebugLineNew.append(";");
 				bAnyChanged = true;
 			}
 		}
@@ -1928,7 +1928,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 				this_mon.exit();
 			}
 		}
-
+		
 		if (somethingChanged) {
 			processMergeCount++;
 		} else {
