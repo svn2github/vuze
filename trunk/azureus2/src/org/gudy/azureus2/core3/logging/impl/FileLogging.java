@@ -179,20 +179,14 @@ public class FileLogging implements ILogEventListener {
 		if (logFile.length() > lMaxBytes)
 		{
 			File back_name = new File(sLogDir + File.separator + BAK_FILE_NAME);
+			logFilePrinter.close();
+			logFilePrinter = null;
+
 			if ((!back_name.exists()) || back_name.delete())
-			{
 				if (!logFile.renameTo(back_name))
-				{
-					logFilePrinter.close();
-					logFilePrinter = null;
 					logFile.delete();
-				}
-			} else
-			{
-				logFilePrinter.close();
-				logFilePrinter = null;
+			else
 				logFile.delete();
-			}
 		}
 		
 		if(logFilePrinter == null)
