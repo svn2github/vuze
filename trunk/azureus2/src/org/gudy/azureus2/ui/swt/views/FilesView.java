@@ -28,6 +28,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -85,11 +86,25 @@ public class FilesView
   
   private DownloadManager manager = null;
   
-  // XXX There's no Default for this param!!
-  public static boolean show_full_path = COConfigurationManager.getBooleanParameter( "FilesView.show.full.path", false );
+  public static boolean show_full_path;
+
+  static{
+	  COConfigurationManager.addAndFireParameterListener(
+			  "FilesView.show.full.path",
+			  new ParameterListener()
+			  {
+				  public void 
+				  parameterChanged(
+					String parameterName) 
+				  {
+					  show_full_path = COConfigurationManager.getBooleanParameter( "FilesView.show.full.path" );
+				  }
+			  });
+  }
+  
   private MenuItem path_item;
 
-	private TableViewSWT tv;
+  private TableViewSWT tv;
   
 
   /**

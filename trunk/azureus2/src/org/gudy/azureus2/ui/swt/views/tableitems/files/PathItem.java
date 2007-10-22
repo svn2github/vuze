@@ -26,6 +26,8 @@ import java.io.IOException;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.ui.swt.views.FilesView;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
@@ -53,18 +55,20 @@ public class PathItem
     	return "";
     }
     
-    /**
-     * Simple torrents always have a forward slash, since the path
-     * will always be relative to the download location.
-     */
-    if (fileInfo.getDownloadManager().getTorrent().isSimpleTorrent()) {
-    	return "/"; // Should this be File.separator?
-    }
-
    	boolean has_link = fileInfo.getLink() != null;
    	boolean show_full_path = FilesView.show_full_path;
    	
-   	File dl_save_path_file = fileInfo.getDownloadManager().getAbsoluteSaveLocation();
+  	DownloadManager dm = fileInfo.getDownloadManager();
+
+   	File dl_save_path_file = dm.getAbsoluteSaveLocation();
+   	
+   	TOTorrent torrent = dm.getTorrent();
+   	
+   	if ( torrent != null && torrent.isSimpleTorrent()){
+   		
+   		dl_save_path_file = dl_save_path_file.getParentFile();
+   	}
+   	
    	String dl_save_path = dl_save_path_file.getPath() + File.separator;
 
    	File file = fileInfo.getFile(true);
@@ -98,7 +102,7 @@ public class PathItem
     	
     	path = file.getAbsolutePath().substring(dl_save_path.length());
     	if (path.length() == 0) {
-    		path = "/";
+    		path = File.separator;
     	}
     	else {
     		if (path.charAt(0) == File.separatorChar) {

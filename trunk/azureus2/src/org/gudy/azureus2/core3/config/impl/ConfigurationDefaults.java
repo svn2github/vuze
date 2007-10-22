@@ -496,7 +496,8 @@ public class ConfigurationDefaults {
     def.put( "File.move.download.removed.move_partial", FALSE );
     
     def.put("FilesView.separate_rename_and_retarget", FALSE);      
-
+    def.put("FilesView.show.full.path", FALSE );
+    	
     //temp section for SpeedManagerAlgorithmProviderV2
     def.put(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT, new Long(SMConst.START_DOWNLOAD_RATE_MAX) );
     def.put(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT, new Long(SMConst.START_UPLOAD_RATE_MAX) );
