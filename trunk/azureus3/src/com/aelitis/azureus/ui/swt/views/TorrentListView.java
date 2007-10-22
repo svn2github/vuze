@@ -32,9 +32,7 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
-import com.aelitis.azureus.ui.common.table.TableColumnCore;
-import com.aelitis.azureus.ui.common.table.TableLifeCycleListener;
-import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.swt.columns.torrent.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
@@ -319,6 +317,18 @@ public class TorrentListView
 			public void tableViewDestroyed() {
 				globalManager.removeListener(TorrentListView.this);
 			}
+		});
+		
+		addCountChangeListener(new TableCountChangeListener() {
+		
+			public void rowRemoved(TableRowCore row) {
+				updateCount();
+			}
+		
+			public void rowAdded(TableRowCore row) {
+				updateCount();
+			}
+		
 		});
 
 		addKeyListener(new KeyListener() {
