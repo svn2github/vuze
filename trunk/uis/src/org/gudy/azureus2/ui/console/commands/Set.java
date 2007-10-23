@@ -238,60 +238,66 @@ public class Set extends IConsoleCommand {
 		{
 			int underscoreIndex = external_name.indexOf('_');
 			int nextchar = external_name.charAt(underscoreIndex + 1);
-			try {
-				if( nextchar == 'i' )
-				{
-					int value = COConfigurationManager.getIntParameter(internal_name, Integer.MIN_VALUE);
-					return new Parameter(internal_name, external_name, value == Integer.MIN_VALUE ? (Integer)null : new Integer(value) );
-				}
-				else if( nextchar == 'b' )
-				{
-					// firstly get it as an integer to make sure it is actually set to something
-					if( COConfigurationManager.getIntParameter(internal_name, Integer.MIN_VALUE) != Integer.MIN_VALUE )
+			
+			if ( 	internal_name != external_name &&
+					"ibs".indexOf(nextchar) >= 0 ){
+				
+				try {
+					if( nextchar == 'i' )
 					{
-						boolean b = COConfigurationManager.getBooleanParameter(internal_name);
-						return new Parameter(internal_name, external_name, Boolean.valueOf(b));
+						int value = COConfigurationManager.getIntParameter(internal_name, Integer.MIN_VALUE);
+						return new Parameter(internal_name, external_name, value == Integer.MIN_VALUE ? (Integer)null : new Integer(value) );
+					}
+					else if( nextchar == 'b' )
+					{
+						// firstly get it as an integer to make sure it is actually set to something
+						if( COConfigurationManager.getIntParameter(internal_name, Integer.MIN_VALUE) != Integer.MIN_VALUE )
+						{
+							boolean b = COConfigurationManager.getBooleanParameter(internal_name);
+							return new Parameter(internal_name, external_name, Boolean.valueOf(b));
+						}
+						else
+						{
+							return new Parameter(internal_name, external_name, (Boolean)null);
+						}
 					}
 					else
 					{
-						return new Parameter(internal_name, external_name, (Boolean)null);
-					}
-				}
-				else
-				{
-					String value = COConfigurationManager.getStringParameter(internal_name, NULL_STRING);				
-					return new Parameter( internal_name, external_name, NULL_STRING.equals(value) ? null : value);
-				}
-			} catch (Throwable e)
-			{
-				Object v = COConfigurationManager.getParameter( internal_name );
-
-				try {
-					if ( v instanceof Long || v instanceof Integer ){
-						
-						int value = COConfigurationManager.getIntParameter(internal_name, Integer.MIN_VALUE);
-					
-						return new Parameter(internal_name, external_name, value == Integer.MIN_VALUE ? (Integer)null : new Integer(value) );
-					
-					}else if ( v instanceof Boolean ){
-						
-						boolean value = COConfigurationManager.getBooleanParameter( internal_name );
-						
-						return new Parameter( internal_name, external_name, Boolean.valueOf( value ));
-
-					}else if ( v instanceof String || v instanceof byte[] ){
-					
-						String value = COConfigurationManager.getStringParameter(internal_name);
-						
+						String value = COConfigurationManager.getStringParameter(internal_name, NULL_STRING);				
 						return new Parameter( internal_name, external_name, NULL_STRING.equals(value) ? null : value);
-					}else{
-						
-						return new Parameter( internal_name, external_name, v, PARAM_OTHER );
 					}
-				}catch( Throwable e2 ){			
-						
+				} catch (Throwable e){
+					
+				}
+			}
+
+			Object v = COConfigurationManager.getParameter( internal_name );
+
+			try {
+				if ( v instanceof Long || v instanceof Integer ){
+					
+					int value = COConfigurationManager.getIntParameter(internal_name, Integer.MIN_VALUE);
+				
+					return new Parameter(internal_name, external_name, value == Integer.MIN_VALUE ? (Integer)null : new Integer(value) );
+				
+				}else if ( v instanceof Boolean ){
+					
+					boolean value = COConfigurationManager.getBooleanParameter( internal_name );
+					
+					return new Parameter( internal_name, external_name, Boolean.valueOf( value ));
+
+				}else if ( v instanceof String || v instanceof byte[] ){
+				
+					String value = COConfigurationManager.getStringParameter(internal_name);
+					
+					return new Parameter( internal_name, external_name, NULL_STRING.equals(value) ? null : value);
+				}else{
+					
 					return new Parameter( internal_name, external_name, v, PARAM_OTHER );
 				}
+			}catch( Throwable e2 ){			
+					
+				return new Parameter( internal_name, external_name, v, PARAM_OTHER );
 			}
 		}
 		
