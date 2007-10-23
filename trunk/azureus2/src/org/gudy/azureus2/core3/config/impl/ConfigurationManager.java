@@ -264,6 +264,12 @@ ConfigurationManager
 		return( ConfigurationChecker.isNewInstall());
 	}
 	
+	public Set
+	getDefinedParameters()
+	{
+		return( propertiesMap.keySet());
+	}
+	
   public boolean getBooleanParameter(String parameter, boolean defaultValue) {
     int defaultInt = defaultValue ? 1 : 0;
     int result = getIntParameter(parameter, defaultInt);

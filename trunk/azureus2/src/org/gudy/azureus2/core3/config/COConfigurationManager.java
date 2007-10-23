@@ -425,6 +425,12 @@ COConfigurationManager
   	return ConfigurationDefaults.getInstance().getAllowedParameters();
   }
   
+  public static Set
+  getDefinedParameters()
+  {
+  	return ConfigurationManager.getInstance().getDefinedParameters();
+  }
+  
   	/**
   	 * raw parameter access
   	 * @param name
