@@ -428,6 +428,11 @@ public class ConfigurationDefaults {
     def.put( "diskmanager.perf.checking.read.priority", FALSE );
     def.put( "diskmanager.perf.queue.torrent.bias", TRUE );
     
+    	// Peer control
+    
+    def.put( "peercontrol.udp.fallback.connect.fail", TRUE );
+    def.put( "peercontrol.udp.fallback.connect.drop", TRUE );
+    
     def.put( "File.truncate.if.too.large", FALSE);
     def.put( "Enable System Tray", TRUE);
     def.put( "config.style.table.defaultSortOrder", ZERO);
