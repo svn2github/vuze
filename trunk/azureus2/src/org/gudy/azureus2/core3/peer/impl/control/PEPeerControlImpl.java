@@ -89,7 +89,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 	private static boolean 	fast_unchoke_new_peers;
     private static float	ban_peer_discard_ratio;
     private static int		ban_peer_discard_min_kb;
-
+    private static boolean	udp_fallback_for_failed_connection;
+    private static boolean	udp_fallback_for_dropped_connection;  
     
 	static{
 		
@@ -101,6 +102,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 				"Peer.Fast.Initial.Unchoke.Enabled",
    				"Ip Filter Ban Discard Ratio",
    				"Ip Filter Ban Discard Min KB",
+   				"peercontrol.udp.fallback.connect.fail",
+   				"peercontrol.udp.fallback.connect.drop",
 			},
 			new ParameterListener()
 			{
@@ -108,12 +111,14 @@ DiskManagerCheckRequestListener, IPFilterListener
 				parameterChanged(
 					String name )
 				{
-					disconnect_seeds_when_seeding 	= COConfigurationManager.getBooleanParameter("Disconnect Seed");
-					enable_seeding_piece_rechecks 	= COConfigurationManager.getBooleanParameter("Seeding Piece Check Recheck Enable");
-					stalled_piece_timeout			= COConfigurationManager.getIntParameter( "peercontrol.stalled.piece.write.timeout", 60*1000 );
-					fast_unchoke_new_peers 			= COConfigurationManager.getBooleanParameter( "Peer.Fast.Initial.Unchoke.Enabled" );
-					ban_peer_discard_ratio			= COConfigurationManager.getFloatParameter( "Ip Filter Ban Discard Ratio" );
-					ban_peer_discard_min_kb			= COConfigurationManager.getIntParameter( "Ip Filter Ban Discard Min KB" );
+					disconnect_seeds_when_seeding 		= COConfigurationManager.getBooleanParameter("Disconnect Seed");
+					enable_seeding_piece_rechecks 		= COConfigurationManager.getBooleanParameter("Seeding Piece Check Recheck Enable");
+					stalled_piece_timeout				= COConfigurationManager.getIntParameter( "peercontrol.stalled.piece.write.timeout", 60*1000 );
+					fast_unchoke_new_peers 				= COConfigurationManager.getBooleanParameter( "Peer.Fast.Initial.Unchoke.Enabled" );
+					ban_peer_discard_ratio				= COConfigurationManager.getFloatParameter( "Ip Filter Ban Discard Ratio" );
+					ban_peer_discard_min_kb				= COConfigurationManager.getIntParameter( "Ip Filter Ban Discard Min KB" );
+					udp_fallback_for_failed_connection	= COConfigurationManager.getBooleanParameter( "peercontrol.udp.fallback.connect.fail" );
+					udp_fallback_for_dropped_connection	= COConfigurationManager.getBooleanParameter( "peercontrol.udp.fallback.connect.drop" );				
 				}
 			});
 	}
@@ -2295,28 +2300,37 @@ DiskManagerCheckRequestListener, IPFilterListener
 							
 								// candidate for a fallback UDP connection attempt
 					
-							udp_fallbacks.put( key, peer_item );
+							if ( udp_fallback_for_failed_connection ){
+								
+								udp_fallbacks.put( key, peer_item );
+							}
 							
 						}else if ( network_failed && seeding_mode && peer.isInterested() && peer.getStats().getEstimatedSecondsToCompletion() > 60 ){
 							
-							if (Logger.isEnabled()){
-								Logger.log(new LogEvent(peer, LOGID, LogEvent.LT_WARNING, "Unexpected stream closure detected, attempting recovery" ));
+							if ( udp_fallback_for_dropped_connection ){
+								
+								if (Logger.isEnabled()){
+									Logger.log(new LogEvent(peer, LOGID, LogEvent.LT_WARNING, "Unexpected stream closure detected, attempting recovery" ));
+								}
+		
+								// System.out.println( "Premature close of stream: " + getDisplayName() + "/" + peer.getIp());
+								
+								udp_reconnects.put( key, peer_item );
 							}
-	
-							// System.out.println( "Premature close of stream: " + getDisplayName() + "/" + peer.getIp());
-							
-							udp_reconnects.put( key, peer_item );
 						}
 						
 					}else{
 						
 						if ( connect_failed ){
 							
-							if ( peer.getData( PEER_NAT_TRAVERSE_DONE_KEY ) == null ){
+							if ( udp_fallback_for_failed_connection ){
 								
-								// System.out.println( "Direct reconnect failed, attempting NAT traversal" );
-								
-								udp_fallbacks.put( key, peer_item );
+								if ( peer.getData( PEER_NAT_TRAVERSE_DONE_KEY ) == null ){
+									
+									// System.out.println( "Direct reconnect failed, attempting NAT traversal" );
+									
+									udp_fallbacks.put( key, peer_item );
+								}
 							}
 						}
 					}
@@ -3523,6 +3537,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 	doUDPConnectionChecks(
 		int		number )
 	{
+		List	new_connections = null;
+		
 		try{
 			peer_transports_mon.enter();
 
@@ -3542,15 +3558,12 @@ DiskManagerCheckRequestListener, IPFilterListener
 					Logger.log(new LogEvent(this, LOGID, LogEvent.LT_INFORMATION, "Reconnecting to previous failed peer " + peer_item.getAddressString()));
 				}
 
-				makeNewOutgoingConnection( 
-						PeerItem.convertSourceString(peer_item.getSource()),
-						peer_item.getAddressString(),
-						peer_item.getTCPPort(),
-						peer_item.getUDPPort(),
-						false,
-						true,
-						peer_item.getCryptoLevel(),
-						null );
+				if ( new_connections == null ){
+					
+					new_connections = new ArrayList();
+				}
+				
+				new_connections.add( peer_item );
 
 				number--;
 				
@@ -3661,6 +3674,26 @@ DiskManagerCheckRequestListener, IPFilterListener
 		}finally{
 
 			peer_transports_mon.exit();
+			
+			if ( new_connections != null ){
+				
+				for (int i=0;i<new_connections.size();i++){
+			
+					PeerItem	peer_item = (PeerItem)new_connections.get(i);
+
+						// don't call when holding monitor - deadlock potential
+					
+					makeNewOutgoingConnection( 
+							PeerItem.convertSourceString(peer_item.getSource()),
+							peer_item.getAddressString(),
+							peer_item.getTCPPort(),
+							peer_item.getUDPPort(),
+							false,
+							true,
+							peer_item.getCryptoLevel(),
+							null );
+				}
+			}
 		}
 	}
 
