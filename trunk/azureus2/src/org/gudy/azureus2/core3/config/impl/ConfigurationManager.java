@@ -295,7 +295,7 @@ ConfigurationManager
     try {
       return (Long) propertiesMap.get(parameter);
     } catch (Exception e) {
-    	Debug.printStackTrace( e );
+      Debug.out( "Parameter '" + parameter + "' has incorrect type", e );
       return null;
     }
   }
@@ -385,7 +385,7 @@ ConfigurationManager
   			return new StringListImpl();  		
   		return new StringListImpl(rawList);  	
   	} catch(Exception e) {
-  		Debug.printStackTrace(e);
+  		Debug.out( "Parameter '" + parameter + "' has incorrect type", e );
   		return new StringListImpl();
   	}
   }
@@ -419,7 +419,7 @@ ConfigurationManager
   			return def;
   		return rawList;	
   	} catch(Exception e) {
-  		Debug.printStackTrace(e);
+  		Debug.out( "Parameter '" + parameter + "' has incorrect type", e );
   		return def;
   	}
   }
@@ -444,7 +444,7 @@ ConfigurationManager
   			return def;
   		return map;	
   	} catch(Exception e) {
-  		Debug.printStackTrace(e);
+  		Debug.out( "Parameter '" + parameter + "' has incorrect type", e );
   		return def;
   	}
   }
@@ -494,7 +494,7 @@ ConfigurationManager
       if (!s.equals(ConfigurationDefaults.def_String))
         return Float.parseFloat(s);
     } catch (Exception e) {
-    	Debug.printStackTrace( e );
+    	Debug.out( "Parameter '" + parameter + "' has incorrect type", e );
     }
     
     try {
