@@ -432,7 +432,8 @@ public class ConfigurationDefaults {
     
     def.put( "peercontrol.udp.fallback.connect.fail", TRUE );
     def.put( "peercontrol.udp.fallback.connect.drop", TRUE );
-    
+    def.put( "peercontrol.scheduler.use.priorities", TRUE );
+    	
     def.put( "File.truncate.if.too.large", FALSE);
     def.put( "Enable System Tray", TRUE);
     def.put( "config.style.table.defaultSortOrder", ZERO);

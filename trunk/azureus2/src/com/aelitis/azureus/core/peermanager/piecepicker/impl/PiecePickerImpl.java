@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.peermanager.control.PeerControlScheduler;
+import com.aelitis.azureus.core.peermanager.control.PeerControlSchedulerFactory;
 import com.aelitis.azureus.core.peermanager.control.SpeedTokenDispenser;
 import com.aelitis.azureus.core.peermanager.control.impl.PeerControlSchedulerImpl;
 import com.aelitis.azureus.core.peermanager.piecepicker.*;
@@ -998,7 +999,7 @@ implements PiecePicker
 		return rarestOverride;
 	}
 	
-	private final SpeedTokenDispenser dispenser = PeerControlSchedulerImpl.getDispenser();
+	private final SpeedTokenDispenser dispenser = PeerControlSchedulerFactory.getSingleton().getSpeedTokenDispenser();
 
 	/**
 	 * @param pt the PEPeerTransport we're working on

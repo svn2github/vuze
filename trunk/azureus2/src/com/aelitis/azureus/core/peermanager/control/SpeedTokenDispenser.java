@@ -1,77 +1,34 @@
+/*
+ * Created on Oct 23, 2007
+ * Created by The8472
+ * Copyright (C) 2007 Aelitis, All Rights Reserved.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * 
+ * AELITIS, SAS au capital de 63.529,40 euros
+ * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
+ *
+ */
+
+
 package com.aelitis.azureus.core.peermanager.control;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.util.SystemTime;
+public interface 
+SpeedTokenDispenser 
+{
+	public int dispense(int numberOfChunks, int chunkSize);
 
-public class SpeedTokenDispenser {
-	// crude TBF implementation
-	private int		rateKiB;
-	{
-		COConfigurationManager.addAndFireParameterListeners(new String[] { "Max Download Speed KBs", "Use Request Limiting" }, new ParameterListener()
-		{
-			public void parameterChanged(String parameterName) {
-				rateKiB = COConfigurationManager.getIntParameter("Max Download Speed KBs");
-				if (!COConfigurationManager.getBooleanParameter("Use Request Limiting"))
-					rateKiB = 0;
-				lastTime = currentTime - 1; // shortest possible delta
-				refill(); // cap buffer to threshold in case something accumulated
-			}
-		});
-	}
-	private int		bucket		= 0;
-	private long	lastTime	= SystemTime.getCurrentTime();
-	private long	currentTime;
+	public void returnUnusedChunks(int unused, int chunkSize);
 
-	public void update(long newTime) {
-		currentTime = newTime;
-	}
-
-	// allow at least 2 outstanding requests
-	private static final int	BUCKET_THRESHOLD_LOWER_BOUND	= 2 * 15 * 1024;
-	// 3KiB buffer per 1KiB/s speed, that should be 3 seconds max response time
-	private static final int	BUCKET_THRESHOLD_FACTOR			= 3 * 1024;
-
-	public void refill() {
-		if (lastTime == currentTime || rateKiB == 0)
-			return;
-		long delta = currentTime - lastTime;
-		lastTime = currentTime;
-		// upcast to long since we might exceed int-max when rate and delta are
-		// large enough; then downcast again...
-		int tickDelta = (int) (((long) rateKiB * 1024 * delta) / 1000);
-		int threshold = BUCKET_THRESHOLD_FACTOR * rateKiB;
-		if (threshold < BUCKET_THRESHOLD_LOWER_BOUND)
-			threshold = BUCKET_THRESHOLD_LOWER_BOUND;
-		//System.out.println("threshold:" + threshold + " update: " + bucket + " time delta:" + delta);
-		bucket += tickDelta;
-		if (bucket > threshold)
-			bucket = threshold;
-	}
-
-	public int dispense(int numberOfChunks, int chunkSize) {
-		if (rateKiB == 0)
-			return numberOfChunks;
-		if (chunkSize > bucket)
-			return 0;
-		if (chunkSize * numberOfChunks <= bucket)
-		{
-			bucket -= chunkSize * numberOfChunks;
-			return numberOfChunks;
-		}
-		int availableChunks = bucket / chunkSize;
-		bucket -= chunkSize * availableChunks;
-		return availableChunks;
-	}
-
-	public void returnUnusedChunks(int unused, int chunkSize) {
-		bucket += unused * chunkSize;
-	}
-
-	public int peek(int chunkSize) {
-		if (rateKiB != 0)
-			return bucket / chunkSize;
-		else
-			return Integer.MAX_VALUE;
-	}
+	public int peek(int chunkSize);
 }

@@ -1,5 +1,7 @@
 /*
- * Copyright (C) 2005, 2006 Aelitis, All Rights Reserved.
+ * Created on Oct 23, 2007
+ * Created by Paul Gardner
+ * Copyright (C) 2007 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -12,31 +14,32 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * AELITIS, SAS au capital de 46,603.30 euros
+ * 
+ * AELITIS, SAS au capital de 63.529,40 euros
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
+ *
  */
-package com.aelitis.azureus.core.peermanager.control;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 
-public interface 
-PeerControlScheduler 
+package com.aelitis.azureus.core.peermanager.control.impl;
+
+import com.aelitis.azureus.core.peermanager.control.SpeedTokenDispenser;
+
+public class 
+SpeedTokenDispenserBasic 
+	implements SpeedTokenDispenser
 {
-	public static final int SCHEDULE_PERIOD_MILLIS = COConfigurationManager.getIntParameter( "peermanager.schedule.time" );
-	public static final int SCHEDULE_PERIOD_MAX_CATCHUP = SCHEDULE_PERIOD_MILLIS>>2;
-	
-	public void
-	register(
-		PeerControlInstance	instance );
-	
-	public void
-	unregister(
-		PeerControlInstance	instance );
-	
-	public void 
-	updateScheduleOrdering();
-	
-	public SpeedTokenDispenser
-	getSpeedTokenDispenser();
+	public int dispense(int numberOfChunks, int chunkSize)
+	{
+		return( numberOfChunks );
+	}
+
+	public void returnUnusedChunks(int unused, int chunkSize)
+	{
+	}
+
+	public int peek(int chunkSize)
+	{
+		return( chunkSize );
+	}
 }
