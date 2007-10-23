@@ -161,8 +161,11 @@ public class FileLogging implements ILogEventListener {
 			str = format.format(new Date()) + str;
 
 			// exception handling is done by FileWriter
-			logFilePrinter.print(str);
-			logFilePrinter.flush();
+			if(logFilePrinter != null)
+			{
+				logFilePrinter.print(str);
+				logFilePrinter.flush();
+			}
 			
 			checkAndSwapLog();		
 		} // sync
@@ -176,7 +179,7 @@ public class FileLogging implements ILogEventListener {
 		long lMaxBytes = (iLogFileMaxMB * 1024 * 1024) / 2;
 		File logFile = new File(sLogDir + File.separator + LOG_FILE_NAME);
 		
-		if (logFile.length() > lMaxBytes)
+		if (logFile.length() > lMaxBytes && logFilePrinter != null)
 		{
 			File back_name = new File(sLogDir + File.separator + BAK_FILE_NAME);
 			logFilePrinter.close();
