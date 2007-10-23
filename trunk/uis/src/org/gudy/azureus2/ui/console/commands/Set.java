@@ -176,7 +176,7 @@ public class Set extends IConsoleCommand {
 	private void displayOptions(PrintStream out, StringPattern sp, boolean non_defaults)
 	{
 		sp.setIgnoreCase(true);
-		Iterator I = COConfigurationManager.getAllowedParameters().iterator();
+		Iterator I = non_defaults?COConfigurationManager.getDefinedParameters().iterator():COConfigurationManager.getAllowedParameters().iterator();
 		Map backmap = new HashMap();
 		for (Iterator iter = ExternalUIConst.parameterlegacy.entrySet().iterator(); iter.hasNext();) {
 			Map.Entry entry = (Map.Entry) iter.next();
@@ -221,9 +221,10 @@ public class Set extends IConsoleCommand {
 	 */
 	private static class Parameter
 	{
-		private static final int PARAM_INT = 1;
-		private static final int PARAM_BOOLEAN = 2;
-		private static final int PARAM_STRING = 4;
+		private static final int PARAM_INT 		= 1;
+		private static final int PARAM_BOOLEAN 	= 2;
+		private static final int PARAM_STRING 	= 4;
+		private static final int PARAM_OTHER 	= 8;
 		
 		/**
 		 * returns a new Parameter object reprenting the specified parameter name
@@ -261,18 +262,39 @@ public class Set extends IConsoleCommand {
 					String value = COConfigurationManager.getStringParameter(internal_name, NULL_STRING);				
 					return new Parameter( internal_name, external_name, NULL_STRING.equals(value) ? null : value);
 				}
-			} catch (Exception e)
+			} catch (Throwable e)
 			{
+				Object v = COConfigurationManager.getParameter( internal_name );
+
 				try {
-					int value = COConfigurationManager.getIntParameter(internal_name, Integer.MIN_VALUE);
-					return new Parameter(internal_name, external_name, value == Integer.MIN_VALUE ? (Integer)null : new Integer(value) );
-				} catch (Exception e1)
-				{
-					String value = COConfigurationManager.getStringParameter(internal_name);
-					return new Parameter( internal_name, external_name, NULL_STRING.equals(value) ? null : value);
+					if ( v instanceof Long || v instanceof Integer ){
+						
+						int value = COConfigurationManager.getIntParameter(internal_name, Integer.MIN_VALUE);
+					
+						return new Parameter(internal_name, external_name, value == Integer.MIN_VALUE ? (Integer)null : new Integer(value) );
+					
+					}else if ( v instanceof Boolean ){
+						
+						boolean value = COConfigurationManager.getBooleanParameter( internal_name );
+						
+						return new Parameter( internal_name, external_name, Boolean.valueOf( value ));
+
+					}else if ( v instanceof String || v instanceof byte[] ){
+					
+						String value = COConfigurationManager.getStringParameter(internal_name);
+						
+						return new Parameter( internal_name, external_name, NULL_STRING.equals(value) ? null : value);
+					}else{
+						
+						return new Parameter( internal_name, external_name, v, PARAM_OTHER );
+					}
+				}catch( Throwable e2 ){			
+						
+					return new Parameter( internal_name, external_name, v, PARAM_OTHER );
 				}
 			}
 		}
+		
 		public Parameter( String iname, String ename, Boolean val )
 		{
 			this(iname,ename, val, PARAM_BOOLEAN);
