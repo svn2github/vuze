@@ -38,9 +38,6 @@ PeerControlSchedulerPrioritised
 	extends PeerControlSchedulerImpl
 	implements AzureusCoreStatsProvider
 {
-	
-	private Random	random = new Random();
-	
 	private Map	instance_map = new HashMap();
 	
 	private List	pending_registrations = new ArrayList();
@@ -190,8 +187,6 @@ PeerControlSchedulerPrioritised
 		PeerControlInstance	instance )
 	{
 		instanceWrapper wrapper = new instanceWrapper( instance );
-		
-		wrapper.setScheduleOffset( latest_time + random.nextInt( SCHEDULE_PERIOD_MILLIS ));
 		
 		try{
 			this_mon.enter();

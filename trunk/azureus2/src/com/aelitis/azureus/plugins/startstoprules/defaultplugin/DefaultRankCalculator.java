@@ -476,7 +476,7 @@ public class DefaultRankCalculator implements Comparable {
 
 				//0 means unlimited
 				if (iIgnoreShareRatio != 0 && lastModifiedShareRatio >= iIgnoreShareRatio
-						&& (lastModifiedScrapeResultSeeds >= iIgnoreShareRatio_SeedStart || !lastScrapeResultOk)
+						&& (lastModifiedScrapeResultSeeds >= iIgnoreShareRatio_SeedStart || !bScrapeResultsOk)
 						&& lastModifiedShareRatio != -1) {
 					
 					if (rules.bDebugLog)
