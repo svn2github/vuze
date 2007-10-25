@@ -421,6 +421,8 @@ public class FakeTableCell
 			return false;
 		}
 
+		//System.out.println("setGraphic " + image);
+
 		image = imgSWT;
 		if (image != null) {
 			imageBounds = image.getBounds();
@@ -429,7 +431,9 @@ public class FakeTableCell
 		if (composite != null) {
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
-					composite.redraw();
+					if (composite != null && !composite.isDisposed()) {
+						composite.redraw();
+					}
 				}
 			});
 		}
