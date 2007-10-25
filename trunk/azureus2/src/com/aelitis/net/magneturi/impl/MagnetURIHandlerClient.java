@@ -32,7 +32,7 @@ MagnetURIHandlerClient
 
 	public boolean
 	load(
-		String	magnet_uri,
+		String	url,
 		int		max_millis_to_wait )
 	{
 			// limit the subset here as we're looping waiting for something to be alive and we can't afford to take ages getting back to the start
@@ -59,16 +59,14 @@ MagnetURIHandlerClient
 				
 				try{
 					sock = new Socket();
-					
-					System.out.println( "trying " + i );
-					
+										
 					sock.connect( new InetSocketAddress( "127.0.0.1", i ), 500 );
 					
 					sock.setSoTimeout( 5000 );
 					
 					PrintWriter	pw = new PrintWriter( sock.getOutputStream());
 					
-					pw.println( "GET /select/" + magnet_uri + NL + NL );
+					pw.println( "GET " + url + " HTTP/1.1" + NL + NL );
 					
 					pw.flush();
 					
@@ -94,6 +92,7 @@ MagnetURIHandlerClient
 							return( true );
 						}
 					}
+					
 				}catch( Throwable e ){
 					
 				}finally{
@@ -111,10 +110,25 @@ MagnetURIHandlerClient
 		}
 	}
 	
+	public boolean
+	sendSetValue(
+		String		name,
+		String		value,
+		int			max_millis )
+	{
+		String msg = "/setinfo?name=" + name + "&value=" + value;
+
+		return( load( msg, max_millis ));
+	}
+	
 	public static void
 	main(
 		String[]	args )
 	{
-		new MagnetURIHandlerClient().load( "jkjjk", 30000 );
+		String start = "/setinfo?name=AZMSG&value=";
+		
+		String str = "AZMSG;1;torrent;load-torrent;{\"url\":\"http://www.vuze.com/download/VCCBRHY5GYNGFKPJSYQID4GB3XPTYGIG.torrent?referal=jws\",\"play-now\":true}";
+		
+		new MagnetURIHandlerClient().load( start + str, 30000 );
 	}
 }
