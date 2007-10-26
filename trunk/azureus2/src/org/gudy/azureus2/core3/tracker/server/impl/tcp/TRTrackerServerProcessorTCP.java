@@ -262,6 +262,7 @@ TRTrackerServerProcessorTCP
 				boolean		stop_to_queue	= false;
 				String		scrape_flags	= null;
 				int			up_speed		= 0;
+				boolean		hide			= false;
 				
 				DHTNetworkPosition	network_position = null;
 				
@@ -442,6 +443,10 @@ TRTrackerServerProcessorTCP
 							xml_output	= true;
 						}
 						
+					}else if ( lhs.equals( "hide" )){
+						
+						hide 	= Integer.parseInt( rhs ) == 1;
+
 					}else if ( TRTrackerServerImpl.supportsExtensions()){
 						
 						if ( lhs.equals( "aznp" )){
@@ -462,6 +467,19 @@ TRTrackerServerProcessorTCP
 							
 						break;
 					}
+				}
+				
+					// let them hide!
+					// this is also useful if an az client wants to just hide themselves on 
+					// particular torrents (to prevent inward connections) as they can just
+					// add a tracker-extension to append this option
+				
+				if ( hide ){
+					
+					tcp_port 	= 0;
+					crypto_port	= 0;
+					http_port	= 0;
+					udp_port	= 0;
 				}
 				
 				if ( crypto_level == TRTrackerServerPeer.CRYPTO_REQUIRED ){
