@@ -35,15 +35,18 @@ DownloadUtils
 {
 	private static TorrentAttribute	ta_tracker_extensions;
 	
-	protected static void
+	public static synchronized void
 	initialise(
 		AzureusCore		core )
 	{
-		PluginInterface pi = core.getPluginManager().getDefaultPluginInterface();
-
-		TorrentManager tm = pi.getTorrentManager();
-
-		ta_tracker_extensions = tm.getAttribute( TorrentAttribute.TA_TRACKER_CLIENT_EXTENSIONS );
+		if ( ta_tracker_extensions == null ){
+			
+			PluginInterface pi = core.getPluginManager().getDefaultPluginInterface();
+	
+			TorrentManager tm = pi.getTorrentManager();
+	
+			ta_tracker_extensions = tm.getAttribute( TorrentAttribute.TA_TRACKER_CLIENT_EXTENSIONS );
+		}
 	}
 	
 	public static synchronized void
@@ -82,7 +85,7 @@ DownloadUtils
 						continue;
 					}
 
-					if ( !bit.startsWith(extension_prefix.substring(1))){
+					if ( !bit.startsWith( extension_prefix+"=" )){
 
 						value += "&" + bit;
 					}
@@ -95,7 +98,48 @@ DownloadUtils
 
 			value = extension;
 		}
-
+		
 		download.setAttribute( ta_tracker_extensions, value );
+	}
+	
+	public static synchronized void
+	removeTrackerExtension(
+		Download	download,
+		String		extension_prefix )
+	{
+		String value = download.getAttribute( ta_tracker_extensions );
+
+		if ( value != null ){
+
+			int	pos = value.indexOf( extension_prefix );
+			
+			if ( pos == -1 ){
+
+				return;
+			}
+
+			String[] bits = value.split("&");
+
+			value = "";
+
+			for ( int i=0; i<bits.length; i++ ){
+
+				String bit = bits[i].trim();
+
+				if ( bit.length() == 0 ){
+
+					continue;
+				}
+
+				if ( !bit.startsWith(extension_prefix+"=")){
+
+					value += "&" + bit;
+				}
+			}
+
+			System.out.println( "remExt( " + download.getName() + " -> " +  value );
+
+			download.setAttribute( ta_tracker_extensions, value );
+		}
 	}
 }
