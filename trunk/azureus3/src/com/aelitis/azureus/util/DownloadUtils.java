@@ -137,8 +137,11 @@ DownloadUtils
 				}
 			}
 
-			System.out.println( "remExt( " + download.getName() + " -> " +  value );
-
+			if ( value.length() == 0 ){
+				
+				value = null;
+			}
+			
 			download.setAttribute( ta_tracker_extensions, value );
 		}
 	}
