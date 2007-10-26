@@ -36,14 +36,14 @@ public class ConnectionImpl implements Connection {
   private final com.aelitis.azureus.core.networkmanager.NetworkConnection core_connection;
   private final OutgoingMessageQueueImpl out_queue;
   private final IncomingMessageQueueImpl in_queue;
-  private final TransportImpl tcp_transport;
+  private final TransportImpl transport;
   
   
   public ConnectionImpl( com.aelitis.azureus.core.networkmanager.NetworkConnection core_connection ) {
     this.core_connection = core_connection;
     this.out_queue = new OutgoingMessageQueueImpl( core_connection.getOutgoingMessageQueue() );
     this.in_queue = new IncomingMessageQueueImpl( core_connection.getIncomingMessageQueue() );
-    this.tcp_transport = new TransportImpl( core_connection );
+    this.transport = new TransportImpl( core_connection );
   }
   
   
@@ -83,11 +83,25 @@ public class ConnectionImpl implements Connection {
   }
   
   
-  public Transport getTransport() {  return tcp_transport;  }
+  public Transport getTransport() {  return transport;  }
   
   
   public com.aelitis.azureus.core.networkmanager.NetworkConnection getCoreConnection() {
     return core_connection;
   }
   
+  public String
+  getString()
+  {
+	  com.aelitis.azureus.core.networkmanager.Transport t = core_connection.getTransport();
+	  
+	  if ( t == null ){
+		  
+		  return( "" );
+		  
+	  }else{
+		  
+		  return( t.getEncryption());
+	  }
+  }
 }

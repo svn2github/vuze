@@ -62,5 +62,11 @@ public interface Connection {
    * Begin processing incoming and outgoing message queues.
    */
   public void startMessageProcessing();
-
+  
+  /**
+   * descriptive text for the connection
+   * @return
+   */
+  public String
+  getString();
 }
