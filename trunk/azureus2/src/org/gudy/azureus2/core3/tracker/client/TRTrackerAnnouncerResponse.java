@@ -74,6 +74,10 @@ TRTrackerAnnouncerResponse
 	public TRTrackerAnnouncerResponsePeer[]
 	getPeers();
 	
+	public void
+	setPeers(
+		TRTrackerAnnouncerResponsePeer[]	peers );
+	
 	public Map
 	getExtensions();
 	
