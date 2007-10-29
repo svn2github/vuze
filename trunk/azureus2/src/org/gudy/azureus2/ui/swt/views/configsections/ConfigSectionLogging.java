@@ -291,12 +291,10 @@ public class ConfigSectionLogging implements UISWTConfigSection {
 		// network diagnostics
 	
 	Label generate_net_info = new Label(gLogging, SWT.NULL);
-
-	generate_net_info.setText( "Generate network info" );
+	Messages.setLanguageText(generate_net_info, CFG_PREFIX + "netinfo");
 	
 	Button generate_net_button = new Button(gLogging, SWT.PUSH);
-
-	generate_net_button.setText( "Go!" );
+	Messages.setLanguageText(generate_net_button, CFG_PREFIX + "generatediagnostics");
 	
 	generate_net_button.addListener(
 			SWT.Selection, 
@@ -343,12 +341,11 @@ public class ConfigSectionLogging implements UISWTConfigSection {
 	// stats
 	
 	Label generate_stats_info = new Label(gLogging, SWT.NULL);
+	Messages.setLanguageText(generate_stats_info, CFG_PREFIX + "statsinfo");
 
-	generate_stats_info.setText( "Generate stats info" );
-	
 	Button generate_stats_button = new Button(gLogging, SWT.PUSH);
+	Messages.setLanguageText(generate_stats_button, CFG_PREFIX + "generatediagnostics");
 
-	generate_stats_button.setText( "Go!" );
 	
 	generate_stats_button.addListener(
 			SWT.Selection, 
