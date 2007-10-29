@@ -384,7 +384,21 @@ FMFileImpl
 	
 		throws FMFileManagerException
 	{
-		return( file_access.getLength( raf ));
+		try{
+			return( file_access.getLength( raf ));
+			
+		}catch( FMFileManagerException e ){
+			
+			try{
+				reopen();
+				
+				return( file_access.getLength( raf ));
+				
+			}catch( Throwable e2 ){
+				
+				throw( e );
+			}
+		}
 	}
 	
 	protected void
@@ -393,7 +407,46 @@ FMFileImpl
 	
 		throws FMFileManagerException
 	{
-		file_access.setLength( raf, length );
+		try{
+			file_access.setLength( raf, length );
+			
+		}catch( FMFileManagerException e ){
+						
+			try{
+				reopen();
+
+				file_access.setLength( raf, length );
+				
+			}catch( Throwable e2 ){
+				
+				throw( e );
+			}
+		}
+	}
+	
+	protected void
+	reopen()
+
+		throws Throwable
+	{
+		if ( raf != null ){
+			
+			try{
+				
+				raf.close();
+				
+			}catch( Throwable e ){
+				
+					// ignore any close failure as can't do much
+			}
+			
+				// don't clear down raf here as we want to leave things looking as they were
+				// if the subsequent open fails
+		}
+		
+		raf = new RandomAccessFile( linked_file, access_mode==FM_READ?READ_ACCESS_MODE:WRITE_ACCESS_MODE);
+		
+		Debug.outNoStack( "Recovered connection to " + getName() + " after access failure" );
 	}
 	
 	protected void
@@ -513,7 +566,22 @@ FMFileImpl
 	
 		throws FMFileManagerException
 	{
-		file_access.read( raf, buffers, position );
+		try{
+		
+			file_access.read( raf, buffers, position );
+			
+		}catch( FMFileManagerException e ){
+			
+			try{
+				reopen();
+
+				file_access.read( raf, buffers, position );
+				
+			}catch( Throwable e2 ){
+				
+				throw( e );
+			}
+		}
 	}
 	
 	protected void
@@ -533,7 +601,22 @@ FMFileImpl
 	
 		throws FMFileManagerException
 	{
-		file_access.write( raf, buffers, position );
+		try{
+		
+			file_access.write( raf, buffers, position );
+	
+		}catch( FMFileManagerException e ){
+			
+			try{
+				reopen();
+
+				file_access.write( raf, buffers, position );
+				
+			}catch( Throwable e2 ){
+				
+				throw( e );
+			}
+		}
 	}
 	
 	public boolean
