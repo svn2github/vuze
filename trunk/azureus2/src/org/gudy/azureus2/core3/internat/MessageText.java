@@ -68,6 +68,10 @@ public class MessageText {
   }
   
   public static void loadBundle() {
+	  loadBundle(false);
+  }
+  
+  public static void loadBundle(boolean forceReload) {
 	  Locale	old_locale = getCurrentLocale();
 	  
 		String savedLocaleString = COConfigurationManager
@@ -94,7 +98,7 @@ public class MessageText {
 				savedLocale = Locale.getDefault();
 			}
 		}
-		MessageText.changeLocale(savedLocale);
+		MessageText.changeLocale(savedLocale,forceReload);
 
 		COConfigurationManager
 				.setParameter("locale.set.complete.count", COConfigurationManager
@@ -102,7 +106,7 @@ public class MessageText {
 
 		Locale	new_locale = getCurrentLocale();
 		
-		if ( !old_locale.equals( new_locale )){
+		if ( !old_locale.equals( new_locale ) || forceReload){
 			
 			for (int i=0;i<listeners.size();i++){
 				

@@ -724,6 +724,15 @@ public class MainMenu {
 				mainWindow.getShell().setSize(1280, 980);
 			}
 		});
+		
+		item = new MenuItem(menuDebug, SWT.NONE);
+		item.setText("Reload messagebundle");
+		item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				MessageText.loadBundle(true);
+			}
+		});
+		
 
 	
 	}
