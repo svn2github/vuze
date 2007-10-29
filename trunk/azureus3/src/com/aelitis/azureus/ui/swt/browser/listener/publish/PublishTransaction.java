@@ -151,7 +151,7 @@ public class PublishTransaction extends Transaction
         }
     	FileDialog dialog = new FileDialog(shell,SWT.OPEN);
     	dialog.setFilterNames(new String[] {"Image Files"});
-    	dialog.setFilterExtensions(new String[] {"*.jpg;*.jpeg;*.bmp;*.gif;*.png"});
+    	dialog.setFilterExtensions(new String[] {"*.jpg;*.jpeg;*.bmp;*.gif;*.png;*.tiff,*.tif"});
     	final String fileName = dialog.open();
     	if(fileName != null) {
     		//Run async not to block the UI
@@ -191,14 +191,18 @@ public class PublishTransaction extends Transaction
                             params.put("message", e.getMessage());
                             sendBrowserMessage("page", "error",params);
     					}
-                        catch (Exception e) {
-        					debug("Error reading file",e);
-                            sendBrowserMessage("thumb", "clear", elements);
-                            
-                            Map params = new HashMap();
-                            params.put("message", "Azureus cannot process this image. Please select another one.");
-                            sendBrowserMessage("page", "error",params);
-        				}
+			catch (Exception e) {
+				debug("Error reading file", e);
+				sendBrowserMessage("thumb", "clear", elements);
+
+				Map params = new HashMap();
+				String errmsg = e.getMessage();
+				
+				params.put("message",
+						"Azureus cannot process this image. " + 
+						"Please select another one.\n\nDetailed Error: " + errmsg);
+				sendBrowserMessage("page", "error", params);
+			}
                         catch (OutOfMemoryError e) {
                         	debug("Error processing the image",e);
                         	
