@@ -95,17 +95,22 @@ ParameterImpl
 	parameterChanged(
 		String		key )
 	{
-		for (int i=0;i<listeners.size();i++){
-			
-			Object o = listeners.get(i);
-			
-			if ( o instanceof ParameterListener ){
-				
-				((ParameterListener)o).parameterChanged( this );
-				
-			}else{
-				
-				((ConfigParameterListener)o).configParameterChanged( this );
+		// toArray() since listener trigger may remove listeners
+		Object[] listenerArray = listeners.toArray();
+		for (int i = 0; i < listenerArray.length; i++) {
+			try {
+				Object o = listenerArray[i];
+				if (o instanceof ParameterListener) {
+
+					((ParameterListener) o).parameterChanged(this);
+
+				} else {
+
+					((ConfigParameterListener) o).configParameterChanged(this);
+				}
+			} catch (Throwable f) {
+
+				Debug.printStackTrace(f);
 			}
 		}
 	}
@@ -114,15 +119,16 @@ ParameterImpl
 	setEnabled(
 		boolean	e )
 	{
-		enabled	= e;
-				
-		for (int i=0;i<impl_listeners.size();i++){
+		enabled = e;
 
-			try{
-				((ParameterImplListener)impl_listeners.get(i)).enabledChanged( this );
-				
-			}catch( Throwable f ){
-				
+		// toArray() since listener trigger may remove listeners
+		Object[] listenersArray = impl_listeners.toArray();
+		for (int i = 0; i < listenersArray.length; i++) {
+			try {
+				ParameterImplListener l = (ParameterImplListener) listenersArray[i];
+				l.enabledChanged(this);
+			} catch (Throwable f) {
+
 				Debug.printStackTrace(f);
 			}
 		}
@@ -230,16 +236,7 @@ ParameterImpl
 		labelKey = null;
 		label = sText;
 
-		for (int i=0;i<impl_listeners.size();i++){
-
-			try{
-				((ParameterImplListener)impl_listeners.get(i)).labelChanged(this, sText, false);
-				
-			}catch( Throwable f ){
-				
-				Debug.printStackTrace(f);
-			}
-		}
+		triggerLabelChanged(sText, false);
 	}
 
 	public String getLabelKey() {
@@ -250,11 +247,19 @@ ParameterImpl
 		labelKey = sLabelKey;
 		label = MessageText.getString(sLabelKey);
 
-		for (int i = 0; i < impl_listeners.size(); i++) {
+		triggerLabelChanged(labelKey, true);
+	}
+	
+	private void triggerLabelChanged(String text, boolean isKey) {
+		// toArray() since listener trigger may remove listeners
+		Object[] listenersArray = impl_listeners.toArray();
+		for (int i = 0; i < listenersArray.length; i++) {
 			try {
-				((ParameterImplListener) impl_listeners.get(i)).labelChanged(this,
-						labelKey, true);
+				ParameterImplListener l = (ParameterImplListener) listenersArray[i];
+				l.labelChanged(this, text, isKey);
+
 			} catch (Throwable f) {
+
 				Debug.printStackTrace(f);
 			}
 		}
