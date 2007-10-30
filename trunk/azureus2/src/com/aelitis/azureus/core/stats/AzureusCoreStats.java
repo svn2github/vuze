@@ -62,7 +62,8 @@ AzureusCoreStats
 	public static final String ST_DISK_WRITE_BYTES_SINGLE		= "disk.write.bytes.single";	// Long
 	public static final String ST_DISK_WRITE_BYTES_MULTIPLE		= "disk.write.bytes.multiple";	// Long
 	public static final String ST_DISK_WRITE_IO_TIME			= "disk.write.io.time";			// Long
-
+	public static final String ST_DISK_WRITE_IO_COUNT			= "disk.write.io.count";		// Long
+	
 		// NETWORK
 	
 	public static final String ST_NET_WRITE_CONTROL_WAIT_COUNT			= "net.write.control.wait.count";		// Long
@@ -132,6 +133,7 @@ AzureusCoreStats
 		{ ST_DISK_WRITE_BYTES_SINGLE,				CUMULATIVE },
 		{ ST_DISK_WRITE_BYTES_MULTIPLE,				CUMULATIVE },
 		{ ST_DISK_WRITE_IO_TIME,					CUMULATIVE },
+		{ ST_DISK_WRITE_IO_COUNT,					CUMULATIVE },
 
 		{ ST_NET_WRITE_CONTROL_WAIT_COUNT,			CUMULATIVE },
 		{ ST_NET_WRITE_CONTROL_P_COUNT,				CUMULATIVE },
@@ -225,6 +227,20 @@ AzureusCoreStats
 					expanded.add( s );
 				}
 			}
+			
+			Iterator derived_it = derived_generators.iterator();
+			
+			while( derived_it.hasNext()){
+				
+				try{
+					
+					((derivedStatsGenerator)derived_it.next()).match( pattern, expanded );
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace( e );
+				}
+			}
 		}
 		
 		Map	result = getStatsSupport( expanded );
@@ -255,7 +271,7 @@ AzureusCoreStats
 		}
 		
 		Iterator derived_it = derived_generators.iterator();
-		
+				
 		while( derived_it.hasNext()){
 			
 			try{
@@ -492,6 +508,11 @@ AzureusCoreStats
 	public interface
 	derivedStatsGenerator
 	{
+		public void
+		match(
+			Pattern		p,
+			Set			required );
+		
 		public void
 		generate(
 			Map	map );

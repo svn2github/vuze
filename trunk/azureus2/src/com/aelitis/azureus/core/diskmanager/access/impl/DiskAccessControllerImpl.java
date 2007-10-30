@@ -200,10 +200,16 @@ DiskAccessControllerImpl
 			values.put( AzureusCoreStats.ST_DISK_WRITE_BYTES_MULTIPLE, new Long( write_dispatcher.getTotalAggregatedBytes()));
 		}
 		
-	if ( types.contains( AzureusCoreStats.ST_DISK_WRITE_IO_TIME )){
+		if ( types.contains( AzureusCoreStats.ST_DISK_WRITE_IO_TIME )){
 			
 			values.put( AzureusCoreStats.ST_DISK_WRITE_IO_TIME, new Long( write_dispatcher.getIOTime()));
 		}
+		
+		if ( types.contains( AzureusCoreStats.ST_DISK_WRITE_IO_COUNT )){
+			
+			values.put( AzureusCoreStats.ST_DISK_WRITE_IO_COUNT, new Long( write_dispatcher.getIOCount()));
+		}
+
 	}
 	
 	public DiskAccessRequest
