@@ -22,9 +22,12 @@ package org.gudy.azureus2.ui.swt.components.shell;
  *
  */
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.graphics.Image;
+
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.MainMenu;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.core3.util.Constants;
@@ -161,7 +164,7 @@ public final class ShellFactory
          */
         private AEShell(Display display, int styles)
         {
-            super(display, styles);
+            super(display, fixupStyle(styles));
         }
 
         /**
@@ -177,7 +180,18 @@ public final class ShellFactory
          */
         private AEShell(Shell parent, int styles)
         {
-            super(parent, styles);
+            super(parent, fixupStyle(styles));
+        }
+        
+        static private int fixupStyle(int style) {
+        	if ((style & (SWT.APPLICATION_MODAL | SWT.SYSTEM_MODAL | SWT.PRIMARY_MODAL)) > 0
+        			&& Utils.anyShellHaveStyle(SWT.ON_TOP | SWT.TITLE)) {
+      			UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+      			if (uiFunctions != null && uiFunctions.getMainShell() != null) {
+      				style |= SWT.ON_TOP;
+      			}
+        	}
+        	return style;
         }
 
         /**
