@@ -1386,5 +1386,25 @@ public class Utils {
 		gridData.widthHint = 0;
 		return gridData;
 	}
+
+	/**
+	 * @return
+	 *
+	 * @since 3.0.3.5
+	 */
+	public static boolean anyShellHaveStyle(int styles) {
+		Display display = Display.getCurrent();
+		if (display != null) {
+			Shell[] shells = display.getShells();
+			for (int i = 0; i < shells.length; i++) {
+				Shell shell = shells[i];
+				int style = shell.getStyle();
+				if ((style & styles) == styles) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 }
 
