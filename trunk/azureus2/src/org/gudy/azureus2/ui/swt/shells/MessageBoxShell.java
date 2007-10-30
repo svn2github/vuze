@@ -15,6 +15,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
@@ -174,8 +175,8 @@ public class MessageBoxShell
 		MouseTrackAdapter mouseAdapter = null;
 		Display display = parent.getDisplay();
 
-		final Shell shell = new Shell(parent, SWT.DIALOG_TRIM | SWT.RESIZE
-				| SWT.APPLICATION_MODAL);
+		final Shell shell = ShellFactory.createShell(parent, SWT.DIALOG_TRIM
+				| SWT.RESIZE | SWT.APPLICATION_MODAL);
 		shell.setText(title);
 		GridLayout gridLayout = new GridLayout();
 		shell.setLayout(gridLayout);
