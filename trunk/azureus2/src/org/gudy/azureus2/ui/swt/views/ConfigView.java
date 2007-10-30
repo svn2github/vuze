@@ -266,16 +266,7 @@ public class ConfigView extends AbstractIView {
 
     scResizeListener = new Listener() {
 			public void handleEvent(Event event) {
-				ScrolledComposite sc = (ScrolledComposite)event.widget;
-
-	      Composite c = (Composite)sc.getContent();
-	      if (c != null) {
-	      	Point size1 = c.computeSize(sc.getClientArea().width,
-							SWT.DEFAULT);
-					Point size = c.computeSize(SWT.DEFAULT, size1.y);
-	      	sc.setMinSize(size);
-	      }
-	  		sc.getVerticalBar().setPageIncrement(sc.getSize().y);
+				setupSC((ScrolledComposite)event.widget);
 			}
 		};
 
@@ -435,6 +426,17 @@ public class ConfigView extends AbstractIView {
     showSection(items[0]);
   }
 
+	public void setupSC(ScrolledComposite sc) {
+		Composite c = (Composite) sc.getContent();
+		if (c != null) {
+			Point size1 = c.computeSize(sc.getClientArea().width, SWT.DEFAULT);
+			Point size = c.computeSize(SWT.DEFAULT, size1.y);
+			sc.setMinSize(size);
+		}
+		sc.getVerticalBar().setPageIncrement(sc.getSize().y);
+	}
+	
+
   /**
 	 * @param text
 	 */
@@ -552,12 +554,7 @@ public class ConfigView extends AbstractIView {
     	
       layoutConfigSection.topControl = item;
       
-//      Composite c = (Composite)item.getContent();
-      
-
-      // resize listener will sc.setMinSize
-//      System.out.println("show");
-//      item.setMinSize(c.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+      setupSC(item);
       cConfigSection.layout();
       
       updateHeader(section);
