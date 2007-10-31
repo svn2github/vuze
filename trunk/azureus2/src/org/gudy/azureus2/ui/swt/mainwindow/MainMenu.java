@@ -730,6 +730,12 @@ public class MainMenu {
 		item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				MessageText.loadBundle(true);
+		        DisplayFormatters.setUnits();
+		        DisplayFormatters.loadMessages();
+		        UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+		        if (uiFunctions != null) {
+		        	uiFunctions.refreshLanguage();    
+		        }
 			}
 		});
 		
