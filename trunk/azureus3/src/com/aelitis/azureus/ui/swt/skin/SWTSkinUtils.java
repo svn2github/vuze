@@ -218,9 +218,11 @@ public class SWTSkinUtils
 					fd.width = size.x;
 					fd.height = size.y;
 					//System.out.println(control + "] side to " + size.y + " done");
-					control.setLayoutData(fd);
 					control.setSize(size);
+					control.setLayoutData(fd);
 					Utils.relayout(control);
+					control.getParent().layout();
+
 					control.setData("Sliding", null);
 				} else {
 					fd.width = newWidth;
