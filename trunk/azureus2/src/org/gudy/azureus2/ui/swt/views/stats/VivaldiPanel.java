@@ -143,7 +143,7 @@ public class VivaldiPanel {
 
     canvas.addListener(SWT.MouseWheel, new Listener() {
 			public void handleEvent(Event event) {
-				System.out.println(event.count);
+				// System.out.println(event.count);
         scale.saveMinX = scale.minX;
         scale.saveMaxX = scale.maxX;
         scale.saveMinY = scale.minY;
