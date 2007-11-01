@@ -1535,6 +1535,9 @@ EnhancedDownloadManager
 	{
 		private long[]		piece_rtas;
 		
+		private long		last_buffer_size;
+		private long		last_buffer_size_time;
+		
 		private boolean		active;
 		
 		protected void
@@ -1604,7 +1607,7 @@ EnhancedDownloadManager
     	updateRTAs(
     		PiecePicker		picker )
     	{
-				// be force linear downloading until we have enough to allow the user to 
+				// force linear downloading until we have enough to allow the user to 
 				// potentially start playing. If they don't do so immediately then until that
 				// time we'll be doing normal BT download
 			
@@ -1618,7 +1621,81 @@ EnhancedDownloadManager
     			}
     		}
     		
-    		return( piece_rtas );
+    		long[]	rtas = piece_rtas;
+    		
+    		if ( rtas != null ){
+    		
+    			long	buffer_size = progressive_stats.getInitialBytesDownloaded();
+    			
+    			long	now = SystemTime.getCurrentTime();
+    			
+    			if ( last_buffer_size != buffer_size ){
+    				
+    				last_buffer_size = buffer_size;
+    				
+    				last_buffer_size_time = now;
+    				
+    			}else{
+    				
+    				if ( now < last_buffer_size_time ){
+    					
+    					last_buffer_size_time = now;
+    					
+    				}else{
+    					
+    					long	stalled_for = now - last_buffer_size_time;
+    					
+   						long	dl_speed = progressive_stats.getDownloadBytesPerSecond();
+   					 
+   						if ( dl_speed > 0 ){
+   							
+   							long	block_time = (DiskManager.BLOCK_SIZE * 1000) / dl_speed;
+   							
+   							if ( stalled_for > Math.max( 5000, 5*block_time )){
+    						
+   								long	target_rta = now + block_time;
+   								
+   								int	blocked_piece_index = (int)( buffer_size / dm.getPieceLength());
+   								
+   								DiskManagerPiece[] pieces = dm.getPieces();
+   								  								
+   								if ( blocked_piece_index < pieces.length ){
+   									  									
+   									if ( pieces[blocked_piece_index].isDone()){
+   										
+   										blocked_piece_index++;
+   										
+   										if ( blocked_piece_index < pieces.length ){
+   											
+   											if ( pieces[blocked_piece_index].isDone()){
+   												
+   												blocked_piece_index = -1;
+   											}
+   										}else{
+   											
+   											blocked_piece_index = -1;
+   										}
+   									}
+   								}
+   								
+   								if ( blocked_piece_index >= 0 ){
+   									
+   									long	existing_rta = rtas[blocked_piece_index];
+   									
+   									if ( target_rta < existing_rta ){
+   										
+   										rtas[blocked_piece_index] = target_rta;
+   										
+   										log( "Buffer provider: reprioritising lagging piece " + blocked_piece_index + " with rta " + block_time );
+   									}
+   								}
+   							}
+   						}
+    				}
+    			}
+    		}
+    		
+    		return( rtas );
     	}
     	
     	public long
@@ -1817,6 +1894,12 @@ EnhancedDownloadManager
 		protected abstract long
 		getStreamBytesPerSecondMin();
 
+		protected abstract long
+		getInitialBytesDownloaded();
+		
+		protected abstract long
+		getDownloadBytesPerSecond();
+		
 		protected abstract long
 		getETA();
 		
@@ -2188,6 +2271,18 @@ EnhancedDownloadManager
 			return( eta );
 		}
 	
+		public long
+		getInitialBytesDownloaded()
+		{
+			return( getInitialBytesDownloaded( Long.MAX_VALUE ));
+		}
+		
+		protected long 
+		getDownloadBytesPerSecond() 
+		{
+			return( (long)download_rate_average.getAverage());
+		}
+		
 		public long
 		getInitialBytesDownloaded(
 			long	stop_counting_after )
