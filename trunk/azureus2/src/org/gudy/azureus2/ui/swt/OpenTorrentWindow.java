@@ -1647,9 +1647,11 @@ public class OpenTorrentWindow
 			{
 				File newNameFile = new File(sNewName).getAbsoluteFile();
 				fileInfo.parent.sDestDir = newNameFile.getParent();
-				fileInfo.sDestFileName = newNameFile.getName();
-				if(fileInfo.sDestFileName.equals(fileInfo.sFileName))
+				String fileName = newNameFile.getName();
+				if(fileName.equals(fileInfo.sFileName))
 					fileInfo.sDestFileName = null;
+				else
+					fileInfo.sDestFileName = newNameFile.getPath();
 			}
 								
 		} // for i
