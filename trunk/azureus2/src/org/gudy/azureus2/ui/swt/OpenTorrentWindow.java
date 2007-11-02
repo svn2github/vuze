@@ -498,8 +498,8 @@ public class OpenTorrentWindow
 				int[] indexes = tableTorrents.getSelectionIndices();
 				for (int i = 0; i < indexes.length; i++) {
 					TorrentInfo info = (TorrentInfo) torrentList.get(indexes[i]);
-					if (!info.allFilesMoving())
-						info.sDestDir = sDestDir;
+					//if (!info.allFilesMoving())
+					info.sDestDir = sDestDir;
 				}
 
 				tableTorrents.clearAll();
@@ -721,7 +721,7 @@ public class OpenTorrentWindow
 		for (int i = 0; i < torrentList.size(); i++) {
 			TorrentInfo info = (TorrentInfo) torrentList.get(i);
 
-			file = new File(info.sDestDir);
+			file = new File(info.getDataDir());
 			if (!file.isDirectory() && !FileUtil.mkdirs(file)) {
 				Utils.openMessageBox(shellForChildren, SWT.OK | SWT.ICON_ERROR,
 						"OpenTorrentWindow.mb.noDestDir", new String[] {
@@ -1069,13 +1069,17 @@ public class OpenTorrentWindow
 				TorrentInfo info = (TorrentInfo) torrentList.get(index);
 				String sRealDestDir;
 
+				/*
 				TorrentFileInfo[] files = info.getFiles();
+				
 				if (files.length > 1 && !info.allFilesMoving()) {
-					File f = new File(info.sDestDir, info.getTorrentName());
+					File f = new File(info.getDataDir());
 					sRealDestDir = f.getAbsolutePath();
 				} else {
 					sRealDestDir = info.sDestDir;
-				}
+				}*/
+				
+				sRealDestDir = info.getDataDir();
 
 				item.setText(new String[] {
 					info.getTorrentName(),
@@ -1207,9 +1211,7 @@ public class OpenTorrentWindow
 
 					TorrentFileInfo[] files = info.getFiles();
 					if (files.length == 1) {
-						changeFileDestination(new int[] {
-							0
-						});
+						changeFileDestination(new int[] { 0 });
 					} else {
 						DirectoryDialog dDialog = new DirectoryDialog(shellForChildren,
 								SWT.SYSTEM_MODAL);
@@ -1221,10 +1223,18 @@ public class OpenTorrentWindow
 
 						if (sNewDir == null)
 							return;
-
-						info.sDestDir = sNewDir;
+						
+						File newDir = new File(sNewDir).getAbsoluteFile();
+						
+						info.sDestDir = newDir.getParent();
+						if(info.sDestDir == null)
+							info.sDestDir = newDir.getPath();
+						info.sDestSubDir = newDir.getName();
+						
 						for (int j = 0; j < files.length; j++) {
 							TorrentFileInfo fileInfo = files[j];
+							if(fileInfo.sDestFileName == null)
+								continue;
 							File file = new File(sNewDir, fileInfo.sFileName);
 							fileInfo.sDestFileName = file.getAbsolutePath();
 							String sNewPath = file.getParent();
@@ -1236,7 +1246,8 @@ public class OpenTorrentWindow
 				} // for i
 
 				checkSeedingMode();
-			diskFreeInfoRefreshPending = true;
+				updateDataDirCombo();
+				diskFreeInfoRefreshPending = true;
 			}
 		});
 
@@ -1363,7 +1374,7 @@ public class OpenTorrentWindow
 
 					String sFullPath;
 					if (fileInfo.sDestFileName == null) {
-						File f = new File(info.sDestDir, fileInfo.sFullFileName);
+						File f = new File(info.getDataDir(), fileInfo.sFullFileName);
 						sFullPath = f.getAbsolutePath();
 					} else {
 						sFullPath = fileInfo.sDestFileName;
@@ -1620,24 +1631,31 @@ public class OpenTorrentWindow
 
 			if (sNewName == null)
 				return;
-
-			if (fileInfo.parent.iStartID == STARTMODE_SEEDING) {
+			
+			if (fileInfo.parent.iStartID == STARTMODE_SEEDING)
+			{
 				File file = new File(sNewName);
 				if (file.length() == fileInfo.lSize)
 					fileInfo.sDestFileName = sNewName;
-				else {
-					Utils.openMessageBox(shellForChildren, SWT.OK,
-							"OpenTorrentWindow.mb.badSize", new String[] {
-								file.getName(),
-								fileInfo.sFullFileName
-							});
-				}
-			} else {
+				else
+					Utils.openMessageBox(shellForChildren, SWT.OK, "OpenTorrentWindow.mb.badSize", new String[] { file.getName(), fileInfo.sFullFileName });
+			} else
 				fileInfo.sDestFileName = sNewName;
+			
+			
+			if(fileInfo.parent.torrent.isSimpleTorrent())
+			{
+				File newNameFile = new File(sNewName).getAbsoluteFile();
+				fileInfo.parent.sDestDir = newNameFile.getParent();
+				fileInfo.sDestFileName = newNameFile.getName();
+				if(fileInfo.sDestFileName.equals(fileInfo.sFileName))
+					fileInfo.sDestFileName = null;
 			}
+								
 		} // for i
 
 		checkSeedingMode();
+		updateDataDirCombo();
 		diskFreeInfoRefreshPending = true;
 	}
 
@@ -2040,7 +2058,7 @@ public class OpenTorrentWindow
 				}
 
 				DownloadManager dm = gm.addDownloadManager(info.sFileName, hash,
-						info.sDestDir, iStartState, true,
+						info.sDestDir, info.sDestSubDir, iStartState, true,
 						info.iStartID == STARTMODE_SEEDING,
 						new DownloadManagerInitialisationAdapter() {
 							public void initialised(DownloadManager dm) {
@@ -2058,7 +2076,7 @@ public class OpenTorrentWindow
 											dm.getDownloadState().setFileLink(
 													fileInfo.getFile(false), fDest);
 										} else {
-											fDest = new File(info.sDestDir,
+											fDest = new File(info.getDataDir(),
 													files[iIndex].sFullFileName);
 										}
 
@@ -2224,6 +2242,8 @@ public class OpenTorrentWindow
 		String sFileName;
 
 		String sDestDir;
+		/** for multifiletorrents and change location */
+		String sDestSubDir;
 
 		TOTorrent torrent;
 
@@ -2268,6 +2288,16 @@ public class OpenTorrentWindow
 					&& !COConfigurationManager.getBooleanParameter(PARAM_MOVEWHENDONE)) {
 				this.sDestDir = getSmartDestDir();
 			}
+		}
+		
+		public String getParentDir() {
+			return sDestDir;
+		}
+		
+		public String getDataDir() {
+			if(torrent.isSimpleTorrent())
+				return sDestDir;
+			return new File(sDestDir, sDestSubDir == null ? getTorrentName() : sDestSubDir).getPath();			
 		}
 
 		public String getSmartDestDir() {
@@ -2399,7 +2429,7 @@ public class OpenTorrentWindow
 
 				String sFullPath;
 				if (fileInfo.sDestFileName == null) {
-					File f = new File(sDestDir, fileInfo.sFullFileName);
+					File f = new File(getDataDir(), fileInfo.sFullFileName);
 					sFullPath = f.getAbsolutePath();
 				} else {
 					sFullPath = fileInfo.sDestFileName;
@@ -2421,12 +2451,12 @@ public class OpenTorrentWindow
 			}
 
 			if (!torrent.isSimpleTorrent()) {
-				if (new File(sDestDir, getTorrentName()).isDirectory()) {
+				if (new File(getDataDir()).isDirectory()) {
 					File f;
 					int idx = 0;
 					do {
 						idx++;
-						f = new File(sDestDir, getTorrentName() + "-" + idx);
+						f = new File(getDataDir() + "-" + idx);
 					} while (f.isDirectory());
 
 					String sNewDir = f.getAbsolutePath();
@@ -2443,11 +2473,11 @@ public class OpenTorrentWindow
 				for (int i = 0; i < fileInfos.length; i++) {
 					TorrentFileInfo info = fileInfos[i];
 
-					File file = new File(sDestDir, info.sFileName);
+					File file = new File(getDataDir(), info.sFileName);
 					int idx = 0;
 					while (file.exists()) {
 						idx++;
-						file = new File(sDestDir, idx + "-" + info.sFileName);
+						file = new File(getDataDir(), idx + "-" + info.sFileName);
 					}
 
 					info.sDestFileName = file.getAbsolutePath();
@@ -2504,9 +2534,10 @@ public class OpenTorrentWindow
 	 */
 	private class TorrentFileInfo
 	{
-		String sFileName;
-
-		String sFullFileName;
+		/** file name as specified by the torrent */
+		final String sFileName;
+		/** relative path + full file name as specified by the torrent */
+		final String sFullFileName;
 
 		long lSize;
 
@@ -2537,12 +2568,14 @@ public class OpenTorrentWindow
 			isValid = true;
 
 			sFileName = torrentFile.getRelativePath(); // translated to locale
+			sFullFileName = sFileName;
+			/*
 			if (parent.torrent.isSimpleTorrent()) {
 				sFullFileName = sFileName;
 			} else {
 				sFullFileName = parent.getTorrentName() + File.separator
 						+ torrentFile.getRelativePath();
-			}
+			}*/
 		}
 
 		public String getDestPath() {
@@ -2550,16 +2583,16 @@ public class OpenTorrentWindow
 				return new File(sDestFileName).getParent();
 
 			if (parent.torrent.isSimpleTorrent())
-				return parent.sDestDir;
+				return parent.getParentDir();
 
-			return new File(parent.sDestDir, sFullFileName).getParent();
+			return new File(parent.getParentDir(), sFullFileName).getParent();
 		}
 		
 		public File getDestFile() {
 			if (sDestFileName != null) {
 				return new File(sDestFileName);
 			} else {
-				return new File(parent.sDestDir, sFullFileName);
+				return new File(parent.getParentDir(), sFullFileName);
 			}
 		}
 

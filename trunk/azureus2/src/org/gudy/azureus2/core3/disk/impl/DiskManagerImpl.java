@@ -2624,6 +2624,10 @@ DiskManagerImpl
         }
 
         String  root_dir = download_manager.getAbsoluteSaveLocation().getParent();
+        
+        if(root_dir == null) // in case we alraedy are at the root
+        	root_dir = download_manager.getAbsoluteSaveLocation().getPath();
+        
 
         if ( !torrent.isSimpleTorrent()){
 

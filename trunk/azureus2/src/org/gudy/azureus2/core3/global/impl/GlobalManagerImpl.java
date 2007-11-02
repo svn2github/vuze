@@ -546,18 +546,33 @@ public class GlobalManagerImpl
 	 	return addDownloadManager(fileName, optionalHash, savePath, initialState,
 				persistent, false, null);
 	}
+
+	  public DownloadManager 
+	  addDownloadManager(
+	  		String torrent_file_name, 
+	  		byte[] optionalHash,
+			String savePath,
+			int initialState, 
+			boolean persistent, 
+			boolean for_seeding,
+			DownloadManagerInitialisationAdapter _adapter )
+	  {
+		  return addDownloadManager(torrent_file_name, optionalHash, savePath, null, initialState, persistent, for_seeding, _adapter);
+	  }
+	
 	
   /**
-   * @return true, if the download was added
-   *
-   * @author Rene Leonhardt
-   */
+	 * @return true, if the download was added
+	 * 
+	 * @author Rene Leonhardt
+	 */
 	
   public DownloadManager 
   addDownloadManager(
   		String torrent_file_name, 
   		byte[] optionalHash,
-		String savePath, 
+		String savePath,
+		String saveFile,
 		int initialState, 
 		boolean persistent, 
 		boolean for_seeding,
@@ -677,7 +692,7 @@ public class GlobalManagerImpl
 			// now do the creation!
 
 			DownloadManager new_manager = DownloadManagerFactory.create(this,
-					optionalHash, fName, savePath, initialState, persistent, for_seeding,
+					optionalHash, fName, savePath, saveFile, initialState, persistent, for_seeding,
 					file_priorities, adapter);
 
 			manager = addDownloadManager(new_manager, true, true);
@@ -693,13 +708,13 @@ public class GlobalManagerImpl
 					+ torrentDir + ", fd = " + fDest);
 			Debug.printStackTrace(e);
 			manager = DownloadManagerFactory.create(this, optionalHash,
-					torrent_file_name, savePath, initialState, persistent, for_seeding,
+					torrent_file_name, savePath, saveFile, initialState, persistent, for_seeding,
 					file_priorities, adapter);
 			manager = addDownloadManager(manager, true, true);
 		} catch (Exception e) {
 			// get here on duplicate files, no need to treat as error
 			manager = DownloadManagerFactory.create(this, optionalHash,
-					torrent_file_name, savePath, initialState, persistent, for_seeding,
+					torrent_file_name, savePath, saveFile, initialState, persistent, for_seeding,
 					file_priorities, adapter);
 			manager = addDownloadManager(manager, true, true);
 		} finally {

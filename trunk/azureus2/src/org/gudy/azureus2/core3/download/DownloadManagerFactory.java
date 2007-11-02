@@ -41,14 +41,15 @@ DownloadManagerFactory
 		GlobalManager 							gm, 
 		byte[]									torrent_hash,
 		String 									torrentFileName, 
-		String 									savePath, 
+		String 									savePath,
+		String									saveFile,
 		int      								initialState,
 		boolean									persistent,
 		boolean									for_seeding,
 		List									file_priorities,
 		DownloadManagerInitialisationAdapter 	adapter )
 	{
-		return( new DownloadManagerImpl( gm, torrent_hash, torrentFileName, savePath, null, initialState, persistent, false, for_seeding, false, file_priorities, adapter ));
+		return( new DownloadManagerImpl( gm, torrent_hash, torrentFileName, savePath, saveFile, initialState, persistent, false, for_seeding, false, file_priorities, adapter ));
 	}
 	
 		// recovery method

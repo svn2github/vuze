@@ -37,7 +37,7 @@ public class Main {
     String torrentFile = args[args.length - 2];
     String path = args[args.length - 1];
 
-    DownloadManager manager = DownloadManagerFactory.create(null, null, torrentFile, path, DownloadManager.STATE_WAITING, false, false, null, null );
+    DownloadManager manager = DownloadManagerFactory.create(null, null, torrentFile, path, null, DownloadManager.STATE_WAITING, false, false, null, null );
     manager.initialize();    
     while (true) {
       StringBuffer buf = new StringBuffer();

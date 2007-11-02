@@ -62,6 +62,28 @@ public interface GlobalManager extends AzureusCoreComponent {
 	public DownloadManager addDownloadManager(String fileName, byte[]	optionalHash,
 			String savePath, int initialState, boolean persistent);
 
+	
+	/**
+	 * Create and add a Download Manager to the global list
+	 * 
+	 * @param fileName location and name of torrent file
+	 * @param savePath path to write the data to
+	 * @param safeFile subdirectory or filename to write the data to
+	 * @param initialState Initial state of download. See DownloadManager.STATE_*
+	 * @param persistent Whether the download should be treated as persistent download
+	 * @param for_seeding Whether the manager should assume the torrent is 
+	 *                     already complete and ready for seeding. 
+	 * 
+	 * @return The Downloadmanger based on the supplied information.<br>
+	 *          May return an existing DownloadManager if torrent was already
+	 *          in GlobalManager. 
+	 */
+	public DownloadManager addDownloadManager(String fileName,
+			byte[] optionalHash, String savePath, String saveFile,
+			int initialState, boolean persistent, boolean for_seeding, 
+			DownloadManagerInitialisationAdapter adapter );
+	
+	
 	/**
 	 * Create and add a Download Manager to the global list
 	 * 

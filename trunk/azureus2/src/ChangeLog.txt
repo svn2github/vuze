@@ -16,8 +16,11 @@ CHANGE: Core  | Revised piece picking code to deal better with some edge cases a
 CHANGE: UI    | Added private torrent indicator to the general tab [The 8472]
 CHANGE: Core  | Attempt to re-open a file when access fails to try and recover from a transient error [Parg]
 CHANGE: Core  | Auto speed default is now the beta algorithm [Parg]
+CHANGE: Core  | Share Ratio/min Seeds ignore rule now applies even when no tracker scrape is available [The 8472]
 
 BUGFIX: UI    | Don't hang UI redraw if file access is slow [Parg]
+BUGFIX: UI    | Fixed inconsistencies in the Torrent Open Dialog related to renaming and retargeting files and directories [The 8472]  
+
 
 2007.10.04 | Azureus 3.0.3.4
 
