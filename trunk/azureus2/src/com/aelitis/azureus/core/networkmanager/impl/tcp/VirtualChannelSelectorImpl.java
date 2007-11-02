@@ -88,6 +88,7 @@ public class VirtualChannelSelectorImpl {
     private static final int WRITE_SELECTOR_DEBUG_MAX_TIME		= 20000;
     
     private long last_write_select_debug;
+    private long last_select_debug;
     
     public VirtualChannelSelectorImpl( VirtualChannelSelector _parent, int _interest_op, boolean _pause_after_select ) {	
       this.parent = _parent;
@@ -480,7 +481,14 @@ public class VirtualChannelSelectorImpl {
         count = selector.select( timeout );
       }
       catch (Throwable t) {
-        Debug.out( "Caught exception on selector.select() op: " +t.getMessage(), t );
+    	long	now = SystemTime.getCurrentTime();
+    	  
+    	if ( last_select_debug > now || now - last_select_debug > 5000 ){
+    		
+    		last_select_debug = now;
+    		
+    		Debug.out( "Caught exception on selector.select() op: " +t.getMessage(), t );
+    	}
         try {  Thread.sleep( timeout );  }catch(Throwable e) { e.printStackTrace(); }
       }
       
