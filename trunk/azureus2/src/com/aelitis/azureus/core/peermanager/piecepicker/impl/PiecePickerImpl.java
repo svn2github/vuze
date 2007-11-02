@@ -1315,7 +1315,7 @@ implements PiecePicker
 			}
 		}
 
-		if ( piece_min_rta_index != -1 ){
+		if ( piece_min_rta_index != -1 && dispenser.dispense(1, DiskManager.BLOCK_SIZE) == 1){
 
 			PEPiece pePiece = pePieces[piece_min_rta_index];
 
@@ -1347,7 +1347,7 @@ implements PiecePicker
 			}
 
 			pePiece.getAndMarkBlock( pt, piece_min_rta_block );
-
+			
 			DiskManagerReadRequest	request = pt.request(piece_min_rta_index, piece_min_rta_block *DiskManager.BLOCK_SIZE, pePiece.getBlockSize(piece_min_rta_block));
 
 			if ( request != null ){
@@ -1364,7 +1364,8 @@ implements PiecePicker
 				pt.setLastPiece(piece_min_rta_index);
 
 				pePiece.setLastRequestedPeerSpeed( peerSpeed );
-			}
+			} else
+				dispenser.returnUnusedChunks(1, DiskManager.BLOCK_SIZE);
 
 			return( true );
 
