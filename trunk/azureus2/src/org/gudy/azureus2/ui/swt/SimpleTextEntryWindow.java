@@ -55,7 +55,7 @@ public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
 	}
 	
 	protected void promptForInput() {
-		final Shell shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+		final Shell shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(Utils.findAnyShell(), SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 
 		if (this.title != null) {
 			shell.setText(this.title);
