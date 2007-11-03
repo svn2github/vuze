@@ -381,6 +381,12 @@ public class MyTorrentsView
         		if (e.keyCode == SWT.ARROW_DOWN) {
         			tv.setFocus();
         			e.doit = false;
+        		} else if (e.character == 13) {
+        			if (searchUpdateEvent != null) {
+        				searchUpdateEvent.cancel();
+        			}
+        			searchUpdateEvent = null;
+        			activateCategory(currentCategory);
         		}
         	}
         });
@@ -1226,6 +1232,10 @@ public class MyTorrentsView
 				SystemTime.getOffsetTime(ASYOUTYPE_UPDATEDELAY),
 				new TimerEventPerformer() {
 					public void perform(TimerEvent event) {
+						if (searchUpdateEvent.isCancelled()) {
+							searchUpdateEvent = null;
+							return;
+						}
 						searchUpdateEvent = null;
 						activateCategory(currentCategory);
 					}
@@ -1582,7 +1592,8 @@ public class MyTorrentsView
 		tv.removeDataSources(listRemoves.toArray());
 		tv.addDataSources(listAdds.toArray());
 		
-    tv.refreshTable(false);
+  	tv.processDataSourceQueue();
+		//tv.refreshTable(false);
 	}
   
   private boolean isInCategory(DownloadManager manager, Category category) {
