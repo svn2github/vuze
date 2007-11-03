@@ -1837,6 +1837,7 @@ public class TableViewSWTImpl
 					}
 				}, false);
 			}
+
 		} catch (Exception e) {
 			bReallyAddingDataSources = false;
 			e.printStackTrace();
@@ -1848,6 +1849,8 @@ public class TableViewSWTImpl
 			bReallyAddingDataSources = false;
 			return;
 		}
+
+		mainComposite.getParent().setCursor(table.getDisplay().getSystemCursor(SWT.CURSOR_WAIT));
 
 		TableRowCore[] selectedRows = getSelectedRows();
 
@@ -2018,6 +2021,8 @@ public class TableViewSWTImpl
 		setSelectedRows(selectedRows);
 		if (DEBUGADDREMOVE)
 			debug("<< " + sortedRows.size());
+
+		mainComposite.getParent().setCursor(null);
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#removeDataSource(java.lang.Object, boolean)
@@ -2078,6 +2083,8 @@ public class TableViewSWTImpl
 				if (table == null || table.isDisposed()) {
 					return;
 				}
+				
+				mainComposite.getParent().setCursor(table.getDisplay().getSystemCursor(SWT.CURSOR_WAIT));
 
 				StringBuffer sbWillRemove = null;
 				if (DEBUGADDREMOVE) {
@@ -2140,15 +2147,24 @@ public class TableViewSWTImpl
 					}
 				}
 
+				if (DEBUGADDREMOVE) {
+					debug("-- Removed from map and list");
+				}
 				// Remove the rows from SWT first.  On SWT 3.2, this currently has 
 				// zero perf gain, and a small perf gain on Windows.  However, in the
 				// future it may be optimized.
 				if (swtItemsToRemove.size() > 0) {
-					int[] swtRowsToRemove = new int[swtItemsToRemove.size()];
-					for (int i = 0; i < swtItemsToRemove.size(); i++) {
-						swtRowsToRemove[i] = ((Long) swtItemsToRemove.get(i)).intValue();
-					}
-					table.remove(swtRowsToRemove);
+//					int[] swtRowsToRemove = new int[swtItemsToRemove.size()];
+//					for (int i = 0; i < swtItemsToRemove.size(); i++) {
+//						swtRowsToRemove[i] = ((Long) swtItemsToRemove.get(i)).intValue();
+//					}
+//					table.remove(swtRowsToRemove);
+					// refreshVisibleRows should fix up the display
+					table.setItemCount(mapDataSourceToRow.size());
+				}
+
+				if (DEBUGADDREMOVE) {
+					debug("-- Removed from SWT");
 				}
 
 				// Finally, delete the rows
@@ -2164,6 +2180,7 @@ public class TableViewSWTImpl
 				if (DEBUGADDREMOVE)
 					debug("<< Remove " + itemsToRemove.size() + " rows. now "
 							+ mapDataSourceToRow.size() + "ds; tc=" + table.getItemCount());
+				mainComposite.getParent().setCursor(null);
 			}
 		});
 
