@@ -30,6 +30,9 @@ package org.gudy.azureus2.ui.swt;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
@@ -62,6 +65,8 @@ public class Sleak
 	Object[] objects = new Object[0];
 
 	Error[] errors = new Error[0];
+	
+	Map all = new HashMap();
 	
 	ArrayList oldNonResources = new ArrayList();
 
@@ -253,12 +258,18 @@ public class Sleak
 	}
 
 	String objectName(Object object) {
-		String string = object.toString();
+		Date timeAdded = (Date)all.get(object);
+		if (timeAdded == null) {
+			timeAdded = new Date();
+			all.put(object, timeAdded);
+		}
+
+		String string = timeAdded + "] " + object.toString();
 		if (object instanceof Resource) {
 			return string;
 		}
 
-		int index = string.indexOf(' ');
+		int index = string.indexOf(" {");
 		if (index == -1) {
 			return string;
 		}
@@ -346,7 +357,6 @@ public class Sleak
 			gc.drawString(string, 0, 0);
 			return;
 		}
-
 		if (object instanceof Control) {
 			gc.drawString(object.toString(), 0, 0);
 			gc.drawString(((Control) object).getBounds().toString(), 0, 20);
