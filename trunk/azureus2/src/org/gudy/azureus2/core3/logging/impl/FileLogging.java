@@ -176,6 +176,17 @@ public class FileLogging implements ILogEventListener {
 	
 	private void checkAndSwapLog()
 	{
+		if (!bLogToFile)
+		{
+			if(logFilePrinter != null)
+			{
+				logFilePrinter.close();
+				logFilePrinter = null;
+			}
+			return;
+		}
+			
+		
 		long lMaxBytes = (iLogFileMaxMB * 1024 * 1024) / 2;
 		File logFile = new File(sLogDir + File.separator + LOG_FILE_NAME);
 		
