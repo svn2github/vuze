@@ -3310,6 +3310,7 @@ implements PEPeerTransport
 			System.out.println("reconnected to peer (new) "+this+" (old) "+oldTransport);
 			peerSessionID = oldTransport.peerSessionID;
 			peer_stats = oldTransport.peer_stats;
+			peer_stats.setPeer(this);
 			unchokedTimeTotal += oldTransport.unchokedTimeTotal;
 			unchokedTime += oldTransport.unchokedTime;
 			setSnubbed(oldTransport.isSnubbed());
