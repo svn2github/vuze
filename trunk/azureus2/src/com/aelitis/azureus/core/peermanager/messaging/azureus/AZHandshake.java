@@ -48,6 +48,8 @@ public class AZHandshake implements AZMessage {
   private String description = null;
   
   private final byte[] identity;
+  private final HashWrapper sessionID;
+  private final HashWrapper reconnectID;
   private final String client;
   private final String client_version;
   private final String[] avail_ids;
@@ -59,6 +61,8 @@ public class AZHandshake implements AZMessage {
   
   
   public AZHandshake( byte[] peer_identity,
+	  				  HashWrapper sessionID,
+	  				  HashWrapper reconnectID,
                       String _client,
                       String version,
                       int tcp_listen_port,
@@ -70,6 +74,8 @@ public class AZHandshake implements AZMessage {
                       byte _version ) {
     
     this.identity = peer_identity;
+    this.sessionID = sessionID;
+    this.reconnectID = reconnectID;
     this.client = _client;
     this.client_version = version;
     this.avail_ids = avail_msg_ids;
@@ -100,6 +106,9 @@ public class AZHandshake implements AZMessage {
   
   
   public byte[] getIdentity() {  return identity;  }
+  public HashWrapper getRemoteSessionID() { return sessionID; }
+  public HashWrapper getReconnectSessionID() { return reconnectID; }
+  
   
   public String getClient() {  return client;  }
   
@@ -153,6 +162,10 @@ public class AZHandshake implements AZMessage {
       
       //client info
       payload_map.put( "identity", identity );
+      if(sessionID != null)
+    	  payload_map.put( "session", sessionID.getBytes());
+      if(reconnectID != null)
+    	  payload_map.put( "reconn", reconnectID.getBytes());
       payload_map.put( "client", client );
       payload_map.put( "version", client_version );
       payload_map.put( "tcp_port", new Long( tcp_port ) );
@@ -198,6 +211,9 @@ public class AZHandshake implements AZMessage {
     byte[] id = (byte[])root.get( "identity" );
     if( id == null )  throw new MessageException( "id == null" );
     if( id.length != 20 )  throw new MessageException( "id.length != 20: " +id.length );
+    
+    byte[] session = (byte[])root.get("session");
+    byte[] reconnect = (byte[])root.get("reconn");
       
     byte[] raw_name = (byte[])root.get( "client" );
     if( raw_name == null )  throw new MessageException( "raw_name == null" );
@@ -251,7 +267,7 @@ public class AZHandshake implements AZMessage {
       pos++;
     }
 
-    return new AZHandshake( id, name, client_version, tcp_lport.intValue(), udp_lport.intValue(), udp2_lport.intValue(), ids, vers, h_type.intValue(), version );
+    return new AZHandshake( id, session == null ? null : new HashWrapper(session),reconnect == null ? null : new HashWrapper(reconnect), name, client_version, tcp_lport.intValue(), udp_lport.intValue(), udp2_lport.intValue(), ids, vers, h_type.intValue(), version );
   }
   
   

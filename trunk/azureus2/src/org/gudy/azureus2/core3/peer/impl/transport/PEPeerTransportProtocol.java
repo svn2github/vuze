@@ -23,6 +23,7 @@ package org.gudy.azureus2.core3.peer.impl.transport;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.security.SecureRandom;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.*;
@@ -65,7 +66,7 @@ implements PEPeerTransport
 	protected final PiecePicker		piecePicker;
 
 	protected final int		nbPieces;
-
+	
 	private final String			peer_source;
 	private byte[] peer_id;
 	private final String ip;
@@ -81,7 +82,7 @@ implements PEPeerTransport
 
 	private byte	crypto_level;
 
-	protected final PEPeerStats peer_stats;
+	protected PEPeerStats peer_stats;
 
 	private final ArrayList requested = new ArrayList();
 	private final AEMonitor	requested_mon = new AEMonitor( "PEPeerTransportProtocol:Req" );
@@ -196,8 +197,17 @@ implements PEPeerTransport
 	//certain Optimum Online networks block peer seeding via "complete" bitfield message filtering
 	//lazy mode makes sure we never send a complete (seed) bitfield
 	protected static boolean ENABLE_LAZY_BITFIELD;
+	
+	private static final Random rnd = new SecureRandom();	
+	private static Map recentlyDisconnected = new LinkedHashMap(20,0.75F) {
+		protected boolean removeEldestEntry(Map.Entry eldest) {
+			return size() > 20;
+		}
+	};
 
 	static {
+		
+		rnd.setSeed(SystemTime.getCurrentTime());	
 
 		COConfigurationManager.addAndFireParameterListeners(
 				new String[]{ "Use Lazy Bitfield" },
@@ -215,7 +225,25 @@ implements PEPeerTransport
 					}
 				});
 	}
+	
+	
 
+	// reconnect stuff
+	private HashWrapper peerSessionID;
+	private HashWrapper mySessionID;
+	{
+		byte[] newSession = new byte[20];
+		synchronized (rnd)
+		{
+			rnd.nextBytes(newSession);				
+		}
+		mySessionID = new HashWrapper(newSession);	
+	}
+
+	// allow reconnect if we've sent or recieved at least 1 piece over the current connection
+	private boolean allowReconnect; 
+
+	
 
 	private boolean is_optimistic_unchoke = false;
 
@@ -590,11 +618,10 @@ implements PEPeerTransport
 		try{
 			closing_mon.enter();
 
-			if( closing ){        
+			if( closing )        
 				return;
-			}
-
 			closing = true;
+			
 			// immediatly lose interest in peer
 			interested_in_other_peer =false;
 			lastNeededUndonePieceChange =Long.MAX_VALUE;
@@ -603,21 +630,33 @@ implements PEPeerTransport
 				manager.decNbPeersSnubbed();
 
 			if( identityAdded ) {  //remove identity
-				if( peer_id != null ) {
+				if( peer_id != null )
 					PeerIdentityManager.removeIdentity( manager.getPeerIdentityDataID(), peer_id, getPort());
-				}
-				else {
+				else
 					Debug.out( "PeerIdentity added but peer_id == null !!!" );
-				}    	
-
 				identityAdded	= false;
 			}
 
 			changePeerState( PEPeer.CLOSING );
-
+						
 		}finally{
 			closing_mon.exit();
 		}
+		
+		boolean reconnecting = false;
+		
+		/*
+		 * try to reconnect if
+		 * - the the disconnect was not intentional
+		 * - the connection is in a state where we would like to reconnect
+		 * - we hit a low watermark in the # of connections (requires per-torrent max connections to be set) 
+		 */
+		if(!connect_failed && !externally_closed && network_failure
+			&& allowReconnect && manager.getMaxConnections() > 0 && manager.getMaxNewConnectionsAllowed() > manager.getMaxConnections()/3)
+		{
+			reconnecting = true;
+		}
+		
 
 		//cancel any pending requests (on the manager side)
 		cancelRequests();
@@ -652,7 +691,24 @@ implements PEPeerTransport
 		if( !externally_closed ) {  //if closed internally, notify manager, otherwise we assume it already knows
 			manager.peerConnectionClosed( this, connect_failed, network_failure );
 		}
-
+		
+		/*
+		 *  all managed references should have been removed by now
+		 *  add to recently disconnected list and null some stuff to make the object lighter
+		 */
+		
+		outgoing_have_message_aggregator = null;
+		peer_exchange_item = null;
+		outgoing_piece_message_handler = null;
+		
+		
+		synchronized (recentlyDisconnected)
+		{
+			recentlyDisconnected.put(mySessionID, this);
+		}
+		
+		if(reconnecting)
+			reconnectInternally(true);
 	}
 
 
@@ -725,27 +781,35 @@ implements PEPeerTransport
 
 	private void sendAZHandshake() {
 		final Message[] avail_msgs = MessageManager.getSingleton().getRegisteredMessages();
-		final String[] avail_ids = new String[ avail_msgs.length ];
-		final byte[] avail_vers = new byte[ avail_msgs.length ];
-
-		for( int i=0; i < avail_msgs.length; i++ ) {
+		final String[] avail_ids = new String[avail_msgs.length];
+		final byte[] avail_vers = new byte[avail_msgs.length];
+		
+		for (int i = 0; i < avail_msgs.length; i++)
+		{
 			avail_ids[i] = avail_msgs[i].getID();
-      avail_vers[i] = avail_msgs[i].getVersion();
+			avail_vers[i] = avail_msgs[i].getVersion();
 		}
-
+		
 		int local_tcp_port = TCPNetworkManager.getSingleton().getTCPListeningPortNumber();
 		int local_udp_port = UDPNetworkManager.getSingleton().getUDPListeningPortNumber();
 		int local_udp2_port = UDPNetworkManager.getSingleton().getUDPNonDataListeningPortNumber();
 		String tcpPortOverride = COConfigurationManager.getStringParameter("TCP.Listen.Port.Override");
+		
 		try
 		{
 			local_tcp_port = Integer.parseInt(tcpPortOverride);
-		} catch (NumberFormatException e) {} // ignore as invalid input
+		} catch (NumberFormatException e)
+		{} // ignore as invalid input
+		
+		boolean require_crypto = NetworkManager.getCryptoRequired(manager.getAdapter().getCryptoLevel());
 
-    boolean require_crypto = NetworkManager.getCryptoRequired( manager.getAdapter().getCryptoLevel());
-    
+		if(peerSessionID != null)
+			System.out.println("sending reconnect request with id:"+peerSessionID.toBase32String());
+  
 		AZHandshake az_handshake = new AZHandshake(
 				AZPeerIdentityManager.getAZPeerIdentity(),
+				mySessionID,
+				peerSessionID,
 				Constants.AZUREUS_NAME,
 				Constants.AZUREUS_VERSION,
 				local_tcp_port,
@@ -1563,7 +1627,10 @@ implements PEPeerTransport
 				last_data_message_received_time =now;
 			if (now -last_message_received_time >5*60*1000
 					&&now -last_data_message_received_time >5*60*1000) { //5min timeout
-				closeConnectionInternally( "timed out while waiting for messages" );
+				// assume this is due to a network failure
+				// e.g. something that didn't close the TCP socket properly
+				// will attempt reconnect
+				closeConnectionInternally( "timed out while waiting for messages", false, true );
 				return true;
 			}
 		}
@@ -1878,7 +1945,7 @@ implements PEPeerTransport
 		else {
 			this.client = ClientIdentifier.identifyBTOnly(this.client_peer_id, this.handshake_reserved_bytes);
 		}
-
+		
 		handshake.destroy();
 
 
@@ -1892,6 +1959,8 @@ implements PEPeerTransport
 		 */
 
 		if( messaging_mode != MESSAGING_AZMP ) {  //otherwise we'll do this after receiving az handshake
+			
+			generateFallbackSessionId();
 
 			connection.getIncomingMessageQueue().resumeQueueProcessing();  //HACK: because BT decoder is auto-paused after initial handshake, so it doesn't accidentally decode the next AZ message
 
@@ -2006,96 +2075,102 @@ implements PEPeerTransport
 	  handshake.destroy();
   }
   
-  protected void decodeAZHandshake( AZHandshake handshake ) {
+  protected void decodeAZHandshake(AZHandshake handshake) {
 		this.client_handshake = handshake.getClient();
 		this.client_handshake_version = handshake.getClientVersion();
 		this.client = ClientIdentifier.identifyAZMP(this.client_peer_id, client_handshake, client_handshake_version, this.peer_id);
 
-		if( handshake.getTCPListenPort() > 0 ) {  //use the ports given in handshake
+		if (handshake.getTCPListenPort() > 0)
+		{ // use the ports given in handshake
 			tcp_listen_port = handshake.getTCPListenPort();
 			udp_listen_port = handshake.getUDPListenPort();
 			udp_non_data_port = handshake.getUDPNonDataListenPort();
 			final byte type = handshake.getHandshakeType() == AZHandshake.HANDSHAKE_TYPE_CRYPTO ? PeerItemFactory.HANDSHAKE_TYPE_CRYPTO : PeerItemFactory.HANDSHAKE_TYPE_PLAIN;
 
-			//remake the id using the peer's remote listen port instead of their random local port
-			peer_item_identity = PeerItemFactory.createPeerItem( ip, tcp_listen_port, PeerItem.convertSourceID( peer_source ), type, udp_listen_port, crypto_level, 0 );
+			// remake the id using the peer's remote listen port instead of
+			// their random local port
+			peer_item_identity = PeerItemFactory.createPeerItem(ip, tcp_listen_port, PeerItem.convertSourceID(peer_source), type, udp_listen_port, crypto_level, 0);
 		}
 
-    String[]	supported_message_ids		= handshake.getMessageIDs();
-    byte[] 		supported_message_versions 	= handshake.getMessageVersions();
+		
+		if(handshake.getReconnectSessionID() != null)
+		{
+			System.out.println("received reconnect request ID:"+handshake.getReconnectSessionID().toBase32String());
+			checkForReconnect(handshake.getReconnectSessionID());
+		}
+			
+		if(handshake.getRemoteSessionID() != null)
+		{
+			System.out.println("received remote session ID:"+handshake.getRemoteSessionID().toBase32String());
+			peerSessionID = handshake.getRemoteSessionID();
+		}
+			 
+
+		String[] supported_message_ids = handshake.getMessageIDs();
+		byte[] supported_message_versions = handshake.getMessageVersions();
     
 		//find mutually available message types
 		final ArrayList messages = new ArrayList();
 
-		for( int i=0; i < handshake.getMessageIDs().length; i++ ) {
-      Message msg = MessageManager.getSingleton().lookupMessage( supported_message_ids[i] );
-
-			if( msg != null ) {  //mutual support!
-				messages.add( msg );
-        
-        String	id 					= msg.getID();
-        byte	supported_version 	= supported_message_versions[i];
-        
-        	// we can use == safely
-        
-        if ( id == BTMessage.ID_BT_BITFIELD ){
-        	other_peer_bitfield_version = supported_version;
-        }else if ( id == BTMessage.ID_BT_CANCEL ){
-        	other_peer_cancel_version = supported_version;
-        }else if ( id == BTMessage.ID_BT_CHOKE ){
-        	other_peer_choke_version = supported_version;
-        }else if ( id == BTMessage.ID_BT_HANDSHAKE ){
-        	other_peer_handshake_version = supported_version;
-        }else if ( id == BTMessage.ID_BT_HAVE ){
-        	other_peer_bt_have_version = supported_version;
-        }else if ( id == BTMessage.ID_BT_INTERESTED ){
-        	other_peer_interested_version = supported_version;
-        }else if ( id == BTMessage.ID_BT_KEEP_ALIVE ){
-        	other_peer_keep_alive_version = supported_version;
-        }else if ( id == BTMessage.ID_BT_PIECE ){
-        	other_peer_piece_version = supported_version;
-         }else if ( id == BTMessage.ID_BT_UNCHOKE ){
-        	other_peer_unchoke_version = supported_version;
-        }else if ( id == BTMessage.ID_BT_UNINTERESTED ){
-        	other_peer_uninterested_version = supported_version;
-        }else if ( id == BTMessage.ID_BT_REQUEST ){
-        	other_peer_request_version = supported_version;
-        }else if ( id == AZMessage.ID_AZ_PEER_EXCHANGE ){
-        	other_peer_pex_version = supported_version;
-        }else if ( id == AZMessage.ID_AZ_REQUEST_HINT ){
-        	other_peer_az_request_hint_version = supported_version;
-        }else if ( id == AZMessage.ID_AZ_HAVE ){
-        	other_peer_az_have_version = supported_version;
-        }else if ( id == AZMessage.ID_AZ_BAD_PIECE ){
-        	other_peer_az_bad_piece_version = supported_version;
-        }else{
-        	// we expect unmatched ones here at the moment as we're not dealing with them yet or they don't make sense.
-        	// for example AZVER
-        }
+		for (int i = 0; i < handshake.getMessageIDs().length; i++)
+		{
+			Message msg = MessageManager.getSingleton().lookupMessage(supported_message_ids[i]);
+			if (msg != null)
+			{ // mutual support!
+				messages.add(msg);
+				
+				String id = msg.getID();
+				byte supported_version = supported_message_versions[i];
+				
+				// we can use == safely
+				if (id == BTMessage.ID_BT_BITFIELD)
+					other_peer_bitfield_version = supported_version;
+				else if (id == BTMessage.ID_BT_CANCEL)
+					other_peer_cancel_version = supported_version;
+				else if (id == BTMessage.ID_BT_CHOKE)
+					other_peer_choke_version = supported_version;
+				else if (id == BTMessage.ID_BT_HANDSHAKE)
+					other_peer_handshake_version = supported_version;
+				else if (id == BTMessage.ID_BT_HAVE)
+					other_peer_bt_have_version = supported_version;
+				else if (id == BTMessage.ID_BT_INTERESTED)
+					other_peer_interested_version = supported_version;
+				else if (id == BTMessage.ID_BT_KEEP_ALIVE)
+					other_peer_keep_alive_version = supported_version;
+				else if (id == BTMessage.ID_BT_PIECE)
+					other_peer_piece_version = supported_version;
+				else if (id == BTMessage.ID_BT_UNCHOKE)
+					other_peer_unchoke_version = supported_version;
+				else if (id == BTMessage.ID_BT_UNINTERESTED)
+					other_peer_uninterested_version = supported_version;
+				else if (id == BTMessage.ID_BT_REQUEST)
+					other_peer_request_version = supported_version;
+				else if (id == AZMessage.ID_AZ_PEER_EXCHANGE)
+					other_peer_pex_version = supported_version;
+				else if (id == AZMessage.ID_AZ_REQUEST_HINT)
+					other_peer_az_request_hint_version = supported_version;
+				else if (id == AZMessage.ID_AZ_HAVE)
+					other_peer_az_have_version = supported_version;
+				else if (id == AZMessage.ID_AZ_BAD_PIECE)
+					other_peer_az_bad_piece_version = supported_version;
+				else
+				{
+					// we expect unmatched ones here at the moment as we're not
+					// dealing with them yet or they don't make sense.
+					// for example AZVER
+				}
 			}
 		}
 
-		supported_messages = (Message[])messages.toArray( new Message[messages.size()] );
-    
-    outgoing_piece_message_handler.setPieceVersion( other_peer_piece_version );
-
-    outgoing_have_message_aggregator.setHaveVersion( other_peer_bt_have_version, other_peer_az_have_version );
-
-		changePeerState( PEPeer.TRANSFERING );
-
+		supported_messages = (Message[]) messages.toArray(new Message[messages.size()]);
+		outgoing_piece_message_handler.setPieceVersion(other_peer_piece_version);
+		outgoing_have_message_aggregator.setHaveVersion(other_peer_bt_have_version, other_peer_az_have_version);
+		changePeerState(PEPeer.TRANSFERING);
 		connection_state = PEPeerTransport.CONNECTION_FULLY_ESTABLISHED;
-
 		sendBitField();
-
 		handshake.destroy();
-
 		addAvailability();
 	}
-
-
-
-
-
 
 
 	protected void decodeBitfield( BTBitfield bitfield )
@@ -2369,6 +2444,7 @@ implements PEPeerTransport
 
 		if( !choking_other_peer ) {
 			outgoing_piece_message_handler.addPieceRequest( number, offset, length );
+			allowReconnect = true;
 		}
 		else {
 			if (Logger.isEnabled())
@@ -2523,9 +2599,9 @@ implements PEPeerTransport
 		}
 
 		if( piece_error )
-		{
 			piece.destroy();
-		}
+		else
+			allowReconnect = true;		
 	}
 
 
@@ -3177,6 +3253,11 @@ implements PEPeerTransport
 	public PEPeerTransport
 	reconnect()
 	{
+		return reconnectInternally(false);
+	}
+	
+	private PEPeerTransport reconnectInternally(boolean isInternal)
+	{
 		boolean	use_tcp = isTCP();
 
 		if (	( use_tcp && getTCPListenPort() > 0 ) ||
@@ -3195,6 +3276,17 @@ implements PEPeerTransport
 						use_crypto,
 						crypto_level,
 						null );
+			
+			System.out.println("attempting local reconnect");
+			
+			if (new_conn instanceof PEPeerTransportProtocol)
+			{
+				PEPeerTransportProtocol pt = (PEPeerTransportProtocol) new_conn;
+				pt.checkForReconnect(mySessionID);
+			}
+			
+			if(isInternal)
+				manager.addPeer(new_conn);
 
 			return( new_conn );
 
@@ -3203,6 +3295,38 @@ implements PEPeerTransport
 			return( null );
 		}
 	}
+	
+	private void checkForReconnect(HashWrapper oldID)
+	{
+		//System.out.println("Checking for reconnect on ID:"+oldID.toBase32String());
+		PEPeerTransportProtocol oldTransport;
+		synchronized (recentlyDisconnected)
+		{
+			oldTransport = (PEPeerTransportProtocol)recentlyDisconnected.remove(oldID);
+		}
+		
+		if(oldTransport != null)
+		{
+			System.out.println("reconnected to peer (new) "+this+" (old) "+oldTransport);
+			peerSessionID = oldTransport.peerSessionID;
+			peer_stats = oldTransport.peer_stats;
+			unchokedTimeTotal += oldTransport.unchokedTimeTotal;
+			unchokedTime += oldTransport.unchokedTime;
+			setSnubbed(oldTransport.isSnubbed());
+			snubbed = oldTransport.snubbed;
+			last_good_data_time = oldTransport.last_good_data_time;
+		}
+	}
+	
+	private void generateFallbackSessionId()
+	{
+		SHA1Hasher sha1 = new SHA1Hasher();
+		sha1.update(peer_id);
+		sha1.update(getIp().getBytes());
+		mySessionID = sha1.getHash();
+		checkForReconnect(mySessionID);
+	}
+	
 
 	public void setUploadRateLimitBytesPerSecond( int bytes ){ connection.setUploadLimit( bytes ); }
 	public void setDownloadRateLimitBytesPerSecond( int bytes ){ connection.setDownloadLimit( bytes ); }

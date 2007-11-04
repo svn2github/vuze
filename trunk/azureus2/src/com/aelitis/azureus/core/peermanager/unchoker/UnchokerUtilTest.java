@@ -216,9 +216,8 @@ public class UnchokerUtilTest {
       };
       
      f_stats[0] = new PEPeerStats() {
-    	public PEPeer getPeer() {
-    		  return( peer );
-    	}
+    	public PEPeer getPeer() {return( peer );}
+    	public void setPeer(PEPeer p) {}
         public void dataBytesSent( int num_bytes ){}
         public void protocolBytesSent( int num_bytes ){}
         public void dataBytesReceived( int num_bytes ){}

@@ -30,6 +30,7 @@ public interface
 PEPeerStats 
 {   
   public PEPeer getPeer();
+  public void setPeer(PEPeer p);
   
   ////// SET METHODS ///////
   /**

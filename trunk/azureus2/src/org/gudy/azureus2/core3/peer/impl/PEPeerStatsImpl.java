@@ -70,6 +70,13 @@ PEPeerStatsImpl
 		  return( owner );
 	  }
 	  
+	  /* (non-Javadoc)
+	 * @see org.gudy.azureus2.core3.peer.PEPeerStats#setPeer()
+	 */
+	public void setPeer(PEPeer peer) {
+		owner = peer;
+	}
+	  
     public void dataBytesSent( int num_bytes ) {
       total_data_bytes_sent += num_bytes;
       data_send_speed.addValue( num_bytes );
