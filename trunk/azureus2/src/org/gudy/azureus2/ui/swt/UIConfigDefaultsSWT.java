@@ -108,5 +108,7 @@ public class UIConfigDefaultsSWT
 			
 			COConfigurationManager.setParameter( "Open Bar", false );
 		}
+		
+		def.addParameter("suppress_file_download_dialog", false);
 	}
 }
