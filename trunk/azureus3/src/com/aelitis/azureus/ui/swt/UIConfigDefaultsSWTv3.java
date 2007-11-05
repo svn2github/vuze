@@ -132,6 +132,8 @@ public class UIConfigDefaultsSWTv3
 
 			defaults.addParameter("v3.topbar.show.frog", false);
 			
+			defaults.addParameter("suppress_file_download_dialog", true);
+			
 			config.save();
 		}
 
