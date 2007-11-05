@@ -169,6 +169,12 @@ public class ImageRepository {
 		addPath("org/gudy/azureus2/ui/icons/smallx-gray.png", "smallx-gray");
 		addPath("org/gudy/azureus2/ui/icons/working.gif", "working");
 		addPath("org/gudy/azureus2/ui/icons/search.png", "search");
+		
+		//Progress icons
+		addPath("org/gudy/azureus2/ui/icons/progress_viewer_has_error.gif", "progress_error");
+		addPath("org/gudy/azureus2/ui/icons/progress_viewer_has_info.gif", "progress_info");
+		addPath("org/gudy/azureus2/ui/icons/progress_viewer.gif", "progress_viewer");
+		
 	}
 
   public static void addPath(String path, String id) {
