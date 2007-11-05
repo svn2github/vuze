@@ -18,24 +18,31 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
+
 package org.gudy.azureus2.ui.swt;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.widgets.*;
-
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
+import org.gudy.azureus2.ui.swt.progress.IProgressReportConstants;
+import org.gudy.azureus2.ui.swt.progress.IProgressReporter;
+import org.gudy.azureus2.ui.swt.progress.IProgressReporterListener;
+import org.gudy.azureus2.ui.swt.progress.ProgressReporter;
+import org.gudy.azureus2.ui.swt.progress.ProgressReporterWindow;
+import org.gudy.azureus2.ui.swt.progress.ProgressReporter.ProgressReport;
 
 import com.aelitis.azureus.core.AzureusCore;
 
@@ -43,276 +50,241 @@ import com.aelitis.azureus.core.AzureusCore;
  * @author Olivier
  * 
  */
-public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
-  AzureusCore	azureus_core;
-  Display display;
-  Shell shell;
-  ProgressBar progressBar;
-  Label status;
-  Button retry;
-  Button cancel;  
-  TorrentDownloader downloader;
-  
-  TorrentDownloaderCallBackInterface listener;
+public class FileDownloadWindow
+	implements TorrentDownloaderCallBackInterface, IProgressReportConstants
+{
+	AzureusCore azureus_core;
 
-  /**
-   * Create a file download window.  Add torrent when done downloading
-   *  
-   * @param _azureus_core
-   * @param parent
-   * @param url
-   * @param referrer
-   */
-  public FileDownloadWindow(AzureusCore _azureus_core, Shell parent,
+	Display display;
+
+	Shell shell;
+
+	AZProgressBar progressBar;
+
+	Label status;
+
+	Button retry;
+
+	Button cancel;
+
+	TorrentDownloader downloader;
+
+	TorrentDownloaderCallBackInterface listener;
+
+	IProgressReporter pReporter;
+
+	/**
+	 * Determines whether progress is displayed in a pop-up dialog or in the statusbar
+	 */
+	boolean suppressDialog = false;
+
+	Shell parent;
+
+	String url;
+
+	String referrer;
+
+	AzureusCore _azureus_core;
+
+	String dirName = null;
+
+	String fileDownloadingString = MessageText.getString("fileDownloadWindow.downloading");
+
+	String shortURL = null;
+
+	/**
+	 * Create a file download window.  Add torrent when done downloading
+	 *  
+	 * @param _azureus_core
+	 * @param parent
+	 * @param url
+	 * @param referrer
+	 */
+	public FileDownloadWindow(AzureusCore _azureus_core, Shell parent,
 			final String url, final String referrer) {
-  	this(_azureus_core, parent, url, referrer, null);
+		this(_azureus_core, parent, url, referrer, null);
 	}
 
-  /**
-   * Create a file download window.  If no listener is supplied, torrent will
-   * be added when download is complete.  If a listener is supplied, caller
-   * handles it
-   *   
-   * @param _azureus_core
-   * @param parent
-   * @param url
-   * @param referrer
-   * @param listener
-   */
-	public FileDownloadWindow(final AzureusCore _azureus_core, final Shell parent,
-			final String url, final String referrer,
+	/**
+	 * Create a file download window.  If no listener is supplied, torrent will
+	 * be added when download is complete.  If a listener is supplied, caller
+	 * handles it
+	 *   
+	 * @param _azureus_core
+	 * @param parent
+	 * @param url
+	 * @param referrer
+	 * @param listener
+	 */
+	public FileDownloadWindow(final AzureusCore _azureus_core,
+			final Shell parent, final String url, final String referrer,
 			final TorrentDownloaderCallBackInterface listener) {
+
+		this._azureus_core = _azureus_core;
+		this.parent = parent;
+		this.url = url;
+		this.referrer = referrer;
+		this.listener = listener;
+
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-		  	init(_azureus_core, parent, url, referrer, listener);
+				init();
 			}
 		});
 	}
 
-  private void init(AzureusCore _azureus_core, Shell parent,
-			final String url, final String referrer,
-			TorrentDownloaderCallBackInterface listener) {
-  	azureus_core	= _azureus_core;
-  	
-  	this.listener = listener;
-  	
-    String dirName = null;
-    if(COConfigurationManager.getBooleanParameter("Save Torrent Files")) {
-      try {
-        dirName = COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory");
-      } catch(Exception egnore) {}
-    }
-    if(dirName == null) {
-      DirectoryDialog dd = new DirectoryDialog(parent, SWT.NULL);
-      dd.setText(MessageText.getString("fileDownloadWindow.saveTorrentIn"));
-      dirName = dd.open();
-    }
-    if(dirName == null) return;
-    
-    this.display = parent.getDisplay();
-    this.shell = ShellFactory.createShell(parent, SWT.DIALOG_TRIM);
-    shell.setText(MessageText.getString("fileDownloadWindow.title"));
-    Utils.setShellIcon(shell);
+	private void init() {
 
-    final FormLayout formLayout = new FormLayout();
-    formLayout.marginHeight = 5;
-    formLayout.marginWidth = 5;
-    formLayout.spacing = 5;
-    shell.setLayout(formLayout);    
-    FormData data;
-    
-    
-    Label lDownloading = new Label(shell, SWT.NONE);      
-    lDownloading.setText(MessageText.getString("fileDownloadWindow.downloading"));
-    
-    
-    Label lLocation = new Label(shell, SWT.WRAP);
-    data = new FormData();
-    data.top= new FormAttachment(0, 0);
-    data.left = new FormAttachment(lDownloading);
-    data.right = new FormAttachment(100,0);
-    lLocation.setLayoutData(data);
-        
-    String shortUrl = url;
-    	// truncate any url parameters for display. This has the benefit of hiding additional uninteresting
-    	// parameters added to urls to control the download process (e.g. "&pause_on_error" for magnet downloads")
-    int	amp_pos = shortUrl.indexOf('&');
-    if ( amp_pos != -1 ){
-    	shortUrl = shortUrl.substring(0,amp_pos+1) + "...";
-    }
-    lLocation.setText(shortUrl.replaceAll("&", "&&"));
-    lLocation.setToolTipText(url.replaceAll("&", "&&" ));
-    
-    
-    progressBar = new ProgressBar(shell, SWT.NONE);
-    progressBar.setMinimum(0);
-    progressBar.setMaximum(100);
-    progressBar.setSelection(0);
-    
-    data = new FormData();
-    data.top = new FormAttachment(lLocation);
-    data.left = new FormAttachment(0,0);
-    data.right = new FormAttachment(100,0);
-    progressBar.setLayoutData(data);
-    
-    Label lStatus = new Label(shell, SWT.NONE);
-    lStatus.setText(MessageText.getString("fileDownloadWindow.status"));
-    
-    data = new FormData();
-    data.top = new FormAttachment(progressBar);
-    data.left = new FormAttachment(0,0);
-    lStatus.setLayoutData(data);
-    
-    status = new Label(shell, SWT.WRAP);    
-    
-    data = new FormData();
-    data.top = new FormAttachment(progressBar);
-    data.left = new FormAttachment(lStatus);
-    data.right = new FormAttachment(100,0);
-    status.setLayoutData(data);    
-    
-    retry = new Button(shell,SWT.PUSH);
-        
-    retry.setEnabled(false);
-    retry.setText(MessageText.getString("fileDownloadWindow.retry"));
-    final String _dirName = dirName;
-    retry.addListener(SWT.Selection,new Listener() {
-      public void handleEvent(Event e) {
-        retry.setEnabled(false);
-        status.setText("");
-        downloader.cancel();       
-        downloader = 
-        	TorrentDownloaderFactory.create(
-        			FileDownloadWindow.this,
-					url,
-					referrer,
-					_dirName);
-        downloader.start();
-      }
-    });        
-    
-    cancel = new Button(shell, SWT.PUSH);    
-    cancel.setText(MessageText.getString("Button.cancel"));
-    cancel.addListener(SWT.Selection,new Listener() {
-      public void handleEvent(Event e) {
-        downloader.cancel();
-        if (!shell.isDisposed())
-        	shell.dispose();
-      }
-    });
-    
-    data = new FormData();
-    data.top = new FormAttachment(status);
-    data.right = new FormAttachment(cancel);
-    data.width = 100;        
-    retry.setLayoutData(data);
-    
-    data = new FormData();
-    data.top = new FormAttachment(status);
-    data.right = new FormAttachment(100,0);
-    data.width = 100;
-    cancel.setLayoutData(data);
-        
-    shell.setDefaultButton( retry );
-    
-	shell.addListener(SWT.Traverse, new Listener() {
- 		
-		public void handleEvent(Event e) {
-			
-			if ( e.character == SWT.ESC){
-												
-			    downloader.cancel();
-			    
-	        if (!shell.isDisposed())
-	        	shell.dispose();
+		if (COConfigurationManager.getBooleanParameter("Save Torrent Files")) {
+			try {
+				dirName = COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory");
+			} catch (Exception egnore) {
 			}
 		}
-	});
-	
-	fixupSize();
-	
-    shell.open();
-  	fixupSize();
-    
-    downloader = TorrentDownloaderFactory.create(this,url,referrer,dirName);
-    downloader.start();
-  }    
-    
-  public void TorrentDownloaderEvent(int state, TorrentDownloader inf) {
-  	if (listener != null)
-  		listener.TorrentDownloaderEvent(state, inf);
-    update();    
-  }
-  
-  
-  private void fixupSize() {
-  	shell.update();
-    shell.layout(true, true);
-  	Point p = shell.computeSize(600, SWT.DEFAULT );
-  	
-  	if ( !shell.getSize().equals(p)){
-  		
-  		p.y += 15;
-        shell.setSize( p );
-        
-        Utils.centreWindow( shell );
-        
-        shell.layout();
-        
-  	}
-  }
-  
-  private void update() {
-    if(display != null && ! display.isDisposed()) {
-      display.asyncExec(new AERunnable() {
-        public void runSupport() {
-          int percentDone = downloader.getPercentDone();
-          if(progressBar != null && !progressBar.isDisposed()) {
-            progressBar.setSelection(percentDone);
-          }
-          int state = downloader.getDownloadState();
-          String stateText;
-          switch(state) {
-          	case TorrentDownloader.STATE_CANCELLED :
-              if (!shell.isDisposed())
-              	shell.dispose();
-              return;
-            case TorrentDownloader.STATE_DOWNLOADING :
-              stateText = MessageText.getString("fileDownloadWindow.state_downloading") + ": " + downloader.getStatus();
-              break;
-            case TorrentDownloader.STATE_ERROR :
-            	if (!progressBar.isDisposed()) {
-            		progressBar.setSelection(100);
-            	}
-              stateText = MessageText.getString("fileDownloadWindow.state_error") + downloader.getError();
-              break;
-            default :
-              stateText = "";
-          }
-          if(status != null && ! status.isDisposed()) {
-            status.setText(stateText);
-            status.setToolTipText(stateText);
-          }
-          
-          if(state == TorrentDownloader.STATE_FINISHED) {
-            //If the Shell has been disposed, then don't process the torrent.
-            if(shell != null && ! shell.isDisposed()) {
-              shell.dispose();
-              if (listener == null)
-              	TorrentOpener.openTorrent(downloader.getFile().getAbsolutePath());
-            }
-          }
-   
-          if ( !shell.isDisposed()){
-          	
-          	if(state == TorrentDownloader.STATE_ERROR) {
-          		if(! retry.isDisposed())
-          			retry.setEnabled(true); 
-          	}
-            fixupSize();
-        	}
-        }
-      });
-    }
-  }
+		if (dirName == null) {
+			DirectoryDialog dd = new DirectoryDialog(parent, SWT.NULL);
+			dd.setText(MessageText.getString("fileDownloadWindow.saveTorrentIn"));
+			dirName = dd.open();
+		}
+		if (dirName == null)
+			return;
+
+		suppressDialog = COConfigurationManager.getBooleanParameter("suppress_file_download_dialog");
+
+		pReporter = new ProgressReporter(fileDownloadingString);
+		setupAndShowDialog();
+
+		downloader = TorrentDownloaderFactory.create(this, url, referrer, dirName);
+		downloader.start();
+	}
+
+	/**
+	 * Initializes the reporter and show the download dialog if it is not suppressed 
+	 */
+	private void setupAndShowDialog() {
+		if (null != pReporter) {
+			pReporter.setName(fileDownloadingString + getShortURL(url));
+			pReporter.setTitle(MessageText.getString("fileDownloadWindow.title"));
+			pReporter.setPercentage(0, null);
+			pReporter.setCancelAllowed(true);
+			pReporter.setRetryAllowed(true);
+
+			/*
+			 * Listen to and respond to events from the reporters 
+			 */
+			pReporter.addListener(new IProgressReporterListener() {
+
+				public int report(ProgressReport pReport) {
+
+					switch (pReport.REPORT_TYPE) {
+						case REPORT_TYPE_CANCEL:
+							if (null != downloader) {
+								downloader.cancel();
+
+								//KN: correct logger id?
+								Logger.log(new LogEvent(LogIDs.LOGGER, MessageText.getString(
+										"FileDownload.canceled", new String[] {
+											getShortURL(url)
+										})));
+							}
+							break;
+						case REPORT_TYPE_DONE:
+							return RETVAL_OK_TO_DISPOSE;
+						case REPORT_TYPE_RETRY:
+							if (true == pReport.isRetryAllowed) {
+								downloader.cancel();
+								downloader = TorrentDownloaderFactory.create(
+										FileDownloadWindow.this, url, referrer, dirName);
+								downloader.start();
+							}
+							break;
+						default:
+							break;
+					}
+
+					return RETVAL_OK;
+				}
+
+			});
+
+			/*
+			 * If the dialog is not suppressed then show it
+			 */
+			if (false == suppressDialog) {
+				ProgressReporterWindow.open(pReporter,
+						ProgressReporterWindow.AUTO_CLOSE);
+			}
+		}
+	}
+
+	public void TorrentDownloaderEvent(int state, TorrentDownloader inf) {
+		if (listener != null)
+			listener.TorrentDownloaderEvent(state, inf);
+		update();
+	}
+
+	private void update() {
+		int state = downloader.getDownloadState();
+		int percentDone = downloader.getPercentDone();
+
+		ProgressReport pReport = pReporter.getProgressReport();
+		switch (state) {
+			case TorrentDownloader.STATE_CANCELLED:
+				if (false == pReport.isCanceled) {
+					pReporter.cancel();
+				}
+				return;
+			case TorrentDownloader.STATE_DOWNLOADING:
+				pReporter.setPercentage(percentDone,
+						MessageText.getString("fileDownloadWindow.state_downloading")
+								+ ": " + downloader.getStatus());
+				break;
+			case TorrentDownloader.STATE_ERROR:
+				/*
+				 * If the user has canceled then a call  to downloader.cancel() has already been made
+				 * so don't bother prompting for the user to retry
+				 */
+				if (true == pReport.isCanceled) {
+					return;
+				}
+
+				pReporter.setErrorMessage(MessageText.getString("fileDownloadWindow.state_error")
+						+ downloader.getError());
+				return;
+			case TorrentDownloader.STATE_FINISHED:
+				pReporter.setDone();
+
+				/*
+				 * If the listener is present then it handle finishing up; otherwise open the torrent that
+				 * was just downloaded
+				 */
+				if (listener == null) {
+					TorrentOpener.openTorrent(downloader.getFile().getAbsolutePath());
+				}
+				return;
+			default:
+		}
+
+	}
+
+	/**
+	 * Returns a shortened version of the given url
+	 * @param url
+	 * @return
+	 */
+	private String getShortURL(final String url) {
+		if (null == shortURL) {
+			shortURL = url;
+			// truncate any url parameters for display. This has the benefit of hiding additional uninteresting
+			// parameters added to urls to control the download process (e.g. "&pause_on_error" for magnet downloads")
+			int amp_pos = shortURL.indexOf('&');
+			if (amp_pos != -1) {
+				shortURL = shortURL.substring(0, amp_pos + 1) + "...";
+			}
+			shortURL = shortURL.replaceAll("&", "&&");
+		}
+
+		return shortURL;
+	}
+
 }
