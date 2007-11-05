@@ -30,9 +30,17 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.layout.*;
-import org.eclipse.swt.widgets.*;
-
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
@@ -42,8 +50,33 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.stats.transfer.OverallStats;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
-import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.network.ConnectionManager;
+import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
+import org.gudy.azureus2.plugins.update.UpdateCheckInstanceListener;
+import org.gudy.azureus2.plugins.update.UpdateChecker;
+import org.gudy.azureus2.plugins.update.UpdateCheckerListener;
+import org.gudy.azureus2.plugins.update.UpdateManagerListener;
+import org.gudy.azureus2.plugins.update.UpdateProgressListener;
+import org.gudy.azureus2.ui.swt.AZProgressBar;
+import org.gudy.azureus2.ui.swt.BlockedIpsWindow;
+import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.progress.IProgressReportConstants;
+import org.gudy.azureus2.ui.swt.progress.IProgressReporter;
+import org.gudy.azureus2.ui.swt.progress.IProgressReporterListener;
+import org.gudy.azureus2.ui.swt.progress.IProgressReportingListener;
+import org.gudy.azureus2.ui.swt.progress.ProgressReporter;
+import org.gudy.azureus2.ui.swt.progress.ProgressReporterWindow;
+import org.gudy.azureus2.ui.swt.progress.ProgressReportingManager;
+import org.gudy.azureus2.ui.swt.progress.ProgressReporter.ProgressReport;
 import org.gudy.azureus2.ui.swt.update.UpdateProgressWindow;
 import org.gudy.azureus2.ui.swt.update.UpdateWindow;
 
@@ -56,16 +89,11 @@ import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UIStatusTextClickListener;
 
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginManager;
-import org.gudy.azureus2.plugins.network.ConnectionManager;
-import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-import org.gudy.azureus2.plugins.update.*;
-
 /**
  * Moved from MainWindow and GUIUpdater
  */
-public class MainStatusBar {
+public class MainStatusBar
+{
 	/**
 	 * Warning status icon identifier
 	 */
@@ -93,7 +121,7 @@ public class MainStatusBar {
 
 	private Label statusUpdateLabel;
 
-	private ProgressBar statusUpdateProgressBar;
+	private AZProgressBar progressBar;
 
 	private CLabel ipBlocked;
 
@@ -106,7 +134,7 @@ public class MainStatusBar {
 	private CLabel statusDown;
 
 	private CLabel statusUp;
-		
+
 	private Composite plugin_label_composite;
 
 	private Display display;
@@ -137,9 +165,33 @@ public class MainStatusBar {
 	private UIFunctions uiFunctions;
 
 	private UIStatusTextClickListener clickListener;
-	
-//	 final int borderFlag = (Constants.isOSX) ? SWT.SHADOW_NONE : SWT.SHADOW_IN;
-	private static final int borderFlag = SWT.SHADOW_NONE; 
+
+	//	 final int borderFlag = (Constants.isOSX) ? SWT.SHADOW_NONE : SWT.SHADOW_IN;
+	private static final int borderFlag = SWT.SHADOW_NONE;
+
+	/**
+	 * Just a flag to differentiate az3 from other versions; default status bar text is handled differently between versions
+	 */
+	private boolean isAZ3 = false;
+
+	private ProgressReportingManager PRManager = ProgressReportingManager.getInstance();
+
+	/**
+	 * A <code>GridData</code> for the progress bar; used to dynamically provide .widthHint to the layout manager
+	 */
+	private GridData progressGridData = new GridData(SWT.RIGHT, SWT.CENTER,
+			false, false);
+
+	/**
+	 * A clickable image label that brings up the Progres viewer 
+	 */
+	private Label progressViewerImageLabel;
+
+	private Image progress_error_img = null;
+
+	private Image progress_info_img = null;
+
+	private Image progress_viewer_img = null;
 
 	/**
 	 * 
@@ -157,11 +209,10 @@ public class MainStatusBar {
 
 	/**
 	 * 
-	 * @return composite holiding the statusbar
+	 * @return composite holding the statusbar
 	 */
-	public Composite initStatusBar(final AzureusCore core, final GlobalManager globalManager,
-			Display display, final Composite parent)
-	{
+	public Composite initStatusBar(final AzureusCore core,
+			final GlobalManager globalManager, Display display, final Composite parent) {
 		this.display = display;
 		this.globalManager = globalManager;
 		this.azureusCore = core;
@@ -170,9 +221,10 @@ public class MainStatusBar {
 		FormData formData;
 
 		statusBar = new Composite(parent, SWT.NONE);
+		isAZ3 = "az3".equalsIgnoreCase(COConfigurationManager.getStringParameter("ui"));
 
 		GridLayout layout_status = new GridLayout();
-		layout_status.numColumns = 8;
+		layout_status.numColumns = 20;
 		layout_status.horizontalSpacing = 0;
 		layout_status.verticalSpacing = 0;
 		layout_status.marginHeight = 0;
@@ -224,9 +276,9 @@ public class MainStatusBar {
 		Listener listener = new Listener() {
 			public void handleEvent(Event e) {
 				if (clickListener == null) {
-  				if (updateWindow != null) {
-  					updateWindow.show();
-  				}
+					if (updateWindow != null) {
+						updateWindow.show();
+					}
 				} else {
 					clickListener.UIStatusTextClicked();
 				}
@@ -247,36 +299,62 @@ public class MainStatusBar {
 		statusUpdate.setLayout(layoutStatusUpdate);
 
 		statusUpdateLabel = new Label(statusUpdate, SWT.NULL);
-		gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
+		gridData = new GridData(SWT.BEGINNING, SWT.CENTER, true, true);
+		gridData.horizontalIndent = 3;
 		statusUpdateLabel.setLayoutData(gridData);
 		Messages.setLanguageText(statusUpdateLabel,
 				"MainWindow.statusText.checking");
 		Messages.setLanguageText(statusUpdateLabel,
 				"MainWindow.status.update.tooltip");
-		statusUpdateLabel.addMouseListener(new MouseAdapter() {
-			public void mouseDoubleClick(MouseEvent arg0) {
-				showUpdateProgressWindow();
-			}
-		});
+//		statusUpdateLabel.addMouseListener(new MouseAdapter() {
+//			public void mouseDoubleClick(MouseEvent arg0) {
+//				showUpdateProgressWindow();
+//			}
+//		});
 
-		final int progressFlag = (Constants.isOSX) ? SWT.INDETERMINATE
-				: SWT.HORIZONTAL;
-		statusUpdateProgressBar = new ProgressBar(statusUpdate, progressFlag);
-		gridData = new GridData(GridData.FILL_BOTH);
-		gridData.verticalIndent = 3;
-		statusUpdateProgressBar.setLayoutData(gridData);
-		Messages.setLanguageText(statusUpdateProgressBar,
-				"MainWindow.status.update.tooltip");
-		statusUpdateProgressBar.addMouseListener(new MouseAdapter() {
-			public void mouseDoubleClick(MouseEvent arg0) {
-				showUpdateProgressWindow();
+		/*
+		 * progressBar is now on the StatusBar itself
+		 */
+
+		//			final int progressFlag = (Constants.isOSX) ? SWT.INDETERMINATE
+		//					: SWT.HORIZONTAL;
+
+		// KN: Don't know why OSX is treated differently but this check was already here from the previous code
+		if (true == Constants.isOSX) {
+			progressBar = new AZProgressBar(statusBar, true);
+		} else {
+			progressBar = new AZProgressBar(statusBar, false);
+		}
+
+		progressBar.setVisible(false);
+		progressGridData = new GridData(SWT.FILL, SWT.FILL, false, false);
+		progressGridData.widthHint = 5;
+		progressBar.setLayoutData(progressGridData);
+
+		/*
+		 * Progress reporting window image label
+		 */
+		progress_error_img = ImageRepository.getImage("progress_error");
+		progress_info_img = ImageRepository.getImage("progress_info");
+		progress_viewer_img = ImageRepository.getImage("progress_viewer");
+
+		progressViewerImageLabel = new Label(statusBar, SWT.NONE);
+		progressViewerImageLabel.setImage(progress_viewer_img);
+		progressViewerImageLabel.setToolTipText(MessageText.getString("Progress.reporting.statusbar.button.tooltip"));
+		progressViewerImageLabel.addMouseListener(new MouseAdapter() {
+			public void mouseDown(MouseEvent e) {
+				/*
+				 * Opens the progress viewer
+				 */
+				ProgressReporterWindow.open(PRManager.getReportersArray(false),
+						ProgressReporterWindow.MODAL);
 			}
 		});
 
 		layoutStatusArea.topControl = statusText;
-		
+
 		statusBar.layout();
-		
+
 		this.plugin_label_composite = new Composite(statusBar, SWT.NONE);
 		GridLayout gridLayout = new GridLayout();
 		gridLayout.horizontalSpacing = 0;
@@ -287,21 +365,20 @@ public class MainStatusBar {
 		gridLayout.marginLeft = 0;
 		gridLayout.marginRight = 0;
 		gridLayout.numColumns = 20; // Something nice and big. :)
-				
+
 		gridData = new GridData(GridData.FILL_VERTICAL);
 		gridData.heightHint = height;
 		gridData.minimumHeight = height;
 		plugin_label_composite.setLayout(gridLayout);
 		plugin_label_composite.setLayoutData(gridData);
-		
+
 		srStatus = new CLabelPadding(statusBar, borderFlag);
 		srStatus.setText(MessageText.getString("SpeedView.stats.ratio"));
 
 		COConfigurationManager.addAndFireParameterListener("Status Area Show SR",
 				new ParameterListener() {
 					public void parameterChanged(String parameterName) {
-						srStatus.setVisible(COConfigurationManager.getBooleanParameter(
-								parameterName));
+						srStatus.setVisible(COConfigurationManager.getBooleanParameter(parameterName));
 						statusBar.layout();
 					}
 				});
@@ -312,23 +389,19 @@ public class MainStatusBar {
 		COConfigurationManager.addAndFireParameterListener("Status Area Show NAT",
 				new ParameterListener() {
 					public void parameterChanged(String parameterName) {
-						natStatus.setVisible(COConfigurationManager.getBooleanParameter(
-								parameterName));
+						natStatus.setVisible(COConfigurationManager.getBooleanParameter(parameterName));
 						statusBar.layout();
 					}
 				});
 
 		dhtStatus = new CLabelPadding(statusBar, borderFlag);
 		dhtStatus.setText("");
-		dhtStatus.setToolTipText(MessageText
-				.getString("MainWindow.dht.status.tooltip"));
-	
+		dhtStatus.setToolTipText(MessageText.getString("MainWindow.dht.status.tooltip"));
 
 		COConfigurationManager.addAndFireParameterListener("Status Area Show DDB",
 				new ParameterListener() {
 					public void parameterChanged(String parameterName) {
-						dhtStatus.setVisible(COConfigurationManager.getBooleanParameter(
-								parameterName));
+						dhtStatus.setVisible(COConfigurationManager.getBooleanParameter(parameterName));
 						statusBar.layout();
 					}
 				});
@@ -340,23 +413,18 @@ public class MainStatusBar {
 				BlockedIpsWindow.showBlockedIps(azureusCore, parent.getShell());
 			}
 		});
-		
-		
+
 		COConfigurationManager.addAndFireParameterListener("Status Area Show IPF",
 				new ParameterListener() {
 					public void parameterChanged(String parameterName) {
-						ipBlocked.setVisible(COConfigurationManager.getBooleanParameter( parameterName));
+						ipBlocked.setVisible(COConfigurationManager.getBooleanParameter(parameterName));
 						statusBar.layout();
 					}
 				});
-		
-		
-		
 
 		statusDown = new CLabelPadding(statusBar, borderFlag);
 		statusDown.setImage(ImageRepository.getImage("down"));
-		statusDown
-				.setText(/*MessageText.getString("ConfigView.download.abbreviated") +*/"n/a");
+		statusDown.setText(/*MessageText.getString("ConfigView.download.abbreviated") +*/"n/a");
 		Messages.setLanguageText(statusDown,
 				"MainWindow.status.updowndetails.tooltip");
 
@@ -368,8 +436,7 @@ public class MainStatusBar {
 
 		statusUp = new CLabelPadding(statusBar, borderFlag);
 		statusUp.setImage(ImageRepository.getImage("up"));
-		statusUp
-				.setText(/*MessageText.getString("ConfigView.upload.abbreviated") +*/"n/a");
+		statusUp.setText(/*MessageText.getString("ConfigView.upload.abbreviated") +*/"n/a");
 		Messages.setLanguageText(statusUp,
 				"MainWindow.status.updowndetails.tooltip");
 
@@ -391,13 +458,11 @@ public class MainStatusBar {
 
 				OverallStats stats = StatsFactory.getStats();
 
-				long ratio = (1000 * stats.getUploadedBytes() / (stats
-						.getDownloadedBytes() + 1));
+				long ratio = (1000 * stats.getUploadedBytes() / (stats.getDownloadedBytes() + 1));
 
 				if (ratio < 900) {
 
-					Utils
-							.launch(Constants.AZUREUS_WIKI + "Share_Ratio");
+					Utils.launch(Constants.AZUREUS_WIKI + "Share_Ratio");
 				}
 			}
 		};
@@ -408,10 +473,8 @@ public class MainStatusBar {
 			public void handleEvent(Event e) {
 				uiFunctions.showConfig(ConfigSection.SECTION_CONNECTION);
 
-				if (azureusCore.getPluginManager().getDefaultPluginInterface()
-						.getConnectionManager().getNATStatus() != ConnectionManager.NAT_OK) {
-					Utils
-							.launch(Constants.AZUREUS_WIKI + "NAT_problem");
+				if (azureusCore.getPluginManager().getDefaultPluginInterface().getConnectionManager().getNATStatus() != ConnectionManager.NAT_OK) {
+					Utils.launch(Constants.AZUREUS_WIKI + "NAT_problem");
 				}
 			}
 		};
@@ -419,73 +482,74 @@ public class MainStatusBar {
 		natStatus.addListener(SWT.MouseDoubleClick, lNAT);
 
 		boolean bSpeedMenu = COConfigurationManager.getBooleanParameter("GUI_SWT_bOldSpeedMenu");
-		
+
 		if (bSpeedMenu) {
-  		// Status Bar Menu construction
-  		final Menu menuUpSpeed = new Menu(statusBar.getShell(), SWT.POP_UP);
-  		menuUpSpeed.addListener(SWT.Show, new Listener() {
-  			public void handleEvent(Event e) {
-  				SelectableSpeedMenu.generateMenuItems(menuUpSpeed, core, globalManager,
-  						true);
-  			}
-  		});
-  		statusUp.setMenu(menuUpSpeed);
+			// Status Bar Menu construction
+			final Menu menuUpSpeed = new Menu(statusBar.getShell(), SWT.POP_UP);
+			menuUpSpeed.addListener(SWT.Show, new Listener() {
+				public void handleEvent(Event e) {
+					SelectableSpeedMenu.generateMenuItems(menuUpSpeed, core,
+							globalManager, true);
+				}
+			});
+			statusUp.setMenu(menuUpSpeed);
 		} else {
 
-  		statusUp.addMouseListener(new MouseAdapter() {
-  			public void mouseDown(MouseEvent e) {
-  				if (!(e.button == 3 || (e.button == 1 && e.stateMask == SWT.CONTROL))) {
-  					return;
-  				}
-  				Event event = new Event();
-  				event.type = SWT.MouseUp;
-  				event.widget = e.widget;
-  				event.stateMask = e.stateMask;
-  				event.button = e.button;
-  				e.widget.getDisplay().post(event);
-  				
-  				Utils.execSWTThread(new AERunnable() {
-  					public void runSupport() {
-  						SelectableSpeedMenu.invokeSlider(true);
-  					}
-  				});
-  			}
-  		});
+			statusUp.addMouseListener(new MouseAdapter() {
+				public void mouseDown(MouseEvent e) {
+					if (!(e.button == 3 || (e.button == 1 && e.stateMask == SWT.CONTROL))) {
+						return;
+					}
+					Event event = new Event();
+					event.type = SWT.MouseUp;
+					event.widget = e.widget;
+					event.stateMask = e.stateMask;
+					event.button = e.button;
+					e.widget.getDisplay().post(event);
+
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							SelectableSpeedMenu.invokeSlider(true);
+						}
+					});
+				}
+			});
 		}
 
 		if (bSpeedMenu) {
-  		final Menu menuDownSpeed = new Menu(statusBar.getShell(), SWT.POP_UP);
-  		menuDownSpeed.addListener(SWT.Show, new Listener() {
-  			public void handleEvent(Event e) {
-  				SelectableSpeedMenu.generateMenuItems(menuDownSpeed, core,
-  						globalManager, false);
-  			}
-  		});
-  		statusDown.setMenu(menuDownSpeed);
+			final Menu menuDownSpeed = new Menu(statusBar.getShell(), SWT.POP_UP);
+			menuDownSpeed.addListener(SWT.Show, new Listener() {
+				public void handleEvent(Event e) {
+					SelectableSpeedMenu.generateMenuItems(menuDownSpeed, core,
+							globalManager, false);
+				}
+			});
+			statusDown.setMenu(menuDownSpeed);
 		} else {
-  		statusDown.addMouseListener(new MouseAdapter() {
-  			public void mouseDown(MouseEvent e) {
-  				if (!(e.button == 3 || (e.button == 1 && e.stateMask == SWT.CONTROL))) {
-  					return;
-  				}
-  				Event event = new Event();
-  				event.type = SWT.MouseUp;
-  				event.widget = e.widget;
-  				event.stateMask = e.stateMask;
-  				event.button = e.button;
-  				e.widget.getDisplay().post(event);
-  				
-  				Utils.execSWTThread(new AERunnable() {
-  					public void runSupport() {
-  						SelectableSpeedMenu.invokeSlider(false);
-  					}
-  				});
-  			}
-  		});
+			statusDown.addMouseListener(new MouseAdapter() {
+				public void mouseDown(MouseEvent e) {
+					if (!(e.button == 3 || (e.button == 1 && e.stateMask == SWT.CONTROL))) {
+						return;
+					}
+					Event event = new Event();
+					event.type = SWT.MouseUp;
+					event.widget = e.widget;
+					event.stateMask = e.stateMask;
+					event.button = e.button;
+					e.widget.getDisplay().post(event);
+
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							SelectableSpeedMenu.invokeSlider(false);
+						}
+					});
+				}
+			});
 		}
 
 		addUpdateListener();
 
+		PRManager.addListener(new ProgressListener());
 		return statusBar;
 	}
 
@@ -510,10 +574,10 @@ public class MainStatusBar {
 					+ Constants.AZUREUS_VERSION + ")";
 			statusImageKey = STATUS_ICON_WARN;
 		} else if (!Constants.isOSX) { //don't show official version numbers for OSX L&F
-			statusTextKey = Constants.AZUREUS_NAME + " "
-					+ Constants.AZUREUS_VERSION;
+			statusTextKey = Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION;
 			statusImageKey = null;
 		}
+
 	}
 
 	/**
@@ -524,7 +588,7 @@ public class MainStatusBar {
 	public void setStatusText(int statustype, String string,
 			UIStatusTextClickListener l) {
 		this.statusTextKey = string == null ? "" : string;
-		
+
 		if (statusTextKey.length() == 0) { // reset
 			resetStatus();
 		}
@@ -532,7 +596,8 @@ public class MainStatusBar {
 		this.clickListener = l;
 		if (statustype == UIFunctions.STATUSICON_WARNING) {
 			statusImageKey = STATUS_ICON_WARN;
-		} if (statustype == UIFunctions.STATUSICON_WARNING) {
+		}
+		if (statustype == UIFunctions.STATUSICON_WARNING) {
 			statusImageKey = STATUS_ICON_WARN;
 		} else {
 			statusImageKey = null;
@@ -558,8 +623,8 @@ public class MainStatusBar {
 			public void runSupport() {
 				if (statusText != null && !statusText.isDisposed()) {
 					statusText.setText(MessageText.getStringForSentence(text));
-					statusText.setImage((statusImageKey == null) ? null : ImageRepository
-							.getImage(statusImageKey));
+					statusText.setImage((statusImageKey == null) ? null
+							: ImageRepository.getImage(statusImageKey));
 				}
 			}
 		});
@@ -592,23 +657,28 @@ public class MainStatusBar {
 	}
 
 	private void addUpdateListener() {
-		azureusCore.getPluginManager().getDefaultPluginInterface()
-				.getUpdateManager().addListener(new UpdateManagerListener() {
+		azureusCore.getPluginManager().getDefaultPluginInterface().getUpdateManager().addListener(
+				new UpdateManagerListener() {
 					public void checkInstanceCreated(UpdateCheckInstance instance) {
-
 						new updateStatusChanger(instance);
 					}
 				});
 	}
 
-	protected class updateStatusChanger {
+	protected class updateStatusChanger
+		implements IProgressReportConstants
+	{
 		UpdateCheckInstance instance;
 
 		int check_num = 0;
 
 		boolean active;
 
+		IProgressReporter updateReporter = new ProgressReporter(
+				MessageText.getString("UpdateWindow.title"));
+
 		protected updateStatusChanger(UpdateCheckInstance _instance) {
+
 			instance = _instance;
 
 			try {
@@ -616,34 +686,78 @@ public class MainStatusBar {
 
 				update_stack.add(this);
 
+				updateReporter.setCancelAllowed(true);
+				updateReporter.appendDetailMessage(format(instance, "added"));
+
+				updateReporter.addListener(new IProgressReporterListener() {
+
+					public int report(ProgressReport progressReport) {
+						if (progressReport.REPORT_TYPE == REPORT_TYPE_DONE
+								|| progressReport.REPORT_TYPE == REPORT_TYPE_ERROR) {
+							return RETVAL_OK_TO_DISPOSE;
+						}
+
+						if (progressReport.REPORT_TYPE == REPORT_TYPE_CANCEL) {
+							if (null != instance) {
+								instance.cancel();
+							}
+							return RETVAL_OK_TO_DISPOSE;
+						}
+
+						return RETVAL_OK;
+					}
+
+				});
+
 				instance.addListener(new UpdateCheckInstanceListener() {
 					public void cancelled(UpdateCheckInstance instance) {
 						deactivate();
+						updateReporter.appendDetailMessage(format(instance,
+								MessageText.getString("Progress.reporting.prompt.label.cancel")));
+						updateReporter.cancel();
+
 					}
 
 					public void complete(UpdateCheckInstance instance) {
 						deactivate();
+						updateReporter.appendDetailMessage(format(instance,
+								MessageText.getString("Progress.reporting.status.finished")));
+						updateReporter.setDone();
 					}
 				});
 
 				UpdateChecker[] checkers = instance.getCheckers();
 
-				UpdateCheckerListener listener = new UpdateCheckerListener() {
-					public void cancelled(UpdateChecker checker) {
-						// we don't count a cancellation as progress step
-					}
-
-					public void completed(UpdateChecker checker) {
-						setNextCheck();
-					}
-
-					public void failed(UpdateChecker checker) {
-						setNextCheck();
-					}
-
-				};
 				for (int i = 0; i < checkers.length; i++) {
-					checkers[i].addListener(listener);
+					final UpdateChecker checker = checkers[i];
+					checker.addListener(new UpdateCheckerListener() {
+
+						public void cancelled(UpdateChecker checker) {
+							// we don't count a cancellation as progress step
+							updateReporter.appendDetailMessage(format(
+									checker,
+									MessageText.getString("Progress.reporting.prompt.label.cancel")));
+						}
+
+						public void completed(UpdateChecker checker) {
+							updateReporter.appendDetailMessage(format(checker,
+									MessageText.getString("Progress.reporting.status.finished")));
+							setNextCheck();
+						}
+
+						public void failed(UpdateChecker checker) {
+							updateReporter.appendDetailMessage(format(checker,
+									MessageText.getString("Progress.reporting.default.error")));
+							setNextCheck();
+
+						}
+
+					});
+					checker.addProgressListener(new UpdateProgressListener() {
+						public void reportProgress(String str) {
+							updateReporter.appendDetailMessage(format(checker, "    " + str));
+						}
+					});
 				}
 
 				activate();
@@ -691,13 +805,11 @@ public class MainStatusBar {
 					}
 				}
 				if (update_stack.size() == 0) {
-
 					switchStatusToText();
 
 				} else {
 
-					((updateStatusChanger) update_stack.get(update_stack.size() - 1))
-							.activate();
+					((updateStatusChanger) update_stack.get(update_stack.size() - 1)).activate();
 				}
 
 			} finally {
@@ -707,34 +819,18 @@ public class MainStatusBar {
 		}
 
 		private void setNbChecks(final int nbChecks) {
-			if (display != null && !display.isDisposed())
-				Utils.execSWTThread(new AERunnable() {
-					public void runSupport() {
-						if (statusUpdateProgressBar == null
-								|| statusUpdateProgressBar.isDisposed())
-							return;
-						statusUpdateProgressBar.setMinimum(0);
-						statusUpdateProgressBar.setMaximum(nbChecks);
-						statusUpdateProgressBar.setSelection(check_num);
-					}
-				});
+			updateReporter.setMinimum(0);
+			updateReporter.setMaximum(nbChecks);
+			updateReporter.setSelection(check_num, null);
 		}
 
 		private void setNextCheck() {
-			if (display != null && !display.isDisposed())
-				Utils.execSWTThread(new AERunnable() {
-					public void runSupport() {
-						if (statusUpdateProgressBar == null
-								|| statusUpdateProgressBar.isDisposed())
-							return;
 
-						check_num++;
+			check_num++;
 
-						if (active) {
-							statusUpdateProgressBar.setSelection(check_num);
-						}
-					}
-				});
+			if (active) {
+				updateReporter.setSelection(check_num, null);
+			}
 		}
 
 		private void switchStatusToUpdate() {
@@ -753,9 +849,10 @@ public class MainStatusBar {
 						}
 
 						statusUpdateLabel.setText(name);
-
+						updateReporter.setMessage(name);
 						layoutStatusArea.topControl = statusUpdate;
 						statusArea.layout();
+
 					}
 				});
 		}
@@ -778,13 +875,11 @@ public class MainStatusBar {
 		try {
 			this_mon.enter();
 
-			UpdateCheckInstance[] instances = new UpdateCheckInstance[update_stack
-					.size()];
+			UpdateCheckInstance[] instances = new UpdateCheckInstance[update_stack.size()];
 
 			for (int i = 0; i < instances.length; i++) {
 
-				instances[i] = ((updateStatusChanger) update_stack.get(i))
-						.getInstance();
+				instances[i] = ((updateStatusChanger) update_stack.get(i)).getInstance();
 			}
 
 			UpdateProgressWindow.show(instances, statusBar.getShell());
@@ -801,15 +896,15 @@ public class MainStatusBar {
 		if (ipBlocked.isDisposed()) {
 			return;
 		}
-		
+
 		// Plugins.
 		Control[] plugin_elements = this.plugin_label_composite.getChildren();
-		for (int i=0; i<plugin_elements.length; i++) {
+		for (int i = 0; i < plugin_elements.length; i++) {
 			if (plugin_elements[i] instanceof UpdateableCLabel) {
-				((UpdateableCLabel)plugin_elements[i]).checkForRefresh();
+				((UpdateableCLabel) plugin_elements[i]).checkForRefresh();
 			}
 		}
-		
+
 		// IP Filter Status Section
 		IpFilter ip_filter = azureusCore.getIpFilterManager().getIPFilter();
 
@@ -820,17 +915,15 @@ public class MainStatusBar {
 				+ "/"
 				+ numberFormat.format(ip_filter.getNbBannedIps())
 				+ "/"
-				+ numberFormat.format(azureusCore.getIpFilterManager().getBadIps()
-						.getNbBadIps()));
-		ipBlocked.setToolTipText(MessageText.getString(
-				"MainWindow.IPs.tooltip",
-				new String[] { DisplayFormatters.formatDateShort(ip_filter.getLastUpdateTime())
+				+ numberFormat.format(azureusCore.getIpFilterManager().getBadIps().getNbBadIps()));
+		ipBlocked.setToolTipText(MessageText.getString("MainWindow.IPs.tooltip",
+				new String[] {
+					DisplayFormatters.formatDateShort(ip_filter.getLastUpdateTime())
 				}));
 
 		// SR status section
 
-		long ratio = (1000 * overall_stats.getUploadedBytes() / (overall_stats
-				.getDownloadedBytes() + 1));
+		long ratio = (1000 * overall_stats.getUploadedBytes() / (overall_stats.getDownloadedBytes() + 1));
 
 		int sr_status;
 
@@ -899,8 +992,9 @@ public class MainStatusBar {
 
 			ratio_str = (ratio / 1000) + "." + partial;
 
-			srStatus.setToolTipText(MessageText.getString(tooltipID,
-					new String[] { ratio_str }));
+			srStatus.setToolTipText(MessageText.getString(tooltipID, new String[] {
+				ratio_str
+			}));
 
 			last_sr_ratio = ratio;
 		}
@@ -947,16 +1041,17 @@ public class MainStatusBar {
 		}
 
 		// DHT Status Section
-		int dht_status = (dhtPlugin == null) ? DHTPlugin.STATUS_DISABLED 	: dhtPlugin.getStatus();
+		int dht_status = (dhtPlugin == null) ? DHTPlugin.STATUS_DISABLED
+				: dhtPlugin.getStatus();
 		long dht_count = -1;
 		//boolean	reachable = false;
 		if (dht_status == DHTPlugin.STATUS_RUNNING) {
 			DHT[] dhts = dhtPlugin.getDHTs();
 
 			//reachable = dhts.length > 0 && dhts[0].getTransport().isReachable();
-			
+
 			//if ( reachable ){
-				dht_count = dhts[0].getControl().getStats().getEstimatedDHTSize();
+			dht_count = dhts[0].getControl().getStats().getEstimatedDHTSize();
 			//}
 		}
 
@@ -964,10 +1059,11 @@ public class MainStatusBar {
 			Image img = ImageRepository.getImage("sb_count");
 			switch (dht_status) {
 				case DHTPlugin.STATUS_RUNNING:
-					
+
 					dhtStatus.setToolTipText(MessageText.getString("MainWindow.dht.status.tooltip"));
-					dhtStatus.setText(MessageText.getString("MainWindow.dht.status.users").replaceAll("%1", numberFormat.format(dht_count)));
-					
+					dhtStatus.setText(MessageText.getString("MainWindow.dht.status.users").replaceAll(
+							"%1", numberFormat.format(dht_count)));
+
 					/*
 					if ( reachable ){
 						dhtStatus.setImage(ImageRepository.getImage("greenled"));
@@ -1016,12 +1112,10 @@ public class MainStatusBar {
 		GlobalManagerStats stats = globalManager.getStats();
 
 		statusDown.setText((dl_limit == 0 ? "" : "[" + dl_limit + "K] ")
-				+ DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(stats
-						.getDataReceiveRate(), stats.getProtocolReceiveRate()));
+				+ DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(
+						stats.getDataReceiveRate(), stats.getProtocolReceiveRate()));
 
-		boolean auto_up = COConfigurationManager
-				.getBooleanParameter(TransferSpeedValidator
-						.getActiveAutoUploadParameter(globalManager))
+		boolean auto_up = COConfigurationManager.getBooleanParameter(TransferSpeedValidator.getActiveAutoUploadParameter(globalManager))
 				&& TransferSpeedValidator.isAutoUploadAvailable(azureusCore);
 
 		int ul_limit_norm = NetworkManager.getMaxUploadRateBPSNormal() / 1024;
@@ -1042,8 +1136,8 @@ public class MainStatusBar {
 		statusUp.setText((ul_limit_norm == 0 ? "" : "[" + ul_limit_norm + "K"
 				+ seeding_only + "]")
 				+ (auto_up ? "* " : " ")
-				+ DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(stats
-						.getDataSendRate(), stats.getProtocolSendRate()));
+				+ DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(
+						stats.getDataSendRate(), stats.getProtocolSendRate()));
 
 		// End of Status Sections
 		statusBar.layout();
@@ -1056,8 +1150,9 @@ public class MainStatusBar {
 		if (!statusText.isDisposed())
 			statusText.setToolTipText(string);
 	}
-	
-	public static interface CLabelUpdater {
+
+	public static interface CLabelUpdater
+	{
 		public void update(CLabel label);
 	}
 
@@ -1069,7 +1164,9 @@ public class MainStatusBar {
 	 * @created Mar 21, 2006
 	 *
 	 */
-	private class CLabelPadding extends CLabel {
+	private class CLabelPadding
+		extends CLabel
+	{
 		private int lastWidth = 0;
 
 		private long widthSetOn = 0;
@@ -1112,35 +1209,207 @@ public class MainStatusBar {
 			return pt;
 		}
 	}
-	
-	private class UpdateableCLabel extends CLabelPadding {
-		
+
+	private class UpdateableCLabel
+		extends CLabelPadding
+	{
+
 		private CLabelUpdater updater;
-		
+
 		public UpdateableCLabel(Composite parent, int style, CLabelUpdater updater) {
 			super(parent, style);
 			this.updater = updater;
 		}
-		
+
 		private void checkForRefresh() {
 			updater.update(this);
 		}
 	}
-	
+
 	public CLabel createStatusEntry(final CLabelUpdater updater) {
 		final CLabel[] result = new CLabel[1];
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				try {
 					this_mon.enter();
-					result[0] = new UpdateableCLabel(plugin_label_composite, borderFlag, updater);
-				}
-				finally {
+					result[0] = new UpdateableCLabel(plugin_label_composite, borderFlag,
+							updater);
+				} finally {
 					this_mon.exit();
 				}
 			}
 		}, false);
 		return result[0];
 	}
-	
+
+	// ============================================================
+	// Convenience methods for formatting the detail messages for 
+	// the update process
+	// ============================================================	
+
+	private String format(UpdateCheckInstance instance, String str) {
+		String name = instance.getName();
+		if (MessageText.keyExists(name)) {
+			name = MessageText.getString(name);
+		}
+		return name + " - " + str;
+	}
+
+	private String format(UpdateChecker checker, String str) {
+		return "    " + checker.getComponent().getName() + " - " + str;
+	}
+
+	// =============================================================
+	// Below code are ProgressBar/Status text specific
+	// =============================================================	
+	/**
+	 * Show or hide the Progress Bar
+	 * @param state
+	 */
+	private void showProgressBar(boolean state) {
+		/*
+		 * We show/hide the progress bar simply by setting the .widthHint and letting the statusBar handle the layout
+		 */
+		if (true == state && false == progressBar.isVisible()) {
+			progressGridData.widthHint = 100;
+			progressBar.setVisible(true);
+			statusBar.layout();
+		} else if (false == state && true == progressBar.isVisible()) {
+			progressBar.setVisible(false);
+			progressGridData.widthHint = 0;
+			statusBar.layout();
+		}
+	}
+
+	/**
+	 * Updates the display of the ProgressBar and/or the status text
+	 * @param pReport the <code>ProgressReport</code> containing the information
+	 * to display; can be <code>null</code> in which case the status text and progress bar will be reset to default states
+	 */
+	private void updateProgressBarDisplay(final ProgressReport pReport) {
+		if ((null == progressBar || true == progressBar.isDisposed())) {
+			return;
+		}
+
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+
+				if (null != pReport) {
+					/*
+					 * Pass the values through to the progressbar
+					 */
+					progressBar.setMinimum(pReport.minimum);
+					progressBar.setMaximum(pReport.maximum);
+					progressBar.setIndeterminate(pReport.isIndeterminate);
+					progressBar.setPercentage(pReport.percentage);
+					showProgressBar(true);
+
+					/*
+					 * Update status text
+					 */
+					if (true == isAZ3) {
+						statusText.setText(pReport.message);
+					} else {
+						setStatusText(pReport.message);
+					}
+				}
+
+				else {
+					/*
+					 * Since the pReport is null then reset progress display appropriately
+					 */
+					showProgressBar(false);
+
+					if (true == isAZ3) {
+						statusText.setText("");
+					} else {
+						setStatusText(null);
+					}
+				}
+
+			}
+
+		}, true);
+
+	}
+
+	/**
+	 * A listener that listens to any changes notified from the <code>ProgressReportingManager</code> and
+	 * accordingly update the progress bar and/or the status text area.
+	 * @author knguyen
+	 *
+	 */
+	private class ProgressListener
+		implements IProgressReportingListener
+	{
+
+		public int reporting(IProgressReporter reporter) {
+
+			if (null == reporter) {
+				return RETVAL_OK;
+			}
+
+			/*
+			 * Show the appropriate image based on the content of the reporting manager
+			 */
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					if (PRManager.getReporterCount(ProgressReportingManager.COUNT_ERROR) > 0) {
+						progressViewerImageLabel.setImage(progress_error_img);
+					} else if (PRManager.getReporterCount(ProgressReportingManager.COUNT_ALL) > 0) {
+						progressViewerImageLabel.setImage(progress_info_img);
+					} else {
+						progressViewerImageLabel.setImage(progress_viewer_img);
+					}
+				}
+			}, true);
+
+			/*
+			 * Get a ProgressReport to ensure all data is consistent
+			 */
+			ProgressReport pReport = reporter.getProgressReport();
+
+			/*
+			 * If this reporter is not active then get the previous reporter that is still active and display info from that
+			 */
+			if (false == pReport.isActive) {
+
+				/*
+				 * Get the previous reporter that is still active
+				 */
+				reporter = PRManager.getPreviousActiveReporter();
+
+				/*
+				 * If still null then we reset the status text and the progress bar
+				 */
+				if (null == reporter) {
+					updateProgressBarDisplay(null);
+					return RETVAL_OK;
+				}
+
+				pReport = reporter.getProgressReport();
+			}
+
+			/*
+			 * If there is at least 2 reporters still active then show the progress bar as indeterminate
+			 * and display the text from the current reporter
+			 */
+			if (true == PRManager.hasMultipleActive()) {
+				final ProgressReport pReport_final = pReport;
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						setStatusText(pReport_final.message);
+						progressBar.setIndeterminate(true);
+						showProgressBar(true);
+					}
+				}, true);
+			} else {
+				updateProgressBarDisplay(pReport);
+			}
+
+			return RETVAL_OK;
+		}
+
+	}
+
 }
