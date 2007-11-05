@@ -2174,6 +2174,7 @@ public class TableViewSWTImpl
 				}
 
 				if (bRefresh) {
+					fillRowGaps(false);
 					refreshVisibleRows();
 				}
 
