@@ -107,6 +107,8 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 		new BooleanParameter(cLook, "Add URL Silently", MSG_PREFIX	+ "addurlsilently");
 		new BooleanParameter(cLook, "add_torrents_silently", "ConfigView.section.interface.display.add_torrents_silently");
 
+		new BooleanParameter(cLook, "suppress_file_download_dialog", "ConfigView.section.interface.display.suppress.file.download.dialog");
+
 		if (Constants.isWindowsXP) {
 			final Button enableXPStyle = new Button(cLook, SWT.CHECK);
 			Messages.setLanguageText(enableXPStyle, MSG_PREFIX + "enableXPStyle");
