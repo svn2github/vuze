@@ -29,11 +29,12 @@ package com.aelitis.azureus.ui.swt;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.util.ArrayList;
+import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.List;
 
 /**
  * Code to detect swt leak
@@ -63,6 +64,8 @@ public class Sleak
 
 	Error[] errors = new Error[0];
 
+	Map all = new HashMap();
+	
 	ArrayList oldNonResources = new ArrayList();
 
 	public void open() {
@@ -253,12 +256,18 @@ public class Sleak
 	}
 
 	String objectName(Object object) {
-		String string = object.toString();
+		Date timeAdded = (Date)all.get(object);
+		if (timeAdded == null) {
+			timeAdded = new Date();
+			all.put(object, timeAdded);
+		}
+
+		String string = timeAdded + "] " + object.toString();
 		if (object instanceof Resource) {
 			return string;
 		}
 
-		int index = string.indexOf(' ');
+		int index = string.indexOf(" {");
 		if (index == -1) {
 			return string;
 		}
@@ -349,24 +358,35 @@ public class Sleak
 
 		if (object instanceof Control) {
 			Control control = (Control) object;
+			if (control.isDisposed()) {
+				return;
+			}
 			Rectangle bounds = control.getBounds();
-
+			
 			gc.drawString(object.toString(), 0, 0);
 			gc.drawString(bounds.toString(), 0, 20);
-			
-			GC gcControl = new GC(control);
-			try {
+
+			if (object instanceof Widget) {
+				Object data = ((Widget)object).getData("sleak");
+				if (data != null) {
+					gc.drawString(data.toString(), 0, 35);
+				}
+			}
+
+  		
+  		GC gcControl = new GC(control);
+  		try {
   			Image img = new Image(control.getDisplay(), bounds.width, bounds.height);
   			gcControl.copyArea(img, 0, 0);
   			
-  			gc.drawImage(img, 0, 40);
+  			gc.drawImage(img, 0, 45);
   			
   			img.dispose();
-			} catch (Exception e) {
-			} finally {
+  		} catch (Exception e) {
+  		} finally {
   			gcControl.dispose();
-				
-			}
+  			
+  		}
 			return;
 		}
 	}
