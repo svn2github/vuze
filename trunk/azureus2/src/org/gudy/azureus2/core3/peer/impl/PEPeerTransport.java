@@ -221,11 +221,19 @@ PEPeerTransport
 	
 		/**
 		 * Attempts to reconnect to the same peer
+		 * @param tryUDP try to initate a UDP connection if true, just reestablish the previous state otherwise
 		 * @return null if reconnect not possible, reconnected peer otherwise
 		 */
 	
 	public PEPeerTransport
-	reconnect();
+	reconnect(boolean tryUDP);
+	
+	/**
+	 * This method is called to check if it is safe to reconnect to a peer, i.e. avoid hammering
+	 * exchanging data with a peer should work as it takes time to setup the connection and negotiate things before that happens
+	 * @return true if we exchanged payload data with the peer during the current connection
+	 */
+	public boolean isSafeForReconnect();
 	
 	public void
 	generateEvidence(

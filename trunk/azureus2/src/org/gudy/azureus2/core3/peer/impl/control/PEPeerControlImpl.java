@@ -241,6 +241,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 	private static final int UDP_RECONNECT_MAX			= 16;
 
+	private List tcp_reconnects = new ArrayList();
 	private Map	udp_reconnects = 
 		new LinkedHashMap(UDP_RECONNECT_MAX,0.75f,true)
 	{
@@ -718,12 +719,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 			for( int i=0; i < peer_transports.size(); i++ ) {
 				final PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
 
-				PEPeerTransport	reconnected_peer = peer.reconnect();
-
-				if ( reconnected_peer != null ){
-
-					addToPeerTransports( reconnected_peer );
-				}
+				PEPeerTransport	reconnected_peer = peer.reconnect(false);
 			}
 		}
 	}
@@ -2279,61 +2275,46 @@ DiskManagerCheckRequestListener, IPFilterListener
 		
 		try{
 			peer_transports_mon.enter();
+			
+			int udpPort = peer.getUDPListenPort();
+			
+			boolean canTryUDP = UDPNetworkManager.UDP_OUTGOING_ENABLED && peer.getUDPListenPort() > 0;
 
-			int	udp_port = peer.getUDPListenPort();
-
-			if ( is_running && UDPNetworkManager.UDP_OUTGOING_ENABLED && udp_port > 0 ){
+			if ( is_running ){
 
 				PeerItem peer_item = peer.getPeerItemIdentity();
-
 				PeerItem self_item = peer_database.getSelfPeer();
 
 				if ( self_item == null || !self_item.equals( peer_item )){
 
 					String	ip = peer.getIp();
 					
-					String	key = ip + ":" + udp_port;
+					String	key = ip + ":" + udpPort;
 
-					if ( peer.isTCP()){
-									
-						if ( connect_failed ){
+					if (peer.isTCP())
+					{
+						if (connect_failed) // TCP connect failure, try UDP later if necessary
+						{
+							if (canTryUDP && udp_fallback_for_failed_connection)
+								udp_fallbacks.put(key, peer);
 							
-								// candidate for a fallback UDP connection attempt
-					
-							if ( udp_fallback_for_failed_connection ){
-								
-								udp_fallbacks.put( key, peer_item );
-							}
+						} else if (canTryUDP && udp_fallback_for_dropped_connection && network_failed && seeding_mode && peer.isInterested() && peer.getStats().getEstimatedSecondsToCompletion() > 60)
+						{
+							if (Logger.isEnabled())
+								Logger.log(new LogEvent(peer, LOGID, LogEvent.LT_WARNING, "Unexpected stream closure detected, attempting recovery"));
 							
-						}else if ( network_failed && seeding_mode && peer.isInterested() && peer.getStats().getEstimatedSecondsToCompletion() > 60 ){
+							// System.out.println( "Premature close of stream: " + getDisplayName() + "/" + peer.getIp());
+							udp_reconnects.put( key, peer );
 							
-							if ( udp_fallback_for_dropped_connection ){
-								
-								if (Logger.isEnabled()){
-									Logger.log(new LogEvent(peer, LOGID, LogEvent.LT_WARNING, "Unexpected stream closure detected, attempting recovery" ));
-								}
-		
-								// System.out.println( "Premature close of stream: " + getDisplayName() + "/" + peer.getIp());
-								
-								udp_reconnects.put( key, peer_item );
-							}
+						} else if (network_failed && peer.isSafeForReconnect() && getMaxConnections() > 0 && getMaxNewConnectionsAllowed() > getMaxConnections() / 3) 
+						{
+							peer.reconnect(false);							
 						}
-						
-					}else{
-						
-						if ( connect_failed ){
-							
-							if ( udp_fallback_for_failed_connection ){
-								
-								if ( peer.getData( PEER_NAT_TRAVERSE_DONE_KEY ) == null ){
-									
-									// System.out.println( "Direct reconnect failed, attempting NAT traversal" );
-									
-									udp_fallbacks.put( key, peer_item );
-								}
-							}
-						}
-					}
+					} else if (connect_failed) // UDP connect failure
+						if (udp_fallback_for_failed_connection)
+							if (peer.getData(PEER_NAT_TRAVERSE_DONE_KEY) == null)
+								// System.out.println( "Direct reconnect failed, attempting NAT traversal" );
+								udp_fallbacks.put(key, peer);
 				}
 			}
 
@@ -3532,6 +3513,9 @@ DiskManagerCheckRequestListener, IPFilterListener
 			}
 		}
 	}
+	
+	
+	
 
 	private void
 	doUDPConnectionChecks(
@@ -3550,12 +3534,12 @@ DiskManagerCheckRequestListener, IPFilterListener
 				
 				Iterator it = udp_reconnects.values().iterator();
 				
-				PeerItem	peer_item = (PeerItem)it.next();
+				PEPeerTransport	peer = (PEPeerTransport)it.next();
 
 				it.remove();
 
 				if (Logger.isEnabled()){
-					Logger.log(new LogEvent(this, LOGID, LogEvent.LT_INFORMATION, "Reconnecting to previous failed peer " + peer_item.getAddressString()));
+					Logger.log(new LogEvent(this, LOGID, LogEvent.LT_INFORMATION, "Reconnecting to previous failed peer " + peer.getPeerItemIdentity().getAddressString()));
 				}
 
 				if ( new_connections == null ){
@@ -3563,7 +3547,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 					new_connections = new ArrayList();
 				}
 				
-				new_connections.add( peer_item );
+				new_connections.add( peer );
 
 				number--;
 				
@@ -3611,13 +3595,13 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 				to_do--;
 
-				final PeerItem	peer_item = (PeerItem)it.next();
+				final PEPeerTransport	peer_item = (PEPeerTransport)it.next();
 
 				it.remove();
 
 				PeerNATTraverser.getSingleton().create(
 						this,
-						new InetSocketAddress( peer_item.getAddressString(), peer_item.getUDPPort() ),
+						new InetSocketAddress( peer_item.getPeerItemIdentity().getAddressString(), peer_item.getPeerItemIdentity().getUDPPort() ),
 						new PeerNATTraversalAdapter()
 						{
 							private boolean	done;
@@ -3630,17 +3614,9 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 								Map	user_data = new HashMap();
 								
-								user_data.put( PEER_NAT_TRAVERSE_DONE_KEY, "" );
-								
-								makeNewOutgoingConnection( 
-										PeerItem.convertSourceString(peer_item.getSource()),
-										target.getAddress().getHostAddress(),
-										peer_item.getTCPPort(),
-										target.getPort(),
-										false,
-										true,
-										peer_item.getCryptoLevel(),
-										user_data );
+								PEPeerTransport newTransport = peer_item.reconnect(true);
+								if(newTransport != null)
+									newTransport.setData(PEER_NAT_TRAVERSE_DONE_KEY, "");
 							}
 
 							public void
@@ -3679,19 +3655,11 @@ DiskManagerCheckRequestListener, IPFilterListener
 				
 				for (int i=0;i<new_connections.size();i++){
 			
-					PeerItem	peer_item = (PeerItem)new_connections.get(i);
+					PEPeerTransport	peer_item = (PEPeerTransport)new_connections.get(i);
 
 						// don't call when holding monitor - deadlock potential
-					
-					makeNewOutgoingConnection( 
-							PeerItem.convertSourceString(peer_item.getSource()),
-							peer_item.getAddressString(),
-							peer_item.getTCPPort(),
-							peer_item.getUDPPort(),
-							false,
-							true,
-							peer_item.getCryptoLevel(),
-							null );
+					peer_item.reconnect(true);
+
 				}
 			}
 		}

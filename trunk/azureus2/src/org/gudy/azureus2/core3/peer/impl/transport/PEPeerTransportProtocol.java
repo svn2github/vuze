@@ -706,11 +706,83 @@ implements PEPeerTransport
 		{
 			recentlyDisconnected.put(mySessionID, this);
 		}
-		
-		if(reconnecting)
-			reconnectInternally(true);
 	}
+	
+	public PEPeerTransport reconnect(boolean tryUDP) {
+		
+		boolean use_tcp = isTCP() && !(tryUDP && getUDPListenPort() > 0);
+		
+		if ((use_tcp && getTCPListenPort() > 0) || (!use_tcp && getUDPListenPort() > 0))
+		{		
+			boolean use_crypto = getPeerItemIdentity().getHandshakeType() == PeerItemFactory.HANDSHAKE_TYPE_CRYPTO;
 
+			PEPeerTransport new_conn = 
+				PEPeerTransportFactory.createTransport( 
+						manager, 
+						getPeerSource(), 
+						getIp(), 
+						getTCPListenPort(), 
+						getUDPListenPort(),
+						use_tcp,
+						use_crypto,
+						crypto_level,
+						null );
+			
+			System.out.println("attempting local reconnect");
+			if (new_conn instanceof PEPeerTransportProtocol)
+			{
+				PEPeerTransportProtocol pt = (PEPeerTransportProtocol) new_conn;
+				pt.checkForReconnect(mySessionID);
+			}
+			
+			manager.addPeer( new_conn );
+			
+			return (new_conn);
+		} else
+		{
+			return (null);
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.core3.peer.impl.PEPeerTransport#isSafeForReconnect()
+	 */
+	public boolean isSafeForReconnect() {
+		return allowReconnect;
+	}
+	
+	
+	private void checkForReconnect(HashWrapper oldID)
+	{
+		//System.out.println("Checking for reconnect on ID:"+oldID.toBase32String());
+		PEPeerTransportProtocol oldTransport;
+		synchronized (recentlyDisconnected)
+		{
+			oldTransport = (PEPeerTransportProtocol)recentlyDisconnected.remove(oldID);
+		}
+		
+		if(oldTransport != null)
+		{
+			System.out.println("reconnected to peer (new) "+this+" (old) "+oldTransport);
+			peerSessionID = oldTransport.peerSessionID;
+			peer_stats = oldTransport.peer_stats;
+			peer_stats.setPeer(this);
+			unchokedTimeTotal += oldTransport.unchokedTimeTotal;
+			unchokedTime += oldTransport.unchokedTime;
+			setSnubbed(oldTransport.isSnubbed());
+			snubbed = oldTransport.snubbed;
+			last_good_data_time = oldTransport.last_good_data_time;
+		}
+	}
+	
+	private void generateFallbackSessionId()
+	{
+		SHA1Hasher sha1 = new SHA1Hasher();
+		sha1.update(peer_id);
+		sha1.update(getIp().getBytes());
+		mySessionID = sha1.getHash();
+		checkForReconnect(mySessionID);
+	}
 
 	private void addAvailability()
 	{
@@ -3249,85 +3321,6 @@ implements PEPeerTransport
 			return unchokedTimeTotal;
 		return unchokedTimeTotal +(SystemTime.getCurrentTime() -unchokedTime);
 	}
-
-	public PEPeerTransport
-	reconnect()
-	{
-		return reconnectInternally(false);
-	}
-	
-	private PEPeerTransport reconnectInternally(boolean isInternal)
-	{
-		boolean	use_tcp = isTCP();
-
-		if (	( use_tcp && getTCPListenPort() > 0 ) ||
-				( !use_tcp && getUDPListenPort() > 0 )){
-
-			boolean use_crypto = getPeerItemIdentity().getHandshakeType() == PeerItemFactory.HANDSHAKE_TYPE_CRYPTO;
-
-			PEPeerTransport new_conn = 
-				PEPeerTransportFactory.createTransport( 
-						manager, 
-						getPeerSource(), 
-						getIp(), 
-						getTCPListenPort(), 
-						getUDPListenPort(),
-						use_tcp,
-						use_crypto,
-						crypto_level,
-						null );
-			
-			System.out.println("attempting local reconnect");
-			
-			if (new_conn instanceof PEPeerTransportProtocol)
-			{
-				PEPeerTransportProtocol pt = (PEPeerTransportProtocol) new_conn;
-				pt.checkForReconnect(mySessionID);
-			}
-			
-			if(isInternal)
-				manager.addPeer(new_conn);
-
-			return( new_conn );
-
-		}else{
-
-			return( null );
-		}
-	}
-	
-	private void checkForReconnect(HashWrapper oldID)
-	{
-		//System.out.println("Checking for reconnect on ID:"+oldID.toBase32String());
-		PEPeerTransportProtocol oldTransport;
-		synchronized (recentlyDisconnected)
-		{
-			oldTransport = (PEPeerTransportProtocol)recentlyDisconnected.remove(oldID);
-		}
-		
-		if(oldTransport != null)
-		{
-			System.out.println("reconnected to peer (new) "+this+" (old) "+oldTransport);
-			peerSessionID = oldTransport.peerSessionID;
-			peer_stats = oldTransport.peer_stats;
-			peer_stats.setPeer(this);
-			unchokedTimeTotal += oldTransport.unchokedTimeTotal;
-			unchokedTime += oldTransport.unchokedTime;
-			setSnubbed(oldTransport.isSnubbed());
-			snubbed = oldTransport.snubbed;
-			last_good_data_time = oldTransport.last_good_data_time;
-		}
-	}
-	
-	private void generateFallbackSessionId()
-	{
-		SHA1Hasher sha1 = new SHA1Hasher();
-		sha1.update(peer_id);
-		sha1.update(getIp().getBytes());
-		mySessionID = sha1.getHash();
-		checkForReconnect(mySessionID);
-	}
-	
 
 	public void setUploadRateLimitBytesPerSecond( int bytes ){ connection.setUploadLimit( bytes ); }
 	public void setDownloadRateLimitBytesPerSecond( int bytes ){ connection.setDownloadLimit( bytes ); }

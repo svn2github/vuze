@@ -846,7 +846,8 @@ PeerForeignDelegate
      */
 	public void clearAvailabilityAdded() {};
 	
-	public PEPeerTransport reconnect(){ return null; }
+	public PEPeerTransport reconnect(boolean tryUDP){ return null; }
+	public boolean isSafeForReconnect() { return false; }
 	
 	public void setUploadRateLimitBytesPerSecond( int bytes ){ network_connection.setUploadLimit( bytes ); }
 	public void setDownloadRateLimitBytesPerSecond( int bytes ){ network_connection.setDownloadLimit( bytes ); }
