@@ -1657,9 +1657,9 @@ implements PEPeerTransport
 
 	public String toString() {
 		if( connection != null && connection.isConnected() ) {
-			return connection + " [" + client+ "]";
+			return connection + (isTCP()?" [":"(UDP) [") + client+ "]";
 		}
-		return ip + ":" + port + " [" + client+ "]";
+		return ip + ":" + port + (isTCP()?" [":"(UDP) [") + client+ "]";
 	}
 
 	public String
@@ -2175,7 +2175,8 @@ implements PEPeerTransport
 		{
 			System.out.println("received remote session ID:"+handshake.getRemoteSessionID().toBase32String());
 			peerSessionID = handshake.getRemoteSessionID();
-		}
+		} else
+			generateFallbackSessionId();
 			 
 
 		String[] supported_message_ids = handshake.getMessageIDs();
