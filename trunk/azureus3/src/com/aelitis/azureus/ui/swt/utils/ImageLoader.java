@@ -37,6 +37,8 @@ import com.aelitis.azureus.ui.skin.SkinProperties;
 public class ImageLoader
 {
 
+	private static final boolean DEBUG_UNLOAD = false;
+
 	private Display display;
 
 	public static Image noImage;
@@ -180,14 +182,31 @@ public class ImageLoader
 
 	public void unLoadImages() {
 		Iterator iter;
-		iter = mapImages.values().iterator();
-		while (iter.hasNext()) {
-			Image[] images = (Image[]) iter.next();
-			if (images != null) {
-				for (int i = 0; i < images.length; i++) {
-					Image image = images[i];
-					if (image != null && !image.isDisposed()) {
-						image.dispose();
+		if (DEBUG_UNLOAD) {
+			iter = mapImages.keySet().iterator();
+			while (iter.hasNext()) {
+				Object key = iter.next();
+				Image[] images = (Image[]) mapImages.get(key);
+				if (images != null) {
+					for (int i = 0; i < images.length; i++) {
+						Image image = images[i];
+						if (image != null && !image.isDisposed()) {
+							System.out.println("dispose " + image + ";" + key);
+							image.dispose();
+						}
+					}
+				}
+			}
+		} else {
+			iter = mapImages.values().iterator();
+			while (iter.hasNext()) {
+				Image[] images = (Image[]) iter.next();
+				if (images != null) {
+					for (int i = 0; i < images.length; i++) {
+						Image image = images[i];
+						if (image != null && !image.isDisposed()) {
+							image.dispose();
+						}
 					}
 				}
 			}
