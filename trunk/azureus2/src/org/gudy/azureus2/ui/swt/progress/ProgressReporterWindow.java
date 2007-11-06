@@ -89,6 +89,11 @@ public class ProgressReporterWindow
 	private int defaultShellWidth = 400;
 
 	/**
+	 * The height or thickness of the progress bar
+	 */
+	private int defaultPBarHeight = 15;
+
+	/**
 	 * If <code>true</code> then this window is hosting only 1 <code>ProgressReporter</code> 
 	 */
 	private boolean isStandalone = false;
@@ -499,7 +504,7 @@ public class ProgressReporterWindow
 			nameLabel.setLayoutData(nameData);
 
 			pBar = new AZProgressBar(middlePanel, pReport.isIndeterminate);
-			pbarData = new GridData(SWT.CENTER, SWT.TOP, true, false);
+			pbarData = new GridData(SWT.CENTER, SWT.CENTER, true, false);
 			pBar.setLayoutData(pbarData);
 
 			Label separator = new Label(middlePanel, SWT.SEPARATOR | SWT.HORIZONTAL);
@@ -860,7 +865,7 @@ public class ProgressReporterWindow
 				return;
 			}
 			if (true == showProgressBar) {
-				pbarData.heightHint = 25;
+				pbarData.heightHint = defaultPBarHeight;
 			} else {
 				pbarData.heightHint = 0;
 			}
