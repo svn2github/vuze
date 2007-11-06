@@ -677,6 +677,8 @@ public class MainStatusBar
 		IProgressReporter updateReporter = new ProgressReporter(
 				MessageText.getString("UpdateWindow.title"));
 
+		 
+		
 		protected updateStatusChanger(UpdateCheckInstance _instance) {
 
 			instance = _instance;
@@ -687,6 +689,7 @@ public class MainStatusBar
 				update_stack.add(this);
 
 				updateReporter.setCancelAllowed(true);
+				updateReporter.setTitle(MessageText.getString("updater.progress.window.title"));
 				updateReporter.appendDetailMessage(format(instance, "added"));
 
 				updateReporter.addListener(new IProgressReporterListener() {
