@@ -2,8 +2,6 @@ package org.gudy.azureus2.ui.swt;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.ProgressBar;
 
@@ -15,8 +13,6 @@ import org.eclipse.swt.widgets.ProgressBar;
 public class AZProgressBar
 	extends Composite
 {
-
-	private Composite progressPane = null;
 
 	private ProgressBar incrementalProgressBar = null;
 
@@ -43,21 +39,14 @@ public class AZProgressBar
 	 */
 	public AZProgressBar(Composite parent, boolean isIndeterminate) {
 		super(parent, SWT.NULL);
-		setLayout(new GridLayout());
 
-		/*
-		 * Sub panel for the progress bars
-		 */
-		progressPane = new Composite(this, SWT.NONE);
-		progressPane.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-
-		incrementalProgressBar = new ProgressBar(progressPane, SWT.HORIZONTAL);
-		indeterminateProgressBar = new ProgressBar(progressPane, SWT.HORIZONTAL
+		incrementalProgressBar = new ProgressBar(this, SWT.HORIZONTAL);
+		indeterminateProgressBar = new ProgressBar(this, SWT.HORIZONTAL
 				| SWT.INDETERMINATE);
 
 		stack = new StackLayout();
-		progressPane.setLayout(stack);
-		progressPane.pack();
+		setLayout(stack);
+		pack();
 
 		setIndeterminate(isIndeterminate);
 	}
@@ -73,14 +62,14 @@ public class AZProgressBar
 				incrementalProgressBar.setSelection(0);
 				stack.topControl = incrementalProgressBar;
 			}
-			progressPane.layout();
+			layout();
 		}
 	}
 
 	public void done() {
 		incrementalProgressBar.setSelection(incrementalProgressBar.getMaximum());
 		stack.topControl = null;
-		progressPane.layout();
+		layout();
 	}
 
 	public void setSelection(int value) {
