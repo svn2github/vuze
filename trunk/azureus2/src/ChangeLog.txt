@@ -9,7 +9,7 @@ FEATURE: Core | global download speed limit can also limit the number of outgoin
                  -prioritizes downloads which are on the head of the queue
 FEATURE: Core | IP binding now provides primitive round-robin load balancing for users with multiple internet connections; accepts interface names and IPv6 binding (if supported on the platform) [The 8472] 
 FEATURE: UI   | Piece distribution view is now also available as a peer subview [The 8472]
-FEATURE: Core | Reconnect to peers after unexpected disconnect [Parg,The 8472]
+FEATURE: Core | Reconnect to peers after unexpected disconnect / recover stats of recently disconnected peers [Parg,The 8472]
 FEATURE: UI   | Added 'time remaining' column to peers view [Parg]
 
 CHANGE: Core  | Revised piece picking code to deal better with some edge cases and snubbed peers [The 8472]
