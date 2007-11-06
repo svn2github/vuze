@@ -25,6 +25,8 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -79,17 +81,21 @@ public class SWTSkin
 	private List listenersLayoutComplete = new ArrayList();
 
 	private final ClassLoader classLoader;
+	
+	private boolean ourSkinProperties = false;
 
 	/**
 	 * 
 	 */
 	public SWTSkin() {
 		this.classLoader = SWTSkin.class.getClassLoader();
+		ourSkinProperties = true;
 		init(new SWTSkinPropertiesImpl());
 	}
 
 	public SWTSkin(ClassLoader classLoader, String skinPath, String mainSkinFile) {
 		this.classLoader = classLoader;
+		ourSkinProperties = true;
 		init(new SWTSkinPropertiesImpl(classLoader, skinPath, mainSkinFile));
 	}
 		
@@ -374,6 +380,18 @@ public class SWTSkin
 		FormLayout layout = new FormLayout();
 		shell.setLayout(layout);
 		shell.setBackgroundMode(SWT.INHERIT_DEFAULT);
+		
+		shell.addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent e) {
+				for (Iterator iter = mapImageLoaders.values().iterator(); iter.hasNext();) {
+					ImageLoader loader = (ImageLoader) iter.next();
+					loader.unLoadImages();
+				}
+				if (ourSkinProperties) {
+					//skinProperties.dispose();
+				}
+			}
+		});
 		
 		Color bg = skinProperties.getColor(startID + ".color");
 		if (bg != null) {
