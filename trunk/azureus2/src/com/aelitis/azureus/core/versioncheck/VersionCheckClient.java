@@ -126,6 +126,9 @@ public class VersionCheckClient {
   private long last_check_time_v4 = 0; 
   private long last_check_time_v6 = 0; 
   
+  private long last_feature_flag_cache;
+  private long last_feature_flag_cache_time;
+  
   
   private VersionCheckClient() {
     /* blank */
@@ -203,6 +206,11 @@ public class VersionCheckClient {
 	    	}
 	        try {
 	          last_check_data_v6 = performVersionCheck( constructVersionCheckMessage( reason ), true, true, true );
+	          
+	          if ( last_check_data_v6 != null && last_check_data_v6.size() > 0 ){
+	       
+	        	  COConfigurationManager.setParameter( "versioncheck.cache.v6", last_check_data_v6 );
+	          }
 	        }
 	        catch( UnknownHostException t ) {
 	        	// no internet
@@ -241,6 +249,11 @@ public class VersionCheckClient {
 	    	}
 	        try {
 	          last_check_data_v4 = performVersionCheck( constructVersionCheckMessage( reason ), true, true, false );
+	          
+	          if ( last_check_data_v4 != null && last_check_data_v4.size() > 0 ){
+	   	       
+	        	  COConfigurationManager.setParameter( "versioncheck.cache.v4", last_check_data_v4 );
+	          }
 	        }
 	        catch( UnknownHostException t ) {
 	        	// no internet
@@ -289,6 +302,64 @@ public class VersionCheckClient {
 		  
 		  return( v4_ok | v6_ok );
 	  }
+  }
+  
+  protected Map
+  getMostRecentVersionCheckData()
+  {
+	  	// currently we maintain v4 much more accurately than v6
+	  
+	  if ( last_check_data_v4 != null ){
+		  
+		  return( last_check_data_v4 );
+	  }
+	  
+	  Map	res = COConfigurationManager.getMapParameter( "versioncheck.cache.v4", null );
+	  
+	  if ( res != null ){
+		  
+		  return( res );
+	  }
+	  
+	  if ( last_check_data_v6 != null ){
+		  
+		  return( last_check_data_v6 );
+	  }
+	  
+	  res = COConfigurationManager.getMapParameter( "versioncheck.cache.v6", null );
+	
+	  return( res );
+  }
+  
+  public long
+  getFeatureFlags()
+  {
+	  long	now = SystemTime.getCurrentTime();
+	  
+	  if ( now > last_feature_flag_cache_time && now - last_feature_flag_cache_time < 60000 ){
+		  
+		  return( last_feature_flag_cache );
+	  }
+	  
+	  Map m = getMostRecentVersionCheckData();
+	  
+	  long	result;
+	  
+	  if ( m == null ){
+		  
+		  result = 0;
+		  
+	  }else{
+	  
+		  Long	l = (Long)m.get( "feat_flags" );
+	  
+		  result = l==null?0:l.longValue();
+	  }
+	  
+	  last_feature_flag_cache 		= result;
+	  last_feature_flag_cache_time	= now;
+	  
+	  return( result );
   }
   
   public long

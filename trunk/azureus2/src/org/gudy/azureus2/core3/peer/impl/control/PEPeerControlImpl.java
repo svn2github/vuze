@@ -53,6 +53,7 @@ import com.aelitis.azureus.core.peermanager.piecepicker.*;
 import com.aelitis.azureus.core.peermanager.unchoker.*;
 import com.aelitis.azureus.core.peermanager.uploadslots.UploadHelper;
 import com.aelitis.azureus.core.peermanager.uploadslots.UploadSlotManager;
+import com.aelitis.azureus.core.util.FeatureAvailability;
 
 /**
  * manages all peer transports for a torrent
@@ -221,19 +222,19 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 	private static final int MAX_UDP_CONNECTIONS		= 16;
 
-	private static final int UDP_FALLBACK_MAX			= 32;
+	private static final int PENDING_NAT_TRAVERSAL_MAX	= 32;
 	private static final int MAX_UDP_TRAVERSAL_COUNT	= 3;
 	
 	private static final String	PEER_NAT_TRAVERSE_DONE_KEY	= PEPeerControlImpl.class.getName() + "::nat_trav_done";
 	
-	private Map	udp_fallbacks = 
-		new LinkedHashMap(UDP_FALLBACK_MAX,0.75f,true)
+	private Map	pending_nat_traversals = 
+		new LinkedHashMap(PENDING_NAT_TRAVERSAL_MAX,0.75f,true)
 	{
 		protected boolean 
 		removeEldestEntry(
 			Map.Entry eldest) 
 		{
-			return size() > UDP_FALLBACK_MAX;
+			return size() > PENDING_NAT_TRAVERSAL_MAX;
 		}
 	};	
 
@@ -242,6 +243,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 	private static final int UDP_RECONNECT_MAX			= 16;
 
 	private List tcp_reconnects = new ArrayList();
+	
 	private Map	udp_reconnects = 
 		new LinkedHashMap(UDP_RECONNECT_MAX,0.75f,true)
 	{
@@ -2291,30 +2293,54 @@ DiskManagerCheckRequestListener, IPFilterListener
 					
 					String	key = ip + ":" + udpPort;
 
-					if (peer.isTCP())
-					{
-						if (connect_failed) // TCP connect failure, try UDP later if necessary
-						{
-							if (canTryUDP && udp_fallback_for_failed_connection)
-								udp_fallbacks.put(key, peer);
+					if ( peer.isTCP()){
+					
+						if ( connect_failed ){
 							
-						} else if (canTryUDP && udp_fallback_for_dropped_connection && network_failed && seeding_mode && peer.isInterested() && peer.getStats().getEstimatedSecondsToCompletion() > 60)
-						{
-							if (Logger.isEnabled())
+								// TCP connect failure, try UDP later if necessary
+						
+							if ( canTryUDP && udp_fallback_for_failed_connection ){
+								
+								pending_nat_traversals.put(key, peer);
+							}					
+						}else if ( 	canTryUDP && 
+									udp_fallback_for_dropped_connection && 
+									network_failed && 
+									seeding_mode && 
+									peer.isInterested() && 
+									peer.getStats().getEstimatedSecondsToCompletion() > 60 &&
+									FeatureAvailability.isUDPPeerReconnectEnabled()){
+						
+							if (Logger.isEnabled()){
 								Logger.log(new LogEvent(peer, LOGID, LogEvent.LT_WARNING, "Unexpected stream closure detected, attempting recovery"));
+							}
 							
-							// System.out.println( "Premature close of stream: " + getDisplayName() + "/" + peer.getIp());
+								// System.out.println( "Premature close of stream: " + getDisplayName() + "/" + peer.getIp());
+							
 							udp_reconnects.put( key, peer );
 							
-						} else if (network_failed && peer.isSafeForReconnect() && getMaxConnections() > 0 && getMaxNewConnectionsAllowed() > getMaxConnections() / 3) 
-						{
+						}else if (	network_failed && 
+									peer.isSafeForReconnect() && 
+									getMaxConnections() > 0 && 
+									getMaxNewConnectionsAllowed() > getMaxConnections() / 3 &&
+									FeatureAvailability.isGeneralPeerReconnectEnabled()){
+					
 							peer.reconnect(false);							
 						}
-					} else if (connect_failed) // UDP connect failure
-						if (udp_fallback_for_failed_connection)
-							if (peer.getData(PEER_NAT_TRAVERSE_DONE_KEY) == null)
+					}else if ( connect_failed ){
+						
+							// UDP connect failure
+					
+						if ( udp_fallback_for_failed_connection ){
+							
+							if ( peer.getData(PEER_NAT_TRAVERSE_DONE_KEY) == null){
+								
 								// System.out.println( "Direct reconnect failed, attempting NAT traversal" );
-								udp_fallbacks.put(key, peer);
+								
+								pending_nat_traversals.put(key, peer);
+							}
+						}
+					}
 				}
 			}
 
@@ -3557,7 +3583,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 				}
 			}
 			
-			if ( udp_fallbacks.size() == 0 ){
+			if ( pending_nat_traversals.size() == 0 ){
 
 				return;
 			}
@@ -3589,7 +3615,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 			int	to_do = Math.min( number, avail );
 
-			Iterator	it = udp_fallbacks.values().iterator();
+			Iterator	it = pending_nat_traversals.values().iterator();
 
 			while( to_do > 0 && it.hasNext()){
 
@@ -3961,7 +3987,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 	public boolean
 	hasPotentialConnections()
 	{
-		return( udp_fallbacks.size() + peer_database.getDiscoveredPeerCount() > 0 );
+		return( pending_nat_traversals.size() + peer_database.getDiscoveredPeerCount() > 0 );
 	}
 	
 	public String 
@@ -4055,7 +4081,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 		writer.println( "PeerManager: seeding=" + seeding_mode );
 
 		writer.println( 
-				"    udp_fb=" + udp_fallbacks.size() +
+				"    udp_fb=" + pending_nat_traversals.size() +
 				",udp_tc=" + udp_traversal_count +
 				",pd=[" + peer_database.getString() + "]");
 		
@@ -4064,7 +4090,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 		try{
 			peer_transports_mon.enter();
 
-			Iterator	it = udp_fallbacks.values().iterator();
+			Iterator	it = pending_nat_traversals.values().iterator();
 			
 			while( it.hasNext()){
 			
