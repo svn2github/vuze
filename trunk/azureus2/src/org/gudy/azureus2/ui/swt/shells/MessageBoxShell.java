@@ -207,7 +207,6 @@ public class MessageBoxShell
 
 			linkControl = linkLabel;
 
-			linkLabel.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
 			linkLabel.setText(text.replaceAll(" &", " &&"));
 			linkLabel.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e) {
@@ -237,7 +236,6 @@ public class MessageBoxShell
 			String urlText = Pattern.compile(REGEX_URLHTML, Pattern.CASE_INSENSITIVE).matcher(
 					text).replaceAll("$2 ($1)");
 
-			linkLabel.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
 			linkLabel.setText(urlText);
 		}
 
