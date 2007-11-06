@@ -700,12 +700,13 @@ implements PEPeerTransport
 		outgoing_have_message_aggregator = null;
 		peer_exchange_item = null;
 		outgoing_piece_message_handler = null;
-		
-		
-		synchronized (recentlyDisconnected)
-		{
-			recentlyDisconnected.put(mySessionID, this);
-		}
+
+		// only save stats if it's worth doing so; ignore rapid connect-disconnects
+		if (peer_stats.getTotalDataBytesReceived() > 0 || peer_stats.getTotalDataBytesSent() > 0 || SystemTime.getCurrentTime() - connection_established_time > 30 * 1000)
+			synchronized (recentlyDisconnected)
+			{
+				recentlyDisconnected.put(mySessionID, this);
+			}
 	}
 	
 	public PEPeerTransport reconnect(boolean tryUDP) {
