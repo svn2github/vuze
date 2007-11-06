@@ -27,9 +27,7 @@ import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.GridData;
@@ -219,8 +217,11 @@ public class MainStatusBar
 		this.uiFunctions = UIFunctionsManager.getUIFunctions();
 
 		FormData formData;
+		
+		Color fgColor = parent.getForeground();
 
 		statusBar = new Composite(parent, SWT.NONE);
+		statusBar.setForeground(fgColor);
 		isAZ3 = "az3".equalsIgnoreCase(COConfigurationManager.getStringParameter("ui"));
 
 		GridLayout layout_status = new GridLayout();
@@ -245,6 +246,7 @@ public class MainStatusBar
 
 		//Composite with StackLayout
 		statusArea = new Composite(statusBar, SWT.NONE);
+		statusArea.setForeground(fgColor);
 		gridData = new GridData(GridData.FILL_BOTH);
 		statusArea.setLayoutData(gridData);
 
@@ -253,6 +255,7 @@ public class MainStatusBar
 
 		//Either the Status Text
 		statusText = new CLabel(statusArea, borderFlag);
+		statusText.setForeground(fgColor);
 		gridData = new GridData(GridData.FILL_HORIZONTAL
 				| GridData.VERTICAL_ALIGN_FILL);
 		statusText.setLayoutData(gridData);
@@ -290,6 +293,7 @@ public class MainStatusBar
 
 		//Or a composite with a label, a progressBar and a button
 		statusUpdate = new Composite(statusArea, SWT.NULL);
+		statusUpdate.setForeground(fgColor);
 		gridData = new GridData(GridData.FILL_HORIZONTAL
 				| GridData.VERTICAL_ALIGN_FILL);
 		statusUpdate.setLayoutData(gridData);
@@ -299,6 +303,7 @@ public class MainStatusBar
 		statusUpdate.setLayout(layoutStatusUpdate);
 
 		statusUpdateLabel = new Label(statusUpdate, SWT.NULL);
+		statusUpdateLabel.setForeground(fgColor);
 		gridData = new GridData(SWT.BEGINNING, SWT.CENTER, true, true);
 		gridData.horizontalIndent = 3;
 		statusUpdateLabel.setLayoutData(gridData);
@@ -356,6 +361,7 @@ public class MainStatusBar
 		statusBar.layout();
 
 		this.plugin_label_composite = new Composite(statusBar, SWT.NONE);
+		this.plugin_label_composite.setForeground(fgColor);
 		GridLayout gridLayout = new GridLayout();
 		gridLayout.horizontalSpacing = 0;
 		gridLayout.verticalSpacing = 0;
@@ -1188,6 +1194,7 @@ public class MainStatusBar
 			GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER
 					| GridData.VERTICAL_ALIGN_FILL);
 			setLayoutData(gridData);
+			setForeground(parent.getForeground());
 		}
 
 		/* (non-Javadoc)
