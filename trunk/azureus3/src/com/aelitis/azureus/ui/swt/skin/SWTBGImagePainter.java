@@ -92,7 +92,7 @@ public class SWTBGImagePainter
 
 		if (bDirty) {
 			if (control.isVisible()) {
-			buildBackground(control);
+				buildBackground(control);
 			}
 		}
 
@@ -101,6 +101,8 @@ public class SWTBGImagePainter
 			control.addListener(SWT.Paint, this);
 			control.getShell().addListener(SWT.Show, this);
 		}
+
+		control.addListener(SWT.Dispose, this);
 	}
 
 	/**
@@ -452,6 +454,15 @@ public class SWTBGImagePainter
 
 			if (!TEST_SWT_PAINTING) {
 				buildBackground(control);
+			}
+		} else if (event.type == SWT.Dispose) {
+			if (DEBUG) {
+				System.out.println("dispose.. " + lastImage + ";"
+						+ control.getData("SkinObject"));
+			}
+			if (lastImage != null && !lastImage.isDisposed()) {
+				lastImage.dispose();
+				lastImage = null;
 			}
 		}
 	}
