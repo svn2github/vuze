@@ -59,7 +59,7 @@ PEPeer
 	public static final int MESSAGING_BT_ONLY = 1;
 	public static final int MESSAGING_AZMP = 2;
 	public static final int MESSAGING_LTEP = 3;
-	//used for plugins, such es webseeds
+	//used for plugins, such as webseeds
 	public static final int MESSAGING_EXTERN = 4;
 	
 	
