@@ -49,17 +49,21 @@ public class ColorParameter extends Parameter implements ParameterListener {
   private Button colorChooser;
   protected String sParamName;
   private Image img;
+  
+  private int r;
+  private int g;
+  private int b;
 
   public ColorParameter(final Composite composite,
                         final String name,
-                        int r, int g, int b) {
+                        int _r, int _g, int _b) {
   	super(name);
     sParamName = name;
     colorChooser = new Button(composite,SWT.PUSH);
-    final int rV = COConfigurationManager.getIntParameter(name+".red",r);
-    final int gV = COConfigurationManager.getIntParameter(name+".green",g);
-    final int bV = COConfigurationManager.getIntParameter(name+".blue",b);
-    updateButtonColor(composite.getDisplay(), rV, gV, bV);
+    r = COConfigurationManager.getIntParameter(name+".red",_r);
+    g = COConfigurationManager.getIntParameter(name+".green",_g);
+    b = COConfigurationManager.getIntParameter(name+".blue",_b);
+    updateButtonColor(composite.getDisplay(), r, g, b);
 
     COConfigurationManager.addParameterListener(sParamName, this);
     
@@ -75,12 +79,13 @@ public class ColorParameter extends Parameter implements ParameterListener {
     colorChooser.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         ColorDialog cd = new ColorDialog(composite.getShell());
-        cd.setRGB(new RGB(rV,gV,bV));
+        cd.setRGB(new RGB(r,g,b));
         RGB newColor = cd.open();
         if (newColor == null)
           return;
         newColorChosen();
         COConfigurationManager.setRGBParameter(name, newColor.red, newColor.green, newColor.blue);
+        newColorSet();
       }
     });
     
@@ -108,14 +113,18 @@ public class ColorParameter extends Parameter implements ParameterListener {
   }
 
   public void parameterChanged(String parameterName) {
-    final int rV = COConfigurationManager.getIntParameter(sParamName+".red");
-    final int gV = COConfigurationManager.getIntParameter(sParamName+".green");
-    final int bV = COConfigurationManager.getIntParameter(sParamName+".blue");
-    updateButtonColor(colorChooser.getDisplay(), rV, gV, bV);
+    r = COConfigurationManager.getIntParameter(sParamName+".red");
+    g = COConfigurationManager.getIntParameter(sParamName+".green");
+    b = COConfigurationManager.getIntParameter(sParamName+".blue");
+    updateButtonColor(colorChooser.getDisplay(), r, g, b);
   }
   
   public void newColorChosen() {
     // subclasses can write their own code
+  }
+  
+  public void newColorSet() {
+	  // subclasses can write their own code
   }
 
   public void setValue(Object value) {
