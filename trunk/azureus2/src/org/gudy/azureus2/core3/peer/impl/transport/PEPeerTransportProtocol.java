@@ -302,6 +302,7 @@ implements PEPeerTransport
 
 			//"fake" a connect request to register our listener
 			connection.connect( 
+				false,
 				new NetworkConnection.ConnectionListener() 
 				{
 					public final void 
@@ -477,6 +478,7 @@ implements PEPeerTransport
 
 		connection.connect( 
 				initial_outbound_data,
+				!manager.isSeeding(),
 				new NetworkConnection.ConnectionListener() 
 				{
 					private boolean	connect_ok;

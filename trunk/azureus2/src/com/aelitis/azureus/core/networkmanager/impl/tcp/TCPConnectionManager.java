@@ -96,7 +96,49 @@ public class TCPConnectionManager {
   
   private final VirtualChannelSelector connect_selector = new VirtualChannelSelector( "Connect/Disconnect Manager", VirtualChannelSelector.OP_CONNECT, true );
   
-  private final LinkedList new_requests = new LinkedList();
+  private long connection_request_id_next;
+  
+  private final Set new_requests = 
+	  new TreeSet(
+			new Comparator()
+			{
+				public int 
+				compare(
+					Object o1, 
+					Object o2 )
+				{
+					ConnectionRequest	r1 = (ConnectionRequest)o1;
+					ConnectionRequest	r2 = (ConnectionRequest)o2;
+					
+					int	res = r1.getPriority() - r2.getPriority();
+					
+					if ( res == 0 ){
+						
+						res = r1.getRandom() - r2.getRandom();
+						
+						if ( res == 0 ){
+							
+							long l = r1.getID() - r2.getID();
+							
+							if ( l < 0 ){
+								
+								res = -1;
+								
+							}else if ( res > 0 ){
+								
+								res = 1;
+								
+							}else{
+								
+								Debug.out( "arghhh, borkage" );
+							}
+						}
+					}
+					
+					return( res );
+				}
+			});
+  
   private final ArrayList canceled_requests = new ArrayList();
   private final AEMonitor	new_canceled_mon= new AEMonitor( "ConnectDisconnectManager:NCM");
   
@@ -186,7 +228,10 @@ public class TCPConnectionManager {
         new_canceled_mon.enter();
       
         if( new_requests.isEmpty() )  break;
-        cr = (ConnectionRequest)new_requests.removeFirst();
+        
+        Iterator it = new_requests.iterator();
+        cr = (ConnectionRequest)it.next();
+        it.remove();
       }
       finally{
         new_canceled_mon.exit();
@@ -477,7 +522,9 @@ public class TCPConnectionManager {
         new_canceled_mon.enter();
 
         if( !new_requests.isEmpty() ) {
-          cr = (ConnectionRequest)new_requests.removeFirst();
+            Iterator it = new_requests.iterator();
+            cr = (ConnectionRequest)it.next();
+            it.remove();
         }
       }
       finally{
@@ -543,20 +590,21 @@ public class TCPConnectionManager {
    * @param address remote ip+port to connect to
    * @param listener to receive notification of connect attempt success/failure
    */
-  public void requestNewConnection( InetSocketAddress address, ConnectListener listener ) {   
-	  requestNewConnection( address, listener, CONNECT_ATTEMPT_TIMEOUT );
+  public void requestNewConnection( InetSocketAddress address, ConnectListener listener, boolean high_priority ) {   
+	  requestNewConnection( address, listener, CONNECT_ATTEMPT_TIMEOUT, high_priority  );
   }
   
-  public void requestNewConnection( InetSocketAddress address, ConnectListener listener, long connect_timeout ) {    
-	   ConnectionRequest cr = new ConnectionRequest( address, listener, connect_timeout );
+  public void requestNewConnection( InetSocketAddress address, ConnectListener listener, long connect_timeout, boolean high_priority ) {    
 	    try{
 	      new_canceled_mon.enter();
 	    
 	      //insert at a random position because new connections are usually added in 50-peer
 	      //chunks, i.e. from a tracker announce reply, and we want to evenly distribute the
 	      //connect attempts if there are multiple torrents running
-	      int insert_pos = random.nextInt( new_requests.size() + 1 );
-	      new_requests.add( insert_pos, cr );
+
+		  ConnectionRequest cr = new ConnectionRequest( connection_request_id_next++, address, listener, connect_timeout, high_priority );
+
+	      new_requests.add( cr );
 	      
 	      if ( new_requests.size() >= max_outbound_connections ){
 			
@@ -641,13 +689,37 @@ public class TCPConnectionManager {
     private long connect_start_time;
     private final long connect_timeout;
     private SocketChannel channel;
+    private final short		rand;
+    private final boolean	high_priority;
+    private final long		id;
         
-    private ConnectionRequest( InetSocketAddress _address, ConnectListener _listener, long _connect_timeout  ) {
+    private ConnectionRequest( long _id, InetSocketAddress _address, ConnectListener _listener, long _connect_timeout, boolean _high_priority  ) {
 
+      id	= _id;
       address = _address;
       listener = _listener;
       connect_timeout	= _connect_timeout;
       request_start_time = SystemTime.getCurrentTime();
+      rand = (short)( Short.MAX_VALUE*Math.random());
+      high_priority = _high_priority;
+    }
+    
+    private long
+    getID()
+    {
+    	return( id );
+    }
+    
+    private int
+    getPriority()
+    {
+    	return( high_priority?1:2 );
+    }
+    
+    private short
+    getRandom()
+    {
+    	return( rand );
     }
   }
   

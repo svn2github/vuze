@@ -48,6 +48,7 @@ ProtocolEndpoint
 		boolean 			allow_fallback, 
 		byte[][]			shared_secrets,
 		ByteBuffer			initial_data,
+		boolean				high_priority,
 		ConnectListener 	listener );
 	
 	public String

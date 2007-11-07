@@ -48,7 +48,7 @@ public class ConnectionImpl implements Connection {
   
   
   public void connect( final ConnectionListener listener ) {
-    core_connection.connect( new com.aelitis.azureus.core.networkmanager.NetworkConnection.ConnectionListener() {
+    core_connection.connect( false, new com.aelitis.azureus.core.networkmanager.NetworkConnection.ConnectionListener() {
       public void connectStarted() { listener.connectStarted();  }
       
       public void connectSuccess( ByteBuffer remaining_initial_data) { listener.connectSuccess();  }

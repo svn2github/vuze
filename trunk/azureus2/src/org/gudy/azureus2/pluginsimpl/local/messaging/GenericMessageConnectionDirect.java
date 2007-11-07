@@ -110,6 +110,7 @@ GenericMessageConnectionDirect
 		connection		= _connection;
 
 		connection.connect(
+				false,
 				new NetworkConnection.ConnectionListener()
 				{
 					public void 
@@ -212,6 +213,7 @@ GenericMessageConnectionDirect
 						
 		connection.connect(
 				initial_data,
+				false,
 				new NetworkConnection.ConnectionListener()
 				{
 					public void 

@@ -112,7 +112,8 @@ Transport
   public void
   connectOutbound(
 		ByteBuffer			initial_data,
-		ConnectListener 	listener );
+		ConnectListener 	listener,
+		boolean				high_priority );
    
   /**
    * Indicate that inbound connection is complete 

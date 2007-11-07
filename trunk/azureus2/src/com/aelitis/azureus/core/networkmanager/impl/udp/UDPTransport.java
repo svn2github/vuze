@@ -102,7 +102,8 @@ UDPTransport
 	public void
 	connectOutbound(
 		ByteBuffer				initial_data,
-		final ConnectListener 	listener )
+		final ConnectListener 	listener,
+		boolean					high_priority )
 	{
 		if ( !UDPNetworkManager.UDP_OUTGOING_ENABLED ){
 			

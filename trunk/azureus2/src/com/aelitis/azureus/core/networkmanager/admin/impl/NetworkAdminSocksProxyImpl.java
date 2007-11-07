@@ -228,7 +228,7 @@ NetworkAdminSocksProxyImpl
 			};
 	
 			TCPNetworkManager.getSingleton().getConnectDisconnectManager().requestNewConnection(
-					socks_address, connect_listener );
+					socks_address, connect_listener, false );
 						
 		}catch( Throwable e ){
 			
