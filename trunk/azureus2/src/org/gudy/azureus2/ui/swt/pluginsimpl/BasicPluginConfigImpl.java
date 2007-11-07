@@ -38,8 +38,10 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
@@ -242,8 +244,14 @@ BasicPluginConfigImpl
 				
 			}else if ( param instanceof IntParameterImpl ){
 						
+				IntParameterImpl int_param = (IntParameterImpl)param;
 				swt_param = new IntParameter(current_composite, key,
-						((IntParameterImpl) param).getDefaultValue());
+						int_param.getDefaultValue());
+				
+				if (int_param.isLimited()) {
+					((IntParameter)swt_param).setMinimumValue(int_param.getMinValue());
+					((IntParameter)swt_param).setMaximumValue(int_param.getMaxValue());
+				}
 				
 				param.addListener(
 						new ParameterListener()
@@ -268,7 +276,46 @@ BasicPluginConfigImpl
 				gridData.widthHint = 100;
 				
 				swt_param.setLayoutData( gridData );
-							
+				
+			}else if ( param instanceof ColorParameterImpl ) {
+				final Composite area = new Composite(current_composite, SWT.NULL);
+				//GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.FILL_HORIZONTAL );
+				GridData gridData = new GridData();
+				area.setLayoutData(gridData);
+				layout = new GridLayout();
+				layout.numColumns 	= 2;
+				layout.marginHeight = 0;
+				layout.marginWidth 	= 0;
+				area.setLayout(layout);
+				
+				final ButtonParameter[] reset_button_holder = new ButtonParameter[1];
+				final ColorParameterImpl color_param = (ColorParameterImpl)param;
+				swt_param = new org.gudy.azureus2.ui.swt.config.ColorParameter(
+						area, key, color_param.getRedValue(),
+						color_param.getGreenValue(), color_param.getBlueValue()) {
+					
+					public void newColorSet() {
+						color_param.reloadParamDataFromConfig(true);
+						if (reset_button_holder[0] == null) {return;}
+						reset_button_holder[0].getControl().setEnabled(true);
+					}
+				};
+				
+				// Reuse the same label as defined for Azureus UI reset buttons.
+				reset_button_holder[0] = new ButtonParameter(area, "ConfigView.section.style.colorOverrides.reset");
+				reset_button_holder[0].getControl().setEnabled(color_param.isOverridden());
+				reset_button_holder[0].getControl().addListener(SWT.Selection, new Listener(){
+					public void handleEvent(Event event) {
+						reset_button_holder[0].getControl().setEnabled(false);
+						color_param.resetToDefault();
+						color_param.reloadParamDataFromConfig(false);
+					}
+				});
+			
+				gridData = new GridData();
+				gridData.widthHint = 50;
+				
+				swt_param.setLayoutData( gridData );
 			}else if ( param instanceof StringParameterImpl ){
 				
 				GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
