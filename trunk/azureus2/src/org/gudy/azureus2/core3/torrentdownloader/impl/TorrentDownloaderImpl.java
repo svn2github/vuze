@@ -222,6 +222,13 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
         return;
       }
 
+      Map headerFields = this.con.getHeaderFields();
+      System.out.println("Header of download of " + url_str);
+      for (Iterator iter = headerFields.keySet().iterator(); iter.hasNext();) {
+				String s = (String) iter.next();
+				System.out.println(s + ":" + headerFields.get(s));
+				
+			}
       this.filename = this.con.getHeaderField("Content-Disposition");
       if ((this.filename!=null) && this.filename.toLowerCase().matches(".*attachment.*")) // Some code to handle b0rked servers.
         while (this.filename.toLowerCase().charAt(0)!='a')
@@ -427,10 +434,16 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 	    if ( this.state != STATE_ERROR ){
 		    	
 	    	this.file = new File(this.directoryname, this.filename);
-	        
+
+	    	boolean useTempFile = false;
 	    	try {
 	    		this.file.createNewFile();
+	    		useTempFile = !this.file.exists();
 	    	} catch (Throwable t) {
+	    		useTempFile = true;
+	    	}
+	    	
+	    	if (useTempFile) {
 	    		this.file = File.createTempFile("AZU", ".torrent", new File(
 							this.directoryname));
 	    		this.file.createNewFile();
