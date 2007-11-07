@@ -199,16 +199,69 @@ implements PEPeerTransport
 	protected static boolean ENABLE_LAZY_BITFIELD;
 	
 	private static final Random rnd = new SecureRandom();	
-	private static Map recentlyDisconnected = new LinkedHashMap(20,0.75F) {
-		protected boolean removeEldestEntry(Map.Entry eldest) {
-			return size() > 20;
+	private static final class DisconnectedTransportQueue extends LinkedHashMap
+	{
+		public DisconnectedTransportQueue()
+		{
+			super(20,0.75F);
 		}
-	};
+
+		private static final long MAX_CACHE_AGE = 2*60*1000;
+		
+		// remove all elements older than 2 minutes until we hit the 20 again
+		public void performCleaning() {
+			if(size() > 20)
+			{
+				Iterator it = values().iterator();
+				long now = SystemTime.getCurrentTime();
+				QueueEntry eldest;
+				while(it.hasNext() && size() > 20)
+				{
+					eldest = (QueueEntry)it.next();
+					if(now - eldest.addTime > MAX_CACHE_AGE)
+						it.remove();
+					else
+						break;
+				} 
+			}
+		}
+		
+		private static final class QueueEntry {
+			public QueueEntry(PEPeerTransportProtocol trans)
+			{
+				transport = trans;
+			}
+
+			final PEPeerTransportProtocol transport;
+			final long addTime = SystemTime.getCurrentTime();
+		}
+		
+		// hardcap at 100
+		protected boolean removeEldestEntry(Map.Entry eldest) {
+			return size() > 100;
+		}
+		
+		synchronized public Object put(HashWrapper key, PEPeerTransportProtocol value) {
+			performCleaning();
+			return super.put(key, new QueueEntry(value));
+		}
+		
+		synchronized public PEPeerTransportProtocol remove(HashWrapper key) {
+			performCleaning();
+			QueueEntry entry = (QueueEntry)super.remove(key);
+			if(entry != null)
+				return entry.transport;
+			else
+				return null;
+		}
+		
+	}
+	private static final DisconnectedTransportQueue recentlyDisconnected = new DisconnectedTransportQueue();
 
 	static {
 		
-		rnd.setSeed(SystemTime.getCurrentTime());	
-
+		rnd.setSeed(SystemTime.getCurrentTime());
+		
 		COConfigurationManager.addAndFireParameterListeners(
 				new String[]{ "Use Lazy Bitfield" },
 				new ParameterListener()
@@ -705,10 +758,7 @@ implements PEPeerTransport
 
 		// only save stats if it's worth doing so; ignore rapid connect-disconnects
 		if (peer_stats.getTotalDataBytesReceived() > 0 || peer_stats.getTotalDataBytesSent() > 0 || SystemTime.getCurrentTime() - connection_established_time > 30 * 1000)
-			synchronized (recentlyDisconnected)
-			{
-				recentlyDisconnected.put(mySessionID, this);
-			}
+			recentlyDisconnected.put(mySessionID, this);
 	}
 	
 	public PEPeerTransport reconnect(boolean tryUDP) {
@@ -758,12 +808,8 @@ implements PEPeerTransport
 	private void checkForReconnect(HashWrapper oldID)
 	{
 		//System.out.println("Checking for reconnect on ID:"+oldID.toBase32String());
-		PEPeerTransportProtocol oldTransport;
-		synchronized (recentlyDisconnected)
-		{
-			oldTransport = (PEPeerTransportProtocol)recentlyDisconnected.remove(oldID);
-		}
-		
+		PEPeerTransportProtocol oldTransport = recentlyDisconnected.remove(oldID);
+				
 		if(oldTransport != null)
 		{
 			System.out.println("reconnected to peer (new) "+this+" (old) "+oldTransport);
