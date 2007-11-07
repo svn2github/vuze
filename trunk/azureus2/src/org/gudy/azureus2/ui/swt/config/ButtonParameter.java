@@ -52,6 +52,7 @@ ButtonParameter
     button.addListener(SWT.Selection, new Listener() {
 	      public void handleEvent(Event event) 
 	      {
+	    	  if (change_listeners == null) {return;}
 	       	for (int i=0;i<change_listeners.size();i++){
         		
         		((ParameterChangeListener)change_listeners.get(i)).parameterChanged(ButtonParameter.this,false);
