@@ -11,6 +11,7 @@ FEATURE: Core | IP binding now provides primitive round-robin load balancing for
 FEATURE: Core | Reconnect to peers after unexpected disconnect / recover stats of recently disconnected peers [Parg,The 8472]
 FEATURE: UI   | Piece distribution view is now also available as a peer subview [The 8472]
 FEATURE: UI   | Added 'time remaining' column to peers view [Parg]
+FEATURE: Plug | Plugins can now change the color of rows [amc1]
 
 CHANGE: Core  | Revised piece picking code to deal better with some edge cases and snubbed peers [The 8472]
 CHANGE: Core  | Attempt to re-open a file when access fails to try and recover from a transient error [Parg]

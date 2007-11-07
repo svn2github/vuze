@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.*;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
@@ -285,6 +286,10 @@ public class TableCellImpl
     	bCellVisuallyChangedSinceRefresh = true;
     }
     return set;
+  }
+  
+  public boolean setForegroundToErrorColor() {
+	  return setForeground(Colors.colorError);
   }
 
   public boolean setText(String text) {

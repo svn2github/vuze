@@ -615,6 +615,8 @@ TorrentInfoView
 		{
 			return( true );
 		}
+		
+		public boolean setForegroundToErrorColor() {return true;}
 
 		public boolean 
 		setSortValue(
@@ -1079,6 +1081,10 @@ TorrentInfoView
 			return new ArrayList();
 		}
 		public void setForeground(Color c) {
+		}
+		public void setForeground(int r, int g, int b) {
+		}
+		public void setForegroundToErrorColor() {
 		}
 		public void setUpToDate(boolean upToDate) {
 		}

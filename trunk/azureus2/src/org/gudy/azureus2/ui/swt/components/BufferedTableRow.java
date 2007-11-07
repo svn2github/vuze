@@ -25,6 +25,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
@@ -69,6 +70,7 @@ BufferedTableRow
 	protected Color[]	foreground_colors	= new Color[0];
 	
 	protected Color		foreground;
+	protected Color     ourForeground;
 	
 	private Point ptIconSize = null;
 	
@@ -151,6 +153,10 @@ BufferedTableRow
 						}
 					}
 				}
+			}
+			
+			if (this.ourForeground != null && !this.ourForeground.isDisposed()) {
+				this.ourForeground.dispose();
 			}
 			
 			if (item != null && !item.isDisposed()) 
@@ -289,14 +295,46 @@ BufferedTableRow
 		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED))
 			return;
 
+		if (foreground == null && c == null) {return;}
+		
 		if (foreground != null && foreground.equals(c))
 		  return;
 		
 		foreground = c;
+		if (this.ourForeground != null && !this.ourForeground.isDisposed()) {
+			this.ourForeground.dispose();
+			this.ourForeground = null;
+		}
 		
 		item.setForeground(foreground);
 	}
-
+	
+	public void setForeground(int red, int green, int blue) {
+		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED)) {
+			return;
+		}
+		
+		if (red == -1 && green == -1 && blue == -1) {
+			this.setForeground(null);
+			return;
+		}
+		
+		RGB newRGB = new RGB(red, green, blue);
+		if (this.foreground != null && this.foreground.getRGB().equals(newRGB)) {
+			return;
+		}
+		
+		// Hopefully it is OK to just assume it is safe to dispose of the colour,
+		// since we're expecting it to match this.foreground.
+		Color newColor = new Color(getTable().getDisplay(), newRGB);
+		item.setForeground(newColor);
+		if (ourForeground != null && !ourForeground.isDisposed()) {
+			ourForeground.dispose();
+		}
+		this.foreground = newColor;
+		this.ourForeground = newColor;
+	}
+	
 	public boolean
 	setForeground(
 	  int index,

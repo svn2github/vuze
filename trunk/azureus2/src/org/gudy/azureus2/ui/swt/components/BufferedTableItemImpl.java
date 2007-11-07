@@ -104,16 +104,10 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 		if (position == -1)
 			return false;
 
-		boolean ok;
-		if (ourFGColor != null) {
-			ok = row.setForeground(position, color);
-			if (ok) {
-				if (!color.isDisposed())
-					color.dispose();
-				ourFGColor = null;
-			}
-		} else {
-			ok = row.setForeground(position, color);
+		boolean ok = row.setForeground(position, color);
+		if (ok && ourFGColor != null) {
+			if (!ourFGColor.isDisposed()) {ourFGColor.dispose();}
+			ourFGColor = null;
 		}
 		return ok;
 	}
@@ -128,6 +122,10 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 	public boolean setForeground(int red, int green, int blue) {
 		if (position == -1)
 			return false;
+		
+		if (red == -1 && green == -1 && blue == -1) {
+			return setForeground(null);
+		}
 
 		Color oldColor = row.getForeground(position);
 

@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
@@ -410,12 +411,25 @@ public class TableRowImpl
 		return setTableItem(newIndex, false);
 	}
 	
+	public void setForeground(int r, int g, int b) {
+	  	// Don't need to set when not visible
+	  	if (!isVisible()) {
+	  		return;
+	  	}
+	  	
+	  	super.setForeground(r, g, b);
+	}
+	
 	public void setForeground(Color c) {
   	// Don't need to set when not visible
   	if (!isVisible())
   		return;
   	
   	super.setForeground(c);
+	}
+	
+	public void setForegroundToErrorColor() {
+		this.setForeground(Colors.colorError);
 	}
 
 	/* (non-Javadoc)

@@ -112,6 +112,15 @@ public interface TableCell {
   boolean setForeground(int red, int green, int blue);
   
   /**
+   * Change the cell's foreground color to the user's defined "error" color.
+   * 
+   * @since 3.0.3.5
+   * @return True - Color changed. <br>
+   *         False - Color was already set.
+   */
+  boolean setForegroundToErrorColor();
+  
+  /**
    * Get the foreground color of the cell
    * 
    * @return array containing red, green, and blue color

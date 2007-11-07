@@ -51,8 +51,22 @@ public interface TableRow {
    */
   String getTableID();
 
-  // Future
-  // public void setForeground(int red, int green, int blue);
+  /**
+   * Change the row's foreground color.
+  *
+  * @param red red value (0 - 255)
+  * @param green green value (0 - 255)
+  * @param blue blue value (0 - 255)
+  * @since 3.0.3.5
+  */
+  public void setForeground(int red, int green, int blue);
+  
+  /**
+   * Change the row's foreground color to the user's defined "error" color.
+   * 
+  * @since 3.0.3.5
+  */
+  public void setForegroundToErrorColor();
 
 
   /** Validility of the row's cells.
