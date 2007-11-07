@@ -162,6 +162,24 @@ BasicPluginConfigModel
 
 	/**
 	 * 
+	 * @param key
+	 * @param resource_name
+	 * @param defaultValue
+	 * @param min_value Minimum allowed value
+	 * @param max_value Maximum allowed value
+	 * @return
+	 * @since 3.0.3.5
+	 */
+	public IntParameter
+	addIntParameter2(
+		String 		key,
+		String 		resource_name,
+		int	 		defaultValue,
+		int         min_value,
+		int         max_value);
+	
+	/**
+	 * 
 	 * @param resource_name
 	 * @return
 	 * @since 2.1.0.2
@@ -230,6 +248,17 @@ BasicPluginConfigModel
 	addActionParameter2(
 		String 		label_resource_name,
 		String		action_resource_name );
+	
+	/**
+	 * @since 3.0.3.5
+	 * @param key
+	 * @param resource_name
+	 * @param r
+	 * @param g
+	 * @param b
+	 * @return
+	 */
+	public ColorParameter addColorParameter2(String key, String resource_name, int r, int g, int b);
 	
 	/**
 	 * 
