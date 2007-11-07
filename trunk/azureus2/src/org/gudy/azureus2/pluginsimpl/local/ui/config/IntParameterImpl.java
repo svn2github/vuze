@@ -34,6 +34,9 @@ import org.gudy.azureus2.plugins.PluginConfig;
 public class IntParameterImpl extends ParameterImpl implements IntParameter
 {
 	private int defaultValue;
+	private boolean limited;
+	private int min_value;
+	private int max_value;
 	public IntParameterImpl(PluginConfig config,String key, String label, int defaultValue)
 	{ 
 		super(config,key, label);
@@ -41,7 +44,17 @@ public class IntParameterImpl extends ParameterImpl implements IntParameter
 		COConfigurationManager.setIntDefault( getKey(), defaultValue );
 
 		this.defaultValue = defaultValue;
+		this.limited = false;
 	}
+
+	public IntParameterImpl(PluginConfig config,String key, String label, int defaultValue, int min_value, int max_value)
+	{ 
+		this(config,key, label, defaultValue);
+		this.min_value = min_value;
+		this.max_value = max_value;
+		this.limited = true;
+	}
+	
 	
 	/**
 	 * @return Returns the defaultValue.
@@ -62,4 +75,8 @@ public class IntParameterImpl extends ParameterImpl implements IntParameter
 	{
 		COConfigurationManager.setParameter( getKey(), b );
 	}
+	
+	public boolean isLimited() {return limited;}
+	public int getMinValue() {return this.min_value;}
+	public int getMaxValue() {return this.max_value;}
 }

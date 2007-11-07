@@ -200,6 +200,19 @@ BasicPluginConfigModelImpl
 		
 		return( res );	
 	}	
+
+	public org.gudy.azureus2.plugins.ui.config.IntParameter
+	addIntParameter2(
+		String 		key,
+		String 		resource_name,
+		int	 		defaultValue,
+		int         min_value,
+		int         max_value)
+	{
+		IntParameterImpl res = new IntParameterImpl( pi.getPluginconfig(), key_prefix + key, resource_name, defaultValue, min_value, max_value );
+		parameters.add( res );
+		return( res );	
+	}
 	
 	public org.gudy.azureus2.plugins.ui.config.DirectoryParameter
 	addDirectoryParameter2(
@@ -252,7 +265,13 @@ BasicPluginConfigModelImpl
 		return res;
 	}
 
-	
+	public org.gudy.azureus2.plugins.ui.config.ColorParameter
+	addColorParameter2(String key, String resource_name, int r, int g, int b) {
+		ColorParameterImpl res = new ColorParameterImpl(pi.getPluginconfig(), key_prefix + key, resource_name, r, g, b);
+		parameters.add(res);
+		return res;
+	}
+		
 	public ActionParameter
 	addActionParameter2(
 		String 		label_resource_name,
