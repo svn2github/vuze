@@ -51,8 +51,6 @@ HTMLUtils
 	{
 		int		pos = 0;
 		
-		int orderedIndex = 0;
-		
 		text = text.replaceAll("<ol>","");
 		text = text.replaceAll("</ol>","");
 		text = text.replaceAll("<ul>","");
@@ -352,8 +350,6 @@ HTMLUtils
 				
 				content_out += content_in.substring( pos, p1-1 );
 			}
-			
-			int	old_pos = pos;
 			
 			pos	= p2+1;
 			
