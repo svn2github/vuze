@@ -149,7 +149,7 @@ public class ConfigurationDefaults {
     def.put( "enable.seedingonly.maxuploads", FALSE );
     def.put( "max.uploads.when.busy.inc.min.secs", new Long( 30 ));
     def.put( "Max Download Speed KBs", ZERO );
-    def.put( "Use Request Limiting", Constants.isCVSVersion() ? TRUE : FALSE);
+    def.put( "Use Request Limiting", TRUE );
     def.put( "Max Upload Speed KBs", ZERO);
     def.put( "Max Upload Speed Seeding KBs", ZERO );
     def.put( "enable.seedingonly.upload.rate", FALSE );
