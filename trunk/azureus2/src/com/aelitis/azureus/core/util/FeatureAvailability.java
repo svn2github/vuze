@@ -31,6 +31,7 @@ FeatureAvailability
 	private static final long	FT_DISABLE_REQUEST_LIMITING			= 0x0000000000000001;
 	private static final long	FT_DISABLE_PEER_GENERAL_RECONNECT	= 0x0000000000000002;
 	private static final long	FT_DISABLE_PEER_UDP_RECONNECT		= 0x0000000000000004;
+	private static final long	FT_AUTO_SPEED_DEFAULT_CLASSIC		= 0x0000000000000008;
 	
 	private static VersionCheckClient vcc = VersionCheckClient.getSingleton();
 	
@@ -38,9 +39,7 @@ FeatureAvailability
 	isRequestLimitingEnabled()
 	{
 		final boolean result = ( vcc.getFeatureFlags() & FT_DISABLE_REQUEST_LIMITING ) == 0;
-		
-		//System.out.println( "request limit->" + result );
-		
+				
 		return( result );
 	}
 	
@@ -48,9 +47,7 @@ FeatureAvailability
 	isGeneralPeerReconnectEnabled()
 	{
 		final boolean result = ( vcc.getFeatureFlags() & FT_DISABLE_PEER_GENERAL_RECONNECT ) == 0;
-		
-		//System.out.println( "general reconnect->" + result );
-		
+				
 		return( result );
 	}
 	
@@ -58,9 +55,15 @@ FeatureAvailability
 	isUDPPeerReconnectEnabled()
 	{
 		final boolean result = ( vcc.getFeatureFlags() & FT_DISABLE_PEER_UDP_RECONNECT ) == 0;
-		
-		//System.out.println( "udp reconnect->" + result );
-		
+				
+		return( result );
+	}
+	
+	public static boolean
+	isAutoSpeedDefaultClassic()
+	{
+		final boolean result = ( vcc.getFeatureFlags() & FT_AUTO_SPEED_DEFAULT_CLASSIC ) == 1;
+				
 		return( result );
 	}
 }

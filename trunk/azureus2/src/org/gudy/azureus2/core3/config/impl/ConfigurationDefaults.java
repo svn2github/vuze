@@ -513,7 +513,7 @@ public class ConfigurationDefaults {
     def.put(SpeedManagerAlgorithmProviderV2.SETTING_DHT_BAD_SET_POINT, new Long(900) );
     def.put(SpeedManagerAlgorithmProviderV2.SETTING_DHT_BAD_TOLERANCE, new Long(500) );
 
-    //default confidence limits are NONE
+    	//**** NOTE! This default can be overriden in ConfigurationChecker 
     def.put(SpeedManagerImpl.CONFIG_VERSION, new Long(2) );	// 1 == classic, 2 == beta
     
     def.put( SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING, SpeedLimitConfidence.NONE.getString() );

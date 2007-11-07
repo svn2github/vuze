@@ -37,6 +37,8 @@ import org.gudy.azureus2.core3.logging.*;
 
 import com.aelitis.azureus.core.proxy.socks.AESocksProxy;
 import com.aelitis.azureus.core.proxy.socks.AESocksProxyFactory;
+import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerImpl;
+import com.aelitis.azureus.core.util.FeatureAvailability;
 
 
 
@@ -606,7 +608,10 @@ ConfigurationChecker
         changed = true;
       }
       
-      
+	    if ( FeatureAvailability.isAutoSpeedDefaultClassic()){
+	    
+	    	ConfigurationDefaults.getInstance().addParameter( SpeedManagerImpl.CONFIG_VERSION, 1 );	// 1 == classic, 2 == beta
+	    }
 	
 	    if(changed) {
 	      COConfigurationManager.save();
