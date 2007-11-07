@@ -69,7 +69,10 @@ public class PathItem
    		dl_save_path_file = dl_save_path_file.getParentFile();
    	}
    	
-   	String dl_save_path = dl_save_path_file.getPath() + File.separator;
+   	String dl_save_path = dl_save_path_file.getPath();
+   	if (!dl_save_path.endsWith(File.separator)) {
+   		 dl_save_path += File.separator;
+   	}
 
    	File file = fileInfo.getFile(true);
    	
