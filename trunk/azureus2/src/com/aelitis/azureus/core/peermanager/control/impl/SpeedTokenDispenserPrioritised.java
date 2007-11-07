@@ -5,6 +5,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.peermanager.control.SpeedTokenDispenser;
+import com.aelitis.azureus.core.util.FeatureAvailability;
 
 public class 
 SpeedTokenDispenserPrioritised 
@@ -17,7 +18,7 @@ SpeedTokenDispenserPrioritised
 		{
 			public void parameterChanged(String parameterName) {
 				rateKiB = COConfigurationManager.getIntParameter("Max Download Speed KBs");
-				if (!COConfigurationManager.getBooleanParameter("Use Request Limiting"))
+				if (!COConfigurationManager.getBooleanParameter("Use Request Limiting") || FeatureAvailability.isRequestLimitingEnabled())
 					rateKiB = 0;
 				lastTime = currentTime - 1; // shortest possible delta
 				refill(); // cap buffer to threshold in case something accumulated
