@@ -20,14 +20,15 @@
 package org.gudy.azureus2.ui.swt.mainwindow;
 
 import java.text.NumberFormat;
-import java.util.ArrayList;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
-import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.GridData;
@@ -36,7 +37,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -75,7 +75,6 @@ import org.gudy.azureus2.ui.swt.progress.ProgressReporter;
 import org.gudy.azureus2.ui.swt.progress.ProgressReporterWindow;
 import org.gudy.azureus2.ui.swt.progress.ProgressReportingManager;
 import org.gudy.azureus2.ui.swt.progress.ProgressReporter.ProgressReport;
-import org.gudy.azureus2.ui.swt.update.UpdateProgressWindow;
 import org.gudy.azureus2.ui.swt.update.UpdateWindow;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -99,25 +98,15 @@ public class MainStatusBar
 
 	private AEMonitor this_mon = new AEMonitor("MainStatusBar");
 
-	private ArrayList update_stack = new ArrayList();
-
 	private UpdateWindow updateWindow;
 
 	private Composite statusBar;
-
-	private Composite statusArea;
-
-	private StackLayout layoutStatusArea;
 
 	private CLabel statusText;
 
 	private String statusTextKey = "";
 
 	private String statusImageKey = null;
-
-	private Composite statusUpdate;
-
-	private Label statusUpdateLabel;
 
 	private AZProgressBar progressBar;
 
@@ -168,10 +157,16 @@ public class MainStatusBar
 	private static final int borderFlag = SWT.SHADOW_NONE;
 
 	/**
-	 * Just a flag to differentiate az3 from other versions; default status bar text is handled differently between versions
+	 * Just a flag to differentiate az3 from other versions; default status bar text is handled differently between versions.
+	 * Specifically speaking the Vuze UI status text is just empty whereas the Classic UI status text has an icon
+	 * and the application version number.
 	 */
 	private boolean isAZ3 = false;
 
+	/**
+	 * Just a reference to the static <code>ProgressReportingManager</code> to make the code look cleaner instead of
+	 * using <code>ProgressReportingManager.getInstance().xxx()</code> everywhere.
+	 */
 	private ProgressReportingManager PRManager = ProgressReportingManager.getInstance();
 
 	/**
@@ -181,9 +176,9 @@ public class MainStatusBar
 			false, false);
 
 	/**
-	 * A clickable image label that brings up the Progres viewer 
+	 * A clickable image label that brings up the Progress viewer 
 	 */
-	private Label progressViewerImageLabel;
+	private CLabelPadding progressViewerImageLabel;
 
 	private Image progress_error_img = null;
 
@@ -217,7 +212,7 @@ public class MainStatusBar
 		this.uiFunctions = UIFunctionsManager.getUIFunctions();
 
 		FormData formData;
-		
+
 		Color fgColor = parent.getForeground();
 
 		statusBar = new Composite(parent, SWT.NONE);
@@ -242,23 +237,11 @@ public class MainStatusBar
 		}
 		statusBar.setLayout(layout_status);
 
-		GridData gridData;
-
-		//Composite with StackLayout
-		statusArea = new Composite(statusBar, SWT.NONE);
-		statusArea.setForeground(fgColor);
-		gridData = new GridData(GridData.FILL_BOTH);
-		statusArea.setLayoutData(gridData);
-
-		layoutStatusArea = new StackLayout();
-		statusArea.setLayout(layoutStatusArea);
-
 		//Either the Status Text
-		statusText = new CLabel(statusArea, borderFlag);
+		statusText = new CLabel(statusBar, borderFlag);
 		statusText.setForeground(fgColor);
-		gridData = new GridData(GridData.FILL_HORIZONTAL
-				| GridData.VERTICAL_ALIGN_FILL);
-		statusText.setLayoutData(gridData);
+		statusText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL
+				| GridData.VERTICAL_ALIGN_FILL));
 
 		// This is the highest image displayed on the statusbar
 		Image image = ImageRepository.getImage(STATUS_ICON_WARN);
@@ -291,39 +274,7 @@ public class MainStatusBar
 		statusText.addListener(SWT.MouseUp, listener);
 		statusText.addListener(SWT.MouseDoubleClick, listener);
 
-		//Or a composite with a label, a progressBar and a button
-		statusUpdate = new Composite(statusArea, SWT.NULL);
-		statusUpdate.setForeground(fgColor);
-		gridData = new GridData(GridData.FILL_HORIZONTAL
-				| GridData.VERTICAL_ALIGN_FILL);
-		statusUpdate.setLayoutData(gridData);
-		GridLayout layoutStatusUpdate = new GridLayout(2, false);
-		layoutStatusUpdate.marginHeight = 0;
-		layoutStatusUpdate.marginWidth = 0;
-		statusUpdate.setLayout(layoutStatusUpdate);
-
-		statusUpdateLabel = new Label(statusUpdate, SWT.NULL);
-		statusUpdateLabel.setForeground(fgColor);
-		gridData = new GridData(SWT.BEGINNING, SWT.CENTER, true, true);
-		gridData.horizontalIndent = 3;
-		statusUpdateLabel.setLayoutData(gridData);
-		Messages.setLanguageText(statusUpdateLabel,
-				"MainWindow.statusText.checking");
-		Messages.setLanguageText(statusUpdateLabel,
-				"MainWindow.status.update.tooltip");
-//		statusUpdateLabel.addMouseListener(new MouseAdapter() {
-//			public void mouseDoubleClick(MouseEvent arg0) {
-//				showUpdateProgressWindow();
-//			}
-//		});
-
-		/*
-		 * progressBar is now on the StatusBar itself
-		 */
-
-		//			final int progressFlag = (Constants.isOSX) ? SWT.INDETERMINATE
-		//					: SWT.HORIZONTAL;
-
+		// final int progressFlag = (Constants.isOSX) ? SWT.INDETERMINATE	: SWT.HORIZONTAL;
 		// KN: Don't know why OSX is treated differently but this check was already here from the previous code
 		if (true == Constants.isOSX) {
 			progressBar = new AZProgressBar(statusBar, true);
@@ -332,7 +283,7 @@ public class MainStatusBar
 		}
 
 		progressBar.setVisible(false);
-		progressGridData = new GridData(SWT.FILL, SWT.FILL, false, false);
+		progressGridData = new GridData(SWT.CENTER, SWT.CENTER, false, false);
 		progressGridData.widthHint = 5;
 		progressBar.setLayoutData(progressGridData);
 
@@ -343,7 +294,7 @@ public class MainStatusBar
 		progress_info_img = ImageRepository.getImage("progress_info");
 		progress_viewer_img = ImageRepository.getImage("progress_viewer");
 
-		progressViewerImageLabel = new Label(statusBar, SWT.NONE);
+		progressViewerImageLabel = new CLabelPadding(statusBar, SWT.NONE);
 		progressViewerImageLabel.setImage(progress_viewer_img);
 		progressViewerImageLabel.setToolTipText(MessageText.getString("Progress.reporting.statusbar.button.tooltip"));
 		progressViewerImageLabel.addMouseListener(new MouseAdapter() {
@@ -355,8 +306,6 @@ public class MainStatusBar
 						ProgressReporterWindow.MODAL);
 			}
 		});
-
-		layoutStatusArea.topControl = statusText;
 
 		statusBar.layout();
 
@@ -372,7 +321,7 @@ public class MainStatusBar
 		gridLayout.marginRight = 0;
 		gridLayout.numColumns = 20; // Something nice and big. :)
 
-		gridData = new GridData(GridData.FILL_VERTICAL);
+		GridData gridData = new GridData(GridData.FILL_VERTICAL);
 		gridData.heightHint = height;
 		gridData.minimumHeight = height;
 		plugin_label_composite.setLayout(gridLayout);
@@ -678,13 +627,12 @@ public class MainStatusBar
 
 		int check_num = 0;
 
-		boolean active;
-
+		/*
+		 * Creates a ProgressReporter for the update process 
+		 */
 		IProgressReporter updateReporter = new ProgressReporter(
 				MessageText.getString("UpdateWindow.title"));
 
-		 
-		
 		protected updateStatusChanger(UpdateCheckInstance _instance) {
 
 			instance = _instance;
@@ -692,12 +640,28 @@ public class MainStatusBar
 			try {
 				this_mon.enter();
 
-				update_stack.add(this);
-
+				/*
+				 * Init reporter and allow cancel
+				 */
 				updateReporter.setCancelAllowed(true);
 				updateReporter.setTitle(MessageText.getString("updater.progress.window.title"));
 				updateReporter.appendDetailMessage(format(instance, "added"));
 
+				String name = instance.getName();
+				if (MessageText.keyExists(name)) {
+					updateReporter.setMessage(MessageText.getString(name));
+				} else {
+					updateReporter.setMessage(name);
+				}
+
+				updateReporter.setMinimum(0);
+				updateReporter.setMaximum(instance.getCheckers().length);
+				updateReporter.setSelection(check_num, null);
+
+				/*
+				 * Add a listener to the reporter for a cancel event and cancel the update
+				 * check instance if the event is detected
+				 */
 				updateReporter.addListener(new IProgressReporterListener() {
 
 					public int report(ProgressReport progressReport) {
@@ -718,17 +682,19 @@ public class MainStatusBar
 
 				});
 
+				/*
+				 * Add listener to the running state of the update check instance and forward
+				 * to the reporter when they arrive
+				 */
 				instance.addListener(new UpdateCheckInstanceListener() {
 					public void cancelled(UpdateCheckInstance instance) {
-						deactivate();
 						updateReporter.appendDetailMessage(format(instance,
-								MessageText.getString("Progress.reporting.prompt.label.cancel")));
+								MessageText.getString("Progress.reporting.status.canceled")));
 						updateReporter.cancel();
 
 					}
 
 					public void complete(UpdateCheckInstance instance) {
-						deactivate();
 						updateReporter.appendDetailMessage(format(instance,
 								MessageText.getString("Progress.reporting.status.finished")));
 						updateReporter.setDone();
@@ -739,29 +705,38 @@ public class MainStatusBar
 
 				for (int i = 0; i < checkers.length; i++) {
 					final UpdateChecker checker = checkers[i];
+
+					/*
+					 * Add update check listener to get running state
+					 */
 					checker.addListener(new UpdateCheckerListener() {
 
 						public void cancelled(UpdateChecker checker) {
 							// we don't count a cancellation as progress step
-							updateReporter.appendDetailMessage(format(
-									checker,
-									MessageText.getString("Progress.reporting.prompt.label.cancel")));
+							updateReporter.appendDetailMessage(format(checker,
+									MessageText.getString("Progress.reporting.status.canceled")));
 						}
 
 						public void completed(UpdateChecker checker) {
+
 							updateReporter.appendDetailMessage(format(checker,
 									MessageText.getString("Progress.reporting.status.finished")));
-							setNextCheck();
+
+							updateReporter.setSelection(++check_num, null);
 						}
 
 						public void failed(UpdateChecker checker) {
+
 							updateReporter.appendDetailMessage(format(checker,
 									MessageText.getString("Progress.reporting.default.error")));
-							setNextCheck();
 
+							updateReporter.setSelection(++check_num, null);
 						}
-
 					});
+
+					/*
+					 * Add a listener to get the detail messages
+					 */
 					checker.addProgressListener(new UpdateProgressListener() {
 						public void reportProgress(String str) {
 							updateReporter.appendDetailMessage(format(checker, "    " + str));
@@ -769,8 +744,6 @@ public class MainStatusBar
 					});
 				}
 
-				activate();
-
 			} finally {
 
 				this_mon.exit();
@@ -778,125 +751,6 @@ public class MainStatusBar
 
 		}
 
-		protected UpdateCheckInstance getInstance() {
-			return (instance);
-		}
-
-		private void activate() {
-			try {
-				this_mon.enter();
-
-				active = true;
-
-				switchStatusToUpdate();
-
-				setNbChecks(instance.getCheckers().length);
-
-			} finally {
-
-				this_mon.exit();
-			}
-		}
-
-		private void deactivate() {
-			try {
-				this_mon.enter();
-
-				active = false;
-
-				for (int i = 0; i < update_stack.size(); i++) {
-
-					if (update_stack.get(i) == this) {
-
-						update_stack.remove(i);
-
-						break;
-					}
-				}
-				if (update_stack.size() == 0) {
-					switchStatusToText();
-
-				} else {
-
-					((updateStatusChanger) update_stack.get(update_stack.size() - 1)).activate();
-				}
-
-			} finally {
-
-				this_mon.exit();
-			}
-		}
-
-		private void setNbChecks(final int nbChecks) {
-			updateReporter.setMinimum(0);
-			updateReporter.setMaximum(nbChecks);
-			updateReporter.setSelection(check_num, null);
-		}
-
-		private void setNextCheck() {
-
-			check_num++;
-
-			if (active) {
-				updateReporter.setSelection(check_num, null);
-			}
-		}
-
-		private void switchStatusToUpdate() {
-			if (display != null && !display.isDisposed())
-				Utils.execSWTThread(new AERunnable() {
-					public void runSupport() {
-						if (statusArea == null || statusArea.isDisposed()) {
-							return;
-						}
-
-						String name = instance.getName();
-
-						if (MessageText.keyExists(name)) {
-
-							name = MessageText.getString(name);
-						}
-
-						statusUpdateLabel.setText(name);
-						updateReporter.setMessage(name);
-						layoutStatusArea.topControl = statusUpdate;
-						statusArea.layout();
-
-					}
-				});
-		}
-
-		private void switchStatusToText() {
-			if (display != null && !display.isDisposed())
-				Utils.execSWTThread(new AERunnable() {
-					public void runSupport() {
-						if (statusArea == null || statusArea.isDisposed()) {
-							return;
-						}
-						layoutStatusArea.topControl = statusText;
-						statusArea.layout();
-					}
-				});
-		}
-	}
-
-	protected void showUpdateProgressWindow() {
-		try {
-			this_mon.enter();
-
-			UpdateCheckInstance[] instances = new UpdateCheckInstance[update_stack.size()];
-
-			for (int i = 0; i < instances.length; i++) {
-
-				instances[i] = ((updateStatusChanger) update_stack.get(i)).getInstance();
-			}
-
-			UpdateProgressWindow.show(instances, statusBar.getShell());
-
-		} finally {
-
-			this_mon.exit();
-		}
 	}
 
 	/**
@@ -1318,9 +1172,9 @@ public class MainStatusBar
 					 * Update status text
 					 */
 					if (true == isAZ3) {
-						statusText.setText(pReport.message);
+						statusText.setText(pReport.name);
 					} else {
-						setStatusText(pReport.message);
+						setStatusText(pReport.name);
 					}
 				}
 
@@ -1408,7 +1262,7 @@ public class MainStatusBar
 				final ProgressReport pReport_final = pReport;
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
-						setStatusText(pReport_final.message);
+						setStatusText(pReport_final.name);
 						progressBar.setIndeterminate(true);
 						showProgressBar(true);
 					}
