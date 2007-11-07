@@ -2275,6 +2275,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 	{
 		boolean	connection_found = false;
 		
+		boolean tcpReconnect = false;
+		
 		try{
 			peer_transports_mon.enter();
 			
@@ -2325,7 +2327,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 									getMaxNewConnectionsAllowed() > getMaxConnections() / 3 &&
 									FeatureAvailability.isGeneralPeerReconnectEnabled()){
 					
-							peer.reconnect(false);							
+							tcpReconnect = true;							
 						}
 					}else if ( connect_failed ){
 						
@@ -2345,13 +2347,9 @@ DiskManagerCheckRequestListener, IPFilterListener
 			}
 
 			if( peer_transports_cow.contains( peer )) {
-
 				final ArrayList new_peer_transports = new ArrayList( peer_transports_cow );
-
 				new_peer_transports.remove(peer);
-
 				peer_transports_cow = new_peer_transports;
-
 				connection_found  = true;
 			}
 		}
@@ -2366,6 +2364,9 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 			peerRemoved( peer );  //notify listeners
 		}
+		
+		if(tcpReconnect)
+			peer.reconnect(false);
 	}
 
 
