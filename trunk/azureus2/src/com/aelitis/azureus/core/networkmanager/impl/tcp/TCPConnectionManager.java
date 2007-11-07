@@ -124,7 +124,7 @@ public class TCPConnectionManager {
 								
 								res = -1;
 								
-							}else if ( res > 0 ){
+							}else if ( l > 0 ){
 								
 								res = 1;
 								
