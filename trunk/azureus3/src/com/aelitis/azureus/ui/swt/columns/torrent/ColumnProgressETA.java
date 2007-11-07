@@ -235,24 +235,19 @@ public class ColumnProgressETA
 						sETALine = MessageText.getString(
 								"MyTorrents.column.ColumnProgressETA.2ndLine",
 								new String[] {
-									DisplayFormatters.formatDownloadStatus((DownloadManager) cell.getDataSource()),
-									sSpeed
+									DisplayFormatters.formatDownloadStatus((DownloadManager) cell.getDataSource())
 								});
 					} else {
 						long newETA = edm.getProgressivePlayETA();
 						if (newETA <= 0) {
 							sETALine = MessageText.getString(
-									"MyTorrents.column.ColumnProgressETA.StreamReady",
-									new String[] {
-										sSpeed
-									});
+									"MyTorrents.column.ColumnProgressETA.StreamReady");
 						} else {
 							String sETA = TimeFormatter.format(newETA);
 							sETALine = MessageText.getString(
 									"MyTorrents.column.ColumnProgressETA.PlayableIn",
 									new String[] {
-										sETA,
-										sSpeed
+										sETA
 									});
 						}
 					}
@@ -287,8 +282,7 @@ public class ColumnProgressETA
 					String sETA = TimeFormatter.format(eta);
 					sETALine = MessageText.getString(
 							"MyTorrents.column.ColumnProgressETA.2ndLine", new String[] {
-								sETA,
-								sSpeed
+								sETA
 							});
 				}
 			}
@@ -308,6 +302,7 @@ public class ColumnProgressETA
 				gcImage.setForeground(cText);
 				String sPercent = DisplayFormatters.formatPercentFromThousands(percentDone);
 				gcImage.drawText(sPercent, 2, 2, true);
+				gcImage.drawText(sSpeed, 50, 2, true);
 			}
 
 			gcImage.setFont(null);
