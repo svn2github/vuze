@@ -1151,7 +1151,8 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 					"tIncQd=" + totals.incompleteQueued,
 					"mxCdrs=" + totals.maxSeeders,
 					"tFP=" + totals.firstPriority,
-					"maxT=" + totals.maxTorrents
+					"maxT=" + totals.maxTorrents,
+					"maxA=" + totals.maxActive,
 				};
 			}
 
@@ -1208,7 +1209,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 						try {
 							download.restart();
 							String s = "restart: isForceStart";
-							log.log(LoggerChannel.LT_INFORMATION, s);
+							log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION, s);
 							dlData.sTrace += s + "\n";
 						} catch (DownloadException e) {
 						}
@@ -1220,7 +1221,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 						try {
 							download.start();
 							String s = "Start: isForceStart";
-							log.log(LoggerChannel.LT_INFORMATION, s);
+							log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION, s);
 							dlData.sTrace += s + "\n";
 						} catch (DownloadException e) {
 							/* ignore */
@@ -1249,7 +1250,8 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 					"tIncQd=" + totals.incompleteQueued,
 					"mxCdrs=" + totals.maxSeeders,
 					"tFP=" + totals.firstPriority,
-					"maxT=" + totals.maxTorrents
+					"maxT=" + totals.maxTorrents,
+					"maxA=" + totals.maxActive,
 				};
 				printDebugChanges("<<process() ", mainDebugEntries, mainDebugEntries2,
 						"", "", true, null);
@@ -1569,6 +1571,25 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			}
 
 			boolean bActivelySeeding = dlData.getActivelySeeding();
+			
+			// Is it OK to set this download to a queued state?
+			// It is if:
+			//   1) It is either READY or SEEDING; and
+			//   2) It is either one of the following; and
+			//        a) Not a first priority torrent; or
+			//        b) There is a limit to the number of active torrents, and the number of
+			//           waiting and seeding torrents is already higher (or equal to) the number
+			//           of maximum allowed active torrents (taking away the number of minimum
+			//           required downloads).
+			//
+			//           So I understand that to mean - it isn't first priority and leaving
+			//           this torrent running would mean that there aren't enough slots to
+			//           fulfil the minimum downloads requirement, because there are so many
+			//           torrents seeding (or waiting to seed) already. Or, in the case there
+			//           is no minimum downloads requirement - it's just overrun the maximum
+			//           active torrents count.
+			//
+			//   3) It hasn't been force started.
 			boolean okToQueue = (state == Download.ST_READY || state == Download.ST_SEEDING)
 					&& (!isFP || (isFP && ((totals.maxActive != 0 && vars.numWaitingOrSeeding >= totals.maxActive
 							- minDownloads))))
