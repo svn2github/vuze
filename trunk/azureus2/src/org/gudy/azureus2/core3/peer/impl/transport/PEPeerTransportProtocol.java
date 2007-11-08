@@ -698,21 +698,6 @@ implements PEPeerTransport
 			closing_mon.exit();
 		}
 		
-		boolean reconnecting = false;
-		
-		/*
-		 * try to reconnect if
-		 * - the the disconnect was not intentional
-		 * - the connection is in a state where we would like to reconnect
-		 * - we hit a low watermark in the # of connections (requires per-torrent max connections to be set) 
-		 */
-		if(!connect_failed && !externally_closed && network_failure
-			&& allowReconnect && manager.getMaxConnections() > 0 && manager.getMaxNewConnectionsAllowed() > manager.getMaxConnections()/3)
-		{
-			reconnecting = true;
-		}
-		
-
 		//cancel any pending requests (on the manager side)
 		cancelRequests();
 
@@ -781,7 +766,8 @@ implements PEPeerTransport
 						crypto_level,
 						null );
 			
-			System.out.println("attempting local reconnect");
+			// log to both relations
+			Logger.log(new LogEvent(new Object[] {this, new_conn},LOGID,"attempting to reconnect, creating new connection"));
 			if (new_conn instanceof PEPeerTransportProtocol)
 			{
 				PEPeerTransportProtocol pt = (PEPeerTransportProtocol) new_conn;
@@ -807,12 +793,11 @@ implements PEPeerTransport
 	
 	private void checkForReconnect(HashWrapper oldID)
 	{
-		//System.out.println("Checking for reconnect on ID:"+oldID.toBase32String());
 		PEPeerTransportProtocol oldTransport = recentlyDisconnected.remove(oldID);
 				
 		if(oldTransport != null)
 		{
-			System.out.println("reconnected to peer (new) "+this+" (old) "+oldTransport);
+			Logger.log(new LogEvent(this,LOGID,LogAlert.AT_INFORMATION,"reassociating stats from "+oldTransport+" with this connection"));
 			peerSessionID = oldTransport.peerSessionID;
 			peer_stats = oldTransport.peer_stats;
 			peer_stats.setPeer(this);
@@ -925,7 +910,7 @@ implements PEPeerTransport
 		boolean require_crypto = NetworkManager.getCryptoRequired(manager.getAdapter().getCryptoLevel());
 
 		if(peerSessionID != null)
-			System.out.println("sending reconnect request with id:"+peerSessionID.toBase32String());
+			Logger.log(new LogEvent(this, LOGID, LogEvent.LT_INFORMATION,"notifying peer of reconnect attempt"));
   
 		AZHandshake az_handshake = new AZHandshake(
 				AZPeerIdentityManager.getAZPeerIdentity(),
@@ -1708,7 +1693,7 @@ implements PEPeerTransport
 		if( connection != null && connection.isConnected() ) {
 			return connection + (isTCP()?" [":"(UDP) [") + client+ "]";
 		}
-		return ip + ":" + port + (isTCP()?" [":"(UDP) [") + client+ "]";
+		return (isIncoming() ? "R: " : "L: ")+ ip + ":" + port + (isTCP()?" [":"(UDP) [") + client+ "]";
 	}
 
 	public String
@@ -2216,15 +2201,13 @@ implements PEPeerTransport
 		
 		if(handshake.getReconnectSessionID() != null)
 		{
-			System.out.println("received reconnect request ID:"+handshake.getReconnectSessionID().toBase32String());
+			Logger.log(new LogEvent(this, LOGID, LogEvent.LT_INFORMATION,"received reconnect request ID:"+handshake.getReconnectSessionID().toBase32String()));
 			checkForReconnect(handshake.getReconnectSessionID());
 		}
 			
 		if(handshake.getRemoteSessionID() != null)
-		{
-			System.out.println("received remote session ID:"+handshake.getRemoteSessionID().toBase32String());
 			peerSessionID = handshake.getRemoteSessionID();
-		} else
+		else
 			generateFallbackSessionId();
 			 
 
