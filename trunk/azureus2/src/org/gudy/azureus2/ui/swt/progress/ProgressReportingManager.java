@@ -18,6 +18,7 @@ import org.gudy.azureus2.ui.swt.progress.ProgressReporter.ProgressReport;
  *
  */
 public class ProgressReportingManager
+	implements IProgressReportConstants
 {
 
 	private static ProgressReportingManager INSTANCE = null;
@@ -87,7 +88,6 @@ public class ProgressReportingManager
 		return progressReporters.hasMultipleActive();
 	}
 
-
 	/**
 	 * Returns the previous active reporter
 	 * @return the previous reporter that is still active; <code>null</code> if none are active or no reporters are found
@@ -137,9 +137,9 @@ public class ProgressReportingManager
 	 * @param reporter
 	 * @return
 	 */
-	protected boolean remove(IProgressReporter reporter) {
+	public boolean remove(IProgressReporter reporter) {
 		boolean value = progressReporters.remove(reporter);
-		notifyListeners(null);
+		notifyListeners(MANAGER_EVENT_REMOVED, reporter);
 		return value;
 	}
 
@@ -169,14 +169,15 @@ public class ProgressReportingManager
 
 	/**
 	 * Notifies listeners that the given <code>ProgressReporter</code> has been modified
+	 * @param eventType
 	 * @param reporter
 	 */
-	private void notifyListeners(IProgressReporter reporter) {
+	private void notifyListeners(int eventType, IProgressReporter reporter) {
 		synchronized (listeners) {
 			for (Iterator iterator = listeners.iterator(); iterator.hasNext();) {
 				IProgressReportingListener listener = (IProgressReportingListener) iterator.next();
 				if (null != listener) {
-					listener.reporting(reporter);
+					listener.reporting(eventType, reporter);
 				}
 			}
 		}
@@ -189,18 +190,18 @@ public class ProgressReportingManager
 	protected synchronized void notifyManager(IProgressReporter reporter) {
 
 		/*
-		 * If this has been marked as disposed then we remove it 
+		 * Update the history stack and notify listeners 
 		 */
 		if (true == reporter.getProgressReport().isDisposed) {
 			progressReporters.remove(reporter);
+			notifyListeners(MANAGER_EVENT_REMOVED, reporter);
+		} else if (true == progressReporters.contains(reporter)) {
+			progressReporters.push(reporter);
+			notifyListeners(MANAGER_EVENT_UPDATED, reporter);
 		} else {
 			progressReporters.push(reporter);
+			notifyListeners(MANAGER_EVENT_UPDATED, reporter);
 		}
-
-		/*
-		 * Notify those listening to the manager itself
-		 */
-		notifyListeners(reporter);
 
 	}
 
@@ -274,6 +275,15 @@ public class ProgressReportingManager
 		}
 
 		/**
+		 * Returns whether or not the given <code>IProgressReporter</code> is already in the history list
+		 * @param reporter
+		 * @return
+		 */
+		public boolean contains(IProgressReporter reporter) {
+			return reporterList.contains(reporter);
+		}
+
+		/**
 		 * Remove and return the reporter at the top of the stack
 		 * @return
 		 */
@@ -297,8 +307,7 @@ public class ProgressReportingManager
 				for (Iterator iterator = reporterList.iterator(); iterator.hasNext();) {
 					IProgressReporter reporter = ((IProgressReporter) iterator.next());
 					ProgressReport report = reporter.getProgressReport();
-					if (true == report.isActive) {
-						reporter.dispose();
+					if (false == report.isActive) {
 						iterator.remove();
 					}
 				}
