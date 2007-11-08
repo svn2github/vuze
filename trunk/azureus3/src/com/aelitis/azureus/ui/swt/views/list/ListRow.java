@@ -524,17 +524,19 @@ public class ListRow
 			item.setForeground(c);
 		}
 	}
-
-	public void setForeground(int red, int green, int blue) {
-		// TODO Auto-generated method stub
-		
+	
+	public void setForeground(int r, int g, int b) {
+		Iterator iter = mapTableCells.values().iterator();
+		while (iter.hasNext()) {
+			TableCellSWT item = (TableCellSWT) iter.next();
+			item.setForeground(r, g, b);
+		}		
 	}
 	
 	public void setForegroundToErrorColor() {
-		// TODO Auto-generated method stub
-		
+		this.setForeground(Colors.colorError);
 	}
-	
+
 	public boolean setHeight(int iHeight) {
 		// TODO Auto-generated method stub
 		bRowVisuallyChangedSinceRefresh = true;
