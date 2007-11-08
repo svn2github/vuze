@@ -66,7 +66,7 @@ public interface TableCellCore extends TableCell, Comparable
 			boolean bCellVisible);
 
 	/**
-	 * Refresh the cell.  This method overide takes a bRowVisible paramater in
+	 * Refresh the cell.  This method override takes a bRowVisible parameter in
 	 * order to reduce the number of calls to TableRow.isVisible() in cases where
 	 * multiple cells on the same row are being refreshed.
 	 * 
