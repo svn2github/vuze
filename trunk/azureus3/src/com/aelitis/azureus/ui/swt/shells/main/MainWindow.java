@@ -610,6 +610,7 @@ public class MainWindow
 							return false;
 						}
 						BrowserMessage browserMsg = new BrowserMessage(value);
+						context.debug("Received External message: " + browserMsg);
 						String opId = browserMsg.getOperationId();
 						if (opId.equals(DisplayListener.OP_OPEN_URL)) {
 							Map decodedMap = browserMsg.getDecodedMap();
