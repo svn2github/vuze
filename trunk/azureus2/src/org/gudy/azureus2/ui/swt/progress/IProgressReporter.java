@@ -186,6 +186,9 @@ public interface IProgressReporter
 	public void setRetryAllowed(boolean retryOnError);
 
 	/**
+	 * An arbitrary object reference that can be used to further identify the reporter.
+	 * This object is also accessible to listeners of the reporter through {@link ProgressReporter.ProgressReport#objectData}
+	 * so that it can be used to pass information to and from the listeners.
 	 * @param objectData the objectData to set
 	 */
 	public void setObjectData(Object objectData);
