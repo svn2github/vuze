@@ -49,7 +49,9 @@ import org.gudy.azureus2.core3.util.Debug;
  * <li>Set done [{@link ProgressReporter#setDone()}]</li>
  * </ul>
  * 
- * <li>Dispose of the reporter [{@link ProgressReporter#dispose()}]</li>
+ * <li>Then optionally Dispose of the reporter [{@link ProgressReporter#dispose(Object)}]</li>.<p>
+ * In addition to internal clean-ups, calling dispose(Object) will effectively remove the reporter from the history stack of the
+ * reporting manager and no more messages from this reporter will be processed.</P>
  * </ul></p><p>
  * 
  * Once a reporter is created and any property in the reporter is set the global reporting manager is
@@ -71,7 +73,8 @@ public class ProgressReporter
 	implements IProgressReporter, IProgressReportConstants
 {
 
-	ProgressReportingManager manager = null;
+
+	private ProgressReportingManager manager = null;
 
 	/**
 	 * An instance id for this reporter that is guaranteed to be unique within this same session 
@@ -118,7 +121,15 @@ public class ProgressReporter
 	private Object objectData = null;
 
 	/**
-	 * Construct an instance of <code>ProgressReporter</code> with the given <code>name</code>; the returned
+	 * Construct a <code>ProgressReporter</code>; the returned instance is initialized with the proper ID
+	 */
+	public ProgressReporter() {
+		this(null);
+	}
+
+
+	/**
+	 * Construct a <code>ProgressReporter</code> with the given <code>name</code>; the returned
 	 * instance would have been initialized with the proper ID
 	 * @param name
 	 */
@@ -139,6 +150,7 @@ public class ProgressReporter
 	 * @see org.gudy.azureus2.ui.swt.mainwindow.IProgressReporter#dispose()
 	 */
 	public void dispose() {
+
 		/*
 		 * Disposed already so no need to do it again
 		 */
@@ -170,6 +182,7 @@ public class ProgressReporter
 		 */
 		manager.notifyManager(this);
 	}
+
 
 	/**
 	 * Resets this reporter to its initial states such that values are reset to default
@@ -266,6 +279,7 @@ public class ProgressReporter
 		percentage = (selection * 100) / (maximum - minimum);
 		isDone = false;
 		isPercentageInUse = false;
+		isIndeterminate = false;
 		updateAndNotify(REPORT_TYPE_PROPERTY_CHANGED);
 	}
 
@@ -295,6 +309,7 @@ public class ProgressReporter
 		this.selection = percentage;
 		isDone = false;
 		isPercentageInUse = true;
+		isIndeterminate = false;
 		updateAndNotify(REPORT_TYPE_PROPERTY_CHANGED);
 	}
 
@@ -606,7 +621,11 @@ public class ProgressReporter
 	 * 
 	 * <p>This class is the only way an observer can query the properties of a <code>ProgressReporter</code>;
 	 * though they do not have to be, all variables are declared <code>final</code> to help remind the user of this class
-	 * that modification to any of its properties would have no effect on the reporter itself 
+	 * that modification to any of its properties would have no effect on the reporter itself.
+	 * <p>
+	 * An exception to this insulation is the <code>objectData</code> variable; both the reporter
+	 * and the ProgressReport consumer have full access to it.  This is to facilitate advanced
+	 * 2-way communication between the 2 parties.</p> 
 	 * 
 	 * 
 	 * @author knguyen
