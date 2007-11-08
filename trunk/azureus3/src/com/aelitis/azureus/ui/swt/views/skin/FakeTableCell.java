@@ -406,6 +406,11 @@ public class FakeTableCell
 		return false;
 	}
 
+	public boolean setForegroundToErrorColor() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#setGraphic(org.gudy.azureus2.plugins.ui.Graphic)
 	public boolean setGraphic(Graphic img) {
 		Image imgSWT = null;

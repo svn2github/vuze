@@ -525,6 +525,16 @@ public class ListRow
 		}
 	}
 
+	public void setForeground(int red, int green, int blue) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	public void setForegroundToErrorColor() {
+		// TODO Auto-generated method stub
+		
+	}
+	
 	public boolean setHeight(int iHeight) {
 		// TODO Auto-generated method stub
 		bRowVisuallyChangedSinceRefresh = true;
