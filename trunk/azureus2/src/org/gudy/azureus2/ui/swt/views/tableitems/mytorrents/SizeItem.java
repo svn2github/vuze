@@ -45,6 +45,7 @@ public class SizeItem
 	/** Default Constructor */
 	public SizeItem(String sTableID) {
 		super(COLUMN_ID, ALIGN_TRAIL, POSITION_LAST, 70, sTableID);
+		setRefreshInterval(INTERVAL_GRAPHIC);
 		setMinWidthAuto(true);
 	}
 
