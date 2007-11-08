@@ -48,6 +48,7 @@ import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
 import org.gudy.azureus2.core3.util.ConcurrentHasher;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.RealTimeInfo;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
@@ -1013,13 +1014,13 @@ EnhancedDownloadManager
 	setProgressiveMode(
 		boolean		active )
 	{
-		setProgressiveMode(active, true);
+		setProgressiveMode( active, false );
 	}
 		
-	public void
+	protected void
 	setProgressiveMode(
 		boolean		active,
-		boolean		resumeOnInactivate)
+		boolean		switching_progressive_downloads )
 	{
 		TOTorrent	torrent = download_manager.getTorrent();
 		
@@ -1070,7 +1071,7 @@ EnhancedDownloadManager
 						}
 						EnhancedDownloadManager edmCheck = enhancer.getEnhancedDownload(dmCheck);
 						if (edmCheck != null && edmCheck.getProgressiveMode()) {
-							edmCheck.setProgressiveMode(false, false);
+							edmCheck.setProgressiveMode(false, true);
 						}
 					}
 				}
@@ -1089,7 +1090,7 @@ EnhancedDownloadManager
 				}
 			} else {
 				download_manager.removeListener(dmListener);
-				if (resumeOnInactivate) {
+				if ( !switching_progressive_downloads ){
 					gm.resumeDownloads();
 				}
 			}
@@ -1117,6 +1118,18 @@ EnhancedDownloadManager
 			}else{
 				
 				progressive_stats = createProgressiveStats( download_manager, primary_file );
+			}
+			
+			if ( !switching_progressive_downloads ){
+				
+				if ( active ){
+					
+					RealTimeInfo.setProgressiveActive(  progressive_stats.getStreamBytesPerSecondMax());
+					
+				}else{
+					
+					RealTimeInfo.setProgressiveInactive();
+				}
 			}
 		}
 		
@@ -1213,7 +1226,7 @@ EnhancedDownloadManager
 								
 				marked_active = false;
 
-				ConcurrentHasher.getSingleton().removeRealTimeTask();
+				RealTimeInfo.removeRealTimeTask();
 			}
 			
 			if ( destroyed ){
@@ -1225,7 +1238,7 @@ EnhancedDownloadManager
 				
 				marked_active = true;
 
-				ConcurrentHasher.getSingleton().addRealTimeTask();
+				RealTimeInfo.addRealTimeTask();
 			}
 		}
 	}
