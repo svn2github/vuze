@@ -21,9 +21,8 @@
  
 package org.gudy.azureus2.ui.swt;
 
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.StringTokenizer;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
@@ -681,11 +680,10 @@ public class Utils {
     SWTThread swt = SWTThread.getInstance();
     
     if (swt == null) {
-    	System.err.println("SWT Thread not started yet");
-    	return false;
+    	System.err.println("WARNING: SWT Thread not started yet");
     }
 
-    Display display = swt.getDisplay();
+    Display display = (swt == null) ? Display.getCurrent() : swt.getDisplay();
 
   	if (display == null || display.isDisposed())
 			return false;
@@ -1385,6 +1383,83 @@ public class Utils {
 		gridData.horizontalSpan = hspan;
 		gridData.widthHint = 0;
 		return gridData;
+	}
+
+	public static Image createAlphaImage(Device device, int width, int height) {
+		return createAlphaImage(device, width, height, (byte) 0);
+	}
+
+	public static Image createAlphaImage(Device device, int width, int height,
+			byte defaultAlpha) {
+		byte[] alphaData = new byte[width * height];
+		Arrays.fill(alphaData, 0, alphaData.length, (byte) defaultAlpha);
+
+		ImageData imageData = new ImageData(50, 50, 24, new PaletteData(0xFF0000,
+				0xFF00, 0xFF));
+		Arrays.fill(imageData.data, 0, imageData.data.length, (byte) 0);
+		imageData.alphaData = alphaData;
+		Image image = new Image(device, imageData);
+		return image;
+	}
+
+	public static Image blitImage(Device device, Image srcImage,
+			Rectangle srcArea, Image dstImage, Point dstPos) {
+		if (srcArea == null) {
+			srcArea = srcImage.getBounds();
+		}
+		Rectangle dstBounds = dstImage.getBounds();
+		if (dstPos == null) {
+			dstPos = new Point(dstBounds.x, dstBounds.y);
+		} else {
+			dstBounds.x = dstPos.x;
+			dstBounds.y = dstPos.y;
+		}
+		srcArea.intersect(dstBounds);
+
+		// draw the image with no mask! :(
+		GC gc = new GC(dstImage);
+		try {
+			gc.drawImage(srcImage, srcArea.x, srcArea.y, srcArea.width,
+					srcArea.height, dstPos.x, dstPos.y, srcArea.width, srcArea.height);
+
+		} finally {
+			gc.dispose();
+		}
+
+		ImageData dstImageData = dstImage.getImageData();
+		ImageData srcImageData = srcImage.getImageData();
+		int yPos = dstPos.y;
+		for (int y = 0; y < srcArea.height; y++) {
+			int xPos = dstPos.x;
+			for (int x = 0; x < srcArea.width; x++) {
+				dstImageData.setAlpha(xPos, yPos, srcImageData.getAlpha(x + srcArea.x,
+						y + srcArea.y));
+				xPos++;
+			}
+			yPos++;
+		}
+
+		return new Image(device, dstImageData);
+	}
+	
+	public static Control findBackgroundImageControl(Control control) {
+		Image image = control.getBackgroundImage();
+		if (image == null) {
+			return control;
+		}
+
+		Composite parent = control.getParent();
+		Composite lastParent = parent;
+		while (parent != null) {
+			Image parentImage = parent.getBackgroundImage();
+			if (!image.equals(parentImage)) {
+				return lastParent;
+			}
+			lastParent = parent;
+			parent = parent.getParent();
+		}
+
+		return control;
 	}
 
 	/**
