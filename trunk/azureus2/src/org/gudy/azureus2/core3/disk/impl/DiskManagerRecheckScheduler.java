@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.ConcurrentHasher;
+import org.gudy.azureus2.core3.util.RealTimeInfo;
 
 public class 
 DiskManagerRecheckScheduler 
@@ -130,7 +131,7 @@ DiskManagerRecheckScheduler
 				
 					// defer low priority activities if we are running a real-time task
 				
-				if ( low_priority && ConcurrentHasher.getSingleton().isRealTimeTaskActive()){
+				if ( low_priority && RealTimeInfo.isRealTimeTaskActive()){
 					
 					result = false;
 					

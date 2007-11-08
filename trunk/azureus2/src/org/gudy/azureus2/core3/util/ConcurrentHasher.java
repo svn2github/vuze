@@ -61,8 +61,7 @@ ConcurrentHasher
 		});
 	}
 
-	private static int	realtime_task_count;
-  
+
 	
 	public static ConcurrentHasher
 	getSingleton()
@@ -195,30 +194,6 @@ ConcurrentHasher
 		scheduler.setDaemon( true );
 		
 		scheduler.start();
-	}
-	
-	public void
-	addRealTimeTask()
-	{
-		synchronized( this ){
-			
-			realtime_task_count++;
-		}
-	}
-	
-	public void
-	removeRealTimeTask()
-	{
-		synchronized( this ){
-			
-			realtime_task_count--;
-		}
-	}
-	
-	public boolean
-	isRealTimeTaskActive()
-	{
-		return( realtime_task_count > 0 );
 	}
 	
 		/**
