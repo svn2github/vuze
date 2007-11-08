@@ -165,7 +165,7 @@ public class FileDownloadWindow
 		if (null != pReporter) {
 			pReporter.setName(fileDownloadingString + getShortURL(url));
 			pReporter.setTitle(MessageText.getString("fileDownloadWindow.title"));
-			pReporter.setPercentage(0, null);
+			pReporter.setIndeterminate(true);
 			pReporter.setCancelAllowed(true);
 			pReporter.setRetryAllowed(true);
 
