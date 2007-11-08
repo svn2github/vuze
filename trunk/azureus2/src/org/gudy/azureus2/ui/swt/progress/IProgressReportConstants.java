@@ -17,6 +17,22 @@ public interface IProgressReportConstants
 	 */
 	public static final String REPORTER_TYPE_DEFAULT = "default.reporter.type";
 
+	/**
+	 * The default visibility for a <code>ProgressReporter</code>; this is the most generous
+	 * visibility level in that any interested processes can see this reporter and receive it's <code>ProgressReporter.ProgressReport</code>
+	 * This is used for when it makes sense to show the full information about a reporter to the user; this reporter will
+	 * be seen in the progress history
+	 */
+	public static final int REPORTER_VISIBILITY_USER = 1;
+
+	/**
+	 * A hint to the <code>ProgressReportingManager</code> and any interested parties that the
+	 * reporter and its reports are not intended to be shown (in full) to the user.  UI components
+	 * displaying progress reporters and reports can use this hint to show a minimum set of values and additionally
+	 * skip soliciting the user for any loopback events.
+	 */
+	public static final int REPORTER_VISIBILITY_SYSTEM = 2;
+
 	//======= report types =============
 
 	/**
@@ -73,4 +89,20 @@ public interface IProgressReportConstants
 	 */
 	public static final int RETVAL_OK_TO_DISPOSE = 1;
 
+	//============ events from the ProgressReportingManager ====
+
+	/**
+	 * When a reporter is added to the history list
+	 */
+	public static final int MANAGER_EVENT_ADDED = 1;
+
+	/**
+	 * When a reporter is removed from the history list
+	 */
+	public static final int MANAGER_EVENT_REMOVED = 2;
+
+	/**
+	 * When reporter that is already in the history list report an event
+	 */
+	public static final int MANAGER_EVENT_UPDATED = 3;
 }

@@ -9,10 +9,13 @@ package org.gudy.azureus2.ui.swt.progress;
 public interface IProgressReportingListener
 	extends IProgressReportConstants
 {
+	
+	
 	/**
-	 * Notify that some changes has happened
+	 * Notify that some event has happened
+	 * @param eventType 
 	 * @param reporter The <code>ProgressReporter</code> that reported the change;
-	 * @return 
+	 * @return
 	 */
-	public int reporting(IProgressReporter reporter);
+	public int reporting(int eventType, IProgressReporter reporter);
 }
