@@ -1,5 +1,6 @@
 package org.gudy.azureus2.ui.swt.progress;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.eclipse.swt.SWT;
@@ -65,6 +66,16 @@ public class ProgressReporterWindow
 
 	private String actionLabelText_detail = null;
 
+	/**
+	 * A registry to keep track of all reporters that are being displayed in all instances
+	 * of this window.
+	 * @see #isOpened(IProgressReporter)
+	 */
+	private static final ArrayList reportersRegistry = new ArrayList();
+
+	/**
+	 * The default message to display in the detail messages panel when there are no detail messages supplied
+	 */
 	private final String NO_HISTORY_TO_DISPLAY = MessageText.getString("Progress.reporting.no.history.to.display");
 
 	/**
@@ -92,6 +103,19 @@ public class ProgressReporterWindow
 	 * The height or thickness of the progress bar
 	 */
 	private int defaultPBarHeight = 15;
+
+	/**
+	 * The minimum height of the detail panel 
+	 */
+	private int minDetailPanelHeight = 50;
+
+	/**
+	 * The height of the detail panel when the window first appears.
+	 * This only takes effect when there is some detail messages to display and when that
+	 * list of messages is too long; this value limits the height of the panel so that the window
+	 * does not grow to take up too much of the screen in such instances.
+	 */
+	private int maxInitialDetailPanelHeight = 300;
 
 	/**
 	 * If <code>true</code> then this window is hosting only 1 <code>ProgressReporter</code> 
@@ -123,6 +147,7 @@ public class ProgressReporterWindow
 			pReporters = new IProgressReporter[] {
 				pReporter
 			};
+
 		} else {
 			pReporters = new IProgressReporter[0];
 		}
@@ -139,6 +164,7 @@ public class ProgressReporterWindow
 		this.style = style;
 		if (null != pReporters) {
 			this.pReporters = pReporters;
+
 		} else {
 			pReporters = new IProgressReporter[0];
 		}
@@ -165,6 +191,19 @@ public class ProgressReporterWindow
 		new ProgressReporterWindow(pReporters, style).openWindow();
 	}
 
+	/**
+	 * Returns whether the given <code>IProgressReporter</code> is opened in any instance of this window;
+	 * processes can query this method before opening another window to prevent opening multiple
+	 * windows for the same reporter.  This is implemented explicitly instead of having the window automatically
+	 * recycle instances because there are times when it is desirable to open a reporter in more than one
+	 * instances of this window.
+	 * @param pReporter
+	 * @return
+	 */
+	public static boolean isOpened(IProgressReporter pReporter) {
+		return reportersRegistry.contains(pReporter);
+	}
+
 	private void createControls() {
 		/*
 		 * Sets up the shell
@@ -186,6 +225,17 @@ public class ProgressReporterWindow
 		gLayout.marginHeight = 0;
 		gLayout.marginWidth = 0;
 		shell.setLayout(gLayout);
+
+		/*
+		 * On closing remove all reporters that was handled by this instance of the window from the registry 
+		 */
+		shell.addListener(SWT.Close, new Listener() {
+			public void handleEvent(Event event) {
+				for (int i = 0; i < pReporters.length; i++) {
+					reportersRegistry.remove(pReporters[i]);
+				}
+			}
+		});
 
 		/*
 		 * Gets some resources
@@ -306,6 +356,12 @@ public class ProgressReporterWindow
 		int size = pReporters.length;
 		for (int i = 0; i < size; i++) {
 			if (null != pReporters[i]) {
+
+				/*
+				 * Add this reporter to the registry
+				 */
+				reportersRegistry.add(pReporters[i]);
+
 				ReporterPanel panel = null;
 
 				/*
@@ -393,6 +449,8 @@ public class ProgressReporterWindow
 
 		private List detailListWidget = null;
 
+		private GridData detailGroupData = null;
+
 		private AZProgressBar pBar = null;
 
 		private StyledText actionLabel_multi_function = null;
@@ -464,9 +522,9 @@ public class ProgressReporterWindow
 				 * Add the detail section
 				 */
 				detailListWidget = new List(this, SWT.BORDER | SWT.V_SCROLL);
-				GridData detailGroupData = new GridData(SWT.FILL, SWT.FILL, true, true);
+				detailGroupData = new GridData(SWT.FILL, SWT.FILL, true, true);
 				detailGroupData.horizontalSpan = 3;
-				detailGroupData.heightHint = 50;
+				detailGroupData.heightHint = minDetailPanelHeight;
 				detailListWidget.setLayoutData(detailGroupData);
 
 				/*
@@ -549,14 +607,12 @@ public class ProgressReporterWindow
 				imageLabel.setImage(defaultImage);
 			}
 
-			nameLabel.setText(pReport.name);
+			nameLabel.setText(formatForDisplay(pReport.name));
 
 			if (true == pReport.isInErrorState) {
-				showInErrorColor(messageLabel, nullToEmptyString(pReport.errorMessage),
-						true);
+				showInErrorColor(messageLabel, pReport.errorMessage, true);
 			} else {
-				showInErrorColor(messageLabel, nullToEmptyString(pReport.message),
-						false);
+				showInErrorColor(messageLabel, pReport.message, false);
 			}
 
 			showAsLink(actionLabel_remove, actionLabelText_remove, true);
@@ -588,9 +644,19 @@ public class ProgressReporterWindow
 
 				} else {
 					for (int i = 0; i < pReport.detailMessageHistory.length; i++) {
-						detailListWidget.add(pReport.detailMessageHistory[i]);
+						detailListWidget.add(formatForDisplay(pReport.detailMessageHistory[i]));
 					}
 				}
+
+				/*
+				 * Since detail panel automatically grows to show the entire list of detail messages
+				 * we want to at least place a limit on its height just in case the list is too long.
+				 * A vertical scrollbar will appear so the user can scroll through the rest of the list 
+				 */
+				if (detailListWidget.computeSize(SWT.DEFAULT, SWT.DEFAULT).y > maxInitialDetailPanelHeight) {
+					detailGroupData.heightHint = maxInitialDetailPanelHeight;
+				}
+
 			}
 			/*
 			 * Layout the controls
@@ -621,14 +687,22 @@ public class ProgressReporterWindow
 			actionLabel_multi_function.addMouseListener(new MouseAdapter() {
 				public void mouseDown(MouseEvent e) {
 					/*
-					 * KN: Not exactly good programming but this works and it's simpler than
-					 * inspecting the reporter directly
+					 * KN: Not exactly good programming when using the label text to compare 
+					 * but this works and it's simpler than inspecting the reporter directly
 					 */
 					if (actionLabelText_cancel.equals(actionLabel_multi_function.getText())) {
 						pReporter.cancel();
 					} else if (actionLabelText_retry.equals(actionLabel_multi_function.getText())) {
 						pReporter.retry();
 					} else if (actionLabelText_remove.equals(actionLabel_multi_function.getText())) {
+						/*
+						 * Removes the current reporter from the history stack of the reporting manager
+						 */
+						ProgressReportingManager.getInstance().remove(pReporter);
+
+						/*
+						 * Then perform general clean-ups
+						 */
 						dispose();
 					}
 				}
@@ -639,8 +713,14 @@ public class ProgressReporterWindow
 			 */
 			actionLabel_remove.addMouseListener(new MouseAdapter() {
 				public void mouseDown(MouseEvent e) {
+
 					/*
-					 * When active (is visible) this label only perform 1 action which is disposing this
+					 * Removes the current reporter from the history stack of the reporting manager
+					 */
+					ProgressReportingManager.getInstance().remove(pReporter);
+
+					/*
+					 * Then perform general clean-ups
 					 */
 					dispose();
 				}
@@ -742,10 +822,9 @@ public class ProgressReporterWindow
 					shell.getDisplay().asyncExec(new Runnable() {
 						public void run() {
 							if (null != nameLabel && false == nameLabel.isDisposed()) {
-								nameLabel.setText(nullToEmptyString(pReport.name));
+								nameLabel.setText(pReport.name);
 							}
-							showInErrorColor(messageLabel,
-									nullToEmptyString(pReport.message), false);
+							showInErrorColor(messageLabel, pReport.message, false);
 							synchProgressBar(pReport);
 							updateDetailWidget(pReport);
 							configureActionLabel(pReport);
@@ -757,8 +836,7 @@ public class ProgressReporterWindow
 					shell.getDisplay().asyncExec(new Runnable() {
 						public void run() {
 							synchProgressBar(pReport);
-							showInErrorColor(messageLabel,
-									nullToEmptyString(pReport.message), false);
+							showInErrorColor(messageLabel, pReport.message, false);
 							configureActionLabel(pReport);
 							resizeContent();
 						}
@@ -773,8 +851,7 @@ public class ProgressReporterWindow
 							} else {
 
 								synchProgressBar(pReport);
-								showInErrorColor(messageLabel,
-										nullToEmptyString(pReport.message), false);
+								showInErrorColor(messageLabel, pReport.message, false);
 								configureActionLabel(pReport);
 								resizeContent();
 							}
@@ -794,8 +871,7 @@ public class ProgressReporterWindow
 				case REPORT_TYPE_ERROR:
 					shell.getDisplay().asyncExec(new Runnable() {
 						public void run() {
-							showInErrorColor(messageLabel,
-									nullToEmptyString(pReport.errorMessage), true);
+							showInErrorColor(messageLabel, pReport.errorMessage, true);
 							configureActionLabel(pReport);
 							synchProgressBar(pReport);
 							resizeContent();
@@ -806,8 +882,7 @@ public class ProgressReporterWindow
 				case REPORT_TYPE_RETRY:
 					shell.getDisplay().asyncExec(new Runnable() {
 						public void run() {
-							showInErrorColor(messageLabel,
-									nullToEmptyString(pReport.message), false);
+							showInErrorColor(messageLabel, pReport.message, false);
 							configureActionLabel(pReport);
 							synchProgressBar(pReport);
 							resizeContent();
@@ -820,16 +895,6 @@ public class ProgressReporterWindow
 			}
 
 			return RETVAL_OK;
-		}
-
-		/**
-		 * Convenience method to return an empty string if the given string is null.
-		 * <p>SWT text controls do not allow a null argument as a value and will throw an exception if a <code>null</code> is encountered</p>
-		 * @param string
-		 * @return
-		 */
-		private String nullToEmptyString(String string) {
-			return null == string ? "" : string;
 		}
 
 		/**
@@ -882,7 +947,7 @@ public class ProgressReporterWindow
 			if (null == label || label.isDisposed()) {
 				return;
 			}
-			label.setText(text + "");
+			label.setText(formatForDisplay(text));
 			if (false == showError) {
 				label.setForeground(normalColor);
 			} else {
@@ -906,7 +971,7 @@ public class ProgressReporterWindow
 			if (null == actionLabel || true == actionLabel.isDisposed()) {
 				return;
 			}
-			actionLabel.setText(text);
+			actionLabel.setText(formatForDisplay(text));
 			actionLabel.setCursor(Cursors.handCursor);
 
 			if (true == enabled) {
@@ -993,7 +1058,7 @@ public class ProgressReporterWindow
 			}
 
 			if (null != pReport.detailMessage && pReport.detailMessage.length() > 0) {
-				detailListWidget.add(pReport.detailMessage);
+				detailListWidget.add(formatForDisplay(pReport.detailMessage));
 
 				/*
 				 * We added a default message at init so if it's still there then remove it
@@ -1011,14 +1076,32 @@ public class ProgressReporterWindow
 		 * Resizes the content of this panel to fit within the shell and to layout children control appropriately
 		 */
 		public void resizeContent() {
-			int maxWidth = getClientArea().width;
-			maxWidth -= iconMargin;
-			maxWidth -= actionLabelMaxWidth;
-			nameData.widthHint = maxWidth;
-			pbarData.widthHint = maxWidth;
-			messageData.widthHint = maxWidth;
-			shell.layout(true, true);
+			if (false == isDisposed()) {
+				int maxWidth = getClientArea().width;
+				maxWidth -= iconMargin;
+				maxWidth -= actionLabelMaxWidth;
+				nameData.widthHint = maxWidth;
+				pbarData.widthHint = maxWidth;
+				messageData.widthHint = maxWidth;
+				shell.layout(true, true);
+			}
+		}
 
+		/**
+		 * Formats the string so it displays properly in an SWT text control
+		 * @param string
+		 * @return
+		 */
+		private String formatForDisplay(String string) {
+			/*
+			 * SWT text controls do not allow a null argument as a value and will throw an exception if a <code>null</code> is encountered</p>
+			 */
+			string = null == string ? "" : string;
+
+			/*
+			 * Escaping the '&' character so it won't be shown as an underscore
+			 */
+			return string.replaceAll("&", "&&");
 		}
 
 		public void dispose() {
@@ -1029,7 +1112,6 @@ public class ProgressReporterWindow
 			actionLabel_remove.dispose();
 			messageLabel.dispose();
 			pReporter.removeListener(reporterListener);
-			pReporter.dispose();
 			super.dispose();
 		}
 	}
