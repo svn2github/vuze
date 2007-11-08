@@ -86,6 +86,7 @@ public class TableCellImpl
   private int tooltipErrLoopCount;
   private int loopFactor;
   private Object oToolTip;
+  private boolean bToolTipIsAuto;
 	private int iCursorID = -1;
 	private Graphic graphic = null;
   
@@ -325,6 +326,23 @@ public class TableCellImpl
 		if (bChanged) {
 			bCellVisuallyChangedSinceRefresh = true;
 		}
+
+		boolean do_auto = this.tableColumn.doesAutoTooltip();
+		
+		// If we were using auto tooltips (and we aren't any more), then
+		// clear up previously set tooltips.
+		if (!do_auto) {
+			if (this.bToolTipIsAuto) {
+				this.oToolTip = null;
+				this.bToolTipIsAuto = false;
+			}
+		}
+		
+		else {
+			this.oToolTip = text;
+			this.bToolTipIsAuto = true;
+		}
+		
   	return bChanged;
   }
   
@@ -429,6 +447,7 @@ public class TableCellImpl
   
   public void setToolTip(Object tooltip) {
     oToolTip = tooltip;
+    this.bToolTipIsAuto = false;
   }
 
   public Object getToolTip() {

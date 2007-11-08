@@ -1340,12 +1340,13 @@ public class TableViewSWTImpl
 
 		item.setEnabled(true);
 
-		menu.setData("ColumnNo", new Long(iColumn));
-
-		TableColumn tcColumn = table.getColumn(iColumn);
+		final TableColumn tcColumn = table.getColumn(iColumn);
 		item.setText("'" + tcColumn.getText() + "' "
 				+ MessageText.getString("GenericText.column"));
 
+		menu.setData("ColumnNo", new Long(iColumn));
+		menu.setData("column", tcColumn);
+		
 		String sColumnName = (String) tcColumn.getData("Name");
 		if (sColumnName != null) {
 			Object[] listeners = listenersMenuFill.toArray();
@@ -1367,7 +1368,19 @@ public class TableViewSWTImpl
 				table.getColumn(iColumn).notifyListeners(SWT.Selection, new Event());
 			}
 		});
-
+		
+		final MenuItem at_item = new MenuItem(menuThisColumn, SWT.CHECK);
+		Messages.setLanguageText(at_item, "MyTorrentsView.menu.thisColumn.autoTooltip");
+		at_item.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				TableColumn tc = (TableColumn)menu.getData("column");
+				TableColumnCore tcc = (TableColumnCore)tc.getData("TableColumnCore");
+				tcc.setAutoTooltip(at_item.getSelection());
+				tcc.invalidateCells();
+			}			
+		});
+		at_item.setSelection(((TableColumnCore)tcColumn.getData("TableColumnCore")).doesAutoTooltip());
+		
 		item = new MenuItem(menuThisColumn, SWT.PUSH);
 		Messages.setLanguageText(item, "MyTorrentsView.menu.thisColumn.remove");
 		item.setEnabled(false);

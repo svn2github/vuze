@@ -297,4 +297,7 @@ public interface TableColumnCore
 	boolean hasCellMouseMoveListener();
 
 	void triggerColumnSizeChange();
+	
+	void setAutoTooltip(boolean auto_tooltip);
+	boolean doesAutoTooltip();
 }

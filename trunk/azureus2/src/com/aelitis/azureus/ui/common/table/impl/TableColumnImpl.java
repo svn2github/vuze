@@ -126,6 +126,8 @@ public class TableColumnImpl
 	private boolean bPreferredWidthAuto = true;
 
 	private int iPreferredWidthMax = -1;
+	
+	private boolean auto_tooltip = false;
 
 	/** Create a column object for the specified table.
 	 *
@@ -729,12 +731,14 @@ public class TableColumnImpl
 				iWidth));
 		setPositionNoShift(COConfigurationManager.getIntParameter(sItemPrefix
 				+ ".position", iPosition));
+		setAutoTooltip(COConfigurationManager.getBooleanParameter(sItemPrefix + ".auto_tooltip", auto_tooltip));
 	}
 
 	public void saveSettings() {
 		String sItemPrefix = "Table." + sTableID + "." + sName;
 		COConfigurationManager.setParameter(sItemPrefix + ".position", iPosition);
 		COConfigurationManager.setParameter(sItemPrefix + ".width", iWidth);
+		COConfigurationManager.setParameter(sItemPrefix + ".auto_tooltip", auto_tooltip);
 	}
 
 	public String getTitleLanguageKey() {
@@ -1094,4 +1098,13 @@ public class TableColumnImpl
 			triggerColumnSizeChange();
 		}
 	}
+	
+	public void setAutoTooltip(boolean auto_tooltip) {
+		this.auto_tooltip = auto_tooltip;
+	}
+	
+	public boolean doesAutoTooltip() {
+		return this.auto_tooltip;
+	}
+	
 }
