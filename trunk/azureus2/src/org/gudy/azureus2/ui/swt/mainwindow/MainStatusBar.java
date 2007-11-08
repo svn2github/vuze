@@ -1204,14 +1204,10 @@ public class MainStatusBar
 	 *
 	 */
 	private class ProgressListener
-		implements IProgressReportingListener
+		implements IProgressReportingListener, IProgressReportConstants
 	{
 
-		public int reporting(IProgressReporter reporter) {
-
-			if (null == reporter) {
-				return RETVAL_OK;
-			}
+		public int reporting(int eventType, IProgressReporter reporter) {
 
 			/*
 			 * Show the appropriate image based on the content of the reporting manager
@@ -1228,30 +1224,57 @@ public class MainStatusBar
 				}
 			}, true);
 
-			/*
-			 * Get a ProgressReport to ensure all data is consistent
-			 */
-			ProgressReport pReport = reporter.getProgressReport();
+			if (null == reporter) {
+				return RETVAL_OK;
+			}
 
-			/*
-			 * If this reporter is not active then get the previous reporter that is still active and display info from that
-			 */
-			if (false == pReport.isActive) {
+			if (MANAGER_EVENT_REMOVED == eventType) {
+				updateFromPrevious();
+			} else if (MANAGER_EVENT_ADDED == eventType
+					|| MANAGER_EVENT_UPDATED == eventType) {
+				/*
+				 * Get a ProgressReport to ensure all data is consistent
+				 */
+				ProgressReport pReport = reporter.getProgressReport();
 
 				/*
-				 * Get the previous reporter that is still active
+				 * Pops up the ProgressReportingWindow to show this report if it is an error report;
+				 * this is to help catch the users attention
 				 */
-				reporter = PRManager.getPreviousActiveReporter();
+				if (true == pReport.isInErrorState) {
+					final IProgressReporter final_reporter = reporter;
 
-				/*
-				 * If still null then we reset the status text and the progress bar
-				 */
-				if (null == reporter) {
-					updateProgressBarDisplay(null);
-					return RETVAL_OK;
+					/*
+					 * The new window is opened only if there is not one already showing the same reporter
+					 */
+					if (false == ProgressReporterWindow.isOpened(reporter)) {
+						Utils.execSWTThread(new AERunnable() {
+							public void runSupport() {
+								ProgressReporterWindow.open(final_reporter,
+										ProgressReporterWindow.NONE);
+							}
+						}, true);
+					}
 				}
 
-				pReport = reporter.getProgressReport();
+				/*
+				 * If this reporter is not active then get the previous reporter that is still active and display info from that
+				 */
+				if (false == pReport.isActive) {
+					updateFromPrevious();
+				} else {
+					update(pReport);
+				}
+			}
+
+			return RETVAL_OK;
+		}
+
+		private void update(final ProgressReport pReport) {
+
+			if (null == pReport) {
+				updateProgressBarDisplay(null);
+				return;
 			}
 
 			/*
@@ -1259,10 +1282,9 @@ public class MainStatusBar
 			 * and display the text from the current reporter
 			 */
 			if (true == PRManager.hasMultipleActive()) {
-				final ProgressReport pReport_final = pReport;
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
-						setStatusText(pReport_final.name);
+						setStatusText(pReport.name);
 						progressBar.setIndeterminate(true);
 						showProgressBar(true);
 					}
@@ -1270,10 +1292,23 @@ public class MainStatusBar
 			} else {
 				updateProgressBarDisplay(pReport);
 			}
-
-			return RETVAL_OK;
 		}
 
+		private void updateFromPrevious() {
+			/*
+			 * Get the previous reporter that is still active
+			 */
+			IProgressReporter previousReporter = PRManager.getPreviousActiveReporter();
+
+			/*
+			 * If null then we reset the status text and the progress bar
+			 */
+			if (null != previousReporter) {
+				update(previousReporter.getProgressReport());
+			} else {
+				update(null);
+			}
+		}
 	}
 
 }
