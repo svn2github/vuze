@@ -1013,6 +1013,14 @@ EnhancedDownloadManager
 	setProgressiveMode(
 		boolean		active )
 	{
+		setProgressiveMode(active, true);
+	}
+		
+	public void
+	setProgressiveMode(
+		boolean		active,
+		boolean		resumeOnInactivate)
+	{
 		TOTorrent	torrent = download_manager.getTorrent();
 		
 		if ( torrent == null ){
@@ -1062,7 +1070,7 @@ EnhancedDownloadManager
 						}
 						EnhancedDownloadManager edmCheck = enhancer.getEnhancedDownload(dmCheck);
 						if (edmCheck != null && edmCheck.getProgressiveMode()) {
-							edmCheck.setProgressiveMode(false);
+							edmCheck.setProgressiveMode(false, false);
 						}
 					}
 				}
@@ -1081,7 +1089,9 @@ EnhancedDownloadManager
 				}
 			} else {
 				download_manager.removeListener(dmListener);
-				gm.resumeDownloads();
+				if (resumeOnInactivate) {
+					gm.resumeDownloads();
+				}
 			}
 			
 			progressive_active	= active;
@@ -1335,6 +1345,8 @@ EnhancedDownloadManager
 		DiskManager dm = download_manager.getDiskManager();
 		
 		if ( dm == null ){
+			
+			// TODO: Check if file is complete.. if it is, return correct size
 			
 			return( -1 );
 		}
