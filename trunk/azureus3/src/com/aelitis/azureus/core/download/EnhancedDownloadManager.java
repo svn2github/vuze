@@ -45,7 +45,6 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
-import org.gudy.azureus2.core3.util.ConcurrentHasher;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.RealTimeInfo;
@@ -1202,6 +1201,11 @@ EnhancedDownloadManager
 					
 		synchronized( this ){
 			
+			if ( !progressive_active ){
+				
+				return;
+			}			
+
 			if ( tick_count % REACTIVATE_PROVIDER_PERIOD_TICKS == 0 ){
 				
 				PiecePicker piece_picker = current_piece_pickler;
@@ -1213,6 +1217,13 @@ EnhancedDownloadManager
 			}
 			
 			progressive_stats.update( tick_count );
+			
+			long	current_max = progressive_stats.getStreamBytesPerSecondMax();
+			
+			if ( RealTimeInfo.getProgressiveActiveBytesPerSec() != current_max ){
+				
+				RealTimeInfo.setProgressiveActive( current_max );
+			}
 		}
 	}
 	
