@@ -2,6 +2,7 @@ package com.aelitis.azureus.core.speedmanager.impl.v2;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.RealTimeInfo;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingMapper;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
@@ -449,13 +450,15 @@ public class SpeedLimitMonitor implements PSMonitorListener
         //this flag is set in a previous method.
         if( isStartLimitTestFlagSet() ){
             SpeedManagerLogger.trace("modifyLimits - startLimitTesting.");
-            return startLimitTesting(currUpLimit, currDownLimit);
+            SMUpdate update = startLimitTesting(currUpLimit, currDownLimit);
+            return checkActiveProgressiveDownloadLimit( update );
         }
 
 
         if( isEitherLimitUnpinned() ){
             SpeedManagerLogger.trace("modifyLimits - calculateNewUnpinnedLimits");
-            return calculateNewUnpinnedLimits(signalStrength);
+            SMUpdate update = calculateNewUnpinnedLimits(signalStrength);
+            return checkActiveProgressiveDownloadLimit( update );
         }
 
         slider.updateLimits(uploadLimitMax,uploadLimitMin,
@@ -464,9 +467,39 @@ public class SpeedLimitMonitor implements PSMonitorListener
         slider.updateStatus(currUpLimit,uploadBandwidthStatus,
                 currDownLimit, downloadBandwidthStatus,transferMode);
 
-        return slider.adjust( signalStrength*multiple );
+        SMUpdate update = slider.adjust( signalStrength*multiple );
+        return checkActiveProgressiveDownloadLimit( update );
     }//modifyLimits
 
+    /**
+     * If a progressive download is currently active. Then the download limit should
+     * not be allowed to go below that limit, regardless of anything else.
+     * @param update -
+     * @return -
+     */
+    private SMUpdate checkActiveProgressiveDownloadLimit( SMUpdate update ){
+
+        //Do we have an active download limit?
+        long prgDownLimit = RealTimeInfo.getProgressiveActiveBytesPerSec();
+
+        //If the value is zero, then the no progressive download is currently active.
+        if( prgDownLimit==0 ){
+            return update;
+        }
+
+        //We seem to have an active progressive download. Make sure the limit does not
+        //drop below that limit.
+        final int MULTIPLE = 2;
+        if( prgDownLimit*MULTIPLE > update.newDownloadLimit )//ToDo: what are the units?
+        {
+            log( "Active Progressive download in progress. Overriding limit. curr="+update.newDownloadLimit
+                    +" progDownloadLimit="+prgDownLimit*MULTIPLE );
+
+            update.newDownloadLimit = (int)prgDownLimit*MULTIPLE;
+        }//if
+
+        return update;
+    }//checkActiveProgressiveDownloadLimit
 
     /**
      * Log debug info needed during beta period.
