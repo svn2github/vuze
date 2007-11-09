@@ -256,6 +256,8 @@ XMLRequestProcessor
 																												
 									int	p1 = request_method.indexOf(',',method_pos);
 										
+									String	bit;
+										
 									if ( p1 == -1 ){
 											
 										bits[j] = request_method.substring( method_pos, request_method.length()-1).toLowerCase();
