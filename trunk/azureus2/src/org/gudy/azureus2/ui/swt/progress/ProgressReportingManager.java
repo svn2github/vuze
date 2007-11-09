@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.ListIterator;
 
 import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
-import org.gudy.azureus2.ui.swt.progress.ProgressReporter.ProgressReport;
 
 /**
  * A manager that aggregates and forward progress information for long running operations
@@ -192,7 +191,7 @@ public class ProgressReportingManager
 		/*
 		 * Update the history stack and notify listeners 
 		 */
-		if (true == reporter.getProgressReport().isDisposed) {
+		if (true == reporter.getProgressReport().isDisposed()) {
 			progressReporters.remove(reporter);
 			notifyListeners(MANAGER_EVENT_REMOVED, reporter);
 		} else if (true == progressReporters.contains(reporter)) {
@@ -306,8 +305,8 @@ public class ProgressReportingManager
 			synchronized (reporterList) {
 				for (Iterator iterator = reporterList.iterator(); iterator.hasNext();) {
 					IProgressReporter reporter = ((IProgressReporter) iterator.next());
-					ProgressReport report = reporter.getProgressReport();
-					if (false == report.isActive) {
+					IProgressReport report = reporter.getProgressReport();
+					if (false == report.isActive()) {
 						iterator.remove();
 					}
 				}
@@ -327,9 +326,9 @@ public class ProgressReportingManager
 				List reporters = new ArrayList();
 				for (ListIterator iterator = reporterList.listIterator(reporterList.size()); iterator.hasPrevious();) {
 					IProgressReporter reporter = ((IProgressReporter) iterator.previous());
-					ProgressReport report = reporter.getProgressReport();
+					IProgressReport report = reporter.getProgressReport();
 					if (true == onlyActive) {
-						if (true == report.isActive) {
+						if (true == report.isActive()) {
 							reporters.add(reporter);
 						}
 					} else {
@@ -357,8 +356,8 @@ public class ProgressReportingManager
 				int activeReporters = 0;
 				for (ListIterator iterator = reporterList.listIterator(reporterList.size()); iterator.hasPrevious();) {
 					IProgressReporter reporter = ((IProgressReporter) iterator.previous());
-					ProgressReport report = reporter.getProgressReport();
-					if (true == report.isActive) {
+					IProgressReport report = reporter.getProgressReport();
+					if (true == report.isActive()) {
 						activeReporters++;
 					}
 				}
@@ -378,8 +377,8 @@ public class ProgressReportingManager
 				int reportersInErrorState = 0;
 				for (ListIterator iterator = reporterList.listIterator(reporterList.size()); iterator.hasPrevious();) {
 					IProgressReporter reporter = ((IProgressReporter) iterator.previous());
-					ProgressReport report = reporter.getProgressReport();
-					if (true == report.isInErrorState) {
+					IProgressReport report = reporter.getProgressReport();
+					if (true == report.isInErrorState()) {
 						reportersInErrorState++;
 					}
 				}
@@ -402,8 +401,8 @@ public class ProgressReportingManager
 				int activeReporters = 0;
 				for (ListIterator iterator = reporterList.listIterator(reporterList.size()); iterator.hasPrevious();) {
 					IProgressReporter reporter = (IProgressReporter) iterator.previous();
-					ProgressReport report = reporter.getProgressReport();
-					if (true == report.isActive) {
+					IProgressReport report = reporter.getProgressReport();
+					if (true == report.isActive()) {
 						activeReporters++;
 					}
 					if (activeReporters > 1) {
@@ -426,8 +425,8 @@ public class ProgressReportingManager
 			synchronized (reporterList) {
 				for (ListIterator iterator = reporterList.listIterator(reporterList.size()); iterator.hasPrevious();) {
 					IProgressReporter reporter = (IProgressReporter) iterator.previous();
-					ProgressReport report = reporter.getProgressReport();
-					if (true == report.isActive) {
+					IProgressReport report = reporter.getProgressReport();
+					if (true == report.isActive()) {
 						return reporter;
 					}
 				}

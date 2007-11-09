@@ -67,6 +67,7 @@ import org.gudy.azureus2.ui.swt.BlockedIpsWindow;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.progress.IProgressReport;
 import org.gudy.azureus2.ui.swt.progress.IProgressReportConstants;
 import org.gudy.azureus2.ui.swt.progress.IProgressReporter;
 import org.gudy.azureus2.ui.swt.progress.IProgressReporterListener;
@@ -74,7 +75,6 @@ import org.gudy.azureus2.ui.swt.progress.IProgressReportingListener;
 import org.gudy.azureus2.ui.swt.progress.ProgressReporter;
 import org.gudy.azureus2.ui.swt.progress.ProgressReporterWindow;
 import org.gudy.azureus2.ui.swt.progress.ProgressReportingManager;
-import org.gudy.azureus2.ui.swt.progress.ProgressReporter.ProgressReport;
 import org.gudy.azureus2.ui.swt.update.UpdateWindow;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -664,13 +664,13 @@ public class MainStatusBar
 				 */
 				updateReporter.addListener(new IProgressReporterListener() {
 
-					public int report(ProgressReport progressReport) {
-						if (progressReport.REPORT_TYPE == REPORT_TYPE_DONE
-								|| progressReport.REPORT_TYPE == REPORT_TYPE_ERROR) {
+					public int report(IProgressReport progressReport) {
+						if (progressReport.getReportType() == REPORT_TYPE_DONE
+								|| progressReport.getReportType() == REPORT_TYPE_ERROR) {
 							return RETVAL_OK_TO_DISPOSE;
 						}
 
-						if (progressReport.REPORT_TYPE == REPORT_TYPE_CANCEL) {
+						if (progressReport.getReportType() == REPORT_TYPE_CANCEL) {
 							if (null != instance) {
 								instance.cancel();
 							}
@@ -1150,7 +1150,7 @@ public class MainStatusBar
 	 * @param pReport the <code>ProgressReport</code> containing the information
 	 * to display; can be <code>null</code> in which case the status text and progress bar will be reset to default states
 	 */
-	private void updateProgressBarDisplay(final ProgressReport pReport) {
+	private void updateProgressBarDisplay(final IProgressReport pReport) {
 		if ((null == progressBar || true == progressBar.isDisposed())) {
 			return;
 		}
@@ -1162,19 +1162,19 @@ public class MainStatusBar
 					/*
 					 * Pass the values through to the progressbar
 					 */
-					progressBar.setMinimum(pReport.minimum);
-					progressBar.setMaximum(pReport.maximum);
-					progressBar.setIndeterminate(pReport.isIndeterminate);
-					progressBar.setPercentage(pReport.percentage);
+					progressBar.setMinimum(pReport.getMinimum());
+					progressBar.setMaximum(pReport.getMaximum());
+					progressBar.setIndeterminate(pReport.isIndeterminate());
+					progressBar.setPercentage(pReport.getPercentage());
 					showProgressBar(true);
 
 					/*
 					 * Update status text
 					 */
 					if (true == isAZ3) {
-						statusText.setText(pReport.name);
+						statusText.setText(pReport.getName());
 					} else {
-						setStatusText(pReport.name);
+						setStatusText(pReport.getName());
 					}
 				}
 
@@ -1235,13 +1235,13 @@ public class MainStatusBar
 				/*
 				 * Get a ProgressReport to ensure all data is consistent
 				 */
-				ProgressReport pReport = reporter.getProgressReport();
+				IProgressReport pReport = reporter.getProgressReport();
 
 				/*
 				 * Pops up the ProgressReportingWindow to show this report if it is an error report;
 				 * this is to help catch the users attention
 				 */
-				if (true == pReport.isInErrorState) {
+				if (true == pReport.isInErrorState()) {
 					final IProgressReporter final_reporter = reporter;
 
 					/*
@@ -1260,7 +1260,7 @@ public class MainStatusBar
 				/*
 				 * If this reporter is not active then get the previous reporter that is still active and display info from that
 				 */
-				if (false == pReport.isActive) {
+				if (false == pReport.isActive()) {
 					updateFromPrevious();
 				} else {
 					update(pReport);
@@ -1270,7 +1270,7 @@ public class MainStatusBar
 			return RETVAL_OK;
 		}
 
-		private void update(final ProgressReport pReport) {
+		private void update(final IProgressReport pReport) {
 
 			if (null == pReport) {
 				updateProgressBarDisplay(null);
@@ -1284,7 +1284,7 @@ public class MainStatusBar
 			if (true == PRManager.hasMultipleActive()) {
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
-						setStatusText(pReport.name);
+						setStatusText(pReport.getName());
 						progressBar.setIndeterminate(true);
 						showProgressBar(true);
 					}

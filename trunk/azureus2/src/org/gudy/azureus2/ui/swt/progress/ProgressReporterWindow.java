@@ -33,7 +33,6 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
-import org.gudy.azureus2.ui.swt.progress.ProgressReporter.ProgressReport;
 
 public class ProgressReporterWindow
 	implements IProgressReportConstants
@@ -481,7 +480,7 @@ public class ProgressReporterWindow
 
 			this.pReporter = reporter;
 
-			ProgressReport pReport = pReporter.getProgressReport();
+			IProgressReport pReport = pReporter.getProgressReport();
 
 			setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 
@@ -536,8 +535,8 @@ public class ProgressReporterWindow
 				 * Sets the shell title to the title of the reporter if it's not null
 				 */
 
-				if (null != pReport.title && pReport.title.length() > 0) {
-					shell.setText(pReport.title);
+				if (null != pReport.getTitle() && pReport.getTitle().length() > 0) {
+					shell.setText(pReport.getTitle());
 				}
 			}
 
@@ -561,7 +560,7 @@ public class ProgressReporterWindow
 			nameData = new GridData(SWT.FILL, SWT.TOP, true, false);
 			nameLabel.setLayoutData(nameData);
 
-			pBar = new AZProgressBar(middlePanel, pReport.isIndeterminate);
+			pBar = new AZProgressBar(middlePanel, pReport.isIndeterminate());
 			pbarData = new GridData(SWT.CENTER, SWT.CENTER, true, false);
 			pBar.setLayoutData(pbarData);
 
@@ -601,18 +600,18 @@ public class ProgressReporterWindow
 			 * Init the controls
 			 */
 
-			if (null != pReport.image) {
-				imageLabel.setImage(pReport.image);
+			if (null != pReport.getImage()) {
+				imageLabel.setImage(pReport.getImage());
 			} else {
 				imageLabel.setImage(defaultImage);
 			}
 
-			nameLabel.setText(formatForDisplay(pReport.name));
+			nameLabel.setText(formatForDisplay(pReport.getName()));
 
-			if (true == pReport.isInErrorState) {
-				showInErrorColor(messageLabel, pReport.errorMessage, true);
+			if (true == pReport.isInErrorState()) {
+				showInErrorColor(messageLabel, pReport.getErrorMessage(), true);
 			} else {
-				showInErrorColor(messageLabel, pReport.message, false);
+				showInErrorColor(messageLabel, pReport.getMessage(), false);
 			}
 
 			showAsLink(actionLabel_remove, actionLabelText_remove, true);
@@ -632,7 +631,7 @@ public class ProgressReporterWindow
 				 * Add a default message instead of an empty box if there is no history;
 				 * remove this later when a real detail message arrive
 				 */
-				if (pReport.detailMessageHistory.length < 1) {
+				if (pReport.getDetailMessageHistory().length < 1) {
 					detailListWidget.add(NO_HISTORY_TO_DISPLAY);
 
 					/*
@@ -643,8 +642,8 @@ public class ProgressReporterWindow
 					detailListWidget.setEnabled(false);
 
 				} else {
-					for (int i = 0; i < pReport.detailMessageHistory.length; i++) {
-						detailListWidget.add(formatForDisplay(pReport.detailMessageHistory[i]));
+					for (int i = 0; i < pReport.getDetailMessageHistory().length; i++) {
+						detailListWidget.add(formatForDisplay(pReport.getDetailMessageHistory()[i]));
 					}
 				}
 
@@ -759,7 +758,7 @@ public class ProgressReporterWindow
 			 * Listens to events from the reporter and take appropriate action(s) to update the UI
 			 */
 			reporterListener = new IProgressReporterListener() {
-				public int report(ProgressReport pReport) {
+				public int report(IProgressReport pReport) {
 					return updateControls(pReport);
 				}
 			};
@@ -803,7 +802,7 @@ public class ProgressReporterWindow
 		 * 
 		 * @param pReport
 		 */
-		private int updateControls(final ProgressReport pReport) {
+		private int updateControls(final IProgressReport pReport) {
 			if (null == pReport || null == shell || true == shell.isDisposed()
 					|| null == shell.getDisplay()) {
 				return RETVAL_OK;
@@ -816,15 +815,15 @@ public class ProgressReporterWindow
 			 * in a .syncExec() but that would cause freezing and flickering
 			 */
 
-			switch (pReport.REPORT_TYPE) {
+			switch (pReport.getReportType()) {
 				case REPORT_TYPE_PROPERTY_CHANGED:
 
 					shell.getDisplay().asyncExec(new Runnable() {
 						public void run() {
 							if (null != nameLabel && false == nameLabel.isDisposed()) {
-								nameLabel.setText(pReport.name);
+								nameLabel.setText(pReport.getName());
 							}
-							showInErrorColor(messageLabel, pReport.message, false);
+							showInErrorColor(messageLabel, pReport.getMessage(), false);
 							synchProgressBar(pReport);
 							updateDetailWidget(pReport);
 							configureActionLabel(pReport);
@@ -836,7 +835,7 @@ public class ProgressReporterWindow
 					shell.getDisplay().asyncExec(new Runnable() {
 						public void run() {
 							synchProgressBar(pReport);
-							showInErrorColor(messageLabel, pReport.message, false);
+							showInErrorColor(messageLabel, pReport.getMessage(), false);
 							configureActionLabel(pReport);
 							resizeContent();
 						}
@@ -851,7 +850,7 @@ public class ProgressReporterWindow
 							} else {
 
 								synchProgressBar(pReport);
-								showInErrorColor(messageLabel, pReport.message, false);
+								showInErrorColor(messageLabel, pReport.getMessage(), false);
 								configureActionLabel(pReport);
 								resizeContent();
 							}
@@ -863,7 +862,7 @@ public class ProgressReporterWindow
 					shell.getDisplay().asyncExec(new Runnable() {
 						public void run() {
 							if (null != pBar && false == pBar.isDisposed()) {
-								pBar.setIndeterminate(pReport.isIndeterminate);
+								pBar.setIndeterminate(pReport.isIndeterminate());
 							}
 						}
 					});
@@ -871,7 +870,7 @@ public class ProgressReporterWindow
 				case REPORT_TYPE_ERROR:
 					shell.getDisplay().asyncExec(new Runnable() {
 						public void run() {
-							showInErrorColor(messageLabel, pReport.errorMessage, true);
+							showInErrorColor(messageLabel, pReport.getErrorMessage(), true);
 							configureActionLabel(pReport);
 							synchProgressBar(pReport);
 							resizeContent();
@@ -882,7 +881,7 @@ public class ProgressReporterWindow
 				case REPORT_TYPE_RETRY:
 					shell.getDisplay().asyncExec(new Runnable() {
 						public void run() {
-							showInErrorColor(messageLabel, pReport.message, false);
+							showInErrorColor(messageLabel, pReport.getMessage(), false);
 							configureActionLabel(pReport);
 							synchProgressBar(pReport);
 							resizeContent();
@@ -898,23 +897,23 @@ public class ProgressReporterWindow
 		}
 
 		/**
-		 * Synchronize the progress bar with the given <code>ProgressReport</code>
+		 * Synchronize the progress bar with the given <code>IProgressReport</code>
 		 * @param pReport
 		 */
-		private void synchProgressBar(ProgressReport pReport) {
+		private void synchProgressBar(IProgressReport pReport) {
 			if (null == pBar || pBar.isDisposed() || null == pReport) {
 				return;
 			}
 
-			if (false == pReport.isActive) {
+			if (false == pReport.isActive()) {
 				showProgressBar(false);
 			} else {
-				pBar.setIndeterminate(pReport.isIndeterminate);
-				if (false == pReport.isIndeterminate) {
-					pBar.setMinimum(pReport.minimum);
-					pBar.setMaximum(pReport.maximum);
+				pBar.setIndeterminate(pReport.isIndeterminate());
+				if (false == pReport.isIndeterminate()) {
+					pBar.setMinimum(pReport.getMinimum());
+					pBar.setMaximum(pReport.getMaximum());
 				}
-				pBar.setSelection(pReport.selection);
+				pBar.setSelection(pReport.getSelection());
 				showProgressBar(true);
 			}
 
@@ -995,7 +994,7 @@ public class ProgressReporterWindow
 		 * Display the appropriate text for the action labels
 		 * based on what action can be taken
 		 */
-		private void configureActionLabel(ProgressReport pReport) {
+		private void configureActionLabel(IProgressReport pReport) {
 			if (null == actionLabel_remove || null == actionLabel_multi_function
 					|| true == actionLabel_remove.isDisposed()
 					|| true == actionLabel_multi_function.isDisposed()) {
@@ -1027,38 +1026,39 @@ public class ProgressReporterWindow
 
 			actionLabel_remove.setVisible(false);
 
-			if (true == pReport.isInErrorState) {
-				if (true == pReport.isRetryAllowed) {
+			if (true == pReport.isInErrorState()) {
+				if (true == pReport.isRetryAllowed()) {
 					showAsLink(actionLabel_multi_function, actionLabelText_retry, true);
 					actionLabel_remove.setVisible(true);
 				} else {
 					showAsLink(actionLabel_multi_function, actionLabelText_remove, true);
 				}
 
-			} else if (true == pReport.isCanceled) {
-				if (true == pReport.isRetryAllowed) {
+			} else if (true == pReport.isCanceled()) {
+				if (true == pReport.isRetryAllowed()) {
 					showAsLink(actionLabel_multi_function, actionLabelText_retry, true);
 					actionLabel_remove.setVisible(true);
 				} else {
 					showAsLink(actionLabel_multi_function, actionLabelText_remove, true);
 				}
 
-			} else if (true == pReport.isDone) {
+			} else if (true == pReport.isDone()) {
 				showAsLink(actionLabel_multi_function, actionLabelText_remove, true);
 			} else {
 				showAsLink(actionLabel_multi_function, actionLabelText_cancel,
-						pReport.isCancelAllowed);
+						pReport.isCancelAllowed());
 			}
 
 		}
 
-		private void updateDetailWidget(ProgressReport pReport) {
+		private void updateDetailWidget(IProgressReport pReport) {
 			if (null == detailListWidget || detailListWidget.isDisposed()) {
 				return;
 			}
 
-			if (null != pReport.detailMessage && pReport.detailMessage.length() > 0) {
-				detailListWidget.add(formatForDisplay(pReport.detailMessage));
+			if (null != pReport.getDetailMessage()
+					&& pReport.getDetailMessage().length() > 0) {
+				detailListWidget.add(formatForDisplay(pReport.getDetailMessage()));
 
 				/*
 				 * We added a default message at init so if it's still there then remove it

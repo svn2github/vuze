@@ -1,8 +1,12 @@
 package org.gudy.azureus2.ui.swt.progress;
 
 import org.eclipse.swt.graphics.Image;
-import org.gudy.azureus2.ui.swt.progress.ProgressReporter.ProgressReport;
 
+/**
+ * The interface for a progress reporter
+ * @author knguyen
+ *
+ */
 public interface IProgressReporter
 	extends Comparable
 {
@@ -23,18 +27,18 @@ public interface IProgressReporter
 	public void dispose();
 
 	/**
-	 * Returns a <code>ProgressReport</code> which is a snapshot of this reporter
+	 * Returns an <code>IProgressReport</code> which is a snapshot of this reporter
 	 * <p>
 	 * 
 	 * <b>NOTE</b>: Each call to this method creates a new snapshot therefore the correct
 	 * usage pattern is:</p>
 	 * <pre>
 	 * 
-	 * 	ProgressReport report = getProgressReport();
-	 * 	if( report.isDone == false ){ 
+	 * 	IProgressReport report = getProgressReport();
+	 * 	if( report.isDone() == false ){ 
 	 * 		// Do something
 	 * 	{
-	 * 	else if( report.isCanceled == false ){ 
+	 * 	else if( report.isCanceled() == false ){ 
 	 * 		// Do something else
 	 * 	{
 	 * 	...
@@ -59,7 +63,7 @@ public interface IProgressReporter
 	 * 
 	 * @return
 	 */
-	public ProgressReport getProgressReport();
+	public IProgressReport getProgressReport();
 
 	/**
 	 * Sets the <code>selection</code> to the progress reporter; this is used when a traditional min, max, selection is specified.
@@ -192,5 +196,4 @@ public interface IProgressReporter
 	 * @param objectData the objectData to set
 	 */
 	public void setObjectData(Object objectData);
-
 }

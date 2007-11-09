@@ -1,6 +1,6 @@
 package org.gudy.azureus2.ui.swt.progress;
 
-import org.gudy.azureus2.ui.swt.progress.ProgressReporter.ProgressReport;
+
 
 /**
  * A simple listener interface used to pass a <code>ProgressReport</code> to a listener from a <code>ProgressReporter</code>
@@ -108,6 +108,6 @@ public interface IProgressReporterListener
 	 * @param progressReport
 	 * @return 
 	 */
-	public int report(ProgressReport progressReport);
+	public int report(IProgressReport progressReport);
 
 }

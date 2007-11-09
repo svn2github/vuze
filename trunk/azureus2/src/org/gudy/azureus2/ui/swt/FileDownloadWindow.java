@@ -37,12 +37,12 @@ import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterf
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
+import org.gudy.azureus2.ui.swt.progress.IProgressReport;
 import org.gudy.azureus2.ui.swt.progress.IProgressReportConstants;
 import org.gudy.azureus2.ui.swt.progress.IProgressReporter;
 import org.gudy.azureus2.ui.swt.progress.IProgressReporterListener;
 import org.gudy.azureus2.ui.swt.progress.ProgressReporter;
 import org.gudy.azureus2.ui.swt.progress.ProgressReporterWindow;
-import org.gudy.azureus2.ui.swt.progress.ProgressReporter.ProgressReport;
 
 import com.aelitis.azureus.core.AzureusCore;
 
@@ -174,9 +174,9 @@ public class FileDownloadWindow
 			 */
 			pReporter.addListener(new IProgressReporterListener() {
 
-				public int report(ProgressReport pReport) {
+				public int report(IProgressReport pReport) {
 
-					switch (pReport.REPORT_TYPE) {
+					switch (pReport.getReportType()) {
 						case REPORT_TYPE_CANCEL:
 							if (null != downloader) {
 								downloader.cancel();
@@ -191,7 +191,7 @@ public class FileDownloadWindow
 						case REPORT_TYPE_DONE:
 							return RETVAL_OK_TO_DISPOSE;
 						case REPORT_TYPE_RETRY:
-							if (true == pReport.isRetryAllowed) {
+							if (true == pReport.isRetryAllowed()) {
 								downloader.cancel();
 								downloader = TorrentDownloaderFactory.create(
 										FileDownloadWindow.this, url, referrer, dirName);
@@ -227,10 +227,10 @@ public class FileDownloadWindow
 		int state = downloader.getDownloadState();
 		int percentDone = downloader.getPercentDone();
 
-		ProgressReport pReport = pReporter.getProgressReport();
+		IProgressReport pReport = pReporter.getProgressReport();
 		switch (state) {
 			case TorrentDownloader.STATE_CANCELLED:
-				if (false == pReport.isCanceled) {
+				if (false == pReport.isCanceled()) {
 					pReporter.cancel();
 				}
 				return;
@@ -244,7 +244,7 @@ public class FileDownloadWindow
 				 * If the user has canceled then a call  to downloader.cancel() has already been made
 				 * so don't bother prompting for the user to retry
 				 */
-				if (true == pReport.isCanceled) {
+				if (true == pReport.isCanceled()) {
 					return;
 				}
 

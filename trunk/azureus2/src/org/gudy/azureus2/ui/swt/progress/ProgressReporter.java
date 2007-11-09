@@ -213,7 +213,7 @@ public class ProgressReporter
 		/*
 		 * Take a snap shot of the reporter
 		 */
-		ProgressReport pReport = getProgressReport();
+		IProgressReport pReport = getProgressReport();
 
 		synchronized (reporterListeners) {
 
@@ -610,7 +610,7 @@ public class ProgressReporter
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.ui.swt.mainwindow.IProgressReporter#getProgressReport()
 	 */
-	public synchronized ProgressReport getProgressReport() {
+	public synchronized IProgressReport getProgressReport() {
 		return new ProgressReport();
 	}
 
@@ -631,59 +631,59 @@ public class ProgressReporter
 	 * @author knguyen
 	 * @see ProgressReporter#getProgressReport()
 	 */
-	public class ProgressReport
+	public class ProgressReport implements IProgressReport
 	{
-		public final String reporterType = ProgressReporter.this.reporterType;
+		private String reporterType = ProgressReporter.this.reporterType;
 
-		public final int reporterID = ProgressReporter.this.ID;
+		private int reporterID = ProgressReporter.this.ID;
 
-		public final int minimum = ProgressReporter.this.minimum;
+		private int minimum = ProgressReporter.this.minimum;
 
-		public final int maximum = ProgressReporter.this.maximum;
+		private int maximum = ProgressReporter.this.maximum;
 
-		public final int selection = ProgressReporter.this.selection;
+		private int selection = ProgressReporter.this.selection;
 
-		public final int percentage = ProgressReporter.this.percentage;
+		private int percentage = ProgressReporter.this.percentage;
 
-		public final boolean isActive = isActive();
+		private boolean isActive = ProgressReporter.this.isActive();
 
-		public final boolean isIndeterminate = ProgressReporter.this.isIndeterminate;
+		private boolean isIndeterminate = ProgressReporter.this.isIndeterminate;
 
-		public final boolean isDone = ProgressReporter.this.isDone;
+		private boolean isDone = ProgressReporter.this.isDone;
 
-		public final boolean isPercentageInUse = ProgressReporter.this.isPercentageInUse;
+		private boolean isPercentageInUse = ProgressReporter.this.isPercentageInUse;
 
-		public final boolean isCancelAllowed = ProgressReporter.this.isCancelAllowed;
+		private boolean isCancelAllowed = ProgressReporter.this.isCancelAllowed;
 
 		public final boolean isCanceled = ProgressReporter.this.isCanceled;
 
-		public final boolean isRetryAllowed = ProgressReporter.this.isRetryAllowed;
+		private boolean isRetryAllowed = ProgressReporter.this.isRetryAllowed;
 
-		public final boolean isInErrorState = ProgressReporter.this.isInErrorState;
+		private boolean isInErrorState = ProgressReporter.this.isInErrorState;
 
-		public final boolean isDisposed = ProgressReporter.this.isDisposed;
+		private boolean isDisposed = ProgressReporter.this.isDisposed;
 
-		public final String title = ProgressReporter.this.title;
+		private String title = ProgressReporter.this.title;
 
-		public final String message = ProgressReporter.this.message;
+		private String message = ProgressReporter.this.message;
 
-		public final String detailMessage = ProgressReporter.this.detailMessage;
+		private String detailMessage = ProgressReporter.this.detailMessage;
 
 		/*
 		 * Converting to array so the original list is insulated from modification
 		 * KN: this might be too costly if the list is large so might need to implement something better
 		 */
-		public final String[] detailMessageHistory = (String[]) ProgressReporter.this.detailMessageHistory.toArray(new String[ProgressReporter.this.detailMessageHistory.size()]);
+		private String[] detailMessageHistory = (String[]) ProgressReporter.this.detailMessageHistory.toArray(new String[ProgressReporter.this.detailMessageHistory.size()]);
 
-		public final String errorMessage = ProgressReporter.this.errorMessage;
+		private String errorMessage = ProgressReporter.this.errorMessage;
 
-		public final String name = ProgressReporter.this.name;
+		private String name = ProgressReporter.this.name;
 
-		public final Image image = ProgressReporter.this.image;
+		private Image image = ProgressReporter.this.image;
 
-		public final Object objectData = ProgressReporter.this.objectData;
+		private Object objectData = ProgressReporter.this.objectData;
 
-		public final int REPORT_TYPE = ProgressReporter.this.latestReportType;
+		private int REPORT_TYPE = ProgressReporter.this.latestReportType;
 
 		/**
 		 * Construct a ProgressReport
@@ -691,6 +691,176 @@ public class ProgressReporter
 		private ProgressReport() {
 		}
 
+		/* (non-Javadoc)
+		 * @see org.gudy.azureus2.ui.swt.progress.IProgressReport#getReporterType()
+		 */
+		public String getReporterType() {
+			return reporterType;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.gudy.azureus2.ui.swt.progress.IProgressReport#getReporterID()
+		 */
+		public int getReporterID() {
+			return reporterID;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.gudy.azureus2.ui.swt.progress.IProgressReport#getMinimum()
+		 */
+		public int getMinimum() {
+			return minimum;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.gudy.azureus2.ui.swt.progress.IProgressReport#getMaximum()
+		 */
+		public int getMaximum() {
+			return maximum;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.gudy.azureus2.ui.swt.progress.IProgressReport#getSelection()
+		 */
+		public int getSelection() {
+			return selection;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.gudy.azureus2.ui.swt.progress.IProgressReport#getPercentage()
+		 */
+		public int getPercentage() {
+			return percentage;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.gudy.azureus2.ui.swt.progress.IProgressReport#isActive()
+		 */
+		public boolean isActive() {
+			return isActive;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.gudy.azureus2.ui.swt.progress.IProgressReport#isIndeterminate()
+		 */
+		public boolean isIndeterminate() {
+			return isIndeterminate;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.gudy.azureus2.ui.swt.progress.IProgressReport#isDone()
+		 */
+		public boolean isDone() {
+			return isDone;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.gudy.azureus2.ui.swt.progress.IProgressReport#isPercentageInUse()
+		 */
+		public boolean isPercentageInUse() {
+			return isPercentageInUse;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.gudy.azureus2.ui.swt.progress.IProgressReport#isCancelAllowed()
+		 */
+		public boolean isCancelAllowed() {
+			return isCancelAllowed;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.gudy.azureus2.ui.swt.progress.IProgressReport#isCanceled()
+		 */
+		public boolean isCanceled() {
+			return isCanceled;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.gudy.azureus2.ui.swt.progress.IProgressReport#isRetryAllowed()
+		 */
+		public boolean isRetryAllowed() {
+			return isRetryAllowed;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.gudy.azureus2.ui.swt.progress.IProgressReport#isInErrorState()
+		 */
+		public boolean isInErrorState() {
+			return isInErrorState;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.gudy.azureus2.ui.swt.progress.IProgressReport#isDisposed()
+		 */
+		public boolean isDisposed() {
+			return isDisposed;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.gudy.azureus2.ui.swt.progress.IProgressReport#getTitle()
+		 */
+		public String getTitle() {
+			return title;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.gudy.azureus2.ui.swt.progress.IProgressReport#getMessage()
+		 */
+		public String getMessage() {
+			return message;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.gudy.azureus2.ui.swt.progress.IProgressReport#getDetailMessage()
+		 */
+		public String getDetailMessage() {
+			return detailMessage;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.gudy.azureus2.ui.swt.progress.IProgressReport#getDetailMessageHistory()
+		 */
+		public String[] getDetailMessageHistory() {
+			return detailMessageHistory;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.gudy.azureus2.ui.swt.progress.IProgressReport#getErrorMessage()
+		 */
+		public String getErrorMessage() {
+			return errorMessage;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.gudy.azureus2.ui.swt.progress.IProgressReport#getName()
+		 */
+		public String getName() {
+			return name;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.gudy.azureus2.ui.swt.progress.IProgressReport#getImage()
+		 */
+		public Image getImage() {
+			return image;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.gudy.azureus2.ui.swt.progress.IProgressReport#getObjectData()
+		 */
+		public Object getObjectData() {
+			return objectData;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.gudy.azureus2.ui.swt.progress.IProgressReport#getREPORT_TYPE()
+		 */
+		public int getReportType() {
+			return REPORT_TYPE;
+		}
+
+		
+		
 	}
 
 }
