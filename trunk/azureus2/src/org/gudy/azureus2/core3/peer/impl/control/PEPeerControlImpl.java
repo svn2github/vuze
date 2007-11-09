@@ -241,8 +241,6 @@ DiskManagerCheckRequestListener, IPFilterListener
 	private int udp_traversal_count;
 
 	private static final int UDP_RECONNECT_MAX			= 16;
-
-	private List tcp_reconnects = new ArrayList();
 	
 	private Map	udp_reconnects = 
 		new LinkedHashMap(UDP_RECONNECT_MAX,0.75f,true)

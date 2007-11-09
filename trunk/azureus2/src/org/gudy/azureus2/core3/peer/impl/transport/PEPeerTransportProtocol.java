@@ -198,7 +198,8 @@ implements PEPeerTransport
 	//lazy mode makes sure we never send a complete (seed) bitfield
 	protected static boolean ENABLE_LAZY_BITFIELD;
 	
-	private static final Random rnd = new SecureRandom();	
+	private static final Random rnd = new SecureRandom();
+	
 	private static final class DisconnectedTransportQueue extends LinkedHashMap
 	{
 		public DisconnectedTransportQueue()
@@ -209,19 +210,22 @@ implements PEPeerTransport
 		private static final long MAX_CACHE_AGE = 2*60*1000;
 		
 		// remove all elements older than 2 minutes until we hit the 20 again
-		public void performCleaning() {
+		
+		private void performCleaning() {
 			if(size() > 20)
 			{
 				Iterator it = values().iterator();
+				
 				long now = SystemTime.getCurrentTime();
-				QueueEntry eldest;
+			
 				while(it.hasNext() && size() > 20)
 				{
-					eldest = (QueueEntry)it.next();
-					if(now - eldest.addTime > MAX_CACHE_AGE)
+					QueueEntry eldest = (QueueEntry)it.next();
+					if( now < eldest.addTime || now - eldest.addTime > MAX_CACHE_AGE){
 						it.remove();
-					else
+					}else{
 						break;
+					}
 				} 
 			}
 		}
@@ -1210,14 +1214,12 @@ implements PEPeerTransport
 				
 				last_byte_start_bit -= 8;
 			}
-			
-			Random	random = new Random();
-			
+						
 			lazies = new HashSet();
 			
 				// one bit from first byte
 			
-			int	first_byte_entry = random.nextInt( bits_in_first_byte );
+			int	first_byte_entry = rnd.nextInt( bits_in_first_byte );
 			
 			if (pieces[first_byte_entry].isDone()){
 				
@@ -1225,7 +1227,7 @@ implements PEPeerTransport
 			}
 				// one bit from last byte
 			
-			int last_byte_entry = last_byte_start_bit + random.nextInt( bits_in_last_byte );
+			int last_byte_entry = last_byte_start_bit + rnd.nextInt( bits_in_last_byte );
 			
 			if (pieces[last_byte_entry].isDone()){
 				
@@ -1234,11 +1236,11 @@ implements PEPeerTransport
 			
 				// random others missing
 			
-			int	other_lazies = random.nextInt(16) + 4;
+			int	other_lazies = rnd.nextInt(16) + 4;
 			
 			for (int i=0;i<other_lazies;i++){
 				
-				int	random_entry = random.nextInt( num_pieces );
+				int	random_entry = rnd.nextInt( num_pieces );
 				
 				if (pieces[random_entry].isDone()){
 				
@@ -1269,7 +1271,7 @@ implements PEPeerTransport
 
 					for (int i=0;i<num_lazy;i++){
 						
-						int	swap = random.nextInt( num_lazy );
+						int	swap = rnd.nextInt( num_lazy );
 						
 						if ( swap != i ){
 							
@@ -1333,11 +1335,9 @@ implements PEPeerTransport
 			
 			final int[]	f_lazy_haves = lazy_haves;
 						
-			final Random random = new Random();
-
 			SimpleTimer.addEvent(
 				"LazyHaveSender",
-				SystemTime.getCurrentTime() + 1000 + random.nextInt( 2000 ),
+				SystemTime.getCurrentTime() + 1000 + rnd.nextInt( 2000 ),
 				new TimerEventPerformer()
 		{
 					int	next_have = 0;
@@ -1357,7 +1357,7 @@ implements PEPeerTransport
 		 					
 		 					SimpleTimer.addEvent(
 		 						"LazyHaveSender",
-		 						SystemTime.getCurrentTime() + random.nextInt( 2000 ),
+		 						SystemTime.getCurrentTime() + rnd.nextInt( 2000 ),
 		 						this );
 		 				}
 			}
