@@ -17,6 +17,8 @@
  */
 package org.gudy.azureus2.plugins.download;
 
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
+
 /**
  * This interface defines what methods an object should have defined to be able
  * to inform listener objects about various events which occur on a download.
@@ -143,6 +145,8 @@ public interface DownloadEventNotifier {
 	 * 
 	 * @param l The listener to add.
 	 * @since 2.2.0.2
+	 * @deprecated Use {@link #addAttributeListener(DownloadAttributeListener, TorrentAttribute, int)}
+	 *     instead - support for this method will be removed in future.
 	 */
 	public void addPropertyListener(DownloadPropertyListener l);
 
@@ -154,4 +158,26 @@ public interface DownloadEventNotifier {
 	 * @since 2.2.0.2
 	 */
 	public void removePropertyListener(DownloadPropertyListener l);
+	
+	/**
+	 * Adds a listener that will be informed of when attributes on a download
+	 * have been read / modified.
+	 * 
+	 * @param l The listener to add.
+	 * @param attr The torrent attribute to be notified about.
+	 * @param event_type The type of event to be notified of, as defined on {@link DownloadAttributeListener}.
+	 * @since 3.3.0.5
+	 */
+	public void addAttributeListener(DownloadAttributeListener l, TorrentAttribute attr, int event_type);
+
+	/**
+	 * Removes a listener object added via the
+	 * {@link #addAttributeListener(DownloadAttributeListener, TorrentAttribute, int) method.
+	 * 
+	 * @param l The listener to remove.
+	 * @param attr The torrent attribute which it registered with.
+	 * @param event_type The type of event which it registered with.
+	 * @since 3.3.0.5
+	 */
+	public void removeAttributeListener(DownloadAttributeListener l, TorrentAttribute attr, int event_type);
 }

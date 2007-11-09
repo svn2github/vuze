@@ -26,6 +26,7 @@ import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadActivationEvent;
 import org.gudy.azureus2.plugins.download.DownloadActivationListener;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
+import org.gudy.azureus2.plugins.download.DownloadAttributeListener;
 import org.gudy.azureus2.plugins.download.DownloadEventNotifier;
 import org.gudy.azureus2.plugins.download.DownloadListener;
 import org.gudy.azureus2.plugins.download.DownloadManager;
@@ -37,6 +38,7 @@ import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.download.DownloadTrackerListener;
 import org.gudy.azureus2.plugins.download.DownloadWillBeRemovedListener;
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 
 /**
@@ -55,6 +57,9 @@ public class DownloadEventNotifierImpl implements DownloadEventNotifier {
 	private DownloadWillBeRemovedNotifier download_will_be_removed_notifier;
 	private DownloadManager dm;
 	
+	private HashMap read_attribute_listeners;
+	private HashMap write_attribute_listeners;
+	
 	public DownloadEventNotifierImpl(DownloadManager dm) {
 		this.dm = dm;
 		this.download_activation_notifier = new DownloadActivationNotifier();
@@ -64,8 +69,10 @@ public class DownloadEventNotifierImpl implements DownloadEventNotifier {
 		this.download_tracker_notifier = new DownloadTrackerNotifier(false);
 		this.download_tracker_notifier_instant = new DownloadTrackerNotifier(true);
 		this.download_will_be_removed_notifier = new DownloadWillBeRemovedNotifier();
+		
+		this.read_attribute_listeners = new HashMap();
+		this.write_attribute_listeners = new HashMap();
 	}
-	
 
 	public void addActivationListener(DownloadActivationListener l) {
 		this.download_activation_notifier.addListener(l);
@@ -119,6 +126,23 @@ public class DownloadEventNotifierImpl implements DownloadEventNotifier {
 		// We don't know which notifier we added it to, so remove it from both.
 		this.download_tracker_notifier.removeListener(l);
 		this.download_tracker_notifier_instant.removeListener(l);
+	}
+	
+	public void addAttributeListener(DownloadAttributeListener listener, TorrentAttribute ta, int event_type) {
+		Map attr_map = getAttributeListenerMap(event_type);
+		DownloadAttributeNotifier l = (DownloadAttributeNotifier)attr_map.get(ta);
+		if (l == null) {
+			l = new DownloadAttributeNotifier(ta, event_type);
+			attr_map.put(ta, l);
+		}
+		l.addListener(listener);
+	}
+	
+	public void removeAttributeListener(DownloadAttributeListener listener, TorrentAttribute ta, int event_type) {
+		Map attr_map = getAttributeListenerMap(event_type);
+		DownloadAttributeNotifier l = (DownloadAttributeNotifier)attr_map.get(ta);
+		if (l == null) {return;}
+		l.removeListener(listener);
 	}
 
 	private abstract class BaseDownloadListener implements DownloadManagerListener {
@@ -240,6 +264,24 @@ public class DownloadEventNotifierImpl implements DownloadEventNotifier {
 			}			
 		}
 	}
+	
+	public class DownloadAttributeNotifier extends BaseDownloadListener implements DownloadAttributeListener {
+		private TorrentAttribute ta;
+		private int event_type;
+		public DownloadAttributeNotifier(TorrentAttribute ta, int event_type) {
+			this.ta = ta; this.event_type = event_type;
+		}
+		
+		public void downloadAdded(Download d) {d.addAttributeListener(this, ta, event_type);}
+		public void downloadRemoved(Download d) {d.removeAttributeListener(this, ta, event_type);}
+		public void attributeEventOccurred(Download d, TorrentAttribute ta, int event_type) {
+			Iterator itr = this.listeners.iterator();
+			while (itr.hasNext()) {
+				try {((DownloadAttributeListener)itr.next()).attributeEventOccurred(d, ta, event_type);}
+				catch (Throwable t) {Debug.printStackTrace(t);}
+			}						
+		}
+	}
 
 	public class DownloadTrackerNotifier extends BaseDownloadListener implements DownloadTrackerListener {
 		private boolean instant_notify;
@@ -260,6 +302,14 @@ public class DownloadEventNotifierImpl implements DownloadEventNotifier {
 				catch (Throwable t) {Debug.printStackTrace(t);}
 			}
 		}
+	}
+	
+	private Map getAttributeListenerMap(int event_type) {
+		if (event_type == DownloadAttributeListener.WRITTEN)
+			return this.write_attribute_listeners;
+		else if (event_type == DownloadAttributeListener.WILL_BE_READ)
+			return this.read_attribute_listeners;
+		throw new IllegalArgumentException("invalid event type " + event_type);
 	}
 	
 }

@@ -50,6 +50,7 @@ import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadActivationEvent;
 import org.gudy.azureus2.plugins.download.DownloadActivationListener;
+import org.gudy.azureus2.plugins.download.DownloadAttributeListener;
 import org.gudy.azureus2.plugins.download.DownloadListener;
 import org.gudy.azureus2.plugins.download.DownloadPeerListener;
 import org.gudy.azureus2.plugins.download.DownloadPropertyListener;
@@ -94,6 +95,11 @@ DownloadImpl
 	private AEMonitor	removal_listeners_mon	= new AEMonitor( "Download:RL");
 	private List		peer_listeners			= new ArrayList();
 	private AEMonitor	peer_listeners_mon		= new AEMonitor( "Download:PL");
+	
+	private DownloadPropertyListener attribute_listener_bridge = null;
+	private AEMonitor attr_listener_mon = new AEMonitor("Download:ATTR");
+	private Map read_attribute_listeners = new HashMap();
+	private Map write_attribute_listeners = new HashMap();
 	
 	private CopyOnWriteList	activation_listeners	= new CopyOnWriteList();
 	private DownloadActivationEvent	activation_state;
@@ -921,6 +927,45 @@ DownloadImpl
 		}
 	}
 	
+	public void addAttributeListener(DownloadAttributeListener listener, TorrentAttribute attr, int event_type) {
+		try {
+			this.attr_listener_mon.enter();
+			if (this.attribute_listener_bridge == null) {
+				this.attribute_listener_bridge = new DownloadAttributeListenerBridge();
+				this.addPropertyListener(this.attribute_listener_bridge);
+			}
+			Map attr_map = this.getAttributeMapForType(event_type);
+			List listener_list = (List)attr_map.get(attr);
+			if (listener_list == null) {
+				listener_list = new ArrayList();
+				attr_map.put(attr, listener_list);
+			}
+			listener_list.add(listener);
+		}
+		finally {this.attr_listener_mon.exit();}
+	}
+
+	public void removeAttributeListener(DownloadAttributeListener listener, TorrentAttribute attr, int event_type) {
+		try {
+			this.attr_listener_mon.enter();
+			Map attr_map = this.getAttributeMapForType(event_type);
+			List listener_list = (List)attr_map.get(attr);
+			
+			// Remove the listener, and clear up the mapping list if need be.
+			if (listener_list != null) {
+				listener_list.remove(listener);
+				if (listener_list.isEmpty()) {attr_map.remove(attr);}
+			}
+			
+			// If both mappings are empty, destroy the bridge.
+			if (attribute_listener_bridge != null && read_attribute_listeners.isEmpty() && write_attribute_listeners.isEmpty()) {
+				this.removePropertyListener(attribute_listener_bridge);
+				this.attribute_listener_bridge = null;
+			}
+		}
+		finally {this.attr_listener_mon.exit();}
+	}
+	
 	public DownloadAnnounceResult
 	getLastAnnounceResult()
 	{
@@ -1618,4 +1663,29 @@ DownloadImpl
 	public Object[] getQueryableInterfaces() {
 		return new Object[] { download_manager };
 	}
+	
+	private class DownloadAttributeListenerBridge implements DownloadPropertyListener {
+		public void propertyChanged(Download d, DownloadPropertyEvent e) {
+			Map attr_listener_map = getAttributeMapForType(e.getType());
+			List listeners = (List)attr_listener_map.get(e.getData());
+			if (listeners == null) {return;}
+			try {
+				attr_listener_mon.enter();
+				ArrayList listener_ref = new ArrayList(listeners);
+				for (int i=0; i<listener_ref.size(); i++) {
+					DownloadAttributeListener dal = (DownloadAttributeListener)listener_ref.get(i);
+					try {
+						dal.attributeEventOccurred(d, (TorrentAttribute)e.getData(), e.getType());
+					}
+					catch (Throwable t) {Debug.printStackTrace(t);}
+				}
+			}
+			finally {attr_listener_mon.exit();}
+		}
+	}
+	
+	private Map getAttributeMapForType(int event_type) {
+		return event_type == DownloadPropertyEvent.PT_TORRENT_ATTRIBUTE_WILL_BE_READ ? read_attribute_listeners : write_attribute_listeners;
+	}
+	
 }
