@@ -137,11 +137,18 @@ NetworkGlueUDP
 					try{
 						handler.primordialSend( data, target_address );
 						
-						Thread.sleep(3);
-						
 					}catch( Throwable e ){
 						
-						Debug.printStackTrace( e );
+						Logger.log(new LogEvent( LOGID, "Primordial UDP send failed: " + Debug.getNestedExceptionMessage(e)));
+						
+					}finally{
+						
+						try{
+							Thread.sleep(3);
+							
+						}catch( Throwable e ){
+							
+						}
 					}
 				}
 			}
