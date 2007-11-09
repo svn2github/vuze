@@ -18,7 +18,7 @@ SpeedTokenDispenserPrioritised
 		{
 			public void parameterChanged(String parameterName) {
 				rateKiB = COConfigurationManager.getIntParameter("Max Download Speed KBs");
-				if (!COConfigurationManager.getBooleanParameter("Use Request Limiting") || FeatureAvailability.isRequestLimitingEnabled())
+				if (!COConfigurationManager.getBooleanParameter("Use Request Limiting") || !FeatureAvailability.isRequestLimitingEnabled())
 					rateKiB = 0;
 				lastTime = currentTime - 1; // shortest possible delta
 				refill(); // cap buffer to threshold in case something accumulated
