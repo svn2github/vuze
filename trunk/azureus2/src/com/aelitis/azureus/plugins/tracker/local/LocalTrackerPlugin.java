@@ -28,6 +28,9 @@ import java.net.InetAddress;
 import java.util.*;
 
 
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadListener;
@@ -50,6 +53,7 @@ import com.aelitis.azureus.core.instancemanager.AZInstance;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManagerListener;
 import com.aelitis.azureus.core.instancemanager.AZInstanceTracked;
+import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 
 public class 
 LocalTrackerPlugin
@@ -186,17 +190,29 @@ LocalTrackerPlugin
 
 		// XXX Would be better if we fired this off after (any) UI is complete,
 		//     instead of a timer
-		
-		Utilities utilities = plugin_interface.getUtilities();
-		utilities.createTimer("azlocalplugin:init", Thread.MIN_PRIORITY).addEvent(
-				utilities.getCurrentSystemTime() + 15000, new UTTimerEventPerformer() {
-					public void perform(UTTimerEvent event) {
-
-						// take this off the main thread to reduce initialisation delay if we
-						// have a lot of torrents
-
-						plugin_interface.getDownloadManager().addListener(
-								LocalTrackerPlugin.this);
+				
+		new DelayedEvent( 
+				"LocalTrackerInitialise", 
+				15000,
+				new AERunnable()
+				{
+					public void 
+					runSupport() 
+					{
+						AEThread2 t = 
+							new AEThread2( "LocalTrackerInitialise", true )
+							{
+								public void 
+								run() 
+								{
+									plugin_interface.getDownloadManager().addListener(
+											LocalTrackerPlugin.this );
+								}
+							};
+						
+						t.setPriority( Thread.MIN_PRIORITY );
+						
+						t.start();
 					}
 				});
 	}
