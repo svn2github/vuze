@@ -104,7 +104,6 @@ public class TorrentListView
 		if (viewMode == VIEW_DOWNLOADING) {
 			if (bMiniMode) {
 				tableColumns = new TableColumnCore[] {
-					new ColumnAzProduct(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
 					new ColumnMediaThumb(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
 					new ColumnTitle(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
 					new ColumnQuality(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
@@ -116,17 +115,15 @@ public class TorrentListView
 				setColumnList(tableColumns, "date_added", false, true);
 				String[] autoHideOrder = new String[] {
 					ColumnQuality.COLUMN_ID,
-					ColumnAzProduct.COLUMN_ID,
 					SizeItem.COLUMN_ID,
 					ColumnMediaThumb.COLUMN_ID,
 				};
 				tcManager.setAutoHideOrder(getTableID(), autoHideOrder);
 			} else {
 				tableColumns = new TableColumnCore[] {
-					new ColumnAzProduct(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
 					new ColumnMediaThumb(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
 					new ColumnTitle(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-					new ColumnRate(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
+					new ColumnRate(TableManager.TABLE_MYTORRENTS_INCOMPLETE, true),
 					new ColumnQuality(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
 					new SizeItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
 					new ColumnProgressETA(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
@@ -136,7 +133,6 @@ public class TorrentListView
 				setColumnList(tableColumns, "date_added", false, true);
 				String[] autoHideOrder = new String[] {
 					ColumnQuality.COLUMN_ID,
-					ColumnAzProduct.COLUMN_ID,
 					SizeItem.COLUMN_ID,
 					ColumnMediaThumb.COLUMN_ID,
 					ColumnDateAdded2Liner.COLUMN_ID,
@@ -146,13 +142,12 @@ public class TorrentListView
 		} else if (viewMode == VIEW_RECENT_DOWNLOADED) {
 			if (bMiniMode) {
 				tableColumns = new TableColumnCore[] {
-					new ColumnAzProduct(TableManager.TABLE_MYTORRENTS_COMPLETE),
 					new ColumnMediaThumb(TableManager.TABLE_MYTORRENTS_COMPLETE),
 					new ColumnTitle(TableManager.TABLE_MYTORRENTS_COMPLETE),
 					new ColumnQuality(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
 					new SizeItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-					new ColumnRateUpDown(TableManager.TABLE_MYTORRENTS_COMPLETE),
-					new ColumnRate(TableManager.TABLE_MYTORRENTS_COMPLETE),
+					//new ColumnRateUpDown(TableManager.TABLE_MYTORRENTS_COMPLETE),
+					new ColumnRate(TableManager.TABLE_MYTORRENTS_COMPLETE, true),
 					new ColumnDateCompleted2Liner(TableManager.TABLE_MYTORRENTS_COMPLETE,
 							false),
 				};
@@ -161,22 +156,20 @@ public class TorrentListView
 						true);
 				String[] autoHideOrder = new String[] {
 					ColumnQuality.COLUMN_ID,
-					ColumnAzProduct.COLUMN_ID,
 					SizeItem.COLUMN_ID,
 					ColumnMediaThumb.COLUMN_ID,
-					ColumnRateUpDown.COLUMN_ID,
+					//ColumnRateUpDown.COLUMN_ID,
 				};
 				tcManager.setAutoHideOrder(getTableID(), autoHideOrder);
 			} else {
 				tableColumns = new TableColumnCore[] {
 					new ColumnIsSeeding(TableManager.TABLE_MYTORRENTS_COMPLETE),
-					new ColumnAzProduct(TableManager.TABLE_MYTORRENTS_COMPLETE),
 					new ColumnMediaThumb(TableManager.TABLE_MYTORRENTS_COMPLETE),
 					new ColumnTitle(TableManager.TABLE_MYTORRENTS_COMPLETE),
-					new ColumnRate(TableManager.TABLE_MYTORRENTS_COMPLETE),
+					new ColumnRate(TableManager.TABLE_MYTORRENTS_COMPLETE, true),
 					new SizeItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
 					new UpItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-					new ColumnRateUpDown(TableManager.TABLE_MYTORRENTS_COMPLETE),
+					//new ColumnRateUpDown(TableManager.TABLE_MYTORRENTS_COMPLETE),
 					new ColumnIsPrivate(TableManager.TABLE_MYTORRENTS_COMPLETE),
 					new ColumnDateAdded2Liner(TableManager.TABLE_MYTORRENTS_COMPLETE,
 							false),
@@ -185,7 +178,6 @@ public class TorrentListView
 				setColumnList(tableColumns, "date_added", false, true);
 				String[] autoHideOrder = new String[] {
 					ColumnQuality.COLUMN_ID,
-					ColumnAzProduct.COLUMN_ID,
 					SizeItem.COLUMN_ID,
 					ColumnMediaThumb.COLUMN_ID,
 				};
@@ -194,21 +186,19 @@ public class TorrentListView
 		} else {
 			tableColumns = new TableColumnCore[] {
 				new ColumnComplete(TABLE_MYMEDIA),
-				new ColumnAzProduct(TABLE_MYMEDIA),
 				new ColumnMediaThumb(TABLE_MYMEDIA),
 				new ColumnTitle(TABLE_MYMEDIA),
 				new SizeItem(TABLE_MYMEDIA),
 				new ColumnQuality(TABLE_MYMEDIA),
 				new ColumnDateCompleted2Liner(TABLE_MYMEDIA, true),
-				new ColumnRateUpDown(TABLE_MYMEDIA),
-				new ColumnRate(TABLE_MYMEDIA),
+				//new ColumnRateUpDown(TABLE_MYMEDIA),
+				new ColumnRate(TABLE_MYMEDIA, true),
 			};
 			setColumnList(tableColumns, ColumnDateCompleted2Liner.COLUMN_ID, false,
 					true);
 			String[] autoHideOrder = new String[] {
 				ColumnDateAdded2Liner.COLUMN_ID,
 				ColumnQuality.COLUMN_ID,
-				ColumnAzProduct.COLUMN_ID,
 				SizeItem.COLUMN_ID,
 				ColumnMediaThumb.COLUMN_ID,
 				ColumnDateCompleted2Liner.COLUMN_ID,
