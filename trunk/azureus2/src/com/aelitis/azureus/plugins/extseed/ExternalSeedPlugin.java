@@ -26,6 +26,9 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
@@ -115,17 +118,37 @@ ExternalSeedPlugin
 		download_mon	= plugin_interface.getUtilities().getMonitor();
 		
 		Utilities utilities = plugin_interface.getUtilities();
+		
 		// XXX Would be better if we fired this off after (any) UI is complete,
 		//     instead of a timer
-		utilities.createTimer("ExternalPeerInitialize", Thread.MIN_PRIORITY).addEvent(
-				utilities.getCurrentSystemTime() + 15000, new UTTimerEventPerformer() {
-					public void perform(UTTimerEvent event) {
-						plugin_interface.getDownloadManager().addListener(
-								ExternalSeedPlugin.this);
-					}
-				});
+		
+		new DelayedEvent( 
+			"ExternalSeedInitialise", 
+			15000,
+			new AERunnable()
+			{
+				public void 
+				runSupport() 
+				{
+					AEThread2 t = 
+						new AEThread2( "ExternalSeedInitialise", true )
+						{
+							public void 
+							run() 
+							{
+								plugin_interface.getDownloadManager().addListener(
+										ExternalSeedPlugin.this);
+							}
+						};
+					
+					t.setPriority( Thread.MIN_PRIORITY );
+					
+					t.start();
+				}
+			});
 		
 		UTTimer timer = utilities.createTimer("ExternalPeerScheduler", true);
+		
 		timer.addPeriodicEvent(
 				5000,
 				new UTTimerEventPerformer()
