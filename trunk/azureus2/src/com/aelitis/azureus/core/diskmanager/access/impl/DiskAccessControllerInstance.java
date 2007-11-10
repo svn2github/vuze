@@ -32,7 +32,7 @@ import java.util.Map;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AESemaphore;
-import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -346,7 +346,7 @@ DiskAccessControllerInstance
 	requestDispatcher
 	{
 		private int			index;
-		private AEThread[]	threads		= new AEThread[invert_threads?max_threads:1];
+		private AEThread2[]	threads		= new AEThread2[invert_threads?max_threads:1];
 		private int			active_threads;
 		
 		private LinkedList	requests 	= new LinkedList();
@@ -530,10 +530,10 @@ DiskAccessControllerInstance
 						final int thread_index = i;
 						
 						threads[thread_index] = 
-							new AEThread("DiskAccessController:requestDispatcher[" + index + "/" + thread_index + "]", true )
+							new AEThread2("DiskAccessController:requestDispatcher[" + index + "/" + thread_index + "]", true )
 							{
 								public void
-								runSupport()
+								run()
 								{
 									tls.set( this );
 									

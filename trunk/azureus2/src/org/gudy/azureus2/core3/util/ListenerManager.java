@@ -66,7 +66,7 @@ ListenerManager
 	protected ListenerManagerDispatcherWithException	target_with_exception;
 	
 	protected boolean	async;
-	protected Thread	async_thread;
+	protected AEThread2	async_thread;
 	
 	protected List		listeners		= new ArrayList();
 	
@@ -125,17 +125,15 @@ ListenerManager
 			
 			if ( async && async_thread == null ){
 				
-				async_thread = new AEThread( name )
+				async_thread = new AEThread2( name, true )
 					{
 						public void
-						runSupport()
+						run()
 						{
 							dispatchLoop();
 						}
 					};
-					
-				async_thread.setDaemon( true );
-				
+									
 				async_thread.start();
 			}
 		}
@@ -308,17 +306,15 @@ ListenerManager
 				
 				if ( async_thread == null ){
 					
-					async_thread = new AEThread( name )
+					async_thread = new AEThread2( name, true )
 						{
 							public void
-							runSupport()
+							run()
 							{
 								dispatchLoop();
 							}
 						};
-						
-					async_thread.setDaemon( true );
-					
+											
 					async_thread.start();
 				}
 			}
@@ -425,7 +421,7 @@ ListenerManager
 			
 			synchronized( this ){
 				
-				if ( async_thread != Thread.currentThread()){
+				if ( !async_thread.isCurrentThread()){
 					
 						// we've been asked to close. this sem reservation must be
 						// "returned" to the pool in case it represents a valid  entry
@@ -487,9 +483,9 @@ ListenerManager
 			
 			final int f_i	= i;
 						
-			new AEThread( "ListenerManager:dwt:dispatcher", true ){
+			new AEThread2( "ListenerManager:dwt:dispatcher", true ){
 				public void
-				runSupport()
+				run()
 				{
 					try{
 						_dispatcher.dispatch( listeners.get(f_i), -1, null );

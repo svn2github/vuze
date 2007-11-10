@@ -445,7 +445,7 @@ ThreadPool
 	{
 		private final String	worker_name;
 		
-		private final Thread	worker_thread;
+		private final AEThread2	worker_thread;
 		
 		private AESemaphore my_sem = new AESemaphore("TPWorker");
 		
@@ -461,10 +461,10 @@ ThreadPool
 		{			
 			worker_name = name + "[" + (thread_name_index++) +  "]";
 			
-			worker_thread = new AEThread( worker_name )
+			worker_thread = new AEThread2( worker_name, true )
 				{
 					public void 
-					runSupport()
+					run()
 					{
 						if ( thread_priority != Thread.NORM_PRIORITY ){
 							
@@ -635,9 +635,7 @@ outer:
 						}
 					}
 				};
-				
-			worker_thread.setDaemon(true);
-			
+							
 			worker_thread.start();
 		}
 		

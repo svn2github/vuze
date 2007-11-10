@@ -35,7 +35,7 @@ import java.net.PasswordAuthentication;
 import java.util.zip.GZIPInputStream;
 
 import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
-import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
@@ -339,11 +339,11 @@ ResourceDownloaderURLImpl
 	public void
 	asyncDownload()
 	{
-		Thread	t = 
-			new AEThread( "ResourceDownloader:asyncDownload")
+		AEThread2	t = 
+			new AEThread2( "ResourceDownloader:asyncDownload", true )
 			{
 				public void
-				runSupport()
+				run()
 				{
 					try{
 						download();
@@ -352,9 +352,7 @@ ResourceDownloaderURLImpl
 					}
 				}
 			};
-			
-		t.setDaemon(true);
-		
+					
 		t.start();
 	}
 

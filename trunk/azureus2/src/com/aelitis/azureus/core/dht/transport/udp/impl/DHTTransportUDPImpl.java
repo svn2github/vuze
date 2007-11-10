@@ -36,7 +36,7 @@ import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
-import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Average;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
@@ -801,10 +801,10 @@ DHTTransportUDPImpl
 			// (the test attempts to ping contacts)
 			
 		
-		new AEThread( "DHTTransportUDP:getAddress", true )
+		new AEThread2( "DHTTransportUDP:getAddress", true )
 		{
 			public void
-			runSupport()
+			run()
 			{
 				getExternalAddress( new_ip, logger );
 				
@@ -2353,10 +2353,10 @@ DHTTransportUDPImpl
 								this_mon.exit();
 							}
 
-							new AEThread( "DHTTransportUDP:writeQueueProcessor", true )
+							new AEThread2( "DHTTransportUDP:writeQueueProcessor", true )
 								{
 									public void
-									runSupport()
+									run()
 									{
 										try{
 											byte[] write_data = 

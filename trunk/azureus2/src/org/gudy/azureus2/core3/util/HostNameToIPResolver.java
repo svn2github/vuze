@@ -35,7 +35,7 @@ import java.util.List;
 public class 
 HostNameToIPResolver 
 {
-	static protected Thread			resolver_thread;
+	static protected AEThread2		resolver_thread;
 	
 	static protected List			request_queue		= new ArrayList();
 	
@@ -127,20 +127,27 @@ HostNameToIPResolver
 			if ( resolver_thread == null ){
 				
 				resolver_thread = 
-					new AEThread("HostNameToIPResolver")
+					new AEThread2("HostNameToIPResolver",true)
 					{
 						public void
-						runSupport()
+						run()
 						{
 							while(true){
 								
 								try{
-									request_semaphore.reserve();
+									request_semaphore.reserve(30000);
 									
 									request	req;
 									
 									try{
 										request_queue_mon.enter();
+										
+										if ( request_queue.isEmpty()){
+											
+											resolver_thread = null;
+											
+											break;
+										}
 										
 										req	= (request)request_queue.remove(0);
 										
@@ -166,9 +173,7 @@ HostNameToIPResolver
 							}
 						}
 					};
-					
-				resolver_thread.setDaemon( true );	
-					
+										
 				resolver_thread.start();
 			}
 		}finally{

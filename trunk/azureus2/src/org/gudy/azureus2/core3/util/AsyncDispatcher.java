@@ -27,7 +27,7 @@ import java.util.LinkedList;
 public class 
 AsyncDispatcher 
 {
-	private AEThread	thread;
+	private AEThread2	thread;
 	private LinkedList	queue 		= new LinkedList();
 	private AESemaphore	queue_sem 	= new AESemaphore( "AsyncDispatcher" );
 	
@@ -57,10 +57,10 @@ AsyncDispatcher
 			if ( thread == null ){
 				
 				thread = 
-					new AEThread( "AsyncDispatcher", true )
+					new AEThread2( "AsyncDispatcher", true )
 					{
 						public void
-						runSupport()
+						run()
 						{
 							while( true ){
 								

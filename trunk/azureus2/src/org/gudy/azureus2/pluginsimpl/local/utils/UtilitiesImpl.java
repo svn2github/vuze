@@ -58,7 +58,7 @@ import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerService;
 import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerServiceListener;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
-import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
@@ -271,20 +271,18 @@ UtilitiesImpl
 		String			name,
 		final Runnable	target )
 	{
-		Thread t = 
-			new AEThread( pi.getPluginName() + "::" + name )
+		AEThread2 t = 
+			new AEThread2( pi.getPluginName() + "::" + name, true )
 			{
 				public void
-				runSupport()
+				run()
 				{
 					setPluginThreadContext( pi );
 					
 					target.run();
 				}
 			};
-	
-		t.setDaemon(true);
-		
+			
 		t.start();
 	}
 	

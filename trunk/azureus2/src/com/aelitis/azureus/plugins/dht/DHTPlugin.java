@@ -33,7 +33,7 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
-import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -63,7 +63,6 @@ import com.aelitis.azureus.core.dht.control.DHTControlActivity;
 import com.aelitis.azureus.core.dht.nat.DHTNATPuncher;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
-import com.aelitis.azureus.core.dht.transport.DHTTransportListener;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTTransportUDPImpl;
 
@@ -300,11 +299,11 @@ DHTPlugin
 				parameterChanged(
 					Parameter	param )
 				{
-					Thread t = 
-						new AEThread( "DHT:commandrunner" )
+					AEThread2 t = 
+						new AEThread2( "DHT:commandrunner", true )
 						{
 							public void
-							runSupport()
+							run()
 							{
 								if ( dhts == null ){
 									
@@ -426,9 +425,7 @@ DHTPlugin
 								}
 							}
 						};
-						
-					t.setDaemon(true);
-					
+											
 					t.start();
 				}
 			});
@@ -442,11 +439,11 @@ DHTPlugin
 					{
 						reseed.setEnabled( false );						
 
-						Thread t = 
-							new AEThread( "DHT:reseeder" )
+						AEThread2 t = 
+							new AEThread2( "DHT:reseeder", true )
 							{
 								public void
-								runSupport()
+								run()
 								{
 									try{
 										String	ip 	= reseed_ip.getValue().trim();
@@ -481,9 +478,7 @@ DHTPlugin
 									}
 								}
 							};
-							
-						t.setDaemon( true );
-						
+													
 						t.start();
 					}
 				});
@@ -675,10 +670,10 @@ DHTPlugin
 			port_change_mon.exit();
 		}
 		
-		new AEThread("DHTPlugin:portChanger", true )
+		new AEThread2("DHTPlugin:portChanger", true )
 		{
 			public void
-			runSupport()
+			run()
 			{
 				while( true ){
 					
@@ -746,11 +741,11 @@ DHTPlugin
 		final boolean			logging,
 		final String			override_ip )
 	{
-		Thread t = 
-			new AEThread( "DHTPlugin.init" )
+		AEThread2 t = 
+			new AEThread2( "DHTPlugin.init", true )
 			{
 				public void
-				runSupport()
+				run()
 				{
 					try{							
 						
@@ -888,9 +883,7 @@ DHTPlugin
 					}
 				}
 			};
-			
-		t.setDaemon(true);
-		
+					
 		t.start();
 	}
 	
@@ -993,10 +986,10 @@ DHTPlugin
 
 			final int f_i	= i;
 			
-			new AEThread( "multi-dht: put", true )
+			new AEThread2( "multi-dht: put", true )
 			{
 				public void
-				runSupport()
+				run()
 				{
 					dhts[f_i].put( key, description, value, flags, 
 							new DHTPluginOperationListener()
@@ -1207,10 +1200,10 @@ DHTPlugin
 
 		if ( cvs_dht != null ){
 			
-			new AEThread( "multi-dht: get", true )
+			new AEThread2( "multi-dht: get", true )
 			{
 				public void
-				runSupport()
+				run()
 				{
 					cvs_dht.get( 
 							key, description, flags, max_values, timeout, exhaustive, high_priority,
@@ -1285,10 +1278,10 @@ DHTPlugin
 
 			final int f_i	= i;
 			
-			new AEThread( "multi-dht: remove", true )
+			new AEThread2( "multi-dht: remove", true )
 			{
 				public void
-				runSupport()
+				run()
 				{
 					dhts[f_i].remove( 
 							key, description, 
@@ -1396,10 +1389,10 @@ DHTPlugin
 
 			final int f_i	= i;
 			
-			new AEThread( "mutli-dht: readXfer", true )
+			new AEThread2( "mutli-dht: readXfer", true )
 			{
 				public void
-				runSupport()
+				run()
 				{
 					dhts[f_i].read( 
 							new DHTPluginProgressListener()

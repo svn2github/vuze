@@ -27,7 +27,7 @@ import java.util.WeakHashMap;
 
 /**
  * @author parg
- *
+ * @deprecated - use AEThread2
  */
 
 public abstract class 
@@ -58,6 +58,8 @@ AEThread
 	public void
 	run()
 	{
+		// System.out.println( "Start: " + this );
+		
 		try{
 			/*
 			if ( !isDaemon()){
@@ -72,6 +74,8 @@ AEThread
 			
 			DebugLight.printStackTrace(e);
 		}
+		
+		// System.out.println( "Stop: " + this );
 	}
 	
 	public abstract void
@@ -102,7 +106,7 @@ AEThread
 	setOurThread(
 		Thread	thread )
 	{
-		if ( thread instanceof AEThread ){
+		if ( thread instanceof AEThread || thread instanceof AEThread2.threadWrapper ){
 			
 			return;
 		}

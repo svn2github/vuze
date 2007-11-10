@@ -34,7 +34,7 @@ import java.util.*;
 public class 
 IPToHostNameResolver 
 {
-	static protected Thread			resolver_thread;
+	static protected AEThread2		resolver_thread;
 	static protected List			request_queue		= new ArrayList();
 	static protected AEMonitor		request_mon			= new AEMonitor( "IPToHostNameResolver" );
 
@@ -57,20 +57,27 @@ IPToHostNameResolver
 			if ( resolver_thread == null ){
 				
 				resolver_thread = 
-					new AEThread("IPToHostNameResolver")
+					new AEThread2("IPToHostNameResolver", true )
 					{
 						public void
-						runSupport()
+						run()
 						{
 							while(true){
 								
 								try{
-									request_semaphore.reserve();
+									request_semaphore.reserve(30000);
 									
 									IPToHostNameResolverRequest	req;
 									
 									try{
 										request_mon.enter();
+										
+										if ( request_queue.isEmpty()){
+											
+											resolver_thread = null;
+											
+											break;
+										}
 										
 										req	= (IPToHostNameResolverRequest)request_queue.remove(0);
 										
@@ -103,9 +110,7 @@ IPToHostNameResolver
 							}
 						}
 					};
-					
-				resolver_thread.setDaemon( true );	
-					
+										
 				resolver_thread.start();
 			}
 			

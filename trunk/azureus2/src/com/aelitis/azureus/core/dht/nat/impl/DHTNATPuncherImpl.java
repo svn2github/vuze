@@ -30,7 +30,7 @@ import java.net.InetSocketAddress;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AESemaphore;
-import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SimpleTimer;
@@ -1180,10 +1180,10 @@ DHTNATPuncherImpl
 				
 				final DHTTransportUDPContact	contact = (DHTTransportUDPContact)entry[0];
 				
-				new AEThread( "DHTNATPuncher:destroy", true )
+				new AEThread2( "DHTNATPuncher:destroy", true )
 				{
 					public void
-					runSupport()
+					run()
 					{
 						sendClose( contact );
 					}
@@ -1249,10 +1249,10 @@ DHTNATPuncherImpl
 	
 		if ( current_target != null && Arrays.equals( current_target.getID(), originator.getID())){
 			
-			new AEThread( "DHTNATPuncher:close", true )
+			new AEThread2( "DHTNATPuncher:close", true )
 			{
 				public void
-				runSupport()
+				run()
 				{
 					rendezvousFailed( current_target, true );
 				}
