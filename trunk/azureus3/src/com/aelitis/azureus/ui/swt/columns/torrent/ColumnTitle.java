@@ -23,6 +23,7 @@ package com.aelitis.azureus.ui.swt.columns.torrent;
 import org.eclipse.swt.program.Program;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -60,9 +61,13 @@ public class ColumnTitle
 		String name = null;
 		DownloadManager dm = (DownloadManager) cell.getDataSource();
 		if (dm != null) {
-			name = PlatformTorrentUtils.getContentTitle(dm.getTorrent());
-			if (name == null) {
-				name = dm.getDisplayName();
+			// DM state's display name can be set by user, so show that if we have it
+			name = dm.getDownloadState().getDisplayName();
+			if (name == null || name.length() == 0) {
+				name = PlatformTorrentUtils.getContentTitle(dm.getTorrent());
+				if (name == null) {
+					name = dm.getDisplayName();
+				}
 			}
 		}
 		if (name == null) {
