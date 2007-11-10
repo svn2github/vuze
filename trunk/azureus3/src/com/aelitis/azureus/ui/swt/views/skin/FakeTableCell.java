@@ -33,6 +33,9 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
+
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -76,6 +79,8 @@ public class FakeTableCell
 	private Control composite;
 
 	private final TableColumn tableColumn;
+
+	private Graphic graphic;
 
 	/**
 	 * @param columnRateUpDown
@@ -306,19 +311,104 @@ public class FakeTableCell
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getForeground()
 	public int[] getForeground() {
-		// TODO Auto-generated method stub
+		if (composite == null || composite.isDisposed()) {
+			return null;
+		}
+		Color fg = composite.getForeground();
+		return new int[] {
+			fg.getRed(),
+			fg.getGreen(),
+			fg.getBlue()
+		};
+	}
+
+	public int[] getBackground() {
+		// until we can make sure composite.getBackground is being used
+		// (background image might superceed), return 0
+		if (true) {
+			return new int[] {
+				0,
+				0,
+				0
+			};
+		}
+		if (composite == null || composite.isDisposed()) {
+			return null;
+		}
+		Color bg = composite.getBackground();
+		return new int[] {
+			bg.getRed(),
+			bg.getGreen(),
+			bg.getBlue()
+		};
+	}
+
+	public Graphic getBackgroundGraphic() {
+		if (composite == null || composite.isDisposed()) {
+			return null;
+		}
+
+		try {
+			Rectangle bounds = composite.getBounds();
+
+			if (bounds.isEmpty()) {
+				return null;
+			}
+
+			Image imgCap = new Image(composite.getDisplay(), bounds.width,
+					bounds.height);
+
+			// will walk up tree until it gets an image
+			Control bgControl = Utils.findBackgroundImageControl(composite);
+			Image imgBG = composite.getBackgroundImage();
+
+			GC gc = new GC(imgCap);
+			try {
+				if (imgBG == null) { // || imgBG has alpha..
+					gc.setBackground(composite.getBackground());
+					gc.fillRectangle(0, 0, bounds.width, bounds.height);
+				}
+
+				if (imgBG != null) {
+					Point controlPos = new Point(0, 0);
+					if (bgControl instanceof Composite) {
+						Rectangle compArea = ((Composite) bgControl).getClientArea();
+						controlPos.x = compArea.x;
+						controlPos.y = compArea.y;
+					}
+					Point absControlLoc = bgControl.toDisplay(controlPos.x, controlPos.y);
+
+					Rectangle shellClientArea = composite.getShell().getClientArea();
+					Point absShellLoc = composite.getParent().toDisplay(
+							shellClientArea.x, shellClientArea.y);
+
+					Point ofs = new Point(absControlLoc.x - absShellLoc.x,
+							absControlLoc.y - absShellLoc.y);
+					Rectangle imgBGBounds = imgBG.getBounds();
+					ofs.x = (ofs.x % imgBGBounds.width);
+					ofs.y = (ofs.y % imgBGBounds.height);
+
+					gc.drawImage(imgBG, ofs.x, ofs.y);
+				}
+			} finally {
+				gc.dispose();
+			}
+
+			return new UISWTGraphicImpl(imgCap);
+		} catch (Exception e) {
+			Debug.out(e);
+		}
 		return null;
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getGraphic()
 	public Graphic getGraphic() {
-		// TODO Auto-generated method stub
-		return null;
+		return graphic;
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getHeight()
 	public int getHeight() {
-		if (composite != null) {
+		if (composite != null && !composite.isDisposed()) {
 			return composite.getSize().y;
 		}
 		return 0;
@@ -326,8 +416,7 @@ public class FakeTableCell
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getMaxLines()
 	public int getMaxLines() {
-		// TODO Auto-generated method stub
-		return 0;
+		return -1;
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getSortValue()
@@ -337,14 +426,12 @@ public class FakeTableCell
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getTableColumn()
 	public TableColumn getTableColumn() {
-		// TODO Auto-generated method stub
-		return null;
+		return tableColumn;
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getTableID()
 	public String getTableID() {
-		// TODO Auto-generated method stub
-		return null;
+		return tableColumn == null ? null : tableColumn.getTableID();
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getTableRow()
@@ -379,8 +466,7 @@ public class FakeTableCell
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#isDisposed()
 	public boolean isDisposed() {
-		// TODO Auto-generated method stub
-		return false;
+		return composite == null || composite.isDisposed();
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#isShown()
@@ -402,8 +488,12 @@ public class FakeTableCell
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#setForeground(int, int, int)
 	public boolean setForeground(int red, int green, int blue) {
-		// TODO Auto-generated method stub
-		return false;
+		if (isDisposed()) {
+			return false;
+		}
+		composite.setForeground(ColorCache.getColor(composite.getDisplay(), red,
+				green, blue));
+		return true;
 	}
 
 	public boolean setForegroundToErrorColor() {
@@ -433,7 +523,7 @@ public class FakeTableCell
 			imageBounds = image.getBounds();
 		}
 
-		if (composite != null) {
+		if (composite != null && !composite.isDisposed()) {
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					if (composite != null && !composite.isDisposed()) {
@@ -443,6 +533,7 @@ public class FakeTableCell
 			});
 		}
 
+		graphic = img;
 		return true;
 	}
 
@@ -552,11 +643,15 @@ public class FakeTableCell
 
 	public void refresh() {
 		//System.out.println("refresh");
-		if (refreshListeners != null) {
-			for (int i = 0; i < refreshListeners.size(); i++) {
-				((TableCellRefreshListener) (refreshListeners.get(i))).refresh(this);
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (refreshListeners != null) {
+					for (int i = 0; i < refreshListeners.size(); i++) {
+						((TableCellRefreshListener) (refreshListeners.get(i))).refresh(FakeTableCell.this);
+					}
+				}
 			}
-		}
+		});
 	}
 
 	public void setDataSource(Object datasource) {
@@ -595,24 +690,24 @@ public class FakeTableCell
 						TableCellMouseEvent.EVENT_MOUSEMOVE));
 			}
 		});
-		
+
 		composite.addMouseTrackListener(new MouseTrackListener() {
-		
+
 			public void mouseHover(MouseEvent e) {
 				// TODO Auto-generated method stub
-		
+
 			}
-		
+
 			public void mouseExit(MouseEvent e) {
 				invokeMouseListeners(buildMouseEvent(e,
 						TableCellMouseEvent.EVENT_MOUSEEXIT));
 			}
-		
+
 			public void mouseEnter(MouseEvent e) {
 				invokeMouseListeners(buildMouseEvent(e,
 						TableCellMouseEvent.EVENT_MOUSEENTER));
 			}
-		
+
 		});
 	}
 
@@ -630,11 +725,11 @@ public class FakeTableCell
 		event.eventType = eventType;
 
 		Rectangle r = composite.getBounds();
-//		int align = tableColumn.getAlignment();
-//		if (align == TableColumn.ALIGN_CENTER) {
-//			r.x = marginWidth;
-//			r.x += (r.width - (marginWidth * 2) - imageBounds.width) / 2;
-//		}
+		//		int align = tableColumn.getAlignment();
+		//		if (align == TableColumn.ALIGN_CENTER) {
+		//			r.x = marginWidth;
+		//			r.x += (r.width - (marginWidth * 2) - imageBounds.width) / 2;
+		//		}
 
 		event.x = e.x - r.x;
 		event.y = e.y - r.y;
