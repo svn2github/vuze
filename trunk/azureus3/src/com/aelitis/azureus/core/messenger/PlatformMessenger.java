@@ -207,8 +207,8 @@ public class PlatformMessenger
 		final String fURL = sURL;
 		final String fPostData = sPostData;
 
-		AEThread thread = new AEThread("v3.PlatformMessenger", true) {
-			public void runSupport() {
+		AEThread2 thread = new AEThread2("v3.PlatformMessenger", true) {
+			public void run() {
 				try {
 					processQueueAsync(fURL, fPostData, mapProcessing);
 				} catch (Exception e) {
