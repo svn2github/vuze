@@ -38,10 +38,10 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.*;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
@@ -246,6 +246,29 @@ public class TableCellImpl
     return bufferedTableItem.getForeground();
   }
   
+  public Color getBackgroundSWT() {
+		checkCellForSetting();
+
+		return bufferedTableItem.getBackground();
+	}
+
+  public int[] getBackground() {
+		if (bufferedTableItem == null) {
+			return null;
+		}
+		Color color = bufferedTableItem.getBackground();
+
+		if (color == null) {
+			return null;
+		}
+
+		return new int[] {
+			color.getRed(),
+			color.getGreen(),
+			color.getBlue()
+		};
+	}
+
   // @see org.gudy.azureus2.plugins.ui.tables.TableCell#getForeground()
   public int[] getForeground() {
   	if (bufferedTableItem == null) {
@@ -1224,6 +1247,13 @@ public class TableCellImpl
 			return "";
 		}
 		return null;
+	}
+
+	public Graphic getBackgroundGraphic() {
+		if (bufferedTableItem == null) {
+			return null;
+		}
+  	return new UISWTGraphicImpl(bufferedTableItem.getBackgroundImage());
 	}
 
 	public Image getBackgroundImage() {

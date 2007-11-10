@@ -982,6 +982,11 @@ TorrentInfoView
 		public int[] getForeground() {
 			return new int[3];
 		}
+		
+		// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getBackground()
+		public int[] getBackground() {
+			return new int[3];
+		}
 
 		/**
 		 * @return
@@ -1046,6 +1051,18 @@ TorrentInfoView
 		public boolean isMouseOver() {
 			// TODO Auto-generated method stub
 			return false;
+		}
+
+		// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWT#getBackgroundSWT()
+		public Color getBackgroundSWT() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getBackgroundGraphic()
+		public Graphic getBackgroundGraphic() {
+			// TODO Auto-generated method stub
+			return null;
 		}
 		
 	}

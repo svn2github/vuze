@@ -129,6 +129,15 @@ public interface TableCell {
    */
   int[] getForeground();
 
+	/**
+	 * Get the background color of the cell
+	 * 
+	 * @return array containing red, green, and blue color.  Might be null
+	 *
+	 * @since 3.0.3.5
+	 */
+	int[] getBackground();
+	  
   /** Sets a Comparable object that column sorting will act on.  If you never 
    * call setSortValue, your column will be sorted by the cell's text.
    *
@@ -216,7 +225,7 @@ public interface TableCell {
   /**
    * Retrieves the number of lines available for setting text
    * 
-   * @return # of lines available
+   * @return # of lines available, -1 if unknown
    *
    * @since 3.0.1.1
    */
@@ -355,4 +364,13 @@ public interface TableCell {
    * @param listenerObject Object implementing some cell listeneters
    */
   public void addListeners(Object listenerObject);
+
+  /**
+   * Returns a Graphic of what's behind the cell  
+   * 
+   * @return
+   *
+   * @since 3.0.3.5
+   */
+  public Graphic getBackgroundGraphic();
 }

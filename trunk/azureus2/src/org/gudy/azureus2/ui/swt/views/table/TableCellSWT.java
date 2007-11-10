@@ -94,4 +94,11 @@ public interface TableCellSWT extends com.aelitis.azureus.ui.common.table.TableC
 	 * @return
 	 */
 	TableRowSWT getTableRowSWT();
+
+	/**
+	 * @return
+	 *
+	 * @since 3.0.3.4
+	 */
+	Color getBackgroundSWT();
 }
