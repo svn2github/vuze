@@ -37,6 +37,7 @@ import com.aelitis.azureus.core.networkmanager.impl.http.HTTPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.peermanager.messaging.*;
+import com.aelitis.azureus.core.util.FeatureAvailability;
 
 
 
@@ -50,6 +51,7 @@ public class NetworkManager {
   private static final NetworkManager instance = new NetworkManager();
 
   private static int max_download_rate_bps;
+  private static int external_max_download_rate_bps;
   
   private static int max_upload_rate_bps_normal;
   private static int max_upload_rate_bps_seeding_only;
@@ -109,11 +111,11 @@ public class NetworkManager {
     				 seeding_only_mode_allowed = COConfigurationManager.getBooleanParameter( "enable.seedingonly.upload.rate" );
     			
     				 
-    				 max_download_rate_bps = (int)(COConfigurationManager.getIntParameter( "Max Download Speed KBs" ) * 1024); // leave 5KiB/s room for the request limiting  
+    				 external_max_download_rate_bps = max_download_rate_bps = (int)(COConfigurationManager.getIntParameter( "Max Download Speed KBs" ) * 1024); // leave 5KiB/s room for the request limiting  
     				 if( max_download_rate_bps < 1024 || max_download_rate_bps > UNLIMITED_RATE)
     					 max_download_rate_bps = UNLIMITED_RATE;
-    				 else if(USE_REQUEST_LIMITING)
-    					 max_download_rate_bps += 5 * 1024;
+    				 else if(USE_REQUEST_LIMITING && FeatureAvailability.isRequestLimitingEnabled())
+    					 max_download_rate_bps += Math.max(max_download_rate_bps * 0.1, 5*1024);
     	        
     				 lan_rate_enabled = COConfigurationManager.getBooleanParameter("LAN Speed Enabled");
     				 max_lan_download_rate_bps = COConfigurationManager.getIntParameter( "Max LAN Download Speed KBs" ) * 1024;
@@ -202,7 +204,7 @@ public class NetworkManager {
    */
   public static int getMaxDownloadRateBPS() {
     if( max_download_rate_bps == UNLIMITED_RATE )  return 0;
-    return (int)(max_download_rate_bps - (USE_REQUEST_LIMITING? 5*1024 : 0)); 
+    return external_max_download_rate_bps; 
   }
   
   public static final int CRYPTO_OVERRIDE_NONE			= 0;
