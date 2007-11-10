@@ -21,6 +21,7 @@ package com.aelitis.azureus.ui.swt.views.list;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 
@@ -314,8 +315,23 @@ public class ListCell
 	public void invalidate() {
 	}
 
+	// @see org.gudy.azureus2.ui.swt.components.BufferedTableItem#getBackgroundImage()
 	public Image getBackgroundImage() {
-		return null;
+		Rectangle bounds = getBounds();
+		
+		if (bounds.isEmpty() || true) {
+			return null;
+		}
+		
+		Composite composite = view.getComposite();
+		
+		Image image = new Image(composite.getDisplay(), bounds.width, bounds.height);
+		
+		GC gc = new GC(composite);
+		gc.copyArea(image, bounds.x, bounds.y);
+		gc.dispose();
+		
+		return image;
 	}
 
 	public Color getForeground() {
