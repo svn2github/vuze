@@ -33,7 +33,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
@@ -712,12 +712,12 @@ UDPConnectionManager
 		protected 
 		ProtocolTimer()
 		{
-			new AEThread( "UDPConnectionManager:timer", true )
+			new AEThread2( "UDPConnectionManager:timer", true )
 			{
 				private int	tick_count;
 				
 				public void
-				runSupport()
+				run()
 				{
 					Thread.currentThread().setPriority( Thread.NORM_PRIORITY + 1 );
 					

@@ -25,7 +25,7 @@ package com.aelitis.azureus.core.networkmanager.impl.udp;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AESemaphore;
-import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
@@ -45,10 +45,10 @@ UDPSelector
 	UDPSelector(
 		final UDPConnectionManager		manager )
 	{
-		new AEThread( "UDPSelector", true )
+		new AEThread2( "UDPSelector", true )
 		{
 			public void
-			runSupport()
+			run()
 			{
 				boolean	quit		= false;
 				long	last_poll	= 0;

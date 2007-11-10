@@ -35,7 +35,7 @@ import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.util.PeerIdentityManager;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
@@ -65,7 +65,7 @@ public class PeerManager implements AzureusCoreStatsProvider{
   private static final int	PENDING_TIMEOUT	= 10*1000;
   
   private static final AEMonitor	timer_mon = new AEMonitor( "PeerManager:timeouts" );
-  private static Thread	timer_thread;
+  private static AEThread2	timer_thread;
   private static Set	timer_targets = new HashSet();
   
   protected static void
@@ -80,10 +80,10 @@ public class PeerManager implements AzureusCoreStatsProvider{
 		  if ( timer_thread == null ){
 			  
 			  	timer_thread = 
-				  new AEThread( "PeerManager:timeouts", true )
+				  new AEThread2( "PeerManager:timeouts", true )
 				  {
 					  public void
-					  runSupport()
+					  run()
 					  {
 						  int	idle_time	= 0;
 						  
