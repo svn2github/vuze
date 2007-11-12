@@ -357,6 +357,7 @@ public class Sleak
 			gc.drawString(string, 0, 0);
 			return;
 		}
+
 		if (object instanceof Control) {
 			gc.drawString(object.toString(), 0, 0);
 			gc.drawString(((Control) object).getBounds().toString(), 0, 20);
@@ -433,8 +434,9 @@ public class Sleak
     new Main(args);
 		sleak.open();
 		while (!sleak.shell.isDisposed()) {
-			if (!display.readAndDispatch())
+			if (!display.readAndDispatch()) {
 				display.sleep();
+			}
 		}
 		try {
 			if (!display.isDisposed()) {
