@@ -777,11 +777,12 @@ public class MyTorrentsView
 
   // @see com.aelitis.azureus.ui.common.table.TableSelectionListener#defaultSelected(com.aelitis.azureus.ui.common.table.TableRowCore[])
   public void defaultSelected(TableRowCore[] rows) {
-    DownloadManager dm = (DownloadManager)tv.getFirstSelectedDataSource();
-    if (dm != null) {
-	  	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-	  	if (uiFunctions != null) {
-	  		uiFunctions.openManagerView(dm);
+	Object[] dm_sources = tv.getSelectedDataSources();
+	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+	for (int i=0; i<dm_sources.length; i++) {
+		if (dm_sources[i] == null) {continue;}
+		if (uiFunctions != null) {
+	  		uiFunctions.openManagerView((DownloadManager)dm_sources[i]);
 	  	}
     }
   }
