@@ -88,7 +88,7 @@ public class MultiTrackerEditor {
   
   private void createWindow() {
     this.display = Display.getCurrent();
-    this.shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+    this.shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE);
     Messages.setLanguageText(this.shell,"wizard.multitracker.edit.title");
     if(! Constants.isOSX) {
       shell.setImage(ImageRepository.getImage("azureus"));
@@ -147,18 +147,14 @@ public class MultiTrackerEditor {
     
     	// button row 
     
-    Label label = new Label(shell,SWT.NULL);
-    gridData = new GridData(GridData.FILL_HORIZONTAL );
-    label.setLayoutData(gridData);
-    
-    Composite cButtons = new Composite(shell, SWT.NULL);
+    Composite cButtons = new Composite(shell, SWT.NONE);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 2;
+    gridData.horizontalSpan = 3;
     cButtons.setLayoutData(gridData);
     GridLayout layoutButtons = new GridLayout();
     layoutButtons.numColumns = 3;
     cButtons.setLayout(layoutButtons);
-    label = new Label(cButtons,SWT.NULL);
+    Label label = new Label(cButtons,SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL );
     label.setLayoutData(gridData);
     
