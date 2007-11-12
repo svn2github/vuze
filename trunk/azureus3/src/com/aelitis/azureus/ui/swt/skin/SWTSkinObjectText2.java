@@ -72,6 +72,18 @@ public class SWTSkinObjectText2
 			}
 		}
 
+		String sVAlign = skinProperties.getStringValue(sConfigID + ".v-align");
+		if (sVAlign != null) {
+			int align = SWTSkinUtils.getAlignment(sAlign, SWT.NONE);
+			if (align != SWT.NONE) {
+				style |= align;
+			} else {
+				style |= SWT.TOP;
+			}
+		} else {
+			style |= SWT.TOP;
+		}
+
 		if (skinProperties.getIntValue(sConfigID + ".border", 0) == 1) {
 			style |= SWT.BORDER;
 		}
@@ -362,8 +374,7 @@ public class SWTSkinObjectText2
 			e.gc.setForeground(existingColor);
 		}
 //		e.gc.drawText(sText, 0, 0, true);
-		GCStringPrinter.printString(e.gc, sText, clientArea, true, false, style
-				| SWT.TOP);
+		GCStringPrinter.printString(e.gc, sText, clientArea, true, false, style);
 	}
 
 	public void setTextID(String key) {
