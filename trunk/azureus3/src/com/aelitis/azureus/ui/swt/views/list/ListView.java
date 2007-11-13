@@ -477,6 +477,7 @@ public class ListView
 				logPAINT("first resize (img null)");
 			}
 			imgView = new Image(listCanvas.getDisplay(), clientArea);
+			lastBounds = new Rectangle(0, 0, 0, 0);
 			bNeedsRefresh = true;
 		} else {
 			if (!lastBounds.equals(clientArea)) {
