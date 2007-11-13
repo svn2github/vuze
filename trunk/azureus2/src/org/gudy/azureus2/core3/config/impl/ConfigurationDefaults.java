@@ -74,7 +74,7 @@ public class ConfigurationDefaults {
   private static ConfigurationDefaults configdefaults;
   private static AEMonitor				class_mon	= new AEMonitor( "ConfigDef");
   
-  private HashMap def = null;
+  private Map def = null;
   
   public static final int def_int = 0;
   public static final long def_long = 0;
@@ -93,7 +93,21 @@ public class ConfigurationDefaults {
   	
 	    if(configdefaults == null){
 	    
-	      configdefaults = new ConfigurationDefaults();
+	    	try{
+	    		configdefaults = new ConfigurationDefaults();
+	    		
+	    	}catch( Throwable e ){
+	    		
+	    			// this is here for when we are just using a few of the Azureus classes and
+	    			// we can live with no defaults (e.g. swing webui). If we initialise
+	    			// the normal config-defaults fully this pulls in all sorts of unwanted
+	    			// classes (platform manager for example). Also, don't using Debug/Logging
+	    			// to record this fact!
+	    		
+	    		System.out.println( "Falling back to default defaults as environemnt is restricted" );
+	    		
+	    		configdefaults = new ConfigurationDefaults( new HashMap());
+	    	}
 	    }
 	    
 	    return configdefaults;
@@ -529,6 +543,13 @@ public class ConfigurationDefaults {
     
     // Temporary LTEP support parameter.
     def.put("LTEP.enabled", TRUE);
+  }
+  
+  protected 
+  ConfigurationDefaults(
+	Map	_def )
+  {
+	  def = _def;
   }
   
   protected void
