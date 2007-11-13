@@ -47,6 +47,7 @@ WebPlugin
 	implements Plugin, TrackerWebPageGenerator
 {
 	public static final String	PR_PORT						= "Port";						// Integer
+	public static final String	PR_BIND_IP					= "Bind IP";					// String
 	public static final String	PR_ROOT_RESOURCE			= "Root Resource";				// String
 	public static final String	PR_LOG						= "DefaultLoggerChannel";		// LoggerChannel
 	public static final String	PR_CONFIG_MODEL				= "DefaultConfigModel";			// BasicPluginConfigModel
@@ -69,6 +70,9 @@ WebPlugin
 	public static final String 	CONFIG_PORT						= PR_PORT;
 	public int			 		CONFIG_PORT_DEFAULT				= 8089;
 	
+	public static final String 	CONFIG_BIND_IP					= PR_BIND_IP;
+	public String		 		CONFIG_BIND_IP_DEFAULT			= "";
+
 	public static final String 	CONFIG_PROTOCOL					= "Protocol";
 	public 		  final String 	CONFIG_PROTOCOL_DEFAULT			= "HTTP";
 
@@ -137,6 +141,13 @@ WebPlugin
 		if ( pr_port != null ){
 		
 			CONFIG_PORT_DEFAULT	= pr_port.intValue();
+		}
+		
+		String	pr_bind_ip = (String)properties.get(PR_BIND_IP);
+		
+		if ( pr_bind_ip != null ){
+		
+			CONFIG_BIND_IP_DEFAULT	= pr_bind_ip.trim();
 		}
 		
 		String	pr_root_resource = (String)properties.get( PR_ROOT_RESOURCE );
@@ -308,7 +319,8 @@ WebPlugin
 		
 		config_model.addLabelParameter2( "webui.restart.info" );
 
-		IntParameter	param_port = config_model.addIntParameter2(	CONFIG_PORT, "webui.port", CONFIG_PORT_DEFAULT );
+		IntParameter	param_port = config_model.addIntParameter2(		CONFIG_PORT, "webui.port", CONFIG_PORT_DEFAULT );
+		StringParameter	param_bind = config_model.addStringParameter2(	CONFIG_BIND_IP, "webui.bindip", CONFIG_BIND_IP_DEFAULT );
 		
 		StringListParameter	param_protocol = 
 			config_model.addStringListParameter2(
@@ -444,10 +456,28 @@ WebPlugin
 
 		String	protocol_str = param_protocol.getValue().trim();
 		
-		int	protocol = protocol_str.equalsIgnoreCase( "HTTP")?
-							Tracker.PR_HTTP:Tracker.PR_HTTPS;
+		String bind_ip_str = param_bind.getValue().trim();
+		
+		InetAddress	bind_ip = null;
+		
+		if ( bind_ip_str.length() > 0 ){
+			
+			try{
+				bind_ip = InetAddress.getByName( bind_ip_str );
+				
+			}catch( Throwable  e ){
+				
+				log.log( LoggerChannel.LT_ERROR, "Bind IP parameter '" + bind_ip_str + "' is invalid" );
 	
-		log.log( LoggerChannel.LT_INFORMATION, "Initialisation: port = " + port + ", protocol = " + protocol_str + (root_dir.length()==0?"":(", root = " + root_dir )));
+			}
+		}
+		
+		int	protocol = protocol_str.equalsIgnoreCase( "HTTP")?Tracker.PR_HTTP:Tracker.PR_HTTPS;
+	
+		log.log( 	LoggerChannel.LT_INFORMATION, 
+					"Initialisation: port = " + port +
+					(bind_ip == null?"":(", bind = " + bind_ip_str + ")")) +
+					", protocol = " + protocol_str + (root_dir.length()==0?"":(", root = " + root_dir )));
 		
 		String	access_str = param_access.getValue().trim();
 		
@@ -474,7 +504,7 @@ WebPlugin
 			
 			if (!ip_range.isValid()){
 			
-				log.log( LoggerChannel.LT_ERROR, "access parameter '" + access_str + "' is invalid" );
+				log.log( LoggerChannel.LT_ERROR, "Access parameter '" + access_str + "' is invalid" );
 			
 				ip_range	= null;
 			}
@@ -497,7 +527,7 @@ WebPlugin
 			TrackerWebContext	context = 
 				tracker.createWebContext(
 						plugin_interface.getAzureusName() + " - " + plugin_interface.getPluginName(), 
-						port, protocol );
+						port, protocol, bind_ip );
 		
 			context.addPageGenerator( this );
 	
