@@ -162,8 +162,9 @@ public class SystemProperties {
 
 			// No override, get it from platform manager
 
-			PlatformManager platformManager = PlatformManagerFactory.getPlatformManager();
 			try {
+				PlatformManager platformManager = PlatformManagerFactory.getPlatformManager();
+
 				temp_user_path = platformManager.getLocation(
 						PlatformManager.LOC_USER_DATA).getPath() + SEP;
 
@@ -171,11 +172,11 @@ public class SystemProperties {
 					Logger.log(new LogEvent(LOGID,
 							"SystemProperties::getUserPath: user_path = " + temp_user_path));
 				}
-			} catch (Exception e) {
+			} catch ( Throwable e ){
 				if (Logger.isEnabled()) {
 					Logger.log(new LogEvent(LOGID,
 							"Unable to retrieve user config path from "
-									+ platformManager.getClass().getName()
+									+ "the platform manager. "
 									+ "Make sure aereg.dll is present."));
 				}
 			}
@@ -340,11 +341,12 @@ public class SystemProperties {
   }
   
   public static String getDocPath() {
-		PlatformManager platformManager = PlatformManagerFactory.getPlatformManager();
 		File fDocPath = null;
 		try {
+			PlatformManager platformManager = PlatformManagerFactory.getPlatformManager();
+
 			fDocPath = platformManager.getLocation(PlatformManager.LOC_DOCUMENTS);
-		} catch (PlatformManagerException e) {
+		} catch (Throwable e) {
 		}
 		if (fDocPath == null) {
 			// should never happen.. but if we are missing a dll..
