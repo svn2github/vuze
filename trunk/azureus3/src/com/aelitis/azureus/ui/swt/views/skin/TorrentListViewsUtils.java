@@ -388,7 +388,7 @@ public class TorrentListViewsUtils
 					return false;
 				}
 
-				if (!doProgressive && dm.getDiskManagerFileInfo().length > 0
+				if (!doProgressive && dm.getDiskManagerFileInfo().length > 1
 						&& PlatformTorrentUtils.getContentPrimaryFileIndex(torrent) == -1) {
 					// multi-file torrent that we aren't progressive playing or useEMPing
 					Utils.launch(dm.getSaveLocation().getAbsolutePath());
