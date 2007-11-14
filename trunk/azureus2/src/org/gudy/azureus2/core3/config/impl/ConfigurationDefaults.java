@@ -104,7 +104,7 @@ public class ConfigurationDefaults {
 	    			// classes (platform manager for example). Also, don't using Debug/Logging
 	    			// to record this fact!
 	    		
-	    		System.out.println( "Falling back to default defaults as environemnt is restricted" );
+	    		System.out.println( "Falling back to default defaults as environment is restricted" );
 	    		
 	    		configdefaults = new ConfigurationDefaults( new HashMap());
 	    	}
