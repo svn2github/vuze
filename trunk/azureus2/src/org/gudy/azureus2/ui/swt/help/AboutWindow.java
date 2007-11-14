@@ -139,8 +139,8 @@ public class AboutWindow {
           Constants.GETAZUREUS_WEB_SITE,
           "http://sourceforge.net/projects/azureus/",
           "http://sourceforge.net/project/showfiles.php?group_id=84122",
-          "http://sourceforge.net/tracker/?atid=575154&group_id=84122&func=browse",
-          "http://sourceforge.net/forum/?group_id=84122",
+          Constants.isCVSVersion() ? "http://forum.vuze.com/forum.jspa?forumID=4" : "http://sourceforge.net/tracker/?atid=575154&group_id=84122&func=browse",
+          "http://forum.vuze.com/index.jspa",
           Constants.AZUREUS_WIKI }
     };
   
