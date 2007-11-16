@@ -134,7 +134,7 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
 		layout.verticalSpacing = 2;
-		layout.numColumns = 3;
+		layout.numColumns = 2;
 		panel.setLayout(layout);
 
 		GridData gd;
@@ -142,7 +142,7 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 		consoleText = new StyledText(panel, SWT.READ_ONLY | SWT.V_SCROLL
 				| SWT.H_SCROLL);
 		gd = new GridData(GridData.FILL_BOTH);
-		gd.horizontalSpan = 3;
+		gd.horizontalSpan = 2;
 		consoleText.setLayoutData(gd);
 
 		// XXX This doesn't work well, but it's better than nothing
@@ -376,17 +376,18 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 			}
 		});
 		
-		Composite cRight = new Composite(panel, SWT.NONE);
-		layout = new GridLayout();
-		layout.numColumns = 2;
-		cRight.setLayout(layout);
-		cRight.setLayoutData(new GridData(SWT.BEGINNING, SWT.TOP, true, false));
-
-		label = new Label(cRight, SWT.NONE);
+		Composite cBottom = new Composite(panel, SWT.NONE);
+		gd = new GridData(SWT.FILL, SWT.FILL, true, false);
+		gd.horizontalSpan = 2;
+		cBottom.setLayoutData(gd);
+		cBottom.setLayout(new GridLayout(2, false));
+		 
+		
+		label = new Label(cBottom, SWT.NONE);
 		label.setLayoutData(new GridData());
 		Messages.setLanguageText(label, "LoggerView.includeOnly");
 		
-		final Text inclText = new Text(cRight, SWT.BORDER);
+		final Text inclText = new Text(cBottom, SWT.BORDER);
 		gd = new GridData();
 		gd.widthHint = 200;
 		inclText.setLayoutData(gd);
@@ -410,11 +411,11 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 			}
 		});
 		
-		label = new Label(cRight, SWT.NONE);
+		label = new Label(cBottom, SWT.NONE);
 		label.setLayoutData(new GridData());
 		Messages.setLanguageText(label, "LoggerView.excludeAll");
 				
-		final Text exclText = new Text(cRight, SWT.BORDER);
+		final Text exclText = new Text(cBottom, SWT.BORDER);
 		gd = new GridData();
 		gd.widthHint = 200;
 		exclText.setLayoutData(gd);
