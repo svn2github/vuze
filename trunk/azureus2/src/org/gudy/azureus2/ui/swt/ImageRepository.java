@@ -174,6 +174,9 @@ public class ImageRepository {
 		addPath("org/gudy/azureus2/ui/icons/progress_viewer_has_error.gif", "progress_error");
 		addPath("org/gudy/azureus2/ui/icons/progress_viewer_has_info.gif", "progress_info");
 		addPath("org/gudy/azureus2/ui/icons/progress_viewer.gif", "progress_viewer");
+		addPath("org/gudy/azureus2/ui/icons/progress_retry.png", "progress_retry");
+		addPath("org/gudy/azureus2/ui/icons/progress_cancel.png", "progress_cancel");
+		addPath("org/gudy/azureus2/ui/icons/progress_remove.png", "progress_remove");
 		
 	}
 
