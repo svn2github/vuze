@@ -24,9 +24,13 @@ import java.text.FieldPosition;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
@@ -90,6 +94,9 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 	private boolean bEnabled = false;
 
 	private boolean bAutoScroll = true;
+	
+	private Pattern inclusionFilter;
+	private Pattern exclusionFilter;
 
 	// List of components we don't log.  
 	// Array represents LogTypes (info, warning, error)
@@ -127,7 +134,7 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
 		layout.verticalSpacing = 2;
-		layout.numColumns = 2;
+		layout.numColumns = 3;
 		panel.setLayout(layout);
 
 		GridData gd;
@@ -135,7 +142,7 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 		consoleText = new StyledText(panel, SWT.READ_ONLY | SWT.V_SCROLL
 				| SWT.H_SCROLL);
 		gd = new GridData(GridData.FILL_BOTH);
-		gd.horizontalSpan = 2;
+		gd.horizontalSpan = 3;
 		consoleText.setLayoutData(gd);
 
 		// XXX This doesn't work well, but it's better than nothing
@@ -368,6 +375,69 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 				}
 			}
 		});
+		
+		Composite cRight = new Composite(panel, SWT.NONE);
+		layout = new GridLayout();
+		layout.numColumns = 2;
+		cRight.setLayout(layout);
+		cRight.setLayoutData(new GridData(SWT.BEGINNING, SWT.TOP, true, false));
+
+		label = new Label(cRight, SWT.NONE);
+		label.setLayoutData(new GridData());
+		Messages.setLanguageText(label, "LoggerView.includeOnly");
+		
+		final Text inclText = new Text(cRight, SWT.BORDER);
+		gd = new GridData();
+		gd.widthHint = 200;
+		inclText.setLayoutData(gd);
+		inclText.addModifyListener(new ModifyListener()
+		{
+			public void modifyText(ModifyEvent e) {
+				String newExpression = inclText.getText();
+				if (newExpression.length() == 0)
+					inclusionFilter = null;
+				else
+				{
+					try
+					{
+						inclusionFilter = Pattern.compile(newExpression, Pattern.CASE_INSENSITIVE);
+						inclText.setBackground(null);
+					} catch (PatternSyntaxException e1)
+					{
+						inclText.setBackground(Colors.colorErrorBG);
+					}
+				}
+			}
+		});
+		
+		label = new Label(cRight, SWT.NONE);
+		label.setLayoutData(new GridData());
+		Messages.setLanguageText(label, "LoggerView.excludeAll");
+				
+		final Text exclText = new Text(cRight, SWT.BORDER);
+		gd = new GridData();
+		gd.widthHint = 200;
+		exclText.setLayoutData(gd);
+		exclText.addModifyListener(new ModifyListener()
+		{
+			public void modifyText(ModifyEvent e) {
+				String newExpression = exclText.getText();
+				if (newExpression.length() == 0)
+					exclusionFilter = null;
+				else
+				{
+					try
+					{
+						exclusionFilter = Pattern.compile(newExpression, Pattern.CASE_INSENSITIVE);
+						exclText.setBackground(null);
+					} catch (PatternSyntaxException e1)
+					{
+						exclText.setBackground(Colors.colorErrorBG);
+					}
+				}
+			}
+		});
+
 
 		if (!Logger.isEnabled()) {
 			consoleText.setText(MessageText.getString("LoggerView.loggingDisabled")
@@ -423,7 +493,12 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 					}
 					buf.append('\n');
 
-					consoleText.append(buf.toString());
+					String toAppend = buf.toString();
+					
+					if((inclusionFilter != null && !inclusionFilter.matcher(toAppend).find()) || (exclusionFilter != null && exclusionFilter.matcher(toAppend).find()))
+						continue;
+					
+					consoleText.append(toAppend);
 
 					int nbLinesNow = consoleText.getLineCount();
 					int colorIdx = -1;
@@ -478,11 +553,10 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 		if (display == null || display.isDisposed())
 			return;
 
-		if (ignoredComponents[logTypeToIndex(event.entryType)]
-				.contains(event.logID))
+		if (ignoredComponents[logTypeToIndex(event.entryType)].contains(event.logID))
 			return;
 
-		// Always display STDERR messages, as they may relate to the filter 
+		// Always display STDERR messages, as they may relate to the filter
 		boolean bMatch = (event.logID == LogIDs.STDERR || filter == null);
 
 		if (!bMatch && event.relatedTo != null) {
