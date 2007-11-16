@@ -196,4 +196,10 @@ public interface IProgressReporter
 	 * @param objectData the objectData to set
 	 */
 	public void setObjectData(Object objectData);
+
+	/**
+	 * Returns an array of <code>IMessage</code>'s that has been generated since the reporter was created
+	 * @return
+	 */
+	public IMessage[] getMessageHistory();
 }

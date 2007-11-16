@@ -73,7 +73,6 @@ public class ProgressReporter
 	implements IProgressReporter, IProgressReportConstants
 {
 
-
 	private ProgressReportingManager manager = null;
 
 	/**
@@ -100,7 +99,7 @@ public class ProgressReporter
 	 * upon initialization the listener may query this list to get all messages sent up to that point.</p>
 	 * 
 	 */
-	private List detailMessageHistory = new ArrayList();
+	private List messageHistory = new ArrayList();
 
 	private String detailMessage = "";
 
@@ -126,7 +125,6 @@ public class ProgressReporter
 	public ProgressReporter() {
 		this(null);
 	}
-
 
 	/**
 	 * Construct a <code>ProgressReporter</code> with the given <code>name</code>; the returned
@@ -183,7 +181,6 @@ public class ProgressReporter
 		manager.notifyManager(this);
 	}
 
-
 	/**
 	 * Resets this reporter to its initial states such that values are reset to default
 	 * <p>An appropriate use for this is when a process is restarting or retrying; this allows an owning process
@@ -196,7 +193,7 @@ public class ProgressReporter
 		errorMessage = "";
 		message = "";
 		detailMessage = "";
-		detailMessageHistory.clear();
+		messageHistory.clear();
 	}
 
 	/**
@@ -280,6 +277,11 @@ public class ProgressReporter
 		isDone = false;
 		isPercentageInUse = false;
 		isIndeterminate = false;
+
+		if (null != message && message.length() > 0) {
+			addToMessageHistory(message, MSG_TYPE_INFO);
+		}
+
 		updateAndNotify(REPORT_TYPE_PROPERTY_CHANGED);
 	}
 
@@ -310,6 +312,11 @@ public class ProgressReporter
 		isDone = false;
 		isPercentageInUse = true;
 		isIndeterminate = false;
+
+		if (null != message && message.length() > 0) {
+			addToMessageHistory(message, MSG_TYPE_INFO);
+		}
+
 		updateAndNotify(REPORT_TYPE_PROPERTY_CHANGED);
 	}
 
@@ -340,7 +347,9 @@ public class ProgressReporter
 		isDone = true;
 		selection = maximum;
 		percentage = 100;
+		isIndeterminate = false;
 		message = MessageText.getString("Progress.reporting.status.finished");
+		addToMessageHistory(message, MSG_TYPE_LOG);
 		updateAndNotify(REPORT_TYPE_DONE);
 	}
 
@@ -352,6 +361,7 @@ public class ProgressReporter
 			return;
 		}
 		this.message = message;
+		addToMessageHistory(message, MSG_TYPE_INFO);
 		updateAndNotify(REPORT_TYPE_PROPERTY_CHANGED);
 	}
 
@@ -364,16 +374,7 @@ public class ProgressReporter
 		}
 		this.detailMessage = detailMessage;
 
-		/*
-		 * Limiting the history list to prevent runaway processes from taking up too much resources
-		 * KN: TODO implement something better than just this arbitrary limit
-		 */
-		if (detailMessageHistory.size() < 300) {
-			detailMessageHistory.add(detailMessage);
-		} else if (detailMessageHistory.size() == 300) {
-			Debug.out(new Exception(
-					MessageText.getString("Progress.reporting.detail.history.limit")));
-		}
+		addToMessageHistory(detailMessage, MSG_TYPE_LOG);
 
 		updateAndNotify(REPORT_TYPE_PROPERTY_CHANGED);
 
@@ -381,7 +382,7 @@ public class ProgressReporter
 		 * The detail message operates in append mode so after we have notified all the listeners
 		 * we reset it.  It is up to the listeners to accumulate the messages.
 		 * 
-		 * Lazy implementor can also simply use the detailMessageHistory
+		 * Lazy implementor can also simply query the messageHistory
 		 */
 		this.detailMessage = "";
 	}
@@ -418,6 +419,8 @@ public class ProgressReporter
 
 		isCanceled = true;
 		message = MessageText.getString("Progress.reporting.status.canceled");
+		
+		addToMessageHistory(message, MSG_TYPE_LOG);
 		updateAndNotify(REPORT_TYPE_CANCEL);
 	}
 
@@ -430,6 +433,7 @@ public class ProgressReporter
 		}
 		reInit();
 		message = MessageText.getString("Progress.reporting.status.retrying");
+		addToMessageHistory(message, MSG_TYPE_LOG);
 		updateAndNotify(REPORT_TYPE_RETRY);
 	}
 
@@ -491,6 +495,7 @@ public class ProgressReporter
 			this.errorMessage = errorMessage;
 		}
 		isInErrorState = true;
+		addToMessageHistory(this.errorMessage, MSG_TYPE_ERROR);
 		updateAndNotify(REPORT_TYPE_ERROR);
 	}
 
@@ -542,6 +547,24 @@ public class ProgressReporter
 				|| true == isInErrorState || true == isCanceled);
 	}
 
+	/**
+	 * Create and add an <code>IMessage</code> to the message history
+	 * @param value
+	 * @param type
+	 */
+	private void addToMessageHistory(String value, int type) {
+		/*
+		 * Limiting the history list to prevent runaway processes from taking up too much resources
+		 * KN: TODO implement something better than just this arbitrary limit
+		 */
+		if (messageHistory.size() < 300) {
+			messageHistory.add(new ProgressReportMessage(value, type));
+		} else if (messageHistory.size() == 300) {
+			Debug.out(new Exception(
+					MessageText.getString("Progress.reporting.detail.history.limit")));
+		}
+	}
+
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.ui.swt.mainwindow.IProgressReporter#setObjectData(java.lang.Object)
 	 */
@@ -550,6 +573,16 @@ public class ProgressReporter
 			return;
 		}
 		this.objectData = objectData;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.mainwindow.IProgressReporter#getMessageHistory()
+	 */
+	public IMessage[] getMessageHistory() {
+		/*
+		 * Converting to array so the original list is insulated from modification
+		 */
+		return (IMessage[]) messageHistory.toArray(new IMessage[messageHistory.size()]);
 	}
 
 	/* (non-Javadoc)
@@ -584,8 +617,8 @@ public class ProgressReporter
 	 */
 	public int compareTo(Object obj) {
 		if (obj instanceof IProgressReporter) {
-			int targetID = obj.hashCode(); //KN: Will this always work as expected as opposed to using ((IProgressReporter)obj).getID()?
-			return (ID < targetID ? -1 : (ID == targetID ? 0 : 1));
+			//KN: Will this always work as expected as opposed to using ((IProgressReporter)obj).getID()?
+			return (ID < obj.hashCode() ? -1 : (ID == obj.hashCode() ? 0 : 1));
 		}
 		return 0;
 	}
@@ -595,7 +628,8 @@ public class ProgressReporter
 	 */
 	public boolean equals(Object obj) {
 		if (obj instanceof IProgressReporter) {
-			return ID == obj.hashCode();//KN: Will this always work as expected as opposed to using ((IProgressReporter)obj).getID()?
+			//KN: Will this always work as expected as opposed to using ((IProgressReporter)obj).getID()?
+			return ID == obj.hashCode();
 		}
 		return false;
 	}
@@ -631,7 +665,8 @@ public class ProgressReporter
 	 * @author knguyen
 	 * @see ProgressReporter#getProgressReport()
 	 */
-	public class ProgressReport implements IProgressReport
+	public class ProgressReport
+		implements IProgressReport
 	{
 		private String reporterType = ProgressReporter.this.reporterType;
 
@@ -668,12 +703,6 @@ public class ProgressReporter
 		private String message = ProgressReporter.this.message;
 
 		private String detailMessage = ProgressReporter.this.detailMessage;
-
-		/*
-		 * Converting to array so the original list is insulated from modification
-		 * KN: this might be too costly if the list is large so might need to implement something better
-		 */
-		private String[] detailMessageHistory = (String[]) ProgressReporter.this.detailMessageHistory.toArray(new String[ProgressReporter.this.detailMessageHistory.size()]);
 
 		private String errorMessage = ProgressReporter.this.errorMessage;
 
@@ -818,13 +847,6 @@ public class ProgressReporter
 		}
 
 		/* (non-Javadoc)
-		 * @see org.gudy.azureus2.ui.swt.progress.IProgressReport#getDetailMessageHistory()
-		 */
-		public String[] getDetailMessageHistory() {
-			return detailMessageHistory;
-		}
-
-		/* (non-Javadoc)
 		 * @see org.gudy.azureus2.ui.swt.progress.IProgressReport#getErrorMessage()
 		 */
 		public String getErrorMessage() {
@@ -859,8 +881,6 @@ public class ProgressReporter
 			return REPORT_TYPE;
 		}
 
-		
-		
 	}
 
 }

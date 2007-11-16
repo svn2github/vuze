@@ -120,12 +120,6 @@ public interface IProgressReport
 	public String getDetailMessage();
 
 	/**
-	 * Returns an array of all detail messages generated from the creation of the reporter until now
-	 * @return
-	 */
-	public String[] getDetailMessageHistory();
-
-	/**
 	 * Returns the error message (if any) for this report
 	 * @return
 	 */

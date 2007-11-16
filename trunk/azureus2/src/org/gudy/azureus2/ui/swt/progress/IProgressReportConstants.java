@@ -102,7 +102,40 @@ public interface IProgressReportConstants
 	public static final int MANAGER_EVENT_REMOVED = 2;
 
 	/**
-	 * When reporter that is already in the history list report an event
+	 * When a reporter that is already in the history list report an event
 	 */
 	public static final int MANAGER_EVENT_UPDATED = 3;
+
+
+	//======== style bits for UI components=================
+
+	/**
+	 * Default style bit for no styles  
+	 */
+	public static final int NONE = 0;
+
+	/**
+	 * Automatically closes the window when the reporter is finished;
+	 * this only takes effect when there is only 1 reporter in the window
+	 */
+	public static final int AUTO_CLOSE = 1 << 1;
+
+	/**
+	 * Open the window as MODAL
+	 */
+	public static final int MODAL = 1 << 2;
+
+	/**
+	 * The reporter is the only one in a window
+	 */
+	public static final int STANDALONE = 1 << 3;
+
+	
+	//========== report message types =================
+	
+	public static final int MSG_TYPE_INFO = 1 << 1;
+
+	public static final int MSG_TYPE_ERROR = 1 << 2;
+
+	public static final int MSG_TYPE_LOG = 1 << 3;
 }
