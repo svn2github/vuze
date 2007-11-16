@@ -279,7 +279,9 @@ public class BTPeerIDByteDecoder {
 	public static String decode(byte[] peer_id) {
 		String client = null;
 		try {client = decode0(peer_id);}
-		catch (Throwable e) {Debug.printStackTrace(e);}
+		catch (Throwable e) {
+			Debug.out( "Failed to decode peer id " + ByteFormatter.encodeString(peer_id) + ": " + Debug.getNestedExceptionMessageAndStack( e ));
+		}
 
 		String peer_id_as_string = null;
 		try {peer_id_as_string = new String(peer_id, Constants.BYTE_ENCODING);}
