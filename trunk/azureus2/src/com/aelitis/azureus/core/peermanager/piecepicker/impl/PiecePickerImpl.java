@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.peers.PeerStats;
 
 import com.aelitis.azureus.core.peermanager.control.PeerControlScheduler;
 import com.aelitis.azureus.core.peermanager.control.PeerControlSchedulerFactory;
@@ -554,7 +555,7 @@ implements PiecePicker
 		final List peers =peerControl.getPeers();
 		final int peersSize =peers.size();
 
-		final long[] upRates =new long[peersSize];
+		//final long[] upRates =new long[peersSize];
 		final ArrayList bestUploaders =new ArrayList( peersSize );
 
 		for (int i =0; i <peersSize; i++){
@@ -569,13 +570,51 @@ implements PiecePicker
 				if ( 	no_req_count == 0 || 
 						allocate_request_loop_count % ( no_req_count + 1 ) == 0 )
 				{
-
-					final long upRate =peer.getStats().getSmoothDataReceiveRate();
-					UnchokerUtil.updateLargestValueFirstSort(upRate, upRates, peer, bestUploaders, 0);
+					bestUploaders.add(peer);
+					
+					//final long upRate =peer.getStats().getSmoothDataReceiveRate();
+					//UnchokerUtil.updateLargestValueFirstSort(upRate, upRates, peer, bestUploaders, 0);
 				}
 			}
 		}
 
+		/* sort all peers we're currently downloading from
+		 * with the most favorable for the next request one as 1st entry   
+		 */
+		Collections.sort(bestUploaders, new Comparator() {
+			public int compare(Object o1, Object o2) {
+				PEPeerTransport pt2 = (PEPeerTransport)o2;
+				PEPeerTransport pt1 = (PEPeerTransport)o1;
+				PEPeerStats stats2 = pt2.getStats();
+				PEPeerStats stats1 = pt1.getStats();
+				/* pt1 comes first if we want to request data from it more than from pt2
+				 * it is "smaller", i.e. return is < 0 
+				 */
+
+				// try to download from the currently fastest
+				int toReturn = (int)(stats2.getSmoothDataReceiveRate() - stats2.getSmoothDataReceiveRate());
+
+				// we're here because we're not requesting anything from both peers
+				// which means we might have to send the next request to this peer
+				
+				// first try to download from peers that we're uploading to, that should stabilize tit-for-tat a bit
+				if(toReturn == 0 && (!pt2.isChokedByMe() || !pt1.isChokedByMe()))
+					toReturn = (int)(stats2.getDataSendRate() - stats1.getDataSendRate());
+
+				// ok, we checked all downloading and uploading peers by now
+				// avoid snubbed ones for the next step here
+				if(toReturn == 0 && pt2.isSnubbed() && !pt1.isSnubbed())
+					toReturn = -1;
+				if(toReturn == 0 && !pt2.isSnubbed() && pt1.isSnubbed())
+					toReturn = 1;
+
+				// still nothing, next try peers from which we have downloaded most in the past 
+				if(toReturn == 0)
+					toReturn = (int)(stats2.getTotalDataBytesReceived() - stats1.getTotalDataBytesReceived());
+					
+				return toReturn;
+			}
+		});
 
 		final int uploadersSize =bestUploaders.size();
 
