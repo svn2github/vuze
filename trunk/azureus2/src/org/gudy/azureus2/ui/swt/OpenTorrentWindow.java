@@ -40,7 +40,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.StringIterator;
 import org.gudy.azureus2.core3.config.StringList;
@@ -193,6 +192,8 @@ public class OpenTorrentWindow
 		core = AzureusCoreFactory.getSingleton();
 	}
 
+	
+	
 	/**
 	 * 
 	 * @param parent
@@ -354,6 +355,7 @@ public class OpenTorrentWindow
 				String fileName = TorrentOpener.setFilterPathTorrent(fDialog.open());
 				if (fileName != null) {
 					addTorrents(fDialog.getFilterPath(), fDialog.getFileNames());
+					enableControl(ok, true);
 				}
 			}
 		});
@@ -377,8 +379,10 @@ public class OpenTorrentWindow
 				fDialog.setFilterPath(TorrentOpener.getFilterPathTorrent());
 				fDialog.setMessage(MessageText.getString("MainWindow.dialog.choose.folder"));
 				String path = TorrentOpener.setFilterPathTorrent(fDialog.open());
-				if (path != null)
+				if (path != null) {
 					addTorrents(path, null);
+					enableControl(ok, true);
+				}
 			}
 		});
 
@@ -394,6 +398,7 @@ public class OpenTorrentWindow
 					String sClipText = (String) clipboard.getContents(TextTransfer.getInstance());
 					if (sClipText != null) {
 						addTorrentsFromTextList(sClipText.trim(), false);
+						enableControl(ok, true); 
 					}
 				}
 			});
@@ -596,6 +601,11 @@ public class OpenTorrentWindow
 				okPressed();
 			}
 		});
+
+		//KN: Disable the OK button until we have something to say OK to
+		ok.setEnabled(false);
+		
+		
 		checkSeedingMode();
 
 		Button cancel = new Button(cArea, SWT.PUSH);
@@ -2209,6 +2219,11 @@ public class OpenTorrentWindow
 				}
 			}
 
+			//KN: Enables the OK button (if it's not already) when a downloader is finished 
+			enableControl(ok, true);
+			
+			
+			
 			checkSeedingMode();
 		} else if (state == TorrentDownloader.STATE_CANCELLED
 				|| state == TorrentDownloader.STATE_ERROR
@@ -2811,6 +2826,23 @@ public class OpenTorrentWindow
 		diskFreeInfoRefreshPending = true;
 	}
 
+	
+	/**
+	 * Convenience method for setting the enabled state of a control
+	 * <P>This method may be called from any thread</p>
+	 * @param control
+	 * @param enabledState
+	 */
+	private void enableControl(final Control control, final boolean enabledState) {
+		if (control != null) {
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					control.setEnabled(enabledState);
+				}
+			});
+		}
+	}
+	
 	public static void main(String[] args) {
 		Display display = Display.getDefault();
 
