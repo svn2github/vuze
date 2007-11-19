@@ -325,4 +325,20 @@ PluginManagerImpl
 			}
 		}
 	}
+	
+	public boolean
+	isSilentRestartEnabled()
+	{
+		PluginInterface[] pis = pi.getPlugins();
+		
+		for ( int i=0;i<pis.length;i++ ){
+			
+			if ( pis[i].getPluginProperties().getProperty("plugin.silentrestart.disabled", "" ).equalsIgnoreCase( "true" )){
+				
+				return( false );
+			}
+		}
+		
+		return( true );
+	}
 }

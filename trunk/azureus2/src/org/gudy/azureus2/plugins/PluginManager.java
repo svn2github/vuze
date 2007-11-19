@@ -203,4 +203,6 @@ PluginManager
 	 */
 	public abstract void refreshPluginList();
 	
+	public abstract boolean
+	isSilentRestartEnabled();
 }
