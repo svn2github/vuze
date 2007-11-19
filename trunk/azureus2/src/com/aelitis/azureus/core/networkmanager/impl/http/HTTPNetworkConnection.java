@@ -297,7 +297,7 @@ HTTPNetworkConnection
 	protected boolean
 	isSeed()
 	{
-		if ( !peer.getControl().isSeeding()){
+		if ( ( !peer.getControl().isSeeding()) || peer.getControl().getHiddenBytes() > 0 ){
 			
 			if (Logger.isEnabled()){
 				Logger.log(new LogEvent(peer,LOGID, "Download is not seeding" ));

@@ -341,13 +341,15 @@ DownloadManagerController
 	    					temp.getStats().getTotalDataBytesReceived() - 
 	    					( temp.getStats().getTotalDiscarded() + temp.getStats().getTotalHashFailBytes());
 	    				
+	    				verified -= temp.getHiddenBytes();
+	    				
 	    				return( verified < 0?0:verified );
 	    			}
 	    			
 	    			public long
 	    			getRemaining()
 	    			{
-	    				return( temp.getRemaining());
+	    				return( Math.max( temp.getRemaining(), temp.getHiddenBytes()));
 	    			}
 					
 	    			public long 
@@ -1193,6 +1195,12 @@ DownloadManagerController
 		}
 		
 		return((byte[])secrets_map.get( "p1" ));
+	}
+	
+	public long 
+	getRandomSeed() 
+	{
+		return( download_manager.getDownloadState().getLongParameter( DownloadManagerState.PARAM_RANDOM_SEED ));
 	}
 	
 	public void

@@ -64,6 +64,9 @@ PEPeerManagerAdapter
 	public int
 	getCryptoLevel();
 	
+	public long
+	getRandomSeed();
+	
 	public boolean
 	isPeriodicRescanEnabled();
 	

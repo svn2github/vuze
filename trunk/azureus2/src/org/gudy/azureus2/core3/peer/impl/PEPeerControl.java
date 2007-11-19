@@ -70,6 +70,9 @@ PEPeerControl
 	getSecrets(
 		int	crypto_level );
 	
+	public int
+	getHiddenPiece();
+	
 	public void addPeerTransport( PEPeerTransport transport );
 	
 	public int

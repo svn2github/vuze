@@ -24,6 +24,7 @@ package org.gudy.azureus2.core3.download.impl;
 
 import java.io.*;
 import java.net.URL;
+import java.security.SecureRandom;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -71,6 +72,8 @@ DownloadManagerStateImpl
 			FileUtil.mkdirs(ACTIVE_DIR);
 		}
 	}
+	
+	private static Random	random = new SecureRandom();
 	
 	private static final Map	default_parameters;
 	private static final Map	default_attributes;
@@ -918,9 +921,18 @@ DownloadManagerStateImpl
 						int	def = COConfigurationManager.getIntParameter( "Max.Peer.Connections.Per.Torrent.When.Seeding" );
 						
 						value = new Integer( def );
-					}else if ( name == PARAM_MAX_SEEDS)
-					{
+						
+					}else if ( name == PARAM_MAX_SEEDS ){
+					
 						value = new Integer(COConfigurationManager.getIntParameter( "Max Seeds Per Torrent" ));
+						
+					}else if ( name == PARAM_RANDOM_SEED ){
+						
+						long	rand = random.nextLong();
+						
+						setLongParameter( name, rand );
+						
+						value = new Long( rand );
 					}
 				}
 			}

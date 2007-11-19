@@ -1050,7 +1050,7 @@ implements PEPeerTransport
 
 
 	public void sendHave( int pieceNumber ) {
-		if ( current_peer_state != TRANSFERING ) return;
+		if ( current_peer_state != TRANSFERING || pieceNumber == manager.getHiddenPiece()) return;
 		//only force if the other peer doesn't have this piece and is not yet interested or we;ve disabled
 		// aggregation
 		final boolean force =!other_peer_interested_in_me &&peerHavePieces !=null &&!peerHavePieces.flags[pieceNumber];
@@ -1264,6 +1264,8 @@ implements PEPeerTransport
 
 		MutableInteger	mi = new MutableInteger(0);
 		
+		int	hidden_piece = manager.getHiddenPiece();
+		
 		for (; i <num_pieces; i++ ){
 		
 			if ((i %8) ==0){
@@ -1272,7 +1274,7 @@ implements PEPeerTransport
 			
 			bToSend = bToSend << 1;
 			
-			if (pieces[i].isDone()){
+			if (pieces[i].isDone() && i != hidden_piece ){
 			
 				if ( lazies != null ){
 					
@@ -2509,6 +2511,11 @@ implements PEPeerTransport
 			return;
 		}
 
+		if ( manager.getHiddenPiece() == number ){
+			closeConnectionInternally( "request for piece #" + number + " is invalid as piece is hidden" );
+			return;
+		}
+		
 		if( !choking_other_peer ) {
 			outgoing_piece_message_handler.addPieceRequest( number, offset, length );
 			allowReconnect = true;
@@ -2519,7 +2526,6 @@ implements PEPeerTransport
 						+ number + ":" + offset + "->" + (offset + length -1)
 						+ " ignored as peer is currently choked."));
 		}
-
 	}
 
 

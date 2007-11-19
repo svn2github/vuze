@@ -106,6 +106,8 @@ PEPeerManager
 		
 	public long getRemaining();
 	
+	public long getHiddenBytes();
+	
 	public long getETA();
 
 	public String getElapsedTime();

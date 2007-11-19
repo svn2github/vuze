@@ -446,6 +446,8 @@ public class ConfigurationDefaults {
     
     def.put( "peercontrol.udp.fallback.connect.fail", TRUE );
     def.put( "peercontrol.udp.fallback.connect.drop", TRUE );
+    def.put( "peercontrol.udp.probe.enable", FALSE );
+    def.put( "peercontrol.hide.piece", FALSE );
     def.put( "peercontrol.scheduler.use.priorities", TRUE );
     	
     def.put( "File.truncate.if.too.large", FALSE);

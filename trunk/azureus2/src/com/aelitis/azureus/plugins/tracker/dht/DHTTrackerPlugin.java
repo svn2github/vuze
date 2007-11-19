@@ -28,13 +28,15 @@ import java.net.UnknownHostException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.tracker.protocol.PRHelpers;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AESemaphore;
-import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -66,6 +68,7 @@ import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.plugins.utils.UTTimerEvent;
 import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
@@ -239,11 +242,11 @@ DHTTrackerPlugin
 						
 						dht = (DHTPlugin)dht_pi.getPlugin();
 						
-						Thread	t = 
-							new AEThread( "DHTTrackerPlugin:init" )
+						AEThread2	t = 
+							new AEThread2( "DHTTrackerPlugin:init", true )
 							{
 								public void
-								runSupport()
+								run()
 								{
 									try{
 									
@@ -273,9 +276,7 @@ DHTTrackerPlugin
 									}
 								}
 							};
-							
-						t.setDaemon( true );
-						
+													
 						t.start();
 
 					}else{
@@ -890,8 +891,8 @@ DHTTrackerPlugin
 			final Download	dl = (Download)it.next();
 			
 			RegistrationDetails	existing_reg = (RegistrationDetails)registered_downloads.get( dl );
-
-			byte	new_flags = dl.isComplete()?DHTPlugin.FLAG_SEEDING:DHTPlugin.FLAG_DOWNLOADING;
+			
+			byte	new_flags = isComplete( dl )?DHTPlugin.FLAG_SEEDING:DHTPlugin.FLAG_DOWNLOADING;
 				
 			if ( 	existing_reg == null ||
 					existing_reg.getFlags() != new_flags ||
@@ -1216,7 +1217,7 @@ DHTTrackerPlugin
 			
 			dht.get(target.getHash(), 
 					"Tracker announce for '" + download.getName() + "'" + target.getDesc(),
-					download.isComplete()?DHTPlugin.FLAG_SEEDING:DHTPlugin.FLAG_DOWNLOADING,
+					isComplete( download )?DHTPlugin.FLAG_SEEDING:DHTPlugin.FLAG_DOWNLOADING,
 					NUM_WANT, 
 					ANNOUNCE_TIMEOUT,
 					false, false,
@@ -1642,6 +1643,30 @@ DHTTrackerPlugin
 						}
 					});
 		}
+	}
+	
+	protected boolean
+	isComplete(
+		Download	download )
+	{
+		boolean	is_complete = download.isComplete();
+		
+		if ( is_complete ){
+			
+			DownloadManager core_dm = PluginCoreUtils.unwrap( download );
+			
+			if ( core_dm != null ){
+			
+				PEPeerManager pm = core_dm.getPeerManager();
+				
+				if ( pm != null && pm.getHiddenBytes() > 0 ){
+					
+					is_complete = false;
+				}
+			}
+		}
+		
+		return( is_complete );
 	}
 	
 	protected void

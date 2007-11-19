@@ -92,6 +92,8 @@ DiskManagerCheckRequestListener, IPFilterListener
     private static int		ban_peer_discard_min_kb;
     private static boolean	udp_fallback_for_failed_connection;
     private static boolean	udp_fallback_for_dropped_connection;  
+    private static boolean	udp_probe_enabled;
+    private static boolean	hide_a_piece;
     
 	static{
 		
@@ -105,6 +107,8 @@ DiskManagerCheckRequestListener, IPFilterListener
    				"Ip Filter Ban Discard Min KB",
    				"peercontrol.udp.fallback.connect.fail",
    				"peercontrol.udp.fallback.connect.drop",
+   				"peercontrol.udp.probe.enable",
+   				"peercontrol.hide.piece",
 			},
 			new ParameterListener()
 			{
@@ -120,6 +124,13 @@ DiskManagerCheckRequestListener, IPFilterListener
 					ban_peer_discard_min_kb				= COConfigurationManager.getIntParameter( "Ip Filter Ban Discard Min KB" );
 					udp_fallback_for_failed_connection	= COConfigurationManager.getBooleanParameter( "peercontrol.udp.fallback.connect.fail" );
 					udp_fallback_for_dropped_connection	= COConfigurationManager.getBooleanParameter( "peercontrol.udp.fallback.connect.drop" );				
+					udp_probe_enabled					= COConfigurationManager.getBooleanParameter( "peercontrol.udp.probe.enable" );				
+					hide_a_piece						= COConfigurationManager.getBooleanParameter( "peercontrol.hide.piece" );
+					
+					if ( hide_a_piece ){
+						
+						disconnect_seeds_when_seeding = false;
+					}
 				}
 			});
 	}
@@ -182,6 +193,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 	private int 				superSeedModeNumberOfAnnounces;
 	private SuperSeedPiece[]	superSeedPieces;
 
+	private final int			hidden_piece;
+	
 	private final AEMonitor     this_mon = new AEMonitor( "PEPeerControl");
 
 	private long		ip_filter_last_update_time;
@@ -272,9 +285,9 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 	public 
 	PEPeerControlImpl(
-			byte[]					_peer_id,
-			PEPeerManagerAdapter 	_adapter,
-			DiskManager 		diskManager) 
+		byte[]					_peer_id,
+		PEPeerManagerAdapter 	_adapter,
+		DiskManager 			diskManager) 
 	{
 		_myPeerId		= _peer_id;
 		adapter 		= _adapter;
@@ -282,9 +295,16 @@ DiskManagerCheckRequestListener, IPFilterListener
 		disk_mgr = diskManager;
 		_nbPieces =disk_mgr.getNbPieces();
 		dm_pieces =disk_mgr.getPieces();
+		
+		pePieces = new PEPieceImpl[_nbPieces];
 
-		pePieces =new PEPieceImpl[_nbPieces];
+		hidden_piece = hide_a_piece?((int)(Math.abs(adapter.getRandomSeed())%_nbPieces)):-1;
 
+		if ( hidden_piece >= 0 ){
+		
+			System.out.println( "Hidden piece for " + getDisplayName() + " = " + hidden_piece );
+		}
+		
 		piecePicker = PiecePickerFactory.create( this );
 
 		COConfigurationManager.addParameterListener("Ip Filter Enabled", this);
@@ -3455,6 +3475,13 @@ DiskManagerCheckRequestListener, IPFilterListener
 						int	tcp_port = item.getTCPPort();
 						int	udp_port = item.getUDPPort();
 						
+						if ( udp_port == 0 && udp_probe_enabled ){
+							
+								// for probing we assume udp port same as tcp
+							
+							udp_port = tcp_port;
+						}
+						
 						boolean	tcp_ok = TCPNetworkManager.TCP_OUTGOING_ENABLED && tcp_port > 0 && tcp_remaining > 0;
 						boolean udp_ok = UDPNetworkManager.UDP_OUTGOING_ENABLED && udp_port > 0 && udp_remaining > 0;
 
@@ -3897,6 +3924,23 @@ DiskManagerCheckRequestListener, IPFilterListener
 		byte[]	torrent_hash )
 	{
 		return true;
+	}
+	
+	public long 
+	getHiddenBytes() 
+	{
+		if ( hidden_piece < 0 ){
+			
+			return( 0 );
+		}
+		
+		return( dm_pieces[hidden_piece].getLength());
+	}
+	
+	public int
+	getHiddenPiece()
+	{
+		return( hidden_piece );
 	}
 	
 	public void IPBlockedListChanged(IpFilter filter) {
