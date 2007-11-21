@@ -240,6 +240,8 @@ public class OpenTorrentWindow
 					return;
 				}
 			}
+			
+			openTorrentWindow.enableControl(openTorrentWindow.ok, true);
 
 			if (bPopupOpenURL)
 				openTorrentWindow.browseURL();
