@@ -688,6 +688,10 @@ MagnetURIHandlerImpl
 	 * @since 3.0.2.1
 	 */
 	private void writeImage(OutputStream os, int width, int height) {
+		
+			// DON'T CHANGE ANY OF THIS WITHOUT (AT LEAST) CHANGING THE JWS LAUNCHER CODE
+			// AS IT MANUALLY DECODES THE BMP TO DETERMINE ITS SIZE!!!!
+		
 		int rowWidth = width / 8;
 		if ((rowWidth % 4) != 0) {
 			rowWidth = ((rowWidth / 4) + 1) * 4;

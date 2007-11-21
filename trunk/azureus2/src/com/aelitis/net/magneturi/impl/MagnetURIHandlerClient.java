@@ -30,7 +30,7 @@ MagnetURIHandlerClient
 {
 	protected static final String	NL			= "\015\012";
 
-	public boolean
+	private byte[]
 	load(
 		String	url,
 		int		max_millis_to_wait )
@@ -41,6 +41,7 @@ MagnetURIHandlerClient
 		
 		while( true ){
 			
+outer:
 			for (int i=45100;i<=45108;i++){
 	
 				long	now = System.currentTimeMillis();
@@ -52,7 +53,7 @@ MagnetURIHandlerClient
 				
 				if ( now - start > max_millis_to_wait ){
 					
-					return( false );
+					return( null );
 				}
 				
 				Socket	sock = null;
@@ -72,10 +73,40 @@ MagnetURIHandlerClient
 					
 					InputStream	is = sock.getInputStream();
 					
-					String	res = "";
+					String	header = "";
 					
-					byte[]	buffer = new byte[1024];
+					byte[]	buffer = new byte[1];
 	
+					while( true ){
+						
+						int	len = is.read( buffer );
+						
+						if ( len <= 0 ){
+							
+							break outer;
+						}
+						
+						header += new String( buffer, 0, len );
+						
+						if ( header.endsWith( NL + NL )){
+							
+							break;
+						}
+					}
+					
+					int	pos = header.indexOf( NL );
+					
+					String	first_line = header.substring( 0, pos );
+					
+					if ( first_line.indexOf( "200" ) == -1 ){
+						
+						continue;
+					}
+					
+					ByteArrayOutputStream baos = new ByteArrayOutputStream(1024);
+					
+					buffer = new byte[2048];
+					
 					while( true ){
 						
 						int	len = is.read( buffer );
@@ -84,14 +115,16 @@ MagnetURIHandlerClient
 							
 							break;
 						}
+	
+						baos.write( buffer, 0, len );
 						
-						res += new String( buffer, 0, len );
-						
-						if ( res.indexOf( " 200" ) != -1 ){
+						if ( baos.size() > 512*1024 ){
 							
-							return( true );
+							break outer;
 						}
 					}
+					
+					return( baos.toByteArray());
 					
 				}catch( Throwable e ){
 					
@@ -118,17 +151,34 @@ MagnetURIHandlerClient
 	{
 		String msg = "/setinfo?name=" + name + "&value=" + value;
 
-		return( load( msg, max_millis ));
+		byte[] response = load( msg, max_millis );
+		
+		if ( response == null ){
+			
+			return( false );
+		}
+		
+			// 40 x 40 image is encoded as 134 bytes...
+		
+		boolean	success = response.length == 134;
+		
+		System.out.println( name+"="+value + " -> " + success );
+		
+		return( success );
 	}
 	
 	public static void
 	main(
 		String[]	args )
 	{
-		String start = "/setinfo?name=AZMSG&value=";
+		new MagnetURIHandlerClient().sendSetValue( 
+				"AZMSG", 
+				"AZMSG;1;torrent;is-ready", 
+				30000 );
 		
-		String str = "AZMSG;1;torrent;load-torrent;{\"url\":\"http://www.vuze.com/download/VCCBRHY5GYNGFKPJSYQID4GB3XPTYGIG.torrent?referal=jws\",\"play-now\":true}";
-		
-		new MagnetURIHandlerClient().load( start + str, 30000 );
+		new MagnetURIHandlerClient().sendSetValue( 
+				"AZMSG", 
+				"AZMSG;1;torrent;load-torrent;{\"url\":\"http://www.vuze.com/download/VCCBRHY5GYNGFKPJSYQID4GB3XPTYGIG.torrent?referal=jws\",\"play-now\":true}", 
+				30000 );
 	}
 }
