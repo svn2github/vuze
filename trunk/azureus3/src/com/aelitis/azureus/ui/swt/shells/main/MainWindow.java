@@ -643,6 +643,9 @@ public class MainWindow
 										"play-now", false);
 								TorrentUIUtilsV3.loadTorrent(core, url, MapUtils.getMapString(
 										decodedMap, "referer", null), playNow);
+								
+								return true;
+								
 							} else {
 								return false;
 							}
