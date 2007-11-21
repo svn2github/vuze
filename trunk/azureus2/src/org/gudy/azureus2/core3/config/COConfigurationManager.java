@@ -87,9 +87,9 @@ COConfigurationManager
 			      //see http://developer.apple.com/releasenotes/Java/Java142RN/ResolvedIssues/chapter_3_section_7.html
 			      //fixes the osx kernel panic bug caused by Apple's faulty kqueue implementation (as of 10.3.6)
 			  	
-			    if( Constants.isOSX ) {
-			        System.setProperty( "java.nio.preferSelect", "true" );
-			    }
+//			    if( Constants.isOSX ) {
+//			        System.setProperty( "java.nio.preferSelect", "true" );
+//			    }
 			}catch( Throwable e ){
 				
 					// can happen in applet
