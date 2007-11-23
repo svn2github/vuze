@@ -22,6 +22,7 @@ package org.gudy.azureus2.core3.internat;
 
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.ListResourceBundle;
@@ -50,7 +51,8 @@ public class IntegratedResourceBundle extends ListResourceBundle {
   {
 	  locale = main.getLocale();
 	  
-	  Hashtable messages = new Hashtable();
+	  // use a somewhat decent initial capacity, proper calculation would require java 1.6
+	  Map messages = new HashMap(200);
 	  
 	  addResourceMessages(main, messages);
 
@@ -89,8 +91,8 @@ public class IntegratedResourceBundle extends ListResourceBundle {
 	  
 	 int i = 0;
 	  
-	 for (Enumeration enumeration = messages.keys(); enumeration.hasMoreElements();) {
-	      String key = (String) enumeration.nextElement();
+	 for (Iterator it = messages.keySet().iterator(); it.hasNext();) {
+	      String key = (String) it.next();
 	      contents[i][0] = key;
 	      contents[i++][1] = messages.get(key);
 	 }
@@ -107,7 +109,7 @@ public class IntegratedResourceBundle extends ListResourceBundle {
   }
 
   private void 
-  addResourceMessages(ResourceBundle bundle, Hashtable messages) 
+  addResourceMessages(ResourceBundle bundle, Map messages) 
   {
     if (bundle != null) {
       for (Enumeration enumeration = bundle.getKeys(); enumeration.hasMoreElements();) {

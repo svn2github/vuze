@@ -31,6 +31,8 @@ import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.print.attribute.standard.MediaSize.Engineering;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
@@ -63,6 +65,7 @@ public class MessageText {
   
   private static List listeners = new ArrayList();
   
+  // preload default language w/o plugins
   static{
 	  setResourceBundle( getResourceBundle(BUNDLE_NAME, LOCALE_DEFAULT, MessageText.class.getClassLoader()));
   }
@@ -594,7 +597,14 @@ public class MessageText {
   }
 
   private static boolean changeLocale(Locale newLocale, boolean force) {
-    if (!LOCALE_CURRENT.equals(newLocale) || force) {
+	if(!LOCALE_CURRENT.equals(newLocale) && newLocale.equals(LOCALE_ENGLISH))
+	{
+		setResourceBundle( new IntegratedResourceBundle(DEFAULT_BUNDLE, pluginLocalizationPaths));
+		Locale.setDefault(newLocale);
+		return true;
+	}
+		
+    if (!isCurrentLocale(newLocale) || force) {
       Locale.setDefault(LOCALE_DEFAULT);
       ResourceBundle newResourceBundle = null;
       String bundleFolder = BUNDLE_NAME.replace('.', '/');
