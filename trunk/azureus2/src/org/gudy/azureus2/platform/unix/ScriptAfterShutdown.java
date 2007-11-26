@@ -9,6 +9,9 @@ public class ScriptAfterShutdown
 	private static PrintStream sysout;
 
 	public static void main(String[] args) {
+		// Set transitory so not everything gets loaded up. (such as the AEDiagnostic's tidy flag)
+		System.setProperty("transitory.startup", "1");
+
 		// Since stdout will be in a shell script, redirect any stdout not coming
 		// from us to stderr 
 		sysout = System.out;

@@ -113,6 +113,17 @@ AEDiagnostics
 		started_up	= true;
 		
 		try{
+			// Minimize risk of loading to much when in transitory startup mode
+			boolean transitoryStartup = System.getProperty("transitory.startup", "0").equals("1");
+			if (transitoryStartup) {
+				// no vivaldi and Thread monitor for you!
+				load_15_tried = true;
+				// no xxx_?.log logging for you!
+				loggers_enabled = false;
+				// skip tidy check and more!
+				return;
+			}
+
 			debug_dir		= FileUtil.getUserFile( "logs" );
 			
 			debug_save_dir	= new File( debug_dir, "save" );
