@@ -25,7 +25,8 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  */
 public class ColumnAzProduct
 	extends CoreTableColumn
-	implements TableCellAddedListener, TableCellToolTipListener
+	implements TableCellAddedListener, TableCellToolTipListener,
+	TableCellRefreshListener
 {
 	public static String COLUMN_ID = "AzProduct";
 
@@ -56,40 +57,32 @@ public class ColumnAzProduct
 		setAlignment(ALIGN_CENTER);
 	}
 
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener#cellAdded(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void cellAdded(TableCell cell) {
-		new Cell(cell);
+		cell.setMarginWidth(0);
+		cell.setMarginHeight(0);
 	}
 
-	private class Cell
-		implements TableCellRefreshListener
-	{
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
+	public void refresh(TableCell cell) {
+		DownloadManager dm = (DownloadManager) cell.getDataSource();
+		if (dm == null) {
+			return;
+		}
+		TOTorrent torrent = dm.getTorrent();
+		boolean isContent = PlatformTorrentUtils.isContent(torrent, true);
 
-		public Cell(TableCell cell) {
-			cell.addListeners(this);
-			cell.setMarginWidth(0);
-			cell.setMarginHeight(0);
+		long sortVal = (isContent) ? 1 : 0;
+
+		if (!cell.setSortValue(sortVal) && cell.isValid()) {
+			return;
 		}
 
-		public void refresh(TableCell cell) {
-			DownloadManager dm = (DownloadManager) cell.getDataSource();
-			if (dm == null) {
-				return;
-			}
-			TOTorrent torrent = dm.getTorrent();
-			boolean isContent = PlatformTorrentUtils.isContent(torrent, true);
-
-			long sortVal = (isContent) ? 1 : 0;
-
-			if (!cell.setSortValue(sortVal) && cell.isValid()) {
-				return;
-			}
-
-			if (!cell.isShown()) {
-				return;
-			}
-
-			cell.setGraphic(isContent ? graphicProductAzureus : graphicProductGlobe);
+		if (!cell.isShown()) {
+			return;
 		}
+
+		cell.setGraphic(isContent ? graphicProductAzureus : graphicProductGlobe);
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener#cellHover(org.gudy.azureus2.plugins.ui.tables.TableCell)

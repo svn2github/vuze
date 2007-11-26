@@ -38,7 +38,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
  */
 public class ColumnRecEdit
 	extends CoreTableColumn
-	implements TableCellAddedListener
+	implements TableCellAddedListener, TableCellRefreshListener
 {
 	/**
 	 * 
@@ -50,27 +50,17 @@ public class ColumnRecEdit
 	}
 
 	public void cellAdded(TableCell cell) {
-		new Cell(cell);
+		cell.setMarginWidth(0);
+		cell.setMarginHeight(0);
+
+		if (Math.random() > 0.3) {
+			Image img = ImageLoaderFactory.getInstance().getImage("icon.editpencil");
+			Graphic graphic = new UISWTGraphicImpl(img);
+			cell.setGraphic(graphic);
+		}
 	}
 
-	private class Cell
-		implements TableCellRefreshListener
-	{
+	public void refresh(TableCell cell) {
 
-		public Cell(TableCell cell) {
-			cell.addListeners(this);
-			cell.setMarginWidth(0);
-			cell.setMarginHeight(0);
-
-			if (Math.random() > 0.3) {
-				Image img = ImageLoaderFactory.getInstance().getImage("icon.editpencil");
-				Graphic graphic = new UISWTGraphicImpl(img);
-				cell.setGraphic(graphic);
-			}
-		}
-
-		public void refresh(TableCell cell) {
-
-		}
 	}
 }

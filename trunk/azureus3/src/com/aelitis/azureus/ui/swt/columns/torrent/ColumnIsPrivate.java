@@ -38,7 +38,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
  */
 public class ColumnIsPrivate
 	extends CoreTableColumn
-	implements TableCellAddedListener
+	implements TableCellAddedListener, TableCellRefreshListener
 {
 	public static String COLUMN_ID = "IsPrivate";
 
@@ -61,34 +61,25 @@ public class ColumnIsPrivate
 		setAlignment(ALIGN_CENTER);
 	}
 
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener#cellAdded(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void cellAdded(TableCell cell) {
-		new Cell(cell);
+		cell.setMarginWidth(0);
+		cell.setMarginHeight(0);
 	}
 
-	private class Cell
-		implements TableCellRefreshListener
-	{
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
+	public void refresh(TableCell cell) {
+		DownloadManager dm = (DownloadManager) cell.getDataSource();
+		boolean bPrivate = dm.getTorrent().getPrivate();
+		int sortVal = bPrivate ? 0 : 1;
 
-		public Cell(TableCell cell) {
-			cell.addListeners(this);
-			cell.setMarginWidth(0);
-			cell.setMarginHeight(0);
+		if (!cell.setSortValue(sortVal) && cell.isValid()) {
+			return;
+		}
+		if (!cell.isShown()) {
+			return;
 		}
 
-		public void refresh(TableCell cell) {
-			DownloadManager dm = (DownloadManager) cell.getDataSource();
-			boolean bPrivate = dm.getTorrent().getPrivate();
-			int sortVal = bPrivate ? 0 : 1;
-
-			if (!cell.setSortValue(sortVal) && cell.isValid()) {
-				return;
-			}
-			if (!cell.isShown()) {
-				return;
-			}
-
-			cell.setGraphic(bPrivate ? graphicCheck : null);
-		}
+		cell.setGraphic(bPrivate ? graphicCheck : null);
 	}
-
 }

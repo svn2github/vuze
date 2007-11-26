@@ -20,6 +20,8 @@
 package com.aelitis.azureus.ui.swt.columns.torrent;
 
 import java.io.ByteArrayInputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
@@ -47,9 +49,12 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  */
 public class ColumnMediaThumb
 	extends CoreTableColumn
-	implements TableCellAddedListener
+	implements TableCellAddedListener, TableCellRefreshListener,
+	TableCellDisposeListener, TableCellVisibilityListener
 {
 	public static String COLUMN_ID = "MediaThumb";
+
+	private Map mapCellTorrent = new HashMap();
 
 	/**
 	 * 
@@ -62,139 +67,130 @@ public class ColumnMediaThumb
 	}
 
 	public void cellAdded(TableCell cell) {
-		new Cell(cell);
+		cell.addListeners(this);
+		cell.setMarginWidth(0);
+		cell.setMarginHeight(0);
 	}
 
-	private class Cell
-		implements TableCellRefreshListener, TableCellDisposeListener,
-		TableCellVisibilityListener
-	{
-		TOTorrent torrent;
+	public void dispose(TableCell cell) {
+		mapCellTorrent.remove(cell);
+		disposeOldImage(cell);
+	}
 
-		Graphic graphic;
+	public void refresh(TableCell cell) {
+		refresh(cell, false);
+	}
 
-		public Cell(TableCell cell) {
-			cell.addListeners(this);
-			cell.setMarginWidth(0);
-			cell.setMarginHeight(0);
+	public void refresh(TableCell cell, boolean bForce) {
+		DownloadManager dm = (DownloadManager) cell.getDataSource();
+		TOTorrent newTorrent = dm.getTorrent();
+		long lastUpdated = PlatformTorrentUtils.getContentLastUpdated(newTorrent);
+		// xxx hack.. cell starts with 0 sort value
+		if (lastUpdated == 0) {
+			lastUpdated = -1;
 		}
 
-		public void dispose(TableCell cell) {
+		boolean bChanged = cell.setSortValue(lastUpdated) || bForce;
+
+		TOTorrent torrent = (TOTorrent) mapCellTorrent.get(cell);
+
+		if (newTorrent == torrent && !bChanged && cell.isValid()) {
+			return;
+		}
+
+		if (!bForce && !cell.isShown()) {
+			return;
+		}
+
+		torrent = newTorrent;
+		mapCellTorrent.put(cell, torrent);
+
+		if (torrent == null) {
+			cell.setGraphic(null);
+		} else {
+			// only dispose of old graphic if it's a thumbnail
 			disposeOldImage(cell);
-		}
 
-		public void refresh(TableCell cell) {
-			refresh(cell, false);
-		}
+			byte[] b = PlatformTorrentUtils.getContentThumbnail(torrent);
 
-		public void refresh(TableCell cell, boolean bForce) {
-			DownloadManager dm = (DownloadManager) cell.getDataSource();
-			TOTorrent newTorrent = dm.getTorrent();
-			long lastUpdated = PlatformTorrentUtils.getContentLastUpdated(newTorrent);
-			// xxx hack.. cell starts with 0 sort value
-			if (lastUpdated == 0) {
-				lastUpdated = -1;
-			}
-
-			boolean bChanged = cell.setSortValue(lastUpdated) || bForce;
-
-			if (newTorrent == torrent && !bChanged && cell.isValid()) {
-				return;
-			}
-
-			if (!bForce && !cell.isShown()) {
-				return;
-			}
-
-			torrent = newTorrent;
-
-			if (torrent == null) {
-				cell.setGraphic(null);
-			} else {
-				// only dispose of old graphic if it's a thumbnail
-				disposeOldImage(cell);
-
-				byte[] b = PlatformTorrentUtils.getContentThumbnail(torrent);
-
-				if (b == null) {
-					// Don't ever dispose of PathIcon, it's cached and may be used elsewhere
-					String path = dm.getDownloadState().getPrimaryFile();
-					if (path != null) {
-						Image icon = ImageRepository.getPathIcon(path, true);
-						Graphic graphic = new UISWTGraphicImpl(icon);
-						cell.setGraphic(graphic);
-					} else {
-						cell.setGraphic(null);
-					}
+			if (b == null) {
+				// Don't ever dispose of PathIcon, it's cached and may be used elsewhere
+				String path = dm.getDownloadState().getPrimaryFile();
+				if (path != null) {
+					Image icon = ImageRepository.getPathIcon(path, true);
+					Graphic graphic = new UISWTGraphicImpl(icon);
+					cell.setGraphic(graphic);
 				} else {
-					int MAXH = cell.getHeight() - 2;
-					// hack!
-					if (MAXH <= 0) {
-						MAXH = 30;
-					}
+					cell.setGraphic(null);
+				}
+			} else {
+				int MAXH = cell.getHeight() - 2;
+				// hack!
+				if (MAXH <= 0) {
+					MAXH = 30;
+				}
 
-					ByteArrayInputStream bis = new ByteArrayInputStream(b);
-					try {
-						Image img = new Image(Display.getDefault(), bis);
+				ByteArrayInputStream bis = new ByteArrayInputStream(b);
+				try {
+					Image img = new Image(Display.getDefault(), bis);
 
-						int w = img.getBounds().width;
-						int h = img.getBounds().height;
+					int w = img.getBounds().width;
+					int h = img.getBounds().height;
 
-						if (h > MAXH) {
-							int h2 = MAXH;
-							int w2 = h2 * w / h;
-							Image newImg = new Image(img.getDevice(), w2, h2);
+					if (h > MAXH) {
+						int h2 = MAXH;
+						int w2 = h2 * w / h;
+						Image newImg = new Image(img.getDevice(), w2, h2);
 
-							GC gc = new GC(newImg);
-							gc.setAdvanced(true);
-							try {
-								gc.setInterpolation(SWT.HIGH);
-							} catch (Exception e) {
-								// may not be avail
-							}
-							gc.drawImage(img, 0, 0, w, h, 0, 0, w2, h2);
-							gc.dispose();
-
-							img.dispose();
-							img = newImg;
+						GC gc = new GC(newImg);
+						gc.setAdvanced(true);
+						try {
+							gc.setInterpolation(SWT.HIGH);
+						} catch (Exception e) {
+							// may not be avail
 						}
+						gc.drawImage(img, 0, 0, w, h, 0, 0, w2, h2);
+						gc.dispose();
 
-						Graphic graphic = new disposableUISWTGraphic(img);
-						cell.setGraphic(graphic);
-					} catch (Exception e) {
-						// ignore, probably invalid image
+						img.dispose();
+						img = newImg;
 					}
+
+					Graphic graphic = new disposableUISWTGraphic(img);
+					cell.setGraphic(graphic);
+				} catch (Exception e) {
+					// ignore, probably invalid image
 				}
 			}
 		}
+	}
 
-		/**
-		 * 
-		 */
-		private void disposeOldImage(TableCell cell) {
-			Graphic oldGraphic = cell.getGraphic();
-			if (oldGraphic instanceof disposableUISWTGraphic) {
-				Image oldImage = ((UISWTGraphic) oldGraphic).getImage();
-				Utils.disposeSWTObjects(new Object[] {
-					oldImage
-				});
-			}
+	/**
+	 * 
+	 */
+	private void disposeOldImage(TableCell cell) {
+		Graphic oldGraphic = cell.getGraphic();
+		if (oldGraphic instanceof disposableUISWTGraphic) {
+			Image oldImage = ((UISWTGraphic) oldGraphic).getImage();
+			Utils.disposeSWTObjects(new Object[] {
+				oldImage
+			});
 		}
+	}
 
-		public void cellVisibilityChanged(TableCell cell, int visibility) {
-			if (visibility == TableCellVisibilityListener.VISIBILITY_HIDDEN) {
-				//log(cell, "whoo, save");
-				disposeOldImage(cell);
-			} else if (visibility == TableCellVisibilityListener.VISIBILITY_SHOWN) {
-				//log(cell, "whoo, draw");
-				refresh(cell, true);
-			}
+	public void cellVisibilityChanged(TableCell cell, int visibility) {
+		if (visibility == TableCellVisibilityListener.VISIBILITY_HIDDEN) {
+			//log(cell, "whoo, save");
+			disposeOldImage(cell);
+		} else if (visibility == TableCellVisibilityListener.VISIBILITY_SHOWN) {
+			//log(cell, "whoo, draw");
+			refresh(cell, true);
 		}
+	}
 
-		private void log(TableCell cell, String s) {
-			System.out.println(((TableRowCore) cell.getTableRow()).getIndex() + ":"
-					+ System.currentTimeMillis() + ": " + s);
-		}
+	private void log(TableCell cell, String s) {
+		System.out.println(((TableRowCore) cell.getTableRow()).getIndex() + ":"
+				+ System.currentTimeMillis() + ": " + s);
 	}
 
 	public class disposableUISWTGraphic

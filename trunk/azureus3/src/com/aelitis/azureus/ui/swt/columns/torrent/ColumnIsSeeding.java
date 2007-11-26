@@ -38,7 +38,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
  */
 public class ColumnIsSeeding
 	extends CoreTableColumn
-	implements TableCellAddedListener
+	implements TableCellAddedListener, TableCellRefreshListener
 {
 	public static String COLUMN_ID = "IsSeeding";
 
@@ -58,37 +58,29 @@ public class ColumnIsSeeding
 		setAlignment(ALIGN_CENTER);
 	}
 
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener#cellAdded(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void cellAdded(TableCell cell) {
-		new Cell(cell);
+		cell.setMarginWidth(0);
+		cell.setMarginHeight(0);
 	}
 
-	private class Cell
-		implements TableCellRefreshListener
-	{
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
+	public void refresh(TableCell cell) {
+		DownloadManager dm = (DownloadManager) cell.getDataSource();
+		int state = dm.getState();
+		boolean bSeeding = state == DownloadManager.STATE_SEEDING
+				|| ((state == DownloadManager.STATE_CHECKING
+						|| state == DownloadManager.STATE_WAITING || state == DownloadManager.STATE_READY) && dm.getAssumedComplete());
 
-		public Cell(TableCell cell) {
-			cell.addListeners(this);
-			cell.setMarginWidth(0);
-			cell.setMarginHeight(0);
+		int sortVal = bSeeding ? 0 : 1;
+
+		if (!cell.setSortValue(sortVal) && cell.isValid()) {
+			return;
+		}
+		if (!cell.isShown()) {
+			return;
 		}
 
-		public void refresh(TableCell cell) {
-			DownloadManager dm = (DownloadManager) cell.getDataSource();
-			int state = dm.getState();
-			boolean bSeeding = state == DownloadManager.STATE_SEEDING
-					|| ((state == DownloadManager.STATE_CHECKING
-							|| state == DownloadManager.STATE_WAITING || state == DownloadManager.STATE_READY) && dm.getAssumedComplete());
-
-			int sortVal = bSeeding ? 0 : 1;
-
-			if (!cell.setSortValue(sortVal) && cell.isValid()) {
-				return;
-			}
-			if (!cell.isShown()) {
-				return;
-			}
-
-			cell.setGraphic(bSeeding ? graphicCheck : null);
-		}
+		cell.setGraphic(bSeeding ? graphicCheck : null);
 	}
 }
