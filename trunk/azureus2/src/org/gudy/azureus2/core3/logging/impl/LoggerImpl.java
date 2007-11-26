@@ -262,8 +262,8 @@ public class LoggerImpl {
 			if (alertLogger == null) {
 				alertLogger = AEDiagnostics.getLogger("alerts");
 			}
-			alertLogger.log(logText);
 		}
+		alertLogger.log(logText);
 
 		alertHistory.add(alert);
 
