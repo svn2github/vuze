@@ -21,7 +21,7 @@
  * AELITIS, SAS au capital de 46,603.30 euros,
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  */
- 
+
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -44,86 +44,75 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
  * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
 public class HealthItem
-       extends CoreTableColumn 
-       implements TableCellAddedListener
+	extends CoreTableColumn
+	implements TableCellAddedListener, TableCellRefreshListener
 {
 	static final int COLUMN_WIDTH = 16;
-	
-	static TRHost	tracker_host	= AzureusCoreFactory.getSingleton().getTrackerHost();
-	
-  /** Default Constructor */
-  public HealthItem(String sTableID) {
-    super("health", sTableID);
-    initializeAsGraphic(POSITION_LAST, COLUMN_WIDTH);
-    setWidthLimits(COLUMN_WIDTH, COLUMN_WIDTH);
-  }
 
-  public void cellAdded(TableCell cell) {
-    new Cell(cell);
-  }
+	static TRHost tracker_host = AzureusCoreFactory.getSingleton().getTrackerHost();
 
-  private class Cell
-          implements TableCellRefreshListener
-  {
+	/** Default Constructor */
+	public HealthItem(String sTableID) {
+		super("health", sTableID);
+		initializeAsGraphic(POSITION_LAST, COLUMN_WIDTH);
+		setWidthLimits(COLUMN_WIDTH, COLUMN_WIDTH);
+	}
 
-    public Cell(TableCell cell) {
-			cell.addListeners(this);
-      cell.setMarginWidth(0);
-      cell.setMarginHeight(0);
-    }
-    
-    public void refresh(TableCell cell) {
-       
-      DownloadManager dm = (DownloadManager)cell.getDataSource();
-      int health;
-      TRHostTorrent ht;
-      
-      if (dm == null) {
-      	health = 0;
-      	ht = null;
-      } else {
-      	health = dm.getHealthStatus();
-      	ht = tracker_host.getHostTorrent( dm.getTorrent());
-      }
+	public void cellAdded(TableCell cell) {
+		cell.setMarginWidth(0);
+		cell.setMarginHeight(0);
+	}
 
-      if (!cell.setSortValue(health+(ht==null?0:256)) && cell.isValid())
-        return;
+	public void refresh(TableCell cell) {
 
-      
-      String image_name;
-      String sHelpID = null;
+		DownloadManager dm = (DownloadManager) cell.getDataSource();
+		int health;
+		TRHostTorrent ht;
 
-      if(health == DownloadManager.WEALTH_KO) {
-      	image_name = "st_ko";   
-      	sHelpID = "health.explain.red";
-      } else if (health == DownloadManager.WEALTH_OK) {
-      	image_name = "st_ok";   
-      	sHelpID = "health.explain.green";
-      } else if (health == DownloadManager.WEALTH_NO_TRACKER) {
-      	image_name = "st_no_tracker";   
-      	sHelpID = "health.explain.blue";
-      }else if (health == DownloadManager.WEALTH_NO_REMOTE) {
-      	image_name = "st_no_remote";   
-      	sHelpID = "health.explain.yellow";
-      }else if (health == DownloadManager.WEALTH_ERROR) {
-      	image_name = "st_error";
-      }else{
-      	image_name = "st_stopped";
-      	sHelpID = "health.explain.grey";
-      }
+		if (dm == null) {
+			health = 0;
+			ht = null;
+		} else {
+			health = dm.getHealthStatus();
+			ht = tracker_host.getHostTorrent(dm.getTorrent());
+		}
 
-      if ( ht != null ){
-      	image_name += "_shared";
-      }
-      
-      if( ((TableCellSWT)cell).setGraphic(ImageRepository.getImage(image_name)) ) {
-        String sToolTip = (health == DownloadManager.WEALTH_ERROR) ? dm
-						.getErrorDetails() : MessageText.getString(sHelpID);
-        if (ht != null)
-          sToolTip += "\n" + MessageText.getString("health.explain.share");
-        cell.setToolTip(sToolTip);
-      }
-      
-    }
-  }
+		if (!cell.setSortValue(health + (ht == null ? 0 : 256)) && cell.isValid())
+			return;
+
+		String image_name;
+		String sHelpID = null;
+
+		if (health == DownloadManager.WEALTH_KO) {
+			image_name = "st_ko";
+			sHelpID = "health.explain.red";
+		} else if (health == DownloadManager.WEALTH_OK) {
+			image_name = "st_ok";
+			sHelpID = "health.explain.green";
+		} else if (health == DownloadManager.WEALTH_NO_TRACKER) {
+			image_name = "st_no_tracker";
+			sHelpID = "health.explain.blue";
+		} else if (health == DownloadManager.WEALTH_NO_REMOTE) {
+			image_name = "st_no_remote";
+			sHelpID = "health.explain.yellow";
+		} else if (health == DownloadManager.WEALTH_ERROR) {
+			image_name = "st_error";
+		} else {
+			image_name = "st_stopped";
+			sHelpID = "health.explain.grey";
+		}
+
+		if (ht != null) {
+			image_name += "_shared";
+		}
+
+		if (((TableCellSWT) cell).setGraphic(ImageRepository.getImage(image_name))) {
+			String sToolTip = (health == DownloadManager.WEALTH_ERROR)
+					? dm.getErrorDetails() : MessageText.getString(sHelpID);
+			if (ht != null)
+				sToolTip += "\n" + MessageText.getString("health.explain.share");
+			cell.setToolTip(sToolTip);
+		}
+
+	}
 }
