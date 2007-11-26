@@ -65,10 +65,7 @@ public class PiecesItem
   }
 
   public void cellAdded(TableCell cell) {
-    //No need to create a new class per cell instance
-    //new Cell(cell);
     cell.setFillCell(true);
-		cell.addListeners(this);
   }
 
   public void dispose(TableCell cell) {
