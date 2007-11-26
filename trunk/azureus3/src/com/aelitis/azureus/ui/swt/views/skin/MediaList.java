@@ -506,6 +506,10 @@ public class MediaList
 				SystemTime.getOffsetTime(ASYOUTYPE_UPDATEDELAY),
 				new TimerEventPerformer() {
 					public void perform(TimerEvent event) {
+						if (searchUpdateEvent.isCancelled()) {
+							searchUpdateEvent = null;
+							return;
+						}
 						searchUpdateEvent = null;
 						doFilter();
 					}
