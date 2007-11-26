@@ -70,26 +70,10 @@ public class TableCellImpl
        implements TableCellSWT
 {
 	private static final LogIDs LOGID = LogIDs.GUI;
-  private TableRowCore tableRow;
-  private Comparable sortValue;
-  private boolean bSortValueIsText = true;
-  private BufferedTableItem bufferedTableItem;
-  private ArrayList refreshListeners;
-  private ArrayList disposeListeners;
-  private ArrayList tooltipListeners;
-	private ArrayList cellMouseListeners;
-	private ArrayList cellMouseMoveListeners;
-	private ArrayList cellVisibilityListeners;
-  private TableColumnCore tableColumn;
-  private boolean valid;
-  private int refreshErrLoopCount;
-  private int tooltipErrLoopCount;
-  private int loopFactor;
-  private Object oToolTip;
-  private boolean bToolTipIsAuto;
-	private int iCursorID = -1;
-	private Graphic graphic = null;
-  
+	
+	private static final int FLAG_VALID = 1;
+	private static final int FLAG_SORTVALUEISTEXT = 2;
+	private static final int FLAG_TOOLTIPISAUTO = 4;
   /**
    * For refreshing, this flag manages whether the row is actually up to date.
    * 
@@ -102,16 +86,33 @@ public class TableCellImpl
    * that the row will set its visuals again (this time, actually
    * updating a viewable object).
    */
-	private boolean bIsUpToDate = true;
+	private static final int FLAG_UPTODATE = 8;
+	private static final int FLAG_DISPOSED = 16;
+	private static final int FLAG_MUSTREFRESH = 32;
+	private static final int FLAG_VISUALLY_CHANGED_SINCE_REFRESH = 64;
 	
-	private boolean bDisposed = false;
-	
-	private boolean bMustRefresh = false;
-	
+	private int flags;
+
+  private TableRowCore tableRow;
+  private Comparable sortValue;
+  private BufferedTableItem bufferedTableItem;
+  private ArrayList refreshListeners;
+  private ArrayList disposeListeners;
+  private ArrayList tooltipListeners;
+	private ArrayList cellMouseListeners;
+	private ArrayList cellMouseMoveListeners;
+	private ArrayList cellVisibilityListeners;
+  private TableColumnCore tableColumn;
+  private byte refreshErrLoopCount;
+  private byte tooltipErrLoopCount;
+  private byte loopFactor;
+  private Object oToolTip;
+	private int iCursorID = -1;
+	private Graphic graphic = null;
+  
 	public boolean bDebug = false;
   
   private AEMonitor 	this_mon 	= new AEMonitor( "TableCell" );
-	private boolean bCellVisuallyChangedSinceRefresh;
 
   private static final String CFG_PAINT = "GUI_SWT_bAlternateTablePainting";
   private static boolean bAlternateTablePainting;
@@ -130,7 +131,7 @@ public class TableCellImpl
       int position, BufferedTableItem item) {
     this.tableColumn = _tableColumn;
     this.tableRow = _tableRow;
-    valid = false;
+    flags = FLAG_SORTVALUEISTEXT | FLAG_UPTODATE;
     refreshErrLoopCount = 0;
     tooltipErrLoopCount = 0;
     loopFactor = 0;
@@ -166,7 +167,7 @@ public class TableCellImpl
 	          TableCellImpl.this.refresh();
 	        }
 	        public void invalidate() {
-	          TableCellImpl.this.valid = false;
+	        	clearFlag(FLAG_VALID);
 	        }
 	      };
 	    } else {
@@ -175,7 +176,7 @@ public class TableCellImpl
 	          TableCellImpl.this.refresh();
 	        }
 	        public void invalidate() {
-	          TableCellImpl.this.valid = false;
+	        	clearFlag(FLAG_VALID);
 	        }
 	      };
 	    }
@@ -186,7 +187,7 @@ public class TableCellImpl
           TableCellImpl.this.refresh();
         }
         public void invalidate() {
-          TableCellImpl.this.valid = false;
+        	clearFlag(FLAG_VALID);
         }
       };
     }
@@ -237,7 +238,9 @@ public class TableCellImpl
   }
   
   public boolean isValid() {
-    return valid;
+  	// Called often.. inline faster
+  	return (flags & FLAG_VALID) != 0;
+    //return hasFlag(FLAG_VALID);
   }
   
   public Color getForegroundSWT() {
@@ -293,7 +296,7 @@ public class TableCellImpl
 
     boolean set = bufferedTableItem.setForeground(color);
     if (set) {
-    	bCellVisuallyChangedSinceRefresh = true;
+    	setFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
     }
     return set;
   }
@@ -307,7 +310,7 @@ public class TableCellImpl
 
     boolean set = bufferedTableItem.setForeground(red, green, blue);
     if (set) {
-    	bCellVisuallyChangedSinceRefresh = true;
+    	setFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
     }
     return set;
   }
@@ -322,7 +325,7 @@ public class TableCellImpl
   		text = "";
   	boolean bChanged = false;
 
-  	if (bSortValueIsText && !text.equals(sortValue)) {
+  	if (hasFlag(FLAG_SORTVALUEISTEXT) && !text.equals(sortValue)) {
   		bChanged = true;
   		sortValue = text;
     	tableColumn.setLastSortValueChange(SystemTime.getCurrentTime());
@@ -339,7 +342,7 @@ public class TableCellImpl
 //  		return false;
 //  	}
 
-    if (bufferedTableItem.setText(text) && !bSortValueIsText)
+    if (bufferedTableItem.setText(text) && !hasFlag(FLAG_SORTVALUEISTEXT))
     	bChanged = true;
 
 		if (bDebug) {
@@ -347,7 +350,7 @@ public class TableCellImpl
 		}
 
 		if (bChanged) {
-			bCellVisuallyChangedSinceRefresh = true;
+			setFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
 		}
 
 		boolean do_auto = this.tableColumn.doesAutoTooltip();
@@ -355,15 +358,15 @@ public class TableCellImpl
 		// If we were using auto tooltips (and we aren't any more), then
 		// clear up previously set tooltips.
 		if (!do_auto) {
-			if (this.bToolTipIsAuto) {
+			if (hasFlag(FLAG_TOOLTIPISAUTO)) {
 				this.oToolTip = null;
-				this.bToolTipIsAuto = false;
+				clearFlag(FLAG_TOOLTIPISAUTO);
 			}
 		}
 		
 		else {
 			this.oToolTip = text;
-			this.bToolTipIsAuto = true;
+			setFlag(FLAG_TOOLTIPISAUTO);
 		}
 		
   	return bChanged;
@@ -375,7 +378,7 @@ public class TableCellImpl
   }
   
   public String getText() {
-  	if (bSortValueIsText && sortValue instanceof String)
+  	if (hasFlag(FLAG_SORTVALUEISTEXT) && sortValue instanceof String)
   		return (String)sortValue;
   	if (bufferedTableItem == null) {
   		return null;
@@ -406,8 +409,8 @@ public class TableCellImpl
     if (sortValue == valueToSort)
       return false;
 
-    if (bSortValueIsText) {
-      bSortValueIsText = false;
+    if (hasFlag(FLAG_SORTVALUEISTEXT)) {
+    	clearFlag(FLAG_SORTVALUEISTEXT);
     	if (sortValue instanceof String)
 	    	// Make sure text is actually in the cell (it may not have been if
 	      // cell wasn't created at the time of setting)
@@ -470,7 +473,7 @@ public class TableCellImpl
   
   public void setToolTip(Object tooltip) {
     oToolTip = tooltip;
-    this.bToolTipIsAuto = false;
+    clearFlag(FLAG_TOOLTIPISAUTO);
   }
 
   public Object getToolTip() {
@@ -478,7 +481,7 @@ public class TableCellImpl
   }
 
 	public boolean isDisposed() {
-		return bDisposed;
+		return hasFlag(FLAG_DISPOSED);
 	}
 	
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getMaxLines()
@@ -539,7 +542,7 @@ public class TableCellImpl
     graphic = null;
     boolean b = ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(img);
     if (b) {
-      bCellVisuallyChangedSinceRefresh = true;
+    	setFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
     }
     return b;
   }
@@ -557,7 +560,7 @@ public class TableCellImpl
     if (img == null) {
       boolean b = ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(null);
       if (b) {
-        bCellVisuallyChangedSinceRefresh = true;
+      	setFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
       }
     }
 
@@ -565,7 +568,7 @@ public class TableCellImpl
     	Image imgSWT = ((GraphicSWT)img).getImage();
     	boolean b = ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(imgSWT);
       if (b) {
-        bCellVisuallyChangedSinceRefresh = true;
+      	setFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
       }
     }
     
@@ -573,7 +576,7 @@ public class TableCellImpl
     	Image imgSWT = ((UISWTGraphic)img).getImage();
     	boolean b = ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(imgSWT);
       if (b) {
-        bCellVisuallyChangedSinceRefresh = true;
+      	setFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
       }
     }
     
@@ -607,7 +610,7 @@ public class TableCellImpl
     	((BufferedGraphicTableItem)bufferedTableItem).setOrientation(SWT.FILL);
     else
     	setOrientationViaColumn();
-    bCellVisuallyChangedSinceRefresh = true;
+    setFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
   }
 
 	public void setMarginHeight(int height) {
@@ -616,7 +619,7 @@ public class TableCellImpl
     if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
       return;
     ((BufferedGraphicTableItem)bufferedTableItem).setMargin(-1, height);
-    bCellVisuallyChangedSinceRefresh = true;
+    setFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
   }
 
   public void setMarginWidth(int width) {
@@ -625,7 +628,7 @@ public class TableCellImpl
     if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
       return;
     ((BufferedGraphicTableItem)bufferedTableItem).setMargin(width, -1);
-    bCellVisuallyChangedSinceRefresh = true;
+    setFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
   }
 
   /* End TYPE_GRAPHIC Functions */
@@ -804,8 +807,9 @@ public class TableCellImpl
 	}
 
 	public void addListeners(Object listenerObject) {
-		if (listenerObject instanceof TableCellDisposeListener)
+		if (listenerObject instanceof TableCellDisposeListener) {
 			addDisposeListener((TableCellDisposeListener)listenerObject);
+		}
 
 		if (listenerObject instanceof TableCellRefreshListener)
 			addRefreshListener((TableCellRefreshListener)listenerObject);
@@ -839,24 +843,24 @@ public class TableCellImpl
   //////////////////////////////////
 	
   public void invalidate(final boolean bMustRefresh) {
-  	if (!valid) {
+  	if (!hasFlag(FLAG_VALID)) {
   		if (bMustRefresh) {
-  			if (this.bMustRefresh) {
+  			if (hasFlag(FLAG_MUSTREFRESH)) {
   				return;
   			}
   		} else {
   			return;
   		}
   	}
-  	valid = false;
+  	clearFlag(FLAG_VALID);
   	
-  	bCellVisuallyChangedSinceRefresh = true;
+  	setFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
 
   	if (bDebug)
   		debug("Invalidate Cell;" + bMustRefresh);
 
   	if (bMustRefresh) {
-  		this.bMustRefresh = true;
+  		setFlag(FLAG_MUSTREFRESH);
   		if (bufferedTableItem != null) {
   			bufferedTableItem.invalidate();
   		}
@@ -879,18 +883,18 @@ public class TableCellImpl
   public boolean refresh(boolean bDoGraphics, boolean bRowVisible,
 	  boolean bCellVisible)
   {
-	  boolean ret = bCellVisuallyChangedSinceRefresh;
+	  boolean ret = getVisuallyChangedSinceRefresh();
 
 	  int iErrCount = 0;
 	  try {
 		  if (refreshErrLoopCount > 2) {
-			  return bCellVisuallyChangedSinceRefresh;
+			  return ret;
 		  }
 
 		  iErrCount = tableColumn.getConsecutiveErrCount();
 		  if (iErrCount > 10) {
 			  refreshErrLoopCount = 3;
-			  return bCellVisuallyChangedSinceRefresh;
+			  return ret;
 		  }
 
 		  if (bInRefresh) {
@@ -899,37 +903,37 @@ public class TableCellImpl
 			  // if we ever introduce plugins to refresh.
 			  if (bDebug)
 				  debug("Calling Refresh from Refresh :) Skipping.");
-			  return bCellVisuallyChangedSinceRefresh;
+			  return ret;
 		  }
 		  bInRefresh = true;
 
 		  // See bIsUpToDate variable comments
-		  if (bCellVisible && !bIsUpToDate) {
+		  if (bCellVisible && !isUpToDate()) {
 			  if (bDebug)
 				  debug("Setting Invalid because visible & not up to date");
-			  valid = false;
-			  bIsUpToDate = true;
-		  } else if (!bCellVisible && bIsUpToDate) {
-			  bIsUpToDate = false;
+			  clearFlag(FLAG_VALID);
+			  setFlag(FLAG_UPTODATE);
+		  } else if (!bCellVisible && isUpToDate()) {
+		  	clearFlag(FLAG_UPTODATE);
 		  }
 
 		  if (bDebug) {
-			  debug("Cell Valid?" + valid + "; Visible?" + tableRow.isVisible() + "/" + bufferedTableItem.isShown());
+			  debug("Cell Valid?" + hasFlag(FLAG_VALID) + "; Visible?" + tableRow.isVisible() + "/" + bufferedTableItem.isShown());
 		  }
 		  int iInterval = tableColumn.getRefreshInterval();
-		  if (iInterval == TableColumnCore.INTERVAL_INVALID_ONLY && !valid
-			  && !bMustRefresh && bSortValueIsText && sortValue != null
+		  if (iInterval == TableColumnCore.INTERVAL_INVALID_ONLY 
+		  	&& !hasFlag(FLAG_MUSTREFRESH | FLAG_VALID) && hasFlag(FLAG_SORTVALUEISTEXT) && sortValue != null
 			  && tableColumn.getType() == TableColumnCore.TYPE_TEXT_ONLY) {
 			  if (bCellVisible) {
 				  if (bDebug)
 					  debug("fast refresh: setText");
 				  ret = setText((String)sortValue);
-				  valid = true;
+				  setFlag(FLAG_VALID);
 			  }
 		  } else if ((iInterval == TableColumnCore.INTERVAL_LIVE ||
 			  (iInterval == TableColumnCore.INTERVAL_GRAPHIC && bDoGraphics) ||
 			  (iInterval > 0 && (loopFactor % iInterval) == 0) ||
-			  !valid || bMustRefresh)) 
+			  !hasFlag(FLAG_VALID) || hasFlag(FLAG_MUSTREFRESH))) 
 		  {
 			  boolean bWasValid = isValid();
 
@@ -953,17 +957,18 @@ public class TableCellImpl
 			  // Change to valid only if we weren't valid before the listener calls
 			  // This is in case the listeners set valid to false when it was true
 			  if (!bWasValid) 
-				  valid = true;
+			  	setFlag(FLAG_VALID);
 
-			  if (bMustRefresh)
-				  bMustRefresh = false;
+			  if (hasFlag(FLAG_MUSTREFRESH)) {
+			  	clearFlag(FLAG_MUSTREFRESH);
+			  }
 		  }
 		  loopFactor++;
 		  refreshErrLoopCount = 0;
 		  if (iErrCount > 0)
 			  tableColumn.setConsecutiveErrCount(0);
 
-		  ret = bCellVisuallyChangedSinceRefresh;
+		  ret = getVisuallyChangedSinceRefresh();
 		  if (bDebug)
 			  debug("refresh done; visual change? " + ret + ";" + Debug.getCompressedStackTrace());
 	  } catch (Throwable e) {
@@ -976,19 +981,19 @@ public class TableCellImpl
 			  Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
 				  "TableCell will not be refreshed anymore this session."));
 	  } finally {
-		  bCellVisuallyChangedSinceRefresh = false;
+	  	clearFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
 		  bInRefresh = false;
 	  }
 	  return ret;
   }
   
   public boolean getVisuallyChangedSinceRefresh() {
-  	return bCellVisuallyChangedSinceRefresh;
+  	return hasFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
   }
 
 
   public void dispose() {
-  	bDisposed = true;
+  	setFlag(FLAG_DISPOSED);
 
     tableColumn.invokeCellDisposeListeners(this);
 
@@ -1020,7 +1025,7 @@ public class TableCellImpl
 
     bufferedTableItem.setIcon(img);
     graphic = null;
-    bCellVisuallyChangedSinceRefresh = true;
+    setFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
     return true;
   }
   
@@ -1039,7 +1044,7 @@ public class TableCellImpl
   }
   
   public void doPaint(GC gc) {
-  	if ((!bIsUpToDate || !valid)
+  	if ((!hasFlag(FLAG_UPTODATE) || !hasFlag(FLAG_VALID))
 				&& (refreshListeners != null || tableColumn.hasCellRefreshListener())) {
   		if (bDebug) {
   			debug("doPaint: invoke refresh");
@@ -1048,7 +1053,7 @@ public class TableCellImpl
   	}
 
 		if (bDebug) {
-			debug("doPaint up2date:" + bIsUpToDate + ";v:" + valid + ";rl=" + refreshListeners);
+			debug("doPaint up2date:" + hasFlag(FLAG_UPTODATE) + ";v:" + hasFlag(FLAG_VALID) + ";rl=" + refreshListeners);
 		}
     bufferedTableItem.doPaint(gc);
   }
@@ -1194,11 +1199,15 @@ public class TableCellImpl
   }
   
 	public void setUpToDate(boolean upToDate) {
-		bIsUpToDate = upToDate;
+		if (upToDate) {
+			setFlag(FLAG_UPTODATE);
+		} else {
+			clearFlag(FLAG_UPTODATE);
+		}
 	}
 	
 	public boolean isUpToDate() {
-		return bIsUpToDate;
+		return hasFlag(FLAG_UPTODATE);
 	}
 	
 	public void debug(final String s) {
@@ -1213,7 +1222,7 @@ public class TableCellImpl
 	}
 
 	public Rectangle getBounds() {
-		if (bDisposed) {
+		if (isDisposed()) {
       return new Rectangle(0,0,0,0);
 		}
 		Rectangle bounds = bufferedTableItem.getBounds();
@@ -1277,5 +1286,17 @@ public class TableCellImpl
 	
 	public boolean isMouseOver() {
 		return ((TableViewSWT)tableRow.getView()).getTableCellWithCursor() == this;
+	}
+	
+	private boolean hasFlag(int flag) {
+		return (flags & flag) != 0;
+	}
+	
+	private void setFlag(int flag) {
+		flags |= flag;
+	}
+	
+	private void clearFlag(int flag) {
+		flags &= ~flag;
 	}
 }
