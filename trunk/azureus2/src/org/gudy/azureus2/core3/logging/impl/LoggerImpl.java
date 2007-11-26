@@ -99,8 +99,6 @@ public class LoggerImpl {
 				}
 			});
 		}
-
-		alertLogger = AEDiagnostics.getLogger("alerts");
 	}
 
 	/**
@@ -260,8 +258,12 @@ public class LoggerImpl {
 		alertEvent.err = alert.err;
 		Logger.log(alertEvent);
 
-		if (alertLogger != null)
+		synchronized (this) {
+			if (alertLogger == null) {
+				alertLogger = AEDiagnostics.getLogger("alerts");
+			}
 			alertLogger.log(logText);
+		}
 
 		alertHistory.add(alert);
 
