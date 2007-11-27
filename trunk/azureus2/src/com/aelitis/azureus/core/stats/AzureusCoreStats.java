@@ -104,6 +104,13 @@ AzureusCoreStats
 	public static final String ST_PEER_MANAGER_PEER_SNUBBED_COUNT		= "peer.manager.peer.snubbed.count";
 	public static final String ST_PEER_MANAGER_PEER_STALLED_DISK_COUNT	= "peer.manager.peer.stalled.disk.count";
 
+		// Tracker
+	
+	public static final String ST_TRACKER_ANNOUNCE_COUNT	= "tracker.announce.count";
+	public static final String ST_TRACKER_ANNOUNCE_TIME		= "tracker.announce.time";
+	public static final String ST_TRACKER_SCRAPE_COUNT		= "tracker.scrape.count";
+	public static final String ST_TRACKER_SCRAPE_TIME		= "tracker.scrape.time";
+
 	
 	public static final String	POINT 		= "Point";
 	public static final String	CUMULATIVE 	= "Cumulative";
@@ -168,6 +175,12 @@ AzureusCoreStats
 		{ ST_PEER_MANAGER_PEER_COUNT,				POINT },
 		{ ST_PEER_MANAGER_PEER_SNUBBED_COUNT,		POINT },
 		{ ST_PEER_MANAGER_PEER_STALLED_DISK_COUNT,	POINT },
+		
+		{ ST_TRACKER_ANNOUNCE_COUNT,				CUMULATIVE },
+		{ ST_TRACKER_ANNOUNCE_TIME,					CUMULATIVE },
+		{ ST_TRACKER_SCRAPE_COUNT,					CUMULATIVE },
+		{ ST_TRACKER_SCRAPE_TIME,					CUMULATIVE },
+
 	};
 	
 	static{
@@ -175,7 +188,7 @@ AzureusCoreStats
 		addStatsDefinitions( _ST_ALL );
 	}
 	
-	private static final List	providers 	= new ArrayList();
+	private static final CopyOnWriteList	providers 	= new CopyOnWriteList();
 	
 	private static  Map	averages	= new HashMap();
 	
@@ -225,6 +238,27 @@ AzureusCoreStats
 				if ( pattern.matcher( s ).matches()){
 					
 					expanded.add( s );
+				}
+			}
+			
+			Iterator provider_it = providers.iterator();
+			
+			while( provider_it.hasNext()){
+				
+				Object[]	provider_entry = (Object[])provider_it.next();
+				
+				Set provider_types = (Set)provider_entry[0];
+				
+				Iterator pt_it = provider_types.iterator();
+				
+				while( pt_it.hasNext()){
+					
+					String	s = (String)pt_it.next();
+					
+					if ( pattern.matcher( s ).matches()){
+						
+						expanded.add( s );
+					}
 				}
 			}
 			
@@ -293,9 +327,11 @@ AzureusCoreStats
 	{
 		Map	result = new HashMap();
 		
-		for (int i=0;i<providers.size();i++){
+		Iterator it = providers.iterator();
+		
+		while( it.hasNext()){
 			
-			Object[]	provider_entry = (Object[])providers.get(i);
+			Object[]	provider_entry = (Object[])it.next();
 			
 			Map	provider_result = new HashMap();
 

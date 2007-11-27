@@ -50,13 +50,16 @@ TRTrackerServerProcessor
 	
 	private TRTrackerServerImpl		server;
 	
+	private long					start;
+	private int						request_type;
+	
 	protected TRTrackerServerTorrentImpl
 	processTrackerRequest(
 		TRTrackerServerImpl			_server,
 		String						request,
 		Map[]						root_out,		// output
 		TRTrackerServerPeerImpl[]	peer_out,		// output
-		int							request_type,
+		int							_request_type,
 		byte[][]					hashes,
 		String						link,
 		String						scrape_flags,
@@ -82,13 +85,16 @@ TRTrackerServerProcessor
 	
 		throws TRTrackerServerException
 	{
-		server	= _server;
-			
+		server			= _server;
+		request_type	= _request_type;
+		
 		if ( !server.isReady()){
 			
 			throw( new TRTrackerServerException( "Tracker initialising, please wait" ));
-		}
+		}		
 		
+		start = SystemTime.getHighPrecisionCounter();
+
 		boolean	ip_override = real_ip_address != client_ip_address;
 		
 		boolean	loopback	= TRTrackerUtils.isLoopback( real_ip_address );
@@ -129,7 +135,7 @@ TRTrackerServerProcessor
 				throw( new TRTrackerServerException( "Network '" + network + "' not supported" ));
 			}
 		}
-				
+			
 		TRTrackerServerTorrentImpl	torrent = null;
 		
 		if ( request_type != TRTrackerServerRequest.RT_FULL_SCRAPE ){
@@ -139,7 +145,7 @@ TRTrackerServerProcessor
 			// System.out.println( "    hash = " + ByteFormatter.nicePrint(hash));
 			
 			if ( request_type == TRTrackerServerRequest.RT_ANNOUNCE ){
-				
+								
 				if ( hashes == null || hashes.length == 0 ){
 					
 					throw( new TRTrackerServerException( "Hash missing from request "));
@@ -459,6 +465,17 @@ TRTrackerServerProcessor
 			flags.put("min_request_interval", new Long(interval));
 			
 			root.put( "flags", flags );
+		}
+	}
+	
+	public void
+	taskCompleted()
+	{
+		if ( start > 0 ){
+			
+			long	time = SystemTime.getHighPrecisionCounter() - start;
+							
+			server.updateTime( request_type, time );
 		}
 	}
 	

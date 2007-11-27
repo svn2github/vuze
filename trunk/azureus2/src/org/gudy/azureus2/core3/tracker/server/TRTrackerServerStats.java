@@ -43,4 +43,10 @@ TRTrackerServerStats
 	
 	public long
 	getScrapeCount();
+	
+	public long
+	getAnnounceTime();
+	
+	public long
+	getScrapeTime();
 }

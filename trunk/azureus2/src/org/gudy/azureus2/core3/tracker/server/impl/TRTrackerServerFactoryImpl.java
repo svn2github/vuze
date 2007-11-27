@@ -45,13 +45,72 @@ import org.gudy.azureus2.core3.tracker.server.impl.tcp.nonblocking.TRNonBlocking
 import org.gudy.azureus2.core3.tracker.server.impl.udp.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 
+import com.aelitis.azureus.core.stats.AzureusCoreStats;
+import com.aelitis.azureus.core.stats.AzureusCoreStatsProvider;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
+
 public class 
 TRTrackerServerFactoryImpl 
 {
-	protected static List		servers		= new ArrayList();
+	protected static CopyOnWriteList		servers		= new CopyOnWriteList();
+	
 	protected static List		listeners 	= new ArrayList();
 	protected static AEMonitor 	class_mon 	= new AEMonitor( "TRTrackerServerFactory" );
 
+	static{
+		Set	types = new HashSet();
+		
+		types.add( AzureusCoreStats.ST_TRACKER_ANNOUNCE_COUNT );
+		types.add( AzureusCoreStats.ST_TRACKER_ANNOUNCE_TIME );
+		types.add( AzureusCoreStats.ST_TRACKER_SCRAPE_COUNT );
+		types.add( AzureusCoreStats.ST_TRACKER_SCRAPE_TIME );
+
+		AzureusCoreStats.registerProvider( 
+			types, 
+			new AzureusCoreStatsProvider()
+			{
+				public void
+				updateStats(
+					Set		types,
+					Map		values )
+				{	
+					long	announce_count	= 0;
+					long	announce_time	= 0;
+					long	scrape_count	= 0;
+					long	scrape_time		= 0;
+					
+					Iterator it = servers.iterator();
+
+					while( it.hasNext()){
+						
+						TRTrackerServerStats stats = ((TRTrackerServer)it.next()).getStats();
+						
+						announce_count 	+= stats.getAnnounceCount();
+						announce_time	+= stats.getAnnounceTime();
+						scrape_count 	+= stats.getScrapeCount();
+						scrape_time		+= stats.getScrapeTime();
+					}
+					
+					if ( types.contains( AzureusCoreStats.ST_TRACKER_ANNOUNCE_COUNT )){
+						
+						values.put( AzureusCoreStats.ST_TRACKER_ANNOUNCE_COUNT, new Long( announce_count ));
+					}
+					if ( types.contains( AzureusCoreStats.ST_TRACKER_ANNOUNCE_TIME )){
+						
+						values.put( AzureusCoreStats.ST_TRACKER_ANNOUNCE_TIME, new Long( announce_time ));
+					}
+					if ( types.contains( AzureusCoreStats.ST_TRACKER_SCRAPE_COUNT )){
+						
+						values.put( AzureusCoreStats.ST_TRACKER_SCRAPE_COUNT, new Long( scrape_count ));
+					}
+					if ( types.contains( AzureusCoreStats.ST_TRACKER_SCRAPE_TIME )){
+						
+						values.put( AzureusCoreStats.ST_TRACKER_SCRAPE_TIME, new Long( scrape_time ));
+					}
+				}
+			});
+	}
+	
 	public static TRTrackerServer
 	create(
 		String		name,
@@ -157,9 +216,11 @@ TRTrackerServerFactoryImpl
 		
 			listeners.add( l );
 			
-			for (int i=0;i<servers.size();i++){
+			Iterator it = servers.iterator();
+			
+			while( it.hasNext()){
 				
-				l.serverCreated((TRTrackerServer)servers.get(i));
+				l.serverCreated((TRTrackerServer)it.next());
 			}
 		}finally{
 			

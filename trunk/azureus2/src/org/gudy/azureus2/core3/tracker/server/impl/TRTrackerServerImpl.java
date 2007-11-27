@@ -619,6 +619,15 @@ TRTrackerServerImpl
 	}
 	
 	protected void
+	updateTime(
+		int		request_type,
+		long	time )
+	{
+		stats.updateTime( request_type, time );
+	}
+		
+	
+	protected void
 	timerLoop()
 	{
 		long	time_to_go = TIMEOUT_CHECK;

@@ -40,6 +40,9 @@ TRTrackerServerStatsImpl
 	private long		bytes_in;
 	private long		bytes_out;
 	
+	private long		announce_time;
+	private long		scrape_time;
+	
 	protected
 	TRTrackerServerStatsImpl(
 		TRTrackerServerImpl	_server )
@@ -83,6 +86,21 @@ TRTrackerServerStatsImpl
 		}
 	}
 	
+	protected void
+	updateTime(
+		int		request_type,
+		long	time )
+	{
+		if ( request_type == TRTrackerServerRequest.RT_ANNOUNCE ){
+			
+			announce_time += time;
+			
+		}else{
+			
+			scrape_time += time;
+		}
+	}
+	
 	public long
 	getAnnounceCount()
 	{
@@ -93,5 +111,17 @@ TRTrackerServerStatsImpl
 	getScrapeCount()
 	{
 		return( scrapes );
+	}
+	
+	public long
+	getAnnounceTime()
+	{
+		return( announce_time );
+	}
+	
+	public long
+	getScrapeTime()
+	{
+		return( scrape_time );
 	}
 }
