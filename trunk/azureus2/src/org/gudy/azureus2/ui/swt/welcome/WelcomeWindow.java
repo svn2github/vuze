@@ -73,7 +73,10 @@ public class WelcomeWindow {
   public void init (Shell parentShell) {
     shell = ShellFactory.createShell(parentShell, SWT.BORDER | SWT.TITLE | SWT.CLOSE | SWT.RESIZE);
     Utils.setShellIcon(shell);
-    monospace = new Font(shell.getDisplay(),"Courier New",8,SWT.NORMAL);
+    if(Constants.isOSX)
+    	monospace = new Font(shell.getDisplay(),"Courier New",12,SWT.NORMAL);
+    else 
+    	monospace = new Font(shell.getDisplay(),"Courier New",8,SWT.NORMAL);
 	
     shell.setText(MessageText.getString("window.welcome.title", new String[]{ Constants.AZUREUS_VERSION }));
     
