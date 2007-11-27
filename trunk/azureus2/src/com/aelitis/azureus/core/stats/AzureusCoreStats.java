@@ -106,6 +106,8 @@ AzureusCoreStats
 
 		// Tracker
 	
+	public static final String ST_TRACKER_READ_BYTES		= "tracker.read.bytes.total";
+	public static final String ST_TRACKER_WRITE_BYTES		= "tracker.write.bytes.total";
 	public static final String ST_TRACKER_ANNOUNCE_COUNT	= "tracker.announce.count";
 	public static final String ST_TRACKER_ANNOUNCE_TIME		= "tracker.announce.time";
 	public static final String ST_TRACKER_SCRAPE_COUNT		= "tracker.scrape.count";
@@ -176,6 +178,8 @@ AzureusCoreStats
 		{ ST_PEER_MANAGER_PEER_SNUBBED_COUNT,		POINT },
 		{ ST_PEER_MANAGER_PEER_STALLED_DISK_COUNT,	POINT },
 		
+		{ ST_TRACKER_READ_BYTES,					CUMULATIVE },
+		{ ST_TRACKER_WRITE_BYTES,					CUMULATIVE },
 		{ ST_TRACKER_ANNOUNCE_COUNT,				CUMULATIVE },
 		{ ST_TRACKER_ANNOUNCE_TIME,					CUMULATIVE },
 		{ ST_TRACKER_SCRAPE_COUNT,					CUMULATIVE },

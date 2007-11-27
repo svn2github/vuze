@@ -60,6 +60,8 @@ TRTrackerServerFactoryImpl
 	static{
 		Set	types = new HashSet();
 		
+		types.add( AzureusCoreStats.ST_TRACKER_READ_BYTES );
+		types.add( AzureusCoreStats.ST_TRACKER_WRITE_BYTES );
 		types.add( AzureusCoreStats.ST_TRACKER_ANNOUNCE_COUNT );
 		types.add( AzureusCoreStats.ST_TRACKER_ANNOUNCE_TIME );
 		types.add( AzureusCoreStats.ST_TRACKER_SCRAPE_COUNT );
@@ -74,6 +76,8 @@ TRTrackerServerFactoryImpl
 					Set		types,
 					Map		values )
 				{	
+					long	read_bytes		= 0;
+					long	write_bytes		= 0;
 					long	announce_count	= 0;
 					long	announce_time	= 0;
 					long	scrape_count	= 0;
@@ -85,12 +89,22 @@ TRTrackerServerFactoryImpl
 						
 						TRTrackerServerStats stats = ((TRTrackerServer)it.next()).getStats();
 						
+						read_bytes		+= stats.getBytesIn();
+						write_bytes		+= stats.getBytesOut();
 						announce_count 	+= stats.getAnnounceCount();
 						announce_time	+= stats.getAnnounceTime();
 						scrape_count 	+= stats.getScrapeCount();
 						scrape_time		+= stats.getScrapeTime();
 					}
 					
+					if ( types.contains( AzureusCoreStats.ST_TRACKER_READ_BYTES )){
+						
+						values.put( AzureusCoreStats.ST_TRACKER_READ_BYTES, new Long( read_bytes ));
+					}
+					if ( types.contains( AzureusCoreStats.ST_TRACKER_WRITE_BYTES )){
+						
+						values.put( AzureusCoreStats.ST_TRACKER_WRITE_BYTES, new Long( write_bytes ));
+					}
 					if ( types.contains( AzureusCoreStats.ST_TRACKER_ANNOUNCE_COUNT )){
 						
 						values.put( AzureusCoreStats.ST_TRACKER_ANNOUNCE_COUNT, new Long( announce_count ));
