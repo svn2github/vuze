@@ -37,6 +37,7 @@ import org.gudy.azureus2.plugins.ui.config.*;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.*;
 
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.util.*;
 
 public class 
@@ -362,15 +363,17 @@ DownloadRemoveRulesPlugin
 							try{
 								download.remove();
 								
-								String msg = 
-									plugin_interface.getUtilities().getLocaleUtilities().getLocalisedMessageText(
-										"download.removerules.removed.ok",
-										new String[]{ download.getName() });
-									
-								log.logAlert( 
-									LoggerChannel.LT_INFORMATION,
-									msg );
-							
+								String msg = plugin_interface.getUtilities().getLocaleUtilities().getLocalisedMessageText(
+										"download.removerules.removed.ok", new String[] {
+											download.getName()
+										});
+
+								if (download.getFlag(Download.FLAG_LOW_NOISE)) {
+									log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
+											msg);
+								} else {
+									log.logAlert(LoggerChannel.LT_INFORMATION, msg);
+								}
 							}catch( Throwable e ){
 								
 								log.logAlert( "Automatic removal of download '" + download.getName() + "' failed", e );
