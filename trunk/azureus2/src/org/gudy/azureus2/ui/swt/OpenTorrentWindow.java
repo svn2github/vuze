@@ -91,13 +91,18 @@ public class OpenTorrentWindow
 	 * about this, I'm disabling it.
 	 */
 	//private final static int MIN_NODOWNLOAD_SIZE = 64 * 1024;
-    //private final static int MAX_NODOWNLOAD_COUNT = 3;
-
+	//private final static int MAX_NODOWNLOAD_COUNT = 3;
 	private final static int MIN_BUTTON_HEIGHT = Constants.isWindows ? 24 : -1;
 
 	private final static String PARAM_DEFSAVEPATH = "Default save path";
 
 	private final static String PARAM_MOVEWHENDONE = "Move Completed When Done";
+
+	private static final String PARAM_VIEWMODE = "OpenTorrentWindow.viewMode";
+	
+	private final static String MSG_ALREADY_EXISTS = "OpenTorrentWindow.mb.alreadyExists";
+	
+	private final static String MSG_ALREADY_EXISTS_NAME = MSG_ALREADY_EXISTS + ".default.name";
 
 	private final static int STARTMODE_QUEUED = 0;
 
@@ -1968,17 +1973,19 @@ public class OpenTorrentWindow
 				public void runSupport() {
 					if (shell == null)
 						new MessageSlideShell(Display.getCurrent(), SWT.ICON_INFORMATION,
-								"OpenTorrentWindow.mb.alreadyExists", null, new String[] {
-									sOriginatingLocation,
-									sfExistingName
+								MSG_ALREADY_EXISTS, null, new String[] {
+									":" + sOriginatingLocation,
+									sfExistingName,
+									MessageText.getString(MSG_ALREADY_EXISTS_NAME),
 								}, new Object[] {
 									fExistingDownload
 								});
 					else
 						Utils.openMessageBox(shell, SWT.OK,
-								"OpenTorrentWindow.mb.alreadyExists", new String[] {
-									sOriginatingLocation,
-									sfExistingName
+								MSG_ALREADY_EXISTS, new String[] {
+									":" + sOriginatingLocation,
+									sfExistingName,
+									MessageText.getString(MSG_ALREADY_EXISTS_NAME),
 								});
 				}
 			});
