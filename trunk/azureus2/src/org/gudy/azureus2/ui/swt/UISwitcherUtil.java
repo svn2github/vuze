@@ -23,11 +23,10 @@ package org.gudy.azureus2.ui.swt;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.*;
 
 /**
  * @author TuxPaper
@@ -36,6 +35,8 @@ import org.gudy.azureus2.core3.util.Debug;
  */
 public class UISwitcherUtil
 {
+	private static final long UPTIME_NEWUSER = 60 * 60 * 1; // 1 hour
+
 	private static boolean NOT_GOOD_ENOUGH_FOR_AZ2_USERS_YET = true;
 	
 	public static ArrayList listeners = new ArrayList();
@@ -98,6 +99,46 @@ public class UISwitcherUtil
 				COConfigurationManager.setParameter("ui", "az3");
 				return "az3";
 			}
+			
+			// For new users who install pre v3 Azureus, and then immediately upgrade 
+			// to v3:
+			// Give them v3 by default since they've (in theory) never used az2ui
+			// Note: Users with any existing 3.x.x.x version will not get because
+			//       they have the "ui" parameter set and there's logic above to
+			//       exit early.
+			try {
+  			Map map = FileUtil.readResilientConfigFile("azureus.statistics");
+  			if (map != null) {
+  				Map overallMap = (Map) map.get("all");
+  				if (overallMap != null) {
+      			long uptime = 0;
+      			Object uptimeObject = overallMap.get("uptime");
+      			if (uptimeObject instanceof Number) {
+      				uptime = ((Number)uptimeObject).longValue();
+      			}
+      			// during a previous azureus, we may have screwed up uptime
+      			// and it might be zero.. so check for that..
+      			if (uptime < UPTIME_NEWUSER && uptime >= 0) {
+      				COConfigurationManager.setParameter("ui", "az3");
+      				return "az3";
+      			}
+  				}
+  			}
+			} catch (Exception e) {
+				Debug.out(e);
+				// ignore
+			}
+			
+			// Flip people who install this client over top of an existing az
+			// to az3ui.  The installer will write a file to the program dir,
+			// while an upgrade won't
+			if (COConfigurationManager.getBooleanParameter("installer.ui.alreadySwitched", false)
+					&& FileUtil.getApplicationFile("installer.log").exists()) {
+				COConfigurationManager.setParameter("installer.ui.alreadySwitched", true);
+				COConfigurationManager.setParameter("ui", "az3");
+				return "az3";
+			}
+			
 
 			// Short Circuit: We don't want to ask az2 users yet
 			if (NOT_GOOD_ENOUGH_FOR_AZ2_USERS_YET) {
