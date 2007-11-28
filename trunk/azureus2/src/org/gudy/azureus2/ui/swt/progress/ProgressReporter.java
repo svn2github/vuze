@@ -119,6 +119,8 @@ public class ProgressReporter
 	 */
 	private Object objectData = null;
 
+	private int messageHistoryLimit = 1000;
+
 	/**
 	 * Construct a <code>ProgressReporter</code>; the returned instance is initialized with the proper ID
 	 */
@@ -261,6 +263,8 @@ public class ProgressReporter
 		if (true == shouldIgnore()) {
 			return;
 		}
+		this.message = message;
+
 		if (selection >= maximum) {
 			setDone();
 			return;
@@ -272,7 +276,6 @@ public class ProgressReporter
 			return;
 		}
 		this.selection = selection;
-		this.message = message;
 		percentage = (selection * 100) / (maximum - minimum);
 		isDone = false;
 		isPercentageInUse = false;
@@ -293,6 +296,8 @@ public class ProgressReporter
 			return;
 		}
 
+		this.message = message;
+
 		if (percentage >= 100) {
 			setDone();
 			return;
@@ -307,7 +312,6 @@ public class ProgressReporter
 		minimum = 0;
 		maximum = 100;
 		this.percentage = percentage;
-		this.message = message;
 		this.selection = percentage;
 		isDone = false;
 		isPercentageInUse = true;
@@ -419,7 +423,7 @@ public class ProgressReporter
 
 		isCanceled = true;
 		message = MessageText.getString("Progress.reporting.status.canceled");
-		
+
 		addToMessageHistory(message, MSG_TYPE_LOG);
 		updateAndNotify(REPORT_TYPE_CANCEL);
 	}
@@ -553,15 +557,23 @@ public class ProgressReporter
 	 * @param type
 	 */
 	private void addToMessageHistory(String value, int type) {
+
 		/*
 		 * Limiting the history list to prevent runaway processes from taking up too much resources
-		 * KN: TODO implement something better than just this arbitrary limit
 		 */
-		if (messageHistory.size() < 300) {
+		if (messageHistory.size() >= messageHistoryLimit) {
+			return;
+		}
+
+		if (messageHistory.size() < messageHistoryLimit) {
 			messageHistory.add(new ProgressReportMessage(value, type));
-		} else if (messageHistory.size() == 300) {
-			Debug.out(new Exception(
-					MessageText.getString("Progress.reporting.detail.history.limit")));
+		}
+		
+		if (messageHistory.size() == messageHistoryLimit) {
+			Debug.out(new Exception(MessageText.getString(
+					"Progress.reporting.detail.history.limit", new String[] {
+						messageHistoryLimit + ""
+					})));
 		}
 	}
 
