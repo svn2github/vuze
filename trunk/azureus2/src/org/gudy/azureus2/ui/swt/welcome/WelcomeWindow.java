@@ -74,7 +74,7 @@ public class WelcomeWindow {
     shell = ShellFactory.createShell(parentShell, SWT.BORDER | SWT.TITLE | SWT.CLOSE | SWT.RESIZE);
     Utils.setShellIcon(shell);
     if(Constants.isOSX)
-    	monospace = new Font(shell.getDisplay(),"Courier New",12,SWT.NORMAL);
+    	monospace = new Font(shell.getDisplay(),"Courier",12,SWT.NORMAL);
     else 
     	monospace = new Font(shell.getDisplay(),"Courier New",8,SWT.NORMAL);
 	
@@ -96,7 +96,7 @@ public class WelcomeWindow {
     bClose.setText(MessageText.getString("Button.close"));
     data = new GridData();
     data.widthHint = 70;
-    data.horizontalAlignment = SWT.RIGHT;
+    data.horizontalAlignment = Constants.isOSX ? SWT.CENTER : SWT.RIGHT;
     bClose.setLayoutData(data);
     
     Listener closeListener = new Listener() {
