@@ -130,6 +130,7 @@ public interface IProgressReportConstants
 	 */
 	public static final int STANDALONE = 1 << 3;
 
+	public static final int BORDER = 1 << 4;
 	
 	//========== report message types =================
 	
