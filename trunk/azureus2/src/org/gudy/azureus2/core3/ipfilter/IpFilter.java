@@ -159,4 +159,12 @@ IpFilter
 	public void
 	removeListener(
 		IPFilterListener	l );
+	
+	public void
+	addExternalHandler(
+		IpFilterExternalHandler	handler );
+	
+	public void
+	removeExternalHandler(
+		IpFilterExternalHandler	handler );
 }

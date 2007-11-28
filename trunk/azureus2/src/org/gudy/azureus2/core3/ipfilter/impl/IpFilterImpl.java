@@ -40,6 +40,8 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.tracker.protocol.PRHelpers;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.util.CopyOnWriteList;
+
 public class 
 IpFilterImpl 
 	implements IpFilter
@@ -68,6 +70,8 @@ IpFilterImpl
     
   
 	private List	listeners = new ArrayList();
+	
+	private CopyOnWriteList	external_handlers = new CopyOnWriteList();
 	
 	FrequencyLimitedDispatcher blockedListChangedDispatcher;
 
@@ -467,6 +471,16 @@ IpFilterImpl
 	  
 	  IpRange	match = (IpRange)range_manager.isInRange( ipAddress );
 
+	  if ( match == null || allow ){
+		  
+		  match = checkExternalHandlers( torrent_hash, ipAddress );
+		  
+		  if ( match != null ){
+			  
+			  allow = false;
+		  }
+	  }
+	  
 	  if(match != null) {
 	    if(!allow) {
 	    	
@@ -573,6 +587,16 @@ IpFilterImpl
 	  
 	  IpRange	match = (IpRange)range_manager.isInRange( ipAddress );
 
+	  if ( match == null || allow ){
+		  
+		  match = checkExternalHandlers( torrent_hash, ipAddress );
+		  
+		  if ( match != null ){
+			  
+			  allow = false;
+		  }
+	  }
+	  
 	  if ( match != null ){
 		  
 	    if(!allow) {
@@ -622,8 +646,50 @@ IpFilterImpl
 	  return false;
 	}
 	
-	
+	protected IpRange
+	checkExternalHandlers(
+		byte[]	torrent_hash,
+		String	address )
+	{
+		if ( external_handlers.size() > 0 ){
+					
+			Iterator it = external_handlers.iterator();
+			
+			while( it.hasNext()){
+				
+				if (((IpFilterExternalHandler)it.next()).isBlocked( torrent_hash, address )){
+					
+					return( new IpRangeImpl( "External handler", address, address, true ));
+				}
+			}
+		}
+		
+		return( null );
+	}
   
+	protected IpRange
+	checkExternalHandlers(
+		byte[]		torrent_hash,
+		InetAddress	address )
+	{
+		if ( external_handlers.size() > 0 ){
+					
+			Iterator it = external_handlers.iterator();
+			
+			while( it.hasNext()){
+				
+				if (((IpFilterExternalHandler)it.next()).isBlocked( torrent_hash, address )){
+					
+					String	ip = address.getHostAddress();
+					
+					return( new IpRangeImpl( "External handler", ip, ip, true ));
+				}
+			}
+		}
+		
+		return( null );
+	}
+	
 	private boolean 
 	addBlockedIP( 
 		BlockedIp 	ip,
@@ -1210,6 +1276,20 @@ IpFilterImpl
 			
 			class_mon.exit();
 		}
+	}
+	
+	public void
+	addExternalHandler(
+		IpFilterExternalHandler h )
+	{
+		external_handlers.add( h );
+	}
+	
+	public void
+	removeExternalHandler(
+		IpFilterExternalHandler h )
+	{
+		external_handlers.remove( h );
 	}
 	
 	public static void
