@@ -88,8 +88,6 @@ public class FileDownloadWindow
 
 	String dirName = null;
 
-	String fileDownloadingString = MessageText.getString("fileDownloadWindow.downloading");
-
 	String shortURL = null;
 
 	/**
@@ -151,7 +149,7 @@ public class FileDownloadWindow
 
 		suppressDialog = COConfigurationManager.getBooleanParameter("suppress_file_download_dialog");
 
-		pReporter = new ProgressReporter(fileDownloadingString);
+		pReporter = new ProgressReporter();
 		setupAndShowDialog();
 
 		downloader = TorrentDownloaderFactory.create(this, url, referrer, dirName);
@@ -163,7 +161,8 @@ public class FileDownloadWindow
 	 */
 	private void setupAndShowDialog() {
 		if (null != pReporter) {
-			pReporter.setName(fileDownloadingString + getShortURL(url));
+			pReporter.setName(MessageText.getString("fileDownloadWindow.downloading")
+					+ getShortURL(url));
 			pReporter.setTitle(MessageText.getString("fileDownloadWindow.title"));
 			pReporter.setIndeterminate(true);
 			pReporter.setCancelAllowed(true);
@@ -212,7 +211,7 @@ public class FileDownloadWindow
 			 */
 			if (false == suppressDialog) {
 				ProgressReporterWindow.open(pReporter,
-						ProgressReporterWindow.AUTO_CLOSE);
+						ProgressReporterWindow.AUTO_CLOSE | ProgressReporterWindow.MODAL);
 			}
 		}
 	}
@@ -235,9 +234,7 @@ public class FileDownloadWindow
 				}
 				return;
 			case TorrentDownloader.STATE_DOWNLOADING:
-				pReporter.setPercentage(percentDone,
-						MessageText.getString("fileDownloadWindow.state_downloading")
-								+ ": " + downloader.getStatus());
+				pReporter.setPercentage(percentDone, downloader.getStatus());
 				break;
 			case TorrentDownloader.STATE_ERROR:
 				/*
