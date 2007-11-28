@@ -1,5 +1,10 @@
 package org.gudy.azureus2.ui.swt.progress;
 
+/**
+ * A simple class for a message
+ * @author knguyen
+ *
+ */
 public class ProgressReportMessage
 	implements IMessage, IProgressReportConstants
 {
@@ -8,6 +13,16 @@ public class ProgressReportMessage
 
 	private int type;
 
+	/**
+	 * Create a message for the given value and type; message type can by any one of:
+	 * <ul>
+	 * <li> <code>IProgressReportConstants.MSG_TYPE_ERROR</code> -- an error message</li>
+	 * <li> <code>IProgressReportConstants.MSG_TYPE_INFO</code> -- a general informational message</li>
+	 * <li> <code>IProgressReportConstants.MSG_TYPE_LOG</code> -- a log message; for messages that are more detailed and verbose</li>
+	 * </ul>
+	 * @param value
+	 * @param type
+	 */
 	public ProgressReportMessage(String value, int type) {
 		this.value = value;
 
