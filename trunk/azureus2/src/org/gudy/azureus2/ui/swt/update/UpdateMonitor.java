@@ -354,10 +354,14 @@ public class UpdateMonitor
 									String text = MessageText.getString(MSG_PREFIX
 											+ "restart.text");
 									uiFunctions.bringToFront();
+									int timeout = 180000;
+									if (azCore != null && !azCore.getPluginManager().isSilentRestartEnabled()) {
+										timeout = -1;
+									}
 									if (uiFunctions.promptUser(title, text, new String[] {
 										MessageText.getString("UpdateWindow.restart"),
 										MessageText.getString("UpdateWindow.restartLater")
-									}, 0, null, null, false, 180000) == 0) {
+									}, 0, null, null, false, timeout) == 0) {
 										uiFunctions.dispose(true, false);
 									}
 								}
