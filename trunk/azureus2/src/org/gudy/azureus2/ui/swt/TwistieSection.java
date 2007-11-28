@@ -14,8 +14,6 @@ public class TwistieSection
 
 	private TwistieLabel label = null;
 
-	private int style;
-
 	/**
 	 * Create a TwistieSection with the given style bit.
 	 * <p>Style bit can be one or more of:</p>
@@ -28,7 +26,6 @@ public class TwistieSection
 		*/
 	public TwistieSection(Composite parent, int style) {
 		super(parent, SWT.NONE);
-		this.style = style;
 
 		GridLayout gLayout = new GridLayout();
 		gLayout.marginHeight = 0;
@@ -45,7 +42,8 @@ public class TwistieSection
 				false);
 		gDataCollapsed.heightHint = 0;
 
-		content._setLayoutData((true == label.isCollapsed()) ? gDataCollapsed : gDataExpanded);
+		content._setLayoutData((true == label.isCollapsed()) ? gDataCollapsed
+				: gDataExpanded);
 
 		label.addTwistieListener(new ITwistieListener() {
 			public void isCollapsed(boolean value) {
@@ -88,6 +86,13 @@ public class TwistieSection
 			content.setForeground(color);
 		}
 		super.setForeground(color);
+	}
+
+	public void setEnabled(boolean enabled) {
+		if (null != label && false == label.isDisposed()) {
+			label.setEnabled(enabled);
+		}
+		super.setEnabled(enabled);
 	}
 
 	/**

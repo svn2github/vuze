@@ -299,6 +299,17 @@ public class TwistieLabel
 	}
 
 	/**
+	 * Sets the enablement for the control and also all the text-base children
+	 */
+	public void setEnabled(boolean enabled) {
+		if (null != titleLabel) {
+			titleLabel.setEnabled(enabled);
+		}
+
+		super.setEnabled(enabled);
+	}
+
+	/**
 	 * Returns whether this control is in a collapsed state
 	 * @return
 	 */
