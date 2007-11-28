@@ -757,6 +757,9 @@ public class MessageSlideShell
 				linkLabel.setText(popupParams.text);
 				linkLabel.addSelectionListener(new SelectionAdapter() {
 					public void widgetSelected(SelectionEvent e) {
+						if (e.text.startsWith(":")) {
+							return;
+						}
 						if (e.text.endsWith(".torrent"))
 							TorrentOpener.openTorrent(e.text);
 						else
@@ -771,7 +774,11 @@ public class MessageSlideShell
 						tooltip = "";
 					else
 						tooltip += "\n";
-					tooltip += matcher.group(2) + ": " + matcher.group(1);
+					String url = matcher.group(1);
+					if (url != null && url.startsWith(":")) {
+						url = url.substring(1);
+					}
+					tooltip += matcher.group(2) + ": " + url;
 				}
 				linkLabel.setToolTipText(tooltip);
 			} catch (Throwable t) {
