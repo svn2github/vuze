@@ -6,19 +6,13 @@ import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.ui.swt.AZProgressBar;
-import org.gudy.azureus2.ui.swt.ITwistieListener;
-import org.gudy.azureus2.ui.swt.ImageRepository;
-import org.gudy.azureus2.ui.swt.TwistieLabel;
-import org.gudy.azureus2.ui.swt.TwistieSection;
+import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 /**
@@ -30,12 +24,6 @@ public class ProgressReporterPanel
 	extends Composite
 	implements IProgressReportConstants, IProgressReporterListener
 {
-
-	/**
-	 * Minimum height that any text controls must be; this is so the layout manager will still allocate
-	 * space for an empty text control
-	 */
-	private int labelMinHeight = 10; //KN: Must calculate dynamically
 
 	private Color normalColor = null;
 
@@ -51,7 +39,7 @@ public class ProgressReporterPanel
 
 	private StyledText detailListWidget = null;
 
-	private GridData detailGroupData = null;
+	private GridData detailSectionData = null;
 
 	private AZProgressBar pBar = null;
 
@@ -73,24 +61,39 @@ public class ProgressReporterPanel
 	 * list of messages is too long; this value limits the height of the panel so that the window
 	 * does not grow to take up too much of the screen in such instances.
 	 */
-	private int maxInitialDetailPanelHeight = 200;
+	private int maxPreferredDetailPanelHeight = 200;
 
 	/**
-	 * The maximum height for the detail section on initialization
+	 * The preferred maximum height for the detail section on initialization
 	 */
-	public static final int maxInitialDetailPanelHeight_Standalone = 600;
+	private int maxPreferredDetailPanelHeight_Standalone = 600;
 
 	/**
-	 * The default message to display in the detail messages panel when there are no detail messages supplied
+	 * The preferred maximum width for the panel.  When the longest line of the detail messages
+	 * of the width of the title is too wide we use this limit to prevent the panel from taking
+	 * up too much width; the user is still free to manually make the panel wider of narrower as desired
 	 */
-	private final String NO_HISTORY_TO_DISPLAY = MessageText.getString("Progress.reporting.no.history.to.display");
+	private int maxPreferredWidth = 900;
 
+	/**
+	 * Create a panel for the given reporter.
+	 * <code>style</code> could be one or more of these:
+	 * <ul>
+	 * <li><code>IProgressReportConstants.NONE</code> -- the default</li>
+	 * <li><code>IProgressReportConstants.AUTO_CLOSE</code> -- automatically disposes this panel when the given reporter is done</li>
+	 * <li><code>IProgressReportConstants.STANDALONE</code> -- this panel will be hosted by itself in a window; the detail section of this panel will be given more height</li>
+	 * <li><code>IProgressReportConstants.BORDER</code> -- this panel will be hosted by itself in a window; the detail section of this panel will be given more height</li>
+	 * </ul>
+	 * @param parent the <code>Composite</code> hosting the panel
+	 * @param reporter the <code>IProgressReporter</code> to host
+	 * @param style one of the style bits listed above
+	 */
 	public ProgressReporterPanel(Composite parent, IProgressReporter reporter,
 			int style) {
-		super(parent, SWT.NONE);
+		super(parent, ((style & BORDER) != 0 ? SWT.BORDER : SWT.NONE));
 
 		if (null == reporter) {
-			throw new NullPointerException("IProgressReporter can not be null");//KN: should use resource
+			throw new NullPointerException("IProgressReporter can not be null");//KN: should use resource?
 		}
 
 		this.pReporter = reporter;
@@ -129,10 +132,18 @@ public class ProgressReporterPanel
 
 	}
 
+	/**
+	 * Call-back method from <code>IProgressReporterListener</code>; this method is called when ever the reporter
+	 * dispatches an event
+	 */
 	public int report(IProgressReport pReport) {
 		return handleEvents(pReport);
 	}
 
+	/**
+	 * Creates all the controls for the panel
+	 * @param pReport
+	 */
 	private void createControls(IProgressReport pReport) {
 		/* 
 		 * Creates the main panel
@@ -151,10 +162,8 @@ public class ProgressReporterPanel
 		imageLabel.setLayoutData(new GridData(SWT.BEGINNING, SWT.TOP, false, true));
 
 		nameLabel = new Label(progressPanel, SWT.WRAP);
-		GridData nameData = new GridData(SWT.BEGINNING, SWT.CENTER, true, false, 4,
-				1);
-		nameData.minimumHeight = labelMinHeight;
-		nameLabel.setLayoutData(nameData);
+		nameLabel.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, true,
+				false, 4, 1));
 
 		pBar = new AZProgressBar(progressPanel, pReport.isIndeterminate());
 		pBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
@@ -221,6 +230,10 @@ public class ProgressReporterPanel
 		});
 	}
 
+	/**
+	 * Initialize the controls with information from the given <code>IProgressReport</code>
+	 * @param pReport
+	 */
 	private void initControls(IProgressReport pReport) {
 
 		/*
@@ -241,7 +254,6 @@ public class ProgressReporterPanel
 		 * Action labels
 		 */
 
-		ImageRepository.loadImages(getDisplay());//KN: not needed in runtime but is required in standalone testing
 		actionLabel_cancel.setImage(ImageRepository.getImage("progress_cancel"));
 		actionLabel_remove.setImage(ImageRepository.getImage("progress_remove"));
 		actionLabel_retry.setImage(ImageRepository.getImage("progress_retry"));
@@ -251,14 +263,19 @@ public class ProgressReporterPanel
 		actionLabel_retry.setToolTipText(MessageText.getString("Progress.reporting.action.label.retry.tooltip"));
 
 		/* ========================================
-		 * Catch up on any detail messages we might have missed
+		 * Catch up on any messages we might have missed
 		 */
 		{
 
 			if (true == pReport.isDone()) {
-				updateStatusLabel("Finished", false);
+				updateStatusLabel(
+						MessageText.getString("Progress.reporting.status.finished"), false);
 			} else if (true == pReport.isInErrorState()) {
-				updateStatusLabel("Error", true);
+				updateStatusLabel(
+						MessageText.getString("Progress.reporting.default.error"), true);
+			} else if (true == pReport.isCanceled()) {
+				updateStatusLabel(
+						MessageText.getString("Progress.reporting.status.canceled"), false);
 			} else if (true == pReport.isIndeterminate()) {
 				updateStatusLabel(Constants.INFINITY_STRING, false);
 			} else {
@@ -289,15 +306,17 @@ public class ProgressReporterPanel
 		detailSection.setTitle(MessageText.getString("Progress.reporting.action.label.detail"));
 		Composite sectionContent = detailSection.getContent();
 
-		detailGroupData = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1);
-		detailSection.setLayoutData(detailGroupData);
+		detailSectionData = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1);
+		detailSection.setLayoutData(detailSectionData);
 
 		GridLayout sectionLayout = new GridLayout();
 		sectionLayout.marginHeight = 0;
 		sectionLayout.marginWidth = 0;
 		sectionContent.setLayout(sectionLayout);
+		detailSection.setEnabled(false);
 
-		detailListWidget = new StyledText(sectionContent, SWT.BORDER | SWT.V_SCROLL);
+		detailListWidget = new StyledText(sectionContent, SWT.BORDER | SWT.V_SCROLL
+				| SWT.WRAP);
 		detailListWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
 		/*
@@ -306,27 +325,14 @@ public class ProgressReporterPanel
 		 */
 
 		IMessage[] messages = pReporter.getMessageHistory();
-		if (messages.length < 1) {
-			appendToDetail(NO_HISTORY_TO_DISPLAY, false);
-
-			/*
-			 * Make it disabled to turn the text gray so the user does not confuse the default
-			 * message with an actual message from the reporter; we'll enable it once we have a
-			 * valid detail message from the reporter
-			 */
-			detailListWidget.setEnabled(false);
-
-		} else {
-
-			/*
-			 * Show error messages in red; otherwise use default color
-			 */
-			for (int i = 0; i < messages.length; i++) {
-				if (messages[i].getType() == MSG_TYPE_ERROR) {
-					appendToDetail(formatForDisplay(messages[i].getValue()), true);
-				} else {
-					appendToDetail(formatForDisplay(messages[i].getValue()), false);
-				}
+		/*
+		 * Show error messages in red; otherwise use default color
+		 */
+		for (int i = 0; i < messages.length; i++) {
+			if (messages[i].getType() == MSG_TYPE_ERROR) {
+				appendToDetail(formatForDisplay(messages[i].getValue()), true);
+			} else {
+				appendToDetail(formatForDisplay(messages[i].getValue()), false);
 			}
 		}
 
@@ -355,43 +361,31 @@ public class ProgressReporterPanel
 		 * A vertical scrollbar will appear so the user can scroll through the rest of the list 
 		 */
 
-		int computedHeight = detailSection.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
-		detailGroupData.heightHint = computedHeight;
+		Point computedSize = detailSection.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+
+		detailSectionData.heightHint = computedSize.y;
 
 		if ((STANDALONE & style) != 0) {
-			if (computedHeight > maxInitialDetailPanelHeight_Standalone) {
-				detailGroupData.heightHint = maxInitialDetailPanelHeight_Standalone;
+			if (computedSize.y > maxPreferredDetailPanelHeight_Standalone) {
+				detailSectionData.heightHint = maxPreferredDetailPanelHeight_Standalone;
 			}
-		} else if (computedHeight > maxInitialDetailPanelHeight) {
-			detailGroupData.heightHint = maxInitialDetailPanelHeight;
+		} else if (computedSize.y > maxPreferredDetailPanelHeight) {
+			detailSectionData.heightHint = maxPreferredDetailPanelHeight;
 		}
+
+		if (computedSize.x > maxPreferredWidth) {
+			detailSectionData.widthHint = maxPreferredWidth;
+		}
+
 	}
 
-	/**
-	 * Sets the background of all controls 
-	 * @param useAlternateColor <code>true</code> to use <code>alternatingBackground</code>; otherwise use default shell color
-	 */
-	public void setBackground(boolean useAlternateColor) {
+	public Point computeSize(int hint, int hint2, boolean changed) {
+		Point newSize = super.computeSize(hint, hint2, changed);
 
-		//KN: TODO --  clean up this list... are all these required?
-		if (true == useAlternateColor) {
-			//			setBackground(alternatingBackground);
-			//			imageLabel.setBackground(alternatingBackground);
-			//			nameLabel.setBackground(alternatingBackground);
-			//			pBar.setBackground(alternatingBackground);
-			//			statusLabel.setBackground(alternatingBackground);
-			//			progressPanel.setBackground(alternatingBackground);
-
-		} else {
-
-			//			Color shellBackground = getBackground();
-			//			imageLabel.setBackground(shellBackground);
-			//			nameLabel.setBackground(shellBackground);
-			//			pBar.setBackground(shellBackground);
-			//			statusLabel.setBackground(shellBackground);
-			//			progressPanel.setBackground(shellBackground);
-
+		if (newSize.x > maxPreferredWidth) {
+			newSize.x = maxPreferredWidth;
 		}
+		return newSize;
 	}
 
 	/**
@@ -420,8 +414,9 @@ public class ProgressReporterPanel
 							nameLabel.setText(pReport.getName());
 						}
 						updateStatusLabel(pReport.getMessage(), false);
+						appendToDetail(pReport.getMessage(), false);
+						appendToDetail(pReport.getDetailMessage(), false);
 						synchProgressBar(pReport);
-						updateDetailWidget(pReport);
 						synchActionLabels(pReport);
 						resizeContent();
 					}
@@ -431,12 +426,15 @@ public class ProgressReporterPanel
 				getDisplay().asyncExec(new Runnable() {
 					public void run() {
 						synchProgressBar(pReport);
-						updateStatusLabel(pReport.getMessage(), false);
+						updateStatusLabel(
+								MessageText.getString("Progress.reporting.status.canceled"),
+								false);
+						appendToDetail(pReport.getMessage(), false);
 						synchActionLabels(pReport);
 						resizeContent();
 					}
 				});
-				return RETVAL_OK;
+				break;
 			case REPORT_TYPE_DONE:
 				getDisplay().asyncExec(new Runnable() {
 					public void run() {
@@ -446,13 +444,21 @@ public class ProgressReporterPanel
 						} else {
 
 							synchProgressBar(pReport);
-							updateStatusLabel(pReport.getMessage(), false);
+							updateStatusLabel(
+									MessageText.getString("Progress.reporting.status.finished"),
+									false);
+							appendToDetail(
+									MessageText.getString("Progress.reporting.status.finished"),
+									false);
 							synchActionLabels(pReport);
 							resizeContent();
 						}
 					}
 				});
 
+				/*
+				 * Since the reporter is done we don't need this listener anymore
+				 */
 				return RETVAL_OK_TO_DISPOSE;
 			case REPORT_TYPE_MODE_CHANGE:
 				getDisplay().asyncExec(new Runnable() {
@@ -466,7 +472,9 @@ public class ProgressReporterPanel
 			case REPORT_TYPE_ERROR:
 				getDisplay().asyncExec(new Runnable() {
 					public void run() {
-						updateStatusLabel(pReport.getErrorMessage(), true);
+						updateStatusLabel(
+								MessageText.getString("Progress.reporting.default.error"), true);
+						appendToDetail(pReport.getErrorMessage(), true);
 						synchActionLabels(pReport);
 						synchProgressBar(pReport);
 						resizeContent();
@@ -478,6 +486,9 @@ public class ProgressReporterPanel
 				getDisplay().asyncExec(new Runnable() {
 					public void run() {
 						updateStatusLabel(pReport.getMessage(), false);
+						appendToDetail(
+								MessageText.getString("Progress.reporting.status.retrying"),
+								false);
 						synchActionLabels(pReport);
 						synchProgressBar(pReport);
 						resizeContent();
@@ -501,12 +512,17 @@ public class ProgressReporterPanel
 			return;
 		}
 
-		pBar.setIndeterminate(pReport.isIndeterminate());
-		if (false == pReport.isIndeterminate()) {
-			pBar.setMinimum(pReport.getMinimum());
-			pBar.setMaximum(pReport.getMaximum());
+		if (true == pReport.isInErrorState()) {
+			pBar.setIndeterminate(false);
+			pBar.setSelection(pReport.getMinimum());
+		} else {
+			pBar.setIndeterminate(pReport.isIndeterminate());
+			if (false == pReport.isIndeterminate()) {
+				pBar.setMinimum(pReport.getMinimum());
+				pBar.setMaximum(pReport.getMaximum());
+			}
+			pBar.setSelection(pReport.getSelection());
 		}
-		pBar.setSelection(pReport.getSelection());
 	}
 
 	/**
@@ -594,32 +610,13 @@ public class ProgressReporterPanel
 
 	}
 
+	/**
+	 * Convenience method for showing or hiding a label by setting its <code>GridData.widthHint</code>
+	 * @param label
+	 * @param showIt
+	 */
 	private void showActionLabel(Label label, boolean showIt) {
 		((GridData) label.getLayoutData()).widthHint = (true == showIt) ? 16 : 0;
-	}
-
-	private void updateDetailWidget(IProgressReport pReport) {
-		if (null == detailListWidget || detailListWidget.isDisposed()) {
-			return;
-		}
-
-		if (null != pReport.getDetailMessage()
-				&& pReport.getDetailMessage().length() > 0) {
-
-			/*
-			 * We added a default message at init so if it's still there then remove it;
-			 * the '\n' character was automatically appended to the string when we called
-			 * .appendToDetail() so compensate for it
-			 */
-			if (detailListWidget.getCharCount() == (NO_HISTORY_TO_DISPLAY + "\n").length()) {
-				if (true == (NO_HISTORY_TO_DISPLAY + "\n").equals(detailListWidget.getText())) {
-					detailListWidget.setText("");
-					detailListWidget.setEnabled(true);
-				}
-			}
-
-			appendToDetail(formatForDisplay(pReport.getDetailMessage()), false);
-		}
 	}
 
 	/**
@@ -667,7 +664,21 @@ public class ProgressReporterPanel
 		detailSection.removeTwistieListener(listener);
 	}
 
+	/**
+	 * Appends the given message to the detail panel; render the message in error color if specified
+	 * @param value
+	 * @param isError if <code>true</code> then render the message in the system error color; otherwise render in default color
+	 */
 	private void appendToDetail(String value, boolean isError) {
+
+		if (null == value || value.length() < 1) {
+			return;
+		}
+
+		if (null == detailListWidget || detailListWidget.isDisposed()) {
+			return;
+		}
+
 		int charCount = detailListWidget.getCharCount();
 		detailListWidget.append(value + "\n");
 		if (true == isError) {
@@ -677,5 +688,6 @@ public class ProgressReporterPanel
 			style2.foreground = errorColor;
 			detailListWidget.setStyleRange(style2);
 		}
+		detailSection.setEnabled(true);
 	}
 }

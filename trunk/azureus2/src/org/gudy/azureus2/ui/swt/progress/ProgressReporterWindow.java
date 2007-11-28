@@ -5,20 +5,12 @@ import java.util.Arrays;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.events.ControlAdapter;
-import org.eclipse.swt.events.ControlEvent;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.ITwistieListener;
@@ -48,6 +40,14 @@ public class ProgressReporterWindow
 	 */
 	private int defaultShellWidth = 400;
 
+	/**
+	 * The maximum number of panels to show when the window first open
+	 */
+	private int initialMaxNumberOfPanels = 3;
+
+	/**
+	 * The style bits to use for this panel
+	 */
 	private int style;
 
 	/**
@@ -127,7 +127,6 @@ public class ProgressReporterWindow
 
 		shell = ShellFactory.createMainShell(shellStyle);
 		shell.setText(MessageText.getString("progress.window.title"));
-		shell.setBackground(shell.getDisplay().getSystemColor(SWT.COLOR_WHITE)); //KN: must remove??
 
 		if (!Constants.isOSX) {
 			shell.setImage(ImageRepository.getImage("azureus"));
@@ -149,12 +148,10 @@ public class ProgressReporterWindow
 		 */
 		scrollChild = new Composite(scrollable, SWT.NONE);
 
-		scrollChild.setBackground(shell.getDisplay().getSystemColor(SWT.COLOR_WHITE));//KN: temp until finalized by UX
-		
 		GridLayout gLayoutChild = new GridLayout();
 		gLayoutChild.marginHeight = 0;
 		gLayoutChild.marginWidth = 0;
-		gLayoutChild.verticalSpacing = 3;
+		gLayoutChild.verticalSpacing = 0;
 		scrollChild.setLayout(gLayoutChild);
 		scrollable.setContent(scrollChild);
 		scrollable.setExpandVertical(true);
@@ -192,26 +189,57 @@ public class ProgressReporterWindow
 	 * Creates just an empty panel with a message indicating there are no reports to display 
 	 */
 	private void createEmptyPanel() {
-		scrollChild.setLayout(new GridLayout());
-
-		Label nothingToDisplay = new Label(scrollChild, SWT.WRAP);
-		GridData gData = new GridData(SWT.BEGINNING, SWT.TOP, true, true);
+		Label nothingToDisplay = new Label(scrollChild, SWT.NONE);
+		GridData gData = new GridData(SWT.FILL, SWT.FILL, true, true);
 		gData.heightHint = 100;
 		nothingToDisplay.setLayoutData(gData);
 		nothingToDisplay.setText(MessageText.getString("Progress.reporting.no.reports.to.display"));
 
 	}
 
-	public void openWindow() {
-		resizeToFit();
-		shell.open();
-	}
+	/**
+	 * Set initial size and layout for the window then open it
+	 */
+	private void openWindow() {
 
-	private void resizeToFit() {
+		/*
+		 * Using initialMaxNumberOfPanels as a lower limit we exclude all other panels from the layout,
+		 * compute the window size, then finally we include all panels back into the layout
+		 * 
+		 *  This ensures that the window will fit exactly the desired number of panels
+		 */
+		Control[] controls = scrollChild.getChildren();
+		for (int i = (initialMaxNumberOfPanels); i < controls.length; i++) {
+			((GridData) controls[i].getLayoutData()).exclude = true;
+		}
+
 		Point p = shell.computeSize(defaultShellWidth, SWT.DEFAULT);
+
+		for (int i = 0; i < controls.length; i++) {
+			((GridData) controls[i].getLayoutData()).exclude = false;
+		}
+		formatLastPanel(null);
+		scrollChild.layout();
+
+		/*
+		 * Set the shell size if it's different that the computed size
+		 */
 		if (false == shell.getSize().equals(p)) {
 			shell.setSize(p);
+			shell.layout(false);
 		}
+
+		/*
+		 * Centers the window
+		 */
+		Monitor primary = shell.getDisplay().getPrimaryMonitor();
+		Rectangle bounds = primary.getBounds();
+		Rectangle rect = shell.getBounds();
+		int x = bounds.x + (bounds.width - rect.width) / 2;
+		int y = bounds.y + (bounds.height - rect.height) / 2;
+		shell.setLocation(x, y);
+
+		shell.open();
 	}
 
 	private void createPanels() {
@@ -233,13 +261,11 @@ public class ProgressReporterWindow
 				 */
 				reportersRegistry.add(pReporters[i]);
 
-				final ProgressReporterPanel panel = new ProgressReporterPanel(
-						scrollChild, pReporters[i], style);
 				/*
-				 * For alternating panel background color use this code instead
-				 * panel.setBackground(i % 2 == 0);
+				 * Create the reporter panel; adding the style bit for BORDER
 				 */
-				panel.setBackground(true);
+				final ProgressReporterPanel panel = new ProgressReporterPanel(
+						scrollChild, pReporters[i], style | BORDER);
 
 				panel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 				panel.addTwistieListener(this);
@@ -252,19 +278,37 @@ public class ProgressReporterWindow
 
 						removeReporter(((ProgressReporterPanel) e.widget).pReporter);
 
+						panel.removeTwistieListener(ProgressReporterWindow.this);
+
+						/*
+						 * Must let the GridLayout manager know that this control should be ignored
+						 */
+						((GridData) panel.getLayoutData()).exclude = true;
+						panel.setVisible(false);
+
 						/*
 						 * If it's the last reporter then close the shell itself since it will be just empty
 						 */
 						if (pReporters.length == 0) {
-							shell.dispose();
+							if ((style & AUTO_CLOSE) != 0) {
+								if (null != shell && false == shell.isDisposed()) {
+									shell.close();
+								}
+							} else {
+								createEmptyPanel();
+							}
 						} else {
 
-							panel.removeTwistieListener(ProgressReporterWindow.this);
-							((GridData) panel.getLayoutData()).exclude = true;
-							panel.setVisible(false);
-							resizePanels(panel);
+							/*
+							 * Formats the last panel; specifying this panel as the panelToIgnore
+							 * because at this point in the code this panel has not been removed
+							 * from the window yet
+							 */
+							formatLastPanel(panel);
+						}
+
+						if (null != shell && false == shell.isDisposed()) {
 							shell.layout(true, true);
-							resizeToFit();
 						}
 					}
 
@@ -272,10 +316,15 @@ public class ProgressReporterWindow
 			}
 		}
 
-		resizePanels(null);
+		formatLastPanel(null);
 	}
 
-	private void resizePanels(ProgressReporterPanel panelToIgnore) {
+	/**
+	 * Formats the last <code>ProgressReporterPanel</code> in the window to extend to the bottom of the window.
+	 * This method will iterate from the last panel backward to the first, skipping over the given panel.
+	 * @param panelToIgnore 
+	 */
+	private void formatLastPanel(ProgressReporterPanel panelToIgnore) {
 		Control[] controls = scrollChild.getChildren();
 
 		for (int i = controls.length - 1; i >= 0; i--) {
@@ -306,17 +355,30 @@ public class ProgressReporterWindow
 	}
 
 	/**
-	 * When any <code>ProgressReporterPanel</code> in this window is expanded or collapsed;
+	 * When any <code>ProgressReporterPanel</code> in this window is expanded or collapsed 
 	 * re-layout the controls and window appropriately 
 	 */
 	public void isCollapsed(boolean value) {
-		scrollable.setRedraw(false);
-		Rectangle r = scrollable.getClientArea();
-		scrollable.setMinSize(scrollChild.computeSize(r.width, SWT.DEFAULT));
-		scrollable.setRedraw(true);
-		resizeToFit();
-		shell.update();
+		if (null != shell && false == shell.isDisposed()) {
+			scrollable.setRedraw(false);
+			Rectangle r = scrollable.getClientArea();
+			scrollable.setMinSize(scrollChild.computeSize(r.width, SWT.DEFAULT));
 
+			/*
+			 * Resizing to fit the panel if there is only one
+			 */
+			if (pReporters.length == 1) {
+				Point p = shell.computeSize(defaultShellWidth, SWT.DEFAULT);
+				if (shell.getSize().y != p.y) {
+					p.x = shell.getSize().x;
+					shell.setSize(p);
+				}
+			}
+
+			scrollable.layout();
+			//			shell.layout(true, true);
+			scrollable.setRedraw(true);
+		}
 	}
 
 }
