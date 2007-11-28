@@ -44,6 +44,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
 import com.aelitis.azureus.core.impl.AzureusCoreImpl;
@@ -704,10 +705,20 @@ public class Utils {
 	 */
 	public static int openMessageBox(Shell parent, int style, String keyPrefix,
 			String[] textParams) {
-		MessageBox mb = new MessageBox(parent, style);
-		mb.setMessage(MessageText.getString(keyPrefix + ".text", textParams));
-		mb.setText(MessageText.getString(keyPrefix + ".title"));
-		return mb.open();
+		if (style == SWT.OK) {
+			int ret = new MessageBoxShell(parent, MessageText.getString(keyPrefix
+					+ ".title"), MessageText.getString(keyPrefix + ".text", textParams),
+					new String[] {
+						MessageText.getString("Button.ok")
+					}, 0).open();
+
+			return (ret == 0) ? SWT.OK : SWT.CANCEL;
+		} else {
+			MessageBox mb = new MessageBox(parent, style);
+			mb.setMessage(MessageText.getString(keyPrefix + ".text", textParams));
+			mb.setText(MessageText.getString(keyPrefix + ".title"));
+			return mb.open();
+		}
 	}
 
 	/** Open a messagebox with actual title and text
