@@ -85,6 +85,16 @@ public class UISwitcherUtil
 				return forceUI;
 			}
 
+			// Flip people who install this client over top of an existing az
+			// to az3ui.  The installer will write a file to the program dir,
+			// while an upgrade won't
+			if (COConfigurationManager.getBooleanParameter("installer.ui.alreadySwitched", false)
+					&& FileUtil.getApplicationFile("installer.log").exists()) {
+				COConfigurationManager.setParameter("installer.ui.alreadySwitched", true);
+				COConfigurationManager.setParameter("ui", "az3");
+				return "az3";
+			}
+			
 			boolean asked = COConfigurationManager.getBooleanParameter("ui.asked",
 					false);
 
@@ -129,17 +139,6 @@ public class UISwitcherUtil
 				// ignore
 			}
 			
-			// Flip people who install this client over top of an existing az
-			// to az3ui.  The installer will write a file to the program dir,
-			// while an upgrade won't
-			if (COConfigurationManager.getBooleanParameter("installer.ui.alreadySwitched", false)
-					&& FileUtil.getApplicationFile("installer.log").exists()) {
-				COConfigurationManager.setParameter("installer.ui.alreadySwitched", true);
-				COConfigurationManager.setParameter("ui", "az3");
-				return "az3";
-			}
-			
-
 			// Short Circuit: We don't want to ask az2 users yet
 			if (NOT_GOOD_ENOUGH_FOR_AZ2_USERS_YET) {
 				COConfigurationManager.setParameter("ui", "az2");
