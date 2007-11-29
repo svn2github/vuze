@@ -171,6 +171,10 @@ public class PlatformAdManager
 			});
 
 			DownloadManager[] existingAds = AdManager.getInstance().getAds(false);
+			if (existingAds.length == 0) {
+				replyListener.replyReceived("", null);
+				return;
+			}
 			List ads = new ArrayList();
 			for (int i = 0; i < existingAds.length; i++) {
 				DownloadManager dm = existingAds[i];
@@ -224,6 +228,7 @@ public class PlatformAdManager
 			});
 		} catch (Exception e) {
 			Debug.out(e);
+			replyListener.replyReceived("", null);
 		}
 	}
 
