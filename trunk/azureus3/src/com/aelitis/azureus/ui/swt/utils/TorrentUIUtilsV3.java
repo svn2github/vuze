@@ -152,22 +152,12 @@ public class TorrentUIUtilsV3
 												try {
 													core.getGlobalManager().removeListener(this);
 
-													HashWrapper hw = dm.getTorrent().getHashWrapper();
-													if (!hw.equals(fhw)) {
-														return;
-													}
-
-													boolean showHomeHint = true;
-													if (playNow) {
-														showHomeHint = !TorrentListViewsUtils.playOrStream(dm);
-													}
-													if (showHomeHint) {
-														TorrentListViewsUtils.showHomeHint(dm);
-													}
+													handleDMAdded(dm, playNow, fhw);
 												} catch (Exception e) {
 													Debug.out(e);
 												}
 											}
+
 										};
 										gm.addListener(l, false);
 
@@ -184,5 +174,29 @@ public class TorrentUIUtilsV3
 		} catch (Exception e) {
 			Debug.out(e);
 		}
+	}
+
+	private static void handleDMAdded(final DownloadManager dm,
+			final boolean playNow, final HashWrapper fhw) {
+		new AEThread("playDM", true) {
+			public void runSupport() {
+				try {
+					HashWrapper hw = dm.getTorrent().getHashWrapper();
+					if (!hw.equals(fhw)) {
+						return;
+					}
+
+					boolean showHomeHint = true;
+					if (playNow) {
+						showHomeHint = !TorrentListViewsUtils.playOrStream(dm);
+					}
+					if (showHomeHint) {
+						TorrentListViewsUtils.showHomeHint(dm);
+					}
+				} catch (Exception e) {
+					Debug.out(e);
+				}
+			}
+		}.start();
 	}
 }
