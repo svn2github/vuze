@@ -8,6 +8,8 @@ import org.eclipse.swt.graphics.Image;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 
+import com.aelitis.azureus.core.util.CopyOnWriteList;
+
 /**
  * A implementation of <code>IProgressReporter</code>
  * <p>Any process wishing to participate in providing global progress indication can instantiate
@@ -111,7 +113,7 @@ public class ProgressReporter
 
 	private String reporterType = REPORTER_TYPE_DEFAULT;
 
-	private List reporterListeners = null; //KN: Lazy init since not all reporters will have direct listeners
+	private CopyOnWriteList reporterListeners = null; //KN: Lazy init since not all reporters will have direct listeners
 
 	/**
 	 * An arbitrary object reference that can be used by the owner of the <code>ProgressReporter</code> and its
@@ -172,9 +174,7 @@ public class ProgressReporter
 		 * already.
 		 */
 		if (null != reporterListeners) {
-			synchronized (reporterListeners) {
 				reporterListeners.clear();
-			}
 		}
 
 		/*
@@ -205,7 +205,7 @@ public class ProgressReporter
 	 * number of listeners to notify upon the next event 
 	 */
 	private void notifyListeners() {
-		if (null == reporterListeners || true == reporterListeners.isEmpty()) {
+		if (null == reporterListeners || reporterListeners.size() < 1) {
 			return;
 		}
 
@@ -213,19 +213,24 @@ public class ProgressReporter
 		 * Take a snap shot of the reporter
 		 */
 		IProgressReport pReport = getProgressReport();
+		List removalList = new ArrayList();
 
-		synchronized (reporterListeners) {
+		for (Iterator iterator = reporterListeners.iterator(); iterator.hasNext();) {
+			IProgressReporterListener listener = ((IProgressReporterListener) iterator.next());
 
-			for (Iterator iterator = reporterListeners.iterator(); iterator.hasNext();) {
-				IProgressReporterListener listener = ((IProgressReporterListener) iterator.next());
-
-				/*
-				 * If the listener returned RETVAL_OK_TO_DISPOSE then it has indicated that it is no longer needed so we release it
-				 */
-				if (RETVAL_OK_TO_DISPOSE == listener.report(pReport)) {
-					iterator.remove();
-				}
+			/*
+			 * If the listener returned RETVAL_OK_TO_DISPOSE then it has indicated that it is no longer needed so we release it
+			 */
+			if (RETVAL_OK_TO_DISPOSE == listener.report(pReport)) {
+				removalList.add(listener);
 			}
+		}
+
+		/*
+		 * Removes any listeners marked ok to disposed
+		 */
+		for (Iterator iterator = removalList.iterator(); iterator.hasNext();) {
+			reporterListeners.remove(iterator.next());
 		}
 	}
 
@@ -343,7 +348,7 @@ public class ProgressReporter
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.ui.swt.mainwindow.IProgressReporter#setDone()
 	 */
-	public void setDone() {
+	public synchronized void setDone() {
 		if (true == shouldIgnore()) {
 			return;
 		}
@@ -568,7 +573,7 @@ public class ProgressReporter
 		if (messageHistory.size() < messageHistoryLimit) {
 			messageHistory.add(new ProgressReportMessage(value, type));
 		}
-		
+
 		if (messageHistory.size() == messageHistoryLimit) {
 			Debug.out(new Exception(MessageText.getString(
 					"Progress.reporting.detail.history.limit", new String[] {
@@ -600,15 +605,17 @@ public class ProgressReporter
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.ui.swt.mainwindow.IProgressReporter#addListener(org.gudy.azureus2.ui.swt.mainwindow.IProgressReporterListener)
 	 */
-	public synchronized void addListener(IProgressReporterListener listener) {
+	public void addListener(IProgressReporterListener listener) {
 		if (true == shouldIgnore()) {
 			return;
 		}
-		if (null == reporterListeners) {
-			reporterListeners = new ArrayList();
-		}
-		synchronized (reporterListeners) {
-			reporterListeners.add(listener);
+		if (null != listener) {
+			if (null == reporterListeners) {
+				reporterListeners = new CopyOnWriteList();
+				reporterListeners.add(listener);
+			} else if (false == reporterListeners.contains(listener)) {
+				reporterListeners.add(listener);
+			}
 		}
 	}
 
@@ -619,9 +626,7 @@ public class ProgressReporter
 		if (null == reporterListeners) {
 			return;
 		}
-		synchronized (reporterListeners) {
-			reporterListeners.remove(listener);
-		}
+		reporterListeners.remove(listener);
 	}
 
 	/**
