@@ -113,6 +113,8 @@ public class ProgressReporter
 
 	private String reporterType = REPORTER_TYPE_DEFAULT;
 
+	private IProgressReport latestProgressReport = null;
+
 	private CopyOnWriteList reporterListeners = null; //KN: Lazy init since not all reporters will have direct listeners
 
 	/**
@@ -122,6 +124,17 @@ public class ProgressReporter
 	private Object objectData = null;
 
 	private int messageHistoryLimit = 1000;
+
+	/**
+	 * If any of the following states have been reached then the reporter is considered inactive:
+	 * <ul>
+	 * <li><code>isDisposed</code> 			== 	<code>true</code></li>
+	 * <li><code>isDone</code> 					== 	<code>true</code></li>
+	 * <li><code>isInErrorState</code>	==	<code>true</code></li>
+	 * <li><code>isCanceled</code> 			==	<code>true</code></li>
+	 * </ul>
+	 */
+	private boolean isActive = true;
 
 	/**
 	 * Construct a <code>ProgressReporter</code>; the returned instance is initialized with the proper ID
@@ -153,14 +166,19 @@ public class ProgressReporter
 	 */
 	public void dispose() {
 
-		/*
-		 * Disposed already so no need to do it again
-		 */
-		if (true == isDisposed) {
-			return;
-		}
+		synchronized (this) {
+			/*
+			 * Disposed already so no need to do it again
+			 */
 
-		isDisposed = true;
+			if (true == isDisposed) {
+				return;
+			}
+
+			isDisposed = true;
+			isActive = false;
+		}
+		
 		latestReportType = REPORT_TYPE_DISPOSED;
 
 		/*
@@ -174,7 +192,7 @@ public class ProgressReporter
 		 * already.
 		 */
 		if (null != reporterListeners) {
-				reporterListeners.clear();
+			reporterListeners.clear();
 		}
 
 		/*
@@ -189,6 +207,7 @@ public class ProgressReporter
 	 * to keep on using the same instance of this reporter without having to create and dispatch a new one</p>
 	 */
 	private void reInit() {
+		isActive = true;
 		isCanceled = false;
 		isDone = false;
 		isInErrorState = false;
@@ -209,10 +228,7 @@ public class ProgressReporter
 			return;
 		}
 
-		/*
-		 * Take a snap shot of the reporter
-		 */
-		IProgressReport pReport = getProgressReport();
+
 		List removalList = new ArrayList();
 
 		for (Iterator iterator = reporterListeners.iterator(); iterator.hasNext();) {
@@ -221,7 +237,7 @@ public class ProgressReporter
 			/*
 			 * If the listener returned RETVAL_OK_TO_DISPOSE then it has indicated that it is no longer needed so we release it
 			 */
-			if (RETVAL_OK_TO_DISPOSE == listener.report(pReport)) {
+			if (RETVAL_OK_TO_DISPOSE == listener.report(getProgressReport())) {
 				removalList.add(listener);
 			}
 		}
@@ -240,6 +256,12 @@ public class ProgressReporter
 	 */
 	private void updateAndNotify(int eventType) {
 		latestReportType = eventType;
+		
+		/*
+		 * Take a snap shot of the reporter
+		 */
+		latestProgressReport = new ProgressReport();
+		
 		/*
 		 * We directly bubble up this event to the manager for efficiency;
 		 * as opposed to having the manager register as a listener to each and every ProgressReporter.
@@ -348,12 +370,16 @@ public class ProgressReporter
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.ui.swt.mainwindow.IProgressReporter#setDone()
 	 */
-	public synchronized void setDone() {
-		if (true == shouldIgnore()) {
-			return;
-		}
+	public void setDone() {
+		synchronized (this) {
+			if (true == shouldIgnore()) {
+				return;
+			}
 
-		isDone = true;
+			isDone = true;
+			isActive = false;
+		}
+		
 		selection = maximum;
 		percentage = 100;
 		isIndeterminate = false;
@@ -421,14 +447,16 @@ public class ProgressReporter
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.ui.swt.mainwindow.IProgressReporter#cancel()
 	 */
-	public synchronized void cancel() {
-		if (true == isCanceled || true == shouldIgnore()) {
-			return;
+	public void cancel() {
+		synchronized (this) {
+			if (true == isCanceled || true == shouldIgnore()) {
+				return;
+			}
+
+			isCanceled = true;
+			isActive = false;
 		}
-
-		isCanceled = true;
 		message = MessageText.getString("Progress.reporting.status.canceled");
-
 		addToMessageHistory(message, MSG_TYPE_LOG);
 		updateAndNotify(REPORT_TYPE_CANCEL);
 	}
@@ -436,11 +464,13 @@ public class ProgressReporter
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.ui.swt.mainwindow.IProgressReporter#retry()
 	 */
-	public synchronized void retry() {
-		if (true == shouldIgnore()) {
-			return;
+	public void retry() {
+		synchronized (this) {
+			if (true == shouldIgnore()) {
+				return;
+			}
+			reInit();
 		}
-		reInit();
 		message = MessageText.getString("Progress.reporting.status.retrying");
 		addToMessageHistory(message, MSG_TYPE_LOG);
 		updateAndNotify(REPORT_TYPE_RETRY);
@@ -504,6 +534,7 @@ public class ProgressReporter
 			this.errorMessage = errorMessage;
 		}
 		isInErrorState = true;
+		isActive = false;
 		addToMessageHistory(this.errorMessage, MSG_TYPE_ERROR);
 		updateAndNotify(REPORT_TYPE_ERROR);
 	}
@@ -536,24 +567,6 @@ public class ProgressReporter
 	 */
 	private boolean shouldIgnore() {
 		return (true == isDisposed || true == isDone);
-	}
-
-	/**
-	 * A convenience method to return whether this reporter has reached a state considered inactive.
-	 * <p>
-	 * If any of the following states have been reached then the reporter is considered inactive:
-	 * <ul>
-	 * <li><code>isDisposed</code> 			== 	<code>true</code></li>
-	 * <li><code>isDone</code> 					== 	<code>true</code></li>
-	 * <li><code>isInErrorState</code>	==	<code>true</code></li>
-	 * <li><code>isCanceled</code> 			==	<code>true</code></li>
-	 * </ul>
-	 * </p>
-	 * @return <code>true</code> if any of the above is met; <code>false</code> otherwise
-	 */
-	private boolean isActive() {
-		return false == (true == isDisposed || true == isDone
-				|| true == isInErrorState || true == isCanceled);
 	}
 
 	/**
@@ -661,8 +674,11 @@ public class ProgressReporter
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.ui.swt.mainwindow.IProgressReporter#getProgressReport()
 	 */
-	public synchronized IProgressReport getProgressReport() {
-		return new ProgressReport();
+	public IProgressReport getProgressReport() {
+		if (null == latestProgressReport) {
+			latestProgressReport = new ProgressReport();
+		}
+		return latestProgressReport;
 	}
 
 	/**
@@ -685,51 +701,51 @@ public class ProgressReporter
 	public class ProgressReport
 		implements IProgressReport
 	{
-		private String reporterType = ProgressReporter.this.reporterType;
+		private final String reporterType = ProgressReporter.this.reporterType;
 
-		private int reporterID = ProgressReporter.this.ID;
+		private final int reporterID = ProgressReporter.this.ID;
 
-		private int minimum = ProgressReporter.this.minimum;
+		private final int minimum = ProgressReporter.this.minimum;
 
-		private int maximum = ProgressReporter.this.maximum;
+		private final int maximum = ProgressReporter.this.maximum;
 
-		private int selection = ProgressReporter.this.selection;
+		private final int selection = ProgressReporter.this.selection;
 
-		private int percentage = ProgressReporter.this.percentage;
+		private final int percentage = ProgressReporter.this.percentage;
 
-		private boolean isActive = ProgressReporter.this.isActive();
+		private final boolean isActive = ProgressReporter.this.isActive;
 
-		private boolean isIndeterminate = ProgressReporter.this.isIndeterminate;
+		private final boolean isIndeterminate = ProgressReporter.this.isIndeterminate;
 
-		private boolean isDone = ProgressReporter.this.isDone;
+		private final boolean isDone = ProgressReporter.this.isDone;
 
-		private boolean isPercentageInUse = ProgressReporter.this.isPercentageInUse;
+		private final boolean isPercentageInUse = ProgressReporter.this.isPercentageInUse;
 
-		private boolean isCancelAllowed = ProgressReporter.this.isCancelAllowed;
+		private final boolean isCancelAllowed = ProgressReporter.this.isCancelAllowed;
 
 		public final boolean isCanceled = ProgressReporter.this.isCanceled;
 
-		private boolean isRetryAllowed = ProgressReporter.this.isRetryAllowed;
+		private final boolean isRetryAllowed = ProgressReporter.this.isRetryAllowed;
 
-		private boolean isInErrorState = ProgressReporter.this.isInErrorState;
+		private final boolean isInErrorState = ProgressReporter.this.isInErrorState;
 
-		private boolean isDisposed = ProgressReporter.this.isDisposed;
+		private final boolean isDisposed = ProgressReporter.this.isDisposed;
 
-		private String title = ProgressReporter.this.title;
+		private final String title = ProgressReporter.this.title;
 
-		private String message = ProgressReporter.this.message;
+		private final String message = ProgressReporter.this.message;
 
-		private String detailMessage = ProgressReporter.this.detailMessage;
+		private final String detailMessage = ProgressReporter.this.detailMessage;
 
-		private String errorMessage = ProgressReporter.this.errorMessage;
+		private final String errorMessage = ProgressReporter.this.errorMessage;
 
-		private String name = ProgressReporter.this.name;
+		private final String name = ProgressReporter.this.name;
 
-		private Image image = ProgressReporter.this.image;
+		private final Image image = ProgressReporter.this.image;
 
-		private Object objectData = ProgressReporter.this.objectData;
+		private final Object objectData = ProgressReporter.this.objectData;
 
-		private int REPORT_TYPE = ProgressReporter.this.latestReportType;
+		private final int REPORT_TYPE = ProgressReporter.this.latestReportType;
 
 		/**
 		 * Construct a ProgressReport
