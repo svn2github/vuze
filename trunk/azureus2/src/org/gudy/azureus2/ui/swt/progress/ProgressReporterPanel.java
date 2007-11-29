@@ -413,7 +413,11 @@ public class ProgressReporterPanel
 						if (null != nameLabel && false == nameLabel.isDisposed()) {
 							nameLabel.setText(pReport.getName());
 						}
-						updateStatusLabel(pReport.getMessage(), false);
+						if (true == pReport.isIndeterminate()) {
+							updateStatusLabel(Constants.INFINITY_STRING, false);
+						} else {
+							updateStatusLabel(pReport.getPercentage() + "%", false);
+						}
 						appendToDetail(pReport.getMessage(), false);
 						appendToDetail(pReport.getDetailMessage(), false);
 						synchProgressBar(pReport);
