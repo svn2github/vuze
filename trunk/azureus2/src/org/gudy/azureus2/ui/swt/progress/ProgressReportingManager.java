@@ -1,13 +1,10 @@
 package org.gudy.azureus2.ui.swt.progress;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
+import java.util.*;
 
 import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
+
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 /**
  * A manager that aggregates and forward progress information for long running operations
@@ -41,9 +38,9 @@ public class ProgressReportingManager
 	public static final int COUNT_ERROR = 2;
 
 	/**
-	 * A <code>List</code> of <code>IProgressReportingListener</code> 
+	 * A <code>CopyOnWriteList</code> of <code>IProgressReportingListener</code> 
 	 */
-	private List listeners = new ArrayList();
+	private CopyOnWriteList listeners = new CopyOnWriteList();
 
 	private ProgressReportingManager() {
 	}
@@ -88,11 +85,11 @@ public class ProgressReportingManager
 	}
 
 	/**
-	 * Returns the previous active reporter
-	 * @return the previous reporter that is still active; <code>null</code> if none are active or no reporters are found
+	 * Returns the next active reporter
+	 * @return the next reporter that is still active; <code>null</code> if none are active or no reporters are found
 	 */
-	public IProgressReporter getPreviousActiveReporter() {
-		return progressReporters.getPreviousActiveReporter();
+	public IProgressReporter getNextActiveReporter() {
+		return progressReporters.getNextActiveReporter();
 	}
 
 	/**
@@ -147,10 +144,8 @@ public class ProgressReportingManager
 	 * @param listener
 	 */
 	public void addListener(IProgressReportingListener listener) {
-		if (null != listener) {
-			synchronized (listeners) {
-				listeners.add(listener);
-			}
+		if (null != listener && false == listeners.contains(listener)) {
+			listeners.add(listener);
 		}
 	}
 
@@ -159,10 +154,8 @@ public class ProgressReportingManager
 	 * @param listener
 	 */
 	public void removeListener(IProgressReportingListener listener) {
-		if (null != listener) {
-			synchronized (listeners) {
-				listeners.remove(listener);
-			}
+		if (null != listener && true == listeners.contains(listener)) {
+			listeners.remove(listener);
 		}
 	}
 
@@ -172,12 +165,10 @@ public class ProgressReportingManager
 	 * @param reporter
 	 */
 	private void notifyListeners(int eventType, IProgressReporter reporter) {
-		synchronized (listeners) {
-			for (Iterator iterator = listeners.iterator(); iterator.hasNext();) {
-				IProgressReportingListener listener = (IProgressReportingListener) iterator.next();
-				if (null != listener) {
-					listener.reporting(eventType, reporter);
-				}
+		for (Iterator iterator = listeners.iterator(); iterator.hasNext();) {
+			IProgressReportingListener listener = (IProgressReportingListener) iterator.next();
+			if (null != listener) {
+				listener.reporting(eventType, reporter);
 			}
 		}
 	}
@@ -202,237 +193,6 @@ public class ProgressReportingManager
 			notifyListeners(MANAGER_EVENT_UPDATED, reporter);
 		}
 
-	}
-
-	/**
-	 * A convenience <code>ArrayList</code> based stack for tracking <code>ProgressReporter</code>s
-	 * <p>The <code>ArrayList</code> could be replaced if performance becomes an issue</p>
-	 * <p>When a reporter is pushed onto the stack we remove any other occurrences of the same reporter so
-	 * that there is at most one instance of a particular reporter in the stack at any time</p>
-	 * <p>Most iteration through the internal ArrayList should be done in reverse order because active reporters
-	 * tend to be closer to the end of the list than the beginning; additionally the {@link #trim(boolean)} method
-	 * may be called occasionally to compact the list to increase lookup performance and memory footprint. </p>
-	 * 
-	 * @author knguyen
-	 *
-	 */
-	private class ProgressReporterStack
-	{
-		private ArrayList reporterList;
-
-		public ProgressReporterStack() {
-			reporterList = new ArrayList();
-		}
-
-		public ProgressReporterStack(int stackInitialSize) {
-			reporterList = new ArrayList(stackInitialSize);
-		}
-
-		/**
-		 * Pushes the given reporter on top of the stack; additionally remove any previous occurrence of the reporter.
-		 * @param reporter
-		 */
-		public void push(IProgressReporter reporter) {
-			if (null == reporter) {
-				return;
-			}
-			synchronized (reporterList) {
-
-				/*
-				 * Remove the reporter from the list if it's in there already
-				 */
-				if (true == reporterList.contains(reporter)) {
-					reporterList.remove(reporter);
-				}
-
-				reporterList.add(reporter);
-			}
-		}
-
-		/**
-		 * Returns the reporter at the top of the stack
-		 * @return
-		 */
-		public IProgressReporter peek() {
-			synchronized (reporterList) {
-				if (true == reporterList.isEmpty()) {
-					return null;
-				}
-
-				return (IProgressReporter) reporterList.get(reporterList.size() - 1);
-			}
-		}
-
-		/**
-		 * Remove the given <code>ProgressReporter</code>;
-		 * @return <code>true</code> if the given reporter is not found; otherwise <code>false</code>
-		 */
-		public boolean remove(IProgressReporter reporter) {
-			synchronized (reporterList) {
-				return reporterList.remove(reporter);
-			}
-		}
-
-		/**
-		 * Returns whether or not the given <code>IProgressReporter</code> is already in the history list
-		 * @param reporter
-		 * @return
-		 */
-		public boolean contains(IProgressReporter reporter) {
-			return reporterList.contains(reporter);
-		}
-
-		/**
-		 * Remove and return the reporter at the top of the stack
-		 * @return
-		 */
-		public IProgressReporter pop() {
-			synchronized (reporterList) {
-				if (false == reporterList.isEmpty()) {
-					return (IProgressReporter) reporterList.remove(reporterList.size() - 1);
-				}
-				return null;
-			}
-		}
-
-		/**
-		 * Trims the list by removing all inactive reporters
-		 */
-		public void trim() {
-			/*
-			 * Locking the list since we're iterating through it
-			 */
-			synchronized (reporterList) {
-				for (Iterator iterator = reporterList.iterator(); iterator.hasNext();) {
-					IProgressReporter reporter = ((IProgressReporter) iterator.next());
-					IProgressReport report = reporter.getProgressReport();
-					if (false == report.isActive()) {
-						iterator.remove();
-					}
-				}
-			}
-		}
-
-		/**
-		 * Returns a list of reporters; this list can safely be manipulated because it is not directly referencing the internal list
-		 * @param onlyActive <code>true</code> to return only reporters that are still active, <code>false</code> to return all reporters
-		 * @return <code>List</code> 
-		 */
-		public List getReporters(boolean onlyActive) {
-			/*
-			 * Locking the list since we're iterating through it
-			 */
-			synchronized (reporterList) {
-				List reporters = new ArrayList();
-				for (ListIterator iterator = reporterList.listIterator(reporterList.size()); iterator.hasPrevious();) {
-					IProgressReporter reporter = ((IProgressReporter) iterator.previous());
-					IProgressReport report = reporter.getProgressReport();
-					if (true == onlyActive) {
-						if (true == report.isActive()) {
-							reporters.add(reporter);
-						}
-					} else {
-						reporters.add(reporter);
-					}
-				}
-				return reporters;
-			}
-
-		}
-
-		public int size() {
-			return reporterList.size();
-		}
-
-		/**
-		 * Returns the number of reporters in the stack that are still active
-		 * @return
-		 */
-		public int getActiveCount() {
-			/*
-			 * Locking the list since we're iterating through it
-			 */
-			synchronized (reporterList) {
-				int activeReporters = 0;
-				for (ListIterator iterator = reporterList.listIterator(reporterList.size()); iterator.hasPrevious();) {
-					IProgressReporter reporter = ((IProgressReporter) iterator.previous());
-					IProgressReport report = reporter.getProgressReport();
-					if (true == report.isActive()) {
-						activeReporters++;
-					}
-				}
-				return activeReporters;
-			}
-		}
-
-		/**
-		 * Returns the number of reporters in the stack that are in error state  
-		 * @return 
-		 */
-		public int getErrorCount() {
-			/*
-			 * Locking the list since we're iterating through it
-			 */
-			synchronized (reporterList) {
-				int reportersInErrorState = 0;
-				for (ListIterator iterator = reporterList.listIterator(reporterList.size()); iterator.hasPrevious();) {
-					IProgressReporter reporter = ((IProgressReporter) iterator.previous());
-					IProgressReport report = reporter.getProgressReport();
-					if (true == report.isInErrorState()) {
-						reportersInErrorState++;
-					}
-				}
-				return reportersInErrorState;
-			}
-		}
-
-		/**
-		 * A convenience method for quickly determining whether more than one reporter is still active.
-		 * This method can be much quicker than calling {@link #getActiveCount()} and inspecting the returned value
-		 * if the number of reporters is high since we may not have to go through the entire list before getting the result
-		 * @return <code>true</code> if there are at least 2 active reporters; <code>false</code> otherwise
-		 */
-		public boolean hasMultipleActive() {
-
-			/*
-			 * Locking the list since we're iterating through it
-			 */
-			synchronized (reporterList) {
-				int activeReporters = 0;
-				for (ListIterator iterator = reporterList.listIterator(reporterList.size()); iterator.hasPrevious();) {
-					IProgressReporter reporter = (IProgressReporter) iterator.previous();
-					IProgressReport report = reporter.getProgressReport();
-					if (true == report.isActive()) {
-						activeReporters++;
-					}
-					if (activeReporters > 1) {
-						return true;
-					}
-				}
-			}
-			return false;
-		}
-
-		/**
-		 * Get the previous active reporter.
-		 * <p><b>NOTE: </b> this is different from calling {@link #peek()} since the previous active reporter may not be at the top of the stack</p>
-		 * @return ProgressReporter the previous reporter on the stack that is still active; <code>null</code> if none are active or none are found
-		 */
-		public IProgressReporter getPreviousActiveReporter() {
-			/*
-			 * Locking the list since we're iterating through it
-			 */
-			synchronized (reporterList) {
-				for (ListIterator iterator = reporterList.listIterator(reporterList.size()); iterator.hasPrevious();) {
-					IProgressReporter reporter = (IProgressReporter) iterator.previous();
-					IProgressReport report = reporter.getProgressReport();
-					if (true == report.isActive()) {
-						return reporter;
-					}
-				}
-			}
-			return null;
-		}
 	}
 
 	/**
