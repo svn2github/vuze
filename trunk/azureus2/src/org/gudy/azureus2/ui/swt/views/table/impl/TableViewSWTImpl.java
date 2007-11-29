@@ -2129,7 +2129,7 @@ public class TableViewSWTImpl
 						// is more time consuming and we do afterwards anyway)
 						int index = sortedRows.indexOf(item);
 						if (!bRefresh) {
-							bRefresh = index >= iTopIndex || index <= iBottomIndex;
+							bRefresh = index >= iTopIndex && index <= iBottomIndex;
 						}
 						if (DEBUGADDREMOVE) {
 							if (i != 0) {
