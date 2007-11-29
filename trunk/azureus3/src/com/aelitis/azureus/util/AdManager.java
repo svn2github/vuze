@@ -75,6 +75,8 @@ public class AdManager
 
 	private Object lastImpressionID;
 
+	protected boolean checkingForAds = false;
+
 	public void intialize(final AzureusCore core) {
 		this.core = core;
 
@@ -216,11 +218,12 @@ public class AdManager
 
 				if (list.size() == 0) {
 					PlatformAdManager.debug("none of the " + dms.length
-							+ " was ad enabled.  skipping ad get.");
+							+ " new torrent(s) are ad enabled.  skipping ad get.");
 					return;
 				}
 
 				try {
+					checkingForAds = true;
 					PlatformAdManager.debug("sending ad request for " + list.size()
 							+ " pieces of content.  We already have " + adsDMList.size()
 							+ " ads");
@@ -229,6 +232,7 @@ public class AdManager
 					PlatformAdManager.getAds(dmAdable, 1000,
 							new PlatformAdManager.GetAdsDataReplyListener() {
 								public void replyReceived(String replyType, Map mapHashes) {
+									checkingForAds = false;
 									PlatformAdManager.debug("bad reply. " + mapHashes.get("text"));
 								}
 
@@ -292,10 +296,12 @@ public class AdManager
 
 									}
 
+									checkingForAds = false;
 								}
 							});
 
 				} catch (Exception e) {
+					checkingForAds = false;
 					Debug.out(e);
 				}
 			}
@@ -365,8 +371,8 @@ public class AdManager
 			}
 		}
 
-		PlatformAdManager.debug("Get Ads"
-				+ (bIncludeIncomplete ? " including incomplete" : "") + ads.size());
+		PlatformAdManager.debug("There are"	+ ads.size() 
+				+ (bIncludeIncomplete ? " including incomplete" : ""));
 		return (DownloadManager[]) ads.toArray(new DownloadManager[0]);
 	}
 	
@@ -379,7 +385,7 @@ public class AdManager
 			}
 		}
 
-		PlatformAdManager.debug("Get Incomplate Ads: " + ads.size());
+		PlatformAdManager.debug("Get Incomplete Ads: " + ads.size());
 		return ads;
 	}
 
@@ -397,7 +403,8 @@ public class AdManager
 				if (SystemTime.getCurrentTime() - lastASX < EXPIRE_ASX) {
 					File asxFile = buildASXFileLocation(dm);
 					if (asxFile.isFile()) {
-						PlatformAdManager.debug("playing using existing asx: " + asxFile);
+						PlatformAdManager.debug("playing using existing asx: " + asxFile
+								+ "; expires in " + (SystemTime.getCurrentTime() - lastASX) );
 						if (l != null) {
 							l.asxCreated(asxFile);
 						}
@@ -532,5 +539,9 @@ public class AdManager
 			}
 		}
 		return false;
+	}
+	
+	public boolean isCheckingForNewAds() {
+		return checkingForAds;
 	}
 }
