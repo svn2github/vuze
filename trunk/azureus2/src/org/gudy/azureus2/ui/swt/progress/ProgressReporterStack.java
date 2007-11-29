@@ -31,7 +31,7 @@ class ProgressReporterStack
 				reporterStack.remove(reporter);
 			}
 
-			reporterStack.add(reporter);
+			reporterStack.push(reporter);
 		}
 	}
 
