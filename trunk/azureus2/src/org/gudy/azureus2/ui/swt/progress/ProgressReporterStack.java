@@ -15,17 +15,22 @@ class ProgressReporterStack
 	private Stack reporterStack = new Stack();
 
 	/**
-	 * Pushes the given reporter on top of the stack; additionally remove any next occurrence of the reporter.
+	 * A dummy object used purely for implementing synchronized blocks
+	 */
+	private Object lockObject = new Object();
+
+	/**
+	 * Pushes the given reporter on top of the stack; additionally remove any other occurrence of the reporter.
 	 * @param reporter
 	 */
 	public void push(IProgressReporter reporter) {
 		if (null == reporter) {
 			return;
 		}
-		synchronized (reporterStack) {
+		synchronized (lockObject) {
 
 			/*
-			 * Remove the reporter from the list if it's in there already
+			 * Remove the reporter from the stack if it's in there already
 			 */
 			if (true == reporterStack.contains(reporter)) {
 				reporterStack.remove(reporter);
@@ -40,7 +45,7 @@ class ProgressReporterStack
 	 * @return
 	 */
 	public IProgressReporter peek() {
-		synchronized (reporterStack) {
+		synchronized (lockObject) {
 			if (false == reporterStack.isEmpty()) {
 				return (IProgressReporter) reporterStack.peek();
 			}
@@ -54,7 +59,7 @@ class ProgressReporterStack
 	 * @return <code>true</code> if the given reporter is found; otherwise <code>false</code>
 	 */
 	public boolean remove(IProgressReporter reporter) {
-		synchronized (reporterStack) {
+		synchronized (lockObject) {
 			if (null != reporter && true == reporterStack.contains(reporter)) {
 				return reporterStack.remove(reporter);
 			}
@@ -68,7 +73,9 @@ class ProgressReporterStack
 	 * @return
 	 */
 	public boolean contains(IProgressReporter reporter) {
-		return reporterStack.contains(reporter);
+		synchronized (lockObject) {
+			return reporterStack.contains(reporter);
+		}
 	}
 
 	/**
@@ -76,7 +83,7 @@ class ProgressReporterStack
 	 * @return
 	 */
 	public IProgressReporter pop() {
-		synchronized (reporterStack) {
+		synchronized (lockObject) {
 			if (false == reporterStack.isEmpty()) {
 				return (IProgressReporter) reporterStack.pop();
 			}
@@ -88,7 +95,7 @@ class ProgressReporterStack
 	 * Trim the list by removing all inactive reporters
 	 */
 	public void trim() {
-		synchronized (reporterStack) {
+		synchronized (lockObject) {
 			for (Iterator iterator = reporterStack.iterator(); iterator.hasNext();) {
 				IProgressReporter reporter = ((IProgressReporter) iterator.next());
 				if (false == reporter.getProgressReport().isActive()) {
@@ -104,7 +111,7 @@ class ProgressReporterStack
 	 * @return <code>List</code> 
 	 */
 	public List getReporters(boolean onlyActive) {
-		synchronized (reporterStack) {
+		synchronized (lockObject) {
 			List reporters = new ArrayList();
 			for (Iterator iterator = reporterStack.iterator(); iterator.hasNext();) {
 				IProgressReporter reporter = ((IProgressReporter) iterator.next());
@@ -122,7 +129,9 @@ class ProgressReporterStack
 	}
 
 	public int size() {
-		return reporterStack.size();
+		synchronized (lockObject) {
+			return reporterStack.size();
+		}
 	}
 
 	/**
@@ -130,7 +139,7 @@ class ProgressReporterStack
 	 * @return
 	 */
 	public int getActiveCount() {
-		synchronized (reporterStack) {
+		synchronized (lockObject) {
 			int activeReporters = 0;
 			for (Iterator iterator = reporterStack.iterator(); iterator.hasNext();) {
 				IProgressReporter reporter = ((IProgressReporter) iterator.next());
@@ -147,7 +156,7 @@ class ProgressReporterStack
 	 * @return 
 	 */
 	public int getErrorCount() {
-		synchronized (reporterStack) {
+		synchronized (lockObject) {
 			int reportersInErrorState = 0;
 			for (Iterator iterator = reporterStack.iterator(); iterator.hasNext();) {
 				IProgressReporter reporter = ((IProgressReporter) iterator.next());
@@ -166,7 +175,7 @@ class ProgressReporterStack
 	 * @return <code>true</code> if there are at least 2 active reporters; <code>false</code> otherwise
 	 */
 	public boolean hasMultipleActive() {
-		synchronized (reporterStack) {
+		synchronized (lockObject) {
 			int activeReporters = 0;
 			for (Iterator iterator = reporterStack.iterator(); iterator.hasNext();) {
 				IProgressReporter reporter = (IProgressReporter) iterator.next();
@@ -187,7 +196,7 @@ class ProgressReporterStack
 	 * @return ProgressReporter the next reporter on the stack that is still active; <code>null</code> if none are active or none are found
 	 */
 	public IProgressReporter getNextActiveReporter() {
-		synchronized (reporterStack) {
+		synchronized (lockObject) {
 			for (Iterator iterator = reporterStack.iterator(); iterator.hasNext();) {
 				IProgressReporter reporter = (IProgressReporter) iterator.next();
 				if (true == reporter.getProgressReport().isActive()) {
