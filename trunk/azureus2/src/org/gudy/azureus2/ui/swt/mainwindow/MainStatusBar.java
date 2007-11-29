@@ -1298,7 +1298,7 @@ public class MainStatusBar
 			/*
 			 * Get the previous reporter that is still active
 			 */
-			IProgressReporter previousReporter = PRManager.getPreviousActiveReporter();
+			IProgressReporter previousReporter = PRManager.getNextActiveReporter();
 
 			/*
 			 * If null then we reset the status text and the progress bar
