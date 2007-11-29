@@ -2004,10 +2004,12 @@ public class TableViewSWTImpl
 		}
 
 		if (!bBrokeEarly || bReplacedVisible) {
-			lastTopIndex = 0;
-			lastBottomIndex = -1;
 			fillRowGaps(false);
-			visibleRowsChanged();
+			if (bReplacedVisible) {
+				lastTopIndex = 0;
+				lastBottomIndex = -1;
+				visibleRowsChanged();
+			}
 		}
 
 		if (!columnPaddingAdjusted && table.getItemCount() > 0 && bWas0Rows) {
