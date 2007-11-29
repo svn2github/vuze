@@ -1366,6 +1366,11 @@ EnhancedDownloadManager
 		DiskManagerFileInfo		file,
 		int						file_start_offset )
 	{
+		if ( file == null ) {
+
+			return( -1 );
+		}
+
 		DiskManager dm = download_manager.getDiskManager();
 		
 		if ( dm == null ){
@@ -1501,11 +1506,14 @@ EnhancedDownloadManager
 		DiskManagerFileInfo 	file_info, 
 		long 					bytes)
 	{
-		int	index = file_info.getIndex();
-		
-		if ( index < enhanced_files.length ){
-			
-			bytes += enhanced_files[index].getByteOffestInTorrent();
+		if (file_info != null) {
+
+  		int	index = file_info.getIndex();
+  		
+  		if ( index < enhanced_files.length ){
+  			
+  			bytes += enhanced_files[index].getByteOffestInTorrent();
+  		}
 		}
 		
 		progressive_stats.setViewerBytePosition( bytes );
