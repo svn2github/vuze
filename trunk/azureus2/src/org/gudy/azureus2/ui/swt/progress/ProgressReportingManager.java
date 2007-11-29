@@ -190,7 +190,7 @@ public class ProgressReportingManager
 			notifyListeners(MANAGER_EVENT_UPDATED, reporter);
 		} else {
 			progressReporters.push(reporter);
-			notifyListeners(MANAGER_EVENT_UPDATED, reporter);
+			notifyListeners(MANAGER_EVENT_ADDED, reporter);
 		}
 
 	}
