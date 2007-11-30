@@ -56,14 +56,14 @@ public class ProgressReportingManager
 	public IProgressReporter
 	addReporter()
 	{
-		return( new ProgressReporter());
+		return( new ProgressReporter( this ));
 	}
 		
 	public IProgressReporter
 	addReporter(
 		String	name )
 	{
-		return( new ProgressReporter( name ));
+		return( new ProgressReporter( this, name ));
 	}
 	
 	/**
@@ -202,11 +202,14 @@ public class ProgressReportingManager
 		 */
 		if (true == reporter.getProgressReport().isDisposed()) {
 			progressReporters.remove(reporter);
+			System.out.println("removed");
 			notifyListeners(MANAGER_EVENT_REMOVED, reporter);
 		} else if (true == progressReporters.contains(reporter)) {
 			progressReporters.push(reporter);
+			System.out.println("updated");
 			notifyListeners(MANAGER_EVENT_UPDATED, reporter);
 		} else {
+			System.out.println("added");
 			progressReporters.push(reporter);
 			notifyListeners(MANAGER_EVENT_ADDED, reporter);
 		}

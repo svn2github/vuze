@@ -139,8 +139,8 @@ public class ProgressReporter
 	/**
 	 * Construct a <code>ProgressReporter</code>; the returned instance is initialized with the proper ID
 	 */
-	protected ProgressReporter() {
-		this(null);
+	protected ProgressReporter(ProgressReportingManager manager) {
+		this(manager,null);
 	}
 
 	/**
@@ -148,8 +148,8 @@ public class ProgressReporter
 	 * instance would have been initialized with the proper ID
 	 * @param name
 	 */
-	protected ProgressReporter(String name) {
-		manager = ProgressReportingManager.getInstance();
+	protected ProgressReporter(ProgressReportingManager _manager, String name) {
+		manager = _manager;
 		this.name = name;
 		this.ID = manager.getNextAvailableID();
 	}
