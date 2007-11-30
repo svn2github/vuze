@@ -206,7 +206,7 @@ AEThread2
 					DebugLight.printStackTrace(e);
 				}
 								
-				if ( isInterrupted()){
+				if ( isInterrupted() || !Thread.currentThread().isDaemon()){
 					
 					break;
 					
