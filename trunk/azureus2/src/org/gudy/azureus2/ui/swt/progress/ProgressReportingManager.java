@@ -53,6 +53,19 @@ public class ProgressReportingManager
 		return INSTANCE;
 	}
 
+	public IProgressReporter
+	addReporter()
+	{
+		return( new ProgressReporter());
+	}
+		
+	public IProgressReporter
+	addReporter(
+		String	name )
+	{
+		return( new ProgressReporter( name ));
+	}
+	
 	/**
 	 * Returns the number of reporters that have sent any event to this manager and have not been removed
 	 * <ul>

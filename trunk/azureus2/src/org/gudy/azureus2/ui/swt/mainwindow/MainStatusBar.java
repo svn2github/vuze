@@ -630,7 +630,7 @@ public class MainStatusBar
 		/*
 		 * Creates a ProgressReporter for the update process 
 		 */
-		IProgressReporter updateReporter = new ProgressReporter(
+		IProgressReporter updateReporter = ProgressReportingManager.getInstance().addReporter(
 				MessageText.getString("UpdateWindow.title"));
 
 		protected updateStatusChanger(UpdateCheckInstance _instance) {

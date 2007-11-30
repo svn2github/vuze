@@ -43,6 +43,7 @@ import org.gudy.azureus2.ui.swt.progress.IProgressReporter;
 import org.gudy.azureus2.ui.swt.progress.IProgressReporterListener;
 import org.gudy.azureus2.ui.swt.progress.ProgressReporter;
 import org.gudy.azureus2.ui.swt.progress.ProgressReporterWindow;
+import org.gudy.azureus2.ui.swt.progress.ProgressReportingManager;
 
 import com.aelitis.azureus.core.AzureusCore;
 
@@ -149,7 +150,7 @@ public class FileDownloadWindow
 
 		suppressDialog = COConfigurationManager.getBooleanParameter("suppress_file_download_dialog");
 
-		pReporter = new ProgressReporter();
+		pReporter = ProgressReportingManager.getInstance().addReporter();
 		setupAndShowDialog();
 
 		downloader = TorrentDownloaderFactory.create(this, url, referrer, dirName);
