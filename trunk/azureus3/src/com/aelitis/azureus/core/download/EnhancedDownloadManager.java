@@ -1156,9 +1156,16 @@ EnhancedDownloadManager
 	public long
 	getProgressivePlayETA()
 	{
+		return( getProgressivePlayETA( false ));
+	}
+	
+	public long
+	getProgressivePlayETA(
+		boolean	ignore_min_buffer_size )
+	{
 		progressiveStats stats = getProgressiveStats();
 		
-		long	eta = stats.getETA();
+		long	eta = stats.getETA( ignore_min_buffer_size );
 				
 		return( eta );
 	}
@@ -1846,7 +1853,7 @@ EnhancedDownloadManager
 				
 				if ( 	disk_manager == null || 
 						!stats.isProviderActive() || 
-						stats.getETA() < -MINIMUM_INITIAL_BUFFER_SECS ||
+						stats.getETA(false) < -MINIMUM_INITIAL_BUFFER_SECS ||
 						max_bps == 0 ){
 					
 					if ( piece_rtas != null ){
@@ -1945,7 +1952,8 @@ EnhancedDownloadManager
 		getDownloadBytesPerSecond();
 		
 		protected abstract long
-		getETA();
+		getETA(
+			boolean	ignore_min_buffer_size );
 		
 		protected abstract void
 		setViewerBytePosition(
@@ -2266,10 +2274,12 @@ EnhancedDownloadManager
 		
 		protected abstract long
 		getInitialBufferBytes(
-			long	dl_rate );
+			long		dl_rate,
+			boolean		ignore_min_buffer_size );
 		
 		protected long
-		getETA()
+		getETA(
+			boolean ignore_min_buffer_size )
 		{
 			DiskManager dm = download_manager.getDiskManager();
 			
@@ -2290,7 +2300,7 @@ EnhancedDownloadManager
 				return( Long.MAX_VALUE );
 			}
 			
-			long	min_dl	= getInitialBufferBytes( download_rate );
+			long	min_dl	= getInitialBufferBytes( download_rate, ignore_min_buffer_size );
 			
 			long	initial_downloaded	= getInitialBytesDownloaded( min_dl );
 			
@@ -2421,9 +2431,9 @@ EnhancedDownloadManager
 		{
 			long	dl_rate = (long)download_rate_average.getAverage();
 			
-			long	init_bytes = getInitialBufferBytes(dl_rate);
+			long	init_bytes = getInitialBufferBytes(dl_rate,false);
 			
-			return( "play_eta=" + getETA() + "/d=" + getSecondsToDownload() + "/w=" + getSecondsToWatch()+ 
+			return( "play_eta=" + getETA(false) + "/d=" + getSecondsToDownload() + "/w=" + getSecondsToWatch()+ 
 					", dl_rate=" + formatSpeed(dl_rate)+ ", download_rem=" + formatBytes(weighted_bytes_to_download) + "/" + formatBytes(actual_bytes_to_download) +
 					", discard_rate=" + formatSpeed((long)discard_rate_average.getAverage()) +
 					", init_done=" + getInitialBytesDownloaded(init_bytes) + ", init_buff=" + init_bytes +
@@ -2503,13 +2513,14 @@ EnhancedDownloadManager
 
 		public long
 		getInitialBufferBytes(
-			long	download_rate )
+			long		download_rate,
+			boolean		ignore_min_buffer_size )
 		{
 			long min_dl = minimum_initial_buffer_secs_for_eta * getStreamBytesPerSecondMax();
 				
 				// factor in any explicit minimum buffer bytes
 			
-			min_dl = Math.max( min_dl, explicit_minimum_buffer_bytes );
+			min_dl = Math.max( min_dl, ignore_min_buffer_size?0:explicit_minimum_buffer_bytes );
 			
 				// see if we have any stream-specific advice
 			
@@ -2625,9 +2636,10 @@ EnhancedDownloadManager
 
 		public long
 		getInitialBufferBytes(
-			long	download_rate )
+			long	download_rate,
+			boolean	ignore_min_buffer_size )
 		{
-			long min_dl = explicit_minimum_buffer_bytes;
+			long min_dl = ignore_min_buffer_size?0:explicit_minimum_buffer_bytes;
 			
 				// see if we have any stream-specific advice
 			
@@ -2645,7 +2657,10 @@ EnhancedDownloadManager
 					// explicit minimum so we need to add the explicit to the advice to
 					// get a value that will prevent a stall
 				
-				advice += explicit_minimum_buffer_bytes;
+				if ( !ignore_min_buffer_size ){
+					
+					advice += explicit_minimum_buffer_bytes;
+				}
 			}
 			
 			min_dl = Math.max( advice, min_dl );
