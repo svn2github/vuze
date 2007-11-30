@@ -258,9 +258,15 @@ public class ProgressReporterPanel
 		 * Action labels
 		 */
 
+		/* replaced with existing images to integrate with Az look&feel
 		actionLabel_cancel.setImage(ImageRepository.getImage("progress_cancel"));
 		actionLabel_remove.setImage(ImageRepository.getImage("progress_remove"));
 		actionLabel_retry.setImage(ImageRepository.getImage("progress_retry"));
+		*/
+		
+		actionLabel_cancel.setImage(ImageRepository.getImage("stop"));
+		actionLabel_remove.setImage(ImageRepository.getImage("delete"));
+		actionLabel_retry.setImage(ImageRepository.getImage("recheck"));
 
 		actionLabel_cancel.setToolTipText(MessageText.getString("Progress.reporting.action.label.cancel.tooltip"));
 		actionLabel_remove.setToolTipText(MessageText.getString("Progress.reporting.action.label.remove.tooltip"));
