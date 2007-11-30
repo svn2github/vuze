@@ -28,6 +28,10 @@ package org.gudy.azureus2.core3.util;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
+
 public class 
 NonDaemonTaskRunner 
 {
@@ -42,7 +46,7 @@ NonDaemonTaskRunner
 	
 	protected List		wait_until_idle_list	= new ArrayList();
 	
-	protected Thread	current_thread;
+	protected AEThread2	current_thread;
 	
 	protected static NonDaemonTaskRunner
 	getSingleton()
@@ -90,7 +94,7 @@ NonDaemonTaskRunner
 	{
 			// is this a recursive call? if so, run directly
 		
-		if ( current_thread == Thread.currentThread()){
+		if ( current_thread != null && current_thread.isCurrentThread()){
 			
 			return( target.run());
 		}
@@ -106,12 +110,15 @@ NonDaemonTaskRunner
 			
 			if ( current_thread == null ){
 				
-				final AESemaphore wait_sem = new AESemaphore("NonDaemonTaskRunnerTask");
+				final AESemaphore wait_sem = new AESemaphore("NonDaemonTaskRunnerTask: " + target.getName());
 				
-				current_thread = new AEThread("NonDaemonTaskRunner" )
+					// NON-DAEMON!!!
+				
+				current_thread = 
+					new AEThread2( "NonDaemonTaskRunner", false )
 					{
 						public void
-						runSupport()
+						run()
 						{
 							wait_sem.release();
 							
@@ -154,9 +161,7 @@ NonDaemonTaskRunner
 							// System.out.println( "non daemon ends" );
 						}
 					};
-						
-				current_thread.setDaemon(false);
-				
+										
 				current_thread.start();	
 				
 				wait_sem.reserve();
@@ -251,6 +256,32 @@ NonDaemonTaskRunner
 			tasks_mon.exit();
 		}
 		
-		sem.reserve();
+		while( true ){
+			
+			if ( sem.reserve( 10000 )){
+				
+				break;
+			}
+			
+			if (Logger.isEnabled()){
+
+				try{
+					tasks_mon.enter();
+	
+					for (int i=0;i<wait_until_idle_list.size();i++){
+						
+						AESemaphore pending = (AESemaphore)wait_until_idle_list.get(i);
+						
+						if ( pending != sem ){
+						
+							Logger.log(new LogEvent(LogIDs.CORE, "Waiting for " + pending.getName() + " to complete" ));
+						}
+					}
+				}finally{
+					
+					tasks_mon.exit();
+				}
+			}
+		}
 	}
 }

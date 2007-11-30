@@ -728,6 +728,12 @@ AEMonSem
 	}
 	*/
 	
+	public String
+	getName()
+	{
+		return( name );
+	}
+	
 	protected static class
 	monSemData
 	{

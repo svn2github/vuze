@@ -795,6 +795,12 @@ DownloadManagerController
 						return( null );
 					}
 					
+					public String
+					getName()
+					{
+						return( "Stopping '" + getDisplayName() + "'" );
+					}
+					
 				});
 						
 			try{				

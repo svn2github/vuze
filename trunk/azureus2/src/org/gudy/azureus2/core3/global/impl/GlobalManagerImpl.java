@@ -1221,6 +1221,12 @@ public class GlobalManagerImpl
     				{	
     					return( null );
     				}
+    				
+    				public String
+    				getName()
+    				{
+    					return( "Stopping global manager" );
+    				}
     			});
 	}catch( Throwable e ){
 		Debug.printStackTrace( e );

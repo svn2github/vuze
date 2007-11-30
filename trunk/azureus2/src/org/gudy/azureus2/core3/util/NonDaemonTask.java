@@ -32,5 +32,8 @@ NonDaemonTask
 	run()
 	
 		throws Throwable;
+	
+	public String
+	getName();
 }
 		

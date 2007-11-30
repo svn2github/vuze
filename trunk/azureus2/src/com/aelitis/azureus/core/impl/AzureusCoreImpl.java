@@ -853,6 +853,9 @@ AzureusCoreImpl
 		}
 		
 		try{
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID, "Invoking synchronous 'stopping' listeners"));
+
 			for (int i=0;i<sync_listeners.size();i++){		
 				try{
 					((AzureusCoreLifecycleListener)sync_listeners.get(i)).stopping( this );
@@ -863,6 +866,9 @@ AzureusCoreImpl
 				}
 			}
 			
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID, "Invoking asynchronous 'stopping' listeners"));
+
 				// in case something hangs during listener notification (e.g. version check server is down
 				// and the instance manager tries to obtain external address) we limit overall dispatch
 				// time to 10 seconds
@@ -883,8 +889,14 @@ AzureusCoreImpl
 					10*1000 );
 	
 			
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID, "Stopping global manager"));
+
 			global_manager.stopGlobalManager();
-				
+			
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID, "Invoking synchronous 'stopped' listeners"));
+
 			for (int i=0;i<sync_listeners.size();i++){		
 				try{
 					((AzureusCoreLifecycleListener)sync_listeners.get(i)).stopped( this );
@@ -895,6 +907,9 @@ AzureusCoreImpl
 				}
 			}
 			
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID, "Invoking asynchronous 'stopped' listeners"));
+
 			ListenerManager.dispatchWithTimeout(
 					async_listeners,
 					new ListenerManagerDispatcher()
@@ -910,6 +925,9 @@ AzureusCoreImpl
 					},
 					10*1000 );
 				
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID, "Waiting for quiescence"));
+
 			NonDaemonTaskRunner.waitUntilIdle();
 			
 				// shut down diags - this marks the shutdown as tidy and saves the config
