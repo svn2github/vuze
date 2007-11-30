@@ -240,7 +240,7 @@ public class ProgressReporter
 				if (RETVAL_OK_TO_DISPOSE == listener.report(getProgressReport())) {
 					removalList.add(listener);
 				}
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				Debug.out(e);
 			}
 		}

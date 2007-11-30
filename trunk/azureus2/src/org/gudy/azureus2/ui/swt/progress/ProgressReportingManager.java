@@ -171,7 +171,7 @@ public class ProgressReportingManager
 			if (null != listener) {
 				try {
 					listener.reporting(eventType, reporter);
-				} catch (Exception e) {
+				} catch (Throwable e) {
 					Debug.out(e);
 				}
 			}
