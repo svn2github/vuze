@@ -110,7 +110,7 @@ public class PlatformTorrentUtils
 	
 	private static final String TOR_AZ_PROP_FILE_METADATA = "File MetaData";
 	
-	private static final String TOR_AZ_PROP_UNIT_AD_ENABLED = "Unit Ad Enabled";
+	private static final String TOR_AZ_PROP_WEB_AD_ENABLED = "Web Ad Enabled";
 
 	private static ArrayList listPlatformHosts = null;
 
@@ -717,7 +717,7 @@ public class PlatformTorrentUtils
 	}
 
 	public static boolean isContentUnitAdEnabled(TOTorrent torrent) {
-		return getContentMapLong(torrent, TOR_AZ_PROP_UNIT_AD_ENABLED, 0) == 1;
+		return getContentMapLong(torrent, TOR_AZ_PROP_WEB_AD_ENABLED, 0) == 1;
 	}
 
 	public static boolean useEMP(TOTorrent torrent) {
