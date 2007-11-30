@@ -56,12 +56,6 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.network.ConnectionManager;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
-import org.gudy.azureus2.plugins.update.UpdateCheckInstanceListener;
-import org.gudy.azureus2.plugins.update.UpdateChecker;
-import org.gudy.azureus2.plugins.update.UpdateCheckerListener;
-import org.gudy.azureus2.plugins.update.UpdateManagerListener;
-import org.gudy.azureus2.plugins.update.UpdateProgressListener;
 import org.gudy.azureus2.ui.swt.AZProgressBar;
 import org.gudy.azureus2.ui.swt.BlockedIpsWindow;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -70,9 +64,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.progress.IProgressReport;
 import org.gudy.azureus2.ui.swt.progress.IProgressReportConstants;
 import org.gudy.azureus2.ui.swt.progress.IProgressReporter;
-import org.gudy.azureus2.ui.swt.progress.IProgressReporterListener;
 import org.gudy.azureus2.ui.swt.progress.IProgressReportingListener;
-import org.gudy.azureus2.ui.swt.progress.ProgressReporter;
 import org.gudy.azureus2.ui.swt.progress.ProgressReporterWindow;
 import org.gudy.azureus2.ui.swt.progress.ProgressReportingManager;
 import org.gudy.azureus2.ui.swt.update.UpdateWindow;
@@ -295,7 +287,7 @@ public class MainStatusBar
 		progress_viewer_img = ImageRepository.getImage("progress_viewer");
 
 		progressViewerImageLabel = new CLabelPadding(statusBar, SWT.NONE);
-		progressViewerImageLabel.setImage(progress_viewer_img);
+			// image set below after adding listener
 		progressViewerImageLabel.setToolTipText(MessageText.getString("Progress.reporting.statusbar.button.tooltip"));
 		progressViewerImageLabel.addMouseListener(new MouseAdapter() {
 			public void mouseDown(MouseEvent e) {
@@ -502,9 +494,8 @@ public class MainStatusBar
 			});
 		}
 
-		addUpdateListener();
-
 		PRManager.addListener(new ProgressListener());
+		setProgressImage();
 		return statusBar;
 	}
 
@@ -609,148 +600,6 @@ public class MainStatusBar
 			statusText.setForeground(null);
 			updateStatusText();
 		}
-	}
-
-	private void addUpdateListener() {
-		azureusCore.getPluginManager().getDefaultPluginInterface().getUpdateManager().addListener(
-				new UpdateManagerListener() {
-					public void checkInstanceCreated(UpdateCheckInstance instance) {
-						new updateStatusChanger(instance);
-					}
-				});
-	}
-
-	protected class updateStatusChanger
-		implements IProgressReportConstants
-	{
-		UpdateCheckInstance instance;
-
-		int check_num = 0;
-
-		/*
-		 * Creates a ProgressReporter for the update process 
-		 */
-		IProgressReporter updateReporter = ProgressReportingManager.getInstance().addReporter(
-				MessageText.getString("UpdateWindow.title"));
-
-		protected updateStatusChanger(UpdateCheckInstance _instance) {
-
-			instance = _instance;
-
-			try {
-				this_mon.enter();
-
-				/*
-				 * Init reporter and allow cancel
-				 */
-				updateReporter.setCancelAllowed(true);
-				updateReporter.setTitle(MessageText.getString("updater.progress.window.title"));
-				updateReporter.appendDetailMessage(format(instance, "added"));
-
-				String name = instance.getName();
-				if (MessageText.keyExists(name)) {
-					updateReporter.setMessage(MessageText.getString(name));
-				} else {
-					updateReporter.setMessage(name);
-				}
-
-				updateReporter.setMinimum(0);
-				updateReporter.setMaximum(instance.getCheckers().length);
-				updateReporter.setSelection(check_num, null);
-
-				/*
-				 * Add a listener to the reporter for a cancel event and cancel the update
-				 * check instance if the event is detected
-				 */
-				updateReporter.addListener(new IProgressReporterListener() {
-
-					public int report(IProgressReport progressReport) {
-						if (progressReport.getReportType() == REPORT_TYPE_DONE
-								|| progressReport.getReportType() == REPORT_TYPE_ERROR) {
-							return RETVAL_OK_TO_DISPOSE;
-						}
-
-						if (progressReport.getReportType() == REPORT_TYPE_CANCEL) {
-							if (null != instance) {
-								instance.cancel();
-							}
-							return RETVAL_OK_TO_DISPOSE;
-						}
-
-						return RETVAL_OK;
-					}
-
-				});
-
-				/*
-				 * Add listener to the running state of the update check instance and forward
-				 * to the reporter when they arrive
-				 */
-				instance.addListener(new UpdateCheckInstanceListener() {
-					public void cancelled(UpdateCheckInstance instance) {
-						updateReporter.appendDetailMessage(format(instance,
-								MessageText.getString("Progress.reporting.status.canceled")));
-						updateReporter.cancel();
-
-					}
-
-					public void complete(UpdateCheckInstance instance) {
-						updateReporter.appendDetailMessage(format(instance,
-								MessageText.getString("Progress.reporting.status.finished")));
-						updateReporter.setDone();
-					}
-				});
-
-				UpdateChecker[] checkers = instance.getCheckers();
-
-				for (int i = 0; i < checkers.length; i++) {
-					final UpdateChecker checker = checkers[i];
-
-					/*
-					 * Add update check listener to get running state
-					 */
-					checker.addListener(new UpdateCheckerListener() {
-
-						public void cancelled(UpdateChecker checker) {
-							// we don't count a cancellation as progress step
-							updateReporter.appendDetailMessage(format(checker,
-									MessageText.getString("Progress.reporting.status.canceled")));
-						}
-
-						public void completed(UpdateChecker checker) {
-
-							updateReporter.appendDetailMessage(format(checker,
-									MessageText.getString("Progress.reporting.status.finished")));
-
-							updateReporter.setSelection(++check_num, null);
-						}
-
-						public void failed(UpdateChecker checker) {
-
-							updateReporter.appendDetailMessage(format(checker,
-									MessageText.getString("Progress.reporting.default.error")));
-
-							updateReporter.setSelection(++check_num, null);
-						}
-					});
-
-					/*
-					 * Add a listener to get the detail messages
-					 */
-					checker.addProgressListener(new UpdateProgressListener() {
-						public void reportProgress(String str) {
-							updateReporter.appendDetailMessage(format(checker, "    " + str));
-						}
-					});
-				}
-
-			} finally {
-
-				this_mon.exit();
-			}
-
-		}
-
 	}
 
 	/**
@@ -1106,23 +955,6 @@ public class MainStatusBar
 		return result[0];
 	}
 
-	// ============================================================
-	// Convenience methods for formatting the detail messages for 
-	// the update process
-	// ============================================================	
-
-	private String format(UpdateCheckInstance instance, String str) {
-		String name = instance.getName();
-		if (MessageText.keyExists(name)) {
-			name = MessageText.getString(name);
-		}
-		return name + " - " + str;
-	}
-
-	private String format(UpdateChecker checker, String str) {
-		return "    " + checker.getComponent().getName() + " - " + str;
-	}
-
 	// =============================================================
 	// Below code are ProgressBar/Status text specific
 	// =============================================================	
@@ -1196,6 +1028,18 @@ public class MainStatusBar
 		}, true);
 
 	}
+	
+	private void
+	setProgressImage()
+	{
+		if (PRManager.getReporterCount(ProgressReportingManager.COUNT_ERROR) > 0) {
+			progressViewerImageLabel.setImage(progress_error_img);
+		} else if (PRManager.getReporterCount(ProgressReportingManager.COUNT_ALL) > 0) {
+			progressViewerImageLabel.setImage(progress_info_img);
+		} else {
+			progressViewerImageLabel.setImage(progress_viewer_img);
+		}
+	}
 
 	/**
 	 * A listener that listens to any changes notified from the <code>ProgressReportingManager</code> and
@@ -1214,13 +1058,7 @@ public class MainStatusBar
 			 */
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
-					if (PRManager.getReporterCount(ProgressReportingManager.COUNT_ERROR) > 0) {
-						progressViewerImageLabel.setImage(progress_error_img);
-					} else if (PRManager.getReporterCount(ProgressReportingManager.COUNT_ALL) > 0) {
-						progressViewerImageLabel.setImage(progress_info_img);
-					} else {
-						progressViewerImageLabel.setImage(progress_viewer_img);
-					}
+					setProgressImage();
 				}
 			}, true);
 
