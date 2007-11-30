@@ -295,7 +295,7 @@ public class MainStatusBar
 				 * Opens the progress viewer
 				 */
 				ProgressReporterWindow.open(PRManager.getReportersArray(false),
-						ProgressReporterWindow.MODAL);
+						ProgressReporterWindow.NONE);
 			}
 		});
 

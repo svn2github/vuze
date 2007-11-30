@@ -212,7 +212,7 @@ public class FileDownloadWindow
 			 */
 			if (false == suppressDialog) {
 				ProgressReporterWindow.open(pReporter,
-						ProgressReporterWindow.AUTO_CLOSE | ProgressReporterWindow.MODAL);
+						ProgressReporterWindow.AUTO_CLOSE);
 			}
 		}
 	}
