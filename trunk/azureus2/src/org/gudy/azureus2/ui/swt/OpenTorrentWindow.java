@@ -246,7 +246,6 @@ public class OpenTorrentWindow
 				}
 			}
 			
-			openTorrentWindow.enableControl(openTorrentWindow.ok, true);
 
 			if (bPopupOpenURL)
 				openTorrentWindow.browseURL();
@@ -362,7 +361,6 @@ public class OpenTorrentWindow
 				String fileName = TorrentOpener.setFilterPathTorrent(fDialog.open());
 				if (fileName != null) {
 					addTorrents(fDialog.getFilterPath(), fDialog.getFileNames());
-					enableControl(ok, true);
 				}
 			}
 		});
@@ -388,7 +386,6 @@ public class OpenTorrentWindow
 				String path = TorrentOpener.setFilterPathTorrent(fDialog.open());
 				if (path != null) {
 					addTorrents(path, null);
-					enableControl(ok, true);
 				}
 			}
 		});
@@ -405,7 +402,6 @@ public class OpenTorrentWindow
 					String sClipText = (String) clipboard.getContents(TextTransfer.getInstance());
 					if (sClipText != null) {
 						addTorrentsFromTextList(sClipText.trim(), false);
-						enableControl(ok, true); 
 					}
 				}
 			});
@@ -2228,8 +2224,6 @@ public class OpenTorrentWindow
 				}
 			}
 
-			//KN: Enables the OK button (if it's not already) when a downloader is finished 
-			enableControl(ok, true);
 			
 			
 			
@@ -2833,6 +2827,11 @@ public class OpenTorrentWindow
 		dataFileTableLabel.getParent().getParent().layout(true, true);
 		
 		diskFreeInfoRefreshPending = true;
+		
+		/*
+		 * KN: Enables the OK button based on whether there is anything to download
+		 */
+		enableControl(ok, checkedSize > 0);
 	}
 
 	
