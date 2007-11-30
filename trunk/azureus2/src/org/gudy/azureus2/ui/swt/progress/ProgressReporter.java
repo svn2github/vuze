@@ -178,7 +178,7 @@ public class ProgressReporter
 			isDisposed = true;
 			isActive = false;
 		}
-		
+
 		latestReportType = REPORT_TYPE_DISPOSED;
 
 		/*
@@ -228,17 +228,20 @@ public class ProgressReporter
 			return;
 		}
 
-
 		List removalList = new ArrayList();
 
 		for (Iterator iterator = reporterListeners.iterator(); iterator.hasNext();) {
 			IProgressReporterListener listener = ((IProgressReporterListener) iterator.next());
 
-			/*
-			 * If the listener returned RETVAL_OK_TO_DISPOSE then it has indicated that it is no longer needed so we release it
-			 */
-			if (RETVAL_OK_TO_DISPOSE == listener.report(getProgressReport())) {
-				removalList.add(listener);
+			try {
+				/*
+				 * If the listener returned RETVAL_OK_TO_DISPOSE then it has indicated that it is no longer needed so we release it
+				 */
+				if (RETVAL_OK_TO_DISPOSE == listener.report(getProgressReport())) {
+					removalList.add(listener);
+				}
+			} catch (Exception e) {
+				Debug.out(e);
 			}
 		}
 
@@ -256,12 +259,12 @@ public class ProgressReporter
 	 */
 	private void updateAndNotify(int eventType) {
 		latestReportType = eventType;
-		
+
 		/*
 		 * Take a snap shot of the reporter
 		 */
 		latestProgressReport = new ProgressReport();
-		
+
 		/*
 		 * We directly bubble up this event to the manager for efficiency;
 		 * as opposed to having the manager register as a listener to each and every ProgressReporter.
@@ -379,7 +382,7 @@ public class ProgressReporter
 			isDone = true;
 			isActive = false;
 		}
-		
+
 		selection = maximum;
 		percentage = 100;
 		isIndeterminate = false;

@@ -2,6 +2,7 @@ package org.gudy.azureus2.ui.swt.progress;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
 
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -168,7 +169,11 @@ public class ProgressReportingManager
 		for (Iterator iterator = listeners.iterator(); iterator.hasNext();) {
 			IProgressReportingListener listener = (IProgressReportingListener) iterator.next();
 			if (null != listener) {
-				listener.reporting(eventType, reporter);
+				try {
+					listener.reporting(eventType, reporter);
+				} catch (Exception e) {
+					Debug.out(e);
+				}
 			}
 		}
 	}
@@ -177,7 +182,7 @@ public class ProgressReportingManager
 	 * Push this reporter on top of the stack, and notifies any listeners that a state change has occurred
 	 * @param reporter
 	 */
-	protected synchronized void notifyManager(IProgressReporter reporter) {
+	protected void notifyManager(IProgressReporter reporter) {
 
 		/*
 		 * Update the history stack and notify listeners 
