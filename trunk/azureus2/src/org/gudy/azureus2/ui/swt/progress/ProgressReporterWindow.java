@@ -38,7 +38,7 @@ public class ProgressReporterWindow
 	/**
 	 * The default width for the shell upon first opening
 	 */
-	private int defaultShellWidth = 400;
+	private int defaultShellWidth = 500;
 
 	/**
 	 * The maximum number of panels to show when the window first open
