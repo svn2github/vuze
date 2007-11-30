@@ -89,6 +89,14 @@ public class Utils {
 			diag_logger = null;
 		}
 	}
+	
+	public static boolean
+	isAZ2UI()
+	{
+	  	String ui_type = COConfigurationManager.getStringParameter("ui");
+	  	
+	  	return( ui_type.equals( "az2" ));
+	}
 
   public static void disposeComposite(Composite composite,boolean disposeSelf) {
     if(composite == null || composite.isDisposed())

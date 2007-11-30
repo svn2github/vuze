@@ -69,6 +69,7 @@ public class ImageRepository {
 
   public static void loadImages(Display display) {
 	  
+	  	
 	  	if(Constants.isOSX) {
 	  		addPath("org/gudy/azureus2/ui/icons/az3_osx_tray_white.png", "azureus_white");
 	    	addPath("org/gudy/azureus2/ui/icons/az3_osx_tray.png", "azureus_grey");
@@ -100,14 +101,13 @@ public class ImageRepository {
 		addPath("org/gudy/azureus2/ui/icons/edit_trackers.gif", "edit_trackers");
 		addPath("org/gudy/azureus2/ui/icons/columns.gif", "columns");
 		addPath("org/gudy/azureus2/ui/icons/speed.gif", "speed");
-		addPath("org/gudy/azureus2/ui/icons/openFolder16x12.gif",
-				"openFolderButton");
+		addPath("org/gudy/azureus2/ui/icons/openFolder16x12.gif","openFolderButton");
 		addPath("org/gudy/azureus2/ui/icons/forcestart.gif", "forcestart");
 		addPath("org/gudy/azureus2/ui/icons/greenled.gif", "greenled");
 		addPath("org/gudy/azureus2/ui/icons/redled.gif", "redled");
 		addPath("org/gudy/azureus2/ui/icons/yellowled.gif", "yellowled");
 		addPath("org/gudy/azureus2/ui/icons/grayled.gif", "grayled");
-		imagesToPath.put("donation", "org/gudy/azureus2/ui/icons/donation.jpg");
+		addPath("org/gudy/azureus2/ui/icons/donation.jpg", "donation");
 		addPath("org/gudy/azureus2/ui/icons/popup.png", "popup");
 		addPath("org/gudy/azureus2/ui/icons/error.gif", "error");
 		addPath("org/gudy/azureus2/ui/icons/info.gif", "info");
@@ -119,10 +119,8 @@ public class ImageRepository {
 		//ToolBar Icons
 
 		addPath("org/gudy/azureus2/ui/icons/toolbar/open.gif", "cb_open");
-		addPath("org/gudy/azureus2/ui/icons/toolbar/open_no_default.gif",
-				"cb_open_no_default");
-		addPath("org/gudy/azureus2/ui/icons/toolbar/open_folder.gif",
-				"cb_open_folder");
+		addPath("org/gudy/azureus2/ui/icons/toolbar/open_no_default.gif","cb_open_no_default");
+		addPath("org/gudy/azureus2/ui/icons/toolbar/open_folder.gif","cb_open_folder");
 		addPath("org/gudy/azureus2/ui/icons/toolbar/open_url.gif", "cb_open_url");
 		addPath("org/gudy/azureus2/ui/icons/toolbar/new.gif", "cb_new");
 		addPath("org/gudy/azureus2/ui/icons/toolbar/up.gif", "cb_up");
@@ -147,20 +145,15 @@ public class ImageRepository {
 
 		addPath("org/gudy/azureus2/ui/icons/status/ok_shared.gif", "st_ok_shared");
 		addPath("org/gudy/azureus2/ui/icons/status/ko_shared.gif", "st_ko_shared");
-		addPath("org/gudy/azureus2/ui/icons/status/error_shared.gif",
-				"st_error_shared");
-		addPath("org/gudy/azureus2/ui/icons/status/stopped_shared.gif",
-				"st_stopped_shared");
-		addPath("org/gudy/azureus2/ui/icons/status/no_tracker_shared.gif",
-				"st_no_tracker_shared");
-		addPath("org/gudy/azureus2/ui/icons/status/no_remote_shared.gif",
-				"st_no_remote_shared");
+		addPath("org/gudy/azureus2/ui/icons/status/error_shared.gif","st_error_shared");
+		addPath("org/gudy/azureus2/ui/icons/status/stopped_shared.gif","st_stopped_shared");
+		addPath("org/gudy/azureus2/ui/icons/status/no_tracker_shared.gif","st_no_tracker_shared");
+		addPath("org/gudy/azureus2/ui/icons/status/no_remote_shared.gif","st_no_remote_shared");
 
 		addPath("org/gudy/azureus2/ui/icons/status/explain.gif", "st_explain");
 		addPath("org/gudy/azureus2/ui/icons/status/shared.gif", "st_shared");
 
-		addPath("org/gudy/azureus2/ui/icons/statusbar/status_warning.gif",
-				"sb_warning");
+		addPath("org/gudy/azureus2/ui/icons/statusbar/status_warning.gif","sb_warning");
 		addPath("org/gudy/azureus2/ui/icons/statusbar/user_count.png", "sb_count");
 		addPath("org/gudy/azureus2/ui/icons/statusbar/speed_up.png", "speed_up");
 		addPath("org/gudy/azureus2/ui/icons/statusbar/speed_down.png", "speed_down");
@@ -174,10 +167,16 @@ public class ImageRepository {
 		addPath("org/gudy/azureus2/ui/icons/progress_viewer_has_error.png", "progress_error");
 		addPath("org/gudy/azureus2/ui/icons/progress_viewer_has_info.png", "progress_info");
 		addPath("org/gudy/azureus2/ui/icons/progress_viewer.png", "progress_viewer");
-		addPath("org/gudy/azureus2/ui/icons/progress_retry.png", "progress_retry");
-		addPath("org/gudy/azureus2/ui/icons/progress_cancel.png", "progress_cancel");
-		addPath("org/gudy/azureus2/ui/icons/progress_remove.png", "progress_remove");
 		
+		if ( Utils.isAZ2UI()){ 
+			addPath("org/gudy/azureus2/ui/icons/recheck.gif", "progress_retry");
+			addPath("org/gudy/azureus2/ui/icons/stop.gif",    "progress_cancel");
+			addPath("org/gudy/azureus2/ui/icons/delete.gif",  "progress_remove");
+		}else{
+			addPath("org/gudy/azureus2/ui/icons/progress_retry.png",  "progress_retry");
+			addPath("org/gudy/azureus2/ui/icons/progress_cancel.png", "progress_cancel");
+			addPath("org/gudy/azureus2/ui/icons/progress_remove.png", "progress_remove");
+		}
 	}
 
   public static void addPath(String path, String id) {
