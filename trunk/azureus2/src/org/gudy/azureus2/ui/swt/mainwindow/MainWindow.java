@@ -1015,7 +1015,8 @@ MainWindow
   				
   				if (visible) {
   					shell.setMinimized(false);
-  					if (COConfigurationManager.getBooleanParameter("window.maximized")) {
+  					if (!currentlyVisible
+  							&& COConfigurationManager.getBooleanParameter("window.maximized")) {
   						shell.setMaximized(true);
   					}
   				} else {
