@@ -163,7 +163,7 @@ public class WelcomeWindow {
 				stream = getClass().getResourceAsStream(helpFullPath);
 			}
 			if (stream == null) {
-				stream = getClass().getResourceAsStream("/changelog.txt");
+				stream = getClass().getResourceAsStream("/ChangeLog.txt");
 			}
 			if (stream == null) {
 				sWhatsNew = "Welcome Window: Error loading resource: " + helpFile;
