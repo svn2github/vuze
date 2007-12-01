@@ -196,7 +196,7 @@ public class PlatformMessenger
 		if (USE_HTTP_POST) {
 			sURL = Constants.URL_PREFIX + Constants.URL_POST_PLATFORM_MESSAGE;
 			sPostData = Constants.URL_POST_PLATFORM_DATA + "&" + urlStem + "&"
-					+ Constants.URL_SUFFIX + "\n";
+					+ Constants.URL_SUFFIX;
 			debug("POST: " + sURL + "?" + sPostData);
 		} else {
 			sURL = Constants.URL_PREFIX + Constants.URL_PLATFORM_MESSAGE + "&"
