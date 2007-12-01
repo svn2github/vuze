@@ -4,7 +4,7 @@ AZUREUS CHANGELOG
 
 2007.12.xx | Azureus 3.0.3.5
 
-FEATURE: Core | Reconnect to peers after unexpected disconnect / recover stats of recently disconnected peers [Parg,The 8472]FEATURE: Core | Reconnect to peers after unexpected disconnect / recover stats of recently disconnected peers [Parg,The 8472]
+FEATURE: Core | Reconnect to peers after unexpected disconnect / recover stats of recently disconnected peers [Parg,The 8472]
 FEATURE: Core | global download speed limit can also limit the number of outgoing requests, this should improve TCP performance [The 8472]
                  -does not work with auto-speed since an explicit download speed-limit must be set
                  -downloads from as few peers as possible when the global limit is reached 
@@ -13,7 +13,7 @@ FEATURE: Core | IP binding now provides primitive round-robin load balancing for
 FEATURE: UI   | Column menu option to automatically put contents of cell into the tooltip [amc1] 
 FEATURE: UI   | Piece distribution view is now also available as a peer subview [The 8472]
 FEATURE: UI   | Added 'time remaining' column to peers view [Parg]
-FEATURE: UI   | Added option to suppress file download dialog; [khai]
+FEATURE: UI   | Added option to suppress file download dialog [khai]
 FEATURE: UI   | Various progress reports have been unified; main status bar can display progress for certain processes now [khai]
 FEATURE: Plug | Plugins can now change the color of rows [amc1]
 FEATURE: Plug | Plugins can add configuration colour parameters [amc1]
