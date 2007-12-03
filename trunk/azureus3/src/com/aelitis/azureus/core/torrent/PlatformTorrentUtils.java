@@ -720,6 +720,10 @@ public class PlatformTorrentUtils
 		return getContentMapLong(torrent, TOR_AZ_PROP_WEB_AD_ENABLED, 0) == 1;
 	}
 
+	public static boolean isContentWebAdEnabled(TOTorrent torrent) {
+		return getContentMapLong(torrent, TOR_AZ_PROP_WEB_AD_ENABLED, 0) == 1;
+	}
+
 	public static boolean useEMP(TOTorrent torrent) {
 		return getContentMapLong(torrent, TOR_AZ_PROP_USE_EMP, 0) == 1;
 	}
