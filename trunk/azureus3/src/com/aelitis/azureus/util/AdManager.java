@@ -525,6 +525,9 @@ public class AdManager
 	 * @since 3.0.2.3
 	 */
 	public boolean isAd(String nowPlaying) {
+		if (nowPlaying == null) {
+			return false;
+		}
 		File file = new File(nowPlaying);
 		DownloadManager[] ads = getAds(true);
 		for (int i = 0; i < ads.length; i++) {
