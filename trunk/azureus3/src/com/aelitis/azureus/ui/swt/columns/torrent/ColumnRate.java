@@ -204,8 +204,7 @@ public class ColumnRate
 			String rating = GlobalRatingUtils.getRatingString(torrent);
 			long count = GlobalRatingUtils.getCount(torrent);
 			int userRating = -3;
-			if (PlatformTorrentUtils.isContent(dm.getTorrent(), true)
-					&& dm.isDownloadComplete(false)) {
+			if (PlatformTorrentUtils.isContent(dm.getTorrent(), true)) {
 				userRating = PlatformTorrentUtils.getUserRating(dm.getTorrent());
 			}
 
@@ -255,7 +254,8 @@ public class ColumnRate
 
 			Image imgRate = null;
 			if (allowRate) {
-				if (hasMouse && userRating == -1) {
+				boolean isComplete = dm.isDownloadComplete(false);
+				if (hasMouse && userRating == -1 && isComplete) {
 					showAverage = false;
 				}
 
@@ -267,7 +267,7 @@ public class ColumnRate
   				case -1: // unrated
   					if ((useButton && !mouseIn) || disabled) {
   						imgRate = imgRateMeButton;
-  					} else {
+  					} else if (useButton || isComplete) {
     					switch (hoveringOn) {
     						case 0:
     							imgRate = imgRateMeDown;
@@ -475,7 +475,7 @@ public class ColumnRate
 				return;
 			}
 
-			if (!dm.isDownloadComplete(false)) {
+			if (!dm.isDownloadComplete(false) && !useButton) {
 				return;
 			}
 
