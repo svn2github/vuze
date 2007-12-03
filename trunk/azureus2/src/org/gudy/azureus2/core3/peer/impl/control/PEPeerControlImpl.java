@@ -3649,13 +3649,13 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 				to_do--;
 
-				final PEPeerTransport	peer_item = (PEPeerTransport)it.next();
+				final PEPeerTransport	peer = (PEPeerTransport)it.next();
 
 				it.remove();
 
 				PeerNATTraverser.getSingleton().create(
 						this,
-						new InetSocketAddress( peer_item.getPeerItemIdentity().getAddressString(), peer_item.getPeerItemIdentity().getUDPPort() ),
+						new InetSocketAddress( peer.getPeerItemIdentity().getAddressString(), peer.getPeerItemIdentity().getUDPPort() ),
 						new PeerNATTraversalAdapter()
 						{
 							private boolean	done;
@@ -3668,7 +3668,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 								Map	user_data = new HashMap();
 								
-								PEPeerTransport newTransport = peer_item.reconnect(true);
+								PEPeerTransport newTransport = peer.reconnect(true);
 								if(newTransport != null)
 									newTransport.setData(PEER_NAT_TRAVERSE_DONE_KEY, "");
 							}
@@ -4139,14 +4139,9 @@ DiskManagerCheckRequestListener, IPFilterListener
 			
 			while( it.hasNext()){
 			
-				Object o = it.next();
-				if (o instanceof PeerItem) {
-					PeerItem	peer_item = (PeerItem)o;
+				PEPeerTransport peer = (PEPeerTransport)it.next();
 			
-					pending_udp += (pending_udp.length()==0?"":",") + peer_item.getAddressString() + ":" + peer_item.getUDPPort();
-				} else {
-					pending_udp += (pending_udp.length()==0?"":",") + "non PeerItem";
-				}
+				pending_udp += (pending_udp.length()==0?"":",") + peer.getPeerItemIdentity().getAddressString() + ":" + peer.getPeerItemIdentity().getUDPPort();
 			}
 		}finally{
 			
