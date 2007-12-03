@@ -4139,9 +4139,14 @@ DiskManagerCheckRequestListener, IPFilterListener
 			
 			while( it.hasNext()){
 			
-				PeerItem	peer_item = (PeerItem)it.next();
+				Object o = it.next();
+				if (o instanceof PeerItem) {
+					PeerItem	peer_item = (PeerItem)o;
 			
-				pending_udp += (pending_udp.length()==0?"":",") + peer_item.getAddressString() + ":" + peer_item.getUDPPort();
+					pending_udp += (pending_udp.length()==0?"":",") + peer_item.getAddressString() + ":" + peer_item.getUDPPort();
+				} else {
+					pending_udp += (pending_udp.length()==0?"":",") + "non PeerItem";
+				}
 			}
 		}finally{
 			
