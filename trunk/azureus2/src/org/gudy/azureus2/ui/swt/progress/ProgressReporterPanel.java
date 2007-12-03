@@ -653,16 +653,6 @@ public class ProgressReporterPanel
 		return string.replaceAll("&", "&&");
 	}
 
-	public void dispose() {
-		imageLabel.dispose();
-		nameLabel.dispose();
-		pBar.dispose();
-		actionLabel_cancel.dispose();
-		actionLabel_remove.dispose();
-		actionLabel_retry.dispose();
-		statusLabel.dispose();
-		super.dispose();
-	}
 
 	public void addTwistieListener(ITwistieListener listener) {
 		detailSection.addTwistieListener(listener);
