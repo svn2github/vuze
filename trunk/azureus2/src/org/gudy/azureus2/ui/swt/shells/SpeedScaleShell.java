@@ -26,9 +26,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -485,22 +483,37 @@ public class SpeedScaleShell
 		Point location = display.getCursorLocation();
 
 		location.y -= getBaselinePos();
-		int x = WIDTH_NO_PADDING * value / maxValue;
+		int x = (int) (WIDTH_NO_PADDING * (value > maxValue ? 1 : (double) value
+				/ maxValue));
 		location.x -= PADDING_X0 + x;
 
 		Rectangle bounds = new Rectangle(location.x, location.y, WIDTH, HEIGHT);
-		Rectangle monitorBounds = shell.getMonitor().getBounds();
+		Monitor mouseMonitor = shell.getMonitor();
+		Monitor[] monitors = display.getMonitors();
+		for (int i = 0; i < monitors.length; i++) {
+			Monitor monitor = monitors[i];
+			if (monitor.getBounds().contains(location)) {
+				mouseMonitor = monitor;
+				break;
+			}
+		}
+		Rectangle monitorBounds = mouseMonitor.getBounds();
 		Rectangle intersection = monitorBounds.intersection(bounds);
 		if (intersection.width != bounds.width) {
-			bounds.x -= WIDTH - intersection.width;
+			bounds.x = monitorBounds.x + monitorBounds.width - WIDTH;
 			bounds.width = WIDTH;
 		}
 		if (intersection.height != bounds.height) {
-			bounds.y -= HEIGHT - intersection.height;
+			bounds.y = monitorBounds.y + monitorBounds.height - HEIGHT;
 			bounds.height = HEIGHT;
 		}
 
 		shell.setBounds(bounds);
+		if (!bounds.contains(firstMousePos)) {
+			// should never happen, which means it probably will, so handle it badly
+			shell.setLocation(firstMousePos.x - (bounds.width / 2), firstMousePos.y
+					- bounds.height + 2);
+		}
 
 		shell.open();
 		// must be after, for OSX
