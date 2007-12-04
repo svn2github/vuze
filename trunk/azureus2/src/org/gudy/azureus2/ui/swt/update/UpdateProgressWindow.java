@@ -40,7 +40,8 @@ import java.util.ArrayList;
 
 /**
  * @author parg
- *
+ * @deprecated This class is no longer maintained and may be removed sometime in the future; its
+ * functionality has been replaced by the new implementation of ProgressReportingWindow and ProgressReporter usage. KN
  */
 
 public class 
