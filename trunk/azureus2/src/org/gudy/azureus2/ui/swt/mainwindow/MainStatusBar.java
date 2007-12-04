@@ -292,10 +292,22 @@ public class MainStatusBar
 		progressViewerImageLabel.addMouseListener(new MouseAdapter() {
 			public void mouseDown(MouseEvent e) {
 				/*
-				 * Opens the progress viewer
+				 * Opens the progress viewer if any of the reporters in the array is NOT already opened
+				 * KN: TODO -- This is only a partial solution to minimize the occurrence of the main progress window
+				 * opening more than once.  The one remaining case where multiple windows will still open is
+				 * when you have one opened already... then run another process such as a torrent file download...
+				 * at this point this new process is not in the already opened window so the check would
+				 * allow the second window to open.
 				 */
-				ProgressReporterWindow.open(PRManager.getReportersArray(false),
-						ProgressReporterWindow.NONE);
+				IProgressReporter[] reporters = PRManager.getReportersArray(false);
+				for (int i = 0; i < reporters.length; i++) {
+					if (false == ProgressReporterWindow.isOpened(reporters[i])) {
+						ProgressReporterWindow.open(PRManager.getReportersArray(false),
+								ProgressReporterWindow.NONE);
+						break;
+					}
+				}
+
 			}
 		});
 
