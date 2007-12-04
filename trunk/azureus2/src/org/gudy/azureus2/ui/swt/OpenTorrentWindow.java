@@ -198,6 +198,11 @@ public class OpenTorrentWindow
 	}
 
 	
+	/**
+	 * A counter to track torrent file downloads that are still active;
+	 * this is purely used to enable/disable the OK button
+	 */
+	private int activeTorrentCount = 0;
 	
 	/**
 	 * 
@@ -605,8 +610,6 @@ public class OpenTorrentWindow
 			}
 		});
 
-		//KN: Disable the OK button until we have something to say OK to
-		ok.setEnabled(false);
 		
 		
 		checkSeedingMode();
@@ -2164,6 +2167,9 @@ public class OpenTorrentWindow
 				&& (state == TorrentDownloader.STATE_CANCELLED
 						|| state == TorrentDownloader.STATE_ERROR
 						|| state == TorrentDownloader.STATE_DUPLICATE || state == TorrentDownloader.STATE_FINISHED)) {
+			
+			activeTorrentCount--;
+			enableControl(ok, activeTorrentCount < 1);
 			if (!downloaders.contains(inf))
 				return;
 			downloaders.remove(inf);
@@ -2179,9 +2185,13 @@ public class OpenTorrentWindow
 		}
 
 		if (state == TorrentDownloader.STATE_INIT) {
+			activeTorrentCount++;
+			enableControl(ok, activeTorrentCount < 1);
 			downloaders.add(inf);
-
 		} else if (state == TorrentDownloader.STATE_FINISHED) {
+			activeTorrentCount--;
+			enableControl(ok, activeTorrentCount < 1);
+			
 			// This can be called more than once for each inf..
 			if (!downloaders.contains(inf))
 				return;
@@ -2231,6 +2241,8 @@ public class OpenTorrentWindow
 		} else if (state == TorrentDownloader.STATE_CANCELLED
 				|| state == TorrentDownloader.STATE_ERROR
 				|| state == TorrentDownloader.STATE_DUPLICATE) {
+			activeTorrentCount--;
+			enableControl(ok, activeTorrentCount < 1);
 			downloaders.remove(inf);
 		} else if (state == TorrentDownloader.STATE_DOWNLOADING) {
 			int count = inf.getLastReadCount();
@@ -2828,10 +2840,6 @@ public class OpenTorrentWindow
 		
 		diskFreeInfoRefreshPending = true;
 		
-		/*
-		 * KN: Enables the OK button based on whether there is anything to download
-		 */
-		enableControl(ok, checkedSize > 0);
 	}
 
 	
@@ -2842,7 +2850,7 @@ public class OpenTorrentWindow
 	 * @param enabledState
 	 */
 	private void enableControl(final Control control, final boolean enabledState) {
-		if (control != null) {
+		if (control != null && false == control.isDisposed()) {
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					control.setEnabled(enabledState);
