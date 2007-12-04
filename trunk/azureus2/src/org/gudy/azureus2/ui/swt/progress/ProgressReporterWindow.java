@@ -19,7 +19,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
 public class ProgressReporterWindow
-	implements IProgressReportConstants, ITwistieListener
+	implements IProgressReportConstants, ITwistieListener, DisposeListener
 {
 	private Shell shell;
 
@@ -173,6 +173,22 @@ public class ProgressReporterWindow
 		 */
 		shell.addListener(SWT.Close, new Listener() {
 			public void handleEvent(Event event) {
+
+				/*
+				 * Remove this class as a listener to the disposal event for the panels or else
+				 * as the shell is closing the panels would be disposed one-by-one and each one would
+				 * force a re-layouting of the shell.
+				 */
+				Control[] controls = scrollChild.getChildren();
+				for (int i = 0; i < controls.length; i++) {
+					if (controls[i] instanceof ProgressReporterPanel) {
+						((ProgressReporterPanel) controls[i]).removeDisposeListener(ProgressReporterWindow.this);
+					}
+				}
+
+				/*
+				 * Removes all the reporters that is still handled by this window
+				 */
 				for (int i = 0; i < pReporters.length; i++) {
 					reportersRegistry.remove(pReporters[i]);
 				}
@@ -233,8 +249,8 @@ public class ProgressReporterWindow
 		/*
 		 * Centers the window
 		 */
-		
-		Utils.centreWindow( shell );
+
+		Utils.centreWindow(shell);
 
 		shell.open();
 	}
@@ -265,51 +281,9 @@ public class ProgressReporterWindow
 						scrollChild, pReporters[i], style | BORDER);
 
 				panel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+
 				panel.addTwistieListener(this);
-
-				/*
-				 * When a panel is disposed resize and re-layout the window
-				 */
-				panel.addDisposeListener(new DisposeListener() {
-					public void widgetDisposed(DisposeEvent e) {
-
-						removeReporter(((ProgressReporterPanel) e.widget).pReporter);
-
-						panel.removeTwistieListener(ProgressReporterWindow.this);
-
-						/*
-						 * Must let the GridLayout manager know that this control should be ignored
-						 */
-						((GridData) panel.getLayoutData()).exclude = true;
-						panel.setVisible(false);
-
-						/*
-						 * If it's the last reporter then close the shell itself since it will be just empty
-						 */
-						if (pReporters.length == 0) {
-							if ((style & AUTO_CLOSE) != 0) {
-								if (null != shell && false == shell.isDisposed()) {
-									shell.close();
-								}
-							} else {
-								createEmptyPanel();
-							}
-						} else {
-
-							/*
-							 * Formats the last panel; specifying this panel as the panelToIgnore
-							 * because at this point in the code this panel has not been removed
-							 * from the window yet
-							 */
-							formatLastPanel(panel);
-						}
-
-						if (null != shell && false == shell.isDisposed()) {
-							shell.layout(true, true);
-						}
-					}
-
-				});
+				panel.addDisposeListener(this);
 			}
 		}
 
@@ -337,6 +311,12 @@ public class ProgressReporterWindow
 	 * @param reporter
 	 */
 	private void removeReporter(IProgressReporter reporter) {
+
+		/*
+		 * Removes it from the registry
+		 */
+		reportersRegistry.remove(reporter);
+
 		/*
 		 * The array is typically small so this is good enough for now
 		 */
@@ -373,9 +353,52 @@ public class ProgressReporterWindow
 			}
 
 			scrollable.layout();
-			//			shell.layout(true, true);
 			scrollable.setRedraw(true);
 		}
 	}
 
+	/**
+	 * When any <code>ProgressReporterPanel</code> in this window is disposed 
+	 * re-layout the controls and window appropriately 
+	 */
+	public void widgetDisposed(DisposeEvent e) {
+
+		if (e.widget instanceof ProgressReporterPanel) {
+			ProgressReporterPanel panel = (ProgressReporterPanel) e.widget;
+			removeReporter(panel.pReporter);
+
+			panel.removeTwistieListener(this);
+
+			/*
+			 * Must let the GridLayout manager know that this control should be ignored
+			 */
+			((GridData) panel.getLayoutData()).exclude = true;
+			panel.setVisible(false);
+
+			/*
+			 * If it's the last reporter then close the shell itself since it will be just empty
+			 */
+			if (pReporters.length == 0) {
+				if ((style & AUTO_CLOSE) != 0) {
+					if (null != shell && false == shell.isDisposed()) {
+						shell.close();
+					}
+				} else {
+					createEmptyPanel();
+				}
+			} else {
+
+				/*
+				 * Formats the last panel; specifying this panel as the panelToIgnore
+				 * because at this point in the code this panel has not been removed
+				 * from the window yet
+				 */
+				formatLastPanel(panel);
+			}
+
+			if (null != shell && false == shell.isDisposed()) {
+				shell.layout(true, true);
+			}
+		}
+	}
 }
