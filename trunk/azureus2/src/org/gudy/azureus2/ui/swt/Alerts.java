@@ -164,7 +164,7 @@ public class Alerts
 				alert_queue_mon.exit();
 			}
 		} else if (!use_message_box) {
-			MessageSlideShell.displayLastMessage(display, true);
+			MessageSlideShell.displayLastMessage(display, false);
 		} else {
 			/**
 			 * I don't like displaying dialog boxes with titles like "Information" and "Error".
