@@ -37,6 +37,12 @@ public class ProgressReporterWindow
 	private static final ArrayList reportersRegistry = new ArrayList();
 
 	/**
+	 * A special boolean to track whether this window is opened and is showing the empty panel;
+	 * mainly used to prevent opening more than one of these window when there are no reporters to work with
+	 */
+	private static boolean isShowingEmpty = false;
+
+	/**
 	 * The default width for the shell upon first opening
 	 */
 	private int defaultShellWidth = 500;
@@ -101,6 +107,14 @@ public class ProgressReporterWindow
 	 */
 	public static void open(IProgressReporter[] pReporters, int style) {
 		new ProgressReporterWindow(pReporters, style).openWindow();
+	}
+
+	/**
+	 * Returns whether this window is already opened and is showing the empty panel
+	 * @return
+	 */
+	public static boolean isShowingEmpty() {
+		return isShowingEmpty;
 	}
 
 	/**
@@ -192,6 +206,8 @@ public class ProgressReporterWindow
 				for (int i = 0; i < pReporters.length; i++) {
 					reportersRegistry.remove(pReporters[i]);
 				}
+
+				isShowingEmpty = false;
 			}
 		});
 
@@ -211,6 +227,11 @@ public class ProgressReporterWindow
 		gData.heightHint = 100;
 		nothingToDisplay.setLayoutData(gData);
 		nothingToDisplay.setText(MessageText.getString("Progress.reporting.no.reports.to.display"));
+
+		/*
+		 * Mark this as being opened and is showing the empty panel
+		 */
+		isShowingEmpty = true;
 
 	}
 

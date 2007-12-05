@@ -287,7 +287,7 @@ public class MainStatusBar
 		progress_viewer_img = ImageRepository.getImage("progress_viewer");
 
 		progressViewerImageLabel = new CLabelPadding(statusBar, SWT.NONE);
-			// image set below after adding listener
+		// image set below after adding listener
 		progressViewerImageLabel.setToolTipText(MessageText.getString("Progress.reporting.statusbar.button.tooltip"));
 		progressViewerImageLabel.addMouseListener(new MouseAdapter() {
 			public void mouseDown(MouseEvent e) {
@@ -300,14 +300,24 @@ public class MainStatusBar
 				 * allow the second window to open.
 				 */
 				IProgressReporter[] reporters = PRManager.getReportersArray(false);
-				for (int i = 0; i < reporters.length; i++) {
-					if (false == ProgressReporterWindow.isOpened(reporters[i])) {
-						ProgressReporterWindow.open(PRManager.getReportersArray(false),
-								ProgressReporterWindow.NONE);
-						break;
+				if (reporters.length == 0) {
+					/*
+					 * If there's nothing to see then open the window; the default widow will say there's nothing to see
+					 * KN: calling isShowingEmpty return true is there is already a window opened showing the empty panel
+					 */
+					if (false == ProgressReporterWindow.isShowingEmpty()) {
+						ProgressReporterWindow.open(reporters, ProgressReporterWindow.NONE);
+					}
+				} else {
+					
+					for (int i = 0; i < reporters.length; i++) {
+						if (false == ProgressReporterWindow.isOpened(reporters[i])) {
+							ProgressReporterWindow.open(reporters,
+									ProgressReporterWindow.NONE);
+							break;
+						}
 					}
 				}
-
 			}
 		});
 
@@ -1040,10 +1050,8 @@ public class MainStatusBar
 		}, true);
 
 	}
-	
-	private void
-	setProgressImage()
-	{
+
+	private void setProgressImage() {
 		if (PRManager.getReporterCount(ProgressReportingManager.COUNT_ERROR) > 0) {
 			progressViewerImageLabel.setImage(progress_error_img);
 		} else if (PRManager.getReporterCount(ProgressReportingManager.COUNT_ALL) > 0) {
