@@ -88,7 +88,7 @@ public class UISwitcherUtil
 			// Flip people who install this client over top of an existing az
 			// to az3ui.  The installer will write a file to the program dir,
 			// while an upgrade won't
-			if (COConfigurationManager.getBooleanParameter("installer.ui.alreadySwitched", false)
+			if (!COConfigurationManager.getBooleanParameter("installer.ui.alreadySwitched", false)
 					&& FileUtil.getApplicationFile("installer.log").exists()) {
 				COConfigurationManager.setParameter("installer.ui.alreadySwitched", true);
 				COConfigurationManager.setParameter("ui", "az3");
