@@ -73,8 +73,7 @@ public class SelectableSpeedMenu {
 
         int maxBandwidth = COConfigurationManager.getIntParameter(configKey);
         final boolean unlim = (maxBandwidth == 0);
-        maxBandwidth = adjustMaxBandWidth(maxBandwidth, globalManager, configKey,
-				up_menu);
+        maxBandwidth = adjustMaxBandWidth(maxBandwidth, globalManager, up_menu);
         
         boolean	auto = false;
         
@@ -192,7 +191,7 @@ public class SelectableSpeedMenu {
 	 * @since 3.0.1.7
 	 */
 	private static int adjustMaxBandWidth(int maxBandwidth,
-			GlobalManager globalManager, String configKey, boolean up_menu) {
+			GlobalManager globalManager, boolean up_menu) {
     if(maxBandwidth == 0 && !up_menu )
     {
   		GlobalManagerStats stats = globalManager.getStats();
@@ -349,7 +348,7 @@ public class SelectableSpeedMenu {
 										getValue() * 1024, true));
 			}
 		};
-		int max = unlim ? (isUpSpeed ? 100 : 500) : maxBandwidth * 5;
+		int max = unlim ? (isUpSpeed ? 100 : 800) : maxBandwidth * 5;
 		if (max < 50) {
 			max = 50;
 		}
@@ -367,8 +366,6 @@ public class SelectableSpeedMenu {
 			speed_limits = parseSpeedPartitionString(COConfigurationManager.getStringParameter(
 					config_prefix + "values", ""));
 		} else {
-			int maxBandwidth2 = COConfigurationManager.getIntParameter(configKey);
-			maxBandwidth = adjustMaxBandWidth(maxBandwidth, gm, configKey, isUpSpeed);
 			speed_limits = getGenericSpeedList(6, maxBandwidth);
 		}
 		if (speed_limits != null) {
