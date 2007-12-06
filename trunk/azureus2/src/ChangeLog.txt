@@ -10,6 +10,7 @@ FEATURE: Core | global download speed limit can also limit the number of outgoin
                  -downloads from as few peers as possible when the global limit is reached 
                  -prioritizes downloads which are on the head of the queue
 FEATURE: Core | IP binding now provides primitive round-robin load balancing for users with multiple internet connections; accepts interface names and IPv6 binding (if supported on the platform) [The 8472]
+FEATURE: Core | Added changelog.txt to jar [Nolar]
 FEATURE: UI   | Column menu option to automatically put contents of cell into the tooltip [amc1] 
 FEATURE: UI   | Piece distribution view is now also available as a peer subview [The 8472]
 FEATURE: UI   | Added 'time remaining' column to peers view [Parg]
@@ -22,8 +23,10 @@ CHANGE: Core  | Attempt to re-open a file when access fails to try and recover f
 CHANGE: Core  | Auto speed default is now the beta algorithm [Parg]
 CHANGE: Core  | Revised piece picking code to deal better with some edge cases and snubbed peers [The 8472]
 CHANGE: Core  | Share Ratio/min Seeds ignore rule now applies even when no tracker scrape is available [The 8472]
+CHANGE: Core  | Switched default autospeed to v2 [ranul]
 CHANGE: UI    | Added private torrent indicator to the general tab [The 8472]
 CHANGE: UI    | Logging Consoles now have a regex-based filters [The 8472]
+CHANGE: UI    | Tweaked table views to use a bit less memory and run better when items are being quickly removed/added [TuxPaper]
 
 BUGFIX: UI    | Don't hang UI redraw if file access is slow [Parg]
 BUGFIX: UI    | Fixed inconsistencies in the Torrent Open Dialog related to renaming and retargeting files and directories [The 8472]  
