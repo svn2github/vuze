@@ -25,6 +25,7 @@ import java.util.List;
 
 import org.gudy.azureus2.core3.util.IndentWriter;
 
+import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
@@ -89,7 +90,7 @@ public interface TableColumnCore
 	 *               
 	 * @since 2.1.0.0
 	 */
-	public void invokeCellRefreshListeners(TableCellCore cell, boolean fastRefresh) throws Throwable;
+	public void invokeCellRefreshListeners(TableCell cell, boolean fastRefresh) throws Throwable;
 
 	/**
 	 * Retrieve all the refresh listeners for the cell

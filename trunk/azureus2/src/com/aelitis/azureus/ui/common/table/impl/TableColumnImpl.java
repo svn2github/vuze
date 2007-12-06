@@ -590,7 +590,7 @@ public class TableColumnImpl
 		return bCoreDataSource;
 	}
 
-	public void invokeCellRefreshListeners(TableCellCore cell, boolean fastRefresh) throws Throwable {
+	public void invokeCellRefreshListeners(TableCell cell, boolean fastRefresh) throws Throwable {
 		//System.out.println(this + " :: invokeCellRefreshListeners" + cellRefreshListeners);
 		if (cellRefreshListeners == null) {
 			return;
