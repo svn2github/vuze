@@ -349,9 +349,9 @@ public class TorrentListViewsUtils
 			return false;
 		}
 
-		if (!canPlay(dm)) {
-			return false;
-		}
+//		if (!canPlay(dm)) {
+//			return false;
+//		}
 
 		TOTorrent torrent = dm.getTorrent();
 		if (canUseEMP(torrent)) {
