@@ -35,6 +35,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 
+import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 import org.gudy.azureus2.plugins.ui.Graphic;
@@ -78,7 +79,7 @@ public class FakeTableCell
 
 	private Control composite;
 
-	private final TableColumn tableColumn;
+	private final TableColumnCore tableColumn;
 
 	private Graphic graphic;
 
@@ -86,6 +87,11 @@ public class FakeTableCell
 	 * @param columnRateUpDown
 	 */
 	public FakeTableCell(TableColumn column) {
+		this.tableColumn = (TableColumnCore)column;
+		setOrientationViaColumn();
+	}
+
+	public FakeTableCell(TableColumnCore column) {
 		this.tableColumn = column;
 		setOrientationViaColumn();
 	}
@@ -645,6 +651,10 @@ public class FakeTableCell
 		//System.out.println("refresh");
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
+			  try {
+					tableColumn.invokeCellRefreshListeners(FakeTableCell.this, false);
+				} catch (Throwable e) {
+				}
 				if (refreshListeners != null) {
 					for (int i = 0; i < refreshListeners.size(); i++) {
 						((TableCellRefreshListener) (refreshListeners.get(i))).refresh(FakeTableCell.this);
