@@ -298,6 +298,12 @@ public class FakeTableCell
 			event.row = event.cell.getTableRow();
 		}
 
+	  try {
+			tableColumn.invokeCellMouseListeners(event);
+		} catch (Throwable e) {
+			Debug.printStackTrace(e);
+		}
+
 		for (int i = 0; i < listeners.size(); i++) {
 			try {
 				TableCellMouseListener l = (TableCellMouseListener) (listeners.get(i));
