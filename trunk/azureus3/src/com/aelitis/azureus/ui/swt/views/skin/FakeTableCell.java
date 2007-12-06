@@ -289,11 +289,6 @@ public class FakeTableCell
 	}
 
 	public void invokeMouseListeners(TableCellMouseEvent event) {
-		ArrayList listeners = event.eventType == TableCellMouseEvent.EVENT_MOUSEMOVE
-				? cellMouseMoveListeners : cellMouseListeners;
-		if (listeners == null)
-			return;
-
 		if (event.cell != null && event.row == null) {
 			event.row = event.cell.getTableRow();
 		}
@@ -302,6 +297,13 @@ public class FakeTableCell
 			tableColumn.invokeCellMouseListeners(event);
 		} catch (Throwable e) {
 			Debug.printStackTrace(e);
+		}
+
+		ArrayList listeners = event.eventType == TableCellMouseEvent.EVENT_MOUSEMOVE
+				? cellMouseMoveListeners : cellMouseListeners;
+
+		if (listeners == null) {
+			return;
 		}
 
 		for (int i = 0; i < listeners.size(); i++) {
