@@ -2,12 +2,12 @@ AZUREUS CHANGELOG
 -----------------
 
 
-2007.12.xx | Azureus 3.0.4.1
+2007.12.xx | Azureus Vuze 3.0.4.1
 
 
 
 
-2007.12.06 | Azureus 3.0.4.0
+2007.12.06 | Azureus Vuze 3.0.4.0
 
 FEATURE: Core | Reconnect to peers after unexpected disconnect / recover stats of recently disconnected peers [Parg,The 8472]
 FEATURE: Core | Global download speed limit can also limit the number of outgoing requests, this should improve TCP performance [The 8472]
