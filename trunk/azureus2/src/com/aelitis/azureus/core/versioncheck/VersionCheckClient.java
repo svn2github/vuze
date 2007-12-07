@@ -351,9 +351,22 @@ public class VersionCheckClient {
 		  
 	  }else{
 	  
-		  Long	l = (Long)m.get( "feat_flags" );
-	  
-		  result = l==null?0:l.longValue();
+		  byte[]	b_feat_flags = (byte[])m.get( "feat_flags" );
+		  
+		  if ( b_feat_flags != null ){
+			  
+			  try{
+				  
+				  result = Long.parseLong(new String((byte[])b_feat_flags));
+				  
+			  }catch( Throwable e ){
+				 
+				  result	= 0;
+			  }
+		  }else{
+			  
+			  result = 0;
+		  }
 	  }
 	  
 	  last_feature_flag_cache 		= result;
@@ -364,7 +377,7 @@ public class VersionCheckClient {
   
   public long
   getCacheTime(
-		  boolean v6 )
+	  boolean v6 )
   {
 	  return( v6?last_check_time_v6:last_check_time_v4);
   }
