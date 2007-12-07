@@ -346,10 +346,13 @@ public class ProgressReporterWindow
 	 * Creates just an empty panel with a message indicating there are no reports to display 
 	 */
 	private void createEmptyPanel() {
-		Label nothingToDisplay = new Label(scrollChild, SWT.NONE);
+		Composite emptyPanel = new Composite(scrollChild, SWT.BORDER);
 		GridData gData = new GridData(SWT.FILL, SWT.FILL, true, true);
 		gData.heightHint = 100;
-		nothingToDisplay.setLayoutData(gData);
+		emptyPanel.setLayoutData(gData);
+		emptyPanel.setLayout(new GridLayout());
+		Label nothingToDisplay = new Label(emptyPanel, SWT.NONE);
+		nothingToDisplay.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		nothingToDisplay.setText(MessageText.getString("Progress.reporting.no.reports.to.display"));
 
 		/*
