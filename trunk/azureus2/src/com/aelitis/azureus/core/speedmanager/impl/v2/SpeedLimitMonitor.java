@@ -490,7 +490,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
         //We seem to have an active progressive download. Make sure the limit does not
         //drop below that limit.
         final int MULTIPLE = 2;
-        if( prgDownLimit*MULTIPLE > update.newDownloadLimit )//ToDo: what are the units?
+        if( prgDownLimit*MULTIPLE > update.newDownloadLimit && update.newDownloadLimit!=0 )
         {
             log( "Active Progressive download in progress. Overriding limit. curr="+update.newDownloadLimit
                     +" progDownloadLimit="+prgDownLimit*MULTIPLE );
