@@ -79,7 +79,7 @@ public class UIConfigDefaultsSWTv3
 			}
 		}
 
-		boolean virginSwitch = COConfigurationManager.getBooleanParameter("az3.virgin.switch", false);
+		boolean virginSwitch = config.getBooleanParameter("az3.virgin.switch", false);
 		if (Constants.compareVersions(sFirstVersion, "3.0.0.0") >= 0 || virginSwitch) {
 
 			if (!config.isNewInstall()
