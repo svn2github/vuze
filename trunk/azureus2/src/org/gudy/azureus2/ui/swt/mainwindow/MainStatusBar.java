@@ -306,14 +306,14 @@ public class MainStatusBar
 					 * KN: calling isShowingEmpty return true is there is already a window opened showing the empty panel
 					 */
 					if (false == ProgressReporterWindow.isShowingEmpty()) {
-						ProgressReporterWindow.open(reporters, ProgressReporterWindow.NONE);
+						ProgressReporterWindow.open(reporters, ProgressReporterWindow.SHOW_TOOLBAR);
 					}
 				} else {
 					
 					for (int i = 0; i < reporters.length; i++) {
 						if (false == ProgressReporterWindow.isOpened(reporters[i])) {
 							ProgressReporterWindow.open(reporters,
-									ProgressReporterWindow.NONE);
+									ProgressReporterWindow.SHOW_TOOLBAR);
 							break;
 						}
 					}

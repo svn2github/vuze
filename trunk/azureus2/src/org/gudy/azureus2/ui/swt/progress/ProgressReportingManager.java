@@ -2,6 +2,8 @@ package org.gudy.azureus2.ui.swt.progress;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
 
@@ -43,7 +45,25 @@ public class ProgressReportingManager
 	 */
 	private CopyOnWriteList listeners = new CopyOnWriteList();
 
+	/**
+	 * Convenience variable tied to the parameter "auto_remove_inactive_items"
+	 */
+	private boolean isAutoRemove = false;
+	
+	/**
+	 * Private constructor
+	 */
 	private ProgressReportingManager() {
+		/*
+		 * Set up isAutoRemove flag
+		 */
+		isAutoRemove = COConfigurationManager.getBooleanParameter("auto_remove_inactive_items");
+		COConfigurationManager.addParameterListener("auto_remove_inactive_items",
+				new ParameterListener() {
+					public void parameterChanged(String parameterName) {
+						isAutoRemove = COConfigurationManager.getBooleanParameter("auto_remove_inactive_items");
+					}
+				});
 	}
 
 	public static final synchronized ProgressReportingManager getInstance() {
@@ -200,7 +220,10 @@ public class ProgressReportingManager
 		/*
 		 * Update the history stack and notify listeners 
 		 */
-		if (true == reporter.getProgressReport().isDisposed()) {
+
+		IProgressReport pReport = reporter.getProgressReport();
+		if ((true == isAutoRemove && false == pReport.isActive())
+				|| true == pReport.isDisposed()) {
 			progressReporters.remove(reporter);
 			notifyListeners(MANAGER_EVENT_REMOVED, reporter);
 		} else if (true == progressReporters.contains(reporter)) {

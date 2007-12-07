@@ -688,4 +688,16 @@ public class ProgressReporterPanel
 		}
 		detailSection.setEnabled(true);
 	}
+	
+	/**
+	 * Returns the attached reporter
+	 * @return
+	 */
+	public IProgressReporter getProgressReporter(){
+			return pReporter;
+	}
+	
+	public int getStyle(){
+		return style;
+	}
 }

@@ -132,6 +132,8 @@ public interface IProgressReportConstants
 
 	public static final int BORDER = 1 << 4;
 	
+	public static final int SHOW_TOOLBAR = 1 << 5;
+	
 	//========== report message types =================
 	
 	public static final int MSG_TYPE_INFO = 1 << 1;

@@ -11,7 +11,9 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.ITwistieListener;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -58,6 +60,11 @@ public class ProgressReporterWindow
 	private int style;
 
 	/**
+	 * Convenience variable tied to the parameter "auto_remove_inactive_items"
+	 */
+	private boolean isAutoRemove = false;
+
+	/**
 	 * Construct a <code>ProgressReporterWindow</code> for a single <code>ProgressReporter</code> 
 	 * @param pReporter
 	 */
@@ -93,9 +100,15 @@ public class ProgressReporterWindow
 
 	/**
 	 * Opens the window and display the given <code>IProgressReporter</code>
-	 * 
+	 * <code>style</code> could be one or more of these:
+	 * <ul>
+	 * <li><code>IProgressReportConstants.NONE				</code>	-- the default</li>
+	 * <li><code>IProgressReportConstants.AUTO_CLOSE	</code>	-- automatically disposes this panel when the given reporter is done</li>
+	 * <li><code>IProgressReportConstants.MODAL				</code>	-- this window will be application modal</li>
+	 * <li><code>IProgressReportConstants.SHOW_TOOLBAR</code> -- shows the toolbar for removing inactive reporters</li>
+	 * </ul>
 	 * @param pReporter
-	 * @param closeOnFinished <code>true</code> to automatically close this window when the reporter is finished; otherwise leave it opened
+	 * @param style
 	 */
 	public static void open(IProgressReporter pReporter, int style) {
 		new ProgressReporterWindow(pReporter, style).openWindow();
@@ -103,7 +116,15 @@ public class ProgressReporterWindow
 
 	/**
 	 * Opens the window and display the given array of <code>IProgressReporter</code>'s
+	 * <code>style</code> could be one or more of these:
+	 * <ul>
+	 * <li><code>IProgressReportConstants.NONE				</code>	-- the default</li>
+	 * <li><code>IProgressReportConstants.AUTO_CLOSE	</code>	-- automatically disposes this panel when the given reporter is done</li>
+	 * <li><code>IProgressReportConstants.MODAL				</code>	-- this window will be application modal</li>
+	 * <li><code>IProgressReportConstants.SHOW_TOOLBAR</code> -- shows the toolbar for removing inactive reporters</li>
+	 * </ul>
 	 * @param pReporters
+	 * @param style
 	 */
 	public static void open(IProgressReporter[] pReporters, int style) {
 		new ProgressReporterWindow(pReporters, style).openWindow();
@@ -216,6 +237,109 @@ public class ProgressReporterWindow
 		} else {
 			createPanels();
 		}
+
+		/*
+		 * Shows the toolbar if specified
+		 */
+		if ((style & SHOW_TOOLBAR) != 0) {
+			createToolbar();
+		}
+		isAutoRemove = COConfigurationManager.getBooleanParameter("auto_remove_inactive_items");
+
+	}
+
+	/**
+	 * Creates a the toolbar at the bottom of the window
+	 */
+	private void createToolbar() {
+		Composite toolbarPanel = new Composite(shell, SWT.NONE);
+		toolbarPanel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
+		GridLayout gLayout = new GridLayout(3, false);
+		gLayout.marginWidth = 25;
+		gLayout.marginTop = 0;
+		gLayout.marginBottom = 0;
+		toolbarPanel.setLayout(gLayout);
+
+		final Button autoClearButton = new Button(toolbarPanel, SWT.CHECK);
+		autoClearButton.setText(MessageText.getString("Progress.reporting.window.remove.auto"));
+		autoClearButton.setToolTipText(MessageText.getString("Progress.reporting.window.remove.auto.tooltip"));
+		autoClearButton.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER,
+				false, false));
+
+		autoClearButton.setSelection(COConfigurationManager.getBooleanParameter("auto_remove_inactive_items"));
+
+		Label dummy = new Label(toolbarPanel, SWT.NONE);
+		dummy.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+
+		final Button clearInActiveButton = new Button(toolbarPanel, SWT.NONE);
+		clearInActiveButton.setText(MessageText.getString("Progress.reporting.window.remove.now"));
+		clearInActiveButton.setToolTipText(MessageText.getString("Progress.reporting.window.remove.now.tooltip"));
+		clearInActiveButton.setLayoutData(new GridData(SWT.END, SWT.CENTER, false,
+				false));
+		clearInActiveButton.setEnabled(!COConfigurationManager.getBooleanParameter("auto_remove_inactive_items"));
+
+		/*
+		 * Toggles the checked state of auto remove
+		 */
+		autoClearButton.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) {
+				COConfigurationManager.setParameter("auto_remove_inactive_items",
+						autoClearButton.getSelection());
+
+				/*
+				 * Disable clearInActiveButton if auto remove is checked
+				 */
+				clearInActiveButton.setEnabled(!autoClearButton.getSelection());
+
+				isAutoRemove = autoClearButton.getSelection();
+
+				/*
+				 * Removes any inactive panels that may already be in the window if this option is set to true
+				 */
+				if (true == isAutoRemove) {
+					removeInActivePanels();
+				}
+
+			}
+
+			public void widgetDefaultSelected(SelectionEvent e) {
+				widgetSelected(e);
+			}
+
+		});
+
+		/*
+		 * Remove inactive when clicked
+		 */
+		clearInActiveButton.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) {
+				removeInActivePanels();
+			}
+
+			public void widgetDefaultSelected(SelectionEvent e) {
+				widgetSelected(e);
+			}
+
+		});
+	}
+
+	/**
+	 * Removes all panels whose reporter is no longer active
+	 */
+	private void removeInActivePanels() {
+		Control[] controls = scrollChild.getChildren();
+		for (int i = 0; i < controls.length; i++) {
+			if (null == controls[i] || true == controls[i].isDisposed()) {
+				continue;
+			}
+			if (controls[i] instanceof ProgressReporterPanel) {
+				IProgressReporter pReporter = ((ProgressReporterPanel) controls[i]).getProgressReporter();
+				if (false == pReporter.getProgressReport().isActive()) {
+					ProgressReportingManager.getInstance().remove(pReporter);
+					controls[i].dispose();
+				}
+			}
+		}
 	}
 
 	/**
@@ -305,6 +429,8 @@ public class ProgressReporterWindow
 
 				panel.addTwistieListener(this);
 				panel.addDisposeListener(this);
+				pReporters[i].addListener(new AutoRemoveListener(panel));
+
 			}
 		}
 
@@ -421,5 +547,40 @@ public class ProgressReporterWindow
 				shell.layout(true, true);
 			}
 		}
+	}
+
+	/**
+	 * Listener to reporters so we can remove the corresponding <code>ProgressReporterPanel</code> is the option
+	 * <code>isAutoRemove</code> = <code>true</code>
+	 * @author knguyen
+	 *
+	 */
+	private class AutoRemoveListener
+		implements IProgressReporterListener
+	{
+		private ProgressReporterPanel panel = null;
+
+		private AutoRemoveListener(ProgressReporterPanel panel) {
+			this.panel = panel;
+		}
+
+		public int report(IProgressReport progressReport) {
+
+			if (true == isAutoRemove && false == progressReport.isActive()) {
+				if (null != panel && false == panel.isDisposed()) {
+					ProgressReportingManager.getInstance().remove(
+							panel.getProgressReporter());
+
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							panel.dispose();
+						}
+					});
+				}
+				return RETVAL_OK_TO_DISPOSE;
+			}
+			return RETVAL_OK;
+		}
+
 	}
 }
