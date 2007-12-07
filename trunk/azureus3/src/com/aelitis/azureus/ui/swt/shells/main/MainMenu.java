@@ -3,14 +3,15 @@ package com.aelitis.azureus.ui.swt.shells.main;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
+import org.gudy.azureus2.plugins.update.UpdateCheckInstanceListener;
 import org.gudy.azureus2.ui.swt.KeyBindings;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -25,13 +26,11 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.shells.LightBoxShell;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
 import com.aelitis.azureus.util.Constants;
-
-import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
-import org.gudy.azureus2.plugins.update.UpdateCheckInstanceListener;
 
 public class MainMenu
 {
@@ -149,6 +148,35 @@ public class MainMenu
 				UIDebugGenerator.generate();
 			}
 		});
+		
+		//KN: dummt test code
+		new MenuItem(helpMenu, SWT.SEPARATOR);
+		MenuItem dummyMenu = new MenuItem(helpMenu, SWT.NULL);
+		dummyMenu.setText("Test LightBox");
+		dummyMenu.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				final LightBoxShell lb = new LightBoxShell();
+				lb.open();
+				
+				
+				Shell shell = new Shell(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+				
+				shell.setBounds(new Rectangle(100,100,400,600));
+				
+				shell.addDisposeListener(new DisposeListener() {
+				
+					public void widgetDisposed(DisposeEvent e) {
+						lb.close();
+				
+					}
+				
+				});
+				
+				shell.open();
+				
+			}
+		});
+		
 	}
 
 	private void addViewMenu(Shell parent) {
