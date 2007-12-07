@@ -164,6 +164,7 @@ public class ConfigurationDefaults {
     def.put( "max.uploads.when.busy.inc.min.secs", new Long( 30 ));
     def.put( "Max Download Speed KBs", ZERO );
     def.put( "Use Request Limiting", TRUE );
+    def.put( "Use Request Limiting Priorities", TRUE );
     def.put( "Max Upload Speed KBs", ZERO);
     def.put( "Max Upload Speed Seeding KBs", ZERO );
     def.put( "enable.seedingonly.upload.rate", FALSE );

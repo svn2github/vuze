@@ -21,6 +21,7 @@ package com.aelitis.azureus.core.peermanager.control.impl;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.AEThread;
 
 import com.aelitis.azureus.core.peermanager.control.PeerControlScheduler;
@@ -29,9 +30,18 @@ import com.aelitis.azureus.core.stats.AzureusCoreStatsProvider;
 
 public abstract class 
 PeerControlSchedulerImpl
-	implements PeerControlScheduler, AzureusCoreStatsProvider
+	implements PeerControlScheduler, AzureusCoreStatsProvider, ParameterListener
 {
 	private static final PeerControlSchedulerImpl	singleton;
+	protected boolean useWeights = true;
+	
+	{
+		COConfigurationManager.addAndFireParameterListener("Use Request Limiting Priorities", this);
+	}
+	
+	public void parameterChanged(String parameterName) {
+		useWeights = COConfigurationManager.getBooleanParameter("Use Request Limiting Priorities");		
+	}
 	
 	static{ 
 		
@@ -112,4 +122,11 @@ PeerControlSchedulerImpl
 		
 	protected abstract void
 	schedule();
+	
+	public void overrideWeightedPriorities(boolean override) {
+		if(override)
+			useWeights = false;
+		else
+			parameterChanged(null);
+	}
 }

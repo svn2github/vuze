@@ -392,6 +392,17 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 
 			gridData = new GridData();
 			gridData.horizontalSpan = 2;
+			BooleanParameter useReqLimitingPrios = new BooleanParameter(cSection, "Use Request Limiting Priorities",
+				"ConfigView.label.userequestlimitingpriorities");
+			useReqLimitingPrios.setLayoutData(gridData);
+			useReqLimiting
+			.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
+					useReqLimitingPrios.getControl()));
+			
+			
+
+			gridData = new GridData();
+			gridData.horizontalSpan = 2;
 			BooleanParameter allowSameIP = new BooleanParameter(cSection,
 					"Allow Same IP Peers", "ConfigView.label.allowsameip");
 			allowSameIP.setLayoutData(gridData);

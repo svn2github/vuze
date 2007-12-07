@@ -39,4 +39,10 @@ PeerControlScheduler
 	
 	public SpeedTokenDispenser
 	getSpeedTokenDispenser();
+	
+	/**
+	 * 
+	 * @param override, set to true to disable weighted priorities, false to use user-configureable default
+	 */
+	public void overrideWeightedPriorities(boolean override);
 }

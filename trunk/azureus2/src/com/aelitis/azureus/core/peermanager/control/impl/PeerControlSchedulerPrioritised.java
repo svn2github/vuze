@@ -118,7 +118,7 @@ PeerControlSchedulerPrioritised
 				instanceWrapper inst = (instanceWrapper) instances.get(i);
 				if (currentScheduleStart + inst.getScheduleOffset() > latest_time_used)
 					break; // too early for next task, continue waiting
-				if (i == 0)
+				if (i == 0 || !useWeights)
 					tokenDispenser.refill();
 				// System.out.println("scheduling "+i+" time:"+latest_time);
 				inst.schedule();
