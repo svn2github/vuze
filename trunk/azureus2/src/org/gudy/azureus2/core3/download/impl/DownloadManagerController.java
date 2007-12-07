@@ -1190,7 +1190,7 @@ DownloadManagerController
 			
 				// clone as we can't just update the returned values
 			
-			secrets_map = new HashMap( secrets_map );
+			secrets_map = CompactMap.cloneMap( secrets_map );
 		}
 		
 		if ( secrets_map.size() == 0 ){

@@ -228,6 +228,11 @@ AzureusCoreStats
 			
 			String	type = (String)it.next();
 			
+			if ( type.endsWith( ".average" )){
+				
+				type = type.substring(0,type.length()-8);
+			}
+			
 			if ( !type.endsWith("*")){
 				
 				type = type + ".*";

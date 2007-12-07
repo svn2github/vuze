@@ -37,16 +37,35 @@ import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
  */
 public class 
 BEncoder 
-{          	
-    public static byte[] encode(Map object) throws IOException{
+{    
+	private static final int BUFFER_DOUBLE_LIMIT	= 256*1024;
+	
+    public static byte[] 
+    encode(
+    	Map object ) 
+    
+    	throws IOException
+    {
        return( encode( object, false ));
     }    
     
-    public static byte[] encode(Map object, boolean url_encode ) throws IOException{
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        new BEncoder(url_encode).encode(baos, object);
-        return baos.toByteArray();
+    public static byte[] 
+    encode(
+    	Map 	object, 
+    	boolean url_encode ) 
+    
+    	throws IOException
+    {
+    	BEncoder encoder = new BEncoder(url_encode);
+    	
+    	encoder.encodeObject( object);
+    	
+    	return( encoder.toByteArray());
     }  
+    
+    private byte[]		current_buffer		= new byte[256];
+    private int			current_buffer_pos	= 0;
+    private byte[][]	old_buffers;		
     
     private boolean	url_encode;
     
@@ -58,8 +77,7 @@ BEncoder
     }
     
     private void 
-	encode(
-		ByteArrayOutputStream 	baos, 
+	encodeObject(
 		Object 					object) 
     
     	throws IOException
@@ -71,11 +89,11 @@ BEncoder
 
             ByteBuffer	bb 	= Constants.DEFAULT_CHARSET.encode( tempString );           
             
-            write(baos,Constants.DEFAULT_CHARSET.encode(String.valueOf(bb.limit())));
+            write(Constants.DEFAULT_CHARSET.encode(String.valueOf(bb.limit())));
             
-            baos.write(':');
+            write(':');
             
-            write(baos,bb );
+            write(bb );
             
         }else if(object instanceof Map){
         	
@@ -93,7 +111,7 @@ BEncoder
             boolean	byte_keys = object instanceof ByteEncodedKeyHashMap;
             
             //write the d            
-            baos.write('d');
+            write('d');
             
             //are we sorted?
             if ( tempMap instanceof TreeMap ){
@@ -104,7 +122,16 @@ BEncoder
             	
                 	//do map sorting here
             	
-                tempTree = new TreeMap(tempMap);                
+            	if ( tempMap instanceof CompactMap ){
+            		
+            		tempTree = new TreeMap();
+            		
+            		((CompactMap)tempMap).putAllTo( tempTree );
+            		
+            	}else{
+                
+            		tempTree = new TreeMap(tempMap);
+            	}
             }            
                    
             Iterator	it = tempTree.entrySet().iterator();
@@ -121,9 +148,9 @@ BEncoder
    			   	
 					if ( o_key instanceof byte[]){
 						
-   				 		encode( baos, (byte[])o_key);
+						encodeObject( o_key );
 	      				
-	      				encode( baos, value );
+						encodeObject( value );
 
 					}else{
 						
@@ -133,9 +160,9 @@ BEncoder
 		                		   		
 		   					try{
 		  					
-		   				 		encode( baos, Constants.BYTE_CHARSET.encode(key));
+		   						encodeObject( Constants.BYTE_CHARSET.encode(key));
 		      				
-		      					encode( baos, tempMap.get(key));
+		   						encodeObject( tempMap.get(key));
 		      		
 		    				}catch( UnsupportedEncodingException e ){
 		                		
@@ -144,15 +171,15 @@ BEncoder
 		
 		                }else{                 
 	
-		                	encode(baos, key );	// Key goes in as UTF-8
+		                	encodeObject( key );	// Key goes in as UTF-8
 		      				
-		      				encode(baos, value);
+		                	encodeObject( value);
 	    				}   
 					}
                 }     
             }
             
-            baos.write('e');
+            write('e');
             
             
         }else if(object instanceof List){
@@ -161,47 +188,47 @@ BEncoder
             
             	//write out the l
             
-            baos.write('l');                                   
+            write('l');                                   
             
             for(int i = 0; i<tempList.size(); i++){
                 
-                encode(baos, tempList.get(i));                            
+            	encodeObject( tempList.get(i));                            
             }   
             
-            baos.write('e');                          
+            write('e');                          
             
         }else if(object instanceof Long){
         	
             Long tempLong = (Long)object;         
             //write out the l       
-               baos.write('i');
-               write(baos,Constants.DEFAULT_CHARSET.encode(tempLong.toString()));
-               baos.write('e');
+               write('i');
+               write(Constants.DEFAULT_CHARSET.encode(tempLong.toString()));
+               write('e');
          }else if(object instanceof Integer){
          	
 			Integer tempInteger = (Integer)object;         
 			//write out the l       
-			baos.write('i');
-			write(baos,Constants.DEFAULT_CHARSET.encode(tempInteger.toString()));
-			baos.write('e');
+			write('i');
+			write(Constants.DEFAULT_CHARSET.encode(tempInteger.toString()));
+			write('e');
 			
        }else if(object instanceof byte[]){
        	
             byte[] tempByteArray = (byte[])object;
-            write(baos,Constants.DEFAULT_CHARSET.encode(String.valueOf(tempByteArray.length)));
-            baos.write(':');
+            write(Constants.DEFAULT_CHARSET.encode(String.valueOf(tempByteArray.length)));
+            write(':');
             if ( url_encode ){
-            	baos.write(URLEncoder.encode(new String(tempByteArray, Constants.BYTE_ENCODING), Constants.BYTE_ENCODING ).getBytes());
+            	write(URLEncoder.encode(new String(tempByteArray, Constants.BYTE_ENCODING), Constants.BYTE_ENCODING ).getBytes());
             }else{
-            	baos.write(tempByteArray);
+            	write(tempByteArray);
             }
             
        }else if(object instanceof ByteBuffer ){
        	
        		ByteBuffer  bb = (ByteBuffer)object;
-       		write(baos,Constants.DEFAULT_CHARSET.encode(String.valueOf(bb.limit())));
-            baos.write(':');
-            write(baos,bb);
+       		write(Constants.DEFAULT_CHARSET.encode(String.valueOf(bb.limit())));
+            write(':');
+            write(bb);
             
        }else if ( object == null ){
     	   
@@ -215,16 +242,156 @@ BEncoder
        }
     }
     
-    protected void
-	write(
-		OutputStream	os,
-		ByteBuffer		bb )
-    
-    	throws IOException
+    private void
+    write(
+    	char		c )
+   	{
+    	int rem = current_buffer.length - current_buffer_pos;
+    	
+    	if ( rem > 0 ){
+    		
+    		current_buffer[current_buffer_pos++] = (byte)c;
+    		
+    	}else{
+    		
+       		int	next_buffer_size = current_buffer.length < BUFFER_DOUBLE_LIMIT?(current_buffer.length << 1):(current_buffer.length + BUFFER_DOUBLE_LIMIT );
+
+    		byte[]	new_buffer = new byte[ next_buffer_size ];
+       		
+    		new_buffer[ 0 ] = (byte)c;
+
+    		if ( old_buffers == null ){
+    			
+    			old_buffers = new byte[][]{ current_buffer };
+    			
+    		}else{
+    			
+    			byte[][] new_old_buffers = new byte[old_buffers.length+1][];
+    			
+    			System.arraycopy( old_buffers, 0, new_old_buffers, 0, old_buffers.length );
+    			
+    			new_old_buffers[ old_buffers.length ] = current_buffer;
+    			
+    			old_buffers = new_old_buffers;
+    		}
+    		
+    		current_buffer		= new_buffer;
+    		current_buffer_pos 	= 1;
+     	}
+   	}
+   	
+    private void
+    write(
+    	byte[]			bytes )
     {
-    	os.write( bb.array(), 0, bb.limit());
+    	write( bytes, bytes.length );
+    }
+    
+    private void
+    write(
+    	byte[]			bytes,
+    	int				length )
+    {
+    	int rem = current_buffer.length - current_buffer_pos;
+    	
+    	if ( rem >= length ){
+    		
+    		System.arraycopy( bytes, 0, current_buffer, current_buffer_pos, length );
+    		
+    		current_buffer_pos += length;
+    		
+    	}else{
+    		
+    		if ( rem > 0 ){
+    			
+	    		System.arraycopy( bytes, 0, current_buffer, current_buffer_pos, rem );
+	
+	    		length -= rem;
+    		}
+    		    
+    		int	next_buffer_size = current_buffer.length < BUFFER_DOUBLE_LIMIT?(current_buffer.length << 1):(current_buffer.length + BUFFER_DOUBLE_LIMIT );
+    				
+    		byte[]	new_buffer = new byte[ Math.max( next_buffer_size, length + 512 ) ];
+       		   		
+    		System.arraycopy( bytes, rem, new_buffer, 0, length );
+
+    		if ( old_buffers == null ){
+    			
+    			old_buffers = new byte[][]{ current_buffer };
+    			
+    		}else{
+    			
+    			byte[][] new_old_buffers = new byte[old_buffers.length+1][];
+    			
+    			System.arraycopy( old_buffers, 0, new_old_buffers, 0, old_buffers.length );
+    			
+    			new_old_buffers[ old_buffers.length ] = current_buffer;
+    			
+    			old_buffers = new_old_buffers;
+    		}
+    		
+    		current_buffer		= new_buffer;
+    		current_buffer_pos 	= length;
+     	}   
+    }
+    
+    private void
+	write(
+		ByteBuffer		bb )
+    {
+    	write( bb.array(), bb.limit());
     }
 
+    private byte[]
+    toByteArray()
+    {
+    	if ( old_buffers == null ){
+    		
+    		byte[]	res = new byte[current_buffer_pos];
+    		
+    		System.arraycopy( current_buffer, 0, res, 0, current_buffer_pos );
+    		
+    		// System.out.println( "-> " + current_buffer_pos );
+    		
+    		return( res );
+    		
+    	}else{
+    		
+    		int	total = current_buffer_pos;
+    		
+    		for (int i=0;i<old_buffers.length;i++){
+    			
+    			total += old_buffers[i].length;
+    		}
+    		
+    		byte[] res = new byte[total];
+    		
+    		int	pos = 0;
+    		
+    		//String str = "";
+    		
+    		for (int i=0;i<old_buffers.length;i++){
+
+    			byte[] buffer = old_buffers[i];
+    			
+    			int	len = buffer.length;
+    			
+    			System.arraycopy( buffer, 0, res, pos, len );
+    			
+    			pos += len;
+    			
+    			//str += (str.length()==0?"":",") + len;
+    		}
+    		
+      		System.arraycopy( current_buffer, 0, res, pos, current_buffer_pos );
+      		 
+    		//System.out.println( "-> " + str + "," + current_buffer_pos );
+
+      		return( res );
+    	}
+    }
+                   
+    
     private static Object
     normaliseObject(
     	Object		o )
@@ -361,7 +528,7 @@ BEncoder
     		return( false );
     	}
     	
-    	Iterator	it = map1.keySet().iterator();
+    	Iterator	it = (map1 instanceof CompactMap )?((CompactMap)map1).getKeySetIterator():map1.keySet().iterator();
     	
     	while( it.hasNext()){
     		

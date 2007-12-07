@@ -162,6 +162,11 @@ public class BDecoder {
 	          tempMap.put( key, value);
 	        }
 	
+	        if ( tempMap.size() < 8 ){
+	        	
+	        	tempMap = new CompactMap( tempMap );
+	        }
+	        
 	        bais.mark(Integer.MAX_VALUE);
 	        tempByte = bais.read();
 	        bais.reset();
@@ -187,7 +192,7 @@ public class BDecoder {
 
       case 'l' :
         //create the list
-        List tempList = new ArrayList();
+    	ArrayList tempList = new ArrayList();
 
         try{
 	        //create the key
@@ -197,6 +202,7 @@ public class BDecoder {
 	          tempList.add(tempElement);
 	        }
 	        
+	        tempList.trimToSize();
 	        bais.mark(Integer.MAX_VALUE);
 	        tempByte = bais.read();
 	        bais.reset();
