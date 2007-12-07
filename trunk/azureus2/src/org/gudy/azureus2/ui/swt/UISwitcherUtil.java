@@ -92,6 +92,7 @@ public class UISwitcherUtil
 					&& FileUtil.getApplicationFile("installer.log").exists()) {
 				COConfigurationManager.setParameter("installer.ui.alreadySwitched", true);
 				COConfigurationManager.setParameter("ui", "az3");
+				COConfigurationManager.setParameter("az3.virgin.switch", true);
 				return "az3";
 			}
 			
@@ -130,6 +131,7 @@ public class UISwitcherUtil
       			// and it might be zero.. so check for that..
       			if (uptime < UPTIME_NEWUSER && uptime >= 0) {
       				COConfigurationManager.setParameter("ui", "az3");
+      				COConfigurationManager.setParameter("az3.virgin.switch", true);
       				return "az3";
       			}
   				}
