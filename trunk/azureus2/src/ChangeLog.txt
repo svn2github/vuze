@@ -2,15 +2,15 @@ AZUREUS CHANGELOG
 -----------------
 
 
-2007.12.xx | Azureus 3.0.3.5
+2007.12.06 | Azureus 3.0.4.0
 
 FEATURE: Core | Reconnect to peers after unexpected disconnect / recover stats of recently disconnected peers [Parg,The 8472]
-FEATURE: Core | global download speed limit can also limit the number of outgoing requests, this should improve TCP performance [The 8472]
+FEATURE: Core | Global download speed limit can also limit the number of outgoing requests, this should improve TCP performance [The 8472]
                  -does not work with auto-speed since an explicit download speed-limit must be set
                  -downloads from as few peers as possible when the global limit is reached 
                  -prioritizes downloads which are on the head of the queue
 FEATURE: Core | IP binding now provides primitive round-robin load balancing for users with multiple internet connections; accepts interface names and IPv6 binding (if supported on the platform) [The 8472]
-FEATURE: Core | Added changelog.txt to jar [Nolar]
+FEATURE: Core | Embed ChangeLog.txt in release jar [Nolar]
 FEATURE: UI   | Column menu option to automatically put contents of cell into the tooltip [amc1] 
 FEATURE: UI   | Piece distribution view is now also available as a peer subview [The 8472]
 FEATURE: UI   | Added 'time remaining' column to peers view [Parg]
@@ -20,16 +20,16 @@ FEATURE: Plug | Plugins can now change the color of rows [amc1]
 FEATURE: Plug | Plugins can add configuration colour parameters [amc1]
 
 CHANGE: Core  | Attempt to re-open a file when access fails to try and recover from a transient error [Parg]
-CHANGE: Core  | Auto speed default is now the beta algorithm [Parg]
+CHANGE: Core  | Auto speed default is now the new 'beta' (v2) algorithm [ranul]
 CHANGE: Core  | Revised piece picking code to deal better with some edge cases and snubbed peers [The 8472]
 CHANGE: Core  | Share Ratio/min Seeds ignore rule now applies even when no tracker scrape is available [The 8472]
-CHANGE: Core  | Switched default autospeed to v2 [ranul]
 CHANGE: UI    | Added private torrent indicator to the general tab [The 8472]
-CHANGE: UI    | Logging Consoles now have a regex-based filters [The 8472]
+CHANGE: UI    | Logging Consoles now have regex-based filters [The 8472]
 CHANGE: UI    | Tweaked table views to use a bit less memory and run better when items are being quickly removed/added [TuxPaper]
 
 BUGFIX: UI    | Don't hang UI redraw if file access is slow [Parg]
 BUGFIX: UI    | Fixed inconsistencies in the Torrent Open Dialog related to renaming and retargeting files and directories [The 8472]  
+
 
 
 2007.10.04 | Azureus 3.0.3.4
