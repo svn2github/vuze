@@ -22,6 +22,7 @@ package com.aelitis.azureus.ui.swt;
 
 import java.io.File;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationParameterNotFoundException;
@@ -78,7 +79,8 @@ public class UIConfigDefaultsSWTv3
 			}
 		}
 
-		if (Constants.compareVersions(sFirstVersion, "3.0.0.0") >= 0) {
+		boolean virginSwitch = COConfigurationManager.getBooleanParameter("az3.virgin.switch", false);
+		if (Constants.compareVersions(sFirstVersion, "3.0.0.0") >= 0 || virginSwitch) {
 
 			if (!config.isNewInstall()
 					&& Constants.compareVersions(sFirstVersion, "3.0.0.4") < 0) {
@@ -130,13 +132,12 @@ public class UIConfigDefaultsSWTv3
 			
 			defaults.addParameter("bFirstPriority_ignore0Peer", true);
 
-			defaults.addParameter("v3.topbar.show.frog", false);
-			
 			defaults.addParameter("suppress_file_download_dialog", true);
 			
 			config.save();
 		}
 
+		defaults.addParameter("v3.topbar.show.frog", false);
 		defaults.addParameter("v3.topbar.show.plugin", false);
 		defaults.addParameter("ui.toolbar.uiswitcher", false);
 
