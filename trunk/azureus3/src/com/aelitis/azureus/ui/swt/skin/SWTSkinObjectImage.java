@@ -29,6 +29,8 @@ public class SWTSkinObjectImage
 
 	private boolean customImage;
 
+	private String customImageID;
+
 	private static PaintListener tilePaintListener;
 
 	static {
@@ -85,6 +87,7 @@ public class SWTSkinObjectImage
 		super(skin, skinProperties, sID, sConfigID, "image", parent);
 		setControl(createImageLabel(sConfigID, sImageID));
 		customImage = false;
+		customImageID = null;
 	}
 
 	private Label createImageLabel(String sConfigID, String sImageID) {
@@ -168,11 +171,10 @@ public class SWTSkinObjectImage
 						if (label == null || label.isDisposed()) {
 							return null;
 						}
-						
+
 						if (sImageID.equals(label.getData("ImageID"))) {
 							return label.getImage();
 						}
-						
 
 						ImageLoader imageLoader = skin.getImageLoader(properties);
 						Image image = imageLoader.getImage(sImageID);
@@ -231,7 +233,9 @@ public class SWTSkinObjectImage
 			return null;
 		}
 
-		String sImageID = sConfigID + ".image" + suffix;
+		String sImageID = (customImageID == null ? (sConfigID + ".image")
+				: customImageID)
+				+ suffix;
 
 		ImageLoader imageLoader = skin.getImageLoader(properties);
 		Image image = imageLoader.getImage(sImageID);
@@ -248,6 +252,7 @@ public class SWTSkinObjectImage
 
 	public void setImage(Image image) {
 		customImage = true;
+		customImageID = null;
 		label.setData("Image", image);
 		label.setData("image-left", null);
 		label.setData("image-right", null);
@@ -256,7 +261,8 @@ public class SWTSkinObjectImage
 	}
 
 	protected Image setImageByID(String sConfigID) {
-		customImage = true;
+		customImage = false;
+		customImageID = sConfigID;
 		return setLabelImage(sConfigID, sConfigID);
 	}
 }
