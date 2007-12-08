@@ -52,6 +52,7 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.helpers.TorrentFolderWatcher;
+import com.aelitis.azureus.core.peermanager.control.PeerControlSchedulerFactory;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 import org.gudy.azureus2.plugins.network.ConnectionManager;
@@ -179,7 +180,7 @@ public class GlobalManagerImpl
 		new FrequencyLimitedDispatcher(
 			new AERunnable(){ public void runSupport(){ checkSeedingOnlyStateSupport(); }}, 5000 );
 	
-	
+	private boolean	force_start_non_seed_exists;
 	private int 	nat_status				= ConnectionManager.NAT_UNKNOWN;
 	private boolean	nat_status_probably_ok;
 		
@@ -245,6 +246,10 @@ public class GlobalManagerImpl
 	        		// Doing this via listeners is too much effort
 	        	
 		        checkSeedingOnlyState();
+		        
+		        	// double check consistency
+		        
+		        checkForceStart( false );
 	        }
 	        	
 	        if ((loopFactor % seedPieceCheckCount == 0)) {
@@ -2272,24 +2277,70 @@ public class GlobalManagerImpl
 	DownloadManager 	manager, 
 	int 				new_state ) 
   {
-    needsSaving = true;  //make sure we update 'downloads.config' on state changes
-    
-    	//run seeding-only-mode check
-    
-   PEPeerManager	pm_manager = manager.getPeerManager();
-    
-    if ( 	new_state == DownloadManager.STATE_DOWNLOADING && 
-    		pm_manager != null &&
-    		pm_manager.hasDownloadablePiece()){
-    	
-    	//the new state is downloading, so can skip the full check
-    	
-    	setSeedingOnlyState( false );
-    	
-    }else{
-    	
-    	checkSeedingOnlyState();
-    }
+	  needsSaving = true;  //make sure we update 'downloads.config' on state changes
+
+	  //run seeding-only-mode check
+
+	  PEPeerManager	pm_manager = manager.getPeerManager();
+
+	  if ( 	new_state == DownloadManager.STATE_DOWNLOADING && 
+			  pm_manager != null &&
+			  pm_manager.hasDownloadablePiece()){
+
+		  //the new state is downloading, so can skip the full check
+
+		  setSeedingOnlyState( false );
+
+	  }else{
+
+		  checkSeedingOnlyState();
+	  }
+	  	  		  
+	  checkForceStart( manager.isForceStart() && new_state == DownloadManager.STATE_DOWNLOADING );
+  }
+  
+  protected void
+  checkForceStart(
+	 boolean	known_to_exist )
+  {
+	  boolean	exists;
+	  
+	  if ( known_to_exist ){
+		  
+		  exists	= true;
+		  
+	  }else{
+		  
+		  exists	= false;
+		  
+		  if ( force_start_non_seed_exists ){
+			  
+			  List managers = managers_cow;
+			  
+			  for( int i=0; i < managers.size(); i++ ) {
+			    	  
+				  DownloadManager dm = (DownloadManager)managers.get( i );
+	
+				  if ( dm.isForceStart() && dm.getState() == DownloadManager.STATE_DOWNLOADING  ){
+					  
+					  exists = true;
+					  
+					  break;
+				  }
+			  }
+		  }
+	  }
+	  
+	  if ( exists != force_start_non_seed_exists ){
+		  
+		  force_start_non_seed_exists = exists;
+		  
+		  Logger.log(new LogEvent(LOGID, "Force start download " + (force_start_non_seed_exists?"exists":"doesn't exist") + ", modifying download weighting" ));
+		  
+		  System.out.println( "force_start_exists->" + force_start_non_seed_exists );
+		  
+		  PeerControlSchedulerFactory.getSingleton().overrideWeightedPriorities( force_start_non_seed_exists  );
+	  }
   }
   
   protected void
