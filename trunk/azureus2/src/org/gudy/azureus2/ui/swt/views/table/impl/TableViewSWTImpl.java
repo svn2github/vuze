@@ -280,7 +280,7 @@ public class TableViewSWTImpl
 			iTableStyle &= ~(SWT.VIRTUAL);
 		bTableVirtual = (iTableStyle & SWT.VIRTUAL) != 0;
 
-		mapDataSourceToRow = new HashMap();
+		mapDataSourceToRow = new LightHashMap();
 		sortedRows = new ArrayList();
 	}
 

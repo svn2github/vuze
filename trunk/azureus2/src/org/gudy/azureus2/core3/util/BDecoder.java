@@ -134,7 +134,7 @@ public class BDecoder {
     switch (tempByte) {
       case 'd' :
         //create a new dictionary object
-        Map tempMap = new HashMap();
+        Map tempMap = new LightHashMap();
 
         try{
 	        //get the key   
@@ -161,11 +161,12 @@ public class BDecoder {
 	          
 	          tempMap.put( key, value);
 	        }
-	
+	        
+	        /*	
 	        if ( tempMap.size() < 8 ){
 	        	
 	        	tempMap = new CompactMap( tempMap );
-	        }
+	        }*/
 	        
 	        bais.mark(Integer.MAX_VALUE);
 	        tempByte = bais.read();
@@ -186,6 +187,10 @@ public class BDecoder {
         		throw( new IOException( Debug.getNestedExceptionMessage(e)));
         	}
         }
+        
+        if (tempMap instanceof LightHashMap)
+        	((LightHashMap) tempMap).compactify(0.9f);
+
         
         //return the map
         return tempMap;

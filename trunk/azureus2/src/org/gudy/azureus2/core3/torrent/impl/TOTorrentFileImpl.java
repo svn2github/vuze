@@ -41,7 +41,7 @@ TOTorrentFileImpl
 	private final int		first_piece_number;
 	private final int		last_piece_number;
 	
-	private final Map		additional_properties = new HashMap();
+	private final Map		additional_properties = new LightHashMap();
 	
 	private final boolean	is_utf8;
 
