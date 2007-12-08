@@ -86,7 +86,7 @@ public class LightHashMap extends AbstractMap {
 		private void findNext() {
 			do
 				nextIdx++;
-			while (nextIdx < keys.length && ((values[nextIdx] == null && keys[nextIdx] == null) || keys[nextIdx] == THOMBSTONE));
+			while (nextIdx < keys.length && ((keys[nextIdx] == null && values[nextIdx] == null) || keys[nextIdx] == THOMBSTONE));
 		}
 
 		public void remove() {
@@ -211,7 +211,7 @@ public class LightHashMap extends AbstractMap {
 	private Object add(final Object key, final Object value) {
 		final int idx = findIndex(key);
 		final Object oldValue = values[idx];
-		if (!keysEqual(key, keys[idx]))
+		if ((keys[idx] == null && values[idx] == null) || keys[idx] == THOMBSTONE)
 		{
 			keys[idx] = key;
 			size++;
@@ -225,8 +225,7 @@ public class LightHashMap extends AbstractMap {
 		if (keysEqual(key, keys[idx]))
 		{
 			final Object oldValue = values[idx];
-			if (key == null && oldValue == null) // sanity check for null
-				// keys
+			if (key == null && oldValue == null) // sanity check for null keys
 				return null;
 			keys[idx] = THOMBSTONE;
 			values[idx] = null;
@@ -261,7 +260,7 @@ public class LightHashMap extends AbstractMap {
 					return true;
 		return false;
 	}
-
+	
 	private boolean keysEqual(final Object o1, final Object o2) {
 		if (o1 != null)
 			if (o2 != null && o1.hashCode() != o2.hashCode())
@@ -280,7 +279,7 @@ public class LightHashMap extends AbstractMap {
 		int newIndex = hash & (keys.length - 1);
 		int thombStoneIndex = -1;
 		// search until we find a free entry or an entry matching the key to insert
-		while (keys[newIndex] != null && !keysEqual(keys[newIndex], keyToFind))
+		while ((keys[newIndex] != null || values[newIndex] != null) && !keysEqual(keys[newIndex], keyToFind))
 		{
 			if (keys[newIndex] == THOMBSTONE && thombStoneIndex == -1)
 				thombStoneIndex = newIndex;
@@ -328,7 +327,7 @@ public class LightHashMap extends AbstractMap {
 		size = 0;
 		for (int i = 0; i < oldKeys.length; i++)
 		{
-			if ((oldValues[i] == null && oldKeys[i] == null) || oldKeys[i] == THOMBSTONE)
+			if ((oldKeys[i] == null && oldValues[i] == null) || oldKeys[i] == THOMBSTONE)
 				continue;
 			add(oldKeys[i], oldValues[i]);
 		}
@@ -337,7 +336,7 @@ public class LightHashMap extends AbstractMap {
 	static void test() {
 		final Random rnd = new Random();
 		final byte[] buffer = new byte[25];
-		final String[] fillData = new String[1048575];
+		final String[] fillData = new String[1<<14 -1];
 		for (int i = 0; i < fillData.length; i++)
 		{
 			rnd.nextBytes(buffer);
@@ -395,13 +394,11 @@ public class LightHashMap extends AbstractMap {
 		System.out.println("remove entry by entry");
 		time = System.currentTimeMillis();
 		for (int i = 0; i < fillData.length; i++)
-			if (m1.remove(fillData[i]) == null)
-				System.out.println("removeerror");
+			m1.remove(fillData[i]);
 		System.out.println(System.currentTimeMillis() - time);
 		time = System.currentTimeMillis();
 		for (int i = 0; i < fillData.length; i++)
-			if (m2.remove(fillData[i]) == null)
-				System.out.println("removeerror");
+			m2.remove(fillData[i]);
 		System.out.println(System.currentTimeMillis() - time);
 	}
 
@@ -427,5 +424,72 @@ public class LightHashMap extends AbstractMap {
 			e.printStackTrace();
 		}
 		test();
+		
+		System.out.println("\n\nPerforming sanity tests");
+		
+		final Random rnd = new Random();
+		final byte[] buffer = new byte[25];
+		final String[] fillData = new String[1048];
+		for (int i = 0; i < fillData.length; i++)
+		{
+			rnd.nextBytes(buffer);
+			fillData[i] = new String(buffer);
+			fillData[i].hashCode();
+		}
+
+		final Map m1 = new HashMap();
+		final Map m2 = new LightHashMap();
+		
+		for(int i=0;i<fillData.length*10;i++)
+		{
+			int random = rnd.nextInt(fillData.length);			
+			
+			m1.put(null, fillData[i%fillData.length]);
+			m2.put(null, fillData[i%fillData.length]);
+			if(!m1.equals(m2))
+				System.out.println("Error 0");
+			m1.put(fillData[random], fillData[i%fillData.length]);
+			m2.put(fillData[random], fillData[i%fillData.length]);
+			if(!m1.equals(m2))
+				System.out.println("Error 1");
+		}
+		
+		// create thombstones, test removal
+		for(int i=0;i<fillData.length/2;i++)
+		{
+			int random = rnd.nextInt(fillData.length);			
+			m1.remove(fillData[random]);
+			m2.remove(fillData[random]);
+			if(!m1.equals(m2))
+				System.out.println("Error 2");
+		}
+		
+		// do some more inserting, this time with thombstones
+		for(int i=0;i<fillData.length*10;i++)
+		{
+			int random = rnd.nextInt(fillData.length);			
+			m1.put(fillData[random], fillData[i%fillData.length]);
+			m1.put(null, fillData[i%fillData.length]);
+			m2.put(fillData[random], fillData[i%fillData.length]);
+			m2.put(null, fillData[i%fillData.length]);
+			if(!m1.equals(m2))
+				System.out.println("Error 3");
+		}
+		
+		Iterator i1 = m1.entrySet().iterator();
+		Iterator i2 = m2.entrySet().iterator();
+		// now try removal with iterators
+		while(i1.hasNext())
+		{
+			i1.next();
+			i1.remove();
+			i2.next();
+			i2.remove();
+		}
+		
+		if(!m1.equals(m2))
+			System.out.println("Error 4");
+		
+		System.out.println("checks done");
 	}
 }
