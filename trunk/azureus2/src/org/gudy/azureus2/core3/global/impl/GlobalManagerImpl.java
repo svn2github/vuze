@@ -2337,7 +2337,7 @@ public class GlobalManagerImpl
 		  
 		  Logger.log(new LogEvent(LOGID, "Force start download " + (force_start_non_seed_exists?"exists":"doesn't exist") + ", modifying download weighting" ));
 		  
-		  System.out.println( "force_start_exists->" + force_start_non_seed_exists );
+		  //System.out.println( "force_start_exists->" + force_start_non_seed_exists );
 		  
 		  PeerControlSchedulerFactory.getSingleton().overrideWeightedPriorities( force_start_non_seed_exists  );
 	  }
