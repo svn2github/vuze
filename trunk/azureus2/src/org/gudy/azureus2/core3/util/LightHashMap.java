@@ -222,7 +222,7 @@ public class LightHashMap extends AbstractMap {
 
 	public Object remove(final Object key) {
 		final int idx = findIndex(key);
-		if (keysEqual(key, keys[idx]))
+		if (keysEqual(keys[idx], key))
 		{
 			final Object oldValue = values[idx];
 			if (key == null && oldValue == null) // sanity check for null keys
@@ -278,16 +278,28 @@ public class LightHashMap extends AbstractMap {
 		int probe = 1;
 		int newIndex = hash & (keys.length - 1);
 		int thombStoneIndex = -1;
+		int thombStoneCount = 0;
+		final int thombStoneThreshold = Math.min(keys.length-size, 100);
 		// search until we find a free entry or an entry matching the key to insert
 		while ((keys[newIndex] != null || values[newIndex] != null) && !keysEqual(keys[newIndex], keyToFind))
 		{
-			if (keys[newIndex] == THOMBSTONE && thombStoneIndex == -1)
-				thombStoneIndex = newIndex;
+			if (keys[newIndex] == THOMBSTONE)
+			{
+				if(thombStoneIndex == -1)
+					thombStoneIndex = newIndex;
+				thombStoneCount++;
+				if(thombStoneCount * 2 > thombStoneThreshold)
+				{
+					compactify(0.f);
+					probe = 0;
+				}
+			}
+				
 			newIndex = (hash + (probe + probe * probe) >> 1) & (keys.length - 1);
 			probe++;
 		}
 		// if we didn't find an exact match then the first thombstone will do too for insert
-		if (!keysEqual(keys[newIndex], keyToFind) && thombStoneIndex != -1)
+		if (thombStoneIndex != -1 && !keysEqual(keys[newIndex], keyToFind))
 			return thombStoneIndex;
 		return newIndex;
 	}
@@ -336,7 +348,7 @@ public class LightHashMap extends AbstractMap {
 	static void test() {
 		final Random rnd = new Random();
 		final byte[] buffer = new byte[25];
-		final String[] fillData = new String[1<<14 -1];
+		final String[] fillData = new String[(int)((1<<20) * 0.93f)];
 		for (int i = 0; i < fillData.length; i++)
 		{
 			rnd.nextBytes(buffer);
@@ -375,7 +387,7 @@ public class LightHashMap extends AbstractMap {
 		System.out.println(System.currentTimeMillis() - time);
 		System.out.println("compactify light map");
 		time = System.currentTimeMillis();
-		((LightHashMap) m2).compactify(0.9f);
+		((LightHashMap) m2).compactify(0.90f);
 		System.out.println(System.currentTimeMillis() - time);
 		System.out.println("transfer to hashmap");
 		time = System.currentTimeMillis();
@@ -426,7 +438,6 @@ public class LightHashMap extends AbstractMap {
 		test();
 		
 		System.out.println("\n\nPerforming sanity tests");
-		
 		final Random rnd = new Random();
 		final byte[] buffer = new byte[25];
 		final String[] fillData = new String[1048];
@@ -489,6 +500,25 @@ public class LightHashMap extends AbstractMap {
 		
 		if(!m1.equals(m2))
 			System.out.println("Error 4");
+		
+		
+		// test churn/thombstones
+		
+		for(int i=0;i<fillData.length*10;i++)
+		{
+			int random = rnd.nextInt(fillData.length);			
+
+			m2.put(fillData[random], fillData[i%fillData.length]);
+		}
+		
+		for(int i = 0;i<100000;i++)
+		{
+			rnd.nextBytes(buffer);
+			String s = new String(buffer);
+			m2.put(s, buffer);
+			m2.containsKey(s);
+			m2.remove(s);
+		}
 		
 		System.out.println("checks done");
 	}
