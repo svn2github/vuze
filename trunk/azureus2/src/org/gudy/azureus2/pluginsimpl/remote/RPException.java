@@ -66,9 +66,7 @@ public class RPException extends RuntimeException {
         }
     }
 
-    public String getSerialisationMessage() {
-        return RPUtils.exceptionToString(this);
-    }
+
 
     public Class getErrorClass() {
         Throwable t = this.getCause();
