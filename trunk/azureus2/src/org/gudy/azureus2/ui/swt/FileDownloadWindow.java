@@ -21,12 +21,10 @@
 
 package org.gudy.azureus2.ui.swt;
 
+
+
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.DirectoryDialog;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
@@ -36,14 +34,9 @@ import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
-import org.gudy.azureus2.ui.swt.progress.IProgressReport;
-import org.gudy.azureus2.ui.swt.progress.IProgressReportConstants;
-import org.gudy.azureus2.ui.swt.progress.IProgressReporter;
-import org.gudy.azureus2.ui.swt.progress.IProgressReporterListener;
-import org.gudy.azureus2.ui.swt.progress.ProgressReporter;
-import org.gudy.azureus2.ui.swt.progress.ProgressReporterWindow;
-import org.gudy.azureus2.ui.swt.progress.ProgressReportingManager;
+import org.gudy.azureus2.ui.swt.progress.*;
 
 import com.aelitis.azureus.core.AzureusCore;
 
@@ -162,7 +155,9 @@ public class FileDownloadWindow
 	 */
 	private void setupAndShowDialog() {
 		if (null != pReporter) {
-			pReporter.setName(MessageText.getString("fileDownloadWindow.downloading")
+			pReporter.setName(MessageText.getString("fileDownloadWindow.state_downloading")
+					+ ": " + getFileName(getShortURL(url)));
+			pReporter.appendDetailMessage(MessageText.getString("fileDownloadWindow.downloading")
 					+ getShortURL(url));
 			pReporter.setTitle(MessageText.getString("fileDownloadWindow.title"));
 			pReporter.setIndeterminate(true);
@@ -281,8 +276,30 @@ public class FileDownloadWindow
 			}
 			shortURL = shortURL.replaceAll("&", "&&");
 		}
-
 		return shortURL;
 	}
 
+	/**
+	 * Brute-force extraction of the torrent file name from the given URL
+	 * @param url
+	 * @return
+	 */
+	private String getFileName(String url) {
+		try {
+			/*
+			 * This is not guaranteed to work in all cases because we are simply searching
+			 * for the occurrence of ".torrent" and assuming that it is the extension of the file.
+			 * This method will return inaccurate result if any other parameter of the URL also has the ".torrent"
+			 * string in it.
+			 */
+			
+			String tmp = url.substring(url.lastIndexOf('/') + 1);
+			tmp = tmp.substring(0, tmp.indexOf(".torrent"));
+			return tmp + ".torrent";
+		} catch (Throwable t) {
+			Debug.out(t);
+		}
+
+		return url;
+	}
 }
