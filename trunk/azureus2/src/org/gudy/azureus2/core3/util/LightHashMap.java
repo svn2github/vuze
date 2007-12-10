@@ -27,7 +27,8 @@ import java.util.*;
  * 
  * Please note the following performance drawbacks:
  * -removal is implemented with thombstone-keys, this can significantly increase the lookup time if many values are removed. Use compactify() for scrubbing
- * -key set iterators and thus transfers to other maps are slower than compareable implementations
+ * -entry set iterators and thus transfers to other maps are slower than compareable implementations
+ * -the map does not store hashcodes and relies on either the key-objects themselves caching them (such as strings) or a fast computation of hashcodes
  * 
  * @author Aaron Grunthal
  * @create 28.11.2007
@@ -53,7 +54,7 @@ public class LightHashMap extends AbstractMap {
 		putAll(m);
 	}
 
-	public LightHashMap(final int initialCapacity, final float loadFactor)
+	public LightHashMap(int initialCapacity, final float loadFactor)
 	{
 		if (loadFactor > 1)
 			throw new IllegalArgumentException("Load factor must not be > 1");
@@ -61,22 +62,20 @@ public class LightHashMap extends AbstractMap {
 		int capacity = 1;
 		while (capacity < initialCapacity)
 			capacity <<= 1;
-		values = new Object[capacity];
-		keys = new Object[capacity];
+		data = new Object[capacity*2];
 	}
 
 	final float	loadFactor;
 	int			size;
-	Object[]	values;
-	Object[]	keys;
+	Object[]	data;
 
 	public Set entrySet() {
 		return new EntrySet();
 	}
 
 	private abstract class HashIterator implements Iterator {
-		protected int	nextIdx		= -1;
-		protected int	currentIdx	= -1;
+		protected int	nextIdx		= -2;
+		protected int	currentIdx	= -2;
 
 		public HashIterator()
 		{
@@ -85,19 +84,19 @@ public class LightHashMap extends AbstractMap {
 
 		private void findNext() {
 			do
-				nextIdx++;
-			while (nextIdx < keys.length && ((keys[nextIdx] == null && values[nextIdx] == null) || keys[nextIdx] == THOMBSTONE));
+				nextIdx+=2;
+			while (nextIdx < data.length && ((data[nextIdx] == null && data[nextIdx+1] == null) || data[nextIdx] == THOMBSTONE));
 		}
 
 		public void remove() {
-			if (currentIdx == -1)
+			if (currentIdx == -2)
 				new IllegalStateException("No entry to delete, use next() first");
-			LightHashMap.this.remove(keys[currentIdx]);
-			currentIdx = -1;
+			LightHashMap.this.remove(data[currentIdx]);
+			currentIdx = -2;
 		}
 
 		public boolean hasNext() {
-			return nextIdx < keys.length;
+			return nextIdx < data.length;
 		}
 
 		public Object next() {
@@ -129,16 +128,16 @@ public class LightHashMap extends AbstractMap {
 			}
 
 			public Object getKey() {
-				return keys[entryIndex];
+				return data[entryIndex];
 			}
 
 			public Object getValue() {
-				return values[entryIndex];
+				return data[entryIndex+1];
 			}
 
 			public Object setValue(final Object value) {
-				final Object oldValue = values[entryIndex];
-				values[entryIndex] = value;
+				final Object oldValue = data[entryIndex+1];
+				data[entryIndex+1] = value;
 				return oldValue;
 			}
 		}
@@ -157,7 +156,7 @@ public class LightHashMap extends AbstractMap {
 
 		private class KeySetIterator extends HashIterator {
 			Object nextIntern() {
-				return keys[currentIdx];
+				return data[currentIdx];
 			}
 		}
 
@@ -173,7 +172,7 @@ public class LightHashMap extends AbstractMap {
 
 		private class ValueIterator extends HashIterator {
 			Object nextIntern() {
-				return values[currentIdx];
+				return data[currentIdx+1];
 			}
 		}
 
@@ -205,30 +204,30 @@ public class LightHashMap extends AbstractMap {
 	}
 
 	public Object get(final Object key) {
-		return values[findIndex(key)];
+		return data[findIndex(key)+1];
 	}
 
 	private Object add(final Object key, final Object value) {
 		final int idx = findIndex(key);
-		final Object oldValue = values[idx];
-		if ((keys[idx] == null && values[idx] == null) || keys[idx] == THOMBSTONE)
+		final Object oldValue = data[idx+1];
+		if ((data[idx] == null && data[idx+1] == null) || data[idx] == THOMBSTONE)
 		{
-			keys[idx] = key;
+			data[idx] = key;
 			size++;
 		}
-		values[idx] = value;
+		data[idx+1] = value;
 		return oldValue;
 	}
 
 	public Object remove(final Object key) {
 		final int idx = findIndex(key);
-		if (keysEqual(keys[idx], key))
+		if (keysEqual(data[idx], key))
 		{
-			final Object oldValue = values[idx];
+			final Object oldValue = data[idx+1];
 			if (key == null && oldValue == null) // sanity check for null keys
 				return null;
-			keys[idx] = THOMBSTONE;
-			values[idx] = null;
+			data[idx] = THOMBSTONE;
+			data[idx+1] = null;
 			size--;
 			return oldValue;
 		}
@@ -240,23 +239,22 @@ public class LightHashMap extends AbstractMap {
 		int capacity = 1;
 		while (capacity < DEFAULT_CAPACITY)
 			capacity <<= 1;
-		values = new Object[capacity];
-		keys = new Object[capacity];
+		data = new Object[capacity*2];
 	}
 
 	public boolean containsKey(final Object key) {
-		return keysEqual(key, keys[findIndex(key)]);
+		return keysEqual(key, data[findIndex(key)]);
 	}
 
 	public boolean containsValue(final Object value) {
 		if (value != null)
 		{
-			for (int i = 0; i < values.length; i++)
-				if (value.equals(values[i]))
+			for (int i = 0; i < data.length; i+=2)
+				if (value.equals(data[i+1]))
 					return true;
 		} else
-			for (int i = 0; i < values.length; i++)
-				if (values[i] == null && keys[i] != null && keys[i] != THOMBSTONE)
+			for (int i = 0; i < data.length; i+=2)
+				if (data[i+1] == null && data[i] != null && data[i] != THOMBSTONE)
 					return true;
 		return false;
 	}
@@ -271,19 +269,19 @@ public class LightHashMap extends AbstractMap {
 	}
 
 	private int findIndex(final Object keyToFind) {
-		final int hash = keyToFind == null ? 0 : keyToFind.hashCode();
+		final int hash = keyToFind == null ? 0 : keyToFind.hashCode() << 1;
 		/* hash ^= (hash >>> 20) ^ (hash >>> 12);
 		 * hash ^= (hash >>> 7) ^ (hash >>> 4);
 		 */
 		int probe = 1;
-		int newIndex = hash & (keys.length - 1);
+		int newIndex = hash & (data.length - 1);
 		int thombStoneIndex = -1;
 		int thombStoneCount = 0;
-		final int thombStoneThreshold = Math.min(keys.length-size, 100);
+		final int thombStoneThreshold = Math.min((data.length>>1)-size, 100);
 		// search until we find a free entry or an entry matching the key to insert
-		while ((keys[newIndex] != null || values[newIndex] != null) && !keysEqual(keys[newIndex], keyToFind))
+		while ((data[newIndex] != null || data[newIndex+1] != null) && !keysEqual(data[newIndex], keyToFind))
 		{
-			if (keys[newIndex] == THOMBSTONE)
+			if (data[newIndex] == THOMBSTONE)
 			{
 				if(thombStoneIndex == -1)
 					thombStoneIndex = newIndex;
@@ -295,19 +293,20 @@ public class LightHashMap extends AbstractMap {
 				}
 			}
 				
-			newIndex = (hash + (probe + probe * probe) >> 1) & (keys.length - 1);
+			newIndex = (hash + ((probe + probe * probe) & 0xFFFE)) & (data.length - 1);
 			probe++;
 		}
 		// if we didn't find an exact match then the first thombstone will do too for insert
-		if (thombStoneIndex != -1 && !keysEqual(keys[newIndex], keyToFind))
+		if (thombStoneIndex != -1 && !keysEqual(data[newIndex], keyToFind))
 			return thombStoneIndex;
 		return newIndex;
 	}
 
 	private void checkCapacity(final int n) {
-		if ((size + n) < keys.length * loadFactor)
+		final int currentCapacity = data.length>>1;
+		if ((size + n) < currentCapacity * loadFactor)
 			return;
-		int newCapacity = keys.length;
+		int newCapacity = currentCapacity;
 		do
 			newCapacity <<= 1;
 		while (newCapacity * loadFactor < (size + n));
@@ -332,16 +331,14 @@ public class LightHashMap extends AbstractMap {
 	}
 
 	private void adjustCapacity(final int newSize) {
-		final Object[] oldValues = values;
-		final Object[] oldKeys = keys;
-		values = new Object[newSize];
-		keys = new Object[newSize];
+		final Object[] oldData = data;
+		data = new Object[newSize*2];
 		size = 0;
-		for (int i = 0; i < oldKeys.length; i++)
+		for (int i = 0; i < oldData.length; i+=2)
 		{
-			if ((oldKeys[i] == null && oldValues[i] == null) || oldKeys[i] == THOMBSTONE)
+			if ((oldData[i] == null && oldData[i+1] == null) || oldData[i] == THOMBSTONE)
 				continue;
-			add(oldKeys[i], oldValues[i]);
+			add(oldData[i], oldData[i+1]);
 		}
 	}
 
@@ -416,6 +413,7 @@ public class LightHashMap extends AbstractMap {
 
 	public static void main(final String[] args) {
 		System.out.println("Call with -Xmx300m -Xcomp -server");
+		
 		try
 		{
 			Thread.sleep(300);
@@ -521,5 +519,7 @@ public class LightHashMap extends AbstractMap {
 		}
 		
 		System.out.println("checks done");
+		
+
 	}
 }
