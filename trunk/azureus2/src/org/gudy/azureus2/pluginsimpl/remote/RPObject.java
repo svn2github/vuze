@@ -54,7 +54,7 @@ RPObject
     protected transient Object              __delegate;
     protected transient RPRequestDispatcher _dispatcher;
 
-    private transient Class plugin_class;
+
 
     // **** Don't try using AEMOnitor for synchronisations here as this object is serialised
 
@@ -230,21 +230,6 @@ RPObject
         Object  o )
     {
         throw( new RuntimeException( "RPObject:: method not supported - " + o ));
-    }
-
-    public Class _getPluginClass() {
-        if (plugin_class == null) {
-            plugin_class = RPUtils.getPluginAPIInterfaceForClass(this.__delegate.getClass());
-            if (plugin_class == null) {
-                /* Shouldn't happen */
-                throw new RuntimeException("no plugin class for " + RPUtils.describeObject(this.__delegate));
-            }
-        }
-        return plugin_class;
-    }
-
-    public String toString() {
-        return RPUtils.getName(this.getClass()) + "@" + Integer.toHexString(System.identityHashCode(this));
     }
 
 }
