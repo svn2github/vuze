@@ -39,19 +39,9 @@ RPRequestHandler
     protected PluginInterface   plugin_interface;
 
     protected Map   reply_cache = new HashMap();
-    protected boolean generic_classes;
     
     public RPRequestHandler(PluginInterface _pi) {
-    	this(_pi, false);
-    }
-
-    public
-    RPRequestHandler(
-        PluginInterface     _pi,
-        boolean use_generic_classes)
-    {
-        plugin_interface    = _pi;
-        generic_classes = use_generic_classes;
+    	this.plugin_interface = _pi;
     }
 
     public RPReply
@@ -94,25 +84,13 @@ RPRequestHandler
             String          method  = request.getMethod();
 
             if ( object == null && method.equals("getSingleton")){
-                RPObject pi = null;
-                if (this.generic_classes) {
-                    pi = GenericRPPluginInterface.create(plugin_interface);
-                }
-                else {
-                    pi = RPPluginInterface.create(plugin_interface);
-                }
+                RPObject pi = request.createRemotePluginInterface(plugin_interface);
                 RPReply reply = new RPReply(pi);
                 return( reply );
 
             }else if ( object == null && method.equals( "getDownloads")){
 
-                RPPluginInterface pi = null;
-                if (this.generic_classes) {
-                    pi = GenericRPPluginInterface.create(plugin_interface);
-                }
-                else {
-                    pi = RPPluginInterface.create(plugin_interface);
-                }
+                RPPluginInterface pi = request.createRemotePluginInterface(plugin_interface);
 
                     // short cut method for quick access to downloads
                     // used by GTS
