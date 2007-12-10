@@ -473,9 +473,11 @@ IpFilterImpl
 
 	  if ( match == null || allow ){
 		  
-		  match = checkExternalHandlers( torrent_hash, ipAddress );
+		  IpRange explict_deny = checkExternalHandlers( torrent_hash, ipAddress );
 		  
-		  if ( match != null ){
+		  if ( explict_deny != null ){
+			  
+			  match	= explict_deny;
 			  
 			  allow = false;
 		  }
@@ -589,9 +591,17 @@ IpFilterImpl
 
 	  if ( match == null || allow ){
 		  
-		  match = checkExternalHandlers( torrent_hash, ipAddress );
+		  	// get here if 
+		  	// 		match -> deny and we didn't match
+		  	//		match -> allow and we did match
 		  
-		  if ( match != null ){
+		  IpRange explicit_deny = checkExternalHandlers( torrent_hash, ipAddress );
+		  
+		  if ( explicit_deny != null ){
+			  
+			  	// turn this into a denial
+			  
+			  match = explicit_deny;
 			  
 			  allow = false;
 		  }
