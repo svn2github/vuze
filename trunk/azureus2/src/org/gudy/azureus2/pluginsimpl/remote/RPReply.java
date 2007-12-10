@@ -69,4 +69,8 @@ RPReply
     {
         return( properties );
     }
+    
+    private Class response_class = null;
+	public Class getResponseClass() {return response_class;}
+	public void setResponseClass(Class c) {this.response_class = c;}
 }
