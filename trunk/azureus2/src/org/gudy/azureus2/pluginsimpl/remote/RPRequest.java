@@ -138,5 +138,9 @@ RPRequest
         this.channel = channel;
     }
 
+    // Can be overridden by subclasses.
+    public RPPluginInterface createRemotePluginInterface(PluginInterface pi) {
+    	return RPPluginInterface.create(pi);
+    }
 
 }
