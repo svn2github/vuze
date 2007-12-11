@@ -42,11 +42,13 @@ public class
 DirectByteBufferPool 
 {
 
-	protected static final boolean 	DEBUG_TRACK_HANDEDOUT 	= AEDiagnostics.TRACE_DBB_POOL_USAGE;
-	protected static final boolean 	DEBUG_PRINT_MEM 		= AEDiagnostics.PRINT_DBB_POOL_USAGE;
-	protected static final int		DEBUG_PRINT_TIME		= 120*1000;
+	protected static final boolean				DEBUG_TRACK_HANDEDOUT	= AEDiagnostics.TRACE_DBB_POOL_USAGE;
+	protected static final boolean				DEBUG_PRINT_MEM			= AEDiagnostics.PRINT_DBB_POOL_USAGE;
 	
-	protected static final boolean 	DEBUG_HANDOUT_SIZES 	= false;
+	protected static final int					DEBUG_PRINT_TIME		= 120 * 1000;
+	
+	protected static final boolean				DEBUG_HANDOUT_SIZES		= false;
+	protected static final boolean				DEBUG_USE_HEAP_BUFFERS	= false;
 
 	
 	  // There is no point in allocating buffers smaller than 4K,
@@ -200,7 +202,7 @@ DirectByteBufferPool
    */
   private ByteBuffer allocateNewBuffer(final int _size) {
     try {
-      return ByteBuffer.allocateDirect(_size);
+      return DEBUG_USE_HEAP_BUFFERS ? ByteBuffer.allocate(_size) : ByteBuffer.allocateDirect(_size);
     }
     catch (OutOfMemoryError e) {
        //Debug.out("Running garbage collector...");
@@ -210,7 +212,7 @@ DirectByteBufferPool
        runGarbageCollection();
 
        try {
-       		return ByteBuffer.allocateDirect(_size);
+       		return DEBUG_USE_HEAP_BUFFERS ? ByteBuffer.allocate(_size) : ByteBuffer.allocateDirect(_size);
        	
        }catch (OutOfMemoryError ex) {
        	
@@ -802,7 +804,7 @@ DirectByteBufferPool
 					short	slice_entry_size 	= SLICE_ENTRY_SIZES[slice_index];
 					short	slice_entry_count	= SLICE_ENTRY_ALLOC_SIZES[slice_index];
 					
-					ByteBuffer	chunk = ByteBuffer.allocateDirect(  slice_entry_size*slice_entry_count  );
+					ByteBuffer	chunk = DEBUG_USE_HEAP_BUFFERS ? ByteBuffer.allocate(  slice_entry_size*slice_entry_count  ) : ByteBuffer.allocateDirect(  slice_entry_size*slice_entry_count  );
 					
 					my_allocs[slot] = true;
 					
