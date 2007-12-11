@@ -112,7 +112,7 @@ public class TableCellImpl
   
 	public boolean bDebug = false;
   
-  private AEMonitor 	this_mon 	= new AEMonitor( "TableCell" );
+  private static AEMonitor 	this_mon 	= new AEMonitor( "TableCell" );
 
   private static final String CFG_PAINT = "GUI_SWT_bAlternateTablePainting";
   private static boolean bAlternateTablePainting;

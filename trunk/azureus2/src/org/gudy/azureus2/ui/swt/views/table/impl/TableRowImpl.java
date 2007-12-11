@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
@@ -101,7 +102,7 @@ public class TableRowImpl
 		this.tableView = tv;
     this.sTableID = sTableID;
     coreDataSource = dataSource;
-    mTableCells = new HashMap();
+    mTableCells = new LightHashMap();
     bDisposed = false;
 
     // create all the cells for the column
