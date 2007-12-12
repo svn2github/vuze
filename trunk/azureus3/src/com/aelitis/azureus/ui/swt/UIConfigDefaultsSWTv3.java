@@ -142,6 +142,14 @@ public class UIConfigDefaultsSWTv3
 		defaults.addParameter("v3.topbar.show.frog", false);
 		defaults.addParameter("v3.topbar.show.plugin", false);
 		defaults.addParameter("ui.toolbar.uiswitcher", false);
+		
+		
+		//=== defaults used by MainWindow
+		defaults.addParameter("vista.adminquit", false);
+		defaults.addParameter("Password enabled", false);
+		defaults.addParameter("Start Minimized", false);
+		defaults.addParameter("Password enabled", false);
+		
 
 		// by default, turn off some slidey warning
 		// Since they are plugin configs, we need to set the default after the 
