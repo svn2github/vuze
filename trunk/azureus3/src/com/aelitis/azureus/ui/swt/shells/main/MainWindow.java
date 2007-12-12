@@ -33,7 +33,6 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
@@ -43,6 +42,9 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.PluginEvent;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
@@ -89,10 +91,6 @@ import com.aelitis.azureus.ui.swt.views.ViewUpSpeedGraph;
 import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.Constants;
-
-import org.gudy.azureus2.plugins.PluginEvent;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.download.Download;
 
 /**
  * @author TuxPaper
@@ -158,7 +156,7 @@ public class MainWindow
 		// user after restart.
 		if (Constants.isWindows
 				&& System.getProperty("os.name").indexOf("Vista") > 0
-				&& !COConfigurationManager.getBooleanParameter("vista.adminquit", false)) {
+				&& !COConfigurationManager.getBooleanParameter("vista.adminquit")) {
 			File fileFromInstall = FileUtil.getApplicationFile("license.txt");
 			if (fileFromInstall.exists()
 					&& fileFromInstall.lastModified() < new GregorianCalendar(2007, 06,
@@ -310,8 +308,8 @@ public class MainWindow
 	private void processStartupDMS() {
 		// must be in a new thread because we don't want to block
 		// initilization or any other add listeners
-		AEThread thread = new AEThread("v3.mw.dmAdded", true) {
-			public void runSupport() {
+		AEThread2 thread = new AEThread2("v3.mw.dmAdded", true) {
+			public void run() {
 				long startTime = System.currentTimeMillis();
 				if (dms_Startup == null || dms_Startup.length == 0) {
 					return;
@@ -643,9 +641,9 @@ public class MainWindow
 										"play-now", false);
 								TorrentUIUtilsV3.loadTorrent(core, url, MapUtils.getMapString(
 										decodedMap, "referer", null), playNow);
-								
+
 								return true;
-								
+
 							} else {
 								return false;
 							}
@@ -805,11 +803,9 @@ public class MainWindow
 		// No tray access on OSX yet
 		boolean bEnableTray = COConfigurationManager.getBooleanParameter("Enable System Tray")
 				&& (!isOSX || SWT.getVersion() > 3300);
-		boolean bPassworded = COConfigurationManager.getBooleanParameter(
-				"Password enabled", false);
+		boolean bPassworded = COConfigurationManager.getBooleanParameter("Password enabled");
 		boolean bStartMinimize = bEnableTray
-				&& (bPassworded || COConfigurationManager.getBooleanParameter(
-						"Start Minimized", false));
+				&& (bPassworded || COConfigurationManager.getBooleanParameter("Start Minimized"));
 
 		if (!bStartMinimize) {
 			shell.layout();
@@ -887,8 +883,7 @@ public class MainWindow
 			public void runSupport() {
 				boolean currentlyVisible = shell.getVisible() && !shell.getMinimized();
 				if (visible && !currentlyVisible) {
-					if (COConfigurationManager.getBooleanParameter("Password enabled",
-							false)) {
+					if (COConfigurationManager.getBooleanParameter("Password enabled")) {
 						if (!PasswordWindow.showPasswordWindow(display)) {
 							shell.setVisible(false);
 							return;
@@ -1045,20 +1040,17 @@ public class MainWindow
 											contentThumbnail);
 									final Image img = new Image(Display.getDefault(), bis);
 
-									if (img != null) {
-
-										if (skinnableObject instanceof MessageBoxShell) {
-											((MessageBoxShell) skinnableObject).setLeftImage(img);
-										}
-
-										composite.addDisposeListener(new DisposeListener() {
-											public void widgetDisposed(DisposeEvent e) {
-												if (img != null && !img.isDisposed()) {
-													img.dispose();
-												}
-											}
-										});
+									if (skinnableObject instanceof MessageBoxShell) {
+										((MessageBoxShell) skinnableObject).setLeftImage(img);
 									}
+
+									composite.addDisposeListener(new DisposeListener() {
+										public void widgetDisposed(DisposeEvent e) {
+											if (!img.isDisposed()) {
+												img.dispose();
+											}
+										}
+									});
 								} catch (Exception e) {
 
 								}
@@ -1129,11 +1121,9 @@ public class MainWindow
 												// not important if we can't set advanced
 											}
 
-											if (img != null) {
-												gc.drawImage(img, 0, 0, imgBounds.width,
-														imgBounds.height, 0, 265, w, 35);
-												img.dispose();
-											}
+											gc.drawImage(img, 0, 0, imgBounds.width,
+													imgBounds.height, 0, 265, w, 35);
+											img.dispose();
 										} catch (Exception e) {
 
 										}
@@ -1146,7 +1136,7 @@ public class MainWindow
 
 									composite.addListener(SWT.Dispose, new Listener() {
 										public void handleEvent(Event event) {
-											if (image != null && !image.isDisposed()) {
+											if (!image.isDisposed()) {
 												image.dispose();
 											}
 										}
@@ -1281,6 +1271,7 @@ public class MainWindow
 				addMenuAndChildren((Composite) skinObject.getControl(), topbarMenu);
 			}
 		}
+
 
 		shell.layout(true, true);
 
@@ -1515,7 +1506,7 @@ public class MainWindow
 						text.addDisposeListener(new DisposeListener() {
 							public void widgetDisposed(DisposeEvent e) {
 								Text text = (Text) e.widget;
-								if (fFont != null && !fFont.isDisposed()) {
+								if (!fFont.isDisposed()) {
 									text.setFont(null);
 									fFont.dispose();
 								}
@@ -1657,8 +1648,9 @@ public class MainWindow
 			tabSetSearch = searchTab.getTabset();
 		}
 
-		tabSetSearch.setActiveTab(sTabID);
-
+		if (tabSetSearch != null) {
+			tabSetSearch.setActiveTab(sTabID);
+		}
 		SWTSkinObject searchResultsTabsView = skin.getSkinObject("search-results-tabs");
 		if (searchResultsTabsView == null) {
 			System.err.println("searchResultsTabs null");
@@ -1748,8 +1740,7 @@ public class MainWindow
 					Composite cArea = (Composite) searchResultsContentN.getControl();
 
 					final Browser browser = new Browser(cArea, SWT.NONE);
-					final ClientMessageContext context = new BrowserContext("search",
-							browser, null, true);
+					new BrowserContext("search", browser, null, true);
 
 					browser.setLayoutData(Utils.getFilledFormData());
 
