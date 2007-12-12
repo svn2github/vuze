@@ -103,7 +103,7 @@ AEMonitor
 									
 								}else{
 								
-									Debug.out("AEMonitor: spurious wakeup, ignoring" );
+									// Debug.out("AEMonitor: spurious wakeup, ignoring" );
 								}					
 							}else{
 								

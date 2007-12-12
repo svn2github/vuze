@@ -162,7 +162,7 @@ AESemaphore
 									
 								}else{
 								
-									Debug.out("AESemaphore: spurious wakeup, ignoring" );
+									// Debug.out("AESemaphore: spurious wakeup, ignoring" );
 								}					
 							}else{
 								
