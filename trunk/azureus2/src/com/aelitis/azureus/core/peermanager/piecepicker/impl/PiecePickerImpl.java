@@ -27,20 +27,18 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.impl.DiskManagerFileInfoImpl;
+import org.gudy.azureus2.core3.disk.impl.access.impl.DiskManagerReadRequestImpl;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.plugins.peers.PeerStats;
 
 import com.aelitis.azureus.core.peermanager.control.PeerControlScheduler;
 import com.aelitis.azureus.core.peermanager.control.PeerControlSchedulerFactory;
 import com.aelitis.azureus.core.peermanager.control.SpeedTokenDispenser;
-import com.aelitis.azureus.core.peermanager.control.impl.PeerControlSchedulerImpl;
 import com.aelitis.azureus.core.peermanager.piecepicker.*;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
-import com.aelitis.azureus.core.peermanager.unchoker.UnchokerUtil;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 /**
@@ -697,17 +695,25 @@ implements PiecePicker
 							}
 
 							if ( findRTAPieceToDownload( pt, pt == best_uploader )){
+								
 								allocated_request = true;
-							}else
+								
+							}else{
+								
 								it.remove();
-						}else
+							}
+						}else{
+							
 							it.remove();
+						}
 					}
 				}
 			}finally{
 				Iterator	it = allocations_started.iterator();
-				while( it.hasNext())
+				
+				while( it.hasNext()){
 					((PEPeerTransport)it.next()).requestAllocationComplete();
+				}
 			}
 		}
 
@@ -1126,8 +1132,8 @@ implements PiecePicker
 
 	protected final boolean 
 	findRTAPieceToDownload(
-			PEPeerTransport pt,
-			boolean			best_uploader )
+		PEPeerTransport 	pt,
+		boolean				best_uploader )
 	{
 		if ( pt == null || pt.getPeerState() != PEPeer.TRANSFERING ){
 
@@ -1141,276 +1147,265 @@ implements PiecePicker
 			return( false );
 		}
 
-		final int       peerSpeed =(int) pt.getStats().getDataReceiveRate() /1000;  // how many KB/s has the peer has been sending
+		String rta_log_str = LOG_RTA?pt.getIp():null;
 
-		final int	startI 	= peerHavePieces.start;
-		final int	endI 	= peerHavePieces.end;
-
-		int	piece_min_rta_index	= -1;
-		int piece_min_rta_block	= 0;
-		long piece_min_rta_time	= Long.MAX_VALUE;
-
-		long	now = SystemTime.getCurrentTime();
-
-		long	my_next_block_eta = now + getNextBlockETAFromNow( pt );
-
-		for ( int i=startI; i <=endI; i++){
-
-			long piece_rta = provider_piece_rtas[i];
-
-			if ( peerHavePieces.flags[i] && startPriorities[i] == PRIORITY_REALTIME && piece_rta > 0 ){
-
-				if ( LOG_RTA ){
-					System.out.println( "findPiece: " + i + "/" + (piece_rta - now));
-				}
-
-				final DiskManagerPiece dmPiece =dmPieces[i];
-
-				if ( !dmPiece.isDownloadable()){
-
-					continue;
-				}
-
-				final PEPiece pePiece = pePieces[i];
-
-				if ( pePiece != null && pePiece.isDownloaded()){
-
-					continue;
-				}
-
-				Object realtime_data = null;
-
-				if ( piece_rta >= piece_min_rta_time  ){
-
-					if ( LOG_RTA ){
-						System.out.println( "    less urgent" );
+		try{
+			final int       peerSpeed =(int) pt.getStats().getDataReceiveRate() /1000;  // how many KB/s has the peer has been sending
+	
+			final int	startI 	= peerHavePieces.start;
+			final int	endI 	= peerHavePieces.end;
+	
+			int	piece_min_rta_index	= -1;
+			int piece_min_rta_block	= 0;
+			long piece_min_rta_time	= Long.MAX_VALUE;
+	
+			long	now = SystemTime.getCurrentTime();
+	
+			long	my_next_block_eta = now + getNextBlockETAFromNow( pt );
+	
+			
+			for ( int i=startI; i <=endI; i++){
+	
+				long piece_rta = provider_piece_rtas[i];
+	
+				if ( peerHavePieces.flags[i] && startPriorities[i] == PRIORITY_REALTIME && piece_rta > 0 ){
+	
+					final DiskManagerPiece dmPiece =dmPieces[i];
+	
+					if ( !dmPiece.isDownloadable()){
+	
+						continue;
 					}
-					// piece is less urgent than an already found one
-
-
-				}else if ( my_next_block_eta > piece_rta && !best_uploader ){
-
-					// only allocate if we have a chance of getting this block in time or we're
-					// the best uploader we've got
-
-					if ( LOG_RTA ){
-						System.out.println( "    we're not fast enough" );
+	
+					final PEPiece pePiece = pePieces[i];
+	
+					if ( pePiece != null && pePiece.isDownloaded()){
+	
+						continue;
 					}
-
-				}else if ( pePiece == null || ( realtime_data = pePiece.getRealTimeData()) == null ){
-
-
-					if ( LOG_RTA ){
-						System.out.println( "    alloc new" );
-					}
-
-					// no real-time block allocated yet
-
-					piece_min_rta_time 	= piece_rta;
-					piece_min_rta_index = i;
-
-				}else{
-
-					RealTimeData	rtd = (RealTimeData)realtime_data;
-
-					// check the blocks to see if any are now lagging behind their ETA given current peer speed
-
-					List[]	peer_requests = rtd.getRequests();
-
-					for (int j=0;j<peer_requests.length;j++){
-
-						if ( LOG_RTA ){
-							System.out.println( "    block " + j );
-						}
-
-						if ( pePiece.isDownloaded( j ) || pePiece.isWritten( j )){
-
-							// this block is already downloaded, ignore
-
-							continue;
-						}
-
-						List	block_peer_requests = peer_requests[j];
-
-
-						long best_eta = Long.MAX_VALUE;
-
-						boolean	pt_already_present  = false;
-
-						// tidy up existing request data
-
-						Iterator	it = block_peer_requests.iterator();
-
-						while( it.hasNext()){
-
-							RealTimePeerRequest	pr = (RealTimePeerRequest)it.next();
-
-							PEPeerTransport	this_pt = pr.getPeer();
-
-							if ( this_pt.getPeerState() != PEPeer.TRANSFERING ){
-
-								if ( LOG_RTA ){
-									System.out.println( "        peer dead" );
-								}
-
-								// peer's dead
-
-								it.remove();
-
-								continue;
-
-							}
-
-							DiskManagerReadRequest	this_request = pr.getRequest();
-
-							int	request_index = this_pt.getRequestIndex( this_request );
-
-							if ( request_index == -1 ){
-
-								if ( LOG_RTA ){
-									System.out.println( "        request lost" );
-								}
-
-								// request's gone
-
-								it.remove();
-
+	
+					Object realtime_data = null;
+	
+					if ( piece_rta >= piece_min_rta_time  ){
+	
+						// piece is less urgent than an already found one
+	
+					}else if ( my_next_block_eta > piece_rta && !best_uploader ){
+	
+						// only allocate if we have a chance of getting this block in time or we're
+						// the best uploader we've got
+		
+					}else if ( pePiece == null || ( realtime_data = pePiece.getRealTimeData()) == null ){
+	
+	
+						if ( LOG_RTA ) rta_log_str += "{alloc_new=" + i + ",time=" + (piece_rta-now)+"}";
+						
+						// no real-time block allocated yet
+	
+						piece_min_rta_time 	= piece_rta;
+						piece_min_rta_index = i;
+	
+					}else{
+	
+						RealTimeData	rtd = (RealTimeData)realtime_data;
+	
+						// check the blocks to see if any are now lagging behind their ETA given current peer speed
+	
+						List[]	peer_requests = rtd.getRequests();
+	
+						for (int j=0;j<peer_requests.length;j++){
+		
+							if ( pePiece.isDownloaded( j ) || pePiece.isWritten( j )){
+	
+								// this block is already downloaded, ignore
+	
 								continue;
 							}
+	
+							List	block_peer_requests = peer_requests[j];
+	
+	
+							long best_eta = Long.MAX_VALUE;
+	
+							boolean	pt_already_present  = false;
+	
+							// tidy up existing request data
+	
+							Iterator	it = block_peer_requests.iterator();
+	
+							while( it.hasNext()){
+	
+								RealTimePeerRequest	pr = (RealTimePeerRequest)it.next();
+	
+								PEPeerTransport	this_pt = pr.getPeer();
+	
+								if ( this_pt.getPeerState() != PEPeer.TRANSFERING ){
+	
+										// peer's dead
 
-							if ( this_pt == pt ){
-
-								if ( LOG_RTA ){
-									System.out.println( "        already req" );
+									if ( LOG_RTA ) rta_log_str += "{peer_dead=" + this_pt.getIp()+"}";
+	
+									it.remove();
+	
+									continue;
+	
 								}
-
-								pt_already_present	= true;
-
-								break;
-							}
-
-							long this_up_bps = this_pt.getStats().getDataReceiveRate();
-
-							if ( this_up_bps < 1 ){
-
-								this_up_bps = 1;
-							}
-
-							int	next_block_bytes = ( request_index + 1 ) * DiskManager.BLOCK_SIZE;
-
-							long	this_peer_eta = now + (( next_block_bytes * 1000 ) / this_up_bps );
-
-							best_eta = Math.min( best_eta, this_peer_eta );
-
-							if ( LOG_RTA ){
-								System.out.println( "        best_eta = " + ( best_eta - now ));
-							}
-
-						}
-
-						// if we've not already requested this piece
-
-						if ( !pt_already_present ){
-
-							// and there are no outstanding requests or outstanding requests are lagging
-
-							if ( block_peer_requests.size() == 0 ){
-
-								if ( LOG_RTA ){
-									System.out.println( "            block has no requests and is better rta" );
+	
+								DiskManagerReadRequest	this_request = pr.getRequest();
+	
+								int	request_index = this_pt.getRequestIndex( this_request );
+	
+								if ( request_index == -1 ){
+	
+										// request's gone
+									
+									if ( LOG_RTA ) rta_log_str += "{request_lost=" + this_request.getPieceNumber()+"}";
+	
+									it.remove();
+	
+									continue;
 								}
-
-								piece_min_rta_time 	= piece_rta;
-								piece_min_rta_index = i;
-								piece_min_rta_block = j;
-
-								break;	// earlier blocks always have priority
-
-							}else if ( best_eta > piece_rta ){
-
-								if ( LOG_RTA ){
-									System.out.println( "        block is lagging" );
+								
+								if ( this_pt == pt ){
+		
+									pt_already_present	= true;
+	
+									break;
 								}
-
-								// if we can do better than existing best effort allocate
-
-								if ( my_next_block_eta < best_eta ){
-
-
-									if ( LOG_RTA ){
-										System.out.println( "            I can do better!" );
-									}
-
+	
+								long this_up_bps = this_pt.getStats().getDataReceiveRate();
+	
+								if ( this_up_bps < 1 ){
+	
+									this_up_bps = 1;
+								}
+	
+								int	next_block_bytes = ( request_index + 1 ) * DiskManager.BLOCK_SIZE;
+	
+								long	this_peer_eta = now + (( next_block_bytes * 1000 ) / this_up_bps );
+	
+								best_eta = Math.min( best_eta, this_peer_eta );	
+							}
+	
+								// if we've not already requested this block
+	
+							if ( !pt_already_present ){
+	
+									// and there are no outstanding requests or outstanding requests are lagging
+	
+								if ( block_peer_requests.size() == 0 ){
+	
+									if ( LOG_RTA ) rta_log_str += "{alloc as no req=" + i + ",block=" + j+ ",time=" + ( piece_rta-now) + "}";
+	
 									piece_min_rta_time 	= piece_rta;
 									piece_min_rta_index = i;
 									piece_min_rta_block = j;
-
+	
 									break;	// earlier blocks always have priority
+	
+								}else if ( best_eta > piece_rta ){
+	
+									if ( LOG_RTA ) rta_log_str += "{lagging=" + i + ",block=" + j+ ",time=" + ( best_eta - piece_rta) + "}";
+	
+										// if we can do better than existing best effort allocate
+	
+									if ( my_next_block_eta < best_eta ){
+	
+	
+										if ( LOG_RTA ) rta_log_str += "{taking over, time=" + ( best_eta - my_next_block_eta) + "}";
+	
+										piece_min_rta_time 	= piece_rta;
+										piece_min_rta_index = i;
+										piece_min_rta_block = j;
+	
+										break;	// earlier blocks always have priority
+									}
 								}
 							}
 						}
 					}
 				}
 			}
-		}
-
-		if ( piece_min_rta_index != -1 && dispenser.dispense(1, DiskManager.BLOCK_SIZE) == 1){
-
-			PEPiece pePiece = pePieces[piece_min_rta_index];
-
-			if ( pePiece == null ){
-
-				// create piece manually
-
-				pePiece = new PEPieceImpl( pt.getManager(), dmPieces[piece_min_rta_index], peerSpeed >>1 );
-
-				// Assign the created piece to the pieces array.
-
-				peerControl.addPiece(pePiece, piece_min_rta_index);
-
-				pePiece.setResumePriority( PRIORITY_REALTIME );
-
-				if ( availability[piece_min_rta_index] <=globalMinOthers ){
-
-					nbRarestActive++;
+	
+			if ( piece_min_rta_index != -1 ){
+				
+				if ( LOG_RTA ) rta_log_str += ",{select_piece=" + piece_min_rta_index + ",block=" + piece_min_rta_block + ",time=" + (piece_min_rta_time-now) + "}";
+				
+				if ( dispenser.dispense(1, DiskManager.BLOCK_SIZE) == 1){
+	
+					PEPiece pePiece = pePieces[piece_min_rta_index];
+		
+					if ( pePiece == null ){
+		
+						// create piece manually
+		
+						pePiece = new PEPieceImpl( pt.getManager(), dmPieces[piece_min_rta_index], peerSpeed >>1 );
+		
+						// Assign the created piece to the pieces array.
+		
+						peerControl.addPiece(pePiece, piece_min_rta_index);
+		
+						pePiece.setResumePriority( PRIORITY_REALTIME );
+		
+						if ( availability[piece_min_rta_index] <=globalMinOthers ){
+		
+							nbRarestActive++;
+						}
+					}
+		
+					RealTimeData	rtd = (RealTimeData)pePiece.getRealTimeData();
+		
+					if ( rtd == null ){
+		
+						rtd = new RealTimeData( pePiece );
+		
+						pePiece.setRealTimeData( rtd );
+					}
+		
+					pePiece.getAndMarkBlock( pt, piece_min_rta_block );
+					
+					DiskManagerReadRequest	request = pt.request(piece_min_rta_index, piece_min_rta_block *DiskManager.BLOCK_SIZE, pePiece.getBlockSize(piece_min_rta_block));
+					
+					if ( request != null ){
+		
+						List	real_time_requests = rtd.getRequests()[piece_min_rta_block];
+		
+						real_time_requests.add( new RealTimePeerRequest( pt, request ));
+				
+						pt.setLastPiece(piece_min_rta_index);
+		
+						pePiece.setLastRequestedPeerSpeed( peerSpeed );
+						
+						return( true );
+						
+					}else{
+						
+						if ( LOG_RTA ) rta_log_str += "{request failed}";
+						
+						dispenser.returnUnusedChunks(1, DiskManager.BLOCK_SIZE);
+						
+						return( false );
+					}
+					
+				}else{
+					
+					if ( LOG_RTA ) rta_log_str += "{dispenser denied}";
+					
+					return( false );
 				}
+	
+			}else{
+	
+				if ( LOG_RTA ) rta_log_str += "{no piece found}";
+
+				return( false );
 			}
-
-			RealTimeData	rtd = (RealTimeData)pePiece.getRealTimeData();
-
-			if ( rtd == null ){
-
-				rtd = new RealTimeData( pePiece );
-
-				pePiece.setRealTimeData( rtd );
-			}
-
-			pePiece.getAndMarkBlock( pt, piece_min_rta_block );
+		}finally{
 			
-			DiskManagerReadRequest	request = pt.request(piece_min_rta_index, piece_min_rta_block *DiskManager.BLOCK_SIZE, pePiece.getBlockSize(piece_min_rta_block));
-
-			if ( request != null ){
-
-				List	real_time_requests = rtd.getRequests()[piece_min_rta_block];
-
-				real_time_requests.add( new RealTimePeerRequest( pt, request ));
-
-				if ( LOG_RTA ){
-
-					System.out.println( "RT Request: " + piece_min_rta_index + "/" + piece_min_rta_block + " -> " + pt.getIp() + "[tot=" + real_time_requests.size() + "]" );
-				}
-
-				pt.setLastPiece(piece_min_rta_index);
-
-				pePiece.setLastRequestedPeerSpeed( peerSpeed );
-			} else
-				dispenser.returnUnusedChunks(1, DiskManager.BLOCK_SIZE);
-
-			return( true );
-
-		}else{
-
-			return( false );
+			if ( LOG_RTA ){
+				
+				System.out.println( rta_log_str );
+			}
 		}
 	}
 
