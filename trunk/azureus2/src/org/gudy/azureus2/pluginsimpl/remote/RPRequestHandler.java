@@ -51,6 +51,10 @@ RPRequestHandler
         return( processRequest( request, null));
     }
 
+    /**
+     * We no longer allow null to be returned, you will have to return a new RPReply instance
+     * which contains null instead.
+     */
     public RPReply
     processRequest(
         RPRequest                   request,
@@ -69,6 +73,7 @@ RPRequestHandler
         }
 
         RPReply reply = processRequestSupport( request, access_controller );
+        if (reply == null) {reply = new RPReply(null);}
         reply_cache.put( connection_id, new replyCache( request.getRequestId(), reply ));
 
         return( reply );
