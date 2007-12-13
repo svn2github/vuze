@@ -397,11 +397,13 @@ public class AdManager
 				return;
 			}
 
+			File asxFile = null;
+
 			Object lastASXObject = dm.getData("LastASX");
 			if (lastASXObject instanceof Long) {
 				long lastASX = ((Long) lastASXObject).longValue();
 				if (SystemTime.getCurrentTime() - lastASX < EXPIRE_ASX) {
-					File asxFile = buildASXFileLocation(dm);
+					asxFile = buildASXFileLocation(dm);
 					if (asxFile.isFile()) {
 						PlatformAdManager.debug("playing using existing asx: " + asxFile
 								+ "; expires in " + (SystemTime.getCurrentTime() - lastASX) );
@@ -428,7 +430,7 @@ public class AdManager
 
 					asxInProgress_mon.enter();
 
-					File asxFile = buildASXFileLocation(dm);
+					asxFile = buildASXFileLocation(dm);
 					if (asxFile.isFile()) {
 						PlatformAdManager.debug("playing using existing asx: " + asxFile);
 						if (l != null) {
@@ -444,6 +446,7 @@ public class AdManager
 				asxInProgress_mon.exit();
 			}
 
+			final File fasxFile = asxFile;
 			PlatformAdManager.debug("getting asx");
 			PlatformAdManager.getPlayList(dm, URLToPlay, "http://127.0.0.1:"
 					+ MagnetURIHandler.getSingleton().getPort()
@@ -454,7 +457,12 @@ public class AdManager
 						if (playlist == null) {
 							PlatformAdManager.debug("no asx in reply");
 							if (l != null) {
-								l.asxFailed();
+								// we might be offline, ignore asx expirey date
+								if (fasxFile != null && fasxFile.isFile()) {
+									l.asxCreated(fasxFile);
+								} else {
+									l.asxFailed();
+								}
 							}
 							return;
 						}
