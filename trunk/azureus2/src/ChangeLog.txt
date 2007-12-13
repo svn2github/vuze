@@ -4,7 +4,10 @@ AZUREUS CHANGELOG
 
 2007.12.xx | Azureus Vuze 3.0.4.1
 
+CHANGE: Core  | Added option to disable download speed focus [The 8472]
+CHANGE: Core  | Reduced memory usage for many-torrent instances [The 8472]
 
+BUGFIX: Core  | fixed ip filters not working when ALLOW instead of DENY was used [parg]
 
 
 2007.12.06 | Azureus Vuze 3.0.4.0
