@@ -1794,6 +1794,8 @@ EnhancedDownloadManager
 		
 		private long		last_recalc;
 		
+		private int			aggression;
+		
 		private boolean		active;
 		
 		protected void
@@ -1838,7 +1840,7 @@ EnhancedDownloadManager
     	{
 			long	now = SystemTime.getCurrentTime();
 			
-			if ( now < last_recalc || now - last_recalc > 2500 ){
+			if ( now < last_recalc || now - last_recalc > 1000 ){
 				
 				last_recalc	= now;
 								
@@ -1880,9 +1882,67 @@ EnhancedDownloadManager
 						
 					long	bytes_offset = 0;
 					
+						// we need to be more aggresive if we have an explicit min buffer size
+						// as the emp will auto-pause when the contiguous available bytes falls
+						// below this min
+				
+					int	last_aggressive_piece = -1;
+					
+					if ( explicit_minimum_buffer_bytes > 0 ){
+				
+						long total_avail = getContiguousAvailableBytes( getPrimaryFile());
+						
+						long viewer_pos = stats.getViewerBytePosition();
+						
+						long avail = total_avail - viewer_pos;
+						
+						long	buffer_zone = 3*explicit_minimum_buffer_bytes;
+						
+						if ( avail <= buffer_zone ){
+							
+							if ( avail < 0 ){
+								
+								avail = 0;
+							}
+							
+							if ( avail <= explicit_minimum_buffer_bytes ){
+								
+								aggression = 10;
+								
+							}else{		
+								
+								aggression =  (int)( ( buffer_zone - avail )*10/( buffer_zone - explicit_minimum_buffer_bytes ));
+							}
+							
+							last_aggressive_piece = start_piece + (int)(( buffer_zone + piece_size -1 ) / piece_size);
+							
+						}else{
+							
+							aggression = 0;
+						}
+					}else{
+						
+						aggression = 0;
+					}
+					
 					for ( int i=start_piece;i<piece_rtas.length;i++ ){
 						
-						piece_rtas[i] = now + ( 1000* ( bytes_offset / max_bps ));
+						int	time_factor;
+						
+						if ( i <= last_aggressive_piece ){
+							
+							time_factor = (( 10 - aggression ) * 1000 ) /10;
+								
+							time_factor = Math.max( time_factor, 10 );
+							
+							// System.out.println( "Aggression = " + aggression + ", time factor=" + time_factor );
+
+						}else{
+							
+							time_factor = 1000;
+						}
+						
+						piece_rtas[i] = now + ( time_factor* ( bytes_offset / max_bps ));
 						
 						bytes_offset += piece_size;
 					}
