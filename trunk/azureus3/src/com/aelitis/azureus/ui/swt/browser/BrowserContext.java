@@ -190,8 +190,11 @@ public class BrowserContext
 					browser.getDisplay().asyncExec(new AERunnable() {
 						public void runSupport() {
 							if (!browser.isDisposed()) {
-								browser.execute("s = document.location.toString(); "
-										+ "if (s.indexOf('res://') == 0) { document.title = s; }");
+								browser.execute("try { "
+										+ "tuxLocString = document.location.toString();"
+										+ "if (tuxLocString.indexOf('res://') == 0) " 
+										+ "{ document.title = tuxLocString; } "
+										+ "} catch (e) { }");
 							}
 						}
 					});
