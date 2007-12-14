@@ -289,6 +289,7 @@ public class LightHashMap extends AbstractMap {
 				if(thombStoneCount * 2 > thombStoneThreshold)
 				{
 					compactify(0.f);
+					thombStoneIndex = -1;
 					probe = 0;
 				}
 			}
@@ -501,13 +502,14 @@ public class LightHashMap extends AbstractMap {
 		
 		
 		// test churn/thombstones
-		
+		m2.clear();
+		/*
 		for(int i=0;i<fillData.length*10;i++)
 		{
 			int random = rnd.nextInt(fillData.length);			
 
 			m2.put(fillData[random], fillData[i%fillData.length]);
-		}
+		}*/
 		
 		for(int i = 0;i<100000;i++)
 		{
