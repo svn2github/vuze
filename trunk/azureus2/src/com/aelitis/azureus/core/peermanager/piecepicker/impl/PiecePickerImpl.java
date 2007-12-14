@@ -649,6 +649,8 @@ implements PiecePicker
 
 			PEPeerTransport	best_uploader = (PEPeerTransport)bestUploaders.get(0);
 
+			long best_block_eta = SystemTime.getCurrentTime() + getNextBlockETAFromNow( best_uploader );
+			
 			// give priority pieces the first look-in
 			// we need to sort by how quickly the peer can get a block, not just its base speed
 
@@ -694,7 +696,7 @@ implements PiecePicker
 								allocations_started.add( pt );
 							}
 
-							if ( findRTAPieceToDownload( pt, pt == best_uploader )){
+							if ( findRTAPieceToDownload( pt, pt == best_uploader, best_block_eta )){
 								
 								allocated_request = true;
 								
@@ -1133,7 +1135,8 @@ implements PiecePicker
 	protected final boolean 
 	findRTAPieceToDownload(
 		PEPeerTransport 	pt,
-		boolean				best_uploader )
+		boolean				best_uploader,
+		long				best_uploader_next_block_eta )
 	{
 		if ( pt == null || pt.getPeerState() != PEPeer.TRANSFERING ){
 
@@ -1190,10 +1193,15 @@ implements PiecePicker
 	
 						// piece is less urgent than an already found one
 	
-					}else if ( my_next_block_eta > piece_rta && !best_uploader ){
+					}else if ( my_next_block_eta > piece_rta && !( best_uploader || best_uploader_next_block_eta > piece_rta )){
 	
 						// only allocate if we have a chance of getting this block in time or we're
-						// the best uploader we've got
+						// the best uploader we've got/even the best uploader can't get it
+						
+						// the second part is important for when we get to the point whereby no peers
+						// can get a block in time. Here we need to allocate someone to get it as
+						// otherwise we'll concentrate on getting lower priority pieces that we can
+						// get in time and leave the stuck ones for just the best uploader to get
 		
 					}else if ( pePiece == null || ( realtime_data = pePiece.getRealTimeData()) == null ){
 	
