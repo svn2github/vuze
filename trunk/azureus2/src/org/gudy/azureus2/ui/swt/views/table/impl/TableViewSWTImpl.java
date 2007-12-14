@@ -2015,7 +2015,10 @@ public class TableViewSWTImpl
 		if (!columnPaddingAdjusted && table.getItemCount() > 0 && bWas0Rows) {
 			TableColumn[] tableColumnsSWT = table.getColumns();
 			TableItem item = table.getItem(0);
-			for (int i = 0; i < tableColumnsSWT.length; i++) {
+			// on *nix, the last column expands to fill remaining space.. let's just not touch it
+			int len = Constants.isUnix ? tableColumnsSWT.length - 1
+					: tableColumnsSWT.length;
+			for (int i = 0; i < len; i++) {
 				TableColumnCore tc = (TableColumnCore) tableColumnsSWT[i].getData("TableColumnCore");
 				if (tc != null) {
 					Rectangle bounds = item.getBounds(i);
