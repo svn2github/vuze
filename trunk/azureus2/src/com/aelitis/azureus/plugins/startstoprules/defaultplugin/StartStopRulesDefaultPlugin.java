@@ -293,7 +293,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		// ignore rules subsection
 		// ---------
 		configModel.addBooleanParameter2("StartStopManager_bIgnore0Peers",
-				"ConfigView.label.seeding.ignore0Peers", true);
+				"ConfigView.label.seeding.ignore0Peers", false);
 		configModel.addIntParameter2("StartStopManager_iIgnoreSeedCount",
 				"ConfigView.label.ignoreSeeds", 0);
 
