@@ -119,12 +119,12 @@ public class SWTSkinButtonUtility
 			public void runSupport() {
 				if (skinObject instanceof SWTSkinObjectImage) {
 					SWTSkinObjectImage skinImageObject = (SWTSkinObjectImage) skinObject;
-					skinImageObject.setImageByID(id);
+					skinImageObject.setImageByID(id, null);
 				} else if (skinObject instanceof SWTSkinObjectContainer) {
 					SWTSkinObject[] children = ((SWTSkinObjectContainer) skinObject).getChildren();
 					if (children.length > 0 && children[0] instanceof SWTSkinObjectImage) {
 						SWTSkinObjectImage skinImageObject = (SWTSkinObjectImage) children[0];
-						skinImageObject.setImageByID(id);
+						skinImageObject.setImageByID(id, null);
 					}
 				}
 				if (skinObject.isVisible()) {
