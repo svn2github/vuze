@@ -35,6 +35,7 @@ import java.util.*;
  */
 public class LightHashMap extends AbstractMap {
 	private static final Object	THOMBSTONE			= new Object();
+	private static final Object NULLKEY				= new Object();
 	private static final float	DEFAULT_LOAD_FACTOR	= 0.75f;
 	private static final int	DEFAULT_CAPACITY	= 8;
 
@@ -85,7 +86,7 @@ public class LightHashMap extends AbstractMap {
 		private void findNext() {
 			do
 				nextIdx+=2;
-			while (nextIdx < data.length && ((data[nextIdx] == null && data[nextIdx+1] == null) || data[nextIdx] == THOMBSTONE));
+			while (nextIdx < data.length && (data[nextIdx] == null || data[nextIdx] == THOMBSTONE));
 		}
 
 		public void remove() {
@@ -128,7 +129,8 @@ public class LightHashMap extends AbstractMap {
 			}
 
 			public Object getKey() {
-				return data[entryIndex];
+				final Object key = data[entryIndex];
+				return key != NULLKEY ? key : null;
 			}
 
 			public Object getValue() {
@@ -156,7 +158,8 @@ public class LightHashMap extends AbstractMap {
 
 		private class KeySetIterator extends HashIterator {
 			Object nextIntern() {
-				return data[currentIdx];
+				final Object key = data[currentIdx];
+				return key != NULLKEY ? key : null;
 			}
 		}
 
@@ -183,7 +186,7 @@ public class LightHashMap extends AbstractMap {
 
 	public Object put(final Object key, final Object value) {
 		checkCapacity(1);
-		return add(key, value);
+		return add(key, value, false);
 	}
 
 	public void putAll(final Map m) {
@@ -191,10 +194,10 @@ public class LightHashMap extends AbstractMap {
 		for (final Iterator it = m.entrySet().iterator(); it.hasNext();)
 		{
 			final Map.Entry entry = (Map.Entry) it.next();
-			add(entry.getKey(), entry.getValue());
+			add(entry.getKey(), entry.getValue(),true);
 		}
 		// compactify in case we overestimated the new size due to redundant entries
-		compactify(0.f);
+		//compactify(0.f);
 	}
 
 	public Set keySet() {
@@ -204,15 +207,24 @@ public class LightHashMap extends AbstractMap {
 	public Collection values() {
 		return new Values();
 	}
-
-	public Object get(final Object key) {
-		return data[nonModifyingFindIndex(key)+1];
+	
+	public int capacity()
+	{
+		return data.length>>1;
 	}
 
-	private Object add(final Object key, final Object value) {
-		final int idx = findIndex(key);
+	public Object get(Object key) {
+		if(key == null)
+			key = NULLKEY; 
+		return data[nonModifyingFindIndex(key)+1];
+	}
+	
+	private Object add(Object key, final Object value, final boolean bulkAdd) {
+		if(key == null)
+			key = NULLKEY;
+		final int idx = bulkAdd ? nonModifyingFindIndex(key) : findIndex(key);
 		final Object oldValue = data[idx+1];
-		if ((data[idx] == null && data[idx+1] == null) || data[idx] == THOMBSTONE)
+		if (data[idx] == null || data[idx] == THOMBSTONE)
 		{
 			data[idx] = key;
 			size++;
@@ -221,9 +233,11 @@ public class LightHashMap extends AbstractMap {
 		return oldValue;
 	}
 
-	public Object remove(final Object key) {
+	public Object remove(Object key) {
 		if(size == 0)
 			return null;
+		if(key == null)
+			key = NULLKEY;
 		final int idx = findIndex(key);
 		if (keysEqual(data[idx], key))
 			return removeForIndex(idx);
@@ -233,8 +247,6 @@ public class LightHashMap extends AbstractMap {
 	private Object removeForIndex(final int idx)
 	{
 		final Object oldValue = data[idx+1];
-		if (data[idx] == null && oldValue == null) // sanity check for null keys
-			return null;
 		data[idx] = THOMBSTONE;
 		data[idx+1] = null;
 		size--;
@@ -249,9 +261,11 @@ public class LightHashMap extends AbstractMap {
 		data = new Object[capacity*2];
 	}
 
-	public boolean containsKey(final Object key) {
+	public boolean containsKey(Object key) {
 		if(size == 0)
 			return false;
+		if(key == null)
+			key = NULLKEY;
 		return keysEqual(key, data[nonModifyingFindIndex(key)]);
 	}
 
@@ -278,7 +292,7 @@ public class LightHashMap extends AbstractMap {
 	}
 
 	private int findIndex(final Object keyToFind) {
-		final int hash = keyToFind == null ? 0 : keyToFind.hashCode() << 1;
+		final int hash = keyToFind.hashCode() << 1;
 		/* hash ^= (hash >>> 20) ^ (hash >>> 12);
 		 * hash ^= (hash >>> 7) ^ (hash >>> 4);
 		 */
@@ -288,7 +302,7 @@ public class LightHashMap extends AbstractMap {
 		int thombStoneCount = 0;
 		final int thombStoneThreshold = Math.min((data.length>>1)-size, 100);
 		// search until we find a free entry or an entry matching the key to insert
-		while ((data[newIndex] != null || data[newIndex+1] != null) && !keysEqual(data[newIndex], keyToFind))
+		while (data[newIndex] != null && !keysEqual(data[newIndex], keyToFind))
 		{
 			if (data[newIndex] == THOMBSTONE)
 			{
@@ -314,18 +328,23 @@ public class LightHashMap extends AbstractMap {
 	}
 	
 	private int nonModifyingFindIndex(final Object keyToFind) {
-		final int hash = keyToFind == null ? 0 : keyToFind.hashCode() << 1;
+		final int hash = keyToFind.hashCode() << 1;
 		/* hash ^= (hash >>> 20) ^ (hash >>> 12);
 		 * hash ^= (hash >>> 7) ^ (hash >>> 4);
 		 */
 		int probe = 1;
 		int newIndex = hash & (data.length - 1);
+		int thombStoneIndex = -1;
 		// search until we find a free entry or an entry matching the key to insert
-		while ((data[newIndex] != null || data[newIndex+1] != null) && !keysEqual(data[newIndex], keyToFind) && probe < (data.length>>1))
+		while (data[newIndex] != null && !keysEqual(data[newIndex], keyToFind) && probe < (data.length>>1))
 		{
+			if(data[newIndex] == THOMBSTONE && thombStoneIndex == -1)
+				thombStoneIndex = newIndex;
 			newIndex = (hash + probe + probe * probe) & (data.length - 1);
 			probe++;
 		}
+		if (thombStoneIndex != -1 && !keysEqual(data[newIndex], keyToFind))
+			return thombStoneIndex;
 		return newIndex;
 	}
 	
@@ -353,7 +372,7 @@ public class LightHashMap extends AbstractMap {
 		int newCapacity = 1;
 		if (compactingLoadFactor == 0.f)
 			compactingLoadFactor = loadFactor;
-		while (newCapacity * compactingLoadFactor < size)
+		while (newCapacity * compactingLoadFactor < (size+1))
 			newCapacity <<= 1;
 		adjustCapacity(newCapacity);
 	}
@@ -364,16 +383,16 @@ public class LightHashMap extends AbstractMap {
 		size = 0;
 		for (int i = 0; i < oldData.length; i+=2)
 		{
-			if ((oldData[i] == null && oldData[i+1] == null) || oldData[i] == THOMBSTONE)
+			if (oldData[i] == null || oldData[i] == THOMBSTONE)
 				continue;
-			add(oldData[i], oldData[i+1]);
+			add(oldData[i], oldData[i+1], true);
 		}
 	}
 
 	static void test() {
 		final Random rnd = new Random();
-		final byte[] buffer = new byte[25];
-		final String[] fillData = new String[(int)((1<<20) * 0.93f)];
+		final byte[] buffer = new byte[5];
+		final String[] fillData = new String[(int)((1<<21) * 0.93f)];
 		for (int i = 0; i < fillData.length; i++)
 		{
 			rnd.nextBytes(buffer);
@@ -441,6 +460,7 @@ public class LightHashMap extends AbstractMap {
 
 	public static void main(final String[] args) {
 		System.out.println("Call with -Xmx300m -Xcomp -server");
+		Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 		
 		// some quadratic probing math test:
 		/*
