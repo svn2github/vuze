@@ -1335,8 +1335,10 @@ public class MainWindow
 			}
 		}
 
-		activeTopBar = (IView) topbarViews.get(0);
-		activeTopBar.getComposite().setVisible(true);
+		if (topbarViews.size() > 0) {
+  		activeTopBar = (IView) topbarViews.get(0);
+  		activeTopBar.getComposite().setVisible(true);
+		}
 
 		UIUpdaterFactory.getInstance().addUpdater(new UIUpdatable() {
 			public void updateUI() {
