@@ -313,6 +313,18 @@ public class AdManager
 	protected void processImpression(Map values) {
 		final String PREFIX = "Yum";
 		try {
+			String contentHash = (String) values.get("contentHash");
+			if (contentHash == null) {
+				PlatformAdManager.debug("No Content Hash!");
+				return;
+			}
+
+			DownloadManager dmContent = core.getGlobalManager().getDownloadManager(
+					new HashWrapper(Base32.decode(contentHash)));
+			if (dmContent != null) {
+				dmContent.setData("LastASX", null);
+			}
+
 			String impressionID = (String) values.get("impressionTracker");
 			if (impressionID == null || impressionID.equals(lastImpressionID)) {
 				return;
@@ -321,12 +333,6 @@ public class AdManager
 
 			String adHash = (String) values.get("srcURL");
 			if (adHash == null) {
-				return;
-			}
-
-			String contentHash = (String) values.get("contentHash");
-			if (contentHash == null) {
-				PlatformAdManager.debug("No Content Hash!");
 				return;
 			}
 
@@ -341,12 +347,6 @@ public class AdManager
 					new HashWrapper(Base32.decode(adHash)));
 			if (dm == null) {
 				System.err.println("DM for Ad not found. CHEATER!!");
-			}
-
-			DownloadManager dmContent = core.getGlobalManager().getDownloadManager(
-					new HashWrapper(Base32.decode(contentHash)));
-			if (dmContent != null) {
-				dmContent.setData("LastASX", null);
 			}
 
 			PlatformAdManager.storeImpresssion(impressionID,
