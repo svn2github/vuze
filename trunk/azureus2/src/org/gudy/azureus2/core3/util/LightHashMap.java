@@ -91,7 +91,7 @@ public class LightHashMap extends AbstractMap {
 		public void remove() {
 			if (currentIdx == -2)
 				new IllegalStateException("No entry to delete, use next() first");
-			LightHashMap.this.remove(data[currentIdx]);
+			LightHashMap.this.removeForIndex(currentIdx);
 			currentIdx = -2;
 		}
 
@@ -193,6 +193,8 @@ public class LightHashMap extends AbstractMap {
 			final Map.Entry entry = (Map.Entry) it.next();
 			add(entry.getKey(), entry.getValue());
 		}
+		// compactify in case we overestimated the new size due to redundant entries
+		compactify(0.f);
 	}
 
 	public Set keySet() {
@@ -204,7 +206,7 @@ public class LightHashMap extends AbstractMap {
 	}
 
 	public Object get(final Object key) {
-		return data[findIndex(key)+1];
+		return data[nonModifyingFindIndex(key)+1];
 	}
 
 	private Object add(final Object key, final Object value) {
@@ -220,18 +222,23 @@ public class LightHashMap extends AbstractMap {
 	}
 
 	public Object remove(final Object key) {
+		if(size == 0)
+			return null;
 		final int idx = findIndex(key);
 		if (keysEqual(data[idx], key))
-		{
-			final Object oldValue = data[idx+1];
-			if (key == null && oldValue == null) // sanity check for null keys
-				return null;
-			data[idx] = THOMBSTONE;
-			data[idx+1] = null;
-			size--;
-			return oldValue;
-		}
+			return removeForIndex(idx);
 		return null;
+	}
+	
+	private Object removeForIndex(final int idx)
+	{
+		final Object oldValue = data[idx+1];
+		if (data[idx] == null && oldValue == null) // sanity check for null keys
+			return null;
+		data[idx] = THOMBSTONE;
+		data[idx+1] = null;
+		size--;
+		return oldValue;
 	}
 
 	public void clear() {
@@ -243,7 +250,9 @@ public class LightHashMap extends AbstractMap {
 	}
 
 	public boolean containsKey(final Object key) {
-		return keysEqual(key, data[findIndex(key)]);
+		if(size == 0)
+			return false;
+		return keysEqual(key, data[nonModifyingFindIndex(key)]);
 	}
 
 	public boolean containsValue(final Object value) {
@@ -291,10 +300,11 @@ public class LightHashMap extends AbstractMap {
 					compactify(0.f);
 					thombStoneIndex = -1;
 					probe = 0;
+					thombStoneCount = 0; // not really necessary
 				}
 			}
 				
-			newIndex = (hash + ((probe + probe * probe) & 0xFFFE)) & (data.length - 1);
+			newIndex = (hash + probe + probe * probe) & (data.length - 1);
 			probe++;
 		}
 		// if we didn't find an exact match then the first thombstone will do too for insert
@@ -302,6 +312,23 @@ public class LightHashMap extends AbstractMap {
 			return thombStoneIndex;
 		return newIndex;
 	}
+	
+	private int nonModifyingFindIndex(final Object keyToFind) {
+		final int hash = keyToFind == null ? 0 : keyToFind.hashCode() << 1;
+		/* hash ^= (hash >>> 20) ^ (hash >>> 12);
+		 * hash ^= (hash >>> 7) ^ (hash >>> 4);
+		 */
+		int probe = 1;
+		int newIndex = hash & (data.length - 1);
+		// search until we find a free entry or an entry matching the key to insert
+		while ((data[newIndex] != null || data[newIndex+1] != null) && !keysEqual(data[newIndex], keyToFind) && probe < (data.length>>1))
+		{
+			newIndex = (hash + probe + probe * probe) & (data.length - 1);
+			probe++;
+		}
+		return newIndex;
+	}
+	
 
 	private void checkCapacity(final int n) {
 		final int currentCapacity = data.length>>1;
@@ -415,6 +442,29 @@ public class LightHashMap extends AbstractMap {
 	public static void main(final String[] args) {
 		System.out.println("Call with -Xmx300m -Xcomp -server");
 		
+		// some quadratic probing math test:
+		/*
+		boolean[] testArr = new boolean[1<<13];
+		int hash = 0xc8d3 << 1;
+		int position = hash & (testArr.length -1);
+		int probe = 0;
+		do
+		{
+			position = (hash + probe + probe * probe) & (testArr.length - 1);
+			probe++;
+			testArr[position] = true;
+		} while (probe < (testArr.length>>1));
+		
+		for(int i = 0;i<testArr.length;i+=2)
+		{
+			if(testArr[i] != true)
+				System.out.println("even element failed"+i);
+			if(testArr[i+1] != false)
+				System.out.println("uneven element failed"+(i+1));
+		}
+		*/
+		
+		
 		try
 		{
 			Thread.sleep(300);
@@ -509,8 +559,8 @@ public class LightHashMap extends AbstractMap {
 			int random = rnd.nextInt(fillData.length);			
 
 			m2.put(fillData[random], fillData[i%fillData.length]);
-		}*/
-		
+		}
+		*/
 		for(int i = 0;i<100000;i++)
 		{
 			rnd.nextBytes(buffer);
