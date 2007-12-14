@@ -563,6 +563,29 @@ public class Utils {
 				shell.setImage(image);
 		}
 	}
+  
+  private static Display getDisplay() {
+		SWTThread swt = SWTThread.getInstance();
+
+		Display display;
+		if (swt == null) {
+			display = Display.getDefault();
+			if (display == null) {
+				System.err.println("SWT Thread not started yet!");
+				return null;
+			}
+		} else {
+			if (swt.isTerminated()) {
+				return null;
+			}
+			display = swt.getDisplay();
+		}
+
+		if (display == null || display.isDisposed()) {
+			return null;
+		}
+		return display;
+  }
 
   /**
    * Execute code in the Runnable object using SWT's thread.  If current
@@ -578,24 +601,10 @@ public class Utils {
    */
   public static boolean execSWTThread(final Runnable code,
 			boolean async) {
-		SWTThread swt = SWTThread.getInstance();
-
-		Display display;
-		if (swt == null) {
-			display = Display.getDefault();
-			if (display == null) {
-				System.err.println("SWT Thread not started yet!");
-				return false;
-			}
-		} else {
-			if (swt.isTerminated()) {
-				return false;
-			}
-			display = swt.getDisplay();
-		}
-
-		if (display == null || display.isDisposed() || code == null)
+  	Display display = getDisplay();
+		if (display == null || code == null) {
 			return false;
+		}
 
 		if (display.getThread() == Thread.currentThread()) {
 			if (queue == null) {
@@ -1290,20 +1299,50 @@ public class Utils {
 
 		return font;
 	}
-	
+
+	/**
+	 * @deprecated Use {@link #execSWTThread(AERunnableWithCallback)} to avoid
+	 *             thread locking issues
+	 */
 	public static boolean execSWTThreadWithBool(String ID,
 			AERunnableBoolean code) {
 		return execSWTThreadWithBool(ID, code, 0);
 	}
 
+	/**
+	 * Runs code within the SWT thread, waits for code to complete executing,
+	 * (using a sempaphore), and then returns a value.
+	 * 
+	 * @note USE WITH CAUTION.  If the calling function synchronizes, and the
+	 *       runnable code ends up synchronizing on the same object, an indefinite
+	 *       thread lock or an unexpected timeout may occur (if one of the threads
+	 *       is the SWT thread).<p>
+	 *  ex - Thread1 calls c.foo(), which synchronized(this).
+	 *     - Thread2 is the SWT Thread.  Thread2 calls c.foo(), which waits on 
+	 *       Thread1 to complete.
+	 *   	 - c.foo() from Thread1 calls execSWTThreadWithBoolean(.., swtcode, ..),
+	 *       which waits for the SWT Thread to return run the swtcode.
+	 *     - Deadlock, or Timoeout which returns a false (and no code ran)
+	 *
+	 * @param ID id for debug
+	 * @param code code to run
+	 * @param millis ms to timeout in
+	 * @return
+	 */
 	public static boolean execSWTThreadWithBool(String ID,
 			AERunnableBoolean code, long millis) {
 		if (code == null) {
 			return false;
 		}
 
-		final AESemaphore			sem 	= new AESemaphore(ID);
 		boolean[] returnValueObject = { false };
+
+		Display display = getDisplay();
+
+		AESemaphore	sem = null;
+		if (display == null || display.getThread() != Thread.currentThread()) {
+			sem = new AESemaphore(ID);
+		}
 
 		try{
 			code.setupReturn(ID, returnValueObject, sem);
@@ -1314,27 +1353,61 @@ public class Utils {
 				return false;
 			}
 		}catch( Throwable e ){
+			if (sem != null) {
+				sem.release();
+			}
 			Debug.out(ID, e);
-			sem.release();
 		}
-		sem.reserve(millis);
+		if (sem != null) {
+			sem.reserve(millis);
+		}
 	
 		return returnValueObject[0];
 	}
 
+	/**
+	 * @deprecated Use {@link #execSWTThread(AERunnableWithCallback)} to avoid
+	 *             thread locking issues
+	 */
 	public static Object execSWTThreadWithObject(String ID,
 			AERunnableObject code) {
 		return execSWTThreadWithObject(ID, code, 0);
 	}
 
+	/**
+	 * Runs code within the SWT thread, waits for code to complete executing,
+	 * (using a sempaphore), and then returns a value.
+	 * 
+	 * @note USE WITH CAUTION.  If the calling function synchronizes, and the
+	 *       runnable code ends up synchronizing on the same object, an indefinite
+	 *       thread lock or an unexpected timeout may occur (if one of the threads
+	 *       is the SWT thread).<p>
+	 *  ex - Thread1 calls c.foo(), which synchronized(this).
+	 *     - Thread2 is the SWT Thread.  Thread2 calls c.foo(), which waits on 
+	 *       Thread1 to complete.
+	 *   	 - c.foo() from Thread1 calls execSWTThreadWithObject(.., swtcode, ..),
+	 *       which waits for the SWT Thread to return run the swtcode.
+	 *     - Deadlock, or Timoeout which returns a null (and no code ran)
+	 *
+	 * @param ID id for debug
+	 * @param code code to run
+	 * @param millis ms to timeout in
+	 * @return
+	 */
 	public static Object execSWTThreadWithObject(String ID,
 			AERunnableObject code, long millis) {
 		if (code == null) {
 			return null;
 		}
 
-		final AESemaphore			sem 	= new AESemaphore(ID);
 		Object[] returnValueObject = { null };
+
+		Display display = getDisplay();
+
+		AESemaphore	sem = null;
+		if (display == null || display.getThread() != Thread.currentThread()) {
+			sem = new AESemaphore(ID);
+		}
 
 		try{
 			code.setupReturn(ID, returnValueObject, sem);
@@ -1344,16 +1417,20 @@ public class Utils {
 				return null;
 			}
 		}catch( Throwable e ){
+			if (sem != null) {
+				sem.release();
+			}
 			Debug.out(ID, e);
-			sem.release();
 		}
-		sem.reserve(millis);
+		if (sem != null) {
+			sem.reserve(millis);
+		}
 	
 		return returnValueObject[0];
 	}
 
 	/**
-	 * Waits until modal dialogs are disposed.  Assumes we are one SWT thread
+	 * Waits until modal dialogs are disposed.  Assumes we are on SWT thread
 	 *
 	 * @since 3.0.1.3
 	 */
