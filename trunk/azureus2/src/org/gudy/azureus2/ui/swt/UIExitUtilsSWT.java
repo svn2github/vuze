@@ -111,7 +111,7 @@ public class UIExitUtilsSWT
 
 									return mb.open() == 0;
 								}
-							});
+							}, 0);
 				} else {
 					allowQuit = Utils.execSWTThreadWithBool("quitSeeding",
 							new AERunnableBoolean() {
@@ -145,7 +145,7 @@ public class UIExitUtilsSWT
 
 									return mb.open() == 0;
 								}
-							});
+							}, 0);
 				}
 				return allowQuit;
 			}
