@@ -9,8 +9,7 @@ import java.util.Iterator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -51,6 +50,8 @@ public class SWTSkinObjectBasic
 
 	private String sViewID;
 
+	private boolean isVisible;
+
 	/**
 	 * @param properties TODO
 	 * 
@@ -72,7 +73,17 @@ public class SWTSkinObjectBasic
 		this.parent = parent;
 	}
 
-	public void setControl(Control control) {
+	public void setControl(final Control control) {
+		if (!Utils.isThisThreadSWT()) {
+			Debug.out("Warning: setControl not called in SWT thread for " + this);
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					setControl(control);
+				}
+			});
+			return;
+		}
+
 		this.control = control;
 		control.setData("ConfigID", sConfigID);
 		control.setData("SkinObject", this);
@@ -85,6 +96,15 @@ public class SWTSkinObjectBasic
 				"false")) {
 			setVisible(false);
 		}
+
+		Listener lShowHide = new Listener() {
+			public void handleEvent(Event event) {
+				isVisible = event.type == SWT.Show;
+			}
+		};
+		control.addListener(SWT.Show, lShowHide);
+		control.addListener(SWT.Hide, lShowHide);
+		isVisible = control.isVisible();
 	}
 
 	public Control getControl() {
@@ -213,13 +233,10 @@ public class SWTSkinObjectBasic
 	}
 
 	public boolean isVisible() {
-		return Utils.execSWTThreadWithBool("isVisible", new AERunnableBoolean() {
-		
-			public boolean runSupport() {
-				return control != null && !control.isDisposed() && control.isVisible();
-			}
-		
-		}, 30000);
+		if (control == null || control.isDisposed()) {
+			return false;
+		}
+		return isVisible;
 	}
 
 	public String switchSuffix(String suffix, int level, boolean walkUp) {
@@ -409,14 +426,6 @@ public class SWTSkinObjectBasic
 	}
 
 	public boolean isDisposed() {
-		if (control == null) {
-			return false;
-		}
-
-		return Utils.execSWTThreadWithBool("isDisposed", new AERunnableBoolean() {
-			public boolean runSupport() {
-				return control == null || control.isDisposed();
-			}
-		}, 30000);
+		return control == null || control.isDisposed();
 	}
 }
