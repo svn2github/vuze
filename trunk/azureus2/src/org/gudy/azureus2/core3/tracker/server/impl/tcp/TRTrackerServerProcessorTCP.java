@@ -665,6 +665,27 @@ TRTrackerServerProcessorTCP
 					
 					data = BEncoder.encode( root );
 					
+					if ( data.length > 1000000 ){
+						
+						File	dump = new File( "bdecoder.dump" );
+						
+						synchronized( TRTrackerServerProcessorTCP.class ){
+							
+							try{
+								Debug.out( "Output is too large, saving diagnostics to " + dump.toString());
+								
+								PrintWriter	pw = new PrintWriter( new FileWriter( dump ));
+								
+								BDecoder.print( pw, root );
+								
+								pw.close();
+								
+							}catch( Throwable e ){
+								
+							}
+						}
+					}
+					
 					root.put( "_data", data );
 				}
 				

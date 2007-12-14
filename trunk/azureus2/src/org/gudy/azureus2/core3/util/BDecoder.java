@@ -379,7 +379,7 @@ public class BDecoder {
 	  recovery_mode	= r;
   }
   
-  private void
+  public static void
   print(
 	PrintWriter	writer,
 	Object		obj )
@@ -387,7 +387,7 @@ public class BDecoder {
 	  print( writer, obj, "", false );
   }
   
-  private void
+  private static void
   print(
 	PrintWriter	writer,
 	Object		obj,
@@ -545,7 +545,7 @@ public class BDecoder {
 		  
 		  PrintWriter	pw = new PrintWriter( new FileWriter( output ));
 		  
-		  decoder.print( pw, decoder.decodeStream( new BufferedInputStream( new FileInputStream( f ))));
+		  print( pw, decoder.decodeStream( new BufferedInputStream( new FileInputStream( f ))));
 		  
 		  pw.flush();
 		  
