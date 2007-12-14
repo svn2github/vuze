@@ -231,7 +231,8 @@ public class BTPeerIDByteDecoderDefinitions {
 		// ... and then do everything else alphabetically.
 		addAzStyle("A~", "Ares", VER_AZ_THREE_DIGITS);
 		addAzStyle("AG", "Ares", VER_AZ_THREE_DIGITS);
-		addAzStyle("AR", "ArcticTorrent", NO_VERSION); //based on libtorrent but same peerid for different versions
+		//addAzStyle("AR", "ArcticTorrent", NO_VERSION); //based on libtorrent but same peerid for different versions
+		addAzStyle("AR", "Ares"); // Ares is more likely than ArcticTorrent
 		addAzStyle("AV", "Avicora");
 		addAzStyle("AX", "BitPump", VER_AZ_TWO_MAJ_TWO_MIN);
 		addAzStyle("AT", "Artemis");
@@ -262,8 +263,9 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("LT", "libtorrent (Rasterbar)", VER_AZ_THREE_ALPHANUMERIC_DIGITS);
 		addAzStyle("lt", "libTorrent (Rakshasa)", VER_AZ_THREE_ALPHANUMERIC_DIGITS);
 		addAzStyle("LW", "LimeWire", NO_VERSION); // The "0001" bytes found after the LW commonly refers to the version of the BT protocol implemented. Documented here: http://www.limewire.org/wiki/index.php?title=BitTorrentRevision
-		addAzStyle("MP", "MooPolice", VER_AZ_THREE_DIGITS);
 		addAzStyle("MO", "MonoTorrent");
+		addAzStyle("MP", "MooPolice", VER_AZ_THREE_DIGITS);
+		addAzStyle("MR", "Miro");
 		addAzStyle("MT", "MoonlightTorrent");
 		addAzStyle("PC", PeerClassifier.CACHE_LOGIC);
 		addAzStyle("PD", "Pando");
