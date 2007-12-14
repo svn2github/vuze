@@ -24,7 +24,6 @@ import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AERunnableBoolean;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
@@ -366,26 +365,26 @@ public class UIFunctionsImpl
 		return mainwindow.getUISWTInstanceImpl();
 	}
 
-	public boolean viewURL(final String url, final String target, final int w,
+	// @see com.aelitis.azureus.ui.UIFunctions#viewURL(java.lang.String, java.lang.String, int, int, boolean, boolean)
+	public void viewURL(final String url, final String target, final int w,
 			final int h, final boolean allowResize, final boolean isModal) {
-		return Utils.execSWTThreadWithBool("viewURL", new AERunnableBoolean() {
-			public boolean runSupport() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
 				SimpleBrowserWindow window = new SimpleBrowserWindow(
 						mainwindow.getShell(), url, w, h, allowResize, isModal);
 				window.waitUntilClosed();
-				return true;
 			}
 		});
 	}
 
-	public boolean viewURL(final String url, final String target, final double w,
+	// @see com.aelitis.azureus.ui.UIFunctions#viewURL(java.lang.String, java.lang.String, double, double, boolean, boolean)
+	public void viewURL(final String url, final String target, final double w,
 			final double h, final boolean allowResize, final boolean isModal) {
-		return Utils.execSWTThreadWithBool("viewURL", new AERunnableBoolean() {
-			public boolean runSupport() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
 				SimpleBrowserWindow window = new SimpleBrowserWindow(
 						mainwindow.getShell(), url, w, h, allowResize, isModal);
 				window.waitUntilClosed();
-				return true;
 			}
 		});
 	}

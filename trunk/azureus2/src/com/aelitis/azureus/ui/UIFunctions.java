@@ -143,10 +143,10 @@ public interface UIFunctions
 	 * @param allowResize 
 	 * @return success level
 	 */
-	boolean viewURL(String url, String target, int w, int h, boolean allowResize,
+	void viewURL(String url, String target, int w, int h, boolean allowResize,
 			boolean isModal);
 
-	boolean viewURL(String url, String target, double wPct, double hPct,
+	void viewURL(String url, String target, double wPct, double hPct,
 			boolean allowResize, boolean isModal);
 
 
