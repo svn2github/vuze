@@ -106,8 +106,10 @@ DHTTrackerPlugin
 	private static final int	REG_TYPE_FULL			= 2;
 	private static final int	REG_TYPE_DERIVED		= 3;
 	
+	private static final int	LIMITED_TRACK_SIZE		= 16;
 	
 	private static final boolean	TRACK_NORMAL_DEFAULT	= true;
+	private static final boolean	TRACK_LIMITED_DEFAULT	= true;
 	
 	private static final int	NUM_WANT			= 30;	// Limit to ensure replies fit in 1 packet
 
@@ -138,11 +140,13 @@ DHTTrackerPlugin
 	private Map					running_downloads 		= new HashMap();
 	private Map					registered_downloads 	= new HashMap();
 	
+	private Map					limited_online_tracking	= new HashMap();
 	private Map					query_map			 	= new HashMap();
 	
 	private Map					in_progress				= new HashMap();
 	
 	private BooleanParameter	track_normal_when_offline;
+	private BooleanParameter	track_limited_when_online;
 	
 	private LoggerChannel		log;
 	
@@ -179,7 +183,9 @@ DHTTrackerPlugin
 			
 		track_normal_when_offline = config.addBooleanParameter2( "dhttracker.tracknormalwhenoffline", "dhttracker.tracknormalwhenoffline", TRACK_NORMAL_DEFAULT );
 
-		track_normal_when_offline.addListener(
+		track_limited_when_online = config.addBooleanParameter2( "dhttracker.tracklimitedwhenonline", "dhttracker.tracklimitedwhenonline", TRACK_LIMITED_DEFAULT );
+
+		track_limited_when_online.addListener(
 			new ParameterListener()
 			{
 				public void
@@ -189,6 +195,24 @@ DHTTrackerPlugin
 					configChanged();
 				}
 			});
+		
+		track_normal_when_offline.addListener(
+			new ParameterListener()
+			{
+				public void
+				parameterChanged(
+					Parameter	param )
+				{
+					track_limited_when_online.setEnabled( track_normal_when_offline.getValue());
+
+					configChanged();											
+				}
+			});
+		
+		if ( !track_normal_when_offline.getValue()){
+			
+			track_limited_when_online.setEnabled( false );
+		}
 		
 		interesting_pub_max = plugin_interface.getPluginconfig().getPluginIntParameter( "dhttracker.presencepubmax", INTERESTING_PUB_MAX_DEFAULT );
 		
@@ -571,6 +595,8 @@ DHTTrackerPlugin
 							
 							running_downloads.remove( download );
 							
+							limited_online_tracking.remove( download );
+							
 						}finally{
 							
 							this_mon.exit();
@@ -641,6 +667,7 @@ DHTTrackerPlugin
 		
 		String	register_reason;
 		
+		Random	random = new Random();
 			/*
 			 * Queued downloads are removed from the set to consider as we now have the "presence store"
 			 * mechanism to ensure that there are a number of peers out there to provide torrent download
@@ -757,6 +784,52 @@ DHTTrackerPlugin
 										}else{
 											
 											register_reason = "tracker available (scrape: " + result.getURL() + ")";								
+										}
+									}
+									
+									if ( register_type != REG_TYPE_FULL && track_limited_when_online.getValue()){
+										
+										Boolean	existing = (Boolean)limited_online_tracking.get( download );
+										
+										boolean	track_it = false;
+										
+										if ( existing != null ){
+											
+											track_it = existing.booleanValue();
+											
+										}else{
+											
+											DownloadScrapeResult result = download.getLastScrapeResult();
+											
+											if (	result != null&& 
+													result.getResponseType() == DownloadScrapeResult.RT_SUCCESS ){
+												
+												int	seeds 		= result.getSeedCount();
+												int leechers	= result.getNonSeedCount();
+												
+												int	swarm_size = seeds + leechers;
+																								
+												if ( swarm_size <= LIMITED_TRACK_SIZE ){
+													
+													track_it = true;
+													
+												}else{
+													
+													track_it = random.nextInt( swarm_size ) < LIMITED_TRACK_SIZE;
+												}
+												
+												if ( track_it ){
+													
+													limited_online_tracking.put( download, new Boolean( track_it ));
+												}
+											}
+										}
+										
+										if( track_it ){
+											
+											register_type	= REG_TYPE_FULL;
+											
+											register_reason = "limited online tracking";
 										}
 									}
 								}else{
