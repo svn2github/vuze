@@ -276,37 +276,42 @@ public class BTPeerIDByteDecoder {
 	/**
 	 * Decodes the given peerID, returning an identification string.
 	 */  
-	public static String decode(byte[] peer_id) {
-		try {
-			String client = decode0(peer_id);
-
-			if (client != null ){
-				
-				return client;
-			}		
-		}catch (Throwable e) {
+	public static String 
+	decode(byte[] peer_id) 
+	{
+		if ( peer_id.length > 0 ){
 			
-			Debug.out( "Failed to decode peer id " + ByteFormatter.encodeString(peer_id) + ": " + Debug.getNestedExceptionMessageAndStack( e ));
-		}
-
-		try {
-			String peer_id_as_string = new String(peer_id, Constants.BYTE_ENCODING);
-		
-			boolean is_az_style = BTPeerIDByteDecoderUtils.isAzStyle(peer_id_as_string);
-			
-			boolean is_shadow_style = BTPeerIDByteDecoderUtils.isShadowStyle(peer_id_as_string);
-			
-			logUnknownClient(peer_id, !(is_az_style || is_shadow_style));
+			try {
+				String client = decode0(peer_id);
 	
-			if (is_az_style) {
-				return BTPeerIDByteDecoderDefinitions.formatUnknownAzStyleClient(peer_id_as_string);
+				if (client != null ){
+					
+					return client;
+				}		
+			}catch (Throwable e) {
+				
+				Debug.out( "Failed to decode peer id " + ByteFormatter.encodeString(peer_id) + ": " + Debug.getNestedExceptionMessageAndStack( e ));
 			}
-			else if (is_shadow_style) {
-				return BTPeerIDByteDecoderDefinitions.formatUnknownShadowStyleClient(peer_id_as_string);
-			}
-		}catch( Throwable e ){
+	
+			try {
+				String peer_id_as_string = new String(peer_id, Constants.BYTE_ENCODING);
 			
-			Debug.out( "Failed to decode peer id " + ByteFormatter.encodeString(peer_id) + ": " + Debug.getNestedExceptionMessageAndStack( e ));	
+				boolean is_az_style = BTPeerIDByteDecoderUtils.isAzStyle(peer_id_as_string);
+				
+				boolean is_shadow_style = BTPeerIDByteDecoderUtils.isShadowStyle(peer_id_as_string);
+				
+				logUnknownClient(peer_id, !(is_az_style || is_shadow_style));
+		
+				if (is_az_style) {
+					return BTPeerIDByteDecoderDefinitions.formatUnknownAzStyleClient(peer_id_as_string);
+				}
+				else if (is_shadow_style) {
+					return BTPeerIDByteDecoderDefinitions.formatUnknownShadowStyleClient(peer_id_as_string);
+				}
+			}catch( Throwable e ){
+				
+				Debug.out( "Failed to decode peer id " + ByteFormatter.encodeString(peer_id) + ": " + Debug.getNestedExceptionMessageAndStack( e ));	
+			}
 		}
 		
 		String sPeerID = getPrintablePeerID(peer_id);
