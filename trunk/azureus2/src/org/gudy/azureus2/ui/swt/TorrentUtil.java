@@ -577,64 +577,57 @@ public class TorrentUtil {
 			Messages.setLanguageText(itemExportTorrent, "MyTorrentsView.menu.exporttorrent");
 			itemExportTorrent.addListener(SWT.Selection, new DMTask(dms) {
 				public void run(DownloadManager[] dms) {
-					DownloadManager dm = dms[0]; // First only.
-					if (dm != null) {
+					// FileDialog for single download
+					// DirectoryDialog for multiple.
+					File[] destinations = new File[dms.length];
+					if (dms.length == 1) {
 						FileDialog fd = new FileDialog(composite.getShell(), SWT.SAVE);
-
-						fd.setFileName(dm.getTorrentFileName());
-
+						fd.setFileName(dms[0].getTorrentFileName());
 						String path = fd.open();
-
-						if (path != null) {
-
-							try {
-								File target = new File(path);
-
-								if (target.exists()) {
-
-									MessageBox mb = new MessageBox(composite.getShell(), SWT.ICON_QUESTION | SWT.YES
-											| SWT.NO);
-
-									mb.setText(MessageText
-											.getString("exportTorrentWizard.process.outputfileexists.title"));
-
-									mb.setMessage(MessageText
-											.getString("exportTorrentWizard.process.outputfileexists.message"));
-
-									int result = mb.open();
-
-									if (result == SWT.NO) {
-
-									return; }
-
-									if (!target.delete()) {
-
-									throw (new Exception("Failed to delete file")); }
-								}
-
-								// first copy the torrent - DON'T use "writeTorrent" as this amends the
-								// "filename" field in the torrent
-
-								TorrentUtils.copyToFile(dm.getDownloadState().getTorrent(), target);
-
-								// now remove the non-standard entries
-
-								TOTorrent dest = TOTorrentFactory.deserialiseFromBEncodedFile(target);
-
-								dest.removeAdditionalProperties();
-
-								dest.serialiseToBEncodedFile(target);
-
-							}
-							catch (Throwable e) {
-								Logger.log(new LogAlert(dm, LogAlert.UNREPEATABLE, "Torrent export failed", e));
-							}
-
+						if (path == null) {return;}
+						destinations[0] = new File(path);
+					}
+					else {
+						DirectoryDialog dd = new DirectoryDialog(composite.getShell(), SWT.SAVE);
+						String path = dd.open();
+						if (path == null) {return;}
+						for (int i=0; i<dms.length; i++) {
+							destinations[i] = new File(path, new File(dms[i].getTorrentFileName()).getName());
 						}
 					}
-				}
-				
-			});
+					
+					int i=0;
+					try {
+						for (; i<dms.length; i++) {
+							File target = destinations[i];
+							if (target.exists()) {
+								MessageBox mb = new MessageBox(composite.getShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO);
+								mb.setText(MessageText.getString("exportTorrentWizard.process.outputfileexists.title"));
+								mb.setMessage(MessageText.getString("exportTorrentWizard.process.outputfileexists.message") + "\n" + destinations[i].getName());
+
+								int result = mb.open();
+								if (result == SWT.NO) {return;}
+
+								if (!target.delete()) {
+									throw (new Exception("Failed to delete file"));
+								}
+							} // end deal with clashing torrent
+
+							// first copy the torrent - DON'T use "writeTorrent" as this amends the
+							// "filename" field in the torrent
+							TorrentUtils.copyToFile(dms[i].getDownloadState().getTorrent(), target);
+
+							// now remove the non-standard entries
+							TOTorrent dest = TOTorrentFactory.deserialiseFromBEncodedFile(target);
+							dest.removeAdditionalProperties();
+							dest.serialiseToBEncodedFile(target);
+						} // end for
+					} // end try
+					catch (Throwable e) {
+						Logger.log(new LogAlert(dms[i], LogAlert.UNREPEATABLE, "Torrent export failed", e));
+					}
+				} // end run()
+			}); // end DMTask
 			
 			// Advanced > Export > WebSeed URL
 			final MenuItem itemWebSeed = new MenuItem(menuExport, SWT.PUSH);

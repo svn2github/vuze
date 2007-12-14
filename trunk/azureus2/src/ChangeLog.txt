@@ -6,6 +6,7 @@ AZUREUS CHANGELOG
 
 CHANGE: Core  | Added option to disable download speed focus [The 8472]
 CHANGE: Core  | Reduced memory usage for many-torrent instances [The 8472]
+CHANGE: UI    | Multiple selected torrent export now works [amc1]
 
 BUGFIX: Core  | fixed ip filters not working when ALLOW instead of DENY was used [parg]
 
