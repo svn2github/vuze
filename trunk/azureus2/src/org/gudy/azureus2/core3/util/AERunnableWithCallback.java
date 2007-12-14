@@ -41,10 +41,13 @@ public abstract class AERunnableWithCallback
 		try {
 			Object o = runSupport();
 			if (callback != null) {
-				callback.callback(o);
+				callback.callbackSuccess(o);
 			}
 		} catch (Throwable e) {
 			Debug.out(e);
+			if (callback != null) {
+				callback.callbackFailure(e);
+			}
 		}
 	}
 
