@@ -4,13 +4,16 @@ AZUREUS CHANGELOG
 
 2007.12.xx | Azureus Vuze 3.0.4.1
 
+FEATURE: Plug | Perform low resource usage tracking of online torrents for swarm cross-population purposes [Parg]
+
 CHANGE: Core  | Added option to disable download speed focus [The 8472]
 CHANGE: Core  | Reduced memory usage for many-torrent instances [The 8472]
 CHANGE: Core  | Default setting for "ignore torrents with 0 peers" changed - should result in fewer torrents appearing "dead" [amc1]
 CHANGE: UI    | Multiple selected torrent export now works [amc1]
 
-BUGFIX: Core  | fixed ip filters not working when ALLOW instead of DENY was used [parg]
-
+BUGFIX: Core  | fixed ip filters not working when ALLOW instead of DENY was used [Parg]
+BUGFIX: Core  | improve rebuffering behaviour when real-time pieces are too slow for any peers to get in time [Parg]
+BUGFIX: Core  | ensure minimum buffer requirements are factored into ETA calculation [Parg]
 
 2007.12.06 | Azureus Vuze 3.0.4.0
 
