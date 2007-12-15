@@ -66,6 +66,9 @@ BufferedTruncatedLabel
 	setLayoutData(
 		GridData	gd )
 	{
+  	if (isDisposed()) {
+  		return;
+  	}
 		label.setLayoutData( gd );
 	}
 	
@@ -107,14 +110,23 @@ BufferedTruncatedLabel
   }
   
   public void setForeground(Color color) {
+  	if (isDisposed()) {
+  		return;
+  	}
     label.setForeground(color);
   }
   
   public void setCursor(Cursor cursor) {
+  	if (isDisposed()) {
+  		return;
+  	}
     label.setCursor(cursor);
   }
   
   public void setToolTipText(String toolTipText) {
+  	if (isDisposed()) {
+  		return;
+  	}
     label.setToolTipText(toolTipText);
   }
       
