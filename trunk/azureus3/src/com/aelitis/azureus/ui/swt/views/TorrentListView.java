@@ -282,17 +282,11 @@ public class TorrentListView
 							downloadManagerAdded(dm);
 
 							if (max == i) {
+								// processDataSourceQueue will refresh visible rows
 								processDataSourceQueue();
 								bSkipUpdateCount = false;
 								updateCount();
 								bSkipUpdateCount = true;
-
-								for (int j = 0; j <= i; j++) {
-									TableRowCore row = getRow(j);
-									if (row != null) {
-										row.redraw();
-									}
-								}
 							}
 						}
 						bSkipUpdateCount = false;
@@ -300,6 +294,7 @@ public class TorrentListView
 						if (!bAllowScrolling) {
 							regetDownloads();
 						}
+						updateCount();
 					}
 				});
 			}
@@ -541,7 +536,9 @@ public class TorrentListView
 						if (!bAllowScrolling && !bSkipUpdateCount) {
 							regetDownloads();
 						}
-						updateCount();
+						if (!bSkipUpdateCount) {
+							updateCount();
+						}
 					}
 				}
 			});

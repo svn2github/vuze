@@ -56,7 +56,6 @@ import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 
 import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
-import org.gudy.azureus2.plugins.ui.tables.TableRow;
 
 /**
  * @author TuxPaper
@@ -183,6 +182,8 @@ public class ListView
 
 	private Rectangle lastBounds = new Rectangle(0, 0, 0, 0);
 
+	private Listener lShowHide;
+
 	public ListView(final String sTableID, SWTSkinProperties skinProperties,
 			Composite parent, Composite headerArea, int style) {
 		this.skinProperties = skinProperties;
@@ -284,11 +285,29 @@ public class ListView
 		// visibility becomes true (Bug on SWT/Windows where setting scrollbar's
 		// visibility doesn't set it in Windows, but SWT still returns that it
 		// does)
-		Composite c = listCanvas;
-		Listener listenerShow = new Listener() {
-			public void handleEvent(Event event) {
-				if (event.type == SWT.Show) {
+		lShowHide = new Listener() {
+			public void handleEvent(final Event event) {
+				boolean toBeVisible = event.type == SWT.Show;
+				
+				if (event.widget == listCanvas) {
+					viewVisible = toBeVisible;
+				} else if (!toBeVisible || listCanvas.isVisible()) {
+					viewVisible = toBeVisible;
+				} else {
+					// for the moment, assume visible is true
 					viewVisible = true;
+					
+  				// container item.. check listCanvas.isVisible(), but only after
+  				// events have been processed, so that the visibility is propogated
+  				// to the listCanvas
+  				listCanvas.getDisplay().asyncExec(new AERunnable() {
+  					public void runSupport() {
+  						viewVisible = listCanvas.isVisible();
+  					}
+  				});
+				}
+
+				if (viewVisible) {
 					// asyncExec so SWT finishes up it's show routine
 					// Otherwise, the scrollbar visibility setting will fail
 					listCanvas.getDisplay().asyncExec(new AERunnable() {
@@ -298,21 +317,24 @@ public class ListView
 							handleResize(true);
 						}
 					});
-				} else {
-					viewVisible = false;
 				}
 			}
 		};
-		viewVisible = true;
-		while (c != null) {
-			viewVisible |= c.isVisible();
-			c.addListener(SWT.Show, listenerShow);
-			c.addListener(SWT.Hide, listenerShow);
-			c = c.getParent();
-		}
+		
+		viewVisible = false;
+		// We pretend view is invisible and make it visible later to 
+		// speed up startup.  Commented out code is the real visiblility getter
+		//viewVisible = true;
+		Composite walkUp = listCanvas;
+		do {
+			//viewVisible &= walkUp.isVisible();
+			walkUp.addListener(SWT.Show, lShowHide);
+			walkUp.addListener(SWT.Hide, lShowHide);
+			walkUp = walkUp.getParent();
+		} while (walkUp != null);
 
+		
 		listCanvas.addListener(SWT.Resize, new Listener() {
-
 			public void handleEvent(Event event) {
 				handleResize(false);
 			}
@@ -451,6 +473,17 @@ public class ListView
 
 		if (headerArea != null) {
 			setupHeader(headerArea);
+		}
+
+		if (!viewVisible && listCanvas.isVisible()) {
+			listCanvas.getDisplay().asyncExec(new AERunnable() {
+				public void runSupport() {
+		  		Event e = new Event();
+		  		e.type = SWT.Show;
+		  		e.widget = listCanvas;
+		  		lShowHide.handleEvent(e);
+				}
+			});
 		}
 	}
 
@@ -1005,7 +1038,10 @@ public class ListView
 
 	public void refreshVisible(final boolean doGraphics,
 			final boolean bForceRedraw, final boolean bAsync) {
-		if (isDisposed() || !listCanvas.isVisible()) {
+		if (isDisposed() || !viewVisible) {
+			if (DEBUGPAINT) {
+				logPAINT("cancel invisible refreshVisible " + Debug.getCompressedStackTrace());
+			}
 			return;
 		}
 		if (bInRefreshVisible) {
@@ -1287,6 +1323,13 @@ public class ListView
 							ListRow row = (ListRow) rows.get(i);
 							row.fixupPosition();
 						}
+					}
+
+					if (!viewVisible && listCanvas.isVisible() && lShowHide != null) {
+			  		Event e = new Event();
+			  		e.type = SWT.Show;
+			  		e.widget = listCanvas;
+			  		lShowHide.handleEvent(e);
 					}
 
 					refreshScrollbar();
@@ -2867,6 +2910,9 @@ public class ListView
 	}
 
 	public boolean isRowVisible(final ListRow row) {
+		if (listCanvas == null || listCanvas.isDisposed() || !viewVisible) {
+			return false;
+		}
 
 		return Utils.execSWTThreadWithBool("isRowVisible", new AERunnableBoolean() {
 			public boolean runSupport() {
@@ -2876,8 +2922,7 @@ public class ListView
 	}
 
 	public boolean _isRowVisible(ListRow row) {
-		if (listCanvas == null || listCanvas.isDisposed()
-				|| !listCanvas.isVisible()) {
+		if (listCanvas == null || listCanvas.isDisposed() || !viewVisible) {
 			return false;
 		}
 

@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.*;
@@ -97,14 +99,51 @@ public class SWTSkinObjectBasic
 			setVisible(false);
 		}
 
-		Listener lShowHide = new Listener() {
-			public void handleEvent(Event event) {
-				isVisible = event.type == SWT.Show;
+		final Listener lShowHide = new Listener() {
+			public void handleEvent(final Event event) {
+				boolean toBeVisible = event.type == SWT.Show; 
+				if (event.widget == control) {
+					isVisible = toBeVisible;
+					return;
+				}
+
+				if (!toBeVisible || control.isVisible()) {
+					isVisible = toBeVisible;
+					return;
+				}
+
+				// container item.. check listCanvas.isVisible(), but only after
+				// events have been processed, so that the visibility is propogated
+				// to the listCanvas
+				control.getDisplay().asyncExec(new AERunnable() {
+					public void runSupport() {
+						isVisible = control.isVisible();
+					}
+				});
 			}
 		};
-		control.addListener(SWT.Show, lShowHide);
-		control.addListener(SWT.Hide, lShowHide);
 		isVisible = control.isVisible();
+
+		final ArrayList listenersToRemove = new ArrayList(2);
+		Control walkUp = control;
+		do {
+			listenersToRemove.add(walkUp);
+			walkUp.addListener(SWT.Show, lShowHide);
+			walkUp.addListener(SWT.Hide, lShowHide);
+			walkUp = walkUp.getParent();
+		} while (walkUp != null);
+		
+		control.addDisposeListener(new DisposeListener(){
+			public void widgetDisposed(DisposeEvent e) {
+				for (Iterator iter = listenersToRemove.iterator(); iter.hasNext();) {
+					Control control = (Control) iter.next();
+					if (control != null && !control.isDisposed()) {
+						control.removeListener(SWT.Show, lShowHide);
+						control.removeListener(SWT.Hide, lShowHide);
+					}
+				}
+			}
+		});
 	}
 
 	public Control getControl() {
