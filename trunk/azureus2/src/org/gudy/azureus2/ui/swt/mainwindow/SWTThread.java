@@ -277,4 +277,12 @@ public class SWTThread {
 			display.asyncExec( target );
 		}
 	}
+	
+	public void removeLimitedFrequencyOwner(Object owner)
+	{
+		synchronized (freq_map)
+		{
+			freq_map.remove(owner);
+		}		
+	}
 }

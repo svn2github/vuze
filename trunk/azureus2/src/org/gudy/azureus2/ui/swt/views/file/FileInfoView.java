@@ -477,6 +477,8 @@ public class FileInfoView extends AbstractIView {
 			font.dispose();
 			font = null;
 		}
+		
+		SWTThread.getInstance().removeLimitedFrequencyOwner(this);
 
 		super.delete();
 	}

@@ -421,7 +421,7 @@ ListenerManager
 			
 			synchronized( this ){
 				
-				if ( !async_thread.isCurrentThread()){
+				if ( async_thread == null || !async_thread.isCurrentThread()){
 					
 						// we've been asked to close. this sem reservation must be
 						// "returned" to the pool in case it represents a valid  entry

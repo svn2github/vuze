@@ -86,6 +86,7 @@ public class Legend {
 			return null;
 
 		final Color[] defaultColors = new Color[blockColors.length];
+		final ParameterListener[] paramListeners = new ParameterListener[keys.length];
 		System.arraycopy(blockColors, 0, defaultColors, 0, blockColors.length);
 
 		Composite legend = new Composite(panel, SWT.NONE);
@@ -157,7 +158,7 @@ public class Legend {
 			cColor.setLayoutData(data);
 			
 			// If color changes, update our legend
-			config.addParameterListener(keys[i], new ParameterListener() {
+			config.addParameterListener(keys[i],paramListeners[i] = new ParameterListener() {
 				public void parameterChanged(String parameterName) {
 					for (int j = 0; j < keys.length; j++) {
 						if (keys[j].equals(parameterName)) {
@@ -206,9 +207,10 @@ public class Legend {
 				// We don't want to give them disposed colors
 				// Restore defaults in case blockColors is a static or is used
 				// afterwards, or if the view wants to dispose of the old colors.
-				for (int i = 0; i < blockColors.length; i++) {
+				for (int i = 0; i < blockColors.length; i++)
 					blockColors[i] = defaultColors[i];
-				}
+				for (int i = 0; i < keys.length;i++)
+					config.removeParameterListener(keys[i], paramListeners[i]);
 			}
 		});
 

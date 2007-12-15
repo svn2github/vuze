@@ -42,6 +42,7 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponsePeer;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
@@ -133,7 +134,7 @@ TRTrackerAnnouncerImpl
 	protected Map
 	exportTrackerCache()
 	{
-		Map	res = new HashMap();
+		Map	res = new LightHashMap(1);
 		
 		List	peers = new ArrayList();
 		
@@ -148,7 +149,7 @@ TRTrackerAnnouncerImpl
 				
 				TRTrackerAnnouncerResponsePeer	peer = (TRTrackerAnnouncerResponsePeer)it.next();		
 	
-				Map	entry = new HashMap();
+				LightHashMap entry = new LightHashMap();
 				
 				entry.put( "ip", peer.getAddress().getBytes());
 				entry.put( "src", peer.getSource().getBytes());
@@ -170,6 +171,8 @@ TRTrackerAnnouncerImpl
 				if ( az_ver != TRTrackerAnnouncer.AZ_TRACKER_VERSION_1 ){
 					entry.put( "azver", new Long( az_ver ));
 				}
+				
+				entry.compactify(0.9f);
 				
 				peers.add( entry );
 			}

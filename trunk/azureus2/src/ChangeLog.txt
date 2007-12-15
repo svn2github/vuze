@@ -14,6 +14,7 @@ CHANGE: UI    | Multiple selected torrent export now works [amc1]
 BUGFIX: Core  | fixed ip filters not working when ALLOW instead of DENY was used [Parg]
 BUGFIX: Core  | improve rebuffering behaviour when real-time pieces are too slow for any peers to get in time [Parg]
 BUGFIX: Core  | ensure minimum buffer requirements are factored into ETA calculation [Parg]
+BUGFIX: UI    | eleminated various memory leaks [The 8472]
 
 2007.12.06 | Azureus Vuze 3.0.4.0
 

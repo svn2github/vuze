@@ -234,6 +234,14 @@ public class MyTorrentsView
 				}
 			}
 		});
+    Object[] dms = globalManager.getDownloadManagers().toArray();
+    for (int i = 0; i < dms.length; i++) {
+			DownloadManager dm = (DownloadManager) dms[i];
+			dm.removeListener(this);
+		}
+    if (currentCategory != null) {
+    	currentCategory.removeCategoryListener(this);
+    }
     CategoryManager.removeCategoryManagerListener(this);
     globalManager.removeListener(this);
     COConfigurationManager.removeParameterListener("DND Always In Incomplete", this);

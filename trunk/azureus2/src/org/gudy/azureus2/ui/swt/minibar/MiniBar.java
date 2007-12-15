@@ -236,7 +236,7 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	// These methods define the main MiniBar behaviour.
 	//
 
-	public final void construct(Shell main) {
+	public final void construct(final Shell main) {
 		if (this.constructed) {
 			throw new RuntimeException("already constructed!");
 		}
@@ -247,11 +247,20 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 		this.splash = org.gudy.azureus2.ui.swt.components.shell.ShellFactory
 				.createShell(SWT.ON_TOP);
 		manager.register(this);
-		main.addDisposeListener(new DisposeListener() {
+		final DisposeListener mainDisposeListener; 
+		main.addDisposeListener(mainDisposeListener = new DisposeListener() {
 			public void widgetDisposed(DisposeEvent event) {
 				close();
 			}
 		});
+		
+		// cleanup dangling references
+		splash.addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent e) {
+				main.removeDisposeListener(mainDisposeListener);
+			}
+		});
+		
 		
 	    screens = main.getDisplay().getMonitors();
 	    build();

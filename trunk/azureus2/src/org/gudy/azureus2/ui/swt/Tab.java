@@ -100,19 +100,23 @@ public class Tab {
     if (folder.isDisposed()) {
     	return;
     }
+    
+    final MouseAdapter mouseListener;
+    
     if (useCustomTab) {
     	CTabFolder tabFolder = (CTabFolder) folder;
       tabItem = new CTabItem(tabFolder, SWT.NULL,
 					(_view instanceof MyTorrentsSuperView) ? 0 : tabFolder.getItemCount());
 
-	    folder.addMouseListener(new MouseAdapter() {
+	    folder.addMouseListener(mouseListener = new MouseAdapter() {
 	      public void mouseDown(MouseEvent arg0) {
 	        if(arg0.button == 2) {
 	          if(eventCloseAllowed) { 
 	            Rectangle rectangle =((CTabItem)tabItem).getBounds(); 
 	            if(rectangle.contains(arg0.x, arg0.y)) {
 	              eventCloseAllowed = false;
-	              folder.removeMouseListener(this);
+	              selectedItem = null;
+	              //folder.removeMouseListener(this);
 	              closed(tabItem);
 	            }
 	          }
@@ -131,6 +135,7 @@ public class Tab {
 	    });
     }
     else {
+    	mouseListener = null;
     	TabFolder tabFolder = (TabFolder) folder;
       tabItem = new TabItem(tabFolder, SWT.NULL,
 					(_view instanceof MyTorrentsSuperView) ? 0 : tabFolder.getItemCount());
@@ -238,6 +243,7 @@ public class Tab {
     notifyListeners(tabAddListeners, tabItem);
     tabItem.addDisposeListener(new DisposeListener() {
         public void widgetDisposed(DisposeEvent event) {
+        	folder.removeMouseListener(mouseListener);
             notifyListeners(tabRemoveListeners, tabItem);
         }
     });

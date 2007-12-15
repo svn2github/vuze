@@ -581,6 +581,9 @@ public class PieceInfoView
 			font.dispose();
 			font = null;
 		}
+		
+		if(dlm != null)
+			dlm.removePeerListener(this);
 
 		super.delete();
 	}

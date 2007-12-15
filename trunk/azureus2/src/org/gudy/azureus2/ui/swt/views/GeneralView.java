@@ -29,6 +29,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -675,6 +677,12 @@ public class GeneralView extends AbstractIView implements ParameterListener,
       shell.setSize(size.x-1,size.y-1);
       shell.setSize(size);
     }
+    
+    genComposite.addDisposeListener(new DisposeListener() {
+    	public void widgetDisposed(DisposeEvent e) {
+    		menuTracker.dispose();
+    	}
+    });
     
     genComposite.layout();
     //Utils.changeBackgroundComposite(genComposite,MainWindow.getWindow().getBackground());
