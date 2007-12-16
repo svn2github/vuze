@@ -58,16 +58,16 @@ public class LightHashMap extends AbstractMap implements Cloneable {
 		{
 			final LightHashMap lightMap = (LightHashMap)m;
 			this.size = lightMap.size;
-			this.data = lightMap.data.clone();
+			this.data = (Object[])lightMap.data.clone();
 		} else
 			putAll(m);
 	}
 	
-	public LightHashMap clone() {
+	public Object clone() {
 		try
 		{
 			final LightHashMap newMap = (LightHashMap) super.clone();
-			newMap.data = data.clone();
+			newMap.data = (Object[])data.clone();
 			return newMap;
 		} catch (CloneNotSupportedException e)
 		{
