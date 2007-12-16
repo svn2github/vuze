@@ -1467,6 +1467,15 @@ DownloadManagerController
 				File file = fileInfo.getFile(true);
 				try {
 					if (!file.exists()) {
+						
+						// For multi-file torrents, complain if the save directory is missing.
+						if (!this.download_manager.getTorrent().isSimpleTorrent()) {
+							File save_path = this.download_manager.getAbsoluteSaveLocation();
+							if (FileUtil.isAncestorOf(save_path, file) && !save_path.exists()) {
+								file = save_path; // We're going to abort very soon, so it's OK to overwrite this.
+							}
+						}
+														
 						setFailed(MessageText.getString("DownloadManager.error.datamissing")
 								+ " " + file);
 						return false;
