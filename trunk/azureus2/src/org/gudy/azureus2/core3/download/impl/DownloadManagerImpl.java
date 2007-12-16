@@ -1569,11 +1569,11 @@ DownloadManagerImpl
   		boolean	remove_data )
   	{
   		try{
+  			download_manager_state.setLongAttribute( DownloadManagerState.AT_TIME_STOPPED, SystemTime.getCurrentTime());
+
   			controller.stopIt( state_after_stopping, remove_torrent, remove_data );
   			
   		}finally{
-  			
-  			download_manager_state.setLongAttribute( DownloadManagerState.AT_TIME_STOPPED, SystemTime.getCurrentTime());
   			
 			download_manager_state.setActive( false );
   		}

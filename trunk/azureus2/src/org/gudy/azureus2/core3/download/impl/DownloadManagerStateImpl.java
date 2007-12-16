@@ -689,6 +689,8 @@ DownloadManagerStateImpl
 		boolean		active )
 	{
 		torrent.setDiscardFluff( !active );
+		if(!active)
+			tracker_response_cache = null;
 	}
 	
 	public void
