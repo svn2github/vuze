@@ -237,7 +237,7 @@ TOTorrentDeserialiseImpl
 			
 				// decode the stuff
 			
-			Iterator root_it = (meta_data instanceof CompactMap)?((CompactMap)meta_data).getKeySetIterator():meta_data.keySet().iterator();
+			Iterator root_it = meta_data.keySet().iterator();
 	
 			while( root_it.hasNext()){
 				
@@ -513,7 +513,7 @@ TOTorrentDeserialiseImpl
 					
 						// preserve any non-standard attributes
 											
-					Iterator file_it = (file_map instanceof CompactMap)?((CompactMap)file_map).getKeySetIterator():file_map.keySet().iterator();
+					Iterator file_it = file_map.keySet().iterator();
 
 					while( file_it.hasNext()){
 						
@@ -563,7 +563,7 @@ TOTorrentDeserialiseImpl
 			
 				// extract and additional info elements
 				
-			Iterator info_it = (info instanceof CompactMap)?((CompactMap)info).getKeySetIterator():info.keySet().iterator();
+			Iterator info_it = info.keySet().iterator();
 
 			while( info_it.hasNext()){
 
@@ -617,7 +617,7 @@ TOTorrentDeserialiseImpl
 	{
 		System.out.println( indent + name + "{map}" );
 				
-		Iterator it = (map instanceof CompactMap)?((CompactMap)map).getKeySetIterator():map.keySet().iterator();
+		Iterator it = map.keySet().iterator();
 		
 		while( it.hasNext()){
 			

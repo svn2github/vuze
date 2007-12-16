@@ -23,17 +23,19 @@ import java.util.*;
 
 
 /**
- * A lighter (on memory) hash map
+ * A lighter (on memory) hash map<br>
  * 
  * Please note the following performance drawbacks:
- * -removal is implemented with thombstone-keys, this can significantly increase the lookup time if many values are removed. Use compactify() for scrubbing
- * -entry set iterators and thus transfers to other maps are slower than compareable implementations
- * -the map does not store hashcodes and relies on either the key-objects themselves caching them (such as strings) or a fast computation of hashcodes
+ * <ul>
+ * <li>removal is implemented with thombstone-keys, this can significantly increase the lookup time if many values are removed. Use compactify() for scrubbing
+ * <li>entry set iterators and thus transfers to other maps are slower than compareable implementations
+ * <li>the map does not store hashcodes and relies on either the key-objects themselves caching them (such as strings) or a fast computation of hashcodes
+ * </ul>
  * 
  * @author Aaron Grunthal
  * @create 28.11.2007
  */
-public class LightHashMap extends AbstractMap {
+public class LightHashMap extends AbstractMap implements Cloneable {
 	private static final Object	THOMBSTONE			= new Object();
 	private static final Object NULLKEY				= new Object();
 	private static final float	DEFAULT_LOAD_FACTOR	= 0.75f;
@@ -52,7 +54,27 @@ public class LightHashMap extends AbstractMap {
 	public LightHashMap(final Map m)
 	{
 		this(0);
-		putAll(m);
+		if(m instanceof LightHashMap)
+		{
+			final LightHashMap lightMap = (LightHashMap)m;
+			this.size = lightMap.size;
+			this.data = lightMap.data.clone();
+		} else
+			putAll(m);
+	}
+	
+	public LightHashMap clone() {
+		try
+		{
+			final LightHashMap newMap = (LightHashMap) super.clone();
+			newMap.data = data.clone();
+			return newMap;
+		} catch (CloneNotSupportedException e)
+		{
+			// should not ever happen
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
 	}
 
 	public LightHashMap(int initialCapacity, final float loadFactor)
@@ -591,7 +613,5 @@ public class LightHashMap extends AbstractMap {
 		}
 		
 		System.out.println("checks done");
-		
-
 	}
 }

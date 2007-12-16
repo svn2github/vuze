@@ -846,7 +846,7 @@ DownloadManagerStateImpl
 				// gotta clone here otherwise we update the underlying  map and the setMapAttribute code
 				// doesn't think it has changed
 		
-			parameters	= CompactMap.cloneMap( parameters );
+			parameters	= new LightHashMap(parameters);
 			
 			parameters.remove( name );
 			
@@ -978,7 +978,7 @@ DownloadManagerStateImpl
 				// gotta clone here otherwise we update the underlying  map and the setMapAttribute code
 				// doesn't think it has changed
 			
-			parameters	= CompactMap.cloneMap( parameters );
+			parameters	= new LightHashMap(parameters);
 			
 			parameters.put( name, new Long(value));
 			

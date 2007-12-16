@@ -119,19 +119,7 @@ BEncoder
                 tempTree = (TreeMap)tempMap;
                 
             }else{
-            	
-                	//do map sorting here
-            	
-            	if ( tempMap instanceof CompactMap ){
-            		
-            		tempTree = new TreeMap();
-            		
-            		((CompactMap)tempMap).putAllTo( tempTree );
-            		
-            	}else{
-                
             		tempTree = new TreeMap(tempMap);
-            	}
             }            
                    
             Iterator	it = tempTree.entrySet().iterator();
@@ -528,7 +516,7 @@ BEncoder
     		return( false );
     	}
     	
-    	Iterator	it = (map1 instanceof CompactMap )?((CompactMap)map1).getKeySetIterator():map1.keySet().iterator();
+    	Iterator	it = map1.keySet().iterator();
     	
     	while( it.hasNext()){
     		
