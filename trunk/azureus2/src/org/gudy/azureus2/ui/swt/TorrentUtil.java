@@ -529,6 +529,14 @@ public class TorrentUtil {
 			}
 		});
 		itemFileMoveTorrent.setEnabled(fileMove);
+		
+		final MenuItem itemCheckFilesExist = new MenuItem(menuFiles, SWT.PUSH);
+		Messages.setLanguageText(itemCheckFilesExist, "MyTorrentsView.menu.checkfilesexist");
+		itemCheckFilesExist.addListener(SWT.Selection, new DMTask(dms) {
+			public void run(DownloadManager dm) {
+				dm.filesExist();
+			}
+		});
 
 		final MenuItem itemFileRescan = new MenuItem(menuFiles, SWT.CHECK);
 		Messages.setLanguageText(itemFileRescan, "MyTorrentsView.menu.rescanfile");
