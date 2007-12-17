@@ -366,7 +366,7 @@ public class UIFunctionsImpl
 	}
 
 	// @see com.aelitis.azureus.ui.UIFunctions#viewURL(java.lang.String, java.lang.String, int, int, boolean, boolean)
-	public void viewURL(final String url, final String target, final int w,
+	public boolean viewURL(final String url, final String target, final int w,
 			final int h, final boolean allowResize, final boolean isModal) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
@@ -375,10 +375,11 @@ public class UIFunctionsImpl
 				window.waitUntilClosed();
 			}
 		});
+		return true;
 	}
 
 	// @see com.aelitis.azureus.ui.UIFunctions#viewURL(java.lang.String, java.lang.String, double, double, boolean, boolean)
-	public void viewURL(final String url, final String target, final double w,
+	public boolean viewURL(final String url, final String target, final double w,
 			final double h, final boolean allowResize, final boolean isModal) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
@@ -387,8 +388,9 @@ public class UIFunctionsImpl
 				window.waitUntilClosed();
 			}
 		});
+		return true;
 	}
-
+	
 	// @see com.aelitis.azureus.ui.UIFunctions#promptUser(java.lang.String, java.lang.String, java.lang.String[], int, java.lang.String, java.lang.String, boolean, int)
 	public int promptUser(String title, String text, String[] buttons,
 			int defaultOption, String rememberID, String rememberText,
