@@ -612,7 +612,7 @@ public class UIFunctionsImpl
 		return mainWindow.getUISWTInstanceImpl();
 	}
 
-	public void viewURL(final String url, final String target, final int w,
+	public boolean viewURL(final String url, final String target, final int w,
 			final int h, final boolean allowResize, final boolean isModal) {
 
 		mainWindow.shell.getDisplay().syncExec(new AERunnable() {
@@ -626,9 +626,10 @@ public class UIFunctionsImpl
 				}
 			}
 		});
+		return true;
 	}
 
-	public void  viewURL(final String url, final String target, final double w,
+	public boolean viewURL(final String url, final String target, final double w,
 			final double h, final boolean allowResize, final boolean isModal) {
 
 		mainWindow.shell.getDisplay().syncExec(new AERunnable() {
@@ -642,6 +643,7 @@ public class UIFunctionsImpl
 				}
 			}
 		});
+		return true;
 	}
 
 	protected void oldMainWindowInitialized(MainWindow oldMainWindow) {
