@@ -1313,7 +1313,7 @@ implements PiecePicker
 	
 									break;	// earlier blocks always have priority
 	
-								}else if ( best_eta > piece_rta && !try_allocate_even_though_late ){
+								}else if ( best_eta > piece_rta && ( best_uploader || !try_allocate_even_though_late )){
 	
 										// don't re-allocate when we're already running late as we'll end up
 										// with a lot of discard
