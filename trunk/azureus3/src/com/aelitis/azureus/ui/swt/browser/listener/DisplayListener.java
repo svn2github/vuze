@@ -142,16 +142,24 @@ public class DisplayListener
 		if (browser == null || browser.isDisposed()) {
 			return;
 		}
+		
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (browser == null || browser.isDisposed()) {
+					return;
+				}
 
-		String sURL = (String) browser.getData("StartURL");
-		System.out.println("reset " + sURL);
-		if (sURL != null && sURL.length() > 0) {
-			if (sURL.indexOf('?') > 0) {
-				browser.setUrl(sURL + "&rnd=" + Math.random());
-			} else {
-				browser.setUrl(sURL + "?rnd=" + Math.random());
+				String sURL = (String) browser.getData("StartURL");
+				context.debug("reset " + sURL);
+				if (sURL != null && sURL.length() > 0) {
+					if (sURL.indexOf('?') > 0) {
+						browser.setUrl(sURL + "&rnd=" + Math.random());
+					} else {
+						browser.setUrl(sURL + "?rnd=" + Math.random());
+					}
+				}
 			}
-		}
+		});
 	}
 
 	private void launchUrl(final String url) {
@@ -175,14 +183,23 @@ public class DisplayListener
 		if (browser == null || browser.isDisposed()) {
 			return;
 		}
-		final Clipboard cb = new Clipboard(browser.getDisplay());
-		TextTransfer textTransfer = TextTransfer.getInstance();
-		cb.setContents(new Object[] {
-			text
-		}, new Transfer[] {
-			textTransfer
+
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (browser == null || browser.isDisposed()) {
+					return;
+				}
+
+				final Clipboard cb = new Clipboard(browser.getDisplay());
+				TextTransfer textTransfer = TextTransfer.getInstance();
+				cb.setContents(new Object[] {
+					text
+				}, new Transfer[] {
+					textTransfer
+				});
+				cb.dispose();
+			}
 		});
-		cb.dispose();
 	}
 
 	private void openIrc(final String server, final String channel,

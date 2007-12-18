@@ -34,8 +34,11 @@ import org.eclipse.swt.internal.image.FileFormat;
 import org.eclipse.swt.widgets.*;
 
 import org.bouncycastle.util.encoders.Base64;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
@@ -48,8 +51,6 @@ import com.aelitis.azureus.util.MapUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.torrent.*;
-
-import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 
 /**
@@ -101,18 +102,26 @@ public class PublishTransaction extends Transaction
      * Opens a file dialog so the user can choose the file to torrent.
      */
     public void chooseFile ( BrowserMessage message ) {    	
-    	FileDialog dialog = new FileDialog(shell);    	
-    	String file = dialog.open();    	
-    	createTorrentFile(file);
+    	Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+        	FileDialog dialog = new FileDialog(shell);    	
+        	String file = dialog.open();    	
+        	createTorrentFile(file);
+				}
+    	});
     }
 
     /**
      * Opens a file dialog so the user can choose the folder to torrent.
      */
     public void chooseFolder ( BrowserMessage message ) {
-    	DirectoryDialog dialog = new DirectoryDialog(shell);    	
-    	String file = dialog.open();
-    	createTorrentFile(file);
+    	Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+		    	DirectoryDialog dialog = new DirectoryDialog(shell);    	
+		    	String file = dialog.open();
+		    	createTorrentFile(file);
+				}
+			});
     }
     
     protected boolean canceling ( ) {
@@ -128,7 +137,15 @@ public class PublishTransaction extends Transaction
     /**
      * Opens a file dialog so the user can choose the image to use as a thumbnail
      */
-    public void chooseThumbnail(BrowserMessage message) {
+    public void chooseThumbnail(final BrowserMessage message) {
+    	Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					_chooseThumbnail(message);
+				}
+    	});
+    }
+
+    private void _chooseThumbnail(BrowserMessage message) {
     	final int resize_size[] = {DEFAULT_IMAGE_BOX_SIZE,DEFAULT_IMAGE_BOX_SIZE};
     	final float image_quality[] = {DEFAULT_JPEG_QUALITY};
     	Map elements = null; //will be used if several thumbnails are required on a single page

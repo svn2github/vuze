@@ -23,8 +23,6 @@ import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.swt.browser.Browser;
-
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 
 /**

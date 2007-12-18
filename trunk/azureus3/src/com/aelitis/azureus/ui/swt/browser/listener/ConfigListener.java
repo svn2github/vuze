@@ -42,11 +42,8 @@ public class ConfigListener
 
 	public static final String OP_GET_VERSION = "get-version";
 
-	private Browser browser;
-
 	public ConfigListener(String id, Browser browser) {
 		super(id);
-		this.browser = browser;
 	}
 
 	/**
@@ -64,8 +61,8 @@ public class ConfigListener
 			if (OP_GET_VERSION.equals(opid)) {
 				Map decodedMap = message.getDecodedMap();
 				String callback = MapUtils.getMapString(decodedMap, "callback", null);
-				if (callback != null && browser != null) {
-					browser.execute(callback + "('" + Constants.AZUREUS_VERSION + "')");
+				if (callback != null) {
+					context.executeInBrowser(callback + "('" + Constants.AZUREUS_VERSION + "')");
 				} else {
 					message.debug("bad or no callback param");
 				}

@@ -21,8 +21,6 @@ package com.aelitis.azureus.ui.swt.browser.txn;
 
 import java.util.Map;
 
-import org.eclipse.swt.browser.Browser;
-
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 
 /**
