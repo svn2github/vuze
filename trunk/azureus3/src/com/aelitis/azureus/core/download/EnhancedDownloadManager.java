@@ -28,6 +28,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
@@ -2069,9 +2070,9 @@ EnhancedDownloadManager
 		protected long		total_file_length = download_manager.getSize();
 
 
-		private Average		download_rate_average 	= AverageFactory.MovingImmediateAverage( 10 );
-		private Average		discard_rate_average 	= AverageFactory.MovingImmediateAverage( 10 );
-		private long		last_discard_bytes		= download_manager.getStats().getDiscarded();
+		private Average		capped_download_rate_average 	= AverageFactory.MovingImmediateAverage( 10 );
+		private Average		discard_rate_average 			= AverageFactory.MovingImmediateAverage( 10 );
+		private long		last_discard_bytes				= download_manager.getStats().getDiscarded();
 		
 		private long		actual_bytes_to_download;
 		private long		weighted_bytes_to_download;
@@ -2082,7 +2083,9 @@ EnhancedDownloadManager
 		private long		provider_last_byte_position	= -1;
 		private long		provider_blocking_byte_position;
 		private Average		provider_speed_average	= AverageFactory.MovingImmediateAverage( 10 );
-			
+		
+		private long		last_eta	= -1;
+		
 		protected
 		progressiveStatsCommon(
 			DownloadManager					dm,
@@ -2202,7 +2205,7 @@ EnhancedDownloadManager
 		{
 			long download_rate = download_manager.getStats().getDataReceiveRate();
 			
-			download_rate_average.update( download_rate );
+			capped_download_rate_average.update( download_rate );
 			
 			long	discards = download_manager.getStats().getDiscarded();
 			
@@ -2353,14 +2356,14 @@ EnhancedDownloadManager
 				return( 0 );
 			}
 			
-			long download_rate = (long)download_rate_average.getAverage();
+			long download_rate = getDownloadBytesPerSecond();
 			
 			if ( download_rate <= 0 ){
 				
 				return( Long.MAX_VALUE );
 			}
 			
-			long	min_dl	= getInitialBufferBytes( download_rate, ignore_min_buffer_size );
+			final long	min_dl	= getInitialBufferBytes( download_rate, ignore_min_buffer_size );
 			
 			long	initial_downloaded	= getInitialBytesDownloaded( min_dl );
 			
@@ -2375,11 +2378,24 @@ EnhancedDownloadManager
 			
 			secs_to_download = secs_to_download + (secs_to_download/10);
 			
-			long eta = secs_to_download - getSecondsToWatch();
+			long	secs_to_watch = getSecondsToWatch();
+			
+			long eta = secs_to_download - secs_to_watch;
 			
 			if ( rem_secs > eta ){
 				
 				eta = rem_secs;
+			}
+			
+			if ( !ignore_min_buffer_size ){
+				
+				if ( eta == 0 && last_eta != 0 ){
+					
+					last_eta = eta;
+					
+					log( "ETA=0: rate=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( download_rate ) +
+							",init_buff=" + min_dl +",to_dl=" + secs_to_download + ",to_watch=" + secs_to_watch );
+				}
 			}
 			
 			return( eta );
@@ -2394,7 +2410,25 @@ EnhancedDownloadManager
 		protected long 
 		getDownloadBytesPerSecond() 
 		{
-			return( (long)download_rate_average.getAverage());
+			long	original = (long)capped_download_rate_average.getAverage();
+			
+			long	current	= original;
+			
+			int	dl_limit = download_manager.getStats().getDownloadRateLimitBytesPerSecond();
+			
+			if ( dl_limit > 0 ){
+				
+				current = Math.min( current, dl_limit );
+			}
+			
+			int global_limit = TransferSpeedValidator.getGlobalDownloadRateLimitBytesPerSecond();
+			
+			if ( global_limit > 0 ){
+				
+				current = Math.min( current, global_limit );
+			}
+						
+			return( current );
 		}
 		
 		public long
@@ -2458,7 +2492,7 @@ EnhancedDownloadManager
 		protected long
 		getSecondsToDownload()
 		{
-			long download_rate = (long)download_rate_average.getAverage();
+			long download_rate = getDownloadBytesPerSecond();
 
 			if ( download_rate == 0 ){
 				
@@ -2489,7 +2523,7 @@ EnhancedDownloadManager
 		protected String
 		getString()
 		{
-			long	dl_rate = (long)download_rate_average.getAverage();
+			long	dl_rate = getDownloadBytesPerSecond();
 			
 			long	init_bytes = getInitialBufferBytes(dl_rate,false);
 			
