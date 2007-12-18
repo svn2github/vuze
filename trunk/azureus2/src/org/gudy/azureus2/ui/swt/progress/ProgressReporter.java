@@ -531,6 +531,18 @@ public class ProgressReporter
 		if (true == shouldIgnore()) {
 			return;
 		}
+
+		/*
+		 * Ignores duplicate error messages
+		 * NOTE: TorrentDownloaderImpl#runSupport() has a loop that currently sends the same error message
+		 * multiple times; there may be other processes doing the same thing so this code is meant to prevent
+		 * forwarding any error message from the same reporter more than once.
+		 */
+		if (null != this.errorMessage
+				&& true == this.errorMessage.equals(errorMessage)) {
+			return;
+		}
+
 		if (null == errorMessage || errorMessage.length() < 1) {
 			this.errorMessage = MessageText.getString("Progress.reporting.default.error");
 		} else {
