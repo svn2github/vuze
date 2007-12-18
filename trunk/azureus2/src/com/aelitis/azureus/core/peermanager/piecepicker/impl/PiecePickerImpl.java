@@ -27,7 +27,6 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.impl.DiskManagerFileInfoImpl;
-import org.gudy.azureus2.core3.disk.impl.access.impl.DiskManagerReadRequestImpl;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
@@ -1189,6 +1188,9 @@ implements PiecePicker
 	
 					Object realtime_data = null;
 	
+					boolean	try_allocate_even_though_late = 
+						my_next_block_eta > piece_rta && best_uploader_next_block_eta > piece_rta;
+						
 					if ( piece_rta >= piece_min_rta_time  ){
 	
 						// piece is less urgent than an already found one
@@ -1311,8 +1313,11 @@ implements PiecePicker
 	
 									break;	// earlier blocks always have priority
 	
-								}else if ( best_eta > piece_rta ){
+								}else if ( best_eta > piece_rta && !try_allocate_even_though_late ){
 	
+										// don't re-allocate when we're already running late as we'll end up
+										// with a lot of discard
+									
 									if ( LOG_RTA ) rta_log_str += "{lagging=" + i + ",block=" + j+ ",time=" + ( best_eta - piece_rta) + "}";
 	
 										// if we can do better than existing best effort allocate
