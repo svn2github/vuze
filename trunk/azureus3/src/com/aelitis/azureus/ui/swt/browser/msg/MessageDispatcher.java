@@ -25,6 +25,7 @@ import java.util.Map;
 import org.eclipse.swt.browser.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
@@ -214,7 +215,7 @@ public class MessageDispatcher implements StatusTextListener, TitleListener
      * @throws IllegalArgumentException
      *              if no listener is registered with the given ID
      */
-    public void dispatch ( BrowserMessage message ) {
+    public void dispatch ( final BrowserMessage message ) {
         if ( message == null ) {
             return;
         }
@@ -233,13 +234,17 @@ public class MessageDispatcher implements StatusTextListener, TitleListener
                 context.debug("Ignoring duplicate: " + message);
             }
             else {
-                MessageListener listener = getListener(listenerId);
+                final MessageListener listener = getListener(listenerId);
                 if ( listener == null ) {
                     context.debug("No listener registered with ID " + listenerId);
                 }
                 else {
-                    listener.handleMessage(message);
-                    message.complete(true, true, null);
+                	new AEThread("dispatch for " + listenerId, false) {
+										public void runSupport() {
+	                    listener.handleMessage(message);
+	                    message.complete(true, true, null);
+										}
+									}.start();
                 }
             }
         }
