@@ -16,6 +16,8 @@ import java.util.List;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.tracker.host.TRHost;
+import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.ui.console.ConsoleInput;
@@ -52,6 +54,17 @@ public abstract class TorrentCommand extends IConsoleCommand {
 		return action;
 	}
 	protected abstract boolean performCommand(ConsoleInput ci, DownloadManager dm, List args);
+	
+	/**
+	 * Stub for commands that operate on a hosted torrent rather than downloadmanager
+	 * @param ci
+	 * @param args
+	 * @return
+	 */
+	protected boolean performCommand(ConsoleInput ci, TRHostTorrent torrent, List args)
+	{
+		return( false );
+	}
 
 	public void execute(String commandName, ConsoleInput ci, List args)
 	{
@@ -88,24 +101,52 @@ public abstract class TorrentCommand extends IConsoleCommand {
 						String hash = (String) args.remove(0); 
 						List torrents = ci.getGlobalManager().getDownloadManagers();
 						boolean foundit = false;
-						if (!torrents.isEmpty()) {
-							Iterator torrent = torrents.iterator();
-							while (torrent.hasNext()) {
-								dm = (DownloadManager) torrent.next();
-								if (hash.equals(TorrentUtils.nicePrintTorrentHash(dm.getTorrent(), true))) {
-									if (dm.getDisplayName() == null)
-										name = "?";
-									else
-										name = dm.getDisplayName();
-									// FIXME: check user permission here and fix it to take torrent hash instead of subcommand
+						Iterator torrent = torrents.iterator();
+						while (torrent.hasNext()) {
+							dm = (DownloadManager) torrent.next();
+							if (hash.equals(TorrentUtils.nicePrintTorrentHash(dm.getTorrent(), true))) {
+								if (dm.getDisplayName() == null)
+									name = "?";
+								else
+									name = dm.getDisplayName();
+								// FIXME: check user permission here and fix it to take torrent hash instead of subcommand
+								
+								performCommandIfAllowed(ci, args, dm, hash, name);
+								foundit = true;
+								break;
+							}
+						}
+						if ( !foundit ){
+							
+								// second check for 
+							
+							TRHost host = ci.getCore().getTrackerHost();
+						
+							if ( host != null ){
+								
+								TRHostTorrent[] h_torrents = host.getTorrents();
+								
+								for (int i=0;i<h_torrents.length;i++){
 									
-									performCommandIfAllowed(ci, args, dm, hash, name);
-									foundit = true;
-									break;
+									TRHostTorrent ht = h_torrents[i];
+									
+									if (hash.equals(TorrentUtils.nicePrintTorrentHash(ht.getTorrent(), true))) {
+										
+										name = TorrentUtils.getLocalisedName( ht.getTorrent());
+										
+										// FIXME: check user permission here and fix it to take torrent hash instead of subcommand
+										
+										performCommandIfAllowed(ci, args, ht, hash, name);
+										foundit = true;
+										break;
+
+									}
 								}
 							}
-							if (!foundit)
-								ci.out.println("> Command '" + getCommandName() + "': Hash '" + hash + "' unknown.");
+						}
+						
+						if ( !foundit ){
+							ci.out.println("> Command '" + getCommandName() + "': Hash '" + hash + "' unknown.");
 						}
 					} else {
 						ci.out.println("> Command '" + getCommandName() + "': Subcommand '" + subcommand + "' unknown.");
@@ -154,6 +195,26 @@ public abstract class TorrentCommand extends IConsoleCommand {
 		
 	}
 
+	private void performCommandIfAllowed(ConsoleInput ci, List args, TRHostTorrent torrent, String desc, String name) {
+		if( ! UserProfile.ADMIN.equals( ci.getUserProfile().getUserType() ) )
+		{
+			if( UserProfile.USER.equals( ci.getUserProfile().getUserType() ) )
+			{
+				// TODO: we don't currently record user against host-torrent...
+			}
+			else
+			{
+				ci.out.println("> " + getAction() + " torrent " + desc + " (" + name + ") failed: Permission Denied. Guests cannot modify torrents");
+				return;
+			}
+		}
+		if (performCommand(ci, torrent, args))
+			ci.out.println("> " + getAction() + " Torrent " + desc + " (" + name + ") succeeded.");
+		else
+			ci.out.println("> " + getAction() + " Torrent " + desc + " (" + name + ") failed.");		
+		
+	}
+	
 	/**
 	 * prints out the syntax of this command
 	 */

@@ -72,6 +72,24 @@ public class TorrentHost extends TorrentCommand {
         return false;
 	}
 
+	
+	protected boolean performCommand(ConsoleInput ci, TRHostTorrent torrent, List args)
+	{
+			// get here when removing a passive torrent
+		
+  		try{
+  			torrent.remove();
+	
+			return( true );
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+  
+		return( false );
+	}
+	
 	public String getCommandDescriptions() {
 		return("host (<torrentoptions>)\t\t\tHost or stop hosting torrent(s).");
 	}
