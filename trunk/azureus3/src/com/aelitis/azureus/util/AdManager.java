@@ -415,7 +415,7 @@ public class AdManager
 					if (asxFile.isFile()) {
 						PlatformAdManager.debug("playing using existing asx: " + asxFile
 								+ "; expires in "
-								+ (EXPIRE_ASX - SystemTime.getCurrentTime() - lastASX));
+								+ (EXPIRE_ASX - (SystemTime.getCurrentTime() - lastASX)));
 						if (l != null) {
 							l.asxCreated(asxFile);
 						}
