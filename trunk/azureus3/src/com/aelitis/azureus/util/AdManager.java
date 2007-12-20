@@ -319,12 +319,6 @@ public class AdManager
 				return;
 			}
 
-			DownloadManager dmContent = core.getGlobalManager().getDownloadManager(
-					new HashWrapper(Base32.decode(contentHash)));
-			if (dmContent != null) {
-				dmContent.setData("LastASX", null);
-			}
-
 			String impressionID = (String) values.get("impressionTracker");
 			if (impressionID == null || impressionID.equals(lastImpressionID)) {
 				return;
@@ -337,6 +331,20 @@ public class AdManager
 			}
 
 			String torrentHash = (String) values.get("hash");
+
+			DownloadManager dmContent = null;
+			if (torrentHash != null) {
+				dmContent = core.getGlobalManager().getDownloadManager(
+						new HashWrapper(Base32.decode(torrentHash)));
+			}
+
+			if (dmContent == null) {
+				dmContent = core.getGlobalManager().getDownloadManager(
+						new HashWrapper(Base32.decode(contentHash)));
+			}
+			if (dmContent != null) {
+				dmContent.setData("LastASX", null);
+			}
 
 			String adID = (String) values.get(PREFIX + "eURI");
 
@@ -406,7 +414,8 @@ public class AdManager
 					asxFile = buildASXFileLocation(dm);
 					if (asxFile.isFile()) {
 						PlatformAdManager.debug("playing using existing asx: " + asxFile
-								+ "; expires in " + (SystemTime.getCurrentTime() - lastASX) );
+								+ "; expires in "
+								+ (EXPIRE_ASX - SystemTime.getCurrentTime() - lastASX));
 						if (l != null) {
 							l.asxCreated(asxFile);
 						}
