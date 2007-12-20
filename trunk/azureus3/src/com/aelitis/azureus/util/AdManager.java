@@ -315,7 +315,7 @@ public class AdManager
 		try {
 			String contentHash = (String) values.get("contentHash");
 			if (contentHash == null) {
-				PlatformAdManager.debug("No Content Hash!");
+				PlatformAdManager.debug("No Content Hash on processImpression!");
 				return;
 			}
 
@@ -343,18 +343,20 @@ public class AdManager
 						new HashWrapper(Base32.decode(contentHash)));
 			}
 			if (dmContent != null) {
+				PlatformAdManager.debug("clear last asx for "
+						+ dmContent.getTorrent().getHashWrapper().toBase32String());
 				dmContent.setData("LastASX", null);
 			}
 
 			String adID = (String) values.get(PREFIX + "eURI");
 
 			PlatformAdManager.debug("imp " + impressionID + " commencing on "
-					+ contentHash);
+					+ contentHash + "/" + torrentHash);
 
 			DownloadManager dm = core.getGlobalManager().getDownloadManager(
 					new HashWrapper(Base32.decode(adHash)));
 			if (dm == null) {
-				System.err.println("DM for Ad not found. CHEATER!!");
+				PlatformAdManager.debug("DM for Ad not found");
 			}
 
 			PlatformAdManager.storeImpresssion(impressionID,
@@ -379,11 +381,11 @@ public class AdManager
 			}
 		}
 
-		PlatformAdManager.debug("There are"	+ ads.size() 
+		PlatformAdManager.debug("There are " + ads.size() + " ads "
 				+ (bIncludeIncomplete ? " including incomplete" : ""));
 		return (DownloadManager[]) ads.toArray(new DownloadManager[0]);
 	}
-	
+
 	public List getIncompleteAds() {
 		ArrayList ads = new ArrayList(adsDMList);
 		for (Iterator iter = ads.iterator(); iter.hasNext();) {
@@ -397,7 +399,7 @@ public class AdManager
 		return ads;
 	}
 
-	public void createASX(final DownloadManager dm, String URLToPlay,
+	public void createASX(final DownloadManager dm, final String URLToPlay,
 			final ASXCreatedListener l) {
 		try {
 			TOTorrent torrent = dm.getTorrent();
@@ -413,8 +415,8 @@ public class AdManager
 				if (SystemTime.getCurrentTime() - lastASX < EXPIRE_ASX) {
 					asxFile = buildASXFileLocation(dm);
 					if (asxFile.isFile()) {
-						PlatformAdManager.debug("playing using existing asx: " + asxFile
-								+ "; expires in "
+						PlatformAdManager.debug("playing " + URLToPlay
+								+ " using existing asx: " + asxFile + "; expires in "
 								+ (EXPIRE_ASX - (SystemTime.getCurrentTime() - lastASX)));
 						if (l != null) {
 							l.asxCreated(asxFile);
@@ -441,7 +443,8 @@ public class AdManager
 
 					asxFile = buildASXFileLocation(dm);
 					if (asxFile.isFile()) {
-						PlatformAdManager.debug("playing using existing asx: " + asxFile);
+						PlatformAdManager.debug("playing " + URLToPlay
+								+ " using existing asx: " + asxFile);
 						if (l != null) {
 							l.asxCreated(asxFile);
 						}
@@ -456,7 +459,7 @@ public class AdManager
 			}
 
 			final File fasxFile = asxFile;
-			PlatformAdManager.debug("getting asx");
+			PlatformAdManager.debug("getting asx for " + URLToPlay);
 			PlatformAdManager.getPlayList(dm, URLToPlay, "http://127.0.0.1:"
 					+ MagnetURIHandler.getSingleton().getPort()
 					+ "/setinfo?name=adtracker&contentHash=" + contentHash + "&hash="
@@ -464,7 +467,7 @@ public class AdManager
 				public void replyReceived(String replyType, String playlist) {
 					try {
 						if (playlist == null) {
-							PlatformAdManager.debug("no asx in reply");
+							PlatformAdManager.debug("no asx in reply for " + URLToPlay);
 							if (l != null) {
 								// we might be offline, ignore asx expirey date
 								if (fasxFile != null && fasxFile.isFile()) {
@@ -476,7 +479,8 @@ public class AdManager
 							return;
 						}
 						File asxFile = buildASXFileLocation(dm);
-						PlatformAdManager.debug("got asx. Writing to " + asxFile);
+						PlatformAdManager.debug("got asx for " + URLToPlay
+								+ ". Writing to " + asxFile);
 						FileUtil.writeBytesAsFile(asxFile.getAbsolutePath(),
 								playlist.getBytes());
 
@@ -487,7 +491,7 @@ public class AdManager
 							l.asxCreated(asxFile);
 						}
 					} catch (Exception e) {
-						PlatformAdManager.debug("asx reply", e);
+						PlatformAdManager.debug("asx reply for " + URLToPlay, e);
 						if (l != null) {
 							l.asxFailed();
 						}
@@ -514,6 +518,7 @@ public class AdManager
 			if (l != null) {
 				l.asxFailed();
 			}
+			PlatformAdManager.debug("createASX exception for " + URLToPlay, e);
 		}
 	}
 
@@ -560,7 +565,7 @@ public class AdManager
 		}
 		return false;
 	}
-	
+
 	public boolean isCheckingForNewAds() {
 		return checkingForAds;
 	}
