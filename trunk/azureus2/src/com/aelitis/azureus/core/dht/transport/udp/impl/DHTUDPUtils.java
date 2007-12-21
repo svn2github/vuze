@@ -720,7 +720,7 @@ DHTUDPUtils
 		
 		if ( !v1_found ){
 			
-			Debug.out( "Vivaldi V1 missing" );
+			// Debug.out( "Vivaldi V1 missing" );
 			
 			throw( new IOException( "Vivaldi V1 missing" ));
 		}
