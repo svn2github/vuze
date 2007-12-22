@@ -1,6 +1,10 @@
 AZUREUS VUZE CHANGELOG
 -----------------
 
+2008.xx.xx | Azureus Vuze 3.0.4.3
+
+
+
 2007.12.21 | Azureus Vuze 3.0.4.2
 
 FEATURE: UI   | Added "Check Files Exist" menu option [amc1]
