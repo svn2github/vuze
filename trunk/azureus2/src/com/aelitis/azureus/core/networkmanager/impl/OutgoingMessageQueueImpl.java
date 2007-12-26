@@ -393,6 +393,9 @@ OutgoingMessageQueueImpl
   }
   
   
+  private WeakReference rawBufferCache = new WeakReference(null);
+  private WeakReference origPositionsCache = new WeakReference(null);
+  
   /**
    * Deliver (write) message(s) data to the underlying transport.
    * 
@@ -405,11 +408,7 @@ OutgoingMessageQueueImpl
    * @param manual_listener_notify true for manual notification, false for automatic
    * @return number of bytes delivered
    * @throws IOException on delivery error
-   */
-  
-  private WeakReference rawBufferCache = new WeakReference(null);
-  private WeakReference origPositionsCache = new WeakReference(null);
-  
+   */  
    public int deliverToTransport( int max_bytes, boolean manual_listener_notify ) throws IOException {    
 	  if( max_bytes < 1 ) {
 		  Debug.out( "max_bytes < 1: " +max_bytes );
