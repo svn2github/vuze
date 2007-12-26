@@ -856,6 +856,9 @@ DownloadImpl
 					Debug.printStackTrace( e );
 				}
 			}
+			
+			if(latest_state != ST_DOWNLOADING && latest_state != ST_SEEDING)
+				last_announce_result = new DownloadAnnounceResultImpl(this,null);
 		}
 	}
 	
