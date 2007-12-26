@@ -56,7 +56,7 @@ NetworkConnectionImpl
   private boolean 	is_connected;
   private byte		is_lan_local	= AddressUtils.LAN_LOCAL_MAYBE;
 
-  private OutgoingMessageQueue outgoing_message_queue;
+  private final OutgoingMessageQueueImpl outgoing_message_queue;
   private final IncomingMessageQueueImpl incoming_message_queue;
   
   private Transport	transport;
@@ -196,9 +196,8 @@ NetworkConnectionImpl
     	transport.close( "Tidy close" );
     }
     incoming_message_queue.destroy();
-    outgoing_message_queue.destroy();  
+   	outgoing_message_queue.destroy();  
     is_connected = false;
-    outgoing_message_queue = null;
   }
   
 

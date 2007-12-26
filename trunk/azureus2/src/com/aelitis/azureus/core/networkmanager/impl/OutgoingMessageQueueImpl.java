@@ -128,6 +128,10 @@ OutgoingMessageQueueImpl
       queue_mon.exit();
     }
     total_size = 0;
+    prev_sent.clear();
+    listeners = new ArrayList();
+    urgent_message = null;
+    stream_encoder = null;
   }
   
   
