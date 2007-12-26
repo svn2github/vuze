@@ -60,4 +60,21 @@ public final class HashCodeUtils
         return result;
     }
     
+    /**
+     * bob jenkin's hash function 
+     */
+    public static final int hashCode(byte[] array)
+    {
+    	int hash = 0;
+        for (int i = 0; i < array.length; i++) {
+            hash += array[i];
+            hash += (hash << 10);
+            hash ^= (hash >> 6);
+        }
+        hash += (hash << 3);
+        hash ^= (hash >> 11);
+        hash += (hash << 15);
+        return hash;
+    }
+    
 }

@@ -27,6 +27,8 @@ import java.io.File;
 import java.lang.ref.*;
 import java.util.*;
 
+import com.aelitis.azureus.core.util.HashCodeUtils;
+
 
 public class 
 StringInterner 
@@ -405,7 +407,7 @@ StringInterner
 		}
 		
 		public String toString() {
-			return this.getClass().getSimpleName()+" h="+(int)hits+";s="+(int)size;
+			return this.getClass().getName().replaceAll("^.*\\..\\w+$", "")+" h="+(int)hits+";s="+(int)size;
 		}
 		
 		public void destroy()
@@ -425,7 +427,7 @@ StringInterner
 		public WeakByteArrayEntry(byte[] array)
 		{
 			// byte-array object
-			super(array,Arrays.hashCode(array),array.length+8);
+			super(array,HashCodeUtils.hashCode(array),array.length+8);
 		}
 		
 		public boolean equals(Object obj) {
@@ -495,7 +497,6 @@ StringInterner
 		/* (non-Javadoc)
 		 * @see java.lang.Object#equals(java.lang.Object)
 		 */
-		@Override
 		public boolean equals(Object obj) {
 			if(this == obj)
 				return true;
