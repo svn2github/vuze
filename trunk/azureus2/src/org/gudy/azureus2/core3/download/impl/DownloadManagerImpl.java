@@ -910,6 +910,9 @@ DownloadManagerImpl
 					
 					torrent_save_location = torrent_save_location.getAbsoluteFile();
 				}
+				
+				// update cached stuff in case something changed
+				getSaveLocation();
 			}
 			
 				// must be after torrent read, so that any listeners have a TOTorrent
@@ -1835,7 +1838,7 @@ DownloadManagerImpl
   			  			 			 			
  		File	res = download_manager_state.getFileLink( save_location );
  			
- 		if ( res == null ){
+ 		if ( res == null || res.equals(save_location) ){
  				
  			res	= save_location;
  		}else{

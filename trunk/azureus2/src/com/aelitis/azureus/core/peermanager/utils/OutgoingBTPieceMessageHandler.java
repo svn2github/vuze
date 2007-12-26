@@ -314,6 +314,8 @@ public class OutgoingBTPieceMessageHandler {
       queued_messages.clear();
       
       destroyed = true;
+      
+      outgoing_message_queue.cancelQueueListener(sent_message_listener);
     }
     finally{
       lock_mon.exit();

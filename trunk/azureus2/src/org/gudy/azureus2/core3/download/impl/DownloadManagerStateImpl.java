@@ -93,7 +93,7 @@ DownloadManagerStateImpl
 			default_attributes.put( ATTRIBUTE_DEFAULTS[i][0], ATTRIBUTE_DEFAULTS[i][1] );
 		}
 		
-		TorrentUtils.registerMapFluff( TRACKER_CACHE_KEY );
+		TorrentUtils.registerMapFluff( new String[] {TRACKER_CACHE_KEY,RESUME_KEY} );
 	}
 	
 	private static AEMonitor	class_mon	= new AEMonitor( "DownloadManagerState:class" );
@@ -108,9 +108,6 @@ DownloadManagerStateImpl
 	
 	private boolean						write_required;
 	
-	private Map							tracker_response_cache;
-  
-		
 	private Category 	category;
 
 	private List		listeners	= new ArrayList();
@@ -553,44 +550,35 @@ DownloadManagerStateImpl
 		setTrackerResponseCache( new HashMap());
 	}
 	
-	public Map
-	getTrackerResponseCache()
-	{
-		if ( tracker_response_cache == null ){
+	public Map getTrackerResponseCache() {
 		
-			tracker_response_cache	= torrent.getAdditionalMapProperty( TRACKER_CACHE_KEY );
-			
-			if ( tracker_response_cache == null ){
-			
-				tracker_response_cache	= new HashMap();
-			}
-		}
+		Map tracker_response_cache = null;
 		
-		return( tracker_response_cache );
+		tracker_response_cache = torrent.getAdditionalMapProperty(TRACKER_CACHE_KEY);
+		
+		if (tracker_response_cache == null)
+			tracker_response_cache = new HashMap();
+		
+		return (tracker_response_cache);
 	}
 	
 	public void
 	setTrackerResponseCache(
 		Map		value )
 	{
-			// ensure initial value read
-		
-		getTrackerResponseCache();
 		
 		try{
 			this_mon.enter();
 		
 			// System.out.println( "setting download state/tracker cache for '" + new String(torrent.getName()));
 
-			boolean	changed = !BEncoder.mapsAreIdentical( value, tracker_response_cache );
+			boolean	changed = !BEncoder.mapsAreIdentical( value, getTrackerResponseCache() );
 		
 			if ( changed ){
 				
 				write_required	= true;
 				
-				tracker_response_cache	 = value;
-		
-				torrent.setAdditionalMapProperty( TRACKER_CACHE_KEY, tracker_response_cache );
+				torrent.setAdditionalMapProperty( TRACKER_CACHE_KEY, value );
 			}	
 			
 		}finally{
@@ -689,8 +677,6 @@ DownloadManagerStateImpl
 		boolean		active )
 	{
 		torrent.setDiscardFluff( !active );
-		if(!active)
-			tracker_response_cache = null;
 	}
 	
 	public void

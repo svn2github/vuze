@@ -98,6 +98,12 @@ Main
     
     boolean another_instance = startServer.getState() != StartServer.STATE_LISTENING;
     
+    /*  if another instance is running then set the property which is checked
+     *	class instantiation by various stuff to prevent cascading class loading  
+     */
+    if(another_instance)
+    	System.setProperty("transitory.startup", "1");
+    
     	// WATCH OUT FOR LOGGING HERE - we don't want to use Logger if this is a secondary instance as
     	// it initialised TOO MUCH of AZ core
     

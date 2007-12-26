@@ -23,6 +23,7 @@
 package org.gudy.azureus2.core3.disk.impl;
 
 import java.io.*;
+import java.lang.ref.WeakReference;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.*;
@@ -2623,25 +2624,24 @@ DiskManagerImpl
             return( new DiskManagerFileInfo[0]);
         }
 
-        String  root_dir = download_manager.getAbsoluteSaveLocation().getParent();
+        String  tempRootDir = download_manager.getAbsoluteSaveLocation().getParent();
         
-        if(root_dir == null) // in case we alraedy are at the root
-        	root_dir = download_manager.getAbsoluteSaveLocation().getPath();
+        if(tempRootDir == null) // in case we alraedy are at the root
+        	tempRootDir = download_manager.getAbsoluteSaveLocation().getPath();
         
 
         if ( !torrent.isSimpleTorrent()){
-
-            root_dir += File.separator + download_manager.getAbsoluteSaveLocation().getName();
+        	tempRootDir += File.separator + download_manager.getAbsoluteSaveLocation().getName();
         }
 
-        root_dir    += File.separator;
+        tempRootDir    += File.separator;
+        
+        final String root_dir = tempRootDir;
 
         try{
-            LocaleUtilDecoder locale_decoder = LocaleTorrentUtil.getTorrentEncoding( torrent );
+            final LocaleUtilDecoder locale_decoder = LocaleTorrentUtil.getTorrentEncoding( torrent );
 
             TOTorrentFile[] torrent_files = torrent.getFiles();
-
-            long    piece_size  = torrent.getPieceLength();
 
             final DiskManagerFileInfoHelper[]   res = new DiskManagerFileInfoHelper[ torrent_files.length ];
 
@@ -2651,42 +2651,6 @@ DiskManagerImpl
 
                 final int file_index = i;
 
-                long    file_length = torrent_file.getLength();
-
-                String  path_str = root_dir + File.separator;
-
-                     // for a simple torrent the target file can be changed
-
-                if ( torrent.isSimpleTorrent()){
-
-                    path_str = path_str + download_manager.getAbsoluteSaveLocation().getName();
-
-                }else{
-                    byte[][]path_comps = torrent_file.getPathComponents();
-
-                    for (int j=0;j<path_comps.length;j++){
-
-                        String comp = locale_decoder.decodeString( path_comps[j] );
-
-                        comp = FileUtil.convertOSSpecificChars( comp );
-
-                        path_str += (j==0?"":File.separator) + comp;
-                    }
-                }
-
-                final File      data_file   = new File( path_str );
-
-                final String    data_name   = data_file.getName();
-
-                int separator = data_name.lastIndexOf(".");
-
-                if (separator == -1){
-
-                    separator = 0;
-                }
-
-                final String    data_extension  = data_name.substring(separator);
-
                 DiskManagerFileInfoHelper   info =
                     new DiskManagerFileInfoHelper()
                     {
@@ -2695,6 +2659,8 @@ DiskManagerImpl
                         private long    downloaded;
 
                         private CacheFile   read_cache_file;
+                        // do not access this field directly, use lazyGetFile() instead 
+                        private WeakReference dataFile = new WeakReference(null);
 
                         public void
                         setPriority(boolean b)
@@ -2746,7 +2712,11 @@ DiskManagerImpl
                         public String
                         getExtension()
                         {
-                            return( data_extension );
+                            String    data_name   = lazyGetFile().getName();
+                            int separator = data_name.lastIndexOf(".");
+                            if (separator == -1)
+                                separator = 0;
+                            return data_name.substring(separator);
                         }
 
                         public int
@@ -2816,7 +2786,51 @@ DiskManagerImpl
                                     return( link );
                                 }
                             }
-                            return( data_file );
+                            return lazyGetFile();
+                        }
+                        
+                        private File lazyGetFile()
+                        {
+                        	File toReturn = (File)dataFile.get();
+                        	if(toReturn != null)
+                        		return toReturn;
+                        	
+                        	TOTorrent tor = download_manager.getTorrent();
+                        	
+                            String  path_str = root_dir;
+                            File simpleFile = null;
+
+                                 // for a simple torrent the target file can be changed
+
+                            if ( tor.isSimpleTorrent()){
+
+                                simpleFile = download_manager.getAbsoluteSaveLocation();
+
+                            }else{
+                                byte[][]path_comps = torrent_file.getPathComponents();
+
+                                for (int j=0;j<path_comps.length;j++){
+
+                                    String comp;
+									try
+									{
+										comp = locale_decoder.decodeString( path_comps[j] );
+									} catch (UnsupportedEncodingException e)
+									{
+										Debug.printStackTrace(e);
+										comp = "undecodableFileName"+file_index;
+									}
+
+                                    comp = FileUtil.convertOSSpecificChars( comp );
+
+                                    path_str += (j==0?"":File.separator) + comp;
+                                }
+                            }
+                            
+                            dataFile = new WeakReference(toReturn = simpleFile != null ? simpleFile : new File( path_str ));
+                            
+                            //System.out.println("new file:"+toReturn);
+                            return toReturn;
                         }
 
                         public TOTorrentFile
@@ -2850,13 +2864,13 @@ DiskManagerImpl
                         setLinkAtomic(
                             File    link_destination )
                         {
-                            return( setFileLink( download_manager, res, this, data_file, link_destination ));
+                            return( setFileLink( download_manager, res, this, lazyGetFile(), link_destination ));
                         }
                         
                         public File
                         getLink()
                         {
-                            return( download_manager.getDownloadState().getFileLink( data_file ));
+                            return( download_manager.getDownloadState().getFileLink( lazyGetFile() ));
                         }
 
                         public boolean

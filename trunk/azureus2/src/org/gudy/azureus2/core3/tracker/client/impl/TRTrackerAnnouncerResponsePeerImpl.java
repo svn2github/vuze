@@ -23,6 +23,7 @@ package org.gudy.azureus2.core3.tracker.client.impl;
 
 
 import org.gudy.azureus2.core3.tracker.client.*;
+import org.gudy.azureus2.core3.util.StringInterner;
 
 public class 
 TRTrackerAnnouncerResponsePeerImpl
@@ -50,7 +51,7 @@ TRTrackerAnnouncerResponsePeerImpl
 		byte		_az_version,
 		int			_up_speed )
 	{
-		source		= _source;
+		source		= StringInterner.intern(_source);
 		peer_id		= _peer_id;
 		address		= _address;
 		tcp_port	= (short)_tcp_port;

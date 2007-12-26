@@ -145,10 +145,13 @@ public class BDecoder {
 	        	//decode some more
 	        	
 	          Object value = decodeInputStream(bais,nesting+1);
+	          // value interning is too CPU-intensive, let's skip that for now
+	          //if(value instanceof byte[] && ((byte[])value).length < 17)
+	        	  //value = StringInterner.internBytes((byte[])value);
 
-	          	// keys often repeat a lot - intern to save space
-
-	          String	key = StringInterner.intern( tempByteArray );
+	          
+	          // keys often repeat a lot - intern to save space
+	          String	key = null;//StringInterner.intern( tempByteArray );
 	          
 	          if ( key == null ){
 	        	 	          

@@ -25,6 +25,7 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.util.StringInterner;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
@@ -46,7 +47,8 @@ public class TrackerNameItem
     String name = "";
     
     if( dm != null && dm.getTorrent() != null ) {
-      String[] parts = dm.getTorrent().getAnnounceURL().getHost().split( "\\." );
+      String host = dm.getTorrent().getAnnounceURL().getHost();
+      String[] parts = host.split( "\\." );
         
       int used = 0;
       for( int i = parts.length-1; i >= 0; i-- ) {
@@ -59,6 +61,11 @@ public class TrackerNameItem
         }
         else break;
       }
+      
+      if(name.equals(host))
+    	  name = host;
+      else
+    	  name = StringInterner.intern(name);
     }
         
     if (cell.setText(name) || !cell.isValid()) {

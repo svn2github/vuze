@@ -259,7 +259,7 @@ TOTorrentDeserialiseImpl
 						
 						try{
 						
-							setAnnounceURL( new URL( announce_url ));
+							setAnnounceURL( new URL( StringInterner.intern(announce_url) ));
 							
 						}catch( MalformedURLException e ){
 							
@@ -270,7 +270,7 @@ TOTorrentDeserialiseImpl
 							
 							try{
 								
-								setAnnounceURL( new URL( announce_url ));
+								setAnnounceURL( new URL( StringInterner.intern(announce_url) ));
 									
 							}catch( MalformedURLException f ){
 									
@@ -317,7 +317,7 @@ TOTorrentDeserialiseImpl
 					                	//check to see if the announce url is somewhere in the announce-list
 																		
 					            try{
-					            	urls.add( new URL( url_str ));		
+					            	urls.add( new URL( StringInterner.intern(url_str) ));		
 						    
 					            	if ( url_str.equalsIgnoreCase( announce_url )) {
 					                	
@@ -332,7 +332,7 @@ TOTorrentDeserialiseImpl
 									}
 							         
 									try{
-						           		urls.add( new URL( url_str ));		
+						           		urls.add( new URL( StringInterner.intern(url_str) ));		
 						          
 						           		if ( url_str.equalsIgnoreCase( announce_url )) {
 						                	
@@ -362,7 +362,7 @@ TOTorrentDeserialiseImpl
 			            if ( !announce_url_found && announce_url != null && announce_url.length() > 0) {
 			              try {
 			              	Vector urls = new Vector();
-			              	urls.add( new URL( announce_url ));
+			              	urls.add( new URL( StringInterner.intern(announce_url) ));
 			              	URL[] url_array = new URL[ urls.size() ];
 			              	urls.copyInto( url_array );
 			              	addTorrentAnnounceURLSet( url_array );

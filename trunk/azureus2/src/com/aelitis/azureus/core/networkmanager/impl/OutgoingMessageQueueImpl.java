@@ -24,6 +24,7 @@
 package com.aelitis.azureus.core.networkmanager.impl;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.util.*;
 
@@ -402,6 +403,9 @@ OutgoingMessageQueueImpl
    * @throws IOException on delivery error
    */
   
+  private WeakReference rawBufferCache = new WeakReference(null);
+  private WeakReference origPositionsCache = new WeakReference(null);
+  
    public int deliverToTransport( int max_bytes, boolean manual_listener_notify ) throws IOException {    
 	  if( max_bytes < 1 ) {
 		  Debug.out( "max_bytes < 1: " +max_bytes );
@@ -421,10 +425,31 @@ OutgoingMessageQueueImpl
 
 		  if( !queue.isEmpty() ){
 			  
-			  int buffer_limit 		= 256;
+			  int buffer_limit 		= 64;
 			  
-			  ByteBuffer[] 	raw_buffers 	= new ByteBuffer[buffer_limit];
-			  int[]		 	orig_positions	= new int[buffer_limit];
+			  ByteBuffer[] 	raw_buffers 	= (ByteBuffer[])rawBufferCache.get();
+			  if(raw_buffers == null)
+			  {
+				  raw_buffers = new ByteBuffer[buffer_limit];
+				  rawBufferCache = new WeakReference(raw_buffers);
+			  } else
+			  {
+				  Arrays.fill(raw_buffers, null);
+			  }
+				  
+			  
+			  int[]		 	orig_positions	= (int[])origPositionsCache.get();
+			  if(orig_positions == null)
+			  {
+				  orig_positions = new int[buffer_limit];
+				  origPositionsCache = new WeakReference(orig_positions);
+			  } else
+			  {
+				  Arrays.fill(orig_positions, 0);
+			  }
+				  
+			  
+			  
 			  int			buffer_count	= 0;
 			  
 			  int total_sofar = 0;

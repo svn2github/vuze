@@ -23,6 +23,7 @@
 
 package org.gudy.azureus2.core3.util;
 
+import java.io.File;
 import java.lang.ref.*;
 import java.util.*;
 
@@ -30,13 +31,21 @@ import java.util.*;
 public class 
 StringInterner 
 {
-	private static final int MAX_MAP_SIZE		= 1000;
+	private static final int SCHEDULED_CLEANUP_INTERVAL = 60*1000;
 	
-	private static final int TICK_PERIOD			= 60*1000;
-	private static final int TOTAL_CLEAN_TIME		= 15*60*1000;
-	private static final int TOTAL_CLEAN_TICKS		= TOTAL_CLEAN_TIME/TICK_PERIOD;
+	private static final boolean TRACE_CLEANUP = false;
+	private static final boolean TRACE_MULTIHITS = false;
 	
-	private static Map map = new WeakHashMap( MAX_MAP_SIZE );
+	
+	private static final int IMMEDIATE_CLEANUP_TRIGGER = 2000;
+	private static final int IMMEDIATE_CLEANUP_GOAL = 1500;
+	private static final int SCHEDULED_CLEANUP_TRIGGER = 1500;
+	private static final int SCHEDULED_CLEANUP_GOAL = 1000;	
+	private static final int SCHEDULED_AGING_THRESHOLD = 750;
+	
+	private static LightHashSet interningSet = new LightHashSet(800);
+
+	private final static ReferenceQueue refQueue = new ReferenceQueue();
 	
 	private static final String[] COMMON_KEYS = {
 		"src","port","prot","ip","udpport","azver","httpport","downloaded",
@@ -61,54 +70,20 @@ StringInterner
 			for (int i=0;i<COMMON_KEYS.length;i++){
 				
 				byte_map.put( COMMON_KEYS[i].getBytes(Constants.BYTE_ENCODING), COMMON_KEYS[i] );
+				interningSet.add(new WeakStringEntry(COMMON_KEYS[i]));
 			}
 		}catch( Throwable e ){
 			
 			e.printStackTrace();
 		}
+		
+		SimpleTimer.addPeriodicEvent("StringInterner:cleaner", SCHEDULED_CLEANUP_INTERVAL, new TimerEventPerformer() {
+			public void perform(TimerEvent event) {
+				sanitize(true);
+			}
+		});
 	}
-	
-	private static boolean general_interning_enabled = false;
 		
-	static{
-		
-			// can't use config here as too early in init!
-		
-		String	str = System.getProperty( "azureus.general.interning.enable" );
-		
-		if ( str != null && str.equals( "1" )){
-			
-			general_interning_enabled = true;
-			
-			Thread t = 
-				new Thread("StringInterner:cleaner")
-				{
-					private int	tick_count;
-					
-					public void
-					run()
-					{
-						while( true ){
-							try{
-								Thread.sleep( TICK_PERIOD );
-								
-								tick_count++;
-								
-								tidy( tick_count == TOTAL_CLEAN_TICKS );
-								
-							}catch( Throwable e ){
-								
-							}
-						}
-					}
-				};
-				
-			t.setDaemon( true );
-			
-			t.start();
-		}
-	}
-	
 	// private final static ReferenceQueue queue = new ReferenceQueue();
 
 	
@@ -123,163 +98,426 @@ StringInterner
 		return( res );
 	}
 	
-	public static String
-	intern(
-		String		str )
-	{
-		if ( !general_interning_enabled ){
-			
-			return( str );
-		}
+	public static String intern(String toIntern) {
 		
-		synchronized( StringInterner.class ){
-			
-			
-			entryDetails entry;
-			
-			/*
-			while( ( entry = (entryDetails)queue.poll() ) != null ){
-			}
-			*/
-						
-			if ( map.size() > MAX_MAP_SIZE ){
-				
-				tidy( false );
-			}
-			
-			entry = (entryDetails)map.get( str );
-			
-			if ( entry != null ){
-				
-				String	s = (String)entry.get();
-				
-				if ( s != null ){
-					
-					if ( entry.hit_count < Short.MAX_VALUE ){
-					
-						entry.hit_count++;
-					}
-										
-					return( s );
-				}
-			}
-			
-			map.put( str, new entryDetails( str ));
-						
-			return( str );
-		}
-	}
-	
-	private static void
-	tidy(
-		boolean	clear )
-	{
-		if ( !clear ){
-			
-			Iterator	it = map.values().iterator();
-			
-			while( it.hasNext()){
-				
-				entryDetails entry = (entryDetails)it.next();
+		if(toIntern == null)
+			return null;
 		
-					// random guess: size of an entry is 
-					// Object: 8
-					// Reference: 4*8
-					// entryDetails: 4
-					// Map.Entry: 2*8 + 4
-					// = say 90 bytes (testing shows 90 :))
-				
-					// a String is 24 bytes + chars
-				
-				final int overhead	= 90;
-				final int str_size	= 24 + entry.size;
-				
-				if ( entry.hit_count * str_size < overhead ){
-					
-					it.remove();
-				}
-			}
-			
-			if ( map.size() > MAX_MAP_SIZE / 2 ){
-			
-				// didn't compact enough, dump the whole thing and start again!
-			
-				clear = true;
-			}
-		}
+		String internedString;
 		
-		if ( clear ){
-			
-			map = new WeakHashMap( MAX_MAP_SIZE );
-		}
-		
-		/*
-		System.out.println( "trimmed down to " + map.size());
-		
-		List l = new ArrayList(map.values());
-	
-		Collections.sort(
-				l,
-				new Comparator()
-				{
-					public int 
-					compare(
-						Object o1, 
-						Object o2 ) 
-					{
-						entryDetails	e1 = (entryDetails)o1;
-						entryDetails	e2 = (entryDetails)o2;
-						
-						return( e2.hit_count - e1.hit_count );
-					}
-				});
-		
-		String	line = "";
-		
-		for (int i=0;i<Math.min( 128, l.size());i++){
-			
-			entryDetails	e = (entryDetails)l.get(i);
-			
-			line += "\"" + e.get() + "\",";
-			
-			if ( (i+1) % 8 == 0 ){
-				
-				System.out.println( line );
-				
-				line = "";
-			}
-		}
-		
-		System.out.println( line );
-		*/
-	}
-	
-	private static class
-	entryDetails
-		extends WeakReference
-	{
-		private short		hit_count;
-		private short		size;
-
-		protected
-		entryDetails(
-			String		key )
+		synchronized (interningSet)
 		{
-			// super( key, queue );
-			super( key );
+			sanitize(false);
 			
-			int	len = key.length();
 			
-			if ( len <= Short.MAX_VALUE ){
-				
-				size = (short)len;
-				
-			}else{
-				
-				size = Short.MAX_VALUE;
+			WeakStringEntry checkEntry = new WeakStringEntry(toIntern);
+			WeakStringEntry internedEntry = (WeakStringEntry) interningSet.get(checkEntry);
+			
+			if (internedEntry == null || (internedString = internedEntry.getString()) == null)
+			{
+				internedString = toIntern;
+				if(!interningSet.add(checkEntry))
+					System.out.println("unexpected modification");  // should not happen
+			} else
+			{
+				internedEntry.incHits();
+				checkEntry.destroy();
+				if(TRACE_MULTIHITS && internedEntry.hits % 10 == 0)
+					System.out.println("multihit "+internedEntry);
 			}
 		}
+		
+		// should not happen
+		if(!toIntern.equals(internedString))
+			System.err.println("mismatch");
+		
+		return internedString;
 	}
+	
+	public static byte[] internBytes(byte[] toIntern) {
+		
+		if(toIntern == null)
+			return null;
+		
+		byte[] internedArray;
+		
+		synchronized (interningSet)
+		{
+			sanitize(false);
+			
+			WeakByteArrayEntry checkEntry = new WeakByteArrayEntry(toIntern);
+			WeakByteArrayEntry internedEntry = (WeakByteArrayEntry) interningSet.get(checkEntry);
+			
+			if (internedEntry == null || (internedArray = internedEntry.getArray()) == null)
+			{
+				internedArray = toIntern;
+				if(!interningSet.add(checkEntry))
+					System.out.println("unexpected modification");  // should not happen
+			} else
+			{
+				internedEntry.incHits();
+				checkEntry.destroy();
+				if(TRACE_MULTIHITS && internedEntry.hits % 10 == 0)
+					System.out.println("multihit"+internedEntry);
+			}
+		}
+		
+		// should not happen
+		if(!Arrays.equals(toIntern, internedArray))
+			System.err.println("mismatch");
+		
+		return internedArray;
+	}
+	
+	/**
+	 * This is based on File.hashCode() and File.equals(), which can return different values for different representations of the paths.
+	 * Thus internFile should be used with canonized Files exclusively
+	 */
+	public static File internFile(File toIntern) {
+		
+		if(toIntern == null)
+			return null;
+		
+		File internedFile;
+		
+		synchronized (interningSet)
+		{
+			sanitize(false);
+			
+			
+			WeakFileEntry checkEntry = new WeakFileEntry(toIntern);
+			WeakFileEntry internedEntry = (WeakFileEntry) interningSet.get(checkEntry);
+			
+			if (internedEntry == null || (internedFile = internedEntry.getFile()) == null)
+			{
+				internedFile = toIntern;
+				if(!interningSet.add(checkEntry))
+					System.out.println("unexpected modification"); // should not happen
+			} else
+			{
+				internedEntry.incHits();
+				checkEntry.destroy();
+				if(TRACE_MULTIHITS && internedEntry.hits % 10 == 0)
+					System.out.println("multihit"+internedEntry);
+			}
+		}
+		
+		// should not happen
+		if(!toIntern.equals(internedFile))
+			System.err.println("mismatch");
+		
+		return internedFile;
+	}
+	
+	
+	private final static Comparator	savingsComp	= new Comparator()
+												{
+													public int compare(Object o1, Object o2) {
+														WeakEntry w1 = (WeakEntry) o1;
+														WeakEntry w2 = (WeakEntry) o2;
+														return w1.hits * w1.size - w2.hits * w2.size;
+													}
+												};
+	
+	private static void sanitize(boolean scheduled)
+	{
+		synchronized (interningSet)
+		{
+			WeakEntry ref;
+			while((ref = (WeakEntry)(refQueue.poll())) != null)
+			{
+				if(!ref.isDestroyed())
+				{
+					interningSet.remove(ref);
+					if(TRACE_CLEANUP && ref.hits > 30)
+						System.out.println("queue remove:"+ref);
+				} else
+				{// should not happen
+					System.err.println("double removal "+ref);					
+				}
+			}
+				
+			
+			int currentSetSize = interningSet.size();
+			
+			aging:
+			{
+				cleanup:
+				{
+					// unscheduled cleanup/aging only in case of emergency
+					if (currentSetSize < IMMEDIATE_CLEANUP_TRIGGER && !scheduled)
+						break aging;
+					
+					if (TRACE_CLEANUP)
+						System.out.println("Doing cleanup " + currentSetSize);
+					
+					ArrayList remaining = new ArrayList();
+					
+					// remove objects that aren't shared by multiple holders first (interning is useless)
+					for (Iterator it = interningSet.iterator(); it.hasNext();)
+					{
+						if (interningSet.size() < IMMEDIATE_CLEANUP_GOAL && !scheduled)
+							break aging;
+						WeakEntry entry = (WeakEntry) it.next();
+						if (entry.hits == 0)
+						{
+							if (TRACE_CLEANUP)
+								System.out.println("0-remove: " + entry);
+							it.remove();
+						} else
+							remaining.add(entry);
+					}
+					
+					currentSetSize = interningSet.size();
+					if (currentSetSize < SCHEDULED_CLEANUP_TRIGGER && scheduled)
+						break cleanup;
+					if (currentSetSize < IMMEDIATE_CLEANUP_GOAL && !scheduled)
+						break aging;
+					
+					Collections.sort(remaining, savingsComp);
+					// remove those objects that saved the least amount first
+					weightedRemove: for (int i = 0; i < remaining.size(); i++)
+					{
+						currentSetSize = interningSet.size();
+						if (currentSetSize < SCHEDULED_CLEANUP_GOAL && scheduled)
+							break weightedRemove;
+						if (currentSetSize < IMMEDIATE_CLEANUP_GOAL && !scheduled)
+							break aging;
+						WeakEntry entry = (WeakEntry) remaining.get(i);
+						if (TRACE_CLEANUP)
+							System.out.println("weighted remove: " + entry);
+						interningSet.remove(entry);
+					}
+				}
+			
+			
+				currentSetSize = interningSet.size();
+				if (currentSetSize < SCHEDULED_AGING_THRESHOLD && scheduled)
+					break aging;
+				if (currentSetSize < IMMEDIATE_CLEANUP_GOAL && !scheduled)
+					break aging;
+				for (Iterator it = interningSet.iterator(); it.hasNext();)
+					((WeakEntry) it.next()).decHits();
+			}
+			
+			if(TRACE_CLEANUP && scheduled)
+			{
+				List weightTraceSorted = new ArrayList(interningSet);
+				Collections.sort(weightTraceSorted,savingsComp);
+				System.out.println("Remaining elements after cleanup:");
+				for(Iterator it = weightTraceSorted.iterator();it.hasNext();)
+					System.out.println("\t"+it.next());
+			}
+			
+			if(scheduled && interningSet.capacity() > interningSet.size * 4)
+				interningSet.compactify(0f);
+				
+
+		}
+		
+	}
+
+	/*
+	 * private static void tidy( boolean clear ) { if ( !clear ){
+	 * 
+	 * Iterator it = map.values().iterator();
+	 * 
+	 * while( it.hasNext()){
+	 * 
+	 * entryDetails entry = (entryDetails)it.next();
+	 *  // random guess: size of an entry is // Object: 8 // Reference: 4*8 //
+	 * entryDetails: 4 // Map.Entry: 2*8 + 4 // = say 90 bytes (testing shows 90
+	 * :))
+	 *  // a String is 24 bytes + chars
+	 * 
+	 * final int overhead = 90; final int str_size = 24 + entry.size;
+	 * 
+	 * if ( entry.hit_count * str_size < overhead ){
+	 * 
+	 * it.remove(); } }
+	 * 
+	 * if ( map.size() > MAX_MAP_SIZE / 2 ){
+	 *  // didn't compact enough, dump the whole thing and start again!
+	 * 
+	 * clear = true; } }
+	 * 
+	 * if ( clear ){
+	 * 
+	 * map = new WeakHashMap( MAX_MAP_SIZE ); }
+	 * 
+	 * 
+	 * System.out.println( "trimmed down to " + map.size());
+	 * 
+	 * List l = new ArrayList(map.values());
+	 * 
+	 * Collections.sort( l, new Comparator() { public int compare( Object o1,
+	 * Object o2 ) { entryDetails e1 = (entryDetails)o1; entryDetails e2 =
+	 * (entryDetails)o2;
+	 * 
+	 * return( e2.hit_count - e1.hit_count ); } });
+	 * 
+	 * String line = "";
+	 * 
+	 * for (int i=0;i<Math.min( 128, l.size());i++){
+	 * 
+	 * entryDetails e = (entryDetails)l.get(i);
+	 * 
+	 * line += "\"" + e.get() + "\",";
+	 * 
+	 * if ( (i+1) % 8 == 0 ){
+	 * 
+	 * System.out.println( line );
+	 * 
+	 * line = ""; } }
+	 * 
+	 * System.out.println( line );
+	 *  }
+	 */
+	
+	private static abstract class WeakEntry extends WeakReference
+	{
+		private final int hash;
+		final short size;
+		short hits;
+		
+
+		public WeakEntry(Object o, int hash, int size)
+		{
+			super(o,refQueue);
+			this.hash = hash;
+			this.size = (short)(size & 0x7FFF);
+		}
+		
+		public int hashCode() {
+			return hash;		
+		}
+		
+		public void incHits()
+		{
+			if(hits < Short.MAX_VALUE)
+				hits++;
+		}
+		
+		public void decHits()
+		{
+			if(hits > 0)
+				hits--;
+		}
+		
+		public String toString() {
+			return this.getClass().getSimpleName()+" h="+(int)hits+";s="+(int)size;
+		}
+		
+		public void destroy()
+		{
+			hits = -1;
+		}
+		
+		public boolean isDestroyed()
+		{
+			return hits == -1;
+		}
+	}
+	
+	private static class WeakByteArrayEntry extends WeakEntry
+	{
+		
+		public WeakByteArrayEntry(byte[] array)
+		{
+			// byte-array object
+			super(array,Arrays.hashCode(array),array.length+8);
+		}
+		
+		public boolean equals(Object obj) {
+			if(this == obj)
+				return true;
+			if(obj instanceof WeakByteArrayEntry)
+			{
+				byte[] myArray = getArray();
+				byte[] otherArray = ((WeakByteArrayEntry)obj).getArray();
+				return myArray == null ? false : Arrays.equals(myArray,otherArray);
+			}
+				
+			return false;
+		}
+
+		public byte[] getArray() {
+			return (byte[])get();
+		}
+		
+		public String toString() {
+			return super.toString()+" "+(getArray() == null?"null":new String(getArray()));
+		}
+	}
+	
+	private static class WeakStringEntry extends WeakEntry
+	{
+		String debugS;
+		
+		public WeakStringEntry(String entry)
+		{
+			// string object with 2 fields, char-array object
+			super(entry,entry.hashCode(),16+8+entry.length()*2);
+			debugS = new String(entry);
+		}
+		
+		public boolean equals(Object obj) {
+			if(this == obj)
+				return true;
+			if(obj instanceof WeakStringEntry)
+			{
+				String myString = getString();
+				String otherString = ((WeakStringEntry)obj).getString();
+				return myString == null ? false : myString.equals(otherString);
+			}
+			return false;
+		}
+		
+		public String getString()
+		{
+			return (String)get();
+		}
+		
+		public String toString() {
+			//return super.toString()+" "+getString();
+			return super.toString()+" "+debugS;
+		}
+	}
+	
+	private static class WeakFileEntry extends WeakEntry
+	{
+		public WeakFileEntry(File entry)
+		{
+			// file object with 2 fields, string object with 2 fields, char-array object
+			super(entry,entry.hashCode(),16+16+8+entry.getPath().length()*2);
+		}
+		
+		/* (non-Javadoc)
+		 * @see java.lang.Object#equals(java.lang.Object)
+		 */
+		@Override
+		public boolean equals(Object obj) {
+			if(this == obj)
+				return true;
+			if(obj instanceof WeakFileEntry)
+			{
+				File myFile = getFile();
+				File otherFile = ((WeakFileEntry)obj).getFile();
+				return myFile == null ? otherFile == null : myFile.equals(otherFile);
+			}
+			return false;
+		}
+		
+		public File getFile()
+		{
+			return (File)get();
+		}
+		
+		public String toString() {
+			return super.toString()+" "+getFile();
+		}
+	}
+
 	
 	/*
 	public static void

@@ -599,6 +599,7 @@ public class MessageText {
 	{
 		setResourceBundle( new IntegratedResourceBundle(DEFAULT_BUNDLE, pluginLocalizationPaths));
 		Locale.setDefault(newLocale);
+		LOCALE_CURRENT = LOCALE_DEFAULT;
 		return true;
 	}
 		

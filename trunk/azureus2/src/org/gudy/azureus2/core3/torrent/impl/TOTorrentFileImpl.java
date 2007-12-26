@@ -41,7 +41,7 @@ TOTorrentFileImpl
 	private final int		first_piece_number;
 	private final int		last_piece_number;
 	
-	private final Map		additional_properties = new LightHashMap();
+	private final Map		additional_properties = new LightHashMap(1);
 	
 	private final boolean	is_utf8;
 
@@ -126,16 +126,13 @@ TOTorrentFileImpl
 	{
 		for (int i=0;i<path_components.length;i++){
 			
-			byte[]	comp = path_components[i];
-			
-			if (	comp.length == 2 && 
-					comp[0] == (byte)'.' &&
-					comp[1] == (byte)'.' ){
-				
-				throw( 	new TOTorrentException( 
-						"Torrent file contains illegal '..' component",
-						TOTorrentException.RT_DECODE_FAILS ));
-			}
+			byte[] comp = path_components[i];
+			if (comp.length == 2 && comp[0] == (byte) '.' && comp[1] == (byte) '.')
+				throw (new TOTorrentException("Torrent file contains illegal '..' component", TOTorrentException.RT_DECODE_FAILS));
+
+			// intern directories as they're likely to repeat
+			if(i < (path_components.length - 1))
+				path_components[i] = StringInterner.internBytes(path_components[i]);
 		}
 	}
 	

@@ -166,7 +166,7 @@ FMFileManagerImpl
 				
 				// System.out.println( "setLink:" + source + " -> " + target );
 				
-				if ( target != null ){
+				if ( target != null && !source.equals(target)){
 					
 					links_entry.put( source, target );
 				}else{

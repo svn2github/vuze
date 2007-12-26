@@ -56,7 +56,7 @@ NetworkConnectionImpl
   private boolean 	is_connected;
   private byte		is_lan_local	= AddressUtils.LAN_LOCAL_MAYBE;
 
-  private final OutgoingMessageQueue outgoing_message_queue;
+  private OutgoingMessageQueue outgoing_message_queue;
   private final IncomingMessageQueueImpl incoming_message_queue;
   
   private Transport	transport;
@@ -198,6 +198,7 @@ NetworkConnectionImpl
     incoming_message_queue.destroy();
     outgoing_message_queue.destroy();  
     is_connected = false;
+    outgoing_message_queue = null;
   }
   
 
@@ -274,7 +275,7 @@ NetworkConnectionImpl
 	getString()
 	{
 		return( "tran=" + (transport==null?"null":transport.getDescription()+",w_ready=" + transport.isReadyForWrite(null)+",r_ready=" + transport.isReadyForRead( null ))+ ",in=" + incoming_message_queue.getPercentDoneOfCurrentMessage() + 
-				",out=" + outgoing_message_queue.getTotalSize() + ",owner=" + (connection_listener==null?"null":connection_listener.getDescription()));
+				",out=" + (outgoing_message_queue==null?0:outgoing_message_queue.getTotalSize()) + ",owner=" + (connection_listener==null?"null":connection_listener.getDescription()));
 	}
 	
 	protected static class

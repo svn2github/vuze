@@ -606,6 +606,7 @@ implements PEPeerTransport
 
 		message_limiter = new PeerMessageLimiter();
 
+		/*
 		//link in outgoing piece handler
 		outgoing_piece_message_handler = 
 			new OutgoingBTPieceMessageHandler(
@@ -620,10 +621,10 @@ implements PEPeerTransport
 							peer_stats.diskReadComplete( bytes );
 						}
     			},
-    			other_peer_piece_version);
+    			other_peer_piece_version);*/
 
 		//link in outgoing have message aggregator
-    outgoing_have_message_aggregator = new OutgoingBTHaveMessageAggregator( connection.getOutgoingMessageQueue(), other_peer_bt_have_version, other_peer_az_have_version );
+		outgoing_have_message_aggregator = new OutgoingBTHaveMessageAggregator( connection.getOutgoingMessageQueue(), other_peer_bt_have_version, other_peer_az_have_version );
 
 		connection_established_time = SystemTime.getCurrentTime();
 
@@ -741,6 +742,7 @@ implements PEPeerTransport
 		outgoing_have_message_aggregator = null;
 		peer_exchange_item = null;
 		outgoing_piece_message_handler = null;
+		plugin_connection = null;
 
 		// only save stats if it's worth doing so; ignore rapid connect-disconnects
 		if (peer_stats.getTotalDataBytesReceived() > 0 || peer_stats.getTotalDataBytesSent() > 0 || SystemTime.getCurrentTime() - connection_established_time > 30 * 1000)
@@ -1065,16 +1067,16 @@ implements PEPeerTransport
 
 		//System.out.println( "["+(System.currentTimeMillis()/1000)+"] " +connection + " choked");
 
+		connection.getOutgoingMessageQueue().addMessage( new BTChoke( other_peer_choke_version ), false );
+		choking_other_peer = true;
+		is_optimistic_unchoke = false;
+		
 		if(outgoing_piece_message_handler != null)
 		{
 			outgoing_piece_message_handler.removeAllPieceRequests();
 			outgoing_piece_message_handler.destroy();
 			outgoing_piece_message_handler = null;
 		}
-
-    connection.getOutgoingMessageQueue().addMessage( new BTChoke( other_peer_choke_version ), false );
-		choking_other_peer = true;
-		is_optimistic_unchoke = false;
 	}
 
 
@@ -1083,19 +1085,22 @@ implements PEPeerTransport
 
 		//System.out.println( "["+(System.currentTimeMillis()/1000)+"] " +connection + " unchoked");
 		if(outgoing_piece_message_handler == null)
+		{
 			outgoing_piece_message_handler = new OutgoingBTPieceMessageHandler(
-					this,
-					connection.getOutgoingMessageQueue(),
-					new OutgoingBTPieceMessageHandlerAdapter()
+				this,
+				connection.getOutgoingMessageQueue(),
+				new OutgoingBTPieceMessageHandlerAdapter()
+				{
+					public void 
+					diskRequestCompleted(
+							long bytes) 
 					{
-						public void 
-						diskRequestCompleted(
-								long bytes) 
-						{
-							peer_stats.diskReadComplete( bytes );
-						}
-    			},
-    			other_peer_piece_version);
+						peer_stats.diskReadComplete( bytes );
+					}
+			},
+			other_peer_piece_version);
+		}
+
 
 
 		choking_other_peer = false;	// set this first as with pseudo peers we can effectively synchronously act
@@ -2232,7 +2237,8 @@ implements PEPeerTransport
 		}
 
 		supported_messages = (Message[]) messages.toArray(new Message[messages.size()]);
-		outgoing_piece_message_handler.setPieceVersion(other_peer_piece_version);
+		if(outgoing_piece_message_handler != null)
+			outgoing_piece_message_handler.setPieceVersion(other_peer_piece_version);
 		outgoing_have_message_aggregator.setHaveVersion(other_peer_bt_have_version, other_peer_az_have_version);
 		changePeerState(PEPeer.TRANSFERING);
 		connection_state = PEPeerTransport.CONNECTION_FULLY_ESTABLISHED;
