@@ -740,4 +740,18 @@ public class UIFunctionsImpl
 			Logger.log(new LogEvent(LOGID, "showAllPeersView", e));
 		}
 	}
+	
+	public void showMultiOptionsView( DownloadManager[] dms) {
+		try {
+			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
+			if (uiFunctions == null) {
+				return;
+			}
+
+			uiFunctions.showMultiOptionsView( dms );
+
+		} catch (Exception e) {
+			Logger.log(new LogEvent(LOGID, "showMultiOptionsView", e));
+		}
+	}
 }
