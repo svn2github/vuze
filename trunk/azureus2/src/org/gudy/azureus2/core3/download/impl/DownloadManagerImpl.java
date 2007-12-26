@@ -402,6 +402,8 @@ DownloadManagerImpl
 			receivedTrackerResponse(
 				TRTrackerAnnouncerResponse	response) 
 			{
+				if(tracker_client == null)
+					response.setPeers(new TRTrackerAnnouncerResponsePeer[0]);
 				tracker_listeners.dispatch( LDT_TL_ANNOUNCERESULT, response );
 			}
 
@@ -2601,8 +2603,11 @@ DownloadManagerImpl
   				tracker_client.removeListener( tracker_client_listener );
 		
  				download_manager_state.setTrackerResponseCache(	tracker_client.getTrackerResponseCache());
-			
- 					// currently only report this for complete downloads...
+ 				
+ 				// we have serialized what we need -> can destroy retained stuff now
+ 				tracker_client.getLastResponse().setPeers(new TRTrackerAnnouncerResponsePeer[0]); 				
+ 				
+ 				// currently only report this for complete downloads...
  				
  				tracker_client.stop( for_queue && isDownloadComplete( false ));
  				
