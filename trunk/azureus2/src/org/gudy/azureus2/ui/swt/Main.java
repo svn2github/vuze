@@ -98,8 +98,9 @@ Main
     
     boolean another_instance = startServer.getState() != StartServer.STATE_LISTENING;
     
-    /*  if another instance is running then set the property which is checked
-     *	class instantiation by various stuff to prevent cascading class loading  
+    /*  if another instance is running then set the property which is checked during
+     *	class instantiation by various stuff to to avoid pulling in too much state
+     *	from the already running instance  
      */
     if(another_instance)
     	System.setProperty("transitory.startup", "1");
