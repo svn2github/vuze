@@ -454,13 +454,10 @@ StringInterner
 	
 	private static class WeakStringEntry extends WeakEntry
 	{
-		String debugS;
-		
 		public WeakStringEntry(String entry)
 		{
 			// string object with 2 fields, char-array object
 			super(entry,entry.hashCode(),16+8+entry.length()*2);
-			debugS = new String(entry);
 		}
 		
 		public boolean equals(Object obj) {
@@ -481,8 +478,7 @@ StringInterner
 		}
 		
 		public String toString() {
-			//return super.toString()+" "+getString();
-			return super.toString()+" "+debugS;
+			return super.toString()+" "+getString();
 		}
 	}
 	
