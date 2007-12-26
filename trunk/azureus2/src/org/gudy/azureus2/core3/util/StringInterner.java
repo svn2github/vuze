@@ -46,6 +46,8 @@ StringInterner
 	private static final int SCHEDULED_AGING_THRESHOLD = 750;
 	
 	private static LightHashSet interningSet = new LightHashSet(800);
+	
+	private static final AEMonitor interingMon = new AEMonitor("StringInternMon");
 
 	private final static ReferenceQueue refQueue = new ReferenceQueue();
 	
@@ -107,14 +109,15 @@ StringInterner
 		
 		String internedString;
 		
-		synchronized (interningSet)
-		{
+		try {
+			interingMon.enter();
+
 			sanitize(false);
-			
-			
+
+
 			WeakStringEntry checkEntry = new WeakStringEntry(toIntern);
 			WeakStringEntry internedEntry = (WeakStringEntry) interningSet.get(checkEntry);
-			
+
 			if (internedEntry == null || (internedString = internedEntry.getString()) == null)
 			{
 				internedString = toIntern;
@@ -127,6 +130,10 @@ StringInterner
 				if(TRACE_MULTIHITS && internedEntry.hits % 10 == 0)
 					System.out.println("multihit "+internedEntry);
 			}
+
+		} finally
+		{
+			interingMon.exit();
 		}
 		
 		// should not happen
@@ -143,8 +150,9 @@ StringInterner
 		
 		byte[] internedArray;
 		
-		synchronized (interningSet)
-		{
+		try {
+			interingMon.enter();
+			
 			sanitize(false);
 			
 			WeakByteArrayEntry checkEntry = new WeakByteArrayEntry(toIntern);
@@ -162,6 +170,9 @@ StringInterner
 				if(TRACE_MULTIHITS && internedEntry.hits % 10 == 0)
 					System.out.println("multihit"+internedEntry);
 			}
+		} finally
+		{
+			interingMon.exit();
 		}
 		
 		// should not happen
@@ -172,7 +183,7 @@ StringInterner
 	}
 	
 	/**
-	 * This is based on File.hashCode() and File.equals(), which can return different values for different representations of the paths.
+	 * This is based on File.hashCode() and File.equals(), which can return different values for different representations of the same paths.
 	 * Thus internFile should be used with canonized Files exclusively
 	 */
 	public static File internFile(File toIntern) {
@@ -182,8 +193,9 @@ StringInterner
 		
 		File internedFile;
 		
-		synchronized (interningSet)
-		{
+		try {
+			interingMon.enter();
+			
 			sanitize(false);
 			
 			
@@ -202,6 +214,9 @@ StringInterner
 				if(TRACE_MULTIHITS && internedEntry.hits % 10 == 0)
 					System.out.println("multihit"+internedEntry);
 			}
+		} finally
+		{
+			interingMon.exit();
 		}
 		
 		// should not happen
@@ -223,8 +238,9 @@ StringInterner
 	
 	private static void sanitize(boolean scheduled)
 	{
-		synchronized (interningSet)
-		{
+		try {
+			interingMon.enter();
+			
 			WeakEntry ref;
 			while((ref = (WeakEntry)(refQueue.poll())) != null)
 			{
@@ -314,7 +330,9 @@ StringInterner
 			if(scheduled && interningSet.capacity() > interningSet.size * 4)
 				interningSet.compactify(0f);
 				
-
+		} finally
+		{
+			interingMon.exit();
 		}
 		
 	}
