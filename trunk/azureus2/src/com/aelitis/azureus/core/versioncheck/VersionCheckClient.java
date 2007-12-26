@@ -249,10 +249,33 @@ public class VersionCheckClient {
 	    	}
 	        try {
 	          last_check_data_v4 = performVersionCheck( constructVersionCheckMessage( reason ), true, true, false );
-	          
+	         
 	          if ( last_check_data_v4 != null && last_check_data_v4.size() > 0 ){
 	   	       
 	        	  COConfigurationManager.setParameter( "versioncheck.cache.v4", last_check_data_v4 );
+	          }
+	          
+	          	// clear down any plugin-specific data that has successfully been sent to the version server
+	          
+	          try{
+	    	      if ( AzureusCoreFactory.isCoreAvailable()){
+	    	      	
+	    		      //installed plugin IDs
+	    		      PluginInterface[] plugins = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaces();
+	    		      	    		      
+	    		      for (int i=0;i<plugins.length;i++){
+	    		    	  
+	    		    	PluginInterface		plugin = plugins[i];
+	    		        
+	    		       	Map	data = plugin.getPluginconfig().getPluginMapParameter( "plugin.versionserver.data", null );
+
+	    		       	if ( data != null ){
+	    		       	
+	    		       		plugin.getPluginconfig().setPluginMapParameter( "plugin.versionserver.data", new HashMap());
+	    		       	}
+	    		      }
+	    	      }
+	          }catch( Throwable e ){
 	          }
 	        }
 	        catch( UnknownHostException t ) {
@@ -1079,40 +1102,82 @@ public class VersionCheckClient {
       }
       message.put("orig_locale", originalLocale);
 
-      if ( AzureusCoreFactory.isCoreAvailable()){
-      	
-	      //installed plugin IDs
-	      PluginInterface[] plugins = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaces();
-	      List pids = new ArrayList();
-	      for (int i=0;i<plugins.length;i++){
-	        String  pid = plugins[i].getPluginID();
-	        
-        	String	info = (String)plugins[i].getPluginconfig().getPluginStringParameter( "plugin.info" );
-        	
-	          // filter out built-in and core ones
-	        if ( 	( info != null && info.length() > 0 ) ||
-	        		(	!pid.startsWith( "<" ) && 
-		        		!pid.startsWith( "azbp" ) &&
-		        		!pid.startsWith( "azupdater" ) &&
-	        			!pid.startsWith( "azplatform" ) &&
-	        			!pids.contains( pid ))){
-	        
-	        	if ( info != null && info.length() > 0 ){
-	        		
-	        		if( info.length() < 256 ){
-	        			
-	        			pid += ":" + info;
-	        			
-	        		}else{
-	        			
-	        			Debug.out( "Plugin '" + pid + "' reported excessive info string '" + info + "'" );
-	        		}
-	        	}
+      try{
+	      if ( AzureusCoreFactory.isCoreAvailable()){
+	      	
+		      //installed plugin IDs
+		      PluginInterface[] plugins = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaces();
+		      
+		      List pids = new ArrayList();
+		      
+		      List vs_data = new ArrayList();
+		      
+		      for (int i=0;i<plugins.length;i++){
+		    	  
+		    	PluginInterface		plugin = plugins[i];
+		    	
+		        String  pid = plugin.getPluginID();
+		        
+	        	String	info = plugin.getPluginconfig().getPluginStringParameter( "plugin.info" );
 	        	
-	        	pids.add( pid );
-	        }
+		          // filter out built-in and core ones
+		        if ( 	( info != null && info.length() > 0 ) ||
+		        		(	!pid.startsWith( "<" ) && 
+			        		!pid.startsWith( "azbp" ) &&
+			        		!pid.startsWith( "azupdater" ) &&
+		        			!pid.startsWith( "azplatform" ) &&
+		        			!pids.contains( pid ))){
+		        
+		        	if ( info != null && info.length() > 0 ){
+		        		
+		        		if( info.length() < 256 ){
+		        			
+		        			pid += ":" + info;
+		        			
+		        		}else{
+		        			
+		        			Debug.out( "Plugin '" + pid + "' reported excessive info string '" + info + "'" );
+		        		}
+		        	}
+		        	
+		        	pids.add( pid );
+		        }
+		        
+		       	Map	data = plugin.getPluginconfig().getPluginMapParameter( "plugin.versionserver.data", null );
+	
+		       	if ( data != null ){
+		       		
+		       		Map payload = new HashMap();
+		       		
+		       		byte[]	data_bytes = BEncoder.encode( data );
+		       		
+		       		if ( data_bytes.length > 16*1024 ){
+		       			
+	        			Debug.out( "Plugin '" + pid + "' reported excessive version server data (length=" + data_bytes.length + ")" );
+	        			
+	        			payload.put( "error", "data too long: " + data_bytes.length );
+	        			
+		       		}else{
+
+		       			payload.put( "data", data_bytes );
+		       		}
+		       		
+		       		payload.put( "id", pid);
+		       		payload.put( "version", plugin.getPluginVersion());
+		       		
+		       		vs_data.add( payload );
+		       	}
+		      }
+		      message.put( "plugins", pids );
+		      
+		      if ( vs_data.size() > 0 ){
+		    	  
+		    	  message.put( "plugin_data", vs_data );
+		      }
 	      }
-	      message.put( "plugins", pids );
+      }catch( Throwable e ){
+    	  
+    	  e.printStackTrace();
       }
     }
     
