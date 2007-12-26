@@ -45,8 +45,10 @@ SpeedTokenDispenserPrioritised
 
 	// allow at least 2 outstanding requests
 	private static final int	BUCKET_THRESHOLD_LOWER_BOUND	= 2 * DiskManager.BLOCK_SIZE;
-	// 3KiB buffer per 1KiB/s speed, that should be 3 seconds max response time
-	private static final int	BUCKET_THRESHOLD_FACTOR			= 3 * 1024;
+	// time (in seconds) at max speed until the buffer is empty: too low = latency issues; too high = overshooting for too long
+	private static final int	BUCKET_RESPONSE_TIME			= 1;
+	// n KiB buffer per 1KiB/s speed, that should be roughly n seconds max response time
+	private static final int	BUCKET_THRESHOLD_FACTOR			= 1024 * BUCKET_RESPONSE_TIME;
 
 	public void refill() {
 		if (lastTime == currentTime || rateKiB == 0)
