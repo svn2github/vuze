@@ -221,7 +221,7 @@ HTTPNetworkConnectionWebSeed
 			
 		}catch( Throwable e ){
 			
-			Debug.outNoStack( "Decode of '" + (header.length()>128?(header.substring(0,128) + "..."):header) + "' - " + Debug.getNestedExceptionMessage(e));
+			Debug.outNoStack( "Decode of '" + (header.length()>128?(header.substring(0,128) + "..."):header) + "' - " + Debug.getNestedExceptionMessageAndStack(e));
 			
 			if ( e instanceof IOException ){
 				
