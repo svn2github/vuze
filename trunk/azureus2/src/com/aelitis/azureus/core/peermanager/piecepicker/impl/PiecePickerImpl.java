@@ -606,9 +606,9 @@ implements PiecePicker
 					toReturn = 1;
 
 				// still nothing, next try peers from which we have downloaded most in the past 
-				if(toReturn == 0)
+/*				if(toReturn == 0)
 					toReturn = (int)(stats2.getTotalDataBytesReceived() - stats1.getTotalDataBytesReceived());
-					
+	*/				
 				return toReturn;
 			}
 		});
