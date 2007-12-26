@@ -140,6 +140,7 @@ MainWindow
   private Tab 	my_shares_tab;
   private Tab 	stats_tab;
   private Tab 	console;
+  private Tab	multi_options_tab;
   
   private Tab 			config;
   private ConfigView	config_view;
@@ -831,6 +832,33 @@ MainWindow
 	    refreshTorrentMenu();
 	  }
 	
+  protected void 
+  showMultiOptionsView(
+	DownloadManager[]	managers )
+  {
+	  if (multi_options_tab != null) {
+		  multi_options_tab.dispose();
+	  }
+	  
+	  TorrentOptionsView view = new TorrentOptionsView( managers );
+	
+	  multi_options_tab = new Tab(view);
+		
+	  all_peers.getView().getComposite().addDisposeListener(
+			  new DisposeListener() 
+			  {
+				  public void 
+				  widgetDisposed(
+						DisposeEvent e) 
+				  {
+					  multi_options_tab = null;
+				  }
+			  });
+
+	  refreshIconBar();
+	  refreshTorrentMenu();
+  }
+  
   private void minimizeToTray(ShellEvent event) {
     //Added this test so that we can call this method with null parameter.
     if (event != null)

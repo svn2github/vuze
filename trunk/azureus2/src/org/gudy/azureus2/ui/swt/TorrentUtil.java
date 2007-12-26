@@ -727,6 +727,21 @@ public class TorrentUtil {
 			});
 		} // export menu
 
+		
+		// === advanced > options ===
+		// ===========================
+
+		if (userMode > 0) {
+			final MenuItem itemExportXML = new MenuItem(menuAdvanced, SWT.PUSH);
+			Messages.setLanguageText(itemExportXML, "MainWindow.menu.view.configuration");
+			itemExportXML.addListener(SWT.Selection, new DMTask(dms) {
+				public void run(DownloadManager[] dms) {
+					UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+					
+					uiFunctions.showMultiOptionsView( dms );
+				}
+			});
+		}
 		// === advanced > peer sources ===
 		// ===============================
 

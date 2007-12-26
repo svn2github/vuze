@@ -353,6 +353,14 @@ public class UIFunctionsImpl
 		});
 	}
 	
+	public void showMultiOptionsView(final DownloadManager[] dms) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				mainwindow.showMultiOptionsView( dms );
+			}
+		});
+	}
+	
 	public void showConsole() {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {

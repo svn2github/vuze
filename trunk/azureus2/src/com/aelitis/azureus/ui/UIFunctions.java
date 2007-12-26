@@ -116,6 +116,8 @@ public interface UIFunctions
 	
 	void showAllPeersView();
 
+	void showMultiOptionsView( DownloadManager[] dms );
+	
 	/**
 	 * @param manager
 	 */

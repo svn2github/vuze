@@ -59,7 +59,8 @@ TorrentOptionsView
 	private static final String	MAX_UPLOAD		= "max.upload";
 	private static final String	MAX_DOWNLOAD	= "max.download";
 	
-	private DownloadManager			manager;
+	private boolean						multi_view;
+	private DownloadManager[]			managers;
 	
 	private GenericParameterAdapter	ds_param_adapter	= new downloadStateParameterAdapter();
 	private GenericParameterAdapter	adhoc_param_adapter	= new adhocParameterAdapter();
@@ -70,11 +71,19 @@ TorrentOptionsView
 	private Composite 			panel;
 	private Font 				headerFont;
 	
-	protected
+	public
 	TorrentOptionsView(
 		DownloadManager		_manager )
 	{
-		manager	= _manager;
+		managers	= new DownloadManager[]{ _manager };
+	}
+	
+	public
+	TorrentOptionsView(
+		DownloadManager[]		_managers )
+	{
+		managers	= _managers;
+		multi_view	= true;
 	}
 	
 	public void 
@@ -114,7 +123,25 @@ TorrentOptionsView
 		fontData[0].setHeight(fontHeight);
 		headerFont = new Font(d, fontData);
 		lHeader.setFont(headerFont);
-		lHeader.setText( " " + MessageText.getString( "authenticator.torrent" ) + " : " + manager.getDisplayName().replaceAll("&", "&&"));
+		
+		if ( managers.length == 1 ){
+			lHeader.setText( " " + MessageText.getString( "authenticator.torrent" ) + " : " + managers[0].getDisplayName().replaceAll("&", "&&"));
+		}else{
+			String	str = "";
+			
+			for (int i=0;i<Math.min( 3, managers.length ); i ++ ){
+				
+				str += (i==0?"":", ") + managers[i].getDisplayName().replaceAll("&", "&&");
+			}
+			
+			if ( managers.length > 3 ){
+				
+				str += "...";
+			}
+			
+			lHeader.setText( " " + managers.length + " " + MessageText.getString( "ConfigView.section.torrents" ) + " : " + str );
+		}
+		
 		gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER);
 		lHeader.setLayoutData(gridData);
 		
@@ -329,7 +356,10 @@ TorrentOptionsView
 			        }
 			    });
 		
-		manager.getDownloadState().addListener( this );
+	    for (int i=0;i<managers.length;i++){
+		
+	    	managers[i].getDownloadState().addListener( this );
+	    }
 	}
 	
 	protected void
@@ -341,7 +371,10 @@ TorrentOptionsView
 						
 			String	key 	= (String)it.next();
 
-			manager.getDownloadState().setParameterDefault( key );
+		    for (int i=0;i<managers.length;i++){
+
+		    	managers[i].getDownloadState().setParameterDefault( key );
+		    }
 		}
 		
 		it = adhoc_parameters.values().iterator();
@@ -364,8 +397,8 @@ TorrentOptionsView
 	
 	public void
 	stateChanged(
-		DownloadManagerState			state,
-		DownloadManagerStateEvent		event )
+		final DownloadManagerState			state,
+		DownloadManagerStateEvent			event )
 	{
 		if ( event.getType() == DownloadManagerStateEvent.ET_ATTRIBUTE_WRITTEN ){
 			
@@ -392,7 +425,7 @@ TorrentOptionsView
 								
 									GenericIntParameter	int_param = (GenericIntParameter)param;
 									
-									int	value = manager.getDownloadState().getIntParameter( key );
+									int	value = state.getIntParameter( key );
 									
 									int_param.setValue( value );
 									
@@ -400,7 +433,7 @@ TorrentOptionsView
 									
 									GenericBooleanParameter	bool_param = (GenericBooleanParameter)param;
 									
-									boolean	value = manager.getDownloadState().getBooleanParameter( key );
+									boolean	value = state.getBooleanParameter( key );
 									
 									bool_param.setSelected( value );
 									
@@ -425,13 +458,13 @@ TorrentOptionsView
 	public String 
 	getFullTitle() 
 	{
-		return MessageText.getString("TorrentOptionsView.title.full");
+		return MessageText.getString( multi_view?"TorrentOptionsView.multi.title.full":"TorrentOptionsView.title.full");
 	}
 
 	public String 
 	getData() 
 	{
-		return( "TorrentOptionsView.title.short" );
+		return MessageText.getString( multi_view?"TorrentOptionsView.multi.title.short":"TorrentOptionsView.title.short");
 	}
 	
 	public void 
@@ -444,8 +477,8 @@ TorrentOptionsView
 			headerFont.dispose();
 		}
 		
-		if (manager != null) {
-			manager.getDownloadState().removeListener( this );
+		for (int i=0;i<managers.length;i++){
+			managers[i].getDownloadState().removeListener( this );
 		}
 	}
 	
@@ -468,9 +501,34 @@ TorrentOptionsView
 			int		def )
 		{
 			if ( key == MAX_UPLOAD ){
-				return( manager.getStats().getUploadRateLimitBytesPerSecond()/1024);
+				int	result = def;
+				
+				for (int i=0;i<managers.length;i++){
+					int	val = managers[i].getStats().getUploadRateLimitBytesPerSecond()/1024;
+					
+					if ( i==0 ){
+						result = val;
+					}else if ( result != val ){
+						return( def );
+					}
+				}
+				
+				return( result );
+				
 			}else if ( key == MAX_DOWNLOAD ){
-				return( manager.getStats().getDownloadRateLimitBytesPerSecond()/1024);
+				int	result = def;
+				
+				for (int i=0;i<managers.length;i++){
+					int	val = managers[i].getStats().getDownloadRateLimitBytesPerSecond()/1024;
+					
+					if ( i==0 ){
+						result = val;
+					}else if ( result != val ){
+						return( def );
+					}
+				}
+				
+				return( result );
 			}else{
 				Debug.out( "Unknown key '" + key + "'" );
 				return(0);
@@ -482,15 +540,28 @@ TorrentOptionsView
 			String	key,
 			int		value )
 		{
-			if ( value != getIntValue( key )){
-				
-				if ( key == MAX_UPLOAD ){
-					manager.getStats().setUploadRateLimitBytesPerSecond(value*1024);
-				}else if ( key == MAX_DOWNLOAD ){
-					manager.getStats().setDownloadRateLimitBytesPerSecond(value*1024);
-				}else{
-					Debug.out( "Unknown key '" + key + "'" );
+			if ( key == MAX_UPLOAD ){
+				for (int i=0;i<managers.length;i++){
+
+					DownloadManager	manager = managers[i];
+						
+					if ( value != manager.getStats().getDownloadRateLimitBytesPerSecond()/1024){
+						
+						manager.getStats().setUploadRateLimitBytesPerSecond(value*1024);
+					}
 				}
+			}else if ( key == MAX_DOWNLOAD ){
+				for (int i=0;i<managers.length;i++){
+
+					DownloadManager	manager = managers[i];
+						
+					if ( value != manager.getStats().getDownloadRateLimitBytesPerSecond()/1024){
+						
+						manager.getStats().setDownloadRateLimitBytesPerSecond(value*1024);
+					}
+				}
+			}else{
+				Debug.out( "Unknown key '" + key + "'" );
 			}
 		}		
 	}
@@ -511,7 +582,19 @@ TorrentOptionsView
 			String	key,
 			int		def )
 		{
-			return( manager.getDownloadState().getIntParameter( key ));
+			int	result = def;
+			
+			for (int i=0;i<managers.length;i++){
+				int	val = managers[i].getDownloadState().getIntParameter( key );
+				
+				if ( i==0 ){
+					result = val;
+				}else if ( result != val ){
+					return( def );
+				}
+			}
+			
+			return( result );
 		}
 		
 		public void
@@ -519,9 +602,14 @@ TorrentOptionsView
 			String	key,
 			int		value )
 		{
-			if ( value != getIntValue(key)){
+			for (int i=0;i<managers.length;i++){
+
+				DownloadManager	manager = managers[i];
 				
-				manager.getDownloadState().setIntParameter( key, value );
+				if ( value != manager.getDownloadState().getIntParameter( key )){
+				
+					manager.getDownloadState().setIntParameter( key, value );
+				}
 			}
 		}	
 		
@@ -537,7 +625,19 @@ TorrentOptionsView
 			String		key,
 			boolean		def )
 		{
-			return( manager.getDownloadState().getBooleanParameter( key ));
+			boolean	result = def;
+			
+			for (int i=0;i<managers.length;i++){
+				boolean	val = managers[i].getDownloadState().getBooleanParameter( key );
+				
+				if ( i==0 ){
+					result = val;
+				}else if ( result != val ){
+					return( def );
+				}
+			}
+			
+			return( result );		
 		}
 		
 		public void
@@ -545,9 +645,14 @@ TorrentOptionsView
 			String		key,
 			boolean		value )
 		{
-			if ( value != getBooleanValue(key)){
+			for (int i=0;i<managers.length;i++){
+
+				DownloadManager	manager = managers[i];
 				
-				manager.getDownloadState().setBooleanParameter( key, value );
+				if ( value != manager.getDownloadState().getBooleanParameter( key )){
+				
+					manager.getDownloadState().setBooleanParameter( key, value );
+				}
 			}
 		}
 	}
