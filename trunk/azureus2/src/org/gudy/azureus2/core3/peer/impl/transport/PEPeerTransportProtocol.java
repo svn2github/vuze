@@ -1324,10 +1324,15 @@ implements PEPeerTransport
 					int lazy_have = f_lazy_haves[next_have++];
 					// System.out.println( "LazyDone: " + getIp() + " -> " +
 					// lazy_have );
-					connection.getOutgoingMessageQueue().addMessage(new BTHave(lazy_have, other_peer_bt_have_version), false);
-					if (next_have < f_lazy_haves.length && current_peer_state == TRANSFERING)
-					{
-						SimpleTimer.addEvent("LazyHaveSender", SystemTime.getCurrentTime() + rnd.nextInt(2000), this);
+					
+					if ( current_peer_state == TRANSFERING ){
+						
+						connection.getOutgoingMessageQueue().addMessage(new BTHave(lazy_have, other_peer_bt_have_version), false);
+						
+						if (next_have < f_lazy_haves.length && current_peer_state == TRANSFERING){
+						
+							SimpleTimer.addEvent("LazyHaveSender", SystemTime.getCurrentTime() + rnd.nextInt(2000), this);
+						}
 					}
 				}
 			});
