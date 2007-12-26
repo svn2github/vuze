@@ -28,10 +28,11 @@ import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.peer.cache.CacheDiscovery;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
+import org.gudy.azureus2.plugins.download.DownloadWillBeAddedListener;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 
 public class InitialisationFunctions
@@ -61,33 +62,54 @@ public class InitialisationFunctions
 	{
 		PluginInterface pi = core.getPluginManager().getDefaultPluginInterface();
 
-		pi.getDownloadManager().addListener(
+		DownloadManager	dm = pi.getDownloadManager();
+		
+			// need to get in early to ensure property present on initial announce
+		
+		dm.addDownloadWillBeAddedListener(
+			new DownloadWillBeAddedListener()
+			{
+				public void
+				initialised(
+					Download 	download )
+				{
+					register( download );
+				}
+			});
+		
+		dm.addListener(
 			new DownloadManagerListener() 
 			{
-			public void 
-			downloadAdded(
-				Download download )
-			{
-					// only add the azid to platform content
-				
-				Torrent t = download.getTorrent();
-				
-				if ( t == null ){
-					
-					return;
+				public void 
+				downloadAdded(
+					Download download )
+				{
+					register( download );
 				}
-				
-				if ( !PlatformTorrentUtils.isContent( t, true )){
-					
-					return;
-				}
-				
-				DownloadUtils.addTrackerExtension( download, EXTENSION_PREFIX, Constants.AZID );
-			}
 
-			public void downloadRemoved(Download download) {
-			}
-		});
+				public void downloadRemoved(Download download) {
+				}
+			});
 	}
 
+	protected static void
+	register(
+		Download	download )
+	{
+			// only add the azid to platform content
+		
+		Torrent t = download.getTorrent();
+		
+		if ( t == null ){
+			
+			return;
+		}
+		
+		if ( !PlatformTorrentUtils.isContent( t, true )){
+			
+			return;
+		}
+		
+		DownloadUtils.addTrackerExtension( download, EXTENSION_PREFIX, Constants.AZID );	
+	}
 }
