@@ -928,5 +928,11 @@ Download extends DownloadEventNotifier
    */
   public boolean isInDefaultSaveDir();
 
+  /**
+   * @since 3.4.0.3
+   * @return
+   */
+  
+  public boolean isRemoved();
 
 }

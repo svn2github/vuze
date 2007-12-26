@@ -551,6 +551,9 @@ DownloadManager
     destroy(
     	boolean	is_duplicate );
 
+    public boolean
+    isDestroyed();
+    
     public PEPiece[]
     getCurrentPieces();
 

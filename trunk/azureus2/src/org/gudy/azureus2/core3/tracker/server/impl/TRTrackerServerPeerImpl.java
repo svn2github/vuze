@@ -58,6 +58,9 @@ TRTrackerServerPeerImpl
 	private boolean		biased;
 	
 	private short				up_speed;
+	
+		// fields above are serialised when exported
+	
 	private DHTNetworkPosition	network_position;
 	private Object				user_data;
 	
@@ -94,6 +97,55 @@ TRTrackerServerPeerImpl
 		network_position	= _network_position;
 			
 		resolveAndCheckNAT();
+	}
+	
+		/**
+		 * Import constructor
+		 */
+
+	protected
+	TRTrackerServerPeerImpl(
+		HashWrapper			_peer_id,
+		int					_key_hash_code,
+		byte[]				_ip,
+		boolean				_ip_override,
+		short				_tcp_port,
+		short				_udp_port,
+		short				_http_port,
+		byte				_crypto_level,
+		byte				_az_ver,
+		String				_ip_str,
+		byte[]				_ip_bytes,
+		byte				_NAT_status,
+		long				_timeout,
+		long				_uploaded,
+		long				_downloaded,
+		long				_amount_left,
+		long				_last_contact_time,
+		boolean				_download_completed,
+		boolean				_biased,
+		short				_up_speed )
+	{
+		peer_id				= _peer_id;
+		key_hash_code		= _key_hash_code;
+		ip					= _ip;
+		ip_override			= _ip_override;
+		tcp_port			= _tcp_port;
+		udp_port			= _udp_port;
+		http_port			= _http_port;
+		crypto_level		= _crypto_level;
+		az_ver				= _az_ver;
+		ip_str				= _ip_str;
+		ip_bytes			= _ip_bytes;
+		NAT_status			= _NAT_status;
+		timeout				= _timeout;
+		uploaded			= _uploaded;
+		downloaded			= _downloaded;
+		amount_left			= _amount_left;
+		last_contact_time	= _last_contact_time;
+		download_completed	= _download_completed;
+		biased				= _biased;
+		up_speed			= _up_speed;
 	}
 	
 	protected boolean
@@ -460,6 +512,92 @@ TRTrackerServerPeerImpl
 		}else{
 			
 			return(((Map)user_data).get(key));
+		}
+	}
+	
+	public Map 
+	export() 
+	{
+		Map map = new HashMap();
+		
+		map.put( "peer_id", 		peer_id.getBytes());
+		map.put( "key_hash_code", 	new Long( key_hash_code ));
+		map.put( "ip", 				ip );
+		map.put( "ip_override",		new Long( ip_override?1:0 ));
+		map.put( "tcp_port", 		new Long( tcp_port ));
+		map.put( "udp_port", 		new Long( udp_port ));
+		map.put( "http_port", 		new Long( http_port ));
+		map.put( "crypto_level", 	new Long( crypto_level ));
+		map.put( "az_ver", 			new Long( az_ver ));
+		map.put( "ip_str", 			ip_str );
+		if ( ip_bytes != null ){
+			map.put( "ip_bytes", ip_bytes );
+		}
+		map.put( "NAT_status", 		new Long( NAT_status ));
+		map.put( "timeout", 		new Long( timeout ));
+		map.put( "uploaded", 		new Long( uploaded ));
+		map.put( "downloaded", 		new Long( downloaded ));
+		map.put( "amount_left", 	new Long( amount_left ));
+		map.put( "last_contact_time", 	new Long( last_contact_time ));
+		map.put( "download_completed", 	new Long( download_completed?1:0 ));
+		map.put( "biased", 			new Long( biased?1:0 ));
+		map.put( "up_speed", 		new Long( up_speed ));
+		
+		return( map );
+	}
+	
+	public static TRTrackerServerPeerImpl
+	importPeer(
+		Map		map )
+	{
+		try{
+			HashWrapper		peer_id			= new HashWrapper((byte[])map.get( "peer_id" ));
+			int				key_hash_code	= ((Long)map.get( "key_hash_code" )).intValue();
+			byte[]			ip				= (byte[])map.get( "ip" );
+			boolean			ip_override		= ((Long)map.get( "ip_override" )).intValue()==1;
+			short			tcp_port		= ((Long)map.get( "tcp_port" )).shortValue();
+			short			udp_port		= ((Long)map.get( "udp_port" )).shortValue();
+			short			http_port		= ((Long)map.get( "http_port" )).shortValue();
+			byte			crypto_level	= ((Long)map.get( "crypto_level" )).byteValue();
+			byte			az_ver			= ((Long)map.get( "az_ver" )).byteValue();
+			String			ip_str			= new String( (byte[])map.get( "ip_str" ));
+			byte[]			ip_bytes		= (byte[])map.get( "ip_bytes" );
+			byte			NAT_status		= ((Long)map.get( "NAT_status" )).byteValue();
+			long			timeout			= ((Long)map.get( "timeout" )).longValue();
+			long			uploaded		= ((Long)map.get( "uploaded" )).longValue();
+			long			downloaded		= ((Long)map.get( "downloaded" )).longValue();
+			long			amount_left		= ((Long)map.get( "amount_left" )).longValue();
+			long			last_contact_time	= ((Long)map.get( "last_contact_time" )).longValue();
+			boolean			download_completed	= ((Long)map.get( "download_completed" )).intValue() == 1;
+			boolean			biased			= ((Long)map.get( "biased" )).intValue() == 1;
+			short			up_speed		= ((Long)map.get( "up_speed" )).shortValue();
+			
+			return( 
+				new TRTrackerServerPeerImpl(
+						peer_id,
+						key_hash_code,
+						ip,
+						ip_override,
+						tcp_port,
+						udp_port,
+						http_port,
+						crypto_level,
+						az_ver,
+						ip_str,
+						ip_bytes,
+						NAT_status,
+						timeout,
+						uploaded,
+						downloaded,
+						amount_left,
+						last_contact_time,
+						download_completed,
+						biased,
+						up_speed ));
+			
+		}catch( Throwable e ){
+			
+			return( null );
 		}
 	}
 	

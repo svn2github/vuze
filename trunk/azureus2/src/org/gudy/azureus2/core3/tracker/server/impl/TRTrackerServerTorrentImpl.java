@@ -168,6 +168,61 @@ TRTrackerServerTorrentImpl
 		min_biased_peers	= num;
 	}
 	
+	public void
+	importPeers(
+		List		peers )
+	{
+		try{
+			this_mon.enter();
+
+				// only currently support import when torrent "empty"
+			
+			if ( peer_map.size() > 0 ){
+			
+				System.out.println( "TRTrackerServerTorrent: ignoring peer import as torrent already active" );
+				
+				return;
+			}
+			
+			for (int i=0;i<peers.size();i++){
+				
+				TRTrackerServerPeerImpl peer = TRTrackerServerPeerImpl.importPeer((Map)peers.get(i));
+				
+				if ( peer != null ){
+					
+					try{
+						String	reuse_key = new String( peer.getIPAsRead(), Constants.BYTE_ENCODING ) + ":" + peer.getTCPPort();
+	
+						peer_map.put( peer.getPeerId(), peer );
+						
+						peer_list.add( peer );
+										
+						peer_reuse_map.put( reuse_key, peer );
+							
+						if ( peer.isSeed()){
+							
+							seed_count++;
+						}
+						
+						if ( peer.isBiased()){
+								
+							if ( biased_peers == null ){
+							
+								biased_peers = new ArrayList();
+							}
+							
+							biased_peers.add( peer );
+						}
+					}catch( Throwable e ){
+					}
+				}
+			}
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
 	public TRTrackerServerPeerImpl
 	peerContact(
 		String				url_parameters,

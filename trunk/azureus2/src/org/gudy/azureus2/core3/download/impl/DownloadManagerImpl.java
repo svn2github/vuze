@@ -456,6 +456,7 @@ DownloadManagerImpl
     
 	// Only call this with STATE_QUEUED, STATE_WAITING, or STATE_STOPPED unless you know what you are doing
 	
+	private volatile boolean	destroyed;
 	
 	public 
 	DownloadManagerImpl(
@@ -3444,6 +3445,8 @@ DownloadManagerImpl
 	destroy(
 		boolean	is_duplicate )
 	{
+		destroyed	= true;
+		
 		if ( is_duplicate ){
 	
 				// minimal tear-down
@@ -3495,6 +3498,12 @@ DownloadManagerImpl
 				controller.destroy(); 
 			}
 		}
+	}
+	
+	public boolean 
+	isDestroyed() 
+	{
+		return( destroyed );
 	}
 	
 	public int[] getStorageType(DiskManagerFileInfo[] info) {

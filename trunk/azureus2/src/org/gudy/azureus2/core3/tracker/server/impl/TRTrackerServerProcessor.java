@@ -577,5 +577,11 @@ TRTrackerServerProcessor
 		{
 			return( -1 );
 		}
+		
+		public Map 
+		export() 
+		{
+			return( null );
+		}
 	}
 }

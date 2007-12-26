@@ -27,6 +27,7 @@ package org.gudy.azureus2.core3.tracker.server;
  */
 
 import java.net.URL;
+import java.util.List;
 
 import org.gudy.azureus2.core3.util.*;
 
@@ -93,6 +94,10 @@ TRTrackerServerTorrent
 	public void
 	removePeerListener(
 		TRTrackerServerTorrentPeerListener	l );
+	
+	public void
+	importPeers(
+		List		peers );
 	
 	public String
 	getString();

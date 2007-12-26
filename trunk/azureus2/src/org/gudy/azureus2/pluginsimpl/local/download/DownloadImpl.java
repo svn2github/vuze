@@ -1648,6 +1648,9 @@ DownloadImpl
   public void setPriority(int priority) {
   }
 
+  public boolean isRemoved() {
+	return( download_manager.isDestroyed());
+  }
   // Pass LogRelation off to core objects
 
 	/* (non-Javadoc)

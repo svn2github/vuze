@@ -21,6 +21,8 @@
  
 package org.gudy.azureus2.core3.tracker.server;
 
+import java.util.Map;
+
 /**
  * @author parg
  */
@@ -79,4 +81,7 @@ TRTrackerServerPeer
 	public Object
 	getUserData(
 		Object		key );
+	
+	public Map
+	export();
 }
