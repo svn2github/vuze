@@ -844,7 +844,7 @@ MainWindow
 	
 	  multi_options_tab = new Tab(view);
 		
-	  all_peers.getView().getComposite().addDisposeListener(
+	  view.getComposite().addDisposeListener(
 			  new DisposeListener() 
 			  {
 				  public void 
