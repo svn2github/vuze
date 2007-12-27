@@ -157,7 +157,7 @@ SystemTime
 							access_average.addValue(access_count);
 							access_average_per_slice	= (int)( access_average.getAverage() / STEPS_PER_SECOND );
 
-							System.out.println( "access count = " + access_count + ", average = " + access_average.getAverage() + ", per slice = " + access_average_per_slice + ", drift = " + drift +", average = " + drift_average.getAverage() + ", dag =" + drift_adjusted_granularity );
+							//System.out.println( "access count = " + access_count + ", average = " + access_average.getAverage() + ", per slice = " + access_average_per_slice + ", drift = " + drift +", average = " + drift_average.getAverage() + ", dag =" + drift_adjusted_granularity );
 
 							access_count = 0;
 							tick_count = 0;
