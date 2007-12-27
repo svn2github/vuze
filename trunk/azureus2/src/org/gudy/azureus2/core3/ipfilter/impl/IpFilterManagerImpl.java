@@ -120,6 +120,10 @@ IpFilterManagerImpl
 			int posInfo = ((Integer)info).intValue();
 			int pos = posInfo & 0x1FFFFFF;
 			int len = posInfo >> 25;
+			
+			if (len < 0) {
+				throw new IllegalArgumentException(getClass().getName() + ": invalid posInfo [" + posInfo +"], pos [" + pos + "], len [" + len + "]");
+			}
 
 			if (rafDescriptions.getFilePointer() != pos) {
 				rafDescriptions.seek(pos);
