@@ -33,7 +33,7 @@ import org.gudy.azureus2.core3.util.*;
  * @author Olivier
  * 
  */
-public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTime.consumer {
+public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTime.Consumer {
 	private final static LogIDs LOGID = LogIDs.TRACKER;
 
   /** List of Trackers. 

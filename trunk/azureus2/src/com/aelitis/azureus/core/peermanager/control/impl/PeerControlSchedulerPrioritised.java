@@ -57,7 +57,7 @@ PeerControlSchedulerPrioritised
 	{
 		latest_time	= SystemTime.getCurrentTime();
 		SystemTime.registerConsumer(
-			new SystemTime.consumer()
+			new SystemTime.Consumer()
 			{
 				public void
 				consume( long	time )

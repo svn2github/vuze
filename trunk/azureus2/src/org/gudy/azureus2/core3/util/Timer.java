@@ -31,7 +31,7 @@ import java.util.*;
 
 public class Timer
 	extends 	AERunnable
-	implements	SystemTime.consumer
+	implements	SystemTime.Consumer
 {
 	private static boolean DEBUG_TIMERS = true;
 	private static ArrayList timers = null;

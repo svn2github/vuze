@@ -225,6 +225,6 @@ public class Average {
   protected long
   getEffectiveTime()
   {
-	  return( SystemTime.getCurrentTime());
+	  return( SystemTime.getMonotonousTime());
   }
 }

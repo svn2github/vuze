@@ -41,6 +41,7 @@ SystemTime
 		try{
 			if ( System.getProperty( "azureus.time.use.raw.provider", "0" ).equals("1")){
 							
+				System.out.println("Warning: Using Raw Provider, monotonous time might be inaccurate");
 				instance = new RawProvider();
 				
 			}else{
@@ -64,10 +65,11 @@ SystemTime
 		}
 	}
 
-	private static volatile List		consumer_list		= new ArrayList();
+	private static volatile List		systemTimeConsumers		= new ArrayList();
+	private static volatile List		monotoneTimeConsumers		= new ArrayList();
 	private static volatile List		clock_change_list	= new ArrayList();
 
-	private static highPrecisionCounter	high_precision_counter;
+	private static HighPrecisionCounter	high_precision_counter;
 
 	private static long hpc_base_time;
 	private static long hpc_last_time;
@@ -78,6 +80,8 @@ SystemTime
 	{
 		public long
 		getTime();
+		
+		public long getMonoTime();
 	}
 	
 	protected static class
@@ -90,115 +94,112 @@ SystemTime
 		private final Thread updater;
 
 		private volatile long 		stepped_time;
+		private volatile long		adjustedTimeOffset;
 		private volatile long		last_approximate_time;
+		
 
 		private volatile int		access_count;
 		private volatile int 		slice_access_count;
 		private volatile int		access_average_per_slice;
 		private volatile int		drift_adjusted_granularity;
+		
 
 		private 
 		SteppedProvider() 
 		{
-			stepped_time = System.currentTimeMillis();
+			stepped_time = 0;
 
 			updater = 
 				new Thread("SystemTime") 
 			{
-				public void 
-				run() 
-				{
-					Average access_average	= null;
-					Average drift_average	= null;
-
-					long	last_second	= 0;
-
-					int	tick_count = 0;
-
-					while( true ) {
-
-						stepped_time = System.currentTimeMillis();  
-
-						List	consumer_list_ref = consumer_list;
-
-						if ( last_second == 0 ){
-
-							last_second	= stepped_time - 1000;
-						}else{
-
-							long	offset = stepped_time - last_second;
-
-							if ( offset < 0 || offset > 5000 ){
-
-								// clock's changed
-
-								last_approximate_time	= 0;
-
-								last_second	= stepped_time - 1000;
-
-								access_average 	= null;
-								drift_average	= null;
-
-								Iterator	it = clock_change_list.iterator();
-
-								while( it.hasNext()){
-
-									((consumer)it.next()).consume( offset );
-								}
-							}
+				public void run() {
+					adjustedTimeOffset = System.currentTimeMillis();
+					final Average access_average = Average.getInstance(1000, 10);
+					final Average drift_average = Average.getInstance(1000, 10);
+					long lastOffset = adjustedTimeOffset;
+					long lastSecond = -1000;
+					int tick_count = 0;
+					
+					while (true)
+					{
+						long rawTime = System.currentTimeMillis();
+						long newMonotoneTime = rawTime - adjustedTimeOffset;
+						long offset = newMonotoneTime - stepped_time;
+						
+						if(offset < 0 || offset > 1000)
+						{
+							stepped_time += TIME_GRANULARITY_MILLIS;
+							adjustedTimeOffset = rawTime - stepped_time;
+						} else
+						{
+							stepped_time = newMonotoneTime;
 						}
 
 						tick_count++;
-
-						if ( tick_count == STEPS_PER_SECOND ){
-
-							if ( access_average == null ){
-
-								access_average 	= Average.getInstance( 1000, 10 );
-
-								drift_average 	= Average.getInstance( 1000, 10 );
-
+						
+						if (tick_count == STEPS_PER_SECOND)
+						{
+							if(lastOffset != adjustedTimeOffset)
+							{
+								final long change = adjustedTimeOffset - lastOffset; 
+								Iterator it = clock_change_list.iterator();
+								while (it.hasNext())
+								{
+									((Consumer) it.next()).consume(change);
+								}
+								lastOffset = adjustedTimeOffset;
 							}
-							long drift = stepped_time - last_second -1000;
 
-							last_second	= stepped_time;
-
-							drift_average.addValue( drift );
-
-							drift_adjusted_granularity	= (int)( TIME_GRANULARITY_MILLIS + ( drift_average.getAverage() / STEPS_PER_SECOND ));
-
-							access_average.addValue( access_count );
-
+							long drift = stepped_time - lastSecond - 1000;
+							lastSecond = stepped_time;
+							drift_average.addValue(drift);
+							drift_adjusted_granularity = (int) (TIME_GRANULARITY_MILLIS + (drift_average.getAverage() / STEPS_PER_SECOND));
+							access_average.addValue(access_count);
 							access_average_per_slice	= (int)( access_average.getAverage() / STEPS_PER_SECOND );
 
-							// System.out.println( "access count = " + access_count + ", average = " + access_average.getAverage() + ", per slice = " + access_average_per_slice + ", drift = " + drift +", average = " + drift_average.getAverage() + ", dag =" + drift_adjusted_granularity );
+							System.out.println( "access count = " + access_count + ", average = " + access_average.getAverage() + ", per slice = " + access_average_per_slice + ", drift = " + drift +", average = " + drift_average.getAverage() + ", dag =" + drift_adjusted_granularity );
 
 							access_count = 0;
-
 							tick_count = 0;
 						}
 
-						slice_access_count	= 0; 
-
-						for (int i=0;i<consumer_list_ref.size();i++){
-
-							consumer	cons = (consumer)consumer_list_ref.get(i);
-
-							try{
-								cons.consume( stepped_time );
-
-							}catch( Throwable e ){
-
+						slice_access_count = 0;
+						
+						// copy reference since we use unsynced COW semantics
+						List consumersRef = monotoneTimeConsumers; 
+						for (int i = 0; i < consumersRef.size(); i++)
+						{
+							Consumer cons = (Consumer) consumersRef.get(i);
+							try
+							{
+								cons.consume(stepped_time);
+							} catch (Throwable e)
+							{
 								Debug.printStackTrace(e);
 							}
 						}
-
-						try{  
-							Thread.sleep( TIME_GRANULARITY_MILLIS );
-
-						}catch(Exception e){
-
-							Debug.printStackTrace( e );
+						
+						consumersRef = systemTimeConsumers;
+						
+						long adjustedTime = stepped_time + adjustedTimeOffset;
+						for (int i = 0; i < consumersRef.size(); i++)
+						{
+							Consumer cons = (Consumer) consumersRef.get(i);
+							try
+							{
+								cons.consume(adjustedTime);
+							} catch (Throwable e)
+							{
+								Debug.printStackTrace(e);
+							}
+						}
+				
+						try
+						{
+							Thread.sleep(TIME_GRANULARITY_MILLIS);
+						} catch (Exception e)
+						{
+							Debug.printStackTrace(e);
 						}
 					}
 				}
@@ -215,39 +216,36 @@ SystemTime
 		public long
 		getTime()
 		{
-			long	adjusted_time = stepped_time;
-
-			long	temp = access_average_per_slice;
-
-			if ( temp > 0 ){
-
-				long	x = (drift_adjusted_granularity*slice_access_count)/temp;
-
-				if ( x >= drift_adjusted_granularity ){
-
-					x = drift_adjusted_granularity-1;
-				}
-
-				adjusted_time += x;
-			}
-
-			access_count++;
-
-			slice_access_count++;
-
-			// make sure we don't go backwards
-
-			if ( adjusted_time < last_approximate_time ){
-
-				adjusted_time	= last_approximate_time;
-
-			}else{
-
-				last_approximate_time = adjusted_time;
-			}
-
-			return( adjusted_time );
+			return getMonoTime() + adjustedTimeOffset;
 		}
+
+		public long getMonoTime() {
+			long adjusted_time = stepped_time;
+			long averageSliceStep = access_average_per_slice;
+			if (averageSliceStep > 0)
+			{
+				long sliceStep = (drift_adjusted_granularity * slice_access_count) / averageSliceStep;
+				if (sliceStep >= drift_adjusted_granularity)
+				{
+					sliceStep = drift_adjusted_granularity - 1;
+				}
+				adjusted_time += sliceStep;
+			}
+			
+			access_count++;
+			slice_access_count++;
+			
+			// make sure we don't go backwards
+			if (adjusted_time < last_approximate_time)
+				adjusted_time = last_approximate_time;
+			else
+				last_approximate_time = adjusted_time;
+			
+			return adjusted_time;
+		}
+		
+		
+		
 
 	}
 	
@@ -259,7 +257,8 @@ SystemTime
 
 
 		private final Thread updater;
-
+		private volatile long		adjustedTimeOffset;
+		
 		private 
 		RawProvider() 
 		{
@@ -275,9 +274,9 @@ SystemTime
 				{
 					while( true ) {
 
-						long	current_time = System.currentTimeMillis();  
+						long	current_time = getTime();  
 
-						List	consumer_list_ref = consumer_list;
+						
 
 						if ( last_time != 0 ){
 
@@ -286,30 +285,46 @@ SystemTime
 							if ( offset < 0 || offset > 5000 ){
 
 									// clock's changed
+								
+								adjustedTimeOffset += offset;
 
 								Iterator	it = clock_change_list.iterator();
 
 								while( it.hasNext()){
 
-									((consumer)it.next()).consume( offset );
+									((Consumer)it.next()).consume( offset );
 								}
 							}
 						}
 
 						last_time = current_time;
-
-						for (int i=0;i<consumer_list_ref.size();i++){
-
-							consumer	cons = (consumer)consumer_list_ref.get(i);
-
-							try{
-								cons.consume( current_time );
-
-							}catch( Throwable e ){
-
+						
+						List	consumer_list_ref = systemTimeConsumers;
+						for (int i = 0; i < consumer_list_ref.size(); i++)
+						{
+							Consumer cons = (Consumer) consumer_list_ref.get(i);
+							try
+							{
+								cons.consume(current_time);
+							} catch (Throwable e)
+							{
 								Debug.printStackTrace(e);
 							}
 						}
+						consumer_list_ref = monotoneTimeConsumers;
+						long adjustedTime = current_time - adjustedTimeOffset;
+						for (int i = 0; i < consumer_list_ref.size(); i++)
+						{
+							Consumer cons = (Consumer) consumer_list_ref.get(i);
+							try
+							{
+								cons.consume(adjustedTime);
+							} catch (Throwable e)
+							{
+								Debug.printStackTrace(e);
+							}
+						}
+						
 
 						try{  
 							Thread.sleep( TIME_GRANULARITY_MILLIS );
@@ -329,18 +344,51 @@ SystemTime
 
 			updater.start();
 		}
-
+		
 		public long
 		getTime()
 		{
-			return( System.currentTimeMillis());
+			return System.currentTimeMillis();
 		}
+
+		/**
+		 * This implementation does not guarantee monotonous time increases with 100% accuracy
+		 * as the adjustedTimeOffset is only adjusted every TIME_GRANULARITY_MILLIS 
+		 */
+		public long getMonoTime() {
+			return getTime() - adjustedTimeOffset;
+		}
+		
+		
 	}
 	
+	/**
+	 * Note that this can this time can jump into the future or past due to
+	 * clock adjustments use getMonotonousTime() if you need steady increases
+	 * 
+	 * @return current system time in millisecond since epoch
+	 */
 	public static long 
 	getCurrentTime() 
 	{
 		return( instance.getTime());
+	}
+	
+	/**
+	 * Time that is guaranteed to grow monotonously
+	 * and also ignores larger jumps into the future which
+	 * might be caused by adjusting the system clock<br><br>
+	 * 
+	 * <b>Do not mix times retrieved by this method with normal time!</b>
+	 * 
+	 * TODO once we move to java 1.5 use atomic stuff to harden the guarantee (multithreaded access can weaken it at the moment)
+	 * 
+	 * @return the amount of real time passed since the program start in milliseconds 
+	 */
+	public static long
+	getMonotonousTime()
+	{
+		return instance.getMonoTime();
 	}
 
 	public static long
@@ -350,35 +398,63 @@ SystemTime
 	
 	public static void
 	registerConsumer(
-			consumer	c )
+			Consumer	c )
 	{
 		synchronized( instance ){
 
-			List	new_list = new ArrayList( consumer_list );
+			List	new_list = new ArrayList( systemTimeConsumers );
 
 			new_list.add( c );
 
-			consumer_list	= new_list;
+			systemTimeConsumers	= new_list;
 		}
 	}
 
 	public static void
 	unregisterConsumer(
-			consumer	c )
+			Consumer	c )
 	{
 		synchronized( instance ){
 
-			List	new_list = new ArrayList( consumer_list );
+			List	new_list = new ArrayList( systemTimeConsumers );
 
 			new_list.remove( c );
 
-			consumer_list	= new_list;
+			systemTimeConsumers	= new_list;
 		}  
+	}
+	
+	public static void
+	registerMonotonousConsumer(
+			Consumer	c )
+	{
+		synchronized( instance ){
+
+			List	new_list = new ArrayList( monotoneTimeConsumers );
+
+			new_list.add( c );
+
+			monotoneTimeConsumers	= new_list;
+		}
 	}
 
 	public static void
+	unregisterMonotonousConsumer(
+			Consumer	c )
+	{
+		synchronized( instance ){
+
+			List	new_list = new ArrayList( monotoneTimeConsumers );
+
+			new_list.remove( c );
+
+			monotoneTimeConsumers	= new_list;
+		}  
+	}	
+
+	public static void
 	registerClockChangeListener(
-			consumer	c )
+			Consumer	c )
 	{
 		synchronized( instance ){
 
@@ -392,7 +468,7 @@ SystemTime
 
 	public static void
 	unregisterClockChangeListener(
-			consumer	c )
+			Consumer	c )
 	{
 		synchronized( instance ){
 
@@ -405,7 +481,7 @@ SystemTime
 	}
 
 	public interface
-	consumer
+	Consumer
 	{
 		// for consumers this is the current time, for clock change listeners this is the delta
 
@@ -449,13 +525,13 @@ SystemTime
 
 	public static void
 	registerHighPrecisionCounter(
-			highPrecisionCounter	counter )
+			HighPrecisionCounter	counter )
 	{
 		high_precision_counter = counter;
 	}
 
 	public interface
-	highPrecisionCounter
+	HighPrecisionCounter
 	{
 		public long
 		nanoTime();
@@ -511,16 +587,28 @@ SystemTime
 					  }
 					 */
 
-					long start = SystemTime.getCurrentTime();
+					long cstart = SystemTime.getCurrentTime();
+					long mstart = SystemTime.getMonotonousTime();
+					System.out.println("alter system clock to see differences between monotonous and current time");
+					
+					long cLastRound = cstart;
+					long mLastRound = mstart;
+					
 
 					while( true ){
 
-						long now = SystemTime.getCurrentTime();
+						
+						long mnow = SystemTime.getMonotonousTime();
+						long cnow = SystemTime.getCurrentTime();
 
-						System.out.println( now - start );
+						//if(mLastRound > mnow)
+						System.out.println("current: " +(cnow - cstart) + " monotonous:" + (mnow-mstart) + " delta current:" + (cnow-cLastRound) + " delta monotonous:" + (mnow-mLastRound) );
+						
+						cLastRound = cnow;
+						mLastRound = mnow;
 
 						try{
-							Thread.sleep(1000);
+							Thread.sleep(15);
 						}catch( Throwable e ){
 
 						}
