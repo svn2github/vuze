@@ -98,6 +98,9 @@ public interface PluginInterface {
    * in order to find the localized displayName. (see i18n)
    *
    * @since 2.0.6.0
+   * @deprecated Use of this is discouraged - use {@link UIManager#getBasicPluginViewModel(String)}
+   *     to get a <tt>BasicPluginViewModel</tt> instance, and then use the methods on that to add
+   *     parameters.
    */
   public void addConfigUIParameters(Parameter[] parameters, String displayName);
   
@@ -135,6 +138,7 @@ public interface PluginInterface {
    * @param section ConfigSection to be added to the Config view
    *
    * @since 2.0.8.0
+   * @deprecated Use {@link UIManager#createBasicPluginConfigModel(String)} instead.
    */
 	public void addConfigSection(ConfigSection section);
 
@@ -346,6 +350,10 @@ public interface PluginInterface {
   /**
    * gives acess to the plugin Config UI Factory
    * @return the PluginConfigUIFactory associated with this plugin
+   * 
+   * @deprecated Use of this is discouraged - use {@link UIManager#getBasicPluginViewModel(String)}
+   *     to get a <tt>BasicPluginViewModel</tt> instance, and then use the methods on that to add
+   *     parameters.
    */
   public PluginConfigUIFactory getPluginConfigUIFactory();
   
