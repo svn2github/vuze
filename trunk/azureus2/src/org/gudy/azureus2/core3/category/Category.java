@@ -62,7 +62,7 @@ public interface Category {
   /** Retrieve a list of DownloadManagers for this category
    * @return DownloadManager List
    */  
-  public List getDownloadManagers();
+  public List getDownloadManagers(List all_download_managers);
   
   /** Add a DownloadManager to this category.
    *

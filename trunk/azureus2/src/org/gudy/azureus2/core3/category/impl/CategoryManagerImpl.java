@@ -37,6 +37,8 @@ import org.gudy.azureus2.core3.category.*;
 import org.gudy.azureus2.core3.util.*;
 
 public class CategoryManagerImpl  {
+  private static final String UNCAT_NAME = "__uncategorised__";
+  
   private static CategoryManagerImpl catMan;
   private static Category catAll = null;
   private static Category catUncategorized = null;
@@ -121,12 +123,18 @@ public class CategoryManagerImpl  {
           Long l_maxup 		= (Long)mCategory.get( "maxup" );
           Long l_maxdown 	= (Long)mCategory.get( "maxdown" );
           
-          categories.put( 
-        	catName,
-        	  new CategoryImpl( 
-        		  catName, 
-        		  l_maxup==null?0:l_maxup.intValue(),
-        		  l_maxdown==null?0:l_maxdown.intValue()));
+          if ( catName.equals( UNCAT_NAME )){
+        	  
+        	  catUncategorized.setUploadSpeed(l_maxup==null?0:l_maxup.intValue());
+        	  catUncategorized.setDownloadSpeed(l_maxdown==null?0:l_maxdown.intValue());
+          }else{
+	          categories.put( 
+	        	catName,
+	        	  new CategoryImpl( 
+	        		  catName, 
+	        		  l_maxup==null?0:l_maxup.intValue(),
+	        		  l_maxdown==null?0:l_maxdown.intValue()));
+          }
         }
         catch (UnsupportedEncodingException e1) {
           //Do nothing and process next.
@@ -164,15 +172,21 @@ public class CategoryManagerImpl  {
       while (iter.hasNext()) {
         Category cat = (Category) iter.next();
 
-        // For now we are only putting in 1 thing.  Maybe more later, so we use a map
         if (cat.getType() == Category.TYPE_USER) {
           Map catMap = new HashMap();
           catMap.put( "name", cat.getName());
           catMap.put( "maxup", new Long(cat.getUploadSpeed()));
-          catMap.put( "maxdown", new Long(cat.getUploadSpeed()));
+          catMap.put( "maxdown", new Long(cat.getDownloadSpeed()));
           list.add(catMap);
         }
       }
+      
+      Map uncat = new HashMap();
+      uncat.put( "name", UNCAT_NAME );
+      uncat.put( "maxup", new Long(catUncategorized.getUploadSpeed()));
+      uncat.put( "maxdown", new Long(catUncategorized.getDownloadSpeed()));
+      list.add( uncat );
+      
       map.put("categories", list);
 
 

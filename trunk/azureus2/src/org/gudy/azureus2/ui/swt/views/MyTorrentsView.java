@@ -469,7 +469,7 @@ public class MyTorrentsView
         	public void handleEvent(Event event) {
             Button curButton = (Button)event.widget;
             Category curCategory = (Category)curButton.getData("Category");
-            List dms = curCategory.getDownloadManagers();
+            List dms = curCategory.getDownloadManagers(globalManager.getDownloadManagers());
             
             long ttlActive = 0;
             long ttlSize = 0;
@@ -477,37 +477,43 @@ public class MyTorrentsView
             long ttlSSpeed = 0;
             int count = 0;
             for (Iterator iter = dms.iterator(); iter.hasNext();) {
-							DownloadManager dm = (DownloadManager) iter.next();
-							
-							if (!isInCategory(dm, currentCategory ))
-								continue;
-							
-							count++;
-							if (dm.getState() == DownloadManager.STATE_DOWNLOADING
-									|| dm.getState() == DownloadManager.STATE_SEEDING)
-								ttlActive++;
-							ttlSize += dm.getSize();
-							ttlRSpeed += dm.getStats().getDataReceiveRate();
-							ttlSSpeed += dm.getStats().getDataSendRate();
-						}
+            	DownloadManager dm = (DownloadManager) iter.next();
 
-            String up_str 	= MessageText.getString( "GeneralView.label.maxuploadspeed" );
-            String down_str = MessageText.getString( "GeneralView.label.maxdownloadspeed" );
-            String unlimited_str = MessageText.getString( "MyTorrentsView.menu.setSpeed.unlimited" );
-             
-            int	up_speed 	= category.getUploadSpeed();
-            int	down_speed 	= category.getDownloadSpeed();
-            
-            String up 	= up_str + ": " + (up_speed==0?unlimited_str:DisplayFormatters.formatByteCountToKiBEtc(up_speed));
-            String down = down_str + ": " + (down_speed==0?unlimited_str:DisplayFormatters.formatByteCountToKiBEtc(down_speed));
-            
-            if (count == 0) {
-            	curButton.setToolTipText( up + "\n" + down );
-            	return;
+            	if (!isInCategory(dm, currentCategory ))
+            		continue;
+
+            	count++;
+            	if (dm.getState() == DownloadManager.STATE_DOWNLOADING
+            			|| dm.getState() == DownloadManager.STATE_SEEDING)
+            		ttlActive++;
+            	ttlSize += dm.getSize();
+            	ttlRSpeed += dm.getStats().getDataReceiveRate();
+            	ttlSSpeed += dm.getStats().getDataSendRate();
             }
+
+            String 	up_details		= "";
+            String	down_details	= "";
+            
+		    if ( category.getType() != Category.TYPE_ALL ){
+		        	 
+	            String up_str 	= MessageText.getString( "GeneralView.label.maxuploadspeed" );
+	            String down_str = MessageText.getString( "GeneralView.label.maxdownloadspeed" );
+	            String unlimited_str = MessageText.getString( "MyTorrentsView.menu.setSpeed.unlimited" );
+	             
+	            int	up_speed 	= category.getUploadSpeed();
+	            int	down_speed 	= category.getDownloadSpeed();
+	            
+	            up_details 		= up_str + ": " + (up_speed==0?unlimited_str:DisplayFormatters.formatByteCountToKiBEtc(up_speed));
+	            down_details 	= down_str + ": " + (down_speed==0?unlimited_str:DisplayFormatters.formatByteCountToKiBEtc(down_speed));
+		    
+	            if (count == 0) {
+	            	curButton.setToolTipText( down_details + "\n" + up_details + "\nTotal: 0" );
+	            	return;
+	            }
+		    }
             
             curButton.setToolTipText(
-            		up + "\n" + down + "\n" +
+            		(up_details.length()==0?"":( down_details + "\n" + up_details + "\n" )) +
             		"Total: " + count + "\n"
             		+ "Downloading/Seeding: " + ttlActive + "\n"
             		+ "\n"
@@ -549,113 +555,135 @@ public class MyTorrentsView
 					}
         });
 
-        if ( category.getType() == Category.TYPE_USER ){
-        	
-        	final Menu menu = new Menu(getComposite().getShell(), SWT.POP_UP);
-    
-            catButton.setMenu(menu);
-            
-        	menu.addMenuListener(
-        		new MenuListener() 
-        		{
-        	    	boolean bShown = false;
-        	    	
-        			public void 
-        			menuHidden(
-        				MenuEvent e )
-        			{
-        				bShown = false;
+    	final Menu menu = new Menu(getComposite().getShell(), SWT.POP_UP);
 
-        				if (Constants.isOSX)
-        					return;
+        catButton.setMenu(menu);
+        
+    	menu.addMenuListener(
+    		new MenuListener() 
+    		{
+    	    	boolean bShown = false;
+    	    	
+    			public void 
+    			menuHidden(
+    				MenuEvent e )
+    			{
+    				bShown = false;
 
-        				// Must dispose in an asyncExec, otherwise SWT.Selection doesn't
-        				// get fired (async workaround provided by Eclipse Bug #87678)
+    				if (Constants.isOSX)
+    					return;
 
-        				e.widget.getDisplay().asyncExec(new AERunnable() {
-        					public void runSupport() {
-        						if (bShown || menu.isDisposed())
-        							return;
-        						MenuItem[] items = menu.getItems();
-        						for (int i = 0; i < items.length; i++) {
-        							items[i].dispose();
-        						}
-        					}
-        				});
-        			}
+    				// Must dispose in an asyncExec, otherwise SWT.Selection doesn't
+    				// get fired (async workaround provided by Eclipse Bug #87678)
 
-        			public void 
-        			menuShown(
-        				MenuEvent e) 
-        			{
-        				MenuItem[] items = menu.getItems();
-        				for (int i = 0; i < items.length; i++)
-        					items[i].dispose();
+    				e.widget.getDisplay().asyncExec(new AERunnable() {
+    					public void runSupport() {
+    						if (bShown || menu.isDisposed())
+    							return;
+    						MenuItem[] items = menu.getItems();
+    						for (int i = 0; i < items.length; i++) {
+    							items[i].dispose();
+    						}
+    					}
+    				});
+    			}
 
-        				bShown = true;
+    			public void 
+    			menuShown(
+    				MenuEvent e) 
+    			{
+    				MenuItem[] items = menu.getItems();
+    				for (int i = 0; i < items.length; i++)
+    					items[i].dispose();
 
-        		        final MenuItem itemDelete = new MenuItem(menu, SWT.PUSH);
-        		       
-        		        Messages.setLanguageText(itemDelete, "MyTorrentsView.menu.category.delete");
-        		        
-        		        menu.setDefaultItem(itemDelete);
+    				bShown = true;
 
-        				long maxDownload = COConfigurationManager.getIntParameter("Max Download Speed KBs", 0) * 1024;
-        				long maxUpload = COConfigurationManager.getIntParameter("Max Upload Speed KBs", 0) * 1024;
+    		        if ( category.getType() == Category.TYPE_USER ){
+    		        	
+	    		        final MenuItem itemDelete = new MenuItem(menu, SWT.PUSH);
+	    		       
+	    		        Messages.setLanguageText(itemDelete, "MyTorrentsView.menu.category.delete");
+	    		        
+	    		        menu.setDefaultItem(itemDelete);
 
-           				int	down_speed 	= category.getDownloadSpeed();
-           				int	up_speed 	= category.getUploadSpeed();
-           			        				
-        		        ViewUtils.addSpeedMenu( 
-        		        		menu.getShell(), menu, true, 
-        		        		false, down_speed==0, down_speed, down_speed, maxDownload, 
-        		        		false, up_speed==0, up_speed, up_speed, maxUpload, 
-        		        		1, 
-        		        		new SpeedAdapter()
-        		        		{
-        		        			public void 
-        		        			setDownSpeed(int val) 
-        		        			{
-        		        				category.setDownloadSpeed( val );
-        		        			}
-        		        			public void 
-        		        			setUpSpeed(int val) 
-        		        			{
-        		        				category.setUploadSpeed( val );
+	       		        itemDelete.addListener(SWT.Selection, new Listener() {
+	    		        	public void handleEvent(Event event) {
+	    		        		Category catToDelete = (Category)catButton.getData("Category");
+	    		        		if (catToDelete != null) {
+	    		        			java.util.List managers = catToDelete.getDownloadManagers(globalManager.getDownloadManagers());
+	    		        			// move to array,since setcategory removed it from the category,
+	    		        			// which would mess up our loop
+	    		        			DownloadManager dms[] = (DownloadManager [])managers.toArray(new DownloadManager[managers.size()]);
+	    		        			for (int i = 0; i < dms.length; i++) {
+	    		        				dms[i].getDownloadState().setCategory(null);
+	    		        			}
+	    		        			if (currentCategory == catToDelete){
 
-        		        			}
-        		        		});
+	    		        				activateCategory(CategoryManager.getCategory(Category.TYPE_ALL));
 
-        		        itemDelete.addListener(SWT.Selection, new Listener() {
-        		        	public void handleEvent(Event event) {
-        		        		Category catToDelete = (Category)catButton.getData("Category");
-        		        		if (catToDelete != null) {
-        		        			java.util.List managers = catToDelete.getDownloadManagers();
-        		        			// move to array,since setcategory removed it from the category,
-        		        			// which would mess up our loop
-        		        			DownloadManager dms[] = (DownloadManager [])managers.toArray(new DownloadManager[managers.size()]);
-        		        			for (int i = 0; i < dms.length; i++) {
-        		        				dms[i].getDownloadState().setCategory(null);
-        		        			}
-        		        			if (currentCategory == catToDelete){
+	    		        			}else{
+	    		        				// always activate as deletion of this one might have
+	    		        				// affected the current view 
+	    		        				activateCategory(  currentCategory );
+	    		        			}
+	    		        			CategoryManager.removeCategory(catToDelete);
+	    		        		}
+	    		        	}
+	    		        });
+    		        }
+    		        
+    		        if ( category.getType() != Category.TYPE_ALL ){
 
-        		        				activateCategory(CategoryManager.getCategory(Category.TYPE_ALL));
+	    				long maxDownload = COConfigurationManager.getIntParameter("Max Download Speed KBs", 0) * 1024;
+	    				long maxUpload = COConfigurationManager.getIntParameter("Max Upload Speed KBs", 0) * 1024;
+	
+	       				int	down_speed 	= category.getDownloadSpeed();
+	       				int	up_speed 	= category.getUploadSpeed();
+	       			        				
+	    		        ViewUtils.addSpeedMenu( 
+	    		        		menu.getShell(), menu, true, 
+	    		        		false, down_speed==0, down_speed, down_speed, maxDownload, 
+	    		        		false, up_speed==0, up_speed, up_speed, maxUpload, 
+	    		        		1, 
+	    		        		new SpeedAdapter()
+	    		        		{
+	    		        			public void 
+	    		        			setDownSpeed(int val) 
+	    		        			{
+	    		        				category.setDownloadSpeed( val );
+	    		        			}
+	    		        			public void 
+	    		        			setUpSpeed(int val) 
+	    		        			{
+	    		        				category.setUploadSpeed( val );
+	
+	    		        			}
+	    		        		});
+    		        }
+    		        
+	        		java.util.List managers = category.getDownloadManagers(globalManager.getDownloadManagers());
 
-        		        			}else{
-        		        				// always activate as deletion of this one might have
-        		        				// affected the current view 
-        		        				activateCategory(  currentCategory );
-        		        			}
-        		        			CategoryManager.removeCategory(catToDelete);
-        		        		}
-        			}
-        		});
-        				
+	        		final DownloadManager dms[] = (DownloadManager [])managers.toArray(new DownloadManager[managers.size()]);
+
+    				MenuItem itemOptions = new MenuItem(menu, SWT.PUSH);
+    				
+    				Messages.setLanguageText(itemOptions, "MainWindow.menu.view.configuration");
+    				itemOptions.addListener(SWT.Selection, new Listener(){
+    					public void handleEvent(Event event) {
+    						UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
  
-            }
-          });
-        }
+    						uiFunctions.showMultiOptionsView( dms );
+    					}
+    				});
+	        		
+    				if ( dms.length == 0 ){
+    					
+    					itemOptions.setEnabled( false );
+    				}
+    			}
+    		});
       }
+     
 
       cCategories.layout();
       getComposite().layout();
@@ -970,10 +998,6 @@ public class MyTorrentsView
 			Logger.log(new LogEvent(LOGID, "failed to init drag-n-drop", t));
 		}
 	}
-
-  private void moveSelectedTorrentsTo(int iNewPos) {
-    moveRowsTo(tv.getSelectedRows(), iNewPos);
-  }
   
   private void moveRowsTo(TableRowCore[] rows, int iNewPos) {
     if (rows == null || rows.length == 0) {

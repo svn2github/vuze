@@ -108,8 +108,23 @@ public class CategoryImpl implements Category, Comparable {
     return type;
   }
   
-  public List getDownloadManagers() {
-    return managers;
+  public List getDownloadManagers(List all_dms) {
+	  if ( type == Category.TYPE_USER ){
+		  return managers;
+	  }else if ( type == Category.TYPE_ALL ){
+		  return all_dms;
+	  }else{
+		  List result = new ArrayList();
+		  for (int i=0;i<all_dms.size();i++){
+			  DownloadManager dm = (DownloadManager)all_dms.get(i);
+			  Category cat = dm.getDownloadState().getCategory();
+			  if ( cat == null || cat.getType() == Category.TYPE_UNCATEGORIZED){
+				  result.add( dm );
+			  }
+		  }
+		  
+		  return( result );
+	  }
   }
   
   public void addManager(DownloadManagerState manager_state) {
