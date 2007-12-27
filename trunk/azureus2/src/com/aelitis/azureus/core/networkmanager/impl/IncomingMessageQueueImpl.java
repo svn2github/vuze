@@ -52,6 +52,9 @@ public class IncomingMessageQueueImpl implements IncomingMessageQueue{
    * @param connection owner to read from
    */
   public IncomingMessageQueueImpl( MessageStreamDecoder stream_decoder, NetworkConnection connection ) {
+	  if (stream_decoder == null) {
+		  throw new NullPointerException("stream_decoder is null"); 
+	  }
     this.connection = connection;
     this.stream_decoder = stream_decoder;
   }
