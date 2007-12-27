@@ -131,7 +131,6 @@ OutgoingMessageQueueImpl
     prev_sent.clear();
     listeners = new ArrayList();
     urgent_message = null;
-    stream_encoder = null;
   }
   
   
