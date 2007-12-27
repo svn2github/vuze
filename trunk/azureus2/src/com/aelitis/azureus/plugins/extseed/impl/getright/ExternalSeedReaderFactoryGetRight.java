@@ -102,8 +102,14 @@ ExternalSeedReaderFactoryGetRight
 				
 				for (int i=0;i<urls.size();i++){
 					
-					try{
-						URL	url = new URL(new String((byte[])urls.get(i)));
+					try{	
+						String	url_str = new String((byte[])urls.get(i));
+						
+							// avoid java encoding ' ' as '+' as this is not conformant with Apache (for example)
+						
+						url_str = url_str.replaceAll( " ", "%20");
+
+						URL	url = new URL( url_str );
 						
 						String	protocol = url.getProtocol().toLowerCase();
 																		

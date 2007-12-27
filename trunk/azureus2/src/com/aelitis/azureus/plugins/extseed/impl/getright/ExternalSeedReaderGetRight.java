@@ -120,7 +120,7 @@ ExternalSeedReaderGetRight
 				base_url = base_url.substring( 0, base_url.length()-1 );
 			}
 			
-			base_url += "/" + URLEncoder.encode( new String( to_torrent.getName(), "ISO-8859-1" ), "ISO-8859-1" );
+			base_url += "/" + URLEncoder.encode( new String( to_torrent.getName(), "ISO-8859-1" ), "ISO-8859-1" ).replaceAll("\\+", "%20");
 			
 			for (int i=0;i<files.length;i++ ){
 				
@@ -134,7 +134,7 @@ ExternalSeedReaderGetRight
 				
 				for (int j=0;j<bits.length;j++){
 					
-					file_url_str += "/" + URLEncoder.encode( new String( bits[j], "ISO-8859-1" ), "ISO-8859-1" );
+					file_url_str += "/" + URLEncoder.encode( new String( bits[j], "ISO-8859-1" ), "ISO-8859-1" ).replaceAll("\\+", "%20");
 				}
 				
 				http_downloaders[i] = new ExternalSeedHTTPDownloader( new URL( file_url_str), ua );
