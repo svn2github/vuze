@@ -360,7 +360,12 @@ public class ListCell
   		if (fontHeight <= 0) {
   			maxLines = 1;
   		} else {
-  			maxLines = (int) Math.ceil((double)getBounds().height / fontHeight);
+  			Rectangle bounds = getBounds();
+  			if (bounds == null) {
+  				return 1;
+  			} else { 
+  				maxLines = (int) Math.ceil((double)bounds.height / fontHeight);
+  			}
   		}
 		}
 		return maxLines;
