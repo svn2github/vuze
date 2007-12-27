@@ -1092,12 +1092,12 @@ implements PiecePicker
 				nbRarestActive++;
 		}
 		
-		
-		nbWanted = dispenser.dispense(nbWanted, DiskManager.BLOCK_SIZE);
+		if(!pt.isLANLocal())
+			nbWanted = dispenser.dispense(nbWanted, DiskManager.BLOCK_SIZE);
 		final int[] blocksFound =pePiece.getAndMarkBlocks(pt, nbWanted,enable_request_hints  );
 		final int blockNumber =blocksFound[0];
 		final int nbBlocks =blocksFound[1];
-		if(nbBlocks != nbWanted)
+		if(!pt.isLANLocal() && nbBlocks != nbWanted)
 			dispenser.returnUnusedChunks(nbWanted-nbBlocks, DiskManager.BLOCK_SIZE);
 		
 		if (nbBlocks <=0)
@@ -1344,7 +1344,7 @@ implements PiecePicker
 				
 				if ( LOG_RTA ) rta_log_str += ",{select_piece=" + piece_min_rta_index + ",block=" + piece_min_rta_block + ",time=" + (piece_min_rta_time-now) + "}";
 				
-				if ( dispenser.dispense(1, DiskManager.BLOCK_SIZE) == 1){
+				if ( dispenser.dispense(1, DiskManager.BLOCK_SIZE) == 1 || pt.isLANLocal()){
 	
 					PEPiece pePiece = pePieces[piece_min_rta_index];
 		
@@ -1395,7 +1395,8 @@ implements PiecePicker
 						
 						if ( LOG_RTA ) rta_log_str += "{request failed}";
 						
-						dispenser.returnUnusedChunks(1, DiskManager.BLOCK_SIZE);
+						if(!pt.isLANLocal())
+							dispenser.returnUnusedChunks(1, DiskManager.BLOCK_SIZE);
 						
 						return( false );
 					}
