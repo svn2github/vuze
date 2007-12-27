@@ -566,4 +566,6 @@ TorrentImpl
 	public Object[] getQueryableInterfaces() {
 		return new Object[] { torrent };
 	}
+	
+	public boolean isSimpleTorrent() {return torrent.isSimpleTorrent();}
 }

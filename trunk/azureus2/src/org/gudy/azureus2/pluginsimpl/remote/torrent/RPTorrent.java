@@ -396,4 +396,5 @@ RPTorrent
 		
 		return( false );
 	}
+	public boolean isSimpleTorrent() {notSupported(); return false;} 
 }

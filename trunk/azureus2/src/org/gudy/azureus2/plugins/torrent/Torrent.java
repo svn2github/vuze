@@ -266,4 +266,12 @@ Torrent
 	
 	public boolean
 	isComplete();
+	
+	/**
+	 * Returns <tt>true</tt> if the torrent is a single file torrent,
+	 * <tt>false</tt> if it is a multi file torrent.
+	 * 
+	 * @since 3.0.4.3
+	 */
+	public boolean isSimpleTorrent();
 }
