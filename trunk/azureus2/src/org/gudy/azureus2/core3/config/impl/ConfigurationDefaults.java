@@ -520,6 +520,8 @@ public class ConfigurationDefaults {
     
     def.put("FilesView.separate_rename_and_retarget", FALSE);      
     def.put("FilesView.show.full.path", FALSE );
+    
+    def.put("MyTorrentsView.menu.show_parent_folder_enabled", FALSE);
     	
     //temp section for SpeedManagerAlgorithmProviderV2
     def.put(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT, new Long(SMConst.START_DOWNLOAD_RATE_MAX) );

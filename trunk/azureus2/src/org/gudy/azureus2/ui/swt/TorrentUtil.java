@@ -328,12 +328,13 @@ public class TorrentUtil {
 		});
 		itemOpen.setEnabled(hasSelection);
 
-		// Explore
+		// Explore (or open containing folder)
+		final boolean use_open_containing_folder = COConfigurationManager.getBooleanParameter("MyTorrentsView.menu.show_parent_folder_enabled");
 		final MenuItem itemExplore = new MenuItem(menu, SWT.PUSH);
-		Messages.setLanguageText(itemExplore, "MyTorrentsView.menu.explore");
+		Messages.setLanguageText(itemExplore, "MyTorrentsView.menu." + (use_open_containing_folder ? "open_parent_folder" : "explore"));
 		itemExplore.addListener(SWT.Selection, new DMTask(dms, false) {
 			public void run(DownloadManager dm) {
-				ManagerUtils.open(dm);
+				ManagerUtils.open(dm, use_open_containing_folder);
 			}
 		});
 		itemExplore.setEnabled(hasSelection);
@@ -1321,15 +1322,6 @@ public class TorrentUtil {
 						ManagerUtils.queue(dm, shell);
 					}
 				}
-			}
-		}
-	}
-
-	private static void openSelectedTorrents(DownloadManager[] dms) {
-		for (int i = dms.length - 1; i >= 0; i--) {
-			DownloadManager dm = dms[i];
-			if (dm != null) {
-				ManagerUtils.open(dm);
 			}
 		}
 	}

@@ -35,6 +35,8 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.platform.PlatformManagerCapabilities;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.*;
@@ -227,6 +229,17 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 		new BooleanParameter(cLook, "FilesView.separate_rename_and_retarget", MSG_PREFIX
 				+ "SeparateFilesViewRenameRetarget");
 
+	
+		// Reuse the labels of the other menu actions.
+		if (PlatformManagerFactory.getPlatformManager().hasCapability(PlatformManagerCapabilities.ShowFileInBrowser)) {
+			BooleanParameter bp = new BooleanParameter(cLook, "MyTorrentsView.menu.show_parent_folder_enabled", MSG_PREFIX
+					+ "use_show_parent_folder");
+			Messages.setLanguageText(bp.getControl(), "ConfigView.section.style.use_show_parent_folder", new String[] {
+				MessageText.getString("MyTorrentsView.menu.open_parent_folder"),
+				MessageText.getString("MyTorrentsView.menu.explore"),
+			});
+		}
+		
 		new BooleanParameter(cLook, "NameColumn.showProgramIcon", MSG_PREFIX
 				+ "showProgramIcon");
 

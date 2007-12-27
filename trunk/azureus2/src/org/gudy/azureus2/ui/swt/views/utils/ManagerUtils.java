@@ -67,9 +67,17 @@ public class ManagerUtils {
   * Opens the parent folder of dm's path
   * @param dm DownloadManager instance
   */
-	public static void open(DownloadManager dm) {
-		if (dm != null)
-			open(dm.getSaveLocation());
+	public static void open(DownloadManager dm) {open(dm, false);}
+	
+	public static void open(DownloadManager dm, boolean open_containing_folder_mode) {
+		if (dm != null) {
+			if (open_containing_folder_mode) {
+				Utils.launch(dm.getSaveLocation().getParent());
+			}
+			else {
+				open(dm.getSaveLocation());
+			}
+		}
 	}
 	
 	public static void open(File f) {
