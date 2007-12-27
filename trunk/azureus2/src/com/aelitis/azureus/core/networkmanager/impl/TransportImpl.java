@@ -78,15 +78,18 @@ TransportImpl
 	setAlreadyRead( 
 		ByteBuffer bytes_already_read )
 	{
-		if ( data_already_read != null ){
-			
-			Debug.out( "push back already performed" );
-		}
-		
 		if ( bytes_already_read != null && bytes_already_read.hasRemaining()){
 
-			data_already_read	= bytes_already_read;
-			
+			if ( data_already_read != null ) {
+			    ByteBuffer new_bb = ByteBuffer.allocate(data_already_read.remaining() + bytes_already_read.remaining());
+			    new_bb.put(bytes_already_read);
+			    new_bb.put(data_already_read);
+			    new_bb.position(0);
+			    data_already_read = new_bb;
+			}
+			else {
+				data_already_read	= bytes_already_read;
+			}
 			is_ready_for_read = true;
 		}
 	}
