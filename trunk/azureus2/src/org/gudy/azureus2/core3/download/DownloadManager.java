@@ -209,6 +209,10 @@ DownloadManager
     public long
     getSize();
 
+    /**
+     * This includes the full path to the torrent file.
+     * @return
+     */
     public String
     getTorrentFileName();
 
