@@ -2801,7 +2801,7 @@ implements PEPeerTransport
 				}
 
         if( message_id.equals( AZMessage.ID_AZ_PEER_EXCHANGE ) ) {
-					decodeAZPeerExchange( (AZPeerExchange)message );
+					decodePeerExchange( (AZPeerExchange)message );
 					return true;
 				}
 
@@ -3082,7 +3082,7 @@ implements PEPeerTransport
 
 
 
-	protected void decodeAZPeerExchange( AZPeerExchange exchange ) {
+	protected void decodePeerExchange( AZStylePeerExchange exchange ) {
 		final PeerItem[] added = exchange.getAddedPeers();
 		final PeerItem[] dropped = exchange.getDroppedPeers();
 

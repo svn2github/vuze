@@ -38,7 +38,7 @@ import com.aelitis.azureus.core.peermanager.peerdb.*;
 /**
  * AZ peer exchange message.
  */
-public class AZPeerExchange implements AZMessage {
+public class AZPeerExchange implements AZMessage, AZStylePeerExchange {
   private static final LogIDs LOGID = LogIDs.NET;
 
   private static final byte bss = DirectByteBuffer.SS_MSG;
