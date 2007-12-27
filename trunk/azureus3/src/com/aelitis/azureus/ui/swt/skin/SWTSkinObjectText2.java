@@ -273,8 +273,14 @@ public class SWTSkinObjectText2
 					if (bUnderline) {
 						canvas.addPaintListener(new PaintListener() {
 							public void paintControl(PaintEvent e) {
+								int x = 0;
+								Point pt = e.gc.textExtent(sText);
 								Point size = ((Control) e.widget).getSize();
-								e.gc.drawLine(0, size.y - 1, size.x - 1, size.y - 1);
+								if (pt.x < size.x) {
+									x = size.x - pt.x;
+									size.x = pt.x;
+								}
+								e.gc.drawLine(x, size.y - 1, size.x - 1 + x, size.y - 1);
 							}
 						});
 					}
