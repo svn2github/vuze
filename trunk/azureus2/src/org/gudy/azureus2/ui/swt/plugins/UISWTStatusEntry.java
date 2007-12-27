@@ -27,9 +27,10 @@ import org.eclipse.swt.graphics.Image;
  * This interface represents a status entry indicator in the status bar. Examples
  * of such indicators are the <i>Share Ratio</i> indicator and the <i>DHT Status</i>
  * indicator. Plugins can create their own indicators via {@link UISWTInstance#createStatusEntry()}.
- * 
- * When a status entry is first created, it is set to be invisible, with no status
- * text or tool tip text and no image to be associated with it.
+ * <p>
+ * <b>Note:</b> When a status entry is first created, it is set to be invisible, with no status
+ * text or tool tip text and no image to be associated with it. Once you set some content, you
+ * <b>must</b> call <tt>setVisible(true)</tt> for it to become visible.
  * 
  * @see UISWTInstance#createStatusEntry()
  * @author amc1
