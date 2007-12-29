@@ -530,6 +530,7 @@ public class MainMenu {
         });
       }
 
+      /*
       MenuItem help_donate = new MenuItem(helpMenu, SWT.NULL);
       Messages.setLanguageText(help_donate, "MainWindow.menu.help.donate");
       help_donate.addListener(SWT.Selection, new Listener() {
@@ -537,6 +538,7 @@ public class MainMenu {
           new OldDonationWindow(display).show();
         }
       });
+      */
       
       new MenuItem(helpMenu,SWT.SEPARATOR);
       MenuItem help_debug = new MenuItem(helpMenu, SWT.NULL);
