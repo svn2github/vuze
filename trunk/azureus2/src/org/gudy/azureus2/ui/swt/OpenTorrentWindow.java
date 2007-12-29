@@ -2613,14 +2613,14 @@ public class OpenTorrentWindow
 			if (parent.torrent.isSimpleTorrent())
 				return parent.getParentDir();
 
-			return new File(parent.getParentDir(), sFullFileName).getParent();
+			return new File(parent.getDataDir(), sFullFileName).getParent();
 		}
 
 		public File getDestFile() {
 			if (sDestFileName != null) {
 				return new File(sDestFileName);
 			} else {
-				return new File(parent.getParentDir(), sFullFileName);
+				return new File(parent.getDataDir(), sFullFileName);
 			}
 		}
 

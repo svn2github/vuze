@@ -294,7 +294,7 @@ public class FileDownloadWindow
 			 */
 			
 			String tmp = url.substring(url.lastIndexOf('/') + 1);
-			tmp = tmp.substring(0, tmp.indexOf(".torrent"));
+			tmp = tmp.substring(0, tmp.lastIndexOf(".torrent"));
 			return tmp + ".torrent";
 		} catch (Throwable t) {
 			Debug.out(t);
