@@ -9,6 +9,8 @@ CHANGE: Core  | Further memory footprint reductions; for further tweaks see http
 CHANGE: Core  | Queuing rules now don't start any further torrents if the global up/download speed limits are reached [The 8472]
                  - makes "don't count torrent ..." minimum speed rules more useful to dynamically regulate the queue lengths
                  - prevents runaway chain reactions in case of connection loss  
+                 
+BUGFIX: UI    | Shells no longer use the low-res frog icon, the normal main window icon is now used instead [amc1]
 
 
 2007.12.21 | Azureus Vuze 3.0.4.2

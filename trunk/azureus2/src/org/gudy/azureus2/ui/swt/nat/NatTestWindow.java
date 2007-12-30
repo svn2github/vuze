@@ -80,7 +80,7 @@ public class NatTestWindow {
           default :
             printMessage( "\n" + MessageText.getString("configureWizard.nat.unable") + ". \n(" + checker.getAdditionalInfo()+").\n");
             break;
-          }     
+          }
           display.asyncExec(new AERunnable()  {
             public void runSupport() {
               if(bTest != null && ! bTest.isDisposed())
@@ -95,9 +95,7 @@ public class NatTestWindow {
     
     final Shell shell = ShellFactory.createShell(SWT.BORDER | SWT.TITLE | SWT.CLOSE);        
     shell.setText(MessageText.getString("configureWizard.nat.title"));
-	if(! Constants.isOSX) {
-		shell.setImage(ImageRepository.getImage("azureus"));
-	}
+    Utils.setShellIcon(shell);
 
     display = shell.getDisplay();
     
