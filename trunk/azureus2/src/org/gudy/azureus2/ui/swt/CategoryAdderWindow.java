@@ -43,9 +43,7 @@ public class CategoryAdderWindow {
     final Shell shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 
     shell.setText(MessageText.getString("CategoryAddWindow.title"));
-    if(! Constants.isOSX) {
-      shell.setImage(ImageRepository.getImage("azureus"));
-    }
+    Utils.setShellIcon(shell);
     GridLayout layout = new GridLayout();
     shell.setLayout(layout);
 

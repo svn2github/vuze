@@ -88,9 +88,7 @@ MessageBoxWindow
 
 		shell.setText( title );
 		
-		if(! Constants.isOSX) {
-			shell.setImage(ImageRepository.getImage("azureus"));
-		}
+		Utils.setShellIcon(shell);
 		
 	    GridLayout layout = new GridLayout();
 	    layout.numColumns = 3;

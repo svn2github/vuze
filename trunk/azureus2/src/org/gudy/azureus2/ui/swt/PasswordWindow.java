@@ -88,9 +88,7 @@ public class PasswordWindow {
 
     shell = new Shell(display,SWT.APPLICATION_MODAL | SWT.TITLE | SWT.CLOSE);
     shell.setText(MessageText.getString("PasswordWindow.title"));
-    if(! Constants.isOSX) {
-      shell.setImage(ImageRepository.getImage("azureus"));
-    }
+    Utils.setShellIcon(shell);
     GridLayout layout = new GridLayout();
     layout.numColumns = 2;
     layout.makeColumnsEqualWidth = true;

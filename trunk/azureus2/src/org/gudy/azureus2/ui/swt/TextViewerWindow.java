@@ -42,9 +42,7 @@ public class TextViewerWindow {
 
     if (sTitleID != null) shell.setText(MessageText.keyExists(sTitleID)?MessageText.getString(sTitleID):sTitleID);
     
-    if(! Constants.isOSX) {
-      shell.setImage(ImageRepository.getImage("azureus"));
-    }
+    Utils.setShellIcon(shell);
     
     GridLayout layout = new GridLayout();
     shell.setLayout(layout);

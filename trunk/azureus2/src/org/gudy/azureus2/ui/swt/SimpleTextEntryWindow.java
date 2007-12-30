@@ -61,9 +61,7 @@ public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
 			shell.setText(this.title);
 		}
 	    
-		if(!Constants.isOSX) {
-	      shell.setImage(ImageRepository.getImage("azureus"));
-	    }
+		Utils.setShellIcon(shell);
 		
 	    GridLayout layout = new GridLayout();
 	    shell.setLayout(layout);

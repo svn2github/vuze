@@ -80,9 +80,7 @@ UpdateProgressWindow
 	  	
 	    window = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display,SWT.DIALOG_TRIM | SWT.RESIZE | SWT.APPLICATION_MODAL);
 	    Messages.setLanguageText(window,"updater.progress.window.title");
-	    if(! Constants.isOSX) {
-	      window.setImage(ImageRepository.getImage("azureus"));
-	    }
+	    Utils.setShellIcon(shell);
 	    FormLayout layout = new FormLayout();
 	    try {
 	      layout.spacing = 5;

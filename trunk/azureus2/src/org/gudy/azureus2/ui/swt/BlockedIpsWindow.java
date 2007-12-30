@@ -94,9 +94,7 @@ BlockedIpsWindow
 
     final Shell window = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display,styles);
     Messages.setLanguageText(window,"ConfigView.section.ipfilter.list.title");
-    if(! Constants.isOSX) {
-      window.setImage(ImageRepository.getImage("azureus"));
-    }
+    Utils.setShellIcon(window);
     FormLayout layout = new FormLayout();
     try {
       layout.spacing = 5;
