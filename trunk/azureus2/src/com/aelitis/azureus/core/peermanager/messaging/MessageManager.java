@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.peermanager.messaging.azureus.AZMessageFactory;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessageFactory;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.ltep.LTMessageFactory;
 
 
 
@@ -58,6 +59,7 @@ public class MessageManager {
   public void initialize() {
     AZMessageFactory.init();  //register AZ message types
     BTMessageFactory.init();  //register BT message types
+    LTMessageFactory.init();  //register LT message types
   }
   
 
