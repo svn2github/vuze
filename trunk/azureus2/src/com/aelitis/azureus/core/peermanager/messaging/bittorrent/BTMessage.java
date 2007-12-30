@@ -74,9 +74,9 @@ public interface BTMessage extends Message {
   public static final byte[] ID_BT_HANDSHAKE_BYTES  = ID_BT_HANDSHAKE.getBytes();
   public static final int SUBID_BT_HANDSHAKE		= 10;
   
-  public static final String ID_BT_LT_EXTENSION_HANDSHAKE        = "BT_LT_EXT_HANDSHAKE";
-  public static final byte[] ID_BT_LT_EXTENSION_HANDSHAKE_BYTES  = ID_BT_LT_EXTENSION_HANDSHAKE.getBytes();
-  public static final int SUBID_BT_LT_EXTENSION_HANDSHAKE	     = 20;
+  public static final String ID_BT_LT_EXT_MESSAGE        = "BT_LT_EXT_MESSAGE";
+  public static final byte[] ID_BT_LT_EXT_MESSAGE_BYTES  = ID_BT_LT_EXT_MESSAGE.getBytes();
+  public static final int SUBID_BT_LT_EXT_MESSAGE	= 20;
 
 
 }

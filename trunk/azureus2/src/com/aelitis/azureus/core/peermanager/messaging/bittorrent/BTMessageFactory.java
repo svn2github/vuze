@@ -59,7 +59,7 @@ public class BTMessageFactory {
       MessageManager.getSingleton().registerMessageType( new BTRequest( -1, -1 , -1, MESSAGE_VERSION_SUPPORTS_PADDING ));
       MessageManager.getSingleton().registerMessageType( new BTUnchoke( MESSAGE_VERSION_SUPPORTS_PADDING ));
       MessageManager.getSingleton().registerMessageType( new BTUninterested( MESSAGE_VERSION_SUPPORTS_PADDING ));
-      MessageManager.getSingleton().registerMessageType( new BTLTExtensionHandshake( null, MESSAGE_VERSION_SUPPORTS_PADDING ));
+      MessageManager.getSingleton().registerMessageType( new BTLTMessage( null, MESSAGE_VERSION_SUPPORTS_PADDING ));
     }
     catch( MessageException me ) {  me.printStackTrace();  }
   }
@@ -97,8 +97,8 @@ public class BTMessageFactory {
     legacy_data.put( BTMessage.ID_BT_CANCEL, new LegacyData( RawMessage.PRIORITY_HIGH, true, null, (byte)8 ) );
     id_to_name[8] = BTMessage.ID_BT_CANCEL;
     
-    legacy_data.put( BTMessage.ID_BT_LT_EXTENSION_HANDSHAKE, new LegacyData( RawMessage.PRIORITY_HIGH, true, null, (byte)20 ) );
-    id_to_name[20] = BTMessage.ID_BT_LT_EXTENSION_HANDSHAKE;
+    legacy_data.put( BTMessage.ID_BT_LT_EXT_MESSAGE, new LegacyData( RawMessage.PRIORITY_HIGH, true, null, (byte)20 ) );
+    id_to_name[20] = BTMessage.ID_BT_LT_EXT_MESSAGE;
   }
   
   
@@ -145,9 +145,6 @@ public class BTMessageFactory {
         return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_CANCEL_BYTES, stream_payload, (byte)1 );
 
       case 20:
-    	  if (BTHandshake.LTEP_ENABLED) 
-    		  return MessageManager.getSingleton().createMessage(BTMessage.ID_BT_LT_EXTENSION_HANDSHAKE_BYTES, stream_payload, (byte)1);
-
     	  //Clients seeing our handshake reserved bit will send us the old 'extended' messaging hello message accidentally.
    		  //Instead of throwing an exception and dropping the peer connection, we'll just fake it as a keep-alive :)
   	      if (Logger.isEnabled())
