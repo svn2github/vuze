@@ -589,6 +589,8 @@ public class BTPeerIDByteDecoder {
 		//assertDecode("", "C8F2D9CD3A90455354426578626300362D2D2D92"); // Looks like a BitLord client - ESTBexbc?
 		//assertDecode("", "303030302D2D0000005433585859684B59584C72"); // Seen in the wild, appears to be a modified version of Azureus 2.5.0.0 (that's what was in the AZMP handshake)?
 		//assertDecode("", "B5546F7272656E742F3330323520202020202020");
+		assertDecode("BT Next Evolution", "-NE1090002IKyMn4g7Ko");
+		assertDecode("Amazon AWS S3", "S3-1-0-0--0123456789");
 
 		System.out.println("Done.");
 	}

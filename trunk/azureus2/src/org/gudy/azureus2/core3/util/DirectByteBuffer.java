@@ -67,7 +67,9 @@ DirectByteBuffer
     public static final byte        AL_MSG_AZ_PAYLOAD     = 24;
     public static final byte        AL_FILE				  = 25;
     public static final byte        AL_NET_CRYPT		  = 26;
-    public static final byte        AL_MSG_LT_EXT_HANDSHAKE = 27;
+    public static final byte        AL_MSG_LT_EXT_MESSAGE = 27;
+    public static final byte        AL_MSG_LT_HANDSHAKE   = 28;
+    public static final byte        AL_MSG_UT_PEX         = 29;
     
 	public static final String[] AL_DESCS =
 	{ "None", "Ext", "Other", "PeerRead", "PeerLen",
@@ -154,6 +156,7 @@ DirectByteBuffer
 	private ByteBuffer 				buffer;
 	private DirectByteBufferPool	pool;
 	private byte					allocator;
+	private boolean                 was_returned_to_pool = false;
   
 	
 	//private byte[]					trace_buffer;
@@ -172,6 +175,7 @@ DirectByteBuffer
 		ByteBuffer 				_buffer,
 		DirectByteBufferPool	_pool ) 
 	{
+		if (_buffer == null) {throw new NullPointerException("buffer is null");}
 		allocator	= _allocator;
 		buffer 		= _buffer;
 		pool		= _pool;
@@ -197,6 +201,8 @@ DirectByteBuffer
 		allocator	= basis.allocator;
 		buffer 		= basis.buffer;
 		pool		= null;
+		
+		if (buffer == null) {throw new NullPointerException("basis.buffer is null");}
 	}
 	
 	public ReferenceCountedDirectByteBuffer
@@ -334,7 +340,9 @@ DirectByteBuffer
 			
 			traceUsage( subsystem, OP_LIMIT_INT );
 		}
-		
+		if (buffer == null) {
+			System.out.println("Trying to limit null buffer - returned? " + this.was_returned_to_pool);
+		}
 		buffer.limit(l);
 	}
   
@@ -700,6 +708,7 @@ DirectByteBuffer
 					pool.returnBuffer( this );
 					
 					buffer	= null;
+					was_returned_to_pool = true;
 				}
 			}
 		}
@@ -728,6 +737,7 @@ DirectByteBuffer
 					pool.returnBuffer( this );
 					
 					buffer	= null;
+					was_returned_to_pool = true;
 				}
 			}
 		}

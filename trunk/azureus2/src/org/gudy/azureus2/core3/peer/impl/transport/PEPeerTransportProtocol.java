@@ -44,6 +44,7 @@ import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.peermanager.messaging.*;
 import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.ltep.*;
 import com.aelitis.azureus.core.peermanager.peerdb.*;
 import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
@@ -867,7 +868,7 @@ implements PEPeerTransport
 		}
 	}
 
-	private void sendLTExtHandshake() {
+	private void sendLTHandshake() {
 		String client_name = Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION;
 		int localTcpPort = TCPNetworkManager.getSingleton().getTCPListeningPortNumber();
 		String tcpPortOverride = COConfigurationManager.getStringParameter("TCP.Listen.Port.Override");
@@ -882,7 +883,7 @@ implements PEPeerTransport
 		data_dict.put("v", client_name);
 		data_dict.put("p", new Integer(localTcpPort));
 		data_dict.put("e", new Long(require_crypto ? 1L : 0L));
-		BTLTExtensionHandshake lt_handshake = new BTLTExtensionHandshake(
+		LTHandshake lt_handshake = new LTHandshake(
 				data_dict, other_peer_bt_lt_ext_version
 		);
 		connection.getOutgoingMessageQueue().addMessage(lt_handshake, false);
@@ -2002,56 +2003,44 @@ implements PEPeerTransport
 			 */ 
 			if (Logger.isEnabled() && client.indexOf("Azureus") == -1) {
 				Logger.log(new LogEvent(this, LOGID, "Handshake claims extended AZ "
-						+ "messaging support....enabling AZ mode."));
+						+ "messaging support... enabling AZ mode."));
 			}
-
-			messaging_mode = MESSAGING_AZMP;
         
 			Transport transport = connection.getTransport();
-        
 			boolean enable_padding = transport.isTCP() && transport.isEncrypted();
-        
-			connection.getIncomingMessageQueue().setDecoder( new AZMessageDecoder() );
-			connection.getOutgoingMessageQueue().setEncoder( new AZMessageEncoder( enable_padding ));
+			connection.getIncomingMessageQueue().setDecoder(new AZMessageDecoder());
+			connection.getOutgoingMessageQueue().setEncoder(new AZMessageEncoder(enable_padding));
 
+			// We will wait until we get the Az handshake before considering the connection
+			// initialised.
 			this.sendAZHandshake();
+			handshake.destroy();
 		}
 		else if (messaging_mode == MESSAGING_LTEP) {
 			if (Logger.isEnabled()) {
 				Logger.log(new LogEvent(this, LOGID, "Enabling LT extension protocol support..."));
 			}
-			this.sendLTExtHandshake();
+
+			connection.getIncomingMessageQueue().setDecoder(new LTMessageDecoder());
+			connection.getOutgoingMessageQueue().setEncoder(new LTMessageEncoder(this));
+			
+			generateFallbackSessionId();
+			
+			/**
+			 * We don't need to wait for the LT handshake, nor do we require it, nor
+			 * does it matter if the LT handshake comes later, nor does it matter if
+			 * it we receive it repeatedly. So there - we can initialise the connection
+			 * right now. :P
+			 */
+			this.initPostConnection(handshake);
+			this.sendLTHandshake();
 		}
 		else {
 			this.client = ClientIdentifier.identifyBTOnly(this.client_peer_id, this.handshake_reserved_bytes);
+			generateFallbackSessionId();
+			this.initPostConnection(handshake);
 		}
 		
-		handshake.destroy();
-
-
-		/*
-    for( int i=0; i < reserved.length; i++ ) {
-      int val = reserved[i] & 0xFF;
-      if( val != 0 ) {
-        System.out.println( "Peer "+ip+" ["+client+"] sent reserved byte #"+i+" to " +val);
-      }
-    }
-		 */
-
-		if( messaging_mode != MESSAGING_AZMP ) {  //otherwise we'll do this after receiving az handshake
-			
-			generateFallbackSessionId();
-
-			connection.getIncomingMessageQueue().resumeQueueProcessing();  //HACK: because BT decoder is auto-paused after initial handshake, so it doesn't accidentally decode the next AZ message
-
-			changePeerState( PEPeer.TRANSFERING );
-
-			connection_state = PEPeerTransport.CONNECTION_FULLY_ESTABLISHED;
-
-			sendBitField(); 
-			addAvailability();
-		}
-
 	}
 	
 	private int decideExtensionProtocol(BTHandshake handshake) {
@@ -2130,7 +2119,7 @@ implements PEPeerTransport
 	}
   
   
-  protected void decodeLTExtHandshake(BTLTExtensionHandshake handshake) {
+  protected void decodeLTHandshake(LTHandshake handshake) {
 	  String lt_handshake_name = handshake.getClientName();
 	  if (lt_handshake_name != null) {
 		  this.client_handshake = lt_handshake_name;
@@ -2245,12 +2234,16 @@ implements PEPeerTransport
 		if(outgoing_piece_message_handler != null)
 			outgoing_piece_message_handler.setPieceVersion(other_peer_piece_version);
 		outgoing_have_message_aggregator.setHaveVersion(other_peer_bt_have_version, other_peer_az_have_version);
+		this.initPostConnection(handshake);
+	}
+  
+  	private void initPostConnection(Message handshake) {
 		changePeerState(PEPeer.TRANSFERING);
 		connection_state = PEPeerTransport.CONNECTION_FULLY_ESTABLISHED;
 		sendBitField();
 		handshake.destroy();
 		addAvailability();
-	}
+  	}
 
 
 	protected void decodeBitfield( BTBitfield bitfield )
@@ -2751,8 +2744,8 @@ implements PEPeerTransport
 					return true;
 				}
         
-        if (message_id.equals(BTMessage.ID_BT_LT_EXTENSION_HANDSHAKE)) {
-        	decodeLTExtHandshake((BTLTExtensionHandshake)message);
+        if (message_id.equals(LTMessage.ID_LT_HANDSHAKE)) {
+        	decodeLTHandshake((LTHandshake)message);
         	return true;
         }
 

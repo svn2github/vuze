@@ -148,6 +148,11 @@ public class BTMessageDecoder implements MessageStreamDecoder {
   
   
   public ByteBuffer destroy() {
+	if (destroyed) {
+		Debug.out("Trying to redestroy message decoder, stack trace follows: " + this);
+		Debug.outStackTrace();
+	}
+	  
     is_paused = true;
     destroyed = true;
     
@@ -171,7 +176,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
     
     if ( payload_buffer != null ) {
       payload_buffer.flip( SS );
-      unused.put( payload_buffer.getBuffer( SS ) );
+      unused.put( payload_buffer.getBuffer( SS ) ); // Got a buffer overflow exception here in the past - related to PEX?
     }
     
     unused.flip();
@@ -296,13 +301,12 @@ public class BTMessageDecoder implements MessageStreamDecoder {
         }
         else {  //decode normal message
           try {
-            Message msg = BTMessageFactory.createBTMessage( ref_buff );
-            messages_last_read.add( msg );
+            messages_last_read.add(createMessage(ref_buff));
           }
           catch( Throwable e ) {
             ref_buff.returnToPoolIfNotFree();
             
-        	// maintain unexpected erorrs as such so they get logged later
+        	// maintain unexpected errors as such so they get logged later
             
             if ( e instanceof RuntimeException ){
           	  
@@ -377,6 +381,16 @@ public class BTMessageDecoder implements MessageStreamDecoder {
   public void resumeDecoding() {
     is_paused = false;
   }
-
+  
+  // Overridden by LTMessageDecoder.
+  protected Message createMessage(DirectByteBuffer ref_buff) throws MessageException {
+      try {return BTMessageFactory.createBTMessage(ref_buff);}
+      catch (MessageException me) {
+    	  /*if (identifier != null && me.getMessage() != null && me.getMessage().startsWith("Unknown BT message id")) {
+    		  System.out.println(identifier + " " + me.getMessage());
+    	  }*/
+    	  throw me;
+      }
+  }
 
 }

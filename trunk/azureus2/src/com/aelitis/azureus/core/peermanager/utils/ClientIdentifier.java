@@ -154,6 +154,11 @@ public class ClientIdentifier {
 		if (peer_id_name.startsWith("Mainline 4.") && handshake_name.startsWith("Torrent", 1)) {
 			return peer_id_name;
 		}
+		
+		// Transmission 0.96 still uses 0.95 in the LT handshake, so cope with that.
+		if (peer_id_name.equals("Transmission 0.96") && handshake_name.equals("Transmission 0.95")) {
+			return peer_id_name;
+		}
 			
 		// We allow a client to have a different version number than the one decoded from
 		// the peer ID. Some clients separate version and client name using a forward slash,
