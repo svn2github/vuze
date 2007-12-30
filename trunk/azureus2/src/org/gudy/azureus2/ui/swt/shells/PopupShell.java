@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.Utils;
 
 /**
  * @author Olivier Chalouhi
@@ -58,9 +59,7 @@ public class PopupShell {
     shell = new Shell(display,type);            
     
     shell.setSize(250,150);
-    if(! Constants.isOSX) {
-      shell.setImage(ImageRepository.getImage("azureus"));
-    }
+    Utils.setShellIcon(shell);
     
     FormLayout layout = new FormLayout();
     layout.marginHeight = 0;

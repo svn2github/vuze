@@ -196,9 +196,7 @@ ProgressWindow
 
 		shell.setText( MessageText.getString( "progress.window.title" ));
 
-		if(! Constants.isOSX) {
-			shell.setImage(ImageRepository.getImage("azureus"));
-		}
+		Utils.setShellIcon(shell);
 
 		shell.addListener( 
 				SWT.Close, 

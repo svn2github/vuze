@@ -93,9 +93,7 @@ public class WebSeedsEditor {
     this.display = Display.getCurrent();
     this.shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
     Messages.setLanguageText(this.shell,"wizard.multitracker.edit.title");
-    if(! Constants.isOSX) {
-      shell.setImage(ImageRepository.getImage("azureus"));
-    }
+    Utils.setShellIcon(shell);
     GridLayout layout = new GridLayout();
     layout.numColumns = 3;
     shell.setLayout(layout);

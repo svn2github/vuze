@@ -60,9 +60,7 @@ public class StringListChooser {
   private void createShell(Shell parentShell) {
       
     shell = ShellFactory.createShell(display,SWT.APPLICATION_MODAL | SWT.BORDER | SWT.TITLE | SWT.CLOSE);
-    if(!Constants.isOSX) {
-      shell.setImage(ImageRepository.getImage("azureus"));
-    }
+    Utils.setShellIcon(shell);
     
     GridLayout layout = new GridLayout();    
     layout.numColumns = 2;

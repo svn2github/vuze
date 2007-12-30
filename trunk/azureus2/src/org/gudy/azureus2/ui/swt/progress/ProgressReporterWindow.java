@@ -164,9 +164,7 @@ public class ProgressReporterWindow
 		shell = ShellFactory.createMainShell(shellStyle);
 		shell.setText(MessageText.getString("progress.window.title"));
 
-		if (!Constants.isOSX) {
-			shell.setImage(ImageRepository.getImage("azureus"));
-		}
+		Utils.setShellIcon(shell);
 
 		GridLayout gLayout = new GridLayout();
 		gLayout.marginHeight = 0;

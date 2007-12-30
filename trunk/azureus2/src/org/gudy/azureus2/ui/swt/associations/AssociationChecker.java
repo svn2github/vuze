@@ -110,9 +110,7 @@ AssociationChecker
 
  		shell = new Shell (display,SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
  	
- 		if(! Constants.isOSX) {
- 		  shell.setImage(ImageRepository.getImage("azureus"));
- 		}
+ 		Utils.setShellIcon(shell);
 	 	shell.setText(MessageText.getString("dialog.associations.title"));
 		
 	 	GridLayout layout = new GridLayout();
