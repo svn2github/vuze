@@ -482,6 +482,7 @@ public class BTPeerIDByteDecoder {
 		assertDecode("Ares 1.6.7.0", "-AR1670-3Ql6wM3hgtCc");
 		assertDecode("Artemis 2.5.2.0", "-AT2520-vEEt0wO6v0cr");
 		assertDecode("Azureus 2.2.0.0", "-AZ2200-6wfG2wk6wWLc");
+		assertDecode("BT Next Evolution 1.0.9", "-NE1090002IKyMn4g7Ko");
 		assertDecode("BitRocket 0.3(32)", "-BR0332-!XVceSn(*KIl");
 		assertDecode("Mainline 6.0 Beta", "2D555436 3030422D A78DC290 C3F7BDE0 15EC3CC7");
 		assertDecode("FlashGet 1.80", "2D464730 31383075 F8005782 1359D64B B3DFD265");
@@ -547,6 +548,7 @@ public class BTPeerIDByteDecoder {
 		// Mainline style clients.
 		System.out.println("Testing new mainline style clients...");
 		assertDecode("Mainline 5.0.7", "M5-0-7--9aa757efd5be");
+		assertDecode("Amazon AWS S3", "S3-1-0-0--0123456789"); // Not currently decoded as mainline style...
 		System.out.println();
 		
 		// Various specialised clients.
@@ -589,8 +591,6 @@ public class BTPeerIDByteDecoder {
 		//assertDecode("", "C8F2D9CD3A90455354426578626300362D2D2D92"); // Looks like a BitLord client - ESTBexbc?
 		//assertDecode("", "303030302D2D0000005433585859684B59584C72"); // Seen in the wild, appears to be a modified version of Azureus 2.5.0.0 (that's what was in the AZMP handshake)?
 		//assertDecode("", "B5546F7272656E742F3330323520202020202020");
-		assertDecode("BT Next Evolution", "-NE1090002IKyMn4g7Ko");
-		assertDecode("Amazon AWS S3", "S3-1-0-0--0123456789");
 
 		System.out.println("Done.");
 	}
