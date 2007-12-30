@@ -6,6 +6,7 @@ AZUREUS VUZE CHANGELOG
 FEATURE: UI   | Added option for "Open Containing Folder" menu action - which may integrate better with non-standard file browsers [amc1]
 
 CHANGE: Core  | Further memory footprint reductions; for further tweaks see http://www.azureuswiki.com/index.php/Reduce_memory_usage [The 8472]
+CHANGE: Core  | Reimplemented LT extension protocol code [amc1]
 CHANGE: Core  | Queuing rules now don't start any further torrents if the global up/download speed limits are reached [The 8472]
                  - makes "don't count torrent ..." minimum speed rules more useful to dynamically regulate the queue lengths
                  - prevents runaway chain reactions in case of connection loss  
