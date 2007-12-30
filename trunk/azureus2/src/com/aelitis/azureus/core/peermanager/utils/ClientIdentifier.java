@@ -155,7 +155,8 @@ public class ClientIdentifier {
 			return peer_id_name;
 		}
 		
-		// Transmission 0.96 still uses 0.95 in the LT handshake, so cope with that.
+		// Transmission 0.96 still uses 0.95 in the LT handshake, so cope with that and just display
+		// 0.96.
 		if (peer_id_name.equals("Transmission 0.96") && handshake_name.equals("Transmission 0.95")) {
 			return peer_id_name;
 		}
