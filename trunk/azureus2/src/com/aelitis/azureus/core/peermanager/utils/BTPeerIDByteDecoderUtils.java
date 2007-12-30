@@ -30,6 +30,8 @@ class BTPeerIDByteDecoderUtils {
 			case 'b':
 			case 'B':
 				return "Beta";
+			case 'X':
+			case 'x':
 			case 'Z':
 				return "(Dev)"; // Just for Transmission at the moment.
 		}
@@ -202,9 +204,12 @@ class BTPeerIDByteDecoderUtils {
 		 * 
 		 * In fact, the code to generate a peer ID for LH-ABC is based on BitTornado's,
 		 * yet tries to give an Az style peer ID... oh dear.
+		 * 
+		 * BT Next Evolution seems to be in the same boat as well. 
 		 */
 		if (peer_id.substring(1, 3).equals("FG")) {return true;}
 		if (peer_id.substring(1, 3).equals("LH")) {return true;}
+		if (peer_id.substring(1, 3).equals("NE")) {return true;}
 		return false;
 	}
 	
