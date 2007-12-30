@@ -257,6 +257,7 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 		// cleanup dangling references
 		splash.addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
+				if (main.isDisposed()) return;
 				main.removeDisposeListener(mainDisposeListener);
 			}
 		});

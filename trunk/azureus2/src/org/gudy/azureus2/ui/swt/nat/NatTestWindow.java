@@ -81,6 +81,7 @@ public class NatTestWindow {
             printMessage( "\n" + MessageText.getString("configureWizard.nat.unable") + ". \n(" + checker.getAdditionalInfo()+").\n");
             break;
           }
+          if (display.isDisposed()) {return;}
           display.asyncExec(new AERunnable()  {
             public void runSupport() {
               if(bTest != null && ! bTest.isDisposed())
