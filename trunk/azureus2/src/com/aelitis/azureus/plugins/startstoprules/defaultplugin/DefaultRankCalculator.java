@@ -280,9 +280,9 @@ public class DefaultRankCalculator implements Comparable {
 		boolean aIsComplete = dlData.dl.isComplete();
 		boolean bIsComplete = dl.isComplete();
 		if (aIsComplete && !bIsComplete)
-			return 1;
-		if (!aIsComplete && bIsComplete)
 			return -1;
+		if (!aIsComplete && bIsComplete)
+			return 1;
 
 		// Test FP
 		if (dlData.bIsFirstPriority && !bIsFirstPriority)

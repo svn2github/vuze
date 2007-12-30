@@ -100,6 +100,8 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 
 	/** Wait at least xx ms for first scrape, before starting completed torrents */
 	private static final int MIN_FIRST_SCRAPE_WAIT = 90000;
+	
+	private static final float IGNORE_SLOT_THRESHOLD_FACTOR = 0.9f;
 
 	// Core/Plugin classes
 	private AEMonitor this_mon = new AEMonitor("StartStopRules");
@@ -152,6 +154,10 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	private boolean _maxActiveWhenSeedingEnabled;
 
 	private int _maxActiveWhenSeeding;
+	
+	private int globalDownloadLimit;
+	private int globalUploadLimit;
+	private int globalUploadWhenSeedingLimit;
 
 	private int maxDownloads;
 
@@ -162,8 +168,6 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	private long minTimeAlive;
 
 	private boolean bAutoStart0Peers;
-
-	private int iMaxUploadSpeed;
 
 	private static boolean bAlreadyInitialized = false;
 
@@ -696,7 +700,15 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			bDebugLog = plugin_config.getBooleanParameter("StartStopManager_bDebugLog");
 
 			bAutoStart0Peers = plugin_config.getBooleanParameter("StartStopManager_bAutoStart0Peers");
-			iMaxUploadSpeed = plugin_config.getIntParameter("Max Upload Speed KBs", 0);
+			
+			
+			globalDownloadLimit = plugin_config.getIntParameter("Max Download Speed KBs", 0);
+			globalUploadLimit = plugin_config.getIntParameter("Max Upload Speed KBs", 0);
+			globalUploadWhenSeedingLimit = plugin_config.getBooleanParameter("enable.seedingonly.upload.rate") ? plugin_config.getIntParameter("Max Upload Speed Seeding KBs", 0) : globalUploadLimit;
+			
+			
+			
+			
 
 			boolean move_top = plugin_config.getBooleanParameter("StartStopManager_bNewSeedsMoveTop");
 			plugin_config.setBooleanParameter(
@@ -920,6 +932,11 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		int maxActive;
 
 		int maxTorrents;
+		
+		public int maxUploadSpeed()
+		{
+			return downloading == 0 ? globalUploadWhenSeedingLimit : globalUploadLimit;
+		}
 
 		/**
 		 * Default Constructor
@@ -1035,7 +1052,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 
 			if (maxActive == 0) {
 				maxTorrents = 9999;
-			} else if (iMaxUploadSpeed == 0) {
+			} else if (maxUploadSpeed() == 0) {
 				maxTorrents = maxActive + 4;
 			} else {
 				// Don't allow more "seeding/downloading" torrents than there is enough
@@ -1047,7 +1064,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 				// each torrent to have potentially 3kbps.
 				if (minSpeedPerActive < 3)
 					minSpeedPerActive = 3;
-				maxTorrents = (iMaxUploadSpeed / minSpeedPerActive);
+				maxTorrents = (maxUploadSpeed() / minSpeedPerActive);
 				// Allow user to do stupid things like have more slots than their 
 				// upload speed can handle
 				if (maxTorrents < maxActive)
@@ -1067,7 +1084,11 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		int numWaitingOrSeeding; // Running Count
 
 		int numWaitingOrDLing; // Running Count
-
+		
+		long accumulatedDownloadSpeed;
+		
+		long accumulatedUploadSpeed;
+		
 		/**
 		 * store whether there's a torrent higher in the list that is queued
 		 * We don't want to start a torrent lower in the list if there's a higherQueued
@@ -1320,6 +1341,18 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		if (maxDLs < minDownloads) {
 			maxDLs = minDownloads;
 		}
+		
+		boolean isRunning = download.getState() == Download.ST_DOWNLOADING;
+		boolean bActivelyDownloading = dlData.getActivelyDownloading();
+		boolean globalDownLimitReached = globalDownloadLimit > 0 && vars.accumulatedDownloadSpeed/1024 > globalDownloadLimit * IGNORE_SLOT_THRESHOLD_FACTOR;
+		boolean globalRateAdjustedActivelyDownloading = bActivelyDownloading || (isRunning && globalDownLimitReached);
+		boolean fakedActively = globalRateAdjustedActivelyDownloading && !bActivelyDownloading;
+		if(fakedActively)
+		{
+			totals.activelyDLing++;
+			totals.maxSeeders = calcMaxSeeders(totals.activelyDLing + totals.waitingToDL);
+		}
+			
 
 		if (bDebugLog) {
 			String s = ">> DL state=" + sStates.charAt(download.getState())
@@ -1327,7 +1360,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 					+ ";numW8tngorDLing=" + vars.numWaitingOrDLing + ";maxCDrs="
 					+ totals.maxSeeders + ";forced=" + boolDebug(download.isForceStart())
 					+ ";actvDLs=" + totals.activelyDLing + ";maxDLs=" + maxDLs
-					+ ";ActDLing=" + boolDebug(dlData.getActivelyDownloading())
+					+ ";ActDLing=" + boolDebug(bActivelyDownloading) + ";globDwnRchd=" + boolDebug(globalDownLimitReached)
 					+ ";hgherQd=" + boolDebug(vars.higherDLtoStart) + ";isCmplt="
 					+ boolDebug(download.isComplete());
 			log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION, s);
@@ -1336,7 +1369,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 
 		// must use fresh getActivelyDownloading() in case state changed to 
 		// downloading
-		if ((state == Download.ST_DOWNLOADING && dlData.getActivelyDownloading())
+		if ((state == Download.ST_DOWNLOADING && globalRateAdjustedActivelyDownloading)
 				|| state == Download.ST_READY || state == Download.ST_WAITING
 				|| state == Download.ST_PREPARING) {
 			vars.numWaitingOrDLing++;
@@ -1345,45 +1378,46 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		if (state == Download.ST_READY || state == Download.ST_DOWNLOADING
 				|| state == Download.ST_WAITING) {
 
-			boolean bActivelyDownloading = dlData.getActivelyDownloading();
-
 			// Stop torrent if over limit
 			boolean bOverLimit = vars.numWaitingOrDLing > maxDLs
 					|| (vars.numWaitingOrDLing >= maxDLs && vars.higherDLtoStart);
 
 			boolean bDownloading = state == Download.ST_DOWNLOADING;
 
-			if ((maxDownloads != 0)
-					&& bOverLimit
-					&& (bActivelyDownloading || !bDownloading || (bDownloading
-							&& totals.maxActive != 0 && !bActivelyDownloading && totals.activelyCDing
-							+ totals.activelyDLing >= totals.maxActive))) {
-				try {
-					if (bDebugLog) {
-						String s = "   stopAndQueue: " + vars.numWaitingOrDLing
-								+ " waiting or downloading, when limit is " + maxDLs + "("
-								+ maxDownloads + ")";
-						if (vars.higherDLtoStart) {
+			if ((maxDownloads != 0) && bOverLimit &&
+					(globalRateAdjustedActivelyDownloading || !bDownloading ||
+						(bDownloading && totals.maxActive != 0 && !globalRateAdjustedActivelyDownloading &&	totals.activelyCDing + totals.activelyDLing >= totals.maxActive)
+					)
+				)
+			{
+				try
+				{
+					if (bDebugLog)
+					{
+						String s = "   stopAndQueue: " + vars.numWaitingOrDLing + " waiting or downloading, when limit is " + maxDLs + "(" + maxDownloads + ")";
+						if (vars.higherDLtoStart)
+						{
 							s += " and higher DL is starting";
 						}
 						log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION, s);
 						dlData.sTrace += s + "\n";
 					}
 					download.stopAndQueue();
-
 					// reduce counts
 					vars.numWaitingOrDLing--;
-					if (state == Download.ST_DOWNLOADING) {
+					if (state == Download.ST_DOWNLOADING)
+					{
 						totals.downloading--;
-						if (bActivelyDownloading)
+						if (bActivelyDownloading || fakedActively)
 							totals.activelyDLing--;
-					} else {
+					} else
+					{
 						totals.waitingToDL--;
 					}
-					totals.maxSeeders = calcMaxSeeders(totals.activelyDLing
-							+ totals.waitingToDL);
-				} catch (Exception ignore) {
-					/*ignore*/
+					totals.maxSeeders = calcMaxSeeders(totals.activelyDLing + totals.waitingToDL);
+				} catch (Exception ignore)
+				{
+					/* ignore */
 				}
 
 				state = download.getState();
@@ -1471,6 +1505,9 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION, s);
 			dlData.sTrace += s + "\n";
 		}
+		
+		vars.accumulatedDownloadSpeed += download.getStats().getDownloadAverage();
+		vars.accumulatedUploadSpeed += download.getStats().getUploadAverage();
 	}
 
 	/**
@@ -1570,7 +1607,15 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 				isFP = dlData.isFirstPriority();
 			}
 
+			boolean isRunning = download.getState() == Download.ST_SEEDING;
 			boolean bActivelySeeding = dlData.getActivelySeeding();
+			boolean globalUpLimitReached = totals.maxUploadSpeed() > 0 && vars.accumulatedUploadSpeed/1024 > totals.maxUploadSpeed() * IGNORE_SLOT_THRESHOLD_FACTOR;
+			boolean globalDownLimitReached = globalDownloadLimit > 0 && vars.accumulatedDownloadSpeed/1024 > globalDownloadLimit * IGNORE_SLOT_THRESHOLD_FACTOR;
+			boolean globalRateAdjustedActivelySeeding = bActivelySeeding || (isRunning && (globalUpLimitReached || globalDownLimitReached));
+			boolean fakedActively = globalRateAdjustedActivelySeeding && !bActivelySeeding;
+			if(fakedActively)
+				totals.activelyCDing++;
+				
 			
 			// Is it OK to set this download to a queued state?
 			// It is if:
@@ -1614,7 +1659,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 					(state == Download.ST_READY || state == Download.ST_WAITING
 							|| state == Download.ST_PREPARING ||
 					// Forced Start torrents are pre-included in count
-					(state == Download.ST_SEEDING && bActivelySeeding && !download.isForceStart()))) {
+					(state == Download.ST_SEEDING && globalRateAdjustedActivelySeeding && !download.isForceStart()))) {
 				vars.numWaitingOrSeeding++;
 				if (bDebugLog)
 					sDebugLine += "\n  Torrent is waiting or seeding";
@@ -1683,7 +1728,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 					}
 					state = download.getState();
 					totals.activelyCDing++;
-					bActivelySeeding = true;
+					globalRateAdjustedActivelySeeding = bActivelySeeding = true;
 					vars.numWaitingOrSeeding++;
 				} else if (okToQueue) {
 					// In between switching from STATE_WAITING and STATE_READY,
@@ -1707,7 +1752,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 					// (Actively Seeding OR StartingUp OR Seeding a non-active download) 
 					okToStop = !download.isChecking()
 							&& (bOverLimit || rank < DefaultRankCalculator.SR_IGNORED_LESS_THAN)
-							&& (bActivelySeeding || !bSeeding || (!bActivelySeeding && bSeeding));
+							&& (globalRateAdjustedActivelySeeding || !bSeeding || (!globalRateAdjustedActivelySeeding && bSeeding));
 
 					if (bDebugLog) {
 						if (okToStop) {
@@ -1754,11 +1799,17 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 						vars.bStopAndQueued = true;
 						// okToQueue only allows READY and SEEDING state.. and in both cases
 						// we have to reduce counts
-						if (bActivelySeeding) {
+						if (bActivelySeeding || fakedActively) {
 							totals.activelyCDing--;
 							bActivelySeeding = false;
-							vars.numWaitingOrSeeding--;
 						}
+						if(globalRateAdjustedActivelySeeding)
+						{
+							vars.numWaitingOrSeeding--;
+							globalRateAdjustedActivelySeeding = false;
+						}
+							
+						
 						// force stop allows READY states in here, so adjust counts 
 						if (state == Download.ST_READY)
 							totals.waitingToSeed--;
@@ -1795,7 +1846,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 							|| state == Download.ST_WAITING || state == Download.ST_PREPARING)) {
 				vars.higherCDtoStart = true;
 			}
-
+			
 		} finally {
 			if (bDebugLog) {
 				String[] debugEntries2 = new String[] {
@@ -1814,6 +1865,8 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 						true, dlData);
 			}
 		}
+		
+		vars.accumulatedUploadSpeed += download.getStats().getUploadAverage();
 	}
 
 	private String boolDebug(boolean b) {
