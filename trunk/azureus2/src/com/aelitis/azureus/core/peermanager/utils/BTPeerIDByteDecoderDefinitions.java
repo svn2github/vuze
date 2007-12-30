@@ -267,6 +267,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("MP", "MooPolice", VER_AZ_THREE_DIGITS);
 		addAzStyle("MR", "Miro");
 		addAzStyle("MT", "MoonlightTorrent");
+		addAzStyle("NE", "BT Next Evolution", VER_AZ_THREE_DIGITS);
 		addAzStyle("PC", PeerClassifier.CACHE_LOGIC);
 		addAzStyle("PD", "Pando");
 		addAzStyle("qB", "qBittorrent", VER_AZ_THREE_DIGITS);
@@ -328,12 +329,24 @@ public class BTPeerIDByteDecoderDefinitions {
 		addSimpleClient("Limewire", "LIME");
 		addSimpleClient("Martini Man", "martini");
 		addSimpleClient("Pando", "Pando");
+		addSimpleClient("PeerApp", "PEERAPP");
 		addSimpleClient("SimpleBT", "btfans", 4);
 		addSimpleClient("Swarmy", "a00---0");
 		addSimpleClient("Swarmy", "a02---0");
 		addSimpleClient("Teeweety", "T00---0");
 		addSimpleClient("TorrentTopia", "346-");
 		addSimpleClient("XanTorrent", "DansClient");
+		
+		/**
+		 * This is interesting - it uses Mainline style, except uses two characters instead of one.
+		 * And then - the particular numbering style it uses would actually break the way we decode
+		 * version numbers (our code is too hardcoded to "-x-y-z--" style version numbers).
+		 * 
+		 * This should really be declared as a Mainline style peer ID, but I would have to
+		 * make my code more generic. Not a bad thing - just something I'm not doing right
+		 * now.
+		 */
+		addSimpleClient("Amazon AWS S3", "S3-");
 		
 		// Clients with their own custom format and version number style.
 		ClientData client = null;
