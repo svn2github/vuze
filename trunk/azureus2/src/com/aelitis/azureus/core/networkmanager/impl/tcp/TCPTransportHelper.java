@@ -23,12 +23,15 @@ package com.aelitis.azureus.core.networkmanager.impl.tcp;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.*;
 
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
+
+import test.rndtest;
 
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector.VirtualSelectorListener;
@@ -48,6 +51,7 @@ TCPTransportHelper
 	  
 	public static final int MAX_PARTIAL_WRITE_RETAIN	= 64;	// aim here is to catch headers
 	
+	private long remainingBytesToScatter = 0; 
 
 	private static boolean enable_efficient_io = !Constants.JAVA_VERSION.startsWith("1.4");
 
@@ -181,7 +185,7 @@ TCPTransportHelper
 			
 			// log( buffer );
 			
-			written = channel.write( buffer );
+			written = channelWrite(buffer);
 		}
 		
 		if ( trace ){
@@ -191,7 +195,7 @@ TCPTransportHelper
 		
 		return((int)written );
 	}
-
+	
 	public long 
 	write( 
 		ByteBuffer[] 	buffers, 
@@ -246,7 +250,7 @@ TCPTransportHelper
 			
 			// log( buffers, array_offset, length );
 			
-			if ( enable_efficient_io ){
+			if ( enable_efficient_io && remainingBytesToScatter < 1 ){
 				
 				try{
 					written_sofar = channel.write( buffers, array_offset, length );
@@ -273,7 +277,7 @@ TCPTransportHelper
 					
 					int data_length = buffers[ i ].remaining();
 					
-					int written = channel.write( buffers[ i ] );
+					int written = channelWrite(buffers[i]);
 					
 					written_sofar += written;
 					
@@ -291,6 +295,38 @@ TCPTransportHelper
 		}
 		
 		return written_sofar;
+	}
+	
+	private static final Random rnd = new Random();
+	
+	private int channelWrite(ByteBuffer buf) throws IOException
+	{
+		int written = 0;
+		while(remainingBytesToScatter > 0 && buf.remaining() > 0)
+		{
+			int currentWritten = channel.write((ByteBuffer)(buf.slice().limit(Math.min(50+rnd.nextInt(100),buf.remaining()))));
+			if(currentWritten == 0)
+				break;
+			buf.position(buf.position()+currentWritten);
+			remainingBytesToScatter -= currentWritten;
+			if(remainingBytesToScatter <= 0)
+			{
+				remainingBytesToScatter = 0;
+				try
+				{
+					channel.socket().setTcpNoDelay(false);
+				} catch (SocketException e)
+				{
+					Debug.printStackTrace(e);
+				}
+			}
+			written += currentWritten;
+		}
+		
+		if(buf.remaining() > 0)
+			written += channel.write(buf);
+	
+		return written;		
 	}
 	
 	public int 
@@ -577,5 +613,33 @@ TCPTransportHelper
 		boolean	on )
 	{
 		trace	= on;
+	}
+	
+	public void setScatteringMode(long forBytes) {
+		if(forBytes > 0)
+		{
+			if(remainingBytesToScatter == 0)
+				try
+			{
+				channel.socket().setTcpNoDelay(true);
+			} catch (SocketException e)
+			{
+				Debug.printStackTrace(e);
+			}
+			remainingBytesToScatter = forBytes;
+		} else
+		{
+			if(remainingBytesToScatter > 0)
+				try
+			{
+				channel.socket().setTcpNoDelay(false);
+			} catch (SocketException e)
+			{
+				Debug.printStackTrace(e);
+			}
+			remainingBytesToScatter = 0;
+		}
+			
+
 	}
 }

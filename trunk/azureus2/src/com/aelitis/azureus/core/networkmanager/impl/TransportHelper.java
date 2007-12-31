@@ -144,4 +144,7 @@ TransportHelper
 	public void
 	setTrace(
 		boolean	on );
+	
+	public void
+	setScatteringMode(long forBytes);
 }

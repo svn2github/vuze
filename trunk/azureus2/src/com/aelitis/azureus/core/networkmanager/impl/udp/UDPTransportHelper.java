@@ -605,4 +605,8 @@ UDPTransportHelper
 		boolean	on )
 	{
 	}
+	
+	public void setScatteringMode(long forBytes) {
+		// currently not implemented for UDP		
+	}
 }
