@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
 import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
@@ -106,7 +107,13 @@ public class HealthItem
 			image_name += "_shared";
 		}
 
-		if (((TableCellSWT) cell).setGraphic(ImageRepository.getImage(image_name))) {
+		boolean graphicWasSet = false;
+		if (cell instanceof TableCellSWT) {
+			graphicWasSet = ((TableCellSWT) cell).setGraphic(ImageRepository.getImage(image_name));
+		} else {
+			graphicWasSet = cell.setGraphic(new UISWTGraphicImpl(ImageRepository.getImage(image_name)));
+		}
+		if (graphicWasSet) {
 			String sToolTip = (health == DownloadManager.WEALTH_ERROR)
 					? dm.getErrorDetails() : MessageText.getString(sHelpID);
 			if (ht != null)
