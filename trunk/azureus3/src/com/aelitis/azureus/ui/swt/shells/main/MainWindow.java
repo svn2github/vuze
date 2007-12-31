@@ -700,7 +700,7 @@ public class MainWindow
 				// plugin is built in, so instead of using IPC, just cast it
 				StartStopRulesDefaultPlugin plugin = (StartStopRulesDefaultPlugin) pi.getPlugin();
 				plugin.addListener(new StartStopRulesFPListener() {
-					public boolean isFirstPriority(Download dl, int numSeeds, int numPeers) {
+					public boolean isFirstPriority(Download dl, int numSeeds, int numPeers, StringBuffer debug) {
 						// FP while our content doesn't have another seed
 						boolean b = dl.getState() == Download.ST_SEEDING
 								&& PublishUtils.isPublished(dl)
