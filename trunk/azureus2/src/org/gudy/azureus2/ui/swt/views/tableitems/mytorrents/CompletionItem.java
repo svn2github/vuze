@@ -34,10 +34,13 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
+import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
+import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 /** Torrent Completion Level Graphic Cell for My Torrents.
@@ -72,10 +75,12 @@ public class CompletionItem
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellDisposeListener#dispose(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void dispose(TableCell cell) {
 		mapCellLastPercentDone.remove(cell);
-		if (cell instanceof TableCellSWT) {
-			Image img = ((TableCellSWT) cell).getGraphicSWT();
-			if (img != null && !img.isDisposed())
+		Graphic graphic = cell.getGraphic();
+		if (graphic instanceof UISWTGraphic) {
+			Image img = ((UISWTGraphic)graphic).getImage();
+			if (img != null && !img.isDisposed()) {
 				img.dispose();
+			}
 		}
 	}
 
@@ -105,7 +110,12 @@ public class CompletionItem
 
 		mapCellLastPercentDone.put(cell, new Integer(percentDone));
 
-		Image image = ((TableCellSWT) cell).getGraphicSWT();
+		Graphic graphic = cell.getGraphic();
+		Image image = null;
+		if (graphic instanceof UISWTGraphic) {
+			image = ((UISWTGraphic)graphic).getImage();
+		}
+
 		GC gcImage;
 		boolean bImageSizeChanged;
 		Rectangle imageBounds;
@@ -126,6 +136,13 @@ public class CompletionItem
 			gcImage = new GC(image);
 			gcImage.setForeground(Colors.grey);
 			gcImage.drawRectangle(0, 0, newWidth - 1, newHeight - 1);
+			
+			if (fontText != null) {
+				if (!fontText.isDisposed()) {
+					fontText.dispose();
+				}
+				fontText = null;
+			}
 		} else {
 			gcImage = new GC(image);
 		}
@@ -150,7 +167,11 @@ public class CompletionItem
 
 		gcImage.dispose();
 
-		((TableCellSWT) cell).setGraphic(image);
+		if (cell instanceof TableCellSWT) {
+			((TableCellSWT) cell).setGraphic(image);
+		} else {
+			cell.setGraphic(new UISWTGraphicImpl(image));
+		}
 	}
 
 	private int getPercentDone(TableCell cell) {
