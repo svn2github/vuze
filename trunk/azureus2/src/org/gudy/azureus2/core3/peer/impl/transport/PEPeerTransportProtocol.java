@@ -49,7 +49,6 @@ import com.aelitis.azureus.core.peermanager.peerdb.*;
 import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 import com.aelitis.azureus.core.peermanager.utils.*;
-import com.sun.corba.se.internal.ior.NewObjectKeyTemplateBase;
 
 
 
