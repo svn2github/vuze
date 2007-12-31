@@ -38,8 +38,10 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
  * @author TuxPaper 2004/Apr/17: modified to TableCellAdapter<br>
  * @author TuxPaper 2005/Oct/13: Full Copy text & Scrape listener 
  */
-public class SeedsItem extends CoreTableColumn implements
-		TableCellAddedListener, ParameterListener {
+public class SeedsItem
+	extends CoreTableColumn
+	implements TableCellAddedListener, ParameterListener
+{
 	private static final String CFG_FC_SEEDSTART = "StartStopManager_iFakeFullCopySeedStart";
 
 	private static final String CFG_FC_NUMPEERS = "StartStopManager_iNumPeersAsFullCopy";
@@ -50,29 +52,22 @@ public class SeedsItem extends CoreTableColumn implements
 	// count x peers as a full copy, but..
 	private int iFC_NumPeers;
 
-	private boolean bCompleteTorrent;
-
 	/** Default Constructor */
 	public SeedsItem(String sTableID) {
 		super("seeds", ALIGN_CENTER, POSITION_LAST, 60, sTableID);
 		setRefreshInterval(INTERVAL_LIVE);
-    setMinWidthAuto(true);
+		setMinWidthAuto(true);
 
-		bCompleteTorrent = sTableID == TableManager.TABLE_MYTORRENTS_COMPLETE;
-		if (bCompleteTorrent) {
-			iFC_MinSeeds = COConfigurationManager.getIntParameter(CFG_FC_SEEDSTART);
-			iFC_NumPeers = COConfigurationManager.getIntParameter(CFG_FC_NUMPEERS);
-			COConfigurationManager.addParameterListener(CFG_FC_SEEDSTART, this);
-			COConfigurationManager.addParameterListener(CFG_FC_NUMPEERS, this);
-		}
+		iFC_MinSeeds = COConfigurationManager.getIntParameter(CFG_FC_SEEDSTART);
+		iFC_NumPeers = COConfigurationManager.getIntParameter(CFG_FC_NUMPEERS);
+		COConfigurationManager.addParameterListener(CFG_FC_SEEDSTART, this);
+		COConfigurationManager.addParameterListener(CFG_FC_NUMPEERS, this);
 	}
 
 	protected void finalize() throws Throwable {
 		super.finalize();
-		if (bCompleteTorrent) {
-			COConfigurationManager.removeParameterListener(CFG_FC_SEEDSTART, this);
-			COConfigurationManager.removeParameterListener(CFG_FC_NUMPEERS, this);
-		}
+		COConfigurationManager.removeParameterListener(CFG_FC_SEEDSTART, this);
+		COConfigurationManager.removeParameterListener(CFG_FC_NUMPEERS, this);
 	}
 
 	public void cellAdded(TableCell cell) {
@@ -84,7 +79,9 @@ public class SeedsItem extends CoreTableColumn implements
 		iFC_NumPeers = COConfigurationManager.getIntParameter(CFG_FC_NUMPEERS);
 	}
 
-	private class Cell extends AbstractTrackerCell {
+	private class Cell
+		extends AbstractTrackerCell
+	{
 		private long lTotalPeers = 0;
 
 		private long lTotalSeeds = -1;
@@ -131,6 +128,8 @@ public class SeedsItem extends CoreTableColumn implements
 			if (!cell.setSortValue(value) && cell.isValid())
 				return;
 
+			boolean bCompleteTorrent = dm == null ? false : dm.getAssumedComplete();
+			
 			String tmp = String.valueOf(lConnectedSeeds);
 			if (lTotalSeeds != -1) {
 				tmp += " (" + lTotalSeeds;
@@ -165,12 +164,16 @@ public class SeedsItem extends CoreTableColumn implements
 				if (response != null)
 					sToolTip += "(" + response.getStatusString() + ")";
 			}
+			boolean bCompleteTorrent = dm == null ? false : dm.getAssumedComplete();
 			if (bCompleteTorrent && iFC_NumPeers > 0 && lTotalSeeds >= iFC_MinSeeds
 					&& lTotalPeers > 0) {
 				long lSeedsToAdd = lTotalPeers / iFC_NumPeers;
 				sToolTip += "\n"
 						+ MessageText.getString("MyTorrentsView.seeds.fullcopycalc",
-								new String[] { "" + lTotalPeers, "" + lSeedsToAdd });
+								new String[] {
+									"" + lTotalPeers,
+									"" + lSeedsToAdd
+								});
 			}
 			cell.setToolTip(sToolTip);
 		}
