@@ -49,6 +49,7 @@ import com.aelitis.azureus.core.peermanager.peerdb.*;
 import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 import com.aelitis.azureus.core.peermanager.utils.*;
+import com.sun.corba.se.internal.ior.NewObjectKeyTemplateBase;
 
 
 
@@ -872,7 +873,7 @@ implements PEPeerTransport
 
 	// We could do this in a more automated way in future, but hardcoded is simple and quick,
 	// so we'll do that instead. :)
-	static Map lt_ext_map = UTPeerExchange.ENABLED ? Collections.singletonMap("ut_pex", Integer.valueOf(1)) : Collections.EMPTY_MAP; 
+	static Map lt_ext_map = UTPeerExchange.ENABLED ? Collections.singletonMap("ut_pex", new Integer(1) ) : Collections.EMPTY_MAP; 
 
 	private void sendLTHandshake() {
 		String client_name = Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION;
