@@ -707,9 +707,18 @@ public class DefaultRankCalculator implements Comparable {
 		}
 		
 		List listeners = rules.getFPListeners();
+		StringBuffer fp_listener_debug = null;
+		if (rules.bDebugLog && !listeners.isEmpty()) {fp_listener_debug = new StringBuffer();}
 		for (Iterator iter = listeners.iterator(); iter.hasNext();) {
 			StartStopRulesFPListener l = (StartStopRulesFPListener) iter.next();
-			if (l.isFirstPriority(dl, lastModifiedScrapeResultSeeds, lastModifiedScrapeResultPeers)) {
+			boolean result = l.isFirstPriority(dl, lastModifiedScrapeResultSeeds, lastModifiedScrapeResultPeers, fp_listener_debug);
+			if (fp_listener_debug != null && fp_listener_debug.length() > 0) {
+				char last_ch = fp_listener_debug.charAt(fp_listener_debug.length()-1);
+				if (last_ch != '\n') {fp_listener_debug.append('\n');}
+				sExplainFP += fp_listener_debug;
+				fp_listener_debug.setLength(0);
+			}
+			if (result) {
 				return true;
 			}
 		}
