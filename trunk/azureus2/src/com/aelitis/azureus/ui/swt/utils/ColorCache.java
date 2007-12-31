@@ -25,6 +25,7 @@ import java.util.StringTokenizer;
 
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Device;
+import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.util.*;
 
@@ -103,5 +104,19 @@ public class ColorCache
 
 	private static void addColor(Long key, Color color) {
 		mapColors.put(key, color);
+	}
+
+	/**
+	 * @param display
+	 * @param color
+	 * @return
+	 *
+	 * @since 3.0.4.3
+	 */
+	public static Color getColor(Display display, int[] rgb) {
+		if (rgb == null || rgb.length < 3) {
+			return null;
+		}
+		return getColor(display, rgb[0], rgb[1], rgb[2]);
 	}
 }
