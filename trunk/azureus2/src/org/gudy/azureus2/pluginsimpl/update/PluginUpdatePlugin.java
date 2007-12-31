@@ -824,10 +824,11 @@ PluginUpdatePlugin
 							test_file.delete();
 						}
 
-						if ( test_file.createNewFile()){
-							
-							ok = test_file.delete();
-						}					
+						FileOutputStream os = new FileOutputStream(test_file);
+						os.write(32);
+						os.close();
+
+						ok = test_file.delete();
 					}catch( Throwable e ){					
 					}
 					
