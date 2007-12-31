@@ -27,7 +27,8 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
-import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
+import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -39,6 +40,8 @@ public class CommentIconItem
        extends CoreTableColumn 
        implements TableCellRefreshListener, TableCellMouseListener
 {
+	static final UISWTGraphic graphicComment = new UISWTGraphicImpl(ImageRepository.getImage("comment"));
+	
   /** Default Constructor */
   public CommentIconItem(String sTableID) {
 	super("commenticon", CommentIconItem.POSITION_LAST, 20, sTableID);
@@ -72,12 +75,12 @@ public class CommentIconItem
 	  }
 	  
 	  if (comment == null) {
-		  ((TableCellSWT)cell).setGraphic(ImageRepository.getImage(null));
+	  	cell.setGraphic(null);
 		  cell.setToolTip(null);
 		  cell.setSortValue(0);
 	  }
 	  else {
-		  ((TableCellSWT)cell).setGraphic(ImageRepository.getImage("comment"));
+	  	cell.setGraphic(graphicComment);
 		  cell.setToolTip(comment);
 		  cell.setSortValue(1);
 	  }
