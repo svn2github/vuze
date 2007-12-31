@@ -4,6 +4,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
@@ -148,7 +149,29 @@ public class SeedingListener
 
 					long download_size = d.getTorrent().getSize();
 
-					int percent_done = (int) ((d.getStats().getTotalDataBytesSent() * 100) / download_size);
+					int percent_done = -1;
+					if (d.getState() == DownloadManager.STATE_SEEDING
+							&& d.getDownloadState().isOurContent()
+							&& d.getStats().getAvailability() < 2) {
+						TRTrackerScraperResponse scrape = d.getTrackerScrapeResponse();
+						int numSeeds = scrape.getSeeds();
+						long seedingStartedOn = d.getStats().getTimeStartedSeeding();
+						if ((numSeeds > 0) && (seedingStartedOn > 0)
+								&& (scrape.getScrapeStartTime() > seedingStartedOn))
+							numSeeds--;
+
+						if (numSeeds == 0) {
+							float availability = d.getStats().getAvailability();
+							float pctDone = ((int)availability) - availability;
+							percent_done = (int) (pctDone * 100);
+						} else {
+							percent_done = 100;
+						}
+					}
+					
+					if (percent_done < 0) {
+						percent_done = (int) ((d.getStats().getTotalDataBytesSent() * 100) / download_size);
+					}
 
 					if (percent_done > 99) { //100% uploaded
 						indiv_torrents.add(new IndividualProgress(d.getTorrent().getHash(),
