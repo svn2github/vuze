@@ -117,6 +117,10 @@ public class SWTSkinObjectBasic
 				// to the listCanvas
 				control.getDisplay().asyncExec(new AERunnable() {
 					public void runSupport() {
+						if (control == null || control.isDisposed()) {
+							isVisible = false;
+							return;
+						}
 						isVisible = control.isVisible();
 					}
 				});
