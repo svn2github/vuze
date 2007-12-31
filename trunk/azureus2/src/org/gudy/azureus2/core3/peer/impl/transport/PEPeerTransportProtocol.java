@@ -167,6 +167,8 @@ implements PEPeerTransport
   private byte  other_peer_bt_lt_ext_version    = BTMessageFactory.MESSAGE_VERSION_INITIAL;
   private byte	other_peer_az_request_hint_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
   private byte	other_peer_az_bad_piece_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+  
+  private boolean ut_pex_enabled = false;
 
 	private final AEMonitor closing_mon	= new AEMonitor( "PEPeerTransportProtocol:closing" );
 	private final AEMonitor general_mon  	= new AEMonitor( "PEPeerTransportProtocol:data" );
@@ -868,6 +870,10 @@ implements PEPeerTransport
 		}
 	}
 
+	// We could do this in a more automated way in future, but hardcoded is simple and quick,
+	// so we'll do that instead. :)
+	static Map lt_ext_map = UTPeerExchange.ENABLED ? Collections.singletonMap("ut_pex", Integer.valueOf(1)) : Collections.EMPTY_MAP; 
+
 	private void sendLTHandshake() {
 		String client_name = Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION;
 		int localTcpPort = TCPNetworkManager.getSingleton().getTCPListeningPortNumber();
@@ -879,7 +885,7 @@ implements PEPeerTransport
 		boolean require_crypto = NetworkManager.getCryptoRequired( manager.getAdapter().getCryptoLevel());
 		
 		Map data_dict = new HashMap();
-		data_dict.put("m", new HashMap()); // Supported extensions - none!
+		data_dict.put("m", lt_ext_map);
 		data_dict.put("v", client_name);
 		data_dict.put("p", new Integer(localTcpPort));
 		data_dict.put("e", new Long(require_crypto ? 1L : 0L));
@@ -2141,6 +2147,25 @@ implements PEPeerTransport
 			  0
 			  );
 	  }
+	  
+	  LTMessageEncoder encoder = (LTMessageEncoder)connection.getOutgoingMessageQueue().getEncoder();
+	  encoder.updateSupportedExtensions(handshake.getExtensionMapping());
+	  this.ut_pex_enabled = UTPeerExchange.ENABLED && encoder.supportsUTPEX();
+	  
+	  /**
+	   * Grr... this is one thing which I'm sure I had figured out much better than it is here...
+	   * Basically, we "initialise" the connection at the BT handshake stage, because the LT handshake
+	   * is mandatory or required to come first (unlike the AZ one).
+	   * 
+	   * But when we receive an LT handshake, we have to "initialise" it like we did previously, because
+	   * we may have to set the internals up to indicate if PEX is supported.
+	   * 
+	   * I'm not entirely sure this method is meant to be called more than once, and I'm less convinced
+	   * that it's safe to do it repeatedly over the lifetime of a properly-initialised, actually-doing-stuff
+	   * connection... but I'll worry about that later.
+	   */
+	  this.doPostHandshakeProcessing();
+	  
 	  handshake.destroy();
   }
   
@@ -2164,7 +2189,9 @@ implements PEPeerTransport
 		
 		if(handshake.getReconnectSessionID() != null)
 		{
-			Logger.log(new LogEvent(this, LOGID, LogEvent.LT_INFORMATION,"received reconnect request ID:"+handshake.getReconnectSessionID().toBase32String()));
+			if (Logger.isEnabled()) {
+				Logger.log(new LogEvent(this, LOGID, LogEvent.LT_INFORMATION, "received reconnect request ID: "+handshake.getReconnectSessionID().toBase32String()));
+			}
 			checkForReconnect(handshake.getReconnectSessionID());
 		}
 			
@@ -2797,6 +2824,11 @@ implements PEPeerTransport
 					decodePeerExchange( (AZPeerExchange)message );
 					return true;
 				}
+        
+        if (message_id.equals(LTMessage.ID_UT_PEX)) {
+        	decodePeerExchange((UTPeerExchange)message);
+        	return true;
+        }
 
         if( message_id.equals( AZMessage.ID_AZ_REQUEST_HINT ) ) {        	
 					decodeAZRequestHint( (AZRequestHint)message );
@@ -3030,10 +3062,10 @@ implements PEPeerTransport
 		if( manager.isPeerExchangeEnabled()) {
 			//try and register all connections for their peer exchange info
 			peer_exchange_item = manager.createPeerExchangeConnection( this );
-
+			
 			if( peer_exchange_item != null ) {
 				//check for peer exchange support
-				if( peerSupportsMessageType( AZMessage.ID_AZ_PEER_EXCHANGE ) ) {
+				if(ut_pex_enabled || peerSupportsMessageType(AZMessage.ID_AZ_PEER_EXCHANGE)) {
 					peer_exchange_supported = true;
 				}
 				else {  //no need to maintain internal states as we wont be sending/receiving peer exchange messages
@@ -3068,7 +3100,12 @@ implements PEPeerTransport
 			final PeerItem[] drops = peer_exchange_item.getNewlyDroppedPeerConnections();  
 
 			if( (adds != null && adds.length > 0) || (drops != null && drops.length > 0) ) {
-        connection.getOutgoingMessageQueue().addMessage( new AZPeerExchange( manager.getHash(), adds, drops, other_peer_pex_version ), false );
+				if (ut_pex_enabled) {
+					connection.getOutgoingMessageQueue().addMessage( new UTPeerExchange(adds, drops, (byte)0), false);
+				}
+				else {
+					connection.getOutgoingMessageQueue().addMessage( new AZPeerExchange( manager.getHash(), adds, drops, other_peer_pex_version ), false );
+				}
 			}
 		}
 	}
