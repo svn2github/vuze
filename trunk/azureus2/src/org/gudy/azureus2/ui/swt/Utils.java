@@ -1577,5 +1577,16 @@ public class Utils {
 		}
 		return false;
 	}
+	
+	public static int[] colorToIntArray(Color color) {
+		if (color == null || color.isDisposed()) {
+			return null;
+		}
+		return new int[] {
+			color.getRed(),
+			color.getGreen(),
+			color.getBlue()
+		};
+	}
 }
 
