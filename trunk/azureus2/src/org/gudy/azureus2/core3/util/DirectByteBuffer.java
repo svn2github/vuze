@@ -89,7 +89,7 @@ DirectByteBuffer
     "AZPayload",
     "File",
     "MsgCrypt",
-    "LTExtHandshake"};
+    "LTExtMsg","LTExtHandshake","UTPEX",};
 	 
     
     
