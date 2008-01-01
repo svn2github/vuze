@@ -36,9 +36,12 @@ import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
+import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
+import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 /** Torrent Completion Level Graphic Cell for My Torrents.
@@ -77,9 +80,12 @@ public class ProgressGraphItem
     }
 
     public void dispose(TableCell cell) {
-    	final Image img = ((TableCellSWT)cell).getGraphicSWT();
-      if (img != null && !img.isDisposed())
-        img.dispose();
+    	Graphic graphic = cell.getGraphic();
+    	if (graphic instanceof UISWTGraphic) {
+      	final Image img = ((UISWTGraphic)graphic).getImage();
+        if (img != null && !img.isDisposed())
+          img.dispose();
+    	}
     }
 
 
@@ -124,7 +130,11 @@ public class ProgressGraphItem
       
       lastPercentDone = percentDone;
 
-      Image piecesImage = ((TableCellSWT)cell).getGraphicSWT();
+      Image piecesImage = null;
+      Graphic graphic = cell.getGraphic();
+      if (graphic instanceof UISWTGraphic) {
+      	piecesImage = ((UISWTGraphic)graphic).getImage();
+      }
 
       if (piecesImage != null && !piecesImage.isDisposed())
         piecesImage.dispose();
@@ -229,7 +239,11 @@ public class ProgressGraphItem
       gcImage.dispose();
       last_draw_time =now;
 
-      ((TableCellSWT)cell).setGraphic(piecesImage);
+      if (cell instanceof TableCellSWT) {
+      	((TableCellSWT)cell).setGraphic(piecesImage);
+      } else {
+      	cell.setGraphic(new UISWTGraphicImpl(piecesImage));
+      }
     }
   }
 }
