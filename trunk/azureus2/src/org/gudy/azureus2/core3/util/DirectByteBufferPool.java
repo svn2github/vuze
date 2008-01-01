@@ -48,6 +48,7 @@ DirectByteBufferPool
 	protected static final int					DEBUG_PRINT_TIME		= 120 * 1000;
 	
 	protected static final boolean				DEBUG_HANDOUT_SIZES		= false;
+	protected static final boolean				DEBUG_FREE_SIZES		= false;
 	protected static final boolean				DEBUG_USE_HEAP_BUFFERS	= false;
 
 	
@@ -119,6 +120,7 @@ DirectByteBufferPool
  
 	private static final long COMPACTION_CHECK_PERIOD = 2*60*1000; //2 min
 	private static final long MAX_FREE_BYTES = 10*1024*1024; //10 MB
+	private static final long MIN_FREE_BYTES = 1*1024*1024; // 1 MB
   
 	private long bytesIn = 0;
 	private long bytesOut = 0;
@@ -171,25 +173,7 @@ DirectByteBufferPool
 	          DEBUG_PRINT_TIME,
 	          new TimerEventPerformer() {
 	            public void perform( TimerEvent ev ) {
-	              System.out.print("DIRECT: given=" +bytesOut/1024/1024+ "MB, returned=" +bytesIn/1024/1024+ "MB, ");
-	              
-	              long in_use = bytesOut - bytesIn;
-	              if( in_use < 1024*1024 ) System.out.print( "in use=" +in_use+ "B, " );
-	              else System.out.print( "in use=" +in_use/1024/1024+ "MB, " );
-	              
-	              long free = bytesFree();
-	              if( free < 1024*1024 ) System.out.print( "free=" +free+ "B" );
-	              else System.out.print( "free=" +free/1024/1024+ "MB" );
-	
-	              System.out.println();
-	              
 	              printInUse( false );
-	              
-	              long free_mem = Runtime.getRuntime().freeMemory() /1024/1024;
-	              long max_mem = Runtime.getRuntime().maxMemory() /1024/1024;
-	              long total_mem = Runtime.getRuntime().totalMemory() /1024/1024;
-	              System.out.println("HEAP: max=" +max_mem+ "MB, total=" +total_mem+ "MB, free=" +free_mem+ "MB");
-	              System.out.println();
 	            }
 	          }
 	      );
@@ -468,97 +452,45 @@ DirectByteBufferPool
    * and calls the compaction method if necessary.
    */
   private void compactBuffers() {
-    long bytesUsed = 0;
-    
-    synchronized( poolsLock ) {
-      
-      //count up total bytes used by free buffers
-      Iterator it = buffersMap.keySet().iterator();
-      while (it.hasNext()) {
-        Integer keyVal = (Integer)it.next();
-        ArrayList bufferPool = (ArrayList)buffersMap.get(keyVal);
-      
-        bytesUsed += keyVal.intValue() * bufferPool.size();
-      }
-      
-      //compact buffer pools if they use too much memory
-      if (bytesUsed > MAX_FREE_BYTES) {
-        compactFreeBuffers(bytesUsed);
-      }
-      
-    }
-	
-	compactSlices();
-  }
+	  
+	  nonsliecd: synchronized (poolsLock)
+		{
+			long freeSize = bytesFree();
+			
+			if (freeSize < MIN_FREE_BYTES)
+				break nonsliecd;
+			
+			// apply cleanup pressure based on filling degree
+			float remainingFactor;
+			if (freeSize > MAX_FREE_BYTES) // downsize to 50% of the limit (not the current capacity!) if we're overlimit 
+				remainingFactor = 0.5f * MAX_FREE_BYTES / (float) freeSize;
+			else // reduce to something between 50% (full: maximum reduction) and 100% (empty: no reduction)  
+				remainingFactor = 1.0f - 0.5f * freeSize / (float) MAX_FREE_BYTES;
+			
+			if (DEBUG_PRINT_MEM)
+				System.out.println("Performing cleanup, reducing to " + remainingFactor * 100 + "%");
+			
+			ArrayList pools = new ArrayList(buffersMap.values());
+			for (int i = pools.size() - 1; i >= 0; i--)
+			{
+				ArrayList pool = (ArrayList) pools.get(i);
+				int limit = (int) (pool.size() * remainingFactor); // floor(), this way we can reach 0 at some point
+				for (int j = pool.size() - 1; j >= limit; j--)
+					pool.remove(j);
+			}
+			
+			runGarbageCollection();
+			
+			if (DEBUG_PRINT_MEM)
+			{
+				printInUse(false);
+				System.out.println("Cleanup done\n");
+			}
+		}
+  
+		compactSlices();
+	}
  
-  
-  
-  /**
-   * Fairly removes free buffers from the pools to limit memory usage.
-   */
-  private void compactFreeBuffers(final long bytes_used) {
-    final int numPools = buffersMap.size();
-    long bytesToFree = 0;
-    int maxPoolSize = 0;
-    
-    int[] buffSizes = new int[numPools];
-    int[] poolSizes = new int[numPools];
-    int[] numToFree = new int[numPools];
-
-    
-    //fill size arrays
-    int pos = 0;
-    Iterator it = buffersMap.keySet().iterator();
-    while (it.hasNext()) {
-      Integer keyVal = (Integer)it.next();
-      ArrayList bufferPool = (ArrayList)buffersMap.get(keyVal);
-      
-      buffSizes[pos] = keyVal.intValue();
-      poolSizes[pos] = bufferPool.size();
-      numToFree[pos] = 0;
-      
-      //find initial max value
-      if (poolSizes[pos] > maxPoolSize) maxPoolSize = poolSizes[pos];
-      
-      pos++;
-    }
-    
-    //calculate the number of buffers to free from each pool
-    while( bytesToFree < (bytes_used - MAX_FREE_BYTES) ) {
-      for (int i=0; i < numPools; i++) {
-        //if the pool size is as large as the current max size
-        if (poolSizes[i] == maxPoolSize) {
-          //update counts
-          numToFree[i]++;
-          poolSizes[i]--;
-          bytesToFree += buffSizes[i];
-        }
-      }
-      //reduce max size for next round
-      maxPoolSize--;
-    }
-    
-    //free buffers from the pools
-    pos = 0;
-    it = buffersMap.values().iterator();
-    while (it.hasNext()) {
-      //for each pool
-      ArrayList bufferPool = (ArrayList)it.next();
-      synchronized( bufferPool ) {
-        int size = bufferPool.size();
-        //remove the buffers from the end
-        for (int i=(size - 1); i >= (size - numToFree[pos]); i--) {
-          bufferPool.remove(i);
-        }
-      }
-      
-      pos++;
-    }
-    
-    runGarbageCollection();
-  }
-  
-  
   
   
   private long bytesFree() {
@@ -621,6 +553,19 @@ DirectByteBufferPool
 		boolean		verbose )
   	{
   		if ( DEBUG_PRINT_MEM ){
+  			
+            System.out.print("DIRECT: given=" +bytesOut/1024/1024+ "MB, returned=" +bytesIn/1024/1024+ "MB, ");
+            
+            long in_use = bytesOut - bytesIn;
+            if( in_use < 1024*1024 ) System.out.print( "in use=" +in_use+ "B, " );
+            else System.out.print( "in use=" +in_use/1024/1024+ "MB, " );
+            
+            long free = bytesFree();
+            if( free < 1024*1024 ) System.out.print( "free=" +free+ "B" );
+            else System.out.print( "free=" +free/1024/1024+ "MB" );
+
+  			System.out.println();
+  			
 	  		CacheFileManager cm	= null;
 	  		
 			try{
@@ -756,6 +701,43 @@ DirectByteBufferPool
 				System.out.println( "slices: " + str );
 
 	  		}
+	  		
+	  		if(DEBUG_FREE_SIZES)
+	  		{
+	  			System.out.print("free block sizes: ");
+	  			
+	  			synchronized (poolsLock)
+				{
+					Iterator it = buffersMap.keySet().iterator();
+					while (it.hasNext())
+					{
+						Integer keyVal = (Integer) it.next();
+						ArrayList bufferPool = (ArrayList) buffersMap.get(keyVal);
+						
+						int blocksize = keyVal.intValue();
+						int blockfootprint = keyVal.intValue() * bufferPool.size();
+						if(blockfootprint == 0)
+							continue;
+						String blocksuffix = ""; 
+						if(blocksize > 1024) { blocksize /= 1024; blocksuffix = "k";}
+						if(blocksize > 1024) { blocksize /= 1024; blocksuffix = "M";}
+						String footsuffix = ""; 
+						if(blockfootprint > 1024) { blockfootprint /= 1024; footsuffix = "k";}
+						if(blockfootprint > 1024) { blockfootprint /= 1024; footsuffix = "M";}
+						
+						
+						System.out.print("["+ blocksize + blocksuffix + ":" + blockfootprint + footsuffix + "] ");
+					}
+				}
+	  			
+	  			System.out.println();
+	  		}
+	  		
+            long free_mem = Runtime.getRuntime().freeMemory() /1024/1024;
+            long max_mem = Runtime.getRuntime().maxMemory() /1024/1024;
+            long total_mem = Runtime.getRuntime().totalMemory() /1024/1024;
+            System.out.println("HEAP: max=" +max_mem+ "MB, total=" +total_mem+ "MB, free=" +free_mem+ "MB");
+            System.out.println();
   		}
   	}
   	
