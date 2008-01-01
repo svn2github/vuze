@@ -360,7 +360,7 @@ ProtocolDecoderPHE
 		}
 		
 		transport			= _transport;
-		// scattering mode for the first 2 KB, that should include the crypto handshake and the bittorrent handshake
+		// scattering mode for the first KB, that should include the crypto handshake and part of the bittorrent handshake
 		transport.setScatteringMode(768+random.nextInt(256));
 		initial_data_out	= _initial_data;
 		adapter				= _adapter;
