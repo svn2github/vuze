@@ -40,6 +40,7 @@ import org.apache.log4j.varia.DenyAllFilter;
 
 import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.core.impl.AzureusCoreSingleInstanceClient;
+import com.aelitis.azureus.launcher.Launcher;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.ui.common.IUserInterface;
@@ -111,10 +112,10 @@ public class Main {
     }
   }
   
-  public static void 
-  main(
-		String[] args ) 
-  {
+  public static void main(String[] args) {
+	  if(Launcher.checkAndLaunch(Main.class, args))
+		  return;
+	  
 		// This *has* to be done first as it sets system properties that are read and cached by Java
 		
 	COConfigurationManager.preInitialise();
