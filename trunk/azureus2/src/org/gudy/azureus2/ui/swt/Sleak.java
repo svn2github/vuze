@@ -431,7 +431,7 @@ public class Sleak
     data.tracking = true;
     Display display = new Display (data);
 		Sleak sleak = new Sleak();
-    new Main(args);
+    Main.main(args);
 		sleak.open();
 		while (!sleak.shell.isDisposed()) {
 			if (!display.readAndDispatch()) {

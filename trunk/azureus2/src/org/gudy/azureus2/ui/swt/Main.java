@@ -23,6 +23,7 @@ package org.gudy.azureus2.ui.swt;
 import java.io.File;
 
 import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.launcher.Launcher;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
@@ -40,10 +41,8 @@ Main
 	
   StartServer startServer;
   
-  public 
-  Main(
-  	String args[]) 
-  {
+  private Main(String args[])
+	{
   	try{
   			// This *has* to be done first as it sets system properties that are read and cached by Java
   		
@@ -198,7 +197,9 @@ Main
 
 
 	public static void main(String args[]) 
-  { 	
+  {
+		if(Launcher.checkAndLaunch(Main.class, args))
+			return;
   	//Debug.dumpThreads("Entry threads");
  
   	//Debug.dumpSystemProperties();

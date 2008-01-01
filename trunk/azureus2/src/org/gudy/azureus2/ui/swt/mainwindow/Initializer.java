@@ -46,6 +46,7 @@ import org.gudy.azureus2.ui.swt.updater2.SWTUpdateChecker;
 
 import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.launcher.Launcher;
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.InitializerListener;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -471,6 +472,9 @@ Initializer
   
   public static void main(String args[]) 
   {
+	  if(Launcher.checkAndLaunch(Initializer.class, args))
+		  return;
+	  
   	System.err.println("Shouldn't you be starting with org.gudy.azureus2.ui.swt.Main?");
  	AzureusCore		core = AzureusCoreFactory.create();
 

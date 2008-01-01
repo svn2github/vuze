@@ -33,6 +33,8 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.launcher.Launcher;
+
 public class 
 Main 
 	implements Plugin, PluginListener, PluginEventListener
@@ -188,6 +190,9 @@ Main
 	main(
 		String[]		args )
 	{
+		if(Launcher.checkAndLaunch(Main.class, args))
+			return;
+		
 		getSingleton( args ).process();
 	}
 }

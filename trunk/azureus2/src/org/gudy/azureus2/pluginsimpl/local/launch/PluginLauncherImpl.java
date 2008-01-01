@@ -38,16 +38,25 @@ import org.gudy.azureus2.pluginsimpl.PluginUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.launcher.Launcher;
 
 public class 
 PluginLauncherImpl 
 {
 	private static Map		preloaded_plugins	= new HashMap();
+	
+	// used as callback (via reflection) by Launcher
+	private static void main(String[] args)
+	{
+		launch(args);
+	}
 
 	public static void
 	launch(
 		String[]		args )
 	{
+		if(Launcher.checkAndLaunch(PluginLauncherImpl.class, args))
+			return;
 			// This *has* to be done first as it sets system properties that are read and cached by Java
   		
   		COConfigurationManager.preInitialise();
