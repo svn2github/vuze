@@ -56,10 +56,13 @@ public class SWTSkinObjectText2
 
 	private boolean bUnderline;
 
+	private int antialiasMode = SWT.DEFAULT;
+
 	private static Font font = null;
 
-	public SWTSkinObjectText2(SWTSkin skin, final SWTSkinProperties skinProperties,
-			String sID, final String sConfigID, String[] typeParams, SWTSkinObject parent) {
+	public SWTSkinObjectText2(SWTSkin skin,
+			final SWTSkinProperties skinProperties, String sID,
+			final String sConfigID, String[] typeParams, SWTSkinObject parent) {
 		super(skin, skinProperties, sID, sConfigID, "text", parent);
 
 		style = SWT.WRAP;
@@ -86,6 +89,13 @@ public class SWTSkinObjectText2
 
 		if (skinProperties.getIntValue(sConfigID + ".border", 0) == 1) {
 			style |= SWT.BORDER;
+		}
+
+		String sAntiAlias = skinProperties.getStringValue(sConfigID + ".antialias",
+				(String) null);
+		if (sAntiAlias != null && sAntiAlias.length() > 0) {
+			antialiasMode = (sAntiAlias.equals("1") || sAntiAlias.toLowerCase().equals(
+					"true")) ? SWT.ON : SWT.OFF;
 		}
 
 		Composite createOn;
@@ -117,6 +127,10 @@ public class SWTSkinObjectText2
 				if (existingColor != null) {
 					gc.setForeground(existingColor);
 				}
+				if (antialiasMode != SWT.DEFAULT) {
+					gc.setTextAntialias(antialiasMode);
+				}
+
 				pt = gc.textExtent(sText);
 				pt.x += border;
 				pt.y += border;
@@ -125,7 +139,7 @@ public class SWTSkinObjectText2
 				if (bUnderline) {
 					pt.y++;
 				}
-				
+
 				int fixedWidth = skinProperties.getIntValue(sConfigID + ".width", -1);
 				if (fixedWidth >= 0) {
 					pt.x = fixedWidth;
@@ -231,7 +245,7 @@ public class SWTSkinObjectText2
 						if (sSize.endsWith("px")) {
 							iFontSize = Utils.getFontHeightFromPX(canvas.getFont(), null,
 									(int) dSize);
-//							iFontSize = Utils.pixelsToPoint(dSize, canvas.getDisplay().getDPI().y);
+							//iFontSize = Utils.pixelsToPoint(dSize, canvas.getDisplay().getDPI().y);
 						} else {
 							iFontSize = (int) dSize;
 						}
@@ -294,7 +308,7 @@ public class SWTSkinObjectText2
 							}
 						});
 					}
-					
+
 					if (s.equals("normal")) {
 						bNewFont = true;
 					}
@@ -354,8 +368,8 @@ public class SWTSkinObjectText2
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (canvas != null && !canvas.isDisposed()) {
-  				canvas.redraw();
-  				Utils.relayout(canvas);
+					canvas.redraw();
+					Utils.relayout(canvas);
 				}
 			}
 		});
@@ -365,7 +379,6 @@ public class SWTSkinObjectText2
 		if (sText == null || sText.length() == 0) {
 			return;
 		}
-		//		e.gc.setClipping(e.x, e.y, e.width, e.height);
 
 		Composite composite = (Composite) e.widget;
 		Rectangle clientArea = composite.getClientArea();
@@ -379,7 +392,10 @@ public class SWTSkinObjectText2
 		if (existingColor != null) {
 			e.gc.setForeground(existingColor);
 		}
-//		e.gc.drawText(sText, 0, 0, true);
+
+		if (antialiasMode != SWT.DEFAULT) {
+			e.gc.setTextAntialias(antialiasMode);
+		}
 		GCStringPrinter.printString(e.gc, sText, clientArea, true, false, style);
 	}
 
