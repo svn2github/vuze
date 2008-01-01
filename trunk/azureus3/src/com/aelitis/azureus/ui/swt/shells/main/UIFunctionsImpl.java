@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.plugins.*;
@@ -83,7 +84,7 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#addPluginView(org.gudy.azureus2.plugins.PluginView)
 	public void addPluginView(PluginView view) {
 		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
+			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
 			if (uiFunctions == null) {
 				pluginViews_mon.enter();
 				try {
@@ -105,7 +106,7 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#addPluginView(java.lang.String, org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener)
 	public void addPluginView(String viewID, UISWTViewEventListener l) {
 		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
+			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
 			if (uiFunctions == null) {
 				pluginViews_mon.enter();
 				try {
@@ -127,7 +128,7 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#addPluginView(org.gudy.azureus2.ui.swt.plugins.UISWTPluginView)
 	public void addPluginView(UISWTPluginView view) {
 		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
+			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
 			if (uiFunctions == null) {
 				pluginViews_mon.enter();
 				try {
@@ -474,6 +475,11 @@ public class UIFunctionsImpl
 			UIStatusTextClickListener l) {
 		// TODO Auto-generated method stub
 
+	}
+	
+	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#getMainStatusBar()
+	public MainStatusBar getMainStatusBar() {
+		return mainWindow.getMainStatusBar();
 	}
 
 	// @see com.aelitis.azureus.ui.UIFunctions#showConfig(java.lang.String)
