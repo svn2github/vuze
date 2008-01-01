@@ -420,4 +420,9 @@ public class UIFunctionsImpl
 	public void refreshTorrentMenu() {
 		mainwindow.refreshTorrentMenu();
 	}
+	
+	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#getMainStatusBar()
+	public MainStatusBar getMainStatusBar() {
+		return mainwindow.getMainStatusBar();
+	}
 }

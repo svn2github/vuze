@@ -40,6 +40,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.LinkArea;
 import org.gudy.azureus2.ui.swt.components.StringListChooser;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
+import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
@@ -374,10 +375,13 @@ UpdateWindow
   	Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 		    updateWindow.dispose();
-		    MainWindow window = MainWindow.getWindow();
-		    if (window != null) {
-		    	MainWindow.getWindow().setUpdateNeeded(null);
-		    }
+      	UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
+      	if (functionsSWT != null) {
+      		MainStatusBar mainStatusBar = functionsSWT.getMainStatusBar();
+      		if (mainStatusBar != null) {
+      			mainStatusBar.setUpdateNeeded(null);
+      		}
+      	}
 			}
 		});
   }
@@ -431,8 +435,12 @@ UpdateWindow
         	
         }else{
         	
-        	if (MainWindow.getWindow() != null) {
-        		MainWindow.getWindow().setUpdateNeeded(UpdateWindow.this);
+        	UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
+        	if (functionsSWT != null) {
+        		MainStatusBar mainStatusBar = functionsSWT.getMainStatusBar();
+        		if (mainStatusBar != null) {
+        			mainStatusBar.setUpdateNeeded(UpdateWindow.this);
+        		}
         	}
         }
       }
@@ -657,8 +665,12 @@ UpdateWindow
   
   private void finishUpdate(boolean restartNow) {
     //When completing, remove the link in mainWindow :
-  	if (MainWindow.getWindow() != null) {
-  		MainWindow.getWindow().setUpdateNeeded(null);
+  	UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
+  	if (functionsSWT != null) {
+  		MainStatusBar mainStatusBar = functionsSWT.getMainStatusBar();
+  		if (mainStatusBar != null) {
+  			mainStatusBar.setUpdateNeeded(null);
+  		}
   	}
     
   	boolean bDisposeUpdateWindow = true;

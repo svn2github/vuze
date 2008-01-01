@@ -22,12 +22,7 @@
 
 package org.gudy.azureus2.ui.swt.pluginsimpl;
 
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Frame;
-import java.awt.Panel;
-
+import java.awt.*;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
@@ -38,30 +33,20 @@ import java.util.WeakHashMap;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.awt.SWT_AWT;
 import org.eclipse.swt.custom.CLabel;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.*;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
-import org.gudy.azureus2.ui.swt.FileDownloadWindow;
-import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
-import org.gudy.azureus2.ui.swt.TextViewerWindow;
-import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
-import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
-import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
+import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
 import org.gudy.azureus2.ui.swt.plugins.*;
@@ -72,15 +57,19 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableContextMenuManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnImpl;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
+
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 
 public class 
 UISWTInstanceImpl
@@ -654,7 +643,16 @@ UISWTInstanceImpl
 	
 	public UISWTStatusEntry createStatusEntry() {
 		final UISWTStatusEntryImpl entry = new UISWTStatusEntryImpl();
-		final CLabel label = MainWindow.getWindow().getMainStatusBar().createStatusEntry(entry);
+		UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
+		if (functionsSWT == null) {
+			return null;
+		}
+		
+		MainStatusBar mainStatusBar = functionsSWT.getMainStatusBar();
+		if (mainStatusBar == null) {
+			return null;
+		}
+		final CLabel label = mainStatusBar.createStatusEntry(entry);
 		final Listener click_listener = new Listener() {
 			public void handleEvent(Event e) {
 				entry.onClick();

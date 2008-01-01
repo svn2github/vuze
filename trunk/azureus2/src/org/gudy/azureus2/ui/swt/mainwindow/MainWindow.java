@@ -39,9 +39,9 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.download.DownloadManagerListener;
+import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.global.GlobalManagerListener;
+import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
@@ -63,7 +63,6 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.sharing.progress.ProgressWindow;
-import org.gudy.azureus2.ui.swt.update.UpdateWindow;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
@@ -88,12 +87,10 @@ import org.gudy.azureus2.plugins.sharing.ShareManager;
  * Runnable : so that GUI initialization is done via asyncExec(this)
  * STProgressListener : To make it visible once initialization is done
  */
-public class 
-MainWindow
+public class MainWindow
 	extends AERunnable
-	implements 	GlobalManagerListener, DownloadManagerListener, 
-				ParameterListener, IconBarEnabler, AEDiagnosticsEvidenceGenerator,
-				ObfusticateShell
+	implements ParameterListener, IconBarEnabler, AEDiagnosticsEvidenceGenerator,
+	ObfusticateShell
 {
 	private static final LogIDs LOGID = LogIDs.GUI;
   
@@ -233,6 +230,7 @@ MainWindow
   	bShowMainWindow = b;
   }
   
+  // @see org.gudy.azureus2.core3.util.AERunnable#runSupport()
   public void runSupport() {
     FormData formData;
     
@@ -248,6 +246,7 @@ MainWindow
 			globalManager.loadExistingTorrentsNow(true);
        
     useCustomTab = COConfigurationManager.getBooleanParameter("useCustomTab");
+    Tab.setUseCustomTab(useCustomTab);
     
 
     COConfigurationManager.addParameterListener( "config.style.useSIUnits", this );
@@ -541,7 +540,15 @@ MainWindow
     if (Logger.isEnabled())
 			Logger.log(new LogEvent(LOGID, "Initializing GUI complete"));
    
-    globalManager.addListener(this);
+    globalManager.addListener(new GlobalManagerAdapter() {
+			public void downloadManagerAdded(DownloadManager dm) {
+		    MainWindow.this.downloadManagerAdded(dm);
+			}
+
+			public void downloadManagerRemoved(DownloadManager dm) {
+				MainWindow.this.downloadManagerRemoved(dm);
+			}
+		});
 
     PluginManager	plugin_manager = azureus_core.getPluginManager();
     
@@ -749,7 +756,7 @@ MainWindow
 			else {
 				if (bPassworded) {
 					minimizeToTray(null);
-					setVisible(true); // invokes password
+					setVisible(true, true); // invokes password
 				}
 			}
 		}
@@ -890,9 +897,7 @@ MainWindow
   	}
   }
 
-  public boolean
-  destroyRequest()
-  {
+  protected boolean destroyRequest() {
 	  Logger.log(new LogEvent(LOGID, "MainWindow::destroyRequest"));
 
 	  if ( COConfigurationManager.getBooleanParameter("Password enabled")){
@@ -916,27 +921,13 @@ MainWindow
 	  return true;
   }
 
-	// globalmanagerlistener
-	
-  public void
-  destroyed()
-  {
-  }
-  
-  public void
-  destroyInitiated()
-  {
-  }				
-  
-  public void seedingStatusChanged( boolean seeding_only_mode ){
-  }       
-  
-  public void 
-  downloadManagerAdded(
-  	final DownloadManager created) 
-  {
-    created.addListener(this);
-  }
+  private void downloadManagerAdded(DownloadManager created) {
+		created.addListener(new DownloadManagerAdapter() {
+			public void stateChanged(DownloadManager manager, int state) {
+				downloadManagerStateChanged(manager, state);
+			}
+		});
+	}
 
   protected void openManagerView(DownloadManager downloadManager) {
     try{
@@ -969,7 +960,7 @@ MainWindow
     }
   }
 
-   public void downloadManagerRemoved(DownloadManager removed) {
+   private void downloadManagerRemoved(DownloadManager removed) {
     try{
     	downloadViews_mon.enter();
     
@@ -991,16 +982,12 @@ MainWindow
     }
   }
 
-  public Display getDisplay() {
+  protected Display getDisplay() {
     return this.display;
   }
 
-  public Shell getShell() {
+  protected Shell getShell() {
     return shell;
-  }
-
-  public void setVisible(final boolean visible) {
-  	setVisible(visible, true);
   }
 
   public void setVisible(final boolean visible, final boolean tryTricks) {
@@ -1089,7 +1076,7 @@ MainWindow
 		});
 	}
 
-  public boolean isVisible() {
+  protected boolean isVisible() {
     return shell.isVisible();
   }
 
@@ -1103,7 +1090,7 @@ MainWindow
 				});
   }
   
-  public boolean _dispose(boolean for_restart, boolean close_already_in_progress) {
+  private boolean _dispose(boolean for_restart, boolean close_already_in_progress) {
   	if (isAlreadyDead) {
   		return true;
   	}
@@ -1159,35 +1146,25 @@ MainWindow
     return true;
   }
 
-  public GlobalManager getGlobalManager() {
+  protected GlobalManager getGlobalManager() {
     return globalManager;
   }
 
   /**
 	 * @return
 	 */
-  public static MainWindow getWindow() {
+  protected static MainWindow getWindow() {
     return window;
   }
 
   /**
 	 * @return
 	 */
-  public TrayWindow getTray() {
+  protected TrayWindow getTray() {
     return downloadBasket;
   }
 
 
-
-  /**
-   * @return Returns the useCustomTab.
-   */
-  public boolean isUseCustomTab() {
-    return useCustomTab;
-  }    
-  
-  
-  
   
   Map pluginTabs = new HashMap();
   
@@ -1303,6 +1280,7 @@ MainWindow
 
 
   
+  // @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
   public void parameterChanged(String parameterName) {
     if( parameterName.equals( "Show Download Basket" ) ) {
       if (COConfigurationManager.getBooleanParameter("Show Download Basket")) {
@@ -1334,6 +1312,7 @@ MainWindow
  
 
 
+  // @see org.gudy.azureus2.ui.swt.IconBarEnabler#isEnabled(java.lang.String)
   public boolean isEnabled(String itemKey) {
     if(itemKey.equals("open"))
       return true;
@@ -1345,10 +1324,12 @@ MainWindow
     return false;
   }
 
+  // @see org.gudy.azureus2.ui.swt.IconBarEnabler#isSelected(java.lang.String)
   public boolean isSelected(String itemKey) {   
     return false;
   }
 
+  // @see org.gudy.azureus2.ui.swt.IconBarEnabler#itemActivated(java.lang.String)
   public void itemActivated(String itemKey) {   
     if(itemKey.equals("open")) {        
      TorrentOpener.openTorrentWindow();
@@ -1379,11 +1360,11 @@ MainWindow
 	  }
   }
 
-	public void refreshIconBar() {
+	protected void refreshIconBar() {
 		if (iconBar != null) {iconBar.setCurrentEnabler(this);}
 	}
 	
-	public void refreshTorrentMenu() {
+	protected void refreshTorrentMenu() {
 		if (this.mainMenu == null) {return;}
 		DownloadManager[] dm;
 		boolean detailed_view;
@@ -1411,11 +1392,11 @@ MainWindow
 		this.mainMenu.setTorrentMenuContext(dm, tv, detailed_view);
 	}
 
-  public void close() {
+  protected void close() {
       getShell().close();
   }
 
-  public void closeViewOrWindow() {
+  protected void closeViewOrWindow() {
       if(getCurrentView() != null)
         Tab.closeCurrent();
       else
@@ -1454,7 +1435,7 @@ MainWindow
   
 
   
-  public void showConsole() {
+  protected void showConsole() {
     if (console == null) {
       console = new Tab(new LoggerView(events));
       console.getView().getComposite().addDisposeListener(new DisposeListener() {
@@ -1500,7 +1481,7 @@ MainWindow
 		((StatsView) stats_tab.getView()).showTransfers();
   }
 
-  public void setSelectedLanguageItem() 
+  protected void setSelectedLanguageItem() 
   {
   	try{
   		this_mon.enter();
@@ -1551,41 +1532,8 @@ MainWindow
   	mainMenu = menu;
   }
   
-  
-    
-  /**
-   * MUST be called by the SWT Thread
-   * @param updateWindow the updateWindow or null if no update is available
-   */
-  public void setUpdateNeeded(UpdateWindow updateWindow) {
-    if (mainStatusBar != null) {
-    	mainStatusBar.setUpdateNeeded(updateWindow);
-    }
-  }
-  
-  //DownloadManagerListener implementation
-
-  public void completionChanged(DownloadManager manager, boolean bCompleted) {
-    // Do Nothing
-  }
-  
-  public void
-  filePriorityChanged( DownloadManager download, org.gudy.azureus2.core3.disk.DiskManagerFileInfo file )
-  {	  
-  }
-  
-  public void downloadComplete(DownloadManager manager) {
-    // Do Nothing
-
-  }
-
-  public void positionChanged(DownloadManager download, int oldPosition,
-      int newPosition) {
-    // Do Nothing
-
-  }
-
-  public void stateChanged(final DownloadManager manager, int state) {
+  private void downloadManagerStateChanged(final DownloadManager manager,
+			int state) {
     // if state == STARTED, then open the details window (according to config)
     if(state == DownloadManager.STATE_DOWNLOADING || state == DownloadManager.STATE_SEEDING) {
         if(display != null && !display.isDisposed()) {
@@ -1611,13 +1559,14 @@ MainWindow
     }
   }
   
-  public AzureusCore
+  protected AzureusCore
   getAzureusCore()
   {
   	return( azureus_core );
   }
   
   
+	// @see org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator#generate(org.gudy.azureus2.core3.util.IndentWriter)
 	public void
 	generate(
 		IndentWriter		writer )
@@ -1725,7 +1674,7 @@ MainWindow
 		}
 	}
   
-  public UISWTInstanceImpl getUISWTInstanceImpl() {
+  protected UISWTInstanceImpl getUISWTInstanceImpl() {
   	return uiSWTInstanceImpl;
   }
 
@@ -1743,21 +1692,22 @@ MainWindow
 	 * @param string
 	 * @param l
 	 */
-	public void setStatusText(int statustype, String string,
+	protected void setStatusText(int statustype, String string,
 			UIStatusTextClickListener l) {
 		if (mainStatusBar != null) {
 			mainStatusBar.setStatusText(statustype, string, l);
 		}
 	}
 
-	public SystemTraySWT getSystemTraySWT() {
+	protected SystemTraySWT getSystemTraySWT() {
 		return systemTraySWT;
 	}
 
-	public MainStatusBar getMainStatusBar() {
+	protected MainStatusBar getMainStatusBar() {
 		return mainStatusBar;
 	}
 
+	// @see org.gudy.azureus2.ui.swt.debug.ObfusticateShell#generateObfusticatedImage()
 	public Image generateObfusticatedImage() {
 		Image image;
 

@@ -1340,7 +1340,7 @@ public class MainMenu {
   
     // utility methods
 
-  public void updateMenuText(Object menu) {
+  public static void updateMenuText(Object menu) {
     if (menu == null)
       return;
     if (menu instanceof Menu) {

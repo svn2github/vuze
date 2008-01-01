@@ -34,11 +34,15 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
+import org.gudy.azureus2.ui.swt.mainwindow.MainMenu;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
+
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,8 +74,10 @@ public class TrayWindow implements GlobalManagerListener {
   public TrayWindow(MainWindow _main) {
     this.managers = new ArrayList();
     this.main = _main;
-    this.display = main.getDisplay();
-    minimized = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(main.getShell(), SWT.ON_TOP);
+    UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
+    Shell mainShell = uif == null ? Utils.findAnyShell() : uif.getMainShell();
+    this.display = mainShell.getDisplay();
+    minimized = ShellFactory.createShell(mainShell, SWT.ON_TOP);
     minimized.setText("Azureus"); //$NON-NLS-1$
     label = new Label(minimized, SWT.NULL);
     Image img = ImageRepository.getImage("tray");
@@ -185,8 +191,12 @@ public class TrayWindow implements GlobalManagerListener {
     });
 
     Utils.createTorrentDropTarget(minimized, false);
-    globalManager = main.getGlobalManager();
-    globalManager.addListener(this);
+    try {
+    	globalManager = AzureusCoreFactory.getSingleton().getGlobalManager();
+    	globalManager.addListener(this);
+    } catch (Exception e) {
+    	Debug.out(e);
+    }
   }
 
   public void setVisible(boolean visible) {
@@ -204,7 +214,10 @@ public class TrayWindow implements GlobalManagerListener {
   public void restore() {
     if(!COConfigurationManager.getBooleanParameter("Show Download Basket"))
       minimized.setVisible(false);
-    main.setVisible(true);
+    UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
+    if (functionsSWT != null) {
+    	functionsSWT.bringToFront();
+    }
     moving = false;
   }
 
@@ -278,7 +291,7 @@ public class TrayWindow implements GlobalManagerListener {
     }
 	
   public void updateLanguage() {
-    MainWindow.getWindow().getMenu().updateMenuText(menu);
+    MainMenu.updateMenuText(menu);
   }
 
   /**

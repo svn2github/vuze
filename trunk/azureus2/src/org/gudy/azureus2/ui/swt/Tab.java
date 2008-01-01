@@ -48,6 +48,9 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.views.*;
 
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+
 /**
  * @author Olivier
  * @author James Yeh Added Add/Remove event listeners
@@ -57,7 +60,7 @@ public class Tab {
   private static HashMap 	tabs;
   private static AEMonitor  class_mon 	= new AEMonitor( "Tab:class" );
 
-  private boolean useCustomTab;
+  private static boolean useCustomTab;
 
   private static Composite _folder;
 
@@ -93,7 +96,6 @@ public class Tab {
   }
 
   public Tab(IView _view, boolean bFocus) {
-    this.useCustomTab = mainwindow.isUseCustomTab();
     this.view = _view;
     this.folder = _folder;
 
@@ -234,8 +236,11 @@ public class Tab {
 		}
     
     if (bFocus) {
-    	mainwindow.refreshIconBar();
-    	mainwindow.refreshTorrentMenu();
+    	UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
+    	if (uif != null) {
+    		uif.refreshIconBar();
+    		uif.refreshTorrentMenu();
+    	}
     	selectedItem = tabItem;
     }
 
@@ -744,5 +749,9 @@ public class Tab {
 	IndentWriter	writer )
   {
 	  view.generateDiagnostics( writer );
+  }
+  
+  public static void setUseCustomTab(boolean newUseCustomTab) {
+  	useCustomTab = newUseCustomTab;
   }
 }
