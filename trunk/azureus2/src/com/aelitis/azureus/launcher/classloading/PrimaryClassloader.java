@@ -53,16 +53,20 @@ public class PrimaryClassloader extends URLClassLoader implements PeeringClasslo
 		try
 		{
 			for(int i=0;i<paths.length;i++)
+			{
 				urls[i] = new File(paths[i]).getCanonicalFile().toURI().toURL();
+				System.out.print(urls[i]+" ; ");
+			}
+				
 			urls[urls.length-1] = new File(".").getCanonicalFile().toURI().toURL();
+			System.out.println(urls[urls.length-1]);
 		} catch (Exception e)
 		{
 			System.err.println("Invalid classpath detected\n");
 			e.printStackTrace();
 			System.exit(1);
 		}
-		
-		System.out.println(Arrays.toString(urls));
+
 		return urls;
 	}
 	
