@@ -24,6 +24,8 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
+import org.eclipse.swt.graphics.Color;
+
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -59,7 +61,7 @@ public class StatusItem
       else if (state == DownloadManager.STATE_ERROR)
         ((TableCellSWT)cell).getTableRowSWT().setForeground(Colors.colorError);
       else
-        ((TableCellSWT)cell).getTableRowSWT().setForeground(null);
+        ((TableCellSWT)cell).getTableRowSWT().setForeground((Color) null);
     }
  
   }

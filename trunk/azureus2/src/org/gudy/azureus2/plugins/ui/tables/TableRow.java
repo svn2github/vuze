@@ -62,6 +62,16 @@ public interface TableRow {
   public void setForeground(int red, int green, int blue);
   
   /**
+   * Change the row's foreground color
+   * 
+   * @param rgb int array of red, green, and blue values.  Null to reset to
+   *            default color
+   *
+   * @since 3.0.4.3
+   */
+  public void setForeground(int[] rgb);
+
+  /**
    * Change the row's foreground color to the user's defined "error" color.
    * 
   * @since 3.0.3.5

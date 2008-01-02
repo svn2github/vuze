@@ -428,7 +428,16 @@ public class TableRowImpl
   	
   	super.setForeground(c);
 	}
-	
+
+	// @see org.gudy.azureus2.plugins.ui.tables.TableRow#setForeground(int[])
+	public void setForeground(int[] rgb) {
+		if (rgb == null || rgb.length < 3) {
+			setForeground((Color) null);
+			return;
+		}
+		setForeground(rgb[0], rgb[1], rgb[2]);
+	}
+
 	public void setForegroundToErrorColor() {
 		this.setForeground(Colors.colorError);
 	}

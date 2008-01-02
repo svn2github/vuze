@@ -102,6 +102,8 @@ public interface TableCell {
   String getText();
 
   /** Change the cell's foreground color.
+   * <p>
+   * pass -1 to return color back to default
    *
    * @param red red value (0 - 255)
    * @param green green value (0 - 255)
@@ -110,6 +112,17 @@ public interface TableCell {
    *         False - Color was already set.
    */
   boolean setForeground(int red, int green, int blue);
+
+  /**
+   * Change the cell's foreground color
+   * 
+   * @param rgb int array containing red, green, and blue values, respectively.
+   *            null to return color back to default
+   * @return
+   *
+   * @since 3.0.4.3
+   */
+  boolean setForeground(int[] rgb);
   
   /**
    * Change the cell's foreground color to the user's defined "error" color.

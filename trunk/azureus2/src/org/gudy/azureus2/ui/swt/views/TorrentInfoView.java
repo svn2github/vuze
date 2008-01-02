@@ -1064,6 +1064,11 @@ TorrentInfoView
 			// TODO Auto-generated method stub
 			return null;
 		}
+
+		// @see org.gudy.azureus2.plugins.ui.tables.TableCell#setForeground(int[])
+		public boolean setForeground(int[] rgb) {
+			return true;
+		}
 		
 	}
 	
@@ -1165,6 +1170,11 @@ TorrentInfoView
 		}
 		// @see com.aelitis.azureus.ui.common.table.TableRowCore#invokeMouseListeners(org.gudy.azureus2.plugins.ui.tables.TableRowMouseEvent)
 		public void invokeMouseListeners(TableRowMouseEvent event) {
+			// TODO Auto-generated method stub
+			
+		}
+		// @see org.gudy.azureus2.plugins.ui.tables.TableRow#setForeground(int[])
+		public void setForeground(int[] rgb) {
 			// TODO Auto-generated method stub
 			
 		}

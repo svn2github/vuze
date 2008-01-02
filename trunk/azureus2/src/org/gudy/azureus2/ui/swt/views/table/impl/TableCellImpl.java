@@ -300,21 +300,34 @@ public class TableCellImpl
     }
     return set;
   }
-  
-  public boolean setForeground(int red, int green, int blue) {
-  	checkCellForSetting();
 
-  	// Don't need to set when not visible
-  	if (isInvisibleAndCanRefresh())
-  		return false;
+	public boolean setForeground(int red, int green, int blue) {
+		checkCellForSetting();
 
-    boolean set = bufferedTableItem.setForeground(red, green, blue);
-    if (set) {
-    	setFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
-    }
-    return set;
-  }
-  
+		// Don't need to set when not visible
+		if (isInvisibleAndCanRefresh())
+			return false;
+
+		boolean set;
+		if (red < 0 || green < 0 || blue < 0) {
+			set = bufferedTableItem.setForeground(null);
+		} else {
+			set = bufferedTableItem.setForeground(red, green, blue);
+		}
+		if (set) {
+			setFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
+		}
+		return set;
+	}
+
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#setForeground(int[])
+	public boolean setForeground(int[] rgb) {
+		if (rgb == null || rgb.length < 3) {
+			return setForeground((Color) null);
+		}
+		return setForeground(rgb[0], rgb[1], rgb[2]);
+	}
+
   public boolean setForegroundToErrorColor() {
 	  return setForeground(Colors.colorError);
   }
