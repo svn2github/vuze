@@ -117,7 +117,7 @@ public class ColumnMediaThumb
 				// Don't ever dispose of PathIcon, it's cached and may be used elsewhere
 				String path = dm.getDownloadState().getPrimaryFile();
 				if (path != null) {
-					Image icon = ImageRepository.getPathIcon(path, true);
+					Image icon = ImageRepository.getPathIcon(path, true,dm.getTorrent() != null && !dm.getTorrent().isSimpleTorrent());
 					Graphic graphic = new UISWTGraphicImpl(icon);
 					cell.setGraphic(graphic);
 				} else {
