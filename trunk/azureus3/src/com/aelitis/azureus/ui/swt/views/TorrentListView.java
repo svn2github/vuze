@@ -168,7 +168,7 @@ public class TorrentListView
 					new ColumnTitle(TableManager.TABLE_MYTORRENTS_COMPLETE),
 					new ColumnRate(TableManager.TABLE_MYTORRENTS_COMPLETE, true),
 					new SizeItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-					new UpItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
+					new UpItem(TableManager.TABLE_MYTORRENTS_COMPLETE, true),
 					//new ColumnRateUpDown(TableManager.TABLE_MYTORRENTS_COMPLETE),
 					new ColumnIsPrivate(TableManager.TABLE_MYTORRENTS_COMPLETE),
 					new ColumnDateAdded2Liner(TableManager.TABLE_MYTORRENTS_COMPLETE,
