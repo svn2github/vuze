@@ -24,22 +24,16 @@ package org.gudy.azureus2.ui.swt.views;
 
 import java.net.URL;
 import java.util.*;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -49,21 +43,14 @@ import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.ui.Graphic;
-import org.gudy.azureus2.plugins.ui.SWT.GraphicSWT;
-import org.gudy.azureus2.plugins.ui.tables.*;
-
-import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
-import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
-import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
-import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
+import org.gudy.azureus2.ui.swt.views.table.impl.FakeTableCell;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 
-import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.common.table.TableCellCore;
+import com.aelitis.azureus.ui.common.table.TableColumnCore;
+
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 public class 
 TorrentInfoView
@@ -73,29 +60,16 @@ TorrentInfoView
 		
 	private DownloadManager			download_manager;
 		
-	private DownloadManager			core_data_source;
-	private Download				plugin_data_source;
-	
 	private Composite 		outer_panel;
 	
 	private Font 			headerFont;
-	private ExternalCell[]	cells;
-	
-	private ExternalRow		external_row = new ExternalRow();
+	private FakeTableCell[] cells;
 	
 	protected
 	TorrentInfoView(
 		DownloadManager		_download_manager )
 	{
 		download_manager	= _download_manager;
-		
-		core_data_source = download_manager;
-		
-	    try{
-	    	plugin_data_source = DownloadManagerImpl.getDownloadStatic(download_manager);
-	        
-	    }catch( Throwable e ){
-	    }
 	}
 	
 	public void 
@@ -280,100 +254,35 @@ TorrentInfoView
 				
 		for (int i=0;i<cols_sets.length;i++){
 			
-			int	position_base 			= i==0?0:1000;
-			int position_invisible_base	= i==0?10000:20000;
-
 			TableColumnCore[]	cols = cols_sets[i];
 			
 			for (int j=0;j<cols.length;j++){
 				
 				TableColumnCore	col = cols[j];
+				
+				String id = col.getName();
 			
-				if ( usable_cols.containsKey( col.getClass())){
+				if (usable_cols.containsKey(id)) {
 					
 					continue;
 				}
 				
-				ExternalCell	ext_cell = null;
-				
-				int	position = col.getPosition();
-				
-				if ( position == -1 ){
-					
-					position = position_invisible_base++;
-					
-				}else{
-					position = position_base + position;
-				}
-								
-				List	refresh_listeners = col.getCellRefreshListeners();
-				
-				if ( refresh_listeners.size() > 0 ){
-				
-					TableCellRefreshListener tcrl	= (TableCellRefreshListener)refresh_listeners.get(0);
-										
-					ext_cell = new ExternalCell( col, tcrl, position );
-					
-				}else{
-										
-					List	add_listeners = col.getCellAddedListeners();
-
-					if ( add_listeners.size() > 0 ){
-						
-						TableCellAddedListener tcal = (TableCellAddedListener)add_listeners.get(0);
-						
-							// see if we can prod the cell into identifying its refresh listener
-						
-						ext_cell =  new ExternalCell( col, null, position );
-						
-						try{
-							tcal.cellAdded( ext_cell );
-							
-							List	l = ext_cell.getRefreshListeners();
-							
-							if ( l.size() > 0 ){
-								
-								TableCellRefreshListener tcrl = (TableCellRefreshListener)l.get(0);
-								
-								ext_cell.setTarget( tcrl );
-								
-							}else{
-								
-								// System.out.println( "not usable (add->no listener) col: " + col.getName());
-		
-								ext_cell.dispose();
-								
-								ext_cell = null;
-							}
-						}catch(	Throwable e ){
-								
-							ext_cell.dispose();
-							
-							ext_cell = null;
-							
-							// System.out.println( "not usable (add) col: " + col.getName() + " - " + e.getMessage());
+				FakeTableCell fakeTableCell = null;
+				try {
+  				fakeTableCell = new FakeTableCell(col);
+  				fakeTableCell.setOrentation(SWT.LEFT);
+  				fakeTableCell.setDataSource(download_manager);
+  				// One refresh to see if it throws up
+  				fakeTableCell.refresh();
+  				usable_cols.put(id, fakeTableCell);
+				} catch (Throwable t) {
+					//System.out.println("not usable col: " + id + " - " + Debug.getCompressedStackTrace());
+					try {
+						if (fakeTableCell != null) {
+							fakeTableCell.dispose();
 						}
-					}else{
-						
-						// System.out.println( "not usable col: " + col.getName() + " - no listeners" );
-
-					}
-				}
-
-				if ( ext_cell != null ){
-						
-					try{
-						ext_cell.refresh();
-						
-						usable_cols.put( col.getClass(), ext_cell );
-						
-						// System.out.println( "usable col:" + col.getName());
-						
-					}catch( Throwable e ){
-						
-						ext_cell.dispose();
-						
-						// System.out.println( "not usable (refresh) col: " + col.getName() + " - " + e.getMessage());
+					} catch (Throwable t2) {
+						//ignore;
 					}
 				}
 			}
@@ -381,7 +290,7 @@ TorrentInfoView
 		
 		Collection values = usable_cols.values();
 		
-		cells = new ExternalCell[values.size()];
+		cells = new FakeTableCell[values.size()];
 		
 		values.toArray( cells );
 		
@@ -394,16 +303,19 @@ TorrentInfoView
 						Object	o1,
 						Object	o2 )
 					{
-						ExternalCell	c1 = (ExternalCell)o1;
-						ExternalCell	c2 = (ExternalCell)o2;
+						TableColumnCore	c1 = (TableColumnCore) ((TableCellCore)o1).getTableColumn();
+						TableColumnCore	c2 = (TableColumnCore) ((TableCellCore)o2).getTableColumn();
+
+						String key1 = MessageText.getString(c1.getTitleLanguageKey());
+						String key2 = MessageText.getString(c2.getTitleLanguageKey());
 						
-						return( c1.getPosition() - c2.getPosition());
+						return key1.compareToIgnoreCase(key2);
 					}
 				});
 						
 		for (int i=0;i<cells.length;i++){
 			
-			ExternalCell	cell = cells[i];
+			FakeTableCell	cell = cells[i];
 			
 			label = new Label(gColumns, SWT.NULL);
 			gridData = new GridData();
@@ -411,14 +323,15 @@ TorrentInfoView
 				gridData.horizontalIndent = 16;
 			}
 			label.setLayoutData( gridData );
-			label.setText( cell.getName() + ": " );
+			String key = ((TableColumnCore) cell.getTableColumn()).getTitleLanguageKey();
+			label.setText(MessageText.getString(key) + ": ");
+			label.setToolTipText(MessageText.getString(key + ".info", ""));
 
-			label = new Label(gColumns, SWT.NULL);
-			cell.setLabel( label );
-			gridData = new GridData();
+			Composite c = new Composite(gColumns, SWT.NONE);
 			gridData = new GridData( GridData.FILL_HORIZONTAL);
-			
-			label.setLayoutData( gridData );
+			gridData.heightHint = 16;
+			c.setLayoutData(gridData);
+			cell.setControl(c);
 		}
 		
 		refresh();
@@ -433,9 +346,9 @@ TorrentInfoView
 			
 			for (int i=0;i<cells.length;i++){
 				
-				ExternalCell	cell = cells[i];
+				TableCellCore cell = cells[i];
 				try {cell.refresh();}
-				catch (Exception e) {Debug.printStackTrace(e, "Error refreshing cell: " + cells[i].getName());}
+				catch (Exception e) {Debug.printStackTrace(e, "Error refreshing cell: " + cells[i].getTableColumn().getName());}
 			}
 		}
 	}
@@ -473,710 +386,10 @@ TorrentInfoView
 			
 			for (int i=0;i<cells.length;i++){
 				
-				ExternalCell	cell = cells[i];
+				TableCellCore	cell = cells[i];
 				
 				cell.dispose();
 			}
-		}
-	}
-	
-	protected class
-	ExternalCell
-		implements TableCellSWT
-	{
-		private TableColumnCore				column;
-		private TableCellRefreshListener	target;
-		private int							position;
-		
-		private Label	label;
-		private Image	label_image;
-		
-		private List	refresh_listeners	= new ArrayList();
-		private List	dispose_listeners	= new ArrayList();
-		
-		private boolean	refresh_failed;
-		
-		private Graphic	graphic;
-		
-		protected
-		ExternalCell(
-			TableColumnCore				_column,
-			TableCellRefreshListener	_target,
-			int							_position )
-		{
-			column		= _column;
-			target		= _target;
-			position	= _position;
-		}
-		
-		protected void
-		setTarget(
-			TableCellRefreshListener	_target )
-		{
-			target	= _target;
-		}
-		
-		protected void
-		setLabel(
-			Label	_label )
-		{
-			label	= _label;
-		}
-		
-		protected String
-		getName()
-		{
-			return( MessageText.getString( column.getTitleLanguageKey()));
-		}
-		
-		public boolean
-		refresh()
-		{
-			if ( refresh_failed ){
-				
-				label.setText( "Not Available" );
-				
-				return false;
-			}
-			try{
-				
-				target.refresh( this );
-				
-			}catch( RuntimeException e ){
-				
-				refresh_failed = true;
-								
-				throw( e );
-			}
-			return true;
-		}
-		
-		protected int
-		getPosition()
-		{
-			return( position );
-		}
-		
-		protected List
-		getRefreshListeners()
-		{
-			return( refresh_listeners );
-		}
-		
-		public Object 
-		getDataSource()
-		{
-			return( column.getUseCoreDataSource()?(Object)core_data_source:plugin_data_source );
-		}
-		  
-		public TableColumn 
-		getTableColumn()
-		{
-			return column;
-		}
-		  	
-		public TableRow 
-		getTableRow()
-		{
-			throw( new RuntimeException( "getTableRow not imp" ));
-		}
-		  
-		public String 
-		getTableID()
-		{
-			throw( new RuntimeException( "getTableID not imp" ));
-		}
-	
-		public boolean 
-		setText(
-			String original_text)
-		{
-			if ( label != null && !label.isDisposed()){
-				
-				String text = DisplayFormatters.truncateString( original_text.replaceAll("&", "&&" ), 64 );
-				
-				label.setText( text);
-				
-				label.setToolTipText( original_text );
-			}
-			
-			return( true );
-		}
-
-		public String 
-		getText()
-		{
-			return( label==null||label.isDisposed()?"":label.getText());
-		}
-
-		public boolean 
-		setForeground(
-			int red, int green, int blue)
-		{
-			return( true );
-		}
-		
-		public boolean setForegroundToErrorColor() {return true;}
-
-		public boolean 
-		setSortValue(
-			Comparable valueToSort)
-		{	
-			return( true );
-		}
-
-		public boolean 
-		setSortValue(
-			long valueToSort)
-		{
-			return( true );
-		}
-
-		public boolean 
-		setSortValue( 
-			float valueToSort )
-		{
-			return( true );
-		}
-		  
-		public Comparable 
-		getSortValue()
-		{
-			throw( new RuntimeException( "getSortValue not imp" ));
-		}
-
-		public boolean 
-		isShown()
-		{
-			return( true );
-		}
-
-		public boolean 
-		isValid()
-		{
-			return( false );
-		}
-	
-		public void 
-		invalidate()
-		{
-		}
-
-		public void 
-		setToolTip(
-			Object tooltip)
-		{	
-		}
-
-		public Object 
-		getToolTip()
-		{
-			return( null );
-		}
-
-		public boolean 
-		isDisposed()
-		{
-			return( false );
-		}
-
-		public int 
-		getWidth()
-		{
-			return( label==null||label.isDisposed()?0:label.getBounds().width );
-		}
-
-		public int 
-		getHeight()
-		{
-			return( label==null||label.isDisposed()?0:label.getBounds().height );
-		}
-		  
-		public boolean 
-		setGraphic(
-			Graphic img )
-		{
-			graphic = img;
-			
-			if (img instanceof GraphicSWT){
-				Image imgSWT = ((GraphicSWT)img).getImage();
-				setIcon( imgSWT );
-			}
-
-			if (img instanceof UISWTGraphic){
-				Image imgSWT = ((UISWTGraphic)img).getImage();
-				setIcon( imgSWT );
-			}
-			    
-			return( true );
-		}
-		
-		public Graphic 
-		getGraphic()
-		{
-			return( graphic );
-		}
-
-		public void 
-		setFillCell(
-				boolean bFillCell)
-		{			  
-		}
-
-		public void 
-		setMarginHeight(
-				int height)
-		{
-		}
-
-		public void 
-		setMarginWidth(
-				int width)
-		{
-		}
-
-		public void 
-		addRefreshListener(
-			TableCellRefreshListener listener)
-		{
-			refresh_listeners.add( listener );
-		}
-
-		public void 
-		removeRefreshListener(
-			TableCellRefreshListener listener)
-		{
-			refresh_listeners.remove( listener );
-		}
-
-		public void 
-		addDisposeListener(
-				TableCellDisposeListener listener)
-		{	
-			dispose_listeners.add( listener );
-		}
-
-		public void 
-		removeDisposeListener(
-			TableCellDisposeListener listener)
-		{  
-			dispose_listeners.remove( listener );
-
-		}
-
-		public void 
-		addToolTipListener(
-			TableCellToolTipListener listener)
-		{
-		}
-
-		public void 
-		removeToolTipListener(
-			TableCellToolTipListener listener)
-		{
-		}
-
-		public void 
-		addMouseListener(
-			TableCellMouseListener listener)
-		{  
-		}
-
-		public void 
-		removeMouseListener(
-			TableCellMouseListener listener)
-		{		  
-		}
-
-		public void 
-		addListeners(
-			Object listener)
-		{
-			if ( listener instanceof TableCellRefreshListener ){
-				refresh_listeners.add( listener );
-			}
-			
-			if ( listener instanceof TableCellDisposeListener ){
-				dispose_listeners.add( listener );
-			}
-		}
-	
-			// TableCellCore
-		
-		public void 
-		invalidate(
-			boolean bMustRefresh)
-		{
-		}
-
-		public boolean 
-		setForeground(
-			Color color)
-		{
-			if ( label != null && !label.isDisposed()){
-				label.setForeground( color );
-			}
-			return( true );
-		}
-
-		public boolean
-		refresh(
-			boolean bDoGraphics)
-		{
-			return false;
-		}
-
-		public boolean 
-		refresh(
-			boolean bDoGraphics, 
-			boolean bRowVisible)
-		{
-			return false;
-		}
-
-		public boolean 
-		refresh(
-			boolean bDoGraphics, 
-			boolean bRowVisible,
-			boolean bCellVisible)
-		{
-			return false;
-		}
-
-		public void 
-		dispose()
-		{
-			for (int i=0;i<dispose_listeners.size();i++){
-				
-				try{
-					((TableCellDisposeListener)dispose_listeners.get(i)).dispose( this );
-					
-				}catch( Throwable e ){
-					
-					Debug.printStackTrace(e);
-				}
-			}
-			
-			column.invokeCellDisposeListeners( this );
-			// We share columns with the 2 MyTorrents view.  Disposing may
-			// have done something bad (Pieces Column), so make it dirty.
-			// Ideally, we'd check if there's any listeners
-			// Or, ideally, the cells would handle being in multiple tables at
-			// once better.
-			column.invalidateCells();
-		}
-
-		public boolean 
-		setIcon(
-			Image img)
-		{
-			if ( label != null && !label.isDisposed()){
-				
-				label_image = img;
-				
-				if ( label.getText().length() == 0 ){
-
-					label.setImage( img );
-					return true;
-				}
-				
-				
-			}
-			return false;
-		}
-		
-		public Image getIcon() {
-			if ( label != null && !label.isDisposed()){
-				return label.getImage();
-			}
-			return null;
-		}
-
-		public boolean 
-		needsPainting()
-		{
-			return( true );
-		}
-
-	
-		public void 
-		doPaint(GC gc)
-		{
-		}
-
-		public void 
-		locationChanged()
-		{	
-		}
-		
-		public TableRowCore 
-		getTableRowCore()
-		{
-			return( external_row );
-		}
-
-		public Point 
-		getSize()
-		{
-			throw( new RuntimeException( "getSize not imp" ));
-
-		}
-		
-		public Rectangle 
-		getBounds()
-		{
-			throw( new RuntimeException( "getBounds not imp" ));
-		}
-
-		public boolean 
-		setGraphic(
-			Image img)
-		{
-			setIcon( img );
-			
-			return( true );
-		}
-		
-		public Image 
-		getGraphicSWT()
-		{	
-			return( label_image );
-		}
-
-		public void 
-		invokeToolTipListeners(
-			int type)
-		{
-		}
-		
-		public void 
-		invokeMouseListeners(
-			TableCellMouseEvent event)
-		{
-		}
-
-		public void 
-		setUpToDate(
-			boolean upToDate)
-		{
-		}
-
-		public String 
-		getObfusticatedText()
-		{
-			return( null );
-		}
-
-		public Image 
-		getBackgroundImage()
-		{
-			return( null );
-		}
-
-		public Color 
-		getForegroundSWT()
-		{
-			return( null );
-		}
-		
-		public int[] getForeground() {
-			return new int[3];
-		}
-		
-		// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getBackground()
-		public int[] getBackground() {
-			return new int[3];
-		}
-
-		/**
-		 * @return
-		 */
-		public BufferedTableItem 
-		getBufferedTableItem()
-		{
-			throw( new RuntimeException( "getBufferedTableItem not imp" ));
-		}
-
-		public int 
-		getCursorID()
-		{
-			return(0);
-		}
-
-		public void 
-		setCursorID(
-			int cursorID)
-		{
-		}
-
-	
-		public boolean 
-		isUpToDate()
-		{
-			return( true );
-		}
-
-		public int 
-		compareTo(
-			Object arg0 ) 
-		{
-			return 0;
-		}
-
-		// @see org.gudy.azureus2.ui.swt.views.table.TableCellCore#invokeVisibilityListeners(int)
-		
-		public void invokeVisibilityListeners(int visibility, boolean b) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		// @see org.gudy.azureus2.ui.swt.views.table.TableCellCore#getVisuallyChangedSinceRefresh()
-		
-		public boolean getVisuallyChangedSinceRefresh() {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
-		// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWT#getTableRowSWT()
-		public TableRowSWT getTableRowSWT() {
-			return null;
-		}
-
-		// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getMaxLines()
-		public int getMaxLines() {
-			return 1;
-		}
-
-		// @see com.aelitis.azureus.ui.common.table.TableCellCore#isMouseOver()
-		public boolean isMouseOver() {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
-		// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWT#getBackgroundSWT()
-		public Color getBackgroundSWT() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getBackgroundGraphic()
-		public Graphic getBackgroundGraphic() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		// @see org.gudy.azureus2.plugins.ui.tables.TableCell#setForeground(int[])
-		public boolean setForeground(int[] rgb) {
-			return true;
-		}
-		
-	}
-	
-	protected class
-	ExternalRow
-		implements TableRowCore
-	{
-			// table row core
-		
-		public void delete() {
-		}
-		public void doPaint(GC gc) {	
-		}
-		public Object getDataSource() {
-			return null;
-		}
-		public Color getForeground() {
-			return null;
-		}
-		public String getTableID() {
-			return null;
-		}
-		public void invalidate() {
-		}
-		public boolean isValid() {
-			return false;
-		}
-		public List refresh(boolean bDoGraphics) {
-			return new ArrayList();
-		}
-		public List refresh(boolean bDoGraphics, boolean bVisible) {
-			return new ArrayList();
-		}
-		public void setForeground(Color c) {
-		}
-		public void setForeground(int r, int g, int b) {
-		}
-		public void setForegroundToErrorColor() {
-		}
-		public void setUpToDate(boolean upToDate) {
-		}
-		public void doPaint(GC gc, boolean bVisible) {
-		}
-		public Color getBackground() {
-			return null;
-		}
-		public Object getDataSource(boolean bCoreObject) {
-			return null;
-		}
-		public int getIndex() {
-			return 0;
-		}
-		public TableCell getTableCell(String sColumnName) {
-			return null;
-		}
-		public TableCellCore getTableCellCore(String field) {
-			return null;
-		}
-		public boolean isRowDisposed() {
-			return false;
-		}
-		public boolean isSelected() {
-			return false;
-		}
-		public boolean isVisible() {
-			return false;
-		}
-		public void locationChanged(int iStartColumn) {		
-		}
-		public void setAlternatingBGColor(boolean bEvenIfNotVisible) {
-		}
-		public boolean setHeight(int iHeight) {
-			return false;
-		}
-		public boolean setIconSize(Point pt) {
-			return false;
-		}
-		public void setSelected(boolean bSelected) {
-		}
-		public boolean setTableItem(int newIndex) {
-			return false;
-		}
-		public void redraw() {
-		}
-		// @see com.aelitis.azureus.ui.common.table.TableRowCore#getView()
-		public TableView getView() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-		// @see org.gudy.azureus2.plugins.ui.tables.TableRow#addMouseListener(org.gudy.azureus2.plugins.ui.tables.TableRowMouseListener)
-		public void addMouseListener(TableRowMouseListener listener) {
-			// TODO Auto-generated method stub
-			
-		}
-		// @see org.gudy.azureus2.plugins.ui.tables.TableRow#removeMouseListener(org.gudy.azureus2.plugins.ui.tables.TableRowMouseListener)
-		public void removeMouseListener(TableRowMouseListener listener) {
-			// TODO Auto-generated method stub
-			
-		}
-		// @see com.aelitis.azureus.ui.common.table.TableRowCore#invokeMouseListeners(org.gudy.azureus2.plugins.ui.tables.TableRowMouseEvent)
-		public void invokeMouseListeners(TableRowMouseEvent event) {
-			// TODO Auto-generated method stub
-			
-		}
-		// @see org.gudy.azureus2.plugins.ui.tables.TableRow#setForeground(int[])
-		public void setForeground(int[] rgb) {
-			// TODO Auto-generated method stub
-			
 		}
 	}
 }
