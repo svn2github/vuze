@@ -1596,7 +1596,7 @@ public class Utils {
 					cBack.blue += aFore * cFore.blue;
 					cBack.blue /= 255;
 				}
-				imgData.setAlpha(x, y, Math.max(aBack,aFore));
+				imgData.setAlpha(x, y, aFore + aBack * (255 - aFore) / 255);
 				imgData.setPixel(x, y, imgPalette.getPixel(cBack));
 			}
 		}
