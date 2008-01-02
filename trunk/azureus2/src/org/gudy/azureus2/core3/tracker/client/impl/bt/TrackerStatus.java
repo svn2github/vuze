@@ -916,8 +916,8 @@ public class TrackerStatus {
 
 			response.setNextScrapeStartTime(SystemTime.getCurrentTime()
 					+ FAULTY_SCRAPE_RETRY_INTERVAL);
-			response.setStatus(TRTrackerScraperResponse.ST_ERROR,
-					MessageText.getString(SS + "error") + msg + " (IO)");
+			response.setStatus(TRTrackerScraperResponse.ST_ERROR,StringInterner.intern(
+					MessageText.getString(SS + "error") + msg + " (IO)"));
 			// notifiy listeners
 			scraper.scrapeReceived(response);
 		}
