@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.LightHashMap;
 
 
 /**
@@ -39,7 +40,7 @@ public class PeerIdentityManager {
 
   private static final AEMonitor 		class_mon	= new AEMonitor( "PeerIdentityManager:class");
 
-  private static final Map 				dataMap = new HashMap();
+  private static final Map 				dataMap = new LightHashMap();
 
   private static int totalIDs = 0;
  
@@ -106,7 +107,7 @@ public class PeerIdentityManager {
         
         if( peerMap == null ){
         	
-          peerMap = new HashMap();
+          peerMap = new LightHashMap();
           
           dataMap.put( data_id, peerMap );
         }

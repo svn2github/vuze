@@ -27,6 +27,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.peer.util.PeerUtils;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.LightHashMap;
 
 /**
  *
@@ -40,7 +41,7 @@ public class PeerExchangerItem {
   private final PeerItem base_peer;
   private final LinkedList connections_added = new LinkedList();
   private final LinkedList connections_dropped = new LinkedList();
-  private final HashMap connected_peers = new HashMap();
+  private final Map connected_peers = new LightHashMap();
   private final AEMonitor peers_mon = new AEMonitor( "PeerConnectionItem" );
   private boolean maintain_peers_state = true;  //assume we do until explicitly disabled
   private final Helper helper;

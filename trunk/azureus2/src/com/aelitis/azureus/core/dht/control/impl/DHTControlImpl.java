@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
 import org.gudy.azureus2.core3.util.SHA1Simple;
@@ -1512,7 +1513,7 @@ DHTControlImpl
 			
 			final AEMonitor	contacts_to_query_mon	= new AEMonitor( "DHTControl:ctq" );
 
-			final Map	level_map			= new HashMap();
+			final Map	level_map			= new LightHashMap();
 			
 			Iterator	it = contacts_to_query.iterator();
 			
@@ -1527,7 +1528,7 @@ DHTControlImpl
 			
 				// record the set of contacts we've queried to avoid re-queries
 			
-			final Map			contacts_queried = new HashMap();
+			final Map			contacts_queried = new LightHashMap();
 			
 				// record the set of contacts that we've had a reply from
 				// furthest away at front
