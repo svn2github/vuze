@@ -1187,7 +1187,12 @@ public class TableCellImpl
 		}
 	}
 
-  public void invokeVisibilityListeners(int visibility) {
+	public void invokeVisibilityListeners(int visibility,
+			boolean invokeColumnListeners) {
+		if (invokeColumnListeners) {
+			tableColumn.invokeCellVisibilityListeners(this, visibility);
+		}
+
 		if (cellVisibilityListeners == null)
 			return;
 

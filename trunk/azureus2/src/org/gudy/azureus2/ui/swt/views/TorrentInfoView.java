@@ -1025,7 +1025,7 @@ TorrentInfoView
 
 		// @see org.gudy.azureus2.ui.swt.views.table.TableCellCore#invokeVisibilityListeners(int)
 		
-		public void invokeVisibilityListeners(int visibility) {
+		public void invokeVisibilityListeners(int visibility, boolean b) {
 			// TODO Auto-generated method stub
 			
 		}

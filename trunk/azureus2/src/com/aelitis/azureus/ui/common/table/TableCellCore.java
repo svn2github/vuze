@@ -118,7 +118,7 @@ public interface TableCellCore extends TableCell, Comparable
 	 * 
 	 * @param visibility See {@link TableCellVisibilityListener}.VISIBILITY_* constants
 	 */
-	public void invokeVisibilityListeners(int visibility);
+	public void invokeVisibilityListeners(int visibility, boolean invokeColumnListeners);
 
 	/**
 	 * Sets whether the cell will need updating when it's visible again
