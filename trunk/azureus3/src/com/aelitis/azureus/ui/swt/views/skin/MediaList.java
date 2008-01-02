@@ -203,7 +203,7 @@ public class MediaList
 							return;
 						}
 						if (manager.isDownloadComplete(false)) {
-							row.setForeground(null);
+							row.setForeground((Color) null);
 						} else {
 							Color c = skin.getSkinProperties().getColor(
 									"color.library.incomplete");

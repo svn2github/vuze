@@ -510,6 +510,11 @@ public class FakeTableCell
 		return true;
 	}
 
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#setForeground(int[])
+	public boolean setForeground(int[] rgb) {
+		return true;
+	}
+
 	public boolean setForegroundToErrorColor() {
 		// TODO Auto-generated method stub
 		return false;

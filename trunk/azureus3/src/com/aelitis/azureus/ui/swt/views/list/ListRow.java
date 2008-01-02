@@ -517,6 +517,7 @@ public class ListRow
 		return list;
 	}
 
+	// @see org.gudy.azureus2.ui.swt.views.table.TableRowSWT#setForeground(org.eclipse.swt.graphics.Color)
 	public void setForeground(Color c) {
 		Iterator iter = mapTableCells.values().iterator();
 		while (iter.hasNext()) {
@@ -525,6 +526,7 @@ public class ListRow
 		}
 	}
 	
+	// @see org.gudy.azureus2.plugins.ui.tables.TableRow#setForeground(int, int, int)
 	public void setForeground(int r, int g, int b) {
 		Iterator iter = mapTableCells.values().iterator();
 		while (iter.hasNext()) {
@@ -533,6 +535,16 @@ public class ListRow
 		}		
 	}
 	
+	// @see org.gudy.azureus2.plugins.ui.tables.TableRow#setForeground(int[])
+	public void setForeground(int[] rgb) {
+		if (rgb == null || rgb.length < 3) {
+			setForeground((Color)null);
+			return;
+		}
+		setForeground(rgb[0], rgb[1], rgb[2]);
+	}
+	
+	// @see org.gudy.azureus2.plugins.ui.tables.TableRow#setForegroundToErrorColor()
 	public void setForegroundToErrorColor() {
 		this.setForeground(Colors.colorError);
 	}
