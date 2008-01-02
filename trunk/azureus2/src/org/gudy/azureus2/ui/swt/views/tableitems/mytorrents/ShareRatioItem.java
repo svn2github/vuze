@@ -50,13 +50,13 @@ public class ShareRatioItem
   private int iMinShareRatio;
 
   /** Default Constructor */
-  public ShareRatioItem(String sTableID) {
+  public ShareRatioItem(String sTableID, boolean visible) {
     super("shareRatio", ALIGN_TRAIL, POSITION_LAST, 70, sTableID);
 		setType(TableColumn.TYPE_TEXT);
     setRefreshInterval(INTERVAL_LIVE);
     setMinWidthAuto(true);
 
-    if (sTableID.equals(TableManager.TABLE_MYTORRENTS_COMPLETE))
+    if (visible)
       setPosition(POSITION_LAST);
     else
       setPosition(POSITION_INVISIBLE);

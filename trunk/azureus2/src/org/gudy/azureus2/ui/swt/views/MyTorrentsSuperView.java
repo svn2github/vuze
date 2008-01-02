@@ -69,8 +69,8 @@ public class MyTorrentsSuperView extends AbstractIView implements
     new DownSpeedItem(),
     new UpSpeedItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new ETAItem(),    
-    new ShareRatioItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new UpItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),    
+    new ShareRatioItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE, false),
+    new UpItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE, false),    
     new UpSpeedLimitItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new TrackerStatusItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     
@@ -115,8 +115,8 @@ public class MyTorrentsSuperView extends AbstractIView implements
     new SeedsItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
     new PeersItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
     new UpSpeedItem(TableManager.TABLE_MYTORRENTS_COMPLETE),    
-    new ShareRatioItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-    new UpItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
+    new ShareRatioItem(TableManager.TABLE_MYTORRENTS_COMPLETE, true),
+    new UpItem(TableManager.TABLE_MYTORRENTS_COMPLETE, true),
     new UpSpeedLimitItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
     
     // Initially Invisible

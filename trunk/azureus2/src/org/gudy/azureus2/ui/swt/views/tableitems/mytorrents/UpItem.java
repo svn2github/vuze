@@ -40,12 +40,12 @@ public class UpItem
        implements TableCellRefreshListener
 {
   /** Default Constructor */
-  public UpItem(String sTableID) {
+  public UpItem(String sTableID, boolean visible) {
     super("up", ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
     setMinWidthAuto(true);
 
-    if (sTableID.equals(TableManager.TABLE_MYTORRENTS_COMPLETE))
+    if (visible)
       setPosition(POSITION_LAST);
     else
       setPosition(POSITION_INVISIBLE);
