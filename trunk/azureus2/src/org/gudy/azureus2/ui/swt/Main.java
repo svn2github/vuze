@@ -41,7 +41,8 @@ Main
 	
   StartServer startServer;
   
-  private Main(String args[])
+  // This method is called by other Main classes via reflection - must be kept public.
+  public Main(String args[])
 	{
   	try{
   			// This *has* to be done first as it sets system properties that are read and cached by Java
