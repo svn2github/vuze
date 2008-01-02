@@ -150,6 +150,10 @@ public class ColumnRateDropDown
 				// 5) cellMouseTrigger fires
 				return;
 			}
+			
+			if (!(event.cell instanceof TableCellSWT)) {
+				return;
+			}
 
 			TableCellSWT cellSWT = (TableCellSWT) event.cell;
 			final ListCell listCell = (ListCell) cellSWT.getBufferedTableItem();

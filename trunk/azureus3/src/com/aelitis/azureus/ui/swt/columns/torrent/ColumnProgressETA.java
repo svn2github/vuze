@@ -16,6 +16,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -168,7 +169,11 @@ public class ColumnProgressETA
 			lastETA = eta;
 
 			boolean bDrawProgressBar = true;
-			Image image = ((TableCellSWT) cell).getGraphicSWT();
+			Graphic graphic = cell.getBackgroundGraphic();
+			Image image = null;
+			if (graphic instanceof UISWTGraphic) {
+				image = ((UISWTGraphic)graphic).getImage();
+			}
 			GC gcImage;
 			boolean bImageSizeChanged;
 			Rectangle imageBounds;
@@ -190,7 +195,7 @@ public class ColumnProgressETA
 			imageBounds = image.getBounds();
 
 			gcImage = new GC(image);
-			Color background = ((TableRowSWT) cell.getTableRow()).getBackground();
+			Color background = ColorCache.getColor(display, cell.getBackground());
 			if (background != null) {
 				gcImage.setBackground(background);
 				gcImage.fillRectangle(imageBounds);
@@ -310,7 +315,11 @@ public class ColumnProgressETA
 
 			disposeExisting(cell);
 
-			((TableCellSWT) cell).setGraphic(image);
+			if (cell instanceof TableCellSWT) {
+				((TableCellSWT) cell).setGraphic(image);
+			} else {
+				cell.setGraphic(new UISWTGraphicImpl(image));
+			}
 		}
 
 		private int getPercentDone(TableCell cell) {
