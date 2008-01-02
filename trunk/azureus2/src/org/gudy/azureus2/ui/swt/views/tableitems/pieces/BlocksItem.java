@@ -31,12 +31,15 @@ import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
+import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerFactory;
 import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerStats;
 
+import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
@@ -205,10 +208,18 @@ public class BlocksItem
 
 		}
 		gcImage.dispose();
+		
+		Image oldImage = null;
+		Graphic graphic = cell.getGraphic();
+		if (graphic instanceof UISWTGraphic) {
+			oldImage = ((UISWTGraphic)graphic).getImage();
+		}
 
-		Image oldImage = ((TableCellSWT) cell).getGraphicSWT();
-
-		((TableCellSWT) cell).setGraphic(image);
+		if (cell instanceof TableCellSWT) {
+			((TableCellSWT) cell).setGraphic(image);
+		} else {
+			cell.setGraphic(new UISWTGraphicImpl(image));
+		}
 		if (oldImage != null && !oldImage.isDisposed())
 			oldImage.dispose();
 
