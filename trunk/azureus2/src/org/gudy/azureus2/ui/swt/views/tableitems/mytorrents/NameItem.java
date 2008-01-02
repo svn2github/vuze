@@ -88,7 +88,8 @@ public class NameItem extends CoreTableColumn implements
 
 		//setText returns true only if the text is updated
 		if ((cell.setText(name) || !cell.isValid())) {
-			if (dm != null && bShowIcon && !sortOnlyRefresh) {
+			if (dm != null && bShowIcon && !sortOnlyRefresh
+					&& (cell instanceof TableCellSWT)) {
 				String path = dm.getDownloadState().getPrimaryFile();
 				if (path != null) {
 					// Don't ever dispose of PathIcon, it's cached and may be used elsewhere
@@ -121,6 +122,9 @@ public class NameItem extends CoreTableColumn implements
 	}
 
 	private void disposeCellIcon(TableCell cell) {
+		if (!(cell instanceof TableCellSWT)) {
+			return;
+		}
 		final Image img = ((TableCellSWT) cell).getIcon();
 		if (img != null) {
 			((TableCellSWT) cell).setIcon(null);
