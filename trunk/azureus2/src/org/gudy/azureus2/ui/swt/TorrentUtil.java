@@ -63,6 +63,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.TableView;
 
 /**
  * @author Allan Crooks
@@ -74,7 +75,7 @@ public class TorrentUtil {
 	public static void fillTorrentMenu(final Menu menu,
 			final DownloadManager[] dms, final AzureusCore azureus_core,
 			final Composite composite, boolean include_show_details,
-			int selected_dl_types, final TableViewSWT tv) {
+			int selected_dl_types, final TableView tv) {
 
 		final boolean isSeedingView;
 		switch (selected_dl_types) {
@@ -1259,7 +1260,7 @@ public class TorrentUtil {
 
 	}
 
-  private static void moveSelectedTorrentsTo(TableViewSWT tv,
+  private static void moveSelectedTorrentsTo(TableView tv,
 			DownloadManager[] dms, int iNewPos) {
     if (dms == null || dms.length == 0) {
       return;
