@@ -63,7 +63,7 @@ OutgoingMessageQueueImpl
   
   private int percent_complete = -1;
     
-  private static final boolean TRACE_HISTORY = true;  //TODO
+  private static final boolean TRACE_HISTORY = false;  //TODO
   private static final int MAX_HISTORY_TRACES = 30;
   private final LinkedList prev_sent = new LinkedList();
   
@@ -429,7 +429,7 @@ OutgoingMessageQueueImpl
 			  
 			  int buffer_limit 		= 64;
 			  
-			  ByteBuffer[] 	raw_buffers 	= (ByteBuffer[])rawBufferCache.get();
+			  ByteBuffer[] raw_buffers 	= (ByteBuffer[])rawBufferCache.get();
 			  if(raw_buffers == null)
 			  {
 				  raw_buffers = new ByteBuffer[buffer_limit];
@@ -440,7 +440,7 @@ OutgoingMessageQueueImpl
 			  }
 				  
 			  
-			  int[]		 	orig_positions	= (int[])origPositionsCache.get();
+			  int[] orig_positions	= (int[])origPositionsCache.get();
 			  if(orig_positions == null)
 			  {
 				  orig_positions = new int[buffer_limit];
