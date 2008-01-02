@@ -218,9 +218,7 @@ public class ListCell
 			if (cell != null) {
 				int mode = bIsShown ? TableCellVisibilityListener.VISIBILITY_SHOWN
 						: TableCellVisibilityListener.VISIBILITY_HIDDEN;
-				((TableColumnCore) cell.getTableColumn()).invokeCellVisibilityListeners(
-						cell, mode);
-				cell.invokeVisibilityListeners(mode);
+				cell.invokeVisibilityListeners(mode, true);
 			}
 		}
 		return bIsShown;
