@@ -73,6 +73,7 @@ import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger.GetRatingReplyListener;
 import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.launcher.Launcher;
 import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin;
 import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesFPListener;
 import com.aelitis.azureus.ui.UIFunctions;
@@ -143,6 +144,8 @@ public class MainWindow
 	private MainStatusBar statusBar;
 
 	public static void main(String args[]) {
+		if(Launcher.checkAndLaunch(MainWindow.class, args))
+			return;
 		Initializer.main(new String[0]);
 		//org.gudy.azureus2.ui.swt.Main.main(args);
 	}

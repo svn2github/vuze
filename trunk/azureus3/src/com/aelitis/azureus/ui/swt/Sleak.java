@@ -36,6 +36,9 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.swt.widgets.List;
 
+import com.aelitis.azureus.launcher.Launcher;
+import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
+
 /**
  * Code to detect swt leak
  *
@@ -446,6 +449,8 @@ public class Sleak
 	}
 
 	public static void main(String[] args) {
+		if(Launcher.checkAndLaunch(Sleak.class, args))
+			return;
 		DeviceData data = new DeviceData();
 		data.tracking = true;
 		Display display = new Display(data);

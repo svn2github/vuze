@@ -42,6 +42,7 @@ import org.gudy.azureus2.ui.swt.updater2.SWTUpdateChecker;
 import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.launcher.Launcher;
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.InitializerListener;
 import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
@@ -72,6 +73,9 @@ public class Initializer
 	private int curPercent = 0;
 
 	public static void main(final String args[]) {
+		if(Launcher.checkAndLaunch(Initializer.class, args))
+			return;
+		
 		if (System.getProperty("ui.temp") == null) {
 			System.setProperty("ui.temp", "az3");
 		}
