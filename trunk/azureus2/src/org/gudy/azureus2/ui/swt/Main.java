@@ -24,6 +24,7 @@ import java.io.File;
 
 import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.launcher.Launcher;
+import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
@@ -45,6 +46,10 @@ Main
   public Main(String args[])
 	{
   	try{
+  		// this should not be necessary, but since it's public let's play safe
+		if(Launcher.checkAndLaunch(MainWindow.class, args))
+			return;
+  		
   			// This *has* to be done first as it sets system properties that are read and cached by Java
   		
   		COConfigurationManager.preInitialise();
