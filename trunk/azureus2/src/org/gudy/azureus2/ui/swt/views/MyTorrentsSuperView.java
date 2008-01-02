@@ -31,8 +31,8 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.*;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
@@ -48,102 +48,16 @@ public class MyTorrentsSuperView extends AbstractIView implements
 		ObfusticateImage, IViewExtension
 {
 	private static int SASH_WIDTH = 8;
-  private AzureusCore	azureus_core;
+
+	final static TableColumnCore[] tableIncompleteItems = TableColumnCreator.createIncompleteDM(TableManager.TABLE_MYTORRENTS_INCOMPLETE);
+	final static TableColumnCore[] tableCompleteItems = TableColumnCreator.createCompleteDM(TableManager.TABLE_MYTORRENTS_COMPLETE);
+	
+	private AzureusCore	azureus_core;
   
   private MyTorrentsView torrentview;
   private MyTorrentsView seedingview;
 
 	private Composite form;
-
-  final static TableColumnCore[] tableIncompleteItems = {
-    new HealthItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new RankItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new NameItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new CommentIconItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new SizeItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new DownItem(),
-    new DoneItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new StatusItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new SeedsItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new PeersItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new DownSpeedItem(),
-    new UpSpeedItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new ETAItem(),    
-    new ShareRatioItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE, false),
-    new UpItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE, false),    
-    new UpSpeedLimitItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new TrackerStatusItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    
-    // Initially Invisible    
-    new RemainingItem(),
-    new PiecesItem(),
-    new CompletionItem(),
-    new CommentItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new MaxUploadsItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new TotalSpeedItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new FilesDoneItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new SavePathItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new TorrentPathItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new CategoryItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new NetworksItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new PeerSourcesItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new AvailabilityItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new AvgAvailItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new SecondsSeedingItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new SecondsDownloadingItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new TimeSinceDownloadItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new TimeSinceUploadItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new OnlyCDing4Item(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new TrackerNextAccessItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new TrackerNameItem( TableManager.TABLE_MYTORRENTS_INCOMPLETE ),
-    new SeedToPeerRatioItem( TableManager.TABLE_MYTORRENTS_INCOMPLETE ),
-    new DownSpeedLimitItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new SwarmAverageSpeed( TableManager.TABLE_MYTORRENTS_INCOMPLETE ),
-    new SwarmAverageCompletion( TableManager.TABLE_MYTORRENTS_INCOMPLETE ),
-    new DateAddedItem( TableManager.TABLE_MYTORRENTS_INCOMPLETE ),
-    new BadAvailTimeItem( TableManager.TABLE_MYTORRENTS_INCOMPLETE ),
-  };
-
-  final static TableColumnCore[] tableCompleteItems = {
-    new HealthItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-    new RankItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-    new NameItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-    new CommentIconItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-    new SizeItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-    new DoneItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-    new StatusItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-    new SeedsItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-    new PeersItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-    new UpSpeedItem(TableManager.TABLE_MYTORRENTS_COMPLETE),    
-    new ShareRatioItem(TableManager.TABLE_MYTORRENTS_COMPLETE, true),
-    new UpItem(TableManager.TABLE_MYTORRENTS_COMPLETE, true),
-    new UpSpeedLimitItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-    
-    // Initially Invisible
-    new CommentItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-    new MaxUploadsItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-    new TotalSpeedItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-    new FilesDoneItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-    new SavePathItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-    new TorrentPathItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-    new CategoryItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-    new NetworksItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-    new PeerSourcesItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-    new AvailabilityItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-    new AvgAvailItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-    new SecondsSeedingItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-    new SecondsDownloadingItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-    new TimeSinceUploadItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-    new OnlyCDing4Item(TableManager.TABLE_MYTORRENTS_COMPLETE),
-    new TrackerStatusItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-    new TrackerNextAccessItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-    new TrackerNameItem( TableManager.TABLE_MYTORRENTS_COMPLETE ),
-    new SeedToPeerRatioItem( TableManager.TABLE_MYTORRENTS_COMPLETE ),
-    new SwarmAverageSpeed( TableManager.TABLE_MYTORRENTS_COMPLETE ),
-    new SwarmAverageCompletion( TableManager.TABLE_MYTORRENTS_COMPLETE ),
-    new DateAddedItem( TableManager.TABLE_MYTORRENTS_COMPLETE ),
-    new DateCompletedItem( TableManager.TABLE_MYTORRENTS_COMPLETE ),
-  };
 
   public MyTorrentsSuperView(AzureusCore	_azureus_core) {
   	azureus_core		= _azureus_core;
