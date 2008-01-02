@@ -21,17 +21,17 @@
  * AELITIS, SAS au capital de 46,603.30 euros,
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  */
- 
+
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
 import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.plugins.ui.tables.TableRow;
 
 /**
  *
@@ -39,24 +39,26 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
  * @author TuxPaper (2004/Apr/19: modified to TableCellAdapter)
  */
 public class LANItem
-       extends CoreTableColumn 
-       implements TableCellRefreshListener
+	extends CoreTableColumn
+	implements TableCellRefreshListener
 {
-  /** Default Constructor */
-  public LANItem(String table_id) {
-    super("lan", ALIGN_CENTER, POSITION_INVISIBLE, 20, table_id);
-    setRefreshInterval(INTERVAL_LIVE);
-  }
+	public LANItem(String table_id) {
+		super("lan", ALIGN_CENTER, POSITION_INVISIBLE, 20, table_id);
+		setRefreshInterval(INTERVAL_LIVE);
+	}
 
-  public void refresh(TableCell cell) {
-    PEPeer peer = (PEPeer)cell.getDataSource();
-    boolean lan = (peer == null) ? false : peer.isLANLocal();
+	public void refresh(TableCell cell) {
+		PEPeer peer = (PEPeer) cell.getDataSource();
+		boolean lan = (peer == null) ? false : peer.isLANLocal();
 
-    if (!cell.setSortValue(lan ? 1 : 0) && cell.isValid())
-      return;
+		if (!cell.setSortValue(lan ? 1 : 0) && cell.isValid())
+			return;
 
-    cell.setText(lan ? "*" : "");
-    
-    ((TableCellSWT)cell).getTableRowSWT().setForeground(lan ? Colors.blue : null);
-  }
+		cell.setText(lan ? "*" : "");
+
+		TableRow row = cell.getTableRow();
+		if (row != null) {
+			row.setForeground(Utils.colorToIntArray(lan ? Colors.blue : null));
+		}
+	}
 }

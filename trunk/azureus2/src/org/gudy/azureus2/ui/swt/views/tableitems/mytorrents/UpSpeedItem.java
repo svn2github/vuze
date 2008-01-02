@@ -28,8 +28,8 @@ import org.eclipse.swt.graphics.Color;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.plugins.startstoprules.defaultplugin.DefaultRankCalculator;
@@ -103,7 +103,8 @@ public class UpSpeedItem
 						&& !calc.getActivelySeeding())
 					newFG = Colors.colorWarning;
 
-        ((TableCellSWT)cell).setForeground(newFG);
+        cell.setForeground(Utils.colorToIntArray(newFG));
+
         iLastState = iState;
       } catch (Exception e) {
       	Debug.printStackTrace( e );
