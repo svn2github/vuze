@@ -24,8 +24,10 @@
 
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 
@@ -35,6 +37,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -89,54 +92,9 @@ public class NameItem extends CoreTableColumn implements
 				String path = dm.getDownloadState().getPrimaryFile();
 				if (path != null) {
 					// Don't ever dispose of PathIcon, it's cached and may be used elsewhere
-					Image icon = ImageRepository.getPathIcon(path);
-
-					if (Constants.isWindows) {
-						disposeCellIcon(cell);
-
-						Rectangle iconBounds = icon.getBounds();
-						// recomposite to avoid artifacts - transparency mask does not work
-						
-						int cellHeight = cell.getHeight();
-						if (cellHeight < 20) {
-							cellHeight = 16;
-						}
-
-						final Image dstImage = new Image(Display.getCurrent(),
-								cellHeight, cellHeight);
-						GC gc = new GC(dstImage);
-						try {
-							// for drawing alpha
-							gc.setAdvanced(true);
-						} catch (Exception e) {
-						}
-						try {
-							gc.drawImage(icon, 0, 0, iconBounds.width, iconBounds.height, 0,
-									0, cellHeight, cellHeight);
-							TOTorrent torrent = dm.getTorrent();
-							if (torrent != null && !torrent.isSimpleTorrent()) {
-								Image imgFolder = ImageRepository.getImage("foldersmall");
-								Rectangle folderBounds = imgFolder.getBounds();
-								gc.drawImage(imgFolder, folderBounds.x, folderBounds.y,
-										folderBounds.width, folderBounds.height, cellHeight
-												- folderBounds.width, cellHeight
-												- folderBounds.height, folderBounds.width,
-										folderBounds.height);
-							}
-						} finally {
-							gc.dispose();
-						}
-						icon = dstImage;
-					}
-
-					// cheat for core, since we really know it's a TableCellImpl and want to
-					// use those special functions not available to Plugins
-					if(!((TableCellSWT) cell).setIcon(icon) && Constants.isWindows)
-						icon.dispose();
-				} else {
-					if (Constants.isWindows) {
-						disposeCellIcon(cell);
-					}
+					TOTorrent torrent = dm.getTorrent();
+					Image icon = ImageRepository.getPathIcon(path,torrent != null && !torrent.isSimpleTorrent());
+					((TableCellSWT) cell).setIcon(icon);
 				}
 			}
 		}
@@ -159,9 +117,7 @@ public class NameItem extends CoreTableColumn implements
 	}
 
 	public void dispose(TableCell cell) {
-		if (bShowIcon && Constants.isWindows) {
-			disposeCellIcon(cell);
-		}
+		
 	}
 
 	private void disposeCellIcon(TableCell cell) {

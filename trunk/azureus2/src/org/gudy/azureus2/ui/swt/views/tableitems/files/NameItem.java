@@ -82,17 +82,6 @@ public class NameItem extends CoreTableColumn implements
 					// Don't ever dispose of PathIcon, it's cached and may be used elsewhere
 					icon = ImageRepository.getPathIcon(fileInfo.getFile(true).getPath());
 
-					if (Constants.isWindows) {
-						disposeCellIcon(cell);
-
-						// recomposite to avoid artifacts - transparency mask does not work
-						final Image dstImage = new Image(Display.getCurrent(),
-								icon.getBounds().width, icon.getBounds().height);
-						GC gc = new GC(dstImage);
-						gc.drawImage(icon, 0, 0);
-						gc.dispose();
-						icon = dstImage;
-					}
 				}
 
 				// cheat for core, since we really know it's a TabeCellImpl and want to use
@@ -117,9 +106,6 @@ public class NameItem extends CoreTableColumn implements
 	}
 
 	public void dispose(TableCell cell) {
-		if (bShowIcon && Constants.isWindows) {
-			disposeCellIcon(cell);
-		}
 	}
 
 	private void disposeCellIcon(TableCell cell) {

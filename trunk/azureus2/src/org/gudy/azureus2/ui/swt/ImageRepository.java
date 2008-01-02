@@ -53,7 +53,7 @@ public class ImageRepository {
   private static final HashMap images;
   private static final HashMap registry;
   private static final String[] noCacheExtList = new String[] {".exe"};
-  private static final boolean doNotUseAWTIcon = Constants.isOSX;
+  private static final boolean forceNoAWT = Constants.isOSX;
 
     static {
     images = new HashMap(150);
@@ -294,7 +294,7 @@ public class ImageRepository {
   }
 
   public static Image getIconFromExtension(String ext) {
-  	return getIconFromExtension(ext, false);
+  	return getIconFromExtension(ext, false, false);
   }
 
   /**
@@ -302,47 +302,55 @@ public class ImageRepository {
      *
      * @param program the Program
      */
-  public static Image getIconFromExtension(String ext, boolean bBig) {
+  public static Image getIconFromExtension(String ext, boolean bBig, boolean minifolder) {
 		Image image = null;
 
 		try {
-			String id = ext + (bBig ? "-big" : "");
+			String id = ext;
+			
+			if(bBig)
+				id += "-big";
+			if(minifolder)
+				id += "-fold";
+			
 			image = (Image) images.get(id);
 
-			if (image == null) {
-					ImageData imageData = null;
-
-					if (Constants.isWindows && bBig) {
-						try {
-
-							Class ehancerClass = Class.forName("org.gudy.azureus2.ui.swt.win32.Win32UIEnhancer");
-
-							Method method = ehancerClass.getMethod("getBigImageData",
-									new Class[] { String.class
-									});
-							imageData = (ImageData) method.invoke(null,
-									new Object[] { ext
-									});
-							
-						} catch (Exception e) {
-							Debug.printStackTrace(e);
-						}
+			if (image == null)
+			{
+				ImageData imageData = null;
+				
+				if (Constants.isWindows && bBig)
+				{
+					try
+					{
+						Class ehancerClass = Class.forName("org.gudy.azureus2.ui.swt.win32.Win32UIEnhancer");
+						Method method = ehancerClass.getMethod("getBigImageData", new Class[] { String.class });
+						imageData = (ImageData) method.invoke(null, new Object[] { ext });
+					} catch (Exception e)
+					{
+						Debug.printStackTrace(e);
 					}
-
-					if (imageData == null) {
-						Program program = Program.findProgram(ext);
-						if (program != null) {
-							imageData = program.getImageData();
-						}
+				}
+				
+				if (imageData == null)
+				{
+					Program program = Program.findProgram(ext);
+					if (program != null)
+					{
+						imageData = program.getImageData();
 					}
+				}
+				
+				if (imageData != null)
+				{
+					image = new Image(Display.getDefault(), imageData);
+					if (!bBig)
+						image = force16height(image);
+					if(minifolder)
+						image = minifolderize(image);
 
-					if (imageData != null) {
-						image = new Image(Display.getDefault(), imageData);
-						if (!bBig) {
-							image = force16height(image);
-						}
-						images.put(id, image);
-					}
+					images.put(id, image);
+				}
 			}
 		} catch (Throwable e) {
 			// seen exceptions thrown here, due to images.get failing in Program.hashCode
@@ -354,6 +362,20 @@ public class ImageRepository {
 		}
 		return image;
 	}
+  
+  private static Image minifolderize(Image img)
+  {
+		Image imgFolder = getImage("foldersmall");
+		Rectangle folderBounds = imgFolder.getBounds();
+		Rectangle dstBounds = img.getBounds();
+		Image tempImg = Utils.renderTransparency(Display.getCurrent(), img, imgFolder, new Point(dstBounds.width - folderBounds.width, dstBounds.height - folderBounds.height));
+		if (tempImg != null)
+		{
+			img.dispose();
+			img = tempImg;
+		}
+		return img;
+  }
   
   private static Image force16height(Image image) {
   	if (image == null) {
@@ -393,7 +415,11 @@ public class ImageRepository {
   }
 
 	public static Image getPathIcon(final String path) {
-		return getPathIcon(path, false);
+		return getPathIcon(path, false, false);
+	}
+	
+	public static Image getPathIcon(final String path, boolean minifolder) {
+		return getPathIcon(path, false, minifolder);
 	}
 
     /**
@@ -402,12 +428,15 @@ public class ImageRepository {
 	 * @param path Absolute path to the file or directory
 	 * @return The image
 	 */
-	public static Image getPathIcon(final String path, boolean bBig) {
+	public static Image getPathIcon(final String path, boolean bBig, boolean minifolder) {
 		if (path == null)
 			return null;
 
 		File file = null;
 		boolean bDeleteFile = false;
+		
+		boolean noAWT = forceNoAWT || !bBig;
+				
 		try {
 			file = new File(path);
 
@@ -417,7 +446,7 @@ public class ImageRepository {
 
 			String key;
 			if (file.isDirectory()) {
-				if (doNotUseAWTIcon)
+				if (noAWT)
 					return getFolderImage();
 
 				key = file.getPath();
@@ -425,7 +454,7 @@ public class ImageRepository {
 				final int lookIndex = file.getName().lastIndexOf(".");
 
 				if (lookIndex == -1) {
-					if (doNotUseAWTIcon)
+					if (noAWT)
 						return getFolderImage();
 
 					key = "?!blank";
@@ -433,8 +462,8 @@ public class ImageRepository {
 					final String ext = file.getName().substring(lookIndex);
 					key = ext;
 
-					if (doNotUseAWTIcon)
-						return getIconFromExtension(ext, bBig);
+					if (noAWT)
+						return getIconFromExtension(ext, bBig, minifolder);
 
 					// case-insensitive file systems
 					for (int i = 0; i < noCacheExtList.length; i++) {
@@ -446,7 +475,10 @@ public class ImageRepository {
 				}
 			}
 			
-			key += bBig ? "-big" : "";
+			if(bBig)
+				key += "-big";
+			if(minifolder)
+				key += "-fold";
 
 			// this method mostly deals with incoming torrent files, so there's less concern for
 			// custom icons (unless user sets a custom icon in a later session)
@@ -491,6 +523,8 @@ public class ImageRepository {
 				if (!bBig) {
 					image = force16height(image);
 				}
+				if(minifolder)
+					image = minifolderize(image);
 
 				registry.put(key, image);
 
@@ -513,7 +547,7 @@ public class ImageRepository {
 			return getFolderImage();
 		}
 
-		return getIconFromExtension(ext, bBig);
+		return getIconFromExtension(ext, bBig, minifolder);
 	}
 
     /**

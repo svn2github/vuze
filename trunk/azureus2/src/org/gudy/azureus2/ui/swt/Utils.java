@@ -1538,6 +1538,72 @@ public class Utils {
 		return new Image(device, dstImageData);
 	}
 	
+	  public static Image renderTransparency(Display display, Image background, Image foreground, Point foregroundOffsetOnBg) {
+		//Checks
+		if (display == null || display.isDisposed() || background == null || background.isDisposed() || foreground == null || foreground.isDisposed())
+			return null;
+		Rectangle backgroundArea = background.getBounds();
+		Rectangle foregroundDrawArea = foreground.getBounds();
+		
+		foregroundDrawArea = new Rectangle(foregroundDrawArea.x + foregroundOffsetOnBg.x, foregroundDrawArea.y + foregroundOffsetOnBg.y, foregroundDrawArea.width, foregroundDrawArea.height);
+		foregroundDrawArea.intersect(backgroundArea);
+		
+		if (foregroundDrawArea.isEmpty())
+			return null;
+		
+		Image image = new Image(display, backgroundArea);
+		
+		ImageData backData = background.getImageData();
+		ImageData foreData = foreground.getImageData();
+		ImageData imgData = image.getImageData();
+		
+		PaletteData backPalette = backData.palette;
+		ImageData backMask = backData.getTransparencyType() == SWT.TRANSPARENCY_MASK ? backData.getTransparencyMask() : null;
+		PaletteData forePalette = foreData.palette;
+		ImageData foreMask = foreData.getTransparencyType() == SWT.TRANSPARENCY_MASK ? foreData.getTransparencyMask() : null;
+		PaletteData imgPalette = imgData.palette;
+		image.dispose();
+		
+		for (int x = 0; x < backgroundArea.width; x++)
+		{
+			for (int y = 0; y < backgroundArea.height; y++)
+			{
+				RGB cBack = backPalette.getRGB(backData.getPixel(x, y));
+				int aBack = backData.getAlpha(x, y);
+				if(backMask != null && backMask.getPixel(x, y) == 0)
+					aBack = 0; // special treatment for icons with transparency masks
+				
+				int aFore = 0;
+				
+				if (foregroundDrawArea.contains(x, y))
+				{
+					final int fx = x - foregroundDrawArea.x;
+					final int fy = y - foregroundDrawArea.y;
+					RGB cFore = forePalette.getRGB(foreData.getPixel(fx,fy));
+					aFore = foreData.getAlpha(fx, fy);
+					if(foreMask != null && foreMask.getPixel(x, y) == 0)
+						aFore = 0; // special treatment for icons with transparency masks
+					cBack.red *= aBack * (255 - aFore);
+					cBack.red /= 255;
+					cBack.red += aFore * cFore.red;
+					cBack.red /= 255;
+					cBack.green *= aBack * (255 - aFore);
+					cBack.green /= 255;
+					cBack.green += aFore * cFore.green;
+					cBack.green /= 255;
+					cBack.blue *= aBack * (255 - aFore);
+					cBack.blue /= 255;
+					cBack.blue += aFore * cFore.blue;
+					cBack.blue /= 255;
+				}
+				imgData.setAlpha(x, y, Math.max(aBack,aFore));
+				imgData.setPixel(x, y, imgPalette.getPixel(cBack));
+			}
+		}
+		return new Image(display, imgData);
+	}
+	
+	
 	public static Control findBackgroundImageControl(Control control) {
 		Image image = control.getBackgroundImage();
 		if (image == null) {
