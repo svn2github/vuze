@@ -48,7 +48,7 @@ public class TrackerCellUtils
 		TRTrackerScraperResponse response = dm.getTrackerScrapeResponse();
 		if (response instanceof TRTrackerBTScraperResponseImpl) {
 			boolean bMultiHashScrapes = ((TRTrackerBTScraperResponseImpl) response).getTrackerStatus().getSupportsMultipeHashScrapes();
-			Color color = (bMultiHashScrapes) ? Colors.grey : null;
+			Color color = (bMultiHashScrapes) ? null : Colors.grey;
 			cell.setForeground(Utils.colorToIntArray(color));
 		}
 	}
