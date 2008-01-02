@@ -1490,8 +1490,8 @@ public class Utils {
 		byte[] alphaData = new byte[width * height];
 		Arrays.fill(alphaData, 0, alphaData.length, (byte) defaultAlpha);
 
-		ImageData imageData = new ImageData(50, 50, 24, new PaletteData(0xFF0000,
-				0xFF00, 0xFF));
+		ImageData imageData = new ImageData(width, height, 24, new PaletteData(
+				0xFF0000, 0xFF00, 0xFF));
 		Arrays.fill(imageData.data, 0, imageData.data.length, (byte) 0);
 		imageData.alphaData = alphaData;
 		Image image = new Image(device, imageData);
