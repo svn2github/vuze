@@ -901,15 +901,15 @@ public class FakeTableCell
 		}
 
 		if (disposeListeners != null) {
-			try {
-				for (Iterator iter = disposeListeners.iterator(); iter.hasNext();) {
-					TableCellDisposeListener listener = (TableCellDisposeListener) iter.next();
+			for (Iterator iter = disposeListeners.iterator(); iter.hasNext();) {
+				TableCellDisposeListener listener = (TableCellDisposeListener) iter.next();
+				try {
 					listener.dispose(this);
+				} catch (Throwable e) {
+					Debug.out(e);
 				}
-				disposeListeners = null;
-			} catch (Throwable e) {
-				Debug.out(e);
 			}
+			disposeListeners = null;
 		}
 		tableColumn.invokeCellDisposeListeners(this);
 		tableColumn.invalidateCells();
