@@ -528,13 +528,13 @@ DownloadManagerController
 			  				}
 			  					  
 			  				if ( newDMState == DiskManager.READY ){
+			  					
+			  					int	completed = stats.getDownloadCompleted(false);
 			  								  					
 			  					if ( 	stats.getTotalDataBytesReceived() == 0 &&
 			  							stats.getTotalDataBytesSent() == 0 &&
 			  							stats.getSecondsDownloading() == 0 ){
 
-			  						int	completed = stats.getDownloadCompleted(false);
-	  							
 			  						if ( completed < 1000 ){
 		  							
 			  							if ( open_for_seeding ){
@@ -570,6 +570,14 @@ DownloadManagerController
 							        	download_manager.getDownloadState().setFlag( DownloadManagerState.FLAG_ONLY_EVER_SEEDED, true );
 			  						}
 			  		        	}
+			  					
+			  					/* all initialization should be done here (Disk- and DownloadManager).
+			  					 * assume this download is complete and won't recieve any modifications until it is stopped again
+			  					 * or the user fiddles on the knobs
+			  					 * discard fluff once tentatively, will save memory for many active, seeding torrent-cases
+			  					 */
+			  					if(completed == 1000) 			  					
+			  						download_manager.getDownloadState().discardFluff();
 			  				}
 	  					}finally{
 	  							  						

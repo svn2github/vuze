@@ -292,6 +292,8 @@ DownloadManagerState
 	setActive(
 		boolean	active );
 	
+	public void discardFluff();
+	
 	public void
 	save();
 	

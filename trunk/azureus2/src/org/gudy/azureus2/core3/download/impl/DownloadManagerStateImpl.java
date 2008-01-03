@@ -679,6 +679,11 @@ DownloadManagerStateImpl
 		torrent.setDiscardFluff( !active );
 	}
 	
+	public void discardFluff()
+	{
+		torrent.setDiscardFluff(true);
+	}
+	
 	public void
 	save()
 	{
@@ -689,7 +694,8 @@ DownloadManagerStateImpl
 
 			do_write = write_required;
 
-			write_required = false;
+			if(write_required != false)
+				write_required = false;
 
 		} finally {
 
@@ -2417,6 +2423,8 @@ DownloadManagerStateImpl
 		setActive(boolean active )
 		{
 		}
+		
+		public void discardFluff() {}
 		
 		public void
 		save()

@@ -53,7 +53,7 @@ TRTrackerAnnouncerResponsePeerImpl
 	{
 		source		= StringInterner.intern(_source);
 		peer_id		= _peer_id;
-		address		= _address;
+		address		= StringInterner.intern(_address);
 		tcp_port	= (short)_tcp_port;
 		udp_port	= (short)_udp_port;
 		http_port	= (short)_http_port;
