@@ -62,7 +62,7 @@ public class Average {
 
     this.nbElements = (_period * 1000) / _refreshRate + 2;
     this.lastUpdate = getEffectiveTime() / _refreshRate;
-    this.values = new long[this.nbElements];
+    //this.values = new long[this.nbElements];
   }
 
   /**
@@ -88,20 +88,24 @@ public class Average {
    * @param timeFactor which is the currentTime divided by the refresh Rate
    */
   private synchronized void update(long timeFactor) {
-    //If we have a really OLD lastUpdate, we could erase the buffer a 
-    //huge number of time, so if it's really old, we change it so we'll only
-    //erase the buffer once.
-    if (lastUpdate < timeFactor - nbElements)
-      lastUpdate = timeFactor - nbElements - 1;
-
-    //For all values between lastUpdate + 1 (next value than last updated)
-    //and timeFactor (which is the new value insertion position) 
-    for (long i = lastUpdate + 1; i <= timeFactor; i++) {
-      //We set the value to 0.
-      values[(int) (i % nbElements)] = 0;
-    }
-    //We also clear the next value to be inserted (so on next time change...)
-    values[(int) ((timeFactor + 1) % nbElements)] = 0;
+	    //If we have a really OLD lastUpdate, we could erase the buffer a 
+	    //huge number of time, so if it's really old, we change it so we'll only
+	    //erase the buffer once.
+	  
+	    if (lastUpdate < timeFactor - nbElements)
+		      lastUpdate = timeFactor - nbElements - 1;
+	    
+	  if(values != null)
+	  {
+		    //For all values between lastUpdate + 1 (next value than last updated)
+		    //and timeFactor (which is the new value insertion position) 
+		    for (long i = lastUpdate + 1; i <= timeFactor; i++) {
+		      //We set the value to 0.
+		      values[(int) (i % nbElements)] = 0;
+		    }
+		    //We also clear the next value to be inserted (so on next time change...)
+		    values[(int) ((timeFactor + 1) % nbElements)] = 0;
+	  }
 
     //And we update lastUpdate.
     lastUpdate = timeFactor;
@@ -118,7 +122,10 @@ public class Average {
     //We first update the buffer.
     update(timeFactor);
     //And then we add our value to current element
-    values[(int) (timeFactor % nbElements)] += value;
+    if(values == null && value != 0)
+    	values = new long[nbElements];
+    if(values != null)
+    	values[(int) (timeFactor % nbElements)] += value;
   }
 
   /**
@@ -167,7 +174,7 @@ public class Average {
 	  //We first update the buffer
 	  update(timeFactor);
 
-	  return(values[(int)((timeFactor-1)% nbElements)]);
+	  return(values != null ? values[(int)((timeFactor-1)% nbElements)] : 0);
   }
   
   protected final long getSum() {
@@ -178,13 +185,17 @@ public class Average {
 
     //The sum of all elements used for the average.
     long sum = 0;
-
-    //Starting on oldest one (the one after the next one)
-    //Ending on last one fully updated (the one previous current one)
-    for (long i = timeFactor + 2; i < timeFactor + nbElements; i++) {
-      //Simple addition
-      sum += values[(int) (i % nbElements)];
+    
+    if(values != null)
+    {
+        //Starting on oldest one (the one after the next one)
+        //Ending on last one fully updated (the one previous current one)
+        for (long i = timeFactor + 2; i < timeFactor + nbElements; i++) {
+          //Simple addition
+          sum += values[(int) (i % nbElements)];
+        }
     }
+
 
     //We return the sum divided by the period
     return(sum);
@@ -214,9 +225,11 @@ public class Average {
 	    long end_slot 	= timeFactor + nbElements;
 	    long start_slot = end_slot - slots;
 	    
-	    for (long i = start_slot; i< end_slot;i++ ){
-	      sum += values[(int) (i % nbElements)];
-	    }
+	    if (values != null)
+			for (long i = start_slot; i < end_slot; i++)
+			{
+				sum += values[(int) (i % nbElements)];
+			}
 
 	    //We return the sum divided by the period
 	    return(sum);
