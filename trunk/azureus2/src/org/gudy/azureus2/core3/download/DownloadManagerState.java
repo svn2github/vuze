@@ -39,6 +39,7 @@ import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
 public interface 
 DownloadManagerState 
 {
+	public static final String AT_VERSION					= "version";
 	public static final String AT_CATEGORY					= "category";
 	public static final String AT_NETWORKS					= "networks";
 	public static final String AT_USER						= "user";
@@ -62,6 +63,7 @@ DownloadManagerState
 	public static final String AT_TIME_STOPPED				= "timestopped";
 	
 	public static Object[][] ATTRIBUTE_DEFAULTS = {
+		{ AT_VERSION,								new Integer( -1 )},
 		{ AT_TIME_SINCE_DOWNLOAD,					new Integer( -1 )},
 		{ AT_TIME_SINCE_UPLOAD,						new Integer( -1 )},
 		{ AT_AVAIL_BAD_TIME,						new Long( -1 )},

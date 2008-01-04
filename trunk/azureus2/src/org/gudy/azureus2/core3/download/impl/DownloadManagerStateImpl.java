@@ -56,6 +56,10 @@ public class
 DownloadManagerStateImpl
 	implements DownloadManagerState, ParameterListener
 {
+	private static final int	VER_INCOMING_PEER_SOURCE	= 1;
+	private static final int	VER_CURRENT					= VER_INCOMING_PEER_SOURCE;
+	
+	
 	private static final LogIDs LOGID = LogIDs.DISK;
 	private static final String			RESUME_KEY			= "resume";
 	private static final String			TRACKER_CACHE_KEY	= "tracker_cache";
@@ -477,6 +481,33 @@ DownloadManagerStateImpl
         	parameters	= new HashMap();
         }
         
+        	// note that version will be -1 for the first time through this code
+        
+        int	version = getIntAttribute( AT_VERSION );
+        
+        if ( version < VER_INCOMING_PEER_SOURCE ){
+        	
+        		// migrate by adding incoming as enabled - only needed if we have any specified as other
+        		// code takes care of the case where we have none
+        	
+        	if ( getPeerSources().length > 0 ){
+        		
+        		if ( PEPeerSource.isPeerSourceEnabledByDefault( PEPeerSource.PS_INCOMING )){
+        			
+        			setPeerSourceEnabled( PEPeerSource.PS_INCOMING, true );
+        		}
+        	}else{
+					
+        			// set default for newly added torrent
+        		
+				setPeerSources( PEPeerSource.getDefaultEnabledPeerSources());
+        	}
+        }
+        
+        if ( version < VER_CURRENT ){
+        	
+        	setIntAttribute( AT_VERSION, VER_CURRENT );
+        }
 
         addListeners();
 	}

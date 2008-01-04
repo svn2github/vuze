@@ -61,11 +61,18 @@ PEPeerSource
 			PS_DHT,
 			PS_OTHER_PEER,
 			PS_PLUGIN,
-			//PS_INCOMING,	remove this as we don't currently enforce
+			PS_INCOMING,
 	};
 
+	public static boolean
+	isPeerSourceEnabledByDefault(
+		String	ps )
+	{
+		return( COConfigurationManager.getBooleanParameter( "Peer Source Selection Default." + ps ));
+	}
+	
 	public static String[]
-	getPeerSources()
+	getDefaultEnabledPeerSources()
 	{
 		List	res = new ArrayList();
 		

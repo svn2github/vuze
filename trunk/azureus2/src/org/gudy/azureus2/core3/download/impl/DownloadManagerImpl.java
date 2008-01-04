@@ -894,13 +894,6 @@ DownloadManagerImpl
 					
 					download_manager_state.setNetworks( networks );
 				}
-				
-				if ( download_manager_state.getPeerSources().length == 0 ){
-					
-					String[] ps = PEPeerSource.getPeerSources();
-					
-					download_manager_state.setPeerSources( ps );
-				}
 			}			
 		}finally{
 			

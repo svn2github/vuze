@@ -443,7 +443,7 @@ DownloadManagerController
 					{
 						DownloadManagerState	dms = download_manager.getDownloadState();
 						
-						String[]	sources = PEPeerSource.getPeerSources();
+						String[]	sources = PEPeerSource.PS_SOURCES;
 						
 						for (int i=0;i<sources.length;i++){
 							
