@@ -21,8 +21,6 @@
 
 package org.gudy.azureus2.ui.swt;
 
-
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -156,7 +154,7 @@ public class FileDownloadWindow
 	private void setupAndShowDialog() {
 		if (null != pReporter) {
 			pReporter.setName(MessageText.getString("fileDownloadWindow.state_downloading")
-					+ ": " + getFileName(getShortURL(url)));
+					+ ": " + getFileName(url));
 			pReporter.appendDetailMessage(MessageText.getString("fileDownloadWindow.downloading")
 					+ getShortURL(url));
 			pReporter.setTitle(MessageText.getString("fileDownloadWindow.title"));
@@ -276,23 +274,45 @@ public class FileDownloadWindow
 			}
 			shortURL = shortURL.replaceAll("&", "&&");
 		}
+
 		return shortURL;
 	}
 
 	/**
-	 * Brute-force extraction of the torrent file name from the given URL
+	 * Brute-force extraction of the torrent file name or title from the given URL
 	 * @param url
 	 * @return
 	 */
 	private String getFileName(String url) {
 		try {
+
 			/*
+			 * First try to retrieve the 'title' field if it has one
+			 */
+
+			int idx = url.indexOf("&title=");
+			if (idx >= 0) {
+				String title = url.substring(idx + "&title=".length());
+				idx = title.indexOf('&');
+				if (idx > 0) {
+					title = title.substring(0, idx);
+					title = title.replace('+', ' ');
+					if (title.length() > 0) {
+						return title;
+					}
+				}
+			}
+
+			/*
+			 * If no 'title' field was found then just get the file name instead
+			 * 
 			 * This is not guaranteed to work in all cases because we are simply searching
 			 * for the occurrence of ".torrent" and assuming that it is the extension of the file.
 			 * This method will return inaccurate result if any other parameter of the URL also has the ".torrent"
 			 * string in it.
 			 */
-			
+
+			url = getShortURL(url);
 			String tmp = url.substring(url.lastIndexOf('/') + 1);
 			tmp = tmp.substring(0, tmp.lastIndexOf(".torrent"));
 			return tmp + ".torrent";
