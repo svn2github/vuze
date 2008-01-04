@@ -111,5 +111,9 @@ public class InitialisationFunctions
 		}
 		
 		DownloadUtils.addTrackerExtension( download, EXTENSION_PREFIX, Constants.AZID );	
+		
+			// allow the tracker to manipulate peer sources for dead/unauthorised torrents
+		
+		download.setFlag(Download.FLAG_ALLOW_PERMITTED_PEER_SOURCE_CHANGES, true );
 	}
 }
