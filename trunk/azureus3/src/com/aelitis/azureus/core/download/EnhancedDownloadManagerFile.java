@@ -105,7 +105,9 @@ EnhancedDownloadManagerFile
 	{
 		int	buffer_size = 0;
 		
-		if ( speeds != null ){
+		if ( speeds != null && speeds.length > 0 ){
+			
+			boolean	found = false;
 			
 			int	k_rate = (int)rate/1024;
 					
@@ -116,9 +118,16 @@ EnhancedDownloadManagerFile
 						// use the init buffer rather than the worst one
 					
 					buffer_size = speeds[i][2] * 1024;
+			
+					found = true;
 					
 					break;
 				}
+			}
+			
+			if ( !found ){
+				
+				buffer_size = speeds[speeds.length-1][2] * 1024;
 			}
 		}
 		
