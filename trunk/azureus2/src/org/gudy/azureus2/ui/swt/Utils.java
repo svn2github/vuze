@@ -1212,6 +1212,9 @@ public class Utils {
 			if (bOurGC) {
 				gc.dispose();
 			}
+			if (font != null && !font.isDisposed()) {
+				font.dispose();
+			}
 		}
 		return size;
 	}
