@@ -1358,9 +1358,59 @@ DownloadManagerStateImpl
 			}
 		}
 		
+		List	values = getListAttributeSupport( AT_PEER_SOURCES_DENIED );
+
+		if ( values != null ){
+			
+			if ( values.contains( peerSource )){
+				
+				return( false );
+			}
+		}
+		
 		return( true );
 	}
   	
+	public void
+	setPeerSourcePermitted(
+		String	peerSource,
+		boolean	enabled )
+	{
+		if ( !enabled ){
+		
+			setPeerSourceEnabled( peerSource, false );
+		}
+		
+		List	values = getListAttributeSupport( AT_PEER_SOURCES_DENIED );
+
+		if ( values == null ){
+		
+			if ( !enabled ){
+				
+				values = new ArrayList();
+				
+				values.add( peerSource );
+				
+				setListAttribute( AT_PEER_SOURCES_DENIED, values );
+			}
+		}else{
+			
+			if ( enabled ){
+				
+				values.remove( peerSource );
+				
+			}else{
+				
+				if ( !values.contains( peerSource )){
+					
+					values.add( peerSource );
+				}
+			}
+			
+			setListAttribute( AT_PEER_SOURCES_DENIED, values );
+		}
+	}
+	
 	public void
 	setPeerSources(
 		String[]		ps )
@@ -2374,6 +2424,9 @@ DownloadManagerStateImpl
 			String	peerSource )
 		{
 			return( false );
+		}
+		
+		public void setPeerSourcePermitted(String peerSource, boolean permitted) {			
 		}
 		
 	    public boolean

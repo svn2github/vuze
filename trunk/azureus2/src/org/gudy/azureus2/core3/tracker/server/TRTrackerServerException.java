@@ -32,6 +32,7 @@ TRTrackerServerException
 	private Map		response_headers;
 	
 	private boolean	user_message;
+	private Map		error_map;
 	
 	public
 	TRTrackerServerException(
@@ -89,5 +90,18 @@ TRTrackerServerException
 	isUserMessage()
 	{
 		return( user_message );
+	}
+	
+	public void
+	setErrorEntries(
+		Map		map )
+	{
+		error_map	= map;
+	}
+	
+	public Map
+	getErrorEntries()
+	{
+		return( error_map );
 	}
 }

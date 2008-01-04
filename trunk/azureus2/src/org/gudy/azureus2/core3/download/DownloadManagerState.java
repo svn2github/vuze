@@ -43,6 +43,7 @@ DownloadManagerState
 	public static final String AT_NETWORKS					= "networks";
 	public static final String AT_USER						= "user";
 	public static final String AT_PEER_SOURCES				= "peersources";
+	public static final String AT_PEER_SOURCES_DENIED		= "peersourcesdenied";
 	public static final String AT_TRACKER_CLIENT_EXTENSIONS	= "trackerclientextensions";
 	public static final String AT_FILE_LINKS				= "filelinks";
 	public static final String AT_FILE_STORE_TYPES			= "storetypes";
@@ -230,7 +231,12 @@ DownloadManagerState
 	
 	public boolean
 	isPeerSourcePermitted(
-		String	peerSource );
+		String		peerSource );
+	
+	public void
+	setPeerSourcePermitted(
+		String		peerSource,
+		boolean		permitted );
 	
 	public boolean
 	isPeerSourceEnabled(

@@ -2120,7 +2120,34 @@ TRTrackerBTAnnouncerImpl
 					   //parse the metadata
 				
 	 			try{
-	 				Map metaData = BDecoder.decode(data); //$NON-NLS-1$
+	 				Map metaData = BDecoder.decode(data);
+	 				
+ 					// obey any peers source restrictions
+	 				
+	 				Object o = metaData.get( "az_ps" );
+
+	 				if ( o instanceof List ){
+
+	 					List peer_sources = (List)o;
+
+	 					List	x = new ArrayList();
+	 					
+	 					for (int i=0;i<peer_sources.size();i++){
+	 						
+	 						Object o1 = peer_sources.get(i);
+	 						
+	 						if ( o1 instanceof byte[] ){
+	 							
+	 							x.add( new String((byte[])o1));
+	 						}
+	 					}
+	 					
+	 					String[]	y = new String[x.size()];
+	 					
+	 					x.toArray( y );
+	 					
+	 					announce_data_provider.setPeerSources( y );
+	 				}
 						
 	 					// handle any user warnings in the response
 					

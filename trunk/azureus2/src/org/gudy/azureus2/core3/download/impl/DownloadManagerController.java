@@ -436,6 +436,37 @@ DownloadManagerController
 					{
 						return( download_manager.getCryptoLevel());
 					}
+					
+					public void
+					setPeerSources(
+						String[]	allowed_sources )
+					{
+						DownloadManagerState	dms = download_manager.getDownloadState();
+						
+						String[]	sources = PEPeerSource.getPeerSources();
+						
+						for (int i=0;i<sources.length;i++){
+							
+							String	s = sources[i];
+							
+							boolean	ok = false;
+							
+							for (int j=0;j<allowed_sources.length;j++){
+								
+								if ( s.equals( allowed_sources[j] )){
+									
+									ok = true;
+									
+									break;
+								}
+							}
+							
+							if ( !ok ){
+								
+								dms.setPeerSourcePermitted( s, false );
+							}
+						}
+					}
 	    		});
 	    
 		

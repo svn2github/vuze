@@ -21,6 +21,8 @@
 
 package org.gudy.azureus2.core3.tracker.client;
 
+import java.util.List;
+
 /**
  * @author parg
  *
@@ -56,4 +58,8 @@ TRTrackerAnnouncerDataProvider
 	
 	public int
 	getCryptoLevel();
+	
+	public void
+	setPeerSources(
+		String[]	allowed_sources ); 
 }

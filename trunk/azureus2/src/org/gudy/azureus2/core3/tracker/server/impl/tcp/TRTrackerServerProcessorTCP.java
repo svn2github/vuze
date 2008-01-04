@@ -566,11 +566,15 @@ TRTrackerServerProcessorTCP
 				
 				String	warning_message = null;
 				
+				Map	error_entries		= null;
+				
 				if ( e instanceof TRTrackerServerException ){
 					
 					TRTrackerServerException	tr_excep = (TRTrackerServerException)e;
 					
 					int	reason = tr_excep.getResponseCode();
+					
+					error_entries = tr_excep.getErrorEntries();
 					
 					if ( reason != -1 ){
 						
@@ -590,9 +594,23 @@ TRTrackerServerProcessorTCP
 							resp += key + ": " + value + NL;
 						}
 
+						byte[]	payload = null;
+						
+						if ( error_entries != null ){
+							
+							payload = BEncoder.encode( error_entries );
+							
+							resp += "Content-Length: " + payload.length + NL;
+						}
+						
 						resp += NL;
 
 						os.write( resp.getBytes());
+						
+						if ( payload != null ){
+							
+							os.write( payload );
+						}
 						
 						os.flush();
 
@@ -602,8 +620,7 @@ TRTrackerServerProcessorTCP
 					if ( tr_excep.isUserMessage()){
 						
 						warning_message = tr_excep.getMessage();
-					}
-					
+					}					
 				}else if ( e instanceof NullPointerException ){
 					
 					e.printStackTrace();
@@ -621,12 +638,17 @@ TRTrackerServerProcessorTCP
 				}
 					
 				root	= new HashMap();
-				
+								
 				root.put( "failure reason", message );
 				
 				if ( warning_message != null ){
 					
 					root.put( "warning message", warning_message );
+				}
+				
+				if ( error_entries != null ){
+					
+					root.putAll( error_entries );
 				}
 			}
 		
