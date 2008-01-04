@@ -139,6 +139,14 @@ Download extends DownloadEventNotifier
     
     public static final long FLAG_LOW_NOISE					= 0x00000010;
 
+    	/**
+    	 * Flag value - normally the permitted peer sources for a download are fixed and can't be changed
+    	 * this flag allows the permitted peer source set to be increased/decreased (but not beyond the enforced
+    	 * values required to honour a torrent's 'private' flag
+    	 */
+    public static final long FLAG_ALLOW_PERMITTED_PEER_SOURCE_CHANGES = 0x00000020;
+    
+    
 	/** get state from above ST_ set
    * @return ST_ constant
    *

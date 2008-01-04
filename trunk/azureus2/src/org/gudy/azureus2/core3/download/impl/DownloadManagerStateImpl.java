@@ -1376,6 +1376,14 @@ DownloadManagerStateImpl
 		String	peerSource,
 		boolean	enabled )
 	{
+		if ( !getFlag( FLAG_ALLOW_PERMITTED_PEER_SOURCE_CHANGES )){
+			
+			Logger.log(new LogEvent(torrent, LOGID, "Attempt to modify permitted peer sources denied as disabled '"
+							+ TorrentUtils.getLocalisedName(torrent) + "'"));
+
+			return;
+		}
+		
 		if ( !enabled ){
 		
 			setPeerSourceEnabled( peerSource, false );
