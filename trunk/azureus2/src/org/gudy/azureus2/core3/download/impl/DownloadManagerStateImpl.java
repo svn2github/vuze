@@ -1365,30 +1365,28 @@ DownloadManagerStateImpl
 	isPeerSourcePermitted(
 		String	peerSource )
 	{
-		if ( peerSource == PEPeerSource.PS_DHT ){
+			// no DHT for private torrents or if no DHT or explicitly prevented
+		
+		if ( peerSource.equals( PEPeerSource.PS_DHT )){
 			
-			if ( !TorrentUtils.getDHTTrackerEnabled()){
-				
+			if ( 	TorrentUtils.getPrivate( torrent ) ||
+					( !TorrentUtils.getDHTTrackerEnabled()) ||
+					( !TorrentUtils.getDHTBackupEnabled( torrent ))){
+							
 				return( false );
 			}
 		}
 		
-		if ( TorrentUtils.getPrivate( torrent )){
-			
-			if ( 	peerSource == PEPeerSource.PS_DHT ||
-					peerSource == PEPeerSource.PS_OTHER_PEER ){
-				
-				return( false );
-			}
-			
-		}else if ( !TorrentUtils.getDHTBackupEnabled( torrent )){
-			
-			if ( peerSource == PEPeerSource.PS_DHT ){
-				
-				return( false );
-			}
-		}
+			// no PEX for private torrents
 		
+		if ( peerSource.equals( PEPeerSource.PS_OTHER_PEER )){
+	
+			if ( TorrentUtils.getPrivate( torrent )){
+				
+				return( false );
+			}
+		}			
+			
 		List	values = getListAttributeSupport( AT_PEER_SOURCES_DENIED );
 
 		if ( values != null ){
