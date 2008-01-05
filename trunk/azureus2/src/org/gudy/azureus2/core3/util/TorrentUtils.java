@@ -251,14 +251,14 @@ TorrentUtils
 	    	
 	   			// we've got to re-obtain the pieces etc. here in case they've been thrown
 	   			// away to save memory *before* we rename the torrent file!
-	   		   		
-	   		torrent.getPieces();
 	   		
-	   			// restore fluff too
 	   		
-	   		if  ( torrentFluffKeyset != null ){
-	   			for(Iterator it = torrentFluffKeyset.iterator();it.hasNext();)
-	   				torrent.getAdditionalMapProperty( (String)it.next() );
+	   		boolean[] restored = null;
+	   		
+	   		if(torrent instanceof torrentDelegate)
+	   		{
+	   			torrentDelegate delegate = (torrentDelegate)torrent;
+	   			restored = delegate.restoreState(true, true);
 	   		}
 	   		
 	    	String str = torrent.getAdditionalStringProperty("torrent filename");
@@ -293,6 +293,15 @@ TorrentUtils
 	    	}
 	      
 	    	torrent.serialiseToBEncodedFile(torrent_file);
+	    	
+	    	if(restored != null && torrent instanceof torrentDelegate)
+	   		{
+	    		torrentDelegate delegate = (torrentDelegate)torrent;
+	    		if(restored[0])
+	    			delegate.discardPieces(SystemTime.getCurrentTime(), true);
+	    		if(restored[1])
+	    			delegate.setDiscardFluff(true);
+	   		}
 			
 	   	}finally{
 	   		
