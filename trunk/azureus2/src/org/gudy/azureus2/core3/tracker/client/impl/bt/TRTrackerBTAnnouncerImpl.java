@@ -1037,7 +1037,7 @@ TRTrackerBTAnnouncerImpl
 	  int	num_want = calculateNumWant() * 4;
 
 
-      TRTrackerAnnouncerResponsePeer[]	cached_peers = getPeersFromCache(num_want);
+      TRTrackerAnnouncerResponsePeer[]	cached_peers = getPeersFromCache(num_want);      
       
       if ( cached_peers.length > 0 ){
 
@@ -1918,6 +1918,11 @@ TRTrackerBTAnnouncerImpl
   protected int
   calculateNumWant()
   {
+	if ( !announce_data_provider.isPeerSourceEnabled( PEPeerSource.PS_BT_TRACKER )){
+		
+		return( 0 );
+	}
+
     int MAX_PEERS = 100;
     
     int maxAllowed = announce_data_provider.getMaxNewConnectionsAllowed();
