@@ -2043,6 +2043,9 @@ implements PEPeerTransport
 		}
 		else {
 			this.client = ClientIdentifier.identifyBTOnly(this.client_peer_id, this.handshake_reserved_bytes);
+			
+			connection.getIncomingMessageQueue().getDecoder().resumeDecoding();
+			
 			generateFallbackSessionId();
 			this.initPostConnection(handshake);
 		}
