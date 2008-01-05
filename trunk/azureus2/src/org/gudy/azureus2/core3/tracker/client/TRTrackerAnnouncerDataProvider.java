@@ -59,6 +59,10 @@ TRTrackerAnnouncerDataProvider
 	public int
 	getCryptoLevel();
 	
+	public boolean
+	isPeerSourceEnabled(
+		String		peer_source );
+	
 	public void
 	setPeerSources(
 		String[]	allowed_sources ); 

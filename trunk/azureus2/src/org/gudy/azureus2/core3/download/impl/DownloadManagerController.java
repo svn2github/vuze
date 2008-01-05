@@ -467,6 +467,13 @@ DownloadManagerController
 							}
 						}
 					}
+					
+					public boolean
+					isPeerSourceEnabled(
+						String		peer_source )
+					{
+						return( download_manager.getDownloadState().isPeerSourceEnabled( peer_source ));
+					}
 	    		});
 	    
 		

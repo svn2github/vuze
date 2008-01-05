@@ -734,8 +734,17 @@ TRTrackerBTAnnouncerImpl
 					tracker_state	= TS_INITIALISED;
 					
 				}else{
-	    	       	        	
-					tracker_status_str = MessageText.getString("PeerManager.status.ok"); //set the status      //$NON-NLS-1$
+	    	       	    
+					if ( announce_data_provider.isPeerSourceEnabled( PEPeerSource.PS_BT_TRACKER )){
+						
+						tracker_status_str = MessageText.getString("PeerManager.status.ok");
+
+					}else{
+						
+						tracker_status_str = MessageText.getString("PeerManager.status.ps_disabled");
+						
+						response.setPeers(new TRTrackerAnnouncerResponsePeerImpl[0]);
+					}
 				}
 
 				String	reason = response.getAdditionalInfo();
@@ -3099,36 +3108,70 @@ TRTrackerBTAnnouncerImpl
 		}else{
 			DownloadAnnounceResultPeer[]	ext_peers = result.getPeers();
 			
-			TRTrackerAnnouncerResponsePeerImpl[] peers = new TRTrackerAnnouncerResponsePeerImpl[ext_peers.length];
+			List	l_peers = new ArrayList(ext_peers.length);
 				
+			boolean ps_enabled = announce_data_provider.isPeerSourceEnabled( PEPeerSource.PS_BT_TRACKER );
+						
 			for (int i=0;i<ext_peers.length;i++){
 				
 				DownloadAnnounceResultPeer	ext_peer = ext_peers[i];
 				
-				int		http_port	= 0;
-				byte	az_version 	= TRTrackerAnnouncer.AZ_TRACKER_VERSION_1;
+				String	ps = ext_peer.getSource();
 				
-				peers[i] = new TRTrackerAnnouncerResponsePeerImpl( 
-								ext_peer.getSource(),
-								ext_peer.getPeerID(),
-								ext_peer.getAddress(), 
-								ext_peer.getPort(),
-								ext_peer.getUDPPort(),
-								http_port,
-								ext_peer.getProtocol(),
-								az_version,
-								(short)0 );
+					// filter out any disabled peers
 				
-				if (Logger.isEnabled())
-					Logger.log(new LogEvent(torrent, LOGID, "EXTERNAL PEER: " + peers[i].getString())); 
-
+				if ( !ps_enabled && ps.equals( PEPeerSource.PS_BT_TRACKER )){
+										
+					continue;
+					
+				}else{
+					
+					int		http_port	= 0;
+					byte	az_version 	= TRTrackerAnnouncer.AZ_TRACKER_VERSION_1;
+					
+					TRTrackerAnnouncerResponsePeerImpl p = 
+						new TRTrackerAnnouncerResponsePeerImpl( 
+									ext_peer.getSource(),
+									ext_peer.getPeerID(),
+									ext_peer.getAddress(), 
+									ext_peer.getPort(),
+									ext_peer.getUDPPort(),
+									http_port,
+									ext_peer.getProtocol(),
+									az_version,
+									(short)0 );
+					
+					l_peers.add( p );
+				
+					if (Logger.isEnabled())
+						Logger.log(new LogEvent(torrent, LOGID, "EXTERNAL PEER: " + p.getString())); 
+				}
 			}
+			
+			TRTrackerAnnouncerResponsePeerImpl[] peers = new TRTrackerAnnouncerResponsePeerImpl[ l_peers.size()];
+
+			l_peers.toArray( peers );
 			
 			addToTrackerCache( peers);
 		
-			status = MessageText.getString("PeerManager.status.ok");
+			if ( ps_enabled || peers.length > 0 || ext_peers.length == 0 ){
+				
+				status = MessageText.getString("PeerManager.status.ok");
 
-			response = new TRTrackerAnnouncerResponseImpl( result.getURL(), torrent_hash, TRTrackerAnnouncerResponse.ST_ONLINE, result.getTimeToWait(), peers );
+			}else{
+				
+				status = MessageText.getString("PeerManager.status.ps_disabled");
+				
+				peers = new TRTrackerAnnouncerResponsePeerImpl[0];
+			}
+			
+			response = 
+				new TRTrackerAnnouncerResponseImpl( 
+						result.getURL(), 
+						torrent_hash, 
+						TRTrackerAnnouncerResponse.ST_ONLINE, 
+						result.getTimeToWait(), 
+						peers );
 		}
 		
 			// only make the user aware of the status if the underlying announce is
