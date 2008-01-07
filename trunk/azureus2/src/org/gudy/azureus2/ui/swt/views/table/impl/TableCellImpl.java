@@ -47,6 +47,7 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnSWTUtils;
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
@@ -1254,15 +1255,9 @@ public class TableCellImpl
 		if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
 			return;
 		
-		BufferedGraphicTableItem ti = (BufferedGraphicTableItem) bufferedTableItem;
-
 		int align = tableColumn.getAlignment();
-    if (align == TableColumn.ALIGN_CENTER)
-    	ti.setOrientation(SWT.CENTER); 
-    else if (align == TableColumn.ALIGN_LEAD)
-    	ti.setOrientation(SWT.LEFT); 
-    else if (align == TableColumn.ALIGN_TRAIL)
-    	ti.setOrientation(SWT.RIGHT); 
+		BufferedGraphicTableItem ti = (BufferedGraphicTableItem) bufferedTableItem;
+		ti.setOrientation(TableColumnSWTUtils.convertColumnAlignmentToSWT(align));
 	}
 
 	public String getObfusticatedText() {
