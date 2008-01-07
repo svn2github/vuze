@@ -571,50 +571,60 @@ TRTrackerServerImpl
 		int							bytes_in,
 		int							bytes_out )
 	{
-		try{
-			class_mon.enter();
+			// non-synced, but doesn't really matter too much and we don't want to bring all parallel
+			// requests down to a single monitor here
 		
-			stats.update( request_type, bytes_in, bytes_out );
+		stats.update( request_type, bytes_in, bytes_out );
+		
+		if ( torrent != null ){
+
+			torrent.updateXferStats( bytes_in, bytes_out );
+
+		}else{
+
+			int	num = torrent_map.size();
+
+				// this gets too expensive to do when we have a lot of torrents so just ignore
+				// stats if so
 			
-			if ( torrent != null ){
+			if ( num < 256 ){
 				
-				torrent.updateXferStats( bytes_in, bytes_out );
-				
-			}else{
-				
-				int	num = torrent_map.size();
-				
-				if ( num > 0 ){
-				
+				try{
+					class_mon.enter();
+	
+	
+					if ( num > 0 ){
+	
 						// full scrape or error - spread the reported bytes across the torrents
-				
-					int	ave_in	= bytes_in/num;
-					int	ave_out	= bytes_out/num;
-					
-					int	rem_in 	= bytes_in-(ave_in*num);
-					int rem_out	= bytes_out-(ave_out*num);
-					
-					Iterator	it = torrent_map.values().iterator();
-				
-					while(it.hasNext()){
-									
-						TRTrackerServerTorrentImpl	this_torrent = (TRTrackerServerTorrentImpl)it.next();
-						
-						if ( it.hasNext()){
-							
-							this_torrent.updateXferStats( ave_in, ave_out );
-							
-						}else{
-							
-							this_torrent.updateXferStats( ave_in+rem_in, ave_out+rem_out );
-							
+	
+						int	ave_in	= bytes_in/num;
+						int	ave_out	= bytes_out/num;
+	
+						int	rem_in 	= bytes_in-(ave_in*num);
+						int rem_out	= bytes_out-(ave_out*num);
+	
+						Iterator	it = torrent_map.values().iterator();
+	
+						while(it.hasNext()){
+	
+							TRTrackerServerTorrentImpl	this_torrent = (TRTrackerServerTorrentImpl)it.next();
+	
+							if ( it.hasNext()){
+	
+								this_torrent.updateXferStats( ave_in, ave_out );
+	
+							}else{
+	
+								this_torrent.updateXferStats( ave_in+rem_in, ave_out+rem_out );
+	
+							}
 						}
 					}
+				}finally{
+	
+					class_mon.exit();
 				}
 			}
-		}finally{
-			
-			class_mon.exit();
 		}
 	}
 	
