@@ -472,7 +472,7 @@ DownloadManagerController
 					isPeerSourceEnabled(
 						String		peer_source )
 					{
-						return( download_manager.getDownloadState().isPeerSourceEnabled( peer_source ));
+						return( DownloadManagerController.this.isPeerSourceEnabled( peer_source ));
 					}
 	    		});
 	    
@@ -1157,6 +1157,13 @@ DownloadManagerController
 		}
 		
 		destroyFileInfo();
+	}
+	
+	public boolean
+	isPeerSourceEnabled(
+		String		peer_source )
+	{
+		return( download_manager.getDownloadState().isPeerSourceEnabled( peer_source ));
 	}
 	
 		// secrets for inbound connections, support all

@@ -31,6 +31,10 @@ PeerManagerRegistrationAdapter
 	getSecrets();
 	
 	public boolean
+	isPeerSourceEnabled(
+		String		peer_source );
+	
+	public boolean
 	activateRequest(
 		InetSocketAddress		remote_address );
 	
