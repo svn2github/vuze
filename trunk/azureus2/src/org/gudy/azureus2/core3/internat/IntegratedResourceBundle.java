@@ -114,13 +114,6 @@ IntegratedResourceBundle
 		Map 				localizationPaths,
 		Collection 			resource_bundles) 
 	{
-		synchronized( bundle_map ){
-			
-			bundle_map.put( this, NULL_OBJECT );
-			
-			resetCompactTimer();
-		}
-		
 		locale = main.getLocale();
 
 			// use a somewhat decent initial capacity, proper calculation would require java 1.6
@@ -159,6 +152,13 @@ IntegratedResourceBundle
 		}
 		
 		used_messages = new LightHashMap( messages.size());
+		
+		synchronized( bundle_map ){
+			
+			bundle_map.put( this, NULL_OBJECT );
+			
+			resetCompactTimer();
+		}
 	}
 
 	public Locale getLocale() 
