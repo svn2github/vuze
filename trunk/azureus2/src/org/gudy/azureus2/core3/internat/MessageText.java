@@ -54,7 +54,7 @@ public class MessageText {
   private static final String BUNDLE_NAME = "org.gudy.azureus2.internat.MessagesBundle"; //$NON-NLS-1$
   private static Map pluginLocalizationPaths = new HashMap();
   private static Collection pluginResourceBundles = new ArrayList();
-  private static ResourceBundle RESOURCE_BUNDLE;
+  private static IntegratedResourceBundle RESOURCE_BUNDLE;
   private static Set			platform_specific_keys	= new HashSet();
 	private static final Pattern PAT_PARAM_ALPHA = Pattern.compile("\\{([^0-9].+?)\\}");
 
@@ -65,9 +65,14 @@ public class MessageText {
   
   // preload default language w/o plugins
   static{
-	  setResourceBundle( getResourceBundle(BUNDLE_NAME, LOCALE_DEFAULT, MessageText.class.getClassLoader()));
+	  setResourceBundle( new IntegratedResourceBundle( getResourceBundle( BUNDLE_NAME, LOCALE_DEFAULT, MessageText.class.getClassLoader()), pluginLocalizationPaths ));
   }
+
+  	// grab a reference to the default bundle
   
+  private static IntegratedResourceBundle DEFAULT_BUNDLE = RESOURCE_BUNDLE;
+  
+
   public static void loadBundle() {
 	  loadBundle(false);
   }
@@ -151,7 +156,8 @@ public class MessageText {
 	ClassLoader	cl )
   {
 	  try{
-		  return( ResourceBundle.getBundle(name, loc, cl ));
+		 
+		 return( ResourceBundle.getBundle(name, loc, cl ));
 		  
 	  }catch( Throwable e ){
 		  
@@ -191,23 +197,21 @@ public class MessageText {
 	  } 
   }
   
-  private static ResourceBundle DEFAULT_BUNDLE = RESOURCE_BUNDLE;
-  
   private static void
   setResourceBundle(
-	  ResourceBundle	bundle )
+	  IntegratedResourceBundle	bundle )
   {
 	  RESOURCE_BUNDLE	= bundle;
 	  
-	  Enumeration	keys = RESOURCE_BUNDLE.getKeys();
+	  Iterator	keys = RESOURCE_BUNDLE.getKeysLight();
 	  
 	  String	platform_suffix = getPlatformSuffix();
 	  
 	  platform_specific_keys.clear();
 	  
-	  while( keys.hasMoreElements()){
+	  while( keys.hasNext()){
 		  
-		  String	key = (String)keys.nextElement();
+		  String	key = (String)keys.next();
 		  
 		  if ( key.endsWith( platform_suffix )){
 			  			  
@@ -597,7 +601,13 @@ public class MessageText {
   private static boolean changeLocale(Locale newLocale, boolean force) {
 	if(!LOCALE_CURRENT.equals(newLocale) && newLocale.equals(LOCALE_ENGLISH))
 	{
-		setResourceBundle( new IntegratedResourceBundle(DEFAULT_BUNDLE, pluginLocalizationPaths));
+			// only set if we're not already running with DEFAULT
+		
+		if ( RESOURCE_BUNDLE != DEFAULT_BUNDLE ){
+		
+			setResourceBundle( new IntegratedResourceBundle(DEFAULT_BUNDLE, pluginLocalizationPaths));
+		}
+		
 		Locale.setDefault(newLocale);
 		LOCALE_CURRENT = LOCALE_DEFAULT;
 		return true;

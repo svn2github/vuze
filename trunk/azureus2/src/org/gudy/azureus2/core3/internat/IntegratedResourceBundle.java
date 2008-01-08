@@ -20,102 +20,137 @@
  */
 package org.gudy.azureus2.core3.internat;
 
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.ListResourceBundle;
-import java.util.Locale;
-import java.util.Map;
-import java.util.ResourceBundle;
+import java.util.*;
+
+import org.gudy.azureus2.core3.util.LightHashMap;
 
 /**
  * @author Rene Leonhardt
  */
-public class IntegratedResourceBundle extends ListResourceBundle {
-
+public class 
+IntegratedResourceBundle 
+	extends ResourceBundle 
+{
+	private static final Object	NULL_OBJECT = new Object();
+	
 	private Locale	locale;
 
-  private Object[][] contents;
-  
-  public IntegratedResourceBundle(ResourceBundle main, Map localizationPaths) {
-	  this(main, localizationPaths, null);
-  }
+	private Map	messages 		= new HashMap();
+	private Map	used_messages;
+	
+	public 
+	IntegratedResourceBundle(
+		ResourceBundle 		main, 
+		Map 				localizationPaths) 
+	{
+		this( main, localizationPaths, null );
+	}
 
-  public 
-  IntegratedResourceBundle(
-		ResourceBundle main, 
-		Map localizationPaths,
-		Collection resource_bundles) 
-  {
-	  locale = main.getLocale();
-	  
-	  // use a somewhat decent initial capacity, proper calculation would require java 1.6
-	  Map messages = new HashMap(200);
-	  
-	  addResourceMessages(main, messages);
+	public 
+	IntegratedResourceBundle(
+		ResourceBundle 		main, 
+		Map 				localizationPaths,
+		Collection 			resource_bundles) 
+	{
+		locale = main.getLocale();
 
-	  for (Iterator iter = localizationPaths.keySet().iterator(); iter.hasNext();) {
-	      String localizationPath = (String) iter.next();
-	      ClassLoader classLoader = (ClassLoader) localizationPaths.get(localizationPath);
-	      ResourceBundle newResourceBundle = null;
-	      try {
-	        if(classLoader != null)
-	          newResourceBundle = ResourceBundle.getBundle(localizationPath, locale ,classLoader);
-	        else
-	        newResourceBundle = ResourceBundle.getBundle(localizationPath, locale,IntegratedResourceBundle.class.getClassLoader());
-	      } catch (Exception e) {
-	        //        System.out.println(localizationPath+": no resource bundle for " +
-					// main.getLocale());
-	        try {
-	          if(classLoader != null)
-	            newResourceBundle = ResourceBundle.getBundle(localizationPath, MessageText.LOCALE_DEFAULT,classLoader);
-	          else 
-	          newResourceBundle = ResourceBundle.getBundle(localizationPath, MessageText.LOCALE_DEFAULT,IntegratedResourceBundle.class.getClassLoader());
-	        } catch (Exception e2) {
-	          System.out.println(localizationPath + ": no default resource bundle");
-	          continue;
-	        }
-	      }
-	      addResourceMessages(newResourceBundle, messages);
-	  }
+			// use a somewhat decent initial capacity, proper calculation would require java 1.6
+		
+		addResourceMessages( main );
 
-	  if (resource_bundles != null) {
-		  for (Iterator itr = resource_bundles.iterator(); itr.hasNext();) {
-			  addResourceMessages((ResourceBundle)itr.next(), messages);
-		  }
-	  }
-	  
-	 contents = new Object[messages.size()][2];
-	  
-	 int i = 0;
-	  
-	 for (Iterator it = messages.keySet().iterator(); it.hasNext();) {
-	      String key = (String) it.next();
-	      contents[i][0] = key;
-	      contents[i++][1] = messages.get(key);
-	 }
-	 
-  }
+		for (Iterator iter = localizationPaths.keySet().iterator(); iter.hasNext();){
+			String localizationPath = (String) iter.next();
+			ClassLoader classLoader = (ClassLoader) localizationPaths.get(localizationPath);
+			ResourceBundle newResourceBundle = null;
+			try {
+				if(classLoader != null)
+					newResourceBundle = ResourceBundle.getBundle(localizationPath, locale ,classLoader);
+				else
+					newResourceBundle = ResourceBundle.getBundle(localizationPath, locale,IntegratedResourceBundle.class.getClassLoader());
+			} catch (Exception e) {
+				//        System.out.println(localizationPath+": no resource bundle for " +
+				// main.getLocale());
+				try {
+					if(classLoader != null)
+						newResourceBundle = ResourceBundle.getBundle(localizationPath, MessageText.LOCALE_DEFAULT,classLoader);
+					else 
+						newResourceBundle = ResourceBundle.getBundle(localizationPath, MessageText.LOCALE_DEFAULT,IntegratedResourceBundle.class.getClassLoader());
+				} catch (Exception e2) {
+					System.out.println(localizationPath + ": no default resource bundle");
+					continue;
+				}
+			}
+			addResourceMessages(newResourceBundle);
+		}
 
-  public Locale getLocale() 
-  {
-      return locale;
-  }
-  
-  public Object[][] getContents() {
-	    return contents;
-  }
+		if (resource_bundles != null) {
+			for (Iterator itr = resource_bundles.iterator(); itr.hasNext();) {
+				addResourceMessages((ResourceBundle)itr.next());
+			}
+		}
+		
+		used_messages = new LightHashMap( messages.size());
+	}
 
-  private void 
-  addResourceMessages(ResourceBundle bundle, Map messages) 
-  {
-    if (bundle != null) {
-      for (Enumeration enumeration = bundle.getKeys(); enumeration.hasMoreElements();) {
-        String key = (String) enumeration.nextElement();
-        messages.put(key, bundle.getObject(key));
-      }
-    }
-  }
+	public Locale getLocale() 
+	{
+		return locale;
+	}
+
+	public Enumeration 
+	getKeys() 
+	{
+		new Exception("Don't call me, call getKeysLight").printStackTrace();
+		
+		return( new Vector( messages.keySet()).elements());
+	}
+	
+	protected Iterator
+	getKeysLight()
+	{
+		return( messages.keySet().iterator());
+	}
+	
+	protected Object 
+	handleGetObject(
+		String key )
+	{
+		Object	res = used_messages.get( key );
+		
+		if ( res == NULL_OBJECT ){
+			
+			return( null );
+		}
+		
+		if ( res == null ){
+			
+			res = messages.get( key );
+			
+			used_messages.put( key, res==null?NULL_OBJECT:res );
+		}
+		
+		return( res );
+	}
+	
+	private void 
+	addResourceMessages(
+		ResourceBundle bundle )
+	{
+		if ( bundle != null ){
+			
+			if ( bundle instanceof IntegratedResourceBundle ){
+				
+				messages.putAll(((IntegratedResourceBundle)bundle).messages);
+				
+			}else{
+				
+				for (Enumeration enumeration = bundle.getKeys(); enumeration.hasMoreElements();) {
+					
+					String key = (String) enumeration.nextElement();
+					
+					messages.put(key, bundle.getObject(key));
+				}
+			}
+		}
+	}
 }
