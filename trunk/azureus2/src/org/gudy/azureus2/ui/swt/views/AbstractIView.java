@@ -35,6 +35,10 @@ import org.gudy.azureus2.ui.swt.Messages;
 public abstract class AbstractIView implements IView {
 	// XXX AEMonitor introduced to plugin interface..
 	protected AEMonitor this_mon 	= new AEMonitor( "AbstractIView" );
+	
+	private String lastFullTitleKey = null;
+	
+	private String lastFullTitle = "";
 
   public void initialize(Composite composite){    
   }
@@ -64,16 +68,26 @@ public abstract class AbstractIView implements IView {
    * 
    * @return the full title for the view
    */
-  public String getFullTitle(){
-	  String	key = getData();
-	  
-	 if ( MessageText.keyExists( key )){
-		 
-		 return MessageText.getString(getData());
-	 }
-	 
-	 return( key.replace( '.', ' ' ));	// support old plugins
-  }
+	public String getFullTitle() {
+		String key = getData();
+		if (key == null) {
+			return "";
+		}
+
+		if (key.equals(lastFullTitleKey)) {
+			return lastFullTitle;
+		}
+
+		lastFullTitleKey = key;
+
+		if (MessageText.keyExists(key)) {
+			lastFullTitle = MessageText.getString(key);
+		} else {
+			lastFullTitle = lastFullTitle.replace('.', ' '); // support old plugins
+		}
+
+		return lastFullTitle;
+	}
 
   /**
    * Called in order to set / update the short title of this view.  When the 
