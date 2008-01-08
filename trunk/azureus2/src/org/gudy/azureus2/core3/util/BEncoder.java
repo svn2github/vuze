@@ -40,6 +40,8 @@ BEncoder
 {    
 	private static final int BUFFER_DOUBLE_LIMIT	= 256*1024;
 	
+	private static final byte[] MINUS_1_BYTES = "-1".getBytes();
+	
     public static byte[] 
     encode(
     	Map object ) 
@@ -67,6 +69,8 @@ BEncoder
     private int			current_buffer_pos	= 0;
     private byte[][]	old_buffers;		
     
+    private byte[]		int_buffer			= new byte[12];
+    
     private boolean	url_encode;
     
     private
@@ -89,11 +93,11 @@ BEncoder
 
             ByteBuffer	bb 	= Constants.DEFAULT_CHARSET.encode( tempString );           
             
-            write(Constants.DEFAULT_CHARSET.encode(String.valueOf(bb.limit())));
+            writeInt( bb.limit() );
             
-            write(':');
+            writeChar(':');
             
-            write(bb );
+            writeByteBuffer(bb );
             
         }else if(object instanceof Map){
         	
@@ -111,7 +115,7 @@ BEncoder
             boolean	byte_keys = object instanceof ByteEncodedKeyHashMap;
             
             //write the d            
-            write('d');
+            writeChar('d');
             
             //are we sorted?
             if ( tempMap instanceof TreeMap ){
@@ -167,7 +171,7 @@ BEncoder
                 }     
             }
             
-            write('e');
+            writeChar('e');
             
             
         }else if(object instanceof List){
@@ -176,47 +180,47 @@ BEncoder
             
             	//write out the l
             
-            write('l');                                   
+            writeChar('l');                                   
             
             for(int i = 0; i<tempList.size(); i++){
                 
             	encodeObject( tempList.get(i));                            
             }   
             
-            write('e');                          
+            writeChar('e');                          
             
         }else if(object instanceof Long){
         	
             Long tempLong = (Long)object;         
             //write out the l       
-               write('i');
-               write(Constants.DEFAULT_CHARSET.encode(tempLong.toString()));
-               write('e');
+            writeChar('i');
+            writeLong(tempLong.longValue());
+            writeChar('e');
          }else if(object instanceof Integer){
          	
 			Integer tempInteger = (Integer)object;         
 			//write out the l       
-			write('i');
-			write(Constants.DEFAULT_CHARSET.encode(tempInteger.toString()));
-			write('e');
+			writeChar('i');
+			writeInt(tempInteger.intValue());
+			writeChar('e');
 			
        }else if(object instanceof byte[]){
        	
             byte[] tempByteArray = (byte[])object;
-            write(Constants.DEFAULT_CHARSET.encode(String.valueOf(tempByteArray.length)));
-            write(':');
+            writeInt(tempByteArray.length);
+            writeChar(':');
             if ( url_encode ){
-            	write(URLEncoder.encode(new String(tempByteArray, Constants.BYTE_ENCODING), Constants.BYTE_ENCODING ).getBytes());
+            	writeBytes(URLEncoder.encode(new String(tempByteArray, Constants.BYTE_ENCODING), Constants.BYTE_ENCODING ).getBytes());
             }else{
-            	write(tempByteArray);
+            	writeBytes(tempByteArray);
             }
             
        }else if(object instanceof ByteBuffer ){
        	
        		ByteBuffer  bb = (ByteBuffer)object;
-       		write(Constants.DEFAULT_CHARSET.encode(String.valueOf(bb.limit())));
-            write(':');
-            write(bb);
+       		writeInt(bb.limit());
+       		writeChar(':');
+            writeByteBuffer(bb);
             
        }else if ( object == null ){
     	   
@@ -231,7 +235,7 @@ BEncoder
     }
     
     private void
-    write(
+    writeChar(
     	char		c )
    	{
     	int rem = current_buffer.length - current_buffer_pos;
@@ -269,22 +273,55 @@ BEncoder
    	}
    	
     private void
-    write(
-    	byte[]			bytes )
+    writeInt(
+    	int		i )
     {
-    	write( bytes, bytes.length );
+    		// we get a bunch of -1 values, optimise
+    	
+    	if ( i == -1 ){
+    		
+    		writeBytes( MINUS_1_BYTES );
+    		
+    		return;
+    	}
+    	
+    	int start = intToBytes( i );
+    	   	
+    	writeBytes( int_buffer, start, 12 - start );
     }
     
     private void
-    write(
+    writeLong(
+    	long	l )
+    {
+     	if ( l <= Integer.MAX_VALUE && l >= Integer.MIN_VALUE ){
+    		
+    		writeInt((int)l);
+    		
+    	}else{
+    		
+    		writeBytes(Long.toString( l ).getBytes());
+    	}
+    }
+    
+    private void
+    writeBytes(
+    	byte[]			bytes )
+    {
+    	writeBytes( bytes, 0, bytes.length );
+    }
+    
+    private void
+    writeBytes(
     	byte[]			bytes,
+    	int				offset,
     	int				length )
     {
     	int rem = current_buffer.length - current_buffer_pos;
     	
     	if ( rem >= length ){
     		
-    		System.arraycopy( bytes, 0, current_buffer, current_buffer_pos, length );
+    		System.arraycopy( bytes, offset, current_buffer, current_buffer_pos, length );
     		
     		current_buffer_pos += length;
     		
@@ -292,7 +329,7 @@ BEncoder
     		
     		if ( rem > 0 ){
     			
-	    		System.arraycopy( bytes, 0, current_buffer, current_buffer_pos, rem );
+	    		System.arraycopy( bytes, offset, current_buffer, current_buffer_pos, rem );
 	
 	    		length -= rem;
     		}
@@ -301,7 +338,7 @@ BEncoder
     				
     		byte[]	new_buffer = new byte[ Math.max( next_buffer_size, length + 512 ) ];
        		   		
-    		System.arraycopy( bytes, rem, new_buffer, 0, length );
+    		System.arraycopy( bytes, offset + rem, new_buffer, 0, length );
 
     		if ( old_buffers == null ){
     			
@@ -324,10 +361,10 @@ BEncoder
     }
     
     private void
-	write(
+	writeByteBuffer(
 		ByteBuffer		bb )
     {
-    	write( bb.array(), bb.limit());
+    	writeBytes( bb.array(), bb.arrayOffset() + bb.position(), bb.remaining());
     }
 
     private byte[]
@@ -620,6 +657,88 @@ BEncoder
   
      	return( writer.encode( map, simple ));
     }    
+    
+    	/*
+    	 * The following code is from Integer.java as we don't want to 
+    	 */
+    final static byte[] digits = {
+    	'0' , '1' , '2' , '3' , '4' , '5' ,
+    	'6' , '7' , '8' , '9' , 'a' , 'b' ,
+    	'c' , 'd' , 'e' , 'f' , 'g' , 'h' ,
+    	'i' , 'j' , 'k' , 'l' , 'm' , 'n' ,
+    	'o' , 'p' , 'q' , 'r' , 's' , 't' ,
+    	'u' , 'v' , 'w' , 'x' , 'y' , 'z'
+        };
+    
+    final static byte [] DigitTens = {
+    	'0', '0', '0', '0', '0', '0', '0', '0', '0', '0',
+    	'1', '1', '1', '1', '1', '1', '1', '1', '1', '1',
+    	'2', '2', '2', '2', '2', '2', '2', '2', '2', '2',
+    	'3', '3', '3', '3', '3', '3', '3', '3', '3', '3',
+    	'4', '4', '4', '4', '4', '4', '4', '4', '4', '4',
+    	'5', '5', '5', '5', '5', '5', '5', '5', '5', '5',
+    	'6', '6', '6', '6', '6', '6', '6', '6', '6', '6',
+    	'7', '7', '7', '7', '7', '7', '7', '7', '7', '7',
+    	'8', '8', '8', '8', '8', '8', '8', '8', '8', '8',
+    	'9', '9', '9', '9', '9', '9', '9', '9', '9', '9',
+    	} ; 
+
+    final static byte [] DigitOnes = { 
+    	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+    	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+    	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+    	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+    	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+    	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+    	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+    	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+    	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+    	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+    	} ;
+        
+    	/**
+    	 * writes to int_buffer and returns start position in buffer (always runs to end of buffer)
+    	 * @param i
+    	 * @return
+    	 */
+    
+    private int 
+    intToBytes(
+    	int 	i )
+    {
+        int q, r;
+        int charPos = 12;
+        byte sign = 0;
+
+        if (i < 0) { 
+            sign = '-';
+            i = -i;
+        }
+
+        // Generate two digits per iteration
+        while (i >= 65536) {
+            q = i / 100;
+        // really: r = i - (q * 100);
+            r = i - ((q << 6) + (q << 5) + (q << 2));
+            i = q;
+            int_buffer [--charPos] = DigitOnes[r];
+            int_buffer [--charPos] = DigitTens[r];
+        }
+
+        // Fall thru to fast mode for smaller numbers
+        // assert(i <= 65536, i);
+        for (;;) { 
+            q = (i * 52429) >>> (16+3);
+            r = i - ((q << 3) + (q << 1));  // r = i-(q*10) ...
+            int_buffer [--charPos] = digits [r];
+            i = q;
+            if (i == 0) break;
+        }
+        if (sign != 0) {
+        	int_buffer [--charPos] = sign;
+        }
+        return charPos;
+    }
     
     protected static class
     XMLEncoder
