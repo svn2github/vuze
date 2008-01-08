@@ -66,19 +66,25 @@ TimerEventPeriodic
 		}
 	}
 	
+	public String
+	getName()
+	{
+		return( name );
+	}
+	
 	protected TimerEventPerformer
 	getPerformer()
 	{
 		return( performer );
 	}
 	
-	protected long
+	public long
 	getFrequency()
 	{
 		return( frequency );
 	}
 	
-	protected boolean
+	public boolean
 	isCancelled()
 	{
 		return( cancelled );
@@ -102,9 +108,7 @@ TimerEventPeriodic
 				
 				if ( !cancelled ){
 				
-					current_event = timer.addEvent(name, SystemTime.getCurrentTime()+ frequency,
-														this );
-					
+					current_event = timer.addEvent(name, SystemTime.getCurrentTime()+ frequency, this );	
 				}
 			}
 		}
