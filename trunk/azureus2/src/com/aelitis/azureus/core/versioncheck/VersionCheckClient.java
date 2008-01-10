@@ -95,10 +95,44 @@ public class VersionCheckClient {
 	  VersionCheckClientUDPCodecs.registerCodecs();
   }
   
-  private static boolean	prefer_v6;
+  private static final int	AT_V4		= 1;
+  private static final int	AT_V6		= 2;
+  private static final int	AT_EITHER	= 3;
   
-  static{
+  private static VersionCheckClient instance;
+  
+  /**
+   * Get the singleton instance of the version check client.
+   * @return version check client
+   */
+  public static synchronized VersionCheckClient 
+  getSingleton()
+  {
+	  if ( instance == null ){
+		  
+		  instance = new VersionCheckClient();
+	  }
 	  
+	  return( instance );
+  }
+  
+  private boolean	prefer_v6;
+
+  private Map last_check_data_v4 = null;
+  private Map last_check_data_v6 = null;
+  
+  private final AEMonitor check_mon = new AEMonitor( "versioncheckclient" );
+  
+  private long last_check_time_v4 = 0; 
+  private long last_check_time_v6 = 0; 
+  
+  private long last_feature_flag_cache;
+  private long last_feature_flag_cache_time;
+  
+  
+  private 
+  VersionCheckClient()
+  {
 	  COConfigurationManager.addAndFireParameterListener(
 			  "IPV6 Prefer Addresses",
 			  new ParameterListener()
@@ -112,36 +146,9 @@ public class VersionCheckClient {
 			  });
   }
   
-  private static final int	AT_V4		= 1;
-  private static final int	AT_V6		= 2;
-  private static final int	AT_EITHER	= 3;
-  
-  private static final VersionCheckClient instance = new VersionCheckClient();
-  
-  private Map last_check_data_v4 = null;
-  private Map last_check_data_v6 = null;
-  
-  private final AEMonitor check_mon = new AEMonitor( "versioncheckclient" );
-  
-  private long last_check_time_v4 = 0; 
-  private long last_check_time_v6 = 0; 
-  
-  private long last_feature_flag_cache;
-  private long last_feature_flag_cache_time;
   
   
-  private VersionCheckClient() {
-    /* blank */
-  }
-  
-  
-  
-  /**
-   * Get the singleton instance of the version check client.
-   * @return version check client
-   */
-  public static VersionCheckClient getSingleton() {  return instance;  }
-  
+   
   
   
   /**
@@ -1059,32 +1066,25 @@ public class VersionCheckClient {
 	      //message.put( "dlstats", stats.getDownloadStats());
       }
       
-      String	as = COConfigurationManager.getStringParameter( "ASN AS", null );
-      
-      if ( as != null ){
-    	
-    	  	// there was borkage with DNS based queries that left leading " on AS
+      try{
+	      NetworkAdminASN current_asn = NetworkAdmin.getSingleton().getCurrentASN();
+		    	 
+	      String	as = current_asn.getAS();
+	      
+	   	  message.put( "ip_as", current_asn.getAS());
+	
+	      String	asn = current_asn.getASName();
+		     		    	
+		  if ( asn.length() > 64 ){
+		    		  
+		    asn = asn.substring( 0, 64 );
+		  }
+		    	  
+		  message.put( "ip_asn", asn );
+		  
+      }catch( Throwable e ){
     	  
-    	  if ( as.startsWith( "\"" )){
-    		
-    		  as = as.substring( 1 ).trim();
-    		  
-    		  COConfigurationManager.setParameter( "ASN AS", as );
-    	  }
-    	  
-    	  message.put( "ip_as", as );
-      }
-      
-      String	asn = COConfigurationManager.getStringParameter( "ASN ASN", null );
-      
-      if ( asn != null ){
-    	
-    	  if ( asn.length() > 64 ){
-    		  
-    		  asn = asn.substring( 0, 64 );
-    	  }
-    	  
-    	  message.put( "ip_asn", asn );
+    	  Debug.out( e );
       }
       
       String ui = COConfigurationManager.getStringParameter("ui");
@@ -1177,7 +1177,7 @@ public class VersionCheckClient {
 	      }
       }catch( Throwable e ){
     	  
-    	  e.printStackTrace();
+    	  Debug.out( e );
       }
     }
     
