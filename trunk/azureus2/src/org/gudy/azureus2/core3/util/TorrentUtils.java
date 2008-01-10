@@ -248,23 +248,10 @@ TorrentUtils
 	{
 	   try{
 	   		torrent.getMonitor().enter();
-	    	
-	   			// we've got to re-obtain the pieces etc. here in case they've been thrown
-	   			// away to save memory *before* we rename the torrent file!
-	   		
-	   		
-	   		boolean[] restored = null;
-	   		
-	   		if ( torrent instanceof torrentDelegate ){
-	   		
-	   			torrentDelegate delegate = (torrentDelegate)torrent;
-	   			
-	   			restored = delegate.restoreState(true, true);
-	   		}
-	   		
+	    		   		
 	    	String str = torrent.getAdditionalStringProperty("torrent filename");
 	    	
-	    	if (str == null){
+	    	if ( str == null ){
 	    		
 	    		throw (new TOTorrentException("TorrentUtils::writeToFile: no 'torrent filename' attribute defined", TOTorrentException.RT_FILE_NOT_FOUND));
 	    	}
@@ -273,6 +260,15 @@ TorrentUtils
 	    		
 	    		return;
 	    	}
+	    	
+	    		// save first to temporary file as serialisation may require state to be re-read from
+	    		// the existing file first and if we rename to .bak first then this aint good
+	    		    	
+    		File torrent_file_tmp = new File(str + "._az");
+
+	    	torrent.serialiseToBEncodedFile( torrent_file_tmp );
+
+	    		// now backup if required
 	    	
 	    	File torrent_file = new File(str);
 	    	
@@ -295,22 +291,14 @@ TorrentUtils
 	    		}
 	    	}
 	      
-	    	torrent.serialiseToBEncodedFile(torrent_file);
+	    		// now rename the temp file to required one
 	    	
-	    	if (restored != null && torrent instanceof torrentDelegate){
-	   		
-	    		torrentDelegate delegate = (torrentDelegate)torrent;
+	    	if ( torrent_file.exists()){
 	    		
-	    		if (restored[0]){
-	    			
-	    			delegate.discardPieces(SystemTime.getCurrentTime(), true);
-	    		}
-	    		
-	    		if (restored[1]){
-	    			
-	    			delegate.setDiscardFluff(true);
-	    		}
-	   		}
+	    		torrent_file.delete();
+	    	}
+	    	
+	    	torrent_file_tmp.renameTo( torrent_file );
 			
 	   	}finally{
 	   		
