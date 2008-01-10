@@ -255,9 +255,10 @@ TorrentUtils
 	   		
 	   		boolean[] restored = null;
 	   		
-	   		if(torrent instanceof torrentDelegate)
-	   		{
+	   		if ( torrent instanceof torrentDelegate ){
+	   		
 	   			torrentDelegate delegate = (torrentDelegate)torrent;
+	   			
 	   			restored = delegate.restoreState(true, true);
 	   		}
 	   		
@@ -282,8 +283,10 @@ TorrentUtils
 	    		
 	    		try{
 	    			
-	    			// Will return false if it cannot be deleted (including if the file doesn't exist). 
+	    				// Will return false if it cannot be deleted (including if the file doesn't exist).
+	    			
 	    			torrent_file_bak.delete();
+	    			
 	    			torrent_file.renameTo(torrent_file_bak);
 	    			
 	    		}catch( SecurityException e){
@@ -294,13 +297,19 @@ TorrentUtils
 	      
 	    	torrent.serialiseToBEncodedFile(torrent_file);
 	    	
-	    	if(restored != null && torrent instanceof torrentDelegate)
-	   		{
+	    	if (restored != null && torrent instanceof torrentDelegate){
+	   		
 	    		torrentDelegate delegate = (torrentDelegate)torrent;
-	    		if(restored[0])
+	    		
+	    		if (restored[0]){
+	    			
 	    			delegate.discardPieces(SystemTime.getCurrentTime(), true);
-	    		if(restored[1])
+	    		}
+	    		
+	    		if (restored[1]){
+	    			
 	    			delegate.setDiscardFluff(true);
+	    		}
 	   		}
 			
 	   	}finally{
@@ -1386,6 +1395,8 @@ TorrentUtils
 		private TOTorrent		delegate;
 		private File			file;
 		
+		private boolean			fluff_dirty;
+		
 		private long			last_pieces_read_time	= SystemTime.getCurrentTime();
 		
 		protected
@@ -1413,10 +1424,31 @@ TorrentUtils
 				try{
 			   		getMonitor().enter();
 					
-			   		for(Iterator it = torrentFluffKeyset.iterator();it.hasNext();)
-			   			delegate.setAdditionalMapProperty( (String)it.next(), fluffThombstone );
-				
-					
+			   		try{
+				   			// if file is out of sync with fluff then force a write
+				   		
+				   		if ( fluff_dirty ){
+				   			
+					   		boolean[]	restored = restoreState( true, true );
+					   		
+					   		delegate.serialiseToBEncodedFile( file );
+					   		
+					   		fluff_dirty = false;
+					   		
+					   		if ( restored[0] ){
+					   			
+					   			discardPieces( SystemTime.getCurrentTime(), true );
+					   		}
+				   		}
+				   		
+				   		for(Iterator it = torrentFluffKeyset.iterator();it.hasNext();){
+				   			
+				   			delegate.setAdditionalMapProperty( (String)it.next(), fluffThombstone );
+				   		}
+			   		}catch( Throwable e ){
+			   		
+			   			Debug.printStackTrace( e );
+			   		}
 				}finally{
 					
 					getMonitor().exit();
@@ -1575,8 +1607,11 @@ TorrentUtils
 	   		boolean	had_pieces = delegate.getPieces() != null;
 	   		
 	   		boolean	had_fluff = true; 
-	   		for(Iterator it = torrentFluffKeyset.iterator();it.hasNext();)
+	   		
+	   		for(Iterator it = torrentFluffKeyset.iterator();it.hasNext();){
+	   			
 	   			had_fluff &= delegate.getAdditionalMapProperty( (String)it.next() ) != fluffThombstone;
+	   		}
 
 	   		if ( had_pieces ){
 	   			
@@ -1600,15 +1635,23 @@ TorrentUtils
 		   		}
 		   		
 		   		if ( do_fluff ){
-		   			for (Iterator it = torrentFluffKeyset.iterator(); it.hasNext();)
-					{
+		   			
+		   			for (Iterator it = torrentFluffKeyset.iterator(); it.hasNext();){
+					
 						String fluffKey = (String) it.next();
-						delegate.setAdditionalMapProperty(fluffKey, temp.getAdditionalMapProperty(fluffKey));
+						
+							// only update the discarded entries as non-discarded may be out of sync
+							// with the file contents
+						
+						if ( delegate.getAdditionalMapProperty( fluffKey ) == fluffThombstone ){
+							
+							delegate.setAdditionalMapProperty(fluffKey, temp.getAdditionalMapProperty(fluffKey));
+						}
 					}
 		   		}
 	   		}
 	   		
-	   		return(new boolean[]{ do_pieces, do_fluff });
+	   		return( new boolean[]{ do_pieces, do_fluff });
 		}
 		
 			/**
@@ -1772,6 +1815,8 @@ TorrentUtils
 
 					delegate.setAdditionalMapProperty( name, value );
 					
+					fluff_dirty = true;
+					
 				}finally{
 					
 					getMonitor().exit();
@@ -1830,20 +1875,66 @@ TorrentUtils
 			String		name,
 			Object		value )
 		{
-			delegate.setAdditionalProperty( name, value );
+			if ( torrentFluffKeyset.contains(name)){
+
+				//System.out.println( "Set fluff for " + new String(getName()) + " to " + value );
+
+				try{
+					getMonitor().enter();
+
+					delegate.setAdditionalProperty( name, value );
+					
+					fluff_dirty = true;
+					
+				}finally{
+					
+					getMonitor().exit();
+				}
+			}else{
+			
+				delegate.setAdditionalProperty( name, value );
+			}
 		}
 		
 		public void
 		removeAdditionalProperty(
 			String name )
 		{
-			delegate.removeAdditionalProperty( name );
+			if ( torrentFluffKeyset.contains(name)){
+
+				//System.out.println( "Set fluff for " + new String(getName()) + " to " + value );
+
+				try{
+					getMonitor().enter();
+
+					delegate.removeAdditionalProperty( name );
+					
+					fluff_dirty = true;
+					
+				}finally{
+					
+					getMonitor().exit();
+				}
+			}else{
+				
+				delegate.removeAdditionalProperty( name );
+			}
 		}	
 		
 		public void
 		removeAdditionalProperties()
 		{
-			delegate.removeAdditionalProperties();
+			try{
+				getMonitor().enter();
+
+				delegate.removeAdditionalProperties();
+				
+				fluff_dirty = true;
+				
+			}finally{
+				
+				getMonitor().exit();
+			}
 		}		
 
 		public void
@@ -1861,6 +1952,11 @@ TorrentUtils
 		   		
 		   		delegate.serialiseToBEncodedFile( target_file );
 		   		
+		   		if ( target_file.equals( file )){
+		   			
+		   			fluff_dirty = false;
+		   		}
+		   		
 		   		if ( restored[0] ){
 		   			
 		   			discardPieces( SystemTime.getCurrentTime(), true );
@@ -1868,8 +1964,10 @@ TorrentUtils
 		   		
 		   		if ( restored[1] ){
 		   			
-		   			for (Iterator it = torrentFluffKeyset.iterator(); it.hasNext();)
+		   			for (Iterator it = torrentFluffKeyset.iterator(); it.hasNext();){
+		   				
 		   				delegate.setAdditionalMapProperty( (String)it.next(), fluffThombstone );
+		   			}
 		   		}
 			}finally{
 				
@@ -1897,10 +1995,12 @@ TorrentUtils
 		   			discardPieces( SystemTime.getCurrentTime(), true );
 		   		}
 		   		
-		   		if (restored[1])
-				{
-					for (Iterator it = torrentFluffKeyset.iterator(); it.hasNext();)
+		   		if ( restored[1]){
+				
+					for (Iterator it = torrentFluffKeyset.iterator(); it.hasNext();){
+					
 						delegate.setAdditionalMapProperty((String) it.next(), fluffThombstone);
+					}
 				}
 		   		
 		   		return( result );
@@ -1932,10 +2032,12 @@ TorrentUtils
 		   			discardPieces( SystemTime.getCurrentTime(), true );
 		   		}
 		   		
-		   		if (restored[1])
-				{
-					for (Iterator it = torrentFluffKeyset.iterator(); it.hasNext();)
+		   		if ( restored[1]){
+				
+					for (Iterator it = torrentFluffKeyset.iterator(); it.hasNext();){
+					
 						delegate.setAdditionalMapProperty((String) it.next(), fluffThombstone);
+					}
 				}
 			}finally{
 				
