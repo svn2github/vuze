@@ -665,6 +665,45 @@ public class MyTorrentsView
 
 	        		final DownloadManager dms[] = (DownloadManager [])managers.toArray(new DownloadManager[managers.size()]);
 
+	        		boolean	start 	= false;
+	        		boolean	stop	= false;
+	        		
+	        		for (int i=0;i<dms.length;i++){
+	        			
+	        			DownloadManager dm = dms[i];
+	        			
+	    				stop = stop || ManagerUtils.isStopable(dm);
+
+	    				start = start || ManagerUtils.isStartable(dm);
+
+	        		}
+	        		
+	        		// Queue
+	        		
+	        		final MenuItem itemQueue = new MenuItem(menu, SWT.PUSH);
+	        		Messages.setLanguageText(itemQueue, "MyTorrentsView.menu.queue"); //$NON-NLS-1$
+	        		Utils.setMenuItemImage(itemQueue, "start");
+	        		itemQueue.addListener(SWT.Selection, new Listener(){
+    					public void handleEvent(Event event) {
+    						TorrentUtil.queueTorrents(dms, menu.getShell());
+    					}
+    				});
+	        		itemQueue.setEnabled(start);
+	        		
+	        		// Stop
+	        		
+	        		final MenuItem itemStop = new MenuItem(menu, SWT.PUSH);
+	        		Messages.setLanguageText(itemStop, "MyTorrentsView.menu.stop"); //$NON-NLS-1$
+	        		Utils.setMenuItemImage(itemStop, "stop");
+	        		itemStop.addListener(SWT.Selection, new Listener(){
+    					public void handleEvent(Event event) {
+    						TorrentUtil.stopTorrents(dms, menu.getShell());
+    					}
+    				});
+	        		itemStop.setEnabled(stop);
+	        		
+	        		// options
+	        		
     				MenuItem itemOptions = new MenuItem(menu, SWT.PUSH);
     				
     				Messages.setLanguageText(itemOptions, "MainWindow.menu.view.configuration");
