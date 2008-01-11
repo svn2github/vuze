@@ -39,6 +39,10 @@ PluginEvent
 	public static final int	PEV_INITIAL_SHARING_COMPLETE			= 5;
 	
 	/**
+	 * Triggered when UI Initialization is complete.  This is after the UI
+	 * is attached.  This trigger is helpful if you need access to an UI
+	 * element from a plugin after you in the UI attachment order.
+	 *   
 	 * @since 2403
 	 */
 	public static final int	PEV_INITIALISATION_UI_COMPLETES	= 6;
