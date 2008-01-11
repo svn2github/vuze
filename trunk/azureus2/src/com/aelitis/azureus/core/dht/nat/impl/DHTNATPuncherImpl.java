@@ -1510,36 +1510,38 @@ DHTNATPuncherImpl
 		
 		boolean	ok = false;
 		
+		String	target_str = new String((byte[])request.get( "target" ));
+		
+		Object[] entry;
+		
 		try{
 			server_mon.enter();
 		
-			String	target_str = new String((byte[])request.get( "target" ));
-			
-			Object[] entry = (Object[])rendezvous_bindings.get( target_str );
+			entry = (Object[])rendezvous_bindings.get( target_str );
 		
-			if ( entry != null ){
-				
-				DHTTransportUDPContact	target = (DHTTransportUDPContact)entry[0];
-				
-				Map target_client_data = sendConnect( target, originator, (Map)request.get( "client_data" ));
-				
-				if ( target_client_data != null ){
-					
-					response.put( "client_data", target_client_data );
-																	
-					response.put( "port", new Long( target.getTransportAddress().getPort()));
-					
-					ok	= true;
-				}
-			}
-			
-			log( "Rendezvous punch request from " + originator.getString() + " to " + target_str + " " + (ok?"initiated":"failed"));
-
 		}finally{
 			
 			server_mon.exit();
 		}
 		
+		if ( entry != null ){
+			
+			DHTTransportUDPContact	target = (DHTTransportUDPContact)entry[0];
+			
+			Map target_client_data = sendConnect( target, originator, (Map)request.get( "client_data" ));
+			
+			if ( target_client_data != null ){
+				
+				response.put( "client_data", target_client_data );
+																
+				response.put( "port", new Long( target.getTransportAddress().getPort()));
+				
+				ok	= true;
+			}
+		}
+		
+		log( "Rendezvous punch request from " + originator.getString() + " to " + target_str + " " + (ok?"initiated":"failed"));
+
 		response.put( "ok", new Long(ok?1:0));
 	}
 	
