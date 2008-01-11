@@ -75,10 +75,16 @@ public class TorrentUIUtilsV3
   				String hash = m.group(1);
   				System.out.println("HASH? " + hash);
   				GlobalManager gm = core.getGlobalManager();
-  				DownloadManager dm = gm.getDownloadManager(new HashWrapper(Base32.decode(hash)));
+  				final DownloadManager dm = gm.getDownloadManager(new HashWrapper(Base32.decode(hash)));
   				if (dm != null) {
-  					Debug.outNoStack("loadTorrent already exists.. playing", false);
-  					TorrentListViewsUtils.playOrStream(dm);
+  					new AEThread("playExisting", true) {
+						
+							public void runSupport() {
+		  					Debug.outNoStack("loadTorrent already exists.. playing", false);
+		  					TorrentListViewsUtils.playOrStream(dm);
+							}
+						
+						}.start();
   					return;
   				}
   			}
