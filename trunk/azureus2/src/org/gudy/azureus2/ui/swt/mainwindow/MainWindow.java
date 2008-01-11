@@ -80,6 +80,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.sharing.ShareException;
 import org.gudy.azureus2.plugins.sharing.ShareManager;
 
 /**
@@ -567,97 +568,105 @@ public class MainWindow
     if (uiSWTInstanceImpl == null) {
     	uiSWTInstanceImpl = new UISWTInstanceImpl(azureus_core);
     	uiSWTInstanceImpl.init();
+
+      // check if any plugins shut us down
+      if (isAlreadyDead) {
+      	return;
+      }
+
+      postPluginSetup();
     }
-
-    // check if any plugins shut us down
-    if (isAlreadyDead) {
-    	return;
-    }
-
-    if (azureus_core.getTrackerHost().getTorrents().length > 0) {
-    	showMyTracker();
-    }
-
-    	// share manager init is async so we need to deal with this
-
-    PluginInterface default_pi = plugin_manager.getDefaultPluginInterface();
-    
-    final ShareManager share_manager = default_pi.getShareManager();
-
-    default_pi.addListener(
-    	new PluginListener()
-    	{
-    		public void
-    		initializationComplete()
-    		{  			
-    		}
-    		
-    		public void
-    		closedownInitiated()
-    		{
-    			int share_count = share_manager.getShares().length;
-    			
-    			if ( share_count != COConfigurationManager.getIntParameter(  "GUI_SWT_share_count_at_close" )){
-    			
-    				COConfigurationManager.setParameter(  "GUI_SWT_share_count_at_close", share_count );
-    			}
-    		}
-    		
-    		public void
-    		closedownComplete()
-    		{  			
-    		}
-    	});
-    
-    if ( 	share_manager.getShares().length >  0 || 
-    		COConfigurationManager.getIntParameter(  "GUI_SWT_share_count_at_close" ) > 0 ){
-    	
-    	showMyShares();
-    }
-
-    if (COConfigurationManager.getBooleanParameter("Open MyTorrents")) {
-    	showMyTorrents();
-    }
-
-    //  share progress window
-
-    new ProgressWindow();
-
-    if (COConfigurationManager.getBooleanParameter("Open Console")) {
-    	showConsole();
-    }
-    events = null;
-
-    if (COConfigurationManager.getBooleanParameter("Open Config")) {
-    	showConfig();
-    }
-
-    if (COConfigurationManager.getBooleanParameter("Open Stats On Start")) {
-    	showStats();
-    }
-    
-    if (COConfigurationManager.getBooleanParameter("Open Transfer Bar On Start")) {
-    	uiFunctions.showGlobalTransferBar();
-    }
-
-    COConfigurationManager.addParameterListener("GUI_SWT_bFancyTab", this);
-
-    updater = new GUIUpdater(this);
-    updater.start();
 
     } catch (Throwable e) {
     	Debug.printStackTrace(e);
     }
 
-    COConfigurationManager.addAndFireParameterListener("IconBar.enabled",
+    showMainWindow();
+}
+	/**
+	 * 
+	 *
+	 * @since 3.0.4.3
+	 */	
+	public void postPluginSetup() {
+		if (azureus_core.getTrackerHost().getTorrents().length > 0) {
+			showMyTracker();
+		}
+
+		PluginManager plugin_manager = azureus_core.getPluginManager();
+
+		// share manager init is async so we need to deal with this
+
+		PluginInterface default_pi = plugin_manager.getDefaultPluginInterface();
+
+		try {
+			final ShareManager share_manager = default_pi.getShareManager();
+
+			default_pi.addListener(new PluginListener() {
+				public void initializationComplete() {
+				}
+
+				public void closedownInitiated() {
+					int share_count = share_manager.getShares().length;
+
+					if (share_count != COConfigurationManager.getIntParameter("GUI_SWT_share_count_at_close")) {
+
+						COConfigurationManager.setParameter("GUI_SWT_share_count_at_close",
+								share_count);
+					}
+				}
+
+				public void closedownComplete() {
+				}
+			});
+
+			if (share_manager.getShares().length > 0
+					|| COConfigurationManager.getIntParameter("GUI_SWT_share_count_at_close") > 0) {
+
+				showMyShares();
+			}
+		} catch (ShareException e) {
+			Debug.out(e);
+		}
+
+		if (COConfigurationManager.getBooleanParameter("Open MyTorrents")) {
+			showMyTorrents();
+		}
+
+		//  share progress window
+
+		new ProgressWindow();
+
+		if (COConfigurationManager.getBooleanParameter("Open Console")) {
+			showConsole();
+		}
+		events = null;
+
+		if (COConfigurationManager.getBooleanParameter("Open Config")) {
+			showConfig();
+		}
+
+		if (COConfigurationManager.getBooleanParameter("Open Stats On Start")) {
+			showStats();
+		}
+
+		if (COConfigurationManager.getBooleanParameter("Open Transfer Bar On Start")) {
+			uiFunctions.showGlobalTransferBar();
+		}
+
+		COConfigurationManager.addParameterListener("GUI_SWT_bFancyTab", this);
+
+		updater = new GUIUpdater(this);
+		updater.start();
+
+		COConfigurationManager.addAndFireParameterListener("IconBar.enabled",
 				new ParameterListener() {
 					public void parameterChanged(String parameterName) {
 						setIconBarEnabled(COConfigurationManager.getBooleanParameter(parameterName));
 					}
 				});
+	}
 
-    showMainWindow();
-}
 	protected boolean getIconBarEnabled() {
 		return bIconBarEnabled;
 	}
