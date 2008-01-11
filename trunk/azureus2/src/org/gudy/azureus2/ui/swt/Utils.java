@@ -703,8 +703,18 @@ public class Utils {
 
     Display display = (swt == null) ? Display.getCurrent() : swt.getDisplay();
 
-  	if (display == null || display.isDisposed())
+  	if (display == null) {
 			return false;
+  	}
+  	
+  	// This will throw if we are disposed or on the wrong thread
+  	// Much better that display.getThread() as that one locks Device.class
+  	// and may end up causing sync lock when disposing
+  	try {
+  		display.getWarnings();
+  	} catch (SWTException e) {
+  		return false;
+  	}
 
 		return (display.getThread() == Thread.currentThread());
 	}
