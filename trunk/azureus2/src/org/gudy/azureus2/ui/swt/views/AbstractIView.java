@@ -74,7 +74,7 @@ public abstract class AbstractIView implements IView {
 			return "";
 		}
 
-		if (key.equals(lastFullTitleKey)) {
+		if ( lastFullTitle.length() > 0 && key.equals(lastFullTitleKey)) {
 			return lastFullTitle;
 		}
 
@@ -83,7 +83,7 @@ public abstract class AbstractIView implements IView {
 		if (MessageText.keyExists(key)) {
 			lastFullTitle = MessageText.getString(key);
 		} else {
-			lastFullTitle = lastFullTitle.replace('.', ' '); // support old plugins
+			lastFullTitle = key.replace('.', ' '); // support old plugins
 		}
 
 		return lastFullTitle;
@@ -108,6 +108,7 @@ public abstract class AbstractIView implements IView {
 	}
   
   public void updateLanguage() {
+	lastFullTitle = "";
     Messages.updateLanguageForControl(getComposite());
   }
   
