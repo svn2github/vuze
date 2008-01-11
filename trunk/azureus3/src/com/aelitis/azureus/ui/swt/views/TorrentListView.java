@@ -289,8 +289,8 @@ public class TorrentListView
 								bSkipUpdateCount = true;
 							}
 						}
-						bSkipUpdateCount = false;
 						processDataSourceQueue();
+						bSkipUpdateCount = false;
 						if (!bAllowScrolling) {
 							regetDownloads();
 						}
@@ -650,13 +650,17 @@ public class TorrentListView
 	}
 
 	protected void updateCount() {
+		if (bSkipUpdateCount) {
+			return;
+		}
+
 		Object[] listenersArray = listeners.toArray();
 		for (int i = 0; i < listenersArray.length; i++) {
 			TorrentListViewListener l = (TorrentListViewListener) listenersArray[i];
 			l.countChanged();
 		}
 
-		if (countArea != null && !bSkipUpdateCount) {
+		if (countArea != null) {
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					if (countArea == null) {
