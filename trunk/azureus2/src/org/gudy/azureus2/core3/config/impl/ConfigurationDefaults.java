@@ -307,6 +307,7 @@ public class ConfigurationDefaults {
   
     def.put( "Bind IP", "" );
     def.put( "Stats Export Peer Details", FALSE );
+    def.put( "Stats Export File Details", FALSE );
     def.put( "Stats XSL File", "" );
     def.put( "Stats Enable", FALSE );
     def.put( "Stats Period", new Long(StatsWriterPeriodic.DEFAULT_SLEEP_PERIOD) );

@@ -97,7 +97,7 @@ public class ConfigSectionStats implements UISWTConfigSection {
                              "ConfigView.section.stats.enable");
     enableStats.setLayoutData(gridData);
 
-    Control[] controls = new Control[12];
+    Control[] controls = new Control[13];
 
     // row
 
@@ -207,9 +207,20 @@ public class ConfigSectionStats implements UISWTConfigSection {
     BooleanParameter exportPeers = 
         new BooleanParameter(gStats, "Stats Export Peer Details",
                              "ConfigView.section.stats.exportpeers");
-    enableStats.setLayoutData(gridData);
+    exportPeers.setLayoutData(gridData);
 
     controls[11] = exportPeers.getControl();
+    
+ 	// ROW
+    
+    gridData = new GridData();
+    gridData.horizontalSpan = 3;
+    BooleanParameter exportFiles = 
+        new BooleanParameter(gStats, "Stats Export File Details",
+                             "ConfigView.section.stats.exportfiles");
+    exportFiles.setLayoutData(gridData);
+
+    controls[12] = exportFiles.getControl();
     
     	// control stuff
     

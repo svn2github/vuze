@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.xml.util.*;
 import org.gudy.azureus2.core3.global.*;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.torrent.*;
@@ -92,6 +93,7 @@ StatsWriterImpl
 		writeLineRaw( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" );
 
 		boolean	export_peer_stats = COConfigurationManager.getBooleanParameter("Stats Export Peer Details");
+		boolean	export_file_stats = COConfigurationManager.getBooleanParameter("Stats Export File Details");
 		
 		String xsl = COConfigurationManager.getStringParameter( "Stats XSL File" );
 		
@@ -237,7 +239,8 @@ StatsWriterImpl
 						
 						writeTag( "TRACKER_STATUS", dm.getTrackerStatus());
 					
-						writeTag( "COMPLETED", 		dm_stats.getCompleted());
+						writeTag( "COMPLETED", 				dm_stats.getCompleted());
+						writeTag( "NON_DND_COMPLETED", 		dm.isDownloadComplete(false));
 						
 						writeRawCookedTag( "DOWNLOADED", 		dm_stats.getTotalDataBytesReceived());
 						writeRawCookedTag( "UPLOADED", 			dm_stats.getTotalDataBytesSent());
@@ -255,6 +258,47 @@ StatsWriterImpl
 						writeTag( "TOTAL_SEEDS", dm.getNbSeeds());
 						writeTag( "TOTAL_LEECHERS", dm.getNbPeers());
 						
+						if ( export_file_stats ){
+							
+							try{
+								writeLineRaw( "<FILES>");
+								
+								indent();
+								
+								DiskManagerFileInfo[] files = dm.getDiskManagerFileInfo();
+								
+								for (int j=0;j<files.length;j++){
+									
+									DiskManagerFileInfo file = files[j];
+									
+									try{
+										writeLineRaw( "<FILE>");
+										
+										indent();
+										
+										writeTag( "NAME", file.getTorrentFile().getRelativePath());
+										
+										writeTag( "DND", file.isSkipped());
+										
+										writeRawCookedTag( "SIZE", file.getLength());
+										
+										writeRawCookedTag( "DOWNLOADED", file.getDownloaded());
+																		
+									}finally{
+
+										exdent();
+
+										writeLineRaw( "</FILE>");
+									}
+								}
+								
+							}finally{
+
+								exdent();
+
+								writeLineRaw( "</FILES>");
+							}
+						}
 						if ( export_peer_stats ){
 							
 							try{
