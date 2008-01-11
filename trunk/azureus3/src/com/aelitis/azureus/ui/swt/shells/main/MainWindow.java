@@ -807,6 +807,10 @@ public class MainWindow
 	}
 
 	private void showMainWindow() {
+		if (oldMainWindow != null) {
+			oldMainWindow.postPluginSetup();
+		}
+
 		boolean isOSX = org.gudy.azureus2.core3.util.Constants.isOSX;
 		// No tray access on OSX yet
 		boolean bEnableTray = COConfigurationManager.getBooleanParameter("Enable System Tray")
@@ -1902,7 +1906,7 @@ public class MainWindow
 						return oldMainWindow;
 					}
 
-				});
+				}, 0);
 	}
 
 	public org.gudy.azureus2.ui.swt.mainwindow.MainWindow getOldMainWindow(
