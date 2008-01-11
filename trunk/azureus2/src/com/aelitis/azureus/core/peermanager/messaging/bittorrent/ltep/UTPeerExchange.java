@@ -35,6 +35,7 @@ import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.messaging.MessageException;
 import com.aelitis.azureus.core.peermanager.messaging.MessagingUtil;
+import com.aelitis.azureus.core.peermanager.peerdb.PeerExchangerItem;
 import com.aelitis.azureus.core.peermanager.peerdb.PeerItem;
 import com.aelitis.azureus.core.peermanager.peerdb.PeerItemFactory;
 
@@ -46,7 +47,7 @@ import com.aelitis.azureus.core.peermanager.peerdb.PeerItemFactory;
 public class UTPeerExchange implements AZStylePeerExchange, LTMessage {
 	
 	// Debug flag for testing purposes - currently disabled by default.
-    public static final boolean ENABLED = false; 
+    public static final boolean ENABLED = true; 
 	
 	  private static final LogIDs LOGID = LogIDs.NET;
 
@@ -101,8 +102,10 @@ public class UTPeerExchange implements AZStylePeerExchange, LTMessage {
 	      int peer_num = raw_peer_data.length / 6;
 	      byte[] flags = (root_map == null) ? null : (byte[])root_map.get(key_name + ".f");
 	      if (flags != null && flags.length != peer_num) {
-	    	  if (Logger.isEnabled()) {
-	    		  Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING, "PEX (UT): invalid peer flags: peers=" + peer_num + ", flags=" + flags.length ));
+	    	  if (flags.length > 0) {
+	    		  if (Logger.isEnabled()) {
+	    			  Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING, "PEX (UT): invalid peer flags: peers=" + peer_num + ", flags=" + flags.length ));
+	    		  }
 	    	  }
 	    	  flags = null;
 	      }
@@ -179,6 +182,25 @@ public class UTPeerExchange implements AZStylePeerExchange, LTMessage {
 	  
 	  public void destroy() {
 	    if( buffer != null )  buffer.returnToPool();
+	  }
+
+	  /**
+	   * Arbitrary value - most clients are configured to about 100 or so...
+	   * We'll allow ourselves to be informed about 200 connected peers from
+	   * the initial handshake, and then cap either list to about 100.
+	   * 
+	   * These values are plucked from the air really - although I've seen PEX
+	   * sizes where the added list is about 300 (sometimes), most contain a
+	   * sensible number (not normally over 100).
+	   * 
+	   * Subsequent PEX messages are relatively small too, so we'll stick to
+	   * smaller limits - 50 would be probably fine, but watching some big
+	   * swarms over a short period, the biggest "added" list I saw was one
+	   * containing 38 peers, so it's quite possible list sizes above 50 get
+	   * sent out. So 100 is a safe-ish figure. 
+	   */
+	  public int getMaxAllowedPeersPerVolley(boolean initial, boolean added) {
+		  return (initial && added) ? 200 : 100;
 	  }
 	  
 }

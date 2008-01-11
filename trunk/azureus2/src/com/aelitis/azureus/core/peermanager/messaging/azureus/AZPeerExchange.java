@@ -214,4 +214,8 @@ public class AZPeerExchange implements AZMessage, AZStylePeerExchange {
     if( buffer != null )  buffer.returnToPool();
   }
   
+  public int getMaxAllowedPeersPerVolley(boolean initial, boolean added) {
+	  return PeerExchangerItem.MAX_PEERS_PER_VOLLEY;
+  }
+  
 }

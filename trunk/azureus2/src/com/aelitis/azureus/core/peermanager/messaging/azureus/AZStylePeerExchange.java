@@ -32,4 +32,5 @@ import com.aelitis.azureus.core.peermanager.peerdb.PeerItem;
 public interface AZStylePeerExchange extends Message {
 	  public PeerItem[] getAddedPeers();
 	  public PeerItem[] getDroppedPeers();
+	  public int getMaxAllowedPeersPerVolley(boolean initial, boolean added);
 }

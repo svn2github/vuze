@@ -3,7 +3,9 @@ AZUREUS VUZE CHANGELOG
 
 2008.xx.xx | Azureus Vuze 3.0.4.3
 
+FEATURE: Core | Added µTorrent PEX support [amc1]
 FEATURE: UI   | Added option for "Open Containing Folder" menu action - which may integrate better with non-standard file browsers [amc1]
+
 
 CHANGE: Core  | Further memory footprint reductions; for further tweaks see http://www.azureuswiki.com/index.php/Reduce_memory_usage [The 8472]
 CHANGE: Core  | Reimplemented LT extension protocol code [amc1]

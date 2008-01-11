@@ -177,6 +177,8 @@ implements PEPeerTransport
 	
 	private LinkedHashMap recent_outgoing_requests;
 	private AEMonitor	recent_outgoing_requests_mon;
+	
+	private boolean has_received_initial_pex = false;
 
 	private static final boolean SHOW_DISCARD_RATE_STATS;
 	static {
@@ -3116,9 +3118,10 @@ implements PEPeerTransport
 
 
 	protected void decodePeerExchange( AZStylePeerExchange exchange ) {
+		
 		final PeerItem[] added = exchange.getAddedPeers();
 		final PeerItem[] dropped = exchange.getDroppedPeers();
-
+		
 		//make sure they're not spamming us
 		if( !message_limiter.countIncomingMessage( exchange.getID(), 7, 120*1000 ) ) {  //allow max 7 PEX per 2min  //TODO reduce max after 2308 release?
 			System.out.println( manager.getDisplayName() + ": Incoming PEX message flood detected, dropping spamming peer connection." +PEPeerTransportProtocol.this );
@@ -3128,16 +3131,15 @@ implements PEPeerTransport
 
 		exchange.destroy();
 
-    if(		( added != null && added.length > PeerExchangerItem.MAX_PEERS_PER_VOLLEY ) || 
-    		( dropped != null && dropped.length > PeerExchangerItem.MAX_PEERS_PER_VOLLEY )){
+    if(		( added != null   && added.length   > exchange.getMaxAllowedPeersPerVolley(!this.has_received_initial_pex, true)) ||
+    		( dropped != null && dropped.length > exchange.getMaxAllowedPeersPerVolley(!this.has_received_initial_pex, false))) {
     	
 			//drop these too-large messages as they seem to be used for DOS by swarm poisoners
-    	
-    	System.out.println( "Invalid PEX message received: too large [" + (added==null?-1:added.length)+ "/" + (dropped==null?-1:dropped.length)+ "]" +PEPeerTransportProtocol.this );
-    	
-			closeConnectionInternally( "Invalid PEX message received: too large, dropping likely poisoner peer connection." );
+   			closeConnectionInternally( "Invalid PEX message received: too large, dropping likely poisoner peer connection." );
 			return;
 		}
+    
+    this.has_received_initial_pex = true;
 
 		if( peer_exchange_supported && peer_exchange_item != null && manager.isPeerExchangeEnabled()){
 			if( added != null ) {
@@ -3156,7 +3158,7 @@ implements PEPeerTransport
 			if (Logger.isEnabled())
 				Logger.log(new LogEvent(this, LOGID,
 						"Peer Exchange disabled for this download, "
-						+ "dropping received exchange message."));
+						+ "dropping received exchange message"));
 		}
 	}
 
