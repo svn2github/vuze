@@ -32,6 +32,33 @@ import java.util.Map;
 
 import org.gudy.azureus2.plugins.config.*;
 
+/**
+ * This class interface contains four different variations of <tt>get</tt> and <tt>set</tt> parameter methods:
+ * <ul>
+ *   <li>get<i>type</i>Parameter</li>
+ *   <li>getCore<i>type</i>Parameter</li>
+ *   <li>getUnsafe<i>type</i>Parameter</li>
+ *   <li>getPlugin<i>type</i>Parameter</li>
+ * </ul>
+ * 
+ * The first set of methods are deprecated and should not be used in general - this is because the method names were
+ * ambiguous and it wasn't always obvious what data you were trying to get or set.
+ * <p>
+ * The second set of methods do what the first set of methods were primarily intended for - you can use these
+ * methods to get or set some core parameters. You should use the parameter names defined as constants in this interface
+ * (the ones labelled <tt>CORE_PARAM</tt>). These parameters will be properly supported by Azureus, even if the way these
+ * values are stored or handled differently in the Azureus core itself.<br />
+ * <br>
+ * Attempting to set or get parameters not mentioned here should raise an error (in some cases in the past, this wasn't
+ * always enforced by the first set of methods.
+ * <p>
+ * The third set of methods allow you to modify configuration settings which are stored directly inside Azureus. These
+ * settings may change (without warning) between versions, so there is no guarantee that plugins that use these values
+ * will behave properly in different versions of Azureus.
+ * <p>
+ * The last set of methods are used to store and retrieve data intended exclusively for the use of the plugin itself,
+ * which is what you will be using most of the time.
+ */
 public interface 
 PluginConfig 
 {  
@@ -63,6 +90,7 @@ PluginConfig
    * @param key The parameter name.
    * @return The value of the parameter.
    *
+   * @deprecated Use {@link #getCoreBooleanParameter(String)}.
    * @since 2.0.4.2
    */
   public boolean getBooleanParameter(String key);
@@ -74,6 +102,7 @@ PluginConfig
    * @param default_value The default value to return if one is not defined.
    * @return The value of the parameter.
    *
+   * @deprecated Use {@link #getCoreBooleanParameter(String, boolean)}.
    * @since 2.0.6.0
    */
   public boolean getBooleanParameter(String key, boolean default_value);
@@ -84,6 +113,7 @@ PluginConfig
    * @param key The parameter name.
    * @return The value of the parameter.
    *
+   * @deprecated Use {@link #getCoreByteParameter(String)}.
    * @since 3.0.0.7
    */
   public byte[] getByteParameter(String key);
@@ -95,6 +125,7 @@ PluginConfig
    * @param default_value The default value to return if one is not defined.
    * @return The value of the parameter.
    *
+   * @deprecated Use {@link #getCoreByteParameter(String, byte[])}.
    * @since 2.1.0.2
    */
   public byte[] getByteParameter(String key, byte[] default_value);
@@ -105,6 +136,7 @@ PluginConfig
    * @param key The parameter name.
    * @return The value of the parameter.
    *
+   * @deprecated Use {@link #getCoreFloatParameter(String)}.
    * @since 2.1.0.0
    */
   public float getFloatParameter(String key);
@@ -116,6 +148,7 @@ PluginConfig
    * @param default_value The default value to return if one is not defined.
    * @return The value of the parameter.
    *
+   * @deprecated Use {@link #getCoreFloatParameter(String, float)}.
    * @since 3.0.0.7
    */
   public float getFloatParameter(String key, float default_value);
@@ -126,6 +159,7 @@ PluginConfig
    * @param key The parameter name.
    * @return The value of the parameter.
    *
+   * @deprecated Use {@link #getCoreIntParameter(String)}.
    * @since 2.0.4.2
    */
   public int getIntParameter(String key);
@@ -137,6 +171,7 @@ PluginConfig
    * @param default_value The default value to return if one is not defined.
    * @return The value of the parameter.
    *
+   * @deprecated Use {@link #getCoreIntParameter(String, int)}.
    * @since 2.0.7.0
    */
   public int getIntParameter(String key, int default_value);
@@ -147,6 +182,7 @@ PluginConfig
    * @param key The parameter name.
    * @return The value of the parameter.
    *
+   * @deprecated Use {@link #getCoreLongParameter(String)}. 
    * @since 3.0.0.7
    */
   public long getLongParameter(String key);
@@ -158,6 +194,7 @@ PluginConfig
    * @param default_value The default value to return if one is not defined.
    * @return The value of the parameter.
    *
+   * @deprecated Use {@link #getCoreLongParameter(String, long)}.
    * @since 3.0.0.7
    */
   public long getLongParameter(String key, long default_value);
@@ -168,6 +205,7 @@ PluginConfig
    * @param key The parameter name.
    * @return The value of the parameter.
    *
+   * @deprecated Use {@link #getCoreStringParameter(String)}.
    * @since 2.0.4.2
    */
   public String getStringParameter(String key);
@@ -179,6 +217,7 @@ PluginConfig
    * @param default_value The default value to return if one is not defined.
    * @return The value of the parameter.
    *
+   * @deprecated Use {@link #getCoreStringParameter(String, String)}.
    * @since 2.1.0.0
    */
   public String getStringParameter(String key, String default_value);
@@ -188,6 +227,8 @@ PluginConfig
    *   
    * @param key	The parameter name, which must be one defined from the above core constants.
    * @param value The new value for the parameter.
+   * 
+   * @deprecated Use {@link #setCoreBooleanParameter(String, boolean)}.
    */
   public void setBooleanParameter(String key, boolean value);
   
@@ -197,6 +238,7 @@ PluginConfig
    * @param key	The parameter name, which must be one defined from the above core constants.
    * @param value The new value for the parameter.
    *
+   * @deprecated Use {@link #setCoreByteParameter(String, byte[])}.
    * @since 3.0.0.7
    */
   public void setByteParameter(String key, byte[] value);
@@ -208,6 +250,7 @@ PluginConfig
    * @param key	The parameter name, which must be one defined from the above core constants.
    * @param value The new value for the parameter.
    *
+   * @deprecated Use {@link #setCoreFloatParameter(String, float)}.
    * @since 3.0.0.7
    */
   public void setFloatParameter(String key, float value);
@@ -218,6 +261,7 @@ PluginConfig
    * @param key	The parameter name, which must be one defined from the above core constants.
    * @param value The new value for the parameter.
    *
+   * @deprecated Use {@link #setIntLongParameter(String, int)}.
    * @since 2.0.8.0
    */
   public void setIntParameter(String key, int value);
@@ -228,6 +272,7 @@ PluginConfig
    * @param key	The parameter name, which must be one defined from the above core constants.
    * @param value The new value for the parameter.
    *
+   * @deprecated Use {@link #setCoreLongParameter(String, long)}.
    * @since 3.0.0.7
    */
   public void setLongParameter(String key, long value);
@@ -238,10 +283,199 @@ PluginConfig
    * @param key	The parameter name, which must be one defined from the above core constants.
    * @param value The new value for the parameter.
    *
+   * @deprecated Use {@link #setCoreStringParameter(String, String)}.
    * @since 3.0.0.7
    */
   public void setStringParameter(String key, String value);
 
+  /**
+   * Returns the value of a core boolean parameter.
+   * 
+   * @param key The parameter name.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.4.3
+   */
+  public boolean getCoreBooleanParameter(String key);
+	  
+  /**
+   * Returns the value of a core boolean parameter.
+   * 
+   * @param key The parameter name.
+   * @param default_value The default value to return if one is not defined.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.4.3
+   */
+  public boolean getCoreBooleanParameter(String key, boolean default_value);
+  
+  /**
+   * Returns the value of a core byte array parameter.
+   * 
+   * @param key The parameter name.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.4.3
+   */
+  public byte[] getCoreByteParameter(String key);
+	
+  /**
+   * Returns the value of a core byte array parameter.
+   * 
+   * @param key The parameter name.
+   * @param default_value The default value to return if one is not defined.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.4.3
+   */
+  public byte[] getCoreByteParameter(String key, byte[] default_value);
+	
+  /**
+   * Returns the value of a core float parameter.
+   * 
+   * @param key The parameter name.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.4.3
+   */
+  public float getCoreFloatParameter(String key);
+  
+  /**
+   * Returns the value of a core float parameter.
+   * 
+   * @param key The parameter name.
+   * @param default_value The default value to return if one is not defined.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.4.3
+   */
+  public float getCoreFloatParameter(String key, float default_value);
+
+  /**
+   * Returns the value of a core int parameter.
+   * 
+   * @param key The parameter name.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.4.3
+   */
+  public int getCoreIntParameter(String key);
+	
+  /**
+   * Returns the value of a core int parameter.
+   * 
+   * @param key The parameter name.
+   * @param default_value The default value to return if one is not defined.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.4.3
+   */
+  public int getCoreIntParameter(String key, int default_value);
+  
+  /**
+   * Returns the value of a core long parameter.
+   * 
+   * @param key The parameter name.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.4.3
+   */
+  public long getCoreLongParameter(String key);
+	
+  /**
+   * Returns the value of a core long parameter.
+   * 
+   * @param key The parameter name.
+   * @param default_value The default value to return if one is not defined.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.4.3
+   */
+  public long getCoreLongParameter(String key, long default_value);
+  
+  /**
+   * Returns the value of a core string parameter.
+   * 
+   * @param key The parameter name.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.4.3
+   */
+  public String getCoreStringParameter(String key);
+	
+  /**
+   * Returns the value of a core string parameter.
+   * 
+   * @param key The parameter name.
+   * @param default_value The default value to return if one is not defined.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.4.3
+   */
+  public String getCoreStringParameter(String key, String default_value);
+
+  /**
+   * Sets the value of a core boolean parameter.
+   *   
+   * @param key	The parameter name, which must be one defined from the above core constants.
+   * @param value The new value for the parameter.
+   * 
+   * @since 3.0.4.2
+   */
+  public void setCoreBooleanParameter(String key, boolean value);
+  
+  /**
+   * Sets the value of a core byte array parameter.
+   *   
+   * @param key	The parameter name, which must be one defined from the above core constants.
+   * @param value The new value for the parameter.
+   *
+   * @since 3.0.4.2
+   */
+  public void setCoreByteParameter(String key, byte[] value);
+  
+  
+  /**
+   * Sets the value of a core float parameter.
+   *   
+   * @param key	The parameter name, which must be one defined from the above core constants.
+   * @param value The new value for the parameter.
+   *
+   * @since 3.0.4.2
+   */
+  public void setCoreFloatParameter(String key, float value);
+  
+  /**
+   * Sets the value of a core int parameter.
+   *   
+   * @param key	The parameter name, which must be one defined from the above core constants.
+   * @param value The new value for the parameter.
+   *
+   * @since 3.0.4.2
+   */
+  public void setCoreIntParameter(String key, int value);
+  
+  /**
+   * Sets the value of a core long parameter.
+   *   
+   * @param key	The parameter name, which must be one defined from the above core constants.
+   * @param value The new value for the parameter.
+   *
+   * @since 3.0.4.2
+   */
+  public void setCoreLongParameter(String key, long value);
+  
+  /**
+   * Sets the value of a core string parameter.
+   *   
+   * @param key	The parameter name, which must be one defined from the above core constants.
+   * @param value The new value for the parameter.
+   *
+   * @since 3.0.4.2
+   */
+  public void setCoreStringParameter(String key, String value);
+
+  
   /**
    * Returns the value of a plugin boolean parameter.
    * 

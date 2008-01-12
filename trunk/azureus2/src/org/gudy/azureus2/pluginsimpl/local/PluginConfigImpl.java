@@ -84,9 +84,15 @@ PluginConfigImpl
 			external_to_internal_key_map.put(passthrough_params[i], passthrough_params[i]);
 		}
 	}
+	
+	public void checkValidCoreParam(String name) {
+		if (!external_to_internal_key_map.containsKey(name)) {
+			throw new IllegalArgumentException("invalid core parameter: " + name);
+		}
+	}
 
-	private static Map		fake_values_when_disabled;
-	private static int		fake_values_ref_count;
+	private static Map	fake_values_when_disabled;
+	private static int	fake_values_ref_count;
 	
 	public static void
 	setEnablePluginCoreConfigChange(
@@ -301,7 +307,7 @@ PluginConfigImpl
 	
 	//
 	//
-	// Core get parameter methods.
+	// Core get parameter methods (backwardly compatible).
 	//
 	//
 
@@ -352,10 +358,76 @@ PluginConfigImpl
     public String getStringParameter(String name, String default_value) {
     	return getStringParameter(name, default_value, true, false);
     }
+
+	//
+	//
+	// Core get parameter methods (newly named ones).
+	//
+	//
+
+	public boolean getCoreBooleanParameter(String name) {
+		checkValidCoreParam(name);
+		return getDefaultedBooleanParameter(name, true);
+	}
+
+	public boolean getCoreBooleanParameter(String name, boolean default_value) {
+		checkValidCoreParam(name);
+		return getBooleanParameter(name, default_value, true, false);
+	}
+	
+	public byte[] getCoreByteParameter(String name) {
+		checkValidCoreParam(name);
+		return getDefaultedByteParameter(name, true);
+	}
+
+	public byte[] getCoreByteParameter(String name, byte[] default_value) {
+		checkValidCoreParam(name);
+		return getByteParameter(name, default_value, true, false);
+	}
+	
+	public float getCoreFloatParameter(String name) {
+		checkValidCoreParam(name);
+		return getDefaultedFloatParameter(name, true);
+	}
+
+	public float getCoreFloatParameter(String name, float default_value) {
+		checkValidCoreParam(name);
+		return getFloatParameter(name, default_value, true, false);
+	}
+
+	public int getCoreIntParameter(String name) {
+		checkValidCoreParam(name);
+		return getDefaultedIntParameter(name, true);
+	}
+
+	public int getCoreIntParameter(String name, int default_value) {
+		checkValidCoreParam(name);
+		return getIntParameter(name, default_value, true, false);
+	}
+
+	public long getCoreLongParameter(String name) {
+		checkValidCoreParam(name);
+		return getDefaultedLongParameter(name, true);
+	}
+
+	public long getCoreLongParameter(String name, long default_value) {
+		checkValidCoreParam(name);
+		return getLongParameter(name, default_value, true, false);
+	}
+	
+	public String getCoreStringParameter(String name) {
+		checkValidCoreParam(name);
+		return getDefaultedStringParameter(name, true);
+	}
+
+    public String getCoreStringParameter(String name, String default_value) {
+    	checkValidCoreParam(name);
+    	return getStringParameter(name, default_value, true, false);
+    }
     
 	//
 	//
-	// Core set parameter methods.
+	// Core set parameter methods (backwardly compatible).
 	//
 	//
     public void setBooleanParameter(String name, boolean value) {
@@ -394,6 +466,59 @@ PluginConfigImpl
     }
 
     public void setStringParameter(String name, String value) {
+		if ( setFakeValueWhenDisabled(key, name, value)){
+			return;
+		}
+    	COConfigurationManager.setParameter(mapKeyName(name, true), value);
+    }
+
+	//
+	//
+	// Core set parameter methods (newly named ones).
+	//
+	//
+    public void setCoreBooleanParameter(String name, boolean value) {
+    	checkValidCoreParam(name);
+		if ( setFakeValueWhenDisabled(key, name, new Boolean( value))){
+			return;
+		}
+    	COConfigurationManager.setParameter(mapKeyName(name, true), value);
+    }
+
+    public void setCoreByteParameter(String name, byte[] value) {
+    	checkValidCoreParam(name);
+		if ( setFakeValueWhenDisabled(key, name, value )){
+			return;
+		}
+    	COConfigurationManager.setParameter(mapKeyName(name, true), value);
+    }
+
+    public void setCoreFloatParameter(String name, float value) {
+    	checkValidCoreParam(name);
+		if ( setFakeValueWhenDisabled(key, name, new Float( value))){
+			return;
+		}
+    	COConfigurationManager.setParameter(mapKeyName(name, true), value);
+    }
+
+    public void setCoreIntParameter(String name, int value) {
+    	checkValidCoreParam(name);
+		if ( setFakeValueWhenDisabled(key, name, new Long( value))){
+			return;
+		}
+    	COConfigurationManager.setParameter(mapKeyName(name, true), value);
+    }
+
+    public void setCoreLongParameter(String name, long value) {
+    	checkValidCoreParam(name);
+		if ( setFakeValueWhenDisabled(key, name, new Long( value))){
+			return;
+		}
+    	COConfigurationManager.setParameter(mapKeyName(name, true), value);
+    }
+
+    public void setCoreStringParameter(String name, String value) {
+    	checkValidCoreParam(name);
 		if ( setFakeValueWhenDisabled(key, name, value)){
 			return;
 		}

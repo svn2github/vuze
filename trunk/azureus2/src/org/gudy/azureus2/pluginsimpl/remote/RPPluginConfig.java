@@ -557,4 +557,24 @@ RPPluginConfig
 		  public String getUnsafeStringParameter(String key) {notSupported(); return null;}
 		  public void setUnsafeByteParameter(String key, byte[] value) {notSupported();}
 
+		  public boolean getCoreBooleanParameter(String key) {notSupported(); return false;}
+		  public boolean getCoreBooleanParameter(String key, boolean default_value) {notSupported(); return false;}
+		  public byte[] getCoreByteParameter(String key, byte[] default_value) {notSupported(); return null;}
+		  public byte[] getCoreByteParameter(String key) {notSupported(); return null;}
+		  public float getCoreFloatParameter(String key) {notSupported(); return 0;}
+		  public float getCoreFloatParameter(String key, float default_value) {notSupported(); return 0;}
+		  public int getCoreIntParameter(String key) {notSupported(); return 0;}
+		  public int getCoreIntParameter(String key, int default_value) {notSupported(); return 0;}
+		  public String getCoreStringParameter(String key) {notSupported(); return null;}
+		  public String getCoreStringParameter(String key, String default_value) {notSupported(); return null;}
+		  public long getCoreLongParameter(String key) {notSupported(); return 0;}
+		  public long getCoreLongParameter(String key, long default_value) {notSupported(); return 0;}
+		  public void setCoreBooleanParameter(String key, boolean value) {notSupported();}
+		  public void setCoreByteParameter(String key, byte[] value) {notSupported();}
+		  public void setCoreFloatParameter(String key, float value) {notSupported();}
+		  public void setCoreIntParameter(String key, int value) {notSupported();}
+		  public void setCoreLongParameter(String key, long value) {notSupported();}
+		  public void setCoreStringParameter(String key, String value) {notSupported();}
+
+		  
 }
