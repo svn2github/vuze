@@ -509,6 +509,8 @@ public class ListView
 			if (DEBUGPAINT) {
 				logPAINT("first resize (img null)");
 			}
+			if(imgView != null && !imgView.isDisposed())
+				imgView.dispose();
 			imgView = new Image(listCanvas.getDisplay(), clientArea);
 			lastBounds = new Rectangle(0, 0, 0, 0);
 			bNeedsRefresh = true;
