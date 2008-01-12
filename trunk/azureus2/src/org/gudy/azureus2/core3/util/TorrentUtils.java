@@ -1350,6 +1350,10 @@ TorrentUtils
 	private static HashSet	torrentFluffKeyset = new HashSet(2);
 	private static Map		fluffThombstone = new HashMap(1);
 	
+	/**
+	 * Register keys that are used for heavyweight maps that should be discarded when the torrent is not in use
+	 * Make sure these keys are only ever used for Map objects!
+	 */
 	public static void
 	registerMapFluff(
 		String[]		fluff )
@@ -1851,11 +1855,36 @@ TorrentUtils
 			return( delegate.getAdditionalMapProperty( name ));
 		}
 		
-		public Object
-		getAdditionalProperty(
-			String		name )
-		{
-			return( delegate.getAdditionalProperty( name ));
+		public Object getAdditionalProperty(String name) {
+			if (torrentFluffKeyset.contains(name))
+			{
+				try
+				{
+					getMonitor().enter();
+					
+					Object result = delegate.getAdditionalProperty(name);
+					if (result == fluffThombstone)
+					{
+						try
+						{
+							restoreState(false, true);
+							Object res = delegate.getAdditionalProperty(name);
+							//System.out.println( "Restored fluff for " + new String(getName()) + " to " + res );
+							
+							return (res);
+							
+						} catch (Throwable e)
+						{
+							Debug.out("Property '" + name + " lost due to torrent read error", e);
+						}
+					}
+				} finally
+				{
+					getMonitor().exit();
+				}
+			}
+			
+			return delegate.getAdditionalProperty(name);
 		}
 
 		public void
@@ -1888,13 +1917,16 @@ TorrentUtils
 		removeAdditionalProperty(
 			String name )
 		{
+			if(delegate.getAdditionalProperty(name) == null)
+				return;
+			
 			if ( torrentFluffKeyset.contains(name)){
 
 				//System.out.println( "Set fluff for " + new String(getName()) + " to " + value );
 
 				try{
 					getMonitor().enter();
-
+					
 					delegate.removeAdditionalProperty( name );
 					
 					fluff_dirty = true;

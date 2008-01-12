@@ -97,6 +97,7 @@ DownloadManagerStateImpl
 			default_attributes.put( ATTRIBUTE_DEFAULTS[i][0], ATTRIBUTE_DEFAULTS[i][1] );
 		}
 		
+		// only add keys that will point to Map objects here!
 		TorrentUtils.registerMapFluff( new String[] {TRACKER_CACHE_KEY,RESUME_KEY} );
 	}
 	
