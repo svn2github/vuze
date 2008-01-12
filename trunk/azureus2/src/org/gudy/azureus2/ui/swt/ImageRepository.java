@@ -347,7 +347,7 @@ public class ImageRepository {
 					if (!bBig)
 						image = force16height(image);
 					if(minifolder)
-						image = minifolderize(image);
+						image = minifolderize(image,bBig);
 
 					images.put(id, image);
 				}
@@ -363,12 +363,12 @@ public class ImageRepository {
 		return image;
 	}
   
-  private static Image minifolderize(Image img)
+  private static Image minifolderize(Image img, boolean big)
   {
-		Image imgFolder = getImage("foldersmall");
+		Image imgFolder = getImage(big ? "folder" : "foldersmall");
 		Rectangle folderBounds = imgFolder.getBounds();
 		Rectangle dstBounds = img.getBounds();
-		Image tempImg = Utils.renderTransparency(Display.getCurrent(), img, imgFolder, new Point(dstBounds.width - folderBounds.width, dstBounds.height - folderBounds.height));
+		Image tempImg = Utils.renderTransparency(Display.getCurrent(), img, imgFolder, new Point(dstBounds.width - folderBounds.width, dstBounds.height - folderBounds.height),204);
 		if (tempImg != null)
 		{
 			img.dispose();
@@ -524,7 +524,7 @@ public class ImageRepository {
 					image = force16height(image);
 				}
 				if(minifolder)
-					image = minifolderize(image);
+					image = minifolderize(image,bBig);
 
 				registry.put(key, image);
 

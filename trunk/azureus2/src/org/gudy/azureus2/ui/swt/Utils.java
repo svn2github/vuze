@@ -1551,7 +1551,16 @@ public class Utils {
 		return new Image(device, dstImageData);
 	}
 	
-	  public static Image renderTransparency(Display display, Image background, Image foreground, Point foregroundOffsetOnBg) {
+	/**
+	 * 
+	 * @param display
+	 * @param background
+	 * @param foreground
+	 * @param foregroundOffsetOnBg
+	 * @param modifyForegroundAlpha 0 (fully transparent) to 255 (retain current alpha) 
+	 * @return
+	 */
+	  public static Image renderTransparency(Display display, Image background, Image foreground, Point foregroundOffsetOnBg, int modifyForegroundAlpha) {
 		//Checks
 		if (display == null || display.isDisposed() || background == null || background.isDisposed() || foreground == null || foreground.isDisposed())
 			return null;
@@ -1596,6 +1605,7 @@ public class Utils {
 					aFore = foreData.getAlpha(fx, fy);
 					if(foreMask != null && foreMask.getPixel(x, y) == 0)
 						aFore = 0; // special treatment for icons with transparency masks
+					aFore = aFore * modifyForegroundAlpha / 255;
 					cBack.red *= aBack * (255 - aFore);
 					cBack.red /= 255;
 					cBack.red += aFore * cFore.red;
