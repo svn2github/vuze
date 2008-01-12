@@ -28,6 +28,7 @@ import java.io.IOException;
 
 import org.gudy.azureus2.core3.config.impl.*;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.SystemProperties;
 
 public class 
 COConfigurationManager 
@@ -90,6 +91,9 @@ COConfigurationManager
 			    if( Constants.isOSX ) {
 			        System.setProperty( "java.nio.preferSelect", "true" );
 			    }
+			    
+			    SystemProperties.determineApplicationName();
+			    
 			}catch( Throwable e ){
 				
 					// can happen in applet

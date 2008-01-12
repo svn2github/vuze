@@ -29,8 +29,6 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.platform.*;
 
-import org.gudy.azureus2.plugins.platform.PlatformManagerException;
-
 /**
  * Utility class to manage system-dependant information.
  */
@@ -56,6 +54,54 @@ public class SystemProperties {
   	private static String user_path;
   	private static String app_path;
   	
+	public static void
+	determineApplicationName()
+	{
+			// try and infer the application name. this is only required on OSX as the app name
+			// is a component of the "application path" used to find plugins etc.
+
+		if ( Constants.isOSX ){
+			
+			/* example class path
+			 
+			 /Applications/Utilities/Azureus.app/Contents/Resources/ 
+			Java/swt.jar:/Applications/Utilities/Azureus.app/Contents/Resources/ 
+			Java/swt-pi.jar:/Applications/Utilities/Azureus.app/Contents/Resources/ 
+			Java/Azureus2.jar:/System/Library/Java
+			*/
+			
+			String	classpath = System.getProperty("java.class.path");
+			
+			if ( classpath == null ){
+				
+					// System.out here as very early init!
+				
+				System.out.println( "SystemProperties: determineApplicationName - class path is null" );
+				
+			}else{
+				
+				int	dot_pos = classpath.indexOf( ".app/Contents" );
+				
+				if ( dot_pos == -1 ){
+					
+					System.out.println( "SystemProperties: determineApplicationName -  can't determine application name from " + classpath );
+					
+				}else{
+					
+					int	start_pos = dot_pos;
+					
+					while( start_pos >= 0 && classpath.charAt(start_pos) != '/' ){
+						
+						start_pos--;
+					}
+					
+					String	app_name = classpath.substring( start_pos+1, dot_pos );
+					
+					setApplicationName( app_name );
+				}
+			}
+		}
+	}
   	
 	public static void
 	setApplicationName(

@@ -60,50 +60,7 @@ PluginLauncherImpl
 			// This *has* to be done first as it sets system properties that are read and cached by Java
   		
   		COConfigurationManager.preInitialise();
- 
-			// try and infer the application name. this is only required on OSX as the app name
-			// is a component of the "application path" used to find plugins etc.
-		
-		if ( Constants.isOSX ){
-			
-			/* example class path
-			 
-			 /Applications/Utilities/Azureus.app/Contents/Resources/ 
-			Java/swt.jar:/Applications/Utilities/Azureus.app/Contents/Resources/ 
-			Java/swt-pi.jar:/Applications/Utilities/Azureus.app/Contents/Resources/ 
-			Java/Azureus2.jar:/System/Library/Java
-			*/
-			
-			String	classpath = System.getProperty("java.class.path");
-			
-			if ( classpath == null ){
-				
-				System.out.println( "classpath is null!!!!" );
-				
-			}else{
-				
-				int	dot_pos = classpath.indexOf( ".app/Contents" );
-				
-				if ( dot_pos == -1 ){
-					
-					// System.out.println( "can't find .app/Contents" );
-					
-				}else{
-					
-					int	start_pos = dot_pos;
-					
-					while( start_pos >= 0 && classpath.charAt(start_pos) != '/' ){
-						
-						start_pos--;
-					}
-					
-					String	app_name = classpath.substring( start_pos+1, dot_pos );
-					
-					SystemProperties.setApplicationName( app_name );
-				}
-			}
-		}
-		
+ 				
 		final LoggerChannelListener	listener =
 			new LoggerChannelListener()
 			{
