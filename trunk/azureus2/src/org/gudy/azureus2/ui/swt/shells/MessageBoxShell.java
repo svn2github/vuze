@@ -14,6 +14,7 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
@@ -635,10 +636,40 @@ public class MessageBoxShell
 	 *
 	 * @since 3.0.1.7
 	 */
-	public void setLeftImage(int icon) {
-		setLeftImage(Display.getDefault().getSystemImage(icon));
+	public void setLeftImage(final int icon) {
+		Utils.execSWTThread(
+			new AERunnable() 
+			{
+				public void 
+				runSupport() 
+				{
+					setLeftImage(Display.getDefault().getSystemImage(icon));
+				}
+			});
 	}
 
+	public void 
+	setIconResource(
+		String resource )
+	{
+		if ( resource.equals( "info" )){
+			
+			setLeftImage( SWT.ICON_INFORMATION );
+			
+		}else if ( resource.equals( "warning" )){
+			
+			setLeftImage( SWT.ICON_WARNING );
+			
+		}else if ( resource.equals( "error" )){
+			
+			setLeftImage( SWT.ICON_ERROR );
+			
+		}else{
+			
+			setLeftImage( ImageRepository.getImage( resource ));
+		}
+	}
+	
 	public static void main(String[] args) {
 		Display display = Display.getDefault();
 		Shell shell = new Shell(display, SWT.SHELL_TRIM);

@@ -128,6 +128,13 @@ public interface UIFunctionsUserPrompter
 	 */
 	boolean isAutoClosed();
 	
+	/**
+	 * @since 3.0.4.3
+	 * @param resource image repository resource name (e.g. "error", "warning", "info")
+	 */
+	
+	void setIconResource( String resource );
+	
 	void setRelatedObjects(Object[] relatedObjects);
 
 	/**

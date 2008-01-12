@@ -22,6 +22,8 @@
  */
 package org.gudy.azureus2.ui.swt.update;
 
+import java.io.File;
+
 import org.eclipse.swt.SWT;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -40,6 +42,7 @@ import org.gudy.azureus2.update.CoreUpdateChecker;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.update.*;
@@ -150,6 +153,46 @@ public class UpdateMonitor
 		// wait a bit before starting check to give rest of AZ time to initialise 
 		new DelayedEvent("UpdateMon:wait", 2500, new AERunnable() {
 			public void runSupport() {
+				
+					// check for non-writeable app dir on non-vista platforms (vista we've got a chance of
+					// elevating perms when updating) and warn user. Particularly useful on OSX when
+					// users haven't installed properly
+			
+				if ( !( Constants.isWindowsVista || SystemProperties.isJavaWebStartInstance())){
+				
+					String	app_str = SystemProperties.getApplicationPath();
+					
+					if ( !new File(app_str).canWrite()){
+						
+						UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+						
+						if ( uiFunctions != null ){
+							
+							if ( app_str.endsWith( File.separator )){
+								
+								app_str = app_str.substring(0, app_str.length()-1);
+							}
+							
+							UIFunctionsUserPrompter prompt = 
+								uiFunctions.getUserPrompter(
+									MessageText.getString("updater.cant.write.to.app.title"), 
+									MessageText.getString("updater.cant.write.to.app.details", new String[]{app_str}), 
+									new String[]{ MessageText.getString( "Button.ok" )}, 
+									0 );
+							
+							//prompt.setHtml( "http://a.b.c/" );
+							
+							prompt.setIconResource( "warning" );
+							
+							prompt.setRememberID( "UpdateMonitor.can.not..write.to.app.dir", false );
+							
+							prompt.setRememberText( MessageText.getString( "MessageBoxWindow.nomoreprompting" ));
+							
+							prompt.open();
+						}
+					}
+				}
+				
 				performAutoCheck(true);
 			}
 		});
