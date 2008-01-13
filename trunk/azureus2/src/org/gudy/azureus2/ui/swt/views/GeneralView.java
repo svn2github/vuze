@@ -1274,7 +1274,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
 				creation_date.setText(_creation_date);
 				privateStatus.setText(isPrivate);
 				boolean do_relayout = false;
-				do_relayout = setCommentAndFormatLinks(lblComment, _comment) | do_relayout;
+				do_relayout = setCommentAndFormatLinks(lblComment, _comment.length() > 5000 && Constants.isWindowsXP ? _comment.substring(0, 5000) : _comment ) | do_relayout;
 				do_relayout = setCommentAndFormatLinks(user_comment, _user_comment) | do_relayout;
 				if (do_relayout)
 				{

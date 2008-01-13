@@ -7,7 +7,7 @@ FEATURE: Core | Added µTorrent PEX support [amc1]
 FEATURE: UI   | Added option for "Open Containing Folder" menu action - which may integrate better with non-standard file browsers [amc1]
 
 
-CHANGE: Core  | Further memory footprint reductions; for further tweaks see http://www.azureuswiki.com/index.php/Reduce_memory_usage [The 8472]
+CHANGE: Core  | Further memory footprint reductions; for additional tweaks see http://www.azureuswiki.com/index.php/Reduce_memory_usage [The 8472]
 CHANGE: Core  | Reimplemented LT extension protocol code [amc1]
 CHANGE: Core  | Queuing rules now don't start any further torrents if the global up/download speed limits are reached [The 8472]
                  - makes "don't count torrent ..." minimum speed rules more useful to dynamically regulate the queue lengths
@@ -15,6 +15,7 @@ CHANGE: Core  | Queuing rules now don't start any further torrents if the global
 CHANGE: Core  | Made the crypto handshake a bit less predictable [The 8472]  
                  
 BUGFIX: UI    | Shells no longer use the low-res frog icon, the normal main window icon is now used instead [amc1]
+BUGFIX: UI    | Limiting comments in General View to 5k characters under WinXP to avoid crashes du to faulty comctl32.dll [The 8472]
 
 
 2007.12.21 | Azureus Vuze 3.0.4.2
