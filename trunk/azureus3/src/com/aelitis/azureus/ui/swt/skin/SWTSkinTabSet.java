@@ -44,19 +44,18 @@ public class SWTSkinTabSet
 		tabs = new ArrayList();
 	}
 
-	public void addTab(SWTSkinObjectTab tab) {
+	public void addTab(final SWTSkinObjectTab tab) {
 		tabs.add(tab);
 		tab.setTabset(this);
 
 		//System.out.println("AddTab for " + sID + ": " + tab.getSkinObjectID());
 		addMouseListener(tab, tab.getControl());
-		if (tabs.size() == 1) {
-			//			activeTab = tab;
-			//			setTabVisible(tab, true, null);
-			setTabVisible(tab, false, tab.getActiveWidgets());
-		} else {
-			setTabVisible(tab, false, tab.getActiveWidgets());
-		}
+		
+		skin.addListener(new SWTSkinLayoutCompleteListener() {
+			public void skinLayoutCompleted() {
+				setTabVisible(tab, activeTab == tab, null);
+			}
+		});
 	}
 
 	public SWTSkinObjectTab getActiveTab() {
@@ -65,18 +64,6 @@ public class SWTSkinTabSet
 
 	public SWTSkinObjectTab[] getTabs() {
 		return (SWTSkinObjectTab[]) tabs.toArray(new SWTSkinObjectTab[0]);
-	}
-
-	public void clean() {
-		if (tabs.size() > 0) {
-			for (int i = tabs.size() - 1; i >= 0; i--) {
-				SWTSkinObjectTab tab = (SWTSkinObjectTab) tabs.get(i);
-				setTabVisible(tab, false, null);
-				if (i == 0) {
-					setActiveTab(tab);
-				}
-			}
-		}
 	}
 
 	public SWTSkinObjectTab getTab(String sID) {

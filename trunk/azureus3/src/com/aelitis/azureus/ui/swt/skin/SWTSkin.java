@@ -458,11 +458,6 @@ public class SWTSkin
 			}
 		}
 
-		for (Iterator iter = mapTabSetToControls.values().iterator(); iter.hasNext();) {
-			SWTSkinTabSet tabset = (SWTSkinTabSet) iter.next();
-			tabset.clean();
-		}
-
 		// Disabled due to Browser flickering
 		//addPaintListenerToAll(shell);
 

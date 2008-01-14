@@ -144,7 +144,7 @@ public class MainWindow
 	private MainStatusBar statusBar;
 
 	public static void main(String args[]) {
-		if(Launcher.checkAndLaunch(MainWindow.class, args))
+		if (Launcher.checkAndLaunch(MainWindow.class, args))
 			return;
 		Initializer.main(new String[0]);
 		//org.gudy.azureus2.ui.swt.Main.main(args);
@@ -696,6 +696,31 @@ public class MainWindow
 			uiSWTInstanceImpl = new UISWTInstanceImpl(core);
 			uiSWTInstanceImpl.init();
 
+			SWTSkinTabSet tabSet = skin.getTabSet(SkinConstants.TABSET_MAIN);
+			if (tabSet != null) {
+				tabSet.addListener(this);
+
+				String startTab;
+
+				COConfigurationManager.setBooleanDefault("v3.Start Advanced", false);
+				if (COConfigurationManager.getBooleanParameter("v3.Start Advanced")) {
+					startTab = "maintabs.advanced";
+				} else {
+					boolean hasInComplete = false;
+					Object[] dms = core.getGlobalManager().getDownloadManagers().toArray();
+					for (int i = 0; i < dms.length; i++) {
+						DownloadManager dm = (DownloadManager) dms[i];
+						if (!dm.getAssumedComplete()) {
+							hasInComplete = true;
+							break;
+						}
+					}
+
+					startTab = hasInComplete ? "maintabs.home" : "maintabs.browse";
+				}
+				tabSet.setActiveTab(startTab);
+			}
+
 			buildTopBarViews();
 
 			System.out.println("skin widgets init took "
@@ -708,7 +733,8 @@ public class MainWindow
 				// plugin is built in, so instead of using IPC, just cast it
 				StartStopRulesDefaultPlugin plugin = (StartStopRulesDefaultPlugin) pi.getPlugin();
 				plugin.addListener(new StartStopRulesFPListener() {
-					public boolean isFirstPriority(Download dl, int numSeeds, int numPeers, StringBuffer debug) {
+					public boolean isFirstPriority(Download dl, int numSeeds,
+							int numPeers, StringBuffer debug) {
 						// FP while our content doesn't have another seed
 						boolean b = dl.getState() == Download.ST_SEEDING
 								&& PublishUtils.isPublished(dl)
@@ -862,26 +888,6 @@ public class MainWindow
 		core.triggerLifeCycleComponentCreated(uiFunctions);
 		core.getPluginManager().firePluginEvent(
 				PluginEvent.PEV_INITIALISATION_UI_COMPLETES);
-
-		boolean hasInComplete = false;
-		Object[] dms = core.getGlobalManager().getDownloadManagers().toArray();
-		for (int i = 0; i < dms.length; i++) {
-			DownloadManager dm = (DownloadManager) dms[i];
-			if (!dm.getAssumedComplete()) {
-				hasInComplete = true;
-				break;
-			}
-		}
-
-		String startTab = hasInComplete ? "maintabs.home" : "maintabs.browse";
-		SWTSkinTabSet tabSet = skin.getTabSet(SkinConstants.TABSET_MAIN);
-		if (tabSet != null) {
-			COConfigurationManager.setBooleanDefault("v3.Start Advanced", false);
-			if (COConfigurationManager.getBooleanParameter("v3.Start Advanced")) {
-				startTab = "maintabs.advanced";
-			}
-			tabSet.setActiveTab(startTab);
-		}
 
 		isReady = true;
 	}
@@ -1276,11 +1282,6 @@ public class MainWindow
 		}
 
 		shell.layout(true, true);
-
-		SWTSkinTabSet tabSet = skin.getTabSet(SkinConstants.TABSET_MAIN);
-		if (tabSet != null) {
-			tabSet.addListener(this);
-		}
 	}
 
 	private void addMenuAndChildren(Composite parent, Menu menu) {
@@ -1837,7 +1838,7 @@ public class MainWindow
 		if (oldMainWindow != null || disposedOrDisposing) {
 			return oldMainWindow;
 		}
-		
+
 		if (uiSWTInstanceImpl == null) {
 			System.out.println("This will end only in disaster! "
 					+ Debug.getCompressedStackTrace());
@@ -1886,6 +1887,9 @@ public class MainWindow
 									core, null, cArea.getShell(), cArea, uiSWTInstanceImpl);
 							oldMainWindow.setShowMainWindow(false);
 							oldMainWindow.runSupport();
+							if (isReady) {
+								oldMainWindow.postPluginSetup();
+							}
 
 							oldMainMenu = new org.gudy.azureus2.ui.swt.mainwindow.MainMenu(
 									shell);
@@ -1965,7 +1969,7 @@ public class MainWindow
 			}
 		}
 	}
-	
+
 	protected MainStatusBar getMainStatusBar() {
 		return statusBar;
 	}
