@@ -316,8 +316,9 @@ public class FileDownloadWindow
 			String tmp = url.substring(url.lastIndexOf('/') + 1);
 			tmp = tmp.substring(0, tmp.lastIndexOf(".torrent"));
 			return tmp + ".torrent";
-		} catch (Throwable t) {
-			Debug.out(t);
+		} catch (Exception t) {
+			// don't print debug, this code is just parsing lazyness
+			//Debug.out(t);
 		}
 
 		return url;
