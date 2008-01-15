@@ -101,4 +101,10 @@ public class VivaldiView extends AbstractIView {
   public String getFullTitle() {
     return MessageText.getString("VivaldiView.title.full"); //$NON-NLS-1$
   }
+  
+	@Override
+	public void delete() {
+		drawPanel.delete();
+		super.delete();
+	}
 }

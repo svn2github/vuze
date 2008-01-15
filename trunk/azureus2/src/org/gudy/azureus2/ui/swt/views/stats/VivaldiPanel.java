@@ -419,4 +419,12 @@ public class VivaldiPanel {
 			setAlpha(canvas.getDisplay().getCursorControl() == canvas ? ALPHA_FOCUS : ALPHA_NOFOCUS);
 		}
 	}
+	
+	public void delete()
+	{
+		if(img != null && !img.isDisposed())
+		{
+			img.dispose();
+		}
+	}
 }
