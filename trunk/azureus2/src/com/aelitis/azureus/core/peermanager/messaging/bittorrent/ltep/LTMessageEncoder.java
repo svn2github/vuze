@@ -65,7 +65,7 @@ public class LTMessageEncoder implements MessageStreamEncoder {
 		if (extension_map != null) {
 			Byte ext_id = (Byte)this.extension_map.get(message.getID());
 			if (ext_id != null) {
-				Logger.log(new LogEvent(this.log_object, LOGID,	"Converting LT message to BT message, ext id is " + ext_id));
+				//Logger.log(new LogEvent(this.log_object, LOGID,	"Converting LT message to BT message, ext id is " + ext_id));
 				return new RawMessage[] {BTMessageFactory.createBTRawMessage(new BTLTMessage(message, ext_id.byteValue()))};
 			}
 		}
