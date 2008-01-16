@@ -162,15 +162,13 @@ public class UTPeerExchange implements AZStylePeerExchange, LTMessage {
 	      insertPeers("added", payload_map, true, peers_added );
 	      insertPeers("dropped", payload_map, false, peers_dropped );
 	      buffer = MessagingUtil.convertPayloadToBencodedByteStream(payload_map, DirectByteBuffer.AL_MSG_UT_PEX);
-	      if( buffer.remaining( bss ) > 2000 )  System.out.println( "Generated UTPeerExchange size = " +buffer.remaining( bss )+ " bytes" );
 	    }
 	    
-	    return new DirectByteBuffer[]{ buffer };
+	    return new DirectByteBuffer[] {buffer};
 	  }
 	  
 	  
 	  public Message deserialize( DirectByteBuffer data, byte version ) throws MessageException {
-	    if( data.remaining( bss ) > 2000 )  System.out.println( "Received UT-PEX msg byte size = " +data.remaining( bss ) );
 	    Map root = MessagingUtil.convertBencodedByteStreamToPayload(data, 2, getID());
 	    PeerItem[] added = extractPeers("added", root);
 	    PeerItem[] dropped = extractPeers("dropped", root);
