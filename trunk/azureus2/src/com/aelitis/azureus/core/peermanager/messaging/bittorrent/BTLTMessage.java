@@ -34,6 +34,7 @@ public class BTLTMessage implements BTMessage {
 	
 	public byte extension_id;
 	public Message base_message;
+	public DirectByteBuffer buffer_header;
 	
 	public BTLTMessage(Message base_message, byte extension_id) {
 		this.base_message = base_message;
@@ -47,17 +48,23 @@ public class BTLTMessage implements BTMessage {
 
 	public void destroy() {
 		if (base_message != null) {base_message.destroy();}
+		if (buffer_header != null) {
+			buffer_header.returnToPool();
+			buffer_header = null;
+		}
 	}
 
 	public DirectByteBuffer[] getData() {
 		DirectByteBuffer[] orig_data = this.base_message.getData();
 		DirectByteBuffer[] new_data = new DirectByteBuffer[orig_data.length + 1];
 
-		DirectByteBuffer header = DirectByteBufferPool.getBuffer(DirectByteBuffer.AL_MSG_LT_EXT_MESSAGE, 1);
-		header.put(DirectByteBuffer.SS_MSG, this.extension_id);
-		header.flip(DirectByteBuffer.SS_MSG);
+		if (buffer_header == null ) {
+			buffer_header = DirectByteBufferPool.getBuffer(DirectByteBuffer.AL_MSG_LT_EXT_MESSAGE, 1);
+			buffer_header.put(DirectByteBuffer.SS_MSG, this.extension_id);
+			buffer_header.flip(DirectByteBuffer.SS_MSG);
+		}
 		
-		new_data[0] = header;
+		new_data[0] = buffer_header;
 		System.arraycopy(orig_data, 0, new_data, 1, orig_data.length);
 		return new_data;
 	}
