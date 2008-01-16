@@ -335,7 +335,7 @@ public class MainStatusBar
 		gridLayout.marginRight = 0;
 		gridLayout.numColumns = 20; // Something nice and big. :)
 
-		GridData gridData = new GridData(GridData.FILL_VERTICAL);
+		GridData gridData = new GridData(SWT.CENTER, SWT.CENTER, false, false);
 		gridData.heightHint = height;
 		gridData.minimumHeight = height;
 		plugin_label_composite.setLayout(gridLayout);
