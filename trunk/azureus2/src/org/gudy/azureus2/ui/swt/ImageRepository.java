@@ -177,6 +177,8 @@ public class ImageRepository {
 			addPath("org/gudy/azureus2/ui/icons/progress_cancel.png", "progress_cancel");
 			addPath("org/gudy/azureus2/ui/icons/progress_remove.png", "progress_remove");
 		}
+		
+		addPath("org/gudy/azureus2/ui/icons/transparent16x16.png", "transparent");
 	}
 
   public static void addPath(String path, String id) {
@@ -352,14 +354,14 @@ public class ImageRepository {
 					images.put(id, image);
 				}
 			}
+			if (image == null) {
+				return getImage(minifolder ? "folder" : "transparent");
+			}
 		} catch (Throwable e) {
 			// seen exceptions thrown here, due to images.get failing in Program.hashCode
 			// ignore and use default icon
 		}
 
-		if (image == null) {
-			image = getImage("folder", true);
-		}
 		return image;
 	}
   
