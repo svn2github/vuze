@@ -56,6 +56,7 @@ import com.aelitis.azureus.core.peermanager.control.PeerControlSchedulerFactory;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 import org.gudy.azureus2.plugins.network.ConnectionManager;
+import org.gudy.azureus2.plugins.dht.mainline.MainlineDHTProvider;
 
 
 /**
@@ -197,7 +198,8 @@ public class GlobalManagerImpl
    /** List of torrents being added, but not added to the GM list yet */ 
    List addingDMs = new ArrayList();
 	
-	
+   private MainlineDHTProvider provider = null;
+   
    public class Checker extends AEThread {
     int loopFactor;
     private static final int waitTime = 10*1000;
@@ -2727,5 +2729,13 @@ public class GlobalManagerImpl
 			
 			e.printStackTrace();
 		}
+	}
+	
+	public void setMainlineDHTProvider(MainlineDHTProvider provider) {
+		this.provider = provider;
+	}
+	
+	public MainlineDHTProvider getMainlineDHTProvider() {
+		return this.provider;
 	}
 }

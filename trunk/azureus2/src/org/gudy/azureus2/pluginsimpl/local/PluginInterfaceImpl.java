@@ -27,9 +27,11 @@ import java.net.URL;
 
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.dht.mainline.*;
 import org.gudy.azureus2.plugins.logging.Logger;
 import org.gudy.azureus2.plugins.messaging.MessageManager;
 import org.gudy.azureus2.plugins.network.ConnectionManager;
+import org.gudy.azureus2.pluginsimpl.local.dht.mainline.*;
 import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.ddb.DDBaseImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
@@ -385,6 +387,10 @@ PluginInterfaceImpl
   getDownloadManager()
   {
   	return( DownloadManagerImpl.getSingleton(initialiser.getAzureusCore()));
+  }
+  
+  public MainlineDHTManager getMainlineDHTManager() {
+	  return new MainlineDHTManagerImpl(initialiser.getAzureusCore());
   }
   
   public TorrentManager

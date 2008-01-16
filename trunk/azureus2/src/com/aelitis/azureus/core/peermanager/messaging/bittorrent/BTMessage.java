@@ -65,14 +65,18 @@ public interface BTMessage extends Message {
   public static final String ID_BT_CANCEL       	= "BT_CANCEL";
   public static final byte[] ID_BT_CANCEL_BYTES     = ID_BT_CANCEL.getBytes();
   public static final int SUBID_BT_CANCEL			= 8;
-  
-  public static final String ID_BT_KEEP_ALIVE   	= "BT_KEEP_ALIVE";
-  public static final byte[] ID_BT_KEEP_ALIVE_BYTES = ID_BT_KEEP_ALIVE.getBytes();
-  public static final int SUBID_BT_KEEP_ALIVE		= 9;
+    
+  public static final String ID_BT_DHT_PORT         = "BT_DHT_PORT";
+  public static final byte[] ID_BT_DHT_PORT_BYTES   = ID_BT_DHT_PORT.getBytes();
+  public static final int SUBID_BT_DHT_PORT         = 9;
   
   public static final String ID_BT_HANDSHAKE    	= "BT_HANDSHAKE";
   public static final byte[] ID_BT_HANDSHAKE_BYTES  = ID_BT_HANDSHAKE.getBytes();
   public static final int SUBID_BT_HANDSHAKE		= 10;
+  
+  public static final String ID_BT_KEEP_ALIVE   	= "BT_KEEP_ALIVE";
+  public static final byte[] ID_BT_KEEP_ALIVE_BYTES = ID_BT_KEEP_ALIVE.getBytes();
+  public static final int SUBID_BT_KEEP_ALIVE		= 11;
   
   public static final String ID_BT_LT_EXT_MESSAGE        = "BT_LT_EXT_MESSAGE";
   public static final byte[] ID_BT_LT_EXT_MESSAGE_BYTES  = ID_BT_LT_EXT_MESSAGE.getBytes();

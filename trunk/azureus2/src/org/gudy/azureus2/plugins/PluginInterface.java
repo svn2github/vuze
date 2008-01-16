@@ -46,6 +46,7 @@ import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactor
 import org.gudy.azureus2.plugins.update.UpdateManager;
 import org.gudy.azureus2.plugins.utils.ShortCuts;
 import org.gudy.azureus2.plugins.clientid.*;
+import org.gudy.azureus2.plugins.dht.mainline.MainlineDHTManager;
 
 
 /**
@@ -567,4 +568,12 @@ public interface PluginInterface {
   public void
   removeEventListener(
   	PluginEventListener	l );
+  
+  /**
+   * Returns the manager object for registering plugins that connect to the
+   * Mainline DHT.
+   *
+   * @since 3.0.4.3
+   */
+  public MainlineDHTManager getMainlineDHTManager();
 }

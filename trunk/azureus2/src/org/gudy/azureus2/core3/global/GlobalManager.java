@@ -30,6 +30,8 @@ import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.download.*;
 
+import org.gudy.azureus2.plugins.dht.mainline.MainlineDHTProvider;
+
 /**
  * The GlobalManager contains a list of all the downloads
  * (DownloadManager objects) that Azureus controls. 
@@ -381,4 +383,19 @@ public interface GlobalManager extends AzureusCoreComponent {
 	 */
 	void removeDownloadManager(DownloadManager manager, boolean remove_torrent,
 			boolean remove_data) throws GlobalManagerDownloadRemovalVetoException;
+	
+	/**
+	 * Calling this method doesn't <i>prepare</i> Azureus to be DHT-ready, it is
+	 * only used to store, or remove, a DHT provider - so that it can be globally
+	 * accessible. See the DHT manager classes in the plugin API for a better way
+	 * to register a provider.
+	 * 
+	 * @since 3.0.4.3
+	 */
+	void setMainlineDHTProvider(MainlineDHTProvider provider);
+
+	/**
+	 * @since 3.0.4.3
+	 */
+	MainlineDHTProvider getMainlineDHTProvider();
 }

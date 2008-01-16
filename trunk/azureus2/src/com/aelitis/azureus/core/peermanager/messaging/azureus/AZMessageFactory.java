@@ -63,6 +63,7 @@ public class AZMessageFactory {
     legacy_data.put( BTMessage.ID_BT_CANCEL, new LegacyData( RawMessage.PRIORITY_HIGH, true, null ) );
     legacy_data.put( BTMessage.ID_BT_HANDSHAKE, new LegacyData( RawMessage.PRIORITY_HIGH, true, null ) );
     legacy_data.put( BTMessage.ID_BT_KEEP_ALIVE, new LegacyData( RawMessage.PRIORITY_LOW, false, null ) );
+    legacy_data.put( BTMessage.ID_BT_DHT_PORT, new LegacyData( RawMessage.PRIORITY_LOW, false, null ) );
   }
   
   

@@ -54,6 +54,17 @@ public class BTHandshake implements BTMessage, RawMessage {
 	  if (!LTEP_ENABLED) {AZ_RESERVED[5] = (byte)0;}
   }
   
+  public static void setMainlineDHTEnabled(boolean enabled) {
+	  if (enabled) {
+		  //BT_RESERVED[7] = (byte)(BT_RESERVED[7] | 0x01);
+		  AZ_RESERVED[7] = (byte)(AZ_RESERVED[7] | 0x01);
+	  }
+	  else {
+		  //BT_RESERVED[7] = (byte)(BT_RESERVED[7] & 0xFE);
+		  AZ_RESERVED[7] = (byte)(AZ_RESERVED[7] & 0xFE);		  
+	  }
+  }
+  
   private DirectByteBuffer buffer = null;
   private String description = null;
   
@@ -79,27 +90,8 @@ public class BTHandshake implements BTMessage, RawMessage {
     this.datahash_bytes = data_hash;
     this.peer_id_bytes = peer_id;
     this.version = version;
-    /*
-    for( int i=0; i < reserved.length; i++ ) {  //locate any reserved bits
-      for( int x=7; x >= 0; x-- ) {
-        byte b = (byte) (reserved[i] >> x);
-        int val = b & 0x01;
-        if( val == 1 ) {
-          String id = new String(peer_id);
-          
-          if( id.startsWith( "-AZ23" ) )  break;
-          if( id.startsWith( "exbc" ) )  break;
-          if( id.startsWith( "FUTB" ) )  break;
-          
-          System.out.println( "BT_HANDSHAKE:: reserved bit @ [" +i+ "/" +(7 - x)+ "] for [" +id+ "]" );
-        }
-      }
-    }
-    */
-    
   }
   
-
   private void constructBuffer() {
     buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG_BT_HAND, 68 );
     buffer.put( DirectByteBuffer.SS_MSG, (byte)PROTOCOL.length() );
@@ -109,8 +101,6 @@ public class BTHandshake implements BTMessage, RawMessage {
     buffer.put( DirectByteBuffer.SS_MSG, peer_id_bytes );
     buffer.flip( DirectByteBuffer.SS_MSG );
   }
-  
-  
   
   public byte[] getReserved() {  return reserved_bytes;  }
   

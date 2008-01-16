@@ -41,6 +41,7 @@ import org.gudy.azureus2.plugins.ipfilter.IPFilter;
 import org.gudy.azureus2.plugins.torrent.TorrentManager;
 import org.gudy.azureus2.plugins.clientid.ClientIDManager;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
+import org.gudy.azureus2.plugins.dht.mainline.MainlineDHTManager;
 import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.peers.protocol.PeerProtocolManager;
 import org.gudy.azureus2.plugins.platform.PlatformManager;
@@ -616,4 +617,6 @@ RPPluginInterface
 		// TODO Auto-generated method stub
 		return null;
 	}
+	
+	public MainlineDHTManager getMainlineDHTManager() {notSupported(); return null;}
 }

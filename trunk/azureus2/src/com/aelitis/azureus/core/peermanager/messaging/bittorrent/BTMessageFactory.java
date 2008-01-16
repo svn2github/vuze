@@ -96,6 +96,9 @@ public class BTMessageFactory {
     
     legacy_data.put( BTMessage.ID_BT_CANCEL, new LegacyData( RawMessage.PRIORITY_HIGH, true, null, (byte)8 ) );
     id_to_name[8] = BTMessage.ID_BT_CANCEL;
+
+    legacy_data.put( BTMessage.ID_BT_DHT_PORT, new LegacyData( RawMessage.PRIORITY_LOW, true, null, (byte)9 ) );
+    id_to_name[9] = BTMessage.ID_BT_DHT_PORT;
     
     legacy_data.put( BTMessage.ID_BT_LT_EXT_MESSAGE, new LegacyData( RawMessage.PRIORITY_HIGH, true, null, (byte)20 ) );
     id_to_name[20] = BTMessage.ID_BT_LT_EXT_MESSAGE;
@@ -143,6 +146,9 @@ public class BTMessageFactory {
         
       case 8:
         return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_CANCEL_BYTES, stream_payload, (byte)1 );
+        
+      case 9:
+    	return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_DHT_PORT_BYTES, stream_payload, (byte)1 );
 
       case 20:
     	  //Clients seeing our handshake reserved bit will send us the old 'extended' messaging hello message accidentally.

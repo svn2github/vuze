@@ -34,8 +34,10 @@ import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.util.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.network.Connection;
+import org.gudy.azureus2.plugins.dht.mainline.MainlineDHTProvider;
 import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
 
+import com.aelitis.azureus.core.impl.AzureusCoreImpl;
 import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.ProtocolEndpointTCP;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
@@ -49,8 +51,6 @@ import com.aelitis.azureus.core.peermanager.peerdb.*;
 import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 import com.aelitis.azureus.core.peermanager.utils.*;
-
-
 
 
 public class 
@@ -169,6 +169,7 @@ implements PEPeerTransport
   private byte	other_peer_az_bad_piece_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
   
   private boolean ut_pex_enabled = false;
+  private boolean ml_dht_enabled = false;
 
 	private final AEMonitor closing_mon	= new AEMonitor( "PEPeerTransportProtocol:closing" );
 	private final AEMonitor general_mon  	= new AEMonitor( "PEPeerTransportProtocol:data" );
@@ -1129,6 +1130,14 @@ implements PEPeerTransport
       connection.getOutgoingMessageQueue().addMessage( new BTKeepAlive(other_peer_keep_alive_version), false );
 		}
 	}
+	
+	private void sendMainlineDHTPort() {
+		if (!this.ml_dht_enabled) {return;}
+		MainlineDHTProvider provider = getDHTProvider();
+		if (provider == null) {return;}
+		Message message = new BTDHTPort(provider.getDHTPort()); 
+		connection.getOutgoingMessageQueue().addMessage(message, false);
+	}
 
 
 
@@ -2001,6 +2010,7 @@ implements PEPeerTransport
       }
 		 */
 		
+		this.ml_dht_enabled = (handshake_reserved_bytes[7] & 1) == 1; 
 		messaging_mode = decideExtensionProtocol(handshake);
 
 		//extended protocol processing
@@ -2013,6 +2023,10 @@ implements PEPeerTransport
 				Logger.log(new LogEvent(this, LOGID, "Handshake claims extended AZ "
 						+ "messaging support... enabling AZ mode."));
 			}
+			
+			// Ignore the handshake setting - wait for the AZHandshake to indicate
+			// support instead.
+			this.ml_dht_enabled = false;
         
 			Transport transport = connection.getTransport();
 			boolean enable_padding = transport.isTCP() && transport.isEncrypted();
@@ -2253,6 +2267,8 @@ implements PEPeerTransport
 					other_peer_az_have_version = supported_version;
 				else if (id == AZMessage.ID_AZ_BAD_PIECE)
 					other_peer_az_bad_piece_version = supported_version;
+				else if (id == BTMessage.ID_BT_DHT_PORT)
+					this.ml_dht_enabled = true;
 				else
 				{
 					// we expect unmatched ones here at the moment as we're not
@@ -2275,6 +2291,7 @@ implements PEPeerTransport
 		sendBitField();
 		handshake.destroy();
 		addAvailability();
+		sendMainlineDHTPort();
   	}
 
 
@@ -2339,7 +2356,17 @@ implements PEPeerTransport
 		}
 	}
 
-
+	protected void decodeMainlineDHTPort(BTDHTPort port) {
+		int i_port = port.getDHTPort();
+		port.destroy();
+		
+		if (!this.ml_dht_enabled) {return;}
+		MainlineDHTProvider provider = getDHTProvider();
+		if (provider == null) {return;}
+		
+		try {provider.notifyOfIncomingPort(getIp(), i_port);}
+		catch (Throwable t) {Debug.printStackTrace(t);}	
+	}
 
 	protected void decodeChoke( BTChoke choke ) {    
 		choke.destroy();
@@ -2824,6 +2851,11 @@ implements PEPeerTransport
 					decodeCancel( (BTCancel)message );
 					return true;
 				}
+        
+        if (message_id.equals(BTMessage.ID_BT_DHT_PORT)) {
+        	decodeMainlineDHTPort((BTDHTPort)message);
+        	return true;
+        }
 
         if( message_id.equals( AZMessage.ID_AZ_PEER_EXCHANGE ) ) {
 					decodePeerExchange( (AZPeerExchange)message );
@@ -3381,6 +3413,10 @@ implements PEPeerTransport
 			return this.client_handshake + " " + this.client_handshake_version;
 		}
 		return this.client_handshake;
+	}
+	
+	private static MainlineDHTProvider getDHTProvider() {
+		return AzureusCoreImpl.getSingleton().getGlobalManager().getMainlineDHTProvider();
 	}
 	
 
