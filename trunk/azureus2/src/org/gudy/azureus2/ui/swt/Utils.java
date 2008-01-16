@@ -1504,7 +1504,7 @@ public class Utils {
 		Arrays.fill(alphaData, 0, alphaData.length, (byte) defaultAlpha);
 
 		ImageData imageData = new ImageData(width, height, 24, new PaletteData(
-				0xFF0000, 0xFF00, 0xFF));
+				0xFF, 0xFF00, 0xFF0000));
 		Arrays.fill(imageData.data, 0, imageData.data.length, (byte) 0);
 		imageData.alphaData = alphaData;
 		Image image = new Image(device, imageData);
@@ -1543,10 +1543,10 @@ public class Utils {
 			for (int x = 0; x < srcArea.width; x++) {
 				dstImageData.setAlpha(xPos, yPos, srcImageData.getAlpha(x + srcArea.x,
 						y + srcArea.y));
-				xPos++;
-			}
-			yPos++;
-		}
+  				xPos++;
+  			}
+  			yPos++;
+  		}
 
 		return new Image(device, dstImageData);
 	}
@@ -1560,50 +1560,55 @@ public class Utils {
 	 * @param modifyForegroundAlpha 0 (fully transparent) to 255 (retain current alpha) 
 	 * @return
 	 */
-	  public static Image renderTransparency(Display display, Image background, Image foreground, Point foregroundOffsetOnBg, int modifyForegroundAlpha) {
+	  public static Image renderTransparency(Display display, Image background,
+			Image foreground, Point foregroundOffsetOnBg, int modifyForegroundAlpha) {
 		//Checks
-		if (display == null || display.isDisposed() || background == null || background.isDisposed() || foreground == null || foreground.isDisposed())
+		if (display == null || display.isDisposed() || background == null
+				|| background.isDisposed() || foreground == null
+				|| foreground.isDisposed())
 			return null;
 		Rectangle backgroundArea = background.getBounds();
 		Rectangle foregroundDrawArea = foreground.getBounds();
-		
-		foregroundDrawArea = new Rectangle(foregroundDrawArea.x + foregroundOffsetOnBg.x, foregroundDrawArea.y + foregroundOffsetOnBg.y, foregroundDrawArea.width, foregroundDrawArea.height);
+
+		foregroundDrawArea = new Rectangle(foregroundDrawArea.x
+				+ foregroundOffsetOnBg.x,
+				foregroundDrawArea.y + foregroundOffsetOnBg.y,
+				foregroundDrawArea.width, foregroundDrawArea.height);
 		foregroundDrawArea.intersect(backgroundArea);
-		
+
 		if (foregroundDrawArea.isEmpty())
 			return null;
-		
+
 		Image image = new Image(display, backgroundArea);
-		
+
 		ImageData backData = background.getImageData();
 		ImageData foreData = foreground.getImageData();
 		ImageData imgData = image.getImageData();
-		
+
 		PaletteData backPalette = backData.palette;
-		ImageData backMask = backData.getTransparencyType() == SWT.TRANSPARENCY_MASK ? backData.getTransparencyMask() : null;
+		ImageData backMask = backData.getTransparencyType() != SWT.TRANSPARENCY_ALPHA
+				? backData.getTransparencyMask() : null;
 		PaletteData forePalette = foreData.palette;
-		ImageData foreMask = foreData.getTransparencyType() == SWT.TRANSPARENCY_MASK ? foreData.getTransparencyMask() : null;
+		ImageData foreMask = foreData.getTransparencyType() != SWT.TRANSPARENCY_ALPHA
+				? foreData.getTransparencyMask() : null;
 		PaletteData imgPalette = imgData.palette;
 		image.dispose();
-		
-		for (int x = 0; x < backgroundArea.width; x++)
-		{
-			for (int y = 0; y < backgroundArea.height; y++)
-			{
+
+		for (int x = 0; x < backgroundArea.width; x++) {
+			for (int y = 0; y < backgroundArea.height; y++) {
 				RGB cBack = backPalette.getRGB(backData.getPixel(x, y));
 				int aBack = backData.getAlpha(x, y);
-				if(backMask != null && backMask.getPixel(x, y) == 0)
+				if (backMask != null && backMask.getPixel(x, y) == 0)
 					aBack = 0; // special treatment for icons with transparency masks
-				
+
 				int aFore = 0;
-				
-				if (foregroundDrawArea.contains(x, y))
-				{
+
+				if (foregroundDrawArea.contains(x, y)) {
 					final int fx = x - foregroundDrawArea.x;
 					final int fy = y - foregroundDrawArea.y;
-					RGB cFore = forePalette.getRGB(foreData.getPixel(fx,fy));
+					RGB cFore = forePalette.getRGB(foreData.getPixel(fx, fy));
 					aFore = foreData.getAlpha(fx, fy);
-					if(foreMask != null && foreMask.getPixel(x, y) == 0)
+					if (foreMask != null && foreMask.getPixel(fx, fy) == 0)
 						aFore = 0; // special treatment for icons with transparency masks
 					aFore = aFore * modifyForegroundAlpha / 255;
 					cBack.red *= aBack * (255 - aFore);
