@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.plugins.download;
 
+import org.gudy.azureus2.core3.peer.PEPeerSource;
+
 /**
  * @author parg
  *
@@ -32,6 +34,31 @@ DownloadAnnounceResultPeer
 {
 	public static final short	PROTOCOL_NORMAL		= 1;
 	public static final short	PROTOCOL_CRYPT		= 2;
+	
+
+	/**
+	 * Peer source for all peers discovered through a tracker announce
+	 */
+	public static final String	PEERSOURCE_BT_TRACKER		= PEPeerSource.PS_BT_TRACKER;
+	/**
+	 * Peer source for all peers discovered through other peers from a globally accessible gossiping protocl (usually a DHT)
+	 */
+	public static final String	PEERSOURCE_DHT				= PEPeerSource.PS_DHT;
+	/**
+	 * Peer source for all peers discovered through other peers in the same swarm via gossiping protocols
+	 */
+	public static final String	PEERSOURCE_PEX		= PEPeerSource.PS_OTHER_PEER;
+	
+	
+	/**
+	 * Peer source for all peers discovered by plugins that do not fall into the other categories
+	 */
+	public static final String	PEERSOURCE_PLUGIN			= PEPeerSource.PS_PLUGIN;
+	
+	/**
+	 * Peer source for all peers which already connected to us but we know nothing about since the connection is incoming  
+	 */
+	public static final String	PEERSOURCE_INCOMING			= PEPeerSource.PS_INCOMING;
 	
 	public String
 	getSource();
