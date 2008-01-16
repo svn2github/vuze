@@ -102,7 +102,6 @@ public class VivaldiView extends AbstractIView {
     return MessageText.getString("VivaldiView.title.full"); //$NON-NLS-1$
   }
   
-	@Override
 	public void delete() {
 		drawPanel.delete();
 		super.delete();
