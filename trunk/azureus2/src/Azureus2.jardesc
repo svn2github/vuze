@@ -82,7 +82,6 @@
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.stats.impl"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.torrentdownloader.impl"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.peermanager.unchoker"/>
-        <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.components.images"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.html"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.webplugin.remoteui.xml.server"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.pluginsimpl.local.update"/>
@@ -286,6 +285,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.ui.model"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.bouncycastle"/>
         <javaElement handleIdentifier="=azuis/&lt;org.gudy.azureus2.ui.console.multiuser"/>
+        <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.pluginsimpl.local.dht.mainline"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.stats.transfer"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.maketorrent"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.utils.resourcedownloader"/>
@@ -388,6 +388,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.auth"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.util.bloom.impl"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.plugins.tracker.peerauth"/>
+        <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.dht.mainline"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.wizard"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.tracker.client"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.splash"/>

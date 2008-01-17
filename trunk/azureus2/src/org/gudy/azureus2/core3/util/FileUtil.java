@@ -394,6 +394,17 @@ public class FileUtil {
   	String		file_name,
 	Map			data,
 	boolean		use_backup )
+  {
+	  writeResilientFile( parent_dir, file_name, data, use_backup, true );
+  }
+  
+  public static void
+  writeResilientFile(
+    File		parent_dir,
+  	String		file_name,
+	Map			data,
+	boolean		use_backup,
+	boolean		copy_to_backup )
   {	  
 	  if ( use_backup ){
 		  
@@ -401,7 +412,7 @@ public class FileUtil {
 		  
 		  if ( originator.exists()){
 			  
-			  backupFile( originator, true );
+			  backupFile( originator, copy_to_backup );
 		  }
 	  }
 	  
