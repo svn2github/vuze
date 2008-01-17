@@ -335,7 +335,7 @@ public class MainStatusBar
 		gridLayout.marginRight = 0;
 		gridLayout.numColumns = 20; // Something nice and big. :)
 
-		GridData gridData = new GridData(SWT.FILL, SWT.CENTER, false, true);
+		GridData gridData = new GridData(GridData.FILL_VERTICAL);
 		gridData.heightHint = height;
 		gridData.minimumHeight = height;
 		plugin_label_composite.setLayout(gridLayout);
@@ -969,6 +969,7 @@ public class MainStatusBar
 					this_mon.enter();
 					result[0] = new UpdateableCLabel(plugin_label_composite, borderFlag,
 							updater);
+					result[0].setLayoutData(new GridData(GridData.FILL_BOTH));
 				} finally {
 					this_mon.exit();
 				}
