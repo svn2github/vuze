@@ -690,15 +690,17 @@ public class MainWindow
 
 			initWidgets();
 
+			SWTSkinTabSet tabSet = skin.getTabSet(SkinConstants.TABSET_MAIN);
+			if (tabSet != null) {
+				tabSet.addListener(this);
+			}
 			// attach the UI to plugins
 			// Must be done before initializing views, since plugins may register
 			// table columns and other objects
 			uiSWTInstanceImpl = new UISWTInstanceImpl(core);
 			uiSWTInstanceImpl.init();
 
-			SWTSkinTabSet tabSet = skin.getTabSet(SkinConstants.TABSET_MAIN);
 			if (tabSet != null) {
-				tabSet.addListener(this);
 
 				String startTab;
 
