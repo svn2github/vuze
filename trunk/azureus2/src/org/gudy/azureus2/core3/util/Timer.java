@@ -221,6 +221,26 @@ public class Timer
 					long	old_when = event.getWhen();
 					long	new_when = old_when + offset;
 					
+					TimerEventPerformer performer = event.getPerformer();
+					
+						// sanity check for periodic events
+					
+					if ( performer instanceof TimerEventPeriodic ){
+						
+						TimerEventPeriodic	periodic_event = (TimerEventPeriodic)performer;
+						
+						long	freq = periodic_event.getFrequency();
+												
+						if ( new_when > current_time + freq + 5000 ){
+							
+							long	adjusted_when = current_time + freq;
+							
+							Debug.outNoStack( periodic_event.getName() + ": clock change sanity check. Reduced schedule time from " + new_when + " to " +  adjusted_when );
+								
+							new_when = adjusted_when;
+						}
+					}
+					
 					// System.out.println( "    adjusted: " + old_when + " -> " + new_when );
 					
 					event.setWhen( new_when );
