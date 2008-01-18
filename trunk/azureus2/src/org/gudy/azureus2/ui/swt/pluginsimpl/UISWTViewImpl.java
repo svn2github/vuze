@@ -202,7 +202,7 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 					if (layoutData == null || !(layoutData instanceof GridData)) {
 						if (layoutData != null)
 							Logger.log(new LogEvent(LogIDs.PLUGIN, LogEvent.LT_WARNING,
-									"Plugin View '" + sViewID + "' tried to setLayouData of "
+									"Plugin View '" + sViewID + "' tried to setLayoutData of "
 											+ control + " to a " + layoutData.getClass().getName()));
 	
 						if (children.length == 1)
