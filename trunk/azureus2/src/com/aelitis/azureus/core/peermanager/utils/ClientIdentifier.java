@@ -174,7 +174,7 @@ public class ClientIdentifier {
 			return asDiscrepancy("XTorrent", peer_id_name, handshake_name, "fake_client", "LTEP", peer_id);
 		}
 		
-		// Bloody Xtorrent.
+		// Bloody XTorrent!
 		if (handshake_name_to_process.startsWith("Transmission") && client_type_peer.startsWith("XTorrent")) {
 			return asDiscrepancy(client_type_peer, handshake_name_to_process, "fake_client");
 		}
@@ -198,6 +198,18 @@ public class ClientIdentifier {
 			return handshake_name_to_process;
 		}
 		
+		/**
+		 * And some clients do things the other way round - they don't bother with the handshake name,
+		 * but do remember to change the peer ID name.
+		 */
+		if (client_type_handshake.startsWith("libtorrent")) {
+			// Peer ID doesn't mention libtorrent (just the client name) and the handshake name doesn't
+			// mention the client name (just "libtorrent"), then combine them together.
+			if (client_type_peer.toLowerCase().indexOf("libtorrent") == -1 && client_type_handshake.toLowerCase().indexOf(client_type_peer.toLowerCase()) == -1) {
+				return peer_id_name + " (" + handshake_name_to_process + ")";
+			}
+		}
+		
 		// Can't determine what the client is.
 		return asDiscrepancy(null, peer_id_name, handshake_name, "mismatch_id", "LTEP", peer_id);
 	}
@@ -216,4 +228,5 @@ public class ClientIdentifier {
 		  return real_client + " [" +
 		  	MessageText.getString("PeerSocket." + discrepancy_type) + ": \"" + dodgy_client + "\"]"; 
 	  }
+	  
 }
