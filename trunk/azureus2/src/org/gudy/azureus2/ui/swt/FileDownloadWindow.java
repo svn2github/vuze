@@ -314,7 +314,9 @@ public class FileDownloadWindow
 
 			url = getShortURL(url);
 			String tmp = url.substring(url.lastIndexOf('/') + 1);
-			tmp = tmp.substring(0, tmp.lastIndexOf(".torrent"));
+			if (tmp.lastIndexOf(".torrent") > 0) {
+				tmp = tmp.substring(0, tmp.lastIndexOf(".torrent"));
+			}
 			return tmp + ".torrent";
 		} catch (Exception t) {
 			// don't print debug, this code is just parsing lazyness
