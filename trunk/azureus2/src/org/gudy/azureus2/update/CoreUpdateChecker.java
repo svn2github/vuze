@@ -155,6 +155,11 @@ CoreUpdateChecker
       
 			displayUserMessage( decoded );
 			
+			// No point complaining later if we don't have any data in the map (which is
+			// more likely due to network problems rather than the version check server
+			// *actually* returning a map with nothing in it. 
+			if (decoded.isEmpty()) {return;}
+			
 			String latest_version;
 			String latest_file_name;
 			
