@@ -94,7 +94,8 @@ SystemTime
 		private final Thread updater;
 
 		private volatile long 		stepped_time;
-		private volatile long		adjustedTimeOffset;
+		private volatile long		currentTimeOffset;
+		
 		private volatile long		last_approximate_time;
 		
 
@@ -113,7 +114,7 @@ SystemTime
 				new Thread("SystemTime") 
 			{
 				public void run() {
-					adjustedTimeOffset = System.currentTimeMillis();
+					long adjustedTimeOffset = System.currentTimeMillis();
 					final Average access_average = Average.getInstance(1000, 10);
 					final Average drift_average = Average.getInstance(1000, 10);
 					long lastOffset = adjustedTimeOffset;
@@ -151,6 +152,7 @@ SystemTime
 									((ChangeListener) it.next()).clockChanged( rawTime, change );
 								}
 								lastOffset = adjustedTimeOffset;
+								currentTimeOffset = adjustedTimeOffset;
 							}
 
 							long drift = stepped_time - lastSecond - 1000;
@@ -219,7 +221,7 @@ SystemTime
 		public long
 		getTime()
 		{
-			return getMonoTime() + adjustedTimeOffset;
+			return getMonoTime() + currentTimeOffset;
 		}
 
 		public long getMonoTime() {
