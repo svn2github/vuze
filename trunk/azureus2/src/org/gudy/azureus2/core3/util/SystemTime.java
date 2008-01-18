@@ -70,7 +70,7 @@ public class SystemTime {
 		private static final int	STEPS_PER_SECOND	= (int) (1000 / TIME_GRANULARITY_MILLIS);
 		private final Thread		updater;
 		private volatile long		stepped_time;
-		private volatile long		currentTimeOffset;
+		private volatile long		currentTimeOffset = System.currentTimeMillis();
 		private volatile long		last_approximate_time;
 		private volatile int		access_count;
 		private volatile int		slice_access_count;
@@ -80,10 +80,11 @@ public class SystemTime {
 		private SteppedProvider()
 		{
 			stepped_time = 0;
+			
 			updater = new Thread("SystemTime")
 			{
 				public void run() {
-					long adjustedTimeOffset = currentTimeOffset = System.currentTimeMillis();
+					long adjustedTimeOffset = currentTimeOffset;
 					// these averages rely on monotone time, thus won't be affected by system time changes
 					final Average access_average = Average.getInstance(1000, 10);
 					final Average drift_average = Average.getInstance(1000, 10);
