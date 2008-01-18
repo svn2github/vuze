@@ -186,7 +186,7 @@ SystemTime
 						
 						consumersRef = systemTimeConsumers;
 						
-						long adjustedTime = stepped_time + adjustedTimeOffset;
+						long adjustedTime = stepped_time + currentTimeOffset;
 						for (int i = 0; i < consumersRef.size(); i++)
 						{
 							TickConsumer cons = (TickConsumer) consumersRef.get(i);
