@@ -316,7 +316,7 @@ public class MainWindow
 		// initilization or any other add listeners
 		AEThread2 thread = new AEThread2("v3.mw.dmAdded", true) {
 			public void run() {
-				long startTime = System.currentTimeMillis();
+				long startTime = SystemTime.getCurrentTime();
 				if (dms_Startup == null || dms_Startup.length == 0) {
 					return;
 				}
