@@ -143,6 +143,9 @@ SystemTime
 							{
 								final long change = adjustedTimeOffset - lastOffset; 
 								Iterator it = clock_change_list.iterator();
+								
+								Debug.outNoStack( "Clock change of " + change + "ms detected" );
+								
 								while (it.hasNext())
 								{
 									((Consumer) it.next()).consume(change);
