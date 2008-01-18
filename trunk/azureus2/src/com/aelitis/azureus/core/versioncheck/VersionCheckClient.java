@@ -219,8 +219,12 @@ public class VersionCheckClient {
 	        	  COConfigurationManager.setParameter( "versioncheck.cache.v6", last_check_data_v6 );
 	          }
 	        }
-	        catch( UnknownHostException t ) {
-	        	// no internet
+	        catch(SocketException t) {
+	        	// internet is broken
+	        	Debug.out(t.getClass().getName() + ": " + t.getMessage());
+	        }
+	        catch(UnknownHostException t) {
+	        	// dns is broken
 	        	Debug.out(t.getClass().getName() + ": " + t.getMessage());
 	        }
 	        catch( Throwable t ) {
