@@ -274,6 +274,7 @@ public class BDecoder {
     }
   }
 
+  /*
   private long getNumberFromStream(InputStream bais, char parseChar) throws IOException {
     StringBuffer sb = new StringBuffer(3);
 
@@ -299,7 +300,138 @@ public class BDecoder {
     
     return Long.parseLong(str);
   }
+  */
+  
+  private long 
+  getNumberFromStream(
+	InputStream 	bais, 
+	char 			parseChar) 
+  
+  		throws IOException 
+  {
+	  final char[]	chars = new char[32];
+	  
+	  int tempByte = bais.read();
+	  
+	  int pos = 0;
+	  
+	  while ((tempByte != parseChar) && (tempByte >= 0)) {
+		  chars[pos++] = (char)tempByte;
+		  if ( pos == chars.length ){
+			  throw( new NumberFormatException( "Number too large: " + new String(chars,0,pos) + "..." ));
+		  }
+		  tempByte = bais.read();
+	  }
 
+	  	//are we at the end of the stream?
+	  
+	  if (tempByte < 0) {
+		  
+		  return -1;
+		  
+	  }else if ( pos == 0 ){
+	    	// support some borked impls that sometimes don't bother encoding anything
+
+		  return(0);
+	  }
+
+	  return( parseLong( chars, 0, pos ));
+  }
+  
+  public static long
+  parseLong(
+	char[]	chars,
+	int		start,
+	int		length )
+  {
+	  long result = 0;
+	  
+	  boolean negative = false;
+	  
+	  int 	i 	= start;
+	  int	max = start + length;
+	  
+	  long limit;
+	  	  
+	  if ( length > 0 ){
+		  
+		  if ( chars[i] == '-' ){
+			  
+			  negative = true;
+			  
+			  limit = Long.MIN_VALUE;
+			  
+			  i++;
+			  
+		  }else{
+			  
+			  limit = -Long.MAX_VALUE;
+		  }
+		  		  
+		  if ( i < max ){
+			  
+			  int digit = chars[i++] - '0';
+			  
+			  if ( digit < 0 || digit > 9 ){
+				  
+				  throw new NumberFormatException(new String(chars,start,length));
+				  
+			  }else{
+				  
+				  result = -digit;
+			  }
+		  }
+
+		  long multmin = limit / 10;
+
+		  while ( i < max ){
+			  
+			  	// Accumulating negatively avoids surprises near MAX_VALUE
+			  
+			  int digit = chars[i++] - '0';
+			  
+			  if ( digit < 0 || digit > 9 ){
+				  
+				  throw new NumberFormatException(new String(chars,start,length));
+			  }
+			  
+			  if ( result < multmin ){
+				  
+				  throw new NumberFormatException(new String(chars,start,length));
+			  }
+			  
+			  result *= 10;
+			  
+			  if ( result < limit + digit ){
+				  
+				  throw new NumberFormatException(new String(chars,start,length));
+			  }
+			  
+			  result -= digit;
+		  }
+	  }else{
+		  
+		  throw new NumberFormatException(new String(chars,start,length));
+	  }
+	  
+	  if ( negative ){
+		  
+		  if ( i > start+1 ){
+			  
+			  return result;
+			  
+		  }else{	/* Only got "-" */
+			  
+			  throw new NumberFormatException(new String(chars,start,length));
+		  }
+	  }else{
+		  
+		  return -result;
+	  }  
+  }
+
+  
+  
   // This one causes lots of "Query Information" calls to the filesystem
   /*
   private long getNumberFromStreamOld(InputStream bais, char parseChar) throws IOException {
