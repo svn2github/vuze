@@ -33,7 +33,7 @@ import org.gudy.azureus2.core3.util.*;
  * @author Olivier
  * 
  */
-public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTime.Consumer {
+public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTime.ChangeListener {
 	private final static LogIDs LOGID = LogIDs.TRACKER;
 
   /** List of Trackers. 
@@ -445,7 +445,8 @@ public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTim
 
 
   	public void
-  	consume(
+  	clockChanged(
+  		long	current_time,
   		long	offset )
   	{	
   		if ( Math.abs( offset ) < 60*1000 ){

@@ -57,6 +57,17 @@ public class MovingImmediateAverage implements Average {
       return calculateAve();
    }
    
+   public double[]
+   getValues()
+   {
+	  double[]	res = new double[periods];
+	  int	p = pos;
+	  for (int i=0;i<periods;i++){
+		  res[i] = data[p++%periods];
+	  }
+	  return( res );
+   }
+   
    /**
     * Return average-so-far.
     */

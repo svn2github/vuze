@@ -29,14 +29,14 @@ public abstract class AverageFactory {
    /**
     * Create a simple running average.
     */ 
-   public static Average RunningAverage() {
+   public static RunningAverage RunningAverage() {
       return new RunningAverage();
    }
    
    /**
     * Create a moving average, that moves over the given number of periods.
     */
-   public static Average MovingAverage(int periods) {
+   public static MovingAverage MovingAverage(int periods) {
       return new MovingAverage(periods);
    }
    
@@ -45,14 +45,14 @@ public abstract class AverageFactory {
     * results (i.e. after the first update of X the average will be X
     */
    
-   public static Average MovingImmediateAverage(int periods) {
+   public static MovingImmediateAverage MovingImmediateAverage(int periods) {
 	      return new MovingImmediateAverage(periods);
 	   }
    /** 
     * Create an exponential moving average, smoothing over the given number
     * of periods, using a default smoothing weight value of 2/(1 + periods).
     */
-   public static Average ExponentialMovingAverage(int periods) {
+   public static ExponentialMovingAverage ExponentialMovingAverage(int periods) {
       return new ExponentialMovingAverage(periods);
    }
    
@@ -62,7 +62,7 @@ public abstract class AverageFactory {
     * recent data and smaller weights (closer to 0.00) will provide
     * smoother averaging (give more influence to older data). 
     */
-   public static Average ExponentialMovingAverage(float weight) {
+   public static ExponentialMovingAverage ExponentialMovingAverage(float weight) {
       return new ExponentialMovingAverage(weight);
    }
    

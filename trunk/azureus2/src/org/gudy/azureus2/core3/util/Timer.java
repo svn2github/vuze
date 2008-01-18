@@ -31,7 +31,7 @@ import java.util.*;
 
 public class Timer
 	extends 	AERunnable
-	implements	SystemTime.Consumer
+	implements	SystemTime.ChangeListener
 {
 	private static boolean DEBUG_TIMERS = true;
 	private static ArrayList timers = null;
@@ -198,7 +198,8 @@ public class Timer
 	}
 	
 	public void
-	consume(
+	clockChanged(
+		long	current_time,
 		long	offset )
 	{
 		// System.out.println( "Timer '" + thread_pool.getName() +"': clock change by " + offset );

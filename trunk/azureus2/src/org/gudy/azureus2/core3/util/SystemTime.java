@@ -148,7 +148,7 @@ SystemTime
 								
 								while (it.hasNext())
 								{
-									((Consumer) it.next()).consume(change);
+									((ChangeListener) it.next()).clockChanged( rawTime, change );
 								}
 								lastOffset = adjustedTimeOffset;
 							}
@@ -172,7 +172,7 @@ SystemTime
 						List consumersRef = monotoneTimeConsumers; 
 						for (int i = 0; i < consumersRef.size(); i++)
 						{
-							Consumer cons = (Consumer) consumersRef.get(i);
+							TickConsumer cons = (TickConsumer) consumersRef.get(i);
 							try
 							{
 								cons.consume(stepped_time);
@@ -187,7 +187,7 @@ SystemTime
 						long adjustedTime = stepped_time + adjustedTimeOffset;
 						for (int i = 0; i < consumersRef.size(); i++)
 						{
-							Consumer cons = (Consumer) consumersRef.get(i);
+							TickConsumer cons = (TickConsumer) consumersRef.get(i);
 							try
 							{
 								cons.consume(adjustedTime);
@@ -295,7 +295,7 @@ SystemTime
 
 								while( it.hasNext()){
 
-									((Consumer)it.next()).consume( offset );
+									((ChangeListener)it.next()).clockChanged( current_time, offset );
 								}
 							}
 						}
@@ -305,7 +305,7 @@ SystemTime
 						List	consumer_list_ref = systemTimeConsumers;
 						for (int i = 0; i < consumer_list_ref.size(); i++)
 						{
-							Consumer cons = (Consumer) consumer_list_ref.get(i);
+							TickConsumer cons = (TickConsumer) consumer_list_ref.get(i);
 							try
 							{
 								cons.consume(current_time);
@@ -318,7 +318,7 @@ SystemTime
 						long adjustedTime = current_time - adjustedTimeOffset;
 						for (int i = 0; i < consumer_list_ref.size(); i++)
 						{
-							Consumer cons = (Consumer) consumer_list_ref.get(i);
+							TickConsumer cons = (TickConsumer) consumer_list_ref.get(i);
 							try
 							{
 								cons.consume(adjustedTime);
@@ -401,7 +401,7 @@ SystemTime
 	
 	public static void
 	registerConsumer(
-			Consumer	c )
+		TickConsumer	c )
 	{
 		synchronized( instance ){
 
@@ -415,7 +415,7 @@ SystemTime
 
 	public static void
 	unregisterConsumer(
-			Consumer	c )
+		TickConsumer	c )
 	{
 		synchronized( instance ){
 
@@ -429,7 +429,7 @@ SystemTime
 	
 	public static void
 	registerMonotonousConsumer(
-			Consumer	c )
+		TickConsumer	c )
 	{
 		synchronized( instance ){
 
@@ -443,7 +443,7 @@ SystemTime
 
 	public static void
 	unregisterMonotonousConsumer(
-			Consumer	c )
+		TickConsumer	c )
 	{
 		synchronized( instance ){
 
@@ -457,7 +457,7 @@ SystemTime
 
 	public static void
 	registerClockChangeListener(
-			Consumer	c )
+		ChangeListener	c )
 	{
 		synchronized( instance ){
 
@@ -471,7 +471,7 @@ SystemTime
 
 	public static void
 	unregisterClockChangeListener(
-			Consumer	c )
+		ChangeListener	c )
 	{
 		synchronized( instance ){
 
@@ -484,15 +484,22 @@ SystemTime
 	}
 
 	public interface
-	Consumer
+	TickConsumer
 	{
-		// for consumers this is the current time, for clock change listeners this is the delta
-
 		public void
 		consume(
-				long	time );
+			long	current_time );
 	}
 
+	public interface
+	ChangeListener
+	{
+		public void
+		clockChanged(
+			long	current_time,
+			long	change_millis );
+	}
+	
 	public static long
 	getHighPrecisionCounter()
 	{
