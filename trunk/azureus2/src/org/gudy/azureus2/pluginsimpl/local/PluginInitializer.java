@@ -950,11 +950,17 @@ PluginInitializer
 	    	  
 	    	  if ( !pid.equals(UpdaterUpdateChecker.getPluginID())){
 	    		  
-		      	String	msg = "Error loading plugin '" + pluginName + "' / '" + plugin_class_string + "'";
-		   	 
-		      	Logger.log(new LogAlert(LogAlert.UNREPEATABLE, msg, load_failure));
+		      	String msg = "Error loading plugin '" + pluginName + "' / '" + plugin_class_string + "'";
+		      	LogAlert la;
+		      	if (load_failure instanceof UnsupportedClassVersionError) {
+		      		la = new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR, msg + ". " + MessageText.getString("plugin.install.class_version_error"));
+		      	}
+		      	else {
+		      		la = new LogAlert(LogAlert.UNREPEATABLE, msg, load_failure);
+		      	}
+		      	Logger.log(la);
 	
-		      	System.out.println( msg + " : " + load_failure);
+		      	System.out.println( msg + ": " + load_failure);
 		      }
 	      }
   		}
@@ -980,7 +986,7 @@ PluginInitializer
  	 
     	Logger.log(new LogAlert(LogAlert.UNREPEATABLE, msg, e));
 
-    	System.out.println( msg + " : " + e);
+    	System.out.println( msg + ": " + e);
     	
     	throw( new PluginException( msg, e ));
     }
