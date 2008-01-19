@@ -476,7 +476,7 @@ IncomingConnectionManager
 				try {
 					if (Logger.isEnabled())
 						Logger.log(new LogEvent(LOGID,
-								LogEvent.LT_ERROR,
+								LogEvent.LT_WARNING,
 								"Incoming connection [" + transport_helper.getAddress()
 								+ "] socket read exception: "
 								+ t.getMessage()));
