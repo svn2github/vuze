@@ -313,11 +313,43 @@ ThreadPool
 	{
 		if ( warn_when_full ){
 			
-			Debug.out( "Thread pool '" + getName() + "' is full" );
+			String	task_names = "";
+			
+			try{
+				synchronized( ThreadPool.this ){
+						
+					for (int i=0;i<busy.size();i++){
+							
+						threadPoolWorker	x = (threadPoolWorker)busy.get(i);
+												
+						AERunnable r = x.runnable;
+	
+						if ( x != null ){
+							
+							String	name;
+							
+							if ( r instanceof ThreadPoolTask ){
+								
+								name = ((ThreadPoolTask)r).getName();
+								
+							}else{
+								
+								name = x.getClass().getName();
+							}
+							
+							task_names += (task_names.length()==0?"":",") + name;
+						}
+					}
+				}
+			}catch( Throwable e ){
+			}
+			
+			Debug.out( "Thread pool '" + getName() + "' is full (busy=" + task_names + ")" );
 			
 			warn_when_full	= false;
 		}
 	}
+	
 	public AERunnable[]
 	getQueuedTasks()
 	{
@@ -421,18 +453,21 @@ ThreadPool
 						
 						AERunnable r = x.runnable;
 
-						try{
-							if ( r instanceof ThreadPoolTask ){
-								
-								((ThreadPoolTask)r).interruptTask();
-								
-							}else{
-								
-								x.worker_thread.interrupt();
-							}
-						}catch( Throwable e ){
+						if ( r != null ){
 							
-							DebugLight.printStackTrace( e );
+							try{
+								if ( r instanceof ThreadPoolTask ){
+									
+									((ThreadPoolTask)r).interruptTask();
+									
+								}else{
+									
+									x.worker_thread.interrupt();
+								}
+							}catch( Throwable e ){
+								
+								DebugLight.printStackTrace( e );
+							}
 						}
 					}
 				}
