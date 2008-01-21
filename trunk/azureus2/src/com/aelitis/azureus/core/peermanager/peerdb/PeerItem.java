@@ -164,5 +164,15 @@ public class PeerItem implements PeerDescriptor {
     if( source.equals( PEPeerSource.PS_INCOMING ) )    return PeerItemFactory.PEER_SOURCE_INCOMING;
     return -1;
   }
+  
+  public boolean isIPv4() {
+	  return address.length == 4;
+  }
+  
+  /*
+  public String toString() {
+	  return org.gudy.azureus2.core3.util.ByteFormatter.encodeString(this.address) + ":" + this.tcp_port;   
+  }
+  */
 
 }
