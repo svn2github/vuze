@@ -195,8 +195,9 @@ public class BrowserContext
 							if (!browser.isDisposed()) {
 								browser.execute("try { "
 										+ "tuxLocString = document.location.toString();"
-										+ "if (tuxLocString.indexOf('res://') == 0) " 
-										+ "{ document.title = tuxLocString; } "
+										+ "tuxTitleString = document.title.toString();"
+										+ "if (tuxLocString.indexOf('res://') == 0 || tuxTitleString.indexOf('408 ') == 0) " 
+										+ "{ document.title = 'res://'; } "
 										+ "} catch (e) { }");
 							}
 						}
@@ -285,11 +286,11 @@ public class BrowserContext
 	}
 
 	public void fillWithRetry(String s) {
-		browser.setText("<html><body style='font-family: verdana; font-size: 10pt' bgcolor=#2e2e2e text=#e0e0e0>"
+		browser.setText("<html><body style='overflow:auto; font-family: verdana; font-size: 10pt' bgcolor=#2e2e2e text=#e0e0e0>"
 				+ "Sorry, there was a problem loading this page.<br> "
 				+ "Please check if your internet connection is working and click <a href='"
 				+ lastValidURL
-				+ "'>retry</a> to continue."
+				+ "' style=\"color: rgb(100, 155, 255); \">retry</a> to continue."
 				+ "<div style='word-wrap: break-word'><font size=1 color=#2e2e2e>"
 				+ s
 				+ "</font></div>" + "</body></html>");
