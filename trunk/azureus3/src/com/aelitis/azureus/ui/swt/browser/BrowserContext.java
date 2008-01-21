@@ -68,6 +68,8 @@ public class BrowserContext
 
 	private final boolean forceVisibleAfterLoad;
 
+	private TimerEventPeriodic checkURLEvent;
+
 	/**
 	 * Creates a context and registers the given browser.
 	 * 
@@ -184,7 +186,8 @@ public class BrowserContext
 			}
 		});
 
-		SimpleTimer.addPeriodicEvent("checkURL", 10000, new TimerEventPerformer() {
+		checkURLEvent = SimpleTimer.addPeriodicEvent("checkURL", 10000,
+				new TimerEventPerformer() {
 			public void perform(TimerEvent event) {
 				if (!browser.isDisposed()) {
 					browser.getDisplay().asyncExec(new AERunnable() {
@@ -302,6 +305,11 @@ public class BrowserContext
 		browser.removeDisposeListener(this);
 		getMessageDispatcher().deregisterBrowser(browser);
 		browser = null;
+
+		if (checkURLEvent != null && !checkURLEvent.isCancelled()) {
+			checkURLEvent.cancel();
+			checkURLEvent = null;
+		}
 	}
 
 	/**
