@@ -1048,7 +1048,13 @@ DiskManagerImpl
         reader.readBlock( request, listener );
     }
 
-
+	public boolean
+	hasOutstandingReadRequestForPiece(
+		int		piece_number )
+	{
+		return( reader.hasOutstandingReadRequestForPiece( piece_number ));
+	}
+	
     public int
     getNbPieces()
     {
@@ -1439,7 +1445,7 @@ DiskManagerImpl
         int offset,
         int length )
     {
-        return( reader.createRequest( pieceNumber, offset, length ));
+        return( reader.createReadRequest( pieceNumber, offset, length ));
     }
 
     public DiskManagerCheckRequest
@@ -1447,9 +1453,16 @@ DiskManagerImpl
         int     pieceNumber,
         Object  user_data )
     {
-        return( checker.createRequest( pieceNumber, user_data ));
+        return( checker.createCheckRequest( pieceNumber, user_data ));
     }
 
+	public boolean
+	hasOutstandingCheckRequestForPiece(
+		int		piece_number )
+	{
+		return( checker.hasOutstandingCheckRequestForPiece( piece_number ));
+	}
+	
     public void
     enqueueCompleteRecheckRequest(
         DiskManagerCheckRequest             request,

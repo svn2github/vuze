@@ -928,7 +928,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 				req.setAdHoc( false );
 
-				disk_mgr.enqueueCheckRequest( req, this );
+				disk_mgr.enqueueCheckRequest(  req, this );
 			}
 		}
 	}
@@ -1062,9 +1062,11 @@ DiskManagerCheckRequestListener, IPFilterListener
 								// write controller will start blocking the network thread to prevent unlimited
 								// queueing but until that time we need to handle this situation slightly better)
 
-								// if there are any outstanding writes for this piece then leave it alone
+								// if there are any outstanding requests for this piece then leave it alone
 
-								if ( !disk_mgr.hasOutstandingWriteRequestForPiece( i )){
+								if ( !( disk_mgr.hasOutstandingWriteRequestForPiece( i ) || 
+										disk_mgr.hasOutstandingReadRequestForPiece( i ) ||
+										disk_mgr.hasOutstandingCheckRequestForPiece( i ) )){
 
 									Debug.out( "Fully downloaded piece stalled pending write, resetting p_piece " + i );
 
@@ -1582,46 +1584,61 @@ DiskManagerCheckRequestListener, IPFilterListener
 				}
 			}
 
-
-			//do main choke/unchoke update every 10 secs
-			if( mainloop_loop_count % MAINLOOP_TEN_SECOND_INTERVAL == 0 ) {
+				//do main choke/unchoke update every 10 secs
+			
+			if ( mainloop_loop_count % MAINLOOP_TEN_SECOND_INTERVAL == 0 ){
 
 				final boolean refresh = mainloop_loop_count % MAINLOOP_THIRTY_SECOND_INTERVAL == 0;
 
 				unchoker.calculateUnchokes( max_to_unchoke, peer_transports, refresh );
 
-				UnchokerUtil.performChokes( unchoker.getChokes(), unchoker.getUnchokes() );
+				ArrayList	chokes 		= unchoker.getChokes();
+				ArrayList	unchokes	= unchoker.getUnchokes();
+				
+				addFastUnchokes( unchokes );
+				
+				UnchokerUtil.performChokes( chokes, unchokes );
+				
+			}else if ( mainloop_loop_count % MAINLOOP_ONE_SECOND_INTERVAL == 0 ) {  //do quick unchoke check every 1 sec
+
+				ArrayList unchokes = unchoker.getImmediateUnchokes( max_to_unchoke, peer_transports );
+
+				addFastUnchokes( unchokes );
+				
+				UnchokerUtil.performChokes( null, unchokes );
 			}
-			else if( mainloop_loop_count % MAINLOOP_ONE_SECOND_INTERVAL == 0 ) {  //do quick unchoke check every 1 sec
-
-				final ArrayList peers_to_unchoke = unchoker.getImmediateUnchokes( max_to_unchoke, peer_transports );
-
-				//ensure that lan-local peers always get unchoked   //TODO
-				for( Iterator it=peer_transports.iterator();it.hasNext();) {
-
-					PEPeerTransport peer = (PEPeerTransport)it.next();
-
-					if( peer.isLANLocal() && UnchokerUtil.isUnchokable( peer, true ) && !peers_to_unchoke.contains( peer ) ) {
-						peers_to_unchoke.add( peer );
-					}
-					else if ( fast_unchoke_new_peers &&
-							peer.getConnectionState() == PEPeerTransport.CONNECTION_FULLY_ESTABLISHED &&
-							UnchokerUtil.isUnchokable( peer, true ) &&
-							peer.getData( "fast_unchoke_done" ) == null &&
-							!peers_to_unchoke.contains( peer ) ){                  				
-
-						peer.setData( "fast_unchoke_done", "" );
-						peers_to_unchoke.add( peer );
-					}
-				}
-
-				UnchokerUtil.performChokes( null, peers_to_unchoke );
-			}
-
 		}
-
 	}
 
+	private void
+	addFastUnchokes(
+		ArrayList	peers_to_unchoke )
+	{
+		for( Iterator it=peer_transports_cow.iterator();it.hasNext();) {
+
+			PEPeerTransport peer = (PEPeerTransport)it.next();
+
+			if ( 	peer.getConnectionState() != PEPeerTransport.CONNECTION_FULLY_ESTABLISHED ||
+					!UnchokerUtil.isUnchokable( peer, true ) ||
+					peers_to_unchoke.contains( peer )){
+				
+				continue;
+			}
+
+			if( peer.isLANLocal()){ 
+			
+				peers_to_unchoke.add( peer );
+				
+			}else if ( 	fast_unchoke_new_peers &&
+						peer.getData( "fast_unchoke_done" ) == null ){
+
+				peer.setData( "fast_unchoke_done", "" );
+				
+				peers_to_unchoke.add( peer );
+			}
+		}
+	}
+	
 //	send the have requests out
 	private void sendHave(int pieceNumber) {
 		//fo

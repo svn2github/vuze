@@ -23,7 +23,10 @@
 package org.gudy.azureus2.core3.disk.impl.access.impl;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.impl.DiskManagerHelper;
@@ -52,6 +55,7 @@ DMReaderImpl
 	private DiskAccessController	disk_access;	
 
 	private int						async_reads;
+	private Set						read_requests		= new HashSet();
 	private AESemaphore				async_read_sem = new AESemaphore("DMReader:asyncReads");
 	
 	private boolean					started;
@@ -142,14 +146,41 @@ DMReaderImpl
 	}
 	
 	public DiskManagerReadRequest
-	createRequest(
+	createReadRequest(
 		int pieceNumber,
 		int offset,
 		int length )
 	{
 		return( new DiskManagerReadRequestImpl( pieceNumber, offset, length ));
 	}
-		  
+		
+	public boolean
+	hasOutstandingReadRequestForPiece(
+		int		piece_number )
+	{
+		try{
+			this_mon.enter();
+
+			Iterator	it = read_requests.iterator();
+			
+			while( it.hasNext()){
+				
+				DiskManagerReadRequest	request = (DiskManagerReadRequest)((Object[])it.next())[0];
+				
+				if ( request.getPieceNumber() == piece_number ){
+					
+					return( true );
+				}
+			}
+			
+			return( false );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
 		// returns null if the read can't be performed
 	
 	public DirectByteBuffer 
@@ -158,7 +189,7 @@ DMReaderImpl
 		int offset, 
 		int length ) 
 	{
-		DiskManagerReadRequest	request = createRequest( pieceNumber, offset, length );
+		DiskManagerReadRequest	request = createReadRequest( pieceNumber, offset, length );
 		
 		final AESemaphore	sem = new AESemaphore( "DMReader:readBlock" );
 		
@@ -339,58 +370,68 @@ DMReaderImpl
 				// this is where we go async and need to start counting requests for the sake
 				// of shutting down tidily
 			
+				// have to wrap the request as we can validly have >1 for same piece/offset/length and
+				// the request type itself overrides object equiv based on this...
+			
+			final Object[] request_wrapper = { request };
+			
 			DiskManagerReadRequestListener	l = 
 				new DiskManagerReadRequestListener()
 				{
-					 public void 
-					  readCompleted( 
-					  		DiskManagerReadRequest 	request, 
+					public void 
+					readCompleted( 
+							DiskManagerReadRequest 	request, 
 							DirectByteBuffer 		data )
-					 {
-						 complete();
-						 
-						 listener.readCompleted( request, data );
-					 }
+					{
+						complete();
+	
+						listener.readCompleted( request, data );
+					}
 					  
-					  public void 
-					  readFailed( 
-					  		DiskManagerReadRequest 	request, 
+					public void 
+					readFailed( 
+							DiskManagerReadRequest 	request, 
 							Throwable		 		cause )
-					  {
-						  complete();
-						  
-						  listener.readFailed( request, cause );
-					  }
-					  
-					  public int
-					  getPriority()
-					  {
-						  return( _listener.getPriority());
-					  }
-					  
-					  public void 
-					  requestExecuted(long bytes) 
-					  {
-						  _listener.requestExecuted( bytes );									
-					  }
-					  
-					  protected void
-					  complete()
-					  {
-						  try{
-							  this_mon.enter();
-							
-							  async_reads--;
-							  
-							  if ( stopped ){
-								  
-								  async_read_sem.release();
-							  }
-						  }finally{
-							  
-							  this_mon.exit();
-						  }
-					  }
+					{
+						complete();
+
+						listener.readFailed( request, cause );
+					}
+
+					public int
+					getPriority()
+					{
+						return( _listener.getPriority());
+					}
+
+					public void 
+					requestExecuted(long bytes) 
+					{
+						_listener.requestExecuted( bytes );									
+					}
+
+					protected void
+					complete()
+					{
+						try{
+							this_mon.enter();
+
+							async_reads--;
+
+							if ( !read_requests.remove( request_wrapper )){
+
+								Debug.out( "request not found" );
+							}
+
+							if ( stopped ){
+
+								async_read_sem.release();
+							}
+						}finally{
+
+							this_mon.exit();
+						}
+					}
 				};
 			
 			try{
@@ -407,6 +448,8 @@ DMReaderImpl
 				
 				async_reads++;
 				
+				read_requests.add( request_wrapper );
+
 			}finally{
 				
 				this_mon.exit();

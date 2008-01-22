@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.core3.disk.impl.access.impl;
 
+import java.util.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.*;
@@ -50,6 +52,53 @@ DMCheckerImpl
 	private static boolean	flush_pieces;
 	private static boolean	checking_read_priority;
 	
+	private static AEMonitor		class_mon	= new AEMonitor( "DMChecker:class" );
+	private static List				async_check_queue		= new ArrayList();
+	private static AESemaphore		async_check_queue_sem 	= new AESemaphore("DMChecker::asyncCheck");
+
+	private static boolean	fully_async = COConfigurationManager.getBooleanParameter( "diskmanager.perf.checking.fully.async" );
+	
+	static{
+		if ( fully_async ){
+			
+			new AEThread2( "DMCheckerImpl:asyncCheckScheduler", true )
+			{
+				public void
+				run()
+				{
+					while( true ){
+						
+						async_check_queue_sem.reserve();
+						
+						Object[]	entry;
+						
+						try{
+							class_mon.enter();
+							
+							entry = (Object[])async_check_queue.remove(0);
+							
+							int	queue_size = async_check_queue.size();
+							
+							if ( queue_size % 100 == 0 && queue_size > 0 ){
+								
+								System.out.println( "async check queue size=" + async_check_queue.size());
+							}
+
+						}finally{
+							
+							class_mon.exit();
+						}
+						
+						((DMCheckerImpl)entry[0]).enqueueCheckRequest(
+							(DiskManagerCheckRequest)entry[1],
+							(DiskManagerCheckRequestListener)entry[2],
+							flush_pieces );
+					}
+				}
+			}.start();
+		}
+	}
+	
     static{
     	
     	 ParameterListener param_listener = new ParameterListener() {
@@ -58,9 +107,8 @@ DMCheckerImpl
 				String  str ) 
     	    {
     	   	    flush_pieces				= COConfigurationManager.getBooleanParameter( "diskmanager.perf.cache.flushpieces" );
-    	   	  	checking_read_priority		= COConfigurationManager.getBooleanParameter( "diskmanager.perf.checking.read.priority" );
-
-    	    }
+       	   	  	checking_read_priority		= COConfigurationManager.getBooleanParameter( "diskmanager.perf.checking.read.priority" );
+     	    }
     	 };
 
  		COConfigurationManager.addAndFireParameterListeners( 
@@ -225,7 +273,7 @@ DMCheckerImpl
 	}
 	
 	public DiskManagerCheckRequest
-	createRequest(
+	createCheckRequest(
 		int 	pieceNumber,
 		Object	user_data )
 	{
@@ -247,136 +295,132 @@ DMCheckerImpl
 		complete_recheck_progress		= 0;
 		complete_recheck_in_progress	= true;
 
-	 	Thread t = new AEThread("DMChecker::completeRecheck")
-		{
-	  		public void
-			runSupport()
-	  		{
-	  			DiskManagerRecheckInstance	recheck_inst = disk_manager.getRecheckScheduler().register( disk_manager, true );
-	  			
-	  			try{	  					
-	  				final AESemaphore	sem = new AESemaphore( "DMChecker::completeRecheck" );
-	  				
-	  				int	checks_submitted	= 0;
-	  				           
-		            final AESemaphore	 run_sem = new AESemaphore( "DMChecker::completeRecheck:runsem", 2 );
-		            
-		            int nbPieces = disk_manager.getNbPieces();
-		            
-	  				for ( int i=0; i < nbPieces; i++ ){
-	  					
-	  					complete_recheck_progress = 1000*i / nbPieces;
-	  					
-	  					DiskManagerPiece	dm_piece = disk_manager.getPiece(i);
-	  					
-  							// only recheck the piece if it happens to be done (a complete dnd file that's
-  							// been set back to dnd for example) or the piece is part of a non-dnd file 
-  					
-	  					if ( dm_piece.isDone() || !dm_piece.isSkipped()){
-
-		  					run_sem.reserve();
+	 	new AEThread2("DMChecker::completeRecheck", true )
+			{
+		  		public void
+				run()
+		  		{
+		  			DiskManagerRecheckInstance	recheck_inst = disk_manager.getRecheckScheduler().register( disk_manager, true );
+		  			
+		  			try{	  					
+		  				final AESemaphore	sem = new AESemaphore( "DMChecker::completeRecheck" );
+		  				
+		  				int	checks_submitted	= 0;
+		  				           
+			            final AESemaphore	 run_sem = new AESemaphore( "DMChecker::completeRecheck:runsem", 2 );
+			            
+			            int nbPieces = disk_manager.getNbPieces();
+			            
+		  				for ( int i=0; i < nbPieces; i++ ){
 		  					
-			  				while( !stopped ){
-				  				
-				  				if ( recheck_inst.getPermission()){
-				  					
-				  					break;
-				  				}
-				  			}
+		  					complete_recheck_progress = 1000*i / nbPieces;
+		  					
+		  					DiskManagerPiece	dm_piece = disk_manager.getPiece(i);
+		  					
+	  							// only recheck the piece if it happens to be done (a complete dnd file that's
+	  							// been set back to dnd for example) or the piece is part of a non-dnd file 
+	  					
+		  					if ( dm_piece.isDone() || !dm_piece.isSkipped()){
 	
-		  					if ( stopped ){
-		  						
-		  						break;
+			  					run_sem.reserve();
+			  					
+				  				while( !stopped ){
+					  				
+					  				if ( recheck_inst.getPermission()){
+					  					
+					  					break;
+					  				}
+					  			}
+		
+			  					if ( stopped ){
+			  						
+			  						break;
+			  					}
+			  					
+			  					enqueueCheckRequest( 
+			  						createCheckRequest( i, request.getUserData()),
+			  	       				new DiskManagerCheckRequestListener()
+									{
+					  	       			public void 
+					  	       			checkCompleted( 
+					  	       				DiskManagerCheckRequest 	request,
+					  	       				boolean						passed )
+					  	       			{
+					  	       				try{
+					  	       					listener.checkCompleted( request, passed );
+					  	       					
+					  	       				}catch( Throwable e ){
+					  	       					
+					  	       					Debug.printStackTrace(e);
+					  	       					
+					  	       				}finally{
+					  	       					
+					  	       					complete();
+					  	       				}
+					  	       			}
+					  	       			 
+					  	       			public void
+					  	       			checkCancelled(
+					  	       				DiskManagerCheckRequest		request )
+					  	       			{
+					  	       				try{
+					  	       					listener.checkCancelled( request );
+					  	       					
+					  	       				}catch( Throwable e ){
+					  	       					
+					  	       					Debug.printStackTrace(e);
+					  	       					
+					  	       				}finally{
+					  	       				
+					  	       					complete();
+					  	       				}
+					  	       			}
+					  	       			
+					  	       			public void 
+					  	       			checkFailed( 
+					  	       				DiskManagerCheckRequest 	request, 
+					  	       				Throwable		 			cause )
+					  	       			{
+					  	       				try{
+					  	       					listener.checkFailed( request, cause );
+					  	       					
+					  	       				}catch( Throwable e ){
+					  	       					
+					  	       					Debug.printStackTrace(e);
+					  	       					
+					  	       				}finally{
+					  	       				
+					  	       					complete();
+					  	       				}			  	       			}
+					  	       			
+					  	       			protected void
+					  	       			complete()
+					  	       			{
+			  	       						run_sem.release();
+				  	       						
+			  	       						sem.release();
+				  	       				}
+									},
+									false );
+			  					
+			  					checks_submitted++;
 		  					}
+		  				}
+		  					  					
+		  					// wait for all to complete
 		  					
-		  					enqueueCheckRequest( 
-		  						createRequest( i, request.getUserData()),
-		  	       				new DiskManagerCheckRequestListener()
-								{
-				  	       			public void 
-				  	       			checkCompleted( 
-				  	       				DiskManagerCheckRequest 	request,
-				  	       				boolean						passed )
-				  	       			{
-				  	       				try{
-				  	       					listener.checkCompleted( request, passed );
-				  	       					
-				  	       				}catch( Throwable e ){
-				  	       					
-				  	       					Debug.printStackTrace(e);
-				  	       					
-				  	       				}finally{
-				  	       					
-				  	       					complete();
-				  	       				}
-				  	       			}
-				  	       			 
-				  	       			public void
-				  	       			checkCancelled(
-				  	       				DiskManagerCheckRequest		request )
-				  	       			{
-				  	       				try{
-				  	       					listener.checkCancelled( request );
-				  	       					
-				  	       				}catch( Throwable e ){
-				  	       					
-				  	       					Debug.printStackTrace(e);
-				  	       					
-				  	       				}finally{
-				  	       				
-				  	       					complete();
-				  	       				}
-				  	       			}
-				  	       			
-				  	       			public void 
-				  	       			checkFailed( 
-				  	       				DiskManagerCheckRequest 	request, 
-				  	       				Throwable		 			cause )
-				  	       			{
-				  	       				try{
-				  	       					listener.checkFailed( request, cause );
-				  	       					
-				  	       				}catch( Throwable e ){
-				  	       					
-				  	       					Debug.printStackTrace(e);
-				  	       					
-				  	       				}finally{
-				  	       				
-				  	       					complete();
-				  	       				}			  	       			}
-				  	       			
-				  	       			protected void
-				  	       			complete()
-				  	       			{
-		  	       						run_sem.release();
-			  	       						
-		  	       						sem.release();
-			  	       				}
-								},
-								false );
-		  					
-		  					checks_submitted++;
-	  					}
-	  				}
-	  					  					
-	  					// wait for all to complete
-	  					
-	  				for (int i=0;i<checks_submitted;i++){
-	  						
-	  					sem.reserve();
-	  				}
-	  	       }finally{
-	  	       	
-	  	       		complete_recheck_in_progress	= false;
-	  	       		
-	  	       		recheck_inst.unregister();
-	  	       }
-	        }     			
-	 	};
-	
-	 	t.setDaemon(true);
-	 	
-	 	t.start();
+		  				for (int i=0;i<checks_submitted;i++){
+		  						
+		  					sem.reserve();
+		  				}
+		  	       }finally{
+		  	       	
+		  	       		complete_recheck_in_progress	= false;
+		  	       		
+		  	       		recheck_inst.unregister();
+		  	       }
+		        }     			
+		 	}.start();
 	}
 	
 	public void 
@@ -384,7 +428,64 @@ DMCheckerImpl
 		DiskManagerCheckRequest				request,
 		DiskManagerCheckRequestListener 	listener )
 	{
-		enqueueCheckRequest( request, listener, flush_pieces );
+		if ( fully_async ){
+			
+				// if the disk controller read-queue is full then normal the read-request allocation
+				// will block. This option forces the check request to be scheduled off the caller's
+				// thread
+			
+			try{
+				class_mon.enter();
+				
+				async_check_queue.add( new Object[]{ this, request, listener });
+				
+				if ( async_check_queue.size() % 100 == 0 ){
+				
+					System.out.println( "async check queue size=" + async_check_queue.size());
+				}
+			}finally{
+				
+				class_mon.exit();
+			}
+			
+			async_check_queue_sem.release();
+			
+		}else{
+			
+			enqueueCheckRequest( request, listener, flush_pieces );
+		}
+	}
+	
+	public boolean
+	hasOutstandingCheckRequestForPiece(
+		int		piece_number )
+	{
+		if ( fully_async ){
+					
+			try{
+				class_mon.enter();
+				
+				for (int i=0;i<async_check_queue.size();i++){
+					
+					Object[]	entry = (Object[])async_check_queue.get(i);
+					
+					if ( entry[0] == this ){
+						
+						DiskManagerCheckRequest request = (DiskManagerCheckRequest)entry[1];
+						
+						if ( request.getPieceNumber() == piece_number ){
+							
+							return( true );
+						}
+					}
+				}
+			}finally{
+				
+				class_mon.exit();
+			}
+		}
+		
+		return( false );
 	}
 	
 	protected void 

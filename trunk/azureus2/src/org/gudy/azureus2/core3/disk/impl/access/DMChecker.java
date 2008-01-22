@@ -38,7 +38,7 @@ DMChecker
 	stop();
 	
 	public DiskManagerCheckRequest
-	createRequest(
+	createCheckRequest(
 		int 	pieceNumber,
 		Object	user_data );
 	
@@ -51,7 +51,11 @@ DMChecker
 	enqueueCheckRequest(
 		DiskManagerCheckRequest			request,
 		DiskManagerCheckRequestListener listener );
-	  
+	
+	public boolean
+	hasOutstandingCheckRequestForPiece(
+		int		piece_number );
+	
 	public int 
 	getCompleteRecheckStatus();
 	

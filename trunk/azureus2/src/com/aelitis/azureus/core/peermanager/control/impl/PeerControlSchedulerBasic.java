@@ -26,7 +26,6 @@ package com.aelitis.azureus.core.peermanager.control.impl;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
@@ -53,6 +52,8 @@ PeerControlSchedulerBasic
 		
 	private final SpeedTokenDispenserBasic tokenDispenser = new SpeedTokenDispenserBasic();
 
+	private long	last_lag_log;
+	
 	protected void
 	schedule()
 	{
@@ -126,7 +127,9 @@ PeerControlSchedulerBasic
 					
 					tick_count++;
 					
-					inst.schedule();
+					inst.schedule( latest_time );
+					
+					schedule_count++;
 					
 					long new_target = target + SCHEDULE_PERIOD_MILLIS;
 					
@@ -252,13 +255,15 @@ PeerControlSchedulerBasic
 	{
 	}
 	
-	protected static class
+	protected class
 	instanceWrapper
 	{
 		private PeerControlInstance		instance;
 		private boolean					unregistered;
 		
 		private long					next_tick;
+		
+		private long					last_schedule;
 		
 		protected
 		instanceWrapper(
@@ -292,15 +297,25 @@ PeerControlSchedulerBasic
 			return( next_tick );
 		}
 		
-		protected PeerControlInstance
-		getInstance()
-		{
-			return( instance );
-		}
-		
 		protected void
-		schedule()
+		schedule(
+			long	now )
 		{
+			if ( last_schedule > 0 ){
+				
+				if ( now - last_schedule > 1000 ){
+					
+					if ( now - last_lag_log > 1000 ){
+						
+						last_lag_log = now;
+					
+						System.out.println( "Scheduling lagging: " + (now - last_schedule ));
+					}
+				}
+			}
+			
+			last_schedule = now;
+			
 			try{
 				instance.schedule();
 				

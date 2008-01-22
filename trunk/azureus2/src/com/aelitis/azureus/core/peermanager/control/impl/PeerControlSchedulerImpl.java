@@ -22,7 +22,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.AEThread2;
 
 import com.aelitis.azureus.core.peermanager.control.PeerControlScheduler;
 import com.aelitis.azureus.core.stats.AzureusCoreStats;
@@ -64,6 +64,7 @@ PeerControlSchedulerImpl
 		return( singleton );
 	}
 			
+	protected long	schedule_count;
 	protected long	wait_count;
 	protected long	yield_count;
 	protected long	total_wait_time;
@@ -73,6 +74,7 @@ PeerControlSchedulerImpl
 	{
 		Set	types = new HashSet();
 		
+		types.add( AzureusCoreStats.ST_PEER_CONTROL_SCHEDULE_COUNT );
 		types.add( AzureusCoreStats.ST_PEER_CONTROL_LOOP_COUNT );
 		types.add( AzureusCoreStats.ST_PEER_CONTROL_YIELD_COUNT );
 		types.add( AzureusCoreStats.ST_PEER_CONTROL_WAIT_COUNT );
@@ -84,10 +86,10 @@ PeerControlSchedulerImpl
 	protected void
 	start()
 	{
-		new AEThread( "PeerControlScheduler", true )
+		new AEThread2( "PeerControlScheduler", true )
 		{
 			public void
-			runSupport()
+			run()
 			{
 				schedule();
 			}
@@ -100,8 +102,10 @@ PeerControlSchedulerImpl
 		Set		types,
 		Map		values )
 	{
-			//read
-		
+		if ( types.contains( AzureusCoreStats.ST_PEER_CONTROL_SCHEDULE_COUNT )){
+			
+			values.put( AzureusCoreStats.ST_PEER_CONTROL_SCHEDULE_COUNT, new Long( schedule_count ));
+		}
 		if ( types.contains( AzureusCoreStats.ST_PEER_CONTROL_LOOP_COUNT )){
 			
 			values.put( AzureusCoreStats.ST_PEER_CONTROL_LOOP_COUNT, new Long( wait_count + yield_count ));

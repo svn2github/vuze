@@ -48,7 +48,7 @@ DMReader
 		int length );
 
 	public DiskManagerReadRequest
-	createRequest(
+	createReadRequest(
 		int pieceNumber,
 		int offset,
 		int length );
@@ -57,4 +57,8 @@ DMReader
 	readBlock( 
 		DiskManagerReadRequest 			request, 
 		DiskManagerReadRequestListener 	listener );
+	
+	public boolean
+	hasOutstandingReadRequestForPiece(
+		int		piece_number );
 }

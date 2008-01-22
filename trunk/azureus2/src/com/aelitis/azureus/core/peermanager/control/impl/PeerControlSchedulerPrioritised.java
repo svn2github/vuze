@@ -122,6 +122,7 @@ PeerControlSchedulerPrioritised
 					tokenDispenser.refill();
 				// System.out.println("scheduling "+i+" time:"+latest_time);
 				inst.schedule();
+				schedule_count++;
 				scheduledNext++;
 				if (scheduledNext >= instances.size())
 				{

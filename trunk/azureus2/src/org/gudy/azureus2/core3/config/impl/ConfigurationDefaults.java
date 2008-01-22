@@ -442,6 +442,7 @@ public class ConfigurationDefaults {
     def.put( "diskmanager.perf.write.aggregate.request.limit", ZERO );
     def.put( "diskmanager.perf.write.aggregate.byte.limit", ZERO );
     def.put( "diskmanager.perf.checking.read.priority", FALSE );
+    def.put( "diskmanager.perf.checking.fully.async", FALSE );
     def.put( "diskmanager.perf.queue.torrent.bias", TRUE );
     
     	// Peer control

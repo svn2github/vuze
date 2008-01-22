@@ -115,6 +115,10 @@ DiskManager
 		DiskManagerReadRequest 			request, 
 		DiskManagerReadRequestListener 	listener );
 
+	public boolean
+	hasOutstandingReadRequestForPiece(
+		int		piece_number );
+	
 		/**
 		 * Create a request to check a particular piece
 		 * @param pieceNumber	-1 for a complete recheck request
@@ -138,6 +142,10 @@ DiskManager
 	enqueueCheckRequest(
 		DiskManagerCheckRequest			request,
 		DiskManagerCheckRequestListener	listener );
+	
+	public boolean
+	hasOutstandingCheckRequestForPiece(
+		int		piece_number );
 	
 		/**
 		 * recheck the entire torrent asynchronously, reporting each piece to the listener
