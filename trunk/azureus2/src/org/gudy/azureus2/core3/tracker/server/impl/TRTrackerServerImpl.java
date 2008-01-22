@@ -210,6 +210,7 @@ TRTrackerServerImpl
 	private long		current_total_clients;
 	
 	private int		current_min_poll_interval;
+	private int		current_min_seed_announce_mult;
 	
 	private TRTrackerServerStatsImpl	stats = new TRTrackerServerStatsImpl( this );
 		
@@ -267,6 +268,8 @@ TRTrackerServerImpl
 			
 			current_min_poll_interval = RETRY_MINIMUM_SECS;
 		}
+		
+		current_min_seed_announce_mult = COConfigurationManager.getIntParameter( "Tracker Poll Seed Interval Mult" );
 		
 		current_announce_retry_interval = current_min_poll_interval;		
 
@@ -529,6 +532,12 @@ TRTrackerServerImpl
 		}
 		
 		return( res );
+	}
+	
+	public long
+	getSeedAnnounceIntervalMultiplier()
+	{
+		return( current_min_seed_announce_mult );
 	}
 	
 	public long

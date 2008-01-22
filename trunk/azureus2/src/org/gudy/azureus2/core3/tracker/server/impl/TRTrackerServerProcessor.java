@@ -201,6 +201,14 @@ TRTrackerServerProcessor
 					
 					interval 		= server.getAnnounceRetryInterval( torrent );
 					min_interval 	= server.getMinAnnounceRetryInterval();
+					
+					if ( left == 0 ){
+						
+						long	mult = server.getSeedAnnounceIntervalMultiplier();
+						
+						interval 		*= mult;
+						min_interval	*= mult;
+					}
 				}
 				
 				TRTrackerServerPeerImpl peer = 

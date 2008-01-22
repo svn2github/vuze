@@ -266,14 +266,19 @@ implements PEPeerTransport
 		}
 		
 	}
+	
 	private static final DisconnectedTransportQueue recentlyDisconnected = new DisconnectedTransportQueue();
-
+	
+	private static boolean 	fast_unchoke_new_peers;
+	
 	static {
 		
 		rnd.setSeed(SystemTime.getCurrentTime());
 		
 		COConfigurationManager.addAndFireParameterListeners(
-				new String[]{ "Use Lazy Bitfield" },
+				new String[]{ 
+					"Use Lazy Bitfield",
+					"Peer.Fast.Initial.Unchoke.Enabled" },
 				new ParameterListener()
 				{
 					public final void 
@@ -285,6 +290,8 @@ implements PEPeerTransport
 						ENABLE_LAZY_BITFIELD = prop != null && prop.equals( "1" );
 
 						ENABLE_LAZY_BITFIELD |= COConfigurationManager.getBooleanParameter( "Use Lazy Bitfield" );
+						
+						fast_unchoke_new_peers 		= COConfigurationManager.getBooleanParameter( "Peer.Fast.Initial.Unchoke.Enabled" );
 					}
 				});
 	}
@@ -2392,10 +2399,25 @@ implements PEPeerTransport
 	}
 
 
-	protected void decodeInterested( BTInterested interested ) {
-		interested.destroy();                                                   
-		// Don't allow known seeds to be interested in us
+	protected void 
+	decodeInterested( 
+		BTInterested interested ) 
+	{
+		interested.destroy();
+		
+			// Don't allow known seeds to be interested in us
+		
 		other_peer_interested_in_me =!isSeed();
+		
+		if ( 	other_peer_interested_in_me && 
+				fast_unchoke_new_peers &&
+				isChokedByMe() && 
+				getData( "fast_unchoke_done" ) == null ){
+			
+			setData( "fast_unchoke_done", "" );
+			
+			sendUnChoke();
+		}
 	}
 
 

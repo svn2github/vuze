@@ -351,6 +351,7 @@ public class ConfigurationDefaults {
     def.put( "Tracker Announce Cache Min Peers", new Long( TRTrackerServer.DEFAULT_ANNOUNCE_CACHE_PEER_THRESHOLD ) );
     def.put( "Tracker Poll Interval Min", new Long( TRTrackerServer.DEFAULT_MIN_RETRY_DELAY) );
     def.put( "Tracker Poll Interval Max", new Long( TRTrackerServer.DEFAULT_MAX_RETRY_DELAY) );
+    def.put( "Tracker Poll Seed Interval Mult", new Long(1));
     def.put( "Tracker Scrape Retry Percentage", new Long( TRTrackerServer.DEFAULT_SCRAPE_RETRY_PERCENTAGE ) );
     def.put( "Tracker Password Enable Web", FALSE );
     def.put( "Tracker Password Web HTTPS Only", FALSE);
