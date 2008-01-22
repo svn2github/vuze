@@ -165,7 +165,7 @@ DMWriterImpl
 	public boolean 
 	zeroFile( 
 		DiskManagerFileInfoImpl file, 
-		long 					length ) 
+		long 					length ) throws DiskManagerException 
 	{
 		CacheFile	cache_file = file.getCacheFile();
 		
@@ -285,7 +285,7 @@ DMWriterImpl
 			
 			Debug.printStackTrace( e );
 			
-			return( false );
+			throw new DiskManagerException(e);			
 		}
 			
 		return true;

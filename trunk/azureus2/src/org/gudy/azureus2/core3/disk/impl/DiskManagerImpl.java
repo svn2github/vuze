@@ -957,24 +957,25 @@ DiskManagerImpl
 
                                 allocated += target_length;
                             } else if( COConfigurationManager.getBooleanParameter("Zero New") ) {  //zero fill
+                            	
+                            	boolean successfulAlloc = false;
 
-                                if ( !writer.zeroFile( fileInfo, target_length )) {
-
-                                    try{
-                                            // failed to zero it, delete it so it gets done next start
-
-                                        fileInfo.getCacheFile().close();
-
-                                        fileInfo.getCacheFile().delete();
-
-                                    }catch( Throwable e ){
-
-                                    }
-
-                                    setState( FAULTY );
-
-                                    return( -1 );
-                                }
+                            	try {
+                            		successfulAlloc = writer.zeroFile( fileInfo, target_length );
+                            	} finally
+                            	{
+                            		if (!successfulAlloc)
+									{
+										try
+										{
+											// failed to zero it, delete it so it gets done next start
+											fileInfo.getCacheFile().close();
+											fileInfo.getCacheFile().delete();
+										} catch (Throwable e)
+										{}
+										setState(FAULTY);
+									}
+                            	}
                             }else{
 
                                     //reserve the full file size with the OS file system
