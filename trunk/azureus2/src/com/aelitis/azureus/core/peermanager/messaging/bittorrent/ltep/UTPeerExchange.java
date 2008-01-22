@@ -130,7 +130,17 @@ public class UTPeerExchange implements AZStylePeerExchange, LTMessage {
 	    			Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING, "PEX (UT): peer data size not multiple of " + peer_byte_size + ": " + raw_peer_data.length));
 	    	}
 	      int peer_num = raw_peer_data.length / peer_byte_size;
-	      byte[] flags = (root_map == null) ? null : (byte[])root_map.get(key_name + ".f");
+	      
+	      byte[] flags = null;
+	      if (root_map != null) {
+	    	  Object flags_obj = root_map.get(key_name + ".f");
+	    	  
+	    	  // For some reason, some peers send flags as longs. I haven't seen
+	    	  // it myself, so I don't know how to extract data from it. So we'll
+	    	  // just stick to byte arrays.
+	    	  if (flags_obj instanceof byte[]) {flags = (byte[])flags_obj;}
+	      }
+	      
 	      if (flags != null && flags.length != peer_num) {
 	    	  if (flags.length > 0) {
 	    		  if (Logger.isEnabled()) {
