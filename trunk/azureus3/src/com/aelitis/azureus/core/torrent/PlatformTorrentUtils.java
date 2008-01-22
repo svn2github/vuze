@@ -112,6 +112,10 @@ public class PlatformTorrentUtils
 	
 	private static final String TOR_AZ_PROP_WEB_AD_ENABLED = "Web Ad Enabled";
 
+	private static final String TOR_AZ_PROP_VIDEO_WIDTH = "Video Width";
+
+	private static final String TOR_AZ_PROP_VIDEO_HEIGHT = "Video Height";
+
 	private static ArrayList listPlatformHosts = null;
 
 	private static final Map mapPlatformTrackerTorrents = new WeakHashMap();
@@ -757,8 +761,30 @@ public class PlatformTorrentUtils
 
 	public static int getContentPrimaryFileIndex(TOTorrent torrent ){
 		return (int)getContentMapLong(torrent, TOR_AZ_PROP_PRIMARY_FILE, -1 );
-
 	}
+	
+	
+	private static long getContentVideoWidth(TOTorrent torrent) {
+		return getContentMapLong(torrent, TOR_AZ_PROP_VIDEO_WIDTH, -1);
+	}
+
+	private static long getContentVideoHeight(TOTorrent torrent) {
+		return getContentMapLong(torrent, TOR_AZ_PROP_VIDEO_HEIGHT, -1);
+	}
+	
+	public static int[] getContentVideoResolution(TOTorrent torrent) {
+		long width = getContentVideoWidth(torrent);
+		if (width <= 0) {
+			return null;
+		}
+		long height = getContentVideoWidth(torrent);
+		if (height <= 0) {
+			return null;
+		}
+		return new int[] { (int) width, (int) height };
+	}
+
+	
 	public static void log(String str) {
 		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.MD");
 		diag_logger.log(str);
