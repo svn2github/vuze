@@ -3314,8 +3314,8 @@ public class TableViewSWTImpl
 					for (int i = iTopIndex; i < tmpIndex && i < sortedRows.size(); i++) {
 						TableRowSWT row = (TableRowSWT) getRow(i);
 						if (row != null) {
-							row.refresh(true, true);
 							row.setAlternatingBGColor(true);
+							row.refresh(true, true);
 							if (Constants.isOSX) {
 								bTableUpdate = true;
 							}
@@ -3347,8 +3347,8 @@ public class TableViewSWTImpl
 					for (int i = tmpIndex + 1; i <= iBottomIndex && i < sortedRows.size(); i++) {
 						TableRowSWT row = (TableRowSWT) getRow(i);
 						if (row != null) {
-							row.refresh(true, true);
 							row.setAlternatingBGColor(true);
+							row.refresh(true, true);
 							if (Constants.isOSX) {
 								bTableUpdate = true;
 							}
