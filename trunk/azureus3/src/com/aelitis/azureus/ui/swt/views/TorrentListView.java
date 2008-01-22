@@ -31,6 +31,7 @@ import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.UpItem;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.swt.columns.torrent.*;
@@ -339,6 +340,7 @@ public class TorrentListView
 								PlatformTorrentUtils.setContentLastUpdated(torrent, 0);
 							}
 							PlatformTorrentUtils.updateMetaData(torrent, 10);
+							GlobalRatingUtils.updateFromPlatform(torrent, 10);
 						}
 					}
 				} else if (e.character == 15
