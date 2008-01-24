@@ -72,10 +72,7 @@ public interface PiecePicker
 	 * @param pePiece
 	 */
 	public void		addEndGameChunks(final PEPiece pePiece);
-	/** adds only the blocks that aren't downloaded or written to endGameModeChunks
-	 * @param pePiece
-	 */
-	public void 	addEndGameBlocks(final PEPiece pePiece);
+
 	public void		removeFromEndGameModeChunks(final int pieceNumber, final int offset);
 	
 	public int	getNumberOfPieces();
