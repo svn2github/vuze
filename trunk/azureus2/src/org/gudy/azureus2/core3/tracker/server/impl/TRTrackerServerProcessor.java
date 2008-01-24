@@ -184,7 +184,24 @@ TRTrackerServerProcessor
 					throw( new TRTrackerServerException( "peer_id missing from request"));
 				}
 				
-				boolean	queue_it = stop_to_queue && ( QUEUE_TEST || !( loopback || ip_override ));
+				boolean	queue_it = stop_to_queue;
+				
+				if ( queue_it ){
+					
+					Set biased = server.getBiasedPeers();
+					
+					if ( biased != null && biased.contains( real_ip_address )){
+						
+							// biased peers get to queue whatever
+						
+					}else{
+					
+						if ( loopback || ip_override ){
+							
+							queue_it = false;
+						}
+					}
+				}
 
 				long	interval;
 				long	min_interval;

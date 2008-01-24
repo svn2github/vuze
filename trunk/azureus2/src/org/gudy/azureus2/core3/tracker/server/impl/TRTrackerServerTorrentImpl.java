@@ -2498,6 +2498,15 @@ TRTrackerServerTorrentImpl
 			}
 		}
 		
+			// if we have any queued then lets add at least one in to indicate potential
+		
+		int	queued = getQueuedCount();
+		
+		if ( queued > 0 ){
+			
+			seeds++;
+		}
+		
 		return( seeds );
 	}
 	
