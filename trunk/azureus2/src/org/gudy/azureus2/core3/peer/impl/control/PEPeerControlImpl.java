@@ -749,10 +749,10 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 	public void 
 	addPeer( 
-			String 	ip_address, 
-			int		tcp_port, 
-			int		udp_port,
-			boolean use_crypto ) 
+		String 	ip_address, 
+		int		tcp_port, 
+		int		udp_port,
+		boolean use_crypto ) 
 	{
 		final byte type = use_crypto ? PeerItemFactory.HANDSHAKE_TYPE_CRYPTO : PeerItemFactory.HANDSHAKE_TYPE_PLAIN;
 		final PeerItem peer_item = PeerItemFactory.createPeerItem( ip_address, tcp_port, PeerItem.convertSourceID( PEPeerSource.PS_PLUGIN ), type, udp_port, PeerItemFactory.CRYPTO_LEVEL_1, 0 );
@@ -787,7 +787,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 	private void 
 	addPeersFromTracker(
-			TRTrackerAnnouncerResponsePeer[]		peers )
+		TRTrackerAnnouncerResponsePeer[]		peers )
 	{
 
 		for (int i = 0; i < peers.length; i++){

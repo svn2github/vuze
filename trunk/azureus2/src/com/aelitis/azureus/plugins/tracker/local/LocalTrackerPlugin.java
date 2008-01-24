@@ -53,7 +53,6 @@ import com.aelitis.azureus.core.instancemanager.AZInstance;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManagerListener;
 import com.aelitis.azureus.core.instancemanager.AZInstanceTracked;
-import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 
 public class 
 LocalTrackerPlugin
@@ -69,6 +68,7 @@ LocalTrackerPlugin
 	private AZInstanceManager	instance_manager;
 	private boolean				active;
 	private TorrentAttribute 	ta_networks;
+	private TorrentAttribute 	ta_peer_sources;
 
 	private Map 				downloads 	= new HashMap();
 	private Map					track_times	= new HashMap();
@@ -96,6 +96,7 @@ LocalTrackerPlugin
 		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		PLUGIN_NAME );
 
 		ta_networks 	= plugin_interface.getTorrentManager().getAttribute( TorrentAttribute.TA_NETWORKS );
+		ta_peer_sources = plugin_interface.getTorrentManager().getAttribute( TorrentAttribute.TA_PEER_SOURCES );
 
 		mon	= plugin_interface.getUtilities().getMonitor();
 		
@@ -440,6 +441,25 @@ LocalTrackerPlugin
 			
 			return;
 		}
+
+		String[]	sources = download.getListAttribute( ta_peer_sources );
+		
+		boolean	ok = false;
+		
+		for (int i=0;i<sources.length;i++){
+			
+			if ( sources[i].equalsIgnoreCase( "Plugin")){
+				
+				ok	= true;
+				
+				break;
+			}
+		}
+		
+		if ( !ok ){
+			
+			return;
+		}
 		
 		AZInstanceTracked[]	peers = instance_manager.track( download );
 		
@@ -592,6 +612,7 @@ LocalTrackerPlugin
 			}
 
 			if ( enabled.getValue()){
+				
 				log.log( "Tracking " + download.getName());
 			}
 
