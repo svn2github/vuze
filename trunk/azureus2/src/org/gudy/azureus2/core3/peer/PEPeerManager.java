@@ -362,6 +362,10 @@ PEPeerManager
 		LimitedRateGroup	group,
 		boolean				upload );
 	
+	public boolean
+	isPeerSourceEnabled(
+		String	peer_source );
+	
 	public void
 	generateEvidence(
 		IndentWriter		writer );

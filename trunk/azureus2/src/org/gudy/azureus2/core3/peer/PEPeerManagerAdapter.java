@@ -156,4 +156,8 @@ PEPeerManagerAdapter
 	getLogRelation();
 	
 	public int getPosition();
+	
+	public boolean 
+	isPeerSourceEnabled(
+		String peer_source );
 }

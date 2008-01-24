@@ -4136,6 +4136,13 @@ DiskManagerCheckRequestListener, IPFilterListener
 		 prefer_udp = prefer;
 	}
 
+	public boolean 
+	isPeerSourceEnabled(
+		String peer_source ) 
+	{
+		return( adapter.isPeerSourceEnabled( peer_source ));
+	}
+	
 	public void
 	generateEvidence(
 			IndentWriter		writer )

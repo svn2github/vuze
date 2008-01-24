@@ -289,7 +289,10 @@ PeerManagerImpl
 	{
 		checkIfPrivate();
 		
-		manager.addPeer( ip_address, tcp_port, 0, use_crypto );
+		if ( pluginPeerSourceEnabled()){
+		
+			manager.addPeer( ip_address, tcp_port, 0, use_crypto );	
+		}
 	}
   
 	public void 
@@ -302,6 +305,21 @@ PeerManagerImpl
 		checkIfPrivate();
 		
 		manager.addPeer( ip_address, tcp_port, udp_port, use_crypto );
+	}
+	
+	protected boolean
+	pluginPeerSourceEnabled()
+	{
+		if ( manager.isPeerSourceEnabled( PEPeerSource.PS_PLUGIN )){
+			
+			return( true );
+			
+		}else{
+		
+			Debug.out( "Plugin peer source disabled for " + manager.getDisplayName());
+			
+			return( false );
+		}
 	}
 	
 	protected void
