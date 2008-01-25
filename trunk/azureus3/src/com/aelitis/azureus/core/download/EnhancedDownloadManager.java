@@ -426,18 +426,6 @@ EnhancedDownloadManager
 						}
 					}
 				}
-					
-				public void
-				pieceAdded(
-					PEPiece 	piece )
-				{
-				}
-					
-				public void
-				pieceRemoved(
-					PEPiece		piece )
-				{
-				}
 			});
 	}
 
