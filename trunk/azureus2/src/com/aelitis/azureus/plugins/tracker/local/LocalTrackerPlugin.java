@@ -30,6 +30,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.download.Download;
@@ -81,10 +82,11 @@ LocalTrackerPlugin
 	private long				plugin_start_time;
 	
 	private long current_time;
-	
-	
+
 	private LoggerChannel 		log;
 	private Monitor 			mon;
+
+	private AsyncDispatcher	dispatcher = new AsyncDispatcher( 30*1000 );
 	
 	public void
 	initialize(
@@ -471,7 +473,7 @@ LocalTrackerPlugin
 	
 	protected void
 	forceTrack(
-		Download	download )
+		final Download	download )
 	{
 		try{
 			mon.enter();
@@ -491,7 +493,15 @@ LocalTrackerPlugin
 			mon.exit();
 		}
 		
-		track( download );
+		dispatcher.dispatch(
+			new AERunnable()
+			{
+				public void
+				runSupport()
+				{
+					track( download );
+				}
+			});
 	}
 	
 	protected void
