@@ -408,7 +408,7 @@ ListenerManager
 			long	start = SystemTime.getCurrentTime();
 			
 			try{
-				target_with_exception.dispatch( listener, type, value );
+				target_with_exception.dispatchWithException( listener, type, value );
 
 			}finally{
 				
@@ -418,7 +418,7 @@ ListenerManager
 			}
 		}else{
 		
-			target_with_exception.dispatch( listener, type, value );
+			target_with_exception.dispatchWithException( listener, type, value );
 		}
 	}
 	
