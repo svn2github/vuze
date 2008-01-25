@@ -34,7 +34,6 @@ import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
-import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.peer.PeerInfoView;
@@ -179,9 +178,7 @@ public class PeerSuperView
 	public void destroyed() {}
     public void seedingStatusChanged(boolean seeding_only_mode) {}
 	public void addThisColumnSubMenu(String columnName, Menu menuThisColumn) {}
-    public void pieceAdded(PEPiece piece) {}
-	public void pieceRemoved(PEPiece piece) {}
-	public void peerManagerWillBeAdded(PEPeerManager peer_manager ){}
-	public void peerManagerAdded(PEPeerManager manager) {}
-	public void peerManagerRemoved(PEPeerManager manager) {} // Do I need to do anything here?
+	public void peerManagerAdded(PEPeerManager manager){}
+	public void peerManagerRemoved(PEPeerManager manager) {}
+	public void peerManagerWillBeAdded(PEPeerManager manager) {}
 }

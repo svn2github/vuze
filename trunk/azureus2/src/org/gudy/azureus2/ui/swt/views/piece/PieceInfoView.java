@@ -35,7 +35,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
+import org.gudy.azureus2.core3.download.DownloadManagerPieceListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
@@ -59,7 +59,7 @@ import org.gudy.azureus2.ui.swt.views.AbstractIView;
  */
 public class PieceInfoView
 	extends AbstractIView
-	implements ObfusticateImage, DownloadManagerPeerListener
+	implements ObfusticateImage, DownloadManagerPieceListener
 {
 
 	private final static int BLOCK_FILLSIZE = 14;
@@ -130,10 +130,10 @@ public class PieceInfoView
 	public void dataSourceChanged(Object newDataSource) {
 		if (newDataSource instanceof DownloadManager) {
 			if (dlm != null) {
-				dlm.removePeerListener(this);
+				dlm.removePieceListener(this);
 			}
 			dlm = (DownloadManager)newDataSource;
-			dlm.addPeerListener(this, false);
+			dlm.addPieceListener(this, false);
 			fillPieceInfoSection();
 		}
 	}
@@ -583,7 +583,7 @@ public class PieceInfoView
 		}
 		
 		if(dlm != null)
-			dlm.removePeerListener(this);
+			dlm.removePieceListener(this);
 
 		super.delete();
 	}
@@ -591,24 +591,6 @@ public class PieceInfoView
 	public Image obfusticatedImage(Image image, Point shellOffset) {
 		UIDebugGenerator.obfusticateArea(image, topLabel, shellOffset, "");
 		return image;
-	}
-
-	// @see org.gudy.azureus2.core3.download.DownloadManagerPeerListener#peerAdded(org.gudy.azureus2.core3.peer.PEPeer)
-	public void peerAdded(PEPeer peer) {
-	}
-
-    public void peerManagerWillBeAdded( PEPeerManager	peer_manager ){}
-
-	// @see org.gudy.azureus2.core3.download.DownloadManagerPeerListener#peerManagerAdded(org.gudy.azureus2.core3.peer.PEPeerManager)
-	public void peerManagerAdded(PEPeerManager manager) {
-	}
-
-	// @see org.gudy.azureus2.core3.download.DownloadManagerPeerListener#peerManagerRemoved(org.gudy.azureus2.core3.peer.PEPeerManager)
-	public void peerManagerRemoved(PEPeerManager manager) {
-	}
-
-	// @see org.gudy.azureus2.core3.download.DownloadManagerPeerListener#peerRemoved(org.gudy.azureus2.core3.peer.PEPeer)
-	public void peerRemoved(PEPeer peer) {
 	}
 
 	// @see org.gudy.azureus2.core3.download.DownloadManagerPeerListener#pieceAdded(org.gudy.azureus2.core3.peer.PEPiece)

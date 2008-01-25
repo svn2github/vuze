@@ -189,8 +189,6 @@ DownloadManagerImpl
 	
 	private static final int LDT_PE_PEER_ADDED		= 1;
 	private static final int LDT_PE_PEER_REMOVED	= 2;
-	private static final int LDT_PE_PIECE_ADDED		= 3;
-	private static final int LDT_PE_PIECE_REMOVED	= 4;
 	private static final int LDT_PE_PM_ADDED		= 5;
 	private static final int LDT_PE_PM_REMOVED		= 6;
 	
@@ -215,14 +213,6 @@ DownloadManagerImpl
 					}else if ( type == LDT_PE_PEER_REMOVED ){
 						
 						listener.peerRemoved((PEPeer)value);
-						
-					}else if ( type == LDT_PE_PIECE_ADDED ){
-						
-						listener.pieceAdded((PEPiece)value);
-						
-					}else if ( type == LDT_PE_PIECE_REMOVED ){
-						
-						listener.pieceRemoved((PEPiece)value);
 						
 					}else if ( type == LDT_PE_PM_ADDED ){
 						
@@ -249,9 +239,56 @@ DownloadManagerImpl
 				}
 			});	
 	
-	private AEMonitor	peer_listeners_mon	= new AEMonitor( "DM:DownloadManager:PL" );
+	private AEMonitor	peer_listeners_mon	= new AEMonitor( "DM:DownloadManager:PeerL" );
 	
 	private List	current_peers 	= new ArrayList();
+	
+		// PieceListeners
+	
+	private static final int LDT_PE_PIECE_ADDED		= 3;
+	private static final int LDT_PE_PIECE_REMOVED	= 4;
+	
+		// one static async manager for them all
+	
+	private static ListenerManager	piece_listeners_aggregator 	= ListenerManager.createAsyncManager(
+			"DM:PieceListenAggregatorDispatcher",
+			new ListenerManagerDispatcher()
+			{
+				public void
+				dispatch(
+					Object		_listener,
+					int			type,
+					Object		value )
+				{
+					DownloadManagerPieceListener	listener = (DownloadManagerPieceListener)_listener;
+					
+					if ( type == LDT_PE_PIECE_ADDED ){
+						
+						listener.pieceAdded((PEPiece)value);
+						
+					}else if ( type == LDT_PE_PIECE_REMOVED ){
+						
+						listener.pieceRemoved((PEPiece)value);
+					}
+				}
+			});
+
+	private ListenerManager	piece_listeners 	= ListenerManager.createManager(
+			"DM:PieceListenDispatcher",
+			new ListenerManagerDispatcher()
+			{
+				public void
+				dispatch(
+					Object		listener,
+					int			type,
+					Object		value )
+				{
+					piece_listeners_aggregator.dispatch( listener, type, value );
+				}
+			});	
+	
+	private AEMonitor	piece_listeners_mon	= new AEMonitor( "DM:DownloadManager:PeiceL" );
+	
 	private List	current_pieces	= new ArrayList();
   
 	private DownloadManagerController	controller;
@@ -2387,12 +2424,7 @@ DownloadManagerImpl
   			
 				peer_listeners.dispatch( listener, LDT_PE_PEER_ADDED, current_peers.get(i));
 			}
-		
-			for (int i=0;i<current_pieces.size();i++){
-  			
-				peer_listeners.dispatch( listener, LDT_PE_PIECE_ADDED, current_pieces.get(i));
-			}
-		
+				
 			PEPeerManager	temp = controller.getPeerManager();
 		
 			if ( temp != null ){
@@ -2411,6 +2443,44 @@ DownloadManagerImpl
 		DownloadManagerPeerListener	listener )
 	{
 		peer_listeners.removeListener( listener );
+	}	
+ 
+	public void
+	addPieceListener(
+		DownloadManagerPieceListener	listener )
+	{
+		addPieceListener(listener, true);
+	}
+
+	public void
+	addPieceListener(
+		DownloadManagerPieceListener	listener,
+		boolean 						bDispatchForExisting )
+	{
+		try{
+			piece_listeners_mon.enter();
+			
+			piece_listeners.addListener( listener );
+			
+			if (!bDispatchForExisting)
+				return; // finally will call
+		
+			for (int i=0;i<current_pieces.size();i++){
+  			
+				piece_listeners.dispatch( listener, LDT_PE_PIECE_ADDED, current_pieces.get(i));
+			}
+  	
+		}finally{
+
+			piece_listeners_mon.exit();
+		}
+	}
+		
+	public void
+	removePieceListener(
+		DownloadManagerPieceListener	listener )
+	{
+		piece_listeners.removeListener( listener );
 	}	
  
  
@@ -2482,15 +2552,15 @@ DownloadManagerImpl
 		PEPiece 	piece )
 	{
 		try{
-			peer_listeners_mon.enter();
+			piece_listeners_mon.enter();
   		
 			current_pieces.add( piece );
   		
-			peer_listeners.dispatch( LDT_PE_PIECE_ADDED, piece );
+			piece_listeners.dispatch( LDT_PE_PIECE_ADDED, piece );
   		
 		}finally{
   		
-			peer_listeners_mon.exit();
+			piece_listeners_mon.exit();
 		}
 	}
 		
@@ -2499,15 +2569,15 @@ DownloadManagerImpl
 		PEPiece		piece )
 	{
 		try{
-			peer_listeners_mon.enter();
+			piece_listeners_mon.enter();
   		
 			current_pieces.remove( piece );
   		
-			peer_listeners.dispatch( LDT_PE_PIECE_REMOVED, piece );
+			piece_listeners.dispatch( LDT_PE_PIECE_REMOVED, piece );
   		
 		}finally{
   		
-			peer_listeners_mon.exit();
+			piece_listeners_mon.exit();
 		}
 	}
 
@@ -2515,13 +2585,13 @@ DownloadManagerImpl
 	getCurrentPieces() 
 	{
 		try{
-			peer_listeners_mon.enter();
+			piece_listeners_mon.enter();
 
 			return (PEPiece[])current_pieces.toArray(new PEPiece[current_pieces.size()]);
 			
 		}finally{
 			
-			peer_listeners_mon.exit();
+			piece_listeners_mon.exit();
 
 		}	
 	}

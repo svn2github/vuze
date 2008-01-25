@@ -29,30 +29,13 @@ package org.gudy.azureus2.core3.download;
 import org.gudy.azureus2.core3.peer.*;
 
 public interface 
-DownloadManagerPeerListener 
+DownloadManagerPieceListener 
 {
-		/**
-		 * Called when a peer manager is created but not yet started
-		 * @param manager
-		 */
-	
 	public void
-	peerManagerWillBeAdded(
-		PEPeerManager	manager );
-
-	public void
-	peerManagerAdded(
-		PEPeerManager	manager );
-	
-	public void
-	peerManagerRemoved(
-		PEPeerManager	manager );
-	
-	public void
-	peerAdded(
-		PEPeer 	peer );
+	pieceAdded(
+		PEPiece 	piece );
 		
 	public void
-	peerRemoved(
-		PEPeer	peer );
+	pieceRemoved(
+		PEPiece		piece );
 }

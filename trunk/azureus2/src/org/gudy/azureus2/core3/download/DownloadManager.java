@@ -590,6 +590,8 @@ DownloadManager
     removeListener(
             DownloadManagerListener listener );
 
+    	// tracker listeners
+    
     public void
     addTrackerListener(
         DownloadManagerTrackerListener  listener );
@@ -598,6 +600,8 @@ DownloadManager
     removeTrackerListener(
         DownloadManagerTrackerListener  listener );
 
+    	// peer listeners
+    
     public void
     addPeerListener(
         DownloadManagerPeerListener listener );
@@ -611,6 +615,23 @@ DownloadManager
     removePeerListener(
         DownloadManagerPeerListener listener );
 
+		// piece listeners
+
+    public void
+    addPieceListener(
+    		DownloadManagerPieceListener listener );
+
+    public void
+    addPieceListener(
+        DownloadManagerPieceListener listener,
+        boolean bDispatchForExisting );
+
+    public void
+    removePieceListener(
+    		DownloadManagerPieceListener listener );
+
+    	// disk listeners
+    
     public void
     addDiskListener(
         DownloadManagerDiskListener listener );

@@ -392,19 +392,7 @@ DiskManagerChannelImpl
 		PEPeer	peer )
 	{
 	}
-		
-	public void
-	pieceAdded(
-		PEPiece 	piece )
-	{
-	}
-		
-	public void
-	pieceRemoved(
-		PEPiece		piece )
-	{
-	}
-	       	
+    	
    	public long[]
    	updateRTAs(
    		PiecePicker		picker )

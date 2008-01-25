@@ -267,16 +267,6 @@ public class NetworkAdminSpeedTesterBTImpl
             			peerRemoved(PEPeer	peer )
             			{	
             			}
-            				
-            			public void
-            			pieceAdded(PEPiece 	piece )
-            			{	
-            			}
-            				
-            			public void
-            			pieceRemoved(PEPiece		piece )
-            			{	
-            			}
                 	});
  
             speed_download.moveTo( 1 );

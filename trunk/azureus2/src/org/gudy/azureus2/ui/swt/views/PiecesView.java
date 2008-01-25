@@ -26,6 +26,7 @@ import org.eclipse.swt.widgets.Composite;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
+import org.gudy.azureus2.core3.download.DownloadManagerPieceListener;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
@@ -54,7 +55,9 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 public class PiecesView 
 	extends TableViewTab
-	implements DownloadManagerPeerListener, TableDataSourceChangedListener,
+	implements DownloadManagerPeerListener, 
+	DownloadManagerPieceListener,
+	TableDataSourceChangedListener,
 	TableLifeCycleListener
 {
 	private final static TableColumnCore[] basicItems = {
@@ -102,9 +105,11 @@ public class PiecesView
 
 	// @see com.aelitis.azureus.ui.common.table.TableDataSourceChangedListener#tableDataSourceChanged(java.lang.Object)
 	public void tableDataSourceChanged(Object newDataSource) {
-		if (manager != null)
+		if (manager != null){
 			manager.removePeerListener(this);
-
+			manager.removePieceListener(this);
+		}
+		
 		if (newDataSource == null)
 			manager = null;
 		else if (newDataSource instanceof Object[])
@@ -114,6 +119,7 @@ public class PiecesView
 
   	if (manager != null) {
 			manager.addPeerListener(this, false);
+			manager.addPieceListener(this, false);
 			addExistingDatasources();
     }
   	if (pieceInfoView != null) {
@@ -139,8 +145,10 @@ public class PiecesView
 	}
 
 		if (manager != null) {
-  		manager.removePeerListener(this);
+			manager.removePeerListener(this);
+			manager.removePieceListener(this);
 			manager.addPeerListener(this, false);
+			manager.addPieceListener(this, false);
 			addExistingDatasources();
     }
     }
@@ -153,6 +161,7 @@ public class PiecesView
 
 		if (manager != null) {
 			manager.removePeerListener(this);
+			manager.removePieceListener(this);
 		}
 	}
 

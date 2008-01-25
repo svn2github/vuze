@@ -329,8 +329,6 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
   public void peerManagerWillBeAdded( PEPeerManager	peer_manager ){}
   public void peerManagerAdded(PEPeerManager manager) {}
   public void peerManagerRemoved(PEPeerManager manager) {}
-  public void pieceAdded(PEPiece piece) {}
-  public void pieceRemoved(PEPiece piece) {}
   
   public void peerAdded(PEPeer peer) {
     try {
