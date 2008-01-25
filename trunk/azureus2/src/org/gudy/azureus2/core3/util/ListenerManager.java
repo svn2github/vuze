@@ -33,6 +33,7 @@ package org.gudy.azureus2.core3.util;
  * It has been introduced to reduce the likelyhood of such deadlocks
  */
 
+import java.lang.reflect.Method;
 import java.util.*;
 
 import org.gudy.azureus2.core3.logging.LogEvent;
@@ -43,6 +44,8 @@ import org.gudy.azureus2.core3.logging.Logger;
 public class 
 ListenerManager
 {
+	private static final boolean TIME_LISTENERS = false;
+	
 	public static ListenerManager
 	createManager(
 		String							name,
@@ -332,16 +335,93 @@ ListenerManager
 				throw( new RuntimeException( "call dispatchWithException, not dispatch"));
 			}
 			
-			try{
-				target.dispatch( listener, type, value );
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace( e );
-			}
+			doDispatch( listener, type, value );
 		}
 	}
 
+	protected String
+	getListenerName( 
+		Object	 listener )
+	{
+		Class listener_class = listener.getClass();
+		
+		String	res = listener_class.getName();
+		
+		try{
+			Method getString = listener_class.getMethod( "getString", new Class[0]);
+			
+			if ( getString != null ){
+				
+				String s = (String)getString.invoke( listener, new Object[0] );
+				
+				res += " (" + s + ")";
+			}
+		}catch( Throwable e ){
+			
+		}
+		
+		return( res );
+	}
+	
+	protected void
+	doDispatch(
+		Object		listener,
+		int			type,
+		Object		value )
+	{
+		try{
+			if ( TIME_LISTENERS ){
+
+				long	start = SystemTime.getCurrentTime();
+				
+				try{
+
+					target.dispatch( listener, type, value );
+
+				}finally{
+					
+					long duration = SystemTime.getCurrentTime() - start;
+					
+					System.out.println( name + "/" + type + ": " + getListenerName( listener ) + " - " + duration );
+				}
+			}else{
+			
+				target.dispatch( listener, type, value );
+			}
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace( e );
+		}
+	}
+	
+	protected void
+	doDispatchWithException(
+		Object		listener,
+		int			type,
+		Object		value )
+	
+		throws Throwable
+	{
+		if ( TIME_LISTENERS ){
+
+			long	start = SystemTime.getCurrentTime();
+			
+			try{
+				target_with_exception.dispatch( listener, type, value );
+
+			}finally{
+				
+				long duration = SystemTime.getCurrentTime() - start;
+				
+				System.out.println( name + "/" + type + ": " + getListenerName( listener ) + " - " + duration );
+			}
+		}else{
+		
+			target_with_exception.dispatch( listener, type, value );
+		}
+	}
+	
 	protected void
 	dispatchInternal(
 		List		listeners_ref,
@@ -360,19 +440,11 @@ ListenerManager
 					// DON'T catch and handle exceptions here are they are permitted to
 					// occur!
 				
-				target_with_exception.dispatchWithException( listeners_ref.get(i), type, value );
+				doDispatchWithException( listeners_ref.get(i), type, value );
 					
 			}else{
 			
-				try{
-						// System.out.println( name + ":dispatch" );
-						
-					target.dispatch( listeners_ref.get(i), type, value );
-					
-				}catch( Throwable e ){
-					
-					Debug.printStackTrace( e );
-				}
+				doDispatch( listeners_ref.get(i), type, value );
 			}
 		}
 	}
@@ -392,19 +464,11 @@ ListenerManager
 				// DON'T catch and handle exceptions here are they are permitted to
 				// occur!
 
-			target_with_exception.dispatchWithException( listener, type, value );
+			doDispatchWithException( listener, type, value );
 				
 		}else{
-			try{
-				
-					// System.out.println( name + ":dispatch" );
-				
-				target.dispatch( listener, type, value );
 			
-			}catch( Throwable e ){
-					
-				Debug.printStackTrace( e );
-			}
+			doDispatch( listener, type, value );
 		}
 	}
 	
