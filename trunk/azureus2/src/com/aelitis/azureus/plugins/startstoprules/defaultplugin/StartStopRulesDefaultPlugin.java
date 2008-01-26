@@ -1204,6 +1204,9 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 				if ((download.getState() == Download.ST_WAITING)) {
 					try {
 						download.initialize();
+
+						String s = "initialize: state is waiting";
+						log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION, s);
 					} catch (Exception ignore) {
 						/*ignore*/
 					}
@@ -1487,7 +1490,13 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			}
 		}
 
+		int oldState = state;
 		state = download.getState();
+
+		if (oldState != state) {
+			somethingChanged = true;
+		}
+
 		if (download.getSeedingRank() >= 0
 				&& (state == Download.ST_QUEUED || state == Download.ST_READY
 						|| state == Download.ST_WAITING || state == Download.ST_PREPARING)) {
