@@ -553,7 +553,7 @@ DownloadManagerController
 			  					setFailed( dm.getErrorMessage());						
 			   				}
 			  					
-			  				if ( oldDMState == DiskManager.CHECKING ){
+			  				if ( oldDMState == DiskManager.CHECKING && newDMState != DiskManager.CHECKING ){
 			  						
 			  						// good time to trigger minimum file info fixup as the disk manager's
 		  							// files are now in a good state
