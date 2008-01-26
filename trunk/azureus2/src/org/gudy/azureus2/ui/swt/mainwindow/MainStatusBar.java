@@ -178,6 +178,12 @@ public class MainStatusBar
 
 	private Image progress_viewer_img = null;
 
+	private Image currentProgressImage = null;
+
+	private boolean updateProgressBarDisplayQueued = false;
+
+	protected IProgressReport latestReport = null;
+
 	/**
 	 * 
 	 */
@@ -1005,31 +1011,39 @@ public class MainStatusBar
 	 * @param pReport the <code>ProgressReport</code> containing the information
 	 * to display; can be <code>null</code> in which case the status text and progress bar will be reset to default states
 	 */
-	private void updateProgressBarDisplay(final IProgressReport pReport) {
-		if ((null == progressBar || true == progressBar.isDisposed())) {
+	private void updateProgressBarDisplay(IProgressReport pReport) {
+		latestReport = pReport;
+		if (null == progressBar || progressBar.isDisposed()
+				|| updateProgressBarDisplayQueued) {
 			return;
 		}
+		updateProgressBarDisplayQueued = true;
 
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
+				updateProgressBarDisplayQueued = false;
 
-				if (null != pReport) {
+				if ((null == progressBar || true == progressBar.isDisposed())) {
+					return;
+				}
+
+				if (null != latestReport ) {
 					/*
 					 * Pass the values through to the progressbar
 					 */
-					progressBar.setMinimum(pReport.getMinimum());
-					progressBar.setMaximum(pReport.getMaximum());
-					progressBar.setIndeterminate(pReport.isIndeterminate());
-					progressBar.setPercentage(pReport.getPercentage());
+					progressBar.setMinimum(latestReport.getMinimum());
+					progressBar.setMaximum(latestReport.getMaximum());
+					progressBar.setIndeterminate(latestReport.isIndeterminate());
+					progressBar.setPercentage(latestReport.getPercentage());
 					showProgressBar(true);
 
 					/*
 					 * Update status text
 					 */
 					if (true == isAZ3) {
-						statusText.setText(pReport.getName());
+						statusText.setText(latestReport.getName());
 					} else {
-						setStatusText(pReport.getName());
+						setStatusText(latestReport.getName());
 					}
 				}
 
@@ -1053,12 +1067,21 @@ public class MainStatusBar
 	}
 
 	private void setProgressImage() {
+		Image newProgressImage;
 		if (PRManager.getReporterCount(ProgressReportingManager.COUNT_ERROR) > 0) {
-			progressViewerImageLabel.setImage(progress_error_img);
+			newProgressImage = progress_error_img;
 		} else if (PRManager.getReporterCount(ProgressReportingManager.COUNT_ALL) > 0) {
-			progressViewerImageLabel.setImage(progress_info_img);
+			newProgressImage = progress_info_img;
 		} else {
-			progressViewerImageLabel.setImage(progress_viewer_img);
+			newProgressImage = progress_viewer_img;
+		}
+		if (currentProgressImage != newProgressImage) {
+			currentProgressImage = newProgressImage;
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					progressViewerImageLabel.setImage(currentProgressImage);
+				}
+			});
 		}
 	}
 
@@ -1077,11 +1100,7 @@ public class MainStatusBar
 			/*
 			 * Show the appropriate image based on the content of the reporting manager
 			 */
-			Utils.execSWTThread(new AERunnable() {
-				public void runSupport() {
-					setProgressImage();
-				}
-			}, true);
+			setProgressImage();
 
 			if (null == reporter) {
 				return RETVAL_OK;
