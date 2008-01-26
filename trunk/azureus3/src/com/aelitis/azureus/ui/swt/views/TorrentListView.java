@@ -529,7 +529,7 @@ public class TorrentListView
 		//regetDownloads();
 		dm.addListener(dmListener);
 		if (isOurDownload(dm)) {
-			Utils.execSWTThread(new AERunnable() {
+			Utils.execSWTThreadLater(new AERunnable() {
 				public void runSupport() {
 					if (bAllowScrolling
 							|| size(true) < (dataArea.getClientArea().height - 8)
@@ -637,17 +637,23 @@ public class TorrentListView
 
 		}
 
-		public void stateChanged(DownloadManager manager, int state) {
-			Object[] listenersArray = view.listeners.toArray();
-			for (int i = 0; i < listenersArray.length; i++) {
-				TorrentListViewListener l = (TorrentListViewListener) listenersArray[i];
-				l.stateChanged(manager);
-			}
+		// @see org.gudy.azureus2.core3.download.DownloadManagerListener#stateChanged(org.gudy.azureus2.core3.download.DownloadManager, int)
+		public void stateChanged(final DownloadManager manager, int state) {
+			Utils.execSWTThreadLater(new AERunnable() {
+				public void runSupport() {
 
-			TableRowCore row = view.getRow(manager);
-			if (row != null) {
-				row.refresh(true);
-			}
+					Object[] listenersArray = view.listeners.toArray();
+					for (int i = 0; i < listenersArray.length; i++) {
+						TorrentListViewListener l = (TorrentListViewListener) listenersArray[i];
+						l.stateChanged(manager);
+					}
+
+					TableRowCore row = view.getRow(manager);
+					if (row != null) {
+						row.refresh(true);
+					}
+				}
+			});
 		}
 	}
 
