@@ -849,7 +849,17 @@ DownloadImpl
 			for (int i=0;i<listeners.size();i++){
 				
 				try{
-					((DownloadListener)listeners.get(i)).stateChanged( this, prev_state, latest_state );
+					long startTime = SystemTime.getCurrentTime();
+					DownloadListener listener = (DownloadListener)listeners.get(i);
+
+					listener.stateChanged( this, prev_state, latest_state );
+					
+					long diff = SystemTime.getCurrentTime() - startTime;
+					if (diff > 1000) {
+						System.out.println("Plugin should move long processes (" + diff
+								+ "ms) off of Download's stateChanged listener trigger. "
+								+ listener);
+					}
 				
 				}catch( Throwable e ){
 					
@@ -884,7 +894,17 @@ DownloadImpl
   {	
 	for (int i = 0; i < listeners.size(); i++) {
 		try {
-			((DownloadListener)listeners.get(i)).positionChanged(this, oldPosition, newPosition);
+			long startTime = SystemTime.getCurrentTime();
+			DownloadListener listener = (DownloadListener)listeners.get(i);
+
+			listener.positionChanged(this, oldPosition, newPosition);
+
+			long diff = SystemTime.getCurrentTime() - startTime;
+			if (diff > 1000) {
+				System.out.println("Plugin should move long processes (" + diff
+						+ "ms) off of Download's positionChanged listener trigger. "
+						+ listener);
+			}
 		} catch (Throwable e) {
 			Debug.printStackTrace( e );
 		}
