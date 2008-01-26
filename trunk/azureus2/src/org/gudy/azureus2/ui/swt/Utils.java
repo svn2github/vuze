@@ -73,7 +73,12 @@ public class Utils {
 
 	public static final boolean SWT32_TABLEPAINT = false; //SWT.getVersion() >= 3200;
 
-	private static final boolean DEBUG_SWTEXEC = false;
+	/**
+	 * Debug/Diagnose SWT exec calls.  Provides usefull information like how
+	 * many we are queuing up, and how long each call takes.  Good to turn on
+	 * occassionally to see if we coded something stupid.
+	 */
+	private static final boolean DEBUG_SWTEXEC = System.getProperty("debug.swtexec", "0").equals("1");
 
 	private static ArrayList queue;
   
@@ -599,14 +604,34 @@ public class Utils {
    * @param async true if SWT asyncExec, false if SWT syncExec
    * @return success
    */
-  public static boolean execSWTThread(final Runnable code,
-			boolean async) {
+  public static boolean execSWTThread(final Runnable code, boolean async) {
+  	return execSWTThread(code, async, false);
+  }
+
+  /**
+   * Schedule execution of the code in the Runnable object using SWT's thread.
+   * Even if the current thread is the SWT Thread, the code will be scheduled.
+   * <p>
+   * Much like Display.asyncExec, except getting the display is handled for you,
+   * and provides the ability to diagnose and monitor scheduled code run.
+   * 
+   * @param code Code to run
+   * @return sucess
+   *
+   * @since 3.0.4.3
+   */
+  public static boolean execSWTThreadLater(final Runnable code) {
+  	return execSWTThread(code, true, false);
+  }
+
+  private static boolean execSWTThread(final Runnable code,
+			boolean async, boolean later) {
   	Display display = getDisplay();
 		if (display == null || code == null) {
 			return false;
 		}
 
-		if (display.getThread() == Thread.currentThread()) {
+		if (!later && display.getThread() == Thread.currentThread()) {
 			if (queue == null) {
 				code.run();
 			} else {
@@ -691,7 +716,7 @@ public class Utils {
    * @return success
    */
 	public static boolean execSWTThread(Runnable code) {
-		return execSWTThread(code, true);
+		return execSWTThread(code, true, false);
 	}
 	
 	public static boolean isThisThreadSWT() {
