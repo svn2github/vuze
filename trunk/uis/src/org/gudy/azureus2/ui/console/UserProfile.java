@@ -73,7 +73,7 @@ public class UserProfile
 	public UserProfile(String name, String userType)
 	{
 		this.username = name;
-		this.userType = userType;
+		setUserType(userType);
 	}
 
 	/**
@@ -130,6 +130,14 @@ public class UserProfile
 	 * @param userType The userType to set.
 	 */
 	public void setUserType(String userType) {
+		if(userType.equalsIgnoreCase(ADMIN))
+			userType = ADMIN;
+		else if(userType.equalsIgnoreCase(USER))
+			userType = USER;
+		else if(userType.equalsIgnoreCase(GUEST))
+			userType = GUEST;
+		else
+			userType = DEFAULT_USER_TYPE;
 		this.userType = userType;
 	}
 
