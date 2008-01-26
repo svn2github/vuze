@@ -1560,7 +1560,7 @@ public class MyTorrentsView
   public void stateChanged(DownloadManager manager, int state) {
     final TableRowCore row = tv.getRow(manager);
     if (row != null) {
-    	Utils.execSWTThread(new AERunnable() {
+    	Utils.execSWTThreadLater(new AERunnable() {
 				public void runSupport() {
 		    	row.refresh(true);
 		    	if (row.isSelected()) {
@@ -1574,7 +1574,11 @@ public class MyTorrentsView
   // DownloadManagerListener
   public void positionChanged(DownloadManager download, int oldPosition, int newPosition) {
   	if (isOurDownloadManager(download)) {
-  		refreshIconBar();
+    	Utils.execSWTThreadLater(new AERunnable() {
+				public void runSupport() {
+					refreshIconBar();
+				}
+    	});
   	}
   }
   
