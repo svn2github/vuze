@@ -20,7 +20,8 @@
 
 package org.gudy.azureus2.ui.swt.shells;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
@@ -89,6 +90,10 @@ public class SpeedScaleShell
 	protected boolean lastMoveHadMouseDown;
 
 	private boolean assumeInitiallyDown;
+
+	private TimerEventPerformer cursorBlinkPerformer = null;
+
+	private TimerEvent cursorBlinkEvent = null;
 
 	public static void main(String[] args) {
 		SpeedScaleShell speedScaleWidget = new SpeedScaleShell() {
@@ -412,41 +417,45 @@ public class SpeedScaleShell
 		});
 
 		// blinking cursor so people know they can type
-		SimpleTimer.addPeriodicEvent("BlinkingCursor", 500,
-				new TimerEventPerformer() {
-					boolean on = false;
+		final AERunnable cursorBlinkRunnable = new AERunnable() {
+			boolean on = false;
 
-					public void perform(final TimerEvent event) {
-						Utils.execSWTThread(new AERunnable() {
-							public void runSupport() {
-								if (composite.isDisposed()) {
-									event.cancel();
-									return;
-								}
+			public void runSupport() {
+				if (composite.isDisposed()) {
+					return;
+				}
 
-								on = !on;
+				on = !on;
 
-								GC gc = new GC(composite);
-								try {
-									gc.setLineWidth(2);
-									if (!on) {
-										gc.setForeground(display.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
-									} else {
-										try {
-											gc.setAlpha(TYPED_TEXT_ALPHA);
-										} catch (Exception e) {
-										}
-									}
-									int y = 15;
-									gc.drawLine(WIDTH - 5, y + 1, WIDTH - 5, y + OPTION_HEIGHT);
-								} finally {
-									gc.dispose();
-								}
-
-							}
-						});
+				GC gc = new GC(composite);
+				try {
+					gc.setLineWidth(2);
+					if (!on) {
+						gc.setForeground(display.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+					} else {
+						try {
+							gc.setAlpha(TYPED_TEXT_ALPHA);
+						} catch (Exception e) {
+						}
 					}
-				});
+					int y = 15;
+					gc.drawLine(WIDTH - 5, y + 1, WIDTH - 5, y + OPTION_HEIGHT);
+				} finally {
+					gc.dispose();
+				}
+				if (cursorBlinkPerformer != null) {
+					cursorBlinkEvent = SimpleTimer.addEvent("BlinkingCursor",
+							SystemTime.getOffsetTime(500), cursorBlinkPerformer);
+				}
+			}
+		};
+		cursorBlinkPerformer = new TimerEventPerformer() {
+			public void perform(final TimerEvent event) {
+				Utils.execSWTThread(cursorBlinkRunnable);
+			}
+		};
+		cursorBlinkEvent = SimpleTimer.addEvent("BlinkingCursor",
+				SystemTime.getOffsetTime(500), cursorBlinkPerformer);
 
 		composite.addKeyListener(new KeyListener() {
 			public void keyReleased(KeyEvent e) {
@@ -527,6 +536,11 @@ public class SpeedScaleShell
 			}
 		} catch (Throwable t) {
 			Debug.out(t);
+		}
+
+		if (cursorBlinkEvent != null) {
+			cursorBlinkEvent.cancel();
+			cursorBlinkEvent = null;
 		}
 
 		return !cancelled;
