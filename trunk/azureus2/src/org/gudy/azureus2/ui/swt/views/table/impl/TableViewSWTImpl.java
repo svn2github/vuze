@@ -1498,7 +1498,7 @@ public class TableViewSWTImpl
 				}
 			}
 
-			long lTimeStart = System.currentTimeMillis();
+			
 
 			final boolean bDoGraphics = (loopFactor % graphicsUpdate) == 0;
 			final boolean bWillSort = bForceSort || (reOrderDelay != 0)
@@ -1512,7 +1512,7 @@ public class TableViewSWTImpl
 				sortColumn(true);
 			}
 
-			lTimeStart = System.currentTimeMillis();
+			long lTimeStart = SystemTime.getMonotonousTime();
 
 			//Refresh all visible items in table...
 			runForAllRows(new TableGroupRowVisibilityRunner() {
@@ -1522,7 +1522,7 @@ public class TableViewSWTImpl
 			});
 
 			if (DEBUGADDREMOVE) {
-				long lTimeDiff = (System.currentTimeMillis() - lTimeStart);
+				long lTimeDiff = (SystemTime.getMonotonousTime() - lTimeStart);
 				if (lTimeDiff > 500)
 					debug(lTimeDiff + "ms to refresh rows");
 			}

@@ -332,8 +332,6 @@ public class PieceInfoView
 			return;
 		}
 
-		DiskManagerPiece[] dm_pieces = null;
-
 		PEPeerManager pm = dlm.getPeerManager();
 
 		DiskManager dm = dlm.getDiskManager();
@@ -347,28 +345,27 @@ public class PieceInfoView
 			return;
 		}
 
-		dm_pieces = dm.getPieces();
+		DiskManagerPiece[] dm_pieces = dm.getPieces();
 
-		PEPiece[] currentDLPieces = dlm.getCurrentPieces();
-		Arrays.sort(currentDLPieces, compFindPEPiece);
+		PEPiece[] currentDLPieces = pm.getPieces();
+		byte[] uploadingPieces = new byte[dm_pieces.length];
 
 		// find upload pieces
-		ArrayList currentULPieces = new ArrayList();
-		ArrayList futureULPieces = new ArrayList();
 		PEPeer[] peers = (PEPeer[]) pm.getPeers().toArray(new PEPeer[0]);
 		for (int i = 0; i < peers.length; i++) {
 			PEPeer peer = peers[i];
 			int[] peerRequestedPieces = peer.getIncomingRequestedPieceNumbers();
 			if (peerRequestedPieces != null && peerRequestedPieces.length > 0) {
-				currentULPieces.add(new Long(peerRequestedPieces[0]));
+				int pieceNum = peerRequestedPieces[0];
+				if(uploadingPieces[pieceNum] < 2)
+					uploadingPieces[pieceNum] = 2;
 				for (int j = 1; j < peerRequestedPieces.length; j++) {
-					futureULPieces.add(new Long(peerRequestedPieces[j]));
+					pieceNum = peerRequestedPieces[j];
+					if(uploadingPieces[pieceNum] < 1)
+						uploadingPieces[pieceNum] = 1;
 				}
 			}
 
-			// we'll have duplicates
-			Collections.sort(currentULPieces);
-			Collections.sort(futureULPieces);
 		}
 
 		int iNumCols = bounds.width / BLOCK_SIZE;
@@ -397,10 +394,17 @@ public class PieceInfoView
 
 		img = new Image(pieceInfoCanvas.getDisplay(), bounds.width, iNeededHeight);
 		GC gcImg = new GC(img);
+		
+		
 		int iRow = 0;
 		try {
+			// use advanced capabilities for faster drawText
+			gcImg.setAdvanced(true);
+			
 			gcImg.setBackground(pieceInfoCanvas.getBackground());
 			gcImg.fillRectangle(0, 0, bounds.width, iNeededHeight);
+			
+			gcImg.setFont(font);
 
 			int iCol = 0;
 			for (int i = 0; i < dm_pieces.length; i++) {
@@ -448,15 +452,14 @@ public class PieceInfoView
 					gcImg.fillRectangle(x, iYPos, width, BLOCK_FILLSIZE);
 				}
 
-				if (Arrays.binarySearch(currentDLPieces, new Long(i), compFindPEPiece) >= 0) {
+				if (currentDLPieces[i] != null && currentDLPieces[i].hasUndownloadedBlock()) {
 					drawDownloadIndicator(gcImg, iXPos, iYPos, false);
 				}
 
-				if (Collections.binarySearch(currentULPieces, new Long(i)) >= 0) {
-					drawUploadIndicator(gcImg, iXPos, iYPos, false);
-				} else if (Collections.binarySearch(futureULPieces, new Long(i)) >= 0) {
-					drawUploadIndicator(gcImg, iXPos, iYPos, true);
-				}
+				if (uploadingPieces[i] > 0)
+					drawUploadIndicator(gcImg, iXPos, iYPos, uploadingPieces[i] < 2);
+
+
 
 				if (availability != null) {
 					if (minAvailability == availability[i]) {
@@ -471,8 +474,6 @@ public class PieceInfoView
 								BLOCK_FILLSIZE + 1);
 						gcImg.setLineStyle(SWT.LINE_SOLID);
 					}
-
-					gcImg.setFont(font);
 
 					String sNumber = String.valueOf(availability[i]);
 					Point size = gcImg.stringExtent(sNumber);

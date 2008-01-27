@@ -72,9 +72,9 @@ public class TableCellImpl
 {
 	private static final LogIDs LOGID = LogIDs.GUI;
 	
-	private static final int FLAG_VALID = 1;
-	private static final int FLAG_SORTVALUEISTEXT = 2;
-	private static final int FLAG_TOOLTIPISAUTO = 4;
+	private static final byte FLAG_VALID = 1;
+	private static final byte FLAG_SORTVALUEISTEXT = 2;
+	private static final byte FLAG_TOOLTIPISAUTO = 4;
   /**
    * For refreshing, this flag manages whether the row is actually up to date.
    * 
@@ -87,12 +87,12 @@ public class TableCellImpl
    * that the row will set its visuals again (this time, actually
    * updating a viewable object).
    */
-	private static final int FLAG_UPTODATE = 8;
-	private static final int FLAG_DISPOSED = 16;
-	private static final int FLAG_MUSTREFRESH = 32;
-	private static final int FLAG_VISUALLY_CHANGED_SINCE_REFRESH = 64;
+	private static final byte FLAG_UPTODATE = 8;
+	private static final byte FLAG_DISPOSED = 16;
+	private static final byte FLAG_MUSTREFRESH = 32;
+	private static final byte FLAG_VISUALLY_CHANGED_SINCE_REFRESH = 64;
 	
-	private int flags;
+	private byte flags;
 
   private TableRowCore tableRow;
   private Comparable sortValue;
@@ -886,7 +886,7 @@ public class TableCellImpl
   }
   
   public boolean refresh(boolean bDoGraphics) {
-  	return refresh(bDoGraphics, isShown());
+  	return refresh(bDoGraphics, tableRow.isVisible());
   }
 
   public boolean refresh(boolean bDoGraphics, boolean bRowVisible) {
@@ -897,6 +897,8 @@ public class TableCellImpl
   public boolean refresh(boolean bDoGraphics, boolean bRowVisible,
 	  boolean bCellVisible)
   {
+	  bCellVisible &= bRowVisible;
+	  
 	  boolean ret = getVisuallyChangedSinceRefresh();
 
 	  int iErrCount = 0;
@@ -930,7 +932,7 @@ public class TableCellImpl
 		  } else if (!bCellVisible && isUpToDate()) {
 		  	clearFlag(FLAG_UPTODATE);
 		  }
-
+		  
 		  if (bDebug) {
 			  debug("Cell Valid?" + hasFlag(FLAG_VALID) + "; Visible?" + tableRow.isVisible() + "/" + bufferedTableItem.isShown());
 		  }
@@ -954,18 +956,18 @@ public class TableCellImpl
 			  if (bDebug)
 				  debug("invoke refresh; wasValid? " + bWasValid);
 
-			  long lTimeStart = SystemTime.getCurrentTime();
-			  tableColumn.invokeCellRefreshListeners(this, !bRowVisible || !bCellVisible);
+			  long lTimeStart = SystemTime.getMonotonousTime();
+			  tableColumn.invokeCellRefreshListeners(this, !bCellVisible);
 			  if (refreshListeners != null) {
 				  for (int i = 0; i < refreshListeners.size(); i++) {
 					  TableCellRefreshListener l = (TableCellRefreshListener)refreshListeners.get(i);
 					  if(l instanceof TableCellLightRefreshListener)
-						  ((TableCellLightRefreshListener)l).refresh(this,!bRowVisible || !bCellVisible);
+						  ((TableCellLightRefreshListener)l).refresh(this,!bCellVisible);
 					  else
 						  l.refresh(this);
 				  }
 			  }
-			  long lTimeEnd = SystemTime.getCurrentTime();
+			  long lTimeEnd = SystemTime.getMonotonousTime();
 			  tableColumn.addRefreshTime(lTimeEnd - lTimeStart);
 
 			  // Change to valid only if we weren't valid before the listener calls

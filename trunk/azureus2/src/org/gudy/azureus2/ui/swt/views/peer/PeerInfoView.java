@@ -407,6 +407,9 @@ public class PeerInfoView extends AbstractIView implements ObfusticateImage {
 		GC gcImg = new GC(img);
 
 		try {
+			// use advanced capabilities for faster drawText
+			gcImg.setAdvanced(true);
+			
 			gcImg.setBackground(peerInfoCanvas.getBackground());
 			gcImg.fillRectangle(0, 0, bounds.width, iNeededHeight);
 

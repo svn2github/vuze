@@ -63,7 +63,10 @@ public class GUIUpdater extends AEThread implements ParameterListener {
   
   static List refreshables = new ArrayList();
   
-  int waitTime = COConfigurationManager.getIntParameter("GUI Refresh");
+  int waitTime;
+  int inactiveFactor;
+  int mainwindowTicks;
+
   
   Map averageTimes = DEBUG_TIMER ? new HashMap() : null;
   
@@ -76,7 +79,7 @@ public class GUIUpdater extends AEThread implements ParameterListener {
     this.display = mainWindow.getDisplay();
     
     setPriority(Thread.MAX_PRIORITY -2);
-    COConfigurationManager.addParameterListener("GUI Refresh", this);
+    COConfigurationManager.addAndFireParameterListeners(new String[] {"GUI Refresh","Refresh When Inactive"}, this);
   }
 
   public void runSupport() {
@@ -98,6 +101,7 @@ public class GUIUpdater extends AEThread implements ParameterListener {
    */
   public void parameterChanged(String parameterName) {
     waitTime = COConfigurationManager.getIntParameter("GUI Refresh");
+    inactiveFactor = COConfigurationManager.getIntParameter("Refresh When Inactive");
   }
 
   private void update() {
@@ -113,7 +117,14 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 
 					IView view = null;
 					if (!mainWindow.getShell().isDisposed() && mainWindow.isVisible()
-							&& !mainWindow.getShell().getMinimized()) {
+							&& !mainWindow.getShell().getMinimized())
+				mainupdate:	{
+						
+						mainwindowTicks++;
+						
+						if(mainWindow.getShell().getDisplay().getActiveShell() != mainWindow.getShell() && mainwindowTicks % inactiveFactor != 0)
+							break mainupdate;
+
 
 						view = mainWindow.getCurrentView();
 
@@ -189,6 +200,7 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 
   public void stopIt() {
     finished = true;
+    COConfigurationManager.removeParameterListener("Refresh When Inactive", this);
     COConfigurationManager.removeParameterListener("GUI Refresh", this);
     COConfigurationManager.removeParameterListener("config.style.refreshMT", this);
   }
