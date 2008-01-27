@@ -52,6 +52,10 @@ public class ConfigSectionSeedingAutoStarting implements UISWTConfigSection {
 
   public void configSectionDelete() {
   }
+  
+	public int maxUserMode() {
+		return 0;
+	}
 
   public Composite configSectionCreate(Composite parent) {
     // Seeding Automation Setup

@@ -129,6 +129,11 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
 					"Save of filter file fails", e));
     }
   }
+  
+	public int maxUserMode() {
+		return 1;
+	}
+
 
   public void configSectionDelete() {
   	if (bIsCachingDescriptions) {

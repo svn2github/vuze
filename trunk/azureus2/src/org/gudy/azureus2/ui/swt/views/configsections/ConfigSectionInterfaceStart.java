@@ -58,6 +58,10 @@ public class ConfigSectionInterfaceStart implements UISWTConfigSection {
   public void configSectionDelete() {
   }
   
+	public int maxUserMode() {
+		return 0;
+	}
+
 
   public Composite configSectionCreate(final Composite parent) {
     // "Start" Sub-Section

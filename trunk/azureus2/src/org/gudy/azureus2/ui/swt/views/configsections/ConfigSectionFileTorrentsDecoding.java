@@ -46,6 +46,11 @@ public class ConfigSectionFileTorrentsDecoding implements UISWTConfigSection
 	public String configSectionGetParentSection() {
 		return "torrents";
 	}
+	
+	public int maxUserMode() {
+		return REQUIRED_MODE;
+	}
+
 
 	/* Name of section will be pulled from 
 	 * ConfigView.section.<i>configSectionGetName()</i>

@@ -58,10 +58,12 @@ public class ConfigSectionFile implements UISWTConfigSection {
   }
 
   public void configSectionSave() {
-
-      
-
   }
+  
+	public int maxUserMode() {
+		return 2;
+	}
+
 
   public void configSectionDelete() {
   }

@@ -44,6 +44,10 @@ public class ConfigSectionQueue implements UISWTConfigSection
 	public String configSectionGetParentSection() {
 		return ConfigSection.SECTION_ROOT;
 	}
+	
+	public int maxUserMode() {
+		return 0;
+	}
 
 	/**
 	 * Create the "Queue" Tab in the Configuration view

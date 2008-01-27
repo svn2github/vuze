@@ -40,6 +40,11 @@ public class ConfigSectionConnectionEncryption implements UISWTConfigSection {
 	private final String CFG_PREFIX = "ConfigView.section.connection.encryption.";
 	
 	private final int REQUIRED_MODE = 1;
+	
+	public int maxUserMode() {
+		return REQUIRED_MODE;
+	}
+
 
 	public String configSectionGetParentSection() {
 		return ConfigSection.SECTION_CONNECTION;

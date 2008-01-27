@@ -99,6 +99,11 @@ public class ConfigSectionTransferAutoSpeedSelect
     public void configSectionDelete() {
 
     }
+    
+	public int maxUserMode() {
+		return 0;
+	}
+
 
     /**
      * Create your own configuration panel here.  It can be anything that inherits

@@ -78,6 +78,11 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 					"MessageBoxWindow.decisions", decisions_parameter_listener);
 		}
 	}
+	
+	public int maxUserMode() {
+		return 0;
+	}
+
 
 	public Composite configSectionCreate(final Composite parent) {
 		GridData gridData;

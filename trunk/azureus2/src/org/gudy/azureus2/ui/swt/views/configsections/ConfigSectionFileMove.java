@@ -57,6 +57,11 @@ public class ConfigSectionFileMove implements UISWTConfigSection
 
 	public void configSectionDelete() {
 	}
+	
+	public int maxUserMode() {
+		return 1;
+	}
+
 
 	public Composite configSectionCreate(final Composite parent) {
 		GridData gridData;

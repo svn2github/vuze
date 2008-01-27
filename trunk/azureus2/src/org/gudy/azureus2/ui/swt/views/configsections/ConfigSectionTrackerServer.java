@@ -65,6 +65,11 @@ ConfigSectionTrackerServer
 	
 	private final int REQUIRED_MODE = 1;
 	
+	public int maxUserMode() {
+		return 2;
+	}
+
+	
 	public
 	ConfigSectionTrackerServer(
 		AzureusCore		_azureus_core )

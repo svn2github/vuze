@@ -45,4 +45,11 @@ UISWTConfigSection
 	  public Composite 
 	  configSectionCreate(
 			 Composite parent );
+	  
+	  /**
+	   * Indicate if additional options are available to display a hint to the users
+	   * 
+	   * @return the highest user mode that reveals additional options (0 = Beginner, 1 = Intermediate, 2 = Advanced)
+	   */
+	  public int maxUserMode();
 }

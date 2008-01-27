@@ -56,6 +56,11 @@ public class ConfigSectionTMP implements UISWTConfigSection
 
 	public void configSectionDelete() {
 	}
+	
+	public int maxUserMode() {
+		return 0;
+	}
+
 
 	public Composite configSectionCreate(final Composite parent) {
 		GridData gridData;

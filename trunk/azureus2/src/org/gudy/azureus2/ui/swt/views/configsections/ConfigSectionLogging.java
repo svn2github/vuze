@@ -83,6 +83,11 @@ public class ConfigSectionLogging implements UISWTConfigSection {
   public void configSectionDelete() {
   }
   
+	public int maxUserMode() {
+		return 2;
+	}
+
+  
 
   public Composite configSectionCreate(final Composite parent) {
     Image imgOpenFolder = ImageRepository.getImage("openFolderButton");

@@ -260,6 +260,11 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 
 	public void configSectionSave() {
 	}
+	
+	public int maxUserMode() {
+		return 0;
+	}
+
 
 	public void configSectionDelete() {
 	}

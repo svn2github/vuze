@@ -57,6 +57,11 @@ public class ConfigSectionTransferAutoSpeed implements UISWTConfigSection {
 
 	public void configSectionDelete() {
 	}
+	
+	public int maxUserMode() {
+		return 2;
+	}
+
 
 	public Composite configSectionCreate(final Composite parent) {
 		GridData gridData;

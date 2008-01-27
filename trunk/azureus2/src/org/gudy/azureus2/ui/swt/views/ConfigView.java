@@ -23,6 +23,8 @@ package org.gudy.azureus2.ui.swt.views;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
@@ -61,10 +63,13 @@ public class ConfigView extends AbstractIView {
   
   AzureusCore		azureus_core;
   
+  
+  Map sections = new HashMap();
   Composite cConfig;
   Composite cConfigSection;
   StackLayout layoutConfigSection;
   Label lHeader;
+  Label usermodeHint;
   Font headerFont;
   Font filterFoundFont;
   Tree tree;
@@ -97,7 +102,7 @@ public class ConfigView extends AbstractIView {
     | ###SashForm#form################################################## |
     | # /--cLeftSide-\ /--cRightSide---------------------------------\ # |
     | # |txtFilter X | | ***cHeader********************************* | # |
-    | # | ##tree#### | | * lHeader                                 * | # |
+    | # | ##tree#### | | * lHeader                    usermodeHint * | # |
     | # | #        # | | ******************************************* | # |
     | # | #        # | | ###Composite cConfigSection################ | # |
     | # | #        # | | #                                         # | # |
@@ -212,6 +217,8 @@ public class ConfigView extends AbstractIView {
       configLayout = new GridLayout();
       configLayout.marginHeight = 3;
       configLayout.marginWidth = 0;
+      configLayout.numColumns = 2;
+      configLayout.marginRight = 5;
       cHeader.setLayout(configLayout);
       gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER);
       cHeader.setLayoutData(gridData);
@@ -228,8 +235,15 @@ public class ConfigView extends AbstractIView {
       fontData[0].setHeight(fontHeight);
       headerFont = new Font(d, fontData);
       lHeader.setFont(headerFont);
-      gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER);
+      gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER | GridData.HORIZONTAL_ALIGN_BEGINNING);
       lHeader.setLayoutData(gridData);
+      
+      
+      usermodeHint = new Label(cHeader, SWT.NULL);
+      usermodeHint.setBackground(d.getSystemColor(SWT.COLOR_LIST_SELECTION));
+      usermodeHint.setForeground(d.getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT));
+      gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER | GridData.HORIZONTAL_ALIGN_END | GridData.GRAB_HORIZONTAL);
+      usermodeHint.setLayoutData(gridData);
   
       // Config Section
       cConfigSection = new Composite(cRightSide, SWT.NULL);
@@ -403,6 +417,8 @@ public class ConfigView extends AbstractIView {
           treeItem.setData("Panel", sc);
           treeItem.setData("ID", name);
           treeItem.setData("ConfigSectionSWT", section);
+          
+          sections.put(treeItem, section);
           
           // ConfigSectionPlugins is special because it has to handle the
           // PluginConfigModel config pages
@@ -593,17 +609,38 @@ public class ConfigView extends AbstractIView {
 	}
 
   private void updateHeader(TreeItem section) {
-    if (section == null)
-      return;
-
-    String sHeader = section.getText();
-    section = section.getParentItem();
-    while (section != null) {
-      sHeader = section.getText() + " : " + sHeader;
-      section = section.getParentItem();
-    }
-    lHeader.setText(" " + sHeader.replaceAll("&", "&&"));
-  }
+		if (section == null)
+			return;
+		
+		int userMode = COConfigurationManager.getIntParameter("User Mode");
+		int maxUsermode = 0;
+		try
+		{
+			ConfigSection sect = (ConfigSection) sections.get(section);
+			if (sect instanceof UISWTConfigSection)
+			{
+				maxUsermode = ((UISWTConfigSection) sect).maxUserMode();
+			}
+		} catch (Error e)
+		{
+			//Debug.printStackTrace(e);
+		}
+		
+		if (userMode < maxUsermode)
+			Messages.setLanguageText(usermodeHint, "ConfigView.higher.mode.available");
+		else
+			usermodeHint.setText("");
+		
+		String sHeader = section.getText();
+		section = section.getParentItem();
+		while (section != null)
+		{
+			sHeader = section.getText() + " : " + sHeader;
+			section = section.getParentItem();
+		}
+		lHeader.setText(" " + sHeader.replaceAll("&", "&&"));
+		lHeader.getParent().layout(true, true);
+	}
 
 
   private Composite createConfigSection(String sNameID) {

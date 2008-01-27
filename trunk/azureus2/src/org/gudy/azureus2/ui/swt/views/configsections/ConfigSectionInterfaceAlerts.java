@@ -72,6 +72,11 @@ public class ConfigSectionInterfaceAlerts implements UISWTConfigSection
 
 	public void configSectionDelete() {
 	}
+	
+	public int maxUserMode() {
+		return REQUIRED_MODE;
+	}
+
 
 	public Composite configSectionCreate(final Composite parent) {
 		GridData gridData;

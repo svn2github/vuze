@@ -39,6 +39,11 @@ public class ConfigSectionConnectionProxy implements UISWTConfigSection {
 	private final static String CFG_PREFIX = "ConfigView.section.proxy.";
 
 	private final int REQUIRED_MODE = 2;
+	
+	public int maxUserMode() {
+		return REQUIRED_MODE;
+	}
+
 
 	public String configSectionGetParentSection() {
 		return ConfigSection.SECTION_CONNECTION;

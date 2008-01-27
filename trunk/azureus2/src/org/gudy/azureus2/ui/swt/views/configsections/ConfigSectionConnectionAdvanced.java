@@ -50,6 +50,10 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 	private final String CFG_PREFIX = "ConfigView.section.connection.advanced.";
 	
 	private final int REQUIRED_MODE = 2;
+	
+	public int maxUserMode() {
+		return REQUIRED_MODE;
+	}
 
 	public String configSectionGetParentSection() {
 		return ConfigSection.SECTION_CONNECTION;
