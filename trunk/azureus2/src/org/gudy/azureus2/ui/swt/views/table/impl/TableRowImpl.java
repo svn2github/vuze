@@ -259,7 +259,7 @@ public class TableRowImpl
 		{
 			TableCellSWT item = (TableCellSWT) iter.next();
 			TableColumn column = item.getTableColumn();
-			if (column instanceof TableColumnCore && column != tableView.getSortColumn() && !((TableColumnCore) column).isShown())
+			if (column != tableView.getSortColumn() && !tableView.isColumnVisible(column))
 				continue;
 			boolean changed = item.refresh(bDoGraphics, bVisible);
 			if (changed)

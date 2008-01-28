@@ -213,6 +213,7 @@ public class TableViewSWTImpl
 	 * in case the user drags the columns around.
 	 */
 	private TableColumnCore[] columnsOrdered;
+	private boolean[] columnsOrderedVisible;
 
 	private ColumnMoveListener columnMoveListener = new ColumnMoveListener();
 
@@ -1078,7 +1079,7 @@ public class TableViewSWTImpl
 	private void updateColumnVisibilities() {
 		TableColumn[] columns = table.getColumns();
 		int topIdx = table.getTopIndex();
-		if (topIdx < table.getItemCount())
+		if (topIdx < 0 || table.getItemCount() < 1)
 			return;
 		columnVisibilitiesChanged = false;
 		TableItem topRow = table.getItem(topIdx);
@@ -1090,8 +1091,13 @@ public class TableViewSWTImpl
 				continue;
 			Rectangle size = topRow.getBounds(i);
 			size.intersect(tableArea);
-			tc.setShown(!size.isEmpty());
+			columnsOrderedVisible[tc.getPosition()] = !size.isEmpty();
 		}
+	}
+	
+	public boolean isColumnVisible(org.gudy.azureus2.plugins.ui.tables.TableColumn column)
+	{
+		return columnsOrderedVisible[column.getPosition()];
 	}
 
 	protected void initializeTableColumns(final Table table) {
@@ -1161,6 +1167,7 @@ public class TableViewSWTImpl
 		int iNewLength = numSWTColumns - (bSkipFirstColumn ? 1 : 0);
 		columnsOrdered = new TableColumnCore[iNewLength];
 		System.arraycopy(tmpColumnsOrdered, 0, columnsOrdered, 0, iNewLength);
+		columnsOrderedVisible = new boolean[iNewLength];
 
 		ColumnSelectionListener columnSelectionListener = new ColumnSelectionListener();
 
@@ -1250,6 +1257,8 @@ public class TableViewSWTImpl
 					column.addListener(SWT.Resize, columnResizeListener);
 			}
 		}
+		
+		columnVisibilitiesChanged = true;
 	}
 
 	/** Creates the Context Menu.

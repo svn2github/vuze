@@ -301,7 +301,4 @@ public interface TableColumnCore
 	
 	void setAutoTooltip(boolean auto_tooltip);
 	boolean doesAutoTooltip();
-	
-	boolean isShown();
-	void setShown(boolean shown);
 }

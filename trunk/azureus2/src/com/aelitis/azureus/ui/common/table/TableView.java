@@ -21,6 +21,7 @@
 package com.aelitis.azureus.ui.common.table;
 
 import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
+import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 
 /**
  * @author TuxPaper
@@ -345,4 +346,6 @@ public interface TableView
 	 * @since 3.0.4.3
 	 */
 	int getRowDefaultHeight();
+	
+	boolean isColumnVisible(TableColumn column);
 }

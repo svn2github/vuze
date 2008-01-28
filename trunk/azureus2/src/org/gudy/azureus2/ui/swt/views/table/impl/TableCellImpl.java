@@ -897,7 +897,7 @@ public class TableCellImpl
   public boolean refresh(boolean bDoGraphics, boolean bRowVisible,  boolean bCellVisible)
   {
 	  bCellVisible &= bRowVisible;
-	  bCellVisible &= tableColumn.isShown();
+	  bCellVisible &= ((TableViewSWT)tableRow.getView()).isColumnVisible((TableColumnCore)tableColumn);
 	  
 	  boolean ret = getVisuallyChangedSinceRefresh();
 
