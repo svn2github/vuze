@@ -707,7 +707,7 @@ public class Utils {
 							queue.remove(code);
 						}
 					};
-					if (msLater == 0) {
+					if (msLater <= 0) {
 						display.asyncExec(runnableWrapper);
 					} else {
 						display.timerExec(msLater, runnableWrapper);
