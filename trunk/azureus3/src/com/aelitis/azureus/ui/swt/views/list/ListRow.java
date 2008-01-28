@@ -60,7 +60,7 @@ import org.gudy.azureus2.pluginsimpl.local.tracker.TrackerTorrentImpl;
 public class ListRow
 	implements TableRowSWT
 {
-	public static int ROW_HEIGHT = 38;
+	private static final boolean READJUST_CELL_HEIGHT = false;
 
 	private SWTSkinProperties skinProperties;
 
@@ -87,6 +87,8 @@ public class ListRow
 	private ArrayList mouseListeners;
 
 	private AEMonitor this_mon = new AEMonitor("ListRow");
+	
+	private int height;
 
 	/**
 	 * @param position 
@@ -96,6 +98,7 @@ public class ListRow
 		this.parent = parent;
 		coreDataSource = datasource;
 		this.view = view;
+		height = view.DEFAULT_ROW_HEIGHT;
 
 		pluginDataSource = null;
 		bDisposed = false;
@@ -114,7 +117,7 @@ public class ListRow
 
 			boolean bVisible = column.getPosition() >= 0;
 			Rectangle bounds = bVisible ? new Rectangle(iStartPos,
-					ListView.ROW_MARGIN_HEIGHT, column.getWidth(), ROW_HEIGHT
+					ListView.ROW_MARGIN_HEIGHT, column.getWidth(), height
 							- (ListView.ROW_MARGIN_HEIGHT * 2)) : null;
 
 			ListCell listCell;
@@ -285,13 +288,14 @@ public class ListRow
 			gc.setBackground(getBackground());
 			//gc.setBackground(Display.getDefault().getSystemColor((int)(Math.random() * 16)));
 
+			System.out.println(getIndex() + ";" + view.rowGetVisibleYOffset(this) + "--" + height);
 			Rectangle clientArea = view.getClientArea();
 			gc.fillRectangle(0, view.rowGetVisibleYOffset(this), clientArea.width,
-					ROW_HEIGHT);
+					height);
 			if (isFocused()) {
 				gc.setLineStyle(SWT.LINE_DOT);
 				gc.drawRectangle(0, view.rowGetVisibleYOffset(this),
-						clientArea.width - 1, ROW_HEIGHT - 1);
+						clientArea.width - 1, height - 1);
 			}
 
 			for (int i = 0; i < visibleColumns.length; i++) {
@@ -550,9 +554,27 @@ public class ListRow
 	}
 
 	public boolean setHeight(int iHeight) {
-		// TODO Auto-generated method stub
 		bRowVisuallyChangedSinceRefresh = true;
-		return false;
+		
+		height = iHeight;
+		if (READJUST_CELL_HEIGHT) {
+  		Iterator iter = mapTableCells.values().iterator();
+  		while (iter.hasNext()) {
+  			TableCellSWT cell = (TableCellSWT) iter.next();
+  			if (cell != null) {
+  				// hack.. a call to ListCell.isShown will trigger Visibility Listener
+  				ListCell listcell = (ListCell) cell.getBufferedTableItem();
+  				Rectangle bounds = listcell.getBounds();
+  				bounds.height = height;
+  				listcell.setBounds(bounds);
+  			}
+  		}
+		}
+		return true;
+	}
+	
+	public int getHeight() {
+		return height;
 	}
 
 	public boolean setIconSize(Point pt) {
@@ -815,5 +837,10 @@ public class ListRow
 				Debug.printStackTrace(e);
 			}
 		}
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableRowCore#isMouseOver()
+	public boolean isMouseOver() {
+		return view.getTableRowWithCursor() == this;
 	}
 }

@@ -184,7 +184,8 @@ public class ListCell
 		bounds.width = columnMetrics.width;
 		try {
 			bounds.y = row.getVisibleYOffset() + ListView.ROW_MARGIN_HEIGHT;
-			bounds.height = ListRow.ROW_HEIGHT - (ListView.ROW_MARGIN_HEIGHT * 2);
+			bounds.height = view.DEFAULT_ROW_HEIGHT - (ListView.ROW_MARGIN_HEIGHT * 2);
+			//bounds.height = row.getHeight() - (ListView.ROW_MARGIN_HEIGHT * 2);
 		} catch (Exception e) {
 			//System.err.println(cell.getTableColumn().getName() + " " + bounds + ";" + row + ";");
 		}

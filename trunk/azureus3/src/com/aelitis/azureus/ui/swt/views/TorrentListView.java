@@ -277,7 +277,7 @@ public class TorrentListView
 						bSkipUpdateCount = true;
 
 						int max = (dataArea.getClientArea().height - 8)
-								/ ListRow.ROW_HEIGHT;
+								/ DEFAULT_ROW_HEIGHT;
 						for (int i = 0; i < managers.length; i++) {
 							DownloadManager dm = managers[i];
 							downloadManagerAdded(dm);
@@ -445,7 +445,7 @@ public class TorrentListView
 		int curRowCount = size(true);
 
 		int maxRows = bAllowScrolling ? 100000
-				: (dataArea.getClientArea().height - 8) / ListRow.ROW_HEIGHT;
+				: (dataArea.getClientArea().height - 8) / DEFAULT_ROW_HEIGHT;
 
 		long totalPossible = getTotalPossible();
 		if (curRowCount < maxRows && totalPossible > curRowCount) {
@@ -529,11 +529,11 @@ public class TorrentListView
 		//regetDownloads();
 		dm.addListener(dmListener);
 		if (isOurDownload(dm)) {
-			Utils.execSWTThreadLater(new AERunnable() {
+			Utils.execSWTThreadLater(0, new AERunnable() {
 				public void runSupport() {
 					if (bAllowScrolling
 							|| size(true) < (dataArea.getClientArea().height - 8)
-									/ ListRow.ROW_HEIGHT) {
+									/ DEFAULT_ROW_HEIGHT) {
 						addDataSource(dm, !bSkipUpdateCount);
 						if (!bAllowScrolling && !bSkipUpdateCount) {
 							regetDownloads();
@@ -639,7 +639,7 @@ public class TorrentListView
 
 		// @see org.gudy.azureus2.core3.download.DownloadManagerListener#stateChanged(org.gudy.azureus2.core3.download.DownloadManager, int)
 		public void stateChanged(final DownloadManager manager, int state) {
-			Utils.execSWTThreadLater(new AERunnable() {
+			Utils.execSWTThreadLater(0, new AERunnable() {
 				public void runSupport() {
 
 					Object[] listenersArray = view.listeners.toArray();
