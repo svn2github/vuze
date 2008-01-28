@@ -21,6 +21,8 @@
  */
 package com.aelitis.azureus.util;
 
+import java.util.Locale;
+
 import org.gudy.azureus2.core3.util.Base32;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -82,6 +84,8 @@ public class Constants
 
 	public static void initialize(AzureusCore core) {
 		AZID = Base32.encode(core.getCryptoManager().getSecureID());
-		URL_SUFFIX = "azid=" + AZID + "&azv=" + org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION;
+		URL_SUFFIX = "azid=" + AZID + "&azv="
+				+ org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION
+				+ "&locale=" + Locale.getDefault().toString();
 	}
 }
