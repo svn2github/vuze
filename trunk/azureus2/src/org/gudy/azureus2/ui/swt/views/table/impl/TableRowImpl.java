@@ -493,4 +493,7 @@ public class TableRowImpl
 		return tableView;
 	}
 
+	public boolean isMouseOver() {
+		return tableView.getTableRowWithCursor() == this;
+	}
 }

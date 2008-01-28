@@ -322,4 +322,27 @@ public interface TableView
 	 * @since 3.0.0.7
 	 */
 	int indexOf(TableRowCore row);
+
+	/**
+	 * @return
+	 *
+	 * @since 3.0.4.3
+	 */
+	TableCellCore getTableCellWithCursor();
+
+	/**
+	 * Retrieves the row that has the cursor over it
+	 * 
+	 * @return null if mouse isn't over a row
+	 *
+	 * @since 3.0.4.3
+	 */
+	TableRowCore getTableRowWithCursor();
+
+	/**
+	 * @return
+	 *
+	 * @since 3.0.4.3
+	 */
+	int getRowDefaultHeight();
 }

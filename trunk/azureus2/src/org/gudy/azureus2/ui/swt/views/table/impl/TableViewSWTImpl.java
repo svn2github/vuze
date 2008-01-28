@@ -3616,7 +3616,7 @@ public class TableViewSWTImpl
 		this.mainPanelCreator = mainPanelCreator;
 	}
 
-	public TableCellSWT getTableCellWithCursor() {
+	public TableCellCore getTableCellWithCursor() {
 		Point pt = table.getDisplay().getCursorLocation();
 		pt = table.toControl(pt);
 		return getTableCell(pt.x, pt.y);

@@ -127,4 +127,12 @@ public interface TableRowCore extends TableRow
 	 * @since 3.0.1.7
 	 */
 	void invokeMouseListeners(TableRowMouseEvent event);
+
+	/**
+	 * 
+	 * @return
+	 *
+	 * @since 3.0.4.3
+	 */
+	public boolean isMouseOver();
 }
