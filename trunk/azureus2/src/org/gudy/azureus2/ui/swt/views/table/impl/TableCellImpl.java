@@ -892,12 +892,12 @@ public class TableCellImpl
   public boolean refresh(boolean bDoGraphics, boolean bRowVisible) {
   	return refresh(bDoGraphics, bRowVisible, isShown());
   }
-
+  
   private boolean bInRefresh = false;
-  public boolean refresh(boolean bDoGraphics, boolean bRowVisible,
-	  boolean bCellVisible)
+  public boolean refresh(boolean bDoGraphics, boolean bRowVisible,  boolean bCellVisible)
   {
 	  bCellVisible &= bRowVisible;
+	  bCellVisible &= tableColumn.isShown();
 	  
 	  boolean ret = getVisuallyChangedSinceRefresh();
 

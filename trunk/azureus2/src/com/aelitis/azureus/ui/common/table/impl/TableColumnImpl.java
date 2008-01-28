@@ -116,6 +116,8 @@ public class TableColumnImpl
 	private int iMaxWidth = -1;
 
 	private boolean bVisible;
+	
+	private boolean columnShown = true;
 
 	private boolean bMaxWidthAuto = false;
 
@@ -1105,6 +1107,20 @@ public class TableColumnImpl
 	
 	public boolean doesAutoTooltip() {
 		return this.auto_tooltip;
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.aelitis.azureus.ui.common.table.TableColumnCore#isShown()
+	 */
+	public boolean isShown() {
+		return columnShown;
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.aelitis.azureus.ui.common.table.TableColumnCore#setShown(boolean)
+	 */
+	public void setShown(boolean shown) {
+		columnShown = shown;		
 	}
 	
 }

@@ -255,13 +255,16 @@ public class TableRowImpl
 		//System.out.println(SystemTime.getCurrentTime() + "refresh " + getIndex());
 
     Iterator iter = mTableCells.values().iterator();
-    while(iter.hasNext()) {
-    	TableCellSWT item = (TableCellSWT)iter.next();
-      boolean changed = item.refresh(bDoGraphics, bVisible);
-      if (changed) {
-      	list.add(item);
-      }
-    }
+    while (iter.hasNext())
+		{
+			TableCellSWT item = (TableCellSWT) iter.next();
+			TableColumn column = item.getTableColumn();
+			if (column instanceof TableColumnCore && column != tableView.getSortColumn() && !((TableColumnCore) column).isShown())
+				continue;
+			boolean changed = item.refresh(bDoGraphics, bVisible);
+			if (changed)
+				list.add(item);
+		}
     return list;
   }
 

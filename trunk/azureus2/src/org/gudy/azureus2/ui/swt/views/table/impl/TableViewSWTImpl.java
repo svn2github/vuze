@@ -255,6 +255,8 @@ public class TableViewSWTImpl
 	private List listenersKey = new ArrayList();
 	
 	private boolean columnPaddingAdjusted = false;
+	
+	private boolean columnVisibilitiesChanged = true;
 
 	/**
 	 * Main Initializer
@@ -641,8 +643,8 @@ public class TableViewSWTImpl
 					}
 					if (event.width == 0 || event.height == 0)
 						return;
-					doPaint(event.gc);
 					visibleRowsChanged();
+					doPaint(event.gc);
 				}
 			});
 		}
@@ -659,7 +661,17 @@ public class TableViewSWTImpl
 				}
 			});
 		}
-
+		
+		table.getHorizontalBar().addSelectionListener(new SelectionListener() {
+			public void widgetDefaultSelected(SelectionEvent e) {
+				columnVisibilitiesChanged = true;				
+			}
+			
+			public void widgetSelected(SelectionEvent e) {
+				columnVisibilitiesChanged = true;
+			}
+		});
+		
 		table.addListener(SWT.MeasureItem, new Listener() {
 			public void handleEvent(Event event) {
 				int defaultHeight = getRowDefaultHeight();
@@ -669,7 +681,7 @@ public class TableViewSWTImpl
 			}
 		});
 
-		// Deselect rows if user clicks on a black spot (a spot with no row)
+		// Deselect rows if user clicks on a blank spot (a spot with no row)
 		table.addMouseListener(new MouseAdapter() {
 			public void mouseDoubleClick(MouseEvent e) {
 				TableColumnCore tc = getTableColumnByOffset(e.x);
@@ -1062,6 +1074,25 @@ public class TableViewSWTImpl
 			triggerDefaultSelectedListeners(selectedRows);
 		}
 	}
+	
+	private void updateColumnVisibilities() {
+		TableColumn[] columns = table.getColumns();
+		int topIdx = table.getTopIndex();
+		if (topIdx < table.getItemCount())
+			return;
+		columnVisibilitiesChanged = false;
+		TableItem topRow = table.getItem(topIdx);
+		Rectangle tableArea = table.getClientArea();
+		for (int i = 0; i < columns.length; i++)
+		{
+			TableColumnCore tc = (TableColumnCore) columns[i].getData("TableColumnCore");
+			if (tc == null)
+				continue;
+			Rectangle size = topRow.getBounds(i);
+			size.intersect(tableArea);
+			tc.setShown(!size.isEmpty());
+		}
+	}
 
 	protected void initializeTableColumns(final Table table) {
 		TableColumn[] oldColumns = table.getColumns();
@@ -1088,7 +1119,7 @@ public class TableViewSWTImpl
 
 				try {
 					bInFunction = true;
-
+					
 					TableColumnCore tc = (TableColumnCore) column.getData("TableColumnCore");
 					if (tc != null) {
 						Long lPadding = (Long) column.getData("widthOffset");
@@ -1497,8 +1528,9 @@ public class TableViewSWTImpl
 					}
 				}
 			}
-
 			
+			if(columnVisibilitiesChanged == true)
+				updateColumnVisibilities();
 
 			final boolean bDoGraphics = (loopFactor % graphicsUpdate) == 0;
 			final boolean bWillSort = bForceSort || (reOrderDelay != 0)
@@ -1591,7 +1623,9 @@ public class TableViewSWTImpl
 	private void locationChanged(final int iStartColumn) {
 		if (getComposite() == null || getComposite().isDisposed())
 			return;
-
+		
+		columnVisibilitiesChanged = true;
+		
 		runForAllRows(new TableGroupRowRunner() {
 			public void run(TableRowCore row) {
 				row.locationChanged(iStartColumn);
@@ -2845,6 +2879,7 @@ public class TableViewSWTImpl
 			TableColumnCore tableColumnCore = (TableColumnCore) column.getData("TableColumnCore");
 			if (tableColumnCore != null) {
 				sortColumnReverse(tableColumnCore);
+				columnVisibilitiesChanged = true;
 				refreshTable(true);
 			}
 		}
@@ -3295,6 +3330,8 @@ public class TableViewSWTImpl
 			return;
 		}
 		//debug("VRC " + Debug.getCompressedStackTrace());
+		
+		columnVisibilitiesChanged = true;
 
 		boolean bTableUpdate = false;
 		int iTopIndex = table.getTopIndex();
