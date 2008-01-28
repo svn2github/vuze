@@ -605,7 +605,7 @@ public class Utils {
    * @return success
    */
   public static boolean execSWTThread(final Runnable code, boolean async) {
-  	return execSWTThread(code, async, false);
+  	return execSWTThread(code, async ? -1 : -2);
   }
 
   /**
@@ -615,23 +615,35 @@ public class Utils {
    * Much like Display.asyncExec, except getting the display is handled for you,
    * and provides the ability to diagnose and monitor scheduled code run.
    * 
+   * @param msLater time to wait before running code on SWT thread.  0 does not
+   *                mean immediate, but as soon as possible.
    * @param code Code to run
    * @return sucess
    *
    * @since 3.0.4.3
    */
-  public static boolean execSWTThreadLater(final Runnable code) {
-  	return execSWTThread(code, true, false);
+  public static boolean execSWTThreadLater(int msLater, final Runnable code) {
+  	return execSWTThread(code, msLater);
   }
 
-  private static boolean execSWTThread(final Runnable code,
-			boolean async, boolean later) {
+  /**
+   * 
+   * @param code
+   * @param msLater -2: sync<BR>
+   *                -1: sync if on SWT thread, async otherwise<BR>
+   *                 0: async<BR>
+   *                >0: timerExec
+   * @return
+   *
+   * @since 3.0.4.3
+   */
+  private static boolean execSWTThread(final Runnable code, final int msLater) {
   	Display display = getDisplay();
 		if (display == null || code == null) {
 			return false;
 		}
 
-		if (!later && display.getThread() == Thread.currentThread()) {
+		if (msLater < 0 && display.getThread() == Thread.currentThread()) {
 			if (queue == null) {
 				code.run();
 			} else {
@@ -645,10 +657,14 @@ public class Utils {
 							+ "ms to run " + Debug.getCompressedStackTrace(4));
 				}
 			}
-		} else if (async) {
+		} else if (msLater >= 0) {
 			try {
 				if (queue == null) {
-					display.asyncExec(code);
+					if (msLater <= 0) {
+						display.asyncExec(code);
+					} else {
+						display.timerExec(msLater, code);
+					}
 				} else {
 					queue.add(code);
 
@@ -658,9 +674,9 @@ public class Utils {
 					final long lStart = SystemTime.getCurrentTime();
 
 					final Display fDisplay = display;
-					display.asyncExec(new AERunnable() {
+					AERunnable runnableWrapper = new AERunnable() {
 						public void runSupport() {
-							long wait = SystemTime.getCurrentTime() - lStart;
+							long wait = SystemTime.getCurrentTime() - lStart - msLater;
 							if (wait > 700) {
 								diag_logger.log(SystemTime.getCurrentTime() + "] took " + wait
 										+ "ms before SWT ran async code " + code);
@@ -690,7 +706,12 @@ public class Utils {
 									+ "] - QUEUE. size=" + queue.size());
 							queue.remove(code);
 						}
-					});
+					};
+					if (msLater == 0) {
+						display.asyncExec(runnableWrapper);
+					} else {
+						display.timerExec(msLater, runnableWrapper);
+					}
 				}
 			} catch (NullPointerException e) {
 				// If the display is being disposed of, asyncExec may give a null
@@ -716,7 +737,7 @@ public class Utils {
    * @return success
    */
 	public static boolean execSWTThread(Runnable code) {
-		return execSWTThread(code, true, false);
+		return execSWTThread(code, -1);
 	}
 	
 	public static boolean isThisThreadSWT() {
