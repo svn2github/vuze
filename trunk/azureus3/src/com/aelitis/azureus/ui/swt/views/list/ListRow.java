@@ -288,7 +288,7 @@ public class ListRow
 			gc.setBackground(getBackground());
 			//gc.setBackground(Display.getDefault().getSystemColor((int)(Math.random() * 16)));
 
-			System.out.println(getIndex() + ";" + view.rowGetVisibleYOffset(this) + "--" + height);
+			//System.out.println(getIndex() + ";" + view.rowGetVisibleYOffset(this) + "--" + height);
 			Rectangle clientArea = view.getClientArea();
 			gc.fillRectangle(0, view.rowGetVisibleYOffset(this), clientArea.width,
 					height);
