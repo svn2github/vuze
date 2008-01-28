@@ -194,6 +194,7 @@ implements PiecePicker
 	private int					allocate_request_loop_count;
 
 	private static boolean		enable_request_hints;
+	private static boolean		includeLanPeersInReqLimiting;
 	
 	private CopyOnWriteList		listeners = new CopyOnWriteList();
 
@@ -215,6 +216,8 @@ implements PiecePicker
 			    }else if ( parameterName.equals( "Piece Picker Request Hint Enabled" )){
 			    	enable_request_hints = COConfigurationManager.getBooleanParameter(parameterName);
 				}
+				
+				includeLanPeersInReqLimiting = ! COConfigurationManager.getBooleanParameter("LAN Speed Enabled");
 			}
 		}
 
@@ -223,6 +226,7 @@ implements PiecePicker
 		COConfigurationManager.addParameterListener("Prioritize Most Completed Files", parameterListener);
 		COConfigurationManager.addAndFireParameterListener("Prioritize First Piece", parameterListener);
 		COConfigurationManager.addAndFireParameterListener("Piece Picker Request Hint Enabled", parameterListener);
+		COConfigurationManager.addAndFireParameterListener("LAN Speed Enabled", parameterListener);
 
 	}
 
@@ -587,9 +591,17 @@ implements PiecePicker
 				/* pt1 comes first if we want to request data from it more than from pt2
 				 * it is "smaller", i.e. return is < 0 
 				 */
+				int toReturn = 0;
 
-				// try to download from the currently fastest
-				int toReturn = (int)(stats2.getSmoothDataReceiveRate() - stats2.getSmoothDataReceiveRate());
+				// lan peers to the front of the queue as they'll ignore request limiting
+				if(pt1.isLANLocal() && !pt2.isLANLocal())
+					toReturn = -1;
+				else if(!pt1.isLANLocal() && pt2.isLANLocal())
+					toReturn = 1;
+
+				// try to download from the currently fastest, this is important for the request focusing
+				if(toReturn == 0)
+					toReturn = (int)(stats2.getSmoothDataReceiveRate() - stats1.getSmoothDataReceiveRate());
 
 				// we're here because we're not requesting anything from both peers
 				// which means we might have to send the next request to this peer
@@ -605,10 +617,11 @@ implements PiecePicker
 				if(toReturn == 0 && !pt2.isSnubbed() && pt1.isSnubbed())
 					toReturn = 1;
 
+				/*
 				// still nothing, next try peers from which we have downloaded most in the past 
-/*				if(toReturn == 0)
+				if(toReturn == 0)
 					toReturn = (int)(stats2.getTotalDataBytesReceived() - stats1.getTotalDataBytesReceived());
-	*/				
+				*/
 				return toReturn;
 			}
 		});
@@ -759,9 +772,14 @@ implements PiecePicker
 		
 		//dispenser.refill();
 		
-		for (int i =0; i <uploadersSize && dispenser.peek(DiskManager.BLOCK_SIZE) > 0; i++){
+		for (int i =0; i <uploadersSize; i++){
 			
 			final PEPeerTransport pt =(PEPeerTransport) bestUploaders.get(i);
+			
+			// only request when there are still free tokens in the bucket or when it's a lan peer (which get sorted to the front of the queue) 
+			if(dispenser.peek(DiskManager.BLOCK_SIZE) < 1 && (!pt.isLANLocal() || includeLanPeersInReqLimiting))
+				break;
+			
 			// can we transfer something?
 			if (pt.isDownloadPossible()){
 				int	peer_request_num = pt.getMaxNbRequests();
@@ -1129,12 +1147,12 @@ implements PiecePicker
 				nbRarestActive++;
 		}
 		
-		if(!pt.isLANLocal())
+		if(!pt.isLANLocal() || includeLanPeersInReqLimiting)
 			nbWanted = dispenser.dispense(nbWanted, DiskManager.BLOCK_SIZE);
 		final int[] blocksFound =pePiece.getAndMarkBlocks(pt, nbWanted,enable_request_hints  );
 		final int blockNumber =blocksFound[0];
 		final int nbBlocks =blocksFound[1];
-		if(!pt.isLANLocal() && nbBlocks != nbWanted)
+		if((!pt.isLANLocal() || includeLanPeersInReqLimiting) && nbBlocks != nbWanted)
 			dispenser.returnUnusedChunks(nbWanted-nbBlocks, DiskManager.BLOCK_SIZE);
 		
 		if (nbBlocks <=0)
@@ -1381,7 +1399,7 @@ implements PiecePicker
 				
 				if ( LOG_RTA ) rta_log_str += ",{select_piece=" + piece_min_rta_index + ",block=" + piece_min_rta_block + ",time=" + (piece_min_rta_time-now) + "}";
 				
-				if ( dispenser.dispense(1, DiskManager.BLOCK_SIZE) == 1 || pt.isLANLocal()){
+				if ( dispenser.dispense(1, DiskManager.BLOCK_SIZE) == 1 || (pt.isLANLocal() && !includeLanPeersInReqLimiting)){
 	
 					PEPiece pePiece = pePieces[piece_min_rta_index];
 		
@@ -1432,7 +1450,7 @@ implements PiecePicker
 						
 						if ( LOG_RTA ) rta_log_str += "{request failed}";
 						
-						if(!pt.isLANLocal())
+						if(!pt.isLANLocal() || includeLanPeersInReqLimiting)
 							dispenser.returnUnusedChunks(1, DiskManager.BLOCK_SIZE);
 						
 						return( false );
