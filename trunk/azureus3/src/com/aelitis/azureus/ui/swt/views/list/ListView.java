@@ -3709,4 +3709,11 @@ public class ListView
 		pt = listCanvas.toControl(pt);
 		return (TableRowSWT) getRow(pt.x, pt.y);
 	}
+	
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#isColumnVisible(com.aelitis.azureus.ui.common.table.TableColumnCore)
+	 */
+	public boolean isColumnVisible(TableColumn column) {
+		return true;
+	}
 }
