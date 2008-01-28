@@ -184,6 +184,8 @@ public class MainStatusBar
 
 	protected IProgressReport latestReport = null;
 
+	protected AEMonitor latestReport_mon = new AEMonitor("latestReport");
+
 	/**
 	 * 
 	 */
@@ -1012,7 +1014,12 @@ public class MainStatusBar
 	 * to display; can be <code>null</code> in which case the status text and progress bar will be reset to default states
 	 */
 	private void updateProgressBarDisplay(IProgressReport pReport) {
-		latestReport = pReport;
+		latestReport_mon.enter();
+		try {
+			latestReport = pReport;
+		} finally {
+			latestReport_mon.exit();
+		}
 		if (null == progressBar || progressBar.isDisposed()
 				|| updateProgressBarDisplayQueued) {
 			return;
@@ -1021,43 +1028,48 @@ public class MainStatusBar
 
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				updateProgressBarDisplayQueued = false;
+				latestReport_mon.enter();
+				try {
+					updateProgressBarDisplayQueued = false;
 
-				if ((null == progressBar || true == progressBar.isDisposed())) {
-					return;
-				}
-
-				if (null != latestReport ) {
-					/*
-					 * Pass the values through to the progressbar
-					 */
-					progressBar.setMinimum(latestReport.getMinimum());
-					progressBar.setMaximum(latestReport.getMaximum());
-					progressBar.setIndeterminate(latestReport.isIndeterminate());
-					progressBar.setPercentage(latestReport.getPercentage());
-					showProgressBar(true);
-
-					/*
-					 * Update status text
-					 */
-					if (true == isAZ3) {
-						statusText.setText(latestReport.getName());
-					} else {
-						setStatusText(latestReport.getName());
+					if ((null == progressBar || true == progressBar.isDisposed())) {
+						return;
 					}
-				}
 
-				else {
-					/*
-					 * Since the pReport is null then reset progress display appropriately
-					 */
-					showProgressBar(false);
+					if (null != latestReport) {
+						/*
+						 * Pass the values through to the progressbar
+						 */
+						progressBar.setMinimum(latestReport.getMinimum());
+						progressBar.setMaximum(latestReport.getMaximum());
+						progressBar.setIndeterminate(latestReport.isIndeterminate());
+						progressBar.setPercentage(latestReport.getPercentage());
+						showProgressBar(true);
 
-					if (true == isAZ3) {
-						statusText.setText("");
-					} else {
-						setStatusText(null);
+						/*
+						 * Update status text
+						 */
+						if (true == isAZ3) {
+							statusText.setText(latestReport.getName());
+						} else {
+							setStatusText(latestReport.getName());
+						}
 					}
+
+					else {
+						/*
+						 * Since the pReport is null then reset progress display appropriately
+						 */
+						showProgressBar(false);
+
+						if (true == isAZ3) {
+							statusText.setText("");
+						} else {
+							setStatusText(null);
+						}
+					}
+				} finally {
+					latestReport_mon.exit();
 				}
 
 			}
