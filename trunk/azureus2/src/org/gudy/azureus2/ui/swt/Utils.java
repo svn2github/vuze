@@ -657,7 +657,7 @@ public class Utils {
 							+ "ms to run " + Debug.getCompressedStackTrace(4));
 				}
 			}
-		} else if (msLater >= 0) {
+		} else if (msLater >= -1) {
 			try {
 				if (queue == null) {
 					if (msLater <= 0) {
