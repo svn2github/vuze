@@ -717,15 +717,53 @@ public class MainMenu {
 				mainWindow.getShell().setSize(1024, 700);
 			}
 		});
+		
+		
+		item = new MenuItem(menuSS, SWT.NONE);
+		item.setText("1152x784");
+		item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				mainWindow.getShell().setSize(1152, 784);
+			}
+		});
 
 	
 		item = new MenuItem(menuSS, SWT.NONE);
-		item.setText("1280x980");
+		item.setText("1280x720");
 		item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				mainWindow.getShell().setSize(1280, 980);
+				mainWindow.getShell().setSize(1280, 720);
 			}
 		});
+		
+		
+		item = new MenuItem(menuSS, SWT.NONE);
+		item.setText("1440x820");
+		item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				mainWindow.getShell().setSize(1440, 820);
+			}
+		});
+		
+		
+		item = new MenuItem(menuSS, SWT.NONE);
+		item.setText("1600x970");
+		item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				mainWindow.getShell().setSize(1600, 970);
+			}
+		});
+		
+		
+		item = new MenuItem(menuSS, SWT.NONE);
+		item.setText("2560x1520");
+		item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				mainWindow.getShell().setSize(2560, 1520);
+			}
+		});
+		
+		
 		
 		item = new MenuItem(menuDebug, SWT.NONE);
 		item.setText("Reload messagebundle");
