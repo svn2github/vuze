@@ -91,63 +91,75 @@ import org.gudy.azureus2.plugins.sharing.ShareManager;
 public class MainWindow
 	extends AERunnable
 	implements ParameterListener, IconBarEnabler, AEDiagnosticsEvidenceGenerator,
-	ObfusticateShell
+	ObfusticateShell, IMainWindow
 {
 	private static final LogIDs LOGID = LogIDs.GUI;
-  
-  private static MainWindow window;
 
-  private Initializer initializer;  
-  private GUIUpdater updater;
+	private static MainWindow window;
 
-  private AzureusCore			azureus_core;
-  
-  private GlobalManager       	globalManager;
+	private Initializer initializer;
 
-  //NICO handle swt on macosx
-  public static boolean isAlreadyDead = false;
-  public static boolean isDisposeFromListener = false;  
+	private GUIUpdater updater;
 
-  private Display display;
-  private Composite parent;
-  private Shell shell;
-  
-  private MainMenu mainMenu;
-  
-  private IconBar iconBar;
-  
-  private boolean useCustomTab;
-  private Composite folder;
-      
-  
-  /** 
-   * Handles initializing and refreshing the status bar (w/help of GUIUpdater)
-   */
-  private MainStatusBar mainStatusBar;
-  
-  private TrayWindow downloadBasket;
+	private AzureusCore azureus_core;
 
-  private SystemTraySWT systemTraySWT;
-  
-  private HashMap downloadViews;
-  private AEMonitor	downloadViews_mon			= new AEMonitor( "MainWindow:dlviews" );
+	private GlobalManager globalManager;
 
-  private Tab 	mytorrents;
-  private Tab   all_peers;
-  private Tab 	my_tracker_tab;
-  private Tab 	my_shares_tab;
-  private Tab 	stats_tab;
-  private Tab 	console;
-  private Tab	multi_options_tab;
-  
-  private Tab 			config;
-  private ConfigView	config_view;
-  
-  protected AEMonitor	this_mon			= new AEMonitor( "MainWindow" );
+	//NICO handle swt on macosx
+	public static boolean isAlreadyDead = false;
 
-  private UISWTInstanceImpl uiSWTInstanceImpl = null;
+	public static boolean isDisposeFromListener = false;
 
-  private ArrayList events;
+	private Display display;
+
+	private Composite parent;
+
+	private Shell shell;
+
+	private IMainMenu mainMenu;
+
+	private IconBar iconBar;
+
+	private boolean useCustomTab;
+
+	private Composite folder;
+
+	/** 
+	 * Handles initializing and refreshing the status bar (w/help of GUIUpdater)
+	 */
+	private MainStatusBar mainStatusBar;
+
+	private TrayWindow downloadBasket;
+
+	private SystemTraySWT systemTraySWT;
+
+	private HashMap downloadViews;
+
+	private AEMonitor downloadViews_mon = new AEMonitor("MainWindow:dlviews");
+
+	private Tab mytorrents;
+
+	private Tab all_peers;
+
+	private Tab my_tracker_tab;
+
+	private Tab my_shares_tab;
+
+	private Tab stats_tab;
+
+	private Tab console;
+
+	private Tab multi_options_tab;
+
+	private Tab config;
+
+	private ConfigView config_view;
+
+	protected AEMonitor this_mon = new AEMonitor("MainWindow");
+
+	private UISWTInstanceImpl uiSWTInstanceImpl = null;
+
+	private ArrayList events;
 
 	private UIFunctionsSWT uiFunctions;
 
@@ -157,51 +169,47 @@ public class MainWindow
 
 	private boolean bSettingVisibility = false;
 
-  public
-  MainWindow(
-  	AzureusCore		_azureus_core,
-	Initializer 	_initializer,
-	ArrayList events) 
-  { 
-  	bShowMainWindow = true;
-		try{
-  		if (Logger.isEnabled())
+	public MainWindow(AzureusCore _azureus_core, Initializer _initializer,
+			ArrayList events) {
+		bShowMainWindow = true;
+		try {
+			if (Logger.isEnabled())
 				Logger.log(new LogEvent(LOGID, "MainWindow start"));
-	    
-  		AEDiagnostics.addEvidenceGenerator( this );
-		
-	    azureus_core	= _azureus_core;
-	    
-	    globalManager = azureus_core.getGlobalManager();
-	    
-	    initializer = _initializer;
-	    
-	    display = SWTThread.getInstance().getDisplay();
-	    
-	    window = this;
-	    
-	    this.events = events;
-	    
-			display.asyncExec(this);
-	    
-  	}catch( AzureusCoreException e ){
-  		
-  		Debug.printStackTrace( e );
-  	}
-  }
 
-  /**
-   * runSupport() MUST BE CALLED TO FINISH INITIALIZATION
-   * @param _azureus_core
-   * @param _initializer
-   * @param shell
-   * @param parent
-   */
-  public MainWindow(AzureusCore _azureus_core, Initializer _initializer,
+			AEDiagnostics.addEvidenceGenerator(this);
+
+			azureus_core = _azureus_core;
+
+			globalManager = azureus_core.getGlobalManager();
+
+			initializer = _initializer;
+
+			display = SWTThread.getInstance().getDisplay();
+
+			window = this;
+
+			this.events = events;
+
+			display.asyncExec(this);
+
+		} catch (AzureusCoreException e) {
+
+			Debug.printStackTrace(e);
+		}
+	}
+
+	/**
+	 * runSupport() MUST BE CALLED TO FINISH INITIALIZATION
+	 * @param _azureus_core
+	 * @param _initializer
+	 * @param shell
+	 * @param parent
+	 */
+	public MainWindow(AzureusCore _azureus_core, Initializer _initializer,
 			Shell shell, Composite parent, UISWTInstanceImpl swtinstance) {
 		this.shell = shell;
 		this.parent = parent;
-  	bShowMainWindow = true;
+		bShowMainWindow = true;
 
 		try {
 			if (Logger.isEnabled())
@@ -218,7 +226,7 @@ public class MainWindow
 			display = SWTThread.getInstance().getDisplay();
 
 			window = this;
-			
+
 			uiSWTInstanceImpl = swtinstance;
 
 		} catch (AzureusCoreException e) {
@@ -226,44 +234,44 @@ public class MainWindow
 			Debug.printStackTrace(e);
 		}
 	}
-  
-  public void setShowMainWindow(boolean b) {
-  	bShowMainWindow = b;
-  }
-  
-  // @see org.gudy.azureus2.core3.util.AERunnable#runSupport()
-  public void runSupport() {
-    FormData formData;
-    
-    try{
-    	uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-    	if (uiFunctions == null) {
-    		uiFunctions = new UIFunctionsImpl(this);
-    		UIFunctionsManager.setUIFunctions(uiFunctions);
-    	} else {
-    		uiFunctions = new UIFunctionsImpl(this);
-    	}
-    	
-			globalManager.loadExistingTorrentsNow(true);
-       
-    useCustomTab = COConfigurationManager.getBooleanParameter("useCustomTab");
-    Tab.setUseCustomTab(useCustomTab);
-    
 
-    COConfigurationManager.addParameterListener( "config.style.useSIUnits", this );
-  
-    mytorrents = null;
-    my_tracker_tab	= null;
-    console = null;
-    config = null;
-    config_view = null;
-    downloadViews = new HashMap();
-    
-    Control attachToTopOf = null;
-    Control controlAboveFolder = null;
-    Control controlBelowFolder = null;
-    
-    //The Main Window
+	public void setShowMainWindow(boolean b) {
+		bShowMainWindow = b;
+	}
+
+	// @see org.gudy.azureus2.core3.util.AERunnable#runSupport()
+	public void runSupport() {
+		FormData formData;
+
+		try {
+			uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+			if (uiFunctions == null) {
+				uiFunctions = new UIFunctionsImpl(this);
+				UIFunctionsManager.setUIFunctions(uiFunctions);
+			} else {
+				uiFunctions = new UIFunctionsImpl(this);
+			}
+
+			globalManager.loadExistingTorrentsNow(true);
+
+			useCustomTab = COConfigurationManager.getBooleanParameter("useCustomTab");
+			Tab.setUseCustomTab(useCustomTab);
+
+			COConfigurationManager.addParameterListener("config.style.useSIUnits",
+					this);
+
+			mytorrents = null;
+			my_tracker_tab = null;
+			console = null;
+			config = null;
+			config_view = null;
+			downloadViews = new HashMap();
+
+			Control attachToTopOf = null;
+			Control controlAboveFolder = null;
+			Control controlBelowFolder = null;
+
+			//The Main Window
 			if (shell == null) {
 				shell = new Shell(display, SWT.RESIZE | SWT.BORDER | SWT.CLOSE
 						| SWT.MAX | SWT.MIN);
@@ -278,10 +286,8 @@ public class MainWindow
 				// register window
 				ShellManager.sharedManager().addWindow(shell);
 
-				
-				mainMenu = new MainMenu(this);
+				mainMenu = new MainMenu(shell);
 
-		    
 				FormLayout mainLayout = new FormLayout();
 				mainLayout.marginHeight = 0;
 				mainLayout.marginWidth = 0;
@@ -328,22 +334,21 @@ public class MainWindow
 						}
 						if (systemTraySWT != null
 								&& COConfigurationManager.getBooleanParameter("Enable System Tray")
-								&& COConfigurationManager.getBooleanParameter(
-										"Minimize To Tray")) {
+								&& COConfigurationManager.getBooleanParameter("Minimize To Tray")) {
 
 							minimizeToTray(event);
 						}
 					}
 
-				  public void shellDeiconified(ShellEvent e) {
-	  				if (Constants.isOSX
-	  						&& COConfigurationManager.getBooleanParameter("Password enabled")) {
-	  					shell.setVisible(false);
-	  					if (PasswordWindow.showPasswordWindow(display)) {
-	  						shell.setVisible(true);
-	  					}
-	  				}
-				  }  
+					public void shellDeiconified(ShellEvent e) {
+						if (Constants.isOSX
+								&& COConfigurationManager.getBooleanParameter("Password enabled")) {
+							shell.setVisible(false);
+							if (PasswordWindow.showPasswordWindow(display)) {
+								shell.setVisible(true);
+							}
+						}
+					}
 				});
 
 				// Separator between menu and icon bar
@@ -360,66 +365,67 @@ public class MainWindow
 				Composite statusBar = mainStatusBar.initStatusBar(azureus_core,
 						globalManager, display, shell);
 
-
 				controlAboveFolder = attachToTopOf;
 				controlBelowFolder = statusBar;
 
 			}
-	
-    try {
-    	Utils.createTorrentDropTarget(parent, true);
-    } catch (SWTError e) {
-    	// "Cannot initialize Drop".. don't spew stack trace
-    	Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
-    			"Drag and Drop not available: " + e.getMessage()));
-    } catch (Throwable e) {
-    	Logger.log(new LogEvent(LOGID, "Drag and Drop not available", e));
-    }
-    
-    if(!useCustomTab) {
-      folder = new TabFolder(parent, SWT.V_SCROLL);
-    } else {
-      folder = new CTabFolder(parent, SWT.CLOSE | SWT.BORDER);
-      final Color bg = ColorUtils.getShade(folder.getBackground(), (Constants.isOSX) ? -25 : -6);
-      final Color fg = ColorUtils.getShade(folder.getForeground(), (Constants.isOSX) ? 25 : 6);
-      folder.setBackground(bg);
-      folder.setForeground(fg);
-      //((CTabFolder)folder).setBorderVisible(false);
-      folder.addDisposeListener(new DisposeListener() {
-          public void widgetDisposed(DisposeEvent event) {
-              bg.dispose();
-              fg.dispose();
-          }
-      });
-      
-      ((CTabFolder)folder).addCTabFolder2Listener(new CTabFolder2Adapter() {
-      	public void close(CTabFolderEvent event) {
-      		if (!Tab.closed((Item)event.item)) {
-      			event.doit = false;
-      		}
-      	}
-      });
-    }    
-    
-		formData = new FormData();
-		if (controlAboveFolder == null) {
-			formData.top = new FormAttachment(0,0); 
-		} else {
-			formData.top = new FormAttachment(controlAboveFolder);
-		}
-		
-		if (controlBelowFolder == null) {
-			formData.bottom = new FormAttachment(100,0); 
-		} else {
-			formData.bottom = new FormAttachment(controlBelowFolder);
-		}
-		formData.left = new FormAttachment(0, 0); // 2 params for Pre SWT 3.0
-		formData.right = new FormAttachment(100, 0); // 2 params for Pre SWT 3.0
-		folder.setLayoutData(formData);
-		
-    Tab.initialize(this, folder);
-    
-    folder.getDisplay().addFilter(SWT.KeyDown, new Listener() {
+
+			try {
+				Utils.createTorrentDropTarget(parent, true);
+			} catch (SWTError e) {
+				// "Cannot initialize Drop".. don't spew stack trace
+				Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+						"Drag and Drop not available: " + e.getMessage()));
+			} catch (Throwable e) {
+				Logger.log(new LogEvent(LOGID, "Drag and Drop not available", e));
+			}
+
+			if (!useCustomTab) {
+				folder = new TabFolder(parent, SWT.V_SCROLL);
+			} else {
+				folder = new CTabFolder(parent, SWT.CLOSE | SWT.BORDER);
+				final Color bg = ColorUtils.getShade(folder.getBackground(),
+						(Constants.isOSX) ? -25 : -6);
+				final Color fg = ColorUtils.getShade(folder.getForeground(),
+						(Constants.isOSX) ? 25 : 6);
+				folder.setBackground(bg);
+				folder.setForeground(fg);
+				//((CTabFolder)folder).setBorderVisible(false);
+				folder.addDisposeListener(new DisposeListener() {
+					public void widgetDisposed(DisposeEvent event) {
+						bg.dispose();
+						fg.dispose();
+					}
+				});
+
+				((CTabFolder) folder).addCTabFolder2Listener(new CTabFolder2Adapter() {
+					public void close(CTabFolderEvent event) {
+						if (!Tab.closed((Item) event.item)) {
+							event.doit = false;
+						}
+					}
+				});
+			}
+
+			formData = new FormData();
+			if (controlAboveFolder == null) {
+				formData.top = new FormAttachment(0, 0);
+			} else {
+				formData.top = new FormAttachment(controlAboveFolder);
+			}
+
+			if (controlBelowFolder == null) {
+				formData.bottom = new FormAttachment(100, 0);
+			} else {
+				formData.bottom = new FormAttachment(controlBelowFolder);
+			}
+			formData.left = new FormAttachment(0, 0); // 2 params for Pre SWT 3.0
+			formData.right = new FormAttachment(100, 0); // 2 params for Pre SWT 3.0
+			folder.setLayoutData(formData);
+
+			Tab.initialize(this, folder);
+
+			folder.getDisplay().addFilter(SWT.KeyDown, new Listener() {
 				public void handleEvent(Event event) {
 					// Another window has control, skip filter
 					Control focus_control = display.getFocusControl();
@@ -458,136 +464,143 @@ public class MainWindow
 				}
 			});
 
-    SelectionAdapter selectionAdapter = new SelectionAdapter() {
-      public void widgetSelected(final SelectionEvent event) {
-        if(display != null && ! display.isDisposed())
-        	Utils.execSWTThread(new AERunnable() {
-	          public void runSupport() {
-              if(useCustomTab) {
-                CTabItem item = (CTabItem) event.item;
-                if(item != null && ! item.isDisposed() && ! folder.isDisposed()) {
-                  try {
-                  ((CTabFolder)folder).setSelection(item);
-                  Control control = item.getControl();
-                  if (control != null) {
-                    control.setVisible(true);
-                    control.setFocus();
-                  }
-                  } catch(Throwable e) {
-                  	Debug.printStackTrace( e );
-                    //Do nothing
-                  }
-                }
-              }
-              if (iconBar != null) {iconBar.setCurrentEnabler(MainWindow.this);}
-              refreshTorrentMenu();
-	          }
-	          
-          });       
-      }
-    };
-    
-    if(!useCustomTab) {
-      ((TabFolder)folder).addSelectionListener(selectionAdapter);
-    } else {
-      try {
-        ((CTabFolder)folder).setMinimumCharacters( 75 );
-      } catch (Exception e) {
-      	Logger.log(new LogEvent(LOGID, "Can't set MIN_TAB_WIDTH", e));
-      }      
-      //try {
-      ///  TabFolder2ListenerAdder.add((CTabFolder)folder);
-      //} catch (NoClassDefFoundError e) {
-        ((CTabFolder)folder).addCTabFolderListener(new CTabFolderAdapter() {          
-          public void itemClosed(CTabFolderEvent event) {
-          	if (!event.doit) {
-          		return;
-          	}
-            Tab.closed((CTabItem) event.item);
-            event.doit = true;
-            ((CTabItem) event.item).dispose();
-          }
-        });
-      //}
+			SelectionAdapter selectionAdapter = new SelectionAdapter() {
+				public void widgetSelected(final SelectionEvent event) {
+					if (display != null && !display.isDisposed())
+						Utils.execSWTThread(new AERunnable() {
+							public void runSupport() {
+								if (useCustomTab) {
+									CTabItem item = (CTabItem) event.item;
+									if (item != null && !item.isDisposed()
+											&& !folder.isDisposed()) {
+										try {
+											((CTabFolder) folder).setSelection(item);
+											Control control = item.getControl();
+											if (control != null) {
+												control.setVisible(true);
+												control.setFocus();
+											}
+										} catch (Throwable e) {
+											Debug.printStackTrace(e);
+											//Do nothing
+										}
+									}
+								}
+								if (iconBar != null) {
+									iconBar.setCurrentEnabler(MainWindow.this);
+								}
+								refreshTorrentMenu();
+							}
 
-      ((CTabFolder)folder).addSelectionListener(selectionAdapter);
+						});
+				}
+			};
 
-      try {
-        ((CTabFolder)folder).setSelectionBackground(
-                new Color[] {display.getSystemColor(SWT.COLOR_LIST_BACKGROUND), 
-                             display.getSystemColor(SWT.COLOR_LIST_BACKGROUND), 
-                             display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND) },
-                new int[] {10, 90}, true);
-      } catch (NoSuchMethodError e) {
-        /** < SWT 3.0M8 **/
-        ((CTabFolder)folder).setSelectionBackground(new Color[] {display.getSystemColor(SWT.COLOR_LIST_BACKGROUND) },
-                                                    new int[0]);
-      }
-      ((CTabFolder)folder).setSelectionForeground(display.getSystemColor(SWT.COLOR_LIST_FOREGROUND));
+			if (!useCustomTab) {
+				((TabFolder) folder).addSelectionListener(selectionAdapter);
+			} else {
+				try {
+					((CTabFolder) folder).setMinimumCharacters(75);
+				} catch (Exception e) {
+					Logger.log(new LogEvent(LOGID, "Can't set MIN_TAB_WIDTH", e));
+				}
+				//try {
+				///  TabFolder2ListenerAdder.add((CTabFolder)folder);
+				//} catch (NoClassDefFoundError e) {
+				((CTabFolder) folder).addCTabFolderListener(new CTabFolderAdapter() {
+					public void itemClosed(CTabFolderEvent event) {
+						if (!event.doit) {
+							return;
+						}
+						Tab.closed((CTabItem) event.item);
+						event.doit = true;
+						((CTabItem) event.item).dispose();
+					}
+				});
+				//}
 
-      try {
-        /* Pre 3.0M8 doesn't have Simple-mode (it's always simple mode)
-           in 3.0M9, it was called setSimpleTab(boolean)
-           in 3.0RC1, it's called setSimple(boolean)
-           Prepare for the future, and use setSimple()
-         */
-        ((CTabFolder)folder).setSimple(!COConfigurationManager.getBooleanParameter("GUI_SWT_bFancyTab"));
-      } catch (NoSuchMethodError e) { 
-        /** < SWT 3.0RC1 **/ 
-      }
-    }
+				((CTabFolder) folder).addSelectionListener(selectionAdapter);
 
-    
-    if (Logger.isEnabled())
-			Logger.log(new LogEvent(LOGID, "Initializing GUI complete"));
-   
-    globalManager.addListener(new GlobalManagerAdapter() {
-			public void downloadManagerAdded(DownloadManager dm) {
-		    MainWindow.this.downloadManagerAdded(dm);
+				try {
+					((CTabFolder) folder).setSelectionBackground(new Color[] {
+						display.getSystemColor(SWT.COLOR_LIST_BACKGROUND),
+						display.getSystemColor(SWT.COLOR_LIST_BACKGROUND),
+						display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND)
+					}, new int[] {
+						10,
+						90
+					}, true);
+				} catch (NoSuchMethodError e) {
+					/** < SWT 3.0M8 **/
+					((CTabFolder) folder).setSelectionBackground(new Color[] {
+						display.getSystemColor(SWT.COLOR_LIST_BACKGROUND)
+					}, new int[0]);
+				}
+				((CTabFolder) folder).setSelectionForeground(display.getSystemColor(SWT.COLOR_LIST_FOREGROUND));
+
+				try {
+					/* Pre 3.0M8 doesn't have Simple-mode (it's always simple mode)
+					   in 3.0M9, it was called setSimpleTab(boolean)
+					   in 3.0RC1, it's called setSimple(boolean)
+					   Prepare for the future, and use setSimple()
+					 */
+					((CTabFolder) folder).setSimple(!COConfigurationManager.getBooleanParameter("GUI_SWT_bFancyTab"));
+				} catch (NoSuchMethodError e) {
+					/** < SWT 3.0RC1 **/
+				}
 			}
 
-			public void downloadManagerRemoved(DownloadManager dm) {
-				MainWindow.this.downloadManagerRemoved(dm);
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID, "Initializing GUI complete"));
+
+			globalManager.addListener(new GlobalManagerAdapter() {
+				public void downloadManagerAdded(DownloadManager dm) {
+					MainWindow.this.downloadManagerAdded(dm);
+				}
+
+				public void downloadManagerRemoved(DownloadManager dm) {
+					MainWindow.this.downloadManagerRemoved(dm);
+				}
+			});
+
+			PluginManager plugin_manager = azureus_core.getPluginManager();
+
+			plugin_manager.firePluginEvent(PluginEvent.PEV_CONFIGURATION_WIZARD_STARTS);
+
+			if (!COConfigurationManager.getBooleanParameter("Wizard Completed")) {
+				// returns after the wizard is done
+				new ConfigureWizard(getAzureusCore(), true);
 			}
-		});
 
-    PluginManager	plugin_manager = azureus_core.getPluginManager();
-    
-    plugin_manager.firePluginEvent(	PluginEvent.PEV_CONFIGURATION_WIZARD_STARTS);
+			plugin_manager.firePluginEvent(PluginEvent.PEV_CONFIGURATION_WIZARD_COMPLETES);
 
-    if (!COConfigurationManager.getBooleanParameter("Wizard Completed")) {
-    	// returns after the wizard is done
-    	new ConfigureWizard(getAzureusCore(), true);
-    }
+			// attach the UI to plugins
+			// Must be done before initializing views, since plugins may register
+			// table columns and other objects
+			if (uiSWTInstanceImpl == null) {
+				uiSWTInstanceImpl = new UISWTInstanceImpl(azureus_core);
+				uiSWTInstanceImpl.init();
 
-    plugin_manager.firePluginEvent(	PluginEvent.PEV_CONFIGURATION_WIZARD_COMPLETES);
+				// check if any plugins shut us down
+				if (isAlreadyDead) {
+					return;
+				}
 
-    // attach the UI to plugins
-    // Must be done before initializing views, since plugins may register
-    // table columns and other objects
-    if (uiSWTInstanceImpl == null) {
-    	uiSWTInstanceImpl = new UISWTInstanceImpl(azureus_core);
-    	uiSWTInstanceImpl.init();
+				postPluginSetup();
+			}
 
-      // check if any plugins shut us down
-      if (isAlreadyDead) {
-      	return;
-      }
+		} catch (Throwable e) {
+			Debug.printStackTrace(e);
+		}
 
-      postPluginSetup();
-    }
+		showMainWindow();
+	}
 
-    } catch (Throwable e) {
-    	Debug.printStackTrace(e);
-    }
-
-    showMainWindow();
-}
 	/**
 	 * 
 	 *
 	 * @since 3.0.4.3
-	 */	
+	 */
 	public void postPluginSetup() {
 		if (azureus_core.getTrackerHost().getTorrents().length > 0) {
 			showMyTracker();
@@ -670,52 +683,55 @@ public class MainWindow
 	protected boolean getIconBarEnabled() {
 		return bIconBarEnabled;
 	}
-  
+
 	protected void setIconBarEnabled(boolean enabled) {
 		if (enabled == bIconBarEnabled || shell.isDisposed()) {
 			return;
 		}
-		bIconBarEnabled  = enabled;
+		bIconBarEnabled = enabled;
 		COConfigurationManager.setParameter("IconBar.enabled", bIconBarEnabled);
 		if (bIconBarEnabled) {
-	    try {
-		    iconBar = new IconBar(parent);
-		    iconBar.setCurrentEnabler(this);
+			try {
+				iconBar = new IconBar(parent);
+				iconBar.setCurrentEnabler(this);
 				Composite cIconBar = iconBar.getComposite();
-		    
-		    FormData folderLayoutData = (FormData)folder.getLayoutData();
-		    
-		    FormData formData = new FormData();
-		    if (folderLayoutData.top != null && folderLayoutData.top.control != null) {
-		    	formData.top = new FormAttachment(folderLayoutData.top.control);
-		    } else {
-			    formData.top = new FormAttachment(0, 0);
-		    }
-		    folderLayoutData.top = new FormAttachment(cIconBar);
-		    
-		    formData.left = new FormAttachment(0, 0); // 2 params for Pre SWT 3.0
-		    formData.right = new FormAttachment(100, 0); // 2 params for Pre SWT 3.0
-		    this.iconBar.setLayoutData(formData);
 
-	    } catch (Exception e) {
-	    	Logger.log(new LogEvent(LOGID, "Creating Icon Bar", e));
-	    }
+				FormData folderLayoutData = (FormData) folder.getLayoutData();
+
+				FormData formData = new FormData();
+				if (folderLayoutData.top != null
+						&& folderLayoutData.top.control != null) {
+					formData.top = new FormAttachment(folderLayoutData.top.control);
+				} else {
+					formData.top = new FormAttachment(0, 0);
+				}
+				folderLayoutData.top = new FormAttachment(cIconBar);
+
+				formData.left = new FormAttachment(0, 0); // 2 params for Pre SWT 3.0
+				formData.right = new FormAttachment(100, 0); // 2 params for Pre SWT 3.0
+				this.iconBar.setLayoutData(formData);
+
+			} catch (Exception e) {
+				Logger.log(new LogEvent(LOGID, "Creating Icon Bar", e));
+			}
 		} else if (iconBar != null) {
-	    try {
-		    FormData folderLayoutData = (FormData)folder.getLayoutData();
-		    FormData iconBarLayoutData = (FormData)iconBar.getComposite().getLayoutData();
-		    
-		    if (iconBarLayoutData.top != null && iconBarLayoutData.top.control != null) {
-		    	folderLayoutData.top = new FormAttachment(iconBarLayoutData.top.control);
-		    } else {
-		    	folderLayoutData.top = new FormAttachment(0, 0);
-		    }
-		    
-	    	iconBar.delete();
-		    iconBar = null;
-	    } catch (Exception e) {
-	    	Logger.log(new LogEvent(LOGID, "Removing Icon Bar", e));
-	    }
+			try {
+				FormData folderLayoutData = (FormData) folder.getLayoutData();
+				FormData iconBarLayoutData = (FormData) iconBar.getComposite().getLayoutData();
+
+				if (iconBarLayoutData.top != null
+						&& iconBarLayoutData.top.control != null) {
+					folderLayoutData.top = new FormAttachment(
+							iconBarLayoutData.top.control);
+				} else {
+					folderLayoutData.top = new FormAttachment(0, 0);
+				}
+
+				iconBar.delete();
+				iconBar = null;
+			} catch (Exception e) {
+				Logger.log(new LogEvent(LOGID, "Removing Icon Bar", e));
+			}
 		}
 		shell.layout(true, true);
 	}
@@ -726,18 +742,15 @@ public class MainWindow
 		}
 
 		// No tray access on OSX yet
-		boolean bEnableTray = COConfigurationManager
-				.getBooleanParameter("Enable System Tray")
+		boolean bEnableTray = COConfigurationManager.getBooleanParameter("Enable System Tray")
 				&& (!Constants.isOSX || SWT.getVersion() > 3300);
-		boolean bPassworded = COConfigurationManager.getBooleanParameter(
-				"Password enabled");
+		boolean bPassworded = COConfigurationManager.getBooleanParameter("Password enabled");
 		boolean bStartMinimize = bEnableTray
-				&& (bPassworded || COConfigurationManager.getBooleanParameter(
-						"Start Minimized"));
+				&& (bPassworded || COConfigurationManager.getBooleanParameter("Start Minimized"));
 
 		if (!bStartMinimize) {
-	    shell.layout();
-	    shell.open();
+			shell.layout();
+			shell.open();
 			if (!Constants.isOSX) {
 				shell.forceActive();
 			}
@@ -778,159 +791,146 @@ public class MainWindow
 		// check file associations   
 		AssociationChecker.checkAssociations();
 
-    azureus_core.triggerLifeCycleComponentCreated(uiFunctions);
+		azureus_core.triggerLifeCycleComponentCreated(uiFunctions);
 		azureus_core.getPluginManager().firePluginEvent(
 				PluginEvent.PEV_INITIALISATION_UI_COMPLETES);
 	}
 
+	protected void showMyTracker() {
+		if (my_tracker_tab == null) {
+			my_tracker_tab = new Tab(new MyTrackerView(azureus_core));
+			my_tracker_tab.getView().getComposite().addDisposeListener(
+					new DisposeListener() {
+						public void widgetDisposed(DisposeEvent e) {
+							my_tracker_tab = null;
+						}
+					});
+		} else {
+			my_tracker_tab.setFocus();
+			refreshIconBar();
+			refreshTorrentMenu();
+		}
+	}
 
-  protected void showMyTracker() {
-  	if (my_tracker_tab == null) {
-  		my_tracker_tab = new Tab(new MyTrackerView(azureus_core));
-  		my_tracker_tab.getView().getComposite().addDisposeListener(new DisposeListener() {
-      	public void widgetDisposed(DisposeEvent e) {
-      		my_tracker_tab = null;
-      	}
-      });
-  	} else {
-  		my_tracker_tab.setFocus();
-  		refreshIconBar();
-  		refreshTorrentMenu();
-  	}
-  }
-  
-  protected void 
-  showMyShares() 
-  {
-  	if (my_shares_tab == null) {
-  		my_shares_tab = new Tab(new MySharesView(azureus_core));
-  		my_shares_tab.getView().getComposite().addDisposeListener(new DisposeListener() {
-      	public void widgetDisposed(DisposeEvent e) {
-      		my_shares_tab = null;
-      	}
-      });
-  	} else {
-  		my_shares_tab.setFocus();
-  		refreshIconBar();
-  		refreshTorrentMenu();
-  	}
-  }
-  
-  protected void showMyTorrents() {
-    if (mytorrents == null) {
-    	MyTorrentsSuperView view = new MyTorrentsSuperView(azureus_core);
-      mytorrents = new Tab(view);
-      mytorrents.getView().getComposite().addDisposeListener(new DisposeListener() {
-      	public void widgetDisposed(DisposeEvent e) {
-      		mytorrents = null;
-      	}
-      });
-    } else {
-      mytorrents.setFocus();
-    }
-    refreshIconBar();
-    refreshTorrentMenu();
-  }
-  
-  protected void showAllPeersView() {
-	    if (all_peers == null) {
-	    	PeerSuperView view = new PeerSuperView(azureus_core.getGlobalManager());
-	    	all_peers = new Tab(view);
-	    	all_peers.getView().getComposite().addDisposeListener(new DisposeListener() {
-	      	public void widgetDisposed(DisposeEvent e) {
-	      		all_peers = null;
-	      	}
-	      });
-	    } else {
-	    	all_peers.setFocus();
-	    }
-	    refreshIconBar();
-	    refreshTorrentMenu();
-	  }
-	
-  protected void 
-  showMultiOptionsView(
-	DownloadManager[]	managers )
-  {
-	  if (multi_options_tab != null) {
-		  multi_options_tab.dispose();
-	  }
-	  
-	  TorrentOptionsView view = new TorrentOptionsView( managers );
-	
-	  multi_options_tab = new Tab(view);
-		
-	  view.getComposite().addDisposeListener(
-			  new DisposeListener() 
-			  {
-				  public void 
-				  widgetDisposed(
-						DisposeEvent e) 
-				  {
-					  multi_options_tab = null;
-				  }
-			  });
+	protected void showMyShares() {
+		if (my_shares_tab == null) {
+			my_shares_tab = new Tab(new MySharesView(azureus_core));
+			my_shares_tab.getView().getComposite().addDisposeListener(
+					new DisposeListener() {
+						public void widgetDisposed(DisposeEvent e) {
+							my_shares_tab = null;
+						}
+					});
+		} else {
+			my_shares_tab.setFocus();
+			refreshIconBar();
+			refreshTorrentMenu();
+		}
+	}
 
-	  refreshIconBar();
-	  refreshTorrentMenu();
-  }
-  
-  private void minimizeToTray(ShellEvent event) {
-    //Added this test so that we can call this method with null parameter.
-    if (event != null)
-      event.doit = false;
+	protected void showMyTorrents() {
+		if (mytorrents == null) {
+			MyTorrentsSuperView view = new MyTorrentsSuperView(azureus_core);
+			mytorrents = new Tab(view);
+			mytorrents.getView().getComposite().addDisposeListener(
+					new DisposeListener() {
+						public void widgetDisposed(DisposeEvent e) {
+							mytorrents = null;
+						}
+					});
+		} else {
+			mytorrents.setFocus();
+		}
+		refreshIconBar();
+		refreshTorrentMenu();
+	}
 
-    // XXX hack for release.. should not access param outside Utils.linkShellMetrics
+	protected void showAllPeersView() {
+		if (all_peers == null) {
+			PeerSuperView view = new PeerSuperView(azureus_core.getGlobalManager());
+			all_peers = new Tab(view);
+			all_peers.getView().getComposite().addDisposeListener(
+					new DisposeListener() {
+						public void widgetDisposed(DisposeEvent e) {
+							all_peers = null;
+						}
+					});
+		} else {
+			all_peers.setFocus();
+		}
+		refreshIconBar();
+		refreshTorrentMenu();
+	}
+
+	protected void showMultiOptionsView(DownloadManager[] managers) {
+		if (multi_options_tab != null) {
+			multi_options_tab.dispose();
+		}
+
+		TorrentOptionsView view = new TorrentOptionsView(managers);
+
+		multi_options_tab = new Tab(view);
+
+		view.getComposite().addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent e) {
+				multi_options_tab = null;
+			}
+		});
+
+		refreshIconBar();
+		refreshTorrentMenu();
+	}
+
+	private void minimizeToTray(ShellEvent event) {
+		//Added this test so that we can call this method with null parameter.
+		if (event != null)
+			event.doit = false;
+
+		// XXX hack for release.. should not access param outside Utils.linkShellMetrics
 		COConfigurationManager.setParameter("window.maximized",
 				shell.getMaximized());
-    shell.setVisible(false);
+		shell.setVisible(false);
 
 		if (downloadBasket != null)
-      downloadBasket.setVisible(true);
+			downloadBasket.setVisible(true);
 
-    MiniBarManager.getManager().setAllVisible(true);
-  }
-  
-  private void
-  updateComponents()
-  {
-  	if (mainStatusBar != null)
-  		mainStatusBar.refreshStatusText();
+		MiniBarManager.getManager().setAllVisible(true);
+	}
 
-  	if (folder != null) {
-  		if(useCustomTab) {
-  			((CTabFolder)folder).update();
-  		} else {
-  			((TabFolder)folder).update();
-  		}
-  	}
-  }
+	private void updateComponents() {
+		if (mainStatusBar != null)
+			mainStatusBar.refreshStatusText();
 
-  protected boolean destroyRequest() {
-	  Logger.log(new LogEvent(LOGID, "MainWindow::destroyRequest"));
+		if (folder != null) {
+			if (useCustomTab) {
+				((CTabFolder) folder).update();
+			} else {
+				((TabFolder) folder).update();
+			}
+		}
+	}
 
-	  if ( COConfigurationManager.getBooleanParameter("Password enabled")){
-		  
-	  	if (!PasswordWindow.showPasswordWindow(display)) {
-		  	Logger.log(new LogEvent(LOGID, "    denied - password is enabled"));
-	
-			  return false;
-	  	}
-	  }
-	  
-	  Utils.execSWTThread(
-			new Runnable()
-			{
-				public void
-				run()
-				{
-					dispose( false, false );
-				}
-			});
-	  return true;
-  }
+	protected boolean destroyRequest() {
+		Logger.log(new LogEvent(LOGID, "MainWindow::destroyRequest"));
 
-  private void downloadManagerAdded(DownloadManager created) {
+		if (COConfigurationManager.getBooleanParameter("Password enabled")) {
+
+			if (!PasswordWindow.showPasswordWindow(display)) {
+				Logger.log(new LogEvent(LOGID, "    denied - password is enabled"));
+
+				return false;
+			}
+		}
+
+		Utils.execSWTThread(new Runnable() {
+			public void run() {
+				dispose(false, false);
+			}
+		});
+		return true;
+	}
+
+	private void downloadManagerAdded(DownloadManager created) {
 		created.addListener(new DownloadManagerAdapter() {
 			public void stateChanged(DownloadManager manager, int state) {
 				downloadManagerStateChanged(manager, state);
@@ -938,73 +938,73 @@ public class MainWindow
 		});
 	}
 
-  protected void openManagerView(DownloadManager downloadManager) {
-    try{
-    	downloadViews_mon.enter();
-    
-      if (downloadViews.containsKey(downloadManager)) {
-        Tab tab = (Tab) downloadViews.get(downloadManager);
-        tab.setFocus();
-        refreshIconBar();
-        refreshTorrentMenu();
-      }
-      else {
-        Tab tab = new Tab(new ManagerView(azureus_core, downloadManager));
-        downloadViews.put(downloadManager, tab);
-      }
-    }finally{
-    	
-    	downloadViews_mon.exit();
-    }
-  }
+	protected void openManagerView(DownloadManager downloadManager) {
+		try {
+			downloadViews_mon.enter();
 
-  protected void removeManagerView(DownloadManager downloadManager) {
-    try{
-    	downloadViews_mon.enter();
-      
-    	downloadViews.remove(downloadManager);
-    }finally{
-    	
-    	downloadViews_mon.exit();
-    }
-  }
+			if (downloadViews.containsKey(downloadManager)) {
+				Tab tab = (Tab) downloadViews.get(downloadManager);
+				tab.setFocus();
+				refreshIconBar();
+				refreshTorrentMenu();
+			} else {
+				Tab tab = new Tab(new ManagerView(azureus_core, downloadManager));
+				downloadViews.put(downloadManager, tab);
+			}
+		} finally {
 
-   private void downloadManagerRemoved(DownloadManager removed) {
-    try{
-    	downloadViews_mon.enter();
-    
-      if (downloadViews.containsKey(removed)) {
-        final Tab tab = (Tab) downloadViews.get(removed);
-        Utils.execSWTThread(new AERunnable(){
-          public void runSupport() {
-            if (display == null || display.isDisposed())
-              return;
+			downloadViews_mon.exit();
+		}
+	}
 
-            tab.dispose();
-          }
-        });
+	protected void removeManagerView(DownloadManager downloadManager) {
+		try {
+			downloadViews_mon.enter();
 
-      }
-    }finally{
-    	
-    	downloadViews_mon.exit();
-    }
-  }
+			downloadViews.remove(downloadManager);
+		} finally {
 
-  protected Display getDisplay() {
-    return this.display;
-  }
+			downloadViews_mon.exit();
+		}
+	}
 
-  protected Shell getShell() {
-    return shell;
-  }
+	private void downloadManagerRemoved(DownloadManager removed) {
+		try {
+			downloadViews_mon.enter();
 
-  public void setVisible(final boolean visible, final boolean tryTricks) {
+			if (downloadViews.containsKey(removed)) {
+				final Tab tab = (Tab) downloadViews.get(removed);
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						if (display == null || display.isDisposed())
+							return;
+
+						tab.dispose();
+					}
+				});
+
+			}
+		} finally {
+
+			downloadViews_mon.exit();
+		}
+	}
+
+	protected Display getDisplay() {
+		return this.display;
+	}
+
+	protected Shell getShell() {
+		return shell;
+	}
+
+	public void setVisible(final boolean visible, final boolean tryTricks) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				bSettingVisibility = true;
 				try {
-					boolean currentlyVisible = shell.getVisible() && !shell.getMinimized();
+					boolean currentlyVisible = shell.getVisible()
+							&& !shell.getMinimized();
 					if (visible && !currentlyVisible) {
 						if (COConfigurationManager.getBooleanParameter("Password enabled",
 								false)) {
@@ -1014,69 +1014,69 @@ public class MainWindow
 							}
 						}
 					}
-  
-  				ArrayList wasVisibleList = null;
-  				boolean bHideAndShow = false;
-  				// temp disabled
-  				//tryTricks && visible && Constants.isWindows && display.getActiveShell() != shell;
-  				if (bHideAndShow) {
-  					wasVisibleList = new ArrayList();
-  					// We don't want the window to just flash and not open, so:
-  					// -Minimize main shell
-  					// -Set all shells invisible
-  					try {
-    					shell.setMinimized(true);
-    					Shell[] shells = shell.getDisplay().getShells();
-    					for (int i = 0; i < shells.length; i++) {
-    						if (shells[i].isVisible()) {
-    							wasVisibleList.add(shells[i]);
-      						shells[i].setVisible(false);
-    						}
-    					}
-    				} catch (Exception e) {
-    				}
-  				}
-  				
-  				if (visible) {
-  					shell.setMinimized(false);
-  					if (!currentlyVisible
-  							&& COConfigurationManager.getBooleanParameter("window.maximized")) {
-  						shell.setMaximized(true);
-  					}
-  				} else {
-  			    // XXX hack for release.. should not access param outside Utils.linkShellMetrics
-  					COConfigurationManager.setParameter("window.maximized",
-  							shell.getMaximized());
-  				}
-  				  				
-  				shell.setVisible(visible);
-  				if (visible) {
-  					if (downloadBasket != null) {
-  						downloadBasket.setVisible(false);
-  						downloadBasket.setMoving(false);
-  					}
-  
-  					/*
-  					 if (trayIcon != null)
-  					 trayIcon.showIcon();
-  					 */
-  					shell.forceActive();
-  
-  					if (bHideAndShow) {
-    					try {
-      					Shell[] shells = shell.getDisplay().getShells();
-      					for (int i = 0; i < shells.length; i++) {
-      						if (shells[i] != shell) {
-      							if (wasVisibleList.contains(shells[i])) {
-      								shells[i].setVisible(visible);
-      							}
-      							shells[i].setFocus();
-      						}
-      					}
-    					} catch (Exception e) {
-    					}
-  					}
-  				}
+
+					ArrayList wasVisibleList = null;
+					boolean bHideAndShow = false;
+					// temp disabled
+					//tryTricks && visible && Constants.isWindows && display.getActiveShell() != shell;
+					if (bHideAndShow) {
+						wasVisibleList = new ArrayList();
+						// We don't want the window to just flash and not open, so:
+						// -Minimize main shell
+						// -Set all shells invisible
+						try {
+							shell.setMinimized(true);
+							Shell[] shells = shell.getDisplay().getShells();
+							for (int i = 0; i < shells.length; i++) {
+								if (shells[i].isVisible()) {
+									wasVisibleList.add(shells[i]);
+									shells[i].setVisible(false);
+								}
+							}
+						} catch (Exception e) {
+						}
+					}
+
+					if (visible) {
+						shell.setMinimized(false);
+						if (!currentlyVisible
+								&& COConfigurationManager.getBooleanParameter("window.maximized")) {
+							shell.setMaximized(true);
+						}
+					} else {
+						// XXX hack for release.. should not access param outside Utils.linkShellMetrics
+						COConfigurationManager.setParameter("window.maximized",
+								shell.getMaximized());
+					}
+
+					shell.setVisible(visible);
+					if (visible) {
+						if (downloadBasket != null) {
+							downloadBasket.setVisible(false);
+							downloadBasket.setMoving(false);
+						}
+
+						/*
+						 if (trayIcon != null)
+						 trayIcon.showIcon();
+						 */
+						shell.forceActive();
+
+						if (bHideAndShow) {
+							try {
+								Shell[] shells = shell.getDisplay().getShells();
+								for (int i = 0; i < shells.length; i++) {
+									if (shells[i] != shell) {
+										if (wasVisibleList.contains(shells[i])) {
+											shells[i].setVisible(visible);
+										}
+										shells[i].setFocus();
+									}
+								}
+							} catch (Exception e) {
+							}
+						}
+					}
 				} finally {
 					bSettingVisibility = false;
 				}
@@ -1085,11 +1085,11 @@ public class MainWindow
 		});
 	}
 
-  protected boolean isVisible() {
-    return shell.isVisible();
-  }
+	protected boolean isVisible() {
+		return shell.isVisible();
+	}
 
-  public boolean dispose(final boolean for_restart,
+	public boolean dispose(final boolean for_restart,
 			final boolean close_already_in_progress) {
 		return Utils.execSWTThreadWithBool("MainWindow.dispose",
 				new AERunnableBoolean() {
@@ -1097,114 +1097,113 @@ public class MainWindow
 						return _dispose(for_restart, close_already_in_progress);
 					}
 				});
-  }
-  
-  private boolean _dispose(boolean for_restart, boolean close_already_in_progress) {
-  	if (isAlreadyDead) {
-  		return true;
-  	}
+	}
+
+	private boolean _dispose(boolean for_restart,
+			boolean close_already_in_progress) {
+		if (isAlreadyDead) {
+			return true;
+		}
 
 		if (!UIExitUtilsSWT.canClose(globalManager, for_restart)) {
 			return false;
 		}
-    
-    if(systemTraySWT != null) {
-      systemTraySWT.dispose();
-    }
-    
-    /**
-     * Explicitly force the transfer bar location to be saved (if appropriate and open).
-     * 
-     * We can't rely that the normal mechanism for doing this won't fail (which it usually does)
-     * when the GUI is being disposed of.
-     */
-	AllTransfersBar transfer_bar = AllTransfersBar.getBarIfOpen(AzureusCoreFactory.getSingleton().getGlobalManager());
-	if (transfer_bar != null) {transfer_bar.forceSaveLocation();}
-    
-    // close all tabs
-    Tab.closeAllTabs();
 
-    isAlreadyDead = true; //NICO try to never die twice...
-    /*
-    if (this.trayIcon != null)
-      SysTrayMenu.dispose();
-    */
+		if (systemTraySWT != null) {
+			systemTraySWT.dispose();
+		}
 
-    if(updater != null){
-    	
-      updater.stopIt();
-    }
-    
-    if (initializer != null) {
-    	initializer.stopIt( for_restart, close_already_in_progress );
-    }
+		/**
+		 * Explicitly force the transfer bar location to be saved (if appropriate and open).
+		 * 
+		 * We can't rely that the normal mechanism for doing this won't fail (which it usually does)
+		 * when the GUI is being disposed of.
+		 */
+		AllTransfersBar transfer_bar = AllTransfersBar.getBarIfOpen(AzureusCoreFactory.getSingleton().getGlobalManager());
+		if (transfer_bar != null) {
+			transfer_bar.forceSaveLocation();
+		}
 
-    //NICO swt disposes the mainWindow all by itself (thanks... ;-( ) on macosx
-    if(!shell.isDisposed() && !isDisposeFromListener) {
-    	shell.dispose();
-    }
-      
-    
-    COConfigurationManager.removeParameterListener( "config.style.useSIUnits", this );
-    COConfigurationManager.removeParameterListener( "Show Download Basket", this );
-    COConfigurationManager.removeParameterListener( "GUI_SWT_bFancyTab", this );
-    
+		// close all tabs
+		Tab.closeAllTabs();
 
-    UIExitUtilsSWT.uiShutdown();
-    
-    return true;
-  }
+		isAlreadyDead = true; //NICO try to never die twice...
+		/*
+		if (this.trayIcon != null)
+		  SysTrayMenu.dispose();
+		*/
 
-  protected GlobalManager getGlobalManager() {
-    return globalManager;
-  }
+		if (updater != null) {
 
-  /**
+			updater.stopIt();
+		}
+
+		if (initializer != null) {
+			initializer.stopIt(for_restart, close_already_in_progress);
+		}
+
+		//NICO swt disposes the mainWindow all by itself (thanks... ;-( ) on macosx
+		if (!shell.isDisposed() && !isDisposeFromListener) {
+			shell.dispose();
+		}
+
+		COConfigurationManager.removeParameterListener("config.style.useSIUnits",
+				this);
+		COConfigurationManager.removeParameterListener("Show Download Basket", this);
+		COConfigurationManager.removeParameterListener("GUI_SWT_bFancyTab", this);
+
+		UIExitUtilsSWT.uiShutdown();
+
+		return true;
+	}
+
+	protected GlobalManager getGlobalManager() {
+		return globalManager;
+	}
+
+	/**
 	 * @return
 	 */
-  protected static MainWindow getWindow() {
-    return window;
-  }
+	protected static MainWindow getWindow() {
+		return window;
+	}
 
-  /**
+	/**
 	 * @return
 	 */
-  protected TrayWindow getTray() {
-    return downloadBasket;
-  }
+	protected TrayWindow getTray() {
+		return downloadBasket;
+	}
 
+	Map pluginTabs = new HashMap();
 
-  
-  Map pluginTabs = new HashMap();
-  
-  
-  protected void openPluginView(String sParentID, String sViewID, UISWTViewEventListener l,
-			Object dataSource, boolean bSetFocus) {
-  	
-  	UISWTViewImpl view = null;
-  	try {
-  		view = new UISWTViewImpl(sParentID, sViewID, l);
-  	} catch (Exception e) {
-  		Tab tab = (Tab) pluginTabs.get(sViewID);
-  		if (tab != null) {
-  			tab.setFocus();
-  		}
+	protected void openPluginView(String sParentID, String sViewID,
+			UISWTViewEventListener l, Object dataSource, boolean bSetFocus) {
+
+		UISWTViewImpl view = null;
+		try {
+			view = new UISWTViewImpl(sParentID, sViewID, l);
+		} catch (Exception e) {
+			Tab tab = (Tab) pluginTabs.get(sViewID);
+			if (tab != null) {
+				tab.setFocus();
+			}
 			return;
-  	}
+		}
 		view.dataSourceChanged(dataSource);
 
 		Tab tab = new Tab(view, bSetFocus);
 
- 		pluginTabs.put(sViewID, tab);
+		pluginTabs.put(sViewID, tab);
 	}
-  
-  /**
-   * Close all plugin views with the specified ID
-   * 
-   * @param sViewID
-   */
-  protected void closePluginViews(String sViewID) {
-  	Item[] items;
+
+	/**
+	 * Close all plugin views with the specified ID
+	 * 
+	 * @param sViewID
+	 */
+	protected void closePluginViews(String sViewID) {
+		Item[] items;
 
 		if (folder instanceof CTabFolder)
 			items = ((CTabFolder) folder).getItems();
@@ -1226,15 +1225,15 @@ public class MainWindow
 				}
 			}
 		} // for
-  }
-  
-  /**
-   * Get all open Plugin Views
-   * 
-   * @return open plugin views
-   */
-  protected UISWTView[] getPluginViews() {
-  	Item[] items;
+	}
+
+	/**
+	 * Get all open Plugin Views
+	 * 
+	 * @return open plugin views
+	 */
+	protected UISWTView[] getPluginViews() {
+		Item[] items;
 
 		if (folder instanceof CTabFolder)
 			items = ((CTabFolder) folder).getItems();
@@ -1244,18 +1243,18 @@ public class MainWindow
 			return new UISWTView[0];
 
 		ArrayList views = new ArrayList();
-		
+
 		for (int i = 0; i < items.length; i++) {
 			IView view = Tab.getView(items[i]);
 			if (view instanceof UISWTViewImpl) {
 				views.add(view);
 			}
 		} // for
-		
-		return (UISWTView[])views.toArray(new UISWTView[0]);
-  }
 
-  protected void openPluginView(final AbstractIView view, final String name) {
+		return (UISWTView[]) views.toArray(new UISWTView[0]);
+	}
+
+	protected void openPluginView(final AbstractIView view, final String name) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				Tab tab = (Tab) pluginTabs.get(name);
@@ -1268,318 +1267,344 @@ public class MainWindow
 			}
 		});
 	}
-  
-  protected void 
-  closePluginView( 
-	IView	view) 
-  {
-	  Item	tab = Tab.getTab( view );
-	  
-	  if ( tab != null ){
-		  
-		  Tab.closed( tab );
-	  }
-  }
-  
-  public void removeActivePluginView( String view_name ) {
-    pluginTabs.remove(view_name);
-  }
-  
- 
 
+	protected void closePluginView(IView view) {
+		Item tab = Tab.getTab(view);
 
-  
-  // @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
-  public void parameterChanged(String parameterName) {
-    if( parameterName.equals( "Show Download Basket" ) ) {
-      if (COConfigurationManager.getBooleanParameter("Show Download Basket")) {
-        if(downloadBasket == null) {
-          downloadBasket = new TrayWindow(this);
-          downloadBasket.setVisible(true);
-        }
-      } else if(downloadBasket != null) {
-        downloadBasket.setVisible(false);
-        downloadBasket = null;
-      }
-    }
-    
-    if( parameterName.equals( "GUI_SWT_bFancyTab" ) && 
-        folder instanceof CTabFolder && 
-        folder != null && !folder.isDisposed()) {
-      try {
-        ((CTabFolder)folder).setSimple(!COConfigurationManager.getBooleanParameter("GUI_SWT_bFancyTab"));
-      } catch (NoSuchMethodError e) { 
-        /** < SWT 3.0RC1 **/ 
-      }
-    }
-    
-    if( parameterName.equals( "config.style.useSIUnits" ) ) {
-      updateComponents();
-    }
-  }
-  
- 
+		if (tab != null) {
 
+			Tab.closed(tab);
+		}
+	}
 
-  // @see org.gudy.azureus2.ui.swt.IconBarEnabler#isEnabled(java.lang.String)
-  public boolean isEnabled(String itemKey) {
-    if(itemKey.equals("open"))
-      return true;
-    if(itemKey.equals("new"))
-      return true;
-    IView currentView = getCurrentView();
-    if(currentView != null)
-      return currentView.isEnabled(itemKey);
-    return false;
-  }
+	public void removeActivePluginView(String view_name) {
+		pluginTabs.remove(view_name);
+	}
 
-  // @see org.gudy.azureus2.ui.swt.IconBarEnabler#isSelected(java.lang.String)
-  public boolean isSelected(String itemKey) {   
-    return false;
-  }
-
-  // @see org.gudy.azureus2.ui.swt.IconBarEnabler#itemActivated(java.lang.String)
-  public void itemActivated(String itemKey) {   
-    if(itemKey.equals("open")) {        
-     TorrentOpener.openTorrentWindow();
-     return;
-    }
-    if(itemKey.equals("new")) {
-      new NewTorrentWizard(getAzureusCore(),display);
-      return;
-    }
-    IView currentView = getCurrentView();
-    if(currentView != null)
-      currentView.itemActivated(itemKey);    
-  }
-  
-  IView getCurrentView() {
-	  try {
-	    if(!useCustomTab) {
-	      TabItem[] selection = ((TabFolder)folder).getSelection();
-				if(selection.length > 0)  {
-				  return Tab.getView(selection[0]);
+	// @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
+	public void parameterChanged(String parameterName) {
+		if (parameterName.equals("Show Download Basket")) {
+			if (COConfigurationManager.getBooleanParameter("Show Download Basket")) {
+				if (downloadBasket == null) {
+					downloadBasket = new TrayWindow(this);
+					downloadBasket.setVisible(true);
 				}
-			  return null;
-	    }
-      return Tab.getView(((CTabFolder)folder).getSelection());
-	  }
-	  catch (Exception e) {
-	    return null;
-	  }
-  }
+			} else if (downloadBasket != null) {
+				downloadBasket.setVisible(false);
+				downloadBasket = null;
+			}
+		}
+
+		if (parameterName.equals("GUI_SWT_bFancyTab")
+				&& folder instanceof CTabFolder && folder != null
+				&& !folder.isDisposed()) {
+			try {
+				((CTabFolder) folder).setSimple(!COConfigurationManager.getBooleanParameter("GUI_SWT_bFancyTab"));
+			} catch (NoSuchMethodError e) {
+				/** < SWT 3.0RC1 **/
+			}
+		}
+
+		if (parameterName.equals("config.style.useSIUnits")) {
+			updateComponents();
+		}
+	}
+
+	// @see org.gudy.azureus2.ui.swt.IconBarEnabler#isEnabled(java.lang.String)
+	public boolean isEnabled(String itemKey) {
+		if (itemKey.equals("open"))
+			return true;
+		if (itemKey.equals("new"))
+			return true;
+		IView currentView = getCurrentView();
+		if (currentView != null)
+			return currentView.isEnabled(itemKey);
+		return false;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.IconBarEnabler#isSelected(java.lang.String)
+	public boolean isSelected(String itemKey) {
+		return false;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.IconBarEnabler#itemActivated(java.lang.String)
+	public void itemActivated(String itemKey) {
+		if (itemKey.equals("open")) {
+			TorrentOpener.openTorrentWindow();
+			return;
+		}
+		if (itemKey.equals("new")) {
+			new NewTorrentWizard(getAzureusCore(), display);
+			return;
+		}
+		IView currentView = getCurrentView();
+		if (currentView != null)
+			currentView.itemActivated(itemKey);
+	}
+
+	IView getCurrentView() {
+		try {
+			if (!useCustomTab) {
+				TabItem[] selection = ((TabFolder) folder).getSelection();
+				if (selection.length > 0) {
+					return Tab.getView(selection[0]);
+				}
+				return null;
+			}
+			return Tab.getView(((CTabFolder) folder).getSelection());
+		} catch (Exception e) {
+			return null;
+		}
+	}
 
 	protected void refreshIconBar() {
-		if (iconBar != null) {iconBar.setCurrentEnabler(this);}
+		if (iconBar != null) {
+			iconBar.setCurrentEnabler(this);
+		}
 	}
-	
+
 	protected void refreshTorrentMenu() {
-		if (this.mainMenu == null) {return;}
+		if (this.mainMenu == null) {
+			return;
+		}
 		DownloadManager[] dm;
 		boolean detailed_view;
 		TableViewSWT tv = null;
 		IView currentView = getCurrentView();
-		
+
 		if (currentView instanceof ManagerView) {
 			dm = new DownloadManager[] {
-				((ManagerView)currentView).getDownload(),
+				((ManagerView) currentView).getDownload(),
 			};
 			detailed_view = true;
-		}
-		else if (currentView instanceof MyTorrentsSuperView) {
-			dm = ((MyTorrentsSuperView)this.getCurrentView()).getSelectedDownloads();
+		} else if (currentView instanceof MyTorrentsSuperView) {
+			dm = ((MyTorrentsSuperView) this.getCurrentView()).getSelectedDownloads();
 			detailed_view = false;
-		}
-		else {
+		} else {
 			dm = null;
 			detailed_view = false;
 		}
-		
+
 		if (currentView instanceof TableViewTab) {
-			tv = ((TableViewTab)currentView).getTableView();
+			tv = ((TableViewTab) currentView).getTableView();
 		}
-		this.mainMenu.setTorrentMenuContext(dm, tv, detailed_view);
+
+		
+		/*
+		 * KN: Reflectively find the Torrents menu item and update its data
+		 */
+		final MenuItem torrentItem = MenuFactory.findMenuItem(
+				mainMenu.getMenu(IMenuConstants.MENU_ID_MENU_BAR), MenuFactory.MENU_ID_TORRENT);
+
+		if (null != torrentItem) {
+			final DownloadManager[] dm_final = dm;
+			final TableViewSWT tv_final = tv;
+			final boolean detailed_view_final = detailed_view;
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					if (null == dm_final) {
+						torrentItem.setEnabled(false);
+					} else {
+						torrentItem.setData("downloads", dm_final);
+						torrentItem.setData("TableView", tv_final);
+						torrentItem.setData("is_detailed_view",
+								Boolean.valueOf(detailed_view_final));
+						torrentItem.setEnabled(true);
+					}
+				}
+			}, true); // async
+		}
+
 	}
 
-  protected void close() {
-      getShell().close();
-  }
+	protected void close() {
+		getShell().close();
+	}
 
-  protected void closeViewOrWindow() {
-      if(getCurrentView() != null)
-        Tab.closeCurrent();
-      else
-          close();
-  }
+	protected void closeViewOrWindow() {
+		if (getCurrentView() != null)
+			Tab.closeCurrent();
+		else
+			close();
+	}
 
-  protected ConfigView showConfig() {
-    if (config == null){
-      config_view = new ConfigView( azureus_core );
-      config = new Tab(config_view);
-      config_view.getComposite().addDisposeListener(new DisposeListener() {
+	protected ConfigView showConfig() {
+		if (config == null) {
+			config_view = new ConfigView(azureus_core);
+			config = new Tab(config_view);
+			config_view.getComposite().addDisposeListener(new DisposeListener() {
 				public void widgetDisposed(DisposeEvent e) {
 					config = null;
 					config_view = null;
 				}
 			});
-    }else{
-      config.setFocus();
-	  refreshIconBar();
-  	  refreshTorrentMenu();
-    }
-    return config_view;
-  }
-  
+		} else {
+			config.setFocus();
+			refreshIconBar();
+			refreshTorrentMenu();
+		}
+		return config_view;
+	}
 
-  protected boolean showConfig(String id) {
-  	showConfig();
-  	if (config_view == null) {
-  		return false;
-  	}
-    if (id == null) {
-    	return true;
-    }
-    return config_view.selectSection(id);
-  }
-  
+	protected boolean showConfig(String id) {
+		showConfig();
+		if (config_view == null) {
+			return false;
+		}
+		if (id == null) {
+			return true;
+		}
+		return config_view.selectSection(id);
+	}
 
-  
-  protected void showConsole() {
-    if (console == null) {
-      console = new Tab(new LoggerView(events));
-      console.getView().getComposite().addDisposeListener(new DisposeListener() {
-      	public void widgetDisposed(DisposeEvent e) {
-      		console = null;
-      	}
-      });
-    } else {
-      console.setFocus();
-      refreshIconBar();
-  	  refreshTorrentMenu();
-    }
-  }
-  
-  protected void showStats() {
-    if (stats_tab == null) {
-      stats_tab = new Tab(new StatsView(globalManager,azureus_core));
-      stats_tab.getView().getComposite().addDisposeListener(new DisposeListener() {
-      	public void widgetDisposed(DisposeEvent e) {
-					stats_tab = null;
-				}
-			});
-    } else {
-      stats_tab.setFocus();
-      refreshIconBar();
-  	  refreshTorrentMenu();
-    }
-  }
+	protected void showConsole() {
+		if (console == null) {
+			console = new Tab(new LoggerView(events));
+			console.getView().getComposite().addDisposeListener(
+					new DisposeListener() {
+						public void widgetDisposed(DisposeEvent e) {
+							console = null;
+						}
+					});
+		} else {
+			console.setFocus();
+			refreshIconBar();
+			refreshTorrentMenu();
+		}
+	}
 
-  protected void showStatsDHT() {
-  	showStats();
-  	if (stats_tab == null) {
-  		return;
-  	}
+	protected void showStats() {
+		if (stats_tab == null) {
+			stats_tab = new Tab(new StatsView(globalManager, azureus_core));
+			stats_tab.getView().getComposite().addDisposeListener(
+					new DisposeListener() {
+						public void widgetDisposed(DisposeEvent e) {
+							stats_tab = null;
+						}
+					});
+		} else {
+			stats_tab.setFocus();
+			refreshIconBar();
+			refreshTorrentMenu();
+		}
+	}
+
+	protected void showStatsDHT() {
+		showStats();
+		if (stats_tab == null) {
+			return;
+		}
 		((StatsView) stats_tab.getView()).showDHT();
-  }
-  
-  protected void showStatsTransfers() {
-  	showStats();
-  	if (stats_tab == null) {
-  		return;
-  	}
+	}
+
+	protected void showStatsTransfers() {
+		showStats();
+		if (stats_tab == null) {
+			return;
+		}
 		((StatsView) stats_tab.getView()).showTransfers();
-  }
+	}
 
-  protected void setSelectedLanguageItem() 
-  {
-  	try{
-  		this_mon.enter();
-  	
-	    Messages.updateLanguageForControl(shell);
-	    
-	    if ( systemTraySWT != null ){
-	    	systemTraySWT.updateLanguage();
-	    }
-	    
-	  	if (mainStatusBar != null) {
-	  		mainStatusBar.refreshStatusText();
-  		}
+	protected void setSelectedLanguageItem() {
+		try {
+			this_mon.enter();
 
-	    
-	    if (folder != null) {
-	      if(useCustomTab) {
-	        ((CTabFolder)folder).update();
-	      } else {
-	        ((TabFolder)folder).update();
-	      }
-	    }
+			Messages.updateLanguageForControl(shell);
+
+			if (systemTraySWT != null) {
+				systemTraySWT.updateLanguage();
+			}
+
+			if (mainStatusBar != null) {
+				mainStatusBar.refreshStatusText();
+			}
+
+			if (folder != null) {
+				if (useCustomTab) {
+					((CTabFolder) folder).update();
+				} else {
+					((TabFolder) folder).update();
+				}
+			}
+
+			if (downloadBasket != null) {
+				downloadBasket.updateLanguage();
+			}
+
+			Tab.updateLanguage();
+
+			if (mainStatusBar != null) {
+				mainStatusBar.updateStatusText();
+			}
+
+			if (mainMenu != null) {
+				MenuFactory.updateMenuText(mainMenu.getMenu(IMenuConstants.MENU_ID_MENU_BAR));
+			}
+		} finally {
+
+			this_mon.exit();
+		}
+	}
+
+	/**
+	 * @deprecated Use {@link #getMainMenu()} instead
+	 * @return
+	 */
+	public MainMenu getMenu() {
+		return (MainMenu)mainMenu;
+	}
+
+	/**
+	 * @deprecated Use {@link #setMainMenu(IMainMenu)} instead
+	 * @param menu
+	 */
+	public void setMenu(MainMenu menu) {
+		mainMenu = menu;
+	}
+
+	public IMainMenu getMainMenu(){
+		return mainMenu;
+	}
 	
-	    if (downloadBasket != null){
-	      downloadBasket.updateLanguage();
-	    }
-	    
-	    Tab.updateLanguage();
-	  
-	  	if (mainStatusBar != null) {
-	  		mainStatusBar.updateStatusText();
-  		}
-	  	
-	  	if (mainMenu != null) {
-	  		mainMenu.updateMenuText(mainMenu.getMenu(MainMenu.MENU_BAR));
-	  	}
-  	}finally{
-  		
-  		this_mon.exit();
-  	}
-  }
-  
-  public MainMenu getMenu() {
-    return mainMenu;
-  }
-  
-  public void setMenu(MainMenu menu) {
-  	mainMenu = menu;
-  }
-  
-  private void downloadManagerStateChanged(final DownloadManager manager,
+	
+	public void setMainMenu(IMainMenu menu) {
+		mainMenu = menu;
+	}
+	
+	private void downloadManagerStateChanged(final DownloadManager manager,
 			int state) {
-    // if state == STARTED, then open the details window (according to config)
-    if(state == DownloadManager.STATE_DOWNLOADING || state == DownloadManager.STATE_SEEDING) {
-        if(display != null && !display.isDisposed()) {
-        	Utils.execSWTThread(new AERunnable() {
-            public void runSupport() {
-            	if (display == null || display.isDisposed())
-            		return;
+		// if state == STARTED, then open the details window (according to config)
+		if (state == DownloadManager.STATE_DOWNLOADING
+				|| state == DownloadManager.STATE_SEEDING) {
+			if (display != null && !display.isDisposed()) {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						if (display == null || display.isDisposed())
+							return;
 
-              if (COConfigurationManager.getBooleanParameter("Open Details")) {
-                openManagerView(manager);
-              }
-              
-              boolean	complete = manager.isDownloadComplete(false);
-              
-              if (	((!complete) && COConfigurationManager.getBooleanParameter("Open Bar Incomplete")) ||
-            		(complete && COConfigurationManager.getBooleanParameter("Open Bar Complete"))){
+						if (COConfigurationManager.getBooleanParameter("Open Details")) {
+							openManagerView(manager);
+						}
 
-            	  DownloadBar.open(manager, shell);
-              }
-            }
-          });
-        }
-    }
-  }
-  
-  protected AzureusCore
-  getAzureusCore()
-  {
-  	return( azureus_core );
-  }
-  
-  
+						boolean complete = manager.isDownloadComplete(false);
+
+						if (((!complete) && COConfigurationManager.getBooleanParameter("Open Bar Incomplete"))
+								|| (complete && COConfigurationManager.getBooleanParameter("Open Bar Complete"))) {
+
+							DownloadBar.open(manager, shell);
+						}
+					}
+				});
+			}
+		}
+	}
+
+	protected AzureusCore getAzureusCore() {
+		return (azureus_core);
+	}
+
 	// @see org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator#generate(org.gudy.azureus2.core3.util.IndentWriter)
-	public void
-	generate(
-		IndentWriter		writer )
-	{
+	public void generate(IndentWriter writer) {
 		writer.println("SWT UI");
 
 		try {
@@ -1626,15 +1651,15 @@ public class MainWindow
 					writer.exdent();
 				}
 			}
-			
+
 			TableColumnManager.getInstance().generateDiagnostics(writer);
 		} finally {
 
 			writer.exdent();
 		}
 	}
-  
-  private void checkForWhatsNewWindow() {
+
+	private void checkForWhatsNewWindow() {
 		final String CONFIG_LASTSHOWN = "welcome.version.lastshown";
 
 		// Config used to store int, such as 2500.  Now, it stores a string
@@ -1646,8 +1671,8 @@ public class MainWindow
 			String lastShown = "";
 			boolean bIsStringParam = true;
 			try {
-  			lastShown = COConfigurationManager.getStringParameter(
-  					CONFIG_LASTSHOWN, "");
+				lastShown = COConfigurationManager.getStringParameter(CONFIG_LASTSHOWN,
+						"");
 			} catch (Exception e) {
 				bIsStringParam = false;
 			}
@@ -1682,10 +1707,10 @@ public class MainWindow
 			Debug.out(e);
 		}
 	}
-  
-  protected UISWTInstanceImpl getUISWTInstanceImpl() {
-  	return uiSWTInstanceImpl;
-  }
+
+	protected UISWTInstanceImpl getUISWTInstanceImpl() {
+		return uiSWTInstanceImpl;
+	}
 
 	/**
 	 * @param string
@@ -1723,30 +1748,30 @@ public class MainWindow
 		IView[] allViews = Tab.getAllViews();
 		for (int i = 0; i < allViews.length; i++) {
 			IView view = allViews[i];
-			
+
 			if (view instanceof ObfusticateTab) {
 				Item tab = Tab.getTab(view);
-				tab.setText(((ObfusticateTab)view).getObfusticatedHeader());
+				tab.setText(((ObfusticateTab) view).getObfusticatedHeader());
 				folder.update();
 			}
 		}
-		
+
 		Rectangle clientArea = shell.getClientArea();
 		image = new Image(display, clientArea.width, clientArea.height);
-		
+
 		GC gc = new GC(shell);
 		try {
 			gc.copyArea(image, clientArea.x, clientArea.y);
 		} finally {
 			gc.dispose();
 		}
-		
+
 		IView currentView = getCurrentView();
 
 		if (currentView instanceof ObfusticateImage) {
 			Point ofs = shell.toDisplay(clientArea.x, clientArea.y);
 			try {
-				((ObfusticateImage)currentView).obfusticatedImage(image, ofs);
+				((ObfusticateImage) currentView).obfusticatedImage(image, ofs);
 			} catch (Exception e) {
 				Debug.out("Obfusticating " + currentView, e);
 			}
@@ -1754,7 +1779,7 @@ public class MainWindow
 
 		for (int i = 0; i < allViews.length; i++) {
 			IView view = allViews[i];
-			
+
 			if (view instanceof ObfusticateTab) {
 				view.refresh();
 			}
@@ -1762,7 +1787,7 @@ public class MainWindow
 
 		return image;
 	}
-	
+
 	private static Point getStoredWindowSize() {
 		Point size = null;
 
@@ -1791,7 +1816,7 @@ public class MainWindow
 		}
 		return size;
 	}
-	
+
 	public static void addToVersionCheckMessage(final Map map) {
 		try {
 			if (window == null || window.shell == null || window.shell.isDisposed()) {
@@ -1808,7 +1833,7 @@ public class MainWindow
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					Point size = null;
-					
+
 					if (window != null) {
 						final Shell shell = window.getShell();
 						if (shell != null && !shell.isDisposed() && !shell.getMinimized()) {
@@ -1834,6 +1859,20 @@ public class MainWindow
 
 	public UIFunctionsSWT getUIFunctions() {
 		return uiFunctions;
+	}
+
+	public boolean isVisible(int windowElement) {
+		if(windowElement == IMainWindow.WINDOW_ELEMENT_TOOLBAR){
+			return bIconBarEnabled;
+		}
+		
+		return true;
+	}
+
+	public void setVisible(int windowElement, boolean value) {
+		if(windowElement == IMainWindow.WINDOW_ELEMENT_TOOLBAR){
+			setIconBarEnabled(value);
+		}
 	}
 
 }
