@@ -116,6 +116,8 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 
 		new BooleanParameter(cLook, "suppress_file_download_dialog", "ConfigView.section.interface.display.suppress.file.download.dialog");
 
+		new BooleanParameter(cLook, "show_torrents_menu", "Menu.show.torrent.menu");
+
 		if (Constants.isWindowsXP) {
 			final Button enableXPStyle = new Button(cLook, SWT.CHECK);
 			Messages.setLanguageText(enableXPStyle, MSG_PREFIX + "enableXPStyle");
