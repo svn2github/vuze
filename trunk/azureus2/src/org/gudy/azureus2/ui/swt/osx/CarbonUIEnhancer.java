@@ -17,6 +17,7 @@ import org.eclipse.swt.internal.Callback;
 import org.eclipse.swt.internal.carbon.*;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
@@ -53,30 +54,47 @@ public class CarbonUIEnhancer {
 
    private static final int typeText = ('T'<<24) + ('E'<<16) + ('X'<<8) + 'T';
 
-   private static final String RESOURCE_BUNDLE= "org.eclipse.ui.carbon.Messages"; //$NON-NLS-1$
-   private static String fgAboutActionName;
-   private static String fgWizardActionName;
-   private static String fgNatTestActionName;
-   private static String fgRestartActionName;
-   private static String fgSpeedTestActionName;
+   private static final String RESOURCE_BUNDLE = "org.eclipse.ui.carbon.Messages"; //$NON-NLS-1$
 
-    private static int memmove_type = 0;
+	private static String fgAboutActionName;
 
+	private static String fgWizardActionName;
+
+	private static String fgNatTestActionName;
+
+	private static String fgRestartActionName;
+
+	private static String fgSpeedTestActionName;
+
+	private static int memmove_type = 0;
+
+	/**
+	 * KN: Some of the menu items have been removed for the Vuze and Vuze Advanced UI's;
+	 * the classic UI still retains all its menu items as before.  Follow this flag in the code
+	 * to see which menu items are effected.
+	 */
+	private boolean isAZ3 = "az3".equalsIgnoreCase(COConfigurationManager.getStringParameter("ui"));
+    
    public CarbonUIEnhancer() {
       if (fgAboutActionName == null) {
          fgAboutActionName = MessageText.getString("MainWindow.menu.help.about").replaceAll("&", "");
       }
-      if(fgWizardActionName == null) {
-          fgWizardActionName = MessageText.getString("MainWindow.menu.file.configure").replaceAll("&", "");
+      
+      if(false == isAZ3){
+        if(fgWizardActionName == null) {
+            fgWizardActionName = MessageText.getString("MainWindow.menu.file.configure").replaceAll("&", "");
+        }
+        if(fgNatTestActionName == null) {
+        	fgNatTestActionName = MessageText.getString("MainWindow.menu.tools.nattest").replaceAll("&", "");
+        }
+      
+        if(fgSpeedTestActionName == null){
+            fgSpeedTestActionName = MessageText.getString("MainWindow.menu.tools.speedtest").replaceAll("&", "");
+        }
       }
-      if(fgNatTestActionName == null) {
-      	fgNatTestActionName = MessageText.getString("MainWindow.menu.tools.nattest").replaceAll("&", "");
-      }
+
       if(fgRestartActionName == null) {
-          fgRestartActionName = MessageText.getString("MainWindow.menu.file.restart").replaceAll("&", "");
-      }
-      if(fgSpeedTestActionName == null){
-          fgSpeedTestActionName = MessageText.getString("MainWindow.menu.tools.speedtest").replaceAll("&", "");
+        fgRestartActionName = MessageText.getString("MainWindow.menu.file.restart").replaceAll("&", "");
       }
       earlyStartup();
       registerTorrentFile();
@@ -297,33 +315,34 @@ public class CarbonUIEnhancer {
                // disable services menu
          OS.DisableMenuCommand(menu, kHICommandServices);
 
-          // wizard menu
-         l= fgWizardActionName.length();
-         buffer= new char[l];
-         fgWizardActionName.getChars(0, l, buffer, 0);
-         str= OS.CFStringCreateWithCharacters(OS.kCFAllocatorDefault, buffer, l);
-         OS.InsertMenuItemTextWithCFString(menu, str, (short) 3, 0, kHICommandWizard);
-         OS.CFRelease(str);
+         if(false == isAZ3){
+            // wizard menu
+           l= fgWizardActionName.length();
+           buffer= new char[l];
+           fgWizardActionName.getChars(0, l, buffer, 0);
+           str= OS.CFStringCreateWithCharacters(OS.kCFAllocatorDefault, buffer, l);
+           OS.InsertMenuItemTextWithCFString(menu, str, (short) 3, 0, kHICommandWizard);
+           OS.CFRelease(str);
+           
+           
+           // NAT test menu
+           l= fgNatTestActionName.length();
+           buffer= new char[l];
+           fgNatTestActionName.getChars(0, l, buffer, 0);
+           str= OS.CFStringCreateWithCharacters(OS.kCFAllocatorDefault, buffer, l);
+           OS.InsertMenuItemTextWithCFString(menu, str, (short) 4, 0, kHICommandNatTest);
+           OS.CFRelease(str);
+           
+  
+            //SpeedTest
+            l = fgSpeedTestActionName.length();
+            buffer = new char[l];
+            fgSpeedTestActionName.getChars(0,l,buffer,0);
+            str= OS.CFStringCreateWithCharacters(OS.kCFAllocatorDefault, buffer, l);
+            OS.InsertMenuItemTextWithCFString(menu, str, (short) 5, 0, kHICommandSpeedTest);
+            OS.CFRelease(str);
+         }
          
-         
-         // NAT test menu
-         l= fgNatTestActionName.length();
-         buffer= new char[l];
-         fgNatTestActionName.getChars(0, l, buffer, 0);
-         str= OS.CFStringCreateWithCharacters(OS.kCFAllocatorDefault, buffer, l);
-         OS.InsertMenuItemTextWithCFString(menu, str, (short) 4, 0, kHICommandNatTest);
-         OS.CFRelease(str);
-         
-
-          //SpeedTest
-          l = fgSpeedTestActionName.length();
-          buffer = new char[l];
-          fgSpeedTestActionName.getChars(0,l,buffer,0);
-          str= OS.CFStringCreateWithCharacters(OS.kCFAllocatorDefault, buffer, l);
-          OS.InsertMenuItemTextWithCFString(menu, str, (short) 5, 0, kHICommandSpeedTest);
-          OS.CFRelease(str);
-
-
           OS.InsertMenuItemTextWithCFString(menu, 0, (short) 6, OS.kMenuItemAttrSeparator, 0);
 
           // restart menu
