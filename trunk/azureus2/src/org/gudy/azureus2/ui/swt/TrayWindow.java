@@ -20,11 +20,11 @@
  */
 package org.gudy.azureus2.ui.swt;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseListener;
-import org.eclipse.swt.events.MouseMoveListener;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
@@ -38,14 +38,12 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.MainMenu;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-
-import java.util.ArrayList;
-import java.util.List;
 /**
  * Download Basket
  * 
@@ -152,7 +150,7 @@ public class TrayWindow implements GlobalManagerListener {
 
     new MenuItem(menu, SWT.SEPARATOR);
     
-    main.getMenu().addCloseDownloadBarsToMenu(menu);
+    MenuFactory.addCloseDownloadBarsToMenu(menu);
     
     new MenuItem(menu, SWT.SEPARATOR);
 
@@ -291,7 +289,7 @@ public class TrayWindow implements GlobalManagerListener {
     }
 	
   public void updateLanguage() {
-    MainMenu.updateMenuText(menu);
+  	MenuFactory.updateMenuText(menu);
   }
 
   /**
