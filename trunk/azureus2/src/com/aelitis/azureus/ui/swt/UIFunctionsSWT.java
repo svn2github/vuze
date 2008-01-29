@@ -21,9 +21,8 @@ package com.aelitis.azureus.ui.swt;
 
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
-
-import org.gudy.azureus2.ui.swt.mainwindow.MainMenu;
-import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
+import org.gudy.azureus2.plugins.PluginView;
+import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
@@ -31,14 +30,13 @@ import org.gudy.azureus2.ui.swt.views.IView;
 
 import com.aelitis.azureus.ui.UIFunctions;
 
-import org.gudy.azureus2.plugins.PluginView;
-
 /**
  * @author TuxPaper
  * @created Jul 12, 2006
  *
  */
-public interface UIFunctionsSWT extends UIFunctions
+public interface UIFunctionsSWT
+	extends UIFunctions
 {
 	public static int MAIN_MENU_BAR = MainMenu.MENU_BAR;
 
@@ -81,9 +79,11 @@ public interface UIFunctionsSWT extends UIFunctions
 	 * 
 	 */
 	public void closeDownloadBars();
-	
+
 	public boolean isGlobalTransferBarShown();
+
 	public void showGlobalTransferBar();
+
 	public void closeGlobalTransferBar();
 
 	/**
@@ -121,11 +121,31 @@ public interface UIFunctionsSWT extends UIFunctions
 
 	public void closePluginViews(String sViewID);
 
+	/**
+	 * @deprecated This method has been deprecated; menus should be retrieved directly
+	 * from an instance of IMainMenu.  Because there may be multiple instances of IMainMenu
+	 * in the application this method will not be able to discern which menu to work with.
+	 * This is especially true for OSX where each shell has its own instance of IMainMenu.
+	 * @param id
+	 * @return
+	 */
 	public Menu getMenu(int id);
 
 	public UISWTInstance getUISWTInstance();
 
 	public void refreshTorrentMenu();
-	
+
 	public MainStatusBar getMainStatusBar();
+
+	/**
+	 * Creates the main application menu and attach it to the given <code>Shell</code>;
+	 * this is only used for OSX so that we can attach the global menu to popup dialogs which
+	 * is the expected behavior on OSX.  Windows and Linux do not require this since they do not have
+	 * a global menu and because their main menu is already attached to the main application window.
+	 * @param shell
+	 * @return
+	 */
+	public IMainMenu createMainMenu(Shell shell);
+
+	public IMainWindow getMainWindow();
 }

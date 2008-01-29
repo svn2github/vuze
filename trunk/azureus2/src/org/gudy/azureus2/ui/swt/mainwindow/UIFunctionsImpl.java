@@ -21,10 +21,9 @@ package org.gudy.azureus2.ui.swt.mainwindow;
 
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
-
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.minibar.MiniBarManager;
@@ -38,8 +37,6 @@ import org.gudy.azureus2.ui.swt.views.IView;
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
 import com.aelitis.azureus.ui.UIStatusTextClickListener;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-
-import org.gudy.azureus2.plugins.PluginView;
 
 /**
  * @author TuxPaper
@@ -71,16 +68,13 @@ public class UIFunctionsImpl
 			}
 		});
 	}
-	
+
 	// UIFunctions
 	public void addPluginView(final PluginView view) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				if (mainwindow.getMenu() != null) {
-					mainwindow.getMenu().addPluginView(view, view.getPluginViewName());
-				} else {
-					Debug.out("No menu to addPluginView to");
-				}
+				PluginsMenuHelper.getInstance().addPluginView(view,
+						view.getPluginViewName());
 			}
 		});
 	}
@@ -96,9 +90,8 @@ public class UIFunctionsImpl
 	public void removePluginView(final PluginView view) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				if (mainwindow.getMenu() != null) {
-					mainwindow.getMenu().removePluginView(view, view.getPluginViewName());
-				}
+				PluginsMenuHelper.getInstance().removePluginView(view,
+						view.getPluginViewName());
 			}
 		});
 	}
@@ -134,11 +127,8 @@ public class UIFunctionsImpl
 	public void addPluginView(final UISWTPluginView view) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				if (mainwindow.getMenu() != null) {
-					mainwindow.getMenu().addPluginView(view, view.getPluginViewName());
-				} else {
-					Debug.out("No menu to addPluginView to");
-				}
+				PluginsMenuHelper.getInstance().addPluginView(view,
+						view.getPluginViewName());
 			}
 		});
 	}
@@ -154,9 +144,8 @@ public class UIFunctionsImpl
 	public void removePluginView(final UISWTPluginView view) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				if (mainwindow.getMenu() != null) {
-					mainwindow.getMenu().removePluginView(view, view.getPluginViewName());
-				}
+				PluginsMenuHelper.getInstance().removePluginView(view,
+						view.getPluginViewName());
 			}
 		});
 	}
@@ -168,11 +157,7 @@ public class UIFunctionsImpl
 	public void addPluginView(final String viewID, final UISWTViewEventListener l) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				if (mainwindow.getMenu() != null) {
-					mainwindow.getMenu().addPluginView(viewID, l);
-				} else {
-					Debug.out("No menu to addPluginView to");
-				}
+				PluginsMenuHelper.getInstance().addPluginView(viewID, l);
 			}
 		});
 	}
@@ -196,15 +181,16 @@ public class UIFunctionsImpl
 			}
 		});
 	}
-	
+
 	public boolean isGlobalTransferBarShown() {
 		return AllTransfersBar.getManager().isOpen(mainwindow.getGlobalManager());
 	}
-	
+
 	public void showGlobalTransferBar() {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				AllTransfersBar.open(mainwindow.getGlobalManager(), mainwindow.getShell());
+				AllTransfersBar.open(mainwindow.getGlobalManager(),
+						mainwindow.getShell());
 			}
 		});
 	}
@@ -216,7 +202,7 @@ public class UIFunctionsImpl
 			}
 		});
 	}
-	
+
 	public UISWTInstanceImpl getSWTPluginInstanceImpl() {
 		return mainwindow.getUISWTInstanceImpl();
 	}
@@ -278,9 +264,7 @@ public class UIFunctionsImpl
 	public void removePluginView(final String viewID) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				if (mainwindow.getMenu() != null) {
-					mainwindow.getMenu().removePluginViews(viewID);
-				}
+				PluginsMenuHelper.getInstance().removePluginViews(viewID);
 			}
 		});
 	}
@@ -352,15 +336,15 @@ public class UIFunctionsImpl
 			}
 		});
 	}
-	
+
 	public void showMultiOptionsView(final DownloadManager[] dms) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				mainwindow.showMultiOptionsView( dms );
+				mainwindow.showMultiOptionsView(dms);
 			}
 		});
 	}
-	
+
 	public void showConsole() {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
@@ -398,7 +382,7 @@ public class UIFunctionsImpl
 		});
 		return true;
 	}
-	
+
 	// @see com.aelitis.azureus.ui.UIFunctions#promptUser(java.lang.String, java.lang.String, java.lang.String[], int, java.lang.String, java.lang.String, boolean, int)
 	public int promptUser(String title, String text, String[] buttons,
 			int defaultOption, String rememberID, String rememberText,
@@ -416,13 +400,22 @@ public class UIFunctionsImpl
 				buttons, defaultOption);
 		return mb;
 	}
-	
+
 	public void refreshTorrentMenu() {
 		mainwindow.refreshTorrentMenu();
 	}
-	
+
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#getMainStatusBar()
 	public MainStatusBar getMainStatusBar() {
 		return mainwindow.getMainStatusBar();
 	}
+
+	public IMainMenu createMainMenu(Shell shell) {
+		return new MainMenu(shell);
+	}
+
+	public IMainWindow getMainWindow() {
+		return mainwindow;
+	}
+
 }
