@@ -3,37 +3,24 @@ package com.aelitis.azureus.ui.swt.shells.main;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
-import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.ui.swt.KeyBindings;
-import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
-import org.gudy.azureus2.ui.swt.help.AboutWindow;
-import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
-import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
-import org.gudy.azureus2.ui.swt.welcome.WelcomeWindow;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.ui.swt.mainwindow.*;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.skin.SkinConstants;
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
 import com.aelitis.azureus.util.Constants;
 
-import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
-import org.gudy.azureus2.plugins.update.UpdateCheckInstanceListener;
-
 public class MainMenu
+	implements IMainMenu, IMenuConstants
 {
 	final String PREFIX_V2 = "MainWindow.menu";
 
@@ -43,6 +30,8 @@ public class MainMenu
 
 	private final SWTSkin skin;
 
+	private AzureusCore core;
+
 	/**
 	 * Creates the main menu on the supplied shell
 	 * 
@@ -50,235 +39,248 @@ public class MainMenu
 	 */
 	public MainMenu(SWTSkin skin, final Shell shell) {
 		this.skin = skin;
+
+		if (null == skin) {
+			throw new NullPointerException(
+					"The parameter [SWTSkin skin] can not be null");
+		}
+
 		buildMenu(shell);
+
 	}
 
 	private void buildMenu(Shell parent) {
+
+		if (core == null) {
+			core = AzureusCoreFactory.getSingleton();
+		}
+
 		//The Main Menu
 		menuBar = new Menu(parent, SWT.BAR);
+		parent.setMenuBar(menuBar);
 
 		addFileMenu(parent);
 		addViewMenu(parent);
+
+		/*
+		 * The Torrents menu is a user-configured option
+		 */
+		if (true == COConfigurationManager.getBooleanParameter("show_torrents_menu")) {
+			addTorrentMenu(parent);
+		}
+
+		addWindowMenu(parent);
+
+		// ===== Debug menu (development only)====
+		if (org.gudy.azureus2.core3.util.Constants.isCVSVersion()) {
+			DebugMenuHelper.createDebugMenuItem(menuBar);
+		}
+
 		addHelpMenu(parent);
 
-		parent.setMenuBar(menuBar);
+		/*
+		 * Enabled/disable menus based on what ui mode we're in; this method call controls
+		 * which menus are enabled when we're in Vuze vs. Vuze Advanced
+		 */
+		MenuFactory.updateEnabledStates(menuBar);
 	}
 
-	public void linkMenuBar(Shell parent) {
-		parent.setMenuBar(menuBar);
-	}
+	/**
+	 * Creates the File menu and all its children
+	 * @param parent
+	 * @param notMainWindow
+	 * @param isModal
+	 */
+	private void addFileMenu(final Shell parent) {
+		MenuItem fileItem = MenuFactory.createFileMenuItem(menuBar);
+		Menu fileMenu = fileItem.getMenu();
 
-	private void addHelpMenu(final Shell parent) {
-		final Display display = parent.getDisplay();
+		MenuItem openMenuItem = MenuFactory.createOpenMenuItem(fileMenu);
+		Menu openSubMenu = openMenuItem.getMenu();
+		MenuFactory.addOpenTorrentMenuItem(openSubMenu);
+		MenuFactory.addOpenTorrentForTrackingMenuItem(openSubMenu);
 
-		//The Help Menu
-		MenuItem helpItem = new MenuItem(menuBar, SWT.CASCADE);
-		Messages.setLanguageText(helpItem, "MainWindow.menu.help");
-		final Menu helpMenu = new Menu(parent, SWT.DROP_DOWN);
-		helpItem.setMenu(helpMenu);
+		MenuItem shareMenuItem = MenuFactory.createShareMenuItem(fileMenu);
+		Menu shareSubMenu = shareMenuItem.getMenu();
+		MenuFactory.addShareFileMenuItem(shareSubMenu);
+		MenuFactory.addShareFolderMenuItem(shareSubMenu);
+		MenuFactory.addShareFolderContentMenuItem(shareSubMenu);
+		MenuFactory.addShareFolderContentRecursiveMenuItem(shareSubMenu);
 
-		if (!Constants.isOSX) {
-			MenuItem help_about = new MenuItem(helpMenu, SWT.NULL);
-			Messages.setLanguageText(help_about, "MainWindow.menu.help.about");
-			help_about.addListener(SWT.Selection, new Listener() {
-				public void handleEvent(Event e) {
-					AboutWindow.show(display);
-				}
-			});
-			new MenuItem(helpMenu, SWT.SEPARATOR);
+		MenuFactory.addCreateMenuItem(fileMenu);
+
+		MenuFactory.addSeparatorMenuItem(fileMenu);
+		MenuFactory.addCloseWindowMenuItem(fileMenu);
+		MenuFactory.setEnablementKeys(
+				MenuFactory.addCloseDetailsMenuItem(fileMenu), FOR_AZ2 | FOR_AZ3_ADV);
+		MenuFactory.addCloseDownloadBarsToMenu(fileMenu);
+
+		MenuFactory.addSeparatorMenuItem(fileMenu);
+		MenuFactory.createTransfersMenuItem(fileMenu);
+
+		MenuFactory.addOptionsMenuItem(fileMenu);
+		MenuFactory.createPluginsMenuItem(fileMenu, true);
+
+		/*
+		 * No need for restart and exit on OS X
+		 */
+		if (false == Constants.isOSX) {
+			MenuFactory.addSeparatorMenuItem(fileMenu);
+			MenuFactory.addRestartMenuItem(fileMenu);
+			MenuFactory.addExitMenuItem(fileMenu);
 		}
 
-		MenuItem help_whatsnew = new MenuItem(helpMenu, SWT.NULL);
-		Messages.setLanguageText(help_whatsnew, "MainWindow.menu.help.releasenotes");
-		help_whatsnew.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event e) {
-				new WelcomeWindow(parent);
-			}
-		});
-
-		MenuItem help_faq = new MenuItem(helpMenu, SWT.NULL);
-		Messages.setLanguageText(help_faq, "MainWindow.menu.help.faq");
-		help_faq.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event e) {
-				String faqString = com.aelitis.azureus.util.Constants.URL_FAQ;
-				Utils.launch(faqString);
-			}
-		});
-
-		new MenuItem(helpMenu, SWT.SEPARATOR);
-
-		if (!SystemProperties.isJavaWebStartInstance()) {
-			MenuItem help_checkupdate = new MenuItem(helpMenu, SWT.NULL);
-			KeyBindings.setAccelerator(help_checkupdate,
-					"MainWindow.menu.help.checkupdate");
-			Messages.setLanguageText(help_checkupdate,
-					"MainWindow.menu.help.checkupdate");
-			help_checkupdate.addListener(SWT.Selection, new Listener() {
-				public void handleEvent(Event e) {
-					UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-					if (uiFunctions != null) {
-						uiFunctions.bringToFront();
-					}
-					AzureusCore core = AzureusCoreFactory.getSingleton();
-					UpdateMonitor.getSingleton(core).performCheck(true, false, false,
-							new UpdateCheckInstanceListener() {
-								public void cancelled(UpdateCheckInstance instance) {
-								}
-
-								public void complete(UpdateCheckInstance instance) {
-									if (instance.getUpdates().length == 0) {
-										Utils.execSWTThread(new AERunnable() {
-											public void runSupport() {
-												Utils.openMessageBox(parent, SWT.ICON_INFORMATION
-														| SWT.OK, "window.update.noupdates",
-														(String[]) null);
-											}
-										});
-									}
-								}
-							});
-				}
-			});
-		}
-
-		new MenuItem(helpMenu, SWT.SEPARATOR);
-		MenuItem help_debug = new MenuItem(helpMenu, SWT.NULL);
-		Messages.setLanguageText(help_debug, "MainWindow.menu.help.debug");
-		help_debug.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event e) {
-				UIDebugGenerator.generate();
-			}
-		});
 	}
 
-	private void addViewMenu(Shell parent) {
-		MenuItem viewItem = new MenuItem(menuBar, SWT.CASCADE);
-		Messages.setLanguageText(viewItem, PREFIX_V2 + ".view");
-		Menu viewMenu = new Menu(parent, SWT.DROP_DOWN);
-		viewItem.setMenu(viewMenu);
-		addViewMenuItems(viewMenu);
+	/**
+	 * Creates the View menu and all its children
+	 * @param parent
+	 * @param notMainWindow
+	 */
+	private void addViewMenu(final Shell parent) {
+		try {
+			MenuItem viewItem = MenuFactory.createViewMenuItem(menuBar);
+			Menu viewMenu = viewItem.getMenu();
+
+			addViewMenuItems(viewMenu);
+
+			MenuFactory.addSeparatorMenuItem(viewMenu);
+			MenuItem advancedMenuItem = MenuFactory.createAdvancedMenuItem(viewMenu);
+			Menu advancedMenu = advancedMenuItem.getMenu();
+
+			MenuFactory.addMyTorrentsMenuItem(advancedMenu);
+			MenuFactory.addMyTrackerMenuItem(advancedMenu);
+			MenuFactory.addMySharesMenuItem(advancedMenu);
+
+			MenuFactory.setEnablementKeys(
+					MenuFactory.addViewToolbarMenuItem(advancedMenu), FOR_AZ2
+							| FOR_AZ3_ADV);
+
+			MenuFactory.addTransferBarToMenu(advancedMenu);
+			MenuFactory.addAllPeersMenuItem(advancedMenu);
+
+			if (Constants.isOSX) {
+				MenuFactory.addSeparatorMenuItem(viewMenu);
+				MenuFactory.addConsoleMenuItem(viewMenu);
+				MenuFactory.addStatisticsMenuItem(viewMenu);
+			}
+
+			MenuFactory.addSeparatorMenuItem(viewMenu);
+			MenuFactory.addLabelMenuItem(viewMenu, MENU_ID_SEARCH_BAR).setEnabled(
+					false);
+
+			//									createViewMenuItem(skin, viewMenu, PREFIX_V3 + ".view.searchbar",
+			//											"SearchBar.visible", "searchbar");
+
+			MenuFactory.addLabelMenuItem(viewMenu, MENU_ID_TAB_BAR).setEnabled(false);
+			//			createViewMenuItem(skin, viewMenu, PREFIX_V3 + ".view.tabbar",
+			//					"TabBar.visible", "tabbar");
+
+		} catch (Exception e) {
+			Debug.out("Error creating View Menu", e);
+		}
 	}
 
 	private void addViewMenuItems(Menu viewMenu) {
-		createMenuItem(viewMenu, PREFIX_V3 + ".home", new Listener() {
+		MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".home", new Listener() {
 			public void handleEvent(Event event) {
 				skin.setActiveTab(SkinConstants.TABSET_MAIN, "maintabs.home");
 			}
 		});
 
-		createMenuItem(viewMenu, PREFIX_V3 + ".browse", new Listener() {
+		MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".browse", new Listener() {
 			public void handleEvent(Event event) {
 				skin.setActiveTab(SkinConstants.TABSET_MAIN, "maintabs.browse");
 			}
 		});
 
-		createMenuItem(viewMenu, PREFIX_V3 + ".library", new Listener() {
+		MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".library", new Listener() {
 			public void handleEvent(Event event) {
 				skin.setActiveTab(SkinConstants.TABSET_MAIN, "maintabs.library");
 			}
 		});
 
-		createMenuItem(viewMenu, PREFIX_V3 + ".publish", new Listener() {
+		MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".publish", new Listener() {
 			public void handleEvent(Event event) {
 				skin.setActiveTab(SkinConstants.TABSET_MAIN, "maintabs.publish");
 			}
 		});
 
-		new MenuItem(viewMenu, SWT.SEPARATOR);
-
-		createMenuItem(viewMenu, PREFIX_V3 + ".advanced", new Listener() {
-			public void handleEvent(Event event) {
-				skin.setActiveTab(SkinConstants.TABSET_MAIN, "maintabs.advanced");
-			}
-		});
-	}
-
-	private void addFileMenu(Shell parent) {
-		//The File Menu
-		MenuItem fileItem = new MenuItem(menuBar, SWT.CASCADE);
-		Messages.setLanguageText(fileItem, PREFIX_V2 + ".file");
-		Menu fileMenu = new Menu(parent, SWT.DROP_DOWN);
-		fileItem.setMenu(fileMenu);
-
-		createMenuItem(fileMenu, PREFIX_V2 + ".file.open", new Listener() {
-			public void handleEvent(Event event) {
-				TorrentOpener.openTorrentSimple();
-			}
-		});
-
-		//No need for restart and exit on OS X
-		if (!Constants.isOSX) {
-			new MenuItem(fileMenu, SWT.SEPARATOR);
-
-			MenuItem file_restart = new MenuItem(fileMenu, SWT.NULL);
-			Messages.setLanguageText(file_restart, PREFIX_V2 + ".file.restart");
-
-			file_restart.addListener(SWT.Selection, new Listener() {
-
-				public void handleEvent(Event event) {
-					UIFunctionsManagerSWT.getUIFunctionsSWT().dispose(true, false);
-				}
-			});
-
-			final MenuItem file_exit = new MenuItem(fileMenu, SWT.NULL);
-			if (!COConfigurationManager.getBooleanParameter("Enable System Tray")
-					|| !COConfigurationManager.getBooleanParameter("Close To Tray")) {
-				KeyBindings.setAccelerator(file_exit, PREFIX_V2 + ".file.exit");
-			}
-			Messages.setLanguageText(file_exit, PREFIX_V2 + ".file.exit");
-
-			file_exit.addListener(SWT.Selection, new Listener() {
-				public void handleEvent(Event e) {
-					UIFunctionsManagerSWT.getUIFunctionsSWT().dispose(false, false);
-				}
-			});
-
-			// let platform decide
-			ParameterListener paramListener = new ParameterListener() {
-				public void parameterChanged(String parameterName) {
-					if (COConfigurationManager.getBooleanParameter("Enable System Tray")
-							&& COConfigurationManager.getBooleanParameter("Close To Tray")) {
-						KeyBindings.removeAccelerator(file_exit, PREFIX_V2 + ".file.exit");
-					} else {
-						KeyBindings.setAccelerator(file_exit, PREFIX_V2 + ".file.exit");
-					}
-				}
-			};
-			COConfigurationManager.addParameterListener("Enable System Tray",
-					paramListener);
-			COConfigurationManager.addParameterListener("Close To Tray",
-					paramListener);
-		}
-	}
-
-	private MenuItem createMenuItem(Menu parent, String key,
-			Listener selectionListener) {
-		return createMenuItem(parent, SWT.PUSH, key, selectionListener);
-	}
-
-	private static MenuItem createMenuItem(Menu parent, int style, String key,
-			Listener selectionListener) {
-		MenuItem item = new MenuItem(parent, style);
-		Messages.setLanguageText(item, key);
-		KeyBindings.setAccelerator(item, key);
-		item.addListener(SWT.Selection, selectionListener);
-		return item;
 	}
 
 	/**
-	 * @param viewMenu
+	 * Creates the Help menu and all its children
+	 * @param parent
+	 * @param isModal
 	 */
-	public void addToOldMenuView(Menu viewMenu) {
-		new MenuItem(viewMenu, SWT.SEPARATOR);
+	private void addHelpMenu(final Shell parent) {
+		MenuItem helpItem = MenuFactory.createHelpMenuItem(menuBar);
+		Menu helpMenu = helpItem.getMenu();
 
-		addViewMenuItems(viewMenu);
+		if (false == Constants.isOSX) {
+			MenuFactory.addAboutMenuItem(helpMenu);
+		}
 
-		new MenuItem(viewMenu, SWT.SEPARATOR);
+		MenuFactory.addFAQMenuItem(helpMenu);
+		MenuFactory.addReleaseNotesMenuItem(helpMenu);
 
-		createViewMenuItem(skin, viewMenu, PREFIX_V3 + ".view.searchbar",
-				"SearchBar.visible", "searchbar");
-		createViewMenuItem(skin, viewMenu, PREFIX_V3 + ".view.tabbar",
-				"TabBar.visible", "tabbar");
+		if (false == SystemProperties.isJavaWebStartInstance()) {
+			MenuFactory.addSeparatorMenuItem(helpMenu);
+			MenuFactory.addCheckUpdateMenuItem(helpMenu);
+		}
+
+		MenuFactory.addSeparatorMenuItem(helpMenu);
+		MenuFactory.addConfigWizardMenuItem(helpMenu);
+		MenuFactory.addNatTestMenuItem(helpMenu);
+		MenuFactory.addSpeedTestMenuItem(helpMenu);
+
+		MenuFactory.addSeparatorMenuItem(helpMenu);
+		MenuFactory.addDebugHelpMenuItem(helpMenu);
+
+	}
+
+	/**
+	 * Creates the Window menu and all its children
+	 * @param parent
+	 */
+	private void addWindowMenu(Shell parent) {
+		MenuItem menu_window = MenuFactory.createWindowMenuItem(menuBar);
+		Menu windowMenu = menu_window.getMenu();
+
+		MenuFactory.addMinimizeWindowMenuItem(windowMenu);
+		MenuFactory.addZoomWindowMenuItem(windowMenu);
+		MenuFactory.addSeparatorMenuItem(windowMenu);
+		MenuFactory.addBringAllToFrontMenuItem(windowMenu);
+
+		MenuFactory.addSeparatorMenuItem(windowMenu);
+		MenuFactory.appendWindowMenuItems(windowMenu);
+	}
+
+	/**
+	 * Creates the Torrent menu and all its children
+	 * @param parent
+	 */
+	private void addTorrentMenu(final Shell parent) {
+		MenuFactory.setEnablementKeys(MenuFactory.createTorrentMenuItem(menuBar),
+				FOR_AZ2 | FOR_AZ3_ADV);
+	}
+
+	public Menu getMenu(String id) {
+		if (true == MENU_ID_MENU_BAR.equals(id)) {
+			return menuBar;
+		}
+		return MenuFactory.findMenu(menuBar, id);
+	}
+
+	//====================================
+
+	/**
+	 * @deprecated This method has been replaced with {@link #getMenu(String)};
+	 * use {@link #getMenu(IMenuConstants.MENU_ID_MENU_BAR)} instead
+	 * @return the menuBar
+	 */
+	public Menu getMenuBar() {
+		return menuBar;
 	}
 
 	/**
@@ -294,7 +296,7 @@ public class MainMenu
 			COConfigurationManager.setBooleanDefault(configID, true);
 		}
 
-		item = createMenuItem(viewMenu, SWT.CHECK, textID, new Listener() {
+		item = MenuFactory.addMenuItem(viewMenu, SWT.CHECK, textID, new Listener() {
 			public void handleEvent(Event event) {
 				SWTSkinObject skinObject = skin.getSkinObject(viewID);
 				if (skinObject != null) {
@@ -335,10 +337,4 @@ public class MainMenu
 		SWTSkinUtils.setVisibility(skin, configID, viewID, visible, save, false);
 	}
 
-	/**
-	 * @return the menuBar
-	 */
-	public Menu getMenuBar() {
-		return menuBar;
-	}
 }
