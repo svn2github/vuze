@@ -754,6 +754,14 @@ public class MainMenu {
 			}
 		});
 		
+		item = new MenuItem(menuSS, SWT.NONE);
+		item.setText("1920x1200");
+		item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				mainWindow.getShell().setSize(1920, 1200);
+			}
+		});
+		
 		
 		item = new MenuItem(menuSS, SWT.NONE);
 		item.setText("2560x1520");
