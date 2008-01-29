@@ -136,6 +136,8 @@ public class UIConfigDefaultsSWTv3
 			
 			defaults.addParameter("auto_remove_inactive_items", false);
 			
+			defaults.addParameter("show_torrents_menu", false);
+			
 			config.save();
 		}
 
