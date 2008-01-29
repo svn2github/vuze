@@ -25,15 +25,15 @@ import java.util.Map;
 
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
-
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
+import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.plugins.*;
@@ -47,8 +47,7 @@ import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
 import com.aelitis.azureus.ui.UIStatusTextClickListener;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
-
-import org.gudy.azureus2.plugins.PluginView;
+import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 
 /**
  * @author TuxPaper
@@ -72,6 +71,11 @@ public class UIFunctionsImpl
 	private final Map mapPluginViews = new HashMap();
 
 	private final AEMonitor pluginViews_mon = new AEMonitor("v3.uif.pluginViews");
+
+	/**
+	 * Stores the current <code>SWTSkin</code> so it can be used by {@link #createMenu(Shell)}
+	 */
+	private SWTSkin skin = null;
 
 	/**
 	 * @param window
@@ -476,7 +480,7 @@ public class UIFunctionsImpl
 		// TODO Auto-generated method stub
 
 	}
-	
+
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#getMainStatusBar()
 	public MainStatusBar getMainStatusBar() {
 		return mainWindow.getMainStatusBar();
@@ -709,16 +713,15 @@ public class UIFunctionsImpl
 			}
 		});
 	}
-	
+
 	public void closeGlobalTransferBar() {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				AllTransfersBar.close(
-						AzureusCoreFactory.getSingleton().getGlobalManager());
+				AllTransfersBar.close(AzureusCoreFactory.getSingleton().getGlobalManager());
 			}
 		});
-	} 
-	
+	}
+
 	public void refreshTorrentMenu() {
 		try {
 			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
@@ -732,7 +735,7 @@ public class UIFunctionsImpl
 			Logger.log(new LogEvent(LOGID, "refreshTorrentMenu", e));
 		}
 	}
-	
+
 	public void showAllPeersView() {
 		try {
 			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
@@ -746,18 +749,35 @@ public class UIFunctionsImpl
 			Logger.log(new LogEvent(LOGID, "showAllPeersView", e));
 		}
 	}
-	
-	public void showMultiOptionsView( DownloadManager[] dms) {
+
+	public void showMultiOptionsView(DownloadManager[] dms) {
 		try {
 			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
 			if (uiFunctions == null) {
 				return;
 			}
 
-			uiFunctions.showMultiOptionsView( dms );
+			uiFunctions.showMultiOptionsView(dms);
 
 		} catch (Exception e) {
 			Logger.log(new LogEvent(LOGID, "showMultiOptionsView", e));
 		}
 	}
+
+	public IMainMenu createMainMenu(Shell shell) {
+		return new MainMenu(getSkin(), shell);
+	}
+
+	public SWTSkin getSkin() {
+		return skin;
+	}
+
+	public void setSkin(SWTSkin skin) {
+		this.skin = skin;
+	}
+
+	public IMainWindow getMainWindow() {
+		return mainWindow;
+	}
+
 }
