@@ -106,6 +106,14 @@ public class DebugMenuHelper
 		});
 
 		item = new MenuItem(menuSS, SWT.NONE);
+		item.setText("1920x1200");
+		item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				uiFunctions.getMainShell().setSize(1920, 1200);
+			}
+		});
+		
+		item = new MenuItem(menuSS, SWT.NONE);
 		item.setText("2560x1520");
 		item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
