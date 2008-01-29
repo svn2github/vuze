@@ -42,15 +42,13 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
-
 import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
-import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
-import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
-import org.gudy.azureus2.ui.swt.mainwindow.SplashWindow;
+import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
+import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.minibar.MiniBarManager;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
@@ -80,6 +78,7 @@ import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.*;
+import com.aelitis.azureus.ui.swt.Initializer;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
@@ -100,7 +99,7 @@ import com.aelitis.azureus.util.Constants;
  *
  */
 public class MainWindow
-	implements SWTSkinTabSetListener
+	implements SWTSkinTabSetListener, IMainWindow
 {
 
 	private static final LogIDs LOGID = LogIDs.GUI;
@@ -114,8 +113,6 @@ public class MainWindow
 	private SWTSkin skin;
 
 	private org.gudy.azureus2.ui.swt.mainwindow.MainWindow oldMainWindow;
-
-	private org.gudy.azureus2.ui.swt.mainwindow.MainMenu oldMainMenu;
 
 	private MainMenu menu;
 
@@ -468,6 +465,11 @@ public class MainWindow
 
 			skin = SWTSkinFactory.getInstance();
 
+			/*
+			 * KN: passing the skin to the uifunctions so it can be used by UIFunctionsSWT.createMenu()
+			 */
+			uiFunctions.setSkin(skin);
+
 			initSkinListeners();
 
 			if (splash != null) {
@@ -475,10 +477,6 @@ public class MainWindow
 			}
 
 			skin.initialize(shell, "main.shell");
-
-			if (splash != null) {
-				splash.reportPercent(splash.getPercent() + 1);
-			}
 
 			System.out.println("skin init took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
@@ -1781,32 +1779,34 @@ public class MainWindow
 			//        we can query (or is passed in)
 			if (newTabID.equals("maintabs.advanced")) {
 				createOldMainWindow();
-				if (oldMainMenu != null) {
-					oldMainMenu.linkMenuBar(shell);
-				}
 			} else if (newTabID.equals("maintabs.home")
 					&& oldTabID.equals("maintabs.home")) {
+
 				SkinView view = SkinViewManager.get(MiniBrowse.class);
 				if (view instanceof MiniBrowse) {
 					((MiniBrowse) view).restart();
 				}
 			} else if (newTabID.equals("maintabs.browse")
 					&& oldTabID.equals("maintabs.browse")) {
+
 				SkinView view = SkinViewManager.get(Browse.class);
 				if (view instanceof Browse) {
 					((Browse) view).restart();
 				}
 			} else if (newTabID.equals("maintabs.publish")
 					&& oldTabID.equals("maintabs.publish")) {
+
 				SkinView view = SkinViewManager.get(Publish.class);
 				if (view instanceof Publish) {
 					((Publish) view).restart();
 				}
 			}
 
-			if (!newTabID.equals("maintabs.advanced") && oldMainMenu != null) {
-				menu.linkMenuBar(shell);
-			}
+			/*
+			 * Updates the enablement states when ever a tab is selected
+			 */
+			MenuFactory.isAZ3_ADV = newTabID.equals("maintabs.advanced");
+			MenuFactory.updateEnabledStates(menu.getMenu(IMenuConstants.MENU_ID_MENU_BAR));
 		}
 	}
 
@@ -1893,16 +1893,12 @@ public class MainWindow
 								oldMainWindow.postPluginSetup();
 							}
 
-							oldMainMenu = new org.gudy.azureus2.ui.swt.mainwindow.MainMenu(
-									shell);
-							oldMainMenu.createMenu(core, shell);
-							oldMainMenu.setMainWindow(oldMainWindow);
-							oldMainWindow.setMenu(oldMainMenu);
-
-							Menu viewMenu = oldMainMenu.getMenu(org.gudy.azureus2.ui.swt.mainwindow.MainMenu.MENU_VIEW);
-							if (viewMenu != null) {
-								menu.addToOldMenuView(viewMenu);
-							}
+							/*
+							 * KN: A hack to pass the old main menu to the old main window;
+							 * this whole old/new main window/menu must be redesigned to be more flexible :-(
+							 */
+//							IMainMenu menu = uiFunctions.createMainMenu(cArea.getShell());
+							oldMainWindow.setMainMenu(menu);
 
 							uiFunctions.oldMainWindowInitialized(oldMainWindow);
 
@@ -1974,5 +1970,41 @@ public class MainWindow
 
 	protected MainStatusBar getMainStatusBar() {
 		return statusBar;
+	}
+
+	public boolean isVisible(int windowElement) {
+		if (windowElement == IMainWindow.WINDOW_ELEMENT_TOOLBAR) {
+			/*
+			 * Only the (embedded) old main window has a toolbar
+			 */
+			if (null != oldMainWindow) {
+				return oldMainWindow.isVisible(windowElement);
+			}
+		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_SEARCHBAR) {
+			//TODO:
+		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_STATUSBAR) {
+			//TODO:
+		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_MENU) {
+			//TODO:
+		}
+
+		return false;
+	}
+
+	public void setVisible(int windowElement, boolean value) {
+		if (windowElement == IMainWindow.WINDOW_ELEMENT_TOOLBAR) {
+			if (null != oldMainWindow) {
+				/*
+				 * Only the (embedded) old main window has a toolbar
+				 */
+				oldMainWindow.setVisible(windowElement, value);
+			}
+		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_SEARCHBAR) {
+			//TODO:
+		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_STATUSBAR) {
+			//TODO:
+		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_MENU) {
+			//TODO:
+		}
 	}
 }
