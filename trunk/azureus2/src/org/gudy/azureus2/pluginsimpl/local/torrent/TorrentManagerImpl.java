@@ -377,6 +377,7 @@ TorrentManagerImpl
 				attribute_map.put( name, res );
 			}
 
+			if (res == null) {throw new IllegalArgumentException("No such attribute: \"" + name + "\"");}
 			return( res );
 
 		}finally{
