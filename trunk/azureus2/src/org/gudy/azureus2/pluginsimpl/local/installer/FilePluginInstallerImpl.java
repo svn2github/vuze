@@ -160,19 +160,24 @@ FilePluginInstallerImpl
 						}
 					}
 				}
-					
+
+				pos = prefix.lastIndexOf("_");
+				String filename_id = null, filename_version = null; 
+				if ( pos != -1 ){
+					filename_id 			= prefix.substring(0,pos);							
+					filename_version		= prefix.substring(pos+1);
+				}
+				
 				if ( properties == null ){
 					
 						// one valid possibility here, this is a built-in plugin. this doesn't have
 						// a plugin.properties
 										
-					pos = prefix.lastIndexOf("_");
+					if (filename_id != null) {
 					
-					if ( pos != -1 ){
-					
-						id 			= prefix.substring(0,pos);							
-						version		= prefix.substring(pos+1);
-					
+						id 			= filename_id;							
+						version		= filename_version;
+											
 						PluginInterface pi = installer.getPluginManager().getPluginInterfaceByID( id );
 
 						ok =  	pi != null &&
@@ -184,12 +189,19 @@ FilePluginInstallerImpl
 					
 						throw( new PluginException( "Mandatory file 'plugin.properties' not found in plugin file" ));
 					}
-				}else{
+				}else{ // properties != null
 				
 					// unfortunately plugin.id isn't mandatory for the properties, and neither is plugin.version
 				
 					id		= properties.getProperty( "plugin.id" );
 					version	= properties.getProperty( "plugin.version" );
+					
+					// Force both versions to be the same if they are both defined.
+					String prop_version = version;
+					if (prop_version != null && !filename_version.equals(prop_version)) {
+					    throw new PluginException("inconsistent versions [file=" + filename_version + ", prop=" + prop_version + "]");
+					}
+
 				}
 				
 				if ( id == null ){
