@@ -543,9 +543,9 @@ public class MenuFactory
 	public static MenuItem addBlockedIPsMenuItem(Menu menu) {
 		return addMenuItem(menu, MENU_ID_IP_FILTER, new Listener() {
 			public void handleEvent(Event event) {
-//				if (MainWindow.isAlreadyDead) {
-//					return;
-//				}
+				//				if (MainWindow.isAlreadyDead) {
+				//					return;
+				//				}
 				BlockedIpsWindow.showBlockedIps(getCore(),
 						getUIFunctionSWT().getMainShell());
 			}
@@ -927,8 +927,10 @@ public class MenuFactory
 	public static final MenuItem addMenuItem(Menu menu, String localizationKey,
 			Listener selListener, int style) {
 		MenuItem menuItem = new MenuItem(menu, style);
-		Messages.setLanguageText(menuItem, resolveLocalizationKey(localizationKey));
-		KeyBindings.setAccelerator(menuItem, resolveAcceleratorKey(localizationKey));
+		Messages.setLanguageText(menuItem,
+				MessageText.resolveLocalizationKey(localizationKey));
+		KeyBindings.setAccelerator(menuItem,
+				MessageText.resolveAcceleratorKey(localizationKey));
 		if (null != selListener) {
 			menuItem.addListener(SWT.Selection, selListener);
 		}
@@ -938,48 +940,6 @@ public class MenuFactory
 		 */
 		menuItem.setData(KEY_MENU_ID, localizationKey);
 		return menuItem;
-	}
-
-	private static String resolveLocalizationKey(String localizationKey) {
-		if (null == localizationKey) {
-			return null;
-		}
-
-		if (true == "az3".equalsIgnoreCase(COConfigurationManager.getStringParameter("ui"))) {
-			String v3Key = null;
-			if (false == localizationKey.startsWith("v3.")) {
-				v3Key = "v3." + localizationKey;
-			} else {
-				v3Key = localizationKey;
-			}
-
-			if (true == MessageText.keyExists(v3Key)) {
-				return v3Key;
-			}
-		}
-
-		return localizationKey;
-	}
-
-	private static String resolveAcceleratorKey(String localizationKey) {
-		if (null == localizationKey) {
-			return null;
-		}
-
-		if (true == "az3".equalsIgnoreCase(COConfigurationManager.getStringParameter("ui"))) {
-			String v3Key = null;
-			if (false == localizationKey.startsWith("v3.")) {
-				v3Key = "v3." + localizationKey;
-			} else {
-				v3Key = localizationKey;
-			}
-
-			if (true == MessageText.keyExists(v3Key + ".keybinding")) {
-				return v3Key;
-			}
-		}
-
-		return localizationKey;
 	}
 
 	public static final MenuItem addMenuItem(Menu menu, int style,

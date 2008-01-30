@@ -788,4 +788,60 @@ public class MessageText {
 		Locale	old_locale,
 		Locale	new_locale );
   }
+  
+	/**
+	 * Sometime a localization key has 2 different returned values: one for Classic UI and another for the Vuze UI
+	 * This method will attempt to locate the given key (with the prefix v3. ) if applicable, if found
+	 * then it will return the key with the prepended prefix.  Otherwise it will return the key as given
+	 * @param localizationKey
+	 * @return
+	 */
+  public static String resolveLocalizationKey(String localizationKey) {
+		if (null == localizationKey) {
+			return null;
+		}
+
+		if (true == "az3".equalsIgnoreCase(COConfigurationManager.getStringParameter("ui"))) {
+			String v3Key = null;
+			if (false == localizationKey.startsWith("v3.")) {
+				v3Key = "v3." + localizationKey;
+			} else {
+				v3Key = localizationKey;
+			}
+
+			if (true == MessageText.keyExists(v3Key)) {
+				return v3Key;
+			}
+		}
+
+		return localizationKey;
+	}
+
+	/**
+	 * Sometime a accelerator key has 2 different returned values: one for Classic UI and another for the Vuze UI
+	 * This method will attempt to locate the given key (with the prefix v3. ) if applicable, if found
+	 * then it will return the key with the prepended prefix.  Otherwise it will return the key as given
+	 * @param acceleratorKey
+	 * @return
+	 */
+	public static String resolveAcceleratorKey(String acceleratorKey) {
+		if (null == acceleratorKey) {
+			return null;
+		}
+
+		if (true == "az3".equalsIgnoreCase(COConfigurationManager.getStringParameter("ui"))) {
+			String v3Key = null;
+			if (false == acceleratorKey.startsWith("v3.")) {
+				v3Key = "v3." + acceleratorKey;
+			} else {
+				v3Key = acceleratorKey;
+			}
+
+			if (true == MessageText.keyExists(v3Key + ".keybinding")) {
+				return v3Key;
+			}
+		}
+
+		return acceleratorKey;
+	}
 }
