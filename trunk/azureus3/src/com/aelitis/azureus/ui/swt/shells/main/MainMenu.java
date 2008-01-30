@@ -1,8 +1,7 @@
 package com.aelitis.azureus.ui.swt.shells.main;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -140,7 +139,7 @@ public class MainMenu
 	private void addViewMenu(final Shell parent) {
 		try {
 			MenuItem viewItem = MenuFactory.createViewMenuItem(menuBar);
-			Menu viewMenu = viewItem.getMenu();
+			final Menu viewMenu = viewItem.getMenu();
 
 			addViewMenuItems(viewMenu);
 
@@ -166,15 +165,35 @@ public class MainMenu
 			}
 
 			MenuFactory.addSeparatorMenuItem(viewMenu);
-			MenuFactory.addLabelMenuItem(viewMenu, MENU_ID_SEARCH_BAR).setEnabled(
-					false);
 
-			//									createViewMenuItem(skin, viewMenu, PREFIX_V3 + ".view.searchbar",
-			//											"SearchBar.visible", "searchbar");
+			/*
+			 * NOTE: The following menu items must be created on-demand because
+			 * their creation code relies on the main window being in proper size already.
+			 * Adding these menus before the window is fully opened will result in improper
+			 * layout of the SearchBar and TabBar
+			 */
+			viewMenu.addMenuListener(new MenuListener() {
 
-			MenuFactory.addLabelMenuItem(viewMenu, MENU_ID_TAB_BAR).setEnabled(false);
-			//			createViewMenuItem(skin, viewMenu, PREFIX_V3 + ".view.tabbar",
-			//					"TabBar.visible", "tabbar");
+				public void menuShown(MenuEvent e) {
+
+					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3
+							+ ".view.searchbar")) {
+						createViewMenuItem(skin, viewMenu, PREFIX_V3 + ".view.searchbar",
+								"SearchBar.visible", "searchbar");
+					}
+
+					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3
+							+ ".view.tabbar")) {
+						createViewMenuItem(skin, viewMenu, PREFIX_V3 + ".view.tabbar",
+								"TabBar.visible", "tabbar");
+					}
+				}
+
+				public void menuHidden(MenuEvent e) {
+					// Do nothing
+				}
+
+			});
 
 		} catch (Exception e) {
 			Debug.out("Error creating View Menu", e);

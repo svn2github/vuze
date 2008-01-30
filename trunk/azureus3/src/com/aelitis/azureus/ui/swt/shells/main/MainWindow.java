@@ -47,7 +47,6 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
-import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.minibar.MiniBarManager;
@@ -745,6 +744,17 @@ public class MainWindow
 			}
 		} finally {
 			showMainWindow();
+
+			/*
+			 * Sets the visibility of the Search and Tab bars after the window has been opened
+			 * because these elements require the window to be in it's proper size before they
+			 * can calculate their own placement coordinates
+			 */
+			setVisible(WINDOW_ELEMENT_SEARCHBAR,
+					COConfigurationManager.getBooleanParameter("SearchBar.visible"));
+			setVisible(WINDOW_ELEMENT_TABBAR,
+					COConfigurationManager.getBooleanParameter("TabBar.visible"));
+
 			System.out.println("shell.open took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
@@ -1897,7 +1907,7 @@ public class MainWindow
 							 * KN: A hack to pass the old main menu to the old main window;
 							 * this whole old/new main window/menu must be redesigned to be more flexible :-(
 							 */
-//							IMainMenu menu = uiFunctions.createMainMenu(cArea.getShell());
+							//							IMainMenu menu = uiFunctions.createMainMenu(cArea.getShell());
 							oldMainWindow.setMainMenu(menu);
 
 							uiFunctions.oldMainWindowInitialized(oldMainWindow);
@@ -1981,7 +1991,15 @@ public class MainWindow
 				return oldMainWindow.isVisible(windowElement);
 			}
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_SEARCHBAR) {
-			//TODO:
+			SWTSkinObject skinObject = skin.getSkinObject("searchbar");
+			if (skinObject != null) {
+				return skinObject.isVisible();
+			}
+		}  else if (windowElement == IMainWindow.WINDOW_ELEMENT_TABBAR) {
+			SWTSkinObject skinObject = skin.getSkinObject("tabbar");
+			if (skinObject != null) {
+				return skinObject.isVisible();
+			}
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_STATUSBAR) {
 			//TODO:
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_MENU) {
@@ -2000,11 +2018,18 @@ public class MainWindow
 				oldMainWindow.setVisible(windowElement, value);
 			}
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_SEARCHBAR) {
-			//TODO:
+
+			SWTSkinUtils.setVisibility(skin, "SearchBar.visible", "searchbar", value);
+
+		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_TABBAR) {
+
+			SWTSkinUtils.setVisibility(skin, "TabBar.visible", "tabbar", value);
+
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_STATUSBAR) {
 			//TODO:
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_MENU) {
 			//TODO:
 		}
+
 	}
 }
