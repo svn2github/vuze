@@ -928,36 +928,30 @@ RDResumeHandler
 		
 		Map resumeData = getResumeData( download_manager );
 
-		if ( resumeData == null )
-			return false;
-
-		byte[]	resumePieces = (byte[])resumeData.get("resume data");
+		byte[]	resumePieces = resumeData != null ? (byte[])resumeData.get("resume data") : null;
 		
 		boolean sharesAnyNeededPieces = false;
 		
-		if(resumePieces != null)
+		DiskManagerFileInfo[] files = download_manager.getDiskManagerFileInfo();
+		int firstPiece = file.getFirstPieceNumber();
+		int lastPiece = file.getLastPieceNumber();
+		// we must sweep over all files, as any number of files could share the first/last piece of the file we're probing
+		for (int i = 0; i < files.length && !sharesAnyNeededPieces; i++)
 		{
-			DiskManagerFileInfo[] files = download_manager.getDiskManagerFileInfo();
-			int firstPiece = file.getFirstPieceNumber();
-			int lastPiece = file.getLastPieceNumber();
-		
-			// we must sweep over all files, as any number of files could share the first/last piece of the file we're probing
-			for(int i = 0;i<files.length && !sharesAnyNeededPieces;i++)
-			{
-				DiskManagerFileInfo currentFile = files[i];
-				if(currentFile.getLastPieceNumber() < firstPiece)
-					continue;
-				if(currentFile.getIndex() == file.getIndex() && file.getStorageType() != DiskManagerFileInfo.ST_COMPACT)
-					for(int j = firstPiece;j<=lastPiece && !sharesAnyNeededPieces;j++)
-						sharesAnyNeededPieces |= resumePieces[j] != PIECE_NOT_DONE;
-				if(currentFile.getFirstPieceNumber() > lastPiece)
-					break;
-				if(currentFile.getFirstPieceNumber() <= firstPiece && firstPiece <= currentFile.getLastPieceNumber())
-					sharesAnyNeededPieces |= !currentFile.isSkipped();
-				if(currentFile.getFirstPieceNumber() <= lastPiece && lastPiece <= currentFile.getLastPieceNumber())
-					sharesAnyNeededPieces |= !currentFile.isSkipped();
-			}
+			DiskManagerFileInfo currentFile = files[i];
+			if (currentFile.getLastPieceNumber() < firstPiece)
+				continue;
+			if (currentFile.getIndex() == file.getIndex() && file.getStorageType() != DiskManagerFileInfo.ST_COMPACT && resumePieces != null)
+				for (int j = firstPiece; j <= lastPiece && !sharesAnyNeededPieces; j++)
+					sharesAnyNeededPieces |= resumePieces[j] != PIECE_NOT_DONE;
+			if (currentFile.getFirstPieceNumber() > lastPiece)
+				break;
+			if (currentFile.getFirstPieceNumber() <= firstPiece && firstPiece <= currentFile.getLastPieceNumber())
+				sharesAnyNeededPieces |= !currentFile.isSkipped();
+			if (currentFile.getFirstPieceNumber() <= lastPiece && lastPiece <= currentFile.getLastPieceNumber())
+				sharesAnyNeededPieces |= !currentFile.isSkipped();
 		}
+
 		
 		return sharesAnyNeededPieces;
 	}

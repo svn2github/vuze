@@ -1452,7 +1452,7 @@ CacheFileWithCache
 				// we can optimise this if the file's already big enough as cache entries can
 				// only make it bigger
 			
-			long	physical_length = file.getLength();
+			long	physical_length = file.exists() ? file.getLength() : 0;
 			
 			long	res = physical_length - compare_to;
 			
