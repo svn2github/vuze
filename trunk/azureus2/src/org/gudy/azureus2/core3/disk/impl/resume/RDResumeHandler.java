@@ -828,7 +828,7 @@ RDResumeHandler
 		DownloadManager			download_manager,
 		DiskManagerFileInfo		file,
 		boolean					recheck,
-		boolean					ignore_first_and_last )
+		boolean					onlyClearUnsharedFirstLast )
 	{
 		DownloadManagerState	download_manager_state = download_manager.getDownloadState();
 		
@@ -851,11 +851,30 @@ RDResumeHandler
 		int	first_piece = file.getFirstPieceNumber();
 		int last_piece	= file.getLastPieceNumber();
 		
-		if ( ignore_first_and_last ){
+		if ( onlyClearUnsharedFirstLast ){
+			DiskManagerFileInfo[] files = download_manager.getDiskManagerFileInfo();
+			boolean firstPieceShared = false;
+			boolean lastPieceShared = false;
+			for(int i = 0;i<files.length;i++)
+			{
+				DiskManagerFileInfo currentFile = files[i];
+				if(currentFile.getLastPieceNumber() < first_piece)
+					continue;
+				if(currentFile.getIndex() == file.getIndex())
+					continue;
+				if(currentFile.getFirstPieceNumber() > last_piece)
+					break;
+				if(currentFile.getFirstPieceNumber() <= first_piece && first_piece <= currentFile.getLastPieceNumber())
+					firstPieceShared |= !currentFile.isSkipped();
+				if(currentFile.getFirstPieceNumber() <= last_piece && last_piece <= currentFile.getLastPieceNumber())
+					lastPieceShared |= !currentFile.isSkipped();
+			}
 			
-			first_piece++;
-			
-			last_piece--;
+			if(firstPieceShared)
+				first_piece++;
+
+			if(lastPieceShared)
+				last_piece--;
 		}
 		
 		if ( resume_pieces != null ){
@@ -893,7 +912,7 @@ RDResumeHandler
 				}
 			}
 		}
-					
+		
 			// either way we're valid as 
 			//    1) clear -> pieces are set as not done
 			//	  2) recheck -> pieces are set as "recheck" and will be checked on restart
@@ -903,6 +922,44 @@ RDResumeHandler
 		saveResumeData( download_manager_state, resume_data );
 		
 		return( pieces_cleared );
+	}
+	
+	public static boolean fileMustExist(DownloadManager download_manager, DiskManagerFileInfo file) {
+		
+		Map resumeData = getResumeData( download_manager );
+
+		if ( resumeData == null )
+			return false;
+
+		byte[]	resumePieces = (byte[])resumeData.get("resume data");
+		
+		boolean sharesAnyNeededPieces = false;
+		
+		if(resumePieces != null)
+		{
+			DiskManagerFileInfo[] files = download_manager.getDiskManagerFileInfo();
+			int firstPiece = file.getFirstPieceNumber();
+			int lastPiece = file.getLastPieceNumber();
+		
+			// we must sweep over all files, as any number of files could share the first/last piece of the file we're probing
+			for(int i = 0;i<files.length && !sharesAnyNeededPieces;i++)
+			{
+				DiskManagerFileInfo currentFile = files[i];
+				if(currentFile.getLastPieceNumber() < firstPiece)
+					continue;
+				if(currentFile.getIndex() == file.getIndex() && file.getStorageType() != DiskManagerFileInfo.ST_COMPACT)
+					for(int j = firstPiece;j<=lastPiece && !sharesAnyNeededPieces;j++)
+						sharesAnyNeededPieces |= resumePieces[j] != PIECE_NOT_DONE;
+				if(currentFile.getFirstPieceNumber() > lastPiece)
+					break;
+				if(currentFile.getFirstPieceNumber() <= firstPiece && firstPiece <= currentFile.getLastPieceNumber())
+					sharesAnyNeededPieces |= !currentFile.isSkipped();
+				if(currentFile.getFirstPieceNumber() <= lastPiece && lastPiece <= currentFile.getLastPieceNumber())
+					sharesAnyNeededPieces |= !currentFile.isSkipped();
+			}
+		}
+		
+		return sharesAnyNeededPieces;
 	}
 	
 	public static int

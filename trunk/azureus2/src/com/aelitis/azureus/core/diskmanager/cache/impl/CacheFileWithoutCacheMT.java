@@ -131,7 +131,7 @@ implements CacheFile
 	{
 		try{
 						
-			return( base_file.getLength());
+			return( base_file.exists() ? base_file.getLength() : 0);
 			
 		}catch( FMFileManagerException e ){
 			

@@ -844,6 +844,20 @@ DiskManagerImpl
                 }
 
                 fileInfo.setDownloaded(0);
+                
+                boolean mustExistOrAllocate = cache_file.getStorageType() != CacheFile.CT_COMPACT || RDResumeHandler.fileMustExist(download_manager, fileInfo);
+                
+                // delete compact files that do not contain pieces we need
+                if(!mustExistOrAllocate && cache_file.exists())
+				{
+					try
+					{
+						cache_file.delete();
+					} catch (Exception e)
+					{
+						Debug.printStackTrace(e);
+					}
+				}
 
                 if ( cache_file.exists() ){
 
@@ -886,7 +900,8 @@ DiskManagerImpl
 
                     allocated += target_length;
 
-                }else{  //we need to allocate it
+                } else if (mustExistOrAllocate)
+                {  //we need to allocate it
 
                         //make sure it hasn't previously been allocated
 
@@ -2997,10 +3012,12 @@ DiskManagerImpl
 
                                 dm_state.save();
 
-                                if ( set_skipped ){
-
+                                if ( set_skipped )
                                     setSkipped( true );
-                                }
+                                
+                                
+                                if(type == ST_COMPACT && !RDResumeHandler.fileMustExist(download_manager, this))
+                                	getFile(true).delete();
                             }
                         }
 

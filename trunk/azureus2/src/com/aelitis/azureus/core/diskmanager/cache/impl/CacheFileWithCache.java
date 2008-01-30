@@ -1399,7 +1399,7 @@ CacheFileWithCache
 				try{
 					this_mon.enter();
 			
-					long	physical_size = file.getLength();
+					long	physical_size = file.exists() ?  file.getLength() : 0;
 
 					Iterator	it = cache.iterator();
 					
@@ -1431,7 +1431,7 @@ CacheFileWithCache
 				}
 			}else{
 				
-				return( file.getLength());
+				return( file.exists() ? file.getLength() : 0);
 			}
 						
 		}catch( FMFileManagerException e ){

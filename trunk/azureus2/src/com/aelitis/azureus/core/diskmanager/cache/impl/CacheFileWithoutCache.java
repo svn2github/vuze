@@ -134,7 +134,7 @@ CacheFileWithoutCache
 	{
 		try{
 						
-			return( file.getLength());
+			return( file.exists() ? file.getLength() : 0);
 			
 		}catch( FMFileManagerException e ){
 			

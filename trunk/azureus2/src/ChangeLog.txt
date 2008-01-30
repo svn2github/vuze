@@ -5,11 +5,12 @@ AZUREUS VUZE CHANGELOG
 
 FEATURE: Core | Added µTorrent PEX support [amc1]
 FEATURE: UI   | Added option for "Open Containing Folder" menu action - which may integrate better with non-standard file browsers [amc1]
-FEATURE: UI   | Added option for "Show Torrent Menu" -- Users can now decide to see the Torrent menu in the menubar or not[knguyen]
-FEATURE: UI   | New menu configuration for Vuze and Vuze Advanced UI's[knguyen]
+FEATURE: UI   | Added option for "Show Torrent Menu" -- Users can now decide to see the Torrent menu in the menubar or not [knguyen]
+FEATURE: UI   | New menu configuration for Vuze and Vuze Advanced UI's [knguyen]
 
 CHANGE: Core  | Further memory footprint reductions; for additional tweaks see http://www.azureuswiki.com/index.php/Reduce_memory_usage [The 8472]
 CHANGE: Core  | Reimplemented LT extension protocol code [amc1]
+CHANGE: Core  | DND/Compact (aka Delete) priority now deletes all files that do not share pieces with normal/high priority files [The 8472]
 CHANGE: Core  | Queuing rules now don't start any further torrents if the global up/download speed limits are reached [The 8472]
                  - makes "don't count torrent ..." minimum speed rules more useful to dynamically regulate the queue lengths
                  - prevents runaway chain reactions in case of connection loss
@@ -49,8 +50,8 @@ FEATURE: Core | Embed ChangeLog.txt in release jar [Nolar]
 FEATURE: UI   | Column menu option to automatically put contents of cell into the tooltip [amc1] 
 FEATURE: UI   | Piece distribution view is now also available as a peer subview [The 8472]
 FEATURE: UI   | Added 'time remaining' column to peers view [Parg]
-FEATURE: UI   | Added option to suppress file download dialog [khai]
-FEATURE: UI   | Various progress reports have been unified; main status bar can display progress for certain processes now [khai]
+FEATURE: UI   | Added option to suppress file download dialog [knguyen]
+FEATURE: UI   | Various progress reports have been unified; main status bar can display progress for certain processes now [knguyen]
 FEATURE: Plug | Plugins can now change the color of rows [amc1]
 FEATURE: Plug | Plugins can add configuration colour parameters [amc1]
 
