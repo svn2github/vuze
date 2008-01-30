@@ -825,7 +825,10 @@ public class ConfigView extends AbstractIView {
   }
 
   public String getFullTitle() {
-    return MessageText.getString("ConfigView.title.full"); //$NON-NLS-1$
+  	/*
+  	 * Using resolveLocalizationKey because there are different version for Classic vs. Vuze
+  	 */
+    return MessageText.getString(MessageText.resolveLocalizationKey("ConfigView.title.full")); //$NON-NLS-1$
   }
 
   public boolean selectSection(String id) {
