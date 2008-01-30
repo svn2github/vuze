@@ -150,6 +150,8 @@ public class MainMenu
 			MenuFactory.addMyTorrentsMenuItem(advancedMenu);
 			MenuFactory.addMyTrackerMenuItem(advancedMenu);
 			MenuFactory.addMySharesMenuItem(advancedMenu);
+			MenuFactory.addConsoleMenuItem(advancedMenu);
+			MenuFactory.addStatisticsMenuItem(advancedMenu);
 
 			MenuFactory.setEnablementKeys(
 					MenuFactory.addViewToolbarMenuItem(advancedMenu), FOR_AZ2
@@ -157,12 +159,7 @@ public class MainMenu
 
 			MenuFactory.addTransferBarToMenu(advancedMenu);
 			MenuFactory.addAllPeersMenuItem(advancedMenu);
-
-			if (Constants.isOSX) {
-				MenuFactory.addSeparatorMenuItem(viewMenu);
-				MenuFactory.addConsoleMenuItem(viewMenu);
-				MenuFactory.addStatisticsMenuItem(viewMenu);
-			}
+			MenuFactory.addBlockedIPsMenuItem(advancedMenu);
 
 			MenuFactory.addSeparatorMenuItem(viewMenu);
 
