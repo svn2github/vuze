@@ -146,7 +146,7 @@ public class MainMenu
 		MenuFactory.addZoomWindowMenuItem(windowMenu);
 
 		MenuFactory.addSeparatorMenuItem(windowMenu);
-		MenuFactory.addBlockedIPsMenuItem(windowMenu, mainWindow);
+		MenuFactory.addBlockedIPsMenuItem(windowMenu);
 
 		MenuFactory.addSeparatorMenuItem(windowMenu);
 		MenuFactory.addBringAllToFrontMenuItem(windowMenu);
@@ -264,7 +264,7 @@ public class MainMenu
 		MenuItem item = MenuFactory.createToolsMenuItem(menuBar);
 		Menu toolsMenu = item.getMenu();
 
-		MenuFactory.addBlockedIPsMenuItem(toolsMenu, mainWindow);
+		MenuFactory.addBlockedIPsMenuItem(toolsMenu);
 		MenuFactory.addConsoleMenuItem(toolsMenu);
 		MenuFactory.addStatisticsMenuItem(toolsMenu);
 		MenuFactory.addNatTestMenuItem(toolsMenu);

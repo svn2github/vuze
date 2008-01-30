@@ -540,13 +540,12 @@ public class MenuFactory
 		return item;
 	}
 
-	public static MenuItem addBlockedIPsMenuItem(Menu menu,
-			final MainWindow mainWindow) {
+	public static MenuItem addBlockedIPsMenuItem(Menu menu) {
 		return addMenuItem(menu, MENU_ID_IP_FILTER, new Listener() {
 			public void handleEvent(Event event) {
-				if (MainWindow.isAlreadyDead) {
-					return;
-				}
+//				if (MainWindow.isAlreadyDead) {
+//					return;
+//				}
 				BlockedIpsWindow.showBlockedIps(getCore(),
 						getUIFunctionSWT().getMainShell());
 			}
