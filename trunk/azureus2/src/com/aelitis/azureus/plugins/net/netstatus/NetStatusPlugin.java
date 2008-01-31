@@ -22,6 +22,7 @@
 package com.aelitis.azureus.plugins.net.netstatus;
 
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
@@ -34,6 +35,8 @@ NetStatusPlugin
 {
 	public static final String VIEW_ID = "aznetstatus";
 	
+	private LoggerChannel	logger;
+	
 	public void
 	initialize(
 		final PluginInterface		plugin_interface )
@@ -45,6 +48,10 @@ NetStatusPlugin
 		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
 		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		name );
 
+		logger = plugin_interface.getLogger().getChannel( "NetStatus" );
+		
+		logger.setDiagnostic();
+		
 		plugin_interface.getUIManager().addUIListener(
 			new UIManagerListener()
 			{
@@ -56,11 +63,11 @@ NetStatusPlugin
 						
 						UISWTInstance swt_ui = (UISWTInstance)instance;
 						
-						NetStatusPluginView view = new NetStatusPluginView( plugin_interface );
+						NetStatusPluginView view = new NetStatusPluginView( NetStatusPlugin.this );
 
 						swt_ui.addView(	UISWTInstance.VIEW_MAIN, VIEW_ID, view );
 						
-						//swt_ui.openMainView( VIEW_ID, view, null );
+						swt_ui.openMainView( VIEW_ID, view, null );
 					}
 				}
 
@@ -70,5 +77,12 @@ NetStatusPlugin
 				{
 				}
 			});
+	}
+	
+	public void
+	log(
+		String		str )
+	{
+		logger.log( str );
 	}
 }

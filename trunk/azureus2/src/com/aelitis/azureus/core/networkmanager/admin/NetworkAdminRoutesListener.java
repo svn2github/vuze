@@ -27,12 +27,13 @@ NetworkAdminRoutesListener
 	public boolean
 	foundNode(
 		NetworkAdminNetworkInterfaceAddress		intf,
-		NetworkAdminNode						node,
+		NetworkAdminNode[]						route_so_far,
 		int										distance,
 		int										rtt );
 	
 	public boolean
 	timeout(
 		NetworkAdminNetworkInterfaceAddress		intf,
+		NetworkAdminNode[]						route_so_far,
 		int										distance );
 }

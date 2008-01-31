@@ -28,6 +28,9 @@ import java.net.InetAddress;
 public interface
 NetworkAdminNetworkInterfaceAddress 
 {
+	public NetworkAdminNetworkInterface
+	getInterface();
+	
 	public InetAddress
 	getAddress();
 	

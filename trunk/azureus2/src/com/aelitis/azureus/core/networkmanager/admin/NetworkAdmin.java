@@ -105,7 +105,15 @@ NetworkAdmin
 	
 	public abstract NetworkAdminASN
 	getCurrentASN();
-		
+	
+	public abstract void
+	getRoutes(
+		final InetAddress					target,
+		final int							max_millis,
+		final NetworkAdminRoutesListener	listener )
+	
+		throws NetworkAdminException;
+	
 	public abstract void
 	addPropertyChangeListener(
 		NetworkAdminPropertyChangeListener	listener );

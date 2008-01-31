@@ -37,10 +37,14 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 
+import com.aelitis.azureus.plugins.net.netstatus.NetStatusPlugin;
+
 public class 
 NetStatusPluginView 
 	implements UISWTViewEventListener
 {
+	private NetStatusPlugin	plugin;
+	
 	private boolean		created = false;	
 
 	private Composite	composite;
@@ -48,13 +52,13 @@ NetStatusPluginView
 	private Button		cancel_button;
 	private StyledText 	log;
 	
-	private boolean		test_running;
+	private NetStatusPluginTester		current_test;
 	
 	public
 	NetStatusPluginView(
-		PluginInterface		_plugin_interface )
+		NetStatusPlugin		_plugin )
 	{
-		
+		plugin	= _plugin;
 	}
 	
 	public boolean 
@@ -208,21 +212,31 @@ NetStatusPluginView
 		try{
 			synchronized( this ){
 				
-				if ( test_running ){
+				if ( current_test != null ){
 					
 					Debug.out( "Test already running!!!!" );
 					
 					return;
 				}
 				
-				test_running = true;
+				current_test = 
+					new NetStatusPluginTester(
+						new NetStatusPluginTester.loggerProvider()
+						{
+							public void 
+							log(
+								String str) 
+							{
+								println( str );
+							}
+						});
 			}
 			
 			println( "Test starting" );
 			
-			Thread.sleep(2000);
+			current_test.run();
 			
-			println( "Test complete" );
+			println( current_test.isCancelled()?"Test Cancelled":"Test complete" );
 			
 		}catch( Throwable e ){
 			
@@ -259,7 +273,9 @@ NetStatusPluginView
 				
 				synchronized( this ){
 
-					test_running = false;
+					current_test.cancel();
+					
+					current_test = null;
 				}
 			}
 		}
@@ -276,6 +292,8 @@ NetStatusPluginView
 	print(
 		final String		str )
 	{
+		plugin.log( str );
+		
 		if ( !log.isDisposed()){
 			
 			log.getDisplay().asyncExec(
@@ -294,6 +312,14 @@ NetStatusPluginView
 	cancelTestSupport()
 	{
 		println( "Cancelling test..." );
+		
+		synchronized( this ){
+			
+			if ( current_test != null ){
+				
+				current_test.cancel();
+			}
+		}
 	}
 	
 	protected void

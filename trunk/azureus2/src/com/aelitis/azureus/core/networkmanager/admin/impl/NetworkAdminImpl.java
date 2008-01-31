@@ -1072,14 +1072,22 @@ NetworkAdminImpl
 										{
 											trace.add( node );
 											
-											return( listener.foundNode( address, node, distance, rtt) );
+											NetworkAdminNode[]	route = new NetworkAdminNode[trace.size()];
+											
+											trace.toArray( route );
+											
+											return( listener.foundNode( address, route, distance, rtt) );
 										}
 										
 										public boolean 
 										timeout(
 											int distance )
 										{
-											return( listener.timeout( address, distance ));
+											NetworkAdminNode[]	route = new NetworkAdminNode[trace.size()];
+											
+											trace.toArray( route );
+
+											return( listener.timeout( address, route, distance ));
 										}
 									});
 								
@@ -1356,11 +1364,11 @@ NetworkAdminImpl
 						public boolean
 						foundNode(
 							NetworkAdminNetworkInterfaceAddress		intf,
-							NetworkAdminNode						node,
+							NetworkAdminNode[]						route,
 							int										distance,
 							int										rtt )
 						{
-							iw.println( intf.getAddress().getHostAddress() + ": " + node.getAddress().getHostAddress() + " (" + distance + ")" );
+							iw.println( intf.getAddress().getHostAddress() + ": " + route[route.length-1].getAddress().getHostAddress() + " (" + distance + ")" );
 
 							return( true );
 						}
@@ -1368,6 +1376,7 @@ NetworkAdminImpl
 						public boolean
 						timeout(
 							NetworkAdminNetworkInterfaceAddress		intf,
+							NetworkAdminNode[]						route,
 							int										distance )
 						{
 							iw.println( intf.getAddress().getHostAddress() + ": timeout (dist=" + distance + ")" );
@@ -1545,9 +1554,16 @@ NetworkAdminImpl
 			
 			protected
 			networkAddress(
+					
 				InetAddress	_address )
 			{
 				address = _address;
+			}
+			
+			public NetworkAdminNetworkInterface
+			getInterface()
+			{
+				return( networkInterface.this );
 			}
 			
 			public InetAddress
