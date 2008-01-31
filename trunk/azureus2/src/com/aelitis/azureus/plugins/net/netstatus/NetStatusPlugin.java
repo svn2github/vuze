@@ -60,7 +60,7 @@ NetStatusPlugin
 
 						swt_ui.addView(	UISWTInstance.VIEW_MAIN, VIEW_ID, view );
 						
-						swt_ui.openMainView( VIEW_ID, view, null );
+						//swt_ui.openMainView( VIEW_ID, view, null );
 					}
 				}
 
