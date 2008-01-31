@@ -841,10 +841,7 @@ RDResumeHandler
 
 		int	pieces_cleared	= 0;
 		
-			// TODO: we could be a bit smarter with the first and last pieces regarding
-			// partial blocks where the piece spans the file bounaries.
-		
-			// clear any affected pieces
+		// clear any affected pieces
 		
 		byte[]	resume_pieces = (byte[])resume_data.get("resume data");
 		

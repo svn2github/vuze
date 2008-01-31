@@ -780,6 +780,8 @@ implements PiecePicker
 			if(dispenser.peek(DiskManager.BLOCK_SIZE) < 1 && (!pt.isLANLocal() || includeLanPeersInReqLimiting))
 				break;
 			
+			//System.out.println("#"+i+" "+pt.getStats().getSmoothDataReceiveRate());
+			
 			// can we transfer something?
 			if (pt.isDownloadPossible()){
 				int	peer_request_num = pt.getMaxNbRequests();
