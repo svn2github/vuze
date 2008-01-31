@@ -247,7 +247,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("CD", "Enhanced CTorrent", VER_AZ_TWO_MAJ_TWO_MIN);      
 		addAzStyle("CT", "CTorrent", "1.2.34");
 		addAzStyle("DP", "Propogate Data Client");
-		addAzStyle("DE", "Deluge", VER_AZ_THREE_DIGITS);
+		addAzStyle("DE", "Deluge", VER_AZ_FOUR_DIGITS);
 		addAzStyle("EB", "EBit");
 		addAzStyle("ES", "Electric Sheep", VER_AZ_THREE_DIGITS);
 		addAzStyle("FC", "FileCroc");
@@ -268,6 +268,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("MR", "Miro");
 		addAzStyle("MT", "MoonlightTorrent");
 		addAzStyle("NE", "BT Next Evolution", VER_AZ_THREE_DIGITS);
+		addAzStyle("NX", "Net Transport");
 		addAzStyle("PC", PeerClassifier.CACHE_LOGIC);
 		addAzStyle("PD", "Pando");
 		addAzStyle("qB", "qBittorrent", VER_AZ_THREE_DIGITS);
