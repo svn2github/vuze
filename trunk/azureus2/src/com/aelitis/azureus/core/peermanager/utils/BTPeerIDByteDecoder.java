@@ -109,7 +109,7 @@ public class BTPeerIDByteDecoder {
 		
 	}
 	
-	private static boolean client_logging_allowed = true;
+	static boolean client_logging_allowed = true;
 
 	// I don't expect this to grow too big, and it won't grow if there's no logging going on.
 	private static HashSet logged_ids = new HashSet();
@@ -437,8 +437,8 @@ public class BTPeerIDByteDecoder {
 		}
 		else {return ByteFormatter.encodeString(peer_id);}
 	}
-
-	private static void assertDecode(String client_result, String peer_id) throws Exception {
+	
+	static byte[] peerIDStringToBytes(String peer_id) throws Exception {
 		if (peer_id.length() > 40) {
 			peer_id = peer_id.replaceAll("[ ]", "");
 		}
@@ -457,7 +457,11 @@ public class BTPeerIDByteDecoder {
 		else {
 			throw new IllegalArgumentException(peer_id);
 		}
-		assertDecode(client_result, byte_peer_id);
+		return byte_peer_id;
+	}
+
+	private static void assertDecode(String client_result, String peer_id) throws Exception {
+		assertDecode(client_result, peerIDStringToBytes(peer_id));
 	}
 	
 	private static void assertDecode(String client_result, byte[] peer_id) throws Exception {
@@ -492,6 +496,7 @@ public class BTPeerIDByteDecoder {
 		assertDecode("libTorrent (Rakshasa) 0.11.2 / rTorrent*", "2D6C74304232302D0D739B93E6BE21FEBB557B20");
 		assertDecode("libtorrent (Rasterbar) 0.13.0", "-LT0D00-eZ0PwaDDr-~v"); // The latest version at time of writing is v0.12, but I'll assume this is valid.
 		assertDecode("LimeWire", "2D4C57303030312D31E0B3A0B46F7D4E954F4103");
+		assertDecode("Lphant 3.02", "2D4C5030 3330322D 00383336 35363935 37373030");
 		assertDecode("Shareaza 2.1.3.2", "2D535A323133322D000000000000000000000000");
 		assertDecode("SymTorrent 1.17", "-ST0117-01234567890!");
 		assertDecode("Transmission 0.6", "-TR0006-01234567890!");
@@ -519,6 +524,7 @@ public class BTPeerIDByteDecoder {
 		System.out.println("Testing simple substring clients...");
 		assertDecode("Azureus 1", "417A7572 65757300 00000000 000000A0 76F0AEF7");
 		assertDecode("Azureus 2.0.3.2", "2D2D2D2D2D417A757265757354694E7A2A6454A7");
+		assertDecode("G3 Torrent", "2D473341 6E6F6E79 6D6F7573 70E8D9CB 30250AD4");
 		assertDecode("Hurricane Electric", "6172636C696768742E68652EA5860C157A5ADC35");
 		assertDecode("Pando", "Pando-6B511B691CAC2E"); // Seen recently, have they changed peer ID format?
 		assertDecode("\u00B5Torrent 1.7.0 RC", "2D55543137302D00AF8BC5ACCC4631481EB3EB60");
