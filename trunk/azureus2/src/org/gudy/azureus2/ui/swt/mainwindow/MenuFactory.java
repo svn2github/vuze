@@ -822,10 +822,16 @@ public class MenuFactory
 		});
 	}
 
-	public static MenuItem addFAQMenuItem(Menu menu) {
+	/**
+	 * Add the FAQ menu item to the given menu
+	 * @param menu
+	 * @param faq_url the fully qualified url to the appropriate FAQ (Vuze uses a different url than Classic)
+	 * @return
+	 */
+	public static MenuItem addFAQMenuItem(Menu menu, final String faq_url) {
 		return addMenuItem(menu, MENU_ID_FAQ, new Listener() {
 			public void handleEvent(Event e) {
-				Utils.launch(Constants.AZUREUS_WIKI);
+				Utils.launch(faq_url);
 			}
 		});
 	}

@@ -304,7 +304,8 @@ public class MainMenu
 		MenuFactory.addHealthMenuItem(helpMenu);
 		MenuFactory.addReleaseNotesMenuItem(helpMenu);
 		MenuFactory.addWhatsNewMenuItem(helpMenu);
-		MenuFactory.addFAQMenuItem(helpMenu);
+		
+		MenuFactory.addFAQMenuItem(helpMenu, Constants.AZUREUS_WIKI);
 		MenuFactory.addGetPluginsMenuItem(helpMenu);
 
 		MenuFactory.addSeparatorMenuItem(helpMenu);
