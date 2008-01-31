@@ -87,6 +87,12 @@ public class TrackerStatus {
   	PRUDPTrackerCodecs.registerCodecs();
   }
   
+	private static final byte AUTO_UDP_INITIAL = 0;
+	private static final byte AUTO_UDP_FAILED = 1;
+	private static final byte AUTO_UDP_SUCCESS = 2;
+	
+	private byte autoUDPState = AUTO_UDP_INITIAL;
+  
   private static List	logged_invalid_urls	= new ArrayList();
   
   private static ThreadPool	thread_pool = new ThreadPool( "TrackerStatus", 10, true );	// queue when full rather than block
@@ -366,6 +372,8 @@ public class TrackerStatus {
 
 				String flags = "";
 				
+				List hashesForUDP = new ArrayList();
+				
 				for (int i = 0; i < responses.size(); i++) {
 					TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl) responses.get(i);
 
@@ -436,6 +444,9 @@ public class TrackerStatus {
 						
 						one_of_the_responses = response;
 						one_of_the_hashes = hash;
+						
+						if(hashesForUDP.size() < 74)
+							hashesForUDP.add(hash);
 					}
 				} // for responses
 
@@ -468,19 +479,37 @@ public class TrackerStatus {
 
 				URL	redirect_url = null;
 				
-				if (reqUrl.getProtocol().equalsIgnoreCase("udp")) {
-
-					// TODO: support multi hash scrapes on UDP
-
-					scrapeUDP(reqUrl, message, one_of_the_hashes, one_of_the_responses);
-
-					bSingleHashScrapes = true;
-
-				} else {
-					
-					redirect_url = scrapeHTTP(reqUrl, message);
-				}
-
+				String protocol = reqUrl.getProtocol();
+				
+		  		URL udpScrapeURL = null;
+		  		
+		  		if(protocol.equalsIgnoreCase("udp"))
+		  			udpScrapeURL = reqUrl;
+		  		else if(!az_tracker && (autoUDPState == AUTO_UDP_INITIAL || autoUDPState == AUTO_UDP_SUCCESS))
+		  			udpScrapeURL = new URL(reqUrl.toString().replaceFirst("(http|https)", "udp"));
+		  		
+		  				
+		  		if ( udpScrapeURL != null){
+		  			
+		  			boolean success = scrapeUDP( reqUrl, message, hashesForUDP );
+		  			
+		  			if((!success || message.size() == 0) && !protocol.equalsIgnoreCase("udp"))
+		  			{ // automatic UDP probe failed, use HTTP again
+		  				udpScrapeURL = null;
+		  				message.reset();
+		  				autoUDPState = AUTO_UDP_FAILED;
+		  			} else if(success)
+		  			{
+						if (Logger.isEnabled() && !protocol.equalsIgnoreCase("udp"))
+							Logger.log(new LogEvent(LOGID, LogEvent.LT_INFORMATION, "redirected http scrape for ["+scrapeURL+"] to udp"));
+		  				autoUDPState = AUTO_UDP_SUCCESS;
+		  			}
+		  				
+		  		}
+		  		
+		  		if(udpScrapeURL == null)
+		  			redirect_url = scrapeHTTP(reqUrl, message);
+				
 				scrape_reply = message.toByteArray();
 				
 				Map map = BDecoder.decode( scrape_reply );
@@ -1088,54 +1117,43 @@ public class TrackerStatus {
 	  return( redirect_url );
   }
   
-  protected void
-  scrapeUDP(
-  	URL								reqUrl,
-	ByteArrayOutputStream			message,
-	HashWrapper						hash,
-	TRTrackerScraperResponseImpl	current_response )
-  
-  		throws Exception
-  {
-  		/* reduce network traffic by only scraping UDP when the torrent isn't running as
-  		 * UDP version 2 contains scrape data in the announce response
-  		 */
+  protected boolean scrapeUDP(URL reqUrl, ByteArrayOutputStream message, List hashes) throws Exception {
+		Map rootMap = new HashMap();
+		Map files = new ByteEncodedKeyHashMap();
+		rootMap.put("files", files);
+		
+		
+		/*
+		 * reduce network traffic by only scraping UDP when the torrent isn't
+		 * running as UDP version 2 contains scrape data in the announce
+		 * response
+		 */
+		
+		/* removed implementation for the time being
+		 
+		for (Iterator it = hashes.iterator(); it.hasNext();)
+		{
+			HashWrapper hash = (HashWrapper) it.next();
+			if (PRUDPPacketTracker.VERSION == 2 && scraper.isTorrentDownloading(hash))
+			{
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(TorrentUtils.getDownloadManager(hash), LOGID, LogEvent.LT_WARNING, "Scrape of " + reqUrl + " skipped as torrent running and " + "therefore scrape data available in " + "announce replies"));
+				// easiest approach here is to brew up a response that looks like the current one
+				Map file = new HashMap();
+				byte[] resp_hash = hash.getBytes();
+				// System.out.println("got hash:" + ByteFormatter.nicePrint( resp_hash, true ));
+				files.put(new String(resp_hash, Constants.BYTE_ENCODING), file);
+				file.put("complete", new Long(current_response.getSeeds()));
+				file.put("downloaded", new Long(-1)); // unknown
+				file.put("incomplete", new Long(current_response.getPeers()));
+				byte[] data = BEncoder.encode(rootMap);
+				message.write(data);
+				return true;
+			}
+		}
+		
+		*/
   	
-  	if ( 	PRUDPPacketTracker.VERSION == 2 &&
-  			scraper.isTorrentDownloading( hash )){
-  	
-  		if (Logger.isEnabled())
-				Logger.log(new LogEvent(TorrentUtils.getDownloadManager(hash), LOGID,
-						LogEvent.LT_WARNING, "Scrape of " + reqUrl
-								+ " skipped as torrent running and "
-								+ "therefore scrape data available in " + "announce replies"));
-
-			// easiest approach here is to brew up a response that looks like the current one
-		
-		Map	map = new HashMap();
-
-		Map	files = new ByteEncodedKeyHashMap();
-		
-		map.put( "files", files );
-									
-		Map	file = new HashMap();
-			
-		byte[]	resp_hash = hash.getBytes();
-		
-		// System.out.println("got hash:" + ByteFormatter.nicePrint( resp_hash, true ));
-	
-		files.put( new String(resp_hash, Constants.BYTE_ENCODING), file );
-		
-		file.put( "complete", new Long( current_response.getSeeds()));
-		file.put( "downloaded", new Long(-1));	// unknown
-		file.put( "incomplete", new Long(current_response.getPeers()));
-		
-		byte[] data = BEncoder.encode( map );
-		
-		message.write( data );
-		
-  		return;
-  	}
   	
 	reqUrl = TRTrackerUtils.adjustURLForHosting( reqUrl );
 
@@ -1169,7 +1187,7 @@ public class TrackerStatus {
 					
 					long	my_connection = connect_reply.getConnectionId();
 					
-					PRUDPPacketRequestScrape scrape_request = new PRUDPPacketRequestScrape( my_connection, hash.getBytes() );
+					PRUDPPacketRequestScrape scrape_request = new PRUDPPacketRequestScrape( my_connection, hashes );
 									
 					reply = handler.sendAndReceive( auth, scrape_request, destination );
 					
@@ -1179,8 +1197,6 @@ public class TrackerStatus {
 	
 						if ( PRUDPPacketTracker.VERSION == 1 ){
 							PRUDPPacketReplyScrape	scrape_reply = (PRUDPPacketReplyScrape)reply;
-							
-							Map	map = new HashMap();
 							
 							/*
 							int	interval = scrape_reply.getInterval();
@@ -1196,10 +1212,7 @@ public class TrackerStatus {
 							int[]		downloaded 		= scrape_reply.getDownloaded();
 							int[]		incomplete 		= scrape_reply.getIncomplete();
 							
-							Map	files = new ByteEncodedKeyHashMap();
-							
-							map.put( "files", files );
-							
+					
 							for (int i=0;i<reply_hashes.length;i++){
 								
 								Map	file = new HashMap();
@@ -1215,15 +1228,14 @@ public class TrackerStatus {
 								file.put( "incomplete", new Long(incomplete[i]));
 							}
 							
-							byte[] data = BEncoder.encode( map );
+							byte[] data = BEncoder.encode( rootMap );
 							
 							message.write( data );
 							
-							return;
+							return true;
 						}else{
 							PRUDPPacketReplyScrape2	scrape_reply = (PRUDPPacketReplyScrape2)reply;
 							
-							Map	map = new HashMap();
 							
 							/*
 							int	interval = scrape_reply.getInterval();
@@ -1238,36 +1250,32 @@ public class TrackerStatus {
 							int[]		downloaded 	= scrape_reply.getDownloaded();
 							int[]		incomplete 	= scrape_reply.getIncomplete();
 							
-							Map	files = new ByteEncodedKeyHashMap();
-							
-							map.put( "files", files );
-														
-							Map	file = new HashMap();
-								
-							byte[]	resp_hash = hash.getBytes();
+							int i=0;
+							for(Iterator it = hashes.iterator();it.hasNext() && i < complete.length;i++)
+							{
+								HashWrapper hash = (HashWrapper)it.next();
+								Map file = new HashMap();
+								file.put( "complete", new Long(complete[i]));
+								file.put( "downloaded", new Long(downloaded[i]));
+								file.put( "incomplete", new Long(incomplete[i]));
+								files.put( new String(hash.getBytes(), Constants.BYTE_ENCODING), file );
+							}
 							
 							// System.out.println("got hash:" + ByteFormatter.nicePrint( resp_hash, true ));
-						
-							files.put( new String(resp_hash, Constants.BYTE_ENCODING), file );
 							
-							file.put( "complete", new Long(complete[0]));
-							file.put( "downloaded", new Long(downloaded[0]));
-							file.put( "incomplete", new Long(incomplete[0]));
-							
-							byte[] data = BEncoder.encode( map );
+							byte[] data = BEncoder.encode( rootMap );
 							
 							message.write( data );
 							
-							return;
+							return true;
 						}
 					}else{
 						
 						failure_reason = ((PRUDPPacketReplyError)reply).getMessage();
 						
 						if (Logger.isEnabled())
-								Logger.log(new LogEvent(TorrentUtils.getDownloadManager(hash),
-										LOGID, LogEvent.LT_ERROR,
-										"Response from scrape interface : " + failure_reason));
+								Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+										"Response from scrape interface "+ reqUrl +" : " + failure_reason));
 						
 						break;
 					}
@@ -1276,8 +1284,7 @@ public class TrackerStatus {
 					failure_reason = ((PRUDPPacketReplyError)reply).getMessage();
 					
 					if (Logger.isEnabled())
-							Logger.log(new LogEvent(TorrentUtils.getDownloadManager(hash), LOGID,
-									LogEvent.LT_ERROR, "Response from scrape interface : "
+							Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR, "Response from scrape interface "+ reqUrl +" : "
 											+ ((PRUDPPacketReplyError) reply).getMessage()));
 				
 					break;
@@ -1296,15 +1303,14 @@ public class TrackerStatus {
 		
 		if ( failure_reason != null ){
 			
-			Map	map = new HashMap();
+			rootMap.put( "failure reason", failure_reason.getBytes());
+			rootMap.remove("files");
 			
-			map.put( "failure reason", failure_reason.getBytes());
-			
-			byte[] data = BEncoder.encode( map );
-			
+			byte[] data = BEncoder.encode( rootMap );
 			message.write( data );
-
 		}
+		
+		return false;
 	}finally{
 		if ( auth != null ){
 			

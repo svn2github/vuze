@@ -27,6 +27,9 @@ package org.gudy.azureus2.core3.tracker.protocol.udp;
  */
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import org.gudy.azureus2.core3.util.*;
 
@@ -36,7 +39,7 @@ public class
 PRUDPPacketRequestScrape 
 	extends PRUDPPacketRequest
 {
-	protected byte[]		hash;
+	protected List		hashes;
 
 	public
 	PRUDPPacketRequestScrape(
@@ -45,7 +48,19 @@ PRUDPPacketRequestScrape
 	{
 		super( PRUDPPacketTracker.ACT_REQUEST_SCRAPE, con_id );
 		
-		hash	= _hash;
+		hashes = new ArrayList();
+		hashes.add(_hash);
+	}
+	
+	public
+	PRUDPPacketRequestScrape(
+		long			con_id,
+		List			hashwrappers)
+	{
+		super( PRUDPPacketTracker.ACT_REQUEST_SCRAPE, con_id );
+		hashes = new ArrayList();
+		for(Iterator it = hashwrappers.iterator();it.hasNext();)
+			hashes.add(((HashWrapper)it.next()).getBytes());
 	}
 	
 	protected
@@ -58,15 +73,15 @@ PRUDPPacketRequestScrape
 	{
 		super( PRUDPPacketTracker.ACT_REQUEST_SCRAPE, con_id, trans_id );
 		
-		hash 	= new byte[20];
-
-		is.read( hash );
+		byte[] hash;
+		while(is.read(hash = new byte[20]) == 20)
+			hashes.add(hash);
 	}
 	
-	public byte[]
-	getHash()
+	public List
+	getHashes()
 	{
-		return( hash );
+		return hashes;
 	}
 	
 	public void
@@ -77,15 +92,24 @@ PRUDPPacketRequestScrape
 	{
 		super.serialise(os);
 		
-		os.write( hash );
+		for(Iterator it = hashes.iterator();it.hasNext();)
+			os.write((byte[])it.next());
 	}
 	
 	public String
 	getString()
 	{
-		return( super.getString().concat("[").concat(
-				"hash=").concat(ByteFormatter.nicePrint( hash, true )).concat(
-				"]") );
+		StringBuffer buf = new StringBuffer();
+		buf.append(super.getString());
+		buf.append("[");
+		for(Iterator it = hashes.iterator();it.hasNext();)
+		{
+			buf.append(ByteFormatter.nicePrint( (byte[])it.next(), true ));
+			if(it.hasNext())
+				buf.append(";");
+		}
+		buf.append("]");
+		return buf.toString();
 	}
 }
 

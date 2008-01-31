@@ -159,6 +159,13 @@ TRTrackerBTAnnouncerImpl
 	private static final int	   	key_id_length	= 8;
 	private int						key_udp;
 	
+	
+	private static final byte AUTO_UDP_INITIAL = 0;
+	private static final byte AUTO_UDP_FAILED = 1;
+	private static final byte AUTO_UDP_SUCCESS = 2;
+	
+	private byte autoUDPState = AUTO_UDP_INITIAL;
+	
   
 	private String tracker_id = "";
   
@@ -1075,12 +1082,34 @@ TRTrackerBTAnnouncerImpl
 							"Tracker Announcer is Requesting: " + reqUrl));
 		  
 		  		ByteArrayOutputStream message = new ByteArrayOutputStream();
+		  		
+		  		
+		  		URL udpAnnounceURL = null;
+		  		
+		  		if(protocol.equalsIgnoreCase("udp"))
+		  			udpAnnounceURL = reqUrl;
+		  		else if(autoUDPState == AUTO_UDP_INITIAL || autoUDPState == AUTO_UDP_SUCCESS)
+		  			udpAnnounceURL = new URL(reqUrl.toString().replaceFirst("(http|https)", "udp"));
+		  		
 		  				
-		  		if ( protocol.equalsIgnoreCase("udp")){
+		  		if ( udpAnnounceURL != null){
 		  			
 		  			failure_reason = announceUDP( reqUrl, message );
 		  			
-		  		}else{
+		  			if((failure_reason != null || message.size() == 0) && !protocol.equalsIgnoreCase("udp"))
+		  			{ // automatic UDP probe failed, use HTTP again
+		  				udpAnnounceURL = null;
+		  				autoUDPState = AUTO_UDP_FAILED;
+		  			} else if(failure_reason == null)
+		  			{
+						if (Logger.isEnabled() && !protocol.equalsIgnoreCase("udp"))
+							Logger.log(new LogEvent(LOGID, LogEvent.LT_INFORMATION, "redirected http announce ["+reqUrl+"] to udp"));
+						autoUDPState = AUTO_UDP_SUCCESS;
+		  			}
+		  				
+		  		}
+		  		
+		  		if (udpAnnounceURL == null){
 		  			
 		  			failure_reason = announceHTTP( tracker_url, reqUrl, message );
 		  			

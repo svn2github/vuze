@@ -398,7 +398,7 @@ TRTrackerServerProcessorUDP
 			return( null );
 		}
 				
-		byte[]		hash_bytes	= null;
+		List		hashbytes	= new ArrayList();
 		HashWrapper	peer_id		= null;
 		int			port		= 0;
 		String		event		= null;
@@ -415,7 +415,7 @@ TRTrackerServerProcessorUDP
 			if ( PRUDPPacketTracker.VERSION == 1 ){
 				PRUDPPacketRequestAnnounce	announce = (PRUDPPacketRequestAnnounce)request;
 				
-				hash_bytes	= announce.getHash();
+				hashbytes.add(announce.getHash());
 				
 				peer_id		= new HashWrapper( announce.getPeerId());
 				
@@ -459,7 +459,7 @@ TRTrackerServerProcessorUDP
 				
 				PRUDPPacketRequestAnnounce2	announce = (PRUDPPacketRequestAnnounce2)request;
 				
-				hash_bytes	= announce.getHash();
+				hashbytes.add(announce.getHash());
 				
 				peer_id		= new HashWrapper( announce.getPeerId());
 				
@@ -506,7 +506,7 @@ TRTrackerServerProcessorUDP
 			
 			PRUDPPacketRequestScrape	scrape = (PRUDPPacketRequestScrape)request;
 			
-			hash_bytes	= scrape.getHash();
+			hashbytes.addAll(scrape.getHashes());
 		}
 		
 		Map[]						root_out = new Map[1];
@@ -516,7 +516,7 @@ TRTrackerServerProcessorUDP
 			processTrackerRequest( 
 				server, "", root_out, peer_out, 
 				request_type,
-				new byte[][]{ hash_bytes }, null, null,
+				(byte[][])hashbytes.toArray(new byte[0][0]), null, null,
 				peer_id, false, TRTrackerServerTorrentImpl.COMPACT_MODE_NONE, key, // currently no "no_peer_id" / "compact" in the packet and anyway they aren't returned / key
 				event, false,
 				port,
