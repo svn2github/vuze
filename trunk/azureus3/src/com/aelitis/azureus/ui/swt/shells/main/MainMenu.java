@@ -240,7 +240,7 @@ public class MainMenu
 			MenuFactory.addAboutMenuItem(helpMenu);
 		}
 
-		MenuFactory.addFAQMenuItem(helpMenu);
+		MenuFactory.addFAQMenuItem(helpMenu, Constants.URL_FAQ);
 		MenuFactory.addReleaseNotesMenuItem(helpMenu);
 
 		if (false == SystemProperties.isJavaWebStartInstance()) {
