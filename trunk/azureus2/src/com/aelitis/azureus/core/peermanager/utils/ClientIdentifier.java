@@ -1,6 +1,7 @@
 package com.aelitis.azureus.core.peermanager.utils;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 
 public class ClientIdentifier {
 	
@@ -111,7 +112,7 @@ public class ClientIdentifier {
 		  else {discrepancy_type = null;}
 		  
 		  if (discrepancy_type != null) {
-			  return asDiscrepancy(client_displayed_name, peer_id_client, msg_client_name, discrepancy_type, "AZMP", peer_id);
+			  return asDiscrepancy(client_displayed_name, peer_id_client_name, msg_client_name, discrepancy_type, "AZMP", peer_id);
 		  }
 		  
 		  return client_displayed_name;
@@ -154,31 +155,19 @@ public class ClientIdentifier {
 		if (peer_id_name.startsWith("Mainline 4.") && handshake_name.startsWith("Torrent", 1)) {
 			return peer_id_name;
 		}
-		
-		// Transmission 0.96 still uses 0.95 in the LT handshake, so cope with that and just display
-		// 0.96.
-		if (peer_id_name.equals("Transmission 0.96") && handshake_name.equals("Transmission 0.95")) {
-			return peer_id_name;
-		}
-			
+					
 		// We allow a client to have a different version number than the one decoded from
 		// the peer ID. Some clients separate version and client name using a forward slash,
 		// so we split on that as well.
 		String client_type_peer = peer_id_name.split(" ", 2)[0];
 		String client_type_handshake = handshake_name_to_process.split(" ", 2)[0].split("/", 2)[0];
+
+		// Transmission and XTorrent.
+		String res = checkForTransmissionBasedClients(handshake_name_to_process, client_type_peer, peer_id_name, handshake_name, peer_id, "LTEP");
+		if (res != null) {return res;}
 		
 		if (client_type_peer.toLowerCase().equals(client_type_handshake.toLowerCase())) {return handshake_name_to_process;}
-		
-		// Bloody XTorrent.
-		if (handshake_name_to_process.equals("Transmission 0.7-svn") && client_type_peer.equals("Azureus")) {
-			return asDiscrepancy("XTorrent", peer_id_name, handshake_name, "fake_client", "LTEP", peer_id);
-		}
-		
-		// Bloody XTorrent!
-		if (handshake_name_to_process.startsWith("Transmission") && client_type_peer.startsWith("XTorrent")) {
-			return asDiscrepancy(client_type_peer, handshake_name_to_process, "fake_client");
-		}
-		
+				
 		// Like we do with AZMP peers, allow the handshake to define the client even if we can't extract the
 		// name from the peer ID, but log it so we can possibly identify it in future.
 		if (peer_id_name.startsWith(MessageText.getString("PeerSocket.unknown"))) {
@@ -213,6 +202,27 @@ public class ClientIdentifier {
 		// Can't determine what the client is.
 		return asDiscrepancy(null, peer_id_name, handshake_name, "mismatch_id", "LTEP", peer_id);
 	}
+	
+	private static String checkForTransmissionBasedClients(String handshake_name_to_process, String client_type_peer, String peer_id_name, String handshake_name, byte[] peer_id, String protocol) {
+
+		// Bloody XTorrent.
+		if (handshake_name_to_process.equals("Transmission 0.7-svn") && client_type_peer.equals("Azureus")) {
+			return asDiscrepancy("XTorrent", peer_id_name, handshake_name, "fake_client", protocol, peer_id);
+		}
+		
+		// Bloody XTorrent!
+		if (handshake_name_to_process.startsWith("Transmission") && client_type_peer.startsWith("XTorrent")) {
+			return asDiscrepancy(client_type_peer, handshake_name_to_process, "fake_client");
+		}
+		
+		// Transmission 0.96 still uses 0.95 in the LT handshake, so cope with that and just display
+		// 0.96.
+		if (peer_id_name.equals("Transmission 0.96") && handshake_name.equals("Transmission 0.95")) {
+			return peer_id_name;
+		}
+		
+		return null;
+	}
 	  
 	  private static String asDiscrepancy(String client_name, String peer_id_name, String handshake_name, String discrepancy_type, String protocol_type, byte[] peer_id) {
 		  if (client_name == null) {
@@ -227,6 +237,91 @@ public class ClientIdentifier {
 		  }
 		  return real_client + " [" +
 		  	MessageText.getString("PeerSocket." + discrepancy_type) + ": \"" + dodgy_client + "\"]"; 
+	  }
+	  
+	  private static int test_count = 1;
+	  private static void assertDecode(String client_name, String peer_id, String handshake_name, String handshake_version, byte[] handshake_reserved, String type) throws Exception {
+		  byte[] byte_peer_id = BTPeerIDByteDecoder.peerIDStringToBytes(peer_id);
+		  String peer_id_client = BTPeerIDByteDecoder.decode(byte_peer_id);
+		  
+		  String decoded_client;
+		  if (type.equals("AZMP")) {decoded_client = identifyAZMP(peer_id_client, handshake_name, handshake_version, byte_peer_id);}
+		  else if (type.equals("LTEP")) {decoded_client = identifyLTEP(peer_id_client, handshake_name, byte_peer_id);}
+		  else if (type.equals("BT")) {decoded_client = identifyBTOnly(peer_id_client, handshake_reserved);}
+		  else {throw new RuntimeException("invalid extension type: " + type);}
+		  
+		  boolean passed = client_name.equals(decoded_client);
+		  System.out.println("  Test " + test_count++ + ": \"" + client_name + "\" - " + (passed ? "PASSED" : "FAILED"));
+		  
+		  if (!passed) {
+			  throw new Exception("\n" + 
+			  "Decoded      : " + decoded_client + "\n" +
+			  "Peer ID name : " + peer_id_client + "\n" +
+			  "Extended name: " + handshake_name + "\n");
+			  
+			  //throw new Exception("Client name decoded - " + decoded_client);
+		  }
+	  }
+	  
+	  private static void assertDecodeAZMP(String client_name, String peer_id, String handshake_name, String handshake_version) throws Exception {
+		  assertDecode(client_name, peer_id, handshake_name, handshake_version, null, "AZMP");
+	  }
+	  
+	  private static void assertDecodeLTEP(String client_name, String peer_id, String handshake_name) throws Exception {
+		  assertDecode(client_name, peer_id, handshake_name, null, null, "LTEP");
+	  }
+	  
+	  private static void assertDecodeExtProtocol(String client_name, String peer_id, String handshake_name, String handshake_version) throws Exception {
+		  assertDecodeAZMP(client_name, peer_id, handshake_name, handshake_version);
+		  assertDecodeLTEP(client_name, peer_id, handshake_name + " " + handshake_version);
+	  }
+	  
+	  private static void assertDecodeBT(String client_name, String peer_id, String handshake_reserved) throws Exception {
+		  if (handshake_reserved == null) {handshake_reserved = "0000000000000000";}
+		  handshake_reserved = handshake_reserved.replaceAll("[ ]", "");
+		  byte[] handshake_reserved_bytes = ByteFormatter.decodeString(handshake_reserved);
+		  if (handshake_reserved_bytes.length != 8) {throw new RuntimeException("invalid handshake reserved bytes");}
+		  assertDecode(client_name, peer_id, null, null, handshake_reserved_bytes, "BT");
+	  }
+	  
+	  public static void main(String[] args) throws Exception {
+		  BTPeerIDByteDecoder.client_logging_allowed = false;
+		  
+		  System.out.println("Testing simple BT clients:");
+		  assertDecodeBT("BitThief* [FAKE: \"Mainline 4.4.0\"]", "M4-4-0--9aa757efd5be", "0000000000000000");
+		  assertDecodeBT("Mainline 4.4.0", "M4-4-0--9aa757efd5be", "0000000000000001");
+		  assertDecodeBT("Unknown [FAKE: \"Azureus 3.0.3.4\"]", "-AZ3034-6wfG2wk6wWLc", "0000000000000000");
+		  System.out.println("");
+		  
+		  System.out.println("Testing AZMP clients:");
+		  assertDecodeAZMP("Azureus 3.0.4.2", "-AZ3042-6ozMq5q6Q3NX", "Azureus", "3.0.4.2");
+		  assertDecodeAZMP("BitTyrant 2.5.0.0 (Azureus Mod)", "AZ2500BTeyuzyabAfo6U", "AzureusBitTyrant", "2.5.0.0BitTyrant");
+		  //assertDecodeAZMP("", "2D425335 3832302D 6F79344C 61324D57 4745466A", "Bearshare Premium P2P", "5.8.2.0");
+		  //assertDecodeAZMP("", "-AR6360-6oZyyMWoOOBe", "Imesh Turbo", "6.3.6.0");
+		  //assertDecodeAZMP("", "2D415A32 3430322D 2E414794 2C57D644 4989CA58", "Azureus", "2.3.0.6");
+		  //assertDecodeAZMP("", "2D414732 3038332D 73316869 46387647 41416730", "Ares", "2.0.8.3029");
+		  //assertDecodeAZMP("", "2D414733 3030332D 6C456C32 4D6D344E 454F346E", "Ares Destiny", "3.0.0.3805");
+		  
+		  System.out.println("");
+		  
+		  System.out.println("Testing LTEP clients:");
+		  assertDecodeLTEP("\u00B5Torrent 1.7.6", "2D555431 3736302D B39EC7AD F6B94610 AA4ACD4A", "\u00B5Torrent 1.7.6");
+		  assertDecodeLTEP("\u00B5Torrent 1.6.1", "2D5554313631302DEA818D43F5E5EC3D67BF8D67", "\uFDFFTorrent 1.6.1");
+		  assertDecodeLTEP("Mainline 6.0", "4D362D30 2D302D2D 8B92860D 05055DF5 B01C2D94", "BitTorrent 6.0");
+		  //assertDecodeLTEP("libTorrent 0.11.9", "2D6C7430 4239302D 11F3EB39 5D44EEFD CEA07E79", "libTorrent 0.11.9");
+		  assertDecodeLTEP("\u00B5Torrent 1.8.0 Beta", "2D555431 3830422D E69C9942 D1A5A6C2 0BE2E4BD", "\u00B5Torrent 1.8");
+		  assertDecodeLTEP("Miro 1.1.0.0 (libtorrent/0.13.0.0)", "-MR1100-00HS~T7*65rm", "libtorrent/0.13.0.0");
+		  assertDecodeLTEP("KTorrent 2.2.2", "-KT2210-347143496631", "KTorrent 2.2.2");
+		  //assertDecodeLTEP("", "B5546F72 72656E74 2F333037 36202020 20202020", "\uFDFFTorrent/3.0.7.6");
+		  assertDecodeLTEP("Transmission 0.96", "-TR0960-6ep6svaa61r4", "Transmission 0.95");
+		  System.out.println("");
+		  
+		  System.out.println("Testing common clients:");
+		  //assertDecodeExtProtocol("", "-XX1150-dv220cotgj4d", "Transmission", "0.72Z");
+		  assertDecodeExtProtocol("XTorrent [FAKE: \"Azureus 2.5.0.4\" / \"Transmission 0.7-svn\"]", "-AZ2504-192gwethivju", "Transmission", "0.7-svn");
+		  System.out.println("");
+		  
+		  System.out.println("Done.");
 	  }
 	  
 }
