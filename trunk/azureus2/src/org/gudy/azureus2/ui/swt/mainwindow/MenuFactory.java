@@ -605,6 +605,21 @@ public class MenuFactory
 				if (uiFunctions != null) {
 					uiFunctions.showConfig(null);
 				}
+
+				/* ==== Code for opening the Preferences in a pop-up dialog ===
+				Shell shell = ShellFactory.createShell(SWT.RESIZE | SWT.DIALOG_TRIM);
+				shell.setLayout(new GridLayout());
+				shell.setText(MessageText.getString(MessageText.resolveLocalizationKey("ConfigView.title.full")));
+				Utils.setShellIcon(shell);
+				ConfigView cView = new ConfigView(getCore());
+				cView.initialize(shell);
+				shell.pack();
+				UIFunctionsSWT uiFunctions = getUIFunctionSWT();
+				if (uiFunctions != null) {
+					Utils.centerWindowRelativeTo(shell, uiFunctions.getMainShell());
+				}
+				shell.open();
+				*/
 			}
 		});
 	}
@@ -1087,24 +1102,23 @@ public class MenuFactory
 	}
 
 	private static String getID(Widget widget) {
-		if (null == widget) {
-			return "";
-		}
-		Object id = widget.getData(KEY_MENU_ID);
-		if (null != id) {
-			return id.toString();
+		if (null != widget && false == widget.isDisposed()) {
+			Object id = widget.getData(KEY_MENU_ID);
+			if (null != id) {
+				return id.toString();
+			}
 		}
 		return "";
 	}
 
 	public static void setEnablementKeys(Widget widget, int keys) {
-		if (null != widget) {
+		if (null != widget && false == widget.isDisposed()) {
 			widget.setData(KEY_ENABLEMENT, new Integer(keys));
 		}
 	}
 
 	public static int getEnablementKeys(Widget widget) {
-		if (null != widget) {
+		if (null != widget && false == widget.isDisposed()) {
 			Object keys = widget.getData(KEY_ENABLEMENT);
 			if (keys instanceof Integer) {
 				return ((Integer) keys).intValue();
@@ -1167,16 +1181,17 @@ public class MenuFactory
 	 * @return
 	 */
 	public static boolean setEnablement(Widget widget) {
+		if (null != widget && false == widget.isDisposed()) {
+			boolean isEnabled = isEnabledForCurrentMode(widget);
 
-		boolean isEnabled = isEnabledForCurrentMode(widget);
-
-		if (widget instanceof MenuItem) {
-			((MenuItem) widget).setEnabled(isEnabled);
-		} else if (widget instanceof Menu) {
-			((Menu) widget).setEnabled(isEnabled);
+			if (widget instanceof MenuItem) {
+				((MenuItem) widget).setEnabled(isEnabled);
+			} else if (widget instanceof Menu) {
+				((Menu) widget).setEnabled(isEnabled);
+			}
+			return isEnabled;
 		}
-
-		return isEnabled;
+		return false;
 	}
 
 	/**
