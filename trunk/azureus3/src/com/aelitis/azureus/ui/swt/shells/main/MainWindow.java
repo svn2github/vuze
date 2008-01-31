@@ -66,7 +66,6 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
-import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger.GetRatingReplyListener;
 import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
@@ -80,9 +79,7 @@ import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.*;
 import com.aelitis.azureus.ui.swt.Initializer;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
-import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
-import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 import com.aelitis.azureus.ui.swt.search.network.NetworkSearch;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
@@ -90,7 +87,7 @@ import com.aelitis.azureus.ui.swt.utils.*;
 import com.aelitis.azureus.ui.swt.views.ViewDownSpeedGraph;
 import com.aelitis.azureus.ui.swt.views.ViewUpSpeedGraph;
 import com.aelitis.azureus.ui.swt.views.skin.*;
-import com.aelitis.azureus.util.*;
+import com.aelitis.azureus.util.AdManager;
 import com.aelitis.azureus.util.Constants;
 
 /**
@@ -581,110 +578,6 @@ public class MainWindow
 			} catch (Throwable e) {
 			}
 
-			// TODO: Move this out of MainWindow and put somewhere into the messenger
-			// class structure
-			ExternalStimulusHandler.addListener(new ExternalStimulusListener() {
-				public boolean receive(String name, Map values) {
-					try {
-						if (values == null) {
-							return false;
-						}
-
-						if (!name.equals("AZMSG")) {
-							return false;
-						}
-
-						Object valueObj = values.get("value");
-						if (!(valueObj instanceof String)) {
-							return false;
-						}
-
-						String value = (String) valueObj;
-
-						ClientMessageContext context = PlatformMessenger.getClientMessageContext();
-						if (context == null) {
-							return false;
-						}
-						BrowserMessage browserMsg = new BrowserMessage(value);
-						context.debug("Received External message: " + browserMsg);
-						String opId = browserMsg.getOperationId();
-						if (opId.equals(DisplayListener.OP_OPEN_URL)) {
-							Map decodedMap = browserMsg.getDecodedMap();
-							String url = MapUtils.getMapString(decodedMap, "url", null);
-							if (decodedMap.containsKey("target")
-									&& !PlatformConfigMessenger.isURLBlocked(url)) {
-
-								// implicit bring to front
-								final UIFunctions functions = UIFunctionsManager.getUIFunctions();
-								if (functions != null) {
-									functions.bringToFront();
-								}
-
-								// this is actually sync.. so we could add a completion listener
-								// and return the boolean result if we wanted/needed
-								context.getMessageDispatcher().dispatch(browserMsg);
-								context.getMessageDispatcher().resetSequence();
-								return true;
-							} else {
-								context.debug("no target or open url");
-							}
-						} else if (opId.equals(TorrentListener.OP_LOAD_TORRENT)) {
-							Map decodedMap = browserMsg.getDecodedMap();
-							if (decodedMap.containsKey("b64")) {
-								String b64 = MapUtils.getMapString(decodedMap, "b64", null);
-								return TorrentListener.loadTorrentByB64(core, b64);
-							} else if (decodedMap.containsKey("url")) {
-								String url = MapUtils.getMapString(decodedMap, "url", null);
-								boolean playNow = MapUtils.getMapBoolean(decodedMap,
-										"play-now", false);
-								TorrentUIUtilsV3.loadTorrent(core, url, MapUtils.getMapString(
-										decodedMap, "referer", null), playNow);
-
-								return true;
-
-							} else {
-								return false;
-							}
-						} else if (opId.equals("is-ready")) {
-							// The platform needs to know when it can call open-url, and it
-							// determines this by the is-ready function
-							return isReady;
-						} else if (opId.equals("is-version-ge")) {
-							Map decodedMap = browserMsg.getDecodedMap();
-							if (decodedMap.containsKey("version")) {
-								String id = MapUtils.getMapString(decodedMap, "id", "client");
-								String version = MapUtils.getMapString(decodedMap, "version",
-										"");
-								if (id.equals("client")) {
-									return org.gudy.azureus2.core3.util.Constants.isCVSVersion()
-											|| org.gudy.azureus2.core3.util.Constants.compareVersions(
-													org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION,
-													version) >= 0;
-								} else {
-									return false;
-								}
-							}
-						} else if (opId.equals("is-active-tab")) {
-							Map decodedMap = browserMsg.getDecodedMap();
-							if (decodedMap.containsKey("tab")) {
-								String tabID = MapUtils.getMapString(decodedMap, "tab", "");
-								if (tabID.length() > 0) {
-									SWTSkinTabSet tabSet = skin.getTabSet(SkinConstants.TABSET_MAIN);
-									if (tabSet != null) {
-										SWTSkinObjectTab activeTab = tabSet.getActiveTab();
-										if (activeTab != null) {
-											return activeTab.getViewID().equals("tab-" + tabID);
-										}
-									}
-								}
-							}
-						}
-					} catch (Exception e) {
-						Debug.out(e);
-					}
-					return false;
-				}
-			});
 
 			initWidgets();
 
@@ -2044,5 +1937,13 @@ public class MainWindow
 			//TODO:
 		}
 
+	}
+
+	public SWTSkin getSkin() {
+		return skin;
+	}
+
+	public boolean isReady() {
+		return isReady;
 	}
 }
