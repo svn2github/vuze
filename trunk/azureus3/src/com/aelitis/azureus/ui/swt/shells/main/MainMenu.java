@@ -116,8 +116,11 @@ public class MainMenu
 
 		MenuFactory.addSeparatorMenuItem(fileMenu);
 		MenuFactory.createTransfersMenuItem(fileMenu);
-
-		MenuFactory.addOptionsMenuItem(fileMenu);
+		
+		if (false == Constants.isOSX) {
+			MenuFactory.addOptionsMenuItem(fileMenu);
+		}
+		
 		MenuFactory.createPluginsMenuItem(fileMenu, true);
 
 		/*
