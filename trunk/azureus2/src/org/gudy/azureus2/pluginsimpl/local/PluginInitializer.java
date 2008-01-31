@@ -151,6 +151,11 @@ PluginInitializer
 	   				"azlocaltracker", 
 	   				"azlocaltracker",
 					"true" },
+			{	 PluginManagerDefaults.PID_NET_STATUS, 
+		   			"com.aelitis.azureus.plugins.net.netstatus.NetStatusPlugin", 
+		   			"aznetstat", 
+		   			"aznetstat",
+					"true" },
 			/* disable until we can get some tracker admins to work on this
 	   		{	 PluginManagerDefaults.PID_TRACKER_PEER_AUTH, 
 					"com.aelitis.azureus.plugins.tracker.peerauth.TrackerPeerAuthPlugin", 

@@ -51,6 +51,8 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
+import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.SimpleTimer;
@@ -86,6 +88,8 @@ NetworkAdminImpl
 	implements AEDiagnosticsEvidenceGenerator
 {
 	private static final LogIDs LOGID = LogIDs.NWMAN;
+	
+	private static final boolean	FULL_INTF_PROBE	= false;
 	
 	private Set			old_network_interfaces;
 	private InetAddress[]	currentBindIPs = new InetAddress[] {null};
@@ -923,6 +927,182 @@ NetworkAdminImpl
         nast.initialise();
     }
 	
+	public NetworkAdminNode[]
+	getRoute(
+		InetAddress						interface_address,
+		InetAddress						target,
+		final int						max_millis,
+		final NetworkAdminRouteListener	listener )
+	
+		throws NetworkAdminException
+	{
+		PlatformManager	pm = PlatformManagerFactory.getPlatformManager();
+			
+		if ( !pm.hasCapability( PlatformManagerCapabilities.TraceRouteAvailability )){
+			
+			throw( new NetworkAdminException( "No trace-route capability on platform" ));
+		}
+		
+		final List	nodes = new ArrayList();
+		
+		try{
+			pm.traceRoute( 
+				interface_address,
+				target,
+				new PlatformManagerPingCallback()
+				{
+					private long	start_time = SystemTime.getCurrentTime();
+					
+					public boolean
+					reportNode(
+						int				distance,
+						InetAddress		address,
+						int				millis )
+					{
+						boolean	timeout	= false;
+						
+						if ( max_millis >= 0 ){
+										
+							long	now = SystemTime.getCurrentTime();
+							
+							if ( now < start_time ){
+								
+								start_time = now;
+							}
+							
+							if ( now - start_time >= max_millis ){
+								
+								timeout = true;
+							}
+						}
+						
+						NetworkAdminNode	node = null;
+						
+						if ( address != null ){
+							
+							node = new networkNode( address, distance, millis );
+							
+							nodes.add( node );
+						}
+						
+						boolean	result;
+						
+						if ( listener == null ){
+							
+							result = true;
+							
+						}else{
+
+							if ( node == null ){
+								
+								result = listener.timeout( distance );
+								
+							}else{
+								
+								result =  listener.foundNode( node, distance, millis );
+							}
+						}
+						
+						return( result && !timeout );
+					}
+				});
+		}catch( PlatformManagerException e ){
+			
+			throw( new NetworkAdminException( "trace-route failed", e ));
+		}
+		
+		return((NetworkAdminNode[])nodes.toArray( new NetworkAdminNode[nodes.size()]));
+	}
+	
+	public void
+	getRoutes(
+		final InetAddress					target,
+		final int							max_millis,
+		final NetworkAdminRoutesListener	listener )
+	
+		throws NetworkAdminException
+	{
+		final List sems 	= new ArrayList();
+		final List traces 	= new ArrayList();
+		
+		NetworkAdminNetworkInterface[] interfaces = getInterfaces();
+
+		for (int i=0;i<interfaces.length;i++){
+			
+			NetworkAdminNetworkInterface	interf = (NetworkAdminNetworkInterface)interfaces[i];
+
+			NetworkAdminNetworkInterfaceAddress[] addresses = interf.getAddresses();
+			
+			for (int j=0;j<addresses.length;j++){
+				
+				final NetworkAdminNetworkInterfaceAddress	address = addresses[j];
+				
+				InetAddress ia = address.getAddress();
+				
+				if ( ia.isLoopbackAddress() || ia instanceof Inet6Address ){
+					
+						// ignore
+					
+				}else{
+					
+					final AESemaphore sem = new AESemaphore( "parallelRouter" );
+					
+					final List		trace = new ArrayList();
+					
+					sems.add( sem );
+					
+					traces.add( trace );
+					
+					new AEThread2( "parallelRouter", true )
+					{
+						public void
+						run()
+						{
+							try{
+								address.getRoute( 
+									target, 
+									30000,
+									new NetworkAdminRouteListener()
+									{
+										public boolean 
+										foundNode(
+											NetworkAdminNode 	node, 
+											int 				distance, 
+											int 				rtt ) 
+										{
+											trace.add( node );
+											
+											return( listener.foundNode( address, node, distance, rtt) );
+										}
+										
+										public boolean 
+										timeout(
+											int distance )
+										{
+											return( listener.timeout( address, distance ));
+										}
+									});
+								
+							}catch( Throwable e ){
+							
+								e.printStackTrace();
+								
+							}finally{
+								
+								sem.release();
+							}
+						}
+					}.start();
+				}
+			}
+		}
+		
+		for (int i=0;i<sems.size();i++){
+			
+			((AESemaphore)sems.get(i)).reserve();
+		}
+	}
+	
 	public void
 	addPropertyChangeListener(
 		NetworkAdminPropertyChangeListener	listener )
@@ -1044,7 +1224,7 @@ NetworkAdminImpl
 	
 	public void 
 	generateDiagnostics(
-		IndentWriter iw )
+		final IndentWriter iw )
 	{
 		Set	public_addresses = new HashSet();
 		
@@ -1120,51 +1300,87 @@ NetworkAdminImpl
 		
 		iw.println( "Interfaces" );
 		
-		/*
 		NetworkAdminNetworkInterface[] interfaces = getInterfaces();
 		
-		if ( interfaces.length > 0 ){
+		if ( FULL_INTF_PROBE ){
 			
-			if ( interfaces.length > 1 || interfaces[0].getAddresses().length > 1 ){
+			if ( interfaces.length > 0 ){
 				
-				for (int i=0;i<interfaces.length;i++){
+				if ( interfaces.length > 1 || interfaces[0].getAddresses().length > 1 ){
 					
-					networkInterface	interf = (networkInterface)interfaces[i];
-					
-					iw.indent();
-					
-					try{
+					for (int i=0;i<interfaces.length;i++){
 						
-						interf.generateDiagnostics( iw, public_addresses );
+						networkInterface	interf = (networkInterface)interfaces[i];
 						
-					}finally{
+						iw.indent();
 						
-						iw.exdent();
-					}
-				}
-			}else{
-				
-				if ( interfaces[0].getAddresses().length > 0 ){
-					
-					networkInterface.networkAddress address = (networkInterface.networkAddress)interfaces[0].getAddresses()[0];
-					
-					try{
-						NetworkAdminNode[] nodes = address.getRoute( InetAddress.getByName("www.google.com"), 30000, trace_route_listener  );
-						
-						for (int i=0;i<nodes.length;i++){
+						try{
 							
-							networkInterface.networkAddress.networkNode	node = (networkInterface.networkAddress.networkNode)nodes[i];
-															
-							iw.println( node.getString());
+							interf.generateDiagnostics( iw, public_addresses );
+							
+						}finally{
+							
+							iw.exdent();
 						}
-					}catch( Throwable e ){
+					}
+				}else{
+					
+					if ( interfaces[0].getAddresses().length > 0 ){
 						
-						iw.println( "Can't resolve host for route trace - " + e.getMessage());
+						networkInterface.networkAddress address = (networkInterface.networkAddress)interfaces[0].getAddresses()[0];
+						
+						try{
+							NetworkAdminNode[] nodes = address.getRoute( InetAddress.getByName("www.google.com"), 30000, trace_route_listener  );
+							
+							for (int i=0;i<nodes.length;i++){
+								
+								networkNode	node = (networkNode)nodes[i];
+																
+								iw.println( node.getString());
+							}
+						}catch( Throwable e ){
+							
+							iw.println( "Can't resolve host for route trace - " + e.getMessage());
+						}
 					}
 				}
 			}
+		}else{
+			
+			try{
+				getRoutes( 
+					InetAddress.getByName( "www.google.com" ), 
+					30000,
+					new NetworkAdminRoutesListener()
+					{
+						public boolean
+						foundNode(
+							NetworkAdminNetworkInterfaceAddress		intf,
+							NetworkAdminNode						node,
+							int										distance,
+							int										rtt )
+						{
+							iw.println( intf.getAddress().getHostAddress() + ": " + node.getAddress().getHostAddress() + " (" + distance + ")" );
+
+							return( true );
+						}
+						
+						public boolean
+						timeout(
+							NetworkAdminNetworkInterfaceAddress		intf,
+							int										distance )
+						{
+							iw.println( intf.getAddress().getHostAddress() + ": timeout (dist=" + distance + ")" );
+							
+							return( true );
+						}
+					});
+				
+			}catch( Throwable e ){
+				
+				iw.println( "getRoutes failed: " + Debug.getNestedExceptionMessage( e ));
+			}
 		}
-		*/
 		
 		iw.println( "Inbound protocols: default routing" );
 		
@@ -1277,6 +1493,23 @@ NetworkAdminImpl
 			return((NetworkAdminNetworkInterfaceAddress[])addresses.toArray( new NetworkAdminNetworkInterfaceAddress[addresses.size()]));
 		}
 	
+		public String
+		getString()
+		{
+			String	str = getDisplayName() + "/" + getName() + " [";
+			
+			NetworkAdminNetworkInterfaceAddress[] addresses = getAddresses();
+			
+			for (int i=0;i<addresses.length;i++){
+				
+				networkAddress	addr = (networkAddress)addresses[i];
+				
+				str += (i==0?"":",") + addr.getAddress().getHostAddress();
+			}
+			
+			return( str + "]" );
+		}
+		
 		public void 
 		generateDiagnostics(
 			IndentWriter 	iw,
@@ -1337,82 +1570,7 @@ NetworkAdminImpl
 			
 				throws NetworkAdminException
 			{
-				PlatformManager	pm = PlatformManagerFactory.getPlatformManager();
-					
-				if ( !pm.hasCapability( PlatformManagerCapabilities.TraceRouteAvailability )){
-					
-					throw( new NetworkAdminException( "No trace-route capability on platform" ));
-				}
-				
-				final List	nodes = new ArrayList();
-				
-				try{
-					pm.traceRoute( 
-						address,
-						target,
-						new PlatformManagerPingCallback()
-						{
-							private long	start_time = SystemTime.getCurrentTime();
-							
-							public boolean
-							reportNode(
-								int				distance,
-								InetAddress		address,
-								int				millis )
-							{
-								boolean	timeout	= false;
-								
-								if ( max_millis >= 0 ){
-												
-									long	now = SystemTime.getCurrentTime();
-									
-									if ( now < start_time ){
-										
-										start_time = now;
-									}
-									
-									if ( now - start_time >= max_millis ){
-										
-										timeout = true;
-									}
-								}
-								
-								NetworkAdminNode	node = null;
-								
-								if ( address != null ){
-									
-									node = new networkNode( address, distance, millis );
-									
-									nodes.add( node );
-								}
-								
-								boolean	result;
-								
-								if ( listener == null ){
-									
-									result = true;
-									
-								}else{
-
-									if ( node == null ){
-										
-										result = listener.timeout( distance );
-										
-									}else{
-										
-										result =  listener.foundNode( node, distance, millis );
-									}
-								}
-								
-								return( result && !timeout );
-							}
-						});
-				}catch( PlatformManagerException e ){
-					
-					throw( new NetworkAdminException( "trace-route failed", e ));
-				}
-				
-				return((NetworkAdminNode[])nodes.toArray( new NetworkAdminNode[nodes.size()]));
+				return( NetworkAdminImpl.this.getRoute( address, target, max_millis, listener));
 			}
 			
 			public InetAddress
@@ -1509,62 +1667,62 @@ NetworkAdminImpl
 					iw.exdent();
 				}
 			}
-			
-			protected class
-			networkNode
-				implements NetworkAdminNode
-			{
-				private InetAddress	address;
-				private int			distance;
-				private int			rtt;
-				
-				protected
-				networkNode(
-					InetAddress		_address,
-					int				_distance,
-					int				_millis )
-				{
-					address		= _address;
-					distance	= _distance;
-					rtt			= _millis;
-				}
-				
-				public InetAddress
-				getAddress()
-				{
-					return( address );
-				}
-				
-				public boolean
-				isLocalAddress()
-				{
-					return( address.isLinkLocalAddress() ||	address.isSiteLocalAddress()); 
-				}
+		}
+	}
+	
+	protected class
+	networkNode
+		implements NetworkAdminNode
+	{
+		private InetAddress	address;
+		private int			distance;
+		private int			rtt;
+		
+		protected
+		networkNode(
+			InetAddress		_address,
+			int				_distance,
+			int				_millis )
+		{
+			address		= _address;
+			distance	= _distance;
+			rtt			= _millis;
+		}
+		
+		public InetAddress
+		getAddress()
+		{
+			return( address );
+		}
+		
+		public boolean
+		isLocalAddress()
+		{
+			return( address.isLinkLocalAddress() ||	address.isSiteLocalAddress()); 
+		}
 
-				public int
-				getDistance()
-				{
-					return( distance );
-				}
+		public int
+		getDistance()
+		{
+			return( distance );
+		}
+		
+		public int
+		getRTT()
+		{
+			return( rtt );
+		}
+		
+		protected String
+		getString()
+		{
+			if ( address == null ){
 				
-				public int
-				getRTT()
-				{
-					return( rtt );
-				}
+				return( "" + distance );
 				
-				protected String
-				getString()
-				{
-					if ( address == null ){
-						
-						return( "" + distance );
-						
-					}else{
-					
-						return( distance + "," + address + "[local=" + isLocalAddress() + "]," + rtt );
-					}
-				}
+			}else{
+			
+				return( distance + "," + address + "[local=" + isLocalAddress() + "]," + rtt );
 			}
 		}
 	}
@@ -1644,7 +1802,10 @@ NetworkAdminImpl
 			
 			AzureusCoreFactory.create();
 			
-			getSingleton().logNATStatus( iw );
+			NetworkAdmin admin = getSingleton();
+			
+			//admin.logNATStatus( iw );
+			admin.generateDiagnostics( iw );
 			
 		}catch( Throwable e){
 			

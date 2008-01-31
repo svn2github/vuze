@@ -34,4 +34,7 @@ NetworkAdminNetworkInterface
 	
 	public NetworkAdminNetworkInterfaceAddress[]
 	getAddresses();
+	
+	public String
+	getString();
 }
