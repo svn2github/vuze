@@ -34,6 +34,7 @@ import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.*;
@@ -750,10 +751,22 @@ public class MainWindow
 			 * because these elements require the window to be in it's proper size before they
 			 * can calculate their own placement coordinates
 			 */
+			String configID = "SearchBar.visible";
+			if (false == ConfigurationDefaults.getInstance().doesParameterDefaultExist(
+					configID)) {
+				COConfigurationManager.setBooleanDefault(configID, true);
+			}
 			setVisible(WINDOW_ELEMENT_SEARCHBAR,
-					COConfigurationManager.getBooleanParameter("SearchBar.visible"));
+					COConfigurationManager.getBooleanParameter(configID));
+
+			configID = "TabBar.visible";
+			if (false == ConfigurationDefaults.getInstance().doesParameterDefaultExist(
+					configID)) {
+				COConfigurationManager.setBooleanDefault(configID, true);
+			}
 			setVisible(WINDOW_ELEMENT_TABBAR,
-					COConfigurationManager.getBooleanParameter("TabBar.visible"));
+					COConfigurationManager.getBooleanParameter(configID));
+			//================
 
 			System.out.println("shell.open took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
