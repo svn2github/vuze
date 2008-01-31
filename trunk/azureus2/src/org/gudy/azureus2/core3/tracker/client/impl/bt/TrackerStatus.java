@@ -443,7 +443,8 @@ public class TrackerStatus {
 						one_of_the_responses = response;
 						one_of_the_hashes = hash;
 						
-						if(hashesForUDP.size() < 74)
+						// 28 + 16 + 70*20 -> IPv4/udp packet size of 1444 , that should go through most lines unfragmented
+						if(hashesForUDP.size() < 70)
 							hashesForUDP.add(hash);
 					}
 				} // for responses
