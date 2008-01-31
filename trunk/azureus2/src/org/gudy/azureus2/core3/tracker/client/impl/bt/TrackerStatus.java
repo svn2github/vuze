@@ -87,11 +87,9 @@ public class TrackerStatus {
   	PRUDPTrackerCodecs.registerCodecs();
   }
   
-	private static final byte AUTO_UDP_INITIAL = 0;
-	private static final byte AUTO_UDP_FAILED = 1;
-	private static final byte AUTO_UDP_SUCCESS = 2;
+	private byte autoUDPscrapeEvery = 1;
 	
-	private byte autoUDPState = AUTO_UDP_INITIAL;
+	private int scrapeCount;
   
   private static List	logged_invalid_urls	= new ArrayList();
   
@@ -485,10 +483,9 @@ public class TrackerStatus {
 		  		
 		  		if(protocol.equalsIgnoreCase("udp"))
 		  			udpScrapeURL = reqUrl;
-		  		else if(!az_tracker && (autoUDPState == AUTO_UDP_INITIAL || autoUDPState == AUTO_UDP_SUCCESS))
+		  		else if(!az_tracker && scrapeCount % autoUDPscrapeEvery == 0)
 		  			udpScrapeURL = new URL(reqUrl.toString().replaceFirst("(http|https)", "udp"));
 		  		
-		  				
 		  		if ( udpScrapeURL != null){
 		  			
 		  			boolean success = scrapeUDP( reqUrl, message, hashesForUDP );
@@ -497,15 +494,18 @@ public class TrackerStatus {
 		  			{ // automatic UDP probe failed, use HTTP again
 		  				udpScrapeURL = null;
 		  				message.reset();
-		  				autoUDPState = AUTO_UDP_FAILED;
+		  				if(autoUDPscrapeEvery < 16)
+		  					autoUDPscrapeEvery <<= 1;
 		  			} else if(success)
 		  			{
 						if (Logger.isEnabled() && !protocol.equalsIgnoreCase("udp"))
 							Logger.log(new LogEvent(LOGID, LogEvent.LT_INFORMATION, "redirected http scrape for ["+scrapeURL+"] to udp"));
-		  				autoUDPState = AUTO_UDP_SUCCESS;
+		  				autoUDPscrapeEvery = 1;
 		  			}
 		  				
 		  		}
+		  		
+		  		scrapeCount++;
 		  		
 		  		if(udpScrapeURL == null)
 		  			redirect_url = scrapeHTTP(reqUrl, message);

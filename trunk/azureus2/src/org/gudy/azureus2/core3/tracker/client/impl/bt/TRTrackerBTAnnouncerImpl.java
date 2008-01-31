@@ -160,11 +160,9 @@ TRTrackerBTAnnouncerImpl
 	private int						key_udp;
 	
 	
-	private static final byte AUTO_UDP_INITIAL = 0;
-	private static final byte AUTO_UDP_FAILED = 1;
-	private static final byte AUTO_UDP_SUCCESS = 2;
 	
-	private byte autoUDPState = AUTO_UDP_INITIAL;
+	private int announceCount;
+	private byte autoUDPprobeEvery = 1;
 	
   
 	private String tracker_id = "";
@@ -1088,7 +1086,7 @@ TRTrackerBTAnnouncerImpl
 		  		
 		  		if(protocol.equalsIgnoreCase("udp"))
 		  			udpAnnounceURL = reqUrl;
-		  		else if(autoUDPState == AUTO_UDP_INITIAL || autoUDPState == AUTO_UDP_SUCCESS)
+		  		else if(!az_tracker && announceCount % autoUDPprobeEvery == 0)
 		  			udpAnnounceURL = new URL(reqUrl.toString().replaceFirst("(http|https)", "udp"));
 		  		
 		  				
@@ -1099,15 +1097,18 @@ TRTrackerBTAnnouncerImpl
 		  			if((failure_reason != null || message.size() == 0) && !protocol.equalsIgnoreCase("udp"))
 		  			{ // automatic UDP probe failed, use HTTP again
 		  				udpAnnounceURL = null;
-		  				autoUDPState = AUTO_UDP_FAILED;
+						if(autoUDPprobeEvery < 16)
+							autoUDPprobeEvery <<=1;
 		  			} else if(failure_reason == null)
 		  			{
 						if (Logger.isEnabled() && !protocol.equalsIgnoreCase("udp"))
 							Logger.log(new LogEvent(LOGID, LogEvent.LT_INFORMATION, "redirected http announce ["+reqUrl+"] to udp"));
-						autoUDPState = AUTO_UDP_SUCCESS;
+		  				autoUDPprobeEvery = 1;
 		  			}
 		  				
 		  		}
+		  		
+		  		announceCount++;
 		  		
 		  		if (udpAnnounceURL == null){
 		  			
