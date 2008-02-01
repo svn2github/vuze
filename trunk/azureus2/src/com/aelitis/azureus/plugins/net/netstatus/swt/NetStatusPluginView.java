@@ -303,6 +303,8 @@ NetStatusPluginView
 						run()
 						{
 							log.append( str );
+							
+							log.setSelection( log.getText().length());
 						}
 					});
 		}
