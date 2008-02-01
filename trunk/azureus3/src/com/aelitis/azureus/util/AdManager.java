@@ -513,7 +513,70 @@ public class AdManager
 
 				public void messageSent() {
 				}
-			});
+
+
+                public void adsReceived(List torrents) {
+                    PlatformAdManager.debug(torrents.size() + " Ads recieved");
+                    for (Iterator iter = torrents.iterator(); iter.hasNext();) {
+                        TOTorrent torrent = (TOTorrent) iter.next();
+                        try {
+                            PlatformAdManager.debug("Ad: "
+                                    + new String(torrent.getName()));
+
+                            TorrentUtils.setFlag(torrent,
+                                    TorrentUtils.TORRENT_FLAG_LOW_NOISE, true);
+
+                            File tempFile = File.createTempFile("AZ_", ".torrent");
+
+                            PlatformAdManager.debug("  Writing to " + tempFile);
+                            torrent.serialiseToBEncodedFile(tempFile);
+
+                            String sDefDir = null;
+                            try {
+                                sDefDir = COConfigurationManager.getDirectoryParameter("Default save path");
+                            } catch (IOException e) {
+                            }
+
+                            if (sDefDir == null) {
+                                sDefDir = tempFile.getParent();
+                            }
+
+                            DownloadManager adDM = core.getGlobalManager().addDownloadManager(
+                                    tempFile.getAbsolutePath(), sDefDir);
+
+                            if (adDM != null) {
+                                if (adDM.getAssumedComplete()) {
+                                    adsDMList.add(adDM);
+                                    adDM.setForceStart(false);
+                                } else {
+                                    adDM.setForceStart(true);
+                                    PlatformAdManager.debug("Force Start " + adDM);
+                                    adDM.addListener(new DownloadManagerAdapter() {
+                                        public void downloadComplete(DownloadManager manager) {
+                                            if (!adsDMList.contains(manager)) {
+                                                adsDMList.add(manager);
+                                            }
+                                            manager.setForceStart(false);
+                                            manager.removeListener(this);
+                                        }
+                                    });
+                                }
+                                // TODO: Add Expiry date
+                                PlatformAdManager.debug("  ADDED ad "
+                                        + adDM.getDisplayName());
+                            }
+                            tempFile.deleteOnExit();
+                        } catch (Exception e) {
+                            Debug.out(e);
+                        }
+
+                    }
+
+                    checkingForAds = false;
+                }                
+
+
+            });
 		} catch (Exception e) {
 			if (l != null) {
 				l.asxFailed();

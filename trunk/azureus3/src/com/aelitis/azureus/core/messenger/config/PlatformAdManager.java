@@ -217,7 +217,27 @@ public class PlatformAdManager
 					if (replyListener != null) {
 						replyListener.replyReceived(replyType, playlist);
 					}
-				}
+
+                    //--------------optionally could get a "torrent" file.
+                    List adTorrents = new ArrayList();
+                    List torrentsList = (List) reply.get("torrents");
+                    if (torrentsList != null) {
+                        for (int i = 0; i < torrentsList.size(); i++) {
+                            byte[] torrentBEncoded = Base64.decode((String) torrentsList.get(i));
+                            try {
+                                TOTorrent torrent = TOTorrentFactory.deserialiseFromBEncodedByteArray(torrentBEncoded);
+                                adTorrents.add(torrent);
+                            } catch (TOTorrentException e) {
+                                Debug.out(e);
+                            }
+                        }
+                    }
+                    if (replyListener != null) {
+                        replyListener.adsReceived(adTorrents);
+                    }
+                    //------------------------------------------
+
+                }
 
 				public void messageSent(PlatformMessage message) {
 					if (replyListener != null) {
@@ -236,7 +256,9 @@ public class PlatformAdManager
 	{
 		public void messageSent();
 
-		public void replyReceived(String replyType, String playlist);
+        public void adsReceived(List torrents);
+
+        public void replyReceived(String replyType, String playlist);
 	}
 
 	public static void storeImpresssion(String trackingID, long viewedOn,
