@@ -29,19 +29,23 @@ import org.gudy.azureus2.core3.ipchecker.natchecker.NatChecker;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminException;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminProgressListener;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 
 public class 
 NetworkAdminHTTPTester 
 	implements NetworkAdminProtocolTester
 {
-	private AzureusCore			core;
+	private AzureusCore						core;
+	private NetworkAdminProgressListener	listener;
 	
 	protected
 	NetworkAdminHTTPTester(
-		AzureusCore		_core )
+		AzureusCore						_core,
+		NetworkAdminProgressListener	_listener )
 	{
 		core		= _core;
+		listener	= _listener;
 	}
 	
 	public InetAddress

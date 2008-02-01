@@ -39,4 +39,7 @@ NetworkAdminNATDevice
 	
 	public InetAddress
 	getExternalAddress();
+	
+	public String
+	getString();
 }

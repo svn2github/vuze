@@ -26,6 +26,7 @@ package com.aelitis.azureus.core.networkmanager.admin.impl;
 import java.net.InetAddress;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNATDevice;
 import com.aelitis.azureus.plugins.upnp.UPnPPluginService;
@@ -34,11 +35,13 @@ public class
 NetworkAdminNATDeviceImpl 
 	implements NetworkAdminNATDevice
 {
-	protected UPnPPluginService		service;
+	private UPnPPluginService		service;
+	private InetAddress				external_address;
+	private long					address_time;
 	
 	protected
 	NetworkAdminNATDeviceImpl(
-			UPnPPluginService		_service )
+		UPnPPluginService		_service )
 	{
 		service	= _service;
 	}
@@ -73,15 +76,45 @@ NetworkAdminNATDeviceImpl
 	public InetAddress
 	getExternalAddress()
 	{
-		try{
+		long	now = SystemTime.getCurrentTime();
+		
+		if ( 	external_address != null &&
+				now > address_time &&
+				now - address_time < 60*1000 ){
 			
-			return( InetAddress.getByName(service.getExternalAddress()));
+			return( external_address );
+		}
+		
+		try{		
+			external_address = InetAddress.getByName(service.getExternalAddress());
+			
+			address_time = now;
 			
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace(e);
-			
-			return( null );
 		}
+		
+		return( external_address );
+	}
+	
+	public String
+	getString()
+	{
+		String res = getName();
+		
+		res += ": address=" + service.getAddress() + ":" + service.getPort();
+		
+		InetAddress ext = getExternalAddress();
+		
+		if ( ext == null ){
+			
+			res += ", no public address available";
+		}else{
+			
+			res += ", public address=" + ext.getHostAddress();
+		}
+		
+		return( res );
 	}
 }

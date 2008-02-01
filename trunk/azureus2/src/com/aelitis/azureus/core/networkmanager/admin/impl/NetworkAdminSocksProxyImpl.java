@@ -145,6 +145,34 @@ NetworkAdminSocksProxyImpl
 		throw( failure );
 	}
 	
+	public String
+	getString()
+	{
+		String res = getName();
+		
+		if ( user.length() > 0 ){
+			
+			res += " [auth=" + user + "]";
+		}
+		
+		res += ", versions=";
+		
+		try{
+			String[] versions = getVersionsSupported();
+				
+			for (int j=0;j<versions.length;j++){
+				
+				res += (j==0?"":",") + versions[j];
+			}
+			
+		}catch( NetworkAdminException e ){
+			
+			res += "unknown (" + e.getLocalizedMessage() + ")";
+		}
+		
+		return( res );
+	}
+	
 	protected void
 	testVersion(
 		final String	version )

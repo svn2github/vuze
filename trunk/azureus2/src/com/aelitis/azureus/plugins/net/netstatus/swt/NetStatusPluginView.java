@@ -32,7 +32,6 @@ import org.eclipse.swt.widgets.Composite;
 
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
@@ -122,8 +121,8 @@ NetStatusPluginView
 		Composite control = new Composite(main, SWT.NONE);
 		layout = new GridLayout();
 		layout.numColumns = 3;
-		layout.marginHeight = 0;
-		layout.marginWidth = 0;
+		layout.marginHeight = 4;
+		layout.marginWidth = 4;
 		control.setLayout(layout);
 
 		grid_data = new GridData(GridData.FILL_HORIZONTAL);
@@ -177,7 +176,9 @@ NetStatusPluginView
 		log = new StyledText(main,SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);
 		grid_data = new GridData(GridData.FILL_BOTH);
 		grid_data.horizontalSpan = 2;
+		grid_data.horizontalIndent = 4;
 		log.setLayoutData(grid_data);
+		log.setIndent( 4 );
 	}
 	
 	protected void
@@ -232,7 +233,7 @@ NetStatusPluginView
 						});
 			}
 			
-			println( "Test starting" );
+			println( "Test starting", true );
 			
 			current_test.run();
 			
@@ -285,12 +286,28 @@ NetStatusPluginView
 	println(
 		String		str )
 	{
-		print( str + "\n" );
+		print( str + "\n", false );
+	}
+	
+	protected void
+	println(
+		String		str,
+		boolean		clear_first )
+	{
+		print( str + "\n", clear_first );
 	}
 	
 	protected void
 	print(
 		final String		str )
+	{
+		print( str, false );
+	}
+	
+	protected void
+	print(
+		final String		str,
+		final boolean		clear_first )
 	{
 		plugin.log( str );
 		
@@ -302,7 +319,14 @@ NetStatusPluginView
 						public void
 						run()
 						{
-							log.append( str );
+							if ( clear_first ){
+								
+								log.setText( str );
+								
+							}else{
+							
+								log.append( str );
+							}
 							
 							log.setSelection( log.getText().length());
 						}

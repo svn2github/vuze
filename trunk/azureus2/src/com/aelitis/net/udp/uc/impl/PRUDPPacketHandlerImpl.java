@@ -803,6 +803,22 @@ PRUDPPacketHandlerImpl
 		return( request.getReply());
 	}
 	
+	public PRUDPPacket
+	sendAndReceive(
+		PasswordAuthentication	auth,
+		PRUDPPacket				request_packet,
+		InetSocketAddress		destination_address,
+		long					timeout,
+		int						priority )
+	
+		throws PRUDPPacketHandlerException
+	{
+		PRUDPPacketHandlerRequestImpl	request = 
+			sendAndReceive( auth, request_packet, destination_address, null, timeout, priority );
+		
+		return( request.getReply());
+	}
+	
 	public void
 	sendAndReceive(
 		PRUDPPacket					request_packet,

@@ -29,6 +29,7 @@ import java.net.InetAddress;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminException;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterfaceAddress;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminProgressListener;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminProtocol;
 
 public class 
@@ -78,21 +79,31 @@ NetworkAdminProtocolImpl
 	
 		throws NetworkAdminException
 	{
+		return( test( address, null ));
+	}
+	
+	public InetAddress
+	test(
+		NetworkAdminNetworkInterfaceAddress	address,
+		NetworkAdminProgressListener		listener )
+	
+		throws NetworkAdminException
+	{
 		InetAddress bind_ip = address==null?null:address.getAddress();
 		
 		NetworkAdminProtocolTester	tester;
 		
 		if ( type == PT_HTTP ){
 			
-			tester = new NetworkAdminHTTPTester( core );
+			tester = new NetworkAdminHTTPTester( core, listener );
 			
 		}else if ( type == PT_TCP ){
 			
-			tester = new NetworkAdminTCPTester( core );
+			tester = new NetworkAdminTCPTester( core, listener );
 
 		}else{
 			
-			tester = new NetworkAdminUDPTester( core );
+			tester = new NetworkAdminUDPTester( core, listener );
 		}
 		
 		InetAddress	res;

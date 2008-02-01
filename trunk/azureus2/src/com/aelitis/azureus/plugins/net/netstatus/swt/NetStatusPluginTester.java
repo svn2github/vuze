@@ -50,6 +50,8 @@ NetStatusPluginTester
 	{
 		NetworkAdmin	admin = NetworkAdmin.getSingleton();
 		
+		Set	public_addresses = new HashSet();
+		
 		log( "Testing outbound routing for the following interfaces:" );
 		
 		NetworkAdminNetworkInterface[] interfaces = admin.getInterfaces();
@@ -149,6 +151,11 @@ NetStatusPluginTester
 					}
 				});
 
+			if ( test_cancelled ){
+				
+				return;
+			}
+			
 			int	num_routes = active_routes.size();
 			
 			if ( num_routes == 0 ){
@@ -183,6 +190,197 @@ NetStatusPluginTester
 			
 			log( "Route tracing failed: " + Debug.getNestedExceptionMessage(e));
 		}
+		
+
+		NetworkAdminNATDevice[] nat_devices = admin.getNATDevices();
+		
+		log( nat_devices.length + " NAT device" + (nat_devices.length==1?"":"s") + " found" );
+		
+		for (int i=0;i<nat_devices.length;i++){
+			
+			NetworkAdminNATDevice device = nat_devices[i];
+			
+			InetAddress ext_address = device.getExternalAddress();
+			
+			if ( ext_address != null ){
+				
+				public_addresses.add( ext_address );
+			}
+			
+			log( "    " + device.getString());
+		}
+		
+		NetworkAdminSocksProxy[] socks_proxies = admin.getSocksProxies();
+		
+		log( socks_proxies.length + " SOCKS proxy" + (socks_proxies.length==1?"":"s") + " found" );
+		
+		for (int i=0;i<socks_proxies.length;i++){
+			
+			NetworkAdminSocksProxy proxy = socks_proxies[i];
+			
+			log( "    " + proxy.getString());
+		}
+		
+		NetworkAdminHTTPProxy http_proxy = admin.getHTTPProxy();
+		
+		if ( http_proxy == null ){
+			
+			log( "No HTTP proxy found" );
+			
+		}else{
+			
+			log( "HTTP proxy found" );
+			
+			log( "    " + http_proxy.getString());
+		}
+		
+		InetAddress[] bind_addresses = admin.getAllBindAddresses();
+		
+		int	num_binds = 0;
+		
+		for ( int i=0;i<bind_addresses.length;i++ ){
+		
+			if ( bind_addresses[i] != null ){
+				
+				num_binds++;
+			}
+		}
+		
+		if ( num_binds == 0 ){
+			
+			log( "No explicit bind addresses" );
+			
+		}else{
+		
+			log( num_binds + " bind addresses" );
+			
+			for ( int i=0;i<bind_addresses.length;i++ ){
+		
+				if ( bind_addresses[i] != null ){
+				
+					log( "    " + bind_addresses[i].getHostAddress());
+				}
+			}
+		}
+		
+		NetworkAdminProtocol[] outbound_protocols = admin.getOutboundProtocols();
+		
+		if ( outbound_protocols.length == 0 ){
+			
+			log( "No outbound protocols" );
+			
+		}else{
+			
+			for (int i=0;i<outbound_protocols.length;i++){
+				
+				if ( test_cancelled ){
+					
+					return;
+				}
+				
+				NetworkAdminProtocol protocol = outbound_protocols[i];
+				
+				log( "Testing " + protocol.getName());
+				
+				try{
+					InetAddress public_address = 
+						protocol.test( 
+							null,
+							new NetworkAdminProgressListener()
+							{
+								public void 
+								reportProgress(
+									String task )
+								{
+									log( "    " + task );
+								}
+							});
+					
+					log( "    Test successful" );
+					
+					if ( public_address != null ){
+						
+						public_addresses.add( public_address );
+					}
+				}catch( Throwable e ){
+					
+					log( "    Test failed", e );
+				}
+			}
+		}
+		NetworkAdminProtocol[] inbound_protocols = admin.getInboundProtocols();
+		
+		if ( inbound_protocols.length == 0 ){
+			
+			log( "No inbound protocols" );
+			
+		}else{
+			
+			for (int i=0;i<inbound_protocols.length;i++){
+				
+				if ( test_cancelled ){
+					
+					return;
+				}
+				
+				NetworkAdminProtocol protocol = inbound_protocols[i];
+				
+				log( "Testing " + protocol.getName());
+				
+				try{
+					InetAddress public_address = 
+						protocol.test( 
+							null,
+							new NetworkAdminProgressListener()
+							{
+								public void 
+								reportProgress(
+									String task )
+								{
+									log( "    " + task );
+								}
+							});
+					
+					log( "    Test successful" );
+
+					if ( public_address != null ){
+						
+						public_addresses.add( public_address );
+					}
+				}catch( Throwable e ){
+					
+					log( "    Test failed", e );
+				}
+			}
+		}
+		
+		if ( public_addresses.size() == 0 ){
+			
+			log( "No public addresses found" );
+			
+		}else{
+			
+			Iterator	it = public_addresses.iterator();
+			
+			log( public_addresses.size() + " public/external addresses found" );
+			
+			while( it.hasNext()){
+				
+				InetAddress	pub_address = (InetAddress)it.next();
+				
+				log( "    " + pub_address.getHostAddress());
+				
+				try{
+					NetworkAdminASN asn = admin.lookupASN(pub_address);
+					
+					log( "    AS details: " + asn.getString());
+					
+				}catch( Throwable e ){
+					
+					log( "    failed to lookup AS", e );
+				}
+			}
+		}
 	}
 	
 	protected void
@@ -202,6 +400,14 @@ NetStatusPluginTester
 		String	str )
 	{
 		logger.log( str );
+	}
+	
+	protected void
+	log(
+		String		str,
+		Throwable	e )
+	{
+		logger.log( str + ": " + e.getLocalizedMessage());
 	}
 	
 	protected interface

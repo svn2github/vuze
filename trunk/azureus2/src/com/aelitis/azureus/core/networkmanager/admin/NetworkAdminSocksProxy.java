@@ -42,4 +42,7 @@ NetworkAdminSocksProxy
 	getVersionsSupported()
 	
 		throws NetworkAdminException;
+	
+	public String
+	getString();
 }

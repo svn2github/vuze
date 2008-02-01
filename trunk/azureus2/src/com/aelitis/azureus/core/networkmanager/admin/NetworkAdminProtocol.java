@@ -44,6 +44,13 @@ NetworkAdminProtocol
 	
 		throws NetworkAdminException;
 	
+	public InetAddress
+	test(
+		NetworkAdminNetworkInterfaceAddress	address,
+		NetworkAdminProgressListener		listener )
+	
+		throws NetworkAdminException;
+	
 	public String
 	getName();
 }

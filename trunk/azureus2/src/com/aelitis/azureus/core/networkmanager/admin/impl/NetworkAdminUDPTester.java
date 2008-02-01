@@ -38,6 +38,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminASN;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminException;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminProgressListener;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
 import com.aelitis.azureus.plugins.upnp.UPnPPluginService;
@@ -56,13 +57,16 @@ NetworkAdminUDPTester
 		NetworkAdminNATUDPCodecs.registerCodecs();
 	}
 	
-	private AzureusCore		core;
-	
+	private AzureusCore						core;
+	private NetworkAdminProgressListener	listener;
+
 	protected
 	NetworkAdminUDPTester(
-		AzureusCore	_core )
+		AzureusCore						_core,
+		NetworkAdminProgressListener	_listener )
 	{
-		core	= _core;
+		core		= _core;
+		listener	= _listener;
 	}
 	
 	public InetAddress
@@ -91,8 +95,6 @@ NetworkAdminUDPTester
 		PRUDPReleasablePacketHandler handler = PRUDPPacketHandlerFactory.getReleasableHandler( bind_port );
 
 		PRUDPPacketHandler	packet_handler = handler.getHandler();
-
-		long timeout = 5000;
 
 		HashMap	data_to_send = new HashMap();
 
@@ -170,10 +172,11 @@ NetworkAdminUDPTester
 
 			Throwable last_error = null;
 
-			final int tries = 3;
+			long 	timeout 	= 5000;
+			long 	timeout_inc = 5000;
 
 			try{
-				for (int i=0;i<tries;i++){
+				for (int i=0;i<3;i++){
 
 					data_to_send.put( "seq", new Long(i));
 
@@ -188,7 +191,15 @@ NetworkAdminUDPTester
 
 						request_packet.setPayload( data_to_send );
 
-						NetworkAdminNATUDPReply reply_packet = (NetworkAdminNATUDPReply)packet_handler.sendAndReceive( null, request_packet, new InetSocketAddress( UDP_SERVER_ADDRESS, UDP_SERVER_PORT ), timeout );
+						listener.reportProgress( "Sending outbound packet and waiting for reply probe (timeout=" + timeout + ")" );
+						
+						NetworkAdminNATUDPReply reply_packet = 
+							(NetworkAdminNATUDPReply)packet_handler.sendAndReceive( 
+									null, 
+									request_packet, 
+									new InetSocketAddress( UDP_SERVER_ADDRESS, UDP_SERVER_PORT ), 
+									timeout,
+									PRUDPPacketHandler.PRIORITY_IMMEDIATE );
 
 						Map	reply = reply_packet.getPayload();
 
@@ -212,7 +223,7 @@ NetworkAdminUDPTester
 
 						last_error	= e;
 
-						timeout = timeout * 2;
+						timeout += timeout_inc;
 					}
 				}
 
@@ -235,6 +246,8 @@ NetworkAdminUDPTester
 					request_packet.setPayload( data_to_send );
 
 					// fire off one last packet in attempt to inform server of completion
+
+					listener.reportProgress( "Sending completion event" );
 
 					packet_handler.send( request_packet, new InetSocketAddress( UDP_SERVER_ADDRESS, UDP_SERVER_PORT ));
 

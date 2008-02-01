@@ -52,6 +52,9 @@ NetworkAdminHTTPProxy
 	
 		throws NetworkAdminException;
 	
+	public String
+	getString();
+	
 	interface 
 	Details
 	{

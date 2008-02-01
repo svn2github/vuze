@@ -91,7 +91,19 @@ NetworkAdminHTTPProxyImpl
 	public String
 	getName()
 	{
-		return( http_host + ":" + http_port );
+		String	res = "";
+		
+		if ( http_host.length() > 0 ){
+			
+			res = "http=" + http_host + ":" + http_port;
+		}
+		
+		if ( https_host.length() > 0 ){
+			
+			res += (res.length()==0?"":", " ) + "https=" + https_host + ":" + https_port;
+		}
+		
+		return( res );
 	}
 	
 	protected boolean
@@ -134,6 +146,32 @@ NetworkAdminHTTPProxyImpl
 	getNonProxyHosts()
 	{
 		return( non_proxy_hosts );
+	}
+	
+	public String
+	getString()
+	{
+		String res = getName();
+		
+		if ( user.length() > 0 ){
+			
+			res += " [auth=" + user + "]";
+		}
+		
+		try{
+			
+			NetworkAdminHTTPProxy.Details details = getDetails();
+			
+			res += " server=" +  details.getServerName();
+			res += ", response=" + details.getResponse();
+			res += ", auth=" + details.getAuthenticationType();
+			
+		}catch( NetworkAdminException e ){
+			
+			res += " failed to query proxy - " + e.getLocalizedMessage();
+		}
+		
+		return( res );
 	}
 	
 	public Details

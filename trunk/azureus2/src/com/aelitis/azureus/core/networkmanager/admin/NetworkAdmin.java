@@ -67,6 +67,9 @@ NetworkAdmin
 	public abstract String
 	getNetworkInterfacesAsString();
 	
+	public abstract InetAddress[]
+	getAllBindAddresses();
+
 	public abstract NetworkAdminNetworkInterface[]
 	getInterfaces();
 	

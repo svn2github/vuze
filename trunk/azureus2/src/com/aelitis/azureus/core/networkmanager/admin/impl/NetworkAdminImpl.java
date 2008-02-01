@@ -91,7 +91,7 @@ NetworkAdminImpl
 	
 	private static final boolean	FULL_INTF_PROBE	= false;
 	
-	private Set			old_network_interfaces;
+	private Set				old_network_interfaces;
 	private InetAddress[]	currentBindIPs = new InetAddress[] {null};
 	
 	private CopyOnWriteList	listeners = new CopyOnWriteList();
@@ -265,6 +265,12 @@ NetworkAdminImpl
 	public InetAddress getSingleHomedServiceBindAddress()
 	{
 		return currentBindIPs[0]; 
+	}
+	
+	public InetAddress[]
+	getAllBindAddresses()
+	{
+		return( currentBindIPs );
 	}
 	
 	private InetAddress[] calcBindAddresses(final String addressString)
