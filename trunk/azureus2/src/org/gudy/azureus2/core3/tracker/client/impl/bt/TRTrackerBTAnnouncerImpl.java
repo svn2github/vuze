@@ -1099,10 +1099,12 @@ TRTrackerBTAnnouncerImpl
 		  				udpAnnounceURL = null;
 						if(autoUDPprobeEvery < 16)
 							autoUDPprobeEvery <<=1;
-		  			} else if(failure_reason == null)
+						if (Logger.isEnabled())
+							Logger.log(new LogEvent(torrent,LOGID, LogEvent.LT_INFORMATION, "redirection of http announce ["+tracker_url[0]+"] to udp failed, will retry in "+autoUDPprobeEvery+" announces"));
+		  			} else if(failure_reason == null && !protocol.equalsIgnoreCase("udp"))
 		  			{
-						if (Logger.isEnabled() && !protocol.equalsIgnoreCase("udp"))
-							Logger.log(new LogEvent(LOGID, LogEvent.LT_INFORMATION, "redirected http announce ["+reqUrl+"] to udp"));
+						if (Logger.isEnabled())
+							Logger.log(new LogEvent(torrent,LOGID, LogEvent.LT_INFORMATION, "redirection of http announce ["+tracker_url[0]+"] to udp successful"));
 		  				autoUDPprobeEvery = 1;
 		  			}
 		  				

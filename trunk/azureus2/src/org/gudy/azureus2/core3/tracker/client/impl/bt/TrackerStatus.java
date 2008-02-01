@@ -486,6 +486,7 @@ public class TrackerStatus {
 		  			udpScrapeURL = reqUrl;
 		  		else if(!az_tracker && scrapeCount % autoUDPscrapeEvery == 0)
 		  			udpScrapeURL = new URL(reqUrl.toString().replaceFirst("(http|https)", "udp"));
+		  			
 		  		
 		  		if ( udpScrapeURL != null){
 		  			
@@ -497,10 +498,12 @@ public class TrackerStatus {
 		  				message.reset();
 		  				if(autoUDPscrapeEvery < 16)
 		  					autoUDPscrapeEvery <<= 1;
-		  			} else if(success)
+						if (Logger.isEnabled())
+							Logger.log(new LogEvent(LOGID, LogEvent.LT_INFORMATION, "redirection of http scrape ["+scrapeURL+"] to udp failed, will retry in "+autoUDPscrapeEvery+" scrapes"));
+		  			} else if(success && !protocol.equalsIgnoreCase("udp"))
 		  			{
-						if (Logger.isEnabled() && !protocol.equalsIgnoreCase("udp"))
-							Logger.log(new LogEvent(LOGID, LogEvent.LT_INFORMATION, "redirected http scrape for ["+scrapeURL+"] to udp"));
+						if (Logger.isEnabled())
+							Logger.log(new LogEvent(LOGID, LogEvent.LT_INFORMATION, "redirection of http scrape ["+scrapeURL+"] to udp successful"));
 		  				autoUDPscrapeEvery = 1;
 		  			}
 		  				
