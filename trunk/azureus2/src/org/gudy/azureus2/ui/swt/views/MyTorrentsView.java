@@ -505,12 +505,12 @@ public class MyTorrentsView
 	            
 	            up_details 		= up_str + ": " + (up_speed==0?unlimited_str:DisplayFormatters.formatByteCountToKiBEtc(up_speed));
 	            down_details 	= down_str + ": " + (down_speed==0?unlimited_str:DisplayFormatters.formatByteCountToKiBEtc(down_speed));
-		    
-	            if (count == 0) {
-	            	curButton.setToolTipText( down_details + "\n" + up_details + "\nTotal: 0" );
-	            	return;
-	            }
 		    }
+		    
+            if (count == 0) {
+            	curButton.setToolTipText( down_details + "\n" + up_details + "\nTotal: 0" );
+            	return;
+            }
             
             curButton.setToolTipText(
             		(up_details.length()==0?"":( down_details + "\n" + up_details + "\n" )) +
