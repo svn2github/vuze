@@ -22,9 +22,11 @@
 package com.aelitis.azureus.plugins.net.netstatus.swt;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -33,6 +35,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 
@@ -52,6 +55,12 @@ NetStatusPluginView
 	private StyledText 	log;
 	
 	private NetStatusPluginTester		current_test;
+	
+	private static final int LOG_NORMAL 	= 1;
+	private static final int LOG_SUCCESS 	= 2;
+	private static final int LOG_ERROR 		= 3;
+	
+	private int	log_type	= LOG_NORMAL;
 	
 	public
 	NetStatusPluginView(
@@ -230,6 +239,36 @@ NetStatusPluginView
 							{
 								println( str );
 							}
+							
+							public void 
+							logSuccess(
+								String str) 
+							{
+								try{
+									log_type = LOG_SUCCESS;
+									
+									println( str );
+									
+								}finally{
+									
+									log_type = LOG_NORMAL;
+								}
+							}
+							
+							public void 
+							logFailure(
+								String str) 
+							{
+								try{
+									log_type = LOG_ERROR;
+									
+									println( str );
+									
+								}finally{
+									
+									log_type = LOG_NORMAL;
+								}
+							}
 						});
 			}
 			
@@ -299,13 +338,6 @@ NetStatusPluginView
 	
 	protected void
 	print(
-		final String		str )
-	{
-		print( str, false );
-	}
-	
-	protected void
-	print(
 		final String		str,
 		final boolean		clear_first )
 	{
@@ -313,20 +345,54 @@ NetStatusPluginView
 		
 		if ( !log.isDisposed()){
 			
+			final int f_log_type = log_type;
+			
 			log.getDisplay().asyncExec(
 					new Runnable()
 					{
 						public void
 						run()
 						{
+							if ( log.isDisposed()){
+								
+								return;
+							}
+							
+							int	start;
+							
 							if ( clear_first ){
+							
+								start	= 0;
 								
 								log.setText( str );
 								
 							}else{
 							
+								start = log.getText().length();
+								
 								log.append( str );
 							}
+							
+							Color 	color;
+							
+							if ( f_log_type == LOG_NORMAL ){
+								
+								color = Colors.black;
+								
+							}else if ( f_log_type == LOG_SUCCESS ){
+								
+								color = Colors.green;
+								
+							}else{
+								
+								color = Colors.red;
+							}
+							
+							StyleRange styleRange = new StyleRange();
+							styleRange.start = start;
+							styleRange.length = str.length();
+							styleRange.foreground = color;
+							log.setStyleRange(styleRange);
 							
 							log.setSelection( log.getText().length());
 						}

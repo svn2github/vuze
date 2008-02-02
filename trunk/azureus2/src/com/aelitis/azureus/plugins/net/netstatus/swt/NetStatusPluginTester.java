@@ -133,7 +133,7 @@ NetStatusPluginTester
 						
 						if ( route.length == 0 && distance >= 3 ){
 						
-							log( intf.getAddress().getHostAddress() + ": giving up, no responses" );
+							logError( intf.getAddress().getHostAddress() + ": giving up, no responses" );
 							
 							return( false );
 						}
@@ -160,7 +160,7 @@ NetStatusPluginTester
 			
 			if ( num_routes == 0 ){
 				
-				log( "No active routes found!" );
+				logError( "No active routes found!" );
 				
 			}else{
 				
@@ -188,7 +188,7 @@ NetStatusPluginTester
 			}
 		}catch( Throwable e ){
 			
-			log( "Route tracing failed: " + Debug.getNestedExceptionMessage(e));
+			logError( "Route tracing failed: " + Debug.getNestedExceptionMessage(e));
 		}
 		
 
@@ -296,7 +296,7 @@ NetStatusPluginTester
 								}
 							});
 					
-					log( "    Test successful" );
+					logSuccess( "    Test successful" );
 					
 					if ( public_address != null ){
 						
@@ -304,7 +304,7 @@ NetStatusPluginTester
 					}
 				}catch( Throwable e ){
 					
-					log( "    Test failed", e );
+					logError( "    Test failed", e );
 				}
 			}
 		}
@@ -341,7 +341,7 @@ NetStatusPluginTester
 								}
 							});
 					
-					log( "    Test successful" );
+					logSuccess( "    Test successful" );
 
 					if ( public_address != null ){
 						
@@ -349,7 +349,7 @@ NetStatusPluginTester
 					}
 				}catch( Throwable e ){
 					
-					log( "    Test failed", e );
+					logError( "    Test failed", e );
 				}
 			}
 		}
@@ -377,7 +377,7 @@ NetStatusPluginTester
 					
 				}catch( Throwable e ){
 					
-					log( "    failed to lookup AS", e );
+					logError( "    failed to lookup AS", e );
 				}
 			}
 		}
@@ -403,6 +403,13 @@ NetStatusPluginTester
 	}
 	
 	protected void
+	logSuccess(
+		String	str )
+	{
+		logger.logSuccess( str );
+	}
+	
+	protected void
 	log(
 		String		str,
 		Throwable	e )
@@ -410,11 +417,34 @@ NetStatusPluginTester
 		logger.log( str + ": " + e.getLocalizedMessage());
 	}
 	
+	protected void
+	logError(
+		String	str )
+	{
+		logger.logFailure( str );
+	}
+	
+	protected void
+	logError(
+		String		str,
+		Throwable	e )
+	{
+		logger.logFailure( str + ": " + e.getLocalizedMessage());
+	}
+	
 	protected interface
 	loggerProvider
 	{
 		public void
 		log(
+			String	str );
+		
+		public void
+		logSuccess(
+			String	str );
+		
+		public void
+		logFailure(
 			String	str );
 	}
 	
