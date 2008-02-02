@@ -51,7 +51,7 @@ IntegratedResourceBundle
 	{
 		synchronized( bundle_map ){
 
-			if ( compact_timer == null ){
+			if ( compact_timer == null && System.getProperty("transitory.startup", "0").equals("0")){
 								
 				compact_timer = SimpleTimer.addPeriodicEvent( 
 					"IRB:compactor",

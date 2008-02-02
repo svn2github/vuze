@@ -46,48 +46,51 @@ ThreadPool
 	private static boolean	debug_thread_pool_log_on;
 	
 	static{
-		COConfigurationManager.addAndFireParameterListeners(
-			new String[]{ "debug.threadpool.log.enable", "debug.threadpool.debug.trace" },
-			new ParameterListener()
-			{
-				public void 
-				parameterChanged(
-					String name )
+		if(System.getProperty("transitory.startup", "0").equals("0"))
+		{
+			COConfigurationManager.addAndFireParameterListeners(
+				new String[]{ "debug.threadpool.log.enable", "debug.threadpool.debug.trace" },
+				new ParameterListener()
 				{
-					debug_thread_pool 			= COConfigurationManager.getBooleanParameter( "debug.threadpool.log.enable", false );
-					debug_thread_pool_log_on 	= COConfigurationManager.getBooleanParameter( "debug.threadpool.debug.trace", false );
-				}
-			});
-		
-		AEDiagnostics.addEvidenceGenerator(
-			new AEDiagnosticsEvidenceGenerator()
-			{
-				public void
-				generate(
-					IndentWriter		writer )
-				{
-					writer.println( "Thread Pools" );
-					
-					try{
-						writer.indent();
-
-						List	pools;	
-						
-						synchronized( busy_pools ){
-							
-							pools	= new ArrayList( busy_pools );
-						}
-						
-						for (int i=0;i<pools.size();i++){
-							
-							((ThreadPool)pools.get(i)).generateEvidence( writer );
-						}
-					}finally{
-					
-						writer.exdent();
+					public void 
+					parameterChanged(
+						String name )
+					{
+						debug_thread_pool 			= COConfigurationManager.getBooleanParameter( "debug.threadpool.log.enable", false );
+						debug_thread_pool_log_on 	= COConfigurationManager.getBooleanParameter( "debug.threadpool.debug.trace", false );
 					}
-				}
-			});
+				});
+			
+			AEDiagnostics.addEvidenceGenerator(
+				new AEDiagnosticsEvidenceGenerator()
+				{
+					public void
+					generate(
+						IndentWriter		writer )
+					{
+						writer.println( "Thread Pools" );
+						
+						try{
+							writer.indent();
+
+							List	pools;	
+							
+							synchronized( busy_pools ){
+								
+								pools	= new ArrayList( busy_pools );
+							}
+							
+							for (int i=0;i<pools.size();i++){
+								
+								((ThreadPool)pools.get(i)).generateEvidence( writer );
+							}
+						}finally{
+						
+							writer.exdent();
+						}
+					}
+				});
+		}
 	}
 	
 	private static ThreadLocal		tls	= 

@@ -137,7 +137,7 @@ public class ClientIdentifier {
 				return peer_id_name;
 			}
 
-			// Older µTorrent versions will not always use the appropriate character for the
+			// Older ï¿½Torrent versions will not always use the appropriate character for the
 			// first letter, so compensate here.
 			if (!handshake_name.startsWith("\u00B5Torrent") && handshake_name.startsWith("Torrent", 1)) {
 				handshake_name_to_process = "\u00B5" + handshake_name.substring(1);
@@ -150,7 +150,7 @@ public class ClientIdentifier {
 			}
 		}
 
-		// Some Mainline 4.x versions identify themselves as µTorrent - according to alus,
+		// Some Mainline 4.x versions identify themselves as ï¿½Torrent - according to alus,
 		// this was a bug, so just identify as Mainline.
 		if (peer_id_name.startsWith("Mainline 4.") && handshake_name.startsWith("Torrent", 1)) {
 			return peer_id_name;
@@ -285,6 +285,8 @@ public class ClientIdentifier {
 	  }
 	  
 	  public static void main(String[] args) throws Exception {
+		  System.setProperty("transitory.startup", "1");
+		  
 		  BTPeerIDByteDecoder.client_logging_allowed = false;
 		  
 		  System.out.println("Testing simple BT clients:");
