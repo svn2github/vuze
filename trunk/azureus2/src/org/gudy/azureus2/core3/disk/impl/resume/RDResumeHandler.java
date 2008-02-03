@@ -302,12 +302,14 @@ RDResumeHandler
 						
 						disk_manager.setPercentDone(((i + 1) * 1000) / disk_manager.getNbPieces() );
 						
+						boolean pieceCannotExist = false;
+						
 						byte	piece_state = resume_pieces[i];
 						
 							// valid resume data means that the resume array correctly represents
 							// the state of pieces on disk, be they done or not
 						
-						if ( piece_state == PIECE_DONE ){
+						if ( piece_state == PIECE_DONE || !resumeValid || recheck_all ){
 						
 								// at least check that file sizes are OK for this piece to be valid
 							
@@ -322,6 +324,7 @@ RDResumeHandler
 								if ( file_size == null ){
 									
 									piece_state	= PIECE_NOT_DONE;
+									pieceCannotExist = true;
 									
 									if (Logger.isEnabled())
 										Logger.log(new LogEvent(disk_manager, LOGID,
@@ -336,6 +339,7 @@ RDResumeHandler
 								if ( file_size.longValue() < expected_size ){
 									
 									piece_state	= PIECE_NOT_DONE;
+									pieceCannotExist = true;
 									
 									if (Logger.isEnabled())
 										Logger.log(new LogEvent(disk_manager, LOGID,
@@ -361,8 +365,10 @@ RDResumeHandler
 							
 								// We only need to recheck pieces that are marked as not-ok
 								// if the resume data is invalid or explicit recheck needed
-							
-							if ( piece_state == PIECE_RECHECK_REQUIRED || !resumeValid ){
+							if(pieceCannotExist)
+							{
+								dm_piece.setDone( false );
+							} else if ( piece_state == PIECE_RECHECK_REQUIRED || !resumeValid ){
 										
 								run_sem.reserve();
 								
