@@ -20,6 +20,8 @@
 
 package com.aelitis.azureus.plugins.startstoprules.defaultplugin.ui.swt;
 
+import java.util.ArrayList;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
@@ -162,29 +164,33 @@ public class ConfigSectionQueue implements UISWTConfigSection
 
 		
 		// row
+		
+		final ArrayList values = new ArrayList();
+		int exp = 29;
+		for(int val = 0; val <= 8*1024*1024;)
+		{
+			values.add(new Integer(val));
+			if(val < 256)
+				val+=64;
+			else if(val < 1024)
+				val+=256;
+			else if(val < 16*1024)
+				val+=1024;
+			else
+				val = (int)(Math.pow(2, exp++/2) + (exp % 2 == 0 ? Math.pow(2,  (exp-3)/2) : 0));
+		}
+		String[] activeDLLabels = new String[values.size()];
+		int[] activeDLValues = new int[activeDLLabels.length];
+		
 
 		label = new Label(cSection, SWT.NULL);
 		Messages.setLanguageText(label, "ConfigView.label.minSpeedForActiveDL");
-		final String activeDLLabels[] = new String[57];
-		final int activeDLValues[] = new int[57];
-		int pos = 0;
-		for (int i = 0; i < 256; i += 64) {
-			activeDLValues[pos] = i;
-			activeDLLabels[pos] = DisplayFormatters.formatByteCountToKiBEtcPerSec(
-					activeDLValues[pos], true);
-			pos++;
-		}
-		for (int i = 256; i < 1024; i += 256) {
-			activeDLValues[pos] = i;
-			activeDLLabels[pos] = DisplayFormatters.formatByteCountToKiBEtcPerSec(
-					activeDLValues[pos], true);
-			pos++;
-		}
-		for (int i = 1; pos < activeDLLabels.length; i++) {
-			activeDLValues[pos] = i * 1024;
-			activeDLLabels[pos] = DisplayFormatters.formatByteCountToKiBEtcPerSec(
-					activeDLValues[pos], true);
-			pos++;
+		for(int i=0;i<activeDLLabels.length;i++)
+		{
+			activeDLValues[i] = ((Integer)values.get(i)).intValue();
+			activeDLLabels[i] = DisplayFormatters.formatByteCountToKiBEtcPerSec(
+				activeDLValues[i], true);
+			
 		}
 		new IntListParameter(cSection, "StartStopManager_iMinSpeedForActiveDL",
 				activeDLLabels, activeDLValues);
@@ -193,28 +199,11 @@ public class ConfigSectionQueue implements UISWTConfigSection
 
 		label = new Label(cSection, SWT.NULL);
 		Messages.setLanguageText(label, "ConfigView.label.minSpeedForActiveSeeding");
-		final String activeSeedingLabels[] = new String[27];
-		final int activeSeedingValues[] = new int[27];
-		pos = 0;
+		String[] activeSeedingLabels = new String[values.size()-4];
+		int[] activeSeedingValues = new int[activeSeedingLabels.length];
+		System.arraycopy(activeDLLabels, 0, activeSeedingLabels, 0, activeSeedingLabels.length);
+		System.arraycopy(activeDLValues, 0, activeSeedingValues, 0, activeSeedingValues.length);
 
-		for (int i = 0; i < 256; i += 64) {
-			activeSeedingValues[pos] = i;
-			activeSeedingLabels[pos] = DisplayFormatters.formatByteCountToKiBEtcPerSec(
-					activeSeedingValues[pos], true);
-			pos++;
-		}
-		for (int i = 256; i < 1024; i += 256) {
-			activeSeedingValues[pos] = i;
-			activeSeedingLabels[pos] = DisplayFormatters.formatByteCountToKiBEtcPerSec(
-					activeSeedingValues[pos], true);
-			pos++;
-		}
-		for (int i = 1; pos < activeSeedingLabels.length; i++) {
-			activeSeedingValues[pos] = i * 1024;
-			activeSeedingLabels[pos] = DisplayFormatters.formatByteCountToKiBEtcPerSec(
-					activeSeedingValues[pos], true);
-			pos++;
-		}
 		new IntListParameter(cSection,
 				"StartStopManager_iMinSpeedForActiveSeeding", activeSeedingLabels,
 				activeSeedingValues);
