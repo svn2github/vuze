@@ -484,8 +484,8 @@ public class TrackerStatus {
 		  		
 		  		if(protocol.equalsIgnoreCase("udp"))
 		  			udpScrapeURL = reqUrl;
-		  		else if(!az_tracker && scrapeCount % autoUDPscrapeEvery == 0)
-		  			udpScrapeURL = new URL(reqUrl.toString().replaceFirst("(http|https)", "udp"));
+		  		else if(protocol.equalsIgnoreCase("http") && !az_tracker && scrapeCount % autoUDPscrapeEvery == 0)
+		  			udpScrapeURL = new URL(reqUrl.toString().replaceFirst("^http", "udp"));
 		  			
 		  		
 		  		if ( udpScrapeURL != null){

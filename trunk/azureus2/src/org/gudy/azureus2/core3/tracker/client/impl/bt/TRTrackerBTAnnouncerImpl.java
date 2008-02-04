@@ -1086,8 +1086,8 @@ TRTrackerBTAnnouncerImpl
 		  		
 		  		if(protocol.equalsIgnoreCase("udp"))
 		  			udpAnnounceURL = reqUrl;
-		  		else if(!az_tracker && announceCount % autoUDPprobeEvery == 0)
-		  			udpAnnounceURL = new URL(reqUrl.toString().replaceFirst("(http|https)", "udp"));
+		  		else if(protocol.equalsIgnoreCase("http") && !az_tracker && announceCount % autoUDPprobeEvery == 0)
+		  			udpAnnounceURL = new URL(reqUrl.toString().replaceFirst("^http", "udp"));
 		  		
 		  				
 		  		if ( udpAnnounceURL != null){
