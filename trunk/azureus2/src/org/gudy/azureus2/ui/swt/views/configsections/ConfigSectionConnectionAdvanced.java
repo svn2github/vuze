@@ -231,6 +231,8 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		
 		new BooleanParameter(cSection, "LTEP.enabled", "network.ltep.enabled");
 		
+		new BooleanParameter(cSection, "Enforce Bind IP","network.enforce.ipbinding");
+		
 		//////////////////////////////////////////////////////////////////////////
 
 		return cSection;

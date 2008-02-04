@@ -58,8 +58,8 @@ NetworkAdmin
 	public abstract InetAddress
 	getSingleHomedServiceBindAddress();
 	
-	public abstract InetAddress
-	getMultiHomedServiceBindAddress();
+	public abstract InetAddress[]
+	getMultiHomedServiceBindAddresses();
 	
 	public abstract InetAddress
 	getMultiHomedOutgoingRoundRobinBindAddress();

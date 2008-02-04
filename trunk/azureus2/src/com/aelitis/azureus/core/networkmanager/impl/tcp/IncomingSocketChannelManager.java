@@ -56,17 +56,18 @@ public class IncomingSocketChannelManager
   
   private int so_rcvbuf_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_RCVBUF" );
   
-  private InetAddress 	default_bind_address = NetworkAdmin.getSingleton().getMultiHomedServiceBindAddress();
+  private InetAddress[] 	default_bind_addresses = NetworkAdmin.getSingleton().getMultiHomedServiceBindAddresses();
   private InetAddress 	explicit_bind_address;
   private boolean		explicit_bind_address_set;
   
-  private VirtualServerChannelSelector server_selector = null;
+  private VirtualServerChannelSelector[] serverSelectors = new VirtualServerChannelSelector[0];
+  private int listenFailCounts[] = new int[0];
   
   private IncomingConnectionManager	incoming_manager = IncomingConnectionManager.getSingleton();
   
   protected AEMonitor	this_mon	= new AEMonitor( "IncomingSocketChannelManager" );
 
-  int listen_fail_count = 0;
+
   
   
   /**
@@ -118,16 +119,11 @@ public class IncomingSocketChannelManager
     		{
     			if ( property == NetworkAdmin.PR_DEFAULT_BIND_ADDRESS ){
     			
-			        InetAddress address = NetworkAdmin.getSingleton().getMultiHomedServiceBindAddress();
+			        InetAddress[] addresses = NetworkAdmin.getSingleton().getMultiHomedServiceBindAddresses();
 			        
-			        if ( address == null && default_bind_address == null ){
+			        if ( !Arrays.equals(addresses, default_bind_addresses)) {
 			        	
-			        	return;
-			        }
-			        
-			        if ( address == null || default_bind_address == null || !address.equals( default_bind_address )) {
-			        	
-			        	default_bind_address = address;
+			        	default_bind_addresses = addresses;
 			          
 			        	restart();
 			        }
@@ -144,62 +140,58 @@ public class IncomingSocketChannelManager
     	//it seems that sometimes under OSX that listen server sockets sometimes stop accepting incoming connections for some unknown reason
     	//this checker tests to make sure the listen socket is still accepting connections, and if not, recreates the socket
     
-    SimpleTimer.addPeriodicEvent(
-    	"IncomingSocketChannelManager:concheck",
-    	60*1000,
-        new TimerEventPerformer() {
-          public void perform( TimerEvent ev ) {
-       
-          	if( server_selector != null && server_selector.isRunning() ) { //ensure it's actually running
-    					
-    					long accept_idle = SystemTime.getCurrentTime() - server_selector.getTimeOfLastAccept();
- 
-    					if( accept_idle > 10*60*1000 ) {  //the socket server hasn't accepted any new connections in the last 10min
-  						
-    						//so manually test the listen port for connectivity
-    						
-    						InetAddress inet_address = server_selector.getBoundToAddress();
-        				
-      					try{   					
-      						if( inet_address == null )  inet_address = InetAddress.getByName( "127.0.0.1" );  //failback
-      					
-      						Socket sock = new Socket( inet_address, tcp_listen_port, inet_address, 0 );
-
-      						sock.close();
-      						listen_fail_count = 0;
-      					}
-      					catch( Throwable t ) {
-      						
-      						//ok, let's try again without the explicit local bind
-      						try {
-      							Socket sock = new Socket( InetAddress.getByName( "127.0.0.1" ), tcp_listen_port );      							
-      							sock.close();
-      							listen_fail_count = 0;
-      						}
-      						catch( Throwable x ) {
-      							listen_fail_count++;
-        						Debug.out( new Date()+ ": listen port on [" +inet_address+ ": " +tcp_listen_port+ "] seems CLOSED [" +listen_fail_count+ "x]" );
-        				
-        						if( listen_fail_count > 4 ) {
-        							String error = t.getMessage() == null ? "<null>" : t.getMessage();
-        							String msg = "Listen server socket on [" +inet_address+ ": " +tcp_listen_port+ "] does not appear to be accepting inbound connections.\n[" +error+ "]\nAuto-repairing listen service....\n";
-        							Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING, msg));
-        							restart();
-        							listen_fail_count = 0;
-        						}
-      						}
-      					}
-    					}
-    					else {  //it's recently accepted an inbound connection
-    						listen_fail_count = 0;
-    					}
-    				}
-
-          }
-        }
-     );
-    
-  }
+    SimpleTimer.addPeriodicEvent("IncomingSocketChannelManager:concheck", 60 * 1000, new TimerEventPerformer()
+		{
+			public void perform(TimerEvent ev) {
+				for (int i = 0; i < serverSelectors.length; i++)
+				{
+					VirtualServerChannelSelector server_selector = serverSelectors[i];
+					
+					if (server_selector != null && server_selector.isRunning())
+					{ //ensure it's actually running
+						long accept_idle = SystemTime.getCurrentTime() - server_selector.getTimeOfLastAccept();
+						if (accept_idle > 10 * 60 * 1000)
+						{ //the socket server hasn't accepted any new connections in the last 10min
+							//so manually test the listen port for connectivity
+							InetAddress inet_address = server_selector.getBoundToAddress();
+							try
+							{
+								if (inet_address == null)
+									inet_address = InetAddress.getByName("127.0.0.1"); //failback
+								Socket sock = new Socket(inet_address, tcp_listen_port, inet_address, 0);
+								sock.close();
+								listenFailCounts[i] = 0;
+							} catch (Throwable t)
+							{
+								//ok, let's try again without the explicit local bind
+								try
+								{
+									Socket sock = new Socket(InetAddress.getByName("127.0.0.1"), tcp_listen_port);
+									sock.close();
+									listenFailCounts[i] = 0;
+								} catch (Throwable x)
+								{
+									listenFailCounts[i]++;
+									Debug.out(new Date() + ": listen port on [" + inet_address + ": " + tcp_listen_port + "] seems CLOSED [" + listenFailCounts[i] + "x]");
+									if (listenFailCounts[i] > 4)
+									{
+										String error = t.getMessage() == null ? "<null>" : t.getMessage();
+										String msg = "Listen server socket on [" + inet_address + ": " + tcp_listen_port + "] does not appear to be accepting inbound connections.\n[" + error + "]\nAuto-repairing listen service....\n";
+										Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING, msg));
+										restart();
+										listenFailCounts[i] = 0;
+									}
+								}
+							}
+						} else
+						{ //it's recently accepted an inbound connection
+							listenFailCounts[i] = 0;
+						}
+					}
+				}
+			}
+		});
+	}
   
   public boolean
   isEnabled()
@@ -208,9 +200,11 @@ public class IncomingSocketChannelManager
   }
   
   /**
-   * Get port that the TCP server socket is listening for incoming connections on.
-   * @return port number
-   */
+	 * Get port that the TCP server socket is listening for incoming connections
+	 * on.
+	 * 
+	 * @return port number
+	 */
   public int getTCPListeningPortNumber() {  return tcp_listen_port;  }  
   
   public void 
@@ -232,16 +226,16 @@ public class IncomingSocketChannelManager
 	  restart();
   }
   
-  protected InetAddress
-  getEffectiveBindAddress()
+  protected InetAddress[]
+  getEffectiveBindAddresses()
   {
 	  if ( explicit_bind_address_set ){
 		  
-		  return( explicit_bind_address );
+		  return( new InetAddress[] {explicit_bind_address});
 		  
 	  }else{
 		  
-		  return( default_bind_address );
+		  return( default_bind_addresses );
       }
   }
   
@@ -249,143 +243,149 @@ public class IncomingSocketChannelManager
   isEffectiveBindAddress(
 	InetAddress	address )
   {
-	  InetAddress	effective = getEffectiveBindAddress();
+	  InetAddress[]	effective = getEffectiveBindAddresses();
 	  
-	  if ( address == null && effective == null ){
-		  
-		  return( true );
-	  }
-	  
-	  if ( address == null || effective == null ){
-		  
-		  return( false );
-	  }
-	  
-	  return( address.equals( effective ));
+	  return Arrays.asList(effective).contains(address);
   }
   
-  private void start() {
-  	try{
-  		this_mon.enter();
-      
-        if( tcp_listen_port < 0 || tcp_listen_port > 65535 || tcp_listen_port == 6880 ) {
-          String msg = "Invalid incoming TCP listen port configured, " +tcp_listen_port+ ". Port reset to default. Please check your config!";
-          Debug.out( msg );
-          Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR, msg));
-          tcp_listen_port = RandomUtils.generateRandomNetworkListenPort();
-          COConfigurationManager.setParameter( port_config_key, tcp_listen_port );
-        }
- 
-        if ( COConfigurationManager.getBooleanParameter(port_enable_config_key)){
-        	
-		    if( server_selector == null ) {
-		      InetSocketAddress address;
+  
+  private final class TcpSelectListener implements VirtualServerChannelSelector.SelectListener {
+      public void newConnectionAccepted( final ServerSocketChannel server, final SocketChannel channel ) {
+      	
+      	//check for encrypted transport
+	      	final TCPTransportHelper	helper = new TCPTransportHelper( channel );
 
-		      InetAddress	bind_address = getEffectiveBindAddress();
-		      
-		      if( bind_address != null ) {
-		        address = new InetSocketAddress( bind_address, tcp_listen_port );
-		      }
-		      else {
-		        address = new InetSocketAddress( tcp_listen_port );
-		      }
+      	TransportCryptoManager.getSingleton().manageCrypto( helper, null, true, null, new TransportCryptoManager.HandshakeListener() {
+      		public void handshakeSuccess( ProtocolDecoder decoder, ByteBuffer remaining_initial_data ) {
+      			process( server.socket().getLocalPort(), decoder.getFilter());
+      		}
 
-		      	      
-		      server_selector = VirtualServerChannelSelectorFactory.createTest( address, so_rcvbuf_size, new VirtualBlockingServerChannelSelector.SelectListener() {
-		        public void newConnectionAccepted( final ServerSocketChannel server, final SocketChannel channel ) {
-		        	
-		        	//check for encrypted transport
-		  	      	final TCPTransportHelper	helper = new TCPTransportHelper( channel );
-	
-		        	TransportCryptoManager.getSingleton().manageCrypto( helper, null, true, null, new TransportCryptoManager.HandshakeListener() {
-		        		public void handshakeSuccess( ProtocolDecoder decoder, ByteBuffer remaining_initial_data ) {
-		        			process( server.socket().getLocalPort(), decoder.getFilter());
-		        		}
-	
-		            public void 
-		            handshakeFailure( 
-		            	Throwable failure_msg ) 
-		            {
-		            	
-		            	if (Logger.isEnabled()) 	Logger.log(new LogEvent(LOGID, "incoming crypto handshake failure: " + Debug.getNestedExceptionMessage( failure_msg )));
-		            	
-		            	/*
-		            		// we can have problems with sockets stuck in a TIME_WAIT state if we just
-		            		// close an incoming channel - to clear things down properly the client needs
-		            		// to initiate the close. So what we do is send some random bytes to the client
-		            		// under the assumption this will cause them to close, and we delay our socket close
-		            		// for 10 seconds to give them a chance to do so.	            	
-		            		try{
-		            			Random	random = new Random();
-		            		
-		            			byte[]	random_bytes = new byte[68+random.nextInt(128-68)];
-		            		
-		            			random.nextBytes( random_bytes );
-		            		
-		            			channel.write( ByteBuffer.wrap( random_bytes ));
-		            		
-		            		}catch( Throwable e ){
-		            			// ignore anything here
-		            		}
-		            		NetworkManager.getSingleton().closeSocketChannel( channel, 10*1000 );
-		            	*/
-		            
-		            	helper.close( "Handshake failure: " + Debug.getNestedExceptionMessage( failure_msg ));
-		            }
-		            
-		        	public void
-		        	gotSecret(
-						byte[]				session_secret )
-		        	{
-		        	}
-		        	
-		    		public int
-		    		getMaximumPlainHeaderLength()
-		    		{
-		    			return( incoming_manager.getMaxMinMatchBufferSize());
-		    		}
-		    		
-		    		public int
-		    		matchPlainHeader(
-		    			ByteBuffer			buffer )
-		    		{
-		    			Object[]	match_data = incoming_manager.checkForMatch( helper, server.socket().getLocalPort(), buffer, true );
-		    			
-		    			if ( match_data == null ){
-		    				
-		    				return( TransportCryptoManager.HandshakeListener.MATCH_NONE );
-		    				
-		    			}else{
-		    				
-		    				IncomingConnectionManager.MatchListener match = (IncomingConnectionManager.MatchListener)match_data[0];
-		    				
-		    				if ( match.autoCryptoFallback()){
-		    					
-			    				return( TransportCryptoManager.HandshakeListener.MATCH_CRYPTO_AUTO_FALLBACK );
-			    					
-		    				}else{
-		    					
-			    				return( TransportCryptoManager.HandshakeListener.MATCH_CRYPTO_NO_AUTO_FALLBACK );
-			    				
-		    				}
-		    			}
-		    		}
-		        	});
-		        	
-		        }
-		      });
-		      
-		      server_selector.start();
-		    }
-        }else{
-        
-        	Logger.log(new LogEvent(LOGID, "Not starting TCP listener on port " + tcp_listen_port + " as protocol disabled" ));
-        }
-  	}finally{
+          public void 
+          handshakeFailure( 
+          	Throwable failure_msg ) 
+          {
+          	
+          	if (Logger.isEnabled()) 	Logger.log(new LogEvent(LOGID, "incoming crypto handshake failure: " + Debug.getNestedExceptionMessage( failure_msg )));
+          	
+          	/*
+          		// we can have problems with sockets stuck in a TIME_WAIT state if we just
+          		// close an incoming channel - to clear things down properly the client needs
+          		// to initiate the close. So what we do is send some random bytes to the client
+          		// under the assumption this will cause them to close, and we delay our socket close
+          		// for 10 seconds to give them a chance to do so.	            	
+          		try{
+          			Random	random = new Random();
+          		
+          			byte[]	random_bytes = new byte[68+random.nextInt(128-68)];
+          		
+          			random.nextBytes( random_bytes );
+          		
+          			channel.write( ByteBuffer.wrap( random_bytes ));
+          		
+          		}catch( Throwable e ){
+          			// ignore anything here
+          		}
+          		NetworkManager.getSingleton().closeSocketChannel( channel, 10*1000 );
+          	*/
+          
+          	helper.close( "Handshake failure: " + Debug.getNestedExceptionMessage( failure_msg ));
+          }
+          
+      	public void
+      	gotSecret(
+				byte[]				session_secret )
+      	{
+      	}
+      	
+  		public int
+  		getMaximumPlainHeaderLength()
+  		{
+  			return( incoming_manager.getMaxMinMatchBufferSize());
+  		}
   		
-  		this_mon.exit();
-  	}
-  }
+  		public int
+  		matchPlainHeader(
+  			ByteBuffer			buffer )
+  		{
+  			Object[]	match_data = incoming_manager.checkForMatch( helper, server.socket().getLocalPort(), buffer, true );
+  			
+  			if ( match_data == null ){
+  				
+  				return( TransportCryptoManager.HandshakeListener.MATCH_NONE );
+  				
+  			}else{
+  				
+  				IncomingConnectionManager.MatchListener match = (IncomingConnectionManager.MatchListener)match_data[0];
+  				
+  				if ( match.autoCryptoFallback()){
+  					
+	    				return( TransportCryptoManager.HandshakeListener.MATCH_CRYPTO_AUTO_FALLBACK );
+	    					
+  				}else{
+  					
+	    				return( TransportCryptoManager.HandshakeListener.MATCH_CRYPTO_NO_AUTO_FALLBACK );
+	    				
+  				}
+  			}
+				}
+			});
+		}
+	}
+  
+  
+  private final VirtualServerChannelSelector.SelectListener selectListener = new TcpSelectListener();
+  
+  
+  private void start() {
+		try
+		{
+			this_mon.enter();
+			
+			if (tcp_listen_port < 0 || tcp_listen_port > 65535 || tcp_listen_port == 6880)
+			{
+				String msg = "Invalid incoming TCP listen port configured, " + tcp_listen_port + ". Port reset to default. Please check your config!";
+				Debug.out(msg);
+				Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR, msg));
+				tcp_listen_port = RandomUtils.generateRandomNetworkListenPort();
+				COConfigurationManager.setParameter(port_config_key, tcp_listen_port);
+			}
+			
+			if (COConfigurationManager.getBooleanParameter(port_enable_config_key))
+			{
+				if (serverSelectors.length == 0)
+				{
+					InetSocketAddress address;
+					InetAddress[] bindAddresses = getEffectiveBindAddresses();
+					serverSelectors = new VirtualServerChannelSelector[bindAddresses.length];
+					listenFailCounts = new int[bindAddresses.length];
+					for (int i = 0; i < bindAddresses.length; i++)
+					{
+						InetAddress bindAddress = bindAddresses[i];
+						if (bindAddress != null)
+							address = new InetSocketAddress(bindAddress, tcp_listen_port);
+						else
+							address = new InetSocketAddress(tcp_listen_port);
+						
+						VirtualServerChannelSelector serverSelector;
+						
+						if(bindAddresses.length == 1)
+							serverSelector = VirtualServerChannelSelectorFactory.createBlocking(address, so_rcvbuf_size, selectListener);
+						else
+							serverSelector = VirtualServerChannelSelectorFactory.createNonBlocking(address, so_rcvbuf_size, selectListener);
+						serverSelector.start();
+						
+						serverSelectors[i] = serverSelector;
+					}
+				}
+			} else
+			{
+				Logger.log(new LogEvent(LOGID, "Not starting TCP listener on port " + tcp_listen_port + " as protocol disabled"));
+			}
+		} finally
+		{
+			this_mon.exit();
+		}
+	}
   
   
   protected void 
@@ -426,11 +426,10 @@ public class IncomingSocketChannelManager
   private void restart() {
   	try{
   		this_mon.enter();
-      	
-  		if( server_selector != null ) {	  			  			
-  			server_selector.stop();
-  			server_selector = null;
-  		}
+  		
+  		for(int i=0;i<serverSelectors.length;i++)
+  			serverSelectors[i].stop();
+  		serverSelectors = new VirtualServerChannelSelector[0];
   	}finally{
       		
   		this_mon.exit();

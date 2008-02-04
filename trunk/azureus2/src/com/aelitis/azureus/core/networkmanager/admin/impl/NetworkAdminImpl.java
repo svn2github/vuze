@@ -136,7 +136,7 @@ NetworkAdminImpl
 	NetworkAdminImpl()
 	{
 		COConfigurationManager.addParameterListener(
-			"Bind IP",
+			new String[] {"Bind IP","Enforce Bind IP"},
 			new ParameterListener()
 			{
 				public void 
@@ -252,14 +252,18 @@ NetworkAdminImpl
 		return addresses[next];
 	}
 	
-	public InetAddress getMultiHomedServiceBindAddress()
+	public InetAddress[] getMultiHomedServiceBindAddresses()
 	{
-		InetAddress firstAddr = currentBindIPs[0];
-		if(firstAddr != null && firstAddr.isAnyLocalAddress())
-			return firstAddr;
-		if(currentBindIPs.length > 1)
-			return null;
-		return firstAddr;
+		InetAddress[] bindIPs = currentBindIPs;
+		for(int i=0;i<bindIPs.length;i++)
+		{
+			if(bindIPs[i] == null)
+				return new InetAddress[] {null};
+			if(bindIPs[i].isAnyLocalAddress())
+				return new InetAddress[] {bindIPs[i]};
+			
+		}
+		return bindIPs;
 	}
 	
 	public InetAddress getSingleHomedServiceBindAddress()
@@ -273,7 +277,7 @@ NetworkAdminImpl
 		return( currentBindIPs );
 	}
 	
-	private InetAddress[] calcBindAddresses(final String addressString)
+	private InetAddress[] calcBindAddresses(final String addressString, boolean enforceBind)
 	{
 		ArrayList addrs = new ArrayList();
 		
@@ -343,8 +347,18 @@ NetworkAdminImpl
 				}
 			}
 		
+		InetAddress localhost = null;
+		try
+		{
+			localhost = InetAddress.getByName("127.0.0.1");
+		} catch (UnknownHostException e)
+		{
+			e.printStackTrace();
+		}
+
+		
 		if(addrs.size() < 1)
-			return new InetAddress[] {null};
+			return new InetAddress[] {enforceBind ? localhost : null};
 		return (InetAddress[])addrs.toArray(new InetAddress[0]);
 	}
 	
@@ -353,7 +367,8 @@ NetworkAdminImpl
 	{
 		boolean changed = false;
 		String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "").trim();
-		InetAddress[] addrs = calcBindAddresses(bind_ip);
+		boolean enforceBind = COConfigurationManager.getBooleanParameter("Enforce Bind IP");
+		InetAddress[] addrs = calcBindAddresses(bind_ip, enforceBind);
 		changed = !Arrays.equals(currentBindIPs, addrs);
 		if(changed){
 			currentBindIPs = addrs;					

@@ -306,6 +306,7 @@ public class ConfigurationDefaults {
 
   
     def.put( "Bind IP", "" );
+    def.put( "Enforce Bind IP", FALSE);
     def.put( "Stats Export Peer Details", FALSE );
     def.put( "Stats Export File Details", FALSE );
     def.put( "Stats XSL File", "" );
