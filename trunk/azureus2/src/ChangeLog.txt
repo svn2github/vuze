@@ -18,10 +18,12 @@ CHANGE: Core  | Queuing rules now don't start any further torrents if the global
 CHANGE: Core  | Made the crypto handshake a bit less predictable [The 8472]
 CHANGE: Core  | Added support for udp-multiscrapes [The 8472]
 CHANGE: Core  | Added support for plugins which implement mainline DHT [amc1]
-                 
+
+BUGFIX: Core  | Request limiting/Priorities no longer pinch off LAN peers if seperate LAN speeds are enabled [The 8472]                 
 BUGFIX: UI    | Shells no longer use the low-res frog icon, the normal main window icon is now used instead [amc1]
 BUGFIX: UI    | Limiting comments in General View to 5k characters under WinXP to avoid crashes due to faulty comctl32.dll [The 8472]
-BUGFIX: Core  | Request limiting/Priorities no longer pinch off LAN peers if seperate LAN speeds are enabled [The 8472]
+BUGFIX: UI    | Setting speed parameters manually now disables autospeed [The 8472]
+
 
 
 2007.12.21 | Azureus Vuze 3.0.4.2

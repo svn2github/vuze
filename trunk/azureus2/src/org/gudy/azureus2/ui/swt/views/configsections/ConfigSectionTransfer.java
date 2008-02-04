@@ -29,7 +29,9 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.components.LinkLabel;
@@ -125,14 +127,14 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 		label.setImage(img);
 
 		gridData = new GridData();
-		BooleanParameter enable_seeding_rate = new BooleanParameter(
+		final BooleanParameter enable_seeding_rate = new BooleanParameter(
 				cMaxUploadSpeedOptionsArea, "enable.seedingonly.upload.rate",
 				"ConfigView.label.maxuploadspeedseeding");
 		enable_seeding_rate.setLayoutData(gridData);
 
 		gridData = new GridData();
 		gridData.widthHint = 35;
-		IntParameter paramMaxUploadSpeedSeeding = new IntParameter(
+		final IntParameter paramMaxUploadSpeedSeeding = new IntParameter(
 				cMaxUploadSpeedOptionsArea, "Max Upload Speed Seeding KBs", 0, -1);
 		paramMaxUploadSpeedSeeding.setLayoutData(gridData);
 		enable_seeding_rate
@@ -191,6 +193,36 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 		paramMaxDownSpeed.setLayoutData(gridData);
 		
 		// max upload/download limit dependencies
+		
+		Listener l = new Listener() {
+			@Override
+			public void handleEvent(Event event) {
+				boolean disableAuto = false;
+				boolean disableAutoSeeding = false;
+				
+				if(enable_seeding_rate.isSelected())
+				{
+					disableAutoSeeding = event.widget == paramMaxUploadSpeedSeeding.getControl();
+					disableAuto = event.widget == paramMaxDownSpeed.getControl() || event.widget == paramMaxUploadSpeed.getControl();
+				} else
+				{
+					disableAuto = true;
+					disableAutoSeeding = true;
+				}
+					
+					
+				if(disableAuto)
+					COConfigurationManager.setParameter(TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY, false);
+				if(disableAutoSeeding)
+					COConfigurationManager.setParameter(TransferSpeedValidator.AUTO_UPLOAD_SEEDING_ENABLED_CONFIGKEY, false);
+			}
+		};
+		
+		paramMaxDownSpeed.getControl().addListener(SWT.Selection, l);
+		paramMaxUploadSpeed.getControl().addListener(SWT.Selection, l);
+		paramMaxUploadSpeedSeeding.getControl().addListener(SWT.Selection, l);
+		
+		
 		paramMaxUploadSpeed.addChangeListener(new ParameterChangeAdapter() {
 			
 			public void parameterChanged(Parameter p, boolean internal) {
