@@ -195,7 +195,7 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 		// max upload/download limit dependencies
 		
 		Listener l = new Listener() {
-			@Override
+	
 			public void handleEvent(Event event) {
 				boolean disableAuto = false;
 				boolean disableAutoSeeding = false;
