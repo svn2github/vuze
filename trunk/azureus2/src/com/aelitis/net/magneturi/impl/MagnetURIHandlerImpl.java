@@ -629,7 +629,28 @@ MagnetURIHandlerImpl
 					
 					ByteArrayOutputStream	baos = new ByteArrayOutputStream();
 					
-					int	width 	= info.intValue();
+					int	value = info.intValue();
+					
+						// see if we need to div/mod for clients that don't support huge images
+						// e.g. http://localhost:45100/getinfo?name=Plugin.azupnpav.content_port&mod=8
+					
+					String	div = (String)params.get( "div" );
+					
+					if ( div != null ){
+						
+						value = value / Integer.parseInt( div );
+						
+					}else{
+						
+						String	mod = (String)params.get( "mod" );
+						
+						if ( mod != null ){
+							
+							value = value % Integer.parseInt( mod );
+						}
+					}
+					
+					int	width 	= value;
 					int	height	= 1;
 					
 					writeImage(baos, width, height);
