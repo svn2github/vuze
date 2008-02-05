@@ -167,6 +167,13 @@ TRTrackerScraperResponseImpl
   public boolean isValid() {
     return !(seeds == -1 && peers == -1);
   }
+  
+  
+  /**
+	 * add the same, random value per session so that azureus peers diverge over
+	 * time, that should reduce negative swarming behavior for trackers
+	 */
+  private static final int scrapeFuzzAdd = (int)(Math.random() * 3 * 60); 
 
   /**
    * Calculate Scrape interval, applying internal min/max limits and default
@@ -189,6 +196,9 @@ TRTrackerScraperResponseImpl
 		int scrapeInterval = MIN + (iNumSeeds * 10);
 		if (iRecIntervalSecs > scrapeInterval)
 			scrapeInterval = iRecIntervalSecs;
+		
+		// randomize scrape interval by 3 minutes to 
+		scrapeInterval += scrapeFuzzAdd;
 
 		if (scrapeInterval > MAX)
 			scrapeInterval = MAX;
