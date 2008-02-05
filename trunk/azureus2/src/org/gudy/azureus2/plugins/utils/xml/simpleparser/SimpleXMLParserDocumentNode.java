@@ -22,6 +22,8 @@
  
 package org.gudy.azureus2.plugins.utils.xml.simpleparser;
 
+import java.io.PrintWriter;
+
 public interface 
 SimpleXMLParserDocumentNode
 {
@@ -47,4 +49,8 @@ SimpleXMLParserDocumentNode
 	
 	public void
 	print();
+	
+	public void
+	print(
+		PrintWriter		pw );
 }

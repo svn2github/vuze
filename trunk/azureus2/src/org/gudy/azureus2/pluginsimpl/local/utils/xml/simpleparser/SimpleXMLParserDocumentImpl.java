@@ -201,7 +201,18 @@ SimpleXMLParserDocumentImpl
 	public void
 	print()
 	{
-		root_node.print( "" );
+		PrintWriter	pw = new PrintWriter( System.out );
+		
+		print( pw );
+		
+		pw.flush();
+	}
+	
+	public void
+	print(
+		PrintWriter	pw )
+	{
+		root_node.print( pw, "" );
 	}
 	
 		// idea is to flatten out any unwanted structure. We just want the resultant

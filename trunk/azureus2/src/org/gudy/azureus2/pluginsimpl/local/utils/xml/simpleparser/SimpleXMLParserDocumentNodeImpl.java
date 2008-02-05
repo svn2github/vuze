@@ -21,6 +21,7 @@
  
 package org.gudy.azureus2.pluginsimpl.local.utils.xml.simpleparser;
 
+import java.io.PrintWriter;
 import java.util.*;
 
 import org.w3c.dom.*;
@@ -174,11 +175,23 @@ SimpleXMLParserDocumentNodeImpl
 	public void
 	print()
 	{
-		print( "" );
+		PrintWriter	pw = new PrintWriter( System.out );
+		
+		print( pw );
+		
+		pw.flush();
+	}
+	
+	public void
+	print(
+		PrintWriter	pw )
+	{
+		print( pw, "" );
 	}
 	
 	protected void
 	print(
+		PrintWriter	pw,
 		String		indent )
 	{
 		String	attr_str = "";
@@ -189,13 +202,13 @@ SimpleXMLParserDocumentNodeImpl
 			attr_str += (i==0?"":",")+attrs[i].getName() + "=" + attrs[i].getValue();
 		}
 		
-		System.out.println( indent + getName() + ":" + attr_str + " -> " + getValue());
+		pw.println( indent + getName() + ":" + attr_str + " -> " + getValue());
 		
 		SimpleXMLParserDocumentNode[]	kids = getChildren();
 		
 		for (int i=0;i<kids.length;i++){
 			
-			((SimpleXMLParserDocumentNodeImpl)kids[i]).print( indent + "  " );
+			((SimpleXMLParserDocumentNodeImpl)kids[i]).print( pw, indent + "  " );
 		}
 	}
 		
