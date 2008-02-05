@@ -156,6 +156,22 @@ RDResumeHandler
 	
 				DiskManagerPiece[]	pieces	= disk_manager.getPieces();
 				
+				
+				// calculate the current file sizes up front for performance reasons
+				DiskManagerFileInfo[]	files = disk_manager.getFiles();
+				Map	file_sizes = new HashMap();
+				
+				for (int i=0;i<files.length;i++){
+					try{
+						Long	len = new Long(((DiskManagerFileInfoImpl)files[i]).getCacheFile().getLength());
+						file_sizes.put( files[i], len );
+					}catch( CacheFileManagerException e ){
+						Debug.printStackTrace(e);
+					}
+				}
+
+				
+				
 				if ( resumeEnabled ){
 					
 					boolean resumeValid = false;
@@ -222,25 +238,6 @@ RDResumeHandler
 					
 					check_resume_was_valid = resumeValid;
 					
-						// calculate the current file sizes up front for performance reasons
-					
-					DiskManagerFileInfo[]	files = disk_manager.getFiles();
-					
-					Map	file_sizes = new HashMap();
-					
-					for (int i=0;i<files.length;i++){
-						
-						try{
-							Long	len = new Long(((DiskManagerFileInfoImpl)files[i]).getCacheFile().getLength());
-						
-							file_sizes.put( files[i], len );
-							
-						}catch( CacheFileManagerException e ){
-							
-							Debug.printStackTrace(e);
-						}
-					}
-		
 					boolean	recheck_all	= use_fast_resume_recheck_all;
 					
 					if ( !recheck_all ){
@@ -472,14 +469,43 @@ RDResumeHandler
 					}
 				}else{
 					
-						// resume not enabled, recheck everything
+					// resume not enabled, recheck everything
 					
 					for (int i = 0; i < pieces.length; i++){
 	
 						check_position	= i;
 						
+						disk_manager.setPercentDone(((i + 1) * 1000) / disk_manager.getNbPieces() );
+
+						boolean pieceCannotExist = false;
+						
+						// check if there is an underlying file for this piece, if not set it to not done
+						DMPieceList list = disk_manager.getPieceList(i);
+						
+						for (int j=0;j<list.size();j++){
+							DMPieceMapEntry	entry = list.get(j);
+							
+							Long	file_size 		= (Long)file_sizes.get(entry.getFile());
+							if ( file_size == null ){
+								pieceCannotExist = true;
+								break;
+							}
+							
+							long	expected_size 	= entry.getOffset() + entry.getLength();
+							if ( file_size.longValue() < expected_size ){
+								pieceCannotExist = true;
+								break;
+							}
+						}
+						
+						if(pieceCannotExist)
+						{
+							disk_manager.getPiece(i).setDone(false);
+							continue;
+						}
+						
 						run_sem.reserve();
-	
+						
 						while( ! stopped ){
 							
 							if ( recheck_inst.getPermission()){
@@ -492,8 +518,7 @@ RDResumeHandler
 														
 							break;
 						}
-											
-						disk_manager.setPercentDone(((i + 1) * 1000) / disk_manager.getNbPieces() );						
+						
 							
 						try{
 							DiskManagerCheckRequest	request = disk_manager.createCheckRequest( i, null );
