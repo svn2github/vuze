@@ -635,35 +635,49 @@ MagnetURIHandlerImpl
 						// see if we need to div/mod for clients that don't support huge images
 						// e.g. http://localhost:45100/getinfo?name=Plugin.azupnpav.content_port&mod=8
 					
-					String	div = (String)params.get( "div" );
+					int	width 	= value;
+					int	height	= 1;
+
+						// divmod -> encode div+1 as width, mod+1 as height
 					
-					if ( div != null ){
+					String	div_mod = (String)params.get( "divmod" );
+					
+					if ( div_mod != null ){
 						
-						value = value / Integer.parseInt( div );
+						int	n = Integer.parseInt( div_mod );
+						
+						width 	= ( value / n ) + 1;
+						height	= ( value % n ) + 1;
 						
 					}else{
 						
-						String	mod = (String)params.get( "mod" );
+						String	div = (String)params.get( "div" );
 						
-						if ( mod != null ){
+						if ( div != null ){
 							
-							value = value % Integer.parseInt( mod );
+							width = value / Integer.parseInt( div );
+							
+						}else{
+							
+							String	mod = (String)params.get( "mod" );
+							
+							if ( mod != null ){
+								
+								width = value % Integer.parseInt( mod );
+							}
 						}
 					}
-					
-					int	width 	= value;
-					
+
 					String	img_type = (String)params.get( "img_type" );
 					
 					if ( img_type != null && img_type.equals( "png" )){
 						
-						byte[]	data = PNG.getPNGBytesForWidth( width );
+						byte[]	data = PNG.getPNGBytesForSize( width, height );
 												
 						writeReply( os, "image/png", data );
 						
 					}else{
 						
-						int	height	= 1;
 						
 						writeImage( baos, width, height );
 						
