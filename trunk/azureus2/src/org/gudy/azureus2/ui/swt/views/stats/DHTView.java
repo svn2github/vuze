@@ -480,15 +480,28 @@ public class DHTView extends AbstractIView {
     
     activityTable.setHeaderVisible(true);
     Listener computeLastRowWidthListener = new Listener() {
+    	// inUse flag to prevent a SWT stack overflow.  For some reason
+    	// the setWidth call was triggering a resize.
+    	boolean inUse = false;
       public void handleEvent(Event event) {
-        if(activityTable == null || activityTable.isDisposed()) return;
-        int totalWidth = activityTable.getClientArea().width;
-        int remainingWidth = totalWidth 
-                               - colStatus.getWidth()
-                               - colType.getWidth()
-                               - colName.getWidth();
-        if(remainingWidth > 0)
-          colDetails.setWidth(remainingWidth);
+      	if (inUse) {
+      		return;
+      	}
+
+      	inUse = true;
+       	try {
+          if(activityTable == null || activityTable.isDisposed()) return;
+          int totalWidth = activityTable.getClientArea().width;
+          int remainingWidth = totalWidth 
+                                 - colStatus.getWidth()
+                                 - colType.getWidth()
+                                 - colName.getWidth();
+          if(remainingWidth > 0)
+            colDetails.setWidth(remainingWidth);
+
+       	} finally {
+      		inUse = false;
+      	}
       }
     };
     activityTable.addListener(SWT.Resize, computeLastRowWidthListener);    
