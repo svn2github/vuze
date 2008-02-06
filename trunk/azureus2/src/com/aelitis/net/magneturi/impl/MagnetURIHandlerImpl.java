@@ -43,6 +43,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.util.png.PNG;
 import com.aelitis.net.magneturi.MagnetURIHandler;
 import com.aelitis.net.magneturi.MagnetURIHandlerListener;
 import com.aelitis.net.magneturi.MagnetURIHandlerProgressListener;
@@ -651,14 +652,26 @@ MagnetURIHandlerImpl
 					}
 					
 					int	width 	= value;
-					int	height	= 1;
 					
-					writeImage(baos, width, height);
+					String	img_type = (String)params.get( "img_type" );
 					
-					byte[]	data = baos.toByteArray();
-											
-					writeReply( os, "image/bmp", data );
+					if ( img_type != null && img_type.equals( "png" )){
 						
+						byte[]	data = PNG.getPNGBytesForWidth( width );
+												
+						writeReply( os, "image/png", data );
+						
+					}else{
+						
+						int	height	= 1;
+						
+						writeImage( baos, width, height );
+						
+						byte[]	data = baos.toByteArray();
+												
+						writeReply( os, "image/bmp", data );
+					}
+					
 					return( true );
 				}
 			}

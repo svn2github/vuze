@@ -185,6 +185,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.icons.statusbar"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.osx"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.plugins.tracker.dht"/>
+        <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.util.png"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.dht.speed.impl"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.download.session"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.plugins.extseed.util"/>
