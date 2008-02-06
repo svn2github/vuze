@@ -174,6 +174,7 @@ XUXmlWriter
 		str = str.replaceAll( ">", "&gt;" );
 		str = str.replaceAll( "<", "&lt;" );
 		str = str.replaceAll( "\"", "&quot;" );
+		str = str.replaceAll( "'", "&apos;" );
 		str = str.replaceAll( "--", "&#45;&#45;" );
 		
 		return( str );
@@ -191,6 +192,7 @@ XUXmlWriter
 		str = str.replaceAll( "&gt;", ">" );
 		str = str.replaceAll( "&lt;", "<" );
 		str = str.replaceAll( "&quot;", "\"" );
+		str = str.replaceAll( "&apos;", "'" );
 		str = str.replaceAll( "&#45;&#45;", "--" );
 		str = str.replaceAll( "&amp;", "&" );
 
