@@ -27,9 +27,13 @@ import java.nio.ByteBuffer;
 public class PNG {
 	
 	public static byte[] getPNGBytesForWidth(int width) {
+		return getPNGBytesForSize(width,1);
+	}
+	
+	public static byte[] getPNGBytesForSize(int width,int height) {
 		byte[] signature = new PngSignatureChunk().getChunkPayload();
-		byte[] ihdr = new IHDRChunk(width).getChunkPayload();
-		byte[] idat = new IDATChunk(width).getChunkPayload();
+		byte[] ihdr = new IHDRChunk(width,height).getChunkPayload();
+		byte[] idat = new IDATChunk(width,height).getChunkPayload();
 		byte[] iend = new IENDChunk().getChunkPayload();
 		
 		ByteBuffer buffer = ByteBuffer.allocate(signature.length + ihdr.length + idat.length + iend.length);
@@ -43,9 +47,9 @@ public class PNG {
 	}
 	
 	public static void main(String args[]) throws Exception {
-		File test = new File("test.png");
+		File test = new File("/Users/olivier/Desktop/test.png");
 		FileOutputStream fos = new FileOutputStream(test);
-		fos.write(getPNGBytesForWidth(312));
+		fos.write(getPNGBytesForSize(600,400));
 		fos.close();
 	}
 

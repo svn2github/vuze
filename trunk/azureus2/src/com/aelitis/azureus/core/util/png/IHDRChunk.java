@@ -27,10 +27,12 @@ public class IHDRChunk extends CRCedChunk {
 	private static final byte[] type = {(byte) 73, (byte)  72, (byte)  68, (byte)  82};
 	
 	private int width;
+	private int height;
 	
-	public IHDRChunk(int width) {
+	public IHDRChunk(int width, int height) {
 		super(type);
 		this.width = width;
+		this.height = height;
 	}
 	
 	public byte[] getContentPayload() {
@@ -40,7 +42,7 @@ public class IHDRChunk extends CRCedChunk {
 		buffer.putInt(width);
 		
 		//height : 4 bytes
-		buffer.putInt(1);
+		buffer.putInt(height);
 		
 		//color depth : 1 byte
 		buffer.put((byte)8);

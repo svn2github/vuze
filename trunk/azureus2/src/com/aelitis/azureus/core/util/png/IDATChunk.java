@@ -20,44 +20,47 @@
 
 package com.aelitis.azureus.core.util.png;
 
-import java.nio.ByteBuffer;
+import java.io.ByteArrayOutputStream;
+import java.util.zip.Deflater;
+import java.util.zip.DeflaterOutputStream;
 
 public class IDATChunk extends CRCedChunk {
 	private static final byte[] type = {(byte) 73, (byte) 68, (byte) 65, (byte) 84 };
 	
 	private int width;
+	private int height;
 	
-	public IDATChunk(int width) {
+	public IDATChunk(int width, int height) {
 		super(type);
 		this.width = width;
+		this.height = height;
 	}
 	
 	
 	public byte[] getContentPayload() {
-		byte[] payload = new byte[width];
-		ByteBuffer buffer = ByteBuffer.allocate(width + 11);
+		byte[] payload = new byte[(width+1)*height];
+		for(int i = 0; i<height ; i++) {
+			int offset = i * (width+1);
+			//NO filter on this line
+			payload[offset++] = 0;
+			for(int j = 0 ; j<width ; j++) {
+				payload[offset+j] = (byte)(127);
+			}
+		}
 		
-		buffer.put((byte)0x87);
-		buffer.put((byte)0);
-		
-		//Final Block, uncompressed data
-		buffer.put((byte)128);
-		
-		
-		short len = (short) width;
-		short nlen = (short) (1- len); 
-		
-		buffer.putShort(len);
-		buffer.putShort(nlen);
-		
-		buffer.put(payload);
-		
-		//zlib crc
-		buffer.putShort(len);
-		buffer.putShort((short)1);
-		
-		
-		return buffer.array();
+		Deflater deflater = new Deflater( Deflater.DEFAULT_COMPRESSION );
+	    ByteArrayOutputStream outBytes = new ByteArrayOutputStream((width+1)*height);
+	            
+	    DeflaterOutputStream compBytes = new DeflaterOutputStream( outBytes, deflater );
+	    try {
+	    	compBytes.write(payload);
+	    	compBytes.close();
+	    } catch(Exception e) {
+	    	e.printStackTrace();
+	    }
+	    byte[] compPayload = outBytes.toByteArray();
+	    		
+		return compPayload;
 	}
 
 }
