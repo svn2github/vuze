@@ -213,7 +213,7 @@ public class TorrentUIUtilsV3
 					}
 
 					boolean showHomeHint = true;
-					if (playNow | playPrepare ) {
+					if (playNow || playPrepare ) {
 						if ( playNow ){
 							showHomeHint = !TorrentListViewsUtils.playOrStream(dm);
 						}else{
