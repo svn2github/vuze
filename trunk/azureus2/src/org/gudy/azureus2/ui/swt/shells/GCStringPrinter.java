@@ -21,6 +21,8 @@
 package org.gudy.azureus2.ui.swt.shells;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
@@ -37,6 +39,42 @@ import org.eclipse.swt.widgets.*;
 public class GCStringPrinter
 {
 	private static final boolean DEBUG = false;
+
+	private static final int FLAG_SKIPCLIP = 1;
+
+	private static final int FLAG_FULLLINESONLY = 2;
+
+	private static final int FLAG_NODRAW = 4;
+
+	private static final Pattern patHREF = Pattern.compile(
+			"<.*a\\s++.*href=\"(.+?)\">(.+?)</a>", Pattern.CASE_INSENSITIVE);
+
+	private GC gc;
+
+	private final String string;
+
+	private Rectangle printArea;
+
+	private int swtFlags;
+
+	private int printFlags;
+
+	private Point size;
+
+	private Color urlColor;
+
+	private URLInfo urlInfo;
+
+	private static class URLInfo
+	{
+		String url;
+
+		String title;
+
+		int originalStartPos;
+
+		Rectangle hitArea;
+	}
 
 	public static boolean printString(GC gc, String string, Rectangle printArea) {
 		return printString(gc, string, printArea, false, false);
@@ -56,13 +94,15 @@ public class GCStringPrinter
 	 * @param skipClip Don't set any clipping on the GC.  Text may overhang 
 	 *                 printArea when this is true
 	 * @param fullLinesOnly If bottom of a line will be chopped off, do not display it
-	 * @param flags SWT flags.  SWT.CENTER, SWT.BOTTOM, SWT.TOP, SWT.WRAP
+	 * @param swtFlags SWT flags.  SWT.CENTER, SWT.BOTTOM, SWT.TOP, SWT.WRAP
 	 * @return whether it fit
 	 */
 	public static boolean printString(GC gc, String string, Rectangle printArea,
-			boolean skipClip, boolean fullLinesOnly, int flags) {
+			boolean skipClip, boolean fullLinesOnly, int swtFlags) {
 		try {
-			return _printString(gc, string, printArea, skipClip, fullLinesOnly, flags);
+			GCStringPrinter sp = new GCStringPrinter(gc, string, printArea, skipClip,
+					fullLinesOnly, swtFlags);
+			return sp.printString();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -70,8 +110,10 @@ public class GCStringPrinter
 		return false;
 	}
 
-	private static boolean _printString(GC gc, String string,
-			Rectangle printArea, boolean skipClip, boolean fullLinesOnly, int flags) {
+	private boolean _printString(GC gc, String string, Rectangle printArea,
+			int printFlags, int swtFlags) {
+		size = new Point(0, 0);
+
 		if (string == null) {
 			return false;
 		}
@@ -82,15 +124,40 @@ public class GCStringPrinter
 			return false;
 		}
 
-		boolean wrap = (flags & SWT.WRAP) > 0;
+		boolean fullLinesOnly = (printFlags & FLAG_FULLLINESONLY) > 0;
+		boolean skipClip = (printFlags & FLAG_SKIPCLIP) > 0;
+		boolean noDraw = (printFlags & FLAG_NODRAW) > 0;
+		boolean wrap = (swtFlags & SWT.WRAP) > 0;
+		Matcher htmlMatcher = patHREF.matcher(string);
+		boolean hasHTML = htmlMatcher.find();
+
+		urlInfo = null;
+		if (hasHTML) {
+			urlInfo = new URLInfo();
+			urlInfo.url = htmlMatcher.group(1);
+			// For now, replace spaces with dashes so url title is always on 1 line
+			String s = htmlMatcher.group(2).replaceAll(" ", "`");
+
+			// For now, chop off any title text that is too long for a full row
+			// as it will break parsing later
+			Point titleExtent = gc.textExtent(s);
+			while (s.length() > 0 && titleExtent.x >= printArea.width) {
+				s = s.substring(0, s.length() - 1); 
+				titleExtent = gc.textExtent(s);
+			}
+
+			urlInfo.title = s;
+			urlInfo.originalStartPos = htmlMatcher.start(1);
+			
+			string = htmlMatcher.replaceFirst(s.replaceAll("\\$", "\\\\\\$"));
+		}
 
 		Rectangle rectDraw = new Rectangle(printArea.x, printArea.y,
 				printArea.width, printArea.height);
-		int height = 0;
 
 		Rectangle oldClipping = null;
 		try {
-			if (!skipClip) {
+			if (!skipClip && !noDraw) {
 				oldClipping = gc.getClipping();
 
 				// Protect the GC from drawing outside the drawing area
@@ -104,6 +171,7 @@ public class GCStringPrinter
 
 			// Process string line by line
 			int iCurrentHeight = 0;
+			int currentCharPos = 0;
 			StringTokenizer stLine = new StringTokenizer(sTabsReplaced, "\n");
 			while (stLine.hasMoreElements()) {
 				String sLine = stLine.nextToken();
@@ -166,8 +234,8 @@ public class GCStringPrinter
 
 								lines.add(outputLine.toString());
 								if (DEBUG) {
-								System.out.println("replace prev line with: "
-										+ outputLine.toString());
+									System.out.println("replace prev line with: "
+											+ outputLine.toString());
 								}
 							} else {
 								if (DEBUG) {
@@ -189,7 +257,7 @@ public class GCStringPrinter
 				} while (sLine != null);
 			}
 		} finally {
-			if (!skipClip) {
+			if (!skipClip && !noDraw) {
 				gc.setClipping(oldClipping);
 			}
 
@@ -204,23 +272,25 @@ public class GCStringPrinter
 					}
 				}
 
-				Point size = gc.textExtent(fullText);
+				size = gc.textExtent(fullText);
 
-				if ((flags & (SWT.BOTTOM)) != 0) {
+				if ((swtFlags & (SWT.BOTTOM)) != 0) {
 					rectDraw.y = rectDraw.y + rectDraw.height - size.y;
-				} else if ((flags & SWT.TOP) == 0) {
+				} else if ((swtFlags & SWT.TOP) == 0) {
 					// center vert
 					rectDraw.y = rectDraw.y + (rectDraw.height - size.y) / 2;
 				}
 
-				for (Iterator iter = lines.iterator(); iter.hasNext();) {
-					String text = (String) iter.next();
-					drawLine(gc, text, flags, rectDraw);
+				if (!noDraw || hasHTML) {
+					for (Iterator iter = lines.iterator(); iter.hasNext();) {
+						String text = (String) iter.next();
+						drawLine(gc, text, swtFlags, rectDraw, urlInfo, noDraw);
+					}
 				}
 			}
 		}
 
-		return height <= printArea.height;
+		return size.y <= printArea.height;
 	}
 
 	/**
@@ -278,7 +348,7 @@ public class GCStringPrinter
 		if (!wrap && hasMoreElements) {
 			outputLine.replace(outputLine.length() - 1, outputLine.length(), "..");
 		}
-		//drawLine(gc, outputLine, flags, rectDraw);
+		//drawLine(gc, outputLine, swtFlags, rectDraw);
 		//		if (!wrap) {
 		//			return hasMoreElements;
 		//		}
@@ -341,7 +411,7 @@ public class GCStringPrinter
 					outputLine.replace(outputLine.length() - 1, outputLine.length(), "..");
 				}
 			}
-			//drawLine(gc, outputLine, flags, rectDraw);
+			//drawLine(gc, outputLine, swtFlags, rectDraw);
 			if (DEBUG) {
 				System.out.println("excess " + word.substring(endIndex));
 			}
@@ -369,7 +439,7 @@ public class GCStringPrinter
 			} else {
 				return 0;
 			}
-			//drawLine(gc, outputLine, flags, rectDraw);
+			//drawLine(gc, outputLine, swtFlags, rectDraw);
 		}
 
 		if (outputLine.length() > 0) {
@@ -385,19 +455,22 @@ public class GCStringPrinter
 	}
 
 	/**
+	 * printArea is updated to the position of the next row
+	 * 
 	 * @param gc
 	 * @param outputLine
-	 * @param flags
+	 * @param swtFlags
 	 * @param printArea
+	 * @param noDraw 
 	 */
-	private static void drawLine(GC gc, String outputLine, int flags,
-			Rectangle printArea) {
+	private void drawLine(GC gc, String outputLine, int swtFlags,
+			Rectangle printArea, URLInfo urlInfo, boolean noDraw) {
 		String sOutputLine = outputLine.toString();
 		Point drawSize = gc.textExtent(sOutputLine);
 		int x0;
-		if ((flags & SWT.RIGHT) > 0) {
+		if ((swtFlags & SWT.RIGHT) > 0) {
 			x0 = printArea.x + printArea.width - drawSize.x;
-		} else if ((flags & SWT.CENTER) > 0) {
+		} else if ((swtFlags & SWT.CENTER) > 0) {
 			x0 = printArea.x + (printArea.width - drawSize.x) / 2;
 		} else {
 			x0 = printArea.x;
@@ -405,7 +478,51 @@ public class GCStringPrinter
 
 		int y0 = printArea.y;
 
-		gc.drawText(sOutputLine, x0, y0, true);
+		if (urlInfo != null) {
+			int i = sOutputLine.indexOf(urlInfo.title);
+			if (i < 0) {
+				if (!noDraw) {
+					gc.drawText(sOutputLine, x0, y0, true);
+				}
+			} else {
+				String s = sOutputLine.substring(0, i);
+				//s+="i i";
+				if (!noDraw) {
+					gc.drawText(s, x0, y0, true);
+				}
+				Point textExtent = gc.textExtent(s);
+				x0 += textExtent.x - 1;
+				//System.out.println("|" + s + "|" + textExtent.x);
+
+				int end = i + urlInfo.title.length();
+				s = sOutputLine.substring(i, end).replaceAll("`", " ");
+				//s = "i i ";
+				if (!noDraw) {
+					Color fgColor = gc.getForeground();
+					if (urlColor != null) {
+						gc.setForeground(urlColor);
+					}
+					gc.drawText(s, x0, y0, true);
+					gc.setForeground(fgColor);
+				}
+				textExtent = gc.textExtent(s);
+
+				urlInfo.hitArea = new Rectangle(x0, y0, textExtent.x, textExtent.y);
+
+				if (end < sOutputLine.length() - 1) {
+					x0 += textExtent.x;
+					s = sOutputLine.substring(end);
+					if (!noDraw) {
+						gc.drawText(s, x0, y0, true);
+					}
+				}
+			}
+
+		} else {
+			if (!noDraw) {
+				gc.drawText(sOutputLine, x0, y0, true);
+			}
+		}
 		printArea.y += drawSize.y;
 	}
 
@@ -418,6 +535,17 @@ public class GCStringPrinter
 	}
 
 	public static void main(String[] args) {
+		
+		//String s = "this is $1.00";
+		//String s2 = "$1";
+		//String s3 = s2.replaceAll("\\$", "\\\\\\$");
+		//System.out.println(s3);
+		//s.replaceAll("h", s3);
+		//System.out.println(s);
+		//if (true) {
+		//	return;
+		//}
+		
 		Display display = Display.getDefault();
 		final Shell shell = new Shell(display, SWT.SHELL_TRIM);
 
@@ -526,5 +654,79 @@ public class GCStringPrinter
 				display.sleep();
 			}
 		}
+	}
+
+	/**
+	 * 
+	 */
+	public GCStringPrinter(GC gc, String string, Rectangle printArea,
+			boolean skipClip, boolean fullLinesOnly, int swtFlags) {
+		this.gc = gc;
+		this.string = string;
+		this.printArea = printArea;
+		this.swtFlags = swtFlags;
+
+		printFlags = 0;
+		if (skipClip) {
+			printFlags |= FLAG_SKIPCLIP;
+		}
+		if (fullLinesOnly) {
+			printFlags |= FLAG_FULLLINESONLY;
+		}
+	}
+
+	public GCStringPrinter(GC gc, String string, Rectangle printArea,
+			int printFlags, int swtFlags) {
+		this.gc = gc;
+		this.string = string;
+		this.printArea = printArea;
+		this.swtFlags = swtFlags;
+		this.printFlags = printFlags;
+	}
+
+	public boolean printString() {
+		return _printString(gc, string, printArea, printFlags, swtFlags);
+	}
+
+	public void calculateMetrics() {
+		_printString(gc, string, printArea, printFlags | FLAG_NODRAW, swtFlags);
+	}
+
+	/**
+	 * @param rectangle
+	 *
+	 * @since 3.0.4.3
+	 */
+	public void printString(GC gc, Rectangle rectangle, int swtFlags) {
+		this.gc = gc;
+		printArea = rectangle;
+		this.swtFlags = swtFlags;
+		printString();
+	}
+
+	public Point getCalculatedSize() {
+		return size;
+	}
+
+	public Color getUrlColor() {
+		return urlColor;
+	}
+
+	public void setUrlColor(Color urlColor) {
+		this.urlColor = urlColor;
+	}
+
+	public Rectangle getUrlHitArea() {
+		if (urlInfo == null) {
+			return null;
+		}
+		return urlInfo.hitArea;
+	}
+	
+	public String getUrl() {
+		if (urlInfo == null) {
+			return null;
+		}
+		return urlInfo.url;
 	}
 }
