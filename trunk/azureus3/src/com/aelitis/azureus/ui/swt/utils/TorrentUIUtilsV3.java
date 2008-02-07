@@ -59,8 +59,15 @@ public class TorrentUIUtilsV3
 	//catches http://www.vuze.com/download/CHJW43PLS277RC7U3S5XRS2PZ4UUG7RS.torrent
 	private static final Pattern hashPattern = Pattern.compile("download/([A-Z0-9]{32})\\.torrent");
 
-	public static void loadTorrent(final AzureusCore core, String url,
-			String referer, final boolean playNow) {
+	public static void 
+	loadTorrent(
+		final AzureusCore core, 
+		String url,
+		String referer, 
+		final boolean playNow,			// open player
+		final boolean playPrepare,		// as for open player but don't actually open it
+		final boolean bringToFront )
+	{
 		boolean blocked = PlatformConfigMessenger.isURLBlocked(url);
 		// Security: Only allow torrents from whitelisted urls
 		if (blocked) {
@@ -69,7 +76,7 @@ public class TorrentUIUtilsV3
 		}
 
 		try {
-			if (playNow) {
+			if (playNow || playPrepare ) {
   			Matcher m = hashPattern.matcher(url);
   			if (m.find()) {
   				String hash = m.group(1);
@@ -77,11 +84,18 @@ public class TorrentUIUtilsV3
   				GlobalManager gm = core.getGlobalManager();
   				final DownloadManager dm = gm.getDownloadManager(new HashWrapper(Base32.decode(hash)));
   				if (dm != null) {
-  					new AEThread("playExisting", true) {
+  					new AEThread2("playExisting", true) {
 						
-							public void runSupport() {
-		  					Debug.outNoStack("loadTorrent already exists.. playing", false);
-		  					TorrentListViewsUtils.playOrStream(dm);
+							public void run() {
+								if ( playNow ){
+									Debug.outNoStack("loadTorrent already exists.. playing", false);
+
+									TorrentListViewsUtils.playOrStream(dm);
+								}else{
+									Debug.outNoStack("loadTorrent already exists.. preparing", false);
+
+									TorrentListViewsUtils.prepareForPlay(dm);
+								}
 							}
 						
 						}.start();
@@ -98,7 +112,9 @@ public class TorrentUIUtilsV3
 			UIFunctionsSWT uiFunctions = (UIFunctionsSWT) UIFunctionsManager.getUIFunctions();
 			if (uiFunctions != null) {
 				if (!COConfigurationManager.getBooleanParameter("add_torrents_silently")) {
-					uiFunctions.bringToFront();
+					if ( bringToFront ){
+						uiFunctions.bringToFront();
+					}
 				}
 
 				Shell shell = uiFunctions.getMainShell();
@@ -142,10 +158,14 @@ public class TorrentUIUtilsV3
 
 										GlobalManager gm = core.getGlobalManager();
 
-										if (playNow) {
+										if (playNow || playPrepare ) {
 											DownloadManager existingDM = gm.getDownloadManager(hw);
 											if (existingDM != null) {
-												TorrentListViewsUtils.playOrStream(existingDM);
+												if ( playNow ){
+													TorrentListViewsUtils.playOrStream(existingDM);
+												}else{
+													TorrentListViewsUtils.prepareForPlay(existingDM);
+												}
 												return;
 											}
 										}
@@ -158,7 +178,7 @@ public class TorrentUIUtilsV3
 												try {
 													core.getGlobalManager().removeListener(this);
 
-													handleDMAdded(dm, playNow, fhw);
+													handleDMAdded(dm, playNow, playPrepare, fhw);
 												} catch (Exception e) {
 													Debug.out(e);
 												}
@@ -167,7 +187,7 @@ public class TorrentUIUtilsV3
 										};
 										gm.addListener(l, false);
 
-										if (playNow) {
+										if (playNow || playPrepare) {
 											PlayNowList.add(hw);
 										}
 
@@ -183,9 +203,9 @@ public class TorrentUIUtilsV3
 	}
 
 	private static void handleDMAdded(final DownloadManager dm,
-			final boolean playNow, final HashWrapper fhw) {
-		new AEThread("playDM", true) {
-			public void runSupport() {
+			final boolean playNow, final boolean playPrepare, final HashWrapper fhw) {
+		new AEThread2("playDM", true) {
+			public void run() {
 				try {
 					HashWrapper hw = dm.getTorrent().getHashWrapper();
 					if (!hw.equals(fhw)) {
@@ -193,8 +213,13 @@ public class TorrentUIUtilsV3
 					}
 
 					boolean showHomeHint = true;
-					if (playNow) {
-						showHomeHint = !TorrentListViewsUtils.playOrStream(dm);
+					if (playNow | playPrepare ) {
+						if ( playNow ){
+							showHomeHint = !TorrentListViewsUtils.playOrStream(dm);
+						}else{
+							TorrentListViewsUtils.prepareForPlay(dm);
+							showHomeHint = false;
+						}
 					}
 					if (showHomeHint) {
 						TorrentListViewsUtils.showHomeHint(dm);

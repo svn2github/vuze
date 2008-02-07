@@ -339,6 +339,22 @@ public class TorrentListViewsUtils
 		return true;
 	}
 
+	public static boolean
+	prepareForPlay(
+		DownloadManager	dm )
+	{
+		EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(dm);
+		
+		if ( edm != null ){
+			
+			edm.setProgressiveMode(true);
+			
+			return( true );
+		}
+		
+		return( false );
+	}
+	
 	public static boolean playOrStream(final DownloadManager dm) {
 		return playOrStream(dm, null);
 	}

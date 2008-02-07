@@ -504,8 +504,11 @@ public class Initializer
 							String url = MapUtils.getMapString(decodedMap, "url", null);
 							boolean playNow = MapUtils.getMapBoolean(decodedMap, "play-now",
 									false);
+							boolean playPrepare = MapUtils.getMapBoolean(decodedMap, "play-prepare", false);
+							boolean bringToFront = MapUtils.getMapBoolean(decodedMap, "bring-to-front", true);
+
 							TorrentUIUtilsV3.loadTorrent(core, url, MapUtils.getMapString(
-									decodedMap, "referer", null), playNow);
+									decodedMap, "referer", null), playNow, playPrepare, bringToFront );
 
 							return true;
 

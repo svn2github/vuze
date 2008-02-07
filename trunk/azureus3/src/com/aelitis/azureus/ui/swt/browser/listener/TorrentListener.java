@@ -54,8 +54,10 @@ public class TorrentListener
 			Map decodedMap = message.getDecodedMap();
 			String url = MapUtils.getMapString(decodedMap, "url", null);
 			boolean playNow = MapUtils.getMapBoolean(decodedMap, "play-now", false);
+			boolean playPrepare = MapUtils.getMapBoolean(decodedMap, "play-prepare", false);
+			boolean bringToFront = MapUtils.getMapBoolean(decodedMap, "bring-to-front", true);
 			if (url != null) {
-				TorrentUIUtilsV3.loadTorrent(core, url, message.getReferer(), playNow);
+				TorrentUIUtilsV3.loadTorrent(core, url, message.getReferer(), playNow, playPrepare, bringToFront);
 			} else {
 				loadTorrentByB64(core, message, MapUtils.getMapString(decodedMap,
 						"b64", null));
