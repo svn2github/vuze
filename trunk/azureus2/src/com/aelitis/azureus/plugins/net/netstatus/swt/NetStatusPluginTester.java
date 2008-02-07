@@ -101,6 +101,8 @@ NetStatusPluginTester
 					ROUTE_TIMEOUT, 
 					new NetworkAdminRoutesListener()
 					{
+						private int	timeouts;
+						
 						public boolean
 						foundNode(
 							NetworkAdminNetworkInterfaceAddress		intf,
@@ -118,7 +120,7 @@ NetStatusPluginTester
 								active_pings.put( intf, route );
 							}
 							
-							log( "  " + intf.getAddress().getHostAddress() + " - " + route[route.length-1].getAddress().getHostAddress() + "(" + distance + ")" );
+							log( "  " + intf.getAddress().getHostAddress() + " -> " + route[route.length-1].getAddress().getHostAddress());
 							
 							return( false );
 						}
@@ -134,7 +136,14 @@ NetStatusPluginTester
 								return( false );
 							}
 							
-							log( "  " + intf.getAddress().getHostAddress() + " - timeout (" + distance + ")" );
+							log( "  " + intf.getAddress().getHostAddress() + " - timeout" );
+							
+							timeouts++;
+							
+							if ( timeouts >= 3 ){
+								
+								return( false );
+							}
 							
 							return( true );
 						}
@@ -220,7 +229,7 @@ NetStatusPluginTester
 								active_routes.put( intf, route );
 							}
 							
-							log( "  " + intf.getAddress().getHostAddress() + " - " + route[route.length-1].getAddress().getHostAddress() + "(" + distance + ")" );
+							log( "  " + intf.getAddress().getHostAddress() + " -> " + route[route.length-1].getAddress().getHostAddress() + " (" + distance + ")" );
 							
 							return( true );
 						}
@@ -236,7 +245,7 @@ NetStatusPluginTester
 								return( false );
 							}
 							
-							log( "  " + intf.getAddress().getHostAddress() + " - timeout (" + distance + ")" );
+							log( "  " + intf.getAddress().getHostAddress() + " - timeout ( " + distance + ")" );
 	
 								// see if we're getting nowhere
 							
