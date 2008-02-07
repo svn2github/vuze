@@ -35,6 +35,8 @@ import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerChannelImpl;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.torrent.MetaDataUpdateListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.util.ExternalStimulusHandler;
+import com.aelitis.azureus.util.ExternalStimulusListener;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.disk.DiskManagerChannel;
@@ -147,6 +149,51 @@ DownloadManagerEnhancer
 							 edm.refreshMetaData();
 						 }
 					 }
+				}
+			});
+		
+		ExternalStimulusHandler.addListener(
+			new ExternalStimulusListener()
+			{
+				public boolean
+				receive(
+					String		name,
+					Map			values )
+				{
+					return( false );
+				}
+				
+				public int
+				query(
+					String		name,
+					Map			values )
+				{
+					if ( name.equals( "az3.downloadmanager.stream.eta" )){
+						
+						synchronized( download_map ){
+
+							Iterator it = download_map.values().iterator();
+							
+							while( it.hasNext()){
+								
+								EnhancedDownloadManager	edm = (EnhancedDownloadManager)it.next();
+								
+								if ( edm.getProgressiveMode()){
+									
+									long eta = edm.getProgressivePlayETA();
+									
+									if ( eta > Integer.MAX_VALUE ){
+										
+										return( Integer.MAX_VALUE );
+									}
+									
+									return((int)eta);
+								}
+							}
+						}
+					}
+					
+					return( Integer.MIN_VALUE );
 				}
 			});
 		

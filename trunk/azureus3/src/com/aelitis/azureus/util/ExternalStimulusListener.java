@@ -28,8 +28,27 @@ import java.util.Map;
 public interface 
 ExternalStimulusListener 
 {
+		/**
+		 * 
+		 * @param name
+		 * @param values
+		 * @return false if not handled
+		 */
+	
 	public boolean
 	receive(
 		String		name,
-		Map		values );
+		Map			values );
+	
+		/**
+		 * 
+		 * @param name
+		 * @param values
+		 * @return Integer.MIN_VALUE if not handled
+		 */
+	
+	public int
+	query(
+		String		name,
+		Map			values );
 }

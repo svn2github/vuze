@@ -551,6 +551,14 @@ public class Initializer
 				}
 				return false;
 			}
+			
+			public int
+			query(
+				String		name,
+				Map			values )
+			{
+				return( Integer.MIN_VALUE );
+			}
 		});
 	}
 }

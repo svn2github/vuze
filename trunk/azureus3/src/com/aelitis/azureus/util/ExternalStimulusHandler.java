@@ -23,6 +23,8 @@
 
 package com.aelitis.azureus.util;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Debug;
@@ -37,6 +39,7 @@ public class
 ExternalStimulusHandler 
 {
 	private static MagnetPlugin		magnet_plugin;
+	private static List				pending_listeners;
 	
 	protected static void
 	initialise(
@@ -46,8 +49,26 @@ ExternalStimulusHandler
 		
 		if ( pi != null ){
 		
-			magnet_plugin = (MagnetPlugin)pi.getPlugin();
+			MagnetPlugin temp = (MagnetPlugin)pi.getPlugin();
 			
+			List	to_add;
+			
+			synchronized( ExternalStimulusHandler.class ){
+				
+				magnet_plugin = temp;
+				
+				to_add = pending_listeners;
+				
+				pending_listeners = null;
+			}
+			
+			if ( to_add != null ){
+				
+				for (int i=0;i<to_add.size();i++){
+					
+					addListener((ExternalStimulusListener)to_add.get(i));
+				}
+			}
 		}else{
 						
 			Debug.out( "Failed to resolve magnet plugin" );
@@ -68,6 +89,14 @@ ExternalStimulusHandler
 						
 						return( name.equals("ExternalStimulus.test"));
 					}
+					
+					public int
+					query(
+						String		name,
+						Map			values )
+					{
+						return( Integer.MIN_VALUE );
+					}
 				});
 	}
 	
@@ -75,6 +104,21 @@ ExternalStimulusHandler
 	addListener(
 		final ExternalStimulusListener		listener )
 	{		
+		synchronized( ExternalStimulusHandler.class ){
+
+			if ( magnet_plugin == null ){
+			
+				if ( pending_listeners == null ){
+					
+					pending_listeners = new ArrayList();
+				}
+				
+				pending_listeners.add( listener );
+				
+				return;
+			}
+		}
+		
 		if ( magnet_plugin != null ){
 			
 			magnet_plugin.addListener(
@@ -86,6 +130,14 @@ ExternalStimulusHandler
 						Map		values )
 					{
 						return( listener.receive( name, values ));
+					}
+					
+					public int
+					get(
+						String		name,
+						Map			values )
+					{
+						return( listener.query( name, values ));
 					}
 				});
 		}

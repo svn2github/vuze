@@ -93,6 +93,14 @@ public class AdManager
 
 				return false;
 			}
+			
+			public int
+			query(
+				String		name,
+				Map			values )
+			{
+				return( Integer.MIN_VALUE );
+			}
 		});
 
 		GlobalManager gm = core.getGlobalManager();
