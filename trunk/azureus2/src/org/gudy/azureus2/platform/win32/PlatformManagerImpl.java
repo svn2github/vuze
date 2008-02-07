@@ -174,9 +174,13 @@ PlatformManagerImpl
 	            capabilitySet.add(PlatformManagerCapabilities.TestNativeAvailability);
 	        }
 	        
-	        if ( Constants.compareVersions( access.getVersion(), "1.2" ) >= 0 ){
+	        if ( Constants.compareVersions( access.getVersion(), "1.14" ) >= 0 ){
 	        	
 	            capabilitySet.add(PlatformManagerCapabilities.TraceRouteAvailability);
+	        }
+
+	        if ( Constants.compareVersions( access.getVersion(), "1.15" ) >= 0 ){
+	        	
 	            capabilitySet.add(PlatformManagerCapabilities.PingAvailability);
 	        }
 
@@ -864,7 +868,7 @@ PlatformManagerImpl
 	traceRoute(
 		InetAddress							interface_address,
 		InetAddress							target,
-		PlatformManagerPingCallback	callback )
+		PlatformManagerPingCallback			callback )
 	
 		throws PlatformManagerException
 	{

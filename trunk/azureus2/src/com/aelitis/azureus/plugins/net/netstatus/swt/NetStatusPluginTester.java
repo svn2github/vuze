@@ -27,21 +27,24 @@ import java.net.*;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.admin.*;
+import com.aelitis.azureus.plugins.net.netstatus.NetStatusPlugin;
 
 public class 
 NetStatusPluginTester 
 {
-	private static final int	ROUTE_TIMEOUT	=630*1000;
-	private static final String	ROUTE_TARGET	= "www.google.com";
-	
+	private static final int	ROUTE_TIMEOUT	= 60*1000;
+
+	private NetStatusPlugin		plugin;
 	private loggerProvider		logger;
 	
 	private volatile boolean	test_cancelled;
 	
 	protected
 	NetStatusPluginTester(
+		NetStatusPlugin		_plugin,
 		loggerProvider		_logger )
 	{
+		plugin	= _plugin;
 		logger	= _logger;
 	}
 	
@@ -52,7 +55,7 @@ NetStatusPluginTester
 		
 		Set	public_addresses = new HashSet();
 		
-		log( "Testing outbound routing for the following interfaces:" );
+		log( "Testing routing for the following interfaces:" );
 		
 		NetworkAdminNetworkInterface[] interfaces = admin.getInterfaces();
 		
@@ -84,114 +87,228 @@ NetStatusPluginTester
 			}
 		}
 		
-		try{
-			InetAddress	target_address = InetAddress.getByName( ROUTE_TARGET );
+		if ( admin.canPing()){
 			
-			final Map	active_routes = new HashMap();
+			log( "Running ping tests" );
 			
-			admin.getRoutes( 
-				target_address, 
-				ROUTE_TIMEOUT, 
-				new NetworkAdminRoutesListener()
-				{
-					public boolean
-					foundNode(
-						NetworkAdminNetworkInterfaceAddress		intf,
-						NetworkAdminNode[]						route,
-						int										distance,
-						int										rtt )
+			try{
+				InetAddress	target_address = InetAddress.getByName( plugin.getPingTarget());
+				
+				final Map	active_pings = new HashMap();
+				
+				admin.pingTargets(
+					target_address, 
+					ROUTE_TIMEOUT, 
+					new NetworkAdminRoutesListener()
 					{
-						if ( test_cancelled ){
+						public boolean
+						foundNode(
+							NetworkAdminNetworkInterfaceAddress		intf,
+							NetworkAdminNode[]						route,
+							int										distance,
+							int										rtt )
+						{
+							if ( test_cancelled ){
+								
+								return( false );
+							}
+							
+							synchronized( active_pings ){
+								
+								active_pings.put( intf, route );
+							}
+							
+							log( "  " + intf.getAddress().getHostAddress() + " - " + route[route.length-1].getAddress().getHostAddress() + "(" + distance + ")" );
 							
 							return( false );
 						}
 						
-						synchronized( active_routes ){
+						public boolean
+						timeout(
+							NetworkAdminNetworkInterfaceAddress		intf,
+							NetworkAdminNode[]						route,
+							int										distance )
+						{
+							if ( test_cancelled ){
+								
+								return( false );
+							}
 							
-							active_routes.put( intf, route );
-						}
-						
-						log( intf.getAddress().getHostAddress() + " - " + route[route.length-1].getAddress().getHostAddress() + "(" + distance + ")" );
-						
-						return( true );
-					}
-					
-					public boolean
-					timeout(
-						NetworkAdminNetworkInterfaceAddress		intf,
-						NetworkAdminNode[]						route,
-						int										distance )
-					{
-						if ( test_cancelled ){
+							log( "  " + intf.getAddress().getHostAddress() + " - timeout (" + distance + ")" );
 							
-							return( false );
+							return( true );
 						}
-						
-						log( intf.getAddress().getHostAddress() + " - timeout (" + distance + ")" );
-
-							// see if we're getting nowhere
-						
-						if ( route.length == 0 && distance >= 3 ){
-						
-							logError( intf.getAddress().getHostAddress() + ": giving up, no responses" );
-							
-							return( false );
-						}
-						
-							// see if we've got far enough
-						
-						if ( route.length >= 5 && distance > 6 ){
-							
-							log( intf.getAddress().getHostAddress() + ": truncating, sufficient responses" );
-
-							return( false );
-						}
-						
-						return( true );
-					}
-				});
-
-			if ( test_cancelled ){
-				
-				return;
-			}
-			
-			int	num_routes = active_routes.size();
-			
-			if ( num_routes == 0 ){
-				
-				logError( "No active routes found!" );
-				
-			}else{
-				
-				log( "Found " + num_routes + " route(s)" );
-				
-				Iterator it = active_routes.entrySet().iterator();
-				
-				while( it.hasNext()){
+					});
+	
+				if ( test_cancelled ){
 					
-					Map.Entry entry = (Map.Entry)it.next();
-					
-					NetworkAdminNetworkInterfaceAddress address = (NetworkAdminNetworkInterfaceAddress)entry.getKey();
-					
-					NetworkAdminNode[]	route = (NetworkAdminNode[])entry.getValue();
-					
-					String	node_str = "";
-					
-					for (int i=0;i<route.length;i++){
-						
-						node_str += (i==0?"":",") + route[i].getAddress().getHostAddress();
-					}
-					
-					log( "    " + address.getInterface().getName() + "/" + address.getAddress().getHostAddress() + " - " + node_str );
+					return;
 				}
+				
+				int	num_routes = active_pings.size();
+				
+				if ( num_routes == 0 ){
+					
+					logError( "No active pings found!" );
+					
+				}else{
+					
+					log( "Found " + num_routes + " pings(s)" );
+					
+					Iterator it = active_pings.entrySet().iterator();
+					
+					while( it.hasNext()){
+						
+						Map.Entry entry = (Map.Entry)it.next();
+						
+						NetworkAdminNetworkInterfaceAddress address = (NetworkAdminNetworkInterfaceAddress)entry.getKey();
+						
+						NetworkAdminNode[]	route = (NetworkAdminNode[])entry.getValue();
+						
+						String	node_str = "";
+						
+						for (int i=0;i<route.length;i++){
+							
+							node_str += (i==0?"":",") + route[i].getAddress().getHostAddress();
+						}
+						
+						log( "    " + address.getInterface().getName() + "/" + address.getAddress().getHostAddress() + " - " + node_str );
+					}
+				}
+			}catch( Throwable e ){
+				
+				logError( "Pinging failed: " + Debug.getNestedExceptionMessage(e));
 			}
-		}catch( Throwable e ){
+		}else{
 			
-			logError( "Route tracing failed: " + Debug.getNestedExceptionMessage(e));
+			logError( "Can't run ping test as not supported" );
 		}
 		
-
+		if ( test_cancelled ){
+			
+			return;
+		}
+		
+		if ( admin.canTraceRoute()){
+			
+			log( "Running trace route tests" );
+			
+			try{
+				InetAddress	target_address = InetAddress.getByName( plugin.getPingTarget());
+				
+				final Map	active_routes = new HashMap();
+				
+				admin.getRoutes( 
+					target_address, 
+					ROUTE_TIMEOUT, 
+					new NetworkAdminRoutesListener()
+					{
+						public boolean
+						foundNode(
+							NetworkAdminNetworkInterfaceAddress		intf,
+							NetworkAdminNode[]						route,
+							int										distance,
+							int										rtt )
+						{
+							if ( test_cancelled ){
+								
+								return( false );
+							}
+							
+							synchronized( active_routes ){
+								
+								active_routes.put( intf, route );
+							}
+							
+							log( "  " + intf.getAddress().getHostAddress() + " - " + route[route.length-1].getAddress().getHostAddress() + "(" + distance + ")" );
+							
+							return( true );
+						}
+						
+						public boolean
+						timeout(
+							NetworkAdminNetworkInterfaceAddress		intf,
+							NetworkAdminNode[]						route,
+							int										distance )
+						{
+							if ( test_cancelled ){
+								
+								return( false );
+							}
+							
+							log( "  " + intf.getAddress().getHostAddress() + " - timeout (" + distance + ")" );
+	
+								// see if we're getting nowhere
+							
+							if ( route.length == 0 && distance >= 3 ){
+							
+								logError( "    giving up, no responses" );
+								
+								return( false );
+							}
+							
+								// see if we've got far enough
+							
+							if ( route.length >= 5 && distance > 6 ){
+								
+								log( "    truncating, sufficient responses" );
+	
+								return( false );
+							}
+							
+							return( true );
+						}
+					});
+	
+				if ( test_cancelled ){
+					
+					return;
+				}
+				
+				int	num_routes = active_routes.size();
+				
+				if ( num_routes == 0 ){
+					
+					logError( "No active routes found!" );
+					
+				}else{
+					
+					log( "Found " + num_routes + " route(s)" );
+					
+					Iterator it = active_routes.entrySet().iterator();
+					
+					while( it.hasNext()){
+						
+						Map.Entry entry = (Map.Entry)it.next();
+						
+						NetworkAdminNetworkInterfaceAddress address = (NetworkAdminNetworkInterfaceAddress)entry.getKey();
+						
+						NetworkAdminNode[]	route = (NetworkAdminNode[])entry.getValue();
+						
+						String	node_str = "";
+						
+						for (int i=0;i<route.length;i++){
+							
+							node_str += (i==0?"":",") + route[i].getAddress().getHostAddress();
+						}
+						
+						log( "    " + address.getInterface().getName() + "/" + address.getAddress().getHostAddress() + " - " + node_str );
+					}
+				}
+			}catch( Throwable e ){
+				
+				logError( "Route tracing failed: " + Debug.getNestedExceptionMessage(e));
+			}
+		}else{
+				
+			logError( "Can't run trace route test as not supported" );
+		}
+		
+		if ( test_cancelled ){
+			
+			return;
+		}
+		
 		NetworkAdminNATDevice[] nat_devices = admin.getNATDevices();
 		
 		log( nat_devices.length + " NAT device" + (nat_devices.length==1?"":"s") + " found" );

@@ -388,7 +388,9 @@ traceRoute(
 	unsigned short source_port = TRACE_ROUTE_BASE_PORT;
 	unsigned short target_port = TRACE_ROUTE_BASE_PORT;
 
-	int	seq = 0;
+	int	seq			= 0;
+	int consec_bad	= 0;
+
 
 	bool	complete	= false;
 
@@ -411,7 +413,16 @@ traceRoute(
 	
 		complete = false;
 
-		if ( !ping_mode ){
+		if ( ping_mode ){
+
+			if ( consec_bad > 256 ){
+
+				throwException( env, "error", "too many consecutive bad packets in ping mode" );
+
+				return;
+			}
+
+		}else{
 
 			ttl++;
 		}
@@ -455,6 +466,8 @@ traceRoute(
 						return;
 					}
 
+					consec_bad = 0;
+
 					break;
 				}
 
@@ -480,6 +493,8 @@ traceRoute(
 							return;
 						}
 
+						consec_bad = 0;
+
 						break;
 
 					}else{
@@ -495,6 +510,8 @@ traceRoute(
 
 						// printf( "invalid packet read - length < 4\n" );
 
+						consec_bad++;
+
 						continue;
 					}
 
@@ -508,6 +525,8 @@ traceRoute(
 					if ( read_len != total_len || read_len < ip_len + sizeof(icmp_header)){
 
 						// printf( "invalid packet read - read_len != total_len\n" );
+
+						consec_bad++;
 
 						continue;
 					}
@@ -526,10 +545,17 @@ traceRoute(
 
 						if ( reply_seq != probe_sequence ){
 
+							consec_bad++;
+
 							continue;
 						}
 
-						traceRouteReportResult( env, callback, ttl, ntohl( from.sin_addr.s_addr ), elapsed_time, false );
+						if ( !traceRouteReportResult( env, callback, ttl, ntohl( from.sin_addr.s_addr ), elapsed_time, false )){
+
+							return;
+						}
+
+						consec_bad = 0;
 
 						if ( ping_mode ){
 
@@ -545,6 +571,8 @@ traceRoute(
 
 						// printf( "invalid packet read - read_len != total_len\n" );
 
+						consec_bad++;
+
 						continue;
 					}
 
@@ -556,12 +584,16 @@ traceRoute(
 
 						// printf( "Unexpected ICMP reply type %d\n", icmp_type );
 
+						consec_bad++;
+
 						continue;
 					}
 		
 					if ( trace_id != ntohs(old_ip->ident )){
 
 							// not our reply
+
+						consec_bad++;
 
 						continue;
 					}
@@ -576,6 +608,8 @@ traceRoute(
 
 						if ( reply_seq != probe_sequence ){
 
+							consec_bad++;
+
 							continue;
 						}
 
@@ -588,6 +622,8 @@ traceRoute(
 						unsigned short	reply_seq = ntohs( probe->udp.dest_port ) - TRACE_ROUTE_BASE_PORT;
 
 						if ( reply_seq != probe_sequence ){
+
+							consec_bad++;
 
 							continue;
 						}
@@ -637,6 +673,7 @@ traceRoute(
 						return;
 					}
 
+					consec_bad = 0;
 
 					break;
 				}

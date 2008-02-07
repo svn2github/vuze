@@ -109,8 +109,22 @@ NetworkAdmin
 	public abstract NetworkAdminASN
 	getCurrentASN();
 	
+	public abstract boolean
+	canTraceRoute();
+	
 	public abstract void
 	getRoutes(
+		final InetAddress					target,
+		final int							max_millis,
+		final NetworkAdminRoutesListener	listener )
+	
+		throws NetworkAdminException;
+	
+	public abstract boolean
+	canPing();
+	
+	public abstract void
+	pingTargets(
 		final InetAddress					target,
 		final int							max_millis,
 		final NetworkAdminRoutesListener	listener )

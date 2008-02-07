@@ -33,6 +33,7 @@ import java.util.*;
 
 // don't use any core stuff in here as we need this access stub to be able to run in isolation
 
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.platform.PlatformManagerPingCallback;
 import org.gudy.azureus2.platform.win32.access.*;
 
@@ -410,6 +411,11 @@ AEWin32AccessImpl
 	
 		throws AEWin32AccessException
 	{
+		if ( Constants.compareVersions( getVersion(), "1.15" ) < 0 ){
+			
+			throw( new AEWin32AccessException( "Sorry, ping is broken in versions < 1.15" ));
+		}
+		
 		traceRoute( source_address, target_address, true, callback );
 	}
 	

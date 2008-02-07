@@ -25,6 +25,8 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
+import org.gudy.azureus2.plugins.ui.config.StringParameter;
+import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 
 import com.aelitis.azureus.plugins.net.netstatus.swt.NetStatusPluginView;
@@ -37,13 +39,16 @@ NetStatusPlugin
 	
 	private LoggerChannel	logger;
 	
+	private StringParameter ping_target;
+	
 	public void
 	initialize(
 		final PluginInterface		plugin_interface )
 	{
+		String name_res = "Views.plugins." + VIEW_ID + ".title";
+		
 		String name = 
-			plugin_interface.getUtilities().getLocaleUtilities().getLocalisedMessageText(
-					"Views.plugins." + VIEW_ID + ".title" );
+			plugin_interface.getUtilities().getLocaleUtilities().getLocalisedMessageText( name_res );
 		
 		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
 		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		name );
@@ -51,6 +56,10 @@ NetStatusPlugin
 		logger = plugin_interface.getLogger().getChannel( "NetStatus" );
 		
 		logger.setDiagnostic();
+		
+		BasicPluginConfigModel config = plugin_interface.getUIManager().createBasicPluginConfigModel( name_res );
+		
+		ping_target = config.addStringParameter2( "plugin.aznetstatus.pingtarget", "plugin.aznetstatus.pingtarget", "www.google.com" );
 		
 		plugin_interface.getUIManager().addUIListener(
 			new UIManagerListener()
@@ -77,6 +86,12 @@ NetStatusPlugin
 				{
 				}
 			});
+	}
+	
+	public String
+	getPingTarget()
+	{
+		return( ping_target.getValue());
 	}
 	
 	public void

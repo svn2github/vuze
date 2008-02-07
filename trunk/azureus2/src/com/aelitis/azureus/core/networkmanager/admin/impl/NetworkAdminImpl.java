@@ -948,6 +948,14 @@ NetworkAdminImpl
         nast.initialise();
     }
 	
+	public boolean
+	canTraceRoute()
+	{
+		PlatformManager	pm = PlatformManagerFactory.getPlatformManager();
+
+		return( pm.hasCapability( PlatformManagerCapabilities.TraceRouteAvailability ));
+	}
+	
 	public NetworkAdminNode[]
 	getRoute(
 		InetAddress						interface_address,
@@ -959,7 +967,7 @@ NetworkAdminImpl
 	{
 		PlatformManager	pm = PlatformManagerFactory.getPlatformManager();
 			
-		if ( !pm.hasCapability( PlatformManagerCapabilities.TraceRouteAvailability )){
+		if ( !canTraceRoute()){
 			
 			throw( new NetworkAdminException( "No trace-route capability on platform" ));
 		}
@@ -1035,6 +1043,102 @@ NetworkAdminImpl
 		return((NetworkAdminNode[])nodes.toArray( new NetworkAdminNode[nodes.size()]));
 	}
 	
+	public boolean
+	canPing()
+	{
+		PlatformManager	pm = PlatformManagerFactory.getPlatformManager();
+
+		return( pm.hasCapability( PlatformManagerCapabilities.PingAvailability ));
+	}
+	
+	public NetworkAdminNode
+	pingTarget(
+		InetAddress						interface_address,
+		InetAddress						target,
+		final int						max_millis,
+		final NetworkAdminRouteListener	listener )
+	
+		throws NetworkAdminException
+	{
+		PlatformManager	pm = PlatformManagerFactory.getPlatformManager();
+			
+		if ( !canPing()){
+			
+			throw( new NetworkAdminException( "No ping capability on platform" ));
+		}
+		
+		final NetworkAdminNode[] nodes = { null };
+		
+		try{
+			pm.ping(
+				interface_address,
+				target,
+				new PlatformManagerPingCallback()
+				{
+					private long	start_time = SystemTime.getCurrentTime();
+					
+					public boolean
+					reportNode(
+						int				distance,
+						InetAddress		address,
+						int				millis )
+					{
+						boolean	timeout	= false;
+						
+						if ( max_millis >= 0 ){
+										
+							long	now = SystemTime.getCurrentTime();
+							
+							if ( now < start_time ){
+								
+								start_time = now;
+							}
+							
+							if ( now - start_time >= max_millis ){
+								
+								timeout = true;
+							}
+						}
+						
+						NetworkAdminNode	node = null;
+						
+						if ( address != null ){
+							
+							node = new networkNode( address, distance, millis );
+							
+							nodes[0] = node;
+						}
+						
+						boolean	result;
+						
+						if ( listener == null ){
+							
+							result = false;
+							
+						}else{
+
+							if ( node == null ){
+								
+								result = listener.timeout( distance );
+								
+							}else{
+								
+								result =  listener.foundNode( node, distance, millis );
+							}
+						}
+						
+						return( result && !timeout );
+					}
+				});
+		}catch( PlatformManagerException e ){
+			
+			throw( new NetworkAdminException( "ping failed", e ));
+		}
+		
+		return( nodes[0] );
+	}
+	
+	
 	public void
 	getRoutes(
 		final InetAddress					target,
@@ -1081,6 +1185,103 @@ NetworkAdminImpl
 						{
 							try{
 								address.getRoute( 
+									target, 
+									30000,
+									new NetworkAdminRouteListener()
+									{
+										public boolean 
+										foundNode(
+											NetworkAdminNode 	node, 
+											int 				distance, 
+											int 				rtt ) 
+										{
+											trace.add( node );
+											
+											NetworkAdminNode[]	route = new NetworkAdminNode[trace.size()];
+											
+											trace.toArray( route );
+											
+											return( listener.foundNode( address, route, distance, rtt) );
+										}
+										
+										public boolean 
+										timeout(
+											int distance )
+										{
+											NetworkAdminNode[]	route = new NetworkAdminNode[trace.size()];
+											
+											trace.toArray( route );
+
+											return( listener.timeout( address, route, distance ));
+										}
+									});
+								
+							}catch( Throwable e ){
+							
+								e.printStackTrace();
+								
+							}finally{
+								
+								sem.release();
+							}
+						}
+					}.start();
+				}
+			}
+		}
+		
+		for (int i=0;i<sems.size();i++){
+			
+			((AESemaphore)sems.get(i)).reserve();
+		}
+	}
+	
+	public void
+	pingTargets(
+		final InetAddress					target,
+		final int							max_millis,
+		final NetworkAdminRoutesListener	listener )
+	
+		throws NetworkAdminException
+	{
+		final List sems 	= new ArrayList();
+		final List traces 	= new ArrayList();
+		
+		NetworkAdminNetworkInterface[] interfaces = getInterfaces();
+
+		for (int i=0;i<interfaces.length;i++){
+			
+			NetworkAdminNetworkInterface	interf = (NetworkAdminNetworkInterface)interfaces[i];
+
+			NetworkAdminNetworkInterfaceAddress[] addresses = interf.getAddresses();
+			
+			for (int j=0;j<addresses.length;j++){
+				
+				final NetworkAdminNetworkInterfaceAddress	address = addresses[j];
+				
+				InetAddress ia = address.getAddress();
+				
+				if ( ia.isLoopbackAddress() || ia instanceof Inet6Address ){
+					
+						// ignore
+					
+				}else{
+					
+					final AESemaphore sem = new AESemaphore( "parallelPinger" );
+					
+					final List		trace = new ArrayList();
+					
+					sems.add( sem );
+					
+					traces.add( trace );
+					
+					new AEThread2( "parallelPinger", true )
+					{
+						public void
+						run()
+						{
+							try{
+								address.pingTarget( 
 									target, 
 									30000,
 									new NetworkAdminRouteListener()
@@ -1377,11 +1578,13 @@ NetworkAdminImpl
 		}else{
 			
 			try{
-				getRoutes( 
+				pingTargets( 
 					InetAddress.getByName( "www.google.com" ), 
 					30000,
 					new NetworkAdminRoutesListener()
 					{
+						private int	timeouts = 0;
+						
 						public boolean
 						foundNode(
 							NetworkAdminNetworkInterfaceAddress		intf,
@@ -1391,7 +1594,7 @@ NetworkAdminImpl
 						{
 							iw.println( intf.getAddress().getHostAddress() + ": " + route[route.length-1].getAddress().getHostAddress() + " (" + distance + ")" );
 
-							return( true );
+							return( false );
 						}
 						
 						public boolean
@@ -1402,7 +1605,9 @@ NetworkAdminImpl
 						{
 							iw.println( intf.getAddress().getHostAddress() + ": timeout (dist=" + distance + ")" );
 							
-							return( true );
+							timeouts++;
+							
+							return( timeouts < 3 );
 						}
 					});
 				
@@ -1608,6 +1813,17 @@ NetworkAdminImpl
 				throws NetworkAdminException
 			{
 				return( NetworkAdminImpl.this.getRoute( address, target, max_millis, listener));
+			}
+			
+			public NetworkAdminNode
+			pingTarget(
+				InetAddress						target,
+				final int						max_millis,
+				final NetworkAdminRouteListener	listener )
+			
+				throws NetworkAdminException
+			{
+				return( NetworkAdminImpl.this.pingTarget( address, target, max_millis, listener));
 			}
 			
 			public InetAddress

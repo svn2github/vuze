@@ -231,6 +231,7 @@ NetStatusPluginView
 				
 				current_test = 
 					new NetStatusPluginTester(
+						plugin,
 						new NetStatusPluginTester.loggerProvider()
 						{
 							public void 

@@ -45,6 +45,14 @@ NetworkAdminNetworkInterfaceAddress
 	
 		throws NetworkAdminException;
 	
+	public NetworkAdminNode
+	pingTarget(
+		InetAddress					target,
+		int							max_millis,
+		NetworkAdminRouteListener	listener )
+	
+		throws NetworkAdminException;
+	
 	public abstract InetAddress
 	testProtocol(
 		NetworkAdminProtocol	protocol )

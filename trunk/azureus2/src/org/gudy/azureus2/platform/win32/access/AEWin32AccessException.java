@@ -30,7 +30,7 @@ public class
 AEWin32AccessException
 	extends Exception
 {
-	protected
+	public
 	AEWin32AccessException(
 		String	str )
 	{
