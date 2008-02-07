@@ -130,6 +130,8 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	private volatile boolean somethingChanged;
 
 	private Set ranksToRecalc = new HashSet();
+	
+	private AEMonitor ranksToRecalc_mon = new AEMonitor("ranksToRecalc");
 
 	/** When rules class started.  Used for initial waiting logic */
 	private long startedOn;
@@ -761,7 +763,14 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			for (int i = 0; i < dlDataArray.length; i++) {
 				dlDataArray[i].getDownloadObject().setSeedingRank(0);
 			}
-			ranksToRecalc.addAll(allDownloads);
+			try {
+				ranksToRecalc_mon.enter();
+
+				ranksToRecalc.addAll(allDownloads);
+				
+			} finally {
+				ranksToRecalc_mon.exit();
+			}
 			requestProcessCycle(null);
 
 			if (bDebugLog) {
@@ -1128,8 +1137,15 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			now = SystemTime.getCurrentTime();
 
 			somethingChanged = false;
-			Object[] recalcArray = ranksToRecalc.toArray();
-			ranksToRecalc.clear();
+			Object[] recalcArray;
+			try {
+				ranksToRecalc_mon.enter();
+
+				recalcArray = ranksToRecalc.toArray();
+				ranksToRecalc.clear();
+			} finally {
+				ranksToRecalc_mon.exit();
+			}
 			for (int i = 0; i < recalcArray.length; i++) {
 				DefaultRankCalculator rankObj = (DefaultRankCalculator) recalcArray[i];
 				if (bDebugLog) {
@@ -2004,11 +2020,11 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	public void requestProcessCycle(DefaultRankCalculator rankToRecalc) {
 		if (rankToRecalc != null) {
 			try {
-				this_mon.enter();
+				ranksToRecalc_mon.enter();
 
 				ranksToRecalc.add(rankToRecalc);
 			} finally {
-				this_mon.exit();
+				ranksToRecalc_mon.exit();
 			}
 		}
 		
