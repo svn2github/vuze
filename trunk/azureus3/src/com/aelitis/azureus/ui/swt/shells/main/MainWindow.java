@@ -80,6 +80,7 @@ import com.aelitis.azureus.ui.swt.*;
 import com.aelitis.azureus.ui.swt.Initializer;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
+import com.aelitis.azureus.ui.swt.extlistener.StimulusRPC;
 import com.aelitis.azureus.ui.swt.search.network.NetworkSearch;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
@@ -579,6 +580,8 @@ public class MainWindow
 			}
 
 
+			StimulusRPC.hookListeners(core, this);
+			
 			initWidgets();
 
 			SWTSkinTabSet tabSet = skin.getTabSet(SkinConstants.TABSET_MAIN);
