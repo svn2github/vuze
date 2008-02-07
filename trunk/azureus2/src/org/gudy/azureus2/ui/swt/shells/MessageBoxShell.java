@@ -62,6 +62,8 @@ public class MessageBoxShell
 
 	private boolean rememberByDefault;
 
+	private int rememberOnlyIfButton = -1;
+
 	private int autoCloseInMS;
 
 	private String html;
@@ -73,7 +75,7 @@ public class MessageBoxShell
 	private Object[] relatedObjects;
 
 	private Image imgLeft;
-
+	
 	public static void addSkinnableListener(UISkinnableSWTListener l) {
 		skinnableListeners.add(l);
 	}
@@ -111,6 +113,17 @@ public class MessageBoxShell
 		return numOpen > 0;
 	}
 
+	/**
+	 * @param parent
+	 * @param title
+	 * @param text
+	 * @param buttons
+	 * @param defaultOption
+	 * @param rememberID
+	 * @param rememberText
+	 * @param bRememberByDefault
+	 * @param autoCloseInMS
+	 */
 	public MessageBoxShell(final Shell parent, final String title,
 			final String text, final String[] buttons, final int defaultOption,
 			final String rememberID, final String rememberText,
@@ -690,5 +703,13 @@ public class MessageBoxShell
 
 		messageBoxShell.setHtml("<b>Moo</b> goes the cow<p><hr>");
 		System.out.println(messageBoxShell.open());
+	}
+
+	public int getRememberOnlyIfButton() {
+		return rememberOnlyIfButton;
+	}
+
+	public void setRememberOnlyIfButton(int rememberOnlyIfButton) {
+		this.rememberOnlyIfButton = rememberOnlyIfButton;
 	}
 }
