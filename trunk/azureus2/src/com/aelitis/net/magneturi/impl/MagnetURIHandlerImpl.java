@@ -651,9 +651,7 @@ MagnetURIHandlerImpl
 						
 						value = 1024 * 1024;
 					}
-					
-					ByteArrayOutputStream	baos = new ByteArrayOutputStream();				
-					
+										
 						// see if we need to div/mod for clients that don't support huge images
 						// e.g. http://localhost:45100/getinfo?name=Plugin.azupnpav.content_port&mod=8
 					
@@ -700,7 +698,8 @@ MagnetURIHandlerImpl
 						
 					}else{
 						
-						
+						ByteArrayOutputStream	baos = new ByteArrayOutputStream();				
+
 						writeImage( baos, width, height );
 						
 						byte[]	data = baos.toByteArray();
@@ -735,14 +734,25 @@ MagnetURIHandlerImpl
 				int	width 	= result?20:10;
 				int height 	= result?20:10;
 				
-				ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+				String	img_type = (String)params.get( "img_type" );
 
-				writeImage(baos, width, height);
-				
-				byte[]	data = baos.toByteArray();
-										
-				writeReply( os, "image/bmp", data );
+				if ( img_type != null && img_type.equals( "png" )){
 					
+					byte[]	data = PNG.getPNGBytesForSize( width, height );
+					
+					writeReply( os, "image/png", data );
+
+				}else{
+					
+					ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+	
+					writeImage( baos, width, height);
+					
+					byte[]	data = baos.toByteArray();
+											
+					writeReply( os, "image/bmp", data );
+				}
+				
 				return( true );
 			}
 		}
