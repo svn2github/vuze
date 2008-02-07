@@ -316,9 +316,15 @@ public class SWTSkin
 		return (SWTSkinTabSet) mapTabSetToControls.get(sID);
 	}
 
-	public void activateTab(SWTSkinObject skinObjectInTab) {
+	public SWTSkinObjectTab activateTab(SWTSkinObject skinObjectInTab) {
 		if (skinObjectInTab == null) {
-			return;
+			return null;
+		}
+		
+		if (skinObjectInTab instanceof SWTSkinObjectTab) {
+			SWTSkinObjectTab tab = (SWTSkinObjectTab)skinObjectInTab;
+			tab.getTabset().setActiveTab(tab);
+			return tab;
 		}
 
 		for (Iterator iter = mapTabSetToControls.values().iterator(); iter.hasNext();) {
@@ -335,12 +341,13 @@ public class SWTSkin
 					if (hasSkinObject(object, skinObjectInTab)) {
 						//System.out.println("FOUND");
 						tabset.setActiveTab(tab);
-						return;
+						return tab;
 					}
 				}
 			}
 		}
-		System.out.println("NOT FOUND");
+		System.out.println("NOT FOUND" + skinObjectInTab);
+		return null;
 	}
 
 	private boolean hasSkinObject(SWTSkinObject start, SWTSkinObject skinObject) {
