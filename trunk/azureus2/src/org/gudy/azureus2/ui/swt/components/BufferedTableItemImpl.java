@@ -22,8 +22,10 @@
 package org.gudy.azureus2.ui.swt.components;
 
 import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
 
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
 
 /**
@@ -223,5 +225,21 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
   // @see org.gudy.azureus2.ui.swt.components.BufferedTableItem#getMaxLines()
   public int getMaxLines() {
   	return 1;
+  }
+  
+  // @see org.gudy.azureus2.ui.swt.components.BufferedTableItem#setCursor(int)
+  public void setCursor(final int cursorID) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (row == null) {
+					return;
+				}
+				Table table = row.getTable();
+				if (table == null || table.isDisposed()) {
+					return;
+				}
+				table.setCursor(table.getDisplay().getSystemCursor(cursorID));
+			}
+		});
   }
 }
