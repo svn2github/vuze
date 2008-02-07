@@ -300,6 +300,26 @@ MagnetPlugin
 					
 					return( false );
 				}
+				
+				public int
+				get(
+					String		name,
+					Map			values )
+				{
+					List	l = listeners.getList();
+					
+					for (int i=0;i<l.size();i++){
+						
+						int res = ((MagnetPluginListener)l.get(i)).get( name, values );
+						
+						if ( res != Integer.MIN_VALUE ){
+							
+							return( res );
+						}
+					}
+					
+					return( Integer.MIN_VALUE );
+				}
 			});
 		
 		plugin_interface.addListener(

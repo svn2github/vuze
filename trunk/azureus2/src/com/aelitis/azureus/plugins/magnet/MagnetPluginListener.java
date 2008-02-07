@@ -31,5 +31,17 @@ MagnetPluginListener
 	public boolean
 	set(
 		String		name,
-		Map		values );
+		Map			values );
+	
+		/**
+		 * 
+		 * @param name
+		 * @param values
+		 * @return Integer.MIN_VALUE if not handled
+		 */
+	
+	public int
+	get(
+		String		name,
+		Map			values );
 }

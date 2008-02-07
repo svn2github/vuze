@@ -56,4 +56,9 @@ MagnetURIHandlerListener
 	set(
 		String	name,
 		Map values );
+	
+	public int
+	get(
+		String	name,
+		Map 	values );
 }

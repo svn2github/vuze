@@ -626,11 +626,33 @@ MagnetURIHandlerImpl
 				
 				Integer	info = (Integer)info_map.get( name );
 				
+				int	value = Integer.MIN_VALUE;
+				
 				if ( info != null ){					
 					
-					ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+					value = info.intValue();
 					
-					int	value = info.intValue();
+				}else{
+					
+					HashMap paramsCopy = new HashMap();
+					paramsCopy.putAll(params);
+
+					for (int i=0;i<listeners.size() && value == Integer.MIN_VALUE;i++){
+						
+						value = ((MagnetURIHandlerListener)listeners.get(i)).get( name, paramsCopy );
+					}
+				}
+				
+				if ( value != Integer.MIN_VALUE ){
+					
+						// need to trim if too large
+					
+					if ( value > 1024 * 1024 ){
+						
+						value = 1024 * 1024;
+					}
+					
+					ByteArrayOutputStream	baos = new ByteArrayOutputStream();				
 					
 						// see if we need to div/mod for clients that don't support huge images
 						// e.g. http://localhost:45100/getinfo?name=Plugin.azupnpav.content_port&mod=8
