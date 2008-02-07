@@ -826,4 +826,24 @@ public class PlatformTorrentUtils
 
 		return embeddedPlayerAvail;
 	}
+
+	/**
+	 * @param torrent
+	 *
+	 * @since 3.0.4.3
+	 */
+	public static String getContentTitle2(DownloadManager dm) {
+		if (dm == null) {
+			return null;
+		}
+		// DM state's display name can be set by user, so show that if we have it
+		String name = dm.getDownloadState().getDisplayName();
+		if (name == null || name.length() == 0) {
+			name = PlatformTorrentUtils.getContentTitle(dm.getTorrent());
+			if (name == null) {
+				name = dm.getDisplayName();
+			}
+		}
+		return name;
+	}
 }
