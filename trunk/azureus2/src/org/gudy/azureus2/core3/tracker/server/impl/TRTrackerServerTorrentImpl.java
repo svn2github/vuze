@@ -2326,6 +2326,11 @@ TRTrackerServerTorrentImpl
 			
 			int	new_bad_NAT_count	= 0;
 			
+				// recalc seed count as this drifts for some reason (maybe seeds switching back to leechers
+				// on recheck fail, not sure)
+			
+			int new_seed_count 	= 0;
+			
 			try{
 				peer_list_compaction_suspended	= true;
 				
@@ -2344,6 +2349,11 @@ TRTrackerServerTorrentImpl
 						
 					}else{
 						
+						if ( peer.isSeed()){
+							
+							new_seed_count++;
+						}
+						
 						if ( peer.isNATStatusBad()){
 							
 							new_bad_NAT_count++;
@@ -2356,6 +2366,7 @@ TRTrackerServerTorrentImpl
 			}
 			
 			bad_NAT_count	= new_bad_NAT_count;
+			seed_count		= new_seed_count;
 			
 			if ( removed_count > 1000 ){
 				
