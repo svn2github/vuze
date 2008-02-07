@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.eclipse.swt.browser.Browser;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Constants;
 
 import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
@@ -41,6 +42,8 @@ public class ConfigListener
 	private static final String DEFAULT_LISTENER_ID = "config";
 
 	public static final String OP_GET_VERSION = "get-version";
+
+	public static final String OP_NEW_INSTALL = "is-new-install";
 
 	public ConfigListener(String id, Browser browser) {
 		super(id);
@@ -63,6 +66,14 @@ public class ConfigListener
 				String callback = MapUtils.getMapString(decodedMap, "callback", null);
 				if (callback != null) {
 					context.executeInBrowser(callback + "('" + Constants.AZUREUS_VERSION + "')");
+				} else {
+					message.debug("bad or no callback param");
+				}
+			} else if (OP_NEW_INSTALL.equals(opid)) {
+				Map decodedMap = message.getDecodedMap();
+				String callback = MapUtils.getMapString(decodedMap, "callback", null);
+				if (callback != null) {
+					context.executeInBrowser(callback + "(" + COConfigurationManager.isNewInstall() + ")");
 				} else {
 					message.debug("bad or no callback param");
 				}
