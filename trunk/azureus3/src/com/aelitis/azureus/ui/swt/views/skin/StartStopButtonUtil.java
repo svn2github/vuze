@@ -26,6 +26,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
+import com.aelitis.azureus.ui.swt.views.list.ListView;
 
 /**
  * @author TuxPaper
@@ -34,7 +35,7 @@ import com.aelitis.azureus.ui.swt.views.TorrentListView;
  */
 public class StartStopButtonUtil
 {
-	public static void updateStopButton(TorrentListView view,
+	public static void updateStopButton(ListView view,
 			SWTSkinButtonUtility button) {
 		if (button == null) {
 			return;
@@ -61,6 +62,7 @@ public class StartStopButtonUtil
 						break;
 					}
 				}
+				button.setDisabled(dm.getAssumedComplete());
 			}
 
 			if (bResume) {
