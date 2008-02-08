@@ -23,8 +23,8 @@ package com.aelitis.azureus.ui.swt.columns.torrent;
 import org.eclipse.swt.program.Program;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
@@ -52,7 +52,7 @@ public class ColumnTitle
 	/** Default Constructor */
 	public ColumnTitle(String sTableID) {
 		super(COLUMN_ID, POSITION_LAST, 250, sTableID);
-		setMinWidth(100);
+		setMinWidth(70);
 		setObfustication(true);
 		setType(TableColumn.TYPE_TEXT);
 	}
@@ -61,14 +61,7 @@ public class ColumnTitle
 		String name = null;
 		DownloadManager dm = (DownloadManager) cell.getDataSource();
 		if (dm != null) {
-			// DM state's display name can be set by user, so show that if we have it
-			name = dm.getDownloadState().getDisplayName();
-			if (name == null || name.length() == 0) {
-				name = PlatformTorrentUtils.getContentTitle(dm.getTorrent());
-				if (name == null) {
-					name = dm.getDisplayName();
-				}
-			}
+			name = PlatformTorrentUtils.getContentTitle2(dm);
 		}
 		if (name == null) {
 			name = "";
@@ -100,6 +93,14 @@ public class ColumnTitle
 				}
 			}
 		}
+		
+		if (ColumnProgressETA.TRY_NAME_COLUMN_EXPANDER) {
+  		if (dm.getAssumedComplete()) {
+  			long size = dm.getSize() - dm.getStats().getRemaining();
+  			name += "\nCompleted. " + DisplayFormatters.formatByteCountToKiBEtc(size);
+  		}
+		}
+		
 		cell.setText(name);
 	}
 

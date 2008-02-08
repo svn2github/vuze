@@ -18,7 +18,6 @@ import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
-import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
@@ -30,6 +29,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
+import com.aelitis.azureus.ui.swt.views.list.ListCell;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 
 import org.gudy.azureus2.plugins.download.Download;
@@ -45,6 +45,8 @@ public class ColumnProgressETA
 	extends CoreTableColumn
 	implements TableCellAddedListener
 {
+	public static final boolean TRY_NAME_COLUMN_EXPANDER = false;
+
 	public static String COLUMN_ID = "ProgressETA";
 
 	private static final int borderWidth = 1;
@@ -125,6 +127,27 @@ public class ColumnProgressETA
 			if (!cell.setSortValue(sortValue) && !bForce && cell.isValid()
 					&& lastPercentDone == percentDone && lastETA == eta) {
 				return;
+			}
+			
+			if (TRY_NAME_COLUMN_EXPANDER) {
+  			if (dm.getAssumedComplete()) {
+  				//System.out.println(percentDone + ";" + lastPercentDone + ";" + Debug.getCompressedStackTrace());
+  				try {
+  				TableCellSWT cellTitle = (TableCellSWT) cell.getTableRow().getTableCell("name");
+  				ListCell itemTitle = (ListCell) cellTitle.getBufferedTableItem();
+  				ListCell listCell = (ListCell) ((TableCellSWT)cell).getBufferedTableItem();
+  				Rectangle bounds = listCell.getBounds();
+  				if (bounds != null) {
+    				itemTitle.setSecretWidth(cellTitle.getTableColumn().getWidth() + bounds.width);
+    				disposeExisting(cell);
+    				lastPercentDone = percentDone;
+    				listCell.setBounds(null);
+  				}
+  				return;
+  				} catch (Exception e) {
+  					e.printStackTrace();
+  				}
+  			}
 			}
 
 			if (!bForce && !cell.isShown()) {
@@ -267,7 +290,7 @@ public class ColumnProgressETA
 					gcImage = new GC(image);
 				}
 
-				int limit = (progressX1 * percentDone) / 1000;
+				int limit = ((progressX1 - 1) * percentDone) / 1000;
 
 				gcImage.setBackground(cBG);
 				gcImage.fillRectangle(1, 1, limit, progressY1 - 1);
@@ -282,12 +305,14 @@ public class ColumnProgressETA
 			if (sETALine == null) {
 				if (isStopped(cell)) {
 					sETALine = DisplayFormatters.formatDownloadStatus((DownloadManager) cell.getDataSource());
-				} else {
+				} else if (eta > 0) {
 					String sETA = TimeFormatter.format(eta);
 					sETALine = MessageText.getString(
 							"MyTorrents.column.ColumnProgressETA.2ndLine", new String[] {
 								sETA
 							});
+				} else {
+					sETALine = "";
 				}
 			}
 
