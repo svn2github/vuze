@@ -46,6 +46,7 @@ import org.gudy.azureus2.ui.swt.views.table.*;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableTooltips;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnEditorWindow;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 
 import com.aelitis.azureus.ui.common.table.*;
@@ -89,8 +90,6 @@ public class ListView
 	private static final ConfigurationManager configMan = ConfigurationManager.getInstance();
 
 	private static final String CFG_SORTDIRECTION = "config.style.table.defaultSortOrder";
-
-	public int DEFAULT_ROW_HEIGHT_SELECTED = 38;
 
 	public int DEFAULT_ROW_HEIGHT = 38;
 
@@ -144,7 +143,7 @@ public class ListView
 
 	private Composite headerArea;
 
-	private TableColumnCore[] allColumns;
+	private TableColumnCore[] allColumns = new TableColumnCore[0];
 
 	private ScrollBar vBar;
 
@@ -187,6 +186,31 @@ public class ListView
 	private Rectangle lastBounds = new Rectangle(0, 0, 0, 0);
 
 	private Listener lShowHide;
+
+	private RowInfo topRowInfo = null;
+
+	private RowInfo bottomRowInfo = null;
+
+	private int totalHeight;
+
+	private Rectangle clientArea;
+
+	private Menu menuHeader;
+
+	private static final Comparator rowYPosComparator;
+
+	static {
+		rowYPosComparator = new Comparator() {
+			public int compare(Object arg0, Object arg1) {
+				long index0 = (arg0 instanceof ListRow)
+						? ((ListRow) arg0).getBasicYPos() : ((Long) arg0).longValue();
+				long index1 = (arg1 instanceof ListRow)
+						? ((ListRow) arg1).getBasicYPos() : ((Long) arg1).longValue();
+
+				return (int) (index0 - index1);
+			}
+		};
+	}
 
 	public ListView(final String sTableID, SWTSkinProperties skinProperties,
 			Composite parent, Composite headerArea, int style) {
@@ -240,6 +264,7 @@ public class ListView
 		listCanvas = new Canvas(listParent, SWT.NO_BACKGROUND
 				| SWT.NO_REDRAW_RESIZE | style);
 		listCanvas.setLayout(new FormLayout());
+		clientArea = listCanvas.getClientArea();
 
 		Object layout = listParent.getLayout();
 		if (layout instanceof FormLayout) {
@@ -292,7 +317,7 @@ public class ListView
 		lShowHide = new Listener() {
 			public void handleEvent(final Event event) {
 				boolean toBeVisible = event.type == SWT.Show;
-				
+
 				if (event.widget == listCanvas) {
 					viewVisible = toBeVisible;
 				} else if (!toBeVisible || listCanvas.isVisible()) {
@@ -300,15 +325,15 @@ public class ListView
 				} else {
 					// for the moment, assume visible is true
 					viewVisible = true;
-					
-  				// container item.. check listCanvas.isVisible(), but only after
-  				// events have been processed, so that the visibility is propogated
-  				// to the listCanvas
-  				listCanvas.getDisplay().asyncExec(new AERunnable() {
-  					public void runSupport() {
-  						viewVisible = listCanvas.isVisible();
-  					}
-  				});
+
+					// container item.. check listCanvas.isVisible(), but only after
+					// events have been processed, so that the visibility is propogated
+					// to the listCanvas
+					listCanvas.getDisplay().asyncExec(new AERunnable() {
+						public void runSupport() {
+							viewVisible = listCanvas.isVisible();
+						}
+					});
 				}
 
 				if (viewVisible) {
@@ -324,7 +349,7 @@ public class ListView
 				}
 			}
 		};
-		
+
 		viewVisible = false;
 		// We pretend view is invisible and make it visible later to 
 		// speed up startup.  Commented out code is the real visiblility getter
@@ -337,7 +362,6 @@ public class ListView
 			walkUp = walkUp.getParent();
 		} while (walkUp != null);
 
-		
 		listCanvas.addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event event) {
 				handleResize(false);
@@ -372,6 +396,7 @@ public class ListView
 					boolean bExited = e.type == SWT.MouseExit;
 					TableRowCore row = bExited ? null : getRow(e.x, e.y);
 					TableCellSWT cell = bExited ? null : getTableCell(e.x, e.y);
+					//System.out.println(sTableID + "] mouse event row=" + row + ";cell=" + cell + ";" + (row == null ? "" : "" + ((ListRow)row).getHeight()));
 					int iCursorID = -1;
 
 					boolean changedCell = lastCell != cell;
@@ -469,23 +494,29 @@ public class ListView
 		listCanvas.addListener(SWT.MouseMove, mouseListener);
 		listCanvas.addListener(SWT.MouseExit, mouseListener);
 
+		listCanvas.addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent e) {
+				delete();
+			}
+		});
+
 		new TableTooltips(this, listCanvas);
-
-		TableStructureEventDispatcher.getInstance(sTableID).addListener(this);
-
-		triggerLifeCycleListener(TableLifeCycleListener.EVENT_INITIALIZED);
 
 		if (headerArea != null) {
 			setupHeader(headerArea);
 		}
 
+		TableStructureEventDispatcher.getInstance(sTableID).addListener(this);
+
+		triggerLifeCycleListener(TableLifeCycleListener.EVENT_INITIALIZED);
+
 		if (!viewVisible && listCanvas.isVisible()) {
 			listCanvas.getDisplay().asyncExec(new AERunnable() {
 				public void runSupport() {
-		  		Event e = new Event();
-		  		e.type = SWT.Show;
-		  		e.widget = listCanvas;
-		  		lShowHide.handleEvent(e);
+					Event e = new Event();
+					e.type = SWT.Show;
+					e.widget = listCanvas;
+					lShowHide.handleEvent(e);
 				}
 			});
 		}
@@ -503,50 +534,57 @@ public class ListView
 			return;
 		}
 
-		Rectangle clientArea = listCanvas.getClientArea();
+		clientArea = listCanvas.getClientArea();
 
 		if (clientArea.width == 0 || clientArea.height == 0) {
 			return;
+		}
+
+		if (lastBounds.height != clientArea.height || bottomRowInfo == null) {
+			// don't need to recalc bottom row if only width changed.
+			// If a row happens to change height, that is dealt with later
+			bottomRowInfo = findBottomRow(iLastVBarPos, clientArea.height);
 		}
 
 		if (imgView == null || bForce) {
 			if (DEBUGPAINT) {
 				logPAINT("first resize (img null)");
 			}
-			if(imgView != null && !imgView.isDisposed())
+			if (imgView != null && !imgView.isDisposed())
 				imgView.dispose();
 			imgView = new Image(listCanvas.getDisplay(), clientArea);
 			lastBounds = new Rectangle(0, 0, 0, 0);
 			bNeedsRefresh = true;
-		} else {
-			if (!lastBounds.equals(clientArea)) {
-				bNeedsRefresh = lastBounds.height != clientArea.height;
-				Image newImageView = new Image(listCanvas.getDisplay(), clientArea);
-				GC gc = null;
-				try {
-					gc = new GC(newImageView);
-					gc.drawImage(imgView, 0, 0);
+		} else if (!lastBounds.equals(clientArea)) {
+			// resize image by creating a new one, drawing the old one on it,
+			// and blanking out the new areas
+			bNeedsRefresh = lastBounds.height != clientArea.height;
+			Image newImageView = new Image(listCanvas.getDisplay(), clientArea);
+			GC gc = null;
+			try {
+				gc = new GC(newImageView);
+				gc.setAdvanced(true);
+				gc.drawImage(imgView, 0, 0);
 
-					Region reg = new Region();
-					reg.add(clientArea);
-					reg.subtract(imgView.getBounds());
-					gc.setClipping(reg);
+				Region reg = new Region();
+				reg.add(clientArea);
+				reg.subtract(imgView.getBounds());
+				gc.setClipping(reg);
 
-					//gc.setBackground(Display.getDefault().getSystemColor((int)(Math.random() * 16)));
-					gc.setBackground(listCanvas.getBackground());
-					gc.fillRectangle(clientArea);
+				//gc.setBackground(Display.getDefault().getSystemColor((int)(Math.random() * 16)));
+				gc.setBackground(listCanvas.getBackground());
+				gc.fillRectangle(clientArea);
 
-					gc.setClipping((Region) null);
-					reg.dispose();
-				} finally {
-					if (gc != null) {
-						gc.dispose();
-					}
+				gc.setClipping((Region) null);
+				reg.dispose();
+			} finally {
+				if (gc != null) {
+					gc.dispose();
 				}
-				imgView.dispose();
-				imgView = newImageView;
-				//listCanvas.update();
 			}
+			imgView.dispose();
+			imgView = newImageView;
+			//listCanvas.update();
 		}
 
 		if (bNeedsRefresh) {
@@ -562,51 +600,40 @@ public class ListView
 				gcImgView.setForeground(listCanvas.getForeground());
 				gcImgView.setBackground(listCanvas.getBackground());
 
-				TableRowSWT[] visibleRows = getVisibleRows();
-				if (visibleRows.length > 0) {
-					//gc.setClipping(e.gc.getClipping());
-					int ofs = getRowYoffset(iLastVBarPos);
+				int y0 = iLastVBarPos + lastBounds.y + lastBounds.height;
 
-					int y0 = lastBounds.y + lastBounds.height;
-					int y1 = clientArea.y + clientArea.height;
+				long lStart = System.currentTimeMillis();
 
-					int start = y0 / DEFAULT_ROW_HEIGHT;
-					int end = y1 / DEFAULT_ROW_HEIGHT + 1;
-					if (end > visibleRows.length) {
-						end = visibleRows.length;
-					}
-
+				int y = y0;
+				int numDrawn = 0;
+				RowInfo rowInfo = getRowAbsolute(0, y);
+				while (rowInfo != null && rowInfo.row.isVisible()) {
 					if (DEBUGPAINT) {
-						logPAINT(visibleRows.length + " visible;" + "; " + start + " - "
-								+ (end - 1));
+						logPAINT("resize: doPaint @" + rowInfo.row.getBasicYPos());
 					}
-					long lStart = System.currentTimeMillis();
-					for (int i = start; i < end; i++) {
-						TableRowSWT row = visibleRows[i];
-
-						row.doPaint(gcImgView, true);
-					}
-
-					// Blank out area below visible rows
-					int endY = visibleRows.length * DEFAULT_ROW_HEIGHT + ofs;
-					if (endY < clientArea.height) {
-						if (DEBUGPAINT) {
-							logPAINT("fill " + (clientArea.height - endY) + "@" + endY);
-						}
-						gcImgView.setBackground(listCanvas.getBackground());
-						gcImgView.fillRectangle(0, endY, clientArea.width,
-								clientArea.height - endY);
-					}
-
-					long diff = System.currentTimeMillis() - lStart;
-					if (diff > 100) {
-						log(diff + "ms to paint" + start + " - " + (end - 1));
-					}
-				} else {
+					rowInfo.row.doPaint(gcImgView, true);
+					y += rowInfo.row.getHeight();
+					rowInfo = getRowAbsolute(0, y);
+					numDrawn++;
 					if (DEBUGPAINT) {
-						logPAINT("fillall");
+						logPAINT("numDrawn " + numDrawn);
 					}
-					gcImgView.fillRectangle(clientArea);
+				}
+
+				// Blank out area below visible rows
+				int gap = clientArea.y + clientArea.height - totalHeight;
+				if (gap > 0) {
+					if (DEBUGPAINT) {
+						logPAINT("fill " + gap + "@" + (clientArea.height - gap));
+					}
+					gcImgView.setBackground(listCanvas.getBackground());
+					gcImgView.fillRectangle(0, clientArea.y + clientArea.height - gap,
+							clientArea.width, gap);
+				}
+
+				long diff = System.currentTimeMillis() - lStart;
+				if (diff > 100) {
+					log(diff + "ms to paint " + numDrawn + " on redraw");
 				}
 			} catch (Exception ex) {
 				if (!(ex instanceof IllegalArgumentException)) {
@@ -622,6 +649,7 @@ public class ListView
 				}
 			}
 		}
+
 		lastBounds = clientArea;
 
 		// SWT does resize, then paint 
@@ -633,23 +661,19 @@ public class ListView
 		}
 	}
 
-	private int getRowYoffset(int i) {
-		int ofs = (i % DEFAULT_ROW_HEIGHT);
-		if (rowFocused != null && i > rowFocused.getIndex()) {
-			ofs += DEFAULT_ROW_HEIGHT_SELECTED - DEFAULT_ROW_HEIGHT;
-		}
-		if (ofs == 0) {
+	private int getBottomRowHeight(int vBarPos) {
+		if (bottomRowInfo == null) {
 			return 0;
 		}
-		return ofs;
-	}
 
-	private int getBottomRowHeight() {
-		int ofs = (iLastVBarPos + listCanvas.getClientArea().height)
-				% DEFAULT_ROW_HEIGHT;
-		// TODO: Adjust for selected row height
+		int visibleHeight = (vBarPos + clientArea.height)
+				- bottomRowInfo.row.getBasicYPos();
+		int rowHeight = bottomRowInfo.row.getHeight();
+		if (visibleHeight > rowHeight) {
+			visibleHeight = rowHeight;
+		}
 
-		return ofs;
+		return visibleHeight;
 	}
 
 	/**
@@ -661,12 +685,10 @@ public class ListView
 		}
 		boolean changed = false;
 
-		Rectangle client = listCanvas.getClientArea();
-		int h = (rows.size() * DEFAULT_ROW_HEIGHT) - client.height;
-
-		if (h <= 0 || client.height == 0) {
+		if (totalHeight < clientArea.height || clientArea.height == 0) {
 			if (vBar.isVisible()) {
 				vBar.setVisible(false);
+				logPAINT("redraw via refreshScrollbar");
 				listCanvas.redraw();
 				if (headerArea != null) {
 					headerArea.redraw();
@@ -676,6 +698,7 @@ public class ListView
 		} else {
 			if (!vBar.isVisible()) {
 				vBar.setVisible(true);
+				logPAINT("redraw via refreshScrollbar");
 				listCanvas.redraw();
 				if (headerArea != null) {
 					headerArea.redraw();
@@ -683,10 +706,13 @@ public class ListView
 				changed = true;
 			}
 			vBar.setIncrement(DEFAULT_ROW_HEIGHT);
-			int thumb = client.height;
-			vBar.setMaximum(h + thumb);
+			int thumb = clientArea.height;
+			int maximum = vBar.getMaximum();
+			if (maximum != totalHeight) {
+				vBar.setMaximum(totalHeight);
+			}
 			vBar.setThumb(thumb);
-			vBar.setPageIncrement(client.height / 2);
+			vBar.setPageIncrement(clientArea.height / 2);
 			if (iLastVBarPos != vBar.getSelection()) {
 				scrollTo(vBar.getSelection());
 				changed = true;
@@ -730,6 +756,11 @@ public class ListView
 		}
 
 		if (diff != 0 && imgView != null && !imgView.isDisposed()) {
+
+			// adjust toprow
+			topRowInfo = findTopRow(iThisVBarPos);
+			bottomRowInfo = findBottomRow(iThisVBarPos, clientArea.height);
+
 			// Shift image up or down, then fill in the gap with a newly displayed row
 			boolean isOurGC = gcImgView == null;
 
@@ -747,6 +778,7 @@ public class ListView
 				}
 			}
 
+			logPAINT("redraw via scrollTo");
 			listCanvas.redraw();
 			listCanvas.update();
 		}
@@ -755,6 +787,46 @@ public class ListView
 		if (DEBUGPAINT) {
 			logPAINT("done in " + (System.currentTimeMillis() - lTimeStart));
 		}
+	}
+
+	public static class RowInfo
+	{
+		int index;
+
+		ListRow row;
+
+		public RowInfo(ListRow row, int index) {
+			this.row = row;
+			this.index = index;
+		}
+	}
+
+	/**
+	 * @param atYPos
+	 *
+	 * @since 3.0.4.3
+	 */
+	private RowInfo findTopRow(int atYPos) {
+		RowInfo rowInfo = getRowAbsolute(0, atYPos);
+		if (rowInfo == null) {
+			return null;
+		}
+		//System.out.println(sTableID + "] toprow @" + atYPos + "=" + rowInfo.index);
+		return rowInfo;
+	}
+
+	private RowInfo findBottomRow(int atYPos, int height) {
+		RowInfo rowInfo = getRowAbsolute(0, atYPos + height - 1);
+		if (rowInfo == null) {
+			if (rows.size() == 0) {
+				return null;
+			}
+			ListRow row = (ListRow) rows.get(rows.size() - 1);
+			rowInfo = new RowInfo(row, rows.size() - 1);
+		}
+		//log("bottomrow @" + atYPos + "=" + rowInfo.index);
+
+		return rowInfo;
 	}
 
 	private void scrollToWithGC(GC gc, int diff, int iThisVBarPos,
@@ -790,25 +862,35 @@ public class ListView
 			return;
 		}
 
+		topRowInfo = findTopRow(iThisVBarPos);
+		bottomRowInfo = findBottomRow(iThisVBarPos, clientArea.height);
+		//		System.out.println(sTableID + "] ftr2 " + topRowInfo.index + ";b="
+		//				+ bottomRowInfo.index + ";" + iThisVBarPos);
+
 		iLastVBarPos = iThisVBarPos;
 		TableRowSWT[] visibleRows = getVisibleRows();
 		if (diff < 0) {
-			int ofs = getBottomRowHeight();
+			int ofs = getBottomRowHeight(iThisVBarPos);
 			// image moved up.. gap at bottom
 			int i = visibleRows.length - 1;
-			while (diff <= 0 && i >= 0) {
-				ListRow row = (ListRow)visibleRows[i];
+
+			ListRow row = (ListRow) visibleRows[i];
+			while (diff <= 0) {
 				if (DEBUGPAINT) {
 					logPAINT("scrollTo repaint visRow#" + i + "(idx:" + row.getIndex()
 							+ ") d=" + diff + ";ofs=" + ofs);
 				}
 				row.doPaint(gc, true);
 				i--;
+				if (i < 0) {
+					break;
+				}
 				diff += ofs;
+				row = (ListRow) visibleRows[i];
 				ofs = row.getHeight();
 			}
 			if (i >= 0) {
-				ListRow row = (ListRow) visibleRows[i];
+				row = (ListRow) visibleRows[i];
 				if (!row.isValid()) {
 					if (DEBUGPAINT) {
 						logPAINT("scrollTo repaint dirty Row#" + i + "(idx:"
@@ -820,16 +902,21 @@ public class ListView
 		} else {
 			// image moved down.. gap at top to draw
 			int i = 0;
-			int ofs = DEFAULT_ROW_HEIGHT - getRowYoffset(iLastVBarPos);
-			while (diff >= 0 && i < visibleRows.length) {
-				ListRow row = (ListRow) visibleRows[i];
+			int ofs = topRowInfo.row.getHeight()
+					- (iThisVBarPos - topRowInfo.row.getBasicYPos());
+			ListRow row = (ListRow) visibleRows[i];
+			while (diff >= 0) {
 				if (DEBUGPAINT) {
 					logPAINT("repaint " + i + "(" + row.getIndex() + ") d=" + diff
 							+ ";o=" + ofs);
 				}
 				row.doPaint(gc, true);
 				i++;
+				if (i >= visibleRows.length) {
+					break;
+				}
 				diff -= ofs;
+				row = (ListRow) visibleRows[i];
 				ofs = row.getHeight();
 			}
 		}
@@ -840,6 +927,21 @@ public class ListView
 	 */
 	private void setupHeader(final Composite headerArea) {
 		this.headerArea = headerArea;
+
+		menuHeader = new Menu(headerArea.getShell(), SWT.POP_UP);
+		headerArea.setMenu(menuHeader);
+
+		MenuItem itemEdit = new MenuItem(menuHeader, SWT.PUSH);
+		itemEdit.setText(MessageText.getString("MyTorrentsView.menu.editTableColumns"));
+		itemEdit.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				String tableID = getTableID();
+				TableRowCore focusedRow = getFocusedRow();
+				new TableColumnEditorWindow(getComposite().getShell(), tableID,
+						getAllColumns(), focusedRow,
+						TableStructureEventDispatcher.getInstance(tableID));
+			}
+		});
 
 		final Cursor cursor = new Cursor(headerArea.getDisplay(), SWT.CURSOR_HAND);
 		headerArea.addDisposeListener(new DisposeListener() {
@@ -863,6 +965,9 @@ public class ListView
 			}
 
 			public void mouseUp(MouseEvent e) {
+				if (e.button != 1) {
+					return;
+				}
 				TableColumnCore[] columns = getVisibleColumns();
 				int inColumn = -1;
 				for (int i = 0; i < columns.length; i++) {
@@ -888,16 +993,22 @@ public class ListView
 
 			public void mouseMove(MouseEvent e) {
 				TableColumnCore[] columns = getVisibleColumns();
-				int inColumn = -1;
+				int inColumnNo = -1;
+				Rectangle bounds = null;
 				for (int i = 0; i < columns.length; i++) {
-					Rectangle bounds = (Rectangle) headerArea.getData("Column" + i
-							+ "Bounds");
+					bounds = (Rectangle) headerArea.getData("Column" + i + "Bounds");
 					if (bounds != null && bounds.contains(e.x, e.y)) {
-						inColumn = i;
+						inColumnNo = i;
 						break;
 					}
 				}
-				Cursor newCursor = (inColumn != -1) ? cursor : null;
+				boolean inColumn = inColumnNo != -1;
+				if (inColumn) {
+					//					GC gc = new GC(headerArea);
+					//					gc.drawRectangle(bounds);
+					//					gc.dispose();
+				}
+				Cursor newCursor = inColumn ? cursor : null;
 				if (cursor != newCursor) {
 					headerArea.setCursor(newCursor);
 					cursor = newCursor;
@@ -912,8 +1023,11 @@ public class ListView
 					return;
 				}
 
+				Color colorFG = null;
+				Color colorDivider = null;
 				if (skinProperties != null) {
-					e.gc.setForeground(skinProperties.getColor("color.list.header.fg"));
+					colorFG = skinProperties.getColor("color.list.header.fg");
+					colorDivider = skinProperties.getColor("color.list.header.divider");
 				}
 
 				Rectangle clientArea = headerArea.getClientArea();
@@ -930,17 +1044,30 @@ public class ListView
 					Point size = e.gc.textExtent(text);
 					Rectangle bounds;
 					if (size.x > drawWidth && lastExtraSpace > 0) {
+						if (align == SWT.CENTER) {
+							align = SWT.RIGHT;
+						}
+						drawWidth += ListView.COLUMN_MARGIN_WIDTH;
 						int giveSpace = Math.min(lastExtraSpace, size.x - drawWidth);
-						bounds = new Rectangle(pos - giveSpace, clientArea.y + 1, drawWidth
+						bounds = new Rectangle(pos - giveSpace, clientArea.y + 2, drawWidth
 								+ giveSpace, clientArea.height);
 					} else {
-						bounds = new Rectangle(pos, clientArea.y + 1, drawWidth,
+						bounds = new Rectangle(pos, clientArea.y + 2, drawWidth,
 								clientArea.height);
+					}
+
+					if (i > 0 && colorDivider != null) {
+						e.gc.setForeground(colorDivider);
+						e.gc.drawLine(pos - 2, clientArea.y + size.y + 7, pos - 2,
+								clientArea.y + clientArea.height);
 					}
 
 					headerArea.setData("Column" + i + "Bounds", bounds);
 
 					if (text.length() > 0) {
+						if (colorFG != null) {
+							e.gc.setForeground(colorFG);
+						}
 						GCStringPrinter.printString(e.gc, text, bounds, false, false, align
 								| SWT.TOP);
 					}
@@ -950,7 +1077,7 @@ public class ListView
 						lastExtraSpace = bounds.width - size.x;
 						middlePos += size.x / 2;
 					} else if (align == SWT.CENTER) {
-						lastExtraSpace = (bounds.width - size.x) / 2;
+						lastExtraSpace = (bounds.width - size.x) / 2 + 1;
 						middlePos += bounds.width / 2;
 					} else {
 						lastExtraSpace = 0;
@@ -962,9 +1089,11 @@ public class ListView
 						if (img != null) {
 							Rectangle imgBounds = img.getBounds();
 							e.gc.drawImage(img, middlePos - (imgBounds.width / 2),
-									bounds.height + bounds.y - imgBounds.height);
+									bounds.height + bounds.y - imgBounds.height - 3);
 						}
 					}
+
+					//System.out.println(i + ";xtraspace=" + lastExtraSpace);
 
 					//e.gc.drawLine(pos, bounds.y, pos, bounds.y + bounds.height);
 					pos += width + (ListView.COLUMN_MARGIN_WIDTH * 2);
@@ -973,12 +1102,19 @@ public class ListView
 		});
 	}
 
+	public Menu getTableHeaderMenu() {
+		return menuHeader;
+	}
+
 	/**
 	 * 
 	 *
 	 * @since 3.0.0.7
 	 */
 	private void setColumnMinWidthToHeaders() {
+		if (headerArea == null) {
+			return;
+		}
 		int sortWidth = Math.max(imgSortAsc == null ? -2
 				: imgSortAsc.getBounds().width, imgSortDesc == null ? -2
 				: imgSortDesc.getBounds().width) + 2;
@@ -1050,7 +1186,8 @@ public class ListView
 			final boolean bForceRedraw, final boolean bAsync) {
 		if (isDisposed() || !viewVisible) {
 			if (DEBUGPAINT) {
-				logPAINT("cancel invisible refreshVisible " + Debug.getCompressedStackTrace());
+				logPAINT("cancel invisible refreshVisible "
+						+ Debug.getCompressedStackTrace());
 			}
 			return;
 		}
@@ -1059,17 +1196,20 @@ public class ListView
 				logPAINT("Set flag to restart visible because of "
 						+ Debug.getCompressedStackTrace());
 			}
+			//log("Set flag to restart visible because of "					+ Debug.getCompressedStackTrace());
 			restartRefreshVisible = new Object[] {
 				new Boolean(doGraphics),
 				new Boolean(bForceRedraw),
 				new Boolean(bAsync)
 			};
+			//System.out.println("-1-");
 			return;
 		}
 		bInRefreshVisible = true;
 		if (DEBUGPAINT) {
 			logPAINT("Start refreshVisible " + Debug.getCompressedStackTrace());
 		}
+		//log("Start refreshVisible " + Debug.getCompressedStackTrace());
 
 		final Display display = listCanvas.getDisplay();
 
@@ -1104,6 +1244,11 @@ public class ListView
 										new Boolean(bForceRedraw),
 										new Boolean(bAsync)
 									};
+									if (DEBUGPAINT) {
+										logPAINT(sTableID + "] -2-" + indexOf(row) + ";"
+												+ row.getBasicYPos() + ";");
+									}
+
 									return;
 								}
 
@@ -1282,6 +1427,10 @@ public class ListView
 						}
 
 						ListRow row = new ListRow(ListView.this, listCanvas, datasource);
+						if (rows.size() == 0) {
+							topRowInfo = new RowInfo(row, 0);
+							bottomRowInfo = new RowInfo(row, 0);
+						}
 
 						if (sortColumn != null) {
 							TableCellCore cell = row.getTableCellCore(sortColumn.getName());
@@ -1300,8 +1449,9 @@ public class ListView
 						// If we are >= to the last item, then just add it to the end
 						// instead of relying on binarySearch, which may return an item
 						// in the middle that also is equal.
-						if (rows.size() > 0
-								&& sortColumn.compare(row, rows.get(rows.size() - 1)) >= 0) {
+						if (sortColumn == null
+								|| (rows.size() > 0 && sortColumn.compare(row,
+										rows.get(rows.size() - 1)) >= 0)) {
 							index = rows.size();
 						} else {
 							index = Collections.binarySearch(rows, row, sortColumn);
@@ -1319,6 +1469,7 @@ public class ListView
 						}
 
 						rows.add(index, row);
+						row.setBasicYPos(0);
 						logADDREMOVE("addDS pos " + index);
 
 						mapDataSourceToRow.put(datasource, row);
@@ -1329,17 +1480,16 @@ public class ListView
 					row_mon.exit();
 
 					if (iFirstChange >= 0) {
-						for (int i = iFirstChange; i < rows.size(); i++) {
-							ListRow row = (ListRow) rows.get(i);
-							row.fixupPosition();
-						}
+						fixUpPositions(iFirstChange, false);
 					}
+					bottomRowInfo = findBottomRow(iLastVBarPos, clientArea.height);
+					topRowInfo = findTopRow(iLastVBarPos);
 
 					if (!viewVisible && listCanvas.isVisible() && lShowHide != null) {
-			  		Event e = new Event();
-			  		e.type = SWT.Show;
-			  		e.widget = listCanvas;
-			  		lShowHide.handleEvent(e);
+						Event e = new Event();
+						e.type = SWT.Show;
+						e.widget = listCanvas;
+						lShowHide.handleEvent(e);
 					}
 
 					refreshScrollbar();
@@ -1403,8 +1553,8 @@ public class ListView
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#removeDataSources(java.lang.Object[])
 	public void removeDataSources(final Object[] dataSources) {
-		Utils.execSWTThread(new Runnable() {
-			public void run() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
 				try {
 					row_mon.enter();
 					int firstIndex = dataSources.length;
@@ -1440,6 +1590,7 @@ public class ListView
 
 							// Delete row before removing in case delete(..) calls back a method
 							// which needs rows.
+							totalHeight -= row.getHeight();
 							row.setSelected(false);
 							row.setFocused(false);
 							row.delete();
@@ -1453,16 +1604,15 @@ public class ListView
 						}
 					}
 
+					fixUpPositions(firstIndex, false);
+					bottomRowInfo = findBottomRow(iLastVBarPos, clientArea.height);
+
 					if (newFocusRow != null) {
 						//System.out.println("SR " + newFocusRow.getIndex());
 						rowSetFocused(newFocusRow);
 						newFocusRow.setSelected(true);
 					}
 
-					for (int i = firstIndex; i < rows.size(); i++) {
-						ListRow fixRow = (ListRow) rows.get(i);
-						fixRow.fixupPosition();
-					}
 				} finally {
 					row_mon.exit();
 					refreshScrollbar();
@@ -1471,10 +1621,9 @@ public class ListView
 					if (imgView != null && !imgView.isDisposed()
 							&& !listCanvas.isDisposed()) {
 						TableRowCore[] visibleRows = getVisibleRows();
-						Rectangle clientArea = listCanvas.getClientArea();
 						if (visibleRows.length > 0) {
-							int ofs = getRowYoffset(iLastVBarPos);
-							int endY = visibleRows.length * DEFAULT_ROW_HEIGHT + ofs;
+							ListRow lastRow = (ListRow) visibleRows[visibleRows.length - 1];
+							int endY = lastRow.getBasicYPos() + lastRow.getHeight();
 
 							if (endY < clientArea.height) {
 								boolean isOurGC = gcImgView == null;
@@ -1677,19 +1826,19 @@ public class ListView
 					listCanvas.setFocus();
 
 					if (DEMO_DRAGROW) {
-  					Utils.disposeSWTObjects(new Object[] {
-  						imgMove
-  					});
-  					Rectangle rowArea = listCanvas.getClientArea();
-  					rowArea.y = row.getVisibleYOffset();
-  					rowArea.height = row.getHeight();
-  					mouseDownAt = new Point(e.x, e.y - rowArea.y);
-  
-  					imgMove = new Image(listCanvas.getDisplay(), rowArea.width,
-  							rowArea.height);
-  					GC gc = new GC(listCanvas);
-  					gc.copyArea(imgMove, rowArea.x, rowArea.y);
-  					gc.dispose();
+						Utils.disposeSWTObjects(new Object[] {
+							imgMove
+						});
+						Rectangle rowArea = clientArea.intersection(clientArea);
+						rowArea.y = row.getVisibleYOffset();
+						rowArea.height = row.getHeight();
+						mouseDownAt = new Point(e.x, e.y - rowArea.y);
+
+						imgMove = new Image(listCanvas.getDisplay(), rowArea.width,
+								rowArea.height);
+						GC gc = new GC(listCanvas);
+						gc.copyArea(imgMove, rowArea.x, rowArea.y);
+						gc.dispose();
 					}
 
 					mouseEventType = TableCellMouseEvent.EVENT_MOUSEDOWN;
@@ -1702,6 +1851,11 @@ public class ListView
 						listCanvas.update();
 					}
 					mouseEventType = TableCellMouseEvent.EVENT_MOUSEUP;
+					break;
+				}
+
+				case SWT.MouseDoubleClick: {
+					mouseEventType = TableCellMouseEvent.EVENT_MOUSEDOUBLECLICK;
 					break;
 				}
 			}
@@ -1731,30 +1885,62 @@ public class ListView
 			if (bMouseClickIsDefaultSelection && e.type == SWT.MouseUp) {
 				_runDefaultAction();
 			}
+
+			if (e.type == SWT.MouseDoubleClick) {
+				_runDefaultAction();
+			}
 		}
 	}
 
 	/**
+	 * Get Row relative to top
 	 * @param x
 	 * @param y
 	 * @return
 	 */
 	// @see com.aelitis.azureus.ui.common.table.TableView#getRow(int, int)
 	public TableRowCore getRow(int x, int y) {
-		int pos = (y + iLastVBarPos) / DEFAULT_ROW_HEIGHT;
-		if (rowFocused != null && pos >= rowFocused.getIndex()) {
-			pos = (y
-					- (DEFAULT_ROW_HEIGHT_SELECTED - DEFAULT_ROW_HEIGHT) + iLastVBarPos)
-					/ DEFAULT_ROW_HEIGHT;
+		if (y < 0 || x >= clientArea.x + clientArea.width || x < 0
+				|| y >= clientArea.y + clientArea.height) {
+			return null;
 		}
-		if (pos < rows.size() && pos >= 0) {
-			ListRow row = (ListRow) rows.get(pos);
-			//System.out.println("getRow; y=" + y + ";sb=" + iLastVBarPos + ";pos="
-			//		+ pos + ";" + row);
-			return row;
-		}
+		RowInfo rowInfo = getRowAbsolute(x, iLastVBarPos + y);
+		return rowInfo == null ? null : rowInfo.row;
+	}
 
-		return null;
+	//public TableRowCore getRowAbsolute(int x, int y) {
+	public RowInfo getRowAbsolute(int x, int y) {
+		row_mon.enter();
+		try {
+			int numRows = rows.size();
+			if (numRows == 0) {
+				return null;
+			}
+
+			int index = Collections.binarySearch(rows, new Long(y), rowYPosComparator);
+
+			if (index < 0) {
+				index = -1 * index - 2; // best guess
+				if (index < 0) {
+					index = 0;
+				}
+			}
+
+			if (index >= numRows) {
+				index = numRows;
+			}
+
+			ListRow row = (ListRow) rows.get(index);
+			if (row == null) {
+				return null;
+			}
+			if (y > row.getBasicYPos() + row.getHeight()) {
+				return null;
+			}
+			return new RowInfo(row, index);
+		} finally {
+			row_mon.exit();
+		}
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#getTableCell(int, int)
@@ -1863,10 +2049,18 @@ public class ListView
 			return new TableColumnCore[0];
 		}
 
+		if (adjustingColumns) {
+			if (DEBUG_COLUMNSIZE) {
+				logCOLUMNSIZE("getVisColumns: exit early via "
+						+ Debug.getCompressedStackTrace());
+			}
+			return lastVisibleColumns;
+		}
+
 		adjustingColumns = true;
 
 		try {
-			final int iClientWidth = listCanvas.getClientArea().width;
+			final int iClientWidth = clientArea.width;
 
 			if (iClientWidth <= 0) {
 				return new TableColumnCore[0];
@@ -1876,11 +2070,13 @@ public class ListView
 				return lastVisibleColumns;
 			}
 
-			lastClientWidth = iClientWidth;
-
 			if (DEBUG_COLUMNSIZE) {
-				logCOLUMNSIZE(listCanvas.getSize() + "," + listCanvas.getBounds());
+				logCOLUMNSIZE("getVisColumns: size=" + listCanvas.getSize() + ","
+						+ listCanvas.getBounds() + ";" + clientArea + ";last="
+						+ lastClientWidth + "; via " + Debug.getCompressedStackTrace());
 			}
+
+			lastClientWidth = iClientWidth;
 
 			TableColumnManager tcManager = TableColumnManager.getInstance();
 			List autoHideOrder = tcManager.getAutoHideOrder(sTableID);
@@ -1890,11 +2086,13 @@ public class ListView
 			int totalMinWidth = 0;
 			int totalMinWidthVis = 0;
 			int totalPrefWidthVis = 0;
+			ArrayList visibleColumnsList = new ArrayList(allColumns.length);
 			for (int i = 0; i < allColumns.length; i++) {
 				TableColumnCore column = allColumns[i];
-				if (column.getPosition() < 0) {
+				if (!column.isVisible() && !autoHideOrder.contains(column)) {
 					continue;
 				}
+				visibleColumnsList.add(allColumns[i]);
 
 				int minWidth = column.getMinWidth();
 				if (DEBUG_COLUMNSIZE) {
@@ -1915,13 +2113,6 @@ public class ListView
 			if (DEBUG_COLUMNSIZE) {
 				logCOLUMNSIZE("tot=" + totalWidthVis + ";minTot=" + totalMinWidth + "/"
 						+ totalMinWidthVis + ";avail=" + iClientWidth);
-			}
-
-			ArrayList visibleColumnsList = new ArrayList(allColumns.length);
-			for (int i = 0; i < allColumns.length; i++) {
-				if (allColumns[i].getPosition() >= 0) {
-					visibleColumnsList.add(allColumns[i]);
-				}
 			}
 
 			if (totalMinWidthVis > iClientWidth) {
@@ -1952,6 +2143,8 @@ public class ListView
 						columnToShow = column;
 
 						int iMinWidth = columnToShow.getMinWidth();
+						logCOLUMNSIZE("+++ attempt add column " + column.getName() + ";mw="
+								+ iMinWidth);
 						if (totalMinWidthVis + iMinWidth + COLUMN_PADDING_WIDTH < iClientWidth) {
 							columnToShow.setWidth(iMinWidth);
 							columnToShow.setVisible(true);
@@ -2276,6 +2469,7 @@ public class ListView
 			// refresh
 			changeColumnIndicator();
 
+			logCOLUMNSIZE("refresh " + lastVisibleColumns.length + " columns");
 			refreshVisible(true, true, false);
 
 		} finally {
@@ -2314,7 +2508,8 @@ public class ListView
 
 		ArrayList visibleColumnsList = new ArrayList();
 		for (int i = 0; i < allColumns.length; i++) {
-			if (allColumns[i].getPosition() >= 0) {
+			if (allColumns[i].getPosition() >= 0 && allColumns[i].isVisible()) {
+				//System.out.println("visColumn for " + sTableID + ":" + allColumns[i].getName());
 				visibleColumnsList.add(allColumns[i]);
 			}
 		}
@@ -2401,7 +2596,7 @@ public class ListView
 
 			TableRowCore[] rowsToSelectArray = new TableRowCore[rowsToSelect.size()];
 			rowsToSelect.toArray(rowsToSelectArray);
-			triggerDeselectionListeners(rowsToSelectArray);
+			triggerSelectionListeners(rowsToSelectArray);
 
 			bSkipSelectionTrigger = true;
 			for (Iterator iter = rowsToDeselect.iterator(); iter.hasNext();) {
@@ -2461,24 +2656,11 @@ public class ListView
 	}
 
 	protected void rowSetFocused(ListRow row) {
-		boolean oneWasNull = false;
 		if (row != null) {
-			row.setHeight(DEFAULT_ROW_HEIGHT_SELECTED);
 			rowShow(row);
-		} else {
-			oneWasNull = true;
 		}
 
-		if (rowFocused != null) {
-			rowFocused.setHeight(DEFAULT_ROW_HEIGHT);
-		} else {
-			oneWasNull = true;
-		}
 		rowFocused = row;
-		
-		if (oneWasNull) {
-			refreshVisible(true, true, true);
-		}
 
 		triggerFocusChangedListeners(row);
 	}
@@ -2494,62 +2676,43 @@ public class ListView
 			return;
 		}
 
-		Rectangle clientArea = listCanvas.getClientArea();
-		int iTopIndex = iLastVBarPos / DEFAULT_ROW_HEIGHT;
-		int iBottomIndex = (iLastVBarPos + clientArea.height - 1)
-				/ DEFAULT_ROW_HEIGHT;
+		int y = row.getBasicYPos();
+		int height = row.getHeight();
+		//System.out.println(sTableID + "] show row " + row + ";" + y
+		//		+ ";totalheight=" + totalHeight + ";vbar=" + iLastVBarPos);
+		if (y < iLastVBarPos) {
+			scrollTo(y);
+		} else if (y + height > iLastVBarPos + clientArea.height) {
 
-		int size = iBottomIndex - iTopIndex + 1;
-		if (size <= 0) {
-			return;
-		}
-
-		int i = row.getIndex();
-		if (i > iTopIndex && i < iBottomIndex) {
-			return;
-		}
-
-		int myPos = (i - iTopIndex) * DEFAULT_ROW_HEIGHT;
-
-		//System.out.println("rowShow:" + i + ";top=" + iTopIndex + ";b="
-		//		+ iBottomIndex + ";" + iLastVBarPos);
-
-		if (i == iTopIndex) {
-			int ofs = getRowYoffset(iLastVBarPos);
-			if (ofs == 0) {
-				return;
-			}
-
-			scrollTo(myPos);
-			return;
-		}
-
-		if (i == iBottomIndex) {
-			int ofs = getRowYoffset(iLastVBarPos + clientArea.height);
-			if (ofs == 0) {
-				return;
-			}
-
-			scrollTo((iTopIndex + 1) * DEFAULT_ROW_HEIGHT);
-
-			return;
-		}
-
-		// adjust bar so that new focused row is in the same spot as the old
-		// one
-		int ofs = 0;
-		ListRow rowFocused = getRowFocused();
-		if (rowFocused != null) {
-			int iFocusedIdx = rowFocused.getIndex();
-			if (iFocusedIdx >= iTopIndex && iFocusedIdx <= iBottomIndex) {
-				ofs = (rowFocused.getIndex() * DEFAULT_ROW_HEIGHT) - iLastVBarPos;
-				//System.out.println("moveF ofs=" + ofs + "; mp = " + myPos);
-				if (ofs < 0) {
-					ofs = 0;
+			if (y <= iLastVBarPos + clientArea.height) {
+				row = topRowInfo.row;
+				int y2 = row.getBasicYPos();
+				int i = topRowInfo.index;
+				while (y + height > y2 + clientArea.height) {
+					y2 += row.getHeight();
+					row = getRow(++i);
 				}
+				scrollTo(y2);
+			} else {
+				scrollTo(y);
 			}
+
+			//			// adjust bar so that new focused row is in the same spot as the old
+			//			// one
+			//			int ofs = 0;
+			//			ListRow rowFocused = getRowFocused();
+			//			if (rowFocused != null) {
+			//				ofs = rowFocused.getBasicYPos() - iLastVBarPos;
+			//				//System.out.println("moveF ofs=" + ofs + "; mp = " + myPos);
+			//				if (ofs > 0 && ofs < clientArea.height) {
+			//					y += ofs;
+			//				}
+			//			}
+
 		}
-		scrollTo(i * DEFAULT_ROW_HEIGHT - ofs);
+		//System.out.println(sTableID + "] show done " + row + ";" + y
+		//		+ ";totalheight=" + totalHeight + ";vbar=" + iLastVBarPos);
+
 	}
 
 	public boolean isFocused() {
@@ -2569,13 +2732,12 @@ public class ListView
 	// XXX This gets called a lot.  Could store location and size on 
 	//     resize/scroll of sc
 	public Rectangle getBounds() {
-		Rectangle clientArea = listCanvas.getClientArea();
 		return new Rectangle(clientArea.x, -iLastVBarPos, clientArea.width,
 				clientArea.height);
 	}
 
 	public Rectangle getClientArea() {
-		return listCanvas.getClientArea();
+		return clientArea;
 	}
 
 	// @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
@@ -2668,8 +2830,7 @@ public class ListView
 					System.out.println("TR" + event.detail);
 
 			}
-		} else if (event.type == SWT.DefaultSelection
-				|| event.type == SWT.MouseDoubleClick) {
+		} else if (event.type == SWT.DefaultSelection) {
 			_runDefaultAction();
 		}
 
@@ -2767,8 +2928,11 @@ public class ListView
 
 	// @see com.aelitis.azureus.ui.common.table.TableStructureModificationListener#columnOrderChanged(int[])
 	public void columnOrderChanged(int[] iPositions) {
-		// TODO Auto-generated method stub
+		Arrays.sort(allColumns);
 
+		logCOLUMNSIZE("Clear lastClientWidth via columnOrdereChanged");
+		lastClientWidth = 0;
+		getVisibleColumns();
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableStructureModificationListener#columnSizeChanged(com.aelitis.azureus.ui.common.table.TableColumnCore)
@@ -2779,19 +2943,26 @@ public class ListView
 		if (isDisposed()) {
 			return;
 		}
-		if (tableColumn.getPosition() < 0) {
+		if (!tableColumn.isVisible()) {
 			return;
 		}
+		logCOLUMNSIZE("Clear lastClientWidth via columnSizeChanged "
+				+ tableColumn.getName());
 		lastClientWidth = 0;
 		getVisibleColumns();
 	}
 
 	public void tableStructureChanged() {
 		// force an eventual recalc of visible row widths
-		lastClientWidth = 0;
 		triggerLifeCycleListener(TableLifeCycleListener.EVENT_DESTROYED);
 
 		removeAllTableRows();
+
+		Arrays.sort(allColumns, TableColumnManager.getTableColumnOrderComparator());
+
+		logCOLUMNSIZE("Clear lastClientWidth via tableStructureChanged");
+		lastClientWidth = 0;
+		getVisibleColumns();
 
 		triggerLifeCycleListener(TableLifeCycleListener.EVENT_INITIALIZED);
 	}
@@ -2813,13 +2984,10 @@ public class ListView
 				sortColumn.setSortAscending(!sortColumn.isSortAscending());
 			}
 
-			configMan.setParameter(sTableID + ".sortAsc",
-					sortColumn.isSortAscending());
-			configMan.setParameter(sTableID + ".sortColumn", sortColumn.getName());
+			TableColumnManager.getInstance().setDefaultSortColumnName(sTableID,
+					sortColumn.getName());
 		} else {
 			sortColumn.setSortAscending(!sortColumn.isSortAscending());
-			configMan.setParameter(sTableID + ".sortAsc",
-					sortColumn.isSortAscending());
 		}
 
 		sortColumn.setLastSortValueChange(SystemTime.getCurrentTime());
@@ -2864,7 +3032,7 @@ public class ListView
 						TableRowCore row = (TableRowCore) iter.next();
 						TableCellCore cell = row.getTableCellCore(sColumnID);
 						if (cell != null) {
-							cell.refresh(true, false, false);
+							cell.refresh(true);
 						}
 					}
 				}
@@ -2906,10 +3074,10 @@ public class ListView
 					log("numChanged " + iNumChanged);
 				}
 				if (iFirstChange >= 0) {
-					for (int i = iFirstChange; i < rows.size(); i++) {
-						ListRow row = (ListRow) rows.get(i);
-						row.fixupPosition();
-					}
+					fixUpPositions(iFirstChange, false);
+
+					topRowInfo = findTopRow(iLastVBarPos);
+					bottomRowInfo = findBottomRow(iLastVBarPos, clientArea.height);
 
 					if (DEBUG_SORTER) {
 						long lTimeDiff = (System.currentTimeMillis() - lTimeStart);
@@ -2933,50 +3101,87 @@ public class ListView
 		// if we want that behaviour
 	}
 
+	/**
+	 * @param onlyHeight 
+	 * @param firstChange
+	 *
+	 * @since 3.0.4.3
+	 */
+	private void fixUpPositions(int startAtIndex, boolean onlyHeight) {
+		row_mon.enter();
+		try {
+			if (rows.size() < startAtIndex || startAtIndex < 0) {
+				return;
+			}
+
+			int y;
+			if (startAtIndex > 0) {
+				ListRow prevRow = ((ListRow) rows.get(startAtIndex - 1));
+				y = prevRow.getBasicYPos() + prevRow.getHeight();
+			} else {
+				y = 0;
+			}
+			for (int i = startAtIndex; i < rows.size(); i++) {
+				ListRow row = (ListRow) rows.get(i);
+				//log("change " + i + " fron " + row.getBasicYPos() + " to " + y);
+				row.setBasicYPos(y);
+				y += row.getHeight();
+				if (!onlyHeight) {
+					row.fixupPosition();
+				}
+			}
+		} finally {
+			row_mon.exit();
+		}
+	}
+
 	public TableColumnCore[] getAllColumns() {
 		return allColumns;
 	}
 
-	public boolean isRowVisible(final ListRow row) {
-		if (listCanvas == null || listCanvas.isDisposed() || !viewVisible) {
+	// @see com.aelitis.azureus.ui.common.table.TableView#isRowVisible(com.aelitis.azureus.ui.common.table.TableRowCore)
+	public boolean isRowVisible(final TableRowCore row) {
+		if (!viewVisible) {
 			return false;
 		}
 
-		return Utils.execSWTThreadWithBool("isRowVisible", new AERunnableBoolean() {
-			public boolean runSupport() {
-				return _isRowVisible(row);
+		// Calculating based on position and size is faster than indexOf(row)
+		// on large lists
+		if (row instanceof ListRow) {
+			ListRow listRow = (ListRow) row;
+			int yPos = listRow.getBasicYPos();
+			if (yPos < 0 || yPos >= iLastVBarPos + clientArea.height) {
+				return false;
 			}
-		}, 30000);
-	}
+			int height = listRow.getHeight();
+			//System.out.println(sTableID + "] " + i + ";y=" + yPos + ";h=" + height + ";l=" + iLastVBarPos + ";ch=" + clientArea.height );
+			return yPos + height > iLastVBarPos;
+		}
 
-	public boolean _isRowVisible(ListRow row) {
-		if (listCanvas == null || listCanvas.isDisposed() || !viewVisible) {
+		if (topRowInfo == null || bottomRowInfo == null) {
 			return false;
 		}
 
-		Rectangle clientArea = listCanvas.getClientArea();
-		int iTopIndex = iLastVBarPos / DEFAULT_ROW_HEIGHT;
-		int iBottomIndex = (iLastVBarPos + clientArea.height - 1)
-				/ DEFAULT_ROW_HEIGHT;
+		int i = indexOf(row);
 
-		int size = iBottomIndex - iTopIndex + 1;
-		if (size <= 0) {
+		int iTopIndex = topRowInfo.index;
+		if (i < iTopIndex) {
 			return false;
+		} else if (i == iTopIndex) {
+			return true;
 		}
 
-		int i = row.getIndex();
-		return (i >= iTopIndex && i <= iBottomIndex);
+		return i <= bottomRowInfo.index;
 	}
 
 	public TableRowSWT[] getVisibleRows() {
-		if (listCanvas == null || listCanvas.isDisposed()) {
+		if (listCanvas == null || listCanvas.isDisposed() || topRowInfo == null
+				|| bottomRowInfo == null || !viewVisible) {
 			return new TableRowSWT[0];
 		}
 
-		int y = iLastVBarPos;
-		Rectangle clientArea = listCanvas.getClientArea();
-		int iTopIndex = y / DEFAULT_ROW_HEIGHT;
-		int iBottomIndex = (y + clientArea.height - 1) / DEFAULT_ROW_HEIGHT;
+		int iTopIndex = topRowInfo.index;
+		int iBottomIndex = bottomRowInfo.index;
 
 		int size = iBottomIndex - iTopIndex + 1;
 		if (size <= 0) {
@@ -3007,6 +3212,9 @@ public class ListView
 
 	public boolean cellRefresh(final ListCell cell, final boolean bDoGraphics,
 			final boolean bForceRedraw) {
+		if (!isRowVisible(cell.getRow())) {
+			return true;
+		}
 		final Boolean[] b = new Boolean[1];
 
 		Utils.execSWTThread(new AERunnable() {
@@ -3021,7 +3229,7 @@ public class ListView
 	public boolean _cellRefresh(final ListCell cell, final boolean bDoGraphics,
 			final boolean bForceRedraw) {
 		// assume cell if being refreshed if there's already a GC
-		if (gcImgView != null || imgView == null) {
+		if (gcImgView != null || imgView == null || !cell.isShown()) {
 			return true;
 		}
 
@@ -3032,6 +3240,8 @@ public class ListView
 
 			Rectangle rect = cell.getBounds();
 			if (rect != null) {
+				logPAINT("redraw via cellRefresh " + rect + ";"
+						+ Debug.getCompressedStackTrace());
 				listCanvas.redraw(rect.x, rect.y, rect.width, rect.height, false);
 			}
 		} catch (Exception e) {
@@ -3070,7 +3280,7 @@ public class ListView
 			final boolean bForceRedraw) {
 		if (DEBUGPAINT) {
 			logPAINT("rowRefreshA " + row + " force? " + bForceRedraw + " via "
-					+ Debug.getCompressedStackTrace(5));
+					+ Debug.getCompressedStackTrace());
 		}
 
 		try {
@@ -3121,101 +3331,87 @@ public class ListView
 
 	private List _rowRefresh(ListRow row, boolean bDoGraphics,
 			boolean bForceRedraw) {
-		if (listCanvas == null || listCanvas.isDisposed()) {
+		if (listCanvas == null || listCanvas.isDisposed() || !isRowVisible(row)) {
 			return new ArrayList();
 		}
 
-		Rectangle clientArea = listCanvas.getClientArea();
-		int iTopIndex = getTopIndex();
+		// TuxDebug
+		//if (bForceRedraw)
+		//System.out.println(sTableID + "] row refresh @" + row.getBasicYPos());
 
-		int iFocusedRowIndex = rowFocused == null ? -1 : rowFocused.getIndex();
-		
-		int i = row.getIndex();
 		boolean changed = false;
 		List changedItems = null;
-		if (i >= iTopIndex) {
-			int ofs = getRowYoffset(iLastVBarPos);
-			int y = (i - iTopIndex) * DEFAULT_ROW_HEIGHT - ofs;
-			if (i > iFocusedRowIndex && iFocusedRowIndex >= 0) {
-				y += DEFAULT_ROW_HEIGHT_SELECTED - DEFAULT_ROW_HEIGHT;
-			}
+		Rectangle rect = new Rectangle(clientArea.x, rowGetVisibleYOffset(row),
+				clientArea.width, row.getHeight());
 
-			Rectangle rect = new Rectangle(clientArea.x, y, clientArea.width,
-					row.getHeight());
+		if (imgView != null) {
+			boolean isOurGC = gcImgView == null || gcImgView.isDisposed();
+			/*
+			 * 1) Refresh the row
+			 * 2) Paint any columns (or full row) if they visually changed
+			 */
+			try {
+				if (isOurGC) {
+					gcImgView = new GC(imgView);
+				}
+				gcImgView.setClipping(rect);
 
-			if (imgView != null) {
-				boolean isOurGC = gcImgView == null;
-				/*
-				 * 1) Refresh the row
-				 * 2) Paint any columns (or full row) if they visually changed
-				 */
-				try {
-					if (isOurGC) {
-						gcImgView = new GC(imgView);
-					}
-					gcImgView.setClipping(rect);
+				changedItems = row._refresh(bDoGraphics, true);
+				boolean thisChanged = changedItems.size() > 0;
+				changed |= thisChanged;
 
-					if (!row.isVisible()) {
-						// XXX turn this back on after release
-						//System.out.println("asked for row refresh but not visible "
-						//	+ row.getIndex() + ";" + Debug.getCompressedStackTrace());
-						return new ArrayList();
-					}
-
-					changedItems = row._refresh(bDoGraphics, true);
-					boolean thisChanged = changedItems.size() > 0;
-					changed |= thisChanged;
-
-					if (bForceRedraw) {
-						row.doPaint(gcImgView, true);
-					} else if (thisChanged) {
-						String sChanged = "" + row.getIndex() + " ";
-						for (Iterator iter = changedItems.iterator(); iter.hasNext();) {
-							Object item = iter.next();
-							if (item instanceof TableRowSWT) {
-								sChanged += ", r" + ((TableRowSWT) item).getIndex();
-								((TableRowSWT) item).doPaint(gcImgView, true);
-								break;
-							}
-							if (item instanceof TableCellSWT) {
-								sChanged += "," + item;
-								((TableCellSWT) item).doPaint(gcImgView);
-							}
+				//bForceRedraw = true;
+				if (bForceRedraw) {
+					row.doPaint(gcImgView, true);
+				} else if (thisChanged) {
+					String sChanged = "" + row.getIndex() + " ";
+					for (Iterator iter = changedItems.iterator(); iter.hasNext();) {
+						Object item = iter.next();
+						if (item instanceof TableRowSWT) {
+							sChanged += ", r" + ((TableRowSWT) item).getIndex();
+							((TableRowSWT) item).doPaint(gcImgView, true);
+							break;
 						}
-						//log("rowRefresh: Items changed: " + sChanged);
+						if (item instanceof TableCellSWT) {
+							sChanged += "," + item;
+							((TableCellSWT) item).doPaint(gcImgView);
+						}
 					}
-				} catch (Exception e) {
-					if (!(e instanceof IllegalArgumentException)) {
-						// IllegalArgumentException happens when we are already drawing 
-						// to the image.  This is "normal" as we may be in a paint event,
-						// and something forces a repaint
-						Debug.out(e);
-					} else {
-						log("Already drawing on image: " + Debug.getCompressedStackTrace());
-					}
-				} finally {
-					if (isOurGC && gcImgView != null) {
-						gcImgView.dispose();
-						gcImgView = null;
-					}
+					//log("rowRefresh: Items changed: " + sChanged);
 				}
-			}
-
-			if (changed || bForceRedraw) {
-				// paint the image onto the canvas
-				listCanvas.redraw(rect.x, rect.y, rect.width, rect.height, false);
-
-				// prevent recursion
-				if (!isPaintingCanvas) {
-					//listCanvas.update();
+			} catch (Exception e) {
+				if (!(e instanceof IllegalArgumentException)) {
+					// IllegalArgumentException happens when we are already drawing 
+					// to the image.  This is "normal" as we may be in a paint event,
+					// and something forces a repaint
+					Debug.out(e);
+				} else {
+					log("Already drawing on image: " + Debug.getCompressedStackTrace());
 				}
-
-				//System.out.println("redrawing row " + i + "/" + row.getIndex() 
-				//	+ "; (" + clientArea.x + "," + y + ","
-				//	+ clientArea.width + "," + ListRow.ROW_HEIGHT + ") via "
-				//	+ Debug.getCompressedStackTrace());
+			} finally {
+				if (isOurGC && gcImgView != null) {
+					gcImgView.dispose();
+					gcImgView = null;
+				}
 			}
 		}
+
+		if (changed || bForceRedraw) {
+			// paint the image onto the canvas
+			logPAINT("redraw via rowRefresh " + rect);
+			listCanvas.redraw(rect.x, rect.y, rect.width, rect.height, false);
+
+			// prevent recursion
+			if (!isPaintingCanvas) {
+				//listCanvas.update();
+			}
+
+			//System.out.println("redrawing row " + i + "/" + row.getIndex() 
+			//	+ "; (" + clientArea.x + "," + y + ","
+			//	+ clientArea.width + "," + ListRow.ROW_HEIGHT + ") via "
+			//	+ Debug.getCompressedStackTrace());
+		}
+
 		return changedItems == null ? new ArrayList() : changedItems;
 	}
 
@@ -3267,23 +3463,34 @@ public class ListView
 		}
 	}
 
-	private int getTopIndex() {
-		if (listCanvas == null || listCanvas.isDisposed()) {
-			return -1;
-		}
+	protected int rowGetVisibleYOffset(TableRowCore row) {
+		ListRow listRow = (ListRow) row;
+		int basicYPos = listRow.getBasicYPos();
 
-		return iLastVBarPos / DEFAULT_ROW_HEIGHT;
+		return basicYPos - iLastVBarPos;
 	}
 
-	protected int rowGetVisibleYOffset(TableRowCore row) {
-		int i = row.getIndex();
-		int iTopIndex = iLastVBarPos / DEFAULT_ROW_HEIGHT;
-		int ofs = getRowYoffset(iLastVBarPos);
-		int yofs = (i - iTopIndex) * DEFAULT_ROW_HEIGHT - ofs;
-		if (rowFocused != null && row.getIndex() > rowFocused.getIndex()) {
-			yofs += DEFAULT_ROW_HEIGHT_SELECTED - DEFAULT_ROW_HEIGHT;
+	/**
+	 * @param listRow
+	 *
+	 * @since 3.0.4.3
+	 */
+	public void rowHeightChanged(ListRow rowChanged, int oldHeight, int newHeight) {
+		totalHeight = totalHeight - oldHeight + newHeight;
+
+		if (rowChanged.getBasicYPos() < 0) {
+			// not added yet, no need to fixup or refresh anything
+			return;
 		}
-		return yofs;
+
+		int startPos = indexOf(rowChanged);
+		fixUpPositions(startPos, true);
+
+		if (bottomRowInfo == null || startPos <= bottomRowInfo.index) {
+			bottomRowInfo = findBottomRow(iLastVBarPos, clientArea.height);
+		}
+		refreshScrollbar();
+		refreshVisible(true, true, true);
 	}
 
 	/** Creates the Context Menu.
@@ -3425,6 +3632,7 @@ public class ListView
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#delete()
 	public void delete() {
+		viewVisible = false;
 		triggerLifeCycleListener(TableLifeCycleListener.EVENT_DESTROYED);
 
 		UIUpdaterFactory.getInstance().removeUpdater(this);
@@ -3434,6 +3642,7 @@ public class ListView
 			headerArea,
 			listCanvas
 		});
+		TableColumnManager.getInstance().saveTableColumns(sTableID);
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#getColumnCells(java.lang.String)
@@ -3501,18 +3710,22 @@ public class ListView
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#refreshTable(boolean)
-	public void refreshTable(boolean forceSort) {
+	public void refreshTable(final boolean forceSort) {
 		if (listCanvas.isDisposed()) {
 			return;
 		}
 		//log("updateUI via " + Debug.getCompressedStackTrace());
 		processDataSourceQueue();
 
-		if (!sortTable(forceSort)) {
-			iGraphicRefresh++;
-			boolean bDoGraphics = (iGraphicRefresh % graphicsUpdate) == 0;
-			refreshVisible(bDoGraphics, false, true);
-		}
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (!sortTable(forceSort)) {
+					iGraphicRefresh++;
+					boolean bDoGraphics = (iGraphicRefresh % graphicsUpdate) == 0;
+					refreshVisible(bDoGraphics, false, true);
+				}
+			}
+		});
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#removeAllTableRows()
@@ -3544,7 +3757,7 @@ public class ListView
 	public void setRowDefaultHeight(int height) {
 		DEFAULT_ROW_HEIGHT = height + (ListView.ROW_MARGIN_HEIGHT * 2);
 	}
-	
+
 	// @see com.aelitis.azureus.ui.common.table.TableView#getRowDefaultHeight()
 	public int getRowDefaultHeight() {
 		return DEFAULT_ROW_HEIGHT;
@@ -3597,6 +3810,10 @@ public class ListView
 	}
 
 	public TableColumnMetrics getColumnMetrics(TableColumn column) {
+		if (mapColumnMetrics.size() == 0) {
+			// hack, because getVisibleColumns regenerates mapColumnMetrics
+			getVisibleColumns();
+		}
 		TableColumnMetrics metrics = (TableColumnMetrics) mapColumnMetrics.get(column);
 		return metrics;
 	}
@@ -3632,8 +3849,10 @@ public class ListView
 					break;
 
 				case SWT.F5: {
-					System.out.println("^F5");
-					refreshVisible(true, true, true);
+					System.out.println(sTableID + "] ^F5");
+					fixUpPositions(0, true);
+					sortTable(true);
+					//refreshVisible(true, true, true);
 					break;
 				}
 			}
@@ -3673,7 +3892,7 @@ public class ListView
 				}
 
 				case SWT.F5: {
-					System.out.println("F5");
+					System.out.println(sTableID + "] F5");
 					TableRowCore[] rows = getSelectedRows();
 					for (int i = 0; i < rows.length; i++) {
 						rows[i].invalidate();
@@ -3703,13 +3922,40 @@ public class ListView
 		return getTableCell(pt.x, pt.y);
 	}
 
+	public Point getTableCellCursorOffset() {
+		Point pt = listCanvas.getDisplay().getCursorLocation();
+		pt = listCanvas.toControl(pt);
+		TableCellSWT tableCell = getTableCell(pt.x, pt.y);
+		if (tableCell == null) {
+			return null;
+		}
+		Rectangle bounds = tableCell.getBounds();
+		return new Point(pt.x - bounds.x, pt.y - bounds.y);
+	}
+
 	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#getTableRowWithCursor()
 	public TableRowCore getTableRowWithCursor() {
 		Point pt = listCanvas.getDisplay().getCursorLocation();
 		pt = listCanvas.toControl(pt);
 		return (TableRowSWT) getRow(pt.x, pt.y);
 	}
-	
+
+	/**
+	 * @param column
+	 * @return
+	 *
+	 * @since 3.0.4.3
+	 */
+	public boolean isColumnShown(TableColumn column) {
+		for (int i = 0; i < lastVisibleColumns.length; i++) {
+			TableColumn tc = lastVisibleColumns[i];
+			if (tc == column) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#isColumnVisible(com.aelitis.azureus.ui.common.table.TableColumnCore)
 	 */

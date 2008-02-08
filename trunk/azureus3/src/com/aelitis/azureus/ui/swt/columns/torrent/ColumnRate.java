@@ -40,13 +40,18 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
+import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger.GetRatingReply;
+import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger.RatingUpdateListener;
 import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.common.table.TableCellCore;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.views.list.ListCell;
+import com.aelitis.azureus.util.VuzeActivitiesEntry;
 
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -59,9 +64,9 @@ public class ColumnRate
 	extends CoreTableColumn
 	implements TableCellAddedListener
 {
-	public static String COLUMN_ID = "Rating";
+	public static final String COLUMN_ID = "Rating";
 
-	private final int COLUMN_WIDTH = 55;
+	public static final int COLUMN_WIDTH = 58;
 
 	private static Font font = null;
 
@@ -88,7 +93,7 @@ public class ColumnRate
 	private static Image imgRateMeButtonEnabled;
 
 	private static Image imgRateMeButtonDisabled;
-	
+
 	private static Rectangle boundsRateMe;
 
 	private static int width;
@@ -97,8 +102,6 @@ public class ColumnRate
 
 	private boolean disabled;
 
-	private boolean mouseIn = false;
-
 	private boolean allowRate = true;
 
 	static {
@@ -106,15 +109,18 @@ public class ColumnRate
 		boundsRateMe = imgRateMe.getBounds();
 		width = boundsRateMe.width;
 
-		imgRateMeButtonEnabled = ImageLoaderFactory.getInstance().getImage("icon.rateme-button");
+		imgRateMeButtonEnabled = ImageLoaderFactory.getInstance().getImage(
+				"icon.rateme-button");
 		imgRateMeButton = imgRateMeButtonEnabled;
 		width = Math.max(width, imgRateMeButton.getBounds().width);
 
-		imgRateMeButtonDisabled = ImageLoaderFactory.getInstance().getImage("icon.rateme-button-disabled");
+		imgRateMeButtonDisabled = ImageLoaderFactory.getInstance().getImage(
+				"icon.rateme-button-disabled");
 		width = Math.max(width, imgRateMeButtonDisabled.getBounds().width);
 
 		imgRateMeUp = ImageLoaderFactory.getInstance().getImage("icon.rateme.up");
-		imgRateMeDown = ImageLoaderFactory.getInstance().getImage("icon.rateme.down");
+		imgRateMeDown = ImageLoaderFactory.getInstance().getImage(
+				"icon.rateme.down");
 
 		imgWait = ImageLoaderFactory.getInstance().getImage("icon.rate.wait");
 		width = Math.max(width, imgWait.getBounds().width);
@@ -122,7 +128,8 @@ public class ColumnRate
 		imgDown = ImageLoaderFactory.getInstance().getImage("icon.rate.down");
 		imgUp = ImageLoaderFactory.getInstance().getImage("icon.rate.up");
 
-		imgDownSmall = ImageLoaderFactory.getInstance().getImage("icon.rate.small.down");
+		imgDownSmall = ImageLoaderFactory.getInstance().getImage(
+				"icon.rate.small.down");
 		imgUpSmall = ImageLoaderFactory.getInstance().getImage("icon.rate.small.up");
 	}
 
@@ -137,7 +144,7 @@ public class ColumnRate
 		super(COLUMN_ID, sTableID);
 		this.allowRate = allowRate;
 		initializeAsGraphic(POSITION_LAST, COLUMN_WIDTH);
-		setAlignment(ALIGN_CENTER);
+		setAlignment(ALIGN_TRAIL);
 		setWidthLimits(COLUMN_WIDTH, COLUMN_WIDTH);
 	}
 
@@ -147,22 +154,27 @@ public class ColumnRate
 
 	private class Cell
 		implements TableCellRefreshListener, TableCellDisposeListener,
-		TableCellMouseMoveListener, TableCellToolTipListener, TableRowMouseListener
+		TableCellMouseMoveListener, TableCellToolTipListener, TableRowMouseListener, RatingUpdateListener,
+		TableCellVisibilityListener
 	{
 		String rating = "--";
 
-		private boolean hasMouse;
-
 		private boolean bMouseDowned;
-		
+
 		private int hoveringOn = -1;
+		
+		private DownloadManager dm;
+
+		private TableCell cell;
 
 		public Cell(final TableCell cell) {
+			this.cell = cell;
+			PlatformRatingMessenger.addListener(this);
 			cell.addListeners(this);
 			cell.setMarginWidth(0);
 			cell.setMarginHeight(0);
 
-			DownloadManager dm = (DownloadManager) cell.getDataSource();
+			dm = getDM(cell.getDataSource());
 			if (dm != null) {
 				boolean isContent = PlatformTorrentUtils.isContent(dm.getTorrent(),
 						true);
@@ -178,6 +190,7 @@ public class ColumnRate
 		}
 
 		public void dispose(TableCell cell) {
+			PlatformRatingMessenger.removeListener(this);
 			disposeOldImage(cell);
 		}
 
@@ -195,7 +208,7 @@ public class ColumnRate
 				});
 				return;
 			}
-			DownloadManager dm = (DownloadManager) cell.getDataSource();
+			DownloadManager dm = getDM(cell.getDataSource());
 			if (dm == null) {
 				return;
 			}
@@ -232,7 +245,7 @@ public class ColumnRate
 				return;
 			}
 			boolean needsFill = false;
-			Image img = ((UISWTGraphic)cell.getBackgroundGraphic()).getImage();
+			Image img = ((UISWTGraphic) cell.getBackgroundGraphic()).getImage();
 			if (img == null) {
 				img = new Image(Display.getDefault(), width, height);
 				needsFill = true;
@@ -242,68 +255,69 @@ public class ColumnRate
 			GC gcImage = new GC(img);
 
 			if (needsFill) {
-  			int[] bg = cell.getBackground();
-  			if (bg != null) {
-  				gcImage.setBackground(ColorCache.getColor(gcImage.getDevice(), bg[0],
-  						bg[1], bg[2]));
-  				gcImage.fillRectangle(0, 0, width, height);
-  			}
+				int[] bg = cell.getBackground();
+				if (bg != null) {
+					gcImage.setBackground(ColorCache.getColor(gcImage.getDevice(), bg[0],
+							bg[1], bg[2]));
+					gcImage.fillRectangle(0, 0, width, height);
+				}
 			}
 
 			boolean showAverage = !useButton;
 
 			Image imgRate = null;
 			if (allowRate) {
-				boolean isComplete = dm.isDownloadComplete(false);
-				if (hasMouse && userRating == -1 && isComplete) {
+				TableRow row = cell.getTableRow();
+				boolean rowHasMouse = (row instanceof TableRowCore)
+						? ((TableRowCore) row).isMouseOver() : false;
+				if (rowHasMouse && userRating == -1) {
 					showAverage = false;
 				}
 
-  			switch (userRating) {
-  				case -2: // waiting
-  					imgRate = imgWait;
-  					break;
-  
-  				case -1: // unrated
-  					if ((useButton && !mouseIn) || disabled) {
-  						imgRate = imgRateMeButton;
-  					} else if (useButton || isComplete) {
-    					switch (hoveringOn) {
-    						case 0:
-    							imgRate = imgRateMeDown;
-    							break;
-    						case 1:
-    							imgRate = imgRateMeUp;
-    							break;
-    						default:
-    	  					imgRate = imgRateMe;
-    					}
-  					}
-  					break;
-  
-  				case 0:
-  					imgRate = useButton ? imgDown : imgDownSmall;
-  					break;
-  
-  				case 1:
-  					imgRate = useButton  ? imgUp : imgUpSmall;
-  					break;
-  			}  
+				switch (userRating) {
+					case -2: // waiting
+						imgRate = imgWait;
+						break;
+
+					case -1: // unrated
+						boolean mouseIn = (useButton && (cell instanceof TableCellCore))
+								? ((TableCellCore) cell).isMouseOver() : false;
+						if ((useButton && !mouseIn) || disabled) {
+							imgRate = imgRateMeButton;
+						} else {
+							switch (hoveringOn) {
+								case 0:
+									imgRate = imgRateMeDown;
+									break;
+								case 1:
+									imgRate = imgRateMeUp;
+									break;
+								default:
+									imgRate = imgRateMe;
+							}
+						}
+						break;
+
+					case 0:
+						imgRate = useButton ? imgDown : imgDownSmall;
+						break;
+
+					case 1:
+						imgRate = useButton ? imgUp : imgUpSmall;
+						break;
+				}
 			}
 
 			if (showAverage) {
 				int bigTextStyle = SWT.CENTER;
-				int smallTextStyle = SWT.CENTER;
+				int smallTextStyle = SWT.RIGHT;
 				if (imgRate != null && (userRating >= 0 || userRating == -2)) {
-					bigTextStyle = SWT.LEFT;
 					//smallTextStyle = SWT.RIGHT;
-					Rectangle bounds = imgRate.getBounds();
-					int x = width - bounds.width;
-					gcImage.drawImage(imgRate, x, 0);
+					gcImage.drawImage(imgRate, 3, 5);
 				}
 
 				Rectangle r = img.getBounds();
-				r.x += 2;
+				r.x += 2 + 12;
 				r.y += 2;
 				r.height -= 11;
 				r.width -= 2;
@@ -313,12 +327,12 @@ public class ColumnRate
 					FontData[] fontData = gcImage.getFont().getFontData();
 					fontData[0].setStyle(SWT.BOLD);
 					// we can do a few more pixels because we have no text hanging below baseline
-					Utils.getFontHeightFromPX(gcImage.getDevice(), fontData, gcImage,
-							(int) (r.height * 1.15));
+					Utils.getFontHeightFromPX(gcImage.getDevice(), fontData, gcImage, 22);
 					font = new Font(Display.getDefault(), fontData);
 				}
 
 				gcImage.setFont(font);
+				gcImage.setTextAntialias(SWT.ON);
 
 				SWTSkinProperties skinProperties = SWTSkinFactory.getInstance().getSkinProperties();
 
@@ -343,6 +357,7 @@ public class ColumnRate
 				}
 
 				r = img.getBounds();
+				r.x += 12;
 				r.width -= 2;
 				r.height -= 11;
 				gcImage.setForeground(color1);
@@ -360,6 +375,7 @@ public class ColumnRate
 					}
 
 					gcImage.setFont(smallFont);
+					gcImage.setTextAntialias(SWT.DEFAULT);
 
 					GCStringPrinter.printString(gcImage, "" + count + " ratings",
 							img.getBounds(), true, false, SWT.BOTTOM | smallTextStyle);
@@ -374,17 +390,17 @@ public class ColumnRate
 			}
 
 			gcImage.dispose();
-			
+
 			Graphic graphic = new UISWTGraphicImpl(img);
 
 			disposeOldImage(cell);
 
 			cell.setGraphic(graphic);
 			if (cell instanceof TableCellSWT) {
-  			TableCellSWT cellSWT = (TableCellSWT) cell;
-  			final ListCell listCell = (ListCell) cellSWT.getBufferedTableItem();
-  			listCell.invalidate();
-  			listCell.redraw();
+				TableCellSWT cellSWT = (TableCellSWT) cell;
+				final ListCell listCell = (ListCell) cellSWT.getBufferedTableItem();
+				listCell.invalidate();
+				listCell.redraw();
 			}
 		}
 
@@ -402,23 +418,25 @@ public class ColumnRate
 		}
 
 		public void cellMouseTrigger(final TableCellMouseEvent event) {
+			TableRow tableRow = event.cell.getTableRow();
+			if (tableRow == null) {
+				rowMouseTrigger(event, event.cell);
+			}
+			
 			if (disabled) {
 				return;
 			}
 
 			if (useButton) {
-				if (event.eventType == TableCellMouseEvent.EVENT_MOUSEENTER) {
-					mouseIn = true;
-					refresh(event.cell);
-				} else if (event.eventType == TableCellMouseEvent.EVENT_MOUSEEXIT) {
-					mouseIn  = false;
+				if (event.eventType == TableCellMouseEvent.EVENT_MOUSEENTER
+						|| event.eventType == TableCellMouseEvent.EVENT_MOUSEEXIT) {
 					refresh(event.cell);
 				}
 			}
 
 			if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP
 					&& event.button == 2) {
-				DownloadManager dm = (DownloadManager) event.cell.getDataSource();
+				DownloadManager dm = getDM(event.cell.getDataSource());
 				if (dm == null) {
 					return;
 				}
@@ -432,7 +450,7 @@ public class ColumnRate
 			if (!allowRate) {
 				return;
 			}
-			
+
 			if (event.eventType == TableCellMouseEvent.EVENT_MOUSEEXIT) {
 				hoveringOn = -1;
 			} else if (event.eventType == TableCellMouseEvent.EVENT_MOUSEMOVE) {
@@ -443,7 +461,7 @@ public class ColumnRate
 				if (x >= 0 && y >= 0 && x < boundsRateMe.width
 						&& y < boundsRateMe.height) {
 					final int value = (x < (boundsRateMe.height - y + 1)) ? 1 : 0;
-					
+
 					if (hoveringOn != value) {
 						hoveringOn = value;
 						refresh(event.cell, true);
@@ -466,7 +484,7 @@ public class ColumnRate
 				return;
 			}
 
-			DownloadManager dm = (DownloadManager) event.cell.getDataSource();
+			DownloadManager dm =  getDM(event.cell.getDataSource());
 			if (dm == null) {
 				return;
 			}
@@ -500,7 +518,7 @@ public class ColumnRate
 							final TOTorrent torrent = dm.getTorrent();
 							final String hash = torrent.getHashWrapper().toBase32String();
 							final int value = (x < (boundsRateMe.height - y + 1)) ? 1 : 0;
-							
+
 							PlatformTorrentUtils.setUserRating(torrent, -2);
 							refresh(event.cell, true);
 							PlatformRatingMessenger.setUserRating(hash, value, 0,
@@ -564,7 +582,7 @@ public class ColumnRate
 		// @see org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener#cellHover(org.gudy.azureus2.plugins.ui.tables.TableCell)
 		public void cellHover(TableCell cell) {
 			if (Constants.isCVSVersion()) {
-				DownloadManager dm = (DownloadManager) cell.getDataSource();
+				DownloadManager dm = getDM(cell.getDataSource());
 				if (dm == null) {
 					return;
 				}
@@ -585,17 +603,42 @@ public class ColumnRate
 
 		// @see org.gudy.azureus2.plugins.ui.tables.TableRowMouseListener#rowMouseTrigger(org.gudy.azureus2.plugins.ui.tables.TableRowMouseEvent)
 		public void rowMouseTrigger(TableRowMouseEvent event) {
+			rowMouseTrigger(event, event.row.getTableCell(COLUMN_ID));
+		}
+
+		public void rowMouseTrigger(TableRowMouseEvent event, TableCell cell) {
 			boolean changed = false;
 			if (event.eventType == TableRowMouseEvent.EVENT_MOUSEENTER) {
-				hasMouse = true;
 				changed = true;
 			} else if (event.eventType == TableRowMouseEvent.EVENT_MOUSEEXIT) {
-				hasMouse = false;
 				changed = true;
 			}
-			if (changed) {
-				TableCell cell = event.row.getTableCell(COLUMN_ID);
+			if (changed && cell != null) {
 				refresh(cell, true);
+			}
+		}
+
+		// @see com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger.RatingUpdateListener#ratingUpdated(com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger.GetRatingReply)
+		public void ratingUpdated(GetRatingReply rating) {
+			if (dm == null) {
+				return;
+			}
+			try {
+  			String hash = dm.getTorrent().getHashWrapper().toBase32String();
+  			if (rating.hasHash(hash)) {
+  				refresh(cell, true);
+  			}
+			} catch (Exception e) {
+				// ignore
+			}
+		}
+
+		// @see org.gudy.azureus2.plugins.ui.tables.TableCellVisibilityListener#cellVisibilityChanged(org.gudy.azureus2.plugins.ui.tables.TableCell, int)
+		public void cellVisibilityChanged(TableCell cell, int visibility) {
+			if (visibility == TableCellVisibilityListener.VISIBILITY_SHOWN) {
+				PlatformRatingMessenger.addListener(this);
+			} else if (visibility == TableCellVisibilityListener.VISIBILITY_HIDDEN) {
+				PlatformRatingMessenger.removeListener(this);
 			}
 		}
 	}
@@ -607,10 +650,21 @@ public class ColumnRate
 	public void setUseButton(boolean useButton) {
 		this.useButton = useButton;
 	}
-	
+
 	public void setDisabled(boolean disabled) {
-		this.disabled  = disabled;
-		imgRateMeButton = disabled ? imgRateMeButtonDisabled : imgRateMeButtonEnabled;
+		this.disabled = disabled;
+		imgRateMeButton = disabled ? imgRateMeButtonDisabled
+				: imgRateMeButtonEnabled;
 		this.invalidateCells();
+	}
+
+	private DownloadManager getDM(Object ds) {
+		DownloadManager dm = null;
+		if (ds instanceof DownloadManager) {
+			dm = (DownloadManager) ds;
+		} else if (ds instanceof VuzeActivitiesEntry) {
+			dm = ((VuzeActivitiesEntry) ds).dm;
+		}
+		return dm;
 	}
 }

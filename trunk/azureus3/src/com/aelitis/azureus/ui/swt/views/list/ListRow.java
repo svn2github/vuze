@@ -60,7 +60,7 @@ import org.gudy.azureus2.pluginsimpl.local.tracker.TrackerTorrentImpl;
 public class ListRow
 	implements TableRowSWT
 {
-	private static final boolean READJUST_CELL_HEIGHT = false;
+	private static final boolean READJUST_CELL_HEIGHT = true;
 
 	private SWTSkinProperties skinProperties;
 
@@ -81,6 +81,8 @@ public class ListRow
 	private Color fg;
 
 	private Color bg;
+	
+	private Color customBG;
 
 	private boolean bRowVisuallyChangedSinceRefresh;
 
@@ -88,7 +90,11 @@ public class ListRow
 
 	private AEMonitor this_mon = new AEMonitor("ListRow");
 	
-	private int height;
+	private Map dataList;
+
+	private int height = 0;
+
+	private int basicYPos = -1;
 
 	/**
 	 * @param position 
@@ -98,7 +104,7 @@ public class ListRow
 		this.parent = parent;
 		coreDataSource = datasource;
 		this.view = view;
-		height = view.DEFAULT_ROW_HEIGHT;
+		setHeight(view.DEFAULT_ROW_HEIGHT);
 
 		pluginDataSource = null;
 		bDisposed = false;
@@ -115,18 +121,18 @@ public class ListRow
 		for (int i = 0; i < columns.length; i++) {
 			TableColumnCore column = columns[i];
 
-			boolean bVisible = column.getPosition() >= 0;
-			Rectangle bounds = bVisible ? new Rectangle(iStartPos,
-					ListView.ROW_MARGIN_HEIGHT, column.getWidth(), height
-							- (ListView.ROW_MARGIN_HEIGHT * 2)) : null;
+			boolean bVisible = column.isVisible();
+			Rectangle bounds = new Rectangle(iStartPos, ListView.ROW_MARGIN_HEIGHT,
+					bVisible ? column.getWidth() : 0, height
+							- (ListView.ROW_MARGIN_HEIGHT * 2));
 
 			ListCell listCell;
 			int iColumnPos = column.getPosition();
 			int iSWTAlign = CoreTableColumn.getSWTAlign(column.getAlignment());
 			if (column.getType() == TableColumn.TYPE_GRAPHIC) {
-				listCell = new ListCellGraphic(this, iColumnPos, iSWTAlign, bounds);
+				listCell = new ListCellGraphic(this, iSWTAlign, bounds);
 			} else {
-				listCell = new ListCell(this, iColumnPos, iSWTAlign, bounds);
+				listCell = new ListCell(this, iSWTAlign, bounds);
 			}
 
 			if (bVisible) {
@@ -148,9 +154,13 @@ public class ListRow
 		}
 	}
 
+	public void setBackgroundColor(Color bg) {
+		this.customBG = bg;
+	}
+
 	private void setBackgroundColor(int iPosition) {
 		checkCellForSetting();
-
+		
 		boolean bOdd = ((iPosition + 1) % 2) == 0;
 		if (bSelected) {
 			if (skinProperties == null) {
@@ -290,12 +300,11 @@ public class ListRow
 
 			//System.out.println(getIndex() + ";" + view.rowGetVisibleYOffset(this) + "--" + height);
 			Rectangle clientArea = view.getClientArea();
-			gc.fillRectangle(0, view.rowGetVisibleYOffset(this), clientArea.width,
-					height);
+			int yofs = view.rowGetVisibleYOffset(this);
+			gc.fillRectangle(0, yofs, clientArea.width, height);
 			if (isFocused()) {
 				gc.setLineStyle(SWT.LINE_DOT);
-				gc.drawRectangle(0, view.rowGetVisibleYOffset(this),
-						clientArea.width - 1, height - 1);
+				gc.drawRectangle(0, yofs, clientArea.width - 1, height - 1);
 			}
 
 			for (int i = 0; i < visibleColumns.length; i++) {
@@ -329,7 +338,8 @@ public class ListRow
 
 				long diff = System.currentTimeMillis() - lTimeStart2;
 				if (diff > 120) {
-					view.log("doPaint " + column.getName() + " took " + diff + "ms. " + this.toString()); 
+					view.log("doPaint " + column.getName() + " took " + diff + "ms. "
+							+ this.toString());
 				}
 			}
 		} finally {
@@ -529,50 +539,57 @@ public class ListRow
 			item.setForeground(c);
 		}
 	}
-	
+
 	// @see org.gudy.azureus2.plugins.ui.tables.TableRow#setForeground(int, int, int)
 	public void setForeground(int r, int g, int b) {
 		Iterator iter = mapTableCells.values().iterator();
 		while (iter.hasNext()) {
 			TableCellSWT item = (TableCellSWT) iter.next();
 			item.setForeground(r, g, b);
-		}		
+		}
 	}
-	
+
 	// @see org.gudy.azureus2.plugins.ui.tables.TableRow#setForeground(int[])
 	public void setForeground(int[] rgb) {
 		if (rgb == null || rgb.length < 3) {
-			setForeground((Color)null);
+			setForeground((Color) null);
 			return;
 		}
 		setForeground(rgb[0], rgb[1], rgb[2]);
 	}
-	
+
 	// @see org.gudy.azureus2.plugins.ui.tables.TableRow#setForegroundToErrorColor()
 	public void setForegroundToErrorColor() {
 		this.setForeground(Colors.colorError);
 	}
 
 	public boolean setHeight(int iHeight) {
-		bRowVisuallyChangedSinceRefresh = true;
-		
-		height = iHeight;
-		if (READJUST_CELL_HEIGHT) {
-  		Iterator iter = mapTableCells.values().iterator();
-  		while (iter.hasNext()) {
-  			TableCellSWT cell = (TableCellSWT) iter.next();
-  			if (cell != null) {
-  				// hack.. a call to ListCell.isShown will trigger Visibility Listener
-  				ListCell listcell = (ListCell) cell.getBufferedTableItem();
-  				Rectangle bounds = listcell.getBounds();
-  				bounds.height = height;
-  				listcell.setBounds(bounds);
-  			}
-  		}
+		int newHeight = iHeight + (ListView.ROW_MARGIN_HEIGHT * 2); 
+		if (height == newHeight) {
+			return false;
 		}
+		bRowVisuallyChangedSinceRefresh = true;
+
+		int oldHeight = height;
+		height = newHeight;
+		if (READJUST_CELL_HEIGHT && mapTableCells != null) {
+			Iterator iter = mapTableCells.values().iterator();
+			while (iter.hasNext()) {
+				TableCellSWT cell = (TableCellSWT) iter.next();
+				if (cell != null) {
+					// hack.. a call to ListCell.isShown will trigger Visibility Listener
+					ListCell listcell = (ListCell) cell.getBufferedTableItem();
+					Rectangle bounds = listcell.getBounds();
+					bounds.height = height;
+					listcell.setBounds(bounds);
+				}
+			}
+		}
+
+		view.rowHeightChanged(this, oldHeight, height);
 		return true;
 	}
-	
+
 	public int getHeight() {
 		return height;
 	}
@@ -739,6 +756,10 @@ public class ListRow
 	}
 
 	public Color getBackground() {
+		if (customBG != null && !customBG.isDisposed()) {
+			return customBG;
+		}
+
 		if (bg == null) {
 			setBackgroundColor(getIndex());
 		}
@@ -822,11 +843,11 @@ public class ListRow
 		}
 	}
 
-  public void invokeMouseListeners(TableRowMouseEvent event) {
+	public void invokeMouseListeners(TableRowMouseEvent event) {
 		ArrayList listeners = mouseListeners;
 		if (listeners == null)
 			return;
-		
+
 		for (int i = 0; i < listeners.size(); i++) {
 			try {
 				TableRowMouseListener l = (TableRowMouseListener) (listeners.get(i));
@@ -842,5 +863,28 @@ public class ListRow
 	// @see com.aelitis.azureus.ui.common.table.TableRowCore#isMouseOver()
 	public boolean isMouseOver() {
 		return view.getTableRowWithCursor() == this;
+	}
+
+	public void setBasicYPos(int y) {
+		basicYPos = y;
+	}
+
+	public int getBasicYPos() {
+		return basicYPos;
+	}
+
+	public void setData(String id, Object data) {
+		if (dataList == null) {
+			dataList = new HashMap(1);
+		}
+		if (data == null) {
+			dataList.remove("id");
+		} else {
+			dataList.put(id, data);
+		}
+	}
+	
+	public Object getData(String id) {
+		return dataList == null ? null : dataList.get(id);
 	}
 }

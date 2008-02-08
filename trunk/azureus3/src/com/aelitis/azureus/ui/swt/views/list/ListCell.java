@@ -22,9 +22,9 @@ package com.aelitis.azureus.ui.swt.views.list;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AERunnableObject;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
@@ -32,7 +32,6 @@ import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 
 import com.aelitis.azureus.ui.common.table.TableCellCore;
-import com.aelitis.azureus.ui.common.table.TableColumnCore;
 
 import org.gudy.azureus2.plugins.ui.tables.TableCellVisibilityListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
@@ -46,8 +45,6 @@ public class ListCell
 	implements BufferedTableItem
 {
 	protected static final boolean DEBUG_COLORCELL = false;
-
-	private final int position;
 
 	private String sText;
 
@@ -75,17 +72,20 @@ public class ListCell
 	
 	private int maxLines = -1;
 
-	public ListCell(ListRow row, int position, int alignment, Rectangle bounds) {
+	private boolean ourBounds = false;
+
+	private int secretWidth = -1;
+
+	public ListCell(ListRow row, int alignment, Rectangle bounds) {
 		this.row = row;
-		this.position = position;
 		this.alignment = alignment;
 		this.bounds = bounds;
-		this.view = (ListView) row.getView();
+		this.view = row == null ? null : (ListView) row.getView();
 
 		Utils.execSWTThreadWithObject("getCellFontHeight",
 				new AERunnableObject() {
 					public Object runSupport() {
-						Control control = view.getControl();
+						Drawable control = view == null ? (Drawable) Display.getDefault() : (Drawable) view.getControl();
 						if (control != null) {
 							GC gc = new GC(control);
 							try {
@@ -163,31 +163,39 @@ public class ListCell
 	 * @return
 	 */
 	private boolean isShowable() {
-		return position >= 0 && bounds != null && bounds.height > 0;
+		boolean b = bounds != null && bounds.height > 0 && column.isVisible();
+		//System.out.println(column.getName() + ";" +  b);
+		return b;
 	}
 
 	public Color getBackground() {
-		if (colorBG == null) {
+		if (colorBG == null && row != null) {
 			return row.getBackground();
 		}
 
 		return colorBG;
 	}
+	
+	public void setBackground(Color bg) {
+		colorBG = bg;
+	}
 
 	public Rectangle getBounds() {
-		TableColumnMetrics columnMetrics = view.getColumnMetrics(column);
-		if (columnMetrics == null) {
-			return null;
+		TableColumnMetrics columnMetrics = view == null ? null : view.getColumnMetrics(column);
+		if (columnMetrics == null || bounds == null || ourBounds ) {
+			return bounds;
 		}
 
 		bounds.x = columnMetrics.x;
-		bounds.width = columnMetrics.width;
-		try {
-			bounds.y = row.getVisibleYOffset() + ListView.ROW_MARGIN_HEIGHT;
-			bounds.height = view.DEFAULT_ROW_HEIGHT - (ListView.ROW_MARGIN_HEIGHT * 2);
-			//bounds.height = row.getHeight() - (ListView.ROW_MARGIN_HEIGHT * 2);
-		} catch (Exception e) {
-			//System.err.println(cell.getTableColumn().getName() + " " + bounds + ";" + row + ";");
+		bounds.width = secretWidth >= 0 ? secretWidth : columnMetrics.width;
+		if (row != null) {
+  		try {
+  			bounds.y = row.getVisibleYOffset() + ListView.ROW_MARGIN_HEIGHT;
+  			//bounds.height = view.DEFAULT_ROW_HEIGHT - (ListView.ROW_MARGIN_HEIGHT * 2);
+  			bounds.height = row.getHeight() - (ListView.ROW_MARGIN_HEIGHT * 2);
+  		} catch (Exception e) {
+  			//System.err.println(cell.getTableColumn().getName() + " " + bounds + ";" + row + ";");
+  		}
 		}
 		return bounds;
 	}
@@ -202,10 +210,15 @@ public class ListCell
 
 		//System.out.println(cell.getTableID() + "]" + cell.getTableColumn().getName() + ": " + bounds);
 		this.bounds = bounds;
+		//this.ourBounds = true;
+	}
+	
+	public void setSecretWidth(int width) {
+		secretWidth  = width;
 	}
 
 	public int getPosition() {
-		return position;
+		return column.getPosition();
 	}
 
 	public String getText() {
@@ -213,7 +226,10 @@ public class ListCell
 	}
 
 	public boolean isShown() {
-		boolean bIsShown = isShowable() && row.isVisible();
+		boolean bIsShown = isShowable();
+		if (row != null) {
+			bIsShown &= row.isVisible();
+		}
 		if (bIsShown != bLastIsShown) {
 			bLastIsShown = bIsShown;
 			if (cell != null) {
@@ -284,7 +300,9 @@ public class ListCell
 
 		sText = text;
 
-		view.cellRefresh(this, true, true);
+		if (view != null) {
+			view.cellRefresh(this, true, true);
+		}
 
 		return true;
 	}
@@ -294,7 +312,9 @@ public class ListCell
 		if (!isShown()) {
 			return;
 		}
-		row.redraw();
+		if (row != null) {
+			row.redraw();
+		}
 		// invalidating the area
 		//	Utils.execSWTThread(new AERunnable() {
 		//	public void runSupport() {
@@ -318,23 +338,27 @@ public class ListCell
 	public Image getBackgroundImage() {
 		Rectangle bounds = getBounds();
 		
-		if (bounds.isEmpty() || true) {
+		if (bounds == null || bounds.isEmpty()) {
 			return null;
 		}
 		
-		Composite composite = view.getComposite();
+		Image image = new Image(Display.getDefault(), bounds.width, bounds.height);
 		
-		Image image = new Image(composite.getDisplay(), bounds.width, bounds.height);
-		
-		GC gc = new GC(composite);
-		gc.copyArea(image, bounds.x, bounds.y);
+		GC gc = new GC(image);
+		gc.setBackground(getBackground());
+		gc.setForeground(getBackground());
+		gc.fillRectangle(image.getBounds());
 		gc.dispose();
+		
+		//GC gc = new GC(composite);
+		//gc.copyArea(image, bounds.x, bounds.y);
+		//gc.dispose();
 		
 		return image;
 	}
 
 	public Color getForeground() {
-		if (colorFG == null) {
+		if (colorFG == null && row != null) {
 			return row.getForeground();
 		}
 
@@ -368,5 +392,18 @@ public class ListCell
   		}
 		}
 		return maxLines;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.components.BufferedTableItem#setCursor(int)
+	public void setCursor(final int cursorID) {
+		if (view == null) {
+			return;
+		}
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				Composite composite = view.getComposite();
+				composite.setCursor(composite.getDisplay().getSystemCursor(cursorID));
+			}
+		});
 	}
 }

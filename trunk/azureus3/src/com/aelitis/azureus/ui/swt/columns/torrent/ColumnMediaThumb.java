@@ -30,14 +30,19 @@ import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
+import com.aelitis.azureus.util.VuzeActivitiesEntry;
 
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -50,7 +55,8 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 public class ColumnMediaThumb
 	extends CoreTableColumn
 	implements TableCellAddedListener, TableCellRefreshListener,
-	TableCellDisposeListener, TableCellVisibilityListener
+	TableCellDisposeListener, TableCellVisibilityListener,
+	TableCellMouseMoveListener, TableRowMouseListener
 {
 	public static String COLUMN_ID = "MediaThumb";
 
@@ -67,9 +73,13 @@ public class ColumnMediaThumb
 	}
 
 	public void cellAdded(TableCell cell) {
-		cell.addListeners(this);
 		cell.setMarginWidth(0);
 		cell.setMarginHeight(0);
+
+		TableRow tableRow = cell.getTableRow();
+		if (tableRow != null) {
+			tableRow.addMouseListener(this);
+		}
 	}
 
 	public void dispose(TableCell cell) {
@@ -82,8 +92,12 @@ public class ColumnMediaThumb
 	}
 
 	public void refresh(TableCell cell, boolean bForce) {
-		DownloadManager dm = (DownloadManager) cell.getDataSource();
-		TOTorrent newTorrent = dm.getTorrent();
+		Object ds = cell.getDataSource();
+		DownloadManager dm = getDM(ds);
+		
+		//System.out.println("refresh " + bForce + " via " + Debug.getCompressedStackTrace(10));
+
+		TOTorrent newTorrent = dm == null ? null : dm.getTorrent();
 		long lastUpdated = PlatformTorrentUtils.getContentLastUpdated(newTorrent);
 		// xxx hack.. cell starts with 0 sort value
 		if (lastUpdated == 0) {
@@ -105,64 +119,121 @@ public class ColumnMediaThumb
 		torrent = newTorrent;
 		mapCellTorrent.put(cell, torrent);
 
-		if (torrent == null) {
-			cell.setGraphic(null);
+		// only dispose of old graphic if it's a thumbnail
+		disposeOldImage(cell);
+
+		byte[] b = null;
+		boolean showPlayButton = TorrentListViewsUtils.canPlay(dm);
+		if (torrent == null && (ds instanceof VuzeActivitiesEntry)) {
+			b = ((VuzeActivitiesEntry) ds).imageBytes;
+			showPlayButton |= ((VuzeActivitiesEntry) ds).assetHash != null;
 		} else {
-			// only dispose of old graphic if it's a thumbnail
-			disposeOldImage(cell);
+			b = PlatformTorrentUtils.getContentThumbnail(torrent);
+		}
 
-			byte[] b = PlatformTorrentUtils.getContentThumbnail(torrent);
-
-			if (b == null) {
-				// Don't ever dispose of PathIcon, it's cached and may be used elsewhere
-				String path = dm.getDownloadState().getPrimaryFile();
-				if (path != null) {
-					Image icon = ImageRepository.getPathIcon(path, true,dm.getTorrent() != null && !dm.getTorrent().isSimpleTorrent());
-					Graphic graphic = new UISWTGraphicImpl(icon);
-					cell.setGraphic(graphic);
-				} else {
-					cell.setGraphic(null);
-				}
+		if (b == null) {
+			// Don't ever dispose of PathIcon, it's cached and may be used elsewhere
+			String path = dm == null ? null : dm.getDownloadState().getPrimaryFile();
+			if (path != null) {
+				Image icon = ImageRepository.getPathIcon(path, true,
+						dm.getTorrent() != null && !dm.getTorrent().isSimpleTorrent());
+				Graphic graphic = new UISWTGraphicImpl(icon);
+				cell.setGraphic(graphic);
 			} else {
-				int MAXH = cell.getHeight() - 2;
-				// hack!
-				if (MAXH <= 0) {
-					MAXH = 30;
-				}
+				cell.setGraphic(null);
+			}
+		} else {
+			
+			int MAXH = cell.getHeight() - 2;
+			// hack!
+			if (MAXH <= 0) {
+				MAXH = 30;
+			}
 
-				ByteArrayInputStream bis = new ByteArrayInputStream(b);
-				try {
-					Image img = new Image(Display.getDefault(), bis);
+			TableRow row = cell.getTableRow();
+			boolean rowHasMouse = (row instanceof TableRowCore)
+					? ((TableRowCore) row).isMouseOver() : false;
+			showPlayButton &= rowHasMouse;
 
-					int w = img.getBounds().width;
-					int h = img.getBounds().height;
+			ByteArrayInputStream bis = new ByteArrayInputStream(b);
+			try {
+				Image img = new Image(Display.getDefault(), bis);
 
-					if (h > MAXH) {
-						int h2 = MAXH;
-						int w2 = h2 * w / h;
-						Image newImg = new Image(img.getDevice(), w2, h2);
+				int w = img.getBounds().width;
+				int h = img.getBounds().height;
 
-						GC gc = new GC(newImg);
-						gc.setAdvanced(true);
-						try {
-							gc.setInterpolation(SWT.HIGH);
-						} catch (Exception e) {
-							// may not be avail
-						}
-						gc.drawImage(img, 0, 0, w, h, 0, 0, w2, h2);
-						gc.dispose();
+				if (h > MAXH) {
+					int h2 = MAXH;
+					int w2 = h2 * w / h;
+					Image newImg = new Image(img.getDevice(), w2, h2);
 
-						img.dispose();
-						img = newImg;
+					GC gc = new GC(newImg);
+					int[] bg = cell.getBackground();
+					if (bg != null) {
+						gc.setBackground(ColorCache.getColor(img.getDevice(), bg));
+					}
+					gc.fillRectangle(0, 0, w2, h2);
+					gc.setAdvanced(true);
+					try {
+						gc.setInterpolation(SWT.HIGH);
+					} catch (Exception e) {
+						// may not be avail
+					}
+					if (showPlayButton) {
+						gc.setAlpha(150);
+					}
+					gc.drawImage(img, 0, 0, w, h, 0, 0, w2, h2);
+
+					if (cell instanceof TableCellSWT) {
+						TableCellSWT cellSWT = (TableCellSWT) cell;
+						cellSWT.setCursorID(showPlayButton
+								&& ((TableCellSWT) cell).isMouseOver() ? SWT.CURSOR_HAND
+								: SWT.CURSOR_ARROW);
 					}
 
-					Graphic graphic = new disposableUISWTGraphic(img);
-					cell.setGraphic(graphic);
-				} catch (Exception e) {
-					// ignore, probably invalid image
+					if (showPlayButton) {
+						gc.setAlpha(255);
+						gc.setAntialias(SWT.ON);
+						gc.setBackground(ColorCache.getColor(img.getDevice(), "#00f000"));
+						int x = w2 / 2 - 10;
+						gc.fillPolygon(new int[] {
+							x,
+							h2 - 26,
+							x,
+							h2 - 6,
+							x + 15,
+							h2 - 15,
+						});
+					}
+
+					gc.dispose();
+
+					img.dispose();
+					img = newImg;
 				}
+
+				Graphic graphic = new disposableUISWTGraphic(img);
+				cell.setGraphic(graphic);
+			} catch (Exception e) {
+				// ignore, probably invalid image
 			}
 		}
+	}
+
+	/**
+	 * @param dataSource
+	 * @return
+	 *
+	 * @since 3.0.4.3
+	 */
+	private DownloadManager getDM(Object ds) {
+		DownloadManager dm = null;
+		if (ds instanceof DownloadManager) {
+			dm = (DownloadManager) ds;
+		} else if (ds instanceof VuzeActivitiesEntry) {
+			dm = ((VuzeActivitiesEntry) ds).dm;
+		}
+		return dm;
 	}
 
 	/**
@@ -198,6 +269,34 @@ public class ColumnMediaThumb
 	{
 		public disposableUISWTGraphic(Image newImage) {
 			super(newImage);
+		}
+	}
+
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCellMouseListener#cellMouseTrigger(org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent)
+	public void cellMouseTrigger(TableCellMouseEvent event) {
+		if (event.eventType == TableRowMouseEvent.EVENT_MOUSEDOWN) {
+			TorrentListViewsUtils.playOrStreamDataSource(event.cell.getDataSource(),
+					null);
+		}
+	}
+
+	// @see org.gudy.azureus2.plugins.ui.tables.TableRowMouseListener#rowMouseTrigger(org.gudy.azureus2.plugins.ui.tables.TableRowMouseEvent)
+	public void rowMouseTrigger(TableRowMouseEvent event) {
+		//if (event instanceof TableCellMouseEvent) {
+		//	rowMouseTrigger(event, ((TableCellMouseEvent)event).cell);
+		//}
+		rowMouseTrigger(event, event.row.getTableCell(COLUMN_ID));
+	}
+
+	public void rowMouseTrigger(TableRowMouseEvent event, TableCell cell) {
+		boolean changed = false;
+		if (event.eventType == TableRowMouseEvent.EVENT_MOUSEENTER) {
+			changed = true;
+		} else if (event.eventType == TableRowMouseEvent.EVENT_MOUSEEXIT) {
+			changed = true;
+		}
+		if (changed && cell != null) {
+			refresh(cell, true);
 		}
 	}
 }

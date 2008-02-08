@@ -22,9 +22,11 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.SizeItem;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.UpItem;
@@ -44,8 +46,6 @@ import com.aelitis.azureus.ui.swt.views.list.ListView;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 import com.aelitis.azureus.util.Constants;
 
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
-
 /**
  * @author TuxPaper
  * @created Jun 12, 2006
@@ -59,8 +59,6 @@ public class TorrentListView
 	public final static int VIEW_RECENT_DOWNLOADED = 1;
 
 	public final static int VIEW_MY_MEDIA = 2;
-
-	public static final String TABLE_MYMEDIA = "MyMedia";
 
 	private final static String[] TABLE_IDS = {
 		"Downloading",
@@ -88,6 +86,8 @@ public class TorrentListView
 
 	protected boolean bSkipUpdateCount = false;
 
+	private final AzureusCore core;
+
 	public TorrentListView(final AzureusCore core, final SWTSkin skin,
 			SWTSkinProperties skinProperties, Composite headerArea,
 			SWTSkinObjectText countArea, final Composite dataArea, int viewMode,
@@ -95,116 +95,20 @@ public class TorrentListView
 
 		super(TABLE_IDS[viewMode] + ((bMiniMode) ? "-Mini" : ""), skinProperties,
 				dataArea, headerArea, bAllowScrolling ? SWT.V_SCROLL : SWT.NONE);
+		this.core = core;
 		this.countArea = countArea;
 		this.dataArea = dataArea;
 		this.viewMode = viewMode;
 		this.bAllowScrolling = bAllowScrolling;
 		dmListener = new dowloadManagerListener(this);
 
-		TableColumnManager tcManager = TableColumnManager.getInstance();
+		// Setting up tables should really be in their respective class..
 		if (viewMode == VIEW_DOWNLOADING) {
-			if (bMiniMode) {
-				tableColumns = new TableColumnCore[] {
-					new ColumnMediaThumb(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-					new ColumnTitle(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-					new ColumnQuality(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-					new SizeItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-					new ColumnProgressETA(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-					new ColumnDateAdded2Liner(TableManager.TABLE_MYTORRENTS_INCOMPLETE,
-							false),
-				};
-				setColumnList(tableColumns, "date_added", false, true);
-				String[] autoHideOrder = new String[] {
-					ColumnQuality.COLUMN_ID,
-					SizeItem.COLUMN_ID,
-					ColumnMediaThumb.COLUMN_ID,
-				};
-				tcManager.setAutoHideOrder(getTableID(), autoHideOrder);
-			} else {
-				tableColumns = new TableColumnCore[] {
-					new ColumnMediaThumb(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-					new ColumnTitle(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-					new ColumnRate(TableManager.TABLE_MYTORRENTS_INCOMPLETE, true),
-					new ColumnQuality(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-					new SizeItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-					new ColumnProgressETA(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-					new ColumnDateAdded2Liner(TableManager.TABLE_MYTORRENTS_INCOMPLETE,
-							false),
-				};
-				setColumnList(tableColumns, "date_added", false, true);
-				String[] autoHideOrder = new String[] {
-					ColumnQuality.COLUMN_ID,
-					SizeItem.COLUMN_ID,
-					ColumnMediaThumb.COLUMN_ID,
-					ColumnDateAdded2Liner.COLUMN_ID,
-				};
-				tcManager.setAutoHideOrder(getTableID(), autoHideOrder);
-			}
+			setupDownloadingTable(bMiniMode);
 		} else if (viewMode == VIEW_RECENT_DOWNLOADED) {
-			if (bMiniMode) {
-				tableColumns = new TableColumnCore[] {
-					new ColumnMediaThumb(TableManager.TABLE_MYTORRENTS_COMPLETE),
-					new ColumnTitle(TableManager.TABLE_MYTORRENTS_COMPLETE),
-					new ColumnQuality(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-					new SizeItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-					//new ColumnRateUpDown(TableManager.TABLE_MYTORRENTS_COMPLETE),
-					new ColumnRate(TableManager.TABLE_MYTORRENTS_COMPLETE, true),
-					new ColumnDateCompleted2Liner(TableManager.TABLE_MYTORRENTS_COMPLETE,
-							false),
-				};
-
-				setColumnList(tableColumns, ColumnDateCompleted2Liner.COLUMN_ID, false,
-						true);
-				String[] autoHideOrder = new String[] {
-					ColumnQuality.COLUMN_ID,
-					SizeItem.COLUMN_ID,
-					ColumnMediaThumb.COLUMN_ID,
-					//ColumnRateUpDown.COLUMN_ID,
-				};
-				tcManager.setAutoHideOrder(getTableID(), autoHideOrder);
-			} else {
-				tableColumns = new TableColumnCore[] {
-					new ColumnIsSeeding(TableManager.TABLE_MYTORRENTS_COMPLETE),
-					new ColumnMediaThumb(TableManager.TABLE_MYTORRENTS_COMPLETE),
-					new ColumnTitle(TableManager.TABLE_MYTORRENTS_COMPLETE),
-					new ColumnRate(TableManager.TABLE_MYTORRENTS_COMPLETE, true),
-					new SizeItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-					new UpItem(TableManager.TABLE_MYTORRENTS_COMPLETE, true),
-					//new ColumnRateUpDown(TableManager.TABLE_MYTORRENTS_COMPLETE),
-					new ColumnIsPrivate(TableManager.TABLE_MYTORRENTS_COMPLETE),
-					new ColumnDateAdded2Liner(TableManager.TABLE_MYTORRENTS_COMPLETE,
-							false),
-				};
-
-				setColumnList(tableColumns, "date_added", false, true);
-				String[] autoHideOrder = new String[] {
-					ColumnQuality.COLUMN_ID,
-					SizeItem.COLUMN_ID,
-					ColumnMediaThumb.COLUMN_ID,
-				};
-				tcManager.setAutoHideOrder(getTableID(), autoHideOrder);
-			}
+			setupDownloadedTable(bMiniMode);
 		} else {
-			tableColumns = new TableColumnCore[] {
-				new ColumnComplete(TABLE_MYMEDIA),
-				new ColumnMediaThumb(TABLE_MYMEDIA),
-				new ColumnTitle(TABLE_MYMEDIA),
-				new SizeItem(TABLE_MYMEDIA),
-				new ColumnQuality(TABLE_MYMEDIA),
-				new ColumnDateCompleted2Liner(TABLE_MYMEDIA, true),
-				//new ColumnRateUpDown(TABLE_MYMEDIA),
-				new ColumnRate(TABLE_MYMEDIA, true),
-			};
-			setColumnList(tableColumns, ColumnDateCompleted2Liner.COLUMN_ID, false,
-					true);
-			String[] autoHideOrder = new String[] {
-				ColumnDateAdded2Liner.COLUMN_ID,
-				ColumnQuality.COLUMN_ID,
-				SizeItem.COLUMN_ID,
-				ColumnMediaThumb.COLUMN_ID,
-				ColumnDateCompleted2Liner.COLUMN_ID,
-			};
-			tcManager.setAutoHideOrder(getTableID(), autoHideOrder);
+			setupMyMediaTable(bMiniMode);
 		}
 
 		if (countArea != null) {
@@ -304,17 +208,17 @@ public class TorrentListView
 				globalManager.removeListener(TorrentListView.this);
 			}
 		});
-		
+
 		addCountChangeListener(new TableCountChangeListener() {
-		
+
 			public void rowRemoved(TableRowCore row) {
 				updateCount();
 			}
-		
+
 			public void rowAdded(TableRowCore row) {
 				updateCount();
 			}
-		
+
 		});
 
 		addKeyListener(new KeyListener() {
@@ -362,6 +266,237 @@ public class TorrentListView
 				}
 			}
 		});
+	}
+
+	/**
+	 * @param miniMode
+	 *
+	 * @since 3.0.4.3
+	 */
+	private void setupDownloadedTable(boolean bMiniMode) {
+		TableColumnManager tcManager = TableColumnManager.getInstance();
+		String tableID = getTableID();
+
+		if (bMiniMode) {
+			TableColumnCore[] v3TableColumns = new TableColumnCore[] {
+				new ColumnMediaThumb(tableID),
+				new ColumnTitle(tableID),
+				new ColumnQuality(tableID),
+				new SizeItem(tableID),
+				new ColumnRate(tableID, true),
+				new ColumnDateCompleted2Liner(tableID, false),
+			};
+
+			ArrayList listTableColumns = new ArrayList();
+			for (int i = 0; i < v3TableColumns.length; i++) {
+				listTableColumns.add(v3TableColumns[i]);
+			}
+			TableColumnCore[] v2TableColumns = TableColumnCreator.createCompleteDM(tableID);
+			for (int i = 0; i < v2TableColumns.length; i++) {
+				boolean add = true;
+				String name = v2TableColumns[i].getName();
+				for (int j = 0; j < v3TableColumns.length; j++) {
+					TableColumnCore v3TC = v3TableColumns[j];
+					if (v3TC.getName().equals(name)) {
+						add = false;
+						break;
+					}
+				}
+				if (add) {
+					v2TableColumns[i].setVisible(false);
+					listTableColumns.add(v2TableColumns[i]);
+				}
+			}
+
+			tableColumns = (TableColumnCore[]) listTableColumns.toArray(new TableColumnCore[listTableColumns.size()]);
+
+			setColumnList(tableColumns, ColumnDateCompleted2Liner.COLUMN_ID, false,
+					true);
+			String[] autoHideOrder = new String[] {
+				ColumnQuality.COLUMN_ID,
+				SizeItem.COLUMN_ID,
+				ColumnMediaThumb.COLUMN_ID,
+			};
+			tcManager.setAutoHideOrder(getTableID(), autoHideOrder);
+		} else {
+			tableColumns = new TableColumnCore[] {
+				new ColumnIsSeeding(tableID),
+				new ColumnMediaThumb(tableID),
+				new ColumnTitle(tableID),
+				new ColumnRate(tableID, true),
+				new SizeItem(tableID),
+				new UpItem(tableID, true),
+				new ColumnIsPrivate(tableID),
+				new ColumnDateCompleted2Liner(tableID, false),
+			};
+
+			setColumnList(tableColumns, "date_added", false, true);
+			String[] autoHideOrder = new String[] {
+				ColumnQuality.COLUMN_ID,
+				SizeItem.COLUMN_ID,
+				ColumnMediaThumb.COLUMN_ID,
+			};
+			tcManager.setAutoHideOrder(getTableID(), autoHideOrder);
+		}
+	}
+
+	/**
+	 * @param miniMode
+	 *
+	 * @since 3.0.4.3
+	 */
+	private void setupDownloadingTable(boolean bMiniMode) {
+		TableColumnManager tcManager = TableColumnManager.getInstance();
+		String tableID = getTableID();
+
+		if (bMiniMode) {
+			TableColumnCore[] v3TableColumns = new TableColumnCore[] {
+				new ColumnControls(tableID),
+				new ColumnMediaThumb(tableID),
+				new ColumnTitle(tableID),
+				new ColumnQuality(tableID),
+				new SizeItem(tableID),
+				new ColumnProgressETA(tableID),
+				new ColumnDateAdded2Liner(tableID, false),
+			};
+			ArrayList listTableColumns = new ArrayList();
+			for (int i = 0; i < v3TableColumns.length; i++) {
+				listTableColumns.add(v3TableColumns[i]);
+			}
+			TableColumnCore[] v2TableColumns = TableColumnCreator.createIncompleteDM(tableID);
+			for (int i = 0; i < v2TableColumns.length; i++) {
+				boolean add = true;
+				String name = v2TableColumns[i].getName();
+				for (int j = 0; j < v3TableColumns.length; j++) {
+					TableColumnCore v3TC = v3TableColumns[j];
+					if (v3TC.getName().equals(name)) {
+						add = false;
+						break;
+					}
+				}
+				if (add) {
+					v2TableColumns[i].setVisible(false);
+					listTableColumns.add(v2TableColumns[i]);
+				}
+			}
+
+			tableColumns = (TableColumnCore[]) listTableColumns.toArray(new TableColumnCore[listTableColumns.size()]);
+
+			setColumnList(tableColumns, ColumnControls.COLUMN_ID, false, true);
+			String[] autoHideOrder = new String[] {
+				ColumnQuality.COLUMN_ID,
+				SizeItem.COLUMN_ID,
+				ColumnMediaThumb.COLUMN_ID,
+			};
+			tcManager.setAutoHideOrder(getTableID(), autoHideOrder);
+		} else {
+			tableColumns = new TableColumnCore[] {
+				new ColumnMediaThumb(tableID),
+				new ColumnTitle(tableID),
+				new ColumnRate(tableID, true),
+				new ColumnQuality(tableID),
+				new SizeItem(tableID),
+				new ColumnProgressETA(tableID),
+				new ColumnDateAdded2Liner(tableID, false),
+			};
+
+			setColumnList(tableColumns, "date_added", false, true);
+			String[] autoHideOrder = new String[] {
+				ColumnQuality.COLUMN_ID,
+				SizeItem.COLUMN_ID,
+				ColumnMediaThumb.COLUMN_ID,
+				ColumnDateAdded2Liner.COLUMN_ID,
+			};
+			tcManager.setAutoHideOrder(getTableID(), autoHideOrder);
+		}
+	}
+
+	/**
+	 * 
+	 *
+	 * @since 3.0.4.3
+	 */
+	private void setupMyMediaTable(boolean bMiniMode) {
+		String tableID = getTableID();
+
+		TableColumnCore[] v3TableColumns;
+		String[] autoHideOrder;
+		if (bMiniMode) {
+			v3TableColumns = new TableColumnCore[] {
+				new ColumnMediaThumb(tableID),
+				new ColumnTitle(tableID),
+				new ColumnProgressETA(tableID),
+				new ColumnRate(tableID, true),
+				new ColumnDateAdded2Liner(tableID, false),
+			};
+			autoHideOrder = new String[] {
+				ColumnMediaThumb.COLUMN_ID,
+				ColumnRate.COLUMN_ID,
+			};
+		} else {
+			v3TableColumns = new TableColumnCore[] {
+				//new ColumnControls(tableID),
+				new ColumnMediaThumb(tableID),
+				new ColumnTitle(tableID),
+				new SizeItem(tableID),
+				new ColumnQuality(tableID),
+				new ColumnDateCompleted2Liner(tableID, true),
+				new ColumnRate(tableID, true),
+			};
+			autoHideOrder = new String[] {
+				ColumnQuality.COLUMN_ID,
+				SizeItem.COLUMN_ID,
+				ColumnMediaThumb.COLUMN_ID,
+				ColumnDateCompleted2Liner.COLUMN_ID,
+			};
+		}
+
+		ArrayList listTableColumns = new ArrayList();
+		for (int i = 0; i < v3TableColumns.length; i++) {
+			listTableColumns.add(v3TableColumns[i]);
+		}
+		TableColumnCore[] v2TableColumns = TableColumnCreator.createIncompleteDM(tableID);
+		for (int i = 0; i < v2TableColumns.length; i++) {
+			boolean add = true;
+			String name = v2TableColumns[i].getName();
+			for (int j = 0; j < v3TableColumns.length; j++) {
+				TableColumnCore v3TC = v3TableColumns[j];
+				if (v3TC.getName().equals(name)) {
+					add = false;
+					break;
+				}
+			}
+			if (add) {
+				v2TableColumns[i].setVisible(false);
+				v2TableColumns[i].setPositionNoShift(TableColumnCore.POSITION_LAST);
+				listTableColumns.add(v2TableColumns[i]);
+			}
+		}
+
+		v2TableColumns = TableColumnCreator.createCompleteDM(tableID);
+		for (int i = 0; i < v2TableColumns.length; i++) {
+			boolean add = true;
+			String name = v2TableColumns[i].getName();
+			for (int j = 0; j < v3TableColumns.length; j++) {
+				TableColumnCore v3TC = v3TableColumns[j];
+				if (v3TC.getName().equals(name)) {
+					add = false;
+					break;
+				}
+			}
+			if (add) {
+				v2TableColumns[i].setVisible(false);
+				v2TableColumns[i].setPositionNoShift(TableColumnCore.POSITION_LAST);
+				listTableColumns.add(v2TableColumns[i]);
+			}
+		}
+
+		tableColumns = (TableColumnCore[]) listTableColumns.toArray(new TableColumnCore[listTableColumns.size()]);
+
+		setColumnList(tableColumns, ColumnDateCompleted2Liner.COLUMN_ID, false,
+				true);
+		TableColumnManager tcManager = TableColumnManager.getInstance();
+		tcManager.setAutoHideOrder(getTableID(), autoHideOrder);
 	}
 
 	// XXX Please get rid of me!  I suck and I am slow
@@ -730,8 +865,8 @@ public class TorrentListView
 
 	// @see com.aelitis.azureus.ui.swt.views.list.ListView#fillMenu(org.eclipse.swt.widgets.Menu)
 	public void fillMenu(Menu menu) {
-		Object[] dms = getSelectedDataSources();
-		boolean hasSelection = (dms.length > 0);
+		Object[] dm_items = getSelectedDataSources(true);
+		boolean hasSelection = (dm_items.length > 0);
 
 		// Explore
 		final MenuItem itemExplore = new MenuItem(menu, SWT.PUSH);
@@ -742,6 +877,21 @@ public class TorrentListView
 			}
 		});
 		itemExplore.setEnabled(hasSelection);
+
+		if (org.gudy.azureus2.core3.util.Constants.isCVSVersion()) {
+			MenuItem itemAdvanced = new MenuItem(menu, SWT.CASCADE);
+			itemAdvanced.setText("CVS Version");
+			Menu menuAdvanced = new Menu(menu.getShell(), SWT.DROP_DOWN);
+			itemAdvanced.setMenu(menuAdvanced);
+
+			DownloadManager[] dms = new DownloadManager[dm_items.length];
+			for (int i = 0; i < dm_items.length; i++) {
+				dms[i] = (DownloadManager) dm_items[i];
+			}
+
+			TorrentUtil.fillTorrentMenu(menuAdvanced, dms, core, dataArea,
+					hasSelection, 0, this);
+		}
 	}
 
 	private void exploreTorrents() {

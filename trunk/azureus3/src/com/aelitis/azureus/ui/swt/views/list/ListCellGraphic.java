@@ -46,9 +46,8 @@ public class ListCellGraphic
 
 	private Rectangle imageBounds;
 
-	public ListCellGraphic(ListRow row, int position, int alignment,
-			Rectangle bounds) {
-		super(row, position, alignment, bounds);
+	public ListCellGraphic(ListRow row, int alignment, Rectangle bounds) {
+		super(row, alignment, bounds);
 	}
 
 	public Image getGraphic() {
@@ -79,7 +78,9 @@ public class ListCellGraphic
 			imageBounds = image.getBounds();
 		}
 
-		((ListView) row.getView()).cellRefresh(this, true, true);
+		if (row != null) {
+			((ListView) row.getView()).cellRefresh(this, true, true);
+		}
 
 		return true;
 	}
@@ -111,11 +112,14 @@ public class ListCellGraphic
 	}
 
 	public void doPaint(GC gc) {
-		if (getPosition() < 0) {
+		if (!isShown()) {
 			return;
 		}
 
-		gc.setBackground(getBackground());
+		Color colorBG = getBackground();
+		if (colorBG != null) {
+			gc.setBackground(colorBG);
+		}
 		if (DEBUG_COLORCELL) {
 			gc.setBackground(Display.getDefault().getSystemColor(
 					(int) (Math.random() * 16)));
@@ -128,6 +132,7 @@ public class ListCellGraphic
 
 		// TODO: Orientation: fill
 		if (image != null && !image.isDisposed()) {
+			// size is without margin
 			Point size = getSize();
 			//System.out.println(bounds);
 
@@ -138,21 +143,45 @@ public class ListCellGraphic
 
 			if (orientation == SWT.CENTER) {
 				x = marginWidth;
-				x += (size.x - (marginWidth * 2) - imageBounds.width) / 2;
+				x += (size.x - imageBounds.width) / 2;
 			} else if (orientation == SWT.RIGHT) {
-				x = bounds.height - marginWidth - imageBounds.width;
+				x = size.x - imageBounds.width;
 			} else {
 				x = marginWidth;
 			}
 
-			int width = Math.min(bounds.width - x - marginWidth, imageBounds.width);
-			int height = Math.min(bounds.height - y - marginHeight,
-					imageBounds.height);
+			int width = Math.min(size.x - x, imageBounds.width);
+			int height = Math.min(size.y - y, imageBounds.height);
 
 			if (width >= 0 && height >= 0) {
 				gc.drawImage(image, 0, 0, width, height, bounds.x + x, bounds.y + y,
 						width, height);
 			}
 		}
+	}
+
+	public Image getBackgroundImage() {
+		Rectangle bounds = getBounds();
+
+		if (bounds == null || bounds.isEmpty()) {
+			return null;
+		}
+
+		Image image = new Image(Display.getDefault(), bounds.width
+				- (marginWidth * 2), bounds.height - (marginHeight * 2));
+
+		GC gc = new GC(image);
+		Color colorBG = getBackground();
+		if (colorBG != null) {
+			gc.setBackground(colorBG);
+		}
+		gc.fillRectangle(image.getBounds());
+		gc.dispose();
+
+		//GC gc = new GC(composite);
+		//gc.copyArea(image, bounds.x, bounds.y);
+		//gc.dispose();
+
+		return image;
 	}
 }

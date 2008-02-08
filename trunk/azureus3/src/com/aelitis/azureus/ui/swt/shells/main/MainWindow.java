@@ -33,6 +33,7 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -43,9 +44,6 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.plugins.PluginEvent;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
@@ -90,6 +88,11 @@ import com.aelitis.azureus.ui.swt.views.ViewUpSpeedGraph;
 import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.util.AdManager;
 import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.VuzeActivitiesManager;
+
+import org.gudy.azureus2.plugins.PluginEvent;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.download.Download;
 
 /**
  * @author TuxPaper
@@ -579,9 +582,8 @@ public class MainWindow
 			} catch (Throwable e) {
 			}
 
-
 			StimulusRPC.hookListeners(core, this);
-			
+
 			initWidgets();
 
 			SWTSkinTabSet tabSet = skin.getTabSet(SkinConstants.TABSET_MAIN);
@@ -614,6 +616,7 @@ public class MainWindow
 
 					startTab = hasInComplete ? "maintabs.home" : "maintabs.browse";
 				}
+				startTab = "maintabs.browse";
 				tabSet.setActiveTab(startTab);
 			}
 
@@ -673,6 +676,8 @@ public class MainWindow
 			System.out.println("processStartupDMS took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
+
+			VuzeActivitiesManager.initialize(core);
 		}
 	}
 
@@ -919,6 +924,9 @@ public class MainWindow
 		views.put("my-media-list", MediaList.class);
 
 		views.put("publish", Publish.class);
+
+		views.put("minilibrary-list", MiniLibraryList.class);
+		views.put("vuzeevents-list", VuzeActivitiesView.class);
 
 		SWTSkinObjectListener l = new SWTSkinObjectListener() {
 			public Object eventOccured(SWTSkinObject skinObject, int eventType,
@@ -1721,6 +1729,13 @@ public class MainWindow
 				}
 			}
 
+			if (newTabID.equals("maintabs.home")) {
+				SWTSkinTabSet tabSetLeft = skin.getTabSet(SkinConstants.TABSET_DASHBOARD_LEFT);
+				if (tabSetLeft != null && tabSetLeft.getActiveTab() == null) {
+					tabSetLeft.setActiveTab("lefttab.events");
+				}
+			}
+
 			/*
 			 * Updates the enablement states when ever a tab is selected
 			 */
@@ -1868,7 +1883,11 @@ public class MainWindow
 	 */
 	public void showURL(String url, String target) {
 
-		SWTSkinObject skinObject = skin.getSkinObject(target);
+		SWTSkinObject skinObject = skin.getSkinObject("tab-" + target);
+
+		if (skinObject == null) {
+			skinObject = skin.getSkinObject(target);
+		}
 
 		if (skinObject == null) {
 			return;
@@ -1876,6 +1895,8 @@ public class MainWindow
 
 		setVisible(true);
 		skin.activateTab(skinObject);
+
+		skinObject = skin.getSkinObject(target);
 
 		if (skinObject instanceof SWTSkinObjectBrowser) {
 			((SWTSkinObjectBrowser) skinObject).getBrowser().setVisible(false);
@@ -1904,7 +1925,7 @@ public class MainWindow
 			if (skinObject != null) {
 				return skinObject.isVisible();
 			}
-		}  else if (windowElement == IMainWindow.WINDOW_ELEMENT_TABBAR) {
+		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_TABBAR) {
 			SWTSkinObject skinObject = skin.getSkinObject("tabbar");
 			if (skinObject != null) {
 				return skinObject.isVisible();
