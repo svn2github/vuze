@@ -72,7 +72,7 @@ public class SWTSkinObjectSash
 
 		int splitAt = COConfigurationManager.getIntParameter("v3." + sID
 				+ ".SplitAt", -1);
-		if (splitAt != -1 && false) {
+		if (splitAt != -1) {
 			double pct = splitAt / 10000.0;
 			sash.setData("PCT", new Double(pct));
 		} else {
@@ -123,8 +123,11 @@ public class SWTSkinObjectSash
 									+ (bVertical ? ".minwidth" : ".minheight"), 0);
 				}
 
-				if (e.type == SWT.Resize) {
-					if (skipResize) {
+				if (e.type == SWT.Resize && skipResize) {
+					return;
+				}
+				if (e.type == SWT.Resize || e.type == SWT.Show) {
+					if (!createOn.isVisible() && e.type != SWT.Show) {
 						return;
 					}
 					Double l = (Double) sash.getData("PCT");
@@ -133,25 +136,29 @@ public class SWTSkinObjectSash
 						setPercent(l, sash, above, below, bVertical, parentComposite,
 								aboveMin, belowMin);
 					} else if (px != null) {
-						int i = (bVertical) ? createOn.getSize().x : createOn.getSize().y;
-						double pct = 1 - (px.doubleValue() / i);
+						int i = (bVertical) ? parentComposite.getSize().x
+								: parentComposite.getSize().y;
+						double pctBelow = 1 - (px.doubleValue() / i);
 
 						FormData belowData = (FormData) below.getLayoutData();
 						if (bVertical) {
 							int parentWidth = parentComposite.getBounds().width;
-							belowData.width = (int) (parentWidth * pct);
+							belowData.width = (int) (parentWidth * pctBelow);
 							if (parentWidth - belowData.width < aboveMin) {
 								belowData.width = parentWidth - aboveMin;
 							}
 						} else {
 							int parentHeight = parentComposite.getBounds().height;
-							belowData.height = (int) (parentHeight * pct);
+							belowData.height = (int) (parentHeight * pctBelow);
 							if (parentHeight - belowData.width < aboveMin) {
 								belowData.height = parentHeight - aboveMin;
 							}
 						}
-						sash.setData("PCT", new Double(pct));
+						sash.setData("PCT", new Double(pctBelow));
 						// layout in resize is not needed (and causes browser widget to blink)
+					}
+					if (e.type == SWT.Show) {
+						parentComposite.layout(true);
 					}
 
 				} else if (e.type == SWT.Selection) {
@@ -206,6 +213,9 @@ public class SWTSkinObjectSash
 		};
 		createOn.addListener(SWT.Resize, l);
 		sash.addListener(SWT.Selection, l);
+		createOn.addListener(SWT.Show, l);
+		//sash.addListener(SWT.Show, l);
+		createOn.getParent().addListener(SWT.Show, l);
 
 		String sDblClick = properties.getStringValue(sConfigID + ".dblclick");
 		if (sDblClick != null) {
@@ -281,12 +291,12 @@ public class SWTSkinObjectSash
 	protected void setPercent(Double l, Control sash, Composite above,
 			Composite below, boolean bVertical, Control parentComposite,
 			int minAbove, int belowMin) {
-		
+
 		FormData belowData = (FormData) below.getLayoutData();
 		if (bVertical) {
 			int parentWidth = parentComposite.getBounds().width;
 			belowData.width = (int) ((parentWidth - (sash.getSize().x / 2)) * l.doubleValue());
-			
+
 			if (parentWidth - belowData.width < minAbove) {
 				belowData.width = parentWidth - minAbove;
 			} else if (belowData.width < belowMin) {
@@ -295,8 +305,9 @@ public class SWTSkinObjectSash
 		} else {
 			int parentHeight = parentComposite.getBounds().height;
 			belowData.height = (int) ((parentHeight - (sash.getSize().y / 2)) * l.doubleValue());
-			
-			if (parentHeight - belowData.height < minAbove && parentHeight >= minAbove) {
+
+			if (parentHeight - belowData.height < minAbove
+					&& parentHeight >= minAbove) {
 				belowData.height = parentHeight - minAbove;
 			} else if (belowData.height < belowMin) {
 				belowData.height = belowMin;
