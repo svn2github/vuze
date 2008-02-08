@@ -142,7 +142,7 @@ public class BrowserContext
 					SimpleTimer.addEvent("Show Browser",
 							System.currentTimeMillis() + 700, showBrowersPerformer);
 				}
-				if (event.title.startsWith("res://")) {
+				if (event.title.startsWith("err: ")) {
 					fillWithRetry(event.title);
 				}
 			}
@@ -195,9 +195,13 @@ public class BrowserContext
 							if (!browser.isDisposed()) {
 								browser.execute("try { "
 										+ "tuxLocString = document.location.toString();"
-										+ "tuxTitleString = document.title.toString();"
-										+ "if (tuxLocString.indexOf('res://') == 0 || tuxTitleString.indexOf('408 ') == 0) " 
-										+ "{ document.title = 'res://'; } "
+										+ "if (tuxLocString.indexOf('res://') == 0) {"
+										+ "  document.title = 'err: ' + tuxLocString;"
+										+ "} else {"
+										+ "  tuxTitleString = document.title.toString();"
+										+ "  if (tuxTitleString.indexOf('408 ') == 0 || tuxTitleString.indexOf('503 ') == 0) " 
+										+ "  { document.title = 'err: ' + tuxTitleString; } "
+										+ "}"
 										+ "} catch (e) { }");
 							}
 						}
@@ -286,7 +290,7 @@ public class BrowserContext
 	}
 
 	public void fillWithRetry(String s) {
-		browser.setText("<html><body style='overflow:auto; font-family: verdana; font-size: 10pt' bgcolor=#2e2e2e text=#e0e0e0>"
+		browser.setText("<html><body style='overflow:auto; font-family: verdana; font-size: 10pt' bgcolor=#000000 text=#e0e0e0>"
 				+ "Sorry, there was a problem loading this page.<br> "
 				+ "Please check if your internet connection is working and click <a href='"
 				+ lastValidURL
