@@ -60,6 +60,8 @@ public class MiniDownloadList
 
 	private SWTSkinButtonUtility btnComments;
 
+	private SWTSkinButtonUtility btnColumnSetup;
+
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
 		final SWTSkin skin = skinObject.getSkin();
 		AzureusCore core = AzureusCoreFactory.getSingleton();
@@ -77,6 +79,7 @@ public class MiniDownloadList
 		if (skinObject instanceof SWTSkinObjectText) {
 			lblCountArea = (SWTSkinObjectText) skinObject;
 		}
+		
 
 		view = new TorrentListView(core, skin, skin.getSkinProperties(), cHeaders,
 				lblCountArea, cData, TorrentListView.VIEW_DOWNLOADING, true, true);
@@ -92,6 +95,8 @@ public class MiniDownloadList
 			});
 		}
 
+		btnColumnSetup = TorrentListViewsUtils.addColumnSetupButton(skin, PREFIX, view);
+		
 		btnShare = TorrentListViewsUtils.addShareButton(skin, PREFIX, view);
 		btnStop = TorrentListViewsUtils.addStopButton(skin, PREFIX, view);
 		btnDetails = TorrentListViewsUtils.addDetailsButton(skin, PREFIX, view);

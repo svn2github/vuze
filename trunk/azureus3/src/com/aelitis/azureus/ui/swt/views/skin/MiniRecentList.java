@@ -62,6 +62,8 @@ public class MiniRecentList
 
 	private SWTSkinButtonUtility btnPlay;
 
+	private SWTSkinButtonUtility btnColumnSetup;
+
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
 		final SWTSkin skin = skinObject.getSkin();
 		AzureusCore core = AzureusCoreFactory.getSingleton();
@@ -99,6 +101,8 @@ public class MiniRecentList
 				lblCountArea, cData, TorrentListView.VIEW_RECENT_DOWNLOADED, true,
 				false);
 
+		btnColumnSetup = TorrentListViewsUtils.addColumnSetupButton(skin, PREFIX, view);
+		
 		btnShare = TorrentListViewsUtils.addShareButton(skin, PREFIX, view);
 		btnStop = TorrentListViewsUtils.addStopButton(skin, PREFIX, view);
 		btnDetails = TorrentListViewsUtils.addDetailsButton(skin, PREFIX, view);
