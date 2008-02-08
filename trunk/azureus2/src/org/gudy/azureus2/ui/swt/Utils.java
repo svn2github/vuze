@@ -654,7 +654,7 @@ public class Utils {
 				long wait = SystemTime.getCurrentTime() - lStartTimeRun;
 				if (wait > 700) {
 					diag_logger.log(SystemTime.getCurrentTime() + "] took " + wait
-							+ "ms to run " + Debug.getCompressedStackTrace(4));
+							+ "ms to run " + Debug.getCompressedStackTrace());
 				}
 			}
 		} else if (msLater >= -1) {
@@ -670,7 +670,7 @@ public class Utils {
 
 					diag_logger.log(SystemTime.getCurrentTime() + "] + QUEUE. size= "
 							+ queue.size() + "; add " + code + " via "
-							+ Debug.getCompressedStackTrace(4));
+							+ Debug.getCompressedStackTrace());
 					final long lStart = SystemTime.getCurrentTime();
 
 					final Display fDisplay = display;
@@ -683,28 +683,30 @@ public class Utils {
 							}
 							long lStartTimeRun = SystemTime.getCurrentTime();
 							
-							if (fDisplay.isDisposed()) {
-								Debug.out("Display disposed while trying to execSWTThread "
-										+ code);
-								// run anayway, except trap SWT error
-								try {
-									code.run();
-								} catch (SWTException e) {
-									Debug.out("Error while execSWTThread w/disposed Display", e);
-								}
-							} else {
-								code.run();
+							try {
+  							if (fDisplay.isDisposed()) {
+  								Debug.out("Display disposed while trying to execSWTThread "
+  										+ code);
+  								// run anayway, except trap SWT error
+  								try {
+  									code.run();
+  								} catch (SWTException e) {
+  									Debug.out("Error while execSWTThread w/disposed Display", e);
+  								}
+  							} else {
+  								code.run();
+  							}
+							} finally {
+  							wait = SystemTime.getCurrentTime() - lStartTimeRun;
+  							if (wait > 500) {
+  								diag_logger.log(SystemTime.getCurrentTime() + "] took " + wait
+  										+ "ms to run " + code);
+  							}
+  
+  							diag_logger.log(SystemTime.getCurrentTime()
+  									+ "] - QUEUE. size=" + queue.size());
+  							queue.remove(code);
 							}
-
-							wait = SystemTime.getCurrentTime() - lStartTimeRun;
-							if (wait > 500) {
-								diag_logger.log(SystemTime.getCurrentTime() + "] took " + wait
-										+ "ms to run " + code);
-							}
-
-							diag_logger.log(SystemTime.getCurrentTime()
-									+ "] - QUEUE. size=" + queue.size());
-							queue.remove(code);
 						}
 					};
 					if (msLater <= 0) {
@@ -804,7 +806,7 @@ public class Utils {
 	 */ 
 	public static int openMessageBox(Shell parent, int style, String title,
 			String text) {
-		MessageBox mb = new MessageBox(parent, style);
+		MessageBox mb = new MessageBox(parent == null ? findAnyShell() : parent, style);
 		mb.setMessage(text);
 		mb.setText(title);
 		return mb.open();
@@ -1182,6 +1184,14 @@ public class Utils {
 		Point size = control.getSize();
 		if (size.y == targetSize.y && size.x == targetSize.x) {
 			return;
+		}
+		
+		Object layoutData = control.getLayoutData();
+		if (layoutData instanceof FormData) {
+			FormData fd = (FormData)layoutData;
+			if (fd.width != SWT.DEFAULT && fd.height != SWT.DEFAULT) {
+				return;
+			}
 		}
 		
 		if (expandOnly && size.y >= targetSize.y && size.x >= targetSize.x) {
