@@ -447,7 +447,6 @@ public class SWTSkin
 	}
 
 	public void layout() {
-		DEBUGLAYOUT = false;
 		if (DEBUGLAYOUT) {
 			System.out.println("==== Start Apply Layout");
 		}
@@ -1054,13 +1053,9 @@ public class SWTSkin
 	}
 
 	public void addSkinObject(SWTSkinObject skinObject) {
-		String sViewID = skinObject.getProperties().getStringValue(
-				skinObject.getConfigID() + ".view");
+		String sViewID = skinObject.getViewID();
 		if (sViewID != null) {
 			setSkinObjectViewID(skinObject, sViewID);
-			if (skinObject instanceof SWTSkinObjectBasic) {
-				((SWTSkinObjectBasic) skinObject).setViewID(sViewID);
-			}
 		}
 
 		attachControl(skinObject);
@@ -1179,12 +1174,9 @@ public class SWTSkin
 			}
 
 			if (bAddView) {
-				String sViewID = properties.getStringValue(sConfigID + ".view");
+				String sViewID = skinObject.getViewID();
 				if (sViewID != null) {
 					setSkinObjectViewID(skinObject, sViewID);
-					if (skinObject instanceof SWTSkinObjectBasic) {
-						((SWTSkinObjectBasic) skinObject).setViewID(sViewID);
-					}
 				}
 			}
 
@@ -1226,8 +1218,8 @@ public class SWTSkin
 			System.err.println("XXXXXXXX " + sID + " has no config ID.."
 					+ Debug.getStackTrace(false, false));
 		}
-
-		String[] sCloneParams;
+		
+				String[] sCloneParams;
 		if (typeParams.length > 1) {
 			int size = typeParams.length - 1;
 			sCloneParams = new String[size];

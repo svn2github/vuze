@@ -85,6 +85,8 @@ public class SWTSkinObjectBasic
 			});
 			return;
 		}
+		
+		setViewID(properties.getStringValue(sConfigID + ".view"));
 
 		this.control = control;
 		control.setData("ConfigID", sConfigID);
