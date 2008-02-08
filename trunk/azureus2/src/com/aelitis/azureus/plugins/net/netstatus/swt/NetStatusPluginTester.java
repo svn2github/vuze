@@ -249,7 +249,7 @@ NetStatusPluginTester
 	
 								// see if we're getting nowhere
 							
-							if ( route.length == 0 && distance >= 3 ){
+							if ( route.length == 0 && distance >= 5 ){
 							
 								logError( "    giving up, no responses" );
 								
