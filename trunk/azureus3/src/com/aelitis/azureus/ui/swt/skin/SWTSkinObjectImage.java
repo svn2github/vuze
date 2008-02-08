@@ -23,6 +23,8 @@ import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 public class SWTSkinObjectImage
 	extends SWTSkinObjectBasic
 {
+	private static boolean ALWAYS_USE_PAINT = false;
+
 	Label label;
 
 	private boolean customImage;
@@ -31,9 +33,17 @@ public class SWTSkinObjectImage
 
 	private static PaintListener tilePaintListener;
 
+	private boolean dimImage;
+
+	private boolean allowImageDimming = false;
+
+	private boolean noSetLabelImage = false;
+
 	static {
 		tilePaintListener = new PaintListener() {
 			public void paintControl(PaintEvent e) {
+				e.gc.setAdvanced(true);
+
 				Label label = (Label) e.widget;
 				Image imgSrc = (Image) label.getData("image");
 				if (imgSrc == null) {
@@ -52,6 +62,14 @@ public class SWTSkinObjectImage
 					int width = imgRight.getBounds().width;
 
 					x1 -= width;
+				}
+
+				boolean b = ((SWTSkinObjectImage) label.getData("SkinObject")).dimImage;
+
+				if (b) {
+					e.gc.setAlpha(32);
+				} else {
+					e.gc.setAlpha(255);
 				}
 
 				Image imgLeft = (Image) label.getData("image-left");
@@ -158,8 +176,8 @@ public class SWTSkinObjectImage
 	}
 
 	//protected void setLabelImage(String sConfigID, AECallback<Image> callback) {
-	protected void setLabelImage(String sConfigID, AECallback callback) {
-		setLabelImage(sConfigID, sConfigID, callback);
+	protected void setLabelImage(String sImageID, AECallback callback) {
+		setLabelImage(sConfigID, sImageID, callback);
 	}
 
 	//private void setLabelImage(final String sConfigID, final String sImageID, AECallback<Image> callback) {
@@ -193,22 +211,37 @@ public class SWTSkinObjectImage
 					sDrawMode = "";
 				}
 
-				if (sDrawMode.equalsIgnoreCase("tile")) {
+				allowImageDimming = sDrawMode.equalsIgnoreCase("dim");
+
+				if (sDrawMode.equalsIgnoreCase("tile") || ALWAYS_USE_PAINT
+						|| allowImageDimming) {
+					noSetLabelImage = true;
 					Rectangle imgBounds = image.getBounds();
 					label.setSize(imgBounds.width, imgBounds.height);
 					label.setData("image", image);
 
 					// XXX Huh? A tile of one? :)
-					label.setLayoutData(new FormData(imgBounds.width, imgBounds.height));
+					FormData fd = (FormData) label.getLayoutData();
+					if (fd == null) {
+						fd = new FormData(imgBounds.width, imgBounds.height);
+					} else {
+						fd.width = imgBounds.width;
+						fd.height = imgBounds.height;
+					}
+					label.setLayoutData(fd);
 
 					// remove in case already added
 					label.removePaintListener(tilePaintListener);
 
 					label.addPaintListener(tilePaintListener);
+
+					label.setImage(null);
 				} else {
 					label.setImage(image);
 					label.setData("ImageID", sImageID);
 				}
+
+				label.redraw();
 
 				SWTSkinUtils.addMouseImageChangeListeners(label);
 				return image;
@@ -235,10 +268,22 @@ public class SWTSkinObjectImage
 				: customImageID)
 				+ suffix;
 
+		dimImage = false;
+
 		ImageLoader imageLoader = skin.getImageLoader(properties);
 		Image image = imageLoader.getImage(sImageID);
 		if (image != ImageLoader.noImage) {
 			setLabelImage(sImageID, null);
+		} else if (suffix.indexOf("-disabled") >= 0) {
+			if (allowImageDimming) {
+				dimImage = true;
+			}
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					label.redraw();
+				}
+			});
+
 		}
 
 		return suffix;
@@ -254,7 +299,9 @@ public class SWTSkinObjectImage
 		label.setData("Image", image);
 		label.setData("image-left", null);
 		label.setData("image-right", null);
-		label.setImage(image);
+		if (!noSetLabelImage) {
+			label.setImage(image);
+		}
 		Utils.relayout(label);
 	}
 
@@ -262,5 +309,24 @@ public class SWTSkinObjectImage
 		customImage = false;
 		customImageID = sConfigID;
 		setLabelImage(sConfigID, sConfigID, callback);
+	}
+
+	/**
+	 * @param allowImageDimming the allowImageDimming to set
+	 */
+	public void setAllowImageDimming(boolean allowImageDimming) {
+		this.allowImageDimming = allowImageDimming;
+		if (allowImageDimming) {
+			String s = (String) label.getData("ImageID");
+			label.setData("ImageID", null);
+			setLabelImage(sConfigID, s, null);
+		}
+	}
+
+	/**
+	 * @return the allowImageDimming
+	 */
+	public boolean allowImageDimming() {
+		return allowImageDimming;
 	}
 }
