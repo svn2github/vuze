@@ -106,6 +106,8 @@ public class FakeTableCell
 
 	private Object tooltip;
 
+	private Rectangle cellArea;
+
 	/**
 	 * @param columnRateUpDown
 	 */
@@ -433,6 +435,8 @@ public class FakeTableCell
 	}
 
 	public Graphic getBackgroundGraphic() {
+		// TODO handle cellArea
+
 		if (composite == null || composite.isDisposed()) {
 			return null;
 		}
@@ -790,6 +794,10 @@ public class FakeTableCell
 	}
 
 	public void setControl(final Composite composite) {
+		setControl(composite, null);
+	}
+
+	public void setControl(final Composite composite, Rectangle cellArea) {
 		if (composite == null) {
 			dispose();
 			this.composite = null;
@@ -797,6 +805,7 @@ public class FakeTableCell
 		}
 
 		this.composite = composite;
+		this.cellArea = cellArea;
 
 		composite.addPaintListener(this);
 		composite.addMouseListener(this);
@@ -819,7 +828,7 @@ public class FakeTableCell
 	}
 
 	public void paintControl(PaintEvent e) {
-		doPaint(e.gc, composite.getClientArea());
+		doPaint(e.gc, cellArea == null ? composite.getClientArea() : cellArea);
 	}
 
 	public void mouseUp(MouseEvent e) {
@@ -874,6 +883,11 @@ public class FakeTableCell
 		//			r.x = marginWidth;
 		//			r.x += (r.width - (marginWidth * 2) - imageBounds.width) / 2;
 		//		}
+
+		if (cellArea != null) {
+			r = new Rectangle(r.x + cellArea.x, r.y + cellArea.y, cellArea.width,
+					cellArea.height);
+		}
 
 		event.x = e.x - r.x;
 		event.y = e.y - r.y;
@@ -990,12 +1004,16 @@ public class FakeTableCell
 		if (isDisposed()) {
 			return false;
 		}
-		Rectangle bounds = composite.getBounds();
-		Point ptStart = composite.toDisplay(bounds.x, bounds.y);
-		bounds.x = ptStart.x;
-		bounds.y = ptStart.y;
+		Rectangle r = composite.getBounds();
+		if (cellArea != null) {
+			r = new Rectangle(r.x + cellArea.x, r.y + cellArea.y, cellArea.width,
+					cellArea.height);
+		}
+		Point ptStart = composite.toDisplay(r.x, r.y);
+		r.x = ptStart.x;
+		r.y = ptStart.y;
 		Point ptCursor = composite.getDisplay().getCursorLocation();
-		return bounds.contains(ptCursor);
+		return r.contains(ptCursor);
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableCellCore#isUpToDate()
@@ -1050,5 +1068,13 @@ public class FakeTableCell
 
 	public void setOrentation(int o) {
 		orientation = o;
+	}
+
+	public Rectangle getCellArea() {
+		return cellArea;
+	}
+
+	public void setCellArea(Rectangle cellArea) {
+		this.cellArea = cellArea;
 	}
 }
