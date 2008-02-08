@@ -130,6 +130,28 @@ public class BrowserContext
 			}
 		};
 
+		final TimerEventPerformer checkURLEventPerformer = new TimerEventPerformer() {
+			public void perform(TimerEvent event) {
+				if (!browser.isDisposed()) {
+					browser.getDisplay().asyncExec(new AERunnable() {
+						public void runSupport() {
+							if (!browser.isDisposed()) {
+								browser.execute("try { "
+										+ "tuxLocString = document.location.toString();"
+										+ "if (tuxLocString.indexOf('res://') == 0) {"
+										+ "  document.title = 'err: ' + tuxLocString;"
+										+ "} else {"
+										+ "  tuxTitleString = document.title.toString();"
+										+ "  if (tuxTitleString.indexOf('408 ') == 0 || tuxTitleString.indexOf('503 ') == 0) "
+										+ "  { document.title = 'err: ' + tuxTitleString; } " + "}"
+										+ "} catch (e) { }");
+							}
+						}
+					});
+				}
+			}
+		};
+
 		if (forceVisibleAfterLoad) {
 			browser.setVisible(false);
 		}
@@ -155,6 +177,7 @@ public class BrowserContext
 			}
 
 			public void completed(ProgressEvent event) {
+				checkURLEventPerformer.perform(null);
 				if (forceVisibleAfterLoad && !browser.isVisible()) {
 					browser.setVisible(true);
 				}
@@ -187,28 +210,7 @@ public class BrowserContext
 		});
 
 		checkURLEvent = SimpleTimer.addPeriodicEvent("checkURL", 10000,
-				new TimerEventPerformer() {
-			public void perform(TimerEvent event) {
-				if (!browser.isDisposed()) {
-					browser.getDisplay().asyncExec(new AERunnable() {
-						public void runSupport() {
-							if (!browser.isDisposed()) {
-								browser.execute("try { "
-										+ "tuxLocString = document.location.toString();"
-										+ "if (tuxLocString.indexOf('res://') == 0) {"
-										+ "  document.title = 'err: ' + tuxLocString;"
-										+ "} else {"
-										+ "  tuxTitleString = document.title.toString();"
-										+ "  if (tuxTitleString.indexOf('408 ') == 0 || tuxTitleString.indexOf('503 ') == 0) " 
-										+ "  { document.title = 'err: ' + tuxTitleString; } "
-										+ "}"
-										+ "} catch (e) { }");
-							}
-						}
-					});
-				}
-			}
-		});
+				checkURLEventPerformer);
 
 		browser.addLocationListener(new LocationListener() {
 			private TimerEvent timerevent;
@@ -218,6 +220,7 @@ public class BrowserContext
 				if (timerevent != null) {
 					timerevent.cancel();
 				}
+				checkURLEventPerformer.perform(null);
 				if (widgetWaitIndicator != null && !widgetWaitIndicator.isDisposed()) {
 					widgetWaitIndicator.setVisible(false);
 				}
@@ -254,7 +257,7 @@ public class BrowserContext
 				// https://moo.com:80/dr
 
 				boolean blocked = PlatformConfigMessenger.isURLBlocked(event.location);
- 
+
 				if (blocked) {
 					event.doit = false;
 					browser.back();
