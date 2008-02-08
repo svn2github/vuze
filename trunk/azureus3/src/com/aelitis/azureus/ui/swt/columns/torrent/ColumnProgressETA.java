@@ -138,7 +138,7 @@ public class ColumnProgressETA
   				ListCell listCell = (ListCell) ((TableCellSWT)cell).getBufferedTableItem();
   				Rectangle bounds = listCell.getBounds();
   				if (bounds != null) {
-    				itemTitle.setSecretWidth(cellTitle.getTableColumn().getWidth() + bounds.width);
+    				//itemTitle.setSecretWidth(cellTitle.getTableColumn().getWidth() + bounds.width);
     				disposeExisting(cell);
     				lastPercentDone = percentDone;
     				listCell.setBounds(null);
