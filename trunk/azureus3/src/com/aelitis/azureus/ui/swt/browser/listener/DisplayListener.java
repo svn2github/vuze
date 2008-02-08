@@ -22,9 +22,7 @@ import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
-import com.aelitis.azureus.ui.swt.skin.SWTSkin;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinTabSet;
+import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.util.MapUtils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -119,9 +117,9 @@ public class DisplayListener
 	 */
 	private void switchToTab(String tabID) {
 		SWTSkin skin = SWTSkinFactory.getInstance();
-		SWTSkinTabSet tabSet = skin.getTabSet(SkinConstants.TABSET_MAIN);
-		if (tabSet != null) {
-			tabSet.setActiveTab("maintabs." + tabID);
+		SWTSkinObject skinObject = skin.getSkinObject("tab-" + tabID);
+		if (skinObject != null) {
+			skin.activateTab(skinObject);
 		}
 	}
 
