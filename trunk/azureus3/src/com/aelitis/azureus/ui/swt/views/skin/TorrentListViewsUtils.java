@@ -43,27 +43,30 @@ import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnEditorWindow;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
+import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.download.EnhancedDownloadManager;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.common.table.TableRowCore;
-import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
-import com.aelitis.azureus.ui.common.table.TableView;
+import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.PublishUtils;
+import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
 import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
+import com.aelitis.azureus.ui.swt.views.list.ListView;
 import com.aelitis.azureus.util.AdManager;
 import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.VuzeActivitiesEntry;
 import com.aelitis.azureus.util.win32.Win32Utils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -83,7 +86,7 @@ public class TorrentListViewsUtils
 {
 
 	public static SWTSkinButtonUtility addShareButton(final SWTSkin skin,
-			String PREFIX, final TorrentListView view) {
+			String PREFIX, final ListView view) {
 		SWTSkinObject skinObject = skin.getSkinObject(PREFIX + "send-selected");
 		if (skinObject == null) {
 			return null;
@@ -95,22 +98,16 @@ public class TorrentListViewsUtils
 			public void pressed(SWTSkinButtonUtility buttonUtility) {
 				TableRowCore[] selectedRows = view.getSelectedRows();
 				if (selectedRows.length > 0) {
-					DownloadManager dm = (DownloadManager) selectedRows[0].getDataSource(true);
-					if (dm != null) {
-						try {
-							String url = Constants.URL_PREFIX + Constants.URL_SHARE
-									+ dm.getTorrent().getHashWrapper().toBase32String()
-									+ ".html?" + Constants.URL_SUFFIX;
-							// temp hackery for alpha
-							url = Constants.URL_PREFIX + Constants.URL_DETAILS
-									+ dm.getTorrent().getHashWrapper().toBase32String()
-									+ ".html#share?" + Constants.URL_SUFFIX;
+					String hash = getAssetHashFromDS(selectedRows[0].getDataSource(true));
+					if (hash != null) {
+						String url = Constants.URL_PREFIX + Constants.URL_SHARE + hash
+								+ ".html?" + Constants.URL_SUFFIX;
+						// temp hackery for alpha
+						url = Constants.URL_PREFIX + Constants.URL_DETAILS + hash
+								+ ".html#share?" + Constants.URL_SUFFIX;
 
-							UIFunctions functions = UIFunctionsManager.getUIFunctions();
-							functions.viewURL(url, "browse", 0, 0, false, false);
-						} catch (TOTorrentException e) {
-							Debug.out(e);
-						}
+						UIFunctions functions = UIFunctionsManager.getUIFunctions();
+						functions.viewURL(url, "browse", 0, 0, false, false);
 					}
 				}
 			}
@@ -161,7 +158,7 @@ public class TorrentListViewsUtils
 	}
 
 	public static SWTSkinButtonUtility addDetailsButton(final SWTSkin skin,
-			String PREFIX, final TorrentListView view) {
+			String PREFIX, final ListView view) {
 		SWTSkinObject skinObject = skin.getSkinObject(PREFIX + "viewdetails");
 		if (skinObject == null) {
 			return null;
@@ -182,8 +179,41 @@ public class TorrentListViewsUtils
 	}
 
 	public static void viewDetails(TableRowCore row) {
-		DownloadManager dm = (DownloadManager) row.getDataSource(true);
-		viewDetails(dm);
+		viewDetails(getAssetHashFromDS(row.getDataSource(true)));
+	}
+
+	private static String getAssetHashFromDS(Object ds) {
+		DownloadManager dm = null;
+		try {
+			if (ds instanceof DownloadManager) {
+				return ((DownloadManager) ds).getTorrent().getHashWrapper().toBase32String();
+			} else if (ds instanceof VuzeActivitiesEntry) {
+				VuzeActivitiesEntry entry = (VuzeActivitiesEntry) ds;
+				if (entry.assetHash != null) {
+					return entry.assetHash;
+				} else if (entry.dm != null) {
+					return entry.dm.getTorrent().getHashWrapper().toBase32String();
+				}
+			}
+		} catch (Exception e) {
+			Debug.printStackTrace(e);
+		}
+		return null;
+	}
+
+	private static DownloadManager getDMFromDS(Object ds) {
+		DownloadManager dm = null;
+		try {
+			if (ds instanceof DownloadManager) {
+				return (DownloadManager) ds;
+			} else if (ds instanceof VuzeActivitiesEntry) {
+				VuzeActivitiesEntry entry = (VuzeActivitiesEntry) ds;
+				return entry.dm;
+			}
+		} catch (Exception e) {
+			Debug.printStackTrace(e);
+		}
+		return null;
 	}
 
 	public static void viewDetails(DownloadManager dm) {
@@ -195,19 +225,26 @@ public class TorrentListViewsUtils
 		}
 
 		try {
-			String url = Constants.URL_PREFIX + Constants.URL_DETAILS
-					+ dm.getTorrent().getHashWrapper().toBase32String() + ".html?"
-					+ Constants.URL_SUFFIX;
-
-			UIFunctions functions = UIFunctionsManager.getUIFunctions();
-			functions.viewURL(url, "browse", 0, 0, false, false);
+			viewDetails(dm.getTorrent().getHashWrapper().toBase32String());
 		} catch (TOTorrentException e) {
 			Debug.out(e);
 		}
 	}
 
+	public static void viewDetails(String hash) {
+		if (hash == null) {
+			return;
+		}
+
+		String url = Constants.URL_PREFIX + Constants.URL_DETAILS + hash + ".html?"
+				+ Constants.URL_SUFFIX;
+
+		UIFunctions functions = UIFunctionsManager.getUIFunctions();
+		functions.viewURL(url, "browse", 0, 0, false, false);
+	}
+
 	public static SWTSkinButtonUtility addCommentsButton(final SWTSkin skin,
-			String PREFIX, final TorrentListView view) {
+			String PREFIX, final ListView view) {
 		SWTSkinObject skinObject = skin.getSkinObject(PREFIX + "comment");
 		if (skinObject == null) {
 			return null;
@@ -219,19 +256,13 @@ public class TorrentListViewsUtils
 			public void pressed(SWTSkinButtonUtility buttonUtility) {
 				TableRowCore[] selectedRows = view.getSelectedRows();
 				if (selectedRows.length > 0) {
-					DownloadManager dm = (DownloadManager) selectedRows[0].getDataSource(true);
-					if (dm != null) {
-						try {
-							String url = Constants.URL_PREFIX + Constants.URL_COMMENTS
-									+ dm.getTorrent().getHashWrapper().toBase32String()
-									+ ".html?" + Constants.URL_SUFFIX + "&rnd=" + Math.random();
+					String hash = getAssetHashFromDS(selectedRows[0].getDataSource(true));
 
-							UIFunctions functions = UIFunctionsManager.getUIFunctions();
-							functions.viewURL(url, "browse", 0, 0, false, false);
-						} catch (TOTorrentException e) {
-							Debug.out(e);
-						}
-					}
+					String url = Constants.URL_PREFIX + Constants.URL_COMMENTS + hash
+							+ ".html?" + Constants.URL_SUFFIX + "&rnd=" + Math.random();
+
+					UIFunctions functions = UIFunctionsManager.getUIFunctions();
+					functions.viewURL(url, "browse", 0, 0, false, false);
 				}
 			}
 		});
@@ -240,7 +271,7 @@ public class TorrentListViewsUtils
 	}
 
 	public static SWTSkinButtonUtility addPlayButton(final SWTSkin skin,
-			String PREFIX, final TorrentListView view, boolean bOnlyIfMediaServer,
+			String PREFIX, final ListView view, boolean bOnlyIfMediaServer,
 			boolean bPlayOnDoubleClick) {
 		SWTSkinObject skinObject = skin.getSkinObject(PREFIX + "play");
 		if (skinObject == null) {
@@ -263,7 +294,7 @@ public class TorrentListViewsUtils
 				if (selectedRows.length <= 0) {
 					return;
 				}
-				playOrStream((DownloadManager) selectedRows[0].getDataSource(true), btn);
+				playOrStreamDataSource(selectedRows[0].getDataSource(true), btn);
 			}
 		});
 
@@ -284,15 +315,20 @@ public class TorrentListViewsUtils
 				boolean bDisabled = view.getSelectedRowsSize() != 1;
 				if (!bDisabled) {
 					TableRowCore[] rows = view.getSelectedRows();
-					DownloadManager dm = (DownloadManager) rows[0].getDataSource(true);
-					bDisabled = !canPlay(dm);
+					Object ds = rows[0].getDataSource(true);
+					DownloadManager dm = getDMFromDS(ds);
+					if (dm == null) {
+						bDisabled = getAssetHashFromDS(ds) == null;
+					} else {
+						bDisabled = !canPlay(dm);
+					}
 				}
 				btn.setDisabled(bDisabled);
 			}
 
 			public void defaultSelected(TableRowCore[] rows) {
 				if (rows.length == 1) {
-					playOrStream((DownloadManager) rows[0].getDataSource(true));
+					playOrStreamDataSource(rows[0].getDataSource(true), btn);
 				}
 			}
 		}, true);
@@ -300,7 +336,78 @@ public class TorrentListViewsUtils
 		return btn;
 	}
 
+	public static void playOrStreamDataSource(Object ds, SWTSkinButtonUtility btn) {
+		DownloadManager dm = getDMFromDS(ds);
+		if (dm == null) {
+			String hash = getAssetHashFromDS(ds);
+			if (hash != null) {
+				String url = Constants.URL_PREFIX + Constants.URL_DOWNLOAD + hash
+						+ ".torrent?referal=vuzenewsfeed";
+				AzureusCore core = AzureusCoreFactory.getSingleton();
+				TorrentUIUtilsV3.loadTorrent(core, url, null, true, false, true);
+			}
+		} else {
+			playOrStream(dm, btn);
+		}
+	}
+
+	/**
+	 * @param skin
+	 * @param prefix
+	 * @param view
+	 * @return
+	 *
+	 * @since 3.0.4.3
+	 */
+	public static SWTSkinButtonUtility addColumnSetupButton(SWTSkin skin,
+			String PREFIX, final ListView view) {
+		SWTSkinObject skinObject = skin.getSkinObject(PREFIX + "columnsetup");
+		if (skinObject == null) {
+			return null;
+		}
+
+		SWTSkinButtonUtility btn = new SWTSkinButtonUtility(skinObject);
+		btn.addSelectionListener(new ButtonListenerAdapter() {
+			public void pressed(SWTSkinButtonUtility buttonUtility) {
+				String tableID = view.getTableID();
+				new TableColumnEditorWindow(view.getComposite().getShell(), tableID,
+						view.getAllColumns(), view.getFocusedRow(),
+						TableStructureEventDispatcher.getInstance(tableID));
+			}
+		});
+
+		return btn;
+	}
+
+	public static SWTSkinButtonUtility addDeleteButton(SWTSkin skin,
+			String PREFIX, final ListView view) {
+		SWTSkinObject skinObject = skin.getSkinObject(PREFIX + "delete");
+		if (!(skinObject instanceof SWTSkinObjectContainer)) {
+			return null;
+		}
+
+		SWTSkinButtonUtility btn = new SWTSkinButtonUtility(skinObject);
+
+		btn.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
+			public void pressed(SWTSkinButtonUtility buttonUtility) {
+				TableRowCore[] selectedRows = view.getSelectedRows();
+				for (int i = 0; i < selectedRows.length; i++) {
+
+					DownloadManager dm = getDMFromDS(selectedRows[i].getDataSource(true));
+					if (dm != null) {
+						TorrentListViewsUtils.removeDownload(dm, view, true, true);
+					}
+				}
+			}
+		});
+
+		return btn;
+	}
+
 	public static boolean canPlay(DownloadManager dm) {
+		if (dm == null) {
+			return false;
+		}
 		TOTorrent torrent = dm.getTorrent();
 		if (!PlatformTorrentUtils.isContent(torrent, false)) {
 			return false;
@@ -365,9 +472,9 @@ public class TorrentListViewsUtils
 			return false;
 		}
 
-//		if (!canPlay(dm)) {
-//			return false;
-//		}
+		//		if (!canPlay(dm)) {
+		//			return false;
+		//		}
 
 		TOTorrent torrent = dm.getTorrent();
 		if (canUseEMP(torrent)) {
@@ -828,7 +935,7 @@ public class TorrentListViewsUtils
 	 * @param buttonsNeedingSingleSelection 
 	 * @param btnStop
 	 */
-	public static void addButtonSelectionDisabler(final TorrentListView view,
+	public static void addButtonSelectionDisabler(final ListView view,
 			final SWTSkinButtonUtility[] buttonsNeedingRow,
 			final SWTSkinButtonUtility[] buttonsNeedingPlatform,
 			final SWTSkinButtonUtility[] buttonsNeedingSingleSelection,
@@ -856,14 +963,20 @@ public class TorrentListViewsUtils
 						buttonsNeedingRow[i].setDisabled(bDisabled);
 					}
 				}
-
+				
 				// now for buttons that require platform torrents
 				if (!bDisabled) {
 					TableRowCore[] rows = view.getSelectedRows();
 					for (int i = 0; i < rows.length; i++) {
 						TableRowCore row = rows[i];
-						DownloadManager dm = (DownloadManager) row.getDataSource(true);
-						if (!PlatformTorrentUtils.isContent(dm.getTorrent(), true)) {
+						Object ds = row.getDataSource(true);
+						DownloadManager dm = getDMFromDS(ds);
+						if (dm == null && (ds instanceof VuzeActivitiesEntry)) {
+							if (((VuzeActivitiesEntry)ds).assetHash == null) {
+								bDisabled = true;
+								break;
+							}
+						} else if (!PlatformTorrentUtils.isContent(dm.getTorrent(), true)) {
 							bDisabled = true;
 							break;
 						}
@@ -963,4 +1076,5 @@ public class TorrentListViewsUtils
 			});
 		}
 	}
+
 }
