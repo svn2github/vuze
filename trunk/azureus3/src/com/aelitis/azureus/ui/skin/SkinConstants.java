@@ -29,5 +29,7 @@ public class SkinConstants
 {
 
 	public static final String TABSET_MAIN = "maintabs";
+	
+	public static final String TABSET_DASHBOARD_LEFT = "hometab-left";
 
 }
