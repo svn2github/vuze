@@ -37,6 +37,14 @@ public class MapUtils
 		}
 	}
 
+	public static long getMapLong(Map map, String key, long def) {
+		try {
+			return ((Number) map.get(key)).longValue();
+		} catch (Exception e) {
+			return def;
+		}
+	}
+
 	public static String getMapString(Map map, String key, String def) {
 		try {
 			return (String) map.get(key);
