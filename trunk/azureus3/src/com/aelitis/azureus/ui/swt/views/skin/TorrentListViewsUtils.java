@@ -382,9 +382,6 @@ public class TorrentListViewsUtils
 	public static SWTSkinButtonUtility addDeleteButton(SWTSkin skin,
 			String PREFIX, final ListView view) {
 		SWTSkinObject skinObject = skin.getSkinObject(PREFIX + "delete");
-		if (!(skinObject instanceof SWTSkinObjectContainer)) {
-			return null;
-		}
 
 		SWTSkinButtonUtility btn = new SWTSkinButtonUtility(skinObject);
 

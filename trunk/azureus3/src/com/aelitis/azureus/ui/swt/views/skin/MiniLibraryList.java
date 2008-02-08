@@ -78,7 +78,7 @@ extends SkinView
 				lblCountArea, cData, TorrentListView.VIEW_MY_MEDIA, true, true);
 
 		skinObject = skin.getSkinObject(PREFIX + "add");
-		if (skinObject instanceof SWTSkinObjectContainer) {
+		if (skinObject instanceof SWTSkinObject) {
 			btnAdd = new SWTSkinButtonUtility(skinObject);
 
 			btnAdd.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
