@@ -46,6 +46,8 @@ public class SWTSkinObjectText2
 {
 	String sText;
 
+	String sDisplayText;
+
 	String sKey;
 
 	boolean bIsTextDefault = false;
@@ -57,6 +59,8 @@ public class SWTSkinObjectText2
 	private boolean bUnderline;
 
 	private int antialiasMode = SWT.DEFAULT;
+
+	private boolean allcaps;
 
 	private static Font font = null;
 
@@ -113,7 +117,7 @@ public class SWTSkinObjectText2
 				int border = getBorderWidth() * 2;
 				Point pt = new Point(border, border);
 
-				if (sText == null) {
+				if (sDisplayText == null) {
 					return pt;
 				}
 
@@ -131,7 +135,7 @@ public class SWTSkinObjectText2
 					gc.setTextAntialias(antialiasMode);
 				}
 
-				pt = gc.textExtent(sText);
+				pt = gc.textExtent(sDisplayText);
 				pt.x += border;
 				pt.y += border;
 				gc.dispose();
@@ -174,6 +178,8 @@ public class SWTSkinObjectText2
 		if (typeParams.length > 1) {
 			bIsTextDefault = true;
 			sText = typeParams[1];
+			this.sDisplayText = allcaps && sText != null ? sText.toUpperCase()
+					: sText;
 		}
 
 		canvas.addPaintListener(this);
@@ -192,6 +198,8 @@ public class SWTSkinObjectText2
 			String text = properties.getStringValue(sPrefix + suffix);
 			if (text != null) {
 				sText = text;
+				this.sDisplayText = allcaps && sText != null ? sText.toUpperCase()
+						: sText;
 			}
 		}
 
@@ -262,9 +270,15 @@ public class SWTSkinObjectText2
 
 			String sStyle = properties.getStringValue(sPrefix + ".style" + suffix);
 			if (sStyle != null) {
+				allcaps = false;
 				String[] sStyles = sStyle.toLowerCase().split(",");
 				for (int i = 0; i < sStyles.length; i++) {
 					String s = sStyles[i];
+
+					if (s.equals("allcaps")) {
+						allcaps = true;
+					}
+
 					if (s.equals("bold")) {
 						if (iFontWeight == -1) {
 							iFontWeight = SWT.BOLD;
@@ -288,7 +302,7 @@ public class SWTSkinObjectText2
 						canvas.addPaintListener(new PaintListener() {
 							public void paintControl(PaintEvent e) {
 								int x = 0;
-								Point pt = e.gc.textExtent(sText);
+								Point pt = e.gc.textExtent(sDisplayText);
 								Point size = ((Control) e.widget).getSize();
 								if (pt.x < size.x) {
 									x = size.x - pt.x;
@@ -313,6 +327,8 @@ public class SWTSkinObjectText2
 						bNewFont = true;
 					}
 				}
+				this.sDisplayText = allcaps && sText != null ? sText.toUpperCase()
+						: sText;
 			}
 
 			sFontFace = properties.getStringValue(sPrefix + ".font" + suffix);
@@ -363,6 +379,7 @@ public class SWTSkinObjectText2
 		}
 
 		this.sText = text;
+		this.sDisplayText = allcaps && sText != null ? sText.toUpperCase() : sText;
 		this.sKey = null;
 		bIsTextDefault = false;
 		Utils.execSWTThread(new AERunnable() {
@@ -396,7 +413,8 @@ public class SWTSkinObjectText2
 		if (antialiasMode != SWT.DEFAULT) {
 			e.gc.setTextAntialias(antialiasMode);
 		}
-		GCStringPrinter.printString(e.gc, sText, clientArea, true, false, style);
+		GCStringPrinter.printString(e.gc, sDisplayText, clientArea, true, false,
+				style);
 	}
 
 	public void setTextID(String key) {
@@ -409,10 +427,11 @@ public class SWTSkinObjectText2
 		}
 
 		this.sText = MessageText.getString(key);
+		this.sDisplayText = allcaps && sText != null ? sText.toUpperCase() : sText;
 		this.sKey = key;
 		bIsTextDefault = false;
 
-		Utils.execSWTThread(new AERunnable() {
+		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				canvas.redraw();
 				canvas.layout(true);
