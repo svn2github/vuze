@@ -97,7 +97,7 @@ public class SWTSkinButtonUtility
 	}
 
 	public void setTextID(final String id) {
-		Utils.execSWTThread(new AERunnable() {
+		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				if (skinObject instanceof SWTSkinObjectText) {
 					SWTSkinObjectText skinTextObject = (SWTSkinObjectText) skinObject;
