@@ -23,6 +23,7 @@ package com.aelitis.azureus.ui.swt.skin;
 import java.text.NumberFormat;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
@@ -95,6 +96,7 @@ public class SWTSkinObjectSash
 		final Composite parentComposite = createOn;
 
 		Listener l = new Listener() {
+			Point lastSize = new Point(0, 0);
 			private boolean skipResize = false;
 
 			public void handleEvent(Event e) {
@@ -133,6 +135,14 @@ public class SWTSkinObjectSash
 					Double l = (Double) sash.getData("PCT");
 					Long px = (Long) sash.getData("PX");
 					if (l != null) {
+						Point size = createOn.getSize();
+						if (bVertical && size.x == lastSize.x) {
+							return;
+						} else if (!bVertical && size.y == lastSize.y) {
+							return;
+						}
+
+						lastSize = size;
 						setPercent(l, sash, above, below, bVertical, parentComposite,
 								aboveMin, belowMin);
 					} else if (px != null) {
@@ -168,7 +178,7 @@ public class SWTSkinObjectSash
 						return;
 					}
 
-					Rectangle area = parentComposite.getClientArea();
+					Rectangle area = parentComposite.getBounds();
 					FormData belowData = (FormData) below.getLayoutData();
 					if (bVertical) {
 						belowData.width = area.width - (e.x + e.width);
@@ -192,10 +202,10 @@ public class SWTSkinObjectSash
 
 					double d;
 					if (bVertical) {
-						d = (double) below.getBounds().width
+						d = (double) (below.getBounds().width + (sash.getSize().x / 2))
 								/ parentComposite.getBounds().width;
 					} else {
-						d = (double) below.getBounds().height
+						d = (double) (below.getBounds().height + (sash.getSize().y / 2))
 								/ parentComposite.getBounds().height;
 					}
 					Double l = new Double(d);
