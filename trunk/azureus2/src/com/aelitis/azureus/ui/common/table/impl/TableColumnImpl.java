@@ -22,22 +22,19 @@
 
 package com.aelitis.azureus.ui.common.table.impl;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 
-import com.aelitis.azureus.ui.common.table.TableCellCore;
-import com.aelitis.azureus.ui.common.table.TableColumnCore;
-import com.aelitis.azureus.ui.common.table.TableRowCore;
-import com.aelitis.azureus.ui.common.table.TableStructureEventDispatcher;
-
-import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
+import com.aelitis.azureus.ui.common.table.*;
 
 import org.gudy.azureus2.plugins.ui.UIRuntimeException;
 import org.gudy.azureus2.plugins.ui.tables.*;
+
+import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 
 /** 
  * Table Column definition and modification routines.
@@ -54,6 +51,8 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 public class TableColumnImpl
 	implements TableColumnCore
 {
+	private static final String CFG_SORTDIRECTION = "config.style.table.defaultSortOrder";
+
 	/** Internal Name/ID of the column **/
 	private String sName;
 
@@ -145,9 +144,11 @@ public class TableColumnImpl
 		iInterval = INTERVAL_INVALID_ONLY;
 		iConsecutiveErrCount = 0;
 		lLastSortValueChange = 0;
-		bVisible = true;
+		bVisible = false;
 		iMinWidth = 16;
-		setPosition(POSITION_INVISIBLE);
+		iPosition = POSITION_INVISIBLE;
+		int iSortDirection = COConfigurationManager.getIntParameter(CFG_SORTDIRECTION);
+		bSortAscending = iSortDirection == 1 ? false : true;
 	}
 
 	public void initialize(int iAlignment, int iPosition, int iWidth,
@@ -223,7 +224,7 @@ public class TableColumnImpl
 
 		iWidth = width;
 
-		if (bColumnAdded && iPosition != POSITION_INVISIBLE) {
+		if (bColumnAdded && bVisible) {
 			triggerColumnSizeChange();
 		}
 	}
@@ -246,11 +247,11 @@ public class TableColumnImpl
 					+ " already added"));
 		}
 
-		if (iPosition < 0 && position >= 0) {
+		if (iPosition == POSITION_INVISIBLE && position != POSITION_INVISIBLE) {
 			setVisible(true);
 		}
 		iPosition = position;
-		if (position < 0) {
+		if (position == POSITION_INVISIBLE) {
 			setVisible(false);
 		}
 	}
@@ -622,7 +623,7 @@ public class TableColumnImpl
 		}
 	}
 
-	public void invokeCellAddedListeners(TableCellCore cell) {
+	public void invokeCellAddedListeners(TableCell cell) {
 		if (cellAddedListeners == null) {
 			return;
 		}
@@ -638,7 +639,7 @@ public class TableColumnImpl
 		}
 	}
 
-	public void invokeCellDisposeListeners(TableCellCore cell) {
+	public void invokeCellDisposeListeners(TableCell cell) {
 		if (cellDisposeListeners == null) {
 			return;
 		}
@@ -716,29 +717,101 @@ public class TableColumnImpl
 	}
 
 	public void setPositionNoShift(int position) {
-		if (iPosition < 0 && position >= 0) {
-			setVisible(true);
-		}
+		//if (iPosition < 0 && position >= 0) {
+		//	setVisible(true);
+		//}
 		iPosition = position;
-		if (position < 0) {
-			setVisible(false);
+		//if (position < 0) {
+		//	setVisible(false);
+		//}
+	}
+
+	public void loadSettings(Map mapSettings) {
+		// Format: Key = [TableID].column.[columnname]
+		// Value[] = { visible, width, position, autotooltip, sortorder }
+		String itemPrefix = "Column." + sName;
+		String oldItemPrefix = "Table." + sTableID + "." + sName;
+		Object object = mapSettings.get(itemPrefix);
+		Object[] list;
+		if (object instanceof List) {
+			list = ((List) object).toArray();
+		} else {
+			list = new String[0];
+		}
+
+		int pos = 0;
+		if (list.length >= (pos + 1) && (list[pos] instanceof Number)) {
+			boolean vis = ((Number) list[pos]).intValue() == 1;
+			setVisible(vis);
+		}
+
+		pos++;
+		if (list.length >= (pos + 1) && (list[pos] instanceof Number)) {
+			int position = ((Number) list[pos]).intValue();
+			setPositionNoShift(position);
+		} else {
+			int position = COConfigurationManager.getIntParameter(oldItemPrefix + ".position",
+					iPosition);
+			if (iPosition == POSITION_INVISIBLE && position != POSITION_INVISIBLE) {
+				setVisible(true);
+			}
+			setPositionNoShift(position);
+			if (position == POSITION_INVISIBLE) {
+				setVisible(false);
+			}
+		}
+
+		pos++;
+		if (list.length >= (pos + 1) && (list[pos] instanceof Number)) {
+			int width = ((Number) list[pos]).intValue();
+			setWidth(width);
+		} else {
+			setWidth(COConfigurationManager.getIntParameter(oldItemPrefix + ".width",
+					iWidth));
+		}
+		
+		pos++;
+		if (list.length >= (pos + 1) && (list[pos] instanceof Number)) {
+			boolean autoTooltip = ((Number) list[pos]).intValue() == 1;
+			setAutoTooltip(autoTooltip);
+		} else {
+			setAutoTooltip(COConfigurationManager.getBooleanParameter(oldItemPrefix
+					+ ".auto_tooltip", auto_tooltip));
+		}
+
+		pos++;
+		if (list.length >= (pos + 1) && (list[pos] instanceof Number)) {
+			int sortOrder = ((Number) list[pos]).intValue();
+			if (sortOrder >= 0) {
+				// dont call setSordOrder, since it will change lLastSortValueChange
+				// which we shouldn't do if we aren't the sorting column
+				bSortAscending = sortOrder == 1;
+			}
 		}
 	}
 
-	public void loadSettings() {
-		String sItemPrefix = "Table." + sTableID + "." + sName;
-		setWidth(COConfigurationManager.getIntParameter(sItemPrefix + ".width",
-				iWidth));
-		setPositionNoShift(COConfigurationManager.getIntParameter(sItemPrefix
-				+ ".position", iPosition));
-		setAutoTooltip(COConfigurationManager.getBooleanParameter(sItemPrefix + ".auto_tooltip", auto_tooltip));
-	}
-
-	public void saveSettings() {
-		String sItemPrefix = "Table." + sTableID + "." + sName;
-		COConfigurationManager.setParameter(sItemPrefix + ".position", iPosition);
-		COConfigurationManager.setParameter(sItemPrefix + ".width", iWidth);
-		COConfigurationManager.setParameter(sItemPrefix + ".auto_tooltip", auto_tooltip);
+	public void saveSettings(Map mapSettings) {
+		if (mapSettings == null) {
+			mapSettings = TableColumnManager.getInstance().getTableConfigMap(sTableID);
+			if (mapSettings == null) {
+				return;
+			}
+		}
+		String sItemPrefix = "Column." + sName;
+		mapSettings.put(sItemPrefix, Arrays.asList(new Object[] {
+			new Integer(bVisible ? 1 : 0),
+			new Integer(iPosition),
+			new Integer(iWidth),
+			new Integer(auto_tooltip ? 1 : 0),
+			new Integer(lLastSortValueChange == 0 ? -1 : (bSortAscending ? 1 : 0)),
+		}));
+		// cleanup old config
+		sItemPrefix = "Table." + sTableID + "." + sName; 
+		if (COConfigurationManager.hasParameter(sItemPrefix + ".width", true)) {
+			COConfigurationManager.removeParameter(sItemPrefix + ".position");
+			COConfigurationManager.removeParameter(sItemPrefix + ".width");
+			COConfigurationManager.removeParameter(sItemPrefix + ".auto_tooltip");
+		}
 	}
 
 	public String getTitleLanguageKey() {
@@ -783,6 +856,14 @@ public class TableColumnImpl
 						sTitleLanguageKey = sKeyPrefix + sName;
 						return sTitleLanguageKey;
 					}
+				}
+				
+				// another "Old Style"
+				sKeyPrefix = "MyTorrentsView." + sName;
+				//System.out.println(sKeyPrefix + ";" + MessageText.getString(sKeyPrefix));
+				if (MessageText.keyExists(sKeyPrefix)) {
+					sTitleLanguageKey = sKeyPrefix;
+					return sTitleLanguageKey;
 				}
 			}
 			return sTitleLanguageKey;
@@ -905,6 +986,7 @@ public class TableColumnImpl
 		sTableID = tableID;
 	}
 
+	// @see java.util.Comparator#compare(T, T)
 	public int compare(Object arg0, Object arg1) {
 		TableCellCore cell0 = ((TableRowCore) arg0).getTableCellCore(sName);
 		TableCellCore cell1 = ((TableRowCore) arg1).getTableCellCore(sName);
@@ -1029,6 +1111,9 @@ public class TableColumnImpl
 		if (bVisible == visible) {
 			return;
 		}
+		
+		//System.out.println("set " + sTableID + "/" + sName + " to " + visible
+		//		+ " via " + Debug.getCompressedStackTrace());
 
 		bVisible = visible;
 		invalidateCells();
@@ -1094,7 +1179,7 @@ public class TableColumnImpl
 			iPreferredWidth = width;
 		}
 
-		if (bColumnAdded && iPosition != POSITION_INVISIBLE) {
+		if (bColumnAdded && bVisible) {
 			triggerColumnSizeChange();
 		}
 	}

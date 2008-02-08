@@ -22,6 +22,7 @@ package com.aelitis.azureus.ui.common.table;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.util.IndentWriter;
 
@@ -108,7 +109,7 @@ public interface TableColumnCore
 	 *               
 	 * @since 2.1.0.0
 	 */
-	public void invokeCellAddedListeners(TableCellCore cell);
+	public void invokeCellAddedListeners(TableCell cell);
 
 	/**
 	 * Retreive all the Cell Added listeners
@@ -126,7 +127,7 @@ public interface TableColumnCore
 	 *               
 	 * @since 2.1.0.0
 	 */
-	public void invokeCellDisposeListeners(TableCellCore cell);
+	public void invokeCellDisposeListeners(TableCell cell);
 
 	/**
 	 * Send a tool tip event to the tool tip listeners
@@ -171,17 +172,19 @@ public interface TableColumnCore
 
 	/** 
 	 * Load width and position settings from config.
+	 * @param mapSettings map to place settings into
 	 *               
 	 * @since 2.1.0.0
 	 */
-	public void loadSettings();
+	public void loadSettings(Map mapSettings);
 
 	/** 
 	 * Save width and position settings to config.
+	 * @param mapSettings map to place settings into
 	 *               
 	 * @since 2.1.0.0
 	 */
-	public void saveSettings();
+	public void saveSettings(Map mapSettings);
 
 	/** 
 	 * Returns the key in the properties bundle that has the title of the

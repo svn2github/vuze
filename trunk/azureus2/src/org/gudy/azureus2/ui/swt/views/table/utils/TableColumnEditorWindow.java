@@ -25,18 +25,18 @@ import java.util.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.RowData;
-import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
+import org.gudy.azureus2.ui.swt.views.table.impl.FakeTableCell;
 import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
-import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.common.table.TableStructureModificationListener;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 /**
@@ -56,13 +56,10 @@ public class TableColumnEditorWindow {
   private boolean mousePressed;
   private TableItem selectedItem;
   private Point oldPoint;
+	private Composite cSample;
+  private FakeTableCell fakeTableCell;
+	private final String tableID;
 
-
-	public TableColumnEditorWindow(Shell parent, String tableID,
-			TableColumnCore[] _tableColumns, TableRowCore focusedRow,
-			TableStructureModificationListener _listener) {
-		this(parent, _tableColumns, _listener);
-	}
 
   /**
    * Default Constructor
@@ -71,10 +68,11 @@ public class TableColumnEditorWindow {
    * @param _tableColumns List of columns available
    * @param _listener Callback listener to trigger when columns changed
    */
-  public TableColumnEditorWindow(Shell parent,
-                                TableColumnCore[] _tableColumns,
-                                TableStructureModificationListener _listener) {    
-    RowData rd;
+  public TableColumnEditorWindow(Shell parent, String sTableID,
+			TableColumnCore[] _tableColumns, final Object sampleDS,
+			TableStructureModificationListener _listener) {    
+    tableID = sTableID;
+		RowData rd;
     display = parent.getDisplay();
     listener = _listener;
     
@@ -96,7 +94,8 @@ public class TableColumnEditorWindow {
     for (Iterator iter = tableColumns.iterator(); iter.hasNext();) {
 			TableColumnCore item = (TableColumnCore) iter.next();
 			Boolean value = new Boolean(
-					item.getPosition() != org.gudy.azureus2.plugins.ui.tables.TableColumn.POSITION_INVISIBLE); 
+					item.getPosition() != org.gudy.azureus2.plugins.ui.tables.TableColumn.POSITION_INVISIBLE
+							&& item.isVisible()); 
 			newEnabledState.put(item, value);
 		}
     
@@ -120,6 +119,10 @@ public class TableColumnEditorWindow {
     gridData = new GridData(GridData.FILL_BOTH);
     table.setLayoutData(gridData);
     table.setHeaderVisible(true);
+    
+    cSample = new Composite(shell, SWT.BORDER); 
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    cSample.setLayoutData(gridData);
     
     Composite cButtonArea = new Composite(shell, SWT.NULL);
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
@@ -177,14 +180,40 @@ public class TableColumnEditorWindow {
     table.getColumn(1).setWidth(1000);
 
     table.addListener(SWT.Selection,new Listener() {
-      public void handleEvent(Event e) {
-      	if (e.detail != SWT.CHECK)
-      		return;
-        mousePressed = false;
+			public void handleEvent(Event e) {
 				TableItem item = (TableItem) e.item;
 				int index = item.getParent().indexOf(item);
 				TableColumnCore tableColumn = (TableColumnCore)tableColumns.get(index);
-				
+
+				if (sampleDS != null) {
+  				if (fakeTableCell != null && !fakeTableCell.isDisposed()) {
+  					fakeTableCell.setControl(null);
+  				}
+  		    fakeTableCell = new FakeTableCell(tableColumn);
+  		    fakeTableCell.setControl(cSample);
+  		    if (sampleDS instanceof TableRowCore) {
+  		    	fakeTableCell.setDataSource(((TableRowCore)sampleDS).getDataSource(tableColumn.getUseCoreDataSource()));
+  		    } else {
+  		    	fakeTableCell.setDataSource(sampleDS);
+  		    }
+  		    if (tableColumn instanceof TableColumnCore) {
+  		    	((TableColumnCore)tableColumn).invokeCellAddedListeners(fakeTableCell);
+  		    	try {
+  						((TableColumnCore)tableColumn).invokeCellRefreshListeners(fakeTableCell, false);
+  					} catch (Throwable e1) {
+  						// TODO Auto-generated catch block
+  						e1.printStackTrace();
+  					}
+  		    }
+  		    fakeTableCell.refresh();
+  		    cSample.redraw();
+  				cSample.update(); // force initial update
+				}
+  
+				if (e.detail != SWT.CHECK)
+      		return;
+        mousePressed = false;
+
 				newEnabledState.put(tableColumn, new Boolean(item.getChecked()));
       }
     });
@@ -326,17 +355,14 @@ public class TableColumnEditorWindow {
   }
   
   private void saveAndApply() {
-    TableItem[] items = table.getItems();
-    int position = 0;
-    for(int i = 0 ; i < items.length ; i++) {
-      TableColumnCore tableColumn = (TableColumnCore)tableColumns.get(i);
-      
-	    boolean bChecked = ((Boolean) newEnabledState.get(tableColumn))
-					.booleanValue();
-      tableColumn.setPositionNoShift(bChecked ? position++ : -1);
-      tableColumn.saveSettings();
-    }
-    listener.tableStructureChanged();
-  }
+		for (int i = 0; i < tableColumns.size(); i++) {
+			TableColumnCore tableColumn = (TableColumnCore) tableColumns.get(i);
+			boolean bChecked = ((Boolean) newEnabledState.get(tableColumn)).booleanValue();
+			tableColumn.setPositionNoShift(i);
+			tableColumn.setVisible(bChecked);
+		}
+		TableColumnManager.getInstance().saveTableColumns(tableID);
+		listener.tableStructureChanged();
+	}
 }
 

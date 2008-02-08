@@ -24,19 +24,16 @@ package org.gudy.azureus2.ui.swt.views.table.utils;
 
 import java.util.*;
 
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.IndentWriter;
-
-import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
-import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.OldMyTorrentsPluginItem;
 import org.gudy.azureus2.ui.swt.views.tableitems.peers.OldPeerPluginItem;
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
+
+import org.gudy.azureus2.plugins.ui.tables.TableColumn;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
 
 
 /** Holds a list of column definitions (TableColumnCore) for 
@@ -51,7 +48,8 @@ import com.aelitis.azureus.ui.common.table.TableColumnCore;
  */
 public class TableColumnManager {
 
-  private static TableColumnManager instance;
+  private static final String CONFIG_FILE = "tables.config";
+	private static TableColumnManager instance;
   private static AEMonitor 			class_mon 	= new AEMonitor( "TableColumnManager" );
 
   /* Holds all the TableColumnCore objects.
@@ -70,10 +68,32 @@ public class TableColumnManager {
    * value = List of TableColumn, indexed in the order they should be removed
    */ 
   private Map autoHideOrder = new HashMap();
+	private Map mapTablesConfig; // key = table; value = map of columns
+	private static Comparator orderComparator;
+	
+	static {
+		orderComparator = new Comparator() {
+			public int compare(Object arg0, Object arg1) {				
+				if ((arg1 instanceof TableColumn) && (arg0 instanceof TableColumn)) {
+					int iPositionA = ((TableColumn) arg0).getPosition();
+					if (iPositionA < 0)
+						iPositionA = 0xFFFF + iPositionA;
+					int iPositionB = ((TableColumn) arg1).getPosition();
+					if (iPositionB < 0)
+						iPositionB = 0xFFFF + iPositionB;
+
+					return iPositionA - iPositionB;
+				}
+				return 0;
+			}
+		};
+	}
 
   
   private TableColumnManager() {
    items = new HashMap();
+
+   mapTablesConfig = FileUtil.readResilientConfigFile(CONFIG_FILE);
   }
   
   /** Retrieve the static TableColumnManager instance
@@ -109,7 +129,9 @@ public class TableColumnManager {
         }
         if (!mTypes.containsKey(name)) {
           mTypes.put(name, item);
-          ((TableColumnCore)item).loadSettings();
+          Map mapColumnConfig = getTableConfigMap(sTableID);
+          mapTablesConfig.put("Table." + sTableID, mapColumnConfig);
+          ((TableColumnCore)item).loadSettings(mapColumnConfig);
         }
       }finally{
       	items_mon.exit();
@@ -222,25 +244,38 @@ public class TableColumnManager {
     TableColumnCore[] tableColumns = 
       (TableColumnCore[])mTypes.values().toArray(new TableColumnCore[mTypes.values().size()]);
 
-    Arrays.sort(tableColumns, new Comparator () {
-      public final int compare (Object a, Object b) {
-        int iPositionA = ((TableColumnCore)a).getPosition();
-        if (iPositionA == TableColumnCore.POSITION_LAST)
-          iPositionA = 0xFFFF;
-        int iPositionB = ((TableColumnCore)b).getPosition();
-        if (iPositionB == TableColumnCore.POSITION_LAST)
-          iPositionB = 0xFFFF;
+    Arrays.sort(tableColumns, getTableColumnOrderComparator());
 
-        return iPositionA - iPositionB;
-      }
-    });
     int iPos = 0;
     for (int i = 0; i < tableColumns.length; i++) {
       int iCurPos = tableColumns[i].getPosition();
-      if (iCurPos >= 0 || iCurPos == TableColumnCore.POSITION_LAST) {
+      if (iCurPos == TableColumnCore.POSITION_INVISIBLE) {
+      	tableColumns[i].setVisible(false);
+      } else {
         tableColumns[i].setPositionNoShift(iPos++);
       }
     }
+  }
+  
+  public String getDefaultSortColumnName(String tableID) {
+  	Map mapTableConfig = getTableConfigMap(tableID);
+  	Object object = mapTableConfig.get("SortColumn");
+  	if (object instanceof String) {
+			return (String) object;
+		}
+
+		String s = COConfigurationManager.getStringParameter(tableID + ".sortColumn");
+		if (s != null) {
+			COConfigurationManager.removeParameter(tableID + ".sortColumn");
+			COConfigurationManager.removeParameter(tableID + ".sortAsc");
+		}
+		return s;
+  }
+  
+  public void setDefaultSortColumnName(String tableID, String columnName) {
+  	Map mapTableConfig = getTableConfigMap(tableID);
+  	mapTableConfig.put("SortColumn", columnName);
+    FileUtil.writeResilientConfigFile(CONFIG_FILE, mapTablesConfig);
   }
 
   /** Saves all the user configurable Table Column settings at once, complete
@@ -250,15 +285,25 @@ public class TableColumnManager {
    */
   public void saveTableColumns(String sTableID) {
   	try {
+  		Map mapTableConfig = getTableConfigMap(sTableID);
       TableColumnCore[] tcs = getAllTableColumnCoreAsArray(sTableID);
       for (int i = 0; i < tcs.length; i++) {
         if (tcs[i] != null)
-          tcs[i].saveSettings();
+          tcs[i].saveSettings(mapTableConfig);
       }
-      COConfigurationManager.save();
+      FileUtil.writeResilientConfigFile(CONFIG_FILE, mapTablesConfig);
   	} catch (Exception e) {
   		Debug.out(e);
   	}
+  }
+  
+  public Map getTableConfigMap(String sTableID) {
+  	Map mapTableConfig = (Map) mapTablesConfig.get("Table." + sTableID);
+  	if (mapTableConfig == null) {
+  		mapTableConfig = new HashMap();
+  		mapTablesConfig.put("Table." + sTableID, mapTableConfig);
+  	}
+  	return mapTableConfig;
   }
   
   public void setAutoHideOrder(String sTableID, String[] autoHideOrderColumnIDs) {
@@ -312,5 +357,10 @@ public class TableColumnManager {
     } finally {
     	items_mon.exit();
     }
+	}
+	
+	public static Comparator getTableColumnOrderComparator()
+	{
+		return orderComparator;
 	}
 }

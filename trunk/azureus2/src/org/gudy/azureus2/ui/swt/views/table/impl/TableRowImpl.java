@@ -37,8 +37,8 @@ import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.LightHashMap;
-import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
@@ -83,6 +83,8 @@ public class TableRowImpl
 
   private static AEMonitor this_mon = new AEMonitor( "TableRowImpl" );
 	private ArrayList mouseListeners;
+	private boolean wasShown = false;
+	private Map dataList;
 
   // XXX add rowVisuallyupdated bool like in ListRow
 
@@ -327,61 +329,67 @@ public class TableRowImpl
 	}
   
   public Object getDataSource(boolean bCoreObject) {
-  	if (bDisposed)
-  		return null;
+		if (bDisposed)
+			return null;
 
-    if (bCoreObject)
-      return coreDataSource;
-      
-    if (pluginDataSource != null)
-      return pluginDataSource;
+		if (bCoreObject)
+			return coreDataSource;
 
-    if (sTableID.equals(TableManager.TABLE_MYTORRENTS_COMPLETE) ||
-        sTableID.equals(TableManager.TABLE_MYTORRENTS_INCOMPLETE)) {
-      DownloadManager dm = (DownloadManager)coreDataSource;
-      if (dm != null) {
-        try {
-          pluginDataSource = DownloadManagerImpl.getDownloadStatic(dm);
-        } catch (DownloadException e) { /* Ignore */ }
-      }
-    }
-    if (sTableID.equals(TableManager.TABLE_TORRENT_PEERS)) {
-      PEPeer peer = (PEPeer)coreDataSource;
-      if (peer != null)
-        pluginDataSource = PeerManagerImpl.getPeerForPEPeer( peer );
-    }
+		if (pluginDataSource != null)
+			return pluginDataSource;
 
-    if (sTableID.equals(TableManager.TABLE_TORRENT_PIECES)) {
-      // XXX There is no Piece object for plugins yet
-      PEPiece piece = (PEPiece)coreDataSource;
-      if (piece != null)
-        pluginDataSource = null;
-    }
+		if ((coreDataSource instanceof DownloadManager)
+				|| sTableID.equals(TableManager.TABLE_MYTORRENTS_COMPLETE)
+				|| sTableID.equals(TableManager.TABLE_MYTORRENTS_INCOMPLETE)) {
+			DownloadManager dm = (DownloadManager) coreDataSource;
+			if (dm != null) {
+				try {
+					pluginDataSource = DownloadManagerImpl.getDownloadStatic(dm);
+				} catch (DownloadException e) { /* Ignore */
+				}
+			}
+		}
+		if ((coreDataSource instanceof PEPeer)
+				|| sTableID.equals(TableManager.TABLE_TORRENT_PEERS)) {
+			PEPeer peer = (PEPeer) coreDataSource;
+			if (peer != null)
+				pluginDataSource = PeerManagerImpl.getPeerForPEPeer(peer);
+		}
 
-    if (sTableID.equals(TableManager.TABLE_TORRENT_FILES)) {
-      DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)coreDataSource;
-      if (fileInfo != null){
-    	  try {
-    		  pluginDataSource = 
-    			  new DiskManagerFileInfoImpl(
-    					  DownloadManagerImpl.getDownloadStatic(fileInfo.getDownloadManager()),
-    					  fileInfo);
-          } catch (DownloadException e) { /* Ignore */ }
-      }
-    }
+		if ((coreDataSource instanceof PEPiece)
+				|| sTableID.equals(TableManager.TABLE_TORRENT_PIECES)) {
+			// XXX There is no Piece object for plugins yet
+			PEPiece piece = (PEPiece) coreDataSource;
+			if (piece != null)
+				pluginDataSource = null;
+		}
 
-    if (sTableID.equals(TableManager.TABLE_MYSHARES)) {
-      pluginDataSource = coreDataSource;
-    }
+		if ((coreDataSource instanceof DiskManagerFileInfo)
+				|| sTableID.equals(TableManager.TABLE_TORRENT_FILES)) {
+			DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) coreDataSource;
+			if (fileInfo != null) {
+				try {
+					pluginDataSource = new DiskManagerFileInfoImpl(
+							DownloadManagerImpl.getDownloadStatic(fileInfo.getDownloadManager()),
+							fileInfo);
+				} catch (DownloadException e) { /* Ignore */
+				}
+			}
+		}
 
-    if (sTableID.equals(TableManager.TABLE_MYTRACKER)) {
-      TRHostTorrent item = (TRHostTorrent)coreDataSource;
-      if (item != null)
-        pluginDataSource = new TrackerTorrentImpl(item);
-    }
-    
-    return pluginDataSource;
-  }
+		if (sTableID.equals(TableManager.TABLE_MYSHARES)) {
+			pluginDataSource = coreDataSource;
+		}
+
+		if ((coreDataSource instanceof TRHostTorrent)
+				|| sTableID.equals(TableManager.TABLE_MYTRACKER)) {
+			TRHostTorrent item = (TRHostTorrent) coreDataSource;
+			if (item != null)
+				pluginDataSource = new TrackerTorrentImpl(item);
+		}
+
+		return pluginDataSource;
+	}
   
 	public boolean isRowDisposed() {
 		return bDisposed;
@@ -408,28 +416,32 @@ public class TableRowImpl
 			System.out.println("XXX setTI: bDisposed from " + Debug.getCompressedStackTrace());
 			return false;
 		}
-
+		
 		//if (getRealIndex() != newIndex) {
 		//	((TableViewSWTImpl)tableView).debug("sTI " + newIndex + "; via " + Debug.getCompressedStackTrace(4));
 		//}
-		return setTableItem(newIndex, false);
+		boolean changed = setTableItem(newIndex, false);
+		setShown(tableView.isRowVisible(this), changed);
+		return changed; 
 	}
 	
+	// @see org.gudy.azureus2.ui.swt.components.BufferedTableRow#setForeground(int, int, int)
 	public void setForeground(int r, int g, int b) {
-	  	// Don't need to set when not visible
-	  	if (!isVisible()) {
-	  		return;
-	  	}
-	  	
-	  	super.setForeground(r, g, b);
+		// Don't need to set when not visible
+		if (!isVisible()) {
+			return;
+		}
+
+		super.setForeground(r, g, b);
 	}
-	
+
+	// @see org.gudy.azureus2.ui.swt.components.BufferedTableRow#setForeground(org.eclipse.swt.graphics.Color)
 	public void setForeground(Color c) {
-  	// Don't need to set when not visible
-  	if (!isVisible())
-  		return;
-  	
-  	super.setForeground(c);
+		// Don't need to set when not visible
+		if (!isVisible())
+			return;
+
+		super.setForeground(c);
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableRow#setForeground(int[])
@@ -496,7 +508,46 @@ public class TableRowImpl
 		return tableView;
 	}
 
+	/**
+	 * @param b
+	 *
+	 * @since 3.0.4.3
+	 */
+	public void setShown(boolean b, boolean force) {
+  	if (bDisposed)
+  		return;
+  	
+  	if (b == wasShown && !force) {
+  		return;
+  	}
+  	wasShown  = b;
+
+    Iterator iter = mTableCells.values().iterator();
+    while (iter.hasNext()) {
+    	TableCellSWT cell = (TableCellSWT)iter.next();
+      if (cell != null) {
+        cell.invokeVisibilityListeners(b
+						? TableCellVisibilityListener.VISIBILITY_SHOWN
+						: TableCellVisibilityListener.VISIBILITY_HIDDEN, true);
+      }
+    }
+	}
 	public boolean isMouseOver() {
 		return tableView.getTableRowWithCursor() == this;
+	}
+
+	public void setData(String id, Object data) {
+		if (dataList == null) {
+			dataList = new HashMap(1);
+		}
+		if (data == null) {
+			dataList.remove("id");
+		} else {
+			dataList.put(id, data);
+		}
+	}
+	
+	public Object getData(String id) {
+		return dataList == null ? null : dataList.get(id);
 	}
 }

@@ -325,6 +325,14 @@ public interface TableView
 	int indexOf(TableRowCore row);
 
 	/**
+	 * @param row
+	 * @return
+	 *
+	 * @since 3.0.4.3
+	 */
+	boolean isRowVisible(TableRowCore row);
+
+	/**
 	 * @return
 	 *
 	 * @since 3.0.4.3

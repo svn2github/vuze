@@ -101,4 +101,11 @@ public interface BufferedTableItem
 	 * @since 3.0.1.1
 	 */
 	public abstract int getMaxLines();
+
+	/**
+	 * @param cursorID
+	 *
+	 * @since 3.0.4.3
+	 */
+	public abstract void setCursor(int cursorID);
 }

@@ -50,6 +50,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnSWTUtils;
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.TableColumnSortObject;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 
 import org.gudy.azureus2.plugins.ui.Graphic;
@@ -410,7 +411,8 @@ public class TableCellImpl
   public boolean setSortValue(Comparable valueToSort) {
 		if (!tableColumn.isSortValueLive()) {
 			// objects that can't change aren't live
-			if (!(valueToSort instanceof Number) && !(valueToSort instanceof String)) {
+			if (!(valueToSort instanceof Number) && !(valueToSort instanceof String)
+					&& !(valueToSort instanceof TableColumnSortObject)) {
 				tableColumn.setSortValueLive(true);
 			}
 		}
@@ -886,7 +888,8 @@ public class TableCellImpl
   }
   
   public boolean refresh(boolean bDoGraphics) {
-  	return refresh(bDoGraphics, tableRow.isVisible());
+		boolean isShown = isShown();
+		return refresh(bDoGraphics, isShown, isShown);
   }
 
   public boolean refresh(boolean bDoGraphics, boolean bRowVisible) {
@@ -1235,20 +1238,19 @@ public class TableCellImpl
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				System.out.println(SystemTime.getCurrentTime() + ": r"
-						+ tableRow.getIndex() + "c" + tableColumn.getPosition()
-						+ "r.v?" + ((tableRow.isVisible() ? "Y":"N"))
-						+ ";" + s);
+						+ tableRow.getIndex() + "c" + tableColumn.getPosition() + "r.v?"
+						+ ((tableRow.isVisible() ? "Y" : "N")) + ";" + s);
 			}
 		}, true);
 	}
 
 	public Rectangle getBounds() {
 		if (isDisposed()) {
-      return new Rectangle(0,0,0,0);
+			return new Rectangle(0, 0, 0, 0);
 		}
 		Rectangle bounds = bufferedTableItem.getBounds();
 		if (bounds == null) {
-      return new Rectangle(0,0,0,0);
+			return new Rectangle(0, 0, 0, 0);
 		}
     return bounds;
 	}
@@ -1297,10 +1299,17 @@ public class TableCellImpl
 	
 	public void setCursorID(int cursorID) {
 		iCursorID = cursorID;
+		if (isMouseOver()) {
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					bufferedTableItem.setCursor(iCursorID);
+				}
+			});
+		}
 	}
 	
 	public boolean isMouseOver() {
-		return ((TableViewSWT)tableRow.getView()).getTableCellWithCursor() == this;
+		return ((TableViewSWT) tableRow.getView()).getTableCellWithCursor() == this;
 	}
 	
 	private boolean hasFlag(int flag) {

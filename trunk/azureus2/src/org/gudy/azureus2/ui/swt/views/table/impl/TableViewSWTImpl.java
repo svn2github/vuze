@@ -35,12 +35,15 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.Timer;
-import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
-import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.MenuBuildUtils;
+import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -60,6 +63,8 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
+
+import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 
 /** 
  * An IView with a sortable table.  Handles composite/menu/table creation
@@ -213,7 +218,7 @@ public class TableViewSWTImpl
 	 * in case the user drags the columns around.
 	 */
 	private TableColumnCore[] columnsOrdered;
-	private boolean[] columnsOrderedVisible;
+	private boolean[] columnsVisible;
 
 	private ColumnMoveListener columnMoveListener = new ColumnMoveListener();
 
@@ -1091,13 +1096,13 @@ public class TableViewSWTImpl
 				continue;
 			Rectangle size = topRow.getBounds(i);
 			size.intersect(tableArea);
-			columnsOrderedVisible[tc.getPosition()] = !size.isEmpty();
+			columnsVisible[tc.getPosition()] = !size.isEmpty();
 		}
 	}
 	
 	public boolean isColumnVisible(org.gudy.azureus2.plugins.ui.tables.TableColumn column)
 	{
-		return columnsOrderedVisible[column.getPosition()];
+		return columnsVisible[column.getPosition()];
 	}
 
 	protected void initializeTableColumns(final Table table) {
@@ -1156,28 +1161,33 @@ public class TableViewSWTImpl
 
 		TableColumnCore[] tmpColumnsOrdered = new TableColumnCore[tableColumns.length];
 		//Create all columns
+		int columnOrderPos = 0;
+		Arrays.sort(tableColumns, TableColumnManager.getTableColumnOrderComparator());
 		for (int i = 0; i < tableColumns.length; i++) {
 			int position = tableColumns[i].getPosition();
-			if (position != -1) {
+			if (position != -1 && tableColumns[i].isVisible()) {
 				new TableColumn(table, SWT.NULL);
-				tmpColumnsOrdered[position] = tableColumns[i];
+				//System.out.println(i + "] " + tableColumns[i].getName() + ";" + position);
+				tmpColumnsOrdered[columnOrderPos++] = tableColumns[i];
 			}
 		}
 		int numSWTColumns = table.getColumnCount();
 		int iNewLength = numSWTColumns - (bSkipFirstColumn ? 1 : 0);
 		columnsOrdered = new TableColumnCore[iNewLength];
 		System.arraycopy(tmpColumnsOrdered, 0, columnsOrdered, 0, iNewLength);
-		columnsOrderedVisible = new boolean[iNewLength];
+		columnsVisible = new boolean[tableColumns.length];
 
 		ColumnSelectionListener columnSelectionListener = new ColumnSelectionListener();
 
 		//Assign length and titles
 		//We can only do it after ALL columns are created, as position (order)
 		//may not be in the natural order (if the user re-order the columns).
+		int swtColumnPos = (bSkipFirstColumn ? 1 : 0);
 		for (int i = 0; i < tableColumns.length; i++) {
 			int position = tableColumns[i].getPosition();
-			if (position == -1)
+			if (position == -1 || !tableColumns[i].isVisible()) {
 				continue;
+			}
 
 			String sName = tableColumns[i].getName();
 			// +1 for Eclipse Bug 43910 (see above)
@@ -1185,15 +1195,13 @@ public class TableViewSWTImpl
 			// but putting in a preventative check so that hopefully the view still opens
 			// so they can fix it
 
-			int adjusted_position = position + (bSkipFirstColumn ? 1 : 0);
-
-			if (adjusted_position >= numSWTColumns) {
+			if (swtColumnPos >= numSWTColumns) {
 				Debug.out("Incorrect table column setup, skipping column '" + sName
-						+ "', position=" + adjusted_position + ";numCols=" + numSWTColumns);
+						+ "', position=" + swtColumnPos + ";numCols=" + numSWTColumns);
 				continue;
 			}
 
-			TableColumn column = table.getColumn(adjusted_position);
+			TableColumn column = table.getColumn(swtColumnPos);
 			try {
 				column.setMoveable(true);
 			} catch (NoSuchMethodError e) {
@@ -1214,22 +1222,23 @@ public class TableViewSWTImpl
 			// At the time of writing this SWT (3.0RC1) on OSX doesn't call the 
 			// selection listener for tables
 			column.addListener(SWT.Selection, columnSelectionListener);
+			
+			swtColumnPos++;
+		}
+		
+		// Initialize the sorter after the columns have been added
+		TableColumnManager tcManager = TableColumnManager.getInstance();
+		
+		String sSortColumn = tcManager.getDefaultSortColumnName(sTableID);
+		if (sSortColumn == null) {
+			sSortColumn = sDefaultSortOn;
 		}
 
-		// Initialize the sorter after the columns have been added
-		String sSortColumn = configMan.getStringParameter(sTableID + ".sortColumn",
-				sDefaultSortOn);
-		int iSortDirection = configMan.getIntParameter(CFG_SORTDIRECTION);
-		boolean bSortAscending = configMan.getBooleanParameter(sTableID
-				+ ".sortAsc", iSortDirection == 1 ? false : true);
-
-		TableColumnManager tcManager = TableColumnManager.getInstance();
 		TableColumnCore tc = tcManager.getTableColumnCore(sTableID, sSortColumn);
 		if (tc == null) {
 			tc = tableColumns[0];
 		}
 		sortColumn = tc;
-		sortColumn.setSortAscending(bSortAscending);
 		changeColumnIndicator();
 
 		// Add move listener at the very end, so we don't get a bazillion useless 
@@ -1242,16 +1251,9 @@ public class TableViewSWTImpl
 						}
 					};
 
-			for (int i = 0; i < tableColumns.length; i++) {
-				int position = tableColumns[i].getPosition();
-				if (position == -1)
-					continue;
-
-				int adjusted_position = position + (bSkipFirstColumn ? 1 : 0);
-				if (adjusted_position >= numSWTColumns)
-					continue;
-
-				TableColumn column = table.getColumn(adjusted_position);
+			TableColumn[] columns = table.getColumns();
+			for (int i = 0; i < columns.length; i++) {
+				TableColumn column = columns[i];
 				column.addListener(SWT.Move, columnMoveListener);
 				if (COLUMN_CLICK_DELAY)
 					column.addListener(SWT.Resize, columnResizeListener);
@@ -1298,7 +1300,8 @@ public class TableViewSWTImpl
 
 		itemChangeTable.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event e) {
-				new TableColumnEditorWindow(table.getShell(), tableColumns,
+				new TableColumnEditorWindow(table.getShell(), sTableID, tableColumns,
+						getFocusedRow(),
 						TableStructureEventDispatcher.getInstance(sTableID));
 			}
 		});
@@ -2938,7 +2941,7 @@ public class TableViewSWTImpl
 					if (tableColumnCore.getPosition() != iNewPosition) {
 						//System.out.println("Moving " + tableColumnCore.getName() + " to Position " + i);
 						tableColumnCore.setPositionNoShift(iNewPosition);
-						tableColumnCore.saveSettings();
+						tableColumnCore.saveSettings(null);
 						TableStructureEventDispatcher.getInstance(sTableID).columnOrderChanged(
 								iColumnOrder);
 					}
@@ -3193,24 +3196,36 @@ public class TableViewSWTImpl
 					}
 				}
 
+				int count = sortedRows.size();
+				if (iBottomIndex >= count) {
+					iBottomIndex = count - 1;
+				}
 				if (bTableVirtual && allSelectedRowsVisible) {
-					int count = sortedRows.size();
-					if (iBottomIndex >= count) {
-						iBottomIndex = count - 1;
-					}
-					for (int i = iTopIndex; i <= iBottomIndex; i++) {
+					for (int i = 0; i < sortedRows.size(); i++) {
 						TableRowSWT row = (TableRowSWT) sortedRows.get(i);
-						if (row.setTableItem(i)) {
-							iNumMoves++;
+						boolean visible = i >= iTopIndex && i <= iBottomIndex;
+						if (visible) {
+  						if (row.setTableItem(i)) {
+  							iNumMoves++;
+  						}
+						} else {
+							if (row instanceof TableRowImpl) {
+								((TableRowImpl)row).setShown(visible, false);
+							}
 						}
 					}
 
 					// visibleRowsChanged() will setTableItem for the rest
 				} else {
 					for (int i = 0; i < sortedRows.size(); i++) {
+						boolean visible = i >= iTopIndex && i <= iBottomIndex;
 						TableRowSWT row = (TableRowSWT) sortedRows.get(i);
 						if (row.setTableItem(i)) {
 							iNumMoves++;
+						} else {
+							if (row instanceof TableRowImpl) {
+								((TableRowImpl)row).setShown(visible, false);
+							}
 						}
 					}
 				}
@@ -3290,13 +3305,10 @@ public class TableViewSWTImpl
 			else
 				sortColumn.setSortAscending(!sortColumn.isSortAscending());
 
-			configMan.setParameter(sTableID + ".sortAsc",
-					sortColumn.isSortAscending());
-			configMan.setParameter(sTableID + ".sortColumn", sortColumn.getName());
+			TableColumnManager.getInstance().setDefaultSortColumnName(sTableID,
+					sortColumn.getName());
 		} else {
 			sortColumn.setSortAscending(!sortColumn.isSortAscending());
-			configMan.setParameter(sTableID + ".sortAsc",
-					sortColumn.isSortAscending());
 		}
 
 		changeColumnIndicator();
@@ -3326,6 +3338,12 @@ public class TableViewSWTImpl
 		} catch (NoSuchMethodError e) {
 			// sWT < 3.2 doesn't have column indicaters
 		}
+	}
+	
+	// @see com.aelitis.azureus.ui.common.table.TableView#isRowVisible(com.aelitis.azureus.ui.common.table.TableRowCore)
+	public boolean isRowVisible(TableRowCore row) {
+		int i = row.getIndex();
+		return i >= lastTopIndex && i <= lastBottomIndex;
 	}
 
 	private void visibleRowsChanged() {
@@ -3362,6 +3380,9 @@ public class TableViewSWTImpl
 						if (row != null) {
 							row.setAlternatingBGColor(true);
 							row.refresh(true, true);
+							if (row instanceof TableRowImpl) {
+								((TableRowImpl)row).setShown(true, false);
+							}
 							if (Constants.isOSX) {
 								bTableUpdate = true;
 							}
@@ -3376,6 +3397,12 @@ public class TableViewSWTImpl
 				iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
 			} else {
 				//System.out.println("Made T.Invisible " + (tmpIndex) + " to " + (iTopIndex - 1));
+				for (int i = tmpIndex; i < iTopIndex; i++) {
+					TableRowSWT row = (TableRowSWT) getRow(i);
+					if (row instanceof TableRowImpl) {
+						((TableRowImpl)row).setShown(false, false);
+					}
+				}
 			}
 		}
 
@@ -3395,6 +3422,10 @@ public class TableViewSWTImpl
 						if (row != null) {
 							row.setAlternatingBGColor(true);
 							row.refresh(true, true);
+							if (row instanceof TableRowImpl) {
+								((TableRowImpl)row).setShown(true, false);
+							}
+
 							if (Constants.isOSX) {
 								bTableUpdate = true;
 							}
@@ -3405,6 +3436,12 @@ public class TableViewSWTImpl
 				}
 			} else {
 				//System.out.println("Made B.Invisible " + (tmpIndex) + " to " + (iBottomIndex + 1));
+				for (int i = tmpIndex; i <= iBottomIndex; i++) {
+					TableRowSWT row = (TableRowSWT) getRow(i);
+					if (row instanceof TableRowImpl) {
+						((TableRowImpl)row).setShown(false, false);
+					}
+				}
 			}
 		}
 
