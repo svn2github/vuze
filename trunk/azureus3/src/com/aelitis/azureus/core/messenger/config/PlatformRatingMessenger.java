@@ -299,7 +299,9 @@ public class PlatformRatingMessenger
 	}
 	
 	public static void addListener(RatingUpdateListener l) {
-		listeners.add(l);
+		if (!listeners.contains(l)) {
+			listeners.add(l);
+		}
 	}
 	
 	public static void removeListener(RatingUpdateListener l) {
