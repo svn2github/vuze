@@ -23,6 +23,8 @@ package com.aelitis.azureus.ui.swt.skin;
 import java.text.NumberFormat;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormData;
@@ -45,8 +47,8 @@ public class SWTSkinObjectSash
 
 	protected String sControlAfter;
 
-	public SWTSkinObjectSash(final SWTSkin skin, SWTSkinProperties properties,
-			final String sID, String sConfigID, String[] typeParams,
+	public SWTSkinObjectSash(final SWTSkin skin, final SWTSkinProperties properties,
+			final String sID, final String sConfigID, String[] typeParams,
 			SWTSkinObject parent, final boolean bVertical) {
 		super(skin, properties, sID, sConfigID, "sash", parent);
 
@@ -70,7 +72,7 @@ public class SWTSkinObjectSash
 		}
 
 		final Sash sash = new Sash(createOn, style);
-
+		
 		int splitAt = COConfigurationManager.getIntParameter("v3." + sID
 				+ ".SplitAt", -1);
 		if (splitAt != -1) {
@@ -95,11 +97,37 @@ public class SWTSkinObjectSash
 
 		final Composite parentComposite = createOn;
 
-		Listener l = new Listener() {
+		final Listener l = new Listener() {
 			Point lastSize = new Point(0, 0);
 			private boolean skipResize = false;
 
 			public void handleEvent(Event e) {
+				if (e.type == SWT.MouseUp) {
+					if (e.button == 2) {
+						String sPos = properties.getStringValue(sConfigID + ".startpos");
+						if (sPos == null) {
+							return;
+						}
+						try {
+							long l = NumberFormat.getInstance().parse(sPos).longValue();
+							if (sPos.endsWith("%")) {
+								double pct = (double) (100 - l) / 100;
+								sash.setData("PCT", new Double(pct));
+							} else {
+								sash.setData("PX", new Long(l));
+								sash.setData("PCT", null);
+							}
+							// FALL THROUGH
+							e.type = SWT.Show;
+						} catch (Exception ex) {
+							Debug.out(ex);
+							return;
+						}
+					} else {
+						return;
+					}
+				}
+				
 				Composite below = null;
 				SWTSkinObject skinObject = skin.getSkinObjectByID(sControlAfter);
 
@@ -224,7 +252,7 @@ public class SWTSkinObjectSash
 		createOn.addListener(SWT.Resize, l);
 		sash.addListener(SWT.Selection, l);
 		createOn.addListener(SWT.Show, l);
-		//sash.addListener(SWT.Show, l);
+		sash.addListener(SWT.MouseUp, l);
 		createOn.getParent().addListener(SWT.Show, l);
 
 		String sDblClick = properties.getStringValue(sConfigID + ".dblclick");
