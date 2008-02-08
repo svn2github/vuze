@@ -30,13 +30,13 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
-import com.aelitis.azureus.ui.common.table.TableStructureModificationListener;
-import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 /**
@@ -56,6 +56,13 @@ public class TableColumnEditorWindow {
   private boolean mousePressed;
   private TableItem selectedItem;
   private Point oldPoint;
+
+
+	public TableColumnEditorWindow(Shell parent, String tableID,
+			TableColumnCore[] _tableColumns, TableRowCore focusedRow,
+			TableStructureModificationListener _listener) {
+		this(parent, _tableColumns, _listener);
+	}
 
   /**
    * Default Constructor
@@ -313,7 +320,7 @@ public class TableColumnEditorWindow {
     shell.open (); 
   }
   
-  private void close() {
+	private void close() {
     if (!shell.isDisposed())
     	shell.dispose();
   }
