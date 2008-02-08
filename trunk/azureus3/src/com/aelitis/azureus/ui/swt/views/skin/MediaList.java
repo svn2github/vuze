@@ -103,6 +103,8 @@ public class MediaList
 
 	private TimerEvent searchUpdateEvent;
 
+	private SWTSkinButtonUtility btnColumnSetup;
+
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
 		final SWTSkin skin = skinObject.getSkin();
@@ -165,21 +167,10 @@ public class MediaList
 				}
 				return bOurs;
 			}
-
-			public void updateUI() {
-				super.updateUI();
-
-				Control control = skinDetailInfo.getControl();
-				if (control == null || control.isDisposed() || !control.isVisible()) {
-					return;
-				}
-
-				if (view.getSelectedRows().length != 1) {
-					updateDetailsInfo();
-				}
-			}
 		};
 
+		btnColumnSetup = TorrentListViewsUtils.addColumnSetupButton(skin, PREFIX, view);
+		
 		btnShare = TorrentListViewsUtils.addShareButton(skin, PREFIX, view);
 		btnStop = TorrentListViewsUtils.addStopButton(skin, PREFIX, view);
 		btnDetails = TorrentListViewsUtils.addDetailsButton(skin, PREFIX, view);
@@ -221,7 +212,7 @@ public class MediaList
 				}
 
 				countChanging = true;
-				Utils.execSWTThread(new AERunnable() {
+				Utils.execSWTThreadLater(0, new AERunnable() {
 					public void runSupport() {
 						countChanging = false;
 
