@@ -100,8 +100,15 @@ NetworkAdmin
 	public abstract NetworkAdminNATDevice[]
 	getNATDevices();
 	
+		/**
+		 * Only call if the supplied address is believed to be the current public address
+		 * @param address
+		 * @return
+		 * @throws NetworkAdminException
+		 */
+		 
 	public abstract NetworkAdminASN
-	lookupASN(
+	lookupCurrentASN(
 		InetAddress		address )
 	
 		throws NetworkAdminException;
@@ -109,6 +116,18 @@ NetworkAdmin
 	public abstract NetworkAdminASN
 	getCurrentASN();
 	
+		/**
+		 * ad-hoc query
+		 * @param address
+		 * @return
+		 * @throws NetworkAdminException
+		 */
+	
+	public abstract NetworkAdminASN
+	lookupASN(
+		InetAddress		address )
+	
+		throws NetworkAdminException;
 	public abstract boolean
 	canTraceRoute();
 	

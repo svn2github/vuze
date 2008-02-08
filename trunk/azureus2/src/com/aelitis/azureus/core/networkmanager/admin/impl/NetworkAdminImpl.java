@@ -131,6 +131,8 @@ NetworkAdminImpl
 	
 	private List asn_ips_checked = new ArrayList(0);
 	
+	private List as_history = new ArrayList();
+	
 		
 	public
 	NetworkAdminImpl()
@@ -786,7 +788,7 @@ NetworkAdminImpl
 	}
 	
 	public NetworkAdminASN
-	lookupASN(
+	lookupCurrentASN(
 		InetAddress		address )
 	
 		throws NetworkAdminException
@@ -845,6 +847,80 @@ NetworkAdminImpl
 		return( current );
 	}
 		
+	public NetworkAdminASN
+	lookupASN(
+		InetAddress		address )
+	
+		throws NetworkAdminException
+	{
+		NetworkAdminASN existing = getFromASHistory( address );
+		
+		if ( existing != null ){
+			
+			return( existing );
+		}
+
+		NetworkAdminASNLookupImpl lookup = new NetworkAdminASNLookupImpl( address );
+
+		NetworkAdminASNImpl result = lookup.lookup();
+			
+		addToASHistory( result );
+		
+		return( result );
+	}
+		
+	protected void
+	addToASHistory(
+		NetworkAdminASN	asn )
+	{
+		synchronized( as_history ){
+			
+			boolean	found = false;
+			
+			for (int i=0;i<as_history.size();i++){
+				
+				 NetworkAdminASN x = (NetworkAdminASN)as_history.get(i);
+				 
+				 if ( asn.getAS() == x.getAS()){
+					 
+					 found = true;
+					 
+					 break;
+				 }
+			}
+			
+			if ( !found ){
+				
+				as_history.add( asn );
+				
+				if ( as_history.size() > 256 ){
+					
+					as_history.remove(0);
+				}
+			}
+		}
+	}
+	
+	protected NetworkAdminASN
+	getFromASHistory(
+		InetAddress	address )
+	{
+		synchronized( as_history ){
+			
+			for (int i=0;i<as_history.size();i++){
+				
+				 NetworkAdminASN x = (NetworkAdminASN)as_history.get(i);
+				 
+				 if ( x.matchesCIDR( address )){
+					 
+					 return( x );
+				 }
+			}
+		}
+		
+		return( null );
+	}
+	
 	public void
 	runInitialChecks()
 	{
@@ -876,7 +952,7 @@ NetworkAdminImpl
 							external_address = address;
 							
 							try{
-								lookupASN( address );
+								lookupCurrentASN( address );
 								
 							}catch( Throwable e ){
 								
@@ -1675,7 +1751,7 @@ NetworkAdminImpl
 			InetAddress	pub_address = (InetAddress)it.next();
 			
 			try{
-				NetworkAdminASN	res = lookupASN( pub_address );
+				NetworkAdminASN	res = lookupCurrentASN( pub_address );
 				
 				iw.println( "    " + pub_address.getHostAddress() + " -> " + res.getAS() + "/" + res.getASName());
 				

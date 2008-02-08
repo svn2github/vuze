@@ -51,7 +51,7 @@ NetStatusPluginTester
 	protected void
 	run()
 	{
-		NetworkAdmin	admin = NetworkAdmin.getSingleton();
+		final NetworkAdmin	admin = NetworkAdmin.getSingleton();
 		
 		Set	public_addresses = new HashSet();
 		
@@ -212,6 +212,8 @@ NetStatusPluginTester
 					ROUTE_TIMEOUT, 
 					new NetworkAdminRoutesListener()
 					{
+						private String	last_as = "";
+						
 						public boolean
 						foundNode(
 							NetworkAdminNetworkInterfaceAddress		intf,
@@ -229,7 +231,31 @@ NetStatusPluginTester
 								active_routes.put( intf, route );
 							}
 							
-							log( "  " + intf.getAddress().getHostAddress() + " -> " + route[route.length-1].getAddress().getHostAddress() + " (" + distance + ")" );
+							InetAddress ia = route[route.length-1].getAddress();
+							
+							String	as = "";
+							
+							if ( !ia.isLinkLocalAddress() && !ia.isSiteLocalAddress()){
+								
+								try{
+									NetworkAdminASN asn = admin.lookupASN( ia );
+									
+									as = asn.getString();
+									
+									if ( as.equals( last_as )){
+										
+										as = "";
+										
+									}else{
+										
+										last_as = as;
+									}
+								}catch( Throwable e ){
+									
+								}
+							}
+							
+							log( "  " + intf.getAddress().getHostAddress() + " -> " + ia.getHostAddress() + " (" + distance + ")" + (as.length()==0?"":( " - " + as )));
 							
 							return( true );
 						}

@@ -869,7 +869,7 @@ public class VersionCheckClient {
 		  
 		  NetworkAdminASN old_asn = admin.getCurrentASN();
 		  	  
-		  NetworkAdminASN new_asn = admin.lookupASN( my_ip );
+		  NetworkAdminASN new_asn = admin.lookupCurrentASN( my_ip );
 
 		  if ( !new_asn.sameAs( old_asn )){
 
