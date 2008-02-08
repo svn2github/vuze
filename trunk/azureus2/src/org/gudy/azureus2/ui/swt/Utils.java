@@ -1190,6 +1190,7 @@ public class Utils {
 		if (layoutData instanceof FormData) {
 			FormData fd = (FormData)layoutData;
 			if (fd.width != SWT.DEFAULT && fd.height != SWT.DEFAULT) {
+				parent.layout();
 				return;
 			}
 		}
