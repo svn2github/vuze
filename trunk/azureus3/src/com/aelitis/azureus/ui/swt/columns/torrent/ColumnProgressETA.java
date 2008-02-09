@@ -3,6 +3,7 @@
  */
 package com.aelitis.azureus.ui.swt.columns.torrent;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 
@@ -164,6 +165,9 @@ public class ColumnProgressETA
 			int x1 = newWidth - borderWidth - 1;
 			int progressX1 = bCanBeProgressive ? x1 - 55 : x1;
 			int progressY1 = newHeight - borderWidth - 1 - 12;
+			if (progressY1 > 18) {
+				progressY1 = 18;
+			}
 			if (x1 < 10 || progressX1 < 10 || progressY1 < 3) {
 				return;
 			}
@@ -296,7 +300,7 @@ public class ColumnProgressETA
 				gcImage.fillRectangle(1, 1, limit, progressY1 - 1);
 				if (limit < progressX1) {
 					gcImage.setBackground(cFG);
-					gcImage.fillRectangle(limit + 1, 1, progressX1 - limit,
+					gcImage.fillRectangle(limit + 1, 1, progressX1 - limit - 1,
 							progressY1 - 1);
 				}
 
