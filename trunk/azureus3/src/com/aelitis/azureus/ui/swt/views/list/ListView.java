@@ -72,8 +72,6 @@ public class ListView
 
 	public static int COLUMN_PADDING_WIDTH = COLUMN_MARGIN_WIDTH * 2;
 
-	public static int ROW_MARGIN_HEIGHT = 2;
-
 	private final static LogIDs LOGID = LogIDs.UI3;
 
 	private static final boolean DEBUGPAINT = false;
@@ -90,6 +88,8 @@ public class ListView
 	private static final ConfigurationManager configMan = ConfigurationManager.getInstance();
 
 	private static final String CFG_SORTDIRECTION = "config.style.table.defaultSortOrder";
+
+	public int rowMarginHeight = 2;
 
 	public int DEFAULT_ROW_HEIGHT = 38;
 
@@ -3755,7 +3755,7 @@ public class ListView
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#setRowDefaultHeight(int)
 	public void setRowDefaultHeight(int height) {
-		DEFAULT_ROW_HEIGHT = height + (ListView.ROW_MARGIN_HEIGHT * 2);
+		DEFAULT_ROW_HEIGHT = height + (rowMarginHeight * 2);
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#getRowDefaultHeight()
@@ -3765,7 +3765,7 @@ public class ListView
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#setRowDefaultIconSize(org.eclipse.swt.graphics.Point)
 	public void setRowDefaultIconSize(Point size) {
-		DEFAULT_ROW_HEIGHT = size.y + (ListView.ROW_MARGIN_HEIGHT * 2);
+		DEFAULT_ROW_HEIGHT = size.y + (rowMarginHeight * 2);
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#updateLanguage()
@@ -3961,5 +3961,13 @@ public class ListView
 	 */
 	public boolean isColumnVisible(TableColumn column) {
 		return true;
+	}
+	
+	public int getRowMarginHeight() {
+		return rowMarginHeight;
+	}
+	
+	public void setRowMarginHeight(int h) {
+		rowMarginHeight = h;
 	}
 }

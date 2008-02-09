@@ -190,9 +190,10 @@ public class ListCell
 		bounds.width = secretWidth >= 0 ? secretWidth : columnMetrics.width;
 		if (row != null) {
   		try {
-  			bounds.y = row.getVisibleYOffset() + ListView.ROW_MARGIN_HEIGHT;
+  			int margin = view.getRowMarginHeight();
+  			bounds.y = row.getVisibleYOffset() + margin;
   			//bounds.height = view.DEFAULT_ROW_HEIGHT - (ListView.ROW_MARGIN_HEIGHT * 2);
-  			bounds.height = row.getHeight() - (ListView.ROW_MARGIN_HEIGHT * 2);
+  			bounds.height = row.getHeight() - (margin * 2);
   		} catch (Exception e) {
   			//System.err.println(cell.getTableColumn().getName() + " " + bounds + ";" + row + ";");
   		}

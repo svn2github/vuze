@@ -122,9 +122,10 @@ public class ListRow
 			TableColumnCore column = columns[i];
 
 			boolean bVisible = column.isVisible();
-			Rectangle bounds = new Rectangle(iStartPos, ListView.ROW_MARGIN_HEIGHT,
+			int margin = view.getRowMarginHeight();
+			Rectangle bounds = new Rectangle(iStartPos, margin,
 					bVisible ? column.getWidth() : 0, height
-							- (ListView.ROW_MARGIN_HEIGHT * 2));
+							- (margin * 2));
 
 			ListCell listCell;
 			int iColumnPos = column.getPosition();
@@ -564,7 +565,7 @@ public class ListRow
 	}
 
 	public boolean setHeight(int iHeight) {
-		int newHeight = iHeight + (ListView.ROW_MARGIN_HEIGHT * 2); 
+		int newHeight = iHeight + (view.getRowMarginHeight() * 2); 
 		if (height == newHeight) {
 			return false;
 		}
@@ -883,7 +884,7 @@ public class ListRow
 			dataList.put(id, data);
 		}
 	}
-	
+
 	public Object getData(String id) {
 		return dataList == null ? null : dataList.get(id);
 	}

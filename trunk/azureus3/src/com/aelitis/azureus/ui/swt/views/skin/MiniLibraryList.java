@@ -76,6 +76,8 @@ extends SkinView
 
 		view = new TorrentListView(core, skin, skin.getSkinProperties(), cHeaders,
 				lblCountArea, cData, TorrentListView.VIEW_MY_MEDIA, true, true);
+		view.setRowMarginHeight(3);
+
 
 		skinObject = skin.getSkinObject(PREFIX + "add");
 		if (skinObject instanceof SWTSkinObject) {

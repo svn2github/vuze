@@ -63,7 +63,7 @@ public class ColumnVuzeActivity
 
 	private static final int MARGIN_WIDTH = 8 - ListView.COLUMN_MARGIN_WIDTH;
 
-	private static final int MARGIN_HEIGHT = 7 - ListView.ROW_MARGIN_HEIGHT;
+	private int MARGIN_HEIGHT = -1;
 
 	public static String COLUMN_ID = "name";
 
@@ -78,6 +78,10 @@ public class ColumnVuzeActivity
 	}
 
 	public void cellAdded(TableCell cell) {
+		if (MARGIN_HEIGHT < 0) {
+			 MARGIN_HEIGHT = 7 - ((ListView)((ListRow)cell.getTableRow()).getView()).getRowMarginHeight();
+		}
+		
 		cell.setMarginWidth(MARGIN_WIDTH);
 		cell.setMarginHeight(0);
 
