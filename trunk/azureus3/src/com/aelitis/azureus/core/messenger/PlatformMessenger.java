@@ -159,11 +159,12 @@ public class PlatformMessenger
 			queue_mon.exit();
 		}
 		debug("about to process " + mapProcessing.size());
-		
+
 		if (mapProcessing.size() == 0) {
 			return;
 		}
 
+		String server = null;
 		String urlStem = "";
 		long sequenceNo = 0;
 		for (Iterator iter = mapProcessing.keySet().iterator(); iter.hasNext();) {
@@ -173,15 +174,22 @@ public class PlatformMessenger
 			if (sequenceNo > 0) {
 				urlStem += "&";
 			}
+
+			String listenerID = message.getListenerID();
 			try {
 				urlStem += "cmd="
 						+ URLEncoder.encode(BrowserMessage.MESSAGE_PREFIX
 								+ BrowserMessage.MESSAGE_DELIM + sequenceNo
-								+ BrowserMessage.MESSAGE_DELIM + message.getListenerID()
+								+ BrowserMessage.MESSAGE_DELIM + listenerID
 								+ BrowserMessage.MESSAGE_DELIM + message.getOperationID()
 								+ BrowserMessage.MESSAGE_DELIM
 								+ message.getParameters().toString(), "UTF-8");
 			} catch (UnsupportedEncodingException e) {
+			}
+			if (server == null) {
+				server = listenerID;
+			} else if (!server.equals(listenerID)) {
+				server = "multi";
 			}
 
 			PlatformMessengerListener listener = (PlatformMessengerListener) mapProcessing.get(message);
@@ -191,16 +199,21 @@ public class PlatformMessenger
 			sequenceNo++;
 		}
 
+		if (server == null) {
+			server = "default";
+		}
+
 		String sURL;
 		String sPostData = null;
 		if (USE_HTTP_POST) {
-			sURL = Constants.URL_PREFIX + Constants.URL_POST_PLATFORM_MESSAGE;
+			sURL = Constants.URL_PREFIX + Constants.URL_RPC + server;
 			sPostData = Constants.URL_POST_PLATFORM_DATA + "&" + urlStem + "&"
 					+ Constants.URL_SUFFIX;
 			debug("POST: " + sURL + "?" + sPostData);
 		} else {
-			sURL = Constants.URL_PREFIX + Constants.URL_PLATFORM_MESSAGE + "&"
-					+ urlStem + "&" + Constants.URL_SUFFIX;
+			sURL = Constants.URL_PREFIX + Constants.URL_RPC + server
+					+ Constants.URL_PLATFORM_MESSAGE + "&" + urlStem + "&"
+					+ Constants.URL_SUFFIX;
 			debug("GET: " + sURL);
 		}
 
@@ -331,8 +344,9 @@ public class PlatformMessenger
 
 			if (replySections[1].equals("action")) {
 				if (actionResults instanceof Map) {
-					final boolean bRetry = MapUtils.getMapBoolean(actionResults, "retry-client-message", false);
-					
+					final boolean bRetry = MapUtils.getMapBoolean(actionResults,
+							"retry-client-message", false);
+
 					List array = (List) MapUtils.getMapObject(actionResults, "messages",
 							null, List.class);
 					if (actionResults.containsKey("messages")) {
@@ -441,19 +455,19 @@ public class PlatformMessenger
 		InputStream is = rd.download();
 
 		byte data[];
-		
-		try{
+
+		try {
 			int length = is.available();
-	
+
 			data = new byte[length];
-	
+
 			is.read(data);
 
-		}finally{
-			
+		} finally {
+
 			is.close();
 		}
-		
+
 		return (data);
 	}
 

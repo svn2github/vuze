@@ -53,9 +53,7 @@ public class Constants
 
 	public static final String URL_ADD_SEARCH = "search?q=";
 
-	public static final String URL_PLATFORM_MESSAGE = "app?service=rpc";
-
-	public static final String URL_POST_PLATFORM_MESSAGE = "app";
+	public static final String URL_PLATFORM_MESSAGE = "?service=rpc";
 
 	public static final String URL_POST_PLATFORM_DATA = "service=rpc";
 
@@ -76,6 +74,8 @@ public class Constants
 	public static final String URL_FAQ = URL_PREFIX + "Support.html";
    
 	public static final String URL_PUBLISH_INFO = URL_PREFIX + "Publish.html";
+	
+	public static final String URL_RPC = "rpc/";
 
 	public static final boolean DIAG_TO_STDOUT = System.getProperty(
 			"DIAG_TO_STDOUT", "0").equals("1");
