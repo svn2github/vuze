@@ -397,7 +397,7 @@ public class ListView
 					TableRowCore row = bExited ? null : getRow(e.x, e.y);
 					TableCellSWT cell = bExited ? null : getTableCell(e.x, e.y);
 					//System.out.println(sTableID + "] mouse event row=" + row + ";cell=" + cell + ";" + (row == null ? "" : "" + ((ListRow)row).getHeight()));
-					int iCursorID = -1;
+					int iCursorID = -2;
 
 					boolean changedCell = lastCell != cell;
 					boolean changedRow = row != lastRow;
@@ -458,10 +458,10 @@ public class ListView
 						lastCursorID = iCursorID;
 
 						if (iCursorID >= 0) {
-							listCanvas.setCursor(listCanvas.getDisplay().getSystemCursor(
+							listParent.setCursor(listCanvas.getDisplay().getSystemCursor(
 									iCursorID));
-						} else {
-							listCanvas.setCursor(null);
+						} else if (iCursorID == -1) {
+							listParent.setCursor(null);
 						}
 					}
 
