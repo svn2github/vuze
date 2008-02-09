@@ -49,10 +49,6 @@ public final class CocoaJavaBridge extends NativeInvocationBridge
      */
     protected static final String CLASS_PATH = "/system/library/java";
 
-    private static final String PF_SCRIPT_SRC = "tell application \"System Events\" to exists process \"Path Finder\"";
-    private final NSAppleScript PF_SCRIPT;
-    private final boolean USE_PF;
-
     private static final String REVEAL_SCRIPT_FORMAT = "tell application \"System Events\"\ntell application \"{0}\"\nactivate\nreveal (posix file \"{1}\" as alias)\nend tell\nend tell";
 
     private static final String DEL_SCRIPT_FORMAT = "tell application \"Finder\" to move (posix file \"{0}\" as alias) to the trash";
@@ -75,9 +71,6 @@ public final class CocoaJavaBridge extends NativeInvocationBridge
         {
             classMon.enter();
             mainPool = NSAutoreleasePool.push();
-
-            PF_SCRIPT = new NSAppleScript(PF_SCRIPT_SRC);
-            USE_PF = PF_SCRIPT.compile(new NSMutableDictionary());
 
             scriptDispatcher = new RunnableDispatcher();
         }
@@ -104,26 +97,22 @@ public final class CocoaJavaBridge extends NativeInvocationBridge
     /**
      * {@inheritDoc}
      */
-    protected boolean showInFinder(File path)
-    {
-        if(!path.exists())
-            return false;
+	protected boolean showInFinder(File path, String fileBrowserApp) {
+		if (!path.exists())
+			return false;
 
-        int pool = NSAutoreleasePool.push();
-
-        String fb = "Finder";
-        if(USE_PF)
-        {
-            NSAppleEventDescriptor result = PF_SCRIPT.execute(new NSMutableDictionary());
-            if(result != null && result.booleanValue())
-                fb = "Path Finder";
-        }
-
-        NSAppleEventDescriptor result =  executeScriptWithAsync(REVEAL_SCRIPT_FORMAT, new Object[]{fb, path.getAbsolutePath()});
-
-        NSAutoreleasePool.pop(pool);
-        return (result != null);
-    }
+		NSAppleEventDescriptor result = null;
+		int pool = NSAutoreleasePool.push();
+		try {
+			result = executeScriptWithAsync(REVEAL_SCRIPT_FORMAT, new Object[] {
+				fileBrowserApp,
+				path.getAbsolutePath()
+			});
+		} finally {
+			NSAutoreleasePool.pop(pool);
+		}
+		return (result != null);
+	}
 
     /**
      * {@inheritDoc}

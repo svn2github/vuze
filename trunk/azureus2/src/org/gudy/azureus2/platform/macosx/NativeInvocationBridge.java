@@ -70,7 +70,7 @@ public abstract class NativeInvocationBridge
     /**
      * @see PlatformManagerImpl#showInFinder(java.io.File)
      */
-    protected boolean showInFinder(File path) {return false;}
+    protected boolean showInFinder(File path, String fb) {return false;}
 
     /**
      * <p>Gets whether the invocation bridge is available for use</p>

@@ -54,6 +54,8 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 
     protected static PlatformManagerImpl singleton;
     protected static AEMonitor class_mon = new AEMonitor("PlatformManager");
+    
+    private static String fileBrowserName = "Finder";
 
     //T: PlatformManagerCapabilities
     private final HashSet capabilitySet = new HashSet();
@@ -93,6 +95,17 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
         {
             class_mon.exit();
         }
+
+        new AEThread2("Path Finder lookup", true) {
+        	public void run() {
+        		try {
+        			if ("true".equalsIgnoreCase(performOSAScript("tell application \"System Events\" to exists process \"Path Finder\""))) {
+        				fileBrowserName = "Path Finder";
+        			}
+        		} catch (Exception e) {
+        		}
+        	}
+        }.start();
     }
 
     /**
@@ -381,7 +394,7 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
      */
     public void showInFinder(File path)
     {
-        boolean useOSA = !NativeInvocationBridge.sharedInstance().isEnabled() || !NativeInvocationBridge.sharedInstance().showInFinder(path);
+        boolean useOSA = !NativeInvocationBridge.sharedInstance().isEnabled() || !NativeInvocationBridge.sharedInstance().showInFinder(path,fileBrowserName);
 
         if(useOSA)
         {
@@ -637,27 +650,7 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
      */
     private static String getFileBrowserName()
     {
-        try
-        {
-            // slowwwwwwww
-            if ("true".equalsIgnoreCase(performOSAScript("tell application \"System Events\" to exists process \"Path Finder\"")))
-            {
-                Debug.outNoStack("Path Finder is running");
-
-                return "Path Finder";
-            }
-            else
-            {
-                return "Finder";
-            }
-        }
-        catch (IOException e)
-        {
-            Debug.printStackTrace(e);
-            Logger.log(new LogEvent(LOGID, e.getMessage(), e));
-
-            return "Finder";
-        }
+    	return fileBrowserName;
     }
     
 	public boolean
