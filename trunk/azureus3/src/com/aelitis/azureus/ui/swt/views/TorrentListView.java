@@ -258,7 +258,8 @@ public class TorrentListView
 							if (contentHash != null && contentHash.length() > 0) {
 								String url = Constants.URL_PREFIX + Constants.URL_DOWNLOAD
 										+ contentHash + ".torrent?referal=coq";
-								TorrentUIUtilsV3.loadTorrent(core, url, null, false, false, true );
+								TorrentUIUtilsV3.loadTorrent(core, url, null, false, false,
+										true);
 							}
 
 						}
@@ -442,6 +443,7 @@ public class TorrentListView
 				new ColumnQuality(tableID),
 				new ColumnDateCompleted2Liner(tableID, true),
 				new ColumnRate(tableID, true),
+				new ColumnDateAdded2Liner(tableID, false),
 			};
 			autoHideOrder = new String[] {
 				ColumnQuality.COLUMN_ID,
@@ -493,8 +495,7 @@ public class TorrentListView
 
 		tableColumns = (TableColumnCore[]) listTableColumns.toArray(new TableColumnCore[listTableColumns.size()]);
 
-		setColumnList(tableColumns, ColumnDateCompleted2Liner.COLUMN_ID, false,
-				true);
+		setColumnList(tableColumns, ColumnDateAdded2Liner.COLUMN_ID, false, true);
 		TableColumnManager tcManager = TableColumnManager.getInstance();
 		tcManager.setAutoHideOrder(getTableID(), autoHideOrder);
 	}
