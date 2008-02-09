@@ -200,7 +200,7 @@ public class ColumnVuzeActivity
 				height = 35 - 4;
 				style |= SWT.BOTTOM;
 			} else {
-				height = size.y; // + 8; // 4 for border, 2 because textextent sucks
+				height = size.y;
 				height += (MARGIN_HEIGHT * 2);
 				y = MARGIN_HEIGHT + 1;
 			}
@@ -210,10 +210,8 @@ public class ColumnVuzeActivity
 			}
 			style |= SWT.TOP;
 
-			//
-			if (height < 24) {
-				height = 24;
-				y = (height - MARGIN_HEIGHT - size.y) / 2;
+			if (height < 30) {
+				height = 30;
 			}
 			boolean heightChanged = ((TableCellCore) cell).getTableRowCore().setHeight(
 					height);
