@@ -745,8 +745,6 @@ public class TableViewSWTImpl
 							lCancelSelectionTriggeredOn = System.currentTimeMillis();
 						}
 					}
-					if(editor.getEditor() != null && !editor.getEditor().isDisposed())
-						editor.getEditor().dispose();
 					if(tc.isInplaceEdit())
 						editCell(getColumnNo(e.x), cell.getTableRowCore().getIndex());
 				}
@@ -761,6 +759,10 @@ public class TableViewSWTImpl
 					//System.out.println("Mouse="+iMouseX+"x"+e.y+";TableArea="+rTableArea);
 					Point pMousePosition = new Point(e.x, e.y);
 					if (rTableArea.contains(pMousePosition)) {
+						
+						if(editor.getEditor() != null && !editor.getEditor().isDisposed())
+							editor.getEditor().dispose();
+						
 						int[] columnOrder = table.getColumnOrder();
 						if (columnOrder.length == 0) {
 							return;
