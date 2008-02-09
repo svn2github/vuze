@@ -30,7 +30,6 @@ import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
@@ -189,6 +188,8 @@ public class ColumnMediaThumb
 						cellSWT.setCursorID(showPlayButton
 								&& ((TableCellSWT) cell).isMouseOver() ? SWT.CURSOR_HAND
 								: SWT.CURSOR_ARROW);
+						System.out.println(showPlayButton
+								&& ((TableCellSWT) cell).isMouseOver() ? " HAND" : " ARROW");
 					}
 
 					if (showPlayButton) {
@@ -277,6 +278,15 @@ public class ColumnMediaThumb
 		if (event.eventType == TableRowMouseEvent.EVENT_MOUSEDOWN) {
 			TorrentListViewsUtils.playOrStreamDataSource(event.cell.getDataSource(),
 					null);
+		}
+		boolean changed = false;
+		if (event.eventType == TableRowMouseEvent.EVENT_MOUSEENTER) {
+			changed = true;
+		} else if (event.eventType == TableRowMouseEvent.EVENT_MOUSEEXIT) {
+			changed = true;
+		}
+		if (changed && event.cell != null) {
+			refresh(event.cell, true);
 		}
 	}
 
