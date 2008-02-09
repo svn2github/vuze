@@ -188,8 +188,6 @@ public class ColumnMediaThumb
 						cellSWT.setCursorID(showPlayButton
 								&& ((TableCellSWT) cell).isMouseOver() ? SWT.CURSOR_HAND
 								: SWT.CURSOR_ARROW);
-						System.out.println(showPlayButton
-								&& ((TableCellSWT) cell).isMouseOver() ? " HAND" : " ARROW");
 					}
 
 					if (showPlayButton) {
