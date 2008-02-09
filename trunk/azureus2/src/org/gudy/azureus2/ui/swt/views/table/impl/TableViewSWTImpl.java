@@ -158,6 +158,8 @@ public class TableViewSWTImpl
 
 	/** Table for SortableTable implementation */
 	private Table table;
+	
+	private TableEditor editor;
 
 	/** SWT style options for the creation of the Table */
 	protected int iTableStyle;
@@ -355,6 +357,9 @@ public class TableViewSWTImpl
 		mainComposite = createSashForm(composite);
 		menu = createMenu();
 		table = createTable(tableComposite);
+		editor = new TableEditor(table);
+		editor.minimumWidth = 80;
+		editor.grabHorizontal = true;
 		initializeTable(table);
 
 		triggerLifeCycleListener(TableLifeCycleListener.EVENT_INITIALIZED);
@@ -724,6 +729,7 @@ public class TableViewSWTImpl
 			public void mouseDown(MouseEvent e) {
 				TableColumnCore tc = getTableColumnByOffset(e.x);
 				TableCellSWT cell = getTableCell(e.x, e.y);
+				
 				if (cell != null && tc != null) {
 					if (e.button == 2 && e.stateMask == SWT.CONTROL) {
 						((TableCellImpl) cell).bDebug = !((TableCellImpl) cell).bDebug;
@@ -739,6 +745,10 @@ public class TableViewSWTImpl
 							lCancelSelectionTriggeredOn = System.currentTimeMillis();
 						}
 					}
+					if(editor.getEditor() != null && !editor.getEditor().isDisposed())
+						editor.getEditor().dispose();
+					if(tc.isInplaceEdit())
+						editCell(getColumnNo(e.x), cell.getTableRowCore().getIndex());
 				}
 
 				iMouseX = e.x;
@@ -976,6 +986,55 @@ public class TableViewSWTImpl
 		table.setHeaderVisible(true);
 
 		initializeTableColumns(table);
+	}
+	
+	private void editCell(final int column, final int row)
+	{
+		Text oldInput = (Text)editor.getEditor();
+		if(column >= table.getColumnCount() || row >= table.getItemCount())
+		{
+			if(oldInput != null && !oldInput.isDisposed())
+				editor.getEditor().dispose();
+			return;
+		}
+			
+		TableColumn tcColumn = table.getColumn(column);
+		TableItem item = table.getItem(row);
+		table.showItem(item);
+
+		String cellName = (String) tcColumn.getData("Name");
+		final TableCellSWT cell = ((TableRowSWT)getRow(row)).getTableCellSWT(cellName);
+		// reuse widget if possible, this way we'll keep the focus all the time on jumping through the rows
+		final Text newInput = oldInput == null || oldInput.isDisposed() ? new Text(table,SWT.BORDER) : oldInput;
+		newInput.setText(cell.getText());
+		newInput.selectAll();
+		newInput.setFocus();
+
+		class QuickEditListener implements ModifyListener, SelectionListener
+		{
+			public void modifyText(ModifyEvent e) {
+				if(((TableColumnCore)cell.getTableColumn()).inplaceValueSet(cell, newInput.getText(), false))
+					newInput.setBackground(null);
+				else
+					newInput.setBackground(Colors.colorErrorBG);
+			}
+			
+			public void widgetDefaultSelected(SelectionEvent e) {
+				((TableColumnCore)cell.getTableColumn()).inplaceValueSet(cell, newInput.getText(), true);
+				((Text)e.widget).removeModifyListener(this);
+				((Text)e.widget).removeSelectionListener(this);
+				editCell(column, row+1);
+			}
+			
+			public void widgetSelected(SelectionEvent e) {}
+		}
+		
+		QuickEditListener l = new QuickEditListener();
+		newInput.addModifyListener(l);
+		newInput.addSelectionListener(l);
+		l.modifyText(null);
+
+		editor.setEditor(newInput, item, column);
 	}
 
 	private TableCellMouseEvent createMouseEvent(TableCellSWT cell, MouseEvent e,

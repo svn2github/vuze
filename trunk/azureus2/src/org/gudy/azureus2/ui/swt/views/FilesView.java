@@ -392,6 +392,7 @@ public class FilesView
 				MessageText.getString( "FilesView.rename.confirm.delete.text", new String[]{ file.toString()})) == SWT.OK;
 	}
 	
+	// same code is used in tableitems.files.NameItem
 	private void moveFile(final DiskManagerFileInfo fileInfo, final File target) {
 
 		// this behaviour should be put further down in the core but I'd rather not

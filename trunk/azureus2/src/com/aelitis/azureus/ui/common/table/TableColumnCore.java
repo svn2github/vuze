@@ -304,4 +304,17 @@ public interface TableColumnCore
 	
 	void setAutoTooltip(boolean auto_tooltip);
 	boolean doesAutoTooltip();
+	
+
+	boolean isInplaceEdit();
+	void setInplaceEdit(boolean editable);
+	
+	/**
+	 * Override this function to obtain edited values 
+	 * @param cell that is being edited
+	 * @param value the new value
+	 * @param finalEdit true if the user finalizes his editing
+	 * @return should be false if the currently entered value is invalid
+	 */
+	boolean inplaceValueSet(TableCell cell, String value, boolean finalEdit);
 }

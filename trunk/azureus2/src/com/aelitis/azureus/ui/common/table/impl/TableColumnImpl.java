@@ -109,6 +109,8 @@ public class TableColumnImpl
 	private long lStatsRefreshZeroCount = 0;
 
 	private boolean bSortAscending;
+	
+	private boolean editable;
 
 	private int iMinWidth = -1;
 
@@ -1191,4 +1193,17 @@ public class TableColumnImpl
 	public boolean doesAutoTooltip() {
 		return this.auto_tooltip;
 	}
+	
+	public boolean isInplaceEdit() {
+		return editable;
+	}
+	
+	public void setInplaceEdit(boolean editable) {
+		this.editable = editable;		
+	}
+	
+	public boolean inplaceValueSet(TableCell cell, String value, boolean finalEdit) {
+		return false;
+	}
+
 }

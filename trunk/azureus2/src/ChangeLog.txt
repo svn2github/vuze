@@ -9,6 +9,7 @@ FEATURE: Core | Added option to enforce IP bindings even when the specified inte
 FEATURE: UI   | Added option for "Open Containing Folder" menu action - which may integrate better with non-standard file browsers [amc1]
 FEATURE: UI   | Added option for "Show Torrent Menu" -- Users can now decide to see the Torrent menu in the menubar or not [knguyen]
 FEATURE: UIv3 | New menu configuration for Vuze and Vuze Advanced UI's [knguyen]
+FEATURE: UI   | Fast Renaming in the Files tab
 
 CHANGE: Core  | Further memory footprint reductions; for additional tweaks see http://www.azureuswiki.com/index.php/Reduce_memory_usage [The 8472]
 CHANGE: Core  | Reimplemented LT extension protocol code [amc1]
@@ -18,7 +19,7 @@ CHANGE: Core  | Queuing rules now don't start any further torrents if the global
                  - recovers faster from chain reactions in case of connection loss
 CHANGE: Core  | Made the crypto handshake a bit less predictable [The 8472]
 CHANGE: Core  | Added support for udp-multiscrapes [The 8472]
-CHANGE: Core  | Added support for plugins which implement mainline DHT [amc1]
+CHANGE: Plug  | Added support for plugins which implement mainline DHT [amc1]
 
 BUGFIX: Core  | Request limiting/Priorities no longer pinch off LAN peers if seperate LAN speeds are enabled [The 8472]                 
 BUGFIX: UI    | Shells no longer use the low-res frog icon, the normal main window icon is now used instead [amc1]

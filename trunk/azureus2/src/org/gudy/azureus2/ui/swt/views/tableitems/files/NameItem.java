@@ -24,21 +24,32 @@
 
 package org.gudy.azureus2.ui.swt.views.tableitems.files;
 
+import java.io.File;
+import java.io.IOException;
+
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.MessageBox;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
+
+import com.aelitis.azureus.core.AzureusCoreOperation;
+import com.aelitis.azureus.core.AzureusCoreOperationTask;
 
 /** Torrent name cell for My Torrents.
  *
@@ -64,6 +75,7 @@ public class NameItem extends CoreTableColumn implements
 		super("name", ALIGN_LEAD, POSITION_LAST, 300,
 				TableManager.TABLE_TORRENT_FILES);
 		setType(TableColumn.TYPE_TEXT);
+		setInplaceEdit(true);
 	}
 	
 	public void refresh(TableCell cell, boolean sortOnlyRefresh)
@@ -116,5 +128,47 @@ public class NameItem extends CoreTableColumn implements
 				img.dispose();
 			}
 		}
+	}
+	
+	public boolean inplaceValueSet(TableCell cell, String value, boolean finalEdit) {
+		if (value.equalsIgnoreCase(cell.getText()))
+			return true;
+		final DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) cell.getDataSource();
+		final File target;
+		
+		try
+		{
+			target = new File(fileInfo.getFile(true).getParentFile(), value).getCanonicalFile();
+		} catch (IOException e)
+		{
+			return false;
+		}
+			
+		if(!finalEdit)
+			return !target.exists();
+		
+		if(target.exists())
+			return false;
+		
+
+		// code stolen from FilesView
+		final boolean[] result = { false };
+		
+		FileUtil.runAsTask(new AzureusCoreOperationTask()
+		{
+			public void run(AzureusCoreOperation operation) {
+				result[0] = fileInfo.setLink(target);
+			}
+		});
+		
+		if (!result[0])
+		{
+			MessageBox mb = new MessageBox(Utils.findAnyShell(), SWT.ICON_ERROR | SWT.OK);
+			mb.setText(MessageText.getString("FilesView.rename.failed.title"));
+			mb.setMessage(MessageText.getString("FilesView.rename.failed.text"));
+			mb.open();
+		}
+		
+		return true;
 	}
 }
