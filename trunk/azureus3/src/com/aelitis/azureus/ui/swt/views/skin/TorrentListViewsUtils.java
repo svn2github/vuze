@@ -341,8 +341,12 @@ public class TorrentListViewsUtils
 		if (dm == null) {
 			String hash = getAssetHashFromDS(ds);
 			if (hash != null) {
+				// Note: the only case where there's no DM, and a hash present is
+				//       in a VuzeNewsEntry, which is displayed on the Dashboard's
+				//       Activity tab.  For now, we hardcode the referal to that
+				//       but we really should pass it in somehow
 				String url = Constants.URL_PREFIX + Constants.URL_DOWNLOAD + hash
-						+ ".torrent?referal=vuzenewsfeed";
+						+ ".torrent?referal=playdashboardactivity";
 				AzureusCore core = AzureusCoreFactory.getSingleton();
 				TorrentUIUtilsV3.loadTorrent(core, url, null, true, false, true);
 			}
