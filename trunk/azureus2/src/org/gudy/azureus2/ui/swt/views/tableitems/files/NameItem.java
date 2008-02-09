@@ -153,13 +153,15 @@ public class NameItem extends CoreTableColumn implements
 
 		// code stolen from FilesView
 		final boolean[] result = { false };
-		
+		boolean paused = fileInfo.getDownloadManager().pause();
 		FileUtil.runAsTask(new AzureusCoreOperationTask()
 		{
 			public void run(AzureusCoreOperation operation) {
 				result[0] = fileInfo.setLink(target);
 			}
 		});
+		if(paused)
+			fileInfo.getDownloadManager().resume();
 		
 		if (!result[0])
 		{
