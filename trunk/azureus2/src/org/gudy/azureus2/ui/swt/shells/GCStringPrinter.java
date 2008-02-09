@@ -141,7 +141,7 @@ public class GCStringPrinter
 			// For now, chop off any title text that is too long for a full row
 			// as it will break parsing later
 			Point titleExtent = gc.textExtent(s);
-			while (s.length() > 0 && titleExtent.x >= printArea.width) {
+			while (s.length() > 0 && titleExtent.x + 3 >= printArea.width) {
 				s = s.substring(0, s.length() - 1); 
 				titleExtent = gc.textExtent(s);
 			}
