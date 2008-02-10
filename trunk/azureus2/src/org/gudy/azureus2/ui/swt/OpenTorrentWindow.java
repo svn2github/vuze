@@ -31,11 +31,14 @@ import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.TableEditor;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
@@ -136,8 +139,9 @@ public class OpenTorrentWindow
 	private Shell shell;
 
 	private Table dataFileTable;
+	private TableEditor dataFileTableEditor;
 
-	private Table tableTorrents;
+	private Table torrentTable;
 
 	private Button ok;
 
@@ -508,14 +512,14 @@ public class OpenTorrentWindow
 				}
 				sDestDir = cmbDataDir.getText();
 
-				int[] indexes = tableTorrents.getSelectionIndices();
+				int[] indexes = torrentTable.getSelectionIndices();
 				for (int i = 0; i < indexes.length; i++) {
 					TorrentInfo info = (TorrentInfo) torrentList.get(indexes[i]);
 					//if (!info.allFilesMoving())
 					info.sDestDir = sDestDir;
 				}
 
-				tableTorrents.clearAll();
+				torrentTable.clearAll();
 
 				checkSeedingMode();
 
@@ -750,8 +754,8 @@ public class OpenTorrentWindow
 			TorrentFileInfo[] files = info.getFiles();
 			for (int j = 0; j < files.length; j++) {
 				TorrentFileInfo fileInfo = files[j];
-				if (fileInfo.getDestFile().exists()) {
-					sExistingFiles += fileInfo.sFileName + " - " + info.getTorrentName()
+				if (fileInfo.getDestFileFullName().exists()) {
+					sExistingFiles += fileInfo.orgFullName + " - " + info.getTorrentName()
 							+ "\n";
 					iNumExistingFiles++;
 					if (iNumExistingFiles > 5) {
@@ -873,7 +877,7 @@ public class OpenTorrentWindow
 		try {
 			bSkipDataDirModify = true;
 
-			int[] indexes = tableTorrents.getSelectionIndices();
+			int[] indexes = torrentTable.getSelectionIndices();
 
 			if (indexes.length == 0) {
 				cmbDataDir.setText(sDestDir);
@@ -906,7 +910,7 @@ public class OpenTorrentWindow
 		if (cmbStartMode == null)
 			return;
 
-		int[] indexes = tableTorrents.getSelectionIndices();
+		int[] indexes = torrentTable.getSelectionIndices();
 		String[] sItemsText = new String[startModes.length];
 		int iMaxMatches = 0;
 		int iIndexToSelect = getDefaultStartMode();
@@ -942,7 +946,7 @@ public class OpenTorrentWindow
 		if (cmbQueueLocation == null)
 			return;
 
-		int[] indexes = tableTorrents.getSelectionIndices();
+		int[] indexes = torrentTable.getSelectionIndices();
 		String[] sItemsText = new String[queueLocations.length];
 		int iMaxMatches = 0;
 		int iIndexToSelect = QUEUELOCATION_BOTTOM;
@@ -1040,58 +1044,45 @@ public class OpenTorrentWindow
 		layout.numColumns = 2;
 		cArea.setLayout(layout);
 
-		tableTorrents = new Table(cArea, SWT.MULTI | SWT.BORDER
+		torrentTable = new Table(cArea, SWT.MULTI | SWT.BORDER
 				| SWT.FULL_SELECTION | SWT.VIRTUAL);
 		gridData = new GridData(GridData.FILL_HORIZONTAL
 				| GridData.VERTICAL_ALIGN_FILL);
 		gridData.heightHint = 50;
 		gridData.widthHint = 450;
-		tableTorrents.setLayoutData(gridData);
+		torrentTable.setLayoutData(gridData);
 
-		tc = new TableColumn(tableTorrents, SWT.NULL);
+		tc = new TableColumn(torrentTable, SWT.NULL);
 		Messages.setLanguageText(tc, "OpenTorrentWindow.torrentTable.name");
 		tc.setWidth(150);
-		tc = new TableColumn(tableTorrents, SWT.NULL);
+		tc = new TableColumn(torrentTable, SWT.NULL);
 		Messages.setLanguageText(tc, "OpenTorrentWindow.torrentTable.saveLocation");
 		tc.setWidth(150);
-		tc = new TableColumn(tableTorrents, SWT.NULL);
+		tc = new TableColumn(torrentTable, SWT.NULL);
 		Messages.setLanguageText(tc, "OpenTorrentWindow.startMode");
 		tc.setWidth(70);
-		tc = new TableColumn(tableTorrents, SWT.NULL);
+		tc = new TableColumn(torrentTable, SWT.NULL);
 		Messages.setLanguageText(tc, "OpenTorrentWindow.addPosition");
 		tc.setWidth(80);
 
 		if (Utils.LAST_TABLECOLUMN_EXPANDS)
 			tc.setData("Width", new Long(80));
 
-		tableTorrents.addListener(SWT.SetData, new Listener() {
+		torrentTable.addListener(SWT.SetData, new Listener() {
 			public void handleEvent(Event event) {
 				if (bClosed)
 					return;
 
 				TableItem item = (TableItem) event.item;
-				int index = tableTorrents.indexOf(item);
+				int index = torrentTable.indexOf(item);
 				if (index < 0)
 					return;
 
 				TorrentInfo info = (TorrentInfo) torrentList.get(index);
-				String sRealDestDir;
-
-				/*
-				TorrentFileInfo[] files = info.getFiles();
-				
-				if (files.length > 1 && !info.allFilesMoving()) {
-					File f = new File(info.getDataDir());
-					sRealDestDir = f.getAbsolutePath();
-				} else {
-					sRealDestDir = info.sDestDir;
-				}*/
-
-				sRealDestDir = info.getDataDir();
 
 				item.setText(new String[] {
 					info.getTorrentName(),
-					sRealDestDir,
+					info.getDataDir(),
 					MessageText.getString("OpenTorrentWindow.startMode."
 							+ startModes[info.iStartID]),
 					MessageText.getString("OpenTorrentWindow.addPosition."
@@ -1112,10 +1103,10 @@ public class OpenTorrentWindow
 			}
 		});
 
-		tableTorrents.addSelectionListener(new SelectionAdapter() {
+		torrentTable.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				dataFiles.clear();
-				int[] indexes = tableTorrents.getSelectionIndices();
+				int[] indexes = torrentTable.getSelectionIndices();
 				for (int i = 0; i < indexes.length; i++) {
 					TorrentInfo info = (TorrentInfo) torrentList.get(indexes[i]);
 					TorrentFileInfo[] files = info.getFiles();
@@ -1133,21 +1124,21 @@ public class OpenTorrentWindow
 			}
 		});
 
-		tableTorrents.addKeyListener(new KeyAdapter() {
+		torrentTable.addKeyListener(new KeyAdapter() {
 			public void keyPressed(KeyEvent e) {
 				if (e.character == SWT.DEL) {
-					deleteSelected(tableTorrents, torrentList);
+					deleteSelected(torrentTable, torrentList);
 					e.doit = false;
 				}
 			}
 		});
 
-		tableTorrents.setHeaderVisible(true);
+		torrentTable.setHeaderVisible(true);
 
 		// Menu for tableTorrents
 
 		String sTitle;
-		Menu menu = new Menu(tableTorrents);
+		Menu menu = new Menu(torrentTable);
 		MenuItem item;
 		sTitle = MessageText.getString("OpenTorrentWindow.startMode");
 
@@ -1202,7 +1193,7 @@ public class OpenTorrentWindow
 		Messages.setLanguageText(item, "MyTorrentsView.menu.remove");
 		item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				deleteSelected(tableTorrents, torrentList);
+				deleteSelected(torrentTable, torrentList);
 			}
 		});
 
@@ -1211,7 +1202,7 @@ public class OpenTorrentWindow
 				"OpenTorrentWindow.fileList.changeDestination");
 		item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				int[] indexes = tableTorrents.getSelectionIndices();
+				int[] indexes = torrentTable.getSelectionIndices();
 				String sDefPath = sDestDir;
 
 				for (int i = 0; i < indexes.length; i++) {
@@ -1235,6 +1226,9 @@ public class OpenTorrentWindow
 							return;
 
 						File newDir = new File(sNewDir).getAbsoluteFile();
+						
+						if(newDir.isDirectory())
+							sDefPath = sNewDir;
 
 						info.sDestDir = newDir.getParent();
 						if (info.sDestDir == null)
@@ -1243,13 +1237,7 @@ public class OpenTorrentWindow
 
 						for (int j = 0; j < files.length; j++) {
 							TorrentFileInfo fileInfo = files[j];
-							if (fileInfo.sDestFileName == null)
-								continue;
-							File file = new File(sNewDir, fileInfo.sFileName);
-							fileInfo.sDestFileName = file.getAbsolutePath();
-							String sNewPath = file.getParent();
-							if (sNewPath != null)
-								sDefPath = sNewPath;
+							fileInfo.setDestFileName(null);
 						}
 					}
 
@@ -1261,7 +1249,7 @@ public class OpenTorrentWindow
 			}
 		});
 
-		tableTorrents.setMenu(menu);
+		torrentTable.setMenu(menu);
 
 		Composite cTorrentListRight = new Composite(cArea, SWT.NONE);
 		gridData = new GridData();
@@ -1281,7 +1269,7 @@ public class OpenTorrentWindow
 		torMoveUp.setToolTipText(MessageText.getString("Button.moveUp"));
 		torMoveUp.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				int[] indices = tableTorrents.getSelectionIndices();
+				int[] indices = torrentTable.getSelectionIndices();
 				if (indices.length == 0)
 					return;
 
@@ -1297,8 +1285,8 @@ public class OpenTorrentWindow
 
 					indices[i]--;
 				}
-				tableTorrents.setSelection(indices);
-				tableTorrents.clearAll();
+				torrentTable.setSelection(indices);
+				torrentTable.clearAll();
 			}
 		});
 
@@ -1307,7 +1295,7 @@ public class OpenTorrentWindow
 		torMoveDown.setToolTipText(MessageText.getString("Button.moveDown"));
 		torMoveDown.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				int[] indices = tableTorrents.getSelectionIndices();
+				int[] indices = torrentTable.getSelectionIndices();
 				if (indices.length == 0)
 					return;
 
@@ -1324,8 +1312,8 @@ public class OpenTorrentWindow
 
 					indices[i]++;
 				}
-				tableTorrents.setSelection(indices);
-				tableTorrents.clearAll();
+				torrentTable.setSelection(indices);
+				torrentTable.clearAll();
 			}
 		});
 
@@ -1334,7 +1322,7 @@ public class OpenTorrentWindow
 		torMoveRemove.setImage(ImageRepository.getImage("delete"));
 		torMoveRemove.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				deleteSelected(tableTorrents, torrentList);
+				deleteSelected(torrentTable, torrentList);
 			}
 		});
 
@@ -1344,20 +1332,20 @@ public class OpenTorrentWindow
 	 * @param iLocation
 	 */
 	protected void setSelectedQueueLocation(int iLocation) {
-		int[] indices = tableTorrents.getSelectionIndices();
+		int[] indices = torrentTable.getSelectionIndices();
 		for (int i = 0; i < indices.length; i++) {
 			TorrentInfo info = (TorrentInfo) torrentList.get(indices[i]);
 			info.iQueueLocation = iLocation;
 		}
 		updateQueueLocationCombo();
-		tableTorrents.clear(indices);
+		torrentTable.clear(indices);
 	}
 
 	/**
 	 * @param iStartID
 	 */
 	protected void setSelectedStartMode(int iStartID) {
-		int[] indices = tableTorrents.getSelectionIndices();
+		int[] indices = torrentTable.getSelectionIndices();
 		for (int i = 0; i < indices.length; i++) {
 			TorrentInfo info = (TorrentInfo) torrentList.get(indices[i]);
 			info.iStartID = iStartID;
@@ -1365,7 +1353,7 @@ public class OpenTorrentWindow
 
 		checkSeedingMode();
 		updateStartModeCombo();
-		tableTorrents.clear(indices);
+		torrentTable.clear(indices);
 	}
 
 	private void checkSeedingMode() {
@@ -1382,15 +1370,8 @@ public class OpenTorrentWindow
 					if (!fileInfo.bDownload)
 						continue;
 
-					String sFullPath;
-					if (fileInfo.sDestFileName == null) {
-						File f = new File(info.getDataDir(), fileInfo.sFullFileName);
-						sFullPath = f.getAbsolutePath();
-					} else {
-						sFullPath = fileInfo.sDestFileName;
-					}
 
-					File file = new File(sFullPath);
+					File file = fileInfo.getDestFileFullName();
 					if (!file.exists()) {
 						fileInfo.isValid = false;
 						bTorrentValid = false;
@@ -1405,8 +1386,8 @@ public class OpenTorrentWindow
 
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				if (tableTorrents != null && !tableTorrents.isDisposed()) {
-					tableTorrents.clearAll();
+				if (torrentTable != null && !torrentTable.isDisposed()) {
+					torrentTable.clearAll();
 				}
 				if (dataFileTable != null && !dataFileTable.isDisposed()) {
 					dataFileTable.clearAll();
@@ -1440,10 +1421,16 @@ public class OpenTorrentWindow
 
 		dataFileTable = new Table(cArea, SWT.BORDER | SWT.CHECK
 				| SWT.FULL_SELECTION | SWT.VIRTUAL | SWT.MULTI);
+		dataFileTableEditor = new TableEditor(dataFileTable);
+		dataFileTableEditor.grabHorizontal = true;
+		dataFileTableEditor.minimumWidth = 50;
+		
 		gridData = new GridData(GridData.FILL_BOTH);
 		gridData.heightHint = 80;
 		gridData.widthHint = 100;
 		dataFileTable.setLayoutData(gridData);
+		
+		final int editColumnIndex = 1;
 
 		tc = new TableColumn(dataFileTable, SWT.NULL);
 		Messages.setLanguageText(tc, "OpenTorrentWindow.fileTable.fileName");
@@ -1469,8 +1456,8 @@ public class OpenTorrentWindow
 				final TorrentFileInfo file = (TorrentFileInfo) dataFiles.get(index);
 
 				item.setText(new String[] {
-					file.sFileName,
-					file.sDestFileName,
+					file.orgFullName,
+					file.isLinked() ? file.getDestFileFullName().toString() : file.getDestFileName(),
 					DisplayFormatters.formatByteCountToKiBEtc(file.lSize)
 				});
 				if (!file.isValid) {
@@ -1510,6 +1497,99 @@ public class OpenTorrentWindow
 			}
 
 		});
+		
+		dataFileTable.addMouseListener(new MouseAdapter() {
+			public void mouseDown(MouseEvent e) {
+				TableItem[] items = dataFileTable.getItems();
+				boolean found = false;
+				int i;
+				outer: for (i = 0; i < items.length; i++)
+				{
+					TableItem item = items[i];
+					Rectangle rect = item.getBounds();
+					if (e.y < rect.y || (rect.y + rect.height) < e.y)
+						continue;
+					for (int j = 0; j < dataFileTable.getColumnCount(); j++)
+					{
+						if (!item.getBounds(j).contains(e.x, e.y))
+							continue;
+						found = j == editColumnIndex;
+						break outer;
+					}
+				}
+				removeEdit();
+				if(found)
+					editCell(i);
+			}
+			
+			private void removeEdit()
+			{
+				if(dataFileTableEditor.getEditor() != null && !dataFileTableEditor.getEditor().isDisposed())
+					dataFileTableEditor.getEditor().dispose();
+				enableControl(ok,true);
+			}
+			
+			private void editCell(final int row)
+			{
+				Text oldEditor = (Text)dataFileTableEditor.getEditor();
+				if(row >= dataFileTable.getItemCount())
+				{
+					removeEdit();
+					return;
+				}
+				
+				enableControl(ok, false);
+				
+				
+				final Text newEditor = oldEditor == null || oldEditor.isDisposed() ? new Text(dataFileTable,SWT.BORDER) : oldEditor;
+				final TorrentFileInfo file = (TorrentFileInfo) dataFiles.get(row);
+				final String uneditedName = file.getDestFileName();
+				newEditor.setText(uneditedName);
+				newEditor.selectAll();
+				newEditor.forceFocus();
+				
+				class QuickEditListener implements ModifyListener, SelectionListener {
+					public void modifyText(ModifyEvent e) {
+						file.setDestFileName(newEditor.getText());
+						try
+						{
+							file.getDestFileFullName().getCanonicalFile();
+							newEditor.setBackground(null);
+						} catch (IOException e1)
+						{
+							newEditor.setBackground(Colors.colorErrorBG);
+						}
+					}
+					
+					public void widgetDefaultSelected(SelectionEvent e) {
+						try
+						{
+							file.getDestFileFullName().getCanonicalFile();
+						} catch (IOException e1)
+						{
+							file.setDestFileName(uneditedName);
+						}
+						if(e.widget.isDisposed())
+							return;
+						((Text)e.widget).removeModifyListener(QuickEditListener.this);
+						((Text)e.widget).removeSelectionListener(QuickEditListener.this);
+						editCell(row+1);
+						dataFileTable.clear(row);
+					}
+					
+					public void widgetSelected(SelectionEvent e) {}
+				}
+				
+				QuickEditListener listener = new QuickEditListener();
+				
+				newEditor.addModifyListener(listener);
+				newEditor.addSelectionListener(listener);
+				
+				dataFileTableEditor.setEditor(newEditor, dataFileTable.getItem(row), editColumnIndex);
+			}
+		});
+		
+		
 
 		dataFileTable.setHeaderVisible(true);
 
@@ -1614,8 +1694,8 @@ public class OpenTorrentWindow
 			FileDialog fDialog = new FileDialog(shellForChildren, SWT.SYSTEM_MODAL
 					| style);
 
-			String sFilterPath = fileInfo.getDestPath();
-			String sFileName = new File(fileInfo.sFileName).getName();
+			String sFilterPath = fileInfo.getDestPathName();
+			String sFileName = fileInfo.orgFileName;
 
 			File f = new File(sFilterPath);
 			if (!f.isDirectory()) {
@@ -1636,7 +1716,7 @@ public class OpenTorrentWindow
 				fDialog.setFilterPath(sFilterPath);
 			fDialog.setFileName(sFileName);
 			fDialog.setText(MessageText.getString("MainWindow.dialog.choose.savepath")
-					+ " (" + fileInfo.sFullFileName + ")");
+					+ " (" + fileInfo.orgFullName + ")");
 			String sNewName = fDialog.open();
 
 			if (sNewName == null)
@@ -1645,25 +1725,15 @@ public class OpenTorrentWindow
 			if (fileInfo.parent.iStartID == STARTMODE_SEEDING) {
 				File file = new File(sNewName);
 				if (file.length() == fileInfo.lSize)
-					fileInfo.sDestFileName = sNewName;
+					fileInfo.setFullDestName(sNewName);
 				else
 					Utils.openMessageBox(shellForChildren, SWT.OK,
 							"OpenTorrentWindow.mb.badSize", new String[] {
 								file.getName(),
-								fileInfo.sFullFileName
+								fileInfo.orgFullName
 							});
 			} else
-				fileInfo.sDestFileName = sNewName;
-
-			if (fileInfo.parent.torrent.isSimpleTorrent()) {
-				File newNameFile = new File(sNewName).getAbsoluteFile();
-				fileInfo.parent.sDestDir = newNameFile.getParent();
-				String fileName = newNameFile.getName();
-				if (fileName.equals(fileInfo.sFileName))
-					fileInfo.sDestFileName = null;
-				else
-					fileInfo.sDestFileName = newNameFile.getPath();
-			}
+				fileInfo.setFullDestName(sNewName);
 
 		} // for i
 
@@ -1824,15 +1894,15 @@ public class OpenTorrentWindow
 				numAdded++;
 		}
 
-		if (numAdded > 0 && shell != null && tableTorrents != null
+		if (numAdded > 0 && shell != null && torrentTable != null
 				&& !shell.isDisposed()) {
 			int iTotal = torrentList.size();
-			tableTorrents.setItemCount(iTotal);
+			torrentTable.setItemCount(iTotal);
 			// select the ones we just added
-			tableTorrents.select(iTotal - numAdded, iTotal - 1);
-			tableTorrents.clearAll();
+			torrentTable.select(iTotal - numAdded, iTotal - 1);
+			torrentTable.clearAll();
 			// select doesn't notify listeners? Do it manually.
-			tableTorrents.notifyListeners(SWT.Selection, new Event());
+			torrentTable.notifyListeners(SWT.Selection, new Event());
 
 			resizeTables(1);
 			checkSeedingMode();
@@ -2001,10 +2071,10 @@ public class OpenTorrentWindow
 	private void resizeTables(int which) {
 		try {
 			TableColumn[] tcs;
-			if ((which & 1) > 0 && tableTorrents != null
-					&& !tableTorrents.isDisposed()) {
-				tcs = tableTorrents.getColumns();
-				int newSize = tableTorrents.getClientArea().width - 20;
+			if ((which & 1) > 0 && torrentTable != null
+					&& !torrentTable.isDisposed()) {
+				tcs = torrentTable.getColumns();
+				int newSize = torrentTable.getClientArea().width - 20;
 				int iLength = tcs.length;
 				if (Utils.LAST_TABLECOLUMN_EXPANDS) {
 					iLength--;
@@ -2083,16 +2153,11 @@ public class OpenTorrentWindow
 									if (iIndex >= 0 && iIndex < files.length
 											&& files[iIndex].lSize == fileInfo.getLength()) {
 
-										File fDest;
-										if (files[iIndex].sDestFileName != null) {
-											fDest = new File(files[iIndex].sDestFileName);
+										File fDest = files[iIndex].getDestFileFullName();
+										if (files[iIndex].isLinked()) {
 											// Can't use fileInfo.setLink(fDest) as it renames
 											// the existing file if there is one
-											dm.getDownloadState().setFileLink(
-													fileInfo.getFile(false), fDest);
-										} else {
-											fDest = new File(info.getDataDir(),
-													files[iIndex].sFullFileName);
+											dm.getDownloadState().setFileLink(fileInfo.getFile(false), fDest);
 										}
 
 										if (!files[iIndex].bDownload) {
@@ -2204,13 +2269,13 @@ public class OpenTorrentWindow
 				if (shell != null && !shell.isDisposed()) {
 					Utils.execSWTThread(new AERunnable() {
 						public void runSupport() {
-							tableTorrents.setItemCount(torrentList.size());
-							tableTorrents.clearAll();
+							torrentTable.setItemCount(torrentList.size());
+							torrentTable.clearAll();
 
 							// select the one we just added
-							tableTorrents.select(torrentList.size() - 1);
+							torrentTable.select(torrentList.size() - 1);
 							// select doesn't notify listeners? Do it manually.
-							tableTorrents.notifyListeners(SWT.Selection, new Event());
+							torrentTable.notifyListeners(SWT.Selection, new Event());
 
 							resizeTables(1);
 						}
@@ -2317,6 +2382,11 @@ public class OpenTorrentWindow
 
 		public String getParentDir() {
 			return sDestDir;
+		}
+		
+		public void setParentDir(String parentDir)
+		{
+			sDestDir = parentDir;
 		}
 
 		public String getDataDir() {
@@ -2439,7 +2509,7 @@ public class OpenTorrentWindow
 		public boolean allFilesMoving() {
 			TorrentFileInfo[] files = getFiles();
 			for (int j = 0; j < files.length; j++) {
-				if (files[j].sDestFileName == null) {
+				if (files[j].isLinked()) {
 					return false;
 				}
 			}
@@ -2454,15 +2524,7 @@ public class OpenTorrentWindow
 				if (!fileInfo.bDownload)
 					continue;
 
-				String sFullPath;
-				if (fileInfo.sDestFileName == null) {
-					File f = new File(getDataDir(), fileInfo.sFullFileName);
-					sFullPath = f.getAbsolutePath();
-				} else {
-					sFullPath = fileInfo.sDestFileName;
-				}
-
-				File file = new File(sFullPath);
+				File file = fileInfo.getDestFileFullName();
 				if (!file.exists() || file.length() != fileInfo.lSize) {
 					return false;
 				}
@@ -2486,28 +2548,22 @@ public class OpenTorrentWindow
 						f = new File(getDataDir() + "-" + idx);
 					} while (f.isDirectory());
 
-					String sNewDir = f.getAbsolutePath();
-
-					TorrentFileInfo[] fileInfos = getFiles();
-					for (int i = 0; i < fileInfos.length; i++) {
-						TorrentFileInfo info = fileInfos[i];
-						File file = new File(sNewDir, info.sFileName);
-						info.sDestFileName = file.getAbsolutePath();
-					}
+					sDestSubDir = f.getAbsolutePath();
 				}
 			} else {
+				// should only be one file
 				TorrentFileInfo[] fileInfos = getFiles();
 				for (int i = 0; i < fileInfos.length; i++) {
 					TorrentFileInfo info = fileInfos[i];
 
-					File file = new File(getDataDir(), info.sFileName);
+					File file = info.getDestFileFullName();
 					int idx = 0;
 					while (file.exists()) {
 						idx++;
-						file = new File(getDataDir(), idx + "-" + info.sFileName);
+						file = new File(info.getDestPathName(), idx + "-" + info.getDestFileName());
 					}
 
-					info.sDestFileName = file.getAbsolutePath();
+					info.setDestFileName(file.getName());
 				}
 			}
 		}
@@ -2561,17 +2617,17 @@ public class OpenTorrentWindow
 	 */
 	private class TorrentFileInfo
 	{
-		/** file name as specified by the torrent */
-		final String sFileName;
-
 		/** relative path + full file name as specified by the torrent */
-		final String sFullFileName;
+		final String orgFullName;
+		
+		final String orgFileName;
 
 		long lSize;
 
 		boolean bDownload;
 
-		String sDestFileName;
+		private String destFileName;
+		private String destPathName;
 
 		long iIndex;
 
@@ -2592,40 +2648,69 @@ public class OpenTorrentWindow
 			lSize = torrentFile.getLength();
 			this.iIndex = iIndex;
 			bDownload = true;
-			sDestFileName = null;
 			isValid = true;
 
-			sFileName = torrentFile.getRelativePath(); // translated to locale
-			sFullFileName = sFileName;
-			/*
-			if (parent.torrent.isSimpleTorrent()) {
-				sFullFileName = sFileName;
-			} else {
-				sFullFileName = parent.getTorrentName() + File.separator
-						+ torrentFile.getRelativePath();
-			}*/
+			orgFullName = torrentFile.getRelativePath(); // translated to locale
+			orgFileName = new File(orgFullName).getName();
+		}
+		
+		public void setFullDestName(String newFullName)
+		{
+			if(newFullName == null)
+			{
+				setDestPathName(null);
+				setDestFileName(null);
+				return;
+			}
+				
+			File newPath = new File(newFullName);
+			setDestPathName(newPath.getParent());
+			setDestFileName(newPath.getName());
+		}
+		
+		public void setDestPathName(String newPath)
+		{
+			if(parent.torrent.isSimpleTorrent())
+				parent.setParentDir(newPath);
+			else
+				destPathName = newPath;
+		}
+		
+		public void setDestFileName (String newFileName)
+		{
+			if(orgFileName.equals(newFileName))
+				destFileName = null;
+			else
+				destFileName = newFileName;			
 		}
 
-		public String getDestPath() {
-			if (sDestFileName != null)
-				return new File(sDestFileName).getParent();
+		public String getDestPathName() {
+			if (destPathName != null)
+				return destPathName;
 
 			if (parent.torrent.isSimpleTorrent())
 				return parent.getParentDir();
 
-			return new File(parent.getDataDir(), sFullFileName).getParent();
+			return new File(parent.getDataDir(), orgFullName).getParent();
+		}
+		
+		public String getDestFileName() {
+			return destFileName == null ? orgFileName : destFileName;
 		}
 
-		public File getDestFile() {
-			if (sDestFileName != null) {
-				return new File(sDestFileName);
-			} else {
-				return new File(parent.getDataDir(), sFullFileName);
-			}
+		public File getDestFileFullName() {
+			String path = getDestPathName();
+			String file = getDestFileName();
+			return new File(path,file);
 		}
 
 		public boolean okToDisable() {
 			return /* lSize >= MIN_NODOWNLOAD_SIZE	|| */parent.okToDisableAll();
+		}
+		
+		public boolean isLinked()
+		{
+			return destFileName != null || destPathName != null;
 		}
 	}
 
@@ -2725,7 +2810,7 @@ public class OpenTorrentWindow
 						continue;
 
 					// reduce each file to its partition root
-					File root = file.getDestFile().getAbsoluteFile();
+					File root = file.getDestFileFullName().getAbsoluteFile();
 
 					Partition part = (Partition) partitions.get((File) parentToRootCache.get(root.getParentFile()));
 
@@ -2748,7 +2833,7 @@ public class OpenTorrentWindow
 						}
 
 						parentToRootCache.put(
-								file.getDestFile().getAbsoluteFile().getParentFile(), root);
+								file.getDestFileFullName().getAbsoluteFile().getParentFile(), root);
 
 						part = (Partition) partitions.get(root);
 
