@@ -730,6 +730,9 @@ public class TableViewSWTImpl
 				TableColumnCore tc = getTableColumnByOffset(e.x);
 				TableCellSWT cell = getTableCell(e.x, e.y);
 				
+				if(editor.getEditor() != null && !editor.getEditor().isDisposed())
+					editor.getEditor().dispose();
+				
 				if (cell != null && tc != null) {
 					if (e.button == 2 && e.stateMask == SWT.CONTROL) {
 						((TableCellImpl) cell).bDebug = !((TableCellImpl) cell).bDebug;
@@ -759,9 +762,6 @@ public class TableViewSWTImpl
 					//System.out.println("Mouse="+iMouseX+"x"+e.y+";TableArea="+rTableArea);
 					Point pMousePosition = new Point(e.x, e.y);
 					if (rTableArea.contains(pMousePosition)) {
-						
-						if(editor.getEditor() != null && !editor.getEditor().isDisposed())
-							editor.getEditor().dispose();
 						
 						int[] columnOrder = table.getColumnOrder();
 						if (columnOrder.length == 0) {
