@@ -873,6 +873,13 @@ public class ListView
 			int ofs = getBottomRowHeight(iThisVBarPos);
 			// image moved up.. gap at bottom
 			int i = visibleRows.length - 1;
+			
+			if (i < 0) {
+				if (DEBUGPAINT) {
+					logPAINT("No rows visible! This shouldn't happen");
+				}
+				return;
+			}
 
 			ListRow row = (ListRow) visibleRows[i];
 			while (diff <= 0) {
@@ -1706,6 +1713,7 @@ public class ListView
 
 					mapDataSourceToRow.clear();
 					rows.clear();
+					totalHeight = 0;
 				} finally {
 					row_mon.exit();
 				}
@@ -2498,13 +2506,7 @@ public class ListView
 
 		allColumns = tcManager.getAllTableColumnCoreAsArray(sTableID);
 
-		Arrays.sort(allColumns, new Comparator() {
-			public int compare(Object o1, Object o2) {
-				TableColumn tc0 = (TableColumn) o1;
-				TableColumn tc1 = (TableColumn) o2;
-				return tc0.getPosition() - tc1.getPosition();
-			}
-		});
+		Arrays.sort(allColumns, TableColumnManager.getTableColumnOrderComparator());
 
 		ArrayList visibleColumnsList = new ArrayList();
 		for (int i = 0; i < allColumns.length; i++) {
@@ -2928,7 +2930,7 @@ public class ListView
 
 	// @see com.aelitis.azureus.ui.common.table.TableStructureModificationListener#columnOrderChanged(int[])
 	public void columnOrderChanged(int[] iPositions) {
-		Arrays.sort(allColumns);
+		Arrays.sort(allColumns, TableColumnManager.getTableColumnOrderComparator());
 
 		logCOLUMNSIZE("Clear lastClientWidth via columnOrdereChanged");
 		lastClientWidth = 0;
