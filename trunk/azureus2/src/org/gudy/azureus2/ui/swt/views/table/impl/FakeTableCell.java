@@ -747,7 +747,7 @@ public class FakeTableCell
 				x = marginWidth;
 				x += (size.x - (marginWidth * 2) - imageBounds.width) / 2;
 			} else if (orientation == SWT.RIGHT) {
-				x = bounds.height - marginWidth - imageBounds.width;
+				x = bounds.width - marginWidth - imageBounds.width;
 			} else {
 				x = marginWidth;
 			}
