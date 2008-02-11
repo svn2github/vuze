@@ -1119,6 +1119,7 @@ public class OpenTorrentWindow
 
 				dataFileTable.setItemCount(dataFiles.size());
 				dataFileTable.clearAll();
+				editCell(-1);
 				updateSize();
 				resizeTables(2);
 			}
@@ -1391,6 +1392,7 @@ public class OpenTorrentWindow
 				}
 				if (dataFileTable != null && !dataFileTable.isDisposed()) {
 					dataFileTable.clearAll();
+					editCell(-1);
 				}
 			}
 		});
@@ -1414,7 +1416,96 @@ public class OpenTorrentWindow
 		table.clearAll();
 		table.notifyListeners(SWT.Selection, new Event());
 	}
+	
+	
+	private void editCell(final int row)
+	{
+		Text oldEditor = (Text)dataFileTableEditor.getEditor();
+		if(row < 0 || row >= dataFileTable.getItemCount())
+		{
+			if(oldEditor != null && !oldEditor.isDisposed())
+				oldEditor.dispose();
+			return;
+		}
+		
+		
+		final Text newEditor = oldEditor == null || oldEditor.isDisposed() ? new Text(dataFileTable,SWT.BORDER) : oldEditor;
+		final TorrentFileInfo file = (TorrentFileInfo) dataFiles.get(row);
+		final String uneditedName = file.getDestFileName();
+		TableItem item = dataFileTable.getItem(row);
+		newEditor.setText(uneditedName);
+		newEditor.selectAll();
+		newEditor.forceFocus();
+		
+		dataFileTable.showItem(item);
+		
+		class QuickEditListener implements ModifyListener, SelectionListener, KeyListener, TraverseListener {
+			public void modifyText(ModifyEvent e) {
+				file.setDestFileName(newEditor.getText());
+				try
+				{
+					file.getDestFileFullName().getCanonicalFile();
+					newEditor.setBackground(null);
+				} catch (IOException e1)
+				{
+					newEditor.setBackground(Colors.colorErrorBG);
+				}
+			}
+			
+			public void widgetDefaultSelected(SelectionEvent e) {
+				try
+				{
+					file.getDestFileFullName().getCanonicalFile();
+				} catch (IOException e1)
+				{
+					file.setDestFileName(uneditedName);
+				}
+				move(row,1,(Text)e.widget);
+			}
+			
+			public void widgetSelected(SelectionEvent e) {}
+			public void keyReleased(KeyEvent e) {}
+			
+			public void keyPressed(KeyEvent e) {
+				if(e.keyCode == SWT.ARROW_DOWN || e.keyCode == SWT.ARROW_UP)
+				{
+					e.doit = false;
+					move(row,e.keyCode == SWT.ARROW_DOWN ? 1 : -1,(Text)e.widget);
+				}
+			}
+			
+			public void keyTraversed(TraverseEvent e) {
+				if(e.detail == SWT.TRAVERSE_ESCAPE || e.detail == SWT.TRAVERSE_RETURN)
+					e.doit = false;
+				if(e.detail == SWT.TRAVERSE_ESCAPE)
+					editCell(-1);
+			}
+			
+			private void move(int oldRow, int offset, Text current)
+			{
+				current.removeModifyListener(QuickEditListener.this);
+				current.removeSelectionListener(QuickEditListener.this);
+				current.removeKeyListener(QuickEditListener.this);
+				current.removeTraverseListener(QuickEditListener.this);
+				editCell(oldRow+offset);
+				dataFileTable.clear(oldRow);
+			}
+			
+		}
+		
+		QuickEditListener listener = new QuickEditListener();
+		
+		newEditor.addModifyListener(listener);
+		newEditor.addSelectionListener(listener);
+		newEditor.addKeyListener(listener);
+		newEditor.addTraverseListener(listener);
+		
+		dataFileTableEditor.setEditor(newEditor, dataFileTable.getItem(row), EDIT_COLUMN_INDEXT);
+	}
 
+	private static final int EDIT_COLUMN_INDEXT = 1;
+	
+	
 	private void createTableDataFiles(Composite cArea) {
 		GridData gridData;
 		TableColumn tc;
@@ -1430,7 +1521,7 @@ public class OpenTorrentWindow
 		gridData.widthHint = 100;
 		dataFileTable.setLayoutData(gridData);
 		
-		final int editColumnIndex = 1;
+		
 
 		tc = new TableColumn(dataFileTable, SWT.NULL);
 		Messages.setLanguageText(tc, "OpenTorrentWindow.fileTable.fileName");
@@ -1450,8 +1541,9 @@ public class OpenTorrentWindow
 			public void handleEvent(Event event) {
 				if (bClosed)
 					return;
-
+				
 				final TableItem item = (TableItem) event.item;
+				
 				int index = dataFileTable.indexOf(item);
 				final TorrentFileInfo file = (TorrentFileInfo) dataFiles.get(index);
 
@@ -1513,79 +1605,13 @@ public class OpenTorrentWindow
 					{
 						if (!item.getBounds(j).contains(e.x, e.y))
 							continue;
-						found = j == editColumnIndex;
+						found = j == EDIT_COLUMN_INDEXT;
 						break outer;
 					}
 				}
-				removeEdit();
+				editCell(-1); // cleanup
 				if(found)
 					editCell(i);
-			}
-			
-			private void removeEdit()
-			{
-				if(dataFileTableEditor.getEditor() != null && !dataFileTableEditor.getEditor().isDisposed())
-					dataFileTableEditor.getEditor().dispose();
-				enableControl(ok,true);
-			}
-			
-			private void editCell(final int row)
-			{
-				Text oldEditor = (Text)dataFileTableEditor.getEditor();
-				if(row >= dataFileTable.getItemCount())
-				{
-					removeEdit();
-					return;
-				}
-				
-				enableControl(ok, false);
-				
-				
-				final Text newEditor = oldEditor == null || oldEditor.isDisposed() ? new Text(dataFileTable,SWT.BORDER) : oldEditor;
-				final TorrentFileInfo file = (TorrentFileInfo) dataFiles.get(row);
-				final String uneditedName = file.getDestFileName();
-				newEditor.setText(uneditedName);
-				newEditor.selectAll();
-				newEditor.forceFocus();
-				
-				class QuickEditListener implements ModifyListener, SelectionListener {
-					public void modifyText(ModifyEvent e) {
-						file.setDestFileName(newEditor.getText());
-						try
-						{
-							file.getDestFileFullName().getCanonicalFile();
-							newEditor.setBackground(null);
-						} catch (IOException e1)
-						{
-							newEditor.setBackground(Colors.colorErrorBG);
-						}
-					}
-					
-					public void widgetDefaultSelected(SelectionEvent e) {
-						try
-						{
-							file.getDestFileFullName().getCanonicalFile();
-						} catch (IOException e1)
-						{
-							file.setDestFileName(uneditedName);
-						}
-						if(e.widget.isDisposed())
-							return;
-						((Text)e.widget).removeModifyListener(QuickEditListener.this);
-						((Text)e.widget).removeSelectionListener(QuickEditListener.this);
-						editCell(row+1);
-						dataFileTable.clear(row);
-					}
-					
-					public void widgetSelected(SelectionEvent e) {}
-				}
-				
-				QuickEditListener listener = new QuickEditListener();
-				
-				newEditor.addModifyListener(listener);
-				newEditor.addSelectionListener(listener);
-				
-				dataFileTableEditor.setEditor(newEditor, dataFileTable.getItem(row), editColumnIndex);
 			}
 		});
 		

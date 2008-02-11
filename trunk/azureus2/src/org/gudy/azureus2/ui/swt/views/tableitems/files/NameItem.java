@@ -131,7 +131,7 @@ public class NameItem extends CoreTableColumn implements
 	}
 	
 	public boolean inplaceValueSet(TableCell cell, String value, boolean finalEdit) {
-		if (value.equalsIgnoreCase(cell.getText()))
+		if (value.equalsIgnoreCase(cell.getText()) || "".equals(value) || "".equals(cell.getText()))
 			return true;
 		final DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) cell.getDataSource();
 		final File target;
@@ -146,6 +146,7 @@ public class NameItem extends CoreTableColumn implements
 			
 		if(!finalEdit)
 			return !target.exists();
+
 		
 		if(target.exists())
 			return false;

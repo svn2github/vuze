@@ -990,10 +990,17 @@ public class TableViewSWTImpl
 		initializeTableColumns(table);
 	}
 	
+	private interface SourceReplaceListener
+	{
+		void sourcesChanged();
+	}
+	
+	private SourceReplaceListener cellEditNotifier;	
+	
 	private void editCell(final int column, final int row)
 	{
 		Text oldInput = (Text)editor.getEditor();
-		if(column >= table.getColumnCount() || row >= table.getItemCount())
+		if(column >= table.getColumnCount() || row < 0 || row >= table.getItemCount())
 		{
 			if(oldInput != null && !oldInput.isDisposed())
 				editor.getEditor().dispose();
@@ -1001,20 +1008,30 @@ public class TableViewSWTImpl
 		}
 			
 		TableColumn tcColumn = table.getColumn(column);
-		TableItem item = table.getItem(row);
-		table.showItem(item);
+		final TableItem item = table.getItem(row);
 
 		String cellName = (String) tcColumn.getData("Name");
-		final TableCellSWT cell = ((TableRowSWT)getRow(row)).getTableCellSWT(cellName);
+		final TableRowSWT rowSWT = (TableRowSWT)getRow(row);
+		final TableCellSWT cell = rowSWT.getTableCellSWT(cellName);
+		
 		// reuse widget if possible, this way we'll keep the focus all the time on jumping through the rows
 		final Text newInput = oldInput == null || oldInput.isDisposed() ? new Text(table,SWT.BORDER) : oldInput;
+		final Object datasource = cell.getDataSource();
+		
+		table.showItem(item);
+		
 		newInput.setText(cell.getText());
 		newInput.selectAll();
 		newInput.setFocus();
 
-		class QuickEditListener implements ModifyListener, SelectionListener
+		class QuickEditListener implements ModifyListener, SelectionListener, KeyListener, TraverseListener, SourceReplaceListener, ControlListener
 		{
 			public void modifyText(ModifyEvent e) {
+				if(item.isDisposed())
+				{
+					sourcesChanged();
+					return;
+				}
 				if(((TableColumnCore)cell.getTableColumn()).inplaceValueSet(cell, newInput.getText(), false))
 					newInput.setBackground(null);
 				else
@@ -1022,21 +1039,85 @@ public class TableViewSWTImpl
 			}
 			
 			public void widgetDefaultSelected(SelectionEvent e) {
+				if(item.isDisposed())
+				{
+					sourcesChanged();
+					newInput.traverse(SWT.TRAVERSE_RETURN);
+					return;
+				}
 				((TableColumnCore)cell.getTableColumn()).inplaceValueSet(cell, newInput.getText(), true);
-				((Text)e.widget).removeModifyListener(this);
-				((Text)e.widget).removeSelectionListener(this);
-				editCell(column, row+1);
+				move(row,1,(Text)e.widget);
 			}
 			
 			public void widgetSelected(SelectionEvent e) {}
+			
+			public void keyPressed(KeyEvent e) {
+				if(e.keyCode == SWT.ARROW_DOWN || e.keyCode == SWT.ARROW_UP)
+				{
+					e.doit = false;
+					move(row,e.keyCode == SWT.ARROW_DOWN ? 1 : -1,(Text)e.widget);
+				}
+			}
+			
+			public void keyReleased(KeyEvent e) {}
+			
+			public void keyTraversed(TraverseEvent e) {
+				if(e.detail == SWT.TRAVERSE_ESCAPE)
+				{
+					e.doit = false;
+					editCell(column, -1);
+				}
+			}
+			
+			public void sourcesChanged() {
+				if(getRow(datasource) == rowSWT || getRow(datasource) == null)
+					return;
+				String newVal = newInput.getText();
+				Point sel = newInput.getSelection();
+				move(getRow(datasource).getIndex(), 0, newInput);
+				if(newInput.isDisposed())
+					return;
+				newInput.setText(newVal);
+				newInput.setSelection(sel);
+			}
+			
+			private void move(int oldRow, int offset, Text oldText)
+			{
+				if(!oldText.isDisposed())
+				{
+					oldText.removeModifyListener(this);
+					oldText.removeSelectionListener(this);
+					oldText.removeKeyListener(this);
+					oldText.removeTraverseListener(this);
+					oldText.removeControlListener(this);
+				}
+				editCell(column, oldRow+offset);
+			}
+			
+			public void controlMoved(ControlEvent e) {
+				table.showItem(item);
+				editor.setEditor(newInput, item, column);
+			}
+			
+			public void controlResized(ControlEvent e) {
+				
+			}
+
 		}
 		
 		QuickEditListener l = new QuickEditListener();
 		newInput.addModifyListener(l);
 		newInput.addSelectionListener(l);
+		newInput.addKeyListener(l);
+		newInput.addTraverseListener(l);
+		newInput.addControlListener(l);
+		cellEditNotifier = l;
+		
 		l.modifyText(null);
 
 		editor.setEditor(newInput, item, column);
+		table.deselectAll();
+		table.select(row);
 	}
 
 	private TableCellMouseEvent createMouseEvent(TableCellSWT cell, MouseEvent e,
@@ -1826,6 +1907,9 @@ public class TableViewSWTImpl
 			// when timerProcessDataSources is null, we are disposing
 			return;
 		}
+		
+		if(cellEditNotifier != null)
+			cellEditNotifier.sourcesChanged();
 
 		synchronized (timerProcessDataSources) {
 			if (timerEventProcessDS != null && !timerEventProcessDS.hasRun()) {
