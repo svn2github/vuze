@@ -3,7 +3,6 @@
  */
 package com.aelitis.azureus.ui.swt.columns.torrent;
 
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 
@@ -52,7 +51,7 @@ public class ColumnProgressETA
 
 	private static final int borderWidth = 1;
 
-	private static final int COLUMN_WIDTH = 120;
+	private static final int COLUMN_WIDTH = 110;
 
 	private static Font fontText = null;
 
@@ -129,26 +128,27 @@ public class ColumnProgressETA
 					&& lastPercentDone == percentDone && lastETA == eta) {
 				return;
 			}
-			
+
 			if (TRY_NAME_COLUMN_EXPANDER) {
-  			if (dm.getAssumedComplete()) {
-  				//System.out.println(percentDone + ";" + lastPercentDone + ";" + Debug.getCompressedStackTrace());
-  				try {
-  				TableCellSWT cellTitle = (TableCellSWT) cell.getTableRow().getTableCell("name");
-  				ListCell itemTitle = (ListCell) cellTitle.getBufferedTableItem();
-  				ListCell listCell = (ListCell) ((TableCellSWT)cell).getBufferedTableItem();
-  				Rectangle bounds = listCell.getBounds();
-  				if (bounds != null) {
-    				//itemTitle.setSecretWidth(cellTitle.getTableColumn().getWidth() + bounds.width);
-    				disposeExisting(cell);
-    				lastPercentDone = percentDone;
-    				listCell.setBounds(null);
-  				}
-  				return;
-  				} catch (Exception e) {
-  					e.printStackTrace();
-  				}
-  			}
+				if (dm.getAssumedComplete()) {
+					//System.out.println(percentDone + ";" + lastPercentDone + ";" + Debug.getCompressedStackTrace());
+					try {
+						TableCellSWT cellTitle = (TableCellSWT) cell.getTableRow().getTableCell(
+								"name");
+						ListCell itemTitle = (ListCell) cellTitle.getBufferedTableItem();
+						ListCell listCell = (ListCell) ((TableCellSWT) cell).getBufferedTableItem();
+						Rectangle bounds = listCell.getBounds();
+						if (bounds != null) {
+							//itemTitle.setSecretWidth(cellTitle.getTableColumn().getWidth() + bounds.width);
+							disposeExisting(cell);
+							lastPercentDone = percentDone;
+							listCell.setBounds(null);
+						}
+						return;
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
 			}
 
 			if (!bForce && !cell.isShown()) {
@@ -162,13 +162,15 @@ public class ColumnProgressETA
 			}
 			int newHeight = cell.getHeight();
 
-			int x1 = newWidth - borderWidth - 1;
-			int progressX1 = bCanBeProgressive ? x1 - 55 : x1;
-			int progressY1 = newHeight - borderWidth - 1 - 12;
-			if (progressY1 > 18) {
-				progressY1 = 18;
+			int x1 = borderWidth;
+			int y1 = borderWidth;
+			int x2 = newWidth - x1 - borderWidth;
+			int progressX2 = bCanBeProgressive ? x2 - 55 : x2;
+			int progressY2 = newHeight - y1 - borderWidth - 12;
+			if (progressY2 > 18) {
+				progressY2 = 18;
 			}
-			if (x1 < 10 || progressX1 < 10 || progressY1 < 3) {
+			if (x2 < 10 || progressX2 < 10 || progressY2 < 3) {
 				return;
 			}
 
@@ -190,7 +192,7 @@ public class ColumnProgressETA
 				cBorder = Colors.black;
 			}
 
-			int etaY0 = progressY1 + 1;
+			int etaY0 = progressY2 + 1;
 
 			lastPercentDone = percentDone;
 			lastETA = eta;
@@ -199,7 +201,7 @@ public class ColumnProgressETA
 			Graphic graphic = cell.getBackgroundGraphic();
 			Image image = null;
 			if (graphic instanceof UISWTGraphic) {
-				image = ((UISWTGraphic)graphic).getImage();
+				image = ((UISWTGraphic) graphic).getImage();
 			}
 			GC gcImage;
 			boolean bImageSizeChanged;
@@ -271,8 +273,7 @@ public class ColumnProgressETA
 					} else {
 						long newETA = edm.getProgressivePlayETA();
 						if (newETA <= 0) {
-							sETALine = MessageText.getString(
-									"MyTorrents.column.ColumnProgressETA.StreamReady");
+							sETALine = MessageText.getString("MyTorrents.column.ColumnProgressETA.StreamReady");
 						} else {
 							String sETA = TimeFormatter.format(newETA);
 							sETALine = MessageText.getString(
@@ -289,19 +290,19 @@ public class ColumnProgressETA
 				if (bImageSizeChanged || true) {
 					// draw border
 					gcImage.setForeground(cBorder);
-					gcImage.drawRectangle(0, 0, progressX1, progressY1);
+					gcImage.drawRectangle(0, 0, progressX2 - x1 + 1, progressY2 - y1 + 1);
 				} else {
 					gcImage = new GC(image);
 				}
 
-				int limit = ((progressX1 - 1) * percentDone) / 1000;
+				int limit = ((progressX2 - x1) * percentDone) / 1000;
 
 				gcImage.setBackground(cBG);
-				gcImage.fillRectangle(1, 1, limit, progressY1 - 1);
-				if (limit < progressX1) {
+				gcImage.fillRectangle(x1, y1, limit, progressY2 - y1);
+				if (limit < progressX2) {
 					gcImage.setBackground(cFG);
-					gcImage.fillRectangle(limit + 1, 1, progressX1 - limit - 1,
-							progressY1 - 1);
+					gcImage.fillRectangle(limit + 1, y1, progressX2 - limit - 1,
+							progressY2 - y1);
 				}
 
 			}
