@@ -260,6 +260,9 @@ public class TableColumnManager {
   public String getDefaultSortColumnName(String tableID) {
   	Map mapTableConfig = getTableConfigMap(tableID);
   	Object object = mapTableConfig.get("SortColumn");
+  	if( object instanceof byte[])
+  		object =  new String((byte[])object);
+  	
   	if (object instanceof String) {
 			return (String) object;
 		}
