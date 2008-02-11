@@ -3334,7 +3334,7 @@ public class ListView
 	private List _rowRefresh(ListRow row, boolean bDoGraphics,
 			boolean bForceRedraw) {
 		if (listCanvas == null || listCanvas.isDisposed() || !isRowVisible(row)) {
-			return new ArrayList();
+			return Collections.EMPTY_LIST;
 		}
 
 		// TuxDebug
