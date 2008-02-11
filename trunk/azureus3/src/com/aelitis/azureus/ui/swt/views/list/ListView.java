@@ -3924,7 +3924,7 @@ public class ListView
 		return getTableCell(pt.x, pt.y);
 	}
 
-	public Point getTableCellCursorOffset() {
+	public Point getTableCellMouseOffset() {
 		Point pt = listCanvas.getDisplay().getCursorLocation();
 		pt = listCanvas.toControl(pt);
 		TableCellSWT tableCell = getTableCell(pt.x, pt.y);

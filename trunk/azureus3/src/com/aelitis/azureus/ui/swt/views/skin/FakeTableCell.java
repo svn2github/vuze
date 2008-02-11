@@ -365,4 +365,9 @@ public class FakeTableCell implements TableCell
 	public String toString() {
 		return cell.toString();
 	}
+
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getMouseOffset()
+	public int[] getMouseOffset() {
+		return cell.getMouseOffset();
+	}
 }
