@@ -275,7 +275,7 @@ public class ColumnVuzeActivity
 					ListCell listCell = new ListCellGraphic(null, SWT.LEFT, dmThumbRect);
 
 					thumbCell = new TableCellImpl((TableRowCore) cell.getTableRow(),
-							new ColumnMediaThumb(cell.getTableID()), 0, listCell);
+							new ColumnMediaThumb(cell.getTableID(), -1), 0, listCell);
 					listCell.setTableCell(thumbCell);
 
 					setThumbCell(cell, thumbCell);
