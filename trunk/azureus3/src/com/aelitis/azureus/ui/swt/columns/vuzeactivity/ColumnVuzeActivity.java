@@ -63,7 +63,7 @@ public class ColumnVuzeActivity
 
 	private static final int MARGIN_WIDTH = 8 - ListView.COLUMN_MARGIN_WIDTH;
 
-	private int MARGIN_HEIGHT = -1;
+	private static final int MARGIN_HEIGHT = 7 - 1; // we set row margin height to 1
 
 	public static String COLUMN_ID = "name";
 
@@ -78,10 +78,6 @@ public class ColumnVuzeActivity
 	}
 
 	public void cellAdded(TableCell cell) {
-		if (MARGIN_HEIGHT < 0) {
-			 MARGIN_HEIGHT = 7 - ((ListView)((ListRow)cell.getTableRow()).getView()).getRowMarginHeight();
-		}
-		
 		cell.setMarginWidth(MARGIN_WIDTH);
 		cell.setMarginHeight(0);
 
@@ -178,7 +174,7 @@ public class ColumnVuzeActivity
 					FontData[] fontData = gcQuery.getFont().getFontData();
 					//fontData[0].setStyle(SWT.BOLD);
 					// we can do a few more pixels because we have no text hanging below baseline
-					Utils.getFontHeightFromPX(device, fontData, gcQuery, 20);
+					Utils.getFontHeightFromPX(device, fontData, gcQuery, 22);
 					headerFont = new Font(device, fontData);
 				}
 				gcQuery.setFont(headerFont);
@@ -201,18 +197,18 @@ public class ColumnVuzeActivity
 			//boolean focused = ((ListRow) cell.getTableRow()).isFocused();
 			//if (focused) size.y += 40;
 			if (entry.type == 0) {
-				height = 35 - 4;
-				style |= SWT.BOTTOM;
+				height = 35 - 2;
+				y = 8;
 			} else {
 				height = size.y;
 				height += (MARGIN_HEIGHT * 2);
 				y = MARGIN_HEIGHT + 1;
 			}
+			style |= SWT.TOP;
 
 			if (entry.dm != null || entry.imageBytes != null) {
 				height += 60;
 			}
-			style |= SWT.TOP;
 
 			if (height < 30) {
 				height = 30;
@@ -268,8 +264,8 @@ public class ColumnVuzeActivity
 				}
 			}
 
-			stringPrinter.printString(gc, new Rectangle(x, y, width - x - 2, height - y),
-					style);
+			Rectangle drawRect = new Rectangle(x, y, width - x - 2, height - y + MARGIN_HEIGHT);
+			stringPrinter.printString(gc, drawRect, style);
 			entry.urlHitArea = stringPrinter.getUrlHitArea();
 			entry.url = stringPrinter.getUrl();
 

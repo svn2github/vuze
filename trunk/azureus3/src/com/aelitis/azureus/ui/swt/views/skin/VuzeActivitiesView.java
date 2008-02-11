@@ -90,6 +90,7 @@ public class VuzeActivitiesView
 		Composite cData = (Composite) skinObject.getControl();
 		view = new ListView(TABLE_ID, skin.getSkinProperties(), cData, null,
 				SWT.V_SCROLL);
+		view.setRowMarginHeight(1);
 
 		skipShift = true;
 
