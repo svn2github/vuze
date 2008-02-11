@@ -726,7 +726,7 @@ public class TrackerStatus {
 						int completed = comp == null ? -1 : comp.intValue();
 
 						// make sure we dont use invalid replies
-						if (seeds < 0 || peers < 0 || comp < -1) {
+						if (seeds < 0 || peers < 0 || completed < -1) {
 							if (Logger.isEnabled()) {
 								HashWrapper hash = response.getHash();
 								Logger.log(new LogEvent(TorrentUtils.getDownloadManager(hash),
