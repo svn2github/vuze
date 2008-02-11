@@ -81,7 +81,7 @@ public class SWTSkinObjectText2
 
 		String sVAlign = skinProperties.getStringValue(sConfigID + ".v-align");
 		if (sVAlign != null) {
-			int align = SWTSkinUtils.getAlignment(sAlign, SWT.NONE);
+			int align = SWTSkinUtils.getAlignment(sVAlign, SWT.NONE);
 			if (align != SWT.NONE) {
 				style |= align;
 			} else {
