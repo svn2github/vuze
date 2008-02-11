@@ -1077,4 +1077,24 @@ public class FakeTableCell
 	public void setCellArea(Rectangle cellArea) {
 		this.cellArea = cellArea;
 	}
+
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getMouseOffset()
+	public int[] getMouseOffset() {
+		if (isDisposed()) {
+			return null;
+		}
+		Rectangle r = composite.getBounds();
+		if (cellArea != null) {
+			r = new Rectangle(r.x + cellArea.x, r.y + cellArea.y, cellArea.width,
+					cellArea.height);
+		}
+		Point ptStart = composite.toDisplay(r.x, r.y);
+		r.x = ptStart.x;
+		r.y = ptStart.y;
+		Point ptCursor = composite.getDisplay().getCursorLocation();
+		if (!r.contains(ptCursor)) {
+			return null;
+		}
+		return new int[] { ptCursor.x - r.x, ptCursor.y - r.y };
+	}
 }

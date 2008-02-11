@@ -110,4 +110,11 @@ public interface TableViewSWT
 	 * @since 3.0.0.7
 	 */
 	TableCellSWT getTableCell(int x, int y);
+
+	/**
+	 * @return Offset potision of the cursor relative to the cell the cursor is in
+	 *
+	 * @since 3.0.4.3
+	 */
+	Point getTableCellMouseOffset();
 }

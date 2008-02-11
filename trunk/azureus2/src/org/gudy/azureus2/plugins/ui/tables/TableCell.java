@@ -386,4 +386,14 @@ public interface TableCell {
    * @since 3.0.3.5
    */
   public Graphic getBackgroundGraphic();
+
+	/**
+	 * Return the position of the mouse relative to the cell.
+	 *  
+	 * @return array of 2 containing x and y position position relative to cell. 
+	 * 				null if cell doesn't have mouse.
+	 *
+	 * @since 3.0.4.3
+	 */
+	public int[] getMouseOffset();
 }

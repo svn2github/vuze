@@ -1312,6 +1312,11 @@ public class TableCellImpl
 		return ((TableViewSWT) tableRow.getView()).getTableCellWithCursor() == this;
 	}
 	
+	public int[] getMouseOffset() {
+		Point ofs = ((TableViewSWT) tableRow.getView()).getTableCellMouseOffset();
+		return ofs == null ? null : new int[] { ofs.x, ofs.y };
+	}
+	
 	private boolean hasFlag(int flag) {
 		return (flags & flag) != 0;
 	}

@@ -3876,4 +3876,25 @@ public class TableViewSWTImpl
 		pt = table.toControl(pt);
 		return getTableRow(pt.x, pt.y);
 	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#getTableCellMouseOffset()
+	public Point getTableCellMouseOffset() {
+		Point pt = table.getDisplay().getCursorLocation();
+		pt = table.toControl(pt);
+		TableCellSWT tableCell = getTableCell(pt.x, pt.y);
+		if (tableCell == null) {
+			return null;
+		}
+		
+		Rectangle bounds = tableCell.getBounds();
+		int x = pt.x - bounds.x + VerticalAligner.getTableAdjustHorizontallyBy(table);
+		if (x < 0 || x > bounds.width) {
+			return null;
+		}
+		int y = pt.y - bounds.y + VerticalAligner.getTableAdjustVerticalBy(table);
+		if (y < 0 || y > bounds.height) {
+			return null;
+		}
+		return new Point(x, y);
+	}
 }
