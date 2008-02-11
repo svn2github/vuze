@@ -49,7 +49,8 @@ public class TableColumnCreator
 			new UpSpeedLimitItem(tableID),
 			new TrackerStatusItem(tableID),
 
-			// Initially Invisible    
+			// Initially Invisible
+			new CompletedItem(tableID),
 			new ShareRatioItem(tableID, false),
 			new UpItem(tableID, false),
 			new RemainingItem(),
@@ -99,6 +100,7 @@ public class TableColumnCreator
 			new UpSpeedLimitItem(tableID),
 
 			// Initially Invisible
+			new CompletedItem(tableID),
 			new CommentItem(tableID),
 			new MaxUploadsItem(tableID),
 			new TotalSpeedItem(tableID),

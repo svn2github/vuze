@@ -722,9 +722,11 @@ public class TrackerStatus {
 						// retrieve values
 						int seeds = ((Long) scrapeMap.get("complete")).intValue();
 						int peers = ((Long) scrapeMap.get("incomplete")).intValue();
+						Long comp = (Long) scrapeMap.get("downloaded");
+						int completed = comp == null ? -1 : comp.intValue();
 
 						// make sure we dont use invalid replies
-						if (seeds < 0 || peers < 0) {
+						if (seeds < 0 || peers < 0 || comp < -1) {
 							if (Logger.isEnabled()) {
 								HashWrapper hash = response.getHash();
 								Logger.log(new LogEvent(TorrentUtils.getDownloadManager(hash),
@@ -758,7 +760,10 @@ public class TrackerStatus {
 													+ " == " + seeds + ". " : "")
 											+ (peers < 0 ? MessageText
 													.getString("MyTorrentsView.peers")
-													+ " == " + peers + ". " : ""));
+													+ " == " + peers + ". " : "")
+											+ (completed < 0 ? MessageText
+													.getString("MyTorrentsView.completed")
+													+ " == " + completed + ". " : ""));
 
 							scraper.scrapeReceived(response);
 
@@ -776,6 +781,7 @@ public class TrackerStatus {
 						response.setScrapeStartTime(scrapeStartTime);
 						response.setSeeds(seeds);
 						response.setPeers(peers);
+						response.setCompleted(completed);
 						response.setStatus(TRTrackerScraperResponse.ST_ONLINE,
 								MessageText.getString(SS + "ok"));
 

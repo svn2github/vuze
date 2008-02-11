@@ -38,6 +38,7 @@ TRTrackerScraperResponseImpl
 	private HashWrapper hash;
 	private int     	seeds;
 	private int    		peers;
+	private int			completed;
   
   private long scrapeStartTime;
   private long nextScrapeStartTime;
@@ -50,7 +51,7 @@ TRTrackerScraperResponseImpl
   TRTrackerScraperResponseImpl(                                     
 	  HashWrapper _hash ) 
   {
-    this( _hash, -1, -1, -1);
+    this( _hash, -1, -1, -1, -1);
   }
 
   protected 
@@ -58,10 +59,12 @@ TRTrackerScraperResponseImpl
 	 HashWrapper _hash,
      int  _seeds, 
      int  _peers,
+     int  completed,
      long _scrapeStartTime)  
   {
     hash = _hash;
     seeds = _seeds;
+    this.completed = completed;
     peers = _peers;
 
     scrapeStartTime = _scrapeStartTime;
@@ -69,6 +72,15 @@ TRTrackerScraperResponseImpl
     status = (!isValid()) ? TRTrackerScraperResponse.ST_INITIALIZING : TRTrackerScraperResponse.ST_ONLINE;
     nextScrapeStartTime = -1;
   }
+  
+
+  	public int getCompleted() {
+		return completed;
+	}
+  	
+  	public void setCompleted(int completed) {
+  		this.completed = completed;
+  	}
 
   public HashWrapper getHash() {
     return hash;

@@ -39,9 +39,13 @@ TRTrackerScraperResponse
 	public static final int ST_ERROR           = 1;
 	public static final int	ST_ONLINE          = 2;
 	public static final int	ST_SCRAPING        = 3;
-
+	
 	public HashWrapper
 	getHash();
+	
+	public int getCompleted();
+	
+	public void setCompleted(int completed);
 	
 	public int
 	getSeeds();

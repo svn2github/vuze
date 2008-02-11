@@ -45,7 +45,7 @@ TRTrackerBTScraperResponseImpl
 	  		TrackerStatus _ts,
             HashWrapper _hash) 
 	  {
-	  	this(_ts, _hash, -1, -1, -1);
+	  	this(_ts, _hash, -1, -1, -1,-1);
 	  }
 
 	  protected 
@@ -54,9 +54,10 @@ TRTrackerBTScraperResponseImpl
 	  		HashWrapper _hash,
             int  _seeds, 
             int  _peers,
+            int completed,
             long _scrapeStartTime)  
 	  {
-	  	super( _hash, _seeds, _peers, _scrapeStartTime );
+	  	super( _hash, _seeds, _peers, completed, _scrapeStartTime );
 	  	
 	  	ts	= _ts;
 	  }

@@ -106,6 +106,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
   BufferedLabel distributedCopies;
   BufferedLabel seeds;
   BufferedLabel peers;
+  BufferedLabel completedLbl;
   Group gInfo;
   BufferedLabel fileName;
   BufferedLabel torrentStatus;
@@ -292,8 +293,14 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     Messages.setLanguageText(label, "GeneralView.label.peers"); 
     peers = new BufferedLabel(gTransfer, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 3;
     peers.setLayoutData(gridData);
+    
+    label = new Label(gTransfer, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.completed"); 
+    completedLbl = new BufferedLabel(gTransfer, SWT.LEFT);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    completedLbl.setLayoutData(gridData);
+
 
     
     label = new Label(gTransfer, SWT.LEFT);
@@ -752,6 +759,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();
     String seeds_str = manager.getNbSeeds() +" "+ MessageText.getString("GeneralView.label.connected");
     String peers_str = manager.getNbPeers() +" "+ MessageText.getString("GeneralView.label.connected");
+    String completed = hd.getCompleted() > -1 ? Integer.toString(hd.getCompleted()) : "?";
     if(hd != null && hd.isValid()) {
       seeds_str += " ( " + hd.getSeeds() +" "+ MessageText.getString("GeneralView.label.in_swarm") + " )";
       peers_str += " ( " + hd.getPeers() +" "+ MessageText.getString("GeneralView.label.in_swarm") + " )";
@@ -802,6 +810,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     		""+(manager.getStats().getUploadRateLimitBytesPerSecond() /1024),
       	seeds_str,
       	peers_str,
+      	completed,
       	DisplayFormatters.formatHashFails(manager),
       	_shareRatio,
       	swarm_completion,
@@ -1138,6 +1147,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
 	String dl_speed, String ul_speed,
 	String s, 
 	String p,
+	String completed,
 	String hash_fails,
 	String share_ratio,
 	String ave_comp,
@@ -1168,7 +1178,8 @@ public class GeneralView extends AbstractIView implements ParameterListener,
 	*/
 	
 	seeds.setText( s);
-	peers.setText( p); 
+	peers.setText( p);
+	completedLbl.setText(completed);
 	hashFails.setText( hash_fails);
 	shareRatio.setText( share_ratio);     
   }
