@@ -377,13 +377,16 @@ public class ColumnRate
 					gcImage.setFont(smallFont);
 					gcImage.setTextAntialias(SWT.DEFAULT);
 
+					Rectangle rectDrawRatings = img.getBounds();
+					rectDrawRatings.height -= 1;
 					GCStringPrinter.printString(gcImage, "" + count + " ratings",
-							img.getBounds(), true, false, SWT.BOTTOM | smallTextStyle);
+							rectDrawRatings, true, false, SWT.BOTTOM | smallTextStyle);
 				}
 			} else {
 				if (imgRate != null) {
 					Rectangle bounds = imgRate.getBounds();
-					int x = bounds.width == width ? 0 : (width - bounds.width) / 2;
+					int x = width - bounds.width;
+					//int x = bounds.width == width ? 0 : (width - bounds.width) / 2;
 					int y = bounds.height == height ? 0 : (height - bounds.height) / 2;
 					gcImage.drawImage(imgRate, x, y);
 				}
@@ -422,7 +425,11 @@ public class ColumnRate
 			if (tableRow == null) {
 				rowMouseTrigger(event, event.cell);
 			}
-			
+
+			if (event.eventType == TableCellMouseEvent.EVENT_MOUSEDOWN) {
+				System.out.println();;
+			}
+
 			if (disabled) {
 				return;
 			}
@@ -456,7 +463,8 @@ public class ColumnRate
 			} else if (event.eventType == TableCellMouseEvent.EVENT_MOUSEMOVE) {
 				int cellWidth = event.cell.getWidth();
 				int cellHeight = event.cell.getHeight();
-				int x = event.x - ((cellWidth - boundsRateMe.width) / 2);
+				int x = event.x - (cellWidth - boundsRateMe.width);
+				//int x = event.x - ((cellWidth - boundsRateMe.width) / 2);
 				int y = event.y - ((cellHeight - boundsRateMe.height) / 2);
 				if (x >= 0 && y >= 0 && x < boundsRateMe.width
 						&& y < boundsRateMe.height) {
@@ -493,10 +501,6 @@ public class ColumnRate
 				return;
 			}
 
-			if (!dm.isDownloadComplete(false) && !useButton) {
-				return;
-			}
-
 			int userRating = PlatformTorrentUtils.getUserRating(dm.getTorrent());
 
 			if (event.eventType == TableCellMouseEvent.EVENT_MOUSEDOWN) {
@@ -509,7 +513,8 @@ public class ColumnRate
 					// not set
 					int cellWidth = event.cell.getWidth();
 					int cellHeight = event.cell.getHeight();
-					int x = event.x - ((cellWidth - boundsRateMe.width) / 2);
+					int x = event.x - (cellWidth - boundsRateMe.width);
+					//int x = event.x - ((cellWidth - boundsRateMe.width) / 2);
 					int y = event.y - ((cellHeight - boundsRateMe.height) / 2);
 
 					if (x >= 0 && y >= 0 && x < boundsRateMe.width
