@@ -154,15 +154,15 @@ public class ColumnRate
 
 	private class Cell
 		implements TableCellRefreshListener, TableCellDisposeListener,
-		TableCellMouseMoveListener, TableCellToolTipListener, TableRowMouseListener, RatingUpdateListener,
-		TableCellVisibilityListener
+		TableCellMouseMoveListener, TableCellToolTipListener,
+		TableRowMouseListener, RatingUpdateListener, TableCellVisibilityListener
 	{
 		String rating = "--";
 
 		private boolean bMouseDowned;
 
 		private int hoveringOn = -1;
-		
+
 		private DownloadManager dm;
 
 		private TableCell cell;
@@ -384,11 +384,8 @@ public class ColumnRate
 				}
 			} else {
 				if (imgRate != null) {
-					Rectangle bounds = imgRate.getBounds();
-					int x = width - bounds.width;
-					//int x = bounds.width == width ? 0 : (width - bounds.width) / 2;
-					int y = bounds.height == height ? 0 : (height - bounds.height) / 2;
-					gcImage.drawImage(imgRate, x, y);
+					Point drawPos = getRateIconPos(imgRate.getBounds(), width, height);
+					gcImage.drawImage(imgRate, drawPos.x, drawPos.y);
 				}
 			}
 
@@ -459,12 +456,13 @@ public class ColumnRate
 			} else if (event.eventType == TableCellMouseEvent.EVENT_MOUSEMOVE) {
 				int cellWidth = event.cell.getWidth();
 				int cellHeight = event.cell.getHeight();
-				int x = event.x - (cellWidth - boundsRateMe.width);
-				//int x = event.x - ((cellWidth - boundsRateMe.width) / 2);
-				int y = event.y - ((cellHeight - boundsRateMe.height) / 2);
-				if (x >= 0 && y >= 0 && x < boundsRateMe.width
-						&& y < boundsRateMe.height) {
-					final int value = (x < (boundsRateMe.height - y + 1)) ? 1 : 0;
+				Point drawPos = getRateIconPos(boundsRateMe, cellWidth, cellHeight);
+				drawPos.x = event.x - drawPos.x;
+				drawPos.y = event.y - drawPos.y;
+				if (drawPos.x >= 0 && drawPos.y >= 0 && drawPos.x < boundsRateMe.width
+						&& drawPos.y < boundsRateMe.height) {
+					final int value = (drawPos.x < (boundsRateMe.height - drawPos.y + 1))
+							? 1 : 0;
 
 					if (hoveringOn != value) {
 						hoveringOn = value;
@@ -488,7 +486,7 @@ public class ColumnRate
 				return;
 			}
 
-			DownloadManager dm =  getDM(event.cell.getDataSource());
+			DownloadManager dm = getDM(event.cell.getDataSource());
 			if (dm == null) {
 				return;
 			}
@@ -509,16 +507,18 @@ public class ColumnRate
 					// not set
 					int cellWidth = event.cell.getWidth();
 					int cellHeight = event.cell.getHeight();
-					int x = event.x - (cellWidth - boundsRateMe.width);
-					//int x = event.x - ((cellWidth - boundsRateMe.width) / 2);
-					int y = event.y - ((cellHeight - boundsRateMe.height) / 2);
+					Point drawPos = getRateIconPos(boundsRateMe, cellWidth, cellHeight);
+					drawPos.x = event.x - drawPos.x;
+					drawPos.y = event.y - drawPos.y;
 
-					if (x >= 0 && y >= 0 && x < boundsRateMe.width
-							&& y < boundsRateMe.height) {
+					if (drawPos.x >= 0 && drawPos.y >= 0
+							&& drawPos.x < boundsRateMe.width
+							&& drawPos.y < boundsRateMe.height) {
 						try {
 							final TOTorrent torrent = dm.getTorrent();
 							final String hash = torrent.getHashWrapper().toBase32String();
-							final int value = (x < (boundsRateMe.height - y + 1)) ? 1 : 0;
+							final int value = (drawPos.x < (boundsRateMe.height - drawPos.y + 1))
+									? 1 : 0;
 
 							PlatformTorrentUtils.setUserRating(torrent, -2);
 							refresh(event.cell, true);
@@ -625,10 +625,10 @@ public class ColumnRate
 				return;
 			}
 			try {
-  			String hash = dm.getTorrent().getHashWrapper().toBase32String();
-  			if (rating.hasHash(hash)) {
-  				refresh(cell, true);
-  			}
+				String hash = dm.getTorrent().getHashWrapper().toBase32String();
+				if (rating.hasHash(hash)) {
+					refresh(cell, true);
+				}
 			} catch (Exception e) {
 				// ignore
 			}
@@ -667,5 +667,18 @@ public class ColumnRate
 			dm = ((VuzeActivitiesEntry) ds).dm;
 		}
 		return dm;
+	}
+
+	private Point getRateIconPos(Rectangle imgBounds, int cellWidth,
+			int cellHeight) {
+		int x;
+		int y = imgBounds.height == cellHeight ? 0
+				: (cellHeight - imgBounds.height) / 2;
+		if (useButton) {
+			x = imgBounds.width == cellWidth ? 0 : (cellWidth - imgBounds.width) / 2;
+		} else {
+			x = cellWidth - imgBounds.width;
+		}
+		return new Point(x, y);
 	}
 }
