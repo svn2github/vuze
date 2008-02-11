@@ -47,13 +47,6 @@ public class BTHandshake implements BTMessage, RawMessage {
   // Set eighth bit (1) only to prefer LTEP over AZMP. 
   public static final byte[] AZ_RESERVED = new byte[]{(byte)128, 0, 0, 0, 0, (byte)19, 0, 0 };
   
-  // Disable LTEP if not allowed in the configuration.
-  public static final boolean LTEP_ENABLED;
-  static {
-	  LTEP_ENABLED = COConfigurationManager.getBooleanParameter("LTEP.enabled"); 
-	  if (!LTEP_ENABLED) {AZ_RESERVED[5] = (byte)0;}
-  }
-  
   public static void setMainlineDHTEnabled(boolean enabled) {
 	  if (enabled) {
 		  //BT_RESERVED[7] = (byte)(BT_RESERVED[7] | 0x01);
