@@ -1026,6 +1026,8 @@ public class TableViewSWTImpl
 
 		class QuickEditListener implements ModifyListener, SelectionListener, KeyListener, TraverseListener, SourceReplaceListener, ControlListener
 		{
+			boolean resizing = true;			
+			
 			public void modifyText(ModifyEvent e) {
 				if(item.isDisposed())
 				{
@@ -1070,10 +1072,10 @@ public class TableViewSWTImpl
 			}
 			
 			public void sourcesChanged() {
-				if(getRow(datasource) == rowSWT || getRow(datasource) == null)
+				if(getRow(datasource) == rowSWT || getRow(datasource) == null || newInput.isDisposed())
 					return;
 				String newVal = newInput.getText();
-				Point sel = newInput.getSelection();
+				Point  sel = newInput.getSelection();
 				move(getRow(datasource).getIndex(), 0, newInput);
 				if(newInput.isDisposed())
 					return;
@@ -1096,7 +1098,12 @@ public class TableViewSWTImpl
 			
 			public void controlMoved(ControlEvent e) {
 				table.showItem(item);
+				if(resizing)
+					return;
+				resizing = true;
 				editor.setEditor(newInput, item, column);
+				resizing = false;
+				
 			}
 			
 			public void controlResized(ControlEvent e) {
@@ -1118,6 +1125,8 @@ public class TableViewSWTImpl
 		editor.setEditor(newInput, item, column);
 		table.deselectAll();
 		table.select(row);
+		
+		l.resizing = false;
 	}
 
 	private TableCellMouseEvent createMouseEvent(TableCellSWT cell, MouseEvent e,
