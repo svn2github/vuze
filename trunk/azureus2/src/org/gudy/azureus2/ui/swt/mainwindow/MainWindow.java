@@ -35,7 +35,6 @@ import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -46,6 +45,9 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.sharing.ShareException;
+import org.gudy.azureus2.plugins.sharing.ShareManager;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.components.ColorUtils;
@@ -78,10 +80,6 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UIStatusTextClickListener;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-
-import org.gudy.azureus2.plugins.*;
-import org.gudy.azureus2.plugins.sharing.ShareException;
-import org.gudy.azureus2.plugins.sharing.ShareManager;
 
 /**
  * @author Olivier
@@ -1389,12 +1387,12 @@ public class MainWindow
 			tv = ((TableViewTab) currentView).getTableView();
 		}
 
-		
 		/*
 		 * KN: Reflectively find the Torrents menu item and update its data
 		 */
 		final MenuItem torrentItem = MenuFactory.findMenuItem(
-				mainMenu.getMenu(IMenuConstants.MENU_ID_MENU_BAR), MenuFactory.MENU_ID_TORRENT);
+				mainMenu.getMenu(IMenuConstants.MENU_ID_MENU_BAR),
+				MenuFactory.MENU_ID_TORRENT);
 
 		if (null != torrentItem) {
 			final DownloadManager[] dm_final = dm;
@@ -1551,7 +1549,7 @@ public class MainWindow
 	 * @return
 	 */
 	public MainMenu getMenu() {
-		return (MainMenu)mainMenu;
+		return (MainMenu) mainMenu;
 	}
 
 	/**
@@ -1562,15 +1560,14 @@ public class MainWindow
 		mainMenu = menu;
 	}
 
-	public IMainMenu getMainMenu(){
+	public IMainMenu getMainMenu() {
 		return mainMenu;
 	}
-	
-	
+
 	public void setMainMenu(IMainMenu menu) {
 		mainMenu = menu;
 	}
-	
+
 	private void downloadManagerStateChanged(final DownloadManager manager,
 			int state) {
 		// if state == STARTED, then open the details window (according to config)
@@ -1862,17 +1859,46 @@ public class MainWindow
 	}
 
 	public boolean isVisible(int windowElement) {
-		if(windowElement == IMainWindow.WINDOW_ELEMENT_TOOLBAR){
+		if (windowElement == IMainWindow.WINDOW_ELEMENT_TOOLBAR) {
 			return bIconBarEnabled;
+		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_STATUSBAR) {
+			//TODO:
+		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_MENU) {
+			//TODO:
 		}
-		
+
 		return true;
 	}
 
 	public void setVisible(int windowElement, boolean value) {
-		if(windowElement == IMainWindow.WINDOW_ELEMENT_TOOLBAR){
+		if (windowElement == IMainWindow.WINDOW_ELEMENT_TOOLBAR) {
 			setIconBarEnabled(value);
+		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_STATUSBAR) {
+			//TODO:
+		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_MENU) {
+			//TODO:
 		}
+	}
+
+	public Rectangle getMetrics(int windowElement) {
+		if (windowElement == IMainWindow.WINDOW_ELEMENT_TOOLBAR) {
+			if (null != iconBar && null != iconBar.getComposite()) {
+				return iconBar.getComposite().getBounds();
+			}
+		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_STATUSBAR) {
+
+			return mainStatusBar.getBounds();
+
+		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_SEARCHBAR) {
+
+			//KN: No search bar in classic UI
+
+		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_TABBAR) {
+
+			//KN: No tab bar in classic UI
+
+		}
+		return new Rectangle(0, 0, 0, 0);
 	}
 
 }
