@@ -426,10 +426,6 @@ public class ColumnRate
 				rowMouseTrigger(event, event.cell);
 			}
 
-			if (event.eventType == TableCellMouseEvent.EVENT_MOUSEDOWN) {
-				System.out.println();;
-			}
-
 			if (disabled) {
 				return;
 			}
