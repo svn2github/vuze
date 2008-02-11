@@ -61,13 +61,16 @@ public class ColumnMediaThumb
 
 	private Map mapCellTorrent = new HashMap();
 
+	private final int maxThumbHeight;
+
 	/**
 	 * 
 	 */
-	public ColumnMediaThumb(String sTableID) {
+	public ColumnMediaThumb(String sTableID, int maxThumbHeight) {
 		super(COLUMN_ID, sTableID);
-		initializeAsGraphic(POSITION_LAST, 50);
-		setWidthLimits(50, 50);
+		this.maxThumbHeight = maxThumbHeight;
+		initializeAsGraphic(POSITION_LAST, 53);
+		setWidthLimits(53, 53);
 		setAlignment(ALIGN_CENTER);
 	}
 
@@ -143,11 +146,7 @@ public class ColumnMediaThumb
 			}
 		} else {
 			
-			int MAXH = cell.getHeight() - 2;
-			// hack!
-			if (MAXH <= 0) {
-				MAXH = 30;
-			}
+			int MAXH = maxThumbHeight < 0 ? cell.getHeight() : maxThumbHeight;
 
 			TableRow row = cell.getTableRow();
 			boolean rowHasMouse = (row instanceof TableRowCore)
@@ -160,11 +159,12 @@ public class ColumnMediaThumb
 
 				int w = img.getBounds().width;
 				int h = img.getBounds().height;
-
+				
 				if (h > MAXH) {
 					int h2 = MAXH;
 					int w2 = h2 * w / h;
 					Image newImg = new Image(img.getDevice(), w2, h2);
+
 
 					GC gc = new GC(newImg);
 					int[] bg = cell.getBackground();
