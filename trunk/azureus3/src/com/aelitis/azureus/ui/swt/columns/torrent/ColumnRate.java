@@ -427,13 +427,6 @@ public class ColumnRate
 				return;
 			}
 
-			if (useButton) {
-				if (event.eventType == TableCellMouseEvent.EVENT_MOUSEENTER
-						|| event.eventType == TableCellMouseEvent.EVENT_MOUSEEXIT) {
-					refresh(event.cell);
-				}
-			}
-
 			if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP
 					&& event.button == 2) {
 				DownloadManager dm = getDM(event.cell.getDataSource());
@@ -474,6 +467,11 @@ public class ColumnRate
 						refresh(event.cell, true);
 					}
 				}
+			}
+
+			if (event.eventType == TableCellMouseEvent.EVENT_MOUSEENTER
+					|| event.eventType == TableCellMouseEvent.EVENT_MOUSEEXIT) {
+				refresh(event.cell);
 			}
 
 			if (event.eventType != TableCellMouseEvent.EVENT_MOUSEDOWN
@@ -604,7 +602,8 @@ public class ColumnRate
 
 		// @see org.gudy.azureus2.plugins.ui.tables.TableRowMouseListener#rowMouseTrigger(org.gudy.azureus2.plugins.ui.tables.TableRowMouseEvent)
 		public void rowMouseTrigger(TableRowMouseEvent event) {
-			rowMouseTrigger(event, event.row.getTableCell(COLUMN_ID));
+			TableCell cell = event.row.getTableCell(COLUMN_ID);
+			rowMouseTrigger(event, cell);
 		}
 
 		public void rowMouseTrigger(TableRowMouseEvent event, TableCell cell) {
@@ -616,6 +615,9 @@ public class ColumnRate
 			}
 			if (changed && cell != null) {
 				refresh(cell, true);
+			} else {
+				((TableRowCore) event.row).invalidate();
+				((TableRowCore) event.row).redraw();
 			}
 		}
 
