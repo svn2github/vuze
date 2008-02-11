@@ -325,7 +325,7 @@ public class MainMenu
 			}
 		});
 		SWTSkinUtils.setVisibility(skin, configID, viewID,
-				COConfigurationManager.getBooleanParameter(configID));
+				COConfigurationManager.getBooleanParameter(configID), false, true);
 
 		final MenuItem itemViewSearchBar = item;
 		final ParameterListener listener = new ParameterListener() {
