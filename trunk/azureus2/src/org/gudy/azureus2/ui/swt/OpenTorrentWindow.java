@@ -1433,11 +1433,20 @@ public class OpenTorrentWindow
 		final TorrentFileInfo file = (TorrentFileInfo) dataFiles.get(row);
 		final String uneditedName = file.getDestFileName();
 		TableItem item = dataFileTable.getItem(row);
+		TableColumn column = dataFileTable.getColumn(EDIT_COLUMN_INDEX);
+
 		newEditor.setText(uneditedName);
 		newEditor.selectAll();
 		newEditor.forceFocus();
+		Rectangle leftAlignedBounds = item.getBounds(EDIT_COLUMN_INDEX);
+		leftAlignedBounds.width = dataFileTableEditor.minimumWidth = newEditor.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
+		if(leftAlignedBounds.intersection(dataFileTable.getClientArea()).equals(leftAlignedBounds))
+			dataFileTableEditor.horizontalAlignment = SWT.LEFT;
+		else
+			dataFileTableEditor.horizontalAlignment = SWT.RIGHT;
 		
 		dataFileTable.showItem(item);
+		dataFileTable.showColumn(column);
 		
 		class QuickEditListener implements ModifyListener, SelectionListener, KeyListener, TraverseListener {
 			public void modifyText(ModifyEvent e) {
@@ -1500,10 +1509,10 @@ public class OpenTorrentWindow
 		newEditor.addKeyListener(listener);
 		newEditor.addTraverseListener(listener);
 		
-		dataFileTableEditor.setEditor(newEditor, dataFileTable.getItem(row), EDIT_COLUMN_INDEXT);
+		dataFileTableEditor.setEditor(newEditor, dataFileTable.getItem(row), EDIT_COLUMN_INDEX);
 	}
 
-	private static final int EDIT_COLUMN_INDEXT = 1;
+	private static final int EDIT_COLUMN_INDEX = 1;
 	
 	
 	private void createTableDataFiles(Composite cArea) {
@@ -1605,7 +1614,7 @@ public class OpenTorrentWindow
 					{
 						if (!item.getBounds(j).contains(e.x, e.y))
 							continue;
-						found = j == EDIT_COLUMN_INDEXT;
+						found = j == EDIT_COLUMN_INDEX;
 						break outer;
 					}
 				}

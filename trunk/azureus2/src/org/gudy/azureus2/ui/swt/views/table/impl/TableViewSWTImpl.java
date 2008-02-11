@@ -1019,10 +1019,21 @@ public class TableViewSWTImpl
 		final Object datasource = cell.getDataSource();
 		
 		table.showItem(item);
+		table.showColumn(tcColumn);
 		
 		newInput.setText(cell.getText());
 		newInput.selectAll();
 		newInput.setFocus();
+		editor.minimumWidth = newInput.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
+		editor.horizontalAlignment = SWT.LEFT;
+		
+		Rectangle leftAlignedBounds = item.getBounds(column);
+		leftAlignedBounds.width = editor.minimumWidth = newInput.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
+		if(leftAlignedBounds.intersection(table.getClientArea()).equals(leftAlignedBounds))
+			editor.horizontalAlignment = SWT.LEFT;
+		else
+			editor.horizontalAlignment = SWT.RIGHT;
+		
 
 		class QuickEditListener implements ModifyListener, SelectionListener, KeyListener, TraverseListener, SourceReplaceListener, ControlListener
 		{
