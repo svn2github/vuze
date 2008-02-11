@@ -45,8 +45,10 @@ public class SWTSkinUtils
 
 	public static int getAlignment(String sAlign, int def) {
 		int align;
-
-		if (sAlign.equalsIgnoreCase("center")) {
+		
+		if (sAlign == null) {
+			align = def;
+		} else if (sAlign.equalsIgnoreCase("center")) {
 			align = SWT.CENTER;
 		} else if (sAlign.equalsIgnoreCase("bottom")) {
 			align = SWT.BOTTOM;
