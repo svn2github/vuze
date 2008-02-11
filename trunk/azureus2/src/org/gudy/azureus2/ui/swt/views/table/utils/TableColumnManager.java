@@ -323,12 +323,12 @@ public class TableColumnManager {
   }
   
   public List getAutoHideOrder(String sTableID) {
-  	List list = (List)autoHideOrder.get(sTableID);
-  	if (list == null) {
-  		return new ArrayList();
-  	}
-  	return list;
-  }
+		List list = (List) autoHideOrder.get(sTableID);
+		if (list == null) {
+			return Collections.EMPTY_LIST;
+		}
+		return list;
+	}
 
 	/**
 	 * @param writer
