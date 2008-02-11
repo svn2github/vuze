@@ -81,7 +81,7 @@ public class ListRow
 	private Color fg;
 
 	private Color bg;
-	
+
 	private Color customBG;
 
 	private boolean bRowVisuallyChangedSinceRefresh;
@@ -89,7 +89,7 @@ public class ListRow
 	private ArrayList mouseListeners;
 
 	private AEMonitor this_mon = new AEMonitor("ListRow");
-	
+
 	private Map dataList;
 
 	private int height = 0;
@@ -123,9 +123,8 @@ public class ListRow
 
 			boolean bVisible = column.isVisible();
 			int margin = view.getRowMarginHeight();
-			Rectangle bounds = new Rectangle(iStartPos, margin,
-					bVisible ? column.getWidth() : 0, height
-							- (margin * 2));
+			Rectangle bounds = new Rectangle(iStartPos, margin, bVisible
+					? column.getWidth() : 0, height - (margin * 2));
 
 			ListCell listCell;
 			int iColumnPos = column.getPosition();
@@ -161,7 +160,7 @@ public class ListRow
 
 	private void setBackgroundColor(int iPosition) {
 		checkCellForSetting();
-		
+
 		boolean bOdd = ((iPosition + 1) % 2) == 0;
 		if (bSelected) {
 			if (skinProperties == null) {
@@ -486,7 +485,7 @@ public class ListRow
 	// XXX Copied from TableRowImp!
 	public List refresh(boolean bDoGraphics) {
 		if (bDisposed) {
-			return new ArrayList();
+			return Collections.EMPTY_LIST;
 		}
 
 		boolean bVisible = isVisible();
@@ -497,18 +496,22 @@ public class ListRow
 	// @see org.gudy.azureus2.ui.swt.views.table.TableRowCore#refresh(boolean, boolean)
 	public List refresh(boolean bDoGraphics, boolean bVisible) {
 		if (bDisposed) {
-			return new ArrayList();
+			return Collections.EMPTY_LIST;
 		}
 		return view.rowRefresh(this, bDoGraphics, bVisible);
 	}
 
 	protected List _refresh(boolean bDoGraphics, boolean bVisible) {
+		if (bDisposed) {
+			return Collections.EMPTY_LIST;
+		}
+
 		// If this were called from a plugin, we'd have to refresh the sorted column
 		// even if we weren't visible
 
 		if (!bVisible) {
 			setUpToDate(false);
-			return new ArrayList();
+			return Collections.EMPTY_LIST;
 		}
 
 		ArrayList list = new ArrayList();
@@ -565,7 +568,7 @@ public class ListRow
 	}
 
 	public boolean setHeight(int iHeight) {
-		int newHeight = iHeight + (view.getRowMarginHeight() * 2); 
+		int newHeight = iHeight + (view.getRowMarginHeight() * 2);
 		if (height == newHeight) {
 			return false;
 		}
