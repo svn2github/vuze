@@ -28,6 +28,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
+import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.RankItem;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.SizeItem;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.UpItem;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
@@ -280,7 +281,7 @@ public class TorrentListView
 
 		if (bMiniMode) {
 			TableColumnCore[] v3TableColumns = new TableColumnCore[] {
-				new ColumnMediaThumb(tableID),
+				new ColumnMediaThumb(tableID, 30),
 				new ColumnTitle(tableID),
 				new ColumnQuality(tableID),
 				new SizeItem(tableID),
@@ -293,21 +294,7 @@ public class TorrentListView
 				listTableColumns.add(v3TableColumns[i]);
 			}
 			TableColumnCore[] v2TableColumns = TableColumnCreator.createCompleteDM(tableID);
-			for (int i = 0; i < v2TableColumns.length; i++) {
-				boolean add = true;
-				String name = v2TableColumns[i].getName();
-				for (int j = 0; j < v3TableColumns.length; j++) {
-					TableColumnCore v3TC = v3TableColumns[j];
-					if (v3TC.getName().equals(name)) {
-						add = false;
-						break;
-					}
-				}
-				if (add) {
-					v2TableColumns[i].setVisible(false);
-					listTableColumns.add(v2TableColumns[i]);
-				}
-			}
+			addColumnsToList(v2TableColumns, listTableColumns);
 
 			tableColumns = (TableColumnCore[]) listTableColumns.toArray(new TableColumnCore[listTableColumns.size()]);
 
@@ -322,7 +309,7 @@ public class TorrentListView
 		} else {
 			tableColumns = new TableColumnCore[] {
 				new ColumnIsSeeding(tableID),
-				new ColumnMediaThumb(tableID),
+				new ColumnMediaThumb(tableID, 30),
 				new ColumnTitle(tableID),
 				new ColumnRate(tableID, true),
 				new SizeItem(tableID),
@@ -342,6 +329,36 @@ public class TorrentListView
 	}
 
 	/**
+	 * @param tableColumns2
+	 * @param listTableColumns
+	 *
+	 * @since 3.0.4.3
+	 */
+	private void addColumnsToList(TableColumnCore[] v2TableColumns,
+			ArrayList listTableColumns) {
+		for (int i = 0; i < v2TableColumns.length; i++) {
+			boolean add = true;
+			String name = v2TableColumns[i].getName();
+			for (int j = 0; j < listTableColumns.size(); j++) {
+				TableColumnCore v3TC = (TableColumnCore) listTableColumns.get(j);
+				if (v3TC.getName().equals(name)) {
+					add = false;
+					break;
+				}
+			}
+			if (add) {
+				v2TableColumns[i].setVisible(false);
+				v2TableColumns[i].setPositionNoShift(TableColumnCore.POSITION_LAST);
+				listTableColumns.add(v2TableColumns[i]);
+				if (v2TableColumns[i] instanceof RankItem) {
+					RankItem rankItemColumn = (RankItem) v2TableColumns[i];
+					rankItemColumn.setShowCompleteIncomplete(true);
+				}
+			}
+		}
+	}
+
+	/**
 	 * @param miniMode
 	 *
 	 * @since 3.0.4.3
@@ -353,7 +370,7 @@ public class TorrentListView
 		if (bMiniMode) {
 			TableColumnCore[] v3TableColumns = new TableColumnCore[] {
 				new ColumnControls(tableID),
-				new ColumnMediaThumb(tableID),
+				new ColumnMediaThumb(tableID, 30),
 				new ColumnTitle(tableID),
 				new ColumnQuality(tableID),
 				new SizeItem(tableID),
@@ -365,21 +382,7 @@ public class TorrentListView
 				listTableColumns.add(v3TableColumns[i]);
 			}
 			TableColumnCore[] v2TableColumns = TableColumnCreator.createIncompleteDM(tableID);
-			for (int i = 0; i < v2TableColumns.length; i++) {
-				boolean add = true;
-				String name = v2TableColumns[i].getName();
-				for (int j = 0; j < v3TableColumns.length; j++) {
-					TableColumnCore v3TC = v3TableColumns[j];
-					if (v3TC.getName().equals(name)) {
-						add = false;
-						break;
-					}
-				}
-				if (add) {
-					v2TableColumns[i].setVisible(false);
-					listTableColumns.add(v2TableColumns[i]);
-				}
-			}
+			addColumnsToList(v2TableColumns, listTableColumns);
 
 			tableColumns = (TableColumnCore[]) listTableColumns.toArray(new TableColumnCore[listTableColumns.size()]);
 
@@ -392,7 +395,7 @@ public class TorrentListView
 			tcManager.setAutoHideOrder(getTableID(), autoHideOrder);
 		} else {
 			tableColumns = new TableColumnCore[] {
-				new ColumnMediaThumb(tableID),
+				new ColumnMediaThumb(tableID, 30),
 				new ColumnTitle(tableID),
 				new ColumnRate(tableID, true),
 				new ColumnQuality(tableID),
@@ -424,7 +427,7 @@ public class TorrentListView
 		String[] autoHideOrder;
 		if (bMiniMode) {
 			v3TableColumns = new TableColumnCore[] {
-				new ColumnMediaThumb(tableID),
+				new ColumnMediaThumb(tableID, 30),
 				new ColumnTitle(tableID),
 				new ColumnProgressETA(tableID),
 				new ColumnRate(tableID, true),
@@ -437,7 +440,7 @@ public class TorrentListView
 		} else {
 			v3TableColumns = new TableColumnCore[] {
 				//new ColumnControls(tableID),
-				new ColumnMediaThumb(tableID),
+				new ColumnMediaThumb(tableID, 30),
 				new ColumnTitle(tableID),
 				new SizeItem(tableID),
 				new ColumnQuality(tableID),
@@ -458,40 +461,10 @@ public class TorrentListView
 			listTableColumns.add(v3TableColumns[i]);
 		}
 		TableColumnCore[] v2TableColumns = TableColumnCreator.createIncompleteDM(tableID);
-		for (int i = 0; i < v2TableColumns.length; i++) {
-			boolean add = true;
-			String name = v2TableColumns[i].getName();
-			for (int j = 0; j < v3TableColumns.length; j++) {
-				TableColumnCore v3TC = v3TableColumns[j];
-				if (v3TC.getName().equals(name)) {
-					add = false;
-					break;
-				}
-			}
-			if (add) {
-				v2TableColumns[i].setVisible(false);
-				v2TableColumns[i].setPositionNoShift(TableColumnCore.POSITION_LAST);
-				listTableColumns.add(v2TableColumns[i]);
-			}
-		}
+		addColumnsToList(v2TableColumns, listTableColumns);
 
 		v2TableColumns = TableColumnCreator.createCompleteDM(tableID);
-		for (int i = 0; i < v2TableColumns.length; i++) {
-			boolean add = true;
-			String name = v2TableColumns[i].getName();
-			for (int j = 0; j < v3TableColumns.length; j++) {
-				TableColumnCore v3TC = v3TableColumns[j];
-				if (v3TC.getName().equals(name)) {
-					add = false;
-					break;
-				}
-			}
-			if (add) {
-				v2TableColumns[i].setVisible(false);
-				v2TableColumns[i].setPositionNoShift(TableColumnCore.POSITION_LAST);
-				listTableColumns.add(v2TableColumns[i]);
-			}
-		}
+		addColumnsToList(v2TableColumns, listTableColumns);
 
 		tableColumns = (TableColumnCore[]) listTableColumns.toArray(new TableColumnCore[listTableColumns.size()]);
 
