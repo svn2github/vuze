@@ -227,7 +227,7 @@ public class TableRowImpl
   
   public List refresh(boolean bDoGraphics) {
     if (bDisposed) {
-      return new ArrayList(0);
+      return Collections.EMPTY_LIST;
     }
     
     boolean bVisible = isVisible();
