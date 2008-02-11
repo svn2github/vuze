@@ -32,4 +32,5 @@ public class SkinConstants
 	
 	public static final String TABSET_DASHBOARD_LEFT = "hometab-left";
 
+	public static final String VIEWID_BROWSE_TAB = "browse";
 }

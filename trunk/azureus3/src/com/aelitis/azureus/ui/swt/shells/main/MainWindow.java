@@ -33,7 +33,6 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -44,6 +43,9 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.PluginEvent;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
@@ -74,6 +76,7 @@ import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesFP
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
+import com.aelitis.azureus.ui.skin.UserAreaUtils;
 import com.aelitis.azureus.ui.swt.*;
 import com.aelitis.azureus.ui.swt.Initializer;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
@@ -89,10 +92,6 @@ import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.util.AdManager;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.VuzeActivitiesManager;
-
-import org.gudy.azureus2.plugins.PluginEvent;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.download.Download;
 
 /**
  * @author TuxPaper
@@ -1208,6 +1207,11 @@ public class MainWindow
 			}
 		}
 
+		/*
+		 * Init the user area for login/logout info
+		 */
+		new UserAreaUtils(skin, uiFunctions);
+
 		shell.layout(true, true);
 	}
 
@@ -1700,7 +1704,6 @@ public class MainWindow
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinTabSetListener#tabChanged(com.aelitis.azureus.ui.swt.skin.SWTSkinTabSet, java.lang.String, java.lang.String)
 	public void tabChanged(SWTSkinTabSet tabSet, String oldTabID, String newTabID) {
 		updateMapTrackUsage(oldTabID);
-
 		if (tabSet.getID().equals(SkinConstants.TABSET_MAIN)) {
 			// TODO: Don't use internal skin IDs.  Skin needs to provide an ViewID
 			//        we can query (or is passed in)
@@ -1915,7 +1918,7 @@ public class MainWindow
 	public boolean isVisible(int windowElement) {
 		if (windowElement == IMainWindow.WINDOW_ELEMENT_TOOLBAR) {
 			/*
-			 * Only the (embedded) old main window has a toolbar
+			 * Only the (embedded) old main window has a toolbar which is available only in Vuze Advanced
 			 */
 			if (null != oldMainWindow) {
 				return oldMainWindow.isVisible(windowElement);
@@ -1943,7 +1946,7 @@ public class MainWindow
 		if (windowElement == IMainWindow.WINDOW_ELEMENT_TOOLBAR) {
 			if (null != oldMainWindow) {
 				/*
-				 * Only the (embedded) old main window has a toolbar
+				 * Only the (embedded) old main window has a toolbar which is available only in Vuze Advanced
 				 */
 				oldMainWindow.setVisible(windowElement, value);
 			}
@@ -1961,6 +1964,32 @@ public class MainWindow
 			//TODO:
 		}
 
+	}
+
+	public Rectangle getMetrics(int windowElement) {
+		if (windowElement == IMainWindow.WINDOW_ELEMENT_TOOLBAR) {
+			if (null != oldMainWindow) {
+				/*
+				 * Only the (embedded) old main window has a toolbar which is available only in Vuze Advanced
+				 */
+				return oldMainWindow.getMetrics(windowElement);
+			}
+		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_SEARCHBAR) {
+
+			SWTSkinObject skinObject = skin.getSkinObject("searchbar");
+			if (skinObject != null) {
+				return skinObject.getControl().getBounds();
+			}
+		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_TABBAR) {
+			SWTSkinObject skinObject = skin.getSkinObject("tabbar");
+			if (skinObject != null) {
+				return skinObject.getControl().getBounds();
+			}
+		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_STATUSBAR) {
+			return statusBar.getBounds();
+		}
+
+		return new Rectangle(0, 0, 0, 0);
 	}
 
 	public SWTSkin getSkin() {

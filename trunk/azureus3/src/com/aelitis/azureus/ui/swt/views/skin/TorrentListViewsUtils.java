@@ -30,7 +30,6 @@ import java.util.Arrays;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.ForceRecheckListener;
@@ -41,6 +40,12 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadException;
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnEditorWindow;
@@ -57,6 +62,7 @@ import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.shells.LightBoxBrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.PublishUtils;
@@ -68,14 +74,6 @@ import com.aelitis.azureus.util.AdManager;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.VuzeActivitiesEntry;
 import com.aelitis.azureus.util.win32.Win32Utils;
-
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginManager;
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.download.DownloadException;
-
-import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
-import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 
 /**
  * @author TuxPaper
@@ -100,14 +98,12 @@ public class TorrentListViewsUtils
 				if (selectedRows.length > 0) {
 					String hash = getAssetHashFromDS(selectedRows[0].getDataSource(true));
 					if (hash != null) {
-						String url = Constants.URL_PREFIX + Constants.URL_SHARE + hash
-								+ ".html?" + Constants.URL_SUFFIX;
-						// temp hackery for alpha
-						url = Constants.URL_PREFIX + Constants.URL_DETAILS + hash
-								+ ".html#share?" + Constants.URL_SUFFIX;
 
-						UIFunctions functions = UIFunctionsManager.getUIFunctions();
-						functions.viewURL(url, "browse", 0, 0, false, false);
+						String url = Constants.URL_PREFIX + "emp/" + Constants.URL_SHARE
+								+ hash + Constants.URL_POP_UP;
+
+						new LightBoxBrowserWindow(url);
+
 					}
 				}
 			}

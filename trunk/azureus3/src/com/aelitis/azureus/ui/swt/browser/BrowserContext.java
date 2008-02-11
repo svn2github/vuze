@@ -160,6 +160,13 @@ public class BrowserContext
 		}
 		browser.addTitleListener(new TitleListener() {
 			public void changed(TitleEvent event) {
+				/*
+				 * The browser might have been disposed already by the time this method is called 
+				 */
+				if(true == browser.isDisposed()){
+					return;
+				}
+				
 				if (!browser.isVisible()) {
 					SimpleTimer.addEvent("Show Browser",
 							System.currentTimeMillis() + 700, showBrowersPerformer);
@@ -177,6 +184,13 @@ public class BrowserContext
 			}
 
 			public void completed(ProgressEvent event) {
+				/*
+				 * The browser might have been disposed already by the time this method is called 
+				 */
+				if(true == browser.isDisposed()){
+					return;
+				}
+				
 				checkURLEventPerformer.perform(null);
 				if (forceVisibleAfterLoad && !browser.isVisible()) {
 					browser.setVisible(true);
@@ -228,6 +242,14 @@ public class BrowserContext
 
 			public void changing(LocationEvent event) {
 				//System.out.println("cing " + event.location); 
+				
+				/*
+				 * The browser might have been disposed already by the time this method is called 
+				 */
+				if(true == browser.isDisposed()){
+					return;
+				}
+				
 				if (event.location.startsWith("javascript")
 						&& event.location.indexOf("back()") > 0) {
 					if (browser.isBackEnabled()) {

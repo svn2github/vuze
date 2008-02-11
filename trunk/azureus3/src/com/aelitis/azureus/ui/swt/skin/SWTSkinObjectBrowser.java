@@ -37,9 +37,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
-import com.aelitis.azureus.ui.swt.browser.listener.ConfigListener;
-import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
-import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
+import com.aelitis.azureus.ui.swt.browser.listener.*;
 import com.aelitis.azureus.ui.swt.browser.listener.publish.LocalHoster;
 import com.aelitis.azureus.ui.swt.browser.listener.publish.PublishListener;
 import com.aelitis.azureus.ui.swt.utils.PublishUtils;
@@ -112,6 +110,8 @@ public class SWTSkinObjectBrowser
 		context.addMessageListener(new DisplayListener(browser));
 		context.addMessageListener(new ConfigListener(browser));
 		context.addMessageListener(new PublishListener(skin.getShell(), this));
+		context.addMessageListener(new LightBoxBrowserRequestListener());
+		context.addMessageListener(new StatusListener());
 		PublishUtils.setupContext(context);
 
 		
@@ -141,7 +141,10 @@ public class SWTSkinObjectBrowser
 
 	public void restart() {
 		// TODO: Replace the existing rand
-		setURL(sStartURL + (sStartURL.indexOf('?') > 0 ? "&" : "?") + "rand=" + SystemTime.getCurrentTime());
+		if (null != sStartURL) {
+			setURL(sStartURL + (sStartURL.indexOf('?') > 0 ? "&" : "?") + "rand="
+					+ SystemTime.getCurrentTime());
+		}
 	}
 
 	/**

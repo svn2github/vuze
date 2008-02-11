@@ -38,9 +38,7 @@ import org.json.simple.JSONObject;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.ui.swt.browser.listener.ConfigListener;
-import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
-import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
+import com.aelitis.azureus.ui.swt.browser.listener.*;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageCompletionListener;
 import com.aelitis.azureus.util.Constants;
@@ -89,6 +87,8 @@ public class PlatformMessenger
 		context.addMessageListener(new TorrentListener());
 		context.addMessageListener(new DisplayListener(null));
 		context.addMessageListener(new ConfigListener(null));
+		context.addMessageListener(new LightBoxBrowserRequestListener());
+		context.addMessageListener(new StatusListener());
 	}
 
 	public static ClientMessageContext getClientMessageContext() {

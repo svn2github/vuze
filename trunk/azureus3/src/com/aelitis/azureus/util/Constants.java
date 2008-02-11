@@ -77,6 +77,13 @@ public class Constants
 	
 	public static final String URL_RPC = "rpc/";
 
+	public static final String URL_POP_UP = "?popup";
+
+	public static final String URL_LOGIN = "user/LoginPopup.html";
+
+	public static final String URL_REGISTRATION = "user/RegisterPopup.html";
+	
+	
 	public static final boolean DIAG_TO_STDOUT = System.getProperty(
 			"DIAG_TO_STDOUT", "0").equals("1");
 	
