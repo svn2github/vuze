@@ -46,6 +46,8 @@ public class RankItem
        implements TableCellRefreshListener
 {
 	private boolean bInvalidByTrigger = false;
+	
+	private boolean showCompleteIncomplete = false;
 
   /** Default Constructor */
   public RankItem(String sTableID) {
@@ -57,13 +59,30 @@ public class RankItem
     setMinWidthAuto(true);
   }
 
+  public RankItem(String sTableID, boolean showCompleteIncomplete) {
+  	this(sTableID);
+		this.showCompleteIncomplete = showCompleteIncomplete;
+  }
+
   public void refresh(TableCell cell) {
   	bInvalidByTrigger = false;
 
     DownloadManager dm = (DownloadManager)cell.getDataSource();
     long value = (dm == null) ? 0 : dm.getPosition();
+    String text;
+    
+    if (showCompleteIncomplete) {
+    	boolean complete = dm == null ? false : dm.getAssumedComplete();
+    	text = (complete ? "Done\n#" : "Partial\n#") + value; 
+    	if (complete) {
+    		value += 0x10000;
+    	}
+    } else {
+    	text = "" + value; 
+    }
+    
     cell.setSortValue(value);
-    cell.setText(String.valueOf(value));
+    cell.setText(text);
   }
   
   private class GMListener implements GlobalManagerListener {
@@ -115,4 +134,12 @@ public class RankItem
 			public void seedingStatusChanged(boolean seeding_only_mode) {
 			}
   }
+
+	public boolean isShowCompleteIncomplete() {
+		return showCompleteIncomplete;
+	}
+
+	public void setShowCompleteIncomplete(boolean showCompleteIncomplete) {
+		this.showCompleteIncomplete = showCompleteIncomplete;
+	}
 }
