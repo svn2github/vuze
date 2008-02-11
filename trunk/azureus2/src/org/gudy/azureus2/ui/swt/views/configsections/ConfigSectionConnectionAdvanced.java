@@ -229,8 +229,6 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		
 		new BooleanParameter( cSection, "IPV6 Prefer Addresses", "network.ipv6.prefer.addresses"  );
 		
-		new BooleanParameter(cSection, "LTEP.enabled", "network.ltep.enabled");
-		
 		new BooleanParameter(cSection, "Enforce Bind IP","network.enforce.ipbinding");
 		
 		//////////////////////////////////////////////////////////////////////////

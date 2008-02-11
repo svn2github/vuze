@@ -2077,7 +2077,7 @@ implements PEPeerTransport
 	
 	private int decideExtensionProtocol(BTHandshake handshake) {
 		boolean supports_azmp = (handshake.getReserved()[0] & 128) == 128;
-		boolean supports_ltep = (handshake.getReserved()[5] & 16) == 16 && BTHandshake.LTEP_ENABLED;
+		boolean supports_ltep = (handshake.getReserved()[5] & 16) == 16;
 		
 		if (!supports_azmp) {
 			if (supports_ltep) {
