@@ -18,10 +18,14 @@
 
 package com.aelitis.azureus.ui.swt.columns.vuzeactivity;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 
+import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
@@ -39,6 +43,8 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.columns.torrent.ColumnMediaThumb;
 import com.aelitis.azureus.ui.swt.columns.torrent.ColumnRate;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
@@ -67,7 +73,22 @@ public class ColumnVuzeActivity
 
 	public static String COLUMN_ID = "name";
 
-	public static Font headerFont = null;
+	private static Font headerFont = null;
+
+	private static SimpleDateFormat timeFormat = new SimpleDateFormat(
+			"EEEE, MMMM d, yyyy\nh:mm:ss a");
+
+	private Color colorLinkNormal;
+
+	private Color colorLinkHover;
+
+	private Color colorHeaderBG;
+
+	private Color colorHeaderFG;
+
+	private Color colorDivider;
+
+	private Color colorNormalBG;
 
 	/** Default Constructor */
 	public ColumnVuzeActivity(String sTableID) {
@@ -75,6 +96,14 @@ public class ColumnVuzeActivity
 		setObfustication(true);
 		setType(TableColumn.TYPE_GRAPHIC);
 		setRefreshInterval(INTERVAL_LIVE);
+
+		SWTSkinProperties skinProperties = SWTSkinFactory.getInstance().getSkinProperties();
+		colorLinkNormal = skinProperties.getColor("color.links.normal");
+		colorLinkHover = skinProperties.getColor("color.links.hover");
+		colorHeaderBG = skinProperties.getColor("color.activity.row.header.bg");
+		colorHeaderFG = skinProperties.getColor("color.activity.row.header.fg");
+		colorDivider = skinProperties.getColor("color.activity.row.divider");
+		colorNormalBG = skinProperties.getColor("color.table.bg");
 	}
 
 	public void cellAdded(TableCell cell) {
@@ -152,6 +181,8 @@ public class ColumnVuzeActivity
 		Image imgIcon;
 		if (entry.icon == null) {
 			imgIcon = null;
+			ImageLoader imageLoader = ImageLoaderFactory.getInstance();
+			imgIcon = imageLoader.getImage("FJHSDFD");
 		} else {
 			ImageLoader imageLoader = ImageLoaderFactory.getInstance();
 			imgIcon = imageLoader.getImage(entry.icon);
@@ -159,7 +190,6 @@ public class ColumnVuzeActivity
 
 		int x = entry.type == 0 ? 0 : EVENT_INDENT;
 		int y = 0;
-		boolean isMouseOver = ((TableCellCore) cell).isMouseOver();
 
 		int style = SWT.WRAP;
 		Device device = Display.getDefault();
@@ -174,6 +204,7 @@ public class ColumnVuzeActivity
 					FontData[] fontData = gcQuery.getFont().getFontData();
 					//fontData[0].setStyle(SWT.BOLD);
 					// we can do a few more pixels because we have no text hanging below baseline
+					fontData[0].setName("Arial");
 					Utils.getFontHeightFromPX(device, fontData, gcQuery, 22);
 					headerFont = new Font(device, fontData);
 				}
@@ -185,14 +216,6 @@ public class ColumnVuzeActivity
 			stringPrinter.calculateMetrics();
 			Point size = stringPrinter.getCalculatedSize();
 			//System.out.println(size + ";" + entry.text);
-
-			if (stringPrinter.getUrlHitArea() != null) {
-				if (isMouseOver) {
-					stringPrinter.setUrlColor(ColorCache.getColor(device, "#6060f0"));
-				} else {
-					stringPrinter.setUrlColor(ColorCache.getColor(device, "#8080ff"));
-				}
-			}
 
 			//boolean focused = ((ListRow) cell.getTableRow()).isFocused();
 			//if (focused) size.y += 40;
@@ -228,6 +251,17 @@ public class ColumnVuzeActivity
 				imgBounds = image.getBounds();
 			}
 
+			Rectangle urlHitArea = stringPrinter.getUrlHitArea();
+			if (urlHitArea != null) {
+				urlHitArea.y = y;
+				int[] mouseOfs = cell.getMouseOffset();
+				if (mouseOfs != null && urlHitArea.contains(mouseOfs[0], mouseOfs[1])) {
+					stringPrinter.setUrlColor(colorLinkHover);
+				} else {
+					stringPrinter.setUrlColor(colorLinkNormal);
+				}
+			}
+
 			//System.out.println("height=" + height + ";b=" + imgBounds);
 		} finally {
 			gcQuery.dispose();
@@ -235,8 +269,6 @@ public class ColumnVuzeActivity
 
 		GC gc = new GC(image);
 		try {
-			Color black = ColorCache.getColor(device, "#000000");
-			Color colorLine = ColorCache.getColor(device, "#232323");
 			gc.setAdvanced(true);
 			gc.setBackground(ColorCache.getColor(device, cell.getBackground()));
 			gc.setForeground(ColorCache.getColor(device, cell.getForeground()));
@@ -244,15 +276,16 @@ public class ColumnVuzeActivity
 			if (entry.type == 0) {
 				gc.setTextAntialias(SWT.ON);
 				gc.setFont(headerFont);
-				gc.setForeground(ColorCache.getColor(device, "#707070"));
+				gc.setForeground(colorHeaderFG);
 
-				((ListRow) cell.getTableRow()).setBackgroundColor(black);
-				gc.setBackground(black);
+				((ListRow) cell.getTableRow()).setBackgroundColor(colorHeaderBG);
+				gc.setBackground(colorHeaderBG);
 				gc.fillRectangle(imgBounds);
 				height = height - 5;
 			} else {
 				TableRow row = cell.getTableRow();
-				Color color = cell.getTableRow().isSelected() ? colorLine : black;
+				Color color = cell.getTableRow().isSelected() ? colorDivider
+						: colorNormalBG;
 				((ListRow) row).setBackgroundColor(color);
 				gc.setBackground(color);
 
@@ -264,7 +297,8 @@ public class ColumnVuzeActivity
 				}
 			}
 
-			Rectangle drawRect = new Rectangle(x, y, width - x - 2, height - y + MARGIN_HEIGHT);
+			Rectangle drawRect = new Rectangle(x, y, width - x - 2, height - y
+					+ MARGIN_HEIGHT);
 			stringPrinter.printString(gc, drawRect, style);
 			entry.urlHitArea = stringPrinter.getUrlHitArea();
 			entry.url = stringPrinter.getUrl();
@@ -310,7 +344,7 @@ public class ColumnVuzeActivity
 			}
 
 			if (entry.type > 0) {
-				gc.setForeground(colorLine);
+				gc.setForeground(colorDivider);
 				gc.drawLine(EVENT_INDENT, imgBounds.height - 1, imgBounds.width - 1,
 						imgBounds.height - 1);
 			}
@@ -322,6 +356,12 @@ public class ColumnVuzeActivity
 		disposeExisting(cell, image);
 
 		cell.setGraphic(new UISWTGraphicImpl(image));
+		if (entry.type > 0) {
+			String ts = timeFormat.format(new Date(entry.getTimestamp()));
+			cell.setToolTip(ts);
+		} else {
+			cell.setToolTip(null);
+		}
 	}
 
 	private void disposeExisting(TableCell cell, Image exceptIfThisImage) {
