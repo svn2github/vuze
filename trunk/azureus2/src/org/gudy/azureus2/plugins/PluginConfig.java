@@ -83,6 +83,19 @@ PluginConfig
 	 */
 	public static final String CORE_PARAM_STRING_LOCAL_BIND_IP							= "CORE_PARAM_STRING_LOCAL_BIND_IP";
 	public static final String CORE_PARAM_BOOLEAN_FRIENDLY_HASH_CHECKING				= "CORE_PARAM_BOOLEAN_FRIENDLY_HASH_CHECKING";
+	
+	/**
+	 * @since 3.4.0.3
+	 */
+	public static final String GUI_PARAM_INT_SWT_REFRESH_IN_MS = "GUI_PARAM_INT_SWT_REFRESH_IN_MS";
+	
+	/**
+	 * @since 3.4.0.3
+	 */
+	public static final String CORE_PARAM_BOOLEAN_NEW_TORRENTS_START_AS_STOPPED = "CORE_PARAM_BOOLEAN_NEW_TORRENTS_START_AS_STOPPED"; 
+	
+	
+	
 
   /**
    * Returns the value of a core boolean parameter.
