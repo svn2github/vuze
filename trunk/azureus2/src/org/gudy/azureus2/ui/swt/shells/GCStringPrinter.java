@@ -174,7 +174,7 @@ public class GCStringPrinter
 			int currentCharPos = 0;
 			StringTokenizer stLine = new StringTokenizer(sTabsReplaced, "\n");
 			while (stLine.hasMoreElements()) {
-				String sLine = stLine.nextToken();
+				String sLine = stLine.nextToken().replaceAll("\r", " ");
 				String sLastExcess = null;
 
 				do {
