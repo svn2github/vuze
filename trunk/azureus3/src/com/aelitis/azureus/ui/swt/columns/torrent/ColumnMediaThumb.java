@@ -26,6 +26,7 @@ import java.util.Map;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -40,6 +41,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 import com.aelitis.azureus.util.VuzeActivitiesEntry;
 
@@ -63,6 +65,10 @@ public class ColumnMediaThumb
 
 	private final int maxThumbHeight;
 
+	private Image imgPlay;
+
+	private Rectangle imgPlayBounds;
+
 	/**
 	 * 
 	 */
@@ -72,6 +78,11 @@ public class ColumnMediaThumb
 		initializeAsGraphic(POSITION_LAST, 53);
 		setWidthLimits(53, 53);
 		setAlignment(ALIGN_CENTER);
+
+		imgPlay = ImageLoaderFactory.getInstance().getImage("image.thumb.play");
+		if (imgPlay != null) {
+			imgPlayBounds = imgPlay.getBounds();
+		}
 	}
 
 	public void cellAdded(TableCell cell) {
@@ -96,7 +107,7 @@ public class ColumnMediaThumb
 	public void refresh(TableCell cell, boolean bForce) {
 		Object ds = cell.getDataSource();
 		DownloadManager dm = getDM(ds);
-		
+
 		//System.out.println("refresh " + bForce + " via " + Debug.getCompressedStackTrace(10));
 
 		TOTorrent newTorrent = dm == null ? null : dm.getTorrent();
@@ -145,7 +156,7 @@ public class ColumnMediaThumb
 				cell.setGraphic(null);
 			}
 		} else {
-			
+
 			int MAXH = maxThumbHeight < 0 ? cell.getHeight() : maxThumbHeight;
 
 			TableRow row = cell.getTableRow();
@@ -159,12 +170,11 @@ public class ColumnMediaThumb
 
 				int w = img.getBounds().width;
 				int h = img.getBounds().height;
-				
+
 				if (h > MAXH) {
 					int h2 = MAXH;
 					int w2 = h2 * w / h;
 					Image newImg = new Image(img.getDevice(), w2, h2);
-
 
 					GC gc = new GC(newImg);
 					int[] bg = cell.getBackground();
@@ -179,30 +189,28 @@ public class ColumnMediaThumb
 						// may not be avail
 					}
 					if (showPlayButton) {
-						gc.setAlpha(150);
+						gc.setAlpha(80);
 					}
 					gc.drawImage(img, 0, 0, w, h, 0, 0, w2, h2);
 
 					if (cell instanceof TableCellSWT) {
 						TableCellSWT cellSWT = (TableCellSWT) cell;
-						cellSWT.setCursorID(showPlayButton
-								&& ((TableCellSWT) cell).isMouseOver() ? SWT.CURSOR_HAND
-								: SWT.CURSOR_ARROW);
+						cellSWT.setCursorID(showPlayButton && cellSWT.isMouseOver()
+								? SWT.CURSOR_HAND : SWT.CURSOR_ARROW);
 					}
 
 					if (showPlayButton) {
 						gc.setAlpha(255);
-						gc.setAntialias(SWT.ON);
-						gc.setBackground(ColorCache.getColor(img.getDevice(), "#00f000"));
-						int x = w2 / 2 - 10;
-						gc.fillPolygon(new int[] {
-							x,
-							h2 - 26,
-							x,
-							h2 - 6,
-							x + 15,
-							h2 - 15,
-						});
+
+						if (imgPlay != null) {
+							int h3 = (int) (h2 * 0.8);
+							int w3 = h3 * imgPlayBounds.width / imgPlayBounds.height;
+							int x = (w2 - w3) / 2;
+							int y = (h2 - h3) / 2;
+
+							gc.drawImage(imgPlay, 0, 0, imgPlayBounds.width,
+									imgPlayBounds.height, x, y, w3, h3);
+						}
 					}
 
 					gc.dispose();
