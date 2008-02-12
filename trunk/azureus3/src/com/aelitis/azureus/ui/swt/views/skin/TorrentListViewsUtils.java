@@ -99,7 +99,7 @@ public class TorrentListViewsUtils
 					String hash = getAssetHashFromDS(selectedRows[0].getDataSource(true));
 					if (hash != null) {
 
-						String url = Constants.URL_PREFIX + "emp/" + Constants.URL_SHARE
+						String url = Constants.URL_PREFIX_NO_PORT + "emp/" + Constants.URL_SHARE
 								+ hash + Constants.URL_POP_UP;
 
 						new LightBoxBrowserWindow(url);

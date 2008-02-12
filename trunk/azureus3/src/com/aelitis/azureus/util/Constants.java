@@ -48,6 +48,17 @@ public class Constants
 	public static String URL_PORT = System.getProperty("platform_port", DEFAULT_PORT);
 
 	public static final String URL_PREFIX = "http://" + URL_ADDRESS + ":" + URL_PORT + "/";
+	
+	/**
+	 * A shortened version of the URL prefix without the port number specified.
+	 * This is added so that the <code>LightBoxBrowserWindow</code> can load the AJAX-enabled
+	 * web pages on Safari.  There is an unexplained behavior in Safari when loading these web
+	 * pages with the default port number of 80... they do not load.  The possible resolutions
+	 * are use port 8080 or leave the port number out of the URL.  We've decided to leave the
+	 * port number out. KN 
+	 * 
+	 */
+	public static final String URL_PREFIX_NO_PORT = "http://" + URL_ADDRESS + "/";
 
 	public static String URL_SUFFIX;
 
