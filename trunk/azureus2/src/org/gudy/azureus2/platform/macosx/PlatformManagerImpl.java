@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.platform.macosx;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.PlatformManager;
@@ -96,16 +98,12 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
             class_mon.exit();
         }
 
-        new AEThread2("Path Finder lookup", true) {
-        	public void run() {
-        		try {
-        			if ("true".equalsIgnoreCase(performOSAScript("tell application \"System Events\" to exists process \"Path Finder\""))) {
-        				fileBrowserName = "Path Finder";
-        			}
-        		} catch (Exception e) {
-        		}
-        	}
-        }.start();
+        COConfigurationManager.addAndFireParameterListener("FileBrowse.usePathFinder", new ParameterListener() {
+					public void parameterChanged(String parameterName) {
+						fileBrowserName = COConfigurationManager.getBooleanParameter("FileBrowse.usePathFinder")
+	        		? "Path Finder" : "Finder";
+					}
+				});
     }
 
     /**

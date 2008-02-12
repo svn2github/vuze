@@ -243,6 +243,12 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 				+ "SeparateFilesViewRenameRetarget");
 
 	
+		new BooleanParameter(cLook, "NameColumn.showProgramIcon", MSG_PREFIX
+				+ "showProgramIcon");
+
+		new BooleanParameter(cLook, "DND Always In Incomplete", MSG_PREFIX
+				+ "DNDalwaysInIncomplete");
+		
 		// Reuse the labels of the other menu actions.
 		if (PlatformManagerFactory.getPlatformManager().hasCapability(PlatformManagerCapabilities.ShowFileInBrowser)) {
 			BooleanParameter bp = new BooleanParameter(cLook, "MyTorrentsView.menu.show_parent_folder_enabled", MSG_PREFIX
@@ -251,13 +257,12 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 				MessageText.getString("MyTorrentsView.menu.open_parent_folder"),
 				MessageText.getString("MyTorrentsView.menu.explore"),
 			});
+			
+			if (Constants.isOSX) {
+				new BooleanParameter(cLook, "FileBrowse.usePathFinder", 
+						MSG_PREFIX + "usePathFinder");
+			}
 		}
-		
-		new BooleanParameter(cLook, "NameColumn.showProgramIcon", MSG_PREFIX
-				+ "showProgramIcon");
-
-		new BooleanParameter(cLook, "DND Always In Incomplete", MSG_PREFIX
-				+ "DNDalwaysInIncomplete");
 		
 		return cLook;
 	}

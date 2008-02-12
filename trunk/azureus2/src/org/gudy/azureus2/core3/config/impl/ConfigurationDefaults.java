@@ -526,6 +526,7 @@ public class ConfigurationDefaults {
     def.put("FilesView.show.full.path", FALSE );
     
     def.put("MyTorrentsView.menu.show_parent_folder_enabled", FALSE);
+    def.put("FileBrowse.usePathFinder", FALSE);
     	
     //temp section for SpeedManagerAlgorithmProviderV2
     def.put(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT, new Long(SMConst.START_DOWNLOAD_RATE_MAX) );
