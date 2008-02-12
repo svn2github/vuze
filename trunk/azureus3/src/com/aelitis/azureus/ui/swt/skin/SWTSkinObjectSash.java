@@ -23,8 +23,6 @@ package com.aelitis.azureus.ui.swt.skin;
 import java.text.NumberFormat;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormData;
@@ -47,9 +45,14 @@ public class SWTSkinObjectSash
 
 	protected String sControlAfter;
 
-	public SWTSkinObjectSash(final SWTSkin skin, final SWTSkinProperties properties,
-			final String sID, final String sConfigID, String[] typeParams,
-			SWTSkinObject parent, final boolean bVertical) {
+	private int resizeContainerAboveMin = -1;
+
+	boolean ignoreContainerAboveMin = false;
+
+	public SWTSkinObjectSash(final SWTSkin skin,
+			final SWTSkinProperties properties, final String sID,
+			final String sConfigID, String[] typeParams, SWTSkinObject parent,
+			final boolean bVertical) {
 		super(skin, properties, sID, sConfigID, "sash", parent);
 
 		int style = bVertical ? SWT.VERTICAL : SWT.HORIZONTAL;
@@ -72,7 +75,7 @@ public class SWTSkinObjectSash
 		}
 
 		final Sash sash = new Sash(createOn, style);
-		
+
 		int splitAt = COConfigurationManager.getIntParameter("v3." + sID
 				+ ".SplitAt", -1);
 		if (splitAt != -1) {
@@ -97,8 +100,20 @@ public class SWTSkinObjectSash
 
 		final Composite parentComposite = createOn;
 
+		String sMinContainerPos = properties.getStringValue(sConfigID
+				+ ".resize.container.min");
+		if (sMinContainerPos != null) {
+			try {
+				resizeContainerAboveMin = NumberFormat.getInstance().parse(
+						sMinContainerPos).intValue();
+			} catch (Exception e) {
+				Debug.out(e);
+			}
+		}
+
 		final Listener l = new Listener() {
 			Point lastSize = new Point(0, 0);
+
 			private boolean skipResize = false;
 
 			public void handleEvent(Event e) {
@@ -127,7 +142,7 @@ public class SWTSkinObjectSash
 						return;
 					}
 				}
-				
+
 				Composite below = null;
 				SWTSkinObject skinObject = skin.getSkinObjectByID(sControlAfter);
 
@@ -171,6 +186,7 @@ public class SWTSkinObjectSash
 						}
 
 						lastSize = size;
+
 						setPercent(l, sash, above, below, bVertical, parentComposite,
 								aboveMin, belowMin);
 					} else if (px != null) {
@@ -193,6 +209,7 @@ public class SWTSkinObjectSash
 							}
 						}
 						sash.setData("PCT", new Double(pctBelow));
+						ignoreContainerAboveMin = px.longValue() < resizeContainerAboveMin;
 						// layout in resize is not needed (and causes browser widget to blink)
 					}
 					if (e.type == SWT.Show) {
@@ -210,12 +227,14 @@ public class SWTSkinObjectSash
 					FormData belowData = (FormData) below.getLayoutData();
 					if (bVertical) {
 						belowData.width = area.width - (e.x + e.width);
-						if (area.width - belowData.width < aboveMin) {
-							belowData.width = area.width - aboveMin;
+						if (area.width - belowData.width - sash.getSize().x < aboveMin) {
+							belowData.width = area.width - aboveMin - sash.getSize().x;
 						} else if (belowData.width < belowMin) {
 							belowData.width = belowMin;
 							e.doit = false;
 						}
+						int aboveWidth = area.width - belowData.width - sash.getSize().x;
+						ignoreContainerAboveMin = aboveWidth < resizeContainerAboveMin;
 					} else {
 						belowData.height = area.height - (e.y + e.height);
 						if (area.height - belowData.height < aboveMin) {
@@ -329,20 +348,32 @@ public class SWTSkinObjectSash
 	protected void setPercent(Double l, Control sash, Composite above,
 			Composite below, boolean bVertical, Control parentComposite,
 			int minAbove, int belowMin) {
-
 		FormData belowData = (FormData) below.getLayoutData();
+		double d = l.doubleValue();
 		if (bVertical) {
 			int parentWidth = parentComposite.getBounds().width;
-			belowData.width = (int) ((parentWidth - (sash.getSize().x / 2)) * l.doubleValue());
+			belowData.width = (int) ((parentWidth - (sash.getSize().x / 2)) * d);
 
-			if (parentWidth - belowData.width < minAbove) {
-				belowData.width = parentWidth - minAbove;
+			int aboveWidth = parentWidth - belowData.width - sash.getSize().x;
+
+			//System.out.println("ignore=" + ignoreContainerAboveMin + ";above=" + aboveWidth + ";d=" + d);
+			if (!ignoreContainerAboveMin && resizeContainerAboveMin > 0 && d != 0.0
+					&& d != 1.0) {
+				minAbove = Math.max(resizeContainerAboveMin, minAbove);
+			}
+			if (parentWidth - belowData.width - sash.getSize().x < minAbove) {
+				belowData.width = parentWidth - minAbove - sash.getSize().x;
+
+				//d = (double) (belowData.width + (sash.getSize().x / 2)) / parentWidth;
 			} else if (belowData.width < belowMin) {
 				belowData.width = belowMin;
+			} else {
+				ignoreContainerAboveMin = aboveWidth <= resizeContainerAboveMin;
 			}
+
 		} else {
 			int parentHeight = parentComposite.getBounds().height;
-			belowData.height = (int) ((parentHeight - (sash.getSize().y / 2)) * l.doubleValue());
+			belowData.height = (int) ((parentHeight - (sash.getSize().y / 2)) * d);
 
 			if (parentHeight - belowData.height < minAbove
 					&& parentHeight >= minAbove) {
