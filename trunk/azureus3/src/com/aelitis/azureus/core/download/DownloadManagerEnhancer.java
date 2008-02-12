@@ -275,6 +275,12 @@ DownloadManagerEnhancer
 			});
 	}
 	
+	protected AzureusCore
+	getCore()
+	{
+		return( core );
+	}
+	
 	public EnhancedDownloadManager
 	getEnhancedDownload(
 		byte[]			hash )

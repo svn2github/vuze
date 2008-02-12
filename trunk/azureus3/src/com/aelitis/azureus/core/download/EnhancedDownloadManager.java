@@ -46,20 +46,29 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
+import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.RealTimeInfo;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
 
 import com.aelitis.azureus.core.peer.cache.CacheDiscovery;
 import com.aelitis.azureus.core.peer.cache.CachePeer;
 import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
 import com.aelitis.azureus.core.peermanager.piecepicker.PieceRTAProvider;
+import com.aelitis.azureus.core.peermanager.utils.PeerClassifier;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.average.Average;
 import com.aelitis.azureus.core.util.average.AverageFactory;
+import com.aelitis.azureus.plugins.extseed.ExternalSeedException;
+import com.aelitis.azureus.plugins.extseed.ExternalSeedManualPeer;
+import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 import com.aelitis.azureus.ui.swt.utils.PublishUtils;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.DownloadUtils;
@@ -1330,8 +1339,7 @@ EnhancedDownloadManager
 						}
 					}
 				}
-			}	
-			
+			}		
 		}else{
 			
 				// we've only got to handle the possible small delay here between a download being
@@ -1787,6 +1795,10 @@ EnhancedDownloadManager
 		
 		private boolean		active;
 		
+		private interventionHandler		intervention_handler = new interventionHandler();
+		
+		private long					last_intervention;
+		
 		protected void
 		activate(	
 			PiecePicker		picker )
@@ -1796,6 +1808,8 @@ EnhancedDownloadManager
 				log( "Activating boost provider" );
 
 				synchronized( EnhancedDownloadManager.this ){
+					
+					intervention_handler.activate();
 					
 					active	= true;
 					
@@ -1820,6 +1834,8 @@ EnhancedDownloadManager
 				piece_rtas	= null;
 				
 				active = false;
+				
+				intervention_handler.deactivate();
 			}
 		}
 		
@@ -1842,6 +1858,7 @@ EnhancedDownloadManager
 				
 				long	max_bps = stats.getStreamBytesPerSecondMax();
 				
+								
 				if ( 	disk_manager == null || 
 						!stats.isProviderActive() || 
 						stats.getETA(false) < -MINIMUM_INITIAL_BUFFER_SECS ||
@@ -1861,7 +1878,7 @@ EnhancedDownloadManager
 						log( "Resuming boost provider" );
 					}
 
-					piece_rtas = new long[disk_manager.getNbPieces()];
+					long[] local_rtas = piece_rtas = new long[disk_manager.getNbPieces()];
 					
 						// need to force piece order - set RTAs for all outstanding pieces
 					
@@ -1877,6 +1894,8 @@ EnhancedDownloadManager
 				
 					int	last_aggressive_piece = -1;
 					
+					long	time_to_stall = 0;
+					
 					if ( explicit_minimum_buffer_bytes > 0 ){
 				
 						long total_avail = getContiguousAvailableBytes( getPrimaryFile());
@@ -1884,6 +1903,8 @@ EnhancedDownloadManager
 						long viewer_pos = stats.getViewerBytePosition();
 						
 						long avail = total_avail - viewer_pos;
+						
+						time_to_stall =  ( avail - explicit_minimum_buffer_bytes )*1000/max_bps;
 						
 						long	buffer_zone = 3*explicit_minimum_buffer_bytes;
 						
@@ -1914,7 +1935,9 @@ EnhancedDownloadManager
 						aggression = 0;
 					}
 					
-					for ( int i=start_piece;i<piece_rtas.length;i++ ){
+					DiskManagerPiece[] dm_pieces = disk_manager.getPieces();
+					
+					for ( int i=start_piece;i<local_rtas.length;i++ ){
 						
 						int	time_factor;
 						
@@ -1923,17 +1946,33 @@ EnhancedDownloadManager
 							time_factor = (( 10 - aggression ) * 1000 ) /10;
 								
 							time_factor = Math.max( time_factor, 10 );
-							
-							// System.out.println( "Aggression = " + aggression + ", time factor=" + time_factor );
-
+								
+							if ( aggression >= 7 && !dm_pieces[i].isDone() && time_to_stall <= 10*1000 ){
+					
+								if ( now < last_intervention || now - last_intervention >= 500 ){
+									
+									last_intervention	= now;
+									
+									/*
+									long total_avail = getContiguousAvailableBytes( getPrimaryFile());								
+									long viewer_pos = stats.getViewerBytePosition();
+									long avail = total_avail - viewer_pos;
+									long	buffer_zone = 3*explicit_minimum_buffer_bytes;
+									
+									System.out.println( "Aggression = " + aggression + ", time factor=" + time_factor + ", stall=" + time_to_stall + ", avail=" + avail + ", buffer=" + buffer_zone );
+									*/
+									
+									intervention_handler.addPiece( i, SystemTime.getCurrentTime() + time_to_stall );
+								}
+							}
 						}else{
 							
 							time_factor = 1000;
 						}
 						
-						piece_rtas[i] = now + ( time_factor* ( bytes_offset / max_bps ));
+						local_rtas[i] = now + ( time_factor* ( bytes_offset / max_bps ));
 						
-						bytes_offset += piece_size;
+						bytes_offset += piece_size;					
 					}
 				}
 			}
@@ -1975,6 +2014,346 @@ EnhancedDownloadManager
 		getUserAgent()
 		{
 			return( null );
+		}
+		
+		protected class
+		interventionHandler
+		{
+			private AEThread2 		thread;
+			private AESemaphore		request_sem;
+			private List			request_list;
+			
+			private List			http_peers;
+			
+			private boolean	borked;
+			
+			protected void
+			activate()
+			{
+				synchronized( this ){
+					
+					active	= true;
+				}
+			}
+			
+			protected void
+			deactivate()
+			{
+				synchronized( this ){
+					
+					active	= false;
+					
+					if ( thread != null ){
+						
+						thread			= null;
+						request_list	= null;
+						
+						request_sem.release();
+					}
+				}
+			}
+			
+			protected void
+			addPiece(
+				int		piece_number,
+				long	stall_time )
+			{
+				synchronized( this ){
+
+					if ( !active || borked ){
+						
+						return;
+					}
+					
+					if ( thread == null ){
+						
+						PluginInterface pi = enhancer.getCore().getPluginManager().getPluginInterfaceByClass( ExternalSeedPlugin.class );
+
+						if ( pi == null ){
+							
+							borked = true;
+							
+							return;
+						}
+						
+						ExternalSeedPlugin ext_seed = (ExternalSeedPlugin)pi.getPlugin();
+						
+						ExternalSeedManualPeer[] peers = ext_seed.getManualWebSeeds( PluginCoreUtils.wrap( download_manager ));
+						
+						http_peers = null;
+						
+						for ( int i=0;i<peers.length;i++ ){
+							
+							ExternalSeedManualPeer peer = peers[i];
+							
+							if ( PeerClassifier.isAzureusIP( peer.getIP())){
+								
+								if ( http_peers == null ){
+									
+									http_peers = new ArrayList();
+								}
+								
+								http_peers.add( peer );;
+							}
+						}
+						
+						request_sem		= new AESemaphore( "EDH:intervention" );
+						request_list	= new ArrayList();
+						
+						thread = 
+							new AEThread2( "EDH:intervention", true )
+							{
+								private AESemaphore	my_sem	= request_sem;
+								private List		my_list	= request_list;
+								
+								private ExternalSeedManualPeer	current_peer;
+								
+								public void
+								run()
+								{
+									while( true ){
+										
+										my_sem.reserve();
+										
+										int		piece_number;
+										long	stall_time;
+										
+										synchronized( interventionHandler.this ){
+											
+											if ( my_list.isEmpty()){
+												
+												break;
+											}
+											
+												// leave on list and remove later to prevent
+												// duplicates being queued during intervention
+											
+											long[]	entry = (long[])my_list.get(0);
+											
+											piece_number 	= (int)entry[0];
+											stall_time		= entry[1];
+										}
+										
+										try{
+
+											int remaining = (int)( stall_time - SystemTime.getCurrentTime());
+												
+											if ( remaining < 500 ){
+											
+													// no point trying to do anything, too late
+												
+												continue;
+											}
+
+											DiskManager		disk_manager = download_manager.getDiskManager();
+											PEPeerManager 	peer_manager = download_manager.getPeerManager();
+
+											if ( disk_manager == null || peer_manager == null ){
+												
+												continue;
+											}
+											
+											DiskManagerPiece dm_piece = disk_manager.getPiece( piece_number );
+												
+											if ( dm_piece.isDone()){
+												
+												continue;
+											}
+												
+											List http = http_peers;
+																					
+											if ( current_peer == null ){
+												
+												if ( http == null && http.size() == 0 ){
+
+													continue;
+												}
+												
+												current_peer = (ExternalSeedManualPeer)http.remove(0);
+											}
+											
+											PEPiece pe_piece = peer_manager.getPiece( piece_number );
+											
+											boolean[]	to_do = new boolean[dm_piece.getNbBlocks()];
+											
+											if ( pe_piece == null ){
+												
+												boolean[] written = dm_piece.getWritten();
+											
+												if ( written == null ){
+													
+													Arrays.fill( to_do, true );
+													
+												}else{
+													
+													for (int i=0;i<to_do.length;i++){
+														
+														if ( !written[i] ){
+														
+															to_do[i] = true;
+														}
+													}
+												}
+											}else{
+												
+												boolean[] downloaded = pe_piece.getDownloaded();
+												
+												for (int i=0;i<to_do.length;i++){
+													
+													if ( !downloaded[i] ){
+													
+														to_do[i] = true;
+													}
+												}
+											}
+											
+											int	block_pos = 0;
+											
+											while( true ){
+											
+												int	block_start 		= 0;
+												int block_num			= 0;
+												
+												while( block_pos < to_do.length ){
+													
+													if ( to_do[ block_pos ] ){
+														
+														if ( block_num == 0 ){
+															
+															block_start = block_pos;
+														}
+														
+														block_num++;
+														
+													}else{
+														
+														if ( block_num > 0 ){
+															
+															break;
+														}
+													}
+													
+													block_pos++;
+												}
+													
+												if ( block_num == 0 ){
+														
+													break;
+												}
+												
+												int	block_start_offset 	= 0;
+												int blocks_length		= 0;
+												
+												for (int i=0;i<block_start+block_num;i++){
+													
+													int	block_size = dm_piece.getBlockSize( i );
+													
+													if ( i < block_start ){
+													
+														block_start_offset += block_size;
+														
+													}else{
+														
+														blocks_length += block_size;
+													}
+												}
+												
+												PeerManager pm = PluginCoreUtils.wrap( peer_manager );
+												
+												while( current_peer != null ){
+													
+													log( "Intervention: peer=" + current_peer.getIP() + ", piece=" + piece_number + ", block_start=" + block_start + ", block_num=" + block_num + ", offset=" + block_start_offset + ", length=" + blocks_length );
+													
+													try{
+														byte[] data = current_peer.read( piece_number, block_start_offset, blocks_length, remaining );
+														
+														int	data_offset = 0;
+														
+														for (int i=block_start;i<block_start+block_num;i++){
+															
+															int	block_size = dm_piece.getBlockSize( i );
+															
+															byte[] data_slice = new byte[ block_size ];
+															
+															System.arraycopy( data, data_offset, data_slice, 0, block_size );
+															
+															log( "    Read block " + i + ", offset=" + data_offset + ", length=" + block_size );
+															
+															pm.requestComplete(
+																	disk_manager.createReadRequest( piece_number, block_start_offset + data_offset, block_size ),
+																	new PooledByteBufferImpl( data_slice ),
+																	current_peer.getDelegate());
+															
+															data_offset += block_size;
+														}
+																					
+														break;
+											
+													}catch( Throwable e ){
+											
+														if ( !( e instanceof ExternalSeedException )){
+															
+															Debug.printStackTrace( e );
+														}
+														
+														if ( http != null && http.size()> 0 ){
+														
+															current_peer = (ExternalSeedManualPeer)http.remove(0);
+
+														}else{
+														
+															current_peer = null;
+														}
+													}
+												}
+											}
+										}finally{
+											
+											synchronized( interventionHandler.this ){
+												
+												my_list.remove(0);
+											}
+										}
+									}
+								}
+							};
+							
+						thread.start();
+					}
+								
+						// don't let intervention stray too far into future
+					
+					if ( 	request_list.isEmpty() ||
+							piece_number < ((long[])request_list.get(0))[0] + 10 ){
+							
+						if ( request_list.size() < 5 ){
+							
+							boolean	found = false;
+							
+							for (int i=0;i<request_list.size();i++){
+								
+								long[]	entry = (long[])request_list.get(i);
+								
+								if ( entry[0] == piece_number ){
+									
+									found = true;
+									
+									entry[1] = Math.min( stall_time, entry[1] );
+								}
+							}
+							
+							if ( !found ){
+								
+								log( "Intervention: queueing piece " + piece_number + ", stall_time=" + stall_time );
+								
+								request_list.add( new long[]{ piece_number, stall_time });
+								
+								request_sem.release();
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 	
