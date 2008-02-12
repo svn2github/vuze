@@ -29,7 +29,9 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.gudy.azureus2.core3.logging.LogEvent;
@@ -38,7 +40,6 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.BEncoder;
-import org.gudy.azureus2.core3.util.ByteFormatter;
 
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
@@ -51,6 +52,8 @@ import com.aelitis.azureus.core.peermanager.PeerManagerRoutingListener;
 import com.aelitis.azureus.core.peermanager.messaging.MessageStreamDecoder;
 import com.aelitis.azureus.core.peermanager.messaging.MessageStreamEncoder;
 import com.aelitis.azureus.core.peermanager.messaging.MessageStreamFactory;
+import com.aelitis.azureus.core.stats.AzureusCoreStats;
+import com.aelitis.azureus.core.stats.AzureusCoreStatsProvider;
 
 public class 
 HTTPNetworkManager 
@@ -66,9 +69,58 @@ HTTPNetworkManager
 	
 	private final IncomingSocketChannelManager http_incoming_manager;
 
+	private long	total_requests;
+	private long	total_webseed_requests;
+	private long	total_getright_requests;
+	private long	total_invalid_requests;
+	private long	total_ok_requests;
+	
 	private 
 	HTTPNetworkManager()
 	{	
+		  Set	types = new HashSet();
+		  
+		  types.add( AzureusCoreStats.ST_NET_HTTP_IN_REQUEST_COUNT );
+		  types.add( AzureusCoreStats.ST_NET_HTTP_IN_REQUEST_OK_COUNT );
+		  types.add( AzureusCoreStats.ST_NET_HTTP_IN_REQUEST_INVALID_COUNT );
+		  types.add( AzureusCoreStats.ST_NET_HTTP_IN_REQUEST_WEBSEED_COUNT );
+		  types.add( AzureusCoreStats.ST_NET_HTTP_IN_REQUEST_GETRIGHT_COUNT );
+			
+		  AzureusCoreStats.registerProvider( 
+				  types,
+				  new AzureusCoreStatsProvider()
+				  {
+						public void
+						updateStats(
+							Set		types,
+							Map		values )
+						{
+							if ( types.contains( AzureusCoreStats.ST_NET_HTTP_IN_REQUEST_COUNT )){
+								
+								values.put( AzureusCoreStats.ST_NET_HTTP_IN_REQUEST_COUNT, new Long( total_requests ));
+							}	
+							
+							if ( types.contains( AzureusCoreStats.ST_NET_HTTP_IN_REQUEST_OK_COUNT )){
+								
+								values.put( AzureusCoreStats.ST_NET_HTTP_IN_REQUEST_OK_COUNT, new Long( total_ok_requests ));
+							}					
+
+							if ( types.contains( AzureusCoreStats.ST_NET_HTTP_IN_REQUEST_INVALID_COUNT )){
+								
+								values.put( AzureusCoreStats.ST_NET_HTTP_IN_REQUEST_INVALID_COUNT, new Long( total_invalid_requests ));
+							}					
+
+							if ( types.contains( AzureusCoreStats.ST_NET_HTTP_IN_REQUEST_WEBSEED_COUNT )){
+								
+								values.put( AzureusCoreStats.ST_NET_HTTP_IN_REQUEST_WEBSEED_COUNT, new Long( total_webseed_requests ));
+							}	
+							
+							if ( types.contains( AzureusCoreStats.ST_NET_HTTP_IN_REQUEST_GETRIGHT_COUNT )){
+								
+								values.put( AzureusCoreStats.ST_NET_HTTP_IN_REQUEST_GETRIGHT_COUNT, new Long( total_getright_requests));							}					
+
+						}
+				  });
 		/*
 		try{
 			System.out.println( "/webseed?info_hash=" + URLEncoder.encode( new String( ByteFormatter.decodeString("C9C04D96F11FB5C5ECC99D418D3575FBFC2208B0"), "ISO-8859-1"), "ISO-8859-1" ));
@@ -94,12 +146,16 @@ HTTPNetworkManager
 		    		TransportHelper		transport,
 		    		ByteBuffer 			to_compare, 
 		    		int 				port ) 
-		    	{ 
+		    	{
+		    		total_requests++;
+		    		
 		    		InetSocketAddress	address = transport.getAddress();
 		    		
 		    		int old_limit 		= to_compare.limit();
 		    		int old_position 	= to_compare.position();
 
+		    		boolean 	ok = false;
+		    		
 		    		try{
 			    		byte[]	head = new byte[3];
 			    		
@@ -134,15 +190,21 @@ HTTPNetworkManager
 				    				
 				    		if ( url.indexOf( "/index.html") != -1 ){
 				    			
+				    			ok	= true;
+				    			
 					    		return( new Object[]{ transport, getIndexPage() });
 					    		
 				    		}else if ( url.indexOf( "/ping.html") != -1 ){
 					    			
 				    				// ping is used for inbound HTTP port checking
 				    			
+				    			ok	= true;
+				    			
 						    	return( new Object[]{ transport, getPingPage( url ) });
 
 				    		}else if ( url.indexOf( "/test503.html" ) != -1 ){
+				    			
+				    			ok	= true;
 				    			
 					    		return( new Object[]{ transport, getTest503()});
 				    		}
@@ -150,7 +212,7 @@ HTTPNetworkManager
 				    		String	hash_str = null;
 				    		
 				    		int	hash_pos = url.indexOf( "?info_hash=" );
-				    		
+				    						    		
 				    		if ( hash_pos != -1 ){
 				    							    			
 				    			int	hash_start = hash_pos + 11;
@@ -164,7 +226,7 @@ HTTPNetworkManager
 				    				return( null );
 				    				
 				    			}else{
-				    				
+				    								    				
 				    				hash_str = url.substring( hash_start, hash_end );
 				    			}
 				    		}else{
@@ -184,7 +246,7 @@ HTTPNetworkManager
 					    				return( null );
 					    				
 					    			}else{
-					    				
+					    									    				
 					    				hash_str = url.substring( hash_start, hash_end );
 					    			}
 					    		}
@@ -203,6 +265,8 @@ HTTPNetworkManager
 			    					int	pos = url.indexOf( ' ' );
 			    					
 			    					String	trimmed = pos==-1?url:url.substring(0,pos);
+			    					
+			    					ok	= true;
 			    					
 			    					return( new Object[]{ trimmed, reg_data });
 			    				}
@@ -246,6 +310,8 @@ HTTPNetworkManager
 					    						target_url.append( URLEncoder.encode( new String( bits[i], "ISO-8859-1" ), "ISO-8859-1" ));
 					    					}
 					    					
+					    					ok	= true;
+					    					
 					    					return( new Object[]{ target_url.toString(), reg_data });
 				    					}
 				    				}
@@ -268,6 +334,14 @@ HTTPNetworkManager
 			    		}
 		    		}finally{
 		    		
+		    			if ( ok ){
+		    				
+		    				total_ok_requests++;
+		    				
+		    			}else{
+		    				
+		    				total_invalid_requests++;
+		    			}
 			    			//	restore buffer structure
 		    			
 			    		to_compare.limit( old_limit );
@@ -345,12 +419,16 @@ HTTPNetworkManager
 	        					{
 	        						if ( url.indexOf( "/webseed" ) != -1 ){
 	        							
+	        							total_webseed_requests++;
+	        							
 	        							new HTTPNetworkConnectionWebSeed( HTTPNetworkManager.this, connection, peer );
 	        							
 	        							return( true );
 	        							
 	        						}else if ( url.indexOf( "/files/" ) != -1 ){
 
+	        							total_getright_requests++;
+	        							
 	        							new HTTPNetworkConnectionFile( HTTPNetworkManager.this, connection, peer );
 	        							
 	        							return( true );

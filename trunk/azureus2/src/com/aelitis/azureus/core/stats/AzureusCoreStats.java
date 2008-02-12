@@ -42,54 +42,64 @@ AzureusCoreStats
 		// DISK
 	
 	public static final String ST_DISK							= "disk.*";
-	public static final String ST_DISK_READ_QUEUE_LENGTH		= "disk.read.queue.length";		// Long
-	public static final String ST_DISK_READ_QUEUE_BYTES			= "disk.read.queue.bytes";		// Long
-	public static final String ST_DISK_READ_REQUEST_COUNT		= "disk.read.request.count";	// Long
-	public static final String ST_DISK_READ_REQUEST_SINGLE		= "disk.read.request.single";	// Long
-	public static final String ST_DISK_READ_REQUEST_MULTIPLE	= "disk.read.request.multiple";	// Long
-	public static final String ST_DISK_READ_REQUEST_BLOCKS		= "disk.read.request.blocks";	// Long
-	public static final String ST_DISK_READ_BYTES_TOTAL			= "disk.read.bytes.total";		// Long
-	public static final String ST_DISK_READ_BYTES_SINGLE		= "disk.read.bytes.single";		// Long
-	public static final String ST_DISK_READ_BYTES_MULTIPLE		= "disk.read.bytes.multiple";	// Long
-	public static final String ST_DISK_READ_IO_TIME				= "disk.read.io.time";			// Long
-	public static final String ST_DISK_READ_IO_COUNT			= "disk.read.io.count";			// Long
+	public static final String ST_DISK_READ_QUEUE_LENGTH		= "disk.read.queue.length";	
+	public static final String ST_DISK_READ_QUEUE_BYTES			= "disk.read.queue.bytes";	
+	public static final String ST_DISK_READ_REQUEST_COUNT		= "disk.read.request.count";	
+	public static final String ST_DISK_READ_REQUEST_SINGLE		= "disk.read.request.single";	
+	public static final String ST_DISK_READ_REQUEST_MULTIPLE	= "disk.read.request.multiple";	
+	public static final String ST_DISK_READ_REQUEST_BLOCKS		= "disk.read.request.blocks";	
+	public static final String ST_DISK_READ_BYTES_TOTAL			= "disk.read.bytes.total";	
+	public static final String ST_DISK_READ_BYTES_SINGLE		= "disk.read.bytes.single";	
+	public static final String ST_DISK_READ_BYTES_MULTIPLE		= "disk.read.bytes.multiple";	
+	public static final String ST_DISK_READ_IO_TIME				= "disk.read.io.time";	
+	public static final String ST_DISK_READ_IO_COUNT			= "disk.read.io.count";	
 	
-	public static final String ST_DISK_WRITE_QUEUE_LENGTH		= "disk.write.queue.length";	// Long
-	public static final String ST_DISK_WRITE_QUEUE_BYTES		= "disk.write.queue.bytes";		// Long
-	public static final String ST_DISK_WRITE_REQUEST_COUNT		= "disk.write.request.count";	// Long
-	public static final String ST_DISK_WRITE_REQUEST_BLOCKS		= "disk.write.request.blocks";	// Long
-	public static final String ST_DISK_WRITE_BYTES_TOTAL		= "disk.write.bytes.total";		// Long
-	public static final String ST_DISK_WRITE_BYTES_SINGLE		= "disk.write.bytes.single";	// Long
-	public static final String ST_DISK_WRITE_BYTES_MULTIPLE		= "disk.write.bytes.multiple";	// Long
-	public static final String ST_DISK_WRITE_IO_TIME			= "disk.write.io.time";			// Long
-	public static final String ST_DISK_WRITE_IO_COUNT			= "disk.write.io.count";		// Long
+	public static final String ST_DISK_WRITE_QUEUE_LENGTH		= "disk.write.queue.length";	
+	public static final String ST_DISK_WRITE_QUEUE_BYTES		= "disk.write.queue.bytes";	
+	public static final String ST_DISK_WRITE_REQUEST_COUNT		= "disk.write.request.count";	
+	public static final String ST_DISK_WRITE_REQUEST_BLOCKS		= "disk.write.request.blocks";	
+	public static final String ST_DISK_WRITE_BYTES_TOTAL		= "disk.write.bytes.total";	
+	public static final String ST_DISK_WRITE_BYTES_SINGLE		= "disk.write.bytes.single";	
+	public static final String ST_DISK_WRITE_BYTES_MULTIPLE		= "disk.write.bytes.multiple";	
+	public static final String ST_DISK_WRITE_IO_TIME			= "disk.write.io.time";	
+	public static final String ST_DISK_WRITE_IO_COUNT			= "disk.write.io.count";	
 	
 		// NETWORK
 	
-	public static final String ST_NET_WRITE_CONTROL_WAIT_COUNT			= "net.write.control.wait.count";		// Long
-	public static final String ST_NET_WRITE_CONTROL_NP_COUNT			= "net.write.control.np.count";		// Long
-	public static final String ST_NET_WRITE_CONTROL_P_COUNT				= "net.write.control.p.count";		// Long
+	public static final String ST_NET_WRITE_CONTROL_WAIT_COUNT			= "net.write.control.wait.count";	
+	public static final String ST_NET_WRITE_CONTROL_NP_COUNT			= "net.write.control.np.count";	
+	public static final String ST_NET_WRITE_CONTROL_P_COUNT				= "net.write.control.p.count";		
 	public static final String ST_NET_WRITE_CONTROL_ENTITY_COUNT		= "net.write.control.entity.count";	
-	public static final String ST_NET_WRITE_CONTROL_CON_COUNT			= "net.write.control.con.count";			// Long
-	public static final String ST_NET_WRITE_CONTROL_READY_CON_COUNT		= "net.write.control.ready.con.count";	// Long
-	public static final String ST_NET_WRITE_CONTROL_READY_BYTE_COUNT	= "net.write.control.ready.byte.count";	// Long
+	public static final String ST_NET_WRITE_CONTROL_CON_COUNT			= "net.write.control.con.count";	
+	public static final String ST_NET_WRITE_CONTROL_READY_CON_COUNT		= "net.write.control.ready.con.count";	
+	public static final String ST_NET_WRITE_CONTROL_READY_BYTE_COUNT	= "net.write.control.ready.byte.count";	
 	    
-	public static final String ST_NET_READ_CONTROL_LOOP_COUNT			= "net.read.control.loop.count";			// Long
-	public static final String ST_NET_READ_CONTROL_NP_COUNT				= "net.read.control.np.count";			// Long
-	public static final String ST_NET_READ_CONTROL_P_COUNT				= "net.read.control.p.count";			// Long
-	public static final String ST_NET_READ_CONTROL_WAIT_COUNT			= "net.read.control.wait.count";			// Long
-	public static final String ST_NET_READ_CONTROL_ENTITY_COUNT			= "net.read.control.entity.count";		// Long
-	public static final String ST_NET_READ_CONTROL_CON_COUNT			= "net.read.control.con.count";			// Long
-	public static final String ST_NET_READ_CONTROL_READY_CON_COUNT		= "net.read.control.ready.con.count";	// Long
+	public static final String ST_NET_READ_CONTROL_LOOP_COUNT			= "net.read.control.loop.count";	
+	public static final String ST_NET_READ_CONTROL_NP_COUNT				= "net.read.control.np.count";	
+	public static final String ST_NET_READ_CONTROL_P_COUNT				= "net.read.control.p.count";	
+	public static final String ST_NET_READ_CONTROL_WAIT_COUNT			= "net.read.control.wait.count";	
+	public static final String ST_NET_READ_CONTROL_ENTITY_COUNT			= "net.read.control.entity.count";	
+	public static final String ST_NET_READ_CONTROL_CON_COUNT			= "net.read.control.con.count";	
+	public static final String ST_NET_READ_CONTROL_READY_CON_COUNT		= "net.read.control.ready.con.count";	
 	
-	public static final String ST_NET_TCP_OUT_CONNECT_QUEUE_LENGTH		= "net.tcp.outbound.connect.queue.length";	// Long
-	public static final String ST_NET_TCP_OUT_PENDING_QUEUE_LENGTH		= "net.tcp.outbound.pending.queue.length";	// Long
-	public static final String ST_NET_TCP_OUT_CANCEL_QUEUE_LENGTH		= "net.tcp.outbound.cancel.queue.length";	// Long
-	public static final String ST_NET_TCP_OUT_CLOSE_QUEUE_LENGTH		= "net.tcp.outbound.close.queue.length";	// Long
+		// TCP
+	
+	public static final String ST_NET_TCP_OUT_CONNECT_QUEUE_LENGTH		= "net.tcp.outbound.connect.queue.length";	
+	public static final String ST_NET_TCP_OUT_PENDING_QUEUE_LENGTH		= "net.tcp.outbound.pending.queue.length";	
+	public static final String ST_NET_TCP_OUT_CANCEL_QUEUE_LENGTH		= "net.tcp.outbound.cancel.queue.length";	
+	public static final String ST_NET_TCP_OUT_CLOSE_QUEUE_LENGTH		= "net.tcp.outbound.close.queue.length";	
 
 	public static final String ST_NET_TCP_SELECT_WRITE_COUNT			= "net.tcp.select.write.count";
 	public static final String ST_NET_TCP_SELECT_READ_COUNT				= "net.tcp.select.read.count";
 
+		// HTTP
+	
+	public static final String ST_NET_HTTP_IN_REQUEST_COUNT				= "net.http.inbound.request.count";			
+	public static final String ST_NET_HTTP_IN_REQUEST_OK_COUNT			= "net.http.inbound.request.ok.count";		
+	public static final String ST_NET_HTTP_IN_REQUEST_INVALID_COUNT		= "net.http.inbound.request.invalid.count";		
+	public static final String ST_NET_HTTP_IN_REQUEST_WEBSEED_COUNT		= "net.http.inbound.request.webseed.count";	
+	public static final String ST_NET_HTTP_IN_REQUEST_GETRIGHT_COUNT	= "net.http.inbound.request.getright.count";	
+	
 		// Peer Control
 	
 	
@@ -169,7 +179,13 @@ AzureusCoreStats
 		
 		{ ST_NET_TCP_SELECT_WRITE_COUNT,			CUMULATIVE },
 		{ ST_NET_TCP_SELECT_READ_COUNT,				CUMULATIVE },
-			
+		
+		{ ST_NET_HTTP_IN_REQUEST_COUNT,				CUMULATIVE },
+		{ ST_NET_HTTP_IN_REQUEST_OK_COUNT,			CUMULATIVE },
+		{ ST_NET_HTTP_IN_REQUEST_INVALID_COUNT,		CUMULATIVE },
+		{ ST_NET_HTTP_IN_REQUEST_WEBSEED_COUNT,		CUMULATIVE },
+		{ ST_NET_HTTP_IN_REQUEST_GETRIGHT_COUNT,	CUMULATIVE },
+		
 		{ ST_PEER_CONTROL_SCHEDULE_COUNT,			CUMULATIVE },
 		{ ST_PEER_CONTROL_LOOP_COUNT,				CUMULATIVE },
 		{ ST_PEER_CONTROL_YIELD_COUNT,				CUMULATIVE },
