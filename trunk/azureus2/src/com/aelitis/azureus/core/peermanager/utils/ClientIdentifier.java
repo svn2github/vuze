@@ -40,7 +40,7 @@ public class ClientIdentifier {
 		if (az_msg_client_name.endsWith("BitTyrant")) {
 			  return "BitTyrant " + az_msg_client_version.replaceAll("BitTyrant", "") + " (Azureus Mod)";
 		  }
-		  
+
 		  String msg_client_name = az_msg_client_name + " " + az_msg_client_version;
 		  
 		  /**
@@ -56,8 +56,24 @@ public class ClientIdentifier {
 		  String peer_id_client = peer_id_client_name.split(" ", 2)[0];
 		  String az_client_name = az_msg_client_name.split(" ", 2)[0];
 		  if (peer_id_client.equals(az_client_name)) {
+			  /**
+			   * If both are Azureus, the version numbers shouldn't differ. This is what
+			   * we should have - 15 characters both the same (sometimes beta version
+			   * is included in the version number but not in the peer ID, but we can deal
+			   * with that.
+			   *   "Azureus a.b.c.d"
+			   */ 
+			  if (az_client_name.equals("Azureus") && peer_id_client.equals("Azureus")) {
+				  if (!msg_client_name.substring(0, 15).equals(peer_id_client_name.substring(0, 15))) {
+					  return asDiscrepancy("Azureus (Hacked)", peer_id_client_name, msg_client_name, "fake_client", "AZMP", peer_id);
+				  }
+			  }
 			  return msg_client_name;
 		  }
+
+			// Transmission and XTorrent.
+			String res = checkForTransmissionBasedClients(msg_client_name, peer_id_client, peer_id_client_name, msg_client_name, peer_id, "AZMP");
+			if (res != null) {return res;}
 		  
 		  // There is an inconsistency. Let's try figuring out what we can.
 		  String client_displayed_name = null;
@@ -112,7 +128,7 @@ public class ClientIdentifier {
 		  else {discrepancy_type = null;}
 		  
 		  if (discrepancy_type != null) {
-			  return asDiscrepancy(client_displayed_name, peer_id_client_name, msg_client_name, discrepancy_type, "AZMP", peer_id);
+			  return asDiscrepancy(null, peer_id_client_name, msg_client_name, discrepancy_type, "AZMP", peer_id);
 		  }
 		  
 		  return client_displayed_name;
@@ -154,6 +170,11 @@ public class ClientIdentifier {
 		// this was a bug, so just identify as Mainline.
 		if (peer_id_name.startsWith("Mainline 4.") && handshake_name.startsWith("Torrent", 1)) {
 			return peer_id_name;
+		}
+		
+		// Azureus should never be using LTEP when connected to another Azureus client!
+		if (peer_id_name.startsWith("Azureus") && handshake_name.startsWith("Azureus")) {
+			return asDiscrepancy(null, peer_id_name, handshake_name, "fake_client", "LTEP", peer_id); 
 		}
 					
 		// We allow a client to have a different version number than the one decoded from
@@ -228,6 +249,9 @@ public class ClientIdentifier {
 		  if (client_name == null) {
 			  BTPeerIDByteDecoder.logClientDiscrepancy(peer_id_name, handshake_name, discrepancy_type, protocol_type, peer_id);
 		  }
+		  
+		  // Use this form as it is shorter.
+		  if (peer_id_name.equals(handshake_name)) {return asDiscrepancy(client_name, peer_id_name, discrepancy_type);}
 		  return asDiscrepancy(client_name, peer_id_name + "\" / \"" + handshake_name, discrepancy_type);
 	  }
 	  
@@ -297,10 +321,11 @@ public class ClientIdentifier {
 		  
 		  System.out.println("Testing AZMP clients:");
 		  assertDecodeAZMP("Azureus 3.0.4.2", "-AZ3042-6ozMq5q6Q3NX", "Azureus", "3.0.4.2");
+		  assertDecodeAZMP("Azureus 3.0.4.3_B02", "-AZ3043-6ozMq5q6Q3NX", "Azureus", "3.0.4.3_B02");
 		  assertDecodeAZMP("BitTyrant 2.5.0.0 (Azureus Mod)", "AZ2500BTeyuzyabAfo6U", "AzureusBitTyrant", "2.5.0.0BitTyrant");
 		  //assertDecodeAZMP("", "2D425335 3832302D 6F79344C 61324D57 4745466A", "Bearshare Premium P2P", "5.8.2.0");
 		  //assertDecodeAZMP("", "-AR6360-6oZyyMWoOOBe", "Imesh Turbo", "6.3.6.0");
-		  //assertDecodeAZMP("", "2D415A32 3430322D 2E414794 2C57D644 4989CA58", "Azureus", "2.3.0.6");
+		  assertDecodeAZMP("Azureus (Hacked) [FAKE: \"Azureus 2.4.0.2\" / \"Azureus 2.3.0.6\"]", "2D415A32 3430322D 2E414794 2C57D644 4989CA58", "Azureus", "2.3.0.6");
 		  //assertDecodeAZMP("", "2D414732 3038332D 73316869 46387647 41416730", "Ares", "2.0.8.3029");
 		  //assertDecodeAZMP("", "2D414733 3030332D 6C456C32 4D6D344E 454F346E", "Ares Destiny", "3.0.0.3805");
 		  
@@ -309,6 +334,7 @@ public class ClientIdentifier {
 		  System.out.println("Testing LTEP clients:");
 		  assertDecodeLTEP("\u00B5Torrent 1.7.6", "2D555431 3736302D B39EC7AD F6B94610 AA4ACD4A", "\u00B5Torrent 1.7.6");
 		  assertDecodeLTEP("\u00B5Torrent 1.6.1", "2D5554313631302DEA818D43F5E5EC3D67BF8D67", "\uFDFFTorrent 1.6.1");
+		  assertDecodeLTEP("Unknown [FAKE: \"Azureus 3.0.4.2\"]", "-AZ3042-6ozMq5q6Q3NX", "Azureus 3.0.4.2");
 		  assertDecodeLTEP("Mainline 6.0", "4D362D30 2D302D2D 8B92860D 05055DF5 B01C2D94", "BitTorrent 6.0");
 		  //assertDecodeLTEP("libTorrent 0.11.9", "2D6C7430 4239302D 11F3EB39 5D44EEFD CEA07E79", "libTorrent 0.11.9");
 		  assertDecodeLTEP("\u00B5Torrent 1.8.0 Beta", "2D555431 3830422D E69C9942 D1A5A6C2 0BE2E4BD", "\u00B5Torrent 1.8");
