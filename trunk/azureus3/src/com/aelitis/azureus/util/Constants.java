@@ -79,9 +79,15 @@ public class Constants
 
 	public static final String URL_POP_UP = "?popup";
 
-	public static final String URL_LOGIN = "user/LoginPopup.html";
+	public static final String URL_LOGIN = "login.start";
+	
+	public static final String URL_LOGOUT = "logout.start";
 
-	public static final String URL_REGISTRATION = "user/RegisterPopup.html";
+	public static final String URL_REGISTRATION = "register.start";
+	
+	public static final String URL_PROFILE = "profile.start";
+	
+	public static final String URL_ACCOUNT = "account.start";
 	
 	
 	public static final boolean DIAG_TO_STDOUT = System.getProperty(

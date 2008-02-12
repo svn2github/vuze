@@ -38,8 +38,6 @@ public abstract class AbstractBrowserRequestListener
 
 	private boolean isResizable = false;
 
-	private String statusMessage = null;
-
 	public AbstractBrowserRequestListener(String listenerID) {
 		super(listenerID);
 	}
@@ -110,13 +108,27 @@ public abstract class AbstractBrowserRequestListener
 	}
 
 	public String getStatusMessage() {
+		/*
+		 * Do not cache the status message since it need to be matched with the current close message
+		 */
 		if (true == decodedMap.containsKey(OP_CLOSE_PARAM_STATUS)) {
-			statusMessage = MapUtils.getMapString(decodedMap, OP_CLOSE_PARAM_STATUS,
+			return MapUtils.getMapString(decodedMap, OP_CLOSE_PARAM_STATUS,
 					null);
 		}
-		return statusMessage;
+		return null;
 	}
 
+	public String getDisplayMessage() {
+		/*
+		 * Do not cache the display message since it need to be matched with the current close message
+		 */
+		if (true == decodedMap.containsKey(OP_CLOSE_PARAM_DISPLAY)) {
+			return MapUtils.getMapString(decodedMap, OP_CLOSE_PARAM_DISPLAY,
+					null);
+		}
+		return null;
+	}
+	
 	public void handleClose() {
 		// Do nothing by default; subclass may override
 	}

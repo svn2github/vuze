@@ -11,6 +11,8 @@ public interface IBrowserRequestListener
 	public static final String OP_CLOSE = "close";
 	
 	public static final String OP_CLOSE_PARAM_STATUS = "status";
+	
+	public static final String OP_CLOSE_PARAM_DISPLAY = "display";
 
 	public static final String OP_REFRESH = "refresh";
 

@@ -20,7 +20,6 @@
 
 package com.aelitis.azureus.ui.skin;
 
-import org.eclipse.swt.widgets.Composite;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -56,7 +55,7 @@ public class UserAreaUtils
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
 
-					String url = Constants.URL_PREFIX + Constants.URL_LOGIN;
+					String url = Constants.URL_PREFIX + Constants.URL_LOGIN + "?" + Constants.URL_SUFFIX;
 					new LightBoxBrowserWindow(url);
 
 				}
@@ -71,7 +70,7 @@ public class UserAreaUtils
 			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(skinObject);
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					String url = Constants.URL_PREFIX + "user/Logout.html";
+					String url = Constants.URL_PREFIX + Constants.URL_LOGOUT + "?" + Constants.URL_SUFFIX;
 					if (null != uiFunctions) {
 						uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSE_TAB, 0, 0,
 								false, false);
@@ -90,7 +89,7 @@ public class UserAreaUtils
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
 					if (null != uiFunctions) {
-						String url = Constants.URL_PREFIX + Constants.URL_REGISTRATION;
+						String url = Constants.URL_PREFIX + Constants.URL_REGISTRATION + "?" + Constants.URL_SUFFIX;
 						new LightBoxBrowserWindow(url);
 					}
 
@@ -107,7 +106,7 @@ public class UserAreaUtils
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
 					if (null != uiFunctions) {
-						String url = Constants.URL_PREFIX + "user/Profile.html";
+						String url = Constants.URL_PREFIX + Constants.URL_PROFILE + "?" + Constants.URL_SUFFIX;
 						uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSE_TAB, 0, 0,
 								true, true);
 					}
@@ -125,7 +124,7 @@ public class UserAreaUtils
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
 					if (null != uiFunctions) {
-						String url = Constants.URL_PREFIX + "user/Account.html";
+						String url = Constants.URL_PREFIX + Constants.URL_ACCOUNT + "?" + Constants.URL_SUFFIX;
 						uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSE_TAB, 0, 0,
 								true, true);
 					}

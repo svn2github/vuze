@@ -56,6 +56,22 @@ public class LightBoxBrowserRequestListener
 			} catch (Exception e) {
 				Debug.out(e);
 			}
+		} else if (null != getDisplayMessage()) {
+			try {
+				BrowserMessage displayMessage = new BrowserMessage(getStatusMessage());
+
+				/*
+				 * Only the OPEN_URL operation really has any effect here since the rest of the operations
+				 * for 'display' require a reference to a standard browser which would be incompatible
+				 * with the new pop-up browser
+				 */
+				if (true == DisplayListener.OP_OPEN_URL.equals(displayMessage.getOperationId())) {
+					new DisplayListener(null).handleMessage(displayMessage);
+				}
+			} catch (Exception e) {
+				Debug.out(e);
+			}
+
 		}
 
 	}
