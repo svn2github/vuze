@@ -29,12 +29,15 @@ import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 
+import com.aelitis.azureus.core.util.Java15Utils;
+
 /**
  * @author parg
  *
  */
 
 import java.io.*;
+import java.lang.reflect.Method;
 import java.util.*;
 
 public class 
@@ -208,8 +211,19 @@ AEDiagnostics
 		// pull in the JDK1.5 monitoring stuff if present
 			
 		try{
-			Class.forName( "com.aelitis.azureus.jdk15.Java15Initialiser" );
+			Class c = Class.forName( "com.aelitis.azureus.jdk15.Java15Initialiser" );
 					
+			if ( c != null ){
+				
+				Method m = c.getDeclaredMethod( "getUtilsProvider", new Class[0] );
+				
+				Java15Utils.Java15UtilsProvider provider = (Java15Utils.Java15UtilsProvider)m.invoke( null, new Object[0] );
+				
+				if ( provider != null ){
+					
+					 Java15Utils.setProvider( provider );
+				}
+			}
 			// System.out.println( "**** AEThread debug on ****" );
 
 		}catch( Throwable e ){
