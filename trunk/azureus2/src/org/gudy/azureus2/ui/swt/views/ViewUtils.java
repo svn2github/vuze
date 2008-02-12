@@ -44,20 +44,21 @@ ViewUtils
 {
 	public static void
 	addSpeedMenu(
-		final Shell shell,
-		Menu			menuAdvanced,
-		boolean			hasSelection,
-		boolean			downSpeedDisabled,
-		boolean			downSpeedUnlimited,
-		long			totalDownSpeed,
-		long			downSpeedSetMax,
-		long			maxDownload,
-		boolean			upSpeedDisabled,
-		boolean			upSpeedUnlimited,
-		long			totalUpSpeed,
-		long			upSpeedSetMax,
-		long			maxUpload,
-		final int		num_entries,
+		final Shell 		shell,
+		Menu				menuAdvanced,
+		boolean				isTorrentContext,
+		boolean				hasSelection,
+		boolean				downSpeedDisabled,
+		boolean				downSpeedUnlimited,
+		long				totalDownSpeed,
+		long				downSpeedSetMax,
+		long				maxDownload,
+		boolean				upSpeedDisabled,
+		boolean				upSpeedUnlimited,
+		long				totalUpSpeed,
+		long				upSpeedSetMax,
+		long				maxUpload,
+		final int			num_entries,
 		final SpeedAdapter	adapter )
 	{
 		// advanced > Download Speed Menu //
@@ -153,7 +154,7 @@ ViewUtils
 		new MenuItem(menuDownSpeed, SWT.SEPARATOR);
 		
 		String menu_key = "MyTorrentsView.menu.manual";
-		if (num_entries > 1) {menu_key += ".per_torrent";}
+		if (num_entries > 1) {menu_key += (isTorrentContext?".per_torrent":".per_peer" );}
 
 		final MenuItem itemDownSpeedManualSingle = new MenuItem(menuDownSpeed, SWT.PUSH);
 		Messages.setLanguageText(itemDownSpeedManualSingle, menu_key);
@@ -166,7 +167,7 @@ ViewUtils
 		
 		if (num_entries > 1) {
 			final MenuItem itemDownSpeedManualShared = new MenuItem(menuDownSpeed, SWT.PUSH);
-			Messages.setLanguageText(itemDownSpeedManualShared, "MyTorrentsView.menu.manual.shared_torrents");
+			Messages.setLanguageText(itemDownSpeedManualShared, isTorrentContext?"MyTorrentsView.menu.manual.shared_torrents":"MyTorrentsView.menu.manual.shared_peers");
 			itemDownSpeedManualShared.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e) {
 					int speed_value = getManualSharedSpeedValue(shell, true, num_entries);
@@ -278,7 +279,7 @@ ViewUtils
 		
 		if (num_entries > 1) {
 			final MenuItem itemUpSpeedManualShared = new MenuItem(menuUpSpeed, SWT.PUSH);
-			Messages.setLanguageText(itemUpSpeedManualShared, "MyTorrentsView.menu.manual.shared_torrents");
+			Messages.setLanguageText(itemUpSpeedManualShared, isTorrentContext?"MyTorrentsView.menu.manual.shared_torrents":"MyTorrentsView.menu.manual.shared_peers" );
 			itemUpSpeedManualShared.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e) {
 					int speed_value = getManualSharedSpeedValue(shell, false, num_entries);

@@ -354,7 +354,7 @@ public class TorrentUtil {
 		long maxDownload = COConfigurationManager.getIntParameter("Max Download Speed KBs", 0) * 1024;
 		long maxUpload = COConfigurationManager.getIntParameter("Max Upload Speed KBs", 0) * 1024;
 
-		ViewUtils.addSpeedMenu(menu.getShell(), menuAdvanced, hasSelection, downSpeedDisabled, downSpeedUnlimited,
+		ViewUtils.addSpeedMenu(menu.getShell(), menuAdvanced, true, hasSelection, downSpeedDisabled, downSpeedUnlimited,
 				totalDownSpeed, downSpeedSetMax, maxDownload, upSpeedDisabled, upSpeedUnlimited, totalUpSpeed,
 				upSpeedSetMax, maxUpload, dms.length, new ViewUtils.SpeedAdapter() {
 					public void setDownSpeed(final int speed) {

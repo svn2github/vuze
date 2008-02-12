@@ -288,6 +288,7 @@ public class PeersView
 		ViewUtils.addSpeedMenu(
 			shell,
 			menuAdvanced,
+			false,
 			hasSelection,
 			downSpeedDisabled,
 			downSpeedUnlimited,

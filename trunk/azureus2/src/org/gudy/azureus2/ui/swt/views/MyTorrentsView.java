@@ -641,7 +641,7 @@ public class MyTorrentsView
 	       				int	up_speed 	= category.getUploadSpeed();
 	       			        				
 	    		        ViewUtils.addSpeedMenu( 
-	    		        		menu.getShell(), menu, true, 
+	    		        		menu.getShell(), menu, true, true, 
 	    		        		false, down_speed==0, down_speed, down_speed, maxDownload, 
 	    		        		false, up_speed==0, up_speed, up_speed, maxUpload, 
 	    		        		1, 
