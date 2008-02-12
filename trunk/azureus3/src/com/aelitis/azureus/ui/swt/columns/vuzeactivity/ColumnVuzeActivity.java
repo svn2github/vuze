@@ -25,7 +25,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 
-import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
@@ -325,7 +324,7 @@ public class ColumnVuzeActivity
 						&& PlatformTorrentUtils.isContent(entry.dm.getTorrent(), true)) {
 					Rectangle dmRatingRect = getDMRatingRect(width, height);
 					if (ratingCell == null) {
-						ListCell listCell = new ListCellGraphic(null, SWT.LEFT,
+						ListCell listCell = new ListCellGraphic(null, SWT.RIGHT,
 								dmRatingRect);
 
 						ratingCell = new TableCellImpl((TableRowCore) cell.getTableRow(),
@@ -539,8 +538,8 @@ public class ColumnVuzeActivity
 	}
 
 	private Rectangle getDMRatingRect(int cellWidth, int cellHeight) {
-		return new Rectangle(cellWidth - ColumnRate.COLUMN_WIDTH - 10, cellHeight
-				- 42 - MARGIN_HEIGHT, ColumnRate.COLUMN_WIDTH, 38);
+		return new Rectangle(cellWidth - 80 - 10, cellHeight - 42 - MARGIN_HEIGHT,
+				80, 38);
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellVisibilityListener#cellVisibilityChanged(org.gudy.azureus2.plugins.ui.tables.TableCell, int)
