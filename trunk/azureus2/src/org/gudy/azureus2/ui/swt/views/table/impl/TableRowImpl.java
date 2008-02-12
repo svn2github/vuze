@@ -43,9 +43,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 
-import com.aelitis.azureus.ui.common.table.TableCellCore;
-import com.aelitis.azureus.ui.common.table.TableColumnCore;
-import com.aelitis.azureus.ui.common.table.TableView;
+import com.aelitis.azureus.ui.common.table.*;
 
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -85,6 +83,8 @@ public class TableRowImpl
 	private ArrayList mouseListeners;
 	private boolean wasShown = false;
 	private Map dataList;
+	
+	private int lastIndex = -1;
 
   // XXX add rowVisuallyupdated bool like in ListRow
 
@@ -402,7 +402,15 @@ public class TableRowImpl
 		if (bDisposed)
 			return -1;
 
-		return ((TableViewSWTImpl)tableView).indexOf(this);
+		if (lastIndex >= 0) {
+			TableRowCore row = ((TableViewSWTImpl) tableView).getRowQuick(lastIndex);
+			if (row == this) {
+				return lastIndex;
+			}
+		}
+
+		lastIndex = ((TableViewSWTImpl) tableView).indexOf(this);
+		return lastIndex;
 
 		//return super.getIndex();
 	}

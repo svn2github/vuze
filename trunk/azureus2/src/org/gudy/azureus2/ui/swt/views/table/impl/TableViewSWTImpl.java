@@ -2673,7 +2673,8 @@ public class TableViewSWTImpl
 		return (TableRowSWT) mapDataSourceToRow.get(dataSource);
 	}
 
-	private TableRowCore getRow(int iPos) {
+	// @see com.aelitis.azureus.ui.common.table.TableView#getRow(int)
+	public TableRowCore getRow(int iPos) {
 		try {
 			sortedRows_mon.enter();
 
@@ -2689,6 +2690,14 @@ public class TableViewSWTImpl
 			sortedRows_mon.exit();
 		}
 		return null;
+	}
+	
+	protected TableRowCore getRowQuick(int iPos) {
+		try {
+			return (TableRowCore) sortedRows.get(iPos);
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 	public int indexOf(TableRowCore row) {
