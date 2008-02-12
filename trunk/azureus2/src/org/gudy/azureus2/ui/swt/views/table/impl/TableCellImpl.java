@@ -888,8 +888,9 @@ public class TableCellImpl
   }
   
   public boolean refresh(boolean bDoGraphics) {
-		boolean isShown = isShown();
-		return refresh(bDoGraphics, isShown, isShown);
+		boolean isCellShown = isShown();
+		boolean isRowShown = tableRow.getView().isRowVisible(tableRow);
+		return refresh(bDoGraphics, isRowShown, isCellShown);
   }
 
   public boolean refresh(boolean bDoGraphics, boolean bRowVisible) {
@@ -933,6 +934,8 @@ public class TableCellImpl
 			  clearFlag(FLAG_VALID);
 			  setFlag(FLAG_UPTODATE);
 		  } else if (!bCellVisible && isUpToDate()) {
+			  if (bDebug)
+				  debug("Setting not up to date because cell not visible " + Debug.getCompressedStackTrace());
 		  	clearFlag(FLAG_UPTODATE);
 		  }
 		  
@@ -1223,6 +1226,8 @@ public class TableCellImpl
   }
   
 	public void setUpToDate(boolean upToDate) {
+	  if (bDebug)
+		  debug("set up to date to " + upToDate);
 		if (upToDate) {
 			setFlag(FLAG_UPTODATE);
 		} else {
