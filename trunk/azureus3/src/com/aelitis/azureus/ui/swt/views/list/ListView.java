@@ -1585,7 +1585,7 @@ public class ListView
 									}
 
 									if (newIndex >= 0) {
-										newFocusRow = getRow(newIndex);
+										newFocusRow = (ListRow) getRow(newIndex);
 									}
 								}
 							}
@@ -1809,13 +1809,13 @@ public class ListView
 							if (idxEnd != idxStart) {
 								int dir = idxStart < idxEnd ? 1 : -1;
 								for (int i = idxStart; i != idxEnd; i += dir) {
-									ListRow rowToSelect = getRow(i);
+									ListRow rowToSelect = (ListRow) getRow(i);
 									if (rowToSelect != null) {
 										rowToSelect.setSelected(true);
 									}
 								}
 
-								ListRow rowToSelect = getRow(idxEnd);
+								ListRow rowToSelect = (ListRow) getRow(idxEnd);
 								if (rowToSelect != null) {
 									rowToSelect.setSelected(true);
 									rowToSelect.setFocused(true);
@@ -1913,7 +1913,13 @@ public class ListView
 			return null;
 		}
 		RowInfo rowInfo = getRowAbsolute(x, iLastVBarPos + y);
-		return rowInfo == null ? null : rowInfo.row;
+		if (rowInfo == null) {
+			return null;
+		}
+		if (y > rowInfo.row.getBasicYPos() + rowInfo.row.getHeight()) {
+			return null;
+		}
+		return rowInfo.row;
 	}
 
 	//public TableRowCore getRowAbsolute(int x, int y) {
@@ -1978,11 +1984,12 @@ public class ListView
 		return size;
 	}
 
-	public ListRow getRow(int i) {
-		if (i < 0 || i >= rows.size()) {
+	// @see com.aelitis.azureus.ui.common.table.TableView#getRow(int)
+	public TableRowCore getRow(int position) {
+		if (position < 0 || position >= rows.size()) {
 			return null;
 		}
-		return (ListRow) rows.get(i);
+		return (TableRowCore) rows.get(position);
 	}
 
 	/**
@@ -2692,24 +2699,23 @@ public class ListView
 				int i = topRowInfo.index;
 				while (y + height > y2 + clientArea.height) {
 					y2 += row.getHeight();
-					row = getRow(++i);
+					row = (ListRow) getRow(++i);
 				}
 				scrollTo(y2);
 			} else {
+				// adjust bar so that new focused row is in the same spot as the old
+				// one
+				int ofs = 0;
+				ListRow rowFocused = getRowFocused();
+				if (rowFocused != null) {
+					ofs = rowFocused.getBasicYPos() - iLastVBarPos;
+					if (ofs > 0 && ofs < clientArea.height) {
+						y -= ofs;
+					}
+				}
 				scrollTo(y);
 			}
 
-			//			// adjust bar so that new focused row is in the same spot as the old
-			//			// one
-			//			int ofs = 0;
-			//			ListRow rowFocused = getRowFocused();
-			//			if (rowFocused != null) {
-			//				ofs = rowFocused.getBasicYPos() - iLastVBarPos;
-			//				//System.out.println("moveF ofs=" + ofs + "; mp = " + myPos);
-			//				if (ofs > 0 && ofs < clientArea.height) {
-			//					y += ofs;
-			//				}
-			//			}
 
 		}
 		//System.out.println(sTableID + "] show done " + row + ";" + y
@@ -2766,7 +2772,7 @@ public class ListView
 						if (focusedRow != null) {
 							int index = focusedRow.getIndex();
 							index++;
-							ListRow nextRow = getRow(index);
+							ListRow nextRow = (ListRow) getRow(index);
 							if (nextRow != null) {
 								if (nextRow.isSelected()) {
 									focusedRow.setSelected(false);
@@ -2781,7 +2787,7 @@ public class ListView
 						if (focusedRow != null) {
 							int index = focusedRow.getIndex();
 							index++;
-							ListRow nextRow = getRow(index);
+							ListRow nextRow = (ListRow) getRow(index);
 							if (nextRow != null) {
 								nextRow.setFocused(true);
 							}
@@ -2798,7 +2804,7 @@ public class ListView
 						if (activeRow != null) {
 							int index = activeRow.getIndex();
 							index--;
-							ListRow previousRow = getRow(index);
+							ListRow previousRow = (ListRow) getRow(index);
 							if (previousRow != null) {
 								if (previousRow.isSelected()) {
 									activeRow.setSelected(false);
@@ -2813,7 +2819,7 @@ public class ListView
 						if (focusedRow != null) {
 							int index = focusedRow.getIndex();
 							index--;
-							ListRow nextRow = getRow(index);
+							ListRow nextRow = (ListRow) getRow(index);
 							if (nextRow != null) {
 								nextRow.setFocused(true);
 							}

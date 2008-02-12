@@ -643,7 +643,7 @@ public class ListRow
 			return false;
 		}
 
-		ListRow row = view.getRow(iRowPos + 1);
+		ListRow row = (ListRow) view.getRow(iRowPos + 1);
 		if (row != null) {
 			row.fixupPosition();
 		}
