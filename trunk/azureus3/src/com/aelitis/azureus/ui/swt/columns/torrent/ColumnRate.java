@@ -309,18 +309,16 @@ public class ColumnRate
 			}
 
 			if (showAverage) {
-				int bigTextStyle = SWT.CENTER;
+				Rectangle r = img.getBounds();
+				int bigTextStyle = SWT.RIGHT;
 				int smallTextStyle = SWT.RIGHT;
 				if (imgRate != null && (userRating >= 0 || userRating == -2)) {
 					//smallTextStyle = SWT.RIGHT;
-					gcImage.drawImage(imgRate, 3, 5);
+					gcImage.drawImage(imgRate, r.width - 53, 5);
 				}
 
-				Rectangle r = img.getBounds();
-				r.x += 2 + 12;
 				r.y += 2;
-				r.height -= 11;
-				r.width -= 2;
+				r.height -= 14;
 
 				if (font == null) {
 					// no sync required, SWT is on single thread
@@ -357,9 +355,8 @@ public class ColumnRate
 				}
 
 				r = img.getBounds();
-				r.x += 12;
 				r.width -= 2;
-				r.height -= 11;
+				r.height -= 14;
 				gcImage.setForeground(color1);
 				GCStringPrinter.printString(gcImage, rating, r, true, false,
 						bigTextStyle);
@@ -378,7 +375,7 @@ public class ColumnRate
 					gcImage.setTextAntialias(SWT.DEFAULT);
 
 					Rectangle rectDrawRatings = img.getBounds();
-					rectDrawRatings.height -= 1;
+					rectDrawRatings.height -= 4;
 					GCStringPrinter.printString(gcImage, "" + count + " ratings",
 							rectDrawRatings, true, false, SWT.BOTTOM | smallTextStyle);
 				}
