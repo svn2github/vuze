@@ -32,7 +32,7 @@ import com.aelitis.azureus.plugins.net.netstatus.NetStatusPlugin;
 public class 
 NetStatusPluginTester 
 {
-	private static final int	ROUTE_TIMEOUT	= 60*1000;
+	private static final int	ROUTE_TIMEOUT	= 120*1000;
 
 	private NetStatusPlugin		plugin;
 	private loggerProvider		logger;
@@ -255,7 +255,7 @@ NetStatusPluginTester
 								}
 							}
 							
-							log( "  " + intf.getAddress().getHostAddress() + " -> " + ia.getHostAddress() + " (" + distance + ")" + (as.length()==0?"":( " - " + as )));
+							log( "  " + intf.getAddress().getHostAddress() + " -> " + ia.getHostAddress() + " (hop=" + distance + ")" + (as.length()==0?"":( " - " + as )));
 							
 							return( true );
 						}
@@ -271,7 +271,7 @@ NetStatusPluginTester
 								return( false );
 							}
 							
-							log( "  " + intf.getAddress().getHostAddress() + " - timeout ( " + distance + ")" );
+							log( "  " + intf.getAddress().getHostAddress() + " - timeout (hop=" + distance + ")" );
 	
 								// see if we're getting nowhere
 							
