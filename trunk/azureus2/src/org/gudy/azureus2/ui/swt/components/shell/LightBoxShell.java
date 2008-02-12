@@ -7,6 +7,7 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.IMainWindow;
 
@@ -410,6 +411,7 @@ public class LightBoxShell
 
 			styledShell.addPaintListener(new PaintListener() {
 				public void paintControl(PaintEvent e) {
+					try{
 					if (null != trimImage && false == trimImage.isDisposed()) {
 						if (null != styledShell && false == styledShell.isDisposed()) {
 							if (null != lbShell && false == lbShell.isDisposed()) {
@@ -419,6 +421,9 @@ public class LightBoxShell
 										bounds.height, 0, 0, bounds.width, bounds.height);
 							}
 						}
+					}}
+					catch (Exception ex){
+						Debug.out(ex);
 					}
 				}
 			});
@@ -551,18 +556,9 @@ public class LightBoxShell
 
 				Rectangle bounds = styledShell.getBounds();
 				if (bounds.width != width || bounds.height != height) {
-//					styledShell.setVisible(false);
-//					if (null != processedImage) {
-//						GC gc = new GC(parentShell);
-//						gc.drawImage(processedImage, 0, 0);
-//						gc.dispose();
-//					}
 					styledShell.setSize(width, height);
 					Utils.centerWindowRelativeTo(styledShell, lbShell);
 					setRegion();
-//					styledShell.setVisible(true);
-					//					styledShell.redraw();
-
 				}
 			}
 		}
