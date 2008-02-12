@@ -388,7 +388,7 @@ public class LightBoxShell
 		private Composite content;
 
 		private StyledShell(int borderWidth) {
-			styledShell = new Shell(lbShell, SWT.NO_TRIM | SWT.APPLICATION_MODAL);
+			styledShell = new Shell(lbShell, SWT.NO_TRIM );
 
 			FillLayout fillLayout = new FillLayout();
 			fillLayout.marginHeight = borderWidth;
