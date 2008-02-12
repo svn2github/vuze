@@ -36,6 +36,7 @@ import com.aelitis.azureus.plugins.extseed.ExternalSeedReader;
 import com.aelitis.azureus.plugins.extseed.impl.ExternalSeedReaderImpl;
 import com.aelitis.azureus.plugins.extseed.impl.ExternalSeedReaderRequest;
 import com.aelitis.azureus.plugins.extseed.util.ExternalSeedHTTPDownloader;
+import com.aelitis.azureus.plugins.extseed.util.ExternalSeedHTTPDownloaderListener;
 
 public class 
 ExternalSeedReaderWebSeed
@@ -125,16 +126,16 @@ ExternalSeedReaderWebSeed
 	
 	protected void
 	readData(
-		ExternalSeedReaderRequest	request )
+		int									piece_number,
+		int									piece_offset,
+		int									length,
+		ExternalSeedHTTPDownloaderListener	listener )
 	
 		throws ExternalSeedException
 	{		
-		long	piece = request.getStartPieceNumber();
-		
-		long	piece_start = request.getStartPieceOffset();
-		long	piece_end	= piece_start + request.getLength()-1;
+		long	piece_end	= piece_offset + length - 1;
 			
-		String	str = url_prefix + "&piece=" + piece + "&ranges=" + piece_start + "-" + piece_end;
+		String	str = url_prefix + "&piece=" + piece_number + "&ranges=" + piece_offset + "-" + piece_end;
 				
 		setReconnectDelay( RECONNECT_DEFAULT, false );
 		
@@ -150,11 +151,11 @@ ExternalSeedReaderWebSeed
 			
 			if ( supports_503 ){
 				
-				http_downloader.downloadSocket( request.getLength(), request, isTransient() );
+				http_downloader.downloadSocket( length, listener, isTransient() );
 
 			}else{
 				
-				http_downloader.download( request.getLength(), request, isTransient() );
+				http_downloader.download( length, listener, isTransient() );
 			}			
 			
        }catch( ExternalSeedException ese ){

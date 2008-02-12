@@ -188,17 +188,29 @@ ExternalSeedReaderGetRight
 	{
 		return( true );
 	}
+		
+	protected void
+	readData(
+		ExternalSeedReaderRequest	request )
+	
+		throws ExternalSeedException
+	{	
+		readData( request.getStartPieceNumber(), request.getStartPieceOffset(), request.getLength(), request );
+	}
 	
 	protected void
 	readData(
-		final ExternalSeedReaderRequest	request )
+		int											start_piece_number,
+		int											start_piece_offset,
+		int											length,
+		final ExternalSeedHTTPDownloaderListener	listener )
 	
 		throws ExternalSeedException
-	{
+	{	
 		setReconnectDelay( RECONNECT_DEFAULT, false );
 		
-		long	request_start 	= request.getStartPieceNumber() * piece_size + request.getStartPieceOffset();
-		int		request_length	= request.getLength();
+		long	request_start 	= start_piece_number * piece_size + start_piece_offset;
+		int		request_length	= length;
 		
 		if ( http_downloaders.length == 1 ){
 		
@@ -208,7 +220,7 @@ ExternalSeedReaderGetRight
 				http_downloader.downloadRange( 
 						request_start, 
 						request_length,
-						request,
+						listener,
 						isTransient());
 	
 	        }catch( ExternalSeedException ese ){
@@ -282,7 +294,7 @@ ExternalSeedReaderGetRight
 			        	{
 							if ( current_buffer == null ){
 								
-								current_buffer 			= request.getBuffer();
+								current_buffer 			= listener.getBuffer();
 								current_buffer_position	= 0;
 								current_buffer_length	= Math.min( current_buffer.length, sub_len - bytes_read );
 							}
@@ -296,7 +308,7 @@ ExternalSeedReaderGetRight
 			        	{
 			        		current_buffer_position	= position;
 			        		
-			        		request.setBufferPosition( position );
+			        		listener.setBufferPosition( position );
 			        	}
 			        	
 			        	public int
@@ -316,7 +328,13 @@ ExternalSeedReaderGetRight
 			        	
 			        		throws ExternalSeedException
 			        	{
-			        		return( request.getPermittedBytes());
+			        		return( listener.getPermittedBytes());
+			        	}
+			        	
+			        	public int 
+			        	getPermittedTime() 
+			        	{	
+			        		return( listener.getPermittedTime());
 			        	}
 			        	
 			        	public void
@@ -325,7 +343,7 @@ ExternalSeedReaderGetRight
 			        	{
 			        		bytes_read += num;
 			        		
-			        		request.reportBytesRead( num );
+			        		listener.reportBytesRead( num );
 			        	}
 			        	
 			        	public void
@@ -358,7 +376,7 @@ ExternalSeedReaderGetRight
 			        		
 			        		if ( rem == 0 ){
 			        			
-			        			request.done();
+			        			listener.done();
 			        		}
 			        	}
 					};

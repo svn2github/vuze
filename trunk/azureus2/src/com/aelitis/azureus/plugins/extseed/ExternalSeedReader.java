@@ -105,6 +105,15 @@ ExternalSeedReader
 	public int
 	getPercentDoneOfCurrentIncomingRequest();
 	
+	public byte[]
+	read(
+		int			piece_number,
+		int			offset,
+		int			length,
+		int			timeout )
+	
+		throws ExternalSeedException;
+	
 	public void
 	deactivate(
 		String	reason );

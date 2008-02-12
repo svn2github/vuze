@@ -23,14 +23,17 @@
 
 package org.gudy.azureus2.pluginsimpl.local;
 
+import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.disk.DiskManager;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
+import org.gudy.azureus2.pluginsimpl.local.peers.PeerManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 
 public class 
@@ -85,4 +88,19 @@ PluginCoreUtils
 	{
 		return(((DownloadImpl)dm).getDownload());
 	}
+	
+	public static PeerManager
+	wrap(
+		PEPeerManager	pm )
+	{
+		return( PeerManagerImpl.getPeerManager( pm ));
+	}
+	
+	public static PEPeerManager
+	unwrap(
+		PeerManager		pm )
+	{
+		return(((PeerManagerImpl)pm).getDelegate());
+	}
+	
 }

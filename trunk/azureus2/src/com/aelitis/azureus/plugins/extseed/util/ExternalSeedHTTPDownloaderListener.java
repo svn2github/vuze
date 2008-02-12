@@ -47,6 +47,9 @@ ExternalSeedHTTPDownloaderListener
 	
 		throws ExternalSeedException;
 	
+	public int
+   	getPermittedTime();
+	
 	public void
 	reportBytesRead(
 		int		num );

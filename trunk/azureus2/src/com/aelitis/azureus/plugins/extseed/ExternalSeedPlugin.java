@@ -446,6 +446,30 @@ ExternalSeedPlugin
 		}	
 	}
 	
+	public ExternalSeedManualPeer[]
+	getManualWebSeeds(
+		Download	download )
+	{
+		try{
+			download_mon.enter();
+		
+			List	peers = (List)download_map.get( download );
+	
+			ExternalSeedManualPeer[]	result = new ExternalSeedManualPeer[peers.size()];
+			
+			for (int i=0;i<peers.size();i++){
+				
+				result[i] = new ExternalSeedManualPeer((ExternalSeedPeer)peers.get(i));
+			}
+			
+			return( result );
+			
+		}finally{
+			
+			download_mon.exit();
+		}	
+	}
+	
 	public int
 	getGlobalDownloadRateBytesPerSec()
 	{

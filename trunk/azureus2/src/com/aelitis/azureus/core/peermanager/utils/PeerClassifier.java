@@ -22,6 +22,15 @@
 
 package com.aelitis.azureus.core.peermanager.utils;
 
+import java.net.InetAddress;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.HostNameToIPResolver;
+import org.gudy.azureus2.core3.util.IPToHostNameResolver;
+
 /**
  * Handles peer client identification and banning.
  */
@@ -61,4 +70,66 @@ public class PeerClassifier {
   }
   
 
+  
+	private static Set	platform_ips = Collections.synchronizedSet(new HashSet());
+
+	
+		/**
+		 * This only works for ones that have been explicitly set as AZ ips
+		 * @param ip
+		 * @return
+		 */
+
+	public static boolean
+	isAzureusIP(
+		final String	ip )
+	{
+		return( platform_ips.contains( ip ));
+	}
+	
+	public static void
+	setAzureusIP(
+		final String	ip )
+	{
+		platform_ips.add( ip );
+	}
+	
+		/**
+		 * SYNC call!
+		 * @param ip
+		 * @return
+		 */
+	
+	public static boolean
+	testIfAzureusIP(
+		final String	ip )
+	{
+		try{
+			InetAddress address = HostNameToIPResolver.syncResolve( ip );
+			
+			final String host_address = address.getHostAddress();
+			
+			if ( platform_ips.contains( host_address )){
+	
+				return( true );
+			}
+			
+			String name = IPToHostNameResolver.syncResolve( ip, 10000 );
+			
+			String[]	ok_domains = Constants.AZUREUS_DOMAINS;
+			
+			for (int i=0;i<ok_domains.length;i++){
+				
+				if ( name.endsWith( "." + ok_domains[i] )){
+					
+					platform_ips.add( host_address );
+					
+					return( true );
+				}
+			}
+		}catch( Throwable e ){
+		}
+		
+		return( false );
+	}
 }

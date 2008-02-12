@@ -61,6 +61,7 @@ import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPositionManager;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
+import com.aelitis.azureus.core.peermanager.utils.PeerClassifier;
 import com.aelitis.net.udp.uc.PRUDPPacket;
 import com.aelitis.net.udp.uc.PRUDPPacketHandler;
 import com.aelitis.net.udp.uc.PRUDPPacketHandlerException;
@@ -2615,6 +2616,13 @@ TRTrackerBTAnnouncerImpl
 					    								    		
 					    		Long	l_up_speed = (Long)peer.get( "s" );
 					    		
+					    		boolean	biased = peer.containsKey("b");
+					    		
+					    		if ( biased ){
+					    			
+					    			PeerClassifier.setAzureusIP( ip );
+					    		}
+					    		
 								TRTrackerAnnouncerResponsePeerImpl new_peer = 
 									new TRTrackerAnnouncerResponsePeerImpl( 
 										PEPeerSource.PS_BT_TRACKER, 
@@ -2638,8 +2646,6 @@ TRTrackerBTAnnouncerImpl
 						    			extra = ",rtt=" + l_rtt;
 						    		}
 						    		
-						    		boolean	biased = peer.containsKey( "b" );
-
 						    		if ( biased ){
 						    			
 						    			extra += ",biased";

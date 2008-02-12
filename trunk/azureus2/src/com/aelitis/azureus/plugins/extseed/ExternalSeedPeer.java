@@ -140,6 +140,12 @@ ExternalSeedPeer
 		return( download );
 	}
 	
+	protected ExternalSeedReader
+	getReader()
+	{
+		return( reader );	
+	}
+	
 	protected void 
 	setState(
 		int newState )

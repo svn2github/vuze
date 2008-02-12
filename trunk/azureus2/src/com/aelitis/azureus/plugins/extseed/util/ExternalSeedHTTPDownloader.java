@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
 import java.net.PasswordAuthentication;
 import java.net.Socket;
 import java.net.URL;
@@ -35,7 +36,9 @@ import java.util.StringTokenizer;
 import org.gudy.azureus2.core3.security.SEPasswordListener;
 import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 
+import com.aelitis.azureus.core.util.Java15Utils;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedException;
 
 public class 
@@ -50,7 +53,7 @@ ExternalSeedHTTPDownloader
 	
 	private int			last_response;
 	private int			last_response_retry_after_secs;
-    
+    	
 	public
 	ExternalSeedHTTPDownloader(
 		URL		_url,
@@ -123,8 +126,24 @@ ExternalSeedHTTPDownloader
 				connection.setRequestProperty( prop_names[i], prop_values[i] );
 			}
 			
+			int	time_remaining	= listener.getPermittedTime();
+			
+			if ( time_remaining > 0 ){
+				
+				Java15Utils.setConnectTimeout( connection, time_remaining );
+			}
+						
 			connection.connect();
 			
+			time_remaining	= listener.getPermittedTime();
+								
+			if ( time_remaining < 0 ){
+				
+				throw( new IOException( "Timeout during connect" ));
+			}
+			
+			Java15Utils.setReadTimeout( connection, time_remaining );
+					
 			connected	= true;
 			
 			int	response = connection.getResponseCode();
@@ -344,11 +363,31 @@ ExternalSeedHTTPDownloader
 			
 			output_header += NL;
 			
-			System.out.println( "header: " + output_header );
+			int	time_remaining	= listener.getPermittedTime();
 			
-			socket = new Socket(  url.getHost(), url.getPort()==-1?url.getDefaultPort():url.getPort());
+			if ( time_remaining > 0 ){
+				
+				socket = new Socket();
+				
+				socket.connect( new InetSocketAddress( url.getHost(), url.getPort()==-1?url.getDefaultPort():url.getPort()), time_remaining );
+				
+			}else{
+		
+				socket = new Socket(  url.getHost(), url.getPort()==-1?url.getDefaultPort():url.getPort());
+			}
 			
 			connected	= true;
+			
+			time_remaining	= listener.getPermittedTime();
+
+			if ( time_remaining < 0 ){
+					
+				throw( new IOException( "Timeout during connect" ));
+				
+			}else if ( time_remaining > 0 ){
+				
+				socket.setSoTimeout( time_remaining );
+			}
 			
 			OutputStream	os = socket.getOutputStream();
 			

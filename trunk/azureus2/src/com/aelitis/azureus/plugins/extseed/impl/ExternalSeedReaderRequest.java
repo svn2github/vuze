@@ -190,6 +190,12 @@ ExternalSeedReaderRequest
 		return( reader.getPermittedBytes());
 	}
 	
+	public int 
+	getPermittedTime() 
+	{
+		return( 0 );	// no timeout
+	}
+	
 	public void
 	reportBytesRead(
 		int		num )

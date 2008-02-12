@@ -27,6 +27,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
 import org.gudy.azureus2.plugins.download.Download;
@@ -45,6 +46,7 @@ import com.aelitis.azureus.plugins.extseed.ExternalSeedPeer;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedReader;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedReaderListener;
+import com.aelitis.azureus.plugins.extseed.util.ExternalSeedHTTPDownloaderListener;
 
 public abstract class 
 ExternalSeedReaderImpl 
@@ -875,10 +877,109 @@ ExternalSeedReaderImpl
 		
 		return( requests.size());
 	}
-
-	protected abstract void
+	    
+	public byte[]
+   	read(
+   		int			piece_number,
+   		int			piece_offset,
+   		int			length,
+   		final int	timeout )
+   	
+   		throws ExternalSeedException
+   	{
+   		final byte[] 	result = new byte[ length ];
+   		
+   		ExternalSeedHTTPDownloaderListener listener =
+   			new ExternalSeedHTTPDownloaderListener()
+   			{
+   				private int		bp;
+   				private long	start_time = SystemTime.getCurrentTime();
+   				
+   				public byte[]
+   	        	getBuffer()
+   	        	
+   	        		throws ExternalSeedException
+   	        	{
+   					return( result );
+   	        	}
+   	        	
+   	        	public void
+   	        	setBufferPosition(
+   	        		int	position )
+   	        	{
+   	        		bp = position;
+   	        	}
+   	        	
+   	        	public int
+   	        	getBufferPosition()
+   	        	{
+   	        		return( bp );
+   	        	}
+   	        	
+   	        	public int
+   	        	getBufferLength()
+   	        	{
+   	        		return( result.length );
+   	        	}
+   	        	
+   	        	public int
+   	        	getPermittedBytes()
+   	        	
+   	        		throws ExternalSeedException
+   	        	{
+   	        		return( result.length );
+   	        	}
+   	        	
+   	        	public int
+   	        	getPermittedTime()
+   	        	{
+   	        		if ( timeout == 0 ){
+   	        			
+   	        			return( 0 );
+   	        		}
+   	        		
+   	        		int	rem = timeout - (int)( SystemTime.getCurrentTime() - start_time );
+   	        		
+   	        		if ( rem <= 0 ){
+   	        			
+   	        			return( -1 );
+   	        		}
+   	        		
+   	        		return( rem );
+   	        	}
+   	        	
+   	        	public void
+   	        	reportBytesRead(
+   	        		int		num )
+   	        	{        		
+   	        	}
+   	        	
+   	        	public void
+   	        	done()
+   	        	{        		
+   	        	}
+   			};
+   				
+   		readData( piece_number, piece_offset, length, listener );
+   		
+   		return( result );
+   	}
+	
+	protected void
 	readData(
 		ExternalSeedReaderRequest	request )
+	
+		throws ExternalSeedException
+	{	
+		readData( request.getStartPieceNumber(), request.getStartPieceOffset(), request.getLength(), request );
+	}
+	
+	protected abstract void
+	readData(
+		int									piece_number,
+		int									piece_offset,
+		int									length,
+		ExternalSeedHTTPDownloaderListener	listener )
 	
 		throws ExternalSeedException;
 	
