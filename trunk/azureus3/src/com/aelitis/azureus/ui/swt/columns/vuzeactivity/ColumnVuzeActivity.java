@@ -201,10 +201,10 @@ public class ColumnVuzeActivity
 					gcQuery.setTextAntialias(SWT.ON);
 					// no sync required, SWT is on single thread
 					FontData[] fontData = gcQuery.getFont().getFontData();
-					//fontData[0].setStyle(SWT.BOLD);
+					fontData[0].setStyle(SWT.BOLD);
 					// we can do a few more pixels because we have no text hanging below baseline
 					fontData[0].setName("Arial");
-					Utils.getFontHeightFromPX(device, fontData, gcQuery, 20);
+					Utils.getFontHeightFromPX(device, fontData, gcQuery, 17);
 					headerFont = new Font(device, fontData);
 				}
 				gcQuery.setFont(headerFont);
