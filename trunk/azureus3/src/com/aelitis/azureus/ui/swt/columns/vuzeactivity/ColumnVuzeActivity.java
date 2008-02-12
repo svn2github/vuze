@@ -211,7 +211,7 @@ public class ColumnVuzeActivity
 			}
 			Rectangle potentialArea = new Rectangle(x, 2, width - x - 2, 10000);
 			stringPrinter = new GCStringPrinter(gcQuery, entry.text, potentialArea,
-					0, style);
+					0, SWT.WRAP | SWT.TOP);
 			stringPrinter.calculateMetrics();
 			Point size = stringPrinter.getCalculatedSize();
 			//System.out.println(size + ";" + entry.text);
@@ -252,7 +252,7 @@ public class ColumnVuzeActivity
 
 			Rectangle urlHitArea = stringPrinter.getUrlHitArea();
 			if (urlHitArea != null) {
-				urlHitArea.y = y;
+				urlHitArea.y += y - 2;
 				int[] mouseOfs = cell.getMouseOffset();
 				if (mouseOfs != null && urlHitArea.contains(mouseOfs[0], mouseOfs[1])) {
 					stringPrinter.setUrlColor(colorLinkHover);
