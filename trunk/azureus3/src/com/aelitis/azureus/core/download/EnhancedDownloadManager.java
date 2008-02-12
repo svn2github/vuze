@@ -2262,7 +2262,7 @@ EnhancedDownloadManager
 												
 												while( current_peer != null ){
 													
-													log( "Intervention: peer=" + current_peer.getIP() + ", piece=" + piece_number + ", block_start=" + block_start + ", block_num=" + block_num + ", offset=" + block_start_offset + ", length=" + blocks_length );
+													log( "Intervention: peer=" + current_peer.getIP() + ", piece=" + piece_number + ", block_start=" + block_start + ", block_num=" + block_num + ", offset=" + block_start_offset + ", length=" + blocks_length + ", rem=" + remaining );
 													
 													try{
 														byte[] data = current_peer.read( piece_number, block_start_offset, blocks_length, remaining );
@@ -2344,7 +2344,7 @@ EnhancedDownloadManager
 							
 							if ( !found ){
 								
-								log( "Intervention: queueing piece " + piece_number + ", stall_time=" + stall_time );
+								log( "Intervention: queueing piece " + piece_number + ", stall_time=" + ( stall_time - SystemTime.getCurrentTime()));
 								
 								request_list.add( new long[]{ piece_number, stall_time });
 								
