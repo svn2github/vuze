@@ -204,7 +204,7 @@ public class ColumnVuzeActivity
 					//fontData[0].setStyle(SWT.BOLD);
 					// we can do a few more pixels because we have no text hanging below baseline
 					fontData[0].setName("Arial");
-					Utils.getFontHeightFromPX(device, fontData, gcQuery, 22);
+					Utils.getFontHeightFromPX(device, fontData, gcQuery, 20);
 					headerFont = new Font(device, fontData);
 				}
 				gcQuery.setFont(headerFont);
