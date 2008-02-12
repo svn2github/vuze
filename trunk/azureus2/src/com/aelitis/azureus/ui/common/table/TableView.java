@@ -356,4 +356,12 @@ public interface TableView
 	int getRowDefaultHeight();
 	
 	boolean isColumnVisible(TableColumn column);
+
+	/**
+	 * @param position
+	 * @return
+	 *
+	 * @since 3.0.4.3
+	 */
+	TableRowCore getRow(int position);
 }
