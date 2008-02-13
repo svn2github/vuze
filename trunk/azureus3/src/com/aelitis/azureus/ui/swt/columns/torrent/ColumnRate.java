@@ -264,6 +264,7 @@ public class ColumnRate
 			}
 
 			boolean showAverage = !useButton;
+			boolean showRateActionIcon = useButton;
 
 			Image imgRate = null;
 			if (allowRate) {
@@ -271,7 +272,8 @@ public class ColumnRate
 				boolean rowHasMouse = (row instanceof TableRowCore)
 						? ((TableRowCore) row).isMouseOver() : false;
 				if (rowHasMouse && userRating == -1) {
-					showAverage = false;
+					//showAverage = false;
+					showRateActionIcon = true;
 				}
 
 				switch (userRating) {
@@ -309,6 +311,9 @@ public class ColumnRate
 			}
 
 			if (showAverage) {
+				if (showRateActionIcon) {
+					gcImage.setAlpha(40);
+				}
 				Rectangle r = img.getBounds();
 				int bigTextStyle = SWT.RIGHT;
 				int smallTextStyle = SWT.RIGHT;
@@ -379,7 +384,13 @@ public class ColumnRate
 					GCStringPrinter.printString(gcImage, "" + count + " ratings",
 							rectDrawRatings, true, false, SWT.BOTTOM | smallTextStyle);
 				}
-			} else {
+
+				if (showRateActionIcon) {
+					gcImage.setAlpha(255);
+				}
+			}
+			
+			if (showRateActionIcon) {
 				if (imgRate != null) {
 					Point drawPos = getRateIconPos(imgRate.getBounds(), width, height);
 					gcImage.drawImage(imgRate, drawPos.x, drawPos.y);
@@ -612,7 +623,7 @@ public class ColumnRate
 			}
 			if (changed && cell != null) {
 				refresh(cell, true);
-			} else {
+			} else if (event.row != null) {
 				((TableRowCore) event.row).invalidate();
 				((TableRowCore) event.row).redraw();
 			}
