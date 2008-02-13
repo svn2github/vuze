@@ -32,9 +32,10 @@ import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableColumnSortObject;
 
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderAdapter;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderListener;
 
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
-
 
 /**
  * 
@@ -48,10 +49,14 @@ import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDown
 public class VuzeActivitiesEntry
 	implements TableColumnSortObject
 {
+	public static int TYPE_HEADER = 0;
+	
+	public static int TYPE_DATA = 1;
+
 	public static int SORT_DATE = 0;
-	
+
 	public static int sortBy = SORT_DATE;
-	
+
 	public String text;
 
 	public String icon;
@@ -61,7 +66,7 @@ public class VuzeActivitiesEntry
 	public int type;
 
 	private long timestamp;
-	
+
 	public String typeID;
 
 	public String assetHash;
@@ -69,17 +74,17 @@ public class VuzeActivitiesEntry
 	public String assetImageURL;
 
 	public DownloadManager dm;
-	
+
 	public Object urlHitArea;
-	
+
 	public String url;
-	
+
 	public TableColumnCore tableColumn;
-	
+
 	public byte[] imageBytes;
 
-	public VuzeActivitiesEntry(long timestamp, int type, String text, String icon,
-			String id) {
+	public VuzeActivitiesEntry(long timestamp, int type, String text,
+			String icon, String id) {
 		this.type = 1;
 		this.text = text;
 		this.icon = icon;
@@ -88,8 +93,8 @@ public class VuzeActivitiesEntry
 		this.timestamp = timestamp;
 	}
 
-	public VuzeActivitiesEntry(long timestamp, String text, String icon, String id, String typeID,
-			String assetHash) {
+	public VuzeActivitiesEntry(long timestamp, String text, String icon,
+			String id, String typeID, String assetHash) {
 		this.type = 1;
 		this.timestamp = timestamp;
 		this.text = text;
@@ -124,13 +129,13 @@ public class VuzeActivitiesEntry
 		// we are bigger
 		return 1;
 	}
-	
+
 	public static VuzeActivitiesEntry readFromMap(Map map) {
 		VuzeActivitiesEntry entry = new VuzeActivitiesEntry();
 		if (map == null || map.size() == 0) {
 			return entry;
 		}
-		
+
 		entry.timestamp = MapUtils.getMapLong(map, "timestamp", 0);
 		entry.assetHash = MapUtils.getMapString(map, "assetHash", null);
 		entry.icon = MapUtils.getMapString(map, "icon", null);
@@ -139,28 +144,48 @@ public class VuzeActivitiesEntry
 		entry.typeID = MapUtils.getMapString(map, "typeID", null);
 		entry.type = MapUtils.getMapInt(map, "type", 1);
 		entry.setAssetImageURL(MapUtils.getMapString(map, "assetImageURL", null));
-		
+
 		if (entry.assetHash != null) {
 			GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-			entry.dm = gm.getDownloadManager(new HashWrapper(Base32.decode(entry.assetHash)));
+			entry.dm = gm.getDownloadManager(new HashWrapper(
+					Base32.decode(entry.assetHash)));
 		}
-		
+
 		return entry;
 	}
 
-	// TODO: Async
-	public  void setAssetImageURL(String url) {
-		assetImageURL = url;
-		if (url == null) {
+	public void setAssetImageURL(final String url) {
+		if (url == null && assetImageURL == null) {
 			return;
 		}
+		if (url == null) {
+			assetImageURL = null;
+			VuzeActivitiesManager.triggerEntryChanged(VuzeActivitiesEntry.this);
+			return;
+		} if (url.equals(assetImageURL)) {
+			return;
+		}
+
+		assetImageURL = url;
 		try {
-			ResourceDownloader rd = ResourceDownloaderFactoryImpl.getSingleton().create(new URL(url));
-			InputStream is = rd.download();
-			if (is != null && is.available() > 0) {
-  			imageBytes = new byte[is.available()];
-  			is.read(imageBytes);
-			}
+			ResourceDownloader rd = ResourceDownloaderFactoryImpl.getSingleton().create(
+					new URL(url));
+			rd.addListener(new ResourceDownloaderAdapter() {
+				public boolean completed(ResourceDownloader downloader, InputStream is) {
+					try {
+						if (is != null && is.available() > 0) {
+							imageBytes = new byte[is.available()];
+							is.read(imageBytes);
+						}
+						VuzeActivitiesManager.triggerEntryChanged(VuzeActivitiesEntry.this);
+						return true;
+					} catch (Exception e) {
+						Debug.out(e);
+					}
+					return false;
+				}
+			});
+			rd.asyncDownload();
 		} catch (Exception e) {
 			Debug.out(e);
 		}
@@ -175,7 +200,7 @@ public class VuzeActivitiesEntry
 			try {
 				map.put("assetHash", dm.getTorrent().getHashWrapper().toBase32String());
 			} catch (Exception e) {
-			}			
+			}
 		}
 		map.put("icon", icon);
 		map.put("id", id);
