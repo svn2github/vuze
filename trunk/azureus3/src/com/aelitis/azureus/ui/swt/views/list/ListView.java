@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.IView;
@@ -873,7 +874,7 @@ public class ListView
 			int ofs = getBottomRowHeight(iThisVBarPos);
 			// image moved up.. gap at bottom
 			int i = visibleRows.length - 1;
-			
+
 			if (i < 0) {
 				if (DEBUGPAINT) {
 					logPAINT("No rows visible! This shouldn't happen");
@@ -938,15 +939,40 @@ public class ListView
 		menuHeader = new Menu(headerArea.getShell(), SWT.POP_UP);
 		headerArea.setMenu(menuHeader);
 
-		MenuItem itemEdit = new MenuItem(menuHeader, SWT.PUSH);
-		itemEdit.setText(MessageText.getString("MyTorrentsView.menu.editTableColumns"));
-		itemEdit.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event event) {
-				String tableID = getTableID();
-				TableRowCore focusedRow = getFocusedRow();
-				new TableColumnEditorWindow(getComposite().getShell(), tableID,
-						getAllColumns(), focusedRow,
-						TableStructureEventDispatcher.getInstance(tableID));
+		menuHeader.addMenuListener(new MenuListener() {
+
+			public void menuShown(MenuEvent e) {
+				Point pt = headerArea.toControl(headerArea.getDisplay().getCursorLocation());
+				final TableColumnCore inColumn = getColumnHeaderMouseIn(pt.x, pt.y);
+				if (inColumn != null) {
+					MenuItem itemSortOn = new MenuItem(menuHeader, SWT.PUSH);
+					Messages.setLanguageText(itemSortOn, "menu.sortByColumn",
+							new String[] {
+								MessageText.getString(inColumn.getTitleLanguageKey())
+							});
+					itemSortOn.addListener(SWT.Selection, new Listener() {
+						public void handleEvent(Event event) {
+							setSortColumn(inColumn);
+						}
+					});
+				}
+
+				MenuItem itemEdit = new MenuItem(menuHeader, SWT.PUSH);
+				itemEdit.setText(MessageText.getString("MyTorrentsView.menu.editTableColumns"));
+				itemEdit.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event) {
+						String tableID = getTableID();
+						TableRowCore focusedRow = getFocusedRow();
+						new TableColumnEditorWindow(getComposite().getShell(), tableID,
+								getAllColumns(), focusedRow,
+								TableStructureEventDispatcher.getInstance(tableID));
+					}
+				});
+			}
+
+			public void menuHidden(MenuEvent e) {
+				MenuItem[] items = menuHeader.getItems();
+				Utils.disposeSWTObjects(items);
 			}
 		});
 
@@ -975,20 +1001,12 @@ public class ListView
 				if (e.button != 1) {
 					return;
 				}
-				TableColumnCore[] columns = getVisibleColumns();
-				int inColumn = -1;
-				for (int i = 0; i < columns.length; i++) {
-					Rectangle bounds = (Rectangle) headerArea.getData("Column" + i
-							+ "Bounds");
-					if (bounds != null && bounds.contains(e.x, e.y)) {
-						inColumn = i;
-						break;
-					}
-				}
-				if (inColumn != -1) {
-					setSortColumn(columns[inColumn]);
+
+				TableColumnCore inColumn = getColumnHeaderMouseIn(e.x, e.y);
+				if (inColumn != null) {
+					setSortColumn(inColumn);
 					if (DEBUG_SORTER) {
-						log("sorting on " + columns[inColumn].getName());
+						log("sorting on " + inColumn.getName());
 					}
 				}
 			}
@@ -1107,6 +1125,28 @@ public class ListView
 				}
 			}
 		});
+	}
+
+	/**
+	 * 
+	 *
+	 * @return 
+	 * @since 3.0.4.3
+	 */
+	protected TableColumnCore getColumnHeaderMouseIn(int x, int y) {
+		TableColumnCore[] columns = getVisibleColumns();
+		int inColumn = -1;
+		for (int i = 0; i < columns.length; i++) {
+			Rectangle bounds = (Rectangle) headerArea.getData("Column" + i + "Bounds");
+			if (bounds != null && bounds.contains(x, y)) {
+				inColumn = i;
+				break;
+			}
+		}
+		if (inColumn != -1) {
+			return columns[inColumn];
+		}
+		return null;
 	}
 
 	public Menu getTableHeaderMenu() {
@@ -2716,7 +2756,6 @@ public class ListView
 				scrollTo(y);
 			}
 
-
 		}
 		//System.out.println(sTableID + "] show done " + row + ";" + y
 		//		+ ";totalheight=" + totalHeight + ";vbar=" + iLastVBarPos);
@@ -3970,11 +4009,11 @@ public class ListView
 	public boolean isColumnVisible(TableColumn column) {
 		return true;
 	}
-	
+
 	public int getRowMarginHeight() {
 		return rowMarginHeight;
 	}
-	
+
 	public void setRowMarginHeight(int h) {
 		rowMarginHeight = h;
 	}
