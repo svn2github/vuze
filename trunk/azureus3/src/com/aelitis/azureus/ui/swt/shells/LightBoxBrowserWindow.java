@@ -51,8 +51,6 @@ public class LightBoxBrowserWindow
 
 	private int browserHeight = 300;
 
-	private boolean isInitializing = true;
-
 	public LightBoxBrowserWindow(String url, String prefixVerifier, int width,
 			int height) {
 		this.url = url;
@@ -74,7 +72,7 @@ public class LightBoxBrowserWindow
 	public LightBoxBrowserWindow(String url) {
 		this(url, null, 0, 0);
 	}
-	
+
 	public void init() {
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if (null == uiFunctions) {
@@ -90,12 +88,11 @@ public class LightBoxBrowserWindow
 		IMainWindow mainWindow = uiFunctions.getMainWindow();
 		Rectangle r = mainWindow.getMetrics(IMainWindow.WINDOW_ELEMENT_STATUSBAR);
 		lightBoxShell.setInsets(0, r.height, 0, 0);
-		lightBoxShell.setBrightness(.4f, 200);
 
 		/*
 		 * Create the StyledShell to host the browser
 		 */
-		styledShell = lightBoxShell.createStyledShell(15, true);
+		styledShell = lightBoxShell.createStyledShell(10, true);
 
 		/*
 		 * Sets the cursor to busy since loading the light box and accompanying browser can take some time;
@@ -186,7 +183,8 @@ public class LightBoxBrowserWindow
 
 			public void changed(ProgressEvent event) {
 				if (event.current == event.total) {
-					styledShell.setCursor(null);
+					styledShell.setCursor(Display.getCurrent().getSystemCursor(
+							SWT.CURSOR_ARROW));
 				}
 			}
 		});
@@ -238,7 +236,6 @@ public class LightBoxBrowserWindow
 				styledShell.setSize(browserWidth, browserHeight);
 			}
 		});
-		
 
 	}
 }
