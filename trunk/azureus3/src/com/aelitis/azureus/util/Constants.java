@@ -43,22 +43,14 @@ public class Constants
 
 	public static final String DEFAULT_PORT = "80";
 
-	public static String URL_ADDRESS = System.getProperty("platform_address", DEFAULT_ADDRESS);
+	public static String URL_ADDRESS = System.getProperty("platform_address",
+			DEFAULT_ADDRESS);
 
-	public static String URL_PORT = System.getProperty("platform_port", DEFAULT_PORT);
+	public static String URL_PORT = System.getProperty("platform_port",
+			DEFAULT_PORT);
 
-	public static final String URL_PREFIX = "http://" + URL_ADDRESS + ":" + URL_PORT + "/";
-	
-	/**
-	 * A shortened version of the URL prefix without the port number specified.
-	 * This is added so that the <code>LightBoxBrowserWindow</code> can load the AJAX-enabled
-	 * web pages on Safari.  There is an unexplained behavior in Safari when loading these web
-	 * pages with the default port number of 80... they do not load.  The possible resolutions
-	 * are use port 8080 or leave the port number out of the URL.  We've decided to leave the
-	 * port number out. KN 
-	 * 
-	 */
-	public static final String URL_PREFIX_NO_PORT = "http://" + URL_ADDRESS + "/";
+	public static final String URL_PREFIX = "http://" + URL_ADDRESS + ":"
+			+ URL_PORT + "/";
 
 	public static String URL_SUFFIX;
 
@@ -83,33 +75,32 @@ public class Constants
 	public static final String URL_DOWNLOAD = "download/";
 
 	public static final String URL_FAQ = URL_PREFIX + "Support.html";
-   
+
 	public static final String URL_PUBLISH_INFO = URL_PREFIX + "Publish.html";
-	
+
 	public static final String URL_RPC = "rpc/";
 
 	public static final String URL_POP_UP = "?popup";
 
 	public static final String URL_LOGIN = "login.start";
-	
+
 	public static final String URL_LOGOUT = "logout.start";
 
 	public static final String URL_REGISTRATION = "register.start";
-	
+
 	public static final String URL_PROFILE = "profile.start";
-	
+
 	public static final String URL_ACCOUNT = "account.start";
-	
-	
+
 	public static final boolean DIAG_TO_STDOUT = System.getProperty(
 			"DIAG_TO_STDOUT", "0").equals("1");
-	
+
 	public static String AZID;
 
 	public static void initialize(AzureusCore core) {
 		AZID = Base32.encode(core.getCryptoManager().getSecureID());
 		URL_SUFFIX = "azid=" + AZID + "&azv="
-				+ org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION
-				+ "&locale=" + Locale.getDefault().toString();
+				+ org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION + "&locale="
+				+ Locale.getDefault().toString();
 	}
 }

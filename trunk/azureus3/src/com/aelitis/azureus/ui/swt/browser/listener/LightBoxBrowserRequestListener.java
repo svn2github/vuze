@@ -40,6 +40,7 @@ public class LightBoxBrowserRequestListener
 	}
 
 	public void handleResize() {
+		System.err.println(getWidth()+ " : " + getHeight() );
 		browserWindow.setSize(getWidth(), getHeight());
 	}
 
