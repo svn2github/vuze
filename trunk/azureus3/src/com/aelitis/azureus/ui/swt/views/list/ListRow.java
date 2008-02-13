@@ -294,7 +294,6 @@ public class ListRow
 		long lTimeStart = System.currentTimeMillis();
 		Rectangle oldClipping = gc.getClipping();
 		try {
-			gc.setForeground(getForeground());
 			gc.setBackground(getBackground());
 			//gc.setBackground(Display.getDefault().getSystemColor((int)(Math.random() * 16)));
 
@@ -303,10 +302,17 @@ public class ListRow
 			int yofs = view.rowGetVisibleYOffset(this);
 			gc.fillRectangle(0, yofs, clientArea.width, height);
 			if (isFocused()) {
+				if (skinProperties != null) {
+					gc.setForeground(skinProperties.getColor("color.row.focus"));
+				} else {
+					gc.setForeground(getForeground());
+				}
 				gc.setLineStyle(SWT.LINE_DOT);
 				gc.drawRectangle(0, yofs, clientArea.width - 1, height - 1);
 			}
 
+			gc.setForeground(getForeground());
+			
 			for (int i = 0; i < visibleColumns.length; i++) {
 				long lTimeStart2 = System.currentTimeMillis();
 
