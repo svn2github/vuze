@@ -1797,7 +1797,7 @@ DownloadManagerStateImpl
 		String		name,
 		String[]	values )
 	{
-		List	list = values==null?null:Arrays.asList(values.clone());
+		List	list = values==null?null:Arrays.asList((Object[]) values.clone());
 		/*
 		if ( list != null ){
 			
