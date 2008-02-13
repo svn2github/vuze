@@ -56,7 +56,7 @@ public class UserAreaUtils
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
 
 					String url = Constants.URL_PREFIX + Constants.URL_LOGIN + "?" + Constants.URL_SUFFIX;
-					new LightBoxBrowserWindow(url);
+					new LightBoxBrowserWindow(url,"Sign In", 0,0);
 
 				}
 			});
@@ -90,7 +90,7 @@ public class UserAreaUtils
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
 					if (null != uiFunctions) {
 						String url = Constants.URL_PREFIX + Constants.URL_REGISTRATION + "?" + Constants.URL_SUFFIX;
-						new LightBoxBrowserWindow(url);
+						new LightBoxBrowserWindow(url, "Sign Up",0,0);
 					}
 
 				}
@@ -133,15 +133,6 @@ public class UserAreaUtils
 			});
 		}
 
-		/*
-		 * Hide the user area on start-up until we get an update from the RuntimeInfoManager;
-		 * at which point we will determine which panel to show
-		 * 
-		 */
-		//		skinObject = skin.getSkinObject("user-area-logged-in");
-		//		skinObject.setVisible(false);
-		//		skinObject = skin.getSkinObject("user-area-logged-out");
-		//		skinObject.setVisible(false);
 		LoginInfoManager.getInstance().addListener(new ILoginInfoListener() {
 			public void loginUpdate(LoginInfo info) {
 				synchLoginStates(info.userName, info.userID, info.isNewOrUpdated);

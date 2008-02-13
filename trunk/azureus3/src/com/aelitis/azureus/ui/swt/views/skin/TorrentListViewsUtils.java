@@ -102,7 +102,7 @@ public class TorrentListViewsUtils
 						String url = Constants.URL_PREFIX + "emp/" + Constants.URL_SHARE
 								+ hash + Constants.URL_POP_UP;
 
-						new LightBoxBrowserWindow(url);
+						new LightBoxBrowserWindow(url, "Embedded Media Player",0,0);
 
 					}
 				}
