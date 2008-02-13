@@ -2177,34 +2177,39 @@ public class OpenTorrentWindow
 				} catch (TOTorrentException e1) {
 				}
 
-				DownloadManager dm = gm.addDownloadManager(info.sFileName, hash,
-						info.sDestDir, info.sDestSubDir, iStartState, true,
-						info.iStartID == STARTMODE_SEEDING,
-						new DownloadManagerInitialisationAdapter() {
-							public void initialised(DownloadManager dm) {
-								DiskManagerFileInfo[] fileInfos = dm.getDiskManagerFileInfo();
-								for (int iIndex = 0; iIndex < fileInfos.length; iIndex++) {
-									DiskManagerFileInfo fileInfo = fileInfos[iIndex];
-									if (iIndex >= 0 && iIndex < files.length
-											&& files[iIndex].lSize == fileInfo.getLength()) {
-
-										File fDest = files[iIndex].getDestFileFullName();
-										if (files[iIndex].isLinked()) {
-											// Can't use fileInfo.setLink(fDest) as it renames
-											// the existing file if there is one
-											dm.getDownloadState().setFileLink(fileInfo.getFile(false), fDest);
-										}
-
-										if (!files[iIndex].bDownload) {
-											fileInfo.setSkipped(true);
-											if (!fDest.exists()) {
-												fileInfo.setStorageType(DiskManagerFileInfo.ST_COMPACT);
-											}
-										}
+				DownloadManager dm = gm.addDownloadManager(info.sFileName, hash, info.sDestDir, info.sDestSubDir, iStartState, true, info.iStartID == STARTMODE_SEEDING, new DownloadManagerInitialisationAdapter()
+				{
+					public void initialised(DownloadManager dm) {
+						DiskManagerFileInfo[] fileInfos = dm.getDiskManagerFileInfo();
+						try
+						{
+							dm.getDownloadState().supressStateSave(true);
+							for (int iIndex = 0; iIndex < fileInfos.length; iIndex++)
+							{
+								DiskManagerFileInfo fileInfo = fileInfos[iIndex];
+								if (iIndex >= 0 && iIndex < files.length && files[iIndex].lSize == fileInfo.getLength())
+								{
+									File fDest = files[iIndex].getDestFileFullName();
+									if (files[iIndex].isLinked())
+									{
+										// Can't use fileInfo.setLink(fDest) as it renames
+										// the existing file if there is one
+										dm.getDownloadState().setFileLink(fileInfo.getFile(false), fDest);
+									}
+									if (!files[iIndex].bDownload)
+									{
+										fileInfo.setSkipped(true);
+										if (!fDest.exists())
+											fileInfo.setStorageType(DiskManagerFileInfo.ST_COMPACT);
 									}
 								}
 							}
-						});
+						} finally
+						{
+							dm.getDownloadState().supressStateSave(false);
+						}
+					}
+				});
 
 				// If dm is null, most likely there was an error printed.. let's hope
 				// the user was notified and skip the error quietly.

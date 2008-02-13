@@ -328,4 +328,6 @@ DownloadManagerState
 	boolean parameterExists(String name);
 	
 	public void generateEvidence(IndentWriter writer);
+	
+	public void supressStateSave(boolean supress);
 }

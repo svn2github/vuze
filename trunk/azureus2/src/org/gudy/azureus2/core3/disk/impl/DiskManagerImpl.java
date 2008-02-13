@@ -2402,7 +2402,7 @@ DiskManagerImpl
     DiskManagerFileInfo[]   files )
   {
     if ( files == null ) return;
-    List file_priorities = new ArrayList();
+    List file_priorities = new ArrayList(files.length);
     for (int i=0; i < files.length; i++) {
       DiskManagerFileInfo file = files[i];
       if (file == null) return;

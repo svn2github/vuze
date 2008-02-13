@@ -125,6 +125,8 @@ DownloadManagerStateImpl
 	private AEMonitor	this_mon	= new AEMonitor( "DownloadManagerState" );
 	
 	private boolean firstPrimaryFileRead = true;
+	
+	private boolean supressWrites = false;
 
 
 	private static DownloadManagerState
@@ -716,9 +718,16 @@ DownloadManagerStateImpl
 		torrent.setDiscardFluff(true);
 	}
 	
+	public void supressStateSave(boolean supress) {
+		supressWrites = supress;
+	}
+	
 	public void
 	save()
 	{
+		if(supressWrites)
+			return;
+			
  		boolean do_write;
 
 		try {
@@ -1788,15 +1797,15 @@ DownloadManagerStateImpl
 		String		name,
 		String[]	values )
 	{
-		List	list = values==null?null:new ArrayList();
-		
+		List	list = values==null?null:Arrays.asList(values.clone());
+		/*
 		if ( list != null ){
 			
 			for (int i=0;i<values.length;i++){
 				
 				list.add( values[i]);
 			}
-		}
+		}*/
 		
 		setListAttribute( name, list );
 	}
@@ -1852,10 +1861,10 @@ DownloadManagerStateImpl
 		
 		try{
 			this_mon.enter();
-					
-			List	res = new ArrayList();
-	
+			
 			List	values = (List)attributes.get( attribute_name );
+			
+			List	res = new ArrayList(values != null ? values.size() : 0);
 		
 			if ( values != null ){
 				
@@ -2472,6 +2481,8 @@ DownloadManagerStateImpl
 	        String peerSource) {
 	      return false;
 	    }
+	    
+	    public void supressStateSave(boolean supress) {}
 		
 		public void
 		setPeerSources(
