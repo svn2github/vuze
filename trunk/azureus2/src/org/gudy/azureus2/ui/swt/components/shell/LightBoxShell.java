@@ -210,7 +210,7 @@ public class LightBoxShell
 
 		private StyledShell(int borderWidth) {
 			styledShell = new Shell(lbShell, SWT.NO_TRIM);
-			styledShell.setAlpha(210);
+			styledShell.setAlpha(230);
 			styledShell.setBackground(new Color(parentShell.getDisplay(), 38, 38, 38));
 
 			FillLayout fillLayout = new FillLayout();
