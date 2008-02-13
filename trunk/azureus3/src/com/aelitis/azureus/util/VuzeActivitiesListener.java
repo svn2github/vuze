@@ -28,4 +28,6 @@ public interface VuzeActivitiesListener
 	public void vuzeNewsEntriesAdded(VuzeActivitiesEntry[] entries);
 
 	public void vuzeNewsEntriesRemoved(VuzeActivitiesEntry[] entries);
+	
+	public void vuzeNewsEntryChanged(VuzeActivitiesEntry entry);
 }

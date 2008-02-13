@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
- 
+
 package com.aelitis.azureus.util;
 
 import java.util.*;
@@ -42,14 +42,20 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
  */
 public class VuzeActivitiesManager
 {
-	private static final long DEFAULT_PLATFORM_REFRESH = 60 * 60 * 1000L * 24;
+	public static final long MAX_LIFE_MS = 1000L * 60 * 60 * 24 * 30;
 
-	private static final long MAX_LIFE_MS = 1000L * 60 * 60 * 24 * 30;
+	private static final long DEFAULT_PLATFORM_REFRESH = 60 * 60 * 1000L * 24;
 
 	private static final long RATING_REMINDER_DELAY = 1000L * 60 * 60 * 24 * 3;
 
 	private static final String SAVE_FILENAME = "VuzeActivities.config";
 
+	protected static final String TYPEID_DL_COMPLETE = "DL-Complete";
+
+	protected static final String TYPEID_DL_ADDED = "DL-Added";
+
+	protected static final String TYPEID_DL_REMOVE = "DL-Remove";
+	
 	private static ArrayList listeners = new ArrayList();
 
 	private static ArrayList allEntries = new ArrayList();
@@ -83,7 +89,8 @@ public class VuzeActivitiesManager
 		loadEvents();
 
 		replyListener = new PlatformVuzeActivitiesMessenger.GetEntriesReplyListener() {
-			public void gotVuzeNewsEntries(VuzeActivitiesEntry[] entries, long refreshInMS) {
+			public void gotVuzeNewsEntries(VuzeActivitiesEntry[] entries,
+					long refreshInMS) {
 				if (diag_logger != null) {
 					diag_logger.log("Received Reply from platform with " + entries.length
 							+ " entries.  Refresh in " + refreshInMS);
@@ -107,7 +114,7 @@ public class VuzeActivitiesManager
 			}
 		};
 
-		pullVuzeNewsEntriesNow(5000);
+		pullActivitiesNow(5000);
 
 		dmListener = new DownloadManagerListener() {
 
@@ -147,7 +154,7 @@ public class VuzeActivitiesManager
 					entry.setTimestamp(SystemTime.getCurrentTime());
 					entry.id = hash + ";c" + entry.getTimestamp();
 					entry.text = title + " has completed downloading";
-					entry.typeID = "";
+					entry.typeID = TYPEID_DL_COMPLETE;
 					entry.dm = dm;
 
 					addEntries(new VuzeActivitiesEntry[] {
@@ -176,6 +183,12 @@ public class VuzeActivitiesManager
 					if (PlatformTorrentUtils.getAdId(dm.getTorrent()) != null) {
 						return;
 					}
+					
+					//VuzeActivitiesEntry[] entries = getAllEntries();
+					//for (int i = 0; i < entries.length; i++) {
+					//	VuzeActivitiesEntry oldEntry = entries[i];
+					//}
+					
 					VuzeActivitiesEntry entry = new VuzeActivitiesEntry();
 
 					String hash = dm.getTorrent().getHashWrapper().toBase32String();
@@ -194,7 +207,7 @@ public class VuzeActivitiesManager
 					entry.setTimestamp(SystemTime.getCurrentTime());
 					entry.id = hash + ";r" + entry.getTimestamp();
 					entry.text = title + " has been removed from your library";
-					entry.typeID = "";
+					entry.typeID = TYPEID_DL_REMOVE;
 					addEntries(new VuzeActivitiesEntry[] {
 						entry
 					});
@@ -237,7 +250,7 @@ public class VuzeActivitiesManager
 					entry.id = hash + ";a" + addedOn;
 					entry.text = title + " has been added to your download list";
 					entry.setTimestamp(addedOn);
-					entry.typeID = "";
+					entry.typeID = TYPEID_DL_ADDED;
 					entry.dm = dm;
 					addEntries(new VuzeActivitiesEntry[] {
 						entry
@@ -294,14 +307,42 @@ public class VuzeActivitiesManager
 	}
 
 	/**
+	 * Pull entries from webapp
+	 * 
+	 * @param delay max time to wait before running request
+	 *
+	 * @since 3.0.4.3
+	 */
+	public static void pullActivitiesNow(long delay) {
+		PlatformVuzeActivitiesMessenger.getEntries(Math.min(
+				SystemTime.getCurrentTime() - lastVuzeNewsAt, MAX_LIFE_MS), delay,
+				replyListener);
+		lastVuzeNewsAt = SystemTime.getCurrentTime();
+	}
+
+	/**
+	 * Pull entries from webapp
+	 * 
+	 * @param agoMS Pull all events within this timespan (ms)
+	 * @param delay max time to wait before running request
+	 *
+	 * @since 3.0.4.3
+	 */
+	public static void pullActivitiesNow(long agoMS, long delay) {
+		PlatformVuzeActivitiesMessenger.getEntries(agoMS, delay, replyListener);
+		lastVuzeNewsAt = SystemTime.getCurrentTime();
+	}
+
+	/**
+	 * Clear the removed entries list so that an entry that was once deleted will
+	 * will be able to be added again
 	 * 
 	 *
 	 * @since 3.0.4.3
 	 */
-	public static void pullVuzeNewsEntriesNow(long delay) {
-		PlatformVuzeActivitiesMessenger.getEntries(Math.min(SystemTime.getCurrentTime()
-				- lastVuzeNewsAt, MAX_LIFE_MS), delay, replyListener);
-		lastVuzeNewsAt = SystemTime.getCurrentTime();
+	public static void resetRemovedEntries() {
+		removedEntries.clear();
+		saveEvents();
 	}
 
 	/**
@@ -466,5 +507,19 @@ public class VuzeActivitiesManager
 		if (diag_logger != null) {
 			diag_logger.log(s);
 		}
+	}
+
+	/**
+	 * @param vuzeActivitiesEntry
+	 *
+	 * @since 3.0.4.3
+	 */
+	public static void triggerEntryChanged(VuzeActivitiesEntry entry) {
+		Object[] listenersArray = listeners.toArray();
+		for (int i = 0; i < listenersArray.length; i++) {
+			VuzeActivitiesListener l = (VuzeActivitiesListener) listenersArray[i];
+			l.vuzeNewsEntryChanged(entry);
+		}
+		saveEvents();
 	}
 }
