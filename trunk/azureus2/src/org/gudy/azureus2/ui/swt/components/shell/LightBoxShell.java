@@ -78,7 +78,12 @@ public class LightBoxShell
 	private void createControls() {
 		lbShell = new Shell(parentShell, SWT.NO_TRIM | SWT.APPLICATION_MODAL);
 		lbShell.setBackground(new Color(parentShell.getDisplay(), 100, 100, 100));
-		lbShell.setAlpha(128);
+		try {
+			lbShell.setAlpha(128);
+		} catch (Throwable t) {
+			// Not supported on SWT older than 3.4M4
+			t.printStackTrace();
+		}
 
 		display = parentShell.getDisplay();
 
@@ -210,8 +215,13 @@ public class LightBoxShell
 
 		private StyledShell(int borderWidth) {
 			styledShell = new Shell(lbShell, SWT.NO_TRIM);
-			styledShell.setAlpha(230);
 			styledShell.setBackground(new Color(parentShell.getDisplay(), 38, 38, 38));
+			try {
+				styledShell.setAlpha(230);
+			} catch (Throwable t) {
+				// Not supported on SWT older than 3.4M4
+				t.printStackTrace();
+			}
 
 			FillLayout fillLayout = new FillLayout();
 			fillLayout.marginHeight = borderWidth;
