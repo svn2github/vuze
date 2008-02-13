@@ -47,7 +47,7 @@ public class GCStringPrinter
 	private static final int FLAG_NODRAW = 4;
 
 	private static final Pattern patHREF = Pattern.compile(
-			"<.*a\\s++.*href=\"(.+?)\">(.+?)</a>", Pattern.CASE_INSENSITIVE);
+			"<.*a\\s++.*href\\s*=\\s*\"(.+?)\">(.+?)</a>", Pattern.CASE_INSENSITIVE);
 
 	private GC gc;
 
