@@ -75,7 +75,7 @@ public class ColumnVuzeActivity
 	private static Font headerFont = null;
 
 	private static SimpleDateFormat timeFormat = new SimpleDateFormat(
-			"EEEE, MMMM d, yyyy\nh:mm:ss a");
+			"h:mm:ss a, EEEE, MMMM d, yyyy");
 
 	private Color colorLinkNormal;
 
@@ -355,12 +355,6 @@ public class ColumnVuzeActivity
 		disposeExisting(cell, image);
 
 		cell.setGraphic(new UISWTGraphicImpl(image));
-		if (entry.type > 0) {
-			String ts = timeFormat.format(new Date(entry.getTimestamp()));
-			cell.setToolTip(ts);
-		} else {
-			cell.setToolTip(null);
-		}
 	}
 
 	private void disposeExisting(TableCell cell, Image exceptIfThisImage) {
@@ -529,12 +523,27 @@ public class ColumnVuzeActivity
 			}
 		}
 
+		Object ds = event.cell.getDataSource();
+		if (ds instanceof VuzeActivitiesEntry) {
+			VuzeActivitiesEntry entry = (VuzeActivitiesEntry) ds;
+			boolean inHitArea = new Rectangle(0, 0, EVENT_INDENT, EVENT_INDENT).contains(
+					event.x, event.y);
+
+			if (entry.type > 0 && inHitArea) {
+				String ts = timeFormat.format(new Date(entry.getTimestamp()));
+				event.cell.setToolTip("Activity occurred on " + ts);
+			} else {
+				event.cell.setToolTip(null);
+			}
+		}
+
 		refresh(event.cell, true);
 	}
 
 	private Rectangle getDMImageRect(int cellHeight) {
-		return new Rectangle(EVENT_INDENT + 4, cellHeight - 52 - MARGIN_HEIGHT, 82,
-				52);
+		//return new Rectangle(0, cellHeight - 50 - MARGIN_HEIGHT, 16, 50);
+		return new Rectangle(EVENT_INDENT + 4, cellHeight - 50 - MARGIN_HEIGHT, 82,
+				50);
 	}
 
 	private Rectangle getDMRatingRect(int cellWidth, int cellHeight) {
