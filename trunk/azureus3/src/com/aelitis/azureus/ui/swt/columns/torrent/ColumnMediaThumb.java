@@ -188,8 +188,8 @@ public class ColumnMediaThumb
 					} catch (Exception e) {
 						// may not be avail
 					}
-					if (showPlayButton) {
-						gc.setAlpha(80);
+					if (!showPlayButton) {
+						gc.setAlpha(180);
 					}
 					gc.drawImage(img, 0, 0, w, h, 0, 0, w2, h2);
 
@@ -199,17 +199,20 @@ public class ColumnMediaThumb
 								? SWT.CURSOR_HAND : SWT.CURSOR_ARROW);
 					}
 
+					gc.setAlpha(255);
 					if (showPlayButton) {
-						gc.setAlpha(255);
 
 						if (imgPlay != null) {
-							int h3 = (int) (h2 * 0.8);
-							int w3 = h3 * imgPlayBounds.width / imgPlayBounds.height;
-							int x = (w2 - w3) / 2;
-							int y = (h2 - h3) / 2;
+							int imgW = imgPlayBounds.width;
+							int imgH = imgPlayBounds.height;
 
-							gc.drawImage(imgPlay, 0, 0, imgPlayBounds.width,
-									imgPlayBounds.height, x, y, w3, h3);
+							float h3 = (int) (h2 * 0.8);
+							float w3 = h3 * imgW / imgH;
+							float x = (w2 - w3) / 2;
+							float y = (h2 - h3) / 2;
+
+							gc.drawImage(imgPlay, 0, 0, imgW,
+									imgH, (int) x, (int)y, (int) (w3), (int) (h3));
 						}
 					}
 
