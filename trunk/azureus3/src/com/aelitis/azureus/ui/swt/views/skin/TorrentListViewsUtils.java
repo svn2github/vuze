@@ -423,9 +423,16 @@ public class TorrentListViewsUtils
 	}
 
 	private static boolean canProgressiveOrIsComplete(TOTorrent torrent) {
+		if (torrent == null) {
+			return false;
+		}
 		try {
 			EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(
 					torrent.getHash());
+			
+			if (edm == null) {
+				return false;
+			}
 
 			boolean complete = edm.getDownloadManager().isDownloadComplete(false);
 			if (complete) {
