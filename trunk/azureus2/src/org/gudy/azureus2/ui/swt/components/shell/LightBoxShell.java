@@ -1,13 +1,13 @@
 package org.gudy.azureus2.ui.swt.components.shell;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.*;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.IMainWindow;
 
@@ -22,10 +22,6 @@ public class LightBoxShell
 	private Shell parentShell = null;
 
 	private Rectangle fadedAreaExtent = null;
-
-	private float lightPercentage = .5f;
-
-	private int alpha = 255;
 
 	private int top = 0;
 
@@ -72,11 +68,6 @@ public class LightBoxShell
 		createControls();
 	}
 
-	public void setBrightness(float lightPercentage, int alpha) {
-		this.lightPercentage = Math.min(Math.max(lightPercentage, 0f), 1f);
-		this.alpha = Math.max(Math.min(alpha, 255), 0);
-	}
-
 	public void setInsets(int top, int bottom, int left, int right) {
 		this.top = top;
 		this.bottom = bottom;
@@ -86,6 +77,10 @@ public class LightBoxShell
 
 	private void createControls() {
 		lbShell = new Shell(parentShell, SWT.NO_TRIM | SWT.APPLICATION_MODAL);
+		lbShell.setBackground(new Color(parentShell.getDisplay(), 100, 100, 100));
+		lbShell.setAlpha(128);
+
+		display = parentShell.getDisplay();
 
 		/*
 		 * Trap and prevent the ESC key from closing the shell
@@ -100,25 +95,11 @@ public class LightBoxShell
 			});
 		}
 
-		lbShell.addPaintListener(new PaintListener() {
-			public void paintControl(PaintEvent e) {
-				if (null != processedImage && false == processedImage.isDisposed()) {
-					Rectangle clipping = e.gc.getClipping();
-					e.gc.drawImage(processedImage, clipping.x, clipping.y,
-							clipping.width, clipping.height, clipping.x, clipping.y,
-							clipping.width, clipping.height);
-				}
-			}
-		});
-
-		//		createFadedImage();
 	}
 
 	public void open() {
 		if (null != lbShell) {
 			lbShell.setBounds(getTargetArea());
-			createFadedImage();
-			//			createBlurredImage();
 			isShellOpened = true;
 			lbShell.open();
 		}
@@ -164,114 +145,6 @@ public class LightBoxShell
 	}
 
 	/**
-	 * Creates a darken, faded, and blurred image
-	 */
-	private void createBlurredImage() {
-		display = parentShell.getDisplay();
-		GC gc = new GC(display);
-		Image originalBackground = new Image(display, getTargetArea());
-		gc.copyArea(originalBackground, getTargetArea().x, getTargetArea().y);
-		gc.dispose();
-
-		ImageData imageData = originalBackground.getImageData();
-		ImageData imageDataNew = originalBackground.getImageData();
-		PaletteData palette = imageData.palette;
-		imageData.alpha = alpha;
-		if (null != palette) {
-
-			int[] lookup = new int[256];
-			for (int i = 0; i < lookup.length; i++) {
-				lookup[i] = (int) (i * lightPercentage);
-			}
-
-			RGB rgbNew = new RGB(0, 0, 0);
-			RGB rgbMinus = new RGB(0, 0, 0);
-			RGB rgb = new RGB(0, 0, 0);
-			RGB rgbPlus = new RGB(0, 0, 0);
-			int[] lineData = new int[imageData.width];
-			for (int y = 0; y < imageData.height; y++) {
-				imageData.getPixels(0, y, imageData.width, lineData, 0);
-
-				for (int x = 1; x < (lineData.length - 1); x++) {
-
-					rgbMinus = palette.getRGB(lineData[x - 1]);
-					rgb = palette.getRGB(lineData[x]);
-					rgbPlus = palette.getRGB(lineData[x + 1]);
-
-					rgbNew.red = lookup[(rgbMinus.red + rgb.red + rgbPlus.red) / 3];
-					rgbNew.green = lookup[(rgbMinus.green + rgb.green + rgbPlus.green) / 3];
-					rgbNew.blue = lookup[(rgbMinus.blue + rgb.blue + rgbPlus.blue) / 3];
-
-					imageDataNew.setPixel(x, y, palette.getPixel(rgbNew));
-				}
-			}
-		}
-
-		processedImage = new Image(display, getTargetArea());
-		gc = new GC(processedImage);
-		gc.setBackground(display.getSystemColor(SWT.COLOR_GRAY));
-		gc.fillRectangle(0, 0, getTargetArea().width, getTargetArea().height);
-		gc.drawImage(new Image(display, imageData), 0, 0);
-
-		lbShell.setBackgroundImage(processedImage);
-
-		gc.dispose();
-		originalBackground.dispose();
-
-	}
-
-	/**
-	 * Creates a darken and faded image
-	 */
-	private void createFadedImage() {
-		display = parentShell.getDisplay();
-		GC gc = new GC(display);
-
-		Image originalBackground = new Image(display, getTargetArea());
-		gc.copyArea(originalBackground, getTargetArea().x, getTargetArea().y);
-		gc.dispose();
-
-		ImageData imageData = originalBackground.getImageData();
-		PaletteData palette = imageData.palette;
-		imageData.alpha = alpha;
-		if (null != palette) {
-
-			int[] lookup = new int[256];
-			for (int i = 0; i < lookup.length; i++) {
-				lookup[i] = (int) (i * lightPercentage);
-			}
-
-			RGB rgb = new RGB(0, 0, 0);
-
-			int[] lineData = new int[imageData.width];
-			for (int y = 0; y < imageData.height; y++) {
-				imageData.getPixels(0, y, imageData.width, lineData, 0);
-
-				for (int x = 0; x < lineData.length; x++) {
-
-					rgb = palette.getRGB(lineData[x]);
-					rgb.red = lookup[rgb.red];
-					rgb.green = lookup[rgb.green];
-					rgb.blue = lookup[rgb.blue];
-
-					imageData.setPixel(x, y, palette.getPixel(rgb));
-				}
-			}
-		}
-
-		processedImage = new Image(display, getTargetArea());
-		gc = new GC(processedImage);
-		gc.setBackground(display.getSystemColor(SWT.COLOR_GRAY));
-		gc.fillRectangle(0, 0, getTargetArea().width, getTargetArea().height);
-		gc.drawImage(new Image(display, imageData), 0, 0);
-
-		lbShell.setBackgroundImage(processedImage);
-
-		gc.dispose();
-		originalBackground.dispose();
-	}
-
-	/**
 	 * Creates a stylized shell with pre-defined look and feel
 	 * @param closeLightboxOnExit
 	 * @return
@@ -289,34 +162,6 @@ public class LightBoxShell
 
 		}
 		return newShell;
-	}
-
-	/**
-	 * Centers and opens the given shell and closes the light box when the given shell is closed
-	 * @param shellToOpen
-	 */
-	public void open(Shell shellToOpen) {
-		if (null != shellToOpen && null != lbShell) {
-
-			if (false == isShellOpened) {
-				open();
-			}
-
-			Utils.centerWindowRelativeTo(shellToOpen, lbShell);
-
-			shellToOpen.open();
-
-			/*
-			 * Block the return from this method until the given shell is closed
-			 */
-			//			Display display = shellToOpen.getDisplay();
-			//			while (!shellToOpen.isDisposed()) {
-			//				if (!display.readAndDispatch()) {
-			//					display.sleep();
-			//				}
-			//			}
-			close();
-		}
 	}
 
 	/**
@@ -357,38 +202,16 @@ public class LightBoxShell
 		}
 	}
 
-	private void fadeDisplay(int delayInSeconds) {
-		GC gc = new GC(display);
-		Rectangle bounds = lbShell.getBounds();
-		ImageData imageData = processedImage.getImageData();
-		imageData.alpha = 255;
-		Image image = new Image(display, imageData);
-		for (int i = 0; i < delayInSeconds; i++) {
-			gc.drawImage(image, bounds.x, bounds.y);
-			imageData.alpha -= 30;
-			image = new Image(display, imageData);
-
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-		lbShell.redraw();
-		image.dispose();
-		gc.dispose();
-	}
-
 	public class StyledShell
 	{
 		private Shell styledShell;
 
-		private Image trimImage;
-
 		private Composite content;
 
 		private StyledShell(int borderWidth) {
-			styledShell = new Shell(lbShell, SWT.NO_TRIM );
+			styledShell = new Shell(lbShell, SWT.NO_TRIM);
+			styledShell.setAlpha(210);
+			styledShell.setBackground(new Color(parentShell.getDisplay(), 38, 38, 38));
 
 			FillLayout fillLayout = new FillLayout();
 			fillLayout.marginHeight = borderWidth;
@@ -409,25 +232,6 @@ public class LightBoxShell
 				}
 			});
 
-			styledShell.addPaintListener(new PaintListener() {
-				public void paintControl(PaintEvent e) {
-					try{
-					if (null != trimImage && false == trimImage.isDisposed()) {
-						if (null != styledShell && false == styledShell.isDisposed()) {
-							if (null != lbShell && false == lbShell.isDisposed()) {
-								Rectangle bounds = styledShell.getBounds();
-								e.gc.drawImage(trimImage, bounds.x - lbShell.getBounds().x,
-										bounds.y - lbShell.getBounds().y, bounds.width,
-										bounds.height, 0, 0, bounds.width, bounds.height);
-							}
-						}
-					}}
-					catch (Exception ex){
-						Debug.out(ex);
-					}
-				}
-			});
-
 			styledShell.addDisposeListener(new DisposeListener() {
 				public void widgetDisposed(DisposeEvent e) {
 					if (null != processedImage && false == processedImage.isDisposed()) {
@@ -438,60 +242,35 @@ public class LightBoxShell
 
 		}
 
-		private void createBackGround() {
-			GC gc = new GC(processedImage);
-			Image originalBackground = new Image(display, processedImage.getBounds());
-			gc.copyArea(originalBackground, 0, 0);
-			gc.dispose();
-
-			ImageData imageData = originalBackground.getImageData();
-			PaletteData palette = imageData.palette;
-			//			imageData.alpha = 255;
-			if (null != palette) {
-
-				int[] lookup = new int[256];
-				for (int i = 0; i < lookup.length; i++) {
-					lookup[i] = (int) (i * .5);
-				}
-
-				RGB rgb = new RGB(0, 0, 0);
-
-				int[] lineData = new int[imageData.width];
-				for (int y = 0; y < imageData.height; y++) {
-					imageData.getPixels(0, y, imageData.width, lineData, 0);
-
-					for (int x = 0; x < lineData.length; x++) {
-
-						rgb = palette.getRGB(lineData[x]);
-						rgb.red = lookup[rgb.red];
-						rgb.green = lookup[rgb.green];
-						rgb.blue = lookup[rgb.blue];
-
-						imageData.setPixel(x, y, palette.getPixel(rgb));
-					}
-				}
-			}
-			trimImage = new Image(display, imageData);
-			styledShell.setBackgroundImage(originalBackground);
-			//			originalBackground.dispose();
-		}
-
 		private void setRegion() {
 			Rectangle bounds = styledShell.getBounds();
 			int r = 10;
 			int d = r * 2;
 			Region region = new Region();
+
+			/*
+			 * Add the 4 circles for the rounded corners
+			 */
 			region.add(circle(r, r, r));
 			region.add(circle(r, r, bounds.height - r));
 			region.add(circle(r, bounds.width - r, r));
 			region.add(circle(r, bounds.width - r, bounds.height - r));
 
-			region.add(new Rectangle(r - 1, 0, bounds.width - d + 2, r));
+			/*
+			 * Rectangle connecting between the top-left and top-right circles
+			 */
+			region.add(new Rectangle(r, 0, bounds.width - d, r));
 
-			region.add(new Rectangle(r - 1, bounds.height - r, bounds.width - d + 2,
-					r));
+			/*
+			 * Rectangle connecting between the bottom-left and bottom-right circles
+			 */
+			region.add(new Rectangle(r, bounds.height - r, bounds.width - d, r));
 
+			/*
+			 * Rectangle to fill the area between the 2 bars created above
+			 */
 			region.add(new Rectangle(0, r, bounds.width, bounds.height - d));
+
 			styledShell.setRegion(region);
 		}
 
@@ -521,7 +300,6 @@ public class LightBoxShell
 			if (true == isAlive()) {
 				Utils.centerWindowRelativeTo(styledShell, lbShell);
 				setRegion();
-				createBackGround();
 				styledShell.open();
 			}
 		}
