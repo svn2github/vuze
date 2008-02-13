@@ -34,6 +34,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.swt.columns.vuzeactivity.ColumnVuzeActivity;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
@@ -102,8 +103,17 @@ public class VuzeActivitiesView
 				if (e.keyCode == SWT.DEL) {
 					removeSelected();
 				} else if (e.keyCode == SWT.F5) {
-					System.out.println("pull vuze news entries");
-					VuzeActivitiesManager.pullVuzeNewsEntriesNow(0);
+					if ((e.stateMask & SWT.SHIFT) > 0) {
+						VuzeActivitiesManager.resetRemovedEntries();
+					}
+					if ((e.stateMask & SWT.CONTROL) > 0) {
+						System.out.println("pull all vuze news entries");
+						VuzeActivitiesManager.pullActivitiesNow(
+								VuzeActivitiesManager.MAX_LIFE_MS, 0);
+					} else {
+						System.out.println("pull latest vuze news entries");
+						VuzeActivitiesManager.pullActivitiesNow(0);
+					}
 				}
 			}
 		});
@@ -281,5 +291,13 @@ public class VuzeActivitiesView
 	// @see com.aelitis.azureus.util.VuzeNewsListener#vuzeNewsEntriesRemoved(com.aelitis.azureus.util.VuzeNewsEntry[])
 	public void vuzeNewsEntriesRemoved(VuzeActivitiesEntry[] entries) {
 		view.removeDataSources(entries);
+	}
+
+	// @see com.aelitis.azureus.util.VuzeActivitiesListener#vuzeNewsEntryChanged(com.aelitis.azureus.util.VuzeActivitiesEntry)
+	public void vuzeNewsEntryChanged(VuzeActivitiesEntry entry) {
+		TableRowCore row = view.getRow(entry);
+		if (row != null) {
+			row.invalidate();
+		}
 	}
 }
