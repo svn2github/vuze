@@ -175,11 +175,12 @@ public class LightBoxBrowserWindow
 				/*
 				 * If a prefixVerifier is specified then verify the loaded page
 				 */
-				if (null != prefixVerifier) {
-					if (null == title || false == title.startsWith(prefixVerifier)) {
-						stack.topControl = errorPanel;
-					}
-				}
+//KN: disabled until we finalize
+				//				if (null != prefixVerifier) {
+//					if (null == title || false == title.startsWith(prefixVerifier)) {
+//						stack.topControl = errorPanel;
+//					}
+//				}
 				contentPanel.layout();
 				lightBoxShell.open(styledShell);
 
