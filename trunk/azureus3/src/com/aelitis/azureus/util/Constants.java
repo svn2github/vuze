@@ -62,7 +62,7 @@ public class Constants
 
 	public static final String URL_BIG_BROWSE = "browse.start";
 
-	public static final String URL_MINI_BROWSE = "minibrowse.start";
+	public static final String URL_MINI_BROWSE = "dashboard.start";
 
 	public static final String URL_PUBLISH = "publish.start";
 
