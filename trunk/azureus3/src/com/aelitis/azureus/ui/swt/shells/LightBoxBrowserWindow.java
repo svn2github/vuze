@@ -107,8 +107,9 @@ public class LightBoxBrowserWindow
 		 */
 		contentPanel = styledShell.getContent();
 		contentPanel.setLayout(stack);
+		contentPanel.setBackground(new Color(null, 0, 0, 0));
 		errorPanel = new Composite(contentPanel, SWT.NONE);
-		errorPanel.setBackground(new Color(null, 13, 13, 13));
+		errorPanel.setBackground(new Color(null, 0, 0, 0));
 
 		/*
 		 * The Browser widget is very platform-dependent and can only support a limited set
@@ -122,7 +123,7 @@ public class LightBoxBrowserWindow
 		try {
 			browser = new Browser(contentPanel, SWT.NONE);
 		} catch (Throwable t) {
-			//TODO:  show no browser error!!!!
+			stack.topControl = errorPanel;
 		}
 
 		if (browserWidth > 0 && browserHeight > 0) {
@@ -133,6 +134,8 @@ public class LightBoxBrowserWindow
 			hookListeners();
 			setUrl(url);
 			stack.topControl = browser;
+		} else {
+			stack.topControl = errorPanel;
 		}
 
 		contentPanel.layout();
@@ -167,24 +170,17 @@ public class LightBoxBrowserWindow
 		browser.addProgressListener(new ProgressListener() {
 			public void completed(ProgressEvent event) {
 
-				////KN: disabled until the new error page is designed by UX and until all pages
-				// have been updated with the proper title prefixes
+				stack.topControl = browser;
 
-//				stack.topControl = browser;
-//
-//				/*
-//				 * If a prefixVerifier is specified then verify the loaded page
-//				 */
-//				if (null != prefixVerifier) {
-//					if (null == title || false == title.startsWith(prefixVerifier)) {
-//						//						stack.topControl = errorPanel;
-//						String errorHTML = "<html><body style='overflow:auto; font-family: verdana; font-size: 10pt' bgcolor=#000000 text=#e0e0e0>"
-//								+ "<div style='word-wrap: break-word'><font size=1 color=#aaaaaa>Sorry, there was a problem loading this page. <br>Please press ESC to continue</font></div>"
-//								+ "</body></html>";
-//						browser.setText(errorHTML);
-//					}
-//				}
-//				contentPanel.layout();
+				/*
+				 * If a prefixVerifier is specified then verify the loaded page
+				 */
+				if (null != prefixVerifier) {
+					if (null == title || false == title.startsWith(prefixVerifier)) {
+						stack.topControl = errorPanel;
+					}
+				}
+				contentPanel.layout();
 				lightBoxShell.open(styledShell);
 
 			}
