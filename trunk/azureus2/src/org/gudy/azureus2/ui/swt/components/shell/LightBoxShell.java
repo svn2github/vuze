@@ -77,9 +77,26 @@ public class LightBoxShell
 
 	private void createControls() {
 		lbShell = new Shell(parentShell, SWT.NO_TRIM | SWT.APPLICATION_MODAL);
-		lbShell.setBackground(new Color(parentShell.getDisplay(), 100, 100, 100));
+
 		try {
-			lbShell.setAlpha(128);
+			/*
+			 * For the ideal lightbox effect we set the mask (background color)
+			 * and transparency (alpha value) differently for OSX vs. non-OSX
+			 */
+			if (true == Constants.isOSX) {
+				/*
+				 * Black mask with 50% transparency
+				 */
+				lbShell.setBackground(new Color(parentShell.getDisplay(), 0, 0, 0));
+				lbShell.setAlpha(128);
+			} else {
+				/*
+				 * Light gray mask with 43% transparency
+				 */
+				lbShell.setBackground(new Color(parentShell.getDisplay(), 28, 28, 28));
+				lbShell.setAlpha(110);
+			}
+
 		} catch (Throwable t) {
 			// Not supported on SWT older than 3.4M4
 			t.printStackTrace();
