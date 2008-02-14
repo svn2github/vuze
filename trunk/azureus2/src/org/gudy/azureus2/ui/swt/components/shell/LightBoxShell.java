@@ -1,8 +1,7 @@
 package org.gudy.azureus2.ui.swt.components.shell;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.*;
@@ -230,7 +229,10 @@ public class LightBoxShell
 
 		private Composite content;
 
+		private int borderWidth;
+
 		private StyledShell(int borderWidth) {
+			this.borderWidth = borderWidth;
 			styledShell = new Shell(lbShell, SWT.NO_TRIM);
 			try {
 				/*
@@ -258,7 +260,62 @@ public class LightBoxShell
 			fillLayout.marginWidth = borderWidth;
 			styledShell.setLayout(fillLayout);
 
-			content = new Composite(styledShell, SWT.NONE);
+			final Composite borderedBackground = new Composite(styledShell, SWT.NONE);
+			fillLayout = new FillLayout();
+			fillLayout.marginHeight = borderWidth;
+			fillLayout.marginWidth = borderWidth;
+			borderedBackground.setLayout(fillLayout);
+
+			content = new Composite(borderedBackground, SWT.NONE);
+			styledShell.layout();
+			borderedBackground.addPaintListener(new PaintListener() {
+
+				public void paintControl(PaintEvent e) {
+
+					Rectangle bounds = borderedBackground.getClientArea();
+					int r = StyledShell.this.borderWidth;
+					int d = r * 2;
+
+					e.gc.setAntialias(SWT.ON);
+
+					/*
+					 * Fills the entire area with the StyleShell background color so it blends in with the shell
+					 */
+					e.gc.setBackground(styledShell.getBackground());
+					e.gc.fillRectangle(bounds);
+
+					/*
+					 * Then paint in the rounded corner rectangle
+					 */
+					e.gc.setBackground(content.getBackground());
+
+					/*
+					 * Paint the 4 circles for the rounded corners
+					 */
+					e.gc.fillPolygon(circle(r, r, r));
+					e.gc.fillPolygon(circle(r, r, bounds.height - r));
+					e.gc.fillPolygon(circle(r, bounds.width - r, r));
+					e.gc.fillPolygon(circle(r, bounds.width - r, bounds.height - r));
+
+					/*
+					 * Rectangle connecting between the top-left and top-right circles
+					 */
+					e.gc.fillRectangle(new Rectangle(r, 0, bounds.width - d, r));
+
+					/*
+					 * Rectangle connecting between the bottom-left and bottom-right circles
+					 */
+					e.gc.fillRectangle(new Rectangle(r, bounds.height - r, bounds.width
+							- d, r));
+
+					/*
+					 * Rectangle to fill the area between the 2 bars created above
+					 */
+					e.gc.fillRectangle(new Rectangle(0, r, bounds.width, bounds.height
+							- d));
+				}
+
+			});
 
 			styledShell.addListener(SWT.Traverse, new Listener() {
 				public void handleEvent(Event e) {
@@ -282,9 +339,9 @@ public class LightBoxShell
 
 		}
 
-		private void setRegion() {
-			Rectangle bounds = styledShell.getBounds();
-			int r = 10;
+		private Region getRoundedRegion(Rectangle bounds) {
+
+			int r = borderWidth;
 			int d = r * 2;
 			Region region = new Region();
 
@@ -311,11 +368,10 @@ public class LightBoxShell
 			 */
 			region.add(new Rectangle(0, r, bounds.width, bounds.height - d));
 
-			styledShell.setRegion(region);
+			return region;
 		}
 
-		private Region circle(int r, int offsetX, int offsetY) {
-			Region region = new Region();
+		private int[] circle(int r, int offsetX, int offsetY) {
 			int[] polygon = new int[8 * r + 4];
 			//x^2 + y^2 = r^2
 			for (int i = 0; i < 2 * r + 1; i++) {
@@ -326,8 +382,7 @@ public class LightBoxShell
 				polygon[8 * r - 2 * i - 2] = offsetX + x;
 				polygon[8 * r - 2 * i - 1] = offsetY - y;
 			}
-			region.add(polygon);
-			return region;
+			return polygon;
 		}
 
 		public void addListener(int eventType, Listener listener) {
@@ -339,7 +394,7 @@ public class LightBoxShell
 		private void open() {
 			if (true == isAlive()) {
 				Utils.centerWindowRelativeTo(styledShell, lbShell);
-				setRegion();
+				styledShell.setRegion(getRoundedRegion(styledShell.getBounds()));
 				styledShell.open();
 			}
 		}
@@ -376,7 +431,7 @@ public class LightBoxShell
 				if (bounds.width != width || bounds.height != height) {
 					styledShell.setSize(width, height);
 					Utils.centerWindowRelativeTo(styledShell, lbShell);
-					setRegion();
+					styledShell.setRegion(getRoundedRegion(styledShell.getBounds()));
 				}
 			}
 		}
