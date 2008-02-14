@@ -69,6 +69,8 @@ SFPluginDetailsLoaderImpl
 			
 			base_url_params += "&ui=" + URLEncoder.encode(COConfigurationManager.getStringParameter("ui"),"UTF-8" );
 			
+			base_url_params += "&java=" + URLEncoder.encode(System.getProperty( "java.version" ),"UTF-8" );
+			
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace(e);
