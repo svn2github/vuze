@@ -125,6 +125,13 @@ AzureusCoreStats
 	public static final String ST_TRACKER_SCRAPE_COUNT		= "tracker.scrape.count";
 	public static final String ST_TRACKER_SCRAPE_TIME		= "tracker.scrape.time";
 
+		// xfer (persistent)
+	
+	public static final String ST_XFER_UPLOADED_PROTOCOL_BYTES		= "xfer.upload.protocol.bytes.total";
+	public static final String ST_XFER_UPLOADED_DATA_BYTES			= "xfer.upload.data.bytes.total";
+	public static final String ST_XFER_DOWNLOADED_PROTOCOL_BYTES	= "xfer.download.protocol.bytes.total";
+	public static final String ST_XFER_DOWNLOADED_DATA_BYTES		= "xfer.download.data.bytes.total";
+
 	
 	public static final String	POINT 		= "Point";
 	public static final String	CUMULATIVE 	= "Cumulative";
@@ -204,6 +211,10 @@ AzureusCoreStats
 		{ ST_TRACKER_SCRAPE_COUNT,					CUMULATIVE },
 		{ ST_TRACKER_SCRAPE_TIME,					CUMULATIVE },
 
+		{ ST_XFER_UPLOADED_PROTOCOL_BYTES,			CUMULATIVE },
+		{ ST_XFER_UPLOADED_DATA_BYTES,				CUMULATIVE },
+		{ ST_XFER_DOWNLOADED_PROTOCOL_BYTES,		CUMULATIVE },
+		{ ST_XFER_DOWNLOADED_DATA_BYTES,			CUMULATIVE },	
 	};
 	
 	static{

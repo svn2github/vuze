@@ -21,17 +21,24 @@
 package org.gudy.azureus2.core3.stats.transfer.impl;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.global.impl.GlobalManagerAdpater;
 import org.gudy.azureus2.core3.stats.transfer.OverallStats;
+import org.gudy.azureus2.core3.tracker.server.TRTrackerServer;
+import org.gudy.azureus2.core3.tracker.server.TRTrackerServerStats;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreComponent;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
+import com.aelitis.azureus.core.stats.AzureusCoreStats;
+import com.aelitis.azureus.core.stats.AzureusCoreStatsProvider;
 
 
 /**
@@ -50,17 +57,31 @@ OverallStatsImpl
   
   private static final long	STATS_PERIOD	= 60*1000;	// 1 min
   
-  AzureusCore	core;
+  private AzureusCore	core;
    
-  long totalDownloaded;
-  long totalUploaded;
-  long totalUptime;
+  private long totalDownloaded;
+  private long totalUploaded;
+  private long totalUptime;
   
-  long lastDownloaded;
-  long lastUploaded;
-  long lastUptime; 
+  private long lastDownloaded;
+  private long lastUploaded;
+  private long lastUptime; 
   
-  long session_start_time = SystemTime.getCurrentTime();
+  
+  	// separate stats
+  
+  private long totalProtocolUploaded;
+  private long totalDataUploaded;
+  private long totalProtocolDownloaded;
+  private long totalDataDownloaded;
+  
+  private long lastProtocolUploaded;
+  private long lastDataUploaded;
+  private long lastProtocolDownloaded;
+  private long lastDataDownloaded;
+  
+  
+  private long session_start_time = SystemTime.getCurrentTime();
   
   protected AEMonitor	this_mon	= new AEMonitor( "OverallStats" );
 
@@ -104,7 +125,13 @@ OverallStatsImpl
 
     totalDownloaded = getLong( overallMap, "downloaded" );
 	totalUploaded = getLong( overallMap, "uploaded" );
-	totalUptime = getLong( overallMap, "uptime" );	    
+	totalUptime = getLong( overallMap, "uptime" );	
+	
+    totalProtocolUploaded 	= getLong( overallMap, "p_uploaded" );
+    totalDataUploaded 		= getLong( overallMap, "d_uploaded" );
+    totalProtocolDownloaded = getLong( overallMap, "p_downloaded" );
+    totalDataDownloaded 	= getLong( overallMap, "d_downloaded" );
+
   }
   
   protected long
@@ -132,8 +159,44 @@ OverallStatsImpl
 	core	= _core;
 	
     Map 	stats = load();
+    
     validateAndLoadValues(stats);
 
+	Set	types = new HashSet();	
+	
+	types.add( AzureusCoreStats.ST_XFER_UPLOADED_PROTOCOL_BYTES );
+	types.add( AzureusCoreStats.ST_XFER_UPLOADED_DATA_BYTES );
+	types.add( AzureusCoreStats.ST_XFER_DOWNLOADED_PROTOCOL_BYTES );
+	types.add( AzureusCoreStats.ST_XFER_DOWNLOADED_DATA_BYTES );
+
+	AzureusCoreStats.registerProvider( 
+		types, 
+		new AzureusCoreStatsProvider()
+		{
+			public void
+			updateStats(
+				Set		types,
+				Map		values )
+			{	
+				if ( types.contains( AzureusCoreStats.ST_XFER_UPLOADED_PROTOCOL_BYTES )){
+					
+					values.put( AzureusCoreStats.ST_XFER_UPLOADED_PROTOCOL_BYTES, new Long( totalProtocolUploaded ));
+				}
+				if ( types.contains( AzureusCoreStats.ST_XFER_UPLOADED_DATA_BYTES )){
+					
+					values.put( AzureusCoreStats.ST_XFER_UPLOADED_DATA_BYTES, new Long( totalDataUploaded ));
+				}
+				if ( types.contains( AzureusCoreStats.ST_XFER_DOWNLOADED_PROTOCOL_BYTES )){
+					
+					values.put( AzureusCoreStats.ST_XFER_DOWNLOADED_PROTOCOL_BYTES, new Long( totalProtocolDownloaded ));
+				}
+				if ( types.contains( AzureusCoreStats.ST_XFER_DOWNLOADED_DATA_BYTES )){
+					
+					values.put( AzureusCoreStats.ST_XFER_DOWNLOADED_DATA_BYTES, new Long( totalDataDownloaded ));
+				}
+			}
+		});
+	
     core.addLifecycleListener(
     	new AzureusCoreLifecycleAdapter()
     	{
@@ -213,18 +276,44 @@ OverallStatsImpl
 	    
 	    GlobalManagerStats stats = core.getGlobalManager().getStats();
 	    
-	    long	current_total_received 	= stats.getTotalDataBytesReceived() + stats.getTotalProtocolBytesReceived();
-	    long	current_total_sent		= stats.getTotalDataBytesSent() + stats.getTotalProtocolBytesSent();
+	    long	current_total_d_received 	= stats.getTotalDataBytesReceived();
+	    long	current_total_p_received 	= stats.getTotalProtocolBytesReceived();
+
+	    long	current_total_d_sent		= stats.getTotalDataBytesSent();
+	    long	current_total_p_sent		= stats.getTotalProtocolBytesSent();
+   
+	    long	current_total_received 	= current_total_d_received + current_total_p_received;
+	    long	current_total_sent		= current_total_d_sent + current_total_p_sent;
+	    
+	    	// overall totals
 	    
 	    totalDownloaded +=  current_total_received - lastDownloaded;
-	    lastDownloaded = current_total_received;
-	    
+	    lastDownloaded = current_total_received;    
 	    if( totalDownloaded < 0 )  totalDownloaded = 0;
 
 	    totalUploaded +=  current_total_sent - lastUploaded;
 	    lastUploaded = current_total_sent;
-
 	    if( totalUploaded < 0 )  totalUploaded = 0;
+	    
+	    	// split totals
+	    
+	    totalDataDownloaded +=  current_total_d_received - lastDataDownloaded;
+	    lastDataDownloaded = current_total_d_received;    
+	    if( totalDataDownloaded < 0 )  totalDataDownloaded = 0;
+
+	    totalProtocolDownloaded +=  current_total_p_received - lastProtocolDownloaded;
+	    lastProtocolDownloaded = current_total_p_received;    
+	    if( totalProtocolDownloaded < 0 )  totalProtocolDownloaded = 0;
+
+	    totalDataUploaded +=  current_total_d_sent - lastDataUploaded;
+	    lastDataUploaded = current_total_d_sent;    
+	    if( totalDataUploaded < 0 )  totalDataUploaded = 0;
+
+	    totalProtocolUploaded +=  current_total_p_sent - lastProtocolUploaded;
+	    lastProtocolUploaded = current_total_p_sent;    
+	    if( totalProtocolUploaded < 0 )  totalProtocolUploaded = 0;
+	    
+	    	// TIME
 	    
 	    long delta = current_time - lastUptime;
 	    
@@ -249,6 +338,11 @@ OverallStatsImpl
 	    overallMap.put("downloaded",new Long(totalDownloaded));
 	    overallMap.put("uploaded",new Long(totalUploaded));
 	    overallMap.put("uptime",new Long(totalUptime));
+
+	    overallMap.put("p_uploaded",new Long(totalProtocolUploaded));
+	    overallMap.put("d_uploaded",new Long(totalDataUploaded));
+	    overallMap.put("p_downloaded",new Long(totalProtocolDownloaded));
+	    overallMap.put("d_downloaded",new Long(totalDataDownloaded));
 
 	    Map	map = new HashMap();
 	    
