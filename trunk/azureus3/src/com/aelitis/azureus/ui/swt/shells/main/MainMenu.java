@@ -178,14 +178,14 @@ public class MainMenu
 
 					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3
 							+ ".view.searchbar")) {
-						createViewMenuItem(skin, viewMenu, PREFIX_V3 + ".view.searchbar",
-								"SearchBar.visible", "searchbar");
+						MenuFactory.setEnablementKeys(createViewMenuItem(skin, viewMenu, PREFIX_V3 + ".view.searchbar",
+								"SearchBar.visible", "searchbar"),FOR_AZ3_ADV);
 					}
 
 					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3
 							+ ".view.tabbar")) {
-						createViewMenuItem(skin, viewMenu, PREFIX_V3 + ".view.tabbar",
-								"TabBar.visible", "tabbar");
+						MenuFactory.setEnablementKeys(createViewMenuItem(skin, viewMenu, PREFIX_V3 + ".view.tabbar",
+								"TabBar.visible", "tabbar"),FOR_AZ3_ADV);
 					}
 				}
 
