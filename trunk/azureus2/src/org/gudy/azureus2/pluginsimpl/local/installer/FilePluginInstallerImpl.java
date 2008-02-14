@@ -40,6 +40,7 @@ import org.gudy.azureus2.plugins.update.Update;
 import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
 import org.gudy.azureus2.plugins.update.UpdateChecker;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.update.PluginUpdatePlugin;
 import org.gudy.azureus2.pluginsimpl.update.sf.SFPluginDetailsLoader;
 import org.gudy.azureus2.pluginsimpl.update.sf.SFPluginDetailsLoaderFactory;
@@ -193,6 +194,8 @@ FilePluginInstallerImpl
 				
 					// unfortunately plugin.id isn't mandatory for the properties, and neither is plugin.version
 				
+					PluginInitializer.checkJDKVersion( "", properties, false );
+					
 					id		= properties.getProperty( "plugin.id" );
 					version	= properties.getProperty( "plugin.version" );
 					

@@ -293,6 +293,80 @@ PluginInitializer
 	  return( loading_builtin );
   }
   
+  public static void
+  checkJDKVersion(
+	String		name,
+	Properties	props,
+	boolean		alert_on_fail )
+  
+  	throws PluginException
+  {
+      String	required_jdk = (String)props.get( "plugin.jdk.min_version" );
+
+      if ( required_jdk != null ){
+    	  
+    	  String	actual_jdk = System.getProperty( "java.version" );
+    	  
+    	  required_jdk 	= normaliseJDK( required_jdk );
+    	  actual_jdk	= normaliseJDK( actual_jdk );
+    	  
+    	  if ( required_jdk.length() == 0 || actual_jdk.length() == 0 ){
+    		  
+    		  return;
+    	  }
+    	  
+    	  if ( Constants.compareVersions( actual_jdk, required_jdk ) < 0 ){
+    		  
+    	    	String	msg =  "Plugin " + (name.length()>0?(name+" "):"" ) + "requires Java version " + required_jdk + " or higher";
+    	      	
+    	    	if ( alert_on_fail ){
+    	      	
+    	    		Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR, msg));
+    	    	}
+    	    	
+    	        throw( new PluginException( msg ));
+    	  }
+      }
+  }
+  
+  protected static String
+  normaliseJDK(
+	String	jdk )
+  {
+	  try{
+		  String	str = "";
+
+		  // take leading digit+. portion only
+
+		  for (int i=0;i<jdk.length();i++){
+
+			  char c = jdk.charAt( i );
+
+			  if ( c == '.' || Character.isDigit( c )){
+
+				  str += c;
+
+			  }else{
+
+				  break;
+			  }
+		  }
+
+		  	// convert 5|6|... to 1.5|1.6 etc
+
+		  if ( Integer.parseInt( "" + str.charAt(0)) > 1 ){
+			  
+			  str = "1." + str;
+		  }
+		  
+		  return( str );
+		  
+	  }catch( Throwable e ){
+		  
+		  return( "" );
+	  }
+  }
+  
   protected 
   PluginInitializer(
   	AzureusCore 			_azureus_core,
@@ -740,6 +814,8 @@ PluginInitializer
         throw( new PluginException( msg, e ));
       }
 
+      checkJDKVersion( pluginName, props, true );
+      
       plugin_class_string = (String)props.get( "plugin.class");
       
       if ( plugin_class_string == null ){
