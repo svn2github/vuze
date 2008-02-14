@@ -19,6 +19,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.ConfigListener;
 import com.aelitis.azureus.ui.swt.browser.listener.LightBoxBrowserRequestListener;
+import com.aelitis.azureus.util.Constants;
 
 /**
  * A window with the lightbox effect hosting a browser widget in a stylized shell
@@ -33,7 +34,7 @@ public class LightBoxBrowserWindow
 
 	private String url = null;
 
-	private String prefixVerifier = null;
+	private String prefixVerifier = Constants.URL_TITLE_PREFIX;
 
 	private StackLayout stack = new StackLayout();
 
@@ -92,7 +93,7 @@ public class LightBoxBrowserWindow
 		/*
 		 * Create the StyledShell to host the browser
 		 */
-		styledShell = lightBoxShell.createStyledShell(10, true);
+		styledShell = lightBoxShell.createStyledShell(6, true);
 
 		/*
 		 * Sets the cursor to busy since loading the light box and accompanying browser can take some time;
@@ -121,7 +122,7 @@ public class LightBoxBrowserWindow
 		try {
 			browser = new Browser(contentPanel, SWT.NONE);
 		} catch (Throwable t) {
-			//TODO:  show no browser error
+			//TODO:  show no browser error!!!!
 		}
 
 		if (browserWidth > 0 && browserHeight > 0) {
@@ -135,7 +136,7 @@ public class LightBoxBrowserWindow
 		}
 
 		contentPanel.layout();
-
+		lightBoxShell.open();
 	}
 
 	private void hookListeners() {
@@ -166,17 +167,24 @@ public class LightBoxBrowserWindow
 		browser.addProgressListener(new ProgressListener() {
 			public void completed(ProgressEvent event) {
 
-				stack.topControl = browser;
+				////KN: disabled until the new error page is designed by UX and until all pages
+				// have been updated with the proper title prefixes
 
-				/*
-				 * If a prefixVerifier is specified then verify the loaded page
-				 */
-				if (null != prefixVerifier) {
-					if (null == title || false == title.startsWith(prefixVerifier)) {
-						stack.topControl = errorPanel;
-					}
-				}
-				contentPanel.layout();
+//				stack.topControl = browser;
+//
+//				/*
+//				 * If a prefixVerifier is specified then verify the loaded page
+//				 */
+//				if (null != prefixVerifier) {
+//					if (null == title || false == title.startsWith(prefixVerifier)) {
+//						//						stack.topControl = errorPanel;
+//						String errorHTML = "<html><body style='overflow:auto; font-family: verdana; font-size: 10pt' bgcolor=#000000 text=#e0e0e0>"
+//								+ "<div style='word-wrap: break-word'><font size=1 color=#aaaaaa>Sorry, there was a problem loading this page. <br>Please press ESC to continue</font></div>"
+//								+ "</body></html>";
+//						browser.setText(errorHTML);
+//					}
+//				}
+//				contentPanel.layout();
 				lightBoxShell.open(styledShell);
 
 			}
