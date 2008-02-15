@@ -24,11 +24,17 @@ package com.aelitis.azureus.core.peermanager;
 
 import java.net.InetSocketAddress;
 
+import com.aelitis.azureus.core.networkmanager.NetworkConnection;
+
 public interface 
 PeerManagerRegistrationAdapter 
 {
 	public byte[][]
 	getSecrets();
+	
+	public boolean
+	manualRoute(
+		NetworkConnection		connection );
 	
 	public boolean
 	isPeerSourceEnabled(

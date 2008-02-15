@@ -22,11 +22,23 @@
 package com.aelitis.azureus.plugins.net.netstatus;
 
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.security.SecureRandom;
 import java.util.*;
 
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
+import org.gudy.azureus2.core3.peer.impl.transport.PEPeerTransportProtocol;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
+import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseContact;
@@ -46,6 +58,53 @@ import org.gudy.azureus2.plugins.ui.config.StringParameter;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.dht.DHT;
+import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+import com.aelitis.azureus.core.networkmanager.ConnectionEndpoint;
+import com.aelitis.azureus.core.networkmanager.IncomingMessageQueue;
+import com.aelitis.azureus.core.networkmanager.NetworkConnection;
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.networkmanager.OutgoingMessageQueue;
+import com.aelitis.azureus.core.networkmanager.ProtocolEndpoint;
+import com.aelitis.azureus.core.networkmanager.Transport;
+import com.aelitis.azureus.core.networkmanager.impl.TransportHelper;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.ProtocolEndpointTCP;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
+import com.aelitis.azureus.core.peermanager.PeerManager;
+import com.aelitis.azureus.core.peermanager.PeerManagerRegistration;
+import com.aelitis.azureus.core.peermanager.PeerManagerRegistrationAdapter;
+import com.aelitis.azureus.core.peermanager.messaging.Message;
+import com.aelitis.azureus.core.peermanager.messaging.MessageStreamDecoder;
+import com.aelitis.azureus.core.peermanager.messaging.MessageStreamEncoder;
+import com.aelitis.azureus.core.peermanager.messaging.MessageStreamFactory;
+import com.aelitis.azureus.core.peermanager.messaging.azureus.AZBadPiece;
+import com.aelitis.azureus.core.peermanager.messaging.azureus.AZHandshake;
+import com.aelitis.azureus.core.peermanager.messaging.azureus.AZHave;
+import com.aelitis.azureus.core.peermanager.messaging.azureus.AZMessage;
+import com.aelitis.azureus.core.peermanager.messaging.azureus.AZMessageDecoder;
+import com.aelitis.azureus.core.peermanager.messaging.azureus.AZMessageEncoder;
+import com.aelitis.azureus.core.peermanager.messaging.azureus.AZPeerExchange;
+import com.aelitis.azureus.core.peermanager.messaging.azureus.AZRequestHint;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTBitfield;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTCancel;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTChoke;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTDHTPort;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTHandshake;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTHave;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTInterested;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessage;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessageDecoder;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessageEncoder;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessageFactory;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTPiece;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTRequest;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTUnchoke;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTUninterested;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.ltep.LTHandshake;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.ltep.LTMessage;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.ltep.UTPeerExchange;
+import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.plugins.net.netstatus.swt.NetStatusPluginView;
 
 public class 
@@ -62,6 +121,14 @@ NetStatusPlugin
 	private DistributedDatabase	ddb;
 	
 	private testXferType		transfer_type;
+	
+	private DHTPlugin			dht_plugin;
+	
+	
+	private Random	random = new SecureRandom();
+	
+	private PeerManagerRegistration		pm_reg;
+	private byte[]						pm_hash;
 	
 	
 	public void
@@ -86,20 +153,23 @@ NetStatusPlugin
 		
 		ping_target = config.addStringParameter2( "plugin.aznetstatus.pingtarget", "plugin.aznetstatus.pingtarget", "www.google.com" );
 		
-		test_address = config.addStringParameter2( "plugin.aznetstatus.test_address", "plugin.aznetstatus.test_address", "" );
-
-		ActionParameter test = config.addActionParameter2( "test", "test " );
-		
-		test.addListener(
-			new ParameterListener()
-			{
-				public void
-				parameterChanged(
-					Parameter	param )
+		if ( Constants.isCVSVersion()){
+			
+			test_address = config.addStringParameter2( "plugin.aznetstatus.test_address", "plugin.aznetstatus.test_address", "" );
+	
+			ActionParameter test = config.addActionParameter2( "test", "test " );
+			
+			test.addListener(
+				new ParameterListener()
 				{
-					runTest();
-				}
-			});
+					public void
+					parameterChanged(
+						Parameter	param )
+					{
+						runTest();
+					}
+				});
+		}
 		
 		plugin_interface.getUIManager().addUIListener(
 			new UIManagerListener()
@@ -139,11 +209,20 @@ NetStatusPlugin
 						run()
 						{
 							try{
+								PluginInterface dht_pi = plugin_interface.getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
+								
+								if ( dht_pi != null ){
+									
+									dht_plugin = (DHTPlugin)dht_pi.getPlugin();
+								}
+
 								ddb = plugin_interface.getDistributedDatabase();
 								
 								ddb.addTransferHandler(
 									transfer_type,
 									NetStatusPlugin.this );
+								
+								log( "DDB transfer type registered" );
 								
 							}catch( Throwable e ){
 								
@@ -168,35 +247,310 @@ NetStatusPlugin
 	protected void
 	runTest()
 	{
+		if ( ddb == null ){
+			
+			log( "DDB not initialised yet, please try later" );
+			
+			return;
+		}
+		
 		try{
-			String str = test_address.getValue();
+			String str = test_address.getValue().trim();
 	
-			String[]	bits = str.split( ":" );
-			
-			if ( bits.length != 2 ){
+			if ( str.length() == 0 ){
 				
-				log( "Invalid address - use <host>:<port> " );
+				DHT[]	dhts = dht_plugin.getDHTs();
 				
-				return;
+				DHT	cvs_dht = null;
+				
+				for (int i=0;i<dhts.length;i++){
+					
+					if ( dhts[i].getTransport().getNetwork() == DHT.NW_CVS ){
+						
+						cvs_dht = dhts[i];
+					}
+				}
+				
+				DHTTransportContact[] contacts = cvs_dht.getTransport().getReachableContacts();
+				
+				for (int i=0;i<contacts.length;i++){
+					
+					DHTTransportContact dht_contact = contacts[i];
+					
+					DistributedDatabaseContact contact = ddb.importContact( dht_contact.getAddress());
+					
+					Map	request = new HashMap();
+					
+					request.put( "v", new Long(1));
+					
+					Map	reply = sendRequest( contact, request );
+					
+					System.out.println( contact.getName() + " -> " + reply );
+				}
+			}else{
+				
+				String[]	bits = str.split( ":" );
+				
+				if ( bits.length != 2 ){
+					
+					log( "Invalid address - use <host>:<port> " );
+					
+					return;
+				}
+				
+				InetSocketAddress address = new InetSocketAddress( bits[0].trim(), Integer.parseInt( bits[1].trim()));
+				 
+				DistributedDatabaseContact contact = ddb.importContact( address );
+				
+				Map	request = new HashMap();
+				
+				request.put( "v", new Long(1));
+				
+				Map	reply = sendRequest( contact, request );
+				
+				log( "Reply: " + reply );
+				
+				byte[]	server_hash = (byte[])reply.get( "h" );
+				
+				InetSocketAddress hack_address = new InetSocketAddress( "127.0.0.1", Integer.parseInt( bits[1].trim()));
+
+				makeOutgoing( hack_address, server_hash );
 			}
-			
-			InetSocketAddress address = new InetSocketAddress( bits[0].trim(), Integer.parseInt( bits[1].trim()));
-			 
-			DistributedDatabaseContact contact = ddb.importContact( address );
-			
-			Map	request = new HashMap();
-			
-			request.put( "v", new Long(1));
-			
-			Map	reply = sendRequest( contact, request );
-			
-			log( "Reply: " + reply );
-			
 		}catch( Throwable e ){
 			
 			log( "Test failed", e );
 		}
 	}
+	
+	protected synchronized void
+	setupIncoming()
+	{
+		if ( pm_reg != null ){
+			
+			return;
+		}
+		
+		pm_hash = new byte[20];
+		
+		random.nextBytes( pm_hash );
+		
+		pm_reg = PeerManager.getSingleton().registerLegacyManager(
+			new HashWrapper( pm_hash ),
+			new PeerManagerRegistrationAdapter()
+			{
+				public byte[][]
+	          	getSecrets()
+				{
+					return( new byte[][]{ pm_hash });
+				}
+	          	
+	          	public boolean
+	          	manualRoute(
+	          		NetworkConnection		connection )
+	          	{
+	          		log( "Got incoming connection from " + connection.getEndpoint().getNotionalAddress());
+	          		
+	          		initialiseConnection( connection, false );
+	          		
+	          		return( true );
+	          	}
+	          	
+	          	public boolean
+	          	isPeerSourceEnabled(
+	          		String					peer_source )
+	          	{
+	          		return( true );
+	          	}
+	          	
+	          	public boolean
+	          	activateRequest(
+	          		InetSocketAddress		remote_address )
+	          	{
+	          		return( true );
+	          	}
+	          	
+	          	public void
+	          	deactivateRequest(
+	          		InetSocketAddress		remote_address )
+	          	{
+	          	}
+	          	
+	          	public String
+	          	getDescription()
+	          	{
+	          		return( "NetStatusPlugin - router" );
+	          	}
+
+			});
+		
+		log( "Incoming routing established for " + ByteFormatter.encodeString( pm_hash ));
+	}
+	
+	protected void
+	makeOutgoing(
+		InetSocketAddress		address,
+		byte[]					hash )
+	{
+		log( "Making outbound connection to " + address );
+		
+		boolean	use_crypto		= false;
+		boolean	allow_fallback	= false;
+		
+		ProtocolEndpoint	pe = new ProtocolEndpointTCP( address );
+		
+		ConnectionEndpoint connection_endpoint	= new ConnectionEndpoint( address );
+
+		connection_endpoint.addProtocol( pe );
+
+		final NetworkConnection connection = 
+			NetworkManager.getSingleton().createConnection(
+					connection_endpoint, 
+					new BTMessageEncoder(), 
+					new BTMessageDecoder(), 
+					use_crypto, 
+					allow_fallback, 
+					new byte[][]{ hash });
+	
+		connection.connect( 
+				true,
+				new NetworkConnection.ConnectionListener() 
+				{
+					public final void 
+					connectStarted() 
+					{
+						log( "Outbound connect start" );
+					}
+
+					public final void 
+					connectSuccess( 
+						ByteBuffer remaining_initial_data ) 
+					{
+						log( "Outbound connect success" );
+						
+						initialiseConnection( connection, true );
+					}
+
+					public final void 
+					connectFailure( 
+						Throwable e ) 
+					{
+						log( "Outbound connect fail", e );
+						
+						connection.close();
+					}
+
+					public final void 
+					exceptionThrown( 
+						Throwable e ) 
+					{
+						log( "Outbound connect fail", e );
+						
+						connection.close();
+					}
+    			
+					public String
+					getDescription()
+					{
+						return( "NetStatusPlugin - outbound" );
+					}
+				});
+	}
+	
+	protected void
+	initialiseConnection(
+		NetworkConnection	connection,
+		boolean				outgoing )
+	{
+		connection.getIncomingMessageQueue().registerQueueListener(
+			new IncomingMessageQueue.MessageQueueListener() 
+			{
+				public boolean 
+				messageReceived( Message message ) 
+				{               
+					String	message_id = message.getID();
+
+					log( "Incoming message received: " + message.getID());
+					
+			        if ( message_id.equals( BTMessage.ID_BT_HANDSHAKE )){
+				
+					}
+			        
+			        return( true );
+				}
+  
+
+				public final void 
+				protocolBytesReceived(
+					int byte_count ) 
+				
+				{
+				}
+
+				public final void 
+				dataBytesReceived( 
+					int byte_count ) 
+				{
+				}
+			});
+
+		connection.getOutgoingMessageQueue().registerQueueListener( 
+			new OutgoingMessageQueue.MessageQueueListener() 
+			{
+				public final boolean 
+				messageAdded( 
+					Message message )
+				{
+					return( true );
+				}
+	
+				public final void 
+				messageQueued( 
+					Message message )
+				{
+				}
+	
+				public final void 
+				messageRemoved( 
+					Message message )
+				{
+					
+				}
+	
+				public final void 
+				messageSent( 
+					Message message ) 
+				{
+					log( "Outgoing message sent: " + message.getID());
+				}
+	
+				public final void 
+				protocolBytesSent( 
+					int byte_count ) 
+				{
+				}
+	
+				public final void 
+				dataBytesSent( 
+					int byte_count ) 
+				{
+				}
+		});
+
+		connection.startMessageProcessing();
+		
+		if ( outgoing ){
+			
+			byte[]	peer_id = new byte[20];
+			
+			random.nextBytes( peer_id );
+			
+			connection.getOutgoingMessageQueue().addMessage(
+				new BTHandshake( pm_hash, peer_id, false, BTMessageFactory.MESSAGE_VERSION_INITIAL ),
+				false );
+		}
+	}
+	
+	
 	
 	protected Map
 	sendRequest(
@@ -230,7 +584,7 @@ NetStatusPlugin
 					},
 					transfer_type,
 					key,
-					20000 );
+					10000 );
 			
 			if ( value == null ){
 				
@@ -254,6 +608,10 @@ NetStatusPlugin
 		Map	reply = new HashMap();
 		
 		reply.put( "v", new Long(1));
+		
+		setupIncoming();
+		
+		reply.put( "h", pm_hash );
 		
 		return( reply );
 	}
@@ -307,6 +665,8 @@ NetStatusPlugin
 	log(
 		String		str )
 	{
+		System.out.println( str );
+		
 		logger.log( str );
 	}
 	
@@ -315,6 +675,9 @@ NetStatusPlugin
 		String		str,
 		Throwable	e )
 	{
+		System.out.println( str );
+		e.printStackTrace();
+		
 		logger.log( str );
 		logger.log( e );
 	}

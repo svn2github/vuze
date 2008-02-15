@@ -816,6 +816,11 @@ public class PeerManager implements AzureusCoreStatsProvider{
 			NetworkConnection 			connection,
 			PeerManagerRoutingListener	listener )
 		{	
+			if ( adapter.manualRoute( connection )){
+				
+				return;
+			}
+			
 			if ( !adapter.isPeerSourceEnabled( PEPeerSource.PS_INCOMING )){
 			
 				if (Logger.isEnabled())
