@@ -1053,6 +1053,9 @@ public class GlobalManagerImpl
   }
     
   public DownloadManager getDownloadManager(TOTorrent torrent) {
+  	if (torrent == null) {
+  		return null;
+  	}
     try {
       return getDownloadManager(torrent.getHashWrapper());
     } catch (TOTorrentException e) {
