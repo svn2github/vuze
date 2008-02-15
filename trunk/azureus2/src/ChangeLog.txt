@@ -19,7 +19,7 @@ CHANGE: Core  | Queuing rules now don't start any further torrents if the global
                  - makes "don't count torrent ..." minimum speed rules more useful to dynamically regulate the queue lengths
                  - recovers faster from chain reactions in case of connection loss
 CHANGE: Core  | Made the crypto handshake a bit less predictable [The 8472]
-CHANGE: Core  | Added support for udp-multiscrapes [The 8472]
+CHANGE: Core  | Added support for IPv6 compact announces (client) and udp-multiscrapes (client+server) [The 8472]
 CHANGE: Plug  | Added support for plugins which implement mainline DHT [amc1]
 
 BUGFIX: Core  | Request limiting/Priorities no longer pinch off LAN peers if seperate LAN speeds are enabled [The 8472]                 

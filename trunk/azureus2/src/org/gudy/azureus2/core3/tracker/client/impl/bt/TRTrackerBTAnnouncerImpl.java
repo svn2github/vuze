@@ -2872,10 +2872,40 @@ TRTrackerBTAnnouncerImpl
 				    	
 							throw( new IOException( "peers missing from response" ));
 				    	}
-				    }else{
-						
+				    }else if (!metaData.containsKey("peers6")){ 
+				    	// we got nothing useful under peers and no peers6 either
 						throw( new IOException( "peers missing from response" ));
 				    }
+			    	
+			    	
+			    	final byte[] v6peers = (byte[])metaData.get("peers6");
+				    if (v6peers != null)
+					{
+				    	// 16 bytes for v6 + 2 bytes for port
+						final int entry_size = 18;
+
+						
+						final byte[] rawAddr = new byte[16]; 
+						
+						for (int i = 0; i <= v6peers.length - entry_size; i += entry_size)
+						{
+							System.arraycopy(v6peers, i, rawAddr, 0, 16);
+							String ip = InetAddress.getByAddress(rawAddr).getHostAddress();
+							int tcp_port = rawAddr[i+16] * 256 + rawAddr[i+17];
+							if (tcp_port < 0 || tcp_port > 65535)
+							{
+								if (Logger.isEnabled())
+									Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_ERROR, "Invalid compactv6 peer port given: " + ip + ": " + tcp_port));
+								continue;
+							}
+							byte[] peer_peer_id = getAnonymousPeerId(ip, tcp_port);
+							short protocol = DownloadAnnounceResultPeer.PROTOCOL_NORMAL;
+							TRTrackerAnnouncerResponsePeerImpl peer = new TRTrackerAnnouncerResponsePeerImpl(PEPeerSource.PS_BT_TRACKER, peer_peer_id, ip, tcp_port, 0, 0, protocol, TRTrackerAnnouncer.AZ_TRACKER_VERSION_1, (short) 0);
+							if (Logger.isEnabled())
+								Logger.log(new LogEvent(torrent, LOGID, "COMPACTv6 PEER: " + peer.getString()));
+							valid_meta_peers.add(peer);
+						}
+					}
 				    
 				    
 					TRTrackerAnnouncerResponsePeerImpl[] peers=new TRTrackerAnnouncerResponsePeerImpl[valid_meta_peers.size()];
