@@ -316,7 +316,7 @@ FMFileImpl
 			
 			createDirs( new_linked_file );
 	        
-			if ( FileUtil.renameFile( linked_file, new_linked_file )) {
+			if ( !linked_file.exists() || FileUtil.renameFile( linked_file, new_linked_file )) {
 				
 				linked_file		= new_linked_file;
 				canonical_path	= new_canonical_path;
