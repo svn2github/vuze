@@ -42,6 +42,10 @@ public class LightBoxShell
 		this(false);
 	}
 
+	/**
+	 * Creates a LightBoxShell without opening it
+	 * @param closeOnESC if <code>true</code> then the ESC key can be used to dismiss the lightbox
+	 */
 	public LightBoxShell(boolean closeOnESC) {
 		this.closeOnESC = closeOnESC;
 
@@ -119,7 +123,7 @@ public class LightBoxShell
 	}
 
 	public void open() {
-		if (null != lbShell) {
+		if (null != lbShell && false == lbShell.isDisposed()) {
 			lbShell.setBounds(getTargetArea());
 			isShellOpened = true;
 			lbShell.open();
