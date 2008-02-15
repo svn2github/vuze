@@ -235,21 +235,9 @@ public class LightBoxShell
 			this.borderWidth = borderWidth;
 			styledShell = new Shell(lbShell, SWT.NO_TRIM);
 			try {
-				/*
-				 * For the ideal transparency effect we set the mask (background color)
-				 * and transparency (alpha value) differently for OSX vs. non-OSX
-				 */
-
-				if (true == Constants.isOSX) {
-					styledShell.setBackground(new Color(parentShell.getDisplay(), 38, 38,
-							38));
-					styledShell.setAlpha(230);
-
-				} else {
-					styledShell.setBackground(new Color(parentShell.getDisplay(), 56, 56,
-							56));
-					styledShell.setAlpha(212);
-				}
+				styledShell.setBackground(new Color(parentShell.getDisplay(), 38, 38,
+						38));
+				styledShell.setAlpha(230);
 			} catch (Throwable t) {
 				// Not supported on SWT older than 3.4M4
 				t.printStackTrace();
