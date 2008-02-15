@@ -18,6 +18,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.ConfigListener;
+import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
 import com.aelitis.azureus.ui.swt.browser.listener.LightBoxBrowserRequestListener;
 import com.aelitis.azureus.util.Constants;
 
@@ -107,9 +108,9 @@ public class LightBoxBrowserWindow
 		 */
 		contentPanel = styledShell.getContent();
 		contentPanel.setLayout(stack);
-		contentPanel.setBackground(new Color(null, 0, 0, 0));
+		contentPanel.setBackground(new Color(null, 13, 13, 13));
 		errorPanel = new Composite(contentPanel, SWT.NONE);
-		errorPanel.setBackground(new Color(null, 0, 0, 0));
+		errorPanel.setBackground(new Color(null, 13, 13, 13));
 
 		/*
 		 * The Browser widget is very platform-dependent and can only support a limited set
@@ -175,12 +176,12 @@ public class LightBoxBrowserWindow
 				/*
 				 * If a prefixVerifier is specified then verify the loaded page
 				 */
-//KN: disabled until we finalize
+				//KN: disabled until we finalize
 				//				if (null != prefixVerifier) {
-//					if (null == title || false == title.startsWith(prefixVerifier)) {
-//						stack.topControl = errorPanel;
-//					}
-//				}
+				//					if (null == title || false == title.startsWith(prefixVerifier)) {
+				//						stack.topControl = errorPanel;
+				//					}
+				//				}
 				contentPanel.layout();
 				lightBoxShell.open(styledShell);
 
@@ -209,6 +210,13 @@ public class LightBoxBrowserWindow
 		 * This listener will respond to actions that effects this window such as 'close', 'resize', etc...
 		 */
 		context.addMessageListener(new LightBoxBrowserRequestListener(this));
+
+		/*
+		 * This listener handles a number of tasks involving opening external browser,
+		 * popping up traditional browser dialogs, and navigating to embedded browser
+		 * pages in the client application
+		 */
+		context.addMessageListener(new DisplayListener(null));
 
 	}
 
