@@ -29,8 +29,14 @@ public class SkinConstants
 {
 
 	public static final String TABSET_MAIN = "maintabs";
-	
+
 	public static final String TABSET_DASHBOARD_LEFT = "hometab-left";
 
 	public static final String VIEWID_BROWSE_TAB = "browse";
+
+	public static final String VIEWID_HOME_TAB = "home";
+
+	public static final String VIEWID_LIBRARY_TAB = "library";
+
+	public static final String VIEWID_PUBLISH_TAB = "publish";
 }
