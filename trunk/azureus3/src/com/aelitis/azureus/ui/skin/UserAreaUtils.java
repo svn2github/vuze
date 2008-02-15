@@ -20,6 +20,9 @@
 
 package com.aelitis.azureus.ui.skin;
 
+import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.browser.ProgressEvent;
+import org.eclipse.swt.browser.ProgressListener;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -40,6 +43,7 @@ public class UserAreaUtils
 	public UserAreaUtils(SWTSkin skin, UIFunctionsSWT uiFunctions) {
 		this.skin = skin;
 		this.uiFunctions = uiFunctions;
+
 		hookListeners();
 
 	}
@@ -55,8 +59,9 @@ public class UserAreaUtils
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
 
-					String url = Constants.URL_PREFIX + Constants.URL_LOGIN + "?" + Constants.URL_SUFFIX;
-					new LightBoxBrowserWindow(url,"Sign In", 0,0);
+					String url = Constants.URL_PREFIX + Constants.URL_LOGIN + "?"
+							+ Constants.URL_SUFFIX;
+					new LightBoxBrowserWindow(url, "Sign In", 0, 0);
 
 				}
 			});
@@ -70,12 +75,13 @@ public class UserAreaUtils
 			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(skinObject);
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					String url = Constants.URL_PREFIX + Constants.URL_LOGOUT + "?" + Constants.URL_SUFFIX;
-					if (null != uiFunctions) {
-						uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSE_TAB, 0, 0,
-								false, false);
+					final String url = Constants.URL_PREFIX + Constants.URL_LOGOUT + "?"
+							+ Constants.URL_SUFFIX;
+
+					SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_BROWSE_TAB);
+					if (skinObject instanceof SWTSkinObjectBrowser) {
+						((SWTSkinObjectBrowser) skinObject).setURL(url);
 					}
-					synchLoginStates(null, null, true);
 				}
 			});
 		}
@@ -89,8 +95,9 @@ public class UserAreaUtils
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
 					if (null != uiFunctions) {
-						String url = Constants.URL_PREFIX + Constants.URL_REGISTRATION + "?" + Constants.URL_SUFFIX;
-						new LightBoxBrowserWindow(url, "Sign Up",0,0);
+						String url = Constants.URL_PREFIX + Constants.URL_REGISTRATION
+								+ "?" + Constants.URL_SUFFIX;
+						new LightBoxBrowserWindow(url, "Sign Up", 0, 0);
 					}
 
 				}
@@ -106,7 +113,8 @@ public class UserAreaUtils
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
 					if (null != uiFunctions) {
-						String url = Constants.URL_PREFIX + Constants.URL_PROFILE + "?" + Constants.URL_SUFFIX;
+						String url = Constants.URL_PREFIX + Constants.URL_PROFILE + "?"
+								+ Constants.URL_SUFFIX;
 						uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSE_TAB, 0, 0,
 								true, true);
 					}
@@ -124,7 +132,8 @@ public class UserAreaUtils
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
 					if (null != uiFunctions) {
-						String url = Constants.URL_PREFIX + Constants.URL_ACCOUNT + "?" + Constants.URL_SUFFIX;
+						String url = Constants.URL_PREFIX + Constants.URL_ACCOUNT + "?"
+								+ Constants.URL_SUFFIX;
 						uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSE_TAB, 0, 0,
 								true, true);
 					}
@@ -139,10 +148,67 @@ public class UserAreaUtils
 			}
 		});
 
+		/*
+		 * Listens specifically to the browse tab for the completion of the call to logout.start
+		 * The logout process will load 2 pages logout.start and then browse.start.
+		 * It is only AFTER browse.start has finished loading that we can proceed to
+		 * refresh any other embedded pages in the client; prematurely refreshing other pages
+		 * will result in a number of problem which may include the pages not refreshing properly, or the
+		 * browse.start page loading being interrupted.
+		 * 
+		 * NOTE: This is quite precarious since we are making a concrete assumption that the logout.start page 
+		 * will always load the browse.start page.  If any of this changes we will have to modify this
+		 * listener accordingly 
+		 */
+
+		skinObject = skin.getSkinObject(SkinConstants.VIEWID_BROWSE_TAB);
+		if (skinObject instanceof SWTSkinObjectBrowser) {
+			final Browser browser = ((SWTSkinObjectBrowser) skinObject).getBrowser();
+
+			final ProgressListener listener = new ProgressListener() {
+				boolean logoutCalled = false;
+
+				public void completed(ProgressEvent event) {
+
+					if (true == logoutCalled) {
+						String sURL = browser.getUrl();
+						if (null != sURL
+								&& sURL.startsWith(Constants.URL_PREFIX
+										+ Constants.URL_BIG_BROWSE)) {
+							LoginInfoManager.getInstance().setUserInfo(null, null, true);
+							logoutCalled = false;
+						}
+					}
+				}
+
+				public void changed(ProgressEvent event) {
+					String sURL = browser.getUrl();
+					if (false == logoutCalled) {
+						if (null != sURL
+								&& sURL.startsWith(Constants.URL_PREFIX + Constants.URL_LOGOUT)) {
+							logoutCalled = true;
+							updateLoginLabels(null, null);
+						}
+					}
+				}
+			};
+
+			browser.addProgressListener(listener);
+		}
 	}
 
 	private void synchLoginStates(String userName, String userID,
 			boolean isNewOrUpdated) {
+		updateLoginLabels(userName, userID);
+		/*
+		 * Reset browser tabs if the login state has changed
+		 */
+		if (true == isNewOrUpdated) {
+			resetBrowserPages();
+		}
+	}
+
+	private void updateLoginLabels(String userName, String userID) {
 
 		SWTSkinObject skinObject = null;
 
@@ -155,16 +221,6 @@ public class UserAreaUtils
 			skinObject = skin.getSkinObject("text-user-name");
 			if (skinObject instanceof SWTSkinObjectText) {
 				((SWTSkinObjectText) skinObject).setText(userName + " ");
-			}
-
-			/*
-			 * Restart the main browse tab if the login state has changed
-			 */
-			if (true == isNewOrUpdated) {
-				SWTSkinObject browser = skin.getSkinObject("browse");
-				if (browser instanceof SWTSkinObjectBrowser) {
-					((SWTSkinObjectBrowser) browser).restart();
-				}
 			}
 
 		} else {
@@ -189,4 +245,10 @@ public class UserAreaUtils
 
 	}
 
+	private void resetBrowserPages() {
+		SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_PUBLISH_TAB);
+		if (skinObject instanceof SWTSkinObjectBrowser) {
+			((SWTSkinObjectBrowser) skinObject).restart();
+		}
+	}
 }
