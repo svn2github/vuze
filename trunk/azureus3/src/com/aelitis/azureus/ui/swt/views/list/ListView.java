@@ -92,7 +92,7 @@ public class ListView
 
 	public int rowMarginHeight = 2;
 
-	public int DEFAULT_ROW_HEIGHT = 38;
+	public int rowHeightDefault = 38;
 
 	private Canvas listCanvas;
 
@@ -200,6 +200,30 @@ public class ListView
 
 	private static final Comparator rowYPosComparator;
 
+	protected Color colorRowOddBG;
+
+	protected Color colorRowOddFG;
+
+	protected Color colorRowEvenBG;
+
+	protected Color colorRowEvenFG;
+
+	protected Color colorRowSelectedOddBG;
+
+	protected Color colorRowSelectedOddFG;
+
+	protected Color colorRowSelectedEvenBG;
+
+	protected Color colorRowSelectedEvenFG;
+
+	protected Color colorRowDivider;
+
+	protected Color colorRowFocus;
+
+	private Display display;
+
+	protected int rowFocusStyle;
+
 	static {
 		rowYPosComparator = new Comparator() {
 			public int compare(Object arg0, Object arg1) {
@@ -226,6 +250,7 @@ public class ListView
 				imgSortDesc = imgLoader.getImage("image.sort.desc");
 			}
 		}
+		display = parent.getDisplay();
 		initialize(parent);
 		UIUpdaterFactory.getInstance().addUpdater(this);
 	}
@@ -330,7 +355,7 @@ public class ListView
 					// container item.. check listCanvas.isVisible(), but only after
 					// events have been processed, so that the visibility is propogated
 					// to the listCanvas
-					listCanvas.getDisplay().asyncExec(new AERunnable() {
+					display.asyncExec(new AERunnable() {
 						public void runSupport() {
 							viewVisible = listCanvas.isVisible();
 						}
@@ -340,7 +365,7 @@ public class ListView
 				if (viewVisible) {
 					// asyncExec so SWT finishes up it's show routine
 					// Otherwise, the scrollbar visibility setting will fail
-					listCanvas.getDisplay().asyncExec(new AERunnable() {
+					display.asyncExec(new AERunnable() {
 						public void runSupport() {
 							refreshVisible(true, true, true);
 							refreshScrollbar();
@@ -375,8 +400,8 @@ public class ListView
 		listCanvas.addListener(SWT.MouseDown, l);
 		listCanvas.addListener(SWT.MouseUp, l);
 		listCanvas.addListener(SWT.MouseMove, l);
+		listCanvas.addListener(SWT.MouseDoubleClick, l);
 
-		listCanvas.addListener(SWT.MouseDoubleClick, this);
 		listCanvas.addListener(SWT.FocusIn, this);
 		listCanvas.addListener(SWT.FocusOut, this);
 		listCanvas.addListener(SWT.Traverse, this);
@@ -459,8 +484,7 @@ public class ListView
 						lastCursorID = iCursorID;
 
 						if (iCursorID >= 0) {
-							listParent.setCursor(listCanvas.getDisplay().getSystemCursor(
-									iCursorID));
+							listParent.setCursor(display.getSystemCursor(iCursorID));
 						} else if (iCursorID == -1) {
 							listParent.setCursor(null);
 						}
@@ -509,10 +533,12 @@ public class ListView
 
 		TableStructureEventDispatcher.getInstance(sTableID).addListener(this);
 
+		initializeDefaultRowInfo();
+
 		triggerLifeCycleListener(TableLifeCycleListener.EVENT_INITIALIZED);
 
 		if (!viewVisible && listCanvas.isVisible()) {
-			listCanvas.getDisplay().asyncExec(new AERunnable() {
+			display.asyncExec(new AERunnable() {
 				public void runSupport() {
 					Event e = new Event();
 					e.type = SWT.Show;
@@ -521,6 +547,123 @@ public class ListView
 				}
 			});
 		}
+	}
+
+	/**
+	 * 
+	 *
+	 * @since 3.0.4.3
+	 */
+	private void initializeDefaultRowInfo() {
+		if (skinProperties != null) {
+			rowMarginHeight = skinProperties.getIntValue("table." + sTableID
+					+ ".row.margin.height", rowMarginHeight);
+			rowHeightDefault = skinProperties.getIntValue("table." + sTableID
+					+ ".row.height", rowHeightDefault);
+
+			String sID;
+			String sID2;
+			sID = "color.row.odd.selected.bg";
+			colorRowSelectedOddBG = getSkinColor("table." + sTableID + "." + sID, sID);
+
+			sID = "color.row.even.selected.bg";
+			colorRowSelectedEvenBG = getSkinColor("table." + sTableID + "." + sID,
+					sID);
+
+			sID = "color.row.odd.selected.fg";
+			colorRowSelectedOddFG = getSkinColor("table." + sTableID + "." + sID, sID);
+
+			sID = "color.row.even.selected.fg";
+			colorRowSelectedEvenFG = getSkinColor("table." + sTableID + "." + sID,
+					sID);
+
+			sID = "color.row.odd.bg";
+			colorRowOddBG = getSkinColor("table." + sTableID + "." + sID, sID);
+
+			sID = "color.row.even.bg";
+			colorRowEvenBG = getSkinColor("table." + sTableID + "." + sID, sID);
+
+			sID = "color.row.odd.fg";
+			colorRowOddFG = getSkinColor("table." + sTableID + "." + sID, sID);
+
+			sID = "color.row.even.fg";
+			colorRowEvenFG = getSkinColor("table." + sTableID + "." + sID, sID);
+
+			sID = "color.row.divider";
+			sID2 = "table." + sTableID + "." + sID;
+			String val = skinProperties.getStringValue(sID2);
+			if (val != null && val.length() == 0) {
+				colorRowDivider = null;
+			} else {
+				colorRowDivider = getSkinColor(sID2, sID);
+			}
+
+			sID = "color.row.focus";
+			sID2 = "table." + sTableID + "." + sID;
+			val = skinProperties.getStringValue(sID2);
+			if (val != null && val.length() == 0) {
+				colorRowFocus = null;
+			} else {
+				colorRowFocus = getSkinColor(sID2, sID);
+			}
+
+			rowFocusStyle = skinProperties.getStringValue(
+					"table." + sTableID + ".row.focus.style", "dot").toLowerCase().equals(
+					"dot") ? SWT.LINE_DOT : SWT.LINE_SOLID;
+		}
+
+		colorRowOddBG = pickColorIfNull(colorRowOddBG, colorRowEvenBG,
+				display.getSystemColor(SWT.COLOR_LIST_BACKGROUND));
+		colorRowOddFG = pickColorIfNull(colorRowOddFG, colorRowEvenFG,
+				display.getSystemColor(SWT.COLOR_LIST_FOREGROUND));
+
+		colorRowEvenBG = pickColorIfNull(colorRowEvenBG, colorRowOddBG,
+				display.getSystemColor(SWT.COLOR_LIST_BACKGROUND));
+		colorRowEvenFG = pickColorIfNull(colorRowEvenFG, colorRowOddFG,
+				display.getSystemColor(SWT.COLOR_LIST_FOREGROUND));
+
+		colorRowSelectedEvenBG = pickColorIfNull(colorRowSelectedEvenBG,
+				colorRowSelectedOddBG, display.getSystemColor(SWT.COLOR_LIST_SELECTION));
+		colorRowSelectedEvenFG = pickColorIfNull(colorRowSelectedEvenFG,
+				colorRowSelectedOddFG,
+				display.getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT));
+
+		colorRowSelectedOddBG = pickColorIfNull(colorRowSelectedOddBG,
+				colorRowSelectedEvenBG,
+				display.getSystemColor(SWT.COLOR_LIST_SELECTION));
+		colorRowSelectedOddFG = pickColorIfNull(colorRowSelectedOddFG,
+				colorRowSelectedEvenFG,
+				display.getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT));
+	}
+
+	/**
+	 *
+	 * @since 3.0.4.3
+	 */
+	private Color pickColorIfNull(Color colorMaybeNull, Color replacementColor,
+			Color backupColor) {
+		if (colorMaybeNull == null) {
+			if (replacementColor != null) {
+				return replacementColor;
+			} else {
+				return backupColor;
+			}
+		}
+		return colorMaybeNull;
+	}
+
+	/**
+	 * @param sid
+	 * @param string
+	 *
+	 * @since 3.0.4.3
+	 */
+	private Color getSkinColor(String id1, String id2) {
+		Color color = skinProperties.getColor(id1);
+		if (color == null) {
+			color = skinProperties.getColor(id2);
+		}
+		return color;
 	}
 
 	/**
@@ -553,14 +696,14 @@ public class ListView
 			}
 			if (imgView != null && !imgView.isDisposed())
 				imgView.dispose();
-			imgView = new Image(listCanvas.getDisplay(), clientArea);
+			imgView = new Image(display, clientArea);
 			lastBounds = new Rectangle(0, 0, 0, 0);
 			bNeedsRefresh = true;
 		} else if (!lastBounds.equals(clientArea)) {
 			// resize image by creating a new one, drawing the old one on it,
 			// and blanking out the new areas
 			bNeedsRefresh = lastBounds.height != clientArea.height;
-			Image newImageView = new Image(listCanvas.getDisplay(), clientArea);
+			Image newImageView = new Image(display, clientArea);
 			GC gc = null;
 			try {
 				gc = new GC(newImageView);
@@ -706,7 +849,7 @@ public class ListView
 				}
 				changed = true;
 			}
-			vBar.setIncrement(DEFAULT_ROW_HEIGHT);
+			vBar.setIncrement(rowHeightDefault);
 			int thumb = clientArea.height;
 			int maximum = vBar.getMaximum();
 			if (maximum != totalHeight) {
@@ -942,7 +1085,10 @@ public class ListView
 		menuHeader.addMenuListener(new MenuListener() {
 
 			public void menuShown(MenuEvent e) {
-				Point pt = headerArea.toControl(headerArea.getDisplay().getCursorLocation());
+				MenuItem[] items = menuHeader.getItems();
+				Utils.disposeSWTObjects(items);
+
+				Point pt = headerArea.toControl(display.getCursorLocation());
 				final TableColumnCore inColumn = getColumnHeaderMouseIn(pt.x, pt.y);
 				if (inColumn != null) {
 					MenuItem itemSortOn = new MenuItem(menuHeader, SWT.PUSH);
@@ -971,12 +1117,10 @@ public class ListView
 			}
 
 			public void menuHidden(MenuEvent e) {
-				MenuItem[] items = menuHeader.getItems();
-				Utils.disposeSWTObjects(items);
 			}
 		});
 
-		final Cursor cursor = new Cursor(headerArea.getDisplay(), SWT.CURSOR_HAND);
+		final Cursor cursor = new Cursor(display, SWT.CURSOR_HAND);
 		headerArea.addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
 				Utils.disposeSWTObjects(new Object[] {
@@ -1257,8 +1401,6 @@ public class ListView
 			logPAINT("Start refreshVisible " + Debug.getCompressedStackTrace());
 		}
 		//log("Start refreshVisible " + Debug.getCompressedStackTrace());
-
-		final Display display = listCanvas.getDisplay();
 
 		AERunnable runnable = new AERunnable() {
 			public void runSupport() {
@@ -1882,8 +2024,7 @@ public class ListView
 						rowArea.height = row.getHeight();
 						mouseDownAt = new Point(e.x, e.y - rowArea.y);
 
-						imgMove = new Image(listCanvas.getDisplay(), rowArea.width,
-								rowArea.height);
+						imgMove = new Image(display, rowArea.width, rowArea.height);
 						GC gc = new GC(listCanvas);
 						gc.copyArea(imgMove, rowArea.x, rowArea.y);
 						gc.dispose();
@@ -3346,7 +3487,7 @@ public class ListView
 		}
 
 		if (!isDisposed()) {
-			listCanvas.getDisplay().asyncExec(new AERunnable() {
+			display.asyncExec(new AERunnable() {
 				public void runSupport() {
 					Object[] rows;
 					try {
@@ -3558,7 +3699,7 @@ public class ListView
 
 				// Must dispose in an asyncExec, otherwise SWT.Selection doesn't
 				// get fired (async workaround provided by Eclipse Bug #87678)
-				e.widget.getDisplay().asyncExec(new AERunnable() {
+				display.asyncExec(new AERunnable() {
 					public void runSupport() {
 						if (bShown || menu.isDisposed()) {
 							return;
@@ -3802,17 +3943,17 @@ public class ListView
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#setRowDefaultHeight(int)
 	public void setRowDefaultHeight(int height) {
-		DEFAULT_ROW_HEIGHT = height + (rowMarginHeight * 2);
+		rowHeightDefault = height + (rowMarginHeight * 2);
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#getRowDefaultHeight()
 	public int getRowDefaultHeight() {
-		return DEFAULT_ROW_HEIGHT;
+		return rowHeightDefault;
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#setRowDefaultIconSize(org.eclipse.swt.graphics.Point)
 	public void setRowDefaultIconSize(Point size) {
-		DEFAULT_ROW_HEIGHT = size.y + (rowMarginHeight * 2);
+		rowHeightDefault = size.y + (rowMarginHeight * 2);
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#updateLanguage()
@@ -3907,11 +4048,11 @@ public class ListView
 		} else {
 			switch (event.keyCode) {
 				case SWT.PAGE_UP:
-					moveFocus(getClientArea().height / -DEFAULT_ROW_HEIGHT, false);
+					moveFocus(getClientArea().height / -rowHeightDefault, false);
 					break;
 
 				case SWT.PAGE_DOWN:
-					moveFocus(getClientArea().height / DEFAULT_ROW_HEIGHT, false);
+					moveFocus(getClientArea().height / rowHeightDefault, false);
 					break;
 
 				case SWT.HOME: {
@@ -3964,13 +4105,13 @@ public class ListView
 	}
 
 	public TableCellCore getTableCellWithCursor() {
-		Point pt = listCanvas.getDisplay().getCursorLocation();
+		Point pt = display.getCursorLocation();
 		pt = listCanvas.toControl(pt);
 		return getTableCell(pt.x, pt.y);
 	}
 
 	public Point getTableCellMouseOffset() {
-		Point pt = listCanvas.getDisplay().getCursorLocation();
+		Point pt = display.getCursorLocation();
 		pt = listCanvas.toControl(pt);
 		TableCellSWT tableCell = getTableCell(pt.x, pt.y);
 		if (tableCell == null) {
@@ -3982,7 +4123,7 @@ public class ListView
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#getTableRowWithCursor()
 	public TableRowCore getTableRowWithCursor() {
-		Point pt = listCanvas.getDisplay().getCursorLocation();
+		Point pt = display.getCursorLocation();
 		pt = listCanvas.toControl(pt);
 		return (TableRowSWT) getRow(pt.x, pt.y);
 	}
