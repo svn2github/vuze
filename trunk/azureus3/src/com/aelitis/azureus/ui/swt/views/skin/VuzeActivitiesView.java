@@ -35,6 +35,7 @@ import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.common.table.TableSelectionListener;
 import com.aelitis.azureus.ui.swt.columns.vuzeactivity.ColumnVuzeActivity;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
@@ -117,6 +118,25 @@ public class VuzeActivitiesView
 				}
 			}
 		});
+
+		view.addSelectionListener(new TableSelectionListener() {
+
+			public void selected(TableRowCore[] row) {
+			}
+
+			public void focusChanged(TableRowCore focus) {
+			}
+
+			public void deselected(TableRowCore[] rows) {
+			}
+
+			public void defaultSelected(TableRowCore[] rows) {
+				if (rows.length == 1) {
+					TorrentListViewsUtils.playOrStreamDataSource(rows[0].getDataSource(),
+							btnPlay);
+				}
+			}
+		}, false);
 
 		cData.layout();
 
