@@ -127,10 +127,20 @@ public class SWTSkinButtonUtility
 						skinImageObject.setImageByID(id, null);
 					}
 				}
-				if (skinObject.isVisible()) {
-					Utils.relayout(skinObject.getControl());
-				}
 			}
 		});
+	}
+
+	public void setTooltipID(final String id) {
+		if (skinObject instanceof SWTSkinObjectImage) {
+			SWTSkinObjectImage skinImageObject = (SWTSkinObjectImage) skinObject;
+			skinImageObject.setTooltipByID(id);
+		} else if (skinObject instanceof SWTSkinObjectContainer) {
+			SWTSkinObject[] children = ((SWTSkinObjectContainer) skinObject).getChildren();
+			if (children.length > 0 && children[0] instanceof SWTSkinObjectImage) {
+				SWTSkinObjectImage skinImageObject = (SWTSkinObjectImage) children[0];
+				skinImageObject.setTooltipByID(id);
+			}
+		}
 	}
 }
