@@ -125,7 +125,7 @@ public class SWTSkinTabSet
 				String sConfigID = activeTab.getConfigID();
 				String sNewID = activeTab.getSkinObjectID();
 
-				SWTSkinObject parent = skin.getSkinObject(skinProperties.getStringValue(sConfigID
+				SWTSkinObject parent = skin.getSkinObject(activeTab.getProperties().getStringValue(sConfigID
 						+ ".activate"));
 				if (parent != null) {
 					parent.getControl().setFocus();
