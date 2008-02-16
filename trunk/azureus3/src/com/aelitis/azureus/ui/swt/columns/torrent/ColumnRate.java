@@ -272,7 +272,7 @@ public class ColumnRate
 				boolean rowHasMouse = (row instanceof TableRowCore)
 						? ((TableRowCore) row).isMouseOver() : false;
 				if (rowHasMouse && userRating == -1) {
-					//showAverage = false;
+					showAverage = false;
 					showRateActionIcon = true;
 				}
 
@@ -319,7 +319,8 @@ public class ColumnRate
 				int smallTextStyle = SWT.RIGHT;
 				if (imgRate != null && (userRating >= 0 || userRating == -2)) {
 					//smallTextStyle = SWT.RIGHT;
-					gcImage.drawImage(imgRate, r.width - 53, 5);
+					gcImage.drawImage(imgRate, r.width - 53, (height - 14) / 2
+							- (imgRate.getBounds().height / 2));
 				}
 
 				r.y += 2;
@@ -380,7 +381,7 @@ public class ColumnRate
 					gcImage.setTextAntialias(SWT.DEFAULT);
 
 					Rectangle rectDrawRatings = img.getBounds();
-					rectDrawRatings.height -= 4;
+					//rectDrawRatings.height -= 4;
 					GCStringPrinter.printString(gcImage, "" + count + " ratings",
 							rectDrawRatings, true, false, SWT.BOTTOM | smallTextStyle);
 				}
@@ -389,7 +390,7 @@ public class ColumnRate
 					gcImage.setAlpha(255);
 				}
 			}
-			
+
 			if (showRateActionIcon) {
 				if (imgRate != null) {
 					Point drawPos = getRateIconPos(imgRate.getBounds(), width, height);
@@ -455,6 +456,8 @@ public class ColumnRate
 			if (event.eventType == TableCellMouseEvent.EVENT_MOUSEEXIT) {
 				hoveringOn = -1;
 			} else if (event.eventType == TableCellMouseEvent.EVENT_MOUSEMOVE) {
+				int userRating = PlatformTorrentUtils.getUserRating(dm.getTorrent());
+
 				int cellWidth = event.cell.getWidth();
 				int cellHeight = event.cell.getHeight();
 				Point drawPos = getRateIconPos(boundsRateMe, cellWidth, cellHeight);
@@ -467,11 +470,17 @@ public class ColumnRate
 
 					if (hoveringOn != value) {
 						hoveringOn = value;
+						if ((cell instanceof TableCellCore) && userRating == -1) {
+							((TableCellCore) event.cell).setCursorID(SWT.CURSOR_HAND);
+						}
 						refresh(event.cell, true);
 					}
 				} else {
 					if (hoveringOn != -1) {
 						hoveringOn = -1;
+						if (cell instanceof TableCellCore) {
+							((TableCellCore) event.cell).setCursorID(SWT.CURSOR_ARROW);
+						}
 						refresh(event.cell, true);
 					}
 				}
@@ -483,7 +492,8 @@ public class ColumnRate
 			}
 
 			if (event.eventType != TableCellMouseEvent.EVENT_MOUSEDOWN
-					&& event.eventType != TableCellMouseEvent.EVENT_MOUSEUP) {
+					&& event.eventType != TableCellMouseEvent.EVENT_MOUSEUP
+					&& event.eventType != TableCellMouseEvent.EVENT_MOUSEDOUBLECLICK) {
 				return;
 			}
 
@@ -502,6 +512,40 @@ public class ColumnRate
 			}
 
 			int userRating = PlatformTorrentUtils.getUserRating(dm.getTorrent());
+
+			if (event.eventType == TableCellMouseEvent.EVENT_MOUSEDOUBLECLICK) {
+				// remove setting
+				try {
+					final TOTorrent torrent = dm.getTorrent();
+					final String hash = torrent.getHashWrapper().toBase32String();
+					final int oldValue = PlatformTorrentUtils.getUserRating(torrent);
+					if (oldValue >= 0) {
+  					PlatformTorrentUtils.setUserRating(torrent, -2);
+  					refresh(event.cell, true);
+  					PlatformRatingMessenger.setUserRating(hash, -1, 0,
+  							new PlatformMessengerListener() {
+  								public void replyReceived(PlatformMessage message,
+  										String replyType, Map reply) {
+  									if (PlatformRatingMessenger.ratingSucceeded(reply)) {
+  										PlatformTorrentUtils.setUserRating(torrent, -1);
+  										GlobalRatingUtils.updateFromPlatform(torrent, 2000);
+  									} else {
+  										PlatformTorrentUtils.setUserRating(torrent,
+  												oldValue == -2 ? -1 : oldValue);
+  									}
+  									refresh(event.cell, true);
+  								}
+  
+  								public void messageSent(PlatformMessage message) {
+  								}
+  							});
+  					event.skipCoreFunctionality = true;
+					}
+				} catch (TOTorrentException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 
 			if (event.eventType == TableCellMouseEvent.EVENT_MOUSEDOWN) {
 				bMouseDowned = true;
@@ -549,40 +593,9 @@ public class ColumnRate
 							e.printStackTrace();
 						}
 					}
-				} else {
-					// remove setting
-					try {
-						final TOTorrent torrent = dm.getTorrent();
-						final String hash = torrent.getHashWrapper().toBase32String();
-						final int oldValue = PlatformTorrentUtils.getUserRating(torrent);
-						if (oldValue == -2) {
-							return;
-						}
-						PlatformTorrentUtils.setUserRating(torrent, -2);
-						refresh(event.cell, true);
-						PlatformRatingMessenger.setUserRating(hash, -1, 0,
-								new PlatformMessengerListener() {
-									public void replyReceived(PlatformMessage message,
-											String replyType, Map reply) {
-										if (PlatformRatingMessenger.ratingSucceeded(reply)) {
-											PlatformTorrentUtils.setUserRating(torrent, -1);
-											GlobalRatingUtils.updateFromPlatform(torrent, 2000);
-										} else {
-											PlatformTorrentUtils.setUserRating(torrent,
-													oldValue == -2 ? -1 : oldValue);
-										}
-										refresh(event.cell, true);
-									}
-
-									public void messageSent(PlatformMessage message) {
-									}
-								});
-					} catch (TOTorrentException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
 				}
-			}
+			} 
+
 			bMouseDowned = false;
 		}
 
