@@ -131,7 +131,17 @@ public class TorrentListViewsUtils
 		});
 		view.addListener(new TorrentListViewListener() {
 			public void stateChanged(DownloadManager manager) {
-				StartStopButtonUtil.updateStopButton(view, btn);
+				boolean update = false;
+				TableRowCore[] selectedRows = view.getSelectedRows();
+				for (int i = 0; i < selectedRows.length; i++) {
+					if (selectedRows[i].getDataSource(true) == manager) {
+						update = true;
+						break;
+					}
+				}
+				if (update) {
+					StartStopButtonUtil.updateStopButton(view, btn);
+				}
 			}
 		});
 		return btn;
