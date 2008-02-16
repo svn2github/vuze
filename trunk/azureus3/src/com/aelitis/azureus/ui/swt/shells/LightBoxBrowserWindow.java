@@ -3,14 +3,19 @@ package com.aelitis.azureus.ui.swt.shells;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.*;
 import org.eclipse.swt.custom.StackLayout;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.LightBoxShell;
 import org.gudy.azureus2.ui.swt.components.shell.LightBoxShell.StyledShell;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.IMainWindow;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
@@ -31,11 +36,9 @@ import com.aelitis.azureus.util.Constants;
 public class LightBoxBrowserWindow
 {
 
-	private String title = "";
-
 	private String url = null;
 
-	private String prefixVerifier = Constants.URL_TITLE_PREFIX;
+	private String pageVerifierValue = Constants.URL_PAGE_VERIFIER_VALUE;
 
 	private StackLayout stack = new StackLayout();
 
@@ -53,10 +56,12 @@ public class LightBoxBrowserWindow
 
 	private int browserHeight = 300;
 
+	private Label errorMessageLabel;
+
 	public LightBoxBrowserWindow(String url, String prefixVerifier, int width,
 			int height) {
 		this.url = url;
-		this.prefixVerifier = prefixVerifier;
+		this.pageVerifierValue = prefixVerifier;
 		browserWidth = Math.max(width, browserWidth);
 		browserHeight = Math.max(height, browserHeight);
 		Utils.execSWTThread(new AERunnable() {
@@ -111,6 +116,40 @@ public class LightBoxBrowserWindow
 		contentPanel.setBackground(new Color(null, 13, 13, 13));
 		errorPanel = new Composite(contentPanel, SWT.NONE);
 		errorPanel.setBackground(new Color(null, 13, 13, 13));
+		errorPanel.setLayout(new FormLayout());
+
+		errorMessageLabel = new Label(errorPanel, SWT.WRAP);
+		errorMessageLabel.setBackground(errorPanel.getBackground());
+		errorMessageLabel.setForeground(Colors.grey);
+
+		Button closeButton = new Button(errorPanel, SWT.NONE);
+		closeButton.setText("Close");
+
+		FormData fData = new FormData();
+		fData.width = 100;
+		fData.bottom = new FormAttachment(100, -20);
+		fData.right = new FormAttachment(100, -20);
+		closeButton.setLayoutData(fData);
+
+		fData = new FormData();
+		fData.top = new FormAttachment(0, 0);
+		fData.left = new FormAttachment(0, 0);
+		fData.bottom = new FormAttachment(closeButton, 0);
+		fData.right = new FormAttachment(100, -20);
+
+		errorMessageLabel.setLayoutData(fData);
+
+		closeButton.addSelectionListener(new SelectionListener() {
+
+			public void widgetSelected(SelectionEvent e) {
+				widgetDefaultSelected(e);
+			}
+
+			public void widgetDefaultSelected(SelectionEvent e) {
+				close();
+			}
+
+		});
 
 		/*
 		 * The Browser widget is very platform-dependent and can only support a limited set
@@ -146,15 +185,6 @@ public class LightBoxBrowserWindow
 	private void hookListeners() {
 
 		/*
-		 * Capture the title of the loaded page so we can use it to verify the prefix
-		 */
-		browser.addTitleListener(new TitleListener() {
-			public void changed(TitleEvent event) {
-				title = event.title;
-			}
-		});
-
-		/*
 		 * If a java script 'window.close' message is detected from the loaded page
 		 * then close the lightbox
 		 */
@@ -176,13 +206,18 @@ public class LightBoxBrowserWindow
 				/*
 				 * If a prefixVerifier is specified then verify the loaded page
 				 */
-				//KN: disabled until we finalize
-				//				if (null != prefixVerifier) {
-				//					if (null == title || false == title.startsWith(prefixVerifier)) {
-				//						stack.topControl = errorPanel;
-				//					}
-				//				}
-				contentPanel.layout();
+				if (null != pageVerifierValue) {
+					if (false == isPageVerified(browser.getText())) {
+
+						String errorMessage = "An error has occured while attempting to access:\n";
+						errorMessage += browser.getUrl() + "\n\n";
+						errorMessage += "Please try again at a later time.\n";
+						errorMessageLabel.setText(errorMessage);
+						stack.topControl = errorPanel;
+
+					}
+				}
+				contentPanel.layout(true);
 				lightBoxShell.open(styledShell);
 
 			}
@@ -218,6 +253,32 @@ public class LightBoxBrowserWindow
 		 */
 		context.addMessageListener(new DisplayListener(null));
 
+	}
+
+	/**
+	 * Returns whether the given block of html contains the predefined '<INPUT...' block
+	 * This is used to detect whether the url given was resolved and loaded properly, or
+	 * whether an error may have prevented the page from loading fully.
+	 * 
+	 * NOTE: This is not a security implementation and no reliance should be made that
+	 * this check is enough to prevent spoofing, etc...
+	 * 
+	 * @param html
+	 * @return
+	 */
+	private boolean isPageVerified(String html) {
+		if (null == html || html.length() < 1) {
+			return false;
+		}
+
+		String fullSearchString = "<INPUT type=hidden value=" + pageVerifierValue
+				+ " name=pageVerifier>";
+
+		if (html.indexOf(fullSearchString) != -1) {
+			return true;
+
+		}
+		return false;
 	}
 
 	public void close() {

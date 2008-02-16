@@ -93,10 +93,10 @@ public class Constants
 	public static final String URL_ACCOUNT = "account.start";
 	
 	/**
-	 * This prefix is only used to validate that the page we're loading is
+	 * This verifier value is only used to validate that the page we're loading is
 	 * in-fact a page from Vuze; mainly required by the LightBoxBrowserWindow
 	 */
-	public static final String URL_TITLE_PREFIX = "Vuze -";
+	public static final String URL_PAGE_VERIFIER_VALUE = "vuzePage";
 
 	public static final boolean DIAG_TO_STDOUT = System.getProperty(
 			"DIAG_TO_STDOUT", "0").equals("1");
