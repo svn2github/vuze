@@ -182,10 +182,8 @@ NetStatusProtocolTester
 					byte[]	server_hash = (byte[])reply.get( "h" );
 					
 					if ( server_hash != null ){
-						
-						InetSocketAddress hack_address = new InetSocketAddress( "127.0.0.1", Integer.parseInt( bits[1].trim()));
-	
-						bt_tester.testOutbound( hack_address, server_hash, false );
+							
+						bt_tester.testOutbound( adjustLoopback( address ), server_hash, false );
 						
 					}else{
 						
@@ -205,6 +203,21 @@ NetStatusProtocolTester
 		}
 	}
 	
+	protected InetSocketAddress
+	adjustLoopback(
+		InetSocketAddress	address )
+	{
+		InetSocketAddress local = dht_plugin.getLocalAddress().getAddress();
+		
+		if ( local.getAddress().getHostAddress().equals( address.getAddress().getHostAddress())){
+			
+			return( new InetSocketAddress( "127.0.0.1", address.getPort()));
+			
+		}else{
+			
+			return( address );
+		}
+	}
 	
 	protected Map
 	sendRequest(
@@ -300,9 +313,7 @@ NetStatusProtocolTester
 						}
 					}
 					
-					InetSocketAddress hack_address = new InetSocketAddress( "127.0.0.1", originator.getPort());
-
-					bt_tester.testOutbound( hack_address, their_hash, true );
+					bt_tester.testOutbound( adjustLoopback( originator ), their_hash, true );
 					
 					reply.put( "h", bt_tester.getServerHash());
 				}
