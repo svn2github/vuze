@@ -315,8 +315,8 @@ public class BrowserContext
 	}
 
 	public void fillWithRetry(String s) {
-		browser.setText("<html><body style='overflow:auto; font-family: verdana; font-size: 10pt' bgcolor=#000000 text=#e0e0e0>"
-				+ "Sorry, there was a problem loading this page.<br> "
+		browser.setText("<html><body style='overflow:auto; font-family: verdana; font-size: 10pt' bgcolor=#1b1b1b text=#a0a0a0>"
+				+ "<br>Sorry, there was a problem loading this page.<br> "
 				+ "Please check if your internet connection is working and click <a href='"
 				+ lastValidURL
 				+ "' style=\"color: rgb(100, 155, 255); \">retry</a> to continue."
