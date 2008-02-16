@@ -558,4 +558,9 @@ public class TableRowImpl
 	public Object getData(String id) {
 		return dataList == null ? null : dataList.get(id);
 	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableRowCore#setDrawableHeight(int)
+	public boolean setDrawableHeight(int height) {
+		return setHeight(height);
+	}
 }
