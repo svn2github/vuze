@@ -491,7 +491,7 @@ public class GCStringPrinter
 					gc.drawText(s, x0, y0, true);
 				}
 				Point textExtent = gc.textExtent(s);
-				x0 += textExtent.x - 1;
+				x0 += textExtent.x;
 				//System.out.println("|" + s + "|" + textExtent.x);
 
 				int end = i + urlInfo.title.length();
