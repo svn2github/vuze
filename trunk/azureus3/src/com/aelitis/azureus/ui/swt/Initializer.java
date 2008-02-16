@@ -135,9 +135,10 @@ public class Initializer
 		startTime = SystemTime.getCurrentTime();
 
 		core.addListener(new AzureusCoreListener() {
-			int fakePercent = 80;
+			int fakePercent = Math.min(70, 100 - curPercent);
 
 			long startTime = SystemTime.getCurrentTime();
+			long lastTaskTimeSecs = startTime / 500;
 
 			String sLastTask;
 
@@ -147,13 +148,15 @@ public class Initializer
 				}
 
 				Initializer.this.reportCurrentTask(currentTask);
-				if (fakePercent > 0) {
+
+				long now = SystemTime.getCurrentTime();
+				if (fakePercent > 0 && lastTaskTimeSecs != now / 500) {
+					lastTaskTimeSecs = SystemTime.getCurrentTime() / 500;
 					fakePercent--;
 					Initializer.this.reportPercent(curPercent + 1);
 				}
 
 				if (sLastTask != null && !sLastTask.startsWith("Loading Torrent")) {
-					long now = SystemTime.getCurrentTime();
 					long diff = now - startTime;
 					if (diff > 10 && diff < 1000 * 60 * 5) {
 						System.out.println("   Core: " + diff + "ms for " + sLastTask);
@@ -268,7 +271,7 @@ public class Initializer
 
 		core.start();
 
-		reportPercent(80);
+		reportPercent(70);
 
 		System.out.println("Core Initializing took "
 				+ (SystemTime.getCurrentTime() - startTime) + "ms");
