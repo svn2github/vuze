@@ -59,7 +59,7 @@ public class VuzeActivitiesEntry
 
 	public String text;
 
-	public String icon;
+	private String iconID;
 
 	public String id;
 
@@ -67,7 +67,7 @@ public class VuzeActivitiesEntry
 
 	private long timestamp;
 
-	public String typeID;
+	private String typeID;
 
 	public String assetHash;
 
@@ -83,11 +83,13 @@ public class VuzeActivitiesEntry
 
 	public byte[] imageBytes;
 
+	public boolean showThumb = true;
+
 	public VuzeActivitiesEntry(long timestamp, int type, String text,
 			String icon, String id) {
 		this.type = 1;
 		this.text = text;
-		this.icon = icon;
+		this.setIconID(icon);
 		this.id = id;
 		this.type = type;
 		this.timestamp = timestamp;
@@ -98,9 +100,9 @@ public class VuzeActivitiesEntry
 		this.type = 1;
 		this.timestamp = timestamp;
 		this.text = text;
-		this.icon = icon;
+		this.setIconID(icon);
 		this.id = id;
-		this.typeID = typeID;
+		this.setTypeID(typeID, true);
 		this.assetHash = assetHash;
 	}
 
@@ -138,12 +140,17 @@ public class VuzeActivitiesEntry
 
 		entry.timestamp = MapUtils.getMapLong(map, "timestamp", 0);
 		entry.assetHash = MapUtils.getMapString(map, "assetHash", null);
-		entry.icon = MapUtils.getMapString(map, "icon", null);
+		entry.setIconID(MapUtils.getMapString(map, "icon", null));
 		entry.id = MapUtils.getMapString(map, "id", null);
 		entry.text = MapUtils.getMapString(map, "text", null);
-		entry.typeID = MapUtils.getMapString(map, "typeID", null);
+		entry.setTypeID(MapUtils.getMapString(map, "typeID", null), true);
 		entry.type = MapUtils.getMapInt(map, "type", 1);
+		entry.showThumb = MapUtils.getMapLong(map, "showThumb", 1) == 1;
 		entry.setAssetImageURL(MapUtils.getMapString(map, "assetImageURL", null));
+		
+		if (entry.getTypeID().equals(VuzeActivitiesManager.TYPEID_RATING_REMINDER)) {
+			entry.showThumb = false;
+		}
 
 		if (entry.assetHash != null) {
 			GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
@@ -202,12 +209,13 @@ public class VuzeActivitiesEntry
 			} catch (Exception e) {
 			}
 		}
-		map.put("icon", icon);
+		map.put("icon", getIconID());
 		map.put("id", id);
 		map.put("text", text);
-		map.put("typeID", typeID);
+		map.put("typeID", getTypeID());
 		map.put("type", new Integer(type));
 		map.put("assetImageURL", assetImageURL);
+		map.put("showThumb", new Long(showThumb ? 1 : 0));
 
 		return map;
 	}
@@ -224,5 +232,39 @@ public class VuzeActivitiesEntry
 		if (tableColumn != null) {
 			tableColumn.setLastSortValueChange(SystemTime.getCurrentTime());
 		}
+	}
+
+	/**
+	 * @param typeID the typeID to set
+	 */
+	public void setTypeID(String typeID, boolean autoSetIcon) {
+		this.typeID = typeID;
+		if (getIconID() == null && typeID != null) {
+			setIconID("image.vuze-entry." + typeID.toLowerCase());
+		}
+	}
+
+	/**
+	 * @return the typeID
+	 */
+	public String getTypeID() {
+		return typeID;
+	}
+
+	/**
+	 * @param iconID the iconID to set
+	 */
+	public void setIconID(String iconID) {
+		if (iconID != null && iconID.indexOf("image.") < 0) {
+			iconID = "image.vuze-entry." + iconID;
+		}
+		this.iconID = iconID;
+	}
+
+	/**
+	 * @return the iconID
+	 */
+	public String getIconID() {
+		return iconID;
 	}
 }
