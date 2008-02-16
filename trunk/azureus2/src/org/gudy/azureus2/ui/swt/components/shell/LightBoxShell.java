@@ -38,6 +38,8 @@ public class LightBoxShell
 
 	private Image processedImage;
 
+	private UIFunctionsSWT uiFunctions;
+
 	public LightBoxShell() {
 		this(false);
 	}
@@ -49,7 +51,7 @@ public class LightBoxShell
 	public LightBoxShell(boolean closeOnESC) {
 		this.closeOnESC = closeOnESC;
 
-		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+		uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if (null == uiFunctions) {
 			throw new NullPointerException(
 					"An initialized instance of UIFunctionsSWT is required to create a LightBoxShell");
@@ -245,6 +247,10 @@ public class LightBoxShell
 			} catch (Throwable t) {
 				// Not supported on SWT older than 3.4M4
 				t.printStackTrace();
+			}
+
+			if (true == Constants.isOSX) {
+				uiFunctions.createMainMenu(styledShell);
 			}
 
 			FillLayout fillLayout = new FillLayout();
