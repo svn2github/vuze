@@ -112,4 +112,11 @@ public interface SWTSkinObject
 	 * @since 3.0.1.3
 	 */
 	public void dispose();
+
+	/**
+	 * @param id
+	 *
+	 * @since 3.0.4.3
+	 */
+	void setTooltipByID(String id);
 }

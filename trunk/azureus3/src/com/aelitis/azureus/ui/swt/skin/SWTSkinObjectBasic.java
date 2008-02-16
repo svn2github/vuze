@@ -13,6 +13,7 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 
@@ -472,5 +473,16 @@ public class SWTSkinObjectBasic
 
 	public boolean isDisposed() {
 		return control == null || control.isDisposed();
+	}
+	
+	public void setTooltipByID(final String id) {
+		if (isDisposed()) {
+			return;
+		}
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				control.setToolTipText(MessageText.getString(id));
+			}
+		});
 	}
 }
