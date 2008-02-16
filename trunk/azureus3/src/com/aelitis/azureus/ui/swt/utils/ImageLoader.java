@@ -25,6 +25,7 @@ import java.util.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.widgets.Display;
 
 import com.aelitis.azureus.ui.skin.SkinProperties;
@@ -169,7 +170,20 @@ public class ImageLoader
 				}
 
 				if (img == null) {
-					//IMP.log("ImageRepository:loadImage:: Resource not found: " + res);
+					if (sKey.endsWith("-disabled") || sKey.endsWith("_disabled")) {
+						Image imgToFade = getImage(sKey.substring(0, sKey.length() - 9));
+						if (isRealImage(imgToFade)) {
+							ImageData imageData = imgToFade.getImageData();
+							// decrease alpha
+							if (imageData.alphaData != null) {
+								for (int i = 0; i < imageData.alphaData.length; i++) {
+									imageData.alphaData[i] = (byte) ((imageData.alphaData[i] & 0xff) >> 3);
+								}
+								img = new Image(display, imageData);
+							}
+						}
+					}
+					//System.err.println("ImageRepository:loadImage:: Resource not found: " + res);
 				}
 			} catch (Throwable e) {
 				System.err.println("ImageRepository:loadImage:: Resource not found: "
