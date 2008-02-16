@@ -440,7 +440,7 @@ public class MainWindow
 
 		Utils.disposeComposite(shell);
 
-		if (splash != null) {
+		if (splash != null && splash.getPercent() < 99) {
 			splash.reportPercent(splash.getPercent() + 1);
 		}
 
@@ -459,7 +459,7 @@ public class MainWindow
 			Utils.setShellIcon(shell);
 			Utils.linkShellMetricsToConfig(shell, "window");
 
-			if (splash != null) {
+			if (splash != null && splash.getPercent() < 99) {
 				splash.reportPercent(splash.getPercent() + 1);
 			}
 
@@ -472,7 +472,7 @@ public class MainWindow
 
 			initSkinListeners();
 
-			if (splash != null) {
+			if (splash != null && splash.getPercent() < 99) {
 				splash.reportPercent(splash.getPercent() + 1);
 			}
 
@@ -516,7 +516,7 @@ public class MainWindow
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
 
-			if (splash != null) {
+			if (splash != null && splash.getPercent() < 99) {
 				splash.reportPercent(splash.getPercent() + 1);
 			}
 
@@ -615,7 +615,6 @@ public class MainWindow
 
 					startTab = hasInComplete ? "maintabs.home" : "maintabs.browse";
 				}
-				startTab = "maintabs.browse";
 				tabSet.setActiveTab(startTab);
 			}
 
@@ -676,7 +675,7 @@ public class MainWindow
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
 
-			VuzeActivitiesManager.initialize(core);
+			VuzeActivitiesManager.initialize(core, skin);
 		}
 	}
 
