@@ -64,11 +64,13 @@ public class ColumnVuzeActivity
 	TableCellAddedListener, TableCellMouseMoveListener,
 	TableCellVisibilityListener
 {
-	private static final int EVENT_INDENT = 21;
-
 	private static final int MARGIN_WIDTH = 8 - ListView.COLUMN_MARGIN_WIDTH;
 
+	private static final int EVENT_INDENT = 8 + 16 + 5 - MARGIN_WIDTH;
+
 	private static final int MARGIN_HEIGHT = 7 - 1; // we set row margin height to 1
+
+	private static final boolean DO_RATE_CELL = false;
 
 	public static String COLUMN_ID = "name";
 
@@ -178,13 +180,14 @@ public class ColumnVuzeActivity
 		}
 
 		Image imgIcon;
-		if (entry.icon == null) {
+		if (entry.getIconID() == null) {
 			imgIcon = null;
-			ImageLoader imageLoader = ImageLoaderFactory.getInstance();
-			imgIcon = imageLoader.getImage("FJHSDFD");
 		} else {
 			ImageLoader imageLoader = ImageLoaderFactory.getInstance();
-			imgIcon = imageLoader.getImage(entry.icon);
+			imgIcon = imageLoader.getImage(entry.getIconID());
+			if (!ImageLoader.isRealImage(imgIcon)) {
+				imgIcon = null;
+			}
 		}
 
 		int x = entry.type == 0 ? 0 : EVENT_INDENT;
@@ -228,14 +231,14 @@ public class ColumnVuzeActivity
 			}
 			style |= SWT.TOP;
 
-			if (entry.dm != null || entry.imageBytes != null) {
+			if (entry.showThumb && (entry.dm != null || entry.imageBytes != null)) {
 				height += 60;
 			}
 
 			if (height < 30) {
 				height = 30;
 			}
-			boolean heightChanged = ((TableCellCore) cell).getTableRowCore().setHeight(
+			boolean heightChanged = ((TableCellCore) cell).getTableRowCore().setDrawableHeight(
 					height);
 
 			if (heightChanged) {
@@ -277,16 +280,11 @@ public class ColumnVuzeActivity
 				gc.setFont(headerFont);
 				gc.setForeground(colorHeaderFG);
 
-				((ListRow) cell.getTableRow()).setBackgroundColor(colorHeaderBG);
-				gc.setBackground(colorHeaderBG);
 				gc.fillRectangle(imgBounds);
 				height = height - 5;
 			} else {
 				TableRow row = cell.getTableRow();
-				Color color = cell.getTableRow().isSelected() ? colorDivider
-						: colorNormalBG;
-				((ListRow) row).setBackgroundColor(color);
-				gc.setBackground(color);
+				gc.setBackground(((ListRow) row).getBackground());
 
 				gc.fillRectangle(imgBounds);
 				if (imgIcon != null) {
@@ -302,7 +300,7 @@ public class ColumnVuzeActivity
 			entry.urlHitArea = stringPrinter.getUrlHitArea();
 			entry.url = stringPrinter.getUrl();
 
-			if (entry.dm != null || entry.imageBytes != null) {
+			if (entry.showThumb && (entry.dm != null || entry.imageBytes != null)) {
 				Rectangle dmThumbRect = getDMImageRect(height);
 				if (thumbCell == null) {
 					ListCell listCell = new ListCellGraphic(null, SWT.LEFT, dmThumbRect);
@@ -320,34 +318,29 @@ public class ColumnVuzeActivity
 				thumbCell.refresh(true);
 				thumbCell.doPaint(gc);
 
-				if (entry.dm != null
-						&& PlatformTorrentUtils.isContent(entry.dm.getTorrent(), true)) {
-					Rectangle dmRatingRect = getDMRatingRect(width, height);
-					if (ratingCell == null) {
-						ListCell listCell = new ListCellGraphic(null, SWT.RIGHT,
-								dmRatingRect);
+				if (DO_RATE_CELL) {
+					if (entry.dm != null
+							&& PlatformTorrentUtils.isContent(entry.dm.getTorrent(), true)) {
+						Rectangle dmRatingRect = getDMRatingRect(width, height);
+						if (ratingCell == null) {
+							ListCell listCell = new ListCellGraphic(null, SWT.RIGHT,
+									dmRatingRect);
 
-						ratingCell = new TableCellImpl((TableRowCore) cell.getTableRow(),
-								new ColumnRate(cell.getTableID(), true), 0, listCell);
-						listCell.setTableCell(ratingCell);
+							ratingCell = new TableCellImpl((TableRowCore) cell.getTableRow(),
+									new ColumnRate(cell.getTableID(), true), 0, listCell);
+							listCell.setTableCell(ratingCell);
 
-						setRatingCell(cell, ratingCell);
+							setRatingCell(cell, ratingCell);
+						}
+
+						((ListCell) ratingCell.getBufferedTableItem()).setBackground(gc.getBackground());
+						((ListCell) ratingCell.getBufferedTableItem()).setBounds(dmRatingRect);
+						ratingCell.invalidate();
+						ratingCell.refresh(true);
+						ratingCell.doPaint(gc);
 					}
-
-					((ListCell) ratingCell.getBufferedTableItem()).setBackground(gc.getBackground());
-					((ListCell) ratingCell.getBufferedTableItem()).setBounds(dmRatingRect);
-					ratingCell.invalidate();
-					ratingCell.refresh(true);
-					ratingCell.doPaint(gc);
 				}
 			}
-
-			if (entry.type > 0) {
-				gc.setForeground(colorDivider);
-				gc.drawLine(EVENT_INDENT, imgBounds.height - 1, imgBounds.width - 1,
-						imgBounds.height - 1);
-			}
-
 		} finally {
 			gc.dispose();
 		}
