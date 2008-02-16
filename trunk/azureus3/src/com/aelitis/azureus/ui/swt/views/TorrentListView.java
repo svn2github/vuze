@@ -181,8 +181,7 @@ public class TorrentListView
 						DownloadManager[] managers = sortDMList(globalManager.getDownloadManagers());
 						bSkipUpdateCount = true;
 
-						int max = (dataArea.getClientArea().height - 8)
-								/ DEFAULT_ROW_HEIGHT;
+						int max = (dataArea.getClientArea().height - 8) / rowHeightDefault;
 						for (int i = 0; i < managers.length; i++) {
 							DownloadManager dm = managers[i];
 							downloadManagerAdded(dm);
@@ -468,7 +467,8 @@ public class TorrentListView
 
 		tableColumns = (TableColumnCore[]) listTableColumns.toArray(new TableColumnCore[listTableColumns.size()]);
 
-		setColumnList(tableColumns, ColumnDateAdded2Liner.COLUMN_ID, false, true);
+		setColumnList(tableColumns, bMiniMode ? ColumnProgressETA.COLUMN_ID
+				: ColumnDateAdded2Liner.COLUMN_ID, false, true);
 		TableColumnManager tcManager = TableColumnManager.getInstance();
 		tcManager.setAutoHideOrder(getTableID(), autoHideOrder);
 	}
@@ -554,7 +554,7 @@ public class TorrentListView
 		int curRowCount = size(true);
 
 		int maxRows = bAllowScrolling ? 100000
-				: (dataArea.getClientArea().height - 8) / DEFAULT_ROW_HEIGHT;
+				: (dataArea.getClientArea().height - 8) / rowHeightDefault;
 
 		long totalPossible = getTotalPossible();
 		if (curRowCount < maxRows && totalPossible > curRowCount) {
@@ -642,7 +642,7 @@ public class TorrentListView
 				public void runSupport() {
 					if (bAllowScrolling
 							|| size(true) < (dataArea.getClientArea().height - 8)
-									/ DEFAULT_ROW_HEIGHT) {
+									/ rowHeightDefault) {
 						addDataSource(dm, !bSkipUpdateCount);
 						if (!bAllowScrolling && !bSkipUpdateCount) {
 							regetDownloads();
