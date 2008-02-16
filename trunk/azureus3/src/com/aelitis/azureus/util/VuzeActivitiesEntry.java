@@ -33,7 +33,6 @@ import com.aelitis.azureus.ui.common.table.TableColumnSortObject;
 
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderAdapter;
-import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderListener;
 
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 
