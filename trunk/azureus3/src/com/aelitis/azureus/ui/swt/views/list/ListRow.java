@@ -104,7 +104,7 @@ public class ListRow
 		this.parent = parent;
 		coreDataSource = datasource;
 		this.view = view;
-		setHeight(view.DEFAULT_ROW_HEIGHT);
+		setHeight(view.rowHeightDefault);
 
 		pluginDataSource = null;
 		bDisposed = false;
@@ -160,82 +160,35 @@ public class ListRow
 
 	private void setBackgroundColor(int iPosition) {
 		checkCellForSetting();
+		
+		boolean changed = false;
+		Color newBG;
+		Color newFG;
 
 		boolean bOdd = ((iPosition + 1) % 2) == 0;
 		if (bSelected) {
-			if (skinProperties == null) {
-				bg = parent.getDisplay().getSystemColor(SWT.COLOR_LIST_SELECTION);
-				fg = parent.getDisplay().getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT);
-			} else {
-				String sColorID = (bOdd) ? "color.row.odd.selected.bg"
-						: "color.row.even.selected.bg";
-				Color color = skinProperties == null ? null
-						: skinProperties.getColor(sColorID);
-				if (color != null) {
-					bg = color;
-				} else {
-					bg = parent.getDisplay().getSystemColor(SWT.COLOR_LIST_SELECTION);
-				}
+			newBG = bOdd ? view.colorRowSelectedOddBG : view.colorRowSelectedEvenBG;
+			newFG = bOdd ? view.colorRowSelectedOddFG : view.colorRowSelectedEvenFG;
+		} else {
+			newBG = bOdd ? view.colorRowOddBG : view.colorRowEvenBG;
+			newFG = bOdd ? view.colorRowOddFG : view.colorRowEvenFG;
+		}
 
-				sColorID = (bOdd) ? "color.row.odd.selected.fg"
-						: "color.row.even.selected.fg";
-				Color cText = skinProperties == null ? null
-						: skinProperties.getColor(sColorID);
-				if (cText == null) {
-					sColorID = (bOdd) ? "color.row.odd.fg" : "color.row.even.fg";
-					cText = skinProperties == null ? null
-							: skinProperties.getColor(sColorID);
+		if (!colorsEqual(newBG, bg)) {
+			changed = true;
+			bg = newBG;
+		}
+		if (!colorsEqual(newFG, fg)) {
+			changed = true;
+			fg = newFG;
+		}
 
-					if (cText == null) {
-						cText = parent.getDisplay().getSystemColor(
-								SWT.COLOR_LIST_SELECTION_TEXT);
-					}
-				}
-
-				fg = cText;
-			}
+		if (changed) {
 			bRowVisuallyChangedSinceRefresh = true;
 
 			invalidateGraphic();
 			if (isVisible()) {
 				redraw();
-			}
-		} else {
-			boolean bChanged = false;
-			if (skinProperties != null) {
-				String sColorID = (bOdd) ? "color.row.odd.bg" : "color.row.even.bg";
-				Color color = skinProperties.getColor(sColorID);
-				if (color != null && !colorsEqual(color, bg)) {
-					bChanged = true;
-					bg = color;
-				}
-			} else {
-				Color oldColor = bg;
-				bg = bOdd ? bg = parent.getDisplay().getSystemColor(
-						SWT.COLOR_LIST_BACKGROUND) : Colors.colorAltRow;
-				if (!colorsEqual(oldColor, bg)) {
-					bChanged = true;
-				}
-			}
-
-			String sColorID = (bOdd) ? "color.row.odd.fg" : "color.row.even.fg";
-			Color cText = skinProperties == null ? null
-					: skinProperties.getColor(sColorID);
-
-			if (cText == null) {
-				cText = parent.getDisplay().getSystemColor(SWT.COLOR_LIST_FOREGROUND);
-			}
-			if (!colorsEqual(cText, fg)) {
-				bChanged = true;
-				fg = cText;
-			}
-
-			if (bChanged) {
-				bRowVisuallyChangedSinceRefresh = true;
-				invalidateGraphic();
-				if (isVisible()) {
-					redraw();
-				}
 			}
 		}
 		// 1160681379555: r54c4r.v?N;Invalidate Cell;true from ListRow::setBackgroundColor::316,ListRow::setIndex::468,ListView::notifyIndexChanges::385,ListView$3::run::344,Utils::execSWTThread::590,Utils::execSWTThread::618,ListView::addDataSources::313,ListView::processDataSourceQueue::242,ListView::updateUI::660,UIUpdaterImpl::update::139,UIUpdaterImpl::access$0::126,UIUpdaterImpl$1::runSupport::72,AERunnable::run::38,RunnableLock::run::35,Synchronizer::runAsyncMessages::123,Display::runAsyncMessages::3325,Display::readAndDispatch::2971,SWTThread::<init>::130,SWTThread::createInstance::64,Initializer::<init>::169,Initializer::main::147
@@ -302,13 +255,24 @@ public class ListRow
 			int yofs = view.rowGetVisibleYOffset(this);
 			gc.fillRectangle(0, yofs, clientArea.width, height);
 			if (isFocused()) {
-				if (skinProperties != null) {
-					gc.setForeground(skinProperties.getColor("color.row.focus"));
-				} else {
-					gc.setForeground(getForeground());
+				if (view.colorRowFocus != null) {
+					gc.setForeground(view.colorRowFocus);
+					gc.setLineStyle(view.rowFocusStyle);
+					gc.drawRectangle(0, yofs, clientArea.width - 1, height - 1);
 				}
-				gc.setLineStyle(SWT.LINE_DOT);
-				gc.drawRectangle(0, yofs, clientArea.width - 1, height - 1);
+			} else {
+  			int yy = height + yofs - 1;
+  			if (yy > 0) {
+  				if (view.colorRowDivider != null) {
+  					gc.setForeground(view.colorRowDivider);
+  					
+    				if (isFocused()) {
+    					//gc.setBackground(ColorCache.getColor(gc.getDevice(), "#191919"));
+    					//gc.setForeground(ColorCache.getColor(gc.getDevice(), "#606060"));
+    				}
+    				gc.drawLine(3, yy, clientArea.width - 4, yy);
+  				}
+  			}
 			}
 
 			gc.setForeground(getForeground());
@@ -573,8 +537,12 @@ public class ListRow
 		this.setForeground(Colors.colorError);
 	}
 
+	public boolean setDrawableHeight(int iHeight) {
+		return setHeight(iHeight + view.getRowMarginHeight() * 2);
+	}
+	
 	public boolean setHeight(int iHeight) {
-		int newHeight = iHeight + (view.getRowMarginHeight() * 2);
+		int newHeight = iHeight;
 		if (height == newHeight) {
 			return false;
 		}
@@ -602,6 +570,10 @@ public class ListRow
 
 	public int getHeight() {
 		return height;
+	}
+	
+	public int getDrawableHeight() {
+		return height - (view.getRowMarginHeight() * 2); 
 	}
 
 	public boolean setIconSize(Point pt) {
