@@ -85,9 +85,16 @@ public class SWTSkinPropertiesClone
 	}
 
 	public Color getColor(String name) {
+		if (name == null) {
+			return null;
+		}
 		if (DEBUG) {
 			checkName(name);
 		}
+		if (name.length() > 0 && name.charAt(0) != '.') {
+			return properties.getColor(name);
+		}
+
 
 		Color val = properties.getColor(sCloneConfigID + name);
 		if (val != null) {
@@ -98,9 +105,16 @@ public class SWTSkinPropertiesClone
 	}
 
 	public int[] getColorValue(String name) {
+		if (name == null) {
+			return new int[] { -1, -1, -1 };
+		}
 		if (DEBUG) {
 			checkName(name);
 		}
+		if (name.length() > 0 && name.charAt(0) != '.') {
+			return properties.getColorValue(name);
+		}
+
 		if (!name.equals(IGNORE_NAME)) {
 			int[] val = properties.getColorValue(sCloneConfigID + name);
 			if (val[0] < 0) {
@@ -112,9 +126,16 @@ public class SWTSkinPropertiesClone
 	}
 
 	public int getIntValue(String name, int def) {
+		if (name == null) {
+			return def;
+		}
 		if (DEBUG) {
 			checkName(name);
 		}
+		if (name.length() > 0 && name.charAt(0) != '.') {
+			return properties.getIntValue(name, def);
+		}
+
 		if (!name.equals(IGNORE_NAME)) {
 			if (properties.getStringValue(sCloneConfigID + name) != null) {
 				return properties.getIntValue(sCloneConfigID + name, def);
@@ -128,9 +149,16 @@ public class SWTSkinPropertiesClone
 	}
 
 	public String[] getStringArray(String name) {
+		if (name == null) {
+			return null;
+		}
 		if (DEBUG) {
 			checkName(name);
 		}
+		if (name.length() > 0 && name.charAt(0) != '.') {
+			return properties.getStringArray(name);
+		}
+
 		if (!name.equals(IGNORE_NAME)) {
 			String[] val = properties.getStringArray(sCloneConfigID + name,
 					sCloneParams);
@@ -143,9 +171,16 @@ public class SWTSkinPropertiesClone
 	}
 
 	public String getStringValue(String name, String def) {
+		if (name == null) {
+			return def;
+		}
 		if (DEBUG) {
 			checkName(name);
 		}
+		if (name.length() > 0 && name.charAt(0) != '.') {
+			return properties.getStringValue(name, def);
+		}
+		
 		if (!name.equals(IGNORE_NAME)) {
 			String val = properties.getStringValue(sCloneConfigID + name,
 					sCloneParams);
@@ -159,9 +194,16 @@ public class SWTSkinPropertiesClone
 	}
 
 	public String getStringValue(String name) {
+		if (name == null) {
+			return null;
+		}
 		if (DEBUG) {
 			checkName(name);
 		}
+		if (name.length() > 0 && name.charAt(0) != '.') {
+			return properties.getStringValue(name);
+		}
+
 		if (!name.equals(IGNORE_NAME)) {
 			String val = properties.getStringValue(sCloneConfigID + name,
 					sCloneParams);
@@ -174,9 +216,16 @@ public class SWTSkinPropertiesClone
 	}
 
 	public String[] getStringArray(String name, String[] params) {
+		if (name == null) {
+			return null;
+		}
 		if (DEBUG) {
 			checkName(name);
 		}
+		if (name.length() > 0 && name.charAt(0) != '.') {
+			return properties.getStringArray(name, params);
+		}
+
 		if (!name.equals(IGNORE_NAME)) {
 			String[] val = properties.getStringArray(sCloneConfigID + name, params);
 			if (val != null) {
@@ -188,9 +237,16 @@ public class SWTSkinPropertiesClone
 	}
 
 	public String getStringValue(String name, String[] params, String def) {
+		if (name == null) {
+			return def;
+		}
 		if (DEBUG) {
 			checkName(name);
 		}
+		if (name.length() > 0 && name.charAt(0) != '.') {
+			return properties.getStringValue(name, params, def);
+		}
+
 		if (!name.equals(IGNORE_NAME)) {
 			String val = properties.getStringValue(sCloneConfigID + name, params);
 			if (val != null) {
@@ -202,9 +258,16 @@ public class SWTSkinPropertiesClone
 	}
 
 	public String getStringValue(String name, String[] params) {
+		if (name == null) {
+			return null;
+		}
 		if (DEBUG) {
 			checkName(name);
 		}
+		if (name.length() > 0 && name.charAt(0) != '.') {
+			return properties.getStringValue(name, params);
+		}
+
 		if (!name.equals(IGNORE_NAME)) {
 			String val = properties.getStringValue(sCloneConfigID + name, params);
 			if (val != null) {
@@ -225,9 +288,16 @@ public class SWTSkinPropertiesClone
 	
 	// @see com.aelitis.azureus.ui.skin.SkinProperties#getBooleanValue(java.lang.String, boolean)
 	public boolean getBooleanValue(String name, boolean def) {
+		if (name == null) {
+			return def;
+		}
 		if (DEBUG) {
 			checkName(name);
 		}
+		if (name.length() > 0 && name.charAt(0) != '.') {
+			return properties.getBooleanValue(name, def);
+		}
+
 		if (!name.equals(IGNORE_NAME)) {
 			if (properties.getStringValue(sCloneConfigID + name) != null) {
 				return properties.getBooleanValue(sCloneConfigID + name, def);
