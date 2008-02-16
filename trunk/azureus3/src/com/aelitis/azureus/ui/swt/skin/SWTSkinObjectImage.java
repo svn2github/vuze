@@ -10,7 +10,9 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
 
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.AECallback;
+import org.gudy.azureus2.core3.util.AERunnableWithCallback;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
@@ -32,10 +34,6 @@ public class SWTSkinObjectImage
 	private String customImageID;
 
 	private static PaintListener tilePaintListener;
-
-	private boolean dimImage;
-
-	private boolean allowImageDimming = false;
 
 	private boolean noSetLabelImage = false;
 
@@ -62,14 +60,6 @@ public class SWTSkinObjectImage
 					int width = imgRight.getBounds().width;
 
 					x1 -= width;
-				}
-
-				boolean b = ((SWTSkinObjectImage) label.getData("SkinObject")).dimImage;
-
-				if (b) {
-					e.gc.setAlpha(32);
-				} else {
-					e.gc.setAlpha(255);
 				}
 
 				Image imgLeft = (Image) label.getData("image-left");
@@ -211,10 +201,9 @@ public class SWTSkinObjectImage
 					sDrawMode = "";
 				}
 
-				allowImageDimming = sDrawMode.equalsIgnoreCase("dim");
+				//allowImageDimming = sDrawMode.equalsIgnoreCase("dim");
 
-				if (sDrawMode.equalsIgnoreCase("tile") || ALWAYS_USE_PAINT
-						|| allowImageDimming) {
+				if (sDrawMode.equalsIgnoreCase("tile") || ALWAYS_USE_PAINT) {
 					noSetLabelImage = true;
 					Rectangle imgBounds = image.getBounds();
 					label.setSize(imgBounds.width, imgBounds.height);
@@ -268,24 +257,11 @@ public class SWTSkinObjectImage
 				: customImageID)
 				+ suffix;
 
-		dimImage = false;
-
 		ImageLoader imageLoader = skin.getImageLoader(properties);
 		Image image = imageLoader.getImage(sImageID);
 		if (image != ImageLoader.noImage) {
 			setLabelImage(sImageID, null);
-		} else if (suffix.indexOf("-disabled") >= 0) {
-			if (allowImageDimming) {
-				dimImage = true;
-			}
-			Utils.execSWTThread(new AERunnable() {
-				public void runSupport() {
-					label.redraw();
-				}
-			});
-
 		}
-
 		return suffix;
 	}
 
@@ -306,27 +282,16 @@ public class SWTSkinObjectImage
 	}
 
 	protected void setImageByID(String sConfigID, AECallback callback) {
+		if (customImage == false && customImageID != null
+				&& customImageID.equals(sConfigID)) {
+			if (callback != null) {
+				callback.callbackFailure(null);
+			}
+			return;
+		}
 		customImage = false;
 		customImageID = sConfigID;
 		setLabelImage(sConfigID, sConfigID, callback);
-	}
-
-	/**
-	 * @param allowImageDimming the allowImageDimming to set
-	 */
-	public void setAllowImageDimming(boolean allowImageDimming) {
-		this.allowImageDimming = allowImageDimming;
-		if (allowImageDimming) {
-			String s = (String) label.getData("ImageID");
-			label.setData("ImageID", null);
-			setLabelImage(sConfigID, s, null);
-		}
-	}
-
-	/**
-	 * @return the allowImageDimming
-	 */
-	public boolean allowImageDimming() {
-		return allowImageDimming;
+		return;
 	}
 }
