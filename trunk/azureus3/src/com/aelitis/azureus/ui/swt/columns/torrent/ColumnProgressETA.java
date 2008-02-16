@@ -3,10 +3,12 @@
  */
 package com.aelitis.azureus.ui.swt.columns.torrent;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Constants;
@@ -23,6 +25,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.download.EnhancedDownloadManager;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
@@ -32,7 +35,6 @@ import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.views.list.ListCell;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 
-import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
@@ -75,7 +77,7 @@ public class ColumnProgressETA
 
 	private class Cell
 		implements TableCellRefreshListener, TableCellDisposeListener,
-		TableCellMouseListener, TableCellVisibilityListener
+		TableCellMouseMoveListener, TableCellVisibilityListener
 	{
 		int lastPercentDone = 0;
 
@@ -84,8 +86,6 @@ public class ColumnProgressETA
 		private boolean bMouseDowned = false;
 
 		Rectangle areaPlay = null;
-
-		Rectangle areaStream = null;
 
 		public Cell(TableCell cell) {
 			cell.addListeners(this);
@@ -121,8 +121,17 @@ public class ColumnProgressETA
 			int percentDone = getPercentDone(cell);
 			long eta = getETA(cell);
 
-			long sortValue = (percentDone << 49) + (eta << 4) + getState(cell)
-					+ (bCanBeProgressive ? 1 : 0);
+			long sortValue = 0;
+
+			long completedTime = dm.getDownloadState().getLongParameter(
+					DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME);
+			if (completedTime <= 0) {
+				sortValue = dm.getDownloadState().getLongParameter(
+						DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME) * 10000;
+				sortValue += 1000 - percentDone;
+			} else {
+				sortValue = completedTime;
+			}
 
 			if (!cell.setSortValue(sortValue) && !bForce && cell.isValid()
 					&& lastPercentDone == percentDone && lastETA == eta) {
@@ -192,7 +201,7 @@ public class ColumnProgressETA
 				cBorder = Colors.black;
 			}
 
-			int etaY0 = progressY2 + 1;
+			int etaY0 = progressY2;
 
 			lastPercentDone = percentDone;
 			lastETA = eta;
@@ -220,7 +229,7 @@ public class ColumnProgressETA
 						+ "; oldimg=" + (image != null));
 			}
 
-			image = new Image(display, newWidth, newHeight);
+			image = new Image(display, newWidth, Math.min(36, newHeight));
 			imageBounds = image.getBounds();
 
 			gcImage = new GC(image);
@@ -236,34 +245,19 @@ public class ColumnProgressETA
 					+ DisplayFormatters.formatByteCountToKiBEtcPerSec(lSpeed, true) + ")";
 
 			areaPlay = null;
-			areaStream = null;
-			if (bCanBeProgressive) {
+			if (dm.isDownloadComplete(true)) {
 				String id = "";
-				if (edm.getProgressiveMode()) {
-					if (edm.getProgressivePlayETA() <= 0) {
-						bDrawProgressBar = false;
-						id = "image.stream.play";
-						Image img = ImageLoaderFactory.getInstance().getImage(id);
-						if (ImageLoader.isRealImage(img)) {
-							gcImage.drawImage(img, 2, 0);
-							Rectangle bounds = img.getBounds();
-							areaPlay = new Rectangle(2, 0, bounds.width, bounds.height);
-						}
-					}
-
-					id = "image.stream.enabled";
-				} else {
-					id = "image.stream";
-				}
+				bDrawProgressBar = false;
+				id = "image.stream.play";
 				Image img = ImageLoaderFactory.getInstance().getImage(id);
 				if (ImageLoader.isRealImage(img)) {
 					Rectangle bounds = img.getBounds();
-					areaStream = new Rectangle(newWidth - img.getBounds().width - 2, 0,
+					areaPlay = new Rectangle(newWidth - bounds.width - 2, 2,
 							bounds.width, bounds.height);
-
-					gcImage.drawImage(img, areaStream.x, areaStream.y);
+					gcImage.drawImage(img, areaPlay.x, areaPlay.y);
 				}
-				if (edm.getProgressiveMode()) {
+
+				if (edm != null && edm.getProgressiveMode()) {
 					if (isStopped(cell)) {
 						sETALine = MessageText.getString(
 								"MyTorrents.column.ColumnProgressETA.2ndLine",
@@ -286,7 +280,7 @@ public class ColumnProgressETA
 				}
 			}
 
-			if (bDrawProgressBar) {
+			if (bDrawProgressBar && percentDone < 1000) {
 				if (bImageSizeChanged || true) {
 					// draw border
 					gcImage.setForeground(cBorder);
@@ -308,8 +302,11 @@ public class ColumnProgressETA
 			}
 
 			if (sETALine == null) {
-				if (isStopped(cell)) {
-					sETALine = DisplayFormatters.formatDownloadStatus((DownloadManager) cell.getDataSource());
+				//if (isStopped(cell)) {
+				//sETALine = DisplayFormatters.formatDownloadStatus((DownloadManager) cell.getDataSource());
+				//} else
+				if (dm.isDownloadComplete(true)) {
+					sETALine = DisplayFormatters.formatByteCountToKiBEtc(dm.getSize());
 				} else if (eta > 0) {
 					String sETA = TimeFormatter.format(eta);
 					sETALine = MessageText.getString(
@@ -317,7 +314,8 @@ public class ColumnProgressETA
 								sETA
 							});
 				} else {
-					sETALine = "";
+					sETALine = DisplayFormatters.formatDownloadStatus(dm);
+					//sETALine = "";
 				}
 			}
 
@@ -328,15 +326,18 @@ public class ColumnProgressETA
 			gcImage.setFont(fontText);
 			int[] fg = cell.getForeground();
 			gcImage.setForeground(ColorCache.getColor(display, fg[0], fg[1], fg[2]));
-			gcImage.drawText(sETALine, 0, etaY0, true);
+			gcImage.drawText(sETALine, 2, etaY0, true);
 			Point textExtent = gcImage.textExtent(sETALine);
 			cell.setToolTip(textExtent.x > newWidth ? sETALine : null);
 
-			if (bDrawProgressBar) {
+			if (percentDone == 1000) {
+				gcImage.setForeground(cText);
+				gcImage.drawText("Complete", 2, 2, true);
+			} else if (bDrawProgressBar) {
 				gcImage.setForeground(cText);
 				String sPercent = DisplayFormatters.formatPercentFromThousands(percentDone);
-				gcImage.drawText(sPercent, 2, 2, true);
 				gcImage.drawText(sSpeed, 50, 2, true);
+				gcImage.drawText(sPercent, 2, 2, true);
 			}
 
 			gcImage.setFont(null);
@@ -401,6 +402,14 @@ public class ColumnProgressETA
 		}
 
 		public void cellMouseTrigger(TableCellMouseEvent event) {
+			boolean inAreaPlay = areaPlay != null
+					&& areaPlay.contains(event.x, event.y);
+
+			if (event.cell instanceof TableCellCore) {
+				((TableCellCore) event.cell).setCursorID(inAreaPlay ? SWT.CURSOR_HAND
+						: SWT.CURSOR_ARROW);
+			}
+
 			// only first button
 			if (event.button != 1) {
 				return;
@@ -423,31 +432,12 @@ public class ColumnProgressETA
 					return;
 				}
 
-				EnhancedDownloadManager edm = getEDM(dm);
-				if (edm == null) {
-					return;
-				}
-
-				if (areaPlay != null && areaPlay.contains(event.x, event.y)) {
-					if (edm.getProgressiveMode() && edm.getProgressivePlayETA() <= 0) {
-						Download pDL = (Download) ((TableRowCore) event.cell.getTableRow()).getDataSource(false);
-						TorrentListViewsUtils.playViaMediaServer(pDL);
-					}
-				} else if (areaStream != null && areaStream.contains(event.x, event.y)) {
-					flipProgressiveMode(dm);
+				if (inAreaPlay) {
+					TorrentListViewsUtils.playOrStreamDataSource(dm, null);
 				}
 				refresh(event.cell, true);
 			}
 			bMouseDowned = false;
-		}
-
-		private void flipProgressiveMode(DownloadManager dm) {
-			EnhancedDownloadManager edm = getEDM(dm);
-			if (edm == null) {
-				return;
-			}
-
-			edm.setProgressiveMode(!edm.getProgressiveMode());
 		}
 
 		private void disposeExisting(TableCell cell) {
