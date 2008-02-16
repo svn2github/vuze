@@ -151,4 +151,12 @@ public interface TableRowCore extends TableRow
 	 * @since 3.0.4.3
 	 */
 	void setData(String id, Object data);
+
+	/**
+	 * @param height
+	 * @return
+	 *
+	 * @since 3.0.4.3
+	 */
+	public boolean setDrawableHeight(int height);
 }
