@@ -34,6 +34,8 @@ public class SkinConstants
 
 	public static final String VIEWID_BROWSE_TAB = "browse";
 
+	public static final String VIEWID_MINI_BROWSE_TAB = "minibrowse";
+
 	public static final String VIEWID_HOME_TAB = "home";
 
 	public static final String VIEWID_LIBRARY_TAB = "library";

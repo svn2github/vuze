@@ -20,9 +20,6 @@
 
 package com.aelitis.azureus.ui.skin;
 
-import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.browser.ProgressEvent;
-import org.eclipse.swt.browser.ProgressListener;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -68,13 +65,20 @@ public class UserAreaUtils
 		}
 
 		/*
-		 * Listens to log out 
+		 * Listens to log out
+		 * 
 		 */
 		skinObject = skin.getSkinObject("text-log-out");
 		if (skinObject != null) {
 			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(skinObject);
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
+
+					/*
+					 * We log out by opening the following URL in a browser.  The page
+					 * that is loaded will send a 'status:login-update' message which the 
+					 * ILoginInfoListener will respond to and update the UI aacordingly
+					 */
 					final String url = Constants.URL_PREFIX + Constants.URL_LOGOUT + "?"
 							+ Constants.URL_SUFFIX;
 
@@ -142,61 +146,22 @@ public class UserAreaUtils
 			});
 		}
 
+		/*
+		 * Listens for changes in the login state and update the UI appropriately
+		 */
 		LoginInfoManager.getInstance().addListener(new ILoginInfoListener() {
 			public void loginUpdate(LoginInfo info) {
 				synchLoginStates(info.userName, info.userID, info.isNewOrUpdated);
 			}
 		});
-
-		/*
-		 * Listens specifically to the browse tab for the completion of the call to logout.start
-		 * The logout process will load 2 pages logout.start and then browse.start.
-		 * It is only AFTER browse.start has finished loading that we can proceed to
-		 * refresh any other embedded pages in the client; prematurely refreshing other pages
-		 * will result in a number of problem which may include the pages not refreshing properly, or the
-		 * browse.start page loading being interrupted.
-		 * 
-		 * NOTE: This is quite precarious since we are making a concrete assumption that the logout.start page 
-		 * will always load the browse.start page.  If any of this changes we will have to modify this
-		 * listener accordingly 
-		 */
-
-		skinObject = skin.getSkinObject(SkinConstants.VIEWID_BROWSE_TAB);
-		if (skinObject instanceof SWTSkinObjectBrowser) {
-			final Browser browser = ((SWTSkinObjectBrowser) skinObject).getBrowser();
-
-			final ProgressListener listener = new ProgressListener() {
-				boolean logoutCalled = false;
-
-				public void completed(ProgressEvent event) {
-
-					if (true == logoutCalled) {
-						String sURL = browser.getUrl();
-						if (null != sURL
-								&& sURL.startsWith(Constants.URL_PREFIX
-										+ Constants.URL_BIG_BROWSE)) {
-							LoginInfoManager.getInstance().setUserInfo(null, null, true);
-							logoutCalled = false;
-						}
-					}
-				}
-
-				public void changed(ProgressEvent event) {
-					String sURL = browser.getUrl();
-					if (false == logoutCalled) {
-						if (null != sURL
-								&& sURL.startsWith(Constants.URL_PREFIX + Constants.URL_LOGOUT)) {
-							logoutCalled = true;
-							updateLoginLabels(null, null);
-						}
-					}
-				}
-			};
-
-			browser.addProgressListener(listener);
-		}
 	}
 
+	/**
+	 * Updates the login/logout labels and also resets all embedded browsers
+	 * @param userName
+	 * @param userID
+	 * @param isNewOrUpdated
+	 */
 	private void synchLoginStates(String userName, String userID,
 			boolean isNewOrUpdated) {
 		updateLoginLabels(userName, userID);
@@ -204,10 +169,17 @@ public class UserAreaUtils
 		 * Reset browser tabs if the login state has changed
 		 */
 		if (true == isNewOrUpdated) {
-			resetBrowserPages();
+			resetBrowserPage(SkinConstants.VIEWID_BROWSE_TAB);
+			resetBrowserPage(SkinConstants.VIEWID_PUBLISH_TAB);
+			resetBrowserPage(SkinConstants.VIEWID_MINI_BROWSE_TAB);
 		}
 	}
 
+	/**
+	 * Updates the login/logout labels to reflect the user's login state
+	 * @param userName
+	 * @param userID
+	 */
 	private void updateLoginLabels(String userName, String userID) {
 
 		SWTSkinObject skinObject = null;
@@ -245,8 +217,12 @@ public class UserAreaUtils
 
 	}
 
-	private void resetBrowserPages() {
-		SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_PUBLISH_TAB);
+	/**
+	 * Resets the embedded browser with the given viewID
+	 * @param targetViewID
+	 */
+	private void resetBrowserPage(String targetViewID) {
+		SWTSkinObject skinObject = skin.getSkinObject(targetViewID);
 		if (skinObject instanceof SWTSkinObjectBrowser) {
 			((SWTSkinObjectBrowser) skinObject).restart();
 		}
