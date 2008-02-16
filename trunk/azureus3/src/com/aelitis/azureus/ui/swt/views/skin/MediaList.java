@@ -256,20 +256,7 @@ public class MediaList
 			}
 		});
 
-		skinObject = skin.getSkinObject(PREFIX + "delete");
-		if (skinObject instanceof SWTSkinObjectContainer) {
-			btnDelete = new SWTSkinButtonUtility(skinObject);
-
-			btnDelete.addSelectionListener(new ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					TableRowCore[] selectedRows = view.getSelectedRows();
-					for (int i = 0; i < selectedRows.length; i++) {
-						DownloadManager dm = (DownloadManager) selectedRows[i].getDataSource(true);
-						TorrentListViewsUtils.removeDownload(dm, view, true, true);
-					}
-				}
-			});
-		}
+		btnDelete = TorrentListViewsUtils.addDeleteButton(skin, PREFIX, view);
 
 		SWTSkinButtonUtility[] buttonsNeedingRow = {
 			btnDelete,
