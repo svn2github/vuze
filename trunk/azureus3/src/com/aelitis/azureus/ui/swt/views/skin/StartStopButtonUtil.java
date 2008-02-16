@@ -66,9 +66,11 @@ public class StartStopButtonUtil
 			}
 
 			if (bResume) {
-				button.setTextID("v3.MainWindow.button.resume");
+				button.setImage("image.button.unpause");
+				button.setTooltipID("v3.MainWindow.button.resume");
 			} else {
-				button.setTextID("v3.MainWindow.button.pause");
+				button.setImage("image.button.pause");
+				button.setTooltipID("v3.MainWindow.button.pause");
 			}
 		} catch (Exception e) {
 			Debug.out(e);
