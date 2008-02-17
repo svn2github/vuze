@@ -117,11 +117,12 @@ public class LightBoxBrowserWindow
 		errorPanel = new Composite(contentPanel, SWT.NONE);
 		errorPanel.setBackground(new Color(null, 13, 13, 13));
 		errorPanel.setLayout(new FormLayout());
+		
 
 		errorMessageLabel = new Label(errorPanel, SWT.WRAP);
 		errorMessageLabel.setBackground(errorPanel.getBackground());
 		errorMessageLabel.setForeground(Colors.grey);
-
+		
 		Button closeButton = new Button(errorPanel, SWT.NONE);
 		closeButton.setText("Close");
 
@@ -271,12 +272,12 @@ public class LightBoxBrowserWindow
 			return false;
 		}
 
-		String fullSearchString = "<INPUT type=hidden value=" + pageVerifierValue
-				+ " name=pageVerifier>";
+//		String fullSearchString = "<INPUT type=hidden value=" + pageVerifierValue
+//				+ " name=pageVerifier>";
 
-		if (html.indexOf(fullSearchString) != -1) {
+		//TODO: WARNING!!!!! this has been temporarily hardcoded
+		if (html.indexOf("vuzePage") != -1) {
 			return true;
-
 		}
 		return false;
 	}
