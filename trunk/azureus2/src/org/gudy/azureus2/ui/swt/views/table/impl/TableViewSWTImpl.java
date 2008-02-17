@@ -730,8 +730,7 @@ public class TableViewSWTImpl
 				TableColumnCore tc = getTableColumnByOffset(e.x);
 				TableCellSWT cell = getTableCell(e.x, e.y);
 				
-				if(editor.getEditor() != null && !editor.getEditor().isDisposed())
-					editor.getEditor().dispose();
+				editCell(-1, -1); // clear out current cell editor
 				
 				if (cell != null && tc != null) {
 					if (e.button == 2 && e.stateMask == SWT.CONTROL) {
@@ -748,7 +747,7 @@ public class TableViewSWTImpl
 							lCancelSelectionTriggeredOn = System.currentTimeMillis();
 						}
 					}
-					if(tc.isInplaceEdit())
+					if(tc.isInplaceEdit() && e.button == 1)
 						editCell(getColumnNo(e.x), cell.getTableRowCore().getIndex());
 				}
 
@@ -993,6 +992,8 @@ public class TableViewSWTImpl
 	private interface SourceReplaceListener
 	{
 		void sourcesChanged();
+		
+		void cleanup(Text toClean);
 	}
 	
 	private SourceReplaceListener cellEditNotifier;	
@@ -1002,11 +1003,12 @@ public class TableViewSWTImpl
 		Text oldInput = (Text)editor.getEditor();
 		if(column >= table.getColumnCount() || row < 0 || row >= table.getItemCount())
 		{
+			cellEditNotifier = null;
 			if(oldInput != null && !oldInput.isDisposed())
 				editor.getEditor().dispose();
 			return;
 		}
-			
+		
 		TableColumn tcColumn = table.getColumn(column);
 		final TableItem item = table.getItem(row);
 
@@ -1017,27 +1019,32 @@ public class TableViewSWTImpl
 		// reuse widget if possible, this way we'll keep the focus all the time on jumping through the rows
 		final Text newInput = oldInput == null || oldInput.isDisposed() ? new Text(table,SWT.BORDER) : oldInput;
 		final Object datasource = cell.getDataSource();
+		if(cellEditNotifier != null )
+			cellEditNotifier.cleanup(newInput);
 		
 		table.showItem(item);
 		table.showColumn(tcColumn);
 		
 		newInput.setText(cell.getText());
+		
+		newInput.setSelection(0);
 		newInput.selectAll();
 		newInput.setFocus();
-		editor.minimumWidth = newInput.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
-		editor.horizontalAlignment = SWT.LEFT;
-		
-		Rectangle leftAlignedBounds = item.getBounds(column);
-		leftAlignedBounds.width = editor.minimumWidth = newInput.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
-		if(leftAlignedBounds.intersection(table.getClientArea()).equals(leftAlignedBounds))
-			editor.horizontalAlignment = SWT.LEFT;
-		else
-			editor.horizontalAlignment = SWT.RIGHT;
-		
 
 		class QuickEditListener implements ModifyListener, SelectionListener, KeyListener, TraverseListener, SourceReplaceListener, ControlListener
 		{
-			boolean resizing = true;			
+			boolean resizing = true;
+			
+			public QuickEditListener(Text toAttach)
+			{
+				toAttach.addModifyListener(this);
+				toAttach.addSelectionListener(this);
+				toAttach.addKeyListener(this);
+				toAttach.addTraverseListener(this);
+				toAttach.addControlListener(this);
+				
+				cellEditNotifier = this;				
+			}
 			
 			public void modifyText(ModifyEvent e) {
 				if(item.isDisposed())
@@ -1059,7 +1066,7 @@ public class TableViewSWTImpl
 					return;
 				}
 				((TableColumnCore)cell.getTableColumn()).inplaceValueSet(cell, newInput.getText(), true);
-				move(row,1,(Text)e.widget);
+				editCell(column, row + 1);
 			}
 			
 			public void widgetSelected(SelectionEvent e) {}
@@ -1068,7 +1075,7 @@ public class TableViewSWTImpl
 				if(e.keyCode == SWT.ARROW_DOWN || e.keyCode == SWT.ARROW_UP)
 				{
 					e.doit = false;
-					move(row,e.keyCode == SWT.ARROW_DOWN ? 1 : -1,(Text)e.widget);
+					editCell(column, row + (e.keyCode == SWT.ARROW_DOWN ? 1 : -1));
 				}
 			}
 			
@@ -1087,15 +1094,14 @@ public class TableViewSWTImpl
 					return;
 				String newVal = newInput.getText();
 				Point  sel = newInput.getSelection();
-				move(getRow(datasource).getIndex(), 0, newInput);
+				editCell(column, getRow(datasource).getIndex());
 				if(newInput.isDisposed())
 					return;
 				newInput.setText(newVal);
 				newInput.setSelection(sel);
 			}
 			
-			private void move(int oldRow, int offset, Text oldText)
-			{
+			public void cleanup(Text oldText) {
 				if(!oldText.isDisposed())
 				{
 					oldText.removeModifyListener(this);
@@ -1104,7 +1110,6 @@ public class TableViewSWTImpl
 					oldText.removeTraverseListener(this);
 					oldText.removeControlListener(this);
 				}
-				editCell(column, oldRow+offset);
 			}
 			
 			public void controlMoved(ControlEvent e) {
@@ -1112,32 +1117,42 @@ public class TableViewSWTImpl
 				if(resizing)
 					return;
 				resizing = true;
-				editor.setEditor(newInput, item, column);
-				resizing = false;
 				
+				Point sel = newInput.getSelection();
+				
+				editor.setEditor(newInput, item, column);
+				
+				editor.minimumWidth = newInput.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
+				
+				Rectangle leftAlignedBounds = item.getBounds(column);
+				leftAlignedBounds.width = editor.minimumWidth = newInput.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
+				if(leftAlignedBounds.intersection(table.getClientArea()).equals(leftAlignedBounds))
+					editor.horizontalAlignment = SWT.LEFT;
+				else
+					editor.horizontalAlignment = SWT.RIGHT;
+				
+				editor.layout();
+				
+				newInput.setSelection(0);				
+				newInput.setSelection(sel);
+				
+				resizing = false;
 			}
 			
-			public void controlResized(ControlEvent e) {
-				
-			}
-
+			public void controlResized(ControlEvent e) {}
 		}
 		
-		QuickEditListener l = new QuickEditListener();
-		newInput.addModifyListener(l);
-		newInput.addSelectionListener(l);
-		newInput.addKeyListener(l);
-		newInput.addTraverseListener(l);
-		newInput.addControlListener(l);
-		cellEditNotifier = l;
+		QuickEditListener l = new QuickEditListener(newInput);
 		
 		l.modifyText(null);
-
+		
 		editor.setEditor(newInput, item, column);
 		table.deselectAll();
 		table.select(row);
 		
 		l.resizing = false;
+		
+		l.controlMoved(null);
 	}
 
 	private TableCellMouseEvent createMouseEvent(TableCellSWT cell, MouseEvent e,

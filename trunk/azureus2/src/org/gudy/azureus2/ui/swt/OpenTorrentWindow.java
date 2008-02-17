@@ -1445,6 +1445,8 @@ public class OpenTorrentWindow
 		else
 			dataFileTableEditor.horizontalAlignment = SWT.RIGHT;
 		
+		dataFileTable.deselectAll();
+		dataFileTable.select(row);
 		dataFileTable.showItem(item);
 		dataFileTable.showColumn(column);
 		
@@ -1601,6 +1603,10 @@ public class OpenTorrentWindow
 		
 		dataFileTable.addMouseListener(new MouseAdapter() {
 			public void mouseDown(MouseEvent e) {
+				editCell(-1); // cleanup
+				if(e.button != 1)
+					return;
+
 				TableItem[] items = dataFileTable.getItems();
 				boolean found = false;
 				int i;
@@ -1618,7 +1624,6 @@ public class OpenTorrentWindow
 						break outer;
 					}
 				}
-				editCell(-1); // cleanup
 				if(found)
 					editCell(i);
 			}
