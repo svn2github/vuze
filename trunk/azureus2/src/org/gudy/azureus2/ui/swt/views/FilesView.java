@@ -23,6 +23,8 @@ package org.gudy.azureus2.ui.swt.views;
 
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
@@ -674,12 +676,35 @@ public class FilesView
 
 	    if (files != null && (this.force_refresh || !doAllExist(files))) {
 	    	this.force_refresh = false;
-	    	tv.removeAllTableRows();
 
-		    Object filesCopy[] = new Object[files.length]; 
-		    System.arraycopy(files, 0, filesCopy, 0, files.length);
+	    	Object[] datasources = tv.getDataSources();
+	    	if(datasources.length == files.length)
+	    	{
+	    		// check if we actually have to replace anything
+	    		ArrayList toAdd = new ArrayList(Arrays.asList(files));
+		    	ArrayList toRemove = new ArrayList();
+		    	for(int i = 0;i < datasources.length;i++)
+		    	{
+		    		DiskManagerFileInfo info = (DiskManagerFileInfo)datasources[i];
+		    		
+		    		if(files[info.getIndex()] == info)
+		    			toAdd.set(info.getIndex(), null);
+		    		else
+		    			toRemove.add(info);
+		    	}
+		    	tv.removeDataSources(toRemove.toArray());
+		    	tv.addDataSources(toAdd.toArray());
+		    	((TableViewSWTImpl)tv).tableInvalidate();
+	    	} else
+	    	{
+		    	tv.removeAllTableRows();
+	    		
+			    Object filesCopy[] = new Object[files.length]; 
+			    System.arraycopy(files, 0, filesCopy, 0, files.length);
 
-		    tv.addDataSources(filesCopy);
+			    tv.addDataSources(filesCopy);
+	    	}
+
 		    tv.processDataSourceQueue();
 	    }
   	} finally {

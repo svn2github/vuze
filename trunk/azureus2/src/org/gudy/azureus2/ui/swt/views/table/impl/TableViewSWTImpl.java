@@ -1066,6 +1066,7 @@ public class TableViewSWTImpl
 					return;
 				}
 				((TableColumnCore)cell.getTableColumn()).inplaceValueSet(cell, newInput.getText(), true);
+				rowSWT.invalidate();
 				editCell(column, row + 1);
 			}
 			
