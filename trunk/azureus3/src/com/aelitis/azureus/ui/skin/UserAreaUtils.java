@@ -48,8 +48,9 @@ public class UserAreaUtils
 	private void hookListeners() {
 
 		/*
-		 * Listens to log in 
+		 * Opens LightBoxBrowserWindow pop-up for the Login page
 		 */
+
 		SWTSkinObject skinObject = skin.getSkinObject("text-log-in");
 		if (null != skinObject) {
 			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(skinObject);
@@ -58,15 +59,15 @@ public class UserAreaUtils
 
 					String url = Constants.URL_PREFIX + Constants.URL_LOGIN + "?"
 							+ Constants.URL_SUFFIX;
-					new LightBoxBrowserWindow(url, Constants.URL_PAGE_VERIFIER_VALUE, 0, 0);
+					new LightBoxBrowserWindow(url, Constants.URL_PAGE_VERIFIER_VALUE, 0,
+							0);
 
 				}
 			});
 		}
 
 		/*
-		 * Listens to log out
-		 * 
+		 * Opens the On Vuze tab and load the Logout page
 		 */
 		skinObject = skin.getSkinObject("text-log-out");
 		if (skinObject != null) {
@@ -77,11 +78,14 @@ public class UserAreaUtils
 					/*
 					 * We log out by opening the following URL in a browser.  The page
 					 * that is loaded will send a 'status:login-update' message which the 
-					 * ILoginInfoListener will respond to and update the UI aacordingly
+					 * ILoginInfoListener will respond to and update the UI accordingly
 					 */
 					final String url = Constants.URL_PREFIX + Constants.URL_LOGOUT + "?"
 							+ Constants.URL_SUFFIX;
 
+					/*
+					 * Loads the page without switching to the On Vuze tab
+					 */
 					SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_BROWSE_TAB);
 					if (skinObject instanceof SWTSkinObjectBrowser) {
 						((SWTSkinObjectBrowser) skinObject).setURL(url);
@@ -91,7 +95,7 @@ public class UserAreaUtils
 		}
 
 		/*
-		 * Listens to "Get Started"
+		 * Opens LightBoxBrowserWindow pop-up for the Registration page
 		 */
 		skinObject = skin.getSkinObject("text-get-started");
 		if (skinObject != null) {
@@ -101,7 +105,8 @@ public class UserAreaUtils
 					if (null != uiFunctions) {
 						String url = Constants.URL_PREFIX + Constants.URL_REGISTRATION
 								+ "?" + Constants.URL_SUFFIX;
-						new LightBoxBrowserWindow(url, Constants.URL_PAGE_VERIFIER_VALUE, 0, 0);
+						new LightBoxBrowserWindow(url, Constants.URL_PAGE_VERIFIER_VALUE,
+								0, 0);
 					}
 
 				}
@@ -109,7 +114,7 @@ public class UserAreaUtils
 		}
 
 		/*
-		 * Listens to user name
+		 * Opens the On Vuze tab and load the MyProfile page
 		 */
 		skinObject = skin.getSkinObject("text-user-name");
 		if (skinObject != null) {
@@ -128,7 +133,7 @@ public class UserAreaUtils
 		}
 
 		/*
-		 * Listens to "MyAccount"
+		 * Opens the On Vuze tab and load the MyAccount page
 		 */
 		skinObject = skin.getSkinObject("text-my-account");
 		if (skinObject != null) {
@@ -142,6 +147,21 @@ public class UserAreaUtils
 								true, true);
 					}
 
+				}
+			});
+		}
+
+		/*
+		 * Launch an external browser and load the FAQ page
+		 */
+		skinObject = skin.getSkinObject("help-button");
+		if (skinObject != null) {
+			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(skinObject);
+			btnGo.addSelectionListener(new ButtonListenerAdapter() {
+				public void pressed(SWTSkinButtonUtility buttonUtility) {
+					if (null != uiFunctions) {
+						Utils.launch(Constants.URL_FAQ);
+					}
 				}
 			});
 		}
