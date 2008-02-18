@@ -117,12 +117,11 @@ public class LightBoxBrowserWindow
 		errorPanel = new Composite(contentPanel, SWT.NONE);
 		errorPanel.setBackground(new Color(null, 13, 13, 13));
 		errorPanel.setLayout(new FormLayout());
-		
 
 		errorMessageLabel = new Label(errorPanel, SWT.WRAP);
 		errorMessageLabel.setBackground(errorPanel.getBackground());
 		errorMessageLabel.setForeground(Colors.grey);
-		
+
 		Button closeButton = new Button(errorPanel, SWT.NONE);
 		closeButton.setText("Close");
 
@@ -197,7 +196,7 @@ public class LightBoxBrowserWindow
 
 		/*
 		 * When the page has finished loading verify its title prefix and show the error panel
-		 * it the verification failed.
+		 * if the verification failed.
 		 */
 		browser.addProgressListener(new ProgressListener() {
 			public void completed(ProgressEvent event) {
@@ -208,7 +207,19 @@ public class LightBoxBrowserWindow
 				 * If a prefixVerifier is specified then verify the loaded page
 				 */
 				if (null != pageVerifierValue) {
-					if (false == isPageVerified(browser.getText())) {
+
+					String browserText = null;
+
+					try {
+						browserText = browser.getText();
+					} catch (Throwable t) {
+						/*
+						 * KN: Do nothing for verification if Browser.getText() is not found;
+						 * this could be due the the SWT jar being of an older version
+						 */
+					}
+
+					if (null != browserText && false == isPageVerified(browser.getText())) {
 
 						String errorMessage = "An error has occured while attempting to access:\n";
 						errorMessage += browser.getUrl() + "\n\n";
@@ -217,6 +228,7 @@ public class LightBoxBrowserWindow
 						stack.topControl = errorPanel;
 
 					}
+
 				}
 				contentPanel.layout(true);
 				lightBoxShell.open(styledShell);
@@ -272,8 +284,8 @@ public class LightBoxBrowserWindow
 			return false;
 		}
 
-//		String fullSearchString = "<INPUT type=hidden value=" + pageVerifierValue
-//				+ " name=pageVerifier>";
+		//		String fullSearchString = "<INPUT type=hidden value=" + pageVerifierValue
+		//				+ " name=pageVerifier>";
 
 		//TODO: WARNING!!!!! this has been temporarily hardcoded
 		if (html.indexOf("vuzePage") != -1) {
