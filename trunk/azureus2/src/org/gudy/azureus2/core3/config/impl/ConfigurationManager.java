@@ -699,14 +699,13 @@ ConfigurationManager
   }
     
   private void notifyParameterListeners(String parameter) {
-		Vector parameterListener = (Vector) parameterListeners.get(parameter);
+		LightHashSet parameterListener = (LightHashSet) parameterListeners.get(parameter);
 		if (parameterListener == null) {
 			return;
 		}
 
-		Object[] listeners = parameterListener.toArray();
-		for (int i = 0; i < listeners.length; i++) {
-			ParameterListener listener = (ParameterListener) listeners[i];
+		for (Iterator it = parameterListener.iterator(); it.hasNext();) {
+			ParameterListener listener = (ParameterListener) it.next();
 
 			if (listener != null) {
 				try {
@@ -725,9 +724,9 @@ ConfigurationManager
   	
 	    if(parameter == null || listener == null)
 	      return;
-	    Vector parameterListener = (Vector) parameterListeners.get(parameter);
+	    LightHashSet parameterListener = (LightHashSet) parameterListeners.get(parameter);
 	    if(parameterListener == null) {
-	      parameterListeners.put(parameter, parameterListener = new Vector());
+	      parameterListeners.put(parameter, parameterListener = new LightHashSet(1));
 	    }
 	    if(!parameterListener.contains(listener))
 	      parameterListener.add(listener); 
@@ -742,7 +741,7 @@ ConfigurationManager
  
 	    if(parameter == null || listener == null)
 	      return;
-	    Vector parameterListener = (Vector) parameterListeners.get(parameter);
+	    LightHashSet parameterListener = (LightHashSet) parameterListeners.get(parameter);
 	    if(parameterListener != null) {
 	    	parameterListener.remove(listener);
 	    }
@@ -841,7 +840,7 @@ ConfigurationManager
 							char	c = (char)b[i];
 							
 							if ( !	( 	Character.isLetterOrDigit(c) ||
-										"`¬\"£$%^&*()-_=+[{]};:'@#~,<.>/?'".indexOf(c) != -1 )){
+										"`ï¿½\"ï¿½$%^&*()-_=+[{]};:'@#~,<.>/?'".indexOf(c) != -1 )){
 								
 								hex	= true;
 								
