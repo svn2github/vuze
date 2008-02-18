@@ -421,7 +421,7 @@ public class LightBoxShell
 				Rectangle bounds = styledShell.getBounds();
 				if (bounds.width != width || bounds.height != height) {
 					styledShell.setSize(width, height);
-					Utils.centerWindowRelativeTo(styledShell, lbShell);
+					Utils.centerWindowRelativeTo(styledShell, parentShell);
 					styledShell.setRegion(getRoundedRegion(styledShell.getBounds()));
 				}
 			}
