@@ -418,13 +418,6 @@ public class LightBoxShell
 
 		public void setSize(int width, int height) {
 			if (true == isAlive()) {
-				/*
-				 * Prevent the shell from being made bigger than the lightbox
-				 */
-				Rectangle lbBounds = lbShell.getBounds();
-				width = Math.min(width, lbBounds.width);
-				height = Math.min(height, lbBounds.height);
-
 				Rectangle bounds = styledShell.getBounds();
 				if (bounds.width != width || bounds.height != height) {
 					styledShell.setSize(width, height);
