@@ -180,6 +180,7 @@ public class SWTBGImagePainter
 				control.addListener(SWT.Resize, this);
 				control.addListener(SWT.Paint, this);
 				bDirty = true;
+				buildBackground(control);
 			}
 		} else {
 			bDirty = true;
