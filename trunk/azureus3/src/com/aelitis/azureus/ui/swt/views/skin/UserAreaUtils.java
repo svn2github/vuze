@@ -18,10 +18,11 @@
  *
  */
 
-package com.aelitis.azureus.ui.skin;
+package com.aelitis.azureus.ui.swt.views.skin;
 
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.shells.LightBoxBrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
