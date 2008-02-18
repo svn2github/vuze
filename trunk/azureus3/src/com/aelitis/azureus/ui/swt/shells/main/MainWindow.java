@@ -76,7 +76,6 @@ import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesFP
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
-import com.aelitis.azureus.ui.skin.UserAreaUtils;
 import com.aelitis.azureus.ui.swt.*;
 import com.aelitis.azureus.ui.swt.Initializer;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
