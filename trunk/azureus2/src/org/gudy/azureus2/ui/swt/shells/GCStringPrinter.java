@@ -47,8 +47,7 @@ public class GCStringPrinter
 	private static final Pattern patHREF = Pattern.compile(
 			"<\\s*?a\\s.*?href\\s*?=\\s*?\"(.+?)\".*?>(.*?)<\\s*?/a\\s*?>", Pattern.CASE_INSENSITIVE);
 
-	private static final Pattern patTABREPLACE = Pattern.compile("\t",
-			Pattern.LITERAL);
+	private static final Pattern patTABREPLACE = Pattern.compile("\t");
 
 	private GC gc;
 
