@@ -39,7 +39,19 @@ import org.gudy.azureus2.core3.util.Debug;
 public class SWTSkinObjectSash
 	extends SWTSkinObjectBasic
 {
-	private static final boolean FASTDRAG = false;
+	/**
+	 * Fast Drag disables resizing left and right sides on each mouse move (when
+	 * mouse is down)
+	 * 
+	 * Two problems with disabling FASTDRAG:
+	 * 1) The places we use the sash currently have very slow re-rendering
+	 * 2) when the user drags out of bounds (minsize, etc), and we set doit
+	 *    to false.  When the user lifts up the mouse button, we get one
+	 *    selection event at the old position (because we cancelled)
+	 *    
+	 * #2 can be fixed... #1 not so much..
+	 */
+	private static final boolean FASTDRAG = true;
 
 	protected String sControlBefore;
 
