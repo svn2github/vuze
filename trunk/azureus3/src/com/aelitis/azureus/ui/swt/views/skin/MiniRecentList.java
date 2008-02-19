@@ -92,7 +92,8 @@ public class MiniRecentList
 			SWTSkinButtonUtility btn = new SWTSkinButtonUtility(skinObject);
 			btn.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					skin.setActiveTab(SkinConstants.TABSET_MAIN, "maintabs.library");
+					skin.setActiveTab(SkinConstants.TABSET_MAIN,
+							SkinConstants.VIEWID_LIBRARY_TAB);
 				}
 			});
 		}
@@ -101,8 +102,9 @@ public class MiniRecentList
 				lblCountArea, cData, TorrentListView.VIEW_RECENT_DOWNLOADED, true,
 				false);
 
-		btnColumnSetup = TorrentListViewsUtils.addColumnSetupButton(skin, PREFIX, view);
-		
+		btnColumnSetup = TorrentListViewsUtils.addColumnSetupButton(skin, PREFIX,
+				view);
+
 		btnShare = TorrentListViewsUtils.addShareButton(skin, PREFIX, view);
 		btnStop = TorrentListViewsUtils.addStopButton(skin, PREFIX, view);
 		btnDetails = TorrentListViewsUtils.addDetailsButton(skin, PREFIX, view);
