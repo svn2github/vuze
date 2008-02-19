@@ -245,7 +245,7 @@ public class ColumnProgressETA
 					+ DisplayFormatters.formatByteCountToKiBEtcPerSec(lSpeed, true) + ")";
 
 			areaPlay = null;
-			if (dm.isDownloadComplete(true)) {
+			if (dm.isDownloadComplete(true) && TorrentListViewsUtils.canPlay(dm)) {
 				String id = "";
 				bDrawProgressBar = false;
 				id = "image.stream.play";
