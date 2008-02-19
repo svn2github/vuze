@@ -44,10 +44,10 @@ public class GCStringPrinter
 
 	private static final int FLAG_NODRAW = 4;
 
+	private static final int FLAG_KEEP_URL_INFO = 8;
+
 	private static final Pattern patHREF = Pattern.compile(
 			"<\\s*?a\\s.*?href\\s*?=\\s*?\"(.+?)\".*?>(.*?)<\\s*?/a\\s*?>", Pattern.CASE_INSENSITIVE);
-
-	private static final Pattern patTABREPLACE = Pattern.compile("\t");
 
 	private GC gc;
 
@@ -70,6 +70,8 @@ public class GCStringPrinter
 		public String url;
 
 		public String title;
+
+		public Color urlColor;
 
 		int relStartPos;
 
@@ -145,12 +147,12 @@ public class GCStringPrinter
 		ArrayList lines = new ArrayList();
 
 		if (string.indexOf('\r') > 0) {
-			string = string.replace('\r', '\n');
+			string = string.replace('\r', ' ');
 		}
 		//We need to add some cariage return ...
 		// replaceall is slow
 		if (string.indexOf('\t') > 0) {
-			string = patTABREPLACE.matcher(string).replaceAll("  ");
+			string = string.replace('\t', ' ');
 		}
 
 		boolean fullLinesOnly = (printFlags & FLAG_FULLLINESONLY) > 0;
@@ -158,37 +160,34 @@ public class GCStringPrinter
 		boolean noDraw = (printFlags & FLAG_NODRAW) > 0;
 		boolean wrap = (swtFlags & SWT.WRAP) > 0;
 
-		Matcher htmlMatcher = patHREF.matcher(string);
-		boolean hasURL = htmlMatcher.find();
-		if (hasURL) {
-			listUrlInfo = new ArrayList(1);
-
-			while (hasURL) {
-				URLInfo urlInfo = new URLInfo();
-				urlInfo.url = htmlMatcher.group(1);
-				// For now, replace spaces with dashes so url title is always on 1 line
-				String s = htmlMatcher.group(2); //.replaceAll(" ", "`");
-
-				// For now, chop off any title text that is too long for a full row
-				// as it will break parsing later
-				//Point titleExtent = gc.textExtent(s);
-				//while (s.length() > 0 && titleExtent.x + 3 >= printArea.width) {
-				//	s = s.substring(0, s.length() - 1);
-				//	titleExtent = gc.textExtent(s);
-				//}
-
-				urlInfo.title = s;
-				urlInfo.relStartPos = htmlMatcher.start(0);
-				urlInfo.titleLength = s.length();
-
-				//System.out.println("URLINFO! " + s + ";" + s.length() + ";" + urlInfo.relStartPos);
-
-				string = htmlMatcher.replaceFirst(s.replaceAll("\\$", "\\\\\\$"));
-
-				listUrlInfo.add(urlInfo);
-				htmlMatcher = patHREF.matcher(string);
-				hasURL = htmlMatcher.find(urlInfo.relStartPos);
-			}
+		if ((printFlags & FLAG_KEEP_URL_INFO) == 0) {
+  		Matcher htmlMatcher = patHREF.matcher(string);
+  		boolean hasURL = htmlMatcher.find();
+  		if (hasURL) {
+  			listUrlInfo = new ArrayList(1);
+  
+  			while (hasURL) {
+  				URLInfo urlInfo = new URLInfo();
+  				urlInfo.url = htmlMatcher.group(1);
+  				// For now, replace spaces with dashes so url title is always on 1 line
+  				String s = htmlMatcher.group(2); //.replaceAll(" ", "`");
+  
+  				urlInfo.title = s;
+  				urlInfo.relStartPos = htmlMatcher.start(0);
+  				urlInfo.titleLength = s.length();
+  
+  				//System.out.println("URLINFO! " + s + ";" + s.length() + ";" + urlInfo.relStartPos);
+  
+  				string = htmlMatcher.replaceFirst(s.replaceAll("\\$", "\\\\\\$"));
+  
+  				listUrlInfo.add(urlInfo);
+  				htmlMatcher = patHREF.matcher(string);
+  				hasURL = htmlMatcher.find(urlInfo.relStartPos);
+  			}
+  		}
+		} else {
+  		Matcher htmlMatcher = patHREF.matcher(string);
+			string = htmlMatcher.replaceAll("$2");
 		}
 
 		Rectangle rectDraw = new Rectangle(printArea.x, printArea.y,
@@ -300,7 +299,7 @@ public class GCStringPrinter
 					//		+ lineInfo.lineOutputed + ";xc=" + lineInfo.excessPos + ";ccp=" + currentCharPos);
 					//System.out.println("lineo=" + lineInfo.lineOutputed.length() + ";" + sLine.length() );
 				} while (sLine != null);
-				currentCharPos += 2;
+				currentCharPos += 1;
 			}
 		} finally {
 			if (!skipClip && !noDraw) {
@@ -579,9 +578,11 @@ public class GCStringPrinter
 			if (i > 0) {
 				String s = text.substring(0, i);
 				if (!noDraw) {
-					gc.drawText(s, x0, y0, true);
+					//gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_RED));
+					gc.drawText(s, x0, y0, false);
 				}
-				Point textExtent = gc.textExtent(s);
+				
+				Point textExtent = gc.textExtent(s, SWT.DRAW_TRANSPARENT | SWT.DRAW_DELIMITER | SWT.DRAW_TAB);
 				x0 += textExtent.x;
 				//System.out.println("|" + s + "|" + textExtent.x);
 			}
@@ -599,7 +600,9 @@ public class GCStringPrinter
 			//System.out.println("|" + s + "|");
 			if (!noDraw) {
 				Color fgColor = gc.getForeground();
-				if (urlColor != null) {
+				if (urlInfo.urlColor != null) {
+					gc.setForeground(urlInfo.urlColor);
+				} else if (urlColor != null) {
 					gc.setForeground(urlColor);
 				}
 				gc.drawText(s, x0, y0, true);
@@ -624,6 +627,7 @@ public class GCStringPrinter
 
 		if (!drawURL) {
 			if (!noDraw) {
+				//System.out.println("text|" + text + "|");
 				gc.drawText(text, x0, y0, true);
 			}
 		}
@@ -795,6 +799,10 @@ public class GCStringPrinter
 		return _printString(gc, string, printArea, printFlags, swtFlags);
 	}
 
+	public boolean printString(int printFlags) {
+		return _printString(gc, string, printArea, printFlags, swtFlags);
+	}
+
 	public void calculateMetrics() {
 		_printString(gc, string, printArea, printFlags | FLAG_NODRAW, swtFlags);
 	}
@@ -806,9 +814,13 @@ public class GCStringPrinter
 	 */
 	public void printString(GC gc, Rectangle rectangle, int swtFlags) {
 		this.gc = gc;
+		int printFlags = this.printFlags;
+		if (printArea.width == rectangle.width) {
+			printFlags |= FLAG_KEEP_URL_INFO;
+		}
 		printArea = rectangle;
 		this.swtFlags = swtFlags;
-		printString();
+		printString(printFlags);
 	}
 
 	public Point getCalculatedSize() {
