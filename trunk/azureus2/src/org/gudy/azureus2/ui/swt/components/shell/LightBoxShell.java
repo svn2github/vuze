@@ -239,7 +239,8 @@ public class LightBoxShell
 
 		private StyledShell(int borderWidth) {
 			this.borderWidth = borderWidth;
-			styledShell = new Shell(lbShell, SWT.NO_TRIM);
+			styledShell = new Shell(lbShell, SWT.NO_TRIM| SWT.ON_TOP);
+			
 			try {
 				styledShell.setBackground(new Color(parentShell.getDisplay(), 38, 38,
 						38));
