@@ -21,14 +21,12 @@
 package org.gudy.azureus2.ui.swt.shells;
 
 import java.util.*;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
@@ -47,7 +45,10 @@ public class GCStringPrinter
 	private static final int FLAG_NODRAW = 4;
 
 	private static final Pattern patHREF = Pattern.compile(
-			"<.*a\\s++.*href\\s*=\\s*\"(.+?)\">(.+?)</a>", Pattern.CASE_INSENSITIVE);
+			"<\\s*?a\\s.*?href\\s*?=\\s*?\"(.+?)\".*?>(.*?)<\\s*?/a\\s*?>", Pattern.CASE_INSENSITIVE);
+
+	private static final Pattern patTABREPLACE = Pattern.compile("\t",
+			Pattern.LITERAL);
 
 	private GC gc;
 
@@ -63,17 +64,27 @@ public class GCStringPrinter
 
 	private Color urlColor;
 
-	private URLInfo urlInfo;
+	private List listUrlInfo;
 
-	private static class URLInfo
+	public static class URLInfo
 	{
-		String url;
+		public String url;
 
-		String title;
+		public String title;
 
-		int originalStartPos;
+		int relStartPos;
 
-		Rectangle hitArea;
+		// We could use a region, but that uses a resource that requires disposal
+		List hitAreas = null;
+
+		int titleLength;
+
+		// @see java.lang.Object#toString()
+		public String toString() {
+			return super.toString() + ": relStart=" + relStartPos + ";url=" + url
+					+ ";title=" + title + ";hit="
+					+ (hitAreas == null ? 0 : hitAreas.size());
+		}
 	}
 
 	public static boolean printString(GC gc, String string, Rectangle printArea) {
@@ -110,6 +121,16 @@ public class GCStringPrinter
 		return false;
 	}
 
+	/**
+	 * @param gc
+	 * @param string
+	 * @param printArea
+	 * @param printFlags
+	 * @param swtFlags
+	 * @return
+	 *
+	 * @since 3.0.4.3
+	 */
 	private boolean _printString(GC gc, String string, Rectangle printArea,
 			int printFlags, int swtFlags) {
 		size = new Point(0, 0);
@@ -118,38 +139,57 @@ public class GCStringPrinter
 			return false;
 		}
 
-		ArrayList lines = new ArrayList();
-
 		if (printArea.isEmpty()) {
 			return false;
+		}
+
+		ArrayList lines = new ArrayList();
+
+		if (string.indexOf('\r') > 0) {
+			string = string.replace('\r', '\n');
+		}
+		//We need to add some cariage return ...
+		// replaceall is slow
+		if (string.indexOf('\t') > 0) {
+			string = patTABREPLACE.matcher(string).replaceAll("  ");
 		}
 
 		boolean fullLinesOnly = (printFlags & FLAG_FULLLINESONLY) > 0;
 		boolean skipClip = (printFlags & FLAG_SKIPCLIP) > 0;
 		boolean noDraw = (printFlags & FLAG_NODRAW) > 0;
 		boolean wrap = (swtFlags & SWT.WRAP) > 0;
+
 		Matcher htmlMatcher = patHREF.matcher(string);
-		boolean hasHTML = htmlMatcher.find();
+		boolean hasURL = htmlMatcher.find();
+		if (hasURL) {
+			listUrlInfo = new ArrayList(1);
 
-		urlInfo = null;
-		if (hasHTML) {
-			urlInfo = new URLInfo();
-			urlInfo.url = htmlMatcher.group(1);
-			// For now, replace spaces with dashes so url title is always on 1 line
-			String s = htmlMatcher.group(2).replaceAll(" ", "`");
+			while (hasURL) {
+				URLInfo urlInfo = new URLInfo();
+				urlInfo.url = htmlMatcher.group(1);
+				// For now, replace spaces with dashes so url title is always on 1 line
+				String s = htmlMatcher.group(2); //.replaceAll(" ", "`");
 
-			// For now, chop off any title text that is too long for a full row
-			// as it will break parsing later
-			Point titleExtent = gc.textExtent(s);
-			while (s.length() > 0 && titleExtent.x + 3 >= printArea.width) {
-				s = s.substring(0, s.length() - 1); 
-				titleExtent = gc.textExtent(s);
+				// For now, chop off any title text that is too long for a full row
+				// as it will break parsing later
+				//Point titleExtent = gc.textExtent(s);
+				//while (s.length() > 0 && titleExtent.x + 3 >= printArea.width) {
+				//	s = s.substring(0, s.length() - 1);
+				//	titleExtent = gc.textExtent(s);
+				//}
+
+				urlInfo.title = s;
+				urlInfo.relStartPos = htmlMatcher.start(0);
+				urlInfo.titleLength = s.length();
+
+				//System.out.println("URLINFO! " + s + ";" + s.length() + ";" + urlInfo.relStartPos);
+
+				string = htmlMatcher.replaceFirst(s.replaceAll("\\$", "\\\\\\$"));
+
+				listUrlInfo.add(urlInfo);
+				htmlMatcher = patHREF.matcher(string);
+				hasURL = htmlMatcher.find(urlInfo.relStartPos);
 			}
-
-			urlInfo.title = s;
-			urlInfo.originalStartPos = htmlMatcher.start(1);
-			
-			string = htmlMatcher.replaceFirst(s.replaceAll("\\$", "\\\\\\$"));
 		}
 
 		Rectangle rectDraw = new Rectangle(printArea.x, printArea.y,
@@ -164,27 +204,22 @@ public class GCStringPrinter
 				gc.setClipping(printArea);
 			}
 
-			//We need to add some cariage return ...
-			// replaceall is slow
-			String sTabsReplaced = string.indexOf('\t') > 0 ? string.replaceAll("\t",
-					"  ") : string;
-
 			// Process string line by line
 			int iCurrentHeight = 0;
 			int currentCharPos = 0;
-			StringTokenizer stLine = new StringTokenizer(sTabsReplaced, "\n");
+			// stringtokenizer is faster than split
+			StringTokenizer stLine = new StringTokenizer(string, "\n");
 			while (stLine.hasMoreElements()) {
-				String sLine = stLine.nextToken().replaceAll("\r", " ");
+				String sLine = stLine.nextToken();
 				String sLastExcess = null;
 
 				do {
-					Object[] lineInfo = processLine(gc, sLine, printArea, wrap,
-							fullLinesOnly, stLine.hasMoreElements());
-					String sProcessedLine = (String) lineInfo[0];
+					LineInfo lineInfo = new LineInfo(sLine, currentCharPos);
+					lineInfo = processLine(gc, lineInfo, printArea, wrap, fullLinesOnly,
+							stLine.hasMoreElements());
+					String sProcessedLine = (String) lineInfo.lineOutputed;
 
 					if (sProcessedLine != null && sProcessedLine.length() > 0) {
-						int excessPos = ((Long) lineInfo[1]).intValue();
-
 						Point extent = gc.stringExtent(sProcessedLine);
 						iCurrentHeight += extent.y;
 						boolean isOverY = iCurrentHeight > printArea.height;
@@ -193,23 +228,26 @@ public class GCStringPrinter
 							System.out.println("Adding Line: [" + sProcessedLine + "]"
 									+ sProcessedLine.length() + "; h=" + iCurrentHeight + "("
 									+ printArea.height + "). fullOnly?" + fullLinesOnly
-									+ ". Excess: " + lineInfo[1]);
+									+ ". Excess: " + lineInfo.excessPos);
 						}
 
 						if (isOverY && !fullLinesOnly) {
-							fullLinesOnly = true;
-							lines.add(sProcessedLine);
+							//fullLinesOnly = true; // <-- don't know why we needed this
+							lines.add(lineInfo);
 						} else if (isOverY && fullLinesOnly) {
 							String excess;
 							if (fullLinesOnly) {
 								excess = sLastExcess;
 							} else {
-								excess = excessPos >= 0 ? sLine.substring(excessPos) : null;
+								excess = lineInfo.excessPos >= 0
+										? sLine.substring(lineInfo.excessPos) : null;
 							}
 							if (excess != null) {
 								if (fullLinesOnly) {
 									if (lines.size() > 0) {
-										sProcessedLine = (String) lines.remove(lines.size() - 1);
+										lineInfo = (LineInfo) lines.remove(lines.size() - 1);
+										sProcessedLine = lineInfo.originalLine;
+										//sProcessedLine = ((LineInfo) lines.remove(lines.size() - 1)).originalLine;
 										extent = gc.stringExtent(sProcessedLine);
 									} else {
 										if (DEBUG) {
@@ -232,7 +270,8 @@ public class GCStringPrinter
 											+ newExcessPos);
 								}
 
-								lines.add(outputLine.toString());
+								lineInfo.lineOutputed = outputLine.toString();
+								lines.add(lineInfo);
 								if (DEBUG) {
 									System.out.println("replace prev line with: "
 											+ outputLine.toString());
@@ -244,9 +283,10 @@ public class GCStringPrinter
 							}
 							return false;
 						} else {
-							lines.add(sProcessedLine);
+							lines.add(lineInfo);
 						}
-						sLine = excessPos >= 0 ? sLine.substring(excessPos) : null;
+						sLine = lineInfo.excessPos >= 0 && wrap
+								? sLine.substring(lineInfo.excessPos) : null;
 						sLastExcess = sLine;
 					} else {
 						if (DEBUG) {
@@ -254,7 +294,14 @@ public class GCStringPrinter
 						}
 						return false;
 					}
+
+					currentCharPos += lineInfo.excessPos >= 0 ? lineInfo.excessPos 
+							: lineInfo.lineOutputed.length();
+					//System.out.println("output: " + lineInfo.lineOutputed.length() + ";" 
+					//		+ lineInfo.lineOutputed + ";xc=" + lineInfo.excessPos + ";ccp=" + currentCharPos);
+					//System.out.println("lineo=" + lineInfo.lineOutputed.length() + ";" + sLine.length() );
 				} while (sLine != null);
+				currentCharPos += 2;
 			}
 		} finally {
 			if (!skipClip && !noDraw) {
@@ -262,17 +309,19 @@ public class GCStringPrinter
 			}
 
 			if (lines.size() > 0) {
-				String fullText = null;
+				// rebuild full text to get the exact y-extent of the output
+				// this may be different (but shouldn't be!) than the height of each
+				// line
+				StringBuffer fullText = new StringBuffer(string.length() + 10);
 				for (Iterator iter = lines.iterator(); iter.hasNext();) {
-					String text = (String) iter.next();
-					if (fullText == null) {
-						fullText = text;
-					} else {
-						fullText += "\n" + text;
+					LineInfo lineInfo = (LineInfo) iter.next();
+					if (fullText.length() > 0) {
+						fullText.append('\n');
 					}
+					fullText.append(lineInfo.lineOutputed);
 				}
 
-				size = gc.textExtent(fullText);
+				size = gc.textExtent(fullText.toString());
 
 				if ((swtFlags & (SWT.BOTTOM)) != 0) {
 					rectDraw.y = rectDraw.y + rectDraw.height - size.y;
@@ -281,10 +330,14 @@ public class GCStringPrinter
 					rectDraw.y = rectDraw.y + (rectDraw.height - size.y) / 2;
 				}
 
-				if (!noDraw || hasHTML) {
+				if (!noDraw || listUrlInfo != null) {
 					for (Iterator iter = lines.iterator(); iter.hasNext();) {
-						String text = (String) iter.next();
-						drawLine(gc, text, swtFlags, rectDraw, urlInfo, noDraw);
+						LineInfo lineInfo = (LineInfo) iter.next();
+						try {
+							drawLine(gc, lineInfo, swtFlags, rectDraw, noDraw);
+						} catch (Throwable t) {
+							t.printStackTrace();
+						}
 					}
 				}
 			}
@@ -299,17 +352,16 @@ public class GCStringPrinter
 	 *
 	 * @since 3.0.0.7
 	 */
-	private static Object[] processLine(final GC gc, final String sLine,
+	private static LineInfo processLine(final GC gc, final LineInfo lineInfo,
 			final Rectangle printArea, final boolean wrap,
 			final boolean fullLinesOnly, boolean hasMoreElements) {
 		StringBuffer outputLine = new StringBuffer();
 		int excessPos = -1;
 
-		if (gc.stringExtent(sLine).x > printArea.width) {
+		if (gc.stringExtent(lineInfo.originalLine).x > printArea.width) {
 			if (DEBUG) {
-				System.out.println("Line to process: " + sLine);
+				System.out.println("Line to process: " + lineInfo.originalLine);
 			}
-			StringTokenizer stWord = new StringTokenizer(sLine, " ");
 			StringBuffer space = new StringBuffer(1);
 			int[] iLineLength = {
 				0
@@ -320,15 +372,17 @@ public class GCStringPrinter
 					System.out.println("No Wrap.. doing all in one line");
 				}
 
-				processWord(gc, sLine, sLine, printArea, wrap, iLineLength, outputLine,
+				excessPos = processWord(gc, lineInfo.originalLine,
+						lineInfo.originalLine, printArea, wrap, iLineLength, outputLine,
 						space);
 			} else {
+				StringTokenizer stWord = new StringTokenizer(lineInfo.originalLine, " ");
 				// Process line word by word
 				int curPos = 0;
 				while (stWord.hasMoreElements()) {
 					String word = stWord.nextToken();
-					excessPos = processWord(gc, sLine, word, printArea, wrap,
-							iLineLength, outputLine, space);
+					excessPos = processWord(gc, lineInfo.originalLine, word, printArea,
+							wrap, iLineLength, outputLine, space);
 					if (DEBUG) {
 						System.out.println("  with word [" + word + "] len is "
 								+ iLineLength[0] + "(" + printArea.width + ") w/excess "
@@ -342,20 +396,41 @@ public class GCStringPrinter
 				}
 			}
 		} else {
-			outputLine.append(sLine);
+			outputLine.append(lineInfo.originalLine);
 		}
 
-		if (!wrap && hasMoreElements) {
+		if (!wrap && hasMoreElements && excessPos >= 0) {
 			outputLine.replace(outputLine.length() - 1, outputLine.length(), "..");
 		}
 		//drawLine(gc, outputLine, swtFlags, rectDraw);
 		//		if (!wrap) {
 		//			return hasMoreElements;
 		//		}
-		return new Object[] {
-			outputLine.toString(),
-			new Long(excessPos)
-		};
+		lineInfo.excessPos = excessPos;
+		lineInfo.lineOutputed = outputLine.toString();
+		return lineInfo;
+	}
+
+	private class LineInfo
+	{
+		String originalLine;
+
+		String lineOutputed;
+
+		int excessPos;
+
+		public int relStartPos;
+
+		public LineInfo(String originalLine, int relStartPos) {
+			this.originalLine = originalLine;
+			this.relStartPos = relStartPos;
+		}
+
+		// @see java.lang.Object#toString()
+		public String toString() {
+			return super.toString() + ": relStart=" + relStartPos + ";xcess="
+					+ excessPos + ";orig=" + originalLine + ";output=" + lineOutputed;
+		}
 	}
 
 	/**
@@ -463,10 +538,10 @@ public class GCStringPrinter
 	 * @param printArea
 	 * @param noDraw 
 	 */
-	private void drawLine(GC gc, String outputLine, int swtFlags,
-			Rectangle printArea, URLInfo urlInfo, boolean noDraw) {
-		String sOutputLine = outputLine.toString();
-		Point drawSize = gc.textExtent(sOutputLine);
+	private void drawLine(GC gc, LineInfo lineInfo, int swtFlags,
+			Rectangle printArea, boolean noDraw) {
+		String text = lineInfo.lineOutputed;
+		Point drawSize = gc.textExtent(text);
 		int x0;
 		if ((swtFlags & SWT.RIGHT) > 0) {
 			x0 = printArea.x + printArea.width - drawSize.x;
@@ -478,49 +553,79 @@ public class GCStringPrinter
 
 		int y0 = printArea.y;
 
-		if (urlInfo != null) {
-			int i = sOutputLine.indexOf(urlInfo.title);
-			if (i < 0) {
-				if (!noDraw) {
-					gc.drawText(sOutputLine, x0, y0, true);
+		int lineInfoRelEndPos = lineInfo.relStartPos
+				+ lineInfo.lineOutputed.length();
+
+		URLInfo urlInfo = null;
+		boolean drawURL = hasHitUrl();
+		if (drawURL) {
+			drawURL = false;
+			for (Iterator iter = listUrlInfo.iterator(); iter.hasNext();) {
+				urlInfo = (URLInfo) iter.next();
+
+				drawURL = (urlInfo.relStartPos < lineInfoRelEndPos)
+						&& (urlInfo.relStartPos + urlInfo.titleLength > lineInfo.relStartPos);
+				if (drawURL) {
+					break;
 				}
-			} else {
-				String s = sOutputLine.substring(0, i);
-				//s+="i i";
+			}
+		}
+		//System.out.println(urlInfo + "\n" + lineInfo);
+		if (drawURL) {
+			//int numHitUrlsAlready = urlInfo.hitAreas == null ? 0 : urlInfo.hitAreas.size();
+			
+			// draw text before url
+			int i = urlInfo.relStartPos - lineInfo.relStartPos;
+			//System.out.println("numHitUrlsAlready = " + numHitUrlsAlready + ";i=" + i);
+			if (i > 0) {
+				String s = text.substring(0, i);
 				if (!noDraw) {
 					gc.drawText(s, x0, y0, true);
 				}
 				Point textExtent = gc.textExtent(s);
 				x0 += textExtent.x;
 				//System.out.println("|" + s + "|" + textExtent.x);
-
-				int end = i + urlInfo.title.length();
-				s = sOutputLine.substring(i, end).replaceAll("`", " ");
-				//s = "i i ";
-				if (!noDraw) {
-					Color fgColor = gc.getForeground();
-					if (urlColor != null) {
-						gc.setForeground(urlColor);
-					}
-					gc.drawText(s, x0, y0, true);
-					gc.setForeground(fgColor);
-				}
-				textExtent = gc.textExtent(s);
-
-				urlInfo.hitArea = new Rectangle(x0, y0, textExtent.x, textExtent.y);
-
-				if (end < sOutputLine.length() - 1) {
-					x0 += textExtent.x;
-					s = sOutputLine.substring(end);
-					if (!noDraw) {
-						gc.drawText(s, x0, y0, true);
-					}
-				}
 			}
 
-		} else {
+			// draw url text
+			int end = i + urlInfo.titleLength;
+			if (i < 0) {
+				i = 0;
+			}
+			//System.out.println("end=" + end + ";" + text.length() + ";titlelen=" + urlInfo.titleLength);
+			if (end > text.length()) {
+				end = text.length();
+			}
+			String s = text.substring(i, end);
+			//System.out.println("|" + s + "|");
 			if (!noDraw) {
-				gc.drawText(sOutputLine, x0, y0, true);
+				Color fgColor = gc.getForeground();
+				if (urlColor != null) {
+					gc.setForeground(urlColor);
+				}
+				gc.drawText(s, x0, y0, true);
+				gc.setForeground(fgColor);
+			}
+			Point textExtent = gc.textExtent(s);
+
+			if (urlInfo.hitAreas == null) {
+				urlInfo.hitAreas = new ArrayList(1);
+			}
+			urlInfo.hitAreas.add(new Rectangle(x0, y0, textExtent.x, textExtent.y));
+
+			// draw text after url
+			if (end < text.length() - 1) {
+				x0 += textExtent.x;
+				s = text.substring(end);
+				if (!noDraw) {
+					gc.drawText(s, x0, y0, true);
+				}
+			}
+		}
+
+		if (!drawURL) {
+			if (!noDraw) {
+				gc.drawText(text, x0, y0, true);
 			}
 		}
 		printArea.y += drawSize.y;
@@ -535,7 +640,7 @@ public class GCStringPrinter
 	}
 
 	public static void main(String[] args) {
-		
+
 		//String s = "this is $1.00";
 		//String s2 = "$1";
 		//String s3 = s2.replaceAll("\\$", "\\\\\\$");
@@ -545,7 +650,7 @@ public class GCStringPrinter
 		//if (true) {
 		//	return;
 		//}
-		
+
 		Display display = Display.getDefault();
 		final Shell shell = new Shell(display, SWT.SHELL_TRIM);
 
@@ -613,6 +718,7 @@ public class GCStringPrinter
 
 				Color colorBox = gc.getDevice().getSystemColor(SWT.COLOR_YELLOW);
 				Color colorText = gc.getDevice().getSystemColor(SWT.COLOR_BLACK);
+				Color colorURL = gc.getDevice().getSystemColor(SWT.COLOR_RED);
 
 				gc.setForeground(colorText);
 				Rectangle bounds = cPaint.getClientArea();
@@ -632,8 +738,10 @@ public class GCStringPrinter
 					style |= SWT.RIGHT;
 				}
 
-				printString(gc, txtText.getText(), bounds, btnSkipClip.getSelection(),
-						btnFullOnly.getSelection(), style);
+				GCStringPrinter sp = new GCStringPrinter(gc, txtText.getText(), bounds,
+						btnSkipClip.getSelection(), btnFullOnly.getSelection(), style);
+				sp.setUrlColor(colorURL);
+				sp.printString();
 
 				bounds.width--;
 				bounds.height--;
@@ -641,7 +749,7 @@ public class GCStringPrinter
 				gc.setForeground(colorBox);
 				gc.drawRectangle(bounds);
 
-				System.out.println();
+				//System.out.println("-         " + System.currentTimeMillis());
 
 				gc.dispose();
 			}
@@ -716,17 +824,32 @@ public class GCStringPrinter
 		this.urlColor = urlColor;
 	}
 
-	public Rectangle getUrlHitArea() {
-		if (urlInfo == null) {
+	public URLInfo getHitUrl(int x, int y) {
+		if (listUrlInfo == null || listUrlInfo.size() == 0) {
 			return null;
 		}
-		return urlInfo.hitArea;
+		for (Iterator iter = listUrlInfo.iterator(); iter.hasNext();) {
+			URLInfo urlInfo = (URLInfo) iter.next();
+			if (urlInfo.hitAreas != null) {
+				for (Iterator iter2 = urlInfo.hitAreas.iterator(); iter2.hasNext();) {
+					Rectangle r = (Rectangle) iter2.next();
+					if (r.contains(x, y)) {
+						return urlInfo;
+					}
+				}
+			}
+		}
+		return null;
 	}
-	
-	public String getUrl() {
-		if (urlInfo == null) {
-			return null;
+
+	public URLInfo[] getHitUrlInfo() {
+		if (listUrlInfo == null) {
+			return new URLInfo[0];
 		}
-		return urlInfo.url;
+		return (URLInfo[]) listUrlInfo.toArray(new URLInfo[0]);
+	}
+
+	public boolean hasHitUrl() {
+		return listUrlInfo != null && listUrlInfo.size() > 0;
 	}
 }
