@@ -167,6 +167,8 @@ public class ColumnRate
 
 		private TableCell cell;
 
+		private Rectangle areaUserRating = null;
+
 		public Cell(final TableCell cell) {
 			this.cell = cell;
 			PlatformRatingMessenger.addListener(this);
@@ -310,6 +312,8 @@ public class ColumnRate
 				}
 			}
 
+			areaUserRating = null;
+
 			if (showAverage) {
 				if (showRateActionIcon) {
 					gcImage.setAlpha(40);
@@ -319,8 +323,14 @@ public class ColumnRate
 				int smallTextStyle = SWT.RIGHT;
 				if (imgRate != null && (userRating >= 0 || userRating == -2)) {
 					//smallTextStyle = SWT.RIGHT;
-					gcImage.drawImage(imgRate, r.width - 53, (height - 14) / 2
-							- (imgRate.getBounds().height / 2));
+					Rectangle imgRateDrawArea = imgRate.getBounds();
+					imgRateDrawArea.x = r.width - 53;
+					imgRateDrawArea.y = (height - 14) / 2
+							- (imgRate.getBounds().height / 2);
+					gcImage.drawImage(imgRate, imgRateDrawArea.x, imgRateDrawArea.y);
+					if (userRating >= 0) {
+						areaUserRating = imgRateDrawArea;
+					}
 				}
 
 				r.y += 2;
@@ -395,6 +405,9 @@ public class ColumnRate
 				if (imgRate != null) {
 					Point drawPos = getRateIconPos(imgRate.getBounds(), width, height);
 					gcImage.drawImage(imgRate, drawPos.x, drawPos.y);
+					areaUserRating = imgRate.getBounds();
+					areaUserRating.x = drawPos.x;
+					areaUserRating.y = drawPos.y;
 				}
 			}
 
@@ -405,12 +418,6 @@ public class ColumnRate
 			disposeOldImage(cell);
 
 			cell.setGraphic(graphic);
-			if (cell instanceof TableCellSWT) {
-				TableCellSWT cellSWT = (TableCellSWT) cell;
-				final ListCell listCell = (ListCell) cellSWT.getBufferedTableItem();
-				listCell.invalidate();
-				listCell.redraw();
-			}
 		}
 
 		/**
@@ -458,30 +465,44 @@ public class ColumnRate
 			} else if (event.eventType == TableCellMouseEvent.EVENT_MOUSEMOVE) {
 				int userRating = PlatformTorrentUtils.getUserRating(dm.getTorrent());
 
-				int cellWidth = event.cell.getWidth();
-				int cellHeight = event.cell.getHeight();
-				Point drawPos = getRateIconPos(boundsRateMe, cellWidth, cellHeight);
-				drawPos.x = event.x - drawPos.x;
-				drawPos.y = event.y - drawPos.y;
-				if (drawPos.x >= 0 && drawPos.y >= 0 && drawPos.x < boundsRateMe.width
-						&& drawPos.y < boundsRateMe.height) {
-					final int value = (drawPos.x < (boundsRateMe.height - drawPos.y + 1))
-							? 1 : 0;
+				if (userRating == -1) {
+					int cellWidth = event.cell.getWidth();
+					int cellHeight = event.cell.getHeight();
+					Point drawPos = getRateIconPos(boundsRateMe, cellWidth, cellHeight);
+					drawPos.x = event.x - drawPos.x;
+					drawPos.y = event.y - drawPos.y;
+					if (drawPos.x >= 0 && drawPos.y >= 0
+							&& drawPos.x < boundsRateMe.width
+							&& drawPos.y < boundsRateMe.height) {
+						final int value = (drawPos.x < (boundsRateMe.height - drawPos.y + 1))
+								? 1 : 0;
 
-					if (hoveringOn != value) {
-						hoveringOn = value;
-						if ((cell instanceof TableCellCore) && userRating == -1) {
-							((TableCellCore) event.cell).setCursorID(SWT.CURSOR_HAND);
+						if (hoveringOn != value) {
+							hoveringOn = value;
+							if ((cell instanceof TableCellCore)) {
+								((TableCellCore) event.cell).setCursorID(SWT.CURSOR_HAND);
+							}
+							refresh(event.cell, true);
 						}
-						refresh(event.cell, true);
+					} else {
+						if (hoveringOn != -1) {
+							hoveringOn = -1;
+							if (cell instanceof TableCellCore) {
+								((TableCellCore) event.cell).setCursorID(SWT.CURSOR_ARROW);
+							}
+							refresh(event.cell, true);
+						}
 					}
 				} else {
-					if (hoveringOn != -1) {
-						hoveringOn = -1;
-						if (cell instanceof TableCellCore) {
+					if (cell instanceof TableCellCore) {
+						if (areaUserRating != null
+								&& areaUserRating.contains(event.x, event.y)) {
+							((TableCellCore) event.cell).setCursorID(SWT.CURSOR_HAND);
+							event.cell.setToolTip("Click to remove your rating");
+						} else {
 							((TableCellCore) event.cell).setCursorID(SWT.CURSOR_ARROW);
+							event.cell.setToolTip(null);
 						}
-						refresh(event.cell, true);
 					}
 				}
 			}
@@ -492,8 +513,7 @@ public class ColumnRate
 			}
 
 			if (event.eventType != TableCellMouseEvent.EVENT_MOUSEDOWN
-					&& event.eventType != TableCellMouseEvent.EVENT_MOUSEUP
-					&& event.eventType != TableCellMouseEvent.EVENT_MOUSEDOUBLECLICK) {
+					&& event.eventType != TableCellMouseEvent.EVENT_MOUSEUP) {
 				return;
 			}
 
@@ -512,40 +532,6 @@ public class ColumnRate
 			}
 
 			int userRating = PlatformTorrentUtils.getUserRating(dm.getTorrent());
-
-			if (event.eventType == TableCellMouseEvent.EVENT_MOUSEDOUBLECLICK) {
-				// remove setting
-				try {
-					final TOTorrent torrent = dm.getTorrent();
-					final String hash = torrent.getHashWrapper().toBase32String();
-					final int oldValue = PlatformTorrentUtils.getUserRating(torrent);
-					if (oldValue >= 0) {
-  					PlatformTorrentUtils.setUserRating(torrent, -2);
-  					refresh(event.cell, true);
-  					PlatformRatingMessenger.setUserRating(hash, -1, 0,
-  							new PlatformMessengerListener() {
-  								public void replyReceived(PlatformMessage message,
-  										String replyType, Map reply) {
-  									if (PlatformRatingMessenger.ratingSucceeded(reply)) {
-  										PlatformTorrentUtils.setUserRating(torrent, -1);
-  										GlobalRatingUtils.updateFromPlatform(torrent, 2000);
-  									} else {
-  										PlatformTorrentUtils.setUserRating(torrent,
-  												oldValue == -2 ? -1 : oldValue);
-  									}
-  									refresh(event.cell, true);
-  								}
-  
-  								public void messageSent(PlatformMessage message) {
-  								}
-  							});
-  					event.skipCoreFunctionality = true;
-					}
-				} catch (TOTorrentException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
 
 			if (event.eventType == TableCellMouseEvent.EVENT_MOUSEDOWN) {
 				bMouseDowned = true;
@@ -593,8 +579,41 @@ public class ColumnRate
 							e.printStackTrace();
 						}
 					}
+				} else if (areaUserRating != null
+						&& areaUserRating.contains(event.x, event.y)) {
+					// remove setting
+					try {
+						final TOTorrent torrent = dm.getTorrent();
+						final String hash = torrent.getHashWrapper().toBase32String();
+						final int oldValue = PlatformTorrentUtils.getUserRating(torrent);
+						if (oldValue >= 0) {
+							PlatformTorrentUtils.setUserRating(torrent, -2);
+							refresh(event.cell, true);
+							PlatformRatingMessenger.setUserRating(hash, -1, 0,
+									new PlatformMessengerListener() {
+										public void replyReceived(PlatformMessage message,
+												String replyType, Map reply) {
+											if (PlatformRatingMessenger.ratingSucceeded(reply)) {
+												PlatformTorrentUtils.setUserRating(torrent, -1);
+												GlobalRatingUtils.updateFromPlatform(torrent, 2000);
+											} else {
+												PlatformTorrentUtils.setUserRating(torrent,
+														oldValue == -2 ? -1 : oldValue);
+											}
+											refresh(event.cell, true);
+										}
+
+										public void messageSent(PlatformMessage message) {
+										}
+									});
+							event.skipCoreFunctionality = true;
+						}
+					} catch (TOTorrentException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
-			} 
+			}
 
 			bMouseDowned = false;
 		}
@@ -610,8 +629,11 @@ public class ColumnRate
 				TOTorrent torrent = dm.getTorrent();
 				long refreshOn = GlobalRatingUtils.getRefreshOn(torrent);
 				long diff = (refreshOn - SystemTime.getCurrentTime()) / 1000;
-				cell.setToolTip("G.Rating Auto Refreshes in "
-						+ TimeFormatter.format(diff));
+				Object toolTip = cell.getToolTip();
+				if (!(toolTip instanceof String) || ((String)toolTip).startsWith("G.")) {
+					cell.setToolTip("G.Rating Auto Refreshes in "
+							+ TimeFormatter.format(diff));
+				}
 			}
 		}
 
@@ -634,11 +656,13 @@ public class ColumnRate
 			} else if (event.eventType == TableRowMouseEvent.EVENT_MOUSEEXIT) {
 				changed = true;
 			}
-			if (changed && cell != null) {
-				refresh(cell, true);
-			} else if (event.row != null) {
-				((TableRowCore) event.row).invalidate();
-				((TableRowCore) event.row).redraw();
+			if (changed) {
+				if (cell != null) {
+					refresh(cell, true);
+				} else if (event.row != null) {
+					((TableRowCore) event.row).invalidate();
+					((TableRowCore) event.row).redraw();
+				}
 			}
 		}
 
