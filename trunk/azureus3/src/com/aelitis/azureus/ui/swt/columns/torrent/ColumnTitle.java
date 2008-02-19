@@ -20,19 +20,38 @@
 
 package com.aelitis.azureus.ui.swt.columns.torrent;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.program.Program;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
+import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
+import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
+import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
+import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.util.Constants;
 
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
-import org.gudy.azureus2.plugins.ui.tables.TableColumn;
+import org.gudy.azureus2.plugins.ui.Graphic;
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
  * @author TuxPaper
@@ -41,20 +60,29 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumn;
  */
 public class ColumnTitle
 	extends CoreTableColumn
-	implements TableCellRefreshListener, ObfusticateCellText
+	implements TableCellRefreshListener, ObfusticateCellText,
+	TableCellMouseMoveListener
 {
 	public static String COLUMN_ID = "name";
-	
+
 	public static boolean SHOW_EXT_INFO = false;
 
 	static public String s = "";
+
+	private Color colorLinkNormal;
+
+	private Color colorLinkHover;
 
 	/** Default Constructor */
 	public ColumnTitle(String sTableID) {
 		super(COLUMN_ID, POSITION_LAST, 250, sTableID);
 		setMinWidth(70);
 		setObfustication(true);
-		setType(TableColumn.TYPE_TEXT);
+		setType(TableColumn.TYPE_GRAPHIC);
+
+		SWTSkinProperties skinProperties = SWTSkinFactory.getInstance().getSkinProperties();
+		colorLinkNormal = skinProperties.getColor("color.links.normal");
+		colorLinkHover = skinProperties.getColor("color.links.hover");
 	}
 
 	public void refresh(TableCell cell) {
@@ -93,15 +121,77 @@ public class ColumnTitle
 				}
 			}
 		}
-		
+
 		if (ColumnProgressETA.TRY_NAME_COLUMN_EXPANDER) {
-  		if (dm.getAssumedComplete()) {
-  			long size = dm.getSize() - dm.getStats().getRemaining();
-  			name += "\nCompleted. " + DisplayFormatters.formatByteCountToKiBEtc(size);
-  		}
+			if (dm.getAssumedComplete()) {
+				long size = dm.getSize() - dm.getStats().getRemaining();
+				name += "\nCompleted. "
+						+ DisplayFormatters.formatByteCountToKiBEtc(size);
+			}
 		}
-		
-		cell.setText(name);
+
+		Graphic graphic = cell.getBackgroundGraphic();
+		if (!(graphic instanceof UISWTGraphic)) {
+			cell.setText(name);
+		}
+
+		Image img = ((UISWTGraphic) graphic).getImage();
+		if (img == null) {
+			return;
+		}
+
+		String sText = name;
+		if (PlatformTorrentUtils.isContent(dm.getTorrent(), true)) {
+			try {
+				sText = "<A HREF=\"" + Constants.URL_PREFIX + Constants.URL_DETAILS
+						+ dm.getTorrent().getHashWrapper().toBase32String() + ".html?"
+						+ Constants.URL_SUFFIX + "\">" + name + "</A>";
+			} catch (TOTorrentException e) {
+				Debug.out(e);
+			}
+		}
+
+		GC gc = new GC(img);
+		try {
+			gc.setForeground(ColorCache.getColor(gc.getDevice(), cell.getForeground()));
+			GCStringPrinter stringPrinter = new GCStringPrinter(gc, sText,
+					img.getBounds(), true, true, SWT.LEFT | SWT.WRAP);
+			stringPrinter.calculateMetrics();
+
+			if (stringPrinter.hasHitUrl()) {
+				TableRow row = cell.getTableRow();
+				if (row instanceof TableRowCore) {
+					((TableRowCore) row).setData("titleStringPrinter", stringPrinter);
+				}
+				int[] mouseOfs = cell.getMouseOffset();
+				if (mouseOfs != null
+						&& stringPrinter.getHitUrl(mouseOfs[0], mouseOfs[1]) != null) {
+					stringPrinter.setUrlColor(colorLinkHover);
+				} else {
+					stringPrinter.setUrlColor(colorLinkNormal);
+				}
+			}
+
+			stringPrinter.printString();
+		} finally {
+			gc.dispose();
+		}
+
+		disposeExisting(cell);
+		cell.setGraphic(new UISWTGraphicImpl(img));
+	}
+
+	private void disposeExisting(TableCell cell) {
+		Graphic oldGraphic = cell.getGraphic();
+		//log(cell, oldGraphic);
+		if (oldGraphic instanceof UISWTGraphic) {
+			Image oldImage = ((UISWTGraphic) oldGraphic).getImage();
+			if (oldImage != null && !oldImage.isDisposed()) {
+				//log(cell, "dispose");
+				cell.setGraphic(null);
+				oldImage.dispose();
+			}
+		}
 	}
 
 	public String getObfusticatedText(TableCell cell) {
@@ -119,5 +209,45 @@ public class ColumnTitle
 			name = "";
 		}
 		return name;
+	}
+
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCellMouseListener#cellMouseTrigger(org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent)
+	public void cellMouseTrigger(TableCellMouseEvent event) {
+		if (!(event.cell instanceof TableCellSWT)) {
+			return;
+		}
+		TableRow row = event.cell.getTableRow();
+		if (row instanceof TableRowCore) {
+			GCStringPrinter stringPrinter = (GCStringPrinter) ((TableRowCore) row).getData("titleStringPrinter");
+			if (stringPrinter != null) {
+				URLInfo hitUrl = stringPrinter.getHitUrl(event.x, event.y);
+
+				int oldCursorID = ((TableCellSWT) event.cell).getCursorID();
+				int newCursorID = oldCursorID;
+				if (hitUrl != null) {
+					if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP) {
+						if (PlatformConfigMessenger.isURLBlocked(hitUrl.url)) {
+							Utils.launch(hitUrl.url);
+						} else {
+							UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
+							if (uif != null) {
+								uif.viewURL(hitUrl.url, "browse", 0, 0, false, false);
+								return;
+							}
+						}
+					}
+
+					newCursorID = SWT.CURSOR_HAND;
+				} else {
+					newCursorID = SWT.CURSOR_ARROW;
+				}
+				if (oldCursorID != newCursorID) {
+					((TableCellSWT) event.cell).setCursorID(newCursorID);
+					event.cell.invalidate();
+					refresh(event.cell);
+				}
+			}
+		}
+
 	}
 }
