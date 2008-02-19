@@ -125,7 +125,7 @@ public class UserAreaUtils
 					if (null != uiFunctions) {
 						String url = Constants.URL_PREFIX + Constants.URL_PROFILE + "?"
 								+ Constants.URL_SUFFIX;
-						uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSE_TAB, 0, 0,
+						uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0, 0,
 								true, true);
 					}
 
@@ -144,7 +144,7 @@ public class UserAreaUtils
 					if (null != uiFunctions) {
 						String url = Constants.URL_PREFIX + Constants.URL_ACCOUNT + "?"
 								+ Constants.URL_SUFFIX;
-						uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSE_TAB, 0, 0,
+						uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0, 0,
 								true, true);
 					}
 
