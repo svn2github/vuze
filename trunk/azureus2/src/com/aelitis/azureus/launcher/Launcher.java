@@ -33,7 +33,7 @@ import com.aelitis.azureus.launcher.classloading.*;
  */
 public class Launcher {
 	
-	private final static boolean LOADER_ENABLED = true; 
+	private final static boolean LOADER_ENABLED = false; 
 	
 	/**
 	 * Bootstraps a new {@link PrimaryClassloader} from the system class loader,
