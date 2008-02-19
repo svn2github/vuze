@@ -81,11 +81,21 @@ StringInterner
 			e.printStackTrace();
 		}
 		
-		SimpleTimer.addPeriodicEvent("StringInterner:cleaner", SCHEDULED_CLEANUP_INTERVAL, new TimerEventPerformer() {
-			public void perform(TimerEvent event) {
-				sanitize(true);
+			// initialisation nightmare - we have to create periodic event async to avoid
+			// circular class loading issues when azureus.config is borkified
+		
+		new AEThread2( "asyncify", true )
+		{
+			public void
+			run()
+			{
+				SimpleTimer.addPeriodicEvent("StringInterner:cleaner", SCHEDULED_CLEANUP_INTERVAL, new TimerEventPerformer() {
+					public void perform(TimerEvent event) {
+						sanitize(true);
+					}
+				});
 			}
-		});
+		}.start();
 	}
 		
 	// private final static ReferenceQueue queue = new ReferenceQueue();
