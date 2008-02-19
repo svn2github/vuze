@@ -4110,13 +4110,12 @@ public class ListView
 		return getTableCell(pt.x, pt.y);
 	}
 
-	public Point getTableCellMouseOffset() {
-		Point pt = display.getCursorLocation();
-		pt = listCanvas.toControl(pt);
-		TableCellSWT tableCell = getTableCell(pt.x, pt.y);
+	public Point getTableCellMouseOffset(TableCellSWT tableCell) {
 		if (tableCell == null) {
 			return null;
 		}
+		Point pt = display.getCursorLocation();
+		pt = listCanvas.toControl(pt);
 		Rectangle bounds = tableCell.getBounds();
 		return new Point(pt.x - bounds.x, pt.y - bounds.y);
 	}
