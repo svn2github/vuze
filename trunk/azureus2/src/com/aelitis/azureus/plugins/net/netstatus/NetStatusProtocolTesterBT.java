@@ -62,6 +62,7 @@ NetStatusProtocolTesterBT
 	
 	private List		connections	= new ArrayList();
 	
+	private boolean		active;
 	private boolean		destroyed;
 	
 	protected
@@ -90,7 +91,7 @@ NetStatusProtocolTesterBT
 	          	{
 	          		log( "Got incoming connection from " + connection.getEndpoint().getNotionalAddress());
 	          		
-	          		initialiseConnection( connection, false );
+	          		initialiseConnection( connection, null );
 	          		
 	          		return( true );
 	          	}
@@ -147,9 +148,11 @@ NetStatusProtocolTesterBT
 	protected void
 	testOutbound(
 		InetSocketAddress		address,
-		byte[]					their_hash,
+		final byte[]			their_hash,
 		boolean					use_crypto )
 	{
+		active	= true;
+		
 		log( "Making outbound connection to " + address );
 		
 		boolean	allow_fallback	= false;
@@ -185,7 +188,7 @@ NetStatusProtocolTesterBT
 					{
 						log( "Outbound connect success" );
 						
-						initialiseConnection( connection, true );
+						initialiseConnection( connection, their_hash );
 					}
 
 					public final void 
@@ -194,7 +197,7 @@ NetStatusProtocolTesterBT
 					{
 						log( "Outbound connect fail", e );
 						
-						connection.close();
+						closeConnection( connection );
 					}
 
 					public final void 
@@ -203,7 +206,7 @@ NetStatusProtocolTesterBT
 					{
 						log( "Outbound connect fail", e );
 						
-						connection.close();
+						closeConnection( connection );
 					}
     			
 					public String
@@ -217,7 +220,7 @@ NetStatusProtocolTesterBT
 	protected void
 	initialiseConnection(
 		NetworkConnection	connection,
-		boolean				outgoing )
+		byte[]				their_hash )
 	{
 		synchronized( this ){
 			
@@ -312,16 +315,34 @@ NetStatusProtocolTesterBT
 
 		connection.startMessageProcessing();
 		
-		if ( outgoing ){
+		if ( their_hash != null ){
 			
 			byte[]	peer_id = new byte[20];
 			
 			random.nextBytes( peer_id );
 			
 			connection.getOutgoingMessageQueue().addMessage(
-				new BTHandshake( my_hash, peer_id, false, BTMessageFactory.MESSAGE_VERSION_INITIAL ),
+				new BTHandshake( their_hash, peer_id, false, BTMessageFactory.MESSAGE_VERSION_INITIAL ),
 				false );
 		}
+	}
+	
+	protected void
+	closeConnection(
+		NetworkConnection	c )
+	{
+		synchronized( this ){
+
+			connections.remove( c );
+		}
+		
+		c.close();
+	}
+	
+	protected boolean
+	isActive()
+	{
+		return( active );
 	}
 	
 	protected void

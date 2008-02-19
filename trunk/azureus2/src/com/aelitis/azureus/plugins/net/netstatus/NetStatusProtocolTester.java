@@ -30,6 +30,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -120,36 +121,45 @@ NetStatusProtocolTester
 	runTest(
 		String	test_address )
 	{
+		NetStatusProtocolTesterBT bt_tester = new NetStatusProtocolTesterBT( this );
+
+		addToActive( bt_tester );
+		
 		try{
 			if ( test_address.length() == 0 ){
 				
 				DHT[]	dhts = dht_plugin.getDHTs();
 				
-				DHT	cvs_dht = null;
+				DHT	target_dht = null;
+				
+				int	target_network	= Constants.isCVSVersion()?DHT.NW_CVS:DHT.NW_MAIN;
 				
 				for (int i=0;i<dhts.length;i++){
 					
-					if ( dhts[i].getTransport().getNetwork() == DHT.NW_CVS ){
+					if ( dhts[i].getTransport().getNetwork() == target_network ){
 						
-						cvs_dht = dhts[i];
+						target_dht = dhts[i];
+						
+						break;
 					}
 				}
 				
-				DHTTransportContact[] contacts = cvs_dht.getTransport().getReachableContacts();
-				
-				for (int i=0;i<contacts.length;i++){
+				if ( target_dht == null ){
 					
-					DHTTransportContact dht_contact = contacts[i];
+					log( "DHT not found" );
 					
-					DistributedDatabaseContact contact = ddb.importContact( dht_contact.getAddress());
+				}else{
 					
-					Map	request = new HashMap();
+					DHTTransportContact[] contacts = target_dht.getTransport().getReachableContacts();
 					
-					request.put( "v", new Long(1));
-					
-					Map	reply = sendRequest( contact, request );
-					
-					System.out.println( contact.getName() + " -> " + reply );
+					for (int i=0;i<contacts.length;i++){
+						
+						DHTTransportContact dht_contact = contacts[i];
+						
+						DistributedDatabaseContact contact = ddb.importContact( dht_contact.getAddress());
+						
+						tryTest( bt_tester, contact );
+					}
 				}
 			}else{
 				
@@ -165,41 +175,54 @@ NetStatusProtocolTester
 				InetSocketAddress address = new InetSocketAddress( bits[0].trim(), Integer.parseInt( bits[1].trim()));
 				 
 				DistributedDatabaseContact contact = ddb.importContact( address );
-				
-				Map	request = new HashMap();
-				
-				request.put( "v", new Long(1));
-				
-				NetStatusProtocolTesterBT bt_tester = new NetStatusProtocolTesterBT( this );
-				
-				try{
-					request.put( "t", new Long( TEST_TYPE_BT ));
-					
-					request.put( "h", bt_tester.getServerHash());
-					
-					Map	reply = sendRequest( contact, request );
-										
-					byte[]	server_hash = (byte[])reply.get( "h" );
-					
-					if ( server_hash != null ){
-							
-						bt_tester.testOutbound( adjustLoopback( address ), server_hash, false );
-						
-					}else{
-						
-						bt_tester.destroy();
-					}
-				}finally{
-					
-					if ( !bt_tester.isDestroyed()){
-						
-						addToActive( bt_tester );
-					}
-				}
+
+				tryTest( bt_tester, contact );
 			}
 		}catch( Throwable e ){
 			
 			log( "Test failed", e );
+			
+		}finally{
+			
+			if ( !bt_tester.isActive()){
+				
+				removeFromActive( bt_tester );
+			}
+		}
+	}
+	
+	protected boolean
+	tryTest(
+		NetStatusProtocolTesterBT		bt_tester,
+		DistributedDatabaseContact		contact )
+	{
+		log( "Trying test to " + contact.getName());
+		
+		Map	request = new HashMap();
+		
+		request.put( "v", new Long(1));
+				
+		request.put( "t", new Long( TEST_TYPE_BT ));
+			
+		request.put( "h", bt_tester.getServerHash());
+			
+		Map	reply = sendRequest( contact, request );
+				
+		byte[]	server_hash = reply==null?null:(byte[])reply.get( "h" );
+			
+		if ( server_hash != null ){
+				
+			log( "    " + contact.getName() + " accepted test" );
+			
+			bt_tester.testOutbound( adjustLoopback( contact.getAddress()), server_hash, false );
+			
+			return( true );
+			
+		}else{
+			
+			log( "    " + contact.getName() + " declined test" );
+
+			return( false );
 		}
 	}
 	
