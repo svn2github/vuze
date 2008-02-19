@@ -1911,7 +1911,11 @@ public class MainWindow
 		skin.activateTab(skinObject);
 
 		skinObject = skin.getSkinObject(target);
-
+		
+		if (skinObject == null && target.startsWith("tab-")) {
+			skinObject = skin.getSkinObject(target.substring(4));
+		}
+		
 		if (skinObject instanceof SWTSkinObjectBrowser) {
 			((SWTSkinObjectBrowser) skinObject).getBrowser().setVisible(false);
 			if (url == null || url.length() == 0) {
