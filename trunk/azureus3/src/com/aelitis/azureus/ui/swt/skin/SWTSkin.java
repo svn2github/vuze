@@ -371,14 +371,14 @@ public class SWTSkin
 		return getTabSet(sTabSetID);
 	}
 
-	public boolean setActiveTab(String sTabSetID, String sTabID) {
+	public boolean setActiveTab(String sTabSetID, String sTabViewID) {
 		SWTSkinTabSet tabSet = getTabSet(sTabSetID);
 		if (tabSet == null) {
 			System.err.println(sTabSetID);
 			return false;
 		}
 
-		return tabSet.setActiveTab(sTabID);
+		return tabSet.setActiveTab(sTabViewID);
 	}
 
 	public void initialize(Shell shell, String startID) {
