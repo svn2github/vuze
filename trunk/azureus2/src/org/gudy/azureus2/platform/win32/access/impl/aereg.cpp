@@ -34,11 +34,14 @@
 #include "org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface.h"
 
 
-#define VERSION "1.15"
+#define VERSION "1.16"
 
  
 HMODULE	application_module;
 bool	non_unicode			= false;
+
+jclass AEWin32AccessInterface_class;
+jclass AEWin32AccessExceptionImpl_class;
 
 UINT		uThreadId;
 HINSTANCE	hInstance;
@@ -106,19 +109,17 @@ throwException(
 	char*			operation,
 	char*			message )
 {
-	jclass except = env->FindClass( "org/gudy/azureus2/platform/win32/access/impl/AEWin32AccessExceptionImpl" );
-	
 	bool	ok = false;
 
-	if ( except != NULL ){
+	if ( AEWin32AccessExceptionImpl_class != NULL ){
 
-		jmethodID method = env->GetMethodID( except, "<init>", "(Ljava/lang/String;Ljava/lang/String;)V" );
+		jmethodID method = env->GetMethodID( AEWin32AccessExceptionImpl_class, "<init>", "(Ljava/lang/String;Ljava/lang/String;)V" );
 	
 		if ( method != NULL ){
 
 	
 			jobject new_object =
-					env->NewObject( except, 
+					env->NewObject( AEWin32AccessExceptionImpl_class, 
 									method, 
 									env->NewStringUTF((const char*)operation), 
 									env->NewStringUTF((const char*)message ));
@@ -129,6 +130,9 @@ throwException(
 
 				ok = true;
 			}
+		}else{
+
+			fprintf( stderr, "AEWin32AccessInterface: failed to resolve constructor" );
 		}
 	}
 
@@ -377,30 +381,32 @@ callback(
 		return( -1 );
 	}
 
-	jclass callback_class = env->FindClass("org/gudy/azureus2/platform/win32/access/impl/AEWin32AccessInterface" );
 
 	jlong result = -1;
 
-	if ( callback_class != NULL ){
+	if ( AEWin32AccessInterface_class != NULL ){
 
 		jint	j_msg		= Msg;
 		jint	j_param1	= wParam;
 		jlong	j_param2	= lParam;
 
 
-		jmethodID method = env->GetStaticMethodID(callback_class, "callback", "(IIJ)J");
+		jmethodID method = env->GetStaticMethodID( AEWin32AccessInterface_class, "callback", "(IIJ)J");
 
-		result = env->CallStaticLongMethod(callback_class, method, j_msg, j_param1, j_param2 );
+		if ( method != NULL ){
+
+			result = env->CallStaticLongMethod( AEWin32AccessInterface_class, method, j_msg, j_param1, j_param2 );
+
+		}else{
+					
+			fprintf( stderr, "failed to resolve callback method\n" );
+		}
 	}
 
-	if ( callback_class != NULL ){
-
-		env->DeleteLocalRef( callback_class );
-	}
 
 	jvm->DetachCurrentThread();
 
-	return((HRESULT)result );
+	return((HRESULT)result ); 
 }
 
 
@@ -413,10 +419,38 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_initial
 
 	env->GetJavaVM(&jvm);
 
+	jclass local_ref = env->FindClass("org/gudy/azureus2/platform/win32/access/impl/AEWin32AccessInterface" );
+
+	if ( local_ref == NULL ){
+
+		fprintf( stderr, "failed to find AEWin32AccessInterface class\n" );
+
+	}else{
+
+		AEWin32AccessInterface_class = (jclass)env->NewGlobalRef( local_ref );
+
+		env->DeleteLocalRef( local_ref );
+	}
+
+	local_ref = env->FindClass( "org/gudy/azureus2/platform/win32/access/impl/AEWin32AccessExceptionImpl" );
+	
+	if ( local_ref == NULL ){
+
+		fprintf( stderr, "failed to find AEWin32AccessExceptionImpl class\n" );
+
+	}else{
+
+		AEWin32AccessExceptionImpl_class = (jclass)env->NewGlobalRef( local_ref );
+
+		env->DeleteLocalRef( local_ref );
+	}
+
 	if ( non_unicode ){
+
 		hThread = (HANDLE)_beginthreadex(NULL, 0, &CreateWndThreadA, NULL, 0, &uThreadId);
 
 	}else{
+
 		hThread = (HANDLE)_beginthreadex(NULL, 0, &CreateWndThreadW, NULL, 0, &uThreadId);
 	}
 
