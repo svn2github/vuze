@@ -421,8 +421,21 @@ public class LightBoxShell
 				Rectangle bounds = styledShell.getBounds();
 				if (bounds.width != width || bounds.height != height) {
 					styledShell.setSize(width, height);
+					
+					/*
+					 * Centers the the StyleShell relative to the parent shell
+					 */
 					Utils.centerWindowRelativeTo(styledShell, parentShell);
-					styledShell.setRegion(getRoundedRegion(styledShell.getBounds()));
+					
+					/*
+					 * If the new bounds is beyond the top or left of the display area then move it
+					 * to at least the top or left so that the shell is fully visible
+					 */
+					bounds = styledShell.getBounds();
+					bounds.x = Math.max(bounds.x, 0);
+					bounds.y = Math.max(bounds.y, 0);
+					styledShell.setBounds(bounds);
+					styledShell.setRegion(getRoundedRegion(bounds));
 				}
 			}
 		}
