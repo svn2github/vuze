@@ -140,10 +140,18 @@ public class SWTSkinObjectBrowser
 	}
 
 	public void restart() {
-		// TODO: Replace the existing rand
 		if (null != sStartURL) {
-			setURL(sStartURL + (sStartURL.indexOf('?') > 0 ? "&" : "?") + "rand="
-					+ SystemTime.getCurrentTime());
+			String startURLUnique;
+			String sRand = "rand=" + SystemTime.getCurrentTime();
+			if (sStartURL.indexOf("rand=") > 0) {
+				startURLUnique = sStartURL.replaceAll("rand=[0-9.]+", sRand);
+			} else if (sStartURL.indexOf('?') > 0) {
+				startURLUnique = sStartURL + "&" + sRand;
+			} else {
+				startURLUnique = sStartURL + "?" + sRand;
+			}
+			System.out.println(startURLUnique);
+			setURL(startURLUnique);
 		}
 	}
 

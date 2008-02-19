@@ -8,9 +8,7 @@ import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.widgets.Display;
 
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
@@ -150,11 +148,16 @@ public class DisplayListener
 				String sURL = (String) browser.getData("StartURL");
 				context.debug("reset " + sURL);
 				if (sURL != null && sURL.length() > 0) {
-					if (sURL.indexOf('?') > 0) {
-						browser.setUrl(sURL + "&rnd=" + Math.random());
+					String startURLUnique;
+					String sRand = "rand=" + SystemTime.getCurrentTime();
+					if (sURL.indexOf("rand=") > 0) {
+						startURLUnique = sURL.replaceAll("rand=[0-9.]+", sRand);
+					} else if (sURL.indexOf('?') > 0) {
+						startURLUnique = sURL + "&" + sRand;
 					} else {
-						browser.setUrl(sURL + "?rnd=" + Math.random());
+						startURLUnique = sURL + "?" + sRand;
 					}
+					browser.setUrl(startURLUnique);
 				}
 			}
 		});
