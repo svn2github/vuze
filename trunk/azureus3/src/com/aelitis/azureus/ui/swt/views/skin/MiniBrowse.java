@@ -162,7 +162,7 @@ public class MiniBrowse
 						}
 					}
 				});
-				tabSet.setActiveTab(sTabID);
+				tabSet.setActiveTabByID(sTabID);
 			}
 		}
 		cArea.getParent().layout(true, true);

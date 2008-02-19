@@ -1082,7 +1082,7 @@ public class TorrentListViewsUtils
 									false, 15000);
 
 							if (ret == 1) {
-								tabSetMain.setActiveTab("maintabs.home");
+								tabSetMain.setActiveTab(SkinConstants.VIEWID_HOME_TAB);
 							}
 						}
 					}

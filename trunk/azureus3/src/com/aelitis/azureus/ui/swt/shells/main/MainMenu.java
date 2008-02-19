@@ -203,25 +203,25 @@ public class MainMenu
 	private void addViewMenuItems(Menu viewMenu) {
 		MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".home", new Listener() {
 			public void handleEvent(Event event) {
-				skin.setActiveTab(SkinConstants.TABSET_MAIN, "maintabs.home");
+				skin.setActiveTab(SkinConstants.TABSET_MAIN, SkinConstants.VIEWID_HOME_TAB);
 			}
 		});
 
 		MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".browse", new Listener() {
 			public void handleEvent(Event event) {
-				skin.setActiveTab(SkinConstants.TABSET_MAIN, "maintabs.browse");
+				skin.setActiveTab(SkinConstants.TABSET_MAIN, SkinConstants.VIEWID_BROWSE_TAB);
 			}
 		});
 
 		MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".library", new Listener() {
 			public void handleEvent(Event event) {
-				skin.setActiveTab(SkinConstants.TABSET_MAIN, "maintabs.library");
+				skin.setActiveTab(SkinConstants.TABSET_MAIN, SkinConstants.VIEWID_LIBRARY_TAB);
 			}
 		});
 
 		MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".publish", new Listener() {
 			public void handleEvent(Event event) {
-				skin.setActiveTab(SkinConstants.TABSET_MAIN, "maintabs.publish");
+				skin.setActiveTab(SkinConstants.TABSET_MAIN, SkinConstants.VIEWID_PUBLISH_TAB);
 			}
 		});
 

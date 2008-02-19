@@ -588,6 +588,10 @@ public class MainWindow
 			if (tabSet != null) {
 				tabSet.addListener(this);
 			}
+			SWTSkinTabSet subtabSet = skin.getTabSet(SkinConstants.TABSET_DASHBOARD_LEFT);
+			if (subtabSet != null) {
+				subtabSet.addListener(this);
+			}
 			// attach the UI to plugins
 			// Must be done before initializing views, since plugins may register
 			// table columns and other objects
@@ -600,7 +604,7 @@ public class MainWindow
 
 				COConfigurationManager.setBooleanDefault("v3.Start Advanced", false);
 				if (COConfigurationManager.getBooleanParameter("v3.Start Advanced")) {
-					startTab = "maintabs.advanced";
+					startTab = SkinConstants.VIEWID_ADVANCED_TAB;
 				} else {
 					boolean hasInComplete = false;
 					Object[] dms = core.getGlobalManager().getDownloadManagers().toArray();
@@ -612,7 +616,8 @@ public class MainWindow
 						}
 					}
 
-					startTab = hasInComplete ? "maintabs.home" : "maintabs.browse";
+					startTab = hasInComplete ? SkinConstants.VIEWID_HOME_TAB
+							: SkinConstants.VIEWID_BROWSE_TAB;
 				}
 				tabSet.setActiveTab(startTab);
 			}
@@ -1536,7 +1541,7 @@ public class MainWindow
 		}
 
 		// Switch to browse tab
-		skin.setActiveTab(SkinConstants.TABSET_MAIN, "maintabs.browse");
+		skin.setActiveTab(SkinConstants.TABSET_MAIN, SkinConstants.VIEWID_BROWSE_TAB);
 
 		String sURL = Constants.URL_PREFIX + Constants.URL_ADD_SEARCH
 				+ UrlUtils.encode(sSearchText) + "&" + Constants.URL_SUFFIX + "&rand="
@@ -1551,7 +1556,7 @@ public class MainWindow
 
 		// below is the old impementation of search, which creates a new tab
 		// and browser for each search.
-
+		/*
 		// Get Search Results tab (which contains a tabset of searched terms),
 		// create if needed
 		SWTSkinObject skinObject = skin.getSkinObject("browse-tabs");
@@ -1591,7 +1596,7 @@ public class MainWindow
 		}
 
 		if (tabSetSearch != null) {
-			tabSetSearch.setActiveTab(sTabID);
+			tabSetSearch.setActiveTabByID(sTabID);
 		}
 		SWTSkinObject searchResultsTabsView = skin.getSkinObject("search-results-tabs");
 		if (searchResultsTabsView == null) {
@@ -1695,8 +1700,9 @@ public class MainWindow
 
 		// activate!
 		if (tabSetSearchResults != null) {
-			tabSetSearchResults.setActiveTab(sTabID);
+			tabSetSearchResults.setActiveTabByID(sTabID);
 		}
+		*/
 	}
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinTabSetListener#tabChanged(com.aelitis.azureus.ui.swt.skin.SWTSkinTabSet, java.lang.String, java.lang.String)
@@ -1733,7 +1739,11 @@ public class MainWindow
 			if (newTabID.equals("maintabs.home")) {
 				SWTSkinTabSet tabSetLeft = skin.getTabSet(SkinConstants.TABSET_DASHBOARD_LEFT);
 				if (tabSetLeft != null && tabSetLeft.getActiveTab() == null) {
-					tabSetLeft.setActiveTab("lefttab.events");
+					String startTab = COConfigurationManager.getStringParameter("v3.home-tab.starttab");
+
+					if (!tabSetLeft.setActiveTab(startTab)) {
+						tabSetLeft.setActiveTab(SkinConstants.VIEWID_ACTIVITY_TAB);
+					}
 				}
 			}
 
@@ -1742,6 +1752,9 @@ public class MainWindow
 			 */
 			MenuFactory.isAZ3_ADV = newTabID.equals("maintabs.advanced");
 			MenuFactory.updateEnabledStates(menu.getMenu(IMenuConstants.MENU_ID_MENU_BAR));
+		} else if (tabSet.getID().equals(SkinConstants.TABSET_DASHBOARD_LEFT)) {
+			COConfigurationManager.setParameter("v3.home-tab.starttab",
+					tabSet.getActiveTab().getViewID());
 		}
 	}
 
@@ -1871,7 +1884,7 @@ public class MainWindow
 			return;
 		}
 
-		tabSetMain.setActiveTab("maintabs.advanced");
+		tabSetMain.setActiveTab(SkinConstants.VIEWID_ADVANCED_TAB);
 	}
 
 	public UISWTInstance getUISWTInstanceImpl() {

@@ -79,7 +79,11 @@ public class SWTSkinTabSet
 		return null;
 	}
 
-	public boolean setActiveTab(String sID) {
+	/**
+	 * 
+	 * @deprecated Use {@link #setActiveTab(String)}
+	 */
+	public boolean setActiveTabByID(String sID) {
 		for (int i = 0; i < tabs.size(); i++) {
 			SWTSkinObject tab = (SWTSkinObject) tabs.get(i);
 			if (tab instanceof SWTSkinObjectTab) {
@@ -94,6 +98,17 @@ public class SWTSkinTabSet
 
 		return false;
 	}
+
+	public boolean setActiveTab(String viewID) {
+		SWTSkinObject skinObject = skin.getSkinObject(viewID);
+
+		if (skinObject == null) {
+			return false;
+		}
+		
+		return skin.activateTab(skinObject) != null;
+	}
+
 	
 	public void setActiveTab(final SWTSkinObjectTab newTab) {
 		setActiveTab(newTab, false);

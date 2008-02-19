@@ -87,7 +87,7 @@ public class UserAreaUtils
 					/*
 					 * Loads the page without switching to the On Vuze tab
 					 */
-					SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_BROWSE_TAB);
+					SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_BROWSER_BROWSE);
 					if (skinObject instanceof SWTSkinObjectBrowser) {
 						((SWTSkinObjectBrowser) skinObject).setURL(url);
 					}
@@ -190,9 +190,9 @@ public class UserAreaUtils
 		 * Reset browser tabs if the login state has changed
 		 */
 		if (true == isNewOrUpdated) {
-			resetBrowserPage(SkinConstants.VIEWID_BROWSE_TAB);
-			resetBrowserPage(SkinConstants.VIEWID_PUBLISH_TAB);
-			resetBrowserPage(SkinConstants.VIEWID_MINI_BROWSE_TAB);
+			resetBrowserPage(SkinConstants.VIEWID_BROWSER_BROWSE);
+			resetBrowserPage(SkinConstants.VIEWID_BROWSER_PUBLISH);
+			resetBrowserPage(SkinConstants.VIEWID_BROWSER_MINI);
 		}
 	}
 

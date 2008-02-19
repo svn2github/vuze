@@ -32,13 +32,23 @@ public class SkinConstants
 
 	public static final String TABSET_DASHBOARD_LEFT = "hometab-left";
 
-	public static final String VIEWID_BROWSE_TAB = "browse";
+	public static final String VIEWID_BROWSER_BROWSE = "browse";
 
-	public static final String VIEWID_MINI_BROWSE_TAB = "minibrowse";
+	public static final String VIEWID_BROWSER_MINI = "minibrowse";
+	
+	public static final String VIEWID_BROWSER_PUBLISH = "publish";
 
-	public static final String VIEWID_HOME_TAB = "home";
+	public static final String VIEWID_BROWSE_TAB = "tab-browse";
 
-	public static final String VIEWID_LIBRARY_TAB = "library";
+	public static final String VIEWID_HOME_TAB = "tab-home";
 
-	public static final String VIEWID_PUBLISH_TAB = "publish";
+	public static final String VIEWID_LIBRARY_TAB = "tab-library";
+
+	public static final String VIEWID_PUBLISH_TAB = "tab-publish";
+
+	public static final String VIEWID_ADVANCED_TAB = "tab-advanced";
+
+	public static final String VIEWID_ACTIVITY_TAB = "tab-activities";
+
+	public static final String VIEWID_MINILIBRARY_TAB = "tab-minilibrary";
 }

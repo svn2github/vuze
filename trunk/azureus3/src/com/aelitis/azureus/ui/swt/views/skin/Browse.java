@@ -168,7 +168,7 @@ public class Browse
 						}
 					}
 				});
-				tabSet.setActiveTab(sTabID);
+				tabSet.setActiveTabByID(sTabID);
 			}
 		}
 		cArea.getParent().layout(true);

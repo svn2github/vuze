@@ -22,14 +22,15 @@ package com.aelitis.azureus.ui.swt;
 
 import java.io.File;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationParameterNotFoundException;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.SystemProperties;
 
-import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
+import com.aelitis.azureus.ui.skin.SkinConstants;
 
 /**
  * @author TuxPaper
@@ -144,6 +145,7 @@ public class UIConfigDefaultsSWTv3
 		defaults.addParameter("v3.topbar.show.frog", false);
 		defaults.addParameter("v3.topbar.show.plugin", false);
 		defaults.addParameter("ui.toolbar.uiswitcher", false);
+		defaults.addParameter("v3.home-tab.starttab", SkinConstants.VIEWID_ACTIVITY_TAB);
 		
 		
 		//=== defaults used by MainWindow
