@@ -246,7 +246,10 @@ public class TorrentListViewsUtils
 				+ Constants.URL_SUFFIX;
 
 		UIFunctions functions = UIFunctionsManager.getUIFunctions();
-		functions.viewURL(url, "browse", 0, 0, false, false);
+		if (functions != null) {
+			functions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0, 0, false,
+				false);
+		}
 	}
 
 	public static SWTSkinButtonUtility addCommentsButton(final SWTSkin skin,
@@ -268,7 +271,8 @@ public class TorrentListViewsUtils
 							+ ".html?" + Constants.URL_SUFFIX + "&rnd=" + Math.random();
 
 					UIFunctions functions = UIFunctionsManager.getUIFunctions();
-					functions.viewURL(url, "browse", 0, 0, false, false);
+					functions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0, 0,
+							false, false);
 				}
 			}
 		});

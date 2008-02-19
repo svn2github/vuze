@@ -1550,7 +1550,8 @@ public class MainWindow
 
 		UIFunctions functions = UIFunctionsManager.getUIFunctions();
 		if (functions != null) {
-			functions.viewURL(sURL, "browse", 0, 0, false, false);
+			functions.viewURL(sURL, SkinConstants.VIEWID_BROWSER_BROWSE, 0, 0, false,
+					false);
 			return;
 		}
 
