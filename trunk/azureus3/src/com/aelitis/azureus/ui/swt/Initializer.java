@@ -150,8 +150,8 @@ public class Initializer
 				Initializer.this.reportCurrentTask(currentTask);
 
 				long now = SystemTime.getCurrentTime();
-				if (fakePercent > 0 && lastTaskTimeSecs != now / 500) {
-					lastTaskTimeSecs = SystemTime.getCurrentTime() / 500;
+				if (fakePercent > 0 && lastTaskTimeSecs != now / 200) {
+					lastTaskTimeSecs = SystemTime.getCurrentTime() / 200;
 					fakePercent--;
 					Initializer.this.reportPercent(curPercent + 1);
 				}
