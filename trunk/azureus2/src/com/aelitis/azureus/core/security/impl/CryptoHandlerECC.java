@@ -75,7 +75,7 @@ CryptoHandlerECC
 	
 	private CryptoManagerImpl		manager;
 	
-	private String					CONFIG_PREFIX = "core.crypto.ecc.";
+	private String				CONFIG_PREFIX = CryptoManager.CRYPTO_CONFIG_PREFIX + "ecc.";
 
 	private PrivateKey			use_method_private_key;
 	private PublicKey			use_method_public_key;

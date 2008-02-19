@@ -28,6 +28,8 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager.ParameterVerifier;
 
+import com.aelitis.azureus.core.security.CryptoManager;
+
 /**
  * A singleton used to store configuration into a bencoded file.
  *
@@ -811,11 +813,23 @@ ConfigurationManager
 			
 				while( it.hasNext()){
 					
-					Object	key 	= it.next();
+					String	key 	= (String)it.next();
+					
+						// don't dump crypto stuff
+					
+					if ( key.startsWith( CryptoManager.CRYPTO_CONFIG_PREFIX )){
+						
+						continue;
+					}
+					
 					Object	value	= propertiesMap.get(key);
+					
 					boolean bParamExists = ConfigurationDefaults.getInstance().doesParameterDefaultExist(key.toString());
-					if (!bParamExists)
+					
+					if (!bParamExists){
+						
 						key = "[NoDef] " + key;
+					}
 					
 					if ( value instanceof Long ){
 						

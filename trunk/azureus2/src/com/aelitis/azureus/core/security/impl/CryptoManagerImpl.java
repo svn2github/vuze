@@ -52,6 +52,7 @@ CryptoManagerImpl
 	
 	private static CryptoManagerImpl		singleton;
 	
+	
 	public static synchronized CryptoManager
 	getSingleton()
 	{
@@ -78,9 +79,11 @@ CryptoManagerImpl
 	public byte[]
 	getSecureID()
 	{
+		String key = CryptoManager.CRYPTO_CONFIG_PREFIX + "id";
+		
 		if ( secure_id == null ){
 			
-			secure_id = COConfigurationManager.getByteParameter( "core.crypto.id", null );
+			secure_id = COConfigurationManager.getByteParameter( key, null );
 		}
 		
 		if ( secure_id == null ){
@@ -89,7 +92,7 @@ CryptoManagerImpl
 		
 			new SecureRandom().nextBytes( secure_id );
 			
-			COConfigurationManager.setParameter( "core.crypto.id", secure_id );
+			COConfigurationManager.setParameter( key, secure_id );
 			
 			COConfigurationManager.save();
 		}

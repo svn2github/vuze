@@ -25,6 +25,10 @@ package com.aelitis.azureus.core.security;
 public interface 
 CryptoManager 
 {
+		// don't even THINK about changing this!!!!
+
+	public static final String	CRYPTO_CONFIG_PREFIX = "core.crypto.";
+	
 	public static final int HANDLER_ECC	= 1;
 	
 	public byte[]
