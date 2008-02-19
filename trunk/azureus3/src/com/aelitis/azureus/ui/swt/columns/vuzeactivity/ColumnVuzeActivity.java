@@ -200,9 +200,9 @@ public class ColumnVuzeActivity
 		GC gcQuery = new GC(device);
 		try {
 			gcQuery.setAdvanced(true);
+			gcQuery.setTextAntialias(SWT.ON);
 			if (entry.type == 0) {
 				if (headerFont == null) {
-					gcQuery.setTextAntialias(SWT.ON);
 					// no sync required, SWT is on single thread
 					FontData[] fontData = gcQuery.getFont().getFontData();
 					fontData[0].setStyle(SWT.BOLD);
@@ -213,7 +213,7 @@ public class ColumnVuzeActivity
 				}
 				gcQuery.setFont(headerFont);
 			}
-			Rectangle potentialArea = new Rectangle(x, 2, width - x - 2, 10000);
+			Rectangle potentialArea = new Rectangle(x, 2, width - x - 4, 10000);
 			stringPrinter = new GCStringPrinter(gcQuery, entry.text, potentialArea,
 					0, SWT.WRAP | SWT.TOP);
 			stringPrinter.calculateMetrics();
@@ -255,12 +255,18 @@ public class ColumnVuzeActivity
 			}
 
 			if (stringPrinter.hasHitUrl()) {
+				URLInfo[] hitUrlInfo = stringPrinter.getHitUrlInfo();
+				for (int i = 0; i < hitUrlInfo.length; i++) {
+					URLInfo info = hitUrlInfo[i];
+					info.urlColor = colorLinkNormal;
+				}
 				int[] mouseOfs = cell.getMouseOffset();
-				if (mouseOfs != null
-						&& stringPrinter.getHitUrl(mouseOfs[0], mouseOfs[1] - (y - 2)) != null) {
-					stringPrinter.setUrlColor(colorLinkHover);
-				} else {
-					stringPrinter.setUrlColor(colorLinkNormal);
+				if (mouseOfs != null) {
+					URLInfo hitUrl = stringPrinter.getHitUrl(mouseOfs[0] - MARGIN_WIDTH,
+							mouseOfs[1] - (y - 2));
+					if (hitUrl != null) {
+						hitUrl.urlColor = colorLinkHover;
+					}
 				}
 			}
 
@@ -272,11 +278,11 @@ public class ColumnVuzeActivity
 		GC gc = new GC(image);
 		try {
 			gc.setAdvanced(true);
+			gc.setTextAntialias(SWT.ON);
 			gc.setBackground(ColorCache.getColor(device, cell.getBackground()));
 			gc.setForeground(ColorCache.getColor(device, cell.getForeground()));
 
 			if (entry.type == 0) {
-				gc.setTextAntialias(SWT.ON);
 				gc.setFont(headerFont);
 				gc.setForeground(colorHeaderFG);
 
@@ -294,7 +300,7 @@ public class ColumnVuzeActivity
 				}
 			}
 
-			Rectangle drawRect = new Rectangle(x, y, width - x - 2, height - y
+			Rectangle drawRect = new Rectangle(x, y, width - x - 4, height - y
 					+ MARGIN_HEIGHT);
 			stringPrinter.printString(gc, drawRect, style);
 			entry.urlInfo = stringPrinter;
@@ -494,7 +500,8 @@ public class ColumnVuzeActivity
 			if (entry.urlInfo != null) {
 				//((ListView)((ListRow)event.cell.getTableRow()).getView()).getTableCellCursorOffset()
 				//System.out.println(entry.urlHitArea);
-				URLInfo hitUrl = ((GCStringPrinter)entry.urlInfo).getHitUrl(event.x, event.y);
+				URLInfo hitUrl = ((GCStringPrinter) entry.urlInfo).getHitUrl(event.x
+						- MARGIN_WIDTH, event.y);
 				if (hitUrl != null) {
 					if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP) {
 						if (PlatformConfigMessenger.isURLBlocked(hitUrl.url)) {
