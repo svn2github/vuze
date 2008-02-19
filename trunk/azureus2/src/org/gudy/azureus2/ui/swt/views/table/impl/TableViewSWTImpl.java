@@ -3903,13 +3903,12 @@ public class TableViewSWTImpl
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#getTableCellMouseOffset()
-	public Point getTableCellMouseOffset() {
-		Point pt = table.getDisplay().getCursorLocation();
-		pt = table.toControl(pt);
-		TableCellSWT tableCell = getTableCell(pt.x, pt.y);
+	public Point getTableCellMouseOffset(TableCellSWT tableCell) {
 		if (tableCell == null) {
 			return null;
 		}
+		Point pt = table.getDisplay().getCursorLocation();
+		pt = table.toControl(pt);
 		
 		Rectangle bounds = tableCell.getBounds();
 		int x = pt.x - bounds.x + VerticalAligner.getTableAdjustHorizontallyBy(table);

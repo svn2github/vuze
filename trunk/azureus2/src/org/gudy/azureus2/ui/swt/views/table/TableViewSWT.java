@@ -116,5 +116,5 @@ public interface TableViewSWT
 	 *
 	 * @since 3.0.4.3
 	 */
-	Point getTableCellMouseOffset();
+	Point getTableCellMouseOffset(TableCellSWT tableCell);
 }

@@ -1318,7 +1318,7 @@ public class TableCellImpl
 	}
 	
 	public int[] getMouseOffset() {
-		Point ofs = ((TableViewSWT) tableRow.getView()).getTableCellMouseOffset();
+		Point ofs = ((TableViewSWT) tableRow.getView()).getTableCellMouseOffset(this);
 		return ofs == null ? null : new int[] { ofs.x, ofs.y };
 	}
 	
