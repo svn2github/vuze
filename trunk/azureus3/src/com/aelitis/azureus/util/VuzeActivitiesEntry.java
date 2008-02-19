@@ -74,9 +74,7 @@ public class VuzeActivitiesEntry
 
 	public DownloadManager dm;
 
-	public Object urlHitArea;
-
-	public String url;
+	public Object urlInfo;
 
 	public TableColumnCore tableColumn;
 

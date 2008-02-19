@@ -29,6 +29,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
+import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -253,11 +254,10 @@ public class ColumnVuzeActivity
 				imgBounds = image.getBounds();
 			}
 
-			Rectangle urlHitArea = stringPrinter.getUrlHitArea();
-			if (urlHitArea != null) {
-				urlHitArea.y += y - 2;
+			if (stringPrinter.hasHitUrl()) {
 				int[] mouseOfs = cell.getMouseOffset();
-				if (mouseOfs != null && urlHitArea.contains(mouseOfs[0], mouseOfs[1])) {
+				if (mouseOfs != null
+						&& stringPrinter.getHitUrl(mouseOfs[0], mouseOfs[1] - (y - 2)) != null) {
 					stringPrinter.setUrlColor(colorLinkHover);
 				} else {
 					stringPrinter.setUrlColor(colorLinkNormal);
@@ -297,8 +297,7 @@ public class ColumnVuzeActivity
 			Rectangle drawRect = new Rectangle(x, y, width - x - 2, height - y
 					+ MARGIN_HEIGHT);
 			stringPrinter.printString(gc, drawRect, style);
-			entry.urlHitArea = stringPrinter.getUrlHitArea();
-			entry.url = stringPrinter.getUrl();
+			entry.urlInfo = stringPrinter;
 
 			if (entry.showThumb && (entry.dm != null || entry.imageBytes != null)) {
 				Rectangle dmThumbRect = getDMImageRect(height);
@@ -492,18 +491,18 @@ public class ColumnVuzeActivity
 		Comparable sortValue = event.cell.getSortValue();
 		if (sortValue instanceof VuzeActivitiesEntry) {
 			VuzeActivitiesEntry entry = (VuzeActivitiesEntry) sortValue;
-			if (entry.urlHitArea instanceof Rectangle) {
-				Rectangle urlHitArea = (Rectangle) entry.urlHitArea;
+			if (entry.urlInfo != null) {
 				//((ListView)((ListRow)event.cell.getTableRow()).getView()).getTableCellCursorOffset()
 				//System.out.println(entry.urlHitArea);
-				if (urlHitArea.contains(event.x, event.y)) {
+				URLInfo hitUrl = ((GCStringPrinter)entry.urlInfo).getHitUrl(event.x, event.y);
+				if (hitUrl != null) {
 					if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP) {
-						if (PlatformConfigMessenger.isURLBlocked(entry.url)) {
-							Utils.launch(entry.url);
+						if (PlatformConfigMessenger.isURLBlocked(hitUrl.url)) {
+							Utils.launch(hitUrl.url);
 						} else {
 							UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
 							if (uif != null) {
-								uif.viewURL(entry.url, "browse", 0, 0, false, false);
+								uif.viewURL(hitUrl.url, "browse", 0, 0, false, false);
 								return;
 							}
 						}
