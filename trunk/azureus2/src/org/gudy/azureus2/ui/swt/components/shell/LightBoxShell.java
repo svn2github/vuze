@@ -239,8 +239,8 @@ public class LightBoxShell
 
 		private StyledShell(int borderWidth) {
 			this.borderWidth = borderWidth;
-			styledShell = new Shell(lbShell, SWT.NO_TRIM| SWT.ON_TOP);
-			
+			styledShell = new Shell(lbShell, SWT.NO_TRIM | SWT.ON_TOP);
+
 			try {
 				styledShell.setBackground(new Color(parentShell.getDisplay(), 38, 38,
 						38));
@@ -266,6 +266,7 @@ public class LightBoxShell
 			borderedBackground.setLayout(fillLayout);
 
 			content = new Composite(borderedBackground, SWT.NONE);
+			setSize(400, 300);
 			styledShell.layout();
 			borderedBackground.addPaintListener(new PaintListener() {
 
@@ -392,8 +393,6 @@ public class LightBoxShell
 
 		private void open() {
 			if (true == isAlive()) {
-				Utils.centerWindowRelativeTo(styledShell, lbShell);
-				styledShell.setRegion(getRoundedRegion(styledShell.getBounds()));
 				styledShell.open();
 			}
 		}
@@ -421,20 +420,20 @@ public class LightBoxShell
 			if (true == isAlive()) {
 				Rectangle bounds = styledShell.getBounds();
 				if (bounds.width != width || bounds.height != height) {
-					styledShell.setSize(width, height);
-					
+
+					bounds.width = width;
+					bounds.height = height;
+
 					/*
 					 * Centers the the StyleShell relative to the parent shell
 					 */
-					Utils.centerWindowRelativeTo(styledShell, parentShell);
-					
+					Utils.centerRelativeTo(bounds, parentShell.getBounds());
+
 					/*
-					 * If the new bounds is beyond the top or left of the display area then move it
-					 * to at least the top or left so that the shell is fully visible
+					 * Adjust the new bounds if the shell does not fully fit on the screen
 					 */
-					bounds = styledShell.getBounds();
-					bounds.x = Math.max(bounds.x, 0);
-					bounds.y = Math.max(bounds.y, 0);
+					Utils.makeVisibleOnCursor(bounds);
+
 					styledShell.setBounds(bounds);
 					styledShell.setRegion(getRoundedRegion(bounds));
 				}

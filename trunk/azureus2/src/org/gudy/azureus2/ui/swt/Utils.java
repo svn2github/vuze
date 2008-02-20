@@ -18,7 +18,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
+
 package org.gudy.azureus2.ui.swt;
 
 import java.util.*;
@@ -31,13 +31,9 @@ import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.*;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
@@ -55,16 +51,17 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
  * @author Olivier
  * 
  */
-public class Utils {
+public class Utils
+{
 	private static final String GOOD_STRING = "(/|,jI~`gy";
-	
-  public static final boolean isGTK	= SWT.getPlatform().equals("gtk");
+
+	public static final boolean isGTK = SWT.getPlatform().equals("gtk");
 
 	/** Some platforms expand the last column to fit the remaining width of
 	 * the table.
 	 */
 	public static final boolean LAST_TABLECOLUMN_EXPANDS = isGTK;
-	
+
 	/** GTK already handles alternating background for tables */
 	public static final boolean TABLE_GRIDLINE_IS_ALTERNATING_COLOR = isGTK;
 
@@ -78,12 +75,13 @@ public class Utils {
 	 * many we are queuing up, and how long each call takes.  Good to turn on
 	 * occassionally to see if we coded something stupid.
 	 */
-	private static final boolean DEBUG_SWTEXEC = System.getProperty("debug.swtexec", "0").equals("1");
+	private static final boolean DEBUG_SWTEXEC = System.getProperty(
+			"debug.swtexec", "0").equals("1");
 
 	private static ArrayList queue;
-  
+
 	private static AEDiagnosticsLogger diag_logger;
-	
+
 	static {
 		if (DEBUG_SWTEXEC) {
 			queue = new ArrayList();
@@ -94,58 +92,56 @@ public class Utils {
 			diag_logger = null;
 		}
 	}
-	
-	public static boolean
-	isAZ2UI()
-	{
-	  	String ui_type = COConfigurationManager.getStringParameter("ui");
-	  	
-	  	return( ui_type.equals( "az2" ));
+
+	public static boolean isAZ2UI() {
+		String ui_type = COConfigurationManager.getStringParameter("ui");
+
+		return (ui_type.equals("az2"));
 	}
 
-  public static void disposeComposite(Composite composite,boolean disposeSelf) {
-    if(composite == null || composite.isDisposed())
-      return;
-  Control[] controls = composite.getChildren();
-  for(int i = 0 ; i < controls.length ; i++) {
-    Control control = controls[i];                
-    if(control != null && ! control.isDisposed()) {
-      if(control instanceof Composite) {
-        disposeComposite((Composite) control,true);
-      }
-      try {
-        control.dispose();
-      } catch (SWTException e) {
-        Debug.printStackTrace( e );
-      }
-    }
-  }
-  // It's possible that the composite was destroyed by the child
-  if (!composite.isDisposed() && disposeSelf)
-    try {
-      composite.dispose();
-    } catch (SWTException e) {
-      Debug.printStackTrace( e );
-    }
-  }
-  
-  public static void disposeComposite(Composite composite) {
-    disposeComposite(composite,true);
-  }
-  
-  /**
-   * Dispose of a list of SWT objects
-   * 
-   * @param disposeList
-   */
-  public static void disposeSWTObjects(List disposeList) {
-  	disposeSWTObjects(disposeList.toArray());
-		disposeList.clear();
-  }
+	public static void disposeComposite(Composite composite, boolean disposeSelf) {
+		if (composite == null || composite.isDisposed())
+			return;
+		Control[] controls = composite.getChildren();
+		for (int i = 0; i < controls.length; i++) {
+			Control control = controls[i];
+			if (control != null && !control.isDisposed()) {
+				if (control instanceof Composite) {
+					disposeComposite((Composite) control, true);
+				}
+				try {
+					control.dispose();
+				} catch (SWTException e) {
+					Debug.printStackTrace(e);
+				}
+			}
+		}
+		// It's possible that the composite was destroyed by the child
+		if (!composite.isDisposed() && disposeSelf)
+			try {
+				composite.dispose();
+			} catch (SWTException e) {
+				Debug.printStackTrace(e);
+			}
+	}
 
-  public static void disposeSWTObjects(Object[] disposeList) {
-  	boolean bResourceObjectExists = SWT.getVersion() >= 3129;
-  	
+	public static void disposeComposite(Composite composite) {
+		disposeComposite(composite, true);
+	}
+
+	/**
+	 * Dispose of a list of SWT objects
+	 * 
+	 * @param disposeList
+	 */
+	public static void disposeSWTObjects(List disposeList) {
+		disposeSWTObjects(disposeList.toArray());
+		disposeList.clear();
+	}
+
+	public static void disposeSWTObjects(Object[] disposeList) {
+		boolean bResourceObjectExists = SWT.getVersion() >= 3129;
+
 		for (int i = 0; i < disposeList.length; i++) {
 			Object o = disposeList[i];
 			if (o instanceof Widget && !((Widget) o).isDisposed())
@@ -156,17 +152,18 @@ public class Utils {
 			else {
 				try {
 					// For Pre-SWT 3.1
-					if ((o instanceof Cursor) && !((Cursor)o).isDisposed()) {
-						((Cursor)o).dispose();
-					} else if ((o instanceof Font) && !((Font)o).isDisposed()) {
-						((Font)o).dispose();
-					} else if ((o instanceof GC) && !((GC)o).isDisposed()) {
-						((GC)o).dispose();
-					} else if ((o instanceof Image) && !((Image)o).isDisposed()) {
-						((Image)o).dispose();
-					} else if ((o instanceof Region) && !((Region)o).isDisposed()) {
-						((Region)o).dispose();  // 3.0
-					} else if ((o instanceof TextLayout) && !((TextLayout)o).isDisposed()) {
+					if ((o instanceof Cursor) && !((Cursor) o).isDisposed()) {
+						((Cursor) o).dispose();
+					} else if ((o instanceof Font) && !((Font) o).isDisposed()) {
+						((Font) o).dispose();
+					} else if ((o instanceof GC) && !((GC) o).isDisposed()) {
+						((GC) o).dispose();
+					} else if ((o instanceof Image) && !((Image) o).isDisposed()) {
+						((Image) o).dispose();
+					} else if ((o instanceof Region) && !((Region) o).isDisposed()) {
+						((Region) o).dispose(); // 3.0
+					} else if ((o instanceof TextLayout)
+							&& !((TextLayout) o).isDisposed()) {
 						((TextLayout) o).dispose(); // 3.0
 					}
 				} catch (NoClassDefFoundError e) {
@@ -176,52 +173,48 @@ public class Utils {
 				// Resource
 			}
 		}
-  }
-  
-  /**
-   * Initializes the URL dialog with http://
-   * If a valid link is found in the clipboard, it will be inserted
-   * and the size (and location) of the dialog is adjusted.
-   * @param shell to set the dialog location if needed
-   * @param url the URL text control
-   * @param accept_magnets 
-   *
-   * @author Rene Leonhardt
-   */
-  public static void 
-  setTextLinkFromClipboard(
-		  final Shell shell, final Text url, boolean accept_magnets ) {
-    String link = getLinkFromClipboard(shell.getDisplay(),accept_magnets);
-    if (link != null)
-    	url.setText(link);
-  }
+	}
 
-  /**
-   * <p>Gets an URL from the clipboard if a valid URL for downloading has been copied.</p>
-   * <p>The supported protocols currently are http, https, and magnet.</p>
-   * @param display
-   * @param accept_magnets 
-   * @return first valid link from clipboard, else "http://"
-   */
-  public static String 
-  getLinkFromClipboard(
-	 Display 	display,
-	 boolean	accept_magnets ) 
-  {
-    final Clipboard cb = new Clipboard(display);
-    final TextTransfer transfer = TextTransfer.getInstance();
-    
-    String data = (String)cb.getContents(transfer);
-    
-    String text = UrlUtils.parseTextForURL(data, accept_magnets);
-    if (text == null) {
-    	return "http://";
-    }
-    
-    return text;
-  }
+	/**
+	 * Initializes the URL dialog with http://
+	 * If a valid link is found in the clipboard, it will be inserted
+	 * and the size (and location) of the dialog is adjusted.
+	 * @param shell to set the dialog location if needed
+	 * @param url the URL text control
+	 * @param accept_magnets 
+	 *
+	 * @author Rene Leonhardt
+	 */
+	public static void setTextLinkFromClipboard(final Shell shell,
+			final Text url, boolean accept_magnets) {
+		String link = getLinkFromClipboard(shell.getDisplay(), accept_magnets);
+		if (link != null)
+			url.setText(link);
+	}
 
-  public static void centreWindow(Shell shell) {
+	/**
+	 * <p>Gets an URL from the clipboard if a valid URL for downloading has been copied.</p>
+	 * <p>The supported protocols currently are http, https, and magnet.</p>
+	 * @param display
+	 * @param accept_magnets 
+	 * @return first valid link from clipboard, else "http://"
+	 */
+	public static String getLinkFromClipboard(Display display,
+			boolean accept_magnets) {
+		final Clipboard cb = new Clipboard(display);
+		final TextTransfer transfer = TextTransfer.getInstance();
+
+		String data = (String) cb.getContents(transfer);
+
+		String text = UrlUtils.parseTextForURL(data, accept_magnets);
+		if (text == null) {
+			return "http://";
+		}
+
+		return text;
+	}
+
+	public static void centreWindow(Shell shell) {
 		Rectangle displayArea; // area to center in
 		try {
 			displayArea = shell.getMonitor().getClientArea();
@@ -238,36 +231,32 @@ public class Utils {
 			shellRect.width = displayArea.width;
 		}
 
-		shellRect.x = displayArea.x
-				+ (displayArea.width - shellRect.width) / 2;
-		shellRect.y = displayArea.y
-				+ (displayArea.height - shellRect.height) / 2;
+		shellRect.x = displayArea.x + (displayArea.width - shellRect.width) / 2;
+		shellRect.y = displayArea.y + (displayArea.height - shellRect.height) / 2;
 
 		shell.setBounds(shellRect);
 	}
 
-  /**
-   * Centers a window relative to a control. That is to say, the window will be located at the center of the control.
-   * @param window
-   * @param control
-   */
-  public static void centerWindowRelativeTo(final Shell window, final Control control)
-  {
-      final Rectangle bounds = control.getBounds();
-      final Point shellSize = window.getSize();
-      window.setLocation(
-              bounds.x + (bounds.width / 2) - shellSize.x / 2,
-              bounds.y + (bounds.height / 2) - shellSize.y / 2
-      );
-  }
+	/**
+	 * Centers a window relative to a control. That is to say, the window will be located at the center of the control.
+	 * @param window
+	 * @param control
+	 */
+	public static void centerWindowRelativeTo(final Shell window,
+			final Control control) {
+		final Rectangle bounds = control.getBounds();
+		final Point shellSize = window.getSize();
+		window.setLocation(bounds.x + (bounds.width / 2) - shellSize.x / 2,
+				bounds.y + (bounds.height / 2) - shellSize.y / 2);
+	}
 
-  public static void createTorrentDropTarget(Composite composite,
+	public static void createTorrentDropTarget(Composite composite,
 			boolean bAllowShareAdd) {
-  	try {
-  		createDropTarget(composite, bAllowShareAdd, null);
-  	} catch (Exception e) {
-      Debug.out(e);
-  	}
+		try {
+			createDropTarget(composite, bAllowShareAdd, null);
+		} catch (Exception e) {
+			Debug.out(e);
+		}
 	}
 
 	/**
@@ -276,8 +265,7 @@ public class Utils {
 	 *
 	 * @author Rene Leonhardt
 	 */
-	public static void createURLDropTarget(Composite composite,
-			Text url) {
+	public static void createURLDropTarget(Composite composite, Text url) {
 		try {
 			createDropTarget(composite, false, url);
 		} catch (Exception e) {
@@ -288,24 +276,29 @@ public class Utils {
 	private static void createDropTarget(Composite composite,
 			final boolean bAllowShareAdd, final Text url,
 			DropTargetListener dropTargetListener) {
-		
+
 		Transfer[] transferList;
-  	if (SWT.getVersion() >= 3107) {
-  		transferList = new Transfer[] { HTMLTransfer.getInstance(),
-					URLTransfer.getInstance(), FileTransfer.getInstance(),
-					TextTransfer.getInstance() };
+		if (SWT.getVersion() >= 3107) {
+			transferList = new Transfer[] {
+				HTMLTransfer.getInstance(),
+				URLTransfer.getInstance(),
+				FileTransfer.getInstance(),
+				TextTransfer.getInstance()
+			};
 		} else {
-			transferList = new Transfer[] { URLTransfer.getInstance(),
-					FileTransfer.getInstance(), TextTransfer.getInstance() };
+			transferList = new Transfer[] {
+				URLTransfer.getInstance(),
+				FileTransfer.getInstance(),
+				TextTransfer.getInstance()
+			};
 		}
 
-		
 		final DropTarget dropTarget = new DropTarget(composite, DND.DROP_DEFAULT
 				| DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK | DND.DROP_TARGET_MOVE);
 		dropTarget.setTransfer(transferList);
 		dropTarget.addDropListener(dropTargetListener);
 		// Note: DropTarget will dipose when the parent it's on diposes
-		
+
 		// On Windows, dropping on children moves up to parent
 		// On OSX, each child needs it's own drop.
 		if (Constants.isWindows)
@@ -331,13 +324,16 @@ public class Utils {
 
 	private static void createDropTarget(Composite composite,
 			boolean bAllowShareAdd, Text url) {
-		
+
 		URLDropTarget target = new URLDropTarget(url, bAllowShareAdd);
 		createDropTarget(composite, bAllowShareAdd, url, target);
-  }
-	
-	private static class URLDropTarget extends DropTargetAdapter {
+	}
+
+	private static class URLDropTarget
+		extends DropTargetAdapter
+	{
 		private final Text url;
+
 		private final boolean bAllowShareAdd;
 
 		public URLDropTarget(Text url, boolean bAllowShareAdd) {
@@ -383,173 +379,184 @@ public class Utils {
 		}
 	}
 
-  /**
-   * Force label to use more vertical space if wrapped and in a GridLayout
-   * Place this listener on the _parent_ of the label
-   * See Eclipse SWT Bug #9866 (GridLayout does not handle wrapped Label properly)
-   * This workaround only works for labels who:
-   *   - horizontally span their whole parent 
-   *     (ie. the parent has 3 columns, the label must span 3 columns)
-   *   - GridData style has GridData.FILL_HORIZONTAL
-   *   - Label style has SWT.WRAP
-   *
-   * @author TuxPaper
-   * @note Bug 9866 fixed in 3105 and later
-   */
-  public static class LabelWrapControlListener extends ControlAdapter{
-  	public void controlResized(ControlEvent e){
-  		if (SWT.getVersion() >= 3105)
-  			return;
-  	  Composite parent = (Composite)e.widget;
-  	  Control children[] = parent.getChildren();
+	/**
+	 * Force label to use more vertical space if wrapped and in a GridLayout
+	 * Place this listener on the _parent_ of the label
+	 * See Eclipse SWT Bug #9866 (GridLayout does not handle wrapped Label properly)
+	 * This workaround only works for labels who:
+	 *   - horizontally span their whole parent 
+	 *     (ie. the parent has 3 columns, the label must span 3 columns)
+	 *   - GridData style has GridData.FILL_HORIZONTAL
+	 *   - Label style has SWT.WRAP
+	 *
+	 * @author TuxPaper
+	 * @note Bug 9866 fixed in 3105 and later
+	 */
+	public static class LabelWrapControlListener
+		extends ControlAdapter
+	{
+		public void controlResized(ControlEvent e) {
+			if (SWT.getVersion() >= 3105)
+				return;
+			Composite parent = (Composite) e.widget;
+			Control children[] = parent.getChildren();
 
-  	  if (children.length > 0) {
-        GridLayout parentLayout = (GridLayout)parent.getLayout();
-        if (parentLayout != null) {
-    	    Point size;
-          int marginWidth = parentLayout.marginWidth;
-          
-      	  Composite grandParent = parent.getParent();
-      	  if (grandParent instanceof ScrolledComposite) {
-      	    Composite greatGP = grandParent.getParent();
-      	    if (greatGP != null) {
-              size = greatGP.getSize();
-  
-              if (greatGP.getLayout() instanceof GridLayout) {
-                marginWidth += ((GridLayout)greatGP.getLayout()).marginWidth;
-              }
-            } else {
-              // not tested
-              size = grandParent.getSize();
-            }
+			if (children.length > 0) {
+				GridLayout parentLayout = (GridLayout) parent.getLayout();
+				if (parentLayout != null) {
+					Point size;
+					int marginWidth = parentLayout.marginWidth;
 
-            if (grandParent.getLayout() instanceof GridLayout) {
-              marginWidth += ((GridLayout)grandParent.getLayout()).marginWidth;
-            }
+					Composite grandParent = parent.getParent();
+					if (grandParent instanceof ScrolledComposite) {
+						Composite greatGP = grandParent.getParent();
+						if (greatGP != null) {
+							size = greatGP.getSize();
 
-            ScrollBar sb = grandParent.getVerticalBar();
-            if (sb != null) {
-              // I don't know why, but we have to remove one
-              size.x -= sb.getSize().x + 1;
-            }
-          } else
-            size = parent.getSize();
-         
-          boolean oneChanged = false;
-      	  for (int i = 0; i < children.length; i++) {
-      	    if ((children[i] instanceof Label) &&
-      	        (children[i].getStyle() & SWT.WRAP) == SWT.WRAP) {
-      	      GridData gd = (GridData)children[i].getLayoutData();
-      	      if (gd != null && 
-      	          gd.horizontalAlignment == GridData.FILL) {
-      	        if (gd.horizontalSpan == parentLayout.numColumns) {
-        		      gd.widthHint = size.x - 2 * marginWidth;
-        		      oneChanged = true;
-        		    } else {
-        		      Point pt = children[i].getLocation();
-        		      gd.widthHint = size.x - pt.x - (2 * marginWidth);
-        		      oneChanged = true;
-        		    }
-      		    }
-      		  }
-      		}
-      		if (oneChanged) {
-      		  parent.layout(true);
-        	  if (grandParent instanceof ScrolledComposite) {
-        	    ((ScrolledComposite)grandParent).setMinSize(parent.computeSize(SWT.DEFAULT, SWT.DEFAULT, true));
-        	  }
-          }
-      	}
-    	} // size
-  	} // controlResized
-  } // class
+							if (greatGP.getLayout() instanceof GridLayout) {
+								marginWidth += ((GridLayout) greatGP.getLayout()).marginWidth;
+							}
+						} else {
+							// not tested
+							size = grandParent.getSize();
+						}
 
-  public static void alternateRowBackground(TableItem item) {
-  	if (Utils.TABLE_GRIDLINE_IS_ALTERNATING_COLOR) {
-  		if (!item.getParent().getLinesVisible())
-  			item.getParent().setLinesVisible(true);
-  		return;
-  	}
+						if (grandParent.getLayout() instanceof GridLayout) {
+							marginWidth += ((GridLayout) grandParent.getLayout()).marginWidth;
+						}
 
-  	if (item == null || item.isDisposed())
-  		return;
-  	Color[] colors = { item.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND),
-        Colors.colorAltRow };
-  	Color newColor = colors[ item.getParent().indexOf(item) % colors.length];
-  	if (!item.getBackground().equals(newColor)) {
-  		item.setBackground(newColor);
-  	}
-  }
+						ScrollBar sb = grandParent.getVerticalBar();
+						if (sb != null) {
+							// I don't know why, but we have to remove one
+							size.x -= sb.getSize().x + 1;
+						}
+					} else
+						size = parent.getSize();
 
-  public static void alternateTableBackground(Table table) {
-  	if (table == null || table.isDisposed())
-  		return;
+					boolean oneChanged = false;
+					for (int i = 0; i < children.length; i++) {
+						if ((children[i] instanceof Label)
+								&& (children[i].getStyle() & SWT.WRAP) == SWT.WRAP) {
+							GridData gd = (GridData) children[i].getLayoutData();
+							if (gd != null && gd.horizontalAlignment == GridData.FILL) {
+								if (gd.horizontalSpan == parentLayout.numColumns) {
+									gd.widthHint = size.x - 2 * marginWidth;
+									oneChanged = true;
+								} else {
+									Point pt = children[i].getLocation();
+									gd.widthHint = size.x - pt.x - (2 * marginWidth);
+									oneChanged = true;
+								}
+							}
+						}
+					}
+					if (oneChanged) {
+						parent.layout(true);
+						if (grandParent instanceof ScrolledComposite) {
+							((ScrolledComposite) grandParent).setMinSize(parent.computeSize(
+									SWT.DEFAULT, SWT.DEFAULT, true));
+						}
+					}
+				}
+			} // size
+		} // controlResized
+	} // class
 
-  	if (Utils.TABLE_GRIDLINE_IS_ALTERNATING_COLOR) {
-  		if (!table.getLinesVisible())
-  			table.setLinesVisible(true);
-  		return;
-  	}
+	public static void alternateRowBackground(TableItem item) {
+		if (Utils.TABLE_GRIDLINE_IS_ALTERNATING_COLOR) {
+			if (!item.getParent().getLinesVisible())
+				item.getParent().setLinesVisible(true);
+			return;
+		}
 
-  	int iTopIndex = table.getTopIndex();
-  	int iBottomIndex = getTableBottomIndex(table, iTopIndex);
+		if (item == null || item.isDisposed())
+			return;
+		Color[] colors = {
+			item.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND),
+			Colors.colorAltRow
+		};
+		Color newColor = colors[item.getParent().indexOf(item) % colors.length];
+		if (!item.getBackground().equals(newColor)) {
+			item.setBackground(newColor);
+		}
+	}
 
-  	Color[] colors = { table.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND),
-        Colors.colorAltRow };
-  	int iFixedIndex = iTopIndex;
-    for (int i = iTopIndex; i <= iBottomIndex; i++) {
-      TableItem row = table.getItem(i);
-      // Rows can be disposed!
-      if (!row.isDisposed()) {
-      	Color newColor = colors[iFixedIndex % colors.length];
-      	iFixedIndex++;
-      	if (!row.getBackground().equals(newColor)) {
-//        System.out.println("setting "+rows[i].getBackground() +" to " + newColor);
-      		row.setBackground(newColor);
-      	}
-      }
-    }
-  }
+	public static void alternateTableBackground(Table table) {
+		if (table == null || table.isDisposed())
+			return;
 
-  /**
-   * <p>
-   * Set a MenuItem's image with the given ImageRepository key. In compliance with platform
-   * human interface guidelines, the images are not set under Mac OS X.
-   * </p>
-   * @param item SWT MenuItem
-   * @param repoKey ImageRepository image key
-   * @see <a href="http://developer.apple.com/documentation/UserExperience/Conceptual/OSXHIGuidelines/XHIGMenus/chapter_7_section_3.html#//apple_ref/doc/uid/TP30000356/TPXREF116">Apple HIG</a>
-   */
-  public static void setMenuItemImage(final MenuItem item, final String repoKey)
-  {
-      if(!Constants.isOSX)
-          item.setImage(ImageRepository.getImage(repoKey));
-  }
+		if (Utils.TABLE_GRIDLINE_IS_ALTERNATING_COLOR) {
+			if (!table.getLinesVisible())
+				table.setLinesVisible(true);
+			return;
+		}
 
-  public static void setMenuItemImage(final MenuItem item, final Image image)
-  {
-      if(!Constants.isOSX)
-          item.setImage(image);
-  }
-  /**
-   * Sets the shell's Icon(s) to the default Azureus icon.  OSX doesn't require
-   * an icon, so they are skipped
-   * 
-   * @param shell
-   */
-  public static void setShellIcon(Shell shell) {
-		final String[] sImageNames = { "azureus", "azureus32", "azureus64",
-				"azureus128" };
+		int iTopIndex = table.getTopIndex();
+		int iBottomIndex = getTableBottomIndex(table, iTopIndex);
+
+		Color[] colors = {
+			table.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND),
+			Colors.colorAltRow
+		};
+		int iFixedIndex = iTopIndex;
+		for (int i = iTopIndex; i <= iBottomIndex; i++) {
+			TableItem row = table.getItem(i);
+			// Rows can be disposed!
+			if (!row.isDisposed()) {
+				Color newColor = colors[iFixedIndex % colors.length];
+				iFixedIndex++;
+				if (!row.getBackground().equals(newColor)) {
+					//        System.out.println("setting "+rows[i].getBackground() +" to " + newColor);
+					row.setBackground(newColor);
+				}
+			}
+		}
+	}
+
+	/**
+	 * <p>
+	 * Set a MenuItem's image with the given ImageRepository key. In compliance with platform
+	 * human interface guidelines, the images are not set under Mac OS X.
+	 * </p>
+	 * @param item SWT MenuItem
+	 * @param repoKey ImageRepository image key
+	 * @see <a href="http://developer.apple.com/documentation/UserExperience/Conceptual/OSXHIGuidelines/XHIGMenus/chapter_7_section_3.html#//apple_ref/doc/uid/TP30000356/TPXREF116">Apple HIG</a>
+	 */
+	public static void setMenuItemImage(final MenuItem item, final String repoKey) {
+		if (!Constants.isOSX)
+			item.setImage(ImageRepository.getImage(repoKey));
+	}
+
+	public static void setMenuItemImage(final MenuItem item, final Image image) {
+		if (!Constants.isOSX)
+			item.setImage(image);
+	}
+
+	/**
+	 * Sets the shell's Icon(s) to the default Azureus icon.  OSX doesn't require
+	 * an icon, so they are skipped
+	 * 
+	 * @param shell
+	 */
+	public static void setShellIcon(Shell shell) {
+		final String[] sImageNames = {
+			"azureus",
+			"azureus32",
+			"azureus64",
+			"azureus128"
+		};
 
 		if (Constants.isOSX)
 			return;
 
 		try {
 			ArrayList list = new ArrayList();
-			Image[] images = new Image[] { ImageRepository.getImage("azureus"),
-					ImageRepository.getImage("azureus32"),
-					ImageRepository.getImage("azureus64"),
-					ImageRepository.getImage("azureus128") };
+			Image[] images = new Image[] {
+				ImageRepository.getImage("azureus"),
+				ImageRepository.getImage("azureus32"),
+				ImageRepository.getImage("azureus64"),
+				ImageRepository.getImage("azureus128")
+			};
 
 			for (int i = 0; i < images.length; i++) {
 				Image image = ImageRepository.getImage(sImageNames[i]);
@@ -568,8 +575,8 @@ public class Utils {
 				shell.setImage(image);
 		}
 	}
-  
-  private static Display getDisplay() {
+
+	private static Display getDisplay() {
 		SWTThread swt = SWTThread.getInstance();
 
 		Display display;
@@ -590,55 +597,55 @@ public class Utils {
 			return null;
 		}
 		return display;
-  }
+	}
 
-  /**
-   * Execute code in the Runnable object using SWT's thread.  If current
-   * thread it already SWT's thread, the code will run immediately.  If the
-   * current thread is not SWT's, code will be run either synchronously or 
-   * asynchronously on SWT's thread at the next reasonable opportunity.
-   * 
-   * This method does not catch any exceptions.
-   * 
-   * @param code code to run
-   * @param async true if SWT asyncExec, false if SWT syncExec
-   * @return success
-   */
-  public static boolean execSWTThread(final Runnable code, boolean async) {
-  	return execSWTThread(code, async ? -1 : -2);
-  }
+	/**
+	 * Execute code in the Runnable object using SWT's thread.  If current
+	 * thread it already SWT's thread, the code will run immediately.  If the
+	 * current thread is not SWT's, code will be run either synchronously or 
+	 * asynchronously on SWT's thread at the next reasonable opportunity.
+	 * 
+	 * This method does not catch any exceptions.
+	 * 
+	 * @param code code to run
+	 * @param async true if SWT asyncExec, false if SWT syncExec
+	 * @return success
+	 */
+	public static boolean execSWTThread(final Runnable code, boolean async) {
+		return execSWTThread(code, async ? -1 : -2);
+	}
 
-  /**
-   * Schedule execution of the code in the Runnable object using SWT's thread.
-   * Even if the current thread is the SWT Thread, the code will be scheduled.
-   * <p>
-   * Much like Display.asyncExec, except getting the display is handled for you,
-   * and provides the ability to diagnose and monitor scheduled code run.
-   * 
-   * @param msLater time to wait before running code on SWT thread.  0 does not
-   *                mean immediate, but as soon as possible.
-   * @param code Code to run
-   * @return sucess
-   *
-   * @since 3.0.4.3
-   */
-  public static boolean execSWTThreadLater(int msLater, final Runnable code) {
-  	return execSWTThread(code, msLater);
-  }
+	/**
+	 * Schedule execution of the code in the Runnable object using SWT's thread.
+	 * Even if the current thread is the SWT Thread, the code will be scheduled.
+	 * <p>
+	 * Much like Display.asyncExec, except getting the display is handled for you,
+	 * and provides the ability to diagnose and monitor scheduled code run.
+	 * 
+	 * @param msLater time to wait before running code on SWT thread.  0 does not
+	 *                mean immediate, but as soon as possible.
+	 * @param code Code to run
+	 * @return sucess
+	 *
+	 * @since 3.0.4.3
+	 */
+	public static boolean execSWTThreadLater(int msLater, final Runnable code) {
+		return execSWTThread(code, msLater);
+	}
 
-  /**
-   * 
-   * @param code
-   * @param msLater -2: sync<BR>
-   *                -1: sync if on SWT thread, async otherwise<BR>
-   *                 0: async<BR>
-   *                >0: timerExec
-   * @return
-   *
-   * @since 3.0.4.3
-   */
-  private static boolean execSWTThread(final Runnable code, final int msLater) {
-  	Display display = getDisplay();
+	/**
+	 * 
+	 * @param code
+	 * @param msLater -2: sync<BR>
+	 *                -1: sync if on SWT thread, async otherwise<BR>
+	 *                 0: async<BR>
+	 *                >0: timerExec
+	 * @return
+	 *
+	 * @since 3.0.4.3
+	 */
+	private static boolean execSWTThread(final Runnable code, final int msLater) {
+		Display display = getDisplay();
 		if (display == null || code == null) {
 			return false;
 		}
@@ -682,30 +689,30 @@ public class Utils {
 										+ "ms before SWT ran async code " + code);
 							}
 							long lStartTimeRun = SystemTime.getCurrentTime();
-							
+
 							try {
-  							if (fDisplay.isDisposed()) {
-  								Debug.out("Display disposed while trying to execSWTThread "
-  										+ code);
-  								// run anayway, except trap SWT error
-  								try {
-  									code.run();
-  								} catch (SWTException e) {
-  									Debug.out("Error while execSWTThread w/disposed Display", e);
-  								}
-  							} else {
-  								code.run();
-  							}
+								if (fDisplay.isDisposed()) {
+									Debug.out("Display disposed while trying to execSWTThread "
+											+ code);
+									// run anayway, except trap SWT error
+									try {
+										code.run();
+									} catch (SWTException e) {
+										Debug.out("Error while execSWTThread w/disposed Display", e);
+									}
+								} else {
+									code.run();
+								}
 							} finally {
-  							wait = SystemTime.getCurrentTime() - lStartTimeRun;
-  							if (wait > 500) {
-  								diag_logger.log(SystemTime.getCurrentTime() + "] took " + wait
-  										+ "ms to run " + code);
-  							}
-  
-  							diag_logger.log(SystemTime.getCurrentTime()
-  									+ "] - QUEUE. size=" + queue.size());
-  							queue.remove(code);
+								wait = SystemTime.getCurrentTime() - lStartTimeRun;
+								if (wait > 500) {
+									diag_logger.log(SystemTime.getCurrentTime() + "] took "
+											+ wait + "ms to run " + code);
+								}
+
+								diag_logger.log(SystemTime.getCurrentTime()
+										+ "] - QUEUE. size=" + queue.size());
+								queue.remove(code);
 							}
 						}
 					};
@@ -727,42 +734,42 @@ public class Utils {
 		return true;
 	}
 
-  /**
-   * Execute code in the Runnable object using SWT's thread.  If current
-   * thread it already SWT's thread, the code will run immediately.  If the
-   * current thread is not SWT's, code will be run asynchronously on SWT's 
-   * thread at the next reasonable opportunity.
-   * 
-   * This method does not catch any exceptions.
-   * 
-   * @param code code to run
-   * @return success
-   */
+	/**
+	 * Execute code in the Runnable object using SWT's thread.  If current
+	 * thread it already SWT's thread, the code will run immediately.  If the
+	 * current thread is not SWT's, code will be run asynchronously on SWT's 
+	 * thread at the next reasonable opportunity.
+	 * 
+	 * This method does not catch any exceptions.
+	 * 
+	 * @param code code to run
+	 * @return success
+	 */
 	public static boolean execSWTThread(Runnable code) {
 		return execSWTThread(code, -1);
 	}
-	
+
 	public static boolean isThisThreadSWT() {
-    SWTThread swt = SWTThread.getInstance();
-    
-    if (swt == null) {
-    	System.err.println("WARNING: SWT Thread not started yet");
-    }
+		SWTThread swt = SWTThread.getInstance();
 
-    Display display = (swt == null) ? Display.getCurrent() : swt.getDisplay();
+		if (swt == null) {
+			System.err.println("WARNING: SWT Thread not started yet");
+		}
 
-  	if (display == null) {
+		Display display = (swt == null) ? Display.getCurrent() : swt.getDisplay();
+
+		if (display == null) {
 			return false;
-  	}
-  	
-  	// This will throw if we are disposed or on the wrong thread
-  	// Much better that display.getThread() as that one locks Device.class
-  	// and may end up causing sync lock when disposing
-  	try {
-  		display.getWarnings();
-  	} catch (SWTException e) {
-  		return false;
-  	}
+		}
+
+		// This will throw if we are disposed or on the wrong thread
+		// Much better that display.getThread() as that one locks Device.class
+		// and may end up causing sync lock when disposing
+		try {
+			display.getWarnings();
+		} catch (SWTException e) {
+			return false;
+		}
 
 		return (display.getThread() == Thread.currentThread());
 	}
@@ -803,18 +810,19 @@ public class Utils {
 	 * @param title
 	 * @param text
 	 * @return
-	 */ 
+	 */
 	public static int openMessageBox(Shell parent, int style, String title,
 			String text) {
-		MessageBox mb = new MessageBox(parent == null ? findAnyShell() : parent, style);
+		MessageBox mb = new MessageBox(parent == null ? findAnyShell() : parent,
+				style);
 		mb.setMessage(text);
 		mb.setText(title);
 		return mb.open();
 	}
-	
+
 	/**
 	 * Bottom Index may be negative
-	 */ 
+	 */
 	public static int getTableBottomIndex(Table table, int iTopIndex) {
 		// on Linux, getItemHeight is slow AND WRONG. so is getItem(x).getBounds().y 
 		// getItem(Point) is slow on OSX
@@ -822,27 +830,28 @@ public class Utils {
 		int itemCount = table.getItemCount();
 		if (!table.isVisible() || iTopIndex >= itemCount)
 			return -1;
-		
+
 		if (Constants.isOSX) {
 			try {
 				TableItem item = table.getItem(iTopIndex);
 				Rectangle bounds = item.getBounds();
 				Rectangle clientArea = table.getClientArea();
-	
+
 				int itemHeight = table.getItemHeight();
 				int iBottomIndex = Math.min(iTopIndex
 						+ (clientArea.height + clientArea.y - bounds.y - 1) / itemHeight,
 						itemCount - 1);
-	
-	//			System.out.println(bounds + ";" + clientArea + ";" + itemHeight + ";bi="
-	//					+ iBottomIndex + ";ti=" + iTopIndex + ";"
-	//					+ (clientArea.height + clientArea.y - bounds.y - 1));
+
+				//			System.out.println(bounds + ";" + clientArea + ";" + itemHeight + ";bi="
+				//					+ iBottomIndex + ";ti=" + iTopIndex + ";"
+				//					+ (clientArea.height + clientArea.y - bounds.y - 1));
 				return iBottomIndex;
 			} catch (NoSuchMethodError e) {
 				// item.getBounds is 3.2
-				return Math.min(iTopIndex
-						+ ((table.getClientArea().height - table.getHeaderHeight() - 1) / 
-								table.getItemHeight()) + 1, table.getItemCount() - 1);
+				return Math.min(
+						iTopIndex
+								+ ((table.getClientArea().height - table.getHeaderHeight() - 1) / table.getItemHeight())
+								+ 1, table.getItemCount() - 1);
 			}
 		}
 
@@ -855,12 +864,12 @@ public class Utils {
 		// 2 offset to be on the safe side
 		TableItem bottomItem = table.getItem(new Point(2,
 				table.getClientArea().height - 1));
-  	int iBottomIndex = (bottomItem != null) ? table.indexOf(bottomItem) :
-			itemCount - 1;
-  	return iBottomIndex;
+		int iBottomIndex = (bottomItem != null) ? table.indexOf(bottomItem)
+				: itemCount - 1;
+		return iBottomIndex;
 	}
-	
-  public static void launch(String sFile) {
+
+	public static void launch(String sFile) {
 		if (sFile == null) {
 			return;
 		}
@@ -876,7 +885,7 @@ public class Utils {
 			}
 		}
 	}
-	
+
 	/**
 	 * Sets the checkbox in a Virtual Table while inside a SWT.SetData listener
 	 * trigger.  SWT 3.1 has an OSX bug that needs working around.
@@ -901,13 +910,12 @@ public class Utils {
 			Rectangle r = item.getBounds(0);
 			Table table = item.getParent();
 			Rectangle rTable = table.getClientArea();
-			
+
 			r.y += VerticalAligner.getTableAdjustVerticalBy(table);
 			table.redraw(0, r.y, rTable.width, r.height, true);
 		}
 	}
-	
-	
+
 	public static boolean linkShellMetricsToConfig(final Shell shell,
 			final String sConfigPrefix) {
 		String windowRectangle = COConfigurationManager.getStringParameter(
@@ -932,16 +940,19 @@ public class Utils {
 			}
 		}
 
-		boolean isMaximized = COConfigurationManager.getBooleanParameter(
-				sConfigPrefix + ".maximized") && !Constants.isOSX;
+		boolean isMaximized = COConfigurationManager.getBooleanParameter(sConfigPrefix
+				+ ".maximized")
+				&& !Constants.isOSX;
 		shell.setMaximized(isMaximized);
 
 		new ShellMetricsResizeListener(shell, sConfigPrefix);
-		
+
 		return bDidResize;
 	}
-	
-	private static class ShellMetricsResizeListener implements Listener {
+
+	private static class ShellMetricsResizeListener
+		implements Listener
+	{
 		private int state = -1;
 
 		private String sConfigPrefix;
@@ -953,7 +964,7 @@ public class Utils {
 			state = calcState(shell);
 			if (state == SWT.NONE)
 				bounds = shell.getBounds();
-			
+
 			shell.addListener(SWT.Resize, this);
 			shell.addListener(SWT.Move, this);
 			shell.addListener(SWT.Dispose, this);
@@ -997,45 +1008,42 @@ public class Utils {
 
 		return gridData;
 	}
-	
+
 	public static FormData getFilledFormData() {
 		FormData formData = new FormData();
 		formData.top = new FormAttachment(0, 0);
 		formData.left = new FormAttachment(0, 0);
 		formData.right = new FormAttachment(100, 0);
 		formData.bottom = new FormAttachment(100, 0);
-		
+
 		return formData;
 	}
-	
+
 	public static int pixelsToPoint(int pixels, int dpi) {
-    int ret = (int) Math.round((pixels * 72.0) / dpi);
-    return ret;
+		int ret = (int) Math.round((pixels * 72.0) / dpi);
+		return ret;
 	}
-	
+
 	public static int pixelsToPoint(double pixels, int dpi) {
-    int ret = (int) Math.round((pixels * 72.0) / dpi);
-    return ret;
+		int ret = (int) Math.round((pixels * 72.0) / dpi);
+		return ret;
 	}
 
 	public static boolean drawImage(GC gc, Image image, Rectangle dstRect,
-			Rectangle clipping, int hOffset, int vOffset, boolean clearArea)
-	{
+			Rectangle clipping, int hOffset, int vOffset, boolean clearArea) {
 		return drawImage(gc, image, new Point(0, 0), dstRect, clipping, hOffset,
 				vOffset, clearArea);
 	}
 
 	public static boolean drawImage(GC gc, Image image, Rectangle dstRect,
-			Rectangle clipping, int hOffset, int vOffset)
-	{
+			Rectangle clipping, int hOffset, int vOffset) {
 		return drawImage(gc, image, new Point(0, 0), dstRect, clipping, hOffset,
 				vOffset, false);
 	}
 
 	public static boolean drawImage(GC gc, Image image, Point srcStart,
 			Rectangle dstRect, Rectangle clipping, int hOffset, int vOffset,
-			boolean clearArea)
-	{
+			boolean clearArea) {
 		Rectangle srcRect;
 		Point dstAdj;
 
@@ -1070,8 +1078,8 @@ public class Utils {
 						srcRect.height, dstRect.x + dstAdj.x + hOffset, dstRect.y
 								+ dstAdj.y + vOffset, srcRect.width, srcRect.height);
 			} catch (Exception e) {
-				System.out.println("drawImage: " + e.getMessage() + ": " + image + ", " + srcRect
-						+ ", " + (dstRect.x + dstAdj.y + hOffset) + ","
+				System.out.println("drawImage: " + e.getMessage() + ": " + image + ", "
+						+ srcRect + ", " + (dstRect.x + dstAdj.y + hOffset) + ","
 						+ (dstRect.y + dstAdj.y + vOffset) + "," + srcRect.width + ","
 						+ srcRect.height + "; imageBounds = " + image.getBounds());
 			}
@@ -1086,20 +1094,19 @@ public class Utils {
 	 * @param listener
 	 */
 	public static void addListenerAndChildren(Composite area, int event,
-			Listener listener)
-	{
+			Listener listener) {
 		area.addListener(event, listener);
 		Control[] children = area.getChildren();
 		for (int i = 0; i < children.length; i++) {
 			Control child = children[i];
 			if (child instanceof Composite) {
-				addListenerAndChildren((Composite)child, event, listener);
+				addListenerAndChildren((Composite) child, event, listener);
 			} else {
 				child.addListener(event, listener);
 			}
 		}
 	}
-	
+
 	public static Shell findAnyShell() {
 		// Pick the main shell if we can
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
@@ -1119,17 +1126,17 @@ public class Utils {
 		if (shell != null && !shell.isDisposed()) {
 			return shell;
 		}
-		
+
 		// Get first shell of current display if we can
 		Shell[] shells = current.getShells();
 		if (shells.length == 0) {
 			return null;
 		}
-		
+
 		if (shells[0] != null && !shells[0].isDisposed()) {
 			return shells[0];
 		}
-		
+
 		return null;
 	}
 
@@ -1157,7 +1164,6 @@ public class Utils {
 		return bMetricsOk;
 	}
 
-
 	/**
 	 * Relayout all composites up from control until there's enough room for the
 	 * control to fit
@@ -1178,41 +1184,41 @@ public class Utils {
 		if (control == null || control.isDisposed()) {
 			return;
 		}
-		
+
 		Composite parent = control.getParent();
 		Point targetSize = control.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
 		Point size = control.getSize();
 		if (size.y == targetSize.y && size.x == targetSize.x) {
 			return;
 		}
-		
+
 		Object layoutData = control.getLayoutData();
 		if (layoutData instanceof FormData) {
-			FormData fd = (FormData)layoutData;
+			FormData fd = (FormData) layoutData;
 			if (fd.width != SWT.DEFAULT && fd.height != SWT.DEFAULT) {
 				parent.layout();
 				return;
 			}
 		}
-		
+
 		if (expandOnly && size.y >= targetSize.y && size.x >= targetSize.x) {
 			parent.layout();
 			return;
 		}
-		
+
 		while (parent != null) {
 			parent.layout(true, true);
 			parent = parent.getParent();
 
 			Point newSize = control.getSize();
-			
+
 			//System.out.println("new=" + newSize + ";target=" + targetSize);
-			
+
 			if (newSize.y >= targetSize.y && newSize.x >= targetSize.x) {
 				break;
 			}
 		}
-		
+
 		if (parent != null) {
 			parent.layout();
 		}
@@ -1231,7 +1237,7 @@ public class Utils {
 			}
 		});
 	}
-	
+
 	/**
 	 * 
 	 * @param baseFont
@@ -1244,7 +1250,7 @@ public class Utils {
 	public static int getFontHeightFromPX(Font baseFont, GC gc, int heightInPixels) {
 		Font font = null;
 		Device device = baseFont.getDevice();
-		
+
 		// hack..
 		heightInPixels++;
 
@@ -1333,7 +1339,7 @@ public class Utils {
 
 		// hack..
 		heightInPixels++;
-		
+
 		// This isn't accurate, but gets us close
 		int size = Utils.pixelsToPoint(heightInPixels, device.getDPI().y) + 1;
 		if (size <= 0) {
@@ -1374,8 +1380,7 @@ public class Utils {
 	 * @deprecated Use {@link #execSWTThread(AERunnableWithCallback)} to avoid
 	 *             thread locking issues
 	 */
-	public static boolean execSWTThreadWithBool(String ID,
-			AERunnableBoolean code) {
+	public static boolean execSWTThreadWithBool(String ID, AERunnableBoolean code) {
 		return execSWTThreadWithBool(ID, code, 0);
 	}
 
@@ -1405,24 +1410,26 @@ public class Utils {
 			return false;
 		}
 
-		boolean[] returnValueObject = { false };
+		boolean[] returnValueObject = {
+			false
+		};
 
 		Display display = getDisplay();
 
-		AESemaphore	sem = null;
+		AESemaphore sem = null;
 		if (display == null || display.getThread() != Thread.currentThread()) {
 			sem = new AESemaphore(ID);
 		}
 
-		try{
+		try {
 			code.setupReturn(ID, returnValueObject, sem);
-			
+
 			if (!execSWTThread(code)) {
 				// code never got run
 				// XXX: throw instead?
 				return false;
 			}
-		}catch( Throwable e ){
+		} catch (Throwable e) {
 			if (sem != null) {
 				sem.release();
 			}
@@ -1431,7 +1438,7 @@ public class Utils {
 		if (sem != null) {
 			sem.reserve(millis);
 		}
-	
+
 		return returnValueObject[0];
 	}
 
@@ -1439,8 +1446,7 @@ public class Utils {
 	 * @deprecated Use {@link #execSWTThread(AERunnableWithCallback)} to avoid
 	 *             thread locking issues
 	 */
-	public static Object execSWTThreadWithObject(String ID,
-			AERunnableObject code) {
+	public static Object execSWTThreadWithObject(String ID, AERunnableObject code) {
 		return execSWTThreadWithObject(ID, code, 0);
 	}
 
@@ -1470,23 +1476,25 @@ public class Utils {
 			return null;
 		}
 
-		Object[] returnValueObject = { null };
+		Object[] returnValueObject = {
+			null
+		};
 
 		Display display = getDisplay();
 
-		AESemaphore	sem = null;
+		AESemaphore sem = null;
 		if (display == null || display.getThread() != Thread.currentThread()) {
 			sem = new AESemaphore(ID);
 		}
 
-		try{
+		try {
 			code.setupReturn(ID, returnValueObject, sem);
-			
+
 			if (!execSWTThread(code)) {
 				// XXX: throw instead?
 				return null;
 			}
-		}catch( Throwable e ){
+		} catch (Throwable e) {
 			if (sem != null) {
 				sem.release();
 			}
@@ -1495,7 +1503,7 @@ public class Utils {
 		if (sem != null) {
 			sem.reserve(millis);
 		}
-	
+
 		return returnValueObject[0];
 	}
 
@@ -1543,7 +1551,7 @@ public class Utils {
 			}
 		}
 	}
-	
+
 	public static GridData getWrappableLabelGridData(int hspan, int styles) {
 		GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | styles);
 		gridData.horizontalSpan = hspan;
@@ -1600,14 +1608,14 @@ public class Utils {
 			for (int x = 0; x < srcArea.width; x++) {
 				dstImageData.setAlpha(xPos, yPos, srcImageData.getAlpha(x + srcArea.x,
 						y + srcArea.y));
-  				xPos++;
-  			}
-  			yPos++;
-  		}
+				xPos++;
+			}
+			yPos++;
+		}
 
 		return new Image(device, dstImageData);
 	}
-	
+
 	/**
 	 * 
 	 * @param display
@@ -1617,7 +1625,7 @@ public class Utils {
 	 * @param modifyForegroundAlpha 0 (fully transparent) to 255 (retain current alpha) 
 	 * @return
 	 */
-	  public static Image renderTransparency(Display display, Image background,
+	public static Image renderTransparency(Display display, Image background,
 			Image foreground, Point foregroundOffsetOnBg, int modifyForegroundAlpha) {
 		//Checks
 		if (display == null || display.isDisposed() || background == null
@@ -1687,8 +1695,7 @@ public class Utils {
 		}
 		return new Image(display, imgData);
 	}
-	
-	
+
 	public static Control findBackgroundImageControl(Control control) {
 		Image image = control.getBackgroundImage();
 		if (image == null) {
@@ -1728,7 +1735,7 @@ public class Utils {
 		}
 		return false;
 	}
-	
+
 	public static int[] colorToIntArray(Color color) {
 		if (color == null || color.isDisposed()) {
 			return null;
@@ -1739,5 +1746,101 @@ public class Utils {
 			color.getBlue()
 		};
 	}
-}
 
+	/**
+	 * Centers the target <code>Rectangle</code> relative to the reference Rectangle
+	 * @param target
+	 * @param reference
+	 */
+	public static void centerRelativeTo(Rectangle target, Rectangle reference) {
+		target.x = reference.x + (reference.width / 2) - target.width / 2;
+		target.y = reference.y + (reference.height / 2) - target.height / 2;
+	}
+
+	/**
+	 * Ensure that the given <code>Rectangle</code> is fully visible on the monitor that the cursor
+	 * is currently in.  This method does not resize the given Rectangle; it merely reposition it
+	 * if appropriate.  If the given Rectangle is taller or wider than the current monitor then
+	 * it may not fit 'fully' in the monitor.
+	 * <P>
+	 * We use a best-effort approach with an emphasis to have at least the top-left of the Rectangle
+	 * be visible.  If the given Rectangle does not fit entirely in the monitor then portion
+	 * of the right and/or left may be off-screen.
+	 * @param rect 
+	 * @return
+	 */
+	public static void makeVisibleOnCursor(Rectangle rect) {
+
+		if (null == rect) {
+			return;
+		}
+
+		Display display = Display.getCurrent();
+		if (null == display) {
+			Debug.out("No current display detected.  This method [Utils.makeVisibleOnCursor()] must be called from a display thread.");
+			return;
+		}
+
+		try {
+
+			/*
+			 * Get cursor location
+			 */
+			Point cursorLocation = display.getCursorLocation();
+
+			/*
+			 * Find the monitor that this cursorLocation resides in
+			 */
+			Monitor[] monitors = display.getMonitors();
+			Rectangle monitorBounds = null;
+			for (int i = 0; i < monitors.length; i++) {
+				monitorBounds = monitors[i].getClientArea();
+				if (true == monitorBounds.contains(cursorLocation)) {
+					break;
+				}
+			}
+
+			if (null == monitorBounds) {
+				return;
+			}
+
+			/*
+			 * Make sure the bottom is fully visible on the monitor
+			 */
+
+			int bottomDiff = (monitorBounds.y + monitorBounds.height)
+					- (rect.y + rect.height);
+			if (bottomDiff < 0) {
+				rect.y += bottomDiff;
+			}
+
+			/*
+			 * Make sure the right is fully visible on the monitor
+			 */
+
+			int rightDiff = (monitorBounds.x + monitorBounds.width)
+					- (rect.x + rect.width);
+			if (rightDiff < 0) {
+				rect.x += rightDiff;
+			}
+
+			/*
+			 * Make sure the left is fully visible on the monitor
+			 */
+			if (rect.x < monitorBounds.x) {
+				rect.x = monitorBounds.x;
+			}
+
+			/*
+			 * Make sure the top is fully visible on the monitor
+			 */
+			if (rect.y < monitorBounds.y) {
+				rect.y = monitorBounds.y;
+			}
+
+		} catch (NoSuchMethodError e) {
+			//Do nothing
+		}
+
+	}
+}
