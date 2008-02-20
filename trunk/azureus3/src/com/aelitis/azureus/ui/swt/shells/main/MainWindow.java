@@ -27,12 +27,12 @@ import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -43,9 +43,6 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.plugins.PluginEvent;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
@@ -64,7 +61,6 @@ import org.gudy.azureus2.ui.systray.SystemTraySWT;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger.GetRatingReplyListener;
@@ -73,15 +69,13 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.launcher.Launcher;
 import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin;
 import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesFPListener;
+import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.*;
 import com.aelitis.azureus.ui.swt.Initializer;
-import com.aelitis.azureus.ui.swt.browser.BrowserContext;
-import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
 import com.aelitis.azureus.ui.swt.extlistener.StimulusRPC;
-import com.aelitis.azureus.ui.swt.search.network.NetworkSearch;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.*;
@@ -91,6 +85,10 @@ import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.util.AdManager;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.VuzeActivitiesManager;
+
+import org.gudy.azureus2.plugins.PluginEvent;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.download.Download;
 
 /**
  * @author TuxPaper
@@ -149,7 +147,8 @@ public class MainWindow
 	/**
 	 * 
 	 */
-	public MainWindow(AzureusCore core, Display display, final SplashWindow splash) {
+	public MainWindow(AzureusCore core, Display display,
+			final IUIIntializer uiInitializer) {
 		this.core = core;
 		this.display = display;
 		disposedOrDisposing = false;
@@ -181,8 +180,8 @@ public class MainWindow
 								MessageText.getString("mb.azmustclose.text"), new String[] {
 									MessageText.getString("Button.ok")
 								}, 0);
-						if (splash != null) {
-							splash.closeSplash();
+						if (uiInitializer != null) {
+							uiInitializer.abortProgress();
 						}
 						dispose(false, false);
 						return;
@@ -195,12 +194,12 @@ public class MainWindow
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				try {
-					createWindow(splash);
+					createWindow(uiInitializer);
 				} catch (Throwable e) {
 					Logger.log(new LogAlert(false, "Error Initialize MainWindow", e));
 				}
-				if (splash != null) {
-					splash.closeSplash();
+				if (uiInitializer != null) {
+					uiInitializer.abortProgress();
 				}
 			}
 		});
@@ -428,10 +427,10 @@ public class MainWindow
 	}
 
 	/**
-	 * @param splash 
+	 * @param uiInitializer 
 	 * 
 	 */
-	protected void createWindow(SplashWindow splash) {
+	protected void createWindow(IUIIntializer uiInitializer) {
 		long startTime = SystemTime.getCurrentTime();
 
 		uiFunctions = new UIFunctionsImpl(this);
@@ -439,9 +438,7 @@ public class MainWindow
 
 		Utils.disposeComposite(shell);
 
-		if (splash != null && splash.getPercent() < 99) {
-			splash.reportPercent(splash.getPercent() + 1);
-		}
+		increaseProgress(uiInitializer, "splash.initializeGui");
 
 		// XXX Temporary.  We'll use our own images
 		ImageRepository.loadImagesForSplashWindow(display);
@@ -458,9 +455,7 @@ public class MainWindow
 			Utils.setShellIcon(shell);
 			Utils.linkShellMetricsToConfig(shell, "window");
 
-			if (splash != null && splash.getPercent() < 99) {
-				splash.reportPercent(splash.getPercent() + 1);
-			}
+			increaseProgress(uiInitializer, "v3.splash.initSkin");
 
 			skin = SWTSkinFactory.getInstance();
 
@@ -469,16 +464,17 @@ public class MainWindow
 			 */
 			uiFunctions.setSkin(skin);
 
-			VuzeActivitiesManager.initialize(core, skin);
+			System.out.println("new shell took "
+					+ (SystemTime.getCurrentTime() - startTime) + "ms");
+			startTime = SystemTime.getCurrentTime();
 
 			initSkinListeners();
 
-			if (splash != null && splash.getPercent() < 99) {
-				splash.reportPercent(splash.getPercent() + 1);
-			}
+			increaseProgress(uiInitializer, null);
 
 			skin.initialize(shell, "main.shell");
 
+			increaseProgress(uiInitializer, null);
 			System.out.println("skin init took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
@@ -517,9 +513,7 @@ public class MainWindow
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
 
-			if (splash != null && splash.getPercent() < 99) {
-				splash.reportPercent(splash.getPercent() + 1);
-			}
+			increaseProgress(uiInitializer, null);
 
 			skin.layout();
 
@@ -577,6 +571,11 @@ public class MainWindow
 				}
 			});
 
+			increaseProgress(uiInitializer, null);
+			System.out.println("pre skin widgets init took "
+					+ (SystemTime.getCurrentTime() - startTime) + "ms");
+			startTime = SystemTime.getCurrentTime();
+
 			try {
 				AdManager.getInstance().intialize(core);
 			} catch (Throwable e) {
@@ -584,12 +583,14 @@ public class MainWindow
 
 			StimulusRPC.hookListeners(core, this);
 
-			System.out.println("pre skin widgets init took "
+			increaseProgress(uiInitializer, null);
+			System.out.println("hooks init took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
 
 			initWidgets();
-			
+
+			increaseProgress(uiInitializer, null);
 			System.out.println("skin widgets init took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
@@ -603,6 +604,7 @@ public class MainWindow
 				subtabSet.addListener(this);
 			}
 
+			increaseProgress(uiInitializer, "v3.splash.hookPluginUI");
 			System.out.println("pre SWTInstance init took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
@@ -613,10 +615,11 @@ public class MainWindow
 			uiSWTInstanceImpl = new UISWTInstanceImpl(core);
 			uiSWTInstanceImpl.init();
 
+			increaseProgress(uiInitializer, "splash.initializeGui");
 			System.out.println("SWTInstance init took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
-			
+
 			if (tabSet != null) {
 
 				String startTab;
@@ -639,17 +642,15 @@ public class MainWindow
 							: SkinConstants.VIEWID_BROWSE_TAB;
 				}
 				tabSet.setActiveTab(startTab);
+
+				System.out.println("Activate tab " + startTab + " took "
+						+ (SystemTime.getCurrentTime() - startTime) + "ms");
+				startTime = SystemTime.getCurrentTime();
 			}
 
-			System.out.println("post SWTInstance init took "
-					+ (SystemTime.getCurrentTime() - startTime) + "ms");
-			startTime = SystemTime.getCurrentTime();
+			increaseProgress(uiInitializer, null);
 
 			buildTopBarViews();
-
-			System.out.println("build topbar views took "
-					+ (SystemTime.getCurrentTime() - startTime) + "ms");
-			startTime = SystemTime.getCurrentTime();
 
 			PluginInterface pi = core.getPluginManager().getPluginInterfaceByID(
 					"azbpstartstoprules");
@@ -692,6 +693,8 @@ public class MainWindow
 					COConfigurationManager.getBooleanParameter(configID));
 			//================
 
+			increaseProgress(uiInitializer, null);
+
 			System.out.println("shell.open took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
@@ -701,6 +704,36 @@ public class MainWindow
 			System.out.println("processStartupDMS took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
+
+			VuzeActivitiesManager.initialize(core, skin);
+
+			System.out.println("vuzeactivities init took "
+					+ (SystemTime.getCurrentTime() - startTime) + "ms");
+			startTime = SystemTime.getCurrentTime();
+		}
+	}
+
+	/**
+	 * @param uiInitializer
+	 * @param taskKey TODO
+	 *
+	 * @since 3.0.4.3
+	 */
+	private void increaseProgress(IUIIntializer uiInitializer, String taskKey) {
+		if (uiInitializer != null) {
+			uiInitializer.increaseProgresss();
+			if (taskKey != null) {
+				uiInitializer.reportCurrentTask(MessageText.getString(taskKey));
+			}
+		}
+		if (Utils.isThisThreadSWT()) {
+			int i = 1000;
+			while (display.readAndDispatch() && i > 0) {
+				i--;
+			}
+			if (i < 999) {
+				System.out.println("dispatched " + (1000 - i));
+			}
 		}
 	}
 
@@ -935,20 +968,21 @@ public class MainWindow
 		final Map views = new HashMap();
 
 		// List of all views ids we use
-		views.put("minibrowse", MiniBrowse.class);
+		views.put("minibrowse-area", MiniBrowse.class);
 		views.put("minidownload-list", MiniDownloadList.class);
 		views.put("minirecent-list", MiniRecentList.class);
 
-		views.put("browse", Browse.class);
+		views.put("browse-area", Browse.class);
 
 		views.put("manage-dl-list", ManageDlList.class);
 		views.put("manage-cd-list", ManageCdList.class);
 
 		views.put("my-media-list", MediaList.class);
 
-		views.put("publish", Publish.class);
+		views.put("publish-area", Publish.class);
 
 		views.put("minilibrary-list", MiniLibraryList.class);
+
 		views.put("vuzeevents-list", VuzeActivitiesView.class);
 
 		SWTSkinObjectListener l = new SWTSkinObjectListener() {
@@ -1380,24 +1414,24 @@ public class MainWindow
 						if (e.gc.getAdvanced() && activeTopBar != null) {
 							try {
 								e.gc.setAntialias(SWT.ON);
-						  } catch (Exception ex) {
-						  	// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
-						  }
+							} catch (Exception ex) {
+								// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
+							}
 
-						  try {
-  							Transform transform = new Transform(e.gc.getDevice());
-  							transform.rotate(270);
-  							e.gc.setTransform(transform);
-  
-  							String s = activeTopBar.getShortTitle();
-  							Point size = e.gc.textExtent(s);
-  							e.gc.drawText(s, -size.x, 0, true);
-  							//e.gc.drawText(s, 0,0, true);
-  							transform.dispose();
-						  } catch (Exception ex) {
-						  	// setTransform can trhow a ERROR_NO_GRAPHICS_LIBRARY error
-						  	// no use trying to draw.. it would look weird
-						  }
+							try {
+								Transform transform = new Transform(e.gc.getDevice());
+								transform.rotate(270);
+								e.gc.setTransform(transform);
+
+								String s = activeTopBar.getShortTitle();
+								Point size = e.gc.textExtent(s);
+								e.gc.drawText(s, -size.x, 0, true);
+								//e.gc.drawText(s, 0,0, true);
+								transform.dispose();
+							} catch (Exception ex) {
+								// setTransform can trhow a ERROR_NO_GRAPHICS_LIBRARY error
+								// no use trying to draw.. it would look weird
+							}
 						}
 					}
 				});
@@ -1571,7 +1605,8 @@ public class MainWindow
 		}
 
 		// Switch to browse tab
-		skin.setActiveTab(SkinConstants.TABSET_MAIN, SkinConstants.VIEWID_BROWSE_TAB);
+		skin.setActiveTab(SkinConstants.TABSET_MAIN,
+				SkinConstants.VIEWID_BROWSE_TAB);
 
 		String sURL = Constants.URL_PREFIX + Constants.URL_ADD_SEARCH
 				+ UrlUtils.encode(sSearchText) + "&" + Constants.URL_SUFFIX + "&rand="
@@ -1784,8 +1819,13 @@ public class MainWindow
 			MenuFactory.isAZ3_ADV = newTabID.equals("maintabs.advanced");
 			MenuFactory.updateEnabledStates(menu.getMenu(IMenuConstants.MENU_ID_MENU_BAR));
 		} else if (tabSet.getID().equals(SkinConstants.TABSET_DASHBOARD_LEFT)) {
-			COConfigurationManager.setParameter("v3.home-tab.starttab",
-					tabSet.getActiveTab().getViewID());
+			String newTabViewID = tabSet.getActiveTab().getViewID();
+			if (newTabViewID.equals("tab-activities")) {
+				skin.getSkinObjectByID("main.area.events").setVisible(true);
+			} else {
+				skin.getSkinObjectByID("main.area.minilibrary").setVisible(true);
+			}
+			COConfigurationManager.setParameter("v3.home-tab.starttab", newTabViewID);
 		}
 	}
 
@@ -1942,11 +1982,11 @@ public class MainWindow
 		skin.activateTab(skinObject);
 
 		skinObject = skin.getSkinObject(target);
-		
+
 		if (skinObject == null && target.startsWith("tab-")) {
 			skinObject = skin.getSkinObject(target.substring(4));
 		}
-		
+
 		if (skinObject instanceof SWTSkinObjectBrowser) {
 			((SWTSkinObjectBrowser) skinObject).getBrowser().setVisible(false);
 			if (url == null || url.length() == 0) {
