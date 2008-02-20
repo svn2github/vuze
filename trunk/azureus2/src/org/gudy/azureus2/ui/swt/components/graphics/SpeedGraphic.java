@@ -106,7 +106,11 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
 					Rectangle bounds = bufferImage.getBounds();
 					if (bounds.width >= e.width && bounds.height >= e.height) {
 						if (alpha != 255) {
-							e.gc.setAlpha(alpha);
+							try {
+								e.gc.setAlpha(alpha);
+						  } catch (Exception ex) {
+						  	// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
+						  }
 						}
 						e.gc.drawImage(bufferImage, e.x, e.y, e.width, e.height, e.x, e.y,
 								e.width, e.height);
