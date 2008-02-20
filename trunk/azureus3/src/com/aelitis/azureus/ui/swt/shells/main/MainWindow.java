@@ -584,7 +584,15 @@ public class MainWindow
 
 			StimulusRPC.hookListeners(core, this);
 
+			System.out.println("pre skin widgets init took "
+					+ (SystemTime.getCurrentTime() - startTime) + "ms");
+			startTime = SystemTime.getCurrentTime();
+
 			initWidgets();
+			
+			System.out.println("skin widgets init took "
+					+ (SystemTime.getCurrentTime() - startTime) + "ms");
+			startTime = SystemTime.getCurrentTime();
 
 			SWTSkinTabSet tabSet = skin.getTabSet(SkinConstants.TABSET_MAIN);
 			if (tabSet != null) {
@@ -594,12 +602,21 @@ public class MainWindow
 			if (subtabSet != null) {
 				subtabSet.addListener(this);
 			}
+
+			System.out.println("pre SWTInstance init took "
+					+ (SystemTime.getCurrentTime() - startTime) + "ms");
+			startTime = SystemTime.getCurrentTime();
+
 			// attach the UI to plugins
 			// Must be done before initializing views, since plugins may register
 			// table columns and other objects
 			uiSWTInstanceImpl = new UISWTInstanceImpl(core);
 			uiSWTInstanceImpl.init();
 
+			System.out.println("SWTInstance init took "
+					+ (SystemTime.getCurrentTime() - startTime) + "ms");
+			startTime = SystemTime.getCurrentTime();
+			
 			if (tabSet != null) {
 
 				String startTab;
@@ -624,9 +641,13 @@ public class MainWindow
 				tabSet.setActiveTab(startTab);
 			}
 
+			System.out.println("post SWTInstance init took "
+					+ (SystemTime.getCurrentTime() - startTime) + "ms");
+			startTime = SystemTime.getCurrentTime();
+
 			buildTopBarViews();
 
-			System.out.println("skin widgets init took "
+			System.out.println("build topbar views took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
 
@@ -1357,7 +1378,11 @@ public class MainWindow
 					public void paintControl(PaintEvent e) {
 						e.gc.setAdvanced(true);
 						if (e.gc.getAdvanced() && activeTopBar != null) {
-							e.gc.setAntialias(SWT.ON);
+							try {
+								e.gc.setAntialias(SWT.ON);
+						  } catch (Exception ex) {
+						  	// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
+						  }
 
 							Transform transform = new Transform(e.gc.getDevice());
 							transform.rotate(270);
