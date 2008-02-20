@@ -51,6 +51,8 @@ public class VuzeActivitiesManager
 	private static final long DEFAULT_PLATFORM_REFRESH = 60 * 60 * 1000L * 24;
 
 	private static final long RATING_REMINDER_DELAY = 1000L * 60 * 60 * 24 * 3;
+	
+	private static final long WEEK_MS = 604800000L;
 
 	private static final String SAVE_FILENAME = "VuzeActivities.config";
 
@@ -67,6 +69,8 @@ public class VuzeActivitiesManager
 	private static ArrayList listeners = new ArrayList();
 
 	private static ArrayList allEntries = new ArrayList();
+	
+	private static AEMonitor allEntries_mon = new AEMonitor("VuzeActivityMan");
 
 	private static List removedEntries = new ArrayList();
 
@@ -325,8 +329,7 @@ public class VuzeActivitiesManager
 						long completedOn = dm.getDownloadState().getLongParameter(
 								DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME);
 						if (completedOn > 0
-								&& SystemTime.getCurrentTime() - completedOn > RATING_REMINDER_DELAY
-								&& completedOn + RATING_REMINDER_DELAY > getCutoffTime()) {
+								&& SystemTime.getCurrentTime() - completedOn > RATING_REMINDER_DELAY) {
 							int userRating = PlatformTorrentUtils.getUserRating(torrent);
 							if (userRating < 0) {
 								VuzeActivitiesEntry entry = new VuzeActivitiesEntry();
@@ -367,6 +370,40 @@ public class VuzeActivitiesManager
 			public void destroyInitiated() {
 			}
 		}, true);
+		
+		try {
+			allEntries_mon.enter();
+
+			List listReminders = new ArrayList();
+			for (Iterator iter = allEntries.iterator(); iter.hasNext();) {
+				VuzeActivitiesEntry entry = (VuzeActivitiesEntry) iter.next();
+				if (TYPEID_RATING_REMINDER.equals(entry.getTypeID())) {
+					listReminders.add(entry);
+				}
+			}
+			if (listReminders.size() > 3) {
+				Collections.sort(listReminders); // will be sorted by date ascending
+				long weekBreak = SystemTime.getCurrentTime() - (WEEK_MS * 4);
+				int numInWeek = 0;
+				for (Iterator iter = listReminders.iterator(); iter.hasNext();) {
+					VuzeActivitiesEntry entry = (VuzeActivitiesEntry) iter.next();
+					
+					if (entry.getTimestamp() < weekBreak) {
+						numInWeek++;
+						if (numInWeek > 3) {
+							removeEntries(new VuzeActivitiesEntry[] { entry });
+						}
+					} else {
+						numInWeek = 1;
+						while (entry.getTimestamp() >= weekBreak) {
+							weekBreak += WEEK_MS;
+						}
+					}
+				}
+			}
+		} finally {
+			allEntries_mon.exit();
+		}
 	}
 
 	/**
@@ -521,13 +558,20 @@ public class VuzeActivitiesManager
 		long cutoffTime = getCutoffTime();
 
 		ArrayList newEntries = new ArrayList();
-		for (int i = 0; i < entries.length; i++) {
-			VuzeActivitiesEntry entry = entries[i];
-			if ((entry.getTimestamp() >= cutoffTime || entry.type == 0)
-					&& !allEntries.contains(entry) && !removedEntries.contains(entry.id)) {
-				newEntries.add(entry);
-				allEntries.add(entry);
+		
+		try {
+			allEntries_mon.enter();
+
+			for (int i = 0; i < entries.length; i++) {
+				VuzeActivitiesEntry entry = entries[i];
+				if ((entry.getTimestamp() >= cutoffTime || entry.type == 0)
+						&& !allEntries.contains(entry) && !removedEntries.contains(entry.id)) {
+					newEntries.add(entry);
+					allEntries.add(entry);
+				}
 			}
+		} finally {
+			allEntries_mon.exit();
 		}
 
 		saveEvents();
@@ -547,14 +591,21 @@ public class VuzeActivitiesManager
 	public static void removeEntries(VuzeActivitiesEntry[] entries) {
 		long cutoffTime = getCutoffTime();
 
-		for (int i = 0; i < entries.length; i++) {
-			VuzeActivitiesEntry entry = entries[i];
-			//System.out.println("remove " + entry.id);
-			allEntries.remove(entry);
-			if (entry.getTimestamp() > cutoffTime && entry.type > 0) {
-				removedEntries.add(entry);
-			}
+		try {
+			allEntries_mon.enter();
+
+  		for (int i = 0; i < entries.length; i++) {
+  			VuzeActivitiesEntry entry = entries[i];
+  			//System.out.println("remove " + entry.id);
+  			allEntries.remove(entry);
+  			if (entry.getTimestamp() > cutoffTime && entry.type > 0) {
+  				removedEntries.add(entry);
+  			}
+  		}
+		} finally {
+			allEntries_mon.exit();
 		}
+
 		Object[] listenersArray = listeners.toArray();
 		for (int i = 0; i < listenersArray.length; i++) {
 			VuzeActivitiesListener l = (VuzeActivitiesListener) listenersArray[i];
