@@ -218,7 +218,7 @@ public class Initializer
 
 				Initializer.this.reportPercent(curPercent + 1);
 				
-				new MainWindow(core, Display.getDefault(), splash);
+				new MainWindow(core, Display.getDefault(), Initializer.this);
 				
 				reportCurrentTaskByKey("splash.openViews");
 
@@ -297,12 +297,7 @@ public class Initializer
 		reportPercent(curPercent + 1);
 		new CertificateTrustWindow();
 
-		reportPercent(90);
-
 		InstallPluginWizard.register(core, display);
-
-		System.out.println("GUI Initializing took "
-				+ (SystemTime.getCurrentTime() - startTime) + "ms");
 	}
 
 	public void stopIt(boolean isForRestart, boolean isCloseAreadyInProgress)
@@ -381,7 +376,7 @@ public class Initializer
 		}
 	}
 
-	private void reportCurrentTask(String currentTaskString) {
+	public void reportCurrentTask(String currentTaskString) {
 		try {
 			listeners_mon.enter();
 
@@ -402,6 +397,17 @@ public class Initializer
 
 	private void reportCurrentTaskByKey(String key) {
 		reportCurrentTask(MessageText.getString(key));
+	}
+	
+	public void increaseProgresss() {
+		if (curPercent < 100) {
+			reportPercent(curPercent + 1);
+		}
+	}
+	
+	// @see com.aelitis.azureus.ui.IUIIntializer#abortProgress()
+	public void abortProgress() {
+		reportPercent(101);
 	}
 
 	public void reportPercent(int percent) {
