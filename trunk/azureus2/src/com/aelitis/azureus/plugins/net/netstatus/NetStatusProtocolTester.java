@@ -22,14 +22,11 @@
 package com.aelitis.azureus.plugins.net.netstatus;
 
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.security.SecureRandom;
 import java.util.*;
 
 
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
-import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SimpleTimer;
@@ -49,6 +46,7 @@ import org.gudy.azureus2.plugins.ddb.DistributedDatabaseValue;
 
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 
 
@@ -63,6 +61,10 @@ NetStatusProtocolTester
 	
 	private static final int TEST_TYPE_BT		= 1;
 	
+	private static final int	VERSION_INITIAL	= 1;
+	
+	private static final int	CURRENT_VERSION	= VERSION_INITIAL;
+		
 	private NetStatusPlugin		plugin;
 	private PluginInterface		plugin_interface;
 
@@ -200,7 +202,7 @@ NetStatusProtocolTester
 		
 		Map	request = new HashMap();
 		
-		request.put( "v", new Long(1));
+		request.put( "v", new Long( CURRENT_VERSION ));
 				
 		request.put( "t", new Long( TEST_TYPE_BT ));
 			
@@ -306,39 +308,45 @@ NetStatusProtocolTester
 		
 		Long	test_type	= (Long)request.get( "t" );
 		
-		reply.put( "v", new Long(1));
+		reply.put( "v", new Long( CURRENT_VERSION ));
 		
 		if ( test_type != null ){
 			
 			if ( test_type.intValue() == TEST_TYPE_BT ){
 				
-					// TODO; see if we support it
+				TCPNetworkManager tcp_man = TCPNetworkManager.getSingleton();
 				
-				byte[]	their_hash	= (byte[])request.get( "h" );
-				
-				if ( their_hash != null ){
+				if ( 	tcp_man.isTCPListenerEnabled() &&
+						tcp_man.getTCPListeningPortNumber() == ddb.getLocalContact().getAddress().getPort()){
+									
+						// TODO; see if we support it
 					
-					NetStatusProtocolTesterBT bt_tester;
+					byte[]	their_hash	= (byte[])request.get( "h" );
 					
-					synchronized( active_tests ){
+					if ( their_hash != null ){
 						
-						if ( active_tests.size() > MAX_ACTIVE_TESTS ){
+						NetStatusProtocolTesterBT bt_tester;
+						
+						synchronized( active_tests ){
 							
-							log( "Too many active tests" );
-							
-							return( reply );
-							
-						}else{
-							
-							bt_tester = new NetStatusProtocolTesterBT( this );
-							
-							addToActive( bt_tester );
+							if ( active_tests.size() > MAX_ACTIVE_TESTS ){
+								
+								log( "Too many active tests" );
+								
+								return( reply );
+								
+							}else{
+								
+								bt_tester = new NetStatusProtocolTesterBT( this );
+								
+								addToActive( bt_tester );
+							}
 						}
+						
+						bt_tester.testOutbound( adjustLoopback( originator ), their_hash, true );
+						
+						reply.put( "h", bt_tester.getServerHash());
 					}
-					
-					bt_tester.testOutbound( adjustLoopback( originator ), their_hash, true );
-					
-					reply.put( "h", bt_tester.getServerHash());
 				}
 			}
 		}		

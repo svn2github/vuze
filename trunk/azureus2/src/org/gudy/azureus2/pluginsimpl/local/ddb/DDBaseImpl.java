@@ -162,6 +162,19 @@ DDBaseImpl
 		return( dht.isExtendedUseAllowed());	
 	}
 	
+	public DistributedDatabaseContact
+	getLocalContact()
+	{
+		DHTPlugin	dht = grabDHT();
+		
+		if ( dht == null ){
+			
+			return( null );
+		}
+		
+		return( new DDBaseContactImpl( this, dht.getLocalAddress()));	
+	}
+	
 	protected void
 	throwIfNotAvailable()
 	

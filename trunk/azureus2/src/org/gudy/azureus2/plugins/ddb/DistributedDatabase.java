@@ -48,6 +48,9 @@ DistributedDatabase
 	public boolean
 	isExtendedUseAllowed();
 	
+	public DistributedDatabaseContact
+	getLocalContact();
+	
 	public DistributedDatabaseKey
 	createKey(
 		Object			key )
