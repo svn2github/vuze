@@ -1384,15 +1384,20 @@ public class MainWindow
 						  	// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
 						  }
 
-							Transform transform = new Transform(e.gc.getDevice());
-							transform.rotate(270);
-							e.gc.setTransform(transform);
-
-							String s = activeTopBar.getShortTitle();
-							Point size = e.gc.textExtent(s);
-							e.gc.drawText(s, -size.x, 0, true);
-							//e.gc.drawText(s, 0,0, true);
-							transform.dispose();
+						  try {
+  							Transform transform = new Transform(e.gc.getDevice());
+  							transform.rotate(270);
+  							e.gc.setTransform(transform);
+  
+  							String s = activeTopBar.getShortTitle();
+  							Point size = e.gc.textExtent(s);
+  							e.gc.drawText(s, -size.x, 0, true);
+  							//e.gc.drawText(s, 0,0, true);
+  							transform.dispose();
+						  } catch (Exception ex) {
+						  	// setTransform can trhow a ERROR_NO_GRAPHICS_LIBRARY error
+						  	// no use trying to draw.. it would look weird
+						  }
 						}
 					}
 				});
