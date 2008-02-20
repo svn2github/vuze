@@ -135,12 +135,19 @@ AEDiagnostics
 
 			boolean	was_tidy	= COConfigurationManager.getBooleanParameter( CONFIG_KEY );
 			
-			SimpleTimer.addEvent("AEDiagnostics:logCleaner",SystemTime.getCurrentTime() + 60000
-					+ (int) (Math.random() * 15000), new TimerEventPerformer() {
-				public void perform(TimerEvent event) {
-					cleanOldLogs();
+			new AEThread2( "asyncify", true )
+			{
+				public void
+				run()
+				{
+					SimpleTimer.addEvent("AEDiagnostics:logCleaner",SystemTime.getCurrentTime() + 60000
+							+ (int) (Math.random() * 15000), new TimerEventPerformer() {
+						public void perform(TimerEvent event) {
+							cleanOldLogs();
+						}
+					});
 				}
-			});
+			}.start();
 
 			if ( debug_dir.exists()){
 				
