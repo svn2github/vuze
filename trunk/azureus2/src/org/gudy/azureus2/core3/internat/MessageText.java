@@ -80,8 +80,7 @@ public class MessageText {
   public static void loadBundle(boolean forceReload) {
 	  Locale	old_locale = getCurrentLocale();
 	  
-		String savedLocaleString = COConfigurationManager
-				.getStringParameter("locale");
+		String savedLocaleString = COConfigurationManager.getStringParameter("locale");
 
 		Locale savedLocale;
 		String[] savedLocaleStrings = savedLocaleString.split("_", 3);
@@ -599,22 +598,8 @@ public class MessageText {
   }
 
   private static boolean changeLocale(Locale newLocale, boolean force) {
-	  
-	  /*
-	if(!LOCALE_CURRENT.equals(newLocale) && newLocale.equals(LOCALE_ENGLISH))
-	{
-			// only set if we're not already running with DEFAULT
-		
-		if ( RESOURCE_BUNDLE != DEFAULT_BUNDLE || force ){
-					
-			setResourceBundle( new IntegratedResourceBundle( getResourceBundle( BUNDLE_NAME, LOCALE_DEFAULT, MessageText.class.getClassLoader()), pluginLocalizationPaths ));
-			DEFAULT_BUNDLE = RESOURCE_BUNDLE;
-		}
-		
-		Locale.setDefault(newLocale);
-		LOCALE_CURRENT = LOCALE_DEFAULT;
-		return true;
-	}*/
+	// set locale for startup (will override immediately it on locale change anyway)
+	Locale.setDefault(newLocale);
 		
     if (!isCurrentLocale(newLocale) || force) {
       Locale.setDefault(LOCALE_DEFAULT);
