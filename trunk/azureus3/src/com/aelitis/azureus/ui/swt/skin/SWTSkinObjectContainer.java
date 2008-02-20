@@ -27,7 +27,9 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.Utils;
 
 /**
  * A SWTSkinObject that contains other SWTSkinObjects
@@ -144,28 +146,5 @@ public class SWTSkinObjectContainer
 
 	public boolean getPropogation() {
 		return bPropogate;
-	}
-
-	/**
-	 * Trigger the children listeners too!
-	 */
-	public void triggerListeners(int eventType, Object params) {
-		try {
-			super.triggerListeners(eventType, params);
-		} catch (Exception e) {
-			Debug.out("Trigger of Skin Event "
-					+ SWTSkinObjectListener.NAMES[eventType] + " caused an error", e);
-		}
-
-		SWTSkinObject[] children = getChildren();
-		for (int i = 0; i < children.length; i++) {
-			try {
-				children[i].triggerListeners(eventType, params);
-			} catch (Exception e) {
-				Debug.out("Trigger of Skin Event "
-						+ SWTSkinObjectListener.NAMES[eventType]
-						+ " for Container child has caused an error", e);
-			}
-		}
 	}
 }

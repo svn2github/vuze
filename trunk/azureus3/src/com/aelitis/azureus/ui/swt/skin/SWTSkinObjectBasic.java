@@ -86,7 +86,7 @@ public class SWTSkinObjectBasic
 			});
 			return;
 		}
-		
+
 		setViewID(properties.getStringValue(sConfigID + ".view"));
 
 		this.control = control;
@@ -104,14 +104,14 @@ public class SWTSkinObjectBasic
 
 		final Listener lShowHide = new Listener() {
 			public void handleEvent(final Event event) {
-				boolean toBeVisible = event.type == SWT.Show; 
+				boolean toBeVisible = event.type == SWT.Show;
 				if (event.widget == control) {
-					isVisible = toBeVisible;
+					setIsVisible(toBeVisible);
 					return;
 				}
 
 				if (!toBeVisible || control.isVisible()) {
-					isVisible = toBeVisible;
+					setIsVisible(toBeVisible);
 					return;
 				}
 
@@ -121,15 +121,15 @@ public class SWTSkinObjectBasic
 				control.getDisplay().asyncExec(new AERunnable() {
 					public void runSupport() {
 						if (control == null || control.isDisposed()) {
-							isVisible = false;
+							setIsVisible(false);
 							return;
 						}
-						isVisible = control.isVisible();
+						setIsVisible(control.isVisible());
 					}
 				});
 			}
 		};
-		isVisible = control.isVisible();
+		setIsVisible(control.isVisible());
 
 		final ArrayList listenersToRemove = new ArrayList(2);
 		Control walkUp = control;
@@ -139,8 +139,8 @@ public class SWTSkinObjectBasic
 			walkUp.addListener(SWT.Hide, lShowHide);
 			walkUp = walkUp.getParent();
 		} while (walkUp != null);
-		
-		control.addDisposeListener(new DisposeListener(){
+
+		control.addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
 				for (Iterator iter = listenersToRemove.iterator(); iter.hasNext();) {
 					Control control = (Control) iter.next();
@@ -151,6 +151,20 @@ public class SWTSkinObjectBasic
 				}
 			}
 		});
+	}
+
+	/**
+	 * @param visible
+	 *
+	 * @since 3.0.4.3
+	 */
+	private void setIsVisible(boolean visible) {
+		if (visible == isVisible) {
+			return;
+		}
+		isVisible = visible;
+		triggerListeners(visible ? SWTSkinObjectListener.EVENT_SHOW
+				: SWTSkinObjectListener.EVENT_HIDE);
 	}
 
 	public Control getControl() {
@@ -261,9 +275,8 @@ public class SWTSkinObjectBasic
 			public void runSupport() {
 				if (control != null && !control.isDisposed()) {
 					control.setVisible(visible);
+					setIsVisible(visible);
 				}
-				triggerListeners(visible ? SWTSkinObjectListener.EVENT_SHOW
-						: SWTSkinObjectListener.EVENT_HIDE);
 			}
 		});
 	}
@@ -426,7 +439,14 @@ public class SWTSkinObjectBasic
 		triggerListeners(eventType, null);
 	}
 
-	public void triggerListeners(int eventType, Object params) {
+	public void triggerListeners(final int eventType, final Object params) {
+
+		if (eventType == SWTSkinObjectListener.EVENT_SHOW && !isVisible) {
+			return;
+		} else if (eventType == SWTSkinObjectListener.EVENT_HIDE && isVisible) {
+			return;
+		}
+
 		// process listeners added locally
 		listeners_mon.enter();
 		try {
@@ -474,7 +494,7 @@ public class SWTSkinObjectBasic
 	public boolean isDisposed() {
 		return control == null || control.isDisposed();
 	}
-	
+
 	public void setTooltipByID(final String id) {
 		if (isDisposed()) {
 			return;
