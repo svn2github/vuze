@@ -1004,11 +1004,11 @@ public class MenuFactory
 			}
 		} else if (menu instanceof MenuItem) {
 			MenuItem item = (MenuItem) menu;
-			if (item.getData() != null) {
-				if (item.getData() instanceof String) {
-					item.setText(MessageText.getString((String) item.getData()));
-					updateMenuText(item.getMenu());
-				}
+			if (item.getData(KEY_MENU_ID) instanceof String) {
+				String localizationKey = (String)item.getData(KEY_MENU_ID);
+				item.setText(MessageText.getString(localizationKey));
+				KeyBindings.setAccelerator(item,MessageText.resolveAcceleratorKey(localizationKey));
+				updateMenuText(item.getMenu());
 			}
 		}
 	}

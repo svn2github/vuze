@@ -599,19 +599,22 @@ public class MessageText {
   }
 
   private static boolean changeLocale(Locale newLocale, boolean force) {
+	  
+	  /*
 	if(!LOCALE_CURRENT.equals(newLocale) && newLocale.equals(LOCALE_ENGLISH))
 	{
 			// only set if we're not already running with DEFAULT
 		
-		if ( RESOURCE_BUNDLE != DEFAULT_BUNDLE ){
-		
-			setResourceBundle( new IntegratedResourceBundle(DEFAULT_BUNDLE, pluginLocalizationPaths));
+		if ( RESOURCE_BUNDLE != DEFAULT_BUNDLE || force ){
+					
+			setResourceBundle( new IntegratedResourceBundle( getResourceBundle( BUNDLE_NAME, LOCALE_DEFAULT, MessageText.class.getClassLoader()), pluginLocalizationPaths ));
+			DEFAULT_BUNDLE = RESOURCE_BUNDLE;
 		}
 		
 		Locale.setDefault(newLocale);
 		LOCALE_CURRENT = LOCALE_DEFAULT;
 		return true;
-	}
+	}*/
 		
     if (!isCurrentLocale(newLocale) || force) {
       Locale.setDefault(LOCALE_DEFAULT);
@@ -620,7 +623,8 @@ public class MessageText {
       final String prefix = BUNDLE_NAME.substring(BUNDLE_NAME.lastIndexOf('.') + 1);
       final String extension = ".properties";
 
-      
+      if(newLocale.equals(LOCALE_ENGLISH))
+    	  newLocale = LOCALE_DEFAULT;
       
       try {
         File userBundleFile = new File(SystemProperties.getUserPath());
@@ -697,25 +701,24 @@ public class MessageText {
       	Debug.printStackTrace( e );
       }
 
-      if (newResourceBundle != null) {
-        //
-        if (!newLocale.toString().equals("en") && 
-            !newResourceBundle.getLocale().equals(newLocale))
-        {
-          String sNewLanguage = newResourceBundle.getLocale().getDisplayName();
-          if (sNewLanguage == null || sNewLanguage.trim().equals(""))
-            sNewLanguage = "English (default)";
-          System.out.println("changeLocale: no message properties for Locale '"+ 
-                             newLocale.getDisplayName() +
-                             "' (" + newLocale + "), using '" + sNewLanguage + "'");
-        }
-        newLocale = newResourceBundle.getLocale();
-        Locale.setDefault(newLocale);
-        LOCALE_CURRENT = newLocale;
-		setResourceBundle( new IntegratedResourceBundle(newResourceBundle, pluginLocalizationPaths));
-        return true;
-      } else
-        return false;
+      if (newResourceBundle != null)
+			{
+				if (!newLocale.equals(LOCALE_DEFAULT) && !newResourceBundle.getLocale().equals(newLocale))
+				{
+					String sNewLanguage = newResourceBundle.getLocale().getDisplayName();
+					if (sNewLanguage == null || sNewLanguage.trim().equals(""))
+						sNewLanguage = "English (default)";
+					System.out.println("changeLocale: no message properties for Locale '" + newLocale.getDisplayName() + "' (" + newLocale + "), using '" + sNewLanguage + "'");
+				}
+				newLocale = newResourceBundle.getLocale();
+				Locale.setDefault(newLocale.equals(LOCALE_DEFAULT) ? LOCALE_ENGLISH : newLocale);
+				LOCALE_CURRENT = newLocale;
+				setResourceBundle(new IntegratedResourceBundle(newResourceBundle, pluginLocalizationPaths));
+				if(newLocale.equals(LOCALE_DEFAULT))
+					DEFAULT_BUNDLE = RESOURCE_BUNDLE;
+				return true;
+			} else
+				return false;
     }
     return false;
   }
