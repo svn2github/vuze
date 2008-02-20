@@ -2295,7 +2295,7 @@ public class TableViewSWTImpl
 		}
 
 		if (IMMEDIATE_ADDREMOVE_DELAY == 0) {
-			reallyAddDataSources(dataSources);
+			reallyRemoveDataSources(dataSources);
 			return;
 		}
 
