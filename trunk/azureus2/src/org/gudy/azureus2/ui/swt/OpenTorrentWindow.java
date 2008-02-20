@@ -2593,7 +2593,7 @@ public class OpenTorrentWindow
 						f = new File(getDataDir() + "-" + idx);
 					} while (f.isDirectory());
 
-					sDestSubDir = f.getAbsolutePath();
+					sDestSubDir = f.getName();
 				}
 			} else {
 				// should only be one file
