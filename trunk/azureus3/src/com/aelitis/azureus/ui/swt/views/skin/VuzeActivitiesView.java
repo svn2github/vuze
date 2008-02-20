@@ -86,6 +86,8 @@ public class VuzeActivitiesView
 
 	private SWTSkinButtonUtility btnColumnSetup;
 
+	private long lastShiftedOn;
+
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
 		final SWTSkin skin = skinObject.getSkin();
@@ -293,11 +295,11 @@ public class VuzeActivitiesView
 		if (skipShift) {
 			return;
 		}
-		long timestamp = System.currentTimeMillis();
+		lastShiftedOn = System.currentTimeMillis();
 		for (Iterator iter = headerEntries.iterator(); iter.hasNext();) {
 			VuzeActivitiesEntry entry = (VuzeActivitiesEntry) iter.next();
-			entry.setTimestamp(timestamp);
-			timestamp -= ONE_WEEK_MS;
+			entry.setTimestamp(lastShiftedOn);
+			lastShiftedOn -= ONE_WEEK_MS;
 		}
 		view.refreshTable(true);
 	}
@@ -305,7 +307,16 @@ public class VuzeActivitiesView
 	// @see com.aelitis.azureus.util.VuzeNewsListener#vuzeNewsEntriesAdded(com.aelitis.azureus.util.VuzeNewsEntry[])
 	public void vuzeNewsEntriesAdded(VuzeActivitiesEntry[] entries) {
 		view.addDataSources(entries);
-		shiftVuzeNews();
+		long newest = 0;
+		for (int i = 0; i < entries.length; i++) {
+			VuzeActivitiesEntry entry = entries[i];
+			if (entry.getTimestamp() > newest) {
+				newest = entry.getTimestamp();
+			}
+		}
+		if (newest > lastShiftedOn) {
+			shiftVuzeNews();
+		}
 	}
 
 	// @see com.aelitis.azureus.util.VuzeNewsListener#vuzeNewsEntriesRemoved(com.aelitis.azureus.util.VuzeNewsEntry[])
