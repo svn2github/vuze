@@ -350,7 +350,11 @@ public class ColumnRate
 				}
 
 				gcImage.setFont(font);
-				gcImage.setTextAntialias(SWT.ON);
+				try {
+					gcImage.setTextAntialias(SWT.ON);
+			  } catch (Exception e) {
+			  	// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
+			  }
 
 				SWTSkinProperties skinProperties = SWTSkinFactory.getInstance().getSkinProperties();
 
@@ -392,7 +396,11 @@ public class ColumnRate
 					}
 
 					gcImage.setFont(smallFont);
-					gcImage.setTextAntialias(SWT.DEFAULT);
+					try {
+						gcImage.setTextAntialias(SWT.DEFAULT);
+				  } catch (Exception e) {
+				  	// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
+				  }
 
 					Rectangle rectDrawRatings = img.getBounds();
 					//rectDrawRatings.height -= 4;

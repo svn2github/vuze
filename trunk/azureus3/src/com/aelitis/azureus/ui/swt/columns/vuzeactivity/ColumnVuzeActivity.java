@@ -200,8 +200,12 @@ public class ColumnVuzeActivity
 		GCStringPrinter stringPrinter;
 		GC gcQuery = new GC(device);
 		try {
-			gcQuery.setAdvanced(true);
-			gcQuery.setTextAntialias(SWT.ON);
+			try {
+				gcQuery.setAdvanced(true);
+				gcQuery.setTextAntialias(SWT.ON);
+		  } catch (Exception e) {
+		  	// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
+		  }
 			if (entry.type == 0) {
 				if (headerFont == null) {
 					// no sync required, SWT is on single thread
@@ -278,8 +282,12 @@ public class ColumnVuzeActivity
 
 		GC gc = new GC(image);
 		try {
-			gc.setAdvanced(true);
-			gc.setTextAntialias(SWT.ON);
+			try {
+				gc.setAdvanced(true);
+				gc.setTextAntialias(SWT.ON);
+		  } catch (Exception e) {
+		  	// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
+		  }
 			gc.setBackground(ColorCache.getColor(device, cell.getBackground()));
 			gc.setForeground(ColorCache.getColor(device, cell.getForeground()));
 

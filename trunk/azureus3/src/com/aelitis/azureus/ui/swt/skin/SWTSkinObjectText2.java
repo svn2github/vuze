@@ -132,7 +132,11 @@ public class SWTSkinObjectText2
 					gc.setForeground(existingColor);
 				}
 				if (antialiasMode != SWT.DEFAULT) {
-					gc.setTextAntialias(antialiasMode);
+					try {
+						gc.setTextAntialias(antialiasMode);
+				  } catch (Exception e) {
+				  	// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
+				  }
 				}
 
 				pt = gc.textExtent(sDisplayText);
@@ -411,7 +415,11 @@ public class SWTSkinObjectText2
 		}
 
 		if (antialiasMode != SWT.DEFAULT) {
-			e.gc.setTextAntialias(antialiasMode);
+			try {
+				e.gc.setTextAntialias(antialiasMode);
+		  } catch (Exception ex) {
+		  	// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
+		  }
 		}
 		GCStringPrinter.printString(e.gc, sDisplayText, clientArea, true, false,
 				style);
