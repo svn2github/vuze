@@ -447,6 +447,7 @@ Initializer
   private int nbTasks = 1;
   private int currentTask = 0;
   private int currentPercent = 0;
+  private int lastTaskPercent = 0;
   
   private void setNbTasks(int _nbTasks) {
     currentTask = 0;
@@ -461,6 +462,7 @@ Initializer
   }
   
   private int overallPercent(int taskPercent) {
+  	lastTaskPercent = taskPercent;
     //System.out.println("ST percent " + currentPercent + " / " + taskPercent + " : " + (currentPercent + (taskPercent / nbTasks)));
     return currentPercent + taskPercent / nbTasks;
   }
@@ -468,7 +470,18 @@ Initializer
   private void reportCurrentTaskByKey(String key) {
     reportCurrentTask(MessageText.getString(key));
   }
+ 
+  // @see com.aelitis.azureus.ui.IUIIntializer#increaseProgresss()
+  public void increaseProgresss() {
+  	if (lastTaskPercent < 100) {
+  		reportPercent(lastTaskPercent + 1);
+  	}
+  }
   
+	public void abortProgress() {
+		currentTask = nbTasks;
+		reportPercent(101);
+	}
   
   public static void main(String args[]) 
   {

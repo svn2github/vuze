@@ -48,4 +48,24 @@ public interface IUIIntializer
 	 * @since 3.0.1.3
 	 */
 	public void removeListener(InitializerListener listener);
+
+	/**
+	 * 
+	 *
+	 * @since 3.0.4.3
+	 */
+	void increaseProgresss();
+	
+	/**
+	 *
+	 * @since 3.0.4.3
+	 */
+	void abortProgress();
+
+	/**
+	 * @param currentTaskString
+	 *
+	 * @since 3.0.4.3
+	 */
+	void reportCurrentTask(String currentTaskString);
 }
