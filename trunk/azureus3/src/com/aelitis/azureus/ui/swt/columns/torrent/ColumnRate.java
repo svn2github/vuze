@@ -316,7 +316,11 @@ public class ColumnRate
 
 			if (showAverage) {
 				if (showRateActionIcon) {
-					gcImage.setAlpha(40);
+					try {
+						gcImage.setAlpha(40);
+				  } catch (Exception e) {
+				  	// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
+				  }
 				}
 				Rectangle r = img.getBounds();
 				int bigTextStyle = SWT.RIGHT;
@@ -397,7 +401,11 @@ public class ColumnRate
 				}
 
 				if (showRateActionIcon) {
-					gcImage.setAlpha(255);
+					try {
+						gcImage.setAlpha(255);
+				  } catch (Exception e) {
+				  	// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
+				  }
 				}
 			}
 

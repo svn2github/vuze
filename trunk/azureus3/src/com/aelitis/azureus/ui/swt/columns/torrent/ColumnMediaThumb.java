@@ -189,7 +189,11 @@ public class ColumnMediaThumb
 						// may not be avail
 					}
 					if (!showPlayButton) {
-						gc.setAlpha(180);
+						try {
+							gc.setAlpha(180);
+					  } catch (Exception e) {
+					  	// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
+					  }
 					}
 					gc.drawImage(img, 0, 0, w, h, 0, 0, w2, h2);
 
@@ -199,7 +203,11 @@ public class ColumnMediaThumb
 								? SWT.CURSOR_HAND : SWT.CURSOR_ARROW);
 					}
 
-					gc.setAlpha(255);
+					try {
+						gc.setAlpha(255);
+				  } catch (Exception e) {
+				  	// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
+				  }
 					if (showPlayButton) {
 
 						if (imgPlay != null) {
