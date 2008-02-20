@@ -1,7 +1,8 @@
 package org.gudy.azureus2.ui.swt.components.shell;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.*;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.*;
@@ -22,21 +23,19 @@ public class LightBoxShell
 
 	private Rectangle fadedAreaExtent = null;
 
-	private int top = 0;
+	private int insetTop = 0;
 
-	private int bottom = 0;
+	private int insetBottom = 0;
 
-	private int left = 0;
+	private int insetLeft = 0;
 
-	private int right = 0;
+	private int insetRight = 0;
 
 	private boolean closeOnESC = false;
 
 	private boolean isShellOpened = false;
 
 	private Display display;
-
-	private Image processedImage;
 
 	private UIFunctionsSWT uiFunctions;
 
@@ -74,10 +73,10 @@ public class LightBoxShell
 	}
 
 	public void setInsets(int top, int bottom, int left, int right) {
-		this.top = top;
-		this.bottom = bottom;
-		this.left = left;
-		this.right = right;
+		this.insetTop = top;
+		this.insetBottom = bottom;
+		this.insetLeft = left;
+		this.insetRight = right;
 	}
 
 	private void createControls() {
@@ -135,10 +134,6 @@ public class LightBoxShell
 	public void close() {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				if (null != processedImage && false == processedImage.isDisposed()) {
-					processedImage.dispose();
-				}
-
 				if (null != lbShell && false == lbShell.isDisposed()) {
 					lbShell.close();
 				}
@@ -162,11 +157,11 @@ public class LightBoxShell
 
 			fadedAreaExtent = parentShell.getClientArea();
 			Point parentLocation = parentShell.getLocation();
-			fadedAreaExtent.x = parentLocation.x + xyOffset + left;
+			fadedAreaExtent.x = parentLocation.x + xyOffset + insetLeft;
 			fadedAreaExtent.y = parentLocation.y + parentShell.getSize().y
-					- fadedAreaExtent.height - xyOffset + top;
-			fadedAreaExtent.width -= right + left;
-			fadedAreaExtent.height -= top + bottom;
+					- fadedAreaExtent.height - xyOffset + insetTop;
+			fadedAreaExtent.width -= insetRight + insetLeft;
+			fadedAreaExtent.height -= insetTop + insetBottom;
 		}
 		return fadedAreaExtent;
 	}
@@ -276,21 +271,29 @@ public class LightBoxShell
 					int r = StyledShell.this.borderWidth;
 					int d = r * 2;
 
-					e.gc.setAntialias(SWT.ON);
+					try {
+						e.gc.setAntialias(SWT.ON);
+					} catch (Throwable t) {
+						//Do nothing if it's not supported
+					}
 
 					/*
-					 * Fills the entire area with the StyleShell background color so it blends in with the shell
+					 * Fills the four corners with the StyleShell background color so it blends in with the shell
 					 */
 					e.gc.setBackground(styledShell.getBackground());
-					e.gc.fillRectangle(bounds);
+					e.gc.fillRectangle(0, 0, r, r);
+					e.gc.fillRectangle(bounds.width - r, 0, r, r);
+					e.gc.fillRectangle(bounds.width - r, bounds.height - r, r, r);
+					e.gc.fillRectangle(0, bounds.height - r, r, r);
 
 					/*
-					 * Then paint in the rounded corner rectangle
+					 * Then paint in the rounded-corner rectangle
 					 */
 					e.gc.setBackground(content.getBackground());
 
 					/*
-					 * Paint the 4 circles for the rounded corners
+					 * Paint the 4 circles for the rounded corners; these circles will partially overlap
+					 * on top of the four corners drawn above to give the look of a rounded corner
 					 */
 					e.gc.fillPolygon(circle(r, r, r));
 					e.gc.fillPolygon(circle(r, r, bounds.height - r));
@@ -325,14 +328,6 @@ public class LightBoxShell
 							e.detail = SWT.TRAVERSE_NONE;
 							e.doit = false;
 							break;
-					}
-				}
-			});
-
-			styledShell.addDisposeListener(new DisposeListener() {
-				public void widgetDisposed(DisposeEvent e) {
-					if (null != processedImage && false == processedImage.isDisposed()) {
-						processedImage.dispose();
 					}
 				}
 			});
