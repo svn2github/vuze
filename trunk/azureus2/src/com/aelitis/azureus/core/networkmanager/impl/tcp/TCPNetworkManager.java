@@ -30,7 +30,7 @@ import java.util.Set;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
@@ -143,11 +143,11 @@ TCPNetworkManager
 		
 		   //start read selector processing
 		
-	    Thread read_selector_thread = 
-	    	new AEThread( "ReadController:ReadSelector" ) 
+		AEThread2 read_selector_thread = 
+	    	new AEThread2( "ReadController:ReadSelector", true ) 
 	    	{
 		    	public void 
-		    	runSupport() 
+		    	run() 
 		    	{
 		    		while( true ) {
 		    	
@@ -164,17 +164,16 @@ TCPNetworkManager
 		    	}
 	    	};
 	    	
-	    read_selector_thread.setDaemon( true );
 	    read_selector_thread.setPriority( Thread.MAX_PRIORITY - 2 );
 	    read_selector_thread.start();
 	    
 	    	//start write selector processing
 	    
-	    Thread write_selector_thread = 
-	    	new AEThread( "WriteController:WriteSelector" )
+	    AEThread2 write_selector_thread = 
+	    	new AEThread2( "WriteController:WriteSelector", true )
 	    	{
 		    	public void 
-		    	runSupport() 
+		    	run() 
 		    	{
 		    	    while( true ){
 		    	    	
@@ -191,7 +190,6 @@ TCPNetworkManager
 		    	}
 	    	};
 	    	
-	    write_selector_thread.setDaemon( true );
 	    write_selector_thread.setPriority( Thread.MAX_PRIORITY - 2 );
 	    write_selector_thread.start();	    
 	}
@@ -215,14 +213,17 @@ TCPNetworkManager
 	{
 		return( incoming_socketchannel_manager.isEffectiveBindAddress( address ));
 	}
-	/**
-	 * Get the socket channel connect / disconnect manager.
-	 * @return connect manager
-	 */
-	public TCPConnectionManager getConnectDisconnectManager() {  return connect_disconnect_manager;  }
-
-
-
+	
+		/**
+		 * Get the socket channel connect / disconnect manager.
+		 * @return connect manager
+		 */
+	
+	public TCPConnectionManager 
+	getConnectDisconnectManager() 
+	{  
+		return connect_disconnect_manager;  
+	}
 
 	/**
 	 * Get the virtual selector used for socket channel read readiness.
@@ -248,5 +249,16 @@ TCPNetworkManager
 	 * Get port that the TCP server socket is listening for incoming connections on.
 	 * @return port number
 	 */
-	public int getTCPListeningPortNumber() {  return incoming_socketchannel_manager.getTCPListeningPortNumber();  }	  
+	
+	public int 
+	getTCPListeningPortNumber() 
+	{  
+		return( incoming_socketchannel_manager.getTCPListeningPortNumber());  
+	}
+	
+	public long
+	getLastIncomingNonLocalConnectionTime()
+	{
+		return( incoming_socketchannel_manager.getLastNonLocalConnectionTime());
+	}
 }

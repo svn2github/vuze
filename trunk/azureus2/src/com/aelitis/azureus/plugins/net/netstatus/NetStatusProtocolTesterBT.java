@@ -55,13 +55,14 @@ NetStatusProtocolTesterBT
 	private NetStatusProtocolTester	tester;
 	
 	private byte[]		my_hash;
+	private byte[]		peer_id;
 	
 	private PeerManagerRegistration		pm_reg;
 
 	private long		start_time	= SystemTime.getCurrentTime();
 	
 	private List		connections	= new ArrayList();
-	
+		
 	private boolean		active;
 	private boolean		destroyed;
 	
@@ -75,6 +76,11 @@ NetStatusProtocolTesterBT
 		
 		random.nextBytes( my_hash );
 		
+		peer_id = new byte[20];
+		
+		random.nextBytes( peer_id );
+		
+
 		pm_reg = PeerManager.getSingleton().registerLegacyManager(
 			new HashWrapper( my_hash ),
 			new PeerManagerRegistrationAdapter()
@@ -220,7 +226,7 @@ NetStatusProtocolTesterBT
 	protected void
 	initialiseConnection(
 		NetworkConnection	connection,
-		byte[]				their_hash )
+		byte[]				info_hash )
 	{
 		synchronized( this ){
 			
@@ -238,93 +244,7 @@ NetStatusProtocolTesterBT
 			}
 		}
 		
-		connection.getIncomingMessageQueue().registerQueueListener(
-			new IncomingMessageQueue.MessageQueueListener() 
-			{
-				public boolean 
-				messageReceived( Message message ) 
-				{               
-					String	message_id = message.getID();
-
-					log( "Incoming message received: " + message.getID());
-					
-			        if ( message_id.equals( BTMessage.ID_BT_HANDSHAKE )){
-				
-					}
-			        
-			        return( true );
-				}
-  
-
-				public final void 
-				protocolBytesReceived(
-					int byte_count ) 
-				
-				{
-				}
-
-				public final void 
-				dataBytesReceived( 
-					int byte_count ) 
-				{
-				}
-			});
-
-		connection.getOutgoingMessageQueue().registerQueueListener( 
-			new OutgoingMessageQueue.MessageQueueListener() 
-			{
-				public final boolean 
-				messageAdded( 
-					Message message )
-				{
-					return( true );
-				}
-	
-				public final void 
-				messageQueued( 
-					Message message )
-				{
-				}
-	
-				public final void 
-				messageRemoved( 
-					Message message )
-				{
-					
-				}
-	
-				public final void 
-				messageSent( 
-					Message message ) 
-				{
-					log( "Outgoing message sent: " + message.getID());
-				}
-	
-				public final void 
-				protocolBytesSent( 
-					int byte_count ) 
-				{
-				}
-	
-				public final void 
-				dataBytesSent( 
-					int byte_count ) 
-				{
-				}
-		});
-
-		connection.startMessageProcessing();
-		
-		if ( their_hash != null ){
-			
-			byte[]	peer_id = new byte[20];
-			
-			random.nextBytes( peer_id );
-			
-			connection.getOutgoingMessageQueue().addMessage(
-				new BTHandshake( their_hash, peer_id, false, BTMessageFactory.MESSAGE_VERSION_INITIAL ),
-				false );
-		}
+		new Session( connection, info_hash );
 	}
 	
 	protected void
@@ -396,5 +316,135 @@ NetStatusProtocolTesterBT
 		Throwable	e )
 	{
 		tester.log( str, e );
+	}
+	
+	protected class
+	Session
+	{
+		private NetworkConnection		connection;
+		private boolean					initiator;
+		private byte[]					info_hash;
+		
+		private boolean 	handshake_sent;
+
+
+		protected
+		Session(
+			NetworkConnection		_connection,
+			byte[]					_info_hash )
+		{
+			connection	= _connection;
+			info_hash	= _info_hash;
+			
+			initiator 	= info_hash != null;
+			
+			connection.getIncomingMessageQueue().registerQueueListener(
+				new IncomingMessageQueue.MessageQueueListener() 
+				{
+					
+					public boolean 
+					messageReceived(
+						Message message ) 
+					{               
+						try{
+							String	message_id = message.getID();
+	
+							log( "Incoming message received: " + message.getID());
+							
+					        if ( message_id.equals( BTMessage.ID_BT_HANDSHAKE )){
+						
+					        	if ( !handshake_sent ){
+					        		
+					        		BTHandshake handshake = (BTHandshake)message;
+					        		
+					        		info_hash = handshake.getDataHash();
+					        		
+					        		sendHandshake();
+					        	}
+							}
+					        
+					        return( true );
+					        
+						}finally{
+							
+							message.destroy();
+						}
+					}
+	  
+
+					public final void 
+					protocolBytesReceived(
+						int byte_count ) 
+					
+					{
+					}
+
+					public final void 
+					dataBytesReceived( 
+						int byte_count ) 
+					{
+					}
+				});
+
+			connection.getOutgoingMessageQueue().registerQueueListener( 
+				new OutgoingMessageQueue.MessageQueueListener() 
+				{
+					public final boolean 
+					messageAdded( 
+						Message message )
+					{
+						return( true );
+					}
+		
+					public final void 
+					messageQueued( 
+						Message message )
+					{
+					}
+		
+					public final void 
+					messageRemoved( 
+						Message message )
+					{
+						
+					}
+		
+					public final void 
+					messageSent( 
+						Message message ) 
+					{
+						log( "Outgoing message sent: " + message.getID());
+					}
+		
+					public final void 
+					protocolBytesSent( 
+						int byte_count ) 
+					{
+					}
+		
+					public final void 
+					dataBytesSent( 
+						int byte_count ) 
+					{
+					}
+			});
+
+			connection.startMessageProcessing();
+			
+			if ( initiator ){
+				
+				sendHandshake();
+			}
+		}
+		
+		protected void
+		sendHandshake()
+		{
+			handshake_sent = true;
+			
+			connection.getOutgoingMessageQueue().addMessage(
+				new BTHandshake( info_hash, peer_id, false, BTMessageFactory.MESSAGE_VERSION_INITIAL ),
+				false );
+		}
 	}
 }

@@ -67,7 +67,7 @@ public class IncomingSocketChannelManager
   
   protected AEMonitor	this_mon	= new AEMonitor( "IncomingSocketChannelManager" );
 
-
+  private long	last_non_local_connection_time;
   
   
   /**
@@ -142,7 +142,12 @@ public class IncomingSocketChannelManager
     
     SimpleTimer.addPeriodicEvent("IncomingSocketChannelManager:concheck", 60 * 1000, new TimerEventPerformer()
 		{
-			public void perform(TimerEvent ev) {
+			public void 
+			perform(
+				TimerEvent ev ) 
+			{
+				COConfigurationManager.setParameter( "network.tcp.port." + tcp_listen_port + ".last.nonlocal.incoming", last_non_local_connection_time );
+				
 				for (int i = 0; i < serverSelectors.length; i++)
 				{
 					VirtualServerChannelSelector server_selector = serverSelectors[i];
@@ -249,25 +254,35 @@ public class IncomingSocketChannelManager
   }
   
   
-  private final class TcpSelectListener implements VirtualServerChannelSelector.SelectListener {
-      public void newConnectionAccepted( final ServerSocketChannel server, final SocketChannel channel ) {
-      	
-      	//check for encrypted transport
-	      	final TCPTransportHelper	helper = new TCPTransportHelper( channel );
+  private final class 
+  TcpSelectListener implements 
+  VirtualServerChannelSelector.SelectListener 
+  {
+	  public void newConnectionAccepted( final ServerSocketChannel server, final SocketChannel channel ) {
 
-      	TransportCryptoManager.getSingleton().manageCrypto( helper, null, true, null, new TransportCryptoManager.HandshakeListener() {
-      		public void handshakeSuccess( ProtocolDecoder decoder, ByteBuffer remaining_initial_data ) {
-      			process( server.socket().getLocalPort(), decoder.getFilter());
-      		}
+		  InetAddress remote_ia = channel.socket().getInetAddress();
 
-          public void 
-          handshakeFailure( 
-          	Throwable failure_msg ) 
-          {
-          	
-          	if (Logger.isEnabled()) 	Logger.log(new LogEvent(LOGID, "incoming crypto handshake failure: " + Debug.getNestedExceptionMessage( failure_msg )));
-          	
-          	/*
+		  if ( !( remote_ia.isLoopbackAddress() || remote_ia.isLinkLocalAddress() || remote_ia.isSiteLocalAddress())){
+			  
+			  last_non_local_connection_time = SystemTime.getCurrentTime();
+		  }
+		  
+		  //check for encrypted transport
+		  final TCPTransportHelper	helper = new TCPTransportHelper( channel );
+
+		  TransportCryptoManager.getSingleton().manageCrypto( helper, null, true, null, new TransportCryptoManager.HandshakeListener() {
+			  public void handshakeSuccess( ProtocolDecoder decoder, ByteBuffer remaining_initial_data ) {
+				  process( server.socket().getLocalPort(), decoder.getFilter());
+			  }
+
+			  public void 
+			  handshakeFailure( 
+					  Throwable failure_msg ) 
+			  {
+
+				  if (Logger.isEnabled()) 	Logger.log(new LogEvent(LOGID, "incoming crypto handshake failure: " + Debug.getNestedExceptionMessage( failure_msg )));
+
+				  /*
           		// we can have problems with sockets stuck in a TIME_WAIT state if we just
           		// close an incoming channel - to clear things down properly the client needs
           		// to initiate the close. So what we do is send some random bytes to the client
@@ -275,62 +290,62 @@ public class IncomingSocketChannelManager
           		// for 10 seconds to give them a chance to do so.	            	
           		try{
           			Random	random = new Random();
-          		
+
           			byte[]	random_bytes = new byte[68+random.nextInt(128-68)];
-          		
+
           			random.nextBytes( random_bytes );
-          		
+
           			channel.write( ByteBuffer.wrap( random_bytes ));
-          		
+
           		}catch( Throwable e ){
           			// ignore anything here
           		}
           		NetworkManager.getSingleton().closeSocketChannel( channel, 10*1000 );
-          	*/
-          
-          	helper.close( "Handshake failure: " + Debug.getNestedExceptionMessage( failure_msg ));
-          }
-          
-      	public void
-      	gotSecret(
-				byte[]				session_secret )
-      	{
-      	}
-      	
-  		public int
-  		getMaximumPlainHeaderLength()
-  		{
-  			return( incoming_manager.getMaxMinMatchBufferSize());
-  		}
-  		
-  		public int
-  		matchPlainHeader(
-  			ByteBuffer			buffer )
-  		{
-  			Object[]	match_data = incoming_manager.checkForMatch( helper, server.socket().getLocalPort(), buffer, true );
-  			
-  			if ( match_data == null ){
-  				
-  				return( TransportCryptoManager.HandshakeListener.MATCH_NONE );
-  				
-  			}else{
-  				
-  				IncomingConnectionManager.MatchListener match = (IncomingConnectionManager.MatchListener)match_data[0];
-  				
-  				if ( match.autoCryptoFallback()){
-  					
-	    				return( TransportCryptoManager.HandshakeListener.MATCH_CRYPTO_AUTO_FALLBACK );
-	    					
-  				}else{
-  					
-	    				return( TransportCryptoManager.HandshakeListener.MATCH_CRYPTO_NO_AUTO_FALLBACK );
-	    				
-  				}
-  			}
-				}
-			});
-		}
-	}
+				   */
+
+				  helper.close( "Handshake failure: " + Debug.getNestedExceptionMessage( failure_msg ));
+			  }
+
+			  public void
+			  gotSecret(
+					  byte[]				session_secret )
+			  {
+			  }
+
+			  public int
+			  getMaximumPlainHeaderLength()
+			  {
+				  return( incoming_manager.getMaxMinMatchBufferSize());
+			  }
+
+			  public int
+			  matchPlainHeader(
+					  ByteBuffer			buffer )
+			  {
+				  Object[]	match_data = incoming_manager.checkForMatch( helper, server.socket().getLocalPort(), buffer, true );
+
+				  if ( match_data == null ){
+
+					  return( TransportCryptoManager.HandshakeListener.MATCH_NONE );
+
+				  }else{
+
+					  IncomingConnectionManager.MatchListener match = (IncomingConnectionManager.MatchListener)match_data[0];
+
+					  if ( match.autoCryptoFallback()){
+
+						  return( TransportCryptoManager.HandshakeListener.MATCH_CRYPTO_AUTO_FALLBACK );
+
+					  }else{
+
+						  return( TransportCryptoManager.HandshakeListener.MATCH_CRYPTO_NO_AUTO_FALLBACK );
+
+					  }
+				  }
+			  }
+		  });
+	  }
+  }
   
   
   private final VirtualServerChannelSelector.SelectListener selectListener = new TcpSelectListener();
@@ -352,6 +367,13 @@ public class IncomingSocketChannelManager
 			
 			if (COConfigurationManager.getBooleanParameter(port_enable_config_key))
 			{
+				last_non_local_connection_time = COConfigurationManager.getLongParameter( "network.tcp.port." + tcp_listen_port + ".last.nonlocal.incoming", 0 );
+				
+				if ( last_non_local_connection_time > SystemTime.getCurrentTime()){
+					
+					last_non_local_connection_time = SystemTime.getCurrentTime();
+				}
+				
 				if (serverSelectors.length == 0)
 				{
 					InetSocketAddress address;
@@ -421,7 +443,11 @@ public class IncomingSocketChannelManager
   }
   
   
-
+  protected long
+  getLastNonLocalConnectionTime()
+  {
+	  return( last_non_local_connection_time );
+  }
   
   private void restart() {
   	try{

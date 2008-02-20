@@ -316,10 +316,14 @@ NetStatusProtocolTester
 				
 				TCPNetworkManager tcp_man = TCPNetworkManager.getSingleton();
 				
-				if ( 	tcp_man.isTCPListenerEnabled() &&
-						tcp_man.getTCPListeningPortNumber() == ddb.getLocalContact().getAddress().getPort()){
-									
-						// TODO; see if we support it
+				InetSocketAddress adjusted_originator = adjustLoopback( originator );
+				
+				boolean	test = adjusted_originator.getAddress().isLoopbackAddress();
+				
+				if ( 	test ||
+						(	tcp_man.isTCPListenerEnabled() &&
+							tcp_man.getTCPListeningPortNumber() == ddb.getLocalContact().getAddress().getPort() &&
+							SystemTime.getCurrentTime() - tcp_man.getLastIncomingNonLocalConnectionTime() <= 24*60*60*1000 )){
 					
 					byte[]	their_hash	= (byte[])request.get( "h" );
 					
@@ -343,7 +347,7 @@ NetStatusProtocolTester
 							}
 						}
 						
-						bt_tester.testOutbound( adjustLoopback( originator ), their_hash, true );
+						bt_tester.testOutbound( adjusted_originator, their_hash, true );
 						
 						reply.put( "h", bt_tester.getServerHash());
 					}
