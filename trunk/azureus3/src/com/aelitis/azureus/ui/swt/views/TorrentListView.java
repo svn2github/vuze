@@ -184,7 +184,7 @@ public class TorrentListView
 						int max = (dataArea.getClientArea().height - 8) / rowHeightDefault;
 						for (int i = 0; i < managers.length; i++) {
 							DownloadManager dm = managers[i];
-							downloadManagerAdded(dm);
+							downloadManagerAdded(dm, bSkipUpdateCount);
 
 							if (max == i) {
 								// processDataSourceQueue will refresh visible rows
@@ -635,6 +635,11 @@ public class TorrentListView
 
 	// GlobalManagerListener
 	public void downloadManagerAdded(final DownloadManager dm) {
+		downloadManagerAdded(dm, bSkipUpdateCount);
+	}
+
+	public void downloadManagerAdded(final DownloadManager dm,
+			final boolean bSkipUpdateCount) {
 		//regetDownloads();
 		dm.addListener(dmListener);
 		if (isOurDownload(dm)) {
