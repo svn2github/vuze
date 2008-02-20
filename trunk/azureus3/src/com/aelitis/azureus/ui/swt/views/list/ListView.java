@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
@@ -89,6 +90,10 @@ public class ListView
 	private static final ConfigurationManager configMan = ConfigurationManager.getInstance();
 
 	private static final String CFG_SORTDIRECTION = "config.style.table.defaultSortOrder";
+
+	private static final long IMMEDIATE_ADDREMOVE_DELAY = 150;
+
+	private static final long IMMEDIATE_ADDREMOVE_MAXDELAY = 2000;
 
 	public int rowMarginHeight = 2;
 
@@ -223,6 +228,10 @@ public class ListView
 	private Display display;
 
 	protected int rowFocusStyle;
+
+	private Timer timerProcessDataSources = new Timer("Process Data Sources");
+
+	private TimerEvent timerEventProcessDS;
 
 	static {
 		rowYPosComparator = new Comparator() {
@@ -1487,6 +1496,49 @@ public class ListView
 		}
 	}
 
+	private void refreshenProcessDataSourcesTimer() {
+		if (timerProcessDataSources == null) {
+			// when timerProcessDataSources is null, we are disposing
+			return;
+		}
+		
+		synchronized (timerProcessDataSources) {
+			if (timerEventProcessDS != null && !timerEventProcessDS.hasRun()) {
+				// Push timer forward, unless we've pushed it forward for over x seconds
+				long now = SystemTime.getCurrentTime();
+				if (now - timerEventProcessDS.getCreatedTime() < IMMEDIATE_ADDREMOVE_MAXDELAY) {
+					long lNextTime = now + IMMEDIATE_ADDREMOVE_DELAY;
+					timerProcessDataSources.adjustAllBy(lNextTime
+							- timerEventProcessDS.getWhen());
+				} else {
+					timerEventProcessDS.cancel();
+					timerEventProcessDS = null;
+					if (DEBUGADDREMOVE) {
+						logADDREMOVE("Over immediate delay limit, processing queue now");
+					}
+
+					processDataSourceQueue();
+				}
+			} else {
+				timerEventProcessDS = timerProcessDataSources.addEvent(
+						SystemTime.getCurrentTime() + IMMEDIATE_ADDREMOVE_DELAY,
+						new TimerEventPerformer() {
+							public void perform(TimerEvent event) {
+								if (DEBUGADDREMOVE && timerEventProcessDS != null) {
+									logADDREMOVE("processDataSourceQueue after "
+											+ (SystemTime.getCurrentTime() - timerEventProcessDS.getCreatedTime())
+											+ "ms");
+								}
+
+								timerEventProcessDS = null;
+
+								processDataSourceQueue();
+							}
+						});
+			}
+		}
+	}
+
 	/**
 	 * Process the queue of datasources to be added and removed
 	 *
@@ -1527,20 +1579,15 @@ public class ListView
 			row_mon.exit();
 		}
 
-		if (dataSourcesAdd != null) {
+		if (dataSourcesAdd != null && dataSourcesAdd.length > 0) {
 			addDataSources(dataSourcesAdd, true);
 			if (DEBUGADDREMOVE && dataSourcesAdd.length > 1) {
 				logADDREMOVE("Streamlined adding " + dataSourcesAdd.length + " rows");
 			}
 		}
 
-		if (dataSourcesRemove != null) {
-			// for now, remove one at a time
-			// TODO: all at once
-			for (int i = 0; i < dataSourcesRemove.length; i++) {
-				Object ds = dataSourcesRemove[i];
-				removeDataSource(ds, true);
-			}
+		if (dataSourcesRemove != null && dataSourcesRemove.length > 0) {
+			reallyRemoveDataSources(dataSourcesRemove);
 		}
 	}
 
@@ -1597,7 +1644,12 @@ public class ListView
 
 			} finally {
 				row_mon.exit();
+				refreshenProcessDataSourcesTimer();
 			}
+		}
+
+		if (DEBUGADDREMOVE) {
+			logADDREMOVE(sTableID + ": Add immediate via " + Debug.getCompressedStackTrace(3));
 		}
 
 		Utils.execSWTThread(new Runnable() {
@@ -1742,6 +1794,33 @@ public class ListView
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#removeDataSources(java.lang.Object[])
 	public void removeDataSources(final Object[] dataSources) {
+		if (dataSources == null) {
+			return;
+		}
+
+		if (IMMEDIATE_ADDREMOVE_DELAY == 0) {
+			reallyRemoveDataSources(dataSources);
+			return;
+		}
+
+		try {
+			row_mon.enter();
+
+			for (int i = 0; i < dataSources.length; i++)
+				dataSourcesToRemove.add(dataSources[i]);
+
+			if (DEBUGADDREMOVE)
+				logADDREMOVE("Queued " + dataSources.length
+						+ " dataSources to remove.  Total Queued: "
+						+ dataSourcesToRemove.size());
+		} finally {
+			row_mon.exit();
+		}
+
+		refreshenProcessDataSourcesTimer();
+	}
+
+	private void reallyRemoveDataSources(final Object[] dataSources) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				try {
@@ -3826,6 +3905,11 @@ public class ListView
 		UIUpdaterFactory.getInstance().removeUpdater(this);
 		TableStructureEventDispatcher.getInstance(sTableID).removeListener(this);
 
+		if (timerProcessDataSources != null) {
+			timerProcessDataSources.destroy();
+			timerProcessDataSources = null;
+		}
+
 		Utils.disposeSWTObjects(new Object[] {
 			headerArea,
 			listCanvas
@@ -3899,11 +3983,10 @@ public class ListView
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#refreshTable(boolean)
 	public void refreshTable(final boolean forceSort) {
-		if (listCanvas.isDisposed()) {
+		if (listCanvas.isDisposed() || !viewVisible) {
 			return;
 		}
 		//log("updateUI via " + Debug.getCompressedStackTrace());
-		processDataSourceQueue();
 
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
