@@ -708,7 +708,11 @@ public class TransferStatsView extends AbstractIView {
 
 		  GC gc = new GC( image );
 
-		  gc.setAntialias( SWT.ON );
+		  try {
+		  	gc.setAntialias( SWT.ON );
+		  } catch (Exception e) {
+		  	// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
+		  }
 
 		  int font_height 	= gc.getFontMetrics().getHeight();
 		  int char_width 	= gc.getFontMetrics().getAverageCharWidth();

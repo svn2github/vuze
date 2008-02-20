@@ -203,7 +203,11 @@ Plot3D
 			int usable_width 	= bounds.width - PAD_LEFT - PAD_RIGHT;
 			int usable_height	= bounds.height - PAD_TOP - PAD_BOTTOM;
 			
-			image.setAntialias( SWT.ON );
+			try {
+				image.setAntialias( SWT.ON );
+		  } catch (Exception e) {
+		  	// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
+		  }
 			
 			double	x_ratio = ((float)usable_width-((usable_height/2)/ANGLE_TAN)) / max_x;
 			double	y_ratio = ((float)usable_height/2) / max_y;
