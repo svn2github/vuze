@@ -204,6 +204,10 @@ DiskManagerCheckRequestListener, IPFilterListener
 	private Unchoker		unchoker;
 
 	private List	external_rate_limiters_cow;
+	
+	
+	private List sweepList = Collections.EMPTY_LIST;
+	private int nextPEXSweepIndex = 0;
 
 
 	private final UploadHelper upload_helper = new UploadHelper() {		
@@ -3574,19 +3578,24 @@ DiskManagerCheckRequestListener, IPFilterListener
 		}
 
 
-		//every 60 seconds
-		if ( mainloop_loop_count % MAINLOOP_SIXTY_SECOND_INTERVAL == 0 ) {
-			//do peer exchange volleys
-			final ArrayList peer_transports = peer_transports_cow;
-			for( int i=0; i < peer_transports.size(); i++ ) {
-				final PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
-				peer.updatePeerExchange();
-			}
+		//sweep over all peers in a 60 second timespan
+		float percentage = ((mainloop_loop_count % MAINLOOP_SIXTY_SECOND_INTERVAL) + 1F) / (1F *MAINLOOP_SIXTY_SECOND_INTERVAL);
+		int goal;
+		if(mainloop_loop_count % MAINLOOP_SIXTY_SECOND_INTERVAL == 0)
+		{
+			goal = 0;
+			sweepList = peer_transports_cow;
+		} else
+			goal = (int)Math.floor(percentage * sweepList.size());
+		
+		for( int i=nextPEXSweepIndex; i < goal && i < sweepList.size(); i++) {
+			//System.out.println(mainloop_loop_count+" %:"+percentage+" start:"+nextPEXSweepIndex+" current:"+i+" <"+goal+"/"+sweepList.size());
+			final PEPeerTransport peer = (PEPeerTransport)sweepList.get( i );
+			peer.updatePeerExchange();
 		}
+
+		nextPEXSweepIndex = goal;
 	}
-	
-	
-	
 
 	private void
 	doUDPConnectionChecks(
