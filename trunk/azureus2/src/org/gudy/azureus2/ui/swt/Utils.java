@@ -1766,6 +1766,11 @@ public class Utils
 	 * We use a best-effort approach with an emphasis to have at least the top-left of the Rectangle
 	 * be visible.  If the given Rectangle does not fit entirely in the monitor then portion
 	 * of the right and/or left may be off-screen.
+	 * 
+	 * <P>
+	 * This method does honor global screen elements when possible.  Screen elements include the TaskBar on Windows
+	 * and the Application menu on OSX, and possibly others.  The re-positioned Rectangle returned will fit on the
+	 * screen without overlapping (or sliding under) these screen elements.
 	 * @param rect 
 	 * @return
 	 */
