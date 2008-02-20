@@ -469,6 +469,8 @@ public class MainWindow
 			 */
 			uiFunctions.setSkin(skin);
 
+			VuzeActivitiesManager.initialize(core, skin);
+
 			initSkinListeners();
 
 			if (splash != null && splash.getPercent() < 99) {
@@ -678,8 +680,6 @@ public class MainWindow
 			System.out.println("processStartupDMS took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
-
-			VuzeActivitiesManager.initialize(core, skin);
 		}
 	}
 
