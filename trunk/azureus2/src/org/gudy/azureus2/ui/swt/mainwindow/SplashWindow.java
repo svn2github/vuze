@@ -24,11 +24,7 @@ package org.gudy.azureus2.ui.swt.mainwindow;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.ProgressBar;
-import org.eclipse.swt.widgets.Shell;
-
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -162,6 +158,9 @@ public class SplashWindow implements InitializerListener {
     Utils.execSWTThread(new AERunnable(){
       public void runSupport() {
       	updating = false;
+      	if (splash == null || splash.isDisposed()) {
+      		return;
+      	}
         //Ensure than the task Label is created and not disposed
         if(currentTask != null && !currentTask.isDisposed() && task != null) {
         	currentTask.setText(task);
@@ -170,6 +169,7 @@ public class SplashWindow implements InitializerListener {
         if(percentDone != null && !percentDone.isDisposed()) {
         	percentDone.setSelection(percent);
         }
+        splash.update();
       }
     });
 	}
@@ -180,6 +180,7 @@ public class SplashWindow implements InitializerListener {
 
 	// AzureusCoreListener
   public void reportPercent(final int percent) {
+  	//System.out.println("splash: " + percent + " via " + Debug.getCompressedStackTrace());
     //Ensure that display is set and not disposed
     if(display == null || display.isDisposed())
       return;
