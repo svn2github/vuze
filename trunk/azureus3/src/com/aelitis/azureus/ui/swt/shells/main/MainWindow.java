@@ -731,9 +731,9 @@ public class MainWindow
 			while (display.readAndDispatch() && i > 0) {
 				i--;
 			}
-			if (i < 999) {
-				System.out.println("dispatched " + (1000 - i));
-			}
+			//if (i < 999) {
+			//	System.out.println("dispatched " + (1000 - i));
+			//}
 		}
 	}
 
