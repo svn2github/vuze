@@ -36,6 +36,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
+import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
 import com.aelitis.azureus.ui.swt.skin.*;
@@ -57,7 +58,8 @@ public class Browse
 	 * @see com.aelitis.azureus.ui.swt.views.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	 */
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
-		browserSkinObject = (SWTSkinObjectBrowser) skinObject;
+		browserSkinObject = (SWTSkinObjectBrowser) skinObject.getSkin().getSkinObject(
+				SkinConstants.VIEWID_BROWSER_BROWSE);
 		if (PULL_TABS) {
 			PlatformConfigMessenger.getBrowseSections(
 					PlatformConfigMessenger.SECTION_TYPE_BIGBROWSE, 0,
@@ -89,7 +91,6 @@ public class Browse
 
 		browserSkinObject.setURL(Constants.URL_PREFIX + Constants.URL_BIG_BROWSE
 				+ "?" + Constants.URL_SUFFIX);
-		browserSkinObject.layout();
 	}
 
 	/**
@@ -175,6 +176,8 @@ public class Browse
 	}
 
 	public void restart() {
-		browserSkinObject.restart();
+		if (browserSkinObject != null) {
+			browserSkinObject.restart();
+		}
 	}
 }
