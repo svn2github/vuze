@@ -783,6 +783,7 @@ public class ListView
 					gcImgView.fillRectangle(0, clientArea.y + clientArea.height - gap,
 							clientArea.width, gap);
 				}
+				listCanvas.redraw();
 
 				long diff = System.currentTimeMillis() - lStart;
 				if (diff > 100) {
