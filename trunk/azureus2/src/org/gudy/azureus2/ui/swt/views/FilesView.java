@@ -181,20 +181,24 @@ public class FilesView
     // Invoke open on enter, double click
     menu.setDefaultItem(itemOpen);
 
-		// Explore  (Copied from MyTorrentsView)
-		final MenuItem itemExplore = new MenuItem(menu, SWT.PUSH);
-		Messages.setLanguageText(itemExplore, "MyTorrentsView.menu.explore");
-		itemExplore.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event event) {
+	// Explore  (Copied from MyTorrentsView)
+	final boolean use_open_containing_folder = COConfigurationManager.getBooleanParameter("MyTorrentsView.menu.show_parent_folder_enabled");
+	final MenuItem itemExplore = new MenuItem(menu, SWT.PUSH);
+	Messages.setLanguageText(itemExplore, "MyTorrentsView.menu." + (use_open_containing_folder ? "open_parent_folder" : "explore"));
+	itemExplore.addListener(SWT.Selection, new Listener() {
+		public void handleEvent(Event event) {
 		    Object[] dataSources = tv.getSelectedDataSources();
 		    for (int i = dataSources.length - 1; i >= 0; i--) {
 		    	DiskManagerFileInfo info = (DiskManagerFileInfo)dataSources[i];
-		      if (info != null)
-		        ManagerUtils.open(info.getFile(true));
+		    	if (info != null) {
+		    		File this_file = info.getFile(true);
+		    		File parent_file = (use_open_containing_folder) ? this_file.getParentFile() : null;
+		    		ManagerUtils.open((parent_file == null) ? this_file : parent_file);
+		    	}
 		    }
-			}
-		});
-		itemExplore.setEnabled(hasSelection);
+		}
+	});
+	itemExplore.setEnabled(hasSelection);
 
 	MenuItem itemRenameOrRetarget = null, itemRename = null, itemRetarget = null;
 
