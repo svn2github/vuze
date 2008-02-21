@@ -45,6 +45,7 @@ public class StartStopButtonUtil
 			TableRowCore[] selectedRows = view.getSelectedRows();
 
 			if (selectedRows.length == 0) {
+				button.setDisabled(true);
 				return;
 			}
 			boolean bResume = true;
