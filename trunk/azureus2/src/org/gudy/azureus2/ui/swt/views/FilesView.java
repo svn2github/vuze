@@ -442,7 +442,8 @@ public class FilesView
 				}
 				
 				// So are we doing a rename?
-				if (f_target == null) {continue;}
+				// If the user has decided against it - abort the op.
+				if (f_target == null) {return;}
 			
 			    if (!paused) {paused = manager.pause();}
 			    
