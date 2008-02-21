@@ -25,6 +25,8 @@ import java.net.InetSocketAddress;
 import java.util.*;
 
 
+import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Constants;
@@ -65,6 +67,8 @@ NetStatusProtocolTester
 	
 	private static final int	CURRENT_VERSION	= VERSION_INITIAL;
 		
+	private static final int	BT_MAX_SLAVES	= 8;
+	
 	private NetStatusPlugin		plugin;
 	private PluginInterface		plugin_interface;
 
@@ -119,12 +123,24 @@ NetStatusProtocolTester
 		}
 	}
 	
-	protected void
+	public NetStatusProtocolTesterBT
 	runTest(
-		String	test_address )
+		final NetStatusProtocolTesterListener		listener )
 	{
-		NetStatusProtocolTesterBT bt_tester = new NetStatusProtocolTesterBT( this );
+		return( runTest( "", listener ));
+	}
+	
+	public NetStatusProtocolTesterBT
+	runTest(
+		String										test_address,
+		final NetStatusProtocolTesterListener		listener )
+	{
+		final NetStatusProtocolTesterBT bt_tester = new NetStatusProtocolTesterBT( this );
 
+		bt_tester.addListener( listener );
+		
+		bt_tester.start();
+		
 		addToActive( bt_tester );
 		
 		try{
@@ -148,20 +164,76 @@ NetStatusProtocolTester
 				
 				if ( target_dht == null ){
 					
-					log( "DHT not found" );
+					listener.logError( "Distributed database unavailable" );
 					
 				}else{
 					
 					DHTTransportContact[] contacts = target_dht.getTransport().getReachableContacts();
 					
-					for (int i=0;i<contacts.length;i++){
+					final List f_contacts = new ArrayList(Arrays.asList(contacts));
+					
+					final int[]	ok = new int[]{ 0 };
+					
+					final int	num_threads = Math.min( BT_MAX_SLAVES, contacts.length );
+					
+					listener.log( "Searching " + contacts.length + " contacts for " + num_threads + " test targets" );
+							
+					final AESemaphore	sem = new AESemaphore( "NetStatusProbe" );
+					
+					for (int i=0;i<num_threads;i++){
 						
-						DHTTransportContact dht_contact = contacts[i];
-						
-						DistributedDatabaseContact contact = ddb.importContact( dht_contact.getAddress());
-						
-						tryTest( bt_tester, contact );
+						new AEThread2( "NetStatusProbe", true )
+						{
+							public void
+							run()
+							{
+								try{
+									while( !bt_tester.isDestroyed()){
+										
+										DHTTransportContact	contact = null;
+										
+										synchronized( ok ){
+											
+											if ( ok[0] < num_threads && f_contacts.size() > 0 ){
+												
+												contact = (DHTTransportContact)f_contacts.remove(0);
+											}
+										}
+										
+										if ( contact == null ){
+											
+											break;
+										}
+										
+										try{
+											DistributedDatabaseContact ddb_contact = ddb.importContact( contact.getAddress());
+											
+											if ( tryTest( bt_tester, ddb_contact )){
+												
+												synchronized( ok ){
+													
+													ok[0]++;
+												}
+											}
+										}catch( Throwable e ){
+											
+											listener.logError( "Contact import for " + contact.getName() + " failed", e );
+										}
+									}
+								}finally{
+									
+									sem.release();
+								}
+							}
+						}.start();
 					}
+					
+					for (int i=0;i<num_threads;i++){
+						
+						sem.reserve();
+					}
+					
+					listener.log( "Searching complete, " + ok[0] + " targets found" );
 				}
 			}else{
 				
@@ -171,7 +243,7 @@ NetStatusProtocolTester
 					
 					log( "Invalid address - use <host>:<port> " );
 					
-					return;
+					return( bt_tester );
 				}
 				
 				InetSocketAddress address = new InetSocketAddress( bits[0].trim(), Integer.parseInt( bits[1].trim()));
@@ -182,15 +254,43 @@ NetStatusProtocolTester
 			}
 		}catch( Throwable e ){
 			
-			log( "Test failed", e );
+			listener.logError( "Test failed", e );
 			
 		}finally{
 			
-			if ( !bt_tester.isActive()){
-				
-				removeFromActive( bt_tester );
-			}
+			bt_tester.addListener(
+				new NetStatusProtocolTesterListener()
+				{
+					public void
+					complete()
+					{
+						removeFromActive( bt_tester );
+					}
+					
+					public void
+					log(
+						String		str )
+					{
+					}
+					
+					public void
+					logError(
+						String		str )
+					{
+					}
+					
+					public void
+					logError(
+						String		str,
+						Throwable	e )
+					{
+					}
+				});
+			
+			bt_tester.setOutboundConnectionsComplete();
 		}
+		
+		return( bt_tester );
 	}
 	
 	protected boolean
@@ -342,6 +442,8 @@ NetStatusProtocolTester
 							}else{
 								
 								bt_tester = new NetStatusProtocolTesterBT( this );
+								
+								bt_tester.start();
 								
 								addToActive( bt_tester );
 							}

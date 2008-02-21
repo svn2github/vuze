@@ -26,7 +26,9 @@ import java.nio.ByteBuffer;
 import java.security.SecureRandom;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SystemTime;
 
@@ -46,13 +48,16 @@ import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessage;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessageDecoder;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessageEncoder;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessageFactory;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public class 
 NetStatusProtocolTesterBT 
 {
 	private static Random	random = new SecureRandom();
 	
-	private NetStatusProtocolTester	tester;
+	private NetStatusProtocolTester			tester;
+	private CopyOnWriteList					listeners	= new CopyOnWriteList();
+	
 	
 	private byte[]		my_hash;
 	private byte[]		peer_id;
@@ -61,17 +66,28 @@ NetStatusProtocolTesterBT
 
 	private long		start_time	= SystemTime.getCurrentTime();
 	
-	private List		connections	= new ArrayList();
+	private List		sessions	= new ArrayList();
 		
-	private boolean		active;
+	private long		outbound_attempts	= 0;
+	private long		outbound_connects	= 0;
+	private long		inbound_connects	= 0;
+
+	private boolean		outbound_connections_complete;
+	private AESemaphore	completion_sem = new AESemaphore( "Completion" );
+	
+	
 	private boolean		destroyed;
 	
 	protected
 	NetStatusProtocolTesterBT(
-		NetStatusProtocolTester		_tester )
+		NetStatusProtocolTester			_tester )
 	{
-		tester	= _tester;
-		
+		tester		= _tester;
+	}
+	
+	protected void
+	start()
+	{
 		my_hash = new byte[20];
 		
 		random.nextBytes( my_hash );
@@ -97,8 +113,8 @@ NetStatusProtocolTesterBT
 	          	{
 	          		log( "Got incoming connection from " + connection.getEndpoint().getNotionalAddress());
 	          		
-	          		initialiseConnection( connection, null );
-	          		
+	          		new Session( connection, null );
+	          			          		
 	          		return( true );
 	          	}
 	          	
@@ -157,9 +173,12 @@ NetStatusProtocolTesterBT
 		final byte[]			their_hash,
 		boolean					use_crypto )
 	{
-		active	= true;
-		
 		log( "Making outbound connection to " + address );
+		
+		synchronized( this ){
+		
+			outbound_attempts++;
+		}
 		
 		boolean	allow_fallback	= false;
 		
@@ -178,99 +197,15 @@ NetStatusProtocolTesterBT
 					allow_fallback, 
 					new byte[][]{ their_hash });
 	
-		connection.connect( 
-				true,
-				new NetworkConnection.ConnectionListener() 
-				{
-					public final void 
-					connectStarted() 
-					{
-						log( "Outbound connect start" );
-					}
-
-					public final void 
-					connectSuccess( 
-						ByteBuffer remaining_initial_data ) 
-					{
-						log( "Outbound connect success" );
-						
-						initialiseConnection( connection, their_hash );
-					}
-
-					public final void 
-					connectFailure( 
-						Throwable e ) 
-					{
-						log( "Outbound connect fail", e );
-						
-						closeConnection( connection );
-					}
-
-					public final void 
-					exceptionThrown( 
-						Throwable e ) 
-					{
-						log( "Outbound connect fail", e );
-						
-						closeConnection( connection );
-					}
-    			
-					public String
-					getDescription()
-					{
-						return( "NetStatusPlugin - outbound" );
-					}
-				});
+		new Session( connection, their_hash );
 	}
-	
-	protected void
-	initialiseConnection(
-		NetworkConnection	connection,
-		byte[]				info_hash )
-	{
-		synchronized( this ){
-			
-			if ( destroyed ){
-				
-				log( "Already destroyed" );
-				
-				connection.close();
-				
-				return;
-				
-			}else{
-				
-				connections.add( connection );
-			}
-		}
 		
-		new Session( connection, info_hash );
-	}
-	
-	protected void
-	closeConnection(
-		NetworkConnection	c )
-	{
-		synchronized( this ){
-
-			connections.remove( c );
-		}
-		
-		c.close();
-	}
-	
-	protected boolean
-	isActive()
-	{
-		return( active );
-	}
-	
-	protected void
+	public void
 	destroy()
 	{
 		List	to_close	= new ArrayList();
 		
-		synchronized( this ){
+		synchronized( sessions ){
 			
 			if ( destroyed ){
 				
@@ -279,22 +214,23 @@ NetStatusProtocolTesterBT
 			
 			destroyed = true;
 			
-			to_close.addAll( connections );
+			to_close.addAll( sessions );
 			
-			connections.clear();
+			sessions.clear();
 		}
 		
 		for (int i=0;i<to_close.size();i++){
 			
-			NetworkConnection connection = (NetworkConnection)to_close.get(i);
+			Session session = (Session)to_close.get(i);
 			
-			connection.close();
+			session.close();
 		}
 		
 		pm_reg.unregister();
 		
+		checkCompletion();
+		
 		log( "Incoming routing destroyed for " + ByteFormatter.encodeString( my_hash ));
-
 	}
 	
 	protected boolean
@@ -303,18 +239,152 @@ NetStatusProtocolTesterBT
 		return( destroyed );
 	}
 	
-	protected void
-	log(
-		String	str )
+	public void
+	setOutboundConnectionsComplete()
 	{
-		tester.log( str );
+		synchronized( sessions ){
+
+			outbound_connections_complete	= true;
+		}
+		
+		checkCompletion();
+	}
+	
+	protected void
+	checkCompletion()
+	{
+		boolean	inform = false;
+		
+		synchronized( sessions ){
+	
+			if ( completion_sem.isReleasedForever()){
+				
+				return;
+			}
+			
+			if ( 	destroyed || 
+					( outbound_connections_complete && sessions.size() == 0 )){
+				
+				inform = true;
+				
+				completion_sem.releaseForever();
+			}
+		}
+		
+		if ( inform ){
+			
+			Iterator it = listeners.iterator();
+				
+			while( it.hasNext()){
+				
+				try{
+					((NetStatusProtocolTesterListener)it.next()).complete();
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
+		}
+	}
+	
+	public boolean
+	waitForCompletion(
+		long		max_millis )
+	{
+		if ( max_millis == 0 ){
+			
+			completion_sem.reserve();
+			
+			return( true );
+			
+		}else{
+		
+			return( completion_sem.reserve( max_millis ));
+		}
+	}
+	
+	public void
+	addListener(
+		NetStatusProtocolTesterListener		l )
+	{
+		listeners.add( l );
+	}
+	
+	public void
+	removeListener(
+		NetStatusProtocolTesterListener		l )
+	{
+		listeners.remove( l );
+	}
+	
+	public String
+	getStatus()
+	{
+		return( "sessions=" + sessions.size() + 
+					", out_attempts=" + outbound_attempts + 
+					", out_connect=" + outbound_connects + 
+					", in_connect=" + inbound_connects );
 	}
 	
 	protected void
 	log(
+		String	str )
+	{
+		Iterator it = listeners.iterator();
+		
+		while( it.hasNext()){
+			
+			try{
+				((NetStatusProtocolTesterListener)it.next()).log( str );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+		
+		tester.log( str );
+	}
+	
+	protected void
+	logError(
+		String	str )
+	{
+		Iterator it = listeners.iterator();
+		
+		while( it.hasNext()){
+			
+			try{
+				((NetStatusProtocolTesterListener)it.next()).logError( str );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+		
+		tester.log( str );
+	}
+	
+	protected void
+	logError(
 		String		str,
 		Throwable	e )
 	{
+		Iterator it = listeners.iterator();
+		
+		while( it.hasNext()){
+			
+			try{
+				((NetStatusProtocolTesterListener)it.next()).logError( str, e );
+				
+			}catch( Throwable f ){
+				
+				Debug.printStackTrace(f);
+			}
+		}
+		
 		tester.log( str, e );
 	}
 	
@@ -335,9 +405,87 @@ NetStatusProtocolTesterBT
 		{
 			connection	= _connection;
 			info_hash	= _info_hash;
-			
+
 			initiator 	= info_hash != null;
 			
+
+			synchronized( sessions ){
+					
+				if ( destroyed ){
+					
+					log( "Already destroyed" );
+					
+					close();
+					
+					return;
+					
+				}else{
+					
+					sessions.add( this );
+				}
+			}
+			
+			connection.connect( 
+					true,
+					new NetworkConnection.ConnectionListener() 
+					{
+						final String	type = initiator?"Outbound":"Inbound";
+						
+						public final void 
+						connectStarted() 
+						{
+							log( type + " connect start" );
+						}
+
+						public final void 
+						connectSuccess( 
+							ByteBuffer remaining_initial_data ) 
+						{
+							log( type + " connect success" );
+							
+							synchronized( NetStatusProtocolTesterBT.this ){
+								
+								if ( initiator ){
+									
+									outbound_connects++;
+									
+								}else{
+									
+									inbound_connects++;
+								}
+							}
+							
+							connected();
+						}
+
+						public final void 
+						connectFailure( 
+							Throwable e ) 
+						{
+							logError( type + " connection fail", e );
+							
+							close();
+						}
+
+						public final void 
+						exceptionThrown( 
+							Throwable e ) 
+						{
+							logError( type + " connection fail", e );
+							
+							close();					}
+	    			
+						public String
+						getDescription()
+						{
+							return( "NetStatusPlugin - " + type );
+						}
+					});
+		}
+		
+		protected void
+		connected()
+		{
 			connection.getIncomingMessageQueue().registerQueueListener(
 				new IncomingMessageQueue.MessageQueueListener() 
 				{
@@ -445,6 +593,19 @@ NetStatusProtocolTesterBT
 			connection.getOutgoingMessageQueue().addMessage(
 				new BTHandshake( info_hash, peer_id, false, BTMessageFactory.MESSAGE_VERSION_INITIAL ),
 				false );
+		}
+		
+		protected void
+		close()
+		{
+			synchronized( sessions ){
+
+				sessions.remove( this );
+			}
+
+			connection.close();
+			
+			checkCompletion();
 		}
 	}
 }

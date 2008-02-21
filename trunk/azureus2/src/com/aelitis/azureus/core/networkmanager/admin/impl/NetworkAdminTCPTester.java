@@ -60,7 +60,7 @@ NetworkAdminTCPTester
 			
 		}catch( Throwable e ){
 			
-			throw( new NetworkAdminException( "Outbound check failed", e ));
+			throw( new NetworkAdminException( "Outbound test failed", e ));
 		}
 	}
 	
@@ -79,7 +79,7 @@ NetworkAdminTCPTester
 			
 		}else{
 			
-			throw( new NetworkAdminException( "NAT check failed: " + checker.getAdditionalInfo()));
+			throw( new NetworkAdminException( "NAT test failed: " + checker.getAdditionalInfo()));
 		}
 	}
 }

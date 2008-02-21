@@ -54,6 +54,8 @@ NetStatusPluginView
 	private Button		cancel_button;
 	private StyledText 	log;
 	
+	private int			selected_tests;
+	
 	private NetStatusPluginTester		current_test;
 	
 	private static final int LOG_NORMAL 	= 1;
@@ -118,7 +120,7 @@ NetStatusPluginView
 		
 		Composite main = new Composite(composite, SWT.NONE);
 		GridLayout layout = new GridLayout();
-		layout.numColumns = 2;
+		layout.numColumns = 1;
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
 		main.setLayout(layout);
@@ -135,7 +137,7 @@ NetStatusPluginView
 		control.setLayout(layout);
 
 		grid_data = new GridData(GridData.FILL_HORIZONTAL);
-		grid_data.horizontalSpan = 3;
+		grid_data.horizontalSpan = 1;
 		control.setLayoutData(grid_data);
 
 				// start
@@ -180,16 +182,99 @@ NetStatusPluginView
 		
 		 	cancel_button.setEnabled( false );
 		 	
+			Composite options = new Composite(control, SWT.NONE);
+			layout = new GridLayout();
+			layout.numColumns 	 	= 3;
+			layout.marginHeight 	= 4;
+			layout.marginWidth 		= 4;
+			options.setLayout(layout);
+
+			grid_data = new GridData(GridData.FILL_HORIZONTAL);
+			options.setLayoutData(grid_data);
+
+				Button opt1 = new Button( options, SWT.CHECK );
+
+				opt1.setText( "ping/route" );
+				
+				addOption( opt1, NetStatusPluginTester.TEST_PING_ROUTE );
+				
+				Button opt2 = new Button( options, SWT.CHECK );
+
+				opt2.setText( "outbound" );
+
+				addOption( opt2, NetStatusPluginTester.TEST_OUTBOUND );
+
+				Button opt3 = new Button( options, SWT.CHECK );
+
+				opt3.setText( "inbound" );
+
+				addOption( opt3, NetStatusPluginTester.TEST_INBOUND );
+
+				Button opt4 = new Button( options, SWT.CHECK );
+
+				opt4.setText( "nat/proxies" );
+
+				addOption( opt4, NetStatusPluginTester.TEST_NAT_PROXIES );
+
+				Button opt5 = new Button( options, SWT.CHECK );
+
+				opt5.setText( "BT connect" );
+
+				addOption( opt5, NetStatusPluginTester.TEST_BT_CONNECT );
+				
 			// log area
 		
 		log = new StyledText(main,SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);
 		grid_data = new GridData(GridData.FILL_BOTH);
-		grid_data.horizontalSpan = 2;
+		grid_data.horizontalSpan = 1;
 		grid_data.horizontalIndent = 4;
 		log.setLayoutData(grid_data);
 		log.setIndent( 4 );
 	}
 	
+	protected void
+	addOption(
+		final Button		button,
+		final int			type )
+	{
+		final String	config = "test.option." + type;
+		
+		boolean	selected = plugin.getBooleanParameter( config, true );
+		
+		if ( selected ){
+			
+			selected_tests |= type;
+			
+		}else{
+			
+			selected_tests &= ~type;
+		}
+		
+		button.setSelection( selected );
+		
+	 	button.addSelectionListener(
+		 		new SelectionAdapter()
+		 		{
+		 			public void
+		 			widgetSelected(
+		 				SelectionEvent e )
+		 			{
+		 				boolean selected = button.getSelection();
+		 				
+		 				if ( selected ){
+		 					
+		 					selected_tests |= type;
+		 					
+		 				}else{
+		 					
+		 					selected_tests &= ~type;
+		 				}
+		 				
+		 				plugin.setBooleanParameter( config, selected );
+		 			}
+		 		});
+	}
+			
 	protected void
 	startTest()
 	{
@@ -232,6 +317,7 @@ NetStatusPluginView
 				current_test = 
 					new NetStatusPluginTester(
 						plugin,
+						selected_tests,
 						new NetStatusPluginTester.loggerProvider()
 						{
 							public void 

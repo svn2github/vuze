@@ -22,6 +22,7 @@
 package com.aelitis.azureus.plugins.net.netstatus;
 
 
+import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
 
 import org.gudy.azureus2.core3.util.Constants;
@@ -45,6 +46,8 @@ NetStatusPlugin
 {
 	public static final String VIEW_ID = "aznetstatus";
 	
+	private PluginInterface	plugin_interface;
+	
 	private LoggerChannel	logger;
 	
 	private StringParameter ping_target;
@@ -52,13 +55,15 @@ NetStatusPlugin
 	private ActionParameter test_button;
 	private StringParameter test_address;
 	
-	
 	private NetStatusProtocolTester		protocol_tester;
+	private AESemaphore					protocol_tester_sem	= new AESemaphore( "ProtTestSem" );
 	
 	public void
 	initialize(
-		final PluginInterface		plugin_interface )
+		final PluginInterface		_plugin_interface )
 	{
+		plugin_interface	= _plugin_interface;
+		
 		String name_res = "Views.plugins." + VIEW_ID + ".title";
 		
 		String name = 
@@ -90,7 +95,37 @@ NetStatusPlugin
 					parameterChanged(
 						Parameter	param )
 					{
-						protocol_tester.runTest( test_address.getValue().trim());
+						protocol_tester.runTest( 
+								test_address.getValue().trim(),
+								new NetStatusProtocolTesterListener()
+								{
+									public void
+									complete()
+									{
+									}
+									
+									public void 
+									log(
+										String str ) 
+									{
+										logger.log( str );
+									}
+									
+									public void 
+									logError(
+										String str ) 
+									{
+										logger.log( str );
+									}
+									
+									public void 
+									logError(
+										String 		str,
+										Throwable 	e )
+									{
+										logger.log( str, e );
+									}
+								});
 					}
 				});
 		}
@@ -132,11 +167,16 @@ NetStatusPlugin
 						public void
 						run()
 						{
-							protocol_tester = new NetStatusProtocolTester( NetStatusPlugin.this, plugin_interface );
-							
-							if ( test_button != null ){
+							try{
+								protocol_tester = new NetStatusProtocolTester( NetStatusPlugin.this, plugin_interface );
 								
-								test_button.setEnabled( true );
+								if ( test_button != null ){
+									
+									test_button.setEnabled( true );
+								}
+							}finally{
+								
+								protocol_tester_sem.releaseForever();
 							}
 						}
 					}.start();
@@ -154,12 +194,34 @@ NetStatusPlugin
 			});
 	}
 	
-
+	public NetStatusProtocolTester
+	getProtocolTester()
+	{
+		protocol_tester_sem.reserve();
+		
+		return( protocol_tester );
+	}
 	
 	public String
 	getPingTarget()
 	{
 		return( ping_target.getValue());
+	}
+	
+	public void
+	setBooleanParameter(
+		String	name,
+		boolean	value )
+	{
+		plugin_interface.getPluginconfig().setPluginParameter( name , value );
+	}
+	
+	public boolean
+	getBooleanParameter(
+		String	name,
+		boolean	def )
+	{
+		return( plugin_interface.getPluginconfig().getPluginBooleanParameter( name, def ));
 	}
 	
 	public void

@@ -27,7 +27,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.*;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -81,7 +80,7 @@ NetworkAdminUDPTester
 			
 		}catch( Throwable e ){
 		
-			throw( new NetworkAdminException( "Outbound check failed", e ));
+			throw( new NetworkAdminException( "Outbound test failed", e ));
 		}
 	}
 	
@@ -260,7 +259,7 @@ NetworkAdminUDPTester
 
 		}catch( Throwable e ){
 
-			throw( new NetworkAdminException( "Inbound check failed", e ));
+			throw( new NetworkAdminException( "Inbound test failed", e ));
 
 		}finally{
 

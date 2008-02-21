@@ -28,13 +28,23 @@ import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.admin.*;
 import com.aelitis.azureus.plugins.net.netstatus.NetStatusPlugin;
+import com.aelitis.azureus.plugins.net.netstatus.NetStatusProtocolTesterBT;
+import com.aelitis.azureus.plugins.net.netstatus.NetStatusProtocolTesterListener;
 
 public class 
 NetStatusPluginTester 
 {
+	public static final int		TEST_PING_ROUTE		= 0x00000001;
+	public static final int		TEST_NAT_PROXIES	= 0x00000002;
+	public static final int		TEST_OUTBOUND		= 0x00000004;
+	public static final int		TEST_INBOUND		= 0x00000008;
+	public static final int		TEST_BT_CONNECT		= 0x00000010;
+
+	
 	private static final int	ROUTE_TIMEOUT	= 120*1000;
 
 	private NetStatusPlugin		plugin;
+	private int					test_types;
 	private loggerProvider		logger;
 	
 	private volatile boolean	test_cancelled;
@@ -42,10 +52,19 @@ NetStatusPluginTester
 	protected
 	NetStatusPluginTester(
 		NetStatusPlugin		_plugin,
+		int					_test_types,
 		loggerProvider		_logger )
 	{
-		plugin	= _plugin;
-		logger	= _logger;
+		plugin		= _plugin;
+		test_types	= _test_types;
+		logger		= _logger;
+	}
+	
+	protected boolean
+	doTest(
+		int		type )
+	{
+		return((test_types & type ) != 0 );
 	}
 	
 	protected void
@@ -55,335 +74,345 @@ NetStatusPluginTester
 		
 		Set	public_addresses = new HashSet();
 		
-		log( "Testing routing for the following interfaces:" );
+		boolean	checked_public	= false;
 		
-		NetworkAdminNetworkInterface[] interfaces = admin.getInterfaces();
-		
-		for (int i=0;i<interfaces.length;i++){
+		if ( doTest( TEST_PING_ROUTE )){
 			
-			NetworkAdminNetworkInterface	intf = interfaces[i];
+			log( "Testing routing for the following interfaces:" );
 			
-			NetworkAdminNetworkInterfaceAddress[] addresses = intf.getAddresses();
+			NetworkAdminNetworkInterface[] interfaces = admin.getInterfaces();
 			
-			String	a_str = "";
-			
-			for (int j=0;j<addresses.length;j++){
+			for (int i=0;i<interfaces.length;i++){
 				
-				NetworkAdminNetworkInterfaceAddress address = addresses[j];
+				NetworkAdminNetworkInterface	intf = interfaces[i];
 				
-				InetAddress ia = address.getAddress();
+				NetworkAdminNetworkInterfaceAddress[] addresses = intf.getAddresses();
 				
-				if ( ia.isLoopbackAddress() || ia instanceof Inet6Address ){
-					
-				}else{
-					
-					a_str += (a_str.length()==0?"":",") + ia.getHostAddress();
-				}
-			}
-			
-			if ( a_str.length() > 0 ){
+				String	a_str = "";
 				
-				log( "    " + intf.getName() + "/" + intf.getDisplayName() + ": " + a_str );
-			}
-		}
-		
-		if ( admin.canPing()){
-			
-			log( "Running ping tests" );
-			
-			try{
-				InetAddress	target_address = InetAddress.getByName( plugin.getPingTarget());
-				
-				final Map	active_pings = new HashMap();
-				
-				admin.pingTargets(
-					target_address, 
-					ROUTE_TIMEOUT, 
-					new NetworkAdminRoutesListener()
-					{
-						private int	timeouts;
-						
-						public boolean
-						foundNode(
-							NetworkAdminNetworkInterfaceAddress		intf,
-							NetworkAdminNode[]						route,
-							int										distance,
-							int										rtt )
-						{
-							if ( test_cancelled ){
-								
-								return( false );
-							}
-							
-							synchronized( active_pings ){
-								
-								active_pings.put( intf, route );
-							}
-							
-							log( "  " + intf.getAddress().getHostAddress() + " -> " + route[route.length-1].getAddress().getHostAddress());
-							
-							return( false );
-						}
-						
-						public boolean
-						timeout(
-							NetworkAdminNetworkInterfaceAddress		intf,
-							NetworkAdminNode[]						route,
-							int										distance )
-						{
-							if ( test_cancelled ){
-								
-								return( false );
-							}
-							
-							log( "  " + intf.getAddress().getHostAddress() + " - timeout" );
-							
-							timeouts++;
-							
-							if ( timeouts >= 3 ){
-								
-								return( false );
-							}
-							
-							return( true );
-						}
-					});
-	
-				if ( test_cancelled ){
+				for (int j=0;j<addresses.length;j++){
 					
-					return;
-				}
-				
-				int	num_routes = active_pings.size();
-				
-				if ( num_routes == 0 ){
+					NetworkAdminNetworkInterfaceAddress address = addresses[j];
 					
-					logError( "No active pings found!" );
+					InetAddress ia = address.getAddress();
 					
-				}else{
-					
-					log( "Found " + num_routes + " pings(s)" );
-					
-					Iterator it = active_pings.entrySet().iterator();
-					
-					while( it.hasNext()){
+					if ( ia.isLoopbackAddress() || ia instanceof Inet6Address ){
 						
-						Map.Entry entry = (Map.Entry)it.next();
+					}else{
 						
-						NetworkAdminNetworkInterfaceAddress address = (NetworkAdminNetworkInterfaceAddress)entry.getKey();
-						
-						NetworkAdminNode[]	route = (NetworkAdminNode[])entry.getValue();
-						
-						String	node_str = "";
-						
-						for (int i=0;i<route.length;i++){
-							
-							node_str += (i==0?"":",") + route[i].getAddress().getHostAddress();
-						}
-						
-						log( "    " + address.getInterface().getName() + "/" + address.getAddress().getHostAddress() + " - " + node_str );
+						a_str += (a_str.length()==0?"":",") + ia.getHostAddress();
 					}
 				}
-			}catch( Throwable e ){
 				
-				logError( "Pinging failed: " + Debug.getNestedExceptionMessage(e));
+				if ( a_str.length() > 0 ){
+					
+					log( "    " + intf.getName() + "/" + intf.getDisplayName() + ": " + a_str );
+				}
 			}
-		}else{
 			
-			logError( "Can't run ping test as not supported" );
-		}
-		
-		if ( test_cancelled ){
-			
-			return;
-		}
-		
-		if ( admin.canTraceRoute()){
-			
-			log( "Running trace route tests" );
-			
-			try{
-				InetAddress	target_address = InetAddress.getByName( plugin.getPingTarget());
+			if ( admin.canPing()){
 				
-				final Map	active_routes = new HashMap();
+				log( "Running ping tests" );
 				
-				admin.getRoutes( 
-					target_address, 
-					ROUTE_TIMEOUT, 
-					new NetworkAdminRoutesListener()
-					{
-						private String	last_as = "";
-						
-						public boolean
-						foundNode(
-							NetworkAdminNetworkInterfaceAddress		intf,
-							NetworkAdminNode[]						route,
-							int										distance,
-							int										rtt )
+				try{
+					InetAddress	target_address = InetAddress.getByName( plugin.getPingTarget());
+					
+					final Map	active_pings = new HashMap();
+					
+					admin.pingTargets(
+						target_address, 
+						ROUTE_TIMEOUT, 
+						new NetworkAdminRoutesListener()
 						{
-							if ( test_cancelled ){
-								
-								return( false );
-							}
+							private int	timeouts;
 							
-							synchronized( active_routes ){
-								
-								active_routes.put( intf, route );
-							}
-							
-							InetAddress ia = route[route.length-1].getAddress();
-							
-							String	as = "";
-							
-							if ( !ia.isLinkLocalAddress() && !ia.isSiteLocalAddress()){
-								
-								try{
-									NetworkAdminASN asn = admin.lookupASN( ia );
+							public boolean
+							foundNode(
+								NetworkAdminNetworkInterfaceAddress		intf,
+								NetworkAdminNode[]						route,
+								int										distance,
+								int										rtt )
+							{
+								if ( test_cancelled ){
 									
-									as = asn.getString();
-									
-									if ( as.equals( last_as )){
-										
-										as = "";
-										
-									}else{
-										
-										last_as = as;
-									}
-								}catch( Throwable e ){
-									
+									return( false );
 								}
-							}
-							
-							log( "  " + intf.getAddress().getHostAddress() + " -> " + ia.getHostAddress() + " (hop=" + distance + ")" + (as.length()==0?"":( " - " + as )));
-							
-							return( true );
-						}
-						
-						public boolean
-						timeout(
-							NetworkAdminNetworkInterfaceAddress		intf,
-							NetworkAdminNode[]						route,
-							int										distance )
-						{
-							if ( test_cancelled ){
+								
+								synchronized( active_pings ){
+									
+									active_pings.put( intf, route );
+								}
+								
+								log( "  " + intf.getAddress().getHostAddress() + " -> " + route[route.length-1].getAddress().getHostAddress());
 								
 								return( false );
 							}
 							
-							log( "  " + intf.getAddress().getHostAddress() + " - timeout (hop=" + distance + ")" );
-	
-								// see if we're getting nowhere
-							
-							if ( route.length == 0 && distance >= 5 ){
-							
-								logError( "    giving up, no responses" );
+							public boolean
+							timeout(
+								NetworkAdminNetworkInterfaceAddress		intf,
+								NetworkAdminNode[]						route,
+								int										distance )
+							{
+								if ( test_cancelled ){
+									
+									return( false );
+								}
 								
-								return( false );
-							}
-							
-								// see if we've got far enough
-							
-							if ( route.length >= 5 && distance > 6 ){
+								log( "  " + intf.getAddress().getHostAddress() + " - timeout" );
 								
-								log( "    truncating, sufficient responses" );
-	
-								return( false );
+								timeouts++;
+								
+								if ( timeouts >= 3 ){
+									
+									return( false );
+								}
+								
+								return( true );
 							}
-							
-							return( true );
-						}
-					});
-	
-				if ( test_cancelled ){
-					
-					return;
-				}
-				
-				int	num_routes = active_routes.size();
-				
-				if ( num_routes == 0 ){
-					
-					logError( "No active routes found!" );
-					
-				}else{
-					
-					log( "Found " + num_routes + " route(s)" );
-					
-					Iterator it = active_routes.entrySet().iterator();
-					
-					while( it.hasNext()){
+						});
+		
+					if ( test_cancelled ){
 						
-						Map.Entry entry = (Map.Entry)it.next();
-						
-						NetworkAdminNetworkInterfaceAddress address = (NetworkAdminNetworkInterfaceAddress)entry.getKey();
-						
-						NetworkAdminNode[]	route = (NetworkAdminNode[])entry.getValue();
-						
-						String	node_str = "";
-						
-						for (int i=0;i<route.length;i++){
-							
-							node_str += (i==0?"":",") + route[i].getAddress().getHostAddress();
-						}
-						
-						log( "    " + address.getInterface().getName() + "/" + address.getAddress().getHostAddress() + " - " + node_str );
+						return;
 					}
+					
+					int	num_routes = active_pings.size();
+					
+					if ( num_routes == 0 ){
+						
+						logError( "No active pings found!" );
+						
+					}else{
+						
+						log( "Found " + num_routes + " pings(s)" );
+						
+						Iterator it = active_pings.entrySet().iterator();
+						
+						while( it.hasNext()){
+							
+							Map.Entry entry = (Map.Entry)it.next();
+							
+							NetworkAdminNetworkInterfaceAddress address = (NetworkAdminNetworkInterfaceAddress)entry.getKey();
+							
+							NetworkAdminNode[]	route = (NetworkAdminNode[])entry.getValue();
+							
+							String	node_str = "";
+							
+							for (int i=0;i<route.length;i++){
+								
+								node_str += (i==0?"":",") + route[i].getAddress().getHostAddress();
+							}
+							
+							log( "    " + address.getInterface().getName() + "/" + address.getAddress().getHostAddress() + " - " + node_str );
+						}
+					}
+				}catch( Throwable e ){
+					
+					logError( "Pinging failed: " + Debug.getNestedExceptionMessage(e));
 				}
-			}catch( Throwable e ){
+			}else{
 				
-				logError( "Route tracing failed: " + Debug.getNestedExceptionMessage(e));
-			}
-		}else{
-				
-			logError( "Can't run trace route test as not supported" );
-		}
-		
-		if ( test_cancelled ){
-			
-			return;
-		}
-		
-		NetworkAdminNATDevice[] nat_devices = admin.getNATDevices();
-		
-		log( nat_devices.length + " NAT device" + (nat_devices.length==1?"":"s") + " found" );
-		
-		for (int i=0;i<nat_devices.length;i++){
-			
-			NetworkAdminNATDevice device = nat_devices[i];
-			
-			InetAddress ext_address = device.getExternalAddress();
-			
-			if ( ext_address != null ){
-				
-				public_addresses.add( ext_address );
+				logError( "Can't run ping test as not supported" );
 			}
 			
-			log( "    " + device.getString());
+			if ( test_cancelled ){
+				
+				return;
+			}
+			
+			if ( admin.canTraceRoute()){
+				
+				log( "Running trace route tests" );
+				
+				try{
+					InetAddress	target_address = InetAddress.getByName( plugin.getPingTarget());
+					
+					final Map	active_routes = new HashMap();
+					
+					admin.getRoutes( 
+						target_address, 
+						ROUTE_TIMEOUT, 
+						new NetworkAdminRoutesListener()
+						{
+							private String	last_as = "";
+							
+							public boolean
+							foundNode(
+								NetworkAdminNetworkInterfaceAddress		intf,
+								NetworkAdminNode[]						route,
+								int										distance,
+								int										rtt )
+							{
+								if ( test_cancelled ){
+									
+									return( false );
+								}
+								
+								synchronized( active_routes ){
+									
+									active_routes.put( intf, route );
+								}
+								
+								InetAddress ia = route[route.length-1].getAddress();
+								
+								String	as = "";
+								
+								if ( !ia.isLinkLocalAddress() && !ia.isSiteLocalAddress()){
+									
+									try{
+										NetworkAdminASN asn = admin.lookupASN( ia );
+										
+										as = asn.getString();
+										
+										if ( as.equals( last_as )){
+											
+											as = "";
+											
+										}else{
+											
+											last_as = as;
+										}
+									}catch( Throwable e ){
+										
+									}
+								}
+								
+								log( "  " + intf.getAddress().getHostAddress() + " -> " + ia.getHostAddress() + " (hop=" + distance + ")" + (as.length()==0?"":( " - " + as )));
+								
+								return( true );
+							}
+							
+							public boolean
+							timeout(
+								NetworkAdminNetworkInterfaceAddress		intf,
+								NetworkAdminNode[]						route,
+								int										distance )
+							{
+								if ( test_cancelled ){
+									
+									return( false );
+								}
+								
+								log( "  " + intf.getAddress().getHostAddress() + " - timeout (hop=" + distance + ")" );
+		
+									// see if we're getting nowhere
+								
+								if ( route.length == 0 && distance >= 5 ){
+								
+									logError( "    giving up, no responses" );
+									
+									return( false );
+								}
+								
+									// see if we've got far enough
+								
+								if ( route.length >= 5 && distance > 6 ){
+									
+									log( "    truncating, sufficient responses" );
+		
+									return( false );
+								}
+								
+								return( true );
+							}
+						});
+		
+					if ( test_cancelled ){
+						
+						return;
+					}
+					
+					int	num_routes = active_routes.size();
+					
+					if ( num_routes == 0 ){
+						
+						logError( "No active routes found!" );
+						
+					}else{
+						
+						log( "Found " + num_routes + " route(s)" );
+						
+						Iterator it = active_routes.entrySet().iterator();
+						
+						while( it.hasNext()){
+							
+							Map.Entry entry = (Map.Entry)it.next();
+							
+							NetworkAdminNetworkInterfaceAddress address = (NetworkAdminNetworkInterfaceAddress)entry.getKey();
+							
+							NetworkAdminNode[]	route = (NetworkAdminNode[])entry.getValue();
+							
+							String	node_str = "";
+							
+							for (int i=0;i<route.length;i++){
+								
+								node_str += (i==0?"":",") + route[i].getAddress().getHostAddress();
+							}
+							
+							log( "    " + address.getInterface().getName() + "/" + address.getAddress().getHostAddress() + " - " + node_str );
+						}
+					}
+				}catch( Throwable e ){
+					
+					logError( "Route tracing failed: " + Debug.getNestedExceptionMessage(e));
+				}
+			}else{
+					
+				logError( "Can't run trace route test as not supported" );
+			}
+			
+			if ( test_cancelled ){
+				
+				return;
+			}
 		}
 		
-		NetworkAdminSocksProxy[] socks_proxies = admin.getSocksProxies();
-		
-		log( socks_proxies.length + " SOCKS proxy" + (socks_proxies.length==1?"":"s") + " found" );
-		
-		for (int i=0;i<socks_proxies.length;i++){
+		if ( doTest( TEST_NAT_PROXIES )){
+	
+			checked_public = true;
 			
-			NetworkAdminSocksProxy proxy = socks_proxies[i];
+			NetworkAdminNATDevice[] nat_devices = admin.getNATDevices();
 			
-			log( "    " + proxy.getString());
-		}
-		
-		NetworkAdminHTTPProxy http_proxy = admin.getHTTPProxy();
-		
-		if ( http_proxy == null ){
+			log( nat_devices.length + " NAT device" + (nat_devices.length==1?"":"s") + " found" );
 			
-			log( "No HTTP proxy found" );
+			for (int i=0;i<nat_devices.length;i++){
+				
+				NetworkAdminNATDevice device = nat_devices[i];
+				
+				InetAddress ext_address = device.getExternalAddress();
+				
+				if ( ext_address != null ){
+					
+					public_addresses.add( ext_address );
+				}
+				
+				log( "    " + device.getString());
+			}
 			
-		}else{
+			NetworkAdminSocksProxy[] socks_proxies = admin.getSocksProxies();
 			
-			log( "HTTP proxy found" );
+			log( socks_proxies.length + " SOCKS proxy" + (socks_proxies.length==1?"":"s") + " found" );
 			
-			log( "    " + http_proxy.getString());
+			for (int i=0;i<socks_proxies.length;i++){
+				
+				NetworkAdminSocksProxy proxy = socks_proxies[i];
+				
+				log( "    " + proxy.getString());
+			}
+			
+			NetworkAdminHTTPProxy http_proxy = admin.getHTTPProxy();
+			
+			if ( http_proxy == null ){
+				
+				log( "No HTTP proxy found" );
+				
+			}else{
+				
+				log( "HTTP proxy found" );
+				
+				log( "    " + http_proxy.getString());
+			}
 		}
 		
 		InetAddress[] bind_addresses = admin.getAllBindAddresses();
@@ -415,122 +444,185 @@ NetStatusPluginTester
 			}
 		}
 		
-		NetworkAdminProtocol[] outbound_protocols = admin.getOutboundProtocols();
-		
-		if ( outbound_protocols.length == 0 ){
-			
-			log( "No outbound protocols" );
-			
-		}else{
-			
-			for (int i=0;i<outbound_protocols.length;i++){
-				
-				if ( test_cancelled ){
-					
-					return;
-				}
-				
-				NetworkAdminProtocol protocol = outbound_protocols[i];
-				
-				log( "Testing " + protocol.getName());
-				
-				try{
-					InetAddress public_address = 
-						protocol.test( 
-							null,
-							new NetworkAdminProgressListener()
-							{
-								public void 
-								reportProgress(
-									String task )
-								{
-									log( "    " + task );
-								}
-							});
-					
-					logSuccess( "    Test successful" );
-					
-					if ( public_address != null ){
-						
-						public_addresses.add( public_address );
-					}
-				}catch( Throwable e ){
-					
-					logError( "    Test failed", e );
-				}
-			}
-		}
-		NetworkAdminProtocol[] inbound_protocols = admin.getInboundProtocols();
-		
-		if ( inbound_protocols.length == 0 ){
-			
-			log( "No inbound protocols" );
-			
-		}else{
-			
-			for (int i=0;i<inbound_protocols.length;i++){
-				
-				if ( test_cancelled ){
-					
-					return;
-				}
-				
-				NetworkAdminProtocol protocol = inbound_protocols[i];
-				
-				log( "Testing " + protocol.getName());
-				
-				try{
-					InetAddress public_address = 
-						protocol.test( 
-							null,
-							new NetworkAdminProgressListener()
-							{
-								public void 
-								reportProgress(
-									String task )
-								{
-									log( "    " + task );
-								}
-							});
-					
-					logSuccess( "    Test successful" );
+		if ( doTest( TEST_OUTBOUND )){
 
-					if ( public_address != null ){
-						
-						public_addresses.add( public_address );
-					}
-				}catch( Throwable e ){
+			checked_public = true;
+			
+			NetworkAdminProtocol[] outbound_protocols = admin.getOutboundProtocols();
+			
+			if ( outbound_protocols.length == 0 ){
+				
+				log( "No outbound protocols" );
+				
+			}else{
+				
+				for (int i=0;i<outbound_protocols.length;i++){
 					
-					logError( "    Test failed", e );
+					if ( test_cancelled ){
+						
+						return;
+					}
+					
+					NetworkAdminProtocol protocol = outbound_protocols[i];
+					
+					log( "Testing " + protocol.getName());
+					
+					try{
+						InetAddress public_address = 
+							protocol.test( 
+								null,
+								new NetworkAdminProgressListener()
+								{
+									public void 
+									reportProgress(
+										String task )
+									{
+										log( "    " + task );
+									}
+								});
+						
+						logSuccess( "    Test successful" );
+						
+						if ( public_address != null ){
+							
+							public_addresses.add( public_address );
+						}
+					}catch( Throwable e ){
+						
+						logError( "    Test failed", e );
+					}
 				}
 			}
 		}
 		
-		if ( public_addresses.size() == 0 ){
+		if ( doTest( TEST_INBOUND )){
+
+			checked_public = true;
 			
-			log( "No public addresses found" );
+			NetworkAdminProtocol[] inbound_protocols = admin.getInboundProtocols();
 			
-		}else{
-			
-			Iterator	it = public_addresses.iterator();
-			
-			log( public_addresses.size() + " public/external addresses found" );
-			
-			while( it.hasNext()){
+			if ( inbound_protocols.length == 0 ){
 				
-				InetAddress	pub_address = (InetAddress)it.next();
+				log( "No inbound protocols" );
 				
-				log( "    " + pub_address.getHostAddress());
+			}else{
 				
-				try{
-					NetworkAdminASN asn = admin.lookupASN(pub_address);
+				for (int i=0;i<inbound_protocols.length;i++){
 					
-					log( "    AS details: " + asn.getString());
+					if ( test_cancelled ){
+						
+						return;
+					}
 					
-				}catch( Throwable e ){
+					NetworkAdminProtocol protocol = inbound_protocols[i];
 					
-					logError( "    failed to lookup AS", e );
+					log( "Testing " + protocol.getName());
+					
+					try{
+						InetAddress public_address = 
+							protocol.test( 
+								null,
+								new NetworkAdminProgressListener()
+								{
+									public void 
+									reportProgress(
+										String task )
+									{
+										log( "    " + task );
+									}
+								});
+						
+						logSuccess( "    Test successful" );
+	
+						if ( public_address != null ){
+							
+							public_addresses.add( public_address );
+						}
+					}catch( Throwable e ){
+						
+						logError( "    Test failed", e );
+					}
 				}
+			}
+		}
+		
+		if ( checked_public ){
+			
+			if ( public_addresses.size() == 0 ){
+				
+				log( "No public addresses found" );
+				
+			}else{
+				
+				Iterator	it = public_addresses.iterator();
+				
+				log( public_addresses.size() + " public/external addresses found" );
+				
+				while( it.hasNext()){
+					
+					InetAddress	pub_address = (InetAddress)it.next();
+					
+					log( "    " + pub_address.getHostAddress());
+					
+					try{
+						NetworkAdminASN asn = admin.lookupASN(pub_address);
+						
+						log( "    AS details: " + asn.getString());
+						
+					}catch( Throwable e ){
+						
+						logError( "    failed to lookup AS", e );
+					}
+				}
+			}
+		}
+		
+		if ( doTest( TEST_BT_CONNECT )){
+
+			log( "Distributed protocol test" );
+			
+			NetStatusProtocolTesterBT bt_test = 
+				plugin.getProtocolTester().runTest(
+					new NetStatusProtocolTesterListener()
+					{
+						public void
+						complete()
+						{
+						}
+						
+						public void
+						log(
+							String		str )
+						{
+							NetStatusPluginTester.this.log( "  " + str );
+						}
+						
+						public void
+						logError(
+							String		str )
+						{
+							NetStatusPluginTester.this.logError( "  " + str );
+						}
+						
+						public void
+						logError(
+							String		str,
+							Throwable	e )
+						{
+							NetStatusPluginTester.this.logError( "  " + str, e );
+						}
+					});
+			
+			while( !bt_test.waitForCompletion( 5000 )){
+				
+				if ( isCancelled()){
+					
+					bt_test.destroy();
+					
+					break;
+				}
+				
+				log( "    Status: " + bt_test.getStatus());
 			}
 		}
 	}
