@@ -50,7 +50,8 @@ TRHostConfigImpl
 	private volatile boolean		loading	= false;
 	private volatile boolean		save_outstanding	= false;
 	
-	private Map			saved_stats		= new HashMap();
+	private Map			saved_stats				= new HashMap();
+	private List		saved_stats_to_delete	= new ArrayList();
 	
 	private AEMonitor this_mon 	= new AEMonitor( "TRHostConfig" );
 
@@ -159,6 +160,7 @@ TRHostConfigImpl
 	   	}catch (Exception e) {
 		 
 	   		Debug.printStackTrace( e );
+	   		
 	   	}finally{
 		 	
 	   		loading	= false;
@@ -177,10 +179,15 @@ TRHostConfigImpl
 			Map	t_map = (Map)saved_stats.get( hash );
 			
 			if ( t_map != null ){
-				
-				saved_stats.remove( hash );
-				
+								
 				recoverStats( host_torrent, t_map );
+				
+					// can't delete here due to sync problems - tag for later
+				
+				synchronized( saved_stats_to_delete ){
+					
+					saved_stats_to_delete.add( hash );
+				}
 			}
 			
 		}catch( Throwable e ){
@@ -241,6 +248,23 @@ TRHostConfigImpl
 			return;
 		}
 			
+		if ( saved_stats_to_delete.size() > 0 ){
+			
+			synchronized( saved_stats_to_delete ){
+		
+				Map	saved_stats_copy = new HashMap( saved_stats );
+				
+				for (int i=0;i<saved_stats_to_delete.size();i++){
+					
+					saved_stats_copy.remove( saved_stats_to_delete.get(i));
+				}
+								
+				saved_stats_to_delete.clear();
+				
+				saved_stats = saved_stats_copy;
+			}
+		}
+		
 		if ( immediate || save_outstanding ){
 						
 			save_outstanding	= false;
