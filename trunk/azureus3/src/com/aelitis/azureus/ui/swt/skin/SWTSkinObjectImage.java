@@ -291,7 +291,7 @@ public class SWTSkinObjectImage
 		}
 		customImage = false;
 		customImageID = sConfigID;
-		setLabelImage(sConfigID, sConfigID, callback);
+		setLabelImage(sConfigID, sConfigID + getSuffix(), callback);
 		return;
 	}
 }
