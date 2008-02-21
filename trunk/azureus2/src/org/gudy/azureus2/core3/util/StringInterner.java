@@ -47,8 +47,6 @@ StringInterner
 	
 	private static LightHashSet interningSet = new LightHashSet(800);
 	
-	private static final AEMonitor interingMon = new AEMonitor("StringInternMon");
-
 	private final static ReferenceQueue refQueue = new ReferenceQueue();
 	
 	private static final String[] COMMON_KEYS = {
@@ -119,8 +117,7 @@ StringInterner
 		
 		String internedString;
 		
-		try {
-			interingMon.enter();
+		synchronized( StringInterner.class ){
 
 			sanitize(false);
 
@@ -141,9 +138,6 @@ StringInterner
 					System.out.println("multihit "+internedEntry);
 			}
 
-		} finally
-		{
-			interingMon.exit();
 		}
 		
 		// should not happen
@@ -160,8 +154,7 @@ StringInterner
 		
 		byte[] internedArray;
 		
-		try {
-			interingMon.enter();
+		synchronized( StringInterner.class ){
 			
 			sanitize(false);
 			
@@ -180,9 +173,6 @@ StringInterner
 				if(TRACE_MULTIHITS && internedEntry.hits % 10 == 0)
 					System.out.println("multihit"+internedEntry);
 			}
-		} finally
-		{
-			interingMon.exit();
 		}
 		
 		// should not happen
@@ -203,12 +193,10 @@ StringInterner
 		
 		File internedFile;
 		
-		try {
-			interingMon.enter();
+		synchronized( StringInterner.class ){
 			
 			sanitize(false);
-			
-			
+					
 			WeakFileEntry checkEntry = new WeakFileEntry(toIntern);
 			WeakFileEntry internedEntry = (WeakFileEntry) interningSet.get(checkEntry);
 			
@@ -224,9 +212,6 @@ StringInterner
 				if(TRACE_MULTIHITS && internedEntry.hits % 10 == 0)
 					System.out.println("multihit"+internedEntry);
 			}
-		} finally
-		{
-			interingMon.exit();
 		}
 		
 		// should not happen
@@ -248,8 +233,7 @@ StringInterner
 	
 	private static void sanitize(boolean scheduled)
 	{
-		try {
-			interingMon.enter();
+		synchronized( StringInterner.class ){
 			
 			WeakEntry ref;
 			while((ref = (WeakEntry)(refQueue.poll())) != null)
@@ -340,11 +324,7 @@ StringInterner
 			if(scheduled && interningSet.capacity() > interningSet.size * 4)
 				interningSet.compactify(0f);
 				
-		} finally
-		{
-			interingMon.exit();
 		}
-		
 	}
 
 	/*
