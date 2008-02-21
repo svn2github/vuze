@@ -197,23 +197,21 @@ public class FilesView
 		itemExplore.setEnabled(hasSelection);
 
 	MenuItem itemRenameOrRetarget = null, itemRename = null, itemRetarget = null;
-	if (!COConfigurationManager.getBooleanParameter("FilesView.separate_rename_and_retarget")) {
-	    itemRenameOrRetarget = new MenuItem(menu, SWT.PUSH);
-	    Messages.setLanguageText(itemRenameOrRetarget, "FilesView.menu.rename");
-		itemRenameOrRetarget.setData("rename", Boolean.valueOf(true));
-		itemRenameOrRetarget.setData("retarget", Boolean.valueOf(true));
-	}
-	else {
-		itemRename = new MenuItem(menu, SWT.PUSH);
-		itemRetarget = new MenuItem(menu, SWT.PUSH);
-		Messages.setLanguageText(itemRename, "FilesView.menu.rename_only");
-		Messages.setLanguageText(itemRetarget, "FilesView.menu.retarget");
-		itemRename.setData("rename", Boolean.valueOf(true));
-		itemRename.setData("retarget", Boolean.valueOf(false));
-		itemRetarget.setData("rename", Boolean.valueOf(false));
-		itemRetarget.setData("retarget", Boolean.valueOf(true));
 
-	}
+	itemRenameOrRetarget = new MenuItem(menu, SWT.PUSH);
+	Messages.setLanguageText(itemRenameOrRetarget, "FilesView.menu.rename");
+	itemRenameOrRetarget.setData("rename", Boolean.valueOf(true));
+	itemRenameOrRetarget.setData("retarget", Boolean.valueOf(true));
+	
+	itemRename = new MenuItem(menu, SWT.PUSH);
+	itemRetarget = new MenuItem(menu, SWT.PUSH);
+	Messages.setLanguageText(itemRename, "FilesView.menu.rename_only");
+	Messages.setLanguageText(itemRetarget, "FilesView.menu.retarget");
+	
+	itemRename.setData("rename", Boolean.valueOf(true));
+	itemRename.setData("retarget", Boolean.valueOf(false));
+	itemRetarget.setData("rename", Boolean.valueOf(false));
+	itemRetarget.setData("retarget", Boolean.valueOf(true));
 		
     final MenuItem itemPriority = new MenuItem(menu, SWT.CASCADE);
     Messages.setLanguageText(itemPriority, "FilesView.menu.setpriority"); //$NON-NLS-1$
@@ -239,28 +237,24 @@ public class FilesView
 
     new MenuItem(menu, SWT.SEPARATOR);
 
-		if (!hasSelection) {
-			itemOpen.setEnabled(false);
-			itemPriority.setEnabled(false);
-			if (itemRenameOrRetarget != null) {
-				itemRenameOrRetarget.setEnabled(false);
-			}
-			else {
-				itemRename.setEnabled(false);
-				itemRetarget.setEnabled(false);
-			}
-			return;
-		}
+	if (!hasSelection) {
+		itemOpen.setEnabled(false);
+		itemPriority.setEnabled(false);
+		itemRenameOrRetarget.setEnabled(false);
+		itemRename.setEnabled(false);
+		itemRetarget.setEnabled(false);
+		return;
+	}
 
-		boolean open 				= true;
-		boolean all_compact 		= true;
-		boolean	all_skipped			= true;
-		boolean	all_priority		= true;
-		boolean	all_not_priority	= true;
+	boolean open 				= true;
+	boolean all_compact 		= true;
+	boolean	all_skipped			= true;
+	boolean	all_priority		= true;
+	boolean	all_not_priority	= true;
 		
-		DiskManagerFileInfo[] dmi_array = new DiskManagerFileInfo[infos.length];
-		System.arraycopy(infos, 0, dmi_array, 0, infos.length);
-		int[] storage_types = manager.getStorageType(dmi_array);
+	DiskManagerFileInfo[] dmi_array = new DiskManagerFileInfo[infos.length];
+	System.arraycopy(infos, 0, dmi_array, 0, infos.length);
+	int[] storage_types = manager.getStorageType(dmi_array);
 		
 		for (int i = 0; i < infos.length; i++) {
 			
@@ -301,13 +295,9 @@ public class FilesView
 		// can't rename files for non-persistent downloads (e.g. shares) as these
 		// are managed "externally"
 
-		if (itemRenameOrRetarget != null) {
-			itemRenameOrRetarget.setEnabled(manager.isPersistent());
-		}
-		else {
-			itemRename.setEnabled(manager.isPersistent());
-			itemRetarget.setEnabled(manager.isPersistent());
-		}
+		itemRenameOrRetarget.setEnabled(manager.isPersistent());
+		itemRename.setEnabled(manager.isPersistent());
+		itemRetarget.setEnabled(manager.isPersistent());
 
 		itemSkipped.setEnabled( !all_skipped );
 	
@@ -334,13 +324,9 @@ public class FilesView
     	}
     };
     
-    if (itemRenameOrRetarget != null) {
-    	itemRenameOrRetarget.addListener(SWT.Selection, rename_listener);
-    }
-    else {
-    	itemRename.addListener(SWT.Selection, rename_listener);
-    	itemRetarget.addListener(SWT.Selection, rename_listener);
-    }
+   	itemRenameOrRetarget.addListener(SWT.Selection, rename_listener);
+   	itemRename.addListener(SWT.Selection, rename_listener);
+   	itemRetarget.addListener(SWT.Selection, rename_listener);
     
     Listener priorityListener = new Listener() {
 			public void handleEvent(Event event) {
@@ -489,42 +475,20 @@ public class FilesView
 	  		
 	  		return;
 	  	}
-  				
-		boolean	paused = false;
-		boolean has_tried_pausing = false;
-
+  			
+	  	boolean paused = false;
 		try{
-	
-			int	this_paused;
-			
-			for (int i=0;i<rows.length;i++){
-
-				DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)rows[i].getDataSource(true);
-
-				if ( type == 0){
-					
-		   			fileInfo.setPriority(true);
-		   			
-					this_paused = setSkipped( fileInfo, false, false, !has_tried_pausing);
-					
-				}else if ( type == 1 ){
-					
-		 			fileInfo.setPriority(false);
-		 			
-		 			this_paused = setSkipped( fileInfo, false, false, !has_tried_pausing);
-					
-				}else if ( type == 2 ){
-					
-					this_paused = setSkipped( fileInfo, true, false, !has_tried_pausing);
-					
-				}else{
-					
-					this_paused = setSkipped( fileInfo, true, true, !has_tried_pausing);
+			DiskManagerFileInfo[] file_infos = new DiskManagerFileInfo[rows.length];
+			for (int i=0; i<rows.length; i++) {
+				file_infos[i] = (DiskManagerFileInfo)rows[i].getDataSource(true);
+				if (type == 0 || type == 1) {
+					file_infos[i].setPriority(type==0);
 				}
-				
-				if (this_paused != 0) {has_tried_pausing = true;}
-				paused = paused || (this_paused == 1);
 			}
+			
+			boolean skipped = (type == 0 || type == 1);
+			boolean delete_action = (type == 3);
+			paused = setSkipped(file_infos, skipped, delete_action);
 		}finally{
 			
 			if ( paused ){
@@ -534,131 +498,97 @@ public class FilesView
 		}
   }
   
-  // Returns:
-  //   -1: Tried to pause, but it didn't need pausing.
-  //    1: Tried to pause, and it was paused.
-  //    0: Didn't attempt to pause.
-  private int
+  // Returns true if it was paused here.
+  private boolean
   setSkipped(
-	 DiskManagerFileInfo	info,
+	 DiskManagerFileInfo[]	infos,
 	 boolean				skipped,
-	 boolean				delete_action,
-	 boolean                try_to_pause)
+	 boolean				delete_action)
   {
 		// if we're not managing the download then don't do anything other than
 		// change the file's priority
 	
-	if ( !manager.isPersistent()){
-		
-		info.setSkipped( skipped );
-
-		return 0;
+	if (!manager.isPersistent()){
+		for (int i=0; i<infos.length; i++) {
+			infos[i].setSkipped(skipped);
+		}
+		return false;
 	}
 	
-	File	existing_file 			= info.getFile(true);	
-	int		existing_storage_type	= info.getStorageType();
-	
-		// we can't ever have storage = COMPACT and !skipped
-		
-	int		new_storage_type;
-	
-	if ( existing_file.exists()){
-		
-		if (!skipped ){
-			
-			new_storage_type	= DiskManagerFileInfo.ST_LINEAR;
-			
-		}else{
-	
-			boolean	delete_file;
-			
-			if ( delete_action ){
-				
-				delete_file =
-					MessageBoxWindow.open( 
-						"FilesView.messagebox.delete.id",
-						SWT.OK | SWT.CANCEL,
-						SWT.OK, true,
-						Display.getDefault(), 
-						MessageBoxWindow.ICON_WARNING,
-						MessageText.getString( "FilesView.rename.confirm.delete.title" ),
-						MessageText.getString( "FilesView.rename.confirm.delete.text", new String[]{ existing_file.toString()})) == SWT.OK;
-				
-			}else{
-				
-					// OK, too many users have got confused over the option to truncate files when selecting
-					// do-not-download so I'm removing it
-				
-				delete_file	= false;
-				
-				/*
-				delete_file =
-					MessageBoxWindow.open( 
-						"FilesView.messagebox.skip.id",
-						SWT.YES | SWT.NO,
-						SWT.YES | SWT.NO,
-						getComposite().getDisplay(), 
-						MessageBoxWindow.ICON_WARNING,
-						MessageText.getString( "FilesView.rename.confirm.delete.title" ),
-						MessageText.getString( "FilesView.skip.confirm.delete.text", new String[]{ existing_file.toString()})) == SWT.YES;
-				*/
-			}
+	int[] existing_storage_types = manager.getStorageType(infos);
+	int[] new_storage_types = new int[existing_storage_types.length];
+	System.arraycopy(existing_storage_types, 0, new_storage_types, 0, existing_storage_types.length);
 
-			if ( delete_file ){
-				
-				new_storage_type	= DiskManagerFileInfo.ST_COMPACT;
+	// This should hopefully reduce the number of "exists" checks.
+	File save_location = manager.getAbsoluteSaveLocation();
+	boolean root_exists = save_location.isDirectory();
+	
+	boolean type_has_been_changed = false;
+	boolean requires_pausing = false;
 
-			}else{
-				
-				new_storage_type	= DiskManagerFileInfo.ST_LINEAR;
+	for (int i=0; i<infos.length; i++) {
+		int existing_storage_type = existing_storage_types[infos[i].getIndex()];  
+		int new_storage_type = DiskManagerFileInfo.ST_LINEAR;
+		if (skipped) {
+
+			// Check to see if the file exists, but try to avoid doing an
+			// actual disk check if possible.
+			File existing_file = infos[i].getFile(true);
+			
+			// Avoid performing existing_file.exists if we know that it is meant
+			// to reside in the default save location and that location does not
+			// exist.
+			boolean perform_check;
+			if (root_exists) {perform_check = true;}
+			else if (FileUtil.isAncestorOf(save_location, existing_file)) {perform_check = false;}
+			else {perform_check = true;}
+			
+			if (perform_check) {
+				System.out.println("Checking if file exists: " + existing_file);
 			}
+			
+			if (perform_check && existing_file.exists()) {
+				if (delete_action) {
+					boolean wants_to_delete = MessageBoxWindow.open( 
+							"FilesView.messagebox.delete.id",
+							SWT.OK | SWT.CANCEL,
+							SWT.OK, true,
+							Display.getDefault(), 
+							MessageBoxWindow.ICON_WARNING,
+							MessageText.getString( "FilesView.rename.confirm.delete.title" ),
+							MessageText.getString( "FilesView.rename.confirm.delete.text", new String[]{ existing_file.toString()})) == SWT.OK;
+					
+					if (wants_to_delete) {new_storage_type = DiskManagerFileInfo.ST_COMPACT;}
+				}
+			}
+			// File does not exist.
+			else {new_storage_type = DiskManagerFileInfo.ST_COMPACT;}			
 		}
-	}else{
 		
-		if ( skipped ){
-			
-			boolean compact_disabled = RememberedDecisionsManager.getRememberedDecision(
-						"FilesView.messagebox.skip.id", SWT.YES | SWT.NO) == SWT.NO;
-
-			if ( compact_disabled ){
-				
-				new_storage_type	= DiskManagerFileInfo.ST_LINEAR;
-				
-			}else{
-				
-				new_storage_type	= DiskManagerFileInfo.ST_COMPACT;
-			}
-		}else{
-			
-			new_storage_type	= DiskManagerFileInfo.ST_LINEAR;
-
+		boolean has_changed = existing_storage_type != new_storage_type;
+		type_has_been_changed |= has_changed;
+		requires_pausing |= (has_changed && new_storage_type == DiskManagerFileInfo.ST_COMPACT);
+		
+		type_has_been_changed = 
+			existing_storage_type != new_storage_type;
+		
+		new_storage_types[infos[i].getIndex()] = new_storage_type;
+	}
+	
+	boolean ok = true;
+	boolean paused = false;
+	if (type_has_been_changed) {
+		if (requires_pausing) {paused = manager.pause();}
+		ok = manager.setStorageType(infos, new_storage_types);
+	}	
+	
+	if (ok) {
+		for (int i=0; i<infos.length; i++) {
+			infos[i].setSkipped(skipped);
 		}
 	}
 	
-	boolean	ok;
-	
-	int	paused	= 0; // Did we try.
-	
-	if ( existing_storage_type != new_storage_type ){
-		
-		if (try_to_pause && new_storage_type == DiskManagerFileInfo.ST_COMPACT ){
-			
-			paused = (manager.pause()) ? 1 : -1;
-		}
-		
-		ok = info.setStorageType( new_storage_type );
-		
-	}else{
-		
-		ok = true;
-	}
-	
-	if ( ok ){
-		
-		info.setSkipped( skipped );
-	}
-	
-	return( paused );
+	return paused;
   }
 
   // @see com.aelitis.azureus.ui.common.table.TableRefreshListener#tableRefresh()

@@ -53,7 +53,7 @@ import com.aelitis.azureus.core.speedmanager.impl.v2.SMConst;
  *   GUI_ (eventually) for GUI specific things
  *   Core_ (eventually) for core specific things
  * - Second is some identifing term. It starts with a small letter denoting
- *   the vaiable type.
+ *   the variable type.
  *   b Boolean
  *   i Integer
  *   s String
@@ -522,7 +522,6 @@ public class ConfigurationDefaults {
     def.put( "File.move.download.removed.move_torrent", TRUE );
     def.put( "File.move.download.removed.move_partial", FALSE );
     
-    def.put("FilesView.separate_rename_and_retarget", FALSE);      
     def.put("FilesView.show.full.path", FALSE );
     
     def.put("MyTorrentsView.menu.show_parent_folder_enabled", FALSE);

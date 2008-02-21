@@ -239,10 +239,6 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 		new IntListParameter(cArea, "config.style.table.defaultSortOrder",
 				sortOrderLabels, sortOrderValues);
 		
-		new BooleanParameter(cLook, "FilesView.separate_rename_and_retarget", MSG_PREFIX
-				+ "SeparateFilesViewRenameRetarget");
-
-	
 		new BooleanParameter(cLook, "NameColumn.showProgramIcon", MSG_PREFIX
 				+ "showProgramIcon");
 
