@@ -46,21 +46,8 @@ ThreadPool
 	private static boolean	debug_thread_pool_log_on;
 	
 	static{
-		if(System.getProperty("transitory.startup", "0").equals("0"))
-		{
-			COConfigurationManager.addAndFireParameterListeners(
-				new String[]{ "debug.threadpool.log.enable", "debug.threadpool.debug.trace" },
-				new ParameterListener()
-				{
-					public void 
-					parameterChanged(
-						String name )
-					{
-						debug_thread_pool 			= COConfigurationManager.getBooleanParameter( "debug.threadpool.log.enable", false );
-						debug_thread_pool_log_on 	= COConfigurationManager.getBooleanParameter( "debug.threadpool.debug.trace", false );
-					}
-				});
-			
+		if ( System.getProperty("transitory.startup", "0").equals("0")){
+
 			AEDiagnostics.addEvidenceGenerator(
 				new AEDiagnosticsEvidenceGenerator()
 				{
@@ -560,6 +547,19 @@ outer:
 																// due to the dependency between
 																// ThreadPool, Timer and ThreadPool again
 															
+															COConfigurationManager.addAndFireParameterListeners(
+																	new String[]{ "debug.threadpool.log.enable", "debug.threadpool.debug.trace" },
+																	new ParameterListener()
+																	{
+																		public void 
+																		parameterChanged(
+																			String name )
+																		{
+																			debug_thread_pool 			= COConfigurationManager.getBooleanParameter( "debug.threadpool.log.enable", false );
+																			debug_thread_pool_log_on 	= COConfigurationManager.getBooleanParameter( "debug.threadpool.debug.trace", false );
+																		}
+																	});
+																
 															busy_pool_timer_set	= true;
 															
 															SimpleTimer.addPeriodicEvent(
