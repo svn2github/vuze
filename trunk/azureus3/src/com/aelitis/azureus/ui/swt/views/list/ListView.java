@@ -2861,16 +2861,6 @@ public class ListView
 				}
 			}
 
-			// trigger selection/deselection early, which will prevent each
-			// row from firing one individually
-
-			TableRowCore[] rowsToDeselectArray = new TableRowCore[rowsToDeselect.size()];
-			rowsToDeselect.toArray(rowsToDeselectArray);
-			triggerDeselectionListeners(rowsToDeselectArray);
-
-			TableRowCore[] rowsToSelectArray = new TableRowCore[rowsToSelect.size()];
-			rowsToSelect.toArray(rowsToSelectArray);
-			triggerSelectionListeners(rowsToSelectArray);
 
 			bSkipSelectionTrigger = true;
 			for (Iterator iter = rowsToDeselect.iterator(); iter.hasNext();) {
@@ -2886,6 +2876,18 @@ public class ListView
 			if (rows.length > 0) {
 				((ListRow) rows[0]).setFocused(true);
 			}
+			
+			bSkipSelectionTrigger = false;
+			
+
+			TableRowCore[] rowsToDeselectArray = new TableRowCore[rowsToDeselect.size()];
+			rowsToDeselect.toArray(rowsToDeselectArray);
+			triggerDeselectionListeners(rowsToDeselectArray);
+
+			TableRowCore[] rowsToSelectArray = new TableRowCore[rowsToSelect.size()];
+			rowsToSelect.toArray(rowsToSelectArray);
+			triggerSelectionListeners(rowsToSelectArray);
+
 		} finally {
 			bSkipSelectionTrigger = false;
 			selectedRows_mon.exit();
