@@ -260,7 +260,6 @@ public class MediaList
 
 		SWTSkinButtonUtility[] buttonsNeedingRow = {
 			btnDelete,
-			btnStop,
 		};
 		SWTSkinButtonUtility[] buttonsNeedingPlatform = {
 			btnDetails,
@@ -274,19 +273,6 @@ public class MediaList
 		};
 		TorrentListViewsUtils.addButtonSelectionDisabler(view, buttonsNeedingRow,
 				buttonsNeedingPlatform, buttonsNeedingSingleSelection, btnStop);
-
-		view.addSelectionListener(new TableSelectionAdapter() {
-			public void selected(TableRowCore[] rows) {
-				boolean bDisable = view.getSelectedRowsSize() != 1;
-				if (!bDisable) {
-					DownloadManager dm = (DownloadManager) view.getSelectedDataSources()[0];
-					if (dm != null) {
-						bDisable = !dm.isDownloadComplete(false);
-					}
-				}
-				btnPlay.setDisabled(bDisable);
-			}
-		}, false);
 
 		skinObject = skin.getSkinObject(PREFIX + "bigthumb");
 		if (skinObject instanceof SWTSkinObjectImage) {

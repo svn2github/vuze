@@ -101,7 +101,6 @@ extends SkinView
 
 		SWTSkinButtonUtility[] buttonsNeedingRow = {
 			btnDelete,
-			btnStop,
 		};
 		SWTSkinButtonUtility[] buttonsNeedingPlatform = {
 			btnDetails,
