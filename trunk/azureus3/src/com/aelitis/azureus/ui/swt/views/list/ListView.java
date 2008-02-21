@@ -2809,9 +2809,13 @@ public class ListView
 	 * 
 	 */
 	private void changeColumnIndicator() {
-		if (headerArea != null && !headerArea.isDisposed()) {
-			headerArea.redraw();
-		}
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (headerArea != null && !headerArea.isDisposed()) {
+					headerArea.redraw();
+				}
+			}
+		});
 	}
 
 	public TableRowCore[] getSelectedRows() {
