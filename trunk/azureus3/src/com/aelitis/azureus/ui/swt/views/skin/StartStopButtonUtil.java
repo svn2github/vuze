@@ -49,22 +49,27 @@ public class StartStopButtonUtil
 				return;
 			}
 			boolean bResume = true;
+			boolean bDisabled = false;
 			for (int i = 0; i < selectedRows.length; i++) {
 				TableRowCore row = selectedRows[i];
 				DownloadManager dm = (DownloadManager) row.getDataSource(true);
 				if (dm != null) {
-					int state = dm.getState();
-					boolean bNotRunning = state == DownloadManager.STATE_QUEUED
-							|| state == DownloadManager.STATE_STOPPED
-							|| state == DownloadManager.STATE_STOPPING
-							|| state == DownloadManager.STATE_ERROR;
-					if (!bNotRunning) {
-						bResume = false;
-						break;
+					if (!bResume) {
+  					int state = dm.getState();
+  					boolean bNotRunning = state == DownloadManager.STATE_QUEUED
+  							|| state == DownloadManager.STATE_STOPPED
+  							|| state == DownloadManager.STATE_STOPPING
+  							|| state == DownloadManager.STATE_ERROR;
+  					if (!bNotRunning) {
+  						bResume = false;
+  					}
+					}
+					if (!bDisabled && dm.getAssumedComplete()) {
+						bDisabled = true;
 					}
 				}
-				button.setDisabled(dm.getAssumedComplete());
 			}
+			button.setDisabled(bDisabled);
 
 			if (bResume) {
 				button.setImage("image.button.unpause");
