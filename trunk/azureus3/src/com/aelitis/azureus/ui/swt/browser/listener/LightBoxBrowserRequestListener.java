@@ -40,11 +40,15 @@ public class LightBoxBrowserRequestListener
 	}
 
 	public void handleResize() {
-		browserWindow.setSize(getWidth(), getHeight());
+		if (null != browserWindow) {
+			browserWindow.setSize(getWidth(), getHeight());
+		}
 	}
 
 	public void handleClose() {
-		browserWindow.close();
+		if (null != browserWindow) {
+			browserWindow.close();
+		}
 
 		/*
 		 * If there is a status message attached then process it
@@ -77,6 +81,8 @@ public class LightBoxBrowserRequestListener
 	}
 
 	public void handleRefresh() {
-		browserWindow.refresh();
+		if (null != browserWindow) {
+			browserWindow.refresh();
+		}
 	}
 }
