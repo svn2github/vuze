@@ -101,6 +101,7 @@ public class LightBoxBrowserWindow
 		 */
 		styledShell = lightBoxShell.createStyledShell(6, true);
 
+		styledShell.setBackground(new Color(lightBoxShell.getDisplay(), 38, 38, 38));
 		/*
 		 * Use a StackLayout with an error panel in the background so we can switch it to the front
 		 * when an error has occurred
@@ -175,7 +176,7 @@ public class LightBoxBrowserWindow
 		}
 
 		contentPanel.layout();
-		lightBoxShell.open(styledShell);
+		lightBoxShell.open();
 	}
 
 	private void hookListeners() {
@@ -224,6 +225,8 @@ public class LightBoxBrowserWindow
 						}
 					}
 				}
+				styledShell.animateCurtain(500);
+				lightBoxShell.open(styledShell);
 			}
 
 			public void changed(ProgressEvent event) {
@@ -307,6 +310,7 @@ public class LightBoxBrowserWindow
 		browserHeight = height;
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
+//				styledShell.animateCurtain(250);
 				styledShell.setSize(browserWidth, browserHeight);
 			}
 		});
