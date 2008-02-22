@@ -33,9 +33,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
-import com.aelitis.azureus.ui.common.table.TableColumnCore;
-import com.aelitis.azureus.ui.common.table.TableRowCore;
-import com.aelitis.azureus.ui.common.table.TableSelectionListener;
+import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.swt.columns.vuzeactivity.ColumnVuzeActivity;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
@@ -171,10 +169,40 @@ public class VuzeActivitiesView
 					removeSelected();
 				}
 			});
+
+			view.addSelectionListener(new TableSelectionAdapter() {
+				public void deselected(TableRowCore[] rows) {
+					update();
+				}
+
+				public void selected(TableRowCore[] rows) {
+					update();
+				}
+
+				public void focusChanged(TableRowCore focusedRow) {
+					update();
+				}
+
+				private void update() {
+					Object[] selectedDataSources = view.getSelectedDataSources();
+					if (selectedDataSources.length > 0) {
+						boolean disable = true;
+						for (int i = 0; i < selectedDataSources.length; i++) {
+							if (selectedDataSources[i] instanceof VuzeActivitiesEntry) {
+								VuzeActivitiesEntry entry = (VuzeActivitiesEntry) selectedDataSources[i];
+								if (entry.type != 0) {
+									disable = false;
+									break;
+								}
+							}
+						}
+						btnDelete.setDisabled(disable);
+					}
+				}
+			}, false);
 		}
 
 		SWTSkinButtonUtility[] buttonsNeedingRow = {
-			btnDelete,
 			btnStop,
 		};
 		SWTSkinButtonUtility[] buttonsNeedingPlatform = {
@@ -263,6 +291,9 @@ public class VuzeActivitiesView
 			for (int i = 0; i < selectedDataSources.length; i++) {
 				if (selectedDataSources[i] instanceof VuzeActivitiesEntry) {
 					VuzeActivitiesEntry entry = (VuzeActivitiesEntry) selectedDataSources[i];
+					if (entry.type == 0) {
+						continue;
+					}
 					MessageBoxShell mb = new MessageBoxShell(Utils.findAnyShell(),
 							MessageText.getString("v3.activity.remove.title"),
 							MessageText.getString("v3.activity.remove.text", new String[] {
