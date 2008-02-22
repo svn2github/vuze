@@ -60,6 +60,7 @@ public class MainMenu
 
 		addFileMenu(parent);
 		addViewMenu(parent);
+		addToolsMenu(parent);
 
 		/*
 		 * The Torrents menu is a user-configured option
@@ -116,12 +117,10 @@ public class MainMenu
 
 		MenuFactory.addSeparatorMenuItem(fileMenu);
 		MenuFactory.createTransfersMenuItem(fileMenu);
-		
-		if (false == Constants.isOSX) {
-			MenuFactory.addOptionsMenuItem(fileMenu);
+
+		if (true == Constants.isOSX) {
+			MenuFactory.createPluginsMenuItem(fileMenu, true);
 		}
-		
-		MenuFactory.createPluginsMenuItem(fileMenu, true);
 
 		/*
 		 * No need for restart and exit on OS X
@@ -131,6 +130,8 @@ public class MainMenu
 			MenuFactory.addRestartMenuItem(fileMenu);
 			MenuFactory.addExitMenuItem(fileMenu);
 		}
+
+
 
 	}
 
@@ -178,14 +179,17 @@ public class MainMenu
 
 					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3
 							+ ".view.searchbar")) {
-						MenuFactory.setEnablementKeys(createViewMenuItem(skin, viewMenu, PREFIX_V3 + ".view.searchbar",
-								"SearchBar.visible", "searchbar"),FOR_AZ3_ADV);
+						MenuFactory.setEnablementKeys(
+								createViewMenuItem(skin, viewMenu, PREFIX_V3
+										+ ".view.searchbar", "SearchBar.visible", "searchbar"),
+								FOR_AZ3_ADV);
 					}
 
 					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3
 							+ ".view.tabbar")) {
-						MenuFactory.setEnablementKeys(createViewMenuItem(skin, viewMenu, PREFIX_V3 + ".view.tabbar",
-								"TabBar.visible", "tabbar"),FOR_AZ3_ADV);
+						MenuFactory.setEnablementKeys(createViewMenuItem(skin, viewMenu,
+								PREFIX_V3 + ".view.tabbar", "TabBar.visible", "tabbar"),
+								FOR_AZ3_ADV);
 					}
 				}
 
@@ -203,27 +207,52 @@ public class MainMenu
 	private void addViewMenuItems(Menu viewMenu) {
 		MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".home", new Listener() {
 			public void handleEvent(Event event) {
-				skin.setActiveTab(SkinConstants.TABSET_MAIN, SkinConstants.VIEWID_HOME_TAB);
+				skin.setActiveTab(SkinConstants.TABSET_MAIN,
+						SkinConstants.VIEWID_HOME_TAB);
 			}
 		});
 
 		MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".browse", new Listener() {
 			public void handleEvent(Event event) {
-				skin.setActiveTab(SkinConstants.TABSET_MAIN, SkinConstants.VIEWID_BROWSE_TAB);
+				skin.setActiveTab(SkinConstants.TABSET_MAIN,
+						SkinConstants.VIEWID_BROWSE_TAB);
 			}
 		});
 
 		MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".library", new Listener() {
 			public void handleEvent(Event event) {
-				skin.setActiveTab(SkinConstants.TABSET_MAIN, SkinConstants.VIEWID_LIBRARY_TAB);
+				skin.setActiveTab(SkinConstants.TABSET_MAIN,
+						SkinConstants.VIEWID_LIBRARY_TAB);
 			}
 		});
 
 		MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".publish", new Listener() {
 			public void handleEvent(Event event) {
-				skin.setActiveTab(SkinConstants.TABSET_MAIN, SkinConstants.VIEWID_PUBLISH_TAB);
+				skin.setActiveTab(SkinConstants.TABSET_MAIN,
+						SkinConstants.VIEWID_PUBLISH_TAB);
 			}
 		});
+
+	}
+
+	/**
+	 * Creates the Tools menu and all its children
+	 * @param parent
+	 * @param isModal
+	 */
+	private void addToolsMenu(final Shell parent) {
+		MenuItem toolsItem = MenuFactory.createToolsMenuItem(menuBar);
+		Menu toolsMenu = toolsItem.getMenu();
+
+		MenuFactory.addConfigWizardMenuItem(toolsMenu);
+		MenuFactory.addNatTestMenuItem(toolsMenu);
+		MenuFactory.addSpeedTestMenuItem(toolsMenu);
+		
+		MenuFactory.addSeparatorMenuItem(toolsMenu);
+		if (false == Constants.isOSX) {
+			MenuFactory.createPluginsMenuItem(toolsMenu, true);
+			MenuFactory.addOptionsMenuItem(toolsMenu);
+		}
 
 	}
 
@@ -248,11 +277,12 @@ public class MainMenu
 			MenuFactory.addCheckUpdateMenuItem(helpMenu);
 		}
 
-		MenuFactory.addSeparatorMenuItem(helpMenu);
-		MenuFactory.addConfigWizardMenuItem(helpMenu);
-		MenuFactory.addNatTestMenuItem(helpMenu);
-		MenuFactory.addSpeedTestMenuItem(helpMenu);
-
+		if (true == Constants.isOSX) {
+			MenuFactory.addSeparatorMenuItem(helpMenu);
+			MenuFactory.addConfigWizardMenuItem(helpMenu);
+			MenuFactory.addNatTestMenuItem(helpMenu);
+			MenuFactory.addSpeedTestMenuItem(helpMenu);
+		}
 		MenuFactory.addSeparatorMenuItem(helpMenu);
 		MenuFactory.addDebugHelpMenuItem(helpMenu);
 
