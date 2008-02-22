@@ -205,16 +205,18 @@ public class LightBoxShell
 				open();
 			}
 
-			shellToOpen.open();
+			if (false == shellToOpen.isOpenedAlready()) {
+				shellToOpen.open();
 
-			/*
-			 * Block the return from this method until the given shell is closed;
-			 * without this the shell will simply open and close immediately
-			 */
+				/*
+				 * Block the return from this method until the given shell is closed;
+				 * without this the shell will simply open and close immediately
+				 */
 
-			while (true == shellToOpen.isAlive()) {
-				if (false == display.readAndDispatch()) {
-					display.sleep();
+				while (true == shellToOpen.isAlive()) {
+					if (false == display.readAndDispatch()) {
+						display.sleep();
+					}
 				}
 			}
 		}
@@ -236,18 +238,22 @@ public class LightBoxShell
 	{
 		private Shell styledShell;
 
+		private Composite borderedBackground;
+
 		private Composite content;
 
 		private int borderWidth;
 
 		private boolean isOpenedAlready = false;
 
+		private int alpha = 230;
+
 		private StyledShell(int borderWidth) {
 			this.borderWidth = borderWidth;
+
 			styledShell = new Shell(lbShell, SWT.NO_TRIM | SWT.ON_TOP);
 			try {
-				styledShell.setBackground(new Color(display, 38, 38, 38));
-				styledShell.setAlpha(230);
+				styledShell.setAlpha(0);
 			} catch (Throwable t) {
 				// Not supported on SWT older than 3.4M4
 				t.printStackTrace();
@@ -262,7 +268,8 @@ public class LightBoxShell
 			fillLayout.marginWidth = borderWidth;
 			styledShell.setLayout(fillLayout);
 
-			final Composite borderedBackground = new Composite(styledShell, SWT.NONE);
+			borderedBackground = new Composite(styledShell, SWT.NONE);
+
 			fillLayout = new FillLayout();
 			fillLayout.marginHeight = borderWidth;
 			fillLayout.marginWidth = borderWidth;
@@ -469,8 +476,35 @@ public class LightBoxShell
 					styledShell.setRegion(getRoundedRegion(outerBounds));
 					styledShell.setBounds(outerBounds);
 					styledShell.setVisible(true);
+					styledShell.forceActive();
 				}
 			}
+		}
+
+		public void animateCurtain(final int milliSeconds) {
+			if (false == isAlive()) {
+				return;
+			}
+			display.asyncExec(new Runnable() {
+				public void run() {
+					try {
+						int seconds = milliSeconds;
+						int currentAlpha = 0;
+						styledShell.setAlpha(currentAlpha);
+						while (seconds > 0) {
+							Thread.sleep(milliSeconds / 10);
+							seconds -= (milliSeconds / 10);
+							currentAlpha += 20;
+							styledShell.setAlpha(Math.min(currentAlpha, alpha));
+						}
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					} finally {
+						styledShell.setAlpha(alpha);
+					}
+				}
+			});
+
 		}
 
 		public void setVisible(boolean visible) {
@@ -515,6 +549,18 @@ public class LightBoxShell
 		public Shell getShell() {
 			return styledShell;
 		}
+
+		public boolean isOpenedAlready() {
+			return isOpenedAlready;
+		}
+
+		public void setBackground(Color color) {
+			styledShell.setBackground(color);
+		}
+	}
+
+	public Display getDisplay() {
+		return display;
 	}
 
 }
