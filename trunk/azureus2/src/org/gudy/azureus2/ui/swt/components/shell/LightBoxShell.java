@@ -3,17 +3,9 @@ package org.gudy.azureus2.ui.swt.components.shell;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Cursor;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.graphics.Region;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -41,7 +33,7 @@ public class LightBoxShell
 
 	private boolean closeOnESC = false;
 
-	private boolean isShellOpened = false;
+	private boolean isAlreadyOpened = false;
 
 	private Display display;
 
@@ -91,24 +83,12 @@ public class LightBoxShell
 		lbShell = new Shell(parentShell, SWT.NO_TRIM | SWT.APPLICATION_MODAL);
 
 		try {
-			/*
-			 * For the ideal lightbox effect we set the mask (background color)
-			 * and transparency (alpha value) differently for OSX vs. non-OSX
-			 */
-			if (true == Constants.isOSX) {
-				/*
-				 * Black mask with 50% transparency
-				 */
-				lbShell.setBackground(new Color(parentShell.getDisplay(), 0, 0, 0));
-				lbShell.setAlpha(128);
-			} else {
-				/*
-				 * Black mask with 30% transparency
-				 */
-				lbShell.setBackground(new Color(parentShell.getDisplay(), 0, 0, 0));
-				lbShell.setAlpha(178);
-			}
 
+			/*
+			 * Black mask with 30% transparency
+			 */
+			lbShell.setBackground(new Color(parentShell.getDisplay(), 0, 0, 0));
+			lbShell.setAlpha(178);
 		} catch (Throwable t) {
 			// Not supported on SWT older than 3.4M4
 			t.printStackTrace();
@@ -134,7 +114,7 @@ public class LightBoxShell
 	public void open() {
 		if (null != lbShell && false == lbShell.isDisposed()) {
 			lbShell.setBounds(getTargetArea());
-			isShellOpened = true;
+			isAlreadyOpened = true;
 			lbShell.open();
 		}
 	}
@@ -201,11 +181,11 @@ public class LightBoxShell
 	public void open(StyledShell shellToOpen) {
 		if (null != shellToOpen && null != lbShell) {
 
-			if (false == isShellOpened) {
+			if (false == isAlreadyOpened) {
 				open();
 			}
 
-			if (false == shellToOpen.isOpenedAlready()) {
+			if (false == shellToOpen.isAlreadyOpened()) {
 				shellToOpen.open();
 
 				/*
@@ -244,14 +224,30 @@ public class LightBoxShell
 
 		private int borderWidth;
 
-		private boolean isOpenedAlready = false;
+		private boolean isAlreadyOpened = false;
 
 		private int alpha = 230;
+
+		private boolean isAnimating = false;
 
 		private StyledShell(int borderWidth) {
 			this.borderWidth = borderWidth;
 
-			styledShell = new Shell(lbShell, SWT.NO_TRIM | SWT.ON_TOP);
+			int style = SWT.NO_TRIM | SWT.ON_TOP;
+			
+			/*
+			 * On non-osx we must make this shell application modal so that it can not be hidden
+			 * by the embedded media player
+			 * 
+			 * At the same time we can not make it modal on OSX or else the screen positioning is all wrong;
+			 * I'll find a fix for it later KN
+			 */
+			if (false == Constants.isOSX) {
+				style |= SWT.APPLICATION_MODAL;
+			}
+			
+			styledShell = new Shell(lbShell, style);
+
 			try {
 				styledShell.setAlpha(0);
 			} catch (Throwable t) {
@@ -415,7 +411,7 @@ public class LightBoxShell
 		private void open() {
 			if (true == isAlive()) {
 				styledShell.open();
-				isOpenedAlready = true;
+				isAlreadyOpened = true;
 			}
 		}
 
@@ -442,7 +438,7 @@ public class LightBoxShell
 			/*
 			 * If the shell is opened already then, by default, resizing should not try to center the shell
 			 */
-			setSize(width, height, false == isOpenedAlready);
+			setSize(width, height, false == isAlreadyOpened);
 		}
 
 		public void setSize(int width, int height, boolean centersShell) {
@@ -457,7 +453,7 @@ public class LightBoxShell
 				height += borderWidth * 4;
 
 				if (outerBounds.width != width || outerBounds.height != height) {
-					styledShell.setVisible(false);
+					//					animateFade(200);
 					outerBounds.width = width;
 					outerBounds.height = height;
 
@@ -475,32 +471,42 @@ public class LightBoxShell
 
 					styledShell.setRegion(getRoundedRegion(outerBounds));
 					styledShell.setBounds(outerBounds);
-					styledShell.setVisible(true);
 					styledShell.forceActive();
 				}
 			}
 		}
 
-		public void animateCurtain(final int milliSeconds) {
-			if (false == isAlive()) {
+		public void animateFade(final int milliSeconds) {
+			if (false == isAlive() || true == isAnimating) {
 				return;
 			}
 			display.asyncExec(new Runnable() {
 				public void run() {
+					System.out.println("Animating...");//KN: sysout
+					isAnimating = true;
 					try {
 						int seconds = milliSeconds;
 						int currentAlpha = 0;
-						styledShell.setAlpha(currentAlpha);
+						if (true == isAlive()) {
+							styledShell.setAlpha(currentAlpha);
+						}
 						while (seconds > 0) {
 							Thread.sleep(milliSeconds / 10);
 							seconds -= (milliSeconds / 10);
 							currentAlpha += 20;
-							styledShell.setAlpha(Math.min(currentAlpha, alpha));
+							if (true == isAlive()) {
+								styledShell.setAlpha(Math.min(currentAlpha, alpha));
+							} else {
+								break;
+							}
 						}
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					} finally {
-						styledShell.setAlpha(alpha);
+						if (true == isAlive()) {
+							styledShell.setAlpha(alpha);
+						}
+						isAnimating = false;
 					}
 				}
 			});
@@ -550,17 +556,29 @@ public class LightBoxShell
 			return styledShell;
 		}
 
-		public boolean isOpenedAlready() {
-			return isOpenedAlready;
+		public boolean isAlreadyOpened() {
+			return isAlreadyOpened;
 		}
 
 		public void setBackground(Color color) {
 			styledShell.setBackground(color);
 		}
+
+		public int getAlpha() {
+			return alpha;
+		}
+
+		public void setAlpha(int alpha) {
+			this.alpha = alpha;
+		}
 	}
 
 	public Display getDisplay() {
 		return display;
+	}
+
+	public boolean isAlreadyOpened() {
+		return isAlreadyOpened;
 	}
 
 }
