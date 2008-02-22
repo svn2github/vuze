@@ -3,9 +3,17 @@ package org.gudy.azureus2.ui.swt.components.shell;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
-import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Cursor;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.Region;
 import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -95,10 +103,10 @@ public class LightBoxShell
 				lbShell.setAlpha(128);
 			} else {
 				/*
-				 * Light gray mask with 43% transparency
+				 * Black mask with 30% transparency
 				 */
-				lbShell.setBackground(new Color(parentShell.getDisplay(), 28, 28, 28));
-				lbShell.setAlpha(110);
+				lbShell.setBackground(new Color(parentShell.getDisplay(), 0, 0, 0));
+				lbShell.setAlpha(178);
 			}
 
 		} catch (Throwable t) {
@@ -232,13 +240,13 @@ public class LightBoxShell
 
 		private int borderWidth;
 
+		private boolean isOpenedAlready = false;
+
 		private StyledShell(int borderWidth) {
 			this.borderWidth = borderWidth;
 			styledShell = new Shell(lbShell, SWT.NO_TRIM | SWT.ON_TOP);
-
 			try {
-				styledShell.setBackground(new Color(parentShell.getDisplay(), 38, 38,
-						38));
+				styledShell.setBackground(new Color(display, 38, 38, 38));
 				styledShell.setAlpha(230);
 			} catch (Throwable t) {
 				// Not supported on SWT older than 3.4M4
@@ -261,8 +269,7 @@ public class LightBoxShell
 			borderedBackground.setLayout(fillLayout);
 
 			content = new Composite(borderedBackground, SWT.NONE);
-			setSize(400, 300);
-			styledShell.layout();
+
 			borderedBackground.addPaintListener(new PaintListener() {
 
 				public void paintControl(PaintEvent e) {
@@ -320,17 +327,29 @@ public class LightBoxShell
 
 			});
 
-			styledShell.addListener(SWT.Traverse, new Listener() {
+			Listener l = new Listener() {
+				int startX, startY;
+
 				public void handleEvent(Event e) {
-					switch (e.detail) {
-						case SWT.TRAVERSE_ESCAPE:
-							styledShell.close();
-							e.detail = SWT.TRAVERSE_NONE;
-							e.doit = false;
-							break;
+					if (e.type == SWT.KeyDown && e.character == SWT.ESC) {
+						styledShell.dispose();
+					}
+					if (e.type == SWT.MouseDown && e.button == 1) {
+						startX = e.x;
+						startY = e.y;
+					}
+					if (e.type == SWT.MouseMove && (e.stateMask & SWT.BUTTON1) != 0) {
+						Point p = styledShell.toDisplay(e.x, e.y);
+						p.x -= startX;
+						p.y -= startY;
+						styledShell.setLocation(p);
 					}
 				}
-			});
+			};
+			styledShell.addListener(SWT.KeyDown, l);
+			styledShell.addListener(SWT.MouseDown, l);
+			styledShell.addListener(SWT.MouseMove, l);
+			styledShell.setCursor(display.getSystemCursor(SWT.CURSOR_HAND));
 
 		}
 
@@ -389,6 +408,7 @@ public class LightBoxShell
 		private void open() {
 			if (true == isAlive()) {
 				styledShell.open();
+				isOpenedAlready = true;
 			}
 		}
 
@@ -412,31 +432,45 @@ public class LightBoxShell
 		}
 
 		public void setSize(int width, int height) {
-			if (true == isAlive()) {
-				Rectangle bounds = styledShell.getBounds();
-				if (bounds.width != width || bounds.height != height) {
+			/*
+			 * If the shell is opened already then, by default, resizing should not try to center the shell
+			 */
+			setSize(width, height, false == isOpenedAlready);
+		}
 
-					bounds.width = width;
-					bounds.height = height;
+		public void setSize(int width, int height, boolean centersShell) {
+			if (true == isAlive()) {
+				Rectangle outerBounds = styledShell.getBounds();
+
+				/*
+				 * Compensating since the 2 outer borders extends beyond the content area
+				 */
+
+				width += borderWidth * 4;
+				height += borderWidth * 4;
+
+				if (outerBounds.width != width || outerBounds.height != height) {
+					styledShell.setVisible(false);
+					outerBounds.width = width;
+					outerBounds.height = height;
 
 					/*
 					 * Centers the the StyleShell relative to the parent shell
 					 */
-					Utils.centerRelativeTo(bounds, parentShell.getBounds());
+					if (true == centersShell) {
+						Utils.centerRelativeTo(outerBounds, parentShell.getBounds());
+					}
 
 					/*
 					 * Adjust the new bounds if the shell does not fully fit on the screen
 					 */
-					Utils.makeVisibleOnCursor(bounds);
+					Utils.makeVisibleOnCursor(outerBounds);
 
-					styledShell.setBounds(bounds);
-					styledShell.setRegion(getRoundedRegion(bounds));
+					styledShell.setRegion(getRoundedRegion(outerBounds));
+					styledShell.setBounds(outerBounds);
+					styledShell.setVisible(true);
 				}
 			}
-		}
-
-		public void setSize(Point size) {
-			setSize(size.x, size.y);
 		}
 
 		public void setVisible(boolean visible) {
