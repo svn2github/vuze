@@ -263,14 +263,14 @@ public class ListRow
 			} else {
   			int yy = height + yofs - 1;
   			if (yy > 0) {
-  				if (view.colorRowDivider != null) {
+  				if (view.colorRowDivider != null && clientArea.width > 10) {
   					gc.setForeground(view.colorRowDivider);
   					
-    				if (isFocused()) {
+    				//if (isFocused()) {
     					//gc.setBackground(ColorCache.getColor(gc.getDevice(), "#191919"));
     					//gc.setForeground(ColorCache.getColor(gc.getDevice(), "#606060"));
-    				}
-    				gc.drawLine(3, yy, clientArea.width - 4, yy);
+    				//}
+    				gc.drawLine(5, yy, clientArea.width - 10, yy);
   				}
   			}
 			}
