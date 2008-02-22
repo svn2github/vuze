@@ -52,9 +52,9 @@ public class LightBoxBrowserWindow
 
 	private LightBoxShell lightBoxShell;
 
-	private int browserWidth = 400;
+	private int browserWidth = 0;
 
-	private int browserHeight = 300;
+	private int browserHeight = 0;
 
 	private Label errorMessageLabel;
 
@@ -102,16 +102,12 @@ public class LightBoxBrowserWindow
 		styledShell = lightBoxShell.createStyledShell(6, true);
 
 		/*
-		 * Sets the cursor to busy since loading the light box and accompanying browser can take some time;
-		 * we set it back to normal in the ProgressListener for the Browser below
-		 */
-		styledShell.setCursor(Display.getCurrent().getSystemCursor(SWT.CURSOR_WAIT));
-
-		/*
 		 * Use a StackLayout with an error panel in the background so we can switch it to the front
 		 * when an error has occurred
 		 */
 		contentPanel = styledShell.getContent();
+		stack.marginHeight = 0;
+		stack.marginWidth = 0;
 		contentPanel.setLayout(stack);
 		contentPanel.setBackground(new Color(null, 13, 13, 13));
 		errorPanel = new Composite(contentPanel, SWT.NONE);
@@ -163,11 +159,11 @@ public class LightBoxBrowserWindow
 		try {
 			browser = new Browser(contentPanel, SWT.NONE);
 		} catch (Throwable t) {
-			stack.topControl = errorPanel;
+			// Be silent if no browser
 		}
 
 		if (browserWidth > 0 && browserHeight > 0) {
-			styledShell.setSize(browserWidth, browserHeight);
+			styledShell.setSize(browserWidth, browserHeight, true);
 		}
 
 		if (null != browser) {
@@ -179,7 +175,7 @@ public class LightBoxBrowserWindow
 		}
 
 		contentPanel.layout();
-		lightBoxShell.open();
+		lightBoxShell.open(styledShell);
 	}
 
 	private void hookListeners() {
@@ -201,8 +197,6 @@ public class LightBoxBrowserWindow
 		browser.addProgressListener(new ProgressListener() {
 			public void completed(ProgressEvent event) {
 
-				stack.topControl = browser;
-
 				/*
 				 * If a prefixVerifier is specified then verify the loaded page
 				 */
@@ -218,28 +212,21 @@ public class LightBoxBrowserWindow
 						 * this could be due the the SWT jar being of an older version
 						 */
 					}
-
 					if (null != browserText && false == isPageVerified(browser.getText())) {
 
 						String errorMessage = "An error has occured while attempting to access:\n";
 						errorMessage += browser.getUrl() + "\n\n";
 						errorMessage += "Please try again at a later time.\n";
 						errorMessageLabel.setText(errorMessage);
-						stack.topControl = errorPanel;
-
+						if (false == stack.topControl.equals(errorPanel)) {
+							stack.topControl = errorPanel;
+							contentPanel.layout();
+						}
 					}
-
 				}
-				contentPanel.layout(true);
-				lightBoxShell.open(styledShell);
-
 			}
 
 			public void changed(ProgressEvent event) {
-				if (event.current == event.total) {
-					styledShell.setCursor(Display.getCurrent().getSystemCursor(
-							SWT.CURSOR_ARROW));
-				}
 			}
 		});
 
@@ -316,8 +303,8 @@ public class LightBoxBrowserWindow
 	}
 
 	public void setSize(int width, int height) {
-		browserWidth = Math.max(width, 320);
-		browserHeight = Math.max(height, 240);
+		browserWidth = width;
+		browserHeight = height;
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				styledShell.setSize(browserWidth, browserHeight);
