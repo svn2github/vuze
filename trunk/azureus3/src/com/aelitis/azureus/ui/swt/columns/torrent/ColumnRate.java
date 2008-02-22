@@ -34,7 +34,6 @@ import org.gudy.azureus2.ui.swt.mainwindow.HSLColor;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
-import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.messenger.PlatformMessage;
@@ -50,7 +49,6 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
-import com.aelitis.azureus.ui.swt.views.list.ListCell;
 import com.aelitis.azureus.util.VuzeActivitiesEntry;
 
 import org.gudy.azureus2.plugins.ui.Graphic;
@@ -67,6 +65,9 @@ public class ColumnRate
 	public static final String COLUMN_ID = "Rating";
 
 	public static final int COLUMN_WIDTH = 58;
+
+	public static final boolean ROW_HOVER = System.getProperty("rowhover", "0").equals(
+			"1");
 
 	private static Font font = null;
 
@@ -270,13 +271,17 @@ public class ColumnRate
 
 			Image imgRate = null;
 			if (allowRate) {
-				TableRow row = cell.getTableRow();
-				boolean rowHasMouse = (row instanceof TableRowCore)
-						? ((TableRowCore) row).isMouseOver() : false;
-				if (rowHasMouse && userRating == -1) {
-					showAverage = false;
-					showRateActionIcon = true;
+				if (ROW_HOVER) {
+					TableRow row = cell.getTableRow();
+					boolean rowHasMouse = (row instanceof TableRowCore)
+							? ((TableRowCore) row).isMouseOver() : false;
+					if (rowHasMouse && userRating == -1) {
+						showAverage = false;
+						showRateActionIcon = true;
+					}
 				}
+				boolean cellHasMouse = (cell instanceof TableCellCore)
+						? ((TableCellCore) cell).isMouseOver() : false;
 
 				switch (userRating) {
 					case -2: // waiting
@@ -284,11 +289,14 @@ public class ColumnRate
 						break;
 
 					case -1: // unrated
-						boolean mouseIn = (useButton && (cell instanceof TableCellCore))
-								? ((TableCellCore) cell).isMouseOver() : false;
+						boolean mouseIn = useButton && cellHasMouse;
 						if ((useButton && !mouseIn) || disabled) {
 							imgRate = imgRateMeButton;
 						} else {
+							if (cellHasMouse) {
+								showAverage = false;
+								showRateActionIcon = true;
+							}
 							switch (hoveringOn) {
 								case 0:
 									imgRate = imgRateMeDown;
@@ -318,9 +326,9 @@ public class ColumnRate
 				if (showRateActionIcon) {
 					try {
 						gcImage.setAlpha(40);
-				  } catch (Exception e) {
-				  	// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
-				  }
+					} catch (Exception e) {
+						// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
+					}
 				}
 				Rectangle r = img.getBounds();
 				int bigTextStyle = SWT.RIGHT;
@@ -352,9 +360,9 @@ public class ColumnRate
 				gcImage.setFont(font);
 				try {
 					gcImage.setTextAntialias(SWT.ON);
-			  } catch (Exception e) {
-			  	// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
-			  }
+				} catch (Exception e) {
+					// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
+				}
 
 				SWTSkinProperties skinProperties = SWTSkinFactory.getInstance().getSkinProperties();
 
@@ -398,9 +406,9 @@ public class ColumnRate
 					gcImage.setFont(smallFont);
 					try {
 						gcImage.setTextAntialias(SWT.DEFAULT);
-				  } catch (Exception e) {
-				  	// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
-				  }
+					} catch (Exception e) {
+						// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
+					}
 
 					Rectangle rectDrawRatings = img.getBounds();
 					//rectDrawRatings.height -= 4;
@@ -411,9 +419,9 @@ public class ColumnRate
 				if (showRateActionIcon) {
 					try {
 						gcImage.setAlpha(255);
-				  } catch (Exception e) {
-				  	// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
-				  }
+					} catch (Exception e) {
+						// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
+					}
 				}
 			}
 
@@ -525,7 +533,8 @@ public class ColumnRate
 
 			if (event.eventType == TableCellMouseEvent.EVENT_MOUSEENTER
 					|| event.eventType == TableCellMouseEvent.EVENT_MOUSEEXIT) {
-				refresh(event.cell);
+				refresh(event.cell, true);
+				return;
 			}
 
 			if (event.eventType != TableCellMouseEvent.EVENT_MOUSEDOWN
@@ -646,7 +655,7 @@ public class ColumnRate
 				long refreshOn = GlobalRatingUtils.getRefreshOn(torrent);
 				long diff = (refreshOn - SystemTime.getCurrentTime()) / 1000;
 				Object toolTip = cell.getToolTip();
-				if (!(toolTip instanceof String) || ((String)toolTip).startsWith("G.")) {
+				if (!(toolTip instanceof String) || ((String) toolTip).startsWith("G.")) {
 					cell.setToolTip("G.Rating Auto Refreshes in "
 							+ TimeFormatter.format(diff));
 				}

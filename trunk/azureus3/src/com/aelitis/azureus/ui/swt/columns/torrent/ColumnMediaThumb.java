@@ -39,6 +39,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
@@ -60,6 +61,9 @@ public class ColumnMediaThumb
 	TableCellMouseMoveListener, TableRowMouseListener
 {
 	public static String COLUMN_ID = "MediaThumb";
+
+	public static final boolean ROW_HOVER = System.getProperty("rowhover", "0").equals(
+			"1");
 
 	private Map mapCellTorrent = new HashMap();
 
@@ -160,9 +164,15 @@ public class ColumnMediaThumb
 			int MAXH = maxThumbHeight < 0 ? cell.getHeight() : maxThumbHeight;
 
 			TableRow row = cell.getTableRow();
-			boolean rowHasMouse = (row instanceof TableRowCore)
-					? ((TableRowCore) row).isMouseOver() : false;
-			showPlayButton &= rowHasMouse;
+			if (ROW_HOVER) {
+				boolean rowHasMouse = (row instanceof TableRowCore)
+						? ((TableRowCore) row).isMouseOver() : false;
+				showPlayButton &= rowHasMouse;
+			} else {
+				boolean cellHasMouse = (cell instanceof TableCellCore)
+						? ((TableCellCore) cell).isMouseOver() : false;
+				showPlayButton &= cellHasMouse;
+			}
 
 			ByteArrayInputStream bis = new ByteArrayInputStream(b);
 			try {
@@ -191,9 +201,9 @@ public class ColumnMediaThumb
 					if (!showPlayButton) {
 						try {
 							gc.setAlpha(180);
-					  } catch (Exception e) {
-					  	// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
-					  }
+						} catch (Exception e) {
+							// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
+						}
 					}
 					gc.drawImage(img, 0, 0, w, h, 0, 0, w2, h2);
 
@@ -205,9 +215,9 @@ public class ColumnMediaThumb
 
 					try {
 						gc.setAlpha(255);
-				  } catch (Exception e) {
-				  	// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
-				  }
+					} catch (Exception e) {
+						// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
+					}
 					if (showPlayButton) {
 
 						if (imgPlay != null) {
@@ -219,8 +229,8 @@ public class ColumnMediaThumb
 							float x = (w2 - w3) / 2;
 							float y = (h2 - h3) / 2;
 
-							gc.drawImage(imgPlay, 0, 0, imgW,
-									imgH, (int) x, (int)y, (int) (w3), (int) (h3));
+							gc.drawImage(imgPlay, 0, 0, imgW, imgH, (int) x, (int) y,
+									(int) (w3), (int) (h3));
 						}
 					}
 
