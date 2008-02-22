@@ -742,7 +742,7 @@ public class UIFunctionsImpl
 			if (uiFunctions == null) {
 				return;
 			}
-
+			mainWindow.switchToAdvancedTab();
 			uiFunctions.showAllPeersView();
 
 		} catch (Exception e) {
