@@ -60,8 +60,8 @@ public class UserAreaUtils
 
 					String url = Constants.URL_PREFIX + Constants.URL_LOGIN + "?"
 							+ Constants.URL_SUFFIX;
-					new LightBoxBrowserWindow(url, Constants.URL_PAGE_VERIFIER_VALUE, 0,
-							0);
+					new LightBoxBrowserWindow(url, Constants.URL_PAGE_VERIFIER_VALUE, 380,
+							280);
 
 				}
 			});
@@ -107,7 +107,7 @@ public class UserAreaUtils
 						String url = Constants.URL_PREFIX + Constants.URL_REGISTRATION
 								+ "?" + Constants.URL_SUFFIX;
 						new LightBoxBrowserWindow(url, Constants.URL_PAGE_VERIFIER_VALUE,
-								0, 0);
+								460, 577);
 					}
 
 				}
