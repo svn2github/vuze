@@ -282,7 +282,7 @@ public class TorrentListView
 			TableColumnCore[] v3TableColumns = new TableColumnCore[] {
 				new ColumnMediaThumb(tableID, 30),
 				new ColumnTitle(tableID),
-				new ColumnQuality(tableID),
+				new ColumnQuality(tableID, true),
 				new SizeItem(tableID),
 				new ColumnRate(tableID, true),
 				new ColumnDateCompleted2Liner(tableID, false),
@@ -371,7 +371,7 @@ public class TorrentListView
 				new ColumnControls(tableID),
 				new ColumnMediaThumb(tableID, 30),
 				new ColumnTitle(tableID),
-				new ColumnQuality(tableID),
+				new ColumnQuality(tableID, true),
 				new SizeItem(tableID),
 				new ColumnProgressETA(tableID),
 				new ColumnDateAdded2Liner(tableID, false),
@@ -397,7 +397,7 @@ public class TorrentListView
 				new ColumnMediaThumb(tableID, 30),
 				new ColumnTitle(tableID),
 				new ColumnRate(tableID, true),
-				new ColumnQuality(tableID),
+				new ColumnQuality(tableID, true),
 				new SizeItem(tableID),
 				new ColumnProgressETA(tableID),
 				new ColumnDateAdded2Liner(tableID, false),
@@ -428,9 +428,11 @@ public class TorrentListView
 			v3TableColumns = new TableColumnCore[] {
 				new ColumnMediaThumb(tableID, 30),
 				new ColumnTitle(tableID),
+				new ColumnQuality(tableID, false),
 				new ColumnProgressETA(tableID),
 				new ColumnRate(tableID, true),
 				new ColumnDateAdded2Liner(tableID, false),
+				new ColumnDateCompleted2Liner(tableID, false),
 			};
 			autoHideOrder = new String[] {
 				ColumnMediaThumb.COLUMN_ID,
@@ -442,7 +444,7 @@ public class TorrentListView
 				new ColumnMediaThumb(tableID, 30),
 				new ColumnTitle(tableID),
 				new SizeItem(tableID),
-				new ColumnQuality(tableID),
+				new ColumnQuality(tableID, true),
 				new ColumnDateCompleted2Liner(tableID, true),
 				new ColumnRate(tableID, true),
 				new ColumnDateAdded2Liner(tableID, false),
