@@ -726,7 +726,10 @@ public class MainWindow
 				uiInitializer.reportCurrentTask(MessageText.getString(taskKey));
 			}
 		}
-		if (Utils.isThisThreadSWT()) {
+		// XXX Disabled because plugin update window will pop up and take control
+		// 		 of the dispatch loop..
+		if (false && Utils.isThisThreadSWT()) {
+			// clean the dispatch loop so the splash screen gets updated
 			int i = 1000;
 			while (display.readAndDispatch() && i > 0) {
 				i--;
