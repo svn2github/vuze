@@ -37,6 +37,7 @@ public class BTKeepAlive implements BTMessage, RawMessage {
   private byte version;
   private DirectByteBuffer[] buffer = null;
   
+  private boolean no_delay = false;
   
   public BTKeepAlive(byte _version) {
     version = _version;
@@ -84,8 +85,10 @@ public class BTKeepAlive implements BTMessage, RawMessage {
   
   public int getPriority() {  return RawMessage.PRIORITY_LOW;  }
 
-  public boolean isNoDelay() {  return false;  }
+  public boolean isNoDelay() {  return no_delay;  }
  
+  public void setNoDelay() { no_delay = true; }
+
   public Message[] messagesToRemove() {  return null;  }
 
   public void destroy() {

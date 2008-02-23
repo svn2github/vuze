@@ -2967,6 +2967,7 @@ implements PEPeerTransport
 				peer_stats.dataBytesSent( byte_count );
 				manager.dataBytesSent( PEPeerTransportProtocol.this, byte_count );
 			}
+			 public void flush(){}
 		});
 
 		//start message processing

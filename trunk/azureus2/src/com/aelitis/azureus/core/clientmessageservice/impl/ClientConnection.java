@@ -129,7 +129,7 @@ public class ClientConnection {
 		    public void messageRemoved( Message message ){}
 		    public void protocolBytesSent( int byte_count ){}
 		    public void dataBytesSent( int byte_count ){}
-		    
+		    public void flush() {}
 		    public void messageSent( Message message ){
 		    	if( message.equals( msg ) ) {
 		    		try{  msg_mon.enter();

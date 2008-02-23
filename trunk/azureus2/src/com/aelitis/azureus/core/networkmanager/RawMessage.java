@@ -59,6 +59,14 @@ public interface RawMessage extends Message {
   public boolean isNoDelay();
     
   /**
+   * Set no-delay for this message
+   * @param no_delay
+   */
+  
+  public void
+  setNoDelay();
+  
+  /**
    * Get the yet-unsent message types that should be removed
    * before queueing this message for sending.
    * @return message types; null if no types

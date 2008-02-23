@@ -152,6 +152,13 @@ OutgoingMessageQueue
    */
   public void doListenerNotifications();
  
+  /**
+   * Force all pending messages to be delivered
+   */
+  
+  public void
+  flush();
+  
   public void
   setTrace(
 		boolean	on );
@@ -224,5 +231,7 @@ OutgoingMessageQueue
      * @param byte_count number of data bytes
      */
     public void dataBytesSent( int byte_count );
+    
+    public void flush();
   }
 }

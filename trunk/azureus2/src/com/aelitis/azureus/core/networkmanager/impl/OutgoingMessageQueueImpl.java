@@ -664,6 +664,40 @@ outer:
 	  return data_written + protocol_written;
   }
   
+  public void
+  flush()
+  {
+	  try{
+		  queue_mon.enter();
+
+		  if ( queue.isEmpty()){
+			  
+			  return;
+		  }
+		  
+		  for (int i=0;i<queue.size();i++){
+			  
+			  RawMessage	msg = (RawMessage)queue.get(i);
+			  
+			  msg.setNoDelay();
+			  
+			  if ( i == 0 ){
+				  
+				  urgent_message = msg;
+			  }
+		  }
+	  }finally{
+		  
+		  queue_mon.exit();
+	  }
+	    
+	  ArrayList list_ref = listeners;
+
+	  for( int i=0; i < list_ref.size(); i++ ) {
+		 MessageQueueListener listener = (MessageQueueListener)list_ref.get( i );
+		 listener.flush();
+	  }
+  }
   public boolean
   isDestroyed()
   {

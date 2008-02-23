@@ -38,7 +38,7 @@ public class RawMessageImpl implements RawMessage {
   private final Message message;
   private final DirectByteBuffer[] payload;
   private final int priority;
-  private final boolean is_no_delay;
+  private boolean is_no_delay;
   private final Message[] to_remove;
 
   
@@ -90,6 +90,8 @@ public class RawMessageImpl implements RawMessage {
   public int getPriority() {  return priority;  }
   
   public boolean isNoDelay() {  return is_no_delay;  }
+  
+  public void setNoDelay() { is_no_delay = true; }
   
   public Message[] messagesToRemove() {  return to_remove;  }
   

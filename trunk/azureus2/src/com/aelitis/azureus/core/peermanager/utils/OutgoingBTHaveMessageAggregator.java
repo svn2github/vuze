@@ -67,6 +67,7 @@ public class OutgoingBTHaveMessageAggregator {
     public void messageSent( Message message ) {/*nothing*/}
     public void protocolBytesSent( int byte_count ) {/*ignore*/}
     public void dataBytesSent( int byte_count ) {/*ignore*/}
+    public void flush(){}
   };
   
   

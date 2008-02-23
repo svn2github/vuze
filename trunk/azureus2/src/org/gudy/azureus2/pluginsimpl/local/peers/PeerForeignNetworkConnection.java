@@ -256,6 +256,10 @@ PeerForeignNetworkConnection
 		{
 		}
 		 
+		public void flush() 
+		{
+		}
+		
 		public boolean 
 		isDestroyed() 
 		{

@@ -876,6 +876,8 @@ HTTPNetworkConnection
 			    	int byte_count )
 			    {	
 			    }
+			    
+			    public void flush(){}
 			});
 		
 		getConnection().getOutgoingMessageQueue().addMessage( http_message, false );
@@ -981,6 +983,8 @@ HTTPNetworkConnection
 			    	int byte_count )
 			    {	
 			    }
+			    
+			    public void flush(){}
 			});
 		
 		omq.addMessage( http_message, false );

@@ -96,6 +96,7 @@ public class OutgoingMessageQueueImpl implements OutgoingMessageQueue {
         public void protocolBytesSent( int byte_count ) {  listener.bytesSent( byte_count );  }
 
         public void dataBytesSent( int byte_count ) {  listener.bytesSent( byte_count );  }
+        public void flush(){}
     };
     
     registrations.put( listener, core_listener );  //save this mapping for later

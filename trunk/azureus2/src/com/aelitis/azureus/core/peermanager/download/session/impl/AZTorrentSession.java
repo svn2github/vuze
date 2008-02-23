@@ -163,6 +163,7 @@ public class AZTorrentSession implements TorrentSession {
     public void messageRemoved( Message message ) {/*nothing*/}
     public void protocolBytesSent( int byte_count ) {/*ignore*/}
     public void dataBytesSent( int byte_count ) {/*ignore*/}
+    public void flush(){}
   };
   
   

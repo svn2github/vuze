@@ -86,6 +86,7 @@ public class RawMessageAdapter extends MessageAdapter implements RawMessage, com
 
   public boolean isNoDelay() {  return true;  }
  
+  public void setNoDelay() {}
 
   public Message[] messagesToRemove() {  return null;  }
   

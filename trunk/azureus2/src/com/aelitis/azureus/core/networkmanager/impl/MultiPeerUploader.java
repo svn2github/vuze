@@ -223,6 +223,24 @@ public class MultiPeerUploader implements RateControlledEntity {
         }
       }
 
+      public void 
+      flush()
+      {
+    	  try{
+    		  lists_lock.enter();
+    		  
+              if ( waiting_connections.remove( conn ) != null ){
+            	  
+            	  conn.getOutgoingMessageQueue().cancelQueueListener( this );
+            	  
+            	  addToReadyList( conn );
+              }
+    	  }finally{
+
+    		  lists_lock.exit();
+    	  }
+      }
+      
       public void messageRemoved( Message message ) {/*ignore*/}
       public void messageSent( Message message ) {/*ignore*/}
       public void protocolBytesSent( int byte_count ) {/*ignore*/}

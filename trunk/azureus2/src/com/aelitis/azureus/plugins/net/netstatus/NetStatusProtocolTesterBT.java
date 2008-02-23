@@ -26,9 +26,12 @@ import java.nio.ByteBuffer;
 import java.security.SecureRandom;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DelayedEvent;
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SystemTime;
 
@@ -43,7 +46,9 @@ import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.PeerManagerRegistration;
 import com.aelitis.azureus.core.peermanager.PeerManagerRegistrationAdapter;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTBitfield;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTHandshake;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTHave;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessage;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessageDecoder;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessageEncoder;
@@ -173,13 +178,20 @@ NetStatusProtocolTesterBT
 		final byte[]			their_hash,
 		boolean					use_crypto )
 	{
+			// regardless of the caller's desires, override with crypto if we're using it
+		
+		if ( NetworkManager.getCryptoRequired( NetworkManager.CRYPTO_OVERRIDE_NONE )){
+			
+			use_crypto = true;
+		}
+		
 		log( "Making outbound connection to " + address );
 		
 		synchronized( this ){
 		
 			outbound_attempts++;
 		}
-		
+				
 		boolean	allow_fallback	= false;
 		
 		ProtocolEndpoint	pe = new ProtocolEndpointTCP( address );
@@ -396,8 +408,13 @@ NetStatusProtocolTesterBT
 		private byte[]					info_hash;
 		
 		private boolean 	handshake_sent;
+		private boolean 	bitfield_sent;
 
+		private int			num_pieces;
 
+		private boolean		closing;
+		private boolean		closed;
+		
 		protected
 		Session(
 			NetworkConnection		_connection,
@@ -462,7 +479,10 @@ NetStatusProtocolTesterBT
 						connectFailure( 
 							Throwable e ) 
 						{
-							logError( type + " connection fail", e );
+							if ( !closing ){
+							
+								logError( type + " connection fail", e );
+							}
 							
 							close();
 						}
@@ -471,9 +491,13 @@ NetStatusProtocolTesterBT
 						exceptionThrown( 
 							Throwable e ) 
 						{
-							logError( type + " connection fail", e );
+							if ( !closing ){
+
+								logError( type + " connection fail", e );
+							}
 							
-							close();					}
+							close();					
+						}
 	    			
 						public String
 						getDescription()
@@ -501,15 +525,47 @@ NetStatusProtocolTesterBT
 							
 					        if ( message_id.equals( BTMessage.ID_BT_HANDSHAKE )){
 						
-					        	if ( !handshake_sent ){
+				        		BTHandshake handshake = (BTHandshake)message;
 					        		
-					        		BTHandshake handshake = (BTHandshake)message;
+				        		info_hash = handshake.getDataHash();
+				        		
+				        		num_pieces = 500 + ((int)(info_hash[0]))&0xff;
+				        		
+				        		if ( num_pieces%8 == 0 ){
+				        			
+				        			num_pieces--;
+				        		}
+				        		
+				        		sendHandshake();
+					        	
+					        	sendBitfield();
+					        	
+					        	connection.getIncomingMessageQueue().getDecoder().resumeDecoding();
+					        	
+					        }else if ( message_id.equals( BTMessage.ID_BT_BITFIELD )){
+									
+					        	BTBitfield bitfield = (BTBitfield)message;
+					  
+					        	ByteBuffer bb = bitfield.getBitfield().getBuffer((byte)0);
+					        	
+					        	byte[]	contents = new byte[bb.remaining()];
+					        	
+					        	bb.get( contents );
+					        						        	
+					        }else if ( message_id.equals( BTMessage.ID_BT_HAVE  )){
+					        	
+					        	BTHave have = (BTHave)message;
+					        	
+					        	if ( have.getPieceNumber() == num_pieces ){
 					        		
-					        		info_hash = handshake.getDataHash();
-					        		
-					        		sendHandshake();
+					    			synchronized( sessions ){
+
+					    				closing = true;
+					    			}
+					    			
+					    			close();
 					        	}
-							}
+					        }
 					        
 					        return( true );
 					        
@@ -575,6 +631,11 @@ NetStatusProtocolTesterBT
 						int byte_count ) 
 					{
 					}
+					
+					public void 
+					flush()
+					{
+					}
 			});
 
 			connection.startMessageProcessing();
@@ -588,11 +649,76 @@ NetStatusProtocolTesterBT
 		protected void
 		sendHandshake()
 		{
-			handshake_sent = true;
+			if ( !handshake_sent ){
+				
+				handshake_sent = true;
+				
+				connection.getOutgoingMessageQueue().addMessage(
+					new BTHandshake( info_hash, peer_id, false, BTMessageFactory.MESSAGE_VERSION_INITIAL ),
+					false );
+			}
+		}
+		
+		protected void
+		sendHave(
+			int	piece_number )
+		{
+			BTHave message = new BTHave( piece_number, BTMessageFactory.MESSAGE_VERSION_INITIAL );
 			
-			connection.getOutgoingMessageQueue().addMessage(
-				new BTHandshake( info_hash, peer_id, false, BTMessageFactory.MESSAGE_VERSION_INITIAL ),
-				false );
+			OutgoingMessageQueue out_q = connection.getOutgoingMessageQueue();
+			
+			out_q.addMessage( message, false );
+			
+			out_q.flush();
+		}
+		
+		protected void
+		sendBitfield()
+		{
+			if ( !bitfield_sent ){
+			
+				bitfield_sent = true;
+				
+				byte[]	bits = new byte[( num_pieces + 7 ) /8];
+				
+				int	pos = 0;
+				
+				int i		= 0;
+				int bToSend	= 0;
+				
+				for (; i <num_pieces; i++ ){
+					
+					if ((i %8) ==0){
+						
+						bToSend =0;
+					}
+					
+					bToSend = bToSend << 1;
+					
+					if ( true ){
+						
+						bToSend += 1;
+					}
+					
+					if ((i %8) ==7){
+					
+						bits[pos++] = (byte)bToSend;
+					}
+				}
+				
+				if ((i %8) !=0){
+				
+					bToSend = bToSend << (8 - (i % 8));
+					
+					bits[pos++] = (byte)bToSend;
+				}
+				
+				DirectByteBuffer buffer = new DirectByteBuffer( ByteBuffer.wrap( bits ));
+
+				connection.getOutgoingMessageQueue().addMessage(
+					new BTBitfield( buffer, BTMessageFactory.MESSAGE_VERSION_INITIAL ),
+					false );
+			}
 		}
 		
 		protected void
@@ -601,9 +727,42 @@ NetStatusProtocolTesterBT
 			synchronized( sessions ){
 
 				sessions.remove( this );
+				
+				if ( !closing ){
+					
+					closing	= true;
+
+				}else{
+					
+					closed = true;
+				}
 			}
 
-			connection.close();
+			if ( closed ){
+				
+				log( "Closing connection" );
+				
+				connection.close();
+				
+			}else{
+				
+				sendHave( num_pieces );
+				
+				new DelayedEvent( 
+					"NetStatus:delayClose",
+					5000,
+					new AERunnable()
+					{
+						public void
+						runSupport()
+						{
+							if ( !closed ){
+								
+								close();
+							}
+						}
+					});
+			}
 			
 			checkCompletion();
 		}

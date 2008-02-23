@@ -25,11 +25,13 @@ import java.net.InetSocketAddress;
 import java.util.*;
 
 
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -48,6 +50,7 @@ import org.gudy.azureus2.plugins.ddb.DistributedDatabaseValue;
 
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 
@@ -288,6 +291,20 @@ NetStatusProtocolTester
 				});
 			
 			bt_tester.setOutboundConnectionsComplete();
+			
+			new DelayedEvent(
+				"NetStatus:killer",
+				10*1000,
+				new AERunnable()
+				{
+					public void
+					runSupport()
+					{
+						listener.log( "Destroying tester" );
+						
+						bt_tester.destroy();
+					}
+				});
 		}
 		
 		return( bt_tester );
@@ -298,6 +315,8 @@ NetStatusProtocolTester
 		NetStatusProtocolTesterBT		bt_tester,
 		DistributedDatabaseContact		contact )
 	{
+		boolean	use_crypto = NetworkManager.getCryptoRequired( NetworkManager.CRYPTO_OVERRIDE_NONE );
+
 		log( "Trying test to " + contact.getName());
 		
 		Map	request = new HashMap();
@@ -308,6 +327,8 @@ NetStatusProtocolTester
 			
 		request.put( "h", bt_tester.getServerHash());
 			
+		request.put( "c", new Long( use_crypto?1:0 ));
+		
 		Map	reply = sendRequest( contact, request );
 				
 		byte[]	server_hash = reply==null?null:(byte[])reply.get( "h" );
@@ -316,7 +337,7 @@ NetStatusProtocolTester
 				
 			log( "    " + contact.getName() + " accepted test" );
 			
-			bt_tester.testOutbound( adjustLoopback( contact.getAddress()), server_hash, false );
+			bt_tester.testOutbound( adjustLoopback( contact.getAddress()), server_hash, use_crypto );
 			
 			return( true );
 			
@@ -449,7 +470,11 @@ NetStatusProtocolTester
 							}
 						}
 						
-						bt_tester.testOutbound( adjusted_originator, their_hash, true );
+						Long	l_crypto = (Long)request.get( "c" );
+						
+						boolean	use_crypto = l_crypto!=null&&l_crypto.longValue()==1;
+						
+						bt_tester.testOutbound( adjusted_originator, their_hash, use_crypto );
 						
 						reply.put( "h", bt_tester.getServerHash());
 					}

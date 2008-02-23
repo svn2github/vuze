@@ -347,6 +347,8 @@ GenericMessageConnectionDirect
 	  			    	int byte_count )
 	  			    {  			    	
 	  			    }
+	  			    
+	  			    public void flush(){}
 	    		});
 	}
 	
