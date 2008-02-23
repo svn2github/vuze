@@ -62,14 +62,11 @@ public class LightBoxBrowserWindow
 			int height) {
 		this.url = url;
 		this.pageVerifierValue = prefixVerifier;
-		browserWidth = Math.max(width, browserWidth);
-		browserHeight = Math.max(height, browserHeight);
-		Utils.execSWTThread(new AERunnable() {
-			public void runSupport() {
-				init();
-			}
-		});
+		browserWidth = width;
+		browserHeight = height;
 
+		init();
+		
 	}
 
 	public LightBoxBrowserWindow(String url, int width, int height) {
@@ -225,13 +222,19 @@ public class LightBoxBrowserWindow
 						}
 					}
 				}
-				styledShell.animateCurtain(500);
-				lightBoxShell.open(styledShell);
+				styledShell.animateFade(100);
+				if (false == styledShell.isAlreadyOpened()) {
+					lightBoxShell.open(styledShell);
+				}
 			}
 
 			public void changed(ProgressEvent event) {
+				if(event.current == 0 && event.total != 0){
+					styledShell.setVisible(false);
+				}
 			}
 		});
+
 
 		/*
 		 * Add the appropriate messaging listeners
@@ -302,6 +305,8 @@ public class LightBoxBrowserWindow
 		if (null != browser) {
 			browser.setUrl(url);
 			browser.setData("StartURL", url);
+		} else {
+			System.out.println("Browser is null????");//KN: sysout
 		}
 	}
 
@@ -310,7 +315,7 @@ public class LightBoxBrowserWindow
 		browserHeight = height;
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-//				styledShell.animateCurtain(250);
+//				styledShell.animateFade(500);
 				styledShell.setSize(browserWidth, browserHeight);
 			}
 		});
