@@ -39,6 +39,8 @@ public class LightBoxShell
 
 	private UIFunctionsSWT uiFunctions;
 
+	private boolean isAlphaSupported = false;
+
 	public LightBoxShell() {
 		this(false);
 	}
@@ -81,18 +83,18 @@ public class LightBoxShell
 
 	private void createControls() {
 		lbShell = new Shell(parentShell, SWT.NO_TRIM | SWT.APPLICATION_MODAL);
-
 		try {
-
-			/*
-			 * Black mask with 30% transparency
-			 */
-			lbShell.setBackground(new Color(parentShell.getDisplay(), 0, 0, 0));
-			lbShell.setAlpha(178);
+			lbShell.setAlpha(255);
+			isAlphaSupported = true;
 		} catch (Throwable t) {
-			// Not supported on SWT older than 3.4M4
-			t.printStackTrace();
+			isAlphaSupported = false;
 		}
+
+		/*
+		 * Black mask with 30% transparency
+		 */
+		lbShell.setBackground(new Color(parentShell.getDisplay(), 0, 0, 0));
+		setAlpha(lbShell, 178);
 
 		display = parentShell.getDisplay();
 
@@ -109,6 +111,12 @@ public class LightBoxShell
 			});
 		}
 
+	}
+
+	public void setAlpha(Shell shell, int alpha) {
+		if (true == isAlphaSupported && null != shell) {
+			shell.setAlpha(alpha);
+		}
 	}
 
 	public void open() {
@@ -248,12 +256,8 @@ public class LightBoxShell
 
 			styledShell = new Shell(lbShell, style);
 
-			try {
-				styledShell.setAlpha(0);
-			} catch (Throwable t) {
-				// Not supported on SWT older than 3.4M4
-				t.printStackTrace();
-			}
+			setAlpha(styledShell,0);
+			
 
 			if (true == Constants.isOSX) {
 				uiFunctions.createMainMenu(styledShell);
@@ -487,14 +491,14 @@ public class LightBoxShell
 						int seconds = milliSeconds;
 						int currentAlpha = 0;
 						if (true == isAlive()) {
-							styledShell.setAlpha(currentAlpha);
+							setAlpha(styledShell,currentAlpha);
 							styledShell.setVisible(true);
 						}
 						while (seconds > 0) {
 							Thread.sleep(milliSeconds / 10);
 							seconds -= (milliSeconds / 10);
 							if (true == isAlive()) {
-								styledShell.setAlpha(Math.min(currentAlpha, alpha));
+								setAlpha(styledShell,Math.min(currentAlpha, alpha));
 								currentAlpha += 20;
 							} else {
 								break;
@@ -504,7 +508,7 @@ public class LightBoxShell
 						e.printStackTrace();
 					} finally {
 						if (true == isAlive()) {
-							styledShell.setAlpha(alpha);
+							setAlpha(styledShell,alpha);
 						}
 						isAnimating = false;
 					}
@@ -570,6 +574,11 @@ public class LightBoxShell
 
 		public void setAlpha(int alpha) {
 			this.alpha = alpha;
+		}
+		private void setAlpha(Shell shell, int alpha) {
+			if (true == isAlphaSupported && null != shell) {
+				shell.setAlpha(alpha);
+			}
 		}
 	}
 
