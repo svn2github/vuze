@@ -10,7 +10,9 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.LightBoxShell;
@@ -65,8 +67,12 @@ public class LightBoxBrowserWindow
 		browserWidth = width;
 		browserHeight = height;
 
-		init();
-		
+		Utils.execSWTThread(new Runnable() {
+			public void run() {
+				init();
+			}
+		});
+
 	}
 
 	public LightBoxBrowserWindow(String url, int width, int height) {
@@ -229,12 +235,11 @@ public class LightBoxBrowserWindow
 			}
 
 			public void changed(ProgressEvent event) {
-				if(event.current == 0 && event.total != 0){
+				if (event.current == 0 && event.total != 0) {
 					styledShell.setVisible(false);
 				}
 			}
 		});
-
 
 		/*
 		 * Add the appropriate messaging listeners
@@ -315,7 +320,7 @@ public class LightBoxBrowserWindow
 		browserHeight = height;
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-//				styledShell.animateFade(500);
+				//				styledShell.animateFade(500);
 				styledShell.setSize(browserWidth, browserHeight);
 			}
 		});
