@@ -234,7 +234,7 @@ public class LightBoxShell
 			this.borderWidth = borderWidth;
 
 			int style = SWT.NO_TRIM | SWT.ON_TOP;
-			
+
 			/*
 			 * On non-osx we must make this shell application modal so that it can not be hidden
 			 * by the embedded media player
@@ -245,7 +245,7 @@ public class LightBoxShell
 			if (false == Constants.isOSX) {
 				style |= SWT.APPLICATION_MODAL;
 			}
-			
+
 			styledShell = new Shell(lbShell, style);
 
 			try {
@@ -453,7 +453,7 @@ public class LightBoxShell
 				height += borderWidth * 4;
 
 				if (outerBounds.width != width || outerBounds.height != height) {
-					//					animateFade(200);
+
 					outerBounds.width = width;
 					outerBounds.height = height;
 
@@ -482,20 +482,20 @@ public class LightBoxShell
 			}
 			display.asyncExec(new Runnable() {
 				public void run() {
-					System.out.println("Animating...");//KN: sysout
 					isAnimating = true;
 					try {
 						int seconds = milliSeconds;
 						int currentAlpha = 0;
 						if (true == isAlive()) {
 							styledShell.setAlpha(currentAlpha);
+							styledShell.setVisible(true);
 						}
 						while (seconds > 0) {
 							Thread.sleep(milliSeconds / 10);
 							seconds -= (milliSeconds / 10);
-							currentAlpha += 20;
 							if (true == isAlive()) {
 								styledShell.setAlpha(Math.min(currentAlpha, alpha));
+								currentAlpha += 20;
 							} else {
 								break;
 							}
