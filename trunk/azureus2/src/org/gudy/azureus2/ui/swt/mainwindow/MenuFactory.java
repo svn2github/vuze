@@ -496,17 +496,6 @@ public class MenuFactory
 			}
 		};
 
-		item.addSelectionListener(new SelectionListener() {
-
-			public void widgetSelected(SelectionEvent e) {
-				System.out.println("item is enabled: " + item.getEnabled());//KN: sysout
-			}
-
-			public void widgetDefaultSelected(SelectionEvent e) {
-			}
-
-		});
-
 		COConfigurationManager.addAndFireParameterListener("IconBar.enabled",
 				listener);
 		item.addDisposeListener(new DisposeListener() {
