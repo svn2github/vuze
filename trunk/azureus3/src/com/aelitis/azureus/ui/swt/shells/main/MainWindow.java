@@ -82,7 +82,7 @@ import com.aelitis.azureus.ui.swt.utils.*;
 import com.aelitis.azureus.ui.swt.views.ViewDownSpeedGraph;
 import com.aelitis.azureus.ui.swt.views.ViewUpSpeedGraph;
 import com.aelitis.azureus.ui.swt.views.skin.*;
-import com.aelitis.azureus.util.AdManager;
+import com.aelitis.azureus.util.DCAdManager;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.VuzeActivitiesManager;
 
@@ -577,8 +577,9 @@ public class MainWindow
 			startTime = SystemTime.getCurrentTime();
 
 			try {
-				AdManager.getInstance().intialize(core);
-			} catch (Throwable e) {
+				//AdManager.getInstance().intialize(core);
+                DCAdManager.getInstance().initialize(core);
+            } catch (Throwable e) {
 			}
 
 			StimulusRPC.hookListeners(core, this);

@@ -467,7 +467,7 @@ public class AdManager
 			}
 
 			final File fasxFile = asxFile;
-			PlatformAdManager.debug("getting asx for " + URLToPlay);
+			PlatformAdManager.debug("AdManager - getting asx for " + URLToPlay);
 			PlatformAdManager.getPlayList(dm, URLToPlay, "http://127.0.0.1:"
 					+ MagnetURIHandler.getSingleton().getPort()
 					+ "/setinfo?name=adtracker&contentHash=" + contentHash + "&hash="

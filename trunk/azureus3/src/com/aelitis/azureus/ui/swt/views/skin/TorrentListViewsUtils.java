@@ -26,6 +26,7 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
 
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Display;
@@ -53,6 +54,7 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.messenger.config.PlatformDCAdManager;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.download.EnhancedDownloadManager;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
@@ -73,6 +75,7 @@ import com.aelitis.azureus.ui.swt.views.list.ListView;
 import com.aelitis.azureus.util.AdManager;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.VuzeActivitiesEntry;
+import com.aelitis.azureus.util.DCAdManager;
 import com.aelitis.azureus.util.win32.Win32Utils;
 
 /**
@@ -283,7 +286,10 @@ public class TorrentListViewsUtils
 	public static SWTSkinButtonUtility addPlayButton(final SWTSkin skin,
 			String PREFIX, final ListView view, boolean bOnlyIfMediaServer,
 			boolean bPlayOnDoubleClick) {
-		SWTSkinObject skinObject = skin.getSkinObject(PREFIX + "play");
+
+        debugDCAD("enter - addPlayButton");
+
+        SWTSkinObject skinObject = skin.getSkinObject(PREFIX + "play");
 		if (skinObject == null) {
 			return null;
 		}
@@ -343,11 +349,16 @@ public class TorrentListViewsUtils
 			}
 		}, true);
 
-		return btn;
+        debugDCAD("exit - addPlayButton");
+
+        return btn;
 	}
 
 	public static void playOrStreamDataSource(Object ds, SWTSkinButtonUtility btn) {
-		DownloadManager dm = getDMFromDS(ds);
+
+        debugDCAD("enter - playOrStreamDataSource");
+
+        DownloadManager dm = getDMFromDS(ds);
 		if (dm == null) {
 			String hash = getAssetHashFromDS(ds);
 			if (hash != null) {
@@ -363,7 +374,10 @@ public class TorrentListViewsUtils
 		} else {
 			playOrStream(dm, btn);
 		}
-	}
+
+        debugDCAD("exit - playOrStreamDataSource");
+
+    }
 
 	/**
 	 * @param skin
@@ -486,7 +500,11 @@ public class TorrentListViewsUtils
 
 	public static boolean playOrStream(final DownloadManager dm,
 			final SWTSkinButtonUtility btn) {
-		if (dm == null) {
+
+
+        debugDCAD("enter - playOrStream");
+
+        if (dm == null) {
 			return false;
 		}
 
@@ -497,7 +515,8 @@ public class TorrentListViewsUtils
 		TOTorrent torrent = dm.getTorrent();
 		if (canUseEMP(torrent)) {
 			debug("Can use EMP");
-			if (openInEMP(dm)) {
+
+            if (openInEMP(dm)) {
 				return true;
 			} else {
 				debug("Open EMP Failed");
@@ -595,9 +614,12 @@ public class TorrentListViewsUtils
 						url = sFile;
 					}
 					final String sfFile = sFile;
-					AdManager.getInstance().createASX(dm, url,
-							new AdManager.ASXCreatedListener() {
-								public void asxCreated(File asxFile) {
+					//AdManager.getInstance().createASX(dm, url,
+					//		new AdManager.ASXCreatedListener() {
+                    debug("calling createASX from ...Tor.Utils.playOrStream, in is complete block. url="+url);
+                    DCAdManager.getInstance().createASX(dm, url,
+							new DCAdManager.ASXCreatedListener() {
+                                public void asxCreated(File asxFile) {
 									if (btn != null) {
 										btn.setDisabled(false);
 									}
@@ -628,7 +650,11 @@ public class TorrentListViewsUtils
 				btn.setDisabled(false);
 			}
 		}
-		return true;
+
+
+        debugDCAD("enter - playOrStream");
+
+        return true;
 	}
 
 	/**
@@ -651,7 +677,10 @@ public class TorrentListViewsUtils
 
 		AEThread thread = new AEThread("runFile", true) {
 			public void runSupport() {
-				if (canUseEMP(torrent)) {
+
+                debugDCAD("enter - runFile - runSupport");
+
+                if (canUseEMP(torrent)) {
 					Debug.out("Shouldn't call runFile with EMP torrent.");
 				}
 
@@ -662,18 +691,31 @@ public class TorrentListViewsUtils
 				} else {
 					Utils.launch(runFile);
 				}
-			}
-		};
+
+                debugDCAD("exit - runFile - runSupport");
+
+            }
+
+        };
 		thread.start();
 	}
 
-	/**
-	 * @return
-	 *
-	 * @since 3.0.2.3
-	 */
-	private static boolean openInEMP(DownloadManager dm) {
-		Class epwClass = null;
+
+    /**
+     * New version accepts map with ASX parameters. If the params are null then is uses the
+     * old version to start the player. If the
+     *
+     *
+     * @param dm - DownloadManager
+     * @return - boolean
+     * @since 3.0.4.4 -
+     */
+    private static boolean openInEMP(DownloadManager dm){
+
+        
+        debugDCAD("enter - openInEMP");
+
+        Class epwClass = null;
 		try {
 			PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
 					"azemp");
@@ -689,9 +731,10 @@ public class TorrentListViewsUtils
 		} catch (ClassNotFoundException e1) {
 			return false;
 		}
-
-		try {
-
+        
+        //Old method of getting data to the embedded media player 3.0.4.2 and before.
+        try {
+            debug("EmbeddedPlayerWindowSWT - openWindow");
 			Method method = epwClass.getMethod("openWindow", new Class[] {
 				DownloadManager.class
 			});
@@ -710,9 +753,9 @@ public class TorrentListViewsUtils
 		}
 
 		return false;
-	}
+    }//openInEMP
 
-	/**
+    /**
 	 * @param dm
 	 *
 	 * @since 3.0.0.7
@@ -752,7 +795,10 @@ public class TorrentListViewsUtils
 	 * @param string
 	 */
 	private static boolean runInMediaPlayer(String mediaFile) {
-		if (Constants.isWindows) {
+
+        debugDCAD("enter - runInMediaPlayer");        
+
+        if (Constants.isWindows) {
 			String wmpEXE = Win32Utils.getWMP();
 			if (new File(wmpEXE).exists()) {
 				try {
@@ -863,7 +909,11 @@ public class TorrentListViewsUtils
 	 * @since 3.0.2.3
 	 */
 	private static String getMediaServerContentURL(Download dl) {
-		PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
+
+        
+        debugDCAD("enter - getMediaServerContentURL");
+
+        PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
 		PluginInterface pi = pm.getPluginInterfaceByID("azupnpav");
 
 		if (pi == null) {
@@ -903,7 +953,12 @@ public class TorrentListViewsUtils
 	 * 
 	 */
 	public static void playViaMediaServer(Download download) {
-		try {
+
+
+        debugDCAD("enter - playViaMediaServer");
+
+
+        try {
 			String contentURL = getMediaServerContentURL(download);
 
 			final DownloadManager dm = ((DownloadImpl) download).getDownload();
@@ -926,9 +981,12 @@ public class TorrentListViewsUtils
 
 			TOTorrent torrent = dm.getTorrent();
 			if (PlatformTorrentUtils.isContentAdEnabled(torrent)) {
-				AdManager.getInstance().createASX(dm, fURL,
-						new AdManager.ASXCreatedListener() {
-							public void asxCreated(File asxFile) {
+				//AdManager.getInstance().createASX(dm, fURL,
+				//		new AdManager.ASXCreatedListener() {
+                debug("calling createASX from ...Tor.Utils.playViaMediaServer, in is complete block. fURL="+fURL);
+                DCAdManager.getInstance().createASX(dm, fURL,
+						new DCAdManager.ASXCreatedListener() {
+                            public void asxCreated(File asxFile) {
 								runFile(dm.getTorrent(), asxFile.getAbsolutePath(), true);
 							}
 
@@ -1026,7 +1084,9 @@ public class TorrentListViewsUtils
 			final TableView tableView, final boolean bDeleteTorrent,
 			final boolean bDeleteData) {
 
-		tableView.removeDataSource(dm, true);
+        debug("removeDownload");
+
+        tableView.removeDataSource(dm, true);
 
 		AERunnable failure = new AERunnable() {
 			public void runSupport() {
@@ -1094,5 +1154,11 @@ public class TorrentListViewsUtils
 			});
 		}
 	}
+
+
+
+    private static void debugDCAD(String s){
+        PlatformDCAdManager.debug("TorrentListViewsUtils: "+s);
+    }//debugDCAD
 
 }
