@@ -511,6 +511,7 @@ public class LightBoxShell
 							setAlpha(styledShell,alpha);
 						}
 						isAnimating = false;
+						styledShell.forceActive();
 					}
 				}
 			});
