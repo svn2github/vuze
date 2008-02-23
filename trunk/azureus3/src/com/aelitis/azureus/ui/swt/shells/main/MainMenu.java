@@ -2,6 +2,7 @@ package com.aelitis.azureus.ui.swt.shells.main;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
+import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -13,9 +14,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.*;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.skin.SkinConstants;
-import com.aelitis.azureus.ui.swt.skin.SWTSkin;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
+import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.util.Constants;
 
 public class MainMenu
@@ -349,8 +348,29 @@ public class MainMenu
 			public void handleEvent(Event event) {
 				SWTSkinObject skinObject = skin.getSkinObject(viewID);
 				if (skinObject != null) {
-					SWTSkinUtils.setVisibility(skin, configID, viewID,
-							!skinObject.isVisible());
+					boolean newVisibility = !skinObject.isVisible();
+
+					// total hack to remove black bar at top for advanced view
+					if (skinObject.getViewID().equals("tabbar")) {
+						try {
+							SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
+							if (tabSetMain != null
+									&& tabSetMain.getActiveTab().getViewID().equals(
+											SkinConstants.VIEWID_ADVANCED_TAB)) {
+								skinObject = skin.getSkinObject("advanced");
+								if (skinObject != null) {
+									Object layoutData = skinObject.getControl().getLayoutData();
+									if (layoutData instanceof FormData) {
+										((FormData) layoutData).top.offset = newVisibility ? 4 : 0;
+									}
+								}
+							}
+						} catch (Throwable t) {
+							// ignore
+						}
+					}
+
+					SWTSkinUtils.setVisibility(skin, configID, viewID, newVisibility);
 				}
 			}
 		});
