@@ -747,13 +747,15 @@ public class ConfigurationDefaults {
 		  
 		  	// see http://www.faqs.org/rfcs/rfc3696.html
 		  
+		  	// we need to include "~" here for I2P generated 'URLs'
+		  
 		  for (int i=0;i<value.length();i++){
 			  
 			  char	c = value.charAt(i);
 			  
 			  	// : for IPv6
 			  
-			  if ( Character.isLetterOrDigit( c ) || c == '.' || c == '-' || c == ':' ){
+			  if ( Character.isLetterOrDigit( c ) || c == '.' || c == '-' || c == ':' || c == '~' ){
 				  
 			  }else{
 				  
