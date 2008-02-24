@@ -484,8 +484,11 @@ public class LightBoxShell
 			if (false == isAlive() || true == isAnimating) {
 				return;
 			}
-			display.asyncExec(new Runnable() {
-				public void run() {
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					if (!isAlive()) {
+						return;
+					}
 					isAnimating = true;
 					try {
 						int seconds = milliSeconds;
