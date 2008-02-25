@@ -71,8 +71,6 @@ public class StartStopButtonUtil
 			}
 			button.setDisabled(bDisabled);
 			
-			System.out.println("res=" + bResume);
-
 			if (bResume) {
 				button.setImage("image.button.unpause");
 				button.setTooltipID("v3.MainWindow.button.resume");
