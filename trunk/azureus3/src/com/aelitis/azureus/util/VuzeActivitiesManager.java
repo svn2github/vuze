@@ -635,7 +635,7 @@ public class VuzeActivitiesManager
 				VuzeActivitiesEntry entry = entries[i];
 				if ((entry.getTimestamp() >= cutoffTime || entry.type == 0)
 						&& !allEntries.contains(entry)
-						&& !removedEntries.contains(entry.id)) {
+						&& !removedEntries.contains(entry)) {
 					newEntries.add(entry);
 					allEntries.add(entry);
 				}
@@ -666,6 +666,9 @@ public class VuzeActivitiesManager
 
 			for (int i = 0; i < entries.length; i++) {
 				VuzeActivitiesEntry entry = entries[i];
+				if (entry == null) {
+					continue;
+				}
 				//System.out.println("remove " + entry.id);
 				allEntries.remove(entry);
 				if (entry.getTimestamp() > cutoffTime && entry.type > 0) {
