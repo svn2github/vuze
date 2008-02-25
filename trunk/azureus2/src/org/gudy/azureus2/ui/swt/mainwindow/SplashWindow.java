@@ -149,7 +149,7 @@ public class SplashWindow implements InitializerListener {
 	 * @since 3.0.0.7
 	 */
 	private void update() {
-		if (updating) {
+		if (updating && !Utils.isThisThreadSWT()) {
 			return;
 		}
 		
