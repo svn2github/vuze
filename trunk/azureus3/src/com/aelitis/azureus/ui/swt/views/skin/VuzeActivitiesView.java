@@ -26,13 +26,16 @@ import java.util.Iterator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
+import com.aelitis.azureus.ui.common.RememberedDecisionsManager;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.swt.columns.vuzeactivity.ColumnVuzeActivity;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
@@ -286,34 +289,72 @@ public class VuzeActivitiesView
 	 * @since 3.0.4.3
 	 */
 	protected void removeSelected() {
+		Shell shell = view.getComposite().getShell();
+		Cursor oldCursor = shell.getCursor();
 		try {
 			Object[] selectedDataSources = view.getSelectedDataSources();
-			for (int i = 0; i < selectedDataSources.length; i++) {
-				if (selectedDataSources[i] instanceof VuzeActivitiesEntry) {
-					VuzeActivitiesEntry entry = (VuzeActivitiesEntry) selectedDataSources[i];
-					if (entry.type == 0) {
-						continue;
+			VuzeActivitiesEntry[] entriesToRemove = new VuzeActivitiesEntry[selectedDataSources.length];
+			int entriesToRemovePos = 0;
+
+			shell.setCursor(shell.getDisplay().getSystemCursor(SWT.CURSOR_WAIT));
+			int rememberedDecision = RememberedDecisionsManager.getRememberedDecision(TABLE_ID
+					+ "-Remove");
+			if (rememberedDecision == 0) {
+				try {
+					for (int i = 0; i < selectedDataSources.length; i++) {
+						if (selectedDataSources[i] instanceof VuzeActivitiesEntry) {
+							VuzeActivitiesEntry entry = (VuzeActivitiesEntry) selectedDataSources[i];
+							if (entry.type == 0) {
+								continue;
+							}
+
+							entriesToRemove[entriesToRemovePos++] = entry;
+						}
 					}
-					MessageBoxShell mb = new MessageBoxShell(Utils.findAnyShell(),
-							MessageText.getString("v3.activity.remove.title"),
-							MessageText.getString("v3.activity.remove.text", new String[] {
-								entry.text
-							}), new String[] {
-								MessageText.getString("Button.yes"),
-								MessageText.getString("Button.no")
-							}, 0, TABLE_ID + "-Remove",
-							MessageText.getString("MessageBoxWindow.nomoreprompting"), false,
-							0);
-					mb.setRememberOnlyIfButton(0);
-					if (mb.open() == 0) {
-						VuzeActivitiesManager.removeEntries(new VuzeActivitiesEntry[] {
-							entry
-						});
-					}
+				} catch (Exception e) {
+					Debug.out(e);
 				}
+			} else {
+				try {
+					for (int i = 0; i < selectedDataSources.length; i++) {
+						if (selectedDataSources[i] instanceof VuzeActivitiesEntry) {
+							VuzeActivitiesEntry entry = (VuzeActivitiesEntry) selectedDataSources[i];
+							if (entry.type == 0) {
+								continue;
+							}
+
+							MessageBoxShell mb = new MessageBoxShell(Utils.findAnyShell(),
+									MessageText.getString("v3.activity.remove.title"),
+									MessageText.getString("v3.activity.remove.text",
+											new String[] {
+												entry.text
+											}), new String[] {
+										MessageText.getString("Button.yes"),
+										MessageText.getString("Button.no")
+									}, 0, TABLE_ID + "-Remove",
+									MessageText.getString("MessageBoxWindow.nomoreprompting"),
+									false, 0);
+							mb.setRememberOnlyIfButton(0);
+							int result = mb.open();
+							if (result == 0) {
+								entriesToRemove[entriesToRemovePos++] = entry;
+							} else if (result == -1) {
+								break;
+							}
+						}
+					}
+				} catch (Exception e) {
+					Debug.out(e);
+				}
+			}
+
+			if (entriesToRemovePos > 0) {
+				VuzeActivitiesManager.removeEntries(entriesToRemove);
 			}
 		} catch (Exception e) {
 			Debug.out(e);
+		} finally {
+			shell.setCursor(oldCursor);
 		}
 	}
 
