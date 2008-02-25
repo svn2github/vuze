@@ -96,7 +96,35 @@ public class SWTThread {
     } catch(Exception e) { 
       display = new Display();
       sleak = false;
-    }
+    } catch (UnsatisfiedLinkError ue) {
+    	String sMin = "3.4";
+			try {
+				sMin = "" +  (((int)(SWT.getVersion() / 100)) / 10.0);
+			} catch (Throwable t) {
+			}
+			try{
+				String tempDir = System.getProperty ("swt.library.path");
+				if (tempDir == null) {
+					System.getProperty ("java.io.tmpdir");
+				}
+				Debug.out("Loading SWT Libraries failed. "
+						+ "Typical causes:\n\n" 
+						+ "(1) swt.jar is not for your os architecture (" 
+						+ System.getProperty("os.arch") + ").  " 
+						+ "You can get a new swt.jar (Min Version: " + sMin + ") " 
+						+ "from http://eclipse.org/swt"
+						+ "\n\n"
+						+ "(2) No write access to '" + tempDir 
+						+ "'. SWT will extract libraries contained in the swt.jar to this dir.\n", ue);
+				if (!terminated) {
+					app.stopIt(false, false);
+					terminated = true;
+				}
+				PlatformManagerFactory.getPlatformManager().dispose();
+			} catch (Throwable t) {
+			}
+			return;
+		}
     
     Display.setAppName("Azureus");
     
