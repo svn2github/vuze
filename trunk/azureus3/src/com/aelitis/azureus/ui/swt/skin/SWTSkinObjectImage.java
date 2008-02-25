@@ -226,8 +226,13 @@ public class SWTSkinObjectImage
 
 					label.setImage(null);
 				} else {
+					Image oldImage = label.getImage();
 					label.setImage(image);
 					label.setData("ImageID", sImageID);
+					if (oldImage != null && image != null
+							&& !oldImage.getBounds().equals(image.getBounds())) {
+						Utils.relayout(label);
+					}
 				}
 
 				label.redraw();
@@ -291,7 +296,15 @@ public class SWTSkinObjectImage
 		}
 		customImage = false;
 		customImageID = sConfigID;
-		setLabelImage(sConfigID, sConfigID + getSuffix(), callback);
+		
+		String sImageID = sConfigID + getSuffix();
+		ImageLoader imageLoader = skin.getImageLoader(properties);
+		Image image = imageLoader.getImage(sImageID);
+		if (ImageLoader.isRealImage(image)) {
+			setLabelImage(sConfigID, sImageID, callback);
+		} else {
+			setLabelImage(sConfigID, sConfigID, callback);
+		}
 		return;
 	}
 }
