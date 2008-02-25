@@ -54,7 +54,7 @@ public class StartStopButtonUtil
 				TableRowCore row = selectedRows[i];
 				DownloadManager dm = (DownloadManager) row.getDataSource(true);
 				if (dm != null) {
-					if (!bResume) {
+					if (bResume) {
   					int state = dm.getState();
   					boolean bNotRunning = state == DownloadManager.STATE_QUEUED
   							|| state == DownloadManager.STATE_STOPPED
@@ -70,6 +70,8 @@ public class StartStopButtonUtil
 				}
 			}
 			button.setDisabled(bDisabled);
+			
+			System.out.println("res=" + bResume);
 
 			if (bResume) {
 				button.setImage("image.button.unpause");
