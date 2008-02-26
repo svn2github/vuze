@@ -412,35 +412,42 @@ Initializer
     }
     
   	try{
-	    if ( startServer != null ){
-	    
-	    	startServer.stopIt();
-	    }
-	    
 	    Cursors.dispose();
 	    
 	    SWTThread.getInstance().terminate();  
 	    
 	}finally{
 	  	
-	    if ( azureus_core != null && !close_already_in_progress ){
-
-	    	try{
-		    	if ( for_restart ){
-		    			
-		    		azureus_core.restart();
-		    			
-		    	}else{
-		    			
-		    		azureus_core.stop();
+		try{
+		    if ( azureus_core != null && !close_already_in_progress ){
+	
+		    	try{
+			    	if ( for_restart ){
+			    			
+			    		azureus_core.restart();
+			    			
+			    	}else{
+			    			
+			    		azureus_core.stop();
+			    	}
+		    	}catch( Throwable e ){
+		    		
+		    			// don't let any failure here cause the stop operation to fail
+		    		
+		    		Debug.out( e );
 		    	}
-	    	}catch( Throwable e ){
-	    		
-	    			// don't let any failure here cause the stop operation to fail
-	    		
-	    		Debug.out( e );
-	    	}
-	    }
+		    }
+		}finally{
+			
+				// do this after closing core to minimise window when the we aren't 
+				// listening and therefore another Azureus start can potentially get
+				// in and screw things up
+			
+		    if ( startServer != null ){
+			    
+		    	startServer.stopIt();
+		    }
+		}
 	}
   }
   
