@@ -311,9 +311,6 @@ public class Initializer
 		}
 
 		try {
-			if (startServer != null) {
-				startServer.stopIt();
-			}
 
 			//			Cursors.dispose();
 
@@ -327,26 +324,37 @@ public class Initializer
 
 		} finally {
 
-			if (core != null && !isCloseAreadyInProgress) {
-
-				try {
-					if (isForRestart) {
-
-						core.restart();
-
-					} else {
-
-						long lStopStarted = System.currentTimeMillis();
-						System.out.println("core.stop");
-						core.stop();
-						System.out.println("core.stop done in "
-								+ (System.currentTimeMillis() - lStopStarted));
+			try{
+				if ( core != null && !isCloseAreadyInProgress) {
+	
+					try {
+						if (isForRestart) {
+	
+							core.restart();
+	
+						} else {
+	
+							long lStopStarted = System.currentTimeMillis();
+							System.out.println("core.stop");
+							core.stop();
+							System.out.println("core.stop done in "
+									+ (System.currentTimeMillis() - lStopStarted));
+						}
+					} catch (Throwable e) {
+	
+						// don't let any failure here cause the stop operation to fail
+	
+						Debug.out(e);
 					}
-				} catch (Throwable e) {
-
-					// don't let any failure here cause the stop operation to fail
-
-					Debug.out(e);
+				}
+			}finally{
+				
+					// do this after closing core to minimise window when the we aren't 
+					// listening and therefore another Azureus start can potentially get
+					// in and screw things up
+				
+				if (startServer != null) {
+					startServer.stopIt();
 				}
 			}
 		}
