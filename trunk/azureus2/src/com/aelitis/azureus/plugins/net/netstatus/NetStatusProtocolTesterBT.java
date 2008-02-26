@@ -61,6 +61,8 @@ NetStatusProtocolTesterBT
 	private static Random	random = new SecureRandom();
 	
 	private NetStatusProtocolTester			tester;
+	private boolean							test_initiator;
+	
 	private CopyOnWriteList					listeners	= new CopyOnWriteList();
 	
 	
@@ -72,7 +74,8 @@ NetStatusProtocolTesterBT
 	private long		start_time	= SystemTime.getCurrentTime();
 	
 	private List		sessions	= new ArrayList();
-		
+	private int			session_id_next;
+	
 	private long		outbound_attempts	= 0;
 	private long		outbound_connects	= 0;
 	private long		inbound_connects	= 0;
@@ -85,9 +88,11 @@ NetStatusProtocolTesterBT
 	
 	protected
 	NetStatusProtocolTesterBT(
-		NetStatusProtocolTester			_tester )
+		NetStatusProtocolTester			_tester,
+		boolean							_test_initiator )
 	{
-		tester		= _tester;
+		tester			= _tester;
+		test_initiator	= _test_initiator;
 	}
 	
 	protected void
@@ -404,6 +409,7 @@ NetStatusProtocolTesterBT
 	Session
 	{
 		private NetworkConnection		connection;
+		private int						session_id;
 		private boolean					initiator;
 		private byte[]					info_hash;
 		
@@ -425,9 +431,12 @@ NetStatusProtocolTesterBT
 
 			initiator 	= info_hash != null;
 			
-
 			synchronized( sessions ){
-					
+			
+				session_id_next++;
+				
+				session_id = session_id_next;
+				
 				if ( destroyed ){
 					
 					log( "Already destroyed" );
@@ -437,6 +446,33 @@ NetStatusProtocolTesterBT
 					return;
 					
 				}else{
+					
+						// if we're a responder then we limit connections as we should only
+						// receive 1 (be generous, give them 3 in case we decide to reconnect)
+					
+					if ( !( test_initiator || initiator )){
+						
+						int responder_sessions = 0;
+						
+						for (int i=0;i<sessions.size();i++){
+							
+							Session	existing_session = (Session)sessions.get(i);
+							
+							if ( !existing_session.isInitiator()){
+								
+								responder_sessions++;
+							}
+						}
+						
+						if ( responder_sessions >= 2 ){
+							
+							log( "Too many responder sessions" );
+							
+							close();
+							
+							return;
+						}
+					}
 					
 					sessions.add( this );
 				}
@@ -505,6 +541,12 @@ NetStatusProtocolTesterBT
 							return( "NetStatusPlugin - " + type );
 						}
 					});
+		}
+		
+		protected boolean
+		isInitiator()
+		{
+			return( initiator );
 		}
 		
 		protected void
@@ -765,6 +807,34 @@ NetStatusProtocolTesterBT
 			}
 			
 			checkCompletion();
+		}
+		
+		protected String
+		getLogPrefix()
+		{
+			return( "(" + (initiator?"L":"R") + " " + session_id + ") " );
+		}
+		
+		protected void
+		log(
+			String	str )
+		{
+			NetStatusProtocolTesterBT.this.log( getLogPrefix() + str );
+		}
+		
+		protected void
+		logError(
+			String	str )
+		{
+			NetStatusProtocolTesterBT.this.logError( getLogPrefix() + str );
+		}
+		
+		protected void
+		logError(
+			String		str,
+			Throwable	e )
+		{
+			NetStatusProtocolTesterBT.this.logError( getLogPrefix() + str, e );
 		}
 	}
 }

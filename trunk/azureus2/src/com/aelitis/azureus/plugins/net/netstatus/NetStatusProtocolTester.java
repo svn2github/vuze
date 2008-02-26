@@ -138,7 +138,7 @@ NetStatusProtocolTester
 		String										test_address,
 		final NetStatusProtocolTesterListener		listener )
 	{
-		final NetStatusProtocolTesterBT bt_tester = new NetStatusProtocolTesterBT( this );
+		final NetStatusProtocolTesterBT bt_tester = new NetStatusProtocolTesterBT( this, true );
 
 		bt_tester.addListener( listener );
 		
@@ -462,7 +462,7 @@ NetStatusProtocolTester
 								
 							}else{
 								
-								bt_tester = new NetStatusProtocolTesterBT( this );
+								bt_tester = new NetStatusProtocolTesterBT( this, false );
 								
 								bt_tester.start();
 								
