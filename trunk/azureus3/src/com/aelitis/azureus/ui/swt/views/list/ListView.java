@@ -983,8 +983,8 @@ public class ListView
 		return rowInfo;
 	}
 
-	private void scrollToWithGC(GC gc, int diff,
-			boolean bMoveOnly, boolean bGCisImage) {
+	private void scrollToWithGC(GC gc, int diff, boolean bMoveOnly,
+			boolean bGCisImage) {
 		Rectangle bounds = imgView.getBounds();
 
 		if (diff > 0) {
@@ -1500,7 +1500,7 @@ public class ListView
 			// when timerProcessDataSources is null, we are disposing
 			return;
 		}
-		
+
 		synchronized (timerProcessDataSources) {
 			if (timerEventProcessDS != null && !timerEventProcessDS.hasRun()) {
 				// Push timer forward, unless we've pushed it forward for over x seconds
@@ -1648,7 +1648,8 @@ public class ListView
 		}
 
 		if (DEBUGADDREMOVE) {
-			logADDREMOVE(sTableID + ": Add immediate via " + Debug.getCompressedStackTrace(3));
+			logADDREMOVE(sTableID + ": Add immediate via "
+					+ Debug.getCompressedStackTrace(3));
 		}
 
 		Utils.execSWTThread(new Runnable() {
@@ -2859,7 +2860,6 @@ public class ListView
 				}
 			}
 
-
 			bSkipSelectionTrigger = true;
 			for (Iterator iter = rowsToDeselect.iterator(); iter.hasNext();) {
 				ListRow row = (ListRow) iter.next();
@@ -2874,9 +2874,8 @@ public class ListView
 			if (rows.length > 0) {
 				((ListRow) rows[0]).setFocused(true);
 			}
-			
+
 			bSkipSelectionTrigger = false;
-			
 
 			TableRowCore[] rowsToDeselectArray = new TableRowCore[rowsToDeselect.size()];
 			rowsToDeselect.toArray(rowsToDeselectArray);
@@ -4247,26 +4246,41 @@ public class ListView
 	}
 
 	public void setTopRowInfo(RowInfo newTopRowInfo) {
-		if (topRowInfo != null && newTopRowInfo.index > topRowInfo.index) {
-			for (int i = topRowInfo.index + 1; i <= newTopRowInfo.index; i++) {
-				ListRow row = (ListRow) rows.get(i);
-				if (row != null) {
-					row.setUpToDate(false);
+		try {
+			row_mon.enter();
+			if (topRowInfo != null && newTopRowInfo.index > topRowInfo.index) {
+				for (int i = topRowInfo.index + 1; i <= newTopRowInfo.index; i++) {
+					TableRowCore row = getRow(i);
+					if (row != null) {
+						row.setUpToDate(false);
+					}
 				}
 			}
+		} catch (Throwable t) {
+			Debug.out(t);
+		} finally {
+			row_mon.exit();
 		}
 		this.topRowInfo = newTopRowInfo;
 	}
 
 	public void setBottomRowInfo(RowInfo newBottomRowInfo) {
-		if (bottomRowInfo != null && newBottomRowInfo.index < bottomRowInfo.index) {
-			for (int i = newBottomRowInfo.index + 1; i <= bottomRowInfo.index; i++) {
-				ListRow row = (ListRow) rows.get(i);
-				if (row != null) {
-					row.setUpToDate(false);
+		try {
+			row_mon.enter();
+			if (bottomRowInfo != null && newBottomRowInfo.index < bottomRowInfo.index) {
+				for (int i = newBottomRowInfo.index + 1; i <= bottomRowInfo.index; i++) {
+					TableRowCore row = getRow(i);
+					if (row != null) {
+						row.setUpToDate(false);
+					}
 				}
 			}
+		} catch (Throwable t) {
+			Debug.out(t);
+		} finally {
+			row_mon.exit();
 		}
+
 		this.bottomRowInfo = newBottomRowInfo;
 	}
 }
