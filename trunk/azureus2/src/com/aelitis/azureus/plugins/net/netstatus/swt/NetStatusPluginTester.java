@@ -24,6 +24,8 @@ package com.aelitis.azureus.plugins.net.netstatus.swt;
 import java.util.*;
 import java.net.*;
 
+import javax.swing.text.html.HTMLDocument.HTMLReader.IsindexAction;
+
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.admin.*;
@@ -583,11 +585,99 @@ NetStatusPluginTester
 			
 			NetStatusProtocolTesterBT bt_test = 
 				plugin.getProtocolTester().runTest(
+				
 					new NetStatusProtocolTesterListener()
 					{
+						private List	sessions = new ArrayList();
+						
 						public void
-						complete()
+						complete(
+							NetStatusProtocolTesterBT	tester )
 						{
+							log( "Results" );
+							
+							if ( tester.getOutboundConnects() < 4 ){
+								
+								log( "    insufficient outbound connects for analysis" );
+								
+								return;
+							}
+							
+							int outgoing_seed_ok		= 0;
+							int outgoing_leecher_ok		= 0;
+							int outgoing_seed_bad		= 0;
+							int outgoing_leecher_bad	= 0;
+							
+							int incoming_connect_ok	= 0;						
+							
+							for (int i=0;i<sessions.size();i++){
+								
+								NetStatusProtocolTesterBT.Session session = (NetStatusProtocolTesterBT.Session)sessions.get(i);
+								
+								if ( session.isOK()){
+									
+									if ( session.isInitiator()){
+										
+										if ( session.isSeed()){
+											
+											outgoing_seed_ok++;
+											
+										}else{
+											
+											outgoing_leecher_ok++;
+										}
+									}else{
+									
+										incoming_connect_ok++;
+									}
+								}else{
+	
+									if ( session.isConnected()){
+										
+										if ( session.isInitiator()){
+											
+											if ( session.isSeed()){
+												
+												outgoing_seed_bad++;
+												
+											}else{
+												
+												outgoing_leecher_bad++;
+											}
+										}else{
+											
+											incoming_connect_ok++;										
+										}
+									}
+								}
+								
+								log( "  " + 
+										( session.isInitiator()?"Outbound":"Inbound" ) + "," + 
+										( session.isSeed()?"Seed":"Leecher") + "," + 
+										session.getProtocolString());
+							}
+							
+							if ( incoming_connect_ok == 0 ){
+								
+								logError( "  No incoming connections received, likely NAT problems" );
+							}
+							
+							if ( 	outgoing_leecher_ok > 0 &&
+									outgoing_seed_ok == 0 &&
+									outgoing_seed_bad > 0 ){
+								
+								logError( "  Outgoing seed connects appear to be failing while non-seeds succeed" );
+							}
+						}
+						
+						public void
+						sessionAdded(
+							NetStatusProtocolTesterBT.Session	session )
+						{
+							synchronized( sessions ){
+								
+								sessions.add( session );
+							}
 						}
 						
 						public void

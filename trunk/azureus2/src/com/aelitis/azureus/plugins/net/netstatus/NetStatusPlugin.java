@@ -38,6 +38,7 @@ import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 import org.gudy.azureus2.plugins.ui.config.StringParameter;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+
 import com.aelitis.azureus.plugins.net.netstatus.swt.NetStatusPluginView;
 
 public class 
@@ -99,8 +100,15 @@ NetStatusPlugin
 								test_address.getValue().trim(),
 								new NetStatusProtocolTesterListener()
 								{
+									public void 
+									sessionAdded(
+											NetStatusProtocolTesterBT.Session session ) 
+									{
+									}
+									
 									public void
-									complete()
+									complete(
+										NetStatusProtocolTesterBT	tester )
 									{
 									}
 									

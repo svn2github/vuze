@@ -25,7 +25,12 @@ public interface
 NetStatusProtocolTesterListener 
 {
 	public void
-	complete();
+	sessionAdded(
+		NetStatusProtocolTesterBT.Session	session );
+	
+	public void
+	complete(
+		NetStatusProtocolTesterBT			tester );
 	
 	public void
 	log(

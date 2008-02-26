@@ -53,6 +53,7 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
+import com.aelitis.azureus.plugins.net.netstatus.NetStatusProtocolTesterBT.Session;
 
 
 public class 
@@ -264,10 +265,17 @@ NetStatusProtocolTester
 			bt_tester.addListener(
 				new NetStatusProtocolTesterListener()
 				{
-					public void
-					complete()
+					public void 
+					sessionAdded(
+						Session session) 
 					{
-						removeFromActive( bt_tester );
+					}
+					
+					public void
+					complete(
+						NetStatusProtocolTesterBT tester )
+					{
+						removeFromActive( tester );
 					}
 					
 					public void

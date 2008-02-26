@@ -76,9 +76,9 @@ NetStatusProtocolTesterBT
 	private List		sessions	= new ArrayList();
 	private int			session_id_next;
 	
-	private long		outbound_attempts	= 0;
-	private long		outbound_connects	= 0;
-	private long		inbound_connects	= 0;
+	private int			outbound_attempts	= 0;
+	private int			outbound_connects	= 0;
+	private int			inbound_connects	= 0;
 
 	private boolean		outbound_connections_complete;
 	private AESemaphore	completion_sem = new AESemaphore( "Completion" );
@@ -295,7 +295,7 @@ NetStatusProtocolTesterBT
 			while( it.hasNext()){
 				
 				try{
-					((NetStatusProtocolTesterListener)it.next()).complete();
+					((NetStatusProtocolTesterListener)it.next()).complete( this );
 					
 				}catch( Throwable e ){
 					
@@ -333,6 +333,18 @@ NetStatusProtocolTesterBT
 		NetStatusProtocolTesterListener		l )
 	{
 		listeners.remove( l );
+	}
+	
+	public int
+	getOutboundConnects()
+	{
+		return( outbound_connects );
+	}
+	
+	public int
+	getInboundConnects()
+	{
+		return( inbound_connects );
 	}
 	
 	public String
@@ -405,7 +417,7 @@ NetStatusProtocolTesterBT
 		tester.log( str, e );
 	}
 	
-	protected class
+	public class
 	Session
 	{
 		private NetworkConnection		connection;
@@ -414,10 +426,16 @@ NetStatusProtocolTesterBT
 		private byte[]					info_hash;
 		
 		private boolean 	handshake_sent;
+		private boolean		handshake_received;
+		
 		private boolean 	bitfield_sent;
-
+		private boolean		bitfield_received;
+		
 		private int			num_pieces;
-
+		private boolean		is_seed;
+		private Set			missing_pieces = new HashSet();
+		
+		private boolean		connected;
 		private boolean		closing;
 		private boolean		closed;
 		
@@ -475,6 +493,21 @@ NetStatusProtocolTesterBT
 					}
 					
 					sessions.add( this );
+					
+					is_seed = initiator && sessions.size()%2 == 0;
+				}
+			}
+			
+			Iterator it = listeners.iterator();
+			
+			while( it.hasNext()){
+				
+				try{
+					((NetStatusProtocolTesterListener)it.next()).sessionAdded( this );
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
 				}
 			}
 			
@@ -495,6 +528,8 @@ NetStatusProtocolTesterBT
 							ByteBuffer remaining_initial_data ) 
 						{
 							log( type + " connect success" );
+							
+							connected	= true;
 							
 							synchronized( NetStatusProtocolTesterBT.this ){
 								
@@ -543,10 +578,28 @@ NetStatusProtocolTesterBT
 					});
 		}
 		
-		protected boolean
+		public boolean
 		isInitiator()
 		{
 			return( initiator );
+		}
+		
+		public boolean
+		isConnected()
+		{
+			return( connected );
+		}
+		
+		public boolean
+		isSeed()
+		{
+			return( is_seed );
+		}
+		
+		public boolean
+		isOK()
+		{
+			return( bitfield_received );
 		}
 		
 		protected void
@@ -567,15 +620,30 @@ NetStatusProtocolTesterBT
 							
 					        if ( message_id.equals( BTMessage.ID_BT_HANDSHAKE )){
 						
+					        	handshake_received = true;
+					        	
 				        		BTHandshake handshake = (BTHandshake)message;
 					        		
 				        		info_hash = handshake.getDataHash();
 				        		
-				        		num_pieces = 500 + ((int)(info_hash[0]))&0xff;
+				        		num_pieces = 500 + (info_hash[0]&0xff);
+				        		
+				        			// we use the piece at 'n' + 1 to indicate a close request by sending a HAVE for it
+				        			// this helps us tidily close things
 				        		
 				        		if ( num_pieces%8 == 0 ){
 				        			
 				        			num_pieces--;
+				        		}
+				        		
+				        		if ( !is_seed ){
+				        			
+				        			int missing = random.nextInt( num_pieces/2 ) + 5;
+				        			
+				        			for (int i=0;i<missing;i++){
+				        				
+				        				missing_pieces.add( new Integer( random.nextInt( num_pieces )));
+				        			}
 				        		}
 				        		
 				        		sendHandshake();
@@ -586,6 +654,8 @@ NetStatusProtocolTesterBT
 					        	
 					        }else if ( message_id.equals( BTMessage.ID_BT_BITFIELD )){
 									
+					        	bitfield_received = true;
+					        	
 					        	BTBitfield bitfield = (BTBitfield)message;
 					  
 					        	ByteBuffer bb = bitfield.getBitfield().getBuffer((byte)0);
@@ -737,7 +807,9 @@ NetStatusProtocolTesterBT
 					
 					bToSend = bToSend << 1;
 					
-					if ( true ){
+					boolean	has_piece = !missing_pieces.contains( new Integer(i));
+					
+					if ( has_piece ){
 						
 						bToSend += 1;
 					}
@@ -754,7 +826,7 @@ NetStatusProtocolTesterBT
 					
 					bits[pos++] = (byte)bToSend;
 				}
-				
+								
 				DirectByteBuffer buffer = new DirectByteBuffer( ByteBuffer.wrap( bits ));
 
 				connection.getOutgoingMessageQueue().addMessage(
@@ -809,10 +881,60 @@ NetStatusProtocolTesterBT
 			checkCompletion();
 		}
 		
+		public String
+		getProtocolString()
+		{
+			String	str = "";
+			
+			if ( connected ){
+				
+				str = "connected";
+				
+				str += addSent( "hand", handshake_sent );
+				str += addRecv( "hand", handshake_received );
+				str += addSent( "bitf", bitfield_sent );
+				str += addRecv( "bitf", bitfield_received );
+
+			}else{
+				
+				str = "not connected";
+			}
+			
+			return( str );
+		}
+		
+		protected String
+		addSent(
+			String	str,
+			boolean	ok ) 
+		{
+			if ( ok ){
+				
+				return( ", " + str + " sent" );
+			}else{
+				
+				return( ", " + str + " !sent" );
+			}
+		}
+		
+		protected String
+		addRecv(
+			String	str,
+			boolean	ok ) 
+		{
+			if ( ok ){
+				
+				return( ", " + str + " recv" );
+			}else{
+				
+				return( ", " + str + " !recv" );
+			}
+		}
+		
 		protected String
 		getLogPrefix()
 		{
-			return( "(" + (initiator?"L":"R") + " " + session_id + ") " );
+			return( "(" + (initiator?"L":"R") + (is_seed?"S":"L") + " " + session_id + ") " );
 		}
 		
 		protected void
