@@ -62,7 +62,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 public class ColumnTitle
 	extends CoreTableColumn
 	implements TableCellRefreshListener, ObfusticateCellText,
-	TableCellMouseMoveListener, TableCellDisposeListener
+	TableCellMouseMoveListener, TableCellDisposeListener, TableCellVisibilityListener
 {
 	public static String COLUMN_ID = "name";
 
@@ -255,6 +255,12 @@ public class ColumnTitle
 				}
 			}
 		}
-
+	}
+	
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCellVisibilityListener#cellVisibilityChanged(org.gudy.azureus2.plugins.ui.tables.TableCell, int)
+	public void cellVisibilityChanged(TableCell cell, int visibility) {
+		if (visibility == TableCellVisibilityListener.VISIBILITY_HIDDEN) {
+			disposeExisting(cell);
+		}
 	}
 }
