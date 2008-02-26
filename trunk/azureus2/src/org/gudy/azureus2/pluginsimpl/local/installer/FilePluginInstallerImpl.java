@@ -201,7 +201,7 @@ FilePluginInstallerImpl
 					
 					// Force both versions to be the same if they are both defined.
 					String prop_version = version;
-					if (prop_version != null && !filename_version.equals(prop_version)) {
+					if (prop_version != null && filename_version != null && !filename_version.equals(prop_version)) {
 					    throw new PluginException("inconsistent versions [file=" + filename_version + ", prop=" + prop_version + "]");
 					}
 
