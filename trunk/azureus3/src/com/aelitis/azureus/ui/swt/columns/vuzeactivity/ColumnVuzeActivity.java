@@ -127,7 +127,7 @@ public class ColumnVuzeActivity
 		refresh(cell, false);
 	}
 
-	public void refresh(TableCell cell, boolean force) {
+	public void refresh(final TableCell cell, boolean force) {
 		TableCellImpl thumbCell = getThumbCell(cell);
 		TableCellImpl ratingCell = getRatingCell(cell);
 		if (!force) {
@@ -320,7 +320,11 @@ public class ColumnVuzeActivity
 					ListCell listCell = new ListCellGraphic(null, SWT.LEFT, dmThumbRect);
 
 					thumbCell = new TableCellImpl((TableRowCore) cell.getTableRow(),
-							new ColumnMediaThumb(cell.getTableID(), -1), 0, listCell);
+							new ColumnMediaThumb(cell.getTableID(), -1), 0, listCell) {
+						public boolean isMouseOver() {
+							return ((TableCellSWT)cell).isMouseOver();
+						}
+					};
 					listCell.setTableCell(thumbCell);
 
 					setThumbCell(cell, thumbCell);
@@ -341,7 +345,11 @@ public class ColumnVuzeActivity
 									dmRatingRect);
 
 							ratingCell = new TableCellImpl((TableRowCore) cell.getTableRow(),
-									new ColumnRate(cell.getTableID(), true), 0, listCell);
+									new ColumnRate(cell.getTableID(), true), 0, listCell) {
+								public boolean isMouseOver() {
+									return ((TableCellSWT)cell).isMouseOver();
+								}
+							};
 							listCell.setTableCell(ratingCell);
 
 							setRatingCell(cell, ratingCell);
