@@ -62,7 +62,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 public class ColumnTitle
 	extends CoreTableColumn
 	implements TableCellRefreshListener, ObfusticateCellText,
-	TableCellMouseMoveListener
+	TableCellMouseMoveListener, TableCellDisposeListener
 {
 	public static String COLUMN_ID = "name";
 
@@ -84,6 +84,11 @@ public class ColumnTitle
 		SWTSkinProperties skinProperties = SWTSkinFactory.getInstance().getSkinProperties();
 		colorLinkNormal = skinProperties.getColor("color.links.normal");
 		colorLinkHover = skinProperties.getColor("color.links.hover");
+	}
+	
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCellDisposeListener#dispose(org.gudy.azureus2.plugins.ui.tables.TableCell)
+	public void dispose(TableCell cell) {
+		disposeExisting(cell);
 	}
 
 	public void refresh(TableCell cell) {
