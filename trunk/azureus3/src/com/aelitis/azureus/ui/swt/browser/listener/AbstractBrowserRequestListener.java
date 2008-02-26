@@ -24,9 +24,13 @@ public abstract class AbstractBrowserRequestListener
 	implements IBrowserRequestListener
 {
 
+	public static final String LISTENER_ID = "lightbox-browser";
+
 	protected Map decodedMap = new HashMap(0);
 
 	private String url = null;
+
+	private String redirectURL = null;
 
 	private String prefixVerifier = null;
 
@@ -38,8 +42,8 @@ public abstract class AbstractBrowserRequestListener
 
 	private boolean isResizable = false;
 
-	public AbstractBrowserRequestListener(String listenerID) {
-		super(listenerID);
+	public AbstractBrowserRequestListener() {
+		super(LISTENER_ID);
 	}
 
 	public void handleMessage(BrowserMessage message) {
@@ -112,8 +116,7 @@ public abstract class AbstractBrowserRequestListener
 		 * Do not cache the status message since it need to be matched with the current close message
 		 */
 		if (true == decodedMap.containsKey(OP_CLOSE_PARAM_STATUS)) {
-			return MapUtils.getMapString(decodedMap, OP_CLOSE_PARAM_STATUS,
-					null);
+			return MapUtils.getMapString(decodedMap, OP_CLOSE_PARAM_STATUS, null);
 		}
 		return null;
 	}
@@ -123,12 +126,32 @@ public abstract class AbstractBrowserRequestListener
 		 * Do not cache the display message since it need to be matched with the current close message
 		 */
 		if (true == decodedMap.containsKey(OP_CLOSE_PARAM_DISPLAY)) {
-			return MapUtils.getMapString(decodedMap, OP_CLOSE_PARAM_DISPLAY,
-					null);
+			return MapUtils.getMapString(decodedMap, OP_CLOSE_PARAM_DISPLAY, null);
 		}
 		return null;
 	}
-	
+
+	public String getRedirectURL() {
+		if (true == decodedMap.containsKey(OP_OPEN_URL_PARAM_REDIRECT_URL)) {
+			redirectURL = MapUtils.getMapString(decodedMap,
+					OP_OPEN_URL_PARAM_REDIRECT_URL, "");
+		}
+
+		return redirectURL;
+	}
+
+	public boolean isRedirect() {
+		if (true == decodedMap.containsKey(OP_CLOSE_PARAM_ON_CLOSE)) {
+			String onCloseValue = MapUtils.getMapString(decodedMap,
+					OP_CLOSE_PARAM_ON_CLOSE, null);
+			if (null != onCloseValue && true == onCloseValue.equals("redirect")) {
+				return true;
+			}
+
+		}
+		return false;
+	}
+
 	public void handleClose() {
 		// Do nothing by default; subclass may override
 	}
@@ -138,6 +161,10 @@ public abstract class AbstractBrowserRequestListener
 	}
 
 	public void handleResize() {
+		// Do nothing by default; subclass may override
+	}
+
+	public void handleOpenURL() {
 		// Do nothing by default; subclass may override
 	}
 

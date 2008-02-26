@@ -13,6 +13,8 @@ public interface IBrowserRequestListener
 	public static final String OP_CLOSE_PARAM_STATUS = "status";
 	
 	public static final String OP_CLOSE_PARAM_DISPLAY = "display";
+	
+	public static final String OP_CLOSE_PARAM_ON_CLOSE = "on-close";
 
 	public static final String OP_REFRESH = "refresh";
 
@@ -29,6 +31,8 @@ public interface IBrowserRequestListener
 	public static final String OP_OPEN_URL_PARAM_RESIZABLE = "resizable";
 
 	public static final String OP_OPEN_URL_PARAM_TITLE_PREFIX_VERIFIER = "title-prefix-verifier";
+	
+	public static final String OP_OPEN_URL_PARAM_REDIRECT_URL = "redirect-url";
 
 	public static final String OP_RESIZE = "resize";
 

@@ -26,7 +26,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.ConfigListener;
 import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
-import com.aelitis.azureus.ui.swt.browser.listener.LightBoxBrowserRequestListener;
+import com.aelitis.azureus.ui.swt.browser.listener.LightBoxBrowserListener;
 import com.aelitis.azureus.util.Constants;
 
 /**
@@ -59,6 +59,8 @@ public class LightBoxBrowserWindow
 	private int browserHeight = 0;
 
 	private Label errorMessageLabel;
+	
+	private String redirectURL = null;
 
 	public LightBoxBrowserWindow(String url, String prefixVerifier, int width,
 			int height) {
@@ -267,7 +269,7 @@ public class LightBoxBrowserWindow
 		/*
 		 * This listener will respond to actions that effects this window such as 'close', 'resize', etc...
 		 */
-		context.addMessageListener(new LightBoxBrowserRequestListener(this));
+		context.addMessageListener(new LightBoxBrowserListener(this));
 
 		/*
 		 * This listener handles a number of tasks involving opening external browser,
@@ -334,5 +336,13 @@ public class LightBoxBrowserWindow
 			}
 		});
 
+	}
+
+	public String getRedirectURL() {
+		return redirectURL;
+	}
+
+	public void setRedirectURL(String redirectURL) {
+		this.redirectURL = redirectURL;
 	}
 }

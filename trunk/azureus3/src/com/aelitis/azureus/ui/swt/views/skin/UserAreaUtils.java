@@ -20,6 +20,7 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.skin.SkinConstants;
@@ -60,8 +61,8 @@ public class UserAreaUtils
 
 					String url = Constants.URL_PREFIX + Constants.URL_LOGIN + "?"
 							+ Constants.URL_SUFFIX;
-					new LightBoxBrowserWindow(url, Constants.URL_PAGE_VERIFIER_VALUE, 380,
-							280);
+					new LightBoxBrowserWindow(url, Constants.URL_PAGE_VERIFIER_VALUE,
+							380, 280);
 
 				}
 			});
@@ -190,9 +191,15 @@ public class UserAreaUtils
 		 * Reset browser tabs if the login state has changed
 		 */
 		if (true == isNewOrUpdated) {
-			resetBrowserPage(SkinConstants.VIEWID_BROWSER_BROWSE);
-			resetBrowserPage(SkinConstants.VIEWID_BROWSER_PUBLISH);
-			resetBrowserPage(SkinConstants.VIEWID_BROWSER_MINI);
+			if (null == userName) {
+				resetBrowserPage(SkinConstants.VIEWID_BROWSER_BROWSE);
+				resetBrowserPage(SkinConstants.VIEWID_BROWSER_PUBLISH);
+				resetBrowserPage(SkinConstants.VIEWID_BROWSER_MINI);
+			} else {
+				refreshBrowserPage(SkinConstants.VIEWID_BROWSER_BROWSE);
+				refreshBrowserPage(SkinConstants.VIEWID_BROWSER_PUBLISH);
+				refreshBrowserPage(SkinConstants.VIEWID_BROWSER_MINI);
+			}
 		}
 	}
 
@@ -245,7 +252,25 @@ public class UserAreaUtils
 	private void resetBrowserPage(String targetViewID) {
 		SWTSkinObject skinObject = skin.getSkinObject(targetViewID);
 		if (skinObject instanceof SWTSkinObjectBrowser) {
+			System.out.println("Resetting: " + targetViewID);//KN: sysout
 			((SWTSkinObjectBrowser) skinObject).restart();
+		}
+	}
+	
+	/**
+	 * Refreshes the embedded browser with the given viewID
+	 * @param targetViewID
+	 */
+	private void refreshBrowserPage(String targetViewID) {
+		final SWTSkinObject skinObject = skin.getSkinObject(targetViewID);
+		if (skinObject instanceof SWTSkinObjectBrowser) {
+			System.out.println("Refreshing: " + targetViewID);//KN: sysout
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					((SWTSkinObjectBrowser) skinObject).getBrowser().refresh();
+				}
+			});
+			
 		}
 	}
 }
