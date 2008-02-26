@@ -308,9 +308,9 @@ public class DCAdManager
                     }
 
                     //If the torrent is content that contains an ad, do this block.
-                    if (PlatformTorrentUtils.isContent(torrent, true)
-                            && PlatformTorrentUtils.getContentHash(torrent) != null
-                            && PlatformTorrentUtils.isContentAdEnabled(torrent))
+                    if (   PlatformTorrentUtils.isContent(torrent, true)
+                        && PlatformTorrentUtils.getContentHash(torrent) != null
+                        && PlatformTorrentUtils.isContentAdEnabled(torrent))
                     {
                         adSupportedContentList.add(dm);
                         if (!adSupportedDMList.contains(dm)) {
@@ -352,13 +352,14 @@ public class DCAdManager
                             }
                         }
                     }
-                }
+                }//for
 
                 if (adSupportedContentList.size() == 0) {
-                    debug("none of the " + dms.length
-                            + " new torrent(s) are ad enabled.  skipping ad get.");
+                    debug("none of the " + dms.length+ " new torrent(s) are ad enabled.  SKIPPING getAdvert");
+                    //determine the reason torrents are not ad -enabled.
+                    determineReasonAdNotEnabled(dms);
                     return;
-                }
+                }//if
 
                 debug("exit - downloadManagerAddedHook");
             }
@@ -456,6 +457,24 @@ public class DCAdManager
         thread.run();
     }//downloadManagerAddedHook
 
+
+    /**
+     * debugNotAdEnabledReason - which reason is a torrent not ad-enabled.
+     * @param dms - DownloadManager[]
+     */
+    private void determineReasonAdNotEnabled(final DownloadManager[] dms) {
+        for (int i = 0; i < dms.length; i++) {
+            final DownloadManager dm = dms[i];
+            TOTorrent torrent = dm.getTorrent();
+            StringBuffer sb = new StringBuffer();
+            sb.append( new String(torrent.getName()) ).append(" resons: ");
+            if( PlatformTorrentUtils.isContent(torrent, true) ){ sb.append( "A-isContent , " ); }
+            if( PlatformTorrentUtils.getContentHash(torrent) != null ){ sb.append( "B-getConentHash , " ); }
+            if( PlatformTorrentUtils.isContentAdEnabled(torrent)){ sb.append( "C-isContentAdEnabled" ); }
+            debug( sb.toString() );
+        }//for
+    }//determineReasonAdNotEnabled
+
     /**
      * Determine the location of the ASX file. Should be in the same directory as content if possible.
      * @param dm - download manager.
@@ -486,16 +505,19 @@ public class DCAdManager
     public String replaceASXParams(final DownloadManager dmContent,
                                    final String urlToPlay)
     {
-        //ToDo: remove urlToPlay if not needed.
 
         debug("replaceASXParams");
         //Look for the PlayerDataMap file.
         Map playerDataMap = getPlayerDataMap(dmContent);
         String origPlaylist = (String) playerDataMap.get("playlist");
 
-        //Find location of the ad(s).
-        File adFile = getAdMediaFromContentDownloadManager(dmContent);
+        if( origPlaylist==null ){
+            debug("The data map is missing 'playlist' key. - playerDataMap="+playerDataMap);
 
+            throw new IllegalStateException("The data map is missing 'playlist' key: "+playerDataMap);
+        }
+
+        
         //Replace the following params in the original playlist
         StringBuffer repBuffer = new StringBuffer(origPlaylist);
 
@@ -510,16 +532,41 @@ public class DCAdManager
         }
 
         debug("  contentPath: "+contentPath);
-        debug("  adPath: "+adFile.getAbsolutePath());
-
         replace(repBuffer,"<##-CONTENT-PATH-##>",contentPath);
-        replace(repBuffer,"<##-AD-PATH-##>",adFile.getAbsolutePath());
+
+
+        boolean isNullAd = determinIfNullAd(dmContent);
+        if( !isNullAd ){
+            //Find location of the ad(s).
+            File adFile = getAdMediaFromContentDownloadManager(dmContent);
+            debug("  adPath: "+adFile.getAbsolutePath());
+            replace(repBuffer,"<##-AD-PATH-##>",adFile.getAbsolutePath());
+        }
 
         //pass the params to the player via the download manager.
         addParmasToDownloadManager(dmContent,playerDataMap);
 
         return repBuffer.toString();
     }//replaceASXParams
+
+    /**
+     * If the map returned from the server has a lenght of zero, this assume this is
+     * a NullAd type. This means that the playlist should not have a AD-PATH in it.
+     * @param contentDM - DownloadManager has Map returned from web-server.
+     * @return  -  boolean - true if null ad, false otherwise.
+     */
+    private boolean determinIfNullAd(DownloadManager contentDM){
+
+        Map map = DCAdManager.getPlayerDataMap(contentDM);
+        List adHashList = (List) map.get("ad_hash");
+
+        if(adHashList==null){
+            return true;
+        }
+
+        //is a null ad it size is zero, otherwise not a null ad.
+        return (adHashList.size() <= 0);
+    }//determineIfNullAd
 
 
     /**
@@ -575,6 +622,11 @@ public class DCAdManager
         Map map = DCAdManager.getPlayerDataMap(contentDM);
         List adHashList = (List) map.get("ad_hash");
         String adHash = (String) adHashList.get(0);
+
+        if(adHash==null || adHash.equals("") ){
+            throw new IllegalStateException("No adHash found map="+map);
+        }
+
         HashWrapper adHashWrapper = new HashWrapper(Base32.decode(adHash));
         DownloadManager dmAd = gm.getDownloadManager(adHashWrapper); //ToDo: ad a check here for a null result.
 

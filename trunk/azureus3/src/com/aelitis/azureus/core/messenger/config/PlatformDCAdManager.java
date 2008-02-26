@@ -157,6 +157,8 @@ public class PlatformDCAdManager
         File file = new File(azpdFile, azpdFileNameBase+".azpd" );
         FileUtil.writeBytesAsFile( file.getAbsolutePath() ,s.getBytes());
 
+        debug( "data=_"+s+"_  to azpd file="+file.getAbsolutePath() );
+        
         return JSONUtils.decodeJSON(s);
     }
 
