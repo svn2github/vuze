@@ -241,20 +241,7 @@ public class LightBoxShell
 		private StyledShell(int borderWidth) {
 			this.borderWidth = borderWidth;
 
-			int style = SWT.NO_TRIM | SWT.ON_TOP;
-
-			/*
-			 * On non-osx we must make this shell application modal so that it can not be hidden
-			 * by the embedded media player
-			 * 
-			 * At the same time we can not make it modal on OSX or else the screen positioning is all wrong;
-			 * I'll find a fix for it later KN
-			 */
-			if (false == Constants.isOSX) {
-				style |= SWT.APPLICATION_MODAL;
-			}
-
-			styledShell = new Shell(lbShell, style);
+			styledShell = new Shell(lbShell, getShellStyle(SWT.NO_TRIM));
 
 			LightBoxShell.this.setAlpha(styledShell, 0);
 
@@ -357,6 +344,37 @@ public class LightBoxShell
 			styledShell.addListener(SWT.MouseMove, l);
 			styledShell.setCursor(display.getSystemCursor(SWT.CURSOR_HAND));
 
+		}
+
+		/**
+		 * Returns the bit mask for the proper shell style
+		 * @param style
+		 * @return
+		 */
+		private int getShellStyle(int style) {
+			/*
+			 * If there are any other shell on top that also has a title then bring this shell on top of that
+			 * so it is not obscured by the other shell(s); conversely DO NOT bring this shell on top if the 
+			 * above condition is false so that it will not obscure other windows like external browser, etc...
+			 */
+			if (true == Utils.anyShellHaveStyle(SWT.ON_TOP | SWT.TITLE)) {
+				UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+				if (uiFunctions != null && uiFunctions.getMainShell() != null) {
+					style |= SWT.ON_TOP;
+				}
+			}
+
+			/*
+			 * On non-osx we must make this shell application modal so that it can not be hidden
+			 * by the embedded media player
+			 * 
+			 * At the same time we can not make it modal on OSX or else the screen positioning is all wrong;
+			 * I'll find a fix for it later KN
+			 */
+			if (false == Constants.isOSX) {
+				style |= SWT.APPLICATION_MODAL;
+			}
+			return style;
 		}
 
 		private Region getRoundedRegion(Rectangle bounds) {
