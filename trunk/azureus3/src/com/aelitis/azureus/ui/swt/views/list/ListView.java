@@ -696,7 +696,7 @@ public class ListView
 		if (lastBounds.height != clientArea.height || bottomRowInfo == null) {
 			// don't need to recalc bottom row if only width changed.
 			// If a row happens to change height, that is dealt with later
-			bottomRowInfo = findBottomRow(iLastVBarPos, clientArea.height);
+			setBottomRowInfo(findBottomRow(iLastVBarPos, clientArea.height));
 		}
 
 		if (imgView == null || bForce) {
@@ -909,11 +909,12 @@ public class ListView
 			logPAINT("scroll diff = " + diff + ";" + imgView);
 		}
 
+		iLastVBarPos = iThisVBarPos;
 		if (diff != 0 && imgView != null && !imgView.isDisposed()) {
 
 			// adjust toprow
-			topRowInfo = findTopRow(iThisVBarPos);
-			bottomRowInfo = findBottomRow(iThisVBarPos, clientArea.height);
+			setTopRowInfo(findTopRow(iLastVBarPos));
+			setBottomRowInfo(findBottomRow(iLastVBarPos, clientArea.height));
 
 			// Shift image up or down, then fill in the gap with a newly displayed row
 			boolean isOurGC = gcImgView == null;
@@ -922,7 +923,7 @@ public class ListView
 				if (isOurGC) {
 					gcImgView = new GC(imgView);
 				}
-				scrollToWithGC(gcImgView, diff, iThisVBarPos, false, true);
+				scrollToWithGC(gcImgView, diff, false, true);
 			} catch (Exception ex) {
 				Debug.out(ex);
 			} finally {
@@ -936,7 +937,6 @@ public class ListView
 			listCanvas.redraw();
 			listCanvas.update();
 		}
-		iLastVBarPos = iThisVBarPos;
 
 		if (DEBUGPAINT) {
 			logPAINT("done in " + (System.currentTimeMillis() - lTimeStart));
@@ -983,7 +983,7 @@ public class ListView
 		return rowInfo;
 	}
 
-	private void scrollToWithGC(GC gc, int diff, int iThisVBarPos,
+	private void scrollToWithGC(GC gc, int diff,
 			boolean bMoveOnly, boolean bGCisImage) {
 		Rectangle bounds = imgView.getBounds();
 
@@ -1016,15 +1016,13 @@ public class ListView
 			return;
 		}
 
-		topRowInfo = findTopRow(iThisVBarPos);
-		bottomRowInfo = findBottomRow(iThisVBarPos, clientArea.height);
+		setBottomRowInfo(findBottomRow(iLastVBarPos, clientArea.height));
 		//		System.out.println(sTableID + "] ftr2 " + topRowInfo.index + ";b="
 		//				+ bottomRowInfo.index + ";" + iThisVBarPos);
 
-		iLastVBarPos = iThisVBarPos;
 		TableRowSWT[] visibleRows = getVisibleRows();
 		if (diff < 0) {
-			int ofs = getBottomRowHeight(iThisVBarPos);
+			int ofs = getBottomRowHeight(iLastVBarPos);
 			// image moved up.. gap at bottom
 			int i = visibleRows.length - 1;
 
@@ -1064,7 +1062,7 @@ public class ListView
 			// image moved down.. gap at top to draw
 			int i = 0;
 			int ofs = topRowInfo.row.getHeight()
-					- (iThisVBarPos - topRowInfo.row.getBasicYPos());
+					- (iLastVBarPos - topRowInfo.row.getBasicYPos());
 			ListRow row = (ListRow) visibleRows[i];
 			while (diff >= 0) {
 				if (DEBUGPAINT) {
@@ -1670,8 +1668,8 @@ public class ListView
 
 						ListRow row = new ListRow(ListView.this, listCanvas, datasource);
 						if (rows.size() == 0) {
-							topRowInfo = new RowInfo(row, 0);
-							bottomRowInfo = new RowInfo(row, 0);
+							setTopRowInfo(new RowInfo(row, 0));
+							setBottomRowInfo(new RowInfo(row, 0));
 						}
 
 						if (sortColumn != null) {
@@ -1724,8 +1722,8 @@ public class ListView
 					if (iFirstChange >= 0) {
 						fixUpPositions(iFirstChange, false);
 					}
-					bottomRowInfo = findBottomRow(iLastVBarPos, clientArea.height);
-					topRowInfo = findTopRow(iLastVBarPos);
+					setBottomRowInfo(findBottomRow(iLastVBarPos, clientArea.height));
+					setTopRowInfo(findTopRow(iLastVBarPos));
 
 					if (!viewVisible && listCanvas.isVisible() && lShowHide != null) {
 						Event e = new Event();
@@ -1874,7 +1872,7 @@ public class ListView
 					}
 
 					fixUpPositions(firstIndex, false);
-					bottomRowInfo = findBottomRow(iLastVBarPos, clientArea.height);
+					setBottomRowInfo(findBottomRow(iLastVBarPos, clientArea.height));
 
 					if (newFocusRow != null) {
 						//System.out.println("SR " + newFocusRow.getIndex());
@@ -3350,8 +3348,8 @@ public class ListView
 				if (iFirstChange >= 0) {
 					fixUpPositions(iFirstChange, false);
 
-					topRowInfo = findTopRow(iLastVBarPos);
-					bottomRowInfo = findBottomRow(iLastVBarPos, clientArea.height);
+					setTopRowInfo(findTopRow(iLastVBarPos));
+					setBottomRowInfo(findBottomRow(iLastVBarPos, clientArea.height));
 
 					if (DEBUG_SORTER) {
 						long lTimeDiff = (System.currentTimeMillis() - lTimeStart);
@@ -3761,7 +3759,7 @@ public class ListView
 		fixUpPositions(startPos, true);
 
 		if (bottomRowInfo == null || startPos <= bottomRowInfo.index) {
-			bottomRowInfo = findBottomRow(iLastVBarPos, clientArea.height);
+			setBottomRowInfo(findBottomRow(iLastVBarPos, clientArea.height));
 		}
 		refreshScrollbar();
 		refreshVisible(true, true, true);
@@ -4246,5 +4244,29 @@ public class ListView
 
 	public void setRowMarginHeight(int h) {
 		rowMarginHeight = h;
+	}
+
+	public void setTopRowInfo(RowInfo newTopRowInfo) {
+		if (topRowInfo != null && newTopRowInfo.index > topRowInfo.index) {
+			for (int i = topRowInfo.index + 1; i <= newTopRowInfo.index; i++) {
+				ListRow row = (ListRow) rows.get(i);
+				if (row != null) {
+					row.setUpToDate(false);
+				}
+			}
+		}
+		this.topRowInfo = newTopRowInfo;
+	}
+
+	public void setBottomRowInfo(RowInfo newBottomRowInfo) {
+		if (bottomRowInfo != null && newBottomRowInfo.index < bottomRowInfo.index) {
+			for (int i = newBottomRowInfo.index + 1; i <= bottomRowInfo.index; i++) {
+				ListRow row = (ListRow) rows.get(i);
+				if (row != null) {
+					row.setUpToDate(false);
+				}
+			}
+		}
+		this.bottomRowInfo = newBottomRowInfo;
 	}
 }
