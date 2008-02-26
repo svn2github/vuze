@@ -65,6 +65,8 @@ UpdateInstallerImpl
 				
 				boolean	found_failure = false;
 				
+				String	files = "";
+				
 				for (int i=0;i<dirs.length;i++){
 					
 					File	dir = dirs[i];
@@ -75,13 +77,20 @@ UpdateInstallerImpl
 						
 						found_failure	= true;
 						
+						File[] x = dir.listFiles();
+						
+						for (int j=0;j<x.length;j++){
+							
+							files += (files.length()==0?"":",") + x[j].getName();
+						}
+						
 						FileUtil.recursiveDelete( dir );
 					}
 				}
 				
 				if ( found_failure ){
 					Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR,
-							MessageText.getString("Alert.failed.update")));
+							MessageText.getString("Alert.failed.update", new String[]{ files })));
 				}
 			}
 		}catch( Throwable e ){
