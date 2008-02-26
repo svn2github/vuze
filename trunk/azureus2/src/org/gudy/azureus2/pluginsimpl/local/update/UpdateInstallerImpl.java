@@ -79,9 +79,12 @@ UpdateInstallerImpl
 						
 						File[] x = dir.listFiles();
 						
-						for (int j=0;j<x.length;j++){
+						if ( x != null ){
 							
-							files += (files.length()==0?"":",") + x[j].getName();
+							for (int j=0;j<x.length;j++){
+								
+								files += (files.length()==0?"":",") + x[j].getName();
+							}
 						}
 						
 						FileUtil.recursiveDelete( dir );
