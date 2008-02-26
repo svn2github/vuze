@@ -347,7 +347,9 @@ public class Sleak
 				gc.drawString("Image disposed", 0, 0);
 				return;
 			}
-			gc.drawImage((Image) object, 0, 0);
+			Image image = (Image) object;
+			gc.drawString(image.getBounds().toString(), 0, 0);
+			gc.drawImage(image, 0, 15);
 			return;
 		}
 		if (object instanceof Region) {
