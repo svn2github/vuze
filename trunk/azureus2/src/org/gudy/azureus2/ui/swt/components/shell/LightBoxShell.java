@@ -256,8 +256,7 @@ public class LightBoxShell
 
 			styledShell = new Shell(lbShell, style);
 
-			setAlpha(styledShell,0);
-			
+			LightBoxShell.this.setAlpha(styledShell, 0);
 
 			if (true == Constants.isOSX) {
 				uiFunctions.createMainMenu(styledShell);
@@ -484,7 +483,7 @@ public class LightBoxShell
 			if (false == isAlive() || true == isAnimating) {
 				return;
 			}
-			Utils.execSWTThread(new AERunnable() {
+			Utils.execSWTThreadLater(0, new AERunnable() {
 				public void runSupport() {
 					if (!isAlive()) {
 						return;
@@ -493,16 +492,26 @@ public class LightBoxShell
 					try {
 						int seconds = milliSeconds;
 						int currentAlpha = 0;
+						int delay = 3;
+						int sleepIncrement = milliSeconds / (10 + delay);
 						if (true == isAlive()) {
-							setAlpha(styledShell,currentAlpha);
+							LightBoxShell.this.setAlpha(styledShell, currentAlpha);
 							styledShell.setVisible(true);
 						}
 						while (seconds > 0) {
-							Thread.sleep(milliSeconds / 10);
-							seconds -= (milliSeconds / 10);
+							Thread.sleep(sleepIncrement);
+							seconds -= (sleepIncrement);
 							if (true == isAlive()) {
-								setAlpha(styledShell,Math.min(currentAlpha, alpha));
-								currentAlpha += 20;
+								/*
+								 * We don't update the alpha for a few cycles to allow the shell to initialize it's content
+								 * while still remaining invisible
+								 */
+								if (delay <= 0) {
+									LightBoxShell.this.setAlpha(styledShell, Math.min(
+											currentAlpha, alpha));
+									currentAlpha += 20;
+								}
+								delay--;
 							} else {
 								break;
 							}
@@ -511,7 +520,7 @@ public class LightBoxShell
 						e.printStackTrace();
 					} finally {
 						if (true == isAlive()) {
-							setAlpha(styledShell,alpha);
+							LightBoxShell.this.setAlpha(styledShell, alpha);
 						}
 						isAnimating = false;
 						styledShell.forceActive();
@@ -579,9 +588,12 @@ public class LightBoxShell
 		public void setAlpha(int alpha) {
 			this.alpha = alpha;
 		}
-		private void setAlpha(Shell shell, int alpha) {
-			if (true == isAlphaSupported && null != shell) {
-				shell.setAlpha(alpha);
+
+		public void hideShell(boolean value) {
+			if (true == value) {
+				LightBoxShell.this.setAlpha(styledShell, 0);
+			} else {
+				LightBoxShell.this.setAlpha(styledShell, alpha);
 			}
 		}
 	}
