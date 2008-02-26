@@ -229,14 +229,22 @@ public class ColumnProgressETA
 						+ "; oldimg=" + (image != null));
 			}
 
-			image = new Image(display, newWidth, Math.min(36, newHeight));
+			boolean isNewImage = newHeight > 36 || image == null; 
+			if (isNewImage) {
+				if (image != null) {
+					image.dispose();
+				}
+				image = new Image(display, newWidth, Math.min(36, newHeight));
+			}
 			imageBounds = image.getBounds();
 
 			gcImage = new GC(image);
-			Color background = ColorCache.getColor(display, cell.getBackground());
-			if (background != null) {
-				gcImage.setBackground(background);
-				gcImage.fillRectangle(imageBounds);
+			if (isNewImage) {
+  			Color background = ColorCache.getColor(display, cell.getBackground());
+  			if (background != null) {
+  				gcImage.setBackground(background);
+  				gcImage.fillRectangle(imageBounds);
+  			}
 			}
 
 			String sETALine = null;
