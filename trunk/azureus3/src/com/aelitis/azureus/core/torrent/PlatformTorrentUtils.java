@@ -716,8 +716,14 @@ public class PlatformTorrentUtils
 		return getContentMapLong(torrent, TOR_AZ_PROP_MIN_SPEED, MIN_SPEED_DEFAULT);
 	}
 
+	/**
+	 * If either Ad Enabled or Web Ad Enabled is set return true.
+	 * @param torrent
+	 * @return - boolean - true if EITHER "Ad Enabled"==1  OR  "Web Ad Enabled"==1
+	 */
 	public static boolean isContentAdEnabled(TOTorrent torrent) {
-		return getContentMapLong(torrent, TOR_AZ_PROP_AD_ENABLED, 0) == 1;
+		return (getContentMapLong(torrent, TOR_AZ_PROP_AD_ENABLED, 0) == 1 ||
+				getContentMapLong(torrent, TOR_AZ_PROP_WEB_AD_ENABLED, 0) == 1);
 	}
 
 	public static boolean isContentUnitAdEnabled(TOTorrent torrent) {
