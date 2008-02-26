@@ -26,11 +26,11 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Map;
 
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.ForceRecheckListener;
@@ -41,12 +41,6 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginManager;
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.download.DownloadException;
-import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
-import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnEditorWindow;
@@ -54,9 +48,9 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.messenger.config.PlatformDCAdManager;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.download.EnhancedDownloadManager;
+import com.aelitis.azureus.core.messenger.config.PlatformDCAdManager;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -72,11 +66,18 @@ import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
 import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
 import com.aelitis.azureus.ui.swt.views.list.ListView;
-import com.aelitis.azureus.util.AdManager;
 import com.aelitis.azureus.util.Constants;
-import com.aelitis.azureus.util.VuzeActivitiesEntry;
 import com.aelitis.azureus.util.DCAdManager;
+import com.aelitis.azureus.util.VuzeActivitiesEntry;
 import com.aelitis.azureus.util.win32.Win32Utils;
+
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadException;
+
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 
 /**
  * @author TuxPaper
@@ -192,7 +193,6 @@ public class TorrentListViewsUtils
 	}
 
 	private static String getAssetHashFromDS(Object ds) {
-		DownloadManager dm = null;
 		try {
 			if (ds instanceof DownloadManager) {
 				return ((DownloadManager) ds).getTorrent().getHashWrapper().toBase32String();
@@ -211,7 +211,6 @@ public class TorrentListViewsUtils
 	}
 
 	private static DownloadManager getDMFromDS(Object ds) {
-		DownloadManager dm = null;
 		try {
 			if (ds instanceof DownloadManager) {
 				return (DownloadManager) ds;
@@ -607,17 +606,11 @@ public class TorrentListViewsUtils
 
 			if (bComplete) {
 				if (PlatformTorrentUtils.isContentAdEnabled(torrent)) {
-					String url;
-					try {
-						url = file.toURL().toString();
-					} catch (MalformedURLException e) {
-						url = sFile;
-					}
 					final String sfFile = sFile;
 					//AdManager.getInstance().createASX(dm, url,
 					//		new AdManager.ASXCreatedListener() {
-                    debug("calling createASX from ...Tor.Utils.playOrStream, in is complete block. url="+url);
-                    DCAdManager.getInstance().createASX(dm, url,
+                    debug("calling createASX from ...Tor.Utils.playOrStream, in is complete block.");
+                    DCAdManager.getInstance().createASX(dm,
 							new DCAdManager.ASXCreatedListener() {
                                 public void asxCreated(File asxFile) {
 									if (btn != null) {
@@ -675,12 +668,12 @@ public class TorrentListViewsUtils
 	private static void runFile(final TOTorrent torrent, final String runFile,
 			final boolean forceWMP) {
 
-		AEThread thread = new AEThread("runFile", true) {
-			public void runSupport() {
+		AEThread2 thread = new AEThread2("runFile", true) {
+			public void run() {
 
-                debugDCAD("enter - runFile - runSupport");
+				debugDCAD("enter - runFile - runSupport");
 
-                if (canUseEMP(torrent)) {
+				if (canUseEMP(torrent)) {
 					Debug.out("Shouldn't call runFile with EMP torrent.");
 				}
 
@@ -692,11 +685,11 @@ public class TorrentListViewsUtils
 					Utils.launch(runFile);
 				}
 
-                debugDCAD("exit - runFile - runSupport");
+				debugDCAD("exit - runFile - runSupport");
 
-            }
+			}
 
-        };
+		};
 		thread.start();
 	}
 
@@ -959,44 +952,27 @@ public class TorrentListViewsUtils
 
 
         try {
-			String contentURL = getMediaServerContentURL(download);
-
 			final DownloadManager dm = ((DownloadImpl) download).getDownload();
 
-			if (contentURL == null) {
-				File file;
-				EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(
-						dm);
-				if (edm != null) {
-					file = edm.getPrimaryFile().getFile(true);
-					edm.setProgressiveMode(true);
-				} else {
-					file = new File(dm.getDownloadState().getPrimaryFile());
-				}
-
-				contentURL = file.getAbsolutePath();
-			}
-
-			final String fURL = contentURL;
 
 			TOTorrent torrent = dm.getTorrent();
 			if (PlatformTorrentUtils.isContentAdEnabled(torrent)) {
 				//AdManager.getInstance().createASX(dm, fURL,
 				//		new AdManager.ASXCreatedListener() {
-                debug("calling createASX from ...Tor.Utils.playViaMediaServer, in is complete block. fURL="+fURL);
-                DCAdManager.getInstance().createASX(dm, fURL,
+                debug("calling createASX from ...Tor.Utils.playViaMediaServer, in is complete block. dm=" + dm);
+                DCAdManager.getInstance().createASX(dm,
 						new DCAdManager.ASXCreatedListener() {
                             public void asxCreated(File asxFile) {
 								runFile(dm.getTorrent(), asxFile.getAbsolutePath(), true);
 							}
 
 							public void asxFailed() {
-								runFile(dm.getTorrent(), fURL, true);
+								runFile(dm.getTorrent(), getContentUrl(dm), true);
 							}
 						});
 			} else {
 				// force to WMP if we aren't using EMP
-				runFile(torrent, contentURL, true);
+				runFile(torrent, getContentUrl(dm), true);
 			}
 		} catch (Throwable e) {
 			Logger.log(new LogEvent(LogIDs.UI3, "IPC to media server plugin failed",
@@ -1161,4 +1137,33 @@ public class TorrentListViewsUtils
         PlatformDCAdManager.debug("TorrentListViewsUtils: "+s);
     }//debugDCAD
 
+	/**
+	 * @param dmContent
+	 * @return
+	 *
+	 * @since 3.0.4.3
+	 */
+	public static String getContentUrl(DownloadManager dmContent) {
+		String contentPath;
+		if (dmContent.isDownloadComplete(false)) {
+			//use the file path if download is complete.
+			EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(
+					dmContent);
+			File file;
+			if (edm != null) {
+				file = edm.getPrimaryFile().getFile(true);
+			} else {
+				file = new File(dmContent.getDownloadState().getPrimaryFile());
+			}
+			try {
+				contentPath = file.toURL().toString();
+			} catch (MalformedURLException e) {
+				contentPath = file.getAbsolutePath();
+			}
+		} else {
+			//use the stream path if download is not complete.
+			contentPath = TorrentListViewsUtils.getMediaServerContentURL(dmContent);
+		}
+		return contentPath;
+	}
 }

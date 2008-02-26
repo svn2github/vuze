@@ -329,23 +329,9 @@ public class DCAdManager
                                     public void downloadComplete(DownloadManager manager) {
                                         // good chance we still have internet here, so get/cache
                                         // the asx
-                                        EnhancedDownloadManager edm =
-                                                DownloadManagerEnhancer.getSingleton().getEnhancedDownload(dm);
-                                        File file;
-                                        if (edm != null) {
-                                            file = edm.getPrimaryFile().getFile(true);
-                                        } else {
-                                            file = new File(dm.getDownloadState().getPrimaryFile());
-                                        }
-                                        String url;
-                                        try {
-                                            url = file.toURL().toString();
-                                        } catch (MalformedURLException e) {
-                                            url = file.getAbsolutePath();
-                                        }
-                                        debug("calling createASX from ...Hook, in torrent has AD block content url="+url);
+                                        debug("calling createASX from ...Hook, in torrent has AD block content="+dm.getDisplayName());
 
-                                        createASX(dm, url, null);
+                                        createASX(dm, null);
 
                                     }//downloadComplete
                                 });
@@ -499,11 +485,9 @@ public class DCAdManager
      * ASX file as a String.
      *
      * @param dmContent - DownloadManager for the content.
-     * @param urlToPlay - ?? Is this needed??
      * @return String - completed playlist.
      */
-    public String replaceASXParams(final DownloadManager dmContent,
-                                   final String urlToPlay)
+    public String replaceASXParams(final DownloadManager dmContent)
     {
 
         debug("replaceASXParams");
@@ -521,15 +505,8 @@ public class DCAdManager
         //Replace the following params in the original playlist
         StringBuffer repBuffer = new StringBuffer(origPlaylist);
 
-        String contentPath;
-        if( dmContent.isDownloadComplete(false) ){
-            //use the file path if download is complete.
-            File contentFile = dmContent.getDiskManagerFileInfo()[0].getFile(true);
-            contentPath = contentFile.getAbsolutePath();
-        }else{
-            //use the stream path if download is not complete.
-            contentPath = TorrentListViewsUtils.getMediaServerContentURL( dmContent );
-        }
+        
+        String contentPath = TorrentListViewsUtils.getContentUrl(dmContent);
 
         debug("  contentPath: "+contentPath);
         replace(repBuffer,"<##-CONTENT-PATH-##>",contentPath);
@@ -591,13 +568,11 @@ public class DCAdManager
      * (c) write it to the location specified.
      * @param asxFileLocation - Location of ASX file to build.
      * @param dmContent - DownloadManager
-     * @param urlToPlay - URL of content to play.
      */
     public void writeASXFile(final File asxFileLocation,
-                             final DownloadManager dmContent,
-                             final String urlToPlay)
+                             final DownloadManager dmContent)
     {
-        String finishedASX = replaceASXParams(dmContent,urlToPlay);
+        String finishedASX = replaceASXParams(dmContent);
         FileUtil.writeBytesAsFile(asxFileLocation.getAbsolutePath(), finishedASX.getBytes() );
     }
 
@@ -642,15 +617,34 @@ public class DCAdManager
         return adFile;
     }
 
-    public void createASX(final DownloadManager dm,
-                          final String URLToPlay,
-                          final ASXCreatedListener asxCreatedListener)
-    {
+  /**
+   * Temporary function so that EMP <= 2.0.4 can work
+   * 
+   * @param dm
+   * @param url
+   * @param createdListener
+   *
+   * @since 3.0.4.3
+   */
+	public void createASX(DownloadManager dm, String url,
+			ASXCreatedListener createdListener) {
+		createASX(dm, createdListener);
+	}
+
+	public void createASX(final DownloadManager dm,
+			final ASXCreatedListener asxCreatedListener) {
+		if (dm == null) {
+			debug("createASX - null dm");
+			return;
+		}
+		String name = dm.getDisplayName();
+
         debug("enter - createASX");
         try {
             TOTorrent torrent = dm.getTorrent();
             if (torrent == null || !PlatformTorrentUtils.isContent(torrent, true)) {
-                return;
+          		debug("createASX - " + name + " not our content");
+          		return;
             }
 
             File asxFile = null;
@@ -662,7 +656,7 @@ public class DCAdManager
                 if (SystemTime.getCurrentTime() - lastASX < EXPIRE_ASX) {
                     asxFile = determineASXFileLocation(dm);
                     if (asxFile.isFile()) {
-                        debug("playing " + URLToPlay
+                        debug("playing " + name
                                 + " using existing asx: " + asxFile + "; expires in "
                                 + (EXPIRE_ASX - (SystemTime.getCurrentTime() - lastASX)));
                         if (asxCreatedListener != null) {
@@ -675,24 +669,24 @@ public class DCAdManager
 
             //Read the media/azpd/player data file - create an ASX file.
             File newASXFile = determineASXFileLocation(dm);
-            writeASXFile(newASXFile,dm,URLToPlay);
+            writeASXFile(newASXFile,dm);
             
             asxFile = determineASXFileLocation(dm);
             if (asxFile.isFile()) {
-                debug("playing " + URLToPlay + " using existing asx: " + asxFile);
+                debug("playing " + name + " using existing asx: " + asxFile);
                 if (asxCreatedListener != null) {
                     asxCreatedListener.asxCreated(asxFile);
                 }
                 return;
             }
 
-            debug("getting asx for " + URLToPlay);
+            debug("getting asx for " + name);
 
         } catch (Exception e) {
             if (asxCreatedListener != null) {
                 asxCreatedListener.asxFailed();
             }
-            debug("createASX exception for " + URLToPlay, e);
+            debug("createASX exception for " + name, e);
         }
         debug("exit - createASX");
     }//createASX
