@@ -47,7 +47,7 @@ public class CommentIconItem
 	super("commenticon", CommentIconItem.POSITION_LAST, 20, sTableID);
 	setRefreshInterval(INTERVAL_LIVE);
     initializeAsGraphic(POSITION_LAST, 20);
-    setWidthLimits(20, 20);
+    setMinWidth(20);
   }
   
   public void cellMouseTrigger(TableCellMouseEvent event) {

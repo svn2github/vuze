@@ -56,7 +56,7 @@ public class HealthItem
 	public HealthItem(String sTableID) {
 		super("health", sTableID);
 		initializeAsGraphic(POSITION_LAST, COLUMN_WIDTH);
-		setWidthLimits(COLUMN_WIDTH, COLUMN_WIDTH);
+		setMinWidth(COLUMN_WIDTH);
 	}
 
 	public void cellAdded(TableCell cell) {
