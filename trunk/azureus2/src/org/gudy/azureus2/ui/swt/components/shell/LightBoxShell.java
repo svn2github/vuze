@@ -198,17 +198,6 @@ public class LightBoxShell
 
 			if (false == shellToOpen.isAlreadyOpened()) {
 				shellToOpen.open();
-
-				/*
-				 * Block the return from this method until the given shell is closed;
-				 * without this the shell will simply open and close immediately
-				 */
-
-				while (true == shellToOpen.isAlive()) {
-					if (false == display.readAndDispatch()) {
-						display.sleep();
-					}
-				}
 			}
 		}
 	}
