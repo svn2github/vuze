@@ -39,7 +39,7 @@ public class LightBoxShell
 
 	private UIFunctionsSWT uiFunctions;
 
-	private boolean isAlphaSupported = false;
+	private boolean isAlphaSupported = true;
 
 	public LightBoxShell() {
 		this(false);
@@ -83,9 +83,12 @@ public class LightBoxShell
 
 	private void createControls() {
 		lbShell = new Shell(parentShell, SWT.NO_TRIM | SWT.APPLICATION_MODAL);
+
+		/*
+		 * Try and set the alpha; if an exception is thrown then set isAlphaSupported to false
+		 */
 		try {
 			lbShell.setAlpha(255);
-			isAlphaSupported = true;
 		} catch (Throwable t) {
 			isAlphaSupported = false;
 		}
@@ -241,7 +244,7 @@ public class LightBoxShell
 		private StyledShell(int borderWidth) {
 			this.borderWidth = borderWidth;
 
-			styledShell = new Shell(lbShell, getShellStyle(SWT.NO_TRIM));
+			styledShell = new Shell(lbShell, getShellStyle(SWT.NONE));
 
 			LightBoxShell.this.setAlpha(styledShell, 0);
 
@@ -370,10 +373,21 @@ public class LightBoxShell
 			 * 
 			 * At the same time we can not make it modal on OSX or else the screen positioning is all wrong;
 			 * I'll find a fix for it later KN
+			 * 
+			 * Additionally on non-osx set the NO_TRIM flag and on OSX ONLY set the NO_TRIM flag if setAlpha()
+			 * is also supported.  Versions of SWT on OSX that do not support setAlpha() also can not render
+			 * the enmedded web page properly if the NO_TRIM flag is set; the NO_TRIM flag allows us to draw
+			 * a round-cornered shell.  Without this flag the shell corners would just be the normal square angle. 
 			 */
-			if (false == Constants.isOSX) {
+			if (true == Constants.isOSX) {
+				if (true == isAlphaSupported) {
+					style |= SWT.NO_TRIM;
+				}
+			} else {
 				style |= SWT.APPLICATION_MODAL;
+				style |= SWT.NO_TRIM;
 			}
+
 			return style;
 		}
 
@@ -498,7 +512,7 @@ public class LightBoxShell
 		}
 
 		public void animateFade(final int milliSeconds) {
-			if (false == isAlive() || true == isAnimating) {
+			if (false == isAlive() || true == isAnimating || false == isAlphaSupported) {
 				return;
 			}
 			Utils.execSWTThreadLater(0, new AERunnable() {
