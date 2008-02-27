@@ -191,11 +191,18 @@ public class UserAreaUtils
 		 * Reset browser tabs if the login state has changed
 		 */
 		if (true == isNewOrUpdated) {
+			/*
+			 * If the user has logged out (user name is null) then reset all pages to their original URL's
+			 */
 			if (null == userName) {
 				resetBrowserPage(SkinConstants.VIEWID_BROWSER_BROWSE);
 				resetBrowserPage(SkinConstants.VIEWID_BROWSER_PUBLISH);
 				resetBrowserPage(SkinConstants.VIEWID_BROWSER_MINI);
 			} else {
+
+				/*
+				 * Otherwise just refresh the current URL so the pages can be re-loaded with fresh information
+				 */
 				refreshBrowserPage(SkinConstants.VIEWID_BROWSER_BROWSE);
 				refreshBrowserPage(SkinConstants.VIEWID_BROWSER_PUBLISH);
 				refreshBrowserPage(SkinConstants.VIEWID_BROWSER_MINI);
@@ -252,11 +259,10 @@ public class UserAreaUtils
 	private void resetBrowserPage(String targetViewID) {
 		SWTSkinObject skinObject = skin.getSkinObject(targetViewID);
 		if (skinObject instanceof SWTSkinObjectBrowser) {
-			System.out.println("Resetting: " + targetViewID);//KN: sysout
 			((SWTSkinObjectBrowser) skinObject).restart();
 		}
 	}
-	
+
 	/**
 	 * Refreshes the embedded browser with the given viewID
 	 * @param targetViewID
@@ -264,13 +270,12 @@ public class UserAreaUtils
 	private void refreshBrowserPage(String targetViewID) {
 		final SWTSkinObject skinObject = skin.getSkinObject(targetViewID);
 		if (skinObject instanceof SWTSkinObjectBrowser) {
-			System.out.println("Refreshing: " + targetViewID);//KN: sysout
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					((SWTSkinObjectBrowser) skinObject).getBrowser().refresh();
 				}
 			});
-			
+
 		}
 	}
 }

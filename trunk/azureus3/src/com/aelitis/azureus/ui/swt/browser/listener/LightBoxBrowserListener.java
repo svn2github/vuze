@@ -60,27 +60,21 @@ public class LightBoxBrowserListener
 						"No instance of UIFunctionsSWT found; the UIFunctionsManager might not have been initialized properly");
 			}
 
+			/*
+			 * Find the active browser (if any) and set it's URL to the RedirectURL
+			 */
 			if (uiFunctions instanceof UIFunctionsImpl) {
 				UIFunctionsImpl uiFunctionsV3 = (UIFunctionsImpl) uiFunctions;
-
 				SWTSkin skin = uiFunctionsV3.getSkin();
-
 				SWTSkinTabSet tabSet = skin.getTabSet(SkinConstants.TABSET_MAIN);
 				SWTSkinObjectTab tab = tabSet.getActiveTab();
 
 				if (null != tab.getViewID()) {
-
 					if (true == SkinConstants.VIEWID_BROWSE_TAB.equals(tab.getViewID())) {
-
-						System.out.println("Redirecting: " + tab.getViewID());//KN: sysout
-
 						uiFunctions.viewURL(browserWindow.getRedirectURL(),
 								SkinConstants.VIEWID_BROWSER_BROWSE, 0, 0, true, true);
 
 					} else if (true == SkinConstants.VIEWID_PUBLISH_TAB.equals(tab.getViewID())) {
-
-						System.out.println("Redirecting: " + tab.getViewID());//KN: sysout
-
 						uiFunctions.viewURL(browserWindow.getRedirectURL(),
 								SkinConstants.VIEWID_BROWSER_PUBLISH, 0, 0, true, true);
 					}
