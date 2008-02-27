@@ -1261,11 +1261,11 @@ public class MainWindow
 				public void menuHidden(MenuEvent e) {
 				}
 			});
-			addMenuAndChildren((Composite) skinObject.getControl(), topbarMenu);
+			addMenuAndNonTextChildren((Composite) skinObject.getControl(), topbarMenu);
 
 			skinObject = skin.getSkinObject("tabbar");
 			if (skinObject != null) {
-				addMenuAndChildren((Composite) skinObject.getControl(), topbarMenu);
+				addMenuAndNonTextChildren((Composite) skinObject.getControl(), topbarMenu);
 			}
 		}
 
@@ -1277,7 +1277,7 @@ public class MainWindow
 		shell.layout(true, true);
 	}
 
-	private void addMenuAndChildren(Composite parent, Menu menu) {
+	private void addMenuAndNonTextChildren(Composite parent, Menu menu) {
 		parent.setMenu(menu);
 
 		Control[] children = parent.getChildren();
@@ -1285,8 +1285,8 @@ public class MainWindow
 			Control control = children[i];
 			if (control instanceof Composite) {
 				Composite c = (Composite) control;
-				addMenuAndChildren(c, menu);
-			} else {
+				addMenuAndNonTextChildren(c, menu);
+			} else if (!(control instanceof Text)) {
 				control.setMenu(menu);
 			}
 		}
