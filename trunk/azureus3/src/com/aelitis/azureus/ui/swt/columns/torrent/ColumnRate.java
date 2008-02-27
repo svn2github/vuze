@@ -458,6 +458,10 @@ public class ColumnRate
 		}
 
 		public void cellMouseTrigger(final TableCellMouseEvent event) {
+			if (dm == null) {
+				return;
+			}
+
 			TableRow tableRow = event.cell.getTableRow();
 			if (tableRow == null) {
 				rowMouseTrigger(event, event.cell);
