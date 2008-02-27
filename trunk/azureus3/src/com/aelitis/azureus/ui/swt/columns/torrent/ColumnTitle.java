@@ -231,7 +231,8 @@ public class ColumnTitle
 				int oldCursorID = ((TableCellSWT) event.cell).getCursorID();
 				int newCursorID = oldCursorID;
 				if (hitUrl != null) {
-					if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP) {
+					if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP
+							&& event.button == 1) {
 						if (PlatformConfigMessenger.isURLBlocked(hitUrl.url)) {
 							Utils.launch(hitUrl.url);
 						} else {
