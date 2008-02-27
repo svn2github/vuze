@@ -3007,6 +3007,10 @@ DiskManagerImpl
                                 types[file_index] = type==ST_LINEAR?"L":"C";
 
                                 DownloadManagerState    dm_state = download_manager.getDownloadState();
+                                
+                                // XXX: quick hack, we might have to allocate adjacent files; this needs to be improved with mass-operations, checking all files if they need to be allocated or not
+                                if(type == ST_LINEAR)
+                                	download_manager.setDataAlreadyAllocated(false);
 
                                 dm_state.setListAttribute( DownloadManagerState.AT_FILE_STORE_TYPES, types );
 
