@@ -100,8 +100,9 @@ implements PiecePicker
 	/** Default number of requests sent to a peer, (for each X B/s another request will be used) */
 	private static final int SLOPE_REQUESTS	= 4*1024;
 
-	private static final long END_GAME_MODE_SIZE_TRIGGER	= 20 *1024 *1024;
-	private static final long END_GAME_MODE_TIMEOUT			=60 *END_GAME_MODE_SIZE_TRIGGER /16384;
+	private static final long RTA_END_GAME_MODE_SIZE_TRIGGER	= 16 * DiskManager.BLOCK_SIZE;
+	private static final long END_GAME_MODE_SIZE_TRIGGER		= 20 * 1024*1024;
+	private static final long END_GAME_MODE_TIMEOUT				= 60 * END_GAME_MODE_SIZE_TRIGGER / DiskManager.BLOCK_SIZE;
 
 	protected static volatile boolean	firstPiecePriority	=COConfigurationManager.getBooleanParameter("Prioritize First Piece" );
 	protected static volatile boolean	completionPriority	=COConfigurationManager.getBooleanParameter("Prioritize Most Completed Files");
@@ -1885,12 +1886,6 @@ implements PiecePicker
 			return;
 		}
 		
-			// no EGM if we're doing RT allocation
-		
-		if ( rta_providers.size() > 0 ){
-			
-			return;
-		}
 		final long now =SystemTime.getCurrentTime();
 		
 		if (endGameMode ||endGameModeAbandoned){
@@ -1932,8 +1927,18 @@ implements PiecePicker
 			return;
 		}
 
-		// only flick into end-game mode if < trigger size left
-		if (active_pieces *diskManager.getPieceLength() <=END_GAME_MODE_SIZE_TRIGGER){
+			// when doing RTA we don't want EGM to kick in too early as it interfers with progressive
+			// playback by increasing discard. So we use a smaller trigger value to limit the impact
+		
+		boolean	use_rta_egm = rta_providers.size() > 0;
+		
+		long	remaining = active_pieces * diskManager.getPieceLength();
+		
+		long	trigger	= use_rta_egm?RTA_END_GAME_MODE_SIZE_TRIGGER:END_GAME_MODE_SIZE_TRIGGER;
+		
+			// only flip into end-game mode if < trigger size left
+		
+		if ( remaining <= trigger ){
 		
 			try{
 				endGameModeChunks_mon.enter();
