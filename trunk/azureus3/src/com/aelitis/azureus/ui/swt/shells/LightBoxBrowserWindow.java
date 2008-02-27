@@ -10,9 +10,7 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.LightBoxShell;
@@ -59,7 +57,7 @@ public class LightBoxBrowserWindow
 	private int browserHeight = 0;
 
 	private Label errorMessageLabel;
-	
+
 	private String redirectURL = null;
 
 	public LightBoxBrowserWindow(String url, String prefixVerifier, int width,
@@ -107,6 +105,7 @@ public class LightBoxBrowserWindow
 		styledShell = lightBoxShell.createStyledShell(6, true);
 
 		styledShell.setBackground(new Color(lightBoxShell.getDisplay(), 38, 38, 38));
+		//		styledShell.setSize(50, 50);
 		/*
 		 * Use a StackLayout with an error panel in the background so we can switch it to the front
 		 * when an error has occurred
@@ -173,6 +172,14 @@ public class LightBoxBrowserWindow
 		}
 
 		if (null != browser) {
+			
+			/*
+			 * Removes the context menu for the browser when in production
+			 */
+			if (false == org.gudy.azureus2.core3.util.Constants.isCVSVersion()) {
+				browser.setMenu(new Menu(browser));
+			}
+			
 			hookListeners();
 			setUrl(url);
 			stack.topControl = browser;
