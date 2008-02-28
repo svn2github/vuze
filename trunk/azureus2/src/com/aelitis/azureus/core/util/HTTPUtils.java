@@ -59,7 +59,13 @@ public class HTTPUtils {
 		file_types.put("jar", "application/java-archive");
 		file_types.put("jnlp", "application/x-java-jnlp-file");
 		file_types.put("mp3", "audio/x-mpeg");
+		
 		file_types.put("flv", "video/x-flv");
+		file_types.put("swf", "application/x-shockwave-flash");
+		file_types.put("mkv", "video/x-matroska");
+		file_types.put("mp4", "video/mp4");
+		file_types.put("mov", "video/quicktime");
+		file_types.put("avi", "video/avi");
 
 		compression.add("text/html");
 		compression.add("text/css");
