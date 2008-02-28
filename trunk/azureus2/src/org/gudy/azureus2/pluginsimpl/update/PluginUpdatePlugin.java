@@ -362,7 +362,6 @@ PluginUpdatePlugin
 				
 			List	plugins_to_check 			= new ArrayList();
 			List	plugins_to_check_ids		= new ArrayList();
-			Map		plugins_to_check_unloadable = new HashMap();
 			Map		plugins_to_check_names		= new HashMap();
 			
 			for (int i=0;i<plugins.length;i++){
@@ -416,20 +415,13 @@ PluginUpdatePlugin
 						if ( !name.equals( id )){
 							
 							plugins_to_check_names.put( id, s+","+name);
-						}
-						
-						Boolean	old_unloadable = (Boolean)plugins_to_check_unloadable.get(id);
-						
-						plugins_to_check_unloadable.put(id,new Boolean(pi.isUnloadable() && old_unloadable.booleanValue()));
-						
+						}						
 					}else{
 						plugins_to_check_ids.add( id );
 						
 						plugins_to_check.add( pi );
 						
 						plugins_to_check_names.put( id, name.equals(id)?"":name);
-						
-						plugins_to_check_unloadable.put( id, new Boolean( pi.isUnloadable()));
 					}
 				}
 				
@@ -493,7 +485,7 @@ PluginUpdatePlugin
 				}
 				
 				String			plugin_names		= (String)plugins_to_check_names.get( plugin_id );
-				final boolean	plugin_unloadable 	= ((Boolean)plugins_to_check_unloadable.get( plugin_id )).booleanValue();
+				//final boolean	plugin_unloadable 	= ((Boolean)plugins_to_check_unloadable.get( plugin_id )).booleanValue();
 				
 				log.log( LoggerChannel.LT_INFORMATION, "Checking " + plugin_id);
 				
@@ -635,6 +627,25 @@ PluginUpdatePlugin
 						update_desc.toArray( update_d );
 							
 						num_updates_found++;
+						
+							// see if unloadable
+						
+						boolean	plugin_unloadable 	= true;
+						
+						for (int j=0;j<plugins.length;j++){
+							
+							PluginInterface pi = plugins[j];
+							
+							if ( pi.getPluginID().equals( plugin_id )){
+								
+								plugin_unloadable &= pi.isUnloadable();
+							}
+						}
+						
+						if ( plugin_unloadable ){
+							
+							checker.reportProgress( "Plugin is unloadable" );
+						}
 						
 						Update update = 
 							addUpdate( 
