@@ -876,7 +876,11 @@ public class Utils
 
 		if (SWT.getVersion() >= 3315 || SWT.getVersion() < 3300
 				|| UrlUtils.isURL(sFile) || sFile.startsWith("mailto:")) {
-			Program.launch(sFile);
+			boolean launched = Program.launch(sFile);
+			if (!launched && Constants.isUnix
+					&& (UrlUtils.isURL(sFile) || sFile.startsWith("mailto:"))) {
+				Program.launch("htmlview " + sFile);
+			}
 		} else {
 			if (Constants.isOSX) {
 				Program.launch("file://" + sFile.replaceAll(" ", "%20"));
