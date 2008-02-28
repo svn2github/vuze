@@ -129,6 +129,17 @@ public class SWTUpdateChecker implements UpdatableComponent
 		        	    			// we need to periodically remind the user there's a problem as they need to realise that
 		        	    			// it is causing ALL updates (core/plugin) to fail
 		        	    		
+		        	    		String	alert = 
+		        	    			MessageText.getString( 
+		        	    					"swt.alert.cant.update", 
+		        	    					new String[]{
+			        	    					String.valueOf( versionGetter.getCurrentVersion()),
+			        	    					String.valueOf( versionGetter.getLatestVersion()),
+		        	    						jar_file_dir.toString(), 
+		        	    						expected_dir.toString()});
+		        	    		
+		        	    		checker.reportProgress( alert );
+		        	    		
 		        	    		long	last_prompt = COConfigurationManager.getLongParameter( "swt.update.prevented.version.time", 0 );
 		        	    		long	now			= SystemTime.getCurrentTime();
 		        	    		
@@ -140,16 +151,7 @@ public class SWTUpdateChecker implements UpdatableComponent
 		        	    		}
 		        	    		
 		        		    	if ( force || update_prevented_version != versionGetter.getCurrentVersion()){
-			        		    		
-			        	    		String	alert = 
-			        	    			MessageText.getString( 
-			        	    					"swt.alert.cant.update", 
-			        	    					new String[]{
-				        	    					String.valueOf( versionGetter.getCurrentVersion()),
-				        	    					String.valueOf( versionGetter.getLatestVersion()),
-			        	    						jar_file_dir.toString(), 
-			        	    						expected_dir.toString()});
-			        	    		
+			        		    				        	    		
 			        	     		Logger.log(	new LogAlert(LogAlert.REPEATABLE, LogEvent.LT_ERROR, alert ));
 			        						
 			        	     		update_prevented_version = versionGetter.getCurrentVersion();
