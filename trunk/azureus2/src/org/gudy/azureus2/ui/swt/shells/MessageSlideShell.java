@@ -29,7 +29,6 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
@@ -134,6 +133,9 @@ public class MessageSlideShell
 
 	private Image imgPopup;
 
+	/** Forces the timer feature to be active; overriding the default behavior */
+	private boolean forceTimer = true;
+
 	/** Open a popup using resource keys for title/text
 	 * 
 	 * @param display Display to create the shell on
@@ -156,12 +158,30 @@ public class MessageSlideShell
 			String details, String[] textParams, Object[] relatedObjects) {
 		this(display, iconID, MessageText.getString(keyPrefix + ".title"),
 				MessageText.getString(keyPrefix + ".text", textParams), details,
-				relatedObjects);
+				relatedObjects, false);
+	}
+
+	/**
+	 * 
+	 * @param display
+	 * @param iconID
+	 * @param keyPrefix
+	 * @param details
+	 * @param textParams
+	 * @param relatedObjects
+	 * @param forceTimer Forces the timer feature to be active; overriding the default logic
+	 */
+	public MessageSlideShell(Display display, int iconID, String keyPrefix,
+			String details, String[] textParams, Object[] relatedObjects,
+			boolean forceTimer) {
+		this(display, iconID, MessageText.getString(keyPrefix + ".title"),
+				MessageText.getString(keyPrefix + ".text", textParams), details,
+				relatedObjects, forceTimer);
 	}
 
 	public MessageSlideShell(Display display, int iconID, String title,
 			String text, String details) {
-		this(display, iconID, title, text, details, null);
+		this(display, iconID, title, text, details, null, false);
 	}
 
 	/**
@@ -173,11 +193,14 @@ public class MessageSlideShell
 	 * @param text Text to put in the body
 	 * @param details Text displayed when the Details button is pressed.  Null
 	 *                 for disabled Details button.
+	 * @param forceTimer Forces the timer feature to be active; overriding the default logic
 	 */
 	public MessageSlideShell(Display display, int iconID, String title,
-			String text, String details, Object[] relatedObjects) {
+			String text, String details, Object[] relatedObjects, boolean forceTimer) {
 		try {
 			monitor.enter();
+
+			this.forceTimer = forceTimer;
 
 			PopupParams popupParams = new PopupParams(iconID, title, text, details,
 					relatedObjects);
@@ -317,10 +340,18 @@ public class MessageSlideShell
 				break;
 		}
 
-		// if there's a link, or the info is non-information,
-		// disable timer and mouse watching
-		bDelayPaused = UrlUtils.parseHTMLforURL(popupParams.text) != null
-				|| popupParams.iconID != SWT.ICON_INFORMATION || !bSlide;
+		/*
+		 * If forceTimer is true then we always show the counter for auto-closing the shell;
+		 * otherwise proceed to the more fine-grained logic
+		 */
+		if (true == forceTimer) {
+			bDelayPaused = false;
+		} else {
+			// if there's a link, or the info is non-information,
+			// disable timer and mouse watching
+			bDelayPaused = UrlUtils.parseHTMLforURL(popupParams.text) != null
+					|| popupParams.iconID != SWT.ICON_INFORMATION || !bSlide;
+		}
 		// Pause the auto-close delay when mouse is over slidey
 		// This will be applies to every control
 		final MouseTrackAdapter mouseAdapter = bDelayPaused ? null
@@ -794,14 +825,14 @@ public class MessageSlideShell
 			//<a href="http://atorre.s">test</A> and <a href="http://atorre.s">test2</A>
 
 			if (hasHTML) {
-  			matcher.reset();
-  			popupParams.text = matcher.replaceAll("$2 ($1)");
-  
-  			if (sDetails == null) {
-  				sDetails = popupParams.text;
-  			} else {
-  				sDetails = popupParams.text + "\n---------\n" + sDetails;
-  			}
+				matcher.reset();
+				popupParams.text = matcher.replaceAll("$2 ($1)");
+
+				if (sDetails == null) {
+					sDetails = popupParams.text;
+				} else {
+					sDetails = popupParams.text + "\n---------\n" + sDetails;
+				}
 			}
 
 			linkLabel.setForeground(shell.getDisplay().getSystemColor(SWT.COLOR_BLACK));
