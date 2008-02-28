@@ -1115,11 +1115,13 @@ public class MainStatusBar
 					/*
 					 * The new window is opened only if there is not one already showing the same reporter
 					 */
-					if (false == ProgressReporterWindow.isOpened(reporter)) {
+					if (false == ProgressReporterWindow.isOpened(final_reporter)) {
 						Utils.execSWTThread(new AERunnable() {
 							public void runSupport() {
-								ProgressReporterWindow.open(final_reporter,
-										ProgressReporterWindow.NONE);
+								if ( !ProgressReporterWindow.isOpened(final_reporter)){
+									ProgressReporterWindow.open(final_reporter,
+											ProgressReporterWindow.NONE);
+								}
 							}
 						}, true);
 					}
