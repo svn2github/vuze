@@ -65,7 +65,7 @@ public class ColumnMediaThumb
 	public static final boolean ROW_HOVER = System.getProperty("rowhover", "0").equals(
 			"1");
 
-	private static final boolean SET_ALPHA = false;
+	private static final boolean SET_ALPHA = true;
 
 	private Map mapCellTorrent = new HashMap();
 
@@ -200,9 +200,9 @@ public class ColumnMediaThumb
 					} catch (Exception e) {
 						// may not be avail
 					}
-					if (!showPlayButton && SET_ALPHA) {
+					if (showPlayButton && SET_ALPHA) {
 						try {
-							gc.setAlpha(180);
+							gc.setAlpha(40);
 						} catch (Exception e) {
 							// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
 						}
