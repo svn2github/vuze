@@ -879,7 +879,9 @@ public class Utils
 			boolean launched = Program.launch(sFile);
 			if (!launched && Constants.isUnix
 					&& (UrlUtils.isURL(sFile) || sFile.startsWith("mailto:"))) {
-				Program.launch("htmlview " + sFile);
+				if (!Program.launch("xdg-open " + sFile)) {
+						Program.launch("htmlview " + sFile);
+				}
 			}
 		} else {
 			if (Constants.isOSX) {
