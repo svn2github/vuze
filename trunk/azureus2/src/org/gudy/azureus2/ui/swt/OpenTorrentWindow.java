@@ -2083,7 +2083,7 @@ public class OpenTorrentWindow
 									MessageText.getString(MSG_ALREADY_EXISTS_NAME),
 								}, new Object[] {
 									fExistingDownload
-								});
+								}, true);
 					else
 						Utils.openMessageBox(shell, SWT.OK, MSG_ALREADY_EXISTS,
 								new String[] {
