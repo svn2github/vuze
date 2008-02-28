@@ -67,6 +67,8 @@ public class ColumnTitle
 	public static String COLUMN_ID = "name";
 
 	public static boolean SHOW_EXT_INFO = false;
+	
+	public static boolean LINKIFY = false;
 
 	static public String s = "";
 
@@ -79,11 +81,20 @@ public class ColumnTitle
 		super(COLUMN_ID, POSITION_LAST, 250, sTableID);
 		setMinWidth(70);
 		setObfustication(true);
-		setType(TableColumn.TYPE_GRAPHIC);
+		if (LINKIFY) {
+			setType(TableColumn.TYPE_GRAPHIC);
 
-		SWTSkinProperties skinProperties = SWTSkinFactory.getInstance().getSkinProperties();
-		colorLinkNormal = skinProperties.getColor("color.links.normal");
-		colorLinkHover = skinProperties.getColor("color.links.hover");
+			SWTSkinProperties skinProperties = SWTSkinFactory.getInstance().getSkinProperties();
+			colorLinkNormal = skinProperties.getColor("color.links.normal");
+			colorLinkHover = skinProperties.getColor("color.links.hover");
+		} else {
+			// Mouse movement, cell disposal and visibility monitoring only needed
+			// if we are making a graphic.  These get added automatically, so remove
+			// them
+			removeCellMouseMoveListener(this);
+			removeCellDisposeListener(this);
+			removeCellVisibilityListener(this);
+		}
 	}
 	
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellDisposeListener#dispose(org.gudy.azureus2.plugins.ui.tables.TableCell)
@@ -106,6 +117,11 @@ public class ColumnTitle
 		}
 
 		if (!cell.isShown()) {
+			return;
+		}
+		
+		if (!LINKIFY) {
+			cell.setText(name);
 			return;
 		}
 
