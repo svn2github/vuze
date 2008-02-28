@@ -420,8 +420,19 @@ public class ColumnRate
 
 					Rectangle rectDrawRatings = img.getBounds();
 					//rectDrawRatings.height -= 4;
-					GCStringPrinter.printString(gcImage, "" + count + " ratings",
-							rectDrawRatings, true, false, SWT.BOTTOM | smallTextStyle);
+					rectDrawRatings.width -= 3;
+					String sRatingInfo = count + " ratings";
+					Point ratingInfoExtent = gcImage.textExtent(sRatingInfo);
+					if (ratingInfoExtent.x > rectDrawRatings.width) {
+						sRatingInfo = DisplayFormatters.formatDecimal(count / 1000.0, 1)
+								+ "k ratings";
+						ratingInfoExtent = gcImage.textExtent(sRatingInfo);
+						if (ratingInfoExtent.x > rectDrawRatings.width) {
+							sRatingInfo = (count / 1000) + "k ratings";
+						}
+					}
+					GCStringPrinter.printString(gcImage, sRatingInfo, rectDrawRatings,
+							true, false, SWT.BOTTOM | smallTextStyle);
 				}
 
 				if (showRateActionIcon) {
