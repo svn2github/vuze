@@ -113,7 +113,7 @@ implements PiecePicker
 	private static final int	NO_REQUEST_BACKOFF_MAX_LOOPS	= NO_REQUEST_BACKOFF_MAX_MILLIS / PeerControlScheduler.SCHEDULE_PERIOD_MILLIS;
 
 	private static Random 	random = new Random();
-	
+
 	private final DiskManager			diskManager;
 	private final PEPeerControl			peerControl;
 
@@ -581,11 +581,11 @@ implements PiecePicker
 			}
 		}
 
-		final Map[] peer_randomiser = { null };
-		
 		/* sort all peers we're currently downloading from
-		 * with the most favorable for the next request one as 1st entry   
+		 * with the most favorable for the next request one as 1st entry
+		 * randomize list first to not pick the same candidates if the list of best doesn't return conclusive results
 		 */
+		Collections.shuffle(bestUploaders);
 		Collections.sort(bestUploaders, new Comparator() {
 			public int compare(Object o1, Object o2) {
 				PEPeerTransport pt2 = (PEPeerTransport)o2;
@@ -622,43 +622,21 @@ implements PiecePicker
 					toReturn = 1;
 
 				/*
+				//TODO enable in next beta cycle
+				// try some peer we haven't downloaded from yet (this should allow us to taste all peers)
+				if(toReturn == 0 && stats2.getTotalDataBytesReceived() == 0 && stats1.getTotalDataBytesReceived() > 0)
+					toReturn = 1;
+				if(toReturn == 0 && stats1.getTotalDataBytesReceived() == 0 && stats2.getTotalDataBytesReceived() > 0)
+					toReturn = -1;
+				*/
+				
+				/*
+
 				// still nothing, next try peers from which we have downloaded most in the past 
 				// NO, we don't want to focus on what may have become a bad peer
 				if(toReturn == 0)
 					toReturn = (int)(stats2.getTotalDataBytesReceived() - stats1.getTotalDataBytesReceived());
 				*/
-				
-				// we want to randomly shuffle "equal" peers deterministicallty within the sort
-				
-				if ( toReturn == 0 ){
-					
-					Map	pr = peer_randomiser[0];
-					
-					if ( pr == null ){
-						
-						pr = peer_randomiser[0] = new LightHashMap( bestUploaders.size());
-					}
-					
-					Integer	r_1 = (Integer)pr.get( pt1 );
-					
-					if ( r_1 == null ){
-					
-						r_1 = new Integer(random.nextInt());
-												
-						pr.put( pt1, r_1 );
-					}
-					
-					Integer	r_2 = (Integer)pr.get( pt2 );
-					
-					if ( r_2 == null ){
-					
-						r_2 = new Integer(random.nextInt());
-						
-						pr.put( pt2, r_2 );
-					}
-					
-					toReturn = r_1.intValue() - r_2.intValue();
-				}
 				
 				return toReturn;
 			}
@@ -675,6 +653,9 @@ implements PiecePicker
 		boolean	done_priorities = false;
 
 		if ( priorityRTAexists ){
+		
+		
+			final Map[] peer_randomiser = { null };
 
 				// to keep the ordering consistent we need to use a fixed metric unless
 				// we remove + re-add a peer, at which point we need to take account of 
