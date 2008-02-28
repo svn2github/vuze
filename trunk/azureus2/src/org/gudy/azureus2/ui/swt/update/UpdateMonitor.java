@@ -86,7 +86,7 @@ public class UpdateMonitor
 	private UpdateWindow current_update_window;
 
 	private UpdateCheckInstance current_update_instance;
-
+	
 	private long last_recheck_time;
 	
 	protected UpdateMonitor(AzureusCore _azureus_core) {
@@ -202,7 +202,7 @@ public class UpdateMonitor
 		implements IProgressReportConstants
 	{
 		UpdateCheckInstance instance;
-
+		
 		int check_num = 0;
 
 		/*
@@ -214,7 +214,7 @@ public class UpdateMonitor
 		protected updateStatusChanger(UpdateCheckInstance _instance) {
 
 			instance = _instance;
-
+			
 			/*
 			 * Init reporter and allow cancel
 			 */
@@ -265,8 +265,8 @@ public class UpdateMonitor
 				public void cancelled(UpdateCheckInstance instance) {
 					updateReporter.appendDetailMessage(format(instance,
 							MessageText.getString("Progress.reporting.status.canceled")));
-					updateReporter.cancel();
-
+					
+						updateReporter.cancel();
 				}
 
 				public void complete(UpdateCheckInstance instance) {
@@ -301,11 +301,14 @@ public class UpdateMonitor
 					}
 
 					public void failed(UpdateChecker checker) {
-
+						
 						updateReporter.appendDetailMessage(format(checker,
 								MessageText.getString("Progress.reporting.default.error")));
 
 						updateReporter.setSelection(++check_num, null);
+						
+						// notify user of a failed update, use default error message
+						updateReporter.setErrorMessage(null);						
 					}
 				});
 
