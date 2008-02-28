@@ -1668,8 +1668,8 @@ implements PEPeerTransport
 		msg.destroy();
 	}
 
-	protected void 
-	reSetRequestsTime(final long now)
+	private void 
+	resetRequestsTime(final long now)
 	{
 		try{
 			requested_mon.enter();
@@ -1679,7 +1679,7 @@ implements PEPeerTransport
 			{
 				final DiskManagerReadRequest request =(DiskManagerReadRequest) requested.get(i);
 				if (request != null)
-					request.reSetTime(now);
+					request.resetTime(now);
 			}
 		}finally{
 
@@ -2666,7 +2666,7 @@ implements PEPeerTransport
 		if( hasBeenRequested( request ) ) {  //from active request
 			removeRequest( request );
 			final long now =SystemTime.getCurrentTime();
-			reSetRequestsTime(now);
+			resetRequestsTime(now);
 
 			if( manager.isWritten( pieceNumber, offset ) ) {  //oops, looks like this block has already been written
 				peer_stats.bytesDiscarded( length );
@@ -2720,7 +2720,7 @@ implements PEPeerTransport
 					final long now =SystemTime.getCurrentTime();
 					if (last_good_data_time !=-1 &&now -last_good_data_time <=60 *1000)
 						setSnubbed(false);
-					reSetRequestsTime(now);
+					resetRequestsTime(now);
 					last_good_data_time =now;
 					requests_recovered++;
 					printRequestStats();

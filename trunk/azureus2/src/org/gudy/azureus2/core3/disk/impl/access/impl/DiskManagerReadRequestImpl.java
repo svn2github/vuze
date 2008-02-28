@@ -97,15 +97,9 @@ DiskManagerReadRequestImpl
    * Typically used on peers that have just sent some data, we reset all
    * other requests to give them extra time.
    */
-  public void reSetTime(final long now)
+  public void resetTime(final long now)
   {
       timeCreated =now;
-  }
-  
-  public void
-  resetTime(final long now)
-  {
-	  reSetTime(now);
   }
   
   //Getters  

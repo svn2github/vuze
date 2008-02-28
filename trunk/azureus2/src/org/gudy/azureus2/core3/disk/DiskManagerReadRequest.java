@@ -35,14 +35,6 @@ public interface
 DiskManagerReadRequest
 	extends PeerReadRequest, DiskManagerRequest
 {  
-  
-	/**
-	 * Allow some more time to the request.
-	 * Typically used on peers that have just sent some data, we reset all
-	 * other requests to give them extra time.
-	 */
-	public void reSetTime(final long now);
- 
 	public int getPieceNumber();
  
 	public int getOffset();
