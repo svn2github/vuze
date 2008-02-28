@@ -769,6 +769,16 @@ public class MenuFactory
 		Listener enableHandler = new Listener() {
 			public void handleEvent(Event event) {
 				if (null != shell && false == shell.isDisposed()) {
+					if (false == Constants.isOSX) {
+						if (true == shell.getMaximized()) {
+							Messages.setLanguageText(item,
+									MessageText.resolveLocalizationKey(MENU_ID_WINDOW_ZOOM_RESTORE));
+						} else {
+							Messages.setLanguageText(item,
+									MessageText.resolveLocalizationKey(MENU_ID_WINDOW_ZOOM_MAXIMIZE));
+						}
+					}
+
 					if (((shell.getStyle() & SWT.MAX) != 0)) {
 						item.setEnabled(false == shell.getMinimized());
 					} else {
@@ -994,9 +1004,10 @@ public class MenuFactory
 		} else if (menu instanceof MenuItem) {
 			MenuItem item = (MenuItem) menu;
 			if (item.getData(KEY_MENU_ID) instanceof String) {
-				String localizationKey = (String)item.getData(KEY_MENU_ID);
+				String localizationKey = (String) item.getData(KEY_MENU_ID);
 				item.setText(MessageText.getString(localizationKey));
-				KeyBindings.setAccelerator(item,MessageText.resolveAcceleratorKey(localizationKey));
+				KeyBindings.setAccelerator(item,
+						MessageText.resolveAcceleratorKey(localizationKey));
 				updateMenuText(item.getMenu());
 			}
 		}

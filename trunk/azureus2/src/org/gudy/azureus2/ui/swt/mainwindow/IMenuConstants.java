@@ -141,6 +141,10 @@ public interface IMenuConstants
 	public static final String MENU_ID_WINDOW_ALL_TO_FRONT = "MainWindow.menu.window.alltofront";
 
 	public static final String MENU_ID_WINDOW_ZOOM = "MainWindow.menu.window.zoom";
+	
+	public static final String MENU_ID_WINDOW_ZOOM_MAXIMIZE = "MainWindow.menu.window.zoom.maximize";
+	
+	public static final String MENU_ID_WINDOW_ZOOM_RESTORE = "MainWindow.menu.window.zoom.restore";
 
 	public static final String MENU_ID_ABOUT = "MainWindow.menu.help.about";
 
