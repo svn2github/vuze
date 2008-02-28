@@ -65,6 +65,8 @@ public class ColumnMediaThumb
 	public static final boolean ROW_HOVER = System.getProperty("rowhover", "0").equals(
 			"1");
 
+	private static final boolean SET_ALPHA = false;
+
 	private Map mapCellTorrent = new HashMap();
 
 	private final int maxThumbHeight;
@@ -198,7 +200,7 @@ public class ColumnMediaThumb
 					} catch (Exception e) {
 						// may not be avail
 					}
-					if (!showPlayButton) {
+					if (!showPlayButton && SET_ALPHA) {
 						try {
 							gc.setAlpha(180);
 						} catch (Exception e) {
@@ -213,10 +215,12 @@ public class ColumnMediaThumb
 								? SWT.CURSOR_HAND : SWT.CURSOR_ARROW);
 					}
 
-					try {
-						gc.setAlpha(255);
-					} catch (Exception e) {
-						// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
+					if (SET_ALPHA) {
+  					try {
+  						gc.setAlpha(255);
+  					} catch (Exception e) {
+  						// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
+  					}
 					}
 					if (showPlayButton) {
 
