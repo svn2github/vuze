@@ -76,6 +76,12 @@ public class ProgressReporterPanel
 	private int maxPreferredWidth = 900;
 
 	/**
+	 * we persist the last error to avoid it being overwritten by subsequent non-error messages 
+	 */
+	
+	private String lastStatusError	= null;
+	
+	/**
 	 * Create a panel for the given reporter.
 	 * <code>style</code> could be one or more of these:
 	 * <ul>
@@ -271,15 +277,15 @@ public class ProgressReporterPanel
 		 */
 		{
 
-			if (true == pReport.isDone()) {
+			if (true == pReport.isInErrorState()) {
 				updateStatusLabel(
-						MessageText.getString("Progress.reporting.status.finished"), false);
-			} else if (true == pReport.isInErrorState()) {
+					MessageText.getString("Progress.reporting.default.error"), true);
+			}else if (true == pReport.isDone()) {
 				updateStatusLabel(
-						MessageText.getString("Progress.reporting.default.error"), true);
+					MessageText.getString("Progress.reporting.status.finished"), false);
 			} else if (true == pReport.isCanceled()) {
 				updateStatusLabel(
-						MessageText.getString("Progress.reporting.status.canceled"), false);
+					MessageText.getString("Progress.reporting.status.canceled"), false);
 			} else if (true == pReport.isIndeterminate()) {
 				updateStatusLabel(Constants.INFINITY_STRING, false);
 			} else {
@@ -543,6 +549,17 @@ public class ProgressReporterPanel
 		if (null == statusLabel || statusLabel.isDisposed()) {
 			return;
 		}
+			// we persist any error reports as these need to be sticky and not
+			// overritten by subsequent messages
+		
+		if ( showAsError ){
+			lastStatusError = text;
+		}
+		if ( lastStatusError != null ){
+			showAsError = true;
+			text = lastStatusError;
+		}
+		
 		statusLabel.setText(formatForDisplay(text));
 		if (false == showAsError) {
 			statusLabel.setForeground(normalColor);
