@@ -1521,7 +1521,7 @@ public class TorrentUtil {
   					MessageText.getString("OpenTorrentWindow.mb.notTorrent.text",
   							new String[] {
 									torrentName,
-									isHTML ? "" : sFirstChunk
+									isHTML ? "" : MessageText.getString("OpenTorrentWindow.mb.notTorrent.cannot.display")
   							}), new String[] {
   						MessageText.getString("Button.ok")
   					}, 0);
