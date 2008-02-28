@@ -803,7 +803,7 @@ PluginUpdatePlugin
 				update.setRestartRequired( Update.RESTART_REQUIRED_YES );
 				
 			}else{
-				
+
 				final File	plugin_dir	= new File( plugin_dir_name );
 				final File	user_dir	= new File( plugin_interface.getUtilities().getAzureusUserDir());
 				final File	prog_dir	= new File( plugin_interface.getUtilities().getAzureusProgramDir());
@@ -1481,6 +1481,36 @@ PluginUpdatePlugin
 								
 							zis.close();
 						}
+					}
+				}
+				
+				if ( unloadable ){
+					
+						// 	check unloadability AGAIN in case changed during activities
+					
+					String	plugin_id = plugin.getPluginID();
+					
+					PluginInterface[]	plugins = plugin.getPluginManager().getPlugins();
+					
+					boolean	plugin_unloadable 	= true;
+					
+					for (int j=0;j<plugins.length;j++){
+						
+						PluginInterface pi = plugins[j];
+						
+						if ( pi.getPluginID().equals( plugin_id )){
+							
+							plugin_unloadable &= pi.isUnloadable();
+						}
+					}
+					
+					if ( !plugin_unloadable ){
+						
+						log.log( "Switching unloadability for " + plugin_id + " as changed during update" );
+						
+						update.setRestartRequired( Update.RESTART_REQUIRED_YES );
+						
+						unloadable = false;
 					}
 				}
 				
