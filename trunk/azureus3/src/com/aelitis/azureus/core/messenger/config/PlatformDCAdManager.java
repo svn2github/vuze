@@ -231,7 +231,7 @@ public class PlatformDCAdManager
                 mon_unsentImpressions.exit();
             }
             saveUnsentImpressions();
-            _sendUnsentImpressions(maxDelayMS);
+            sendUnsentImpressions(maxDelayMS);
         } catch (Exception e) {
             Debug.out(e);
         }
@@ -240,7 +240,7 @@ public class PlatformDCAdManager
 
 
     //ToDo: rename to sendUnsavedImpressions
-    public static void _sendUnsentImpressions(long maxDelayMS) {
+    public static void sendUnsentImpressions(long maxDelayMS) {
         // clear unsentImpressions.  If storing fails, we'll add them back in
         List sendingImpressions;
         try {
@@ -314,7 +314,7 @@ public class PlatformDCAdManager
                 SystemTime.getOffsetTime(RESEND_DELAY), new TimerEventPerformer() {
                     public void perform(TimerEvent event) {
                         debug("resend impressions triggered");
-                        _sendUnsentImpressions(5000);
+                        sendUnsentImpressions(5000);
                     }
                 });
     }
@@ -336,7 +336,7 @@ public class PlatformDCAdManager
         }
     }
 
-    public static void _loadUnsentImpressions() {
+    public static void loadUnsentImpressions() {
         try {
             mon_unsentImpressions.enter();
 

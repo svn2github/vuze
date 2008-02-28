@@ -725,7 +725,7 @@ public class TorrentListViewsUtils
 			return false;
 		}
         
-        //Old method of getting data to the embedded media player 3.0.4.2 and before.
+        //Data is passed to the openWindow via download manager.
         try {
             debug("EmbeddedPlayerWindowSWT - openWindow");
 			Method method = epwClass.getMethod("openWindow", new Class[] {

@@ -4,13 +4,13 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.download.EnhancedDownloadManager;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.core.torrent.MetaDataUpdateListener;
 import com.aelitis.azureus.core.messenger.config.PlatformDCAdManager;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 
 import java.util.*;
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -102,7 +102,6 @@ public class DCAdManager
 
 				TOTorrent torrent = dm.getTorrent();
 
-
                 if (PlatformTorrentUtils.isContentAdEnabled(torrent)) {
 				    //add location of ASX file.
 				    dm.setData("ASX", determineASXFileLocation(dm));
@@ -121,7 +120,30 @@ public class DCAdManager
 
         }, false); //addListener
 
-    }//initialize
+		//Get all the torrents on the system.
+		DownloadManager[] dms = (DownloadManager[]) gm.getDownloadManagers().toArray(
+				new DownloadManager[0]);
+		downloadManagerAddedHook(dms);
+
+		//Add MetaData Update Listener.
+		PlatformTorrentUtils.addListener(new MetaDataUpdateListener() {
+			public void metaDataUpdated(TOTorrent torrent) {
+				GlobalManager gm = core.getGlobalManager();
+				DownloadManager dm = gm.getDownloadManager(torrent);
+				if (dm != null
+						&& PlatformTorrentUtils.isContentAdEnabled(dm.getTorrent())) {
+						downloadManagerAddedHook(new DownloadManager[] {
+						dm
+					});
+				}
+			}
+		});
+
+		//send the unsent impressions.
+		PlatformDCAdManager.loadUnsentImpressions();
+		PlatformDCAdManager.sendUnsentImpressions(5000);
+
+	}//initialize
 
     /**
      * Delete the ASX file. Tries transient data first, then looks up the likely directory.
@@ -453,7 +475,7 @@ public class DCAdManager
             final DownloadManager dm = dms[i];
             TOTorrent torrent = dm.getTorrent();
             StringBuffer sb = new StringBuffer();
-            sb.append( new String(torrent.getName()) ).append(" resons: ");
+            sb.append( new String(torrent.getName()) ).append(" reasons: ");
             if( PlatformTorrentUtils.isContent(torrent, true) ){ sb.append( "A-isContent , " ); }
             if( PlatformTorrentUtils.getContentHash(torrent) != null ){ sb.append( "B-getConentHash , " ); }
             if( PlatformTorrentUtils.isContentAdEnabled(torrent)){ sb.append( "C-isContentAdEnabled" ); }
