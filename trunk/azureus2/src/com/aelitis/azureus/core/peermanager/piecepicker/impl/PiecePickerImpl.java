@@ -112,7 +112,8 @@ implements PiecePicker
 	private static final int	NO_REQUEST_BACKOFF_MAX_MILLIS	= 5*1000;
 	private static final int	NO_REQUEST_BACKOFF_MAX_LOOPS	= NO_REQUEST_BACKOFF_MAX_MILLIS / PeerControlScheduler.SCHEDULE_PERIOD_MILLIS;
 
-
+	private static Random 	random = new Random();
+	
 	private final DiskManager			diskManager;
 	private final PEPeerControl			peerControl;
 
@@ -580,6 +581,8 @@ implements PiecePicker
 			}
 		}
 
+		final Map[] peer_randomiser = { null };
+		
 		/* sort all peers we're currently downloading from
 		 * with the most favorable for the next request one as 1st entry   
 		 */
@@ -620,9 +623,43 @@ implements PiecePicker
 
 				/*
 				// still nothing, next try peers from which we have downloaded most in the past 
+				// NO, we don't want to focus on what may have become a bad peer
 				if(toReturn == 0)
 					toReturn = (int)(stats2.getTotalDataBytesReceived() - stats1.getTotalDataBytesReceived());
 				*/
+				
+				// we want to randomly shuffle "equal" peers deterministicallty within the sort
+				
+				if ( toReturn == 0 ){
+					
+					Map	pr = peer_randomiser[0];
+					
+					if ( pr == null ){
+						
+						pr = peer_randomiser[0] = new LightHashMap( bestUploaders.size());
+					}
+					
+					Integer	r_1 = (Integer)pr.get( pt1 );
+					
+					if ( r_1 == null ){
+					
+						r_1 = new Integer(random.nextInt());
+												
+						pr.put( pt1, r_1 );
+					}
+					
+					Integer	r_2 = (Integer)pr.get( pt2 );
+					
+					if ( r_2 == null ){
+					
+						r_2 = new Integer(random.nextInt());
+						
+						pr.put( pt2, r_2 );
+					}
+					
+					toReturn = r_1.intValue() - r_2.intValue();
+				}
+				
 				return toReturn;
 			}
 		});
@@ -675,7 +712,51 @@ implements PiecePicker
 									block_time_order_peers_metrics.put( pt2, m2 );
 								}
 								
-								return( m1.intValue() - m2.intValue());
+								int	result = m1.intValue() - m2.intValue();
+								
+								if ( result == 0 ){
+									
+									Map	pr = peer_randomiser[0];
+									
+									if ( pr == null ){
+										
+										pr = peer_randomiser[0] = new LightHashMap( bestUploaders.size());
+									}
+									
+									Integer	r_1 = (Integer)pr.get( pt1 );
+									
+									if ( r_1 == null ){
+									
+										r_1 = new Integer(random.nextInt());
+										
+										pr.put( pt1, r_1 );
+									}
+									
+									Integer	r_2 = (Integer)pr.get( pt2 );
+									
+									if ( r_2 == null ){
+									
+										r_2 = new Integer(random.nextInt());
+										
+										pr.put( pt2, r_2 );
+									}
+
+									result = r_1.intValue() - r_2.intValue();
+									
+									if ( result == 0 ){
+										
+										result = pt1.hashCode() - pt2.hashCode();
+										
+										if ( result == 0 ){
+											
+												// v unlikely - inconsistent but better than losing a peer
+											
+											result = 1;
+										}
+									}
+								}
+								
+								return( result );
 							}
 						});		
 
