@@ -59,7 +59,13 @@ public class MainMenu
 
 		addFileMenu(parent);
 		addViewMenu(parent);
-		addToolsMenu(parent);
+
+		/*
+		 * There is no Tools menu for OSX
+		 */
+		if (false == Constants.isOSX) {
+			addToolsMenu(parent);
+		}
 
 		/*
 		 * The Torrents menu is a user-configured option
