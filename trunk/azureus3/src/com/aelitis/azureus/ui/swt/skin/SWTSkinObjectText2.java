@@ -236,40 +236,12 @@ public class SWTSkinObjectText2
 			int iFontSize = -1;
 			int iFontWeight = -1;
 			String sFontFace = null;
+			FontData[] tempFontData = canvas.getFont().getFontData();
 
-			String sSize = properties.getStringValue(sPrefix + ".size" + suffix);
-			if (sSize != null) {
-				FontData[] fd = canvas.getFont().getFontData();
-
-				try {
-					char firstChar = sSize.charAt(0);
-					if (firstChar == '+' || firstChar == '-') {
-						sSize = sSize.substring(1);
-					}
-
-					double dSize = NumberFormat.getInstance(Locale.US).parse(sSize).doubleValue();
-
-					if (firstChar == '+') {
-						iFontSize = (int) (fd[0].height + dSize);
-					} else if (firstChar == '-') {
-						iFontSize = (int) (fd[0].height - dSize);
-					} else {
-						if (sSize.endsWith("px")) {
-							iFontSize = Utils.getFontHeightFromPX(canvas.getFont(), null,
-									(int) dSize);
-							//iFontSize = Utils.pixelsToPoint(dSize, canvas.getDisplay().getDPI().y);
-						} else {
-							iFontSize = (int) dSize;
-						}
-					}
-
-					bNewFont = true;
-				} catch (NumberFormatException e) {
-					e.printStackTrace();
-				} catch (ParseException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+			sFontFace = properties.getStringValue(sPrefix + ".font" + suffix);
+			if (sFontFace != null) {
+				tempFontData[0].setName(sFontFace);
+				bNewFont = true;
 			}
 
 			String sStyle = properties.getStringValue(sPrefix + ".style" + suffix);
@@ -335,9 +307,43 @@ public class SWTSkinObjectText2
 						: sText;
 			}
 
-			sFontFace = properties.getStringValue(sPrefix + ".font" + suffix);
-			if (sFontFace != null) {
-				bNewFont = true;
+			if (iFontWeight >= 0) {
+				tempFontData[0].setStyle(iFontWeight);
+			}
+			
+			String sSize = properties.getStringValue(sPrefix + ".size" + suffix);
+			if (sSize != null) {
+				FontData[] fd = canvas.getFont().getFontData();
+
+				try {
+					char firstChar = sSize.charAt(0);
+					if (firstChar == '+' || firstChar == '-') {
+						sSize = sSize.substring(1);
+					}
+
+					double dSize = NumberFormat.getInstance(Locale.US).parse(sSize).doubleValue();
+
+					if (firstChar == '+') {
+						iFontSize = (int) (fd[0].height + dSize);
+					} else if (firstChar == '-') {
+						iFontSize = (int) (fd[0].height - dSize);
+					} else {
+						if (sSize.endsWith("px")) {
+							//iFontSize = Utils.getFontHeightFromPX(canvas.getFont(), null, (int) dSize);
+							iFontSize = Utils.getFontHeightFromPX(canvas.getDisplay(), tempFontData, null, (int) dSize);
+							//iFontSize = Utils.pixelsToPoint(dSize, canvas.getDisplay().getDPI().y);
+						} else {
+							iFontSize = (int) dSize;
+						}
+					}
+
+					bNewFont = true;
+				} catch (NumberFormatException e) {
+					e.printStackTrace();
+				} catch (ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 
 			if (bNewFont) {
