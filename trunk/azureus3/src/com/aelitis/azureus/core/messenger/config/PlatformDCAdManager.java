@@ -12,6 +12,7 @@ import java.io.File;
 
 import com.aelitis.azureus.util.DCAdManager;
 import com.aelitis.azureus.util.JSONUtils;
+import com.aelitis.azureus.util.AzpdFileAccess;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
@@ -65,7 +66,8 @@ public class PlatformDCAdManager
                                  final GetAdvertDataReplyListener replyListener)
     {
         debug("enter - PlatformDCDdManager.getAdvert");
-        //prepare the parameters to send
+
+		//prepare the parameters to send
         String contentHash="";
         try{
             contentHash = adEnabledDownload.getTorrent().getHashWrapper().toBase32String();
@@ -87,7 +89,14 @@ public class PlatformDCAdManager
         params.put("ads",adList);
         PlatformMessage message = new PlatformMessage("AZMSG",RPC_LISTENER_ID,OP_GETADVERT,params, maxDelayMS);
 
-        //deal with response.
+		//create a default azpd file.
+		if( !azpdFileFound(message) ){
+			File f = determineAzpdFileName(message);
+			saveTempAzpdFile(f);
+		}
+
+
+		//deal with response.
         PlatformMessenger.queueMessage(message, new PlatformMessengerListener(){
 
                 public void messageSent(PlatformMessage message) {
@@ -134,7 +143,32 @@ public class PlatformDCAdManager
         debug("leave - PlatformDCDdManager.getAdvert");
     }//getAdvert
 
-    private static Map  saveResponseToAzpdFile(Map reply, PlatformMessage message) {
+	/**
+	 * create a temporary azpd file.
+	 * @param azpdFile
+	 */
+	private static void saveTempAzpdFile(File azpdFile){
+
+		String content = getTempAzpdTemplate();
+		//FileUtil.writeBytesAsFile( azpdFile.getAbsolutePath(), content.getBytes() );
+		AzpdFileAccess access = AzpdFileAccess.getInstance();
+		access.writeAzpdFile(azpdFile,content);
+
+		debug( "temp data=_"+content+"_  to azpd file="+azpdFile.getAbsolutePath() );
+	}
+
+	/**
+	 * Template for a default azpd file. 
+	 * @return - template file.
+	 */
+	private static String getTempAzpdTemplate(){
+		//ToDo: Should be updateable configuration.
+		return "{\"ad_hash\":[],\"playlist\":\"<ASX version=\\\"3.0\\\">\\n<ENTRY ClientSkip=\\\"yes\\\">\\n<TITLE>" +
+				"Default<\\/TITLE>\\n<PARAM NAME=\\\"Prebuffer\\\" VALUE=\\\"true\\\"\\/>\\n" +
+				"<REF HREF=\\\"<##-CONTENT-PATH-##>\\\"\\/>\\n<\\/ENTRY>\\n<\\/ASX>\"}";
+	}
+
+	private static Map  saveResponseToAzpdFile(Map reply, PlatformMessage message) {
         //What we might want to do here is remove "torrents" from the Map reply and then save the
         //entire result.
         Map saveToFile = new HashMap();
@@ -142,28 +176,52 @@ public class PlatformDCAdManager
         saveToFile.remove("torrents");
 
         String s = JSONUtils.encodeToJSON(saveToFile);
-        File azpdFile = DCAdManager.getAzpdDir();
 
-        //Get the content hash from the message.
-        String azpdFileNameBase = "no_file";
-        Map requestParamMap = message.getParameters();
-        if( requestParamMap!=null ){
-            List contentList = (List) requestParamMap.get("hashes");
-            if( contentList!=null ){
-                azpdFileNameBase = (String) contentList.get(0);
-            }
-        }
+		File file = determineAzpdFileName(message);
 
-        File file = new File(azpdFile, azpdFileNameBase+".azpd" );
-        FileUtil.writeBytesAsFile( file.getAbsolutePath() ,s.getBytes());
+		//FileUtil.writeBytesAsFile( file.getAbsolutePath() ,s.getBytes());
+		AzpdFileAccess access = AzpdFileAccess.getInstance();
+		access.writeAzpdFile(file,s);
 
-        debug( "data=_"+s+"_  to azpd file="+file.getAbsolutePath() );
+		debug( "data=_"+s+"_  to azpd file="+file.getAbsolutePath() );
         
         return JSONUtils.decodeJSON(s);
     }
 
+	/**
+	 * Based on the hash determine the Azpd file name.
+	 * @param message -
+	 * @return File - azpd file.
+	 */
+	private static File determineAzpdFileName(PlatformMessage message) {
+		File azpdFile = DCAdManager.getAzpdDir();
 
-    private static List getExistingAds() {
+		//Get the content hash from the message.
+		String azpdFileNameBase = "no_file";
+		Map requestParamMap = message.getParameters();
+		if( requestParamMap!=null ){
+			List contentList = (List) requestParamMap.get("hashes");
+			if( contentList!=null ){
+				azpdFileNameBase = (String) contentList.get(0);
+			}
+		}
+
+		File file = new File(azpdFile, azpdFileNameBase+".azpd" );
+		return file;
+	}
+
+	/**
+	 * True if the azpd file for content exists.
+	 * @param message - to get the hash
+	 * @return boolean - true if it exists.
+	 */
+	private static boolean azpdFileFound(PlatformMessage message){
+		File f = determineAzpdFileName(message);
+		return f.exists();
+	}
+
+
+	private static List getExistingAds() {
         DownloadManager[] existingAds = DCAdManager.getInstance().getAds(true);
         List adList = new ArrayList();
         for (int i = 0; i < existingAds.length; i++) {

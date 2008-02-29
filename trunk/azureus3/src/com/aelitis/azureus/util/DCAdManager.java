@@ -773,8 +773,12 @@ public class DCAdManager
         {
             File azureusPlayDataFile = determineAzpdFileLocation(dm);
 
-            String data = FileUtil.readFileAsString(azureusPlayDataFile,10000000);
-            return JSONUtils.decodeJSON(data);
+			AzpdFileAccess access = AzpdFileAccess.getInstance();
+
+			//String data = FileUtil.readFileAsString(azureusPlayDataFile,10000000);
+			String data = access.readAzpdFile(azureusPlayDataFile);
+
+			return JSONUtils.decodeJSON(data);
 
         }catch(TOTorrentException tte){
             debug("TOTorrent Error - getPlayerDataMap(): "+tte);
