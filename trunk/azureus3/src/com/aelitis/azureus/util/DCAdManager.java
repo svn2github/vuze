@@ -123,8 +123,9 @@ public class DCAdManager
 		//Get all the torrents on the system.
 		DownloadManager[] dms = (DownloadManager[]) gm.getDownloadManagers().toArray(
 				new DownloadManager[0]);
-		downloadManagerAddedHook(dms);
+		initDownloadManagerLists(dms);
 
+		
 		//Add MetaData Update Listener.
 		PlatformTorrentUtils.addListener(new MetaDataUpdateListener() {
 			public void metaDataUpdated(TOTorrent torrent) {
@@ -335,10 +336,11 @@ public class DCAdManager
                         && PlatformTorrentUtils.isContentAdEnabled(torrent))
                     {
                         adSupportedContentList.add(dm);
-                        if (!adSupportedDMList.contains(dm)) {
 
-                            //Add GetAdvert here.
-                            callGetAdvert(adSupportedContentList);
+						//Add GetAdvert here.
+						callGetAdvert(adSupportedContentList);
+
+						if (!adSupportedDMList.contains(dm)) {
 
                             adSupportedDMList.add(dm);
                             if (!dm.getAssumedComplete()) {
@@ -372,7 +374,7 @@ public class DCAdManager
                 debug("exit - downloadManagerAddedHook");
             }
 
-            private void callGetAdvert(List adSupportedContentList) {
+			private void callGetAdvert(List adSupportedContentList) {
                 try {
                     checkingForAds = true;
                     debug("sending ad request for " + adSupportedContentList.size()
@@ -466,7 +468,7 @@ public class DCAdManager
     }//downloadManagerAddedHook
 
 
-    /**
+	/**
      * debugNotAdEnabledReason - which reason is a torrent not ad-enabled.
      * @param dms - DownloadManager[]
      */
@@ -773,10 +775,8 @@ public class DCAdManager
         {
             File azureusPlayDataFile = determineAzpdFileLocation(dm);
 
-			AzpdFileAccess access = AzpdFileAccess.getInstance();
-
 			//String data = FileUtil.readFileAsString(azureusPlayDataFile,10000000);
-			String data = access.readAzpdFile(azureusPlayDataFile);
+			String data = AzpdFileAccess.readAzpdFile(azureusPlayDataFile);
 
 			return JSONUtils.decodeJSON(data);
 
@@ -821,6 +821,57 @@ public class DCAdManager
         }
         return azpdDir;
     }
+
+
+	/**
+	 *
+	 * @param dms - DownloadManager[]
+	 */
+	void initDownloadManagerLists(DownloadManager[] dms)
+	{
+
+		for (int i = 0; i < dms.length; i++) {
+			final DownloadManager dm = dms[i];
+
+			TOTorrent torrent = dm.getTorrent();
+			if (torrent == null) {
+				return;
+			}
+
+			//If this torrent is an ad do this block.
+			if (PlatformTorrentUtils.getAdId(torrent) != null) {
+				//This is ad advert.
+				if (!adsDMList.contains(dm)) {
+					adsDMList.add(dm);
+				}
+			}
+
+
+			//If the torrent is content that contains an ad, do this block.
+			if (   PlatformTorrentUtils.isContent(torrent, true)
+				&& PlatformTorrentUtils.getContentHash(torrent) != null
+				&& PlatformTorrentUtils.isContentAdEnabled(torrent))
+			{
+				//This is ad enabled content.
+				if (!adSupportedDMList.contains(dm)) {
+					adSupportedDMList.add(dm);
+				}
+			}
+			
+		}//for
+
+	}//initDownloadManagerList
+
+	/**
+	 * Call when you want to refresh via getAdvert call.
+	 * @param dm - DownloadManager
+	 */
+	public void refreshAd(DownloadManager dm){
+		
+		downloadManagerAddedHook( new DownloadManager[] { dm }  );
+
+	}//refreshAd
+
 
 	public boolean isCheckingForNewAds() {
 		return checkingForAds;

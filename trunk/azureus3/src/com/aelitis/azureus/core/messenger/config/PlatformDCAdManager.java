@@ -151,8 +151,7 @@ public class PlatformDCAdManager
 
 		String content = getTempAzpdTemplate();
 		//FileUtil.writeBytesAsFile( azpdFile.getAbsolutePath(), content.getBytes() );
-		AzpdFileAccess access = AzpdFileAccess.getInstance();
-		access.writeAzpdFile(azpdFile,content);
+		AzpdFileAccess.writeAzpdFile(azpdFile,content);
 
 		debug( "temp data=_"+content+"_  to azpd file="+azpdFile.getAbsolutePath() );
 	}
@@ -180,8 +179,7 @@ public class PlatformDCAdManager
 		File file = determineAzpdFileName(message);
 
 		//FileUtil.writeBytesAsFile( file.getAbsolutePath() ,s.getBytes());
-		AzpdFileAccess access = AzpdFileAccess.getInstance();
-		access.writeAzpdFile(file,s);
+		AzpdFileAccess.writeAzpdFile(file,s);
 
 		debug( "data=_"+s+"_  to azpd file="+file.getAbsolutePath() );
         

@@ -24,68 +24,20 @@ package com.aelitis.azureus.util;
 
 import org.gudy.azureus2.core3.util.FileUtil;
 
-import java.util.Map;
-import java.util.HashMap;
 import java.io.File;
 import java.io.IOException;
 
 public class AzpdFileAccess {
 
-	private static AzpdFileAccess ourInstance = new AzpdFileAccess();
-
-	Map files = new HashMap(); //<File,Boolean>
-
-	public static AzpdFileAccess getInstance() {
-		return ourInstance;
-	}
-
-	private AzpdFileAccess() {
-	}
-
-	public synchronized boolean canAccess(File azpdFile){
-		Boolean isAvail = (Boolean) files.get(azpdFile);
-
-		if( isAvail==null){
-			files.put(azpdFile,Boolean.TRUE);
-			return true;
-		}
-
-		return isAvail.booleanValue();
-	}
-
-	/**
-	 * Only one other thread access this file. Just need to delay access.
-	 * @param azpdFile -
-	 * @return -
-	 * @throws IOException -
-	 */
-	public synchronized String readAzpdFile(File azpdFile)
+	public static synchronized String readAzpdFile(File azpdFile)
 		throws IOException
 	{
-		if( !canAccess(azpdFile) ){
-			try{Thread.sleep(100);}
-			catch(InterruptedException ie){}
-		}
-		files.put(azpdFile, Boolean.FALSE);
 		String data = FileUtil.readFileAsString(azpdFile,10000000);
-		files.put(azpdFile, Boolean.TRUE);
-
 		return data;
 	}
 
-	/**
-	 * Only one other thread accesses this file. Just need to delay access.
-	 * @param azpdFile -
-	 * @param data -
-	 */
-	public synchronized void writeAzpdFile(File azpdFile, String data){
-		if( !canAccess(azpdFile) ){
-			try{Thread.sleep(100);}
-			catch(InterruptedException ie){}
-		}
-		files.put(azpdFile, Boolean.FALSE);
+	public static synchronized void writeAzpdFile(File azpdFile, String data){
 		FileUtil.writeBytesAsFile(azpdFile.getAbsolutePath(),data.getBytes());
-		files.put(azpdFile, Boolean.TRUE);
 	}
 
 }
