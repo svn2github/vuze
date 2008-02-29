@@ -410,7 +410,7 @@ AZInstanceManagerImpl
 		int					length )
 	{
 		try{
-			Map	map = BDecoder.decode(new BufferedInputStream(new ByteArrayInputStream( data, 0, length )));
+			Map	map = BDecoder.decode( data, 0, length );
 			
 			long	version = ((Long)map.get( "ver" )).longValue();
 			long	type	= ((Long)map.get( "type" )).longValue();
