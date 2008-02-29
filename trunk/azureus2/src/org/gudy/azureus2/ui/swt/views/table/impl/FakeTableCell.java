@@ -545,7 +545,7 @@ public class FakeTableCell
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getWidth()
 	public int getWidth() {
-		if (composite != null) {
+		if (!isDisposed()) {
 			return composite.getSize().x;
 		}
 		return 0;
