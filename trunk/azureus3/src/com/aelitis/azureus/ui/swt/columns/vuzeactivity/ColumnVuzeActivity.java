@@ -50,6 +50,7 @@ import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.views.list.*;
+import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.VuzeActivitiesEntry;
 
 import org.gudy.azureus2.plugins.ui.Graphic;
@@ -207,12 +208,14 @@ public class ColumnVuzeActivity
 		  	// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
 		  }
 			if (entry.type == 0) {
-				if (headerFont == null) {
+				if (headerFont == null || true) {
 					// no sync required, SWT is on single thread
 					FontData[] fontData = gcQuery.getFont().getFontData();
 					fontData[0].setStyle(SWT.BOLD);
 					// we can do a few more pixels because we have no text hanging below baseline
-					fontData[0].setName("Arial");
+					if (!Constants.isUnix) {
+						fontData[0].setName("Arial");
+					}
 					Utils.getFontHeightFromPX(device, fontData, gcQuery, 17);
 					headerFont = new Font(device, fontData);
 				}
