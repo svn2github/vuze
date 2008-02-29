@@ -2600,8 +2600,8 @@ DownloadManagerStateImpl
 		private Map			cache;	
 		private Map			cache_attributes;
 		
-		private TorrentUtils.ExtendedTorrent		delegate;
-		private TOTorrentException					fixup_failure;
+		private volatile TorrentUtils.ExtendedTorrent		delegate;
+		private TOTorrentException							fixup_failure;
 		
 		private boolean		discard_pieces;
 		private boolean		logged_failure;
@@ -2690,34 +2690,42 @@ DownloadManagerStateImpl
 			try{
 				if ( delegate == null ){
 					
-					if ( fixup_failure != null ){
+					synchronized( this ){
 						
-						throw( fixup_failure );
-					}
-		
-					delegate = loadRealState();
+						if ( delegate == null ){
+			
+							System.out.println( "Fixing up " + this );
+							
+							if ( fixup_failure != null ){
+								
+								throw( fixup_failure );
+							}
 				
-					if ( discard_fluff ){
-					
-						delegate.setDiscardFluff( discard_fluff );
-					}
-
-					if ( cache != null ){
-						
-						Debug.out( "Cache miss forced fixup" );
-					}
-					
-					cache = null;
-					
-						// join cache view back up with real state to save memory as the one
-						// we've just read is irrelevant due to the cache values being
-						// used
-					
-					if ( cache_attributes != null ){
-												
-						delegate.setAdditionalMapProperty( ATTRIBUTE_KEY, cache_attributes );
-						
-						cache_attributes = null;
+							delegate = loadRealState();
+				
+							if ( discard_fluff ){
+							
+								delegate.setDiscardFluff( discard_fluff );
+							}
+		
+							if ( cache != null ){
+								
+								Debug.out( "Cache miss forced fixup" );
+							}
+							
+							cache = null;
+							
+								// join cache view back up with real state to save memory as the one
+								// we've just read is irrelevant due to the cache values being
+								// used
+							
+							if ( cache_attributes != null ){
+														
+								delegate.setAdditionalMapProperty( ATTRIBUTE_KEY, cache_attributes );
+								
+								cache_attributes = null;
+							}
+						}
 					}
 				}	
 				
