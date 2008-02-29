@@ -1335,6 +1335,9 @@ public class Utils
 			if (bOurGC) {
 				gc.dispose();
 			}
+			if (font != null && !font.isDisposed()) {
+				font.dispose();
+			}
 		}
 		return size;
 	}
@@ -1376,6 +1379,9 @@ public class Utils
 		} finally {
 			if (bOurGC) {
 				gc.dispose();
+			}
+			if (font != null && !font.isDisposed()) {
+				font.dispose();
 			}
 		}
 
