@@ -208,7 +208,7 @@ public class ColumnVuzeActivity
 		  	// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
 		  }
 			if (entry.type == 0) {
-				if (headerFont == null || true) {
+				if (headerFont == null) {
 					// no sync required, SWT is on single thread
 					FontData[] fontData = gcQuery.getFont().getFontData();
 					fontData[0].setStyle(SWT.BOLD);
