@@ -3007,6 +3007,14 @@ public class ListView
 				clientArea.height);
 	}
 
+	/**
+	 * Returns the area where the table displays its rows.  Does not require
+	 * you to be in the SWT thread
+	 * 
+	 * @return view's client area
+	 *
+	 * @since 3.0.4.3
+	 */
 	public Rectangle getClientArea() {
 		return clientArea;
 	}
