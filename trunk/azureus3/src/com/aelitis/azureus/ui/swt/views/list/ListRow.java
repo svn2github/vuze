@@ -507,6 +507,9 @@ public class ListRow
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableRowSWT#setForeground(org.eclipse.swt.graphics.Color)
 	public void setForeground(Color c) {
+		if (isRowDisposed()) {
+			return;
+		}
 		Iterator iter = mapTableCells.values().iterator();
 		while (iter.hasNext()) {
 			TableCellSWT item = (TableCellSWT) iter.next();
