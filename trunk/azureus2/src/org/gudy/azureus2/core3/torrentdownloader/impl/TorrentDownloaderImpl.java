@@ -232,14 +232,14 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 				
 			}
 	*/
-      this.filename = this.con.getHeaderField("Content-Disposition");
-      if ((this.filename!=null) && this.filename.toLowerCase().matches(".*attachment.*")) // Some code to handle b0rked servers.
-        while (this.filename.toLowerCase().charAt(0)!='a')
-          this.filename = this.filename.substring(1);
-      if ((this.filename == null) || !this.filename.toLowerCase().startsWith("attachment") || (this.filename.indexOf('=') == -1)) {
+      filename = this.con.getHeaderField("Content-Disposition");
+      if ((filename!=null) && filename.toLowerCase().matches(".*attachment.*")) // Some code to handle b0rked servers.
+        while (filename.toLowerCase().charAt(0)!='a')
+          filename = filename.substring(1);
+      if ((filename == null) || !filename.toLowerCase().startsWith("attachment") || (filename.indexOf('=') == -1)) {
         String tmp = this.url.getFile();
         if (tmp.length() == 0 || tmp.equals("/")) {
-        	this.filename = url.getHost();
+        	filename = url.getHost();
         }
         else if ( tmp.startsWith("?")){
         
@@ -264,19 +264,19 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
     			
     			if ( p2 == -1 ){
     				
-    				this.filename = query.substring(pos);
+    				filename = query.substring(pos);
     				
     			}else{
     				
-    				this.filename = query.substring(pos,p2);
+    				filename = query.substring(pos,p2);
     			}
         	}else{
         		
-        		this.filename = "Torrent" + (long)(Math.random()*Long.MAX_VALUE);
+        		filename = "Torrent" + (long)(Math.random()*Long.MAX_VALUE);
         	}
     		
     		
-    		this.filename += ".tmp";
+    		filename += ".tmp";
     		
         }else{
 	        if (tmp.lastIndexOf('/') != -1)
@@ -290,19 +290,24 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 	          tmp = tmp.substring(0,param_pos);
 	        }
 	        
-	        this.filename = URLDecoder.decode(tmp, Constants.DEFAULT_ENCODING );
+	        filename = URLDecoder.decode(tmp, Constants.DEFAULT_ENCODING );
         }
       } else {
-        this.filename = this.filename.substring(this.filename.indexOf('=') + 1);
-        if (this.filename.startsWith("\"") && this.filename.endsWith("\""))
-          this.filename = this.filename.substring(1, this.filename.lastIndexOf('\"'));
-        File temp = new File(this.filename);
-        this.filename = temp.getName();
+        filename = filename.substring(filename.indexOf('=') + 1);
+        if (filename.startsWith("\"") && filename.endsWith("\""))
+          filename = filename.substring(1, filename.lastIndexOf('\"'));
+        
+        filename = URLDecoder.decode(filename, Constants.DEFAULT_ENCODING );
+        
+        	// not sure of this piece of logic here but I'm not changing it at the moment
+        
+        File temp = new File(filename);
+        filename = temp.getName();
       }
 
-      this.filename = FileUtil.convertOSSpecificChars( this.filename );
+      filename = FileUtil.convertOSSpecificChars( filename );
       
-      this.directoryname = COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory");
+      directoryname = COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory");
       boolean useTorrentSave = COConfigurationManager.getBooleanParameter("Save Torrent Files");
 
       if (file_str != null) {
@@ -436,7 +441,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 			
 	    if ( this.state != STATE_ERROR ){
 		    	
-	    	this.file = new File(this.directoryname, this.filename);
+	    	this.file = new File(this.directoryname, filename);
 
 	    	boolean useTempFile = false;
 	    	try {
@@ -533,7 +538,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
     	  
     	if ( !cancel ){
     		
-    		Debug.out("'" + this.directoryname + "' '" +  this.filename + "'", e);
+    		Debug.out("'" + this.directoryname + "' '" +  filename + "'", e);
     	}
       	
         this.error(0, "Exception while downloading '" + this.url.toString() + "':" + e.getMessage());
@@ -612,7 +617,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
   
   public java.io.File getFile() {
     if ((!this.isAlive()) || (this.file == null))
-      this.file = new File(this.directoryname, this.filename);
+      this.file = new File(this.directoryname, filename);
     return this.file;
   }
 
@@ -644,7 +649,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
       if (path != null)
         this.directoryname = path;
       if (file != null)
-        this.filename = file;
+        filename = file;
     }
   }
 
