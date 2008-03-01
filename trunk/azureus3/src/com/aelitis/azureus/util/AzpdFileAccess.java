@@ -23,11 +23,51 @@
 package com.aelitis.azureus.util;
 
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
+
+import com.aelitis.azureus.core.messenger.config.PlatformDCAdManager;
 
 public class AzpdFileAccess {
+
+	//ToDo: refactor everything about AZPD files into this class.
+
+
+	public static final String PARAM_EXPIRE_TIME = "az-expire-time";
+	public static final String PARAM_CREATE_TIME = "az-create-time";
+
+	/**
+	 *
+	 * @param azpdFile -
+	 * @return - true if expired.
+	 */
+	public static synchronized boolean isAzpdFileExpired(File azpdFile){
+
+		try{
+			
+			//turn this string into a Map.
+			Map params = readAzpdFileToMap(azpdFile);
+
+			String expireString = (String) params.get(PARAM_EXPIRE_TIME);
+
+			long expireTime = Long.parseLong(expireString);
+			long currTime = System.currentTimeMillis();
+
+			return ( currTime > expireTime );
+
+		}catch(IOException ioe){
+			//consider this file expired.
+			ioe.printStackTrace();
+			return true;
+		}catch(Exception e){
+			e.printStackTrace();
+			return true;
+		}
+	}
 
 	public static synchronized String readAzpdFile(File azpdFile)
 		throws IOException
@@ -36,8 +76,70 @@ public class AzpdFileAccess {
 		return data;
 	}
 
+	public static synchronized Map readAzpdFileToMap(File azpdFile)
+		throws IOException
+	{
+		String data = readAzpdFile(azpdFile);
+		return JSONUtils.decodeJSON(data);
+	}
+
+
+
 	public static synchronized void writeAzpdFile(File azpdFile, String data){
 		FileUtil.writeBytesAsFile(azpdFile.getAbsolutePath(),data.getBytes());
 	}
+
+    static final String EXT_AZUREUS_PLAYER_DATA = "azpd";
+    public static synchronized Map getPlayerDataMap(DownloadManager dm)
+    {
+        try
+        {
+            File azureusPlayDataFile = determineAzpdFileLocation(dm);
+
+			String data = AzpdFileAccess.readAzpdFile(azureusPlayDataFile);
+
+			return JSONUtils.decodeJSON(data);
+
+        }catch(TOTorrentException tte){
+            PlatformDCAdManager.debug("TOTorrent Error - getPlayerDataMap(): "+tte);
+            tte.printStackTrace();
+            return null;
+        }catch(Throwable t){
+
+            PlatformDCAdManager.debug("Error - getPlayerDataMap(): "+t);
+            t.printStackTrace();
+
+            return null;
+        }
+
+    }//getPlayerDataMap
+
+
+    /**
+     * Get the location of the azpd file.
+     * @param dm - DownloadManager
+     * @return - File -
+     * @throws TOTorrentException - t
+     */
+    public static File determineAzpdFileLocation(DownloadManager dm)
+        throws TOTorrentException
+    {
+        File azpdDir = getAzpdDir();
+
+        String fileNamePrefix = dm.getTorrent().getHashWrapper().toBase32String();
+        return new File( azpdDir ,fileNamePrefix+"."+EXT_AZUREUS_PLAYER_DATA );
+    }
+
+    public static File getAzpdDir() {
+        File mediaDir = FileUtil.getUserFile("media");
+        if( !mediaDir.exists() ){
+            FileUtil.mkdirs(mediaDir);
+        }
+        File azpdDir = new File(mediaDir,"azpd");
+        if( !azpdDir.exists() ){
+            FileUtil.mkdirs(azpdDir);
+        }
+        return azpdDir;
+    }
 
 }

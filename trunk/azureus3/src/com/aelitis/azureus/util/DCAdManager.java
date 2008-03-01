@@ -107,7 +107,7 @@ public class DCAdManager
 				    dm.setData("ASX", determineASXFileLocation(dm));
                     //add location of azpd file.
                     try{
-                        dm.setData("azpd", determineAzpdFileLocation(dm));
+                        dm.setData("azpd", AzpdFileAccess.determineAzpdFileLocation(dm));
                     }catch(TOTorrentException tote){
                         debug("Failed to set azpd location",tote);
                     }
@@ -144,9 +144,106 @@ public class DCAdManager
 		PlatformDCAdManager.loadUnsentImpressions();
 		PlatformDCAdManager.sendUnsentImpressions(5000);
 
+
+		startLazyAzpdFileCheckThread(dms);
+
 	}//initialize
 
-    /**
+
+	/**
+	 * Wait file minutes after start-up then slowly go through the list of
+	 * azpd files to update the ones that are out of date. After the check is
+	 * done this thread goes away.
+	 * @param dms - DownloadManager[]
+	 */
+	private void startLazyAzpdFileCheckThread(final DownloadManager[] dms){
+
+		final String THREAD_NAME = "azpdFileExpireThread";
+		final long INIT_WAIT_TIME = 1000 * 60 * 5; //wait 5 minutes between checks.
+		final long CALL_WAIT_TIME = 1000 * 5; //wait 5 seconds between check.
+
+		AEThread2 thread = new AEThread2(THREAD_NAME,true){
+
+			public void run() {
+
+				if(dms==null){
+					debug(THREAD_NAME+": exit");
+					return;
+				}
+
+				if( dms.length==0){
+					debug(THREAD_NAME+": exit. Nothing to check.");
+					return;
+				}
+
+				//wait a few minutes for initialization to be finished.
+				try{ Thread.sleep(INIT_WAIT_TIME); }
+				catch(InterruptedException ie){
+					debug(THREAD_NAME+": interrupted before thread start.");
+					return;
+				}
+
+				debug(THREAD_NAME+": starting.");
+
+				int size = dms.length;
+				for(int i=0; i<size; i++){
+
+					DownloadManager dm = dms[i];
+
+					//is this AdEnabled Content?
+					if( isAdEnabledContent(dm) ){
+						File f = null;
+						try{
+							f = AzpdFileAccess.determineAzpdFileLocation(dm);
+						}catch(TOTorrentException tot){
+							debug(THREAD_NAME+": had "+tot.getMessage() );
+							f=null;
+						}
+						if(f==null)
+							continue;
+
+						debug(THREAD_NAME+": checking "+f.getAbsolutePath());
+						if( AzpdFileAccess.isAzpdFileExpired(f) ){
+
+							debug(THREAD_NAME+": found expired azpd file "+f+". Will refresh. ");
+							//refresh this file.
+							downloadManagerAddedHook( new DownloadManager[] { dm } );
+
+							//wait a little to spread out this work.
+							try{ Thread.sleep(CALL_WAIT_TIME); }
+							catch(InterruptedException ie){
+								debug(THREAD_NAME+": interrupted before while running.");
+								return;
+							}
+						}
+
+					}//if - isAdEnabledContent
+
+				}//for
+
+
+				debug(THREAD_NAME+": finished.");
+			}
+		};
+
+		thread.start();
+	}
+
+	/**
+	 * Is this DownloadManager Ad Enabled?
+	 * @param dm -
+	 * @return -
+	 */
+	public static boolean isAdEnabledContent(DownloadManager dm){
+
+		TOTorrent torrent = dm.getTorrent();
+
+		return  (PlatformTorrentUtils.isContent(torrent, true)  &&
+				 PlatformTorrentUtils.isContentAdEnabled(torrent) );
+	}
+
+
+	/**
      * Delete the ASX file. Tries transient data first, then looks up the likely directory.
      * @param dm - DownloadManager -
      */
@@ -184,7 +281,7 @@ public class DCAdManager
         }else{
             try{
             //the data was not persistent look in the expected directory.
-                azpdFile = determineAzpdFileLocation(dm);
+                azpdFile = AzpdFileAccess.determineAzpdFileLocation(dm);
                 if(azpdFile != null){
                     azpdFile.delete();
                 }
@@ -516,7 +613,7 @@ public class DCAdManager
 
         debug("replaceASXParams");
         //Look for the PlayerDataMap file.
-        Map playerDataMap = getPlayerDataMap(dmContent);
+        Map playerDataMap = AzpdFileAccess.getPlayerDataMap(dmContent);
         String origPlaylist = (String) playerDataMap.get("playlist");
 
         if( origPlaylist==null ){
@@ -558,7 +655,7 @@ public class DCAdManager
      */
     private boolean determinIfNullAd(DownloadManager contentDM){
 
-        Map map = DCAdManager.getPlayerDataMap(contentDM);
+        Map map = AzpdFileAccess.getPlayerDataMap(contentDM);
         List adHashList = (List) map.get("ad_hash");
 
         if(adHashList==null){
@@ -618,7 +715,7 @@ public class DCAdManager
         debug("getAdMediaFromContentDownloadManager");
 
         GlobalManager gm = contentDM.getGlobalManager();
-        Map map = DCAdManager.getPlayerDataMap(contentDM);
+        Map map = AzpdFileAccess.getPlayerDataMap(contentDM);
         List adHashList = (List) map.get("ad_hash");
         String adHash = (String) adHashList.get(0);
 
@@ -766,61 +863,6 @@ public class DCAdManager
                 + (bIncludeIncomplete ? " including incomplete" : ""));
         return (DownloadManager[]) ads.toArray(new DownloadManager[0]);
     }//getAds
-
-
-    static final String EXT_AZUREUS_PLAYER_DATA = "azpd";
-    public static Map getPlayerDataMap(DownloadManager dm)
-    {
-        try
-        {
-            File azureusPlayDataFile = determineAzpdFileLocation(dm);
-
-			//String data = FileUtil.readFileAsString(azureusPlayDataFile,10000000);
-			String data = AzpdFileAccess.readAzpdFile(azureusPlayDataFile);
-
-			return JSONUtils.decodeJSON(data);
-
-        }catch(TOTorrentException tte){
-            debug("TOTorrent Error - getPlayerDataMap(): "+tte);
-            tte.printStackTrace();
-            return null;
-        }catch(Throwable t){
-
-            debug("Error - getPlayerDataMap(): "+t);
-            t.printStackTrace();
-
-            return null;
-        }
-
-    }//getPlayerDataMap
-
-
-    /**
-     * Get the location of the azpd file.
-     * @param dm - DownloadManager
-     * @return - File -
-     * @throws TOTorrentException - t
-     */
-    private static File determineAzpdFileLocation(DownloadManager dm)
-        throws TOTorrentException
-    {
-        File azpdDir = getAzpdDir();
-
-        String fileNamePrefix = dm.getTorrent().getHashWrapper().toBase32String();
-        return new File( azpdDir ,fileNamePrefix+"."+EXT_AZUREUS_PLAYER_DATA );
-    }
-
-    public static File getAzpdDir() {
-        File mediaDir = FileUtil.getUserFile("media");
-        if( !mediaDir.exists() ){
-            FileUtil.mkdirs(mediaDir);
-        }
-        File azpdDir = new File(mediaDir,"azpd");
-        if( !azpdDir.exists() ){
-            FileUtil.mkdirs(azpdDir);
-        }
-        return azpdDir;
-    }
 
 
 	/**

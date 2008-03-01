@@ -174,7 +174,16 @@ public class PlatformDCAdManager
         saveToFile.putAll(reply);
         saveToFile.remove("torrents");
 
-        String s = JSONUtils.encodeToJSON(saveToFile);
+		long currTime = System.currentTimeMillis();
+		saveToFile.put( AzpdFileAccess.PARAM_CREATE_TIME, ""+currTime );
+
+		//if the web doesn't specify an expire time, the make it one week.
+		if( saveToFile.get( AzpdFileAccess.PARAM_EXPIRE_TIME )==null ){
+			long expireTime = currTime + 1000 * 60 * 60 * 24 * 7;//one week;
+			saveToFile.put( AzpdFileAccess.PARAM_EXPIRE_TIME, ""+expireTime );
+		}
+
+		String s = JSONUtils.encodeToJSON(saveToFile);
 
 		File file = determineAzpdFileName(message);
 
@@ -192,7 +201,7 @@ public class PlatformDCAdManager
 	 * @return File - azpd file.
 	 */
 	private static File determineAzpdFileName(PlatformMessage message) {
-		File azpdFile = DCAdManager.getAzpdDir();
+		File azpdFile = AzpdFileAccess.getAzpdDir();
 
 		//Get the content hash from the message.
 		String azpdFileNameBase = "no_file";
