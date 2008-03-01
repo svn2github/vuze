@@ -21,6 +21,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -637,7 +638,13 @@ public class TorrentListView
 
 	// GlobalManagerListener
 	public void downloadManagerAdded(final DownloadManager dm) {
-		downloadManagerAdded(dm, bSkipUpdateCount);
+		final boolean skipUpdateCount = bSkipUpdateCount;
+		AEThread2 thread = new AEThread2("TLV:DMA", true) {
+			public void run() {
+				downloadManagerAdded(dm, skipUpdateCount);
+			}
+		};
+		thread.start();
 	}
 
 	public void downloadManagerAdded(final DownloadManager dm,
@@ -645,21 +652,16 @@ public class TorrentListView
 		//regetDownloads();
 		dm.addListener(dmListener);
 		if (isOurDownload(dm)) {
-			Utils.execSWTThreadLater(0, new AERunnable() {
-				public void runSupport() {
-					if (bAllowScrolling
-							|| size(true) < (dataArea.getClientArea().height - 8)
-									/ rowHeightDefault) {
-						addDataSource(dm, !bSkipUpdateCount);
-						if (!bAllowScrolling && !bSkipUpdateCount) {
-							regetDownloads();
-						}
-						if (!bSkipUpdateCount) {
-							updateCount();
-						}
-					}
+			if (bAllowScrolling
+					|| size(true) < (getClientArea().height - 8) / rowHeightDefault) {
+				addDataSource(dm, !bSkipUpdateCount);
+				if (!bAllowScrolling && !bSkipUpdateCount) {
+					regetDownloads();
 				}
-			});
+				if (!bSkipUpdateCount) {
+					updateCount();
+				}
+			}
 		}
 	}
 
@@ -755,9 +757,10 @@ public class TorrentListView
 
 		// @see org.gudy.azureus2.core3.download.DownloadManagerListener#stateChanged(org.gudy.azureus2.core3.download.DownloadManager, int)
 		public void stateChanged(final DownloadManager manager, int state) {
-			Utils.execSWTThreadLater(0, new AERunnable() {
-				public void runSupport() {
-
+			// Don't delay other DowloadMangerListener calls.. move our CPU sucking
+			// off to another thread.
+			AEThread2 thread = new AEThread2("TLV:SC", true) {
+				public void run() {
 					Object[] listenersArray = view.listeners.toArray();
 					for (int i = 0; i < listenersArray.length; i++) {
 						TorrentListViewListener l = (TorrentListViewListener) listenersArray[i];
@@ -769,7 +772,9 @@ public class TorrentListView
 						row.refresh(true);
 					}
 				}
-			});
+			};
+			thread.setPriority(Thread.NORM_PRIORITY - 1);
+			thread.start();
 		}
 	}
 
