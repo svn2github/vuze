@@ -11,9 +11,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.core3.util.TimeFormatter;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
@@ -101,9 +99,18 @@ public class ColumnProgressETA
 			refresh(cell, false);
 		}
 
-		private void refresh(TableCell cell, boolean bForce) {
+		private void refresh(final TableCell cell, final boolean bForce) {
 			DownloadManager dm = (DownloadManager) cell.getDataSource();
 			if (dm == null) {
+				return;
+			}
+
+			if (!Utils.isThisThreadSWT()) {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						refresh(cell, bForce);
+					}
+				});
 				return;
 			}
 
@@ -229,7 +236,7 @@ public class ColumnProgressETA
 						+ "; oldimg=" + (image != null));
 			}
 
-			boolean isNewImage = newHeight > 36 || image == null; 
+			boolean isNewImage = newHeight > 36 || image == null;
 			if (isNewImage) {
 				if (image != null) {
 					image.dispose();
@@ -240,11 +247,11 @@ public class ColumnProgressETA
 
 			gcImage = new GC(image);
 			if (isNewImage) {
-  			Color background = ColorCache.getColor(display, cell.getBackground());
-  			if (background != null) {
-  				gcImage.setBackground(background);
-  				gcImage.fillRectangle(imageBounds);
-  			}
+				Color background = ColorCache.getColor(display, cell.getBackground());
+				if (background != null) {
+					gcImage.setBackground(background);
+					gcImage.fillRectangle(imageBounds);
+				}
 			}
 
 			String sETALine = null;

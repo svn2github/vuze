@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
@@ -110,7 +111,7 @@ public class ColumnMediaThumb
 		refresh(cell, false);
 	}
 
-	public void refresh(TableCell cell, boolean bForce) {
+	public void refresh(final TableCell cell, final boolean bForce) {
 		Object ds = cell.getDataSource();
 		DownloadManager dm = getDM(ds);
 
@@ -128,6 +129,15 @@ public class ColumnMediaThumb
 		TOTorrent torrent = (TOTorrent) mapCellTorrent.get(cell);
 
 		if (newTorrent == torrent && !bChanged && cell.isValid()) {
+			return;
+		}
+
+		if (!Utils.isThisThreadSWT()) {
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					refresh(cell, bForce);
+				}
+			});
 			return;
 		}
 
