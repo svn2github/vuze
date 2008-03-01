@@ -14,6 +14,7 @@ import java.io.IOException;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.ForceRecheckListener;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
@@ -390,188 +391,124 @@ public class DCAdManager
 	}//processImpression
 
 
-    private void downloadManagerAddedHook(final DownloadManager[] dms) {
+	/**
+	 * Hook into a list of download managers, making sure they have an ad if
+	 * they need one.
+	 * 
+	 * @param dms
+	 */
+	private void downloadManagerAddedHook(final DownloadManager[] dms) {
 
-        AEThread thread = new AEThread("downloadManagerAddedHook", true) {
-            public void runSupport() {
-                debug("enter - downloadManagerAddedHook");
-                // build adSupportedContentList of ad supported content
-                List adSupportedContentList = new ArrayList();
-                for (int i = 0; i < dms.length; i++) {
-                    final DownloadManager dm = dms[i];
+		AEThread2 thread = new AEThread2("downloadManagerAddedHook", true) {
+			public void run() {
+				debug("enter - downloadManagerAddedHook");
 
-                    TOTorrent torrent = dm.getTorrent();
-                    if (torrent == null) {
-                        return;
-                    }
+				List adSupportedContentList = initDownloadManagerLists(dms);
 
-                    //If this torrent is an ad do this block.
-                    if (PlatformTorrentUtils.getAdId(torrent) != null) {
-                        // one of us!
+				if (adSupportedContentList.size() == 0) {
+					debug("none of the " + dms.length
+							+ " new torrent(s) are ad enabled.  SKIPPING getAdvert");
+					//determine the reason torrents are not ad -enabled.
+					determineReasonAdNotEnabled(dms);
+					return;
+				} else {
+					//Add GetAdvert here.
+					callGetAdvert(adSupportedContentList);
+				}
 
-                        // TODO: Check expirey
-                        try {
-                            debug("found ad " + dm + ": "
-                                    + PlatformTorrentUtils.getAdId(torrent) + ": "
-                                    + dm.getTorrent().getHashWrapper().toBase32String());
-                        } catch (TOTorrentException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
-                        }
-                        if (!adsDMList.contains(dm)) {
-                            adsDMList.add(dm);
-                        }
-                        if (dm.getAssumedComplete()) {
-                            dm.setForceStart(false);
-                        } else {
-                            dm.addListener(new DownloadManagerAdapter() {
-                                public void downloadComplete(DownloadManager manager) {
-                                    if (!adsDMList.contains(manager)) {
-                                        adsDMList.add(manager);
-                                    }
-                                    manager.setForceStart(false);
-                                    manager.removeListener(this);
-                                }
-                            });
-                        }
-                    }
+				debug("exit - downloadManagerAddedHook");
+			}
 
-                    //If the torrent is content that contains an ad, do this block.
-                    if (   PlatformTorrentUtils.isContent(torrent, true)
-                        && PlatformTorrentUtils.getContentHash(torrent) != null
-                        && PlatformTorrentUtils.isContentAdEnabled(torrent))
-                    {
-                        adSupportedContentList.add(dm);
-
-						//Add GetAdvert here.
-						callGetAdvert(adSupportedContentList);
-
-						if (!adSupportedDMList.contains(dm)) {
-
-                            adSupportedDMList.add(dm);
-                            if (!dm.getAssumedComplete()) {
-                                dm.addListener(new DownloadManagerAdapter() {
-
-                                    /**
-                                     * download complete
-                                     * @param manager -
-                                     */
-                                    public void downloadComplete(DownloadManager manager) {
-                                        // good chance we still have internet here, so get/cache
-                                        // the asx
-                                        debug("calling createASX from ...Hook, in torrent has AD block content="+dm.getDisplayName());
-
-                                        createASX(dm, null);
-
-                                    }//downloadComplete
-                                });
-                            }
-                        }
-                    }
-                }//for
-
-                if (adSupportedContentList.size() == 0) {
-                    debug("none of the " + dms.length+ " new torrent(s) are ad enabled.  SKIPPING getAdvert");
-                    //determine the reason torrents are not ad -enabled.
-                    determineReasonAdNotEnabled(dms);
-                    return;
-                }//if
-
-                debug("exit - downloadManagerAddedHook");
-            }
-
-			private void callGetAdvert(List adSupportedContentList) {
-                try {
-                    checkingForAds = true;
-                    debug("sending ad request for " + adSupportedContentList.size()
-                            + " pieces of content.  We already have " + adsDMList.size()
-                            + " ads");
-                    DownloadManager[] dmAdable = (DownloadManager[]) adSupportedContentList.toArray(new DownloadManager[0]);
-
-                    //Get the advertisment.
-                    PlatformDCAdManager.getAdvert(dmAdable[0], 2000,
-                            new PlatformDCAdManager.GetAdvertDataReplyListener(){
-
-                                public void messageSent() {
-                                    //nothing needed here.
-                                }
-
-                                public void adsReceived(List torrents, Map webParams) {
-                                    debug("enter - adsReceived has #"+torrents.size()+" torrents");
-                                    for (Iterator iter = torrents.iterator(); iter.hasNext();) {
-                                        TOTorrent torrent = (TOTorrent) iter.next();
-                                        try {
-                                            debug("Ad: "
-                                                    + new String(torrent.getName()));
-
-                                            TorrentUtils.setFlag(torrent,
-                                                    TorrentUtils.TORRENT_FLAG_LOW_NOISE, true);
-
-                                            File tempFile = File.createTempFile("AZ_", ".torrent");
-
-                                            debug("  Writing to " + tempFile);
-                                            torrent.serialiseToBEncodedFile(tempFile);
-
-                                            String sDefDir = null;
-                                            try {
-                                                sDefDir = COConfigurationManager.getDirectoryParameter("Default save path");
-                                            } catch (IOException e) {
-                                            }
-
-                                            if (sDefDir == null) {
-                                                sDefDir = tempFile.getParent();
-                                            }
-
-                                            DownloadManager adDM = core.getGlobalManager().addDownloadManager(
-                                                    tempFile.getAbsolutePath(), sDefDir);
-
-                                            if (adDM != null) {
-                                                if (adDM.getAssumedComplete()) {
-                                                    adsDMList.add(adDM);
-                                                    adDM.setForceStart(false);
-                                                } else {
-                                                    adDM.setForceStart(true);
-                                                    debug("Force Start " + adDM);
-                                                    adDM.addListener(new DownloadManagerAdapter() {
-                                                        public void downloadComplete(DownloadManager manager) {
-                                                            if (!adsDMList.contains(manager)) {
-                                                                adsDMList.add(manager);
-                                                            }
-                                                            manager.setForceStart(false);
-                                                            manager.removeListener(this);
-                                                        }
-                                                    });
-                                                }
-                                                // TODO: Add Expiry date
-                                                debug("  ADDED ad "
-                                                        + adDM.getDisplayName());
-                                            }
-                                            tempFile.deleteOnExit();
-                                        } catch (Exception e) {
-                                            Debug.out(e);
-                                        }
-
-                                    }
-
-                                    checkingForAds = false;
-
-                                    debug("exit - adsReceived");
-                                }
-
-                                public void replyReceived(String replyType, Map mapHashes) {
-                                    checkingForAds = false;
-                                    debug("bad reply. " + mapHashes.get("text"));
-                                }
-                            });
-
-                } catch (Exception e) {
-                    checkingForAds = false;
-                    Debug.out(e);
-                }
-            }
         };
         thread.run();
     }//downloadManagerAddedHook
+
+	private void callGetAdvert(List adSupportedContentList) {
+		try {
+			checkingForAds = true;
+			debug("sending ad request for " + adSupportedContentList.size()
+					+ " pieces of content.  We already have " + adsDMList.size() + " ads");
+			DownloadManager[] dmAdable = (DownloadManager[]) adSupportedContentList.toArray(new DownloadManager[0]);
+
+			//Get the advertisment.
+			PlatformDCAdManager.getAdvert(dmAdable[0], 2000,
+					new PlatformDCAdManager.GetAdvertDataReplyListener() {
+
+						public void messageSent() {
+							//nothing needed here.
+						}
+
+						public void adsReceived(List torrents, Map webParams) {
+							debug("enter - adsReceived has #" + torrents.size() + " torrents");
+							for (Iterator iter = torrents.iterator(); iter.hasNext();) {
+								TOTorrent torrent = (TOTorrent) iter.next();
+								try {
+									debug("Ad: " + new String(torrent.getName()));
+
+									TorrentUtils.setFlag(torrent,
+											TorrentUtils.TORRENT_FLAG_LOW_NOISE, true);
+
+									File tempFile = File.createTempFile("AZ_", ".torrent");
+
+									debug("  Writing to " + tempFile);
+									torrent.serialiseToBEncodedFile(tempFile);
+
+									String sDefDir = null;
+									try {
+										sDefDir = COConfigurationManager.getDirectoryParameter("Default save path");
+									} catch (IOException e) {
+									}
+
+									if (sDefDir == null) {
+										sDefDir = tempFile.getParent();
+									}
+
+									DownloadManager adDM = core.getGlobalManager().addDownloadManager(
+											tempFile.getAbsolutePath(), sDefDir);
+
+									if (adDM != null) {
+										if (adDM.getAssumedComplete()) {
+											adsDMList.add(adDM);
+											adDM.setForceStart(false);
+										} else {
+											adDM.setForceStart(true);
+											debug("Force Start " + adDM);
+											adDM.addListener(new DownloadManagerAdapter() {
+												public void downloadComplete(DownloadManager manager) {
+													if (!adsDMList.contains(manager)) {
+														adsDMList.add(manager);
+													}
+													manager.setForceStart(false);
+													manager.removeListener(this);
+												}
+											});
+										}
+										// TODO: Add Expiry date
+										debug("  ADDED ad " + adDM.getDisplayName());
+									}
+									tempFile.deleteOnExit();
+								} catch (Exception e) {
+									Debug.out(e);
+								}
+
+							}
+
+							checkingForAds = false;
+
+							debug("exit - adsReceived");
+						}
+
+						public void replyReceived(String replyType, Map mapHashes) {
+							checkingForAds = false;
+							debug("bad reply. " + mapHashes.get("text"));
+						}
+					});
+
+		} catch (Exception e) {
+			checkingForAds = false;
+			Debug.out(e);
+		}
+	}
 
 
 	/**
@@ -875,42 +812,102 @@ public class DCAdManager
 
 
 	/**
+	 * Maintain list of ad downloads, and ad-supported downloads, and make
+	 * they are in a good state
 	 *
 	 * @param dms - DownloadManager[]
+	 * @return 
 	 */
-	void initDownloadManagerLists(DownloadManager[] dms)
-	{
+	List initDownloadManagerLists(DownloadManager[] dms) {
 
+		List adSupportedContentList = new ArrayList();
+		
+		if (dms == null) {
+			return adSupportedContentList;
+		}
+
+		// build adSupportedContentList of ad supported content
 		for (int i = 0; i < dms.length; i++) {
 			final DownloadManager dm = dms[i];
 
 			TOTorrent torrent = dm.getTorrent();
 			if (torrent == null) {
-				return;
+				return adSupportedContentList;
 			}
 
 			//If this torrent is an ad do this block.
 			if (PlatformTorrentUtils.getAdId(torrent) != null) {
-				//This is ad advert.
+				// one of us!
+
+				try {
+					debug("found ad " + dm + ": " + PlatformTorrentUtils.getAdId(torrent)
+							+ ": " + dm.getTorrent().getHashWrapper().toBase32String());
+				} catch (TOTorrentException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				if (!adsDMList.contains(dm)) {
 					adsDMList.add(dm);
 				}
-			}
-
-
-			//If the torrent is content that contains an ad, do this block.
-			if (   PlatformTorrentUtils.isContent(torrent, true)
-				&& PlatformTorrentUtils.getContentHash(torrent) != null
-				&& PlatformTorrentUtils.isContentAdEnabled(torrent))
-			{
-				//This is ad enabled content.
-				if (!adSupportedDMList.contains(dm)) {
-					adSupportedDMList.add(dm);
+				
+				// Make sure it's started
+				if (dm.getAssumedComplete() && dm.filesExist()) {
+					dm.setForceStart(false);
+				} else {
+					if (dm.getState() == DownloadManager.STATE_ERROR) {
+						dm.forceRecheck(new ForceRecheckListener() {
+							public void forceRecheckComplete(DownloadManager dm) {
+								dm.setForceStart(true);
+							}
+						});
+					} else {
+						dm.setForceStart(true);
+					}
+					dm.addListener(new DownloadManagerAdapter() {
+						public void downloadComplete(DownloadManager manager) {
+							if (!adsDMList.contains(manager)) {
+								adsDMList.add(manager);
+							}
+							manager.setForceStart(false);
+							manager.removeListener(this);
+						}
+					});
 				}
 			}
-			
+
+			//If the torrent is content that contains an ad, do this block.
+			if (PlatformTorrentUtils.isContent(torrent, true)
+					&& PlatformTorrentUtils.getContentHash(torrent) != null
+					&& PlatformTorrentUtils.isContentAdEnabled(torrent)) {
+				adSupportedContentList.add(dm);
+
+				if (!adSupportedDMList.contains(dm)) {
+
+					adSupportedDMList.add(dm);
+					if (!dm.getAssumedComplete()) {
+						dm.addListener(new DownloadManagerAdapter() {
+
+							/**
+							 * download complete
+							 * @param manager -
+							 */
+							public void downloadComplete(DownloadManager manager) {
+								// good chance we still have internet here, so get/cache
+								// the asx
+								debug("calling createASX from ...Hook, in torrent has AD block content="
+										+ dm.getDisplayName());
+
+								createASX(dm, null);
+
+							}//downloadComplete
+						});
+					}
+				}
+			}
+
 		}//for
 
+		return adSupportedContentList;
 	}//initDownloadManagerList
 
 	/**
