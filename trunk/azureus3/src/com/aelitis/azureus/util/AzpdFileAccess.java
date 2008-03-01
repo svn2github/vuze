@@ -48,6 +48,9 @@ public class AzpdFileAccess {
 	public static synchronized boolean isAzpdFileExpired(File azpdFile){
 
 		try{
+			if (!azpdFile.exists()) {
+				return true;
+			}
 			
 			//turn this string into a Map.
 			Map params = readAzpdFileToMap(azpdFile);
