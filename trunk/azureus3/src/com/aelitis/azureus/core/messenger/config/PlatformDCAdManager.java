@@ -106,39 +106,49 @@ public class PlatformDCAdManager
                     }
                 }//messageSent
 
-                public void replyReceived(PlatformMessage message, String replyType, Map reply) {
-                    debug("getAdvert - replyReceived");
-                    debug(replyType, message, reply);
+			public void replyReceived(PlatformMessage message, String replyType,
+					Map reply) {
+				boolean success = false;
+				try {
+					debug("getAdvert - replyReceived");
+					debug(replyType, message, reply);
 
-                    //Deserialise and then download the torrent file.
-                    //if( reply!=null && reply.containsKey("torrents") )
-                    if( reply!=null )
-                    {
-                        List adTorrents = new ArrayList();
-                        List torrentsList = (List) reply.get("torrents");
-                        if (torrentsList != null) {
-                            for (int i = 0; i < torrentsList.size(); i++) {
-                                byte[] torrentBEncoded = Base64.decode((String) torrentsList.get(i));
-                                try {
-                                    TOTorrent torrent = TOTorrentFactory.deserialiseFromBEncodedByteArray(torrentBEncoded);
-                                    adTorrents.add(torrent);
-                                } catch (TOTorrentException e) {
-                                    Debug.out("PlatformDCAdManager.getAdvert - replyRecieved: "+e);
-                                }
-                            }
-                        }
-                        
-                        Map webParams = saveResponseToAzpdFile(reply, message);
-                        DCAdManager.addParmasToDownloadManager(adEnabledDownload,webParams);
+					//Deserialise and then download the torrent file.
+					//if( reply!=null && reply.containsKey("torrents") )
+					if (reply != null) {
+						List adTorrents = new ArrayList();
+						List torrentsList = (List) reply.get("torrents");
+						if (torrentsList != null) {
+							for (int i = 0; i < torrentsList.size(); i++) {
+								byte[] torrentBEncoded = Base64.decode((String) torrentsList.get(i));
+								try {
+									TOTorrent torrent = TOTorrentFactory.deserialiseFromBEncodedByteArray(torrentBEncoded);
+									adTorrents.add(torrent);
+								} catch (TOTorrentException e) {
+									Debug.out("PlatformDCAdManager.getAdvert - replyRecieved: "
+											+ e);
+								}
+							}
+						}
 
-                        if (replyListener != null) {
-                            replyListener.adsReceived(adTorrents, webParams);
-                        }
-                    }
+						Map webParams = saveResponseToAzpdFile(reply, message);
+						DCAdManager.addParmasToDownloadManager(adEnabledDownload, webParams);
 
-                }//replyReceived
-            }//class PlatformMessengerListener
-        );
+						success = true;
+						if (replyListener != null) {
+							replyListener.adsReceived(adTorrents, webParams);
+						}
+					}
+				} catch (Exception e) {
+					Debug.out(e);
+				}
+
+				if (!success && replyListener != null) {
+					replyListener.replyReceived(replyType, reply);
+				}
+			}//replyReceived
+		}//class PlatformMessengerListener
+		);
 
         debug("leave - PlatformDCDdManager.getAdvert");
     }//getAdvert
