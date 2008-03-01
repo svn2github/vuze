@@ -144,10 +144,27 @@ public class DCAdManager
 		PlatformDCAdManager.loadUnsentImpressions();
 		PlatformDCAdManager.sendUnsentImpressions(5000);
 
-
-		startLazyAzpdFileCheckThread(dms);
-
+		//Wait a few minute then start a thead to check the azpd files that expired.
+		startAzpdFileCheckTimer(dms);
 	}//initialize
+
+
+	private void startAzpdFileCheckTimer(final DownloadManager[] dms)
+	{
+
+		final long INIT_WAIT_TIME = 1000 * 60 * 5; //wait 5 minutes between checks.
+
+		SimpleTimer.addEvent("azpdFileExpireThreadStartTimer",
+				INIT_WAIT_TIME,
+				new TimerEventPerformer(){
+
+					public void perform(TimerEvent event) {
+
+						startLazyAzpdFileCheckThread(dms);
+					}
+
+				} );
+	}
 
 
 	/**
@@ -159,7 +176,6 @@ public class DCAdManager
 	private void startLazyAzpdFileCheckThread(final DownloadManager[] dms){
 
 		final String THREAD_NAME = "azpdFileExpireThread";
-		final long INIT_WAIT_TIME = 1000 * 60 * 5; //wait 5 minutes between checks.
 		final long CALL_WAIT_TIME = 1000 * 5; //wait 5 seconds between check.
 
 		AEThread2 thread = new AEThread2(THREAD_NAME,true){
@@ -173,13 +189,6 @@ public class DCAdManager
 
 				if( dms.length==0){
 					debug(THREAD_NAME+": exit. Nothing to check.");
-					return;
-				}
-
-				//wait a few minutes for initialization to be finished.
-				try{ Thread.sleep(INIT_WAIT_TIME); }
-				catch(InterruptedException ie){
-					debug(THREAD_NAME+": interrupted before thread start.");
 					return;
 				}
 
