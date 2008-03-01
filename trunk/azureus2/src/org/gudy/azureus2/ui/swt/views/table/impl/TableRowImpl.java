@@ -34,9 +34,8 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.LightHashMap;
+import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
@@ -444,13 +443,25 @@ public class TableRowImpl
 	}
 
 	// @see org.gudy.azureus2.ui.swt.components.BufferedTableRow#setForeground(org.eclipse.swt.graphics.Color)
-	public void setForeground(Color c) {
+	public void setForeground(final Color c) {
 		// Don't need to set when not visible
+		if (!isVisible())
+			return;
+
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				TableRowImpl.this.setForgroundInSWTThread(c);
+			}
+		});
+	}
+	
+	private void setForgroundInSWTThread(Color c) {
 		if (!isVisible())
 			return;
 
 		super.setForeground(c);
 	}
+
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableRow#setForeground(int[])
 	public void setForeground(int[] rgb) {
