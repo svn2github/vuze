@@ -62,8 +62,6 @@ public class Initializer
 
 	private final AzureusCore core;
 
-	protected static SplashWindow splash;
-
 	private final String[] args;
 
 	private CopyOnWriteList listeners = new CopyOnWriteList();
@@ -125,7 +123,7 @@ public class Initializer
 		if (COConfigurationManager.getBooleanParameter("Show Splash")) {
 			display.syncExec(new AERunnable() {
 				public void runSupport() {
-					splash = new SplashWindow(display, Initializer.this);
+					new SplashWindow(display, Initializer.this);
 				}
 			});
 		}
