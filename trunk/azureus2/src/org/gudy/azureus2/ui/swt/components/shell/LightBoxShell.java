@@ -1,8 +1,7 @@
 package org.gudy.azureus2.ui.swt.components.shell;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.*;
@@ -109,6 +108,22 @@ public class LightBoxShell
 				public void handleEvent(Event e) {
 					if (e.detail == SWT.TRAVERSE_ESCAPE) {
 						e.doit = false;
+					}
+				}
+			});
+		}
+
+		/*
+		 * For OSX add this listener to make sure that the parent shell and
+		 * the lighbox shell behave like they are sandwiched together; without this
+		 * then external applications can slide in between the parent shell and the
+		 * lightbox which creates a strange visual effect 
+		 */
+		if (true == Constants.isOSX) {
+			lbShell.addShellListener(new ShellAdapter() {
+				public void shellActivated(ShellEvent e) {
+					if (null != parentShell && false == parentShell.isDisposed()) {
+						parentShell.forceActive();
 					}
 				}
 			});
@@ -501,7 +516,8 @@ public class LightBoxShell
 		}
 
 		public void animateFade(final int milliSeconds) {
-			if (false == isAlive() || true == isAnimating || false == isAlphaSupported) {
+			if (false == isAlive() || true == isAnimating
+					|| false == isAlphaSupported) {
 				return;
 			}
 			Utils.execSWTThreadLater(0, new AERunnable() {
