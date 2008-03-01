@@ -46,14 +46,15 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.torrent.MetaDataUpdateListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.common.table.TableCountChangeListener;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
 import com.aelitis.azureus.ui.swt.skin.*;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.PublishUtils;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
 import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
 import com.aelitis.azureus.ui.swt.views.list.ListRow;
+import com.aelitis.azureus.ui.swt.views.list.ListView;
 
 /**
  * @author TuxPaper
@@ -169,8 +170,9 @@ public class MediaList
 			}
 		};
 
-		btnColumnSetup = TorrentListViewsUtils.addColumnSetupButton(skin, PREFIX, view);
-		
+		btnColumnSetup = TorrentListViewsUtils.addColumnSetupButton(skin, PREFIX,
+				view);
+
 		btnShare = TorrentListViewsUtils.addShareButton(skin, PREFIX, view);
 		btnStop = TorrentListViewsUtils.addStopButton(skin, PREFIX, view);
 		btnDetails = TorrentListViewsUtils.addDetailsButton(skin, PREFIX, view);
@@ -178,31 +180,28 @@ public class MediaList
 		btnPlay = TorrentListViewsUtils.addPlayButton(skin, PREFIX, view, false,
 				true);
 
+		if (view instanceof ListView) {
+			((ListView) view).addCountChangeListener(new TableCountChangeListener() {
+
+				public void rowRemoved(TableRowCore row) {
+				}
+
+				public void rowAdded(TableRowCore row) {
+					Object dataSource = row.getDataSource(true);
+					if (dataSource instanceof DownloadManager) {
+						updateRowFGColor((DownloadManager) dataSource);
+					}
+				}
+			});
+		}
+
 		view.addListener(new TorrentListViewListener() {
 			boolean countChanging = false;
 
 			// @see com.aelitis.azureus.ui.swt.views.TorrentListViewListener#stateChanged(org.gudy.azureus2.core3.download.DownloadManager)
 
 			public void stateChanged(final DownloadManager manager) {
-				Utils.execSWTThread(new AERunnable() {
-					public void runSupport() {
-						if (manager == null) {
-							return;
-						}
-						TableRowSWT row = view.getRowSWT(manager);
-						if (row == null) {
-							return;
-						}
-						if (manager.isDownloadComplete(false)) {
-							row.setForeground((Color) null);
-						} else {
-							Color c = skin.getSkinProperties().getColor(
-									"color.library.incomplete");
-							row.setForeground(c);
-						}
-
-					}
-				});
+				updateRowFGColor(manager);
 			}
 
 			// @see com.aelitis.azureus.ui.swt.views.TorrentListViewListener#countChanged()
@@ -425,6 +424,27 @@ public class MediaList
 		}
 
 		return null;
+	}
+
+	/**
+	 * @param manager
+	 *
+	 * @since 3.0.4.3
+	 */
+	protected void updateRowFGColor(DownloadManager manager) {
+		if (manager == null) {
+			return;
+		}
+		TableRowSWT row = view.getRowSWT(manager);
+		if (row == null) {
+			return;
+		}
+		if (manager.isDownloadComplete(false)) {
+			row.setForeground((Color) null);
+		} else {
+			Color c = view.getSkinProperties().getColor("color.library.incomplete");
+			row.setForeground(c);
+		}
 	}
 
 	/**
