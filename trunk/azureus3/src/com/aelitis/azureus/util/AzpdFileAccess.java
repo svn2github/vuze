@@ -40,6 +40,8 @@ public class AzpdFileAccess {
 	public static final String PARAM_EXPIRE_TIME = "az-expire-time";
 	public static final String PARAM_CREATE_TIME = "az-create-time";
 
+	public static final String PARAM_IS_OFFLINE = "is-off-line";
+
 	/**
 	 *
 	 * @param azpdFile -

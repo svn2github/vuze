@@ -9,6 +9,7 @@ import org.bouncycastle.util.encoders.Base64;
 
 import java.util.*;
 import java.io.File;
+import java.io.IOException;
 
 import com.aelitis.azureus.util.DCAdManager;
 import com.aelitis.azureus.util.JSONUtils;
@@ -160,7 +161,6 @@ public class PlatformDCAdManager
 	private static void saveTempAzpdFile(File azpdFile){
 
 		String content = getTempAzpdTemplate();
-		//FileUtil.writeBytesAsFile( azpdFile.getAbsolutePath(), content.getBytes() );
 		AzpdFileAccess.writeAzpdFile(azpdFile,content);
 
 		debug( "temp data=_"+content+"_  to azpd file="+azpdFile.getAbsolutePath() );
@@ -177,12 +177,24 @@ public class PlatformDCAdManager
 				"<REF HREF=\\\"<##-CONTENT-PATH-##>\\\"\\/>\\n<\\/ENTRY>\\n<\\/ASX>\"}";
 	}
 
-	private static Map  saveResponseToAzpdFile(Map reply, PlatformMessage message) {
+
+	/**
+	 * Save the replay to the azpd file.
+	 * @param reply -
+	 * @param message -
+	 * @return - Map with params.
+	 */
+	private static Map saveResponseToAzpdFile(Map reply, PlatformMessage message) {
         //What we might want to do here is remove "torrents" from the Map reply and then save the
         //entire result.
         Map saveToFile = new HashMap();
         saveToFile.putAll(reply);
         saveToFile.remove("torrents");
+
+		//Did we have an error? like when off-line. A "Thowable" param in map is an indication.
+		if( saveToFile.get("Throwable")!=null ){
+			return saveDefaultResponseToAzpdFile(message);
+		}
 
 		long currTime = System.currentTimeMillis();
 		saveToFile.put( AzpdFileAccess.PARAM_CREATE_TIME, ""+currTime );
@@ -194,16 +206,34 @@ public class PlatformDCAdManager
 		}
 
 		String s = JSONUtils.encodeToJSON(saveToFile);
-
 		File file = determineAzpdFileName(message);
 
-		//FileUtil.writeBytesAsFile( file.getAbsolutePath() ,s.getBytes());
 		AzpdFileAccess.writeAzpdFile(file,s);
 
 		debug( "data=_"+s+"_  to azpd file="+file.getAbsolutePath() );
         
         return JSONUtils.decodeJSON(s);
     }
+
+
+	/**
+	 * When offline of another error occurs. Save the default template to play only the content.
+	 * It should expire immediately, to replace it on restart.
+	 * @param message -
+	 * @return -
+	 */
+	private static Map saveDefaultResponseToAzpdFile(PlatformMessage message){
+		File azpdFile = determineAzpdFileName(message);
+		saveTempAzpdFile(azpdFile);
+		debug("using content-only template due to error.");
+		try{
+			Map webParams = AzpdFileAccess.readAzpdFileToMap(azpdFile);
+			webParams.put( AzpdFileAccess.PARAM_IS_OFFLINE, "true" );
+		}catch(IOException ioe){
+			ioe.printStackTrace();
+		}
+		return new HashMap();
+	}
 
 	/**
 	 * Based on the hash determine the Azpd file name.
