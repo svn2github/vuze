@@ -1343,6 +1343,12 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 			_timeStartedSeeding = SystemTime.getCurrentTime();
 
+			try{
+				disk_mgr.saveResumeData(false);
+				
+			}catch( Throwable e ){
+				Debug.out( "Failed to save resume data", e );
+			}
 			adapter.setStateSeeding( start_of_day );
 			disk_mgr.downloadEnded();
 		} else
