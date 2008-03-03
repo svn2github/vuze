@@ -239,6 +239,7 @@ public class LightBoxBrowserWindow
 						errorMessageLabel.setText(errorMessage);
 						if (false == stack.topControl.equals(errorPanel)) {
 							stack.topControl = errorPanel;
+							setSize(400, 300);
 							contentPanel.layout();
 						}
 					}
