@@ -1,14 +1,18 @@
 package com.aelitis.azureus.ui.swt.browser.listener;
 
-import java.util.Map;
+import java.util.*;
 
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.widgets.Display;
-
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.ui.UIInstance;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
@@ -22,12 +26,6 @@ import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.util.MapUtils;
-
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginManager;
-import org.gudy.azureus2.plugins.ui.UIInstance;
-import org.gudy.azureus2.plugins.ui.UIManager;
-import org.gudy.azureus2.plugins.ui.UIManagerListener;
 
 public class DisplayListener
 	extends AbstractMessageListener
@@ -48,6 +46,10 @@ public class DisplayListener
 	public static final String OP_BRING_TO_FRONT = "bring-to-front";
 
 	public static final String OP_SWITCH_TO_TAB = "switch-to-tab";
+
+	public static final String OP_REFRESH_TAB = "refresh-browser";
+
+	public static final String VZ_NON_ACTIVE = "vz-non-active";
 
 	private Browser browser;
 
@@ -76,11 +78,10 @@ public class DisplayListener
 				launchUrl(MapUtils.getMapString(decodedMap, "url", null));
 			} else {
 				message.setCompleteDelayed(true);
-				showBrowser(MapUtils.getMapString(decodedMap, "url", null),
-						target, MapUtils.getMapInt(decodedMap, "width", 0),
-						MapUtils.getMapInt(decodedMap, "height", 0),
-						MapUtils.getMapBoolean(decodedMap, "resizable", false),
-						message);
+				showBrowser(MapUtils.getMapString(decodedMap, "url", null), target,
+						MapUtils.getMapInt(decodedMap, "width", 0), MapUtils.getMapInt(
+								decodedMap, "height", 0), MapUtils.getMapBoolean(decodedMap,
+								"resizable", false), message);
 			}
 		} else if (OP_RESET_URL.equals(opid)) {
 			resetURL();
@@ -103,6 +104,9 @@ public class DisplayListener
 		} else if (OP_SWITCH_TO_TAB.equals(opid)) {
 			Map decodedMap = message.getDecodedMap();
 			switchToTab(MapUtils.getMapString(decodedMap, "target", ""));
+		} else if (OP_REFRESH_TAB.equals(opid)) {
+			Map decodedMap = message.getDecodedMap();
+			refreshTab(MapUtils.getMapString(decodedMap, "browser-id", ""));
 		} else {
 			throw new IllegalArgumentException("Unknown operation: " + opid);
 		}
@@ -138,7 +142,7 @@ public class DisplayListener
 		if (browser == null || browser.isDisposed()) {
 			return;
 		}
-		
+
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (browser == null || browser.isDisposed()) {
@@ -161,6 +165,66 @@ public class DisplayListener
 				}
 			}
 		});
+	}
+
+	/**
+	 * @param string
+	 *
+	 * @since 3.0.5.0
+	 */
+	private void refreshTab(String tabID) {
+		if (null == tabID || tabID.length() < 1) {
+			return;
+		}
+
+		SWTSkin skin = SWTSkinFactory.getInstance();
+
+		/*
+		 * Refreshes all except the currently active tab
+		 */
+		if (true == VZ_NON_ACTIVE.equals(tabID)) {
+			SWTSkinTabSet tabSet = skin.getTabSet(SkinConstants.TABSET_MAIN);
+			SWTSkinObjectTab activeTab = tabSet.getActiveTab();
+
+			List browserViewIDs = new ArrayList();
+			if (null == activeTab
+					|| false == SkinConstants.VIEWID_BROWSE_TAB.equals(activeTab.getViewID())) {
+				browserViewIDs.add(SkinConstants.VIEWID_BROWSER_BROWSE);
+			}
+			if (null == activeTab
+					|| false == SkinConstants.VIEWID_HOME_TAB.equals(activeTab.getViewID())) {
+				browserViewIDs.add(SkinConstants.VIEWID_BROWSER_MINI);
+			}
+
+			//KN: The publish tab is left out on purpose; we may add it back in if it makes sense later
+			// Arbitrarily refreshing the Publish tab may erase whatever info the user may have entered
+			// but not committed yet
+			//			if (null == tab || false == SkinConstants.VIEWID_PUBLISH_TAB.equals(tab.getViewID())) {
+			//				browserViewIDs.add(SkinConstants.VIEWID_BROWSER_PUBLISH);
+			//			}
+
+			for (Iterator iterator = browserViewIDs.iterator(); iterator.hasNext();) {
+				refreshBrowser(iterator.next().toString());
+			}
+
+		} else {
+			refreshBrowser(tabID);
+		}
+	}
+
+	private void refreshBrowser(String browserID) {
+		SWTSkin skin = SWTSkinFactory.getInstance();
+		SWTSkinObject skinObject = skin.getSkinObject(browserID);
+		if (skinObject instanceof SWTSkinObjectBrowser) {
+			final Browser browser = ((SWTSkinObjectBrowser) skinObject).getBrowser();
+			if (null != browser && false == browser.isDisposed()) {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						browser.refresh();
+					}
+				});
+			}
+		}
 	}
 
 	private void launchUrl(final String url) {
