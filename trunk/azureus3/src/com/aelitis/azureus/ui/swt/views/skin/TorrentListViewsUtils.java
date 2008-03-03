@@ -607,8 +607,6 @@ public class TorrentListViewsUtils
 			if (bComplete) {
 				if (PlatformTorrentUtils.isContentAdEnabled(torrent)) {
 					final String sfFile = sFile;
-					//AdManager.getInstance().createASX(dm, url,
-					//		new AdManager.ASXCreatedListener() {
                     debug("calling createASX from ...Tor.Utils.playOrStream, in is complete block.");
                     DCAdManager.getInstance().createASX(dm,
 							new DCAdManager.ASXCreatedListener() {
@@ -957,8 +955,6 @@ public class TorrentListViewsUtils
 
 			TOTorrent torrent = dm.getTorrent();
 			if (PlatformTorrentUtils.isContentAdEnabled(torrent)) {
-				//AdManager.getInstance().createASX(dm, fURL,
-				//		new AdManager.ASXCreatedListener() {
                 debug("calling createASX from ...Tor.Utils.playViaMediaServer, in is complete block. dm=" + dm);
                 DCAdManager.getInstance().createASX(dm,
 						new DCAdManager.ASXCreatedListener() {

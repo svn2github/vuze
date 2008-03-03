@@ -34,9 +34,6 @@ import com.aelitis.azureus.core.messenger.config.PlatformDCAdManager;
 
 public class AzpdFileAccess {
 
-	//ToDo: refactor everything about AZPD files into this class.
-
-
 	public static final String PARAM_EXPIRE_TIME = "az-expire-time";
 	public static final String PARAM_CREATE_TIME = "az-create-time";
 

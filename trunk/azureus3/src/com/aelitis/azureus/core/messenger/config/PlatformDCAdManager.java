@@ -115,7 +115,6 @@ public class PlatformDCAdManager
 					debug(replyType, message, reply);
 
 					//Deserialise and then download the torrent file.
-					//if( reply!=null && reply.containsKey("torrents") )
 					if (reply != null) {
 						List adTorrents = new ArrayList();
 						List torrentsList = (List) reply.get("torrents");

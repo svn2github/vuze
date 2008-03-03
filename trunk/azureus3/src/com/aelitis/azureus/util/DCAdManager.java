@@ -167,8 +167,10 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 
 		final long INIT_WAIT_TIME = 1000 * 60 * 5; //wait 5 minutes between checks.
 
+		long startTime = System.currentTimeMillis() + INIT_WAIT_TIME;
+
 		SimpleTimer.addEvent("azpdFileExpireThreadStartTimer",
-				INIT_WAIT_TIME,
+				startTime,
 				new TimerEventPerformer(){
 
 					public void perform(TimerEvent event) {
@@ -214,7 +216,7 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 
 					//is this AdEnabled Content?
 					if( isAdEnabledContent(dm) ){
-						File f = null;
+						File f;
 						try{
 							f = AzpdFileAccess.determineAzpdFileLocation(dm);
 						}catch(TOTorrentException tot){
@@ -275,7 +277,8 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
             try {
                 asxFile.delete();
             } catch (Exception e) {
-            }
+				debug("failed to delete file: "+asxFile.getAbsolutePath() );
+			}
         }else{
             try{
                 asxFile = determineASXFileLocation(dm);
@@ -299,7 +302,8 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
             try {
                 azpdFile.delete();
             } catch (Exception e){
-            }
+				debug("failed to delete azpd file: "+azpdFile.getAbsolutePath() );
+			}
         }else{
             try{
             //the data was not persistent look in the expected directory.
@@ -407,7 +411,7 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 	 * Hook into a list of download managers, making sure they have an ad if
 	 * they need one.
 	 * 
-	 * @param dms
+	 * @param dms -
 	 */
 	private void downloadManagerAddedHook(final DownloadManager[] dms) {
 
@@ -725,9 +729,9 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
   /**
    * Temporary function so that EMP <= 2.0.4 can work
    * 
-   * @param dm
-   * @param url
-   * @param createdListener
+   * @param dm -
+   * @param url -
+   * @param createdListener -
    *
    * @since 3.0.4.3
    */
@@ -752,7 +756,7 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
           		return;
             }
 
-            File asxFile = null;
+            File asxFile;
 
             //Check the age of the current ASX file.
             Object lastASXObject = dm.getData("LastASX");
@@ -831,8 +835,11 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 	}
 
     public DownloadManager[] getAds(boolean bIncludeIncomplete) {
-        if (bIncludeIncomplete) {
-            return (DownloadManager[]) adsDMList.toArray(new DownloadManager[0]);
+
+
+		if (bIncludeIncomplete) {
+			debug("There are "+adsDMList.size()+" ads. including incomplete.");
+			return (DownloadManager[]) adsDMList.toArray(new DownloadManager[0]);
         }
 
         ArrayList ads = new ArrayList(adsDMList);
@@ -843,8 +850,7 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
             }
         }
 
-        debug("There are " + ads.size() + " ads "
-                + (bIncludeIncomplete ? " including incomplete" : ""));
+        debug("There are " + ads.size() + " ads ");
         return (DownloadManager[]) ads.toArray(new DownloadManager[0]);
     }//getAds
 
@@ -854,7 +860,7 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 	 * they are in a good state
 	 *
 	 * @param dms - DownloadManager[]
-	 * @return 
+	 * @return - List
 	 */
 	List initDownloadManagerLists(DownloadManager[] dms) {
 
