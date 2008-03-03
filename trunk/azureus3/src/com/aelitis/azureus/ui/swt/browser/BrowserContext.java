@@ -133,7 +133,7 @@ public class BrowserContext
 		final TimerEventPerformer checkURLEventPerformer = new TimerEventPerformer() {
 			public void perform(TimerEvent event) {
 				if (!browser.isDisposed()) {
-					browser.getDisplay().asyncExec(new AERunnable() {
+					Utils.execSWTThreadLater(0, new AERunnable() {
 						public void runSupport() {
 							if (!browser.isDisposed()) {
 								browser.execute("try { "
@@ -142,7 +142,7 @@ public class BrowserContext
 										+ "  document.title = 'err: ' + tuxLocString;"
 										+ "} else {"
 										+ "  tuxTitleString = document.title.toString();"
-										+ "  if (tuxTitleString.indexOf('408 ') == 0 || tuxTitleString.indexOf('503 ') == 0) "
+										+ "  if (tuxTitleString.indexOf('408 ') == 0 || tuxTitleString.indexOf('503 ') == 0 || tuxTitleString.indexOf('500 ') == 0) "
 										+ "  { document.title = 'err: ' + tuxTitleString; } " + "}"
 										+ "} catch (e) { }");
 							}
