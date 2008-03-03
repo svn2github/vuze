@@ -56,6 +56,11 @@ public class AzpdFileAccess {
 
 			String expireString = (String) params.get(PARAM_EXPIRE_TIME);
 
+			//any file without an "expire-time" entry in considered old, and needs to be refreshed.
+			if(expireString==null){
+				return true;
+			}
+
 			long expireTime = Long.parseLong(expireString);
 			long currTime = System.currentTimeMillis();
 
