@@ -154,8 +154,6 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 		});
 
 		//send the unsent impressions.
-		PlatformDCAdManager.loadUnsentImpressions();
-		PlatformDCAdManager.sendUnsentImpressions(5000);
 
 		//Wait a few minute then start a thead to check the azpd files that expired.
 		startAzpdFileCheckTimer(dms);
@@ -360,6 +358,7 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 
 			String impressionID = (String) values.get("impressionTracker");
 			if (impressionID == null || impressionID.equals(lastImpressionID)) {
+				debug("No impressionTracker ");
 				return;
 			}
 			lastImpressionID = impressionID;
@@ -367,10 +366,16 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
              
             String adHash = (String) values.get("srcURL");
 			if (adHash == null) {
+				debug("No srcURL");
 				return;
 			}
 
-			String torrentHash = (String) values.get("hash");
+			//Note this use to be called hash.
+			String torrentHash = (String) values.get("transcodeHash");
+			if (torrentHash == null){
+				debug("No transcodeHash");
+				return;
+			}
 
 			DownloadManager dmContent = null;
 			if (torrentHash != null) {
