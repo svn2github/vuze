@@ -509,8 +509,14 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
   
   				TorrentUtils.setFlag(torrent,
   						TorrentUtils.TORRENT_FLAG_LOW_NOISE, true);
-  
-  				File tempFile = File.createTempFile("AZ_", ".torrent");
+
+				//Add the adId if it is not here.
+				String adId = PlatformTorrentUtils.getAdId(torrent);
+				if( adId==null ){
+					PlatformTorrentUtils.setAdId(torrent,"1");
+				}
+
+				  File tempFile = File.createTempFile("AZ_", ".torrent");
   
   				debug("  Writing to " + tempFile);
   				torrent.serialiseToBEncodedFile(tempFile);
