@@ -56,7 +56,7 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
     private List adsDMList = new ArrayList();
 	private List adSupportedDMList = new ArrayList();
 
-    private Object lastImpressionID;
+    private Object lastVuzeId;
 
 	/**
 	 * A counter of the number of things happening that involve checking
@@ -154,6 +154,8 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 		});
 
 		//send the unsent impressions.
+		PlatformDCAdManager.loadUnsentImpressions();
+		PlatformDCAdManager.sendUnsentImpressions(5000);
 
 		//Wait a few minute then start a thead to check the azpd files that expired.
 		startAzpdFileCheckTimer(dms);
@@ -357,23 +359,34 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 			}
 
 			String impressionID = (String) values.get("impressionTracker");
-			if (impressionID == null || impressionID.equals(lastImpressionID)) {
-				debug("No impressionTracker ");
+			if( impressionID==null ){
+				debug("No impressionTracker");
 				return;
 			}
-			lastImpressionID = impressionID;
 
-             
-            String adHash = (String) values.get("srcURL");
+			//The vuzeId is used to keep impressions unique.
+			String vuzeId = (String) values.get("vuzeId");
+			if( vuzeId==null ){
+				debug(" No vuzeId ");
+				return;
+			}
+
+			//don't count this impression if it is the same as the last one.
+			if(  vuzeId.equals(lastVuzeId) ){
+				return;
+			}
+			lastVuzeId = vuzeId;
+
+			String adHash = (String) values.get("srcURL");
 			if (adHash == null) {
 				debug("No srcURL");
 				return;
 			}
 
 			//Note this use to be called hash.
-			String torrentHash = (String) values.get("transcodeHash");
+			String torrentHash = (String) values.get("torrentHash");
 			if (torrentHash == null){
-				debug("No transcodeHash");
+				debug("No torrentHash");
 				return;
 			}
 
