@@ -101,7 +101,7 @@ public class ProgressReporter
 	 * upon initialization the listener may query this list to get all messages sent up to that point.</p>
 	 * 
 	 */
-	private List messageHistory = new ArrayList();
+	private CopyOnWriteList messageHistory = new CopyOnWriteList();
 
 	private String detailMessage = "";
 
@@ -603,10 +603,10 @@ public class ProgressReporter
 		}
 
 		if (messageHistory.size() == messageHistoryLimit) {
-			Debug.out(new Exception(MessageText.getString(
+			Debug.out(MessageText.getString(
 					"Progress.reporting.detail.history.limit", new String[] {
 						messageHistoryLimit + ""
-					})));
+					}));
 		}
 	}
 
@@ -627,7 +627,8 @@ public class ProgressReporter
 		/*
 		 * Converting to array so the original list is insulated from modification
 		 */
-		return (IMessage[]) messageHistory.toArray(new IMessage[messageHistory.size()]);
+		List tmp = messageHistory.getList();
+		return (IMessage[]) tmp.toArray(new IMessage[tmp.size()]);
 	}
 
 	/* (non-Javadoc)
