@@ -8,9 +8,11 @@ FEATURE: Core | Azureus probes trackers for UDP-capabilities on first scrape/ann
 FEATURE: Core | Added option to enforce IP bindings even when the specified interfaces are not available (useful when Azureus should not use certain network interfaces) [The 8472] 
 FEATURE: UI   | Added option for "Open Containing Folder" menu action - which may integrate better with non-standard file browsers [amc1]
 FEATURE: UI   | Added option for "Show Torrent Menu" -- Users can now decide to see the Torrent menu in the menubar or not [knguyen]
-FEATURE: UIv3 | New menu configuration for Vuze and Vuze Advanced UI's [knguyen]
 FEATURE: UI   | Fast Renaming (not moving) in the Files tab (click on name column) and Open Torrent dialog (click on dest. name column) [The 8472]
 FEATURE: UI   | Completed downloaders column [The 8472]
+FEATURE: UIv3 | New menu configuration for Vuze and Vuze Advanced UI's [knguyen]
+FEATURE: UIv3 | Activity Tab [TuxPaper]
+FEATURE: UIv3 | Vuze Login from client [knguyen]
 
 CHANGE: Core  | Further memory footprint reductions; for additional tweaks see http://www.azureuswiki.com/index.php/Reduce_memory_usage [The 8472]
 CHANGE: Core  | Reimplemented LT extension protocol code [amc1]
