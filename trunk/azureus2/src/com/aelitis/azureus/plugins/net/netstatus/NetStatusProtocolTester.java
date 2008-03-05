@@ -622,8 +622,6 @@ NetStatusProtocolTester
 	log(
 		String		str )
 	{
-		System.out.println( str );
-		
 		plugin.log( str );
 	}
 	
@@ -632,9 +630,6 @@ NetStatusProtocolTester
 		String		str,
 		Throwable	e )
 	{
-		System.out.println( str );
-		e.printStackTrace();
-		
 		plugin.log( str, e );
 	}
 	
