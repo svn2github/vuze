@@ -486,8 +486,6 @@ public class PlatformDCAdManager
             AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.ads");
             diag_logger.log(string);
 
-            System.out.println(string);//ToDo: remove.
-
             if (e != null) {
                 diag_logger.log(e);
                 Debug.out(string, e);
