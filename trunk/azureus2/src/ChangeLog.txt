@@ -10,6 +10,15 @@ FEATURE: UI   | Added option for "Open Containing Folder" menu action - which ma
 FEATURE: UI   | Added option for "Show Torrent Menu" -- Users can now decide to see the Torrent menu in the menubar or not [knguyen]
 FEATURE: UI   | Fast Renaming (not moving) in the Files tab (click on name column) and Open Torrent dialog (click on dest. name column) [The 8472]
 FEATURE: UI   | Completed downloaders column [The 8472]
+FEATURE: Plug | Added Network Status plugin to perform some basic network tests [Parg]
+FEATURE: Plug | Allow plugins to specify their minimum JDK requirements [Parg]
+FEATURE: Core | Intervene with http seeds if progressive stall imminent [Parg]
+FEATURE: Core | Message user on startup if they have installed Azureus to read-only location [Parg]
+FEATURE: Core | Added dnd status to XML stats [Parg]
+FEATURE: UI   | Added start/stop to category menu [Parg]
+FEATURE: UI   | Added per-category speed limits [Parg]
+FEATURE: UI   | Added per-category option setting [Parg]
+FEATURE: UI   | Added multiple-torrent options setting to MyTorrents view [Parg]
 FEATURE: UIv3 | New menu configuration for Vuze and Vuze Advanced UI's [knguyen]
 FEATURE: UIv3 | Activity Tab [TuxPaper]
 FEATURE: UIv3 | Vuze Login from client [knguyen]
@@ -23,13 +32,16 @@ CHANGE: Core  | Queuing rules now don't start any further torrents if the global
 CHANGE: Core  | Made the crypto handshake a bit less predictable [The 8472]
 CHANGE: Core  | Added support for IPv6 compact announces (client) and udp-multiscrapes (client+server) [The 8472]
 CHANGE: Plug  | Added support for plugins which implement mainline DHT [amc1]
+CHANGE: Core  | Take note of more peer-source selections [Parg]
 
 BUGFIX: Core  | Request limiting/Priorities no longer pinch off LAN peers if seperate LAN speeds are enabled [The 8472]                 
 BUGFIX: UI    | Shells no longer use the low-res frog icon, the normal main window icon is now used instead [amc1]
 BUGFIX: UI    | Limiting comments in General View to 5k characters under WinXP to avoid crashes due to faulty comctl32.dll [The 8472]
 BUGFIX: UI    | Setting speed parameters manually now disables autospeed [The 8472]
-
-
+BUGFIX: Core  | Increase time Azureus holds open listen socket on close to reduce dual-start window [Parg]
+BUGFIX: Core  | Allow ~ character in tracker addresses to support I2P [Parg]
+BUGFIX: Core  | Determine app name correctly on OSX so that restart works for renamed apps [Parg]
+BUGFIX: Plug  | Encode spaces correctly in get-right web seed urls [Parg]
 
 2007.12.21 | Azureus Vuze 3.0.4.2
 
