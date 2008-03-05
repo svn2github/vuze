@@ -74,7 +74,7 @@ ExternalStimulusHandler
 			Debug.out( "Failed to resolve magnet plugin" );
 		}	
 		
-		Debug.outNoStack( "ExternalStimulus debug" );
+		// Debug.outNoStack( "ExternalStimulus debug" );
 		
 		addListener( 
 				new ExternalStimulusListener()
@@ -83,9 +83,9 @@ ExternalStimulusHandler
 					receive(
 						String name, Map values ) 
 					{
-						System.out.println( "ExternalStimulus: " + name );
-						System.out.println("  " + (values == null ? -1 : values.size())
-						+ " Values: " + values);
+						//System.out.println( "ExternalStimulus: " + name );
+						//System.out.println("  " + (values == null ? -1 : values.size())
+						//+ " Values: " + values);
 						
 						return( name.equals("ExternalStimulus.test"));
 					}
