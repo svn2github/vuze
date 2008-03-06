@@ -189,5 +189,8 @@ public class SWTSkinObjectBrowser
 
 	public void setStartURL(String url) {
 		sStartURL = url;
+		if (null != browser) {
+			browser.setData("StartURL", url);
+		}
 	}
 }
