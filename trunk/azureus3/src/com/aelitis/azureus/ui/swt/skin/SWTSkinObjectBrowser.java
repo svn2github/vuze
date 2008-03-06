@@ -81,7 +81,6 @@ public class SWTSkinObjectBrowser
 
 		cArea = parent == null ? skin.getShell() : (Composite) parent.getControl();
 
-
 		try {
 			browser = new Browser(cArea, SWT.NONE);
 		} catch (SWTError e) {
@@ -103,7 +102,7 @@ public class SWTSkinObjectBrowser
 		if (browserID == null) {
 			browserID = sID;
 		}
-		
+
 		context = new BrowserContext(browserID, browser, widgetIndicator,
 				properties.getBooleanValue(sConfigID + ".forceVisibleAfterLoad", true));
 		context.addMessageListener(new TorrentListener(core));
@@ -114,7 +113,6 @@ public class SWTSkinObjectBrowser
 		context.addMessageListener(new StatusListener());
 		PublishUtils.setupContext(context);
 
-		
 		setControl(browser);
 	}
 
@@ -183,5 +181,13 @@ public class SWTSkinObjectBrowser
 
 	public BrowserContext getContext() {
 		return context;
+	}
+
+	public String getStartURL() {
+		return sStartURL;
+	}
+
+	public void setStartURL(String url) {
+		sStartURL = url;
 	}
 }
