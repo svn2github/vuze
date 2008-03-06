@@ -1,6 +1,10 @@
 AZUREUS VUZE CHANGELOG
 -----------------
 
+2008.03.xx | Azureus Vuze 3.0.5.1
+
+
+
 2008.03.05 | Azureus Vuze 3.0.5.0
 
 FEATURE: Core | Added uTorrent PEX support [amc1]
