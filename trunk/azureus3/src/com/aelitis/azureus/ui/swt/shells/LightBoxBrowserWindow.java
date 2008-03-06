@@ -172,14 +172,6 @@ public class LightBoxBrowserWindow
 		}
 
 		if (null != browser) {
-			
-			/*
-			 * Removes the context menu for the browser when in production
-			 */
-			if (false == org.gudy.azureus2.core3.util.Constants.isCVSVersion()) {
-				browser.setMenu(new Menu(browser));
-			}
-			
 			hookListeners();
 			setUrl(url);
 			stack.topControl = browser;
