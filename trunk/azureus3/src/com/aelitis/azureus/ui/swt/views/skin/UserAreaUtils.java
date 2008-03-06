@@ -99,7 +99,7 @@ public class UserAreaUtils
 						if (null != browser) {
 							String existingURL = browser.getUrl();
 							if (null == existingURL || existingURL.length() < 1) {
-								((SWTSkinObjectBrowser) skinObject).setURL(Constants.URL_PREFIX
+								((SWTSkinObjectBrowser) skinObject).setStartURL(Constants.URL_PREFIX
 										+ Constants.URL_BIG_BROWSE + "?" + Constants.URL_SUFFIX);
 							}
 						}
