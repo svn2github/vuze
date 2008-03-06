@@ -20,6 +20,7 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import org.eclipse.swt.browser.Browser;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
 
@@ -90,6 +91,19 @@ public class UserAreaUtils
 					 */
 					SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_BROWSER_BROWSE);
 					if (skinObject instanceof SWTSkinObjectBrowser) {
+
+						/*
+						 * KN: Temporary fix for sign-in lead to sign-out when 'browse' tab have not been initialized problem
+						 */
+						Browser browser = ((SWTSkinObjectBrowser) skinObject).getBrowser();
+						if (null != browser) {
+							String existingURL = browser.getUrl();
+							if (null == existingURL || existingURL.length() < 1) {
+								((SWTSkinObjectBrowser) skinObject).setURL(Constants.URL_PREFIX
+										+ Constants.URL_BIG_BROWSE + "?" + Constants.URL_SUFFIX);
+							}
+						}
+
 						((SWTSkinObjectBrowser) skinObject).setURL(url);
 					}
 				}
@@ -220,10 +234,10 @@ public class UserAreaUtils
 		SWTSkinObject skinObject = null;
 
 		if (null != userName) {
-			skinObject = skin.getSkinObject("user-area-logged-in");
-			skinObject.setVisible(true);
 			skinObject = skin.getSkinObject("user-area-logged-out");
 			skinObject.setVisible(false);
+			skinObject = skin.getSkinObject("user-area-logged-in");
+			skinObject.setVisible(true);
 
 			skinObject = skin.getSkinObject("text-user-name");
 			if (skinObject instanceof SWTSkinObjectText) {
@@ -231,10 +245,10 @@ public class UserAreaUtils
 			}
 
 		} else {
-			skinObject = skin.getSkinObject("user-area-logged-out");
-			skinObject.setVisible(true);
 			skinObject = skin.getSkinObject("user-area-logged-in");
 			skinObject.setVisible(false);
+			skinObject = skin.getSkinObject("user-area-logged-out");
+			skinObject.setVisible(true);
 			skinObject = skin.getSkinObject("text-user-name");
 			if (skinObject instanceof SWTSkinObjectText) {
 				((SWTSkinObjectText) skinObject).setText("");
