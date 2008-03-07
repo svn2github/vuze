@@ -34,7 +34,7 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.tracker.client.impl.bt.TRTrackerBTAnnouncerImpl;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
-import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -68,7 +68,7 @@ TRTrackerUtils
 	
 	private static CopyOnWriteList		listeners = new CopyOnWriteList();
 	
-	private static Thread		listener_thread;
+	private static AEThread2		listener_thread;
 	
 	static{
 		COConfigurationManager.addAndFireParameterListeners(
@@ -106,10 +106,10 @@ TRTrackerUtils
 			  				if ( listener_thread == null ){
 			  					
 			  					listener_thread = 
-			  						new AEThread( "TRTrackerUtils:listener", true )
+			  						new AEThread2( "TRTrackerUtils:listener", true )
 			  						{
 			  							public void
-			  							runSupport()
+			  							run()
 			  							{
 			  								try{
 			  									Thread.sleep(30000);
@@ -662,6 +662,67 @@ TRTrackerUtils
 			if ( changed ){
 				
 				COConfigurationManager.setParameter( "Tracker Client AZ Instances", az_trackers );
+			}
+		}
+	}
+	
+ 	public static boolean
+ 	isUDPProbeOK(
+ 		URL		tracker_url )
+ 	{
+ 		String	host = tracker_url.getHost();
+ 		
+ 		if ( Constants.isAzureusDomain( host )){
+ 			
+ 			return( false );
+ 		}
+ 		
+ 		synchronized( udp_probe_results ){
+ 	    	
+ 	    	return( udp_probe_results.containsKey( host ));
+ 	    }
+ 	}
+ 	
+	public static void
+ 	setUDPProbeResult(
+ 		URL			tracker_url,
+ 		boolean		probe_ok )
+	{
+		String	key = tracker_url.getHost();
+				
+		synchronized( udp_probe_results ){
+			
+			boolean	changed = false;
+			
+			if ( udp_probe_results.get( key ) == null ){
+			
+				if ( probe_ok ){
+					
+						// arbitrary max size here just in case something weird happens
+					
+					if ( udp_probe_results.size() > 512 ){
+						
+						udp_probe_results.clear();
+					}
+					
+					udp_probe_results.put( key, new Long( SystemTime.getCurrentTime()));
+					
+					changed	= true;
+				}
+			}else{
+				
+				if ( !probe_ok ){
+					
+					if ( udp_probe_results.remove( key ) != null ){
+					
+						changed = true;
+					}
+				}
+			}
+			
+			if ( changed ){
+				
+				COConfigurationManager.setParameter( "Tracker Client UDP Probe Results", udp_probe_results );
 			}
 		}
 	}
