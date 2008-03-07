@@ -57,6 +57,18 @@ Java15Utils
 		}
 	}
 	
+	public static long
+	getThreadCPUTime()
+	{
+		if ( provider != null ){
+			
+			return( provider.getThreadCPUTime());
+		}
+		
+		return( 0 );
+	}
+	
+	
 	public interface
 	Java15UtilsProvider
 	{
@@ -69,5 +81,8 @@ Java15Utils
 		setReadTimeout(
 			URLConnection	con,
 			int				timeout );
+		
+		public long
+		getThreadCPUTime();
 	}
 }
