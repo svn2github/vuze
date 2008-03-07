@@ -120,6 +120,12 @@ public class Timer
 	}
 	
 	public void
+	setLogCPU()
+	{
+		thread_pool.setLogCPU();
+	}
+	
+	public void
 	runSupport()
 	{
 		while( true ){

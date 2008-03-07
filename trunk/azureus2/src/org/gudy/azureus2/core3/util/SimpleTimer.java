@@ -45,6 +45,8 @@ SimpleTimer
 		
 		timer.setWarnWhenFull();
 		
+		// timer.setLogCPU();
+		
 		// timer.setLogging(true);
 	}
 	

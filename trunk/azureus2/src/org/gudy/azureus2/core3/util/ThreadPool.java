@@ -31,6 +31,8 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 
+import com.aelitis.azureus.core.util.Java15Utils;
+
 public class 
 ThreadPool 
 {
@@ -130,6 +132,8 @@ ThreadPool
 	private long		task_total_last;
 	private Average		task_average	= Average.getInstance( WARN_TIME, 120 );
 	
+	private boolean		log_cpu;
+	
 	public
 	ThreadPool(
 		String	_name,
@@ -166,6 +170,12 @@ ThreadPool
 	setWarnWhenFull()
 	{
 		warn_when_full	= true;
+	}
+	
+	public void
+	setLogCPU()
+	{
+		log_cpu	= true;
 	}
 	
 	public int
@@ -229,7 +239,7 @@ ThreadPool
 	
 				}else{
 						// run immediately
-							
+											
 					if ( runnable instanceof ThreadPoolTask ){
 						
 						ThreadPoolTask task = (ThreadPoolTask)runnable;
@@ -239,7 +249,7 @@ ThreadPool
 						try{
 							task.taskStarted();
 							
-							task.run();
+							runIt( runnable );
 							
 						}finally{
 							
@@ -247,9 +257,9 @@ ThreadPool
 						}
 					}else{
 					
-						runnable.runSupport();
+						runIt( runnable );
 					}
-					
+
 					return( recursive_worker );
 				}
 			}
@@ -296,6 +306,33 @@ ThreadPool
 		}
 		
 		return( queue_when_full?null:allocated_worker );
+	}
+	
+	protected void
+	runIt(
+		AERunnable	runnable )
+	{
+		if ( log_cpu ){
+			
+			long	start_cpu = log_cpu?Java15Utils.getThreadCPUTime():0;
+
+			runnable.run();
+			
+			if ( start_cpu > 0 ){
+				
+				long	end_cpu = log_cpu?Java15Utils.getThreadCPUTime():0;
+				
+				long	diff_millis = ( end_cpu - start_cpu ) / 1000000;
+			
+				if ( diff_millis > 10 ){
+				
+					System.out.println( Thread.currentThread().getName() + ": " + runnable + " -> " + diff_millis );
+				}
+			}	
+		}else{
+			
+			runnable.run();
+		}
 	}
 	
 	protected void
@@ -594,7 +631,7 @@ outer:
 							
 												tpt.taskStarted();
 												
-												runnable.run();
+												runIt( runnable );
 												
 											}finally{
 												
@@ -607,7 +644,7 @@ outer:
 											}
 										}else{
 											
-											runnable.run();
+											runIt( runnable );
 										}
 										
 									}catch( Throwable e ){
