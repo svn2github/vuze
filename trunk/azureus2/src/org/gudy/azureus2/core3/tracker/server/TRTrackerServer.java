@@ -57,6 +57,10 @@ TRTrackerServer
 	public void
 	setReady();
 	
+	public void
+	setEnabled(
+		boolean	enabled );
+	
 	public boolean
 	isSSL();
 		

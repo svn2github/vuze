@@ -203,49 +203,60 @@ TRTrackerServerProcessorUDP
 			
 			int request_type = TRTrackerServerRequest.RT_UNKNOWN;
 			
-			if( reply == null ){
+			if ( reply == null ){
 				
-				try{
-					int	type = request.getAction();
+				if ( server.isEnabled()){
 					
-					if ( type == PRUDPPacketTracker.ACT_REQUEST_CONNECT ){
+					try{
+						int	type = request.getAction();
 						
-						reply = handleConnect( client_ip_address, request );
+						if ( type == PRUDPPacketTracker.ACT_REQUEST_CONNECT ){
+							
+							reply = handleConnect( client_ip_address, request );
+							
+						}else if (type == PRUDPPacketTracker.ACT_REQUEST_ANNOUNCE ){
+							
+							Object[] x = handleAnnounceAndScrape( client_ip_address, request, TRTrackerServerRequest.RT_ANNOUNCE );
+							
+							reply 	= (PRUDPPacket)x[0];
+							torrent	= (TRTrackerServerTorrentImpl)x[1];
+					
+							request_type = TRTrackerServerRequest.RT_ANNOUNCE;
+							
+						}else if ( type == PRUDPPacketTracker.ACT_REQUEST_SCRAPE ){
+							
+							Object[] x = handleAnnounceAndScrape( client_ip_address, request, TRTrackerServerRequest.RT_SCRAPE );
+							
+							reply 	= (PRUDPPacket)x[0];
+							torrent	= (TRTrackerServerTorrentImpl)x[1];
+		
+							request_type = TRTrackerServerRequest.RT_SCRAPE;
+							
+						}else{
+							
+							reply = new PRUDPPacketReplyError( request.getTransactionId(), "unsupported action");
+						}
+					}catch( Throwable e ){
 						
-					}else if (type == PRUDPPacketTracker.ACT_REQUEST_ANNOUNCE ){
+						// e.printStackTrace();
 						
-						Object[] x = handleAnnounceAndScrape( client_ip_address, request, TRTrackerServerRequest.RT_ANNOUNCE );
+						String	error = e.getMessage();
 						
-						reply 	= (PRUDPPacket)x[0];
-						torrent	= (TRTrackerServerTorrentImpl)x[1];
-				
-						request_type = TRTrackerServerRequest.RT_ANNOUNCE;
+						if ( error == null ){
+							
+							error = e.toString();
+						}
 						
-					}else if ( type == PRUDPPacketTracker.ACT_REQUEST_SCRAPE ){
-						
-						Object[] x = handleAnnounceAndScrape( client_ip_address, request, TRTrackerServerRequest.RT_SCRAPE );
-						
-						reply 	= (PRUDPPacket)x[0];
-						torrent	= (TRTrackerServerTorrentImpl)x[1];
-	
-						request_type = TRTrackerServerRequest.RT_SCRAPE;
-						
-					}else{
-						
-						reply = new PRUDPPacketReplyError( request.getTransactionId(), "unsupported action");
+						reply = new PRUDPPacketReplyError( request.getTransactionId(), error );
 					}
-				}catch( Throwable e ){
+				}else{
+										
+					System.out.println( "UDP Tracker: replying 'disabled' to " + client_ip_address );
 					
-					// e.printStackTrace();
-					
-					String	error = e.getMessage();
-					
-					if ( error == null ){
-						
-						error = e.toString();
-					}
-					
-					reply = new PRUDPPacketReplyError( request.getTransactionId(), error );
+					//if ( client_ip_address.equals( "64.79.127.118" )){
+								
+						reply = new PRUDPPacketReplyError( request.getTransactionId(), "UDP Tracker disabled" );
+					//}
 				}
 			}
 			

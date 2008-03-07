@@ -224,6 +224,7 @@ TRTrackerServerImpl
 	private boolean	compact_enabled;
 	private boolean	key_enabled;
 	
+	private boolean	enabled	= true;
 
 	protected Vector	listeners 			= new Vector();
 	private List		auth_listeners		= new ArrayList();
@@ -321,6 +322,19 @@ TRTrackerServerImpl
 	isReady()
 	{
 		return( is_ready );
+	}
+	
+	public void
+	setEnabled(
+		boolean	e )
+	{
+		enabled	= e;
+	}
+	
+	public boolean
+	isEnabled()
+	{
+		return( enabled );
 	}
 	
 	public TRTrackerServerTorrent
