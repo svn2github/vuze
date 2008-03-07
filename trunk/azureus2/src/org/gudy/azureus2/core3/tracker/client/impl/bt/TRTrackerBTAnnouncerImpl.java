@@ -1062,8 +1062,7 @@ TRTrackerBTAnnouncerImpl
   
   		throws Exception
 	{
- 		
-   		// set context in case authentication dialog is required
+   			// set context in case authentication dialog is required
     	
     	TorrentUtils.setTLSTorrentHash( torrent_hash );
     	
@@ -1076,44 +1075,80 @@ TRTrackerBTAnnouncerImpl
 			try{  
 				String	protocol = reqUrl.getProtocol();
 				
-				if (Logger.isEnabled())
+				if (Logger.isEnabled()){
 					Logger.log(new LogEvent(torrent, LOGID,
 							"Tracker Announcer is Requesting: " + reqUrl));
-		  
+				}
+				
 		  		ByteArrayOutputStream message = new ByteArrayOutputStream();
 		  		
 		  		
 		  		URL udpAnnounceURL = null;
 		  		
-		  		if(protocol.equalsIgnoreCase("udp"))
-		  			udpAnnounceURL = reqUrl;
-		  		else if(protocol.equalsIgnoreCase("http") && !az_tracker && announceCount % autoUDPprobeEvery == 0)
-		  			udpAnnounceURL = new URL(reqUrl.toString().replaceFirst("^http", "udp"));
+		  		boolean	udp_probe = false;
 		  		
+		  		if ( protocol.equalsIgnoreCase("udp")){
+		  			
+		  			udpAnnounceURL = reqUrl;
+		  			
+		  		}else if( 	protocol.equalsIgnoreCase("http") && 
+		  					!az_tracker && 
+		  					announceCount % autoUDPprobeEvery == 0 ){
+		  			
+		  				// if we don't know this tracker supports probing then don't probe on
+		  				// first announce as we don't want a large delay on torrent startup
+		  			
+		  				// also if we are stopping we don't want to initiate a probe as
+		  				// we want the stop instruction to get to tracker if possible
+		  			
+		  			if (( stopped || announceCount == 0 ) && !TRTrackerUtils.isUDPProbeOK( reqUrl )){
+		  				
+		  					// skip probe
+		  				
+		  			}else{
+		  				
+		  				udpAnnounceURL = new URL(reqUrl.toString().replaceFirst("^http", "udp"));
+		  			
+		  				udp_probe	= true;
+		  			}
+		  		}
 		  				
 		  		if ( udpAnnounceURL != null){
 		  			
 		  			failure_reason = announceUDP( reqUrl, message );
 		  			
-		  			if((failure_reason != null || message.size() == 0) && !protocol.equalsIgnoreCase("udp"))
-		  			{ // automatic UDP probe failed, use HTTP again
-		  				udpAnnounceURL = null;
-						if(autoUDPprobeEvery < 16)
-							autoUDPprobeEvery <<=1;
-						if (Logger.isEnabled())
-							Logger.log(new LogEvent(torrent,LOGID, LogEvent.LT_INFORMATION, "redirection of http announce ["+tracker_url[0]+"] to udp failed, will retry in "+autoUDPprobeEvery+" announces"));
-		  			} else if(failure_reason == null && !protocol.equalsIgnoreCase("udp"))
-		  			{
-						if (Logger.isEnabled())
-							Logger.log(new LogEvent(torrent,LOGID, LogEvent.LT_INFORMATION, "redirection of http announce ["+tracker_url[0]+"] to udp successful"));
-		  				autoUDPprobeEvery = 1;
-		  			}
+		  			if( 	( failure_reason != null || message.size() == 0 ) && 
+		  					udp_probe ){
+		  			
+		  					// automatic UDP probe failed, use HTTP again
 		  				
+		  				udpAnnounceURL = null;
+		  				
+						if ( autoUDPprobeEvery < 16 ){
+							
+							autoUDPprobeEvery <<=1;
+						}
+						
+						if ( Logger.isEnabled()){
+							
+							Logger.log(new LogEvent(torrent,LOGID, LogEvent.LT_INFORMATION, "redirection of http announce ["+tracker_url[0]+"] to udp failed, will retry in "+autoUDPprobeEvery+" announces"));
+						}
+		  			}else if( failure_reason == null && udp_probe ){
+		  			
+		  				TRTrackerUtils.setUDPProbeResult( reqUrl, true );
+		  				
+						if (Logger.isEnabled()){
+							
+							Logger.log(new LogEvent(torrent,LOGID, LogEvent.LT_INFORMATION, "redirection of http announce ["+tracker_url[0]+"] to udp successful"));
+						}
+						
+		  				autoUDPprobeEvery = 1;
+		  			}		  				
 		  		}
 		  		
 		  		announceCount++;
 		  		
-		  		if (udpAnnounceURL == null){
+		  		if ( udpAnnounceURL == null){
 		  			
 		  			failure_reason = announceHTTP( tracker_url, reqUrl, message );
 		  			
@@ -1616,7 +1651,7 @@ TRTrackerBTAnnouncerImpl
 		 					
 		 				}
 		 			
-		 					failure_reason = ((PRUDPPacketReplyError)reply).getMessage();
+		 				failure_reason = ((PRUDPPacketReplyError)reply).getMessage();
 		 				
 		 			}else{
 		 				
