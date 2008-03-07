@@ -116,16 +116,11 @@ public class PeerClassifier {
 			
 			String name = IPToHostNameResolver.syncResolve( ip, 10000 );
 			
-			String[]	ok_domains = Constants.AZUREUS_DOMAINS;
-			
-			for (int i=0;i<ok_domains.length;i++){
-				
-				if ( name.endsWith( "." + ok_domains[i] )){
+			if ( Constants.isAzureusDomain( name )){
 					
-					platform_ips.add( host_address );
+				platform_ips.add( host_address );
 					
-					return( true );
-				}
+				return( true );
 			}
 		}catch( Throwable e ){
 		}

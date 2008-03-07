@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.tracker.client.impl.bt.TRTrackerBTAnnouncerImpl;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.UrlUtils;
@@ -278,6 +279,8 @@ TRTrackerUtils
 	
 	private static Map	az_trackers = COConfigurationManager.getMapParameter( "Tracker Client AZ Instances", new HashMap());
 	
+	private static Map	udp_probe_results = COConfigurationManager.getMapParameter( "Tracker Client UDP Probe Results", new HashMap());
+
 
 	static{
 	
@@ -613,9 +616,16 @@ TRTrackerUtils
  	isAZTracker(
  		URL		tracker_url )
  	{
- 	   synchronized( az_trackers ){
+ 		String	host = tracker_url.getHost();
+ 		
+ 		if ( Constants.isAzureusDomain( host )){
+ 			
+ 			return( true );
+ 		}
+ 		
+ 		synchronized( az_trackers ){
  	    	
- 	    	return( az_trackers.containsKey( tracker_url.getHost() + ":" + tracker_url.getPort()));
+ 	    	return( az_trackers.containsKey( host + ":" + tracker_url.getPort()));
  	    }
  	}
  	

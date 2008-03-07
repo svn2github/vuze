@@ -250,6 +250,30 @@ Constants
 		}
 	}
 	
+	public static boolean
+	isAzureusDomain(
+		String	host )
+	{
+		host = host.toLowerCase();
+
+		for (int i=0; i<AZUREUS_DOMAINS.length; i++) {
+
+			String domain = (String) AZUREUS_DOMAINS[i];
+
+			if ( domain.equals( host )){
+
+				return( true );
+			}
+
+			if ( host.endsWith("." + domain)){
+
+				return( true );
+			}
+		}
+		
+		return( false );
+	}
+	
 	public static void main(String[] args) {
 		System.out.println(compareVersions("3.0.0.1", "3.0.0.0"));
 		System.out.println(compareVersions("3.0.0.0_B1", "3.0.0.0"));
