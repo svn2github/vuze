@@ -153,16 +153,11 @@ CacheDiscovery
 						String 		result, 
 						boolean 	succeeded )
 					{
-						String[]	ok_domains = Constants.AZUREUS_DOMAINS;
-						
-						for (int i=0;i<ok_domains.length;i++){
-							
-							if ( result.endsWith( "." + ok_domains[i] )){
+						if ( Constants.isAzureusDomain( result )){
+
+							cache_ips.add( host_address );
 								
-								cache_ips.add( host_address );
-								
-								ip_filter.unban( host_address, true );
-							}
+							ip_filter.unban( host_address, true );
 						}
 					}
 				});
