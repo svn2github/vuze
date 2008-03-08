@@ -51,18 +51,12 @@ public class LightBoxShell
 	public LightBoxShell(boolean closeOnESC) {
 		this.closeOnESC = closeOnESC;
 
-		uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-		if (null == uiFunctions) {
-			throw new NullPointerException(
-					"An initialized instance of UIFunctionsSWT is required to create a LightBoxShell");
-		}
-
-		parentShell = uiFunctions.getMainShell();
+		parentShell = getUIFunctions().getMainShell();
 
 		if (null == parentShell) {
 			return;
 		}
-		IMainWindow mainWindow = uiFunctions.getMainWindow();
+		IMainWindow mainWindow = getUIFunctions().getMainWindow();
 		Rectangle r = mainWindow.getMetrics(IMainWindow.WINDOW_ELEMENT_STATUSBAR);
 		setInsets(0, r.height, 0, 0);
 		createControls();
@@ -81,7 +75,15 @@ public class LightBoxShell
 	}
 
 	private void createControls() {
+		if (null == parentShell) {
+			return;
+		}
+
 		lbShell = new Shell(parentShell, SWT.NO_TRIM | SWT.APPLICATION_MODAL);
+
+		if (true == Constants.isOSX) {
+			getUIFunctions().createMainMenu(lbShell);
+		}
 
 		/*
 		 * Try and set the alpha; if an exception is thrown then set isAlphaSupported to false
@@ -129,6 +131,17 @@ public class LightBoxShell
 			});
 		}
 
+	}
+
+	private UIFunctionsSWT getUIFunctions() {
+		if (null == uiFunctions) {
+			uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+			if (null == uiFunctions) {
+				throw new NullPointerException(
+						"An initialized instance of UIFunctionsSWT is required to create a LightBoxShell");
+			}
+		}
+		return uiFunctions;
 	}
 
 	public void setAlpha(Shell shell, int alpha) {
@@ -253,7 +266,7 @@ public class LightBoxShell
 			LightBoxShell.this.setAlpha(styledShell, 0);
 
 			if (true == Constants.isOSX) {
-				uiFunctions.createMainMenu(styledShell);
+				getUIFunctions().createMainMenu(styledShell);
 			}
 
 			FillLayout fillLayout = new FillLayout();
@@ -380,7 +393,7 @@ public class LightBoxShell
 			 * 
 			 * Additionally on non-osx set the NO_TRIM flag and on OSX ONLY set the NO_TRIM flag if setAlpha()
 			 * is also supported.  Versions of SWT on OSX that do not support setAlpha() also can not render
-			 * the enmedded web page properly if the NO_TRIM flag is set; the NO_TRIM flag allows us to draw
+			 * the embedded web page properly if the NO_TRIM flag is set; the NO_TRIM flag allows us to draw
 			 * a round-cornered shell.  Without this flag the shell corners would just be the normal square angle. 
 			 */
 			if (true == Constants.isOSX) {
