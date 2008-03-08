@@ -545,7 +545,7 @@ TorrentOptionsView
 
 					DownloadManager	manager = managers[i];
 						
-					if ( value != manager.getStats().getDownloadRateLimitBytesPerSecond()/1024){
+					if ( value != manager.getStats().getUploadRateLimitBytesPerSecond()/1024){
 						
 						manager.getStats().setUploadRateLimitBytesPerSecond(value*1024);
 					}
