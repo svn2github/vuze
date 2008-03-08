@@ -44,6 +44,7 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 /**
  * @author parg
@@ -115,7 +116,7 @@ DownloadManagerStateImpl
 	
 	private Category 	category;
 
-	private List		listeners	= new ArrayList();
+	private CopyOnWriteList		listeners_cow	= new CopyOnWriteList();
 	
 	private List		will_be_read_list	= new ArrayList();
 	
@@ -2100,10 +2101,12 @@ DownloadManagerStateImpl
 	informWritten(
 		final String		attribute_name )
 	{
-		for (int i=0;i<listeners.size();i++){
+		List	listeners_ref = listeners_cow.getList();
+		
+		for (int i=0;i<listeners_ref.size();i++){
 			
 			try{
-				((DownloadManagerStateListener)listeners.get(i)).stateChanged(
+				((DownloadManagerStateListener)listeners_ref.get(i)).stateChanged(
 					this,
 					new DownloadManagerStateEvent()
 					{
@@ -2154,10 +2157,12 @@ DownloadManagerStateImpl
 		
 			if ( do_it ){
 				
-				for (int i=0;i<listeners.size();i++){
+				List	listeners_ref = listeners_cow.getList();
+
+				for (int i=0;i<listeners_ref.size();i++){
 					
 					try{
-						((DownloadManagerStateListener)listeners.get(i)).stateChanged(
+						((DownloadManagerStateListener)listeners_ref.get(i)).stateChanged(
 							this,
 							new DownloadManagerStateEvent()
 							{
@@ -2200,14 +2205,14 @@ DownloadManagerStateImpl
 	addListener(
 		DownloadManagerStateListener	l )
 	{
-		listeners.add( l );
+		listeners_cow.add( l );
 	}
 	
 	public void
 	removeListener(
 		DownloadManagerStateListener	l )
 	{
-		listeners.remove(l);
+		listeners_cow.remove(l);
 	}
 	
 	public void 
