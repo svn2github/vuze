@@ -3410,7 +3410,7 @@ DownloadManagerImpl
 				+ (getAssumedComplete() ? "s" : "d") + "@"
 				+ Integer.toHexString(hashCode()) + "/"
 				+ status + "/"
-				+ getSize() + "/" + hash;
+				+ hash;
 	}
 	
 	protected static class
