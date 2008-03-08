@@ -28,12 +28,16 @@ import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.peer.cache.CacheDiscovery;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 
+import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.download.DownloadManagerStateEvent;
+import org.gudy.azureus2.core3.download.DownloadManagerStateListener;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.download.DownloadWillBeAddedListener;
 import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 public class InitialisationFunctions
 {
@@ -94,26 +98,52 @@ public class InitialisationFunctions
 
 	protected static void
 	register(
-		Download	download )
+		final Download	download )
 	{
 			// only add the azid to platform content
 		
-		Torrent t = download.getTorrent();
-		
-		if ( t == null ){
-			
-			return;
-		}
-		
-		if ( !PlatformTorrentUtils.isContent( t, true )){
-			
-			return;
-		}
-		
-		DownloadUtils.addTrackerExtension( download, EXTENSION_PREFIX, Constants.AZID );	
-		
-			// allow the tracker to manipulate peer sources for dead/unauthorised torrents
-		
-		download.setFlag(Download.FLAG_ALLOW_PERMITTED_PEER_SOURCE_CHANGES, true );
+		PluginCoreUtils.unwrap( download ).getDownloadState().addListener(
+				new DownloadManagerStateListener()
+				{
+					public void 
+					stateChanged(
+						DownloadManagerState 		state,
+						DownloadManagerStateEvent 	event ) 
+					{
+						if ( event.getType() == DownloadManagerStateEvent.ET_ATTRIBUTE_WILL_BE_READ ){
+							
+							String name = (String)event.getData();
+							
+							if ( name.equals( DownloadManagerState.AT_TRACKER_CLIENT_EXTENSIONS )){
+								
+								try{							
+									Torrent t = download.getTorrent();
+									
+									if ( t == null ){
+										
+										return;
+									}
+									
+									if ( !PlatformTorrentUtils.isContent( t, true )){
+										
+										return;
+									}
+									
+									DownloadUtils.addTrackerExtension( download, EXTENSION_PREFIX, Constants.AZID );	
+									
+										// allow the tracker to manipulate peer sources for dead/unauthorised torrents
+									
+									download.setFlag(Download.FLAG_ALLOW_PERMITTED_PEER_SOURCE_CHANGES, true );
+									
+								}finally{
+									
+									state.removeListener( this );
+								}
+							}
+						}
+					}
+				});
+				
+
 	}
 }
