@@ -62,9 +62,10 @@ DownloadManagerStateImpl
 	
 	
 	private static final LogIDs LOGID = LogIDs.DISK;
-	private static final String			RESUME_KEY			= "resume";
-	private static final String			TRACKER_CACHE_KEY	= "tracker_cache";
-	private static final String			ATTRIBUTE_KEY		= "attributes";
+	private static final String			RESUME_KEY				= "resume";
+	private static final String			TRACKER_CACHE_KEY		= "tracker_cache";
+	private static final String			ATTRIBUTE_KEY			= "attributes";
+	private static final String			AZUREUS_PROPERTIES_KEY	= "azureus_properties";
 		
 	private static final File			ACTIVE_DIR;
 	
@@ -2604,6 +2605,7 @@ DownloadManagerStateImpl
 		private HashWrapper	torrent_hash_wrapper;
 		private Map			cache;	
 		private Map			cache_attributes;
+		private Map			cache_azp;
 		
 		private volatile TorrentUtils.ExtendedTorrent		delegate;
 		private TOTorrentException							fixup_failure;
@@ -2626,7 +2628,8 @@ DownloadManagerStateImpl
 			torrent_hash_wrapper	= new HashWrapper( _torrent_hash );
 			cache					= _cache;
 			
-			cache_attributes = (Map)cache.get( "attributes" );
+			cache_attributes 	= (Map)cache.get( "attributes" );
+			cache_azp 			= (Map)cache.get( "azp" );
 			
 			if ( _force_piece_discard ){
 				
@@ -2663,6 +2666,7 @@ DownloadManagerStateImpl
 			cache.put( "torrent filename", state.getAdditionalStringProperty( "torrent filename" ));
 			
 			cache.put( "attributes", state.getAdditionalMapProperty( ATTRIBUTE_KEY ));
+			cache.put( "azp", state.getAdditionalMapProperty( AZUREUS_PROPERTIES_KEY ));
 			
 			boolean	discard_pieces = dms.isResumeDataComplete();
 			
@@ -2729,6 +2733,13 @@ DownloadManagerStateImpl
 								delegate.setAdditionalMapProperty( ATTRIBUTE_KEY, cache_attributes );
 								
 								cache_attributes = null;
+							}
+							
+							if ( cache_azp != null ){
+								
+								delegate.setAdditionalMapProperty( AZUREUS_PROPERTIES_KEY, cache_azp );
+								
+								cache_azp = null;
 							}
 						}
 					}
@@ -3255,11 +3266,18 @@ DownloadManagerStateImpl
     	getAdditionalMapProperty(
     		String		name )
        	{
-			Map	c = cache;
+			Map	c = cache_attributes;
 			
-			if ( c != null && name.equals( "attributes")){
-								
-				return((Map)c.get( name ));
+			if ( c != null &&  name.equals( "attributes" )){
+				
+				return( c );
+			}
+			
+			c = cache_azp;
+			
+			if ( c != null &&  name.equals( "azureus_properties" )){
+				
+				return( c );
 			}
 			
 	   		if ( fixup()){
