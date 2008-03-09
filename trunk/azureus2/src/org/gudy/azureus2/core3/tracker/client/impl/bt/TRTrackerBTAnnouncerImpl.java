@@ -1095,7 +1095,7 @@ TRTrackerBTAnnouncerImpl
 		  					!az_tracker && 
 		  					announceCount % autoUDPprobeEvery == 0 ){
 		  			
-		  				// if we don't know this tracker supports probing then don't probe on
+		  				// if we don't know this tracker supports UDP then don't probe on
 		  				// first announce as we don't want a large delay on torrent startup
 		  			
 		  				// also if we are stopping we don't want to initiate a probe as
@@ -1124,10 +1124,10 @@ TRTrackerBTAnnouncerImpl
 		  				
 		  				udpAnnounceURL = null;
 		  				
-						if ( autoUDPprobeEvery < 16 ){
-							
+						if ( autoUDPprobeEvery < 16 )
 							autoUDPprobeEvery <<=1;
-						}
+						else // unregister in case the tracker somehow changed its capabilities
+							TRTrackerUtils.setUDPProbeResult(reqUrl, false);
 						
 						if ( Logger.isEnabled()){
 							

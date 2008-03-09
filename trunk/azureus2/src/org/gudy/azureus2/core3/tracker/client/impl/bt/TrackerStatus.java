@@ -505,6 +505,7 @@ public class TrackerStatus {
 						if (Logger.isEnabled())
 							Logger.log(new LogEvent(LOGID, LogEvent.LT_INFORMATION, "redirection of http scrape ["+scrapeURL+"] to udp successful"));
 		  				autoUDPscrapeEvery = 1;
+		  				TRTrackerUtils.setUDPProbeResult( reqUrl, true );
 		  			}
 		  				
 		  		}
