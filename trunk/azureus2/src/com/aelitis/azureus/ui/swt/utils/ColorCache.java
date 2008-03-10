@@ -19,14 +19,15 @@
  */
 package com.aelitis.azureus.ui.swt.utils;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.StringTokenizer;
+import java.util.*;
 
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Device;
 
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.Utils;
 
 /**
  * @author TuxPaper
@@ -35,6 +36,8 @@ import org.gudy.azureus2.core3.util.*;
  */
 public class ColorCache
 {
+	private final static boolean DEBUG = Constants.isCVSVersion();
+
 	private final static Map mapColors = new HashMap();
 	
 	static {
@@ -55,6 +58,29 @@ public class ColorCache
 				Long key = new Long(((long) color.getRed() << 16)
 						+ (color.getGreen() << 8) + color.getBlue());
 				addColor(key, color);
+			}
+			if (DEBUG) {
+				SimpleTimer.addPeriodicEvent("ColorCacheChecker", 60000,
+						new TimerEventPerformer() {
+							public void perform(TimerEvent event) {
+								Utils.execSWTThread(new AERunnable() {
+									public void runSupport() {
+										for (Iterator iter = mapColors.keySet().iterator(); iter.hasNext();) {
+											Long key = (Long) iter.next();
+											Color color = (Color) mapColors.get(key);
+											if (color.isDisposed()) {
+												Logger.log(new LogAlert(false, LogAlert.AT_ERROR,
+														"Someone disposed of color "
+																+ Long.toHexString(key.longValue())
+																+ ". Please report this on the "
+																+ "<A HREF=\"http://forum.vuze.com/forum.jspa?forumID=4\">forum</A>"));
+												iter.remove();
+											}
+										}
+									}
+								});
+							}
+						});
 			}
 		}
 
