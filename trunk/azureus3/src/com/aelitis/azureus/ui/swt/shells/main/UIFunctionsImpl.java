@@ -108,20 +108,14 @@ public class UIFunctionsImpl
 	}
 
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#addPluginView(java.lang.String, org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener)
-	public void addPluginView(String viewID, UISWTViewEventListener l) {
+	public void addPluginView(final String viewID, final UISWTViewEventListener l) {
 		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
-			if (uiFunctions == null) {
-				pluginViews_mon.enter();
-				try {
-					mapPluginViews.put(viewID, l);
-				} finally {
-					pluginViews_mon.exit();
-				}
-				return;
-			}
 
-			uiFunctions.addPluginView(viewID, l);
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					PluginsMenuHelper.getInstance().addPluginView(viewID, l);
+				}
+			});
 
 		} catch (Exception e) {
 			Logger.log(new LogEvent(LOGID, "addPluginView", e));
