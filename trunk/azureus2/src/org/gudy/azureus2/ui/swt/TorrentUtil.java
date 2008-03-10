@@ -441,7 +441,7 @@ public class TorrentUtil {
 		final MenuItem itemManualScrape = new MenuItem(menuTracker, SWT.PUSH);
 		Messages.setLanguageText(itemManualScrape, "GeneralView.label.trackerscrapeupdate");
 		//itemManualUpdate.setImage(ImageRepository.getImage("edit_trackers"));
-		itemManualScrape.addListener(SWT.Selection, new DMTask(dms) {
+		itemManualScrape.addListener(SWT.Selection, new DMTask(dms, true, true ) {
 			public void run(DownloadManager dm) {
 				dm.requestTrackerScrape(true);
 			}
@@ -1453,7 +1453,8 @@ public class TorrentUtil {
 		private DownloadManager[] dms;
 
 		private boolean ascending;
-
+		private boolean	async;
+		
 		public DMTask(DownloadManager[] dms) {
 			this(dms, true);
 		}
@@ -1461,6 +1462,12 @@ public class TorrentUtil {
 		public DMTask(DownloadManager[] dms, boolean ascending) {
 			this.dms = dms;
 			this.ascending = ascending;
+		}
+		
+		public DMTask(DownloadManager[] dms, boolean ascending, boolean async ) {
+			this.dms = dms;
+			this.ascending = ascending;
+			this.async = async;
 		}
 
 		// One of the following methods should be overridden.
@@ -1471,7 +1478,20 @@ public class TorrentUtil {
 		}
 
 		public void handleEvent(Event event) {
-			go();
+			if ( async ){
+				
+				new AEThread2( "DMTask:async", true )
+				{
+					public void
+					run()
+					{
+						go();
+					}
+				}.start();
+			}else{
+				
+				go();
+			}
 		}
 
 		public void go() {
