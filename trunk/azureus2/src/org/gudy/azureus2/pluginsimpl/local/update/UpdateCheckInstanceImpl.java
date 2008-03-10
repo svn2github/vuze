@@ -156,6 +156,8 @@ UpdateCheckInstanceImpl
 							
 						}catch( Throwable e ){
 							
+							checker.reportProgress( "Update check failed: " + Debug.getNestedExceptionMessage( e ));
+							
 							checker.failed();
 						}
 					}

@@ -460,8 +460,6 @@ PluginUpdatePlugin
 				final PluginInterface	pi_being_checked 	= (PluginInterface)plugins_to_check.get(i);
 				final String			plugin_id 			= pi_being_checked.getPluginID();
 					
-				checker.reportProgress( "Loading details for " + plugin_id + "/" + pi_being_checked.getPluginName());
-
 				boolean	found	= false;
 				
 				for (int j=0;j<ids.length;j++){
@@ -490,7 +488,8 @@ PluginUpdatePlugin
 				log.log( LoggerChannel.LT_INFORMATION, "Checking " + plugin_id);
 				
 				try{
-					
+					checker.reportProgress( "Loading details for " + plugin_id + "/" + pi_being_checked.getPluginName());
+
 					SFPluginDetails	details = loader.getPluginDetails( plugin_id );
 	
 					if ( plugin_names.length() == 0 ){
@@ -541,6 +540,8 @@ PluginUpdatePlugin
 								"    Current: " + az_plugin_version + 
 								(comp==0&&sf_plugin_version.endsWith( "_CVS")?"_CVS":"")+
 								", Latest: " + sf_plugin_version + (pi_version_info==null?"":" [" + pi_version_info + "]"));
+					
+					checker.reportProgress( "    current=" + az_plugin_version + (comp==0&&sf_plugin_version.endsWith( "_CVS")?"_CVS":"") + ", latest=" + sf_plugin_version );
 					
 					if ( comp < 0 && ! ( pi_being_checked.getPlugin() instanceof UpdatableComponent)){
 													
@@ -664,6 +665,8 @@ PluginUpdatePlugin
 					}
 				}catch( Throwable e ){
 					
+					checker.reportProgress( "Failed to load details for plugin '" + plugin_id + "': " + Debug.getNestedExceptionMessage(e));
+					
 					log.log("    Plugin check failed", e ); 
 				}
 			}
@@ -671,6 +674,8 @@ PluginUpdatePlugin
 		}catch( Throwable e ){
 			
 			log.log("Failed to load plugin details", e );
+			
+			checker.reportProgress( "Failed to load plugin details: " + Debug.getNestedExceptionMessage(e));
 			
 			checker.failed();
 			

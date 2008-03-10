@@ -437,6 +437,8 @@ CoreUpdateChecker
 			
 			Debug.printStackTrace( e );
 			
+			checker.reportProgress( "Failed to check for core update: " + Debug.getNestedExceptionMessage(e));
+			
 			checker.failed();
 			
 		}finally{
