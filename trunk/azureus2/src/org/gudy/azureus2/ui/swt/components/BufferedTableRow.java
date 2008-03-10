@@ -154,15 +154,24 @@ BufferedTableRow
 					}
 				}
 			}
+
+			boolean itemNeedsDisposal = item != null && !item.isDisposed(); 
 			
 			if (this.ourForeground != null && !this.ourForeground.isDisposed()) {
+				// Even though we are going to dispose soon, set foreground to null
+				// in case for some reason the OS gets a paint event in between
+				// the color disposal and the item disposal
+				if (itemNeedsDisposal) {
+					item.setForeground(null);
+				}
 				this.ourForeground.dispose();
 			}
-			
-			if (item != null && !item.isDisposed()) 
+
+			if (itemNeedsDisposal) {
 				item.dispose();
-			else if (table.getItemCount() > 0)
+			} else if (table.getItemCount() > 0) {
 				System.err.println("No table row was found to dispose");
+			}
 		} else {
 			if (!Utils.isThisThreadSWT()) {
 				System.err.println("Calling BufferedTableRow.dispose on non-SWT thread!");
@@ -301,8 +310,10 @@ BufferedTableRow
 		  return;
 		
 		foreground = c;
-		if (this.ourForeground != null && !this.ourForeground.isDisposed()) {
-			this.ourForeground.dispose();
+		if (this.ourForeground != null) {
+			if (!this.ourForeground.isDisposed()) {
+				this.ourForeground.dispose();
+			}
 			this.ourForeground = null;
 		}
 		
