@@ -759,14 +759,16 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();
     String seeds_str = manager.getNbSeeds() +" "+ MessageText.getString("GeneralView.label.connected");
     String peers_str = manager.getNbPeers() +" "+ MessageText.getString("GeneralView.label.connected");
-    String completed = hd.getCompleted() > -1 ? Integer.toString(hd.getCompleted()) : "?";
+    String completed;
     if(hd != null && hd.isValid()) {
       seeds_str += " ( " + hd.getSeeds() +" "+ MessageText.getString("GeneralView.label.in_swarm") + " )";
       peers_str += " ( " + hd.getPeers() +" "+ MessageText.getString("GeneralView.label.in_swarm") + " )";
+      completed = hd.getCompleted() > -1 ? Integer.toString(hd.getCompleted()) : "?";
+
     } else {
-      //seeds += " (?)";
-      //peers += " (?)";
+      completed = "?";
     }
+    
     String _shareRatio = "";
     int sr = manager.getStats().getShareRatio();
     
