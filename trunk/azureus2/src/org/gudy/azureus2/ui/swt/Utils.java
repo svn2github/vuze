@@ -880,7 +880,7 @@ public class Utils
 			if (!launched && Constants.isUnix
 					&& (UrlUtils.isURL(sFile) || sFile.startsWith("mailto:"))) {
 				if (!Program.launch("xdg-open " + sFile)) {
-						Program.launch("htmlview " + sFile);
+					Program.launch("htmlview " + sFile);
 				}
 			}
 		} else {
@@ -1803,20 +1803,41 @@ public class Utils
 			Point cursorLocation = display.getCursorLocation();
 
 			/*
-			 * Find the monitor that this cursorLocation resides in
+			 * Make visible on the monitor that the mouse cursor resides in
 			 */
-			Monitor[] monitors = display.getMonitors();
-			Rectangle monitorBounds = null;
-			for (int i = 0; i < monitors.length; i++) {
-				monitorBounds = monitors[i].getClientArea();
-				if (true == monitorBounds.contains(cursorLocation)) {
-					break;
-				}
-			}
+			makeVisibleOnMonitor(rect, getMonitor(cursorLocation));
 
-			if (null == monitorBounds) {
-				return;
-			}
+		} catch (Throwable t) {
+			//Do nothing
+		}
+
+	}
+
+	/**
+	 * Ensure that the given <code>Rectangle</code> is fully visible on the given <code>Monitor</code>.
+	 * This method does not resize the given Rectangle; it merely reposition it if appropriate.
+	 * If the given Rectangle is taller or wider than the current monitor then it may not fit 'fully' in the monitor.
+	 * <P>
+	 * We use a best-effort approach with an emphasis to have at least the top-left of the Rectangle
+	 * be visible.  If the given Rectangle does not fit entirely in the monitor then portion
+	 * of the right and/or left may be off-screen.
+	 * 
+	 * <P>
+	 * This method does honor global screen elements when possible.  Screen elements include the TaskBar on Windows
+	 * and the Application menu on OSX, and possibly others.  The re-positioned Rectangle returned will fit on the
+	 * screen without overlapping (or sliding under) these screen elements.
+	 * @param rect
+	 * @param monitor
+	 */
+	public static void makeVisibleOnMonitor(Rectangle rect, Monitor monitor) {
+
+		if (null == rect || null == monitor) {
+			return;
+		}
+
+		try {
+
+			Rectangle monitorBounds = monitor.getClientArea();
 
 			/*
 			 * Make sure the bottom is fully visible on the monitor
@@ -1852,9 +1873,52 @@ public class Utils
 				rect.y = monitorBounds.y;
 			}
 
-		} catch (NoSuchMethodError e) {
+		} catch (Throwable t) {
 			//Do nothing
 		}
 
+	}
+
+	/**
+	 * Returns the <code>Monitor</code> that the given x,y coordinates resides in
+	 * @param x
+	 * @param y
+	 * @return the monitor if found; otherwise returns <code>null</code>
+	 */
+	public static Monitor getMonitor(int x, int y) {
+		return getMonitor(new Point(x, y));
+	}
+
+	/**
+	 * Returns the <code>Monitor</code> that the given <code>Point</code> resides in
+	 * @param location
+	 * @return the monitor if found; otherwise returns <code>null</code>
+	 */
+	public static Monitor getMonitor(Point location) {
+		Display display = Display.getCurrent();
+
+		if (null == display) {
+			Debug.out("No current display detected.  This method [Utils.makeVisibleOnCursor()] must be called from a display thread.");
+			return null;
+		}
+
+		try {
+
+			/*
+			 * Find the monitor that this location resides in
+			 */
+			Monitor[] monitors = display.getMonitors();
+			Rectangle monitorBounds = null;
+			for (int i = 0; i < monitors.length; i++) {
+				monitorBounds = monitors[i].getClientArea();
+				if (true == monitorBounds.contains(location)) {
+					return monitors[i];
+				}
+			}
+		} catch (Throwable t) {
+			//Do nothing
+		}
+
+		return null;
 	}
 }
