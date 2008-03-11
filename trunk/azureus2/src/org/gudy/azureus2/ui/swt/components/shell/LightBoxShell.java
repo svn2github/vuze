@@ -258,6 +258,13 @@ public class LightBoxShell
 
 		private boolean isAnimating = false;
 
+		/**
+		 * A reference to the screen monitor that the shell is in;
+		 * this is used to ensure that subsequent resizing or repositioning operations
+		 * are performed relative to this monitor.
+		 */
+		private Monitor monitor = null;
+
 		private StyledShell(int borderWidth) {
 			this.borderWidth = borderWidth;
 
@@ -462,6 +469,12 @@ public class LightBoxShell
 
 		private void open() {
 			if (true == isAlive()) {
+				/*
+				 * Get the monitor that the mouse cursor is in
+				 */
+				Point cursorLocation = display.getCursorLocation();
+				monitor = Utils.getMonitor(cursorLocation);
+
 				styledShell.open();
 				isAlreadyOpened = true;
 			}
@@ -517,9 +530,15 @@ public class LightBoxShell
 					}
 
 					/*
-					 * Adjust the new bounds if the shell does not fully fit on the screen
+					 * Adjust the new bounds if the shell does not fully fit on the screen.
+					 * If a monitor is already present then adjust the bounds relative to the monitor;
+					 * otherwise make it relative to the monitor the cursor resides in
 					 */
-					Utils.makeVisibleOnCursor(outerBounds);
+					if (null != monitor) {
+						Utils.makeVisibleOnMonitor(outerBounds, monitor);
+					} else {
+						Utils.makeVisibleOnCursor(outerBounds);
+					}
 
 					styledShell.setRegion(getRoundedRegion(outerBounds));
 					styledShell.setBounds(outerBounds);
