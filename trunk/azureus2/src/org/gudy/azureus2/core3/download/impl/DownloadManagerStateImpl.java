@@ -2613,6 +2613,8 @@ DownloadManagerStateImpl
 		private boolean		discard_pieces;
 		private boolean		logged_failure;
 		
+		private Boolean		simple_torrent;
+		
 		private volatile boolean		discard_fluff;
 		
 		protected
@@ -2643,7 +2645,14 @@ DownloadManagerStateImpl
 					
 					discard_pieces = l_fp.longValue() == 1;
 				}
-			}	
+			}
+			
+			Long	st = (Long)cache.get( "simple" );
+			
+			if ( st != null ){
+				
+				simple_torrent = new Boolean( st.longValue()==1 );
+			}
 		}
 		
 		protected static Map
@@ -2669,16 +2678,25 @@ DownloadManagerStateImpl
 			cache.put( "azp", state.getAdditionalMapProperty( AZUREUS_PROPERTIES_KEY ));
 			
 			boolean	discard_pieces = dms.isResumeDataComplete();
-			
-			if ( !discard_pieces ){
+						
+			TOTorrent	t = dms.getTorrent();
+
+			if ( t instanceof CachedStateWrapper ){
+
+				CachedStateWrapper csw = (CachedStateWrapper)t;
+
+				if ( !discard_pieces ){
+								
+						// discard pieces if they are currently discarded
+										
+					discard_pieces = csw.peekPieces() == null;
+				}
 				
-				TOTorrent	t = dms.getTorrent();
+				Boolean	simple_torrent = csw.simple_torrent;
 				
-					// discard pieces if they are currently discarded
-				
-				if ( t instanceof CachedStateWrapper ){
+				if ( simple_torrent != null ){
 					
-					discard_pieces = ((CachedStateWrapper)t).peekPieces() == null;
+					cache.put( "simple", new Long(simple_torrent.booleanValue()?1:0 ));
 				}
 			}
 			
@@ -2775,7 +2793,19 @@ DownloadManagerStateImpl
 			throws TOTorrentException
 		{					
 			// System.out.println("loadReal: " + torrent_file + " dp=" + discard_pieces + ": " + Debug.getCompressedStackTrace().substring(114));
-						
+				
+			if ( Constants.isCVSVersion()){
+				
+				if ( Thread.currentThread().isDaemon()){
+			
+					// Debug.outNoStack( "Fixup on thread " + Thread.currentThread().getName() + ": " + Debug.getCompressedStackTrace());
+					
+				}else{
+					
+					Debug.out( "Premature fixup?" );
+				}
+			}
+			
 			File	saved_file = getStateFile( torrent_hash_wrapper.getBytes() ); 
 			
 			if ( saved_file.exists()){
@@ -2847,9 +2877,18 @@ DownloadManagerStateImpl
     	public boolean
     	isSimpleTorrent()
     	{
+    		if ( simple_torrent != null ){
+    			
+    			return( simple_torrent.booleanValue());
+    		}
+    		
     		if ( fixup()){
     			
-    			return( delegate.isSimpleTorrent());
+    			boolean st = delegate.isSimpleTorrent();
+    			
+    			simple_torrent = new Boolean( st );
+    			
+    			return( st );
     		}
     		
     		return( false );
