@@ -102,10 +102,11 @@ public class LightBoxBrowserWindow
 		/*
 		 * Create the StyledShell to host the browser
 		 */
-		styledShell = lightBoxShell.createStyledShell(6, true);
+		styledShell = lightBoxShell.createPopUpShell(6, true, true);
 
 		styledShell.setBackground(new Color(lightBoxShell.getDisplay(), 38, 38, 38));
-		//		styledShell.setSize(50, 50);
+
+		
 		/*
 		 * Use a StackLayout with an error panel in the background so we can switch it to the front
 		 * when an error has occurred
@@ -255,6 +256,20 @@ public class LightBoxBrowserWindow
 			}
 		});
 
+		/*
+		 * If not using custom trim for the shell then we must display the title since the standard
+		 * dialog trim has the title bar
+		 */
+		if (false == styledShell.isUseCustomTrim()) {
+			browser.addTitleListener(new TitleListener() {
+
+				public void changed(TitleEvent event) {
+					styledShell.setText(event.title);
+
+				}
+
+			});
+		}
 		/*
 		 * Add the appropriate messaging listeners
 		 */
