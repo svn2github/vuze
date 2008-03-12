@@ -111,7 +111,7 @@ DownloadManagerStateImpl
 	
 	private DownloadManagerImpl			download_manager;
 	
-	private TorrentUtils.ExtendedTorrent	torrent;
+	private final TorrentUtils.ExtendedTorrent	torrent;
 	
 	private boolean						write_required;
 	
@@ -133,7 +133,7 @@ DownloadManagerStateImpl
 
 	private static DownloadManagerState
 	getDownloadState(
-		DownloadManagerImpl	download_manager,
+		DownloadManagerImpl				download_manager,
 		TOTorrent						original_torrent,
 		TorrentUtils.ExtendedTorrent	target_torrent )
 	
@@ -2698,6 +2698,9 @@ DownloadManagerStateImpl
 					
 					cache.put( "simple", new Long(simple_torrent.booleanValue()?1:0 ));
 				}
+			}else{
+				
+				// Debug.out( "Hmm, torrent isn't cache-state-wrapper, it is " + t );
 			}
 			
 			cache.put( "dp", new Long( discard_pieces?1:0 ));
