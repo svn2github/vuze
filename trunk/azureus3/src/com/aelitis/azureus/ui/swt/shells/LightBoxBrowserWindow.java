@@ -93,13 +93,6 @@ public class LightBoxBrowserWindow
 		lightBoxShell = new LightBoxShell(true);
 
 		/*
-		 * Specify the bottom inset to exclude the statusbar from the lightbox coverage area
-		 */
-		IMainWindow mainWindow = uiFunctions.getMainWindow();
-		Rectangle r = mainWindow.getMetrics(IMainWindow.WINDOW_ELEMENT_STATUSBAR);
-		lightBoxShell.setInsets(0, r.height, 0, 0);
-
-		/*
 		 * Create the StyledShell to host the browser
 		 */
 		styledShell = lightBoxShell.createPopUpShell(6, true, true);
