@@ -248,7 +248,9 @@ public class Tab {
     notifyListeners(tabAddListeners, tabItem);
     tabItem.addDisposeListener(new DisposeListener() {
         public void widgetDisposed(DisposeEvent event) {
-        	folder.removeMouseListener(mouseListener);
+        	if (mouseListener != null) {
+        		folder.removeMouseListener(mouseListener);
+        	}
             notifyListeners(tabRemoveListeners, tabItem);
         }
     });
