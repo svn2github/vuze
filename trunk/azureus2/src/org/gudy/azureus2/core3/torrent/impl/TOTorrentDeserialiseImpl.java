@@ -287,7 +287,8 @@ TOTorrentDeserialiseImpl
 					
 					Object	ann_list = meta_data.get( TK_ANNOUNCE_LIST );
 					
-					if( ann_list instanceof List ) {   //some malformed torrents have this key as a zero-sized string instead of a zero-sized list
+					if ( ann_list instanceof List ){   //some malformed torrents have this key as a zero-sized string instead of a zero-sized list
+						
 						announce_list = (List)ann_list;
 					}
 					
@@ -304,55 +305,63 @@ TOTorrentDeserialiseImpl
             
 						for (int i=0;i<announce_list.size();i++){
 							
-							List	set = (List)announce_list.get(i);
+							Object temp = announce_list.get(i);
+							
+							if ( temp instanceof List ){
 								
-							Vector urls = new Vector();
-								
-							for (int j=0;j<set.size();j++){
-								
-								String url_str = readStringFromMetaData((byte[])set.get(j));
+								List	set = (List)temp;
 									
-								url_str=url_str.replaceAll( " ", "" );
-                  
-					                	//check to see if the announce url is somewhere in the announce-list
-																		
-					            try{
-					            	urls.add( new URL( StringInterner.intern(url_str) ));		
-						    
-					            	if ( url_str.equalsIgnoreCase( announce_url )) {
-					                	
-					            		announce_url_found = true;
-					            	}
-						
-					            }catch( MalformedURLException e ){
+								Vector urls = new Vector();
 									
-					            	if ( url_str.indexOf( "://" ) == -1 ){
-											
-					            		url_str = "http:/" + (url_str.startsWith("/")?"":"/") + url_str;
-									}
-							         
-									try{
-						           		urls.add( new URL( StringInterner.intern(url_str) ));		
-						          
-						           		if ( url_str.equalsIgnoreCase( announce_url )) {
+								for (int j=0;j<set.size();j++){
+									
+									String url_str = readStringFromMetaData((byte[])set.get(j));
+										
+									url_str = url_str.replaceAll( " ", "" );
+	                  
+						                	//check to see if the announce url is somewhere in the announce-list
+																			
+						            try{
+						            	urls.add( new URL( StringInterner.intern(url_str) ));		
+							    
+						            	if ( url_str.equalsIgnoreCase( announce_url )) {
 						                	
 						            		announce_url_found = true;
 						            	}
-						       
-									}catch( MalformedURLException f ){
-				
-										Debug.printStackTrace( f );
-									} 
+							
+						            }catch( MalformedURLException e ){
+										
+						            	if ( url_str.indexOf( "://" ) == -1 ){
+												
+						            		url_str = "http:/" + (url_str.startsWith("/")?"":"/") + url_str;
+										}
+								         
+										try{
+							           		urls.add( new URL( StringInterner.intern(url_str) ));		
+							          
+							           		if ( url_str.equalsIgnoreCase( announce_url )) {
+							                	
+							            		announce_url_found = true;
+							            	}
+							       
+										}catch( MalformedURLException f ){
+					
+											Debug.printStackTrace( f );
+										} 
+									}
 								}
-							}
 							
-							if ( urls.size() > 0 ){
-							
-								URL[]	url_array = new URL[urls.size()];
+								if ( urls.size() > 0 ){
 								
-								urls.copyInto( url_array );
+									URL[]	url_array = new URL[urls.size()];
+									
+									urls.copyInto( url_array );
+									
+									addTorrentAnnounceURLSet( url_array );
+								}
+							}else{
 								
-								addTorrentAnnounceURLSet( url_array );
+								Debug.out( "Torrent has invalid url-list entry (" + temp + ") - ignoring" );
 							}
 						}
             
@@ -590,7 +599,7 @@ TOTorrentDeserialiseImpl
 				throw((TOTorrentException)e);	
 			}
 			
-			throw( new TOTorrentException( "Decode fails '" + e.toString() + "'",
+			throw( new TOTorrentException( "Torrent decode fails '" + Debug.getNestedExceptionMessageAndStack(e) + "'",
 											TOTorrentException.RT_DECODE_FAILS, e ));
 		}
 	}
