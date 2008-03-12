@@ -20,8 +20,6 @@ public class LightBoxShell
 
 	private Shell parentShell = null;
 
-	private Rectangle fadedAreaExtent = null;
-
 	private int insetTop = 0;
 
 	private int insetBottom = 0;
@@ -152,7 +150,7 @@ public class LightBoxShell
 
 	public void open() {
 		if (null != lbShell && false == lbShell.isDisposed()) {
-			lbShell.setBounds(getTargetArea());
+			lbShell.setBounds(getBounds());
 			isAlreadyOpened = true;
 			lbShell.open();
 		}
@@ -172,24 +170,22 @@ public class LightBoxShell
 	 * Returns the effective area for the lightbox
 	 * @return
 	 */
-	private Rectangle getTargetArea() {
-		if (null == fadedAreaExtent) {
-			/*
-			 * Not entirely sure why this has to be done this way but it seems
-			 * the Windows' shell has a 4 pixel border whereas the OSX's shell has none;
-			 * this offset is used to shift the image to fit the client area exactly
-			 */
+	public Rectangle getBounds() {
+		/*
+		 * Not entirely sure why this has to be done this way but it seems
+		 * the Windows' shell has a 4 pixel border whereas the OSX's shell has none;
+		 * this offset is used to shift the image to fit the client area exactly
+		 */
 
-			int xyOffset = (true == Constants.isOSX) ? 0 : 4;
+		int xyOffset = (true == Constants.isOSX) ? 0 : 4;
 
-			fadedAreaExtent = parentShell.getClientArea();
-			Point parentLocation = parentShell.getLocation();
-			fadedAreaExtent.x = parentLocation.x + xyOffset + insetLeft;
-			fadedAreaExtent.y = parentLocation.y + parentShell.getSize().y
-					- fadedAreaExtent.height - xyOffset + insetTop;
-			fadedAreaExtent.width -= insetRight + insetLeft;
-			fadedAreaExtent.height -= insetTop + insetBottom;
-		}
+		Rectangle fadedAreaExtent = parentShell.getClientArea();
+		Point parentLocation = parentShell.getLocation();
+		fadedAreaExtent.x = parentLocation.x + xyOffset + insetLeft;
+		fadedAreaExtent.y = parentLocation.y + parentShell.getSize().y
+				- fadedAreaExtent.height - xyOffset + insetTop;
+		fadedAreaExtent.width -= insetRight + insetLeft;
+		fadedAreaExtent.height -= insetTop + insetBottom;
 		return fadedAreaExtent;
 	}
 
