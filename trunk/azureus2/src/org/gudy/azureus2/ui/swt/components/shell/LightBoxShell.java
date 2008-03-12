@@ -194,13 +194,27 @@ public class LightBoxShell
 	}
 
 	/**
+	 * 
 	 * Creates a stylized shell with pre-defined look and feel
-	 * @param closeLightboxOnExit
+	 * @param borderWidth
+	 * @param closeLightboxOnExit if <code>true</code> then close the parent lightbox when this pop-up is closed; otherwise leave it opened
 	 * @return
 	 */
-	public StyledShell createStyledShell(int borderWidth,
+	public StyledShell createPopUpShell(int borderWidth,
 			boolean closeLightboxOnExit) {
-		StyledShell newShell = new StyledShell(borderWidth);
+		return createPopUpShell(borderWidth, closeLightboxOnExit, true);
+	}
+
+	/**
+	 * Creates a stylized shell with pre-defined look and feel
+	 * @param borderWidth is used for the width of the custom dialog trim; is not in effect if standard trim is specified
+	 * @param closeLightboxOnExit if <code>true</code> then close the parent lightbox when this pop-up is closed; otherwise leave it opened
+	 * @param useCustomTrim if <code>true</code> use our custom dialog trim; otherwise use default OS dialog trims 
+	 * @return
+	 */
+	public StyledShell createPopUpShell(int borderWidth,
+			boolean closeLightboxOnExit, boolean useCustomTrim) {
+		StyledShell newShell = new StyledShell(borderWidth, useCustomTrim);
 
 		if (true == closeLightboxOnExit) {
 			newShell.addListener(SWT.Close, new Listener() {
@@ -265,21 +279,43 @@ public class LightBoxShell
 		 */
 		private Monitor monitor = null;
 
+		private boolean useCustomTrim = true;
+
 		private StyledShell(int borderWidth) {
+			this(borderWidth, true);
+		}
+
+		/**
+		 * 
+		 * @param borderWidth
+		 * @param useCustomTrim
+		 */
+		private StyledShell(int borderWidth, boolean useCustomTrim) {
 			this.borderWidth = borderWidth;
+			this.useCustomTrim = useCustomTrim;
 
-			styledShell = new Shell(lbShell, getShellStyle(SWT.NONE));
-
-			LightBoxShell.this.setAlpha(styledShell, 0);
-
-			if (true == Constants.isOSX) {
-				getUIFunctions().createMainMenu(styledShell);
+			if (true == useCustomTrim) {
+				createCustomShell();
+			} else {
+				createStandardShell();
 			}
 
+		}
+
+		/**
+		 * Creates a pop-up shell with out custom style and trim
+		 */
+		private void createCustomShell() {
+			styledShell = new Shell(lbShell, getShellStyle(SWT.NONE));
 			FillLayout fillLayout = new FillLayout();
 			fillLayout.marginHeight = borderWidth;
 			fillLayout.marginWidth = borderWidth;
 			styledShell.setLayout(fillLayout);
+
+			LightBoxShell.this.setAlpha(styledShell, 0);
+			if (true == Constants.isOSX) {
+				getUIFunctions().createMainMenu(styledShell);
+			}
 
 			borderedBackground = new Composite(styledShell, SWT.NONE);
 
@@ -370,6 +406,26 @@ public class LightBoxShell
 			styledShell.addListener(SWT.MouseDown, l);
 			styledShell.addListener(SWT.MouseMove, l);
 			styledShell.setCursor(display.getSystemCursor(SWT.CURSOR_HAND));
+		}
+
+		/**
+		 * Creates a pop-up shell with standard dialog style and trim
+		 */
+		private void createStandardShell() {
+			styledShell = new Shell(lbShell, getShellStyle(SWT.NONE));
+			FillLayout fillLayout = new FillLayout();
+			fillLayout.marginHeight = 0;
+			fillLayout.marginWidth = 0;
+			styledShell.setLayout(fillLayout);
+
+			if (true == Constants.isOSX) {
+				getUIFunctions().createMainMenu(styledShell);
+			}
+			Utils.setShellIcon(styledShell);
+
+			content = new Composite(styledShell, SWT.NONE);
+
+			alpha = 255;
 
 		}
 
@@ -403,16 +459,19 @@ public class LightBoxShell
 			 * the embedded web page properly if the NO_TRIM flag is set; the NO_TRIM flag allows us to draw
 			 * a round-cornered shell.  Without this flag the shell corners would just be the normal square angle. 
 			 */
-			if (true == Constants.isOSX) {
-				if (true == isAlphaSupported) {
+			if (true == useCustomTrim) {
+				if (true == Constants.isOSX) {
+					if (true == isAlphaSupported) {
+						style |= SWT.NO_TRIM;
+					}
+				} else {
+					style |= SWT.APPLICATION_MODAL;
 					style |= SWT.NO_TRIM;
 				}
-			} else {
-				style |= SWT.APPLICATION_MODAL;
-				style |= SWT.NO_TRIM;
-			}
 
-			return style;
+				return style;
+			}
+			return SWT.APPLICATION_MODAL | SWT.DIALOG_TRIM | SWT.RESIZE;
 		}
 
 		private Region getRoundedRegion(Rectangle bounds) {
@@ -510,12 +569,21 @@ public class LightBoxShell
 			if (true == isAlive()) {
 				Rectangle outerBounds = styledShell.getBounds();
 
-				/*
-				 * Compensating since the 2 outer borders extends beyond the content area
-				 */
-
-				width += borderWidth * 4;
-				height += borderWidth * 4;
+				if (true == useCustomTrim) {
+					/*
+					 * Compensating since the 2 outer custom borders extends beyond the content area
+					 */
+					width += borderWidth * 4;
+					height += borderWidth * 4;
+				} else {
+					/*
+					 * Compensating since the dialog trim extends beyond the bounds of the content area
+					 */
+					width += styledShell.getBounds().width
+							- styledShell.getClientArea().width;
+					height += styledShell.getBounds().height
+							- styledShell.getClientArea().height;
+				}
 
 				if (outerBounds.width != width || outerBounds.height != height) {
 
@@ -540,13 +608,24 @@ public class LightBoxShell
 						Utils.makeVisibleOnCursor(outerBounds);
 					}
 
-					styledShell.setRegion(getRoundedRegion(outerBounds));
+					/*
+					 * Only custom trim needs custom region
+					 */
+					if (true == useCustomTrim) {
+						styledShell.setRegion(getRoundedRegion(outerBounds));
+					}
+
 					styledShell.setBounds(outerBounds);
 					styledShell.forceActive();
 				}
 			}
 		}
 
+		/**
+		 * Animates the visibility of the shell from 0 to the appropriate alpha level; this creates the effect
+		 * of a pop-up fading into view
+		 * @param milliSeconds
+		 */
 		public void animateFade(final int milliSeconds) {
 			if (false == isAlive() || true == isAnimating
 					|| false == isAlphaSupported) {
@@ -664,6 +743,21 @@ public class LightBoxShell
 			} else {
 				LightBoxShell.this.setAlpha(styledShell, alpha);
 			}
+		}
+
+		public String getText() {
+
+			return true == isAlive() ? styledShell.getText() : null;
+		}
+
+		public void setText(String string) {
+			if (true == isAlive()) {
+				styledShell.setText(string);
+			}
+		}
+
+		public boolean isUseCustomTrim() {
+			return useCustomTrim;
 		}
 	}
 
