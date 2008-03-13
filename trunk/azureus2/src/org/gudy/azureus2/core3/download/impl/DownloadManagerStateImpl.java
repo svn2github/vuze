@@ -2614,6 +2614,7 @@ DownloadManagerStateImpl
 		private boolean		logged_failure;
 		
 		private Boolean		simple_torrent;
+		private long		size;
 		
 		private volatile boolean		discard_fluff;
 		
@@ -2652,6 +2653,13 @@ DownloadManagerStateImpl
 			if ( st != null ){
 				
 				simple_torrent = new Boolean( st.longValue()==1 );
+			}
+			
+			Long	l_size = (Long)cache.get( "size" );
+			
+			if ( l_size != null ){
+				
+				size = l_size.longValue();
 			}
 		}
 		
@@ -3089,21 +3097,16 @@ DownloadManagerStateImpl
     	public long
     	getSize()
        	{
-    		Map	c = cache;
-			
-			if ( c != null ){
-				
-				Long	size = (Long)c.get( "size" );
-				
-				if ( size != null ){
-					
-					return( size.longValue());
-				}
-			}
+    		if ( size > 0 ){
+    			
+    			return( size );
+    		}
 			
 	   		if ( fixup()){
 				
-				return( delegate.getSize());
+				size = delegate.getSize();
+				
+				return( size );
 			}
 	   		
 	   		return( 0 );
