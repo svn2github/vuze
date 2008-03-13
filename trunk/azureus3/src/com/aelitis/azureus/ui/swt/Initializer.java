@@ -254,6 +254,12 @@ public class Initializer
 				return (true);
 			}
 
+			public boolean
+			requiresPluginInitCompleteBeforeStartedEvent()
+			{
+				return( false );
+			}
+			
 			public boolean stopRequested(AzureusCore _core)
 					throws AzureusCoreException {
 				return org.gudy.azureus2.ui.swt.mainwindow.Initializer.handleStopRestart(false);
