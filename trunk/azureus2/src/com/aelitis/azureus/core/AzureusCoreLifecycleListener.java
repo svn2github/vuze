@@ -74,4 +74,15 @@ AzureusCoreLifecycleListener
 	
 	public boolean
 	syncInvokeRequired();
+	
+		/**
+		 * hack - original semantics of the "started" event was that all plugins init complete
+		 * However, some can take a long time (and even block if attempting to acquire, say, public
+		 * IP address and version server is down...) so added this flag to allow listeners to
+		 * indicate that they're happy to be "started" before plugin init complete
+		 * @return
+		 */
+	
+	public boolean
+	requiresPluginInitCompleteBeforeStartedEvent();
 }

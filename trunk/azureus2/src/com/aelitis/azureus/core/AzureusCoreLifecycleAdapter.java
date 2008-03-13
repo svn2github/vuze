@@ -79,4 +79,10 @@ AzureusCoreLifecycleAdapter
 	{
 		return( false );
 	}
+	
+	public boolean
+	requiresPluginInitCompleteBeforeStartedEvent()
+	{
+		return( true );
+	}
 }

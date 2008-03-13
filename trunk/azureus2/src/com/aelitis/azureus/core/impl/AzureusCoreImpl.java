@@ -161,7 +161,7 @@ AzureusCoreImpl
 		
 		AETemporaryFileHandler.startup();
     
-		AEThread.setOurThread();
+		AEThread2.setOurThread();
 		
 			// set up a backwards pointer from config -> app dir so we can derive one from the other. It'll get saved on closedown, no need to do so now
 				
@@ -470,7 +470,7 @@ AzureusCoreImpl
 	
 		throws AzureusCoreException
 	{
-		AEThread.setOurThread();
+		AEThread2.setOurThread();
 		
 		try{
 			this_mon.enter();
@@ -599,18 +599,37 @@ AzureusCoreImpl
 		}catch( Throwable e ){
 		}
 		
-	    new AEThread("Plugin Init Complete")
+	    new AEThread2("Plugin Init Complete", false )
 	       {
 	        	public void
-	        	runSupport()
+	        	run()
 	        	{
+	        		for (int i=0;i<lifecycle_listeners.size();i++){
+	        			
+	        			try{
+	        				AzureusCoreLifecycleListener listener = (AzureusCoreLifecycleListener)lifecycle_listeners.get(i);
+	        				
+	        				if ( !listener.requiresPluginInitCompleteBeforeStartedEvent()){
+	        				
+	        					listener.started( AzureusCoreImpl.this );
+	        				}
+	        			}catch( Throwable e ){
+	        				
+	        				Debug.printStackTrace(e);
+	        			}
+	        		}
+	        		
 	        		pi.initialisationComplete();
 	        		
 	        		for (int i=0;i<lifecycle_listeners.size();i++){
 	        			
 	        			try{
-	        				((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).started( AzureusCoreImpl.this );
+	        				AzureusCoreLifecycleListener listener = (AzureusCoreLifecycleListener)lifecycle_listeners.get(i);
 	        				
+	        				if ( listener.requiresPluginInitCompleteBeforeStartedEvent()){
+	        				
+	        					listener.started( AzureusCoreImpl.this );
+	        				}				
 	        			}catch( Throwable e ){
 	        				
 	        				Debug.printStackTrace(e);
@@ -741,10 +760,10 @@ AzureusCoreImpl
 			
 			final Throwable[]	error = {null};
 			
-			new AEThread( "AzureusCore:runNonDaemon" )
+			new AEThread2( "AzureusCore:runNonDaemon", false )
 			{
 				public void
-				runSupport()
+				run()
 				{
 					try{
 			
@@ -956,12 +975,12 @@ AzureusCoreImpl
 					
 					final Thread	t = threads[i];
 					
-					if ( t != null && t != Thread.currentThread() && !t.isDaemon() && !AEThread.isOurThread( t )){
+					if ( t != null && t != Thread.currentThread() && !t.isDaemon() && !AEThread2.isOurThread( t )){
 						
-						new AEThread( "VMKiller", true )
+						new AEThread2( "VMKiller", true )
 						{
 							public void
-							runSupport()
+							run()
 							{
 								try{
 									Thread.sleep(10*1000);
