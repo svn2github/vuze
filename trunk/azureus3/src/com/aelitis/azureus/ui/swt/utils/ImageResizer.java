@@ -9,6 +9,7 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -119,9 +120,11 @@ public class ImageResizer
 		//If the image is too small, let's just not deal with it
 		if (!checkSize(original)) {
 			dispose();
-			throw new ImageResizeException(
-					"The image provided is too small (has to be at least " + minWidth
-							+ " x " + minHeight + "), please choose a different one");
+			throw new ImageResizeException(MessageText.getString(
+					"ImageResizer.image.too.small", new String[] {
+						minWidth + "",
+						minHeight + ""
+					}));
 		}
 
 		originalWidth = original.getBounds().width;
@@ -190,7 +193,7 @@ public class ImageResizer
 		shell.setLayout(layout);
 
 		Label title = new Label(shell, SWT.WRAP);
-		title.setText("This tool lets you preview how your thumbnail is going to look like on the Azureus Platform");
+		title.setText(MessageText.getString("ImageResizer.title"));
 
 		data = new FormData();
 		data.width = displayWidth;
@@ -270,9 +273,9 @@ public class ImageResizer
 				}
 			});
 			attach = scale;
-			label.setText("Move the image by dragging it, resize it by using the slider below");
+			label.setText(MessageText.getString("ImageResizer.move.image.with.slider"));
 		} else {
-			label.setText("Move the image by dragging it");
+			label.setText(MessageText.getString("ImageResizer.move.image"));
 		}
 
 		// (1) Layout of the label, depending on the text in it
