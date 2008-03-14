@@ -123,6 +123,7 @@ DHTDBImpl
 		SimpleTimer.addPeriodicEvent(
 			"DHTDB:op",
 			original_republish_interval,
+			true, // absolute, we don't want effective time changes (computer suspend/resume) to shift these
 			new TimerEventPerformer()
 			{
 				public void
@@ -149,6 +150,7 @@ DHTDBImpl
 		SimpleTimer.addPeriodicEvent(
 				"DHTDB:cp",
 				cache_republish_interval + 10000 - (int)(Math.random()*20000),
+				true,	// absolute, we don't want effective time changes (computer suspend/resume) to shift these
 				new TimerEventPerformer()
 				{
 					public void

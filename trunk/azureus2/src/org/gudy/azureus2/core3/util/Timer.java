@@ -216,7 +216,7 @@ public class Timer
 			
 			synchronized( this ){
 				
-					// as we're adjusting all events by the same amount the ordering remains valid
+				boolean resort = false;
 				
 				Iterator	it = events.iterator();
 				
@@ -224,32 +224,48 @@ public class Timer
 					
 					TimerEvent	event = (TimerEvent)it.next();
 					
-					long	old_when = event.getWhen();
-					long	new_when = old_when + offset;
+						// absolute events don't have their timings fiddled with
 					
-					TimerEventPerformer performer = event.getPerformer();
-					
-						// sanity check for periodic events
-					
-					if ( performer instanceof TimerEventPeriodic ){
+					if ( event.isAbsolute()){
 						
-						TimerEventPeriodic	periodic_event = (TimerEventPeriodic)performer;
+							// event ordering may change
 						
-						long	freq = periodic_event.getFrequency();
-												
-						if ( new_when > current_time + freq + 5000 ){
+						resort = true;
+						
+					}else{
+						
+						long	old_when = event.getWhen();
+						long	new_when = old_when + offset;
+						
+						TimerEventPerformer performer = event.getPerformer();
+						
+							// sanity check for periodic events
+						
+						if ( performer instanceof TimerEventPeriodic ){
 							
-							long	adjusted_when = current_time + freq;
+							TimerEventPeriodic	periodic_event = (TimerEventPeriodic)performer;
 							
-							Debug.outNoStack( periodic_event.getName() + ": clock change sanity check. Reduced schedule time from " + new_when + " to " +  adjusted_when );
+							long	freq = periodic_event.getFrequency();
+													
+							if ( new_when > current_time + freq + 5000 ){
 								
-							new_when = adjusted_when;
+								long	adjusted_when = current_time + freq;
+								
+								Debug.outNoStack( periodic_event.getName() + ": clock change sanity check. Reduced schedule time from " + new_when + " to " +  adjusted_when );
+									
+								new_when = adjusted_when;
+							}
 						}
+						
+						// System.out.println( "    adjusted: " + old_when + " -> " + new_when );
+						
+						event.setWhen( new_when );
 					}
+				}
+				
+				if ( resort ){
 					
-					// System.out.println( "    adjusted: " + old_when + " -> " + new_when );
-					
-					event.setWhen( new_when );
+					events = new TreeSet( events );
 				}
 
 				notify();
@@ -304,6 +320,16 @@ public class Timer
 	
 	public synchronized TimerEvent
 	addEvent(
+		String				name,
+		long				when,
+		boolean				absolute,
+		TimerEventPerformer	performer )
+	{
+		return( addEvent( name, SystemTime.getCurrentTime(), when, absolute, performer ));
+	}
+	
+	public synchronized TimerEvent
+	addEvent(
 		long				creation_time,
 		long				when,
 		TimerEventPerformer	performer )
@@ -313,12 +339,33 @@ public class Timer
 	
 	public synchronized TimerEvent
 	addEvent(
+		long				creation_time,
+		long				when,
+		boolean				absolute,
+		TimerEventPerformer	performer )
+	{
+		return( addEvent( null, creation_time, when, absolute, performer ));
+	}
+	
+	public synchronized TimerEvent
+	addEvent(
 		String				name,
 		long				creation_time,
 		long				when,
 		TimerEventPerformer	performer )
 	{
-		TimerEvent	event = new TimerEvent( this, unique_id_next++, creation_time, when, performer );
+		return( addEvent( name, creation_time, when, false, performer ));
+	}
+	
+	public synchronized TimerEvent
+	addEvent(
+		String				name,
+		long				creation_time,
+		long				when,
+		boolean				absolute,
+		TimerEventPerformer	performer )
+	{
+		TimerEvent	event = new TimerEvent( this, unique_id_next++, creation_time, when, absolute, performer );
 		
 		if ( name != null ){
 			
@@ -363,7 +410,17 @@ public class Timer
 		long				frequency,
 		TimerEventPerformer	performer )
 	{
-		TimerEventPeriodic periodic_performer = new TimerEventPeriodic( this, frequency, performer );
+		return( addPeriodicEvent( name, frequency, false, performer ));
+	}
+	
+	public synchronized TimerEventPeriodic
+	addPeriodicEvent(
+		String				name,
+		long				frequency,
+		boolean				absolute,
+		TimerEventPerformer	performer )
+	{
+		TimerEventPeriodic periodic_performer = new TimerEventPeriodic( this, frequency, absolute, performer );
 		
 		if ( name != null ){
 			

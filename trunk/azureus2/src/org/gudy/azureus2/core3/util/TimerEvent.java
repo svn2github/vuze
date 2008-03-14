@@ -38,6 +38,7 @@ TimerEvent
 	private long					when;
 	private TimerEventPerformer	performer;
 	
+	private boolean		absolute;
 	private boolean		cancelled;
 	private boolean		has_run;
 	
@@ -49,11 +50,13 @@ TimerEvent
 		long					_unique_id,
 		long					_created,
 		long					_when,
+		boolean					_absolute,
 		TimerEventPerformer		_performer )
 	{
 		timer		= _timer;
 		unique_id	= _unique_id;
 		when		= _when;
+		absolute	= _absolute;
 		performer	= _performer;
 		
 		created 	= _created;
@@ -101,6 +104,12 @@ TimerEvent
 	getPerformer()
 	{
 		return( performer );
+	}
+	
+	protected boolean
+	isAbsolute()
+	{
+		return( absolute );
 	}
 	
 	public void
