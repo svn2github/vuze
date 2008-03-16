@@ -752,11 +752,42 @@ SESecurityManagerImpl
 				
 				Object[]	handler = (Object[])certificate_handlers.get( url_s );
 				
+				String	alias = host.concat(":").concat(String.valueOf(port));
+				
+				KeyStore keystore = getTrustStore();
+
+				byte[]	new_encoded = x509_cert.getEncoded();
+				
+				int	count = 0;
+				
+				while( count < 256 ){
+					
+					String	test_alias = count==0?alias:(alias + "." + count );
+					
+					Certificate existing = keystore.getCertificate( test_alias );
+				
+					if ( existing != null ){
+					
+						if ( Arrays.equals( new_encoded, existing.getEncoded())){
+						
+							alias = test_alias;
+							
+							break;
+						}
+					}else{
+						
+						alias = test_alias;
+						
+						break;
+					}
+					
+					count++;
+				}
+
 				if ( handler != null ){
 					
 					if (((SECertificateListener)handler[0]).trustCertificate( resource, x509_cert )){
 						
-						String	alias = host.concat(":").concat(String.valueOf(port));
 				
 						return( addCertToTrustStore( alias, cert, true ));
 					}
@@ -766,7 +797,6 @@ SESecurityManagerImpl
 					
 					if (((SECertificateListener)certificate_listeners.get(i)).trustCertificate( resource, x509_cert )){
 						
-						String	alias = host.concat(":").concat(String.valueOf(port));
 				
 						return( addCertToTrustStore( alias, cert, true ));
 					}
