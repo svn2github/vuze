@@ -239,8 +239,8 @@ public class SpeedLimitMonitor implements PSMonitorListener
 
     private void logPMData(int oRate, SpeedLimitConfidence oConf, int nRate, float nConf, String type){
 
-        SpeedManagerLogger.log("speed-limit-conf: "+type+" rate="+oRate+" conf="+oConf.getString()+"("+oConf.asEstimateType()
-                +") pm-rate="+nRate+" pm-conf="+nConf);
+//        SpeedManagerLogger.log("speed-limit-conf: "+type+" rate="+oRate+" conf="+oConf.getString()+"("+oConf.asEstimateType()
+//                +") pm-rate="+nRate+" pm-conf="+nConf);
 
     }//logPMData
 

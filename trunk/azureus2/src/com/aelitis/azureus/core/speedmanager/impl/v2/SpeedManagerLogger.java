@@ -50,6 +50,6 @@ public class SpeedManagerLogger
      * @param str -
      */
     public static void trace(String str){
-        log("-trace-> "+str);
+//        log("-trace-> "+str);
     }//trace
 }
