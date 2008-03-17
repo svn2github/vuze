@@ -21,6 +21,8 @@
 
 package org.gudy.azureus2.ui.swt;
 
+import java.net.URLDecoder;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -72,7 +74,8 @@ public class FileDownloadWindow
 
 	Shell parent;
 
-	String url;
+	String original_url;
+	String decoded_url;
 
 	String referrer;
 
@@ -112,10 +115,16 @@ public class FileDownloadWindow
 
 		this._azureus_core = _azureus_core;
 		this.parent = parent;
-		this.url = url;
+		this.original_url = url;
 		this.referrer = referrer;
 		this.listener = listener;
 
+		try{
+			decoded_url = URLDecoder.decode( original_url, "UTF8" );
+		}catch( Throwable e ){
+			decoded_url = original_url;
+			
+		}
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				init();
@@ -144,7 +153,7 @@ public class FileDownloadWindow
 		pReporter = ProgressReportingManager.getInstance().addReporter();
 		setupAndShowDialog();
 
-		downloader = TorrentDownloaderFactory.create(this, url, referrer, dirName);
+		downloader = TorrentDownloaderFactory.create(this, original_url, referrer, dirName);
 		downloader.start();
 	}
 
@@ -154,9 +163,9 @@ public class FileDownloadWindow
 	private void setupAndShowDialog() {
 		if (null != pReporter) {
 			pReporter.setName(MessageText.getString("fileDownloadWindow.state_downloading")
-					+ ": " + getFileName(url));
+					+ ": " + getFileName(decoded_url));
 			pReporter.appendDetailMessage(MessageText.getString("fileDownloadWindow.downloading")
-					+ getShortURL(url));
+					+ getShortURL(decoded_url));
 			pReporter.setTitle(MessageText.getString("fileDownloadWindow.title"));
 			pReporter.setIndeterminate(true);
 			pReporter.setCancelAllowed(true);
@@ -177,7 +186,7 @@ public class FileDownloadWindow
 								//KN: correct logger id?
 								Logger.log(new LogEvent(LogIDs.LOGGER, MessageText.getString(
 										"FileDownload.canceled", new String[] {
-											getShortURL(url)
+											getShortURL(decoded_url)
 										})));
 							}
 							break;
@@ -187,7 +196,7 @@ public class FileDownloadWindow
 							if (true == pReport.isRetryAllowed()) {
 								downloader.cancel();
 								downloader = TorrentDownloaderFactory.create(
-										FileDownloadWindow.this, url, referrer, dirName);
+										FileDownloadWindow.this, original_url, referrer, dirName);
 								downloader.start();
 							}
 							break;
