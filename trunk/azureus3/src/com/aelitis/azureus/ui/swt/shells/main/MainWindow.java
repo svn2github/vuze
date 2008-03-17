@@ -577,7 +577,6 @@ public class MainWindow
 			startTime = SystemTime.getCurrentTime();
 
 			try {
-				//AdManager.getInstance().intialize(core);
                 DCAdManager.getInstance().initialize(core);
             } catch (Throwable e) {
 			}
