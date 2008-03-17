@@ -619,7 +619,7 @@ public class MenuFactory
 		final MenuItem item = addMenuItem(menu, MENU_ID_WINDOW_MINIMIZE,
 				new Listener() {
 					public void handleEvent(Event event) {
-						if (shell.isDisposed()) {
+						if (null == shell || shell.isDisposed()) {
 							event.doit = false;
 							return;
 						}
@@ -629,12 +629,16 @@ public class MenuFactory
 
 		Listener enableHandler = new Listener() {
 			public void handleEvent(Event event) {
-				if (null != shell && false == shell.isDisposed()) {
-					if (((shell.getStyle() & SWT.MIN) != 0)) {
-						item.setEnabled(false == shell.getMinimized());
-					} else {
-						item.setEnabled(false);
-					}
+				if (null == shell || true == shell.isDisposed()
+						|| true == item.isDisposed()) {
+					event.doit = false;
+					return;
+				}
+
+				if (((shell.getStyle() & SWT.MIN) != 0)) {
+					item.setEnabled(false == shell.getMinimized());
+				} else {
+					item.setEnabled(false);
 				}
 			}
 		};
@@ -771,10 +775,12 @@ public class MenuFactory
 				if (null != shell && false == shell.isDisposed()) {
 					if (false == Constants.isOSX) {
 						if (true == shell.getMaximized()) {
-							Messages.setLanguageText(item,
+							Messages.setLanguageText(
+									item,
 									MessageText.resolveLocalizationKey(MENU_ID_WINDOW_ZOOM_RESTORE));
 						} else {
-							Messages.setLanguageText(item,
+							Messages.setLanguageText(
+									item,
 									MessageText.resolveLocalizationKey(MENU_ID_WINDOW_ZOOM_MAXIMIZE));
 						}
 					}
