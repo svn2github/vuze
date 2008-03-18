@@ -628,18 +628,7 @@ public class MainWindow
 				if (COConfigurationManager.getBooleanParameter("v3.Start Advanced")) {
 					startTab = SkinConstants.VIEWID_ADVANCED_TAB;
 				} else {
-					boolean hasInComplete = false;
-					Object[] dms = core.getGlobalManager().getDownloadManagers().toArray();
-					for (int i = 0; i < dms.length; i++) {
-						DownloadManager dm = (DownloadManager) dms[i];
-						if (!dm.getAssumedComplete()) {
-							hasInComplete = true;
-							break;
-						}
-					}
-
-					startTab = hasInComplete ? SkinConstants.VIEWID_HOME_TAB
-							: SkinConstants.VIEWID_BROWSE_TAB;
+					startTab = SkinConstants.VIEWID_HOME_TAB;
 				}
 				tabSet.setActiveTab(startTab);
 
@@ -671,6 +660,7 @@ public class MainWindow
 		} finally {
 			showMainWindow();
 
+			System.out.println("sb=" + COConfigurationManager.getBooleanParameter("SearchBar.visible") + ";tb=" + COConfigurationManager.getBooleanParameter("TabBar.visible"));
 			/*
 			 * Sets the visibility of the Search and Tab bars after the window has been opened
 			 * because these elements require the window to be in it's proper size before they
