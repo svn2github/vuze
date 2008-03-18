@@ -29,6 +29,8 @@ import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
+
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -74,6 +76,15 @@ BufferedTableRow
 	
 	private Point ptIconSize = null;
 	
+	
+	static {
+		Colors.getInstance().addColorsChangedListener(new ParameterListener() {
+			public void parameterChanged(String parameterName) {
+				alternatingColors = null;
+			}
+		});
+	}
+	
 	/**
 	 * Default constructor
 	 * 
@@ -115,15 +126,21 @@ BufferedTableRow
 			return;
 		}
 
-		if (alternatingColors == null || alternatingColors[1].isDisposed()) {
-			alternatingColors = new Color[] {
+		try {
+			if (alternatingColors == null || alternatingColors[1].isDisposed()) {
+				alternatingColors = new Color[] {
 					table.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND),
-					Colors.colorAltRow };
-		}
+					Colors.colorAltRow
+				};
+			}
 
-		Color newColor = alternatingColors[index % alternatingColors.length];
-		if (!newColor.equals(getBackground()))
-			item.setBackground(newColor);
+			Color newColor = alternatingColors[index % alternatingColors.length];
+			if (!newColor.equals(getBackground())) {
+				item.setBackground(newColor);
+			}
+		} catch (Exception e) {
+			Debug.out(e);
+		}
 	}
 
 	/**
