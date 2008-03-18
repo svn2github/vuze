@@ -327,7 +327,7 @@ DownloadManagerImpl
 	
 	private String	display_name	= "";
 	private String	internal_name	= "";
-		
+	
 		// for simple torrents this refers to the torrent file itself. For non-simple it refers to the
 		// folder containing the torrent's files
 	
@@ -493,6 +493,12 @@ DownloadManagerImpl
     
     private int		crypto_level = NetworkManager.CRYPTO_OVERRIDE_NONE;
     
+    // For amc1 to debug
+    public byte[] _debug_torrent_name = null;
+    public String _debug_decoded_torrent_name = null;
+    public String _debug_decoded_torrent_name_os_safe = null;
+
+    
 	// Only call this with STATE_QUEUED, STATE_WAITING, or STATE_STOPPED unless you know what you are doing
 	
 	private volatile boolean	destroyed;
@@ -651,11 +657,14 @@ DownloadManagerImpl
 						 
 				 	// if its a simple torrent and an explicit save file wasn't supplied, use
 				 	// the torrent name itself
-				 
-				 display_name = locale_decoder.decodeString( torrent.getName());
+
+				 this._debug_torrent_name = torrent.getName();
+				 display_name = locale_decoder.decodeString(this._debug_torrent_name);
+				 this._debug_decoded_torrent_name = display_name;
 	             
 				 display_name = FileUtil.convertOSSpecificChars( display_name );
-			
+				 this._debug_decoded_torrent_name_os_safe = display_name;
+				 
 				 internal_name = ByteFormatter.nicePrint(torrent.getHash(),true);
 	
 				 	// now we know if its a simple torrent or not we can make some choices about
