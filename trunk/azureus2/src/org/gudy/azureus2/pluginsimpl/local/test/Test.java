@@ -51,6 +51,7 @@ import org.gudy.azureus2.plugins.utils.security.SEPublicKeyLocator;
 import org.gudy.azureus2.plugins.utils.security.SESecurityManager;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler;
+import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler.passwordDetails;
 
 import java.io.File;
 import java.net.InetSocketAddress;
@@ -170,7 +171,7 @@ Test
 			AzureusCoreFactory.getSingleton().getCryptoManager().addPasswordHandler(
 				new CryptoManagerPasswordHandler()
 				{
-					public char[]
+					public passwordDetails
 		        	getPassword(
 		        		int			handler_type,
 		        		int			action_type,
@@ -178,7 +179,21 @@ Test
 					{
 						System.out.println( "CryptoPassword (" + reason + ")");
 						
-						return( "changeit".toCharArray());
+						return(
+							new passwordDetails()
+							{
+								public char[]
+								getPassword()
+								{
+									return( "changeit".toCharArray());
+								}
+								
+								public int 
+								getPersistForSeconds() 
+								{
+									return( 0 );
+								}
+							});
 					}
 				});
 			

@@ -36,9 +36,23 @@ CryptoManagerPasswordHandler
 		 * @return
 		 */
 	
-	public char[]
+	public passwordDetails
 	getPassword(
 		int			handler_type,
 		int			action_type,
 		String		reason );
+	
+	public interface
+	passwordDetails
+	{
+		public char[]
+		getPassword();
+		
+			/**
+			 * @return	0 -> don't persist, Integer.MAX_VALUE -> persist forever
+			 */
+		
+		public int
+		getPersistForSeconds();
+	}
 }
