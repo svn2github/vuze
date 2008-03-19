@@ -34,6 +34,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.security.SESecurityManager;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -41,6 +42,9 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.auth.CertificateCreatorWindow;
 import org.gudy.azureus2.ui.swt.config.StringParameter;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
+
+import com.aelitis.azureus.core.security.CryptoManager;
+import com.aelitis.azureus.core.security.CryptoManagerFactory;
 
 /**
  * @author parg
@@ -178,6 +182,66 @@ ConfigSectionSecurity
 	    
 	    new Label(gSecurity, SWT.NULL );
 	
+    		// row
+	    
+	    Label reset_key_label = new Label(gSecurity, SWT.NULL );
+	    reset_key_label.setText( "Reset private key" );
+
+	    Button reset_key_button = new Button(gSecurity, SWT.PUSH);
+	    reset_key_button.setText( "Reset" );
+
+	    reset_key_button.addListener(SWT.Selection, 
+	    		new Listener() 
+				{
+			        public void 
+					handleEvent(Event event) 
+			        {
+			        	 // TODO: are you sure dialog
+			        	
+			        	try{
+			        		CryptoManagerFactory.getSingleton().getECCHandler().resetKeys( null );
+			        					        		
+			        	}catch( Throwable e ){
+			        		
+			        		System.out.println( "Failed to get key" );
+			        		
+			        		e.printStackTrace();
+			        	}
+			        }
+			    });
+	    
+	    new Label(gSecurity, SWT.NULL );
+	    	// row
+	    
+	    Label priv_key_label = new Label(gSecurity, SWT.NULL );
+	    priv_key_label.setText( "Test private key protection" );
+
+	    Button priv_key_button = new Button(gSecurity, SWT.PUSH);
+	    priv_key_button.setText( "Test" );
+
+	    priv_key_button.addListener(SWT.Selection, 
+	    		new Listener() 
+				{
+			        public void 
+					handleEvent(Event event) 
+			        {
+			        	try{
+			        		byte[] result = CryptoManagerFactory.getSingleton().getECCHandler().getEncryptedPrivateKey( "Testing!" );
+			        		
+			        		System.out.println( "ECC private key=" + ByteFormatter.encodeString( result ));
+			        		
+			        	}catch( Throwable e ){
+			        		
+			        		System.out.println( "Failed to get key" );
+			        		
+			        		e.printStackTrace();
+			        	}
+			        }
+			    });
+	    
+	    new Label(gSecurity, SWT.NULL );
+	    
+	    
 	    return gSecurity;
 	  }
 	}

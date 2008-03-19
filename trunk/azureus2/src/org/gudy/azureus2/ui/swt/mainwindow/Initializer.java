@@ -37,6 +37,7 @@ import org.gudy.azureus2.ui.common.util.UserAlerts;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.auth.AuthenticatorWindow;
 import org.gudy.azureus2.ui.swt.auth.CertificateTrustWindow;
+import org.gudy.azureus2.ui.swt.auth.CryptoWindow;
 import org.gudy.azureus2.ui.swt.networks.SWTNetworkSelection;
 import org.gudy.azureus2.ui.swt.pluginsinstaller.InstallPluginWizard;
 import org.gudy.azureus2.ui.swt.progress.ProgressWindow;
@@ -191,6 +192,7 @@ Initializer
 	    new SWTNetworkSelection();
 	    
 	    new AuthenticatorWindow();
+	    new CryptoWindow();
 	    
 	    new CertificateTrustWindow();
 
