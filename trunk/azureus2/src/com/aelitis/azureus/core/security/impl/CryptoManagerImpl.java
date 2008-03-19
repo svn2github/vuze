@@ -194,6 +194,19 @@ CryptoManagerImpl
 		}
    	}
 	
+	public void
+	clearPasswords()
+	{
+		ecc_handler.lock();
+		
+		for (int i=0;i<CryptoManager.HANDLERS.length;i++){
+			
+			String persist_timeout_key 	= CryptoManager.CRYPTO_CONFIG_PREFIX + "pw." + CryptoManager.HANDLERS[i] + ".persist_timeout";
+			
+			COConfigurationManager.setParameter( persist_timeout_key, 0 );
+		}
+	}
+	
 	protected char[]
 	getPassword(
 		int		handler,

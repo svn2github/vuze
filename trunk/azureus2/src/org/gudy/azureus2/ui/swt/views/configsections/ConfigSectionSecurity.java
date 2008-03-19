@@ -23,6 +23,11 @@
 package org.gudy.azureus2.ui.swt.views.configsections;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -30,17 +35,24 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.MessageBox;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.security.SESecurityManager;
+import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.auth.CertificateCreatorWindow;
 import org.gudy.azureus2.ui.swt.config.StringParameter;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 import com.aelitis.azureus.core.security.CryptoManager;
@@ -77,13 +89,15 @@ ConfigSectionSecurity
 	}
 	
 	public int maxUserMode() {
-		return 0;
+		return 2;
 	}
 	  
 	public Composite 
 	configSectionCreate(
 		final Composite parent) 
 	{
+		int userMode = COConfigurationManager.getIntParameter("User Mode");
+
 	    GridData gridData;
 
 	    Composite gSecurity = new Composite(parent, SWT.NULL);
@@ -177,70 +191,145 @@ ConfigSectionSecurity
 					handleEvent(Event event) 
 			        {
 			        	SESecurityManager.clearPasswords();
+			        	
+			        	CryptoManagerFactory.getSingleton().clearPasswords();
 			        }
 			    });
 	    
 	    new Label(gSecurity, SWT.NULL );
 	
-    		// row
-	    
-	    Label reset_key_label = new Label(gSecurity, SWT.NULL );
-	    reset_key_label.setText( "Reset private key" );
+	    if ( userMode >= 2 ){
+	    	
+	    	final CryptoManager crypt_man = CryptoManagerFactory.getSingleton();
+	    	
+	    	Group crypto_group = new Group(gSecurity, SWT.NULL);
+		    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+		    gridData.horizontalSpan = 3;
+		    crypto_group.setLayoutData(gridData);
+		    layout = new GridLayout();
+		    layout.numColumns = 3;
+		    crypto_group.setLayout(layout);
+		    
+			Messages.setLanguageText(crypto_group,"ConfigView.section.security.group.crypto");
+			
+				// row
 
-	    Button reset_key_button = new Button(gSecurity, SWT.PUSH);
-	    reset_key_button.setText( "Reset" );
+			byte[]	public_key = crypt_man.getECCHandler().peekPublicKey( null );
+			
+		    Label public_key_label = new Label(crypto_group, SWT.NULL );
+		    Messages.setLanguageText(public_key_label, "ConfigView.section.security.publickey");
 
-	    reset_key_button.addListener(SWT.Selection, 
-	    		new Listener() 
-				{
-			        public void 
-					handleEvent(Event event) 
-			        {
-			        	 // TODO: are you sure dialog
-			        	
-			        	try{
-			        		CryptoManagerFactory.getSingleton().getECCHandler().resetKeys( null );
-			        					        		
-			        	}catch( Throwable e ){
-			        		
-			        		System.out.println( "Failed to get key" );
-			        		
-			        		e.printStackTrace();
-			        	}
-			        }
+			if ( public_key == null ){
+				
+			    Label public_key_value = new Label(crypto_group, SWT.NULL );
+			    Messages.setLanguageText(public_key_value, "ConfigView.section.security.publickey.undef");
+
+			}else{
+				
+			    Label public_key_value = new Label(crypto_group, SWT.NULL );
+			    
+			    final String key_str = Base32.encode( public_key );
+			    
+			    public_key_value.setText( key_str );
+			    
+			    public_key_value.setCursor(Cursors.handCursor);
+			    public_key_value.setForeground(Colors.blue);
+			    public_key_value.addMouseListener(new MouseAdapter() {
+			    	public void mouseDoubleClick(MouseEvent arg0) {
+			    		copyToClipboard();
+			    	}
+			    	public void mouseDown(MouseEvent arg0) {
+			    		copyToClipboard();
+			    	}
+			    	protected void
+			    	copyToClipboard()
+			    	{
+		    			new Clipboard(parent.getDisplay()).setContents(new Object[] {key_str}, new Transfer[] {TextTransfer.getInstance()});
+			    	}
 			    });
-	    
-	    new Label(gSecurity, SWT.NULL );
-	    	// row
-	    
-	    Label priv_key_label = new Label(gSecurity, SWT.NULL );
-	    priv_key_label.setText( "Test private key protection" );
+			}
+			
+		    new Label(crypto_group, SWT.NULL );
+		    
+	    		// row
+		    
+		    Label reset_key_label = new Label(crypto_group, SWT.NULL );
+		    Messages.setLanguageText(reset_key_label, "ConfigView.section.security.resetkey");
+	
+		    Button reset_key_button = new Button(crypto_group, SWT.PUSH);
+		    Messages.setLanguageText(reset_key_button, "ConfigView.section.security.clearpasswords.button");
+	
+		    reset_key_button.addListener(SWT.Selection, 
+		    		new Listener() 
+					{
+				        public void 
+						handleEvent(Event event) 
+				        {
+		 					MessageBox mb = new MessageBox( parent.getShell(),SWT.ICON_WARNING | SWT.OK | SWT.CANCEL );
+		 					
+		 					mb.setText(MessageText.getString("ConfigView.section.security.resetkey.warning.title"));
+		 				
+		 					mb.setMessage(	MessageText.getString("ConfigView.section.security.resetkey.warning"));
+		 					
+		 					if ( mb.open() == SWT.OK ){
+		 					
+					        	try{
+					        		crypt_man.getECCHandler().resetKeys( null );
+					        					        		
+					        	}catch( Throwable e ){
+					        		
+					        		Debug.out( "Failed to create keys", e );
+					        		
+				 					MessageBox mb2 = new MessageBox( parent.getShell(),SWT.ICON_ERROR | SWT.OK );
+				 					
+				 					mb2.setText(MessageText.getString( "ConfigView.section.security.resetkey.error.title"));
+				 				
+				 					mb2.setMessage(	MessageText.getString( "ConfigView.section.security.resetkey.error" ) + ": " + Debug.getNestedExceptionMessage(e));
 
-	    Button priv_key_button = new Button(gSecurity, SWT.PUSH);
-	    priv_key_button.setText( "Test" );
+				 					mb2.open();
+					        	}
+		 					}
+				        }
+				    });
+		    
+		    new Label(crypto_group, SWT.NULL );
+		    	
+		    	// row
+		    
+		    Label priv_key_label = new Label(crypto_group, SWT.NULL );
+		    Messages.setLanguageText(priv_key_label, "ConfigView.section.security.unlockkey");
+	
+		    Button priv_key_button = new Button(crypto_group, SWT.PUSH);
+		    Messages.setLanguageText(priv_key_button, "ConfigView.section.security.unlockkey.button");
+	
+		    priv_key_button.addListener(SWT.Selection, 
+		    		new Listener() 
+					{
+				        public void 
+						handleEvent(Event event) 
+				        {
+				        	try{
+				        		byte[] result = crypt_man.getECCHandler().getEncryptedPrivateKey( "Testing!" );
+				        		
+				        		System.out.println( "ECC private key=" + ByteFormatter.encodeString( result ));
+				        		
+				        	}catch( Throwable e ){
+				        		
+				        		Debug.out( "Failed to unlock key", e );
+				        		
+			 					MessageBox mb = new MessageBox( parent.getShell(),SWT.ICON_ERROR | SWT.OK  );
+			 					
+			 					mb.setText(MessageText.getString( "ConfigView.section.security.resetkey.error.title" ));
+			 				
+			 					mb.setMessage(	MessageText.getString( "ConfigView.section.security.unlockkey.error" ));
 
-	    priv_key_button.addListener(SWT.Selection, 
-	    		new Listener() 
-				{
-			        public void 
-					handleEvent(Event event) 
-			        {
-			        	try{
-			        		byte[] result = CryptoManagerFactory.getSingleton().getECCHandler().getEncryptedPrivateKey( "Testing!" );
-			        		
-			        		System.out.println( "ECC private key=" + ByteFormatter.encodeString( result ));
-			        		
-			        	}catch( Throwable e ){
-			        		
-			        		System.out.println( "Failed to get key" );
-			        		
-			        		e.printStackTrace();
-			        	}
-			        }
-			    });
-	    
-	    new Label(gSecurity, SWT.NULL );
-	    
+			 					mb.open();
+				        	}
+				        }
+				    });
+		    
+		    new Label(crypto_group, SWT.NULL );
+	    }
 	    
 	    return gSecurity;
 	  }

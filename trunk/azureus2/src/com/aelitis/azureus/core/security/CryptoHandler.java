@@ -124,6 +124,10 @@ CryptoHandler
 		throws CryptoManagerException;
 	
 	public byte[]
+	peekPublicKey(
+		char[]		password );
+	
+	public byte[]
 	getPublicKey(
 		char[]		password )
 	

@@ -314,7 +314,21 @@ CryptoHandlerECC
 	
 		throws CryptoManagerException
 	{
-		return( new CryptoSTSEngineImpl( this, getMyPublicKey( password, reason ), getMyPrivateKey( password, reason )));
+		return( new CryptoSTSEngineImpl( this, getMyPublicKey( password, reason, true ), getMyPrivateKey( password, reason )));
+	}
+	
+	public byte[]
+	peekPublicKey(
+		char[]		password )
+	{
+		try{
+		
+			return( keyToRawdata( getMyPublicKey( password, null, false )));
+			
+		}catch( Throwable e ){
+			
+			return( null );
+		}
 	}
 	
 	public byte[]
@@ -323,7 +337,7 @@ CryptoHandlerECC
 	
 		throws CryptoManagerException
 	{
-		return( keyToRawdata( getMyPublicKey( password, null )));
+		return( keyToRawdata( getMyPublicKey( password, null, true )));
 	}
 	
 	public byte[]
@@ -332,7 +346,7 @@ CryptoHandlerECC
 	
 		throws CryptoManagerException
 	{
-		return( keyToRawdata( getMyPublicKey( null, reason )));
+		return( keyToRawdata( getMyPublicKey( null, reason, true )));
 	}
 	
 	protected byte[]
@@ -342,7 +356,7 @@ CryptoHandlerECC
 	
 		throws CryptoManagerException
 	{
-		return( keyToRawdata( getMyPublicKey( password, reason )));
+		return( keyToRawdata( getMyPublicKey( password, reason, true )));
 	}
 
 	public byte[]
@@ -430,7 +444,7 @@ CryptoHandlerECC
 		use_method_public_key	= null;
 		
 		getMyPrivateKey( old_password, "" );
-		getMyPublicKey( old_password, "" );
+		getMyPublicKey( old_password, "", true );
 		
 		storeKeys( new_password );
 	}
@@ -483,7 +497,7 @@ CryptoHandlerECC
 				try{
 					byte[]	test_data = "test".getBytes();
 					
-					ok = verify( keyToRawdata( getMyPublicKey( password, reason )), test_data,  sign( test_data, password, reason ));
+					ok = verify( keyToRawdata( getMyPublicKey( password, reason, true )), test_data,  sign( test_data, password, reason ));
 					
 					if ( !ok ){
 											
@@ -520,7 +534,8 @@ CryptoHandlerECC
 	protected synchronized PublicKey
 	getMyPublicKey(
 		char[]		password,
-		String		reason )
+		String		reason,
+		boolean		create_if_needed )
 	
 		throws CryptoManagerException
 	{
@@ -530,8 +545,14 @@ CryptoHandlerECC
 			
 			if ( key_bytes == null ){
 				
-				createAndStoreKeys( password, reason );
-				
+				if ( create_if_needed ){
+					
+					createAndStoreKeys( password, reason );
+					
+				}else{
+					
+					return( null );
+				}
 			}else{
 				
 				use_method_public_key = rawdataToPubkey( key_bytes );

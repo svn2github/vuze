@@ -31,11 +31,16 @@ CryptoManager
 	
 	public static final int HANDLER_ECC	= 1;
 	
+	public static final int[] HANDLERS = { HANDLER_ECC };
+	
 	public byte[]
 	getSecureID();
 	
 	public CryptoHandler
 	getECCHandler();
+	
+	public void
+	clearPasswords();
 	
 	public void
 	addPasswordHandler(
