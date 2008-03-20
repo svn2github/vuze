@@ -236,7 +236,14 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
     
   
   
-  protected void handleCrypto( final InetSocketAddress address, final SocketChannel channel, final ByteBuffer initial_data, final boolean high_priority, final ConnectListener listener ) {  	
+  protected void 
+  handleCrypto( 
+	final InetSocketAddress 	address, 
+	final SocketChannel 		channel, 
+	final ByteBuffer 			initial_data, 
+	final boolean 				high_priority, 
+	final ConnectListener 		listener ) 
+  {  	
   	if( connect_with_crypto ) {
     	//attempt encrypted transport
   		
@@ -260,6 +267,10 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
         		fallback_count++;
          		close( helper, "Handshake failure and retry" );
         		has_been_closed = false;
+        		if ( initial_data != null ){
+        			
+        			initial_data.position( 0 );
+        		}
         		connectOutbound( initial_data, listener, high_priority );
         	}
         	else {

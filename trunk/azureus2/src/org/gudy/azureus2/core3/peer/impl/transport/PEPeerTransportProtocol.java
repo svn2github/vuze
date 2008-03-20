@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.peer.util.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.plugins.dht.mainline.MainlineDHTProvider;
+import org.gudy.azureus2.pluginsimpl.local.messaging.GenericMessage;
 import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
 
 import com.aelitis.azureus.core.impl.AzureusCoreImpl;
@@ -570,7 +571,17 @@ implements PEPeerTransport
 						if (Logger.isEnabled())
 							Logger.log(new LogEvent(PEPeerTransportProtocol.this, LOGID,
 									"Out: Established outgoing connection"));
+						
 						initializeConnection();
+						
+					    if ( remaining_initial_data != null && remaining_initial_data.remaining() > 0){
+					    	
+				    		// queue as a *raw* message as already encoded
+				    	
+					    	connection.getOutgoingMessageQueue().addMessage( 
+								new BTRawMessage( new DirectByteBuffer( remaining_initial_data )), false );
+					    }
+					    
 						sendBTHandshake();
 					}
 
