@@ -11,6 +11,7 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.LightBoxShell;
@@ -123,7 +124,7 @@ public class LightBoxBrowserWindow
 		errorMessageLabel.setForeground(Colors.grey);
 
 		Button closeButton = new Button(errorPanel, SWT.NONE);
-		closeButton.setText("Close");
+		closeButton.setText(MessageText.getString("wizard.close"));
 
 		FormData fData = new FormData();
 		fData.width = 100;
@@ -242,13 +243,11 @@ public class LightBoxBrowserWindow
 					}
 					if (null != browserText && false == isPageVerified(browser.getText())) {
 
-						String errorMessage = "An error has occured while attempting to access:\n";
-						errorMessage += browser.getUrl() + "\n\n";
-						errorMessage += "Please try again at a later time.\n";
+						String errorMessage = MessageText.getString("Browser.popup.error.no.access");
 						errorMessageLabel.setText(errorMessage);
 						if (false == stack.topControl.equals(errorPanel)) {
 							stack.topControl = errorPanel;
-							setSize(400, 300);
+							setSize(300, 200);
 							contentPanel.layout();
 						}
 					}
