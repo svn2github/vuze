@@ -66,6 +66,7 @@ public class VersionCheckClient {
 	public static final String	REASON_EXTERNAL_IP				= "ip";
 	public static final String	REASON_RECOMMENDED_PLUGINS		= "rp";
 	public static final String	REASON_SECONDARY_CHECK			= "sc";
+	public static final String	REASON_PLUGIN_UPDATE			= "pu";
 	
 
   private static final String 	AZ_MSG_SERVER_ADDRESS_V4 	= Constants.VERSION_SERVER_V4;

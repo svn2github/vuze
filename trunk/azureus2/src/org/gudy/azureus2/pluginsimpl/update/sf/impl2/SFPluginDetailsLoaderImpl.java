@@ -48,14 +48,37 @@ import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.logging.*;
 
+import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
+
 public class 
 SFPluginDetailsLoaderImpl 
 	implements SFPluginDetailsLoader, ResourceDownloaderListener
 {
 	private static final LogIDs LOGID = LogIDs.CORE;
 
-	private static final String	site_prefix = "http://azureus.sourceforge.net/";
+	private static final String	site_prefix_default = Constants.SF_WEB_SITE;
 	
+	private static String site_prefix;
+	
+	static{
+		try{
+			Map data = VersionCheckClient.getSingleton().getVersionCheckInfo( VersionCheckClient.REASON_PLUGIN_UPDATE );
+			
+			byte[] b_sp = (byte[])data.get("plugin_update_url");
+			
+			if ( b_sp == null ){
+				
+				site_prefix = site_prefix_default;
+				
+			}else{
+				
+				site_prefix = new String( b_sp );
+			}
+		}catch( Throwable e ){
+			
+			site_prefix = site_prefix_default;
+		}
+	}
 	private static String	base_url_params;
 	
 	static{

@@ -60,10 +60,11 @@ PluginUpdatePlugin
 	public static final int	RD_SIZE_RETRIES	= 3;
 	public static final int	RD_SIZE_TIMEOUT	= 10000;
 		
-	protected PluginInterface		plugin_interface;
-	protected SFPluginDetailsLoader	loader;
-	protected LoggerChannel 		log;
+	private PluginInterface		plugin_interface;
+	private LoggerChannel 		log;
 		
+	private boolean	loader_listener_added;
+	
 	private String	last_id_info	= "";
 		
 	public void
@@ -112,20 +113,6 @@ PluginUpdatePlugin
 				}
 			});
 		
-		loader = SFPluginDetailsLoaderFactory.getSingleton();
-		
-		loader.addListener( 
-			new SFPluginDetailsLoaderListener()
-			{
-				public void
-				log(
-					String	str )
-				{
-					log.log( LoggerChannel.LT_INFORMATION, "[" + str + "]" );
-					
-				}
-			});
-				
 		BasicPluginConfigModel config = ui_manager.createBasicPluginConfigModel(ConfigSection.SECTION_PLUGINS, PLUGIN_CONFIGSECTION_ID);
 		
 		config.addBooleanParameter2( "enable.update", "Plugin.pluginupdate.enablecheck", true );
@@ -428,6 +415,25 @@ PluginUpdatePlugin
 				String location = pi.getPluginDirectoryName();
 				
 				log.log( LoggerChannel.LT_INFORMATION, (mandatory?"*":"-") + pi.getPluginName() + ", id = " + id + (version==null?"":(", version = " + pi.getPluginVersion())) + (location==null?"":( ", loc = " + location)));
+			}
+			
+			SFPluginDetailsLoader loader = SFPluginDetailsLoaderFactory.getSingleton();
+			
+			if ( !loader_listener_added ){
+			
+				loader_listener_added = true;
+				
+				loader.addListener( 
+					new SFPluginDetailsLoaderListener()
+					{
+						public void
+						log(
+							String	str )
+						{
+							log.log( LoggerChannel.LT_INFORMATION, "[" + str + "]" );
+							
+						}
+					});
 			}
 			
 			String[]	ids = loader.getPluginIDs();
