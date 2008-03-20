@@ -29,6 +29,7 @@ package org.gudy.azureus2.ui.swt.auth;
 import java.util.Arrays;
 
 import org.eclipse.swt.*;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
@@ -45,6 +46,8 @@ public class
 CryptoWindow 
 	implements CryptoManagerPasswordHandler
 {	
+	private static final int DAY = 60*60*24;
+	
 	public
 	CryptoWindow()
 	{
@@ -236,16 +239,33 @@ CryptoWindow
 			gridData.horizontalSpan = 1;
 			strength_label.setLayoutData(gridData);
 			
+			String[] 		duration_keys = { "dont_save", "session", "day", "week", "30days", "forever" };
+			final int[]		duration_secs = { 0,           -1,        DAY,   DAY*7,  DAY*30,   Integer.MAX_VALUE };
+			
 			final Combo durations_combo = new Combo(shell, SWT.SINGLE | SWT.READ_ONLY);
 			   
-			final String[] durations = { "Don't save", "This session", "One day", "One week", "30 days", "Forever" };
-			   			      
-			for (int i=0;i<durations.length;i++){
+			for (int i=0;i<duration_keys.length;i++){
 				
-				durations_combo.add(""+durations[i]);
+				String text = MessageText.getString( "security.crypto.persist_for." + duration_keys[i] );
+				
+				durations_combo.add( text );
 			}
 			      
 			durations_combo.select(4);
+			
+			persist_for_secs	= duration_secs[4];
+			
+			durations_combo.addListener(
+				SWT.Selection,
+				new Listener() 
+				{
+					public void 
+					handleEvent(
+						Event e ) 
+					{
+						persist_for_secs	= duration_secs[ durations_combo.getSelectionIndex()];
+				   	}
+				});
 			
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 1;

@@ -49,4 +49,12 @@ CryptoManager
 	public void
 	removePasswordHandler(
 		CryptoManagerPasswordHandler		handler );
+	
+	public void
+	addKeyChangeListener(
+		CryptoManagerKeyChangeListener		listener );
+	
+	public void
+	removeKeyChangeListener(
+		CryptoManagerKeyChangeListener		listener );
 }

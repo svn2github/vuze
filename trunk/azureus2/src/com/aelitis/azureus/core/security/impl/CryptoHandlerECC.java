@@ -92,13 +92,19 @@ CryptoHandlerECC
 		CONFIG_PREFIX += _instance_id + ".";
 	}
 	
+	public int
+	getType()
+	{
+		return( CryptoManager.HANDLER_ECC );
+	}
+	
 	public void
 	unlock(
 		char[]		password )
 	
 		throws CryptoManagerException
 	{
-		getMyPrivateKey( password, "" );
+		getMyPrivateKey( password, "unlock" );
 	}
 	
 	public synchronized void
@@ -428,7 +434,7 @@ CryptoHandlerECC
 		
 		COConfigurationManager.save();
 		
-		createAndStoreKeys( password, "" );
+		createAndStoreKeys( password, "resetting keys" );
 	}
 	
 	public synchronized void
@@ -443,8 +449,8 @@ CryptoHandlerECC
 		use_method_private_key	= null;
 		use_method_public_key	= null;
 		
-		getMyPrivateKey( old_password, "" );
-		getMyPublicKey( old_password, "", true );
+		getMyPrivateKey( old_password, "changing password" );
+		getMyPublicKey( old_password, "changing password", true );
 		
 		storeKeys( new_password );
 	}
@@ -480,7 +486,9 @@ CryptoHandlerECC
 				
 			}else{
 				
-				if ( password == null ){
+				boolean	get_password_from_manager = password == null;
+				
+				if ( get_password_from_manager ){
 					
 					password = manager.getPassword( 
 									CryptoManager.HANDLER_ECC, 
@@ -488,21 +496,20 @@ CryptoHandlerECC
 									reason );
 				}
 
-				use_method_private_key = rawdataToPrivkey( manager.decryptWithPBE( encoded, password ));
-				
-				last_unlock_time = SystemTime.getCurrentTime();
-				
 				boolean		ok = false;
 				
 				try{
+					use_method_private_key = rawdataToPrivkey( manager.decryptWithPBE( encoded, password ));
+				
+					last_unlock_time = SystemTime.getCurrentTime();
+				
 					byte[]	test_data = "test".getBytes();
 					
 					ok = verify( keyToRawdata( getMyPublicKey( password, reason, true )), test_data,  sign( test_data, password, reason ));
 					
 					if ( !ok ){
 											
-						throw( new CryptoManagerPasswordException());
-						
+						throw( new CryptoManagerPasswordException( "Password incorrect" ));
 					}
 					
 				}catch( CryptoManagerException e ){
@@ -516,6 +523,11 @@ CryptoHandlerECC
 				}finally{
 					
 					if ( !ok ){
+						
+						if ( get_password_from_manager ){
+							
+							manager.clearPassword( CryptoManager.HANDLER_ECC );
+						}
 						
 						use_method_private_key	= null;
 					}
@@ -588,6 +600,8 @@ CryptoHandlerECC
 		
 		use_method_private_key	= keys.getPrivate();
 		
+		last_unlock_time = SystemTime.getCurrentTime();
+		
 		storeKeys( password );
 	}
 	
@@ -606,6 +620,8 @@ CryptoHandlerECC
 		COConfigurationManager.setParameter( CONFIG_PREFIX + "privatekey", priv_enc );
 
 		COConfigurationManager.save();
+		
+		manager.keyChanged( this );
 	}
 	
 	protected KeyPair 

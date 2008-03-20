@@ -25,6 +25,9 @@ package com.aelitis.azureus.core.security;
 public interface 
 CryptoHandler 
 {
+	public int
+	getType();
+	
 		/**
 		 * Explicit unlock request
 		 * @param password

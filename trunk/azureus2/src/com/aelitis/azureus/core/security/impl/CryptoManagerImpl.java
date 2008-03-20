@@ -33,21 +33,24 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 
+import org.eclipse.swt.widgets.Synchronizer;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.ByteFormatter;
-import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1;
-import org.gudy.azureus2.core3.util.SHA1Simple;
+import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
 import com.aelitis.azureus.core.security.CryptoHandler;
 import com.aelitis.azureus.core.security.CryptoManager;
 import com.aelitis.azureus.core.security.CryptoManagerException;
+import com.aelitis.azureus.core.security.CryptoManagerKeyChangeListener;
 import com.aelitis.azureus.core.security.CryptoManagerPasswordException;
 import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler;
-import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler.passwordDetails;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public class 
 CryptoManagerImpl 
@@ -72,14 +75,66 @@ CryptoManagerImpl
 	
 	private byte[]				secure_id;
 	private CryptoHandler		ecc_handler;
-	private List				listeners	= Collections.synchronizedList( new ArrayList());
+	private CopyOnWriteList		password_handlers	= new CopyOnWriteList();
+	private CopyOnWriteList		keychange_listeners	= new CopyOnWriteList();
+	
+	private Map	session_passwords =	Collections.synchronizedMap( new HashMap());
 	
 	protected
 	CryptoManagerImpl()
 	{
 		SESecurityManager.initialise();
+				
+		long	now = SystemTime.getCurrentTime();
+		
+		for (int i=0;i<CryptoManager.HANDLERS.length;i++){
+			
+			int	handler = CryptoManager.HANDLERS[i];
+			
+			String persist_timeout_key 	= CryptoManager.CRYPTO_CONFIG_PREFIX + "pw." + handler + ".persist_timeout";
+			String persist_pw_key 		= CryptoManager.CRYPTO_CONFIG_PREFIX + "pw." + handler + ".persist_value";
+
+			long	timeout = COConfigurationManager.getLongParameter( persist_timeout_key, 0 );
+							
+			if ( now > timeout ){
+			
+				COConfigurationManager.setParameter( persist_timeout_key, 0 );
+				COConfigurationManager.setParameter( persist_pw_key, "" );
+				
+			}else{
+				
+				addPasswordTimer( persist_timeout_key, persist_pw_key, timeout );
+			}
+		}
 		
 		ecc_handler = new CryptoHandlerECC( this, 1 );
+	}
+	
+	protected void
+	addPasswordTimer(
+		final String		timeout_key,
+		final String		pw_key,
+		final long			timeout )
+	{
+		SimpleTimer.addEvent(
+			"CryptoManager:pw_timeout",
+			timeout,
+			new TimerEventPerformer()
+			{
+				public void 
+				perform(
+					TimerEvent event) 
+				{
+					synchronized( CryptoManagerImpl.this ){
+						
+						if ( COConfigurationManager.getLongParameter( timeout_key, 0 ) == timeout ){
+							
+							COConfigurationManager.removeParameter( timeout_key );
+							COConfigurationManager.removeParameter( pw_key );
+						}
+					}
+				}
+			});
 	}
 	
 	public byte[]
@@ -186,7 +241,7 @@ CryptoManagerImpl
 			
 			if ( fail_is_pw_error ){
 				
-				throw( new CryptoManagerPasswordException( e ));
+				throw( new CryptoManagerPasswordException( "Password incorrect", e ));
 				
 			}else{
 				throw( new CryptoManagerException( "PBE decryption failed", e ));
@@ -199,13 +254,24 @@ CryptoManagerImpl
 	{
 		ecc_handler.lock();
 		
+		session_passwords.clear();
+		
 		for (int i=0;i<CryptoManager.HANDLERS.length;i++){
 			
-			String persist_timeout_key 	= CryptoManager.CRYPTO_CONFIG_PREFIX + "pw." + CryptoManager.HANDLERS[i] + ".persist_timeout";
-			
-			COConfigurationManager.setParameter( persist_timeout_key, 0 );
+			clearPassword( CryptoManager.HANDLERS[i] );
 		}
 	}
+	
+	protected void
+   	clearPassword(
+   		int		handler )
+   	{
+   		final String persist_timeout_key 	= CryptoManager.CRYPTO_CONFIG_PREFIX + "pw." + handler + ".persist_timeout";
+   		final String persist_pw_key 		= CryptoManager.CRYPTO_CONFIG_PREFIX + "pw." + handler + ".persist_value";
+   		
+		COConfigurationManager.removeParameter( persist_timeout_key );
+		COConfigurationManager.removeParameter( persist_pw_key );
+   	}
 	
 	protected char[]
 	getPassword(
@@ -215,10 +281,24 @@ CryptoManagerImpl
 	
 		throws CryptoManagerException
 	{
-		String persist_timeout_key 	= CryptoManager.CRYPTO_CONFIG_PREFIX + "pw." + handler + ".persist_timeout";
-		String persist_pw_key 		= CryptoManager.CRYPTO_CONFIG_PREFIX + "pw." + handler + ".persist_value";
+		final String persist_timeout_key 	= CryptoManager.CRYPTO_CONFIG_PREFIX + "pw." + handler + ".persist_timeout";
+		final String persist_pw_key 		= CryptoManager.CRYPTO_CONFIG_PREFIX + "pw." + handler + ".persist_value";
 
 		long	current_timeout = COConfigurationManager.getLongParameter( persist_timeout_key, 0 );
+		
+			// session timeout 
+		
+		if ( current_timeout < 0 ){
+			
+			char[]	pw = (char[])session_passwords.get( persist_pw_key );
+			
+			if ( pw != null ){
+				
+				return( pw );
+			}
+		}
+			
+			// absolute timeout
 		
 		if ( current_timeout > SystemTime.getCurrentTime()){
 			
@@ -232,15 +312,17 @@ CryptoManagerImpl
 		
 		System.out.println( "getPassword:" + handler + "/" + action + "/" + reason );
 
-		if ( listeners.size() == 0 ){
+		if ( password_handlers.size() == 0 ){
 			
 			throw( new CryptoManagerException( "No password handlers registered" ));
 		}
 		
-		for (int i=0;i<listeners.size();i++){
+		Iterator	it = password_handlers.iterator();
+		
+		while( it.hasNext()){
 			
 			try{
-				CryptoManagerPasswordHandler.passwordDetails details = ((CryptoManagerPasswordHandler)listeners.get(i)).getPassword( handler, action, reason );
+				CryptoManagerPasswordHandler.passwordDetails details = ((CryptoManagerPasswordHandler)it.next()).getPassword( handler, action, reason );
 				
 				if ( details != null ){
 					
@@ -270,20 +352,35 @@ CryptoManagerImpl
 						
 						timeout = Long.MAX_VALUE;
 						
+					}else if ( persist_secs < 0 ){
+						
+							// session only
+						
+						timeout = -1;
+						
 					}else{
 						
 						timeout = SystemTime.getCurrentTime() + persist_secs * 1000;
 					}
 					
-					COConfigurationManager.setParameter( persist_timeout_key, timeout );
-
-					if ( timeout > 0 ){
+					synchronized( this ){
 						
-						COConfigurationManager.setParameter( persist_pw_key, encoded_pw );
-						
-					}else{
+						COConfigurationManager.setParameter( persist_timeout_key, timeout );
+	
+						session_passwords.remove( persist_pw_key );
 						
 						COConfigurationManager.removeParameter( persist_pw_key );
+													
+						if ( timeout < 0 ){
+								
+							session_passwords.put( persist_pw_key, encoded_pw.toCharArray());
+								
+						}else if ( timeout > 0 ){
+							
+							COConfigurationManager.setParameter( persist_pw_key, encoded_pw );
+	
+							addPasswordTimer( persist_timeout_key, persist_pw_key, timeout );
+						}
 					}
 					
 					return( encoded_pw.toCharArray());
@@ -294,7 +391,7 @@ CryptoManagerImpl
 			}
 		}
 		
-		throw( new CryptoManagerException( "No password handlers returned a password" ));
+		throw( new CryptoManagerPasswordException( "No password handlers returned a password" ));
 	}
 	
 	protected byte[]
@@ -302,19 +399,51 @@ CryptoManagerImpl
 	{
 		return( getSecureID());
 	}
+
+	protected void
+	keyChanged(
+		CryptoHandler	handler )
+	{
+		Iterator it = keychange_listeners.iterator();
+		
+		while( it.hasNext()){
+			
+			try{		
+				((CryptoManagerKeyChangeListener)it.next()).keyChanged( handler );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace( e );
+			}
+		}
+	}
 	
 	public void
 	addPasswordHandler(
 		CryptoManagerPasswordHandler		handler )
 	{
-		listeners.add( handler );
+		password_handlers.add( handler );
 	}
 	
 	public void
 	removePasswordHandler(
 		CryptoManagerPasswordHandler		handler )
 	{
-		listeners.remove( handler );
+		password_handlers.remove( handler );
+	}
+	
+	public void
+	addKeyChangeListener(
+		CryptoManagerKeyChangeListener		listener )
+	{
+		keychange_listeners.add( listener );
+	}
+	
+	public void
+	removeKeyChangeListener(
+		CryptoManagerKeyChangeListener		listener )
+	{
+		keychange_listeners.remove( listener );
 	}
 	
 	public static void

@@ -55,8 +55,10 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
+import com.aelitis.azureus.core.security.CryptoHandler;
 import com.aelitis.azureus.core.security.CryptoManager;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
+import com.aelitis.azureus.core.security.CryptoManagerKeyChangeListener;
 
 /**
  * @author parg
@@ -203,7 +205,7 @@ ConfigSectionSecurity
 	    	final CryptoManager crypt_man = CryptoManagerFactory.getSingleton();
 	    	
 	    	Group crypto_group = new Group(gSecurity, SWT.NULL);
-		    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+		    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.FILL_HORIZONTAL);
 		    gridData.horizontalSpan = 3;
 		    crypto_group.setLayoutData(gridData);
 		    layout = new GridLayout();
@@ -226,11 +228,11 @@ ConfigSectionSecurity
 
 			}else{
 				
-			    Label public_key_value = new Label(crypto_group, SWT.NULL );
+			    final Label public_key_value = new Label(crypto_group, SWT.NULL );
 			    
-			    final String key_str = Base32.encode( public_key );
-			    
-			    public_key_value.setText( key_str );
+			    Messages.setLanguageText(public_key_value, "ConfigView.copy.to.clipboard.tooltip", true);
+			    			    
+			    public_key_value.setText( Base32.encode( public_key ));
 			    
 			    public_key_value.setCursor(Cursors.handCursor);
 			    public_key_value.setForeground(Colors.blue);
@@ -244,9 +246,40 @@ ConfigSectionSecurity
 			    	protected void
 			    	copyToClipboard()
 			    	{
-		    			new Clipboard(parent.getDisplay()).setContents(new Object[] {key_str}, new Transfer[] {TextTransfer.getInstance()});
+		    			new Clipboard(parent.getDisplay()).setContents(new Object[] {public_key_value.getText()}, new Transfer[] {TextTransfer.getInstance()});
 			    	}
 			    });
+			    
+				crypt_man.addKeyChangeListener(
+						new CryptoManagerKeyChangeListener()
+						{
+							public void 
+							keyChanged(
+								CryptoHandler handler ) 
+							{
+								if ( parent.isDisposed()){
+									
+									crypt_man.removeKeyChangeListener( this );
+									
+								}else{
+									if ( handler.getType() == CryptoManager.HANDLER_ECC ){
+										
+										byte[]	public_key = handler.peekPublicKey( null );
+	
+										if ( public_key == null ){
+											
+												// shouldn't happen...
+											
+											public_key_value.setText( "" );
+											
+										}else{
+											
+											public_key_value.setText( Base32.encode( public_key ));
+										}
+									}
+								}
+							}
+						});
 			}
 			
 		    new Label(crypto_group, SWT.NULL );

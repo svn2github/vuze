@@ -27,15 +27,17 @@ CryptoManagerPasswordException
 	extends CryptoManagerException
 {
 	public
-	CryptoManagerPasswordException()
+	CryptoManagerPasswordException(
+		String		str )
 	{
-		super( "" );
+		super( str );
 	}
 	
 	public
 	CryptoManagerPasswordException(
+		String		str,
 		Throwable 	cause )
 	{
-		super( "", cause );
+		super( str, cause );
 	}
 }

@@ -33,7 +33,7 @@ CryptoManagerPasswordHandler
 		 * @param handler_type	from AESecurityManager.HANDLER_x enum
 		 * @param action_type	from above ACTION_x enum
 		 * @param reason		reason for the password being sought
-		 * @return
+		 * @return password details or null if no password available
 		 */
 	
 	public passwordDetails
@@ -50,6 +50,7 @@ CryptoManagerPasswordHandler
 		
 			/**
 			 * @return	0 -> don't persist, Integer.MAX_VALUE -> persist forever
+			 * < 0 -> current session; other -> seconds to persist
 			 */
 		
 		public int
