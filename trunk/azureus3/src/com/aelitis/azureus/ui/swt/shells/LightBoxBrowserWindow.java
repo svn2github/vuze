@@ -96,7 +96,7 @@ public class LightBoxBrowserWindow
 		lightBoxShell = new LightBoxShell(true);
 
 		borderColor = new Color(lightBoxShell.getDisplay(), 38, 38, 38);
-		contentBackgroundColor = new Color(null, 13, 13, 13);
+		contentBackgroundColor = new Color(lightBoxShell.getDisplay(), 13, 13, 13);
 
 		/*
 		 * Create the StyledShell to host the browser
