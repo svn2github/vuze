@@ -277,6 +277,8 @@ public class LightBoxShell
 
 		private boolean useCustomTrim = true;
 
+		private Region region;
+
 		private StyledShell(int borderWidth) {
 			this(borderWidth, true);
 		}
@@ -296,6 +298,18 @@ public class LightBoxShell
 				createStandardShell();
 			}
 
+			/*
+			 * Must dispose of the Region explicitly when we're done
+			 */
+			if (null != styledShell) {
+				styledShell.addDisposeListener(new DisposeListener() {
+					public void widgetDisposed(DisposeEvent e) {
+						if (null != region && false == region.isDisposed()) {
+							region.dispose();
+						}
+					}
+				});
+			}
 		}
 
 		/**
@@ -474,7 +488,15 @@ public class LightBoxShell
 
 			int r = borderWidth;
 			int d = r * 2;
-			Region region = new Region();
+
+			/*
+			 * Must explicitly dispose of any previous reference to a Region before assigning a new one
+			 */
+			if (null != region && false == region.isDisposed()) {
+				region.dispose();
+			}
+
+			region = new Region();
 
 			/*
 			 * Add the 4 circles for the rounded corners
