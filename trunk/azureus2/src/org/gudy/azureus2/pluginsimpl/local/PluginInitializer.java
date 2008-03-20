@@ -156,6 +156,11 @@ PluginInitializer
 		   			"aznetstat", 
 		   			"aznetstat",
 					"true" },
+			{	 PluginManagerDefaults.PID_BUDDY, 
+					"com.aelitis.azureus.plugins.net.buddy.BuddyPlugin", 
+					"azbuddy", 
+					"azbuddy",
+					"true" },
 			/* disable until we can get some tracker admins to work on this
 	   		{	 PluginManagerDefaults.PID_TRACKER_PEER_AUTH, 
 					"com.aelitis.azureus.plugins.tracker.peerauth.TrackerPeerAuthPlugin", 

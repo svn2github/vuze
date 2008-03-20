@@ -51,6 +51,7 @@ PluginManagerDefaults
 	public static final String	PID_LOCAL_TRACKER			= "Local Tracker";
 	public static final String	PID_TRACKER_PEER_AUTH		= "Tracker Peer Auth";
 	public static final String	PID_NET_STATUS				= "Network Status";
+	public static final String	PID_BUDDY					= "Buddy";
 	
 	public static final String[] PLUGIN_IDS = {
 			
@@ -72,6 +73,7 @@ PluginManagerDefaults
 			PID_LOCAL_TRACKER,
 			PID_TRACKER_PEER_AUTH,
 			PID_NET_STATUS,
+			PID_BUDDY,
 		};
 	
 	public String[]
