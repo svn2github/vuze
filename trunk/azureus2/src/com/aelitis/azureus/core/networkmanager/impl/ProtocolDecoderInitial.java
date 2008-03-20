@@ -152,9 +152,19 @@ ProtocolDecoderInitial
 									
 									helper.cancelReadSelects();
 
-									decode_buffer.flip();
+									if ( NetworkManager.INCOMING_CRYPTO_ALLOWED ){
 									
-									decodePHE( decode_buffer );
+										decode_buffer.flip();
+									
+										decodePHE( decode_buffer );
+										
+									}else{
+										
+										if (Logger.isEnabled())
+											Logger.log(new LogEvent(LOGID, "Incoming connection ["+ transport.getAddress() + "] encrypted but rejected as not permitted" ));
+
+										throw( new IOException( "Incoming crypto connection not permitted" ));
+									}
 								}
 							}
 							

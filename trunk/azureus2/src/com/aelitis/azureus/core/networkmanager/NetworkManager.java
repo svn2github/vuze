@@ -67,7 +67,8 @@ public class NetworkManager {
   public static boolean 	REQUIRE_CRYPTO_HANDSHAKE;
   public static boolean 	INCOMING_HANDSHAKE_FALLBACK_ALLOWED;	
   public static boolean 	OUTGOING_HANDSHAKE_FALLBACK_ALLOWED;
-  
+  public static boolean 	INCOMING_CRYPTO_ALLOWED;	
+
   private static boolean	USE_REQUEST_LIMITING;
 	
 
@@ -75,7 +76,8 @@ public class NetworkManager {
   	COConfigurationManager.addAndFireParameterListeners(
   			new String[]{ "network.transport.encrypted.require",
     									"network.transport.encrypted.fallback.incoming",
-    									"network.transport.encrypted.fallback.outgoing",
+       									"network.transport.encrypted.fallback.outgoing",
+       									"network.transport.encrypted.allow.incoming",
     									"LAN Speed Enabled",
     									"Max Upload Speed KBs",
     									"Max LAN Upload Speed KBs",
@@ -91,7 +93,8 @@ public class NetworkManager {
     			 public void  parameterChanged(	String ignore ) {
     				 REQUIRE_CRYPTO_HANDSHAKE				= COConfigurationManager.getBooleanParameter("network.transport.encrypted.require");
     				 INCOMING_HANDSHAKE_FALLBACK_ALLOWED	= COConfigurationManager.getBooleanParameter("network.transport.encrypted.fallback.incoming");
-    				 OUTGOING_HANDSHAKE_FALLBACK_ALLOWED	= COConfigurationManager.getBooleanParameter("network.transport.encrypted.fallback.outgoing");
+       				 OUTGOING_HANDSHAKE_FALLBACK_ALLOWED	= COConfigurationManager.getBooleanParameter("network.transport.encrypted.fallback.outgoing");
+       				 INCOMING_CRYPTO_ALLOWED				= COConfigurationManager.getBooleanParameter("network.transport.encrypted.allow.incoming");
   
     				 USE_REQUEST_LIMITING					= COConfigurationManager.getBooleanParameter("Use Request Limiting");
     				 

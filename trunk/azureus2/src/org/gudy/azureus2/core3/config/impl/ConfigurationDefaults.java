@@ -495,6 +495,7 @@ public class ConfigurationDefaults {
     def.put( "network.transport.encrypted.fallback.outgoing", FALSE );
     def.put( "network.transport.encrypted.fallback.incoming", FALSE );
     def.put( "network.transport.encrypted.use.crypto.port", FALSE );
+    def.put( "network.transport.encrypted.allow.incoming", TRUE );	// should always be TRUE, here for testing only
     
     def.put( "network.bind.local.port", ZERO );
     
