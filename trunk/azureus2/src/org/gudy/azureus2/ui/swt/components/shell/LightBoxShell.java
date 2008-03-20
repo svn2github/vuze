@@ -8,6 +8,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.IMainWindow;
 
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -95,7 +96,7 @@ public class LightBoxShell
 		/*
 		 * Black mask with 30% transparency
 		 */
-		lbShell.setBackground(new Color(parentShell.getDisplay(), 0, 0, 0));
+		lbShell.setBackground(Colors.black);
 		setAlpha(lbShell, 178);
 
 		display = parentShell.getDisplay();
