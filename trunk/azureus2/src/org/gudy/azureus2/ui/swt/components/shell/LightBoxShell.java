@@ -293,23 +293,26 @@ public class LightBoxShell
 			this.useCustomTrim = useCustomTrim;
 
 			if (true == useCustomTrim) {
+
 				createCustomShell();
+
+				/*
+				 * Must dispose of the Region explicitly when we're done; region is only used when custom trim is used
+				 */
+				if (null != styledShell) {
+					styledShell.addDisposeListener(new DisposeListener() {
+						public void widgetDisposed(DisposeEvent e) {
+							if (null != region && false == region.isDisposed()) {
+								region.dispose();
+							}
+						}
+					});
+				}
+
 			} else {
 				createStandardShell();
 			}
 
-			/*
-			 * Must dispose of the Region explicitly when we're done
-			 */
-			if (null != styledShell) {
-				styledShell.addDisposeListener(new DisposeListener() {
-					public void widgetDisposed(DisposeEvent e) {
-						if (null != region && false == region.isDisposed()) {
-							region.dispose();
-						}
-					}
-				});
-			}
 		}
 
 		/**
