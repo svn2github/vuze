@@ -3,8 +3,7 @@ package com.aelitis.azureus.ui.swt.shells;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.*;
 import org.eclipse.swt.custom.StackLayout;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -60,6 +59,10 @@ public class LightBoxBrowserWindow
 
 	private String redirectURL = null;
 
+	private Color borderColor = null;
+
+	private Color contentBackgroundColor = null;
+
 	public LightBoxBrowserWindow(String url, String prefixVerifier, int width,
 			int height) {
 		this.url = url;
@@ -92,14 +95,16 @@ public class LightBoxBrowserWindow
 
 		lightBoxShell = new LightBoxShell(true);
 
+		borderColor = new Color(lightBoxShell.getDisplay(), 38, 38, 38);
+		contentBackgroundColor = new Color(null, 13, 13, 13);
+
 		/*
 		 * Create the StyledShell to host the browser
 		 */
 		styledShell = lightBoxShell.createPopUpShell(6, true, true);
 
-		styledShell.setBackground(new Color(lightBoxShell.getDisplay(), 38, 38, 38));
+		styledShell.setBackground(borderColor);
 
-		
 		/*
 		 * Use a StackLayout with an error panel in the background so we can switch it to the front
 		 * when an error has occurred
@@ -108,9 +113,9 @@ public class LightBoxBrowserWindow
 		stack.marginHeight = 0;
 		stack.marginWidth = 0;
 		contentPanel.setLayout(stack);
-		contentPanel.setBackground(new Color(null, 13, 13, 13));
+		contentPanel.setBackground(contentBackgroundColor);
 		errorPanel = new Composite(contentPanel, SWT.NONE);
-		errorPanel.setBackground(new Color(null, 13, 13, 13));
+		errorPanel.setBackground(contentBackgroundColor);
 		errorPanel.setLayout(new FormLayout());
 
 		errorMessageLabel = new Label(errorPanel, SWT.WRAP);
@@ -134,14 +139,32 @@ public class LightBoxBrowserWindow
 
 		errorMessageLabel.setLayoutData(fData);
 
+		/*
+		 * This close button is only on the error panel
+		 */
 		closeButton.addSelectionListener(new SelectionListener() {
-
 			public void widgetSelected(SelectionEvent e) {
 				widgetDefaultSelected(e);
 			}
 
 			public void widgetDefaultSelected(SelectionEvent e) {
 				close();
+			}
+
+		});
+
+		/*
+		 * Disposing resources when the LightBoxShell is disposed
+		 */
+		lightBoxShell.addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent e) {
+				if (null != borderColor && false == borderColor.isDisposed()) {
+					borderColor.dispose();
+				}
+				if (null != contentBackgroundColor
+						&& false == contentBackgroundColor.isDisposed()) {
+					contentBackgroundColor.dispose();
+				}
 			}
 
 		});
