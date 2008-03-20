@@ -791,4 +791,8 @@ public class LightBoxShell
 		return isAlreadyOpened;
 	}
 
+	public void addDisposeListener(DisposeListener listener) {
+		lbShell.addDisposeListener(listener);
+	}
+
 }
