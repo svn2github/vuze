@@ -27,21 +27,20 @@ package org.gudy.azureus2.platform.win32;
  *
  */
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.platform.PlatformManager;
-import org.gudy.azureus2.platform.PlatformManagerCapabilities;
-import org.gudy.azureus2.platform.PlatformManagerListener;
-import org.gudy.azureus2.platform.PlatformManagerPingCallback;
-import org.gudy.azureus2.platform.win32.access.*;
-
-import org.gudy.azureus2.plugins.platform.PlatformManagerException;
-
 import java.io.File;
-import java.io.IOException;
 import java.net.InetAddress;
 import java.util.*;
+
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.platform.*;
+import org.gudy.azureus2.platform.win32.access.AEWin32Access;
+import org.gudy.azureus2.platform.win32.access.AEWin32AccessListener;
+import org.gudy.azureus2.platform.win32.access.AEWin32Manager;
+
+import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
 
 public class 
@@ -219,8 +218,7 @@ PlatformManagerImpl
 			
 			if ( current.indexOf( app_exe_name ) != -1 && !current.equals(target)){
 				
-				access.writeStringValue( 	
-						AEWin32Access.HKEY_CLASSES_ROOT,
+				writeStringToHKCRandHKCU( 	
 						NEW_MAIN_ASSOC + "\\DefaultIcon",
 						"",
 						target );
@@ -520,6 +518,15 @@ PlatformManagerImpl
 				return( test1.length() ==0?RT_NONE:RT_OTHER );
 			}
 			
+			String test2 =
+				access.readStringValue(
+						AEWin32Access.HKEY_CLASSES_ROOT,
+						type,
+						"");
+			if ( !test2.equals( NEW_MAIN_ASSOC )) {
+				return test2.length() == 0 ? RT_NONE : RT_OTHER;
+			}
+
 				// MRU list is just that, to remove the "always open with" we need to kill
 				// the "application" entry, if it exists
 			
@@ -650,46 +657,39 @@ PlatformManagerImpl
 			
 			unregisterAdditionalFileType( name, type );
 
-			access.writeStringValue( 	
-					AEWin32Access.HKEY_CLASSES_ROOT,
+			writeStringToHKCRandHKCU(
 					type,
 					"",
 					name );
 		
-			access.writeStringValue( 	
-					AEWin32Access.HKEY_CLASSES_ROOT,
+			writeStringToHKCRandHKCU(
 					name,
 					"",
 					description );
 			
-			access.writeStringValue( 	
-					AEWin32Access.HKEY_CLASSES_ROOT,
+			writeStringToHKCRandHKCU(
 					name + "\\shell",
 					"",
 					"open" );
 			
-			access.writeStringValue( 	
-					AEWin32Access.HKEY_CLASSES_ROOT,
+			writeStringToHKCRandHKCU(
 					name + "\\DefaultIcon",
 					"",
 					az_exe_string + "," + getIconIndex());
 			
-			access.writeStringValue( 	
-					AEWin32Access.HKEY_CLASSES_ROOT,
+			writeStringToHKCRandHKCU(
 					name + "\\shell\\open\\command",
 					"",
 					"\"" + az_exe_string + "\" \"%1\"" );
 					
-			access.writeStringValue( 	
-					AEWin32Access.HKEY_CLASSES_ROOT,
+			writeStringToHKCRandHKCU(
 					name + "\\Content Type" ,
 					"",
 					content_type );
 			
 			if ( url_protocol ){
 				
-				access.writeStringValue( 	
-						AEWin32Access.HKEY_CLASSES_ROOT,
+				writeStringToHKCRandHKCU(
 						name,
 						"URL Protocol",
 						"" );
@@ -702,6 +702,24 @@ PlatformManagerImpl
 		}catch( Throwable e ){
 			
 			throw( new PlatformManagerException( "Failed to write registry details", e ));
+		}
+	}
+	
+	private void writeStringToHKCRandHKCU(String subkey, String name, String value) {
+		// HKCU will most likely fail on Vista due to permissions
+		try {
+			access.writeStringValue(AEWin32Access.HKEY_CLASSES_ROOT, subkey, name, value);
+		} catch (Throwable e) {
+			if (!Constants.isWindowsVista) {
+				Debug.out(e);
+			}
+		}
+
+		try {
+			access.writeStringValue(AEWin32Access.HKEY_CURRENT_USER,
+					"Software\\Classes\\" + subkey, name, value);
+		} catch (Throwable e) {
+			Debug.out(e);
 		}
 	}
 	
@@ -745,7 +763,28 @@ PlatformManagerImpl
 				
 				// Debug.printStackTrace( e );
 			}
+
+			try{
+				access.deleteKey( 	
+					AEWin32Access.HKEY_CURRENT_USER,
+					"Software\\Classes\\" + type );
+				
+			}catch( Throwable e ){
+				
+				// Debug.printStackTrace( e );
+			}
 			
+			try{
+				access.deleteKey( 	
+					AEWin32Access.HKEY_CURRENT_USER,
+					"Software\\Classes\\" + name,
+					true );
+				
+			}catch( Throwable e ){
+				
+				// Debug.printStackTrace( e );
+			}
+
 		}catch( Throwable e ){
 			
 			throw( new PlatformManagerException( "Failed to delete registry details", e ));
