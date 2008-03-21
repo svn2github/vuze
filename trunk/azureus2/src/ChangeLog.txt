@@ -3,7 +3,20 @@ AZUREUS VUZE CHANGELOG
 
 2008.03.xx | Azureus Vuze 3.0.5.1
 
+CHANGE: Core  | Don't auto-UDP probe on initial announce if tracker not known to support UDP - hit on second and remember outcome [Parg]
+CHANGE: Core  | Improve startup times by taking various torrent-load operations off main thread [Parg]
+CHANGE: Core  | Add reason-messages for update check failures [Parg]
+CHANGE: UI    | Run explicit tracker scrapes off UI thread to prevent blocking [Parg]
+CHANGE: UI    | Allow UI initialisation to proceed before plugin init complete [Parg]
+CHANGE: Plug  | Ensure that DHT republish events are scheduled using absolute time so recover correctly from computer suspend [Parg]
+CHANGE: Core  | Use derived password to protect private key to allow us to persist password [Parg]
+CHANGE: Core  | Get plugin update URL from version server to support potential future switch [Parg]
 
+BUGFIX: UI    | Fix broken per-torrent upload speed setting via options tab [Parg]
+BUGFIX: Core  | Handle some badly formed torrents more gracefully (corrupt announce-lists) [Parg]
+BUGFIX: Core  | Handle multiple SSL certs from same URL [Parg]
+BUGFIX: Core  | URLDecode torrent filenames [Parg]
+BUGFIX: Core  | Fix non-crypto fallback outgoing connections [Parg]
 
 2008.03.05 | Azureus Vuze 3.0.5.0
 
