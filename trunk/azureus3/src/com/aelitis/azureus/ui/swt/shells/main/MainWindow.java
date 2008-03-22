@@ -613,7 +613,7 @@ public class MainWindow
 			// Must be done before initializing views, since plugins may register
 			// table columns and other objects
 			uiSWTInstanceImpl = new UISWTInstanceImpl(core);
-			uiSWTInstanceImpl.init();
+			uiSWTInstanceImpl.init(uiInitializer);
 
 			increaseProgress(uiInitializer, "splash.initializeGui");
 			System.out.println("SWTInstance init took "
@@ -629,7 +629,7 @@ public class MainWindow
 					startTab = SkinConstants.VIEWID_ADVANCED_TAB;
 				} else {
 					startTab = SkinConstants.VIEWID_HOME_TAB;
-				}
+					}
 				tabSet.setActiveTab(startTab);
 
 				System.out.println("Activate tab " + startTab + " took "

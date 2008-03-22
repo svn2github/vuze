@@ -77,6 +77,7 @@ public class ViewUpSpeedGraph
 
 		upSpeedGraphic.addIntsValue(new int[] {
 			stats.getDataSendRate() + stats.getProtocolSendRate(),
+			stats.getProtocolSendRate(),
 			COConfigurationManager.getIntParameter(TransferSpeedValidator.getActiveUploadParameter(manager)) * 1024,
 			swarms_peer_speed
 		});

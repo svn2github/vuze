@@ -79,6 +79,7 @@ public class ViewDownSpeedGraph
 
 		downSpeedGraphic.addIntsValue(new int[] {
 			stats.getDataReceiveRate() + stats.getProtocolReceiveRate(),
+			stats.getProtocolReceiveRate(),
 			COConfigurationManager.getIntParameter("Max Download Speed KBs") * 1024,
 			swarms_peer_speed
 		});
@@ -100,6 +101,7 @@ public class ViewDownSpeedGraph
 		downSpeedGraphic.setColors(cBG1, cBG2, cBG3);
 		downSpeedGraphic.setLineColors(skinProperties.getColor("color.topbar.speed.average"),
 				skinProperties.getColor("color.topbar.speed.value0"),
+				skinProperties.getColor("color.topbar.speed.overhead"),
 				skinProperties.getColor("color.topbar.speed.value1"),
 				skinProperties.getColor("color.topbar.speed.value2plus"),
 				skinProperties.getColor("color.topbar.speed.trimmed"));
