@@ -492,13 +492,23 @@ AzureusCoreImpl
 			this_mon.exit();
 		}
 		
-		if (Logger.isEnabled())
-			Logger.log(new LogEvent(LOGID, "Loading of Plugins starts"));
 
-		pi.loadPlugins(this, false);
+		// run plugin loading in parallel to the global manager loading
+		AEThread2 pluginload = new AEThread2("PluginLoader",true)
+		{
+			public void run() {
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID, "Loading of Plugins starts"));
+				pi.loadPlugins(AzureusCoreImpl.this, false);
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID, "Loading of Plugins complete"));
+			}
+		};
+		pluginload.start();
+
+
 		
-		if (Logger.isEnabled())
-			Logger.log(new LogEvent(LOGID, "Loading of Plugins complete"));
+
 
 		// Disable async loading of existing torrents, because there are many things
 		// (like hosting) that require all the torrents to be loaded.  While we
@@ -527,6 +537,9 @@ AzureusCoreImpl
 					}
 				}, 0);
 
+		// wait until plugin loading is done
+		pluginload.join();
+		
 		triggerLifeCycleComponentCreated(global_manager);
 
 		pi.initialisePlugins();

@@ -33,6 +33,7 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 import com.aelitis.azureus.core.dht.control.DHTControlContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
@@ -114,8 +115,10 @@ public class VivaldiPanel {
 								e.width, e.height);
 					}
 				} else {
-					e.gc.drawText(MessageText.getString("VivaldiView.notAvailable"), 5,
-							5, true);
+					e.gc.setBackground(display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
+					e.gc.fillRectangle(e.x, e.y, e.width, e.height);
+					e.gc.drawText(MessageText.getString("VivaldiView.notAvailable"), 10,
+							10, true);
 				}
 			}
 		});

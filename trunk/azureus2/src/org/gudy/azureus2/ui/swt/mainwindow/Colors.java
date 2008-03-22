@@ -304,7 +304,7 @@ public class Colors implements ParameterListener {
   
   private Display display;
   
-  public Colors() {
+  private Colors() {
     instance = this;
     try {
     	display = SWTThread.getInstance().getDisplay();

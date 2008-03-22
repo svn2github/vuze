@@ -156,9 +156,9 @@ public class FileLogging implements ILogEventListener {
 		if (!bLogToFile)
 			return;
 
+		str = format.format(new Date()) + str;
+		
 		synchronized (Logger.class) {
-
-			str = format.format(new Date()) + str;
 
 			// exception handling is done by FileWriter
 			if(logFilePrinter != null)

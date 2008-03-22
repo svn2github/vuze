@@ -37,6 +37,10 @@ AEThread2
 	
 	private static final LinkedList	daemon_threads = new LinkedList();
 	
+	private static final class JoinLock {
+		volatile boolean released = false;
+	}
+	
 	private static long	last_timeout_check;
 	
 	private static long	total_starts;
@@ -45,9 +49,10 @@ AEThread2
 	
 	private threadWrapper	wrapper;
 	
-	private String			name;
-	private boolean			daemon;
-	private int				priority	= Thread.NORM_PRIORITY;
+	private String				name;
+	private boolean				daemon;
+	private int					priority	= Thread.NORM_PRIORITY;
+	private volatile JoinLock	lock		= new JoinLock();
 	
 	public
 	AEThread2(
@@ -57,10 +62,26 @@ AEThread2
 		name		= _name;
 		daemon		= _daemon;
 	}
-		
+	
+	/**
+	 * multiple invocations of start() are possible, but discouraged if combined
+	 * with other thread operations such as interrupt() or join()
+	 */
 	public void
 	start()
 	{
+		JoinLock currentLock = lock;
+		JoinLock newLock;
+		
+		synchronized (currentLock)
+		{
+			// create new lock in case this is a restart, all old .join()s will be locked on the old thread and thus released by the old thread
+			if(currentLock.released)
+				newLock = lock = new JoinLock();
+			else
+				newLock = currentLock;
+		}
+		
 		if ( daemon ){
 			
 			synchronized( daemon_threads ){
@@ -85,10 +106,12 @@ AEThread2
 			wrapper = new threadWrapper( name, false );
 		}
 		
-		if ( priority != Thread.NORM_PRIORITY ){
+		if ( priority != wrapper.getPriority() ){
 			
 			wrapper.setPriority( priority );
 		}
+		
+		wrapper.currentLock = newLock;
 		
 		wrapper.start( this, name );
 	}
@@ -97,12 +120,9 @@ AEThread2
 	setPriority(
 		int		_priority )
 	{
-		if ( wrapper == null ){
+		priority	= _priority;
 			
-			priority	= _priority;
-			
-		}else{
-		
+		if ( wrapper != null ){
 			wrapper.setPriority( priority );
 		}
 	}
@@ -124,7 +144,7 @@ AEThread2
 	{
 		if ( wrapper == null ){
 			
-			Debug.out( "Interrupted before started!!!!" );
+			throw new IllegalStateException( "Interrupted before started!" );
 			
 		}else{
 			
@@ -180,6 +200,7 @@ AEThread2
 	{
 		private AESemaphore sem;
 		private AEThread2	target;
+		private JoinLock	currentLock;
 		
 		private long		last_active_time;
 		
@@ -198,12 +219,19 @@ AEThread2
 		{
 			while( true ){
 				
-				try{
-					target.run();
-					
-				}catch( Throwable e ){
-					
-					DebugLight.printStackTrace(e);
+				synchronized (currentLock)
+				{
+					try{
+						target.run();
+						
+					}catch( Throwable e ){
+						
+						DebugLight.printStackTrace(e);
+					} finally
+					{
+						currentLock.released = true;
+						currentLock.notifyAll();						
+					}
 				}
 								
 				if ( isInterrupted() || !Thread.currentThread().isDaemon()){
@@ -248,7 +276,7 @@ AEThread2
 
 						daemon_threads.addLast( this );
 
-						setName( "AEThead:pool[" + daemon_threads.size() + "]" );
+						setName( "AEThead2:parked[" + daemon_threads.size() + "]" );
 						
 						// System.out.println( "AEThread2: queue=" + daemon_threads.size() + ",creates=" + total_creates + ",starts=" + total_starts );
 					}
@@ -290,6 +318,25 @@ AEThread2
 			target	= null;
 			
 			sem.release();
+		}
+		
+		
+	}
+	
+	public void join()
+	{
+		JoinLock currentLock = lock;
+		
+		// sync lock will be blocked by the thread
+		synchronized (currentLock)
+		{
+			// wait in case the thread is not running yet
+			while(!currentLock.released)
+				try
+				{
+					currentLock.wait();
+				} catch (InterruptedException e) {}
+			
 		}
 	}
 }

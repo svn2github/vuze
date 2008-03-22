@@ -168,7 +168,7 @@ Initializer
 	      SplashWindow.create(display,this);
 	    }
 	    	    
-	    setNbTasks(6);
+	    setNbTasks(7);
 	    
 	    nextTask(); 
 	    reportCurrentTaskByKey("splash.firstMessageNoI18N");
@@ -219,7 +219,7 @@ Initializer
 					}
 				}
 
-				public void started(AzureusCore core) {
+				public void started(final AzureusCore core) {
 					if (gm == null)
 						return;
 
@@ -238,19 +238,16 @@ Initializer
 					nextTask();
 					reportCurrentTaskByKey("splash.initializeGui");
 
-					new Colors();
+					Colors.getInstance();
 
 					Cursors.init();
 
+					// main window controls further progress now
 					new MainWindow(core, Initializer.this,
 							logEvents);
 
 					if (finalLogListener != null)
 						Logger.removeListener(finalLogListener);
-
-					nextTask();
-
-					reportCurrentTaskByKey("splash.openViews");
 
 					SWTUpdateChecker.initialize();
 
@@ -261,8 +258,8 @@ Initializer
 					//Tell listeners that all is initialized :
 					Alerts.initComplete();
 
-					// 7th task: just for triggering a > 100% completion
-					nextTask();
+
+					
 
 					//Finally, open torrents if any.
 					for (int i = 0; i < args.length; i++) {
@@ -427,24 +424,24 @@ Initializer
 	}finally{
 	  	
 		try{
-		    if ( azureus_core != null && !close_already_in_progress ){
-	
-		    	try{
-			    	if ( for_restart ){
-			    			
-			    		azureus_core.restart();
-			    			
-			    	}else{
-			    			
-			    		azureus_core.stop();
-			    	}
-		    	}catch( Throwable e ){
-		    		
-		    			// don't let any failure here cause the stop operation to fail
-		    		
-		    		Debug.out( e );
+	    if ( azureus_core != null && !close_already_in_progress ){
+
+	    	try{
+		    	if ( for_restart ){
+		    			
+		    		azureus_core.restart();
+		    			
+		    	}else{
+		    			
+		    		azureus_core.stop();
 		    	}
-		    }
+	    	}catch( Throwable e ){
+	    		
+	    			// don't let any failure here cause the stop operation to fail
+	    		
+	    		Debug.out( e );
+	    	}
+	    }
 		}finally{
 			
 				// do this after closing core to minimise window when the we aren't 
@@ -469,7 +466,7 @@ Initializer
     nbTasks = _nbTasks;
   }
   
-  private void nextTask() {
+  public void nextTask() {
     currentTask++;
     currentPercent = 100 * currentTask / (nbTasks) ;
     //0% done of current task
@@ -495,6 +492,7 @@ Initializer
   
 	public void abortProgress() {
 		currentTask = nbTasks;
+		nextTask();
 		reportPercent(101);
 	}
   

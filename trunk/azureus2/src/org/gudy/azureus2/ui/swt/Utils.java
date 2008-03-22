@@ -880,7 +880,7 @@ public class Utils
 			if (!launched && Constants.isUnix
 					&& (UrlUtils.isURL(sFile) || sFile.startsWith("mailto:"))) {
 				if (!Program.launch("xdg-open " + sFile)) {
-					Program.launch("htmlview " + sFile);
+						Program.launch("htmlview " + sFile);
 				}
 			}
 		} else {
@@ -1624,6 +1624,28 @@ public class Utils
 
 		return new Image(device, dstImageData);
 	}
+	
+	/**
+	 * Draws diagonal stripes onto the specified area of a GC
+	 * @param lineDist spacing between the individual lines
+	 * @param leftshift moves the stripes to the left, useful to shift with the background
+	 * @param fallingLines true for top left to bottom-right lines, false otherwise 
+	 */
+	public static void drawStriped(GC gcImg, int x, int y, int width, int height, int lineDist, int leftshift, boolean fallingLines)
+	{
+		lineDist += 2;
+		final int xm = x + width;
+		final int ym = y + height;
+		for(int i = x; i < xm; i++)
+		{
+			for(int j = y; j < ym; j++)
+			{
+				if((i + leftshift + (fallingLines ? -j : j)) % lineDist == 0)
+					gcImg.drawPoint(i, j);
+			}
+		}
+	}
+
 
 	/**
 	 * 
@@ -1644,10 +1666,9 @@ public class Utils
 		Rectangle backgroundArea = background.getBounds();
 		Rectangle foregroundDrawArea = foreground.getBounds();
 
-		foregroundDrawArea = new Rectangle(foregroundDrawArea.x
-				+ foregroundOffsetOnBg.x,
-				foregroundDrawArea.y + foregroundOffsetOnBg.y,
-				foregroundDrawArea.width, foregroundDrawArea.height);
+		foregroundDrawArea.x += foregroundOffsetOnBg.x;
+		foregroundDrawArea.y += foregroundOffsetOnBg.y;
+
 		foregroundDrawArea.intersect(backgroundArea);
 
 		if (foregroundDrawArea.isEmpty())
@@ -1809,9 +1830,8 @@ public class Utils
 
 		} catch (Throwable t) {
 			//Do nothing
-		}
-
-	}
+				}
+			}
 
 	/**
 	 * Ensure that the given <code>Rectangle</code> is fully visible on the given <code>Monitor</code>.
@@ -1832,8 +1852,8 @@ public class Utils
 	public static void makeVisibleOnMonitor(Rectangle rect, Monitor monitor) {
 
 		if (null == rect || null == monitor) {
-			return;
-		}
+				return;
+			}
 
 		try {
 

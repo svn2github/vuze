@@ -621,14 +621,11 @@ implements PiecePicker
 				if(toReturn == 0 && !pt2.isSnubbed() && pt1.isSnubbed())
 					toReturn = 1;
 
-				/*
-				//TODO enable in next beta cycle
 				// try some peer we haven't downloaded from yet (this should allow us to taste all peers)
 				if(toReturn == 0 && stats2.getTotalDataBytesReceived() == 0 && stats1.getTotalDataBytesReceived() > 0)
 					toReturn = 1;
 				if(toReturn == 0 && stats1.getTotalDataBytesReceived() == 0 && stats2.getTotalDataBytesReceived() > 0)
 					toReturn = -1;
-				*/
 				
 				/*
 

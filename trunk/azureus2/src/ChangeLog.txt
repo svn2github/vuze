@@ -1,6 +1,13 @@
 AZUREUS VUZE CHANGELOG
 -----------------
 
+2008.xx.xx | Azureus Vuze 3.0.5.3
+
+FEATURE: UI   | Protocol overhead is now shown in the speed graph [The 8472]
+
+CHANGE: Core  | Faster startup [The 8472]
+CHANGE: UI    | Provide column option to disable fast renaming in files view 
+
 2008.03.xx | Azureus Vuze 3.0.5.1
 
 CHANGE: Core  | Don't auto-UDP probe on initial announce if tracker not known to support UDP - hit on second and remember outcome [Parg]
@@ -20,7 +27,7 @@ BUGFIX: Core  | Fix non-crypto fallback outgoing connections [Parg]
 
 2008.03.05 | Azureus Vuze 3.0.5.0
 
-FEATURE: Core | Added uTorrent PEX support [amc1]
+FEATURE: Core | Added µTorrent PEX support [amc1]
 FEATURE: Core | Azureus probes trackers for UDP-capabilities on first scrape/announce now and uses udp instead of http where available [The 8472]
 FEATURE: Core | Added option to enforce IP bindings even when the specified interfaces are not available (useful when Azureus should not use certain network interfaces) [The 8472] 
 FEATURE: Core | Intervene with http seeds if progressive stall imminent [Parg]

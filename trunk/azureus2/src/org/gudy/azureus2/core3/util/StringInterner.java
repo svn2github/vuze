@@ -117,12 +117,12 @@ StringInterner
 		
 		String internedString;
 		
+		WeakStringEntry checkEntry = new WeakStringEntry(toIntern);
+		
 		synchronized( StringInterner.class ){
 
 			sanitize(false);
 
-
-			WeakStringEntry checkEntry = new WeakStringEntry(toIntern);
 			WeakStringEntry internedEntry = (WeakStringEntry) interningSet.get(checkEntry);
 
 			if (internedEntry == null || (internedString = internedEntry.getString()) == null)
@@ -154,11 +154,12 @@ StringInterner
 		
 		byte[] internedArray;
 		
+		WeakByteArrayEntry checkEntry = new WeakByteArrayEntry(toIntern);
+
 		synchronized( StringInterner.class ){
 			
 			sanitize(false);
 			
-			WeakByteArrayEntry checkEntry = new WeakByteArrayEntry(toIntern);
 			WeakByteArrayEntry internedEntry = (WeakByteArrayEntry) interningSet.get(checkEntry);
 			
 			if (internedEntry == null || (internedArray = internedEntry.getArray()) == null)
@@ -193,11 +194,12 @@ StringInterner
 		
 		File internedFile;
 		
+		WeakFileEntry checkEntry = new WeakFileEntry(toIntern);
+
 		synchronized( StringInterner.class ){
 			
 			sanitize(false);
 					
-			WeakFileEntry checkEntry = new WeakFileEntry(toIntern);
 			WeakFileEntry internedEntry = (WeakFileEntry) interningSet.get(checkEntry);
 			
 			if (internedEntry == null || (internedFile = internedEntry.getFile()) == null)
@@ -398,7 +400,7 @@ StringInterner
 			this.size = (short)(size & 0x7FFF);
 		}
 		
-		public int hashCode() {
+		public final int hashCode() {
 			return hash;		
 		}
 		

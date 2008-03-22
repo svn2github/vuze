@@ -21,11 +21,9 @@ package com.aelitis.azureus.launcher.classloading;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 
 /**
@@ -34,14 +32,16 @@ import java.util.Arrays;
  */
 public class PrimaryClassloader extends URLClassLoader implements PeeringClassloader {
 	
-	private ArrayList peersLoaders = new ArrayList();
+	private final ArrayList peersLoaders = new ArrayList();
+	private final ClassLoader packageLoader;
 	
-	private static final String packageName = PrimaryClassloader.class.getPackage().getName(); 
+	private static final String packageName = PrimaryClassloader.class.getPackage().getName();
 	
 	
-	public PrimaryClassloader(ClassLoader parent)
+	private PrimaryClassloader()
 	{
-		super(generateURLs(),parent);
+		super(generateURLs(),getSystemClassLoader().getParent());
+		this.packageLoader = getSystemClassLoader();
 	}
 	
 	private static URL[] generateURLs()
@@ -70,68 +70,51 @@ public class PrimaryClassloader extends URLClassLoader implements PeeringClasslo
 		return urls;
 	}
 	
-	private PrimaryClassloader(URL[] urls,ClassLoader parent)
-	{
-		super(urls,parent);
-	}
-	
 	/**
-	 * altered class lookup order
+	 * altered class lookup
 	 * <ol>
-	 * <li>check for loaded</li>
+	 * <li>follow normal delegation, circumventing the system classloader as we bootstraped it away</li>
+	 * <li>OR delegate to the system classloader iff it is for classes from this package, this allows us to rebootstrap and discard other branches in the hierarchy</li>
 	 * <li>check for loaded by peers</li>
-	 * <li>check/load classes belonging to the classloading package with the system class loader
-	 * <li>try to load locally</li>
 	 * <li>try to load from peers</li>
-	 * <li>query parent, skip system class loader as we do not want to pollute it</li>
 	 * </ol>
 	 */
-	protected synchronized Class loadClass(String name, boolean resolve) throws ClassNotFoundException {
+	protected Class loadClass(final String name, boolean resolve) throws ClassNotFoundException {
 		//System.out.println("loading "+name);
-		Class c = findLoadedClass(name);
-		if(c == null)
-			c = peerFindLoadedClass(name);
-		if(name.startsWith("java.") || name.startsWith(packageName))
-			try
-			{
-				c = getParent().loadClass(name);
-			} catch (Exception e)
-			{
-				// continue
-			}
-		if(c == null)
-			try
-			{
-				c = findClass(name);
-			} catch (ClassNotFoundException e)
-			{
-				// continue with alternatives
-			}
-		if(c == null)
-			c = peerLoadClass(name);
-		if(c == null)
+		Class c;
+		try
 		{
-			ClassLoader parentLoader = getParent();
-			//while(parentLoader == getSystemClassLoader())
-				//parentLoader = parentLoader.getParent();
-			c = parentLoader.loadClass(name);
+			if (!name.startsWith(packageName))
+				c = super.loadClass(name, resolve);
+			else
+				c = packageLoader.loadClass(name);
+		} catch (ClassNotFoundException e)
+		{
+			c = peerFindLoadedClass(name);
+			if (c == null)
+				c = peerLoadClass(name);
+			if (c == null)
+				throw e;
+			if (resolve)
+				resolveClass(c);
 		}
-		if(resolve)
-			resolveClass(c);
 		return c;
 	}
 	
 	private Class peerFindLoadedClass(String className)
 	{
 		Class c = null;
-		for(int i=0;i<peersLoaders.size()&&c==null;i++)
+		synchronized (peersLoaders)
 		{
-			WeakReference ref = (WeakReference)peersLoaders.get(i);
-			SecondaryClassLoader loader = (SecondaryClassLoader)ref.get();
-			if(loader != null)
-				c = loader.findLoadedClassHelper(className);
-			else
-				peersLoaders.remove(i--);
+			for (int i = 0; i < peersLoaders.size() && c == null; i++)
+			{
+				WeakReference ref = (WeakReference) peersLoaders.get(i);
+				SecondaryClassLoader loader = (SecondaryClassLoader) ref.get();
+				if (loader != null)
+					c = loader.findLoadedClassHelper(className);
+				else
+					peersLoaders.remove(i--);
+			}
 		}
 		return c;
 	}
@@ -139,19 +122,27 @@ public class PrimaryClassloader extends URLClassLoader implements PeeringClasslo
 	private Class peerLoadClass(String className)
 	{
 		Class c = null;
-		for(int i=0;i<peersLoaders.size()&&c==null;i++)
+		synchronized (peersLoaders)
 		{
-			WeakReference ref = (WeakReference)peersLoaders.get(i);
-			SecondaryClassLoader loader = (SecondaryClassLoader)ref.get();
-			if(loader != null) // no removal here, peerFindLoadedClass should take care of that anyway
-				c = loader.findClassHelper(className);
+			for(int i=0;i<peersLoaders.size()&&c==null;i++)
+			{
+				WeakReference ref = (WeakReference)peersLoaders.get(i);
+				SecondaryClassLoader loader = (SecondaryClassLoader)ref.get();
+				if(loader != null) // no removal here, peerFindLoadedClass should take care of that anyway
+					c = loader.findClassHelper(className);
+			}
+			
 		}
 		return c;
 	}
 	
-	synchronized void registerSecondaryClassloader(SecondaryClassLoader loader)
+	void registerSecondaryClassloader(SecondaryClassLoader loader)
 	{
-		peersLoaders.add(new WeakReference(loader));
+		synchronized (peersLoaders)
+		{
+			peersLoaders.add(new WeakReference(loader));
+		}
+		
 	}
 	
 	
@@ -163,13 +154,10 @@ public class PrimaryClassloader extends URLClassLoader implements PeeringClasslo
 	public static ClassLoader getBootstrappedLoader()
 	{
 		ClassLoader loader = ClassLoader.getSystemClassLoader();
-		if(loader instanceof PrimaryClassloader)
-			return loader;
 		
 		try
 		{
-			Constructor c = loader.loadClass(PrimaryClassloader.class.getName()).getDeclaredConstructor(new Class[] {ClassLoader.class});
-			return (ClassLoader)c.newInstance(new Object[] {loader});
+			return (ClassLoader) loader.loadClass(PrimaryClassloader.class.getName()).newInstance();
 		} catch (Exception e)
 		{
 			System.err.println("Could not instantiate Classloader\n");

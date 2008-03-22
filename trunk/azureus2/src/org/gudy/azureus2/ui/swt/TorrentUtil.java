@@ -193,7 +193,7 @@ public class TorrentUtil {
 
 				fileMove = fileMove && stopped && dm.isPersistent();
 
-				if (userMode > 1) {
+				if (userMode < 2) {
 					TRTrackerAnnouncer trackerClient = dm.getTrackerClient();
 
 					if (trackerClient != null) {
@@ -1454,7 +1454,7 @@ public class TorrentUtil {
 
 		private boolean ascending;
 		private boolean	async;
-		
+
 		public DMTask(DownloadManager[] dms) {
 			this(dms, true);
 		}
@@ -1463,7 +1463,7 @@ public class TorrentUtil {
 			this.dms = dms;
 			this.ascending = ascending;
 		}
-		
+
 		public DMTask(DownloadManager[] dms, boolean ascending, boolean async ) {
 			this.dms = dms;
 			this.ascending = ascending;
@@ -1485,8 +1485,8 @@ public class TorrentUtil {
 					public void
 					run()
 					{
-						go();
-					}
+			go();
+		}
 				}.start();
 			}else{
 				

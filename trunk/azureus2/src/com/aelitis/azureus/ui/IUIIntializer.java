@@ -68,4 +68,6 @@ public interface IUIIntializer
 	 * @since 3.0.4.3
 	 */
 	void reportCurrentTask(String currentTaskString);
+	
+	void reportPercent(int percent);
 }

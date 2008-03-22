@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.pluginsimpl.local.ui.SWT.SWTManagerImpl;
@@ -49,6 +50,7 @@ import org.gudy.azureus2.plugins.ui.model.PluginViewModel;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.ui.IUIIntializer;
 
 
 
@@ -249,10 +251,14 @@ UIManagerImpl
   			class_mon.exit();
   		}
   	}
+  	
+  	public void attachUI(UIInstanceFactory factory) throws UIException {
+  		attachUI(factory, null);
+  	}
   
 	public void
 	attachUI(
-		UIInstanceFactory		factory )
+		UIInstanceFactory		factory, IUIIntializer init)
 	{
 		try{
   			class_mon.enter();
@@ -260,16 +266,30 @@ UIManagerImpl
   			ui_factories.add( factory );
   			
   			if ( initialisation_complete ){
+  				
+  				int num = ui_event_listeners.size();
+  				int i = 0;
   							
   				Iterator it = ui_listeners.iterator();
 
   				while( it.hasNext()){
+  					
+  					i++;
   					  					
   					Object[]	entry = (Object[])it.next();
   					
+  					PluginInterface pi = (PluginInterface)entry[1];
+  					
+  					String name = pi.getPluginName();
+  					
+  					if(init != null)
+  					{
+  						init.reportCurrentTask(MessageText.getString("splash.plugin.UIinit",new String[] {name}));
+  						init.reportPercent(i/num);
+  					}
+  					
   					try{
-  						((UIManagerListener)entry[0]).UIAttached( 
-  								factory.getInstance((PluginInterface)entry[1]));
+  						((UIManagerListener)entry[0]).UIAttached(factory.getInstance(pi));
   						
   					}catch( Throwable e ){
   						

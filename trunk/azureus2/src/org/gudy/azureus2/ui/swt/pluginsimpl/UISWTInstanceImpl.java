@@ -55,6 +55,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableContextMenuManager;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnImpl;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -70,6 +71,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
+import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
 
 public class 
 UISWTInstanceImpl
@@ -97,22 +99,15 @@ UISWTInstanceImpl
 		uiFunctions = (UIFunctionsSWT) UIFunctionsManager.getUIFunctions();
 	}
 	
-	public void init() {
-		try{
-			UIManager	ui_manager = core.getPluginManager().getDefaultPluginInterface().getUIManager();
-			
-			ui_manager.addUIEventListener( this );
-			
-			bUIAttaching = true;
-			
-			ui_manager.attachUI( this );
-			
-			bUIAttaching = false;
-			
-		}catch( UIException e ){
-			
-			Debug.printStackTrace(e);
-		}
+	public void init(IUIIntializer init) {
+		UIManager ui_manager = core.getPluginManager().getDefaultPluginInterface().getUIManager();
+		ui_manager.addUIEventListener(this);
+		
+		bUIAttaching = true;
+		
+		((UIManagerImpl) ui_manager).attachUI(this, init);
+		
+		bUIAttaching = false;
 	}
   
 	public UIInstance

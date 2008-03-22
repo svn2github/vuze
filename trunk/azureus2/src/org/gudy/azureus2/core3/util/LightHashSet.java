@@ -193,7 +193,7 @@ public class LightHashSet extends AbstractSet implements Cloneable {
 		if(key == null)
 			key = NULLKEY;
 		final int idx = findIndex(key);
-		if (keysEqual(data[idx], key))
+		if (keysEqual(key, data[idx]))
 		{
 			removeForIndex(idx);
 			return true;
@@ -223,13 +223,8 @@ public class LightHashSet extends AbstractSet implements Cloneable {
 		return keysEqual(key, data[nonModifyingFindIndex(key)]);
 	}
 
-	private boolean keysEqual(final Object o1, final Object o2) {
-		if (o1 != null)
-			if (o2 != null && o1.hashCode() != o2.hashCode())
-				return false;
-			else
-				return o1.equals(o2);
-		return o2 == null;
+	private final boolean keysEqual(final Object o1, final Object o2) {
+		return o1 == o2 || (o1 != null && o2 != null && o1.hashCode() == o2.hashCode() && o1.equals(o2));
 	}
 
 	private int findIndex(final Object keyToFind) {

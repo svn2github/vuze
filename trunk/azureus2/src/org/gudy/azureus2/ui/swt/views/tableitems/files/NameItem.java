@@ -28,16 +28,13 @@ import java.io.File;
 import java.io.IOException;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -46,6 +43,9 @@ import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 import com.aelitis.azureus.core.AzureusCoreOperation;
@@ -60,6 +60,7 @@ public class NameItem extends CoreTableColumn implements
 		TableCellLightRefreshListener, ObfusticateCellText, TableCellDisposeListener
 {
 	private static boolean bShowIcon;
+	private static boolean fastRename;
 
 	static {
 		COConfigurationManager.addAndFireParameterListener(
@@ -76,6 +77,25 @@ public class NameItem extends CoreTableColumn implements
 				TableManager.TABLE_TORRENT_FILES);
 		setType(TableColumn.TYPE_TEXT);
 		setInplaceEdit(true);
+		final TableContextMenuItem menuItem = addContextMenuItem("fastRename");
+		
+		menuItem.setStyle(MenuItem.STYLE_CHECK);
+		menuItem.setText("asdf");
+		menuItem.setData(Boolean.valueOf(fastRename));
+
+		menuItem.addFillListener(new MenuItemFillListener() {
+			public void menuWillBeShown(MenuItem menu, Object data) {
+				menu.setStyle(MenuItem.STYLE_CHECK);
+				menu.setText("asdf");
+				menu.setData(Boolean.valueOf(fastRename));
+				
+			}
+		});
+		menuItem.addMultiListener(new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				menu.setData(Boolean.valueOf(fastRename = !fastRename));
+			}
+		});
 	}
 	
 	public void refresh(TableCell cell, boolean sortOnlyRefresh)

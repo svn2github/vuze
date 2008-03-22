@@ -41,6 +41,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
@@ -577,7 +578,7 @@ public class MainWindow
 			// table columns and other objects
 			if (uiSWTInstanceImpl == null) {
 				uiSWTInstanceImpl = new UISWTInstanceImpl(azureus_core);
-				uiSWTInstanceImpl.init();
+				uiSWTInstanceImpl.init(initializer);
 
 				// check if any plugins shut us down
 				if (isAlreadyDead) {
@@ -600,8 +601,24 @@ public class MainWindow
 	 * @since 3.0.4.3
 	 */
 	public void postPluginSetup() {
+		int delay = 0;
+		final int delayInc = 50;
+		
+		if(initializer != null)
+		{
+			initializer.reportCurrentTask(MessageText.getString("splash.openViews"));
+			initializer.nextTask();
+		}
+
+			
+		
 		if (azureus_core.getTrackerHost().getTorrents().length > 0) {
-			showMyTracker();
+			Utils.execSWTThreadLater(delay += delayInc, new Runnable()
+			{
+				public void run() {
+					showMyTracker();
+				}
+			});
 		}
 
 		PluginManager plugin_manager = azureus_core.getPluginManager();
@@ -634,14 +651,25 @@ public class MainWindow
 			if (share_manager.getShares().length > 0
 					|| COConfigurationManager.getIntParameter("GUI_SWT_share_count_at_close") > 0) {
 
-				showMyShares();
+				
+				Utils.execSWTThreadLater(delay += delayInc, new Runnable()
+				{
+					public void run() {
+						showMyShares();
+					}
+				});
 			}
 		} catch (ShareException e) {
 			Debug.out(e);
 		}
 
 		if (COConfigurationManager.getBooleanParameter("Open MyTorrents")) {
-			showMyTorrents();
+			Utils.execSWTThreadLater(delay += delayInc, new Runnable()
+			{
+				public void run() {
+					showMyTorrents();
+				}
+			});
 		}
 
 		//  share progress window
@@ -649,20 +677,40 @@ public class MainWindow
 		new ProgressWindow();
 
 		if (COConfigurationManager.getBooleanParameter("Open Console")) {
-			showConsole();
+			Utils.execSWTThreadLater(delay += delayInc, new Runnable()
+			{
+				public void run() {
+					showConsole();
+				}
+			});
 		}
 		events = null;
 
 		if (COConfigurationManager.getBooleanParameter("Open Config")) {
-			showConfig();
+			Utils.execSWTThreadLater(delay += delayInc, new Runnable()
+			{
+				public void run() {
+					showConfig();
+				}
+			});
 		}
 
 		if (COConfigurationManager.getBooleanParameter("Open Stats On Start")) {
-			showStats();
+			Utils.execSWTThreadLater(delay += delayInc, new Runnable()
+			{
+				public void run() {
+					showStats();
+				}
+			});
 		}
 
 		if (COConfigurationManager.getBooleanParameter("Open Transfer Bar On Start")) {
-			uiFunctions.showGlobalTransferBar();
+			Utils.execSWTThreadLater(delay += delayInc, new Runnable()
+			{
+				public void run() {
+					uiFunctions.showGlobalTransferBar();
+				}
+			});
 		}
 
 		COConfigurationManager.addParameterListener("GUI_SWT_bFancyTab", this);
@@ -676,6 +724,10 @@ public class MainWindow
 						setIconBarEnabled(COConfigurationManager.getBooleanParameter(parameterName));
 					}
 				});
+		
+		// init done
+		if(initializer != null)
+			initializer.abortProgress();
 	}
 
 	protected boolean getIconBarEnabled() {

@@ -1,6 +1,6 @@
 /*
  * File    : StatsView.java
- * Created : 15 déc. 2003}
+ * Created : 15 dï¿½c. 2003}
  * By      : Olivier
  *
  * Copyright (C) 2004, 2005, 2006 Aelitis SAS, All rights Reserved
@@ -75,12 +75,14 @@ public class ActivityView extends AbstractIView implements ParameterListener {
 	int swarms_peer_speed = (int)stats.getTotalSwarmsPeerRate(true,false);
 	
     downSpeedGraphic.addIntsValue(
-    	new int[]{ 	stats.getDataReceiveRate() + stats.getProtocolReceiveRate(),
+    	new int[]{ 	stats.getDataReceiveRate()+stats.getProtocolReceiveRate(),
+    				stats.getProtocolReceiveRate(),
     				COConfigurationManager.getIntParameter("Max Download Speed KBs") * 1024,
     				swarms_peer_speed });
    
     upSpeedGraphic.addIntsValue(
-    	new int[]{	stats.getDataSendRate() + stats.getProtocolSendRate(), 
+    	new int[]{	stats.getDataSendRate()+stats.getProtocolSendRate(),
+    				stats.getProtocolSendRate(),
     				COConfigurationManager.getIntParameter(TransferSpeedValidator.getActiveUploadParameter( manager )) * 1024,
     				swarms_peer_speed });
   }
@@ -122,6 +124,7 @@ public class ActivityView extends AbstractIView implements ParameterListener {
 	String[] colorConfigs = new String[] {
 		"ActivityView.legend.peeraverage",
 		"ActivityView.legend.achieved",
+		"ActivityView.legend.overhead",
 		"ActivityView.legend.limit",
 		"ActivityView.legend.swarmaverage",
 		"ActivityView.legend.trimmed"

@@ -304,13 +304,8 @@ public class LightHashMap extends AbstractMap implements Cloneable {
 		return false;
 	}
 	
-	private boolean keysEqual(final Object o1, final Object o2) {
-		if (o1 != null)
-			if (o2 != null && o1.hashCode() != o2.hashCode())
-				return false;
-			else
-				return o1.equals(o2);
-		return o2 == null;
+	private final boolean keysEqual(final Object o1, final Object o2) {
+		return o1 == o2 || (o1 != null && o2 != null && o1.hashCode() == o2.hashCode() && o1.equals(o2));
 	}
 
 	private int findIndex(final Object keyToFind) {
