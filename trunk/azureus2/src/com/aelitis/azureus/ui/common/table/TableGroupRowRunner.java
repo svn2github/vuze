@@ -23,14 +23,4 @@ public abstract class TableGroupRowRunner
 	public boolean run(TableRowCore[] rows) {
 		return false;
 	}
-
-	/**
-	 * Indicates whether this object supports multiple rows.
-	 */
-	private static final TableRowCore[] EMPTY = new TableRowCore[0];
-
-	public boolean supportsMultipleRows() {
-		return run(EMPTY);
-	}
-
 }

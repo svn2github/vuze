@@ -2935,23 +2935,25 @@ public class TableViewSWTImpl
 	public void runForSelectedRows(TableGroupRowRunner runner) {
 		if (table == null || table.isDisposed())
 			return;
-
+		
 		TableItem[] tis = table.getSelection();
-		List rows_to_use = null;
-		if (runner.supportsMultipleRows()) {
-			rows_to_use = new ArrayList(tis.length);
-		}
+		List rows_to_use = new ArrayList(tis.length);
 		for (int i = 0; i < tis.length; i++) {
-			TableRowSWT row = (TableRowSWT) getRow(tis[i]);
+			TableRowCore row = getRow(tis[i]);
 			if (row != null)
 				if (rows_to_use != null) {
 					rows_to_use.add(row);
-				} else {
-					runner.run(row);
 				}
 		}
 		if (rows_to_use != null) {
-			runner.run((TableRowSWT[]) rows_to_use.toArray(new TableRowSWT[rows_to_use.size()]));
+			TableRowCore[] rows = (TableRowCore[]) rows_to_use.toArray(new TableRowCore[rows_to_use.size()]);
+			boolean ran = runner.run(rows);
+			if (!ran) {
+				for (int i = 0; i < rows.length; i++) {
+					TableRowCore row = rows[i];
+					runner.run(row);
+				}
+			}
 		}
 	}
 
@@ -2996,10 +2998,7 @@ public class TableViewSWTImpl
 			return;
 
 		final Iterator iter = items.iterator();
-		List rows_to_use = null;
-		if (runner.supportsMultipleRows()) {
-			rows_to_use = new ArrayList(items.size());
-		}
+		List rows_to_use = new ArrayList(items.size());
 		while (iter.hasNext()) {
 			TableItem tableItem = (TableItem) iter.next();
 			if (tableItem.isDisposed())
@@ -3007,15 +3006,18 @@ public class TableViewSWTImpl
 
 			TableRowSWT row = (TableRowSWT) getRow(tableItem);
 			if (row != null) {
-				if (rows_to_use != null) {
-					rows_to_use.add(row);
-				} else {
-					runner.run(row);
-				}
+				rows_to_use.add(row);
 			}
 		}
 		if (rows_to_use != null) {
-			runner.run((TableRowSWT[]) rows_to_use.toArray(new TableRowSWT[rows_to_use.size()]));
+			TableRowCore[] rows = (TableRowCore[]) rows_to_use.toArray(new TableRowCore[rows_to_use.size()]);
+			boolean ran = runner.run(rows);
+			if (!ran) {
+				for (int i = 0; i < rows.length; i++) {
+					TableRowCore row = rows[i];
+					runner.run(row);
+				}
+			}
 		}
 	}
 
