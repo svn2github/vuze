@@ -496,8 +496,10 @@ public class ColumnVuzeActivity
 				subCellEvent.y = event.y - dmThumbRect.y;
 
 				if (thumbCell instanceof TableCellCore) {
-					((TableCellCore) thumbCell).getTableRowCore().invokeMouseListeners(
-							subCellEvent);
+					TableRowCore row = ((TableCellCore) thumbCell).getTableRowCore();
+					if (row != null) {
+						row.invokeMouseListeners(subCellEvent);
+					}
 				}
 				event.skipCoreFunctionality |= subCellEvent.skipCoreFunctionality;
 			}
