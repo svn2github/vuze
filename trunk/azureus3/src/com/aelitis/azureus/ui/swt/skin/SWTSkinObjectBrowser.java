@@ -41,6 +41,7 @@ import com.aelitis.azureus.ui.swt.browser.listener.*;
 import com.aelitis.azureus.ui.swt.browser.listener.publish.LocalHoster;
 import com.aelitis.azureus.ui.swt.browser.listener.publish.PublishListener;
 import com.aelitis.azureus.ui.swt.utils.PublishUtils;
+import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.LocalResourceHTTPServer;
 
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -126,7 +127,15 @@ public class SWTSkinObjectBrowser
 				if (url == null) {
 					browser.setText("");
 				} else {
-					browser.setUrl(url);
+					String urlToUse = url;
+					if (urlToUse.indexOf("azid=") < 0) {
+						if (urlToUse.indexOf("?") >= 0) {
+							urlToUse += "&" + Constants.URL_SUFFIX;
+						} else {
+							urlToUse += "?" + Constants.URL_SUFFIX;
+						}
+					}
+					browser.setUrl(urlToUse);
 				}
 				if (sStartURL == null) {
 					sStartURL = url;
