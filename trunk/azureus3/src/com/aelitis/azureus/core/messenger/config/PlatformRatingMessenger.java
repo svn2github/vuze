@@ -59,13 +59,19 @@ public class PlatformRatingMessenger
 
 		PlatformMessengerListener listener = new PlatformMessengerListener() {
 			public void messageSent(PlatformMessage message) {
-				replyListener.messageSent();
+				if (replyListener != null) {
+					replyListener.messageSent();
+				}
 			}
 
 			public void replyReceived(PlatformMessage message, String replyType,
 					Map reply) {
-
-				replyListener.replyReceived(replyType, new GetRatingReply(reply));
+				// must create GetRatingReply object even if there's no replyListener
+				// as class creation may cause other listener triggers
+				GetRatingReply ratingReply = new GetRatingReply(reply);
+				if (replyListener != null) {
+					replyListener.replyReceived(replyType, ratingReply);
+				}
 			}
 		};
 
