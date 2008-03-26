@@ -6,7 +6,7 @@ AZUREUS VUZE CHANGELOG
 FEATURE: UI   | Protocol overhead is now shown in the speed graph [The 8472]
 
 CHANGE: Core  | Faster startup [The 8472]
-CHANGE: UI    | Provide column option to disable fast renaming in files view 
+CHANGE: UI    | Provide column menu option to disable fast renaming in files view [The 8472]
 
 2008.03.xx | Azureus Vuze 3.0.5.1
 

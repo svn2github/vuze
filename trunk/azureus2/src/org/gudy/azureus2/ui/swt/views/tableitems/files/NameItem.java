@@ -77,23 +77,25 @@ public class NameItem extends CoreTableColumn implements
 				TableManager.TABLE_TORRENT_FILES);
 		setType(TableColumn.TYPE_TEXT);
 		setInplaceEdit(true);
-		final TableContextMenuItem menuItem = addContextMenuItem("fastRename");
+		final TableContextMenuItem menuItem = addContextMenuItem("FilesView.name.fastRename");
 		
 		menuItem.setStyle(MenuItem.STYLE_CHECK);
-		menuItem.setText("asdf");
+		//menuItem.setText(MessageText.getString("FilesView.name.fastRename")); TODO make this work
 		menuItem.setData(Boolean.valueOf(fastRename));
 
+		/* TODO make this work
 		menuItem.addFillListener(new MenuItemFillListener() {
 			public void menuWillBeShown(MenuItem menu, Object data) {
 				menu.setStyle(MenuItem.STYLE_CHECK);
-				menu.setText("asdf");
 				menu.setData(Boolean.valueOf(fastRename));
-				
+				menu.setText(MessageText.getString("FilesView.name.fastRename"));
 			}
 		});
+		*/
 		menuItem.addMultiListener(new MenuItemListener() {
 			public void selected(MenuItem menu, Object target) {
-				menu.setData(Boolean.valueOf(fastRename = !fastRename));
+				menu.setData(Boolean.valueOf(fastRename = !fastRename)); // XXX broken, should toggle checkmarks
+				setInplaceEdit(fastRename);
 			}
 		});
 	}
