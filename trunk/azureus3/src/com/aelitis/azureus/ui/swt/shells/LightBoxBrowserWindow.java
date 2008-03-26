@@ -1,9 +1,18 @@
 package com.aelitis.azureus.ui.swt.shells;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.*;
+import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.browser.CloseWindowListener;
+import org.eclipse.swt.browser.ProgressEvent;
+import org.eclipse.swt.browser.ProgressListener;
+import org.eclipse.swt.browser.TitleEvent;
+import org.eclipse.swt.browser.TitleListener;
+import org.eclipse.swt.browser.WindowEvent;
 import org.eclipse.swt.custom.StackLayout;
-import org.eclipse.swt.events.*;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -15,7 +24,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.LightBoxShell;
-import org.gudy.azureus2.ui.swt.components.shell.LightBoxShell.StyledShell;
+import org.gudy.azureus2.ui.swt.components.shell.StyledShell;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
@@ -186,7 +195,8 @@ public class LightBoxBrowserWindow
 		}
 
 		if (browserWidth > 0 && browserHeight > 0) {
-			styledShell.setSize(browserWidth, browserHeight, true);
+			styledShell.setSize(browserWidth, browserHeight, StyledShell.HINT_ALIGN_CENTER
+					| StyledShell.HINT_ALIGN_FIT_IN_MONITOR);
 		}
 
 		if (null != browser) {
