@@ -73,8 +73,6 @@ public class ColumnVuzeActivity
 
 	private static final int MARGIN_HEIGHT = 7 - 1; // we set row margin height to 1
 
-	private static final boolean DO_RATE_CELL = false;
-
 	public static String COLUMN_ID = "name";
 
 	private static Font headerFont = null;
@@ -339,7 +337,7 @@ public class ColumnVuzeActivity
 				thumbCell.refresh(true);
 				thumbCell.doPaint(gc);
 
-				if (DO_RATE_CELL) {
+				if (VuzeActivitiesEntry.TYPEID_RATING_REMINDER.equals(entry.getTypeID())) {
 					if (entry.dm != null
 							&& PlatformTorrentUtils.isContent(entry.dm.getTorrent(), true)) {
 						Rectangle dmRatingRect = getDMRatingRect(width, height);

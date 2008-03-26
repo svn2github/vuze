@@ -48,6 +48,14 @@ import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDown
 public class VuzeActivitiesEntry
 	implements TableColumnSortObject
 {
+	public static final String TYPEID_DL_COMPLETE = "DL-Complete";
+
+	public static final String TYPEID_DL_ADDED = "DL-Added";
+
+	public static final String TYPEID_DL_REMOVE = "DL-Remove";
+
+	public static final String TYPEID_RATING_REMINDER = "Rating-Reminder";
+
 	public static int TYPE_HEADER = 0;
 	
 	public static int TYPE_DATA = 1;
@@ -145,10 +153,6 @@ public class VuzeActivitiesEntry
 		entry.showThumb = MapUtils.getMapLong(map, "showThumb", 1) == 1;
 		entry.setAssetImageURL(MapUtils.getMapString(map, "assetImageURL", null));
 		
-		if (entry.getTypeID().equals(VuzeActivitiesManager.TYPEID_RATING_REMINDER)) {
-			entry.showThumb = false;
-		}
-
 		if (entry.assetHash != null) {
 			GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 			entry.dm = gm.getDownloadManager(new HashWrapper(
