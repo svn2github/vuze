@@ -31,6 +31,12 @@ public abstract class
 ThreadPoolTask
 	extends AERunnable
 {
+	static final int RELEASE_AUTO = 0x00;
+	static final int RELEASE_MANUAL = 0x01;
+	static final int RELEASE_MANUAL_ALLOWED = 0x02;
+	
+	int manualRelease;
+	
 	protected ThreadPool.threadPoolWorker		worker;
 	
 	public void
@@ -63,5 +69,25 @@ ThreadPoolTask
 	public void
 	taskCompleted()
 	{
+	}
+	
+	synchronized boolean isAutoReleaseAndAllowManual()
+	{
+		if(manualRelease == RELEASE_MANUAL)
+			manualRelease = RELEASE_MANUAL_ALLOWED;
+		return manualRelease == RELEASE_AUTO;
+	}
+	
+	public synchronized void releaseToPool()
+	{
+		// releasing before the initial run finished, so just let the runner do the cleanup
+		if(manualRelease == RELEASE_MANUAL)
+			manualRelease = RELEASE_AUTO;
+		else if(manualRelease == RELEASE_MANUAL_ALLOWED)
+		{
+			manualRelease = RELEASE_AUTO;
+			worker.getOwner(); // release semaphore here
+			taskCompleted();
+		}
 	}
 }

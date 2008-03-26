@@ -1452,7 +1452,7 @@ DHTControlImpl
 				{
 					return( description );
 				}
-			}, high_priority );
+			}, high_priority, false );
 	}
 	
 	protected void
