@@ -1314,7 +1314,8 @@ public class TableCellImpl
 	}
 	
 	public boolean isMouseOver() {
-		return ((TableViewSWT) tableRow.getView()).getTableCellWithCursor() == this;
+		TableViewSWT view = (TableViewSWT) tableRow.getView();
+		return view == null ? false : view.getTableCellWithCursor() == this;
 	}
 	
 	public int[] getMouseOffset() {
