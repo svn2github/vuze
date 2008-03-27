@@ -171,7 +171,7 @@ public class LimitControlDropUploadFirst implements LimitControl
         upLimit = Math.round( ((usedUpMax-upMin)*valueUp)+upMin );
 
         //ToDo: remove diagnotics later.
-        if( upLimit>upMax || valueUp==Float.NaN ){
+        if( upLimit>upMax || Float.isNaN(valueUp)){
             SpeedManagerLogger.trace("Limit - should upload have an unlimited condition? Setting to usedUpMax");
             upLimit = usedUpMax;
         }
@@ -201,10 +201,10 @@ public class LimitControlDropUploadFirst implements LimitControl
 
     private float calculateNewValue(float curr, float amount){
 
-        if(curr==Float.NaN){
+        if(Float.isNaN(curr)){
             SpeedManagerLogger.trace("calculateNewValue - curr=NaN");
         }
-        if(amount==Float.NaN){
+        if(Float.isNaN(amount)){
             SpeedManagerLogger.trace("calculateNewValue = amount=NaN");
         }
 
@@ -216,7 +216,7 @@ public class LimitControlDropUploadFirst implements LimitControl
             curr = 0.0f;
         }
 
-        if( curr==Float.NaN){
+        if(Float.isNaN(curr)){
             curr=0.0f;
         }
 
