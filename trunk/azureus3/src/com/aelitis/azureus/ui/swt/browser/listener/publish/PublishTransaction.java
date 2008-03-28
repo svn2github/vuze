@@ -358,9 +358,10 @@ public class PublishTransaction extends Transaction
             Map params = new HashMap();
             params.put("folder", new Boolean(dataFile.isDirectory()));
             params.put("name", dataFile.getName());
-            long size = getSize(dataFile);
-            params.put("size", new Long(size));
-            params.put("size-text", DisplayFormatters.formatByteCountToKiBEtc(size));
+            Long[] info = getSizeAndCount(dataFile);
+            params.put("size", info[0]);
+            params.put("num-files", info[1]);
+            params.put("size-text", DisplayFormatters.formatByteCountToKiBEtc(info[0]));
             sendBrowserMessage("torrent", "chosen", params);
     	} else {
     		//No file was chosen, cancel the transaction
@@ -369,24 +370,27 @@ public class PublishTransaction extends Transaction
     	}
     }
     
-    private long getSize(File folderFile) {
+    private Long[] getSizeAndCount(File folderFile) {
     	if (folderFile.isFile()) {
-    		return folderFile.length();
+    		return new Long[] { folderFile.length(), 1L };
     	}
     	if (folderFile.isDirectory()) {
     		long size = 0;
+    		long numFiles = 0;
     		File[] files = folderFile.listFiles();
     		if (files != null) {
     			for (int i = 0; i < files.length; i++) {
 						File file = files[i];
-						size += getSize(file);
+						Long[] sizeAndCount = getSizeAndCount(file);
+						size += sizeAndCount[0];
+						numFiles += sizeAndCount[1];
 					}
     		}
-    		return size;
+    		return new Long[] { size, numFiles };
     	}
-    	return 0;
+    	return new Long[] { 0L, 0L };
     }
-    
+
     private class ResizedImageInfo {
     	public URL url;
     	public int width,height;
