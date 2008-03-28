@@ -10,20 +10,26 @@ CHANGE: UI    | Provide column menu option to disable fast renaming in files vie
 
 2008.03.xx | Azureus Vuze 3.0.5.1
 
+FEATURE: UIv3 | Ability to rate directly from rating reminder activity entry [TuxPaper] 
+
 CHANGE: Core  | Don't auto-UDP probe on initial announce if tracker not known to support UDP - hit on second and remember outcome [Parg]
 CHANGE: Core  | Improve startup times by taking various torrent-load operations off main thread [Parg]
 CHANGE: Core  | Add reason-messages for update check failures [Parg]
 CHANGE: UI    | Run explicit tracker scrapes off UI thread to prevent blocking [Parg]
 CHANGE: UI    | Allow UI initialisation to proceed before plugin init complete [Parg]
+CHANGE: UIv3  | Always start on "Dashboard" tab (unless Advanced UI chosen), instead of sometimes starting on "On Vuze" tab [TuxPaper]
 CHANGE: Plug  | Ensure that DHT republish events are scheduled using absolute time so recover correctly from computer suspend [Parg]
 CHANGE: Core  | Use derived password to protect private key to allow us to persist password [Parg]
 CHANGE: Core  | Get plugin update URL from version server to support potential future switch [Parg]
 
 BUGFIX: UI    | Fix broken per-torrent upload speed setting via options tab [Parg]
+BUGFIX: UI    | Fix alternating bg color not updating after changing in config [TuxPaper]
+BUGFIX: UIv3  | Fix resource leaks related to light box (login window) [knguyen]
 BUGFIX: Core  | Handle some badly formed torrents more gracefully (corrupt announce-lists) [Parg]
 BUGFIX: Core  | Handle multiple SSL certs from same URL [Parg]
 BUGFIX: Core  | URLDecode torrent filenames [Parg]
 BUGFIX: Core  | Fix non-crypto fallback outgoing connections [Parg]
+BUGFIX: Core  | Better (esp for Vista) detection of and setting of Azureus' .torrent file association [TuxPaper]
 
 2008.03.05 | Azureus Vuze 3.0.5.0
 
