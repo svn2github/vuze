@@ -424,7 +424,7 @@ public class IncomingSocketChannelManager
       int so_sndbuf_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_SNDBUF" );
       if( so_sndbuf_size > 0 )  channel.socket().setSendBufferSize( so_sndbuf_size );
       
-      String ip_tos = COConfigurationManager.getStringParameter( "network.tcp.socket.IPTOS" );
+      String ip_tos = COConfigurationManager.getStringParameter( "network.tcp.socket.IPDiffServ" );
       if( ip_tos.length() > 0 )  channel.socket().setTrafficClass( Integer.decode( ip_tos ).intValue() );
     }
     catch( Throwable t ) {

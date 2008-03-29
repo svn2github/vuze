@@ -270,7 +270,7 @@ public class TCPConnectionManager {
           request.channel.socket().setSendBufferSize( snd_size );
         }
 
-        String ip_tos = COConfigurationManager.getStringParameter( "network.tcp.socket.IPTOS" );
+        String ip_tos = COConfigurationManager.getStringParameter( "network.tcp.socket.IPDiffServ" );
         if( ip_tos.length() > 0 ) {
         	if (Logger.isEnabled())
         		Logger.log(new LogEvent(LOGID, "Setting socket TOS field "

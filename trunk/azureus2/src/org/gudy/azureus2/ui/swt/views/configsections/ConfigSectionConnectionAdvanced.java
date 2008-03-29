@@ -183,22 +183,22 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		
 
 		Label ltos = new Label(gSocket, SWT.NULL);
-		Messages.setLanguageText(ltos, CFG_PREFIX + "IPTOS");
-		final StringParameter IPTOS = new StringParameter(gSocket,	"network.tcp.socket.IPTOS");
+		Messages.setLanguageText(ltos, CFG_PREFIX + "IPDiffServ");
+		final StringParameter IPDiffServ = new StringParameter(gSocket,	"network.tcp.socket.IPDiffServ");
 		gridData = new GridData();
 		gridData.widthHint = 30;
-		IPTOS.setLayoutData(gridData);
+		IPDiffServ.setLayoutData(gridData);
 
 
 		//do simple input verification, and registry key setting for TOS field
-		IPTOS.addChangeListener(new ParameterChangeAdapter() {
+		IPDiffServ.addChangeListener(new ParameterChangeAdapter() {
 
-			final Color obg = IPTOS.getControl().getBackground();
+			final Color obg = IPDiffServ.getControl().getBackground();
 
-			final Color ofg = IPTOS.getControl().getForeground();
+			final Color ofg = IPDiffServ.getControl().getForeground();
 
 			public void parameterChanged(Parameter p, boolean caused_internally) {
-				String raw = IPTOS.getValue();
+				String raw = IPDiffServ.getValue();
 				int value = -1;
 
 				try {
@@ -207,20 +207,20 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 				}
 
 				if (value < 0 || value > 255) { //invalid or no value entered
-					ConfigurationManager.getInstance().removeParameter(	"network.tcp.socket.IPTOS");
+					ConfigurationManager.getInstance().removeParameter(	"network.tcp.socket.IPDiffServ");
 
 					if (raw != null && raw.length() > 0) { //error state
-						IPTOS.getControl().setBackground(Colors.red);
-						IPTOS.getControl().setForeground(Colors.white);
+						IPDiffServ.getControl().setBackground(Colors.red);
+						IPDiffServ.getControl().setForeground(Colors.white);
 					} else { //no value state
-						IPTOS.getControl().setBackground(obg);
-						IPTOS.getControl().setForeground(ofg);
+						IPDiffServ.getControl().setBackground(obg);
+						IPDiffServ.getControl().setForeground(ofg);
 					}
 
 					enableTOSRegistrySetting(false); //disable registry setting if necessary
 				} else { //passes test
-					IPTOS.getControl().setBackground(obg);
-					IPTOS.getControl().setForeground(ofg);
+					IPDiffServ.getControl().setBackground(obg);
+					IPDiffServ.getControl().setForeground(ofg);
 
 					enableTOSRegistrySetting(true); //enable registry setting if necessary
 				}

@@ -465,7 +465,7 @@ public class ConfigurationDefaults {
     def.put( "network.udp.mtu.size", new Long(1500) );
     def.put( "network.tcp.socket.SO_SNDBUF", ZERO );
     def.put( "network.tcp.socket.SO_RCVBUF", ZERO );
-    def.put( "network.tcp.socket.IPTOS", "" );
+    def.put( "network.tcp.socket.IPDiffServ", "" );
     def.put( "network.tcp.read.select.time", new Long(25));
     def.put( "network.tcp.write.select.time", new Long(25));
     def.put( "network.control.write.idle.time", new Long(50));
