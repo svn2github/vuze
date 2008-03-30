@@ -29,14 +29,14 @@ public class AzURLStreamHandlerFactory implements URLStreamHandlerFactory {
 
 	public URLStreamHandler createURLStreamHandler(String protocol) {
 		String clsName = packageName + "." + protocol + ".Handler";
-		Class cls = null;
 		try
 		{
-			cls = Class.forName(clsName);
+			Class cls = Class.forName(clsName);
 			return (URLStreamHandler) cls.newInstance();
-		} catch (Exception e)
+		} catch (Throwable e)
 		{
-			return null;
+			// URLs are involved in classloading, evil things might happen
 		}
+		return null;
 	}
 }
