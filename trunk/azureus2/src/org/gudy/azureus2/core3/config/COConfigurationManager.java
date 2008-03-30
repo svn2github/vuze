@@ -25,10 +25,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.io.IOException;
+import java.net.URL;
 
 import org.gudy.azureus2.core3.config.impl.*;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.core3.util.protocol.AzURLStreamHandlerFactory;
 
 public class 
 COConfigurationManager 
@@ -62,6 +64,7 @@ COConfigurationManager
 			pre_initialised	= true;
 		
 			try{
+				/*
 			  	String	handlers = System.getProperty( "java.protocol.handler.pkgs" );
 			  	
 			  	if ( handlers == null ){
@@ -74,6 +77,9 @@ COConfigurationManager
 			  	}
 			  	
 			  	System.setProperty( "java.protocol.handler.pkgs", handlers );
+			  	*/
+				
+				URL.setURLStreamHandlerFactory(new AzURLStreamHandlerFactory());
 			  	 	
 			  		// DNS cache timeouts
 			  	
