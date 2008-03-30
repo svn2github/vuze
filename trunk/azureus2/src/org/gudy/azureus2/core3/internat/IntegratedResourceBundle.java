@@ -93,7 +93,7 @@ IntegratedResourceBundle
 	
 	private Locale	locale;
 
-	private Map	messages 		= new HashMap();
+	private Map	messages 		= new LightHashMap();
 	private Map	used_messages;
 	
 	private int		clean_count	= 0;
@@ -119,36 +119,25 @@ IntegratedResourceBundle
 			// use a somewhat decent initial capacity, proper calculation would require java 1.6
 		
 		addResourceMessages( main );
+		
+		synchronized (localizationPaths)
+		{
+			for (Iterator iter = localizationPaths.keySet().iterator(); iter.hasNext();){
+				String localizationPath = (String) iter.next();
+				ClassLoader classLoader = (ClassLoader) localizationPaths.get(localizationPath);
 
-		for (Iterator iter = localizationPaths.keySet().iterator(); iter.hasNext();){
-			String localizationPath = (String) iter.next();
-			ClassLoader classLoader = (ClassLoader) localizationPaths.get(localizationPath);
-			ResourceBundle newResourceBundle = null;
-			try {
-				if(classLoader != null)
-					newResourceBundle = ResourceBundle.getBundle(localizationPath, locale ,classLoader);
-				else
-					newResourceBundle = ResourceBundle.getBundle(localizationPath, locale,IntegratedResourceBundle.class.getClassLoader());
-			} catch (Exception e) {
-				//        System.out.println(localizationPath+": no resource bundle for " +
-				// main.getLocale());
-				try {
-					if(classLoader != null)
-						newResourceBundle = ResourceBundle.getBundle(localizationPath, MessageText.LOCALE_DEFAULT,classLoader);
-					else 
-						newResourceBundle = ResourceBundle.getBundle(localizationPath, MessageText.LOCALE_DEFAULT,IntegratedResourceBundle.class.getClassLoader());
-				} catch (Exception e2) {
-					System.out.println(localizationPath + ": no default resource bundle");
-					continue;
-				}
+				addPluginBundle(localizationPath, classLoader);
 			}
-			addResourceMessages(newResourceBundle);
 		}
 
 		if (resource_bundles != null) {
-			for (Iterator itr = resource_bundles.iterator(); itr.hasNext();) {
-				addResourceMessages((ResourceBundle)itr.next());
+			synchronized (resource_bundles)
+			{
+				for (Iterator itr = resource_bundles.iterator(); itr.hasNext();) {
+					addResourceMessages((ResourceBundle)itr.next());
+				}
 			}
+
 		}
 		
 		used_messages = new LightHashMap( messages.size());
@@ -185,7 +174,7 @@ IntegratedResourceBundle
 	protected Iterator
 	getKeysLight()
 	{
-		Map m = loadMessages();
+		Map m = new LightHashMap(loadMessages());
 		
 		return( m.keySet().iterator());
 	}
@@ -228,25 +217,57 @@ IntegratedResourceBundle
 		return( res );
 	}
 	
-	private void 
+	public void addPluginBundle(String localizationPath, ClassLoader classLoader)
+	{
+		ResourceBundle newResourceBundle = null;
+		try {
+			if(classLoader != null)
+				newResourceBundle = ResourceBundle.getBundle(localizationPath, locale ,classLoader);
+			else
+				newResourceBundle = ResourceBundle.getBundle(localizationPath, locale,IntegratedResourceBundle.class.getClassLoader());
+		} catch (Exception e) {
+			//        System.out.println(localizationPath+": no resource bundle for " +
+			// main.getLocale());
+			try {
+				if(classLoader != null)
+					newResourceBundle = ResourceBundle.getBundle(localizationPath, MessageText.LOCALE_DEFAULT,classLoader);
+				else 
+					newResourceBundle = ResourceBundle.getBundle(localizationPath, MessageText.LOCALE_DEFAULT,IntegratedResourceBundle.class.getClassLoader());
+			} catch (Exception e2) {
+				System.out.println(localizationPath + ": no default resource bundle");
+				return;
+			}
+		}
+				
+		addResourceMessages(newResourceBundle);
+
+		
+	}
+	
+	public void 
 	addResourceMessages(
 		ResourceBundle bundle )
 	{
-		if ( bundle != null ){
+		synchronized (bundle_map)
+		{
+			loadMessages();
 			
-			if ( bundle instanceof IntegratedResourceBundle ){
+			if ( bundle != null ){
 				
-				messages.putAll(((IntegratedResourceBundle)bundle).getMessages());
-				
-			}else{
-				
-				for (Enumeration enumeration = bundle.getKeys(); enumeration.hasMoreElements();) {
+				if ( bundle instanceof IntegratedResourceBundle ){
 					
-					String key = (String) enumeration.nextElement();
+					messages.putAll(((IntegratedResourceBundle)bundle).getMessages());
 					
-					messages.put(key, bundle.getObject(key));
+				}else{
+					
+					for (Enumeration enumeration = bundle.getKeys(); enumeration.hasMoreElements();) {
+						
+						String key = (String) enumeration.nextElement();
+						
+						messages.put(key, bundle.getObject(key));
+					}
 				}
-			}
+			}			
 		}
 	}
 	
@@ -337,7 +358,7 @@ IntegratedResourceBundle
 			
 			if ( scratch_file == null ){
 				
-				return( new HashMap());
+				return( new LightHashMap());
 			}
 			
 			Properties p = new Properties();
@@ -352,7 +373,7 @@ IntegratedResourceBundle
 				
 				fis.close();
 				
-				messages = new HashMap();
+				messages = new LightHashMap();
 				
 				messages.putAll( p );
 				
@@ -375,7 +396,7 @@ IntegratedResourceBundle
 				
 				scratch_file = null;
 				
-				return( new HashMap());
+				return( new LightHashMap());
 			}
 		}
 	}

@@ -206,17 +206,15 @@ public class MessageText {
 	  
 	  String	platform_suffix = getPlatformSuffix();
 	  
-	  platform_specific_keys.clear();
+	  Set platformKeys = new HashSet();
 	  
 	  while( keys.hasNext()){
-		  
 		  String	key = (String)keys.next();
-		  
-		  if ( key.endsWith( platform_suffix )){
-			  			  
-			  platform_specific_keys.add( key );
-		  }
+		  if ( key.endsWith( platform_suffix ))
+			  platformKeys.add( key );
 	  }
+	  
+	  platform_specific_keys = platformKeys;
   }
   
  
@@ -718,21 +716,34 @@ public class MessageText {
   //         - extending ResourceBundle
   //         - override handleGetObject, store in hashtable
   //         - function to add another ResourceBundle, adds to hashtable
-  public static boolean integratePluginMessages(String localizationPath,ClassLoader classLoader) {
-    boolean integratedSuccessfully = false;
-    if (null != localizationPath && localizationPath.length() != 0 && !pluginLocalizationPaths.containsKey(localizationPath)) {
-      pluginLocalizationPaths.put(localizationPath,classLoader);
-	  setResourceBundle( new IntegratedResourceBundle(RESOURCE_BUNDLE, pluginLocalizationPaths, pluginResourceBundles));
-      integratedSuccessfully = true;
-    }
-    return integratedSuccessfully;
-  }
+  public static boolean integratePluginMessages(String localizationPath, ClassLoader classLoader) {
+		boolean integratedSuccessfully = false;
+		if (null != localizationPath && localizationPath.length() != 0 && !pluginLocalizationPaths.containsKey(localizationPath))
+		{
+			synchronized (pluginLocalizationPaths)
+			{
+				pluginLocalizationPaths.put(localizationPath, classLoader);
+			}
+			
+			RESOURCE_BUNDLE.addPluginBundle(localizationPath, classLoader);
+			setResourceBundle(RESOURCE_BUNDLE);
+
+			integratedSuccessfully = true;
+		}
+		return integratedSuccessfully;
+	}
   
   public static boolean integratePluginMessages(ResourceBundle bundle) {
-	  pluginResourceBundles.add(bundle);
-	  setResourceBundle( new IntegratedResourceBundle(RESOURCE_BUNDLE, pluginLocalizationPaths, pluginResourceBundles));
-	  return true;
-  }
+		synchronized (pluginResourceBundles)
+		{
+			pluginResourceBundles.add(bundle);
+		}
+		
+		RESOURCE_BUNDLE.addResourceMessages(bundle);
+		setResourceBundle(RESOURCE_BUNDLE);
+
+		return true;
+	}
   
 /**
  * Reverts Locale back to default, and removes the config settin. 
