@@ -108,9 +108,18 @@ SESecurityManagerImpl
 		return( singleton );
 	}
 	
+	private boolean initialized = false;
+	
 	public void
 	initialise()
 	{
+		synchronized (this)
+		{
+			if(initialized)
+				return;
+			initialized = true;
+		}
+		
 		// 	keytool -genkey -keystore %home%\.keystore -keypass changeit -storepass changeit -keyalg rsa -alias azureus
 
 		// 	keytool -export -keystore %home%\.keystore -keypass changeit -storepass changeit -alias azureus -file azureus.cer
