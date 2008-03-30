@@ -66,6 +66,7 @@ import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerAdapter;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerFactory;
 import com.aelitis.azureus.core.update.AzureusRestarterFactory;
+import com.aelitis.azureus.launcher.classloading.PrimaryClassloader;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.plugins.tracker.dht.DHTTrackerPlugin;
 
@@ -151,6 +152,9 @@ AzureusCoreImpl
 	protected
 	AzureusCoreImpl()
 	{
+		if(!(this.getClass().getClassLoader() instanceof PrimaryClassloader))
+			System.out.println("###\nWarning: Core not instantiated through a PrimaryClassloader, this can lead to restricted functionality or bugs in future versions\n###");
+		
 		COConfigurationManager.initialise();
 		
 		MessageText.loadBundle();
