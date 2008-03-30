@@ -361,7 +361,7 @@ public class PublishTransaction extends Transaction
             Long[] info = getSizeAndCount(dataFile);
             params.put("size", info[0]);
             params.put("num-files", info[1]);
-            params.put("size-text", DisplayFormatters.formatByteCountToKiBEtc(info[0]));
+            params.put("size-text", DisplayFormatters.formatByteCountToKiBEtc(info[0].longValue()));
             sendBrowserMessage("torrent", "chosen", params);
     	} else {
     		//No file was chosen, cancel the transaction
@@ -372,7 +372,7 @@ public class PublishTransaction extends Transaction
     
     private Long[] getSizeAndCount(File folderFile) {
     	if (folderFile.isFile()) {
-    		return new Long[] { folderFile.length(), 1L };
+    		return new Long[] { new Long(folderFile.length()), new Long(1) };
     	}
     	if (folderFile.isDirectory()) {
     		long size = 0;
@@ -382,13 +382,13 @@ public class PublishTransaction extends Transaction
     			for (int i = 0; i < files.length; i++) {
 						File file = files[i];
 						Long[] sizeAndCount = getSizeAndCount(file);
-						size += sizeAndCount[0];
-						numFiles += sizeAndCount[1];
+						size += sizeAndCount[0].longValue();
+						numFiles += sizeAndCount[1].longValue();
 					}
     		}
-    		return new Long[] { size, numFiles };
+    		return new Long[] { new Long(size), new Long(numFiles) };
     	}
-    	return new Long[] { 0L, 0L };
+    	return new Long[] { new Long(0), new Long(0) };
     }
 
     private class ResizedImageInfo {
