@@ -266,6 +266,7 @@ public class LightBoxBrowserWindow
 				/*
 				 * Once a page has finished loading fade the shell back into being visible
 				 */
+				lightBoxShell.showBusy(false, 0);
 				styledShell.animateFade(100);
 
 			}
@@ -277,6 +278,7 @@ public class LightBoxBrowserWindow
 				 */
 				if (event.current == 0 && event.total != 0) {
 					styledShell.hideShell(true);
+					lightBoxShell.showBusy(true, 500);
 				}
 			}
 		});
