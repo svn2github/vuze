@@ -167,7 +167,7 @@ public class ImageRepository {
 		addPath("org/gudy/azureus2/ui/icons/progress_viewer_has_error.png", "progress_error");
 		addPath("org/gudy/azureus2/ui/icons/progress_viewer_has_info.png", "progress_info");
 		addPath("org/gudy/azureus2/ui/icons/progress_viewer.png", "progress_viewer");
-		
+		addPath("org/gudy/azureus2/ui/icons/spinning_indicator_big_black_white.gif", "spinner_big");
 		if ( Utils.isAZ2UI()){ 
 			addPath("org/gudy/azureus2/ui/icons/recheck.gif", "progress_retry");
 			addPath("org/gudy/azureus2/ui/icons/stop.gif",    "progress_cancel");

@@ -1,18 +1,29 @@
 package org.gudy.azureus2.ui.swt.components.shell;
 
+import java.io.InputStream;
+
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.graphics.Cursor;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.IMainWindow;
@@ -42,6 +53,32 @@ public class LightBoxShell
 	private Display display;
 
 	private UIFunctionsSWT uiFunctions;
+
+	private boolean isBusy = false;
+
+	/**
+	 * An array to hold the off-line images for the spinner
+	 */
+	private Image[] spinnerImages = null;
+
+	private Rectangle spinnerBounds = null;
+
+	/**
+	 * Indicates that the spinner is already animating
+	 */
+	private boolean busyAlready = false;
+
+	/**
+	 * The canvas to display the spinner
+	 */
+	private Canvas spinnerCanvas = null;
+
+	/**
+	 * This GC is used to directly draw the progress spinner on the spinnerCanvas
+	 */
+	private GC spinnerGC = null;
+
+	private Rectangle shellBounds = null;
 
 	public LightBoxShell() {
 		this(false);
@@ -91,8 +128,8 @@ public class LightBoxShell
 		display = parentShell.getDisplay();
 
 		/*
-		 * Trap and prevent the ESC key from closing the shell
-		 */
+		* Trap and prevent the ESC key from closing the shell
+		*/
 		if (false == closeOnESC) {
 			lbShell.addListener(SWT.Traverse, new Listener() {
 				public void handleEvent(Event e) {
@@ -119,6 +156,29 @@ public class LightBoxShell
 			});
 		}
 
+		lbShell.addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent e) {
+				/*
+				 * Disposing all the spinner images
+				 */
+				if (null != spinnerImages) {
+					for (int i = 0; i < spinnerImages.length; i++) {
+						if (null != spinnerImages[i]
+								&& false == spinnerImages[i].isDisposed()) {
+							spinnerImages[i].dispose();
+						}
+					}
+				}
+
+				/*
+				 * DIsposing the shellGC
+				 */
+				if (null != spinnerGC && false == spinnerGC.isDisposed()) {
+					spinnerGC.dispose();
+				}
+			}
+
+		});
 	}
 
 	private UIFunctionsSWT getUIFunctions() {
@@ -167,6 +227,11 @@ public class LightBoxShell
 	 * @return
 	 */
 	public Rectangle getBounds() {
+		if (null != shellBounds) {
+			return new Rectangle(shellBounds.x, shellBounds.y, shellBounds.width,
+					shellBounds.height);
+		}
+
 		/*
 		 * Not entirely sure why this has to be done this way but it seems
 		 * the Windows' shell has a 4 pixel border whereas the OSX's shell has none;
@@ -175,14 +240,15 @@ public class LightBoxShell
 
 		int xyOffset = (true == Constants.isOSX) ? 0 : 4;
 
-		Rectangle fadedAreaExtent = parentShell.getClientArea();
+		shellBounds = parentShell.getClientArea();
 		Point parentLocation = parentShell.getLocation();
-		fadedAreaExtent.x = parentLocation.x + xyOffset + insetLeft;
-		fadedAreaExtent.y = parentLocation.y + parentShell.getSize().y
-				- fadedAreaExtent.height - xyOffset + insetTop;
-		fadedAreaExtent.width -= insetRight + insetLeft;
-		fadedAreaExtent.height -= insetTop + insetBottom;
-		return fadedAreaExtent;
+		shellBounds.x = parentLocation.x + xyOffset + insetLeft;
+		shellBounds.y = parentLocation.y + parentShell.getSize().y
+				- shellBounds.height - xyOffset + insetTop;
+		shellBounds.width -= insetRight + insetLeft;
+		shellBounds.height -= insetTop + insetBottom;
+		return new Rectangle(shellBounds.x, shellBounds.y, shellBounds.width,
+				shellBounds.height);
 	}
 
 	/**
@@ -260,4 +326,156 @@ public class LightBoxShell
 		lbShell.addDisposeListener(listener);
 	}
 
+	/**
+	 * Show a spinning indicator that a process is busy
+	 * @param value if <code>true</code> then show the spinner; if <code>false</code> then stop showing the spinner
+	 * @param delayInMilli the delay in milliseconds before the spinner is shown; is only in effect when isBusy is <code>true</code>
+	 */
+	public void showBusy(boolean value, long delayInMilli) {
+		isBusy = value;
+
+		if (true == isBusy && false == busyAlready) {
+			showSpinner(Math.max(0, delayInMilli));
+		}
+	}
+
+	private void showSpinner(final long delayInMilli) {
+
+		/*
+		 * Create the images off-line and store them in the array if not done already;
+		 * we will use these to draw onto the canvas to animate the spinner
+		 */
+		if (null == spinnerImages) {
+			InputStream is = ImageRepository.getImageAsStream("spinner_big");
+
+			if (null == is) {
+				return;
+			}
+			ImageLoader loader = new ImageLoader();
+			ImageData[] imageDataArray = loader.load(is);
+			spinnerBounds = new Rectangle(0, 0, loader.logicalScreenWidth,
+					loader.logicalScreenHeight);
+
+			spinnerImages = new Image[imageDataArray.length];
+			for (int i = 0; i < imageDataArray.length; i++) {
+				ImageData imageData = imageDataArray[i];
+				/*
+				 * Setting the transparent pixel to be black
+				 */
+				imageData.transparentPixel = 0;
+
+				spinnerImages[i] = new Image(display, spinnerBounds.width,
+						spinnerBounds.height);
+				GC offScreenImageGC = new GC(spinnerImages[i]);
+				offScreenImageGC.setBackground(lbShell.getBackground());
+				offScreenImageGC.fillRectangle(0, 0, spinnerBounds.width,
+						spinnerBounds.height);
+
+				Image tempImage = new Image(display, imageData);
+				offScreenImageGC.drawImage(tempImage, 0, 0, imageData.width,
+						imageData.height, imageData.x, imageData.y, imageData.width,
+						imageData.height);
+
+				tempImage.dispose();
+				offScreenImageGC.dispose();
+			}
+		}
+
+		/*
+		 * Adjust the spinner bounds to be centered on the lightbox shell itself
+		 */
+		Utils.centerRelativeTo(spinnerBounds, getBounds());
+		Point to_lbShell = lbShell.toControl(spinnerBounds.x, spinnerBounds.y);
+		spinnerBounds.x = to_lbShell.x;
+		spinnerBounds.y = to_lbShell.y;
+
+		/*
+		 * Create the canvas for the spinner; size the canvas to be just enough for the image
+		 */
+		if (null == spinnerCanvas) {
+			spinnerCanvas = new Canvas(lbShell, SWT.NO_BACKGROUND);
+		}
+		spinnerCanvas.setBounds(spinnerBounds);
+		if (null == spinnerGC) {
+			spinnerGC = new GC(spinnerCanvas);
+			spinnerGC.setBackground(lbShell.getBackground());
+		}
+
+		/*
+		 * Spinner animation 
+		 */
+
+		AEThread2 spinnerThread = new AEThread2("spinner-animator", true) {
+			public void run() {
+				final int[] imageDataIndex = new int[1];
+				busyAlready = true;
+
+				/* 
+				 * First we sleep for the specified delay before we start painting; if during this time
+				 * isBusy is set to false (by another thread) then it's not necessary to show the spinner. 
+				 */
+				if (delayInMilli > 0) {
+					try {
+						Thread.sleep(delayInMilli);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+				/*
+				 * Loop through and draw the images sequentially until we're no longer busy
+				 */
+				while (true == isBusy) {
+					if (null == lbShell || true == lbShell.isDisposed()) {
+						break;
+					}
+
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							/* 
+							 * Draw the image onto the canvas. 
+							 */
+							if (null != spinnerCanvas && false == spinnerCanvas.isDisposed()) {
+								spinnerGC.drawImage(spinnerImages[imageDataIndex[0]], 0, 0);
+							}
+						}
+					});
+
+					/* 
+					 * If we have just drawn the last image start over from the beginning
+					 */
+					if (imageDataIndex[0] == spinnerImages.length - 1) {
+						imageDataIndex[0] = 0;
+					} else {
+						imageDataIndex[0]++;
+					}
+
+					/* 
+					 * Sleep for a bit.
+					 */
+					try {
+						Thread.sleep(100);
+					} catch (InterruptedException e) {
+						Debug.out(e);
+					}
+
+				}
+
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						/* 
+						 * Fill the image area with lbShell background color to 'erase' the last image drawn 
+						 */
+						if (null != spinnerCanvas && false == spinnerCanvas.isDisposed()) {
+							spinnerGC.fillRectangle(spinnerCanvas.getClientArea());
+						}
+					}
+				});
+
+				busyAlready = false;
+			}
+
+		};
+		spinnerThread.start();
+
+	}
 }
