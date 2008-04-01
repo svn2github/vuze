@@ -278,10 +278,7 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 				int up_val = paramMaxUploadSpeed.getValue();
 				int down_val = paramMaxDownSpeed.getValue();
 
-				if (!internal) {
-
-					manual_max_download_speed[0] = down_val;
-				}
+				manual_max_download_speed[0] = down_val;
 
 				if (up_val < COConfigurationManager.CONFIG_DEFAULT_MIN_MAX_UPLOAD_SPEED) {
 
