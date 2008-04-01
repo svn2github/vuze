@@ -170,6 +170,8 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	private long minTimeAlive;
 
 	private boolean bAutoStart0Peers;
+	
+	private boolean bStopOnceBandwidthMet = false;
 
 	private static boolean bAlreadyInitialized = false;
 
@@ -339,6 +341,10 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 				"StartStopManager_bMaxActiveTorrentsWhenSeedingEnabled",
 				"ConfigView.label.queue.maxactivetorrentswhenseeding", false);
 
+		configModel.addBooleanParameter2(
+				"StartStopManager_bStopOnceBandwidthMet", 
+				"ConfigView.label.queue.stoponcebandwidthmet", true);
+				 
 		// first Priority subsection
 		// ---------
 		configModel.addIntParameter2("StartStopManager_iFirstPriority_Type",
@@ -708,7 +714,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			globalUploadLimit = plugin_config.getIntParameter("Max Upload Speed KBs", 0);
 			globalUploadWhenSeedingLimit = plugin_config.getBooleanParameter("enable.seedingonly.upload.rate") ? plugin_config.getIntParameter("Max Upload Speed Seeding KBs", 0) : globalUploadLimit;
 			
-			
+			bStopOnceBandwidthMet = plugin_config.getBooleanParameter("StartStopManager_bStopOnceBandwidthMet");
 			
 			
 
@@ -1361,15 +1367,24 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			maxDLs = minDownloads;
 		}
 		
-		boolean isRunning = download.getState() == Download.ST_DOWNLOADING;
 		boolean bActivelyDownloading = dlData.getActivelyDownloading();
-		boolean globalDownLimitReached = globalDownloadLimit > 0 && vars.accumulatedDownloadSpeed/1024 > globalDownloadLimit * IGNORE_SLOT_THRESHOLD_FACTOR;
-		boolean globalRateAdjustedActivelyDownloading = bActivelyDownloading || (isRunning && globalDownLimitReached);
-		boolean fakedActively = globalRateAdjustedActivelyDownloading && !bActivelyDownloading;
-		if(fakedActively)
-		{
-			totals.activelyDLing++;
-			totals.maxSeeders = calcMaxSeeders(totals.activelyDLing + totals.waitingToDL);
+		boolean globalDownLimitReached;
+		boolean globalRateAdjustedActivelyDownloading;
+		boolean fakedActively;
+		if (bStopOnceBandwidthMet) {
+  		boolean isRunning = download.getState() == Download.ST_DOWNLOADING;
+  		globalDownLimitReached = globalDownloadLimit > 0 && vars.accumulatedDownloadSpeed/1024 > globalDownloadLimit * IGNORE_SLOT_THRESHOLD_FACTOR;
+  		globalRateAdjustedActivelyDownloading = bActivelyDownloading || (isRunning && globalDownLimitReached);
+  		fakedActively = globalRateAdjustedActivelyDownloading && !bActivelyDownloading;
+  		if(fakedActively)
+  		{
+  			totals.activelyDLing++;
+  			totals.maxSeeders = calcMaxSeeders(totals.activelyDLing + totals.waitingToDL);
+  		}
+		} else {
+			globalDownLimitReached = false;
+			globalRateAdjustedActivelyDownloading = bActivelyDownloading;
+			fakedActively = false;
 		}
 			
 
@@ -1531,8 +1546,10 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			dlData.sTrace += s + "\n";
 		}
 		
-		vars.accumulatedDownloadSpeed += download.getStats().getDownloadAverage();
-		vars.accumulatedUploadSpeed += download.getStats().getUploadAverage();
+		if (bStopOnceBandwidthMet) {
+			vars.accumulatedDownloadSpeed += download.getStats().getDownloadAverage();
+			vars.accumulatedUploadSpeed += download.getStats().getUploadAverage();
+		}
 	}
 
 	/**
@@ -1632,14 +1649,25 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 				isFP = dlData.isFirstPriority();
 			}
 
+		boolean bActivelySeeding = dlData.getActivelySeeding();
+		boolean globalDownLimitReached;
+		boolean globalUpLimitReached;
+		boolean globalRateAdjustedActivelySeeding;
+		boolean fakedActively;
+		if (bStopOnceBandwidthMet) {
 			boolean isRunning = download.getState() == Download.ST_SEEDING;
-			boolean bActivelySeeding = dlData.getActivelySeeding();
-			boolean globalUpLimitReached = totals.maxUploadSpeed() > 0 && vars.accumulatedUploadSpeed/1024 > totals.maxUploadSpeed() * IGNORE_SLOT_THRESHOLD_FACTOR;
-			boolean globalDownLimitReached = globalDownloadLimit > 0 && vars.accumulatedDownloadSpeed/1024 > globalDownloadLimit * IGNORE_SLOT_THRESHOLD_FACTOR;
-			boolean globalRateAdjustedActivelySeeding = bActivelySeeding || (isRunning && (globalUpLimitReached || globalDownLimitReached));
-			boolean fakedActively = globalRateAdjustedActivelySeeding && !bActivelySeeding;
+			globalUpLimitReached = totals.maxUploadSpeed() > 0 && vars.accumulatedUploadSpeed/1024 > totals.maxUploadSpeed() * IGNORE_SLOT_THRESHOLD_FACTOR;
+			globalDownLimitReached = globalDownloadLimit > 0 && vars.accumulatedDownloadSpeed/1024 > globalDownloadLimit * IGNORE_SLOT_THRESHOLD_FACTOR;
+			globalRateAdjustedActivelySeeding = bActivelySeeding || (isRunning && (globalUpLimitReached || globalDownLimitReached));
+			fakedActively = globalRateAdjustedActivelySeeding && !bActivelySeeding;
 			if(fakedActively)
 				totals.activelyCDing++;
+		} else {
+			globalUpLimitReached = false;
+			globalRateAdjustedActivelySeeding = bActivelySeeding;
+			globalDownLimitReached = false;
+			fakedActively = false;
+		}
 				
 			
 			// Is it OK to set this download to a queued state?
@@ -1891,7 +1919,10 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			}
 		}
 		
-		vars.accumulatedUploadSpeed += download.getStats().getUploadAverage();
+		
+		if (bStopOnceBandwidthMet) {
+			vars.accumulatedUploadSpeed += download.getStats().getUploadAverage();
+		}
 	}
 
 	private String boolDebug(boolean b) {

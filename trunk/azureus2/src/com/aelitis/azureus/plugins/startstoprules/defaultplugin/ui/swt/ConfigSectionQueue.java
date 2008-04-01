@@ -212,6 +212,13 @@ public class ConfigSectionQueue implements UISWTConfigSection
 
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
+		new BooleanParameter(cSection, "StartStopManager_bStopOnceBandwidthMet",
+				"ConfigView.label.queue.stoponcebandwidthmet").setLayoutData(gridData);
+
+		// row
+
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
 		new BooleanParameter(cSection, "StartStopManager_bNewSeedsMoveTop",
 				"ConfigView.label.queue.newseedsmovetop").setLayoutData(gridData);
 
