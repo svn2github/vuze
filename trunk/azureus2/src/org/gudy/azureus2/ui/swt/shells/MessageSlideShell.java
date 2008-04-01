@@ -25,22 +25,59 @@ import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.layout.*;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseTrackAdapter;
+import org.eclipse.swt.events.MouseTrackListener;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
-import com.aelitis.azureus.ui.swt.*;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.UISkinnableManagerSWT;
+import com.aelitis.azureus.ui.swt.UISkinnableSWTListener;
 
 /**
  * 
@@ -960,7 +997,7 @@ public class MessageSlideShell
 					return;
 
 				if (bSlide) {
-					new SlideShell(shell, SWT.UP, endBounds).run();
+					new ShellSlider(shell, SWT.UP, endBounds).run();
 				} else {
 					Utils.execSWTThread(new AERunnable() {
 
@@ -1050,7 +1087,7 @@ public class MessageSlideShell
 
 					// slide out current popup
 					if (bSlide)
-						new SlideShell(shell, SWT.RIGHT).run();
+						new ShellSlider(shell, SWT.RIGHT).run();
 
 					disposeShell(shell);
 				}
@@ -1087,192 +1124,6 @@ public class MessageSlideShell
 	public static String stripOutHyperlinks(String message) {
 		return Pattern.compile(REGEX_URLHTML, Pattern.CASE_INSENSITIVE).matcher(
 				message).replaceAll("$2");
-	}
-
-	/**
-	 * XXX This could/should be its own class 
-	 */
-	private class SlideShell
-	{
-		private int STEP = 8;
-
-		private int PAUSE = 30;
-
-		private Shell shell;
-
-		private Rectangle shellBounds = null;
-
-		private Rectangle endBounds;
-
-		private final int direction;
-
-		private final boolean slideIn;
-
-		/**
-		 * Slide In
-		 * 
-		 * @param shell
-		 * @param direction 
-		 * @param endBounds 
-		 */
-		public SlideShell(final Shell shell, int direction,
-				final Rectangle endBounds) {
-			this.shell = shell;
-			this.endBounds = endBounds;
-			this.slideIn = true;
-			this.direction = direction;
-
-			if (shell == null || shell.isDisposed())
-				return;
-
-			Display display = shell.getDisplay();
-			display.syncExec(new Runnable() {
-				public void run() {
-					if (shell == null || shell.isDisposed())
-						return;
-
-					switch (SlideShell.this.direction) {
-						case SWT.UP:
-						default:
-							shell.setLocation(endBounds.x, endBounds.y);
-							Rectangle displayBounds = null;
-							try {
-								boolean ok = false;
-								Monitor[] monitors = shell.getDisplay().getMonitors();
-								for (int i = 0; i < monitors.length; i++) {
-									Monitor monitor = monitors[i];
-									displayBounds = monitor.getBounds();
-									if (displayBounds.contains(endBounds.x, endBounds.y)) {
-										ok = true;
-										break;
-									}
-								}
-								if (!ok) {
-									displayBounds = shell.getMonitor().getBounds();
-								}
-							} catch (Throwable t) {
-								displayBounds = shell.getDisplay().getBounds();
-							}
-
-							shellBounds = new Rectangle(endBounds.x, displayBounds.y
-									+ displayBounds.height, endBounds.width, 0);
-							break;
-					}
-					shell.setBounds(shellBounds);
-					shell.setVisible(true);
-
-					if (DEBUG)
-						System.out.println("Slide In: " + shell.getText());
-				}
-			});
-		}
-
-		/**
-		 * Slide Out
-		 * 
-		 * @param shell
-		 * @param direction
-		 */
-		public SlideShell(final Shell shell, int direction) {
-			this.shell = shell;
-			this.slideIn = false;
-			this.direction = direction;
-			if (DEBUG && canContinue())
-				shell.getDisplay().syncExec(new Runnable() {
-					public void run() {
-						System.out.println("Slide Out: " + shell.getText());
-					}
-				});
-		}
-
-		private boolean canContinue() {
-			if (shell == null || shell.isDisposed())
-				return false;
-
-			if (shellBounds == null)
-				return true;
-
-			//System.out.println((slideIn ? "In" : "Out") + ";" + direction + ";S:" + shellBounds + ";" + endBounds);
-			if (slideIn) {
-				if (direction == SWT.UP) {
-					return shellBounds.y > endBounds.y;
-				}
-				// TODO: Other directions
-			} else {
-				if (direction == SWT.RIGHT) {
-					// stop early, because some OSes have trim, and won't allow the window
-					// to go smaller than it.
-					return shellBounds.width > 10;
-				}
-			}
-			return false;
-		}
-
-		public void run() {
-
-			while (canContinue()) {
-				long lStartedAt = System.currentTimeMillis();
-
-				shell.getDisplay().syncExec(new AERunnable() {
-					public void runSupport() {
-						if (shell == null || shell.isDisposed()) {
-							return;
-						}
-
-						if (shellBounds == null) {
-							shellBounds = shell.getBounds();
-						}
-
-						int delta;
-						if (slideIn) {
-							switch (direction) {
-								case SWT.UP:
-									delta = Math.min(endBounds.height - shellBounds.height, STEP);
-									shellBounds.height += delta;
-									delta = Math.min(shellBounds.y - endBounds.y, STEP);
-									shellBounds.y -= delta;
-									break;
-
-								default:
-									break;
-							}
-						} else {
-							switch (direction) {
-								case SWT.RIGHT:
-									delta = Math.min(shellBounds.width, STEP);
-									shellBounds.width -= delta;
-									shellBounds.x += delta;
-
-									if (shellBounds.width == 0) {
-										shell.dispose();
-										return;
-									}
-									break;
-
-								default:
-									break;
-							}
-						}
-
-						shell.setBounds(shellBounds);
-						shell.update();
-					}
-				});
-
-				try {
-					long lDrawTime = System.currentTimeMillis() - lStartedAt;
-					long lSleepTime = PAUSE - lDrawTime;
-					if (lSleepTime < 15) {
-						double d = (lDrawTime + 15.0) / PAUSE;
-						PAUSE *= d;
-						STEP *= d;
-						lSleepTime = 15;
-					}
-					Thread.sleep(lSleepTime);
-				} catch (Exception e) {
-				}
-			}
-		}
 	}
 
 	private static class PopupParams
