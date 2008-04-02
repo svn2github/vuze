@@ -81,6 +81,8 @@ public class LightBoxShell
 	private GC spinnerGC = null;
 
 	private Rectangle shellBounds = null;
+	
+	private boolean parentActivatedOnce = false;
 
 	public LightBoxShell() {
 		this(false);
@@ -152,7 +154,18 @@ public class LightBoxShell
 			lbShell.addShellListener(new ShellAdapter() {
 				public void shellActivated(ShellEvent e) {
 					if (null != parentShell && false == parentShell.isDisposed()) {
-						parentShell.forceActive();
+						
+						/*
+						 * Making sure we are only performing this only once for each time the lbShell is activated;
+						 * without this we will run into a StackOverflow as the 2 shells go back and forth activating each other
+						 */
+						if(false == parentActivatedOnce){
+							parentActivatedOnce = true;
+							parentShell.forceActive();
+						}
+						else{
+							parentActivatedOnce = false;
+						}
 					}
 				}
 			});
