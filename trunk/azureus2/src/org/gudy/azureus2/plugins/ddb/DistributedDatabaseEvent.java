@@ -29,7 +29,9 @@ package org.gudy.azureus2.plugins.ddb;
 
 public interface 
 DistributedDatabaseEvent 
-{
+{	
+		// operation level
+	
 	public static final int	ET_VALUE_WRITTEN		= 1;
 	public static final int	ET_VALUE_READ			= 2;
 	public static final int	ET_VALUE_DELETED		= 3;
@@ -39,6 +41,10 @@ DistributedDatabaseEvent
 
 	public static final int	ET_KEY_STATS_READ		= 6;
 
+		// ddb level
+	
+	public static final int	ET_LOCAL_CONTACT_CHANGED	= 10;
+	
 	public int
 	getType();
 	

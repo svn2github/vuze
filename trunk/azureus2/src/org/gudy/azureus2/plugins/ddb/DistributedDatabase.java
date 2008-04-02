@@ -137,4 +137,12 @@ DistributedDatabase
 		int		standard_type )
 	
 		throws DistributedDatabaseException;
+	
+	public void
+	addListener(
+		DistributedDatabaseListener		l );
+	
+	public void
+	removeListener(
+		DistributedDatabaseListener		l );
 }

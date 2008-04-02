@@ -154,6 +154,10 @@ CryptoHandler
 	
 		throws CryptoManagerException;
 	
+	public boolean
+	verifyPublicKey(
+		byte[]	encoded );
+	
 	public void
 	recoverKeys(
 		byte[]		public_key,

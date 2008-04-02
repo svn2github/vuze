@@ -360,7 +360,7 @@ CryptoManagerImpl
 						
 					}else{
 						
-						timeout = SystemTime.getCurrentTime() + persist_secs * 1000;
+						timeout = SystemTime.getCurrentTime() + persist_secs * 1000L;
 					}
 					
 					synchronized( this ){

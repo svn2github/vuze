@@ -148,7 +148,7 @@ DHTPluginImpl
 			
 			final PluginConfig conf = plugin_interface.getPluginconfig();
 			
-			int	send_delay = conf.getPluginIntParameter( "dht.senddelay", 50 );
+			int	send_delay = conf.getPluginIntParameter( "dht.senddelay", 25 );
 			int	recv_delay	= conf.getPluginIntParameter( "dht.recvdelay", 25 );
 			
 			boolean	bootstrap	= conf.getPluginBooleanParameter( "dht.bootstrapnode", false );
@@ -167,7 +167,7 @@ DHTPluginImpl
 						_port, 
 						4,
 						2,
-						20000, 	// udp timeout - tried less but a significant number of 
+						10000, 	// udp timeout - tried less but a significant number of 
 								// premature timeouts occurred
 						send_delay, recv_delay, 
 						bootstrap,

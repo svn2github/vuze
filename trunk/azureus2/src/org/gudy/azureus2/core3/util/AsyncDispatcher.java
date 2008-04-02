@@ -97,4 +97,13 @@ AsyncDispatcher
 		
 		queue_sem.release();
 	}
+	
+	public int
+	getQueueSize()
+	{
+		synchronized( this ){
+
+			return( queue.size());
+		}
+	}
 }

@@ -746,10 +746,24 @@ CryptoHandlerECC
 			
 		}catch (Throwable e){
 		
-			throw( new CryptoManagerException( "Failed to decode private key" ));
+			throw( new CryptoManagerException( "Failed to decode public key" ));
 		}
 	}	
 	
+	public boolean
+	verifyPublicKey(
+		byte[]	encoded )
+	{
+		try{
+			rawdataToPubkey( encoded );
+			
+			return( true );
+			
+		}catch( Throwable e ){
+			
+			return( false );
+		}
+	}
 	
 	class InternalECIES 
 		extends JCEIESCipher.ECIES

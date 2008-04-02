@@ -36,9 +36,11 @@ import org.gudy.azureus2.plugins.ddb.*;
 
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.plugins.dht.DHTPluginContact;
 import com.aelitis.azureus.plugins.dht.DHTPluginKeyStats;
+import com.aelitis.azureus.plugins.dht.DHTPluginListener;
 import com.aelitis.azureus.plugins.dht.DHTPluginOperationListener;
 import com.aelitis.azureus.plugins.dht.DHTPluginProgressListener;
 import com.aelitis.azureus.plugins.dht.DHTPluginTransferHandler;
@@ -84,6 +86,8 @@ DDBaseImpl
 	private AzureusCore		azureus_core;
 	private DHTPlugin		dht_use_accessor;
 		
+	private CopyOnWriteList	listeners = new CopyOnWriteList();
+	
 	protected
 	DDBaseImpl(
 		final AzureusCore	_azureus_core )
@@ -117,6 +121,24 @@ DDBaseImpl
 					dht_use_accessor = (DHTPlugin)dht_pi.getPlugin();
 					
 					if ( dht_use_accessor.isEnabled()){
+						
+						dht_use_accessor.addListener(
+							new DHTPluginListener()
+							{
+								public void
+								localAddressChanged(
+									DHTPluginContact	local_contact )
+								{
+									List l = listeners.getList();
+									
+									dbEvent ev = new dbEvent( DistributedDatabaseEvent.ET_LOCAL_CONTACT_CHANGED );
+									
+									for (int i=0;i<l.size();i++){
+										
+										((DistributedDatabaseListener)l.get(i)).event( ev );
+									}
+								}
+							});
 						
 						try{
 							addTransferHandler(	torrent_transfer, torrent_transfer );
@@ -618,6 +640,20 @@ DDBaseImpl
 		}
 	}
 	
+	public void 
+	addListener(
+		DistributedDatabaseListener l ) 
+	{
+		listeners.add( l );
+	}
+	
+	public void 
+	removeListener(
+		DistributedDatabaseListener l )
+	{
+		listeners.remove( l );
+	}
+	
 	protected class
 	listenerMapper
 		implements DHTPluginOperationListener
@@ -812,6 +848,13 @@ DDBaseImpl
 		private DistributedDatabaseKeyStats	key_stats;
 		private DistributedDatabaseValue	value;
 		private DDBaseContactImpl			contact;
+		
+		protected 
+		dbEvent(
+			int						_type )		
+		{
+			type	= _type;
+		}
 		
 		protected 
 		dbEvent(

@@ -34,10 +34,11 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginListener;
 
 public class 
 BuddyPluginView
-	implements UISWTViewEventListener
+	implements UISWTViewEventListener, BuddyPluginListener
 {
 	private BuddyPlugin	plugin;
 	
@@ -55,6 +56,8 @@ BuddyPluginView
 		BuddyPlugin		_plugin )
 	{
 		plugin	= _plugin;
+		
+		plugin.addListener( this );
 	}
 	
 	public boolean 
@@ -128,20 +131,31 @@ BuddyPluginView
 		print( "Plugin initialised" );
 	}
 	
+	public void
+	messageLogged(
+		String		str )
+	{
+		print( str, LOG_NORMAL, false, false );
+	}
+	
 	protected void
 	print(
 		String		str )
 	{
-		print( str, LOG_NORMAL, false );
+		print( str, LOG_NORMAL, false, true );
 	}
 	
 	protected void
 	print(
 		final String		str,
 		final int			log_type,
-		final boolean		clear_first )
+		final boolean		clear_first,
+		boolean				log_to_plugin )
 	{
-		plugin.log( str );
+		if ( log_to_plugin ){
+		
+			plugin.log( str );
+		}
 		
 		if ( !log.isDisposed()){
 			
@@ -164,13 +178,13 @@ BuddyPluginView
 							
 								start	= 0;
 								
-								log.setText( str );
+								log.setText( str + "\n" );
 								
 							}else{
 							
 								start = log.getText().length();
 								
-								log.append( str );
+								log.append( str + "\n" );
 							}
 							
 							Color 	color;
