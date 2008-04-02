@@ -3,6 +3,8 @@ package org.gudy.azureus2.ui.swt.components.shell;
 import java.io.InputStream;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.ShellAdapter;
@@ -119,7 +121,7 @@ public class LightBoxShell
 			return;
 		}
 
-		lbShell = new Shell(parentShell, SWT.NO_TRIM | SWT.APPLICATION_MODAL);
+		lbShell = new Shell(parentShell, SWT.NO_TRIM);
 
 		if (true == Constants.isOSX) {
 			getUIFunctions().createMainMenu(lbShell);
@@ -179,6 +181,35 @@ public class LightBoxShell
 			}
 
 		});
+
+		/*
+		 * Add a listener to the parent shell and move/resize the lightbox to fit over it
+		 */
+		final ControlListener moveAndResizeListener = new ControlListener() {
+			public void controlMoved(ControlEvent e) {
+				shellBounds = null;
+				getBounds();
+				lbShell.setLocation(shellBounds.x, shellBounds.y);
+			}
+
+			public void controlResized(ControlEvent e) {
+				shellBounds = null;
+				getBounds();
+				lbShell.setSize(shellBounds.width, shellBounds.height);
+			}
+		};
+
+		parentShell.addControlListener(moveAndResizeListener);
+
+		/*
+		 * When the lightbox is disposed remove the listener from the parent so we don't leave it dangling
+		 */
+		lbShell.addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent e) {
+				parentShell.removeControlListener(moveAndResizeListener);
+			}
+		});
+
 	}
 
 	private UIFunctionsSWT getUIFunctions() {
@@ -223,11 +254,20 @@ public class LightBoxShell
 	}
 
 	/**
-	 * Returns the effective area for the lightbox
+	 * Returns the current bounds of the LightBox
 	 * @return
 	 */
 	public Rectangle getBounds() {
-		if (null != shellBounds) {
+		return getBounds(false);
+	}
+
+	/**
+	 * Returns the bounds of the LightBox; recalculate before returning if specified
+	 * @param recalculate
+	 * @return if <code>true</code> then recalculate the bounds before returning
+	 */
+	private Rectangle getBounds(boolean recalculate) {
+		if (false == recalculate && null != shellBounds) {
 			return new Rectangle(shellBounds.x, shellBounds.y, shellBounds.width,
 					shellBounds.height);
 		}

@@ -134,8 +134,6 @@ public class StyledShell
 		fillLayout.marginWidth = borderWidth;
 		styledShell.setLayout(fillLayout);
 
-		setAlpha(styledShell, 0);
-
 		if (true == Constants.isOSX) {
 			getUIFunctions().createMainMenu(styledShell);
 		}
@@ -270,13 +268,8 @@ public class StyledShell
 		}
 
 		/*
-		 * On non-osx we must make this shell application modal so that it can not be hidden
-		 * by the embedded media player
 		 * 
-		 * At the same time we can not make it modal on OSX or else the screen positioning is all wrong;
-		 * I'll find a fix for it later KN
-		 * 
-		 * Additionally on non-osx set the NO_TRIM flag and on OSX ONLY set the NO_TRIM flag if setAlpha()
+		 * On non-osx set the NO_TRIM flag and on OSX ONLY set the NO_TRIM flag if setAlpha()
 		 * is also supported.  Versions of SWT on OSX that do not support setAlpha() also can not render
 		 * the embedded web page properly if the NO_TRIM flag is set; the NO_TRIM flag allows us to draw
 		 * a round-cornered shell.  Without this flag the shell corners would just be the normal square angle. 
@@ -287,13 +280,12 @@ public class StyledShell
 					style |= SWT.NO_TRIM;
 				}
 			} else {
-				style |= SWT.APPLICATION_MODAL;
 				style |= SWT.NO_TRIM;
 			}
 
 			return style;
 		}
-		return SWT.APPLICATION_MODAL | SWT.DIALOG_TRIM | SWT.RESIZE;
+		return SWT.DIALOG_TRIM | SWT.RESIZE;
 	}
 
 	private Region getRoundedRegion(Rectangle bounds) {
