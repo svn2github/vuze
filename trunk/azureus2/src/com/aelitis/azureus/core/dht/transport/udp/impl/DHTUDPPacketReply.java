@@ -88,8 +88,8 @@ DHTUDPPacketReply
 		}
 		
 		target_instance_id	= _local_contact.getInstanceID();
-		
-		skew	= _local_contact.getClockSkew();
+				
+		skew	= _remote_contact.getClockSkew();
 	}
 	
 	protected
