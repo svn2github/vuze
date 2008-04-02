@@ -221,66 +221,65 @@ ConfigSectionSecurity
 		    Label public_key_label = new Label(crypto_group, SWT.NULL );
 		    Messages.setLanguageText(public_key_label, "ConfigView.section.security.publickey");
 
+		    final Label public_key_value = new Label(crypto_group, SWT.NULL );
+		    
 			if ( public_key == null ){
 				
-			    Label public_key_value = new Label(crypto_group, SWT.NULL );
 			    Messages.setLanguageText(public_key_value, "ConfigView.section.security.publickey.undef");
 
 			}else{
-				
-			    final Label public_key_value = new Label(crypto_group, SWT.NULL );
-			    
-			    Messages.setLanguageText(public_key_value, "ConfigView.copy.to.clipboard.tooltip", true);
-			    			    
+			    			    			    
 			    public_key_value.setText( Base32.encode( public_key ));
-			    
-			    public_key_value.setCursor(Cursors.handCursor);
-			    public_key_value.setForeground(Colors.blue);
-			    public_key_value.addMouseListener(new MouseAdapter() {
-			    	public void mouseDoubleClick(MouseEvent arg0) {
-			    		copyToClipboard();
-			    	}
-			    	public void mouseDown(MouseEvent arg0) {
-			    		copyToClipboard();
-			    	}
-			    	protected void
-			    	copyToClipboard()
-			    	{
-		    			new Clipboard(parent.getDisplay()).setContents(new Object[] {public_key_value.getText()}, new Transfer[] {TextTransfer.getInstance()});
-			    	}
-			    });
-			    
-				crypt_man.addKeyChangeListener(
-						new CryptoManagerKeyChangeListener()
+			}
+			
+		    Messages.setLanguageText(public_key_value, "ConfigView.copy.to.clipboard.tooltip", true);
+
+		    public_key_value.setCursor(Cursors.handCursor);
+		    public_key_value.setForeground(Colors.blue);
+		    public_key_value.addMouseListener(new MouseAdapter() {
+		    	public void mouseDoubleClick(MouseEvent arg0) {
+		    		copyToClipboard();
+		    	}
+		    	public void mouseDown(MouseEvent arg0) {
+		    		copyToClipboard();
+		    	}
+		    	protected void
+		    	copyToClipboard()
+		    	{
+	    			new Clipboard(parent.getDisplay()).setContents(new Object[] {public_key_value.getText()}, new Transfer[] {TextTransfer.getInstance()});
+		    	}
+		    });
+			
+			crypt_man.addKeyChangeListener(
+					new CryptoManagerKeyChangeListener()
+					{
+						public void 
+						keyChanged(
+							CryptoHandler handler ) 
 						{
-							public void 
-							keyChanged(
-								CryptoHandler handler ) 
-							{
-								if ( parent.isDisposed()){
+							if ( parent.isDisposed()){
+								
+								crypt_man.removeKeyChangeListener( this );
+								
+							}else{
+								if ( handler.getType() == CryptoManager.HANDLER_ECC ){
 									
-									crypt_man.removeKeyChangeListener( this );
-									
-								}else{
-									if ( handler.getType() == CryptoManager.HANDLER_ECC ){
+									byte[]	public_key = handler.peekPublicKey( null );
+
+									if ( public_key == null ){
 										
-										byte[]	public_key = handler.peekPublicKey( null );
-	
-										if ( public_key == null ){
-											
-												// shouldn't happen...
-											
-											public_key_value.setText( "" );
-											
-										}else{
-											
-											public_key_value.setText( Base32.encode( public_key ));
-										}
+											// shouldn't happen...
+										
+										 Messages.setLanguageText(public_key_value, "ConfigView.section.security.publickey.undef");
+										
+									}else{
+										
+										public_key_value.setText( Base32.encode( public_key ));
 									}
 								}
 							}
-						});
-			}
+						}
+					});
 			
 		    new Label(crypto_group, SWT.NULL );
 		    
