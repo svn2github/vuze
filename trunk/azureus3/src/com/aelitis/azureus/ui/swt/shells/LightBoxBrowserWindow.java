@@ -195,8 +195,8 @@ public class LightBoxBrowserWindow
 		}
 
 		if (browserWidth > 0 && browserHeight > 0) {
-			styledShell.setSize(browserWidth, browserHeight, StyledShell.HINT_ALIGN_CENTER
-					| StyledShell.HINT_ALIGN_FIT_IN_MONITOR);
+			styledShell.setSize(browserWidth, browserHeight,
+					StyledShell.HINT_ALIGN_CENTER | StyledShell.HINT_ALIGN_FIT_IN_MONITOR);
 		}
 
 		if (null != browser) {
