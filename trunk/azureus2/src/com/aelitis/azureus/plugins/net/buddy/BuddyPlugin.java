@@ -637,7 +637,7 @@ implements Plugin
 			
 			map.put( "pk", key );
 			
-			buddies_config.add( key );
+			buddies_config.add( map );
 				
 			plugin_interface.getPluginconfig().setPluginListParameter( "buddies", buddies_config );
 		}
