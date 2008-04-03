@@ -37,10 +37,13 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AESemaphore;
-import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.plugins.messaging.MessageException;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnection;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnectionListener;
@@ -62,6 +65,8 @@ public class
 SESTSConnectionImpl
 	implements GenericMessageConnection
 {	
+	private static final int	CRYPTO_SETUP_TIMEOUT	= 30*1000;
+	
 	private static final LogIDs LOGID = LogIDs.NWMAN;
 
 	private static final byte[]		AES_IV1				= 
@@ -77,6 +82,54 @@ SESTSConnectionImpl
 	
 	private static long					last_incoming_sts_create;
 	
+	private static List					connections	= new ArrayList();
+	
+	static{
+		
+		SimpleTimer.addPeriodicEvent(
+			"SESTSConnectionTimer",
+			15*1000,
+			new TimerEventPerformer()
+			{
+				public void 
+				perform(
+					TimerEvent event )
+				{
+					List	to_close = new ArrayList();
+					
+					synchronized( connections ){
+						
+						for (int i=0;i<connections.size();i++){
+							
+							SESTSConnectionImpl connection = (SESTSConnectionImpl)connections.get(i);
+							
+							if ( connection.crypto_complete.isReleasedForever()){
+								
+								continue;
+							}
+							
+							long	now = SystemTime.getCurrentTime();
+							
+							if ( connection.create_time > now ){
+								
+								connection.create_time = now;
+								
+							}else if ( now - connection.create_time > CRYPTO_SETUP_TIMEOUT ){
+								
+								to_close.add( connection );
+							}
+						}
+					}
+					
+					for (int i=0;i<to_close.size();i++){
+						
+						((SESTSConnectionImpl)to_close.get(i)).reportFailed( new Exception( "Timeout during crypto setup" ));
+					}
+				}
+				
+			});
+	}
+	
 	private static final int			BLOOM_RECREATE				= 30*1000;
 	private static final int			BLOOM_INCREASE				= 500;
 	private static BloomFilter			generate_bloom				= BloomFilterFactory.createAddRemove4Bit(BLOOM_INCREASE);
@@ -89,6 +142,8 @@ SESTSConnectionImpl
 	private SEPublicKeyLocator				key_locator;
 	private String							reason;
 	private int								block_crypto;
+	
+	private long							create_time;
 	
 	private CryptoSTSEngine	sts_engine;
 	
@@ -126,6 +181,13 @@ SESTSConnectionImpl
 		reason			= _reason;
 		block_crypto	= _block_crypto;
 
+		create_time = SystemTime.getCurrentTime();
+		
+		synchronized( connections ){
+			
+			connections.add( this );
+		}
+		
 		if ( connection.isIncoming()){
 			
 			rateLimit( connection.getEndpoint().getNotionalAddress());
@@ -739,6 +801,11 @@ SESTSConnectionImpl
 	
 		throws MessageException
 	{
+		synchronized( connections ){
+			
+			connections.remove( this );
+		}
+		
 		connection.close();
 	}
 	
@@ -749,10 +816,10 @@ SESTSConnectionImpl
 			// submission of a message which then block this thread awaiting crypto completion. "this" thread
 			// is currently the selector thread which then screws the crypto protocol...
 		
-		new AEThread( "SESTSConnection:connected", true )
+		new AEThread2( "SESTSConnection:connected", true )
 		{
 			public void
-			runSupport()
+			run()
 			{
 				for (int i=0;i<listeners.size();i++){
 					
@@ -771,20 +838,37 @@ SESTSConnectionImpl
 	
 	protected void
 	reportFailed(
-		Throwable	error )
+		final Throwable	error )
 	{
 		setFailed();
 		
-		for (int i=0;i<listeners.size();i++){
-			
-			try{
-				((GenericMessageConnectionListener)listeners.get(i)).failed( this, error );
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace( e );
+		new AEThread2( "SESTSConnection:failed", true )
+		{
+			public void
+			run()
+			{
+				for (int i=0;i<listeners.size();i++){
+					
+					try{
+						((GenericMessageConnectionListener)listeners.get(i)).failed( SESTSConnectionImpl.this, error );
+						
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace( e );
+						
+					}finally{
+						
+						try{
+							close();
+							
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+						}
+					}
+				}
 			}
-		}
+		}.start();
 	}
 	
 	public void
