@@ -350,6 +350,8 @@ GenericMessageConnectionDirect
 	  			    
 	  			    public void flush(){}
 	    		});
+	    
+	    connection.startMessageProcessing();
 	}
 	
 	public void
