@@ -25,6 +25,14 @@ public interface
 BuddyPluginListener 
 {
 	public void
+	buddyAdded(
+		BuddyPluginBuddy	buddy );
+	
+	public void
+	buddyRemoved(
+		BuddyPluginBuddy	buddy );
+
+	public void
 	messageLogged(
 		String		str );
 }

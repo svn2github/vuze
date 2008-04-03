@@ -33,8 +33,9 @@ import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Base32;
-import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
@@ -44,6 +45,13 @@ import org.gudy.azureus2.plugins.ddb.DistributedDatabaseKey;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseListener;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseValue;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
+import org.gudy.azureus2.plugins.messaging.MessageException;
+import org.gudy.azureus2.plugins.messaging.MessageManager;
+import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnection;
+import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnectionListener;
+import org.gudy.azureus2.plugins.messaging.generic.GenericMessageEndpoint;
+import org.gudy.azureus2.plugins.messaging.generic.GenericMessageHandler;
+import org.gudy.azureus2.plugins.messaging.generic.GenericMessageRegistration;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.ui.config.ActionParameter;
@@ -52,8 +60,12 @@ import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 import org.gudy.azureus2.plugins.ui.config.StringParameter;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
+import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.plugins.utils.UTTimerEvent;
 import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
+import org.gudy.azureus2.plugins.utils.security.SEPublicKey;
+import org.gudy.azureus2.plugins.utils.security.SEPublicKeyLocator;
+import org.gudy.azureus2.plugins.utils.security.SESecurityManager;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 
 import com.aelitis.azureus.core.security.CryptoHandler;
@@ -68,10 +80,9 @@ implements Plugin
 {
 	public static final String VIEW_ID = "azbuddy";
 
-	private static final int	TIMER_PERIOD	= 60*1000;
+	private static final int	TIMER_PERIOD	= 10*1000;
 	
 	private static final int	BUDDY_STATUS_CHECK_PERIOD	= 60*1000;
-	private static final int	BUDDY_STATUS_CHECK_TICKS	= BUDDY_STATUS_CHECK_PERIOD/TIMER_PERIOD;
 	
 	private static final int	STATUS_REPUBLISH_PERIOD		= 5*60*1000;
 	private static final int	STATUS_REPUBLISH_TICKS		= STATUS_REPUBLISH_PERIOD/TIMER_PERIOD;
@@ -81,7 +92,8 @@ implements Plugin
 	
 	private LoggerChannel	logger;
 	
-	private ActionParameter test_button;
+	private ActionParameter add_buddy_button;
+	private ActionParameter test_msg_button;
 			
 	private boolean			ready_to_publish;
 	private publishDetails	current_publish		= new publishDetails();
@@ -99,6 +111,10 @@ implements Plugin
 	private boolean	is_enabled;
 
 	private CopyOnWriteList	listeners = new CopyOnWriteList();
+	
+	private SESecurityManager	sec_man;
+
+	private GenericMessageRegistration	msg_registration;
 	
 	public void
 	initialize(
@@ -119,6 +135,8 @@ implements Plugin
 			return;
 		}
 		
+		sec_man = plugin_interface.getUtilities().getSecurityManager();
+
 		logger = plugin_interface.getLogger().getChannel( "Buddy" );
 		
 		logger.setDiagnostic();
@@ -139,6 +157,8 @@ implements Plugin
 					}
 				});
 		
+			// add buddy
+		
 		final StringParameter buddy_pk = config.addStringParameter2( "other buddy key", "other buddy key", "" );
 		
 		buddy_pk.addListener(
@@ -152,15 +172,15 @@ implements Plugin
 						
 						byte[] bytes = Base32.decode( value );					
 						
-						test_button.setEnabled( ecc_handler.verifyPublicKey( bytes )); 
+						add_buddy_button.setEnabled( ecc_handler.verifyPublicKey( bytes )); 
 					}
 				});
 		
-		test_button = config.addActionParameter2( "add the key", "do it!" );
+		add_buddy_button = config.addActionParameter2( "add the key", "do it!" );
 		
-		test_button.setEnabled( false );
+		add_buddy_button.setEnabled( false );
 		
-		test_button.addListener(
+		add_buddy_button.addListener(
 			new ParameterListener()
 			{
 				public void
@@ -168,6 +188,24 @@ implements Plugin
 					Parameter	param )
 				{
 					addBuddy( buddy_pk.getValue().trim());
+				}
+			});
+		
+		
+			// send message
+		
+		final StringParameter test_msg = config.addStringParameter2( "test msg", "test msg", "" );
+	
+		test_msg_button = config.addActionParameter2( "send msg", "do it!" );
+				
+		test_msg_button.addListener(
+			new ParameterListener()
+			{
+				public void
+				parameterChanged(
+					Parameter	param )
+				{
+					sendMessage( test_msg.getValue().trim());
 				}
 			});
 		
@@ -203,7 +241,7 @@ implements Plugin
 				public void
 				initializationComplete()
 				{
-					new AEThread2( "NetstatusPlugin:init", true )
+					new AEThread2( "BuddyPlugin:init", true )
 					{
 						public void
 						run()
@@ -215,6 +253,8 @@ implements Plugin
 							
 									// pick up initial values before enabling
 
+								registerMessageHandler();
+								
 								ddb.addListener(
 									new DistributedDatabaseListener()
 									{
@@ -300,6 +340,280 @@ implements Plugin
 				
 				updatePublish( new_publish );
 			}
+		}
+	}
+	
+	protected void
+	registerMessageHandler()
+	{
+		try{
+			msg_registration = 
+				plugin_interface.getMessageManager().registerGenericMessageType(
+					"AZBUDDY", "Buddy message handler", 
+					MessageManager.STREAM_ENCRYPTION_RC4_REQUIRED,
+					new GenericMessageHandler()
+					{
+						public boolean
+						accept(
+							GenericMessageConnection	connection )
+						
+							throws MessageException
+						{
+							System.out.println( "accept" );
+							
+							try{	
+								String reason = "Buddy: Incoming connection establishment";
+								
+								connection = 
+									sec_man.getSTSConnection(
+											connection, 
+											sec_man.getPublicKey( SEPublicKey.KEY_TYPE_ECC_192, reason ),
+											new SEPublicKeyLocator()
+											{
+												public boolean
+												accept(
+													SEPublicKey	other_key )
+												{
+													System.out.println( "acceptKey" );
+													
+													return( true );
+												}
+											},
+											reason,
+											SESecurityManager.BLOCK_ENCRYPTION_AES );
+							
+								connection.addListener(
+									new GenericMessageConnectionListener()
+									{
+										public void
+										connected(
+											GenericMessageConnection	connection )
+										{
+										}
+										
+										public void
+										receive(
+											GenericMessageConnection	connection,
+											PooledByteBuffer			message )
+										
+											throws MessageException
+										{
+											System.out.println( "receive: " + message.toByteArray().length );
+											
+											PooledByteBuffer	reply = 
+												plugin_interface.getUtilities().allocatePooledByteBuffer( 
+														new byte[connection.getMaximumMessageSize()]);
+											
+											connection.send( reply );
+										}
+										
+										public void
+										failed(
+											GenericMessageConnection	connection,
+											Throwable 					error )
+										
+											throws MessageException
+										{
+											System.out.println( "Responder connection error:" );
+	
+											error.printStackTrace();
+										}	
+									});	
+							}catch( Throwable e ){
+								
+								connection.close();
+								
+								e.printStackTrace();
+							}
+							
+							return( true );
+						}
+					});
+					
+		}catch( Throwable e ){
+			
+			log( "Failed to register message listener", e );
+		}
+	}
+	
+	protected void
+	sendMessage(
+		String		msg )
+	{
+		Map	map = new HashMap();
+		
+		map.put( "test", msg );
+		
+		List	buddies_copy;
+		
+		synchronized( BuddyPlugin.this ){
+		
+			buddies_copy = new ArrayList( buddies );
+		}
+				
+		for (int i=0;i<buddies_copy.size();i++){
+			
+			BuddyPluginBuddy	buddy = (BuddyPluginBuddy)buddies_copy.get(i);
+			
+			sendMessage( buddy, map );
+		}
+	}
+	
+	protected boolean
+	sendMessage(
+		BuddyPluginBuddy	buddy,
+		Map					message )
+	{
+		if ( msg_registration == null ){
+			
+			log( "Can't send message as registration failed" );
+			
+			return( false );
+		}
+		
+		InetAddress ip = buddy.getIP();
+		
+		if ( ip == null ){
+			
+			log( "Buddy has no IP, can't send message" );
+			
+			return( false );
+		}
+		
+		InetSocketAddress	tcp_target	= null;
+		InetSocketAddress	udp_target	= null;
+		
+		int	tcp_port = buddy.getTCPPort();
+		
+		if ( tcp_port > 0 ){
+			
+			tcp_target = new InetSocketAddress( ip, tcp_port );
+		}
+		
+		int	udp_port = buddy.getUDPPort();
+		
+		if ( udp_port > 0 ){
+			
+			udp_target = new InetSocketAddress( ip, udp_port );
+		}
+
+		InetSocketAddress	notional_target = tcp_target;
+		
+		if ( notional_target == null ){
+		
+			notional_target = udp_target;
+		}
+		
+		if ( notional_target == null ){
+			
+			log( "Buddy has no usable protocols, can't send message" );
+			
+			return( false );
+		}
+		
+		GenericMessageEndpoint	endpoint = msg_registration.createEndpoint( notional_target );
+		
+		if ( tcp_target != null ){
+		
+			endpoint.addTCP( tcp_target );
+		}
+		
+		if ( udp_target != null ){
+		
+			endpoint.addUDP( udp_target );
+		}
+		
+		try{
+			GenericMessageConnection	con = msg_registration.createConnection( endpoint );
+					
+			String reason = "Buddy: Outgoing connection establishment";
+	
+			con = sec_man.getSTSConnection( 
+					con, 
+					sec_man.getPublicKey( SEPublicKey.KEY_TYPE_ECC_192, reason ),
+	
+					new SEPublicKeyLocator()
+					{
+						public boolean
+						accept(
+							SEPublicKey	other_key )
+						{
+							System.out.println( "acceptKey" );
+							
+							return( true );
+						}
+					},
+					reason, 
+					SESecurityManager.BLOCK_ENCRYPTION_AES );
+			
+			con.addListener(
+				new GenericMessageConnectionListener()
+				{
+					public void
+					connected(
+						GenericMessageConnection	connection )
+					{
+						System.out.println( "outbound connected" );
+						
+						PooledByteBuffer	data = plugin_interface.getUtilities().allocatePooledByteBuffer( "1234".getBytes());
+						
+						try{
+							connection.send( data );
+							
+						}catch( Throwable e ){
+							
+							e.printStackTrace();
+						}
+					}
+					
+					public void
+					receive(
+						GenericMessageConnection	connection,
+						PooledByteBuffer			message )
+					
+						throws MessageException
+					{
+						System.out.println( "receive: " + message.toByteArray().length );
+						
+						
+						PooledByteBuffer	reply = 
+							plugin_interface.getUtilities().allocatePooledByteBuffer( new byte[16*1024]);
+						
+						
+						connection.send( reply );
+						
+						System.out.println( "closing connection" );
+						
+						connection.close();
+					}
+					
+					public void
+					failed(
+						GenericMessageConnection	connection,
+						Throwable 					error )
+					
+						throws MessageException
+					{
+						System.out.println( "Initiator connection error:" );
+						
+						error.printStackTrace();
+						
+						connection.close();
+					}
+				});
+			
+	
+			con.connect();
+			
+				// TODO: not actually sent at this point
+			
+			return( true );
+			
+		}catch( Throwable e ){
+			
+			log( "Send message failed", e );
+			
+			return( false );
 		}
 	}
 	
@@ -410,11 +724,11 @@ implements Plugin
 		
 		publishDetails	existing_details;
 		
-		boolean	was_published;
+		boolean	log_this;
 		
 		synchronized( this ){
 
-			was_published = current_publish.isPublished();
+			log_this = !current_publish.getString().equals( details.getString());
 			
 			existing_details = current_publish;
 			
@@ -488,8 +802,6 @@ implements Plugin
 				return;
 			}
 			
-			log( "Publishing new status: " + details.getString());
-
 			details.setPublished( true );
 			
 			Map	payload = new HashMap();
@@ -524,9 +836,9 @@ implements Plugin
 				
 				final AESemaphore	sem = new AESemaphore( "BuddyPlugin:reg" );
 				
-				if ( !was_published ){
+				if ( log_this ){
 					
-					logMessage( "Publishing status starts" );
+					logMessage( "Publishing status starts: " + details.getString());
 				}
 				
 				ddb.write(
@@ -550,7 +862,7 @@ implements Plugin
 				
 				sem.reserve();
 				
-				if ( !was_published ){
+				if ( log_this ){
 				
 					logMessage( "Publishing status complete" );
 				}
@@ -583,23 +895,24 @@ implements Plugin
 	protected void
 	loadBuddies()
 	{
-		List buddies_config = plugin_interface.getPluginconfig().getPluginListParameter( "buddies", new ArrayList());
-
-		for (int i=0;i<buddies_config.size();i++){
-			
-			Object o = buddies_config.get(i);
-
-			if ( o instanceof Map ){
+		synchronized( this ){
+			List buddies_config = plugin_interface.getPluginconfig().getPluginListParameter( "buddies", new ArrayList());
+	
+			for (int i=0;i<buddies_config.size();i++){
 				
-				Map	details = (Map)o;
-				
-				String	key = new String((byte[])details.get("pk"));
-				
-				BuddyPluginBuddy buddy = new BuddyPluginBuddy( this, key );
-				
-				logMessage( "Loaded buddy " + buddy.getString());
-				
-				buddies.add( buddy );
+				Object o = buddies_config.get(i);
+	
+				if ( o instanceof Map ){
+					
+					Map	details = (Map)o;
+					
+					String	key = new String((byte[])details.get("pk"));
+					BuddyPluginBuddy buddy = new BuddyPluginBuddy( this, key );
+					
+					logMessage( "Loaded buddy " + buddy.getString());
+					
+					buddies.add( buddy );
+				}
 			}
 		}
 	}
@@ -662,12 +975,28 @@ implements Plugin
 						
 						return;
 					}
-					
-					if ( tick_count % BUDDY_STATUS_CHECK_TICKS == 0 ){
 												
-						for (int i=0;i<buddies.size();i++){
+					List	buddies_copy;
+					
+					synchronized( BuddyPlugin.this ){
+					
+						buddies_copy = new ArrayList( buddies );
+					}
+					
+					long	now = SystemTime.getCurrentTime();
+					
+					for (int i=0;i<buddies_copy.size();i++){
+						
+						BuddyPluginBuddy	buddy = (BuddyPluginBuddy)buddies_copy.get(i);
+						
+						long	last_check = buddy.getLastStatusCheckTime();
+						
+						if ( last_check > now || now - last_check > BUDDY_STATUS_CHECK_PERIOD ){
 							
-							updateBuddyStatus((BuddyPluginBuddy)buddies.get(i));
+							if ( !buddy.statusCheckActive()){
+						
+								updateBuddyStatus( buddy );
+							}
 						}
 					}
 					
@@ -691,6 +1020,8 @@ implements Plugin
 	{
 		log( "Updating buddy status: " + buddy.getString());
 
+		buddy.statusCheckStarts();
+		
 		try{							
 			final byte[]	public_key = Base32.decode( buddy.getPublicKey());
 
@@ -758,9 +1089,11 @@ implements Plugin
 									
 									InetAddress ip = InetAddress.getByAddress((byte[])status.get("i"));
 									
-									buddy.updateStatus( latest_time, ip, tcp_port, udp_port );
+									buddy.statusCheckComplete( latest_time, ip, tcp_port, udp_port );
 									
 								}catch( Throwable e ){
+									
+									buddy.statusCheckFailed();
 									
 									log( "Status decode failed", e );
 								}
@@ -773,7 +1106,18 @@ implements Plugin
 			
 		}catch( Throwable e ){
 			
+			buddy.statusCheckFailed();
+			
 			log( "Buddy status update failed: " + buddy.getString(), e );
+		}
+	}
+	
+	public List
+	getBuddies()
+	{
+		synchronized( this ){
+			
+			return( new ArrayList( buddies ));
 		}
 	}
 	
@@ -782,6 +1126,13 @@ implements Plugin
 		BuddyPluginListener	listener )
 	{
 		listeners.add( listener );
+	}
+	
+	public void
+	removeListener(
+		BuddyPluginListener	listener )
+	{
+		listeners.remove( listener );
 	}
 	
 	public void
@@ -794,7 +1145,13 @@ implements Plugin
 		
 		while( it.hasNext()){
 			
-			((BuddyPluginListener)it.next()).messageLogged( str );
+			try{
+				((BuddyPluginListener)it.next()).messageLogged( str );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace( e );
+			}
 		}
 	}
 	
