@@ -27,6 +27,7 @@ import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.*;
+import org.gudy.azureus2.ui.swt.Utils;
 
 /**
  * Eclipse Bug 164512:
@@ -52,7 +53,7 @@ public class BrowserFlicker
 		final Composite right = new Composite(shell, SWT.NONE);
 		right.setLayout(new FormLayout());
 
-		final Browser b = new Browser(right, SWT.BORDER);
+		final Browser b = new Browser(right, Utils.getInitialBrowserStyle(SWT.NONE));
 		fd = new FormData();
 		fd.top = new FormAttachment(0, INDENT);
 		fd.left = new FormAttachment(0, INDENT);

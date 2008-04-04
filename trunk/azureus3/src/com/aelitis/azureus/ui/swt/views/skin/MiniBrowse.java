@@ -99,7 +99,7 @@ public class MiniBrowse
 		FormData formData;
 		Composite cArea = (Composite) skinObject.getControl();
 
-		final Browser browser = new Browser(cArea, SWT.NONE);
+		final Browser browser = new Browser(cArea, Utils.getInitialBrowserStyle(SWT.NONE));
 		final ClientMessageContext context = new BrowserContext("mini", browser,
 				null, true);
 		context.addMessageListener(new TorrentListener(core));

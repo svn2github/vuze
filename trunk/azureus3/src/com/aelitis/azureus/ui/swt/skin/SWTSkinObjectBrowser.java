@@ -83,7 +83,7 @@ public class SWTSkinObjectBrowser
 		cArea = parent == null ? skin.getShell() : (Composite) parent.getControl();
 
 		try {
-			browser = new Browser(cArea, SWT.NONE);
+			browser = new Browser(cArea, Utils.getInitialBrowserStyle(SWT.NONE));
 		} catch (SWTError e) {
 			System.err.println("Browser: " + e.toString());
 			return;

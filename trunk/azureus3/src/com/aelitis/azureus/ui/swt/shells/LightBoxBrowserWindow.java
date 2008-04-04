@@ -191,7 +191,7 @@ public class LightBoxBrowserWindow
 		 * 
 		 */
 		try {
-			browser = new Browser(contentPanel, SWT.NONE);
+			browser = new Browser(contentPanel, Utils.getInitialBrowserStyle(SWT.NONE));
 		} catch (Throwable t) {
 			// Be silent if no browser
 		}
