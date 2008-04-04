@@ -467,9 +467,10 @@ public class ColumnVuzeActivity
 			subCellEvent.eventType = event.eventType;
 			subCellEvent.row = event.row;
 			
+			boolean isMouseOverThumbCell = false;
 			if (thumbCell != null) {
+				isMouseOverThumbCell = dmThumbRect.contains(event.x, event.y);
 				boolean wasMouseOverThumbCell = getIsMouseOverThumbCell(event.cell);
-				boolean isMouseOverThumbCell = dmThumbRect.contains(event.x, event.y);
 				//System.out.println("was=" + wasMouseOverThumbCell + ";is=" + isMouseOverThumbCell);
 
 				if (wasMouseOverThumbCell != isMouseOverThumbCell) {
@@ -520,7 +521,7 @@ public class ColumnVuzeActivity
 				return;
 			}
 
-			if (thumbCell != null) {
+			if (thumbCell != null && isMouseOverThumbCell) {
 				subCellEvent.cell = thumbCell;
 				subCellEvent.x = event.x - dmThumbRect.x;
 				subCellEvent.y = event.y - dmThumbRect.y;
