@@ -297,6 +297,13 @@ public interface TableCell {
    */
   public void setFillCell(boolean bFillCell);
 
+	/**
+	 * @return
+	 *
+	 * @since 3.0.5.3
+	 */
+	int getMarginHeight();
+
   /**
    * Specifies the number of pixels of vertical margin that will
    * be placed along the top and bottom edges of the layout for
@@ -307,6 +314,13 @@ public interface TableCell {
    * @param height new margin height
    */
   public void setMarginHeight(int height);
+
+	/**
+	 * @return
+	 *
+	 * @since 3.0.5.3
+	 */
+	int getMarginWidth();
 
   /**
    * Specifies the number of pixels of horizontal margin that will

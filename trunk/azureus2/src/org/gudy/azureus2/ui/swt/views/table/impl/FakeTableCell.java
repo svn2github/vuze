@@ -1097,4 +1097,14 @@ public class FakeTableCell
 		}
 		return new int[] { ptCursor.x - r.x, ptCursor.y - r.y };
 	}
+
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getMarginHeight()
+	public int getMarginHeight() {
+		return marginHeight;
+	}
+
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getMarginWidth()
+	public int getMarginWidth() {
+		return marginWidth;
+	}
 }

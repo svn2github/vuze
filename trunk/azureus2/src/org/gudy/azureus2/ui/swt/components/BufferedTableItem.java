@@ -108,4 +108,11 @@ public interface BufferedTableItem
 	 * @since 3.0.4.3
 	 */
 	public abstract void setCursor(int cursorID);
+
+	/**
+	 * 
+	 *
+	 * @since 3.0.5.3
+	 */
+	public abstract boolean isMouseOver();
 }

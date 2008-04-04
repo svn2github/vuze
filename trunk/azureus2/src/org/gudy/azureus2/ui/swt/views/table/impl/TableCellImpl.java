@@ -111,6 +111,8 @@ public class TableCellImpl
   private Object oToolTip;
 	private int iCursorID = -1;
 	private Graphic graphic = null;
+	
+	private ArrayList childCells;
   
 	public boolean bDebug = false;
   
@@ -647,6 +649,22 @@ public class TableCellImpl
     setFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
   }
 
+	public int getMarginHeight() {
+  	checkCellForSetting();
+
+    if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
+      return 0;
+    return ((BufferedGraphicTableItem)bufferedTableItem).getMarginHeight();
+  }
+
+  public int getMarginWidth() {
+  	checkCellForSetting();
+
+    if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
+      return 0;
+    return ((BufferedGraphicTableItem)bufferedTableItem).getMarginWidth();
+  }
+
   /* End TYPE_GRAPHIC Functions */
 
   public void addRefreshListener(TableCellRefreshListener listener) {
@@ -1006,6 +1024,14 @@ public class TableCellImpl
 	  	clearFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
 		  bInRefresh = false;
 	  }
+
+    if (childCells != null) {
+    	Object[] childCellsArray = childCells.toArray();
+    	for (int i = 0; i < childCellsArray.length; i++) {
+				TableCellImpl childCell = (TableCellImpl) childCellsArray[i];
+				childCell.refresh(bDoGraphics, bRowVisible, bCellVisible);
+			}
+    }
 	  return ret;
   }
   
@@ -1078,6 +1104,14 @@ public class TableCellImpl
 			debug("doPaint up2date:" + hasFlag(FLAG_UPTODATE) + ";v:" + hasFlag(FLAG_VALID) + ";rl=" + refreshListeners);
 		}
     bufferedTableItem.doPaint(gc);
+    
+    if (childCells != null) {
+    	Object[] childCellsArray = childCells.toArray();
+    	for (int i = 0; i < childCellsArray.length; i++) {
+				TableCellImpl childCell = (TableCellImpl) childCellsArray[i];
+				childCell.doPaint(gc);
+			}
+    }
   }
 
   public void locationChanged() {
@@ -1314,8 +1348,10 @@ public class TableCellImpl
 	}
 	
 	public boolean isMouseOver() {
-		TableViewSWT view = (TableViewSWT) tableRow.getView();
-		return view == null ? false : view.getTableCellWithCursor() == this;
+		if (bufferedTableItem == null) {
+			return false;
+		}
+		return bufferedTableItem.isMouseOver();
 	}
 	
 	public int[] getMouseOffset() {
@@ -1333,5 +1369,18 @@ public class TableCellImpl
 	
 	private void clearFlag(int flag) {
 		flags &= ~flag;
+	}
+
+	/**
+	 * @param childCell
+	 *
+	 * @since 3.0.5.3
+	 */
+	public void addChildCell(TableCellImpl childCell) {
+		if (childCells == null) {
+			childCells = new ArrayList(1);
+		}
+		//TODO: childCell.setParentCell(this);
+		childCells.add(childCell);
 	}
 }

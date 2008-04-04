@@ -23,10 +23,12 @@ package org.gudy.azureus2.ui.swt.components;
 
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 
 /**
  * @author Olivier
@@ -241,5 +243,15 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 				table.setCursor(table.getDisplay().getSystemCursor(cursorID));
 			}
 		});
+  }
+  
+  // @see org.gudy.azureus2.ui.swt.components.BufferedTableItem#isMouseOver()
+  public boolean isMouseOver() {
+		Table table = row.getTable();
+		Point pt = Display.getCurrent().getCursorLocation();
+		pt = table.toControl(pt);
+
+		Rectangle bounds = getBounds();
+		return bounds.contains(pt);
   }
 }
