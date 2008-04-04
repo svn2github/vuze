@@ -73,6 +73,8 @@ public class LightBoxBrowserWindow
 
 	private Color contentBackgroundColor = null;
 
+	private UIFunctionsSWT uiFunctions;
+
 	public LightBoxBrowserWindow(String url, String prefixVerifier, int width,
 			int height) {
 		this.url = url;
@@ -97,7 +99,7 @@ public class LightBoxBrowserWindow
 	}
 
 	public void init() {
-		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+		uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if (null == uiFunctions) {
 			throw new IllegalStateException(
 					"No instance of UIFunctionsSWT found; the UIFunctionsManager might not have been initialized properly");
@@ -213,7 +215,6 @@ public class LightBoxBrowserWindow
 		 * Open the shell in it's hidden state to prevent flickering when the browser initializes
 		 */
 		styledShell.hideShell(true);
-
 		lightBoxShell.open(styledShell);
 	}
 
@@ -264,8 +265,13 @@ public class LightBoxBrowserWindow
 				}
 
 				/*
-				 * Once a page has finished loading fade the shell back into being visible
+				 * Once a page has finished loading make sure the main shell is not minimized
+				 * then fade the styledShell back into being visible
 				 */
+				if (true == uiFunctions.getMainShell().getMinimized()) {
+					uiFunctions.getMainShell().setMinimized(false);
+				}
+
 				lightBoxShell.showBusy(false, 0);
 				styledShell.animateFade(100);
 
