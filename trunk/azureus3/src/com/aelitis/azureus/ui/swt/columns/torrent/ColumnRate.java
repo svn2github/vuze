@@ -202,6 +202,9 @@ public class ColumnRate
 		}
 
 		public void refresh(final TableCell cell, final boolean force) {
+			if (cell.isDisposed()) {
+				return;
+			}
 			DownloadManager newDM = getDM(cell.getDataSource());
 			if (dm == null || newDM != dm) {
 				if (newDM == null) {
