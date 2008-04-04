@@ -66,7 +66,7 @@ public class
 SESTSConnectionImpl
 	implements GenericMessageConnection
 {	
-	private static final int	CRYPTO_SETUP_TIMEOUT	= 30*1000;
+	private static final int	CRYPTO_SETUP_TIMEOUT	= 60*1000;
 	
 	private static final LogIDs LOGID = LogIDs.NWMAN;
 
@@ -115,9 +115,14 @@ SESTSConnectionImpl
 								
 								connection.create_time = now;
 								
-							}else if ( now - connection.create_time > CRYPTO_SETUP_TIMEOUT ){
+							}else{
 								
-								to_close.add( connection );
+								int time_allowed = connection.getConnectMethodCount() * CRYPTO_SETUP_TIMEOUT;
+								
+								if ( now - connection.create_time > time_allowed ){
+									
+									to_close.add( connection );
+								}
 							}
 						}
 					}
@@ -162,8 +167,7 @@ SESTSConnectionImpl
 	
 	
 	private volatile boolean	failed;
-	
-	
+		
 	protected
 	SESTSConnectionImpl(
 		AzureusCore						_core,
@@ -228,6 +232,11 @@ SESTSConnectionImpl
 			});
 	}
 	
+	protected int
+	getConnectMethodCount()
+	{
+		return( connection.getConnectMethodCount());
+	}
 	
 	protected static void
 	rateLimit(
@@ -508,6 +517,10 @@ SESTSConnectionImpl
 						if ( !key_locator.accept(
 								SESTSConnectionImpl.this,
 								new SEPublicKeyImpl( my_public_key.getType(), rem_key ))){
+							
+								// this is just here to prevent unwanted spew  during closedown process
+							
+							connection.closing();
 							
 							throw( new MessageException( "remote public key not accepted" ));
 						}
@@ -856,26 +869,27 @@ SESTSConnectionImpl
 			public void
 			run()
 			{
-				List listeners_ref = listeners.getList();
-				
-				for (int i=0;i<listeners_ref.size();i++){
+				try{
+					List listeners_ref = listeners.getList();
 					
-					try{
-						((GenericMessageConnectionListener)listeners_ref.get(i)).failed( SESTSConnectionImpl.this, error );
-						
-					}catch( Throwable e ){
-						
-						Debug.printStackTrace( e );
-						
-					}finally{
+					for (int i=0;i<listeners_ref.size();i++){
 						
 						try{
-							close();
+							((GenericMessageConnectionListener)listeners_ref.get(i)).failed( SESTSConnectionImpl.this, error );
 							
 						}catch( Throwable e ){
 							
-							Debug.printStackTrace(e);
+							Debug.printStackTrace( e );
 						}
+					}				
+				}finally{
+					
+					try{
+						close();
+						
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
 					}
 				}
 			}

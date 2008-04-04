@@ -25,6 +25,8 @@ package com.aelitis.azureus.core.networkmanager;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
+import org.gudy.azureus2.core3.util.AddressUtils;
+
 import com.aelitis.azureus.core.networkmanager.Transport.ConnectListener;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.ProtocolEndpointTCP;
 import com.aelitis.azureus.core.networkmanager.impl.udp.ProtocolEndpointUDP;
@@ -134,6 +136,49 @@ ConnectionEndpoint
 		ep.setConnectionEndpoint( this );
 	}
 	
+	public ConnectionEndpoint
+	getLANAdjustedEndpoint()
+	{
+		ConnectionEndpoint	result = new ConnectionEndpoint( notional_address );
+		
+		for (int i=0;i<protocols.length;i++){
+
+			ProtocolEndpoint ep = protocols[i];
+			
+			if ( ep.getType() == ProtocolEndpoint.PROTOCOL_TCP ){
+				
+				ProtocolEndpointTCP	tcp = (ProtocolEndpointTCP)ep;
+			
+				InetSocketAddress address = AddressUtils.adjustTCPAddress( tcp.getAddress(), true );
+				
+				if ( address != tcp.getAddress()){
+					
+					System.out.println( "Adjusted TCP address: " + address + " -> " + tcp.getAddress());
+				}
+				
+				new ProtocolEndpointTCP( result, address );
+				
+			}else if ( ep.getType() == ProtocolEndpoint.PROTOCOL_UDP ){
+				
+				ProtocolEndpointUDP	udp = (ProtocolEndpointUDP)ep;
+			
+				InetSocketAddress address = AddressUtils.adjustUDPAddress( udp.getAddress(), true );
+				
+				if ( address != udp.getAddress()){
+					
+					System.out.println( "Adjusted UDP address: " + address + " -> " + udp.getAddress());
+				}
+				
+				new ProtocolEndpointUDP( result, address );
+				
+			}else{
+				
+				result.addProtocol( ep );
+			}
+		}
+		
+		return( result );
+	}
 	
 	public ConnectionAttempt
 	connectOutbound(

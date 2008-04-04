@@ -504,6 +504,11 @@ BuddyPluginBuddy
 			
 			dir_str = outgoing?"Outgoing":"Incoming";
 			
+			if ( !outgoing ){
+				
+				connected = true;
+			}
+			
 			connection.addListener( this );
 		}
 		
@@ -585,9 +590,9 @@ BuddyPluginBuddy
 				
 				System.out.println( dir_str + " receive: " + content.length );
 				
-				Map	map = BDecoder.decode( content );
+				Map	request_map = BDecoder.decode( content );
 				
-				int	type = ((Long)map.get("type")).intValue();
+				int	type = ((Long)request_map.get("type")).intValue();
 				
 				if ( type == RT_REQUEST_DATA || type == RT_REQUEST_PING ){
 					
@@ -603,7 +608,7 @@ BuddyPluginBuddy
 						
 					}else{
 						
-						byte[]	data = (byte[])map.get( "data" );
+						byte[]	data = (byte[])request_map.get( "data" );
 
 						if ( data == null ){
 							
@@ -619,11 +624,20 @@ BuddyPluginBuddy
 							reply_type = RT_REPLY_ERROR;
 							
 							reply	= "No handlers available to process request".getBytes();
+							
+						}else{
+							
+							reply_type = RT_REPLY_DATA;
 						}
 					}
 					
+					Map reply_map = new HashMap();
+					
+					reply_map.put( "type", new Long( reply_type ));
+					reply_map.put( "data", reply );
+					
 					PooledByteBuffer	reply_buffer = 
-						plugin.getPluginInterface().getUtilities().allocatePooledByteBuffer( reply );
+						plugin.getPluginInterface().getUtilities().allocatePooledByteBuffer( BEncoder.encode( reply_map ));
 						
 					boolean	ok = false;
 					
@@ -654,11 +668,11 @@ BuddyPluginBuddy
 					
 					if ( type == RT_REPLY_ERROR ){
 						
-						bm.reportFailed( new BuddyPluginException(new String((byte[])map.get( "data" ))));
+						bm.reportFailed( new BuddyPluginException(new String((byte[])request_map.get( "data" ))));
 						
 					}else{
 						
-						bm.reportComplete((byte[])map.get( "data" ));
+						bm.reportComplete((byte[])request_map.get( "data" ));
 					}
 					
 					sendMessage();

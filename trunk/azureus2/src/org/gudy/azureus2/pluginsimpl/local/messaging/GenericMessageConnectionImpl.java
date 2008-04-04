@@ -68,11 +68,14 @@ GenericMessageConnectionImpl
 	private boolean								incoming;
 	
 	private volatile GenericMessageConnectionAdapter		delegate;
+	private volatile boolean								closing;
 	private volatile boolean								closed;
 	private volatile boolean								connecting;
 	
 	private List	listeners	= new ArrayList();
 
+	private int	connect_method_count;
+	
 	
 	protected
 	GenericMessageConnectionImpl(
@@ -83,6 +86,8 @@ GenericMessageConnectionImpl
 		delegate		= _delegate;
 		
 		incoming	= true;
+		
+		connect_method_count = 1;
 		
 		delegate.setOwner( this );
 	}
@@ -102,6 +107,8 @@ GenericMessageConnectionImpl
 		endpoint		= _endpoint;
 		stream_crypto	= _stream_crypto;
 		shared_secrets	= _shared_secrets;
+		
+		connect_method_count = endpoint.getConnectionEndpoint().getProtocols().length;
 		
 		incoming	= false;
 	}
@@ -124,6 +131,11 @@ GenericMessageConnectionImpl
 		return( incoming );
 	}
 	
+	public int
+	getConnectMethodCount()
+	{
+		return( connect_method_count );
+	}
 	
 	public void
 	connect()
@@ -204,9 +216,13 @@ GenericMessageConnectionImpl
 				initial_data,
 				new GenericMessageConnectionAdapter.ConnectionListener()
 				{
+					private boolean	connected;
+					
 					public void
 					connectSuccess()
 					{
+						connected	= true;
+						
 						delegate = tcp_delegate;
 						
 						if ( closed ){
@@ -231,7 +247,7 @@ GenericMessageConnectionImpl
 					{
 						InetSocketAddress	udp_ep = endpoint.getUDP();
 
-						if ( udp_ep != null ){
+						if ( udp_ep != null && !connected ){
 							
 							initial_data.rewind();
 							
@@ -268,7 +284,7 @@ GenericMessageConnectionImpl
 			final NATTraverser	nat_traverser = message_manager.getNATTraverser();
 			
 			Map	request = new HashMap();
-					
+								
 			nat_traverser.attemptTraversal(
 					message_manager,
 					udp_ep,
@@ -288,6 +304,8 @@ GenericMessageConnectionImpl
 
 							}else{
 								
+								connect_method_count++;
+
 								if ( TEST_TUNNEL ){
 									
 									initial_data.rewind();
@@ -300,9 +318,13 @@ GenericMessageConnectionImpl
 											initial_data,
 											new GenericMessageConnectionAdapter.ConnectionListener()
 											{
+												private boolean	connected;
+												
 												public void
 												connectSuccess()
 												{
+													connected	= true;
+													
 													delegate = udp_delegate;
 													
 													if ( closed ){
@@ -325,9 +347,16 @@ GenericMessageConnectionImpl
 												connectFailure( 
 													Throwable failure_msg )
 												{
-													initial_data.rewind();
+													if ( connected ){
+														
+														reportFailed( failure_msg );
+														
+													}else{
+														
+														initial_data.rewind();
 	
-													connectTunnel( initial_data, gen_udp, rendezvous, target );
+														connectTunnel( initial_data, gen_udp, rendezvous, target );
+													}
 												}
 											});
 								}
@@ -360,9 +389,13 @@ GenericMessageConnectionImpl
 					initial_data,
 					new GenericMessageConnectionAdapter.ConnectionListener()
 					{
+						private boolean	connected;
+						
 						public void
 						connectSuccess()
 						{
+							connected	= true;
+							
 							delegate = udp_delegate;
 							
 							if ( closed ){
@@ -385,9 +418,16 @@ GenericMessageConnectionImpl
 						connectFailure( 
 							Throwable failure_msg )
 						{
-							initial_data.rewind();
+							if ( connected ){
 								
-							connectUDP( initial_data, udp_ep, true );
+								reportFailed( failure_msg );
+
+							}else{
+								
+								initial_data.rewind();
+									
+								connectUDP( initial_data, udp_ep, true );
+							}
 						}
 					});
 		}
@@ -490,14 +530,23 @@ GenericMessageConnectionImpl
 				
 				buffer.returnToPool();
 				
-				Debug.printStackTrace(f);
+				if ( !( f instanceof MessageException )){
+				
+					Debug.printStackTrace(f);
+				}
 			}
 		}
 		
-		if ( !handled ){
+		if ( !handled && !( closed || closing )){
 			
 			Debug.out( "GenericMessage: incoming message not handled" );
 		}
+	}
+	
+	public void
+	closing()
+	{
+		closing = true;
 	}
 	
 	public void

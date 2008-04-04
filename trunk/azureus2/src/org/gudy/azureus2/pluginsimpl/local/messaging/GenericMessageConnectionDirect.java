@@ -31,6 +31,7 @@ import org.gudy.azureus2.plugins.messaging.generic.GenericMessageEndpoint;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
 
+import com.aelitis.azureus.core.networkmanager.ConnectionEndpoint;
 import com.aelitis.azureus.core.networkmanager.IncomingMessageQueue;
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
@@ -172,10 +173,14 @@ GenericMessageConnectionDirect
 			
 			return;
 		}
-				
+			
+		ConnectionEndpoint cep = endpoint.getConnectionEndpoint();
+		
+		cep = cep.getLANAdjustedEndpoint();
+		
 		connection = 
 			NetworkManager.getSingleton().createConnection( 
-				endpoint.getConnectionEndpoint(),
+				cep,
 				new GenericMessageEncoder(),
 				new GenericMessageDecoder( msg_id, msg_desc ),
 				stream_crypto != MessageManager.STREAM_ENCRYPTION_NONE, 			// use crypto

@@ -49,9 +49,34 @@ AddressUtils
 	}
 	
 	public static InetSocketAddress
+	adjustTCPAddress(
+		InetSocketAddress	address,
+		boolean				ext_to_lan )
+	{
+		return( adjustAddress( address, ext_to_lan, AZInstanceManager.AT_TCP ));
+	}
+	
+	public static InetSocketAddress
+	adjustUDPAddress(
+		InetSocketAddress	address,
+		boolean				ext_to_lan )
+	{
+		return( adjustAddress( address, ext_to_lan, AZInstanceManager.AT_UDP ));
+	}
+	
+	public static InetSocketAddress
 	adjustDHTAddress(
 		InetSocketAddress	address,
 		boolean				ext_to_lan )
+	{
+		return( adjustAddress( address, ext_to_lan, AZInstanceManager.AT_UDP_NON_DATA ));
+	}
+	
+	private static InetSocketAddress
+	adjustAddress(
+		InetSocketAddress	address,
+		boolean				ext_to_lan,
+		int					port_type )
 	{
 		if ( instance_manager == null ){
 			
@@ -73,11 +98,11 @@ AddressUtils
 		
 		if ( ext_to_lan ){
 			
-			adjusted_address	= instance_manager.getLANAddress( address, AZInstanceManager.AT_UDP_NON_DATA );
+			adjusted_address	= instance_manager.getLANAddress( address, port_type );
 			
 		}else{
 
-			adjusted_address	= instance_manager.getExternalAddress( address, AZInstanceManager.AT_UDP_NON_DATA );
+			adjusted_address	= instance_manager.getExternalAddress( address, port_type );
 		}
 		
 		if ( adjusted_address == null ){
