@@ -193,8 +193,9 @@ public class ColumnVuzeActivity
 			}
 		}
 
-		boolean isHeader = VuzeActivitiesEntry.TYPEID_HEADER.equals(entry.getTypeID()); 
-		int x = VuzeActivitiesEntry.TYPEID_HEADER.equals(entry.getTypeID()) ? 0 : EVENT_INDENT;
+		boolean isHeader = VuzeActivitiesEntry.TYPEID_HEADER.equals(entry.getTypeID());
+		int x = VuzeActivitiesEntry.TYPEID_HEADER.equals(entry.getTypeID()) ? 0
+				: EVENT_INDENT;
 		int y = 0;
 
 		int style = SWT.WRAP;
@@ -344,8 +345,8 @@ public class ColumnVuzeActivity
 							&& PlatformTorrentUtils.isContent(entry.dm.getTorrent(), true)) {
 						Rectangle dmRatingRect = getDMRatingRect(width, height);
 						if (ratingCell == null) {
-							ListCell listCell = new ListCellGraphic((ListRow) cell.getTableRow(),
-									SWT.RIGHT, dmRatingRect);
+							ListCell listCell = new ListCellGraphic(
+									(ListRow) cell.getTableRow(), SWT.RIGHT, dmRatingRect);
 
 							ratingCell = new TableCellImpl((TableRowCore) cell.getTableRow(),
 									new ColumnRate(cell.getTableID(), true), 0, listCell);
@@ -414,11 +415,11 @@ public class ColumnVuzeActivity
 		return null;
 	}
 
-	private boolean getIsMouseOverThumbCell(TableCell cell) {
+	private boolean getIsMouseOverCell(String id, TableCell cell) {
 		TableRow tableRow = cell.getTableRow();
 		if (tableRow instanceof TableRowCore) {
 			TableRowCore tableRowCore = (TableRowCore) tableRow;
-			Object data = tableRowCore.getData("IsMouseOverThumbCell");
+			Object data = tableRowCore.getData("IsMouseOver" + id + "Cell");
 			if (data instanceof Boolean) {
 				return (Boolean) data;
 			}
@@ -426,11 +427,11 @@ public class ColumnVuzeActivity
 		return false;
 	}
 
-	private boolean setIsMouseOverThumbCell(TableCell cell, boolean b) {
+	private boolean setIsMouseOverCell(String id, TableCell cell, boolean b) {
 		TableRow tableRow = cell.getTableRow();
 		if (tableRow instanceof TableRowCore) {
 			TableRowCore tableRowCore = (TableRowCore) tableRow;
-			tableRowCore.setData("IsMouseOverThumbCell", new Boolean(b));
+			tableRowCore.setData("IsMouseOver" + id + "Cell", new Boolean(b));
 		}
 		return false;
 	}
@@ -466,15 +467,15 @@ public class ColumnVuzeActivity
 			subCellEvent.data = event.data;
 			subCellEvent.eventType = event.eventType;
 			subCellEvent.row = event.row;
-			
+
 			boolean isMouseOverThumbCell = false;
 			if (thumbCell != null) {
 				isMouseOverThumbCell = dmThumbRect.contains(event.x, event.y);
-				boolean wasMouseOverThumbCell = getIsMouseOverThumbCell(event.cell);
+				boolean wasMouseOverThumbCell = getIsMouseOverCell("Thumb", event.cell);
 				//System.out.println("was=" + wasMouseOverThumbCell + ";is=" + isMouseOverThumbCell);
 
 				if (wasMouseOverThumbCell != isMouseOverThumbCell) {
-					setIsMouseOverThumbCell(event.cell, isMouseOverThumbCell);
+					setIsMouseOverCell("Thumb", event.cell, isMouseOverThumbCell);
 					subCellEvent.eventType = isMouseOverThumbCell
 							? TableCellMouseEvent.EVENT_MOUSEENTER
 							: TableCellMouseEvent.EVENT_MOUSEEXIT;
@@ -497,23 +498,29 @@ public class ColumnVuzeActivity
 
 			boolean ok;
 
-			ok = ratingCell != null
-					&& (event.eventType == TableRowMouseEvent.EVENT_MOUSEENTER
-							|| event.eventType == TableRowMouseEvent.EVENT_MOUSEEXIT || dmRatingRect.contains(
-							event.x, event.y));
-			if (ok) {
-				subCellEvent.cell = ratingCell;
-				subCellEvent.x = event.x - dmRatingRect.x;
-				subCellEvent.y = event.y - dmRatingRect.y;
+			boolean isMouseOverRatingCell = false;
+			if (ratingCell != null) {
+				isMouseOverRatingCell = dmRatingRect.contains(event.x, event.y);
+				boolean wasMouseOverRatingCell = getIsMouseOverCell("Rating",
+						event.cell);
+				if (wasMouseOverRatingCell != isMouseOverRatingCell) {
+					setIsMouseOverCell("Rating", event.cell, isMouseOverRatingCell);
+					subCellEvent.eventType = isMouseOverRatingCell
+							? TableCellMouseEvent.EVENT_MOUSEENTER
+							: TableCellMouseEvent.EVENT_MOUSEEXIT;
+					subCellEvent.cell = ratingCell;
+					subCellEvent.x = event.x - dmRatingRect.x;
+					subCellEvent.y = event.y - dmRatingRect.y;
 
-				TableColumn tc = ratingCell.getTableColumn();
-				if (tc instanceof TableColumnCore) {
-					((TableColumnCore) tc).invokeCellMouseListeners(subCellEvent);
+					TableColumn tc = ratingCell.getTableColumn();
+					if (tc instanceof TableColumnCore) {
+						((TableColumnCore) tc).invokeCellMouseListeners(subCellEvent);
+					}
+					if (ratingCell instanceof TableCellCore) {
+						((TableCellCore) ratingCell).invokeMouseListeners(subCellEvent);
+					}
+					event.skipCoreFunctionality |= subCellEvent.skipCoreFunctionality;
 				}
-				if (ratingCell instanceof TableCellCore) {
-					((TableCellCore) ratingCell).invokeMouseListeners(subCellEvent);
-				}
-				event.skipCoreFunctionality |= subCellEvent.skipCoreFunctionality;
 			}
 
 			if (event.eventType == TableRowMouseEvent.EVENT_MOUSEENTER
@@ -539,7 +546,7 @@ public class ColumnVuzeActivity
 				}
 				event.skipCoreFunctionality |= subCellEvent.skipCoreFunctionality;
 			}
-			if (ratingCell != null) {
+			if (ratingCell != null && isMouseOverRatingCell) {
 				subCellEvent.cell = ratingCell;
 				subCellEvent.x = event.x - dmRatingRect.x;
 				subCellEvent.y = event.y - dmRatingRect.y;
@@ -549,7 +556,7 @@ public class ColumnVuzeActivity
 							subCellEvent);
 					((TableCellCore) ratingCell).invokeMouseListeners(subCellEvent);
 				}
-				TableColumn tc = thumbCell.getTableColumn();
+				TableColumn tc = ratingCell.getTableColumn();
 				if (tc instanceof TableColumnCore) {
 					((TableColumnCore) tc).invokeCellMouseListeners(subCellEvent);
 				}
