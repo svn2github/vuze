@@ -56,9 +56,7 @@ public class VuzeActivitiesEntry
 
 	public static final String TYPEID_RATING_REMINDER = "Rating-Reminder";
 
-	public static int TYPE_HEADER = 0;
-	
-	public static int TYPE_DATA = 1;
+	public static final String TYPEID_HEADER = "Header";
 
 	public static int SORT_DATE = 0;
 
@@ -69,8 +67,6 @@ public class VuzeActivitiesEntry
 	private String iconID;
 
 	public String id;
-
-	public int type;
 
 	private long timestamp;
 
@@ -90,19 +86,14 @@ public class VuzeActivitiesEntry
 
 	public boolean showThumb = true;
 
-	public VuzeActivitiesEntry(long timestamp, int type, String text,
-			String icon, String id) {
-		this.type = 1;
+	public VuzeActivitiesEntry(long timestamp, String text, String typeID) {
 		this.text = text;
-		this.setIconID(icon);
-		this.id = id;
-		this.type = type;
 		this.timestamp = timestamp;
+		this.setTypeID(typeID, true);
 	}
 
 	public VuzeActivitiesEntry(long timestamp, String text, String icon,
 			String id, String typeID, String assetHash) {
-		this.type = 1;
 		this.timestamp = timestamp;
 		this.text = text;
 		this.setIconID(icon);
@@ -149,7 +140,6 @@ public class VuzeActivitiesEntry
 		entry.id = MapUtils.getMapString(map, "id", null);
 		entry.text = MapUtils.getMapString(map, "text", null);
 		entry.setTypeID(MapUtils.getMapString(map, "typeID", null), true);
-		entry.type = MapUtils.getMapInt(map, "type", 1);
 		entry.showThumb = MapUtils.getMapLong(map, "showThumb", 1) == 1;
 		entry.setAssetImageURL(MapUtils.getMapString(map, "assetImageURL", null));
 		
@@ -214,7 +204,6 @@ public class VuzeActivitiesEntry
 		map.put("id", id);
 		map.put("text", text);
 		map.put("typeID", getTypeID());
-		map.put("type", new Integer(type));
 		map.put("assetImageURL", assetImageURL);
 		map.put("showThumb", new Long(showThumb ? 1 : 0));
 

@@ -25,6 +25,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
@@ -52,6 +53,7 @@ import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.views.list.*;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.VuzeActivitiesEntry;
+import com.aelitis.azureus.util.VuzeActivitiesManager;
 
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -191,7 +193,8 @@ public class ColumnVuzeActivity
 			}
 		}
 
-		int x = entry.type == 0 ? 0 : EVENT_INDENT;
+		boolean isHeader = VuzeActivitiesEntry.TYPEID_HEADER.equals(entry.getTypeID()); 
+		int x = VuzeActivitiesEntry.TYPEID_HEADER.equals(entry.getTypeID()) ? 0 : EVENT_INDENT;
 		int y = 0;
 
 		int style = SWT.WRAP;
@@ -202,10 +205,10 @@ public class ColumnVuzeActivity
 			try {
 				gcQuery.setAdvanced(true);
 				gcQuery.setTextAntialias(SWT.ON);
-		  } catch (Exception e) {
-		  	// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
-		  }
-			if (entry.type == 0) {
+			} catch (Exception e) {
+				// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
+			}
+			if (isHeader) {
 				if (headerFont == null) {
 					// no sync required, SWT is on single thread
 					FontData[] fontData = gcQuery.getFont().getFontData();
@@ -228,7 +231,7 @@ public class ColumnVuzeActivity
 
 			//boolean focused = ((ListRow) cell.getTableRow()).isFocused();
 			//if (focused) size.y += 40;
-			if (entry.type == 0) {
+			if (isHeader) {
 				height = 35 - 2;
 				y = 8;
 			} else {
@@ -286,13 +289,13 @@ public class ColumnVuzeActivity
 			try {
 				gc.setAdvanced(true);
 				gc.setTextAntialias(SWT.ON);
-		  } catch (Exception e) {
-		  	// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
-		  }
+			} catch (Exception e) {
+				// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
+			}
 			gc.setBackground(ColorCache.getColor(device, cell.getBackground()));
 			gc.setForeground(ColorCache.getColor(device, cell.getForeground()));
 
-			if (entry.type == 0) {
+			if (isHeader) {
 				gc.setFont(headerFont);
 				gc.setForeground(colorHeaderFG);
 
@@ -318,15 +321,15 @@ public class ColumnVuzeActivity
 			if (entry.showThumb && (entry.dm != null || entry.imageBytes != null)) {
 				Rectangle dmThumbRect = getDMImageRect(height);
 				if (thumbCell == null) {
-					ListCell listCell = new ListCellGraphic(null, SWT.LEFT, dmThumbRect);
+					ListCell listCell = new ListCellGraphic((ListRow) cell.getTableRow(),
+							SWT.LEFT, dmThumbRect);
 
 					thumbCell = new TableCellImpl((TableRowCore) cell.getTableRow(),
-							new ColumnMediaThumb(cell.getTableID(), -1), 0, listCell) {
-						public boolean isMouseOver() {
-							return ((TableCellSWT)cell).isMouseOver();
-						}
-					};
+							new ColumnMediaThumb(cell.getTableID(), -1), 0, listCell);
 					listCell.setTableCell(thumbCell);
+
+					((TableCellImpl) cell).addChildCell(thumbCell);
+					listCell.setParentCell((TableCellSWT) cell);
 
 					setThumbCell(cell, thumbCell);
 				}
@@ -335,23 +338,21 @@ public class ColumnVuzeActivity
 				((ListCell) thumbCell.getBufferedTableItem()).setBounds(dmThumbRect);
 				thumbCell.invalidate();
 				thumbCell.refresh(true);
-				thumbCell.doPaint(gc);
 
 				if (VuzeActivitiesEntry.TYPEID_RATING_REMINDER.equals(entry.getTypeID())) {
 					if (entry.dm != null
 							&& PlatformTorrentUtils.isContent(entry.dm.getTorrent(), true)) {
 						Rectangle dmRatingRect = getDMRatingRect(width, height);
 						if (ratingCell == null) {
-							ListCell listCell = new ListCellGraphic(null, SWT.RIGHT,
-									dmRatingRect);
+							ListCell listCell = new ListCellGraphic((ListRow) cell.getTableRow(),
+									SWT.RIGHT, dmRatingRect);
 
 							ratingCell = new TableCellImpl((TableRowCore) cell.getTableRow(),
-									new ColumnRate(cell.getTableID(), true), 0, listCell) {
-								public boolean isMouseOver() {
-									return ((TableCellSWT)cell).isMouseOver();
-								}
-							};
+									new ColumnRate(cell.getTableID(), true), 0, listCell);
 							listCell.setTableCell(ratingCell);
+
+							((TableCellImpl) cell).addChildCell(ratingCell);
+							listCell.setParentCell((TableCellSWT) cell);
 
 							setRatingCell(cell, ratingCell);
 						}
@@ -360,7 +361,6 @@ public class ColumnVuzeActivity
 						((ListCell) ratingCell.getBufferedTableItem()).setBounds(dmRatingRect);
 						ratingCell.invalidate();
 						ratingCell.refresh(true);
-						ratingCell.doPaint(gc);
 					}
 				}
 			}
@@ -414,6 +414,27 @@ public class ColumnVuzeActivity
 		return null;
 	}
 
+	private boolean getIsMouseOverThumbCell(TableCell cell) {
+		TableRow tableRow = cell.getTableRow();
+		if (tableRow instanceof TableRowCore) {
+			TableRowCore tableRowCore = (TableRowCore) tableRow;
+			Object data = tableRowCore.getData("IsMouseOverThumbCell");
+			if (data instanceof Boolean) {
+				return (Boolean) data;
+			}
+		}
+		return false;
+	}
+
+	private boolean setIsMouseOverThumbCell(TableCell cell, boolean b) {
+		TableRow tableRow = cell.getTableRow();
+		if (tableRow instanceof TableRowCore) {
+			TableRowCore tableRowCore = (TableRowCore) tableRow;
+			tableRowCore.setData("IsMouseOverThumbCell", new Boolean(b));
+		}
+		return false;
+	}
+
 	private void setRatingCell(TableCell cell, TableCellImpl ratingCell) {
 		TableRow tableRow = cell.getTableRow();
 		if (tableRow instanceof TableRowCore) {
@@ -445,15 +466,17 @@ public class ColumnVuzeActivity
 			subCellEvent.data = event.data;
 			subCellEvent.eventType = event.eventType;
 			subCellEvent.row = event.row;
+			
+			if (thumbCell != null) {
+				boolean wasMouseOverThumbCell = getIsMouseOverThumbCell(event.cell);
+				boolean isMouseOverThumbCell = dmThumbRect.contains(event.x, event.y);
+				//System.out.println("was=" + wasMouseOverThumbCell + ";is=" + isMouseOverThumbCell);
 
-			boolean ok;
-			ok = thumbCell != null
-					&& (event.eventType == TableRowMouseEvent.EVENT_MOUSEENTER
-							|| event.eventType == TableRowMouseEvent.EVENT_MOUSEEXIT || dmThumbRect.contains(
-							event.x, event.y));
-			if (ok) {
-				if (thumbCell != null
-						&& (thumbCell.getTableColumn() instanceof TableCellMouseListener)) {
+				if (wasMouseOverThumbCell != isMouseOverThumbCell) {
+					setIsMouseOverThumbCell(event.cell, isMouseOverThumbCell);
+					subCellEvent.eventType = isMouseOverThumbCell
+							? TableCellMouseEvent.EVENT_MOUSEENTER
+							: TableCellMouseEvent.EVENT_MOUSEEXIT;
 					subCellEvent.x = event.x - dmThumbRect.x;
 					subCellEvent.y = event.y - dmThumbRect.y;
 					subCellEvent.cell = thumbCell;
@@ -466,8 +489,12 @@ public class ColumnVuzeActivity
 						((TableCellCore) thumbCell).invokeMouseListeners(subCellEvent);
 					}
 					event.skipCoreFunctionality |= subCellEvent.skipCoreFunctionality;
+
+					subCellEvent.eventType = TableCellMouseEvent.EVENT_MOUSEMOVE;
 				}
 			}
+
+			boolean ok;
 
 			ok = ratingCell != null
 					&& (event.eventType == TableRowMouseEvent.EVENT_MOUSEENTER
@@ -488,6 +515,11 @@ public class ColumnVuzeActivity
 				event.skipCoreFunctionality |= subCellEvent.skipCoreFunctionality;
 			}
 
+			if (event.eventType == TableRowMouseEvent.EVENT_MOUSEENTER
+					|| event.eventType == TableRowMouseEvent.EVENT_MOUSEEXIT) {
+				return;
+			}
+
 			if (thumbCell != null) {
 				subCellEvent.cell = thumbCell;
 				subCellEvent.x = event.x - dmThumbRect.x;
@@ -498,6 +530,11 @@ public class ColumnVuzeActivity
 					if (row != null) {
 						row.invokeMouseListeners(subCellEvent);
 					}
+					((TableCellCore) thumbCell).invokeMouseListeners(subCellEvent);
+					TableColumn tc = thumbCell.getTableColumn();
+					if (tc instanceof TableColumnCore) {
+						((TableColumnCore) tc).invokeCellMouseListeners(subCellEvent);
+					}
 				}
 				event.skipCoreFunctionality |= subCellEvent.skipCoreFunctionality;
 			}
@@ -507,8 +544,13 @@ public class ColumnVuzeActivity
 				subCellEvent.y = event.y - dmRatingRect.y;
 
 				if (ratingCell instanceof TableCellCore) {
-					((TableCellCore) thumbCell).getTableRowCore().invokeMouseListeners(
+					((TableCellCore) ratingCell).getTableRowCore().invokeMouseListeners(
 							subCellEvent);
+					((TableCellCore) ratingCell).invokeMouseListeners(subCellEvent);
+				}
+				TableColumn tc = thumbCell.getTableColumn();
+				if (tc instanceof TableColumnCore) {
+					((TableColumnCore) tc).invokeCellMouseListeners(subCellEvent);
 				}
 				event.skipCoreFunctionality |= subCellEvent.skipCoreFunctionality;
 			}
@@ -549,7 +591,8 @@ public class ColumnVuzeActivity
 			boolean inHitArea = new Rectangle(0, 0, EVENT_INDENT, EVENT_INDENT).contains(
 					event.x, event.y);
 
-			if (entry.type > 0 && inHitArea) {
+			boolean isHeader = VuzeActivitiesEntry.TYPEID_HEADER.equals(entry.getTypeID());
+			if (!isHeader && inHitArea) {
 				String ts = timeFormat.format(new Date(entry.getTimestamp()));
 				event.cell.setToolTip("Activity occurred on " + ts);
 			} else {
@@ -562,8 +605,7 @@ public class ColumnVuzeActivity
 
 	private Rectangle getDMImageRect(int cellHeight) {
 		//return new Rectangle(0, cellHeight - 50 - MARGIN_HEIGHT, 16, 50);
-		return new Rectangle(EVENT_INDENT + 4, cellHeight - 50 - MARGIN_HEIGHT, 82,
-				50);
+		return new Rectangle(EVENT_INDENT, cellHeight - 50 - MARGIN_HEIGHT, 87, 50);
 	}
 
 	private Rectangle getDMRatingRect(int cellWidth, int cellHeight) {

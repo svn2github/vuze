@@ -762,7 +762,7 @@ public class ListRow
 			TableCellSWT cell = (TableCellSWT) iter.next();
 			if (cell.isShown()) {
 				Rectangle bounds = cell.getBounds();
-				if (bounds != null && bounds.contains(x, bounds.y)) {
+				if (bounds != null && bounds.contains(x, y)) {
 					return cell;
 				}
 			}

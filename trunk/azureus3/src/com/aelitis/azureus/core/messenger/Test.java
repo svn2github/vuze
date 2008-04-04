@@ -32,7 +32,6 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
-import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger.GetRatingReplyListener;
 import com.aelitis.azureus.util.Constants;
 
 import org.gudy.azureus2.plugins.PluginException;
@@ -96,23 +95,10 @@ public class Test
 		PlatformRatingMessenger.getUserRating(
 				new String[] { PlatformRatingMessenger.RATE_TYPE_CONTENT
 				}, new String[] { "11"
-				}, 500, new GetRatingReplyListener() {
-
-					public void messageSent() {
-						System.out.println(SystemTime.getCurrentTime() + ": r messageSent");
-					}
-
-					public void replyReceived(String replyType, PlatformRatingMessenger.GetRatingReply reply) {
-						System.out.println(SystemTime.getCurrentTime() + ": replyRecieved "
-								+ ";" + replyType + ";" + reply.getMap().size());
-						dumpMap(reply.getMap(), "");
-					}
-
-				});
+				}, 500);
 
 		System.out.println(SystemTime.getCurrentTime() + ": queueMessage 3");
-		PlatformRatingMessenger.setUserRating(
-				"11", 1, 500, null);
+		//PlatformRatingMessenger.setUserRating("11", 1, false, 500, null);
 	}
 
 	public static void dumpMap(Map map, String indent) {

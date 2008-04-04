@@ -26,13 +26,17 @@ import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AERunnableObject;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 
+import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellVisibilityListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 
@@ -60,19 +64,19 @@ public class ListCell
 
 	private boolean bLastIsShown = false;
 
-	private TableCellCore cell;
+	protected TableCellCore cell;
 
 	protected TableColumn column;
 
 	private Image imgIcon;
 
-	private ListView view;
+	protected ListView view;
 
 	private int fontHeight = -1;
 	
 	private int maxLines = -1;
 
-	private boolean ourBounds = false;
+	protected TableCellSWT parentCell = null;
 
 	private int secretWidth = -1;
 
@@ -97,6 +101,10 @@ public class ListCell
 						return null;
 					}
 				}, 15000);
+	}
+	
+	public void setView(ListView view) {
+		this.view = view;
 	}
 
 	public void dispose() {
@@ -182,8 +190,18 @@ public class ListCell
 
 	public Rectangle getBounds() {
 		TableColumnMetrics columnMetrics = view == null ? null : view.getColumnMetrics(column);
-		if (columnMetrics == null || bounds == null || ourBounds ) {
-			return bounds;
+		if (columnMetrics == null || bounds == null || parentCell != null ) {
+			Rectangle r = new Rectangle(bounds.x, bounds.y, bounds.width, bounds.height);
+			if (parentCell != null) {
+				Rectangle parentBounds = parentCell.getBounds();
+				if (parentBounds != null) {
+					r.x += parentBounds.x;
+					r.y += parentBounds.y;
+				}
+				r.x += parentCell.getMarginWidth();
+				r.y += parentCell.getMarginHeight();
+			}
+			return r;
 		}
 
 		bounds.x = columnMetrics.x;
@@ -208,8 +226,8 @@ public class ListCell
 		if (((TableCellImpl) cell).bDebug) {
 			((TableCellImpl) cell).debug("setBounds " + bounds);
 		}
-
-		//System.out.println(cell.getTableID() + "]" + cell.getTableColumn().getName() + ": " + bounds);
+		
+		//System.out.println(cell.getTableID() + "]" + cell.getTableColumn().getName() + ": " + bounds + " via " + Debug.getCompressedStackTrace());
 		this.bounds = bounds;
 		//this.ourBounds = true;
 	}
@@ -406,5 +424,52 @@ public class ListCell
 				composite.setCursor(composite.getDisplay().getSystemCursor(cursorID));
 			}
 		});
+	}
+	
+	// @see org.gudy.azureus2.ui.swt.components.BufferedTableItem#isMouseOver()
+	public boolean isMouseOver() {
+		return getMouseRelative() != null;
+	}
+	
+	public Point getMouseRelative() {
+		if (view == null) {
+			return null;
+		}
+
+		Rectangle bounds = getBounds();
+
+		if (parentCell != null &&  false) {
+			Point parentMouseRel = ((ListCell)parentCell.getBufferedTableItem()).getMouseRelative();
+			if (parentMouseRel == null) {
+				return null;
+			}
+			Point rel = new Point(parentMouseRel.x - bounds.x, parentMouseRel.y - bounds.y);
+
+			if (rel.x < 0 || rel.y < 0 || rel.x >= bounds.width || rel.y >= bounds.height) {
+				return null;
+			}
+
+			return rel;
+		} else {
+			Composite table = view.getTableComposite();
+			Point pt = Display.getCurrent().getCursorLocation();
+			pt = table.toControl(pt);
+
+			if (!bounds.contains(pt)) {
+				return null;
+			}
+
+			Point rel = new Point(pt.x - bounds.x, pt.y - bounds.y);
+			return rel;
+		}
+
+	}
+
+	public TableCellSWT getParentCell() {
+		return parentCell;
+	}
+
+	public void setParentCell(TableCellSWT parentCell) {
+		this.parentCell = parentCell;
 	}
 }

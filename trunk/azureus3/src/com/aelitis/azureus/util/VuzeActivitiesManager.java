@@ -32,8 +32,9 @@ import org.gudy.azureus2.core3.util.*;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformVuzeActivitiesMessenger;
-import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger.GetRatingReply;
+import com.aelitis.azureus.core.messenger.config.RatingUpdateListener2;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.core.torrent.RatingInfoList;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 
@@ -136,13 +137,14 @@ public class VuzeActivitiesManager
 
 		pullActivitiesNow(5000);
 
-		PlatformRatingMessenger.addListener(new PlatformRatingMessenger.RatingUpdateListener() {
-			public void ratingUpdated(GetRatingReply rating) {
+		PlatformRatingMessenger.addListener(new RatingUpdateListener2() {
+			// @see com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger.RatingUpdateListener#ratingUpdated(com.aelitis.azureus.core.torrent.RatingInfoList)
+			public void ratingUpdated(RatingInfoList rating) {
 				Object[] allEntriesArray = allEntries.toArray();
 				for (int i = 0; i < allEntriesArray.length; i++) {
 					VuzeActivitiesEntry entry = (VuzeActivitiesEntry) allEntriesArray[i];
-					if (entry.getTypeID().equals(
-							VuzeActivitiesEntry.TYPEID_RATING_REMINDER)
+					String typeID = entry.getTypeID();
+					if (VuzeActivitiesEntry.TYPEID_RATING_REMINDER.equals(entry.getTypeID())
 							&& entry.dm != null) {
 						try {
 							String hash = entry.dm.getTorrent().getHashWrapper().toBase32String();
@@ -229,7 +231,6 @@ public class VuzeActivitiesManager
 							title = PlatformTorrentUtils.getContentTitle2(dm);
 						}
 
-						entry.type = 1;
 						entry.setTimestamp(SystemTime.getCurrentTime());
 						entry.id = hash + ";r" + entry.getTimestamp();
 						entry.text = title + " has been removed from your library";
@@ -347,7 +348,7 @@ public class VuzeActivitiesManager
 			for (int i = 0; i < entries.length; i++) {
 				VuzeActivitiesEntry oldEntry = entries[i];
 				if (oldEntry.dm != null && oldEntry.dm.equals(dm)
-						&& oldEntry.getTypeID().equals(VuzeActivitiesEntry.TYPEID_DL_ADDED)) {
+						&& VuzeActivitiesEntry.TYPEID_DL_ADDED.equals(oldEntry.getTypeID())) {
 					//System.out.println("remove added entry " + oldEntry.id);
 					removeEntries(new VuzeActivitiesEntry[] {
 						oldEntry
@@ -367,7 +368,6 @@ public class VuzeActivitiesManager
 			}
 
 			VuzeActivitiesEntry entry = new VuzeActivitiesEntry();
-			entry.type = 1;
 			entry.setTimestamp(completedTime);
 			entry.id = id;
 			entry.text = title + " has completed downloading";
@@ -421,7 +421,6 @@ public class VuzeActivitiesManager
 					title = PlatformTorrentUtils.getContentTitle2(dm);
 				}
 
-				entry.type = 1;
 				entry.id = hash + ";a" + addedOn;
 				entry.text = title + " has been added to your download list";
 				entry.setTimestamp(addedOn);
@@ -456,7 +455,6 @@ public class VuzeActivitiesManager
 
 						entry.dm = dm;
 						entry.showThumb = true;
-						entry.type = 1;
 						entry.id = hash + ";r" + completedOn;
 						entry.text = "To improve your recommendations, please rate "
 								+ title;
@@ -588,7 +586,8 @@ public class VuzeActivitiesManager
 			VuzeActivitiesEntry[] allEntriesArray = getAllEntries();
 			for (int i = 0; i < allEntriesArray.length; i++) {
 				VuzeActivitiesEntry entry = allEntriesArray[i];
-				if (entry.type > 0) {
+				boolean isHeader = VuzeActivitiesEntry.TYPEID_HEADER.equals(entry.getTypeID());
+				if (!isHeader) {
 					entriesList.add(entry.toMap());
 				}
 			}
@@ -639,7 +638,8 @@ public class VuzeActivitiesManager
 
 			for (int i = 0; i < entries.length; i++) {
 				VuzeActivitiesEntry entry = entries[i];
-				if ((entry.getTimestamp() >= cutoffTime || entry.type == 0)
+				boolean isHeader = VuzeActivitiesEntry.TYPEID_HEADER.equals(entry.getTypeID());
+				if ((entry.getTimestamp() >= cutoffTime || isHeader)
 						&& !allEntries.contains(entry) && !removedEntries.contains(entry)) {
 					newEntries.add(entry);
 					allEntries.add(entry);
@@ -676,7 +676,8 @@ public class VuzeActivitiesManager
 				}
 				//System.out.println("remove " + entry.id);
 				allEntries.remove(entry);
-				if (entry.getTimestamp() > cutoffTime && entry.type > 0) {
+				boolean isHeader = VuzeActivitiesEntry.TYPEID_HEADER.equals(entry.getTypeID());
+				if (entry.getTimestamp() > cutoffTime && !isHeader) {
 					removedEntries.add(entry);
 				}
 			}

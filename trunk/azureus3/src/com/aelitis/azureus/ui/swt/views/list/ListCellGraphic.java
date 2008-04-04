@@ -21,8 +21,10 @@ package com.aelitis.azureus.ui.swt.views.list;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem;
 
 /**
@@ -79,7 +81,11 @@ public class ListCellGraphic
 		}
 
 		if (row != null) {
-			((ListView) row.getView()).cellRefresh(this, true, true);
+			ListCell cellToRefresh = this;
+			if (parentCell != null && !parentCell.isDisposed()) {
+				cellToRefresh = (ListCell) parentCell.getBufferedTableItem();
+			}
+			((ListView) row.getView()).cellRefresh(cellToRefresh, true, true);
 		}
 
 		return true;
@@ -156,6 +162,7 @@ public class ListCellGraphic
 			if (width >= 0 && height >= 0) {
 				gc.drawImage(image, 0, 0, width, height, bounds.x + x, bounds.y + y,
 						width, height);
+				//System.out.println(column.getName() +  "] Draw at " +  (bounds.x + x) + ";" + (bounds.y + y) + ";" + bounds + " via " + Debug.getCompressedStackTrace());
 			}
 		}
 	}

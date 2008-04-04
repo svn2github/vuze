@@ -21,6 +21,7 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Iterator;
 
 import org.eclipse.swt.SWT;
@@ -58,6 +59,8 @@ public class VuzeActivitiesView
 	private static final long SHIFT_FREQUENCY = 1000L * 60 * 10;
 
 	private static final long ONE_WEEK_MS = 7 * 3600 * 24 * 1000L;
+
+	private static final long ONE_DAY_MS = 3600 * 24 * 1000L;
 
 	private static final boolean TEST_ENTRIES = false;
 
@@ -193,7 +196,8 @@ public class VuzeActivitiesView
 						for (int i = 0; i < selectedDataSources.length; i++) {
 							if (selectedDataSources[i] instanceof VuzeActivitiesEntry) {
 								VuzeActivitiesEntry entry = (VuzeActivitiesEntry) selectedDataSources[i];
-								if (entry.type != 0) {
+								boolean isHeader = VuzeActivitiesEntry.TYPEID_HEADER.equals(entry.getTypeID());
+								if (!isHeader) {
 									disable = false;
 									break;
 								}
@@ -222,20 +226,36 @@ public class VuzeActivitiesView
 				buttonsNeedingPlatform, buttonsNeedingSingleSelection, btnStop);
 
 		VuzeActivitiesEntry headerEntry;
-		headerEntry = new VuzeActivitiesEntry(0, 0, "This Week", null, null);
+		headerEntry = new VuzeActivitiesEntry(0,
+				MessageText.getString("v3.activity.header.today"),
+				VuzeActivitiesEntry.TYPEID_HEADER);
 		headerEntries.add(headerEntry);
 
-		headerEntry = new VuzeActivitiesEntry(0, 0, "Last Week", null, null);
+		headerEntry = new VuzeActivitiesEntry(0,
+				MessageText.getString("v3.activity.header.yesterday"),
+				VuzeActivitiesEntry.TYPEID_HEADER);
 		headerEntries.add(headerEntry);
 
-		headerEntry = new VuzeActivitiesEntry(0, 0, "2 Weeks Ago", null, null);
+		for (int i = 2; i < 7; i++) {
+			headerEntry = new VuzeActivitiesEntry(0, MessageText.getString(
+					"v3.activity.header.xdaysago", new String[] {
+						"" + i
+					}), VuzeActivitiesEntry.TYPEID_HEADER);
+			headerEntries.add(headerEntry);
+		}
+
+		headerEntry = new VuzeActivitiesEntry(0,
+				MessageText.getString("v3.activity.header.1weekago"),
+				VuzeActivitiesEntry.TYPEID_HEADER);
 		headerEntries.add(headerEntry);
 
-		headerEntry = new VuzeActivitiesEntry(0, 0, "3 Weeks Ago", null, null);
-		headerEntries.add(headerEntry);
-
-		headerEntry = new VuzeActivitiesEntry(0, 0, "4 Weeks Ago", null, null);
-		headerEntries.add(headerEntry);
+		for (int i = 2; i < 5; i++) {
+			headerEntry = new VuzeActivitiesEntry(0, MessageText.getString(
+					"v3.activity.header.xweeksago", new String[] {
+						"" + i
+					}), VuzeActivitiesEntry.TYPEID_HEADER);
+			headerEntries.add(headerEntry);
+		}
 
 		VuzeActivitiesManager.addEntries((VuzeActivitiesEntry[]) headerEntries.toArray(new VuzeActivitiesEntry[headerEntries.size()]));
 
@@ -250,23 +270,23 @@ public class VuzeActivitiesView
 				long timestamp = System.currentTimeMillis()
 						- (int) (Math.random() * (40 * 3600 * 24 * 1000.0));
 				VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
-					new VuzeActivitiesEntry(timestamp, 1, i + " blah blah\non "
+					new VuzeActivitiesEntry(timestamp, i + " blah blah\non "
 							+ DisplayFormatters.formatTimeStamp(timestamp),
-							testIDs[(int) (Math.random() * 3)], "" + timestamp)
+							testIDs[(int) (Math.random() * 3)], "" + timestamp, null, null)
 				});
 			}
 
 			VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
 				new VuzeActivitiesEntry(SystemTime.getOffsetTime(-ONE_WEEK_MS + 1000),
-						1, "Just under one week", testIDs[(int) (Math.random() * 3)], null)
+						"Just under one week", testIDs[(int) (Math.random() * 3)], null,
+						null, null)
 			});
 
 			VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
 				new VuzeActivitiesEntry(
 						SystemTime.getOffsetTime(-3300),
-						1,
 						"This is an <A HREF=\"http://vuze.com/details/3833.html\">url test</a>. Good luck",
-						null, null)
+						null, null, null, null)
 			});
 		}
 
@@ -304,7 +324,8 @@ public class VuzeActivitiesView
 					for (int i = 0; i < selectedDataSources.length; i++) {
 						if (selectedDataSources[i] instanceof VuzeActivitiesEntry) {
 							VuzeActivitiesEntry entry = (VuzeActivitiesEntry) selectedDataSources[i];
-							if (entry.type == 0) {
+							boolean isHeader = VuzeActivitiesEntry.TYPEID_HEADER.equals(entry.getTypeID());
+							if (isHeader) {
 								continue;
 							}
 
@@ -319,7 +340,8 @@ public class VuzeActivitiesView
 					for (int i = 0; i < selectedDataSources.length; i++) {
 						if (selectedDataSources[i] instanceof VuzeActivitiesEntry) {
 							VuzeActivitiesEntry entry = (VuzeActivitiesEntry) selectedDataSources[i];
-							if (entry.type == 0) {
+							boolean isHeader = VuzeActivitiesEntry.TYPEID_HEADER.equals(entry.getTypeID());
+							if (isHeader) {
 								continue;
 							}
 
@@ -367,11 +389,24 @@ public class VuzeActivitiesView
 		if (skipShift) {
 			return;
 		}
-		lastShiftedOn = System.currentTimeMillis();
+		Calendar cal = Calendar.getInstance();
+		cal.setTimeInMillis(System.currentTimeMillis());
+		cal.roll(Calendar.DATE, true);
+		cal.set(Calendar.HOUR, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		cal.set(Calendar.MILLISECOND, 0);
+
+		lastShiftedOn = cal.getTimeInMillis();
+		int i = 0;
 		for (Iterator iter = headerEntries.iterator(); iter.hasNext();) {
 			VuzeActivitiesEntry entry = (VuzeActivitiesEntry) iter.next();
 			entry.setTimestamp(lastShiftedOn);
-			lastShiftedOn -= ONE_WEEK_MS;
+			if (i < 7) {
+				lastShiftedOn -= ONE_DAY_MS;
+			} else {
+				lastShiftedOn -= ONE_WEEK_MS;
+			}
 		}
 		view.refreshTable(true);
 	}

@@ -61,11 +61,11 @@ import org.gudy.azureus2.ui.systray.SystemTraySWT;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
-import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger.GetRatingReplyListener;
+import com.aelitis.azureus.core.messenger.config.RatingUpdateListener2;
 import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.core.torrent.RatingInfoList;
 import com.aelitis.azureus.launcher.Launcher;
 import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin;
 import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesFPListener;
@@ -82,8 +82,8 @@ import com.aelitis.azureus.ui.swt.utils.*;
 import com.aelitis.azureus.ui.swt.views.ViewDownSpeedGraph;
 import com.aelitis.azureus.ui.swt.views.ViewUpSpeedGraph;
 import com.aelitis.azureus.ui.swt.views.skin.*;
-import com.aelitis.azureus.util.DCAdManager;
 import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.DCAdManager;
 import com.aelitis.azureus.util.VuzeActivitiesManager;
 
 import org.gudy.azureus2.plugins.PluginEvent;
@@ -203,7 +203,7 @@ public class MainWindow
 				}
 			}
 		});
-
+		
 		// When a download is added, check for new meta data and
 		// un-"wait state" the rating
 		// TODO: smart refreshing of meta data ("Refresh On" attribute)
@@ -361,22 +361,7 @@ public class MainWindow
 					PlatformRatingMessenger.RATE_TYPE_CONTENT
 				}, new String[] {
 					hash
-				}, 5000, new GetRatingReplyListener() {
-					public void replyReceived(String replyType,
-							PlatformRatingMessenger.GetRatingReply reply) {
-						if (replyType.equals(PlatformMessenger.REPLY_RESULT)) {
-							long rating = reply.getRatingValue(fHash,
-									PlatformRatingMessenger.RATE_TYPE_CONTENT);
-							if (rating >= -1) {
-								PlatformTorrentUtils.setUserRating(torrent, (int) rating);
-							}
-						}
-
-					}
-
-					public void messageSent() {
-					}
-				});
+				}, 5000);
 			}
 
 			long now = SystemTime.getCurrentTime();
@@ -397,12 +382,12 @@ public class MainWindow
 
 			long grRefreshOn = GlobalRatingUtils.getRefreshOn(torrent);
 			if (grRefreshOn <= now) {
-				GlobalRatingUtils.updateFromPlatform(torrent, 5000);
+				PlatformRatingMessenger.updateGlobalRating(torrent, 5000);
 			} else {
 				SimpleTimer.addEvent("Update G.Rating", grRefreshOn,
 						new TimerEventPerformer() {
 							public void perform(TimerEvent event) {
-								GlobalRatingUtils.updateFromPlatform(torrent, 15000);
+								PlatformRatingMessenger.updateGlobalRating(torrent, 15000);
 							}
 						});
 			}

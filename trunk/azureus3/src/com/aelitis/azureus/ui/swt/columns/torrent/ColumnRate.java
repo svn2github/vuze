@@ -27,7 +27,6 @@ import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.HSLColor;
@@ -39,10 +38,10 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
-import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger.GetRatingReply;
-import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger.RatingUpdateListener;
+import com.aelitis.azureus.core.messenger.config.RatingUpdateListener2;
 import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.core.torrent.RatingInfoList;
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
@@ -156,7 +155,7 @@ public class ColumnRate
 	private class Cell
 		implements TableCellRefreshListener, TableCellDisposeListener,
 		TableCellMouseMoveListener, TableCellToolTipListener,
-		TableRowMouseListener, RatingUpdateListener, TableCellVisibilityListener
+		TableRowMouseListener, RatingUpdateListener2, TableCellVisibilityListener
 	{
 		String rating = "--";
 
@@ -498,7 +497,7 @@ public class ColumnRate
 				}
 
 				TOTorrent torrent = dm.getTorrent();
-				GlobalRatingUtils.updateFromPlatform(torrent, 0);
+				PlatformRatingMessenger.updateGlobalRating(torrent, 0);
 				Utils.beep();
 			}
 
@@ -600,31 +599,21 @@ public class ColumnRate
 							&& drawPos.y < boundsRateMe.height) {
 						try {
 							final TOTorrent torrent = dm.getTorrent();
-							final String hash = torrent.getHashWrapper().toBase32String();
 							final int value = (drawPos.x < (boundsRateMe.height - drawPos.y + 1))
 									? 1 : 0;
 
-							PlatformTorrentUtils.setUserRating(torrent, -2);
-							refresh(event.cell, true);
-							PlatformRatingMessenger.setUserRating(hash, value, 0,
-									new PlatformMessengerListener() {
+							PlatformRatingMessenger.setUserRating(torrent, value,
+									true, 0, new PlatformMessengerListener() {
 										public void replyReceived(PlatformMessage message,
 												String replyType, Map reply) {
-											if (PlatformRatingMessenger.ratingSucceeded(reply)) {
-												PlatformTorrentUtils.setUserRating(torrent, value);
-												GlobalRatingUtils.updateFromPlatform(torrent, 2000);
-											} else {
-												PlatformTorrentUtils.setUserRating(torrent, -1);
-											}
 											refresh(event.cell, true);
 										}
 
 										public void messageSent(PlatformMessage message) {
 										}
 									});
-						} catch (TOTorrentException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+						} catch (Exception e) {
+							Debug.out(e);
 						}
 					}
 				} else if (areaUserRating != null
@@ -632,22 +621,12 @@ public class ColumnRate
 					// remove setting
 					try {
 						final TOTorrent torrent = dm.getTorrent();
-						final String hash = torrent.getHashWrapper().toBase32String();
-						final int oldValue = PlatformTorrentUtils.getUserRating(torrent);
-						if (oldValue >= 0) {
-							PlatformTorrentUtils.setUserRating(torrent, -2);
+						if (userRating >= 0) {
 							refresh(event.cell, true);
-							PlatformRatingMessenger.setUserRating(hash, -1, 0,
-									new PlatformMessengerListener() {
+							PlatformRatingMessenger.setUserRating(torrent, -1, true,
+									0, new PlatformMessengerListener() {
 										public void replyReceived(PlatformMessage message,
 												String replyType, Map reply) {
-											if (PlatformRatingMessenger.ratingSucceeded(reply)) {
-												PlatformTorrentUtils.setUserRating(torrent, -1);
-												GlobalRatingUtils.updateFromPlatform(torrent, 2000);
-											} else {
-												PlatformTorrentUtils.setUserRating(torrent,
-														oldValue == -2 ? -1 : oldValue);
-											}
 											refresh(event.cell, true);
 										}
 
@@ -656,9 +635,8 @@ public class ColumnRate
 									});
 							event.skipCoreFunctionality = true;
 						}
-					} catch (TOTorrentException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+					} catch (Exception e) {
+						Debug.out(e);
 					}
 				}
 			}
@@ -714,8 +692,8 @@ public class ColumnRate
 			}
 		}
 
-		// @see com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger.RatingUpdateListener#ratingUpdated(com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger.GetRatingReply)
-		public void ratingUpdated(GetRatingReply rating) {
+		// @see com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger.RatingUpdateListener#ratingUpdated(com.aelitis.azureus.core.torrent.RatingInfoList)
+		public void ratingUpdated(RatingInfoList rating) {
 			if (dm == null) {
 				return;
 			}

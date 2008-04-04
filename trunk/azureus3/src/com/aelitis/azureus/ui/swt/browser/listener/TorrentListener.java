@@ -7,11 +7,15 @@ import org.eclipse.swt.widgets.Shell;
 
 import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.global.GlobalManagerFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
+import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
@@ -26,6 +30,8 @@ public class TorrentListener
 	public static final String OP_LOAD_TORRENT_OLD = "loadTorrent";
 
 	public static final String OP_LOAD_TORRENT = "load-torrent";
+
+	public static final String OP_UPDATE_RATING = "update-rating";
 
 	private AzureusCore core;
 
@@ -61,6 +67,21 @@ public class TorrentListener
 			} else {
 				loadTorrentByB64(core, message, MapUtils.getMapString(decodedMap,
 						"b64", null));
+			}
+		} else if (OP_UPDATE_RATING.equals(message.getOperationId())) {
+			Map decodedMap = message.getDecodedMap();
+			String hash = MapUtils.getMapString(decodedMap, "torrent-hash", null);
+			if (hash != null) {
+				DownloadManager dm = core.getGlobalManager().getDownloadManager(new HashWrapper(Base32.decode(hash)));
+				if (dm != null && dm.getTorrent() != null) {
+  				PlatformRatingMessenger.getUserRating(new String[] {
+  					PlatformRatingMessenger.RATE_TYPE_CONTENT
+  				}, new String[] {
+  					hash
+  				}, 7000);
+  				
+  				PlatformRatingMessenger.updateGlobalRating(dm.getTorrent(), 7000);
+				}
 			}
 		} else {
 			throw new IllegalArgumentException("Unknown operation: "

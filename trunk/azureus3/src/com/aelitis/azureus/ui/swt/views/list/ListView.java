@@ -436,7 +436,7 @@ public class ListView
 
 					boolean changedCell = lastCell != cell;
 					boolean changedRow = row != lastRow;
-
+					
 					// Exit previous
 					if (changedCell && lastCell != null && !lastCell.isDisposed()) {
 						TableCellMouseEvent event = createMouseEvent(lastCell, e,
@@ -3491,7 +3491,7 @@ public class ListView
 
 	public boolean cellRefresh(final ListCell cell, final boolean bDoGraphics,
 			final boolean bForceRedraw) {
-		if (!isRowVisible(cell.getRow())) {
+		if (!isRowVisible(cell.getRow()) || cell.cell.isDisposed()) {
 			return true;
 		}
 		final Boolean[] b = new Boolean[1];
@@ -3515,7 +3515,8 @@ public class ListView
 		try {
 			gcImgView = new GC(imgView);
 
-			cell.doPaint(gcImgView);
+			((TableCellSWT)cell.cell).doPaint(gcImgView);
+			//cell.doPaint(gcImgView);
 
 			Rectangle rect = cell.getBounds();
 			if (rect != null) {

@@ -27,9 +27,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
-import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger.GetRatingReplyListener;
 
 /**
  * @author TuxPaper
@@ -38,10 +36,6 @@ import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger.GetRati
  */
 public class GlobalRatingUtils
 {
-	private static final int DEF_EXPIRY_MINS = 48 * 60;
-
-	private static final long RETRY_UPDATERATING = 10 * 60 * 1000;
-
 	private static final String TOR_AZ_PROP_GLOBAL_RATING = "GlobalRating";
 
 	private static final String GLOBAL_RATING_STRING = "String";
@@ -51,6 +45,14 @@ public class GlobalRatingUtils
 	private static final String GLOBAL_RATING_COUNT = "Count";
 
 	private static final String GLOBAL_RATING_REFRESH_ON = "Refresh On";
+
+	public static final int RATING_WAITING = -2;
+
+	public static final int RATING_NONE = -1;
+
+	public static final int RATING_THUMBDOWN = 0;
+
+	public static final int RATING_THUMBUP = 1;
 
 	private static Map getTempGlobalRatingContentMap(TOTorrent torrent) {
 		Map mapContent = PlatformTorrentUtils.getTempContentMap(torrent);
@@ -119,7 +121,7 @@ public class GlobalRatingUtils
 						if (PlatformTorrentUtils.DEBUG_CACHING) {
 							PlatformTorrentUtils.log("v3.GR.caching: refresh timer calling updateFromPlatform");
 						}
-						updateFromPlatform(torrent, 15000);
+						PlatformRatingMessenger.updateGlobalRating(torrent, 15000);
 					}
 				});
 	}
@@ -155,64 +157,5 @@ public class GlobalRatingUtils
 			return 0;
 		}
 		return l.longValue();
-	}
-
-	public static void updateFromPlatform(final TOTorrent torrent, long maxDelayMS) {
-		try {
-			final String hash = torrent.getHashWrapper().toBase32String();
-			if (PlatformTorrentUtils.DEBUG_CACHING) {
-				PlatformTorrentUtils.log("v3.GR.caching: updateFromPlatform for "
-						+ torrent);
-			}
-			PlatformRatingMessenger.getGlobalRating(new String[] {
-				PlatformRatingMessenger.RATE_TYPE_CONTENT
-			}, new String[] {
-				hash
-			}, 5000, new GetRatingReplyListener() {
-				public void replyReceived(String replyType,
-						PlatformRatingMessenger.GetRatingReply reply) {
-
-					if (PlatformTorrentUtils.DEBUG_CACHING) {
-						PlatformTorrentUtils.log("v3.GR.caching: reply '" + replyType
-								+ "' for " + torrent);
-					}
-					if (replyType.equals(PlatformMessenger.REPLY_RESULT)) {
-						String type = PlatformRatingMessenger.RATE_TYPE_CONTENT;
-						String rating = reply.getRatingString(hash, type);
-						String color = reply.getRatingColor(hash, type);
-						long count = reply.getRatingCount(hash, type);
-						long expireyMins = reply.getRatingExpireyMins(hash, type);
-
-						if (expireyMins <= 0) {
-							expireyMins = DEF_EXPIRY_MINS;
-						}
-
-						long refreshOn = SystemTime.getCurrentTime()
-								+ (expireyMins * 60 * 1000L);
-
-						setRating(torrent, rating, color, count, refreshOn);
-					} else if (replyType.equals(PlatformMessenger.REPLY_EXCEPTION)) {
-						// try again in a bit
-						SimpleTimer.addEvent("Update MD Retry", SystemTime.getCurrentTime()
-								+ RETRY_UPDATERATING, new TimerEventPerformer() {
-							public void perform(TimerEvent event) {
-								if (PlatformTorrentUtils.DEBUG_CACHING) {
-									PlatformTorrentUtils.log("v3.GR.caching: retrying..");
-								}
-								updateFromPlatform(torrent, 15000);
-							}
-						});
-
-					}
-
-				}
-
-				public void messageSent() {
-				}
-			});
-		} catch (TOTorrentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 }

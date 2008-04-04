@@ -370,4 +370,14 @@ public class FakeTableCell implements TableCell
 	public int[] getMouseOffset() {
 		return cell.getMouseOffset();
 	}
+
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getMarginHeight()
+	public int getMarginHeight() {
+		return cell.getMarginHeight();
+	}
+
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getMarginWidth()
+	public int getMarginWidth() {
+		return cell.getMarginWidth();
+	}
 }
