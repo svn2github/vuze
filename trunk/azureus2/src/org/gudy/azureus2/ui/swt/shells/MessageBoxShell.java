@@ -263,7 +263,7 @@ public class MessageBoxShell
 		if ((html != null && html.length() > 0)
 				|| (url != null && url.length() > 0)) {
 			try {
-				final Browser browser = new Browser(shell, SWT.NONE);
+				final Browser browser = new Browser(shell, Utils.getInitialBrowserStyle(SWT.NONE));
 				if (url != null && url.length() > 0) {
 					browser.setUrl(url);
 				} else {

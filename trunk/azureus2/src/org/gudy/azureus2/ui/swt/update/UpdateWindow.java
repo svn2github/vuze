@@ -245,7 +245,7 @@ UpdateWindow
     link_area.getComponent().setLayoutData(fd);
     
     try {
-    	browser = new Browser(cInfoArea, SWT.BORDER);
+    	browser = new Browser(cInfoArea, Utils.getInitialBrowserStyle(SWT.BORDER));
       fd = new FormData();
       fd.top = new FormAttachment(0, 0);
       fd.bottom = new FormAttachment(100, 0);

@@ -85,8 +85,12 @@ COConfigurationManager
 			  	
 			  	System.setProperty("sun.net.inetaddr.ttl", "60");
 			  	System.setProperty("networkaddress.cache.ttl", "60");
+			  	
+			  	
+			  	// flick AWT into headless mode, which is supposed to make it more lightweight
+			  	System.setProperty("java.awt.headless", "true");
 		      
-			  		// defaults, overridden later if needed
+		  		// defaults, overridden later if needed
 		      
 			  	System.setProperty( "sun.net.client.defaultConnectTimeout", "120000" );	
 			  	System.setProperty(	"sun.net.client.defaultReadTimeout", "60000" ); 

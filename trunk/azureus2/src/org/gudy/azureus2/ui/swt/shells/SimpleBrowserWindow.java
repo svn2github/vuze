@@ -77,7 +77,7 @@ public class SimpleBrowserWindow
 		Browser browser = null;
 		
 		try {
-			browser = new Browser(shell, SWT.None);
+			browser = new Browser(shell, Utils.getInitialBrowserStyle(SWT.NONE));
 		} catch (Throwable t) {
 			shell.dispose();
 			return;

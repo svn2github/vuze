@@ -26,6 +26,7 @@ import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
+import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.ControlAdapter;
@@ -1940,5 +1941,23 @@ public class Utils
 		}
 
 		return null;
+	}
+	
+	private static boolean gotBrowserStyle = false;
+	private static int browserStyle = SWT.NONE;
+
+	/**
+	 * Consistently applies the browser style obtained during the first invocation
+	 * @param style the style you wish to apply
+	 * @return the style, possibly ORed with <code>SWT.MOZILLA</code>
+	 */
+	public static int getInitialBrowserStyle(int style)
+	{
+		if(!gotBrowserStyle)
+		{
+			browserStyle = COConfigurationManager.getBooleanParameter("swt.forceMozilla") ? SWT.MOZILLA : SWT.NONE;
+			gotBrowserStyle = true;
+		}
+		return style | browserStyle;
 	}
 }

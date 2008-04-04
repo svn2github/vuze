@@ -29,8 +29,10 @@ import java.io.File;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
@@ -193,7 +195,16 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 
 		new BooleanParameter(cLook, "config.style.separateProtDataStats", MSG_PREFIX
 				+ "separateProtDataStats");
-
+		
+		
+		final BooleanParameter fMoz = new BooleanParameter(cLook, "swt.forceMozilla",MSG_PREFIX + "forceMozilla");
+		Composite pArea = new Composite(cLook,SWT.NULL);
+		pArea.setLayout(new GridLayout(3,false));
+		pArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		Messages.setLanguageText(new Label(pArea,SWT.NONE), MSG_PREFIX+"xulRunnerPath");
+		final Parameter xulDir = new DirectoryParameter(pArea, "swt.xulRunner.path","");
+		fMoz.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(xulDir.getControls(), false));
+		
 		Composite cArea = new Composite(cLook, SWT.NULL);
 		layout = new GridLayout();
 		layout.marginHeight = 0;
@@ -201,7 +212,7 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 		layout.numColumns = 2;
 		cArea.setLayout(layout);
 		cArea.setLayoutData(new GridData());
-
+		
 		label = new Label(cArea, SWT.NULL);
 		Messages.setLanguageText(label, MSG_PREFIX + "guiUpdate");
 		int[] values = { 100, 250, 500, 1000, 2000, 5000, 10000, 15000 };
