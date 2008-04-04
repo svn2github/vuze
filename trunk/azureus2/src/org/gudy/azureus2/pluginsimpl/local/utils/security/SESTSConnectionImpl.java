@@ -58,6 +58,7 @@ import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.security.CryptoManagerException;
 import com.aelitis.azureus.core.security.CryptoSTSEngine;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 
@@ -147,7 +148,7 @@ SESTSConnectionImpl
 	
 	private CryptoSTSEngine	sts_engine;
 	
-	private List	listeners = new ArrayList();
+	private CopyOnWriteList	listeners = new CopyOnWriteList();
 	
 	private boolean		sent_keys;
 	private boolean		sent_auth;
@@ -447,7 +448,9 @@ SESTSConnectionImpl
 						
 						byte[]	rem_key = sts_engine.getRemotePublicKey();
 						
-						if ( !key_locator.accept( new SEPublicKeyImpl( my_public_key.getType(), rem_key ))){
+						if ( !key_locator.accept(
+								SESTSConnectionImpl.this,
+								new SEPublicKeyImpl( my_public_key.getType(), rem_key ))){
 							
 							throw( new MessageException( "remote public key not accepted" ));
 						}
@@ -502,7 +505,9 @@ SESTSConnectionImpl
 						
 						byte[]	rem_key = sts_engine.getRemotePublicKey();
 						
-						if ( !key_locator.accept( new SEPublicKeyImpl( my_public_key.getType(), rem_key ))){
+						if ( !key_locator.accept(
+								SESTSConnectionImpl.this,
+								new SEPublicKeyImpl( my_public_key.getType(), rem_key ))){
 							
 							throw( new MessageException( "remote public key not accepted" ));
 						}
@@ -756,7 +761,9 @@ SESTSConnectionImpl
 				throw( new MessageException( "Crypto isn't setup" ));
 			}
 			
-			for (int i=0;i<listeners.size();i++){
+			List listeners_ref = listeners.getList();
+			
+			for (int i=0;i<listeners_ref.size();i++){
 				
 				PooledByteBuffer	message_to_deliver;
 				
@@ -772,7 +779,7 @@ SESTSConnectionImpl
 				}
 				
 				try{
-					((GenericMessageConnectionListener)listeners.get(i)).receive( this, message_to_deliver );
+					((GenericMessageConnectionListener)listeners_ref.get(i)).receive( this, message_to_deliver );
 					
 					if ( message_to_deliver == message ){
 						
@@ -821,10 +828,12 @@ SESTSConnectionImpl
 			public void
 			run()
 			{
-				for (int i=0;i<listeners.size();i++){
+				List listeners_ref = listeners.getList();
+
+				for (int i=0;i<listeners_ref.size();i++){
 					
 					try{
-						((GenericMessageConnectionListener)listeners.get(i)).connected( SESTSConnectionImpl.this );
+						((GenericMessageConnectionListener)listeners_ref.get(i)).connected( SESTSConnectionImpl.this );
 						
 					}catch( Throwable e ){
 						
@@ -847,10 +856,12 @@ SESTSConnectionImpl
 			public void
 			run()
 			{
-				for (int i=0;i<listeners.size();i++){
+				List listeners_ref = listeners.getList();
+				
+				for (int i=0;i<listeners_ref.size();i++){
 					
 					try{
-						((GenericMessageConnectionListener)listeners.get(i)).failed( SESTSConnectionImpl.this, error );
+						((GenericMessageConnectionListener)listeners_ref.get(i)).failed( SESTSConnectionImpl.this, error );
 						
 					}catch( Throwable e ){
 						

@@ -30,9 +30,25 @@ SEPublicKey
 	public int
 	getType();
 	
+		/**
+		 * Gets a generic encoded form that includes type identification information. So 
+		 * don't treat this as a raw encoding as it can only sensibly be used to later 
+		 * import via SESecurityManager.decodePublicKey
+		 * 
+		 * @return
+		 */
+	
 	public byte[]
 	encodePublicKey();
 
+		/**
+		 * Raw encoding of the specific key type
+		 * @return
+		 */
+	
+	public byte[]
+	encodeRawPublicKey();
+	
 		/**
 		 * Overridden to perform equality based on public key
 		 * @param other

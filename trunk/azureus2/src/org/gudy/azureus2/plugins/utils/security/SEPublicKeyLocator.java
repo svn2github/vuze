@@ -27,5 +27,6 @@ SEPublicKeyLocator
 {
 	public boolean
 	accept(
-		SEPublicKey	other_key );
+		Object			context,
+		SEPublicKey		other_key );
 }

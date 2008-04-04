@@ -76,6 +76,16 @@ SEPublicKeyImpl
 		return( res );
 	}
 	
+	public byte[]
+	encodeRawPublicKey()
+	{
+		byte[]	res = new byte[encoded.length];
+				
+		System.arraycopy( encoded, 0, res, 0, encoded.length );
+		
+		return( res );
+	}
+	
 	public boolean
 	equals(
 		Object	other )

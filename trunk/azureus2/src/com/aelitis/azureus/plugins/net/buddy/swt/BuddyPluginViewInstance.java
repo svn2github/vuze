@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.plugins.net.buddy.swt;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -160,20 +161,9 @@ BuddyPluginViewInstance
 
 								if ( start > 32000 ){
 									
-									text = text.substring( 1024 );
+									log.replaceTextRange( 0, 1024, "" );
 									
-									start = start - 1024;
-									
-									StyleRange[] ranges = log.getStyleRanges();
-									
-									for ( int i=0;i<ranges.length;i++ ){
-										
-										ranges[i].start -= 1024;
-									}
-									
-									log.setStyleRanges( ranges );
-									
-									log.setText( text );
+									start = log.getText().length();
 								}
 								
 								log.append( str + "\n" );
@@ -194,12 +184,15 @@ BuddyPluginViewInstance
 								color = Colors.red;
 							}
 
-							StyleRange styleRange = new StyleRange();
-							styleRange.start = start;
-							styleRange.length = str.length();
-							styleRange.foreground = color;
-							log.setStyleRange(styleRange);
-
+							if ( color != Colors.black ){
+								
+								StyleRange styleRange = new StyleRange();
+								styleRange.start = start;
+								styleRange.length = str.length();
+								styleRange.foreground = color;
+								log.setStyleRange(styleRange);
+							}
+							
 							log.setSelection( log.getText().length());
 						}
 					});

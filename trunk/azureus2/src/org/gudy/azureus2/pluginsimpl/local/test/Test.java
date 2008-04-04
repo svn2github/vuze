@@ -229,6 +229,7 @@ Test
 											{
 												public boolean
 												accept(
+													Object		context,
 													SEPublicKey	other_key )
 												{
 													System.out.println( "acceptKey" );
@@ -316,7 +317,8 @@ Test
 								{
 									public boolean
 									accept(
-										SEPublicKey	other_key )
+										Object			context,
+										SEPublicKey		other_key )
 									{
 										System.out.println( "acceptKey" );
 										

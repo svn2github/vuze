@@ -110,12 +110,13 @@ implements Plugin
 	
 	private boolean	is_enabled;
 
-	private CopyOnWriteList	listeners = new CopyOnWriteList();
-	
+	private CopyOnWriteList		listeners 			= new CopyOnWriteList();
+	private CopyOnWriteList		request_listeners	= new CopyOnWriteList(); 
+		
 	private SESecurityManager	sec_man;
 
 	private GenericMessageRegistration	msg_registration;
-	
+		
 	public void
 	initialize(
 		final PluginInterface		_plugin_interface )
@@ -192,20 +193,18 @@ implements Plugin
 			});
 		
 		
-			// send message
-		
-		final StringParameter test_msg = config.addStringParameter2( "test msg", "test msg", "" );
-	
-		test_msg_button = config.addActionParameter2( "send msg", "do it!" );
+			// ping
+			
+		ActionParameter ping_button = config.addActionParameter2( "ping all buddies", "do it!" );
 				
-		test_msg_button.addListener(
+		ping_button.addListener(
 			new ParameterListener()
 			{
 				public void
 				parameterChanged(
 					Parameter	param )
 				{
-					sendMessage( test_msg.getValue().trim());
+					pingAll();
 				}
 			});
 		
@@ -235,6 +234,10 @@ implements Plugin
 				}
 			});
 		
+		loadBuddies();
+		
+		registerMessageHandler();
+		
 		plugin_interface.addListener(
 			new PluginListener()
 			{
@@ -246,15 +249,11 @@ implements Plugin
 						public void
 						run()
 						{
-							loadBuddies();
-							
 							try{
 								ddb = plugin_interface.getDistributedDatabase();
 							
 									// pick up initial values before enabling
 
-								registerMessageHandler();
-								
 								ddb.addListener(
 									new DistributedDatabaseListener()
 									{
@@ -363,7 +362,7 @@ implements Plugin
 							
 							try{	
 								String reason = "Buddy: Incoming connection establishment";
-								
+																
 								connection = 
 									sec_man.getSTSConnection(
 											connection, 
@@ -372,58 +371,40 @@ implements Plugin
 											{
 												public boolean
 												accept(
+													Object		context,
 													SEPublicKey	other_key )
 												{
-													System.out.println( "acceptKey" );
+													System.out.println( "Incoming: acceptKey" );
 													
-													return( true );
+													synchronized( BuddyPlugin.this ){
+															
+														for (int i=0;i<buddies.size();i++){
+														
+															BuddyPluginBuddy	buddy = (BuddyPluginBuddy)buddies.get(i);
+
+															if ( buddy.hasPublicKey( other_key )){
+																
+																buddy.incomingConnection(
+																	(GenericMessageConnection)context );	
+																
+																return( true );
+															}
+														}
+													}
+													
+													log( "incoming connection failed due to pk mismatch" );
+
+													return( false );
 												}
 											},
 											reason,
 											SESecurityManager.BLOCK_ENCRYPTION_AES );
 							
-								connection.addListener(
-									new GenericMessageConnectionListener()
-									{
-										public void
-										connected(
-											GenericMessageConnection	connection )
-										{
-										}
-										
-										public void
-										receive(
-											GenericMessageConnection	connection,
-											PooledByteBuffer			message )
-										
-											throws MessageException
-										{
-											System.out.println( "receive: " + message.toByteArray().length );
-											
-											PooledByteBuffer	reply = 
-												plugin_interface.getUtilities().allocatePooledByteBuffer( 
-														new byte[connection.getMaximumMessageSize()]);
-											
-											connection.send( reply );
-										}
-										
-										public void
-										failed(
-											GenericMessageConnection	connection,
-											Throwable 					error )
-										
-											throws MessageException
-										{
-											System.out.println( "Responder connection error:" );
-	
-											error.printStackTrace();
-										}	
-									});	
 							}catch( Throwable e ){
 								
 								connection.close();
 								
-								e.printStackTrace();
+								log( "Incoming connection failed", e );
 							}
 							
 							return( true );
@@ -437,16 +418,11 @@ implements Plugin
 	}
 	
 	protected void
-	sendMessage(
-		String		msg )
+	pingAll()
 	{
-		Map	map = new HashMap();
-		
-		map.put( "test", msg );
-		
 		List	buddies_copy;
 		
-		synchronized( BuddyPlugin.this ){
+		synchronized( this ){
 		
 			buddies_copy = new ArrayList( buddies );
 		}
@@ -455,165 +431,7 @@ implements Plugin
 			
 			BuddyPluginBuddy	buddy = (BuddyPluginBuddy)buddies_copy.get(i);
 			
-			sendMessage( buddy, map );
-		}
-	}
-	
-	protected boolean
-	sendMessage(
-		BuddyPluginBuddy	buddy,
-		Map					message )
-	{
-		if ( msg_registration == null ){
-			
-			log( "Can't send message as registration failed" );
-			
-			return( false );
-		}
-		
-		InetAddress ip = buddy.getIP();
-		
-		if ( ip == null ){
-			
-			log( "Buddy has no IP, can't send message" );
-			
-			return( false );
-		}
-		
-		InetSocketAddress	tcp_target	= null;
-		InetSocketAddress	udp_target	= null;
-		
-		int	tcp_port = buddy.getTCPPort();
-		
-		if ( tcp_port > 0 ){
-			
-			tcp_target = new InetSocketAddress( ip, tcp_port );
-		}
-		
-		int	udp_port = buddy.getUDPPort();
-		
-		if ( udp_port > 0 ){
-			
-			udp_target = new InetSocketAddress( ip, udp_port );
-		}
-
-		InetSocketAddress	notional_target = tcp_target;
-		
-		if ( notional_target == null ){
-		
-			notional_target = udp_target;
-		}
-		
-		if ( notional_target == null ){
-			
-			log( "Buddy has no usable protocols, can't send message" );
-			
-			return( false );
-		}
-		
-		GenericMessageEndpoint	endpoint = msg_registration.createEndpoint( notional_target );
-		
-		if ( tcp_target != null ){
-		
-			endpoint.addTCP( tcp_target );
-		}
-		
-		if ( udp_target != null ){
-		
-			endpoint.addUDP( udp_target );
-		}
-		
-		try{
-			GenericMessageConnection	con = msg_registration.createConnection( endpoint );
-					
-			String reason = "Buddy: Outgoing connection establishment";
-	
-			con = sec_man.getSTSConnection( 
-					con, 
-					sec_man.getPublicKey( SEPublicKey.KEY_TYPE_ECC_192, reason ),
-	
-					new SEPublicKeyLocator()
-					{
-						public boolean
-						accept(
-							SEPublicKey	other_key )
-						{
-							System.out.println( "acceptKey" );
-							
-							return( true );
-						}
-					},
-					reason, 
-					SESecurityManager.BLOCK_ENCRYPTION_AES );
-			
-			con.addListener(
-				new GenericMessageConnectionListener()
-				{
-					public void
-					connected(
-						GenericMessageConnection	connection )
-					{
-						System.out.println( "outbound connected" );
-						
-						PooledByteBuffer	data = plugin_interface.getUtilities().allocatePooledByteBuffer( "1234".getBytes());
-						
-						try{
-							connection.send( data );
-							
-						}catch( Throwable e ){
-							
-							e.printStackTrace();
-						}
-					}
-					
-					public void
-					receive(
-						GenericMessageConnection	connection,
-						PooledByteBuffer			message )
-					
-						throws MessageException
-					{
-						System.out.println( "receive: " + message.toByteArray().length );
-						
-						
-						PooledByteBuffer	reply = 
-							plugin_interface.getUtilities().allocatePooledByteBuffer( new byte[16*1024]);
-						
-						
-						connection.send( reply );
-						
-						System.out.println( "closing connection" );
-						
-						connection.close();
-					}
-					
-					public void
-					failed(
-						GenericMessageConnection	connection,
-						Throwable 					error )
-					
-						throws MessageException
-					{
-						System.out.println( "Initiator connection error:" );
-						
-						error.printStackTrace();
-						
-						connection.close();
-					}
-				});
-			
-	
-			con.connect();
-			
-				// TODO: not actually sent at this point
-			
-			return( true );
-			
-		}catch( Throwable e ){
-			
-			log( "Send message failed", e );
-			
-			return( false );
+			buddy.ping();
 		}
 	}
 	
@@ -821,7 +639,7 @@ implements Plugin
 			try{
 				byte[] data = BEncoder.encode( payload );
 										
-				DistributedDatabaseKey	key = getStatusKey( details.getPublicKey(), "Buddy status registration" );
+				DistributedDatabaseKey	key = getStatusKey( details.getPublicKey(), "My buddy status registration " + payload );
 	
 				byte[] signature = ecc_handler.sign( data, "Buddy online status" );
 			
@@ -864,7 +682,7 @@ implements Plugin
 				
 				if ( log_this ){
 				
-					logMessage( "Publishing status complete" );
+					logMessage( "My status publish complete" );
 				}
 			}catch( Throwable e ){
 				
@@ -959,6 +777,8 @@ implements Plugin
 	protected void
 	checkBuddiesAndRepublish()
 	{
+		updateBuddystatus();
+		
 		plugin_interface.getUtilities().createTimer( "Buddy checker" ).addPeriodicEvent(
 			TIMER_PERIOD,
 			new UTTimerEventPerformer()
@@ -976,29 +796,7 @@ implements Plugin
 						return;
 					}
 												
-					List	buddies_copy;
-					
-					synchronized( BuddyPlugin.this ){
-					
-						buddies_copy = new ArrayList( buddies );
-					}
-					
-					long	now = SystemTime.getCurrentTime();
-					
-					for (int i=0;i<buddies_copy.size();i++){
-						
-						BuddyPluginBuddy	buddy = (BuddyPluginBuddy)buddies_copy.get(i);
-						
-						long	last_check = buddy.getLastStatusCheckTime();
-						
-						if ( last_check > now || now - last_check > BUDDY_STATUS_CHECK_PERIOD ){
-							
-							if ( !buddy.statusCheckActive()){
-						
-								updateBuddyStatus( buddy );
-							}
-						}
-					}
+					updateBuddystatus();
 					
 					if ( tick_count % STATUS_REPUBLISH_TICKS == 0 ){
 
@@ -1015,6 +813,34 @@ implements Plugin
 	}
 	
 	protected void
+	updateBuddystatus()
+	{
+		List	buddies_copy;
+		
+		synchronized( BuddyPlugin.this ){
+		
+			buddies_copy = new ArrayList( buddies );
+		}
+		
+		long	now = SystemTime.getCurrentTime();
+		
+		for (int i=0;i<buddies_copy.size();i++){
+			
+			BuddyPluginBuddy	buddy = (BuddyPluginBuddy)buddies_copy.get(i);
+			
+			long	last_check = buddy.getLastStatusCheckTime();
+			
+			if ( last_check > now || now - last_check > BUDDY_STATUS_CHECK_PERIOD ){
+				
+				if ( !buddy.statusCheckActive()){
+			
+					updateBuddyStatus( buddy );
+				}
+			}
+		}
+	}
+	
+	protected void
 	updateBuddyStatus(
 		final BuddyPluginBuddy	buddy )
 	{
@@ -1023,10 +849,12 @@ implements Plugin
 		buddy.statusCheckStarts();
 		
 		try{							
-			final byte[]	public_key = Base32.decode( buddy.getPublicKey());
+			String	key_str = buddy.getPublicKey();
+			
+			final byte[]	public_key = Base32.decode( key_str );
 
 			DistributedDatabaseKey	key = 
-				getStatusKey( public_key, "Buddy status registration" );
+				getStatusKey( public_key, "Buddy status check for " + key_str );
 			
 			ddb.read(
 				new DistributedDatabaseListener()
@@ -1112,6 +940,24 @@ implements Plugin
 		}
 	}
 	
+	protected PluginInterface
+	getPluginInterface()
+	{
+		return( plugin_interface );
+	}
+	
+	protected SESecurityManager
+	getSecurityManager()
+	{
+		return( sec_man );
+	}
+	
+	protected GenericMessageRegistration
+	getMessageRegistration()
+	{
+		return( msg_registration );
+	}
+	
 	public List
 	getBuddies()
 	{
@@ -1133,6 +979,45 @@ implements Plugin
 		BuddyPluginListener	listener )
 	{
 		listeners.remove( listener );
+	}
+	
+	protected byte[]
+	requestReceived(
+		BuddyPluginBuddy		from_buddy,
+		byte[]					content )
+	{
+		List	 listeners_ref = request_listeners.getList();
+		
+		for (int i=0;i<listeners_ref.size();i++){
+			
+			try{
+				byte[] reply = ((BuddyPluginBuddyRequestListener)listeners_ref.get(i)).requestReceived(from_buddy, content);
+				
+				if ( reply != null ){
+					
+					return( reply );
+				}
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace( e );
+			}
+		}
+		
+		return( null );
+	}
+	
+	public void
+	addRequestListener(
+		BuddyPluginBuddyRequestListener	listener )
+	{
+		request_listeners.add( listener );
+	}
+	
+	public void
+	removeRequestListener(
+		BuddyPluginBuddyRequestListener	listener )
+	{
+		request_listeners.remove( listener );
 	}
 	
 	public void
