@@ -185,9 +185,6 @@ public class PrimaryClassloader extends URLClassLoader implements PeeringClasslo
 	{
 		ClassLoader loader = ClassLoader.getSystemClassLoader();
 		
-		if(loader instanceof PrimaryClassloader)
-			return loader;
-		
 		try
 		{
 			return (ClassLoader) loader.loadClass(PrimaryClassloader.class.getName()).newInstance();
