@@ -42,6 +42,7 @@ import org.gudy.azureus2.core3.util.*;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 
+import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.clientmessageservice.*;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
@@ -1001,7 +1002,7 @@ public class VersionCheckClient {
    * Construct the default version check message.
    * @return message to send
    */
-  private Map constructVersionCheckMessage( String reason ) {
+  private static Map constructVersionCheckMessage( String reason ) {
     Map message = new HashMap();
     
     message.put( "appid", SystemProperties.getApplicationIdentifier());
@@ -1226,12 +1227,73 @@ public class VersionCheckClient {
 		  
 		  boolean v6= false;
 		  
-		  System.out.println( "UDP:  " + getSingleton().getExternalIpAddressUDP(null,0,v6));
-		  System.out.println( "TCP:  " + getSingleton().getExternalIpAddressTCP(null,0,v6));
-		  System.out.println( "HTTP: " + getSingleton().getExternalIpAddressHTTP(v6));
+		  // Test connectivity.
+		  if (false) {
+			  System.out.println( "UDP:  " + getSingleton().getExternalIpAddressUDP(null,0,v6));
+			  System.out.println( "TCP:  " + getSingleton().getExternalIpAddressTCP(null,0,v6));
+			  System.out.println( "HTTP: " + getSingleton().getExternalIpAddressHTTP(v6));
+		  }
+		  
+		  Map data = constructVersionCheckMessage(VersionCheckClient.REASON_UPDATE_CHECK_START);
+		  System.out.println("Sending (pre-initialisation):");
+		  printDataMap(data);
+		  System.out.println("-----------");
+		  
+		  System.out.println("Receiving (pre-initialisation):");
+		  printDataMap(getSingleton().getVersionCheckInfo(VersionCheckClient.REASON_UPDATE_CHECK_START));
+		  System.out.println("-----------");
+		  
+		  System.out.println();
+		  System.out.print("Initialising core... ");
+		  AzureusCore core = AzureusCoreFactory.create(); 
+		  core.start();
+		  System.out.println("done.");
+		  System.out.println();
+		  System.out.println("-----------");
+		  
+		  data = constructVersionCheckMessage(VersionCheckClient.REASON_UPDATE_CHECK_START);
+		  System.out.println("Sending (post-initialisation):");
+		  printDataMap(data);
+		  System.out.println("-----------");
+		  
+		  System.out.println("Receiving (post-initialisation):");
+		  printDataMap(getSingleton().getVersionCheckInfo(VersionCheckClient.REASON_UPDATE_CHECK_START));
+		  System.out.println("-----------");
+		  System.out.println();
+
+		  System.out.print("Shutting down core... ");
+		  core.stop();
+		  System.out.println("done.");
 		  
 	  }catch( Throwable e){
 		  e.printStackTrace();
 	  }
   }
+  
+  // Used for debugging in main.
+  private static void printDataMap(Map map) throws Exception {
+	  TreeMap res = new TreeMap(map);
+	  Iterator key_itr = map.keySet().iterator();
+	  while (key_itr.hasNext()) {
+		  Object key = key_itr.next();
+		  Object val = map.get(key);
+		  if (val instanceof byte[]) {
+			  String as_bytes = ByteFormatter.nicePrint((byte[])val);
+			  String as_text = new String((byte[])val, Constants.BYTE_ENCODING);
+			  res.put(key, as_text + " [" + as_bytes + "]");
+		  }
+	  }
+	  
+	  Iterator entries = res.entrySet().iterator();
+	  Map.Entry entry;
+	  while (entries.hasNext()) {
+		  entry = (Map.Entry)entries.next();
+		  System.out.print("  ");
+		  System.out.print(entry.getKey());
+		  System.out.print(": ");
+		  System.out.print(entry.getValue());
+		  System.out.println();
+	  }
+  }
+  
 }
