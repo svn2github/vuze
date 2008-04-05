@@ -191,7 +191,8 @@ public class LightBoxBrowserWindow
 		 * 
 		 */
 		try {
-			browser = new Browser(contentPanel, Utils.getInitialBrowserStyle(SWT.NONE));
+			browser = new Browser(contentPanel,
+					Utils.getInitialBrowserStyle(SWT.NONE));
 		} catch (Throwable t) {
 			// Be silent if no browser
 		}
@@ -210,6 +211,13 @@ public class LightBoxBrowserWindow
 		}
 
 		contentPanel.layout();
+
+		/*
+		 * Make sure the main shell is not minimized when the lightbox is opened
+		 */
+		if (true == uiFunctions.getMainShell().getMinimized()) {
+			uiFunctions.getMainShell().setMinimized(false);
+		}
 
 		/*
 		 * Open the shell in it's hidden state to prevent flickering when the browser initializes
@@ -231,8 +239,8 @@ public class LightBoxBrowserWindow
 		});
 
 		/*
-		 * When the page has finished loading verify its title prefix and show the error panel
-		 * if the verification failed.
+		 * Once a page has finished loading make sure again that the main shell is not minimized
+		 * then fade the styledShell back into being visible
 		 */
 		browser.addProgressListener(new ProgressListener() {
 			public void completed(ProgressEvent event) {
