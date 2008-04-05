@@ -537,14 +537,14 @@ public class ConfigurationDefaults {
     def.put(SpeedManagerAlgorithmProviderV2.SETTING_DHT_BAD_SET_POINT, new Long(900) );
     def.put(SpeedManagerAlgorithmProviderV2.SETTING_DHT_BAD_TOLERANCE, new Long(500) );
 
-    	//**** NOTE! This default can be overriden in ConfigurationChecker 
+    	//**** NOTE! This default can be overridden in ConfigurationChecker 
     def.put(SpeedManagerImpl.CONFIG_VERSION, new Long(2) );	// 1 == classic, 2 == beta
     
     def.put( SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING, SpeedLimitConfidence.NONE.getString() );
     def.put( SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING, SpeedLimitConfidence.NONE.getString() );
     def.put( SpeedLimitMonitor.UPLOAD_CHOKE_PING_COUNT, new Long(1) );
 
-    //default V2 algorithm seeding and download mode useage, stored as an Int
+    //default V2 algorithm seeding and download mode usage, stored as an Int
     def.put( SpeedLimitMonitor.USED_UPLOAD_CAPACITY_SEEDING_MODE, new Long(90) );  
     def.put( SpeedLimitMonitor.USED_UPLOAD_CAPACITY_DOWNLOAD_MODE, new Long(60) );
 
