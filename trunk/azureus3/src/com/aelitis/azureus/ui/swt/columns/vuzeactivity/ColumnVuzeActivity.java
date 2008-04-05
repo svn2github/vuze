@@ -421,7 +421,7 @@ public class ColumnVuzeActivity
 			TableRowCore tableRowCore = (TableRowCore) tableRow;
 			Object data = tableRowCore.getData("IsMouseOver" + id + "Cell");
 			if (data instanceof Boolean) {
-				return (Boolean) data;
+				return ((Boolean)data).booleanValue();
 			}
 		}
 		return false;
