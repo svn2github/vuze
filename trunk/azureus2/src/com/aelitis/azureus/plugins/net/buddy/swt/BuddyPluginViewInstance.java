@@ -78,8 +78,6 @@ BuddyPluginViewInstance
 		log.setLayoutData(grid_data);
 		log.setIndent( 4 );
 
-		print( "View initialised" );
-
 		plugin.addListener( this );
 		
 		List buddies = plugin.getBuddies();
@@ -90,6 +88,13 @@ BuddyPluginViewInstance
 		}
 	}
 
+	public void 
+	initialised(
+		boolean available ) 
+	{
+		print( "Initialisation complete: available=" + available );
+	}
+	
 	public void
 	buddyAdded(
 		BuddyPluginBuddy	buddy )

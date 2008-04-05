@@ -25,6 +25,10 @@ public interface
 BuddyPluginListener 
 {
 	public void
+	initialised(
+		boolean		available );
+	
+	public void
 	buddyAdded(
 		BuddyPluginBuddy	buddy );
 	

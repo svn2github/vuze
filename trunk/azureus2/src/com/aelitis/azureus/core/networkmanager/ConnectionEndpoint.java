@@ -150,12 +150,7 @@ ConnectionEndpoint
 				ProtocolEndpointTCP	tcp = (ProtocolEndpointTCP)ep;
 			
 				InetSocketAddress address = AddressUtils.adjustTCPAddress( tcp.getAddress(), true );
-				
-				if ( address != tcp.getAddress()){
-					
-					System.out.println( "Adjusted TCP address: " + address + " -> " + tcp.getAddress());
-				}
-				
+								
 				new ProtocolEndpointTCP( result, address );
 				
 			}else if ( ep.getType() == ProtocolEndpoint.PROTOCOL_UDP ){
@@ -163,12 +158,7 @@ ConnectionEndpoint
 				ProtocolEndpointUDP	udp = (ProtocolEndpointUDP)ep;
 			
 				InetSocketAddress address = AddressUtils.adjustUDPAddress( udp.getAddress(), true );
-				
-				if ( address != udp.getAddress()){
-					
-					System.out.println( "Adjusted UDP address: " + address + " -> " + udp.getAddress());
-				}
-				
+								
 				new ProtocolEndpointUDP( result, address );
 				
 			}else{

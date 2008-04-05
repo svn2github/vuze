@@ -25,6 +25,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Base32;
@@ -59,9 +60,10 @@ BuddyPluginBuddy
 	private int				tcp_port;
 	private int				udp_port;
 		
+	private long			status_check_count;
 	private long			last_status_check_time;
 	
-	private volatile boolean			check_active;
+	private boolean			check_active;
 		
 	private List						connections	= new ArrayList();
 	private List						messages	= new ArrayList();
@@ -154,6 +156,72 @@ BuddyPluginBuddy
 	
 	protected void
 	sendMessage(
+		final int								type,
+		final byte[]							content,
+		final int								timeout_millis,
+		final BuddyPluginBuddyReplyListener		listener )
+	
+		throws BuddyPluginException
+	{
+		plugin.checkAvailable();
+		
+		boolean	wait = false;
+		
+		if ( ip == null ){
+			
+			if ( check_active ){
+				
+				wait	= true;
+				
+			}else if ( SystemTime.getCurrentTime() - last_status_check_time > 30*1000 ){
+				
+				plugin.updateBuddyStatus( this );
+				
+				wait	= true;
+			}
+		}
+		
+		if ( wait ){
+			
+			new AEThread2( "BuddyPluginBuddy:sendWait", true )
+			{
+				public void
+				run()
+				{
+					try{
+						for (int i=0;i<20;i++){
+							
+							if ( ip != null ){
+								
+								break;
+							}
+							
+							Thread.sleep( 1000 );
+						}
+						
+						sendMessageSupport( type, content, timeout_millis, listener );
+						
+					}catch( Throwable e ){
+						
+						if ( e instanceof BuddyPluginException ){
+							
+							listener.sendFailed( BuddyPluginBuddy.this, (BuddyPluginException)e);
+						}else{
+						
+							listener.sendFailed( BuddyPluginBuddy.this, new BuddyPluginException( "Send failed", e ));
+						}
+					}
+				}				
+			}.start();
+			
+		}else{
+			
+			sendMessageSupport( type, content, timeout_millis, listener );
+		}
+	}
+	
+	protected void
+	sendMessageSupport(
 		int								type,
 		byte[]							content,
 		int								timeout_millis,
@@ -204,23 +272,41 @@ BuddyPluginBuddy
 	protected boolean
 	statusCheckActive()
 	{
-		return( check_active );
+		synchronized( this ){
+
+			return( check_active );
+		}
 	}
 	
-	protected void
+	protected boolean
 	statusCheckStarts()
 	{
-		last_status_check_time = SystemTime.getCurrentTime();
+		synchronized( this ){
+			
+			if ( check_active ){
+				
+				return( false );
+			}
 		
-		check_active = true;
+			last_status_check_time = SystemTime.getCurrentTime();
+		
+			check_active = true;
+		}
+		
+		return( true );
 	}
 	
 	protected void
 	statusCheckFailed()
 	{
-		plugin.logMessage( public_key + ": offline" );
+		synchronized( this ){
+
+			status_check_count++;
+				
+			check_active = false;
+		}
 		
-		check_active = false;
+		plugin.logMessage( public_key + ": offline" );
 	}
 	
 	protected void
@@ -230,14 +316,19 @@ BuddyPluginBuddy
 		int				_tcp_port,
 		int				_udp_port )
 	{
-		post_time	= _post_time;
-		ip			= _ip;
-		tcp_port	= _tcp_port;
-		udp_port	= _udp_port;
+		synchronized( this ){
+
+			post_time	= _post_time;
+			ip			= _ip;
+			tcp_port	= _tcp_port;
+			udp_port	= _udp_port;
+			
+			status_check_count++;
+					
+			check_active = false;
+		}
 		
 		plugin.logMessage( public_key + ": online - ip=" + ip + ",tcp=" + tcp_port + ",udp=" + udp_port + ",age=" + (SystemTime.getCurrentTime() - post_time ));
-		
-		check_active = false;
 	}
 	
 	protected void

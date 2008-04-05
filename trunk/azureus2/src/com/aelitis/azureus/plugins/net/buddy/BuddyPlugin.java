@@ -80,6 +80,10 @@ implements Plugin
 {
 	public static final String VIEW_ID = "azbuddy";
 
+	private static final int	INIT_UNKNOWN		= 0;
+	private static final int	INIT_OK				= 1;
+	private static final int	INIT_BAD			= 2;
+	
 	private static final int	TIMER_PERIOD	= 10*1000;
 	
 	private static final int	BUDDY_STATUS_CHECK_PERIOD	= 60*1000;
@@ -87,6 +91,7 @@ implements Plugin
 	private static final int	STATUS_REPUBLISH_PERIOD		= 5*60*1000;
 	private static final int	STATUS_REPUBLISH_TICKS		= STATUS_REPUBLISH_PERIOD/TIMER_PERIOD;
 
+	private volatile int	 initialisation_state = INIT_UNKNOWN;
 	
 	private PluginInterface	plugin_interface;
 	
@@ -252,6 +257,10 @@ implements Plugin
 							try{
 								ddb = plugin_interface.getDistributedDatabase();
 							
+								if ( !ddb.isAvailable()){
+									
+									throw( new Exception( "DDB Unavailable" ));
+								}
 									// pick up initial values before enabling
 
 								ddb.addListener(
@@ -303,9 +312,13 @@ implements Plugin
 								
 								checkBuddiesAndRepublish();
 								
+								fireInitialised( true );
+								
 							}catch( Throwable e ){
 							
 								log( "Initialisation failed", e );
+								
+								fireInitialised( false );
 							}
 						}
 					}.start();
@@ -471,7 +484,7 @@ implements Plugin
 	protected void
 	updateIP()
 	{
-		if ( ddb == null ){
+		if ( ddb == null || !ddb.isAvailable()){
 			
 			return;
 		}
@@ -844,10 +857,13 @@ implements Plugin
 	updateBuddyStatus(
 		final BuddyPluginBuddy	buddy )
 	{
+		if ( !buddy.statusCheckStarts()){
+			
+			return;
+		}
+		
 		log( "Updating buddy status: " + buddy.getString());
 
-		buddy.statusCheckStarts();
-		
 		try{							
 			String	key_str = buddy.getPublicKey();
 			
@@ -967,11 +983,60 @@ implements Plugin
 		}
 	}
 	
+	protected void
+	checkAvailable()
+	
+		throws BuddyPluginException
+	{
+		if ( initialisation_state == INIT_UNKNOWN ){
+			
+			throw( new BuddyPluginException( "Plugin not yet initialised" ));
+			
+		}else if ( initialisation_state == INIT_BAD ){
+			
+			throw( new BuddyPluginException( "Plugin unavailable" ));
+
+		}
+	}
+	
+	protected void
+	fireInitialised(
+		boolean		ok )
+	{
+		if ( ok ){
+			
+			initialisation_state = INIT_OK;
+			
+		}else{
+			
+			initialisation_state = INIT_BAD;
+		}
+		      
+	
+		List	 listeners_ref = request_listeners.getList();
+		
+		for (int i=0;i<listeners_ref.size();i++){
+
+			try{
+				((BuddyPluginListener)listeners_ref.get(i)).initialised( ok );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}	
+	}
+	
 	public void
 	addListener(
 		BuddyPluginListener	listener )
 	{
 		listeners.add( listener );
+		
+		if ( initialisation_state != INIT_UNKNOWN ){
+			
+			listener.initialised( initialisation_state == INIT_OK );
+		}
 	}
 	
 	public void
