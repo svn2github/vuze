@@ -987,4 +987,5 @@ RPDownload
 	public void removeAttributeListener(DownloadAttributeListener l, TorrentAttribute a, int e) {notSupported();}
 	
 	public boolean isRemoved() {notSupported();	return false; }
+	public boolean canMoveDataFiles() {notSupported(); return false;}
 }

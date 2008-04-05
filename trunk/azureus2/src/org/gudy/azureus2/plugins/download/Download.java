@@ -942,5 +942,13 @@ Download extends DownloadEventNotifier
    */
   
   public boolean isRemoved();
+  
+  /**
+   * Returns <tt>true</tt> if Azureus will allow the data files for the torrent
+   * to be moved.
+   * 
+   * @since 3.5.0.1
+   */
+  public boolean canMoveDataFiles();
 
 }

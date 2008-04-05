@@ -191,7 +191,7 @@ public class TorrentUtil {
 
 				allStopped &= stopped;
 
-				fileMove = fileMove && stopped && dm.isPersistent();
+				fileMove = fileMove && dm.canMoveDataFiles();
 
 				if (userMode < 2) {
 					TRTrackerAnnouncer trackerClient = dm.getTrackerClient();

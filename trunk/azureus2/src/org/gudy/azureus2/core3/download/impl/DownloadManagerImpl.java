@@ -3091,6 +3091,11 @@ DownloadManagerImpl
 	  if (destination == null && new_name == null) {
 		  throw new NullPointerException("destination and new name are both null");
 	  }
+	  
+	  if (!canMoveDataFiles()) {
+		  throw new RuntimeException("canMoveDataFiles is false!");
+	  }
+	  
 	  try{
 		  FileUtil.runAsTask(
 				new AzureusCoreOperationTask()
@@ -3128,9 +3133,16 @@ DownloadManagerImpl
   
   	throws DownloadManagerException 
   	{
-	  if ( !isPersistent()){
-		  
-		  throw( new DownloadManagerException( "Download is not persistent" ));
+	  boolean is_paused = this.pause();
+	  try {moveDataFilesSupport0(new_parent_dir, new_filename);}
+	  finally {if (is_paused) {this.resume();}}
+  	}
+  
+  private void moveDataFilesSupport0(
+			File new_parent_dir, 
+			String new_filename) throws DownloadManagerException {
+	  if (!canMoveDataFiles()){
+		  throw new RuntimeException("canMoveDataFiles is false!");
 	  }
 	  
 	  if (new_filename != null) {new_filename = FileUtil.convertOSSpecificChars(new_filename);}
@@ -3592,6 +3604,11 @@ DownloadManagerImpl
 			result[i] = is_linear ? DiskManagerFileInfo.ST_LINEAR : DiskManagerFileInfo.ST_COMPACT;
 		}
 		return result;
+	}
+	
+	public boolean canMoveDataFiles() {
+		if (isPersistent()) {return false;}
+		return true;
 	}
 	
 }

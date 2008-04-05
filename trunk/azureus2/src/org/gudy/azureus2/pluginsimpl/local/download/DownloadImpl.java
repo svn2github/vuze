@@ -1697,4 +1697,8 @@ DownloadImpl
 		return event_type == DownloadPropertyEvent.PT_TORRENT_ATTRIBUTE_WILL_BE_READ ? read_attribute_listeners : write_attribute_listeners;
 	}
 	
+	public boolean canMoveDataFiles() {
+		return download_manager.canMoveDataFiles();
+	}
+	
 }
