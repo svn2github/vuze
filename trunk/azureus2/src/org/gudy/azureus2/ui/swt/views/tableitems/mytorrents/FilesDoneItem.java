@@ -26,6 +26,7 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.util.StringInterner;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
@@ -69,7 +70,7 @@ public class FilesDoneItem
     	}
     	
     	if ( skipped == 0 ){
-    		text = complete + "/" + total;
+    		text = StringInterner.intern(complete + "/" + total);
     	}else{
     		text = (complete-skipped_complete) + "(" + complete + ")/" + (total-skipped) + "(" + total + ")"; 
     	}

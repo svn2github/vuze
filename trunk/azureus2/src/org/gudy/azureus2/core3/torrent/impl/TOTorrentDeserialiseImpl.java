@@ -259,7 +259,7 @@ TOTorrentDeserialiseImpl
 						
 						try{
 						
-							setAnnounceURL( new URL( StringInterner.intern(announce_url) ));
+							setAnnounceURL( new URL(announce_url));
 							
 						}catch( MalformedURLException e ){
 							
@@ -270,7 +270,7 @@ TOTorrentDeserialiseImpl
 							
 							try{
 								
-								setAnnounceURL( new URL( StringInterner.intern(announce_url) ));
+								setAnnounceURL(new URL(announce_url));
 									
 							}catch( MalformedURLException f ){
 									

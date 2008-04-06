@@ -225,10 +225,10 @@ public class TableViewSWTImpl
 	private ColumnMoveListener columnMoveListener = new ColumnMoveListener();
 
 	/** Queue added datasources and add them on refresh */
-	private List dataSourcesToAdd = new ArrayList(4);
+	private ArrayList dataSourcesToAdd = new ArrayList(4);
 
 	/** Queue removed datasources and add them on refresh */
-	private List dataSourcesToRemove = new ArrayList(4);
+	private ArrayList dataSourcesToRemove = new ArrayList(4);
 
 	private Timer timerProcessDataSources = new Timer("Process Data Sources");
 
@@ -1776,6 +1776,7 @@ public class TableViewSWTImpl
 			if (dataSourcesToAdd.size() > 0) {
 				dataSourcesAdd = dataSourcesToAdd.toArray();
 				dataSourcesToAdd.clear();
+				dataSourcesToAdd.trimToSize();
 
 				// remove the ones we are going to add then delete
 				if (dataSourcesToRemove.size() > 0) {
@@ -1788,12 +1789,13 @@ public class TableViewSWTImpl
 						}
 				}
 			}
-
+			
 			if (dataSourcesToRemove.size() > 0) {
 				dataSourcesRemove = dataSourcesToRemove.toArray();
 				if (DEBUGADDREMOVE && dataSourcesRemove.length > 1)
 					debug("Streamlining removing " + dataSourcesRemove.length + " rows");
 				dataSourcesToRemove.clear();
+				dataSourcesToRemove.trimToSize();
 			}
 		} finally {
 			dataSourceToRow_mon.exit();

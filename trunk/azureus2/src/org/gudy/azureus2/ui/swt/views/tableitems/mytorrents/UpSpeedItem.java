@@ -28,6 +28,7 @@ import org.eclipse.swt.graphics.Color;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.StringInterner;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -84,7 +85,7 @@ public class UpSpeedItem
       boolean bChangeColor = (++loop % 10) == 0;
 
       if (cell.setSortValue(value) || !cell.isValid() || (iState != iLastState)) {
-      	cell.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(value));
+      	cell.setText(StringInterner.intern(DisplayFormatters.formatByteCountToKiBEtcPerSec(value)));
       	bChangeColor = true;
       }
       

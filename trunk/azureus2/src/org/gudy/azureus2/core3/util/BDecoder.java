@@ -219,7 +219,7 @@ public class BDecoder
 			}
 
 			if (tempMap instanceof LightHashMap)
-				((LightHashMap) tempMap).compactify(0.9f);
+				((LightHashMap) tempMap).compactify(-0.9f);
 
 
 				//return the map

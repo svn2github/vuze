@@ -49,6 +49,7 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 import org.gudy.azureus2.core3.util.SystemTime;
 
@@ -127,7 +128,7 @@ ProtocolDecoderPHE
     
 	private static final Random	random = new SecureRandom();
 	
-	private static Map	global_shared_secrets	= new HashMap();
+	private static Map	global_shared_secrets	= new LightHashMap();
 	
 	static{
 		try{

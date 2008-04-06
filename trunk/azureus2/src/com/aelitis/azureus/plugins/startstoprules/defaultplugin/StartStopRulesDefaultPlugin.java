@@ -129,7 +129,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 
 	private volatile boolean somethingChanged;
 
-	private Set ranksToRecalc = new HashSet();
+	private Set ranksToRecalc = new LightHashSet();
 	
 	private AEMonitor ranksToRecalc_mon = new AEMonitor("ranksToRecalc");
 

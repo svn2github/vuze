@@ -83,7 +83,7 @@ TOTorrentImpl
 	private long				creation_date;
 	private byte[]				created_by;
 	
-	private Map					additional_properties 		= new LightHashMap(4);
+	private Map					additional_properties 		= new LightHashMap(2);
 	private Map					additional_info_properties	= new LightHashMap(4);
 	
 	private boolean				created;
@@ -553,7 +553,7 @@ TOTorrentImpl
 		if (s0.equals(s1))
 			return false;
 		
-		announce_url	= newURL;
+		announce_url	= StringInterner.internURL(newURL);
 		return true;
 	}
 

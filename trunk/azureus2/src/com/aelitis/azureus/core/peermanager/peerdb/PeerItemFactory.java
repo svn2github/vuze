@@ -22,11 +22,8 @@
 
 package com.aelitis.azureus.core.peermanager.peerdb;
 
-import java.lang.ref.WeakReference;
-import java.util.WeakHashMap;
+import org.gudy.azureus2.core3.util.StringInterner;
 
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Debug;
 
 
 /**
@@ -46,12 +43,6 @@ public class PeerItemFactory {
   public static final byte	CRYPTO_LEVEL_2			= 2;
   public static final byte	CRYPTO_LEVEL_CURRENT	= CRYPTO_LEVEL_2;
   
-  
-  private static final WeakHashMap peer_items = new WeakHashMap();
-
-  private static final AEMonitor item_mon = new AEMonitor( "PeerItemFactory" );
-  
-  
   /**
    * Create a peer item using the given peer address and port information.
    * @param address of peer
@@ -70,7 +61,7 @@ public class PeerItemFactory {
 	int		up_speed )
   
   {
-    return getLightweight( new PeerItem( address, tcp_port, source, handshake_type, udp_port, crypto_level, up_speed ) );
+    return (PeerItem)StringInterner.internObject( new PeerItem( address, tcp_port, source, handshake_type, udp_port, crypto_level, up_speed ) );
   }
   
   /**
@@ -80,31 +71,7 @@ public class PeerItemFactory {
    * @return peer
    */
   public static PeerItem createPeerItem( byte[] serialization, byte source, byte handshake_type, int udp_port ) throws Exception {
-    return getLightweight( new PeerItem( serialization, source, handshake_type, udp_port ) );
-  }
-  
-  
-  
-  private static PeerItem getLightweight( PeerItem key ) {
-    try{  item_mon.enter();
-      WeakReference ref = (WeakReference)peer_items.get( key );
-
-      if( ref == null ) {
-        peer_items.put( key, new WeakReference( key ) );
-        return key;
-      }
- 
-      PeerItem item = (PeerItem)ref.get();
-    
-      if( item == null ) {
-        Debug.out( "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOPS: ref.get() == null" );
-        peer_items.put( key, new WeakReference( key ) );
-        return key;
-      }
-
-      return item;
-    }
-    finally{  item_mon.exit();  }
+    return (PeerItem)StringInterner.internObject( new PeerItem( serialization, source, handshake_type, udp_port ) );
   }
   
   

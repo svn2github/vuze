@@ -301,16 +301,20 @@ public class LightHashSet extends AbstractSet implements Cloneable {
 	 * should be used after removing many entries for example
 	 * 
 	 * @param compactingLoadFactor
-	 *            load factor for the compacting operation, use 0 to compact
-	 *            with the load factor specified during instantiation
+	 *            load factor for the compacting operation. Use 0f to compact
+	 *            with the load factor specified during instantiation. Use
+	 *            negative values of the desired load factors to compact only
+	 *            when it would reduce the storage size.
 	 */
 	public void compactify(float compactingLoadFactor) {
 		int newCapacity = 1;
-		if (compactingLoadFactor == 0.f)
-			compactingLoadFactor = loadFactor;
-		while (newCapacity * compactingLoadFactor < (size+1))
+		float adjustedLoadFactor = Math.abs(compactingLoadFactor);
+		if (adjustedLoadFactor <= 0.f || adjustedLoadFactor >= 1.f)
+			adjustedLoadFactor = loadFactor;
+		while (newCapacity * adjustedLoadFactor < (size+1))
 			newCapacity <<= 1;
-		adjustCapacity(newCapacity);
+		if(newCapacity < data.length || compactingLoadFactor >= 0.f )
+			adjustCapacity(newCapacity);
 	}
 
 	private void adjustCapacity(final int newSize) {

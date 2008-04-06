@@ -95,7 +95,7 @@ public class LightHashMap extends AbstractMap implements Cloneable {
 	public Set entrySet() {
 		return new EntrySet();
 	}
-
+	
 	private abstract class HashIterator implements Iterator {
 		protected int	nextIdx		= -2;
 		protected int	currentIdx	= -2;
@@ -163,6 +163,17 @@ public class LightHashMap extends AbstractMap implements Cloneable {
 				final Object oldValue = data[entryIndex+1];
 				data[entryIndex+1] = value;
 				return oldValue;
+			}
+			
+			public boolean equals(Object o) {
+				if (!(o instanceof Map.Entry))
+					return false;
+				Map.Entry e = (Map.Entry) o;
+				return (getKey() == null ? e.getKey() == null : getKey().equals(e.getKey())) && (getValue() == null ? e.getValue() == null : getValue().equals(e.getValue()));
+			}
+
+			public int hashCode() {
+				return (getKey() == null ? 0 : getKey().hashCode()) ^ (getValue() == null ? 0 : getValue().hashCode());
 			}
 		}
 
@@ -382,16 +393,20 @@ public class LightHashMap extends AbstractMap implements Cloneable {
 	 * should be used after removing many entries for example
 	 * 
 	 * @param compactingLoadFactor
-	 *            load factor for the compacting operation, use 0 to compact
-	 *            with the load factor specified during instantiation
+	 *            load factor for the compacting operation. Use 0f to compact
+	 *            with the load factor specified during instantiation. Use
+	 *            negative values of the desired load factors to compact only
+	 *            when it would reduce the storage size.
 	 */
 	public void compactify(float compactingLoadFactor) {
 		int newCapacity = 1;
-		if (compactingLoadFactor == 0.f)
-			compactingLoadFactor = loadFactor;
-		while (newCapacity * compactingLoadFactor < (size+1))
+		float adjustedLoadFactor = Math.abs(compactingLoadFactor);
+		if (adjustedLoadFactor <= 0.f || adjustedLoadFactor >= 1.f)
+			adjustedLoadFactor = loadFactor;
+		while (newCapacity * adjustedLoadFactor < (size+1))
 			newCapacity <<= 1;
-		adjustCapacity(newCapacity);
+		if(newCapacity < data.length/2 || compactingLoadFactor >= 0.f )
+			adjustCapacity(newCapacity);
 	}
 
 	private void adjustCapacity(final int newSize) {
@@ -477,7 +492,7 @@ public class LightHashMap extends AbstractMap implements Cloneable {
 
 	public static void main(final String[] args) {
 		System.out.println("Call with -Xmx300m -Xcomp -server");
-		Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+		//Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 		
 		// some quadratic probing math test:
 		/*
@@ -504,7 +519,7 @@ public class LightHashMap extends AbstractMap implements Cloneable {
 		
 		try
 		{
-			Thread.sleep(300);
+			Thread.sleep(5000);
 		} catch (final InterruptedException e)
 		{
 			// TODO Auto-generated catch block

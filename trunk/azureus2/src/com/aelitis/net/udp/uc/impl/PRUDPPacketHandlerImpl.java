@@ -67,7 +67,7 @@ PRUDPPacketHandlerImpl
 	private PRUDPPacketHandlerStatsImpl	stats = new PRUDPPacketHandlerStatsImpl( this );
 	
 	
-	private Map			requests = new HashMap();
+	private Map			requests = new LightHashMap();
 	private AEMonitor	requests_mon	= new AEMonitor( "PRUDPPH:req" );
 	
 	

@@ -24,6 +24,7 @@ package org.gudy.azureus2.core3.torrent.impl;
 import java.net.URL;
 
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.util.StringInterner;
 
 public class 
 TOTorrentAnnounceURLSetImpl 
@@ -57,7 +58,7 @@ TOTorrentAnnounceURLSetImpl
 		
 		for (int i=0;i<urls.length;i++){
 		
-			urls[i]	= torrent.anonymityTransform( _urls[i] );
+			urls[i]	= StringInterner.internURL(torrent.anonymityTransform( _urls[i] ));
 		}
 	}
 }
