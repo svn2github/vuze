@@ -83,7 +83,7 @@ TOTorrentImpl
 	private long				creation_date;
 	private byte[]				created_by;
 	
-	private Map					additional_properties 		= new LightHashMap(2);
+	private Map					additional_properties 		= new LightHashMap(4);
 	private Map					additional_info_properties	= new LightHashMap(4);
 	
 	private boolean				created;

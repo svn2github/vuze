@@ -23,13 +23,11 @@
 
 package org.gudy.azureus2.core3.util;
 
-import java.awt.image.SampleModel;
 import java.io.File;
 import java.lang.ref.*;
 import java.net.URL;
 import java.util.*;
 
-import com.aelitis.azureus.core.peermanager.peerdb.PeerItem;
 import com.aelitis.azureus.core.util.HashCodeUtils;
 
 
