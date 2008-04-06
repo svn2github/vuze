@@ -657,5 +657,11 @@ DownloadManager
         IndentWriter        writer );
     
     public int[] getStorageType(DiskManagerFileInfo[] infos);
+    public boolean setStorageType(DiskManagerFileInfo[] infos, int[] types);
+    
+    /**
+     * @since 3.0.5.1
+     */
+    public boolean canMoveDataFiles();
 
 }

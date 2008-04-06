@@ -2525,25 +2525,41 @@ DiskManagerImpl
     }
 
     // Used by DownloadManagerImpl too.
-    public static String[]
-    getStorageTypes(
-        DownloadManager     download_manager )
-    {
-        DownloadManagerState    state = download_manager.getDownloadState();
-
-        String[]    types = state.getListAttribute( DownloadManagerState.AT_FILE_STORE_TYPES );
-
-        if ( types.length == 0 ){
-
+    public static String[] getStorageTypes(DownloadManager download_manager) {
+        DownloadManagerState state = download_manager.getDownloadState();
+        String[] types = state.getListAttribute(DownloadManagerState.AT_FILE_STORE_TYPES);
+        if (types.length == 0) {
             types = new String[download_manager.getTorrent().getFiles().length];
-
-            for (int i=0;i<types.length;i++){
-
+            for (int i=0; i<types.length; i++){
                 types[i] = "L";
             }
         }
-
         return( types );
+    }
+    
+    public static boolean setStorageTypes(DownloadManager dm, DiskManagerFileInfo[] files, int[] new_types) {
+    	    	
+    	// This array will be mutated.
+    	String[] types = getStorageTypes(dm);
+       	if (types.length != new_types.length) {
+    		throw new RuntimeException("types.length != new_types.length");
+    	}
+    	
+    	boolean is_ok = true;
+    	try {
+    		for (int i=0; i<files.length; i++) {
+    			is_ok = files[i].setStorageTypeNoAtomic(new_types[files[i].getIndex()], types);
+    			
+    			// If we fail once, then stop.
+    			if (!is_ok) {break;}
+    		}
+    		return is_ok;
+    	}
+    	finally {
+    		DownloadManagerState dm_state = dm.getDownloadState();
+    		dm_state.setListAttribute(DownloadManagerState.AT_FILE_STORE_TYPES, types);
+    		dm_state.save();
+    	}
     }
 
     private static boolean
@@ -2902,13 +2918,19 @@ DiskManagerImpl
                             return( download_manager.getDownloadState().getFileLink( lazyGetFile() ));
                         }
 
-                        public boolean
-                        setStorageType(
-                            int     type )
-                        {
-                            String[]    types = getStorageTypes( download_manager );
+                        public boolean setStorageType(int type) {
+                        	return setStorageType0(type, getStorageTypes(download_manager), true);
+                        }
+                        
+                        public boolean setStorageTypeNoAtomic(int type, String[] existing_storage_types) {
+                        	return setStorageType0(type, existing_storage_types, false);
+                        }
+
+                        private boolean setStorageType0(int type, String[] types, boolean dm_save) {
 
                             int old_type = types[file_index].equals( "L")?ST_LINEAR:ST_COMPACT;
+                            
+                    		System.out.println(old_type + " <> " + type);
 
                             if ( type == old_type ){
 
@@ -3003,18 +3025,18 @@ DiskManagerImpl
                                 return( false );
 
                             }finally{
-
-                                types[file_index] = type==ST_LINEAR?"L":"C";
-
-                                DownloadManagerState    dm_state = download_manager.getDownloadState();
+                            	
+                            	types[file_index] = type==ST_LINEAR?"L":"C";
                                 
                                 // XXX: quick hack, we might have to allocate adjacent files; this needs to be improved with mass-operations, checking all files if they need to be allocated or not
                                 if(type == ST_LINEAR)
                                 	download_manager.setDataAlreadyAllocated(false);
 
-                                dm_state.setListAttribute( DownloadManagerState.AT_FILE_STORE_TYPES, types );
-
-                                dm_state.save();
+                            	if (dm_save) {
+                            		DownloadManagerState dm_state = download_manager.getDownloadState();
+                            		dm_state.setListAttribute( DownloadManagerState.AT_FILE_STORE_TYPES, types );
+                            		dm_state.save();
+                            	}
 
                                 if ( set_skipped )
                                     setSkipped( true );
@@ -3237,16 +3259,5 @@ DiskManagerImpl
 			writer.exdent();
 		}
 	}
-	
-	public int[] getStorageTypesForFileInfo(DiskManagerFileInfo[] inf) {
-		String[] types = getStorageTypes();
-		int[] result = new int[inf.length];
-		boolean is_linear;
-		for (int i=0; i<inf.length; i++) {
-			is_linear = types[inf[i].getIndex()].equals("L");
-			result[i] = is_linear ? DiskManagerFileInfo.ST_LINEAR : DiskManagerFileInfo.ST_COMPACT;
-		}
-		return result;
-	}
-	
+
 }

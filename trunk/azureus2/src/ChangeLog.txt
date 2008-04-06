@@ -8,6 +8,7 @@ FEATURE: UI   | Downloads can now be moved and renamed while running - torrent w
 FEATURE: UIv3 | Experimental option to use Mozilla/Firefox as browser widget on any platform (XulRunner or Firefox 3 must be installed) [The 8472]
 
 CHANGE: Core  | Faster startup [The 8472]
+CHANGE: Core  | Quicker to change a batch of files to "Do Not Download" in files view [amc1]
 CHANGE: UI    | Provide column menu option to disable fast renaming in files view [The 8472]
 
 2008.03.xx | Azureus Vuze 3.0.5.1

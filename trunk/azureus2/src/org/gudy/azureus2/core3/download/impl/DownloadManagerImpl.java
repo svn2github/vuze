@@ -3606,6 +3606,10 @@ DownloadManagerImpl
 		return result;
 	}
 	
+	public boolean setStorageType(DiskManagerFileInfo[] infos, int[] types) {
+		return DiskManagerImpl.setStorageTypes(this, infos, types);
+	}
+	
 	public boolean canMoveDataFiles() {
 		if (isPersistent()) {return false;}
 		return true;

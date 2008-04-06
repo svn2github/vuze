@@ -228,12 +228,15 @@ DiskManagerFileInfoImpl
 		return( diskManager.getDownloadState().getFileLink( getFile( false )));
 	}
 	
-	public boolean
-	setStorageType(
-		int		type )
-	{		
-		String[]	types = diskManager.getStorageTypes();
-
+	public boolean setStorageType(int type) {
+		return setStorageType0(type, diskManager.getStorageTypes(), true);
+	}
+	
+	public boolean setStorageTypeNoAtomic(int type, String[] existing_storage_types) {
+		return setStorageType0(type, existing_storage_types, false);
+	}
+	
+	private boolean setStorageType0(int type, String[] types, boolean dm_save) {		
 		int	old_type = types[file_index].equals( "L")?ST_LINEAR:ST_COMPACT;
 		
 		if ( type == old_type ){
@@ -269,12 +272,11 @@ DiskManagerFileInfoImpl
 		}finally{
 			
 			types[file_index] = cache_file.getStorageType()==CacheFile.CT_LINEAR?"L":"C";
-			
-			DownloadManagerState	dm_state = diskManager.getDownloadState();
-			
-			dm_state.setListAttribute( DownloadManagerState.AT_FILE_STORE_TYPES, types );
-			
-			dm_state.save();
+			if (dm_save) {
+				DownloadManagerState	dm_state = diskManager.getDownloadState();
+				dm_state.setListAttribute( DownloadManagerState.AT_FILE_STORE_TYPES, types );
+				dm_state.save();
+			}
 			
 			if ( set_skipped ){
 				

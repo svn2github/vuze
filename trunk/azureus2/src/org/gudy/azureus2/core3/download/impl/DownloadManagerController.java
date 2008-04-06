@@ -2300,6 +2300,10 @@ DownloadManagerController
 			return( delegate.setStorageType( type ));
 		}
 		
+		public boolean setStorageTypeNoAtomic(int type, String[] types) {
+			return delegate.setStorageTypeNoAtomic(type, types);
+		}
+		
 		public int
 		getStorageType()
 		{
