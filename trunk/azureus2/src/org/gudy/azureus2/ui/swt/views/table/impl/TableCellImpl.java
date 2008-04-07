@@ -650,16 +650,12 @@ public class TableCellImpl
   }
 
 	public int getMarginHeight() {
-  	checkCellForSetting();
-
     if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
       return 0;
     return ((BufferedGraphicTableItem)bufferedTableItem).getMarginHeight();
   }
 
   public int getMarginWidth() {
-  	checkCellForSetting();
-
     if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
       return 0;
     return ((BufferedGraphicTableItem)bufferedTableItem).getMarginWidth();
