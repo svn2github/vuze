@@ -3611,7 +3611,7 @@ DownloadManagerImpl
 	}
 	
 	public boolean canMoveDataFiles() {
-		if (isPersistent()) {return false;}
+		if (!isPersistent()) {return false;}
 		return true;
 	}
 	
