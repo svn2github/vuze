@@ -34,27 +34,29 @@ public class PrimaryClassloader extends URLClassLoader implements PeeringClasslo
 	
 	private final ArrayList peersLoaders = new ArrayList();
 	private final ClassLoader packageLoader;
-	private final boolean skipParent;
 	
 	private static final String packageName = PrimaryClassloader.class.getPackage().getName();
 	
-	
+	/**
+	 * initialization path when loaded through bootstrapping
+	 */
 	private PrimaryClassloader()
 	{
 		super(generateURLs(),getSystemClassLoader().getParent());
 		this.packageLoader = getSystemClassLoader();
-		skipParent = false;
 	}
 	
 	/**
-	 * secondary initialization path when launched via
+	 * initialization path when loaded via
 	 * <code>-Djava.system.class.loader=com.aelitis.azureus.launcher.classloading.PrimaryClassloader</code>
+	 * instead of bootstrapping, has the advantage that this gets registered as system classloader
+	 * 
+	 * @deprecated DO NOT INVOKE MANUALLY
 	 */
 	public PrimaryClassloader(ClassLoader parent)
 	{
-		super(generateURLs(),parent);
-		this.packageLoader = getParent();
-		skipParent = true;
+		super(generateURLs(),parent.getParent());
+		this.packageLoader = parent;
 	}
 	
 	private static URL[] generateURLs()
@@ -97,27 +99,10 @@ public class PrimaryClassloader extends URLClassLoader implements PeeringClasslo
 		Class c;
 		try
 		{
-			if(!skipParent)
-			{ // lookup procedure if this classloader was bootstrapped 
-				if (!name.startsWith(packageName))
-					c = super.loadClass(name, resolve);
-				else
-					c = packageLoader.loadClass(name);				
-			} else { // special lookup procedure in case we are the system class loader, skip the old system class loader
-				if(!name.startsWith("java.") && !name.startsWith(packageName))
-				{
-					try
-					{
-						c = getParent().getParent().loadClass(name);
-					} catch (ClassNotFoundException e)
-					{
-						c = findLoadedClass(name);
-						if(c == null)
-							c = findClass(name);
-					}
-				} else
-					c = packageLoader.loadClass(name);
-			}
+			if (!name.startsWith(packageName))
+				c = super.loadClass(name, resolve);
+			else
+				c = packageLoader.loadClass(name);				
 		} catch (ClassNotFoundException e)
 		{
 			c = peerFindLoadedClass(name);
