@@ -31,7 +31,12 @@ ProtocolEndpoint
 {
 	public static final int	PROTOCOL_TCP	= 1;
 	public static final int	PROTOCOL_UDP	= 2;
-	
+
+	public static final int CONNECT_PRIORITY_HIGHEST	= 0;
+	public static final int CONNECT_PRIORITY_MEDIUM		= 1;
+	public static final int CONNECT_PRIORITY_LOW		= 2;
+	  
+
 	public int
 	getType();
 	
@@ -48,7 +53,7 @@ ProtocolEndpoint
 		boolean 			allow_fallback, 
 		byte[][]			shared_secrets,
 		ByteBuffer			initial_data,
-		boolean				high_priority,
+		int					priority,
 		ConnectListener 	listener );
 	
 	public String

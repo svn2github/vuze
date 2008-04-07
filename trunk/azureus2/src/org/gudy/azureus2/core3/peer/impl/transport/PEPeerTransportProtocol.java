@@ -152,25 +152,25 @@ implements PEPeerTransport
 
 	private int messaging_mode = MESSAGING_BT_ONLY;
 	private Message[] supported_messages = null;
-  private byte	other_peer_bitfield_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-  private byte	other_peer_cancel_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-  private byte	other_peer_choke_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-  private byte	other_peer_handshake_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-  private byte	other_peer_bt_have_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-  private byte	other_peer_az_have_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-  private byte	other_peer_interested_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-  private byte	other_peer_keep_alive_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-  private byte	other_peer_pex_version			= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-  private byte	other_peer_piece_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-  private byte	other_peer_unchoke_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-  private byte	other_peer_uninterested_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-  private byte	other_peer_request_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-  private byte  other_peer_bt_lt_ext_version    = BTMessageFactory.MESSAGE_VERSION_INITIAL;
-  private byte	other_peer_az_request_hint_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-  private byte	other_peer_az_bad_piece_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_bitfield_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_cancel_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_choke_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_handshake_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_bt_have_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_az_have_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_interested_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_keep_alive_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_pex_version			= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_piece_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_unchoke_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_uninterested_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_request_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte  	other_peer_bt_lt_ext_version    = BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_az_request_hint_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_az_bad_piece_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
   
-  private boolean ut_pex_enabled = false;
-  private boolean ml_dht_enabled = false;
+	private boolean ut_pex_enabled = false;
+	private boolean ml_dht_enabled = false;
 
 	private final AEMonitor closing_mon	= new AEMonitor( "PEPeerTransportProtocol:closing" );
 	private final AEMonitor general_mon  	= new AEMonitor( "PEPeerTransportProtocol:data" );
@@ -321,7 +321,7 @@ implements PEPeerTransport
 	protected PeerMessageLimiter message_limiter;
 
 	private boolean request_hint_supported;
-  private boolean bad_piece_supported;
+	private boolean bad_piece_supported;
 
 	private boolean have_aggregation_disabled;
 
@@ -370,7 +370,7 @@ implements PEPeerTransport
 
 			//"fake" a connect request to register our listener
 			connection.connect( 
-				false,
+				ProtocolEndpoint.CONNECT_PRIORITY_MEDIUM,
 				new NetworkConnection.ConnectionListener() 
 				{
 					public final void 
@@ -474,8 +474,9 @@ implements PEPeerTransport
 
     	// either peer specific or global pref plus optional per-download level
     
-    boolean use_crypto = 	_require_crypto_handshake || 
-    						NetworkManager.getCryptoRequired( manager.getAdapter().getCryptoLevel()); 
+		boolean use_crypto = 
+				_require_crypto_handshake || 
+    			NetworkManager.getCryptoRequired( manager.getAdapter().getCryptoLevel()); 
 
 		if( isLANLocal() )  use_crypto = false;  //dont bother with PHE for lan peers
 
@@ -544,9 +545,24 @@ implements PEPeerTransport
 			handshake_sent = true;
 		}
 
+		int	priority;
+		
+		if ( manager.isSeeding()){
+			
+			priority = ProtocolEndpoint.CONNECT_PRIORITY_LOW;
+			
+		}else if ( manager.isRTA()){
+			
+			priority = ProtocolEndpoint.CONNECT_PRIORITY_HIGHEST;
+
+		}else{
+		
+			priority = ProtocolEndpoint.CONNECT_PRIORITY_MEDIUM;
+		}
+		
 		connection.connect( 
 				initial_outbound_data,
-				!manager.isSeeding(),
+				priority,
 				new NetworkConnection.ConnectionListener() 
 				{
 					private boolean	connect_ok;

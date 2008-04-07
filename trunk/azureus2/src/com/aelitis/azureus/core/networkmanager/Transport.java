@@ -113,7 +113,7 @@ Transport
   connectOutbound(
 		ByteBuffer			initial_data,
 		ConnectListener 	listener,
-		boolean				high_priority );
+		int					priority );
    
   /**
    * Indicate that inbound connection is complete 

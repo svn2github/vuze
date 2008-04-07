@@ -809,6 +809,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 				if( peer.getAddress().equals( transport.getIp() )){
 
 					final boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) ||
+					
 					transport.getIp().equals( "127.0.0.1" );
 
 					if( !same_allowed || peer.getPort() == transport.getPort() ) {
@@ -820,7 +821,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 			if( already_connected )  continue;
 
-			if( peer_database != null ) {
+			if( peer_database != null ){
+				
 				byte type = peer.getProtocol() == DownloadAnnounceResultPeer.PROTOCOL_CRYPT ? PeerItemFactory.HANDSHAKE_TYPE_CRYPTO : PeerItemFactory.HANDSHAKE_TYPE_PLAIN;
 
 				byte crypto_level = peer.getAZVersion() < TRTrackerAnnouncer.AZ_TRACKER_VERSION_3?PeerItemFactory.CRYPTO_LEVEL_1:PeerItemFactory.CRYPTO_LEVEL_2;
@@ -853,6 +855,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 	 * @param port remote peer listen port
 	 * @return null if the connection was added to the transport list, reason if rejected
 	 */
+	
 	private String 
 	makeNewOutgoingConnection( 
 			String	peer_source,
@@ -977,7 +980,6 @@ DiskManagerCheckRequestListener, IPFilterListener
 		if(mainloop_loop_count % MAINLOOP_FIVE_SECOND_INTERVAL != 0)
 			return;
 
-		final long			now			=SystemTime.getCurrentTime();
 		final int				nbPieces	=_nbPieces;
 		final PEPieceImpl[] pieces =pePieces;
 		//for every piece
@@ -2147,6 +2149,12 @@ DiskManagerCheckRequestListener, IPFilterListener
 		return( last_eta );
 	}
 
+	public boolean 
+	isRTA()
+	{
+		return( piecePicker.getRTAProviders().size() > 0 );
+	}
+	
 	private void
 	addToPeerTransports(
 			PEPeerTransport		peer )
@@ -3697,12 +3705,13 @@ DiskManagerCheckRequestListener, IPFilterListener
 									InetSocketAddress	target )
 							{
 								complete();
-
-								Map	user_data = new HashMap();
 								
 								PEPeerTransport newTransport = peer.reconnect(true);
-								if(newTransport != null)
+								
+								if( newTransport != null ){
+									
 									newTransport.setData(PEER_NAT_TRAVERSE_DONE_KEY, "");
+								}
 							}
 
 							public void
@@ -3723,7 +3732,6 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 										udp_traversal_count--;
 									}
-
 								}finally{
 
 									peer_transports_mon.exit();

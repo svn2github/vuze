@@ -91,12 +91,12 @@ ProtocolEndpointUDP
 		boolean 			allow_fallback, 
 		byte[][]			shared_secrets,
 		ByteBuffer			initial_data,
-		boolean				high_priority,
+		int					priority,
 		ConnectListener 	listener )
 	{
 		UDPTransport t = new UDPTransport( this, shared_secrets );
 		
-		t.connectOutbound( initial_data, listener, high_priority );
+		t.connectOutbound( initial_data, listener, priority );
 		
 		return( t );
 	}

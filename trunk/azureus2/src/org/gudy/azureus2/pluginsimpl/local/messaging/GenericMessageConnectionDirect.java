@@ -36,6 +36,7 @@ import com.aelitis.azureus.core.networkmanager.IncomingMessageQueue;
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.OutgoingMessageQueue;
+import com.aelitis.azureus.core.networkmanager.ProtocolEndpoint;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 
 public class 
@@ -111,7 +112,7 @@ GenericMessageConnectionDirect
 		connection		= _connection;
 
 		connection.connect(
-				false,
+				ProtocolEndpoint.CONNECT_PRIORITY_MEDIUM,
 				new NetworkConnection.ConnectionListener()
 				{
 					public void 
@@ -218,7 +219,7 @@ GenericMessageConnectionDirect
 						
 		connection.connect(
 				initial_data,
-				false,
+				ProtocolEndpoint.CONNECT_PRIORITY_MEDIUM,
 				new NetworkConnection.ConnectionListener()
 				{
 					public void 

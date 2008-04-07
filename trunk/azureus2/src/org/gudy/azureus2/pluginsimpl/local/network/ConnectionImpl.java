@@ -26,6 +26,8 @@ import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.plugins.network.*;
 
+import com.aelitis.azureus.core.networkmanager.ProtocolEndpoint;
+
 
 
 /**
@@ -48,7 +50,7 @@ public class ConnectionImpl implements Connection {
   
   
   public void connect( final ConnectionListener listener ) {
-    core_connection.connect( false, new com.aelitis.azureus.core.networkmanager.NetworkConnection.ConnectionListener() {
+    core_connection.connect( ProtocolEndpoint.CONNECT_PRIORITY_MEDIUM, new com.aelitis.azureus.core.networkmanager.NetworkConnection.ConnectionListener() {
       public void connectStarted() { listener.connectStarted();  }
       
       public void connectSuccess( ByteBuffer remaining_initial_data) { listener.connectSuccess();  }

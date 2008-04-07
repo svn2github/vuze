@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
+import com.aelitis.azureus.core.networkmanager.ProtocolEndpoint;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminException;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminHTTPProxy;
@@ -402,7 +403,7 @@ NetworkAdminHTTPProxyImpl
 				};
 		
 			TCPNetworkManager.getSingleton().getConnectDisconnectManager().requestNewConnection(
-					socks_address, connect_listener, false );
+					socks_address, connect_listener, ProtocolEndpoint.CONNECT_PRIORITY_MEDIUM );
 						
 		}catch( Throwable e ){
 			

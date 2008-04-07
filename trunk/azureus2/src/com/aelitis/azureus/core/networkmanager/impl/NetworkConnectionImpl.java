@@ -112,11 +112,11 @@ NetworkConnectionImpl
 	  return( connection_endpoint );
   }
   
-  public void connect( boolean high_priority, ConnectionListener listener ) {
-	  connect( null, high_priority, listener );
+  public void connect( int priority, ConnectionListener listener ) {
+	  connect( null, priority, listener );
   }
   
-  public void connect( ByteBuffer initial_outbound_data, boolean high_priority, ConnectionListener listener ) {
+  public void connect( ByteBuffer initial_outbound_data, int priority, ConnectionListener listener ) {
     this.connection_listener = listener;
     
     if( is_connected ){
@@ -143,7 +143,7 @@ NetworkConnectionImpl
     			allow_fallback, 
     			shared_secrets, 
     			initial_outbound_data,
-    			high_priority,
+    			priority,
     			new Transport.ConnectListener() {
 			      public void connectAttemptStarted() {
 			        connection_listener.connectStarted();
@@ -394,7 +394,7 @@ NetworkConnectionImpl
 		connectOutbound(
 			ByteBuffer			initial_data,
 			ConnectListener 	listener,
-			boolean				high_priority )
+			int					priority )
 		{
 			Debug.out( "Bogus Transport Operation" );
 			

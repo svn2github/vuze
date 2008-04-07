@@ -153,7 +153,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
    * @param address remote peer address to connect to
    * @param listener establishment failure/success listener
    */
-  public void connectOutbound( final ByteBuffer initial_data, final ConnectListener listener, final boolean high_priority ) {
+  public void connectOutbound( final ByteBuffer initial_data, final ConnectListener listener, final int priority ) {
 	  
 	if ( !TCPNetworkManager.TCP_OUTGOING_ENABLED ){
 	
@@ -206,7 +206,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
           new ProxyLoginHandler( transport_instance, address, new ProxyLoginHandler.ProxyListener() {
             public void connectSuccess() {
             	Logger.log(new LogEvent(LOGID, "Proxy [" +description+ "] login successful." ));
-            	handleCrypto( address, channel, initial_data, high_priority, listener );
+            	handleCrypto( address, channel, initial_data, priority, listener );
             }
             
             public void connectFailure( Throwable failure_msg ) {
@@ -216,7 +216,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
           });
         }
         else {  //direct connection established, notify
-        	handleCrypto( address, channel, initial_data, high_priority, listener );
+        	handleCrypto( address, channel, initial_data, priority, listener );
         }
       }
 
@@ -230,7 +230,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
     
     InetSocketAddress to_connect = use_proxy ? ProxyLoginHandler.DEFAULT_SOCKS_SERVER_ADDRESS : address;
     
-    TCPNetworkManager.getSingleton().getConnectDisconnectManager().requestNewConnection( to_connect, connect_listener, high_priority );
+    TCPNetworkManager.getSingleton().getConnectDisconnectManager().requestNewConnection( to_connect, connect_listener, priority );
   }
   
     
@@ -241,7 +241,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
 	final InetSocketAddress 	address, 
 	final SocketChannel 		channel, 
 	final ByteBuffer 			initial_data, 
-	final boolean 				high_priority, 
+	final int	 				priority, 
 	final ConnectListener 		listener ) 
   {  	
   	if( connect_with_crypto ) {
@@ -271,7 +271,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
         			
         			initial_data.position( 0 );
         		}
-        		connectOutbound( initial_data, listener, high_priority );
+        		connectOutbound( initial_data, listener, priority );
         	}
         	else {
         		close( helper, "Handshake failure" );

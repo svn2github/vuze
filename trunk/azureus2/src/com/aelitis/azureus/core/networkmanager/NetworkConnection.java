@@ -39,9 +39,9 @@ NetworkConnection
    * connectSuccess() will be called immediately.
    * @param listener notified on connect success or failure
    */
-  public void connect( boolean high_priority, ConnectionListener listener );
+  public void connect( int priority, ConnectionListener listener );
 
-  public void connect( ByteBuffer initial_outbound_data, boolean high_priority, ConnectionListener listener );
+  public void connect( ByteBuffer initial_outbound_data, int priority, ConnectionListener listener );
 
   /**
    * Close and shutdown this connection.

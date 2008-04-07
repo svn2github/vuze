@@ -512,7 +512,7 @@ NetStatusProtocolTesterBT
 			}
 			
 			connection.connect( 
-					true,
+					ProtocolEndpoint.CONNECT_PRIORITY_MEDIUM,
 					new NetworkConnection.ConnectionListener() 
 					{
 						final String	type = initiator?"Outbound":"Inbound";

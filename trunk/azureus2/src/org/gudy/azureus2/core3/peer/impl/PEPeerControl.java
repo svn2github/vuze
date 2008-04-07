@@ -96,4 +96,6 @@ PEPeerControl
 	badPieceReported(
 		PEPeerTransport		originator,
 		int					piece_number );
+	
+	public boolean isRTA();
 }

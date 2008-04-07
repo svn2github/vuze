@@ -31,6 +31,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.AESemaphore;
 
 
+import com.aelitis.azureus.core.networkmanager.ProtocolEndpoint;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminException;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSocksProxy;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPConnectionManager;
@@ -256,7 +257,7 @@ NetworkAdminSocksProxyImpl
 			};
 	
 			TCPNetworkManager.getSingleton().getConnectDisconnectManager().requestNewConnection(
-					socks_address, connect_listener, false );
+					socks_address, connect_listener, ProtocolEndpoint.CONNECT_PRIORITY_MEDIUM );
 						
 		}catch( Throwable e ){
 			

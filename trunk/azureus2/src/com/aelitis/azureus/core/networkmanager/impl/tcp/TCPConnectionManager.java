@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.networkmanager.ProtocolEndpoint;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.stats.AzureusCoreStats;
@@ -446,6 +447,7 @@ public class TCPConnectionManager {
         for (Iterator pen_it =pending_attempts.keySet().iterator(); pen_it.hasNext();) {
           ConnectionRequest request =(ConnectionRequest) pen_it.next();
           if (request.listener ==key) {
+         	  
             connect_selector.cancel(request.channel);
 
             closeConnection(request.channel);
@@ -590,35 +592,81 @@ public class TCPConnectionManager {
    * @param address remote ip+port to connect to
    * @param listener to receive notification of connect attempt success/failure
    */
-  public void requestNewConnection( InetSocketAddress address, ConnectListener listener, boolean high_priority ) {   
-	  requestNewConnection( address, listener, CONNECT_ATTEMPT_TIMEOUT, high_priority  );
+  public void requestNewConnection( InetSocketAddress address, ConnectListener listener, int priority ) {   
+	  requestNewConnection( address, listener, CONNECT_ATTEMPT_TIMEOUT, priority  );
   }
   
-  public void requestNewConnection( InetSocketAddress address, ConnectListener listener, long connect_timeout, boolean high_priority ) {    
-	    try{
-	      new_canceled_mon.enter();
-	    
-	      //insert at a random position because new connections are usually added in 50-peer
-	      //chunks, i.e. from a tracker announce reply, and we want to evenly distribute the
-	      //connect attempts if there are multiple torrents running
+  public void 
+  requestNewConnection( 
+	  InetSocketAddress 	address, 
+	  ConnectListener 		listener, 
+	  long					connect_timeout, 
+	  int 					priority )
+  {    
+	  List	kicked = null;
+	  
+	  try{
+		  new_canceled_mon.enter();
 
-		  ConnectionRequest cr = new ConnectionRequest( connection_request_id_next++, address, listener, connect_timeout, high_priority );
+		  //insert at a random position because new connections are usually added in 50-peer
+		  //chunks, i.e. from a tracker announce reply, and we want to evenly distribute the
+		  //connect attempts if there are multiple torrents running
 
-	      new_requests.add( cr );
-	      
-	      if ( new_requests.size() >= max_outbound_connections ){
-			
-	    	if ( !max_conn_exceeded_logged ){
-	    		
-	    		max_conn_exceeded_logged = true;
-	    	
-	    		Debug.out( "TCPConnectionManager: max outbound connection limit reached (" + max_outbound_connections + ")" );
-	    	}
-	      }
-	    }finally{
-	    	
-	      new_canceled_mon.exit();
-	    }
+		  ConnectionRequest cr = new ConnectionRequest( connection_request_id_next++, address, listener, connect_timeout, priority );
+
+		  new_requests.add( cr );
+
+		  if ( new_requests.size() >= max_outbound_connections ){
+
+			  if ( !max_conn_exceeded_logged ){
+
+				  max_conn_exceeded_logged = true;
+
+				  Debug.out( "TCPConnectionManager: max outbound connection limit reached (" + max_outbound_connections + ")" );
+			  }
+		  }
+
+		  if ( priority == ProtocolEndpoint.CONNECT_PRIORITY_HIGHEST ){
+
+			  for (Iterator pen_it =pending_attempts.keySet().iterator(); pen_it.hasNext();){
+
+				  ConnectionRequest request =(ConnectionRequest) pen_it.next();
+
+				  if ( request.priority == ProtocolEndpoint.CONNECT_PRIORITY_LOW ){
+
+					  if ( !canceled_requests.contains( request.listener )){
+					  
+						  canceled_requests.add( request.listener );
+					  
+						  if ( kicked == null ){
+						  
+							  kicked = new ArrayList();
+						  }
+					  
+						  kicked.add( request );
+					  }
+				  }
+			  }
+		  }
+	  }finally{
+
+		  new_canceled_mon.exit();
+	  }
+	  
+	  if ( kicked != null ){
+		  
+		  for (int i=0;i<kicked.size();i++){
+			  
+			  try{
+				  ((ConnectionRequest)kicked.get(i)).listener.connectFailure(
+						 new Exception( "Low priority connection request abandoned in favour of high priority" ));
+				  
+			  }catch( Throwable e ){
+				  
+				  Debug.printStackTrace( e );
+			  }
+		  }
+	  }
   }
   
   /**
@@ -690,10 +738,10 @@ public class TCPConnectionManager {
     private final long connect_timeout;
     private SocketChannel channel;
     private final short		rand;
-    private final boolean	high_priority;
+    private final int		priority;
     private final long		id;
         
-    private ConnectionRequest( long _id, InetSocketAddress _address, ConnectListener _listener, long _connect_timeout, boolean _high_priority  ) {
+    private ConnectionRequest( long _id, InetSocketAddress _address, ConnectListener _listener, long _connect_timeout, int _priority  ) {
 
       id	= _id;
       address = _address;
@@ -701,7 +749,7 @@ public class TCPConnectionManager {
       connect_timeout	= _connect_timeout;
       request_start_time = SystemTime.getCurrentTime();
       rand = (short)( Short.MAX_VALUE*Math.random());
-      high_priority = _high_priority;
+      priority = _priority;
     }
     
     private long
@@ -713,7 +761,7 @@ public class TCPConnectionManager {
     private int
     getPriority()
     {
-    	return( high_priority?1:2 );
+    	return( priority );
     }
     
     private short

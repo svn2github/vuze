@@ -176,12 +176,12 @@ ConnectionEndpoint
 		boolean 			allow_fallback, 
 		byte[][]			shared_secrets,
 		ByteBuffer			initial_data,
-		boolean				high_priority,
+		int					priority,
 		ConnectListener 	listener )
 	{
 		ProtocolEndpoint	protocol = protocols[0];
 		
-		final Transport transport = protocol.connectOutbound( connect_with_crypto, allow_fallback, shared_secrets, initial_data, high_priority, listener );
+		final Transport transport = protocol.connectOutbound( connect_with_crypto, allow_fallback, shared_secrets, initial_data, priority, listener );
 		
 		return( 
 			new ConnectionAttempt()
