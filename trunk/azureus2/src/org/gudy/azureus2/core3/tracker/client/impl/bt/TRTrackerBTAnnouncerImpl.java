@@ -2286,8 +2286,6 @@ TRTrackerBTAnnouncerImpl
 					try {
 						time_to_wait = ((Long) metaData.get("interval")).longValue();
 						
-						time_to_wait = Math.max(userMinInterval, time_to_wait);
-
 						Long raw_min_interval = (Long) metaData.get("min interval");
 
 						if (Logger.isEnabled()) {
@@ -2304,8 +2302,6 @@ TRTrackerBTAnnouncerImpl
 						if (raw_min_interval != null) {
 							min_interval = raw_min_interval.longValue();
 							
-							min_interval = Math.max(min_interval, userMinInterval);
-
 							// ignore useless values
 							// Note: Many trackers set min_interval and interval the same.
 							if (min_interval < 1) {
@@ -2334,6 +2330,18 @@ TRTrackerBTAnnouncerImpl
 								min_interval = 0;
 							}
 						}
+						
+						if(userMinInterval != 0)
+						{
+							time_to_wait = Math.max(userMinInterval, time_to_wait);
+							min_interval = Math.max(min_interval, userMinInterval);
+							if (Logger.isEnabled()) {
+								Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_INFORMATION,
+										"Overriding with user settings: 'interval' = " + time_to_wait
+												+ "; 'min interval' = " + min_interval));
+							}
+						}
+
 
 						// roll back 10 seconds to make sure we announce before the tracker
 						// times us out.  This is done after min_interval in order not to 
