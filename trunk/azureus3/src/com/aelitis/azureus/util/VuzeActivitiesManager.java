@@ -33,6 +33,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformVuzeActivitiesMessenger;
 import com.aelitis.azureus.core.messenger.config.RatingUpdateListener2;
+import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.torrent.RatingInfoList;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
@@ -148,7 +149,9 @@ public class VuzeActivitiesManager
 							&& entry.dm != null) {
 						try {
 							String hash = entry.dm.getTorrent().getHashWrapper().toBase32String();
-							if (rating.hasHash(hash)) {
+							if (rating.hasHash(hash)
+									&& rating.getRatingValue(hash,
+											PlatformRatingMessenger.RATE_TYPE_CONTENT) != GlobalRatingUtils.RATING_NONE) {
 								removeEntries(new VuzeActivitiesEntry[] {
 									entry
 								});
