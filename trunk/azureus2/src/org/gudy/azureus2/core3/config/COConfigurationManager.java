@@ -88,7 +88,10 @@ COConfigurationManager
 			  	
 			  	
 			  	// flick AWT into headless mode, which is supposed to make it more lightweight
-			  	System.setProperty("java.awt.headless", "true");
+			  	// don't do this as it borks (for example) swing based plugins, java webstart installer,
+			  	// swing webui plugin, ....
+			  	
+			  	// System.setProperty("java.awt.headless", "true");
 		      
 		  		// defaults, overridden later if needed
 		      
