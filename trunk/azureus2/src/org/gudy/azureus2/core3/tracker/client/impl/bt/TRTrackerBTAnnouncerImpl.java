@@ -1205,7 +1205,7 @@ TRTrackerBTAnnouncerImpl
 		
 			if (Logger.isEnabled())
 				Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_ERROR,
-						"Exception while processing the Tracker Request : "
+						"Exception while processing the Tracker Request for " + reqUrl + ": "
 								+ failure_reason));
 			
 			throw( new Exception( failure_reason));
