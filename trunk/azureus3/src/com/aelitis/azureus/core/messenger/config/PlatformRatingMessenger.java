@@ -322,18 +322,18 @@ public class PlatformRatingMessenger
 	}
 
 	// Old EMP needs this class
-	public static interface GetRatingReply
+	public static abstract class GetRatingReply
 	{
-		public boolean hasHash(String hash);
+		public abstract boolean hasHash(String hash);
 
-		public long getRatingValue(String hash, String type);
+		public abstract long getRatingValue(String hash, String type);
 
-		public long getRatingCount(String hash, String type);
+		public abstract long getRatingCount(String hash, String type);
 
-		public String getRatingString(String hash, String type);
+		public abstract String getRatingString(String hash, String type);
 
-		public String getRatingColor(String hash, String type);
+		public abstract String getRatingColor(String hash, String type);
 
-		public long getRatingExpireyMins(String hash, String type);
+		public abstract long getRatingExpireyMins(String hash, String type);
 	}
 }

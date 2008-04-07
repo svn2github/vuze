@@ -25,17 +25,6 @@ import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger.GetRati
  * @created Mar 27, 2008
  *
  */
-public interface RatingInfoList extends GetRatingReply
+public abstract class RatingInfoList extends GetRatingReply
 {
-	public boolean hasHash(String hash);
-
-	public long getRatingValue(String hash, String type);
-
-	public long getRatingCount(String hash, String type);
-
-	public String getRatingString(String hash, String type);
-
-	public String getRatingColor(String hash, String type);
-
-	public long getRatingExpireyMins(String hash, String type);
 }

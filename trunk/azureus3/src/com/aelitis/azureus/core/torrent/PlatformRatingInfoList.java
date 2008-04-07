@@ -32,7 +32,7 @@ import com.aelitis.azureus.util.MapUtils;
  *
  */
 public class PlatformRatingInfoList
-	implements RatingInfoList
+	extends RatingInfoList
 {
 	/**
 	 * Map: 

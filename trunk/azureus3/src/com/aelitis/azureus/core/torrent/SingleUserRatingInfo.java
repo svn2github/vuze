@@ -27,7 +27,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrentException;
  *
  */
 public class SingleUserRatingInfo
-	implements RatingInfoList
+	extends RatingInfoList
 {
 	private final TOTorrent torrent;
 
