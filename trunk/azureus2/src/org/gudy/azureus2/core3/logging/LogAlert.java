@@ -71,6 +71,11 @@ public class LogAlert {
 		this(repeatable, AT_ERROR, text);
 		this.err = err;
 	}
+	
+	public LogAlert(boolean repeatable, int type, String text, Throwable err) {
+		this(repeatable, type, text);
+		this.err = err;
+	}
 
 	/**
 	 * @param downloadManagerImpl
