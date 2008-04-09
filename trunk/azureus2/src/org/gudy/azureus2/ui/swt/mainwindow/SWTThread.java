@@ -195,7 +195,9 @@ public class SWTThread {
 						// "cause of"'s stack trace in SWT < 3119
 						if (SWT.getVersion() < 3119)
 							e.printStackTrace();
-						Logger.log(new LogAlert(LogAlert.UNREPEATABLE,MessageText.getString("SWT.alert.erroringuithread"),e));
+						if (Constants.isCVSVersion()) {
+							Logger.log(new LogAlert(LogAlert.UNREPEATABLE,MessageText.getString("SWT.alert.erroringuithread"),e));
+						}
 						
 					}
 				}
