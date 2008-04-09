@@ -28,6 +28,7 @@ import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.MouseMoveListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
@@ -315,7 +316,7 @@ TorrentInfoView
 						
 		for (int i=0;i<cells.length;i++){
 			
-			FakeTableCell	cell = cells[i];
+			final FakeTableCell	cell = cells[i];
 			
 			label = new Label(gColumns, SWT.NULL);
 			gridData = new GridData();
@@ -327,11 +328,20 @@ TorrentInfoView
 			label.setText(MessageText.getString(key) + ": ");
 			label.setToolTipText(MessageText.getString(key + ".info", ""));
 
-			Composite c = new Composite(gColumns, SWT.NONE);
+			final Composite c = new Composite(gColumns, SWT.NONE);
 			gridData = new GridData( GridData.FILL_HORIZONTAL);
 			gridData.heightHint = 16;
 			c.setLayoutData(gridData);
 			cell.setControl(c);
+			c.addListener(SWT.MouseHover, new Listener() {
+				public void handleEvent(Event event) {
+					Object toolTip = cell.getToolTip();
+					if (toolTip instanceof String) {
+						String s = (String) toolTip;
+						c.setToolTipText(s);
+					}
+				}
+			});
 		}
 		
 		refresh();
