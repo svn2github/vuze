@@ -49,6 +49,8 @@ public class GCStringPrinter
 	private static final Pattern patHREF = Pattern.compile(
 			"<\\s*?a\\s.*?href\\s*?=\\s*?\"(.+?)\".*?>(.*?)<\\s*?/a\\s*?>", Pattern.CASE_INSENSITIVE);
 
+	private boolean cutoff;
+
 	private GC gc;
 
 	private final String string;
@@ -350,7 +352,7 @@ public class GCStringPrinter
 	 *
 	 * @since 3.0.0.7
 	 */
-	private static LineInfo processLine(final GC gc, final LineInfo lineInfo,
+	private LineInfo processLine(final GC gc, final LineInfo lineInfo,
 			final Rectangle printArea, final boolean wrap,
 			final boolean fullLinesOnly, boolean hasMoreElements) {
 		StringBuffer outputLine = new StringBuffer();
@@ -399,6 +401,7 @@ public class GCStringPrinter
 
 		if (!wrap && hasMoreElements && excessPos >= 0) {
 			outputLine.replace(outputLine.length() - 1, outputLine.length(), "..");
+			cutoff = true;
 		}
 		//drawLine(gc, outputLine, swtFlags, rectDraw);
 		//		if (!wrap) {
@@ -436,7 +439,7 @@ public class GCStringPrinter
 	 *
 	 * @since 3.0.0.7
 	 */
-	private static int processWord(final GC gc, final String sLine, String word,
+	private int processWord(final GC gc, final String sLine, String word,
 			final Rectangle printArea, final boolean wrap, final int[] iLineLength,
 			StringBuffer outputLine, final StringBuffer space) {
 
@@ -482,6 +485,7 @@ public class GCStringPrinter
 					}
 				} else if (len > 1) {
 					outputLine.replace(outputLine.length() - 1, outputLine.length(), "..");
+					cutoff = true;
 				}
 			}
 			//drawLine(gc, outputLine, swtFlags, rectDraw);
@@ -507,6 +511,7 @@ public class GCStringPrinter
 					}
 				} else if (len > 1) {
 					outputLine.replace(outputLine.length() - 1, outputLine.length(), "..");
+					cutoff = true;
 				}
 				return -1;
 			} else {
@@ -862,5 +867,9 @@ public class GCStringPrinter
 
 	public boolean hasHitUrl() {
 		return listUrlInfo != null && listUrlInfo.size() > 0;
+	}
+
+	public boolean isCutoff() {
+		return cutoff;
 	}
 }
