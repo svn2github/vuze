@@ -108,6 +108,8 @@ public class FakeTableCell
 
 	private Rectangle cellArea;
 
+	private boolean hadMore;
+
 	/**
 	 * @param columnRateUpDown
 	 */
@@ -540,6 +542,9 @@ public class FakeTableCell
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getToolTip()
 	public Object getToolTip() {
+		if (tooltip == null && hadMore) {
+			return text;
+		}
 		return tooltip;
 	}
 
@@ -763,7 +768,9 @@ public class FakeTableCell
 		}
 
 		if (text != null && text.length() > 0) {
-			GCStringPrinter.printString(gc, text, bounds, true, false, orientation);
+			GCStringPrinter sp = new GCStringPrinter(gc, text, bounds, true, false, orientation);
+			sp.printString();
+			hadMore = sp.isCutoff();
 		}
 	}
 
