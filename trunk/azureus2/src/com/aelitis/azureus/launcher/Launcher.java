@@ -22,6 +22,8 @@ package com.aelitis.azureus.launcher;
 import java.lang.reflect.Method;
 import java.net.URL;
 
+import org.gudy.azureus2.core3.util.Constants;
+
 import com.aelitis.azureus.launcher.classloading.*;
 
 /**
@@ -33,7 +35,7 @@ import com.aelitis.azureus.launcher.classloading.*;
  */
 public class Launcher {
 	
-	private final static boolean LOADER_ENABLED = false; 
+	private final static boolean LOADER_ENABLED = !Constants.isOSX; 
 	
 	/**
 	 * Bootstraps a new {@link PrimaryClassloader} from the system class loader,
