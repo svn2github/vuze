@@ -21,8 +21,8 @@
 
 package com.aelitis.azureus.plugins.net.buddy;
 
+import java.io.File;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -48,8 +48,6 @@ import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.messaging.MessageException;
 import org.gudy.azureus2.plugins.messaging.MessageManager;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnection;
-import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnectionListener;
-import org.gudy.azureus2.plugins.messaging.generic.GenericMessageEndpoint;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageHandler;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageRegistration;
 import org.gudy.azureus2.plugins.ui.UIInstance;
@@ -60,7 +58,6 @@ import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 import org.gudy.azureus2.plugins.ui.config.StringParameter;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
-import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.plugins.utils.UTTimerEvent;
 import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
 import org.gudy.azureus2.plugins.utils.security.SEPublicKey;
@@ -91,6 +88,12 @@ implements Plugin
 	private static final int	STATUS_REPUBLISH_PERIOD		= 5*60*1000;
 	private static final int	STATUS_REPUBLISH_TICKS		= STATUS_REPUBLISH_PERIOD/TIMER_PERIOD;
 
+	private static final int	CHECK_YGM_PERIOD			= 5*60*1000;
+	private static final int	CHECK_YGM_TICKS				= CHECK_YGM_PERIOD/TIMER_PERIOD;
+	
+	private static final int	SAVE_CONFIG_PERIOD			= 60*1000;
+	private static final int	SAVE_CONFIG_TICKS			= SAVE_CONFIG_PERIOD/TIMER_PERIOD;
+
 	private volatile int	 initialisation_state = INIT_UNKNOWN;
 	
 	private PluginInterface	plugin_interface;
@@ -98,7 +101,7 @@ implements Plugin
 	private LoggerChannel	logger;
 	
 	private ActionParameter add_buddy_button;
-	private ActionParameter test_msg_button;
+
 			
 	private boolean			ready_to_publish;
 	private publishDetails	current_publish		= new publishDetails();
@@ -111,7 +114,8 @@ implements Plugin
 	
 	private CryptoHandler ecc_handler = CryptoManagerFactory.getSingleton().getECCHandler();
 
-	private List	buddies = new ArrayList();
+	private List	buddies 	= new ArrayList();
+	private Map		buddies_map	= new HashMap();
 	
 	private boolean	is_enabled;
 
@@ -122,6 +126,8 @@ implements Plugin
 
 	private GenericMessageRegistration	msg_registration;
 		
+	private boolean		config_dirty;
+	
 	public void
 	initialize(
 		final PluginInterface		_plugin_interface )
@@ -326,7 +332,8 @@ implements Plugin
 				
 				public void
 				closedownInitiated()
-				{				
+				{	
+					saveBuddies();
 				}
 				
 				public void
@@ -723,11 +730,40 @@ implements Plugin
 		return( key );
 	}
 
+	protected DistributedDatabaseKey
+	getYGMKey(
+		byte[]	public_key,
+		String	reason )
+	
+		throws Exception
+	{
+		byte[]	key_prefix = "azbuddy:ygm".getBytes();
+		
+		byte[]	key_bytes = new byte[ key_prefix.length + public_key.length ];
+		
+		System.arraycopy( key_prefix, 0, key_bytes, 0, key_prefix.length );
+		System.arraycopy( public_key, 0, key_bytes, key_prefix.length, public_key.length );
+		
+		DistributedDatabaseKey key = ddb.createKey( key_bytes, reason );
+		
+		return( key );
+	}
+	
+	protected void
+	setConfigDirty()
+	{
+		synchronized( this ){
+			
+			config_dirty = true;
+		}
+	}
+	
 	protected void
 	loadBuddies()
 	{
 		synchronized( this ){
-			List buddies_config = plugin_interface.getPluginconfig().getPluginListParameter( "buddies", new ArrayList());
+			
+			List buddies_config = readConfig(); 
 	
 			for (int i=0;i<buddies_config.size();i++){
 				
@@ -738,12 +774,51 @@ implements Plugin
 					Map	details = (Map)o;
 					
 					String	key = new String((byte[])details.get("pk"));
-					BuddyPluginBuddy buddy = new BuddyPluginBuddy( this, key );
+					
+					List	recent_ygm = (List)details.get( "ygm" );
+					
+					BuddyPluginBuddy buddy = new BuddyPluginBuddy( this, key, recent_ygm );
 					
 					logMessage( "Loaded buddy " + buddy.getString());
 					
 					buddies.add( buddy );
+					
+					buddies_map.put( key, buddy );
 				}
+			}
+		}
+	}
+	
+	protected void
+	saveBuddies()
+	{
+		synchronized( this ){
+
+			if ( config_dirty ){
+				
+				List buddies_config = new ArrayList();
+		
+				for (int i=0;i<buddies.size();i++){
+					
+					BuddyPluginBuddy buddy = (BuddyPluginBuddy)buddies.get(i);
+		
+					Map	map = new HashMap();
+				
+					map.put( "pk", buddy.getPublicKey());
+				
+					List	ygm = buddy.getYGMMarkers();
+					
+					if ( ygm != null ){
+						
+						map.put( "ygm", ygm );
+					}
+					
+					buddies_config.add( map );
+				}
+				
+				writeConfig( buddies_config );
+				
+				config_dirty = false;
 			}
 		}
 	}
@@ -758,7 +833,7 @@ implements Plugin
 		}
 				
 		synchronized( this ){
-			
+						
 			for (int i=0;i<buddies.size();i++){
 				
 				BuddyPluginBuddy buddy = (BuddyPluginBuddy)buddies.get(i);
@@ -769,28 +844,60 @@ implements Plugin
 				}
 			}
 			
-			BuddyPluginBuddy buddy = new BuddyPluginBuddy( this, key );
+			BuddyPluginBuddy new_buddy = new BuddyPluginBuddy( this, key, null );
 			
-			buddies.add( buddy );
+			buddies.add( new_buddy );
 			
-			logMessage( "Added buddy " + buddy.getString());
+			buddies_map.put( key, new_buddy );
+			
+			config_dirty	= true;
+			
+			logMessage( "Added buddy " + new_buddy.getString());
 
-			List buddies_config = plugin_interface.getPluginconfig().getPluginListParameter( "buddies", new ArrayList());
-
-			Map	map = new HashMap();
-			
-			map.put( "pk", key );
-			
-			buddies_config.add( map );
-				
-			plugin_interface.getPluginconfig().setPluginListParameter( "buddies", buddies_config );
+			saveBuddies();
 		}
+	}
+	
+	
+	protected List
+	readConfig()
+	{
+		File	config_file = new File( plugin_interface.getUtilities().getAzureusUserDir(), "buddies.config" );
+		
+		Map map = plugin_interface.getUtilities().readResilientBEncodedFile(
+				config_file.getParentFile(), config_file.getName(), true );
+		
+		if ( map != null ){
+			
+			List	buddies = (List)map.get( "buddies" );
+			
+			if ( buddies != null ){
+				
+				return( buddies );
+			}
+		}
+		
+		return( new ArrayList());
+	}
+	
+	protected void
+	writeConfig(
+		List	buddies )
+	{
+		File	config_file = new File( plugin_interface.getUtilities().getAzureusUserDir(), "buddies.config" );
+		
+		Map	map = new HashMap();
+		
+		map.put( "buddies", buddies );
+		
+		plugin_interface.getUtilities().writeResilientBEncodedFile(
+				config_file.getParentFile(), config_file.getName(), map, true );
 	}
 	
 	protected void
 	checkBuddiesAndRepublish()
 	{
-		updateBuddystatus();
+		updateBuddys();
 		
 		plugin_interface.getUtilities().createTimer( "Buddy checker" ).addPeriodicEvent(
 			TIMER_PERIOD,
@@ -809,24 +916,31 @@ implements Plugin
 						return;
 					}
 												
-					updateBuddystatus();
+					updateBuddys();
 					
 					if ( tick_count % STATUS_REPUBLISH_TICKS == 0 ){
-
-						synchronized( this ){
 							
-							if ( latest_publish.isEnabled()){
+						if ( latest_publish.isEnabled()){
 								
-								updatePublish( latest_publish );
-							}
+							updatePublish( latest_publish );
 						}
+					}
+					
+					if ( tick_count % CHECK_YGM_TICKS == 0 ){
+
+						checkMessagePending();
+					}
+					
+					if ( tick_count % SAVE_CONFIG_TICKS == 0 ){
+
+						saveBuddies();
 					}
 				}
 			});
 	}
 	
 	protected void
-	updateBuddystatus()
+	updateBuddys()
 	{
 		List	buddies_copy;
 		
@@ -842,6 +956,8 @@ implements Plugin
 			BuddyPluginBuddy	buddy = (BuddyPluginBuddy)buddies_copy.get(i);
 			
 			long	last_check = buddy.getLastStatusCheckTime();
+			
+			buddy.checkTimeouts();
 			
 			if ( last_check > now || now - last_check > BUDDY_STATUS_CHECK_PERIOD ){
 				
@@ -953,6 +1069,137 @@ implements Plugin
 			buddy.statusCheckFailed();
 			
 			log( "Buddy status update failed: " + buddy.getString(), e );
+		}
+	}
+	
+	protected Map
+	verifyAndExtract(
+		byte[]		signed_stuff,
+		byte[]		public_key )
+	
+		throws Exception
+	{
+		int	signature_length = ((int)signed_stuff[0])&0xff;
+		
+		byte[]	signature 	= new byte[ signature_length ];
+		byte[]	data		= new byte[ signed_stuff.length - 1 - signature_length];
+		
+		System.arraycopy( signed_stuff, 1, signature, 0, signature_length );
+		System.arraycopy( signed_stuff, 1 + signature_length, data, 0, data.length );
+				
+		if ( ecc_handler.verify( public_key, data, signature )){													
+
+			return( BDecoder.decode( data ));
+																																
+		}else{
+			
+			log( "Verification failed" );
+			
+			return( null );
+		}
+	}
+	public void
+	setMessagePending(
+		BuddyPluginBuddy	buddy )
+	{
+		
+	}
+	
+	public void
+	checkMessagePending()
+	{
+		log( "Checking YGM" );
+
+		try{	
+			String	reason = "Buddy YGM check";
+			
+			byte[] public_key = ecc_handler.getPublicKey( reason );
+
+			DistributedDatabaseKey	key = 
+				getYGMKey( public_key, reason );
+			
+			ddb.read(
+				new DistributedDatabaseListener()
+				{	
+					private List	new_ygm_buddies = new ArrayList();
+					
+					public void
+					event(
+						DistributedDatabaseEvent		event )
+					{
+						int	type = event.getType();
+						
+						if ( type == DistributedDatabaseEvent.ET_VALUE_READ ){
+							
+							try{
+								DistributedDatabaseValue value = event.getValue();
+																
+								byte[]	payload = (byte[])value.getValue( byte[].class );
+								
+								Map	map = BDecoder.decode( payload );
+								
+								byte[]	pk = (byte[])map.get( "pk" );
+								
+								String	pk_str = Base32.encode( pk );
+								
+								BuddyPluginBuddy buddy = getBuddyFromPublicKey( pk_str );
+								
+								if ( buddy == null ){
+									
+									log( "YGM entry from unknown buddy '" + pk_str + "' - ignoring" );
+									
+								}else{
+									
+									byte[]	signed_stuff = (byte[])map.get( "ss" );
+									
+									Map	details = verifyAndExtract( signed_stuff, pk );
+									
+									if ( details != null ){
+										
+										long	rand = ((Long)details.get("r")).longValue();
+										
+										if ( buddy.addYGMMarker( rand )){
+											
+											new_ygm_buddies.add( buddy );
+										}
+									}
+								}
+							}catch( Throwable e ){
+								
+								log( "Read failed", e );
+							}
+						}else if ( 	type == DistributedDatabaseEvent.ET_OPERATION_TIMEOUT ||
+									type == DistributedDatabaseEvent.ET_OPERATION_COMPLETE ){
+							
+							if ( new_ygm_buddies.size() > 0 ){
+								
+								BuddyPluginBuddy[] b = new BuddyPluginBuddy[new_ygm_buddies.size()];
+								
+								new_ygm_buddies.toArray( b );
+								
+								fireYGM( b );
+							}
+						}
+					}
+				},
+				key,
+				120*1000,
+				DistributedDatabase.OP_EXHAUSTIVE_READ );
+			
+			
+		}catch( Throwable e ){
+						
+			log( "YGM check failed", e );
+		}
+	}
+	
+	protected BuddyPluginBuddy
+	getBuddyFromPublicKey(
+		String		key )
+	{
+		synchronized( this ){
+			
+			return((BuddyPluginBuddy)buddies_map.get( key ));
 		}
 	}
 	
@@ -1071,6 +1318,41 @@ implements Plugin
 		return( null );
 	}
 	
+	protected void
+   	fireStatusChanged(
+   		BuddyPluginBuddy		from_buddy )
+   	{
+   		List	 listeners_ref = request_listeners.getList();
+   		
+   		for (int i=0;i<listeners_ref.size();i++){
+   			
+   			try{
+   				((BuddyPluginBuddyRequestListener)listeners_ref.get(i)).onlineStatusChanged( from_buddy );
+ 
+   			}catch( Throwable e ){
+   				
+   				Debug.printStackTrace( e );
+   			}
+   		}
+   	}
+	
+	protected void
+   	fireYGM(
+   		BuddyPluginBuddy[]		from_buddies )
+   	{
+   		List	 listeners_ref = request_listeners.getList();
+   		
+   		for (int i=0;i<listeners_ref.size();i++){
+   			
+   			try{
+   				((BuddyPluginBuddyRequestListener)listeners_ref.get(i)).pendingMessages( from_buddies );
+ 
+   			}catch( Throwable e ){
+   				
+   				Debug.printStackTrace( e );
+   			}
+   		}
+   	}
 	public void
 	addRequestListener(
 		BuddyPluginBuddyRequestListener	listener )

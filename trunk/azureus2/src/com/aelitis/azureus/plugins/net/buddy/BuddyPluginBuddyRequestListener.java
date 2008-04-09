@@ -30,6 +30,10 @@ BuddyPluginBuddyRequestListener
 		byte[]				content );
 	
 	public void
-	pendingMessage(
-		BuddyPluginBuddy	from_buddy );
+	pendingMessages(
+		BuddyPluginBuddy[]	from_buddies );
+	
+	public void
+	onlineStatusChanged(
+		BuddyPluginBuddy	buddy );	
 }

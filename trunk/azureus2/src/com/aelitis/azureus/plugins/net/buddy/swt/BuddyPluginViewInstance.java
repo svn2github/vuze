@@ -21,7 +21,6 @@
 
 package com.aelitis.azureus.plugins.net.buddy.swt;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -35,11 +34,12 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddyRequestListener;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginListener;
 
 public class 
 BuddyPluginViewInstance 
-	implements BuddyPluginListener
+	implements BuddyPluginListener, BuddyPluginBuddyRequestListener
 {
 	private static final int LOG_NORMAL 	= 1;
 	private static final int LOG_SUCCESS 	= 2;
@@ -80,6 +80,8 @@ BuddyPluginViewInstance
 
 		plugin.addListener( this );
 		
+		plugin.addRequestListener( this );
+		
 		List buddies = plugin.getBuddies();
 
 		for (int i=0;i<buddies.size();i++){
@@ -116,6 +118,31 @@ BuddyPluginViewInstance
 		print( str, LOG_NORMAL, false, false );
 	}
 
+	
+	public byte[]
+	requestReceived(
+		BuddyPluginBuddy	from_buddy,
+		byte[]				content )
+	{
+		print( "Request received: " + from_buddy.getString() + " -> " + content );
+		
+		return( null );
+	}
+	
+	public void
+	pendingMessages(
+		BuddyPluginBuddy[]	from_buddies )
+	{
+		print( "YGM received: " + from_buddies );
+	}
+	
+	public void
+	onlineStatusChanged(
+		BuddyPluginBuddy	buddy )
+	{
+		print( "Online status changed: " + buddy.getString() + " -> " + buddy.isOnline());
+	}
+	
 	protected void
 	print(
 			String		str )
@@ -210,5 +237,8 @@ BuddyPluginViewInstance
 		composite = null;
 		
 		plugin.removeListener( this );
+		
+		plugin.removeRequestListener( this );
+
 	}
 }
