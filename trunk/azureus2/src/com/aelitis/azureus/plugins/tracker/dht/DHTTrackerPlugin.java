@@ -47,6 +47,7 @@ import org.gudy.azureus2.plugins.PluginListener;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
+import org.gudy.azureus2.plugins.download.DownloadAttributeListener;
 import org.gudy.azureus2.plugins.download.DownloadListener;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.download.DownloadPropertyEvent;
@@ -82,7 +83,7 @@ import com.aelitis.azureus.plugins.dht.*;
 
 public class 
 DHTTrackerPlugin 
-	implements Plugin, DownloadListener, DownloadPropertyListener, DownloadTrackerListener
+	implements Plugin, DownloadListener, DownloadAttributeListener, DownloadTrackerListener
 {
 	private static final String	PLUGIN_NAME			= "Distributed Tracker";
 	private static final String PLUGIN_CONFIGSECTION_ID = "plugins.dhttracker";
@@ -569,7 +570,8 @@ DHTTrackerPlugin
 							}
 						}
 						
-						download.addPropertyListener( DHTTrackerPlugin.this );
+						download.addAttributeListener(DHTTrackerPlugin.this, ta_networks, DownloadAttributeListener.WRITTEN);
+						download.addAttributeListener(DHTTrackerPlugin.this, ta_peer_sources, DownloadAttributeListener.WRITTEN);
 						
 						download.addTrackerListener( DHTTrackerPlugin.this );
 						
@@ -582,7 +584,6 @@ DHTTrackerPlugin
 					downloadRemoved(
 						Download	download )
 					{
-						download.removePropertyListener( DHTTrackerPlugin.this );
 						
 						download.removeTrackerListener( DHTTrackerPlugin.this );
 
@@ -626,19 +627,8 @@ DHTTrackerPlugin
 			});
 	}
 	
-	public void
-	propertyChanged(
-		Download				download,
-		DownloadPropertyEvent	event )
-	{
-		if ( event.getType() == DownloadPropertyEvent.PT_TORRENT_ATTRIBUTE_WRITTEN ){
-			
-			if ( 	event.getData() == ta_networks ||
-					event.getData() == ta_peer_sources ){
-				
-				checkDownloadForRegistration( download, false );
-			}
-		}
+	public void attributeEventOccurred(Download download, TorrentAttribute attr, int event_type) {
+		checkDownloadForRegistration(download, false);
 	}
 	
 	public void
