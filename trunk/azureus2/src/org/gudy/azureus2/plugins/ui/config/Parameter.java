@@ -77,6 +77,27 @@ Parameter
 	isVisible();
 	
 	/**
+	 * Controls whether or not 'parameter change' events are fired for each incremental value change
+	 * @param b
+	 * 
+	 * @since 3.0.5.1
+	 */
+	
+	public void
+	setGenerateIntermediateEvents(
+		boolean	b );
+	
+	/**
+	 * 
+	 * @return
+	 * 
+	 * @since 3.0.5.1
+	 */
+	
+	public boolean
+	getGenerateIntermediateEvents();
+	
+	/**
 	 * Adds a listener triggered when the parameter is changed by the user
 	 * 
 	 * @param l Listener to add

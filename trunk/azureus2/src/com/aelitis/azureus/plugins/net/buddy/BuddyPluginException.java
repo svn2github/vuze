@@ -25,14 +25,14 @@ public class
 BuddyPluginException
 	extends Exception
 {
-	protected
+	public
 	BuddyPluginException(
 		String	str )
 	{
 		super( str );
 	}
 	
-	protected
+	public
 	BuddyPluginException(
 		String		str,
 		Throwable 	cause )

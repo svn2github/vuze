@@ -21,13 +21,15 @@
 
 package com.aelitis.azureus.plugins.net.buddy;
 
+import java.util.Map;
+
 public interface 
 BuddyPluginBuddyReplyListener 
 {
 	public void
 	replyReceived(
 		BuddyPluginBuddy		from_buddy,
-		byte[]					content );
+		Map						reply );
 	
 	public void
 	sendFailed(

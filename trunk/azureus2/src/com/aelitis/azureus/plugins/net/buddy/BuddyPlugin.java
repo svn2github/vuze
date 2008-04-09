@@ -75,7 +75,16 @@ public class
 BuddyPlugin 
 implements Plugin
 {
-	public static final String VIEW_ID = "azbuddy";
+	public static final int	SUBSYSTEM_INTERNAL	= 0;
+	public static final int	SUBSYSTEM_AZ2		= 1;
+	public static final int	SUBSYSTEM_AZ3		= 2;
+	
+	protected static final int RT_INTERNAL_REQUEST_PING		= 1;
+	protected static final int RT_INTERNAL_REPLY_PING		= 2;
+
+	protected static final boolean TRACE = false; 
+
+	private static final String VIEW_ID = "azbuddy";
 
 	private static final int	INIT_UNKNOWN		= 0;
 	private static final int	INIT_OK				= 1;
@@ -154,33 +163,40 @@ implements Plugin
 		logger.setDiagnostic();
 				
 		BasicPluginConfigModel config = plugin_interface.getUIManager().createBasicPluginConfigModel( name_res );
-				
+			
+			// enabled
 
-		final BooleanParameter enabled = config.addBooleanParameter2( "enabled", "enabled", false );
+		final BooleanParameter enabled_param = config.addBooleanParameter2( "enabled", "enabled", false );
+				
+			// nickname
+
+		final StringParameter nick_name_param = config.addStringParameter2( "nickname", "nickname", "" );
+
+		nick_name_param.setGenerateIntermediateEvents( false );
 		
-		enabled.addListener(
+		nick_name_param.addListener(
 				new ParameterListener()
 				{
 					public void
 					parameterChanged(
 						Parameter	param )
 					{
-						setEnabled( enabled.getValue());
+						updateNickName( nick_name_param.getValue());
 					}
 				});
 		
 			// add buddy
 		
-		final StringParameter buddy_pk = config.addStringParameter2( "other buddy key", "other buddy key", "" );
+		final StringParameter buddy_pk_param = config.addStringParameter2( "other buddy key", "other buddy key", "" );
 		
-		buddy_pk.addListener(
+		buddy_pk_param.addListener(
 				new ParameterListener()
 				{
 					public void
 					parameterChanged(
 						Parameter	param )
 					{
-						String	value = buddy_pk.getValue().trim();
+						String	value = buddy_pk_param.getValue().trim();
 						
 						byte[] bytes = Base32.decode( value );					
 						
@@ -199,23 +215,7 @@ implements Plugin
 				parameterChanged(
 					Parameter	param )
 				{
-					addBuddy( buddy_pk.getValue().trim());
-				}
-			});
-		
-		
-			// ping
-			
-		ActionParameter ping_button = config.addActionParameter2( "ping all buddies", "do it!" );
-				
-		ping_button.addListener(
-			new ParameterListener()
-			{
-				public void
-				parameterChanged(
-					Parameter	param )
-				{
-					pingAll();
+					addBuddy( buddy_pk_param.getValue().trim());
 				}
 			});
 		
@@ -244,6 +244,32 @@ implements Plugin
 				{
 				}
 			});
+		
+		ParameterListener enabled_listener = 
+			new ParameterListener()
+			{
+				public void
+				parameterChanged(
+					Parameter	param )
+				{
+					boolean enabled = enabled_param.getValue();
+					
+					nick_name_param.setEnabled( enabled );
+					buddy_pk_param.setEnabled( enabled );
+					add_buddy_button.setEnabled( enabled );
+					
+						// only toggle overall state on a real change
+					
+					if ( param != null ){
+					
+						setEnabled( enabled );
+					}
+				}
+			};
+		
+		enabled_listener.parameterChanged( null );
+			
+		enabled_param.addListener( enabled_listener );
 		
 		loadBuddies();
 		
@@ -285,6 +311,8 @@ implements Plugin
 										
 								updateIP();
 								
+								updateNickName( nick_name_param.getValue());
+								
 								COConfigurationManager.addAndFireParameterListeners(
 										new String[]{
 											"TCP.Listen.Port",
@@ -314,7 +342,7 @@ implements Plugin
 								
 								ready_to_publish	= true;
 								
-								setEnabled( enabled.getValue());
+								setEnabled( enabled_param.getValue());
 								
 								checkBuddiesAndRepublish();
 								
@@ -366,6 +394,45 @@ implements Plugin
 	registerMessageHandler()
 	{
 		try{
+			addRequestListener(
+				new BuddyPluginBuddyRequestListener()
+				{
+					public Map
+					requestReceived(
+						BuddyPluginBuddy	from_buddy,
+						int					subsystem,
+						Map					request )
+					
+						throws BuddyPluginException
+					{
+						if ( subsystem == SUBSYSTEM_INTERNAL ){
+							
+							int	type = ((Long)request.get("type")).intValue();
+							
+							if ( type == RT_INTERNAL_REQUEST_PING ){
+							
+								Map	reply = new HashMap();
+							
+								reply.put( "type", new Long( RT_INTERNAL_REPLY_PING ));
+							
+								return( reply );
+								
+							}else{
+								
+								throw( new BuddyPluginException( "Unrecognised request type " + type ));
+							}
+						}
+						
+						return( null );
+					}
+					
+					public void
+					pendingMessages(
+						BuddyPluginBuddy[]	from_buddies )
+					{
+					}
+				});
+			
 			msg_registration = 
 				plugin_interface.getMessageManager().registerGenericMessageType(
 					"AZBUDDY", "Buddy message handler", 
@@ -378,7 +445,9 @@ implements Plugin
 						
 							throws MessageException
 						{
-							System.out.println( "accept" );
+							if ( TRACE ){
+								System.out.println( "accept" );
+							}
 							
 							try{	
 								String reason = "Buddy: Incoming connection establishment";
@@ -394,7 +463,9 @@ implements Plugin
 													Object		context,
 													SEPublicKey	other_key )
 												{
-													System.out.println( "Incoming: acceptKey" );
+													if ( TRACE ){
+														System.out.println( "Incoming: acceptKey" );
+													}
 													
 													synchronized( BuddyPlugin.this ){
 															
@@ -434,24 +505,6 @@ implements Plugin
 		}catch( Throwable e ){
 			
 			log( "Failed to register message listener", e );
-		}
-	}
-	
-	protected void
-	pingAll()
-	{
-		List	buddies_copy;
-		
-		synchronized( this ){
-		
-			buddies_copy = new ArrayList( buddies );
-		}
-				
-		for (int i=0;i<buddies_copy.size();i++){
-			
-			BuddyPluginBuddy	buddy = (BuddyPluginBuddy)buddies_copy.get(i);
-			
-			buddy.ping();
 		}
 	}
 	
@@ -510,6 +563,50 @@ implements Plugin
 				updatePublish( new_publish );
 			}
 		}
+	}
+	
+	protected void
+	updateNickName(
+		String		new_nick )
+	{
+		new_nick = new_nick.trim();
+		
+		if ( new_nick.length() == 0 ){
+			
+			new_nick = null;
+		}
+		
+		synchronized( this ){
+
+			String	old_nick = latest_publish.getNickName();
+			
+			if ( !stringsEqual( new_nick, old_nick )){
+			
+				publishDetails new_publish = latest_publish.getCopy();
+					
+				new_publish.setNickName( new_nick );
+					
+				updatePublish( new_publish );
+			}
+		}
+	}
+	
+	protected boolean
+	stringsEqual(
+		String	s1, 
+		String	s2 )
+	{
+		if ( s1 == null && s2 == null ){
+			
+			return( true );
+		}
+		
+		if ( s1 == null || s2 == null ){
+			
+			return( false );
+		}
+		
+		return( s1.equals( s2 ));
 	}
 	
 	protected void
@@ -656,6 +753,18 @@ implements Plugin
 						
 			payload.put( "i", ip.getAddress());
 			
+			String	nick = details.getNickName();
+			
+			if ( nick != null ){
+				
+				if ( nick.length() > 32 ){
+					
+					nick = nick.substring( 0, 32 );
+				}
+				
+				payload.put( "n", nick );
+			}
+			
 			try{
 				byte[] data = BEncoder.encode( payload );
 										
@@ -776,8 +885,10 @@ implements Plugin
 					String	key = new String((byte[])details.get("pk"));
 					
 					List	recent_ygm = (List)details.get( "ygm" );
+										
+					String	nick = decodeString((byte[])details.get( "n" ));
 					
-					BuddyPluginBuddy buddy = new BuddyPluginBuddy( this, key, recent_ygm );
+					BuddyPluginBuddy buddy = new BuddyPluginBuddy( this, key, nick, recent_ygm );
 					
 					logMessage( "Loaded buddy " + buddy.getString());
 					
@@ -786,6 +897,24 @@ implements Plugin
 					buddies_map.put( key, buddy );
 				}
 			}
+		}
+	}
+	
+	protected String
+	decodeString(
+		byte[]		bytes )
+	{
+		if (  bytes == null ){
+			
+			return( null );
+		}
+		
+		try{
+			return( new String( bytes, "UTF8" ));
+			
+		}catch( Throwable e ){
+			
+			return( null );
 		}
 	}
 	
@@ -813,6 +942,13 @@ implements Plugin
 						map.put( "ygm", ygm );
 					}
 					
+					String	nick = buddy.getNickName();
+					
+					if ( nick != null ){
+						
+						map.put( "n", nick );
+					}
+					
 					buddies_config.add( map );
 				}
 				
@@ -832,6 +968,8 @@ implements Plugin
 			return;
 		}
 				
+		BuddyPluginBuddy	new_buddy;
+		
 		synchronized( this ){
 						
 			for (int i=0;i<buddies.size();i++){
@@ -844,7 +982,7 @@ implements Plugin
 				}
 			}
 			
-			BuddyPluginBuddy new_buddy = new BuddyPluginBuddy( this, key, null );
+			new_buddy = new BuddyPluginBuddy( this, key, null, null );
 			
 			buddies.add( new_buddy );
 			
@@ -856,8 +994,32 @@ implements Plugin
 
 			saveBuddies();
 		}
+		
+		fireAdded( new_buddy );
 	}
 	
+	protected void
+	removeBuddy(
+		BuddyPluginBuddy 	buddy )
+	{
+		synchronized( this ){
+
+			if ( !buddies.remove( buddy )){
+				
+				return;
+			}
+		
+			buddies_map.remove( buddy.getPublicKey());
+			
+			config_dirty = true;
+			
+			logMessage( "Removed buddy " + buddy.getString());
+
+			saveBuddies();
+		}
+		
+		fireRemoved( buddy );
+	}
 	
 	protected List
 	readConfig()
@@ -1049,7 +1211,9 @@ implements Plugin
 									
 									InetAddress ip = InetAddress.getByAddress((byte[])status.get("i"));
 									
-									buddy.statusCheckComplete( latest_time, ip, tcp_port, udp_port );
+									String	nick = decodeString((byte[])status.get( "n" ));
+									
+									buddy.statusCheckComplete( latest_time, ip, tcp_port, udp_port, nick );
 									
 								}catch( Throwable e ){
 									
@@ -1260,7 +1424,7 @@ implements Plugin
 		}
 		      
 	
-		List	 listeners_ref = request_listeners.getList();
+		List	 listeners_ref = listeners.getList();
 		
 		for (int i=0;i<listeners_ref.size();i++){
 
@@ -1293,17 +1457,18 @@ implements Plugin
 		listeners.remove( listener );
 	}
 	
-	protected byte[]
+	protected Map
 	requestReceived(
 		BuddyPluginBuddy		from_buddy,
-		byte[]					content )
+		int						subsystem,
+		Map						content )
 	{
 		List	 listeners_ref = request_listeners.getList();
 		
 		for (int i=0;i<listeners_ref.size();i++){
 			
 			try{
-				byte[] reply = ((BuddyPluginBuddyRequestListener)listeners_ref.get(i)).requestReceived(from_buddy, content);
+				Map reply = ((BuddyPluginBuddyRequestListener)listeners_ref.get(i)).requestReceived(from_buddy, subsystem, content);
 				
 				if ( reply != null ){
 					
@@ -1319,15 +1484,51 @@ implements Plugin
 	}
 	
 	protected void
-   	fireStatusChanged(
-   		BuddyPluginBuddy		from_buddy )
+   	fireAdded(
+   		BuddyPluginBuddy		buddy )
    	{
-   		List	 listeners_ref = request_listeners.getList();
+   		List	 listeners_ref = listeners.getList();
    		
    		for (int i=0;i<listeners_ref.size();i++){
    			
    			try{
-   				((BuddyPluginBuddyRequestListener)listeners_ref.get(i)).onlineStatusChanged( from_buddy );
+   				((BuddyPluginListener)listeners_ref.get(i)).buddyAdded( buddy );
+ 
+   			}catch( Throwable e ){
+   				
+   				Debug.printStackTrace( e );
+   			}
+   		}
+   	}
+	
+	protected void
+   	fireRemoved(
+   		BuddyPluginBuddy		buddy )
+   	{
+   		List	 listeners_ref = listeners.getList();
+   		
+   		for (int i=0;i<listeners_ref.size();i++){
+   			
+   			try{
+   				((BuddyPluginListener)listeners_ref.get(i)).buddyRemoved( buddy );
+ 
+   			}catch( Throwable e ){
+   				
+   				Debug.printStackTrace( e );
+   			}
+   		}
+   	}
+	
+	protected void
+   	fireDetailsChanged(
+   		BuddyPluginBuddy		buddy )
+   	{
+   		List	 listeners_ref = listeners.getList();
+   		
+   		for (int i=0;i<listeners_ref.size();i++){
+   			
+   			try{
+   				((BuddyPluginListener)listeners_ref.get(i)).buddyChanged( buddy );
  
    			}catch( Throwable e ){
    				
@@ -1411,6 +1612,7 @@ implements Plugin
 		private InetAddress		ip;
 		private int				tcp_port;
 		private int				udp_port;
+		private String			nick_name;
 		
 		private boolean			enabled;
 		private boolean			published;
@@ -1507,6 +1709,19 @@ implements Plugin
 			int		_port )
 		{
 			udp_port = _port;
+		}
+		
+		protected String
+		getNickName()
+		{
+			return( nick_name );
+		}
+		
+		protected void
+		setNickName(
+			String		 n )
+		{
+			nick_name	= n;
 		}
 		
 		protected String

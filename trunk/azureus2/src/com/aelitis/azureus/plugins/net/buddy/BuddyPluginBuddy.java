@@ -45,22 +45,23 @@ import org.gudy.azureus2.plugins.utils.security.SESecurityManager;
 public class 
 BuddyPluginBuddy 
 {
+	private static final boolean TRACE = BuddyPlugin.TRACE;
+	
 	private static final int CONNECTION_IDLE_TIMEOUT	= 5*60*1000;
 	
 	private static final int MAX_ACTIVE_CONNECTIONS		= 5;
 	private static final int MAX_QUEUED_MESSAGES		= 256;
 	
 	private static final int RT_REQUEST_DATA	= 1;
-	private static final int RT_REPLY_DATA		= 2;
-	private static final int RT_REQUEST_PING	= 3;
-	private static final int RT_REPLY_PING		= 4;
 	
+	private static final int RT_REPLY_DATA		= 2;	
 	private static final int RT_REPLY_ERROR		= 99;
 
 	private static Random	random = new Random();
 	
 	private BuddyPlugin		plugin;
 	private String			public_key;
+	private String			nick_name;
 	private List			recent_ygm;
 	
 	private long			post_time;
@@ -85,10 +86,12 @@ BuddyPluginBuddy
 	BuddyPluginBuddy(
 		BuddyPlugin	_plugin,
 		String		_pk,
+		String		_nick_name,
 		List		_recent_ygm )
 	{
 		plugin		= _plugin;
 		public_key 	= _pk;
+		nick_name	= _nick_name;
 		recent_ygm	= _recent_ygm;
 	}
 	
@@ -102,6 +105,29 @@ BuddyPluginBuddy
 	getShortString()
 	{
 		return( public_key.substring( 0, 6 ) + ".." );
+	}
+	
+	public String
+	getNickName()
+	{
+		return( nick_name );
+	}
+	
+	public String
+	getName()
+	{
+		if ( nick_name != null ){
+			
+			return( nick_name );
+		}
+		
+		return( public_key );
+	}
+	
+	public void
+	remove()
+	{
+		plugin.removeBuddy( this );
 	}
 	
 	public boolean
@@ -180,22 +206,26 @@ BuddyPluginBuddy
 		return( recent_ygm );
 	}
 	
-	protected void
+	public void
 	ping()
 	{
 		try{
+			Map	ping_request = new HashMap();
+			
+			ping_request.put( "type", new Long( BuddyPlugin.RT_INTERNAL_REQUEST_PING ));
+			
 			sendMessage(
-				RT_REQUEST_PING,
-				"ping".getBytes(),
+				BuddyPlugin.SUBSYSTEM_INTERNAL,
+				ping_request,
 				60*1000,
 				new BuddyPluginBuddyReplyListener()
 				{
 					public void
 					replyReceived(
 						BuddyPluginBuddy	from_buddy,
-						byte[]				content )
+						Map					reply )
 					{
-						log( "Ping received:" + new String( content ));
+						log( "Ping received:" + reply );
 					}
 					
 					public void
@@ -215,19 +245,8 @@ BuddyPluginBuddy
 	
 	public void
 	sendMessage(
-		byte[]							content,
-		int								timeout_millis,
-		BuddyPluginBuddyReplyListener	listener )
-	
-		throws BuddyPluginException
-	{
-		sendMessage( RT_REQUEST_DATA, content, timeout_millis, listener );
-	}
-	
-	protected void
-	sendMessage(
-		final int								type,
-		final byte[]							content,
+		final int								subsystem,
+		final Map								content,
 		final int								timeout_millis,
 		final BuddyPluginBuddyReplyListener		listener )
 	
@@ -287,7 +306,7 @@ BuddyPluginBuddy
 							}
 						}
 						
-						sendMessageSupport( type, content, new_tm, listener );
+						sendMessageSupport( content, subsystem, new_tm, listener );
 						
 					}catch( Throwable e ){
 						
@@ -304,14 +323,14 @@ BuddyPluginBuddy
 			
 		}else{
 			
-			sendMessageSupport( type, content, timeout_millis, listener );
+			sendMessageSupport( content, subsystem, timeout_millis, listener );
 		}
 	}
 	
 	protected void
 	sendMessageSupport(
-		final int								type,
-		final byte[]							content,
+		final Map								content,
+		final int								subsystem,
 		final int								timeout_millis,
 		final BuddyPluginBuddyReplyListener		original_listener )
 	
@@ -329,7 +348,7 @@ BuddyPluginBuddy
 			throw( new BuddyPluginException( "Too many messages queued" ));
 		}
 		
-		final buddyMessage	message = new buddyMessage( type, content, timeout_millis );
+		final buddyMessage	message = new buddyMessage( subsystem, content, timeout_millis );
 		
 		BuddyPluginBuddyReplyListener	listener_delegate = 
 			new BuddyPluginBuddyReplyListener()
@@ -337,7 +356,7 @@ BuddyPluginBuddy
 				public void
 				replyReceived(
 					BuddyPluginBuddy		from_buddy,
-					byte[]					content )
+					Map						reply )
 				{
 					logMessage( "Msg " + message.getString() + " ok" );
 					
@@ -352,7 +371,7 @@ BuddyPluginBuddy
 							current_message = null;
 						}
 						
-						original_listener.replyReceived( from_buddy, content );
+						original_listener.replyReceived( from_buddy, reply );
 						
 					}finally{
 						
@@ -552,7 +571,7 @@ BuddyPluginBuddy
 			
 		if ( status_change ){
 			
-			plugin.fireStatusChanged( this );
+			plugin.fireDetailsChanged( this );
 		}
 		
 		plugin.logMessage( public_key + ": offline" );
@@ -563,34 +582,76 @@ BuddyPluginBuddy
 		long			_post_time,
 		InetAddress		_ip,
 		int				_tcp_port,
-		int				_udp_port )
+		int				_udp_port,
+		String			_nick_name )
 	{
-		boolean	status_change = false;
+		boolean	details_change 	= false;
+		boolean	config_dirty 	= false;
 		
 		synchronized( this ){
 
 			if ( !online ){
 				
 				online			= true;
-				status_change	= true;
+				details_change	= true;
 			}
 
 			post_time	= _post_time;
-			ip			= _ip;
-			tcp_port	= _tcp_port;
-			udp_port	= _udp_port;
+			
+			if ( 	!addressesEqual( ip, _ip ) ||
+					tcp_port != _tcp_port ||
+					udp_port != _udp_port ){
+				
+				ip			= _ip;
+				tcp_port	= _tcp_port;
+				udp_port	= _udp_port;
+				
+				details_change	= true;
+			}
+			
+			if ( !plugin.stringsEqual( nick_name, _nick_name )){
+				
+				nick_name	= _nick_name;
+				
+				config_dirty	= true;
+				details_change	= true;
+			}
 			
 			status_check_count++;
 					
 			check_active = false;
 		}
 		
-		if ( status_change ){
+		if ( config_dirty ){
 			
-			plugin.fireStatusChanged( this );
+			plugin.setConfigDirty();
 		}
 		
-		plugin.logMessage( public_key + ": online - ip=" + ip + ",tcp=" + tcp_port + ",udp=" + udp_port + ",age=" + (SystemTime.getCurrentTime() - post_time ));
+		if ( details_change ){
+			
+			plugin.fireDetailsChanged( this );
+		}
+		
+		plugin.logMessage( getString());
+	}
+	
+	protected boolean
+	addressesEqual(
+		InetAddress		ip1,
+		InetAddress		ip2 )
+	{
+		if ( ip1 == null && ip2 == null ){
+			
+			return( true );
+			
+		}else if ( ip1 == null || ip2 == null ){
+			
+			return( false );
+			
+		}else{
+	
+			return( ip1.equals( ip2 ));
+		}
 	}
 	
 	protected void
@@ -816,7 +877,7 @@ BuddyPluginBuddy
 	public String
 	getString()
 	{
-		return( "pk=" + public_key + ",ip=" + ip + ",tcp=" + tcp_port + ",udp=" + udp_port );
+		return( "pk=" + public_key + (nick_name==null?"":(",nick=" + nick_name)) + ",ip=" + ip + ",tcp=" + tcp_port + ",udp=" + udp_port + ",online=" + online + ",age=" + (SystemTime.getCurrentTime() - post_time ));
 	}
 
 	protected class
@@ -824,8 +885,8 @@ BuddyPluginBuddy
 	{
 		private int									message_id;
 		
-		private int									type;
-		private byte[]								request;
+		private Map									request;
+		private int									subsystem;
 		private BuddyPluginBuddyReplyListener		listener;
 		private int									timeout_millis;
 		
@@ -837,8 +898,8 @@ BuddyPluginBuddy
 		
 		protected
 		buddyMessage(
-			int									_type,
-			byte[]								_request,
+			int									_subsystem,
+			Map									_request,
 			int									_timeout )
 		{
 			synchronized( BuddyPluginBuddy.this ){
@@ -846,8 +907,8 @@ BuddyPluginBuddy
 				message_id = next_message_id++;
 			}
 			
-			type			= _type;
 			request			= _request;
+			subsystem		= _subsystem;
 			timeout_millis	= _timeout;
 		}
 		
@@ -903,21 +964,27 @@ BuddyPluginBuddy
 			}
 		}
 		
-		protected int
-		getType()
-		{
-			return( type );
-		}
-		
-		protected byte[]
+		protected Map
 		getRequest()
 		{
 			return( request );
 		}
 		
+		protected int
+		getSubsystem()
+		{
+			return( subsystem );
+		}
+		
+		protected int
+		getID()
+		{
+			return( message_id );
+		}
+		
 		protected void
 		reportComplete(
-			byte[]		reply )
+			Map		reply )
 		{
 			synchronized( this ){
 				
@@ -970,7 +1037,7 @@ BuddyPluginBuddy
 		protected String
 		getString()
 		{
-			return( "id=" + message_id + ",type=" + type + (retry_count==0?"":(",retry="+retry_count)));
+			return( "id=" + message_id + ",ss=" + subsystem + (retry_count==0?"":(",retry="+retry_count)));
 		}
 	}
 	
@@ -1062,7 +1129,9 @@ BuddyPluginBuddy
 		connected(
 			GenericMessageConnection	connection )
 		{
-			System.out.println( dir_str + " connected" );
+			if ( TRACE ){
+				System.out.println( dir_str + " connected" );
+			}
 			
 			boolean	send = false;
 			
@@ -1126,17 +1195,19 @@ BuddyPluginBuddy
 		protected void
 		send()
 		{
-			byte[] request = active_message.getRequest();
+			Map request = active_message.getRequest();
 			
-			Map	map = new HashMap();
+			Map	send_map = new HashMap();
 			
-			map.put( "type", new Long( active_message.getType()));
-			map.put( "data", request );
+			send_map.put( "type", new Long( RT_REQUEST_DATA ));
+			send_map.put( "req", request );
+			send_map.put( "ss", new Long( active_message.getSubsystem()));
+			send_map.put( "id", new Long( active_message.getID()));
 			
 			PooledByteBuffer	buffer	= null;
 			
 			try{
-				byte[] data = BEncoder.encode( map );
+				byte[] data = BEncoder.encode( send_map );
 				
 				buffer = 
 					plugin.getPluginInterface().getUtilities().allocatePooledByteBuffer( data );
@@ -1169,7 +1240,7 @@ BuddyPluginBuddy
 		public void
 		receive(
 			GenericMessageConnection	connection,
-			PooledByteBuffer			request_buffer )
+			PooledByteBuffer			data_buffer )
 		
 			throws MessageException
 		{
@@ -1179,58 +1250,58 @@ BuddyPluginBuddy
 			}
 			
 			try{
-				byte[]	content = request_buffer.toByteArray();
+				byte[]	content = data_buffer.toByteArray();
 				
-				System.out.println( dir_str + " receive: " + content.length );
+				if ( TRACE ){
+					System.out.println( dir_str + " receive: " + content.length );
+				}
 				
-				Map	request_map = BDecoder.decode( content );
+				Map	data_map = BDecoder.decode( content );
 				
-				int	type = ((Long)request_map.get("type")).intValue();
+				int	type = ((Long)data_map.get("type")).intValue();
 				
-				if ( type == RT_REQUEST_DATA || type == RT_REQUEST_PING ){
+				if ( type == RT_REQUEST_DATA ){
 					
 					logMessage( "Received type=" + type + " from " + getString());
 				
-					byte[]	reply;
+					Long	subsystem = (Long)data_map.get( "ss" );
+					
+					Map	reply;
 					
 					int	reply_type;
 					
-					if ( type == RT_REQUEST_PING ){
+					Map request = (Map)data_map.get( "req" );
+
+					if ( request == null || subsystem == null ){
 						
-						reply = "pong".getBytes();
-											
-						reply_type = RT_REPLY_PING;
+						reply	= null;
 						
 					}else{
 						
-						byte[]	data = (byte[])request_map.get( "data" );
-
-						if ( data == null ){
-							
-							reply	= null;
-							
-						}else{
-							
-							reply = plugin.requestReceived( BuddyPluginBuddy.this, data );
-						}
+						reply = plugin.requestReceived( BuddyPluginBuddy.this, subsystem.intValue(), request );
+					}
+					
+					if ( reply == null ){
 						
-						if ( reply == null ){
-							
-							reply_type = RT_REPLY_ERROR;
-							
-							reply	= "No handlers available to process request".getBytes();
-							
-						}else{
-							
-							reply_type = RT_REPLY_DATA;
-						}
+						reply_type = RT_REPLY_ERROR;
+						
+						reply = new HashMap();
+						
+						reply.put( "error", "No handlers available to process request" );
+						
+					}else{
+						
+						reply_type = RT_REPLY_DATA;
 					}
 					
 					Map reply_map = new HashMap();
 					
-					reply_map.put( "type", new Long( reply_type ));
-					reply_map.put( "data", reply );
-					
+					reply_map.put( "ss", subsystem );
+					reply_map.put( "type", new Long( reply_type ));																
+					reply_map.put( "id", data_map.get( "id" ) );
+
+					reply_map.put( "rep", reply );
+
 					PooledByteBuffer	reply_buffer = 
 						plugin.getPluginInterface().getUtilities().allocatePooledByteBuffer( BEncoder.encode( reply_map ));
 
@@ -1250,7 +1321,7 @@ BuddyPluginBuddy
 						}
 					}
 					
-				}else if ( type == RT_REPLY_DATA || type == RT_REPLY_PING || type == RT_REPLY_ERROR ){
+				}else if ( type == RT_REPLY_DATA || type == RT_REPLY_ERROR ){
 					
 					buddyMessage	bm;
 					
@@ -1263,13 +1334,15 @@ BuddyPluginBuddy
 					
 					if ( bm != null ){
 						
+						Map	reply = (Map)data_map.get( "rep" );
+						
 						if ( type == RT_REPLY_ERROR ){
 							
-							bm.reportFailed( new BuddyPluginException(new String((byte[])request_map.get( "data" ))));
+							bm.reportFailed( new BuddyPluginException(new String((byte[])reply.get( "error" ))));
 							
 						}else{
 							
-							bm.reportComplete((byte[])request_map.get( "data" ));
+							bm.reportComplete( reply );
 						}
 					}
 										
@@ -1283,7 +1356,7 @@ BuddyPluginBuddy
 				
 			}finally{
 				
-				request_buffer.returnToPool();
+				data_buffer.returnToPool();
 			}
 		}
 		
@@ -1321,7 +1394,9 @@ BuddyPluginBuddy
 			try{
 				if ( !closing ){
 					
-					System.out.println( dir_str + " connection error:" );
+					if ( TRACE ){
+						System.out.println( dir_str + " connection error:" );
+					}
 					
 					error.printStackTrace();
 				}

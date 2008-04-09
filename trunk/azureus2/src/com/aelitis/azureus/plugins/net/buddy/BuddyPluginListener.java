@@ -37,6 +37,10 @@ BuddyPluginListener
 		BuddyPluginBuddy	buddy );
 
 	public void
+	buddyChanged(
+		BuddyPluginBuddy	buddy );
+	
+	public void
 	messageLogged(
 		String		str );
 }

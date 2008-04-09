@@ -21,19 +21,20 @@
 
 package com.aelitis.azureus.plugins.net.buddy;
 
+import java.util.Map;
+
 public interface 
 BuddyPluginBuddyRequestListener 
 {
-	public byte[]
+	public Map
 	requestReceived(
 		BuddyPluginBuddy	from_buddy,
-		byte[]				content );
+		int					subsystem,
+		Map					request )
+	
+		throws BuddyPluginException;
 	
 	public void
 	pendingMessages(
 		BuddyPluginBuddy[]	from_buddies );
-	
-	public void
-	onlineStatusChanged(
-		BuddyPluginBuddy	buddy );	
 }

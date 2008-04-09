@@ -49,6 +49,7 @@ public class StringParameterImpl extends ParameterImpl implements StringParamete
 	{
 		return defaultValue;
 	}
+	
 	public String
 	getValue()
 	{

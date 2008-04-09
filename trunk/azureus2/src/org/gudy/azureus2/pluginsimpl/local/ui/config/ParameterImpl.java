@@ -45,8 +45,9 @@ ParameterImpl
 	private 	String 			labelKey;
 	private 	String 			label;
 	
-	private	boolean	enabled	= true;
-	private boolean	visible	= true;
+	private	boolean	enabled							= true;
+	private boolean	visible							= true;
+	private boolean generate_intermediate_events	= true;
 	
 	private List toDisable	= new ArrayList();
 	private List toEnable	= new ArrayList();
@@ -151,6 +152,19 @@ ParameterImpl
 	isVisible()
 	{
 		return( visible );
+	}
+	
+	public void
+	setGenerateIntermediateEvents(
+		boolean		b )
+	{
+		generate_intermediate_events = b;
+	}
+	
+	public boolean
+	getGenerateIntermediateEvents()
+	{
+		return( generate_intermediate_events );
 	}
 	
 	public void
