@@ -82,6 +82,9 @@ BuddyPluginBuddy
 	private int	next_connection_id;
 	private int	next_message_id;
 	
+	private boolean	ygm_active;
+	private boolean	ygm_pending;
+	
 	protected
 	BuddyPluginBuddy(
 		BuddyPlugin	_plugin,
@@ -168,7 +171,48 @@ BuddyPluginBuddy
 	
 		throws BuddyPluginException
 	{
-		plugin.setMessagePending( this );
+		synchronized( this ){
+			
+			if ( ygm_active ){
+				
+				ygm_pending = true;
+				
+				return;
+			}
+			
+			ygm_active = true;
+		}
+		
+		plugin.setMessagePending( 
+			this,
+			new BuddyPlugin.operationListener()
+			{
+				public void 
+				complete() 
+				{
+					boolean	retry;
+					
+					synchronized( this ){
+						
+						ygm_active = false;
+						
+						retry = ygm_pending;
+						
+						ygm_pending = false;
+					}
+					
+					if ( retry ){
+						
+						try{
+							setMessagePending();
+							
+						}catch( BuddyPluginException e ){
+							
+							log( "Failed to send YGM", e );
+						}
+					}
+				}	
+			});
 	}
 	
 	protected boolean

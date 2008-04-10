@@ -1277,15 +1277,16 @@ implements Plugin
 		return( signed_payload );
 	}
 	
-	public void
+	protected void
 	setMessagePending(
-		BuddyPluginBuddy	buddy )
+		BuddyPluginBuddy			buddy,
+		final operationListener		listener )
 	
 		throws BuddyPluginException
-	{
-		checkAvailable();
-		
+	{		
 		try{
+			checkAvailable();
+
 			final String	reason = "Buddy YGM write for " + buddy.getName();
 			
 			Map	payload = new HashMap();
@@ -1319,18 +1320,29 @@ implements Plugin
 							
 							logMessage( reason + " complete"  );
 
+							listener.complete();
 						}
 					}
 				},
 				key,
 				value );
-			
 
 		}catch( Throwable e ){
 			
-			log( "Failed to publish YGM", e );
-			
-			throw( new BuddyPluginException( "Failed to publish YGM", e ));
+			try{
+				log( "Failed to publish YGM", e );
+				
+				if ( e instanceof BuddyPluginException ){
+					
+					throw((BuddyPluginException)e);
+				}
+				
+				throw( new BuddyPluginException( "Failed to publish YGM", e ));
+				
+			}finally{
+				
+				listener.complete();
+			}
 		}
 	}
 	
@@ -1793,5 +1805,12 @@ implements Plugin
 		{
 			return( "enabled=" + enabled + ",ip=" + ip + ",tcp=" + tcp_port + ",udp=" + udp_port + ",key=" + (public_key==null?"<none>":Base32.encode( public_key )));
 		}
+	}
+	
+	protected interface
+	operationListener
+	{
+		public void
+		complete();
 	}
 }
