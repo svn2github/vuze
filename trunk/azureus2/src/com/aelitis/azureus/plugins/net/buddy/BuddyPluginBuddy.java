@@ -165,6 +165,8 @@ BuddyPluginBuddy
 	
 	public void
 	setMessagePending()
+	
+		throws BuddyPluginException
 	{
 		plugin.setMessagePending( this );
 	}
@@ -208,7 +210,10 @@ BuddyPluginBuddy
 	
 	public void
 	ping()
+		throws BuddyPluginException
 	{
+		plugin.checkAvailable();
+		
 		try{
 			Map	ping_request = new HashMap();
 			
@@ -238,8 +243,8 @@ BuddyPluginBuddy
 				});
 			
 		}catch( Throwable e ){
-			
-			log( "Ping failed to " + getString(), e );
+						
+			throw( new BuddyPluginException( "Ping failed", e ));
 		}
 	}
 	

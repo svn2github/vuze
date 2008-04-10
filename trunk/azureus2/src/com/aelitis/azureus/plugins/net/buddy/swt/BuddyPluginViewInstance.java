@@ -186,43 +186,38 @@ BuddyPluginViewInstance
 					request.put( "type", new Long(1));
 					request.put( "msg", msg.getBytes());
 					
-					try{
-						for (int i=0;i<selection.length;i++){
-							
-							BuddyPluginBuddy buddy = (BuddyPluginBuddy)selection[i].getData();
-							
-							try{
-								buddy.sendMessage(
-									BuddyPlugin.SUBSYSTEM_AZ2,
-									request, 
-									60*1000, 
-									new BuddyPluginBuddyReplyListener()
-									{
-										public void
-										replyReceived(
-											BuddyPluginBuddy		from_buddy,
-											Map						reply )
-										{
-											print( "Send ok" );
-										}
-										
-										public void
-										sendFailed(
-											BuddyPluginBuddy		to_buddy,
-											BuddyPluginException	cause )
-										{
-											print( "Send failed: " + Debug.getNestedExceptionMessage(cause));
-										}
-									});
-								
-							}catch( Throwable e ){
-								
-								print( "Send failed: " + Debug.getNestedExceptionMessage(e));
-							}
-						}
-					}catch( Throwable e ){
+					for (int i=0;i<selection.length;i++){
 						
-						print( "Send failed: " + Debug.getNestedExceptionMessage(e));
+						BuddyPluginBuddy buddy = (BuddyPluginBuddy)selection[i].getData();
+						
+						try{
+							buddy.sendMessage(
+								BuddyPlugin.SUBSYSTEM_AZ2,
+								request, 
+								60*1000, 
+								new BuddyPluginBuddyReplyListener()
+								{
+									public void
+									replyReceived(
+										BuddyPluginBuddy		from_buddy,
+										Map						reply )
+									{
+										print( "Send ok" );
+									}
+									
+									public void
+									sendFailed(
+										BuddyPluginBuddy		to_buddy,
+										BuddyPluginException	cause )
+									{
+										print( "Send failed: " + Debug.getNestedExceptionMessage(cause));
+									}
+								});
+								
+						}catch( Throwable e ){
+							
+							print( "Send failed", e );
+						}
 					}
 				};
 			});
@@ -236,7 +231,7 @@ BuddyPluginViewInstance
 			{
 				public void 
 				widgetSelected(
-					SelectionEvent e) 
+					SelectionEvent event ) 
 				{
 					TableItem[] selection = buddy_table.getSelection();
 					
@@ -244,7 +239,14 @@ BuddyPluginViewInstance
 						
 						BuddyPluginBuddy buddy = (BuddyPluginBuddy)selection[i].getData();
 						
-						buddy.ping();
+						try{
+						
+							buddy.ping();
+							
+						}catch( Throwable e ){
+							
+							print( "Ping failed", e );
+						}
 					}
 				};
 			});
@@ -258,7 +260,7 @@ BuddyPluginViewInstance
 			{
 				public void 
 				widgetSelected(
-					SelectionEvent e) 
+					SelectionEvent event ) 
 				{
 					TableItem[] selection = buddy_table.getSelection();
 					
@@ -266,7 +268,13 @@ BuddyPluginViewInstance
 						
 						BuddyPluginBuddy buddy = (BuddyPluginBuddy)selection[i].getData();
 						
-						buddy.setMessagePending();
+						try{
+							buddy.setMessagePending();
+							
+						}catch( Throwable e ){
+							
+							print( "YGM failed", e );
+						}
 					}
 				};
 			});
@@ -407,12 +415,27 @@ BuddyPluginViewInstance
 	pendingMessages(
 		BuddyPluginBuddy[]	from_buddies )
 	{
-		print( "YGM received: " + from_buddies );
+		String	str = "";
+		
+		for (int i=0;i<from_buddies.length;i++){
+			
+			str += (str.length()==0?"":",") + from_buddies[i].getName();
+		}
+		
+		print( "YGM received: " + str );
 	}
 	
 	protected void
 	print(
-			String		str )
+		String		str,
+		Throwable	e )
+	{
+		print( str + ": " + Debug.getNestedExceptionMessage( e ));
+	}
+	
+	protected void
+	print(
+		String		str )
 	{
 		print( str, LOG_NORMAL, false, true );
 	}

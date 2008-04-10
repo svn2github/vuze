@@ -23,6 +23,7 @@ package com.aelitis.azureus.plugins.net.buddy;
 
 import java.io.File;
 import java.net.InetAddress;
+import java.security.SecureRandom;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -136,6 +137,8 @@ implements Plugin
 	private GenericMessageRegistration	msg_registration;
 		
 	private boolean		config_dirty;
+	
+	private Random	random = new SecureRandom();
 	
 	public void
 	initialize(
@@ -1171,25 +1174,15 @@ implements Plugin
 								
 								if ( time > latest_time ){
 								
-									byte[] signed_payload = (byte[])value.getValue( byte[].class );
+									byte[] signed_stuff = (byte[])value.getValue( byte[].class );
 								
-									int	signature_length = ((int)signed_payload[0])&0xff;
+									Map	new_status = verifyAndExtract( signed_stuff, public_key );
 									
-									byte[]	signature 	= new byte[ signature_length ];
-									byte[]	data		= new byte[ signed_payload.length - 1 - signature_length];
-									
-									System.arraycopy( signed_payload, 1, signature, 0, signature_length );
-									System.arraycopy( signed_payload, 1 + signature_length, data, 0, data.length );
-											
-									if ( ecc_handler.verify( public_key, data, signature )){													
+									if ( new_status != null ){
 	
-										status = BDecoder.decode( data );
+										status = new_status;
 																																							
 										latest_time = time;
-
-									}else{
-										
-										log( "Verification failed" );
 									}
 								}
 							}catch( Throwable e ){
@@ -1262,11 +1255,83 @@ implements Plugin
 			return( null );
 		}
 	}
+	
+	protected byte[]
+	signAndInsert(
+		Map		plain_stuff,
+		String	reason )
+	
+		throws Exception
+	{
+		byte[] data = BEncoder.encode( plain_stuff );
+		
+		byte[] signature = ecc_handler.sign( data, reason );
+	
+		byte[]	signed_payload = new byte[ 1 + signature.length + data.length ];
+		
+		signed_payload[0] = (byte)signature.length;
+		
+		System.arraycopy( signature, 0, signed_payload, 1, signature.length );
+		System.arraycopy( data, 0, signed_payload, 1 + signature.length, data.length );		
+
+		return( signed_payload );
+	}
+	
 	public void
 	setMessagePending(
 		BuddyPluginBuddy	buddy )
+	
+		throws BuddyPluginException
 	{
+		checkAvailable();
 		
+		try{
+			final String	reason = "Buddy YGM write for " + buddy.getName();
+			
+			Map	payload = new HashMap();
+			
+			payload.put( "r", new Long( random.nextLong()));
+			
+			byte[] signed_payload = signAndInsert( payload, reason);
+			
+			Map	envelope = new HashMap();
+			
+			envelope.put( "pk", ecc_handler.getPublicKey( reason ));
+			envelope.put( "ss", signed_payload );
+			
+			DistributedDatabaseValue	value = ddb.createValue( BEncoder.encode( envelope ));
+										
+			logMessage( reason + " starts: " + payload );
+			
+			DistributedDatabaseKey	key = getYGMKey( Base32.decode( buddy.getPublicKey()), reason );
+
+			ddb.write(
+				new DistributedDatabaseListener()
+				{
+					public void
+					event(
+						DistributedDatabaseEvent		event )
+					{
+						int	type = event.getType();
+					
+						if ( 	type == DistributedDatabaseEvent.ET_OPERATION_TIMEOUT ||
+								type == DistributedDatabaseEvent.ET_OPERATION_COMPLETE ){
+							
+							logMessage( reason + " complete"  );
+
+						}
+					}
+				},
+				key,
+				value );
+			
+
+		}catch( Throwable e ){
+			
+			log( "Failed to publish YGM", e );
+			
+			throw( new BuddyPluginException( "Failed to publish YGM", e ));
+		}
 	}
 	
 	public void
@@ -1279,8 +1344,7 @@ implements Plugin
 			
 			byte[] public_key = ecc_handler.getPublicKey( reason );
 
-			DistributedDatabaseKey	key = 
-				getYGMKey( public_key, reason );
+			DistributedDatabaseKey	key = getYGMKey( public_key, reason );
 			
 			ddb.read(
 				new DistributedDatabaseListener()
@@ -1298,9 +1362,9 @@ implements Plugin
 							try{
 								DistributedDatabaseValue value = event.getValue();
 																
-								byte[]	payload = (byte[])value.getValue( byte[].class );
+								byte[]	envelope = (byte[])value.getValue( byte[].class );
 								
-								Map	map = BDecoder.decode( payload );
+								Map	map = BDecoder.decode( envelope );
 								
 								byte[]	pk = (byte[])map.get( "pk" );
 								
@@ -1316,11 +1380,11 @@ implements Plugin
 									
 									byte[]	signed_stuff = (byte[])map.get( "ss" );
 									
-									Map	details = verifyAndExtract( signed_stuff, pk );
+									Map	payload = verifyAndExtract( signed_stuff, pk );
 									
-									if ( details != null ){
+									if ( payload != null ){
 										
-										long	rand = ((Long)details.get("r")).longValue();
+										long	rand = ((Long)payload.get("r")).longValue();
 										
 										if ( buddy.addYGMMarker( rand )){
 											
