@@ -30,6 +30,9 @@ import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -37,12 +40,12 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Sash;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
-import org.gudy.azureus2.core3.util.BDecoder;
-import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
@@ -89,9 +92,116 @@ BuddyPluginViewInstance
 		GridData grid_data = new GridData(GridData.FILL_BOTH );
 		main.setLayoutData(grid_data);
 
+		final Composite form = new Composite(main, SWT.NONE);
+		FormLayout flayout = new FormLayout();
+		flayout.marginHeight = 0;
+		flayout.marginWidth = 0;
+		form.setLayout(flayout);
+		GridData gridData;
+		gridData = new GridData(GridData.FILL_BOTH);
+		form.setLayoutData(gridData);
+
+
+		final Composite child1 = new Composite(form,SWT.NULL);
+		layout = new GridLayout();
+		layout.numColumns = 1;
+		layout.horizontalSpacing = 0;
+		layout.verticalSpacing = 0;
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		child1.setLayout(layout);
+
+		final Sash sash = new Sash(form, SWT.HORIZONTAL);
+	
+		final Composite child2 = new Composite(form,SWT.NULL);
+		layout = new GridLayout();
+		layout.numColumns = 1;
+		layout.horizontalSpacing = 0;
+		layout.verticalSpacing = 0;
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		child2.setLayout(layout);
+
+		FormData formData;
+
+			// child1
+		
+		formData = new FormData();
+		formData.left = new FormAttachment(0, 0);
+		formData.right = new FormAttachment(100, 0);
+		formData.top = new FormAttachment(0, 0);
+		child1.setLayoutData(formData);
+
+		final FormData child1Data = formData;
+		
+		final int SASH_WIDTH = 4;
+		
+			// sash
+		
+		formData = new FormData();
+		formData.left = new FormAttachment(0, 0);
+		formData.right = new FormAttachment(100, 0);
+		formData.top = new FormAttachment(child1);
+		formData.height = SASH_WIDTH;
+		sash.setLayoutData(formData);
+
+			// child2
+		
+		formData = new FormData();
+		formData.left = new FormAttachment(0, 0);
+		formData.right = new FormAttachment(100, 0);
+		formData.bottom = new FormAttachment(100, 0);
+		formData.top = new FormAttachment(sash);
+		child2.setLayoutData(formData);
+
+		final PluginConfig pc = plugin.getPluginInterface().getPluginconfig();
+		
+		sash.setData( "PCT", new Float( pc.getPluginFloatParameter( "swt.sash.position", 0.7f )));
+		
+		sash.addSelectionListener(
+			new SelectionAdapter() 
+			{
+				public void 
+				widgetSelected(
+					SelectionEvent e ) 
+				{
+					if (e.detail == SWT.DRAG){
+						return;
+					}
+					
+					child1Data.height = e.y + e.height - SASH_WIDTH;
+					
+					form.layout();
+	
+					Float l = new Float((double)child1.getBounds().height / form.getBounds().height);
+					
+					sash.setData( "PCT", l );
+					
+					pc.setPluginParameter( "swt.sash.position", l.floatValue());
+				}
+			});
+
+		form.addListener(
+			SWT.Resize, 
+			new Listener() 
+			{
+				public void 
+				handleEvent(Event e) 
+				{
+					Float l = (Float) sash.getData( "PCT" );
+					
+					if ( l != null ){
+						
+						child1Data.height = (int) (form.getBounds().height * l.doubleValue());
+					
+						form.layout();
+					}
+				}
+			});
+			
 			// table
 		
-		buddy_table = new Table(main, SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION | SWT.VIRTUAL);
+		buddy_table = new Table(child1, SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION | SWT.VIRTUAL);
 
 		String[] headers = { "buddy.name", "buddy.online" };
 
@@ -112,7 +222,7 @@ BuddyPluginViewInstance
 
 	    buddy_table.setHeaderVisible(true);
 
-	    GridData gridData = new GridData(GridData.FILL_BOTH);
+	    gridData = new GridData(GridData.FILL_BOTH);
 	    gridData.heightHint = buddy_table.getHeaderHeight() * 3;
 		gridData.widthHint = 200;
 		buddy_table.setLayoutData(gridData);
@@ -283,7 +393,7 @@ BuddyPluginViewInstance
 		
 			// log area
 
-		log = new StyledText(main,SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);
+		log = new StyledText(child2,SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);
 		grid_data = new GridData(GridData.FILL_BOTH);
 		grid_data.horizontalSpan = 1;
 		grid_data.horizontalIndent = 4;

@@ -1443,7 +1443,7 @@ implements Plugin
 		}
 	}
 	
-	protected PluginInterface
+	public PluginInterface
 	getPluginInterface()
 	{
 		return( plugin_interface );
