@@ -2274,6 +2274,8 @@ DiskManagerImpl
         TOTorrentFile[] files = torrent.getFiles();
 
         String  root_path = torrent_save_dir + File.separator + torrent_save_file + File.separator;
+        
+        boolean delete_if_not_in_dir = COConfigurationManager.getBooleanParameter("File.delete.include_files_outside_save_dir");
 
         // delete all files, then empty directories
 
@@ -2313,9 +2315,10 @@ DiskManagerImpl
 
                     // only consider linked files for deletion if they are in the torrent save dir
                     // i.e. a rename probably instead of a retarget to an existing file elsewhere
+                    // delete_if_not_in_dir does allow this behaviour to be overridden though.
 
                 try{
-                    if ( linked_file.getCanonicalPath().startsWith(new File( root_path ).getCanonicalPath())){
+                    if ( delete_if_not_in_dir || linked_file.getCanonicalPath().startsWith(new File( root_path ).getCanonicalPath())){
 
                         file    = linked_file;
 

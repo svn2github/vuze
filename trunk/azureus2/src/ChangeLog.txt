@@ -9,6 +9,7 @@ FEATURE: UIv3 | Experimental option to use Mozilla/Firefox as browser widget on 
 
 CHANGE: Core  | Faster startup [The 8472]
 CHANGE: Core  | Quicker to change a batch of files to "Do Not Download" in files view [amc1]
+CHANGE: Core  | Added option to allow the removal of files linked outside the save directory when removing data [amc1]
 CHANGE: UI    | Provide column menu option to disable fast renaming in files view [The 8472]
 
 
