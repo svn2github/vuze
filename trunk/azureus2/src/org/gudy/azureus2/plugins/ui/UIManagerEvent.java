@@ -25,6 +25,12 @@ package org.gudy.azureus2.plugins.ui;
 public interface 
 UIManagerEvent 
 {
+	public static final int MT_NONE		= 0x00000000;
+	public static final int MT_OK		= 0x00000001;
+	public static final int MT_CANCEL	= 0x00000002;
+	public static final int MT_YES		= 0x00000004;
+	public static final int MT_NO		= 0x00000008;
+	
 	public static final int ET_SHOW_TEXT_MESSAGE				= 1;		// data is String[] - title, message, text
 	public static final int ET_OPEN_TORRENT_VIA_FILE			= 2;		// data is File 
 	public static final int ET_OPEN_TORRENT_VIA_URL				= 3;		// data is Object[]{URL,URL,Boolean} - { torrent_url, referrer url, auto_download}  
@@ -45,7 +51,12 @@ UIManagerEvent
 	public static final int ET_REMOVE_TABLE_CONTEXT_SUBMENU_ITEM = 18;      // data is MenuItem[] - child, parent
 	public static final int ET_REMOVE_MENU_ITEM                 = 19;       // data is MenuItem
 	public static final int ET_REMOVE_SUBMENU_ITEM              = 20;       // data is MenuItem[] - child, parent
-
+	public static final int ET_SHOW_MSG_BOX						= 21;		// data is Object[]{ String,String,Long} - title, message, MT options
+	public static final int ET_OPEN_TORRENT_VIA_TORRENT			= 22;		// data is Torrent
+	
+	
+	public static final int ET_CALLBACK_MSG_SELECTION			= 100;		// data is Long - MT_OK etc
+	
 	public int
 	getType();
 	

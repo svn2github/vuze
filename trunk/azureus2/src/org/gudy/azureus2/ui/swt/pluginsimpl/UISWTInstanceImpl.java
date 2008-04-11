@@ -42,7 +42,9 @@ import org.eclipse.swt.widgets.Event;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.*;
@@ -63,6 +65,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
@@ -152,11 +155,102 @@ UISWTInstanceImpl
 				
 				break;
 			}
-			
+			case UIManagerEvent.ET_SHOW_MSG_BOX:
+			{
+				final int[] result = { UIManagerEvent.MT_NONE };
+				
+					Utils.execSWTThread(
+					new Runnable()
+					{
+						public void 
+						run()
+						{
+							Object[]	params = (Object[])data;
+							
+							long	_styles = ((Long)(params[2])).longValue();
+							
+							int		styles	= 0;
+							
+							if (( _styles & UIManagerEvent.MT_YES ) != 0 ){
+								
+								styles |= SWT.YES;
+							}
+							if (( _styles & UIManagerEvent.MT_NO ) != 0 ){
+								
+								styles |= SWT.NO;
+							}
+							if (( _styles & UIManagerEvent.MT_OK ) != 0 ){
+								
+								styles |= SWT.OK;
+							}
+							if (( _styles & UIManagerEvent.MT_CANCEL ) != 0 ){
+								
+								styles |= SWT.CANCEL;
+							}
+							
+
+							Shell shell = uiFunctions.getMainShell();
+							
+							if ( shell != null ){
+								
+								MessageBox mb = new MessageBox(shell, styles );
+								
+								mb.setMessage(MessageText.getString((String)params[0]));
+								
+								mb.setText(MessageText.getString((String)params[1]));
+								
+								int	_r = mb.open();
+								
+								int	r = 0;
+								
+								if (( _r & SWT.YES ) != 0 ){
+									
+									r |= UIManagerEvent.MT_YES;
+								}
+								if (( _r & SWT.NO ) != 0 ){
+									
+									r |= UIManagerEvent.MT_NO;
+								}
+								if (( _r & SWT.OK ) != 0 ){
+									
+									r |= UIManagerEvent.MT_OK;
+								}
+								if (( _r & SWT.CANCEL ) != 0 ){
+									
+									r |= UIManagerEvent.MT_CANCEL;
+								}
+								
+								result[0] = r;
+							}
+						}
+					}, false );
+				
+				event.setResult( new Long( result[0] ));
+				
+				break;
+			}
 			case UIManagerEvent.ET_OPEN_TORRENT_VIA_FILE:
 			{	
 				TorrentOpener.openTorrent(((File)data).toString());
 
+				break;
+			}
+			case UIManagerEvent.ET_OPEN_TORRENT_VIA_TORRENT:
+			{	
+				Torrent t = (Torrent)data;
+				
+				try{
+					File f = AETemporaryFileHandler.createTempFile();
+					
+					t.writeToFile( f );
+					
+					TorrentOpener.openTorrent( f.toString());
+
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace( e );
+				}
+				
 				break;
 			}
 			case UIManagerEvent.ET_OPEN_TORRENT_VIA_URL:

@@ -25,6 +25,7 @@ package org.gudy.azureus2.plugins.ui;
 import java.net.URL;
 
 import org.gudy.azureus2.plugins.PluginView;
+import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.model.*;
 import org.gudy.azureus2.plugins.ui.SWT.SWTManager;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
@@ -138,6 +139,21 @@ UIManager
 		String		message_resource,
 		String		contents );
 	
+	/**
+	 * 
+	 * @param title_resource
+	 * @param message
+	 * @param message_map - see UIManagerEvent.MT_x
+	 * @return selected value
+	 * @since 3.0.5.3
+	 */
+	
+	public long
+	showMessageBox(
+		String					title_resource,
+		String					message_resource,
+		long					message_map );
+	
 		/**
 		 * @since 2.3.0.6
 		 * @param url
@@ -148,6 +164,16 @@ UIManager
 		URL		url )
 	
 		throws UIException;
+	
+		/**
+		 * 
+		 * @param torrent
+		 * @since 3.0.5.3
+		 */
+	
+	public void
+	openTorrent(
+		Torrent		torrent );
 	
 	/** Retrieve a class of SWT specific functions 
 	 * 

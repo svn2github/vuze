@@ -39,6 +39,7 @@ import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableManagerImpl;
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginView;
+import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.SWT.SWTManager;
@@ -540,6 +541,33 @@ UIManagerImpl
 		fireEvent( UIManagerEvent.ET_SHOW_TEXT_MESSAGE, new String[]{ title_resource, message_resource, contents });
 	}		
 
+	public long
+	showMessageBox(
+		String		title_resource,
+		String		message_resource,
+		long		message_map )
+	{
+		UIManagerEventAdapter event = 
+			new UIManagerEventAdapter(
+					UIManagerEvent.ET_SHOW_MSG_BOX, 
+					new Object[]{ title_resource, message_resource, new Long( message_map ) });
+		
+		if (!fireEvent( event )){
+			
+			return( UIManagerEvent.MT_NONE );
+		}
+		
+		return(((Long)event.getResult()).longValue());
+		
+	}		
+
+	public void 
+	openTorrent(
+		Torrent torrent) 
+	{
+		fireEvent( UIManagerEvent.ET_OPEN_TORRENT_VIA_TORRENT, torrent );
+	}
+	
 	public boolean showConfigSection(String sectionID) {
 		UIManagerEventAdapter event = new UIManagerEventAdapter(
 				UIManagerEvent.ET_SHOW_CONFIG_SECTION, sectionID);
