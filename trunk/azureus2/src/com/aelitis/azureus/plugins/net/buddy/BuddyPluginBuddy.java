@@ -57,7 +57,6 @@ BuddyPluginBuddy
 	private static final int RT_REPLY_DATA		= 2;	
 	private static final int RT_REPLY_ERROR		= 99;
 
-	private static Random	random = new Random();
 	
 	private BuddyPlugin		plugin;
 	private String			public_key;
@@ -84,6 +83,8 @@ BuddyPluginBuddy
 	
 	private boolean	ygm_active;
 	private boolean	ygm_pending;
+	
+	private long latest_ygm_time;
 	
 	protected
 	BuddyPluginBuddy(
@@ -215,6 +216,12 @@ BuddyPluginBuddy
 			});
 	}
 	
+	public long
+	getLastMessagePending()
+	{
+		return( latest_ygm_time );
+	}
+	
 	protected boolean
 	addYGMMarker(
 		long		marker )
@@ -239,9 +246,13 @@ BuddyPluginBuddy
 				
 				recent_ygm.remove(0);
 			}
+			
+			latest_ygm_time = SystemTime.getCurrentTime();
 		}
 		
 		plugin.setConfigDirty();
+		
+		plugin.fireDetailsChanged( this );
 		
 		return( true );
 	}
@@ -978,6 +989,12 @@ BuddyPluginBuddy
 		}
 		
 		protected void
+		setDontRetry()
+		{
+			retry_count = 99;
+		}
+		
+		protected void
 		setRetry()
 		{
 			synchronized( this ){
@@ -1321,13 +1338,24 @@ BuddyPluginBuddy
 					
 					Map request = (Map)data_map.get( "req" );
 
+					String	error = null;
+					
 					if ( request == null || subsystem == null ){
 						
 						reply	= null;
 						
 					}else{
 						
-						reply = plugin.requestReceived( BuddyPluginBuddy.this, subsystem.intValue(), request );
+						try{
+						
+							reply = plugin.requestReceived( BuddyPluginBuddy.this, subsystem.intValue(), request );
+							
+						}catch( Throwable e ){
+							
+							error = Debug.getNestedExceptionMessage(e);
+							
+							reply = null;
+						}
 					}
 					
 					if ( reply == null ){
@@ -1336,7 +1364,7 @@ BuddyPluginBuddy
 						
 						reply = new HashMap();
 						
-						reply.put( "error", "No handlers available to process request" );
+						reply.put( "error", error==null?"No handlers available to process request":error );
 						
 					}else{
 						
@@ -1386,6 +1414,8 @@ BuddyPluginBuddy
 						Map	reply = (Map)data_map.get( "rep" );
 						
 						if ( type == RT_REPLY_ERROR ){
+							
+							bm.setDontRetry();
 							
 							bm.reportFailed( new BuddyPluginException(new String((byte[])reply.get( "error" ))));
 							

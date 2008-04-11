@@ -45,6 +45,9 @@ import org.gudy.azureus2.plugins.ddb.DistributedDatabaseEvent;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseKey;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseListener;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseValue;
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.messaging.MessageException;
 import org.gudy.azureus2.plugins.messaging.MessageManager;
@@ -58,7 +61,13 @@ import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 import org.gudy.azureus2.plugins.ui.config.StringParameter;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
+import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.plugins.utils.UTTimerEvent;
 import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
 import org.gudy.azureus2.plugins.utils.security.SEPublicKey;
@@ -82,6 +91,13 @@ implements Plugin
 	
 	protected static final int RT_INTERNAL_REQUEST_PING		= 1;
 	protected static final int RT_INTERNAL_REPLY_PING		= 2;
+
+	
+	public static final int RT_AZ2_REQUEST_MESSAGE		= 1;
+	public static final int RT_AZ2_REPLY_MESSAGE		= 2;
+	
+	public static final int RT_AZ2_REQUEST_SEND_TORRENT	= 3;
+	public static final int RT_AZ2_REPLY_SEND_TORRENT	= 4;
 
 	protected static final boolean TRACE = false; 
 
@@ -140,11 +156,15 @@ implements Plugin
 	
 	private Random	random = new SecureRandom();
 	
+	private BuddyPluginAZ2		az2_handler;
+	
 	public void
 	initialize(
 		final PluginInterface		_plugin_interface )
 	{
 		plugin_interface	= _plugin_interface;
+		
+		az2_handler = new BuddyPluginAZ2( this );
 		
 		String name_res = "Views.plugins." + VIEW_ID + ".title";
 		
@@ -221,6 +241,111 @@ implements Plugin
 					addBuddy( buddy_pk_param.getValue().trim());
 				}
 			});
+		
+		
+		final TableContextMenuItem menu_item_itorrents = 
+			plugin_interface.getUIManager().getTableManager().addContextMenuItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE, "azbuddy.contextmenu");
+		final TableContextMenuItem menu_item_ctorrents 	= 
+			plugin_interface.getUIManager().getTableManager().addContextMenuItem(TableManager.TABLE_MYTORRENTS_COMPLETE, "azbuddy.contextmenu");
+		
+		menu_item_itorrents.setStyle(TableContextMenuItem.STYLE_MENU);
+		menu_item_ctorrents.setStyle(TableContextMenuItem.STYLE_MENU);
+		
+		MenuItemFillListener	menu_fill_listener = 
+			new MenuItemFillListener()
+			{
+				public void
+				menuWillBeShown(
+					MenuItem	menu,
+					Object		_target )
+				{
+					Object	obj = null;
+					
+					if ( _target instanceof TableRow ){
+						
+						obj = ((TableRow)_target).getDataSource();
+	
+					}else{
+						
+						TableRow[] rows = (TableRow[])_target;
+					     
+						if ( rows.length > 0 ){
+						
+							obj = rows[0].getDataSource();
+						}
+					}
+					
+					if ( obj == null ){
+						
+						menu.setEnabled( false );
+
+						return;
+					}
+					
+					Download				download;
+					
+					if ( obj instanceof Download ){
+					
+						download = (Download)obj;
+						
+					}else{
+						
+						DiskManagerFileInfo file = (DiskManagerFileInfo)obj;
+						
+						try{
+							download	= file.getDownload();
+							
+						}catch( DownloadException e ){	
+							
+							Debug.printStackTrace(e);
+							
+							return;
+						}
+					}
+					
+					boolean enabled = download.getTorrent() != null;
+					
+					menu.removeAllChildItems();
+
+					if ( enabled ){
+					
+						List buddies = getBuddies();
+						
+						boolean	incomplete = ((TableContextMenuItem)menu).getTableID() == TableManager.TABLE_MYTORRENTS_INCOMPLETE;
+						
+						TableContextMenuItem parent = incomplete?menu_item_itorrents:menu_item_ctorrents;
+						
+						final Download f_download = download;
+						
+						for (int i=0;i<buddies.size();i++){
+							
+							final BuddyPluginBuddy	buddy = (BuddyPluginBuddy)buddies.get(i);
+							
+							TableContextMenuItem item =
+								plugin_interface.getUIManager().getTableManager().addContextMenuItem(
+									parent,
+									"!" + buddy.getName() + "!");
+							
+							item.addListener(
+								new MenuItemListener()
+								{
+									public void 
+									selected(
+										MenuItem 	menu,
+										Object 		target ) 
+									{
+										az2_handler.sendAZ2Torrent( f_download.getTorrent(), buddy );
+									}
+								});
+						}
+					}
+					
+					menu.setEnabled( enabled );
+				}
+			};
+			
+		menu_item_itorrents.addFillListener( menu_fill_listener );
+		menu_item_ctorrents.addFillListener( menu_fill_listener );
 		
 		plugin_interface.getUIManager().addUIListener(
 			new UIManagerListener()
@@ -410,22 +535,9 @@ implements Plugin
 					{
 						if ( subsystem == SUBSYSTEM_INTERNAL ){
 							
-							int	type = ((Long)request.get("type")).intValue();
-							
-							if ( type == RT_INTERNAL_REQUEST_PING ){
-							
-								Map	reply = new HashMap();
-							
-								reply.put( "type", new Long( RT_INTERNAL_REPLY_PING ));
-							
-								return( reply );
-								
-							}else{
-								
-								throw( new BuddyPluginException( "Unrecognised request type " + type ));
-							}
+							return( processInternalRequest( from_buddy, request ));							
 						}
-						
+
 						return( null );
 					}
 					
@@ -511,6 +623,29 @@ implements Plugin
 		}
 	}
 	
+	protected Map
+	processInternalRequest(
+		BuddyPluginBuddy	from_buddy,
+		Map					request )		
+		
+		throws BuddyPluginException
+	{
+		int	type = ((Long)request.get("type")).intValue();
+		
+		if ( type == RT_INTERNAL_REQUEST_PING ){
+		
+			Map	reply = new HashMap();
+		
+			reply.put( "type", new Long( RT_INTERNAL_REPLY_PING ));
+		
+			return( reply );
+			
+		}else{
+			
+			throw( new BuddyPluginException( "Unrecognised request type " + type ));
+		}
+	}
+
 	protected void
 	updateListenPorts()
 	{
@@ -1058,6 +1193,12 @@ implements Plugin
 		plugin_interface.getUtilities().writeResilientBEncodedFile(
 				config_file.getParentFile(), config_file.getName(), map, true );
 	}
+		
+	public BuddyPluginAZ2
+	getAZ2Handler()
+	{
+		return( az2_handler );
+	}
 	
 	protected void
 	checkBuddiesAndRepublish()
@@ -1486,6 +1627,7 @@ implements Plugin
 		}
 	}
 	
+
 	protected void
 	fireInitialised(
 		boolean		ok )
@@ -1538,6 +1680,8 @@ implements Plugin
 		BuddyPluginBuddy		from_buddy,
 		int						subsystem,
 		Map						content )
+	
+		throws BuddyPluginException
 	{
 		List	 listeners_ref = request_listeners.getList();
 		
@@ -1550,9 +1694,15 @@ implements Plugin
 					
 					return( reply );
 				}
+			}catch( BuddyPluginException e ){
+				
+				throw( e );
+				
 			}catch( Throwable e ){
 				
 				Debug.printStackTrace( e );
+				
+				throw( new BuddyPluginException( "Request processing failed", e ));
 			}
 		}
 		

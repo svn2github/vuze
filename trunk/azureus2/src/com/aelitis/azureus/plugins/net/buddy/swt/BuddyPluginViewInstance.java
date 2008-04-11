@@ -203,17 +203,15 @@ BuddyPluginViewInstance
 		
 		buddy_table = new Table(child1, SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION | SWT.VIRTUAL);
 
-		String[] headers = { "buddy.name", "buddy.online" };
+		String[] headers = { "buddy.name", "buddy.online", "buddy.last_ygm" };
 
-		int[] sizes = { 300, 110 };
+		int[] sizes = { 400, 100, 100 };
 
-		int[] aligns = { SWT.LEFT, SWT.CENTER };
+		int[] aligns = { SWT.LEFT, SWT.CENTER, SWT.CENTER };
 
 		for (int i = 0; i < headers.length; i++){
 
 			TableColumn tc = new TableColumn(buddy_table, aligns[i]);
-
-			tc.setText(headers[i]);
 
 			tc.setWidth(sizes[i]);
 
@@ -224,33 +222,39 @@ BuddyPluginViewInstance
 
 	    gridData = new GridData(GridData.FILL_BOTH);
 	    gridData.heightHint = buddy_table.getHeaderHeight() * 3;
-		gridData.widthHint = 200;
 		buddy_table.setLayoutData(gridData);
 		
 		
-		buddy_table.addListener(SWT.SetData, new Listener() {
-			public void 
-			handleEvent(
-				Event event) 
+		buddy_table.addListener(
+			SWT.SetData,
+			new Listener()
 			{
-				TableItem item = (TableItem)event.item;
-				
-				int index = buddy_table.indexOf(item);
-
-				if ( index < 0 || index >= buddies.size()){
+				public void 
+				handleEvent(
+					Event event) 
+				{
+					TableItem item = (TableItem)event.item;
 					
-					return;
+					int index = buddy_table.indexOf(item);
+	
+					if ( index < 0 || index >= buddies.size()){
+						
+						return;
+					}
+					
+					BuddyPluginBuddy	buddy = (BuddyPluginBuddy)buddies.get(index);
+					
+					item.setText(0, buddy.getName());
+					
+					item.setText(1, buddy.isOnline()?"yes":"no");
+					
+					long	last_ygm = buddy.getLastMessagePending();;
+					
+					item.setText(2, last_ygm==0?"":new SimpleDateFormat().format(new Date( last_ygm )));
+					
+					item.setData( buddy );
 				}
-				
-				BuddyPluginBuddy	buddy = (BuddyPluginBuddy)buddies.get(index);
-				
-				item.setText(0, buddy.getName());
-				
-				item.setText(1, buddy.isOnline()?"yes":"no");
-				
-				item.setData(buddy);
-			}
-		});
+			});
 		
 		Menu menu = new Menu(buddy_table);
 		
@@ -291,43 +295,11 @@ BuddyPluginViewInstance
 					
 					String	msg = "Hello @ " + new SimpleDateFormat().format(new Date());
 					
-					Map	request = new HashMap();
-					
-					request.put( "type", new Long(1));
-					request.put( "msg", msg.getBytes());
-					
 					for (int i=0;i<selection.length;i++){
 						
 						BuddyPluginBuddy buddy = (BuddyPluginBuddy)selection[i].getData();
 						
-						try{
-							buddy.sendMessage(
-								BuddyPlugin.SUBSYSTEM_AZ2,
-								request, 
-								60*1000, 
-								new BuddyPluginBuddyReplyListener()
-								{
-									public void
-									replyReceived(
-										BuddyPluginBuddy		from_buddy,
-										Map						reply )
-									{
-										print( "Send ok" );
-									}
-									
-									public void
-									sendFailed(
-										BuddyPluginBuddy		to_buddy,
-										BuddyPluginException	cause )
-									{
-										print( "Send failed: " + Debug.getNestedExceptionMessage(cause));
-									}
-								});
-								
-						}catch( Throwable e ){
-							
-							print( "Send failed", e );
-						}
+						plugin.getAZ2Handler().sendAZ2Message( buddy, msg );
 					}
 				};
 			});
@@ -498,7 +470,6 @@ BuddyPluginViewInstance
 		print( str, LOG_NORMAL, false, false );
 	}
 
-	
 	public Map
 	requestReceived(
 		BuddyPluginBuddy	from_buddy,
@@ -507,17 +478,6 @@ BuddyPluginViewInstance
 	
 		throws BuddyPluginException
 	{
-		if ( subsystem == BuddyPlugin.SUBSYSTEM_AZ2 ){
-			
-			print( "Request received: " + from_buddy.getString() + " -> " + request );
-			
-			Map	reply = new HashMap();
-				
-			reply.put( "ok", new Long(1));
-			
-			return( reply );
-		}
-		
 		return( null );
 	}
 	
