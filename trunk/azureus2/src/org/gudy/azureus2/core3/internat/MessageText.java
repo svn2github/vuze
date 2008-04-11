@@ -294,6 +294,10 @@ public class MessageText {
     try {
       return getResourceBundleString(key);
     } catch (MissingResourceException e) {
+    	// we support the usage of non-resource strings as long as they are wrapped in !
+      if ( key.startsWith("!") && key.endsWith( "!" )){
+    	  return( key.substring(1,key.length()-1 ));
+      }
       return '!' + key + '!';
     }
   }
@@ -449,6 +453,10 @@ public class MessageText {
     try {
       return DEFAULT_BUNDLE.getString(key);
     } catch (MissingResourceException e) {
+    	// we support the usage of non-resource strings as long as they are wrapped in !
+    	if ( key.startsWith("!") && key.endsWith( "!" )){
+    		return( key.substring(1,key.length()-1 ));
+    	}
       return '!' + key + '!';
     }
   }
