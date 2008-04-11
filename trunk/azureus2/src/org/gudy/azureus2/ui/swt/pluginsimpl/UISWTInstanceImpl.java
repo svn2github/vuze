@@ -194,11 +194,11 @@ UISWTInstanceImpl
 							if ( shell != null ){
 								
 								MessageBox mb = new MessageBox(shell, styles );
+																
+								mb.setText(MessageText.getString((String)params[0]));
 								
-								mb.setMessage(MessageText.getString((String)params[0]));
-								
-								mb.setText(MessageText.getString((String)params[1]));
-								
+								mb.setMessage(MessageText.getString((String)params[1]));
+
 								int	_r = mb.open();
 								
 								int	r = 0;
