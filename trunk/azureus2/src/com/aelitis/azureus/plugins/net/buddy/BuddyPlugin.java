@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -83,7 +84,7 @@ import com.aelitis.azureus.plugins.net.buddy.swt.BuddyPluginView;
 
 public class 
 BuddyPlugin 
-implements Plugin
+	implements Plugin
 {
 	public static final int	SUBSYSTEM_INTERNAL	= 0;
 	public static final int	SUBSYSTEM_AZ2		= 1;
@@ -1287,12 +1288,10 @@ implements Plugin
 		log( "Updating buddy status: " + buddy.getString());
 
 		try{							
-			String	key_str = buddy.getPublicKey();
-			
-			final byte[]	public_key = Base32.decode( key_str );
+			final byte[]	public_key = buddy.getRawPublicKey();
 
 			DistributedDatabaseKey	key = 
-				getStatusKey( public_key, "Buddy status check for " + key_str );
+				getStatusKey( public_key, "Buddy status check for " + buddy.getName());
 			
 			ddb.read(
 				new DistributedDatabaseListener()
@@ -1418,6 +1417,85 @@ implements Plugin
 		return( signed_payload );
 	}
 	
+	protected cryptoResult
+	encrypt(
+		BuddyPluginBuddy	buddy,
+		byte[]				payload )
+	
+		throws BuddyPluginException
+	{
+		
+		try{
+			byte[]	hash = new byte[16];
+			
+			random.nextBytes( hash );
+			
+			Map	content = new HashMap();
+			
+			content.put( "h", hash );
+			content.put( "p", payload );
+			
+			final byte[] encrypted = ecc_handler.encrypt( buddy.getRawPublicKey(), BEncoder.encode( content ), "Encrypting message for " + buddy.getName());
+			
+			final byte[] sha1_hash = new SHA1Simple().calculateHash( hash );
+			
+			return( 
+				new cryptoResult()
+				{
+					public byte[]
+		    		getChallenge()
+					{
+						return( sha1_hash );
+					}
+		    		
+		    		public byte[]
+		    		getPayload()
+		    		{
+		    			return( encrypted );
+		    		}
+				});
+			
+		}catch( Throwable e ){
+			
+			throw( new BuddyPluginException( "Encryption failed", e ));
+		}
+	}
+	
+	protected cryptoResult
+	decrypt(
+		BuddyPluginBuddy	buddy,
+		byte[]				content )
+	
+		throws BuddyPluginException
+	{
+		
+		try{
+			final byte[] decrypted = ecc_handler.decrypt( buddy.getRawPublicKey(), content, "Decrypting message for " + buddy.getName());
+			
+			final Map	map = BDecoder.decode( decrypted );
+			
+			return( 
+				new cryptoResult()
+				{
+					public byte[]
+		    		getChallenge()
+					{
+						return((byte[])map.get("h"));
+					}
+		    		
+		    		public byte[]
+		    		getPayload()
+		    		{
+		    			return((byte[])map.get("p"));
+		    		}
+				});
+			
+		}catch( Throwable e ){
+			
+			throw( new BuddyPluginException( "Decryption failed", e ));
+		}
+	}
+	
 	protected void
 	setMessagePending(
 		BuddyPluginBuddy			buddy,
@@ -1445,7 +1523,7 @@ implements Plugin
 										
 			logMessage( reason + " starts: " + payload );
 			
-			DistributedDatabaseKey	key = getYGMKey( Base32.decode( buddy.getPublicKey()), reason );
+			DistributedDatabaseKey	key = getYGMKey( buddy.getRawPublicKey(), reason );
 
 			ddb.write(
 				new DistributedDatabaseListener()
@@ -1574,7 +1652,7 @@ implements Plugin
 		}
 	}
 	
-	protected BuddyPluginBuddy
+	public BuddyPluginBuddy
 	getBuddyFromPublicKey(
 		String		key )
 	{
@@ -1962,5 +2040,15 @@ implements Plugin
 	{
 		public void
 		complete();
+	}
+	
+	public interface
+	cryptoResult
+	{
+		public byte[]
+		getChallenge();
+		
+		public byte[]
+		getPayload();
 	}
 }

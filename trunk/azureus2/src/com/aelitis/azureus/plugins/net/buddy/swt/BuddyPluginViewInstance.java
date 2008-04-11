@@ -27,6 +27,9 @@ import java.util.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
@@ -44,14 +47,16 @@ import org.eclipse.swt.widgets.Sash;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
-import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddyReplyListener;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddyRequestListener;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginException;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginListener;
@@ -333,6 +338,8 @@ BuddyPluginViewInstance
 				};
 			});
 		
+			// ygm
+		
 		MenuItem ygm_item = new MenuItem(menu, SWT.PUSH);
 
 		ygm_item.setText( "Set YGM" );
@@ -361,6 +368,142 @@ BuddyPluginViewInstance
 				};
 			});
 		
+		
+			// encrypt
+		
+		MenuItem encrypt_item = new MenuItem(menu, SWT.PUSH);
+
+		encrypt_item.setText( "Encrypt clipboard" );
+
+		encrypt_item.addSelectionListener(
+			new SelectionAdapter() 
+			{
+				public void 
+				widgetSelected(
+					SelectionEvent event ) 
+				{
+					TableItem[] selection = buddy_table.getSelection();
+					
+					String	str = readFromClipboard();
+					
+					if( str != null ){
+						
+						StringBuffer sb = new StringBuffer();
+						
+						for (int i=0;i<selection.length;i++){
+							
+							BuddyPluginBuddy buddy = (BuddyPluginBuddy)selection[i].getData();
+							
+							try{
+								byte[]	contents = str.getBytes( "UTF-8" );
+								
+								BuddyPlugin.cryptoResult result = buddy.encrypt( contents );
+								
+								sb.append( "key: " );
+								sb.append( buddy.getPublicKey());
+								sb.append( "\r\n" );
+								
+								sb.append( "hash: " );
+								sb.append( Base32.encode( result.getChallenge()));
+								sb.append( "\r\n" );
+
+								sb.append( "payload: " );
+								sb.append( Base32.encode( result.getPayload()));
+								sb.append( "\r\n\r\n" );
+								
+							}catch( Throwable e ){
+								
+								print( "YGM failed", e );
+							}
+						}
+						
+						writeToClipboard( sb.toString());
+					}
+				};
+			});
+		
+			// decrypt
+		
+		MenuItem decrypt_item = new MenuItem(menu, SWT.PUSH);
+
+		decrypt_item.setText( "Decrypt clipboard" );
+
+		decrypt_item.addSelectionListener(
+			new SelectionAdapter() 
+			{
+				public void 
+				widgetSelected(
+					SelectionEvent event ) 
+				{
+					String	str = readFromClipboard();
+					
+					if ( str != null ){
+						
+						String[] 	bits = str.split( "\n" );
+						
+						StringBuffer sb = new StringBuffer();
+	
+						BuddyPluginBuddy	buddy 	= null;
+						byte[]				hash	= null;
+						
+						for (int i=0;i<bits.length;i++){
+							
+							String	bit = bits[i].trim();
+							
+							if ( bit.length() > 0 ){
+							
+								int	pos = bit.indexOf( ':' );
+								
+								String	lhs = bit.substring( 0, pos ).trim();
+								String	rhs	= bit.substring( pos+1 ).trim();
+								
+								if ( lhs.equals( "key" )){
+									
+									buddy = plugin.getBuddyFromPublicKey( rhs );
+									
+								}else if ( lhs.equals( "hash" )){
+									
+									hash	= Base32.decode( rhs );
+									
+								}else if ( lhs.equals( "payload" )){
+								
+									byte[]	payload = Base32.decode( rhs );
+									
+									if ( buddy != null ){
+										
+										try{
+											BuddyPlugin.cryptoResult result = buddy.decrypt( payload );
+											
+											byte[] sha1 = new SHA1Simple().calculateHash( result.getChallenge());
+											
+											sb.append( "key: " );
+											sb.append( buddy.getPublicKey());
+											sb.append( "\r\n" );
+
+											sb.append( "hash_ok: " + Arrays.equals( hash, sha1 ));
+											sb.append( "\r\n" );
+											
+											sb.append( "payload: " );
+											sb.append( new String( result.getPayload(), "UTF-8" ));
+											sb.append( "\r\n\r\n" );
+											
+										}catch( Throwable e ){
+											
+											print( "decrypt failed", e );
+										}
+									}
+								}
+							}
+						}
+						
+						if ( sb.length() > 0 ){
+						
+							writeToClipboard( sb.toString());
+						}
+					}
+				};
+			});
+		
 		buddy_table.setMenu( menu );
 		
 			// log area
@@ -381,6 +524,30 @@ BuddyPluginViewInstance
 		init_complete	= true;
 	    
 		updateTable();
+	}
+
+	protected String
+	readFromClipboard()
+	{
+		 Object o = 
+			 new Clipboard(SWTThread.getInstance().getDisplay()).getContents(
+			      TextTransfer.getInstance());
+		 
+		 if ( o instanceof String ){
+			 
+			 return((String)o);
+		 }
+		 
+		 return( null );
+	}
+
+	protected void
+	writeToClipboard(
+		String	str )
+	{
+		 new Clipboard(SWTThread.getInstance().getDisplay()).setContents(
+			      new Object[] {str }, 
+			      new Transfer[] {TextTransfer.getInstance()});
 	}
 
 	protected void

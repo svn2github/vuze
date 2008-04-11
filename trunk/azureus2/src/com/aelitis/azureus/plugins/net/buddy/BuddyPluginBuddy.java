@@ -105,6 +105,12 @@ BuddyPluginBuddy
 		return( public_key );
 	}
 	
+	protected byte[]
+	getRawPublicKey()
+	{
+		return( Base32.decode( public_key ));
+	}
+	
 	protected String
 	getShortString()
 	{
@@ -125,7 +131,7 @@ BuddyPluginBuddy
 			return( nick_name );
 		}
 		
-		return( public_key );
+		return( getShortString());
 	}
 	
 	public void
@@ -165,6 +171,24 @@ BuddyPluginBuddy
 	isOnline()
 	{
 		return( online );
+	}
+	
+	public BuddyPlugin.cryptoResult
+	encrypt(
+		byte[]		payload )
+	
+		throws BuddyPluginException
+	{
+		return( plugin.encrypt( this, payload ));
+	}
+	
+	public BuddyPlugin.cryptoResult
+	decrypt(
+		byte[]		payload )
+	
+		throws BuddyPluginException
+	{
+		return( plugin.decrypt( this, payload ));
 	}
 	
 	public void
