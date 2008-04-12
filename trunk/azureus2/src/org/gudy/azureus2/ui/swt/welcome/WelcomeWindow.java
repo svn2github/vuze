@@ -49,6 +49,7 @@ import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
 
 public class WelcomeWindow {
@@ -306,17 +307,17 @@ public class WelcomeWindow {
 				try {
 					ResourceDownloader rd = rdf.create(new URL(url));
 					InputStream is = rd.download();
-
 					int length = is.available();
-
 					byte data[] = new byte[length];
-
 					is.read(data);
-
 					is.close();
-					
 					s[0] = new String(data);
-
+				} catch (ResourceDownloaderException rde) {
+					// We don't need a stack trace - it's arguable that we even need any
+					// errors at all - the below line is better, but suppressed output might
+					// be better.
+					//Debug.outNoStack("Error downloading from " + url + ", " + rde, true);
+					s[0] = "";
 				} catch (Exception e) {
 					Debug.out(e);
 					s[0] = "";
