@@ -159,8 +159,7 @@ public class UIPWListPanel extends AbstractWizardPanel {
 	      		{
 	      			ArrayList	l1 = (ArrayList)o1;
 	      			ArrayList	l2 = (ArrayList)o2;
-	      			
-	      			return(((PluginInterface)l1.get(0)).getPluginName().compareTo(((PluginInterface)l2.get(0)).getPluginName()));
+	      			return(((PluginInterface)l1.get(0)).getPluginName().compareToIgnoreCase(((PluginInterface)l2.get(0)).getPluginName()));
 	      		}
 			});
     
