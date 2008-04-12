@@ -460,7 +460,7 @@ PluginUpdatePlugin
 				
 				if ( checker.getCheckInstance().isCancelled()){
 					
-					throw( new Exception( "Update check cancelled" ));
+					throw( new Exception( "Update check cancelled" )); // XXX: Uh?
 				}
 				
 				final PluginInterface	pi_being_checked 	= (PluginInterface)plugins_to_check.get(i);
@@ -670,7 +670,7 @@ PluginUpdatePlugin
 						update.setDescriptionURL(details.getInfoURL());
 					}
 				}catch( Throwable e ){
-					
+
 					checker.reportProgress( "Failed to load details for plugin '" + plugin_id + "': " + Debug.getNestedExceptionMessage(e));
 					
 					log.log("    Plugin check failed", e ); 
@@ -678,8 +678,9 @@ PluginUpdatePlugin
 			}
 						
 		}catch( Throwable e ){
-			
-			log.log("Failed to load plugin details", e );
+			if (!"Update check cancelled".equals(e.getMessage())) {
+				log.log("Failed to load plugin details", e );
+			}
 			
 			checker.reportProgress( "Failed to load plugin details: " + Debug.getNestedExceptionMessage(e));
 			
