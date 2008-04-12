@@ -95,6 +95,10 @@ Base32
 	    int    i, index, lookup, offset, digit;
 	    byte[] bytes = new byte[base32.length()*5/8];
 	
+	    if ( bytes.length == 0 ){
+	    	return( bytes );
+	    }
+	    
 	    for(i = 0, index = 0, offset = 0; i < base32.length(); i++)
 	    {
 	        lookup = base32.charAt(i) - '0';

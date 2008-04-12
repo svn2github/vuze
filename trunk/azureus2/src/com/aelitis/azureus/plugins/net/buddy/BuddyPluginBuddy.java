@@ -84,7 +84,8 @@ BuddyPluginBuddy
 	private boolean	ygm_active;
 	private boolean	ygm_pending;
 	
-	private long latest_ygm_time;
+	private long 	latest_ygm_time;
+	private String	last_message_received;
 	
 	protected
 	BuddyPluginBuddy(
@@ -114,7 +115,7 @@ BuddyPluginBuddy
 	protected String
 	getShortString()
 	{
-		return( public_key.substring( 0, 6 ) + ".." );
+		return( public_key.substring( 0, 16 ) + ".." );
 	}
 	
 	public String
@@ -279,6 +280,21 @@ BuddyPluginBuddy
 		plugin.fireDetailsChanged( this );
 		
 		return( true );
+	}
+	
+	protected void
+	setLastMessageReceived(
+		String		str )
+	{
+		last_message_received = str;
+		
+		plugin.fireDetailsChanged( this );
+	}
+	
+	public String
+	getLastMessageReceived()
+	{
+		return( last_message_received );
 	}
 	
 	protected List

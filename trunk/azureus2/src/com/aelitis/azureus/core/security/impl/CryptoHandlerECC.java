@@ -67,6 +67,8 @@ CryptoHandlerECC
 {
 	private static final ECNamedCurveParameterSpec ECCparam = ECNamedCurveTable.getParameterSpec("prime192v2");
 
+	private static final int KEY_BIT_LENGTH = 192;
+	
 	private static final byte[]  ECIES_D = new byte[] {(byte)0x6d, (byte)0xc1, (byte)0x62, (byte)0x32, (byte)0x15, (byte)0x4d, (byte)0x0f, (byte)0x7b }; 
 	private static final byte[]  ECIES_E = new byte[] {(byte)0x6a, (byte)0x64, (byte)0x98, (byte)0xde, (byte)0x1a, (byte)0xa4, (byte)0x98, (byte)0xcc }; 
 
@@ -755,7 +757,10 @@ CryptoHandlerECC
 		byte[]	encoded )
 	{
 		try{
-			rawdataToPubkey( encoded );
+			ECPublicKey pk = (ECPublicKey)rawdataToPubkey( encoded );
+			
+				// we can't actually verify the key size as although it should be 192 bits
+				// it can be less due to leading bits being 0
 			
 			return( true );
 			

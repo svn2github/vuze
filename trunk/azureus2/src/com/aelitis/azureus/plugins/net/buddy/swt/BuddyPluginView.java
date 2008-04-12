@@ -22,6 +22,7 @@
 package com.aelitis.azureus.plugins.net.buddy.swt;
 
 import org.eclipse.swt.widgets.Composite;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 
@@ -32,15 +33,18 @@ public class
 BuddyPluginView
 	implements UISWTViewEventListener
 {
-	private BuddyPlugin	plugin;
+	private BuddyPlugin		plugin;
+	private UISWTInstance	ui_instance;
 	
 	private BuddyPluginViewInstance		current_instance;
 	
 	public
 	BuddyPluginView(
-		BuddyPlugin		_plugin )
+		BuddyPlugin		_plugin,
+		UISWTInstance	_ui_instance )
 	{
-		plugin	= _plugin;
+		plugin			= _plugin;
+		ui_instance		= _ui_instance;
 	}
 	
 	public boolean 
@@ -60,7 +64,7 @@ BuddyPluginView
 			}
 			case UISWTViewEvent.TYPE_INITIALIZE:{
 				
-				current_instance = new BuddyPluginViewInstance(plugin, (Composite)event.getData());
+				current_instance = new BuddyPluginViewInstance(plugin, ui_instance, (Composite)event.getData());
 				
 				break;
 			}

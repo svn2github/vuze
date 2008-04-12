@@ -57,7 +57,6 @@ import org.gudy.azureus2.plugins.messaging.generic.GenericMessageHandler;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageRegistration;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
-import org.gudy.azureus2.plugins.ui.config.ActionParameter;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterListener;
@@ -127,8 +126,6 @@ BuddyPlugin
 	
 	private LoggerChannel	logger;
 	
-	private ActionParameter add_buddy_button;
-
 			
 	private boolean			ready_to_publish;
 	private publishDetails	current_publish		= new publishDetails();
@@ -190,11 +187,11 @@ BuddyPlugin
 			
 			// enabled
 
-		final BooleanParameter enabled_param = config.addBooleanParameter2( "enabled", "enabled", false );
+		final BooleanParameter enabled_param = config.addBooleanParameter2( "azbuddy.enabled", "azbuddy.enabled", false );
 				
 			// nickname
 
-		final StringParameter nick_name_param = config.addStringParameter2( "nickname", "nickname", "" );
+		final StringParameter nick_name_param = config.addStringParameter2( "azbuddy.nickname", "azbuddy.nickname", "" );
 
 		nick_name_param.setGenerateIntermediateEvents( false );
 		
@@ -208,41 +205,6 @@ BuddyPlugin
 						updateNickName( nick_name_param.getValue());
 					}
 				});
-		
-			// add buddy
-		
-		final StringParameter buddy_pk_param = config.addStringParameter2( "other buddy key", "other buddy key", "" );
-		
-		buddy_pk_param.addListener(
-				new ParameterListener()
-				{
-					public void
-					parameterChanged(
-						Parameter	param )
-					{
-						String	value = buddy_pk_param.getValue().trim();
-						
-						byte[] bytes = Base32.decode( value );					
-						
-						add_buddy_button.setEnabled( ecc_handler.verifyPublicKey( bytes )); 
-					}
-				});
-		
-		add_buddy_button = config.addActionParameter2( "add the key", "do it!" );
-		
-		add_buddy_button.setEnabled( false );
-		
-		add_buddy_button.addListener(
-			new ParameterListener()
-			{
-				public void
-				parameterChanged(
-					Parameter	param )
-				{
-					addBuddy( buddy_pk_param.getValue().trim());
-				}
-			});
-		
 		
 		final TableContextMenuItem menu_item_itorrents = 
 			plugin_interface.getUIManager().getTableManager().addContextMenuItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE, "azbuddy.contextmenu");
@@ -260,6 +222,13 @@ BuddyPlugin
 					MenuItem	menu,
 					Object		_target )
 				{
+					if ( !( isEnabled() && isAvailable())){
+						
+						menu.setEnabled( false );
+						
+						return;
+					}
+					
 					Object	obj = null;
 					
 					if ( _target instanceof TableRow ){
@@ -359,7 +328,7 @@ BuddyPlugin
 						
 						UISWTInstance swt_ui = (UISWTInstance)instance;
 						
-						BuddyPluginView view = new BuddyPluginView( BuddyPlugin.this );
+						BuddyPluginView view = new BuddyPluginView( BuddyPlugin.this, swt_ui );
 
 						swt_ui.addView(	UISWTInstance.VIEW_MAIN, VIEW_ID, view );
 						
@@ -384,8 +353,6 @@ BuddyPlugin
 					boolean enabled = enabled_param.getValue();
 					
 					nick_name_param.setEnabled( enabled );
-					buddy_pk_param.setEnabled( enabled );
-					add_buddy_button.setEnabled( enabled );
 					
 						// only toggle overall state on a real change
 					
@@ -500,6 +467,12 @@ BuddyPlugin
 			});
 	}
 	
+	public boolean
+	isEnabled()
+	{
+		return( is_enabled );
+	}
+	
 	protected void
 	setEnabled(
 		boolean		_enabled )
@@ -561,6 +534,11 @@ BuddyPlugin
 						
 							throws MessageException
 						{
+							if ( !is_enabled ){
+								
+								return( false );
+							}
+							
 							if ( TRACE ){
 								System.out.println( "accept" );
 							}
@@ -1098,11 +1076,11 @@ BuddyPlugin
 		}
 	}
 	
-	protected void
+	public void
 	addBuddy(
 		String		key )
 	{
-		if ( key.length() == 0 ){
+		if ( key.length() == 0 || !verifyPublicKey( key )){
 			
 			return;
 		}
@@ -1199,6 +1177,13 @@ BuddyPlugin
 	getAZ2Handler()
 	{
 		return( az2_handler );
+	}
+	
+	public boolean
+	verifyPublicKey(
+		String		key )
+	{
+		return( ecc_handler.verifyPublicKey( Base32.decode( key )));
 	}
 	
 	protected void
@@ -1686,6 +1671,20 @@ BuddyPlugin
 		synchronized( this ){
 			
 			return( new ArrayList( buddies ));
+		}
+	}
+	
+	public boolean
+	isAvailable()
+	{
+		try{
+			checkAvailable();
+			
+			return( true );
+			
+		}catch( Throwable e ){
+			
+			return( false );
 		}
 	}
 	

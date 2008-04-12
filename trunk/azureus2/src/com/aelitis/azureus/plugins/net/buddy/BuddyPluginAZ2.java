@@ -26,6 +26,7 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 
@@ -71,8 +72,8 @@ BuddyPluginAZ2
 	
 	protected Map
 	processAZ2Request(
-		BuddyPluginBuddy	from_buddy,
-		Map					request )		
+		final BuddyPluginBuddy	from_buddy,
+		Map						request )		
 		
 		throws BuddyPluginException
 	{
@@ -86,6 +87,15 @@ BuddyPluginAZ2
 		
 		if ( type == BuddyPlugin.RT_AZ2_REQUEST_MESSAGE ){
 			
+			try{
+				String	msg = new String( (byte[])request.get( "msg" ), "UTF8" );
+			
+				from_buddy.setLastMessageReceived( msg );
+				
+			}catch( Throwable e ){
+				
+			}
+			
 			return( reply );
 
 		}else if (  type == BuddyPlugin.RT_AZ2_REQUEST_SEND_TORRENT ){
@@ -98,14 +108,20 @@ BuddyPluginAZ2
 					public void
 					run()
 					{
-						long res = plugin.getPluginInterface().getUIManager().showMessageBox(
-										"azbuddy.add.torrent.title",
-										"azbuddy.add.torrent.msg",
+						PluginInterface pi = plugin.getPluginInterface();
+						
+						String msg = pi.getUtilities().getLocaleUtilities().getLocalisedMessageText(
+								"azbuddy.addtorrent.msg", 
+								new String[]{ from_buddy.getName(), torrent.getName() });
+						
+						long res = pi.getUIManager().showMessageBox(
+										"azbuddy.addtorrent.title",
+										"!" + msg + "!",
 										UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
 						
 						if ( res == UIManagerEvent.MT_YES ){
 						
-							plugin.getPluginInterface().getUIManager().openTorrent( torrent );
+							pi.getUIManager().openTorrent( torrent );
 						}
 					}
 				}.start();
@@ -217,7 +233,7 @@ BuddyPluginAZ2
 		logMessage( str );
 		
 		plugin.getPluginInterface().getUIManager().showMessageBox(
-			"azbuddy.txtbox.title", "!" + str + "!", UIManagerEvent.MT_OK );
+			"azbuddy.msglog.title", "!" + str + "!", UIManagerEvent.MT_OK );
 	}
 	
 	protected void

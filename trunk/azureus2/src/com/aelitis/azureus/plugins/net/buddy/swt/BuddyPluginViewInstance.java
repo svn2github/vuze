@@ -30,6 +30,10 @@ import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.MenuEvent;
+import org.eclipse.swt.events.MenuListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
@@ -38,8 +42,10 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
@@ -47,10 +53,14 @@ import org.eclipse.swt.widgets.Sash;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.plugins.PluginConfig;
+import org.gudy.azureus2.plugins.ui.UIInputReceiver;
+import org.gudy.azureus2.plugins.ui.UIInstance;
+import org.gudy.azureus2.plugins.utils.LocaleUtilities;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
@@ -71,7 +81,7 @@ BuddyPluginViewInstance
 
 
 	private BuddyPlugin	plugin;
-
+	private UIInstance	ui_instance;
 	private Composite	composite;
 	private Table 		buddy_table;
 	private StyledText 	log;
@@ -80,14 +90,24 @@ BuddyPluginViewInstance
 
 	private boolean	init_complete;
 	
+	private String	yes_txt;
+	private String	no_txt;
+	
 	protected
 	BuddyPluginViewInstance(
 		BuddyPlugin		_plugin,
+		UIInstance		_ui_instance,
 		Composite		_composite )
 	{
 		plugin		= _plugin;
+		ui_instance	= _ui_instance;
 		composite	= _composite;
 
+		final LocaleUtilities lu = plugin.getPluginInterface().getUtilities().getLocaleUtilities();
+	
+		yes_txt = lu.getLocalisedMessageText( "GeneralView.yes" );
+		no_txt 	= lu.getLocalisedMessageText( "GeneralView.no" );
+		
 		Composite main = new Composite(composite, SWT.NONE);
 		GridLayout layout = new GridLayout();
 		layout.numColumns = 1;
@@ -97,12 +117,64 @@ BuddyPluginViewInstance
 		GridData grid_data = new GridData(GridData.FILL_BOTH );
 		main.setLayoutData(grid_data);
 
+		if ( !plugin.isEnabled()){
+			
+			Label control_label = new Label( main, SWT.NULL );
+			control_label.setText( lu.getLocalisedMessageText( "azbuddy.disabled" ));
+
+			return;
+		}
+			// control area
+		
+		Composite controls = new Composite(main, SWT.NONE);
+		layout = new GridLayout();
+		layout.numColumns = 3;
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		controls.setLayout(layout);
+		grid_data = new GridData(GridData.FILL_HORIZONTAL );
+		controls.setLayoutData(grid_data);
+		
+		Label control_label = new Label( controls, SWT.NULL );
+		control_label.setText( lu.getLocalisedMessageText( "azbuddy.ui.new_buddy" ) + " " );
+		
+		final Text control_text = new Text( controls, SWT.BORDER );
+		GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
+		control_text.setLayoutData(gridData);
+	
+		final Button control_button = new Button( controls, SWT.NULL );
+		control_button.setText( lu.getLocalisedMessageText( "azbuddy.ui.add" ));
+		
+		control_button.setEnabled( false );
+		
+		control_text.addModifyListener(
+			new ModifyListener() {
+	        	public void 
+	        	modifyText(
+	        		ModifyEvent e ) 
+	        	{					
+					control_button.setEnabled( plugin.verifyPublicKey( control_text.getText().trim())); 
+	        	}
+	        });
+		
+		control_button.addSelectionListener(
+			new SelectionAdapter() 
+			{
+				public void 
+				widgetSelected(
+					SelectionEvent e )
+				{
+					plugin.addBuddy( control_text.getText().trim());
+				}
+			});
+		
+			// table and log
+		
 		final Composite form = new Composite(main, SWT.NONE);
 		FormLayout flayout = new FormLayout();
 		flayout.marginHeight = 0;
 		flayout.marginWidth = 0;
 		form.setLayout(flayout);
-		GridData gridData;
 		gridData = new GridData(GridData.FILL_BOTH);
 		form.setLayoutData(gridData);
 
@@ -208,16 +280,16 @@ BuddyPluginViewInstance
 		
 		buddy_table = new Table(child1, SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION | SWT.VIRTUAL);
 
-		String[] headers = { "buddy.name", "buddy.online", "buddy.last_ygm" };
+		String[] headers = { "azbuddy.ui.table.name", "azbuddy.ui.table.online", "azbuddy.ui.table.last_ygm", "azbuddy.ui.table.last_msg" };
 
-		int[] sizes = { 400, 100, 100 };
+		int[] sizes = { 400, 100, 100, 200 };
 
-		int[] aligns = { SWT.LEFT, SWT.CENTER, SWT.CENTER };
+		int[] aligns = { SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.LEFT };
 
 		for (int i = 0; i < headers.length; i++){
 
 			TableColumn tc = new TableColumn(buddy_table, aligns[i]);
-
+				
 			tc.setWidth(sizes[i]);
 
 			Messages.setLanguageText(tc, headers[i]);
@@ -251,21 +323,25 @@ BuddyPluginViewInstance
 					
 					item.setText(0, buddy.getName());
 					
-					item.setText(1, buddy.isOnline()?"yes":"no");
+					item.setText(1, buddy.isOnline()?yes_txt:no_txt);
 					
 					long	last_ygm = buddy.getLastMessagePending();;
 					
 					item.setText(2, last_ygm==0?"":new SimpleDateFormat().format(new Date( last_ygm )));
 					
+					String	lm = buddy.getLastMessageReceived();
+					
+					item.setText(3, lm==null?"":lm);
+					
 					item.setData( buddy );
 				}
 			});
 		
-		Menu menu = new Menu(buddy_table);
+		final Menu menu = new Menu(buddy_table);
 		
 		MenuItem remove_item = new MenuItem(menu, SWT.PUSH);
 		
-		remove_item.setText( "Remove" );
+		remove_item.setText( lu.getLocalisedMessageText( "azbuddy.ui.menu.remove" ));
 
 		remove_item.addSelectionListener(
 			new SelectionAdapter() 
@@ -285,9 +361,39 @@ BuddyPluginViewInstance
 				};
 			});
 		
+			// get public key
+				
+		MenuItem get_pk_item = new MenuItem(menu, SWT.PUSH);
+
+		get_pk_item.setText( lu.getLocalisedMessageText( "azbuddy.ui.menu.copypk" ) );
+
+		get_pk_item.addSelectionListener(
+			new SelectionAdapter() 
+			{
+				public void 
+				widgetSelected(
+					SelectionEvent event ) 
+				{
+					TableItem[] selection = buddy_table.getSelection();
+					
+					StringBuffer sb = new StringBuffer();
+					
+					for (int i=0;i<selection.length;i++){
+						
+						BuddyPluginBuddy buddy = (BuddyPluginBuddy)selection[i].getData();
+						
+						sb.append( buddy.getPublicKey() + "\r\n" );
+					}
+					
+					writeToClipboard( sb.toString());
+				};
+			});
+		
+			// send message
+		
 		MenuItem send_msg_item = new MenuItem(menu, SWT.PUSH);
 
-		send_msg_item.setText( "Send Message" );
+		send_msg_item.setText( lu.getLocalisedMessageText( "azbuddy.ui.menu.send" ) );
 
 		send_msg_item.addSelectionListener(
 			new SelectionAdapter() 
@@ -298,20 +404,34 @@ BuddyPluginViewInstance
 				{
 					TableItem[] selection = buddy_table.getSelection();
 					
-					String	msg = "Hello @ " + new SimpleDateFormat().format(new Date());
+					UIInputReceiver prompter = ui_instance.getInputReceiver();
 					
-					for (int i=0;i<selection.length;i++){
+					prompter.setLocalisedTitle( lu.getLocalisedMessageText( "azbuddy.ui.menu.send" ));
+					prompter.setLocalisedMessage( lu.getLocalisedMessageText( "azbuddy.ui.menu.send_msg" ) );
+					
+					try{
+						prompter.prompt();
 						
-						BuddyPluginBuddy buddy = (BuddyPluginBuddy)selection[i].getData();
+						String text = prompter.getSubmittedInput();
 						
-						plugin.getAZ2Handler().sendAZ2Message( buddy, msg );
+						if ( text != null ){
+						
+							for (int i=0;i<selection.length;i++){
+								
+								BuddyPluginBuddy buddy = (BuddyPluginBuddy)selection[i].getData();
+								
+								plugin.getAZ2Handler().sendAZ2Message( buddy, text );
+							}
+						}
+					}catch( Throwable e ){
+						
 					}
 				};
 			});
 		
 		MenuItem ping_item = new MenuItem(menu, SWT.PUSH);
 
-		ping_item.setText( "Ping" );
+		ping_item.setText( lu.getLocalisedMessageText( "azbuddy.ui.menu.ping" ) );
 
 		ping_item.addSelectionListener(
 			new SelectionAdapter() 
@@ -342,7 +462,7 @@ BuddyPluginViewInstance
 		
 		MenuItem ygm_item = new MenuItem(menu, SWT.PUSH);
 
-		ygm_item.setText( "Set YGM" );
+		ygm_item.setText( lu.getLocalisedMessageText( "azbuddy.ui.menu.ygm" ) );
 
 		ygm_item.addSelectionListener(
 			new SelectionAdapter() 
@@ -373,7 +493,7 @@ BuddyPluginViewInstance
 		
 		MenuItem encrypt_item = new MenuItem(menu, SWT.PUSH);
 
-		encrypt_item.setText( "Encrypt clipboard" );
+		encrypt_item.setText( lu.getLocalisedMessageText( "azbuddy.ui.menu.enc" ) );
 
 		encrypt_item.addSelectionListener(
 			new SelectionAdapter() 
@@ -426,7 +546,7 @@ BuddyPluginViewInstance
 		
 		MenuItem decrypt_item = new MenuItem(menu, SWT.PUSH);
 
-		decrypt_item.setText( "Decrypt clipboard" );
+		decrypt_item.setText( lu.getLocalisedMessageText( "azbuddy.ui.menu.dec" ) );
 
 		decrypt_item.addSelectionListener(
 			new SelectionAdapter() 
@@ -505,6 +625,30 @@ BuddyPluginViewInstance
 			});
 		
 		buddy_table.setMenu( menu );
+			
+		menu.addMenuListener(
+			new MenuListener()
+			{
+				public void 
+				menuShown(
+					MenuEvent arg0 ) 
+				{
+					boolean	enabled = plugin.isAvailable();
+					
+					MenuItem[] items = menu.getItems();
+					
+					for (int i=0;i<items.length;i++){
+						
+						items[i].setEnabled( enabled );
+					}
+				}
+				
+				public void 
+				menuHidden(
+					MenuEvent arg0 ) 
+				{
+				}
+			});
 		
 			// log area
 
