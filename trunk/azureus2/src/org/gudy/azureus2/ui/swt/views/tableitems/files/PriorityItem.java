@@ -41,18 +41,27 @@ public class PriorityItem
   }
 
   public void refresh(TableCell cell) {
-    DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)cell.getDataSource();
-    String tmp;
-    if (fileInfo == null) {
-      tmp = "";
-    } else {
-      if (fileInfo.isSkipped())
-        tmp = MessageText.getString("FileItem.donotdownload");
-      else if (fileInfo.isPriority())
-        tmp = MessageText.getString("FileItem.high");
-      else
-        tmp = MessageText.getString("FileItem.normal");
-    }
-    cell.setText(tmp);
-  }
+		DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) cell.getDataSource();
+		String tmp;
+		int sortval = 0;
+		if (fileInfo == null)
+			tmp = "";
+		else
+		{
+			if (fileInfo.isSkipped())
+			{
+				tmp = MessageText.getString("FileItem.donotdownload");
+				sortval = 1;
+			} else if (fileInfo.isPriority()) {
+				tmp = MessageText.getString("FileItem.high");
+				sortval = 3;
+			} else {
+				tmp = MessageText.getString("FileItem.normal");
+				sortval = 2;
+			}
+				
+		}
+		cell.setText(tmp);
+		cell.setSortValue(sortval);
+	}
 }
