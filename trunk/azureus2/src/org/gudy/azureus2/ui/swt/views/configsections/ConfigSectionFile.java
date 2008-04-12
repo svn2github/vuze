@@ -417,6 +417,16 @@ public class ConfigSectionFile implements UISWTConfigSection {
 				"ConfigView.section.file.confirm_data_delete").setLayoutData(gridData);
 
 
+    sCurConfigID = "File.delete.include_files_outside_save_dir";
+    allConfigIDs.add(sCurConfigID);
+
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    new BooleanParameter(gFile, sCurConfigID,
+				"ConfigView.section.file.delete.include_files_outside_save_dir").setLayoutData(gridData);
+
+    
+
     try{
 	    final PlatformManager	platform  = PlatformManagerFactory.getPlatformManager();
 	    

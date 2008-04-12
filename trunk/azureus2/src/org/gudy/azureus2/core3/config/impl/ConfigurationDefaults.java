@@ -523,6 +523,8 @@ public class ConfigurationDefaults {
     def.put( "File.move.download.removed.move_torrent", TRUE );
     def.put( "File.move.download.removed.move_partial", FALSE );
     
+    def.put( "File.delete.include_files_outside_save_dir", FALSE);
+    
     def.put("FilesView.show.full.path", FALSE );
     
     def.put("MyTorrentsView.menu.show_parent_folder_enabled", FALSE);
