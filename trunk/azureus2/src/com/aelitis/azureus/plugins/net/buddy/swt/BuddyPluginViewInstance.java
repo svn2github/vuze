@@ -34,6 +34,8 @@ import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
@@ -63,8 +65,13 @@ import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.utils.LocaleUtilities;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
+import com.aelitis.azureus.core.security.CryptoHandler;
+import com.aelitis.azureus.core.security.CryptoManager;
+import com.aelitis.azureus.core.security.CryptoManagerFactory;
+import com.aelitis.azureus.core.security.CryptoManagerKeyChangeListener;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddyRequestListener;
@@ -128,7 +135,7 @@ BuddyPluginViewInstance
 		
 		Composite controls = new Composite(main, SWT.NONE);
 		layout = new GridLayout();
-		layout.numColumns = 3;
+		layout.numColumns = 5;
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
 		controls.setLayout(layout);
@@ -167,6 +174,77 @@ BuddyPluginViewInstance
 					plugin.addBuddy( control_text.getText().trim());
 				}
 			});
+		
+		final Label control_lab_pk = new Label( controls, SWT.NULL );
+		control_lab_pk.setText( lu.getLocalisedMessageText( "azbuddy.ui.mykey" ) + " ");
+
+		final Label control_val_pk = new Label( controls, SWT.NULL );
+		gridData = new GridData();
+		gridData.widthHint = 400;
+		
+		control_val_pk.setLayoutData(gridData);
+
+    	final CryptoManager crypt_man = CryptoManagerFactory.getSingleton();
+
+		byte[]	public_key = crypt_man.getECCHandler().peekPublicKey( null );
+		  
+		if ( public_key == null ){
+			
+		    Messages.setLanguageText(control_val_pk, "ConfigView.section.security.publickey.undef");
+
+		}else{
+		    			    			    
+			control_val_pk.setText( Base32.encode( public_key ));
+		}
+		
+	    Messages.setLanguageText(control_val_pk, "ConfigView.copy.to.clipboard.tooltip", true);
+
+	    control_val_pk.setCursor(Cursors.handCursor);
+	    control_val_pk.setForeground(Colors.blue);
+	    control_val_pk.addMouseListener(new MouseAdapter() {
+	    	public void mouseDoubleClick(MouseEvent arg0) {
+	    		copyToClipboard();
+	    	}
+	    	public void mouseDown(MouseEvent arg0) {
+	    		copyToClipboard();
+	    	}
+	    	protected void
+	    	copyToClipboard()
+	    	{
+    			new Clipboard(control_val_pk.getDisplay()).setContents(new Object[] {control_val_pk.getText()}, new Transfer[] {TextTransfer.getInstance()});
+	    	}
+	    });
+		
+		crypt_man.addKeyChangeListener(
+				new CryptoManagerKeyChangeListener()
+				{
+					public void 
+					keyChanged(
+						CryptoHandler handler ) 
+					{
+						if ( control_val_pk.isDisposed()){
+							
+							crypt_man.removeKeyChangeListener( this );
+							
+						}else{
+							if ( handler.getType() == CryptoManager.HANDLER_ECC ){
+								
+								byte[]	public_key = handler.peekPublicKey( null );
+
+								if ( public_key == null ){
+									
+										// shouldn't happen...
+									
+									 Messages.setLanguageText(control_val_pk, "ConfigView.section.security.publickey.undef");
+									
+								}else{
+									
+									control_val_pk.setText( Base32.encode( public_key ));
+								}
+							}
+						}
+					}
+				});
 		
 			// table and log
 		

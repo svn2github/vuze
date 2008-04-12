@@ -126,6 +126,7 @@ BuddyPlugin
 	
 	private LoggerChannel	logger;
 	
+	private BooleanParameter enabled_param; 
 			
 	private boolean			ready_to_publish;
 	private publishDetails	current_publish		= new publishDetails();
@@ -141,7 +142,7 @@ BuddyPlugin
 	private List	buddies 	= new ArrayList();
 	private Map		buddies_map	= new HashMap();
 	
-	private boolean	is_enabled;
+	private boolean	is_publish_enabled;
 
 	private CopyOnWriteList		listeners 			= new CopyOnWriteList();
 	private CopyOnWriteList		request_listeners	= new CopyOnWriteList(); 
@@ -187,7 +188,7 @@ BuddyPlugin
 			
 			// enabled
 
-		final BooleanParameter enabled_param = config.addBooleanParameter2( "azbuddy.enabled", "azbuddy.enabled", false );
+		enabled_param = config.addBooleanParameter2( "azbuddy.enabled", "azbuddy.enabled", false );
 				
 			// nickname
 
@@ -470,7 +471,7 @@ BuddyPlugin
 	public boolean
 	isEnabled()
 	{
-		return( is_enabled );
+		return( enabled_param.getValue());
 	}
 	
 	protected void
@@ -478,9 +479,7 @@ BuddyPlugin
 		boolean		_enabled )
 	{
 		synchronized( this ){
-			
-			is_enabled	= _enabled;
-			
+						
 			if ( latest_publish.isEnabled() != _enabled ){
 				
 				publishDetails new_publish = latest_publish.getCopy();
@@ -534,7 +533,7 @@ BuddyPlugin
 						
 							throws MessageException
 						{
-							if ( !is_enabled ){
+							if ( !isEnabled()){
 								
 								return( false );
 							}
@@ -1203,7 +1202,7 @@ BuddyPlugin
 				{
 					tick_count++;
 					
-					if ( !is_enabled ){
+					if ( !isEnabled()){
 						
 						return;
 					}
