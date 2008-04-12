@@ -1631,20 +1631,10 @@ public class TableViewSWTImpl
 		TableContextMenuItem[] items = tc.getContextMenuItems();
 		if (items.length > 0) {
 			new MenuItem(menuThisColumn, SWT.SEPARATOR);
+			
+			MenuBuildUtils.addPluginMenuItems(getComposite(), items, menuThisColumn, true, true,
+					new MenuBuildUtils.MenuItemPluginMenuControllerImpl(getSelectedDataSources(true)));
 
-			for (int i = 0; i < items.length; i++) {
-				final TableContextMenuItemImpl contextMenuItem = (TableContextMenuItemImpl) items[i];
-				final MenuItem menuItem = new MenuItem(menuThisColumn, SWT.PUSH);
-
-				Messages.setLanguageText(menuItem, contextMenuItem.getResourceKey());
-				menuItem.addListener(SWT.Selection,
-						new TableSelectedRowsListener(this) {
-							public boolean run(TableRowCore[] rows) {
-								contextMenuItem.invokeListenersMulti(rows);
-								return true;
-							}
-						});
-			}
 		}
 	}
 
