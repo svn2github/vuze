@@ -486,6 +486,7 @@ AEDiagnostics
 	   		{	"nl_lsp",			"y", },
 	   		{	"AxShlex",			"y", },
 	   		{	"iFW_Xfilter",		"y", },
+	   		{	"gapsp",			"y", },
 	   		{	"WSOCKHK",			"n", },
 	};
 
