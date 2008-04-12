@@ -788,14 +788,22 @@ public class Utils
 	 */
 	public static int openMessageBox(Shell parent, int style, String keyPrefix,
 			String[] textParams) {
-		if (style == SWT.OK) {
+		// we don't support icons, which are the 1st 5 bits of style
+		if ((style & (0x1f | SWT.RETRY | SWT.IGNORE)) == 0) {
+			if ((style & (0x7f << 5)) == 0) {
+				// need at least one button
+				style |= SWT.OK;
+			}
+			Object[] buttonInfo = swtButtonStylesToText(style);
 			int ret = new MessageBoxShell(parent, MessageText.getString(keyPrefix
 					+ ".title"), MessageText.getString(keyPrefix + ".text", textParams),
-					new String[] {
-						MessageText.getString("Button.ok")
-					}, 0).open();
+					(String[]) buttonInfo[0], 0).open();
 
-			return (ret == 0) ? SWT.OK : SWT.CANCEL;
+			Integer[] buttonVals = (Integer[]) buttonInfo[1];
+			if (ret < 0 || ret > buttonVals.length) {
+				return SWT.CANCEL;
+			}
+			return buttonVals[ret].intValue();
 		} else {
 			MessageBox mb = new MessageBox(parent, style);
 			mb.setMessage(MessageText.getString(keyPrefix + ".text", textParams));
@@ -814,13 +822,68 @@ public class Utils
 	 */
 	public static int openMessageBox(Shell parent, int style, String title,
 			String text) {
-		MessageBox mb = new MessageBox(parent == null ? findAnyShell() : parent,
-				style);
-		mb.setMessage(text);
-		mb.setText(title);
-		return mb.open();
+		if (parent == null) {
+			parent = findAnyShell();
+		}
+		// we don't support icons, which are the 1st 5 bits of style
+		if ((style & (0x1f | SWT.RETRY | SWT.IGNORE)) == 0) {
+			if ((style & (0x7f << 5)) == 0) {
+				// need at least one button
+				style |= SWT.OK;
+			}
+
+			Object[] buttonInfo = swtButtonStylesToText(style);
+			int ret = new MessageBoxShell(parent, title, text,
+					(String[]) buttonInfo[0], 0).open();
+
+			Integer[] buttonVals = (Integer[]) buttonInfo[1];
+			if (ret < 0 || ret > buttonVals.length) {
+				return SWT.CANCEL;
+			}
+			return buttonVals[ret].intValue();
+		} else {
+			MessageBox mb = new MessageBox(parent, style);
+			mb.setMessage(text);
+			mb.setText(title);
+			return mb.open();
+		}
 	}
 
+	private static Object[] swtButtonStylesToText(int style) {
+		List buttons = new ArrayList(2);
+		List buttonVal = new ArrayList(2);
+		int buttonCount = 0;
+		if ((style & SWT.OK) > 0) {
+			buttons.add(MessageText.getString("Button.ok"));
+			buttonVal.add(new Integer(SWT.OK));
+			buttonCount++;
+		}
+		if ((style & SWT.YES) > 0) {
+			buttons.add(MessageText.getString("Button.yes"));
+			buttonVal.add(new Integer(SWT.YES));
+			buttonCount++;
+		}
+		if ((style & SWT.NO) > 0) {
+			buttons.add(MessageText.getString("Button.no"));
+			buttonVal.add(new Integer(SWT.NO));
+			buttonCount++;
+		}
+		if ((style & SWT.CANCEL) > 0) {
+			buttons.add(MessageText.getString("Button.cancel"));
+			buttonVal.add(new Integer(SWT.CANCEL));
+			buttonCount++;
+		}
+		if ((style & SWT.ABORT) > 0) {
+			buttons.add(MessageText.getString("Button.abort"));
+			buttonVal.add(new Integer(SWT.ABORT));
+			buttonCount++;
+		}
+		return new Object[] {
+			(String[]) buttons.toArray(new String[buttonCount]),
+			(Integer[]) buttonVal.toArray(new Integer[buttonCount])
+		};
+	}
+	
 	/**
 	 * Bottom Index may be negative
 	 */
