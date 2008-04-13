@@ -466,6 +466,10 @@ public class MainWindow
 
 			menu = new MainMenu(skin, shell);
 
+			System.out.println("MainMenu init took "
+					+ (SystemTime.getCurrentTime() - startTime) + "ms");
+			startTime = SystemTime.getCurrentTime();
+
 			if (org.gudy.azureus2.core3.util.Constants.isOSX) {
 				try {
 
