@@ -20,9 +20,7 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Iterator;
+import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
@@ -309,6 +307,7 @@ public class VuzeActivitiesView
 	 * @since 3.0.4.3
 	 */
 	protected void removeSelected() {
+		shiftVuzeNews();
 		Shell shell = view.getComposite().getShell();
 		Cursor oldCursor = shell.getCursor();
 		try {
@@ -408,11 +407,41 @@ public class VuzeActivitiesView
 				lastShiftedOn -= ONE_WEEK_MS;
 			}
 		}
-		view.refreshTable(true);
+
+		VuzeActivitiesEntry[] allEntries = VuzeActivitiesManager.getAllEntries();
+		Arrays.sort(allEntries);
+		boolean lastWasHeader = false;
+		VuzeActivitiesEntry lastEntry = null;
+		for (int j = allEntries.length - 1; j >= 0; j--) {
+			VuzeActivitiesEntry entry = allEntries[j];
+			boolean isHeader = VuzeActivitiesEntry.TYPEID_HEADER.equals(entry.getTypeID());
+			if (lastWasHeader && lastEntry != null) {
+				if (isHeader) {
+					TableRowCore row = view.getRow(lastEntry);
+					if (row != null) {
+						view.removeDataSource(lastEntry);
+						//System.out.println("hiding " + lastEntry.getTypeID() + "/" + lastEntry.text + "; cur = " + entry.getTypeID() + "/" + entry.text);
+					}
+				} else {
+					TableRowCore row = view.getRow(lastEntry);
+					if (row == null) {
+						view.addDataSource(lastEntry);
+						//System.out.println("showing " + lastEntry.getTypeID() + ";" + lastEntry.text);
+					}
+				}
+			}
+
+			lastWasHeader = isHeader;
+			lastEntry = entry;
+		}
 	}
 
 	// @see com.aelitis.azureus.util.VuzeNewsListener#vuzeNewsEntriesAdded(com.aelitis.azureus.util.VuzeNewsEntry[])
 	public void vuzeNewsEntriesAdded(VuzeActivitiesEntry[] entries) {
+		if (skipShift
+				&& VuzeActivitiesEntry.TYPEID_HEADER.equals(entries[0].getTypeID())) {
+			return;
+		}
 		view.addDataSources(entries);
 		long newest = 0;
 		for (int i = 0; i < entries.length; i++) {
@@ -421,9 +450,7 @@ public class VuzeActivitiesView
 				newest = entry.getTimestamp();
 			}
 		}
-		if (newest > lastShiftedOn) {
-			shiftVuzeNews();
-		}
+		shiftVuzeNews();
 	}
 
 	// @see com.aelitis.azureus.util.VuzeNewsListener#vuzeNewsEntriesRemoved(com.aelitis.azureus.util.VuzeNewsEntry[])
