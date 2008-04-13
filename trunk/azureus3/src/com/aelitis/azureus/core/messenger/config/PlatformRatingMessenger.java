@@ -78,7 +78,6 @@ public class PlatformRatingMessenger
 				// must create GetRatingReply object even if there's no replyListener
 				// as class creation may cause other listener triggers
 				RatingInfoList ratingReply = new PlatformRatingInfoList(reply);
-				invokeUpdateListeners(ratingReply);
 
 				AzureusCore core = AzureusCoreFactory.getSingleton();
 				for (int i = 0; i < torrentHashes.length; i++) {
@@ -170,7 +169,6 @@ public class PlatformRatingMessenger
 		final RatingInfoList ratingReply = new SingleUserRatingInfo(torrent);
 
 		PlatformTorrentUtils.setUserRating(torrent, -2);
-		invokeUpdateListeners(ratingReply);
 
 		PlatformMessenger.queueMessage(message, new PlatformMessengerListener() {
 			// @see com.aelitis.azureus.core.messenger.PlatformMessengerListener#messageSent(com.aelitis.azureus.core.messenger.PlatformMessage)
@@ -194,9 +192,7 @@ public class PlatformRatingMessenger
 						PlatformTorrentUtils.setUserRating(torrent,
 								oldRating == GlobalRatingUtils.RATING_WAITING
 										? GlobalRatingUtils.RATING_NONE : oldRating);
-						PlatformTorrentUtils.setUserRating(torrent, oldRating);
 					}
-					invokeUpdateListeners(ratingReply);
 				}
 				if (l != null) {
 					l.replyReceived(message, replyType, reply);
@@ -242,7 +238,7 @@ public class PlatformRatingMessenger
 		listeners.remove(l);
 	}
 
-	private static void invokeUpdateListeners(RatingInfoList rating) {
+	public static void invokeUpdateListeners(RatingInfoList rating) {
 		Object[] listArray = listeners.toArray();
 		for (int i = 0; i < listArray.length; i++) {
 			try {

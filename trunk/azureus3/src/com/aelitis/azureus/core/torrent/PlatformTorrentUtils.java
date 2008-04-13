@@ -37,6 +37,7 @@ import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
+import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformTorrentMessenger;
 
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -359,15 +360,22 @@ public class PlatformTorrentUtils
 	}
 
 	public static void setUserRating(TOTorrent torrent, int rating) {
+		if (torrent == null || getUserRating(torrent) == rating) {
+			return;
+		}
 		Map mapContent = getTempContentMap(torrent);
 		mapContent.put(TOR_AZ_PROP_USER_RATING, new Long(rating));
 		writeTorrentIfExists(torrent);
+		RatingInfoList ratingReply = new SingleUserRatingInfo(torrent);
+		PlatformRatingMessenger.invokeUpdateListeners(ratingReply);
 	}
 
 	public static void removeUserRating(TOTorrent torrent) {
 		Map mapContent = getTempContentMap(torrent);
 		if (mapContent.remove(TOR_AZ_PROP_USER_RATING) != null) {
 			writeTorrentIfExists(torrent);
+			RatingInfoList ratingReply = new SingleUserRatingInfo(torrent);
+			PlatformRatingMessenger.invokeUpdateListeners(ratingReply);
 		}
 	}
 
