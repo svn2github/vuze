@@ -1875,7 +1875,7 @@ public class ListView
 					fixUpPositions(firstIndex, false);
 					setBottomRowInfo(findBottomRow(iLastVBarPos, clientArea.height));
 
-					if (newFocusRow != null) {
+					if (newFocusRow != null && !newFocusRow.isRowDisposed()) {
 						//System.out.println("SR " + newFocusRow.getIndex());
 						rowSetFocused(newFocusRow);
 						newFocusRow.setSelected(true);
