@@ -510,7 +510,7 @@ public class ConfigurationDefaults {
     def.put( "Completed Files Directory", "" );
     def.put( "Move Only When In Default Save Dir", TRUE );
     def.put( "Move Torrent When Done", TRUE );
-    def.put( "File.move.subdir_is_default", FALSE );
+    def.put( "File.move.subdir_is_default", TRUE );
     
     // This gets permanently set by GlobalManagerImpl to false once Azureus has initialised.
     // This is intended to be used once as part of an upgrade.
