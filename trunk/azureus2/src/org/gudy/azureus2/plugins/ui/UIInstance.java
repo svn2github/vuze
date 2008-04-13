@@ -54,4 +54,15 @@ UIInstance
 	 * they will return <code>null</code> for this method.
 	 */
 	public UIInputReceiver getInputReceiver();
+	
+	/**
+	 * Creates a {@link UIMessage} instance to allow a plugin to inform or ask the
+	 * user something. Some interfaces may not allow or support the
+	 * ability for a plugin to ask a user in this manner, in which case
+	 * they will return <code>null</code> for this method.
+	 * 
+	 * @since 3.0.5.3
+	 */
+	public UIMessage createMessage();
+
 }

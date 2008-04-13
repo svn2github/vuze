@@ -6,6 +6,7 @@ AZUREUS VUZE CHANGELOG
 FEATURE: UI   | Protocol overhead is now shown in the speed graph [The 8472]
 FEATURE: UI   | Downloads can now be moved and renamed while running - torrent will be auto-paused [amc1]
 FEATURE: UIv3 | Experimental option to use Mozilla/Firefox as browser widget on any platform (XulRunner or Firefox 3 must be installed) [The 8472]
+FEATURE: Plug | Added API methods to generically pop up the message box to a user [amc1]
 
 CHANGE: Core  | Faster startup [The 8472]
 CHANGE: Core  | Quicker to change a batch of files to "Do Not Download" in files view [amc1]

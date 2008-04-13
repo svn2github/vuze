@@ -52,6 +52,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
 import org.gudy.azureus2.ui.swt.plugins.*;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UIMessageImpl;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableContextMenuManager;
@@ -726,6 +727,10 @@ UISWTInstanceImpl
 		return new SimpleTextEntryWindow(getDisplay());
 	}
 	
+	public UIMessage createMessage() {
+		return new UIMessageImpl();
+	}
+	
 	public UISWTStatusEntry createStatusEntry() {
 		final UISWTStatusEntryImpl entry = new UISWTStatusEntryImpl();
 		UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
@@ -861,6 +866,10 @@ UISWTInstanceImpl
 		
 		public UIInputReceiver getInputReceiver() {
 			return delegate.getInputReceiver();
+		}
+		
+		public UIMessage createMessage() {
+			return delegate.createMessage();
 		}
 		
 		public void showDownloadBar(Download download, boolean display) {
