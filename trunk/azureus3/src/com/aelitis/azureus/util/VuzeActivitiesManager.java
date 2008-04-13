@@ -33,9 +33,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformVuzeActivitiesMessenger;
 import com.aelitis.azureus.core.messenger.config.RatingUpdateListener2;
-import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
-import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
-import com.aelitis.azureus.core.torrent.RatingInfoList;
+import com.aelitis.azureus.core.torrent.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 
@@ -141,6 +139,9 @@ public class VuzeActivitiesManager
 		PlatformRatingMessenger.addListener(new RatingUpdateListener2() {
 			// @see com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger.RatingUpdateListener#ratingUpdated(com.aelitis.azureus.core.torrent.RatingInfoList)
 			public void ratingUpdated(RatingInfoList rating) {
+				if (!(rating instanceof SingleUserRatingInfo)) {
+					return;
+				}
 				Object[] allEntriesArray = allEntries.toArray();
 				for (int i = 0; i < allEntriesArray.length; i++) {
 					VuzeActivitiesEntry entry = (VuzeActivitiesEntry) allEntriesArray[i];
@@ -561,6 +562,10 @@ public class VuzeActivitiesManager
 				}
 
 				VuzeActivitiesEntry entry = VuzeActivitiesEntry.readFromMap((Map) value);
+				
+				if (VuzeActivitiesEntry.TYPEID_RATING_REMINDER.equals(entry.getTypeID())) {
+					entry.showThumb = true;
+				}
 
 				if (entry.getTimestamp() > cutoffTime) {
 					addEntries(new VuzeActivitiesEntry[] {
