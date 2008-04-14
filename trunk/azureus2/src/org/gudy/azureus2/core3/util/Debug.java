@@ -354,16 +354,20 @@ public class Debug {
 				this_message = e.getMessage();
 			}
 			
-			if ( this_message == null || this_message.length() == 0 ){
+				// if no exception message then pick up class name. if we have a deliberate
+				// zero length string then we assume that the exception can be ignored for
+				// logging purposes as it is just delegating
+			
+			if ( this_message == null ){
 				
 				this_message = e.getClass().getName();
 				
 				int	pos = this_message.lastIndexOf(".");
 				
-				this_message = this_message.substring( pos+1 );
+				this_message = this_message.substring( pos+1 ).trim();
 			}
-			
-			if ( last_message.indexOf( this_message ) == -1 ){
+						
+			if ( this_message.length() > 0 && last_message.indexOf( this_message ) == -1 ){
 				
 				last_message	= this_message + ( last_message.length()==0?"":(", " + last_message ));
 			}

@@ -32,6 +32,9 @@ NATTraversalObserver
 	public static final int	FT_QUEUE_FULL		= 2;
 	public static final int	FT_CANCELLED		= 3;
 	
+	public static String[] FT_STRINGS = {
+		"Unknown", "No rendezvous", "Queue full", "Operation cancelled" };
+	                     
 	public void
 	succeeded(
 		InetSocketAddress	rendezvous,

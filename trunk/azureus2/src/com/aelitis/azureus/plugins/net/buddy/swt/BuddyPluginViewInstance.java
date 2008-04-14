@@ -702,6 +702,136 @@ BuddyPluginViewInstance
 				};
 			});
 		
+			// sign
+		
+		MenuItem sign_item = new MenuItem(menu, SWT.PUSH);
+
+		sign_item.setText( lu.getLocalisedMessageText( "azbuddy.ui.menu.sign" ) );
+
+		sign_item.addSelectionListener(
+			new SelectionAdapter() 
+			{
+				public void 
+				widgetSelected(
+					SelectionEvent event ) 
+				{
+					String	str = readFromClipboard();
+					
+					if ( str != null ){
+						
+						StringBuffer sb = new StringBuffer();
+						
+						try{
+							sb.append( "key: " );
+							sb.append( plugin.getPublicKey());
+							sb.append( "\r\n" );
+
+							byte[] payload = str.getBytes( "UTF-8" );
+							
+							sb.append( "data: " );
+							sb.append( Base32.encode( payload ));
+							sb.append( "\r\n" );
+
+							byte[]	sig = plugin.sign( payload );
+
+							sb.append( "sig: " );
+							sb.append( Base32.encode( sig ));
+							sb.append( "\r\n" );
+
+						}catch( Throwable e ){
+							
+							print( "sign failed", e );
+						}
+						
+						if ( sb.length() > 0 ){
+						
+							writeToClipboard( sb.toString());
+						}
+					}
+				};
+			});
+		
+			// verify
+		
+		MenuItem verify_item = new MenuItem(menu, SWT.PUSH);
+
+		verify_item.setText( lu.getLocalisedMessageText( "azbuddy.ui.menu.verify" ) );
+
+		verify_item.addSelectionListener(
+			new SelectionAdapter() 
+			{
+				public void 
+				widgetSelected(
+					SelectionEvent event ) 
+				{
+					String	str = readFromClipboard();
+					
+					if ( str != null ){
+						
+						String[] 	bits = str.split( "\n" );
+						
+						StringBuffer sb = new StringBuffer();
+	
+						String				pk 		= null;
+						byte[]				data	= null;
+						
+						for (int i=0;i<bits.length;i++){
+							
+							String	bit = bits[i].trim();
+							
+							if ( bit.length() > 0 ){
+							
+								int	pos = bit.indexOf( ':' );
+								
+								String	lhs = bit.substring( 0, pos ).trim();
+								String	rhs	= bit.substring( pos+1 ).trim();
+								
+								if ( lhs.equals( "key" )){
+									
+									pk = rhs;
+									
+								}else if ( lhs.equals( "data" )){
+									
+									data	= Base32.decode( rhs );
+									
+								}else if ( lhs.equals( "sig" )){
+								
+									byte[]	sig = Base32.decode( rhs );
+									
+									if ( pk != null && data != null ){
+										
+										try{
+											
+											sb.append( "key: " );
+											sb.append( pk );
+											sb.append( "\r\n" );
+
+											boolean ok = plugin.verify( pk, data, sig );
+											
+											sb.append( "sig_ok: " + ok  );
+											sb.append( "\r\n" );
+											
+											sb.append( "data: " );
+											sb.append( new String( data, "UTF-8" ));
+											sb.append( "\r\n\r\n" );
+											
+										}catch( Throwable e ){
+											
+											print( "decrypt failed", e );
+										}
+									}
+								}
+							}
+						}
+						
+						if ( sb.length() > 0 ){
+						
+							writeToClipboard( sb.toString());
+						}
+					}
+				};
+			});
+		
 		buddy_table.setMenu( menu );
 			
 		menu.addMenuListener(

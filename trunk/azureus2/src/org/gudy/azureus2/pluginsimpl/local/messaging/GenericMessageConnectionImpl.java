@@ -367,7 +367,7 @@ GenericMessageConnectionImpl
 						failed(
 							int			failure_type )
 						{
-							reportFailed( new Throwable( "UDP connection attempt failed - NAT traversal failed, type=" + failure_type ));
+							reportFailed( new MessageException( "UDP connection attempt failed - NAT traversal failed (" + NATTraversalObserver.FT_STRINGS[ failure_type ] + ")"));
 						}
 						
 						public void
@@ -380,7 +380,7 @@ GenericMessageConnectionImpl
 						public void
 						disabled()
 						{
-							reportFailed( new Throwable( "UDP connection attempt failed as DDB is disabled" ));
+							reportFailed( new MessageException( "UDP connection attempt failed as DDB is disabled" ));
 						}
 					});
 		}else{

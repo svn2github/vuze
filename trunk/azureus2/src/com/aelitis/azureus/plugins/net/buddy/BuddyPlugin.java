@@ -142,8 +142,6 @@ BuddyPlugin
 	private List	buddies 	= new ArrayList();
 	private Map		buddies_map	= new HashMap();
 	
-	private boolean	is_publish_enabled;
-
 	private CopyOnWriteList		listeners 			= new CopyOnWriteList();
 	private CopyOnWriteList		request_listeners	= new CopyOnWriteList(); 
 		
@@ -1178,6 +1176,20 @@ BuddyPlugin
 		return( az2_handler );
 	}
 	
+	public String
+	getPublicKey()
+	{
+		try{
+			return( Base32.encode(ecc_handler.getPublicKey( "Buddy get key" )));
+			
+		}catch( Throwable e ){
+			
+			logMessage( "Failed to get key", e );
+			
+			return( null );
+		}
+	}
+	
 	public boolean
 	verifyPublicKey(
 		String		key )
@@ -1399,6 +1411,62 @@ BuddyPlugin
 		System.arraycopy( data, 0, signed_payload, 1 + signature.length, data.length );		
 
 		return( signed_payload );
+	}
+	
+	public boolean
+	verify(
+		String				pk,
+		byte[]				payload,
+		byte[]				signature )
+	
+		throws BuddyPluginException
+	{
+		return( verify( Base32.decode( pk ), payload, signature ));
+	}
+	
+	protected boolean
+	verify(
+		BuddyPluginBuddy	buddy,
+		byte[]				payload,
+		byte[]				signature )
+	
+		throws BuddyPluginException
+	{
+		return( verify( buddy.getRawPublicKey(), payload, signature ));
+	}
+	
+	protected boolean
+	verify(
+		byte[]				pk,
+		byte[]				payload,
+		byte[]				signature )
+	
+		throws BuddyPluginException
+	{
+		try{
+		
+			return( ecc_handler.verify( pk, payload, signature ));
+			
+		}catch( Throwable e ){
+			
+			throw( new BuddyPluginException( "Verification failed", e ));
+		}
+	}
+	
+	public byte[]
+   	sign(
+   		byte[]		payload )
+	        	
+	   	throws BuddyPluginException
+	{ 
+		try{
+		
+			return( ecc_handler.sign( payload, "Buddy message signing" ));
+
+		}catch( Throwable e ){
+			
+			throw( new BuddyPluginException( "Signing failed", e ));
+		}
 	}
 	
 	protected cryptoResult
@@ -1868,6 +1936,14 @@ BuddyPlugin
 		BuddyPluginBuddyRequestListener	listener )
 	{
 		request_listeners.remove( listener );
+	}
+	
+	public void
+	logMessage(
+		String		str,
+		Throwable	e )
+	{
+		logMessage( str + ": " + Debug.getNestedExceptionMessage(e));
 	}
 	
 	public void

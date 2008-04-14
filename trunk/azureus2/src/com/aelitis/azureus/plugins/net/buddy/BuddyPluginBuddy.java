@@ -192,6 +192,17 @@ BuddyPluginBuddy
 		return( plugin.decrypt( this, payload ));
 	}
 	
+	public boolean
+	verify(
+		byte[]		payload,
+		byte[]		signature )
+	
+		throws BuddyPluginException
+	{
+		
+		return( plugin.verify( this, payload, signature ));
+	}
+	
 	public void
 	setMessagePending()
 	
@@ -1132,7 +1143,7 @@ BuddyPluginBuddy
 					
 				}else{
 				
-					listener.sendFailed(  BuddyPluginBuddy.this, new BuddyPluginException( "Unexpected error",  error ));
+					listener.sendFailed(  BuddyPluginBuddy.this, new BuddyPluginException( "",  error ));
 				}
 			}catch( Throwable e ){
 				
