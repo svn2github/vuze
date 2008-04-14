@@ -35,6 +35,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.download.impl.DownloadManagerStateImpl;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.stats.transfer.*;
@@ -44,6 +45,7 @@ import org.gudy.azureus2.plugins.PluginInterface;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.impl.AzureusCoreImpl;
 import com.aelitis.azureus.core.clientmessageservice.*;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminASN;
@@ -1245,6 +1247,15 @@ public class VersionCheckClient {
 		  
 		  System.out.println();
 		  System.out.print("Initialising core... ");
+
+		  /**
+		   * Suppress all of these errors being displayed in the output.
+		   * 
+		   * These things should be temporary...
+		   */
+		  AzureusCoreImpl.SUPPRESS_CLASSLOADER_ERRORS = true;
+		  DownloadManagerStateImpl.SUPPRESS_FIXUP_ERRORS = true;
+		  
 		  AzureusCore core = AzureusCoreFactory.create(); 
 		  core.start();
 		  System.out.println("done.");

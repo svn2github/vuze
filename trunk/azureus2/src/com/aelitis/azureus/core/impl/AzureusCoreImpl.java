@@ -149,10 +149,12 @@ AzureusCoreImpl
 
 	private AzureusCoreOperation	initialisation_op = createOperation( AzureusCoreOperation.OP_INITIALISATION );
 	
+	public static boolean SUPPRESS_CLASSLOADER_ERRORS = false;
+	
 	protected
 	AzureusCoreImpl()
 	{
-		if(!(this.getClass().getClassLoader() instanceof PrimaryClassloader))
+		if(!SUPPRESS_CLASSLOADER_ERRORS && !(this.getClass().getClassLoader() instanceof PrimaryClassloader))
 			System.out.println("###\nWarning: Core not instantiated through a PrimaryClassloader, this can lead to restricted functionality or bugs in future versions\n###");
 		
 		COConfigurationManager.initialise();

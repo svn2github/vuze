@@ -69,6 +69,8 @@ DownloadManagerStateImpl
 		
 	private static final File			ACTIVE_DIR;
 	
+	public static boolean SUPPRESS_FIXUP_ERRORS = false;
+	
 	static{
 	
 		ACTIVE_DIR = FileUtil.getUserFile( "active" );
@@ -2805,14 +2807,13 @@ DownloadManagerStateImpl
 		{					
 			// System.out.println("loadReal: " + torrent_file + " dp=" + discard_pieces + ": " + Debug.getCompressedStackTrace().substring(114));
 				
-			if ( Constants.isCVSVersion()){
+			if ( !SUPPRESS_FIXUP_ERRORS && Constants.isCVSVersion() ){
 				
 				if ( Thread.currentThread().isDaemon()){
 			
 					// Debug.outNoStack( "Fixup on thread " + Thread.currentThread().getName() + ": " + Debug.getCompressedStackTrace());
 					
 				}else{
-					
 					Debug.out( "Premature fixup?" );
 				}
 			}
