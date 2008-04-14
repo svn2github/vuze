@@ -1,0 +1,103 @@
+/*
+ * Created on 12 Apr 2008
+ * Created by Allan Crooks
+ * Copyright (C) 2007 Aelitis, All Rights Reserved.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * 
+ * AELITIS, SAS au capital de 46,603.30 euros
+ * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
+ */
+package org.gudy.azureus2.ui.swt.pluginsimpl;
+
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Shell;
+
+import org.gudy.azureus2.pluginsimpl.local.ui.AbstractUIMessage;
+import org.gudy.azureus2.ui.swt.Utils;
+
+/**
+ * @author Allan Crooks
+ *
+ */
+public class UIMessageImpl extends AbstractUIMessage {
+	
+	public UIMessageImpl() {
+	}
+
+	public int ask() {
+		final Shell shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(Utils.findAnyShell(), SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+		Utils.setShellIcon(shell);
+		
+		int style = 0;
+		switch (this.input_type) {
+			case INPUT_OK_CANCEL:
+				style |= SWT.CANCEL;
+			case INPUT_OK:
+				style |= SWT.OK;
+				break;
+
+			case INPUT_RETRY_CANCEL_IGNORE:
+				style |= SWT.IGNORE;
+			case INPUT_RETRY_CANCEL:
+				style |= SWT.RETRY;
+				style |= SWT.CANCEL;
+				break;
+
+			case INPUT_YES_NO_CANCEL:
+				style |= SWT.CANCEL;
+			case INPUT_YES_NO:
+				style |= SWT.YES;
+				style |= SWT.NO;
+				break;
+		}
+		
+		switch (this.message_type) {
+			case MSG_ERROR:
+				style |= SWT.ICON_ERROR;
+				break;
+			case MSG_INFO:
+				style |= SWT.ICON_INFORMATION;
+				break;
+			case MSG_QUESTION:
+				style |= SWT.ICON_QUESTION;
+				break;
+			case MSG_WARN:
+				style |= SWT.ICON_WARNING;
+				break;
+			case MSG_WORKING:
+				style |= SWT.ICON_WORKING;
+				break;
+		}
+		
+		int result = Utils.openMessageBox(shell, style, this.title, this.messagesAsString());
+		switch (result) {
+			case SWT.OK:
+				return ANSWER_OK;
+			case SWT.YES:
+				return ANSWER_YES;
+			case SWT.NO:
+				return ANSWER_NO;
+			case SWT.ABORT:
+				return ANSWER_ABORT;
+			case SWT.RETRY:
+				return ANSWER_RETRY;
+			case SWT.IGNORE:
+				return ANSWER_IGNORE;
+			default: // Cancel if anything else is returned.
+				return ANSWER_CANCEL;
+		}
+
+	}
+
+}
