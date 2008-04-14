@@ -46,6 +46,8 @@ package org.gudy.azureus2.plugins.ui;
  * string to a localised representation of it - the <tt>setLocalisedXXX</tt> method
  * will assume that the localisation has already been done, and leave it intact.
  * 
+ * <p><b>Note:</b> Only for implementation by Azureus, not plugins.</p>
+ * 
  * @author Allan Crooks
  * @since 3.0.5.3
  */

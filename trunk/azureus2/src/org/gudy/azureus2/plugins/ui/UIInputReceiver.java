@@ -48,6 +48,8 @@ package org.gudy.azureus2.plugins.ui;
  * counterparts. The <tt>setXXX</tt> methods will attempt to translate the given
  * string to a localised representation of it - the <tt>setLocalisedXXX</tt> method
  * will assume that the localisation has already been done, and leave it intact.
+ * 
+ * <p><b>Note:</b> Only for implementation by Azureus, not plugins.</p>
  */
 public interface UIInputReceiver {
 	
