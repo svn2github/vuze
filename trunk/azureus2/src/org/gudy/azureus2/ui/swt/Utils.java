@@ -577,7 +577,7 @@ public class Utils
 		}
 	}
 
-	private static Display getDisplay() {
+	public static Display getDisplay() {
 		SWTThread swt = SWTThread.getInstance();
 
 		Display display;
