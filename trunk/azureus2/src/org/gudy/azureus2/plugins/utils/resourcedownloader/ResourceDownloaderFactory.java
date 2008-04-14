@@ -98,32 +98,35 @@ ResourceDownloaderFactory
 		int						timeout_millis );
 
 	
-		/**
-		 * gets a downloader that will cycle through a list of downloaders until
-		 * a download succeeds
-		 * @param downloaders
-		 * @return
-		 */
-	
+	/**
+	 * Gets a downloader that will cycle through a list of downloaders until
+	 * a download succeeds. The resource downloaders will be tried in order.
+	 */
 	public ResourceDownloader
 	getAlternateDownloader(
 		ResourceDownloader[]		downloaders );
-	
+
+	/**
+	 * Gets a downloader that will cycle through a list of downloaders until
+	 * a download succeeds. The resource downloaders will be tried in order.
+	 */
 	public ResourceDownloader
 	getAlternateDownloader(
 		ResourceDownloader[]		downloaders,
 		int							max_to_try );
 	
-		/**
-		 * an alternative downloader that randomises the downloaders
-		 * @param downloaders
-		 * @return
-		 */
-	
+	/**
+	 * Gets a downloader that will cycle through a list of downloaders until
+	 * a download succeeds. The resource downloaders will be tried randomly.
+	 */
 	public ResourceDownloader
 	getRandomDownloader(
 		ResourceDownloader[]		downloaders );
-	
+
+	/**
+	 * Gets a downloader that will cycle through a list of downloaders until
+	 * a download succeeds. The resource downloaders will be tried randomly.
+	 */
 	public ResourceDownloader
 	getRandomDownloader(
 		ResourceDownloader[]		downloaders,
@@ -188,4 +191,22 @@ ResourceDownloaderFactory
 		 * @return
 		 */
 		ResourceDownloader create(URL url, String postData);
+		
+	/**
+	 * Creates multiple resource downloaders which can be used to download
+	 * a file from a Sourceforge project (from different mirrors). The resulting
+	 * downloaders can then be passed to a method such as {@link #getRandomDownloader(ResourceDownloader[])}.
+	 * 
+	 * @since 3.0.5.3
+	 */
+	public ResourceDownloader[] getSourceforgeDownloaders(String project_name, String file_name);
+
+	/**
+	 * Creates a resource downloader which can be used to download
+	 * a file from a Sourceforge project (from different mirrors).
+	 * 
+	 * @since 3.0.5.3
+	 */
+	public ResourceDownloader getSourceforgeDownloader(String project_name, String file_name);
+	
 }

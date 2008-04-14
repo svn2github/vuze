@@ -28,10 +28,12 @@ package org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader;
  */
 
 import java.io.File;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.*;
 
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
 import org.gudy.azureus2.core3.logging.*;
@@ -40,8 +42,16 @@ public class
 ResourceDownloaderFactoryImpl
 	implements ResourceDownloaderFactory
 {
+
 	private static final LogIDs LOGID = LogIDs.CORE;
 	protected static ResourceDownloaderFactoryImpl	singleton = new ResourceDownloaderFactoryImpl();
+
+	// A list of SourceForge mirrors.
+	private static final String[] SF_MIRRORS = new String[] {
+		"jaist", "nchc", "keihanna", "optusnet", "peterhost", "ovh", "puzzle",
+		"switch", "mesh", "kent", "surfnet", "heanet", "citkit", "internap",
+		"cogent", "umn", "easynews", "ufpr"
+	};
 	
 	public static ResourceDownloaderFactory
 	getSingleton()
@@ -226,5 +236,21 @@ ResourceDownloaderFactoryImpl
 			
 			return( _downloader );
 		}
+	}
+	
+	public ResourceDownloader[] getSourceforgeDownloaders(String project_name, String filename) {
+		String template = "http://%s.dl.sourceforge.net/sourceforge/" + project_name + "/" + filename;
+		ResourceDownloader[] result = new ResourceDownloader[SF_MIRRORS.length];
+		
+		for (int i=0; i<result.length; i++) {
+			String url = template.replaceFirst("%s", SF_MIRRORS[i]);
+			try {result[i] = create(new URL(url));}
+			catch (MalformedURLException me) {throw new RuntimeException(me);}
+		}
+		return result;
+	}
+	
+	public ResourceDownloader getSourceforgeDownloader(String project_name, String filename) {
+		return getRandomDownloader(getSourceforgeDownloaders(project_name, filename));
 	}
 }
