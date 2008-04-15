@@ -20,9 +20,7 @@ package com.aelitis.azureus.buddy.impl;
 
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.AEDiagnostics;
-import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
-import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddyCreator;
@@ -30,7 +28,6 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginListener;
-import com.aelitis.azureus.ui.swt.buddy.impl.VuzeBuddySWTImpl;
 import com.aelitis.azureus.util.Constants;
 
 import org.gudy.azureus2.plugins.Plugin;
@@ -54,75 +51,79 @@ public class VuzeBuddyManager
 	public static void init(final VuzeBuddyCreator vuzeBuddyCreator) {
 		VuzeBuddyManager.vuzeBuddyCreator = vuzeBuddyCreator;
 
-		PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
-				"azbuddy");
+		try {
+			PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
+					"azbuddy");
 
-		if (pi != null) {
-			Plugin plugin = pi.getPlugin();
-			if (plugin instanceof BuddyPlugin) {
-				buddyPlugin = (BuddyPlugin) plugin;
-				BuddyPluginListener listener = new BuddyPluginListener() {
-					public void messageLogged(String str) {
-					}
-
-					public void initialised(boolean available) {
-					}
-
-					public void buddyRemoved(BuddyPluginBuddy buddy) {
-						try {
-							buddyList_mon.enter();
-
-							Comparator c = new Comparator() {
-
-								public int compare(Object arg0, Object arg1) {
-									VuzeBuddy v0 = (VuzeBuddy) arg0;
-									VuzeBuddy v1 = (VuzeBuddy) arg1;
-									return v0.getPublicKey().compareTo(v1.getPublicKey());
-								}
-
-							};
-							Collections.sort(buddyList, c);
-							int i = Collections.binarySearch(buddyList, buddy.getPublicKey(),
-									c);
-							if (i >= 0) {
-								buddyList.remove(i);
-							}
-						} finally {
-							buddyList_mon.exit();
+			if (pi != null) {
+				Plugin plugin = pi.getPlugin();
+				if (plugin instanceof BuddyPlugin) {
+					buddyPlugin = (BuddyPlugin) plugin;
+					BuddyPluginListener listener = new BuddyPluginListener() {
+						public void messageLogged(String str) {
 						}
-					}
 
-					public void buddyChanged(BuddyPluginBuddy buddy) {
-					}
-
-					public void buddyAdded(BuddyPluginBuddy buddy) {
-						VuzeBuddy newBuddy;
-						if (vuzeBuddyCreator == null) {
-							newBuddy = new VuzeBuddyImpl(buddy.getPublicKey());
-						} else {
-							newBuddy = vuzeBuddyCreator.createBuddy(buddy.getPublicKey());
+						public void initialised(boolean available) {
 						}
-						if (newBuddy != null) {
-							newBuddy.setDisplayName(buddy.getName());
+
+						public void buddyRemoved(BuddyPluginBuddy buddy) {
 							try {
 								buddyList_mon.enter();
 
-								buddyList.add(newBuddy);
+								Comparator c = new Comparator() {
+
+									public int compare(Object arg0, Object arg1) {
+										VuzeBuddy v0 = (VuzeBuddy) arg0;
+										VuzeBuddy v1 = (VuzeBuddy) arg1;
+										return v0.getPublicKey().compareTo(v1.getPublicKey());
+									}
+
+								};
+								Collections.sort(buddyList, c);
+								int i = Collections.binarySearch(buddyList,
+										buddy.getPublicKey(), c);
+								if (i >= 0) {
+									buddyList.remove(i);
+								}
 							} finally {
 								buddyList_mon.exit();
 							}
 						}
-					}
-				};
 
-				// TODO create an addListener that triggers for existing buddies
-				buddyPlugin.addListener(listener);
-				List buddies = buddyPlugin.getBuddies();
-				for (int i = 0; i < buddies.size(); i++) {
-					BuddyPluginBuddy buddy = (BuddyPluginBuddy) buddies.get(i);
-					listener.buddyAdded(buddy);
+						public void buddyChanged(BuddyPluginBuddy buddy) {
+						}
+
+						public void buddyAdded(BuddyPluginBuddy buddy) {
+							VuzeBuddy newBuddy;
+							if (vuzeBuddyCreator == null) {
+								newBuddy = new VuzeBuddyImpl(buddy.getPublicKey());
+							} else {
+								newBuddy = vuzeBuddyCreator.createBuddy(buddy.getPublicKey());
+							}
+							if (newBuddy != null) {
+								newBuddy.setDisplayName(buddy.getName());
+								try {
+									buddyList_mon.enter();
+
+									buddyList.add(newBuddy);
+								} finally {
+									buddyList_mon.exit();
+								}
+							}
+						}
+					};
+
+					// TODO create an addListener that triggers for existing buddies
+					buddyPlugin.addListener(listener);
+					List buddies = buddyPlugin.getBuddies();
+					for (int i = 0; i < buddies.size(); i++) {
+						BuddyPluginBuddy buddy = (BuddyPluginBuddy) buddies.get(i);
+						listener.buddyAdded(buddy);
+					}
 				}
 			}
+		} catch (Throwable t) {
+			Debug.out(t);
 		}
 	}
 
