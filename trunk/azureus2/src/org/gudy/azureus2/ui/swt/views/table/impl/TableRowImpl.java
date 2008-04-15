@@ -217,6 +217,8 @@ public class TableRowImpl
 				TableCellSWT item = (TableCellSWT) iter.next();
 				item.dispose();
 			}
+			
+			setForeground((Color) null);
 
 			bDisposed = true;
 		} finally {

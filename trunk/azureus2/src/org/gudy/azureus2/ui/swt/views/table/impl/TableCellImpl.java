@@ -1052,9 +1052,11 @@ public class TableCellImpl
         pluginError(e);
       }
     }
-
-    if (bufferedTableItem != null)
-      bufferedTableItem.dispose();
+    
+    if (bufferedTableItem != null) {
+			bufferedTableItem.setForeground(null);
+			bufferedTableItem.dispose();
+		}
     
     refreshListeners = null;
     bufferedTableItem = null;
