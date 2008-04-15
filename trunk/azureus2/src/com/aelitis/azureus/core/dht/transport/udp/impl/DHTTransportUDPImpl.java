@@ -1480,7 +1480,8 @@ DHTTransportUDPImpl
 		final DHTTransportUDPContactImpl	contact,
 		final DHTTransportReplyHandler		handler,
 		byte[][]							keys,
-		DHTTransportValue[][]				value_sets )
+		DHTTransportValue[][]				value_sets,
+		int									priority )
 	{
 		final long	connection_id = getConnectionID();
 		
@@ -1682,7 +1683,7 @@ DHTTransportUDPImpl
 						}
 					},
 					store_timeout,
-					PRUDPPacketHandler.PRIORITY_LOW );
+					priority );
 
 			}
 		}catch( Throwable e ){

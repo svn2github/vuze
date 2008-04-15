@@ -86,6 +86,13 @@ DHTControl
 		String					description,
 		DHTOperationListener	listener );
 	
+	public byte[]
+	remove(
+		DHTTransportContact[]	contacts,
+		byte[]					key,
+		String					description,
+		DHTOperationListener	listener );
+	
 	public DHTControlStats
 	getStats();
 	

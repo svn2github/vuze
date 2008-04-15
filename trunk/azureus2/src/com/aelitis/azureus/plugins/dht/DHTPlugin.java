@@ -1327,6 +1327,74 @@ DHTPlugin
 		}
 	}
 	
+	public void
+	remove(
+		final DHTPluginContact[]			targets,
+		final byte[]						key,
+		final String						description,
+		final DHTPluginOperationListener	listener )
+	{
+		if ( !isEnabled()){
+			
+			throw( new RuntimeException( "DHT isn't enabled" ));
+		}
+				
+		dhts[0].remove( targets, key, description, listener );
+		
+		for (int i=1;i<dhts.length;i++){
+
+			final int f_i	= i;
+			
+			new AEThread2( "multi-dht: remove", true )
+			{
+				public void
+				run()
+				{
+					dhts[f_i].remove( 
+							targets,
+							key, description, 
+							new DHTPluginOperationListener()
+							{
+								public void
+								diversified()
+								{
+								}
+								
+								public void
+								valueRead(
+									DHTPluginContact	originator,
+									DHTPluginValue		value )
+								{
+									if ( TRACE_NON_MAIN ){
+										System.out.println( "DHT_" + f_i + ":remove valueRead" );
+									}
+								}
+								
+								public void
+								valueWritten(
+									DHTPluginContact	target,
+									DHTPluginValue		value )
+								{
+									if ( TRACE_NON_MAIN ){
+										System.out.println( "DHT_" + f_i + ":remove valueWritten" );
+									}
+								}
+								
+								public void
+								complete(
+									byte[]	key,
+									boolean	timeout_occurred )
+								{
+									if ( TRACE_NON_MAIN ){
+										System.out.println( "DHT_" + f_i + ":remove complete, timeout=" + timeout_occurred );
+									}
+								}
+							});
+				}
+			}.start();
+		}
+	}
+	
 	public DHTPluginContact
 	importContact(
 		InetSocketAddress				address )

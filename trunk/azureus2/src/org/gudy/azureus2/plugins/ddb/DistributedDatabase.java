@@ -126,6 +126,14 @@ DistributedDatabase
 		throws DistributedDatabaseException;
 	
 	public void
+	delete(
+		DistributedDatabaseListener		listener,
+		DistributedDatabaseKey			key,
+		DistributedDatabaseContact[]	targets )
+	
+		throws DistributedDatabaseException;
+
+	public void
 	addTransferHandler(
 		DistributedDatabaseTransferType		type,
 		DistributedDatabaseTransferHandler	handler )

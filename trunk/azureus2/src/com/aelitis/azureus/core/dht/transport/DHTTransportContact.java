@@ -90,7 +90,8 @@ DHTTransportContact
 	sendStore(
 		DHTTransportReplyHandler	handler,
 		byte[][]					keys,
-		DHTTransportValue[][]		value_sets );
+		DHTTransportValue[][]		value_sets,
+		boolean						immediate );
 	
 	public void
 	sendFindNode(

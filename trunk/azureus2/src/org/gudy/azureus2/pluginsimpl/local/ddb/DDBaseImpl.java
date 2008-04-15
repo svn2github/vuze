@@ -487,7 +487,32 @@ DDBaseImpl
 	{
 		throwIfNotAvailable();
 		
-		getDHT().remove( ((DDBaseKeyImpl)key).getBytes(),
+		getDHT().remove( 
+					((DDBaseKeyImpl)key).getBytes(),
+					key.getDescription(),
+					new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_DELETED, key, 0, false, false ));
+	}
+	
+	public void
+	delete(
+		DistributedDatabaseListener		listener,
+		DistributedDatabaseKey			key,
+		DistributedDatabaseContact[]	targets )
+	
+		throws DistributedDatabaseException
+	{
+		throwIfNotAvailable();
+		
+		DHTPluginContact[]	plugin_targets = new DHTPluginContact[ targets.length ];
+		
+		for (int i=0;i<targets.length;i++){
+			
+			plugin_targets[i] = ((DDBaseContactImpl)targets[i]).getContact();
+		}
+		
+		getDHT().remove( 
+					plugin_targets,
+					((DDBaseKeyImpl)key).getBytes(),
 					key.getDescription(),
 					new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_DELETED, key, 0, false, false ));
 	}

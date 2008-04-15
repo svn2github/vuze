@@ -160,9 +160,10 @@ DHTTransportLoopbackContactImpl
 	sendStore(
 		DHTTransportReplyHandler	handler,
 		byte[][]					keys,
-		DHTTransportValue[][]		value_sets )
+		DHTTransportValue[][]		value_sets,
+		boolean						immediate )
 	{
-		transport.sendStore( this, handler, keys, value_sets );
+		transport.sendStore( this, handler, keys, value_sets, false );
 	}
 	
 	public void

@@ -242,6 +242,16 @@ DHTImpl
 		return( control.remove( key, description, listener ));
 	}
 	
+	public byte[]
+	remove(
+		DHTTransportContact[]	contacts,
+		byte[]					key,
+		String					description,
+		DHTOperationListener	listener )
+	{
+		return( control.remove( contacts, key, description, listener ));
+	}
+	
 	public DHTTransport
 	getTransport()
 	{

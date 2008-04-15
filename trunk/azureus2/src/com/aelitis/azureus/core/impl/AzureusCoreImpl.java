@@ -139,6 +139,8 @@ AzureusCoreImpl
 
 	private boolean				started;
 	private boolean				stopped;
+	private boolean				restarting;
+	
 	private List				listeners				= new ArrayList();
 	private List				lifecycle_listeners		= new ArrayList();
 	private List				operation_listeners		= new ArrayList();
@@ -1066,6 +1068,8 @@ AzureusCoreImpl
 
 				checkRestartSupported();
 
+				restarting = true;
+				
 				stopSupport(false);
 
 				if (Logger.isEnabled())
@@ -1104,6 +1108,12 @@ AzureusCoreImpl
                 restart();
             }
         });
+	}
+	
+	public boolean
+	isRestarting()
+	{
+		return( restarting );
 	}
 	
 	public void

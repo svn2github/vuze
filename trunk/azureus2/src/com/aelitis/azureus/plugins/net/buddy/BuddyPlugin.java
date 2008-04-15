@@ -42,6 +42,7 @@ import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabaseContact;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseEvent;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseKey;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseListener;
@@ -75,6 +76,7 @@ import org.gudy.azureus2.plugins.utils.security.SEPublicKeyLocator;
 import org.gudy.azureus2.plugins.utils.security.SESecurityManager;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.security.CryptoHandler;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
 import com.aelitis.azureus.core.security.CryptoManagerKeyChangeListener;
@@ -154,6 +156,9 @@ BuddyPlugin
 	private Random	random = new SecureRandom();
 	
 	private BuddyPluginAZ2		az2_handler;
+	
+	private List	publish_write_contacts = new ArrayList();
+	
 	
 	public void
 	initialize(
@@ -457,6 +462,8 @@ BuddyPlugin
 				closedownInitiated()
 				{	
 					saveBuddies();
+					
+					closedown();
 				}
 				
 				public void
@@ -905,15 +912,28 @@ BuddyPlugin
 				ddb.write(
 					new DistributedDatabaseListener()
 					{
+						private List	write_contacts = new ArrayList();
+						
 						public void
 						event(
 							DistributedDatabaseEvent		event )
 						{
 							int	type = event.getType();
 						
-							if ( 	type == DistributedDatabaseEvent.ET_OPERATION_TIMEOUT ||
-									type == DistributedDatabaseEvent.ET_OPERATION_COMPLETE ){
+							if ( type == DistributedDatabaseEvent.ET_VALUE_WRITTEN ){
+								
+								write_contacts.add( event.getContact());
+								
+							}else if ( 	type == DistributedDatabaseEvent.ET_OPERATION_TIMEOUT ||
+										type == DistributedDatabaseEvent.ET_OPERATION_COMPLETE ){
 
+								synchronized( publish_write_contacts ){
+									
+									publish_write_contacts.clear();
+									
+									publish_write_contacts.addAll( write_contacts );
+								}
+								
 								sem.release();
 							}
 						}
@@ -930,6 +950,60 @@ BuddyPlugin
 			}catch( Throwable e ){
 				
 				log( "Failed to publish online status", e );
+			}
+		}
+	}
+	
+	protected void
+	closedown()
+	{
+		if ( ddb != null && !AzureusCoreFactory.getSingleton().isRestarting()){
+			
+			logMessage( "Closing down, updating online status" );
+			
+			List	contacts = new ArrayList();
+			
+			synchronized( publish_write_contacts ){
+				
+				contacts.addAll( publish_write_contacts );
+			}
+			
+			byte[] key_to_remove;
+			
+			synchronized( this ){
+
+				key_to_remove	= current_publish.getPublicKey();
+			}
+			
+			if ( contacts.size() == 0 || key_to_remove == null ){
+				
+				return;
+			}
+			
+			DistributedDatabaseContact[] contact_a = new DistributedDatabaseContact[contacts.size()];
+			
+			contacts.toArray( contact_a );
+			
+			try{
+				ddb.delete(
+					new DistributedDatabaseListener()
+					{
+						public void
+						event(
+							DistributedDatabaseEvent		event )
+						{
+							if ( event.getType() == DistributedDatabaseEvent.ET_VALUE_DELETED ){
+
+								// System.out.println( "Deleted status from " + event.getContact().getName());
+							}
+						}
+					},
+					getStatusKey( key_to_remove, "Buddy status de-registration for closedown" ),
+					contact_a );
+				
+			}catch( Throwable e ){	
+			
+				log( "Failed to remove existing publish", e );
 			}
 		}
 	}

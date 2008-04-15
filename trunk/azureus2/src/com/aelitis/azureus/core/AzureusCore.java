@@ -98,6 +98,15 @@ AzureusCore
 	
 		throws AzureusCoreException;
 	
+	/**
+	 * 
+	 * @return
+	 * @since 3053
+	 */
+	
+	public boolean
+	isRestarting();
+	
 	public LocaleUtil
 	getLocaleUtil();
 	

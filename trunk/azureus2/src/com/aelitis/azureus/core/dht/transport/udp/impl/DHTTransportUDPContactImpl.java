@@ -35,6 +35,7 @@ import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPositionManager;
 import com.aelitis.azureus.core.dht.netcoords.vivaldi.ver1.VivaldiPositionProvider;
 import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.dht.transport.udp.*;
+import com.aelitis.net.udp.uc.PRUDPPacketHandler;
 
 
 /**
@@ -294,9 +295,12 @@ DHTTransportUDPContactImpl
 	sendStore(
 		DHTTransportReplyHandler	handler,
 		byte[][]					keys,
-		DHTTransportValue[][]		value_sets )
+		DHTTransportValue[][]		value_sets,
+		boolean						immediate )
 	{
-		transport.sendStore( this, handler, keys, value_sets );
+		transport.sendStore( 
+				this, handler, keys, value_sets, 
+				immediate?PRUDPPacketHandler.PRIORITY_IMMEDIATE:PRUDPPacketHandler.PRIORITY_LOW );
 	}
 	
 	public void

@@ -30,6 +30,7 @@ import com.aelitis.azureus.core.dht.nat.DHTNATPuncher;
 import com.aelitis.azureus.core.dht.router.DHTRouter;
 import com.aelitis.azureus.core.dht.speed.DHTSpeedTester;
 import com.aelitis.azureus.core.dht.transport.DHTTransport;
+import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 
 /**
@@ -111,6 +112,13 @@ DHT
 		
 	public byte[]
 	remove(
+		byte[]					key,
+		String					description,
+		DHTOperationListener	listener );
+	
+	public byte[]
+	remove(
+		DHTTransportContact[]	contacts,
 		byte[]					key,
 		String					description,
 		DHTOperationListener	listener );

@@ -890,6 +890,86 @@ outer:
 						});
 	}
 	
+	public void
+	remove(
+		final DHTPluginContact[]			targets,
+		final byte[]						key,
+		final String						description,
+		final DHTPluginOperationListener	listener )
+	{
+		DHTTransportContact[]	t_contacts = new DHTTransportContact[ targets.length ];
+		
+		for (int i=0;i<targets.length;i++){
+			
+			t_contacts[i] = ((DHTPluginContactImpl)targets[i]).getContact();
+		}
+		
+		dht.remove( 	t_contacts,
+						key,
+						description,
+						new DHTOperationListener()
+						{
+							public void
+							searching(
+								DHTTransportContact	contact,
+								int					level,
+								int					active_searches )
+							{
+								String	indent = "";
+								
+								for (int i=0;i<level;i++){
+									
+									indent += "  ";
+								}
+								
+								// log.log( indent + "Remove: level = " + level + ", active = " + active_searches + ", contact = " + contact.getString());
+							}
+							
+							public void
+							found(
+								DHTTransportContact	contact )
+							{
+							}
+
+							public void
+							diversified()
+							{
+							}
+							
+							public void
+							read(
+								DHTTransportContact	contact,
+								DHTTransportValue	value )
+							{
+								// log.log( "Remove: read " + value.getString() + " from " + contact.getString());
+							}
+							
+							public void
+							wrote(
+								DHTTransportContact	contact,
+								DHTTransportValue	value )
+							{
+								// log.log( "Remove: wrote " + value.getString() + " to " + contact.getString());
+								if ( listener != null ){
+									
+									listener.valueWritten( new DHTPluginContactImpl( DHTPluginImpl.this, contact ), mapValue( value ));
+								}
+							}
+							
+							public void
+							complete(
+								boolean				timeout )
+							{
+								// log.log( "Remove: complete, timeout = " + timeout );
+							
+								if ( listener != null ){
+								
+									listener.complete( key, timeout );
+								}
+							}			
+						});
+	}
+	
 	public DHTPluginContact
 	getLocalAddress()
 	{

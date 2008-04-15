@@ -872,7 +872,8 @@ DHTControlImpl
 									timeout, 
 									listener, 
 									true,
-									keys_written );		
+									keys_written,
+									false );		
 						}
 					});
 		}
@@ -897,7 +898,8 @@ DHTControlImpl
 				0, 
 				new DHTOperationListenerDemuxer( new DHTOperationAdapter()),
 				false,
-				new HashSet());
+				new HashSet(),
+				false );
 	}
 		
 	protected void
@@ -910,7 +912,8 @@ DHTControlImpl
 		final long								timeout,
 		final DHTOperationListenerDemuxer		listener,
 		final boolean							consider_diversification,
-		final Set								keys_written )
+		final Set								keys_written,
+		final boolean							immediate )
 	{		
 		boolean[]	ok = new boolean[initial_encoded_keys.length];
 		int	failed = 0;
@@ -1073,7 +1076,8 @@ DHTControlImpl
 							}
 						},
 						encoded_keys, 
-						value_sets );
+						value_sets,
+						immediate );
 					
 				}catch( Throwable e ){
 										
@@ -1401,6 +1405,49 @@ DHTControlImpl
 					true, 
 					new HashSet(),
 					new DHTOperationListenerDemuxer( listener ));
+			
+			return( res.getValue());
+		}
+	}
+	
+	public byte[]
+	remove(
+		DHTTransportContact[]	contacts,
+		byte[]					unencoded_key,
+		String					description,
+		DHTOperationListener	listener )
+	{
+		final byte[]	encoded_key = encodeKey( unencoded_key );
+
+		DHTLog.log( "remove for " + DHTLog.getString( encoded_key ));
+
+		DHTDBValue	res = database.remove( local_contact, new HashWrapper( encoded_key ));
+		
+		if ( res == null ){
+			
+				// not found locally, nothing to do
+			
+			return( null );
+			
+		}else{
+			
+			List	contacts_l = new ArrayList( contacts.length );
+			
+			for (int i=0;i<contacts.length;i++ ){
+				
+				contacts_l.add( contacts[i] );
+			}
+			
+			put( 	external_put_pool,
+					new byte[][]{ encoded_key }, 
+					"Store of [" + description + "]",
+					new DHTTransportValue[][]{{ res }}, 
+					contacts_l, 
+					0, 
+					new DHTOperationListenerDemuxer( listener ), 
+					true,
+					new HashSet(),
+					true );		
 			
 			return( res.getValue());
 		}
@@ -2426,7 +2473,8 @@ DHTControlImpl
 										}
 									},
 									keys, 
-									value_sets );
+									value_sets,
+									false );
 						}
 						
 						public void

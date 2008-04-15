@@ -150,7 +150,8 @@ Test
 								return( new String(getValue()));
 							}
 						}
-					}});
+					}},
+					false );
 			
 			c1.sendFindNode(
 					new DHTTransportReplyHandlerAdapter()
