@@ -64,7 +64,6 @@ BuddyPluginBuddy
 	private List			recent_ygm;
 	
 	private int				last_status_seq;
-	private long			last_status_seq_change_time;
 	
 	private long			post_time;
 	private InetAddress		ip;
@@ -92,6 +91,8 @@ BuddyPluginBuddy
 	private long 	latest_ygm_time;
 	private String	last_message_received;
 	
+	private Set		offline_seq_set;
+	
 	protected
 	BuddyPluginBuddy(
 		BuddyPlugin	_plugin,
@@ -107,8 +108,6 @@ BuddyPluginBuddy
 		last_status_seq		= _last_status_seq;
 		last_time_online	= _last_time_online;
 		recent_ygm			= _recent_ygm;
-		
-		last_status_seq_change_time = last_time_online;
 	}
 	
 	public String
@@ -185,7 +184,7 @@ BuddyPluginBuddy
 		return( online );
 	}
 	
-	protected long
+	public long
 	getLastTimeOnline()
 	{
 		return( last_time_online );
@@ -337,6 +336,38 @@ BuddyPluginBuddy
 		return( last_status_seq );
 	}
 	
+	protected void
+	buddyConnectionEstablished()
+	{
+		buddyActive();
+	}
+	
+	protected void
+	buddyMessageSent()
+	{
+		buddyActive();
+	}
+	
+	protected void
+	buddyMessageReceived()
+	{
+		buddyActive();
+	}
+	
+	protected void
+	buddyActive()
+	{
+		long	now = SystemTime.getCurrentTime();
+		
+		synchronized( this ){
+			
+			last_time_online			= now;
+			online						= true;
+		}
+				
+		plugin.fireDetailsChanged( this );
+	}
+	
 	public void
 	ping()
 		throws BuddyPluginException
@@ -359,7 +390,7 @@ BuddyPluginBuddy
 						BuddyPluginBuddy	from_buddy,
 						Map					reply )
 					{
-						log( "Ping received:" + reply );
+						log( "Ping reply received:" + reply );
 					}
 					
 					public void
@@ -374,6 +405,116 @@ BuddyPluginBuddy
 		}catch( Throwable e ){
 						
 			throw( new BuddyPluginException( "Ping failed", e ));
+		}
+	}
+	
+	protected void
+	sendCloseRequest(
+		boolean		restarting )
+	{
+		List	to_send = new ArrayList();
+	
+		synchronized( this ){
+						
+			for (int i=0;i<connections.size();i++){
+				
+				buddyConnection c = (buddyConnection)connections.get(i);
+				
+				if ( c.isConnected() && !c.hasFailed()){
+					
+					to_send.add( c );
+				}
+			}
+		}
+		
+		for (int i=0;i<to_send.size();i++){
+			
+			buddyConnection c = (buddyConnection)to_send.get(i);
+			
+			try{
+				Map	close_request = new HashMap();
+				
+				close_request.put( "type", new Long( BuddyPlugin.RT_INTERNAL_REQUEST_CLOSE ));
+				
+				close_request.put( "r", new Long( restarting?1:0));
+				
+				close_request.put( "os", new Long( plugin.getCurrentStatusSeq()));
+				
+				final buddyMessage	message = 
+					new buddyMessage( BuddyPlugin.SUBSYSTEM_INTERNAL, close_request, 60*1000 );
+
+				message.setListener(
+						new BuddyPluginBuddyReplyListener()
+						{
+							public void
+							replyReceived(
+								BuddyPluginBuddy	from_buddy,
+								Map					reply )
+							{
+								log( "Close reply received:" + reply );
+							}
+							
+							public void
+							sendFailed(
+								BuddyPluginBuddy		to_buddy,
+								BuddyPluginException	cause )
+							{
+								log( "Close failed to " + getString(), cause );
+							}
+						});
+				
+				c.sendMessage( message, true );
+
+			}catch( Throwable e ){
+							
+				log( "Close request failed", e );
+			}
+		}
+	}
+	
+	protected void
+	receivedCloseRequest(
+		Map		request )
+	{
+		try{
+			boolean	restarting = ((Long)request.get( "r" )).longValue() == 1;
+			
+			if ( restarting ){
+				
+				logMessage( "restarting" );
+				
+			}else{
+				
+				logMessage( "going offline" );
+				
+				boolean	details_change = false;
+				
+				synchronized( this ){
+					
+					if ( offline_seq_set == null ){
+						
+						offline_seq_set = new HashSet();
+					}
+					
+					offline_seq_set.add( new Long( last_status_seq ));
+					
+					offline_seq_set.add((Long)request.get( "os" ));
+					
+					if ( online ){
+						
+						online			= false;
+						details_change	= true;
+					}
+				}
+				
+				if ( details_change ){
+					
+					plugin.fireDetailsChanged( this );
+				}
+			}
+		}catch( Throwable e ){
+			
+			Debug.out( "Failed to decode close request", e );
 		}
 	}
 	
@@ -624,7 +765,7 @@ BuddyPluginBuddy
 		try{
 			logMessage( "Allocating msg " + current_message.getString() + " to con " + bc.getString());
 
-			bc.sendMessage( current_message );
+			bc.sendMessage( current_message, false );
 		
 		}catch( BuddyPluginException e ){
 			
@@ -688,22 +829,25 @@ BuddyPluginBuddy
 	protected void
 	statusCheckFailed()
 	{
-		boolean	status_change = false;
+		boolean	details_change = false;
 
 		synchronized( this ){
 
-			if ( online ){
-				
-				online			= false;
-				status_change	= true;
-			}
+			try{
+				if ( online ){
+					
+					online			= false;
+					details_change	= true;
+				}
+			}finally{
 			
-			status_check_count++;
+				status_check_count++;
 				
-			check_active = false;
+				check_active = false;
+			}
 		}
 			
-		if ( status_change ){
+		if ( details_change ){
 			
 			plugin.fireDetailsChanged( this );
 		}
@@ -727,63 +871,78 @@ BuddyPluginBuddy
 		
 		synchronized( this ){
 
-			boolean	seq_change = _status_seq != last_status_seq;
-			
-			if ( seq_change ){
-				
-				last_status_seq_change_time = now;
-				last_status_seq				= _status_seq;
-				
-				last_time_online			= now;
-			}
-			
-			if ( online ){
-				
-				if ( now < last_status_seq_change_time ){
+			try{
+				if ( offline_seq_set != null ){
 					
-					last_status_seq_change_time = now;
-					
-				}else{
-					
-					if ( now - last_status_seq_change_time >= BuddyPlugin.STATUS_REPUBLISH_PERIOD * 3 ){
+					if ( offline_seq_set.contains(new Long( _status_seq ))){
 						
-						online			= false;
-						details_change	= true;
+						return;
+						
+					}else{
+						
+						offline_seq_set = null;
 					}
 				}
-			}else{	
+				
+				boolean	seq_change = _status_seq != last_status_seq;
 				
 				if ( seq_change ){
 					
-					online			= true;
+					last_status_seq		= _status_seq;
+					
+					last_time_online	= now;
+					details_change		= true;
+				}
+				
+				if ( online ){
+					
+					if ( now < last_time_online ){
+						
+						last_time_online = now;
+						
+					}else{
+						
+						if ( now - last_time_online >= BuddyPlugin.STATUS_REPUBLISH_PERIOD * 3 ){
+							
+							online			= false;
+							details_change	= true;
+						}
+					}
+				}else{	
+					
+					if ( seq_change ){
+						
+						online			= true;
+						details_change	= true;
+					}
+				}
+				
+				post_time	= _post_time;
+				
+				if ( 	!addressesEqual( ip, _ip ) ||
+						tcp_port != _tcp_port ||
+						udp_port != _udp_port ){
+					
+					ip			= _ip;
+					tcp_port	= _tcp_port;
+					udp_port	= _udp_port;
+					
 					details_change	= true;
 				}
-			}
-			
-			post_time	= _post_time;
-			
-			if ( 	!addressesEqual( ip, _ip ) ||
-					tcp_port != _tcp_port ||
-					udp_port != _udp_port ){
 				
-				ip			= _ip;
-				tcp_port	= _tcp_port;
-				udp_port	= _udp_port;
-				
-				details_change	= true;
-			}
-			
-			if ( !plugin.stringsEqual( nick_name, _nick_name )){
-				
-				nick_name	= _nick_name;
-				
-				config_dirty	= true;
-				details_change	= true;
-			}
-			
-			status_check_count++;
+				if ( !plugin.stringsEqual( nick_name, _nick_name )){
 					
-			check_active = false;
+					nick_name	= _nick_name;
+					
+					config_dirty	= true;
+					details_change	= true;
+				}
+			}finally{
+			
+				status_check_count++;
+					
+				check_active = false;
+			}
 		}
 		
 		if ( config_dirty ){
@@ -1246,9 +1405,17 @@ BuddyPluginBuddy
 			if ( !outgoing ){
 				
 				connected = true;
+				
+				buddyConnectionEstablished();
 			}
 			
 			connection.addListener( this );
+		}
+		
+		protected boolean
+		isConnected()
+		{
+			return( connected );
 		}
 		
 		protected boolean
@@ -1259,7 +1426,8 @@ BuddyPluginBuddy
 		
 		protected void
 		sendMessage(
-			buddyMessage	message )
+			buddyMessage	message,
+			boolean			force )
 		
 			throws BuddyPluginException
 		{
@@ -1267,7 +1435,7 @@ BuddyPluginBuddy
 			
 			synchronized( this ){
 				
-				if ( active_message != null ){
+				if ( active_message != null && !force ){
 					
 					Debug.out( "Inconsistent: active message already set" );
 					
@@ -1282,6 +1450,11 @@ BuddyPluginBuddy
 					throw( new BuddyPluginException( "Connection failed" ));
 					
 				}else{
+					
+					if ( active_message != null ){
+						
+						active_message.reportFailed( new BuddyPluginException( "Message cancelled" ));
+					}
 					
 					active_message = message;
 					
@@ -1313,6 +1486,8 @@ BuddyPluginBuddy
 				
 				send = active_message != null;
 			}
+			
+			buddyConnectionEstablished();
 			
 			if ( send ){
 			
@@ -1386,6 +1561,8 @@ BuddyPluginBuddy
 								
 				connection.send( buffer );
 			
+				buddyMessageSent();
+				
 				synchronized( this ){
 					
 					last_active	= SystemTime.getCurrentTime();;
@@ -1418,6 +1595,8 @@ BuddyPluginBuddy
 				
 				last_active	= SystemTime.getCurrentTime();;
 			}
+			
+			buddyMessageReceived();
 			
 			try{
 				byte[]	content = data_buffer.toByteArray();
@@ -1491,7 +1670,7 @@ BuddyPluginBuddy
 					try{
 					
 						connection.send( reply_buffer );
-						
+												
 						ok = true;
 						
 					}finally{
@@ -1504,18 +1683,32 @@ BuddyPluginBuddy
 					
 				}else if ( type == RT_REPLY_DATA || type == RT_REPLY_ERROR ){
 					
+					long	id = ((Long)data_map.get( "id" )).longValue();
+					
 					buddyMessage	bm;
 					
 					synchronized( this ){
 						
-						bm = active_message;
-
-						active_message = null;
+						if ( 	active_message != null &&
+								active_message.getID() == id ){
+								
+							bm = active_message;
+		
+							active_message = null;
+							
+						}else{
+								
+							bm = null;
+						}
 					}
 					
-					if ( bm != null ){
+					Map	reply = (Map)data_map.get( "rep" );
+					
+					if ( bm == null ){
 						
-						Map	reply = (Map)data_map.get( "rep" );
+						logMessage( "reply discarded as no matching request: " + reply );
+						
+					}else{
 						
 						if ( type == RT_REPLY_ERROR ){
 							
@@ -1527,8 +1720,7 @@ BuddyPluginBuddy
 							
 							bm.reportComplete( reply );
 						}
-					}
-										
+					}				
 				}else{
 					
 						// ignore unknown message types
@@ -1580,8 +1772,6 @@ BuddyPluginBuddy
 					if ( TRACE ){
 						System.out.println( dir_str + " connection error:" );
 					}
-					
-					error.printStackTrace();
 				}
 				
 				try{
@@ -1589,7 +1779,7 @@ BuddyPluginBuddy
 					
 				}catch( Throwable e ){
 					
-					e.printStackTrace();
+					Debug.printStackTrace( e );
 				}
 			}finally{
 								

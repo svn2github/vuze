@@ -358,11 +358,11 @@ BuddyPluginViewInstance
 		
 		buddy_table = new Table(child1, SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION | SWT.VIRTUAL);
 
-		String[] headers = { "azbuddy.ui.table.name", "azbuddy.ui.table.online", "azbuddy.ui.table.last_ygm", "azbuddy.ui.table.last_msg" };
+		String[] headers = { "azbuddy.ui.table.name", "azbuddy.ui.table.online",  "azbuddy.ui.table.lastseen", "azbuddy.ui.table.last_ygm", "azbuddy.ui.table.last_msg" };
 
-		int[] sizes = { 400, 100, 100, 200 };
+		int[] sizes = { 400, 100, 100, 100, 200 };
 
-		int[] aligns = { SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.LEFT };
+		int[] aligns = { SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.LEFT };
 
 		for (int i = 0; i < headers.length; i++){
 
@@ -403,13 +403,17 @@ BuddyPluginViewInstance
 					
 					item.setText(1, buddy.isOnline()?yes_txt:no_txt);
 					
+					long lo = buddy.getLastTimeOnline();
+					
+					item.setText(2, lo==0?"":new SimpleDateFormat().format(new Date( lo )));
+
 					long	last_ygm = buddy.getLastMessagePending();;
 					
-					item.setText(2, last_ygm==0?"":new SimpleDateFormat().format(new Date( last_ygm )));
+					item.setText(3, last_ygm==0?"":new SimpleDateFormat().format(new Date( last_ygm )));
 					
 					String	lm = buddy.getLastMessageReceived();
 					
-					item.setText(3, lm==null?"":lm);
+					item.setText(4, lm==null?"":lm);
 					
 					item.setData( buddy );
 				}

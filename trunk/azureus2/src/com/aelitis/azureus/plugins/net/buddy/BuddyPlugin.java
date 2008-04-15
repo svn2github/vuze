@@ -93,7 +93,8 @@ BuddyPlugin
 	
 	protected static final int RT_INTERNAL_REQUEST_PING		= 1;
 	protected static final int RT_INTERNAL_REPLY_PING		= 2;
-
+	protected static final int RT_INTERNAL_REQUEST_CLOSE	= 3;
+	protected static final int RT_INTERNAL_REPLY_CLOSE		= 4;
 	
 	public static final int RT_AZ2_REQUEST_MESSAGE		= 1;
 	public static final int RT_AZ2_REPLY_MESSAGE		= 2;
@@ -631,6 +632,16 @@ BuddyPlugin
 		
 			return( reply );
 			
+		}else if ( type == RT_INTERNAL_REQUEST_CLOSE ){
+		
+			from_buddy.receivedCloseRequest( request );
+			
+			Map	reply = new HashMap();
+		
+			reply.put( "type", new Long( RT_INTERNAL_REPLY_CLOSE ));
+		
+			return( reply );
+			
 		}else{
 			
 			throw( new BuddyPluginException( "Unrecognised request type " + type ));
@@ -901,6 +912,8 @@ BuddyPlugin
 				next_seq = ++status_seq;
 			}
 			
+			details.setSequence( next_seq );
+			
 			payload.put( "s", new Long( next_seq ));
 			
 			try{
@@ -971,56 +984,78 @@ BuddyPlugin
 		}
 	}
 	
+	protected int
+	getCurrentStatusSeq()
+	{
+		return( current_publish.getSequence());
+	}
+	
 	protected void
 	closedown()
 	{
-		if ( ddb != null && !AzureusCoreFactory.getSingleton().isRestarting()){
-			
-			logMessage( "Closing down, updating online status" );
-			
-			List	contacts = new ArrayList();
-			
-			synchronized( publish_write_contacts ){
-				
-				contacts.addAll( publish_write_contacts );
-			}
-			
-			byte[] key_to_remove;
-			
-			synchronized( this ){
+		logMessage( "Closing down" );
 
-				key_to_remove	= current_publish.getPublicKey();
-			}
+		if ( ddb != null ){
 			
-			if ( contacts.size() == 0 || key_to_remove == null ){
+			boolean	restarting = AzureusCoreFactory.getSingleton().isRestarting();
+		
+			List	buddies = getBuddies();
+			
+			logMessage( "   closing buddy connections" );
+			
+			for (int i=0;i<buddies.size();i++){
 				
-				return;
+				((BuddyPluginBuddy)buddies.get(i)).sendCloseRequest( restarting );
 			}
 			
-			DistributedDatabaseContact[] contact_a = new DistributedDatabaseContact[contacts.size()];
-			
-			contacts.toArray( contact_a );
-			
-			try{
-				ddb.delete(
-					new DistributedDatabaseListener()
-					{
-						public void
-						event(
-							DistributedDatabaseEvent		event )
+			if ( !restarting ){
+				
+				logMessage( "   updating online status" );
+				
+				List	contacts = new ArrayList();
+				
+				synchronized( publish_write_contacts ){
+					
+					contacts.addAll( publish_write_contacts );
+				}
+				
+				byte[] key_to_remove;
+				
+				synchronized( this ){
+	
+					key_to_remove	= current_publish.getPublicKey();
+				}
+				
+				if ( contacts.size() == 0 || key_to_remove == null ){
+					
+					return;
+				}
+				
+				DistributedDatabaseContact[] contact_a = new DistributedDatabaseContact[contacts.size()];
+				
+				contacts.toArray( contact_a );
+				
+				try{
+					ddb.delete(
+						new DistributedDatabaseListener()
 						{
-							if ( event.getType() == DistributedDatabaseEvent.ET_VALUE_DELETED ){
-
-								// System.out.println( "Deleted status from " + event.getContact().getName());
+							public void
+							event(
+								DistributedDatabaseEvent		event )
+							{
+								if ( event.getType() == DistributedDatabaseEvent.ET_VALUE_DELETED ){
+	
+									// System.out.println( "Deleted status from " + event.getContact().getName());
+								}
 							}
-						}
-					},
-					getStatusKey( key_to_remove, "Buddy status de-registration for closedown" ),
-					contact_a );
+						},
+						getStatusKey( key_to_remove, "Buddy status de-registration for closedown" ),
+						contact_a );
+					
+				}catch( Throwable e ){	
 				
-			}catch( Throwable e ){	
-			
-				log( "Failed to remove existing publish", e );
+					log( "Failed to remove existing publish", e );
+				}
 			}
 		}
 	}
@@ -2109,6 +2144,8 @@ BuddyPlugin
 		private boolean			enabled;
 		private boolean			published;
 		
+		private int				sequence;
+		
 		protected publishDetails
 		getCopy()
 		{
@@ -2149,6 +2186,19 @@ BuddyPlugin
 			boolean	_enabled )
 		{
 			enabled	= _enabled;
+		}
+		
+		protected void
+		setSequence(
+			int		seq )
+		{
+			sequence = seq;
+		}
+		
+		protected int
+		getSequence()
+		{
+			return( sequence );
 		}
 		
 		protected byte[]
