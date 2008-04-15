@@ -2865,27 +2865,10 @@ DownloadManagerStateImpl
 		public byte[]
     	getName()
 		{
-			Map	c = cache;
-			
-			if ( c != null ){
-				
-				byte[]	name = (byte[])c.get( "name" );
-				
-				if ( name != null ){
-					
-					return( name );
-				}
-			}
-			
-			if ( delegate != null ){
-				
-				return( delegate.getName());
-			}
-			
-	
-			return(("Error: " + Debug.getNestedExceptionMessage( fixup_failure )).getBytes()); 
+			if (fixup()) {return delegate.getName();}
+			return new byte[0];
 		}
-    	
+
     	public boolean
     	isSimpleTorrent()
     	{
