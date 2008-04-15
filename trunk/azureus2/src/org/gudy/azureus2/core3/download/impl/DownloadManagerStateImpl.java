@@ -2865,9 +2865,25 @@ DownloadManagerStateImpl
 		public byte[]
     	getName()
 		{
-			if (fixup()) {return delegate.getName();}
-			return new byte[0];
-		}
+			Map	c = cache;
+			
+			if ( c != null ){
+				
+				byte[] name = (byte[])c.get( "name" );
+				if (name != null) {
+					return name;
+				}
+			}
+			
+	   		if ( fixup()){
+				
+				return( delegate.getName());
+			}
+	   		
+	   		// Does grabbing the nested exception message always give us something useful?
+	   		// My experience is that we just get an empty string here...
+	   		return(("Error - " + Debug.getNestedExceptionMessage( fixup_failure )).getBytes());
+    	}
 
     	public boolean
     	isSimpleTorrent()
