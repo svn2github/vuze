@@ -493,12 +493,6 @@ DownloadManagerImpl
     
     private int		crypto_level = NetworkManager.CRYPTO_OVERRIDE_NONE;
     
-    // For amc1 to debug
-    public byte[] _debug_torrent_name = null;
-    public String _debug_decoded_torrent_name = null;
-    public String _debug_decoded_torrent_name_os_safe = null;
-
-    
 	// Only call this with STATE_QUEUED, STATE_WAITING, or STATE_STOPPED unless you know what you are doing
 	
 	private volatile boolean	destroyed;
@@ -658,12 +652,7 @@ DownloadManagerImpl
 				 	// if its a simple torrent and an explicit save file wasn't supplied, use
 				 	// the torrent name itself
 
-				 this._debug_torrent_name = torrent.getName();
-				 display_name = locale_decoder.decodeString(this._debug_torrent_name);
-				 this._debug_decoded_torrent_name = display_name;
-	             
-				 display_name = FileUtil.convertOSSpecificChars( display_name );
-				 this._debug_decoded_torrent_name_os_safe = display_name;
+				 display_name = FileUtil.convertOSSpecificChars(locale_decoder.decodeString(torrent.getName()));
 				 
 				 internal_name = ByteFormatter.nicePrint(torrent.getHash(),true);
 	
@@ -3257,15 +3246,23 @@ DownloadManagerImpl
 	  }
   }
   
-  public void
-  moveTorrentFile(
+  public void moveTorrentFile(File new_parent_dir) throws DownloadManagerException {
+	  boolean is_paused = this.pause();
+	  try {moveTorrentFile0(new_parent_dir);}
+	  finally {if (is_paused) {this.resume();}}
+  }
+  
+  private void
+  moveTorrentFile0(
 	File	new_parent_dir )
   
 	throws DownloadManagerException
   {
-	  if ( !isPersistent()){
+	  
+	  
+	  if ( !canMoveDataFiles()){
 		  
-		  throw( new DownloadManagerException( "Download is not persistent" ));
+		  throw( new DownloadManagerException( "Cannot move torrent file" ));
 	  }	  
 	  
 	  int	state = getState();
