@@ -59,6 +59,9 @@ import org.gudy.azureus2.ui.swt.views.stats.VivaldiView;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 
+import com.aelitis.azureus.buddy.VuzeBuddy;
+import com.aelitis.azureus.buddy.VuzeBuddyCreator;
+import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
@@ -73,6 +76,9 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.*;
 import com.aelitis.azureus.ui.swt.Initializer;
+import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
+import com.aelitis.azureus.ui.swt.buddy.impl.VuzeBuddySWTImpl;
+import com.aelitis.azureus.ui.swt.buddy.impl.VuzeBuddyUtils;
 import com.aelitis.azureus.ui.swt.extlistener.StimulusRPC;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
@@ -150,6 +156,21 @@ public class MainWindow
 		this.core = core;
 		this.display = display;
 		disposedOrDisposing = false;
+		
+		VuzeBuddyManager.init(new VuzeBuddyCreator() {
+			public VuzeBuddy createBuddy(String publicKey) {
+				VuzeBuddyManager.log("created buddy: " + publicKey);
+				return new VuzeBuddySWTImpl(publicKey);
+			}
+		});
+		//VuzeBuddy randomBuddy = VuzeBuddyUtils.createRandomBuddy();
+		//List allVuzeBuddies = VuzeBuddyManager.getAllVuzeBuddies();
+		//for (Iterator iter = allVuzeBuddies.iterator(); iter.hasNext();) {
+		//	VuzeBuddySWT buddy = (VuzeBuddySWT) iter.next();
+		//
+		//	System.out.println("BUDDDY!!!!!! " + buddy.getDisplayName());
+		//}
+		
 
 		// Hack for 3014 -> 3016 upgrades on Vista who become an Administrator
 		// user after restart.

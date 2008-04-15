@@ -16,38 +16,14 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
  
-package com.aelitis.azureus.ui.swt.buddy.impl;
-
-import org.gudy.azureus2.ui.swt.ImageRepository;
-
-import com.aelitis.azureus.buddy.VuzeBuddy;
-import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
+package com.aelitis.azureus.buddy;
 
 /**
  * @author TuxPaper
  * @created Apr 14, 2008
  *
  */
-public class VuzeBuddyUtils
+public interface VuzeBuddyCreator
 {
-	/**
-	 * Creates a random buddy.  Not actually stored anywhere..
-	 * 
-	 * 
-	 * @return
-	 *
-	 * @since 3.0.5.3
-	 */
-	
-	public static VuzeBuddy createRandomBuddy() {
-		int x = (int) (Math.random() * 10000);
-		VuzeBuddySWTImpl buddy = new VuzeBuddySWTImpl("StupidKey" + x);
-		buddy.setLoginID("Login" + x);
-		buddy.setDisplayName("Mr Random " + x);
-		buddy.setAvatarImage(ImageRepository.getImage("azureus128"));
-		
-		VuzeBuddyManager.addBuddy(buddy);
-		
-		return buddy;
-	}
+	public VuzeBuddy createBuddy(String publicKey);
 }

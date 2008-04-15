@@ -25,6 +25,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.buddy.impl.VuzeBuddyImpl;
@@ -48,6 +49,9 @@ public class VuzeBuddySWTImpl
 	 */
 	public VuzeBuddySWTImpl(String publicKey) {
 		super(publicKey);
+		
+		//temp.. give user an icon..
+		setAvatarImage(ImageRepository.getImage("azureus128"));
 	}
 
 	public void setAvatar(byte[] avatar) {
