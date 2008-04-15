@@ -113,7 +113,7 @@ BuddyPlugin
 	
 	private static final int	BUDDY_STATUS_CHECK_PERIOD	= 60*1000;
 	
-	private static final int	STATUS_REPUBLISH_PERIOD		= 5*60*1000;
+	protected static final int	STATUS_REPUBLISH_PERIOD		= 5*60*1000;
 	private static final int	STATUS_REPUBLISH_TICKS		= STATUS_REPUBLISH_PERIOD/TIMER_PERIOD;
 
 	private static final int	CHECK_YGM_PERIOD			= 5*60*1000;
@@ -159,6 +159,14 @@ BuddyPlugin
 	
 	private List	publish_write_contacts = new ArrayList();
 	
+	private int		status_seq;
+	
+	{
+		while( status_seq == 0 ){
+			
+			status_seq = random.nextInt();
+		}
+	}
 	
 	public void
 	initialize(
@@ -371,7 +379,7 @@ BuddyPlugin
 			
 		enabled_param.addListener( enabled_listener );
 		
-		loadBuddies();
+		loadConfig();
 		
 		registerMessageHandler();
 		
@@ -461,7 +469,7 @@ BuddyPlugin
 				public void
 				closedownInitiated()
 				{	
-					saveBuddies();
+					saveConfig();
 					
 					closedown();
 				}
@@ -886,6 +894,15 @@ BuddyPlugin
 				payload.put( "n", nick );
 			}
 			
+			int	next_seq = ++status_seq;
+			
+			if ( next_seq == 0 ){
+				
+				next_seq = ++status_seq;
+			}
+			
+			payload.put( "s", new Long( next_seq ));
+			
 			try{
 				byte[] data = BEncoder.encode( payload );
 										
@@ -1056,33 +1073,53 @@ BuddyPlugin
 	}
 	
 	protected void
-	loadBuddies()
+	loadConfig()
 	{
+		long	now = SystemTime.getCurrentTime();
+		
 		synchronized( this ){
 			
-			List buddies_config = readConfig(); 
-	
-			for (int i=0;i<buddies_config.size();i++){
+			Map map = readConfig(); 
+					
+			List	buddies_config = (List)map.get( "buddies" );
 				
-				Object o = buddies_config.get(i);
-	
-				if ( o instanceof Map ){
+			if ( buddies_config != null ){
+							
+				for (int i=0;i<buddies_config.size();i++){
 					
-					Map	details = (Map)o;
+					Object o = buddies_config.get(i);
+		
+					if ( o instanceof Map ){
+						
+						Map	details = (Map)o;
+						
+						String	key = new String((byte[])details.get( "pk" ));
+						
+						List	recent_ygm = (List)details.get( "ygm" );
+											
+						String	nick = decodeString((byte[])details.get( "n" ));
+						
+						Long	l_seq = (Long)details.get( "ls" );
+						
+						int	last_seq = l_seq==null?0:l_seq.intValue();
+						
+						Long	l_lo = (Long)details.get( "lo" );
+						
+						long	last_time_online = l_lo==null?0:l_lo.longValue();
 					
-					String	key = new String((byte[])details.get("pk"));
-					
-					List	recent_ygm = (List)details.get( "ygm" );
-										
-					String	nick = decodeString((byte[])details.get( "n" ));
-					
-					BuddyPluginBuddy buddy = new BuddyPluginBuddy( this, key, nick, recent_ygm );
-					
-					logMessage( "Loaded buddy " + buddy.getString());
-					
-					buddies.add( buddy );
-					
-					buddies_map.put( key, buddy );
+						if ( last_time_online > now ){
+							
+							last_time_online = now;
+						}
+						
+						BuddyPluginBuddy buddy = new BuddyPluginBuddy( this, key, nick, last_seq, last_time_online, recent_ygm );
+						
+						logMessage( "Loaded buddy " + buddy.getString());
+						
+						buddies.add( buddy );
+						
+						buddies_map.put( key, buddy );
+					}
 				}
 			}
 		}
@@ -1107,7 +1144,7 @@ BuddyPlugin
 	}
 	
 	protected void
-	saveBuddies()
+	saveConfig()
 	{
 		synchronized( this ){
 
@@ -1137,10 +1174,18 @@ BuddyPlugin
 						map.put( "n", nick );
 					}
 					
+					map.put( "ls", new Long( buddy.getLastStatusSeq()));
+					
+					map.put( "lo", new Long( buddy.getLastTimeOnline()));
+					
 					buddies_config.add( map );
 				}
 				
-				writeConfig( buddies_config );
+				Map	map = new HashMap();
+				
+				map.put( "buddies", buddies_config );
+				
+				writeConfig( map );
 				
 				config_dirty = false;
 			}
@@ -1170,7 +1215,7 @@ BuddyPlugin
 				}
 			}
 			
-			new_buddy = new BuddyPluginBuddy( this, key, null, null );
+			new_buddy = new BuddyPluginBuddy( this, key, null, 0, 0, null );
 			
 			buddies.add( new_buddy );
 			
@@ -1180,7 +1225,7 @@ BuddyPlugin
 			
 			logMessage( "Added buddy " + new_buddy.getString());
 
-			saveBuddies();
+			saveConfig();
 		}
 		
 		fireAdded( new_buddy );
@@ -1203,13 +1248,13 @@ BuddyPlugin
 			
 			logMessage( "Removed buddy " + buddy.getString());
 
-			saveBuddies();
+			saveConfig();
 		}
 		
 		fireRemoved( buddy );
 	}
 	
-	protected List
+	protected Map
 	readConfig()
 	{
 		File	config_file = new File( plugin_interface.getUtilities().getAzureusUserDir(), "buddies.config" );
@@ -1217,28 +1262,19 @@ BuddyPlugin
 		Map map = plugin_interface.getUtilities().readResilientBEncodedFile(
 				config_file.getParentFile(), config_file.getName(), true );
 		
-		if ( map != null ){
+		if ( map == null ){
 			
-			List	buddies = (List)map.get( "buddies" );
-			
-			if ( buddies != null ){
-				
-				return( buddies );
-			}
+			map = new HashMap();
 		}
 		
-		return( new ArrayList());
+		return( map );
 	}
 	
 	protected void
 	writeConfig(
-		List	buddies )
+		Map		map )
 	{
 		File	config_file = new File( plugin_interface.getUtilities().getAzureusUserDir(), "buddies.config" );
-		
-		Map	map = new HashMap();
-		
-		map.put( "buddies", buddies );
 		
 		plugin_interface.getUtilities().writeResilientBEncodedFile(
 				config_file.getParentFile(), config_file.getName(), map, true );
@@ -1310,7 +1346,7 @@ BuddyPlugin
 					
 					if ( tick_count % SAVE_CONFIG_TICKS == 0 ){
 
-						saveBuddies();
+						saveConfig();
 					}
 				}
 			});
@@ -1416,7 +1452,11 @@ BuddyPlugin
 									
 									String	nick = decodeString((byte[])status.get( "n" ));
 									
-									buddy.statusCheckComplete( latest_time, ip, tcp_port, udp_port, nick );
+									Long	l_seq = (Long)status.get( "s" );
+									
+									int		seq = l_seq==null?0:l_seq.intValue();
+									
+									buddy.statusCheckComplete( latest_time, ip, tcp_port, udp_port, nick, seq );
 									
 								}catch( Throwable e ){
 									

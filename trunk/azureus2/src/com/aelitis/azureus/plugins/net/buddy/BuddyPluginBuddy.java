@@ -63,12 +63,17 @@ BuddyPluginBuddy
 	private String			nick_name;
 	private List			recent_ygm;
 	
+	private int				last_status_seq;
+	private long			last_status_seq_change_time;
+	
 	private long			post_time;
 	private InetAddress		ip;
 	private int				tcp_port;
 	private int				udp_port;
 		
 	private boolean			online;
+	private long			last_time_online;
+	
 	private long			status_check_count;
 	private long			last_status_check_time;
 	
@@ -92,12 +97,18 @@ BuddyPluginBuddy
 		BuddyPlugin	_plugin,
 		String		_pk,
 		String		_nick_name,
+		int			_last_status_seq,
+		long		_last_time_online,
 		List		_recent_ygm )
 	{
-		plugin		= _plugin;
-		public_key 	= _pk;
-		nick_name	= _nick_name;
-		recent_ygm	= _recent_ygm;
+		plugin				= _plugin;
+		public_key 			= _pk;
+		nick_name			= _nick_name;
+		last_status_seq		= _last_status_seq;
+		last_time_online	= _last_time_online;
+		recent_ygm			= _recent_ygm;
+		
+		last_status_seq_change_time = last_time_online;
 	}
 	
 	public String
@@ -172,6 +183,12 @@ BuddyPluginBuddy
 	isOnline()
 	{
 		return( online );
+	}
+	
+	protected long
+	getLastTimeOnline()
+	{
+		return( last_time_online );
 	}
 	
 	public BuddyPlugin.cryptoResult
@@ -312,6 +329,12 @@ BuddyPluginBuddy
 	getYGMMarkers()
 	{
 		return( recent_ygm );
+	}
+	
+	protected int
+	getLastStatusSeq()
+	{
+		return( last_status_seq );
 	}
 	
 	public void
@@ -694,19 +717,49 @@ BuddyPluginBuddy
 		InetAddress		_ip,
 		int				_tcp_port,
 		int				_udp_port,
-		String			_nick_name )
+		String			_nick_name,
+		int				_status_seq )
 	{
 		boolean	details_change 	= false;
 		boolean	config_dirty 	= false;
+
+		long	now = SystemTime.getCurrentTime();
 		
 		synchronized( this ){
 
-			if ( !online ){
+			boolean	seq_change = _status_seq != last_status_seq;
+			
+			if ( seq_change ){
 				
-				online			= true;
-				details_change	= true;
+				last_status_seq_change_time = now;
+				last_status_seq				= _status_seq;
+				
+				last_time_online			= now;
 			}
-
+			
+			if ( online ){
+				
+				if ( now < last_status_seq_change_time ){
+					
+					last_status_seq_change_time = now;
+					
+				}else{
+					
+					if ( now - last_status_seq_change_time >= BuddyPlugin.STATUS_REPUBLISH_PERIOD * 3 ){
+						
+						online			= false;
+						details_change	= true;
+					}
+				}
+			}else{	
+				
+				if ( seq_change ){
+					
+					online			= true;
+					details_change	= true;
+				}
+			}
+			
 			post_time	= _post_time;
 			
 			if ( 	!addressesEqual( ip, _ip ) ||
