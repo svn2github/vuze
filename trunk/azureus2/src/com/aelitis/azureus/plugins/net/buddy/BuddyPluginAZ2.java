@@ -56,6 +56,11 @@ BuddyPluginAZ2
 					{
 						if ( subsystem == BuddyPlugin.SUBSYSTEM_AZ2 ){
 							
+							if ( !from_buddy.isAuthorised()){
+							
+								throw( new BuddyPluginException( "Unauthorised" ));
+							}
+						
 							return( processAZ2Request( from_buddy, request ));
 						}
 

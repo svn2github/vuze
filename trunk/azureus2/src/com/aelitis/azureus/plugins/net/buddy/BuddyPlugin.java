@@ -56,6 +56,7 @@ import org.gudy.azureus2.plugins.messaging.MessageManager;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnection;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageHandler;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageRegistration;
+import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
@@ -109,6 +110,8 @@ BuddyPlugin
 	private static final int	INIT_UNKNOWN		= 0;
 	private static final int	INIT_OK				= 1;
 	private static final int	INIT_BAD			= 2;
+	
+	private static final int	MAX_UNAUTH_BUDDIES	= 16;
 	
 	private static final int	TIMER_PERIOD	= 10*1000;
 	
@@ -286,7 +289,9 @@ BuddyPlugin
 						}
 					}
 					
-					boolean enabled = download.getTorrent() != null;
+					Torrent torrent = download.getTorrent();
+					
+					boolean enabled = torrent != null && !torrent.isPrivate();
 					
 					menu.removeAllChildItems();
 
@@ -470,7 +475,7 @@ BuddyPlugin
 				public void
 				closedownInitiated()
 				{	
-					saveConfig();
+					saveConfig( true );
 					
 					closedown();
 				}
@@ -521,6 +526,11 @@ BuddyPlugin
 						throws BuddyPluginException
 					{
 						if ( subsystem == SUBSYSTEM_INTERNAL ){
+						
+							if ( !from_buddy.isAuthorised()){
+							
+								throw( new BuddyPluginException( "Unauthorised" ));
+							}
 							
 							return( processInternalRequest( from_buddy, request ));							
 						}
@@ -570,23 +580,53 @@ BuddyPlugin
 													Object		context,
 													SEPublicKey	other_key )
 												{
+													String	other_key_str = Base32.encode( other_key.encodeRawPublicKey());
+
 													if ( TRACE ){
-														System.out.println( "Incoming: acceptKey" );
+														System.out.println( "Incoming: acceptKey - " + other_key_str );
 													}
 													
 													synchronized( BuddyPlugin.this ){
 															
+														int	unauth_count = 0;
+														
 														for (int i=0;i<buddies.size();i++){
 														
 															BuddyPluginBuddy	buddy = (BuddyPluginBuddy)buddies.get(i);
 
-															if ( buddy.hasPublicKey( other_key )){
+															if ( buddy.getPublicKey().equals( other_key_str )){
 																
-																buddy.incomingConnection(
-																	(GenericMessageConnection)context );	
+																	// don't accept a second or subsequent connection for unauth buddies
+																	// as they have a single chance to be processed
+																
+																if ( !buddy.isAuthorised()){
+																	
+																	log( "incoming connection failed as for unauthorised buddy" );
+																	
+																	return( false );
+																}
+																
+																buddy.incomingConnection((GenericMessageConnection)context );	
 																
 																return( true );
 															}
+															
+															if ( !buddy.isAuthorised()){
+																
+																unauth_count++;
+															}
+														}
+														
+															// no existing authorised buddy
+														
+														if ( unauth_count < MAX_UNAUTH_BUDDIES ){
+																														
+															BuddyPluginBuddy buddy = addBuddy( other_key_str, false );
+															
+															buddy.incomingConnection((GenericMessageConnection)context );	
+																
+															return( true );
+
 														}
 													}
 													
@@ -999,7 +1039,7 @@ BuddyPlugin
 			
 			boolean	restarting = AzureusCoreFactory.getSingleton().isRestarting();
 		
-			List	buddies = getBuddies();
+			List	buddies = getAllBuddies();
 			
 			logMessage( "   closing buddy connections" );
 			
@@ -1147,7 +1187,7 @@ BuddyPlugin
 							last_time_online = now;
 						}
 						
-						BuddyPluginBuddy buddy = new BuddyPluginBuddy( this, key, nick, last_seq, last_time_online, recent_ygm );
+						BuddyPluginBuddy buddy = new BuddyPluginBuddy( this, true, key, nick, last_seq, last_time_online, recent_ygm );
 						
 						logMessage( "Loaded buddy " + buddy.getString());
 						
@@ -1181,9 +1221,16 @@ BuddyPlugin
 	protected void
 	saveConfig()
 	{
+		saveConfig( false );
+	}
+	
+	protected void
+	saveConfig(
+		boolean	force )
+	{
 		synchronized( this ){
 
-			if ( config_dirty ){
+			if ( config_dirty || force ){
 				
 				List buddies_config = new ArrayList();
 		
@@ -1191,6 +1238,11 @@ BuddyPlugin
 					
 					BuddyPluginBuddy buddy = (BuddyPluginBuddy)buddies.get(i);
 		
+					if ( !buddy.isAuthorised()){
+						
+						continue;
+					}
+					
 					Map	map = new HashMap();
 				
 					map.put( "pk", buddy.getPublicKey());
@@ -1227,16 +1279,29 @@ BuddyPlugin
 		}
 	}
 	
-	public void
+	public BuddyPluginBuddy
 	addBuddy(
 		String		key )
+	
+	{
+		return( addBuddy( key, true ));
+	}
+	
+	protected BuddyPluginBuddy
+	addBuddy(
+		String		key,
+		boolean		authorised )
 	{
 		if ( key.length() == 0 || !verifyPublicKey( key )){
 			
-			return;
+			return( null );
 		}
 				
-		BuddyPluginBuddy	new_buddy;
+		BuddyPluginBuddy	buddy_to_return = null;
+		
+			// buddy may be already present as unauthorised in which case we pick it up
+			// and authorise it and send the added event (we don't fire added events for
+			// unauthorised buddies)
 		
 		synchronized( this ){
 						
@@ -1246,29 +1311,48 @@ BuddyPlugin
 				
 				if ( buddy.getPublicKey().equals( key )){
 					
-					return;
+					if ( authorised && !buddy.isAuthorised()){
+						
+						buddy.setAuthorised( true );
+						
+						buddy_to_return	= buddy;
+						
+					}else{
+					
+						return( buddy );
+					}
 				}
 			}
 			
-			new_buddy = new BuddyPluginBuddy( this, key, null, 0, 0, null );
+			if ( buddy_to_return == null ){
+				
+				buddy_to_return = new BuddyPluginBuddy( this, authorised, key, null, 0, 0, null );
+				
+				buddies.add( buddy_to_return );
+				
+				buddies_map.put( key, buddy_to_return );
+			}
 			
-			buddies.add( new_buddy );
-			
-			buddies_map.put( key, new_buddy );
-			
-			config_dirty	= true;
-			
-			logMessage( "Added buddy " + new_buddy.getString());
-
-			saveConfig();
+			if ( buddy_to_return.isAuthorised()){
+				
+				logMessage( "Added buddy " + buddy_to_return.getString());
+	
+				saveConfig( true );
+			}
 		}
 		
-		fireAdded( new_buddy );
+		if ( buddy_to_return.isAuthorised()){
+		
+			fireAdded( buddy_to_return );
+		}
+		
+		return( buddy_to_return );
 	}
 	
 	protected void
 	removeBuddy(
-		BuddyPluginBuddy 	buddy )
+		BuddyPluginBuddy 	buddy,
+		boolean				fire_removed )
 	{
 		synchronized( this ){
 
@@ -1278,15 +1362,16 @@ BuddyPlugin
 			}
 		
 			buddies_map.remove( buddy.getPublicKey());
-			
-			config_dirty = true;
-			
+						
 			logMessage( "Removed buddy " + buddy.getString());
 
-			saveConfig();
+			saveConfig( true );
 		}
 		
-		fireRemoved( buddy );
+		if ( fire_removed ){
+		
+			fireRemoved( buddy );
+		}
 	}
 	
 	protected Map
@@ -1392,7 +1477,7 @@ BuddyPlugin
 	{
 		List	buddies_copy;
 		
-		synchronized( BuddyPlugin.this ){
+		synchronized( this ){
 		
 			buddies_copy = new ArrayList( buddies );
 		}
@@ -1411,7 +1496,25 @@ BuddyPlugin
 				
 				if ( !buddy.statusCheckActive()){
 			
-					updateBuddyStatus( buddy );
+					if ( buddy.isAuthorised()){
+					
+						updateBuddyStatus( buddy );
+					}
+				}
+			}
+		}
+		
+			// trim any non-authorised buddies that have gone idle
+
+		synchronized( this ){
+			
+			for (int i=0;i<buddies_copy.size();i++){
+			
+				BuddyPluginBuddy	buddy = (BuddyPluginBuddy)buddies_copy.get(i);
+				
+				if ( buddy.isIdle() && !buddy.isAuthorised()){
+					
+					removeBuddy( buddy, false );
 				}
 			}
 		}
@@ -1420,7 +1523,7 @@ BuddyPlugin
 	protected void
 	updateBuddyStatus(
 		final BuddyPluginBuddy	buddy )
-	{
+	{	
 		if ( !buddy.statusCheckStarts()){
 			
 			return;
@@ -1627,7 +1730,7 @@ BuddyPlugin
 	{
 		
 		try{
-			byte[]	hash = new byte[16];
+			byte[]	hash = new byte[20];
 			
 			random.nextBytes( hash );
 			
@@ -1808,6 +1911,10 @@ BuddyPlugin
 									
 									log( "YGM entry from unknown buddy '" + pk_str + "' - ignoring" );
 									
+								}else if ( !buddy.isAuthorised()){
+									
+									log( "YGM entry from unauthorised buddy '" + pk_str + "' - ignoring" );
+
 								}else{
 									
 									byte[]	signed_stuff = (byte[])map.get( "ss" );
@@ -1881,8 +1988,33 @@ BuddyPlugin
 		return( msg_registration );
 	}
 	
+		/**
+		 * Returns authorised buddies only
+		 */
+	
 	public List
 	getBuddies()
+	{
+		synchronized( this ){
+			
+			List	result = new ArrayList();
+			
+			for (int i=0;i<buddies.size();i++){
+				
+				BuddyPluginBuddy	buddy = (BuddyPluginBuddy)buddies.get(i);
+				
+				if ( buddy.isAuthorised()){
+					
+					result.add( buddy );
+				}
+			}
+			
+			return( result );
+		}
+	}
+	
+	protected List
+	getAllBuddies()
 	{
 		synchronized( this ){
 			
@@ -2127,8 +2259,7 @@ BuddyPlugin
 		String		str,
 		Throwable	e )
 	{
-		logger.log( str );
-		logger.log( e );
+		logger.log( str + ": " + Debug.getNestedExceptionMessageAndStack( e ));
 	}
 
 	private class

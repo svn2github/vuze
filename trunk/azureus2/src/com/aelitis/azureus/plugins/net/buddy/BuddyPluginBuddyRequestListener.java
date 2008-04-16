@@ -26,6 +26,19 @@ import java.util.Map;
 public interface 
 BuddyPluginBuddyRequestListener 
 {
+		/**
+		 * Request receieved for a buddy. If the buddy is not authorised then the BuddyPluginBuddy
+		 * is transient and should only be used for the duration of this request. Use outside of 
+		 * this context is undefined. If you want to authorise a transient buddy then you need
+		 * to call BuddyPlugin.addBuddy with the required public key
+		 * 
+		 * @param from_buddy
+		 * @param subsystem
+		 * @param request
+		 * @return
+		 * @throws BuddyPluginException
+		 */
+	
 	public Map
 	requestReceived(
 		BuddyPluginBuddy	from_buddy,

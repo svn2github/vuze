@@ -59,6 +59,7 @@ BuddyPluginBuddy
 
 	
 	private BuddyPlugin		plugin;
+	private boolean			authorised;
 	private String			public_key;
 	private String			nick_name;
 	private List			recent_ygm;
@@ -96,6 +97,7 @@ BuddyPluginBuddy
 	protected
 	BuddyPluginBuddy(
 		BuddyPlugin	_plugin,
+		boolean		_authorised,
 		String		_pk,
 		String		_nick_name,
 		int			_last_status_seq,
@@ -103,11 +105,25 @@ BuddyPluginBuddy
 		List		_recent_ygm )
 	{
 		plugin				= _plugin;
+		authorised			= _authorised;
 		public_key 			= _pk;
 		nick_name			= _nick_name;
 		last_status_seq		= _last_status_seq;
 		last_time_online	= _last_time_online;
 		recent_ygm			= _recent_ygm;
+	}
+	
+	public boolean
+	isAuthorised()
+	{
+		return( authorised );
+	}
+	
+	protected void
+	setAuthorised(
+		boolean		_a )
+	{
+		authorised = _a;
 	}
 	
 	public String
@@ -148,16 +164,7 @@ BuddyPluginBuddy
 	public void
 	remove()
 	{
-		plugin.removeBuddy( this );
-	}
-	
-	public boolean
-	hasPublicKey(
-		SEPublicKey	other_key )
-	{
-		String	other_key_str = Base32.encode( other_key.encodeRawPublicKey());
-		
-		return( other_key_str.equals( public_key ));
+		plugin.removeBuddy( this, authorised );
 	}
 	
 	public InetAddress
@@ -182,6 +189,15 @@ BuddyPluginBuddy
 	isOnline()
 	{
 		return( online );
+	}
+	
+	protected boolean
+	isIdle()
+	{
+		synchronized( this ){
+		
+			return( connections.size() == 0 );
+		}
 	}
 	
 	public long
@@ -1117,10 +1133,12 @@ BuddyPluginBuddy
 					{
 						public boolean
 						accept(
-							Object		context,
-							SEPublicKey	other_key )
+							Object			context,
+							SEPublicKey		other_key )
 						{
-							if ( hasPublicKey( other_key )){
+							String	other_key_str = Base32.encode( other_key.encodeRawPublicKey());
+
+							if ( other_key_str.equals( public_key )){
 								
 								return( true );
 								
