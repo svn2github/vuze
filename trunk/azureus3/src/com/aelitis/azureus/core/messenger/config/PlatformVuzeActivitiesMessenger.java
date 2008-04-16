@@ -27,8 +27,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
-import com.aelitis.azureus.util.MapUtils;
-import com.aelitis.azureus.util.VuzeActivitiesEntry;
+import com.aelitis.azureus.util.*;
 
 /**
  * @author TuxPaper
@@ -70,17 +69,11 @@ public class PlatformVuzeActivitiesMessenger
 							if (platformEntry == null) {
 								continue;
 							}
-
-							entries[i] = new VuzeActivitiesEntry(SystemTime.getCurrentTime()
-									- MapUtils.getMapLong(platformEntry, "age-ms", 0),
-									MapUtils.getMapString(platformEntry, "text", null),
-									MapUtils.getMapString(platformEntry, "icon-id", null),
-									MapUtils.getMapString(platformEntry, "id", null),
-									MapUtils.getMapString(platformEntry, "type-id", null),
-									MapUtils.getMapString(platformEntry, "related-asset-hash",
-											null));
-							entries[i].setAssetImageURL(MapUtils.getMapString(platformEntry, "related-image-url", null));
-							i++;
+							
+							entries[i] = VuzeActivitiesManager.createEntryFromMap(platformEntry);
+							if (entries[i] != null) {
+								i++;
+							}
 						}
 					}
 					long refreshInMS = MapUtils.getMapLong(reply, "refresh-in-ms",

@@ -71,6 +71,10 @@ public class Constants
 	public static final String URL_COMMENTS = "comment/";
 
 	public static final String URL_SHARE = "share/";
+	
+	public static final String URL_USER = "user/";
+
+	public static final String URL_BUDDY_ACCEPT = "buddy-accept/";
 
 	public static final String URL_DOWNLOAD = "download/";
 

@@ -109,6 +109,18 @@ public class VuzeActivitiesEntry
 		// TODO Auto-generated constructor stub
 	}
 
+	/**
+	 * @param platformEntry
+	 */
+	public VuzeActivitiesEntry(Map platformEntry) {
+		timestamp = SystemTime.getCurrentTime() - MapUtils.getMapLong(platformEntry, "age-ms", 0);
+		text = MapUtils.getMapString(platformEntry, "text", null);
+		setIconID(MapUtils.getMapString(platformEntry, "icon-id", null));
+		id = MapUtils.getMapString(platformEntry, "id", null);
+		setTypeID(MapUtils.getMapString(platformEntry, "type-id", null), true);
+		assetHash = MapUtils.getMapString(platformEntry, "related-asset-hash", null);
+	}
+
 	// @see java.lang.Object#equals(java.lang.Object)
 	public boolean equals(Object obj) {
 		if ((obj instanceof VuzeActivitiesEntry) && id != null) {

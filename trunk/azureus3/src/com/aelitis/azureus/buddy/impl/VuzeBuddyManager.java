@@ -25,9 +25,7 @@ import org.gudy.azureus2.core3.util.*;
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddyCreator;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
-import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
-import com.aelitis.azureus.plugins.net.buddy.BuddyPluginListener;
+import com.aelitis.azureus.plugins.net.buddy.*;
 import com.aelitis.azureus.util.Constants;
 
 import org.gudy.azureus2.plugins.Plugin;
@@ -113,8 +111,21 @@ public class VuzeBuddyManager
 						}
 					};
 
+					BuddyPluginBuddyRequestListener requestListener = new BuddyPluginBuddyRequestListener() {
+
+						public Map requestReceived(BuddyPluginBuddy from_buddy,
+								int subsystem, Map request) throws BuddyPluginException {
+							return null;
+						}
+
+						public void pendingMessages(BuddyPluginBuddy[] from_buddies) {
+						}
+
+					};
+
 					// TODO create an addListener that triggers for existing buddies
 					buddyPlugin.addListener(listener);
+					buddyPlugin.addRequestListener(requestListener);
 					List buddies = buddyPlugin.getBuddies();
 					for (int i = 0; i < buddies.size(); i++) {
 						BuddyPluginBuddy buddy = (BuddyPluginBuddy) buddies.get(i);

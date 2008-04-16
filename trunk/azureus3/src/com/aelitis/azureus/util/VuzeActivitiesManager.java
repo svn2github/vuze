@@ -724,4 +724,22 @@ public class VuzeActivitiesManager
 		}
 		saveEvents();
 	}
+
+	/**
+	 * @param map
+	 * @return
+	 *
+	 * @since 3.0.5.3
+	 */
+	public static VuzeActivitiesEntry createEntryFromMap(Map map) {
+		VuzeActivitiesEntry entry;
+		String typeID = MapUtils.getMapString(map, "type-id", null);
+		if (VuzeActivitiesEntryBuddyRequest.TYPEID_BUDDYREQUEST.equals(typeID)) {
+			entry = new VuzeActivitiesEntryBuddyRequest(map);
+		} else {
+			entry = new VuzeActivitiesEntry(map);
+		}
+		entry.setAssetImageURL(MapUtils.getMapString(map, "related-image-url", null));
+		return entry;
+	}
 }
