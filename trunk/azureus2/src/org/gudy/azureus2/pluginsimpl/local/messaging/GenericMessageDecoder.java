@@ -37,7 +37,7 @@ public class
 GenericMessageDecoder
 	implements MessageStreamDecoder
 {
-	public static final int MAX_MESSAGE_LENGTH = 64*1024;
+	public static final int MAX_MESSAGE_LENGTH = 256*1024;
 	  	
 	private final ByteBuffer length_buffer = ByteBuffer.allocate( 4 );
 	
