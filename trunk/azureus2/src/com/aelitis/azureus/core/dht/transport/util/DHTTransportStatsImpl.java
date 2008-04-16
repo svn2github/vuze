@@ -74,6 +74,8 @@ DHTTransportStatsImpl
 		
 		incoming_request_versions = new long[protocol_version+1];
 		outgoing_request_versions = new long[protocol_version+1];
+		
+		Arrays.fill( skew_values, Integer.MAX_VALUE );
 	}
 	
 	protected byte
@@ -485,7 +487,7 @@ DHTTransportStatsImpl
 	recordSkew(
 		long		skew )
 	{
-		int	i_skew = skew<=Integer.MAX_VALUE?(int)skew:Integer.MAX_VALUE;
+		int	i_skew = skew<Integer.MAX_VALUE?(int)skew:(Integer.MAX_VALUE-1);
 		
 			// no sync here as not important so ensure things work ok
 		
@@ -509,20 +511,45 @@ DHTTransportStatsImpl
 		if ( 	now < last_skew_average_time ||
 				now - last_skew_average_time > 30000 ){
 			
-			long	total = 0;
+			int[]	values = (int[])skew_values.clone();
 			
-			Arrays.sort( skew_values );
+			int		pos = skew_pos;
 			
-			int start 	= SKEW_VALUE_MAX/3;
-			int	end		= (SKEW_VALUE_MAX*2)/3;
-			int	num		= end - start;
+			int		num_values;
 			
-			for (int i=start;i<end;i++){
+			if ( values[pos] == Integer.MAX_VALUE ){
 				
-				total += (long)skew_values[i];
+				num_values = pos;
+			}else{
+				
+				num_values = SKEW_VALUE_MAX;
 			}
 			
-			last_skew_average 		= total / num;
+			Arrays.sort( values, 0, num_values );
+			
+				// remove outliers
+			
+			int	start 	= num_values/3;
+			int end		= 2*num_values/3;
+			
+			int	entries	= end - start;
+			
+			if ( entries < 5 ){
+				
+				last_skew_average = 0;
+				
+			}else{
+				
+				long	total = 0;
+				
+				for (int i=start;i<end;i++){
+					
+					total += (long)values[i];
+				}
+				
+				last_skew_average 		= total / entries;
+			}
+			
 			last_skew_average_time	= now;
 		}
 		
