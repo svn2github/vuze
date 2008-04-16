@@ -388,6 +388,13 @@ DHTTransportUDPImpl
 		// System.out.println( "net " + network + ": aliens = " + alien_average.getAverage() + ", alien fv = " + alien_fv_average.getAverage());
 	}
 	
+	protected void
+	recordSkew(
+		long		skew )
+	{
+		stats.recordSkew( skew );
+	}
+	
 	protected int
 	getNodeStatus()
 	{

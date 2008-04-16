@@ -51,20 +51,20 @@ public class TimeFormatter {
 	 * @param time time in seconds
 	 * @return Formatted time string
 	 */
-	public static String format(long time) {
-		if (time == Constants.INFINITY_AS_INT || time >= Constants.INFINITE_AS_LONG)
+	public static String format(long time_secs) {
+		if (time_secs == Constants.INFINITY_AS_INT || time_secs >= Constants.INFINITE_AS_LONG)
 			return Constants.INFINITY_STRING;
 
-		if (time < 0)
+		if (time_secs < 0)
 			return "";
 
 		// secs, mins, hours, days
 		int[] vals = {
-			(int) time % 60,
-			(int) (time / 60) % 60,
-			(int) (time / 3600) % 24,
-			(int) (time / 86400) % 365,
-			(int) (time / 31536000)
+			(int) time_secs % 60,
+			(int) (time_secs / 60) % 60,
+			(int) (time_secs / 3600) % 24,
+			(int) (time_secs / 86400) % 365,
+			(int) (time_secs / 31536000)
 			};
 
 		int end = vals.length - 1;
@@ -85,6 +85,21 @@ public class TimeFormatter {
 		return result;
 	}
 
+	public static String format100ths(long time_millis) {
+		
+		long time_secs = time_millis / 1000;
+
+		int  hundredths = (int)(time_millis - time_secs*1000)/10;
+		
+		if ( time_millis == 0 || time_secs >= 60 ){
+			
+			return( format( time_secs ));
+		}
+		
+		return( time_secs + "." + twoDigits( hundredths) + TIME_SUFFIXES[0]);
+	}
+
+	
 	/**
 	 * Format time into "[[# y] # d] 00:00:00" format
 	 * 

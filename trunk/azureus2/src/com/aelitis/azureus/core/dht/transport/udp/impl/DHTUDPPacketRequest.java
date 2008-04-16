@@ -162,6 +162,8 @@ DHTUDPPacketRequest
 			// put the time into their frame of reference.
 		
 		skew = SystemTime.getCurrentTime() - originator_time;
+		
+		transport.recordSkew( skew );
 	}
 	
 	protected void

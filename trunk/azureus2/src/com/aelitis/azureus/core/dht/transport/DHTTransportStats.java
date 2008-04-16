@@ -92,6 +92,9 @@ DHTTransportStats
 	public DHTTransportStats
 	snapshot();
 	
+	public long
+	getSkewAverage();
+	
 	public String
 	getString();
 }

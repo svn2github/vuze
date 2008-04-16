@@ -22,6 +22,10 @@
 
 package com.aelitis.azureus.core.dht.transport.util;
 
+import java.util.Arrays;
+
+import org.gudy.azureus2.core3.util.SystemTime;
+
 import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.transport.DHTTransportStats;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTUDPPacketHelper;
@@ -55,6 +59,12 @@ DHTTransportStatsImpl
 	private long[]	incoming_request_versions;
 	private long	outgoing_version_requests;
 	private long[]	outgoing_request_versions;
+	
+	private static final int SKEW_VALUE_MAX	= 256;
+	private final int[]	skew_values = new int[SKEW_VALUE_MAX];
+	private int			skew_pos	= 0;
+	private long		last_skew_average;
+	private long		last_skew_average_time;
 	
 	protected
 	DHTTransportStatsImpl(
@@ -469,6 +479,56 @@ DHTTransportStatsImpl
 	getIncomingRequests()
 	{
 		return( incoming_requests );
+	}
+	
+	public void
+	recordSkew(
+		long		skew )
+	{
+		int	i_skew = skew<=Integer.MAX_VALUE?(int)skew:Integer.MAX_VALUE;
+		
+			// no sync here as not important so ensure things work ok
+		
+		int	pos = skew_pos;
+		
+		skew_values[ pos++ ] = i_skew;
+		
+		if ( pos == SKEW_VALUE_MAX ){
+			
+			pos	= 0;
+		}
+		
+		skew_pos = pos;
+		
+		System.out.println( "skew: " + i_skew );
+	}
+	
+	public long
+	getSkewAverage()
+	{
+		long	now = SystemTime.getCurrentTime();
+		
+		if ( 	now < last_skew_average_time ||
+				now - last_skew_average_time > 30000 ){
+			
+			long	total = 0;
+			
+			Arrays.sort( skew_values );
+			
+			int start 	= SKEW_VALUE_MAX/3;
+			int	end		= (SKEW_VALUE_MAX*2)/3;
+			int	num		= end - start;
+			
+			for (int i=start;i<end;i++){
+				
+				total += (long)skew_values[i];
+			}
+			
+			last_skew_average 		= total / num;
+			last_skew_average_time	= now;
+		}
+		
+		return( last_skew_average );
 	}
 	
 	public String

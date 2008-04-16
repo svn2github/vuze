@@ -53,6 +53,7 @@ import com.aelitis.azureus.core.dht.control.DHTControlStats;
 import com.aelitis.azureus.core.dht.db.DHTDBStats;
 import com.aelitis.azureus.core.dht.nat.DHTNATPuncher;
 import com.aelitis.azureus.core.dht.router.DHTRouterStats;
+import com.aelitis.azureus.core.dht.transport.DHTTransport;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportStats;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
@@ -76,7 +77,7 @@ public class DHTView extends AbstractIView {
   Label lblUpTime,lblNumberOfUsers;
   Label lblNodes,lblLeaves;
   Label lblContacts,lblReplacements,lblLive,lblUnknown,lblDying;
-  Label lblRendezvous, lblReachable;
+  Label lblSkew, lblRendezvous, lblReachable;
   Label lblKeys,lblValues;
   Label lblLocal,lblDirect,lblIndirect;
   Label lblDivFreq,lblDivSize;
@@ -173,6 +174,7 @@ public class DHTView extends AbstractIView {
     layout.numColumns = 6;
     gGeneral.setLayout(layout);
     
+    	// row1 
     
     Label label = new Label(gGeneral,SWT.NONE);
     Messages.setLanguageText(label,"DHTView.general.uptime");    
@@ -192,6 +194,9 @@ public class DHTView extends AbstractIView {
     lblReachable = new Label(gGeneral,SWT.NONE);
     lblReachable.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
     
+    
+    	// row 2
+    
     label = new Label(gGeneral,SWT.NONE);
     Messages.setLanguageText(label,"DHTView.general.nodes");    
     
@@ -210,6 +215,7 @@ public class DHTView extends AbstractIView {
     lblRendezvous = new Label(gGeneral,SWT.NONE);
     lblRendezvous.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
     
+    	// row 3
     
     label = new Label(gGeneral,SWT.NONE);
     Messages.setLanguageText(label,"DHTView.general.contacts");    
@@ -229,9 +235,14 @@ public class DHTView extends AbstractIView {
     lblLive= new Label(gGeneral,SWT.NONE);
     lblLive.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
     
-    label = new Label(gGeneral,SWT.NONE);
-    label = new Label(gGeneral,SWT.NONE);
+    	// row 4
     
+    label = new Label(gGeneral,SWT.NONE);
+    Messages.setLanguageText(label,"DHTView.general.skew");    
+    
+    lblSkew= new Label(gGeneral,SWT.NONE);
+    lblSkew.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+
     label = new Label(gGeneral,SWT.NONE);
     Messages.setLanguageText(label,"DHTView.general.unknown");    
     
@@ -569,9 +580,11 @@ public class DHTView extends AbstractIView {
   private void refreshGeneral() {
     DHTControlStats controlStats = dht.getControl().getStats();
     DHTRouterStats routerStats = dht.getRouter().getStats();
+    DHTTransport transport = dht.getTransport();
+    DHTTransportStats transportStats = transport.getStats();
     lblUpTime.setText(TimeFormatter.format(controlStats.getRouterUptime() / 1000));
     lblNumberOfUsers.setText("" + controlStats.getEstimatedDHTSize());
-    lblReachable.setText(dht.getTransport().isReachable()?yes_str:no_str);
+    lblReachable.setText(transport.isReachable()?yes_str:no_str);
     
     DHTNATPuncher puncher = dht.getNATPuncher();
     
@@ -583,7 +596,7 @@ public class DHTView extends AbstractIView {
     	puncher_str = puncher.operational()?yes_str:no_str;
     }
     
-    lblRendezvous.setText(dht.getTransport().isReachable()?"":puncher_str);
+    lblRendezvous.setText(transport.isReachable()?"":puncher_str);
     long[] stats = routerStats.getStats();
     lblNodes.setText("" + stats[DHTRouterStats.ST_NODES]);
     lblLeaves.setText("" + stats[DHTRouterStats.ST_LEAVES]);
@@ -592,6 +605,10 @@ public class DHTView extends AbstractIView {
     lblLive.setText("" + stats[DHTRouterStats.ST_CONTACTS_LIVE]);
     lblUnknown.setText("" + stats[DHTRouterStats.ST_CONTACTS_UNKNOWN]);
     lblDying.setText("" + stats[DHTRouterStats.ST_CONTACTS_DEAD]);
+    
+    long skew_average = transportStats.getSkewAverage();
+    
+    lblSkew.setText( skew_average==0?"":(skew_average<0?"-":"") + TimeFormatter.format100ths( Math.abs(skew_average )));
   }
   
   private int refreshIter = 0;
