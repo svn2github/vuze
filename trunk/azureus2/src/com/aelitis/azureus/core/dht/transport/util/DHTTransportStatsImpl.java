@@ -499,8 +499,6 @@ DHTTransportStatsImpl
 		}
 		
 		skew_pos = pos;
-		
-		System.out.println( "skew: " + i_skew );
 	}
 	
 	public long
