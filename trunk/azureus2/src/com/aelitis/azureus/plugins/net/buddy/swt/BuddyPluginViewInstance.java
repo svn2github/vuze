@@ -1068,6 +1068,8 @@ BuddyPluginViewInstance
 			
 			if ( subsystem == BuddyPlugin.SUBSYSTEM_AZ3 ){
 				
+				plugin.addBuddy( from_buddy.getPublicKey());
+				
 				return( new HashMap());
 			}
 		}

@@ -94,6 +94,8 @@ BuddyPluginBuddy
 	
 	private Set		offline_seq_set;
 	
+	private boolean	destroyed;
+	
 	protected
 	BuddyPluginBuddy(
 		BuddyPlugin	_plugin,
@@ -756,6 +758,11 @@ BuddyPluginBuddy
 			if ( bc == null ){
 				
 				try{
+					if ( destroyed ){
+						
+						throw( new BuddyPluginException( "Buddy destroyed" ));
+					}
+					
 					if ( connections.size() >= MAX_ACTIVE_CONNECTIONS ){
 						
 						throw( new BuddyPluginException( "Too many active connections" ));
@@ -1050,6 +1057,24 @@ BuddyPluginBuddy
 	}
 	
 	protected void
+	destroy()
+	{
+		List	to_close = new ArrayList();
+		
+		synchronized( this ){
+			
+			destroyed = true;
+			
+			to_close.addAll( connections );
+		}
+		
+		for (int i=0;i<to_close.size();i++){
+			
+			((buddyConnection)to_close.get(i)).close();
+		}
+	}
+	
+	protected void
 	logMessage(
 		String	str )
 	{
@@ -1177,6 +1202,8 @@ BuddyPluginBuddy
 	protected void
 	incomingConnection(
 		GenericMessageConnection	_connection )
+	
+		throws BuddyPluginException
 	{
 		addConnection( _connection );
 	}
@@ -1184,12 +1211,19 @@ BuddyPluginBuddy
 	protected void
 	addConnection(
 		GenericMessageConnection		_connection )
+	
+		throws BuddyPluginException
 	{
 		int	size;
 		
 		buddyConnection bc = new buddyConnection( _connection, false );
 		
 		synchronized( this ){
+			
+			if ( destroyed ){
+				
+				throw( new BuddyPluginException( "Buddy has been destroyed" ));
+			}
 			
 			connections.add( bc );
 			

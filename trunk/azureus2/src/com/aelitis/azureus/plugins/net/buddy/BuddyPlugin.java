@@ -586,53 +586,61 @@ BuddyPlugin
 														System.out.println( "Incoming: acceptKey - " + other_key_str );
 													}
 													
-													synchronized( BuddyPlugin.this ){
-															
-														int	unauth_count = 0;
-														
-														for (int i=0;i<buddies.size();i++){
-														
-															BuddyPluginBuddy	buddy = (BuddyPluginBuddy)buddies.get(i);
-
-															if ( buddy.getPublicKey().equals( other_key_str )){
+													try{
+														synchronized( BuddyPlugin.this ){
 																
-																	// don't accept a second or subsequent connection for unauth buddies
-																	// as they have a single chance to be processed
+															int	unauth_count = 0;
+															
+															for (int i=0;i<buddies.size();i++){
+															
+																BuddyPluginBuddy	buddy = (BuddyPluginBuddy)buddies.get(i);
+	
+																if ( buddy.getPublicKey().equals( other_key_str )){
+																	
+																		// don't accept a second or subsequent connection for unauth buddies
+																		// as they have a single chance to be processed
+																	
+																	if ( !buddy.isAuthorised()){
+																		
+																		log( "incoming connection failed as for unauthorised buddy" );
+																		
+																		return( false );
+																	}
+																	
+																	buddy.incomingConnection((GenericMessageConnection)context );	
+																	
+																	return( true );
+																}
 																
 																if ( !buddy.isAuthorised()){
 																	
-																	log( "incoming connection failed as for unauthorised buddy" );
-																	
-																	return( false );
+																	unauth_count++;
 																}
+															}
+															
+																// no existing authorised buddy
+															
+															if ( unauth_count < MAX_UNAUTH_BUDDIES ){
+																															
+																BuddyPluginBuddy buddy = addBuddy( other_key_str, false );
 																
 																buddy.incomingConnection((GenericMessageConnection)context );	
-																
+																	
 																return( true );
-															}
-															
-															if ( !buddy.isAuthorised()){
-																
-																unauth_count++;
+	
 															}
 														}
 														
-															// no existing authorised buddy
+														log( "incoming connection failed due to pk mismatch" );
+	
+														return( false );
 														
-														if ( unauth_count < MAX_UNAUTH_BUDDIES ){
-																														
-															BuddyPluginBuddy buddy = addBuddy( other_key_str, false );
-															
-															buddy.incomingConnection((GenericMessageConnection)context );	
-																
-															return( true );
-
-														}
+													}catch( Throwable e ){
+														
+														log( "Incomming connection failed", e );
+														
+														return( false );
 													}
-													
-													log( "incoming connection failed due to pk mismatch" );
-
-													return( false );
 												}
 											},
 											reason,
@@ -1367,6 +1375,8 @@ BuddyPlugin
 
 			saveConfig( true );
 		}
+		
+		buddy.destroy();
 		
 		if ( fire_removed ){
 		
