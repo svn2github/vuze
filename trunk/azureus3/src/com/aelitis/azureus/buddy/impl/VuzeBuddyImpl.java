@@ -21,8 +21,6 @@ package com.aelitis.azureus.buddy.impl;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.gudy.azureus2.core3.util.BEncoder;
-
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.plugins.net.buddy.*;
 import com.aelitis.azureus.util.JSONUtils;
@@ -112,11 +110,10 @@ public class VuzeBuddyImpl
 		}
 
 		try {
-			byte[] payload = BEncoder.encode(entry.toMap());
 			Map map = new HashMap();
-
+			
 			map.put("VuzeMessageType", "ActivityEntry");
-			map.put("ActivityEntry", pluginBuddy.encrypt(payload).getPayload());
+			map.put("ActivityEntry", entry.toMap());
 
 			pluginBuddy.sendMessage(BuddyPlugin.SUBSYSTEM_AZ3, map, 10000,
 					new BuddyPluginBuddyReplyListener() {
@@ -130,7 +127,7 @@ public class VuzeBuddyImpl
 							VuzeBuddyManager.log("REPLY REC " + JSONUtils.encodeToJSON(reply));
 						}
 					});
-		} catch (Exception e) {
+		} catch (BuddyPluginException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
