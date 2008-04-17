@@ -60,6 +60,18 @@ public class MapUtils
 		}
 	}
 
+	public static byte[] getMapByteArray(Map map, String key, byte[] def) {
+		try {
+			Object o = map.get(key);
+			if (o instanceof byte[]) {
+				return (byte[]) o;
+			}
+			return def;
+		} catch (Exception t) {
+			return def;
+		}
+	}
+
 	public static Object getMapObject(Map map, String key, Object def, Class cla) {
 		try {
 			Object o = map.get(key);
