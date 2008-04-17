@@ -854,6 +854,8 @@ BuddyPluginBuddy
 
 			// connection failed, see if we need to attempt to re-establish
 		
+		plugin.fireDetailsChanged( this );
+		
 		dispatchMessage();
 	}
 	

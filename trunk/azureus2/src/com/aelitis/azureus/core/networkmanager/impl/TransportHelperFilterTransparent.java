@@ -178,8 +178,15 @@ TransportHelperFilterTransparent
 	}
 	
 	public String
-	getName()
+	getName(boolean verbose)
 	{
-		return((is_plain?"Plain":"None") + getHelper().getName());
+		String proto_str = getHelper().getName(verbose);
+		
+		if ( proto_str.length() > 0 ){
+			
+			proto_str = " (" + proto_str + ")";
+		}
+		
+		return((is_plain?"Plain":"None") + proto_str );
 	}
 }

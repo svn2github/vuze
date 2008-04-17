@@ -96,9 +96,9 @@ TransportImpl
 
 	  
 	public String 
-	getEncryption()
+	getEncryption(boolean verbose)
 	{ 
-		return( filter==null?"":filter.getName()); 
+		return( filter==null?"":filter.getName(verbose)); 
 	}
 	
 	 public boolean 

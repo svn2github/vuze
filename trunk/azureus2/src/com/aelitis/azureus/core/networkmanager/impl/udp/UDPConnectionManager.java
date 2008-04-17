@@ -193,7 +193,7 @@ UDPConnectionManager
 		    						
 			    		   			if ( Logger.isEnabled()){
 			    		    		
-			    		   				Logger.log(new LogEvent(LOGID, "Outgoing UDP stream to " + address + " established, type = " + filter.getName()));
+			    		   				Logger.log(new LogEvent(LOGID, "Outgoing UDP stream to " + address + " established, type = " + filter.getName(false)));
 			    		    		}
 			    		   			
 			    		   			udp_transport.connectedOutbound();

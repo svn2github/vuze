@@ -72,11 +72,18 @@ TCPTransportHelper
 	}
 	
 	public String
-	getName()
+	getName(boolean verbose)
 	{
 			// default is TCP so don't clutter up views with this info
 		
-		return( "" );
+		if ( verbose ){
+			
+			return( "TCP" );
+			
+		}else{
+		
+			return( "" );
+		}
 	}
 	
 	public boolean

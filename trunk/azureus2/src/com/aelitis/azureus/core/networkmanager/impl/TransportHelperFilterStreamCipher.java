@@ -73,8 +73,15 @@ TransportHelperFilterStreamCipher
 	}
 	
 	public String
-	getName()
+	getName(boolean verbose)
 	{
-		return( read_cipher.getName() + getHelper().getName());
+		String proto_str = getHelper().getName(verbose);
+		
+		if ( proto_str.length() > 0 ){
+			
+			proto_str = " (" + proto_str + ")";
+		}
+		
+		return( read_cipher.getName() + proto_str );
 	}
 }

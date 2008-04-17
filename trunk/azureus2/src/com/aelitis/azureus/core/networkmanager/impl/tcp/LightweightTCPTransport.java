@@ -98,7 +98,7 @@ public class LightweightTCPTransport implements Transport {
 	  // TODO Auto-generated method stub
 
   }
-  public String getEncryption(){ return( filter.getName()); }
+  public String getEncryption(boolean verbose){ return( filter.getName(verbose)); }
   public boolean isEncrypted(){ return( filter.isEncrypted());}
   public boolean isTCP(){ return true; }
 }

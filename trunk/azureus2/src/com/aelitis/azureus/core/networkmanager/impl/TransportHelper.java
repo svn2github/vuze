@@ -34,7 +34,7 @@ TransportHelper
 	getAddress();
 
 	public String
-	getName();
+	getName(boolean verbose);
 	
 	public boolean
 	minimiseOverheads();

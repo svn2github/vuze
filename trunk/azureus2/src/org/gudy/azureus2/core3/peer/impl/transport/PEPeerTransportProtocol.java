@@ -3067,7 +3067,7 @@ implements PEPeerTransport
 			return( "" );
 		}
 
-		return( transport.getEncryption());
+		return( transport.getEncryption( false ));
 	}
 
 	public void 

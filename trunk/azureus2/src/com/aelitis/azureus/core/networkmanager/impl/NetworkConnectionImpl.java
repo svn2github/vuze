@@ -342,9 +342,9 @@ NetworkConnectionImpl
 		}
 
 		public String 
-		getEncryption()
+		getEncryption( boolean verbose)
 		{
-			return( transport.getEncryption());
+			return( transport.getEncryption( verbose ));
 		}
 
 		public void 

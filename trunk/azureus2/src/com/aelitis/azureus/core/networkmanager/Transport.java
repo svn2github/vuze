@@ -59,7 +59,7 @@ Transport
    * Return a textual description of the encryption for this transport
    * @return
    */
-  public String getEncryption();
+  public String getEncryption( boolean verbose );
       
   /**
    * fake a wakeup so that a read cycle is attempted

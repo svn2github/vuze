@@ -103,7 +103,7 @@ public class ConnectionImpl implements Connection {
 		  
 	  }else{
 		  
-		  return( t.getEncryption());
+		  return( t.getEncryption( false ));
 	  }
   }
 }

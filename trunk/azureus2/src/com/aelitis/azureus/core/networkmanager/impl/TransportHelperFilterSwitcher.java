@@ -305,8 +305,8 @@ TransportHelperFilterSwitcher
 	}
 	
 	public String
-	getName()
+	getName(boolean verbose)
 	{
-		return( second_filter.getName());
+		return( second_filter.getName(verbose));
 	}
 }

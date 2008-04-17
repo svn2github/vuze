@@ -99,8 +99,15 @@ TransportHelperFilterStreamXOR
 	}
 	
 	public String
-	getName()
+	getName(boolean verbose)
 	{
-		return( "XOR-" + mask.length*8 + getHelper().getName());
+		String proto_str = getHelper().getName(verbose);
+		
+		if ( proto_str.length() > 0 ){
+			
+			proto_str = " (" + proto_str + ")";
+		}
+		
+		return( "XOR-" + mask.length*8 + proto_str );
 	}
 }

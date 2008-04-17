@@ -320,7 +320,7 @@ SESTSConnectionImpl
 	public String
 	getType()
 	{
-		return( connection.getType());
+		return( "AES " + connection.getType());
 	}
 	
 	public void

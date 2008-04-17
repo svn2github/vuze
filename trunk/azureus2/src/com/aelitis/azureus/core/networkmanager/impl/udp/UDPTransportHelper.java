@@ -151,9 +151,10 @@ UDPTransportHelper
 	}
 	
 	public String
-	getName()
+	getName(
+		boolean verbose )
 	{
-		return( " (UDP)" );
+		return( "UDP" );
 	}
 	
 	public boolean

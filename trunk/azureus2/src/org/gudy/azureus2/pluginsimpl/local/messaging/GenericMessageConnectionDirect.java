@@ -114,6 +114,7 @@ GenericMessageConnectionDirect
 		if ( connection == null ){
 			
 			return( "" );
+			
 		}else{
 			
 			Transport transport = connection.getTransport();
@@ -123,7 +124,7 @@ GenericMessageConnectionDirect
 				return( "" );
 			}
 			
-			return( transport.getEncryption());
+			return( transport.getEncryption( true ));
 		}
 	}
 	

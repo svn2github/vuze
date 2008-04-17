@@ -147,8 +147,8 @@ TransportHelperFilterInserter
 	}
 	
 	public String
-	getName()
+	getName(boolean verbose)
 	{
-		return( target_filter.getName());
+		return( target_filter.getName(verbose));
 	}
 }

@@ -116,7 +116,7 @@ PHETester
 								ProtocolDecoder	decoder,
 								ByteBuffer		remaining_initial_data )
 							{
-								System.out.println( "incoming decode complete: " +  decoder.getFilter().getName());
+								System.out.println( "incoming decode complete: " +  decoder.getFilter().getName(false));
 																
 								readStream( "incoming", decoder.getFilter() );
 								
@@ -268,7 +268,7 @@ PHETester
 								ProtocolDecoder	decoder,
 								ByteBuffer		remaining_initial_data )
 							{
-								System.out.println( "outgoing decode complete: " +  decoder.getFilter().getName());
+								System.out.println( "outgoing decode complete: " +  decoder.getFilter().getName(false));
 															
 								readStream( "incoming", decoder.getFilter() );
 								

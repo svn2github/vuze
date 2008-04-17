@@ -84,7 +84,7 @@ public class
 BuddyPluginViewInstance 
 	implements BuddyPluginListener, BuddyPluginBuddyRequestListener
 {
-	private static final boolean	TEST_AZ3 = true;
+	private static final boolean	TEST_AZ3 = false;
 	
 	
 	private static final int LOG_NORMAL 	= 1;

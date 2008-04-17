@@ -54,7 +54,7 @@ TransportHelperFilter
 	getHelper();
 	
 	public String
-	getName();
+	getName(boolean verbose);
 	
 	public boolean 
 	isEncrypted();

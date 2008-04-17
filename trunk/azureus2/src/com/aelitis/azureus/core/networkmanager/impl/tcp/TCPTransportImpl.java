@@ -254,7 +254,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
     			TransportHelperFilter filter = decoder.getFilter();
     			setFilter( filter ); 
     			if ( Logger.isEnabled()){
-    		      Logger.log(new LogEvent(LOGID, "Outgoing TCP stream to " + channel.socket().getRemoteSocketAddress() + " established, type = " + filter.getName()));
+    		      Logger.log(new LogEvent(LOGID, "Outgoing TCP stream to " + channel.socket().getRemoteSocketAddress() + " established, type = " + filter.getName(false)));
     			}
     			
     			connectedOutbound( remaining_initial_data, listener );         
@@ -306,7 +306,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
   		setFilter( TCPTransportHelperFilterFactory.createTransparentFilter( channel ));
   		
 		if ( Logger.isEnabled()){
-		  Logger.log(new LogEvent(LOGID, "Outgoing TCP stream to " + channel.socket().getRemoteSocketAddress() + " established, type = " + getFilter().getName() + ", fallback = " + (fallback_count==0?"no":"yes" )));
+		  Logger.log(new LogEvent(LOGID, "Outgoing TCP stream to " + channel.socket().getRemoteSocketAddress() + " established, type = " + getFilter().getName(false) + ", fallback = " + (fallback_count==0?"no":"yes" )));
 		}
 		
 		connectedOutbound( initial_data, listener ); 
