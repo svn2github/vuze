@@ -84,6 +84,8 @@ import com.aelitis.azureus.core.security.CryptoHandler;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
 import com.aelitis.azureus.core.security.CryptoManagerKeyChangeListener;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.core.util.bloom.BloomFilter;
+import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 import com.aelitis.azureus.plugins.net.buddy.swt.BuddyPluginView;
 
 public class 
@@ -196,6 +198,16 @@ BuddyPlugin
 			status_seq = random.nextInt();
 		}
 	}
+	
+	private static final int			UNAUTH_BLOOM_RECREATE		= 120*1000;
+	private static final int			UNAUTH_BLOOM_CHUNK			= 1000;
+	private static BloomFilter			unauth_bloom;
+	private static long					unauth_bloom_create_time;
+
+	private static final int	BLOOM_CHECK_PERIOD			= UNAUTH_BLOOM_RECREATE/2;
+	private static final int	BLOOM_CHECK_TICKS			= BLOOM_CHECK_PERIOD/TIMER_PERIOD;
+
+	
 	
 	public void
 	initialize(
@@ -602,12 +614,14 @@ BuddyPlugin
 								return( false );
 							}
 							
+							final String originator = connection.getEndpoint().getNotionalAddress().getAddress().getHostAddress();
+							
 							if ( TRACE ){
-								System.out.println( "accept" );
+								System.out.println( "accept " + originator );
 							}
 							
-							try{	
-								String reason = "Buddy: Incoming connection establishment";
+							try{
+								String reason = "Buddy: Incoming connection establishment (" + originator + ")";
 									
 								addRateLimiters( connection );
 
@@ -644,7 +658,7 @@ BuddyPlugin
 																	
 																	if ( !buddy.isAuthorised()){
 																		
-																		log( "incoming connection failed as for unauthorised buddy" );
+																		log( "Incoming connection from " + originator + " failed as for unauthorised buddy" );
 																		
 																		return( false );
 																	}
@@ -663,7 +677,14 @@ BuddyPlugin
 																// no existing authorised buddy
 															
 															if ( unauth_count < MAX_UNAUTH_BUDDIES ){
-																															
+																		
+																if ( tooManyUnauthConnections( originator )){
+																	
+																	log( "Too many recent unauthorised connections from " + originator );
+																	
+																	return( false );
+																}
+																
 																BuddyPluginBuddy buddy = addBuddy( other_key_str, false );
 																
 																buddy.incomingConnection((GenericMessageConnection)context );	
@@ -673,13 +694,13 @@ BuddyPlugin
 															}
 														}
 														
-														log( "incoming connection failed due to pk mismatch" );
+														log( "Incoming connection from " + originator + " failed due to pk mismatch" );
 	
 														return( false );
 														
 													}catch( Throwable e ){
 														
-														log( "Incomming connection failed", e );
+														log( "Incomming connection from " + originator + " failed", e );
 														
 														return( false );
 													}
@@ -692,7 +713,7 @@ BuddyPlugin
 								
 								connection.close();
 								
-								log( "Incoming connection failed", e );
+								log( "Incoming connection from " + originator + " failed", e );
 							}
 							
 							return( true );
@@ -711,6 +732,53 @@ BuddyPlugin
 	{
 		connection.addInboundRateLimiter( inbound_limiter );
 		connection.addOutboundRateLimiter( outbound_limiter );
+	}
+	
+	protected boolean
+	tooManyUnauthConnections(
+		String	originator )
+	{
+		synchronized( this ){
+	
+			if ( unauth_bloom == null ){
+				
+				unauth_bloom = BloomFilterFactory.createAddRemove4Bit( UNAUTH_BLOOM_CHUNK );
+				
+				unauth_bloom_create_time	= SystemTime.getCurrentTime();
+			}
+			
+			int	hit_count = unauth_bloom.add( originator.getBytes());
+			
+			if ( hit_count >= 8 ){
+			    		
+				Debug.out( "Too many recent unauthorised connection attempts from " + originator );
+     		
+				return( true );
+			}
+			
+			return( false );
+		}
+	}
+	
+	protected void
+	checkUnauthBloom()
+	{
+		synchronized( this ){
+		
+			if ( unauth_bloom != null ){
+				
+				long	now = SystemTime.getCurrentTime();
+				
+				if ( now < unauth_bloom_create_time ){
+					
+					unauth_bloom_create_time = now;
+					
+				}else if ( now - unauth_bloom_create_time > UNAUTH_BLOOM_RECREATE ){
+					
+					unauth_bloom = null;
+				}
+			}
+		}
 	}
 	
 	protected Map
@@ -1522,6 +1590,11 @@ BuddyPlugin
 					if ( tick_count % CHECK_YGM_TICKS == 0 ){
 
 						checkMessagePending();
+					}
+					
+					if ( tick_count % BLOOM_CHECK_TICKS == 0 ){
+						
+						checkUnauthBloom();
 					}
 					
 					if ( tick_count % SAVE_CONFIG_TICKS == 0 ){
