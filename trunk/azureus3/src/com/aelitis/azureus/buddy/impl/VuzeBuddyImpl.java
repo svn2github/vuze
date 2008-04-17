@@ -18,10 +18,14 @@
 
 package com.aelitis.azureus.buddy.impl;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.UnsupportedEncodingException;
+import java.util.*;
+
+import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
+import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
 import com.aelitis.azureus.plugins.net.buddy.*;
 import com.aelitis.azureus.util.JSONUtils;
 import com.aelitis.azureus.util.VuzeActivitiesEntry;
@@ -44,15 +48,26 @@ public class VuzeBuddyImpl
 
 	private byte[] avatar;
 
-	private BuddyPluginBuddy pluginBuddy;
+	private List pluginBuddies = new ArrayList();
+
+	private AEMonitor mon_pluginBuddies = new AEMonitor("pluginBuddies");
 
 	public VuzeBuddyImpl(String publicKey) {
 		BuddyPlugin buddyPlugin = VuzeBuddyManager.getBuddyPlugin();
 		if (buddyPlugin != null) {
-			pluginBuddy = buddyPlugin.getBuddyFromPublicKey(publicKey);
+			BuddyPluginBuddy pluginBuddy = buddyPlugin.getBuddyFromPublicKey(publicKey);
 			if (pluginBuddy == null) {
 				buddyPlugin.addBuddy(publicKey);
 				pluginBuddy = buddyPlugin.getBuddyFromPublicKey(publicKey);
+			}
+
+			if (pluginBuddy != null) {
+				mon_pluginBuddies.enter();
+				try {
+					pluginBuddies.add(pluginBuddy);
+				} finally {
+					mon_pluginBuddies.exit();
+				}
 			}
 		}
 	}
@@ -90,43 +105,103 @@ public class VuzeBuddyImpl
 	}
 
 	public boolean isOnline() {
-		if (pluginBuddy != null) {
-			return pluginBuddy.isOnline();
+		mon_pluginBuddies.enter();
+		try {
+			for (Iterator iter = pluginBuddies.iterator(); iter.hasNext();) {
+				BuddyPluginBuddy pluginBuddy = (BuddyPluginBuddy) iter.next();
+				if (pluginBuddy.isOnline()) {
+					return true;
+				}
+			}
+		} finally {
+			mon_pluginBuddies.exit();
 		}
 		return false;
 	}
 
-	public String getPublicKey() {
-		if (pluginBuddy != null) {
-			return pluginBuddy.getPublicKey();
+	// @see com.aelitis.azureus.buddy.VuzeBuddy#addPublicKey()
+	public void addPublicKey(String pk) {
+		mon_pluginBuddies.enter();
+		try {
+			if (!pluginBuddies.contains(pk)) {
+				pluginBuddies.add(pk);
+			}
+		} finally {
+			mon_pluginBuddies.exit();
 		}
-		return null;
+	}
+
+	// @see com.aelitis.azureus.buddy.VuzeBuddy#removePublicKey(java.lang.String)
+	public void removePublicKey(String pk) {
+		mon_pluginBuddies.enter();
+		try {
+			pluginBuddies.remove(pk);
+		} finally {
+			mon_pluginBuddies.exit();
+		}
+	}
+
+	public String[] getPublicKeys() {
+		mon_pluginBuddies.enter();
+		try {
+			String[] ret = new String[pluginBuddies.size()];
+			int x = 0;
+
+			for (Iterator iter = pluginBuddies.iterator(); iter.hasNext();) {
+				BuddyPluginBuddy pluginBuddy = (BuddyPluginBuddy) iter.next();
+				if (pluginBuddy != null) {
+					ret[x++] = pluginBuddy.getPublicKey();
+				}
+			}
+		} finally {
+			mon_pluginBuddies.exit();
+		}
+		return new String[0];
 	}
 
 	// @see com.aelitis.azureus.buddy.VuzeBuddy#sendActivity(com.aelitis.azureus.util.VuzeActivitiesEntry)
 	public void sendActivity(VuzeActivitiesEntry entry) {
-		if (pluginBuddy == null) {
-			return;
-		}
-
 		try {
 			Map map = new HashMap();
-			
+
 			map.put("VuzeMessageType", "ActivityEntry");
 			map.put("ActivityEntry", entry.toMap());
 
-			pluginBuddy.sendMessage(BuddyPlugin.SUBSYSTEM_AZ3, map, 10000,
-					new BuddyPluginBuddyReplyListener() {
+			mon_pluginBuddies.enter();
+			try {
+				for (Iterator iter = pluginBuddies.iterator(); iter.hasNext();) {
+					BuddyPluginBuddy pluginBuddy = (BuddyPluginBuddy) iter.next();
+					if (pluginBuddy.isOnline() && false) {
+						pluginBuddy.sendMessage(BuddyPlugin.SUBSYSTEM_AZ3, map, 10000,
+								new BuddyPluginBuddyReplyListener() {
 
-						public void sendFailed(BuddyPluginBuddy to_buddy,
-								BuddyPluginException cause) {
-							VuzeBuddyManager.log("SEND FAILED");
-						}
+									public void sendFailed(BuddyPluginBuddy to_buddy,
+											BuddyPluginException cause) {
 
-						public void replyReceived(BuddyPluginBuddy from_buddy, Map reply) {
-							VuzeBuddyManager.log("REPLY REC " + JSONUtils.encodeToJSON(reply));
+										VuzeBuddyManager.log("SEND FAILED "
+												+ to_buddy.getPublicKey());
+									}
+
+									public void replyReceived(BuddyPluginBuddy from_buddy,
+											Map reply) {
+										VuzeBuddyManager.log("REPLY REC "
+												+ JSONUtils.encodeToJSON(reply));
+									}
+								});
+					} else {
+						VuzeBuddyManager.log("NOT ONLINE: " + pluginBuddy.getPublicKey());
+						try {
+							PlatformRelayMessenger.put(new String[] {
+								pluginBuddy.getPublicKey()
+							}, JSONUtils.encodeToJSON(map).getBytes("utf-8"), 0);
+						} catch (UnsupportedEncodingException e) {
+							Debug.out(e);
 						}
-					});
+					}
+				}
+			} finally {
+				mon_pluginBuddies.exit();
+			}
 		} catch (BuddyPluginException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

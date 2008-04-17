@@ -46,7 +46,11 @@ public interface VuzeBuddy
 
 	public boolean isOnline();
 
-	public String getPublicKey();
+	public String[] getPublicKeys();
+	
+	public void addPublicKey(String pk);
+	
+	public void removePublicKey(String pk);
 	
 	public void sendActivity(VuzeActivitiesEntry entry);
 }

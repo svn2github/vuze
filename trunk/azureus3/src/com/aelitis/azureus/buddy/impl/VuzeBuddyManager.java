@@ -25,6 +25,8 @@ import org.gudy.azureus2.core3.util.*;
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddyCreator;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.security.CryptoManager;
+import com.aelitis.azureus.core.security.CryptoManagerFactory;
 import com.aelitis.azureus.plugins.net.buddy.*;
 import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.Constants;
@@ -45,33 +47,9 @@ public class VuzeBuddyManager
 
 	private static AEMonitor buddyList_mon = new AEMonitor("buddyList");
 
+	private static Map pkList = new HashMap();
+
 	private static VuzeBuddyCreator vuzeBuddyCreator;
-
-	static Comparator buddyComparePK;
-
-	static {
-		buddyComparePK = new Comparator() {
-			public int compare(Object arg0, Object arg1) {
-				try {
-					String v0 = (arg0 instanceof VuzeBuddy)
-							? ((VuzeBuddy) arg0).getPublicKey() : (String) arg0;
-					String v1 = (arg1 instanceof VuzeBuddy)
-							? ((VuzeBuddy) arg1).getPublicKey() : (String) arg1;
-					if (v0 == null) {
-						v0 = "";
-					}
-					if (v1 == null) {
-						v1 = "";
-					}
-					return v0.compareTo(v1);
-				} catch (Exception e) {
-					Debug.out(e);
-				}
-				return 0;
-			}
-
-		};
-	}
 
 	public static void init(final VuzeBuddyCreator vuzeBuddyCreator) {
 		VuzeBuddyManager.vuzeBuddyCreator = vuzeBuddyCreator;
@@ -97,10 +75,12 @@ public class VuzeBuddyManager
 
 								String pk = buddy.getPublicKey();
 
-								Collections.sort(buddyList, buddyComparePK);
-								int i = Collections.binarySearch(buddyList, pk, buddyComparePK);
-								if (i >= 0) {
-									buddyList.remove(i);
+								VuzeBuddy vuzeBuddy = (VuzeBuddy) pkList.remove(pk);
+								if (vuzeBuddy != null) {
+									vuzeBuddy.removePublicKey(pk);
+									if (vuzeBuddy.getPublicKeys().length == 0) {
+										buddyList.remove(buddy);
+									}
 								}
 							} finally {
 								buddyList_mon.exit();
@@ -113,15 +93,9 @@ public class VuzeBuddyManager
 
 								String pk = buddy.getPublicKey();
 
-								Collections.sort(buddyList, buddyComparePK);
-								int i = Collections.binarySearch(buddyList, pk, buddyComparePK);
-								if (i >= 0) {
-									try {
-										VuzeBuddy vuzeBuddy = (VuzeBuddy) buddyList.get(i);
-										vuzeBuddy.setDisplayName(buddy.getNickName());
-									} catch (Exception e) {
-										Debug.out(e);
-									}
+								VuzeBuddy vuzeBuddy = (VuzeBuddy) pkList.get(pk);
+								if (vuzeBuddy != null) {
+									vuzeBuddy.setDisplayName(buddy.getNickName());
 								}
 							} finally {
 								buddyList_mon.exit();
@@ -158,9 +132,9 @@ public class VuzeBuddyManager
 
 							try {
 								String pk = from_buddy.getPublicKey();
-								Collections.sort(buddyList, buddyComparePK);
-								int i = Collections.binarySearch(buddyList, pk, buddyComparePK);
-								if (i >= 0) {
+
+								VuzeBuddy vuzeBuddy = (VuzeBuddy) pkList.get(pk);
+								if (vuzeBuddy != null) {
 									String mt = MapUtils.getMapString(request, "VuzeMessageType",
 											"");
 									if (mt.equals("ActivityEntry")) {
@@ -214,13 +188,23 @@ public class VuzeBuddyManager
 			buddyList_mon.exit();
 		}
 	}
+	
+	public static VuzeBuddy getBuddyByPK(String pk) {
+		try {
+			buddyList_mon.enter();
+
+			return (VuzeBuddy) pkList.get(pk);
+		} finally {
+			buddyList_mon.exit();
+		}
+	}
 
 	public static void setVuzeBuddyCreatorClass(VuzeBuddyCreator vuzeBuddyCreator) {
 		VuzeBuddyManager.vuzeBuddyCreator = vuzeBuddyCreator;
 	}
 
 	public static void log(String s) {
-		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.PMsgr");
+		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.Buddy");
 		diag_logger.log(s);
 		if (Constants.DIAG_TO_STDOUT) {
 			System.out.println(Thread.currentThread().getName() + "|"
@@ -240,6 +224,25 @@ public class VuzeBuddyManager
 			buddyList.add(buddy);
 		} finally {
 			buddyList_mon.exit();
+		}
+	}
+
+	/**
+	 * Easy access to the public key
+	 * 
+	 * @return
+	 *
+	 * @since 3.0.5.3
+	 */
+	public static String getMyPublicKey() {
+		try {
+			final CryptoManager crypt_man = CryptoManagerFactory.getSingleton();
+
+			byte[] public_key = crypt_man.getECCHandler().peekPublicKey(null);
+
+			return Base32.encode(public_key);
+		} catch (Exception e) {
+			return null;
 		}
 	}
 }
