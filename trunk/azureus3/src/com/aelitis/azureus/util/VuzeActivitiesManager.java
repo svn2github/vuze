@@ -562,7 +562,7 @@ public class VuzeActivitiesManager
 				}
 
 				VuzeActivitiesEntry entry = VuzeActivitiesEntry.readFromMap((Map) value);
-				
+
 				if (VuzeActivitiesEntry.TYPEID_RATING_REMINDER.equals(entry.getTypeID())) {
 					entry.showThumb = true;
 				}
@@ -662,10 +662,12 @@ public class VuzeActivitiesManager
 
 		VuzeActivitiesEntry[] newEntriesArray = (VuzeActivitiesEntry[]) newEntries.toArray(new VuzeActivitiesEntry[newEntries.size()]);
 
-		Object[] listenersArray = listeners.toArray();
-		for (int i = 0; i < listenersArray.length; i++) {
-			VuzeActivitiesListener l = (VuzeActivitiesListener) listenersArray[i];
-			l.vuzeNewsEntriesAdded(newEntriesArray);
+		if (newEntriesArray.length > 0) {
+			Object[] listenersArray = listeners.toArray();
+			for (int i = 0; i < listenersArray.length; i++) {
+				VuzeActivitiesListener l = (VuzeActivitiesListener) listenersArray[i];
+				l.vuzeNewsEntriesAdded(newEntriesArray);
+			}
 		}
 
 		return newEntriesArray;
