@@ -32,18 +32,21 @@ import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.shells.InputShell;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
+import com.aelitis.azureus.buddy.VuzeBuddy;
+import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.ui.common.RememberedDecisionsManager;
 import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.columns.vuzeactivity.ColumnVuzeActivity;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.views.list.ListView;
-import com.aelitis.azureus.util.VuzeActivitiesEntry;
-import com.aelitis.azureus.util.VuzeActivitiesListener;
-import com.aelitis.azureus.util.VuzeActivitiesManager;
+import com.aelitis.azureus.util.*;
 
 /**
  * @author TuxPaper
@@ -118,6 +121,26 @@ public class VuzeActivitiesView
 					} else {
 						System.out.println("pull latest vuze news entries");
 						VuzeActivitiesManager.pullActivitiesNow(0);
+					}
+				} else if (e.keyCode == SWT.F12) {
+					//VuzeActivitiesEntryBuddyRequest entry = new VuzeActivitiesEntryBuddyRequest(
+					//		"ArronM", "TuxPaper");
+					//VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
+					//	entry
+					//});
+					InputShell is = new InputShell("Moo", "Message:");
+					String txt = is.open();
+					if (txt != null) {
+						VuzeActivitiesEntry entry = new VuzeActivitiesEntry(
+								SystemTime.getCurrentTime(), txt, "Test");
+						List buddies = VuzeBuddyManager.getAllVuzeBuddies();
+						for (Iterator iter = buddies.iterator(); iter.hasNext();) {
+							VuzeBuddy buddy = (VuzeBuddy) iter.next();
+							if (buddy.getDisplayName().toLowerCase().indexOf("tux") >= 0) {
+								System.out.println("sedning to " + buddy.getDisplayName());
+								buddy.sendActivity(entry);
+							}
+						}
 					}
 				}
 			}
