@@ -985,6 +985,8 @@ public class MainWindow
 		views.put("minilibrary-list", MiniLibraryList.class);
 
 		views.put("vuzeevents-list", VuzeActivitiesView.class);
+		
+		views.put("footer", Footer.class);
 
 		SWTSkinObjectListener l = new SWTSkinObjectListener() {
 			public Object eventOccured(SWTSkinObject skinObject, int eventType,
@@ -1271,6 +1273,7 @@ public class MainWindow
 		 */
 		new UserAreaUtils(skin, uiFunctions);
 
+		
 		shell.layout(true, true);
 	}
 

@@ -196,6 +196,13 @@ public class MainMenu
 								PREFIX_V3 + ".view.tabbar", "TabBar.visible", "tabbar"),
 								FOR_AZ3_ADV);
 					}
+					
+					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3
+							+ ".view.footer")) {
+						MenuFactory.setEnablementKeys(createViewMenuItem(skin, viewMenu,
+								PREFIX_V3 + ".view.footer", "Footer.visible", "footer"),
+								FOR_AZ3_ADV);
+					}
 				}
 
 				public void menuHidden(MenuEvent e) {

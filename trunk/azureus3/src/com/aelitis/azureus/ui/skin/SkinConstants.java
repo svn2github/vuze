@@ -51,4 +51,8 @@ public class SkinConstants
 	public static final String VIEWID_ACTIVITY_TAB = "tab-activities";
 
 	public static final String VIEWID_MINILIBRARY_TAB = "tab-minilibrary";
+	
+	public static final String VIEWID_FOOTER = "footer-area";
+	
+	public static final String VIEWID_BUDDIES_VIEWER = "buddies-viewer";
 }
