@@ -62,7 +62,7 @@ public class VuzeBuddyManager
 						v0 = "";
 					}
 					if (v1 == null) {
-						v1 = null;
+						v1 = "";
 					}
 					return v0.compareTo(v1);
 				} catch (Exception e) {
