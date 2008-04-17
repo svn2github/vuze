@@ -26,6 +26,7 @@ import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddyCreator;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.plugins.net.buddy.*;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin.cryptoResult;
 import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.Constants;
 
@@ -160,18 +161,26 @@ public class VuzeBuddyManager
 								String pk = from_buddy.getPublicKey();
 								Collections.sort(buddyList, buddyComparePK);
 								int i = Collections.binarySearch(buddyList, pk, buddyComparePK);
-								if (i >= 0) {
-									String mt = MapUtils.getMapString(request, "VuzeMessageType",
-											"");
-									if (mt.equals("ActivityEntry")) {
-										Map mapEntry = (Map) MapUtils.getMapObject(request,
-												"ActivityEntry", new HashMap(), Map.class);
-										VuzeActivitiesEntry entry = VuzeActivitiesManager.createEntryFromMap(mapEntry);
-										if (entry != null) {
-											VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
-												entry
-											});
-										}
+								if (i < 0) {
+									return null; // we aren't a buddy
+								}
+
+								String mt = MapUtils.getMapString(request, "VuzeMessageType",
+										"");
+								if (mt.equals("ActivityEntry")) {
+									byte[] encPayload = MapUtils.getMapByteArray(request,
+											"ActivityEntry", null);
+									if (encPayload == null) {
+										return null;
+									}
+									cryptoResult result = from_buddy.decrypt(encPayload);
+									byte[] payload = result.getPayload();
+									Map mapEntry = BDecoder.decode(payload);
+									VuzeActivitiesEntry entry = VuzeActivitiesManager.createEntryFromMap(mapEntry);
+									if (entry != null) {
+										VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
+											entry
+										});
 									}
 								}
 							} catch (Exception e) {
