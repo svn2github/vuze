@@ -37,6 +37,7 @@ import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
+import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
 import com.aelitis.azureus.ui.common.RememberedDecisionsManager;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -122,6 +123,8 @@ public class VuzeActivitiesView
 						System.out.println("pull latest vuze news entries");
 						VuzeActivitiesManager.pullActivitiesNow(0);
 					}
+				} else if (e.keyCode == SWT.F11) {
+					PlatformRelayMessenger.fetch(0);
 				} else if (e.keyCode == SWT.F12) {
 					//VuzeActivitiesEntryBuddyRequest entry = new VuzeActivitiesEntryBuddyRequest(
 					//		"ArronM", "TuxPaper");
