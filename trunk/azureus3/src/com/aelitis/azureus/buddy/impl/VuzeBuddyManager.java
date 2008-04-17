@@ -52,9 +52,16 @@ public class VuzeBuddyManager
 	static {
 		buddyComparePK = new Comparator() {
 			public int compare(Object arg0, Object arg1) {
-				VuzeBuddy v0 = (VuzeBuddy) arg0;
-				VuzeBuddy v1 = (VuzeBuddy) arg1;
-				return v0.getPublicKey().compareTo(v1.getPublicKey());
+				try {
+					String v0 = (arg0 instanceof VuzeBuddy)
+							? ((VuzeBuddy) arg0).getPublicKey() : (String) arg0;
+					String v1 = (arg1 instanceof VuzeBuddy)
+							? ((VuzeBuddy) arg1).getPublicKey() : (String) arg1;
+					return v0.compareTo(v1);
+				} catch (Exception e) {
+					Debug.out(e);
+				}
+				return 0;
 			}
 
 		};
@@ -82,9 +89,10 @@ public class VuzeBuddyManager
 							try {
 								buddyList_mon.enter();
 
+								String pk = buddy.getPublicKey();
+
 								Collections.sort(buddyList, buddyComparePK);
-								int i = Collections.binarySearch(buddyList,
-										buddy.getPublicKey(), buddyComparePK);
+								int i = Collections.binarySearch(buddyList, pk, buddyComparePK);
 								if (i >= 0) {
 									buddyList.remove(i);
 								}
@@ -94,6 +102,24 @@ public class VuzeBuddyManager
 						}
 
 						public void buddyChanged(BuddyPluginBuddy buddy) {
+							try {
+								buddyList_mon.enter();
+
+								String pk = buddy.getPublicKey();
+
+								Collections.sort(buddyList, buddyComparePK);
+								int i = Collections.binarySearch(buddyList, pk, buddyComparePK);
+								if (i >= 0) {
+									try {
+										VuzeBuddy vuzeBuddy = (VuzeBuddy) buddyList.get(i);
+										vuzeBuddy.setDisplayName(buddy.getNickName());
+									} catch (Exception e) {
+										Debug.out(e);
+									}
+								}
+							} finally {
+								buddyList_mon.exit();
+							}
 						}
 
 						public void buddyAdded(BuddyPluginBuddy buddy) {
@@ -124,22 +150,26 @@ public class VuzeBuddyManager
 								return null;
 							}
 
-							String pk = from_buddy.getPublicKey();
-							Collections.sort(buddyList, buddyComparePK);
-							int i = Collections.binarySearch(buddyList, pk, buddyComparePK);
-							if (i >= 0) {
-								String mt = MapUtils.getMapString(request, "VuzeMessageType",
-										"");
-								if (mt.equals("ActivityEntry")) {
-									Map mapEntry = (Map) MapUtils.getMapObject(request,
-											"ActivityEntry", new HashMap(), Map.class);
-									VuzeActivitiesEntry entry = VuzeActivitiesManager.createEntryFromMap(mapEntry);
-									if (entry != null) {
-										VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
-											entry
-										});
+							try {
+								String pk = from_buddy.getPublicKey();
+								Collections.sort(buddyList, buddyComparePK);
+								int i = Collections.binarySearch(buddyList, pk, buddyComparePK);
+								if (i >= 0) {
+									String mt = MapUtils.getMapString(request, "VuzeMessageType",
+											"");
+									if (mt.equals("ActivityEntry")) {
+										Map mapEntry = (Map) MapUtils.getMapObject(request,
+												"ActivityEntry", new HashMap(), Map.class);
+										VuzeActivitiesEntry entry = VuzeActivitiesManager.createEntryFromMap(mapEntry);
+										if (entry != null) {
+											VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
+												entry
+											});
+										}
 									}
 								}
+							} catch (Exception e) {
+								Debug.out(e);
 							}
 
 							return null;
