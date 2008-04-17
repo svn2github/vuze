@@ -38,6 +38,7 @@ import org.json.simple.JSONObject;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
 import com.aelitis.azureus.ui.swt.browser.listener.*;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageCompletionListener;
@@ -153,6 +154,23 @@ public class PlatformMessenger
 
 		queue_mon.enter();
 		try {
+			// add one at a time, ensure relay server messages are seperate
+			for (Iterator iter = mapQueue.keySet().iterator(); iter.hasNext();) {
+				PlatformMessage message = (PlatformMessage) iter.next();
+				Object value = mapQueue.get(message);
+
+				boolean isRelayServer = PlatformRelayMessenger.LISTENER_ID.equals(message.getListenerID());
+
+				if (isRelayServer && mapProcessing.size() > 0) {
+					break;
+				}
+
+				mapProcessing.put(message, value);
+
+				if (isRelayServer) {
+					break;
+				}
+			}
 			mapProcessing.putAll(mapQueue);
 			mapQueue.clear();
 		} finally {
@@ -202,16 +220,25 @@ public class PlatformMessenger
 		if (server == null) {
 			server = "default";
 		}
+		
+		String sURL_RPC;
+		boolean isRelayServer = PlatformRelayMessenger.LISTENER_ID.equals(server);
+		if (isRelayServer) {
+			sURL_RPC = Constants.URL_RELAY_RPC;
+		} else {
+			sURL_RPC = Constants.URL_PREFIX + Constants.URL_RPC + server;
+		}
+		
 
 		String sURL;
 		String sPostData = null;
 		if (USE_HTTP_POST) {
-			sURL = Constants.URL_PREFIX + Constants.URL_RPC + server;
+			sURL = sURL_RPC;
 			sPostData = Constants.URL_POST_PLATFORM_DATA + "&" + urlStem + "&"
 					+ Constants.URL_SUFFIX;
 			debug("POST: " + sURL + "?" + sPostData);
 		} else {
-			sURL = Constants.URL_PREFIX + Constants.URL_RPC + server
+			sURL = sURL_RPC
 					+ Constants.URL_PLATFORM_MESSAGE + "&" + urlStem + "&"
 					+ Constants.URL_SUFFIX;
 			debug("GET: " + sURL);
