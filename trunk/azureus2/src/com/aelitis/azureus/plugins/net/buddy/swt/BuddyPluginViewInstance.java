@@ -431,7 +431,10 @@ BuddyPluginViewInstance
 					item.setText(4, lm==null?"":lm);
 					
 					item.setText(5, "" + buddy.getConnectionsString());
-					item.setText(6, "" + buddy.getMessageInCount());
+					
+					String in_frag = buddy.getMessageInFragmentDetails();
+					
+					item.setText(6, "" + buddy.getMessageInCount() + (in_frag.length()==0?"":("+" + in_frag )));
 					item.setText(7, "" + buddy.getMessageOutCount());
 					item.setText(8, "" + DisplayFormatters.formatByteCountToKiBEtc(buddy.getBytesInCount()));
 					item.setText(9, "" + DisplayFormatters.formatByteCountToKiBEtc(buddy.getBytesOutCount()));

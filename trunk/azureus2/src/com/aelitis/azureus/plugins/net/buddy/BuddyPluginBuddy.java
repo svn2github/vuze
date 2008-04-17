@@ -30,7 +30,6 @@ import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.messaging.MessageException;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnection;
@@ -99,6 +98,8 @@ BuddyPluginBuddy
 	private int		message_in_count;
 	private int		message_out_bytes;
 	private int		message_in_bytes;
+	
+	private String	received_frag_details = "";
 	
 	private boolean	destroyed;
 	
@@ -387,7 +388,25 @@ BuddyPluginBuddy
 		message_in_count++;
 		message_in_bytes += size;
 		
+		received_frag_details = "";
+		
 		buddyActive();
+	}
+	
+	protected void
+	buddyMessageFragmentReceived(
+		int		num_received,
+		int		total )
+	{
+		received_frag_details = num_received + "/" + total;
+		
+		plugin.fireDetailsChanged( this );
+	}
+	
+	public String
+	getMessageInFragmentDetails()
+	{
+		return( received_frag_details );
 	}
 	
 	public int
@@ -2041,8 +2060,6 @@ BuddyPluginBuddy
 			try{
 				byte[]	content = message.toByteArray();
 				
-				buddyMessageReceived( content.length );
-							
 				Map	data_map = BDecoder.decode( content );
 				
 				if (((Long)data_map.get( "type" )).intValue() == BuddyPlugin.RT_INTERNAL_FRAGMENT ){
@@ -2097,11 +2114,19 @@ BuddyPluginBuddy
 							current_reply_frag = null;
 						}
 						
+						buddyMessageReceived( data_length );
+
 						receiver.receive( BDecoder.decode( assembly.getData()));
+						
+					}else{
+						
+						buddyMessageFragmentReceived( assembly.getChunksReceived(), assembly.getTotalChunks());
 					}
 				}else{
 				
-					receiver.receive( data_map );
+					buddyMessageReceived( content.length );
+
+					receiver.receive( data_map );					
 				}
 			}catch( Throwable e ){
 				
@@ -2160,6 +2185,18 @@ BuddyPluginBuddy
 			getID()
 			{
 				return( id );
+			}
+			
+			protected int
+			getChunksReceived()
+			{
+				return( chunks_received.size());
+			}
+			
+			protected int
+			getTotalChunks()
+			{
+				return( num_chunks );
 			}
 			
 			protected boolean
