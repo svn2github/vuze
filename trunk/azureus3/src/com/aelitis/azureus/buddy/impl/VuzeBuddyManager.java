@@ -57,6 +57,12 @@ public class VuzeBuddyManager
 							? ((VuzeBuddy) arg0).getPublicKey() : (String) arg0;
 					String v1 = (arg1 instanceof VuzeBuddy)
 							? ((VuzeBuddy) arg1).getPublicKey() : (String) arg1;
+					if (v0 == null) {
+						v0 = "";
+					}
+					if (v1 == null) {
+						v1 = null;
+					}
 					return v0.compareTo(v1);
 				} catch (Exception e) {
 					Debug.out(e);
