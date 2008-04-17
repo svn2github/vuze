@@ -18,9 +18,13 @@
 
 package com.aelitis.azureus.buddy.impl;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.aelitis.azureus.buddy.VuzeBuddy;
-import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
-import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
+import com.aelitis.azureus.plugins.net.buddy.*;
+import com.aelitis.azureus.util.JSONUtils;
+import com.aelitis.azureus.util.VuzeActivitiesEntry;
 
 /**
  * BuddyPluginBuddy plus some vuze specific stuff
@@ -97,5 +101,39 @@ public class VuzeBuddyImpl
 			return pluginBuddy.getPublicKey();
 		}
 		return null;
+	}
+
+	// @see com.aelitis.azureus.buddy.VuzeBuddy#sendActivity(com.aelitis.azureus.util.VuzeActivitiesEntry)
+	public void sendActivity(VuzeActivitiesEntry entry) {
+		if (pluginBuddy == null) {
+			return;
+		}
+		BuddyPlugin buddyPlugin = VuzeBuddyManager.getBuddyPlugin();
+		if (buddyPlugin == null) {
+			return;
+		}
+
+		try {
+			Map map = new HashMap();
+			
+			map.put("VuzeMessageType", "ActivityEntry");
+			map.put("ActivityEntry", entry.toMap());
+
+			pluginBuddy.sendMessage(BuddyPlugin.SUBSYSTEM_AZ3, map, 10000,
+					new BuddyPluginBuddyReplyListener() {
+
+						public void sendFailed(BuddyPluginBuddy to_buddy,
+								BuddyPluginException cause) {
+							VuzeBuddyManager.log("SEND FAILED");
+						}
+
+						public void replyReceived(BuddyPluginBuddy from_buddy, Map reply) {
+							VuzeBuddyManager.log("REPLY REC " + JSONUtils.encodeToJSON(reply));
+						}
+					});
+		} catch (BuddyPluginException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

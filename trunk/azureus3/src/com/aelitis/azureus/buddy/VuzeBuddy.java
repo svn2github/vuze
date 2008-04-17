@@ -18,6 +18,8 @@
 
 package com.aelitis.azureus.buddy;
 
+import com.aelitis.azureus.util.VuzeActivitiesEntry;
+
 /**
  * @author TuxPaper
  * @created Apr 14, 2008
@@ -45,4 +47,6 @@ public interface VuzeBuddy
 	public boolean isOnline();
 
 	public String getPublicKey();
+	
+	public void sendActivity(VuzeActivitiesEntry entry);
 }

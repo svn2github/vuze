@@ -26,6 +26,7 @@ import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddyCreator;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.plugins.net.buddy.*;
+import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.Constants;
 
 import org.gudy.azureus2.plugins.Plugin;
@@ -45,6 +46,19 @@ public class VuzeBuddyManager
 	private static AEMonitor buddyList_mon = new AEMonitor("buddyList");
 
 	private static VuzeBuddyCreator vuzeBuddyCreator;
+
+	static Comparator buddyComparePK;
+
+	static {
+		buddyComparePK = new Comparator() {
+			public int compare(Object arg0, Object arg1) {
+				VuzeBuddy v0 = (VuzeBuddy) arg0;
+				VuzeBuddy v1 = (VuzeBuddy) arg1;
+				return v0.getPublicKey().compareTo(v1.getPublicKey());
+			}
+
+		};
+	}
 
 	public static void init(final VuzeBuddyCreator vuzeBuddyCreator) {
 		VuzeBuddyManager.vuzeBuddyCreator = vuzeBuddyCreator;
@@ -68,18 +82,9 @@ public class VuzeBuddyManager
 							try {
 								buddyList_mon.enter();
 
-								Comparator c = new Comparator() {
-
-									public int compare(Object arg0, Object arg1) {
-										VuzeBuddy v0 = (VuzeBuddy) arg0;
-										VuzeBuddy v1 = (VuzeBuddy) arg1;
-										return v0.getPublicKey().compareTo(v1.getPublicKey());
-									}
-
-								};
-								Collections.sort(buddyList, c);
+								Collections.sort(buddyList, buddyComparePK);
 								int i = Collections.binarySearch(buddyList,
-										buddy.getPublicKey(), c);
+										buddy.getPublicKey(), buddyComparePK);
 								if (i >= 0) {
 									buddyList.remove(i);
 								}
@@ -115,6 +120,28 @@ public class VuzeBuddyManager
 
 						public Map requestReceived(BuddyPluginBuddy from_buddy,
 								int subsystem, Map request) throws BuddyPluginException {
+							if (subsystem != BuddyPlugin.SUBSYSTEM_AZ3) {
+								return null;
+							}
+
+							String pk = from_buddy.getPublicKey();
+							Collections.sort(buddyList, buddyComparePK);
+							int i = Collections.binarySearch(buddyList, pk, buddyComparePK);
+							if (i >= 0) {
+								String mt = MapUtils.getMapString(request, "VuzeMessageType",
+										"");
+								if (mt.equals("ActivityEntry")) {
+									Map mapEntry = (Map) MapUtils.getMapObject(request,
+											"ActivityEntry", new HashMap(), Map.class);
+									VuzeActivitiesEntry entry = VuzeActivitiesManager.createEntryFromMap(mapEntry);
+									if (entry != null) {
+										VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
+											entry
+										});
+									}
+								}
+							}
+
 							return null;
 						}
 
