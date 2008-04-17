@@ -317,6 +317,12 @@ SESTSConnectionImpl
 		return( max );
 	}
 	
+	public String
+	getType()
+	{
+		return( connection.getType());
+	}
+	
 	public void
 	addInboundRateLimiter(
 		RateLimiter		limiter )

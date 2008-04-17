@@ -508,6 +508,12 @@ GenericMessageConnectionIndirect
 		return( MAX_MESSAGE_SIZE );
 	}
 	
+	public String
+	getType()
+	{
+		return( "Tunnel" );
+	}
+	
 	public long
 	getLastMessageReceivedTime()
 	{

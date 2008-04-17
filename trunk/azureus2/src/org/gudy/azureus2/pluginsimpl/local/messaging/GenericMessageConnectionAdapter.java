@@ -42,6 +42,9 @@ GenericMessageConnectionAdapter
 	public int
 	getMaximumMessageSize();
 	
+	public String
+	getType();
+	
 	public void
 	connect(
 		ByteBuffer			initial_data,

@@ -1097,6 +1097,22 @@ BuddyPluginBuddy
 		}
 	}
 	
+	public String
+	getConnectionsString()
+	{
+		synchronized( this ){
+			
+			String	str = "";
+			
+			for (int i=0;i<connections.size();i++){
+				
+				str += (str.length()==0?"":",") + ((buddyConnection)connections.get(i)).getString( true );
+			}
+			
+			return( str );
+		}
+	}
+	
 	protected void
 	destroy()
 	{
@@ -1898,7 +1914,21 @@ BuddyPluginBuddy
 		protected String
 		getString()
 		{
-			return("id=" + connection_id + ",dir=" + ( outgoing?"out":"in" ));
+			return( getString( false ));
+		}
+		
+		protected String
+		getString(
+			boolean	short_form )
+		{
+			if ( short_form ){
+				
+				return( connection.getType());
+				
+			}else{
+				return("id=" + connection_id + ",dir=" + ( outgoing?"out":"in" ));
+				
+			}
 		}
 	}
 }

@@ -369,14 +369,15 @@ BuddyPluginViewInstance
 				"azbuddy.ui.table.lastseen", 
 				"azbuddy.ui.table.last_ygm", 
 				"azbuddy.ui.table.last_msg",
+				"azbuddy.ui.table.con",
 				"azbuddy.ui.table.msg_in",
 				"azbuddy.ui.table.msg_out",
 				"MyTrackerView.bytesin",
 				"MyTrackerView.bytesout" };
 
-		int[] sizes = { 250, 100, 100, 100, 200, 75, 75, 75, 75 };
+		int[] sizes = { 250, 100, 100, 100, 200, 75, 75, 75, 75, 75 };
 
-		int[] aligns = { SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER };
+		int[] aligns = { SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER };
 
 		for (int i = 0; i < headers.length; i++){
 
@@ -429,10 +430,11 @@ BuddyPluginViewInstance
 					
 					item.setText(4, lm==null?"":lm);
 					
-					item.setText(5, "" + buddy.getMessageInCount());
-					item.setText(6, "" + buddy.getMessageOutCount());
-					item.setText(7, "" + DisplayFormatters.formatByteCountToKiBEtc(buddy.getBytesInCount()));
-					item.setText(8, "" + DisplayFormatters.formatByteCountToKiBEtc(buddy.getBytesOutCount()));
+					item.setText(5, "" + buddy.getConnectionsString());
+					item.setText(6, "" + buddy.getMessageInCount());
+					item.setText(7, "" + buddy.getMessageOutCount());
+					item.setText(8, "" + DisplayFormatters.formatByteCountToKiBEtc(buddy.getBytesInCount()));
+					item.setText(9, "" + DisplayFormatters.formatByteCountToKiBEtc(buddy.getBytesOutCount()));
 
 					item.setData( buddy );
 				}

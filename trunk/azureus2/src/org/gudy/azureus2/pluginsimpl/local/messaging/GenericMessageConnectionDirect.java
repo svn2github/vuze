@@ -41,6 +41,7 @@ import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.OutgoingMessageQueue;
 import com.aelitis.azureus.core.networkmanager.ProtocolEndpoint;
+import com.aelitis.azureus.core.networkmanager.Transport;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 
 public class 
@@ -105,6 +106,25 @@ GenericMessageConnectionDirect
 	getMaximumMessageSize()
 	{
 		return( MAX_MESSAGE_SIZE );
+	}
+	
+	public String
+	getType()
+	{
+		if ( connection == null ){
+			
+			return( "" );
+		}else{
+			
+			Transport transport = connection.getTransport();
+			
+			if ( transport == null ){
+				
+				return( "" );
+			}
+			
+			return( transport.getEncryption());
+		}
 	}
 	
 	public void
@@ -239,7 +259,9 @@ GenericMessageConnectionDirect
 					public String 
 					getDescription() 
 					{
-						return( "generic connection: " + connection.getString());
+							// don't call connection.getString() here as recursuive!
+						
+						return( "generic connection: " + endpoint.getNotionalAddress());
 					}
 				});
 	}

@@ -51,6 +51,9 @@ GenericMessageConnection
 	public int
 	getMaximumMessageSize();
 	
+	public String
+	getType();
+	
 	public void
 	addInboundRateLimiter(
 		RateLimiter		limiter );

@@ -129,6 +129,19 @@ GenericMessageConnectionImpl
 		return( delegate==null?GenericMessageConnectionIndirect.MAX_MESSAGE_SIZE:delegate.getMaximumMessageSize());
 	}
 	
+	public String
+	getType()
+	{
+		if ( delegate == null ){
+			
+			return( "" );
+			
+		}else{
+	
+			return( delegate.getType());
+		}
+	}
+	
 	public void
 	addInboundRateLimiter(
 		RateLimiter		limiter )
