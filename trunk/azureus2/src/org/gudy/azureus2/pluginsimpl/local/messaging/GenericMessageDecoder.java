@@ -78,15 +78,29 @@ GenericMessageDecoder
 			
 			long	bytes_read;
 			
+			int		read_lim = (int)( max_bytes - total_read );
+			
 			ByteBuffer	payload_buffer = buffers[1];
 			
 			if ( payload_buffer == null ){
 				
+				int	rem = length_buffer.remaining();
+				int	lim	= length_buffer.limit();
+				
+				if ( rem > read_lim ){
+					
+					length_buffer.limit( length_buffer.position() + read_lim );
+				}
+				
 				bytes_read = transport.read( buffers, 0, 1 );
+				
+				length_buffer.limit( lim );
 				
 				protocol_bytes_last_read += bytes_read;
 				
 				if ( length_buffer.hasRemaining()){
+					
+					total_read += bytes_read;
 					
 					break;
 					
@@ -109,11 +123,23 @@ GenericMessageDecoder
 				}
 			}else{
 				
+				int	rem = payload_buffer.remaining();
+				int	lim	= payload_buffer.limit();
+				
+				if ( rem > read_lim ){
+					
+					payload_buffer.limit( payload_buffer.position() + read_lim );
+				}
+
 				bytes_read = transport.read( buffers, 1, 1 );
 				
+				payload_buffer.limit( lim );
+
 				data_bytes_last_read += bytes_read;
 				
 				if ( payload_buffer.hasRemaining()){
+					
+					total_read += bytes_read;
 					
 					break;
 				}
@@ -132,7 +158,7 @@ GenericMessageDecoder
 			
 			throw( new IOException( "decoder has been destroyed" ));
 		}
-		
+				
 		return((int) total_read );
 	}
 

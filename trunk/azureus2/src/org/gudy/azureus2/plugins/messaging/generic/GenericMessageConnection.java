@@ -23,6 +23,7 @@
 package org.gudy.azureus2.plugins.messaging.generic;
 
 import org.gudy.azureus2.plugins.messaging.MessageException;
+import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 
 public interface 
@@ -49,6 +50,22 @@ GenericMessageConnection
 	
 	public int
 	getMaximumMessageSize();
+	
+	public void
+	addInboundRateLimiter(
+		RateLimiter		limiter );
+	
+	public void
+	removeInboundRateLimiter(
+		RateLimiter		limiter );
+
+	public void
+	addOutboundRateLimiter(
+		RateLimiter		limiter );
+	
+	public void
+	removeOutboundRateLimiter(
+		RateLimiter		limiter );
 	
 	public void
 	addListener(

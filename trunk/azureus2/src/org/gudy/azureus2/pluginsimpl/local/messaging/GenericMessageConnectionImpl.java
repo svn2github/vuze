@@ -35,11 +35,13 @@ import org.gudy.azureus2.plugins.messaging.MessageException;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnection;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnectionListener;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageEndpoint;
+import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
 
 import com.aelitis.azureus.core.nat.NATTraversalObserver;
 import com.aelitis.azureus.core.nat.NATTraverser;
+import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 
 public class 
 GenericMessageConnectionImpl
@@ -76,7 +78,9 @@ GenericMessageConnectionImpl
 
 	private int	connect_method_count;
 	
-	
+	private List				inbound_rls;
+	private List				outbound_rls;
+
 	protected
 	GenericMessageConnectionImpl(
 		MessageManagerImpl				_message_manager,
@@ -125,6 +129,90 @@ GenericMessageConnectionImpl
 		return( delegate==null?GenericMessageConnectionIndirect.MAX_MESSAGE_SIZE:delegate.getMaximumMessageSize());
 	}
 	
+	public void
+	addInboundRateLimiter(
+		RateLimiter		limiter )
+	{
+		synchronized( this ){
+			
+			if ( delegate != null ){
+				
+				delegate.addInboundRateLimiter( limiter );
+
+			}else{
+				
+				if ( inbound_rls == null ){
+					
+					inbound_rls = new ArrayList();
+				}
+				
+				inbound_rls.add( limiter );
+			}
+		}
+	}
+	
+	public void
+	removeInboundRateLimiter(
+		RateLimiter		limiter )
+	{
+		synchronized( this ){
+			
+			if ( delegate != null ){
+				
+				delegate.removeInboundRateLimiter( limiter );
+
+			}else{
+				
+				if ( inbound_rls != null ){
+										
+					inbound_rls.remove( limiter );
+				}
+			}
+		}
+	}
+	
+	public void
+	addOutboundRateLimiter(
+		RateLimiter		limiter )
+	{
+		synchronized( this ){
+			
+			if ( delegate != null ){
+				
+				delegate.addOutboundRateLimiter( limiter );
+
+			}else{
+				
+				if ( outbound_rls == null ){
+					
+					outbound_rls = new ArrayList();
+				}
+				
+				outbound_rls.add( limiter );
+			}
+		}
+	}
+	
+	public void
+	removeOutboundRateLimiter(
+		RateLimiter		limiter )
+	{
+		synchronized( this ){
+			
+			if ( delegate != null ){
+				
+				delegate.removeOutboundRateLimiter( limiter );
+
+			}else{
+				
+				if ( outbound_rls != null ){
+										
+					outbound_rls.remove( limiter );
+				}
+			}
+		}
+	}
+	
 	public boolean
 	isIncoming()
 	{
@@ -143,6 +231,36 @@ GenericMessageConnectionImpl
 		throws MessageException
 	{
 		connect( null );
+	}
+	
+	protected void
+	setDelegate(
+		GenericMessageConnectionAdapter		_delegate )
+	{
+	    synchronized( this ){
+	    	
+			delegate 	= _delegate;
+			
+	    	if ( inbound_rls != null ){
+	    		
+	    		for (int i=0;i<inbound_rls.size();i++){
+	    			
+	    			delegate.addInboundRateLimiter((RateLimiter)inbound_rls.get(i));
+	    		}
+	    		
+	    		inbound_rls = null;
+	    	}
+	    	
+	    	if ( outbound_rls != null ){
+	    		
+	    		for (int i=0;i<outbound_rls.size();i++){
+	    			
+	    			delegate.addOutboundRateLimiter((RateLimiter)outbound_rls.get(i));
+	    		}
+	    		
+	    		inbound_rls = null;
+	    	}
+	    }
 	}
 	
 		/**
@@ -223,7 +341,7 @@ GenericMessageConnectionImpl
 					{
 						connected	= true;
 						
-						delegate = tcp_delegate;
+						setDelegate( tcp_delegate );
 						
 						if ( closed ){
 							
@@ -325,7 +443,7 @@ GenericMessageConnectionImpl
 												{
 													connected	= true;
 													
-													delegate = udp_delegate;
+													setDelegate( udp_delegate );
 													
 													if ( closed ){
 														
@@ -396,7 +514,7 @@ GenericMessageConnectionImpl
 						{
 							connected	= true;
 							
-							delegate = udp_delegate;
+							setDelegate( udp_delegate );
 							
 							if ( closed ){
 								
@@ -456,7 +574,7 @@ GenericMessageConnectionImpl
 					public void
 					connectSuccess()
 					{
-						delegate = tunnel_delegate;
+						setDelegate( tunnel_delegate );
 						
 						if ( closed ){
 							

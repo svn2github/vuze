@@ -43,6 +43,7 @@ import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.plugins.messaging.MessageException;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageEndpoint;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageHandler;
+import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 
 import com.aelitis.azureus.core.nat.NATTraverser;
@@ -525,6 +526,35 @@ GenericMessageConnectionIndirect
 	{
 		return( endpoint );
 	}
+	
+	public void
+	addInboundRateLimiter(
+		RateLimiter		limiter )
+	{
+		// no support for this here
+	}
+	
+	public void
+	removeInboundRateLimiter(
+		RateLimiter		limiter )
+	{
+		// no support for this here
+	}
+
+	public void
+	addOutboundRateLimiter(
+		RateLimiter		limiter )
+	{
+		// no support for this here
+	}
+	
+	public void
+	removeOutboundRateLimiter(
+		RateLimiter		limiter )
+	{
+		// no support for this here
+	}
+
 	
 	public void
 	connect(

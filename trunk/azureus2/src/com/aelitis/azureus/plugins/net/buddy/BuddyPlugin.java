@@ -56,10 +56,12 @@ import org.gudy.azureus2.plugins.messaging.MessageManager;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnection;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageHandler;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageRegistration;
+import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
+import org.gudy.azureus2.plugins.ui.config.IntParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 import org.gudy.azureus2.plugins.ui.config.StringParameter;
@@ -155,6 +157,29 @@ BuddyPlugin
 
 	private GenericMessageRegistration	msg_registration;
 		
+	private int	inbound_limit;
+	private int	outbound_limit;
+	
+	private RateLimiter	inbound_limiter = 
+		new RateLimiter()
+		{
+			public int 
+			getRateLimitBytesPerSecond() 
+			{
+				return( inbound_limit );
+			}
+		};
+		
+	private RateLimiter	outbound_limiter = 
+		new RateLimiter()
+		{
+			public int 
+			getRateLimitBytesPerSecond() 
+			{
+				return( outbound_limit );
+			}
+		};
+			
 	private boolean		config_dirty;
 	
 	private Random	random = new SecureRandom();
@@ -219,6 +244,21 @@ BuddyPlugin
 						Parameter	param )
 					{
 						updateNickName( nick_name_param.getValue());
+					}
+				});
+		
+		final IntParameter	speed = config.addIntParameter2( "azbuddy.downspeed", "azbuddy.downspeed", 32 );
+		
+		inbound_limit = speed.getValue()*1024;
+		
+		speed.addListener(
+				new ParameterListener()
+				{
+					public void
+					parameterChanged(
+						Parameter	param )
+					{
+						inbound_limit = speed.getValue()*1024;
 					}
 				});
 		
@@ -568,7 +608,9 @@ BuddyPlugin
 							
 							try{	
 								String reason = "Buddy: Incoming connection establishment";
-																
+									
+								addRateLimiters( connection );
+
 								connection = 
 									sec_man.getSTSConnection(
 											connection, 
@@ -661,6 +703,14 @@ BuddyPlugin
 			
 			log( "Failed to register message listener", e );
 		}
+	}
+	
+	protected void
+	addRateLimiters(
+		GenericMessageConnection	connection )
+	{
+		connection.addInboundRateLimiter( inbound_limiter );
+		connection.addOutboundRateLimiter( outbound_limiter );
 	}
 	
 	protected Map

@@ -48,6 +48,7 @@ import org.gudy.azureus2.plugins.messaging.MessageException;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnection;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnectionListener;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageEndpoint;
+import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.plugins.utils.security.SEPublicKey;
 import org.gudy.azureus2.plugins.utils.security.SEPublicKeyLocator;
@@ -314,6 +315,34 @@ SESTSConnectionImpl
 		}
 		
 		return( max );
+	}
+	
+	public void
+	addInboundRateLimiter(
+		RateLimiter		limiter )
+	{
+		connection.addInboundRateLimiter( limiter );
+	}
+	
+	public void
+	removeInboundRateLimiter(
+		RateLimiter		limiter )
+	{
+		connection.removeInboundRateLimiter( limiter );
+	}
+	
+	public void
+	addOutboundRateLimiter(
+		RateLimiter		limiter )
+	{
+		connection.addOutboundRateLimiter( limiter );
+	}
+	
+	public void
+	removeOutboundRateLimiter(
+		RateLimiter		limiter )
+	{
+		connection.removeOutboundRateLimiter( limiter );
 	}
 	
 	public void

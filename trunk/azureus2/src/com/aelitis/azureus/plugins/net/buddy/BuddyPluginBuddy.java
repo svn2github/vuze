@@ -94,6 +94,11 @@ BuddyPluginBuddy
 	
 	private Set		offline_seq_set;
 	
+	private int		message_out_count;
+	private int		message_in_count;
+	private int		message_out_bytes;
+	private int		message_in_bytes;
+	
 	private boolean	destroyed;
 	
 	protected
@@ -361,15 +366,51 @@ BuddyPluginBuddy
 	}
 	
 	protected void
-	buddyMessageSent()
+	buddyMessageSent(
+		int			size,
+		boolean		record_active )
 	{
-		buddyActive();
+		message_out_count++;
+		message_out_bytes += size;
+		
+		if ( record_active ){
+		
+			buddyActive();
+		}
 	}
 	
 	protected void
-	buddyMessageReceived()
-	{
+	buddyMessageReceived(
+		int		size )
+	{		
+		message_in_count++;
+		message_in_bytes += size;
+		
 		buddyActive();
+	}
+	
+	public int
+	getMessageInCount()
+	{
+		return( message_in_count );
+	}
+	
+	public int
+	getMessageOutCount()
+	{
+		return( message_out_count );
+	}
+	
+	public int
+	getBytesInCount()
+	{
+		return( message_in_bytes );
+	}
+	
+	public int
+	getBytesOutCount()
+	{
+		return( message_out_bytes );
 	}
 	
 	protected void
@@ -1145,7 +1186,9 @@ BuddyPluginBuddy
 		
 		try{
 			con = msg_registration.createConnection( endpoint );
-					
+				
+			plugin.addRateLimiters( con );
+			
 			String reason = "Buddy: Outgoing connection establishment";
 	
 			SESecurityManager sec_man = plugin.getSecurityManager();
@@ -1177,7 +1220,7 @@ BuddyPluginBuddy
 					},
 					reason, 
 					SESecurityManager.BLOCK_ENCRYPTION_AES );		
-					
+				
 			con.connect();
 			
 			return( con );
@@ -1613,7 +1656,7 @@ BuddyPluginBuddy
 								
 				connection.send( buffer );
 			
-				buddyMessageSent();
+				buddyMessageSent( data.length, true );
 				
 				synchronized( this ){
 					
@@ -1648,10 +1691,10 @@ BuddyPluginBuddy
 				last_active	= SystemTime.getCurrentTime();;
 			}
 			
-			buddyMessageReceived();
-			
 			try{
 				byte[]	content = data_buffer.toByteArray();
+				
+				buddyMessageReceived( content.length );
 				
 				if ( TRACE ){
 					System.out.println( dir_str + " receive: " + content.length );
@@ -1714,15 +1757,23 @@ BuddyPluginBuddy
 
 					reply_map.put( "rep", reply );
 
+					byte[]	reply_data = BEncoder.encode( reply_map );
+					
 					PooledByteBuffer	reply_buffer = 
-						plugin.getPluginInterface().getUtilities().allocatePooledByteBuffer( BEncoder.encode( reply_map ));
+						plugin.getPluginInterface().getUtilities().allocatePooledByteBuffer( reply_data );
 
 					boolean	ok = false;
 					
 					try{
 					
 						connection.send( reply_buffer );
-												
+					
+							// don't record as active here as (1) we recorded as active above when 
+							// receiving request (2) we may be replying to a 'closing' message and
+							// we don't want the reply to mark as online 
+						
+						buddyMessageSent( reply_data.length, false );
+						
 						ok = true;
 						
 					}finally{

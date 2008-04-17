@@ -26,6 +26,7 @@ import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.plugins.messaging.MessageException;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageEndpoint;
+import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 
 public interface 
@@ -54,6 +55,22 @@ GenericMessageConnectionAdapter
 		PooledByteBuffer			message )
 	
 		throws MessageException;
+	
+	public void
+	addInboundRateLimiter(
+		RateLimiter		limiter );
+	
+	public void
+	removeInboundRateLimiter(
+		RateLimiter		limiter );
+
+	public void
+	addOutboundRateLimiter(
+		RateLimiter		limiter );
+	
+	public void
+	removeOutboundRateLimiter(
+		RateLimiter		limiter );
 	
 	public void
 	close()

@@ -58,6 +58,7 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
@@ -362,11 +363,20 @@ BuddyPluginViewInstance
 		
 		buddy_table = new Table(child1, SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION | SWT.VIRTUAL);
 
-		String[] headers = { "azbuddy.ui.table.name", "azbuddy.ui.table.online",  "azbuddy.ui.table.lastseen", "azbuddy.ui.table.last_ygm", "azbuddy.ui.table.last_msg" };
+		String[] headers = { 
+				"azbuddy.ui.table.name", 
+				"azbuddy.ui.table.online",  
+				"azbuddy.ui.table.lastseen", 
+				"azbuddy.ui.table.last_ygm", 
+				"azbuddy.ui.table.last_msg",
+				"azbuddy.ui.table.msg_in",
+				"azbuddy.ui.table.msg_out",
+				"MyTrackerView.bytesin",
+				"MyTrackerView.bytesout" };
 
-		int[] sizes = { 400, 100, 100, 100, 200 };
+		int[] sizes = { 250, 100, 100, 100, 200, 75, 75, 75, 75 };
 
-		int[] aligns = { SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.LEFT };
+		int[] aligns = { SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER };
 
 		for (int i = 0; i < headers.length; i++){
 
@@ -419,6 +429,11 @@ BuddyPluginViewInstance
 					
 					item.setText(4, lm==null?"":lm);
 					
+					item.setText(5, "" + buddy.getMessageInCount());
+					item.setText(6, "" + buddy.getMessageOutCount());
+					item.setText(7, "" + DisplayFormatters.formatByteCountToKiBEtc(buddy.getBytesInCount()));
+					item.setText(8, "" + DisplayFormatters.formatByteCountToKiBEtc(buddy.getBytesOutCount()));
+
 					item.setData( buddy );
 				}
 			});
@@ -535,8 +550,7 @@ BuddyPluginViewInstance
 						
 						BuddyPluginBuddy buddy = (BuddyPluginBuddy)selection[i].getData();
 						
-						try{
-						
+						try{					
 							buddy.ping();
 							
 						}catch( Throwable e ){
@@ -662,6 +676,11 @@ BuddyPluginViewInstance
 							if ( bit.length() > 0 ){
 							
 								int	pos = bit.indexOf( ':' );
+								
+								if ( pos == -1 ){
+									
+									continue;
+								}
 								
 								String	lhs = bit.substring( 0, pos ).trim();
 								String	rhs	= bit.substring( pos+1 ).trim();
@@ -793,6 +812,11 @@ BuddyPluginViewInstance
 							if ( bit.length() > 0 ){
 							
 								int	pos = bit.indexOf( ':' );
+								
+								if ( pos == -1 ){
+									
+									continue;
+								}
 								
 								String	lhs = bit.substring( 0, pos ).trim();
 								String	rhs	= bit.substring( pos+1 ).trim();

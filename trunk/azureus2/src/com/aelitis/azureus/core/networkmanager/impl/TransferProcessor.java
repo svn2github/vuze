@@ -38,6 +38,15 @@ import com.aelitis.azureus.core.networkmanager.NetworkManager;
  *
  */
 public class TransferProcessor {
+  private static final boolean RATE_LIMIT_LAN_TOO	= false;
+  
+  static{
+	  if ( RATE_LIMIT_LAN_TOO ){
+		  
+		  System.err.println( "**** TransferProcessor: RATE_LIMIT_LAN_TOO enabled ****" );
+	  }
+  }
+  
   public static final int TYPE_UPLOAD   = 0;
   public static final int TYPE_DOWNLOAD = 1;
   
@@ -315,7 +324,7 @@ public class TransferProcessor {
           
           	// only apply group rates to non-lan local connections 
           
-          if ( !( connection.isLANLocal() && NetworkManager.isLANRateEnabled())){
+          if ( RATE_LIMIT_LAN_TOO || !( connection.isLANLocal() && NetworkManager.isLANRateEnabled())){
 	          // sync group rates
 	          
 	          try{
@@ -351,7 +360,7 @@ public class TransferProcessor {
         }
 
         public void bytesProcessed( int num_bytes_written ) {
-          if ( !( connection.isLANLocal() && NetworkManager.isLANRateEnabled())){
+          if ( RATE_LIMIT_LAN_TOO || !( connection.isLANLocal() && NetworkManager.isLANRateEnabled())){
 	          for (int i=0;i<conn_data.group_datas.length;i++){
 	        	  conn_data.group_datas[i].bucket.setBytesUsed( num_bytes_written );
 	          }

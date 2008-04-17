@@ -23,16 +23,20 @@
 package org.gudy.azureus2.pluginsimpl.local.messaging;
 
 import java.nio.ByteBuffer;
+import java.util.*;
+
 
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.plugins.messaging.MessageException;
 import org.gudy.azureus2.plugins.messaging.MessageManager;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageEndpoint;
+import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
 
 import com.aelitis.azureus.core.networkmanager.ConnectionEndpoint;
 import com.aelitis.azureus.core.networkmanager.IncomingMessageQueue;
+import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.OutgoingMessageQueue;
@@ -44,7 +48,7 @@ GenericMessageConnectionDirect
 	implements GenericMessageConnectionAdapter
 {	
 	public static final int MAX_MESSAGE_SIZE	= GenericMessageDecoder.MAX_MESSAGE_LENGTH;
-
+	
 	protected static GenericMessageConnectionDirect
 	receive(
 		GenericMessageEndpointImpl	endpoint,
@@ -68,9 +72,12 @@ GenericMessageConnectionDirect
 	private NetworkConnection			connection;
 	
 	private volatile boolean	connected;
+	private boolean				processing;
 	private volatile boolean	closed;
 	
-
+	private List				inbound_rls;
+	private List				outbound_rls;
+	
 		
 	protected 
 	GenericMessageConnectionDirect(
@@ -98,6 +105,90 @@ GenericMessageConnectionDirect
 	getMaximumMessageSize()
 	{
 		return( MAX_MESSAGE_SIZE );
+	}
+	
+	public void
+	addInboundRateLimiter(
+		RateLimiter		limiter )
+	{
+		synchronized( this ){
+			
+			if ( processing ){
+				
+				connection.addRateLimiter( limiter, false );
+
+			}else{
+				
+				if ( inbound_rls == null ){
+					
+					inbound_rls = new ArrayList();
+				}
+				
+				inbound_rls.add( limiter );
+			}
+		}
+	}
+	
+	public void
+	removeInboundRateLimiter(
+		RateLimiter		limiter )
+	{
+		synchronized( this ){
+			
+			if ( processing ){
+				
+				connection.removeRateLimiter( limiter, false );
+
+			}else{
+				
+				if ( inbound_rls != null ){
+										
+					inbound_rls.remove( limiter );
+				}
+			}
+		}
+	}
+	
+	public void
+	addOutboundRateLimiter(
+		RateLimiter		limiter )
+	{
+		synchronized( this ){
+			
+			if ( processing ){
+				
+				connection.addRateLimiter( limiter, true );
+
+			}else{
+				
+				if ( outbound_rls == null ){
+					
+					outbound_rls = new ArrayList();
+				}
+				
+				outbound_rls.add( limiter );
+			}
+		}
+	}
+	
+	public void
+	removeOutboundRateLimiter(
+		RateLimiter		limiter )
+	{
+		synchronized( this ){
+			
+			if ( processing ){
+				
+				connection.removeRateLimiter( limiter, true );
+
+			}else{
+				
+				if ( outbound_rls != null ){
+										
+					outbound_rls.remove( limiter );
+				}
+			}
+		}
 	}
 	
 		/**
@@ -357,7 +448,35 @@ GenericMessageConnectionDirect
 	  			    public void flush(){}
 	    		});
 	    
+	    
 	    connection.startMessageProcessing();
+
+	    connection.enableEnhancedMessageProcessing( true );
+	    
+	    synchronized( this ){
+	    	
+	    	if ( inbound_rls != null ){
+	    		
+	    		for (int i=0;i<inbound_rls.size();i++){
+	    			
+	    			connection.addRateLimiter((LimitedRateGroup)inbound_rls.get(i),false);
+	    		}
+	    		
+	    		inbound_rls = null;
+	    	}
+	    	
+	    	if ( outbound_rls != null ){
+	    		
+	    		for (int i=0;i<outbound_rls.size();i++){
+	    			
+	    			connection.addRateLimiter((LimitedRateGroup)outbound_rls.get(i),true);
+	    		}
+	    		
+	    		inbound_rls = null;
+	    	}
+	    	
+	    	processing	= true;
+	    }
 	}
 	
 	public void
