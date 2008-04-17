@@ -1902,6 +1902,12 @@ implements PEPeerTransport
 
 	protected void decodeBTHandshake( BTHandshake handshake ) {
 		PeerIdentityDataID  my_peer_data_id = manager.getPeerIdentityDataID();
+		
+		if(getConnectionState() == CONNECTION_FULLY_ESTABLISHED)
+		{
+			handshake.destroy();
+			closeConnectionInternally("peer sent another handshake after the intial connect");
+		}
 
 		if( !Arrays.equals( manager.getHash(), handshake.getDataHash() ) ) {
 			closeConnectionInternally( "handshake has wrong infohash" );
@@ -2223,6 +2229,12 @@ implements PEPeerTransport
   }
   
   protected void decodeAZHandshake(AZHandshake handshake) {
+	  if(getConnectionState() == CONNECTION_FULLY_ESTABLISHED)
+	  {
+		  handshake.destroy();
+		  closeConnectionInternally("peer sent another az-handshake after the intial connect");
+	  }
+	  
 		this.client_handshake = StringInterner.intern(handshake.getClient());
 		this.client_handshake_version = StringInterner.intern(handshake.getClientVersion());
 		this.client = StringInterner.intern(ClientIdentifier.identifyAZMP(this.client_peer_id, client_handshake, client_handshake_version, this.peer_id));
