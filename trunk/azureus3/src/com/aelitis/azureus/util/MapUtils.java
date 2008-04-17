@@ -47,7 +47,14 @@ public class MapUtils
 
 	public static String getMapString(Map map, String key, String def) {
 		try {
-			return (String) map.get(key);
+			Object o = map.get(key);
+			if (o instanceof String) {
+				return (String) o;
+			}
+			if (o instanceof byte[]) {
+				return new String((byte[]) o);
+			}
+			return def;
 		} catch (Exception t) {
 			return def;
 		}
