@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.Plugin;
@@ -92,6 +93,8 @@ public class
 BuddyPlugin 
 	implements Plugin
 {
+	public static final int MAX_MESSAGE_SIZE	= 4*1024*1024;
+	
 	public static final int	SUBSYSTEM_INTERNAL	= 0;
 	public static final int	SUBSYSTEM_AZ2		= 1;
 	public static final int	SUBSYSTEM_AZ3		= 2;
@@ -100,6 +103,7 @@ BuddyPlugin
 	protected static final int RT_INTERNAL_REPLY_PING		= 2;
 	protected static final int RT_INTERNAL_REQUEST_CLOSE	= 3;
 	protected static final int RT_INTERNAL_REPLY_CLOSE		= 4;
+	protected static final int RT_INTERNAL_FRAGMENT			= 5;
 	
 	public static final int RT_AZ2_REQUEST_MESSAGE		= 1;
 	public static final int RT_AZ2_REPLY_MESSAGE		= 2;
@@ -778,6 +782,18 @@ BuddyPlugin
 					unauth_bloom = null;
 				}
 			}
+		}
+	}
+	
+	protected void
+	checkMaxMessageSize(
+		int		size )
+	
+		throws BuddyPluginException
+	{
+		if ( size > MAX_MESSAGE_SIZE ){
+			
+			throw( new BuddyPluginException( "Message is too large to send, limit is " + DisplayFormatters.formatByteCountToKiBEtc( MAX_MESSAGE_SIZE )));
 		}
 	}
 	

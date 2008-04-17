@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.messaging.MessageException;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnection;
@@ -935,9 +936,16 @@ BuddyPluginBuddy
 
 		long	now = SystemTime.getCurrentTime();
 		
+		if ( now < last_time_online ){
+			
+			last_time_online = now;
+		}
+		
 		synchronized( this ){
 
 			try{
+					// do we explicitly know that this sequence number denotes an offline buddy
+				
 				if ( offline_seq_set != null ){
 					
 					if ( offline_seq_set.contains(new Long( _status_seq ))){
@@ -952,31 +960,33 @@ BuddyPluginBuddy
 				
 				boolean	seq_change = _status_seq != last_status_seq;
 				
+				boolean timed_out;
+
+					// change in sequence means we're online
+				
 				if ( seq_change ){
 					
 					last_status_seq		= _status_seq;
-					
 					last_time_online	= now;
+					
+					timed_out 			= false;
 					details_change		= true;
-				}
+					
+				}else{
+				
+					timed_out =  now - last_time_online >= BuddyPlugin.STATUS_REPUBLISH_PERIOD * 3 ;
+				}	
 				
 				if ( online ){
 					
-					if ( now < last_time_online ){
-						
-						last_time_online = now;
-						
-					}else{
-						
-						if ( now - last_time_online >= BuddyPlugin.STATUS_REPUBLISH_PERIOD * 3 ){
+					if ( timed_out ){
 							
-							online			= false;
-							details_change	= true;
-						}
+						online			= false;
+						details_change	= true;
 					}
 				}else{	
 					
-					if ( seq_change ){
+					if ( seq_change || !timed_out ){
 						
 						online			= true;
 						details_change	= true;
@@ -1485,10 +1495,10 @@ BuddyPluginBuddy
 	
 	protected class
 	buddyConnection
-		implements GenericMessageConnectionListener
+		implements fragmentHandlerReceiver
 	{
+		private fragmentHandler					fragment_handler;
 		private int								connection_id;
-		private GenericMessageConnection		connection;
 		private boolean							outgoing;
 		
 		private String							dir_str;
@@ -1505,7 +1515,8 @@ BuddyPluginBuddy
 			GenericMessageConnection		_connection,
 			boolean							_outgoing )
 		{
-			connection 	= _connection;
+			fragment_handler	= new fragmentHandler( _connection, this );
+			
 			outgoing	= _outgoing;
 			
 			synchronized( BuddyPluginBuddy.this ){
@@ -1522,7 +1533,7 @@ BuddyPluginBuddy
 				buddyConnectionEstablished();
 			}
 			
-			connection.addListener( this );
+			fragment_handler.start();
 		}
 		
 		protected boolean
@@ -1554,7 +1565,7 @@ BuddyPluginBuddy
 					
 					BuddyPluginException error = new BuddyPluginException( "Inconsistent state" );
 					
-					failed( connection, error );
+					failed( error );
 					
 					throw( error );
 					
@@ -1582,8 +1593,7 @@ BuddyPluginBuddy
 		}
 		
 		public void
-		connected(
-			GenericMessageConnection	connection )
+		connected()
 		{
 			if ( TRACE ){
 				System.out.println( dir_str + " connected" );
@@ -1661,34 +1671,20 @@ BuddyPluginBuddy
 			send_map.put( "req", request );
 			send_map.put( "ss", new Long( active_message.getSubsystem()));
 			send_map.put( "id", new Long( active_message.getID()));
-			
-			PooledByteBuffer	buffer	= null;
-			
+						
 			try{
-				byte[] data = BEncoder.encode( send_map );
-				
-				buffer = 
-					plugin.getPluginInterface().getUtilities().allocatePooledByteBuffer( data );
-			
 				logMessage( "Sending " + active_message.getString() + " to " + getString());
-								
-				connection.send( buffer );
-			
-				buddyMessageSent( data.length, true );
-				
+
+				fragment_handler.send( send_map, true, true );
+							
 				synchronized( this ){
 					
 					last_active	= SystemTime.getCurrentTime();;
 				}
-			}catch( Throwable e ){
+			}catch( BuddyPluginException e ){
 			
-				if ( buffer != null ){
-					
-					buffer.returnToPool();
-				}
-				
 				try{			
-					failed( connection, e );
+					failed( e );
 				
 				}catch( Throwable f ){
 				
@@ -1699,27 +1695,18 @@ BuddyPluginBuddy
 		
 		public void
 		receive(
-			GenericMessageConnection	connection,
-			PooledByteBuffer			data_buffer )
-		
-			throws MessageException
+			Map			data_map )
 		{
 			synchronized( this ){
 				
 				last_active	= SystemTime.getCurrentTime();;
 			}
 			
+			if ( TRACE ){
+				System.out.println( dir_str + " receive: " + data_map );
+			}
+
 			try{
-				byte[]	content = data_buffer.toByteArray();
-				
-				buddyMessageReceived( content.length );
-				
-				if ( TRACE ){
-					System.out.println( dir_str + " receive: " + content.length );
-				}
-				
-				Map	data_map = BDecoder.decode( content );
-				
 				int	type = ((Long)data_map.get("type")).intValue();
 				
 				if ( type == RT_REQUEST_DATA ){
@@ -1774,33 +1761,12 @@ BuddyPluginBuddy
 					reply_map.put( "id", data_map.get( "id" ) );
 
 					reply_map.put( "rep", reply );
+					
+						// don't record as active here as (1) we recorded as active above when 
+						// receiving request (2) we may be replying to a 'closing' message and
+						// we don't want the reply to mark as online 
 
-					byte[]	reply_data = BEncoder.encode( reply_map );
-					
-					PooledByteBuffer	reply_buffer = 
-						plugin.getPluginInterface().getUtilities().allocatePooledByteBuffer( reply_data );
-
-					boolean	ok = false;
-					
-					try{
-					
-						connection.send( reply_buffer );
-					
-							// don't record as active here as (1) we recorded as active above when 
-							// receiving request (2) we may be replying to a 'closing' message and
-							// we don't want the reply to mark as online 
-						
-						buddyMessageSent( reply_data.length, false );
-						
-						ok = true;
-						
-					}finally{
-						
-						if ( !ok ){
-							
-							reply_buffer.returnToPool();
-						}
-					}
+					fragment_handler.send( reply_map, false, false );
 					
 				}else if ( type == RT_REPLY_DATA || type == RT_REPLY_ERROR ){
 					
@@ -1848,11 +1814,7 @@ BuddyPluginBuddy
 				}
 			}catch( Throwable e ){
 				
-				failed( connection, e );
-				
-			}finally{
-				
-				data_buffer.returnToPool();
+				failed( e );	
 			}
 		}
 		
@@ -1861,12 +1823,11 @@ BuddyPluginBuddy
 		{
 			closing = true;
 			
-			failed( connection, new BuddyPluginException( "Closing" ));
+			failed( new BuddyPluginException( "Closing" ));
 		}
 		
 		public void
 		failed(
-			GenericMessageConnection	connection,
 			Throwable 					error )
 		{
 			buddyMessage bm = null;
@@ -1895,13 +1856,8 @@ BuddyPluginBuddy
 					}
 				}
 				
-				try{
-					connection.close();
-					
-				}catch( Throwable e ){
-					
-					Debug.printStackTrace( e );
-				}
+				fragment_handler.close();
+
 			}finally{
 								
 				removeConnection( this );
@@ -1925,12 +1881,328 @@ BuddyPluginBuddy
 		{
 			if ( short_form ){
 				
-				return( connection.getType());
+				return( fragment_handler.getString());
 				
 			}else{
-				return("id=" + connection_id + ",dir=" + ( outgoing?"out":"in" ));
 				
+				return("id=" + connection_id + ",dir=" + ( outgoing?"out":"in" ));
 			}
 		}
+	}
+	
+	protected class
+	fragmentHandler
+		implements GenericMessageConnectionListener
+	{
+		private GenericMessageConnection	connection;
+		private fragmentHandlerReceiver		receiver;
+		
+		private int	next_fragment_id	= 0;
+		
+		private fragmentAssembly	current_request_frag;
+		private fragmentAssembly	current_reply_frag;
+		
+		protected
+		fragmentHandler(
+			GenericMessageConnection	_connection,
+			fragmentHandlerReceiver		_receiver )
+		{
+			connection	= _connection;
+			receiver	= _receiver;	
+		}
+	
+		public void
+		start()
+		{
+			connection.addListener( this );
+		}
+		
+		public void
+		connected(
+			GenericMessageConnection	connection )
+		{
+			receiver.connected();
+		}
+		
+		public void
+		failed(
+			GenericMessageConnection	connection,
+			Throwable 					error )
+		
+			throws MessageException
+		{
+			receiver.failed( error );
+		}
+		
+		protected void
+		send(
+			Map			data_map,
+			boolean		is_request,
+			boolean		record_active )
+			
+			throws BuddyPluginException
+		{
+			try{
+				byte[] data = BEncoder.encode( data_map );
+				
+				int	data_length = data.length;
+				
+				plugin.checkMaxMessageSize( data_length );
+				
+				int	max_chunk = connection.getMaximumMessageSize() - 1024;
+								
+				if ( data_length > max_chunk ){
+					
+					int	fragment_id;
+					
+					synchronized( this ){
+						
+						fragment_id = next_fragment_id++;
+					}
+					
+					int chunk_num = 0;
+					
+					for (int i=0;i<data_length;i+=max_chunk){
+						
+						int	end = Math.min( data_length, i + max_chunk );
+						
+						if ( end > i ){
+							
+							byte[]	chunk = new byte[ end-i ];
+							
+							System.arraycopy( data, i, chunk, 0, chunk.length );
+							
+							Map	chunk_map = new HashMap();
+							
+							chunk_map.put( "type", new Long( BuddyPlugin.RT_INTERNAL_FRAGMENT ));
+							chunk_map.put( "f", new Long( fragment_id ));
+							chunk_map.put( "l", new Long( data_length ));
+							chunk_map.put( "c", new Long( max_chunk ));
+							chunk_map.put( "i", new Long( chunk_num ));
+							chunk_map.put( "q", new Long( is_request?1:0 ));
+							chunk_map.put( "d", chunk );
+							
+							byte[] chunk_data = BEncoder.encode( chunk_map );
+
+							PooledByteBuffer chunk_buffer = 
+								plugin.getPluginInterface().getUtilities().allocatePooledByteBuffer( chunk_data );
+						
+							try{									
+								connection.send( chunk_buffer );
+							
+								chunk_buffer = null;
+								
+							}finally{
+								
+								if ( chunk_buffer != null ){
+									
+									chunk_buffer.returnToPool();
+								}
+							}
+						}
+						
+						chunk_num++;
+					}
+				}else{
+					
+					PooledByteBuffer buffer = 
+						plugin.getPluginInterface().getUtilities().allocatePooledByteBuffer( data );
+				
+					try{			
+					
+						connection.send( buffer );
+					
+						buffer = null;
+						
+					}finally{
+						
+						if ( buffer != null ){
+							
+							buffer.returnToPool();
+						}
+					}
+				}
+				
+				buddyMessageSent( data.length, record_active );
+				
+			}catch( Throwable e ){
+				
+				throw( new BuddyPluginException( "Send failed", e ));
+			}
+		}
+		
+		public void
+		receive(
+			GenericMessageConnection	connection,
+			PooledByteBuffer			message )
+		
+			throws MessageException
+		{
+			try{
+				byte[]	content = message.toByteArray();
+				
+				buddyMessageReceived( content.length );
+							
+				Map	data_map = BDecoder.decode( content );
+				
+				if (((Long)data_map.get( "type" )).intValue() == BuddyPlugin.RT_INTERNAL_FRAGMENT ){
+					
+					Map	chunk_map = data_map;
+					
+					int	fragment_id = ((Long)chunk_map.get( "f" )).intValue();
+					int	data_length = ((Long)chunk_map.get( "l" )).intValue();
+					int	chunk_size 	= ((Long)chunk_map.get( "c" )).intValue();
+					int	chunk_num 	= ((Long)chunk_map.get( "i" )).intValue();
+					
+					boolean	is_request = ((Long)chunk_map.get("q")).intValue() == 1;
+					
+					byte[]	chunk_data = (byte[])chunk_map.get("d" );
+					
+					plugin.checkMaxMessageSize( data_length );
+					
+					fragmentAssembly assembly;
+					
+					if ( is_request ){
+						
+						if ( current_request_frag == null ){
+							
+							current_request_frag = new fragmentAssembly( fragment_id, data_length, chunk_size );
+						}
+						
+						assembly = current_request_frag;
+						
+					}else{
+						
+						if ( current_reply_frag == null ){
+							
+							current_reply_frag = new fragmentAssembly( fragment_id, data_length, chunk_size );
+						}
+						
+						assembly = current_reply_frag;
+					}
+					
+					if ( assembly.getID() != fragment_id ){
+							
+						throw( new BuddyPluginException( "Fragment receive error: concurrent decode not supported" ));
+					}
+					
+					if ( assembly.receive( chunk_num, chunk_data )){
+										
+						if ( is_request ){
+
+							current_request_frag = null;
+							
+						}else{
+							
+							current_reply_frag = null;
+						}
+						
+						receiver.receive( BDecoder.decode( assembly.getData()));
+					}
+				}else{
+				
+					receiver.receive( data_map );
+				}
+			}catch( Throwable e ){
+				
+				receiver.failed( e );
+				
+			}finally{
+				
+				message.returnToPool();
+			}
+		}
+		
+		protected void
+		close()
+		{
+			try{
+			
+				connection.close();
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace( e );
+			}
+		}
+		
+		protected String
+		getString()
+		{
+			return( connection.getType());
+		}
+		
+		protected class
+		fragmentAssembly
+		{
+			private int		id;
+			private byte[]	data;
+			private int		chunk_size;
+			
+			private int		num_chunks;
+			private Set		chunks_received = new HashSet();
+			
+			protected
+			fragmentAssembly(
+				int		_id,
+				int		_length,
+				int		_chunk_size )
+			{
+				id			= _id;
+				chunk_size	= _chunk_size;
+				
+				data		= new byte[_length];
+				
+				num_chunks = (_length + chunk_size - 1 )/chunk_size;
+			}
+			
+			protected int
+			getID()
+			{
+				return( id );
+			}
+			
+			protected boolean
+			receive(
+				int		chunk_num,
+				byte[]	chunk )
+			{
+				// System.out.println( "received chunk " + chunk_num + " of " + num_chunks );
+				
+				Integer	i = new Integer( chunk_num );
+				
+				if ( chunks_received.contains( i )){
+					
+					return( false );
+				}
+				
+				chunks_received.add( i );
+				
+				System.arraycopy( chunk, 0, data, chunk_num*chunk_size, chunk.length );
+				
+				return( chunks_received.size() == num_chunks );
+			}
+			
+			protected byte[]
+			getData()
+			{
+				return( data );
+			}
+		}
+	}	
+	
+	interface
+	fragmentHandlerReceiver
+	{
+		public void
+		connected();
+		
+		public void
+		receive(
+			Map			data );
+		
+		public void
+		failed(
+			Throwable	error );
 	}
 }
