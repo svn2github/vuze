@@ -71,7 +71,7 @@ public class Constants
 	public static final String URL_COMMENTS = "comment/";
 
 	public static final String URL_SHARE = "share/";
-	
+
 	public static final String URL_USER = "user/";
 
 	public static final String URL_BUDDY_ACCEPT = "buddy-accept/";
@@ -84,6 +84,10 @@ public class Constants
 
 	public static final String URL_RPC = "rpc/";
 
+	public static String URL_RELAY_RPC = "http://"
+			+ System.getProperty("relay_address", DEFAULT_ADDRESS) + ":"
+			+ System.getProperty("relay_port", DEFAULT_PORT) + "/app";
+
 	public static final String URL_POP_UP = "?popup";
 
 	public static final String URL_LOGIN = "login.start";
@@ -95,7 +99,7 @@ public class Constants
 	public static final String URL_PROFILE = "profile.start";
 
 	public static final String URL_ACCOUNT = "account.start";
-	
+
 	/**
 	 * This verifier value is only used to validate that the page we're loading is
 	 * in-fact a page from Vuze; mainly required by the LightBoxBrowserWindow
