@@ -26,6 +26,7 @@ import java.util.Locale;
 import org.gudy.azureus2.core3.util.Base32;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.crypto.VuzeCryptoManager;
 
 /**
  * 
@@ -111,8 +112,12 @@ public class Constants
 
 	public static String AZID;
 
-	public static void initialize(AzureusCore core) {
-		AZID = Base32.encode(core.getCryptoManager().getSecureID());
+	public static void 
+	initialize(
+		AzureusCore core) 
+	{
+		AZID = Base32.encode( VuzeCryptoManager.getSingleton().getPlatformAZID());
+		
 		URL_SUFFIX = "azid=" + AZID + "&azv="
 				+ org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION + "&locale="
 				+ Locale.getDefault().toString();
