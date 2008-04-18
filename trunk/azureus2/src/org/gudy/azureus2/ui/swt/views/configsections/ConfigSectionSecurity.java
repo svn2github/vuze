@@ -306,7 +306,7 @@ ConfigSectionSecurity
 		 					if ( mb.open() == SWT.OK ){
 		 					
 					        	try{
-					        		crypt_man.getECCHandler().resetKeys( null );
+					        		crypt_man.getECCHandler().resetKeys( "Manual key reset" );
 					        					        		
 					        	}catch( Throwable e ){
 					        		

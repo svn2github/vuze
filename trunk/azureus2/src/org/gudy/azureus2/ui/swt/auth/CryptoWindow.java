@@ -34,6 +34,7 @@ import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -59,6 +60,7 @@ CryptoWindow
 	getPassword(
 		final int 		handler_type, 
 		final int 		action_type,
+		final boolean	last_pw_incorrect,
 		final String 	reason ) 
 	{
 		final Display	display = SWTThread.getInstance().getDisplay();
@@ -75,7 +77,7 @@ CryptoWindow
 						public void
 						runSupport()
 						{
-							dialog[0] = new authDialog( display, handler_type, action_type, reason );
+							dialog[0] = new authDialog( display, handler_type, action_type, last_pw_incorrect, reason );
 						}
 					}, false);
 			
@@ -128,6 +130,7 @@ CryptoWindow
 			Display			display,
 			int				handler_type,
 			int				action_type,
+			boolean			last_pw_incorrect,
 			String			reason )
 		{
 			if ( display.isDisposed()){
@@ -180,6 +183,16 @@ CryptoWindow
 				reason_value.setLayoutData(gridData);
 				
 				new Label(shell,SWT.NULL);
+				
+				if ( last_pw_incorrect ){
+					
+					Label pw_wrong_label = new Label(shell,SWT.WRAP);
+					Messages.setLanguageText(pw_wrong_label, "security.crypto.badpw");
+					gridData = new GridData(GridData.FILL_BOTH);
+					gridData.horizontalSpan = 3;
+					pw_wrong_label.setLayoutData(gridData);
+					pw_wrong_label.setForeground( Colors.red );
+				}
 		 	}
 		 	
 				// password

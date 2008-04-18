@@ -172,6 +172,12 @@ CryptoHandler
 		throws CryptoManagerException;
 	
 	public void
+	resetKeys(
+		String		reason )
+	
+		throws CryptoManagerException;
+
+	public void
 	changePassword(
 		char[]		old_password,
 		char[]		new_password )

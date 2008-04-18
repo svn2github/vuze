@@ -33,7 +33,6 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 
-import org.eclipse.swt.widgets.Synchronizer;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.ByteFormatter;
@@ -275,9 +274,10 @@ CryptoManagerImpl
 	
 	protected char[]
 	getPassword(
-		int		handler,
-		int		action,
-		String	reason )
+		int				handler,
+		int				action,
+		String			reason,
+		passwordTester	tester )
 	
 		throws CryptoManagerException
 	{
@@ -310,8 +310,6 @@ CryptoManagerImpl
 			}
 		}
 		
-		System.out.println( "getPassword:" + handler + "/" + action + "/" + reason );
-
 		if ( password_handlers.size() == 0 ){
 			
 			throw( new CryptoManagerException( "No password handlers registered" ));
@@ -321,12 +319,36 @@ CryptoManagerImpl
 		
 		while( it.hasNext()){
 			
-			try{
-				CryptoManagerPasswordHandler.passwordDetails details = ((CryptoManagerPasswordHandler)it.next()).getPassword( handler, action, reason );
+			int	retry_count	= 0;
+			
+			char[]	last_pw_chars = null;
+			
+			CryptoManagerPasswordHandler provider = (CryptoManagerPasswordHandler)it.next();
+			
+			while( retry_count < 64 ){
 				
-				if ( details != null ){
+				try{
+					CryptoManagerPasswordHandler.passwordDetails details = provider.getPassword( handler, action, retry_count > 0, reason );
+					
+					if ( details == null ){
+						
+							// try next password provider
+						
+						break;
+					}
 					
 					char[]	pw_chars = details.getPassword();
+					
+					if ( last_pw_chars != null && Arrays.equals( last_pw_chars, pw_chars )){
+						
+							// no point in going through verification if same as last
+						
+						retry_count++;
+						
+						continue;
+					}
+					
+					last_pw_chars = pw_chars;
 					
 						// transform password so we can persist if needed 
 					
@@ -339,6 +361,15 @@ CryptoManagerImpl
 					sha1.update( ByteBuffer.wrap( pw_bytes ));
 					
 					String	encoded_pw = ByteFormatter.encodeString( sha1.digest());
+					
+					if ( tester != null && !tester.testPassword( encoded_pw.toCharArray())){
+					
+							// retry
+						
+						retry_count++;
+						
+						continue;
+					}
 					
 					int	persist_secs = details.getPersistForSeconds();
 					
@@ -384,10 +415,15 @@ CryptoManagerImpl
 					}
 					
 					return( encoded_pw.toCharArray());
+
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+					
+						// next provider
+					
+					break;
 				}
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace(e);
 			}
 		}
 		
@@ -446,6 +482,14 @@ CryptoManagerImpl
 		keychange_listeners.remove( listener );
 	}
 	
+	public interface
+	passwordTester
+	{
+		public boolean
+		testPassword(
+			char[]		pw );
+	}
+	
 	public static void
 	main(
 		String[]	args )
@@ -461,9 +505,10 @@ CryptoManagerImpl
 				{
 					public passwordDetails 
 					getPassword(
-							int handler_type, 
-							int action_type, 
-							String reason )
+							int 		handler_type, 
+							int 		action_type, 
+							boolean		last_pw_incorrect,
+							String 		reason )
 					{
 						return(
 								new passwordDetails()

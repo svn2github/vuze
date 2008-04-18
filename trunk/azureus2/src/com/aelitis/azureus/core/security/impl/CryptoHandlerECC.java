@@ -423,7 +423,26 @@ CryptoHandlerECC
 	
 	public synchronized void
 	resetKeys(
+		String		reason )
+	
+		throws CryptoManagerException
+	{
+		resetKeys( null, reason );
+	}
+	
+	public synchronized void
+	resetKeys(
 		char[]		password )
+	
+		throws CryptoManagerException
+	{
+		resetKeys( password, "resetting keys" );
+	}
+	
+	protected synchronized void
+	resetKeys(
+		char[]		password,
+		String		reason )
 	
 		throws CryptoManagerException
 	{
@@ -480,7 +499,7 @@ CryptoHandlerECC
 		
 		if ( use_method_private_key == null ){
 			
-			byte[]	encoded = COConfigurationManager.getByteParameter( CONFIG_PREFIX + "privatekey", null );
+			final byte[]	encoded = COConfigurationManager.getByteParameter( CONFIG_PREFIX + "privatekey", null );
 			
 			if ( encoded == null ){
 				
@@ -495,7 +514,24 @@ CryptoHandlerECC
 					password = manager.getPassword( 
 									CryptoManager.HANDLER_ECC, 
 									CryptoManagerPasswordHandler.ACTION_DECRYPT, 
-									reason );
+									reason,
+									new CryptoManagerImpl.passwordTester()
+									{
+										public boolean 
+										testPassword(
+											char[] password )
+										{
+											try{
+												manager.decryptWithPBE( encoded, password );
+												
+												return( true );
+												
+											}catch( Throwable e ){
+												
+												return( false );
+											}
+										}
+									});
 				}
 
 				boolean		ok = false;
@@ -593,7 +629,8 @@ CryptoHandlerECC
 			password = manager.getPassword( 
 							CryptoManager.HANDLER_ECC,
 							CryptoManagerPasswordHandler.ACTION_ENCRYPT,
-							reason );
+							reason,
+							null );
 		}
 		
 		KeyPair	keys = createKeys();
