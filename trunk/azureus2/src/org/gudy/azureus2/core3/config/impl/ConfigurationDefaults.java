@@ -425,7 +425,7 @@ public class ConfigurationDefaults {
     def.put( "diskmanager.friendly.hashchecking", FALSE );
     def.put( "diskmanager.hashchecking.smallestfirst", TRUE );    
     def.put( "Default Start Torrents Stopped", FALSE);
-    def.put( "Server Enable UDP", TRUE);
+    def.put( "Server Enable UDP", TRUE); // this actually means the UDP tracker client
     def.put( "diskmanager.perf.cache.enable", TRUE);
     def.put( "diskmanager.perf.cache.enable.read", FALSE);
     def.put( "diskmanager.perf.cache.enable.write", TRUE);

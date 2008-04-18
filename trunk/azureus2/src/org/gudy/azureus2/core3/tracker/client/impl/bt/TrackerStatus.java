@@ -36,6 +36,7 @@ import java.util.zip.GZIPInputStream;
 import javax.net.ssl.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.security.SESecurityManager;
@@ -72,33 +73,38 @@ public class TrackerStatus {
   private final static String SS = "Scrape.status.";
   private final static String SSErr = "Scrape.status.error.";
 
-  private final static int FAULTY_SCRAPE_RETRY_INTERVAL = 60 * 10 * 1000;
-  private final static int NOHASH_RETRY_INTERVAL = 1000 * 60 * 60 * 3; // 3 hrs
-  
-  /**
-   * When scraping a single hash, also scrape other hashes that are going to
-   * be scraped within this range.
-   */
-  private final static int GROUP_SCRAPES_MS 	= 60 * 15 * 1000;
-  private final static int GROUP_SCRAPES_LIMIT	= 20;
-
-  
-  static{
-  	PRUDPTrackerCodecs.registerCodecs();
-  }
-  
-	private byte autoUDPscrapeEvery = 1;
+  	private final static int		FAULTY_SCRAPE_RETRY_INTERVAL	= 60 * 10 * 1000;
+	private final static int		NOHASH_RETRY_INTERVAL			= 1000 * 60 * 60 * 3;							// 3 hrs
 	
-	private int scrapeCount;
-  
-  private static List	logged_invalid_urls	= new ArrayList();
-  
-  private static ThreadPool	thread_pool = new ThreadPool( "TrackerStatus", 10, true );	// queue when full rather than block
-  
-  private final URL		tracker_url;
-  private boolean		az_tracker;
-  
-  private String 	scrapeURL = null;
+	/**
+	 * When scraping a single hash, also scrape other hashes that are going to
+	 * be scraped within this range.
+	 */
+	private final static int		GROUP_SCRAPES_MS				= 60 * 15 * 1000;
+	private final static int		GROUP_SCRAPES_LIMIT				= 20;
+	
+	static
+	{
+		PRUDPTrackerCodecs.registerCodecs();
+	  	COConfigurationManager.addAndFireParameterListener("Server Enable UDP", new ParameterListener()
+		{
+			public void parameterChanged(final String parameterName) {
+				udpScrapeEnabled = COConfigurationManager.getBooleanParameter("Server Enable UDP");
+			}
+		});
+	}
+	
+	private static boolean udpScrapeEnabled = true; 
+	
+	private byte					autoUDPscrapeEvery				= 1;
+	private int						scrapeCount;
+	
+	private static List				logged_invalid_urls				= new ArrayList();
+	private static ThreadPool		thread_pool						= new ThreadPool("TrackerStatus", 10, true);	// queue when full rather than block
+	
+	private final URL				tracker_url;
+	private boolean					az_tracker;
+	private String					scrapeURL						= null;
  
   /** key = Torrent hash.  values = TRTrackerScraperResponseImpl */
   private HashMap 					hashes;
@@ -482,9 +488,9 @@ public class TrackerStatus {
 				
 		  		URL udpScrapeURL = null;
 		  		
-		  		if(protocol.equalsIgnoreCase("udp"))
+		  		if(protocol.equalsIgnoreCase("udp") && udpScrapeEnabled)
 		  			udpScrapeURL = reqUrl;
-		  		else if(protocol.equalsIgnoreCase("http") && !az_tracker && scrapeCount % autoUDPscrapeEvery == 0)
+		  		else if(protocol.equalsIgnoreCase("http") && !az_tracker && scrapeCount % autoUDPscrapeEvery == 0 && udpScrapeEnabled)
 		  			udpScrapeURL = new URL(reqUrl.toString().replaceFirst("^http", "udp"));
 		  			
 		  		

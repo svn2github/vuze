@@ -93,7 +93,8 @@ TRTrackerBTAnnouncerImpl
 	  	COConfigurationManager.addAndFireParameterListeners(
 	  		new String[] {
 	  			"Tracker Client Min Announce Interval",
-	  			"Tracker Client Numwant Limit"
+	  			"Tracker Client Numwant Limit",
+	  			"Server Enable UDP"
 	  			},
 	  		new ParameterListener()
 	  		{
@@ -101,6 +102,7 @@ TRTrackerBTAnnouncerImpl
 	  			{
 	  				userMinInterval = COConfigurationManager.getIntParameter("Tracker Client Min Announce Interval");
 	  				userMaxNumwant = COConfigurationManager.getIntParameter("Tracker Client Numwant Limit");
+	  				udpAnnounceEnabled = COConfigurationManager.getBooleanParameter("Server Enable UDP");
 	  			}	  		
 	  		});
     }
@@ -123,8 +125,9 @@ TRTrackerBTAnnouncerImpl
   
 	private long min_interval = 0;
 	private static int userMinInterval = 0;
+	private static int userMaxNumwant = 100;
+	private static boolean udpAnnounceEnabled = true;
 	
-	private static int userMaxNumwant;
   
 	private int  failure_added_time = 0;
     private long failure_time_last_updated = 0;
@@ -1087,82 +1090,60 @@ TRTrackerBTAnnouncerImpl
 		  		
 		  		boolean	udp_probe = false;
 		  		
-		  		if ( protocol.equalsIgnoreCase("udp")){
-		  			
-		  			udpAnnounceURL = reqUrl;
-		  			
-		  		}else if( 	protocol.equalsIgnoreCase("http") && 
-		  					!az_tracker && 
-		  					announceCount % autoUDPprobeEvery == 0 ){
-		  			
-		  				// if we don't know this tracker supports UDP then don't probe on
-		  				// first announce as we don't want a large delay on torrent startup
-		  			
-		  				// also if we are stopping we don't want to initiate a probe as
-		  				// we want the stop instruction to get to tracker if possible
-		  			
-		  			if (( stopped || announceCount == 0 ) && !TRTrackerUtils.isUDPProbeOK( reqUrl )){
+		  		if (protocol.equalsIgnoreCase("udp") && udpAnnounceEnabled)
+				{
+					udpAnnounceURL = reqUrl;
+				} else if (protocol.equalsIgnoreCase("http") && !az_tracker
+					&& announceCount % autoUDPprobeEvery == 0 && udpAnnounceEnabled)
+				{
+					// if we don't know this tracker supports UDP then don't probe on
+					// first announce as we don't want a large delay on torrent startup
+					// also if we are stopping we don't want to initiate a probe as
+					// we want the stop instruction to get to tracker if possible
+					if ((stopped || announceCount == 0) && !TRTrackerUtils.isUDPProbeOK(reqUrl))
+					{
+						// skip probe
+					} else
+					{
+						udpAnnounceURL = new URL(reqUrl.toString().replaceFirst("^http", "udp"));
+						udp_probe = true;
+					}
+				}
 		  				
-		  					// skip probe
-		  				
-		  			}else{
-		  				
-		  				udpAnnounceURL = new URL(reqUrl.toString().replaceFirst("^http", "udp"));
-		  			
-		  				udp_probe	= true;
-		  			}
-		  		}
-		  				
-		  		if ( udpAnnounceURL != null){
-		  			
-		  			failure_reason = announceUDP( reqUrl, message );
-		  			
-		  			if( 	( failure_reason != null || message.size() == 0 ) && 
-		  					udp_probe ){
-		  			
-		  					// automatic UDP probe failed, use HTTP again
-		  				
-		  				udpAnnounceURL = null;
-		  				
-						if ( autoUDPprobeEvery < 16 )
-							autoUDPprobeEvery <<=1;
+		  		if (udpAnnounceURL != null)
+				{
+					failure_reason = announceUDP(reqUrl, message);
+					if ((failure_reason != null || message.size() == 0) && udp_probe)
+					{
+						// automatic UDP probe failed, use HTTP again
+						udpAnnounceURL = null;
+						if (autoUDPprobeEvery < 16)
+							autoUDPprobeEvery <<= 1;
 						else // unregister in case the tracker somehow changed its capabilities
 							TRTrackerUtils.setUDPProbeResult(reqUrl, false);
+						if (Logger.isEnabled())
+							Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_INFORMATION, "redirection of http announce [" + tracker_url[0] + "] to udp failed, will retry in " + autoUDPprobeEvery + " announces"));
 						
-						if ( Logger.isEnabled()){
-							
-							Logger.log(new LogEvent(torrent,LOGID, LogEvent.LT_INFORMATION, "redirection of http announce ["+tracker_url[0]+"] to udp failed, will retry in "+autoUDPprobeEvery+" announces"));
-						}
-		  			}else if( failure_reason == null && udp_probe ){
-		  			
-		  				TRTrackerUtils.setUDPProbeResult( reqUrl, true );
-		  				
-						if (Logger.isEnabled()){
-							
-							Logger.log(new LogEvent(torrent,LOGID, LogEvent.LT_INFORMATION, "redirection of http announce ["+tracker_url[0]+"] to udp successful"));
-						}
-						
-		  				autoUDPprobeEvery = 1;
-		  			}		  				
-		  		}
+					} else if (failure_reason == null && udp_probe)
+					{
+						TRTrackerUtils.setUDPProbeResult(reqUrl, true);
+						if (Logger.isEnabled())
+							Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_INFORMATION, "redirection of http announce [" + tracker_url[0] + "] to udp successful"));
+						autoUDPprobeEvery = 1;
+					}
+				}
 		  		
 		  		announceCount++;
 		  		
-		  		if ( udpAnnounceURL == null){
-		  			
+		  		if ( udpAnnounceURL == null)
 		  			failure_reason = announceHTTP( tracker_url, reqUrl, message );
-		  			
-		  		}
-					// if we've got some kind of response then return it
-				
-				if ( message.size() > 0 ){
-			
+
+		  		// if we've got some kind of response then return it
+				if ( message.size() > 0 )
 					return( message.toByteArray());
-					
-				}
+
 					
 				if ( failure_reason == null ){
-				
 					failure_reason = "No data received from tracker";
 				}
 				
