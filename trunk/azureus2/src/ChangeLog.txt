@@ -14,6 +14,7 @@ CHANGE: Core  | Quicker to change a batch of files to "Do Not Download" in files
 CHANGE: Core  | Added option to allow the removal of files linked outside the save directory when removing data [amc1]
 CHANGE: UI    | Provide column menu option to disable fast renaming in files view [The 8472]
 
+BUGFIX: Core  | Made change so that plugins could not inadvertently turn off Azureus extension protocol [amc1]
 
 
 2008.04.10 | Azureus Vuze 3.0.5.2
