@@ -92,4 +92,13 @@ public class MapUtils
 			return def;
 		}
 	}
+
+	public static List getMapList(Map map, String key, List def) {
+		try {
+			return (List) map.get(key);
+		} catch (Exception t) {
+			return def;
+		}
+	}
+
 }
