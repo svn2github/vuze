@@ -18,13 +18,15 @@
 
 package com.aelitis.azureus.core.messenger.config;
 
-import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
+import com.aelitis.azureus.core.crypto.VuzeCryptoException;
+import com.aelitis.azureus.core.crypto.VuzeCryptoManager;
 import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
@@ -32,7 +34,7 @@ import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginException;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin.cryptoResult;
-import com.aelitis.azureus.util.*;
+import com.aelitis.azureus.util.MapUtils;
 
 /**
  * @author TuxPaper
@@ -52,7 +54,13 @@ public class PlatformRelayMessenger
 	public static List listeners = new ArrayList();
 
 	public static final void put(String[] pks, byte[] payload, long delay) {
-		String myPK = VuzeBuddyManager.getMyPublicKey();
+		String myPK;
+		try {
+			myPK = VuzeCryptoManager.getSingleton().getPublicKey(null);
+		} catch (VuzeCryptoException e) {
+			Debug.out(e);
+			return;
+		}
 
 		BuddyPlugin buddyPlugin = VuzeBuddyManager.getBuddyPlugin();
 		if (buddyPlugin == null) {
@@ -112,7 +120,13 @@ public class PlatformRelayMessenger
 	}
 
 	public static final void fetch(long delay) {
-		String myPK = VuzeBuddyManager.getMyPublicKey();
+		String myPK;
+		try {
+			myPK = VuzeCryptoManager.getSingleton().getPublicKey(null);
+		} catch (VuzeCryptoException e) {
+			Debug.out(e);
+			return;
+		}
 
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
 				OP_FETCH, new Object[] {
@@ -157,29 +171,6 @@ public class PlatformRelayMessenger
 
 							PlatformMessenger.debug("Relay: got message from " + sender);
 
-							// hack.. should be in listener
-							try {
-								String s = new String(payload, "utf-8");
-
-								Map mapPayLoad = JSONUtils.decodeJSON(s);
-
-								String mt = MapUtils.getMapString(mapPayLoad,
-										"VuzeMessageType", "");
-								if (mt.equals("ActivityEntry")) {
-									Map mapEntry = (Map) MapUtils.getMapObject(mapPayLoad,
-											"ActivityEntry", new HashMap(), Map.class);
-									VuzeActivitiesEntry entry = VuzeActivitiesManager.createEntryFromMap(mapEntry);
-									if (entry != null) {
-										VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
-											entry
-										});
-									}
-								}
-							} catch (UnsupportedEncodingException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-
 							for (Iterator iter2 = listeners.iterator(); iter2.hasNext();) {
 								VuzeRelayListener l = (VuzeRelayListener) iter2.next();
 								l.newRelayServerPayLoad(buddy, payload);
@@ -187,11 +178,11 @@ public class PlatformRelayMessenger
 
 							ack(ack_id, decrypt.getChallenge());
 						} catch (BuddyPluginException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+							// TODO send ack_fail here
+							PlatformMessenger.debug("Relay: TODO send ack_fail here");
 						}
 					}
-					// "date"
+					// "date" also sent, but not needed (?)
 				}
 			}
 		};
@@ -203,7 +194,13 @@ public class PlatformRelayMessenger
 	}
 
 	private static final void ack(long id, byte[] ack) {
-		String myPK = VuzeBuddyManager.getMyPublicKey();
+		String myPK;
+		try {
+			myPK = VuzeCryptoManager.getSingleton().getPublicKey(null);
+		} catch (VuzeCryptoException e) {
+			Debug.out(e);
+			return;
+		}
 
 		Map mapACK = new HashMap();
 		mapACK.put("id", new Long(id));
