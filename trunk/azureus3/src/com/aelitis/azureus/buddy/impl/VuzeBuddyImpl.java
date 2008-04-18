@@ -57,7 +57,7 @@ public class VuzeBuddyImpl
 		if (buddyPlugin != null) {
 			BuddyPluginBuddy pluginBuddy = buddyPlugin.getBuddyFromPublicKey(publicKey);
 			if (pluginBuddy == null) {
-				buddyPlugin.addBuddy(publicKey);
+				buddyPlugin.addBuddy(publicKey, BuddyPlugin.SUBSYSTEM_AZ3);
 				pluginBuddy = buddyPlugin.getBuddyFromPublicKey(publicKey);
 			}
 
