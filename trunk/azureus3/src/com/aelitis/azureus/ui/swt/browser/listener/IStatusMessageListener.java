@@ -11,6 +11,8 @@ public interface IStatusMessageListener
 
 	public static final String OP_LOGIN_UPDATE_PARAM_USER_ID = "user-id";
 
+	public static final String OP_PK = "pk";
+	
 	public void handleLoginStatus();
 	
 	public void handleLoginUpdate();
@@ -18,5 +20,7 @@ public interface IStatusMessageListener
 	public String getUserName();
 
 	public String getUserID();
+	
+	public String getPK();
 
 }

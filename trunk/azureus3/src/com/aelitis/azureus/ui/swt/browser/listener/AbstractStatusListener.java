@@ -34,6 +34,7 @@ public abstract class AbstractStatusListener
 		} else if (true == OP_LOGIN_STATUS.equals(opID)) {
 			handleLoginStatus();
 		}
+
 	}
 
 	public String getUserName() {
@@ -49,6 +50,14 @@ public abstract class AbstractStatusListener
 		if (true == decodedMap.containsKey(OP_LOGIN_UPDATE_PARAM_USER_ID)) {
 			return MapUtils.getMapString(decodedMap, OP_LOGIN_UPDATE_PARAM_USER_ID,
 					"");
+		}
+
+		return null;
+	}
+
+	public String getPK() {
+		if (true == decodedMap.containsKey(OP_PK)) {
+			return MapUtils.getMapString(decodedMap, OP_PK, "");
 		}
 
 		return null;
