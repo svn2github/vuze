@@ -26,6 +26,7 @@ import org.gudy.azureus2.core3.util.*;
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddyCreator;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
 import com.aelitis.azureus.core.messenger.config.VuzeRelayListener;
 import com.aelitis.azureus.plugins.net.buddy.*;
@@ -166,11 +167,15 @@ public class VuzeBuddyManager
 						public void pendingMessages(BuddyPluginBuddy[] from_buddies) {
 							for (int i = 0; i < from_buddies.length; i++) {
 								BuddyPluginBuddy pluginBuddy = from_buddies[i];
+
 								
 								String pk = pluginBuddy.getPublicKey();
 								VuzeBuddy vuzeBuddy = getBuddyByPK(pk);
 								if (vuzeBuddy != null) {
+									PlatformMessenger.debug("Relay: YGM from " + pk);
 									PlatformRelayMessenger.fetch(0);
+								} else {
+									PlatformMessenger.debug("Relay: YGM from non vuzer " + pk);
 								}
 							}
 						}
@@ -312,12 +317,8 @@ public class VuzeBuddyManager
 			buddyList_mon.enter();
 
 			if (!buddyList.contains(buddy)) {
+				log("Add new buddy to Manager");
 				buddyList.add(buddy);
-			}
-			
-			String[] publicKeys = buddy.getPublicKeys();
-			for (int i = 0; i < publicKeys.length; i++) {
-				pkList.put(publicKeys[i], buddy);
 			}
 
 		} finally {
@@ -429,6 +430,24 @@ public class VuzeBuddyManager
 				}
 			}
 			
+		} finally {
+			buddyList_mon.exit();
+		}
+	}
+
+	/**
+	 * @param pk
+	 * @param vuzeBuddyImpl
+	 *
+	 * @since 3.0.5.3
+	 */
+	public static void linkPKtoBuddy(String pk, VuzeBuddy buddy) {
+		try {
+			buddyList_mon.enter();
+
+			log("add PK " + pk);
+			pkList.put(pk, buddy);
+
 		} finally {
 			buddyList_mon.exit();
 		}

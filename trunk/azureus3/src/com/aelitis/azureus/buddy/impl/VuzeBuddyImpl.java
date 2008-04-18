@@ -135,10 +135,12 @@ public class VuzeBuddyImpl
 					pluginBuddies.add(pluginBuddy);
 				}
 			}
-
+			
 		} finally {
 			mon_pluginBuddies.exit();
 		}
+
+		VuzeBuddyManager.linkPKtoBuddy(pk, this);
 	}
 
 	// @see com.aelitis.azureus.buddy.VuzeBuddy#removePublicKey(java.lang.String)
