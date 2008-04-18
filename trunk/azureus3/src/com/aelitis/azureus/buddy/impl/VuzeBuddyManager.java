@@ -18,6 +18,7 @@
 
 package com.aelitis.azureus.buddy.impl;
 
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
@@ -25,8 +26,8 @@ import org.gudy.azureus2.core3.util.*;
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddyCreator;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.security.CryptoManager;
-import com.aelitis.azureus.core.security.CryptoManagerFactory;
+import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
+import com.aelitis.azureus.core.messenger.config.VuzeRelayListener;
 import com.aelitis.azureus.plugins.net.buddy.*;
 import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.Constants;
@@ -41,6 +42,8 @@ import org.gudy.azureus2.plugins.PluginInterface;
  */
 public class VuzeBuddyManager
 {
+	protected static final boolean ALLOW_ONLY_AZ3 = false;
+
 	private static BuddyPlugin buddyPlugin = null;
 
 	private static List buddyList = new ArrayList();
@@ -70,6 +73,9 @@ public class VuzeBuddyManager
 						}
 
 						public void buddyRemoved(BuddyPluginBuddy buddy) {
+							if (!canHandleBuddy(buddy)) {
+								return;
+							}
 							try {
 								buddyList_mon.enter();
 
@@ -88,6 +94,10 @@ public class VuzeBuddyManager
 						}
 
 						public void buddyChanged(BuddyPluginBuddy buddy) {
+							if (!canHandleBuddy(buddy)) {
+								return;
+							}
+
 							try {
 								buddyList_mon.enter();
 
@@ -103,6 +113,10 @@ public class VuzeBuddyManager
 						}
 
 						public void buddyAdded(BuddyPluginBuddy buddy) {
+							if (!canHandleBuddy(buddy)) {
+								return;
+							}
+
 							VuzeBuddy newBuddy;
 							if (vuzeBuddyCreator == null) {
 								newBuddy = new VuzeBuddyImpl(buddy.getPublicKey());
@@ -111,13 +125,7 @@ public class VuzeBuddyManager
 							}
 							if (newBuddy != null) {
 								newBuddy.setDisplayName(buddy.getName());
-								try {
-									buddyList_mon.enter();
-
-									buddyList.add(newBuddy);
-								} finally {
-									buddyList_mon.exit();
-								}
+								addBuddy(newBuddy);
 							}
 						}
 					};
@@ -156,6 +164,15 @@ public class VuzeBuddyManager
 						}
 
 						public void pendingMessages(BuddyPluginBuddy[] from_buddies) {
+							for (int i = 0; i < from_buddies.length; i++) {
+								BuddyPluginBuddy pluginBuddy = from_buddies[i];
+								
+								String pk = pluginBuddy.getPublicKey();
+								VuzeBuddy vuzeBuddy = getBuddyByPK(pk);
+								if (vuzeBuddy != null) {
+									PlatformRelayMessenger.fetch(0);
+								}
+							}
 						}
 
 					};
@@ -166,13 +183,62 @@ public class VuzeBuddyManager
 					List buddies = buddyPlugin.getBuddies();
 					for (int i = 0; i < buddies.size(); i++) {
 						BuddyPluginBuddy buddy = (BuddyPluginBuddy) buddies.get(i);
-						listener.buddyAdded(buddy);
+						if (canHandleBuddy(buddy)) {
+							listener.buddyAdded(buddy);
+						}
 					}
 				}
 			}
+
+			VuzeRelayListener vuzeRelayListener = new VuzeRelayListener() {
+				public void newRelayServerPayLoad(VuzeBuddy sender, byte[] payload) {
+					try {
+						String s = new String(payload, "utf-8");
+						Map mapPayLoad = JSONUtils.decodeJSON(s);
+
+						String mt = MapUtils.getMapString(mapPayLoad, "VuzeMessageType", "");
+
+						if (mt.equals("ActivityEntry")) {
+							Map mapEntry = (Map) MapUtils.getMapObject(mapPayLoad,
+									"ActivityEntry", new HashMap(), Map.class);
+							VuzeActivitiesEntry entry = VuzeActivitiesManager.createEntryFromMap(mapEntry);
+							if (entry != null) {
+								VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
+									entry
+								});
+							}
+						} else if (mt.equals("BuddySync")) {
+							// TODO buddy sync
+						}
+					} catch (UnsupportedEncodingException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			};
+
+			PlatformRelayMessenger.addRelayServerListener(vuzeRelayListener);
 		} catch (Throwable t) {
 			Debug.out(t);
 		}
+	}
+
+	/**
+	 * @param buddy
+	 * @return
+	 *
+	 * @since 3.0.5.3
+	 */
+	protected static boolean canHandleBuddy(BuddyPluginBuddy buddy) {
+		if (buddy == null) {
+			return false;
+		}
+		if (ALLOW_ONLY_AZ3) {
+			int subsystem = buddy.getSubsystem();
+			return subsystem == BuddyPlugin.SUBSYSTEM_AZ3;
+		}
+		
+		return true;
 	}
 
 	public static BuddyPlugin getBuddyPlugin() {
@@ -188,7 +254,7 @@ public class VuzeBuddyManager
 			buddyList_mon.exit();
 		}
 	}
-	
+
 	public static VuzeBuddy getBuddyByPK(String pk) {
 		try {
 			buddyList_mon.enter();
@@ -197,6 +263,30 @@ public class VuzeBuddyManager
 		} finally {
 			buddyList_mon.exit();
 		}
+	}
+
+	public static VuzeBuddy getBuddyByLoginID(String loginID) {
+		if (loginID == null) {
+			return null;
+		}
+		loginID = loginID.toLowerCase();
+		
+		try {
+			buddyList_mon.enter();
+
+			for (Iterator iter = buddyList.iterator(); iter.hasNext();) {
+				VuzeBuddy buddy = (VuzeBuddy) iter.next();
+				
+				String loginID2 = buddy.getLoginID();
+				
+				if (loginID2 != null && loginID.equals(loginID2.toLowerCase())) {
+					return buddy;
+				}
+			}
+		} finally {
+			buddyList_mon.exit();
+		}
+		return null;
 	}
 
 	public static void setVuzeBuddyCreatorClass(VuzeBuddyCreator vuzeBuddyCreator) {
@@ -221,28 +311,126 @@ public class VuzeBuddyManager
 		try {
 			buddyList_mon.enter();
 
-			buddyList.add(buddy);
+			if (!buddyList.contains(buddy)) {
+				buddyList.add(buddy);
+			}
+			
+			String[] publicKeys = buddy.getPublicKeys();
+			for (int i = 0; i < publicKeys.length; i++) {
+				pkList.put(publicKeys[i], buddy);
+			}
+
+		} finally {
+			buddyList_mon.exit();
+		}
+	}
+
+	public static VuzeBuddy createNewBuddy(String pk) {
+		if (buddyPlugin == null) {
+			return null;
+		}
+		VuzeBuddy newBuddy;
+		if (vuzeBuddyCreator == null) {
+			newBuddy = new VuzeBuddyImpl(pk);
+		} else {
+			newBuddy = vuzeBuddyCreator.createBuddy(pk);
+		}
+		
+		if (newBuddy == null) {
+			return null;
+		}
+		
+		BuddyPluginBuddy pluginBuddy = buddyPlugin.getBuddyFromPublicKey(pk);
+		if (pluginBuddy == null) {
+			pluginBuddy = buddyPlugin.addBuddy(pk, BuddyPlugin.SUBSYSTEM_AZ3);
+		} else {
+			pluginBuddy.setSubsystem(BuddyPlugin.SUBSYSTEM_AZ3);
+		}
+		
+		addBuddy(newBuddy);
+		
+		return newBuddy;
+	}
+
+	/**
+	 * @param mapNewBuddy
+	 * @return 
+	 *
+	 * @since 3.0.5.3
+	 */
+	public static VuzeBuddy createNewBuddy(Map mapNewBuddy) {
+		if (buddyPlugin == null) {
+			return null;
+		}
+		VuzeBuddy newBuddy;
+		if (vuzeBuddyCreator == null) {
+			newBuddy = new VuzeBuddyImpl();
+		} else {
+			newBuddy = vuzeBuddyCreator.createBuddy();
+		}
+		
+		if (newBuddy == null) {
+			return null;
+		}
+		
+		newBuddy.loadFromMap(mapNewBuddy);
+		
+		String[] publicKeys = newBuddy.getPublicKeys();
+		for (int i = 0; i < publicKeys.length; i++) {
+			String pk = publicKeys[i];
+
+			BuddyPluginBuddy pluginBuddy = buddyPlugin.getBuddyFromPublicKey(pk);
+			if (pluginBuddy == null) {
+				pluginBuddy = buddyPlugin.addBuddy(pk, BuddyPlugin.SUBSYSTEM_AZ3);
+			} else {
+				pluginBuddy.setSubsystem(BuddyPlugin.SUBSYSTEM_AZ3);
+			}
+		}
+
+		addBuddy(newBuddy);
+		
+		return newBuddy;
+	}
+
+	/**
+	 * @param loginID
+	 *
+	 * @since 3.0.5.3
+	 */
+	public static void removeBuddy(VuzeBuddy buddy) {
+		if (buddy == null) {
+			return;
+		}
+
+		try {
+			buddyList_mon.enter();
+
+			buddyList.remove(buddy);
+			
 		} finally {
 			buddyList_mon.exit();
 		}
 	}
 
 	/**
-	 * Easy access to the public key
-	 * 
-	 * @return
+	 * @param updateTime
 	 *
 	 * @since 3.0.5.3
 	 */
-	public static String getMyPublicKey() {
+	public static void removeBuddiesOlderThan(long updateTime) {
 		try {
-			final CryptoManager crypt_man = CryptoManagerFactory.getSingleton();
+			buddyList_mon.enter();
 
-			byte[] public_key = crypt_man.getECCHandler().peekPublicKey(null);
-
-			return Base32.encode(public_key);
-		} catch (Exception e) {
-			return null;
+			for (Iterator iter = buddyList.iterator(); iter.hasNext();) {
+				VuzeBuddy buddy = (VuzeBuddy) iter.next();
+				
+				if (buddy.getLastUpdated() < updateTime) {
+					iter.remove();
+				}
+			}
+			
+		} finally {
+			buddyList_mon.exit();
 		}
 	}
 }

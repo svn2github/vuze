@@ -18,6 +18,8 @@
 
 package com.aelitis.azureus.buddy;
 
+import java.util.Map;
+
 import com.aelitis.azureus.util.VuzeActivitiesEntry;
 
 /**
@@ -53,4 +55,6 @@ public interface VuzeBuddy
 	public void removePublicKey(String pk);
 	
 	public void sendActivity(VuzeActivitiesEntry entry);
+
+	void loadFromMap(Map mapNewBuddy);
 }

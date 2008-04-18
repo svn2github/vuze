@@ -54,6 +54,9 @@ public class VuzeBuddySWTImpl
 		setAvatarImage(ImageRepository.getImage("azureus128"));
 	}
 
+	public VuzeBuddySWTImpl() {
+	}
+
 	public void setAvatar(byte[] avatar) {
 		super.setAvatar(avatar);
 

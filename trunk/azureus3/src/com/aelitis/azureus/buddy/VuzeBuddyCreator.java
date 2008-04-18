@@ -25,5 +25,17 @@ package com.aelitis.azureus.buddy;
  */
 public interface VuzeBuddyCreator
 {
+	/**
+	 * @return
+	 *
+	 * @since 3.0.5.3
+	 */
 	public VuzeBuddy createBuddy(String publicKey);
+
+	/**
+	 * @return
+	 *
+	 * @since 3.0.5.3
+	 */
+	public VuzeBuddy createBuddy();
 }

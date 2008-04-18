@@ -162,6 +162,11 @@ public class MainWindow
 				VuzeBuddyManager.log("created buddy: " + publicKey);
 				return new VuzeBuddySWTImpl(publicKey);
 			}
+
+			public VuzeBuddy createBuddy() {
+				VuzeBuddyManager.log("created buddy");
+				return new VuzeBuddySWTImpl();
+			}
 		});
 		//VuzeBuddy randomBuddy = VuzeBuddyUtils.createRandomBuddy();
 		//List allVuzeBuddies = VuzeBuddyManager.getAllVuzeBuddies();

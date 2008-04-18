@@ -28,6 +28,7 @@ import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
 import com.aelitis.azureus.plugins.net.buddy.*;
 import com.aelitis.azureus.util.JSONUtils;
+import com.aelitis.azureus.util.MapUtils;
 import com.aelitis.azureus.util.VuzeActivitiesEntry;
 
 /**
@@ -53,23 +54,23 @@ public class VuzeBuddyImpl
 	private AEMonitor mon_pluginBuddies = new AEMonitor("pluginBuddies");
 
 	public VuzeBuddyImpl(String publicKey) {
-		BuddyPlugin buddyPlugin = VuzeBuddyManager.getBuddyPlugin();
-		if (buddyPlugin != null) {
-			BuddyPluginBuddy pluginBuddy = buddyPlugin.getBuddyFromPublicKey(publicKey);
-			if (pluginBuddy == null) {
-				buddyPlugin.addBuddy(publicKey, BuddyPlugin.SUBSYSTEM_AZ3);
-				pluginBuddy = buddyPlugin.getBuddyFromPublicKey(publicKey);
-			}
+		addPublicKey(publicKey);
+	}
 
-			if (pluginBuddy != null) {
-				mon_pluginBuddies.enter();
-				try {
-					pluginBuddies.add(pluginBuddy);
-				} finally {
-					mon_pluginBuddies.exit();
-				}
-			}
+	public VuzeBuddyImpl() {
+	}
+
+	public void loadFromMap(Map mapNewBuddy) {
+		List pkList = MapUtils.getMapList(mapNewBuddy, "pks",
+				Collections.EMPTY_LIST);
+		for (Iterator iter = pkList.iterator(); iter.hasNext();) {
+			String pk = (String) iter.next();
+			addPublicKey(pk);
 		}
+		setDisplayName(MapUtils.getMapString(mapNewBuddy, "display-name", ""
+				+ mapNewBuddy.hashCode()));
+		setLoginID(MapUtils.getMapString(mapNewBuddy, "login-id", ""
+				+ mapNewBuddy.hashCode()));
 	}
 
 	public String getDisplayName() {
@@ -123,9 +124,18 @@ public class VuzeBuddyImpl
 	public void addPublicKey(String pk) {
 		mon_pluginBuddies.enter();
 		try {
-			if (!pluginBuddies.contains(pk)) {
-				pluginBuddies.add(pk);
+			BuddyPlugin buddyPlugin = VuzeBuddyManager.getBuddyPlugin();
+			if (buddyPlugin != null) {
+				BuddyPluginBuddy pluginBuddy = buddyPlugin.getBuddyFromPublicKey(pk);
+				if (pluginBuddy == null) {
+					pluginBuddy = buddyPlugin.addBuddy(pk, BuddyPlugin.SUBSYSTEM_AZ3);
+				}
+
+				if (pluginBuddy != null && !pluginBuddies.contains(pluginBuddy)) {
+					pluginBuddies.add(pluginBuddy);
+				}
 			}
+
 		} finally {
 			mon_pluginBuddies.exit();
 		}
@@ -135,7 +145,14 @@ public class VuzeBuddyImpl
 	public void removePublicKey(String pk) {
 		mon_pluginBuddies.enter();
 		try {
-			pluginBuddies.remove(pk);
+			BuddyPlugin buddyPlugin = VuzeBuddyManager.getBuddyPlugin();
+			if (buddyPlugin != null) {
+				BuddyPluginBuddy pluginBuddy = buddyPlugin.getBuddyFromPublicKey(pk);
+				if (pluginBuddy == null) {
+					pluginBuddies.remove(pluginBuddy);
+				}
+				// buddyPlugin.removeBuddy(pk, BuddyPlugin.SUBSYSTEM_AZ3);
+			}
 		} finally {
 			mon_pluginBuddies.exit();
 		}
@@ -194,6 +211,7 @@ public class VuzeBuddyImpl
 							PlatformRelayMessenger.put(new String[] {
 								pluginBuddy.getPublicKey()
 							}, JSONUtils.encodeToJSON(map).getBytes("utf-8"), 0);
+							pluginBuddy.setMessagePending();
 						} catch (UnsupportedEncodingException e) {
 							Debug.out(e);
 						}
