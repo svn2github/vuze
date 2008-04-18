@@ -59,6 +59,7 @@ BuddyPluginBuddy
 
 	
 	private BuddyPlugin		plugin;
+	private int				subsystem;
 	private boolean			authorised;
 	private String			public_key;
 	private String			nick_name;
@@ -106,6 +107,7 @@ BuddyPluginBuddy
 	protected
 	BuddyPluginBuddy(
 		BuddyPlugin	_plugin,
+		int			_subsystem,
 		boolean		_authorised,
 		String		_pk,
 		String		_nick_name,
@@ -114,12 +116,31 @@ BuddyPluginBuddy
 		List		_recent_ygm )
 	{
 		plugin				= _plugin;
+		subsystem			= _subsystem;
 		authorised			= _authorised;
 		public_key 			= _pk;
 		nick_name			= _nick_name;
 		last_status_seq		= _last_status_seq;
 		last_time_online	= _last_time_online;
 		recent_ygm			= _recent_ygm;
+	}
+	
+	public int
+	getSubsystem()
+	{
+		return( subsystem );
+	}
+	
+	public void
+	setSubsystem(
+		int		_s )
+	{
+		if ( _s != subsystem ){
+			
+			subsystem	= _s;
+			
+			plugin.saveConfig( true );
+		}
 	}
 	
 	public boolean

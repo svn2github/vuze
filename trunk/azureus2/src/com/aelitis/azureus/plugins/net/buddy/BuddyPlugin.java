@@ -689,7 +689,7 @@ BuddyPlugin
 																	return( false );
 																}
 																
-																BuddyPluginBuddy buddy = addBuddy( other_key_str, false );
+																BuddyPluginBuddy buddy = addBuddy( other_key_str, SUBSYSTEM_AZ2, false );
 																
 																buddy.incomingConnection((GenericMessageConnection)context );	
 																	
@@ -1329,7 +1329,11 @@ BuddyPlugin
 							last_time_online = now;
 						}
 						
-						BuddyPluginBuddy buddy = new BuddyPluginBuddy( this, true, key, nick, last_seq, last_time_online, recent_ygm );
+						Long l_subsystem = (Long)details.get( "ss" );
+						
+						int	subsystem = l_subsystem==null?SUBSYSTEM_AZ2:l_subsystem.intValue();
+						
+						BuddyPluginBuddy buddy = new BuddyPluginBuddy( this, subsystem, true, key, nick, last_seq, last_time_online, recent_ygm );
 						
 						logMessage( "Loaded buddy " + buddy.getString());
 						
@@ -1407,6 +1411,8 @@ BuddyPlugin
 					
 					map.put( "lo", new Long( buddy.getLastTimeOnline()));
 					
+					map.put( "ss", new Long( buddy.getSubsystem()));
+					
 					buddies_config.add( map );
 				}
 				
@@ -1423,15 +1429,17 @@ BuddyPlugin
 	
 	public BuddyPluginBuddy
 	addBuddy(
-		String		key )
+		String		key,
+		int			subsystem )
 	
 	{
-		return( addBuddy( key, true ));
+		return( addBuddy( key, subsystem, true ));
 	}
 	
 	protected BuddyPluginBuddy
 	addBuddy(
 		String		key,
+		int			subsystem,
 		boolean		authorised )
 	{
 		if ( key.length() == 0 || !verifyPublicKey( key )){
@@ -1453,6 +1461,13 @@ BuddyPlugin
 				
 				if ( buddy.getPublicKey().equals( key )){
 					
+					if ( buddy.getSubsystem() != subsystem ){
+						
+						buddy.setSubsystem( subsystem );
+						
+						saveConfig( true );
+					}
+					
 					if ( authorised && !buddy.isAuthorised()){
 						
 						buddy.setAuthorised( true );
@@ -1468,7 +1483,7 @@ BuddyPlugin
 			
 			if ( buddy_to_return == null ){
 				
-				buddy_to_return = new BuddyPluginBuddy( this, authorised, key, null, 0, 0, null );
+				buddy_to_return = new BuddyPluginBuddy( this, subsystem, authorised, key, null, 0, 0, null );
 				
 				buddies.add( buddy_to_return );
 				

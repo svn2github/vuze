@@ -176,7 +176,7 @@ BuddyPluginViewInstance
 				widgetSelected(
 					SelectionEvent e )
 				{
-					plugin.addBuddy( control_text.getText().trim());
+					plugin.addBuddy( control_text.getText().trim(), BuddyPlugin.SUBSYSTEM_AZ2 );
 				}
 			});
 		
@@ -373,11 +373,12 @@ BuddyPluginViewInstance
 				"azbuddy.ui.table.msg_in",
 				"azbuddy.ui.table.msg_out",
 				"MyTrackerView.bytesin",
-				"MyTrackerView.bytesout" };
+				"MyTrackerView.bytesout",
+				"azbuddy.ui.table.ss" };
 
-		int[] sizes = { 250, 100, 100, 100, 200, 75, 75, 75, 75, 75 };
+		int[] sizes = { 250, 100, 100, 100, 200, 75, 75, 75, 75, 75, 40 };
 
-		int[] aligns = { SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER };
+		int[] aligns = { SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER };
 
 		for (int i = 0; i < headers.length; i++){
 
@@ -439,6 +440,8 @@ BuddyPluginViewInstance
 					item.setText(8, "" + DisplayFormatters.formatByteCountToKiBEtc(buddy.getBytesInCount()));
 					item.setText(9, "" + DisplayFormatters.formatByteCountToKiBEtc(buddy.getBytesOutCount()));
 
+					item.setText(10, "" + buddy.getSubsystem());
+					
 					item.setData( buddy );
 				}
 			});
@@ -1097,7 +1100,7 @@ BuddyPluginViewInstance
 			
 			if ( subsystem == BuddyPlugin.SUBSYSTEM_AZ3 ){
 				
-				plugin.addBuddy( from_buddy.getPublicKey());
+				plugin.addBuddy( from_buddy.getPublicKey(), BuddyPlugin.SUBSYSTEM_AZ3 );
 				
 				return( new HashMap());
 			}
