@@ -296,6 +296,8 @@ CryptoHandlerECC
 		use_method_private_key	= null;
 		use_method_public_key	= null;
 		
+		manager.clearPassword( CryptoManager.HANDLER_ECC );
+		
 		COConfigurationManager.setParameter( CONFIG_PREFIX + "publickey", public_key );
 			
 		int	type = (int)encrypted_private_key_and_type[0]&0xff;
@@ -309,6 +311,8 @@ CryptoHandlerECC
 		COConfigurationManager.setParameter( CONFIG_PREFIX + "privatekey", encrypted_private_key );
 		
 		COConfigurationManager.save();
+		
+		manager.keyChanged( this );
 	}
 	
 	public synchronized void
@@ -319,6 +323,8 @@ CryptoHandlerECC
 	{
 		use_method_private_key	= null;
 		use_method_public_key	= null;
+		
+		manager.clearPassword( CryptoManager.HANDLER_ECC );
 		
 		COConfigurationManager.removeParameter( CONFIG_PREFIX + "publickey" );
 			
@@ -389,14 +395,12 @@ CryptoHandlerECC
 				
 					last_unlock_time = SystemTime.getCurrentTime();
 				
-					byte[]	test_data = "test".getBytes();
-					
-					ok = verify( keyToRawdata( getMyPublicKey( reason, true )), test_data,  sign( test_data, reason ));
-					
-					if ( !ok ){
+					if ( !checkKeysOK( reason )){
 											
 						throw( new CryptoManagerPasswordException( "Password incorrect" ));
 					}
+					
+					ok = true;
 					
 				}catch( CryptoManagerException e ){
 					
@@ -424,6 +428,17 @@ CryptoHandlerECC
 		}
 		
 		return( use_method_private_key );
+	}
+	
+	protected boolean
+	checkKeysOK(
+		String	reason )
+	
+		throws CryptoManagerException
+	{
+		byte[]	test_data = "test".getBytes();
+		
+		return( verify( keyToRawdata( getMyPublicKey( reason, true )), test_data,  sign( test_data, reason )));
 	}
 	
 	protected synchronized PublicKey
@@ -641,7 +656,7 @@ CryptoHandlerECC
 		byte[]	encoded )
 	{
 		try{
-			ECPublicKey pk = (ECPublicKey)rawdataToPubkey( encoded );
+			rawdataToPubkey( encoded );
 			
 				// we can't actually verify the key size as although it should be 192 bits
 				// it can be less due to leading bits being 0
@@ -670,9 +685,11 @@ CryptoHandlerECC
 	
 		throws CryptoManagerException
 	{
+		String	reason = "Key import";
+	
 		byte[]	existing_salt 			= manager.getPasswordSalt();
 		byte[]	existing_public_key		= peekPublicKey();
-		byte[]	existing_private_key	= existing_public_key==null?null:getEncryptedPrivateKey( "Key import" );
+		byte[]	existing_private_key	= existing_public_key==null?null:getEncryptedPrivateKey( reason );
 		
 		byte[]		recovered_salt 			= null;
 		byte[]		recovered_public_key 	= null;
@@ -726,7 +743,12 @@ CryptoHandlerECC
 			manager.setPasswordSalt( recovered_salt );
 			
 			recoverKeys( recovered_public_key, recovered_private_key );
-		
+					
+			if ( !checkKeysOK( reason )){
+			
+				throw( new CryptoManagerException( "Invalid key pair" ));
+			}
+			
 			ok = true;
 						
 		}finally{

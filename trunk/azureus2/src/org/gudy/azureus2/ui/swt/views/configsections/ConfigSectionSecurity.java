@@ -312,28 +312,20 @@ ConfigSectionSecurity
 				        public void 
 						handleEvent(Event event) 
 				        {
-		 					MessageBox mb = new MessageBox( parent.getShell(),SWT.ICON_WARNING | SWT.OK | SWT.CANCEL );
-		 					
-		 					mb.setText(MessageText.getString("ConfigView.section.security.resetkey.warning.title"));
-		 				
-		 					mb.setMessage(	MessageText.getString("ConfigView.section.security.resetkey.warning"));
-		 					
-		 					if ( mb.open() == SWT.OK ){
-		 					
+				        	if ( Utils.openMessageBox(
+				        			parent.getShell(),SWT.ICON_WARNING | SWT.OK | SWT.CANCEL,
+				        			MessageText.getString("ConfigView.section.security.resetkey.warning.title"),
+				        			MessageText.getString("ConfigView.section.security.resetkey.warning")) == SWT.OK ){ 
+		 									
 					        	try{
 					        		crypt_man.getECCHandler().resetKeys( "Manual key reset" );
 					        					        		
 					        	}catch( Throwable e ){
 					        		
-					        		Debug.out( "Failed to create keys", e );
-					        		
-				 					MessageBox mb2 = new MessageBox( parent.getShell(),SWT.ICON_ERROR | SWT.OK );
-				 					
-				 					mb2.setText(MessageText.getString( "ConfigView.section.security.resetkey.error.title"));
-				 				
-				 					mb2.setMessage(	MessageText.getString( "ConfigView.section.security.resetkey.error" ) + ": " + Debug.getNestedExceptionMessage(e));
-
-				 					mb2.open();
+					        		Utils.openMessageBox( 
+					        			parent.getShell(),SWT.ICON_ERROR | SWT.OK,
+					        			MessageText.getString( "ConfigView.section.security.resetkey.error.title"),
+					        			MessageText.getString( "ConfigView.section.security.resetkey.error" ) + ": " + Debug.getNestedExceptionMessage(e));
 					        	}
 		 					}
 				        }
@@ -360,15 +352,11 @@ ConfigSectionSecurity
 				        		
 				        	}catch( Throwable e ){
 				        		
-				        		Debug.out( "Failed to unlock key", e );
-				        		
-			 					MessageBox mb = new MessageBox( parent.getShell(),SWT.ICON_ERROR | SWT.OK  );
-			 					
-			 					mb.setText(MessageText.getString( "ConfigView.section.security.resetkey.error.title" ));
-			 				
-			 					mb.setMessage(	MessageText.getString( "ConfigView.section.security.unlockkey.error" ));
-
-			 					mb.open();
+			 					Utils.openMessageBox( 
+			 						parent.getShell(),
+			 						SWT.ICON_ERROR | SWT.OK,
+			 						MessageText.getString( "ConfigView.section.security.resetkey.error.title" ),
+			 						MessageText.getString( "ConfigView.section.security.unlockkey.error" ));
 				        	}
 				        }
 				    });
@@ -404,13 +392,11 @@ ConfigSectionSecurity
 				        	
 				        	}catch( Throwable e ){
 				        	
-			 					MessageBox mb = new MessageBox( backup_keys_button.getShell(),SWT.ICON_ERROR | SWT.OK  );
-			 					
-			 					mb.setText(MessageText.getString( "ConfigView.section.security.op.error.title" ));
-			 				
-			 					mb.setMessage( MessageText.getString( "ConfigView.section.security.op.error", new String[]{ Debug.getNestedExceptionMessage( e )}));
-
-			 					mb.open();
+				        		Utils.openMessageBox( 
+				        				backup_keys_button.getShell(),SWT.ICON_ERROR | SWT.OK,
+				        				MessageText.getString( "ConfigView.section.security.op.error.title" ),
+				        				MessageText.getString( "ConfigView.section.security.op.error", 
+				        						new String[]{ Debug.getNestedExceptionMessage( e )}));
 				        	}
 				        }
 				    });
@@ -456,13 +442,11 @@ ConfigSectionSecurity
 				  
 				        	}catch( Throwable e ){
 				        	
-			 					MessageBox mb = new MessageBox( backup_keys_button.getShell(),SWT.ICON_ERROR | SWT.OK  );
-			 					
-			 					mb.setText(MessageText.getString( "ConfigView.section.security.op.error.title" ));
-			 				
-			 					mb.setMessage( MessageText.getString( "ConfigView.section.security.op.error", new String[]{ Debug.getNestedExceptionMessage( e )}));
-
-			 					mb.open();
+				        		Utils.openMessageBox(  
+				        			backup_keys_button.getShell(),SWT.ICON_ERROR | SWT.OK,
+				        			MessageText.getString( "ConfigView.section.security.op.error.title" ),
+				        			MessageText.getString( "ConfigView.section.security.op.error", 
+				        					new String[]{ Debug.getNestedExceptionMessage( e )}));
 				        	}
 				        }
 				    });
