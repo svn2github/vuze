@@ -48,6 +48,7 @@ import com.aelitis.azureus.util.MapUtils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
 
 /**
@@ -252,7 +253,11 @@ public class PlatformMessenger
 				try {
 					processQueueAsync(fURL, fPostData, mapProcessing);
 				} catch (Exception e) {
-					Debug.out("Error while sending message(s) to Platform", e);
+					if (e instanceof ResourceDownloaderException) {
+						Debug.out("Error while sending message(s) to Platform: " + e.toString());
+					} else {
+						Debug.out("Error while sending message(s) to Platform", e);
+					}
 					for (Iterator iter = mapProcessing.keySet().iterator(); iter.hasNext();) {
 						PlatformMessage message = (PlatformMessage) iter.next();
 						PlatformMessengerListener l = (PlatformMessengerListener) mapProcessing.get(message);
