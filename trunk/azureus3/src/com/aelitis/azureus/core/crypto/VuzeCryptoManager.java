@@ -60,6 +60,12 @@ VuzeCryptoManager
 		crypt_man.addPasswordHandler(
 			new CryptoManagerPasswordHandler()
 			{
+				public int
+				getHandlerType()
+				{
+					return( HANDLER_TYPE_SYSTEM );
+				}
+				
 				public passwordDetails
 				getPassword(
 					int			handler_type,
