@@ -54,5 +54,5 @@ public class SkinConstants
 	
 	public static final String VIEWID_FOOTER = "footer-area";
 	
-	public static final String VIEWID_BUDDIES_VIEWER = "buddies-viewer";
+	public static final String VIEWID_BUDDIES_AVATARS_VIEWER = "avatars-viewer";
 }

@@ -13,15 +13,15 @@ import com.aelitis.azureus.ui.swt.buddy.impl.VuzeBuddyUtils;
 
 public class BuddiesViewer
 {
-	private Composite content = null;
+	private Composite avatarsPanel = null;
 
 	private Composite parent = null;
 
 	private int borderWidth = 3;
 
-	private Point avatarImageSize = new Point(48 + borderWidth, 48 + borderWidth);
+	private Point avatarImageSize = new Point(32 + borderWidth, 32 + borderWidth);
 
-	private Point avatarSize = new Point(128, 68);
+	private Point avatarSize = new Point(128, 52);
 
 	public BuddiesViewer(Composite parent) {
 		this.parent = parent;
@@ -35,17 +35,18 @@ public class BuddiesViewer
 					"The variable 'parent' can not be null or disposed");
 		}
 
-		content = new Composite(parent, SWT.NONE);
+		avatarsPanel = new Composite(parent, SWT.NONE);
 
 		RowLayout rLayout = new RowLayout(SWT.HORIZONTAL);
-		rLayout.wrap = true;
+		rLayout.wrap = false;
 		rLayout.spacing = 10;
 		rLayout.marginTop = 0;
 		rLayout.marginBottom = 0;
 		rLayout.marginLeft = 0;
 		rLayout.marginRight = 0;
-		content.setLayout(rLayout);
-		fillBuddies(content);
+		avatarsPanel.setLayout(rLayout);
+		
+		fillBuddies(avatarsPanel);
 
 		parent.layout(true);
 
@@ -54,14 +55,15 @@ public class BuddiesViewer
 			int startX, startY;
 
 			public void handleEvent(Event e) {
+				
 				if (e.type == SWT.MouseDown && e.button == 1 && (e.stateMask & SWT.CONTROL) != 0) {
 					startX = e.x;
 					startY = e.y;
-					content.setCursor(parent.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+					avatarsPanel.setCursor(parent.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 					System.out.println("Mouse down");
 				}
 				if (e.type == SWT.MouseMove && (e.stateMask & SWT.BUTTON1) != 0 && (e.stateMask & SWT.CONTROL) != 0) {
-					Point p = content.toDisplay(e.x, e.y);
+					Point p = avatarsPanel.toDisplay(e.x, e.y);
 					p.x -= startX;
 					p.y -= startY;
 //					content.setLocation(p);
@@ -69,19 +71,19 @@ public class BuddiesViewer
 					System.out.println("Mouse moving...");
 				}
 				if(e.type == SWT.MouseUp){
-					content.setCursor(null);
+					avatarsPanel.setCursor(null);
 					System.out.println("Mouse up");
 				}
 				
 				if (e.type == SWT.KeyDown && (e.stateMask & SWT.BUTTON1) != 0 && (e.stateMask & SWT.CONTROL) != 0) {
-					content.setCursor(parent.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+					avatarsPanel.setCursor(parent.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 				}
 			}
 		};
-		content.addListener(SWT.MouseDown, l);
-		content.addListener(SWT.MouseMove, l);
-		content.addListener(SWT.MouseUp, l);
-		content.addListener(SWT.KeyDown, l);
+		avatarsPanel.addListener(SWT.MouseDown, l);
+		avatarsPanel.addListener(SWT.MouseMove, l);
+		avatarsPanel.addListener(SWT.MouseUp, l);
+		avatarsPanel.addListener(SWT.KeyDown, l);
 		
 		
 		

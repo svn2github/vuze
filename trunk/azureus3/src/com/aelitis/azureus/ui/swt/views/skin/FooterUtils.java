@@ -1,53 +1,29 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.gudy.azureus2.ui.swt.Utils;
 
-import com.aelitis.azureus.ui.skin.SkinConstants;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 
-/**
- * The main footer <code>SkinView</code>.  This footer may contain any number of subcomponents;
- * currently the only implemented component is a BuddiesViewer 
- * @author khai
- *
- */
-public class Footer
-	extends SkinView
+public class FooterUtils
 {
+	private SWTSkin skin;
 
-	private SWTSkin skin = null;
-	public Object showSupport(SWTSkinObject skinObject, Object params) {
-		
-		skin = skinObject.getSkin();
-		
-		SWTSkinObject buddiesSkin = skin.getSkinObject(
-				SkinConstants.VIEWID_BUDDIES_AVATARS_VIEWER);
-		if (null != buddiesSkin) {
-			createBuddiesViewer((Composite) buddiesSkin.getControl());
-		}
+	private UIFunctionsSWT uiFunctions = null;
 
-		Utils.relayout(skinObject.getControl());
-		
+	public FooterUtils(SWTSkin skin, UIFunctionsSWT uiFunctions) {
+		this.skin = skin;
+		this.uiFunctions = uiFunctions;
+
 		hookListeners();
-		return null;
+
 	}
 
-	private void createBuddiesViewer(Composite parent) {
-		FillLayout fLayout = new FillLayout();
-		fLayout.marginHeight =5;
-		fLayout.marginWidth =5;
-		parent.setLayout(fLayout);
-		new BuddiesViewer(parent);
-	}
-
-	
 	private void hookListeners() {
 
 		SWTSkinObject shareButton = skin.getSkinObject("button-buddy-share");

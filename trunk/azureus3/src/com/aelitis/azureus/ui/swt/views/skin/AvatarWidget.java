@@ -40,6 +40,8 @@ public class AvatarWidget
 
 	private boolean isSelected = false;
 
+	private boolean showInfo = false;
+
 	public AvatarWidget(Composite parent, Point avatarSize,
 			Point avatarImageSize, VuzeBuddySWT vuzeBuddy) {
 
@@ -52,11 +54,14 @@ public class AvatarWidget
 		this.avatarSize = avatarSize;
 		this.avatarImageSize = avatarImageSize;
 		this.vuzeBuddy = vuzeBuddy;
-		
+
 		init();
 	}
 
 	private void init() {
+
+		final Image infoImage = parent.getDisplay().getSystemImage(
+				SWT.ICON_INFORMATION);
 
 		imageOffsetX = (avatarSize.x / 2) - (avatarImageSize.x / 2);
 
@@ -83,28 +88,28 @@ public class AvatarWidget
 			public void paintControl(PaintEvent e) {
 
 				e.gc.setAntialias(SWT.ON);
-//				e.gc.c
+				//				e.gc.c
 				if (true == isActivated) {
-//					if (currentSelectedState != isSelected) {
-						currentSelectedState = isSelected;
-						if (true == isSelected) {
-							e.gc.setBackground(Colors.green);
-						} else {
-							e.gc.setBackground(Colors.red);
-						}
-						
-						e.gc.setAlpha(128);
+					//					if (currentSelectedState != isSelected) {
+					currentSelectedState = isSelected;
+					if (true == isSelected) {
+						e.gc.setBackground(Colors.green);
+					} else {
+						e.gc.setBackground(Colors.red);
+					}
 
-						e.gc.fillRectangle(0, 0, avatarCanvas.getBounds().width,
-								avatarCanvas.getBounds().height);
+					e.gc.setAlpha(128);
 
-						e.gc.drawLine(imageOffsetX + 1, avatarImageSize.y, imageOffsetX + 1
-								+ avatarImageSize.x, avatarImageSize.y);
+					e.gc.fillRectangle(0, 0, avatarCanvas.getBounds().width,
+							avatarCanvas.getBounds().height);
 
-						e.gc.setAlpha(255);
-						e.gc.setBackground(avatarCanvas.getBackground());
+					e.gc.drawLine(imageOffsetX + 1, avatarImageSize.y, imageOffsetX + 1
+							+ avatarImageSize.x, avatarImageSize.y);
 
-//					}
+					e.gc.setAlpha(255);
+					e.gc.setBackground(avatarCanvas.getBackground());
+
+					//					}
 
 				} else {
 					if (true == isSelected) {
@@ -126,6 +131,11 @@ public class AvatarWidget
 						+ borderWidth, borderWidth, avatarImageSize.x - (2 * borderWidth),
 						avatarImageSize.y - (2 * borderWidth));
 
+				if (true == isActivated) {
+					e.gc.drawImage(infoImage, 0, 0, infoImage.getBounds().width,
+							infoImage.getBounds().height, 81, 0, 16, 16);
+				}
+
 				e.gc.setForeground(Colors.white);
 				Point textExtent = e.gc.textExtent(vuzeBuddy.getDisplayName());
 
@@ -141,6 +151,10 @@ public class AvatarWidget
 				if (null != region && false == region.isDisposed()) {
 					region.dispose();
 				}
+				
+				if (null != infoImage && false == infoImage.isDisposed()) {
+					infoImage.dispose();
+				}
 			}
 		});
 
@@ -151,11 +165,17 @@ public class AvatarWidget
 
 			public void mouseExit(MouseEvent e) {
 				isActivated = false;
+				showInfo = false;
+				region.subtract(new Rectangle(79, 0, 18, 16));
+				avatarCanvas.setRegion(region);
 				avatarCanvas.redraw();
 			}
 
 			public void mouseEnter(MouseEvent e) {
 				isActivated = true;
+				showInfo = true;
+				region.add(new Rectangle(79, 0, 18, 16));
+				avatarCanvas.setRegion(region);
 				avatarCanvas.redraw();
 			}
 		});
@@ -170,7 +190,7 @@ public class AvatarWidget
 			public void mouseDown(MouseEvent e) {
 				isSelected = !isSelected;
 				avatarCanvas.redraw();
-				if(e.stateMask == SWT.CONTROL){
+				if (e.stateMask == SWT.CONTROL) {
 					System.out.println("CTRL is in effect");
 				}
 			}
@@ -180,22 +200,22 @@ public class AvatarWidget
 		});
 	}
 
-	public void doHover(){
-		
+	public void doHover() {
+
 	}
-	
-	public void doClick(){
-		
+
+	public void doClick() {
+
 	}
-	
-	public void doMouseEnter(){
-		
+
+	public void doMouseEnter() {
+
 	}
-	
-	public void doDoubleClick(){
-		
+
+	public void doDoubleClick() {
+
 	}
-	
+
 	public Control getControl() {
 		return avatarCanvas;
 	}

@@ -19,20 +19,35 @@
  */
 package com.aelitis.azureus.ui.swt.skin;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Cursor;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.widgets.*;
-
+import org.eclipse.swt.widgets.Canvas;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Sash;
+import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
@@ -1169,7 +1184,10 @@ public class SWTSkin
 				return null;
 			} else if (sType.equals("browser")) {
 				skinObject = createBrowser(properties, sID, sConfigID, parentSkinObject);
-			} else {
+			}  else if (sType.equals("separator")) {
+				skinObject = createSeparator(properties, sID, sConfigID, sTypeParams,
+						parentSkinObject);
+			}else {
 				System.err.println(sConfigID + ": Invalid type of " + sType);
 			}
 
@@ -1360,6 +1378,22 @@ public class SWTSkin
 		return skinObject;
 	}
 
+	
+	private SWTSkinObject createSeparator(SWTSkinProperties properties,
+			String sID, String sConfigID, String[] typeParams,
+			SWTSkinObject parentSkinObject) {
+		SWTSkinObject skinObject = new SWTSkinObjectSeparator(this, properties, sID,
+				sConfigID, parentSkinObject);
+		addToControlMap(skinObject);
+
+		if (bLayoutComplete) {
+			attachControl(skinObject);
+		}
+
+		return skinObject;
+	}
+	
+	
 	public SWTSkinProperties getSkinProperties() {
 		return skinProperties;
 	}
