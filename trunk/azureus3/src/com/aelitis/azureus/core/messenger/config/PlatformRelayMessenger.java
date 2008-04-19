@@ -99,7 +99,7 @@ public class PlatformRelayMessenger
 							Map reply) {
 						String replyMessage = MapUtils.getMapString(reply, "message", null);
 
-						if (message != null && replyMessage.equals("Ok")) {
+						if (replyMessage != null && replyMessage.equals("Ok")) {
 							// good
 							PlatformMessenger.debug("Relay: Ok to " + pk);
 						} else {
