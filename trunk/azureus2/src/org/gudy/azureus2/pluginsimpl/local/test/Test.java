@@ -171,6 +171,12 @@ Test
 			AzureusCoreFactory.getSingleton().getCryptoManager().addPasswordHandler(
 				new CryptoManagerPasswordHandler()
 				{
+					public int
+					getHandlerType()
+					{
+						return( HANDLER_TYPE_USER );
+					}
+					
 					public passwordDetails
 		        	getPassword(
 		        		int			handler_type,

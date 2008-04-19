@@ -191,7 +191,7 @@ BuddyPluginViewInstance
 
     	final CryptoManager crypt_man = CryptoManagerFactory.getSingleton();
 
-		byte[]	public_key = crypt_man.getECCHandler().peekPublicKey( null );
+		byte[]	public_key = crypt_man.getECCHandler().peekPublicKey();
 		  
 		if ( public_key == null ){
 			
@@ -234,7 +234,7 @@ BuddyPluginViewInstance
 						}else{
 							if ( handler.getType() == CryptoManager.HANDLER_ECC ){
 								
-								byte[]	public_key = handler.peekPublicKey( null );
+								byte[]	public_key = handler.peekPublicKey();
 
 								if ( public_key == null ){
 									

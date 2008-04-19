@@ -55,7 +55,12 @@ CryptoWindow
 		CryptoManagerFactory.getSingleton().addPasswordHandler( this );
 	}
 	
-
+	public int
+	getHandlerType()
+	{
+		return( HANDLER_TYPE_USER );
+	}
+	
 	public passwordDetails 
 	getPassword(
 		final int 		handler_type, 

@@ -25,8 +25,19 @@ package com.aelitis.azureus.core.security;
 public interface 
 CryptoManagerPasswordHandler 
 {
+	/** 
+	 * HANDLER_TYPE_UNKNOWN is not for public use 
+	 **/
+	
+	public static final int HANDLER_TYPE_UNKNOWN	= 0;	
+	public static final int HANDLER_TYPE_USER		= 1;
+	public static final int HANDLER_TYPE_SYSTEM		= 2;
+	
 	public static final int ACTION_ENCRYPT			= 1;
 	public static final int	ACTION_DECRYPT			= 2;
+	
+	public int
+	getHandlerType();
 	
 		/**
 		 * Gets a password

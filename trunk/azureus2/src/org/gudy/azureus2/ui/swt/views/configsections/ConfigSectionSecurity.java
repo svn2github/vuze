@@ -22,6 +22,11 @@
 
 package org.gudy.azureus2.ui.swt.views.configsections;
 
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.LineNumberReader;
+import java.io.PrintWriter;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
@@ -35,6 +40,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -43,7 +49,6 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.Base32;
-import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -216,7 +221,7 @@ ConfigSectionSecurity
 			
 				// row
 
-			byte[]	public_key = crypt_man.getECCHandler().peekPublicKey( null );
+			byte[]	public_key = crypt_man.getECCHandler().peekPublicKey();
 			
 		    Label public_key_label = new Label(crypto_group, SWT.NULL );
 		    Messages.setLanguageText(public_key_label, "ConfigView.section.security.publickey");
@@ -255,29 +260,39 @@ ConfigSectionSecurity
 					{
 						public void 
 						keyChanged(
-							CryptoHandler handler ) 
+							final CryptoHandler handler ) 
 						{
-							if ( parent.isDisposed()){
-								
-								crypt_man.removeKeyChangeListener( this );
-								
-							}else{
-								if ( handler.getType() == CryptoManager.HANDLER_ECC ){
-									
-									byte[]	public_key = handler.peekPublicKey( null );
-
-									if ( public_key == null ){
-										
-											// shouldn't happen...
-										
-										 Messages.setLanguageText(public_key_value, "ConfigView.section.security.publickey.undef");
-										
-									}else{
-										
-										public_key_value.setText( Base32.encode( public_key ));
+							final CryptoManagerKeyChangeListener me = this;
+							
+							Utils.execSWTThread(
+								new Runnable()
+								{
+									public void 
+									run()
+									{						
+										if ( public_key_value.isDisposed()){
+											
+											crypt_man.removeKeyChangeListener( me );
+											
+										}else{
+											if ( handler.getType() == CryptoManager.HANDLER_ECC ){
+												
+												byte[]	public_key = handler.peekPublicKey();
+			
+												if ( public_key == null ){
+													
+														// shouldn't happen...
+													
+													 Messages.setLanguageText(public_key_value, "ConfigView.section.security.publickey.undef");
+													
+												}else{
+													
+													public_key_value.setText( Base32.encode( public_key ));
+												}
+											}
+										}
 									}
-								}
-							}
+								});
 						}
 					});
 			
@@ -341,9 +356,7 @@ ConfigSectionSecurity
 						handleEvent(Event event) 
 				        {
 				        	try{
-				        		byte[] result = crypt_man.getECCHandler().getEncryptedPrivateKey( "Testing!" );
-				        		
-				        		System.out.println( "ECC private key=" + ByteFormatter.encodeString( result ));
+				        		crypt_man.getECCHandler().getEncryptedPrivateKey( "Manual unlock" );
 				        		
 				        	}catch( Throwable e ){
 				        		
@@ -354,6 +367,100 @@ ConfigSectionSecurity
 			 					mb.setText(MessageText.getString( "ConfigView.section.security.resetkey.error.title" ));
 			 				
 			 					mb.setMessage(	MessageText.getString( "ConfigView.section.security.unlockkey.error" ));
+
+			 					mb.open();
+				        	}
+				        }
+				    });
+		    
+		    new Label(crypto_group, SWT.NULL );
+		    
+		    	// row
+		    
+		    Label backup_keys_label = new Label(crypto_group, SWT.NULL );
+		    Messages.setLanguageText(backup_keys_label, "ConfigView.section.security.backupkeys");
+	
+		    final Button backup_keys_button = new Button(crypto_group, SWT.PUSH);
+		    Messages.setLanguageText(backup_keys_button, "ConfigView.section.security.backupkeys.button");
+	
+		    backup_keys_button.addListener(SWT.Selection, 
+		    		new Listener() 
+					{
+				        public void 
+						handleEvent(Event event) 
+				        {
+				        	FileDialog dialog = new FileDialog( backup_keys_button.getShell(), SWT.APPLICATION_MODAL );
+				        	
+				        	String	target = dialog.open();
+				        	
+				        	try{
+				        		String	keys = crypt_man.getECCHandler().exportKeys();
+				        		
+				        		PrintWriter pw = new PrintWriter(new FileWriter( target ));
+				        		
+				        		pw.println( keys );
+				        		
+				        		pw.close();
+				        	
+				        	}catch( Throwable e ){
+				        	
+			 					MessageBox mb = new MessageBox( backup_keys_button.getShell(),SWT.ICON_ERROR | SWT.OK  );
+			 					
+			 					mb.setText(MessageText.getString( "ConfigView.section.security.op.error.title" ));
+			 				
+			 					mb.setMessage( MessageText.getString( "ConfigView.section.security.op.error", new String[]{ Debug.getNestedExceptionMessage( e )}));
+
+			 					mb.open();
+				        	}
+				        }
+				    });
+		    
+		    new Label(crypto_group, SWT.NULL );
+		    
+		    	// row
+		    
+		    Label restore_keys_label = new Label(crypto_group, SWT.NULL );
+		    Messages.setLanguageText(restore_keys_label, "ConfigView.section.security.restorekeys");
+	
+		    final Button restore_keys_button = new Button(crypto_group, SWT.PUSH);
+		    Messages.setLanguageText(restore_keys_button, "ConfigView.section.security.restorekeys.button");
+	
+		    restore_keys_button.addListener(SWT.Selection, 
+		    		new Listener() 
+					{
+				        public void 
+						handleEvent(Event event) 
+				        {
+				        	FileDialog dialog = new FileDialog( backup_keys_button.getShell(), SWT.APPLICATION_MODAL );
+				        	
+				        	String	target = dialog.open();
+				        	
+				        	try{
+				        		LineNumberReader reader = new LineNumberReader(  new FileReader( target ));
+				        		
+				        		String	str = "";
+				        		
+				        		while( true ){
+				        			
+				        			String	line = reader.readLine();
+				        			
+				        			if ( line == null ){
+				        				
+				        				break;
+				        			}
+				        			
+				        			str += line + "\r\n";
+				        		}
+				        		
+				        		crypt_man.getECCHandler().importKeys(str);
+				  
+				        	}catch( Throwable e ){
+				        	
+			 					MessageBox mb = new MessageBox( backup_keys_button.getShell(),SWT.ICON_ERROR | SWT.OK  );
+			 					
+			 					mb.setText(MessageText.getString( "ConfigView.section.security.op.error.title" ));
+			 				
+			 					mb.setMessage( MessageText.getString( "ConfigView.section.security.op.error", new String[]{ Debug.getNestedExceptionMessage( e )}));
 
 			 					mb.open();
 				        	}

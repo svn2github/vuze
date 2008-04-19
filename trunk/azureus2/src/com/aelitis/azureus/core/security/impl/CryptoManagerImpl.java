@@ -272,17 +272,19 @@ CryptoManagerImpl
 		COConfigurationManager.removeParameter( persist_pw_key );
    	}
 	
-	protected char[]
+	protected passwordDetails
 	getPassword(
 		int				handler,
 		int				action,
 		String			reason,
-		passwordTester	tester )
+		passwordTester	tester,
+		int				pw_type )
 	
 		throws CryptoManagerException
 	{
 		final String persist_timeout_key 	= CryptoManager.CRYPTO_CONFIG_PREFIX + "pw." + handler + ".persist_timeout";
 		final String persist_pw_key 		= CryptoManager.CRYPTO_CONFIG_PREFIX + "pw." + handler + ".persist_value";
+		final String persist_pw_key_type	= CryptoManager.CRYPTO_CONFIG_PREFIX + "pw." + handler + ".persist_type";
 
 		long	current_timeout = COConfigurationManager.getLongParameter( persist_timeout_key, 0 );
 		
@@ -290,7 +292,7 @@ CryptoManagerImpl
 		
 		if ( current_timeout < 0 ){
 			
-			char[]	pw = (char[])session_passwords.get( persist_pw_key );
+			passwordDetails	pw = (passwordDetails)session_passwords.get( persist_pw_key );
 			
 			if ( pw != null ){
 				
@@ -306,15 +308,12 @@ CryptoManagerImpl
 			
 			if ( current_pw.length() > 0 ){
 				
-				return( current_pw.toCharArray());
+				int	type = (int)COConfigurationManager.getLongParameter( persist_pw_key_type, CryptoManagerPasswordHandler.HANDLER_TYPE_USER );
+				
+				return( new passwordDetails( current_pw.toCharArray(), type ));
 			}
 		}
-		
-		if ( password_handlers.size() == 0 ){
-			
-			throw( new CryptoManagerException( "No password handlers registered" ));
-		}
-		
+				
 		Iterator	it = password_handlers.iterator();
 		
 		while( it.hasNext()){
@@ -324,6 +323,12 @@ CryptoManagerImpl
 			char[]	last_pw_chars = null;
 			
 			CryptoManagerPasswordHandler provider = (CryptoManagerPasswordHandler)it.next();
+			
+			if ( 	pw_type != CryptoManagerPasswordHandler.HANDLER_TYPE_UNKNOWN &&
+					pw_type != provider.getHandlerType()){
+				
+				continue;
+			}
 			
 			while( retry_count < 64 ){
 				
@@ -394,17 +399,20 @@ CryptoManagerImpl
 						timeout = SystemTime.getCurrentTime() + persist_secs * 1000L;
 					}
 					
+					passwordDetails	result = new passwordDetails( encoded_pw.toCharArray(), provider.getHandlerType());
+					
 					synchronized( this ){
 						
 						COConfigurationManager.setParameter( persist_timeout_key, timeout );
-	
+						COConfigurationManager.setParameter( persist_pw_key_type, provider.getHandlerType());
+						
 						session_passwords.remove( persist_pw_key );
 						
 						COConfigurationManager.removeParameter( persist_pw_key );
 													
 						if ( timeout < 0 ){
 								
-							session_passwords.put( persist_pw_key, encoded_pw.toCharArray());
+							session_passwords.put( persist_pw_key, result );
 								
 						}else if ( timeout > 0 ){
 							
@@ -414,7 +422,7 @@ CryptoManagerImpl
 						}
 					}
 					
-					return( encoded_pw.toCharArray());
+					return( result );
 
 				}catch( Throwable e ){
 					
@@ -433,9 +441,29 @@ CryptoManagerImpl
 	protected byte[]
 	getPasswordSalt()
 	{
-		return( getSecureID());
+		String key = CryptoManager.CRYPTO_CONFIG_PREFIX + "salt";
+			
+		byte[] salt = COConfigurationManager.getByteParameter( key, null );
+		
+		if ( salt == null ){
+			
+			salt = getSecureID();
+			
+			COConfigurationManager.setParameter( key, salt );
+		}
+		
+		return( salt );
 	}
 
+	protected void
+	setPasswordSalt(
+		byte[]	salt )
+	{
+		String key = CryptoManager.CRYPTO_CONFIG_PREFIX + "salt";
+
+		COConfigurationManager.setParameter( key, salt );
+	}
+	
 	protected void
 	keyChanged(
 		CryptoHandler	handler )
@@ -490,6 +518,34 @@ CryptoManagerImpl
 			char[]		pw );
 	}
 	
+	public class
+	passwordDetails
+	{
+		private char[]		password;
+		private int			type;
+		
+		protected 
+		passwordDetails(
+			char[]		_password,
+			int			_type )
+		{
+			password	= _password;
+			type		= _type;
+		}
+		
+		public char[]
+		getPassword()
+		{
+			return( password );
+		}
+		
+		public int
+		getHandlerType()
+		{
+			return( type );
+		}
+	}
+	
 	public static void
 	main(
 		String[]	args )
@@ -503,6 +559,12 @@ CryptoManagerImpl
 			man.addPasswordHandler(
 				new CryptoManagerPasswordHandler()
 				{
+					public int
+					getHandlerType()
+					{
+						return( HANDLER_TYPE_USER );
+					}
+					
 					public passwordDetails 
 					getPassword(
 							int 		handler_type, 

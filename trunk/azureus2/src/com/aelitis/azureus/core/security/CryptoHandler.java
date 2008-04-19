@@ -30,13 +30,11 @@ CryptoHandler
 	
 		/**
 		 * Explicit unlock request
-		 * @param password
 		 * @throws CryptoManagerException
 		 */
 	
 	public void
-	unlock(
-		char[]		password )
+	unlock()
 	
 		throws CryptoManagerException;
 		
@@ -67,13 +65,6 @@ CryptoHandler
 	
 		throws CryptoManagerException;
 	
-	public byte[]
-	sign(
-		byte[]		data,
-		char[]		password )
-	
-		throws CryptoManagerException;
-	
 	public boolean
 	verify(
 		byte[]		public_key,
@@ -91,22 +82,6 @@ CryptoHandler
 		throws CryptoManagerException;
 	
 	public byte[]
-	encrypt(
-		byte[]		other_public_key,
-		byte[]		data,
-		char[]		password )
-		
-		throws CryptoManagerException;
-	
-	public byte[]
-	decrypt(
-		byte[]		other_public_key,
-		byte[]		data,
-		char[]		password )
-		
-		throws CryptoManagerException;
-	
-	public byte[]
 	decrypt(
 		byte[]		other_public_key,
 		byte[]		data,
@@ -116,35 +91,16 @@ CryptoHandler
 	
 	public CryptoSTSEngine
 	getSTSEngine(
-		char[]		password )
-	
-		throws CryptoManagerException;
-	
-	public CryptoSTSEngine
-	getSTSEngine(
-		String		reason )
-	
-		throws CryptoManagerException;
-	
-	public byte[]
-	peekPublicKey(
-		char[]		password );
-	
-	public byte[]
-	getPublicKey(
-		char[]		password )
-	
-		throws CryptoManagerException;
-	
-	public byte[]
-	getPublicKey(
 		String		reason )
 	
 		throws CryptoManagerException;
 
 	public byte[]
-	getEncryptedPrivateKey(
-		char[]		password )
+	peekPublicKey();
+	
+	public byte[]
+	getPublicKey(
+		String		reason )
 	
 		throws CryptoManagerException;
 
@@ -167,20 +123,18 @@ CryptoHandler
 	
 	public void
 	resetKeys(
-		char[]		password )
-	
-		throws CryptoManagerException;
-	
-	public void
-	resetKeys(
 		String		reason )
 	
 		throws CryptoManagerException;
-
+	
+	public String
+	exportKeys()
+	
+		throws CryptoManagerException;
+		
 	public void
-	changePassword(
-		char[]		old_password,
-		char[]		new_password )
+	importKeys(
+		String	str )
 	
 		throws CryptoManagerException;
 }

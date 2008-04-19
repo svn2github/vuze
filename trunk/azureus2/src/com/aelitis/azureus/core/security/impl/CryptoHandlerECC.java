@@ -52,6 +52,7 @@ import org.bouncycastle.jce.spec.IEKeySpec;
 import org.bouncycastle.jce.spec.IESParameterSpec;
 import org.bouncycastle.math.ec.ECPoint;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.security.CryptoHandler;
@@ -66,8 +67,6 @@ CryptoHandlerECC
 	implements CryptoHandler
 {
 	private static final ECNamedCurveParameterSpec ECCparam = ECNamedCurveTable.getParameterSpec("prime192v2");
-
-	private static final int KEY_BIT_LENGTH = 192;
 	
 	private static final byte[]  ECIES_D = new byte[] {(byte)0x6d, (byte)0xc1, (byte)0x62, (byte)0x32, (byte)0x15, (byte)0x4d, (byte)0x0f, (byte)0x7b }; 
 	private static final byte[]  ECIES_E = new byte[] {(byte)0x6a, (byte)0x64, (byte)0x98, (byte)0xde, (byte)0x1a, (byte)0xa4, (byte)0x98, (byte)0xcc }; 
@@ -101,12 +100,11 @@ CryptoHandlerECC
 	}
 	
 	public void
-	unlock(
-		char[]		password )
+	unlock()
 	
 		throws CryptoManagerException
 	{
-		getMyPrivateKey( password, "unlock" );
+		getMyPrivateKey( "unlock" );
 	}
 	
 	public synchronized void
@@ -127,17 +125,7 @@ CryptoHandlerECC
 	{
 		COConfigurationManager.setParameter( CONFIG_PREFIX + "timeout", secs );
 	}
-	
-	public byte[]
-	sign(
-		byte[]		data,
-		char[]		password )
-	
-		throws CryptoManagerException
-	{
-		return( sign( data, password, null ));
-	}
-	
+		
 	public byte[]
 	sign(
 		byte[]		data,
@@ -145,18 +133,7 @@ CryptoHandlerECC
 	
 		throws CryptoManagerException
 	{
-		return( sign( data, null, reason ));
-	}
-	
-	protected byte[]
-	sign(
-		byte[]		data,
-		char[]		password,
-		String		reason )
-	
-		throws CryptoManagerException
-	{
-		PrivateKey	priv = getMyPrivateKey( password, reason );
+		PrivateKey	priv = getMyPrivateKey( reason );
 		
 		Signature sig = getSignature( priv );
 		
@@ -195,37 +172,15 @@ CryptoHandlerECC
 	}
 	
 	public byte[]
-    encrypt(
-		byte[]		other_public_key,
-		byte[]		data,
-		char[]		password )
-		
-		throws CryptoManagerException
-	{
-		return( encrypt( other_public_key, data, password, null ));
-	}
-	public byte[]
-    encrypt(
-		byte[]		other_public_key,
-		byte[]		data,
-		String		reason )
-		
-		throws CryptoManagerException
-	{
-		return( encrypt( other_public_key, data, null, reason ));
-	}
-	
-	protected byte[]
 	encrypt(
 		byte[]		other_public_key,
 		byte[]		data,
-		char[]		password,
 		String		reason )
 		
 		throws CryptoManagerException
 	{	        
 		try{
-			IEKeySpec   key_spec = new IEKeySpec( getMyPrivateKey( password, reason ), rawdataToPubkey( other_public_key ));
+			IEKeySpec   key_spec = new IEKeySpec( getMyPrivateKey( reason ), rawdataToPubkey( other_public_key ));
 	 
 			IESParameterSpec param = new IESParameterSpec(ECIES_D, ECIES_E, 128);
 		
@@ -249,35 +204,12 @@ CryptoHandlerECC
 	decrypt(
 		byte[]		other_public_key,
 		byte[]		data,
-		char[]		password )
-		
-		throws CryptoManagerException
-	{
-		return( decrypt( other_public_key, data, password, null ));
-	}
-	   
-	public byte[]
-	decrypt(
-		byte[]		other_public_key,
-		byte[]		data,
-		String		reason )
-		
-		throws CryptoManagerException
-	{
-		return( decrypt( other_public_key, data, null, reason ));
-	}
-	
-	protected byte[]
-	decrypt(
-		byte[]		other_public_key,
-		byte[]		data,
-		char[]		password,
 		String		reason )
 		
 		throws CryptoManagerException
 	{	        
 		try{
-			IEKeySpec   key_spec = new IEKeySpec( getMyPrivateKey( password, reason ), rawdataToPubkey( other_public_key ));
+			IEKeySpec   key_spec = new IEKeySpec( getMyPrivateKey(  reason ), rawdataToPubkey( other_public_key ));
 	 	
 			IESParameterSpec param = new IESParameterSpec(ECIES_D, ECIES_E, 128);
 		
@@ -296,42 +228,22 @@ CryptoHandlerECC
 			throw( new CryptoManagerException( "Decrypt failed", e ));
 		}
 	}
-	
-	public CryptoSTSEngine
-	getSTSEngine(
-		char[]		password )
-	
-		throws CryptoManagerException
-	{
-		return( getSTSEngine( password, null ));
-	}
-	
+		
 	public CryptoSTSEngine
 	getSTSEngine(
 		String		reason )
 	
 		throws CryptoManagerException
 	{
-		return( getSTSEngine( null, reason ));
-	}
-	
-	protected CryptoSTSEngine
-	getSTSEngine(
-		char[]		password,
-		String		reason )
-	
-		throws CryptoManagerException
-	{
-		return( new CryptoSTSEngineImpl( this, getMyPublicKey( password, reason, true ), getMyPrivateKey( password, reason )));
+		return( new CryptoSTSEngineImpl( this, getMyPublicKey(  reason, true ), getMyPrivateKey( reason )));
 	}
 	
 	public byte[]
-	peekPublicKey(
-		char[]		password )
+	peekPublicKey()
 	{
 		try{
 		
-			return( keyToRawdata( getMyPublicKey( password, null, false )));
+			return( keyToRawdata( getMyPublicKey( "peek", false )));
 			
 		}catch( Throwable e ){
 			
@@ -341,65 +253,35 @@ CryptoHandlerECC
 	
 	public byte[]
 	getPublicKey(
-		char[]		password )
-	
-		throws CryptoManagerException
-	{
-		return( keyToRawdata( getMyPublicKey( password, null, true )));
-	}
-	
-	public byte[]
-	getPublicKey(
 		String		reason )
 	
 		throws CryptoManagerException
 	{
-		return( keyToRawdata( getMyPublicKey( null, reason, true )));
-	}
-	
-	protected byte[]
-	getPublicKey(
-		char[]		password,
-		String		reason )
-	
-		throws CryptoManagerException
-	{
-		return( keyToRawdata( getMyPublicKey( password, reason, true )));
-	}
-
-	public byte[]
-   	getEncryptedPrivateKey(
-   		char[]		password )
-	
-		throws CryptoManagerException
-	{
-		return( getEncryptedPrivateKey( password, null ));
-	}
-	
-	public byte[]
-   	getEncryptedPrivateKey(
-   		String		reason )
-	
-		throws CryptoManagerException
-	{
-		return( getEncryptedPrivateKey( null, reason ));
+		return( keyToRawdata( getMyPublicKey( reason, true )));
 	}
   
-	protected byte[]
+	public byte[]
 	getEncryptedPrivateKey(
-		char[]		password,
 		String		reason )
 	
 		throws CryptoManagerException
 	{
-		getMyPrivateKey( password, reason );
+		getMyPrivateKey( reason );
 		
-		byte[]	res = COConfigurationManager.getByteParameter( CONFIG_PREFIX + "privatekey", null );
-		
-		if ( res == null ){
+		byte[]	pk = COConfigurationManager.getByteParameter( CONFIG_PREFIX + "privatekey", null );
+
+		if ( pk == null ){
 			
 			throw( new CryptoManagerException( "Private key unavailable" ));
 		}
+		
+		int	pw_type = getCurrentPasswordType();
+		
+		byte[] res = new byte[pk.length+1];
+		
+		res[0] = (byte)pw_type;
+		
+		System.arraycopy( pk, 0, res, 1, pk.length );
 		
 		return( res );
 	}
@@ -407,7 +289,7 @@ CryptoHandlerECC
 	public synchronized void
 	recoverKeys(
 		byte[]		public_key,
-		byte[]		encrypted_private_key )
+		byte[]		encrypted_private_key_and_type )
 	
 		throws CryptoManagerException
 	{
@@ -416,6 +298,14 @@ CryptoHandlerECC
 		
 		COConfigurationManager.setParameter( CONFIG_PREFIX + "publickey", public_key );
 			
+		int	type = (int)encrypted_private_key_and_type[0]&0xff;
+		
+		COConfigurationManager.setParameter( CONFIG_PREFIX + "pwtype", type );
+
+		byte[] encrypted_private_key = new byte[encrypted_private_key_and_type.length-1];
+		
+		System.arraycopy( encrypted_private_key_and_type, 1, encrypted_private_key, 0, encrypted_private_key.length );
+		
 		COConfigurationManager.setParameter( CONFIG_PREFIX + "privatekey", encrypted_private_key );
 		
 		COConfigurationManager.save();
@@ -423,25 +313,6 @@ CryptoHandlerECC
 	
 	public synchronized void
 	resetKeys(
-		String		reason )
-	
-		throws CryptoManagerException
-	{
-		resetKeys( null, reason );
-	}
-	
-	public synchronized void
-	resetKeys(
-		char[]		password )
-	
-		throws CryptoManagerException
-	{
-		resetKeys( password, "resetting keys" );
-	}
-	
-	protected synchronized void
-	resetKeys(
-		char[]		password,
 		String		reason )
 	
 		throws CryptoManagerException
@@ -455,31 +326,11 @@ CryptoHandlerECC
 		
 		COConfigurationManager.save();
 		
-		createAndStoreKeys( password, "resetting keys" );
+		createAndStoreKeys( "resetting keys" );
 	}
-	
-	public synchronized void
-	changePassword(
-		char[]		old_password,
-		char[]		new_password )
-	
-		throws CryptoManagerException
-	{
-			// ensure old password is correct
-		
-		use_method_private_key	= null;
-		use_method_public_key	= null;
-		
-		getMyPrivateKey( old_password, "changing password" );
-		getMyPublicKey( old_password, "changing password", true );
-		
-		storeKeys( new_password );
-	}
-	
 	
 	protected synchronized PrivateKey
 	getMyPrivateKey(
-		char[]		password,
 		String		reason )
 	
 		throws CryptoManagerException
@@ -503,47 +354,44 @@ CryptoHandlerECC
 			
 			if ( encoded == null ){
 				
-				createAndStoreKeys( password, reason );
+				createAndStoreKeys( reason );
 				
 			}else{
 				
-				boolean	get_password_from_manager = password == null;
-				
-				if ( get_password_from_manager ){
-					
-					password = manager.getPassword( 
-									CryptoManager.HANDLER_ECC, 
-									CryptoManagerPasswordHandler.ACTION_DECRYPT, 
-									reason,
-									new CryptoManagerImpl.passwordTester()
-									{
-										public boolean 
-										testPassword(
-											char[] password )
-										{
-											try{
-												manager.decryptWithPBE( encoded, password );
-												
-												return( true );
-												
-											}catch( Throwable e ){
-												
-												return( false );
-											}
-										}
-									});
-				}
-
+				CryptoManagerImpl.passwordDetails password_details = 
+					manager.getPassword( 
+							CryptoManager.HANDLER_ECC, 
+							CryptoManagerPasswordHandler.ACTION_DECRYPT, 
+							reason,
+							new CryptoManagerImpl.passwordTester()
+							{
+								public boolean 
+								testPassword(
+									char[] password )
+								{
+									try{
+										manager.decryptWithPBE( encoded, password );
+										
+										return( true );
+										
+									}catch( Throwable e ){
+										
+										return( false );
+									}
+								}
+							},
+							getCurrentPasswordType());
+	
 				boolean		ok = false;
 				
 				try{
-					use_method_private_key = rawdataToPrivkey( manager.decryptWithPBE( encoded, password ));
+					use_method_private_key = rawdataToPrivkey( manager.decryptWithPBE( encoded, password_details.getPassword()));
 				
 					last_unlock_time = SystemTime.getCurrentTime();
 				
 					byte[]	test_data = "test".getBytes();
 					
-					ok = verify( keyToRawdata( getMyPublicKey( password, reason, true )), test_data,  sign( test_data, password, reason ));
+					ok = verify( keyToRawdata( getMyPublicKey( reason, true )), test_data,  sign( test_data, reason ));
 					
 					if ( !ok ){
 											
@@ -561,11 +409,8 @@ CryptoHandlerECC
 				}finally{
 					
 					if ( !ok ){
-						
-						if ( get_password_from_manager ){
-							
-							manager.clearPassword( CryptoManager.HANDLER_ECC );
-						}
+													
+						manager.clearPassword( CryptoManager.HANDLER_ECC );
 						
 						use_method_private_key	= null;
 					}
@@ -583,7 +428,6 @@ CryptoHandlerECC
 	
 	protected synchronized PublicKey
 	getMyPublicKey(
-		char[]		password,
 		String		reason,
 		boolean		create_if_needed )
 	
@@ -597,7 +441,7 @@ CryptoHandlerECC
 				
 				if ( create_if_needed ){
 					
-					createAndStoreKeys( password, reason );
+					createAndStoreKeys( reason );
 					
 				}else{
 					
@@ -619,19 +463,20 @@ CryptoHandlerECC
 	
 	protected void
 	createAndStoreKeys(
-		char[]		password,
 		String		reason )
 	
 		throws CryptoManagerException
 	{
-		if ( password == null ){
-			
-			password = manager.getPassword( 
+			// when storing keys we allow the registered handlers decide which password type handler
+			// is wearing the trousers
+		
+		CryptoManagerImpl.passwordDetails password_details = 
+			manager.getPassword( 
 							CryptoManager.HANDLER_ECC,
 							CryptoManagerPasswordHandler.ACTION_ENCRYPT,
 							reason,
-							null );
-		}
+							null,
+							CryptoManagerPasswordHandler.HANDLER_TYPE_UNKNOWN );
 		
 		KeyPair	keys = createKeys();
 		
@@ -641,12 +486,12 @@ CryptoHandlerECC
 		
 		last_unlock_time = SystemTime.getCurrentTime();
 		
-		storeKeys( password );
+		storeKeys( password_details );
 	}
 	
 	protected void
 	storeKeys(
-		char[]		password )
+		CryptoManagerImpl.passwordDetails	password )
 	
 		throws CryptoManagerException
 	{
@@ -654,9 +499,11 @@ CryptoHandlerECC
 		
 		byte[]	priv_raw = keyToRawdata( use_method_private_key );
 		
-		byte[]	priv_enc = manager.encryptWithPBE( priv_raw, password );
+		byte[]	priv_enc = manager.encryptWithPBE( priv_raw, password.getPassword());
 		
 		COConfigurationManager.setParameter( CONFIG_PREFIX + "privatekey", priv_enc );
+
+		COConfigurationManager.setParameter( CONFIG_PREFIX + "pwtype", password.getHandlerType());
 
 		COConfigurationManager.save();
 		
@@ -805,6 +652,101 @@ CryptoHandlerECC
 			
 			return( false );
 		}
+	}
+	
+	public String
+	exportKeys()
+	
+		throws CryptoManagerException
+	{
+		return( "salt:    " + Base32.encode(manager.getPasswordSalt()) + "\r\n" + 
+				"public:  " + Base32.encode(getPublicKey( "Key export" )) + "\r\n" +
+				"private: " + Base32.encode(getEncryptedPrivateKey( "Key export" )));
+	}
+	
+	public void
+	importKeys(
+		String	str )
+	
+		throws CryptoManagerException
+	{
+		byte[]	existing_salt 			= manager.getPasswordSalt();
+		byte[]	existing_public_key		= peekPublicKey();
+		byte[]	existing_private_key	= existing_public_key==null?null:getEncryptedPrivateKey( "Key import" );
+		
+		byte[]		recovered_salt 			= null;
+		byte[]		recovered_public_key 	= null;
+		byte[]		recovered_private_key 	= null;
+				
+		String[]	bits = str.split( "\n" );
+		
+		for (int i=0;i<bits.length;i++){
+			
+			String	bit = bits[i].trim();
+			
+			if ( bit.length() == 0 ){
+				
+				continue;
+			}
+			
+			String[] x = bit.split(":");
+			
+			if ( x.length != 2 ){
+				
+				continue;
+			}
+			
+			String	lhs = x[0].trim();
+			String	rhs = x[1].trim();
+			
+			byte[]	rhs_val = Base32.decode( rhs );
+			
+			if ( lhs.equals( "salt" )){
+				
+				recovered_salt = rhs_val;
+				
+			}else if ( lhs.equals( "public" )){
+				
+				recovered_public_key = rhs_val;
+				
+			}else if ( lhs.equals( "private" )){
+				
+				recovered_private_key = rhs_val;
+			}
+		}
+		
+		if ( recovered_salt == null || recovered_public_key == null || recovered_private_key == null ){
+			
+			throw( new CryptoManagerException( "Invalid input file" ));
+		}
+		
+		boolean	ok = false;
+		
+		try{
+			manager.setPasswordSalt( recovered_salt );
+			
+			recoverKeys( recovered_public_key, recovered_private_key );
+		
+			ok = true;
+						
+		}finally{
+			
+			if ( !ok ){
+								
+				manager.setPasswordSalt( existing_salt );
+				
+				if ( existing_public_key != null ){
+					
+					recoverKeys( existing_public_key, existing_private_key );
+				}
+			}
+		}
+	}
+	
+	protected int
+	getCurrentPasswordType()
+	{
+		return((int)COConfigurationManager.getIntParameter( CONFIG_PREFIX + "pwtype", CryptoManagerPasswordHandler.HANDLER_TYPE_USER ));
 	}
 	
 	class InternalECIES 

@@ -1161,7 +1161,7 @@ BuddyPlugin
 				}
 			}catch( Throwable e ){
 				
-				log( "Failed to publish online status", e );
+				logMessage( "Failed to publish online status", e );
 			}
 		}
 	}
@@ -1573,7 +1573,7 @@ BuddyPlugin
 			
 		}catch( Throwable e ){
 			
-			logMessage( "Failed to get key", e );
+			logMessage( "Failed to access public key", e );
 			
 			return( null );
 		}
@@ -1786,7 +1786,7 @@ BuddyPlugin
 		byte[]		signed_stuff,
 		byte[]		public_key )
 	
-		throws Exception
+		throws BuddyPluginException
 	{
 		int	signature_length = ((int)signed_stuff[0])&0xff;
 		
@@ -1795,16 +1795,23 @@ BuddyPlugin
 		
 		System.arraycopy( signed_stuff, 1, signature, 0, signature_length );
 		System.arraycopy( signed_stuff, 1 + signature_length, data, 0, data.length );
+			
+		try{
+			if ( ecc_handler.verify( public_key, data, signature )){													
+	
+				return( BDecoder.decode( data ));
+																																	
+			}else{
 				
-		if ( ecc_handler.verify( public_key, data, signature )){													
-
-			return( BDecoder.decode( data ));
-																																
-		}else{
+				logMessage( "Signature verification failed" );
+				
+				return( null );
+			}
+		}catch( Throwable e ){
 			
-			log( "Verification failed" );
+			logMessage( "Signature verification failed", e );
 			
-			return( null );
+			throw( new BuddyPluginException( "Signature verification failed", e ));
 		}
 	}
 	
@@ -1813,20 +1820,28 @@ BuddyPlugin
 		Map		plain_stuff,
 		String	reason )
 	
-		throws Exception
+		throws BuddyPluginException
 	{
-		byte[] data = BEncoder.encode( plain_stuff );
+		try{
+			byte[] data = BEncoder.encode( plain_stuff );
+			
+			byte[] signature = ecc_handler.sign( data, reason );
 		
-		byte[] signature = ecc_handler.sign( data, reason );
+			byte[]	signed_payload = new byte[ 1 + signature.length + data.length ];
+			
+			signed_payload[0] = (byte)signature.length;
+			
+			System.arraycopy( signature, 0, signed_payload, 1, signature.length );
+			System.arraycopy( data, 0, signed_payload, 1 + signature.length, data.length );		
 	
-		byte[]	signed_payload = new byte[ 1 + signature.length + data.length ];
-		
-		signed_payload[0] = (byte)signature.length;
-		
-		System.arraycopy( signature, 0, signed_payload, 1, signature.length );
-		System.arraycopy( data, 0, signed_payload, 1 + signature.length, data.length );		
-
-		return( signed_payload );
+			return( signed_payload );
+			
+		}catch( Throwable e ){
+			
+			logMessage( "Signing failed", e );
+			
+			throw( new BuddyPluginException( "Signing failed", e ));
+		}
 	}
 	
 	public boolean
@@ -1865,7 +1880,9 @@ BuddyPlugin
 			
 		}catch( Throwable e ){
 			
-			throw( new BuddyPluginException( "Verification failed", e ));
+			logMessage( "Signature verification failed", e );
+			
+			throw( new BuddyPluginException( "Signature verification failed", e ));
 		}
 	}
 	
@@ -1880,6 +1897,8 @@ BuddyPlugin
 			return( ecc_handler.sign( payload, "Buddy message signing" ));
 
 		}catch( Throwable e ){
+			
+			logMessage( "Signing failed", e );
 			
 			throw( new BuddyPluginException( "Signing failed", e ));
 		}
@@ -1925,6 +1944,8 @@ BuddyPlugin
 			
 		}catch( Throwable e ){
 			
+			logMessage( "Encryption failed", e );
+			
 			throw( new BuddyPluginException( "Encryption failed", e ));
 		}
 	}
@@ -1959,6 +1980,8 @@ BuddyPlugin
 				});
 			
 		}catch( Throwable e ){
+			
+			logMessage( "Decryption failed", e );
 			
 			throw( new BuddyPluginException( "Decryption failed", e ));
 		}
@@ -2017,7 +2040,7 @@ BuddyPlugin
 		}catch( Throwable e ){
 			
 			try{
-				log( "Failed to publish YGM", e );
+				logMessage( "Failed to publish YGM", e );
 				
 				if ( e instanceof BuddyPluginException ){
 					
@@ -2120,7 +2143,7 @@ BuddyPlugin
 			
 		}catch( Throwable e ){
 						
-			log( "YGM check failed", e );
+			logMessage( "YGM check failed", e );
 		}
 	}
 	
