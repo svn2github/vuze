@@ -20,6 +20,7 @@
 
 package com.aelitis.azureus.util;
 
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
@@ -106,12 +107,17 @@ public class JSONUtils
 
 	private static Object coerce(Object value) {
 		if ((value instanceof Map) && !(value instanceof JSONObject)) {
-			value = encodeToJSONObject((Map)value);
+			value = encodeToJSONObject((Map) value);
 		} else if ((value instanceof List) && !(value instanceof JSONArray)) {
-			value = encodeToJSONArray((List)value);
+			value = encodeToJSONArray((List) value);
 		} else if (value instanceof Object[]) {
-			Object[] array = (Object[])value;
+			Object[] array = (Object[]) value;
 			value = encodeToJSONArray(Arrays.asList(array));
+		} else if (value instanceof byte[]) {
+			try {
+				value = new String((byte[]) value, "utf-8");
+			} catch (UnsupportedEncodingException e) {
+			}
 		}
 		return value;
 	}
