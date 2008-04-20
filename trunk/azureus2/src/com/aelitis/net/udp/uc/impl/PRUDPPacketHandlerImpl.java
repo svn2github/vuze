@@ -1140,7 +1140,7 @@ PRUDPPacketHandlerImpl
 	
 		throws PRUDPPacketHandlerException
 	{
-		if ( socket == null ){
+		if ( socket == null || socket.isClosed()){
 			
 			if ( init_error != null ){
 				
@@ -1247,6 +1247,16 @@ PRUDPPacketHandlerImpl
 	
 		throws PRUDPPacketHandlerException
 	{
+		if ( socket == null || socket.isClosed()){
+			
+			if ( init_error != null ){
+				
+				throw( new PRUDPPacketHandlerException( "Transport unavailable", init_error ));
+			}
+			
+			throw( new PRUDPPacketHandlerException( "Transport unavailable" ));
+		}
+		
 		try{
 			checkTargetAddress( target );
 			
