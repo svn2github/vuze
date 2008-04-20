@@ -27,6 +27,7 @@ import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddyCreator;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
+import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
 import com.aelitis.azureus.core.messenger.config.VuzeRelayListener;
 import com.aelitis.azureus.plugins.net.buddy.*;
@@ -88,11 +89,11 @@ public class VuzeBuddyManager
 					try {
 						String s = new String(payload, "utf-8");
 						Map mapPayload = JSONUtils.decodeJSON(s);
-
-						processPayloadMap(mapPayload);
+						
+						// If we got here, we are authorized (we have a VuzeBuddy)
+						processPayloadMap(mapPayload, true);
 					} catch (UnsupportedEncodingException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						Debug.out(e);
 					}
 				}
 			};
@@ -179,10 +180,7 @@ public class VuzeBuddyManager
 					return;
 				}
 
-				VuzeBuddy newBuddy = createNewBuddy(pk);
-				if (newBuddy != null) {
-					newBuddy.setDisplayName(buddy.getName());
-				}
+				VuzeBuddy newBuddy = createNewBuddy(buddy, true);
 			}
 		};
 
@@ -192,7 +190,7 @@ public class VuzeBuddyManager
 				if (subsystem != BuddyPlugin.SUBSYSTEM_AZ3) {
 					return null;
 				}
-				
+
 				Map mapResponse = new HashMap();
 
 				try {
@@ -200,10 +198,8 @@ public class VuzeBuddyManager
 
 					VuzeBuddy vuzeBuddy = (VuzeBuddy) mapPKtoVuzeBuddy.get(pk);
 					if (vuzeBuddy != null) {
-						boolean ok = processPayloadMap(request);
-						if (ok) {
-							mapResponse.put("response", "Ok");
-						}
+						String reply = processPayloadMap(request, from_buddy.isAuthorised());
+						mapResponse.put("response", reply);
 					} else {
 						mapResponse.put("response", "Error: You are not my buddy");
 					}
@@ -250,10 +246,20 @@ public class VuzeBuddyManager
 	 * 
 	 * @param mapPayload
 	 *s
+	 * @param authorizedBuddy 
 	 * @since 3.0.5.3
 	 */
-	protected static boolean processPayloadMap(Map mapPayload) {
+	protected static String processPayloadMap(Map mapPayload, boolean authorizedBuddy) {
 		String mt = MapUtils.getMapString(mapPayload, "VuzeMessageType", "");
+		if (mt.equals("BuddySync")) {
+			PlatformBuddyMessenger.sync();
+			return "Ok";
+		}
+		
+		if (!authorizedBuddy) {
+			return "Not Authorized";
+		}
+
 		if (mt.equals("ActivityEntry")) {
 			Map mapEntry = (Map) MapUtils.getMapObject(mapPayload, "ActivityEntry",
 					new HashMap(), Map.class);
@@ -264,12 +270,10 @@ public class VuzeBuddyManager
 				VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
 					entry
 				});
-				return true;
+				return "Ok";
 			}
-		} else if (mt.equals("BuddySync")) {
-			// TODO buddy sync
 		}
-		return false;
+		return "Unknown Message Type";
 	}
 
 	/**
@@ -387,13 +391,24 @@ public class VuzeBuddyManager
 	 *
 	 * @since 3.0.5.3
 	 */
-	public static void addBuddy(VuzeBuddy buddy) {
+	public static void addBuddy(VuzeBuddy buddy, boolean createActivityEntry) {
 		try {
 			buddy_mon.enter();
 
 			if (!buddyList.contains(buddy)) {
 				log("Add new buddy to Manager");
 				buddyList.add(buddy);
+
+				if (createActivityEntry) {
+					VuzeActivitiesEntry entry = new VuzeActivitiesEntry();
+					entry.setTypeID("buddy-new", true);
+					entry.id = "buddy-new-" + buddy.getLoginID();
+					entry.text = buddy.getDisplayName()
+							+ " has become your buddy.  Huzzah! :D";
+					VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
+						entry
+					});
+				}
 			}
 
 		} finally {
@@ -409,10 +424,9 @@ public class VuzeBuddyManager
 	 *
 	 * @since 3.0.5.3
 	 */
-	public static VuzeBuddy createNewBuddy(String pk) {
-		if (buddyPlugin == null) {
-			return null;
-		}
+	public static VuzeBuddy createNewBuddy(BuddyPluginBuddy buddy, boolean createActivityEntry) {
+		String pk = buddy.getPublicKey();
+		
 		VuzeBuddy newBuddy;
 		if (vuzeBuddyCreator == null) {
 			newBuddy = new VuzeBuddyImpl(pk);
@@ -423,10 +437,14 @@ public class VuzeBuddyManager
 		if (newBuddy == null) {
 			return null;
 		}
+		
+		if (newBuddy != null) {
+			newBuddy.setDisplayName(buddy.getName());
+		}
 
 		getBuddyPluginBuddyForVuze(pk);
 
-		addBuddy(newBuddy);
+		addBuddy(newBuddy, createActivityEntry);
 
 		return newBuddy;
 	}
@@ -440,7 +458,8 @@ public class VuzeBuddyManager
 	 *
 	 * @since 3.0.5.3
 	 */
-	public static VuzeBuddy createNewBuddy(Map mapNewBuddy) {
+	public static VuzeBuddy createNewBuddy(Map mapNewBuddy,
+			boolean createActivityEntry) {
 		if (buddyPlugin == null) {
 			return null;
 		}
@@ -457,7 +476,7 @@ public class VuzeBuddyManager
 
 		newBuddy.loadFromMap(mapNewBuddy);
 
-		addBuddy(newBuddy);
+		addBuddy(newBuddy, createActivityEntry);
 
 		return newBuddy;
 	}

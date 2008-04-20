@@ -25,6 +25,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.messenger.PlatformMessage;
+import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
 import com.aelitis.azureus.util.MapUtils;
 
@@ -37,11 +38,11 @@ public class PlatformBuddyMessenger
 {
 	public static final String LISTENER_ID = "buddy";
 
-	public static String OP_GETBUDDIES = "get-buddies";
+	public static String OP_SYNC = "sync";
 
-	public static void getBuddies() {
+	public static void sync() {
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
-				OP_GETBUDDIES, new Object[0], 1000);
+				OP_SYNC, new Object[0], 1000);
 
 		PlatformMessengerListener listener = new PlatformMessengerListener() {
 
@@ -69,7 +70,7 @@ public class PlatformBuddyMessenger
 					if (buddy != null) {
 						buddy.loadFromMap(mapBuddy);
 					} else {
-						buddy = VuzeBuddyManager.createNewBuddy(mapBuddy);
+						buddy = VuzeBuddyManager.createNewBuddy(mapBuddy, true);
 					}
 					
 					if (buddy != null) {
@@ -82,5 +83,6 @@ public class PlatformBuddyMessenger
 
 		};
 
+		PlatformMessenger.queueMessage(message, listener);
 	}
 }

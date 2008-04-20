@@ -46,7 +46,7 @@ public class VuzeBuddyUtils
 		buddy.setDisplayName("Mr Random " + x);
 		buddy.setAvatarImage(ImageRepository.getImage("azureus128"));
 		
-		VuzeBuddyManager.addBuddy(buddy);
+		VuzeBuddyManager.addBuddy(buddy, false);
 		
 		return buddy;
 	}

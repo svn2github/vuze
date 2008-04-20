@@ -235,7 +235,6 @@ public class VuzeActivitiesManager
 							title = PlatformTorrentUtils.getContentTitle2(dm);
 						}
 
-						entry.setTimestamp(SystemTime.getCurrentTime());
 						entry.id = hash + ";r" + entry.getTimestamp();
 						entry.text = title + " has been removed from your library";
 						entry.setTypeID(VuzeActivitiesEntry.TYPEID_DL_REMOVE, true);
