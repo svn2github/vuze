@@ -122,20 +122,15 @@ public class VuzeBuddyImpl
 
 	// @see com.aelitis.azureus.buddy.VuzeBuddy#addPublicKey()
 	public void addPublicKey(String pk) {
+		// We add public keys by adding BuddyPluginBuddy
 		mon_pluginBuddies.enter();
 		try {
-			BuddyPlugin buddyPlugin = VuzeBuddyManager.getBuddyPlugin();
-			if (buddyPlugin != null) {
-				BuddyPluginBuddy pluginBuddy = buddyPlugin.getBuddyFromPublicKey(pk);
-				if (pluginBuddy == null) {
-					pluginBuddy = buddyPlugin.addBuddy(pk, BuddyPlugin.SUBSYSTEM_AZ3);
-				}
+			BuddyPluginBuddy pluginBuddy = VuzeBuddyManager.getBuddyPluginBuddyForVuze(pk);
 
-				if (pluginBuddy != null && !pluginBuddies.contains(pluginBuddy)) {
-					pluginBuddies.add(pluginBuddy);
-				}
+			if (pluginBuddy != null && !pluginBuddies.contains(pluginBuddy)) {
+				pluginBuddies.add(pluginBuddy);
 			}
-			
+
 		} finally {
 			mon_pluginBuddies.exit();
 		}
@@ -145,12 +140,14 @@ public class VuzeBuddyImpl
 
 	// @see com.aelitis.azureus.buddy.VuzeBuddy#removePublicKey(java.lang.String)
 	public void removePublicKey(String pk) {
+		// our public key list is actually a BuddyPluginBuddy list, so find
+		// it in our list and remove it
 		mon_pluginBuddies.enter();
 		try {
 			BuddyPlugin buddyPlugin = VuzeBuddyManager.getBuddyPlugin();
 			if (buddyPlugin != null) {
 				BuddyPluginBuddy pluginBuddy = buddyPlugin.getBuddyFromPublicKey(pk);
-				if (pluginBuddy == null) {
+				if (pluginBuddy != null) {
 					pluginBuddies.remove(pluginBuddy);
 				}
 				// buddyPlugin.removeBuddy(pk, BuddyPlugin.SUBSYSTEM_AZ3);
@@ -190,15 +187,14 @@ public class VuzeBuddyImpl
 			try {
 				for (Iterator iter = pluginBuddies.iterator(); iter.hasNext();) {
 					BuddyPluginBuddy pluginBuddy = (BuddyPluginBuddy) iter.next();
-					if (pluginBuddy.isOnline() && false) {
+					if (pluginBuddy.isOnline()) {
 						pluginBuddy.sendMessage(BuddyPlugin.SUBSYSTEM_AZ3, map, 10000,
 								new BuddyPluginBuddyReplyListener() {
 
 									public void sendFailed(BuddyPluginBuddy to_buddy,
 											BuddyPluginException cause) {
-
 										VuzeBuddyManager.log("SEND FAILED "
-												+ to_buddy.getPublicKey());
+												+ to_buddy.getPublicKey() + "\n" + cause);
 									}
 
 									public void replyReceived(BuddyPluginBuddy from_buddy,
