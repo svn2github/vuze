@@ -21,15 +21,17 @@ package com.aelitis.azureus.buddy.impl;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
+import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
+import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.plugins.net.buddy.*;
-import com.aelitis.azureus.util.JSONUtils;
-import com.aelitis.azureus.util.MapUtils;
-import com.aelitis.azureus.util.VuzeActivitiesEntry;
+import com.aelitis.azureus.util.*;
+import com.aelitis.azureus.util.LoginInfoManager.LoginInfo;
 
 /**
  * BuddyPluginBuddy plus some vuze specific stuff
@@ -204,7 +206,8 @@ public class VuzeBuddyImpl
 											Map reply) {
 										VuzeBuddyManager.log("REPLY REC "
 												+ JSONUtils.encodeToJSON(reply));
-										String response = MapUtils.getMapString(reply, "response", "");
+										String response = MapUtils.getMapString(reply, "response",
+												"");
 										if (!response.toLowerCase().equals("ok")) {
 											sendViaRelayServer(from_buddy, map);
 										}
@@ -238,8 +241,52 @@ public class VuzeBuddyImpl
 			pluginBuddy.setMessagePending();
 		} catch (Exception e) {
 			// TODO: Store for later
-			
+
 			Debug.out(e);
 		}
+	}
+
+	public void shareDownload(DownloadManager dm, String message) {
+		if (dm == null) {
+			return;
+		}
+		TOTorrent torrent = dm.getTorrent();
+		if (torrent == null) {
+			return;
+		}
+
+		HashWrapper hashWrapper = null;
+		try {
+			hashWrapper = torrent.getHashWrapper();
+		} catch (TOTorrentException e) {
+		}
+
+		if (hashWrapper == null) {
+			return;
+		}
+
+		LoginInfo userInfo = LoginInfoManager.getInstance().getUserInfo();
+		if (userInfo == null || userInfo.userID == null) {
+			// TODO: Login!
+			VuzeBuddyManager.log("Can't share download: Not logged in");
+		}
+
+		VuzeActivitiesEntry entry = new VuzeActivitiesEntry();
+
+		// make all shares unique (so if the user shares the same content twice,
+		// their buddy gets two entries)
+		entry.id = "Buddy-share-" + SystemTime.getCurrentTime();
+		entry.text = userInfo.userName + " is sharing "
+				+ PlatformTorrentUtils.getContentTitle(torrent) + " with you.";
+		if (message != null) {
+			entry.text += "\n \nMessage from " + userInfo.userName + ":\n" + message;
+		}
+		entry.assetHash = hashWrapper.toBase32String();
+		entry.dm = dm;
+		entry.showThumb = true;
+		entry.setTypeID("buddy-share", true);
+		entry.imageBytes = PlatformTorrentUtils.getContentThumbnail(torrent);
+
+		sendActivity(entry);
 	}
 }
