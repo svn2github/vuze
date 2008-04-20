@@ -459,7 +459,7 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 	public void refresh() {
 		if (bPaused)
 			return;
-
+		
 		synchronized (buffer) {
 			if (consoleText == null || consoleText.isDisposed())
 				return;
@@ -470,10 +470,15 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 
 					int nbLinesBefore = consoleText.getLineCount();
 					if (nbLinesBefore > MAX_LINES)
-						consoleText.replaceTextRange(0, consoleText
-								.getOffsetAtLine(PREFERRED_LINES), "");
+					{
+						consoleText.replaceTextRange(0, consoleText.getOffsetAtLine(PREFERRED_LINES), "");
+						nbLinesBefore = consoleText.getLineCount();
+					}
+
 
 					final StringBuffer buf = new StringBuffer();
+					buf.append('\n');
+					
 					dateFormatter.format(event.timeStamp, buf, formatPos);
 					buf.append("{").append(event.logID).append("} ");
 
@@ -492,7 +497,7 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 							}
 						}
 					}
-					buf.append('\n');
+
 
 					String toAppend = buf.toString();
 					
@@ -511,7 +516,7 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 						colorIdx = COLOR_ERR;
 
 					if (colors != null && colorIdx >= 0)
-						consoleText.setLineBackground(nbLinesBefore - 1, nbLinesNow
+						consoleText.setLineBackground(nbLinesBefore, nbLinesNow
 								- nbLinesBefore, colors[colorIdx]);
 				} catch (Exception e) {
 					// don't send it to log, we might be feeding ourselves
@@ -525,7 +530,7 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 			}
 			buffer.clear();
 			if (bAutoScroll)
-				consoleText.setSelection(consoleText.getText().length());
+				consoleText.setTopIndex(consoleText.getLineCount());
 		}
 	}
 

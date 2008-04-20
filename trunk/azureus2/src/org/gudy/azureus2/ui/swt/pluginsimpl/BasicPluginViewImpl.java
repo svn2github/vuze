@@ -23,10 +23,16 @@
 
 package org.gudy.azureus2.ui.swt.pluginsimpl;
 
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -36,6 +42,7 @@ import org.gudy.azureus2.plugins.ui.components.UIPropertyChangeListener;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 
@@ -60,6 +67,9 @@ BasicPluginViewImpl
   BufferedLabel status;
   BufferedLabel task;
   StyledText log;
+  Pattern inclusionFilter;
+  Pattern exclusionFilter;
+  boolean paused;
   
   boolean isCreated;
   
@@ -186,27 +196,99 @@ BasicPluginViewImpl
     }
     
     if(model.getLogArea().getVisible()) {
-      Label logTitle = new Label(topSection,SWT.NULL);
-      Messages.setLanguageText(logTitle,"plugins.basicview.log");
-    //  gridData = new GridData(GridData.FILL_HORIZONTAL);
-    //  gridData.horizontalSpan = 1;
-    //  logTitle.setLayoutData(gridData);
-      
-      Button button = new Button( topSection, SWT.PUSH );
-      Messages.setLanguageText(button,"plugins.basicview.clear");
-      
-      button.addListener(SWT.Selection, new Listener() {
-  	      public void handleEvent(Event event) 
-  	      {
-  	      	model.getLogArea().setText("");
-  	      }});
+    	Label logTitle = new Label(topSection,SWT.NULL);
+    	Messages.setLanguageText(logTitle,"plugins.basicview.log");
+    	//  gridData = new GridData(GridData.FILL_HORIZONTAL);
+    	//  gridData.horizontalSpan = 1;
+    	//  logTitle.setLayoutData(gridData);
 
-      log = new StyledText(panel,SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);
-      gridData = new GridData(GridData.FILL_BOTH);
-      gridData.horizontalSpan = 2;
-      log.setLayoutData(gridData);
-      log.setText( model.getLogArea().getText());
-      model.getLogArea().addPropertyChangeListener(this);
+    	Button button = new Button( topSection, SWT.PUSH );
+    	Messages.setLanguageText(button,"plugins.basicview.clear");
+
+    	button.addListener(SWT.Selection, new Listener() {
+    		public void handleEvent(Event event) 
+    		{
+    			model.getLogArea().setText("");
+    		}});
+
+    	log = new StyledText(panel,SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);
+    	gridData = new GridData(GridData.FILL_BOTH);
+    	gridData.horizontalSpan = 2;
+    	log.setLayoutData(gridData);
+    	log.setText( model.getLogArea().getText());
+    	log.setTopIndex(log.getLineCount());
+    	model.getLogArea().addPropertyChangeListener(this);
+
+
+    	Label label = new Label(panel, SWT.NONE);
+    	label.setLayoutData(new GridData());
+    	Messages.setLanguageText(label, "LoggerView.includeOnly");
+
+    	final Text inclText = new Text(panel, SWT.BORDER);
+    	gridData = new GridData();
+    	gridData.widthHint = 200;
+    	inclText.setLayoutData(gridData);
+    	inclText.addModifyListener(new ModifyListener()
+    	{
+    		public void modifyText(ModifyEvent e) {
+    			String newExpression = inclText.getText();
+    			if (newExpression.length() == 0)
+    				inclusionFilter = null;
+    			else
+    			{
+    				try
+    				{
+    					inclusionFilter = Pattern.compile(newExpression, Pattern.CASE_INSENSITIVE);
+    					inclText.setBackground(null);
+    				} catch (PatternSyntaxException e1)
+    				{
+    					inclText.setBackground(Colors.colorErrorBG);
+    				}
+    			}
+    		}
+    	});
+
+    	label = new Label(panel, SWT.NONE);
+    	label.setLayoutData(new GridData());
+    	Messages.setLanguageText(label, "LoggerView.excludeAll");
+
+    	final Text exclText = new Text(panel, SWT.BORDER);
+    	gridData = new GridData();
+    	gridData.widthHint = 200;
+    	exclText.setLayoutData(gridData);
+    	exclText.addModifyListener(new ModifyListener()
+    	{
+    		public void modifyText(ModifyEvent e) {
+    			String newExpression = exclText.getText();
+    			if (newExpression.length() == 0)
+    				exclusionFilter = null;
+    			else
+    			{
+    				try
+    				{
+    					exclusionFilter = Pattern.compile(newExpression, Pattern.CASE_INSENSITIVE);
+    					exclText.setBackground(null);
+    				} catch (PatternSyntaxException e1)
+    				{
+    					exclText.setBackground(Colors.colorErrorBG);
+    				}
+    			}
+    		}
+    	});
+    	
+		Button buttonPause = new Button(panel, SWT.CHECK);
+		Messages.setLanguageText(buttonPause, "LoggerView.pause");
+		gridData = new GridData();
+		buttonPause.setLayoutData(gridData);
+		buttonPause.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				if (e.widget == null || !(e.widget instanceof Button))
+					return;
+				Button btn = (Button) e.widget;
+				paused = btn.getSelection();
+			}
+		});
+
     }
   }
   
@@ -225,24 +307,68 @@ BasicPluginViewImpl
   public void propertyChanged(final UIPropertyChangeEvent ev) {
     if(ev.getSource() != model.getLogArea())
       return;
-    if(display == null || display.isDisposed())
+    if(display == null || display.isDisposed() || log == null || paused)
       return;
-    if(log == null)
-      return;
+
     display.asyncExec(new AERunnable(){
       public void runSupport() {
         if(log.isDisposed())
           return;
         String old_value = (String)ev.getOldPropertyValue();
         String new_value = (String) ev.getNewPropertyValue();
+        
+        ScrollBar bar = log.getVerticalBar();
+
+        boolean max = bar.getSelection() == bar.getMaximum() - bar.getThumb();
+        int lineOffset = log.getLineCount() - log.getTopIndex();
      
         if ( new_value.startsWith( old_value )){
+        	
+        	String toAppend = new_value.substring(old_value.length());
+        	if(toAppend.length() == 0)
+        		return;
+        	
+        	StringBuilder builder = new StringBuilder(toAppend.length());
+        	
+        	String[] lines = toAppend.split("\n");
+
+        	
+        	for(String line : lines)
+        	{
+
+        		if((inclusionFilter != null && !inclusionFilter.matcher(line).find()) || (exclusionFilter != null && exclusionFilter.matcher(line).find()))
+					continue;
+        		builder.append("\n");
+        		builder.append(line);
+        	}
+        	
                		
-        	log.append( new_value.substring(old_value.length()));
+        	log.append(builder.toString());
        
         }else{
-        	log.setText(new_value);
+        	
+        	StringBuilder builder = new StringBuilder(new_value.length());
+        	
+        	String[] lines = new_value.split("\n");
+        	for(String line : lines)
+        	{
+        		if((inclusionFilter != null && !inclusionFilter.matcher(line).find()) || (exclusionFilter != null && exclusionFilter.matcher(line).find()))
+					continue;
+        		if(line != lines[0])
+        			builder.append("\n");
+        		builder.append(line);
+        	}
+
+        	log.setText(builder.toString());
         }
+        
+        if(max)
+        {
+        	bar.setSelection(bar.getMaximum()-bar.getThumb());
+        	log.setTopIndex(log.getLineCount()-lineOffset);
+        	log.redraw();
+        }
+        	
       }
     });
   }
