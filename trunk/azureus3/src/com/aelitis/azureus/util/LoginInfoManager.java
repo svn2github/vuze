@@ -57,6 +57,10 @@ public class LoginInfoManager
 	public void removeListener(ILoginInfoListener listener) {
 		listeners.remove(listener);
 	}
+	
+	public LoginInfo getUserInfo() {
+		return new LoginInfo();
+	}
 
 	public void setUserInfo(String userName, String userID, boolean isNewOrUpdated) {
 		if (this.userName != userName || this.userID != userID) {
