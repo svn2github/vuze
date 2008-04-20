@@ -22,7 +22,6 @@
 
 package com.aelitis.azureus.core.peermanager.messaging.bittorrent;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.RawMessage;
@@ -66,6 +65,12 @@ public class BTHandshake implements BTMessage, RawMessage {
   private final byte[] peer_id_bytes;
   private final byte version;
   
+  private static byte[] duplicate(byte[] b) {
+	  byte[] r = new byte[b.length];
+	  System.arraycopy(b, 0, r, 0, b.length);
+	  return r;
+  }
+  
   /**
    * Used for outgoing handshake message.
    * @param data_hash
@@ -73,7 +78,7 @@ public class BTHandshake implements BTMessage, RawMessage {
    * @param set_reserve_bit
    */
   public BTHandshake( byte[] data_hash, byte[] peer_id, boolean set_reserve_bit, byte version ) {
-    this( (byte[])((set_reserve_bit ? AZ_RESERVED : BT_RESERVED).clone()), data_hash, peer_id, version );
+    this( duplicate(set_reserve_bit ? AZ_RESERVED : BT_RESERVED), data_hash, peer_id, version );
   }
   
   
