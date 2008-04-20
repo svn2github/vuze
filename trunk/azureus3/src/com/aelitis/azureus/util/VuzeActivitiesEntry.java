@@ -106,7 +106,7 @@ public class VuzeActivitiesEntry
 	 * 
 	 */
 	public VuzeActivitiesEntry() {
-		// TODO Auto-generated constructor stub
+		this.timestamp = SystemTime.getCurrentTime();
 	}
 
 	/**
