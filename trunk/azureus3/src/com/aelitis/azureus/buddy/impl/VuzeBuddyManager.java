@@ -180,7 +180,7 @@ public class VuzeBuddyManager
 					return;
 				}
 
-				VuzeBuddy newBuddy = createNewBuddy(buddy, true);
+				createNewBuddy(buddy, true);
 			}
 		};
 
