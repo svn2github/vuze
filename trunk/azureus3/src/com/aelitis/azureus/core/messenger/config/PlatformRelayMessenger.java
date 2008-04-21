@@ -183,35 +183,36 @@ public class PlatformRelayMessenger
 					String sender = MapUtils.getMapString(map, "sender", null);
 
 					BuddyPluginBuddy pluginBuddy = buddyPlugin.getBuddyFromPublicKey(sender);
-					VuzeBuddy buddy = VuzeBuddyManager.getBuddyByPK(sender);
 					if (pluginBuddy == null) {
 						PlatformMessenger.debug("Relay: fetch: could not find sender");
-					} else {
-						long ack_id = MapUtils.getMapLong(map, "id", -1);
-						byte[] enc_payload = Base32.decode(MapUtils.getMapString(map,
-								"payload", ""));
-
-						cryptoResult decrypt;
-						try {
-							decrypt = pluginBuddy.decrypt(enc_payload);
-
-							byte[] payload = decrypt.getPayload();
-
-							PlatformMessenger.debug("Relay: got message from " + sender);
-
-							for (Iterator iter2 = listeners.iterator(); iter2.hasNext();) {
-								VuzeRelayListener l = (VuzeRelayListener) iter2.next();
-								l.newRelayServerPayLoad(buddy, payload);
-							}
-
-							ack(ack_id, decrypt.getChallenge());
-						} catch (BuddyPluginException e) {
-							// TODO send ack_fail here
-							PlatformMessenger.debug("Relay: TODO send ack_fail here");
-						}
+						pluginBuddy = buddyPlugin.addBuddy(sender,
+								BuddyPlugin.SUBSYSTEM_AZ3);
 					}
-					// "date" also sent, but not needed (?)
+					VuzeBuddy buddy = VuzeBuddyManager.getBuddyByPK(sender);
+					long ack_id = MapUtils.getMapLong(map, "id", -1);
+					byte[] enc_payload = Base32.decode(MapUtils.getMapString(map,
+							"payload", ""));
+
+					cryptoResult decrypt;
+					try {
+						decrypt = pluginBuddy.decrypt(enc_payload);
+
+						byte[] payload = decrypt.getPayload();
+
+						PlatformMessenger.debug("Relay: got message from " + sender);
+
+						for (Iterator iter2 = listeners.iterator(); iter2.hasNext();) {
+							VuzeRelayListener l = (VuzeRelayListener) iter2.next();
+							l.newRelayServerPayLoad(buddy, payload);
+						}
+
+						ack(ack_id, decrypt.getChallenge());
+					} catch (BuddyPluginException e) {
+						// TODO send ack_fail here
+						PlatformMessenger.debug("Relay: TODO send ack_fail here");
+					}
 				}
+				// "date" also sent, but not needed (?)
 			}
 		};
 		PlatformMessenger.queueMessage(message, listener);
