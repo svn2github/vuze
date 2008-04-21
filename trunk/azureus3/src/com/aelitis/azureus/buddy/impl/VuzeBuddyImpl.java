@@ -18,9 +18,9 @@
 
 package com.aelitis.azureus.buddy.impl;
 
-import java.io.UnsupportedEncodingException;
 import java.util.*;
 
+import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
@@ -75,6 +75,20 @@ public class VuzeBuddyImpl
 				+ mapNewBuddy.hashCode()));
 		setLoginID(MapUtils.getMapString(mapNewBuddy, "login-id", ""
 				+ mapNewBuddy.hashCode()));
+		byte[] avatarBytes = MapUtils.getMapByteArray(mapNewBuddy, "avatar", null);
+		if (avatarBytes == null) {
+			String avatarB64 = MapUtils.getMapString(mapNewBuddy, "avatar.B64", null);
+			if (avatarB64 != null) {
+				avatarBytes = Base64.decode(avatarB64);
+			} else {
+				String avatarB32 = MapUtils.getMapString(mapNewBuddy, "avatar.B32",
+						null);
+				avatarBytes = Base32.decode(avatarB32);
+			}
+		}
+		if (avatarBytes != null) {
+			setAvatar(avatarBytes);
+		}
 	}
 
 	public String getDisplayName() {
