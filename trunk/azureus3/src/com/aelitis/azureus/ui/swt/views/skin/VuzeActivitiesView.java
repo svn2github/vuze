@@ -129,22 +129,31 @@ public class VuzeActivitiesView
 				} else if (e.keyCode == SWT.F11) {
 					PlatformRelayMessenger.fetch(0);
 				} else if (e.keyCode == SWT.F12) {
-					//VuzeActivitiesEntryBuddyRequest entry = new VuzeActivitiesEntryBuddyRequest(
-					//		"ArronM", "TuxPaper");
-					//VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
-					//	entry
-					//});
-					InputShell is = new InputShell("Moo", "Message:");
-					String txt = is.open();
-					if (txt != null) {
-						VuzeActivitiesEntry entry = new VuzeActivitiesEntry(
-								SystemTime.getCurrentTime(), txt, "Test");
-						List buddies = VuzeBuddyManager.getAllVuzeBuddies();
-						for (Iterator iter = buddies.iterator(); iter.hasNext();) {
-							VuzeBuddy buddy = (VuzeBuddy) iter.next();
-							if (buddy.getDisplayName().toLowerCase().indexOf("tux") >= 0) {
-								System.out.println("sedning to " + buddy.getDisplayName());
-								buddy.sendActivity(entry);
+
+					if (e.stateMask == SWT.ALT) {
+						InputShell is = new InputShell("Invite", "Enter Public Key:");
+						String txt = is.open();
+						if (txt != null) {
+							VuzeBuddyManager.inviteUsers(new String[] { txt });
+						}
+					} else {
+						//VuzeActivitiesEntryBuddyRequest entry = new VuzeActivitiesEntryBuddyRequest(
+						//		"ArronM", "TuxPaper");
+						//VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
+						//	entry
+						//});
+						InputShell is = new InputShell("Moo", "Message:");
+						String txt = is.open();
+						if (txt != null) {
+							VuzeActivitiesEntry entry = new VuzeActivitiesEntry(
+									SystemTime.getCurrentTime(), txt, "Test");
+							List buddies = VuzeBuddyManager.getAllVuzeBuddies();
+							for (Iterator iter = buddies.iterator(); iter.hasNext();) {
+								VuzeBuddy buddy = (VuzeBuddy) iter.next();
+								if (buddy.getDisplayName().toLowerCase().indexOf("tux") >= 0) {
+									System.out.println("sending to " + buddy.getDisplayName());
+									buddy.sendActivity(entry);
+								}
 							}
 						}
 					}
