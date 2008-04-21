@@ -161,13 +161,12 @@ public class VuzeBuddyImpl
 		// it in our list and remove it
 		mon_pluginBuddies.enter();
 		try {
-			BuddyPlugin buddyPlugin = VuzeBuddyManager.getBuddyPlugin();
-			if (buddyPlugin != null) {
-				BuddyPluginBuddy pluginBuddy = buddyPlugin.getBuddyFromPublicKey(pk);
-				if (pluginBuddy != null) {
-					pluginBuddies.remove(pluginBuddy);
+			for (Iterator iter = pluginBuddies.iterator(); iter.hasNext();) {
+				BuddyPluginBuddy pluginBuddy = (BuddyPluginBuddy) iter.next();
+				if (pluginBuddy.getPublicKey().equals(pk)) {
+					iter.remove();
+					pluginBuddy.remove();
 				}
-				// buddyPlugin.removeBuddy(pk, BuddyPlugin.SUBSYSTEM_AZ3);
 			}
 		} finally {
 			mon_pluginBuddies.exit();
