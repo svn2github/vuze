@@ -811,6 +811,8 @@ SESTSConnectionImpl
 			
 			List listeners_ref = listeners.getList();
 			
+			MessageException	last_error = null;
+			
 			for (int i=0;i<listeners_ref.size();i++){
 				
 				PooledByteBuffer	message_to_deliver;
@@ -837,10 +839,25 @@ SESTSConnectionImpl
 					
 					message_to_deliver.returnToPool();
 					
-					buffer_handled	= true;
+					if ( message_to_deliver == message ){
+
+						buffer_handled	= true;
+					}
 					
-					Debug.printStackTrace( e );
+					if ( e instanceof MessageException ){
+					
+						last_error = (MessageException)e;
+						
+					}else{
+						
+						last_error = new MessageException( "Failed to process message", e );
+					}
 				}
+			}
+			
+			if ( last_error != null ){
+				
+				throw( last_error );
 			}
 		}finally{
 			
