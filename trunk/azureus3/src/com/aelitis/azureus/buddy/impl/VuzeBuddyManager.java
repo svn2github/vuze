@@ -100,8 +100,8 @@ public class VuzeBuddyManager
 
 			PlatformRelayMessenger.addRelayServerListener(vuzeRelayListener);
 
-			// do one fetch, which will setup a recheck cycle
-			PlatformRelayMessenger.fetch(5000);
+			// do one relay check, which will setup a recheck cycle
+			PlatformRelayMessenger.relayCheck();
 		} catch (Throwable t) {
 			Debug.out(t);
 		}
