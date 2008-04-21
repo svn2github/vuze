@@ -46,6 +46,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
@@ -291,6 +292,9 @@ UISWTInstanceImpl
 					BasicPluginViewModel model = (BasicPluginViewModel)data;
 					
 					// property bundles can't handle spaces in keys
+					//
+					// If this behaviour changes, change the openView(model)
+					// method lower down.
 					String sViewID = model.getName().replaceAll(" ", ".");
 					BasicPluginViewImpl view = new BasicPluginViewImpl(model);
 					addView(UISWTInstance.VIEW_MAIN, sViewID, view);
@@ -303,6 +307,9 @@ UISWTInstanceImpl
 				if ( data instanceof BasicPluginViewModel ){
 					BasicPluginViewModel model = (BasicPluginViewModel)data;
 					// property bundles can't handle spaces in keys
+					//
+					// If this behaviour changes, change the openView(model)
+					// method lower down.
 					String sViewID = model.getName().replaceAll(" ", ".");
 					removeViews(UISWTInstance.VIEW_MAIN, sViewID);
 				}
@@ -758,6 +765,9 @@ UISWTInstanceImpl
 		return entry;
 	}
 	
+	public boolean openView(BasicPluginViewModel model) {
+		return openView(VIEW_MAIN, model.getName().replaceAll(" ", "."), null);
+	}
 	
 	protected static class
 	instanceWrapper
@@ -884,6 +894,13 @@ UISWTInstanceImpl
 			return delegate.createStatusEntry();
 		}
 		
+		public boolean openView(BasicPluginViewModel model) {
+			return delegate.openView(model);
+		}
+		
 		
 	}
+	
+	
+	
 }
