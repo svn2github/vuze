@@ -61,8 +61,12 @@ ResourceDownloader
 	asyncDownload();
 	
 		/**
-		 * attempts to get the size of the download. Returns -1 if the size can't be determined
-		 * @return
+		 * Attempts to get the size of the download. Returns -1 if the size can't be determined.
+		 * 
+		 * <p>
+		 * 
+		 * <b>Note:</b> You must not call this method from the <tt>reportActivity</tt> callback method. 
+		 * 
 		 * @throws ResourceDownloaderException
 		 */
 	

@@ -24,7 +24,7 @@ package org.gudy.azureus2.plugins.ui;
  * Interface class which provides a way to validate or reject input provided
  * by a user. This is mainly to be used with {@link UIInputReceiver}.
  * 
- * <p><b>Note:</b> This interface is intended for use with plugins.</p>
+ * <p><b>Note:</b> This interface is intended to be implemented by plugins.</p>
  */
 public interface UIInputValidator {
 

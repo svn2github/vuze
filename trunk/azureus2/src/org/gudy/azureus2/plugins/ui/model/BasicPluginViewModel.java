@@ -25,6 +25,7 @@ package org.gudy.azureus2.plugins.ui.model;
 /**
  * @author parg
  *
+ * <p><b>Note:</b> Only for implementation by Azureus, not plugins.</p>
  */
 
 import org.gudy.azureus2.plugins.ui.components.*;
