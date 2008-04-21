@@ -166,8 +166,8 @@ public class PlatformRelayMessenger
 				if (timerEvent != null) {
 					timerEvent.cancel();
 				}
-				timerEvent = SimpleTimer.addEvent("Relay Server Check", recheckIn,
-						relayCheckPerformer);
+				timerEvent = SimpleTimer.addEvent("Relay Server Check",
+						SystemTime.getOffsetTime(recheckIn), relayCheckPerformer);
 
 				for (Iterator iter = list.iterator(); iter.hasNext();) {
 					Map map = (Map) iter.next();
