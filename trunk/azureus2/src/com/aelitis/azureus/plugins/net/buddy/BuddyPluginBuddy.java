@@ -1942,6 +1942,9 @@ BuddyPluginBuddy
 		private fragmentAssembly	current_request_frag;
 		private fragmentAssembly	current_reply_frag;
 		
+		private int					send_count;
+		private int					recv_count;
+		
 		protected
 		fragmentHandler(
 			GenericMessageConnection	_connection,
@@ -2065,6 +2068,8 @@ BuddyPluginBuddy
 				
 				buddyMessageSent( data.length, record_active );
 				
+				send_count++;
+				
 			}catch( Throwable e ){
 				
 				throw( new BuddyPluginException( "Send failed", e ));
@@ -2079,6 +2084,14 @@ BuddyPluginBuddy
 			throws MessageException
 		{
 			try{
+					// while in unauth state we only allow a few messages. max should be 1
+					// for an 'accept request' but I feel generous
+				
+				if ( recv_count >= 4 && !isAuthorised()){
+				
+					throw( new MessageException( "Too many messages received while in unauthorised state" ));
+				}
+				
 				byte[]	content = message.toByteArray();
 				
 				Map	data_map = BDecoder.decode( content );
@@ -2137,6 +2150,8 @@ BuddyPluginBuddy
 						
 						buddyMessageReceived( data_length );
 
+						recv_count++;
+						
 						receiver.receive( BDecoder.decode( assembly.getData()));
 						
 					}else{
@@ -2147,6 +2162,8 @@ BuddyPluginBuddy
 				
 					buddyMessageReceived( content.length );
 
+					recv_count++;
+					
 					receiver.receive( data_map );					
 				}
 			}catch( Throwable e ){
