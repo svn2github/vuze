@@ -1,10 +1,17 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.DropTargetListener;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.events.MouseMoveListener;
 import org.eclipse.swt.events.MouseTrackListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
@@ -16,13 +23,17 @@ import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
 
 public class AvatarWidget
 {
 	private Canvas avatarCanvas = null;
+
+	private BuddiesViewer viewer = null;
 
 	private Composite parent = null;
 
@@ -42,15 +53,24 @@ public class AvatarWidget
 
 	private boolean showInfo = false;
 
-	public AvatarWidget(Composite parent, Point avatarSize,
+	private boolean nameLinkActive = false;
+
+	public AvatarWidget(BuddiesViewer viewer, Point avatarSize,
 			Point avatarImageSize, VuzeBuddySWT vuzeBuddy) {
 
-		if (null == parent || true == parent.isDisposed()) {
+		if (null == viewer || null == vuzeBuddy) {
 			throw new NullPointerException(
-					"The variable 'parent' can not be null or disposed");
+					"The variable 'viewer' and 'vuzeBuddy' can not be null");
 		}
 
-		this.parent = parent;
+		this.viewer = viewer;
+
+		if (null == viewer.getControl() || true == viewer.getControl().isDisposed()) {
+			throw new NullPointerException(
+					"The given 'viewer' is not properly initialized");
+		}
+
+		this.parent = viewer.getControl();
 		this.avatarSize = avatarSize;
 		this.avatarImageSize = avatarImageSize;
 		this.vuzeBuddy = vuzeBuddy;
@@ -66,67 +86,102 @@ public class AvatarWidget
 		imageOffsetX = (avatarSize.x / 2) - (avatarImageSize.x / 2);
 
 		avatarCanvas = new Canvas(parent, SWT.NONE);
+
+		Utils.createTorrentDropTarget(avatarCanvas, true);
+
+		//		Transfer[] types = new Transfer[] {
+		//			TextTransfer.getInstance()
+		//		};
+		//
+		//		DropTarget dt = new DropTarget(avatarCanvas, DND.DROP_COPY);
+		//		dt.setTransfer(types);
+		//		dt.addDropListener(new DropTargetListener() {
+		//
+		//			public void dropAccept(DropTargetEvent event) {
+		//				// TODO Auto-generated method stub
+		//
+		//			}
+		//
+		//			public void drop(DropTargetEvent event) {
+		//				// TODO Auto-generated method stub
+		//
+		//			}
+		//
+		//			public void dragOver(DropTargetEvent event) {
+		//				if (false == isActivated) {
+		//					isActivated = true;
+		//					showInfo = true;
+		//					region.add(new Rectangle(79, 0, 18, 16));
+		//					avatarCanvas.setRegion(region);
+		//					avatarCanvas.redraw();
+		//				}
+		//			}
+		//
+		//			public void dragOperationChanged(DropTargetEvent event) {
+		//				// TODO Auto-generated method stub
+		//
+		//			}
+		//
+		//			public void dragLeave(DropTargetEvent event) {
+		//				isActivated = false;
+		//				showInfo = false;
+		//				region.subtract(new Rectangle(79, 0, 18, 16));
+		//				avatarCanvas.setRegion(region);
+		//				avatarCanvas.redraw();
+		//
+		//			}
+		//
+		//			public void dragEnter(DropTargetEvent event) {
+		//				// TODO Auto-generated method stub
+		//
+		//			}
+		//		});
+
 		RowData rData = new RowData();
 		rData.width = avatarSize.x;
 		rData.height = avatarSize.y;
 		avatarCanvas.setLayoutData(rData);
 
-		final Region region = new Region();
-		region.add(new Rectangle(imageOffsetX, 0, avatarImageSize.x,
-				avatarImageSize.y));
-		region.add(new Rectangle(0, avatarImageSize.y, avatarSize.x, avatarSize.y));
-		avatarCanvas.setRegion(region);
-
 		final Image avatar = vuzeBuddy.getAvatarImage();
 		final Rectangle bounds = avatar.getBounds();
 		avatarCanvas.addPaintListener(new PaintListener() {
 
-			private boolean currentSelectedState = false;
-
-			private boolean currentActivatedState = false;
-
 			public void paintControl(PaintEvent e) {
 
 				e.gc.setAntialias(SWT.ON);
-				//				e.gc.c
-				if (true == isActivated) {
-					//					if (currentSelectedState != isSelected) {
-					currentSelectedState = isSelected;
-					if (true == isSelected) {
-						e.gc.setBackground(Colors.green);
-					} else {
-						e.gc.setBackground(Colors.red);
-					}
 
+				/*
+				 * Draw backgound if the widget is selected
+				 */
+				if (true == isSelected) {
+
+					e.gc.setBackground(Colors.grey);
 					e.gc.setAlpha(128);
 
-					e.gc.fillRectangle(0, 0, avatarCanvas.getBounds().width,
-							avatarCanvas.getBounds().height);
+					Rectangle bounds = avatarCanvas.getBounds();
 
-					e.gc.drawLine(imageOffsetX + 1, avatarImageSize.y, imageOffsetX + 1
-							+ avatarImageSize.x, avatarImageSize.y);
-
+					e.gc.fillRoundRectangle(0, 0, bounds.width - 1, bounds.height - 1,
+							10, 10);
 					e.gc.setAlpha(255);
 					e.gc.setBackground(avatarCanvas.getBackground());
-
-					//					}
-
-				} else {
-					if (true == isSelected) {
-						e.gc.setBackground(Colors.green);
-						e.gc.setAlpha(128);
-
-						e.gc.fillRectangle(0, 0, avatarCanvas.getBounds().width,
-								avatarCanvas.getBounds().height);
-
-						e.gc.drawLine(imageOffsetX + 1, avatarImageSize.y, imageOffsetX + 1
-								+ avatarImageSize.x, avatarImageSize.y);
-
-						e.gc.setAlpha(255);
-						e.gc.setBackground(avatarCanvas.getBackground());
-					}
 				}
 
+				/*
+				 * Draw hightlight borders is the widget is activated (being hovered over)
+				 */
+				if (true == isActivated) {
+
+					e.gc.setForeground(Colors.grey);
+					Rectangle bounds = avatarCanvas.getBounds();
+					e.gc.drawRoundRectangle(0, 0, bounds.width - 1, bounds.height - 1,
+							10, 10);
+					e.gc.setForeground(avatarCanvas.getForeground());
+
+				}
+
+				/*
+				 * Draw the avatar image
+				 */
 				e.gc.drawImage(avatar, 0, 0, bounds.width, bounds.height, imageOffsetX
 						+ borderWidth, borderWidth, avatarImageSize.x - (2 * borderWidth),
 						avatarImageSize.y - (2 * borderWidth));
@@ -136,22 +191,24 @@ public class AvatarWidget
 							infoImage.getBounds().height, 81, 0, 16, 16);
 				}
 
-				e.gc.setForeground(Colors.white);
-				Point textExtent = e.gc.textExtent(vuzeBuddy.getDisplayName());
+				/*
+				 * Draw the buddy display name
+				 */
+				if (true == nameLinkActive && true == isActivated) {
+					e.gc.setForeground(Colors.blues[Colors.BLUES_MIDLIGHT]);
+				} else {
+					e.gc.setForeground(Colors.blues[Colors.BLUES_MIDDARK]);
+				}
+				GCStringPrinter.printString(e.gc, vuzeBuddy.getDisplayName(),
+						new Rectangle(0, avatarImageSize.y, 64, 26), false, false, SWT.TOP
+								| SWT.CENTER | SWT.WRAP);
 
-				int textOffset = (avatarSize.x / 2) - (textExtent.x / 2);
-				e.gc.drawText(vuzeBuddy.getDisplayName(), textOffset,
-						avatarImageSize.y + 2, true);
 			}
 		});
 
 		avatarCanvas.addDisposeListener(new DisposeListener() {
 
 			public void widgetDisposed(DisposeEvent e) {
-				if (null != region && false == region.isDisposed()) {
-					region.dispose();
-				}
-				
 				if (null != infoImage && false == infoImage.isDisposed()) {
 					infoImage.dispose();
 				}
@@ -161,41 +218,68 @@ public class AvatarWidget
 		avatarCanvas.addMouseTrackListener(new MouseTrackListener() {
 
 			public void mouseHover(MouseEvent e) {
+
 			}
 
 			public void mouseExit(MouseEvent e) {
 				isActivated = false;
 				showInfo = false;
-				region.subtract(new Rectangle(79, 0, 18, 16));
-				avatarCanvas.setRegion(region);
 				avatarCanvas.redraw();
 			}
 
 			public void mouseEnter(MouseEvent e) {
-				isActivated = true;
-				showInfo = true;
-				region.add(new Rectangle(79, 0, 18, 16));
-				avatarCanvas.setRegion(region);
-				avatarCanvas.redraw();
+				if (false == isActivated) {
+					isActivated = true;
+					showInfo = true;
+					avatarCanvas.redraw();
+				}
 			}
 		});
 
 		avatarCanvas.addMouseListener(new MouseListener() {
 
 			public void mouseUp(MouseEvent e) {
-				//				isSelected=false;
-				//				avatarCanvas.redraw();
 			}
 
 			public void mouseDown(MouseEvent e) {
-				isSelected = !isSelected;
-				avatarCanvas.redraw();
-				if (e.stateMask == SWT.CONTROL) {
-					System.out.println("CTRL is in effect");
+				if (e.y > avatarImageSize.y && e.stateMask != SWT.MOD1) {
+					doLinkClicked();
+				} else {
+					if (e.stateMask == SWT.MOD1) {
+						viewer.select(vuzeBuddy, !isSelected, true);
+					} else {
+						viewer.select(vuzeBuddy, !isSelected, false);
+					}
+					avatarCanvas.redraw();
 				}
 			}
 
 			public void mouseDoubleClick(MouseEvent e) {
+			}
+		});
+
+		avatarCanvas.addMouseMoveListener(new MouseMoveListener() {
+			private boolean lastActiveState = false;
+
+			public void mouseMove(MouseEvent e) {
+				if(e.stateMask == SWT.MOD1){
+					return;
+				}
+				
+				if (e.y > avatarImageSize.y) {
+					if (false == lastActiveState) {
+						nameLinkActive = true;
+						avatarCanvas.redraw();
+						lastActiveState = true;
+					}
+				} else {
+					if (true == lastActiveState) {
+						nameLinkActive = false;
+						avatarCanvas.redraw();
+						lastActiveState = false;
+					}
+				}
+
 			}
 		});
 	}
@@ -216,6 +300,9 @@ public class AvatarWidget
 
 	}
 
+	public void doLinkClicked(){
+		System.out.println("Link is clicked");
+	}
 	public Control getControl() {
 		return avatarCanvas;
 	}
@@ -226,5 +313,24 @@ public class AvatarWidget
 
 	public void setBorderWidth(int borderWidth) {
 		this.borderWidth = borderWidth;
+	}
+
+	public VuzeBuddySWT getVuzeBuddy() {
+		return vuzeBuddy;
+	}
+
+	public boolean isSelected() {
+		return isSelected;
+	}
+
+	public void setSelected(boolean isSelected) {
+		this.isSelected = isSelected;
+	}
+
+	public void refreshVisual() {
+		if (null != avatarCanvas && false == avatarCanvas.isDisposed()) {
+			avatarCanvas.redraw();
+		}
+
 	}
 }

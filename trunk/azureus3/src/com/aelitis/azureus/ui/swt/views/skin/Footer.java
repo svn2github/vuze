@@ -2,15 +2,18 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.skin.SkinConstants;
+import com.aelitis.azureus.ui.swt.shells.LightBoxBrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
+import com.aelitis.azureus.util.Constants;
 
 /**
  * The main footer <code>SkinView</code>.  This footer may contain any number of subcomponents;
@@ -40,11 +43,16 @@ public class Footer
 	}
 
 	private void createBuddiesViewer(Composite parent) {
-		FillLayout fLayout = new FillLayout();
-		fLayout.marginHeight =5;
-		fLayout.marginWidth =5;
-		parent.setLayout(fLayout);
-		new BuddiesViewer(parent);
+//		FillLayout fLayout = new FillLayout();
+//		fLayout.marginHeight =5;
+//		fLayout.marginWidth =5;
+//		parent.setLayout(fLayout);
+		RowLayout rLayout = new RowLayout();
+		rLayout.marginLeft = 5;
+		rLayout.wrap=false;
+		parent.setLayout(rLayout);
+		new BuddiesViewer(parent, skin);
+		
 	}
 
 	
@@ -65,7 +73,7 @@ public class Footer
 							control.setLayoutData(fData);
 							skinObject.setVisible(false);
 						} else {
-							fData.height = 200;
+							fData.height = 500;
 							control.setLayoutData(fData);
 							skinObject.setVisible(true);
 						}
