@@ -24,6 +24,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
+import com.aelitis.azureus.activities.VuzeActivitiesEntryBuddyRequest;
 import com.aelitis.azureus.activities.VuzeActivitiesManager;
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddyCreator;
@@ -35,6 +36,7 @@ import com.aelitis.azureus.core.messenger.config.VuzeRelayListener;
 import com.aelitis.azureus.plugins.net.buddy.*;
 import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.LoginInfoManager.LoginInfo;
 
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -50,6 +52,8 @@ import org.gudy.azureus2.plugins.PluginInterface;
  */
 public class VuzeBuddyManager
 {
+	private static final int SEND_P2P_TIMEOUT = 1000 * 60 * 3;
+
 	protected static final boolean ALLOW_ONLY_AZ3 = false;
 
 	private static BuddyPlugin buddyPlugin = null;
@@ -578,5 +582,85 @@ public class VuzeBuddyManager
 			pluginBuddy.setSubsystem(BuddyPlugin.SUBSYSTEM_AZ3);
 		}
 		return pluginBuddy;
+	}
+
+	public static void inviteUsers(String[] pks) {
+		LoginInfo userInfo = LoginInfoManager.getInstance().getUserInfo();
+		
+		for (int i = 0; i < pks.length; i++) {
+			String pk = pks[i];
+			
+			BuddyPluginBuddy pluginBuddy = buddyPlugin.addBuddy(pk, BuddyPlugin.SUBSYSTEM_AZ3);
+			
+			VuzeActivitiesEntryBuddyRequest entry = new VuzeActivitiesEntryBuddyRequest(userInfo.userID, userInfo.userName);
+			// P2P will probably fail (since we aren't buddies yet), but we try
+			// just in case we already are.  On fail, it writes YGM and to the relay
+			// server which is really what we want to do.
+			sendActivity(entry, new BuddyPluginBuddy[] { pluginBuddy } );
+		}
+	}
+
+	/**
+	 * @param publicKey
+	 * @param map
+	 *
+	 * @since 3.0.5.3
+	 */
+	protected static void sendViaRelayServer(BuddyPluginBuddy pluginBuddy, Map map) {
+		try {
+			PlatformRelayMessenger.put(new String[] {
+				pluginBuddy.getPublicKey()
+			}, JSONUtils.encodeToJSON(map).getBytes("utf-8"), 0);
+
+			pluginBuddy.setMessagePending();
+		} catch (BuddyPluginException be) {
+			// set message pending failed.. probably because plugin isn't fully
+			// initialized.
+			// We could try send YGM later..
+		} catch (Exception e) {
+			// TODO: Store for later
+			Debug.out(e);
+		}
+	}
+
+	protected static void sendActivity(VuzeActivitiesEntry entry,
+			BuddyPluginBuddy[] buddies) {
+		try {
+			final Map map = new HashMap();
+
+			map.put("VuzeMessageType", "ActivityEntry");
+			map.put("ActivityEntry", entry.toMap());
+
+			for (int i = 0; i < buddies.length; i++) {
+				BuddyPluginBuddy pluginBuddy = buddies[i];
+				if (pluginBuddy.isOnline()) {
+					pluginBuddy.sendMessage(BuddyPlugin.SUBSYSTEM_AZ3, map,
+							SEND_P2P_TIMEOUT, new BuddyPluginBuddyReplyListener() {
+
+								public void sendFailed(BuddyPluginBuddy to_buddy,
+										BuddyPluginException cause) {
+									VuzeBuddyManager.log("SEND FAILED " + to_buddy.getPublicKey()
+											+ "\n" + cause);
+									sendViaRelayServer(to_buddy, map);
+								}
+
+								public void replyReceived(BuddyPluginBuddy from_buddy, Map reply) {
+									VuzeBuddyManager.log("REPLY REC "
+											+ JSONUtils.encodeToJSON(reply));
+									String response = MapUtils.getMapString(reply, "response", "");
+									if (!response.toLowerCase().equals("ok")) {
+										sendViaRelayServer(from_buddy, map);
+									}
+								}
+							});
+				} else {
+					VuzeBuddyManager.log("NOT ONLINE: " + pluginBuddy.getPublicKey());
+					sendViaRelayServer(pluginBuddy, map);
+				}
+			}
+		} catch (BuddyPluginException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

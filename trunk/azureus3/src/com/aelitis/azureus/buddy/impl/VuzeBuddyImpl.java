@@ -44,8 +44,6 @@ import com.aelitis.azureus.util.LoginInfoManager.LoginInfo;
 public class VuzeBuddyImpl
 	implements VuzeBuddy
 {
-	private static final int SEND_P2P_TIMEOUT = 1000 * 60 * 3;
-
 	private String displayName;
 
 	private String loginID;
@@ -196,73 +194,8 @@ public class VuzeBuddyImpl
 
 	// @see com.aelitis.azureus.buddy.VuzeBuddy#sendActivity(com.aelitis.azureus.util.VuzeActivitiesEntry)
 	public void sendActivity(VuzeActivitiesEntry entry) {
-		try {
-			final Map map = new HashMap();
-
-			map.put("VuzeMessageType", "ActivityEntry");
-			map.put("ActivityEntry", entry.toMap());
-
-			mon_pluginBuddies.enter();
-			try {
-				for (Iterator iter = pluginBuddies.iterator(); iter.hasNext();) {
-					BuddyPluginBuddy pluginBuddy = (BuddyPluginBuddy) iter.next();
-					if (pluginBuddy.isOnline()) {
-						pluginBuddy.sendMessage(BuddyPlugin.SUBSYSTEM_AZ3, map,
-								SEND_P2P_TIMEOUT, new BuddyPluginBuddyReplyListener() {
-
-									public void sendFailed(BuddyPluginBuddy to_buddy,
-											BuddyPluginException cause) {
-										VuzeBuddyManager.log("SEND FAILED "
-												+ to_buddy.getPublicKey() + "\n" + cause);
-										sendViaRelayServer(to_buddy, map);
-									}
-
-									public void replyReceived(BuddyPluginBuddy from_buddy,
-											Map reply) {
-										VuzeBuddyManager.log("REPLY REC "
-												+ JSONUtils.encodeToJSON(reply));
-										String response = MapUtils.getMapString(reply, "response",
-												"");
-										if (!response.toLowerCase().equals("ok")) {
-											sendViaRelayServer(from_buddy, map);
-										}
-									}
-								});
-					} else {
-						VuzeBuddyManager.log("NOT ONLINE: " + pluginBuddy.getPublicKey());
-						sendViaRelayServer(pluginBuddy, map);
-					}
-				}
-			} finally {
-				mon_pluginBuddies.exit();
-			}
-		} catch (BuddyPluginException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	/**
-	 * @param publicKey
-	 * @param map
-	 *
-	 * @since 3.0.5.3
-	 */
-	private void sendViaRelayServer(BuddyPluginBuddy pluginBuddy, Map map) {
-		try {
-			PlatformRelayMessenger.put(new String[] {
-				pluginBuddy.getPublicKey()
-			}, JSONUtils.encodeToJSON(map).getBytes("utf-8"), 0);
-			
-			pluginBuddy.setMessagePending();
-		} catch (BuddyPluginException be) {
-			// set message pending failed.. probably because plugin isn't fully
-			// initialized.
-			// We could try send YGM later..
-		} catch (Exception e) {
-			// TODO: Store for later
-			Debug.out(e);
-		}
+		BuddyPluginBuddy[] buddies = (BuddyPluginBuddy[]) pluginBuddies.toArray(new BuddyPluginBuddy[0]);
+		VuzeBuddyManager.sendActivity(entry, buddies);
 	}
 
 	public void shareDownload(DownloadManager dm, String message) {
