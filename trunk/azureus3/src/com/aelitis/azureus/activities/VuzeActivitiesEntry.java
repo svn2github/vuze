@@ -113,7 +113,7 @@ public class VuzeActivitiesEntry
 	/**
 	 * @param platformEntry
 	 */
-	public VuzeActivitiesEntry(Map platformEntry) {
+	public void loadFromExternalMap(Map platformEntry) {
 		timestamp = SystemTime.getCurrentTime()
 				- MapUtils.getMapLong(platformEntry, "age-ms", 0);
 		setText(MapUtils.getMapString(platformEntry, "text", null));
@@ -143,23 +143,16 @@ public class VuzeActivitiesEntry
 		return 1;
 	}
 
-	public static VuzeActivitiesEntry readFromMap(Map map) {
-		VuzeActivitiesEntry entry = new VuzeActivitiesEntry();
-		if (map == null || map.size() == 0) {
-			return entry;
-		}
-
-		entry.timestamp = MapUtils.getMapLong(map, "timestamp", 0);
-		entry.setAssetHash(MapUtils.getMapString(map, "assetHash", null));
-		entry.setIconID(MapUtils.getMapString(map, "icon", null));
-		entry.setID(MapUtils.getMapString(map, "id", null));
-		entry.setText(MapUtils.getMapString(map, "text", null));
-		entry.setTypeID(MapUtils.getMapString(map, "typeID", null), true);
-		entry.setShowThumb(MapUtils.getMapLong(map, "showThumb", 1) == 1);
-		entry.setAssetImageURL(MapUtils.getMapString(map, "assetImageURL", null));
-		entry.setImageBytes(MapUtils.getMapByteArray(map, "imageBytes", null));
-
-		return entry;
+	public void loadFromInternalMap(Map map) {
+		timestamp = MapUtils.getMapLong(map, "timestamp", 0);
+		setAssetHash(MapUtils.getMapString(map, "assetHash", null));
+		setIconID(MapUtils.getMapString(map, "icon", null));
+		setID(MapUtils.getMapString(map, "id", null));
+		setText(MapUtils.getMapString(map, "text", null));
+		setTypeID(MapUtils.getMapString(map, "typeID", null), true);
+		setShowThumb(MapUtils.getMapLong(map, "showThumb", 1) == 1);
+		setAssetImageURL(MapUtils.getMapString(map, "assetImageURL", null));
+		setImageBytes(MapUtils.getMapByteArray(map, "imageBytes", null));
 	}
 
 	public void setAssetImageURL(final String url) {

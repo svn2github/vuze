@@ -72,7 +72,8 @@ public class PlatformVuzeActivitiesMessenger
 								continue;
 							}
 							
-							entries[i] = VuzeActivitiesManager.createEntryFromMap(platformEntry);
+							entries[i] = VuzeActivitiesManager.createEntryFromMap(
+									platformEntry, false);
 							if (entries[i] != null) {
 								i++;
 							}

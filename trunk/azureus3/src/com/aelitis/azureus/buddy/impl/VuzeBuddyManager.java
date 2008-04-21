@@ -269,7 +269,8 @@ public class VuzeBuddyManager
 		if (mt.equals("ActivityEntry")) {
 			Map mapEntry = (Map) MapUtils.getMapObject(mapPayload, "ActivityEntry",
 					new HashMap(), Map.class);
-			VuzeActivitiesEntry entry = VuzeActivitiesManager.createEntryFromMap(mapEntry);
+			VuzeActivitiesEntry entry = VuzeActivitiesManager.createEntryFromMap(
+					mapEntry, true);
 			// NOTE: The timestamps of these entries might be horribly off.  We
 			//       should probably handle that somehow.
 			if (entry != null) {

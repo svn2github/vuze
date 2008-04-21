@@ -40,17 +40,10 @@ public class VuzeActivitiesEntryBuddyRequest
 
 	String futureBuddyDisplayName;
 
-	public VuzeActivitiesEntryBuddyRequest(Map platformEntry) {
-		super(platformEntry);
-
-		Map mapFutureBuddy = (Map) MapUtils.getMapObject(platformEntry, "buddy",
-				new HashMap(), Map.class);
-		futureBuddyLoginID = MapUtils.getMapString(mapFutureBuddy, "login-id",
-				"unknown");
-		futureBuddyDisplayName = MapUtils.getMapString(mapFutureBuddy,
-				"display-name", "Mr Unkown");
+	public VuzeActivitiesEntryBuddyRequest() {
+		super();
 	}
-
+	
 	public VuzeActivitiesEntryBuddyRequest(String loginID, String displayName) {
 		futureBuddyLoginID = loginID;
 		futureBuddyDisplayName = displayName;
@@ -65,6 +58,39 @@ public class VuzeActivitiesEntryBuddyRequest
 				+ "\">OMG, OF COURSE I ACCEPT!</A>");
 		setTypeID(TYPEID_BUDDYREQUEST, true);
 		setID(TYPEID_BUDDYREQUEST + "-" + Math.random());
+	}
+
+	// @see com.aelitis.azureus.activities.VuzeActivitiesEntry#loadFromExternalMap(java.util.Map)
+	public void loadFromExternalMap(Map platformEntry) {
+		super.loadFromExternalMap(platformEntry);
+		loadOtherValuesFromMap(platformEntry);
+	}
+	
+	// @see com.aelitis.azureus.activities.VuzeActivitiesEntry#loadFromInternalMap(java.util.Map)
+	public void loadFromInternalMap(Map map) {
+		super.loadFromInternalMap(map);
+		loadOtherValuesFromMap(map);
+	}
+	
+	private void loadOtherValuesFromMap(Map map) {
+		Map mapFutureBuddy = (Map) MapUtils.getMapObject(map, "buddy",
+				new HashMap(), Map.class);
+		futureBuddyLoginID = MapUtils.getMapString(mapFutureBuddy, "login-id",
+				"unknown");
+		futureBuddyDisplayName = MapUtils.getMapString(mapFutureBuddy,
+				"display-name", "Mr Unkown");
+	}
+	
+	// @see com.aelitis.azureus.activities.VuzeActivitiesEntry#toMap()
+	public Map toMap() {
+		Map map = super.toMap();
+		
+		Map mapFutureBuddy = new HashMap();
+		mapFutureBuddy.put("login-id", futureBuddyLoginID);
+		mapFutureBuddy.put("display-name", futureBuddyDisplayName);
+		
+		map.put("buddy", mapFutureBuddy);
+		return map;
 	}
 
 	public String getFutureBuddyLoginID() {

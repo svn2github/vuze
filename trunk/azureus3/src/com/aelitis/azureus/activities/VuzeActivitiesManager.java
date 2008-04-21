@@ -537,9 +537,9 @@ public class VuzeActivitiesManager
 					if (!(value instanceof Map)) {
 						continue;
 					}
-					VuzeActivitiesEntry entry = VuzeActivitiesEntry.readFromMap((Map) value);
+					VuzeActivitiesEntry entry = createEntryFromMap((Map) value, true);
 
-					if (entry.getTimestamp() > cutoffTime) {
+					if (entry != null && entry.getTimestamp() > cutoffTime) {
 						removedEntries.add(entry);
 					}
 				}
@@ -557,16 +557,18 @@ public class VuzeActivitiesManager
 					continue;
 				}
 
-				VuzeActivitiesEntry entry = VuzeActivitiesEntry.readFromMap((Map) value);
-
-				if (VuzeActivitiesEntry.TYPEID_RATING_REMINDER.equals(entry.getTypeID())) {
-					entry.setShowThumb(true);
-				}
-
-				if (entry.getTimestamp() > cutoffTime) {
-					addEntries(new VuzeActivitiesEntry[] {
-						entry
-					});
+				VuzeActivitiesEntry entry = createEntryFromMap((Map) value, true);
+				
+				if (entry != null) {
+  				if (VuzeActivitiesEntry.TYPEID_RATING_REMINDER.equals(entry.getTypeID())) {
+  					entry.setShowThumb(true);
+  				}
+  
+  				if (entry.getTimestamp() > cutoffTime) {
+  					addEntries(new VuzeActivitiesEntry[] {
+  						entry
+  					});
+  				}
 				}
 			}
 		} finally {
@@ -729,13 +731,18 @@ public class VuzeActivitiesManager
 	 *
 	 * @since 3.0.5.3
 	 */
-	public static VuzeActivitiesEntry createEntryFromMap(Map map) {
+	public static VuzeActivitiesEntry createEntryFromMap(Map map, boolean internalMap) {
 		VuzeActivitiesEntry entry;
 		String typeID = MapUtils.getMapString(map, "type-id", null);
 		if (VuzeActivitiesEntryBuddyRequest.TYPEID_BUDDYREQUEST.equals(typeID)) {
-			entry = new VuzeActivitiesEntryBuddyRequest(map);
+			entry = new VuzeActivitiesEntryBuddyRequest();
 		} else {
-			entry = new VuzeActivitiesEntry(map);
+			entry = new VuzeActivitiesEntry();
+		}
+		if (internalMap) {
+			entry.loadFromInternalMap(map);
+		} else {
+			entry.loadFromExternalMap(map);
 		}
 		entry.setAssetImageURL(MapUtils.getMapString(map, "related-image-url", null));
 		return entry;
