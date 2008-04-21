@@ -115,8 +115,8 @@ BasicPluginViewImpl
     gridLayout = new GridLayout();
     gridLayout.numColumns = 2;
     panel.setLayout(gridLayout);
-		gridData = new GridData(GridData.FILL_BOTH);
-		panel.setLayoutData(gridData);
+	gridData = new GridData(GridData.FILL_BOTH);
+	panel.setLayoutData(gridData);
     
     /*
      * Status       : [Status Text]
@@ -219,12 +219,23 @@ BasicPluginViewImpl
     	log.setTopIndex(log.getLineCount());
     	model.getLogArea().addPropertyChangeListener(this);
 
+    	Composite bottomSection = new Composite(panel, SWT.NONE);
+        gridLayout = new GridLayout();
+        gridLayout.numColumns = 3;
+        gridLayout.marginHeight = 0;
+        gridLayout.marginWidth = 0;
+        bottomSection.setLayout(gridLayout);
+    	gridData = new GridData(GridData.FILL_HORIZONTAL);
+   		gridData.horizontalSpan = 2;
+   		bottomSection.setLayoutData(gridData);
 
-    	Label label = new Label(panel, SWT.NONE);
+   			// include 
+   		
+    	Label label = new Label(bottomSection, SWT.NONE);
     	label.setLayoutData(new GridData());
     	Messages.setLanguageText(label, "LoggerView.includeOnly");
 
-    	final Text inclText = new Text(panel, SWT.BORDER);
+    	final Text inclText = new Text(bottomSection, SWT.BORDER);
     	gridData = new GridData();
     	gridData.widthHint = 200;
     	inclText.setLayoutData(gridData);
@@ -248,11 +259,15 @@ BasicPluginViewImpl
     		}
     	});
 
-    	label = new Label(panel, SWT.NONE);
+    	label = new Label(bottomSection, SWT.NONE);
+    	
+    		// exclude 
+    	
+    	label = new Label(bottomSection, SWT.NONE);
     	label.setLayoutData(new GridData());
     	Messages.setLanguageText(label, "LoggerView.excludeAll");
 
-    	final Text exclText = new Text(panel, SWT.BORDER);
+    	final Text exclText = new Text(bottomSection, SWT.BORDER);
     	gridData = new GridData();
     	gridData.widthHint = 200;
     	exclText.setLayoutData(gridData);
@@ -276,7 +291,11 @@ BasicPluginViewImpl
     		}
     	});
     	
-		Button buttonPause = new Button(panel, SWT.CHECK);
+       	label = new Label(bottomSection, SWT.NONE);
+        
+    		// pause 
+    	
+		Button buttonPause = new Button(bottomSection, SWT.CHECK);
 		Messages.setLanguageText(buttonPause, "LoggerView.pause");
 		gridData = new GridData();
 		buttonPause.setLayoutData(gridData);
