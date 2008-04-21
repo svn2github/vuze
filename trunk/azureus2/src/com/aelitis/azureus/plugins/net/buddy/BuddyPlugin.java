@@ -1986,7 +1986,44 @@ BuddyPlugin
 			throw( new BuddyPluginException( "Decryption failed", e ));
 		}
 	}
+
+	public cryptoResult
+	decrypt(
+		String				public_key,
+		byte[]				content )
 	
+		throws BuddyPluginException
+	{
+		
+		try{
+			final byte[] decrypted = ecc_handler.decrypt( Base32.decode(public_key), content, "Decrypting message for " + public_key);
+			
+			final Map	map = BDecoder.decode( decrypted );
+			
+			return( 
+				new cryptoResult()
+				{
+					public byte[]
+		    		getChallenge()
+					{
+						return((byte[])map.get("h"));
+					}
+		    		
+		    		public byte[]
+		    		getPayload()
+		    		{
+		    			return((byte[])map.get("p"));
+		    		}
+				});
+			
+		}catch( Throwable e ){
+			
+			logMessage( "Decryption failed", e );
+			
+			throw( new BuddyPluginException( "Decryption failed", e ));
+		}
+	}
+
 	protected void
 	setMessagePending(
 		BuddyPluginBuddy			buddy,
