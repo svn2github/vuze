@@ -2618,6 +2618,9 @@ DownloadManagerStateImpl
 		private Boolean		simple_torrent;
 		private long		size;
 		
+		private URL							announce_url;
+		private TOTorrentAnnounceURLGroup	announce_group;
+		
 		private volatile boolean		discard_fluff;
 		
 		protected
@@ -2663,6 +2666,30 @@ DownloadManagerStateImpl
 				
 				size = l_size.longValue();
 			}
+			
+			byte[]	au = (byte[])cache.get( "au" );
+			
+			if ( au != null ){
+				
+				try{
+					announce_url = new URL((new String( au, "UTF-8" )));
+					
+				}catch( Throwable e ){
+					
+				}
+			}
+			
+			List	ag = (List)cache.get( "ag" );
+			
+			if ( ag != null ){
+				
+				try{
+					announce_group = importGroup( ag );
+					
+				}catch( Throwable e ){
+					
+				}
+			}
 		}
 		
 		protected static Map
@@ -2686,6 +2713,13 @@ DownloadManagerStateImpl
 			
 			cache.put( "attributes", state.getAdditionalMapProperty( ATTRIBUTE_KEY ));
 			cache.put( "azp", state.getAdditionalMapProperty( AZUREUS_PROPERTIES_KEY ));
+			
+			try{
+				cache.put( "au", state.getAnnounceURL().toExternalForm());
+				cache.put( "ag", exportGroup(state.getAnnounceURLGroup()));
+				
+			}catch( Throwable e ){
+			}
 			
 			boolean	discard_pieces = dms.isResumeDataComplete();
 						
@@ -2716,6 +2750,157 @@ DownloadManagerStateImpl
 			cache.put( "dp", new Long( discard_pieces?1:0 ));
 			
 			return( cache );
+		}
+		
+		protected static List
+		exportGroup(
+			TOTorrentAnnounceURLGroup		group )
+		{
+			TOTorrentAnnounceURLSet[]	sets = group.getAnnounceURLSets();
+			
+			List	result = new ArrayList();
+							
+			for (int i=0;i<sets.length;i++){
+			
+				TOTorrentAnnounceURLSet	set = sets[i];
+				
+				URL[]	urls = set.getAnnounceURLs();
+				
+				if ( urls.length > 0 ){
+					
+					List	s = new ArrayList( urls.length );
+
+					for (int j=0;j<urls.length;j++){
+					
+						s.add( urls[j].toExternalForm());
+					}
+					
+					result.add( s );
+				}
+			}
+			
+			return( result );
+		}
+		
+		protected TOTorrentAnnounceURLGroup
+		importGroup(
+			List		l )
+		
+			throws Exception
+		{
+			return( new cacheGroup( l ));
+		}
+		
+		protected class
+		cacheGroup
+			implements TOTorrentAnnounceURLGroup
+		{
+			private TOTorrentAnnounceURLSet[]		sets;
+			
+			protected
+			cacheGroup(
+				List	group )
+			
+				throws Exception
+			{
+				sets = new TOTorrentAnnounceURLSet[ group.size() ];
+				
+				for (int i=0;i<sets.length;i++){
+					
+					List	set = (List)group.get(i);
+					
+					URL[]	urls = new URL[set.size()];
+					
+					for (int j=0;j<urls.length;j++){
+						
+						urls[j] = new URL(new String((byte[])set.get(j), "UTF-8" ));
+					}
+					
+					sets[i] = new cacheSet( i, urls );
+				}
+			}
+			
+			public TOTorrentAnnounceURLSet[]
+           	getAnnounceURLSets()
+			{
+				return( sets );
+			}
+           	
+           	public void
+           	setAnnounceURLSets(
+           		TOTorrentAnnounceURLSet[]	_sets )
+           	{
+           		sets	= _sets;
+           		
+           		for (int i=0;i<sets.length;i++){
+           			
+           			TOTorrentAnnounceURLSet set = sets[i];
+           			
+           			if ( set instanceof cacheSet ){
+           				
+           				((cacheSet)set).setIndex( i );
+           			}
+           		}
+           		
+     	   		if ( fixup()){
+    				
+    				delegate.getAnnounceURLGroup().setAnnounceURLSets( sets );
+    			}
+           	}
+           		
+           	public TOTorrentAnnounceURLSet
+           	createAnnounceURLSet(
+           		URL[]	urls )
+           	{
+           		if ( fixup()){
+    				
+    				return( delegate.getAnnounceURLGroup().createAnnounceURLSet( urls ));
+    			}
+           		
+           		return( null );
+           	}
+           	
+           	protected class
+           	cacheSet
+           		implements TOTorrentAnnounceURLSet
+           	{
+           		private int			index; 
+           		private URL[]		urls;
+           		
+           		protected
+           		cacheSet(
+           			int							_index,
+           			URL[]						_urls )
+           		{
+           			index		= _index;
+           			urls		= _urls;
+           		}
+           		
+           		protected void
+           		setIndex(
+           			int		_i )
+           		{
+           			index	= _i;
+           		}
+           		
+           		public URL[]
+           		getAnnounceURLs()
+           		{
+           			return( urls );
+           		}
+           		    	
+		    	public void
+		    	setAnnounceURLs(
+		    		URL[]		_urls )
+		    	{
+		    		urls		= _urls;
+		    		
+		    		if ( fixup()){
+		    			
+		    			delegate.getAnnounceURLGroup().getAnnounceURLSets()[index].setAnnounceURLs( urls );
+		    		}
+		    	}
+           	}
 		}
 		
 		protected void
@@ -2772,6 +2957,8 @@ DownloadManagerStateImpl
 								
 								cache_azp = null;
 							}
+							
+							announce_url = delegate.getAnnounceURL();
 						}
 					}
 				}	
@@ -2986,6 +3173,11 @@ DownloadManagerStateImpl
     	public URL
     	getAnnounceURL()
        	{
+    		if ( announce_url != null ){
+    			
+    			return( announce_url );
+    		}
+    		
 	   		if ( fixup()){
 				
 				return( delegate.getAnnounceURL());
@@ -2998,6 +3190,8 @@ DownloadManagerStateImpl
     	setAnnounceURL(
     		URL		url )
        	{
+    		announce_url = url;
+    		
 	   		if ( fixup()){
 				
 				return( delegate.setAnnounceURL( url ));
@@ -3009,6 +3203,11 @@ DownloadManagerStateImpl
     	public TOTorrentAnnounceURLGroup
     	getAnnounceURLGroup()
        	{
+    		if ( announce_group != null ){
+    			
+    			return( announce_group );
+    		}
+    		
 	   		if ( fixup()){
 				
 				return( delegate.getAnnounceURLGroup());
