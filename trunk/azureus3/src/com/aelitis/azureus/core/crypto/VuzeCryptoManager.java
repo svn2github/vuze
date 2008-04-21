@@ -50,7 +50,7 @@ VuzeCryptoManager
 	private CryptoManager	crypt_man;
 	private CopyOnWriteList	listeners = new CopyOnWriteList();
 	
-	private CryptoManagerPasswordHandler.passwordDetails	session_pw;
+	private volatile CryptoManagerPasswordHandler.passwordDetails	session_pw;
 	
 	protected
 	VuzeCryptoManager()
@@ -162,6 +162,18 @@ VuzeCryptoManager
 			
 			throw( new VuzeCryptoException( "Failed to access public key", e ));
 		}
+	}
+	
+		/**
+		 * Remove cached password
+		 */
+	
+	public void
+	clearPassword()
+	{
+		session_pw	= null;
+	
+		crypt_man.clearPasswords();
 	}
 	
 	public void
