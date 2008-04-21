@@ -328,13 +328,13 @@ BasicPluginViewImpl
         	if(toAppend.length() == 0)
         		return;
         	
-        	StringBuilder builder = new StringBuilder(toAppend.length());
+        	StringBuffer builder = new StringBuffer(toAppend.length());
         	
         	String[] lines = toAppend.split("\n");
 
         	
-        	for(String line : lines)
-        	{
+        	for( int i=0;i<lines.length;i++){
+        		String line = lines[i];
 
         		if((inclusionFilter != null && !inclusionFilter.matcher(line).find()) || (exclusionFilter != null && exclusionFilter.matcher(line).find()))
 					continue;
@@ -347,15 +347,17 @@ BasicPluginViewImpl
        
         }else{
         	
-        	StringBuilder builder = new StringBuilder(new_value.length());
+        	StringBuffer builder = new StringBuffer(new_value.length());
         	
         	String[] lines = new_value.split("\n");
-        	for(String line : lines)
-        	{
+        	
+        	for( int i=0;i<lines.length;i++){
+        		String line = lines[i];
         		if((inclusionFilter != null && !inclusionFilter.matcher(line).find()) || (exclusionFilter != null && exclusionFilter.matcher(line).find()))
 					continue;
-        		if(line != lines[0])
+        		if(line != lines[0]){
         			builder.append("\n");
+        		}
         		builder.append(line);
         	}
 
