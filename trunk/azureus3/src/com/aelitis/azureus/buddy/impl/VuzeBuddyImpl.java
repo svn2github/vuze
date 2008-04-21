@@ -253,10 +253,14 @@ public class VuzeBuddyImpl
 			PlatformRelayMessenger.put(new String[] {
 				pluginBuddy.getPublicKey()
 			}, JSONUtils.encodeToJSON(map).getBytes("utf-8"), 0);
+			
 			pluginBuddy.setMessagePending();
+		} catch (BuddyPluginException be) {
+			// set message pending failed.. probably because plugin isn't fully
+			// initialized.
+			// We could try send YGM later..
 		} catch (Exception e) {
 			// TODO: Store for later
-
 			Debug.out(e);
 		}
 	}
