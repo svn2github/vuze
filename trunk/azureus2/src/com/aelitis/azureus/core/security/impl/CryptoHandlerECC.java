@@ -35,6 +35,7 @@ import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.spec.AlgorithmParameterSpec;
 import java.security.spec.KeySpec;
+import java.util.Arrays;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -674,12 +675,12 @@ CryptoHandlerECC
 	
 		throws CryptoManagerException
 	{
-		return( "salt:    " + Base32.encode(manager.getPasswordSalt()) + "\r\n" + 
+		return( "id:      " + Base32.encode(manager.getSecureID()) + "\r\n" + 
 				"public:  " + Base32.encode(getPublicKey( "Key export" )) + "\r\n" +
 				"private: " + Base32.encode(getEncryptedPrivateKey( "Key export" )));
 	}
 	
-	public void
+	public boolean
 	importKeys(
 		String	str )
 	
@@ -687,11 +688,11 @@ CryptoHandlerECC
 	{
 		String	reason = "Key import";
 	
-		byte[]	existing_salt 			= manager.getPasswordSalt();
+		byte[]	existing_id 			= manager.getSecureID();
 		byte[]	existing_public_key		= peekPublicKey();
 		byte[]	existing_private_key	= existing_public_key==null?null:getEncryptedPrivateKey( reason );
 		
-		byte[]		recovered_salt 			= null;
+		byte[]		recovered_id 			= null;
 		byte[]		recovered_public_key 	= null;
 		byte[]		recovered_private_key 	= null;
 				
@@ -718,9 +719,9 @@ CryptoHandlerECC
 			
 			byte[]	rhs_val = Base32.decode( rhs );
 			
-			if ( lhs.equals( "salt" )){
+			if ( lhs.equals( "id" )){
 				
-				recovered_salt = rhs_val;
+				recovered_id = rhs_val;
 				
 			}else if ( lhs.equals( "public" )){
 				
@@ -732,15 +733,23 @@ CryptoHandlerECC
 			}
 		}
 		
-		if ( recovered_salt == null || recovered_public_key == null || recovered_private_key == null ){
+		if ( recovered_id == null || recovered_public_key == null || recovered_private_key == null ){
 			
 			throw( new CryptoManagerException( "Invalid input file" ));
 		}
 		
 		boolean	ok = false;
 		
+		boolean	result = false;
+		
 		try{
-			manager.setPasswordSalt( recovered_salt );
+			
+			result = !Arrays.equals( existing_id, recovered_id );
+			
+			if ( result ){
+			
+				manager.setSecureID( recovered_id );
+			}
 			
 			recoverKeys( recovered_public_key, recovered_private_key );
 					
@@ -754,8 +763,10 @@ CryptoHandlerECC
 		}finally{
 			
 			if ( !ok ){
-								
-				manager.setPasswordSalt( existing_salt );
+			
+				result = false;
+				
+				manager.setSecureID( existing_id );
 				
 				if ( existing_public_key != null ){
 					
@@ -763,6 +774,8 @@ CryptoHandlerECC
 				}
 			}
 		}
+		
+		return( result );
 	}
 	
 	protected int

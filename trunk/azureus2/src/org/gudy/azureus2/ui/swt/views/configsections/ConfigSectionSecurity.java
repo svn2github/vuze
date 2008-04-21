@@ -63,6 +63,8 @@ import com.aelitis.azureus.core.security.CryptoHandler;
 import com.aelitis.azureus.core.security.CryptoManager;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
 import com.aelitis.azureus.core.security.CryptoManagerKeyChangeListener;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 /**
  * @author parg
@@ -437,8 +439,23 @@ ConfigSectionSecurity
 				        			str += line + "\r\n";
 				        		}
 				        		
-				        		crypt_man.getECCHandler().importKeys(str);
+				        		boolean restart = crypt_man.getECCHandler().importKeys(str);
 				  
+				        		if ( restart ){
+				        			
+					        		Utils.openMessageBox( 
+					        				backup_keys_button.getShell(),SWT.ICON_INFORMATION | SWT.OK,
+					        				MessageText.getString( "ConfigView.section.security.restart.title" ),
+					        				MessageText.getString( "ConfigView.section.security.restart.msg" )); 
+
+					        		
+					        		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+					        		
+					            	if ( uiFunctions != null ){
+					            		
+					            		uiFunctions.dispose(true, false);
+					            	}
+				        		}
 				        	}catch( Throwable e ){
 				        	
 				        		Utils.openMessageBox(  

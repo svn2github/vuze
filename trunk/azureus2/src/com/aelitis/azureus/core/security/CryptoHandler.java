@@ -132,7 +132,14 @@ CryptoHandler
 	
 		throws CryptoManagerException;
 		
-	public void
+		/**
+		 * 
+		 * @param str
+		 * @return true if an Azureus restart is required
+		 * @throws CryptoManagerException
+		 */
+	
+	public boolean
 	importKeys(
 		String	str )
 	

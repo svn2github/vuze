@@ -441,27 +441,20 @@ CryptoManagerImpl
 	protected byte[]
 	getPasswordSalt()
 	{
-		String key = CryptoManager.CRYPTO_CONFIG_PREFIX + "salt";
-			
-		byte[] salt = COConfigurationManager.getByteParameter( key, null );
-		
-		if ( salt == null ){
-			
-			salt = getSecureID();
-			
-			COConfigurationManager.setParameter( key, salt );
-		}
-		
-		return( salt );
+		return( getSecureID());
 	}
 
 	protected void
-	setPasswordSalt(
-		byte[]	salt )
+	setSecureID(
+		byte[]	id )
 	{
-		String key = CryptoManager.CRYPTO_CONFIG_PREFIX + "salt";
+		String key = CryptoManager.CRYPTO_CONFIG_PREFIX + "id";
 
-		COConfigurationManager.setParameter( key, salt );
+		COConfigurationManager.setParameter( key, id );
+		
+		COConfigurationManager.save();
+		
+		secure_id = id;
 	}
 	
 	protected void
