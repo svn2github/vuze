@@ -718,7 +718,7 @@ ResourceDownloaderURLImpl
 			this_mon.exit();
 		}
 		
-		informFailed( new ResourceDownloaderException( "Download cancelled" ));
+		informFailed( new ResourceDownloaderCancelledException());
 	}
 	
 	public PasswordAuthentication

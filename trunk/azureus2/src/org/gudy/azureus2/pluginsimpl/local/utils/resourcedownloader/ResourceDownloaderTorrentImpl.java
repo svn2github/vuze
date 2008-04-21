@@ -485,7 +485,7 @@ ResourceDownloaderTorrentImpl
 		try{
 			this_mon.enter();
 		
-			result	= new ResourceDownloaderException( "Download cancelled");
+			result	= new ResourceDownloaderCancelledException();
 			
 			cancelled	= true;
 			

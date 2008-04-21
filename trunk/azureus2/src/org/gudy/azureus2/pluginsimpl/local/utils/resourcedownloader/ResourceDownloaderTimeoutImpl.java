@@ -279,7 +279,7 @@ ResourceDownloaderTimeoutImpl
 	public void
 	cancel()
 	{
-		cancel( new ResourceDownloaderException( "Download cancelled"));
+		cancel( new ResourceDownloaderCancelledException());
 	}
 	
 	protected void
