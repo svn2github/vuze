@@ -44,6 +44,10 @@ public class Constants
 
 	public static final String DEFAULT_PORT = "80";
 
+	public static final String DEFAULT_RELAY_ADDRESS = "relay.vuze.com"; //DO NOT TOUCH !!!!  use the -Drelay_address=ip override instead
+
+	public static final String DEFAULT_RELAY_PORT = "80";
+	
 	public static String URL_ADDRESS = System.getProperty("platform_address",
 			DEFAULT_ADDRESS);
 
@@ -86,8 +90,8 @@ public class Constants
 	public static final String URL_RPC = "rpc/";
 
 	public static String URL_RELAY_RPC = "http://"
-			+ System.getProperty("relay_address", DEFAULT_ADDRESS) + ":"
-			+ System.getProperty("relay_port", DEFAULT_PORT) + "/app";
+			+ System.getProperty("relay_address", DEFAULT_RELAY_ADDRESS) + ":"
+			+ System.getProperty("relay_port", DEFAULT_RELAY_PORT) + "/app";
 
 	public static final String URL_POP_UP = "?popup";
 
