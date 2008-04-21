@@ -89,7 +89,7 @@ public class VuzeBuddyManager
 					try {
 						String s = new String(payload, "utf-8");
 						Map mapPayload = JSONUtils.decodeJSON(s);
-						
+
 						// If we got here, we are authorized (we have a VuzeBuddy)
 						processPayloadMap(mapPayload, true);
 					} catch (UnsupportedEncodingException e) {
@@ -99,6 +99,9 @@ public class VuzeBuddyManager
 			};
 
 			PlatformRelayMessenger.addRelayServerListener(vuzeRelayListener);
+
+			// do one fetch, which will setup a recheck cycle
+			PlatformRelayMessenger.fetch(5000);
 		} catch (Throwable t) {
 			Debug.out(t);
 		}
@@ -249,13 +252,14 @@ public class VuzeBuddyManager
 	 * @param authorizedBuddy 
 	 * @since 3.0.5.3
 	 */
-	protected static String processPayloadMap(Map mapPayload, boolean authorizedBuddy) {
+	protected static String processPayloadMap(Map mapPayload,
+			boolean authorizedBuddy) {
 		String mt = MapUtils.getMapString(mapPayload, "VuzeMessageType", "");
 		if (mt.equals("BuddySync")) {
 			PlatformBuddyMessenger.sync();
 			return "Ok";
 		}
-		
+
 		if (!authorizedBuddy) {
 			return "Not Authorized";
 		}
@@ -424,9 +428,10 @@ public class VuzeBuddyManager
 	 *
 	 * @since 3.0.5.3
 	 */
-	public static VuzeBuddy createNewBuddy(BuddyPluginBuddy buddy, boolean createActivityEntry) {
+	public static VuzeBuddy createNewBuddy(BuddyPluginBuddy buddy,
+			boolean createActivityEntry) {
 		String pk = buddy.getPublicKey();
-		
+
 		VuzeBuddy newBuddy;
 		if (vuzeBuddyCreator == null) {
 			newBuddy = new VuzeBuddyImpl(pk);
@@ -437,7 +442,7 @@ public class VuzeBuddyManager
 		if (newBuddy == null) {
 			return null;
 		}
-		
+
 		if (newBuddy != null) {
 			newBuddy.setDisplayName(buddy.getName());
 		}

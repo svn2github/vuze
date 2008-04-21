@@ -20,8 +20,7 @@ package com.aelitis.azureus.core.messenger.config;
 
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.Base32;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
@@ -45,15 +44,21 @@ public class PlatformRelayMessenger
 {
 	public static final String LISTENER_ID = "relay";
 
+	public static final long DEFAULT_RECHECKIN_SECS = 60 * 60 * 2; // every 2 hours
+
 	public static String OP_FETCH = "fetch";
 
 	public static String OP_PUT = "put";
-	
+
 	public static String OP_ACK = "ack";
 
 	public static List listeners = new ArrayList();
 
-	public static final void put(String[] pks, byte[] payload, long delay) {
+	private static TimerEventPerformer relayCheckPerformer;
+
+	private static TimerEvent timerEvent;
+
+	public static final void put(String[] pks, byte[] payload, long maxDelayMS) {
 		String myPK;
 		try {
 			myPK = VuzeCryptoManager.getSingleton().getPublicKey(null);
@@ -88,7 +93,7 @@ public class PlatformRelayMessenger
 						Base32.encode(encryptResult.getChallenge()));
 
 				PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
-						OP_PUT, mapParameters, delay);
+						OP_PUT, mapParameters, maxDelayMS);
 
 				PlatformMessengerListener listener = new PlatformMessengerListener() {
 
@@ -119,7 +124,7 @@ public class PlatformRelayMessenger
 		}
 	}
 
-	public static final void fetch(long delay) {
+	public static final void fetch(long maxDelayMS) {
 		String myPK;
 		try {
 			myPK = VuzeCryptoManager.getSingleton().getPublicKey(null);
@@ -132,7 +137,7 @@ public class PlatformRelayMessenger
 				OP_FETCH, new Object[] {
 					"pk",
 					myPK
-				}, delay);
+				}, maxDelayMS);
 
 		final BuddyPlugin buddyPlugin = VuzeBuddyManager.getBuddyPlugin();
 		if (buddyPlugin == null) {
@@ -148,6 +153,21 @@ public class PlatformRelayMessenger
 					Map reply) {
 				List list = (List) MapUtils.getMapObject(reply, "messages",
 						Collections.EMPTY_LIST, List.class);
+				long recheckIn = MapUtils.getMapLong(reply, "recheck-in-mins",
+						DEFAULT_RECHECKIN_SECS) * 1000l * 60;
+
+				if (relayCheckPerformer == null) {
+					relayCheckPerformer = new TimerEventPerformer() {
+						public void perform(TimerEvent event) {
+							PlatformRelayMessenger.fetch(1000);
+						}
+					};
+				}
+				if (timerEvent != null) {
+					timerEvent.cancel();
+				}
+				timerEvent = SimpleTimer.addEvent("Relay Server Check", recheckIn,
+						relayCheckPerformer);
 
 				for (Iterator iter = list.iterator(); iter.hasNext();) {
 					Map map = (Map) iter.next();
@@ -217,15 +237,15 @@ public class PlatformRelayMessenger
 			public void replyReceived(PlatformMessage message, String replyType,
 					Map reply) {
 				int numDeleted = MapUtils.getMapInt(reply, "deleted", 0);
-				PlatformMessenger.debug("Relay: deleted " + numDeleted); 
+				PlatformMessenger.debug("Relay: deleted " + numDeleted);
 			}
 
 			public void messageSent(PlatformMessage message) {
 			}
 		};
-		
-		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
-				OP_ACK, mapParameters, 0);
+
+		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID, OP_ACK,
+				mapParameters, 0);
 
 		PlatformMessenger.queueMessage(message, listener);
 	}
