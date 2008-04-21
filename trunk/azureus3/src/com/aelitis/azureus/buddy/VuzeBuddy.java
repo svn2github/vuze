@@ -22,7 +22,7 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 
-import com.aelitis.azureus.util.VuzeActivitiesEntry;
+import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 
 /**
  * @author TuxPaper

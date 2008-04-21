@@ -46,6 +46,7 @@ import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnEditorWindow;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
+import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
@@ -68,7 +69,6 @@ import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
 import com.aelitis.azureus.ui.swt.views.list.ListView;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.DCAdManager;
-import com.aelitis.azureus.util.VuzeActivitiesEntry;
 import com.aelitis.azureus.util.win32.Win32Utils;
 
 import org.gudy.azureus2.plugins.PluginInterface;

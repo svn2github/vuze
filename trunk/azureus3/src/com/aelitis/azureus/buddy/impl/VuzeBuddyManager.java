@@ -23,6 +23,8 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.activities.VuzeActivitiesEntry;
+import com.aelitis.azureus.activities.VuzeActivitiesManager;
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddyCreator;
 import com.aelitis.azureus.core.AzureusCoreFactory;

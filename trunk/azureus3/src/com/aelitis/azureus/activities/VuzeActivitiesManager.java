@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
 
-package com.aelitis.azureus.util;
+package com.aelitis.azureus.activities;
 
 import java.util.*;
 
@@ -36,6 +36,8 @@ import com.aelitis.azureus.core.messenger.config.RatingUpdateListener2;
 import com.aelitis.azureus.core.torrent.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
+import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.MapUtils;
 
 /**
  * Manage Vuze News Entries.  Loads, Saves, and expires them

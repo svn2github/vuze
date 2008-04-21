@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
 
-package com.aelitis.azureus.util;
+package com.aelitis.azureus.activities;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.util.*;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableColumnSortObject;
+import com.aelitis.azureus.util.MapUtils;
 
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderAdapter;

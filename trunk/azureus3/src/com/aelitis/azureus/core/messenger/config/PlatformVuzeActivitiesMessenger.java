@@ -24,6 +24,8 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.util.SystemTime;
 
+import com.aelitis.azureus.activities.VuzeActivitiesEntry;
+import com.aelitis.azureus.activities.VuzeActivitiesManager;
 import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;

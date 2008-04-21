@@ -26,6 +26,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;

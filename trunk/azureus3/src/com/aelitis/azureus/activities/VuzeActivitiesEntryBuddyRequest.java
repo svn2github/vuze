@@ -16,12 +16,15 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
 
-package com.aelitis.azureus.util;
+package com.aelitis.azureus.activities;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.SystemTime;
+
+import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.MapUtils;
 
 /**
  * @author TuxPaper

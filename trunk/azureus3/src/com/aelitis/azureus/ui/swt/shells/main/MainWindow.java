@@ -59,6 +59,7 @@ import org.gudy.azureus2.ui.swt.views.stats.VivaldiView;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 
+import com.aelitis.azureus.activities.VuzeActivitiesManager;
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddyCreator;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
@@ -88,7 +89,6 @@ import com.aelitis.azureus.ui.swt.views.ViewUpSpeedGraph;
 import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.DCAdManager;
-import com.aelitis.azureus.util.VuzeActivitiesManager;
 
 import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginInterface;
