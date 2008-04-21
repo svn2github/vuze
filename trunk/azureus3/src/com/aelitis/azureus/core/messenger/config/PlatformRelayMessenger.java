@@ -180,26 +180,26 @@ public class PlatformRelayMessenger
 				for (Iterator iter = list.iterator(); iter.hasNext();) {
 					Map map = (Map) iter.next();
 
-					String sender = MapUtils.getMapString(map, "sender", null);
+					String pkSender = MapUtils.getMapString(map, "sender", null);
+					VuzeBuddy buddy = VuzeBuddyManager.getBuddyByPK(pkSender);
 
-					BuddyPluginBuddy pluginBuddy = buddyPlugin.getBuddyFromPublicKey(sender);
-					if (pluginBuddy == null) {
-						PlatformMessenger.debug("Relay: fetch: could not find sender");
-						pluginBuddy = buddyPlugin.addBuddy(sender,
-								BuddyPlugin.SUBSYSTEM_AZ3);
-					}
-					VuzeBuddy buddy = VuzeBuddyManager.getBuddyByPK(sender);
+					BuddyPluginBuddy pluginBuddy = buddyPlugin.getBuddyFromPublicKey(pkSender);
+
 					long ack_id = MapUtils.getMapLong(map, "id", -1);
 					byte[] enc_payload = Base32.decode(MapUtils.getMapString(map,
 							"payload", ""));
 
 					cryptoResult decrypt;
 					try {
-						decrypt = pluginBuddy.decrypt(enc_payload);
+						if (pluginBuddy == null) {
+							decrypt = buddyPlugin.decrypt(pkSender, enc_payload);
+						} else {
+							decrypt = pluginBuddy.decrypt(enc_payload);
+						}
 
 						byte[] payload = decrypt.getPayload();
 
-						PlatformMessenger.debug("Relay: got message from " + sender);
+						PlatformMessenger.debug("Relay: got message from " + pkSender);
 
 						for (Iterator iter2 = listeners.iterator(); iter2.hasNext();) {
 							VuzeRelayListener l = (VuzeRelayListener) iter2.next();

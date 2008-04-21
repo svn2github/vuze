@@ -96,8 +96,7 @@ public class VuzeBuddyManager
 						String s = new String(payload, "utf-8");
 						Map mapPayload = JSONUtils.decodeJSON(s);
 
-						// If we got here, we are authorized (we have a VuzeBuddy)
-						processPayloadMap(mapPayload, true);
+						processPayloadMap(mapPayload, sender != null);
 					} catch (UnsupportedEncodingException e) {
 						Debug.out(e);
 					}
