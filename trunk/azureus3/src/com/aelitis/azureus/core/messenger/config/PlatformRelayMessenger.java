@@ -44,7 +44,7 @@ public class PlatformRelayMessenger
 {
 	public static final String LISTENER_ID = "relay";
 
-	public static final long DEFAULT_RECHECKIN_SECS = 60 * 60 * 2; // every 2 hours
+	public static final long DEFAULT_RECHECKIN_MINS = 60 * 2; // every 2 hours
 
 	public static String OP_FETCH = "fetch";
 
@@ -52,11 +52,21 @@ public class PlatformRelayMessenger
 
 	public static String OP_ACK = "ack";
 
+	public static String OP_COUNT = "count";
+
 	public static List listeners = new ArrayList();
 
 	private static TimerEventPerformer relayCheckPerformer;
 
 	private static TimerEvent timerEvent;
+
+	static {
+		relayCheckPerformer = new TimerEventPerformer() {
+			public void perform(TimerEvent event) {
+				relayCheck();
+			}
+		};
+	}
 
 	public static final void put(String[] pks, byte[] payload, long maxDelayMS) {
 		String myPK;
@@ -125,6 +135,9 @@ public class PlatformRelayMessenger
 	}
 
 	public static final void fetch(long maxDelayMS) {
+		// XXX A successful fetch will result in data that we require login for
+		// TODO: Handle this
+
 		String myPK;
 		try {
 			myPK = VuzeCryptoManager.getSingleton().getPublicKey(null);
@@ -153,21 +166,16 @@ public class PlatformRelayMessenger
 					Map reply) {
 				List list = (List) MapUtils.getMapObject(reply, "messages",
 						Collections.EMPTY_LIST, List.class);
-				long recheckIn = MapUtils.getMapLong(reply, "recheck-in-mins",
-						DEFAULT_RECHECKIN_SECS) * 1000l * 60;
+				long recheckInMins = MapUtils.getMapLong(reply, "recheck-in-mins",
+						DEFAULT_RECHECKIN_MINS);
 
-				if (relayCheckPerformer == null) {
-					relayCheckPerformer = new TimerEventPerformer() {
-						public void perform(TimerEvent event) {
-							PlatformRelayMessenger.fetch(1000);
-						}
-					};
-				}
+				PlatformMessenger.debug("Relay: rechecking in " + recheckInMins + "m");
 				if (timerEvent != null) {
 					timerEvent.cancel();
 				}
 				timerEvent = SimpleTimer.addEvent("Relay Server Check",
-						SystemTime.getOffsetTime(recheckIn), relayCheckPerformer);
+						SystemTime.getOffsetTime(recheckInMins * 1000l * 60),
+						relayCheckPerformer);
 
 				for (Iterator iter = list.iterator(); iter.hasNext();) {
 					Map map = (Map) iter.next();
@@ -246,6 +254,54 @@ public class PlatformRelayMessenger
 
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID, OP_ACK,
 				mapParameters, 0);
+
+		PlatformMessenger.queueMessage(message, listener);
+	}
+
+	public static void relayCheck() {
+		String myPK;
+		try {
+			myPK = VuzeCryptoManager.getSingleton().getPublicKey(null);
+		} catch (VuzeCryptoException e) {
+			Debug.out(e);
+			return;
+		}
+
+		PlatformMessengerListener listener = new PlatformMessengerListener() {
+
+			public void replyReceived(PlatformMessage message, String replyType,
+					Map reply) {
+				int count = MapUtils.getMapInt(reply, "count", 0);
+				long recheckInMins = MapUtils.getMapLong(reply, "recheck-in-mins",
+						DEFAULT_RECHECKIN_MINS);
+
+				if (timerEvent != null) {
+					timerEvent.cancel();
+				}
+
+				if (count > 0) {
+					PlatformMessenger.debug("Relay: You got messages on the relay server");
+					PlatformRelayMessenger.fetch(1000);
+				} else {
+					// only setup another check if we aren't doing a fetch, since
+					// fetch will setup the timer
+					PlatformMessenger.debug("Relay: rechecking via count in "
+							+ recheckInMins + "m");
+					timerEvent = SimpleTimer.addEvent("Relay Server Check",
+							SystemTime.getOffsetTime(recheckInMins * 1000l * 60),
+							relayCheckPerformer);
+				}
+			}
+
+			public void messageSent(PlatformMessage message) {
+			}
+		};
+
+		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
+				OP_COUNT, new Object[] {
+					"pk",
+					myPK
+				}, 0);
 
 		PlatformMessenger.queueMessage(message, listener);
 	}
