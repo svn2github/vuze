@@ -708,7 +708,7 @@ public class MainWindow
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
 
-			VuzeActivitiesManager.initialize(core, skin);
+			VuzeActivitiesManager.initialize(core);
 
 			System.out.println("vuzeactivities init took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");

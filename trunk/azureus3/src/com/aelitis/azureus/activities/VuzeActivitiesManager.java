@@ -34,8 +34,6 @@ import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformVuzeActivitiesMessenger;
 import com.aelitis.azureus.core.messenger.config.RatingUpdateListener2;
 import com.aelitis.azureus.core.torrent.*;
-import com.aelitis.azureus.ui.swt.skin.SWTSkin;
-import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.MapUtils;
 
@@ -78,10 +76,6 @@ public class VuzeActivitiesManager
 
 	private static DownloadManagerListener dmListener;
 
-	private static SWTSkin skin;
-
-	private static ImageLoader imageLoader;
-
 	private static AEMonitor config_mon = new AEMonitor("ConfigMon");
 
 	static {
@@ -93,17 +87,15 @@ public class VuzeActivitiesManager
 		}
 	}
 
-	public static void initialize(final AzureusCore core, final SWTSkin skin) {
+	public static void initialize(final AzureusCore core) {
 		new AEThread2("lazy init", true) {
 			public void run() {
-				_initialize(core, skin);
+				_initialize(core);
 			}
 		}.start();
 	}
 
-	private static void _initialize(AzureusCore core, SWTSkin skin) {
-		VuzeActivitiesManager.skin = skin;
-		imageLoader = skin.getImageLoader(skin.getSkinProperties());
+	private static void _initialize(AzureusCore core) {
 		if (diag_logger != null) {
 			diag_logger.log("Initialize Called");
 		}
