@@ -128,7 +128,8 @@ Utilities
 	getLocaleUtilities();
 	
 	/**
-	 * Creates a <code>UTTimer</code> instance.
+	 * Creates a <code>UTTimer</code> instance. It will be configured for non-lightweight
+	 * tasks by default.
 	 * 
 	 * @param name Name for the UTTimer object.
 	 * @return A UTTimer instance.
