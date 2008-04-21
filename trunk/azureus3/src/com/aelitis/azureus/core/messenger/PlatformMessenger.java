@@ -116,7 +116,9 @@ public class PlatformMessenger
 						new TimerEventPerformer() {
 							public void perform(TimerEvent event) {
 								timerEvent = null;
-								processQueue();
+								while (mapQueue.size() > 0) {
+									processQueue();
+								}
 							}
 						});
 			} else {
@@ -167,13 +169,13 @@ public class PlatformMessenger
 				}
 
 				mapProcessing.put(message, value);
+				
+				iter.remove();
 
 				if (isRelayServer) {
 					break;
 				}
 			}
-			mapProcessing.putAll(mapQueue);
-			mapQueue.clear();
 		} finally {
 			queue_mon.exit();
 		}
