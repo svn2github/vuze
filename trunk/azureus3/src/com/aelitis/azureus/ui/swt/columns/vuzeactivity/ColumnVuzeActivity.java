@@ -224,7 +224,7 @@ public class ColumnVuzeActivity
 				gcQuery.setFont(headerFont);
 			}
 			Rectangle potentialArea = new Rectangle(x, 2, width - x - 4, 10000);
-			stringPrinter = new GCStringPrinter(gcQuery, entry.text, potentialArea,
+			stringPrinter = new GCStringPrinter(gcQuery, entry.getText(), potentialArea,
 					0, SWT.WRAP | SWT.TOP);
 			stringPrinter.calculateMetrics();
 			Point size = stringPrinter.getCalculatedSize();
@@ -242,7 +242,7 @@ public class ColumnVuzeActivity
 			}
 			style |= SWT.TOP;
 
-			if (entry.showThumb && (entry.dm != null || entry.imageBytes != null)) {
+			if (entry.getShowThumb() && (entry.getDownloadManger() != null || entry.getImageBytes() != null)) {
 				height += 60;
 			}
 
@@ -319,7 +319,7 @@ public class ColumnVuzeActivity
 			stringPrinter.printString(gc, drawRect, style);
 			entry.urlInfo = stringPrinter;
 
-			if (entry.showThumb && (entry.dm != null || entry.imageBytes != null)) {
+			if (entry.getShowThumb() && (entry.getDownloadManger() != null || entry.getImageBytes() != null)) {
 				Rectangle dmThumbRect = getDMImageRect(height);
 				if (thumbCell == null) {
 					ListCell listCell = new ListCellGraphic((ListRow) cell.getTableRow(),
@@ -341,8 +341,8 @@ public class ColumnVuzeActivity
 				thumbCell.refresh(true);
 
 				if (VuzeActivitiesEntry.TYPEID_RATING_REMINDER.equals(entry.getTypeID())) {
-					if (entry.dm != null
-							&& PlatformTorrentUtils.isContent(entry.dm.getTorrent(), true)) {
+					if (entry.getDownloadManger() != null
+							&& PlatformTorrentUtils.isContent(entry.getDownloadManger().getTorrent(), true)) {
 						Rectangle dmRatingRect = getDMRatingRect(width, height);
 						if (ratingCell == null) {
 							ListCell listCell = new ListCellGraphic(

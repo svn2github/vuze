@@ -374,7 +374,7 @@ public class VuzeActivitiesView
 									MessageText.getString("v3.activity.remove.title"),
 									MessageText.getString("v3.activity.remove.text",
 											new String[] {
-												entry.text
+												entry.getText()
 											}), new String[] {
 										MessageText.getString("Button.yes"),
 										MessageText.getString("Button.no")

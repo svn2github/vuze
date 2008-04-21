@@ -146,10 +146,11 @@ public class VuzeActivitiesManager
 				for (int i = 0; i < allEntriesArray.length; i++) {
 					VuzeActivitiesEntry entry = (VuzeActivitiesEntry) allEntriesArray[i];
 					String typeID = entry.getTypeID();
-					if (VuzeActivitiesEntry.TYPEID_RATING_REMINDER.equals(entry.getTypeID())
-							&& entry.dm != null) {
+					DownloadManager dm = entry.getDownloadManger();
+					if (VuzeActivitiesEntry.TYPEID_RATING_REMINDER.equals(typeID)
+							&& dm != null) {
 						try {
-							String hash = entry.dm.getTorrent().getHashWrapper().toBase32String();
+							String hash = dm.getTorrent().getHashWrapper().toBase32String();
 							if (rating.hasHash(hash)
 									&& rating.getRatingValue(hash,
 											PlatformRatingMessenger.RATE_TYPE_CONTENT) != GlobalRatingUtils.RATING_NONE) {
@@ -213,7 +214,8 @@ public class VuzeActivitiesManager
 					VuzeActivitiesEntry[] entries = getAllEntries();
 					for (int i = 0; i < entries.length; i++) {
 						VuzeActivitiesEntry oldEntry = entries[i];
-						if (oldEntry.dm != null && oldEntry.dm.equals(dm)) {
+						DownloadManager oldDM = oldEntry.getDownloadManger();
+						if (oldDM != null && oldDM.equals(dm)) {
 							removeEntries(new VuzeActivitiesEntry[] {
 								oldEntry
 							});
@@ -230,13 +232,13 @@ public class VuzeActivitiesManager
 									+ VuzeActivitiesEntry.TYPEID_DL_REMOVE;
 							title = "<A HREF=\"" + url + "\">"
 									+ PlatformTorrentUtils.getContentTitle2(dm) + "</A>";
-							entry.assetHash = hash;
+							entry.setAssetHash(hash);
 						} else {
 							title = PlatformTorrentUtils.getContentTitle2(dm);
 						}
 
-						entry.id = hash + ";r" + entry.getTimestamp();
-						entry.text = title + " has been removed from your library";
+						entry.setID(hash + ";r" + entry.getTimestamp());
+						entry.setText(title + " has been removed from your library");
 						entry.setTypeID(VuzeActivitiesEntry.TYPEID_DL_REMOVE, true);
 						addEntries(new VuzeActivitiesEntry[] {
 							entry
@@ -350,7 +352,8 @@ public class VuzeActivitiesManager
 			VuzeActivitiesEntry[] entries = getAllEntries();
 			for (int i = 0; i < entries.length; i++) {
 				VuzeActivitiesEntry oldEntry = entries[i];
-				if (oldEntry.dm != null && oldEntry.dm.equals(dm)
+				DownloadManager oldDM = oldEntry.getDownloadManger();
+				if (oldDM != null && oldDM.equals(dm)
 						&& VuzeActivitiesEntry.TYPEID_DL_ADDED.equals(oldEntry.getTypeID())) {
 					//System.out.println("remove added entry " + oldEntry.id);
 					removeEntries(new VuzeActivitiesEntry[] {
@@ -372,10 +375,10 @@ public class VuzeActivitiesManager
 
 			VuzeActivitiesEntry entry = new VuzeActivitiesEntry();
 			entry.setTimestamp(completedTime);
-			entry.id = id;
-			entry.text = title + " has completed downloading";
+			entry.setID(id);
+			entry.setText(title + " has completed downloading");
 			entry.setTypeID(VuzeActivitiesEntry.TYPEID_DL_COMPLETE, true);
-			entry.dm = dm;
+			entry.setDownloadManager(dm);
 
 			return entry;
 		} catch (Throwable t) {
@@ -419,16 +422,16 @@ public class VuzeActivitiesManager
 							+ VuzeActivitiesEntry.TYPEID_DL_ADDED;
 					title = "<A HREF=\"" + url + "\">"
 							+ PlatformTorrentUtils.getContentTitle2(dm) + "</A>";
-					entry.assetHash = hash;
+					entry.setAssetHash(hash);
 				} else {
 					title = PlatformTorrentUtils.getContentTitle2(dm);
 				}
 
-				entry.id = hash + ";a" + addedOn;
-				entry.text = title + " has been added to your download list";
+				entry.setID(hash + ";a" + addedOn);
+				entry.setText(title + " has been added to your download list");
 				entry.setTimestamp(addedOn);
 				entry.setTypeID(VuzeActivitiesEntry.TYPEID_DL_ADDED, true);
-				entry.dm = dm;
+				entry.setDownloadManager(dm);
 			} catch (Throwable t) {
 				// ignore
 			}
@@ -454,13 +457,13 @@ public class VuzeActivitiesManager
 								+ VuzeActivitiesEntry.TYPEID_RATING_REMINDER;
 						title = "<A HREF=\"" + url + "\">"
 								+ PlatformTorrentUtils.getContentTitle2(dm) + "</A>";
-						entry.assetHash = hash;
+						entry.setAssetHash(hash);
 
-						entry.dm = dm;
-						entry.showThumb = true;
-						entry.id = hash + ";r" + completedOn;
-						entry.text = "To improve your recommendations, please rate "
-								+ title;
+						entry.setDownloadManager(dm);
+						entry.setShowThumb(true);
+						entry.setID(hash + ";r" + completedOn);
+						entry.setText("To improve your recommendations, please rate "
+								+ title);
 						entry.setTimestamp(SystemTime.getCurrentTime());
 						entry.setTypeID(VuzeActivitiesEntry.TYPEID_RATING_REMINDER, true);
 					}
@@ -563,7 +566,7 @@ public class VuzeActivitiesManager
 				VuzeActivitiesEntry entry = VuzeActivitiesEntry.readFromMap((Map) value);
 
 				if (VuzeActivitiesEntry.TYPEID_RATING_REMINDER.equals(entry.getTypeID())) {
-					entry.showThumb = true;
+					entry.setShowThumb(true);
 				}
 
 				if (entry.getTimestamp() > cutoffTime) {

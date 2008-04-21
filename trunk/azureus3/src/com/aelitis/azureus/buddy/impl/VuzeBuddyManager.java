@@ -402,9 +402,9 @@ public class VuzeBuddyManager
 				if (createActivityEntry) {
 					VuzeActivitiesEntry entry = new VuzeActivitiesEntry();
 					entry.setTypeID("buddy-new", true);
-					entry.id = "buddy-new-" + buddy.getLoginID();
-					entry.text = buddy.getDisplayName()
-							+ " has become your buddy.  Huzzah! :D";
+					entry.setID("buddy-new-" + buddy.getLoginID());
+					entry.setText(buddy.getDisplayName()
+							+ " has become your buddy.  Huzzah! :D");
 					VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
 						entry
 					});

@@ -275,17 +275,18 @@ public class VuzeBuddyImpl
 
 		// make all shares unique (so if the user shares the same content twice,
 		// their buddy gets two entries)
-		entry.id = "Buddy-share-" + SystemTime.getCurrentTime();
-		entry.text = userInfo.userName + " is sharing "
+		entry.setID("Buddy-share-" + SystemTime.getCurrentTime());
+		String text = userInfo.userName + " is sharing "
 				+ PlatformTorrentUtils.getContentTitle(torrent) + " with you.";
 		if (message != null) {
-			entry.text += "\n \nMessage from " + userInfo.userName + ":\n" + message;
+			text += "\n \nMessage from " + userInfo.userName + ":\n" + message;
 		}
-		entry.assetHash = hashWrapper.toBase32String();
-		entry.dm = dm;
-		entry.showThumb = true;
+		entry.setText(text);
+		entry.setAssetHash(hashWrapper.toBase32String());
+		entry.setDownloadManager(dm);
+		entry.setShowThumb(true);
 		entry.setTypeID("buddy-share", true);
-		entry.imageBytes = PlatformTorrentUtils.getContentThumbnail(torrent);
+		entry.setImageBytes(PlatformTorrentUtils.getContentThumbnail(torrent));
 
 		sendActivity(entry);
 	}

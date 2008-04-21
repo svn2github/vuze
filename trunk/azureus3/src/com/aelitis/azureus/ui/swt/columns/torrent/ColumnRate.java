@@ -740,7 +740,7 @@ public class ColumnRate
 		if (ds instanceof DownloadManager) {
 			dm = (DownloadManager) ds;
 		} else if (ds instanceof VuzeActivitiesEntry) {
-			dm = ((VuzeActivitiesEntry) ds).dm;
+			dm = ((VuzeActivitiesEntry) ds).getDownloadManger();
 		}
 		return dm;
 	}

@@ -62,32 +62,32 @@ public class VuzeActivitiesEntry
 
 	public static int sortBy = SORT_DATE;
 
-	public String text;
+	private String text;
 
 	private String iconID;
 
-	public String id;
+	private String id;
 
 	private long timestamp;
 
 	private String typeID;
 
-	public String assetHash;
+	private String assetHash;
 
-	public String assetImageURL;
+	private String assetImageURL;
 
-	public DownloadManager dm;
+	private DownloadManager dm;
 
 	public Object urlInfo;
 
 	public TableColumnCore tableColumn;
 
-	public byte[] imageBytes;
+	private byte[] imageBytes;
 
-	public boolean showThumb = true;
+	private boolean showThumb = true;
 
 	public VuzeActivitiesEntry(long timestamp, String text, String typeID) {
-		this.text = text;
+		this.setText(text);
 		this.timestamp = timestamp;
 		this.setTypeID(typeID, true);
 	}
@@ -95,11 +95,11 @@ public class VuzeActivitiesEntry
 	public VuzeActivitiesEntry(long timestamp, String text, String icon,
 			String id, String typeID, String assetHash) {
 		this.timestamp = timestamp;
-		this.text = text;
+		this.setText(text);
 		this.setIconID(icon);
-		this.id = id;
+		this.setID(id);
 		this.setTypeID(typeID, true);
-		this.assetHash = assetHash;
+		this.setAssetHash(assetHash);
 	}
 
 	/**
@@ -113,12 +113,14 @@ public class VuzeActivitiesEntry
 	 * @param platformEntry
 	 */
 	public VuzeActivitiesEntry(Map platformEntry) {
-		timestamp = SystemTime.getCurrentTime() - MapUtils.getMapLong(platformEntry, "age-ms", 0);
-		text = MapUtils.getMapString(platformEntry, "text", null);
+		timestamp = SystemTime.getCurrentTime()
+				- MapUtils.getMapLong(platformEntry, "age-ms", 0);
+		setText(MapUtils.getMapString(platformEntry, "text", null));
 		setIconID(MapUtils.getMapString(platformEntry, "icon-id", null));
-		id = MapUtils.getMapString(platformEntry, "id", null);
+		setID(MapUtils.getMapString(platformEntry, "id", null));
 		setTypeID(MapUtils.getMapString(platformEntry, "type-id", null), true);
-		assetHash = MapUtils.getMapString(platformEntry, "related-asset-hash", null);
+		setAssetHash(MapUtils.getMapString(platformEntry, "related-asset-hash",
+				null));
 	}
 
 	// @see java.lang.Object#equals(java.lang.Object)
@@ -147,19 +149,14 @@ public class VuzeActivitiesEntry
 		}
 
 		entry.timestamp = MapUtils.getMapLong(map, "timestamp", 0);
-		entry.assetHash = MapUtils.getMapString(map, "assetHash", null);
+		entry.setAssetHash(MapUtils.getMapString(map, "assetHash", null));
 		entry.setIconID(MapUtils.getMapString(map, "icon", null));
-		entry.id = MapUtils.getMapString(map, "id", null);
-		entry.text = MapUtils.getMapString(map, "text", null);
+		entry.setID(MapUtils.getMapString(map, "id", null));
+		entry.setText(MapUtils.getMapString(map, "text", null));
 		entry.setTypeID(MapUtils.getMapString(map, "typeID", null), true);
-		entry.showThumb = MapUtils.getMapLong(map, "showThumb", 1) == 1;
+		entry.setShowThumb(MapUtils.getMapLong(map, "showThumb", 1) == 1);
 		entry.setAssetImageURL(MapUtils.getMapString(map, "assetImageURL", null));
-		
-		if (entry.assetHash != null) {
-			GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-			entry.dm = gm.getDownloadManager(new HashWrapper(
-					Base32.decode(entry.assetHash)));
-		}
+		entry.setImageBytes(MapUtils.getMapByteArray(map, "imageBytes", null));
 
 		return entry;
 	}
@@ -172,7 +169,8 @@ public class VuzeActivitiesEntry
 			assetImageURL = null;
 			VuzeActivitiesManager.triggerEntryChanged(VuzeActivitiesEntry.this);
 			return;
-		} if (url.equals(assetImageURL)) {
+		}
+		if (url.equals(assetImageURL)) {
 			return;
 		}
 
@@ -184,8 +182,9 @@ public class VuzeActivitiesEntry
 				public boolean completed(ResourceDownloader downloader, InputStream is) {
 					try {
 						if (is != null && is.available() > 0) {
-							imageBytes = new byte[is.available()];
-							is.read(imageBytes);
+							byte[] newImageBytes = new byte[is.available()];
+							is.read(newImageBytes);
+							setImageBytes(newImageBytes);
 						}
 						VuzeActivitiesManager.triggerEntryChanged(VuzeActivitiesEntry.this);
 						return true;
@@ -206,18 +205,13 @@ public class VuzeActivitiesEntry
 		map.put("timestamp", new Long(timestamp));
 		if (assetHash != null) {
 			map.put("assetHash", assetHash);
-		} else if (dm != null) {
-			try {
-				map.put("assetHash", dm.getTorrent().getHashWrapper().toBase32String());
-			} catch (Exception e) {
-			}
 		}
 		map.put("icon", getIconID());
 		map.put("id", id);
-		map.put("text", text);
+		map.put("text", getText());
 		map.put("typeID", getTypeID());
 		map.put("assetImageURL", assetImageURL);
-		map.put("showThumb", new Long(showThumb ? 1 : 0));
+		map.put("showThumb", new Long(getShowThumb() ? 1 : 0));
 
 		return map;
 	}
@@ -268,5 +262,101 @@ public class VuzeActivitiesEntry
 	 */
 	public String getIconID() {
 		return iconID;
+	}
+
+	/**
+	 * @param text the text to set
+	 */
+	public void setText(String text) {
+		this.text = text;
+	}
+
+	/**
+	 * @return the text
+	 */
+	public String getText() {
+		return text;
+	}
+
+	/**
+	 * @param id the id to set
+	 */
+	public void setID(String id) {
+		this.id = id;
+	}
+
+	/**
+	 * @return the id
+	 */
+	public String getID() {
+		return id;
+	}
+
+	/**
+	 * @param assetHash the assetHash to set
+	 */
+	public void setAssetHash(String assetHash) {
+		this.assetHash = assetHash;
+		if (assetHash != null) {
+			GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+			setDownloadManager(gm.getDownloadManager(new HashWrapper(Base32.decode(assetHash))));
+		} else {
+			setDownloadManager(null);
+		}
+	}
+
+	/**
+	 * @return the assetHash
+	 */
+	public String getAssetHash() {
+		return assetHash;
+	}
+
+	/**
+	 * @param dm the dm to set
+	 */
+	public void setDownloadManager(DownloadManager dm) {
+		this.dm = dm;
+		if (dm != null) {
+			try {
+				assetHash = dm.getTorrent().getHashWrapper().toBase32String();
+			} catch (Exception e) {
+			}
+		}
+	}
+
+	/**
+	 * @return the dm
+	 */
+	public DownloadManager getDownloadManger() {
+		return dm;
+	}
+
+	/**
+	 * @param imageBytes the imageBytes to set
+	 */
+	public void setImageBytes(byte[] imageBytes) {
+		this.imageBytes = imageBytes;
+	}
+
+	/**
+	 * @return the imageBytes
+	 */
+	public byte[] getImageBytes() {
+		return imageBytes;
+	}
+
+	/**
+	 * @param showThumb the showThumb to set
+	 */
+	public void setShowThumb(boolean showThumb) {
+		this.showThumb = showThumb;
+	}
+
+	/**
+	 * @return the showThumb
+	 */
+	public boolean getShowThumb() {
+		return showThumb;
 	}
 }

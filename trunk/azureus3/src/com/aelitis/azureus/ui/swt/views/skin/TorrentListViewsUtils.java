@@ -199,11 +199,7 @@ public class TorrentListViewsUtils
 				return ((DownloadManager) ds).getTorrent().getHashWrapper().toBase32String();
 			} else if (ds instanceof VuzeActivitiesEntry) {
 				VuzeActivitiesEntry entry = (VuzeActivitiesEntry) ds;
-				if (entry.assetHash != null) {
-					return entry.assetHash;
-				} else if (entry.dm != null) {
-					return entry.dm.getTorrent().getHashWrapper().toBase32String();
-				}
+				return entry.getAssetHash();
 			}
 		} catch (Exception e) {
 			Debug.printStackTrace(e);
@@ -217,7 +213,7 @@ public class TorrentListViewsUtils
 				return (DownloadManager) ds;
 			} else if (ds instanceof VuzeActivitiesEntry) {
 				VuzeActivitiesEntry entry = (VuzeActivitiesEntry) ds;
-				return entry.dm;
+				return entry.getDownloadManger();
 			}
 		} catch (Exception e) {
 			Debug.printStackTrace(e);
@@ -1018,7 +1014,7 @@ public class TorrentListViewsUtils
 						Object ds = row.getDataSource(true);
 						DownloadManager dm = getDMFromDS(ds);
 						if (dm == null && (ds instanceof VuzeActivitiesEntry)) {
-							if (((VuzeActivitiesEntry) ds).assetHash == null) {
+							if (((VuzeActivitiesEntry) ds).getAssetHash() == null) {
 								bDisabled = true;
 								break;
 							}

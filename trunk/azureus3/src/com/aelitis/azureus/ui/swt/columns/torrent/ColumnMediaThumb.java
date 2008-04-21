@@ -154,8 +154,8 @@ public class ColumnMediaThumb
 		byte[] b = null;
 		boolean showPlayButton = TorrentListViewsUtils.canPlay(dm);
 		if (torrent == null && (ds instanceof VuzeActivitiesEntry)) {
-			b = ((VuzeActivitiesEntry) ds).imageBytes;
-			showPlayButton |= ((VuzeActivitiesEntry) ds).assetHash != null;
+			b = ((VuzeActivitiesEntry) ds).getImageBytes();
+			showPlayButton |= ((VuzeActivitiesEntry) ds).getAssetHash() != null;
 		} else {
 			b = PlatformTorrentUtils.getContentThumbnail(torrent);
 		}
@@ -273,7 +273,7 @@ public class ColumnMediaThumb
 		if (ds instanceof DownloadManager) {
 			dm = (DownloadManager) ds;
 		} else if (ds instanceof VuzeActivitiesEntry) {
-			dm = ((VuzeActivitiesEntry) ds).dm;
+			dm = ((VuzeActivitiesEntry) ds).getDownloadManger();
 		}
 		return dm;
 	}

@@ -57,11 +57,11 @@ public class VuzeActivitiesEntryBuddyRequest
 		String urlAccept = Constants.URL_PREFIX + Constants.URL_BUDDY_ACCEPT
 				+ loginID + "?" + Constants.URL_SUFFIX;
 
-		text = "<A HREF=\"" + urlUser + "\">" + displayName
+		setText("<A HREF=\"" + urlUser + "\">" + displayName
 				+ "</A> wants to be your buddy\n \n" + "  <A HREF=\"" + urlAccept
-				+ "\">OMG, OF COURSE I ACCEPT!</A>";
+				+ "\">OMG, OF COURSE I ACCEPT!</A>");
 		setTypeID(TYPEID_BUDDYREQUEST, true);
-		id = TYPEID_BUDDYREQUEST + "-" + Math.random();
+		setID(TYPEID_BUDDYREQUEST + "-" + Math.random());
 	}
 
 	public String getFutureBuddyLoginID() {
