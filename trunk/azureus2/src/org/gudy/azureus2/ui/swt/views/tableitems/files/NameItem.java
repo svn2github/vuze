@@ -45,13 +45,11 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
-import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 import com.aelitis.azureus.core.AzureusCoreOperation;
 import com.aelitis.azureus.core.AzureusCoreOperationTask;
-import com.sun.org.apache.bcel.internal.generic.NEW;
 
 /** Torrent name cell for My Torrents.
  *
