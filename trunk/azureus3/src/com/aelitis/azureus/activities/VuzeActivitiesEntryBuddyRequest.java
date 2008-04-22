@@ -24,6 +24,7 @@ import java.util.Map;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.JSONUtils;
 import com.aelitis.azureus.util.MapUtils;
 
 /**
@@ -43,8 +44,9 @@ public class VuzeActivitiesEntryBuddyRequest
 	public VuzeActivitiesEntryBuddyRequest() {
 		super();
 	}
-	
-	public VuzeActivitiesEntryBuddyRequest(String loginID, String displayName) {
+
+	public VuzeActivitiesEntryBuddyRequest(String pk, String loginID,
+			String displayName) {
 		futureBuddyLoginID = loginID;
 		futureBuddyDisplayName = displayName;
 
@@ -52,6 +54,14 @@ public class VuzeActivitiesEntryBuddyRequest
 				+ Constants.URL_SUFFIX + "&client_ref=buddy-request";
 		String urlAccept = Constants.URL_PREFIX + Constants.URL_BUDDY_ACCEPT
 				+ loginID + "?" + Constants.URL_SUFFIX;
+		// temporary
+		Map map = new HashMap();
+		Map mapBuddy = new HashMap();
+		mapBuddy.put("pks", new String[] { pk });
+		mapBuddy.put("login-id", loginID);
+		mapBuddy.put("display-name", displayName);
+		map.put("buddy", mapBuddy);
+		urlAccept = "AZMSG;0;buddy;accept;" + JSONUtils.encodeToJSON(map);
 
 		setText("<A HREF=\"" + urlUser + "\">" + displayName
 				+ "</A> wants to be your buddy\n \n" + "  <A HREF=\"" + urlAccept
@@ -65,13 +75,13 @@ public class VuzeActivitiesEntryBuddyRequest
 		super.loadFromExternalMap(platformEntry);
 		loadOtherValuesFromMap(platformEntry);
 	}
-	
+
 	// @see com.aelitis.azureus.activities.VuzeActivitiesEntry#loadFromInternalMap(java.util.Map)
 	public void loadFromInternalMap(Map map) {
 		super.loadFromInternalMap(map);
 		loadOtherValuesFromMap(map);
 	}
-	
+
 	private void loadOtherValuesFromMap(Map map) {
 		Map mapFutureBuddy = (Map) MapUtils.getMapObject(map, "buddy",
 				new HashMap(), Map.class);
@@ -80,15 +90,15 @@ public class VuzeActivitiesEntryBuddyRequest
 		futureBuddyDisplayName = MapUtils.getMapString(mapFutureBuddy,
 				"display-name", "Mr Unkown");
 	}
-	
+
 	// @see com.aelitis.azureus.activities.VuzeActivitiesEntry#toMap()
 	public Map toMap() {
 		Map map = super.toMap();
-		
+
 		Map mapFutureBuddy = new HashMap();
 		mapFutureBuddy.put("login-id", futureBuddyLoginID);
 		mapFutureBuddy.put("display-name", futureBuddyDisplayName);
-		
+
 		map.put("buddy", mapFutureBuddy);
 		return map;
 	}
