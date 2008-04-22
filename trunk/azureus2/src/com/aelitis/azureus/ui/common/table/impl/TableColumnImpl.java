@@ -129,6 +129,8 @@ public class TableColumnImpl
 	private int iPreferredWidthMax = -1;
 	
 	private boolean auto_tooltip = false;
+	
+	private Map userData;
 
 	/** Create a column object for the specified table.
 	 *
@@ -727,6 +729,26 @@ public class TableColumnImpl
 		//	setVisible(false);
 		//}
 	}
+	
+	public Object getUserData(String key) {
+		if(userData != null)
+			return userData.get(key);
+		return null;
+	}
+	
+	public void setUserData(String key, Object value) {
+		if(userData == null)
+			userData = new LightHashMap(2);
+		userData.put(key, value);		
+	}
+	
+	public void removeUserData(String key) {
+		if(userData == null)
+			return;
+		userData.remove(key);
+		if(userData.size() < 1)
+			userData = null;
+	}
 
 	public void loadSettings(Map mapSettings) {
 		// Format: Key = [TableID].column.[columnname]
@@ -790,6 +812,13 @@ public class TableColumnImpl
 				bSortAscending = sortOrder == 1;
 			}
 		}
+		
+		pos++;
+		if (list.length >= (pos + 1) && (list[pos] instanceof Map)) {
+			userData = (Map)list[pos];
+			if(userData.size() < 1)
+				userData = null;
+		}
 	}
 
 	public void saveSettings(Map mapSettings) {
@@ -806,6 +835,7 @@ public class TableColumnImpl
 			new Integer(iWidth),
 			new Integer(auto_tooltip ? 1 : 0),
 			new Integer(lLastSortValueChange == 0 ? -1 : (bSortAscending ? 1 : 0)),
+			userData != null ? userData : Collections.EMPTY_MAP
 		}));
 		// cleanup old config
 		sItemPrefix = "Table." + sTableID + "." + sName; 

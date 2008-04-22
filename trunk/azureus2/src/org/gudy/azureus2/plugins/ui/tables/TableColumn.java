@@ -356,6 +356,22 @@ public interface TableColumn {
   public boolean isVisible();
   
   /**
+   * Associates custom data with the column, usually meant for column-specific settings and stores it across sessions
+   * @param key the key under which the value will be stored and serialized
+   * @param value should be BEncodable, otherwise it won't be serialized
+   */
+  public void setUserData(String key, Object value);
+  
+  public void removeUserData(String key);
+  
+  /**
+   * 
+   * @param key
+   * @return data set via setUserData()
+   */
+  public Object getUserData(String key);
+  
+  /**
    * Sets the visibility of the column
    * 
    * @param visible New visibility state

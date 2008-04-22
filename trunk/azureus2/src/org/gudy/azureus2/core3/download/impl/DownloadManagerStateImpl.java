@@ -2618,8 +2618,8 @@ DownloadManagerStateImpl
 		private Boolean		simple_torrent;
 		private long		size;
 		
-		private URL							announce_url;
-		private TOTorrentAnnounceURLGroup	announce_group;
+		private URL										announce_url;
+		private cacheGroup								announce_group;
 		
 		private volatile boolean		discard_fluff;
 		
@@ -2672,7 +2672,7 @@ DownloadManagerStateImpl
 			if ( au != null ){
 				
 				try{
-					announce_url = new URL((new String( au, "UTF-8" )));
+					announce_url = StringInterner.internURL(new URL((new String( au, "UTF-8" ))));
 					
 				}catch( Throwable e ){
 					
@@ -2782,7 +2782,7 @@ DownloadManagerStateImpl
 			return( result );
 		}
 		
-		protected TOTorrentAnnounceURLGroup
+		protected cacheGroup
 		importGroup(
 			List		l )
 		
@@ -2805,46 +2805,48 @@ DownloadManagerStateImpl
 			{
 				sets = new TOTorrentAnnounceURLSet[ group.size() ];
 				
-				for (int i=0;i<sets.length;i++){
-					
-					List	set = (List)group.get(i);
-					
-					URL[]	urls = new URL[set.size()];
-					
-					for (int j=0;j<urls.length;j++){
-						
-						urls[j] = new URL(new String((byte[])set.get(j), "UTF-8" ));
-					}
-					
-					sets[i] = new cacheSet( i, urls );
+				for (int i = 0; i < sets.length; i++)
+				{
+					List set = (List) group.get(i);
+					URL[] urls = new URL[set.size()];
+					for (int j = 0; j < urls.length; j++)
+						urls[j] = StringInterner.internURL(new URL(new String((byte[]) set.get(j), "UTF-8")));
+					sets[i] = new cacheSet(urls);
 				}
 			}
 			
 			public TOTorrentAnnounceURLSet[]
            	getAnnounceURLSets()
 			{
+				if(announce_group == null && fixup())
+					return delegate.getAnnounceURLGroup().getAnnounceURLSets();
 				return( sets );
+			}
+			
+			void fixGroup()
+			{
+				TOTorrentAnnounceURLSet[] realSets = delegate.getAnnounceURLGroup().getAnnounceURLSets();
+				if(realSets.length != sets.length)
+					Debug.out("Cached announce group state does not match real state");
+				for(int i=0;i<realSets.length;i++)
+					if(sets[i] instanceof cacheSet)
+						((cacheSet)sets[i]).delegateSet = realSets[i];
+				sets = null;
 			}
            	
            	public void
            	setAnnounceURLSets(
-           		TOTorrentAnnounceURLSet[]	_sets )
+           		TOTorrentAnnounceURLSet[]	toSet )
            	{
-           		sets	= _sets;
-           		
-           		for (int i=0;i<sets.length;i++){
-           			
-           			TOTorrentAnnounceURLSet set = sets[i];
-           			
-           			if ( set instanceof cacheSet ){
-           				
-           				((cacheSet)set).setIndex( i );
-           			}
-           		}
-           		
      	   		if ( fixup()){
-    				
-    				delegate.getAnnounceURLGroup().setAnnounceURLSets( sets );
+     	   			
+               		for (int i = 0; i < toSet.length; i++)
+					{
+						TOTorrentAnnounceURLSet set = toSet[i];
+						if (set instanceof cacheSet)
+							toSet[i] = ((cacheSet) set).delegateSet;
+					}
+    				delegate.getAnnounceURLGroup().setAnnounceURLSets( toSet );
     			}
            	}
            		
@@ -2864,41 +2866,31 @@ DownloadManagerStateImpl
            	cacheSet
            		implements TOTorrentAnnounceURLSet
            	{
-           		private int			index; 
            		private URL[]		urls;
+           		private TOTorrentAnnounceURLSet delegateSet;
            		
-           		protected
-           		cacheSet(
-           			int							_index,
-           			URL[]						_urls )
-           		{
-           			index		= _index;
-           			urls		= _urls;
-           		}
-           		
-           		protected void
-           		setIndex(
-           			int		_i )
-           		{
-           			index	= _i;
-           		}
+				public cacheSet(URL[] urls)
+				{
+					this.urls = urls;
+				}
            		
            		public URL[]
            		getAnnounceURLs()
            		{
+           			if(announce_group == null && fixup())
+           				return delegateSet.getAnnounceURLs();
+           			
            			return( urls );
            		}
            		    	
 		    	public void
 		    	setAnnounceURLs(
-		    		URL[]		_urls )
+		    		URL[]		toSet )
 		    	{
-		    		urls		= _urls;
-		    		
 		    		if ( fixup()){
-		    			
-		    			delegate.getAnnounceURLGroup().getAnnounceURLSets()[index].setAnnounceURLs( urls );
+		    			delegateSet.setAnnounceURLs( toSet );
 		    		}
+		    			
 		    	}
            	}
 		}
@@ -2958,7 +2950,9 @@ DownloadManagerStateImpl
 								cache_azp = null;
 							}
 							
-							announce_url = delegate.getAnnounceURL();
+							announce_url = null;
+							announce_group.fixGroup();
+							announce_group = null;
 						}
 					}
 				}	
@@ -3190,12 +3184,13 @@ DownloadManagerStateImpl
     	setAnnounceURL(
     		URL		url )
        	{
-    		announce_url = url;
+    		
     		
 	   		if ( fixup()){
-				
 				return( delegate.setAnnounceURL( url ));
-			}
+			} else
+				announce_url = url;
+				
 	   		
 	   		return( false );
     	}

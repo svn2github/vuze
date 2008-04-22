@@ -26,6 +26,7 @@ package org.gudy.azureus2.ui.swt.views.tableitems.files;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
@@ -50,6 +51,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 
 import com.aelitis.azureus.core.AzureusCoreOperation;
 import com.aelitis.azureus.core.AzureusCoreOperationTask;
+import com.sun.org.apache.bcel.internal.generic.NEW;
 
 /** Torrent name cell for My Torrents.
  *
@@ -60,7 +62,6 @@ public class NameItem extends CoreTableColumn implements
 		TableCellLightRefreshListener, ObfusticateCellText, TableCellDisposeListener
 {
 	private static boolean bShowIcon;
-	private static boolean fastRename;
 
 	static {
 		COConfigurationManager.addAndFireParameterListener(
@@ -70,34 +71,41 @@ public class NameItem extends CoreTableColumn implements
 					}
 				});
 	}
+	
+	final TableContextMenuItem menuItem;
 
 	/** Default Constructor */
 	public NameItem() {
 		super("name", ALIGN_LEAD, POSITION_LAST, 300,
 				TableManager.TABLE_TORRENT_FILES);
-		setType(TableColumn.TYPE_TEXT);
 		setInplaceEdit(true);
-		final TableContextMenuItem menuItem = addContextMenuItem("FilesView.name.fastRename");
+		setType(TableColumn.TYPE_TEXT);
+		menuItem = addContextMenuItem("FilesView.name.fastRename");
 		
 		menuItem.setStyle(MenuItem.STYLE_CHECK);
 		//menuItem.setText(MessageText.getString("FilesView.name.fastRename")); TODO make this work
-		menuItem.setData(Boolean.valueOf(fastRename));
+		menuItem.setData(Boolean.valueOf(isInplaceEdit()));
 
-		/* TODO make this work
-		menuItem.addFillListener(new MenuItemFillListener() {
-			public void menuWillBeShown(MenuItem menu, Object data) {
-				menu.setStyle(MenuItem.STYLE_CHECK);
-				menu.setData(Boolean.valueOf(fastRename));
-				menu.setText(MessageText.getString("FilesView.name.fastRename"));
-			}
-		});
-		*/
 		menuItem.addMultiListener(new MenuItemListener() {
 			public void selected(MenuItem menu, Object target) {
-				menu.setData(Boolean.valueOf(fastRename = !fastRename)); // XXX broken, should toggle checkmarks
-				setInplaceEdit(fastRename);
+				menu.setData(Boolean.valueOf(!isInplaceEdit())); // XXX broken, should toggle checkmarks
+				setInplaceEdit(!isInplaceEdit());
 			}
 		});
+	}
+	
+	public void loadSettings(Map mapSettings) {
+		super.loadSettings(mapSettings);
+		setInplaceEdit(getUserData("noInplaceEdit") == null);
+		menuItem.setData(Boolean.valueOf(isInplaceEdit()));
+	}
+	
+	public void saveSettings(Map mapSettings) {
+		if(isInplaceEdit())
+			removeUserData("noInplaceEdit");
+		else
+			setUserData("noInplaceEdit", new Integer(1));
+		super.saveSettings(mapSettings);
 	}
 	
 	public void refresh(TableCell cell, boolean sortOnlyRefresh)

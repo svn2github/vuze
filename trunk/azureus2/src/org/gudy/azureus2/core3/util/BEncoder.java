@@ -80,7 +80,7 @@ BEncoder
     	url_encode	= _url_encode;
     }
     
-    private void 
+    private boolean 
 	encodeObject(
 		Object 					object) 
     
@@ -136,39 +136,36 @@ BEncoder
    			   		           	
    			   	Object value = entry.getValue();
 
-   			   	if ( value != null ){
-   			   	
-					if ( o_key instanceof byte[]){
-						
-						encodeObject( o_key );
-	      				
-						encodeObject( value );
-
-					}else{
-						
-						String	key = (String)o_key;
-					
-		                if ( byte_keys ){
-		                		   		
-		   					try{
-		  					
-		   						encodeObject( Constants.BYTE_CHARSET.encode(key));
-		      				
-		   						encodeObject( tempMap.get(key));
-		      		
-		    				}catch( UnsupportedEncodingException e ){
-		                		
-		    					throw( new IOException( "BEncoder: unsupport encoding: " + e.getMessage()));
-		    				}
-		
-		                }else{                 
-	
-		                	encodeObject( key );	// Key goes in as UTF-8
-		      				
-		                	encodeObject( value);
-	    				}   
-					}
-                }     
+   			   	if (value != null)
+				{
+					if (o_key instanceof byte[])
+					{
+						encodeObject(o_key);
+						if (!encodeObject(value))
+							encodeObject("");
+					} else if(o_key instanceof String)
+					{
+						String key = (String) o_key;
+						if (byte_keys)
+						{
+							try
+							{
+								encodeObject(Constants.BYTE_CHARSET.encode(key));
+								if (!encodeObject(tempMap.get(key)))
+									encodeObject("");
+							} catch (UnsupportedEncodingException e)
+							{
+								throw (new IOException("BEncoder: unsupport encoding: " + e.getMessage()));
+							}
+						} else
+						{
+							encodeObject(key); // Key goes in as UTF-8
+							if (!encodeObject(value))
+								encodeObject("");
+						}
+					} else
+						Debug.out( "Attempt to encode an unsupported map key type: " + object.getClass() + ";value=" + object);
+				}     
             }
             
             writeChar('e');
@@ -226,12 +223,18 @@ BEncoder
     	   
     	   	// ideally we'd bork here but I don't want to run the risk of breaking existing stuff so just log
     	   
+    	   
     	   Debug.out( "Attempt to encode a null value" );
+    	   return false;
     	   
        }else{
         	
+    	   
     	   Debug.out( "Attempt to encode an unsupported entry type: " + object.getClass() + ";value=" + object);
+    	   return false;
        }
+        
+        return true;
     }
     
     private void
@@ -436,6 +439,31 @@ BEncoder
     	
     	return( o );
     }
+    
+    public static boolean isEncodable(Object toCheck) {
+		if (toCheck instanceof Integer || toCheck instanceof Long || toCheck instanceof Boolean || toCheck instanceof Float || toCheck instanceof byte[] || toCheck instanceof String)
+			return true;
+		if (toCheck instanceof Map)
+		{
+			for (Iterator it = ((Map) toCheck).keySet().iterator(); it.hasNext();)
+			{
+				Map.Entry entry = (Map.Entry) it.next();
+				Object key = entry.getKey();
+				if (!(key instanceof String || key instanceof byte[]) || !isEncodable(entry.getValue()))
+					return false;
+			}
+			return true;
+		}
+		if (toCheck instanceof List)
+		{
+			for (Iterator it = ((List) toCheck).iterator(); it.hasNext();)
+				if (!isEncodable(it.next()))
+					return false;
+			return true;
+		}
+		return false;
+	}
+    
     
     public static boolean
     objectsAreIdentical(
