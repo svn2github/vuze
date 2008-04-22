@@ -65,6 +65,8 @@ import com.aelitis.azureus.buddy.VuzeBuddyCreator;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.messenger.ClientMessageContext;
+import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
@@ -77,9 +79,9 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.*;
 import com.aelitis.azureus.ui.swt.Initializer;
-import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
+import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
+import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcher;
 import com.aelitis.azureus.ui.swt.buddy.impl.VuzeBuddySWTImpl;
-import com.aelitis.azureus.ui.swt.buddy.impl.VuzeBuddyUtils;
 import com.aelitis.azureus.ui.swt.extlistener.StimulusRPC;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
@@ -156,7 +158,7 @@ public class MainWindow
 		this.core = core;
 		this.display = display;
 		disposedOrDisposing = false;
-		
+
 		VuzeBuddyManager.init(new VuzeBuddyCreator() {
 			public VuzeBuddy createBuddy(String publicKey) {
 				VuzeBuddyManager.log("created buddy: " + publicKey);
@@ -175,7 +177,6 @@ public class MainWindow
 		//
 		//	System.out.println("BUDDDY!!!!!! " + buddy.getDisplayName());
 		//}
-		
 
 		// Hack for 3014 -> 3016 upgrades on Vista who become an Administrator
 		// user after restart.
@@ -227,7 +228,7 @@ public class MainWindow
 				}
 			}
 		});
-		
+
 		// When a download is added, check for new meta data and
 		// un-"wait state" the rating
 		// TODO: smart refreshing of meta data ("Refresh On" attribute)
@@ -590,8 +591,8 @@ public class MainWindow
 			startTime = SystemTime.getCurrentTime();
 
 			try {
-                DCAdManager.getInstance().initialize(core);
-            } catch (Throwable e) {
+				DCAdManager.getInstance().initialize(core);
+			} catch (Throwable e) {
 			}
 
 			StimulusRPC.hookListeners(core, this);
@@ -642,7 +643,7 @@ public class MainWindow
 					startTab = SkinConstants.VIEWID_ADVANCED_TAB;
 				} else {
 					startTab = SkinConstants.VIEWID_HOME_TAB;
-					}
+				}
 				tabSet.setActiveTab(startTab);
 
 				System.out.println("Activate tab " + startTab + " took "
@@ -673,7 +674,10 @@ public class MainWindow
 		} finally {
 			showMainWindow();
 
-			System.out.println("sb=" + COConfigurationManager.getBooleanParameter("SearchBar.visible") + ";tb=" + COConfigurationManager.getBooleanParameter("TabBar.visible"));
+			System.out.println("sb="
+					+ COConfigurationManager.getBooleanParameter("SearchBar.visible")
+					+ ";tb="
+					+ COConfigurationManager.getBooleanParameter("TabBar.visible"));
 			/*
 			 * Sets the visibility of the Search and Tab bars after the window has been opened
 			 * because these elements require the window to be in it's proper size before they
@@ -990,7 +994,7 @@ public class MainWindow
 		views.put("minilibrary-list", MiniLibraryList.class);
 
 		views.put("vuzeevents-list", VuzeActivitiesView.class);
-		
+
 		views.put("footer", Footer.class);
 
 		SWTSkinObjectListener l = new SWTSkinObjectListener() {
@@ -1269,7 +1273,8 @@ public class MainWindow
 
 			skinObject = skin.getSkinObject("tabbar");
 			if (skinObject != null) {
-				addMenuAndNonTextChildren((Composite) skinObject.getControl(), topbarMenu);
+				addMenuAndNonTextChildren((Composite) skinObject.getControl(),
+						topbarMenu);
 			}
 		}
 
@@ -1278,7 +1283,6 @@ public class MainWindow
 		 */
 		new UserAreaUtils(skin, uiFunctions);
 
-		
 		shell.layout(true, true);
 	}
 
@@ -1976,6 +1980,16 @@ public class MainWindow
 	 * @param target
 	 */
 	public void showURL(String url, String target) {
+
+		if (url.startsWith("AZMSG;")) {
+			BrowserMessage browserMsg = new BrowserMessage(url);
+
+			ClientMessageContext context = PlatformMessenger.getClientMessageContext();
+			MessageDispatcher dispatcher = context.getMessageDispatcher();
+			dispatcher.dispatch(browserMsg);
+			dispatcher.resetSequence();
+			return;
+		}
 
 		SWTSkinObject skinObject = skin.getSkinObject("tab-" + target);
 
