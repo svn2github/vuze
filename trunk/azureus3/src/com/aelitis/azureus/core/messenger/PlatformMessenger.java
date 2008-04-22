@@ -91,6 +91,7 @@ public class PlatformMessenger
 		context.addMessageListener(new ConfigListener(null));
 		context.addMessageListener(new LightBoxBrowserRequestListener());
 		context.addMessageListener(new StatusListener());
+		context.addMessageListener(new BrowserRpcBuddyListener());
 	}
 
 	public static ClientMessageContext getClientMessageContext() {
