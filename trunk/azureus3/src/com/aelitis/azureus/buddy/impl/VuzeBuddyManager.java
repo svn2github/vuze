@@ -29,8 +29,9 @@ import com.aelitis.azureus.activities.VuzeActivitiesManager;
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddyCreator;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.crypto.VuzeCryptoException;
+import com.aelitis.azureus.core.crypto.VuzeCryptoManager;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
-import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
 import com.aelitis.azureus.core.messenger.config.VuzeRelayListener;
 import com.aelitis.azureus.plugins.net.buddy.*;
@@ -260,20 +261,18 @@ public class VuzeBuddyManager
 	protected static String processPayloadMap(Map mapPayload,
 			boolean authorizedBuddy) {
 		String mt = MapUtils.getMapString(mapPayload, "VuzeMessageType", "");
-		if (mt.equals("BuddySync")) {
-			PlatformBuddyMessenger.sync();
-			return "Ok";
-		}
-
-		if (!authorizedBuddy) {
-			return "Not Authorized";
-		}
 
 		if (mt.equals("ActivityEntry")) {
 			Map mapEntry = (Map) MapUtils.getMapObject(mapPayload, "ActivityEntry",
 					new HashMap(), Map.class);
 			VuzeActivitiesEntry entry = VuzeActivitiesManager.createEntryFromMap(
 					mapEntry, true);
+
+			if (!authorizedBuddy
+					&& !VuzeActivitiesEntryBuddyRequest.TYPEID_BUDDYREQUEST.equals(entry.getTypeID())) {
+				return "Not Authorized";
+			}
+
 			// NOTE: The timestamps of these entries might be horribly off.  We
 			//       should probably handle that somehow.
 			if (entry != null) {
@@ -584,18 +583,29 @@ public class VuzeBuddyManager
 	}
 
 	public static void inviteUsers(String[] pks) {
+		String myPK;
+		try {
+			myPK = VuzeCryptoManager.getSingleton().getPublicKey(null);
+		} catch (VuzeCryptoException e) {
+			Debug.out(e);
+			return;
+		}
 		LoginInfo userInfo = LoginInfoManager.getInstance().getUserInfo();
-		
+
 		for (int i = 0; i < pks.length; i++) {
 			String pk = pks[i];
-			
-			BuddyPluginBuddy pluginBuddy = buddyPlugin.addBuddy(pk, BuddyPlugin.SUBSYSTEM_AZ3);
-			
-			VuzeActivitiesEntryBuddyRequest entry = new VuzeActivitiesEntryBuddyRequest(userInfo.userID, userInfo.userName);
+
+			BuddyPluginBuddy pluginBuddy = buddyPlugin.addBuddy(pk,
+					BuddyPlugin.SUBSYSTEM_AZ3);
+
+			VuzeActivitiesEntryBuddyRequest entry = new VuzeActivitiesEntryBuddyRequest(
+					myPK, userInfo.userID, userInfo.userName);
 			// P2P will probably fail (since we aren't buddies yet), but we try
 			// just in case we already are.  On fail, it writes YGM and to the relay
 			// server which is really what we want to do.
-			sendActivity(entry, new BuddyPluginBuddy[] { pluginBuddy } );
+			sendActivity(entry, new BuddyPluginBuddy[] {
+				pluginBuddy
+			});
 		}
 	}
 
