@@ -268,18 +268,19 @@ public class VuzeBuddyManager
 			VuzeActivitiesEntry entry = VuzeActivitiesManager.createEntryFromMap(
 					mapEntry, true);
 
-			if (!authorizedBuddy
-					&& !VuzeActivitiesEntryBuddyRequest.TYPEID_BUDDYREQUEST.equals(entry.getTypeID())) {
-				return "Not Authorized";
-			}
-
 			// NOTE: The timestamps of these entries might be horribly off.  We
 			//       should probably handle that somehow.
 			if (entry != null) {
-				VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
-					entry
-				});
-				return "Ok";
+				if (authorizedBuddy
+						|| VuzeActivitiesEntryBuddyRequest.TYPEID_BUDDYREQUEST.equals(entry.getTypeID())) {
+
+					VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
+						entry
+					});
+					return "Ok";
+				} else {
+					return "Not Authorized";
+				}
 			}
 		}
 		return "Unknown Message Type";
