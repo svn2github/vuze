@@ -52,9 +52,12 @@ public class PlatformConfigMessenger
 
 	private static String DEFAULT_WHITELIST = "https?://"
 			+ Constants.URL_ADDRESS.replaceAll("\\.", "\\\\.") + ":?[0-9]*/" + ".*";
+	
+	private static String RPC_WHITELIST = "AZMSG%3B[0-9]+%3B.*";
 
 	private static String[] sURLWhiteList = new String[] {
-		DEFAULT_WHITELIST
+		DEFAULT_WHITELIST,
+		RPC_WHITELIST
 	};
 
 	private static String playAfterURL = null;
@@ -137,13 +140,14 @@ public class PlatformConfigMessenger
 					List listURLs = (List) MapUtils.getMapObject(reply, "url-whitelist",
 							null, List.class);
 					if (listURLs != null) {
-						String[] sNewWhiteList = new String[listURLs.size() + 1];
+						String[] sNewWhiteList = new String[listURLs.size() + 2];
 						sNewWhiteList[0] = DEFAULT_WHITELIST;
+						sNewWhiteList[1] = RPC_WHITELIST;
 
 						for (int i = 0; i < listURLs.size(); i++) {
 							String string = (String) listURLs.get(i);
 							PlatformMessenger.debug("v3.login: got whitelist of " + string);
-							sNewWhiteList[i + 1] = string;
+							sNewWhiteList[i + 2] = string;
 						}
 						sURLWhiteList = sNewWhiteList;
 					}

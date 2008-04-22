@@ -19,10 +19,9 @@
  */
 package com.aelitis.azureus.ui.swt.shells.main;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.lang.reflect.Method;
+import java.net.URLDecoder;
 import java.util.*;
 import java.util.List;
 
@@ -1981,13 +1980,16 @@ public class MainWindow
 	 */
 	public void showURL(String url, String target) {
 
-		if (url.startsWith("AZMSG;")) {
-			BrowserMessage browserMsg = new BrowserMessage(url);
-
-			ClientMessageContext context = PlatformMessenger.getClientMessageContext();
-			MessageDispatcher dispatcher = context.getMessageDispatcher();
-			dispatcher.dispatch(browserMsg);
-			dispatcher.resetSequence();
+		if (url.startsWith("AZMSG%3B")) {
+			try {
+				BrowserMessage browserMsg;
+				browserMsg = new BrowserMessage(URLDecoder.decode(url, "utf-8"));
+				ClientMessageContext context = PlatformMessenger.getClientMessageContext();
+				MessageDispatcher dispatcher = context.getMessageDispatcher();
+				dispatcher.dispatch(browserMsg);
+				dispatcher.resetSequence();
+			} catch (UnsupportedEncodingException e) {
+			}
 			return;
 		}
 
