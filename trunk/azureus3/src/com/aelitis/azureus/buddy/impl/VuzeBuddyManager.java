@@ -32,6 +32,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.crypto.VuzeCryptoException;
 import com.aelitis.azureus.core.crypto.VuzeCryptoManager;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
+import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
 import com.aelitis.azureus.core.messenger.config.VuzeRelayListener;
 import com.aelitis.azureus.plugins.net.buddy.*;
@@ -282,7 +283,11 @@ public class VuzeBuddyManager
 					return "Not Authorized";
 				}
 			}
-		}
+		} else if (authorizedBuddy && mt.equals("BuddySync")) {
+			PlatformBuddyMessenger.sync();
+			return "Ok";
+		};
+
 		return "Unknown Message Type";
 	}
 
