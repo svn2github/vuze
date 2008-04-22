@@ -220,7 +220,7 @@ ConfigSectionSecurity
 		    
 			Messages.setLanguageText(crypto_group,"ConfigView.section.security.group.crypto");
 			
-				// row
+				// publick key display
 
 			byte[]	public_key = crypt_man.getECCHandler().peekPublicKey();
 			
@@ -299,7 +299,10 @@ ConfigSectionSecurity
 			
 		    new Label(crypto_group, SWT.NULL );
 		    
-	    		// row
+		    	// manage keys
+		    
+		    
+	    		// reset keys
 		    
 		    Label reset_key_label = new Label(crypto_group, SWT.NULL );
 		    Messages.setLanguageText(reset_key_label, "ConfigView.section.security.resetkey");
@@ -334,7 +337,7 @@ ConfigSectionSecurity
 		    
 		    new Label(crypto_group, SWT.NULL );
 		    	
-		    	// row
+		    	// unlock
 		    
 		    Label priv_key_label = new Label(crypto_group, SWT.NULL );
 		    Messages.setLanguageText(priv_key_label, "ConfigView.section.security.unlockkey");
@@ -364,7 +367,7 @@ ConfigSectionSecurity
 		    
 		    new Label(crypto_group, SWT.NULL );
 		    
-		    	// row
+		    	// backup
 		    
 		    Label backup_keys_label = new Label(crypto_group, SWT.NULL );
 		    Messages.setLanguageText(backup_keys_label, "ConfigView.section.security.backupkeys");
@@ -382,29 +385,32 @@ ConfigSectionSecurity
 				        	
 				        	String	target = dialog.open();
 				        	
-				        	try{
-				        		String	keys = crypt_man.getECCHandler().exportKeys();
+				        	if ( target != null ){
 				        		
-				        		PrintWriter pw = new PrintWriter(new FileWriter( target ));
-				        		
-				        		pw.println( keys );
-				        		
-				        		pw.close();
-				        	
-				        	}catch( Throwable e ){
-				        	
-				        		Utils.openMessageBox( 
-				        				backup_keys_button.getShell(),SWT.ICON_ERROR | SWT.OK,
-				        				MessageText.getString( "ConfigView.section.security.op.error.title" ),
-				        				MessageText.getString( "ConfigView.section.security.op.error", 
-				        						new String[]{ Debug.getNestedExceptionMessage( e )}));
+					        	try{
+					        		String	keys = crypt_man.getECCHandler().exportKeys();
+					        		
+					        		PrintWriter pw = new PrintWriter(new FileWriter( target ));
+					        		
+					        		pw.println( keys );
+					        		
+					        		pw.close();
+					        	
+					        	}catch( Throwable e ){
+					        	
+					        		Utils.openMessageBox( 
+					        				backup_keys_button.getShell(),SWT.ICON_ERROR | SWT.OK,
+					        				MessageText.getString( "ConfigView.section.security.op.error.title" ),
+					        				MessageText.getString( "ConfigView.section.security.op.error", 
+					        						new String[]{ Debug.getNestedExceptionMessage( e )}));
+					        	}
 				        	}
 				        }
 				    });
 		    
 		    new Label(crypto_group, SWT.NULL );
 		    
-		    	// row
+		    	// restore
 		    
 		    Label restore_keys_label = new Label(crypto_group, SWT.NULL );
 		    Messages.setLanguageText(restore_keys_label, "ConfigView.section.security.restorekeys");
@@ -422,47 +428,50 @@ ConfigSectionSecurity
 				        	
 				        	String	target = dialog.open();
 				        	
-				        	try{
-				        		LineNumberReader reader = new LineNumberReader(  new FileReader( target ));
+				        	if ( target != null ){
 				        		
-				        		String	str = "";
-				        		
-				        		while( true ){
-				        			
-				        			String	line = reader.readLine();
-				        			
-				        			if ( line == null ){
-				        				
-				        				break;
-				        			}
-				        			
-				        			str += line + "\r\n";
-				        		}
-				        		
-				        		boolean restart = crypt_man.getECCHandler().importKeys(str);
-				  
-				        		if ( restart ){
-				        			
-					        		Utils.openMessageBox( 
-					        				backup_keys_button.getShell(),SWT.ICON_INFORMATION | SWT.OK,
-					        				MessageText.getString( "ConfigView.section.security.restart.title" ),
-					        				MessageText.getString( "ConfigView.section.security.restart.msg" )); 
-
+					        	try{
+					        		LineNumberReader reader = new LineNumberReader(  new FileReader( target ));
 					        		
-					        		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+					        		String	str = "";
 					        		
-					            	if ( uiFunctions != null ){
-					            		
-					            		uiFunctions.dispose(true, false);
-					            	}
-				        		}
-				        	}catch( Throwable e ){
-				        	
-				        		Utils.openMessageBox(  
-				        			backup_keys_button.getShell(),SWT.ICON_ERROR | SWT.OK,
-				        			MessageText.getString( "ConfigView.section.security.op.error.title" ),
-				        			MessageText.getString( "ConfigView.section.security.op.error", 
-				        					new String[]{ Debug.getNestedExceptionMessage( e )}));
+					        		while( true ){
+					        			
+					        			String	line = reader.readLine();
+					        			
+					        			if ( line == null ){
+					        				
+					        				break;
+					        			}
+					        			
+					        			str += line + "\r\n";
+					        		}
+					        		
+					        		boolean restart = crypt_man.getECCHandler().importKeys(str);
+					  
+					        		if ( restart ){
+					        			
+						        		Utils.openMessageBox( 
+						        				backup_keys_button.getShell(),SWT.ICON_INFORMATION | SWT.OK,
+						        				MessageText.getString( "ConfigView.section.security.restart.title" ),
+						        				MessageText.getString( "ConfigView.section.security.restart.msg" )); 
+	
+						        		
+						        		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+						        		
+						            	if ( uiFunctions != null ){
+						            		
+						            		uiFunctions.dispose(true, false);
+						            	}
+					        		}
+					        	}catch( Throwable e ){
+					        	
+					        		Utils.openMessageBox(  
+					        			backup_keys_button.getShell(),SWT.ICON_ERROR | SWT.OK,
+					        			MessageText.getString( "ConfigView.section.security.op.error.title" ),
+					        			MessageText.getString( "ConfigView.section.security.op.error", 
+					        					new String[]{ Debug.getNestedExceptionMessage( e )}));
+					        	}
 				        	}
 				        }
 				    });

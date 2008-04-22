@@ -287,108 +287,122 @@ CryptoHandlerECC
 		return( res );
 	}
 	
-	public synchronized void
+	public void
 	recoverKeys(
 		byte[]		public_key,
 		byte[]		encrypted_private_key_and_type )
 	
 		throws CryptoManagerException
 	{
-		use_method_private_key	= null;
-		use_method_public_key	= null;
-		
-		manager.clearPassword( CryptoManager.HANDLER_ECC );
-		
-		COConfigurationManager.setParameter( CONFIG_PREFIX + "publickey", public_key );
+		synchronized( this ){
 			
-		int	type = (int)encrypted_private_key_and_type[0]&0xff;
-		
-		COConfigurationManager.setParameter( CONFIG_PREFIX + "pwtype", type );
-
-		byte[] encrypted_private_key = new byte[encrypted_private_key_and_type.length-1];
-		
-		System.arraycopy( encrypted_private_key_and_type, 1, encrypted_private_key, 0, encrypted_private_key.length );
-		
-		COConfigurationManager.setParameter( CONFIG_PREFIX + "privatekey", encrypted_private_key );
-		
-		COConfigurationManager.save();
+			use_method_private_key	= null;
+			use_method_public_key	= null;
+			
+			manager.clearPassword( CryptoManager.HANDLER_ECC );
+			
+			COConfigurationManager.setParameter( CONFIG_PREFIX + "publickey", public_key );
+				
+			int	type = (int)encrypted_private_key_and_type[0]&0xff;
+			
+			COConfigurationManager.setParameter( CONFIG_PREFIX + "pwtype", type );
+	
+			byte[] encrypted_private_key = new byte[encrypted_private_key_and_type.length-1];
+			
+			System.arraycopy( encrypted_private_key_and_type, 1, encrypted_private_key, 0, encrypted_private_key.length );
+			
+			COConfigurationManager.setParameter( CONFIG_PREFIX + "privatekey", encrypted_private_key );
+			
+			COConfigurationManager.save();
+		}
 		
 		manager.keyChanged( this );
 	}
 	
-	public synchronized void
+	public void
 	resetKeys(
 		String		reason )
 	
 		throws CryptoManagerException
 	{
-		use_method_private_key	= null;
-		use_method_public_key	= null;
-		
-		manager.clearPassword( CryptoManager.HANDLER_ECC );
-		
-		COConfigurationManager.removeParameter( CONFIG_PREFIX + "publickey" );
+		synchronized( this ){
 			
-		COConfigurationManager.removeParameter( CONFIG_PREFIX + "privatekey" );
-		
-		COConfigurationManager.save();
+			use_method_private_key	= null;
+			use_method_public_key	= null;
+			
+			manager.clearPassword( CryptoManager.HANDLER_ECC );
+			
+			COConfigurationManager.removeParameter( CONFIG_PREFIX + "publickey" );
+				
+			COConfigurationManager.removeParameter( CONFIG_PREFIX + "privatekey" );
+			
+			COConfigurationManager.save();
+		}
 		
 		createAndStoreKeys( "resetting keys" );
 	}
 	
-	protected synchronized PrivateKey
+	protected PrivateKey
 	getMyPrivateKey(
 		String		reason )
 	
 		throws CryptoManagerException
 	{
-		if ( use_method_private_key != null ){
+		synchronized( this ){
 			
-			int	timeout_secs = getUnlockTimeoutSeconds();
-			
-			if ( timeout_secs > 0 ){
+			if ( use_method_private_key != null ){
 				
-				if ( SystemTime.getCurrentTime() - last_unlock_time >= timeout_secs * 1000 ){
+				int	timeout_secs = getUnlockTimeoutSeconds();
+				
+				if ( timeout_secs > 0 ){
 					
-					use_method_private_key = null;
+					if ( SystemTime.getCurrentTime() - last_unlock_time >= timeout_secs * 1000 ){
+						
+						use_method_private_key = null;
+					}
 				}
+			}
+			
+			if ( use_method_private_key != null ){
+				
+				return( use_method_private_key );
 			}
 		}
 		
-		if ( use_method_private_key == null ){
+		final byte[]	encoded = COConfigurationManager.getByteParameter( CONFIG_PREFIX + "privatekey", null );
+		
+		if ( encoded == null ){
 			
-			final byte[]	encoded = COConfigurationManager.getByteParameter( CONFIG_PREFIX + "privatekey", null );
+			return((PrivateKey)createAndStoreKeys( reason )[1]);
 			
-			if ( encoded == null ){
-				
-				createAndStoreKeys( reason );
-				
-			}else{
-				
-				CryptoManagerImpl.passwordDetails password_details = 
-					manager.getPassword( 
-							CryptoManager.HANDLER_ECC, 
-							CryptoManagerPasswordHandler.ACTION_DECRYPT, 
-							reason,
-							new CryptoManagerImpl.passwordTester()
+		}else{
+			
+			CryptoManagerImpl.passwordDetails password_details = 
+				manager.getPassword( 
+						CryptoManager.HANDLER_ECC, 
+						CryptoManagerPasswordHandler.ACTION_DECRYPT, 
+						reason,
+						new CryptoManagerImpl.passwordTester()
+						{
+							public boolean 
+							testPassword(
+								char[] password )
 							{
-								public boolean 
-								testPassword(
-									char[] password )
-								{
-									try{
-										manager.decryptWithPBE( encoded, password );
-										
-										return( true );
-										
-									}catch( Throwable e ){
-										
-										return( false );
-									}
+								try{
+									manager.decryptWithPBE( encoded, password );
+									
+									return( true );
+									
+								}catch( Throwable e ){
+									
+									return( false );
 								}
-							},
-							getCurrentPasswordType());
-	
+							}
+						},
+						getCurrentPasswordType());
+
+			synchronized( this ){
+				
 				boolean		ok = false;
 				
 				try{
@@ -421,14 +435,14 @@ CryptoHandlerECC
 					}
 				}
 			}
-		}
 		
-		if ( use_method_private_key == null ){
+			if ( use_method_private_key == null ){
+				
+				throw( new CryptoManagerException( "Failed to get private key" ));
+			}
 			
-			throw( new CryptoManagerException( "Failed to get private key" ));
+			return( use_method_private_key );
 		}
-		
-		return( use_method_private_key );
 	}
 	
 	protected boolean
@@ -442,42 +456,52 @@ CryptoHandlerECC
 		return( verify( keyToRawdata( getMyPublicKey( reason, true )), test_data,  sign( test_data, reason )));
 	}
 	
-	protected synchronized PublicKey
+	protected PublicKey
 	getMyPublicKey(
 		String		reason,
 		boolean		create_if_needed )
 	
 		throws CryptoManagerException
 	{
-		if ( use_method_public_key == null ){
+		boolean	create_new = false;
+		
+		synchronized( this ){
 			
-			byte[]	key_bytes = COConfigurationManager.getByteParameter( CONFIG_PREFIX + "publickey", null );
-			
-			if ( key_bytes == null ){
+			if ( use_method_public_key == null ){
 				
-				if ( create_if_needed ){
+				byte[]	key_bytes = COConfigurationManager.getByteParameter( CONFIG_PREFIX + "publickey", null );
+				
+				if ( key_bytes == null ){
 					
-					createAndStoreKeys( reason );
-					
+					if ( create_if_needed ){
+						
+						create_new = true;
+						
+					}else{
+						
+						return( null );
+					}
 				}else{
 					
-					return( null );
+					use_method_public_key = rawdataToPubkey( key_bytes );
 				}
-			}else{
+			}
+			
+			if ( !create_new ){
 				
-				use_method_public_key = rawdataToPubkey( key_bytes );
+				if ( use_method_public_key == null ){
+					
+					throw( new CryptoManagerException( "Failed to get public key" ));
+				}
+				
+				return( use_method_public_key );
 			}
 		}
 		
-		if ( use_method_public_key == null ){
-			
-			throw( new CryptoManagerException( "Failed to get public key" ));
-		}
-		
-		return( use_method_public_key );
+		return((PublicKey)createAndStoreKeys( reason )[0] );
 	}
 	
-	protected void
+	protected Key[]
 	createAndStoreKeys(
 		String		reason )
 	
@@ -494,37 +518,40 @@ CryptoHandlerECC
 							null,
 							CryptoManagerPasswordHandler.HANDLER_TYPE_UNKNOWN );
 		
-		KeyPair	keys = createKeys();
+		try{
+			synchronized( this ){
+				
+				if ( use_method_public_key == null || use_method_private_key == null ){
+					
+					KeyPair	keys = createKeys();
+					
+					use_method_public_key	= keys.getPublic();
+					
+					use_method_private_key	= keys.getPrivate();
+					
+					last_unlock_time = SystemTime.getCurrentTime();
+					
+					COConfigurationManager.setParameter( CONFIG_PREFIX + "publickey", keyToRawdata( use_method_public_key ));
+					
+					byte[]	priv_raw = keyToRawdata( use_method_private_key );
+					
+					byte[]	priv_enc = manager.encryptWithPBE( priv_raw, password_details.getPassword());
+					
+					COConfigurationManager.setParameter( CONFIG_PREFIX + "privatekey", priv_enc );
 		
-		use_method_public_key	= keys.getPublic();
+					COConfigurationManager.setParameter( CONFIG_PREFIX + "pwtype", password_details.getHandlerType());
 		
-		use_method_private_key	= keys.getPrivate();
-		
-		last_unlock_time = SystemTime.getCurrentTime();
-		
-		storeKeys( password_details );
+					COConfigurationManager.save();
+				}
+				
+				return( new Key[]{ use_method_public_key, use_method_private_key });
+			}
+		}finally{
+				
+			manager.keyChanged( this );
+		}
 	}
 	
-	protected void
-	storeKeys(
-		CryptoManagerImpl.passwordDetails	password )
-	
-		throws CryptoManagerException
-	{
-		COConfigurationManager.setParameter( CONFIG_PREFIX + "publickey", keyToRawdata( use_method_public_key ));
-		
-		byte[]	priv_raw = keyToRawdata( use_method_private_key );
-		
-		byte[]	priv_enc = manager.encryptWithPBE( priv_raw, password.getPassword());
-		
-		COConfigurationManager.setParameter( CONFIG_PREFIX + "privatekey", priv_enc );
-
-		COConfigurationManager.setParameter( CONFIG_PREFIX + "pwtype", password.getHandlerType());
-
-		COConfigurationManager.save();
-		
-		manager.keyChanged( this );
-	}
 	
 	protected KeyPair 
 	createKeys()

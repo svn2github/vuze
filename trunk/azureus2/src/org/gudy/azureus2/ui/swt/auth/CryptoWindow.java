@@ -29,7 +29,6 @@ package org.gudy.azureus2.ui.swt.auth;
 import java.util.Arrays;
 
 import org.eclipse.swt.*;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
@@ -75,17 +74,46 @@ CryptoWindow
 			return( null );
 		}
 		
-		final authDialog[]	dialog = new authDialog[1];
+		final cryptoDialog[]	dialog = new cryptoDialog[1];
 		
+		final AESemaphore	sem = new AESemaphore("CryptoWindowSem");
+
 		try{
-			Utils.execSWTThread(new AERunnable() {
-						public void
-						runSupport()
+			if ( display.getThread() == Thread.currentThread()){
+				
+				display.syncExec(
+						new Runnable() 
 						{
-							dialog[0] = new authDialog( display, handler_type, action_type, last_pw_incorrect, reason );
-						}
-					}, false);
-			
+							public void
+							run()
+							{
+								dialog[0] = new cryptoDialog( sem, display, handler_type, action_type, last_pw_incorrect, reason );
+							}
+						});
+				
+				while ( !( display.isDisposed() || sem.isReleasedForever())){
+					
+					if ( !display.readAndDispatch()){
+						
+						display.sleep();
+					}
+				}
+				
+				if ( display.isDisposed()){
+					
+					return( null );
+				}
+			}else{
+				display.asyncExec(
+						new Runnable() 
+						{
+							public void
+							run()
+							{
+								dialog[0] = new cryptoDialog( sem, display, handler_type, action_type, last_pw_incorrect, reason );
+							}
+						});
+			}
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace( e );
@@ -93,6 +121,7 @@ CryptoWindow
 			return( null );
 		}
 			
+		sem.reserve();
 			
 		final char[]	pw			= dialog[0].getPassword();
 		final int		persist_for	= dialog[0].getPersistForSeconds();
@@ -120,8 +149,9 @@ CryptoWindow
 	}
 	
 	protected class
-	authDialog
+	cryptoDialog
 	{
+		private AESemaphore	sem;
 		private Shell		shell;
 		
 		private char[]		password;
@@ -131,21 +161,27 @@ CryptoWindow
 		private boolean		verify_password;
 		
 		protected
-		authDialog(
+		cryptoDialog(
+			AESemaphore		_sem,
 			Display			display,
 			int				handler_type,
 			int				action_type,
 			boolean			last_pw_incorrect,
 			String			reason )
 		{
+			sem	= _sem;
+			
 			if ( display.isDisposed()){
-								
+				
+				sem.releaseForever();
+				
 				return;
 			}
 			
 	 		shell = new Shell( display,SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 	 	
 	 		Utils.setShellIcon(shell);
+	 		
 		 	Messages.setLanguageText(shell, "security.crypto.title");
     		
 		 	GridLayout layout = new GridLayout();
@@ -335,21 +371,12 @@ CryptoWindow
 					}
 				}
 			});
-
 		
 		 	shell.pack ();
 		 			 	
 			Utils.centreWindow( shell );
 			
-			shell.open ();   
-			
-			while (!shell.isDisposed()){
-				
-				if (!shell.getDisplay().readAndDispatch()){
-					
-					shell.getDisplay().sleep();
-				}
-			}
+			shell.open();
 		}
    
 		protected void
@@ -392,6 +419,8 @@ CryptoWindow
 		 		shell.dispose();
 		 		
 			}finally{
+				
+				sem.releaseForever();
 			}
 	 	}
 	 	
