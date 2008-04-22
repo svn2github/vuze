@@ -63,6 +63,14 @@ ExternalSeedPlugin
 	private Map		download_map	= new HashMap();
 	private Monitor	download_mon;
 	
+	public static void
+	load(
+		PluginInterface		plugin_interface )
+	{
+		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		"External Seed" );
+	}
+	
 	public void
 	initialize(
 		PluginInterface	_plugin_interface )
@@ -71,9 +79,6 @@ ExternalSeedPlugin
 		
 		dm_stats = plugin_interface.getDownloadManager().getStats();
 		
-		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
-		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		"External Seed" );
-				
 		log	= plugin_interface.getLogger().getTimeStampedChannel( "External Seeds" );
 		
 		final BasicPluginViewModel	view_model = 

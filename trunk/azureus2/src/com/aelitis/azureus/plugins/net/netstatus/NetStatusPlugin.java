@@ -59,25 +59,29 @@ NetStatusPlugin
 	private NetStatusProtocolTester		protocol_tester;
 	private AESemaphore					protocol_tester_sem	= new AESemaphore( "ProtTestSem" );
 	
+	public static void
+	load(
+		PluginInterface		plugin_interface )
+	{
+		String name = 
+			plugin_interface.getUtilities().getLocaleUtilities().getLocalisedMessageText( "Views.plugins." + VIEW_ID + ".title" );
+		
+		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		name );
+
+	}
+	
 	public void
 	initialize(
 		final PluginInterface		_plugin_interface )
 	{
 		plugin_interface	= _plugin_interface;
-		
-		String name_res = "Views.plugins." + VIEW_ID + ".title";
-		
-		String name = 
-			plugin_interface.getUtilities().getLocaleUtilities().getLocalisedMessageText( name_res );
-		
-		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
-		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		name );
-
+				
 		logger = plugin_interface.getLogger().getChannel( "NetStatus" );
 		
 		logger.setDiagnostic();
 				
-		BasicPluginConfigModel config = plugin_interface.getUIManager().createBasicPluginConfigModel( name_res );
+		BasicPluginConfigModel config = plugin_interface.getUIManager().createBasicPluginConfigModel( "Views.plugins." + VIEW_ID + ".title" );
 		
 		ping_target = config.addStringParameter2( "plugin.aznetstatus.pingtarget", "plugin.aznetstatus.pingtarget", "www.google.com" );
 		

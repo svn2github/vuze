@@ -185,6 +185,14 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	
 	private CopyOnWriteList listenersFP = new CopyOnWriteList();
 	
+	public static void
+	load(
+		PluginInterface		plugin_interface )
+	{
+		plugin_interface.getPluginProperties().setProperty("plugin.version", "1.0");
+		plugin_interface.getPluginProperties().setProperty("plugin.name", "Start/Stop Rules");
+	}
+	
 	public void initialize(PluginInterface _plugin_interface) {
 		if (bAlreadyInitialized) {
 			System.err.println("StartStopRulesDefaultPlugin Already initialized!!");
@@ -199,8 +207,6 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		pi = _plugin_interface;
 		download_manager = pi.getDownloadManager();
 
-		pi.getPluginProperties().setProperty("plugin.version", "1.0");
-		pi.getPluginProperties().setProperty("plugin.name", "Start/Stop Rules");
 		pi.getPluginconfig().setPluginConfigKeyPrefix("");
 
 		// Create a configModel for StartStopRules

@@ -104,14 +104,19 @@ UPnPPlugin
 	
 	protected AEMonitor	this_mon 	= new AEMonitor( "UPnPPlugin" );
 	   
+	public static void
+	load(
+		PluginInterface		plugin_interface )
+	{
+		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		"Universal Plug and Play (UPnP)" );
+	}
+	
 	public void
 	initialize(
 		PluginInterface	_plugin_interface )
 	{
 		plugin_interface	= _plugin_interface;
-		
-		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
-		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		"Universal Plug and Play (UPnP)" );
 		
 		log = plugin_interface.getLogger().getTimeStampedChannel("UPnP");
 

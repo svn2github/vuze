@@ -73,14 +73,19 @@ MagnetPlugin
 		
 	private CopyOnWriteList		listeners = new CopyOnWriteList();
 	
+	public static void
+	load(
+		PluginInterface		plugin_interface )
+	{
+		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		"Magnet URI Handler" );
+	}
+	
 	public void
 	initialize(
 		PluginInterface	_plugin_interface )
 	{
 		plugin_interface	= _plugin_interface;
-		
-		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
-		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		"Magnet URI Handler" );
 		
 		MenuItemListener	listener = 
 			new MenuItemListener()

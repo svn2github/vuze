@@ -1105,7 +1105,7 @@ PluginInitializer
 								if (core_operation != null) {
 									core_operation.reportCurrentTask(MessageText
 											.getString("splash.plugin.init")
-											+ plugin_interface.getPluginName());
+											+ " " + plugin_interface.getPluginName());
 								}
 			
 								initialisePlugin(l);
@@ -1357,33 +1357,34 @@ PluginInitializer
   		
   		return;
   	}
-  	
-    if( core_operation != null ){
-	      	
-    	String	plugin_name;
-		
-		if ( plugin_config_key.length() == 0 ){
-			
-			plugin_name = plugin_class.getName();
-    	
-	    	int	pos = plugin_name.lastIndexOf(".");
-	    	
-	    	if ( pos != -1 ){
-	    		
-	    		plugin_name = plugin_name.substring( pos+1 );
-	    		
-	    	}
-		}else{
-		
-			plugin_name = plugin_config_key;
-		}
-    	
-		core_operation.reportCurrentTask(MessageText.getString("splash.plugin.init") + plugin_name );
-    }
-    
+  	    
   	try{
   	
   		Plugin plugin = (Plugin) plugin_class.newInstance();
+  		
+  		String	plugin_name;
+
+  		if ( plugin_config_key.length() == 0 ){
+
+  			plugin_name = plugin_class.getName();
+
+  			int	pos = plugin_name.lastIndexOf(".");
+
+  			if ( pos != -1 ){
+
+  				plugin_name = plugin_name.substring( pos+1 );
+
+  			}
+  		}else{
+
+  			plugin_name = plugin_config_key;
+  		}
+
+  		Properties properties = new Properties();
+  		
+  			// default plugin name
+  		
+  		properties.put( "plugin.name", plugin_name );
   		
   		PluginInterfaceImpl plugin_interface = 
   			new PluginInterfaceImpl(
@@ -1392,7 +1393,7 @@ PluginInitializer
 						plugin_class,
 						plugin_class.getClassLoader(),
 						plugin_config_key,
-						new Properties(),
+						properties,
 						"",
 						plugin_id,
 						null );
@@ -1415,6 +1416,11 @@ PluginInitializer
 						"Load of built in plugin '" + plugin_id + "' fails", e));
 		}
 		 
+		 if ( core_operation != null ){
+			 
+			 core_operation.reportCurrentTask(MessageText.getString("splash.plugin.init") + " " + plugin_interface.getPluginName());
+		 }
+
   		plugin.initialize(plugin_interface);
   		
   		if (!(plugin instanceof FailedPlugin)){

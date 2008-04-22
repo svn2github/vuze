@@ -155,7 +155,13 @@ DHTPlugin
 	
 	private List				listeners	= new ArrayList();
 	
-
+	public static void
+	load(
+		PluginInterface		plugin_interface )
+	{
+		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	PLUGIN_VERSION );
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		PLUGIN_NAME );
+	}
 		
 	public void
 	initialize(
@@ -163,9 +169,6 @@ DHTPlugin
 	{
 		plugin_interface	= _plugin_interface;
 				
-		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	PLUGIN_VERSION );
-		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		PLUGIN_NAME );
-
 		dht_data_port = UDPNetworkManager.getSingleton().getUDPNonDataListeningPortNumber();
 
 		log = plugin_interface.getLogger().getTimeStampedChannel(PLUGIN_NAME);

@@ -56,15 +56,20 @@ ShareHosterPlugin
 		
 	protected boolean			initialised	= false;
 	
+	public static void
+	load(
+		PluginInterface		plugin_interface )
+	{
+		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		"Share Hoster" );
+	}
+	
 	public void 
 	initialize(
 		PluginInterface _plugin_interface )
 	{
 		plugin_interface = _plugin_interface;
 		
-		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
-		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		"Share Hoster" );
-
 		log	= plugin_interface.getLogger().getChannel("ShareHosterPlugin");
 		
 		log.log( LoggerChannel.LT_INFORMATION, "ShareHosterPlugin: initialisation starts");

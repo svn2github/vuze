@@ -50,8 +50,6 @@ import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
 import org.gudy.azureus2.plugins.download.DownloadAttributeListener;
 import org.gudy.azureus2.plugins.download.DownloadListener;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
-import org.gudy.azureus2.plugins.download.DownloadPropertyEvent;
-import org.gudy.azureus2.plugins.download.DownloadPropertyListener;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.download.DownloadTrackerListener;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
@@ -155,6 +153,13 @@ DHTTrackerPlugin
 	
 	private AEMonitor	this_mon	= new AEMonitor( "DHTTrackerPlugin" );
 	
+	public static void
+	load(
+		PluginInterface		plugin_interface )
+	{
+		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		PLUGIN_NAME );
+	}
 	
 	public void
 	initialize(
@@ -162,11 +167,7 @@ DHTTrackerPlugin
 	{
 		plugin_interface	= _plugin_interface;
 				
-		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
-		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		PLUGIN_NAME );
-
 		log = plugin_interface.getLogger().getTimeStampedChannel(PLUGIN_NAME);
-
 		
 		ta_networks 	= plugin_interface.getTorrentManager().getAttribute( TorrentAttribute.TA_NETWORKS );
 		ta_peer_sources = plugin_interface.getTorrentManager().getAttribute( TorrentAttribute.TA_PEER_SOURCES );

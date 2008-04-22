@@ -212,7 +212,17 @@ BuddyPlugin
 	private static final int	BLOOM_CHECK_TICKS			= BLOOM_CHECK_PERIOD/TIMER_PERIOD;
 
 	
-	
+	public static void
+	load(
+		PluginInterface		plugin_interface )
+	{
+		String name = 
+			plugin_interface.getUtilities().getLocaleUtilities().getLocalisedMessageText( "Views.plugins." + VIEW_ID + ".title" );
+		
+		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		name );
+	}
+
 	public void
 	initialize(
 		final PluginInterface		_plugin_interface )
@@ -220,15 +230,7 @@ BuddyPlugin
 		plugin_interface	= _plugin_interface;
 		
 		az2_handler = new BuddyPluginAZ2( this );
-		
-		String name_res = "Views.plugins." + VIEW_ID + ".title";
-		
-		String name = 
-			plugin_interface.getUtilities().getLocaleUtilities().getLocalisedMessageText( name_res );
-		
-		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
-		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		name );
-
+				
 		if ( !Constants.isCVSVersion()){
 			
 			return;
@@ -240,7 +242,7 @@ BuddyPlugin
 		
 		logger.setDiagnostic();
 				
-		BasicPluginConfigModel config = plugin_interface.getUIManager().createBasicPluginConfigModel( name_res );
+		BasicPluginConfigModel config = plugin_interface.getUIManager().createBasicPluginConfigModel( "Views.plugins." + VIEW_ID + ".title" );
 			
 			// enabled
 

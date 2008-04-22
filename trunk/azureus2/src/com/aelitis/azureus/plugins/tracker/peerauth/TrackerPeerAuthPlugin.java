@@ -83,15 +83,20 @@ TrackerPeerAuthPlugin
 	
 	private ThreadPool			thread_pool = new ThreadPool("TrackerPeerAuthPlugin",8, true );
 	
+	public static void
+	load(
+		PluginInterface		plugin_interface )
+	{
+		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		PLUGIN_NAME );
+	}
+	
 	public void
 	initialize(
 		PluginInterface 	_plugin_interface )
 	{
 		plugin_interface = _plugin_interface;
 		
-		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
-		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		PLUGIN_NAME );
-
 		ta_state 	= plugin_interface.getTorrentManager().getPluginAttribute( "state" );
 		
 		log = plugin_interface.getLogger().getTimeStampedChannel(PLUGIN_NAME);

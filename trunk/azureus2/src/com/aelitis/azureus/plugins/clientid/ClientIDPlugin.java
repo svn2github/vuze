@@ -39,14 +39,15 @@ public class
 ClientIDPlugin 
 	implements Plugin
 {
-	private PluginInterface		plugin_interface;
-	
 	private static boolean		send_os;
 	
 	public static void
 	load(
 		final PluginInterface	plugin_interface )
 	{
+		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		"Client ID" );
+
 		final String	param = "Tracker Client Send OS and Java Version";
 		
 		send_os = plugin_interface.getPluginconfig().getBooleanParameter( param );
@@ -93,10 +94,6 @@ ClientIDPlugin
 	initialize(
 		PluginInterface	_plugin_interface )
 	{
-		plugin_interface	= _plugin_interface;
-		
-		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
-		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		"Client ID" );
 	}
 	
 

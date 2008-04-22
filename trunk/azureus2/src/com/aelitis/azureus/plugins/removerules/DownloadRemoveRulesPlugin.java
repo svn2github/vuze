@@ -37,7 +37,6 @@ import org.gudy.azureus2.plugins.ui.config.*;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.*;
 
-import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.util.*;
 
 public class 
@@ -70,6 +69,13 @@ DownloadRemoveRulesPlugin
 	
 	protected BooleanParameter 	remove_update_torrents; 
 
+	public static void
+	load(
+		PluginInterface		plugin_interface )
+	{
+		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", "Download Remove Rules" );
+	}
 	
 	public void
 	initialize(
@@ -79,9 +85,6 @@ DownloadRemoveRulesPlugin
 		
 		HostNameToIPResolver.addResolverRequest( AELITIS_TRACKER, this );
 		
-		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
-		plugin_interface.getPluginProperties().setProperty( "plugin.name", "Download Remove Rules" );
-
 		log = plugin_interface.getLogger().getChannel("DLRemRules");
 
 		BasicPluginConfigModel	config = plugin_interface.getUIManager().createBasicPluginConfigModel( "torrents", "download.removerules.name" );
