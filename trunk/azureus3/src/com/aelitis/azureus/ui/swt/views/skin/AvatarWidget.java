@@ -1,12 +1,6 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.dnd.DND;
-import org.eclipse.swt.dnd.DropTarget;
-import org.eclipse.swt.dnd.DropTargetEvent;
-import org.eclipse.swt.dnd.DropTargetListener;
-import org.eclipse.swt.dnd.TextTransfer;
-import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.MouseEvent;
@@ -15,14 +9,15 @@ import org.eclipse.swt.events.MouseMoveListener;
 import org.eclipse.swt.events.MouseTrackListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.graphics.Region;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
@@ -55,6 +50,14 @@ public class AvatarWidget
 
 	private boolean nameLinkActive = false;
 
+	private boolean isEditMode = false;
+
+	private boolean isShareMode = false;
+
+	private Color textColor = null;
+
+	private Color textLinkColor = null;
+
 	public AvatarWidget(BuddiesViewer viewer, Point avatarSize,
 			Point avatarImageSize, VuzeBuddySWT vuzeBuddy) {
 
@@ -74,18 +77,19 @@ public class AvatarWidget
 		this.avatarSize = avatarSize;
 		this.avatarImageSize = avatarImageSize;
 		this.vuzeBuddy = vuzeBuddy;
+		avatarCanvas = new Canvas(parent, SWT.NONE);
 
 		init();
 	}
 
 	private void init() {
 
-		final Image infoImage = parent.getDisplay().getSystemImage(
-				SWT.ICON_INFORMATION);
+		final Image removeImage = ImageRepository.getImage("progress_remove");
+		final Image add_to_share_Image = ImageRepository.getImage("add_to_share");
 
 		imageOffsetX = (avatarSize.x / 2) - (avatarImageSize.x / 2);
 
-		avatarCanvas = new Canvas(parent, SWT.NONE);
+//		avatarCanvas = new Canvas(parent, SWT.NONE);
 
 		Utils.createTorrentDropTarget(avatarCanvas, true);
 
@@ -186,31 +190,47 @@ public class AvatarWidget
 						+ borderWidth, borderWidth, avatarImageSize.x - (2 * borderWidth),
 						avatarImageSize.y - (2 * borderWidth));
 
-				if (true == isActivated) {
-					e.gc.drawImage(infoImage, 0, 0, infoImage.getBounds().width,
-							infoImage.getBounds().height, 81, 0, 16, 16);
+				if (true == isEditMode) {
+					e.gc.drawImage(removeImage, 0, 0, removeImage.getBounds().width,
+							removeImage.getBounds().height, 46, 0, 16, 16);
+				}
+
+				if (true == isShareMode) {
+					e.gc.drawImage(add_to_share_Image, 0, 0,
+							removeImage.getBounds().width, removeImage.getBounds().height,
+							46, 18, 16, 16);
 				}
 
 				/*
 				 * Draw the buddy display name
 				 */
-				if (true == nameLinkActive && true == isActivated) {
-					e.gc.setForeground(Colors.blues[Colors.BLUES_MIDLIGHT]);
-				} else {
-					e.gc.setForeground(Colors.blues[Colors.BLUES_MIDDARK]);
-				}
-				GCStringPrinter.printString(e.gc, vuzeBuddy.getDisplayName(),
-						new Rectangle(0, avatarImageSize.y, 64, 26), false, false, SWT.TOP
-								| SWT.CENTER | SWT.WRAP);
 
+				if (null != textLinkColor && null != textColor) {
+					if (true == nameLinkActive && true == isActivated) {
+						e.gc.setForeground(textLinkColor);
+					} else {
+						e.gc.setForeground(textColor);
+					}
+					GCStringPrinter.printString(e.gc, vuzeBuddy.getDisplayName(),
+							new Rectangle(0, avatarImageSize.y, 64, 26), false, false,
+							SWT.TOP | SWT.CENTER | SWT.WRAP);
+
+				}
+				else{
+					System.err.println("Color is still null");//KN: sysout
+				}
 			}
 		});
 
 		avatarCanvas.addDisposeListener(new DisposeListener() {
 
 			public void widgetDisposed(DisposeEvent e) {
-				if (null != infoImage && false == infoImage.isDisposed()) {
-					infoImage.dispose();
+				if (null != removeImage && false == removeImage.isDisposed()) {
+					removeImage.dispose();
+				}
+				if (null != add_to_share_Image
+						&& false == add_to_share_Image.isDisposed()) {
+					add_to_share_Image.dispose();
 				}
 			}
 		});
@@ -262,10 +282,10 @@ public class AvatarWidget
 			private boolean lastActiveState = false;
 
 			public void mouseMove(MouseEvent e) {
-				if(e.stateMask == SWT.MOD1){
+				if (e.stateMask == SWT.MOD1) {
 					return;
 				}
-				
+
 				if (e.y > avatarImageSize.y) {
 					if (false == lastActiveState) {
 						nameLinkActive = true;
@@ -300,9 +320,10 @@ public class AvatarWidget
 
 	}
 
-	public void doLinkClicked(){
+	public void doLinkClicked() {
 		System.out.println("Link is clicked");
 	}
+
 	public Control getControl() {
 		return avatarCanvas;
 	}
@@ -332,5 +353,37 @@ public class AvatarWidget
 			avatarCanvas.redraw();
 		}
 
+	}
+
+	public boolean isEditMode() {
+		return isEditMode;
+	}
+
+	public void setEditMode(boolean isEditMode) {
+		this.isEditMode = isEditMode;
+	}
+
+	public boolean isShareMode() {
+		return isShareMode;
+	}
+
+	public void setShareMode(boolean isShareMode) {
+		this.isShareMode = isShareMode;
+	}
+
+	public Color getTextColor() {
+		return textColor;
+	}
+
+	public void setTextColor(Color textColor) {
+		this.textColor = textColor;
+	}
+
+	public Color getTextLinkColor() {
+		return textLinkColor;
+	}
+
+	public void setTextLinkColor(Color textLinkColor) {
+		this.textLinkColor = textLinkColor;
 	}
 }

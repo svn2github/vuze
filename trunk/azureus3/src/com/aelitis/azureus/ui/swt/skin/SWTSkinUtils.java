@@ -192,7 +192,7 @@ public class SWTSkinUtils
 		}
 	}
 
-	private static void slide(final Control control, final FormData fd,
+	public static void slide(final Control control, final FormData fd,
 			final Point size) {
 		//System.out.println("slid to " + size);
 		AERunnable runnable = new AERunnable() {
