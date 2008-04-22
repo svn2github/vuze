@@ -82,7 +82,9 @@ public class VuzeBuddyImpl
 			} else {
 				String avatarB32 = MapUtils.getMapString(mapNewBuddy, "avatar.B32",
 						null);
-				avatarBytes = Base32.decode(avatarB32);
+				if (avatarB32 != null) {
+					avatarBytes = Base32.decode(avatarB32);
+				}
 			}
 		}
 		if (avatarBytes != null) {
