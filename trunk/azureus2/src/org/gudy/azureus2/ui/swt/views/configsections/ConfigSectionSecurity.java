@@ -54,6 +54,9 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.auth.CertificateCreatorWindow;
+import org.gudy.azureus2.ui.swt.config.BooleanParameter;
+import org.gudy.azureus2.ui.swt.config.Parameter;
+import org.gudy.azureus2.ui.swt.config.ParameterChangeAdapter;
 import org.gudy.azureus2.ui.swt.config.StringParameter;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
@@ -63,6 +66,7 @@ import com.aelitis.azureus.core.security.CryptoHandler;
 import com.aelitis.azureus.core.security.CryptoManager;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
 import com.aelitis.azureus.core.security.CryptoManagerKeyChangeListener;
+import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
@@ -301,6 +305,68 @@ ConfigSectionSecurity
 		    
 		    	// manage keys
 		    
+		    gridData = new GridData();
+		    gridData.horizontalSpan = 3;
+
+		    final BooleanParameter manage_keys = new BooleanParameter( 
+		    		crypto_group, "crypto.keys.system.managed.temp",
+		    		"ConfigView.section.security.system.managed");
+		    
+		    manage_keys.setLayoutData( gridData );
+		    
+		    final CryptoManager crypto_man 	= CryptoManagerFactory.getSingleton();
+			final CryptoHandler ecc_handler = crypto_man.getECCHandler();
+
+		    manage_keys.setSelected( 
+		    		ecc_handler.getDefaultPasswordHandlerType() == CryptoManagerPasswordHandler.HANDLER_TYPE_SYSTEM ); 
+		    
+
+		    manage_keys.addChangeListener(
+		    	new ParameterChangeAdapter ()
+		    	{
+		    		public void 
+		    		parameterChanged(
+		    			Parameter 	p,
+		    			boolean 	caused_internally ) 
+		    		{
+	    				boolean existing_value = ecc_handler.getDefaultPasswordHandlerType() == CryptoManagerPasswordHandler.HANDLER_TYPE_SYSTEM;
+	    				
+	    				if ( existing_value == manage_keys.isSelected()){
+
+	    					return;
+	    				}
+	    				
+	    				String	error = null;
+	    				
+	    				int	new_type = manage_keys.isSelected()?CryptoManagerPasswordHandler.HANDLER_TYPE_SYSTEM:CryptoManagerPasswordHandler.HANDLER_TYPE_USER;
+	    					    					
+    					try{
+    						ecc_handler.setDefaultPasswordHandlerType( new_type );
+    						
+    						error = null;
+    						
+    					}catch( Throwable e ){
+    						
+    						error = Debug.getNestedExceptionMessage( e );
+    					}
+	    				
+	    				if ( error != null ){
+	    					
+			        		Utils.openMessageBox( 
+			        				manage_keys.getControl().getShell(),SWT.ICON_ERROR | SWT.OK,
+			        				MessageText.getString( "ConfigView.section.security.op.error.title" ),
+			        				MessageText.getString( "ConfigView.section.security.op.error", 
+			        						new String[]{ error }));
+	    				}
+	    				
+	    				boolean new_value = ecc_handler.getDefaultPasswordHandlerType() == CryptoManagerPasswordHandler.HANDLER_TYPE_SYSTEM;
+	    				
+	    				if ( new_value != manage_keys.isSelected()){
+    					
+	    					manage_keys.setSelected( new_value );
+	    				}
+		    		}
+		    	});
 		    
 	    		// reset keys
 		    

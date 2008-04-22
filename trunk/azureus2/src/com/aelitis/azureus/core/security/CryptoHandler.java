@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.security;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+
 public interface 
 CryptoHandler 
 {
@@ -132,6 +134,15 @@ CryptoHandler
 	
 		throws CryptoManagerException;
 		
+	public int
+	getDefaultPasswordHandlerType();
+	
+	public void
+	setDefaultPasswordHandlerType(
+		int		new_type )
+	
+		throws CryptoManagerException;
+	
 		/**
 		 * 
 		 * @param str

@@ -499,6 +499,8 @@ public class ConfigurationDefaults {
     
     def.put( "network.bind.local.port", ZERO );
     
+    def.put( "crypto.keys.system.managed", FALSE );
+    
     def.put( "peer.nat.traversal.request.conc.max", new Long(3));
 
     // Memory settings

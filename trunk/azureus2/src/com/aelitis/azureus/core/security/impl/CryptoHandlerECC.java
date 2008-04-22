@@ -501,14 +501,27 @@ CryptoHandlerECC
 		return((PublicKey)createAndStoreKeys( reason )[0] );
 	}
 	
-	protected Key[]
-	createAndStoreKeys(
-		String		reason )
+	public int
+	getDefaultPasswordHandlerType()
+	{
+		return( COConfigurationManager.getBooleanParameter( CONFIG_PREFIX + "default_pwtype" )?
+				CryptoManagerPasswordHandler.HANDLER_TYPE_SYSTEM:CryptoManagerPasswordHandler.HANDLER_TYPE_USER	);
+	}
+	
+	public void
+	setDefaultPasswordHandlerType(
+		int		new_type )
 	
 		throws CryptoManagerException
 	{
-			// when storing keys we allow the registered handlers decide which password type handler
-			// is wearing the trousers
+		if ( new_type == getCurrentPasswordType()){
+			
+			return;
+		}
+		
+		String reason = "Changing password handler";
+		
+		getMyPrivateKey( reason );
 		
 		CryptoManagerImpl.passwordDetails password_details = 
 			manager.getPassword( 
@@ -516,7 +529,42 @@ CryptoHandlerECC
 							CryptoManagerPasswordHandler.ACTION_ENCRYPT,
 							reason,
 							null,
-							CryptoManagerPasswordHandler.HANDLER_TYPE_UNKNOWN );
+							new_type );
+		
+		synchronized( this ){
+			
+			if ( use_method_private_key == null ){
+				
+				throw( new CryptoManagerException( "Private key not available" ));
+			}
+			
+			byte[]	priv_raw = keyToRawdata( use_method_private_key );
+			
+			byte[]	priv_enc = manager.encryptWithPBE( priv_raw, password_details.getPassword());
+			
+			COConfigurationManager.setParameter( CONFIG_PREFIX + "privatekey", priv_enc );
+
+			COConfigurationManager.setParameter( CONFIG_PREFIX + "pwtype", password_details.getHandlerType());
+
+			COConfigurationManager.setParameter( CONFIG_PREFIX + "default_pwtype", password_details.getHandlerType());
+			
+			COConfigurationManager.save();
+		}
+	}
+	
+	protected Key[]
+	createAndStoreKeys(
+		String		reason )
+	
+		throws CryptoManagerException
+	{		
+		CryptoManagerImpl.passwordDetails password_details = 
+			manager.getPassword( 
+							CryptoManager.HANDLER_ECC,
+							CryptoManagerPasswordHandler.ACTION_ENCRYPT,
+							reason,
+							null,
+							getDefaultPasswordHandlerType());
 		
 		try{
 			synchronized( this ){

@@ -102,7 +102,7 @@ public class ConfigSectionStats implements UISWTConfigSection {
                              "ConfigView.section.stats.enable");
     enableStats.setLayoutData(gridData);
 
-    Control[] controls = new Control[13];
+    Control[] controls = new Control[14];
 
     // row
 
@@ -226,16 +226,21 @@ public class ConfigSectionStats implements UISWTConfigSection {
     exportFiles.setLayoutData(gridData);
 
     controls[12] = exportFiles.getControl();
-    
-    	// control stuff
-    
-    enableStats.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controls));
 
+    // ROW
+    
     gridData = new GridData();
     gridData.horizontalSpan = 3;
     BooleanParameter graph_dividers = new BooleanParameter(gStats, "Stats Graph Dividers", "ConfigView.section.stats.graph_update_dividers");
     graph_dividers.setLayoutData(gridData);
 
+    controls[13] = graph_dividers.getControl();
+    
+    	// control stuff
+    
+    enableStats.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controls));
+
+ 
     return gStats;
   }
 }
