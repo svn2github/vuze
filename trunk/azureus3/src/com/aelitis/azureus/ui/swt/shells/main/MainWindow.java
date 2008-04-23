@@ -21,11 +21,15 @@ package com.aelitis.azureus.ui.swt.shells.main;
 
 import java.io.*;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.browser.ProgressEvent;
+import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FormAttachment;
@@ -65,6 +69,7 @@ import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
+import com.aelitis.azureus.core.messenger.PlatformAuthorizedSender;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
@@ -169,6 +174,7 @@ public class MainWindow
 				return new VuzeBuddySWTImpl();
 			}
 		});
+		
 		//VuzeBuddy randomBuddy = VuzeBuddyUtils.createRandomBuddy();
 		//List allVuzeBuddies = VuzeBuddyManager.getAllVuzeBuddies();
 		//for (Iterator iter = allVuzeBuddies.iterator(); iter.hasNext();) {
@@ -457,6 +463,43 @@ public class MainWindow
 		ImageRepository.loadImages(display);
 
 		shell = new Shell(display, SWT.SHELL_TRIM);
+
+		PlatformMessenger.setAuthorizedTransferListener(new PlatformAuthorizedSender() {
+			String s = null;
+
+			public void startDownload(final URL url, final String data,
+					final AESemaphore sem_waitDL) {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						final Browser browser = new Browser(shell, SWT.NONE);
+						browser.setVisible(false);
+
+						String urlString = url.toString();
+						//urlString = urlString.replaceAll("http://", "https://");
+						browser.setUrl(urlString + "?" + data);
+
+						browser.addProgressListener(new ProgressListener() {
+							public void completed(ProgressEvent event) {
+								s = browser.getText();
+								int i = s.indexOf("0;");
+								if (i > 0) {
+									s = s.substring(i);
+								}
+								browser.dispose();
+								sem_waitDL.release();
+							}
+
+							public void changed(ProgressEvent event) {
+							}
+						});
+					}
+				});
+			}
+
+			public String getResults() {
+				return s;
+			}
+		});
 
 		try {
 			shell.setData("class", this);

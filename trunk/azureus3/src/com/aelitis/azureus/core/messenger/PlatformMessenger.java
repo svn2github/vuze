@@ -26,6 +26,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.text.NumberFormat;
 import java.util.*;
+import java.util.concurrent.Semaphore;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.Timer;
@@ -62,6 +63,8 @@ public class PlatformMessenger
 
 	public static String REPLY_RESULT = "response";
 
+	static private Map mapQueueAuthorized = new HashMap();
+
 	static private Map mapQueue = new HashMap();
 
 	static private AEMonitor queue_mon = new AEMonitor(
@@ -74,6 +77,8 @@ public class PlatformMessenger
 	private static boolean initialized;
 
 	private static fakeContext context;
+
+	private static PlatformAuthorizedSender authorizedSender;
 
 	public static synchronized void init() {
 		if (initialized) {
@@ -88,6 +93,11 @@ public class PlatformMessenger
 		context.addMessageListener(new LightBoxBrowserRequestListener());
 		context.addMessageListener(new StatusListener());
 		context.addMessageListener(new BrowserRpcBuddyListener());
+	}
+
+	public static void setAuthorizedTransferListener(
+			PlatformAuthorizedSender authorizedSender) {
+		PlatformMessenger.authorizedSender = authorizedSender;
 	}
 
 	public static ClientMessageContext getClientMessageContext() {
@@ -106,7 +116,11 @@ public class PlatformMessenger
 		debug("q msg " + message + " for " + new Date(message.getFireBefore()));
 		queue_mon.enter();
 		try {
-			mapQueue.put(message, listener);
+			if (message.requiresAuthorization()) {
+				mapQueueAuthorized.put(message, listener);
+			} else {
+				mapQueue.put(message, listener);
+			}
 
 			if (timerEvent == null || timerEvent.hasRun()) {
 				timerEvent = timerProcess.addEvent(message.getFireBefore(),
@@ -114,7 +128,10 @@ public class PlatformMessenger
 							public void perform(TimerEvent event) {
 								timerEvent = null;
 								while (mapQueue.size() > 0) {
-									processQueue();
+									processQueue(mapQueue, false);
+								}
+								while (mapQueueAuthorized.size() > 0) {
+									processQueue(mapQueueAuthorized, true);
 								}
 							}
 						});
@@ -143,9 +160,11 @@ public class PlatformMessenger
 	}
 
 	/**
+	 * @param requiresAuthorization 
 	 * 
 	 */
-	protected static void processQueue() {
+	protected static void processQueue(Map mapQueue,
+			final boolean requiresAuthorization) {
 		if (!initialized) {
 			init();
 		}
@@ -166,7 +185,7 @@ public class PlatformMessenger
 				}
 
 				mapProcessing.put(message, value);
-				
+
 				iter.remove();
 
 				if (isRelayServer) {
@@ -182,6 +201,8 @@ public class PlatformMessenger
 			return;
 		}
 
+		// Create urlStem (or post data)
+		// determine which server to use
 		String server = null;
 		String urlStem = "";
 		long sequenceNo = 0;
@@ -220,7 +241,8 @@ public class PlatformMessenger
 		if (server == null) {
 			server = "default";
 		}
-		
+
+		// Build base RPC url based on listener and server
 		String sURL_RPC;
 		boolean isRelayServer = PlatformRelayMessenger.LISTENER_ID.equals(server);
 		if (isRelayServer) {
@@ -228,8 +250,8 @@ public class PlatformMessenger
 		} else {
 			sURL_RPC = Constants.URL_PREFIX + Constants.URL_RPC + server;
 		}
-		
 
+		// Build full url and data to send
 		String sURL;
 		String sPostData = null;
 		if (USE_HTTP_POST) {
@@ -238,8 +260,7 @@ public class PlatformMessenger
 					+ Constants.URL_SUFFIX;
 			debug("POST: " + sURL + "?" + sPostData);
 		} else {
-			sURL = sURL_RPC
-					+ Constants.URL_PLATFORM_MESSAGE + "&" + urlStem + "&"
+			sURL = sURL_RPC + Constants.URL_PLATFORM_MESSAGE + "&" + urlStem + "&"
 					+ Constants.URL_SUFFIX;
 			debug("GET: " + sURL);
 		}
@@ -247,13 +268,16 @@ public class PlatformMessenger
 		final String fURL = sURL;
 		final String fPostData = sPostData;
 
+		// proccess queue on a new thread
 		AEThread2 thread = new AEThread2("v3.PlatformMessenger", true) {
 			public void run() {
 				try {
-					processQueueAsync(fURL, fPostData, mapProcessing);
+					processQueueAsync(fURL, fPostData, mapProcessing,
+							requiresAuthorization);
 				} catch (Exception e) {
 					if (e instanceof ResourceDownloaderException) {
-						Debug.out("Error while sending message(s) to Platform: " + e.toString());
+						Debug.out("Error while sending message(s) to Platform: "
+								+ e.toString());
 					} else {
 						Debug.out("Error while sending message(s) to Platform", e);
 					}
@@ -283,14 +307,22 @@ public class PlatformMessenger
 	 * @throws Exception 
 	 */
 	protected static void processQueueAsync(String sURL, String sData,
-			Map mapProcessing) throws Exception {
+			Map mapProcessing, boolean requiresAuthorization) throws Exception {
 		URL url;
 		url = new URL(sURL);
 		AzureusCore core = AzureusCoreFactory.getSingleton();
 		final PluginInterface pi = core.getPluginManager().getDefaultPluginInterface();
 
-		byte[] bytes = downloadURL(pi, url, sData);
-		String s = new String(bytes, "UTF8");
+		String s;
+		if (requiresAuthorization && authorizedSender != null) {
+			AESemaphore sem_waitDL = new AESemaphore("Waiting for DL");
+			authorizedSender.startDownload(url, sData, sem_waitDL);
+			sem_waitDL.reserve();
+			s = authorizedSender.getResults();
+		} else {
+			byte[] bytes = downloadURL(pi, url, sData);
+			s = new String(bytes, "UTF8");
+		}
 
 		// Format: <sequence no> ; <classification> [; <results>] [ \n ]
 

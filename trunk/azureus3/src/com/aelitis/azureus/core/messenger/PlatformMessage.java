@@ -47,6 +47,8 @@ public class PlatformMessage
 	private final long messageCreatedOn;
 
 	private long lSequenceNo = -1;
+	
+	private boolean requiresAuthorization = false;
 
 	/**
 	 * @param messageID
@@ -141,5 +143,19 @@ public class PlatformMessage
 		return "PlaformMessage {" + lSequenceNo + ", " + messageID + ", "
 				+ listenerID + ", " + operationID + ","
 				+ parameters + "}";
+	}
+
+	/**
+	 * @param requiresAuthorization the requiresAuthorization to set
+	 */
+	public void setRequiresAuthorization(boolean requiresAuthorization) {
+		this.requiresAuthorization = requiresAuthorization;
+	}
+
+	/**
+	 * @return the requiresAuthorization
+	 */
+	public boolean requiresAuthorization() {
+		return requiresAuthorization;
 	}
 }

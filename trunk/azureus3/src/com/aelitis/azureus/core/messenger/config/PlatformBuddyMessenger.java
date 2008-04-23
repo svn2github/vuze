@@ -84,8 +84,9 @@ public class PlatformBuddyMessenger
 					l.syncComplete();
 				}
 			}
-
 		};
+		
+		message.setRequiresAuthorization(true);
 
 		PlatformMessenger.queueMessage(message, listener);
 	}
