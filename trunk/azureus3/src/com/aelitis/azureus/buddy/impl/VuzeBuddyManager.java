@@ -26,9 +26,7 @@ import org.gudy.azureus2.core3.util.*;
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.activities.VuzeActivitiesEntryBuddyRequest;
 import com.aelitis.azureus.activities.VuzeActivitiesManager;
-import com.aelitis.azureus.buddy.QueuedVuzeShare;
-import com.aelitis.azureus.buddy.VuzeBuddy;
-import com.aelitis.azureus.buddy.VuzeBuddyCreator;
+import com.aelitis.azureus.buddy.*;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.crypto.VuzeCryptoException;
 import com.aelitis.azureus.core.crypto.VuzeCryptoManager;
@@ -66,6 +64,8 @@ public class VuzeBuddyManager
 	private static Map mapPKtoVuzeBuddy = new HashMap();
 
 	private static VuzeBuddyCreator vuzeBuddyCreator;
+
+	private static List listeners = new ArrayList();
 
 	/**
 	 * @param vuzeBuddyCreator
@@ -149,7 +149,7 @@ public class VuzeBuddyManager
 					if (vuzeBuddy != null) {
 						vuzeBuddy.removePublicKey(pk);
 						if (vuzeBuddy.getPublicKeys().length == 0) {
-							buddyList.remove(buddy);
+							removeBuddy(vuzeBuddy);
 						}
 					}
 				} finally {
@@ -432,6 +432,7 @@ public class VuzeBuddyManager
 						entry
 					});
 				}
+				triggerAddListener(buddy);
 			}
 
 		} finally {
@@ -534,8 +535,15 @@ public class VuzeBuddyManager
 
 			buddyList.remove(buddy);
 
-			// TODO: Remove all public keys too (pluginBuddy)
+			String[] publicKeys = buddy.getPublicKeys();
+			for (int i = 0; i < publicKeys.length; i++) {
+				String pk = publicKeys[i];
 
+				buddy.removePublicKey(pk);
+				mapPKtoVuzeBuddy.remove(pk);
+			}
+
+			triggerRemoveListener(buddy);
 		} finally {
 			buddy_mon.exit();
 		}
@@ -557,10 +565,13 @@ public class VuzeBuddyManager
 					String[] publicKeys = buddy.getPublicKeys();
 					for (int i = 0; i < publicKeys.length; i++) {
 						String pk = publicKeys[i];
+
+						buddy.removePublicKey(pk);
 						mapPKtoVuzeBuddy.remove(pk);
 					}
 
 					iter.remove();
+					triggerRemoveListener(buddy);
 				}
 			}
 
@@ -611,32 +622,46 @@ public class VuzeBuddyManager
 	}
 
 	public static void invitePKs(String[] pks) {
-		String myPK;
+		final String myPK;
 		try {
 			myPK = VuzeCryptoManager.getSingleton().getPublicKey(null);
 		} catch (VuzeCryptoException e) {
 			Debug.out(e);
 			return;
 		}
-		LoginInfo userInfo = LoginInfoManager.getInstance().getUserInfo();
+		final LoginInfo userInfo = LoginInfoManager.getInstance().getUserInfo();
 
+		final BuddyPluginBuddy[] pluginBuddies = new BuddyPluginBuddy[pks.length];
 		for (int i = 0; i < pks.length; i++) {
 			String pk = pks[i];
 
-			BuddyPluginBuddy pluginBuddy = buddyPlugin.addBuddy(pk,
-					BuddyPlugin.SUBSYSTEM_AZ3);
-
-			VuzeActivitiesEntryBuddyRequest entry = new VuzeActivitiesEntryBuddyRequest(
-					myPK, userInfo.userID, userInfo.userName);
-			// P2P will probably fail (since we aren't buddies yet), but we try
-			// just in case we already are.  On fail, it writes YGM and to the relay
-			// server which is really what we want to do.
-			sendActivity(entry, new BuddyPluginBuddy[] {
-				pluginBuddy
-			});
+			pluginBuddies[i] = buddyPlugin.addBuddy(pk, BuddyPlugin.SUBSYSTEM_AZ3);
 		}
+
+		// Wait 10 seconds after adding a buddy as we might find out they are online
+		// within that time (and be able to send the message directly)
+		SimpleTimer.addEvent("send invites", SystemTime.getOffsetTime(10000),
+				new TimerEventPerformer() {
+					public void perform(TimerEvent event) {
+						for (int i = 0; i < pluginBuddies.length; i++) {
+							BuddyPluginBuddy pluginBuddy = pluginBuddies[i];
+							if (pluginBuddy == null) {
+								continue;
+							}
+
+							VuzeActivitiesEntryBuddyRequest entry = new VuzeActivitiesEntryBuddyRequest(
+									myPK, userInfo.userID, userInfo.userName);
+							// P2P will probably fail (since we aren't buddies yet), but we try
+							// just in case we already are.  On fail, it writes YGM and to the relay
+							// server which is really what we want to do.
+							sendActivity(entry, new BuddyPluginBuddy[] {
+								pluginBuddy
+							});
+						}
+					}
+				});
 	}
-	
+
 	public static void inviteNonVuzers(String[] codes) {
 		for (int i = 0; i < codes.length; i++) {
 			String code = codes[i];
@@ -746,6 +771,60 @@ public class VuzeBuddyManager
 		} catch (BuddyPluginException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}
+	}
+
+	public static void addListener(VuzeBuddyListener l, boolean trigger) {
+		listeners.add(l);
+		if (trigger) {
+			Object[] buddies = buddyList.toArray();
+			for (int i = 0; i < buddies.length; i++) {
+				VuzeBuddy buddy = (VuzeBuddy) buddies[i];
+				l.buddyAdded(buddy);
+			}
+		}
+	}
+
+	public static void removeListener(VuzeBuddyListener l) {
+		listeners.remove(l);
+	}
+
+	/**
+	 * @param buddy
+	 *
+	 * @since 3.0.5.3
+	 */
+	private static void triggerRemoveListener(VuzeBuddy buddy) {
+		Object[] listenersArray = listeners.toArray();
+		for (int i = 0; i < listenersArray.length; i++) {
+			VuzeBuddyListener l = (VuzeBuddyListener) listenersArray[i];
+			l.buddyRemoved(buddy);
+		}
+	}
+
+	/**
+	 * @param buddy
+	 *
+	 * @since 3.0.5.3
+	 */
+	private static void triggerAddListener(VuzeBuddy buddy) {
+		Object[] listenersArray = listeners.toArray();
+		for (int i = 0; i < listenersArray.length; i++) {
+			VuzeBuddyListener l = (VuzeBuddyListener) listenersArray[i];
+			l.buddyAdded(buddy);
+		}
+	}
+
+	/**
+	 * @param buddy
+	 *
+	 * @since 3.0.5.3
+	 */
+	protected static void triggerChangeListener(VuzeBuddy buddy) {
+		Object[] listenersArray = listeners.toArray();
+		for (int i = 0; i < listenersArray.length; i++) {
+			VuzeBuddyListener l = (VuzeBuddyListener) listenersArray[i];
+			l.buddyChanged(buddy);
 		}
 	}
 }

@@ -84,6 +84,11 @@ public class VuzeBuddyImpl
 						null);
 				if (avatarB32 != null) {
 					avatarBytes = Base32.decode(avatarB32);
+				} else {
+					String avatarURL = MapUtils.getMapString(mapNewBuddy, "avatar.URL", null);
+					if (avatarURL != null) {
+						
+					}
 				}
 			}
 		}
@@ -113,7 +118,11 @@ public class VuzeBuddyImpl
 	}
 
 	public void setLastUpdated(long lastUpdated) {
+		boolean trigger = (this.lastUpdated > 0);
 		this.lastUpdated = lastUpdated;
+		if (trigger) {
+			VuzeBuddyManager.triggerChangeListener(this);
+		}
 	}
 
 	public byte[] getAvatar() {
