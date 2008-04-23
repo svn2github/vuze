@@ -24,7 +24,6 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
-import org.json.simple.JSONObject;
 
 import com.aelitis.azureus.util.JSONUtils;
 
