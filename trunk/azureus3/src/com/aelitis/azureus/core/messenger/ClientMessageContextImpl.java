@@ -20,6 +20,10 @@
 
 package com.aelitis.azureus.core.messenger;
 
+import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.widgets.Control;
+
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
 
@@ -105,5 +109,11 @@ public abstract class ClientMessageContextImpl
 
 	public String getID() {
 		return id;
+	}
+
+	public void registerBrowser(Browser browser, Control widgetWaitingIndicator) {
+	}
+
+	public void widgetDisposed(DisposeEvent event) {
 	}
 }

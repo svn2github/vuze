@@ -27,10 +27,6 @@ import java.net.URLEncoder;
 import java.text.NumberFormat;
 import java.util.*;
 
-import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.widgets.Control;
-
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.Timer;
 import org.json.simple.JSONArray;
@@ -536,10 +532,6 @@ public class PlatformMessenger
 			debug("handleMessage");
 		}
 
-		public void registerBrowser(Browser browser, Control widgetWaitingIndicator) {
-			debug("registerBrowser");
-		}
-
 		public boolean sendBrowserMessage(String key, String op) {
 			debug("sendBrowserMessage");
 			return false;
@@ -552,10 +544,6 @@ public class PlatformMessenger
 
 		public void setBrowserData(String key, Object value) {
 			debug("setBrowserData");
-		}
-
-		public void widgetDisposed(DisposeEvent event) {
-			debug("widgetDisposed");
 		}
 
 		public boolean sendBrowserMessage(String key, String op, Collection params) {
