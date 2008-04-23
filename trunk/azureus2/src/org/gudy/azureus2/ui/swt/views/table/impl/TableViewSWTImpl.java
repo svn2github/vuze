@@ -1505,32 +1505,35 @@ public class TableViewSWTImpl
 		}
 		if (items.length > 0 || menu_items.length > 0) {
 			new org.eclipse.swt.widgets.MenuItem(menu, SWT.SEPARATOR);
-			MenuBuildUtils.addPluginMenuItems(getComposite(), items, menu, true,
-					enable_items, new MenuBuildUtils.PluginMenuController() {
-						public Listener makeSelectionListener(
-								final org.gudy.azureus2.plugins.ui.menus.MenuItem plugin_menu_item) {
-							return new TableSelectedRowsListener(TableViewSWTImpl.this) {
-								public boolean run(TableRowCore[] rows) {
-									if (rows.length != 0) {
-										((TableContextMenuItemImpl) plugin_menu_item).invokeListenersMulti(rows);
-									}
-									return true;
-								}
-							};
-						}
 
-						public void notifyFillListeners(
-								org.gudy.azureus2.plugins.ui.menus.MenuItem menu_item) {
-							((TableContextMenuItemImpl) menu_item).invokeMenuWillBeShownListeners(getSelectedRows());
-						}
-					});
-			
 			// Add download context menu items.
 			if (menu_items != null) {
 				// getSelectedDataSources(false) returns us plugin items.
     			MenuBuildUtils.addPluginMenuItems(getComposite(), menu_items, menu, true, true,
 						new MenuBuildUtils.MenuItemPluginMenuControllerImpl(getSelectedDataSources(false))
     			);				
+			}
+
+			if (items.length > 0) {
+				MenuBuildUtils.addPluginMenuItems(getComposite(), items, menu, true,
+						enable_items, new MenuBuildUtils.PluginMenuController() {
+							public Listener makeSelectionListener(
+									final org.gudy.azureus2.plugins.ui.menus.MenuItem plugin_menu_item) {
+								return new TableSelectedRowsListener(TableViewSWTImpl.this) {
+									public boolean run(TableRowCore[] rows) {
+										if (rows.length != 0) {
+											((TableContextMenuItemImpl) plugin_menu_item).invokeListenersMulti(rows);
+										}
+										return true;
+									}
+								};
+							}
+	
+							public void notifyFillListeners(
+									org.gudy.azureus2.plugins.ui.menus.MenuItem menu_item) {
+								((TableContextMenuItemImpl) menu_item).invokeMenuWillBeShownListeners(getSelectedRows());
+							}
+						});
 			}
 		}
 	}

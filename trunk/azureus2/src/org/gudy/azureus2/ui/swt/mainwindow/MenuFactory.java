@@ -14,6 +14,10 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.plugins.ui.tables.TableCell;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.plugins.ui.tables.TableRow;
+import org.gudy.azureus2.plugins.ui.tables.TableRowMouseListener;
 import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
 import org.gudy.azureus2.plugins.update.UpdateCheckInstanceListener;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
@@ -36,6 +40,7 @@ import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 import org.gudy.azureus2.ui.swt.speedtest.SpeedTestWizard;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableContextMenuManager;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.swt.welcome.WelcomeWindow;
 
@@ -116,10 +121,13 @@ public class MenuFactory
 
 						TorrentUtil.fillTorrentMenu(menu, current_dls, getCore(),
 								menuParent.getShell(), !is_detailed_view, 0, tv);
-
+						
 						/*
 						 * KN: This is a reference to a plugins class from a core class;
 						 * maybe MenuItem should be moved to core?
+						 * 
+						 * AMC: No, because we need to add menu items that plugins have
+						 * registered to add.
 						 */
 						org.gudy.azureus2.plugins.ui.menus.MenuItem[] menu_items;
 
@@ -128,17 +136,55 @@ public class MenuFactory
 									"torrentmenu",
 									"download_context"
 								});
+						
+						final Object[] plugin_dls = DownloadManagerImpl.getDownloadStatic(current_dls);
+						
 						if (menu_items.length > 0) {
-
 							addSeparatorMenuItem(menu);
-
-							Object[] plugin_dls = DownloadManagerImpl.getDownloadStatic(current_dls);
 
 							MenuBuildUtils.addPluginMenuItems(menuParent.getShell(),
 									menu_items, menu, true, true,
 									new MenuBuildUtils.MenuItemPluginMenuControllerImpl(
 											plugin_dls));
 						}
+						
+						menu_items = null;
+						
+						/**
+						 * OK, "hack" time - we'll allow plugins which add menu items against
+						 * a table to appear in this menu. We'll have to fake the table row
+						 * object though. All downloads need to share a common table.
+						 */ 
+						String table_to_use = null;
+						for (int i=0; i<current_dls.length; i++) {
+							String table_name = (current_dls[i].isDownloadComplete(false) ? TableManager.TABLE_MYTORRENTS_COMPLETE : TableManager.TABLE_MYTORRENTS_COMPLETE);
+							if (table_to_use == null || table_to_use.equals(table_name)) {
+								table_to_use = table_name;
+							}
+							else {
+								table_to_use = null;
+								break;
+							}
+						}
+												
+						if (table_to_use != null) {
+							menu_items = TableContextMenuManager.getInstance().getAllAsArray(table_to_use);
+						}
+						
+						if (menu_items != null) {
+							addSeparatorMenuItem(menu);
+							
+							TableRow[] dls_as_rows = null;
+							dls_as_rows = new TableRow[plugin_dls.length];
+							for (int i=0; i<plugin_dls.length; i++) {
+								dls_as_rows[i] = wrapAsRow(plugin_dls[i], table_to_use);
+							}
+							
+							MenuBuildUtils.addPluginMenuItems(menuParent.getShell(),
+									menu_items, menu, true, true,
+									new MenuBuildUtils.MenuItemPluginMenuControllerImpl(dls_as_rows));
+						}
+						
 					}
 				});
 		return torrentItem;
@@ -1223,5 +1269,26 @@ public class MenuFactory
 		} else {
 			return ((keys & FOR_AZ2) != 0);
 		}
+	}
+	
+	private static TableRow wrapAsRow(final Object o, final String table_name) {
+		return new TableRow() {
+			  public Object getDataSource() {return o;}
+			  public String getTableID() {return table_name;}
+			  
+			  private void notSupported() {
+				  throw new RuntimeException("method is not supported - table row is a \"virtual\" one, only getDataSource and getTableID are supported.");
+			  }
+
+			  // Everything below is unsupported.
+			  public void setForeground(int red, int green, int blue) {notSupported();}
+			  public void setForeground(int[] rgb) {notSupported();}
+			  public void setForegroundToErrorColor() {notSupported();}
+			  public boolean isValid() {notSupported(); return false;}
+			  public TableCell getTableCell(String sColumnName) {notSupported(); return null;}
+			  public boolean isSelected()  {notSupported(); return false;}
+			  public void addMouseListener(TableRowMouseListener listener) {notSupported();}
+			  public void removeMouseListener(TableRowMouseListener listener) {notSupported();}
+		};
 	}
 }

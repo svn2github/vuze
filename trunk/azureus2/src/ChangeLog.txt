@@ -5,7 +5,8 @@ AZUREUS VUZE CHANGELOG
 
 FEATURE: UI   | Protocol overhead is now shown in the speed graph [The 8472]
 FEATURE: UI   | Downloads can now be moved and renamed while running - torrent will be auto-paused [amc1]
-FEATURE: UI   | Plugin Log Views now support autoscrolling, pausing and regex filtering [The 8472] 
+FEATURE: UI   | Plugin log views now support autoscrolling, pausing and regex filtering [The 8472]
+FEATURE: UI   | Plugin menu items which in the right-click menu now appear in the "Torrent" menu also [amc1] 
 FEATURE: UIv3 | Experimental option to use Mozilla/Firefox as browser widget on any platform (XulRunner or Firefox 3 must be installed) [The 8472]
 FEATURE: Plug | Added resource downloader to provide way to download files from Sourceforge [amc1]
 FEATURE: Plug | Added API methods to generically pop up the message box to a user [amc1]
