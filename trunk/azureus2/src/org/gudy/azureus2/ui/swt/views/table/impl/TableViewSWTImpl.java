@@ -1023,7 +1023,7 @@ public class TableViewSWTImpl
 		final TableCellSWT cell = rowSWT.getTableCellSWT(cellName);
 		
 		// reuse widget if possible, this way we'll keep the focus all the time on jumping through the rows
-		final Text newInput = oldInput == null || oldInput.isDisposed() ? new Text(table,SWT.BORDER) : oldInput;
+		final Text newInput = oldInput == null || oldInput.isDisposed() ? new Text(table,Constants.isOSX ? SWT.NONE : SWT.BORDER) : oldInput;
 		final Object datasource = cell.getDataSource();
 		if(cellEditNotifier != null )
 			cellEditNotifier.cleanup(newInput);
