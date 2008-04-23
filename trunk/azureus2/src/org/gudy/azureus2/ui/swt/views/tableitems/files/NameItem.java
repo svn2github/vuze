@@ -92,18 +92,16 @@ public class NameItem extends CoreTableColumn implements
 		});
 	}
 	
-	public void loadSettings(Map mapSettings) {
-		super.loadSettings(mapSettings);
+	public void postConfigLoad() {
 		setInplaceEdit(getUserData("noInplaceEdit") == null);
 		menuItem.setData(Boolean.valueOf(isInplaceEdit()));
 	}
 	
-	public void saveSettings(Map mapSettings) {
+	public void preConfigSave() {
 		if(isInplaceEdit())
 			removeUserData("noInplaceEdit");
 		else
 			setUserData("noInplaceEdit", new Integer(1));
-		super.saveSettings(mapSettings);
 	}
 	
 	public void refresh(TableCell cell, boolean sortOnlyRefresh)

@@ -725,6 +725,8 @@ public class TableViewSWTImpl
 					}
 				}
 			}
+			
+			TableRowCore lastClickRow;
 
 			public void mouseDown(MouseEvent e) {
 				TableColumnCore tc = getTableColumnByOffset(e.x);
@@ -747,9 +749,13 @@ public class TableViewSWTImpl
 							lCancelSelectionTriggeredOn = System.currentTimeMillis();
 						}
 					}
-					if(tc.isInplaceEdit() && e.button == 1)
+					if(tc.isInplaceEdit() && e.button == 1 && lastClickRow == cell.getTableRowCore())
 						editCell(getColumnNo(e.x), cell.getTableRowCore().getIndex());
+					if(e.button == 1)
+						lastClickRow = cell.getTableRowCore();
 				}
+				
+				
 
 				iMouseX = e.x;
 				try {
@@ -1515,25 +1521,25 @@ public class TableViewSWTImpl
 			}
 
 			if (items.length > 0) {
-				MenuBuildUtils.addPluginMenuItems(getComposite(), items, menu, true,
-						enable_items, new MenuBuildUtils.PluginMenuController() {
-							public Listener makeSelectionListener(
-									final org.gudy.azureus2.plugins.ui.menus.MenuItem plugin_menu_item) {
-								return new TableSelectedRowsListener(TableViewSWTImpl.this) {
-									public boolean run(TableRowCore[] rows) {
-										if (rows.length != 0) {
-											((TableContextMenuItemImpl) plugin_menu_item).invokeListenersMulti(rows);
-										}
-										return true;
+			MenuBuildUtils.addPluginMenuItems(getComposite(), items, menu, true,
+					enable_items, new MenuBuildUtils.PluginMenuController() {
+						public Listener makeSelectionListener(
+								final org.gudy.azureus2.plugins.ui.menus.MenuItem plugin_menu_item) {
+							return new TableSelectedRowsListener(TableViewSWTImpl.this) {
+								public boolean run(TableRowCore[] rows) {
+									if (rows.length != 0) {
+										((TableContextMenuItemImpl) plugin_menu_item).invokeListenersMulti(rows);
 									}
-								};
-							}
-	
-							public void notifyFillListeners(
-									org.gudy.azureus2.plugins.ui.menus.MenuItem menu_item) {
-								((TableContextMenuItemImpl) menu_item).invokeMenuWillBeShownListeners(getSelectedRows());
-							}
-						});
+									return true;
+								}
+							};
+						}
+
+						public void notifyFillListeners(
+								org.gudy.azureus2.plugins.ui.menus.MenuItem menu_item) {
+							((TableContextMenuItemImpl) menu_item).invokeMenuWillBeShownListeners(getSelectedRows());
+						}
+					});
 			}
 		}
 	}

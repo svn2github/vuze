@@ -750,7 +750,7 @@ public class TableColumnImpl
 			userData = null;
 	}
 
-	public void loadSettings(Map mapSettings) {
+	public final void loadSettings(Map mapSettings) {
 		// Format: Key = [TableID].column.[columnname]
 		// Value[] = { visible, width, position, autotooltip, sortorder }
 		String itemPrefix = "Column." + sName;
@@ -819,9 +819,20 @@ public class TableColumnImpl
 			if(userData.size() < 1)
 				userData = null;
 		}
+		
+		postConfigLoad();
 	}
+	
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.plugins.ui.tables.TableColumn#postLoad()
+	 */
+	public void postConfigLoad() {}
+	
+	public void preConfigSave() {}
 
-	public void saveSettings(Map mapSettings) {
+	public final void saveSettings(Map mapSettings) {
+		preConfigSave();
+		
 		if (mapSettings == null) {
 			mapSettings = TableColumnManager.getInstance().getTableConfigMap(sTableID);
 			if (mapSettings == null) {

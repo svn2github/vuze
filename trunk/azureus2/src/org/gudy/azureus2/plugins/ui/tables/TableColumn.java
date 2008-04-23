@@ -361,8 +361,21 @@ public interface TableColumn {
    * @param value should be BEncodable, otherwise it won't be serialized
    */
   public void setUserData(String key, Object value);
-  
   public void removeUserData(String key);
+  
+  
+  	/**
+	 * implement this method if you want to be notified when the stored column
+	 * configuration such as user data or GUI-adjustable properties have been
+	 * loaded
+	 */
+	public void postConfigLoad();
+
+	/**
+	 * implement this method if you want to be notified when the column
+	 * configuration is about to be serialized
+	 */
+	public void preConfigSave();
   
   /**
    * 
