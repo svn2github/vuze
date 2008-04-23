@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.UrlUtils;
 
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.JSONUtils;
@@ -61,7 +62,7 @@ public class VuzeActivitiesEntryBuddyRequest
 		mapBuddy.put("login-id", loginID);
 		mapBuddy.put("display-name", displayName);
 		map.put("buddy", mapBuddy);
-		urlAccept = "AZMSG;0;buddy;accept;" + JSONUtils.encodeToJSON(map);
+		urlAccept = UrlUtils.encode("AZMSG;0;buddy;accept;" + JSONUtils.encodeToJSON(map));
 
 		setText("<A HREF=\"" + urlUser + "\">" + displayName
 				+ "</A> wants to be your buddy\n \n" + "  <A HREF=\"" + urlAccept
