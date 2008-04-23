@@ -26,15 +26,14 @@ import org.gudy.azureus2.core3.util.*;
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.activities.VuzeActivitiesEntryBuddyRequest;
 import com.aelitis.azureus.activities.VuzeActivitiesManager;
+import com.aelitis.azureus.buddy.QueuedVuzeShare;
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddyCreator;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.crypto.VuzeCryptoException;
 import com.aelitis.azureus.core.crypto.VuzeCryptoManager;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
-import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
-import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
-import com.aelitis.azureus.core.messenger.config.VuzeRelayListener;
+import com.aelitis.azureus.core.messenger.config.*;
 import com.aelitis.azureus.plugins.net.buddy.*;
 import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.Constants;
@@ -93,12 +92,14 @@ public class VuzeBuddyManager
 
 		try {
 			VuzeRelayListener vuzeRelayListener = new VuzeRelayListener() {
-				public void newRelayServerPayLoad(VuzeBuddy sender, byte[] payload) {
+				// @see com.aelitis.azureus.core.messenger.config.VuzeRelayListener#newRelayServerPayLoad(com.aelitis.azureus.buddy.VuzeBuddy, java.lang.String, byte[])
+				public void newRelayServerPayLoad(VuzeBuddy sender, String pkSender,
+						byte[] payload) {
 					try {
 						String s = new String(payload, "utf-8");
 						Map mapPayload = JSONUtils.decodeJSON(s);
 
-						processPayloadMap(mapPayload, sender != null);
+						processPayloadMap(pkSender, mapPayload, sender != null);
 					} catch (UnsupportedEncodingException e) {
 						Debug.out(e);
 					}
@@ -206,13 +207,9 @@ public class VuzeBuddyManager
 				try {
 					String pk = from_buddy.getPublicKey();
 
-					VuzeBuddy vuzeBuddy = (VuzeBuddy) mapPKtoVuzeBuddy.get(pk);
-					if (vuzeBuddy != null) {
-						String reply = processPayloadMap(request, from_buddy.isAuthorised());
-						mapResponse.put("response", reply);
-					} else {
-						mapResponse.put("response", "Error: You are not my buddy");
-					}
+					String reply = processPayloadMap(pk, request,
+							from_buddy.isAuthorised());
+					mapResponse.put("response", reply);
 				} catch (Exception e) {
 					mapResponse.put("response", "Exception: " + e.toString());
 					Debug.out(e);
@@ -259,7 +256,7 @@ public class VuzeBuddyManager
 	 * @param authorizedBuddy 
 	 * @since 3.0.5.3
 	 */
-	protected static String processPayloadMap(Map mapPayload,
+	protected static String processPayloadMap(String pkSender, Map mapPayload,
 			boolean authorizedBuddy) {
 		String mt = MapUtils.getMapString(mapPayload, "VuzeMessageType", "");
 
@@ -272,9 +269,15 @@ public class VuzeBuddyManager
 			// NOTE: The timestamps of these entries might be horribly off.  We
 			//       should probably handle that somehow.
 			if (entry != null) {
-				if (authorizedBuddy
-						|| VuzeActivitiesEntryBuddyRequest.TYPEID_BUDDYREQUEST.equals(entry.getTypeID())) {
+				if (authorizedBuddy) {
+					VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
+						entry
+					});
+					return "Ok";
+				}
 
+				// not Authorized
+				if (VuzeActivitiesEntryBuddyRequest.TYPEID_BUDDYREQUEST.equals(entry.getTypeID())) {
 					VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
 						entry
 					});
@@ -284,9 +287,14 @@ public class VuzeBuddyManager
 				}
 			}
 		} else if (authorizedBuddy && mt.equals("BuddySync")) {
-			PlatformBuddyMessenger.sync();
+			PlatformBuddyMessenger.sync(null);
 			return "Ok";
-		};
+		} else if (mt.equals("BuddyAccept")) {
+			String code = MapUtils.getMapString(mapPayload, "BuddyAcceptCode", null);
+			VuzeQueuedShares.updateSharePK(code, pkSender);
+			// Once sync is done, we will get a buddy add, and send the queued share(s)
+			PlatformBuddyMessenger.sync(null);
+		}
 
 		return "Unknown Message Type";
 	}
@@ -428,6 +436,20 @@ public class VuzeBuddyManager
 
 		} finally {
 			buddy_mon.exit();
+		}
+
+		// Send Queued Shares
+		String[] publicKeys = buddy.getPublicKeys();
+		for (int i = 0; i < publicKeys.length; i++) {
+			String pk = publicKeys[i];
+			List shares = VuzeQueuedShares.getSharesByPK(pk);
+			for (Iterator iter = shares.iterator(); iter.hasNext();) {
+				QueuedVuzeShare share = (QueuedVuzeShare) iter.next();
+				VuzeActivitiesEntry entry = share.getActivityEntry();
+				buddy.sendActivity(entry);
+
+				VuzeQueuedShares.remove(share);
+			}
 		}
 	}
 
@@ -588,7 +610,7 @@ public class VuzeBuddyManager
 		return pluginBuddy;
 	}
 
-	public static void inviteUsers(String[] pks) {
+	public static void invitePKs(String[] pks) {
 		String myPK;
 		try {
 			myPK = VuzeCryptoManager.getSingleton().getPublicKey(null);
@@ -613,6 +635,44 @@ public class VuzeBuddyManager
 				pluginBuddy
 			});
 		}
+	}
+	
+	public static void inviteNonVuzers(String[] codes) {
+		for (int i = 0; i < codes.length; i++) {
+			String code = codes[i];
+			VuzeQueuedShares.add(code);
+		}
+	}
+
+	/**
+	 * You've accepted an invite
+	 * 
+	 * @param code Invite code or somesuch id that the webapp gave you
+	 * @param pks Public Keys of the user you accepted the invite from
+	 *
+	 * @since 3.0.5.3
+	 */
+	public static void acceptInvite(final String code, final String pks[]) {
+		PlatformBuddyMessenger.sync(new VuzeBuddySyncListener() {
+			public void syncComplete() {
+				Map map = new HashMap();
+				map.put("VuzeMessageType", "BuddyAccept");
+				map.put("BuddyAcceptCode", code);
+
+				for (int i = 0; i < pks.length; i++) {
+					String pk = pks[i];
+
+					VuzeBuddy buddy = getBuddyByPK(pk);
+
+					if (buddy != null) {
+						buddy.sendPayloadMap(map);
+						// send will send to all public keys of buddy, so there's no need
+						// to go through the rest of the pks
+						break;
+					}
+				}
+			}
+		});
 	}
 
 	/**
@@ -640,12 +700,22 @@ public class VuzeBuddyManager
 
 	protected static void sendActivity(VuzeActivitiesEntry entry,
 			BuddyPluginBuddy[] buddies) {
+		final Map map = new HashMap();
+
+		map.put("VuzeMessageType", "ActivityEntry");
+		map.put("ActivityEntry", entry.toMap());
+
+		sendPayloadMap(map, buddies);
+	}
+
+	/**
+	 * @param map
+	 * @param buddies
+	 *
+	 * @since 3.0.5.3
+	 */
+	public static void sendPayloadMap(final Map map, BuddyPluginBuddy[] buddies) {
 		try {
-			final Map map = new HashMap();
-
-			map.put("VuzeMessageType", "ActivityEntry");
-			map.put("ActivityEntry", entry.toMap());
-
 			for (int i = 0; i < buddies.length; i++) {
 				BuddyPluginBuddy pluginBuddy = buddies[i];
 				if (pluginBuddy.isOnline()) {

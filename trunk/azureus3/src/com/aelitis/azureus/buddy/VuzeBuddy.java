@@ -61,4 +61,6 @@ public interface VuzeBuddy
 	public void loadFromMap(Map mapNewBuddy);
 
 	public void shareDownload(DownloadManager dm, String message);
+
+	public void sendPayloadMap(Map map);
 }

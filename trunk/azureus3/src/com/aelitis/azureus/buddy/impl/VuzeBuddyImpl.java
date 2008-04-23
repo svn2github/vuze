@@ -198,6 +198,12 @@ public class VuzeBuddyImpl
 		BuddyPluginBuddy[] buddies = (BuddyPluginBuddy[]) pluginBuddies.toArray(new BuddyPluginBuddy[0]);
 		VuzeBuddyManager.sendActivity(entry, buddies);
 	}
+	
+	// @see com.aelitis.azureus.buddy.VuzeBuddy#sendPayloadMap(java.util.Map)
+	public void sendPayloadMap(Map map) {
+		BuddyPluginBuddy[] buddies = (BuddyPluginBuddy[]) pluginBuddies.toArray(new BuddyPluginBuddy[0]);
+		VuzeBuddyManager.sendPayloadMap(map, buddies);
+	}
 
 	public void shareDownload(DownloadManager dm, String message) {
 		if (dm == null) {

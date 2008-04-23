@@ -134,7 +134,7 @@ public class VuzeActivitiesView
 						InputShell is = new InputShell("Invite", "Enter Public Key:");
 						String txt = is.open();
 						if (txt != null) {
-							VuzeBuddyManager.inviteUsers(new String[] { txt });
+							VuzeBuddyManager.invitePKs(new String[] { txt });
 						}
 					} else {
 						//VuzeActivitiesEntryBuddyRequest entry = new VuzeActivitiesEntryBuddyRequest(

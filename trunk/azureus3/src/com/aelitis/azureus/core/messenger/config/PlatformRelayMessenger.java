@@ -203,7 +203,7 @@ public class PlatformRelayMessenger
 
 						for (Iterator iter2 = listeners.iterator(); iter2.hasNext();) {
 							VuzeRelayListener l = (VuzeRelayListener) iter2.next();
-							l.newRelayServerPayLoad(buddy, payload);
+							l.newRelayServerPayLoad(buddy, pkSender, payload);
 						}
 
 						ack(ack_id, decrypt.getChallenge());

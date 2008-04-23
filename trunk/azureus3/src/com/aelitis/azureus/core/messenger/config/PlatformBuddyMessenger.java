@@ -40,7 +40,7 @@ public class PlatformBuddyMessenger
 
 	public static String OP_SYNC = "sync";
 
-	public static void sync() {
+	public static void sync(final VuzeBuddySyncListener l) {
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
 				OP_SYNC, new Object[0], 1000);
 
@@ -79,6 +79,10 @@ public class PlatformBuddyMessenger
 				}
 				
 				VuzeBuddyManager.removeBuddiesOlderThan(updateTime);
+
+				if (l != null) {
+					l.syncComplete();
+				}
 			}
 
 		};
