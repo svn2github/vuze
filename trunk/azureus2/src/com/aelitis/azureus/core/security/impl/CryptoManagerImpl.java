@@ -278,7 +278,7 @@ CryptoManagerImpl
 		int				action,
 		String			reason,
 		passwordTester	tester,
-		int				required_pw_type )
+		int				pw_type )
 	
 		throws CryptoManagerException
 	{
@@ -294,7 +294,7 @@ CryptoManagerImpl
 			
 			passwordDetails	pw = (passwordDetails)session_passwords.get( persist_pw_key );
 			
-			if ( pw != null && pw.getHandlerType() == required_pw_type ){
+			if ( pw != null && pw.getHandlerType() == pw_type ){
 				
 				return( pw );
 			}
@@ -310,7 +310,7 @@ CryptoManagerImpl
 				
 				int	type = (int)COConfigurationManager.getLongParameter( persist_pw_key_type, CryptoManagerPasswordHandler.HANDLER_TYPE_USER );
 				
-				if ( type == required_pw_type ){
+				if ( type == pw_type ){
 				
 					return( new passwordDetails( current_pw.toCharArray(), type ));
 				}
@@ -327,8 +327,8 @@ CryptoManagerImpl
 			
 			CryptoManagerPasswordHandler provider = (CryptoManagerPasswordHandler)it.next();
 			
-			if ( 	required_pw_type != CryptoManagerPasswordHandler.HANDLER_TYPE_UNKNOWN &&
-					required_pw_type != provider.getHandlerType()){
+			if ( 	pw_type != CryptoManagerPasswordHandler.HANDLER_TYPE_UNKNOWN &&
+					pw_type != provider.getHandlerType()){
 				
 				continue;
 			}
