@@ -740,6 +740,15 @@ public class MainWindow
 			}
 			setVisible(WINDOW_ELEMENT_TABBAR,
 					COConfigurationManager.getBooleanParameter(configID));
+			
+			configID = "Footer.visible";
+			if (false == ConfigurationDefaults.getInstance().doesParameterDefaultExist(
+					configID)) {
+				COConfigurationManager.setBooleanDefault(configID, true);
+			}
+			setVisible(WINDOW_ELEMENT_FOOTER,
+					COConfigurationManager.getBooleanParameter(configID));
+			
 			//================
 
 			increaseProgress(uiInitializer, null);
@@ -1036,7 +1045,9 @@ public class MainWindow
 		views.put("minilibrary-list", MiniLibraryList.class);
 
 		views.put("vuzeevents-list", VuzeActivitiesView.class);
-
+		
+		views.put(SkinConstants.VIEWID_BUTTON_BAR, ButtonBar.class);
+		
 		views.put(SkinConstants.VIEWID_FOOTER, Footer.class);
 		
 		views.put(SkinConstants.VIEWID_DETAIL_PANEL, DetailPanel.class);
@@ -2093,6 +2104,11 @@ public class MainWindow
 			//TODO:
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_MENU) {
 			//TODO:
+		}else if (windowElement == IMainWindow.WINDOW_ELEMENT_FOOTER) {
+			SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_FOOTER);
+			if (skinObject != null) {
+				return skinObject.isVisible();
+			}
 		}
 
 		return false;
@@ -2118,7 +2134,11 @@ public class MainWindow
 			//TODO:
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_MENU) {
 			//TODO:
-		}
+		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_FOOTER) {
+
+			SWTSkinUtils.setVisibility(skin, "Footer.visible", SkinConstants.VIEWID_FOOTER, value);
+
+		} 
 
 	}
 
