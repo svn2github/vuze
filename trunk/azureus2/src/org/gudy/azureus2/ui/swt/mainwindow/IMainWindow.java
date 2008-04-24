@@ -19,6 +19,8 @@ public interface IMainWindow
 	
 	public static final int WINDOW_CONTENT_DISPLAY_AREA = 7;
 
+	public static final int WINDOW_ELEMENT_FOOTER = 8;
+
 	public boolean isVisible(int windowElement);
 
 	public void setVisible(int windowElement, boolean value);
