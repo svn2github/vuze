@@ -3247,19 +3247,23 @@ DownloadManagerImpl
   }
   
   public void moveTorrentFile(File new_parent_dir) throws DownloadManagerException {
+	  this.moveTorrentFile(new_parent_dir, null);
+  }
+
+  public void moveTorrentFile(File new_parent_dir, String new_name) throws DownloadManagerException {
 	  boolean is_paused = this.pause();
-	  try {moveTorrentFile0(new_parent_dir);}
+	  try {moveTorrentFile0(new_parent_dir, new_name);}
 	  finally {if (is_paused) {this.resume();}}
   }
   
-  private void
-  moveTorrentFile0(
-	File	new_parent_dir )
+  
+  private void moveTorrentFile0(
+	File	new_parent_dir,
+	String  new_name)
   
 	throws DownloadManagerException
   {
-	  
-	  
+	    
 	  if ( !canMoveDataFiles()){
 		  
 		  throw( new DownloadManagerException( "Cannot move torrent file" ));
@@ -3267,51 +3271,44 @@ DownloadManagerImpl
 	  
 	  int	state = getState();
 
-	  if ( 	state == DownloadManager.STATE_STOPPED ||
-			state == DownloadManager.STATE_ERROR ){
-			  
-		  File	old_file = new File( getTorrentFileName() );
+	  if ( 	state != DownloadManager.STATE_STOPPED &&
+			state != DownloadManager.STATE_ERROR ) {
 		  
-		  if ( !old_file.exists()){
-			  
-			  Debug.out( "torrent file doesn't exist!" );
-			  
-			  return;
-		  }
+		  throw new DownloadManagerException("download not stopped or in error state");
 		  
-		  File	new_file = new File( new_parent_dir, old_file.getName());
+	  }
 		  
-		  try{
-			  old_file = old_file.getCanonicalFile();
-			  
-			  new_parent_dir = new_parent_dir.getCanonicalFile();
-			  
-		  }catch( Throwable e ){
-			  
-			  Debug.printStackTrace(e);
-			  
-			  throw( new DownloadManagerException( "Failed to get canonical paths", e ));
-		  }
+	  File	old_file = new File( getTorrentFileName() );
 		  
-		  if ( new_parent_dir.equals( old_file.getParentFile())){
-			  
-			  	// null op
-			  
-			  return;
-		  }
+	  if ( !old_file.exists()){
+		  Debug.out( "torrent file doesn't exist!" );
+		  return;
+	  }
+	  
+	  if (new_parent_dir == null) {new_parent_dir = old_file.getParentFile();}
+	  if (new_name == null) {new_name = old_file.getName();}
+	  File new_file = new File(new_parent_dir, new_name);
+	  
+	  try{
+		  old_file = old_file.getCanonicalFile();
+		  new_file = new_file.getCanonicalFile();
 		  
-		  if ( TorrentUtils.move( old_file, new_file )){
+	  }catch( Throwable e ){
 		  
-			  setTorrentFileName( new_file.toString());
-		  			  
-		  }else{
-
-			  throw( new DownloadManagerException( "rename operation failed" ));
-		  }
+		  Debug.printStackTrace(e);
+		  
+		  throw( new DownloadManagerException( "Failed to get canonical paths", e ));
+	  }
+	  
+	  // Nothing to do.
+	  if ( new_file.equals(old_file)) {return;}
+	  
+	  if (TorrentUtils.move( old_file, new_file )){
+		  setTorrentFileName( new_file.toString());
+	  			  
 	  }else{
-			  
-		  throw( new DownloadManagerException( "download not stopped or in error state" ));
-	  }  
+		  throw( new DownloadManagerException( "rename operation failed" ));
+	  }
   }
   
   public File[] calculateDefaultPaths(boolean for_moving) {
@@ -3612,4 +3609,40 @@ DownloadManagerImpl
 		return true;
 	}
 	
+	public void rename(String name) throws DownloadManagerException {
+		boolean paused = this.pause();
+		try {
+			this.renameDownload(name);
+			this.getDownloadState().setAttribute(DownloadManagerState.AT_DISPLAY_NAME, name);
+			this.renameTorrentSafe(name);
+		}
+		finally {
+			if (paused) {this.resume();}
+		}
+	}
+	
+	public void renameTorrent(String name) throws DownloadManagerException {
+		this.moveTorrentFile(null, name);
+	}
+
+	private void renameTorrentSafe(String name) throws DownloadManagerException {
+		String torrent_parent = new File(this.getTorrentFileName()).getParent();
+		String torrent_name = name;
+		
+		File new_path = new File(torrent_parent, torrent_name + ".torrent");
+		if (new_path.exists()) {new_path = null;}
+			
+		for (int i=1; i<10; i++) {
+			if (new_path != null) {break;}
+			new_path = new File(torrent_parent, torrent_name + "(" + i + ").torrent");
+			if (new_path.exists()) {new_path = null;}
+		}
+		
+		if (new_path == null) {
+			throw new DownloadManagerException("cannot rename torrent file - file already exists");
+		}
+		
+		this.renameTorrent(new_path.getName());
+	}
+
 }
