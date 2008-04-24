@@ -191,6 +191,11 @@ DownloadManagerStats
 	
 	public long getAvailWentBadTime();
 	
+	/*
+	public long getEstimatedDownloaded();
+	public long getEstimatedUploaded();
+	*/
+	
 	public void
 	restoreSessionTotals(
 		long		_saved_data_bytes_downloaded,

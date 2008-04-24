@@ -663,5 +663,20 @@ DownloadManager
      * @since 3.0.5.1
      */
     public boolean canMoveDataFiles();
+    
+    /**
+     * Renames the save file, torrent file and the displayed name.
+     */
+    public void rename(String new_name) throws DownloadManagerException;
+
+    /**
+     * @since 3.0.5.1
+     */
+    public void renameTorrent(String new_name) throws DownloadManagerException;
+
+    /**
+     * @since 3.0.5.1
+     */
+    public void moveTorrentFile(File parent_dir, String new_name) throws DownloadManagerException;
 
 }

@@ -501,8 +501,15 @@ public class TorrentUtil {
 				if (dms != null && dms.length > 0) {
 
 					DirectoryDialog dd = new DirectoryDialog(composite.getShell());
-
-					dd.setFilterPath(TorrentOpener.getFilterPathTorrent());
+					String filter_path = TorrentOpener.getFilterPathTorrent();
+					
+					// If we don't have a decent path, default to the path of the first
+					// torrent.
+					if (filter_path == null || filter_path.trim().length() == 0) {
+						filter_path = new File(dms[0].getTorrentFileName()).getParent();
+					}
+					
+					dd.setFilterPath(filter_path);
 
 					dd.setText(MessageText.getString("MyTorrentsView.menu.movedata.dialog"));
 
@@ -560,6 +567,102 @@ public class TorrentUtil {
 		});
 		itemFileClearResume.setEnabled(allStopped);
 
+		// Advanced - > Rename
+		final MenuItem itemRename = new MenuItem(menuAdvanced, SWT.CASCADE);
+		Messages.setLanguageText(itemRename, "MyTorrentsView.menu.rename");
+		itemRename.setEnabled(hasSelection);
+
+		final Menu menuRename = new Menu(composite.getShell(), SWT.DROP_DOWN);
+		itemRename.setMenu(menuRename);
+		
+		DownloadManager first_selected = (dms.length == 0) ? null : dms[0];
+		
+		// Advanced - > Rename -> Displayed Name
+		final MenuItem itemRenameDisplayed = new MenuItem(menuRename, SWT.CASCADE);
+		Messages.setLanguageText(itemRenameDisplayed, "MyTorrentsView.menu.rename.displayed");
+		itemRenameDisplayed.setEnabled(hasSelection);
+		if (itemRenameDisplayed.isEnabled()) {
+			itemRenameDisplayed.setData("suggested_text", first_selected.getDisplayName());
+			itemRenameDisplayed.setData("display_name", Boolean.TRUE);
+			itemRenameDisplayed.setData("save_name", Boolean.FALSE);
+			itemRenameDisplayed.setData("rename_all", Boolean.FALSE);
+			itemRenameDisplayed.setData("msg_key", "displayed");
+		}
+
+		// Rename -> Save Name
+		final MenuItem itemRenameSavePath = new MenuItem(menuRename, SWT.CASCADE);
+		Messages.setLanguageText(itemRenameSavePath, "MyTorrentsView.menu.rename.save_path");
+		itemRenameSavePath.setEnabled(fileMove && dms.length == 1);
+		if (itemRenameSavePath.isEnabled()) {
+			itemRenameSavePath.setData("suggested_text", first_selected.getAbsoluteSaveLocation().getName());
+			itemRenameSavePath.setData("display_name", Boolean.FALSE);
+			itemRenameSavePath.setData("save_name", Boolean.TRUE);
+			itemRenameSavePath.setData("rename_all", Boolean.FALSE);
+			itemRenameSavePath.setData("msg_key", "save_path");
+		}
+
+		// Rename -> Both
+		final MenuItem itemRenameBoth = new MenuItem(menuRename, SWT.CASCADE);
+		Messages.setLanguageText(itemRenameBoth, "MyTorrentsView.menu.rename.displayed_and_save_path");
+		itemRenameBoth.setEnabled(fileMove && dms.length == 1);
+		if (itemRenameBoth.isEnabled()) {
+			itemRenameBoth.setData("suggested_text", first_selected.getAbsoluteSaveLocation().getName());
+			itemRenameBoth.setData("display_name", Boolean.TRUE);
+			itemRenameBoth.setData("save_name", Boolean.TRUE);
+			itemRenameBoth.setData("msg_key", "displayed_and_save_path");
+			itemRenameBoth.setData("rename_all", Boolean.FALSE);
+		}
+
+		Listener rename_listener = new Listener() {
+			public void handleEvent(Event event) {
+				MenuItem mi = (MenuItem) event.widget;
+				String suggested = (String) mi.getData("suggested_text");
+				final boolean rename_all = ((Boolean) mi.getData("rename_all")).booleanValue();
+				final boolean change_displayed_name = ((Boolean) mi.getData("display_name")).booleanValue();
+				final boolean change_save_name = ((Boolean) mi.getData("save_name")).booleanValue();
+				String msg_key_prefix = "MyTorrentsView.menu.rename." + (String) mi.getData("msg_key") + ".enter.";
+				SimpleTextEntryWindow text_entry = new SimpleTextEntryWindow(composite.getDisplay());
+				text_entry.setTitle(msg_key_prefix + "title");
+				text_entry.setMessages(new String[] { msg_key_prefix + "message", msg_key_prefix + "message.2" });
+				text_entry.setPreenteredText(suggested, false);
+				text_entry.prompt();
+				if (text_entry.hasSubmittedInput()) {
+					String value = text_entry.getSubmittedInput();
+					final String value_to_set = (value.length() == 0) ? null : value;
+					DMTask task = new DMTask(dms) {
+						public void run(DownloadManager dm) {
+							if (rename_all) {
+								try {
+									dm.rename(value_to_set);
+								}
+								catch (Exception e) {
+									Logger.log(new LogAlert(dm, LogAlert.REPEATABLE,
+											"Download data rename operation failed", e));
+								}
+							}
+							if (change_displayed_name) {
+								dm.getDownloadState().setDisplayName(value_to_set);
+							}
+							if (change_save_name) {
+								try {
+									dm.renameDownload((value_to_set == null) ? dm.getDisplayName() : value_to_set);
+								}
+								catch (Exception e) {
+									Logger.log(new LogAlert(dm, LogAlert.REPEATABLE,
+											"Download data rename operation failed", e));
+								}
+							}
+						}
+					};
+					task.go();
+				}
+			}
+		};
+
+		itemRenameDisplayed.addListener(SWT.Selection, rename_listener);
+		itemRenameSavePath.addListener(SWT.Selection, rename_listener);
+		itemRenameBoth.addListener(SWT.Selection, rename_listener);
+		
 		// === advanced > export ===
 		// =========================
 
@@ -994,90 +1097,21 @@ public class TorrentUtil {
 		itemCategory.setEnabled(hasSelection);
 
 		addCategorySubMenu(dms, menuCategory, composite);
-
+		
 		// Rename
-		final MenuItem itemRename = new MenuItem(menu, SWT.CASCADE);
-		Messages.setLanguageText(itemRename, "MyTorrentsView.menu.rename");
-		itemRename.setEnabled(hasSelection);
-
-		final Menu menuRename = new Menu(composite.getShell(), SWT.DROP_DOWN);
-		itemRename.setMenu(menuRename);
-
-		DownloadManager first_selected = (dms.length == 0) ? null : dms[0];
-
-		// Rename -> Displayed Name
-		final MenuItem itemRenameDisplayed = new MenuItem(menuRename, SWT.CASCADE);
-		Messages.setLanguageText(itemRenameDisplayed, "MyTorrentsView.menu.rename.displayed");
-		itemRenameDisplayed.setEnabled(hasSelection);
-		if (itemRenameDisplayed.isEnabled()) {
-			itemRenameDisplayed.setData("suggested_text", first_selected.getDisplayName());
-			itemRenameDisplayed.setData("display_name", Boolean.valueOf(true));
-			itemRenameDisplayed.setData("save_name", Boolean.valueOf(false));
-			itemRenameDisplayed.setData("msg_key", "displayed");
+		final MenuItem itemRenameAll = new MenuItem(menu, SWT.CASCADE);
+		Messages.setLanguageText(itemRenameAll, "MyTorrentsView.menu.rename");
+		itemRenameAll.setEnabled(hasSelection);
+		if (itemRenameAll.isEnabled()) {
+			itemRenameAll.setData("suggested_text", first_selected.getDisplayName());
+			itemRenameAll.setData("display_name", Boolean.FALSE);
+			itemRenameAll.setData("save_name", Boolean.FALSE);
+			itemRenameAll.setData("rename_all", Boolean.TRUE);
+			itemRenameAll.setData("msg_key", "displayed");
 		}
 
-		// Rename -> Save Name
-		final MenuItem itemRenameSavePath = new MenuItem(menuRename, SWT.CASCADE);
-		Messages.setLanguageText(itemRenameSavePath, "MyTorrentsView.menu.rename.save_path");
-		itemRenameSavePath.setEnabled(fileMove && dms.length == 1);
-		if (itemRenameSavePath.isEnabled()) {
-			itemRenameSavePath.setData("suggested_text", first_selected.getAbsoluteSaveLocation().getName());
-			itemRenameSavePath.setData("display_name", Boolean.valueOf(false));
-			itemRenameSavePath.setData("save_name", Boolean.valueOf(true));
-			itemRenameSavePath.setData("msg_key", "save_path");
-		}
-
-		// Rename -> Both
-		final MenuItem itemRenameBoth = new MenuItem(menuRename, SWT.CASCADE);
-		Messages.setLanguageText(itemRenameBoth, "MyTorrentsView.menu.rename.displayed_and_save_path");
-		itemRenameBoth.setEnabled(fileMove && dms.length == 1);
-		if (itemRenameBoth.isEnabled()) {
-			itemRenameBoth.setData("suggested_text", first_selected.getAbsoluteSaveLocation().getName());
-			itemRenameBoth.setData("display_name", Boolean.valueOf(true));
-			itemRenameBoth.setData("save_name", Boolean.valueOf(true));
-			itemRenameBoth.setData("msg_key", "displayed_and_save_path");
-		}
-
-		Listener rename_listener = new Listener() {
-			public void handleEvent(Event event) {
-				MenuItem mi = (MenuItem) event.widget;
-				String suggested = (String) mi.getData("suggested_text");
-				final boolean change_displayed_name = ((Boolean) mi.getData("display_name")).booleanValue();
-				final boolean change_save_name = ((Boolean) mi.getData("save_name")).booleanValue();
-				String msg_key_prefix = "MyTorrentsView.menu.rename." + (String) mi.getData("msg_key") + ".enter.";
-				SimpleTextEntryWindow text_entry = new SimpleTextEntryWindow(composite.getDisplay());
-				text_entry.setTitle(msg_key_prefix + "title");
-				text_entry.setMessages(new String[] { msg_key_prefix + "message", msg_key_prefix + "message.2" });
-				text_entry.setPreenteredText(suggested, false);
-				text_entry.prompt();
-				if (text_entry.hasSubmittedInput()) {
-					String value = text_entry.getSubmittedInput();
-					final String value_to_set = (value.length() == 0) ? null : value;
-					DMTask task = new DMTask(dms) {
-						public void run(DownloadManager dm) {
-							if (change_displayed_name) {
-								dm.getDownloadState().setDisplayName(value_to_set);
-							}
-							if (change_save_name) {
-								try {
-									dm.renameDownload((value_to_set == null) ? dm.getDisplayName() : value_to_set);
-								}
-								catch (Exception e) {
-									Logger.log(new LogAlert(dm, LogAlert.REPEATABLE,
-											"Download data rename operation failed", e));
-								}
-							}
-						}
-					};
-					task.go();
-				}
-			}
-		};
-
-		itemRenameDisplayed.addListener(SWT.Selection, rename_listener);
-		itemRenameSavePath.addListener(SWT.Selection, rename_listener);
-		itemRenameBoth.addListener(SWT.Selection, rename_listener);
-
+		itemRenameAll.addListener(SWT.Selection, rename_listener);
+		
 		// Edit Comment
 		final MenuItem itemEditComment = new MenuItem(menu, SWT.CASCADE);
 		Messages.setLanguageText(itemEditComment, "MyTorrentsView.menu.edit_comment");
