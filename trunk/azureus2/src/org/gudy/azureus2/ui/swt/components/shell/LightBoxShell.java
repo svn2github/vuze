@@ -81,8 +81,14 @@ public class LightBoxShell
 	private GC spinnerGC = null;
 
 	private Rectangle shellBounds = null;
-	
+
 	private boolean parentActivatedOnce = false;
+
+	public static final int RESIZE_VERTICAL = 1 << 1;
+
+	public static final int RESIZE_HORIZONTAL = 1 << 2;
+
+	private int styleMask = RESIZE_VERTICAL | RESIZE_HORIZONTAL;
 
 	public LightBoxShell() {
 		this(false);
@@ -106,8 +112,9 @@ public class LightBoxShell
 		createControls();
 	}
 
-	public LightBoxShell(Shell parentShell) {
+	public LightBoxShell(Shell parentShell, boolean closeOnESC) {
 		this.parentShell = parentShell;
+		this.closeOnESC = closeOnESC;
 		createControls();
 	}
 
@@ -154,16 +161,15 @@ public class LightBoxShell
 			lbShell.addShellListener(new ShellAdapter() {
 				public void shellActivated(ShellEvent e) {
 					if (null != parentShell && false == parentShell.isDisposed()) {
-						
+
 						/*
 						 * Making sure we are only performing this only once for each time the lbShell is activated;
 						 * without this we will run into a StackOverflow as the 2 shells go back and forth activating each other
 						 */
-						if(false == parentActivatedOnce){
+						if (false == parentActivatedOnce) {
 							parentActivatedOnce = true;
 							parentShell.forceActive();
-						}
-						else{
+						} else {
 							parentActivatedOnce = false;
 						}
 					}
@@ -206,9 +212,21 @@ public class LightBoxShell
 			}
 
 			public void controlResized(ControlEvent e) {
-				shellBounds = null;
-				getBounds();
-				lbShell.setSize(shellBounds.width, shellBounds.height);
+
+				if ((styleMask & RESIZE_HORIZONTAL) != 0
+						&& (styleMask & RESIZE_VERTICAL) != 0) {
+					shellBounds = null;
+					getBounds();
+					lbShell.setSize(shellBounds.width, shellBounds.height);
+				} else if ((styleMask & RESIZE_HORIZONTAL) != 0) {
+					shellBounds = null;
+					getBounds();
+					lbShell.setSize(shellBounds.width, lbShell.getSize().y);
+				} else if ((styleMask & RESIZE_VERTICAL) != 0) {
+					shellBounds = null;
+					getBounds();
+					lbShell.setSize(lbShell.getSize().x, shellBounds.height);
+				}
 			}
 		};
 
@@ -530,5 +548,13 @@ public class LightBoxShell
 		};
 		spinnerThread.start();
 
+	}
+
+	public int getStyleMask() {
+		return styleMask;
+	}
+
+	public void setStyleMask(int styleMask) {
+		this.styleMask = styleMask;
 	}
 }
