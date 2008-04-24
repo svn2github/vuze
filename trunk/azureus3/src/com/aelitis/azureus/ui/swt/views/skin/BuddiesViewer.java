@@ -5,22 +5,27 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
+import org.gudy.azureus2.ui.swt.components.shell.LightBoxShell;
+import org.gudy.azureus2.ui.swt.mainwindow.IMainWindow;
 
+import com.aelitis.azureus.ui.skin.SkinConstants;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
 import com.aelitis.azureus.ui.swt.buddy.impl.VuzeBuddyUtils;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 
 public class BuddiesViewer
@@ -42,19 +47,21 @@ public class BuddiesViewer
 
 	private boolean isShareMode = false;
 
+	private boolean isEditMode = false;
+
 	private Color textColor = null;
 
 	private Color textLinkColor = null;
-
-	private Color borderColor = null;
-
-	private Color cornerBGColor = null;
 
 	public BuddiesViewer(Composite parent, SWTSkin skin) {
 		this.parent = parent;
 		this.skin = skin;
 
 		init();
+		hookScrollers();
+		hookEditButton();
+		hookShareButon();
+		hookShowHideButon();
 	}
 
 	private void init() {
@@ -67,8 +74,6 @@ public class BuddiesViewer
 
 		textColor = skin.getSkinProperties().getColor("color.links.normal");
 		textLinkColor = skin.getSkinProperties().getColor("color.links.hover");
-		cornerBGColor = skin.getSkinProperties().getColor("color.mainshell");
-		borderColor = new Color(parent.getDisplay(), 38, 38, 38);
 
 		RowLayout rLayout = new RowLayout(SWT.HORIZONTAL);
 		rLayout.wrap = false;
@@ -119,11 +124,7 @@ public class BuddiesViewer
 					System.out.println("panel: " + avatarsPanel.getSize().x);
 					System.out.println("parent: " + parent.getSize().x);
 				}
-				if (e.type == SWT.Dispose) {
-					if (null != borderColor && false == borderColor.isDisposed()) {
-						borderColor.dispose();
-					}
-				}
+
 			}
 		};
 		avatarsPanel.addListener(SWT.MouseDown, l);
@@ -131,14 +132,11 @@ public class BuddiesViewer
 		avatarsPanel.addListener(SWT.MouseUp, l);
 		avatarsPanel.addListener(SWT.KeyDown, l);
 		avatarsPanel.addListener(SWT.Resize, l);
-		avatarsPanel.addListener(SWT.Dispose, l);
-
-		hookControls();
+		//		avatarsPanel.addListener(SWT.Dispose, l);
 
 	}
 
-	private void hookControls() {
-
+	private void hookScrollers() {
 		final SWTSkinObject leftScroll = skin.getSkinObject("buddies-left-scroller");
 		if (null != leftScroll) {
 			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(leftScroll);
@@ -171,64 +169,52 @@ public class BuddiesViewer
 		}
 
 		enableScroll(leftScroll, rightScroll);
-
 		parent.addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event event) {
 				enableScroll(leftScroll, rightScroll);
 			}
 		});
+	}
+
+	private void hookEditButton() {
 
 		final SWTSkinObject editBuddies = skin.getSkinObject("button-buddy-edit");
 		if (null != editBuddies) {
 			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(editBuddies);
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
-				private boolean lastEditState = false;
+
+				private LightBoxShell lbShell = null;
 
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					lastEditState = !lastEditState;
-					setEditMode(lastEditState);
-				}
-			});
-		}
 
-		final SWTSkinObject detailPanelSkin = skin.getSkinObject("detail-panel");
-		if (null != detailPanelSkin) {
-			final Composite detailPanel = (Composite) detailPanelSkin.getControl();
+					setEditMode(!isEditMode());
 
-			detailPanel.addPaintListener(new PaintListener() {
+					UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 
-				public void paintControl(PaintEvent e) {
-					Rectangle bounds = detailPanel.getBounds();
-					int r = 6;
-					/*
-					 * Fills the four corners with the StyleShell background color so it blends in with the shell
-					 */
-					//				e.gc.setBackground(cornerBGColor);
-					//				e.gc.fillRectangle(0, 0, r, r);
-					//				e.gc.fillRectangle(bounds.width - r, 0, r, r);
-					//				e.gc.fillRectangle(bounds.width - r, bounds.height - r, r, r);
-					//				e.gc.fillRectangle(0, bounds.height - r, r, r);
-					e.gc.setForeground(borderColor);
-					e.gc.setLineWidth(r);
-					e.gc.drawRoundRectangle(bounds.x + 3, bounds.y + 3, bounds.width - r,
-							bounds.height - r, 15, 15);
-				}
+					if (null != uiFunctions) {
+						IMainWindow mainWindow = uiFunctions.getMainWindow();
 
-				private int[] circle(int r, int offsetX, int offsetY) {
-					int[] polygon = new int[8 * r + 4];
-					//x^2 + y^2 = r^2
-					for (int i = 0; i < 2 * r + 1; i++) {
-						int x = i - r;
-						int y = (int) Math.sqrt(r * r - x * x);
-						polygon[2 * i] = offsetX + x;
-						polygon[2 * i + 1] = offsetY + y;
-						polygon[8 * r - 2 * i - 2] = offsetX + x;
-						polygon[8 * r - 2 * i - 1] = offsetY - y;
+						if (true == isEditMode()) {
+							lbShell = new LightBoxShell(uiFunctions.getMainShell(), false);
+							SWTSkinObject footerObject = skin.getSkinObject("footer");
+
+							int insetHeight = footerObject.getControl().getSize().y;
+							insetHeight += mainWindow.getMetrics(IMainWindow.WINDOW_ELEMENT_STATUSBAR).height;
+							lbShell.setInsets(0, insetHeight, 0, 0);
+							lbShell.open();
+						} else {
+							if (null != lbShell) {
+								lbShell.close();
+								lbShell = null;
+							}
+						}
+
 					}
-					return polygon;
+
 				}
 			});
 
+			//			btnGo.setDisabled(true);
 		}
 
 	}
@@ -246,11 +232,18 @@ public class BuddiesViewer
 		}
 	}
 
-	private void setEditMode(boolean value) {
-		for (Iterator iterator = avatarWidgets.iterator(); iterator.hasNext();) {
-			AvatarWidget widget = (AvatarWidget) iterator.next();
-			widget.setEditMode(value);
-			widget.refreshVisual();
+	public boolean isEditMode() {
+		return isEditMode;
+	}
+
+	public void setEditMode(boolean value) {
+		if (isEditMode != value) {
+			isEditMode = value;
+			for (Iterator iterator = avatarWidgets.iterator(); iterator.hasNext();) {
+				AvatarWidget widget = (AvatarWidget) iterator.next();
+				widget.setEditMode(value);
+				widget.refreshVisual();
+			}
 		}
 	}
 
@@ -278,7 +271,6 @@ public class BuddiesViewer
 		rData.height = avatarSize.y;
 		avatarWidget.getControl().setLayoutData(rData);
 
-		//		avatarWidget.init();
 		avatarWidgets.add(avatarWidget);
 
 		return avatarWidget;
@@ -337,4 +329,42 @@ public class BuddiesViewer
 		}
 	}
 
+	private void hookShareButon() {
+
+		final SWTSkinObject showHideBuddiesObject = skin.getSkinObject("button-buddy-share");
+		if (null != showHideBuddiesObject) {
+			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(
+					showHideBuddiesObject);
+			btnGo.addSelectionListener(new ButtonListenerAdapter() {
+				public void pressed(SWTSkinButtonUtility buttonUtility) {
+
+					setShareMode(!isShareMode());
+
+					SkinView detailPanelView = SkinViewManager.get(DetailPanel.class);
+					if (detailPanelView instanceof DetailPanel) {
+						((DetailPanel) detailPanelView).show(isShareMode());
+					}
+				}
+			});
+		}
+	}
+
+	private void hookShowHideButon() {
+
+		final SWTSkinObject showHideBuddiesObject = skin.getSkinObject("button-buddy-show-hide");
+		if (null != showHideBuddiesObject) {
+			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(
+					showHideBuddiesObject);
+			btnGo.addSelectionListener(new ButtonListenerAdapter() {
+
+				public void pressed(SWTSkinButtonUtility buttonUtility) {
+					SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_FOOTER);
+					if (skinObject != null) {
+						SWTSkinUtils.setVisibility(skin, "Footer.visible",
+								SkinConstants.VIEWID_FOOTER, !skinObject.isVisible());
+					}
+				}
+			});
+		}
+	}
 }

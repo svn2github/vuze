@@ -22,7 +22,11 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 
+import com.aelitis.azureus.ui.skin.SkinConstants;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
+import com.aelitis.azureus.util.Constants;
 
 public class AvatarWidget
 {
@@ -46,7 +50,7 @@ public class AvatarWidget
 
 	private boolean isSelected = false;
 
-	private boolean showInfo = false;
+	
 
 	private boolean nameLinkActive = false;
 
@@ -243,14 +247,12 @@ public class AvatarWidget
 
 			public void mouseExit(MouseEvent e) {
 				isActivated = false;
-				showInfo = false;
 				avatarCanvas.redraw();
 			}
 
 			public void mouseEnter(MouseEvent e) {
 				if (false == isActivated) {
 					isActivated = true;
-					showInfo = true;
 					avatarCanvas.redraw();
 				}
 			}
@@ -322,6 +324,13 @@ public class AvatarWidget
 
 	public void doLinkClicked() {
 		System.out.println("Link is clicked");
+		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+		if (null != uiFunctions) {
+			String url = Constants.URL_PREFIX + Constants.URL_PROFILE + "?"
+					+ Constants.URL_SUFFIX;
+			uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0, 0,
+					true, true);
+		}
 	}
 
 	public Control getControl() {
