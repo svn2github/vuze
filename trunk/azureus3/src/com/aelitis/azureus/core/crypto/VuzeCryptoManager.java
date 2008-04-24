@@ -176,6 +176,34 @@ VuzeCryptoManager
 		crypt_man.clearPasswords();
 	}
 	
+		/**
+		 * Explicitly set password instead of waiting for listener trigger
+		 * @param pw
+		 */
+		 
+	public void
+	setPassword(
+		String		pw )
+	{
+		final char[]	pw_chars = pw.toCharArray();
+		
+		session_pw =
+			new CryptoManagerPasswordHandler.passwordDetails()
+			{
+				public char[] 
+				getPassword() 
+				{
+					return( pw_chars );
+				}
+				
+				public int 
+				getPersistForSeconds()
+				{
+					return( -1 );	// session 
+				}
+			};
+	}
+	
 	public void
 	addListener(
 		VuzeCryptoListener		listener )
