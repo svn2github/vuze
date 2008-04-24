@@ -603,18 +603,14 @@ public class MainWindow
 	public void postPluginSetup() {
 		int delay = 0;
 		final int delayInc = 50;
-		
-		if(initializer != null)
-		{
+
+		if (initializer != null) {
 			initializer.reportCurrentTask(MessageText.getString("splash.openViews"));
 			initializer.nextTask();
 		}
 
-			
-		
 		if (azureus_core.getTrackerHost().getTorrents().length > 0) {
-			Utils.execSWTThreadLater(delay += delayInc, new Runnable()
-			{
+			Utils.execSWTThreadLater(delay += delayInc, new Runnable() {
 				public void run() {
 					showMyTracker();
 				}
@@ -651,9 +647,7 @@ public class MainWindow
 			if (share_manager.getShares().length > 0
 					|| COConfigurationManager.getIntParameter("GUI_SWT_share_count_at_close") > 0) {
 
-				
-				Utils.execSWTThreadLater(delay += delayInc, new Runnable()
-				{
+				Utils.execSWTThreadLater(delay += delayInc, new Runnable() {
 					public void run() {
 						showMyShares();
 					}
@@ -664,8 +658,7 @@ public class MainWindow
 		}
 
 		if (COConfigurationManager.getBooleanParameter("Open MyTorrents")) {
-			Utils.execSWTThreadLater(delay += delayInc, new Runnable()
-			{
+			Utils.execSWTThreadLater(delay += delayInc, new Runnable() {
 				public void run() {
 					showMyTorrents();
 				}
@@ -677,8 +670,7 @@ public class MainWindow
 		new ProgressWindow();
 
 		if (COConfigurationManager.getBooleanParameter("Open Console")) {
-			Utils.execSWTThreadLater(delay += delayInc, new Runnable()
-			{
+			Utils.execSWTThreadLater(delay += delayInc, new Runnable() {
 				public void run() {
 					showConsole();
 				}
@@ -687,8 +679,7 @@ public class MainWindow
 		events = null;
 
 		if (COConfigurationManager.getBooleanParameter("Open Config")) {
-			Utils.execSWTThreadLater(delay += delayInc, new Runnable()
-			{
+			Utils.execSWTThreadLater(delay += delayInc, new Runnable() {
 				public void run() {
 					showConfig();
 				}
@@ -696,8 +687,7 @@ public class MainWindow
 		}
 
 		if (COConfigurationManager.getBooleanParameter("Open Stats On Start")) {
-			Utils.execSWTThreadLater(delay += delayInc, new Runnable()
-			{
+			Utils.execSWTThreadLater(delay += delayInc, new Runnable() {
 				public void run() {
 					showStats();
 				}
@@ -705,8 +695,7 @@ public class MainWindow
 		}
 
 		if (COConfigurationManager.getBooleanParameter("Open Transfer Bar On Start")) {
-			Utils.execSWTThreadLater(delay += delayInc, new Runnable()
-			{
+			Utils.execSWTThreadLater(delay += delayInc, new Runnable() {
 				public void run() {
 					uiFunctions.showGlobalTransferBar();
 				}
@@ -724,9 +713,9 @@ public class MainWindow
 						setIconBarEnabled(COConfigurationManager.getBooleanParameter(parameterName));
 					}
 				});
-		
+
 		// init done
-		if(initializer != null)
+		if (initializer != null)
 			initializer.abortProgress();
 	}
 
@@ -1949,7 +1938,23 @@ public class MainWindow
 
 			//KN: No tab bar in classic UI
 
+		} else if (windowElement == IMainWindow.WINDOW_CLIENT_AREA) {
+
+			return shell.getClientArea();
+
+		} else if (windowElement == IMainWindow.WINDOW_CONTENT_DISPLAY_AREA) {
+
+			Rectangle r = shell.getClientArea();
+
+			r.x += iconBar.getComposite().getBounds().x;
+			r.height -= iconBar.getComposite().getBounds().height;
+
+			r.height -= mainStatusBar.getBounds().height;
+
+			return r;
+
 		}
+
 		return new Rectangle(0, 0, 0, 0);
 	}
 

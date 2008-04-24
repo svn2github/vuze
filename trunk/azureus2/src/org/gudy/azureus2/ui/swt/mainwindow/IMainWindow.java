@@ -15,6 +15,10 @@ public interface IMainWindow
 
 	public static final int WINDOW_ELEMENT_TABBAR = 5;
 
+	public static final int WINDOW_CLIENT_AREA = 6;
+	
+	public static final int WINDOW_CONTENT_DISPLAY_AREA = 7;
+
 	public boolean isVisible(int windowElement);
 
 	public void setVisible(int windowElement, boolean value);
