@@ -80,15 +80,13 @@ ProtocolDecoder
 								
 								retry = false;
 								
-								Iterator	it = decoders.iterator();
-	
-								while( it.hasNext()){
-	
-									ProtocolDecoder	decoder = (ProtocolDecoder)it.next();
+								for (int i=0;i<decoders.size();i++){
+									
+									ProtocolDecoder	decoder = (ProtocolDecoder)decoders.get(i);
 	
 									if ( decoder.isComplete( now )){
 	
-										it.remove();
+										decoders.remove( decoder );
 										
 										retry = true;
 										
