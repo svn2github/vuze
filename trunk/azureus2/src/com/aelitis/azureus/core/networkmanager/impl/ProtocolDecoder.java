@@ -43,52 +43,69 @@ ProtocolDecoder
 	
 	
 	static{
-		
+
 		SimpleTimer.addPeriodicEvent(
-		"ProtocolDecoder:timeouts",
-        5000,
-        new TimerEventPerformer() {
-          public void perform( TimerEvent ev ) {
-       
-          	loop++;
-  					
-  					long	now = SystemTime.getCurrentTime();
-  					
-  					try{
-  						class_mon.enter();
-  					
-  						if ( loop % LOG_TICKS == 0 ){
-  							
-  					     	if (Logger.isEnabled()){
-  					     		
-  					     		if ( decoders.size() > 0 ){
-  					     			
-  					     			Logger.log(	new LogEvent(LOGID, "Active protocol decoders = " + decoders.size()));
-  					     		}
-  					     	}
-  						}
-  						
-  						Iterator	it = decoders.iterator();
-  						
-  						while( it.hasNext()){
-  							
-  							ProtocolDecoder	decoder = (ProtocolDecoder)it.next();
-  							
-  							if ( decoder.isComplete( now )){
-  								
-  								it.remove();
-  							}
-  						}
-  						
-  					}finally{
-  						
-  						class_mon.exit();
-  					}
-          }
-        }
-     );
-		
-		
+				"ProtocolDecoder:timeouts",
+				5000,
+				new TimerEventPerformer()
+				{
+					public void perform( TimerEvent ev ) 
+					{
+
+						loop++;
+
+						long	now = SystemTime.getCurrentTime();
+
+						try{
+							class_mon.enter();
+
+							if ( loop % LOG_TICKS == 0 ){
+
+								if (Logger.isEnabled()){
+
+									if ( decoders.size() > 0 ){
+
+										Logger.log(	new LogEvent(LOGID, "Active protocol decoders = " + decoders.size()));
+									}
+								}
+							}
+
+								// isComplete can synchronously modify 'decoders' so we
+								// can't continue looping after a removal, rather we have
+								// to restart
+							
+							boolean	retry = true;
+							
+							while( retry ){
+								
+								retry = false;
+								
+								Iterator	it = decoders.iterator();
+	
+								while( it.hasNext()){
+	
+									ProtocolDecoder	decoder = (ProtocolDecoder)it.next();
+	
+									if ( decoder.isComplete( now )){
+	
+										it.remove();
+										
+										retry = true;
+										
+										break;
+									}
+								}
+							}
+
+						}finally{
+
+							class_mon.exit();
+						}
+					}
+				}
+		);
+
+
 	}
 	
 	protected
