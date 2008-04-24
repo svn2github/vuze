@@ -134,6 +134,10 @@ BuddyPlugin
 	private static final int	SAVE_CONFIG_PERIOD			= 60*1000;
 	private static final int	SAVE_CONFIG_TICKS			= SAVE_CONFIG_PERIOD/TIMER_PERIOD;
 
+	public static final int		PERSISTENT_MSG_RETRY_PERIOD		= 5*60*1000;
+	private static final int	PERSISTENT_MSG_CHECK_PERIOD		= 60*1000;
+	private static final int	PERSISTENT_MSG_CHECK_TICKS		= PERSISTENT_MSG_CHECK_PERIOD/TIMER_PERIOD;
+
 	private volatile int	 initialisation_state = INIT_UNKNOWN;
 	
 	private PluginInterface	plugin_interface;
@@ -202,6 +206,7 @@ BuddyPlugin
 			status_seq = random.nextInt();
 		}
 	}
+		
 	
 	private static final int			UNAUTH_BLOOM_RECREATE		= 120*1000;
 	private static final int			UNAUTH_BLOOM_CHUNK			= 1000;
@@ -796,6 +801,82 @@ BuddyPlugin
 		if ( size > MAX_MESSAGE_SIZE ){
 			
 			throw( new BuddyPluginException( "Message is too large to send, limit is " + DisplayFormatters.formatByteCountToKiBEtc( MAX_MESSAGE_SIZE )));
+		}
+	}
+	
+	protected void
+	checkPersistentDispatch()
+	{
+		List	buddies_copy;
+		
+		synchronized( this ){
+		
+			buddies_copy = new ArrayList( buddies );
+		}
+				
+		for (int i=0;i<buddies_copy.size();i++){
+			
+			BuddyPluginBuddy	buddy = (BuddyPluginBuddy)buddies_copy.get(i);
+
+			buddy.checkPersistentDispatch();
+		}
+	}
+	
+	private List		pd_queue 		= new ArrayList();
+	private AESemaphore	pd_queue_sem	= new AESemaphore( "BuddyPlugin:persistDispatch");
+	private AEThread2	pd_thread;
+	
+	protected void
+	persistentDispatchPending(
+		BuddyPluginBuddy	buddy )
+	{
+		synchronized( pd_queue ){
+			
+			if ( !pd_queue.contains( buddy )){
+				
+				pd_queue.add( buddy );
+				
+				pd_queue_sem.release();
+				
+				if ( pd_thread == null ){
+					
+					pd_thread = 
+						new AEThread2( "BuddyPlugin:persistDispatch", true )
+						{
+							public void
+							run()
+							{
+								while( true ){
+									
+									if ( !pd_queue_sem.reserve( 30*1000 )){
+										
+										synchronized( pd_queue ){
+											
+											if ( pd_queue.isEmpty()){
+												
+												pd_thread	= null;
+												
+												break;
+											}
+										}
+									}else{
+										
+										BuddyPluginBuddy	buddy;
+										
+										synchronized( pd_queue ){
+											
+											buddy = (BuddyPluginBuddy)pd_queue.remove(0);
+										}
+										
+										buddy.persistentDispatch();
+									}
+								}
+							}
+						};
+						
+					pd_thread.start();
+				}
+			}
 		}
 	}
 	
@@ -1540,8 +1621,24 @@ BuddyPlugin
 	{
 		File	config_file = new File( plugin_interface.getUtilities().getAzureusUserDir(), "buddies.config" );
 		
+		return( readConfigFile( config_file ));
+	}
+	
+	protected void
+	writeConfig(
+		Map		map )
+	{
+		File	config_file = new File( plugin_interface.getUtilities().getAzureusUserDir(), "buddies.config" );
+		
+		writeConfigFile( config_file, map );
+	}
+	
+	protected Map
+	readConfigFile(
+		File		name )
+	{
 		Map map = plugin_interface.getUtilities().readResilientBEncodedFile(
-				config_file.getParentFile(), config_file.getName(), true );
+						name.getParentFile(), name.getName(), true );
 		
 		if ( map == null ){
 			
@@ -1551,16 +1648,23 @@ BuddyPlugin
 		return( map );
 	}
 	
-	protected void
-	writeConfig(
-		Map		map )
+	protected boolean
+	writeConfigFile(
+		File		name,
+		Map			data )
 	{
-		File	config_file = new File( plugin_interface.getUtilities().getAzureusUserDir(), "buddies.config" );
-		
 		plugin_interface.getUtilities().writeResilientBEncodedFile(
-				config_file.getParentFile(), config_file.getName(), map, true );
-	}
+				name.getParentFile(), name.getName(), data, true );
 		
+		return( name.exists());
+	}
+	
+	protected File
+	getBuddyConfigDir()
+	{
+		return( new File( plugin_interface.getUtilities().getAzureusUserDir(), "buddies" ));
+	}
+	
 	public BuddyPluginAZ2
 	getAZ2Handler()
 	{
@@ -1633,6 +1737,11 @@ BuddyPlugin
 					if ( tick_count % SAVE_CONFIG_TICKS == 0 ){
 
 						saveConfig();
+					}
+					
+					if ( tick_count % PERSISTENT_MSG_CHECK_TICKS == 0 ){
+						
+						checkPersistentDispatch();
 					}
 				}
 			});

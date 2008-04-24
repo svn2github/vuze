@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.plugins.net.buddy;
 
+import java.io.File;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.*;
@@ -102,6 +103,8 @@ BuddyPluginBuddy
 	
 	private String	received_frag_details = "";
 	
+	private BuddyPluginBuddyMessageHandler		persistent_msg_handler;
+
 	private boolean	destroyed;
 	
 	protected
@@ -123,6 +126,53 @@ BuddyPluginBuddy
 		last_status_seq		= _last_status_seq;
 		last_time_online	= _last_time_online;
 		recent_ygm			= _recent_ygm;
+		
+		persistent_msg_handler = new BuddyPluginBuddyMessageHandler( this, new File(plugin.getBuddyConfigDir(), public_key ));
+	}
+	
+	protected BuddyPlugin
+	getPlugin()
+	{
+		return( plugin );
+	}
+	
+	public BuddyPluginBuddyMessageHandler
+	getMessageHandler()
+	{
+		return( persistent_msg_handler );
+	}
+	
+	protected void
+	persistentDispatchPending()
+	{
+		plugin.persistentDispatchPending( this );
+	}
+	
+	protected void
+	checkPersistentDispatch()
+	{
+		persistent_msg_handler.checkPersistentDispatch();
+	}
+	
+	protected void
+	persistentDispatch()
+	{
+		persistent_msg_handler.persistentDispatch();
+	}
+	
+	public Map
+	readConfigFile(
+		File		name )
+	{
+		return( plugin.readConfigFile( name ));
+	}
+	
+	public boolean
+	writeConfigFile(
+		File		name,
+		Map			data )
+	{
+		return( plugin.writeConfigFile( name, data ));
 	}
 	
 	public int
@@ -194,6 +244,8 @@ BuddyPluginBuddy
 	public void
 	remove()
 	{
+		persistent_msg_handler.destroy();
+		
 		plugin.removeBuddy( this, authorised );
 	}
 	
@@ -464,7 +516,9 @@ BuddyPluginBuddy
 			last_time_online			= now;
 			online						= true;
 		}
-				
+			
+		persistentDispatchPending();
+		
 		plugin.fireDetailsChanged( this );
 	}
 	
@@ -1067,6 +1121,11 @@ BuddyPluginBuddy
 		}
 		
 		if ( details_change ){
+			
+			if ( online ){
+				
+				persistentDispatchPending();
+			}
 			
 			plugin.fireDetailsChanged( this );
 		}

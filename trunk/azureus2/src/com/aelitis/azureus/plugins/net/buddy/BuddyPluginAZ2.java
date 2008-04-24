@@ -144,6 +144,28 @@ BuddyPluginAZ2
 	}
 	
 	public void
+	queueAZ2Message(
+		BuddyPluginBuddy	buddy,
+		String				msg )
+	{
+		try{
+			Map	request = new HashMap();
+			
+			request.put( "type", new Long( BuddyPlugin.RT_AZ2_REQUEST_MESSAGE ));
+			request.put( "msg", msg.getBytes());
+	
+			buddy.getMessageHandler().queueMessage( 
+					BuddyPlugin.SUBSYSTEM_AZ2,
+					request,
+					SEND_TIMEOUT );
+			
+		}catch( Throwable e ){
+			
+			logMessageAndPopup( "Send message failed", e );
+		}
+	}
+	
+	public void
 	sendAZ2Message(
 		BuddyPluginBuddy	buddy,
 		String				msg )

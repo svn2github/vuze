@@ -75,6 +75,8 @@ import com.aelitis.azureus.core.security.CryptoManagerFactory;
 import com.aelitis.azureus.core.security.CryptoManagerKeyChangeListener;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddyMessage;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddyMessageListener;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddyReplyListener;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddyRequestListener;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginException;
@@ -372,13 +374,14 @@ BuddyPluginViewInstance
 				"azbuddy.ui.table.con",
 				"azbuddy.ui.table.msg_in",
 				"azbuddy.ui.table.msg_out",
+				"azbuddy.ui.table.msg_queued",
 				"MyTrackerView.bytesin",
 				"MyTrackerView.bytesout",
 				"azbuddy.ui.table.ss" };
 
-		int[] sizes = { 250, 100, 100, 100, 200, 75, 75, 75, 75, 75, 40 };
+		int[] sizes = { 250, 100, 100, 100, 200, 75, 75, 75, 75, 75, 75, 40 };
 
-		int[] aligns = { SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER };
+		int[] aligns = { SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER };
 
 		for (int i = 0; i < headers.length; i++){
 
@@ -437,10 +440,11 @@ BuddyPluginViewInstance
 					
 					item.setText(6, "" + buddy.getMessageInCount() + (in_frag.length()==0?"":("+" + in_frag )));
 					item.setText(7, "" + buddy.getMessageOutCount());
-					item.setText(8, "" + DisplayFormatters.formatByteCountToKiBEtc(buddy.getBytesInCount()));
-					item.setText(9, "" + DisplayFormatters.formatByteCountToKiBEtc(buddy.getBytesOutCount()));
+					item.setText(8, "" + buddy.getMessageHandler().getMessageCount());
+					item.setText(9, "" + DisplayFormatters.formatByteCountToKiBEtc(buddy.getBytesInCount()));
+					item.setText(10, "" + DisplayFormatters.formatByteCountToKiBEtc(buddy.getBytesOutCount()));
 
-					item.setText(10, "" + buddy.getSubsystem());
+					item.setText(11, "" + buddy.getSubsystem());
 					
 					item.setData( buddy );
 				}
@@ -532,7 +536,7 @@ BuddyPluginViewInstance
 								
 								BuddyPluginBuddy buddy = (BuddyPluginBuddy)selection[i].getData();
 								
-								plugin.getAZ2Handler().sendAZ2Message( buddy, text );
+								plugin.getAZ2Handler().queueAZ2Message( buddy, text );
 							}
 						}
 					}catch( Throwable e ){
@@ -968,6 +972,11 @@ BuddyPluginViewInstance
 
 		buddies = plugin.getBuddies();
 		
+		for (int i=0;i<buddies.size();i++){
+			
+			buddyAdded((BuddyPluginBuddy)buddies.get(i));
+		}
+		
 		plugin.addListener( this );
 		
 		plugin.addRequestListener( this );
@@ -1023,23 +1032,79 @@ BuddyPluginViewInstance
 	buddyAdded(
 		final BuddyPluginBuddy	buddy )
 	{
-		buddy_table.getDisplay().syncExec(
-				new Runnable()
+		buddy.getMessageHandler().addListener(
+			new BuddyPluginBuddyMessageListener()
+			{
+				public void
+				messageQueued(
+					BuddyPluginBuddyMessage		message )
 				{
-					public void
-					run()
+					print( "message queued" );
+					
+					update();
+				}
+				
+				public void
+				deliverySucceeded(
+					BuddyPluginBuddyMessage		message,
+					Map							reply )
+				{
+					print( "message delivered" );
+					
+					update();
+				}
+				
+				public void
+				deliveryFailed(
+					BuddyPluginBuddyMessage		message,
+					BuddyPluginException		cause )
+				{
+					print( "message delivery failed", cause );
+					
+					update();
+				}
+				
+				protected void
+				update()
+				{
+					if ( !buddy_table.isDisposed()){
+						
+						buddy_table.getDisplay().syncExec(
+							new Runnable()
+							{
+								public void
+								run()
+								{
+									if ( !buddy_table.isDisposed()){
+										
+										updateTable();
+									}
+								}
+							});
+					}
+				}
+			});
+		
+		if ( !buddies.contains( buddy )){
+			
+			buddy_table.getDisplay().syncExec(
+					new Runnable()
 					{
-						if ( !buddy_table.isDisposed()){
-							
-							if ( !buddies.contains( buddy )){
+						public void
+						run()
+						{
+							if ( !buddy_table.isDisposed()){
 								
-								buddies.add( buddy );
-								
-								updateTable();
+								if ( !buddies.contains( buddy )){
+									
+									buddies.add( buddy );
+									
+									updateTable();
+								}
 							}
 						}
-					}
-				});
+					});
+		}
 	}
 
 	public void
