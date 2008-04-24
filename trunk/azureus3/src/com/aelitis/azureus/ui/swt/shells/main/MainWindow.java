@@ -1037,7 +1037,9 @@ public class MainWindow
 
 		views.put("vuzeevents-list", VuzeActivitiesView.class);
 
-		views.put("footer", Footer.class);
+		views.put(SkinConstants.VIEWID_FOOTER, Footer.class);
+		
+		views.put(SkinConstants.VIEWID_DETAIL_PANEL, DetailPanel.class);
 
 		SWTSkinObjectListener l = new SWTSkinObjectListener() {
 			public Object eventOccured(SWTSkinObject skinObject, int eventType,
@@ -2134,13 +2136,34 @@ public class MainWindow
 			if (skinObject != null) {
 				return skinObject.getControl().getBounds();
 			}
+
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_TABBAR) {
+
 			SWTSkinObject skinObject = skin.getSkinObject("tabbar");
 			if (skinObject != null) {
 				return skinObject.getControl().getBounds();
 			}
+
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_STATUSBAR) {
+
 			return statusBar.getBounds();
+
+		} else if (windowElement == IMainWindow.WINDOW_CLIENT_AREA) {
+
+			return shell.getClientArea();
+
+		} else if (windowElement == IMainWindow.WINDOW_CONTENT_DISPLAY_AREA) {
+
+			Rectangle r = getMetrics(IMainWindow.WINDOW_CLIENT_AREA);
+			r.x += getMetrics(IMainWindow.WINDOW_ELEMENT_SEARCHBAR).x;
+			r.height -= getMetrics(IMainWindow.WINDOW_ELEMENT_SEARCHBAR).height;
+			
+			r.x += getMetrics(IMainWindow.WINDOW_ELEMENT_TABBAR).x;
+			r.height -= getMetrics(IMainWindow.WINDOW_ELEMENT_TABBAR).height;
+			
+			r.height -= getMetrics(IMainWindow.WINDOW_ELEMENT_STATUSBAR).height;
+			return r;
+
 		}
 
 		return new Rectangle(0, 0, 0, 0);
