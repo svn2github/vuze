@@ -61,6 +61,7 @@ public class BuddiesViewer
 		hookScrollers();
 		hookEditButton();
 		hookShareButon();
+		hookAddBuddyButon();
 		hookShowHideButon();
 	}
 
@@ -342,7 +343,37 @@ public class BuddiesViewer
 
 					SkinView detailPanelView = SkinViewManager.get(DetailPanel.class);
 					if (detailPanelView instanceof DetailPanel) {
-						((DetailPanel) detailPanelView).show(isShareMode());
+						((DetailPanel) detailPanelView).show(isShareMode(),
+								SharePage.PAGE_ID);
+					}
+				}
+			});
+		}
+	}
+
+	private void hookAddBuddyButon() {
+
+		final SWTSkinObject showHideBuddiesObject = skin.getSkinObject("button-buddy-add");
+		if (null != showHideBuddiesObject) {
+			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(
+					showHideBuddiesObject);
+			btnGo.addSelectionListener(new ButtonListenerAdapter() {
+				boolean dummy = false;
+
+				public void pressed(SWTSkinButtonUtility buttonUtility) {
+
+					dummy = !dummy;
+
+					/*
+					 * Turn off share mode when we enter add buddy flow
+					 */
+					if(true == isShareMode()){
+						setShareMode(false);
+					}
+					
+					SkinView detailPanelView = SkinViewManager.get(DetailPanel.class);
+					if (detailPanelView instanceof DetailPanel) {
+						((DetailPanel) detailPanelView).show(dummy, InvitePage.PAGE_ID);
 					}
 				}
 			});

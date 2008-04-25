@@ -1,10 +1,16 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.gudy.azureus2.ui.swt.components.shell.LightBoxShell;
@@ -25,6 +31,12 @@ public class DetailPanel
 
 	private LightBoxShell lbShell = null;
 
+	private Composite detailPanel;
+
+	private Map pages = new HashMap();
+
+	private StackLayout stackLayout;
+
 	public DetailPanel() {
 
 	}
@@ -38,33 +50,107 @@ public class DetailPanel
 			return null;
 		}
 
-		final Composite detailPanel = (Composite) detailPanelSkin.getControl();
+		detailPanel = (Composite) detailPanelSkin.getControl();
 
-		if (null != detailPanel) {
-
-			detailPanel.addPaintListener(new PaintListener() {
-				Color borderColor = ColorCache.getColor(detailPanel.getDisplay(), 38,
-						38, 38);
-
-				public void paintControl(PaintEvent e) {
-					Rectangle bounds = detailPanel.getClientArea();
-					e.gc.setForeground(borderColor);
-					int r = 6;
-					e.gc.setLineWidth(r);
-					e.gc.drawRoundRectangle(bounds.x + 3, bounds.y + 3, bounds.width - r,
-							bounds.height - r, 15, 15);
-				}
-			});
-
-			/*
-			 * TODO: Add a listener to the parent shell and recalculate the appropriate height for the detail panel
-			 */
-
+		if (null == detailPanel) {
+			return null;
 		}
+
+		stackLayout = new StackLayout();
+		stackLayout.marginHeight = 6;
+		stackLayout.marginWidth = 6;
+		detailPanel.setLayout(stackLayout);
+
+		createDefaultPages();
+
+		/*
+		 * Paints in the border
+		 */
+		detailPanel.addPaintListener(new PaintListener() {
+			Color borderColor = ColorCache.getColor(detailPanel.getDisplay(), 38, 38,
+					38);
+
+			public void paintControl(PaintEvent e) {
+				Rectangle bounds = detailPanel.getClientArea();
+				e.gc.setForeground(borderColor);
+				int r = 6;
+				e.gc.setLineWidth(r);
+				e.gc.drawRoundRectangle(bounds.x + 3, bounds.y + 3, bounds.width - r,
+						bounds.height - r, 15, 15);
+			}
+		});
+
+		/*
+		 * TODO: Add a listener to the parent shell and recalculate the appropriate height for the detail panel
+		 */
+
 		return null;
 	}
 
+	private void createDefaultPages() {
+		/*
+		 * Create the Share flow page
+		 */
+
+		new SharePage(createPage(SharePage.PAGE_ID, SWT.NONE));
+
+		/*
+		 * Create the Invite flow page
+		 */
+
+		new InvitePage(createPage(InvitePage.PAGE_ID, SWT.NONE));
+	}
+
+	/**
+	 * Creates a <code>Composite</code> to host custom content using the give <code>pageID</code> as the key
+	 * @param pageID
+	 * @param style <code>SWT</code> style bit mask appropriate for a <code>Composite</code>
+	 * @return
+	 */
+	public Composite createPage(String pageID, int style) {
+		if (null == detailPanel) {
+			throw new NullPointerException(
+					"An error has occured... the detail panel has not been properly initialized");
+		}
+
+		if (true == pages.containsKey(pageID)) {
+			throw new IllegalArgumentException(pageID
+					+ " is already in use by an existing page");
+		}
+
+		Composite newPage = new Composite(detailPanel, style);
+		pages.put(pageID, newPage);
+
+		/*
+		 * By default the last page created is on top
+		 */
+		stackLayout.topControl = newPage;
+		detailPanel.layout();
+
+		return newPage;
+	}
+
+	public void removePage(String pageID) {
+		if (true == pages.containsKey(pageID)) {
+			((Composite) pages.get(pageID)).dispose();
+			pages.remove(pageID);
+		}
+	}
+
+	/**
+	 * Show/hide the detail panel
+	 * @param value if <code>true</code> show the panel; otherwise hide the panel
+	 */
 	public void show(boolean value) {
+		show(value, null);
+	}
+
+	/**
+	 * Show/hide the detail panel
+	 * @param value if <code>true</code> show the panel; otherwise hide the panel
+	 * @param pageID if <code>value</code> is <code>true</code> then optionally loaded this page if specified
+	 */
+	public void show(boolean value, String pageID) {
 
 		SWTSkinObject detailPanelObject = skin.getSkinObject(SkinConstants.VIEWID_DETAIL_PANEL);
 		Control control = detailPanelObject.getControl();
@@ -132,6 +218,13 @@ public class DetailPanel
 					lbShell.close();
 					lbShell = null;
 				}
+			}
+			/*
+			 * Move the specified page on top if found
+			 */
+			if (true == pages.containsKey(pageID)) {
+				stackLayout.topControl = (Composite) pages.get(pageID);
+				detailPanel.layout();
 			}
 
 			SWTSkinUtils.setVisibility(skin, null, SkinConstants.VIEWID_DETAIL_PANEL,
