@@ -39,6 +39,7 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.util.*;
 
+import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
@@ -164,26 +165,26 @@ MagnetURIHandlerImpl
 										        	BufferedReader br = new BufferedReader(new InputStreamReader(sck.getInputStream(),Constants.DEFAULT_ENCODING));
 										        	
 										        	String line = br.readLine();
-										        	
-											if (DEBUG) {
-												System.out.println("=====");
-												System.out.println("Traffic Class: "
-														+ sck.getTrafficClass());
-												System.out.println("OS: " + sck.getOutputStream());
-												System.out.println("isBound? " + sck.isBound()
-														+ "; isClosed=" + sck.isClosed() + "; isConn="
-														+ sck.isConnected() + ";isIShutD "
-														+ sck.isInputShutdown() + ";isOShutD "
-														+ sck.isOutputShutdown());
-												System.out.println("- - - -");
-												System.out.println(line);
 
-												while (br.ready()) {
-													String extraline = br.readLine();
-													System.out.println(extraline);
-												}
-												System.out.println("=====");
-											}
+										        	if (DEBUG) {
+										        		System.out.println("=====");
+										        		System.out.println("Traffic Class: "
+										        				+ sck.getTrafficClass());
+										        		System.out.println("OS: " + sck.getOutputStream());
+										        		System.out.println("isBound? " + sck.isBound()
+										        				+ "; isClosed=" + sck.isClosed() + "; isConn="
+										        				+ sck.isConnected() + ";isIShutD "
+										        				+ sck.isInputShutdown() + ";isOShutD "
+										        				+ sck.isOutputShutdown());
+										        		System.out.println("- - - -");
+										        		System.out.println(line);
+
+										        		while (br.ready()) {
+										        			String extraline = br.readLine();
+										        			System.out.println(extraline);
+										        		}
+										        		System.out.println("=====");
+										        	}
 
 
 										        	if ( line != null ){
@@ -199,7 +200,7 @@ MagnetURIHandlerImpl
 											        		
 											        		line = line.substring( 0, pos );
 											        		
-											        		close_socket = process( line, sck.getOutputStream() );
+											        		close_socket = process( line, br, sck.getOutputStream() );
 											        		
 											        	}else{
 											        		
@@ -272,6 +273,7 @@ MagnetURIHandlerImpl
 	protected boolean
 	process(
 		String			get,
+		BufferedReader	is,
 		OutputStream	os )
 	
 		throws IOException
@@ -755,6 +757,33 @@ MagnetURIHandlerImpl
 				
 				return( true );
 			}
+		}else if ( get.equals( "/browserheaders.js" )){
+
+			String	headers_str = "";
+			
+			while( true ){
+				
+				String	header = is.readLine();
+				
+				if ( header == null ){
+					
+					break;
+				}
+				
+				header = header.trim();
+				
+				if ( header.length() == 0 ){
+					
+					break;
+				}
+				
+				headers_str += (headers_str.length()==0?"":"\n") + header;
+			}
+			
+			String script = "var headers = \"" + new String( Base64.encode( headers_str.getBytes( "UTF-8" ))) + "\";";
+
+			
+			writeReply( os, "application/x-javascript", script );
 		}
 		
 		return( true );
