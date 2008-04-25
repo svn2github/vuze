@@ -258,4 +258,12 @@ public class VuzeBuddyImpl
 
 		sendActivity(entry);
 	}
+
+	public void tellBuddyToSyncUp() {
+		Map map = new HashMap();
+		map.put("VuzeMessageType", "CheckInvites");
+		
+		sendPayloadMap(map);
+	}
+
 }
