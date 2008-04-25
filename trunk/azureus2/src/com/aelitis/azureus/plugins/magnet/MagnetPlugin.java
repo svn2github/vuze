@@ -32,7 +32,7 @@ import java.net.InetSocketAddress;
 import org.eclipse.swt.graphics.Image;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
-import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
@@ -336,18 +336,16 @@ MagnetPlugin
 						// make sure DDB is initialised as we need it to register its
 						// transfer types
 					
-					Thread t = 
-						new AEThread( "MagnetPlugin:init" )
+					AEThread2 t = 
+						new AEThread2( "MagnetPlugin:init", true )
 						{
 							public void
-							runSupport()
+							run()
 							{
 								plugin_interface.getDistributedDatabase();
 							}
 						};
-					
-					t.setDaemon( true );
-					
+										
 					t.start();
 				}
 				
@@ -483,11 +481,11 @@ MagnetPlugin
 				
 						outstanding[0]++;
 						
-						Thread t = 
-							new AEThread( "MagnetPlugin:HitHandler")
+						AEThread2 t = 
+							new AEThread2( "MagnetPlugin:HitHandler", true )
 							{
 								public void
-								runSupport()
+								run()
 								{
 									try{
 										boolean	alive = contact.isAlive(20*1000);
@@ -544,9 +542,7 @@ MagnetPlugin
 									}
 								}
 							};
-							
-						t.setDaemon(true);
-						
+													
 						t.start();
 					}
 				};
