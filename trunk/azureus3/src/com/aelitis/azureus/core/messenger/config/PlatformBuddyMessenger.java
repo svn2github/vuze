@@ -22,6 +22,9 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.SystemTime;
 
+import com.aelitis.azureus.activities.VuzeActivitiesEntry;
+import com.aelitis.azureus.activities.VuzeActivitiesEntryBuddyRequest;
+import com.aelitis.azureus.activities.VuzeActivitiesManager;
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.messenger.PlatformMessage;
@@ -40,6 +43,8 @@ public class PlatformBuddyMessenger
 
 	public static String OP_SYNC = "sync";
 
+	public static String OP_GETINVITES = "get-invites";
+
 	public static void sync(final VuzeBuddySyncListener l) {
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
 				OP_SYNC, new Object[0], 1000);
@@ -53,18 +58,17 @@ public class PlatformBuddyMessenger
 					Map reply) {
 				long updateTime = SystemTime.getCurrentTime();
 
-				List mapBuddies = (List) MapUtils.getMapObject(reply, "buddies",
-						Collections.EMPTY_LIST, List.class);
-				
-				if (mapBuddies.size() == 0) {
+				List buddies = MapUtils.getMapList(reply, "buddies",
+						Collections.EMPTY_LIST);
+
+				if (buddies.size() == 0) {
 					return;
 				}
 
-				for (Iterator iter = mapBuddies.iterator(); iter.hasNext();) {
+				for (Iterator iter = buddies.iterator(); iter.hasNext();) {
 					Map mapBuddy = (Map) iter.next();
 
-					String loginID = MapUtils.getMapString(mapBuddy, "login-id",
-							null);
+					String loginID = MapUtils.getMapString(mapBuddy, "login-id", null);
 
 					VuzeBuddy buddy = VuzeBuddyManager.getBuddyByLoginID(loginID);
 					if (buddy != null) {
@@ -72,12 +76,12 @@ public class PlatformBuddyMessenger
 					} else {
 						buddy = VuzeBuddyManager.createNewBuddy(mapBuddy, true);
 					}
-					
+
 					if (buddy != null) {
 						buddy.setLastUpdated(updateTime);
 					}
 				}
-				
+
 				VuzeBuddyManager.removeBuddiesOlderThan(updateTime);
 
 				if (l != null) {
@@ -85,9 +89,48 @@ public class PlatformBuddyMessenger
 				}
 			}
 		};
-		
+
 		message.setRequiresAuthorization(true);
 
 		PlatformMessenger.queueMessage(message, listener);
+	}
+
+	/**
+	 * 
+	 *
+	 * @since 3.0.5.3
+	 */
+	public static void getInvites() {
+		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
+				OP_GETINVITES, new Object[0], 1000);
+
+		PlatformMessengerListener listener = new PlatformMessengerListener() {
+
+			public void replyReceived(PlatformMessage message, String replyType,
+					Map reply) {
+				List buddies = MapUtils.getMapList(reply, "buddies",
+						Collections.EMPTY_LIST);
+
+				if (buddies.size() == 0) {
+					return;
+				}
+
+				for (Iterator iter = buddies.iterator(); iter.hasNext();) {
+					Map mapBuddy = (Map) iter.next();
+
+					VuzeBuddy futureBuddy = VuzeBuddyManager.createNewBuddyNoAdd(mapBuddy);
+
+					VuzeActivitiesEntryBuddyRequest entry = new VuzeActivitiesEntryBuddyRequest(
+							futureBuddy.getPublicKeys()[0], futureBuddy.getLoginID(),
+							futureBuddy.getDisplayName());
+					VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
+						entry
+					});
+				}
+			}
+
+			public void messageSent(PlatformMessage message) {
+			}
+		};
 	}
 }

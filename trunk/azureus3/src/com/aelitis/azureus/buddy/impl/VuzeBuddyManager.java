@@ -29,6 +29,7 @@ import com.aelitis.azureus.activities.VuzeActivitiesManager;
 import com.aelitis.azureus.buddy.*;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.crypto.VuzeCryptoException;
+import com.aelitis.azureus.core.crypto.VuzeCryptoListener;
 import com.aelitis.azureus.core.crypto.VuzeCryptoManager;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.*;
@@ -91,6 +92,53 @@ public class VuzeBuddyManager
 		}
 
 		try {
+			VuzeCryptoManager.getSingleton().addListener(new VuzeCryptoListener() {
+				public void sessionPasswordIncorrect() {
+					VuzeBuddyManager.log("Incorrect Password!");
+				}
+
+				public char[] getSessionPassword(String reason)
+						throws VuzeCryptoException {
+					VuzeBuddyManager.log("Someone requested password: " + reason);
+					throw new VuzeCryptoException("Not Logged In", null);
+				}
+			});
+
+			LoginInfoManager.getInstance().addListener(new ILoginInfoListener() {
+				public void loginUpdate(LoginInfo info) {
+					if (info.userID == null || info.userID.length() == 0) {
+						// not logged in
+						log("Logging out.. clearing password");
+						VuzeCryptoManager.getSingleton().clearPassword();
+					} else {
+						// logged in
+
+						String myPK = null;
+						try {
+							myPK = VuzeCryptoManager.getSingleton().getPublicKey(null);
+						} catch (VuzeCryptoException e) {
+						}
+						if (myPK != null && !myPK.equals(info.pk)) {
+							log("webapp's PK (" + info.pk
+									+ ") doesn't match.  Sending out PK");
+							PlatformKeyExchangeMessenger.setPublicKey();
+						}
+
+						if (VuzeCryptoManager.getSingleton().isUnlocked()) {
+							log("Logging in.. already unlocked");
+						} else {
+							log("Logging in.. getting pw from webapp");
+							// getPassword will set the password viz VuzeCryptoManager
+							PlatformKeyExchangeMessenger.getPassword(null);
+						}
+
+						PlatformBuddyMessenger.sync(null);
+					}
+
+					PlatformBuddyMessenger.getInvites();
+				}
+			});
+
 			VuzeRelayListener vuzeRelayListener = new VuzeRelayListener() {
 				// @see com.aelitis.azureus.core.messenger.config.VuzeRelayListener#newRelayServerPayLoad(com.aelitis.azureus.buddy.VuzeBuddy, java.lang.String, byte[])
 				public void newRelayServerPayLoad(VuzeBuddy sender, String pkSender,
@@ -289,6 +337,9 @@ public class VuzeBuddyManager
 		} else if (authorizedBuddy && mt.equals("BuddySync")) {
 			PlatformBuddyMessenger.sync(null);
 			return "Ok";
+		} else if (mt.equals("CheckInvites")) {
+			PlatformBuddyMessenger.getInvites();
+			return "Ok";
 		} else if (mt.equals("BuddyAccept")) {
 			String code = MapUtils.getMapString(mapPayload, "BuddyAcceptCode", null);
 			VuzeQueuedShares.updateSharePK(code, pkSender);
@@ -419,15 +470,21 @@ public class VuzeBuddyManager
 			buddy_mon.enter();
 
 			if (!buddyList.contains(buddy)) {
-				log("Add new buddy to Manager");
+				log("Add new buddy '" + buddy.getDisplayName() + "' to Manager");
 				buddyList.add(buddy);
 
 				if (createActivityEntry) {
+					String urlUser = Constants.URL_PREFIX + Constants.URL_PROFILE
+							+ buddy.getLoginID() + "?" + Constants.URL_SUFFIX
+							+ "&client_ref=new-buddy-inform";
+
+					String s = "<A HREF=\"" + urlUser + "\">" + buddy.getDisplayName()
+							+ "</A> has become your buddy.  Huzzah! :D";
+
 					VuzeActivitiesEntry entry = new VuzeActivitiesEntry();
 					entry.setTypeID("buddy-new", true);
 					entry.setID("buddy-new-" + buddy.getLoginID());
-					entry.setText(buddy.getDisplayName()
-							+ " has become your buddy.  Huzzah! :D");
+					entry.setText(s);
 					VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
 						entry
 					});
@@ -488,6 +545,17 @@ public class VuzeBuddyManager
 		return newBuddy;
 	}
 
+	public static VuzeBuddy createNewBuddy(Map mapNewBuddy,
+			boolean createActivityEntry) {
+		VuzeBuddy newBuddy = createNewBuddyNoAdd(mapNewBuddy);
+
+		if (newBuddy != null) {
+			addBuddy(newBuddy, createActivityEntry);
+		}
+
+		return newBuddy;
+	}
+
 	/**
 	 * Creates, Adds, and sets properties of a VuzeBuddy using a predefined
 	 * map representation of a VuzeBuddy
@@ -497,8 +565,7 @@ public class VuzeBuddyManager
 	 *
 	 * @since 3.0.5.3
 	 */
-	public static VuzeBuddy createNewBuddy(Map mapNewBuddy,
-			boolean createActivityEntry) {
+	public static VuzeBuddy createNewBuddyNoAdd(Map mapNewBuddy) {
 		if (buddyPlugin == null) {
 			return null;
 		}
@@ -514,8 +581,6 @@ public class VuzeBuddyManager
 		}
 
 		newBuddy.loadFromMap(mapNewBuddy);
-
-		addBuddy(newBuddy, createActivityEntry);
 
 		return newBuddy;
 	}
@@ -638,26 +703,18 @@ public class VuzeBuddyManager
 			pluginBuddies[i] = buddyPlugin.addBuddy(pk, BuddyPlugin.SUBSYSTEM_AZ3);
 		}
 
+		// Webapp will store invite info for User B.  We just need to tell them
+		// to sync up if we can
+
 		// Wait 10 seconds after adding a buddy as we might find out they are online
 		// within that time (and be able to send the message directly)
 		SimpleTimer.addEvent("send invites", SystemTime.getOffsetTime(10000),
 				new TimerEventPerformer() {
 					public void perform(TimerEvent event) {
-						for (int i = 0; i < pluginBuddies.length; i++) {
-							BuddyPluginBuddy pluginBuddy = pluginBuddies[i];
-							if (pluginBuddy == null) {
-								continue;
-							}
+						Map map = new HashMap();
+						map.put("VuzeMessageType", "CheckInvites");
 
-							VuzeActivitiesEntryBuddyRequest entry = new VuzeActivitiesEntryBuddyRequest(
-									myPK, userInfo.userID, userInfo.userName);
-							// P2P will probably fail (since we aren't buddies yet), but we try
-							// just in case we already are.  On fail, it writes YGM and to the relay
-							// server which is really what we want to do.
-							sendActivity(entry, new BuddyPluginBuddy[] {
-								pluginBuddy
-							});
-						}
+						sendPayloadMap(map, pluginBuddies);
 					}
 				});
 	}
