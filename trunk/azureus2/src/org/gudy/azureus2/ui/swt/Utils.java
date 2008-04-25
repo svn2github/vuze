@@ -1253,8 +1253,6 @@ public class Utils
 			return;
 		}
 
-		//============================================
-		
 		Composite parent = control.getParent();
 		Point targetSize = control.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
 		Point size = control.getSize();
@@ -1269,9 +1267,6 @@ public class Utils
 				parent.layout();
 				return;
 			}
-		}
-		else{
-			System.out.println("Not form layout");//KN: sysout
 		}
 
 		if (expandOnly && size.y >= targetSize.y && size.x >= targetSize.x) {
