@@ -138,7 +138,7 @@ public class UserAreaUtils
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
 					if (null != uiFunctions) {
-						String url = Constants.URL_PREFIX + Constants.URL_PROFILE + "?"
+						String url = Constants.URL_PREFIX + Constants.URL_MY_PROFILE + "?"
 								+ Constants.URL_SUFFIX;
 						uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0, 0,
 								true, true);

@@ -47,7 +47,7 @@ public class Constants
 	public static final String DEFAULT_RELAY_ADDRESS = "relay.vuze.com"; //DO NOT TOUCH !!!!  use the -Drelay_address=ip override instead
 
 	public static final String DEFAULT_RELAY_PORT = "80";
-	
+
 	public static String URL_ADDRESS = System.getProperty("platform_address",
 			DEFAULT_ADDRESS);
 
@@ -56,6 +56,9 @@ public class Constants
 
 	public static final String URL_PREFIX = "http://" + URL_ADDRESS + ":"
 			+ URL_PORT + "/";
+
+	public static final String DEFAULT_AUTHORIZED_RPC = "https://" + URL_ADDRESS
+			+ ":443/app";
 
 	public static String URL_SUFFIX;
 
@@ -77,7 +80,7 @@ public class Constants
 
 	public static final String URL_SHARE = "share/";
 
-	public static final String URL_USER = "user/";
+	public static final String URL_PROFILE = "profile/";
 
 	public static final String URL_BUDDY_ACCEPT = "buddy-accept/";
 
@@ -93,6 +96,9 @@ public class Constants
 			+ System.getProperty("relay_address", DEFAULT_RELAY_ADDRESS) + ":"
 			+ System.getProperty("relay_port", DEFAULT_RELAY_PORT) + "/app";
 
+	public static final String URL_AUTHORIZED_RPC = System.getProperty(
+			"authorized_rpc", DEFAULT_AUTHORIZED_RPC);
+
 	public static final String URL_POP_UP = "?popup";
 
 	public static final String URL_LOGIN = "login.start";
@@ -101,7 +107,7 @@ public class Constants
 
 	public static final String URL_REGISTRATION = "register.start";
 
-	public static final String URL_PROFILE = "profile.start";
+	public static final String URL_MY_PROFILE = "profile.start";
 
 	public static final String URL_ACCOUNT = "account.start";
 
@@ -116,12 +122,9 @@ public class Constants
 
 	public static String AZID;
 
-	public static void 
-	initialize(
-		AzureusCore core) 
-	{
-		AZID = Base32.encode( VuzeCryptoManager.getSingleton().getPlatformAZID());
-		
+	public static void initialize(AzureusCore core) {
+		AZID = Base32.encode(VuzeCryptoManager.getSingleton().getPlatformAZID());
+
 		URL_SUFFIX = "azid=" + AZID + "&azv="
 				+ org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION + "&locale="
 				+ Locale.getDefault().toString();

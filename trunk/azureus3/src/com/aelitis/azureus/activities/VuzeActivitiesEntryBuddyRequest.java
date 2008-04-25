@@ -51,18 +51,21 @@ public class VuzeActivitiesEntryBuddyRequest
 		futureBuddyLoginID = loginID;
 		futureBuddyDisplayName = displayName;
 
-		String urlUser = Constants.URL_PREFIX + Constants.URL_USER + loginID + "?"
-				+ Constants.URL_SUFFIX + "&client_ref=buddy-request";
+		String urlUser = Constants.URL_PREFIX + Constants.URL_PROFILE + loginID
+				+ "?" + Constants.URL_SUFFIX + "&client_ref=buddy-request";
 		String urlAccept = Constants.URL_PREFIX + Constants.URL_BUDDY_ACCEPT
 				+ loginID + "?" + Constants.URL_SUFFIX;
 		// temporary
 		Map map = new HashMap();
 		Map mapBuddy = new HashMap();
-		mapBuddy.put("pks", new String[] { pk });
+		mapBuddy.put("pks", new String[] {
+			pk
+		});
 		mapBuddy.put("login-id", loginID);
 		mapBuddy.put("display-name", displayName);
 		map.put("buddy", mapBuddy);
-		urlAccept = UrlUtils.encode("AZMSG;0;buddy;accept;" + JSONUtils.encodeToJSON(map));
+		urlAccept = UrlUtils.encode("AZMSG;0;buddy;accept;"
+				+ JSONUtils.encodeToJSON(map));
 
 		setText("<A HREF=\"" + urlUser + "\">" + displayName
 				+ "</A> wants to be your buddy\n \n" + "  <A HREF=\"" + urlAccept
