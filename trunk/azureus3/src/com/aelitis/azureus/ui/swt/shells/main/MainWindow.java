@@ -68,10 +68,14 @@ import com.aelitis.azureus.buddy.VuzeBuddyCreator;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.crypto.VuzeCryptoException;
+import com.aelitis.azureus.core.crypto.VuzeCryptoListener;
+import com.aelitis.azureus.core.crypto.VuzeCryptoManager;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.PlatformAuthorizedSender;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
+import com.aelitis.azureus.core.messenger.config.VuzeRelayListener;
 import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.launcher.Launcher;
@@ -179,14 +183,6 @@ public class MainWindow
 			}
 		});
 		
-		//VuzeBuddy randomBuddy = VuzeBuddyUtils.createRandomBuddy();
-		//List allVuzeBuddies = VuzeBuddyManager.getAllVuzeBuddies();
-		//for (Iterator iter = allVuzeBuddies.iterator(); iter.hasNext();) {
-		//	VuzeBuddySWT buddy = (VuzeBuddySWT) iter.next();
-		//
-		//	System.out.println("BUDDDY!!!!!! " + buddy.getDisplayName());
-		//}
-
 		// Hack for 3014 -> 3016 upgrades on Vista who become an Administrator
 		// user after restart.
 		if (Constants.isWindows
@@ -478,13 +474,14 @@ public class MainWindow
 						final Browser browser = new Browser(shell, SWT.NONE);
 						browser.setVisible(false);
 
-						String urlString = url.toString();
-						//urlString = urlString.replaceAll("http://", "https://");
-						browser.setUrl(urlString + "?" + data);
+						String url = Constants.URL_AUTHORIZED_RPC + "?" + data;
+						PlatformMessenger.debug("Open Auth URL: " + url);
+						browser.setUrl(url);
 
 						browser.addProgressListener(new ProgressListener() {
 							public void completed(ProgressEvent event) {
 								s = browser.getText();
+								PlatformMessenger.debug("Got Auth Reply: " + s);
 								int i = s.indexOf("0;");
 								if (i > 0) {
 									s = s.substring(i);
