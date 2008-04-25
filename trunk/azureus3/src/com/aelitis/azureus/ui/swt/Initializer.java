@@ -74,7 +74,7 @@ public class Initializer
 
 	private int curPercent = 0;
 
-	private DelayedTask init_task;
+	private AESemaphore init_task = new AESemaphore("delayed init");
 	  
 	public static void main(final String args[]) {
 		if (Launcher.checkAndLaunch(Initializer.class, args))
@@ -111,18 +111,19 @@ public class Initializer
 
 	public void run() {
 		
-		init_task = UtilitiesImpl.addDelayedTask( "SWT Initialisation" );
+		DelayedTask delayed_task = UtilitiesImpl.addDelayedTask( "SWT Initialisation" );
 
-		init_task.setTask(
+		delayed_task.setTask(
 				new Runnable()
 				{
 					public void
 					run()
 					{
+						init_task.reserve();
 					}
 				});
 
-		init_task.queue();
+		delayed_task.queue();
 		
 		// initialise the SWT locale util
 		long startTime = SystemTime.getCurrentTime();
@@ -218,49 +219,63 @@ public class Initializer
 
 			// @see com.aelitis.azureus.core.AzureusCoreLifecycleAdapter#started(com.aelitis.azureus.core.AzureusCore)
 			public void started(AzureusCore core) {
-				InitialisationFunctions.lateInitialisation(core);
-				if (gm == null) {
-					return;
-				}
-
-				// Ensure colors initialized
-				Colors.getInstance();
-
-				Initializer.this.reportPercent(curPercent + 1);
-				new UserAlerts(gm);
-
-				reportCurrentTaskByKey("splash.initializeGui");
-
-				Initializer.this.reportPercent(curPercent + 1);
-				Cursors.init();
-
-				Initializer.this.reportPercent(curPercent + 1);
+				boolean	main_window_will_report_complete = false;
 				
-				new MainWindow(core, Display.getDefault(), Initializer.this);
-				
-				reportCurrentTaskByKey("splash.openViews");
-
-				SWTUpdateChecker.initialize();
-
-				PreUpdateChecker.initialize(core,
-						COConfigurationManager.getStringParameter("ui"));
-
-				UpdateMonitor.getSingleton(core); // setup the update monitor
-
-				//Tell listeners that all is initialized :
-				Alerts.initComplete();
-
-				//Finally, open torrents if any.
-				for (int i = 0; i < args.length; i++) {
-
-					try {
-						TorrentOpener.openTorrent(args[i]);
-
-					} catch (Throwable e) {
-
-						Debug.printStackTrace(e);
+				try {
+	
+					InitialisationFunctions.lateInitialisation(core);
+					if (gm == null) {
+						return;
+					}
+	
+					// Ensure colors initialized
+					Colors.getInstance();
+	
+					Initializer.this.reportPercent(curPercent + 1);
+					new UserAlerts(gm);
+	
+					reportCurrentTaskByKey("splash.initializeGui");
+	
+					Initializer.this.reportPercent(curPercent + 1);
+					Cursors.init();
+	
+					Initializer.this.reportPercent(curPercent + 1);
+					
+					main_window_will_report_complete = true;
+					
+					new MainWindow(core, Display.getDefault(), Initializer.this);
+					
+					reportCurrentTaskByKey("splash.openViews");
+	
+					SWTUpdateChecker.initialize();
+	
+					PreUpdateChecker.initialize(core,
+							COConfigurationManager.getStringParameter("ui"));
+	
+					UpdateMonitor.getSingleton(core); // setup the update monitor
+	
+					//Tell listeners that all is initialized :
+					Alerts.initComplete();
+	
+					//Finally, open torrents if any.
+					for (int i = 0; i < args.length; i++) {
+	
+						try {
+							TorrentOpener.openTorrent(args[i]);
+	
+						} catch (Throwable e) {
+	
+							Debug.printStackTrace(e);
+						}
 					}
 				}
+				finally{
+					
+					if ( !main_window_will_report_complete ){
+						init_task.release();
+					}
+				}
+
 			}
 
 			public void stopping(AzureusCore core) {
@@ -476,16 +491,16 @@ public class Initializer
 	{
 		core.getPluginManager().firePluginEvent( PluginEvent.PEV_INITIALISATION_UI_COMPLETES );
 
-		new DelayedEvent( 
-				"SWTInitComplete:delay",
-				2500,
-				new AERunnable()
-				{
-					public void
-					runSupport()
-					{
-						init_task.setComplete();
-					}
-				});
+		  new DelayedEvent( 
+				  "SWTInitComplete:delay",
+				  15000,
+				  new AERunnable()
+				  {
+					  public void
+					  runSupport()
+					  {
+						  init_task.release();
+					  }
+				  });
 	}
 }
