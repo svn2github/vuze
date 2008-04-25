@@ -24,6 +24,8 @@ public class LoginInfoManager
 	private String userID = "no.user.id.has.been.set";
 
 	private boolean isNewOrUpdated = true;
+	
+	private String pk = null;
 
 	private List listeners = new ArrayList();
 
@@ -62,11 +64,12 @@ public class LoginInfoManager
 		return new LoginInfo();
 	}
 
-	public void setUserInfo(String userName, String userID, boolean isNewOrUpdated) {
+	public void setUserInfo(String userName, String userID, boolean isNewOrUpdated, String pk) {
 		if (this.userName != userName || this.userID != userID) {
 			this.userName = userName;
 			this.userID = userID;
 			this.isNewOrUpdated = isNewOrUpdated;
+			this.pk = pk;
 			notifyListeners();
 		}
 	}
@@ -87,6 +90,10 @@ public class LoginInfoManager
 
 		public final boolean isNewOrUpdated = LoginInfoManager.this.isNewOrUpdated;
 
+		/**
+		 * The public key that the webapp thinks we have
+		 */
+		public final String pk = LoginInfoManager.this.pk;
 	}
 
 }
