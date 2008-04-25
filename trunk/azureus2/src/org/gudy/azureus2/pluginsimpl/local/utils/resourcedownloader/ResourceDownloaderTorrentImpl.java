@@ -341,7 +341,7 @@ ResourceDownloaderTorrentImpl
 				{
 					public void
 					stateChanged(
-						Download		download,
+						final Download		download,
 						int				old_state,
 						int				new_state )
 					{		
@@ -351,7 +351,12 @@ ResourceDownloaderTorrentImpl
 							
 							download.removeListener( this );
 							
-							downloadSucceeded( download, torrent_file, data_dir );
+							PluginInitializer.getDefaultInterface().getUtilities().createThread("resource complete event dispatcher", new Runnable() {
+								public void run() {
+									downloadSucceeded( download, torrent_file, data_dir );
+								}
+							});
+							
 						}
 					}
 
