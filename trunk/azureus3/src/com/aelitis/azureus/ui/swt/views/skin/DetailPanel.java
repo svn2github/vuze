@@ -10,7 +10,6 @@ import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.gudy.azureus2.ui.swt.components.shell.LightBoxShell;
@@ -92,13 +91,12 @@ public class DetailPanel
 		 * Create the Share flow page
 		 */
 
-		new SharePage(createPage(SharePage.PAGE_ID, SWT.NONE));
-
+		addPage(new SharePage());
 		/*
 		 * Create the Invite flow page
 		 */
 
-		new InvitePage(createPage(InvitePage.PAGE_ID, SWT.NONE));
+		addPage(new InvitePage());
 	}
 
 	/**
@@ -107,32 +105,29 @@ public class DetailPanel
 	 * @param style <code>SWT</code> style bit mask appropriate for a <code>Composite</code>
 	 * @return
 	 */
-	public Composite createPage(String pageID, int style) {
+	public void addPage(IDetailPage page) {
 		if (null == detailPanel) {
 			throw new NullPointerException(
 					"An error has occured... the detail panel has not been properly initialized");
 		}
 
-		if (true == pages.containsKey(pageID)) {
-			throw new IllegalArgumentException(pageID
+		if (true == pages.containsKey(page.getPageID())) {
+			throw new IllegalArgumentException(page.getPageID()
 					+ " is already in use by an existing page");
 		}
+		page.createControls(detailPanel);
 
-		Composite newPage = new Composite(detailPanel, style);
-		pages.put(pageID, newPage);
+		pages.put(page.getPageID(), page);
 
 		/*
 		 * By default the last page created is on top
 		 */
-		stackLayout.topControl = newPage;
+		stackLayout.topControl = page.getControl();
 		detailPanel.layout();
-
-		return newPage;
 	}
 
 	public void removePage(String pageID) {
 		if (true == pages.containsKey(pageID)) {
-			((Composite) pages.get(pageID)).dispose();
 			pages.remove(pageID);
 		}
 	}
@@ -223,7 +218,7 @@ public class DetailPanel
 			 * Move the specified page on top if found
 			 */
 			if (true == pages.containsKey(pageID)) {
-				stackLayout.topControl = (Composite) pages.get(pageID);
+				stackLayout.topControl = ((IDetailPage) pages.get(pageID)).getControl();
 				detailPanel.layout();
 			}
 

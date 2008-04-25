@@ -1,36 +1,51 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 
-import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.util.Constants;
 
 public class InvitePage
+	implements IDetailPage
 {
-	
-	public static final String PAGE_ID ="invite.page";
-	
-	private Composite parent;
-	private StackLayout stackLayout;
-	private Composite firstPanel = null;
-	
-	public InvitePage(Composite parent) {
-		this.parent = parent;
-		this.parent = parent;
 
+	public static final String PAGE_ID = "invite.page";
+
+	private Composite content;
+
+	private Composite blinder;
+
+	private Browser browser = null;
+
+	private StackLayout stackLayout = null;
+
+	public InvitePage() {
+	}
+
+	public void createControls(Composite parent) {
+		content = new Composite(parent, SWT.NONE);
 		stackLayout = new StackLayout();
-		stackLayout.marginHeight = 0;
-		stackLayout.marginWidth = 0;
-		parent.setLayout(stackLayout);
-		
+		content.setLayout(stackLayout);
 		init();
 	}
 
 	private void init() {
-		firstPanel = new Composite(parent, SWT.NONE);
-		firstPanel.setBackground(ColorCache.getColor(parent.getDisplay(), 75, 2, 10));
-		stackLayout.topControl = firstPanel;
-		parent.layout();
+		browser = new Browser(content, SWT.NONE);
+		browser.setUrl(Constants.URL_FAQ);
+
+		blinder = new Composite(content, SWT.NONE);
+		stackLayout.topControl = browser;
+		content.layout();
+	}
+
+	public String getPageID() {
+		return PAGE_ID;
+	}
+
+	public Control getControl() {
+		return content;
 	}
 }

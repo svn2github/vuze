@@ -303,7 +303,7 @@ public class BuddiesViewer
 	}
 
 	private VuzeBuddySWT[] getBuddies() {
-		VuzeBuddySWT[] buddies = new VuzeBuddySWT[10];
+		VuzeBuddySWT[] buddies = new VuzeBuddySWT[100];
 		for (int i = 0; i < buddies.length; i++) {
 			buddies[i] = (VuzeBuddySWT) VuzeBuddyUtils.createRandomBuddy();
 		}

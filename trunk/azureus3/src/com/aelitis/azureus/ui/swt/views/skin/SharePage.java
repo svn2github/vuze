@@ -1,69 +1,80 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.StackLayout;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
-import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.util.Constants;
 
 public class SharePage
+	implements IDetailPage
 {
-	
-	public static final String PAGE_ID ="share.page";
-	
-	private Composite parent;
+
+	public static final String PAGE_ID = "share.page";
+
+	private Composite content;
 
 	private StackLayout stackLayout;
-	
+
 	private Composite firstPanel = null;
-	
+
+	private Composite browserPanel = null;
+
 	static Label shareMessage;
 
-	static Label buddyListDescription;
+	private Label buddyListDescription;
 
-	static Label addBuddyLabel;
+	private Label addBuddyLabel;
 
-	static Composite buddyList;
+	private Composite buddyList;
 
-	static Composite contentDetail;
+	private Composite contentDetail;
 
-	static Button addBuddyButton;
+	private Button addBuddyButton;
 
-	static Button sendNowButton;
+	private Button sendNowButton;
 
-	static Button cancelButton;
+	private Button cancelButton;
 
-	static Label buddyImage;
+	private Label buddyImage;
 
-	static Label commentLabel;
+	private Label commentLabel;
 
-	static Text commentText;
-	
-	public SharePage(Composite parent) {
-		this.parent = parent;
+	private Text commentText;
+
+	public SharePage() {
+	}
+
+	public void createControls(Composite parent) {
+		content = new Composite(parent, SWT.NONE);
 
 		stackLayout = new StackLayout();
 		stackLayout.marginHeight = 0;
 		stackLayout.marginWidth = 0;
-		parent.setLayout(stackLayout);
-		
-		init();
+		content.setLayout(stackLayout);
+
+		createFirstPanel();
+		createBrowserPanel();
 	}
 
-	private void init() {
-		firstPanel = new Composite(parent, SWT.NONE);
-//		firstPanel.setBackground(ColorCache.getColor(parent.getDisplay(), 12, 30, 67));
+	private void createFirstPanel() {
+		firstPanel = new Composite(content, SWT.NONE);
+		//		firstPanel.setBackground(ColorCache.getColor(parent.getDisplay(), 12, 30, 67));
 		firstPanel.setLayout(new FormLayout());
-//		firstPanel.setBackground(Colors.black);
-		
-		
+		//		firstPanel.setBackground(Colors.black);
+
 		shareMessage = new Label(firstPanel, SWT.NONE);
 		shareMessage.setText("Share this content...");
 		shareMessage.setForeground(Colors.white);
@@ -161,13 +172,44 @@ public class SharePage
 		commentTextData.left = new FormAttachment(0, 8);
 		commentTextData.right = new FormAttachment(100, -8);
 		commentTextData.bottom = new FormAttachment(100, -8);
-		commentText.setLayoutData(commentTextData);		
-		
-		
-		
+		commentText.setLayoutData(commentTextData);
+
 		stackLayout.topControl = firstPanel;
-		parent.layout();
-		
-		
+		content.layout();
+
+		hookListeners();
+
+	}
+
+	private void createBrowserPanel() {
+		browserPanel = new Composite(content, SWT.NONE);
+		FillLayout fLayout = new FillLayout();
+		browserPanel.setLayout(fLayout);
+		Browser browser = new Browser(browserPanel, SWT.NONE);
+		browser.setUrl(Constants.URL_FAQ);
+	}
+
+	private void hookListeners() {
+
+		addBuddyButton.addSelectionListener(new SelectionListener() {
+
+			public void widgetSelected(SelectionEvent e) {
+				stackLayout.topControl = browserPanel;
+				content.layout();
+
+			}
+
+			public void widgetDefaultSelected(SelectionEvent e) {
+				widgetSelected(e);
+			}
+		});
+	}
+
+	public Control getControl() {
+		return content;
+	}
+
+	public String getPageID() {
+		return PAGE_ID;
 	}
 }
