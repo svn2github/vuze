@@ -1253,18 +1253,6 @@ public class Utils
 			return;
 		}
 
-		/*
-		 * Bypassing the existing layout logic temporarily until a layout issue with the new DetailPanel is resolved
-		 */
-		Composite parent1 = control.getParent();
-		while(null !=parent1.getParent()){
-			parent1 = parent1.getParent();
-		}
-		parent1.layout(true);
-		
-		if(1==1){
-			return;
-		}
 		//============================================
 		
 		Composite parent = control.getParent();
@@ -1281,6 +1269,9 @@ public class Utils
 				parent.layout();
 				return;
 			}
+		}
+		else{
+			System.out.println("Not form layout");//KN: sysout
 		}
 
 		if (expandOnly && size.y >= targetSize.y && size.x >= targetSize.x) {
