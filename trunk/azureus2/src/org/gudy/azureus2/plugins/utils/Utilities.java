@@ -311,6 +311,16 @@ Utilities
 	 */
 	public String normaliseFileName(String f_name);
 	
+	/**
+	 * Adds a low priority task that will be scheduled at some point after existing tasks have
+	 * completed. In particular a system task exists that will block subsequent ones until after
+	 * UI initialisation is complete. Plugins can therefore use this to schedule initialisation 
+	 * actions to occur after UI init is complete
+	 * 
+	 * @since 3.0.5.3
+	 * @return
+	 */
+	
 	public DelayedTask
 	addDelayedTask();
 }
