@@ -130,26 +130,21 @@ ExternalSeedPlugin
 				public void 
 				run() 
 				{
-					try{
-						AEThread2 t = 
-							new AEThread2( "ExternalSeedInitialise", true )
+					AEThread2 t = 
+						new AEThread2( "ExternalSeedInitialise", true )
+						{
+							public void 
+							run() 
 							{
-								public void 
-								run() 
-								{
-									plugin_interface.getDownloadManager().addListener(
-											ExternalSeedPlugin.this);
-								}
-							};
-						
-						t.setPriority( Thread.MIN_PRIORITY );
-						
-						t.start();
-						
-					}finally{
-						
-						dt.setComplete();
-					}
+								plugin_interface.getDownloadManager().addListener(
+										ExternalSeedPlugin.this);
+							}
+						};
+					
+					t.setPriority( Thread.MIN_PRIORITY );
+					
+					t.start();
+					
 				}
 			});
 		

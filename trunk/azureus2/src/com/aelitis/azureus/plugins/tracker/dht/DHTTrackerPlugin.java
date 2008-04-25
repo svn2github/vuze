@@ -277,48 +277,43 @@ DHTTrackerPlugin
 								public void 
 								run() 
 								{
-									try{
-										AEThread2	t = 
-											new AEThread2( "DHTTrackerPlugin:init", true )
+									AEThread2	t = 
+										new AEThread2( "DHTTrackerPlugin:init", true )
+										{
+											public void
+											run()
 											{
-												public void
-												run()
-												{
-													try{
+												try{
+												
+													if ( dht.isEnabled()){
 													
-														if ( dht.isEnabled()){
+														log.log( "DDB Available" );
+															
+														model.getStatus().setText( "Running" );
 														
-															log.log( "DDB Available" );
-																
-															model.getStatus().setText( "Running" );
+														initialise();
 															
-															initialise();
-															
-														}else{
-															
-															log.log( "DDB Disabled" );
-															
-															model.getStatus().setText( "Disabled, Distributed database not available" );
-															
-															notRunning();
-														}
-													}catch( Throwable e ){
+													}else{
 														
-														log.log( "DDB Failed", e );
+														log.log( "DDB Disabled" );
 														
-														model.getStatus().setText( "Failed" );
-														
+														model.getStatus().setText( "Disabled, Distributed database not available" );
+															
 														notRunning();
 													}
+												}catch( Throwable e ){
+														
+													log.log( "DDB Failed", e );
+														
+													model.getStatus().setText( "Failed" );
+														
+													notRunning();
 												}
-											};
+											}
+										};
 																	
 										t.start();	
 										
-									}finally{
-										
-										dt.setComplete();
-									}
 								}
 							});
 						

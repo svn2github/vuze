@@ -204,14 +204,8 @@ LocalTrackerPlugin
 				public void 
 				run() 
 				{
-					try{
 						plugin_interface.getDownloadManager().addListener(
-								LocalTrackerPlugin.this );
-						
-					}finally{
-						
-						dt.setComplete();
-					}
+								LocalTrackerPlugin.this );						
 				}
 			});
 		

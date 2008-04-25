@@ -880,8 +880,6 @@ UtilitiesImpl
 		private String 		name;
 		private Runnable	target;
 		
-		private AESemaphore	complete_sem = new AESemaphore( "DelayTask:complete" );
-		
 		private long	create_time = SystemTime.getCurrentTime();
 		private long	run_time;
 		
@@ -917,18 +915,6 @@ UtilitiesImpl
 			
 			target.run();
 			
-			while( true ){
-				
-				if ( complete_sem.reserve(30*1000)){
-					
-					break;
-					
-				}else{
-					
-		     		Logger.log(	new LogEvent(LogIDs.PLUGIN, LogEvent.LT_ERROR, "Delayed task '" + getName() + "' is taking a long time to complete" ));
-				}
-			}
-			
 			long	now = SystemTime.getCurrentTime();
 			
      		Logger.log(	
@@ -945,10 +931,5 @@ UtilitiesImpl
 			return( name );
 		}
 
-		public void
-		setComplete()
-		{
-			complete_sem.releaseForever();
-		}
 	}
 }

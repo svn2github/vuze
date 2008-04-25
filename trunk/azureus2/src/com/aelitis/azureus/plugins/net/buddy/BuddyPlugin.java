@@ -475,20 +475,14 @@ BuddyPlugin
 							public void 
 							run() 
 							{
-								try{
-									new AEThread2( "BuddyPlugin:init", true )
+								new AEThread2( "BuddyPlugin:init", true )
+								{
+									public void
+									run()
 									{
-										public void
-										run()
-										{
-											startup();
-										}
-									}.start();
-									
-								}finally{
-									
-									dt.setComplete();
-								}
+										startup();
+									}
+								}.start();
 							}
 						});
 					

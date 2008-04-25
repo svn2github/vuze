@@ -37,11 +37,4 @@ DelayedTask
 	public void
 	queue();
 	
-		/**
-		 * This method MUST be called at come point for all tasks that have been queued otherwise
-		 * subsequent tasks will be blocked indefinitely. 
-		 * Typically this will be called from the 'target' runnable above 
-		 */
-	public void
-	setComplete();
 }

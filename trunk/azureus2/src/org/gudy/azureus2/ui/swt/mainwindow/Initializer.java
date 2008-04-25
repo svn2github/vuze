@@ -81,7 +81,7 @@ Initializer
   
   private AESemaphore semFilterLoader = new AESemaphore("filter loader");
   
-  private DelayedTask init_task;
+  private AESemaphore init_task = new AESemaphore("delayed init");
   
   public 
   Initializer(
@@ -158,18 +158,19 @@ Initializer
   		}
   		// else AZ2UI
   		
-		init_task = UtilitiesImpl.addDelayedTask( "SWT Initialisation" );
+		DelayedTask delayed_task = UtilitiesImpl.addDelayedTask( "SWT Initialisation" );
 
-		init_task.setTask(
+		delayed_task.setTask(
 				new Runnable()
 				{
 					public void
 					run()
 					{
+						init_task.reserve();
 					}
 				});
 
-		init_task.queue();
+		delayed_task.queue();
 			  
 
 		
@@ -304,8 +305,7 @@ Initializer
 					}finally{
 					
 						if ( !main_window_will_report_complete ){
-						
-							init_task.setComplete();
+							init_task.release();
 						}
 					}
 				}
@@ -342,8 +342,7 @@ Initializer
 
   	}catch( Throwable e ){
   		Logger.log(new LogEvent(LOGID, "Initialization fails:", e));
-  		
-  		init_task.setComplete();
+  		init_task.release();
   	} 
   }
   
@@ -418,13 +417,13 @@ Initializer
 	  
 	  new DelayedEvent( 
 			  "SWTInitComplete:delay",
-			  2500,
+			  15000,
 			  new AERunnable()
 			  {
 				  public void
 				  runSupport()
 				  {
-					  init_task.setComplete();
+					  init_task.release();
 				  }
 			  });
   }

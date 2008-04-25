@@ -91,13 +91,7 @@ ShareHosterPlugin
 				public void 
 				run() 
 				{
-					try{
-						initialise();
-						
-					}finally{
-						
-						dt.setComplete();
-					}
+					initialise();
 				}
 			});
 		
