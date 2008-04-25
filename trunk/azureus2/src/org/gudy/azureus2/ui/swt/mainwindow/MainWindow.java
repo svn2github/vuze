@@ -822,21 +822,22 @@ public class MainWindow
 			}
 		}
 
-		COConfigurationManager.addAndFireParameterListener("Show Download Basket",
-				this);
+		COConfigurationManager.addAndFireParameterListener("Show Download Basket",this);
 
-		checkForWhatsNewWindow();
-
-			// check file associations  
-		
-		AssociationChecker.checkAssociations();
-
-		azureus_core.triggerLifeCycleComponentCreated(uiFunctions);
+			// do this before other checks as these are blocking dialogs to force order
 
 		if ( initializer != null ){
 			
 			initializer.initializationComplete();
 		}
+		
+		checkForWhatsNewWindow();
+
+			// check file associations  
+	
+		AssociationChecker.checkAssociations();
+
+		azureus_core.triggerLifeCycleComponentCreated(uiFunctions);
 	}
 
 	protected void showMyTracker() {
