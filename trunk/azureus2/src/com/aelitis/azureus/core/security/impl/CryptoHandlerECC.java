@@ -521,34 +521,55 @@ CryptoHandlerECC
 		
 		String reason = "Changing password handler";
 		
-		getMyPrivateKey( reason );
+		boolean	have_existing_keys = COConfigurationManager.getByteParameter( CONFIG_PREFIX + "privatekey", null ) != null;
 		
-		CryptoManagerImpl.passwordDetails password_details = 
-			manager.getPassword( 
-							CryptoManager.HANDLER_ECC,
-							CryptoManagerPasswordHandler.ACTION_ENCRYPT,
-							reason,
-							null,
-							new_type );
-		
-		synchronized( this ){
+			// ensure we unlock the private key so we can then re-persist it with new password
+
+		if ( have_existing_keys ){
 			
-			if ( use_method_private_key == null ){
+			getMyPrivateKey( reason );
+		
+			CryptoManagerImpl.passwordDetails password_details = 
+				manager.getPassword( 
+								CryptoManager.HANDLER_ECC,
+								CryptoManagerPasswordHandler.ACTION_ENCRYPT,
+								reason,
+								null,
+								new_type );
+			
+			
+			synchronized( this ){
 				
-				throw( new CryptoManagerException( "Private key not available" ));
+				if ( use_method_private_key == null ){
+					
+					throw( new CryptoManagerException( "Private key not available" ));
+				}
+				
+				byte[]	priv_raw = keyToRawdata( use_method_private_key );
+				
+				byte[]	priv_enc = manager.encryptWithPBE( priv_raw, password_details.getPassword());
+				
+				COConfigurationManager.setParameter( CONFIG_PREFIX + "privatekey", priv_enc );
+	
+				COConfigurationManager.setParameter( CONFIG_PREFIX + "pwtype", password_details.getHandlerType());
+	
+				COConfigurationManager.setParameter( CONFIG_PREFIX + "default_pwtype", password_details.getHandlerType());
+				
+				COConfigurationManager.save();
 			}
+		}else{
 			
-			byte[]	priv_raw = keyToRawdata( use_method_private_key );
+				// not much to do as keys not yet created
 			
-			byte[]	priv_enc = manager.encryptWithPBE( priv_raw, password_details.getPassword());
-			
-			COConfigurationManager.setParameter( CONFIG_PREFIX + "privatekey", priv_enc );
-
-			COConfigurationManager.setParameter( CONFIG_PREFIX + "pwtype", password_details.getHandlerType());
-
-			COConfigurationManager.setParameter( CONFIG_PREFIX + "default_pwtype", password_details.getHandlerType());
-			
-			COConfigurationManager.save();
+			synchronized( this ){
+				
+				if ( COConfigurationManager.getByteParameter( CONFIG_PREFIX + "privatekey", null ) == null ){
+					
+					COConfigurationManager.setParameter( CONFIG_PREFIX + "default_pwtype", new_type );
+				
+					COConfigurationManager.save();
+				}
+			}
 		}
 	}
 	
