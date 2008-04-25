@@ -26,9 +26,7 @@ import java.util.Iterator;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
 
-import com.aelitis.azureus.core.security.CryptoManager;
-import com.aelitis.azureus.core.security.CryptoManagerFactory;
-import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler;
+import com.aelitis.azureus.core.security.*;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public class 
@@ -127,6 +125,17 @@ VuzeCryptoManager
 					return( null );
 				}
 			});
+	}
+	
+	public
+	boolean isUnlocked()
+	{
+		try {
+			crypt_man.getECCHandler().unlock();
+			return true;
+		} catch (CryptoManagerException e) {
+			return false;
+		}
 	}
 	
 	public byte[]
