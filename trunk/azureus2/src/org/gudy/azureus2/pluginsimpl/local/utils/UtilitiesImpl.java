@@ -802,7 +802,7 @@ UtilitiesImpl
 	}
 	
 	public DelayedTask
-	addDelayedTask()
+	createDelayedTask()
 	{
 		return( addDelayedTask( pi.getPluginName()));
 	}

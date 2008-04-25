@@ -322,7 +322,7 @@ Utilities
 	 */
 	
 	public DelayedTask
-	addDelayedTask();
+	createDelayedTask();
 }
 
 
