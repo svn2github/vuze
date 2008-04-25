@@ -117,6 +117,8 @@ public class MainWindow
 
 	private final AzureusCore core;
 
+	private final IUIIntializer	uiInitializer;
+	
 	private SWTSkin skin;
 
 	private org.gudy.azureus2.ui.swt.mainwindow.MainWindow oldMainWindow;
@@ -161,6 +163,8 @@ public class MainWindow
 			final IUIIntializer uiInitializer) {
 		this.core = core;
 		this.display = display;
+		this.uiInitializer = uiInitializer;
+		
 		disposedOrDisposing = false;
 
 		VuzeBuddyManager.init(new VuzeBuddyCreator() {
@@ -927,8 +931,11 @@ public class MainWindow
 		AssociationChecker.checkAssociations();
 
 		core.triggerLifeCycleComponentCreated(uiFunctions);
-		core.getPluginManager().firePluginEvent(
-				PluginEvent.PEV_INITIALISATION_UI_COMPLETES);
+		
+		if (  uiInitializer != null ){
+			
+			uiInitializer.initializationComplete();
+		}
 
 		isReady = true;
 	}

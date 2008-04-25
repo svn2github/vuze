@@ -27,6 +27,9 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.PluginEvent;
+import org.gudy.azureus2.plugins.utils.DelayedTask;
+import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 import org.gudy.azureus2.ui.common.util.UserAlerts;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.auth.AuthenticatorWindow;
@@ -71,6 +74,8 @@ public class Initializer
 
 	private int curPercent = 0;
 
+	private DelayedTask init_task;
+	  
 	public static void main(final String args[]) {
 		if (Launcher.checkAndLaunch(Initializer.class, args))
 			return;
@@ -105,6 +110,20 @@ public class Initializer
 	}
 
 	public void run() {
+		
+		init_task = UtilitiesImpl.addDelayedTask( "SWT Initialisation" );
+
+		init_task.setTask(
+				new Runnable()
+				{
+					public void
+					run()
+					{
+					}
+				});
+
+		init_task.queue();
+		
 		// initialise the SWT locale util
 		long startTime = SystemTime.getCurrentTime();
 
@@ -450,5 +469,23 @@ public class Initializer
 
 			listeners_mon.exit();
 		}
+	}
+	
+	public void
+	initializationComplete()
+	{
+		core.getPluginManager().firePluginEvent( PluginEvent.PEV_INITIALISATION_UI_COMPLETES );
+
+		new DelayedEvent( 
+				"SWTInitComplete:delay",
+				2500,
+				new AERunnable()
+				{
+					public void
+					runSupport()
+					{
+						init_task.setComplete();
+					}
+				});
 	}
 }
