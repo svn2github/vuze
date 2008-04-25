@@ -41,7 +41,6 @@ import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
 
 import com.aelitis.azureus.core.nat.NATTraversalObserver;
 import com.aelitis.azureus.core.nat.NATTraverser;
-import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 
 public class 
 GenericMessageConnectionImpl
