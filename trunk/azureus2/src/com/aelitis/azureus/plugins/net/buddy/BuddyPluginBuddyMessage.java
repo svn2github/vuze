@@ -61,7 +61,7 @@ BuddyPluginBuddyMessage
 		return( handler.getBuddy());
 	}
 	
-	protected int
+	public int
 	getID()
 	{
 		return( id );

@@ -1039,7 +1039,7 @@ BuddyPluginViewInstance
 				messageQueued(
 					BuddyPluginBuddyMessage		message )
 				{
-					print( "message queued" );
+					print( message.getBuddy().getName() + ": message queued, id=" + message.getID());
 					
 					update();
 				}
@@ -1049,7 +1049,7 @@ BuddyPluginViewInstance
 					BuddyPluginBuddyMessage		message,
 					Map							reply )
 				{
-					print( "message delivered" );
+					print( message.getBuddy().getName() + ": message delivered, id=" + message.getID());
 					
 					update();
 				}
@@ -1059,7 +1059,7 @@ BuddyPluginViewInstance
 					BuddyPluginBuddyMessage		message,
 					BuddyPluginException		cause )
 				{
-					print( "message delivery failed", cause );
+					print( message.getBuddy().getName() + ": message failed, id=" + message.getID(), cause );
 					
 					update();
 				}

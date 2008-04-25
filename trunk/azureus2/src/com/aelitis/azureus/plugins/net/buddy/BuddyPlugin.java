@@ -138,6 +138,16 @@ BuddyPlugin
 	private static final int	PERSISTENT_MSG_CHECK_PERIOD		= 60*1000;
 	private static final int	PERSISTENT_MSG_CHECK_TICKS		= PERSISTENT_MSG_CHECK_PERIOD/TIMER_PERIOD;
 
+	private static final int	UNAUTH_BLOOM_RECREATE		= 120*1000;
+	private static final int	UNAUTH_BLOOM_CHUNK			= 1000;
+	private static BloomFilter	unauth_bloom;
+	private static long			unauth_bloom_create_time;
+
+	private static final int	BLOOM_CHECK_PERIOD			= UNAUTH_BLOOM_RECREATE/2;
+	private static final int	BLOOM_CHECK_TICKS			= BLOOM_CHECK_PERIOD/TIMER_PERIOD;
+
+
+	
 	private volatile int	 initialisation_state = INIT_UNKNOWN;
 	
 	private PluginInterface	plugin_interface;
@@ -207,15 +217,11 @@ BuddyPlugin
 		}
 	}
 		
+	private Set			pd_preinit		= new HashSet();
+	private List		pd_queue 		= new ArrayList();
+	private AESemaphore	pd_queue_sem	= new AESemaphore( "BuddyPlugin:persistDispatch");
+	private AEThread2	pd_thread;
 	
-	private static final int			UNAUTH_BLOOM_RECREATE		= 120*1000;
-	private static final int			UNAUTH_BLOOM_CHUNK			= 1000;
-	private static BloomFilter			unauth_bloom;
-	private static long					unauth_bloom_create_time;
-
-	private static final int	BLOOM_CHECK_PERIOD			= UNAUTH_BLOOM_RECREATE/2;
-	private static final int	BLOOM_CHECK_TICKS			= BLOOM_CHECK_PERIOD/TIMER_PERIOD;
-
 	
 	public static void
 	load(
@@ -822,15 +828,31 @@ BuddyPlugin
 		}
 	}
 	
-	private List		pd_queue 		= new ArrayList();
-	private AESemaphore	pd_queue_sem	= new AESemaphore( "BuddyPlugin:persistDispatch");
-	private AEThread2	pd_thread;
+	protected void
+	persistentDispatchInit()
+	{
+		Iterator it = pd_preinit.iterator();
+		
+		while( it.hasNext()){
+		
+			persistentDispatchPending((BuddyPluginBuddy)it.next());
+		}
+		
+		pd_preinit = null;
+	}
 	
 	protected void
 	persistentDispatchPending(
 		BuddyPluginBuddy	buddy )
 	{
 		synchronized( pd_queue ){
+			
+			if ( initialisation_state == INIT_UNKNOWN ){
+				
+				pd_preinit.add( buddy );
+				
+				return;
+			}
 			
 			if ( !pd_queue.contains( buddy )){
 				
@@ -2395,13 +2417,14 @@ BuddyPlugin
 		if ( ok ){
 			
 			initialisation_state = INIT_OK;
-			
+				
 		}else{
 			
 			initialisation_state = INIT_BAD;
 		}
 		      
-	
+		persistentDispatchInit();
+		
 		List	 listeners_ref = listeners.getList();
 		
 		for (int i=0;i<listeners_ref.size();i++){
