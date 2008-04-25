@@ -927,16 +927,17 @@ public class MainWindow
 			}
 		}
 
-		// check file associations   
-		AssociationChecker.checkAssociations();
-
-		core.triggerLifeCycleComponentCreated(uiFunctions);
+			// do this before other checks as these are blocking dialogs to force order
 		
 		if (  uiInitializer != null ){
 			
 			uiInitializer.initializationComplete();
 		}
+		
+		AssociationChecker.checkAssociations();
 
+		core.triggerLifeCycleComponentCreated(uiFunctions);
+		
 		isReady = true;
 	}
 
