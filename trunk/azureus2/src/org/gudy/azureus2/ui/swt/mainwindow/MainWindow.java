@@ -827,12 +827,16 @@ public class MainWindow
 
 		checkForWhatsNewWindow();
 
-		// check file associations   
+			// check file associations  
+		
 		AssociationChecker.checkAssociations();
 
 		azureus_core.triggerLifeCycleComponentCreated(uiFunctions);
-		azureus_core.getPluginManager().firePluginEvent(
-				PluginEvent.PEV_INITIALISATION_UI_COMPLETES);
+
+		if ( initializer != null ){
+			
+			initializer.initializationComplete();
+		}
 	}
 
 	protected void showMyTracker() {

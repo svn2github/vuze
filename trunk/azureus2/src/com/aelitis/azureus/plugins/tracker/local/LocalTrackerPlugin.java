@@ -196,33 +196,26 @@ LocalTrackerPlugin
 		processSubNets(subnets.getValue(), include_wellknown.getValue());
 		processAutoAdd(autoadd.getValue());
 
-		// XXX Would be better if we fired this off after (any) UI is complete,
-		//     instead of a timer
-				
-		new DelayedEvent( 
-				"LocalTrackerInitialise", 
-				15000,
-				new AERunnable()
+		final DelayedTask dt = plugin_interface.getUtilities().addDelayedTask();
+
+		dt.setTask(
+			new Runnable()
+			{
+				public void 
+				run() 
 				{
-					public void 
-					runSupport() 
-					{
-						AEThread2 t = 
-							new AEThread2( "LocalTrackerInitialise", true )
-							{
-								public void 
-								run() 
-								{
-									plugin_interface.getDownloadManager().addListener(
-											LocalTrackerPlugin.this );
-								}
-							};
+					try{
+						plugin_interface.getDownloadManager().addListener(
+								LocalTrackerPlugin.this );
 						
-						t.setPriority( Thread.MIN_PRIORITY );
+					}finally{
 						
-						t.start();
+						dt.setComplete();
 					}
-				});
+				}
+			});
+		
+		dt.queue();
 	}
 	
 	public void

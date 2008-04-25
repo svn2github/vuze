@@ -73,6 +73,7 @@ import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
+import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.plugins.utils.UTTimerEvent;
 import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
 import org.gudy.azureus2.plugins.utils.security.SEPublicKey;
@@ -88,6 +89,7 @@ import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 import com.aelitis.azureus.plugins.net.buddy.swt.BuddyPluginView;
+import com.aelitis.azureus.plugins.tracker.local.LocalTrackerPlugin;
 
 public class 
 BuddyPlugin 
@@ -154,8 +156,9 @@ BuddyPlugin
 	
 	private LoggerChannel	logger;
 	
-	private BooleanParameter enabled_param; 
-			
+	private BooleanParameter 	enabled_param; 
+	private StringParameter 	nick_name_param;
+	
 	private boolean			ready_to_publish;
 	private publishDetails	current_publish		= new publishDetails();
 	private publishDetails	latest_publish		= current_publish;
@@ -261,7 +264,7 @@ BuddyPlugin
 				
 			// nickname
 
-		final StringParameter nick_name_param = config.addStringParameter2( "azbuddy.nickname", "azbuddy.nickname", "" );
+		nick_name_param = config.addStringParameter2( "azbuddy.nickname", "azbuddy.nickname", "" );
 
 		nick_name_param.setGenerateIntermediateEvents( false );
 		
@@ -464,81 +467,32 @@ BuddyPlugin
 				public void
 				initializationComplete()
 				{
-					new AEThread2( "BuddyPlugin:init", true )
-					{
-						public void
-						run()
-						{
-							try{
-								ddb = plugin_interface.getDistributedDatabase();
-							
-								if ( !ddb.isAvailable()){
-									
-									throw( new Exception( "DDB Unavailable" ));
-								}
-									// pick up initial values before enabling
+					final DelayedTask dt = plugin_interface.getUtilities().addDelayedTask();
 
-								ddb.addListener(
-									new DistributedDatabaseListener()
+					dt.setTask(
+						new Runnable()
+						{
+							public void 
+							run() 
+							{
+								try{
+									new AEThread2( "BuddyPlugin:init", true )
 									{
-										public void 
-										event(
-											DistributedDatabaseEvent event )
+										public void
+										run()
 										{
-											if ( event.getType() == DistributedDatabaseEvent.ET_LOCAL_CONTACT_CHANGED ){
-												
-												updateIP();
-											}
+											startup();
 										}
-									});
-										
-								updateIP();
-								
-								updateNickName( nick_name_param.getValue());
-								
-								COConfigurationManager.addAndFireParameterListeners(
-										new String[]{
-											"TCP.Listen.Port",
-											"TCP.Listen.Port.Enable",
-											"UDP.Listen.Port",
-											"UDP.Listen.Port.Enable" },
-										new org.gudy.azureus2.core3.config.ParameterListener()
-										{
-											public void 
-											parameterChanged(
-												String parameterName )
-											{
-												updateListenPorts();
-											}
-										});
-								
-								CryptoManagerFactory.getSingleton().addKeyChangeListener(
-									new CryptoManagerKeyChangeListener()
-									{
-										public void 
-										keyChanged(
-											CryptoHandler handler ) 
-										{
-											updateKey();
-										}
-									});
-								
-								ready_to_publish	= true;
-								
-								setEnabled( enabled_param.getValue());
-								
-								checkBuddiesAndRepublish();
-								
-								fireInitialised( true );
-								
-							}catch( Throwable e ){
-							
-								log( "Initialisation failed", e );
-								
-								fireInitialised( false );
+									}.start();
+									
+								}finally{
+									
+									dt.setComplete();
+								}
 							}
-						}
-					}.start();
+						});
+					
+					dt.queue();
 				}
 				
 				public void
@@ -554,6 +508,79 @@ BuddyPlugin
 				{				
 				}
 			});
+	}
+	
+	protected void
+	startup()
+	{
+		try{
+			ddb = plugin_interface.getDistributedDatabase();
+		
+			if ( !ddb.isAvailable()){
+				
+				throw( new Exception( "DDB Unavailable" ));
+			}
+				// pick up initial values before enabling
+
+			ddb.addListener(
+				new DistributedDatabaseListener()
+				{
+					public void 
+					event(
+						DistributedDatabaseEvent event )
+					{
+						if ( event.getType() == DistributedDatabaseEvent.ET_LOCAL_CONTACT_CHANGED ){
+							
+							updateIP();
+						}
+					}
+				});
+					
+			updateIP();
+			
+			updateNickName( nick_name_param.getValue());
+			
+			COConfigurationManager.addAndFireParameterListeners(
+					new String[]{
+						"TCP.Listen.Port",
+						"TCP.Listen.Port.Enable",
+						"UDP.Listen.Port",
+						"UDP.Listen.Port.Enable" },
+					new org.gudy.azureus2.core3.config.ParameterListener()
+					{
+						public void 
+						parameterChanged(
+							String parameterName )
+						{
+							updateListenPorts();
+						}
+					});
+			
+			CryptoManagerFactory.getSingleton().addKeyChangeListener(
+				new CryptoManagerKeyChangeListener()
+				{
+					public void 
+					keyChanged(
+						CryptoHandler handler ) 
+					{
+						updateKey();
+					}
+				});
+			
+			ready_to_publish	= true;
+			
+			setEnabled( enabled_param.getValue());
+			
+			checkBuddiesAndRepublish();
+			
+			fireInitialised( true );
+			
+		}catch( Throwable e ){
+		
+			log( "Initialisation failed", e );
+			
+			fireInitialised( false );
+		}
 	}
 	
 	public boolean

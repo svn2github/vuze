@@ -33,6 +33,9 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipfilter.IpFilterManager;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.PluginEvent;
+import org.gudy.azureus2.plugins.utils.DelayedTask;
+import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 import org.gudy.azureus2.ui.common.util.UserAlerts;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.auth.AuthenticatorWindow;
@@ -77,6 +80,8 @@ Initializer
   private String[] args;
   
   private AESemaphore semFilterLoader = new AESemaphore("filter loader");
+  
+  private DelayedTask init_task;
   
   public 
   Initializer(
@@ -123,35 +128,51 @@ Initializer
   public void 
   run() 
   {
+
   	try{
   		String uiMode = UISwitcherUtil.openSwitcherWindow(false);
-			if (uiMode.equals("az3")) {
-				try {
-					final Class az3Class = Class.forName("com.aelitis.azureus.ui.swt.Initializer");
-
-					final Constructor constructor = az3Class.getConstructor(new Class[] {
-						AzureusCore.class,
-						Boolean.TYPE,
-						String[].class
-					});
-
-					IUIIntializer initializer = (IUIIntializer) constructor.newInstance(new Object[] {
-						azureus_core,
-						new Boolean(false),
-						args
-					});
-
-					initializer.run();
-					return;
-				} catch (Throwable t) {
-					// use print stack trace because we don't want to introduce logger
-					t.printStackTrace();
-					// Ignore and use AZ2
-				}
-			}
-			// else AZ2UI
   		
+  		if (uiMode.equals("az3")) {
+  			try {
+  				final Class az3Class = Class.forName("com.aelitis.azureus.ui.swt.Initializer");
+
+  				final Constructor constructor = az3Class.getConstructor(new Class[] {
+  						AzureusCore.class,
+  						Boolean.TYPE,
+  						String[].class
+  				});
+
+  				IUIIntializer initializer = (IUIIntializer) constructor.newInstance(new Object[] {
+  						azureus_core,
+  						new Boolean(false),
+  						args
+  				});
+
+  				initializer.run();
+  				return;
+  			} catch (Throwable t) {
+  				// use print stack trace because we don't want to introduce logger
+  				t.printStackTrace();
+  				// Ignore and use AZ2
+  			}
+  		}
+  		// else AZ2UI
   		
+		init_task = UtilitiesImpl.addDelayedTask( "SWT Initialisation" );
+
+		init_task.setTask(
+				new Runnable()
+				{
+					public void
+					run()
+					{
+					}
+				});
+
+		init_task.queue();
+			  
+
+		
   		// initialise the SWT locale util
 	  	
 	    new LocaleUtilSWT( azureus_core );
@@ -219,57 +240,72 @@ Initializer
 					}
 				}
 
-				public void started(final AzureusCore core) {
-					if (gm == null)
-						return;
-
-					new UserAlerts(gm);
-
-					nextTask();
-					IpFilterManager ipFilterManager = azureus_core.getIpFilterManager();
-					if (ipFilterManager != null) {
-						String s = MessageText.getString("splash.loadIpFilters");
-  					do {
-  						reportCurrentTask(s);
-  						s += ".";
-  					} while (!semFilterLoader.reserve(3000));
-					}
+				public void 
+				started(
+					final AzureusCore core) 
+				{
+					boolean	main_window_will_report_complete = false;
 					
-					nextTask();
-					reportCurrentTaskByKey("splash.initializeGui");
-
-					Colors.getInstance();
-
-					Cursors.init();
-
-					// main window controls further progress now
-					new MainWindow(core, Initializer.this,
-							logEvents);
-
-					if (finalLogListener != null)
-						Logger.removeListener(finalLogListener);
-
-					SWTUpdateChecker.initialize();
-
-					PreUpdateChecker.initialize( core, COConfigurationManager.getStringParameter("ui"));
-
-					UpdateMonitor.getSingleton(core); // setup the update monitor
-
-					//Tell listeners that all is initialized :
-					Alerts.initComplete();
-
-
+					try{
+						if (gm == null)
+							return;
+	
+						new UserAlerts(gm);
+	
+						nextTask();
+						IpFilterManager ipFilterManager = azureus_core.getIpFilterManager();
+						if (ipFilterManager != null) {
+							String s = MessageText.getString("splash.loadIpFilters");
+	  					do {
+	  						reportCurrentTask(s);
+	  						s += ".";
+	  					} while (!semFilterLoader.reserve(3000));
+						}
+						
+						nextTask();
+						reportCurrentTaskByKey("splash.initializeGui");
+	
+						Colors.getInstance();
+	
+						Cursors.init();
+	
+						main_window_will_report_complete = true;
+						
+						// main window controls further progress now
+						new MainWindow(core, Initializer.this,
+								logEvents);
+	
+						if (finalLogListener != null)
+							Logger.removeListener(finalLogListener);
+	
+						SWTUpdateChecker.initialize();
+	
+						PreUpdateChecker.initialize( core, COConfigurationManager.getStringParameter("ui"));
+	
+						UpdateMonitor.getSingleton(core); // setup the update monitor
+	
+						//Tell listeners that all is initialized :
+						Alerts.initComplete();
+	
+	
+						
+	
+						//Finally, open torrents if any.
+						for (int i = 0; i < args.length; i++) {
+	
+							try {
+								TorrentOpener.openTorrent(args[i]);
+	
+							} catch (Throwable e) {
+	
+								Debug.printStackTrace(e);
+							}
+						}
+					}finally{
 					
-
-					//Finally, open torrents if any.
-					for (int i = 0; i < args.length; i++) {
-
-						try {
-							TorrentOpener.openTorrent(args[i]);
-
-						} catch (Throwable e) {
-
-							Debug.printStackTrace(e);
+						if ( !main_window_will_report_complete ){
+						
+							init_task.setComplete();
 						}
 					}
 				}
@@ -306,6 +342,8 @@ Initializer
 
   	}catch( Throwable e ){
   		Logger.log(new LogEvent(LOGID, "Initialization fails:", e));
+  		
+  		init_task.setComplete();
   	} 
   }
   
@@ -371,6 +409,24 @@ Initializer
     	
     	listeners_mon.exit();
     }
+  }
+  
+  public void
+  initializationComplete()
+  {
+	  azureus_core.getPluginManager().firePluginEvent( PluginEvent.PEV_INITIALISATION_UI_COMPLETES );
+	  
+	  new DelayedEvent( 
+			  "SWTInitComplete:delay",
+			  2500,
+			  new AERunnable()
+			  {
+				  public void
+				  runSupport()
+				  {
+					  init_task.setComplete();
+				  }
+			  });
   }
   
   // AzureusCoreListener

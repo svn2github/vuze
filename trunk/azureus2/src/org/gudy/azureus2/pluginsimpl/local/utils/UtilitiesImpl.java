@@ -56,6 +56,9 @@ import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPChecker;
 import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerFactory;
 import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerService;
 import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerServiceListener;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
@@ -796,5 +799,156 @@ UtilitiesImpl
 	
 	public String normaliseFileName(String f_name) {
 		return FileUtil.convertOSSpecificChars(f_name);
+	}
+	
+	public DelayedTask
+	addDelayedTask()
+	{
+		return( addDelayedTask( pi.getPluginName()));
+	}
+	
+	private static List			delayed_tasks = new ArrayList();
+	private static AESemaphore	delayed_tasks_sem	= new AESemaphore( "Utilities:delayedTask" );
+	private static AEThread2	delayed_task_thread;
+	
+	public static DelayedTask
+	addDelayedTask(
+		String		name )
+	{
+		DelayedTask result = new DelayedTaskImpl( name );
+	
+		return( result );
+	}
+	
+	private static void
+	queueTask(
+		DelayedTaskImpl		task )
+	{
+		synchronized( delayed_tasks ){
+			
+			delayed_tasks.add( task );
+			
+			delayed_tasks_sem.release();
+			
+			if ( delayed_task_thread == null ){
+				
+				delayed_task_thread = 
+					new AEThread2( "Utilities:delayedTask", true )
+					{
+						public void
+						run()
+						{
+							while( true ){
+								
+								if ( !delayed_tasks_sem.reserve( 5*1000 )){
+									
+									synchronized( delayed_tasks ){
+										
+										if ( delayed_tasks.isEmpty()){
+											
+											delayed_task_thread	= null;
+											
+											break;
+										}
+									}
+								}else{
+									
+									DelayedTaskImpl	task;
+									
+									synchronized( delayed_tasks ){
+										
+										task = (DelayedTaskImpl)delayed_tasks.remove(0);
+									}
+									
+									task.run();
+								}
+							}
+						}
+					};
+					
+				delayed_task_thread.setPriority( Thread.MIN_PRIORITY );
+				
+				delayed_task_thread.start();
+			}
+		}
+	}
+	
+	static class
+	DelayedTaskImpl
+		implements DelayedTask
+	{
+		private String 		name;
+		private Runnable	target;
+		
+		private AESemaphore	complete_sem = new AESemaphore( "DelayTask:complete" );
+		
+		private long	create_time = SystemTime.getCurrentTime();
+		private long	run_time;
+		
+		private
+		DelayedTaskImpl(
+			String		_name )
+		{
+			name 	= _name;
+		}
+		
+		public void
+		setTask(
+			Runnable		_target )
+		{
+			target	= _target;
+		}
+		
+		public void
+		queue()
+		{
+			if ( target == null ){
+				
+				throw( new RuntimeException( "Target must be set before queueing" ));
+			}	
+			
+			queueTask( this );
+		}
+		
+		protected void
+		run()
+		{
+			run_time = SystemTime.getCurrentTime();
+			
+			target.run();
+			
+			while( true ){
+				
+				if ( complete_sem.reserve(30*1000)){
+					
+					break;
+					
+				}else{
+					
+		     		Logger.log(	new LogEvent(LogIDs.PLUGIN, LogEvent.LT_ERROR, "Delayed task '" + getName() + "' is taking a long time to complete" ));
+				}
+			}
+			
+			long	now = SystemTime.getCurrentTime();
+			
+     		Logger.log(	
+     			new LogEvent(
+     				LogIDs.PLUGIN, LogEvent.LT_ERROR,
+     				"Delayed task '" + getName() + 
+     					"': queue_time=" + ( run_time - create_time ) +
+     					", exec_time=" + ( now - run_time )));
+		}
+		
+		protected String
+		getName()
+		{
+			return( name );
+		}
+
+		public void
+		setComplete()
+		{
+			complete_sem.releaseForever();
+		}
 	}
 }

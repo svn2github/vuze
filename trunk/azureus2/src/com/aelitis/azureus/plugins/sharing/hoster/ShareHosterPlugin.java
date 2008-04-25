@@ -32,11 +32,14 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.plugins.tracker.*;
+import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.plugins.download.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
+
+import com.aelitis.azureus.plugins.tracker.local.LocalTrackerPlugin;
 
 public class 
 ShareHosterPlugin
@@ -80,19 +83,25 @@ ShareHosterPlugin
 	public void
 	initializationComplete()
 	{
-			// take this process off the main thread as we don't want share-recreation to hang
-			// initialisation
-		
-		plugin_interface.getUtilities().createThread(
-			"ShareHosterImplugin::init",
+		final DelayedTask dt = plugin_interface.getUtilities().addDelayedTask();
+
+		dt.setTask(
 			new Runnable()
 			{
-				public void
-				run()
+				public void 
+				run() 
 				{
-					initialise();
+					try{
+						initialise();
+						
+					}finally{
+						
+						dt.setComplete();
+					}
 				}
 			});
+		
+		dt.queue();
 	}
 	
 	protected void

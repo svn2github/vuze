@@ -310,6 +310,9 @@ Utilities
 	 * @return Converted file name.
 	 */
 	public String normaliseFileName(String f_name);
+	
+	public DelayedTask
+	addDelayedTask();
 }
 
 
