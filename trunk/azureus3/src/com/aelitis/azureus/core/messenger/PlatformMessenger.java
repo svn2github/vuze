@@ -216,7 +216,7 @@ public class PlatformMessenger
 			String listenerID = message.getListenerID();
 			try {
 				urlStem += "cmd="
-						+ URLEncoder.encode(BrowserMessage.MESSAGE_PREFIX
+						+ URLEncoder.encode(message.getMessageID()
 								+ BrowserMessage.MESSAGE_DELIM + sequenceNo
 								+ BrowserMessage.MESSAGE_DELIM + listenerID
 								+ BrowserMessage.MESSAGE_DELIM + message.getOperationID()
