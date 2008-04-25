@@ -154,10 +154,7 @@ BuddyPluginAZ2
 			request.put( "type", new Long( BuddyPlugin.RT_AZ2_REQUEST_MESSAGE ));
 			request.put( "msg", msg.getBytes());
 	
-			buddy.getMessageHandler().queueMessage( 
-					BuddyPlugin.SUBSYSTEM_AZ2,
-					request,
-					SEND_TIMEOUT );
+			sendMessage( buddy, request );
 			
 		}catch( Throwable e ){
 			
@@ -176,28 +173,7 @@ BuddyPluginAZ2
 			request.put( "type", new Long( BuddyPlugin.RT_AZ2_REQUEST_MESSAGE ));
 			request.put( "msg", msg.getBytes());
 			
-			buddy.sendMessage(
-				BuddyPlugin.SUBSYSTEM_AZ2,
-				request, 
-				SEND_TIMEOUT, 
-				new BuddyPluginBuddyReplyListener()
-				{
-					public void
-					replyReceived(
-						BuddyPluginBuddy		from_buddy,
-						Map						reply )
-					{
-						logMessageAndPopup( "Send message ok" );
-					}
-					
-					public void
-					sendFailed(
-						BuddyPluginBuddy		to_buddy,
-						BuddyPluginException	cause )
-					{
-						logMessageAndPopup( "Send message failed: " + Debug.getNestedExceptionMessage(cause));
-					}
-				});
+			sendMessage( buddy, request );
 				
 		}catch( Throwable e ){
 			
@@ -217,32 +193,25 @@ BuddyPluginAZ2
 			request.put( "type", new Long( BuddyPlugin.RT_AZ2_REQUEST_SEND_TORRENT ));
 			request.put( "torrent", torrent.writeToBEncodedData());
 			
-			buddy.sendMessage(
-				BuddyPlugin.SUBSYSTEM_AZ2,
-				request, 
-				SEND_TIMEOUT, 
-				new BuddyPluginBuddyReplyListener()
-				{
-					public void
-					replyReceived(
-						BuddyPluginBuddy		from_buddy,
-						Map						reply )
-					{
-						logMessageAndPopup( "Send torrent ok" );
-					}
-					
-					public void
-					sendFailed(
-						BuddyPluginBuddy		to_buddy,
-						BuddyPluginException	cause )
-					{
-						logMessageAndPopup( "Send torrent failed: " + Debug.getNestedExceptionMessage(cause));
-					}
-				});
+			sendMessage( buddy, request );
+			
 		}catch( Throwable e ){
 			
 			logMessageAndPopup( "Send torrent failed", e );
 		}
+	}
+	
+	protected void
+	sendMessage(
+		BuddyPluginBuddy	buddy,
+		Map					request )
+	
+		throws BuddyPluginException
+	{
+		buddy.getMessageHandler().queueMessage( 
+				BuddyPlugin.SUBSYSTEM_AZ2,
+				request,
+				SEND_TIMEOUT );		
 	}
 	
 	protected void
