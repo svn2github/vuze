@@ -180,9 +180,13 @@ BuddyPluginBuddyMessageHandler
 			}
 		}
 		
+		boolean	content_ok = false;
+		
 		try{
 			Map	content = active_message.getContent();
 		
+			content_ok = true;
+			
 			buddy.sendMessage(
 					active_message.getSubsystem(),
 					content,
@@ -266,6 +270,27 @@ BuddyPluginBuddyMessageHandler
 				active_message 	= null;
 				
 				last_failure	= SystemTime.getCurrentTime();
+			}
+			
+			if ( !content_ok ){
+				
+				buddy.logMessage( "Message content unavailable, deleting message" );
+				
+				message.delete();
+				
+				boolean messages_queued = false;
+				
+				synchronized( this ){
+
+					last_failure = 0;
+					
+					messages_queued = message_count > 0;
+				}
+					
+				if ( messages_queued ){
+				
+					buddy.persistentDispatchPending();
+				}
 			}
 			
 			Iterator it = listeners.iterator();
