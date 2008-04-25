@@ -26,9 +26,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread2;
-import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
@@ -124,33 +122,38 @@ ExternalSeedPlugin
 		
 		Utilities utilities = plugin_interface.getUtilities();
 		
-		// XXX Would be better if we fired this off after (any) UI is complete,
-		//     instead of a timer
-		
-		new DelayedEvent( 
-			"ExternalSeedInitialise", 
-			15000,
-			new AERunnable()
+		final DelayedTask dt = plugin_interface.getUtilities().addDelayedTask();
+
+		dt.setTask(
+			new Runnable()
 			{
 				public void 
-				runSupport() 
+				run() 
 				{
-					AEThread2 t = 
-						new AEThread2( "ExternalSeedInitialise", true )
-						{
-							public void 
-							run() 
+					try{
+						AEThread2 t = 
+							new AEThread2( "ExternalSeedInitialise", true )
 							{
-								plugin_interface.getDownloadManager().addListener(
-										ExternalSeedPlugin.this);
-							}
-						};
-					
-					t.setPriority( Thread.MIN_PRIORITY );
-					
-					t.start();
+								public void 
+								run() 
+								{
+									plugin_interface.getDownloadManager().addListener(
+											ExternalSeedPlugin.this);
+								}
+							};
+						
+						t.setPriority( Thread.MIN_PRIORITY );
+						
+						t.start();
+						
+					}finally{
+						
+						dt.setComplete();
+					}
 				}
 			});
+		
+		dt.queue();		
 		
 		UTTimer timer = utilities.createTimer("ExternalPeerScheduler", true);
 		

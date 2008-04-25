@@ -65,6 +65,7 @@ import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
+import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.plugins.utils.UTTimerEvent;
 import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
@@ -268,42 +269,60 @@ DHTTrackerPlugin
 						
 						dht = (DHTPlugin)dht_pi.getPlugin();
 						
-						AEThread2	t = 
-							new AEThread2( "DHTTrackerPlugin:init", true )
+						final DelayedTask dt = plugin_interface.getUtilities().addDelayedTask();
+
+						dt.setTask(
+							new Runnable()
 							{
-								public void
-								run()
+								public void 
+								run() 
 								{
 									try{
-									
-										if ( dht.isEnabled()){
+										AEThread2	t = 
+											new AEThread2( "DHTTrackerPlugin:init", true )
+											{
+												public void
+												run()
+												{
+													try{
+													
+														if ( dht.isEnabled()){
+														
+															log.log( "DDB Available" );
+																
+															model.getStatus().setText( "Running" );
+															
+															initialise();
+															
+														}else{
+															
+															log.log( "DDB Disabled" );
+															
+															model.getStatus().setText( "Disabled, Distributed database not available" );
+															
+															notRunning();
+														}
+													}catch( Throwable e ){
+														
+														log.log( "DDB Failed", e );
+														
+														model.getStatus().setText( "Failed" );
+														
+														notRunning();
+													}
+												}
+											};
+																	
+										t.start();	
 										
-											log.log( "DDB Available" );
-												
-											model.getStatus().setText( "Running" );
-											
-											initialise();
-											
-										}else{
-											
-											log.log( "DDB Disabled" );
-											
-											model.getStatus().setText( "Disabled, Distributed database not available" );
-											
-											notRunning();
-										}
-									}catch( Throwable e ){
+									}finally{
 										
-										log.log( "DDB Failed", e );
-										
-										model.getStatus().setText( "Failed" );
-										
-										notRunning();
+										dt.setComplete();
 									}
 								}
-							};
-													
-						t.start();
+							});
+						
+						dt.queue();
 
 					}else{
 						
