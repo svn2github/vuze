@@ -1044,7 +1044,8 @@ implements PEPeerTransport
 						break;
 				}
 				relativeSeeding = couldBeSeed;
-			}
+			} else
+				relativeSeeding = false;
 				 
 		} else {
 			setSeed(false);
