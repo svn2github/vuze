@@ -95,7 +95,11 @@ public class MapUtils
 
 	public static List getMapList(Map map, String key, List def) {
 		try {
-			return (List) map.get(key);
+			List list = (List) map.get(key);
+			if (list == null && !map.containsKey(key)) {
+				return def;
+			}
+			return list;
 		} catch (Exception t) {
 			return def;
 		}
