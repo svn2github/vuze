@@ -452,7 +452,7 @@ BuddyPluginViewInstance
 		
 		final Menu menu = new Menu(buddy_table);
 		
-		MenuItem remove_item = new MenuItem(menu, SWT.PUSH);
+		final MenuItem remove_item = new MenuItem(menu, SWT.PUSH);
 		
 		remove_item.setText( lu.getLocalisedMessageText( "azbuddy.ui.menu.remove" ));
 
@@ -476,7 +476,7 @@ BuddyPluginViewInstance
 		
 			// get public key
 				
-		MenuItem get_pk_item = new MenuItem(menu, SWT.PUSH);
+		final MenuItem get_pk_item = new MenuItem(menu, SWT.PUSH);
 
 		get_pk_item.setText( lu.getLocalisedMessageText( "azbuddy.ui.menu.copypk" ) );
 
@@ -507,7 +507,7 @@ BuddyPluginViewInstance
 		
 			// send message
 		
-		MenuItem send_msg_item = new MenuItem(menu, SWT.PUSH);
+		final  MenuItem send_msg_item = new MenuItem(menu, SWT.PUSH);
 
 		send_msg_item.setText( lu.getLocalisedMessageText( "azbuddy.ui.menu.send" ) );
 
@@ -545,7 +545,7 @@ BuddyPluginViewInstance
 				};
 			});
 		
-		MenuItem ping_item = new MenuItem(menu, SWT.PUSH);
+		final MenuItem ping_item = new MenuItem(menu, SWT.PUSH);
 
 		ping_item.setText( lu.getLocalisedMessageText( "azbuddy.ui.menu.ping" ) );
 
@@ -575,7 +575,7 @@ BuddyPluginViewInstance
 		
 			// ygm
 		
-		MenuItem ygm_item = new MenuItem(menu, SWT.PUSH);
+		final MenuItem ygm_item = new MenuItem(menu, SWT.PUSH);
 
 		ygm_item.setText( lu.getLocalisedMessageText( "azbuddy.ui.menu.ygm" ) );
 
@@ -606,7 +606,7 @@ BuddyPluginViewInstance
 		
 			// encrypt
 		
-		MenuItem encrypt_item = new MenuItem(menu, SWT.PUSH);
+		final MenuItem encrypt_item = new MenuItem(menu, SWT.PUSH);
 
 		encrypt_item.setText( lu.getLocalisedMessageText( "azbuddy.ui.menu.enc" ) );
 
@@ -659,7 +659,7 @@ BuddyPluginViewInstance
 		
 			// decrypt
 		
-		MenuItem decrypt_item = new MenuItem(menu, SWT.PUSH);
+		final MenuItem decrypt_item = new MenuItem(menu, SWT.PUSH);
 
 		decrypt_item.setText( lu.getLocalisedMessageText( "azbuddy.ui.menu.dec" ) );
 
@@ -746,7 +746,7 @@ BuddyPluginViewInstance
 		
 			// sign
 		
-		MenuItem sign_item = new MenuItem(menu, SWT.PUSH);
+		final MenuItem sign_item = new MenuItem(menu, SWT.PUSH);
 
 		sign_item.setText( lu.getLocalisedMessageText( "azbuddy.ui.menu.sign" ) );
 
@@ -795,7 +795,7 @@ BuddyPluginViewInstance
 		
 			// verify
 		
-		MenuItem verify_item = new MenuItem(menu, SWT.PUSH);
+		final MenuItem verify_item = new MenuItem(menu, SWT.PUSH);
 
 		verify_item.setText( lu.getLocalisedMessageText( "azbuddy.ui.menu.verify" ) );
 
@@ -944,14 +944,19 @@ BuddyPluginViewInstance
 				menuShown(
 					MenuEvent arg0 ) 
 				{
-					boolean	enabled = plugin.isAvailable();
+					boolean	available = plugin.isAvailable();
 					
-					MenuItem[] items = menu.getItems();
-					
-					for (int i=0;i<items.length;i++){
+					TableItem[] selection = buddy_table.getSelection();
 						
-						items[i].setEnabled( enabled );
-					}
+					remove_item.setEnabled( selection.length > 0 );
+					get_pk_item.setEnabled( available && selection.length > 0 );
+					send_msg_item.setEnabled(available && selection.length > 0);
+					ping_item.setEnabled(available && selection.length > 0);
+					ygm_item.setEnabled(available && selection.length > 0);
+					encrypt_item.setEnabled(selection.length > 0);
+					decrypt_item.setEnabled(true);
+					sign_item.setEnabled(true);
+					verify_item.setEnabled(true);
 				}
 				
 				public void 
