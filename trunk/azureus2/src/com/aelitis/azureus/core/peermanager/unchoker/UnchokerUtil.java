@@ -40,7 +40,7 @@ public class UnchokerUtil {
    * @return true if peer is allowed to be unchoked, false if not
    */
   public static boolean isUnchokable( PEPeerTransport peer, boolean allow_snubbed ) {
-    return peer.getPeerState() == PEPeer.TRANSFERING && !peer.isSeed() && peer.isInterested() && ( !peer.isSnubbed() || allow_snubbed );
+    return peer.getPeerState() == PEPeer.TRANSFERING && !peer.isSeed() && !peer.isRelativeSeed() && peer.isInterested() && ( !peer.isSnubbed() || allow_snubbed );
   }
   
 

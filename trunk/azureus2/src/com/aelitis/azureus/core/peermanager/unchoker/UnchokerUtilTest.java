@@ -129,6 +129,7 @@ public class UnchokerUtilTest {
         public boolean isChokedByMe() {  return true;  }
         public boolean isInteresting(){  return true;  }
         public boolean isInterested(){  return true;  }
+        public boolean isRelativeSeed() { return false; }
         public boolean isSeed(){ return false;  }
         public boolean isSnubbed(){ return false;  }
         public long getSnubbedTime() { return 0; }

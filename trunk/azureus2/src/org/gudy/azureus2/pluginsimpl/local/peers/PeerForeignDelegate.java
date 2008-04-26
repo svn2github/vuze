@@ -472,6 +472,10 @@ PeerForeignDelegate
 	{
 		return( foreign.isSeed());
 	}
+	
+	public boolean isRelativeSeed() {
+		return isSeed(); // lazy check
+	}
 
  
 	public boolean 

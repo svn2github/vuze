@@ -165,6 +165,11 @@ PEPeer
 	public boolean isDownloadPossible();
 	
 	public boolean isSeed();
+	
+	/**
+	 * @return true if we are (partially) seeding and the peer has at least the same pieces that we have 
+	 */
+	public boolean isRelativeSeed();
  
 	public boolean isSnubbed();
 	

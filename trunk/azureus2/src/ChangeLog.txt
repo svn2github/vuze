@@ -12,7 +12,8 @@ FEATURE: UIv3 | Experimental option to use Mozilla/Firefox as browser widget on 
 FEATURE: Plug | Added resource downloader to provide way to download files from Sourceforge [amc1]
 FEATURE: Plug | Added API methods to generically pop up the message box to a user [amc1]
 
-CHANGE: Core  | Faster startup [The 8472]
+CHANGE: Core  | Disconnect other partial seeds if we are partial-seeding (i.e. files set to DND) [The 8472]
+CHANGE: Core  | Further startup speed improvements [The 8472, amc1, parg]
 CHANGE: Core  | Quicker to change a batch of files to "Do Not Download" in files view [amc1]
 CHANGE: Core  | Added option to allow the removal of files linked outside the save directory when removing data [amc1]
 CHANGE: UI    | Column menu option to disable fast renaming in files view, changed fast rename to behave more like the windows explorer [The 8472]
@@ -24,7 +25,7 @@ BUGFIX: Core  | The UDP tracker client option has been nonfunctional for quite a
 2008.04.10 | Azureus Vuze 3.0.5.2
 
 FEATURE: UIv3 | Ability to rate directly from rating reminder activity entry [TuxPaper] 
-FEATURE: UIv3 | Added progress spinner animation for the LightBox[knguyen]
+FEATURE: UIv3 | Added progress spinner animation for the LightBox [knguyen]
 
 CHANGE: Core  | Don't auto-UDP probe on initial announce if tracker not known to support UDP - hit on second and remember outcome [Parg]
 CHANGE: Core  | Improve startup times by taking various torrent-load operations off main thread [Parg]

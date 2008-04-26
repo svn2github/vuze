@@ -1681,7 +1681,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 		for (int i = 0; i < peer_transports.size(); i++) {
 			final PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
 
-			if (pc != null && pc.getPeerState() == PEPeer.TRANSFERING && pc.isSeed()) {
+			if (pc != null && pc.getPeerState() == PEPeer.TRANSFERING && (pc.isSeed() || pc.isRelativeSeed())) {
 				if( to_close == null )  to_close = new ArrayList();
 				to_close.add( pc );
 			}
@@ -2363,7 +2363,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 									network_failed && 
 									seeding_mode && 
 									peer.isInterested() && 
-									!peer.isSeed() &&
+									!peer.isSeed() && !peer.isRelativeSeed() &&
 									peer.getStats().getEstimatedSecondsToCompletion() > 60 &&
 									FeatureAvailability.isUDPPeerReconnectEnabled()){
 						
@@ -2377,7 +2377,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 							
 						}else if (	network_failed && 
 									peer.isSafeForReconnect() &&
-									!(seeding_mode && (peer.isSeed() || peer.getStats().getEstimatedSecondsToCompletion() < 60)) &&
+									!(seeding_mode && (peer.isSeed() || peer.isRelativeSeed() || peer.getStats().getEstimatedSecondsToCompletion() < 60)) &&
 									getMaxConnections() > 0 && 
 									getMaxNewConnectionsAllowed() > getMaxConnections() / 3 &&
 									FeatureAvailability.isGeneralPeerReconnectEnabled()){
@@ -3860,7 +3860,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 					max_transport = peer;
 				}
 
-				if ( peer.isSeed()){
+				if ( peer.isSeed() || peer.isRelativeSeed()){
 
 					if( peerTestTime > max_seed_time ) {
 						max_seed_time = peerTestTime;

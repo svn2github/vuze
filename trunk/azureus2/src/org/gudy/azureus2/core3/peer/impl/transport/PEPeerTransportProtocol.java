@@ -110,7 +110,8 @@ implements PEPeerTransport
 
 	private boolean handshake_sent;
 
-	private boolean seed_set_by_accessor = false;
+	private boolean seeding = false;
+	private boolean relativeSeeding = false;
 
 	private final boolean incoming;
 
@@ -1027,10 +1028,29 @@ implements PEPeerTransport
 	private void checkSeed()
 	{
 		// seed implicitly means *something* to send (right?)
-		if (peerHavePieces !=null &&nbPieces >0)
+		if (peerHavePieces !=null && nbPieces >0)
+		{
 			setSeed((peerHavePieces.nbSet ==nbPieces));
-		else
+			if(isSeed())
+				relativeSeeding = true;
+			else if(manager.isSeeding() && manager.getPiecePicker().getNbPiecesDone() <= peerHavePieces.nbSet)
+			{
+				DiskManagerPiece[] dmPieces = diskManager.getPieces();
+				boolean couldBeSeed = true;
+				for(int i = peerHavePieces.start;i <= peerHavePieces.end;i++)
+				{
+					couldBeSeed &= !(dmPieces[i].isDone()) || peerHavePieces.flags[i];
+					if(!couldBeSeed)
+						break;
+				}
+				relativeSeeding = couldBeSeed;
+			}
+				 
+		} else {
 			setSeed(false);
+			relativeSeeding = false;
+		}
+			
 	}
 
 
@@ -1188,7 +1208,7 @@ implements PEPeerTransport
 		boolean is_interesting = false;
 		if (piecePicker.hasDownloadablePiece())
 		{   // there is a piece worth being interested in
-			if (!isSeed())
+			if (!isSeed() && !isRelativeSeed())
 			{   // check individually if don't have all
 				for (int i =peerHavePieces.start; i <=peerHavePieces.end; i++ )
 				{
@@ -1460,14 +1480,16 @@ implements PEPeerTransport
 	 * @return true if the peer is interested in what we're offering
 	 */
 	public boolean isInterested() {  return other_peer_interested_in_me;  }
-	public boolean isSeed() {  return seed_set_by_accessor;  }
+	public boolean isSeed() {  return seeding;  }
+	public boolean isRelativeSeed() { return relativeSeeding; }
+	
 	private void
 	setSeed(
 			boolean	s )
 	{
-		if ( seed_set_by_accessor != s ){
+		if ( seeding != s ){
 
-			seed_set_by_accessor	= s;
+			seeding	= s;
 
 			if ( peer_exchange_item != null && s){
 
@@ -2446,7 +2468,7 @@ implements PEPeerTransport
 		
 			// Don't allow known seeds to be interested in us
 		
-		other_peer_interested_in_me =!isSeed();
+		other_peer_interested_in_me = !(isSeed() || isRelativeSeed());
 		
 		if ( 	other_peer_interested_in_me && 
 				fast_unchoke_new_peers &&
@@ -2502,7 +2524,7 @@ implements PEPeerTransport
 			manager.havePiece(pieceNumber, pieceLength, this);
 
 			checkSeed(); // maybe a seed using lazy bitfield, or suddenly became a seed;
-			other_peer_interested_in_me &=!isSeed();	// never consider seeds interested
+			other_peer_interested_in_me &= !(isSeed() || isRelativeSeed());	// never consider seeds interested
 
             peer_stats.hasNewPiece(pieceLength);
         }
@@ -2564,7 +2586,7 @@ implements PEPeerTransport
         	
             checkSeed(); // maybe a seed using lazy bitfield, or suddenly became a seed;
             
-            other_peer_interested_in_me &= !isSeed();	// never consider seeds interested
+            other_peer_interested_in_me &= !(isSeed() && isRelativeSeed());	// never consider seeds interested
         }
         
         if ( send_interested ){
@@ -3488,7 +3510,7 @@ implements PEPeerTransport
 	{
 		writer.println( 
 				"ip=" + getIp() + ",in=" + isIncoming() + ",port=" + getPort() + ",cli=" + client + ",tcp=" + getTCPListenPort() + ",udp=" + getUDPListenPort() + 
-				",oudp=" + getUDPNonDataListenPort() + ",p_state=" + getPeerState() + ",c_state=" + getConnectionState() + ",seed=" + isSeed() + ",pex=" + peer_exchange_supported + ",closing=" + closing );
+				",oudp=" + getUDPNonDataListenPort() + ",p_state=" + getPeerState() + ",c_state=" + getConnectionState() + ",seed=" + isSeed() + "partialSeed=" + isRelativeSeed() + ",pex=" + peer_exchange_supported + ",closing=" + closing );
 		writer.println( "    choked=" + choked_by_other_peer + ",choking=" + choking_other_peer + ",unchoke_time=" + unchokedTime + ", unchoke_total=" + unchokedTimeTotal + ",is_opt=" + is_optimistic_unchoke ); 
 		writer.println( "    interested=" + interested_in_other_peer + ",interesting=" + other_peer_interested_in_me + ",snubbed=" + snubbed );
 		writer.println( "    lp=" + _lastPiece + ",up=" + uniquePiece + ",rp=" + reservedPiece );

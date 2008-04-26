@@ -2519,7 +2519,7 @@ DownloadManagerImpl
 			// if we're a seed and they're a seed then no point in keeping in the announce cache
 			// if it happens to be there - avoid seed-seed connections in the future
 		
-		if ( peer.isSeed() && isDownloadComplete( false )){
+		if ( (peer.isSeed() || peer.isRelativeSeed()) && isDownloadComplete( false )){
 	
 			TRTrackerAnnouncer	announcer = tracker_client;
 			
