@@ -1947,6 +1947,8 @@ public class TableViewSWTImpl
 		
 		if(cellEditNotifier != null)
 			cellEditNotifier.sourcesChanged();
+		
+		boolean processQueueImmediately = false;
 
 		synchronized (timerProcessDataSources) {
 			if (timerEventProcessDS != null && !timerEventProcessDS.hasRun()) {
@@ -1962,8 +1964,9 @@ public class TableViewSWTImpl
 					if (DEBUGADDREMOVE) {
 						debug("Over immediate delay limit, processing queue now");
 					}
-
-					processDataSourceQueue();
+					
+					// process outside the synchronized block, otherwise we'll end up with deadlocks
+					processQueueImmediately = true;
 				}
 			} else {
 				timerEventProcessDS = timerProcessDataSources.addEvent(
@@ -1983,6 +1986,9 @@ public class TableViewSWTImpl
 						});
 			}
 		}
+		
+		if(processQueueImmediately)
+			processDataSourceQueue();
 	}
 
 	private void reallyAddDataSources(final Object dataSources[]) {
