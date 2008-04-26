@@ -22,6 +22,7 @@
 package com.aelitis.azureus.plugins.net.buddy;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.AEThread2;
@@ -30,12 +31,25 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 
+import com.aelitis.azureus.core.util.CopyOnWriteList;
+
 public class 
 BuddyPluginAZ2 
 {
+	public static final int RT_AZ2_REQUEST_MESSAGE		= 1;
+	public static final int RT_AZ2_REPLY_MESSAGE		= 2;
+	
+	public static final int RT_AZ2_REQUEST_SEND_TORRENT	= 3;
+	public static final int RT_AZ2_REPLY_SEND_TORRENT	= 4;
+
+	public static final int RT_AZ2_REQUEST_CHAT			= 5;
+	public static final int RT_AZ2_REPLY_CHAT			= 6;
+
 	private static final int SEND_TIMEOUT = 2*60*1000;
 	
 	private BuddyPlugin		plugin;
+	
+	private CopyOnWriteList	listeners = new CopyOnWriteList();
 	
 	protected 
 	BuddyPluginAZ2(
@@ -87,10 +101,8 @@ BuddyPluginAZ2
 		int	type = ((Long)request.get( "type" )).intValue();
 		
 		Map	reply = new HashMap();
-		
-		reply.put( "ok", new Long( BuddyPlugin.RT_AZ2_REPLY_MESSAGE  ));
-		
-		if ( type == BuddyPlugin.RT_AZ2_REQUEST_MESSAGE ){
+				
+		if ( type == RT_AZ2_REQUEST_MESSAGE ){
 			
 			try{
 				String	msg = new String( (byte[])request.get( "msg" ), "UTF8" );
@@ -101,9 +113,11 @@ BuddyPluginAZ2
 				
 			}
 			
+			reply.put( "type", new Long( RT_AZ2_REPLY_MESSAGE ));
+
 			return( reply );
 
-		}else if (  type == BuddyPlugin.RT_AZ2_REQUEST_SEND_TORRENT ){
+		}else if (  type == RT_AZ2_REQUEST_SEND_TORRENT ){
 			
 			try{
 				final Torrent	torrent = plugin.getPluginInterface().getTorrentManager().createFromBEncodedData((byte[])request.get( "torrent" ));
@@ -131,37 +145,40 @@ BuddyPluginAZ2
 					}
 				}.start();
 				
+				reply.put( "type", new Long( RT_AZ2_REPLY_SEND_TORRENT ));
+
 				return( reply );
 				
 			}catch( Throwable e ){
 				
 				throw( new BuddyPluginException( "Torrent receive failed " + type ));
 			}
+		}else if (  type == RT_AZ2_REQUEST_CHAT ){
+
+			Iterator	it = listeners.iterator();
+			
+			Map msg = (Map)request.get( "msg" );
+			
+			while( it.hasNext()){
+			
+				try{
+					((BuddyPluginAZ2Listener)it.next()).messageReceived( from_buddy, type, msg );
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
+			
+			reply.put( "type", new Long( RT_AZ2_REPLY_CHAT ));
+			
+			return( reply );
 		}else{
 			
 			throw( new BuddyPluginException( "Unrecognised request type " + type ));
 		}
 	}
-	
-	public void
-	queueAZ2Message(
-		BuddyPluginBuddy	buddy,
-		String				msg )
-	{
-		try{
-			Map	request = new HashMap();
-			
-			request.put( "type", new Long( BuddyPlugin.RT_AZ2_REQUEST_MESSAGE ));
-			request.put( "msg", msg.getBytes());
-	
-			sendMessage( buddy, request );
-			
-		}catch( Throwable e ){
-			
-			logMessageAndPopup( "Send message failed", e );
-		}
-	}
-	
+		
 	public void
 	sendAZ2Message(
 		BuddyPluginBuddy	buddy,
@@ -170,8 +187,27 @@ BuddyPluginAZ2
 		try{
 			Map	request = new HashMap();
 			
-			request.put( "type", new Long( BuddyPlugin.RT_AZ2_REQUEST_MESSAGE ));
+			request.put( "type", new Long( RT_AZ2_REQUEST_MESSAGE ));
 			request.put( "msg", msg.getBytes());
+			
+			sendMessage( buddy, request );
+				
+		}catch( Throwable e ){
+			
+			logMessageAndPopup( "Send message failed", e );
+		}
+	}
+	
+	public void
+	sendAZ2Chat(
+		BuddyPluginBuddy	buddy,
+		Map					msg )
+	{
+		try{
+			Map	request = new HashMap();
+			
+			request.put( "type", new Long( RT_AZ2_REQUEST_CHAT ));
+			request.put( "msg", msg );
 			
 			sendMessage( buddy, request );
 				
@@ -190,7 +226,7 @@ BuddyPluginAZ2
 			
 			Map	request = new HashMap();
 			
-			request.put( "type", new Long( BuddyPlugin.RT_AZ2_REQUEST_SEND_TORRENT ));
+			request.put( "type", new Long( RT_AZ2_REQUEST_SEND_TORRENT ));
 			request.put( "torrent", torrent.writeToBEncodedData());
 			
 			sendMessage( buddy, request );
@@ -213,6 +249,21 @@ BuddyPluginAZ2
 				request,
 				SEND_TIMEOUT );		
 	}
+	
+	public void
+	addListener(
+		BuddyPluginAZ2Listener		listener )
+	{
+		listeners.add( listener );
+	}
+	
+	public void
+	removeListener(
+		BuddyPluginAZ2Listener		listener )
+	{
+		listeners.add( listener );
+	}
+	
 	
 	protected void
 	logMessageAndPopup(

@@ -89,7 +89,6 @@ import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 import com.aelitis.azureus.plugins.net.buddy.swt.BuddyPluginView;
-import com.aelitis.azureus.plugins.tracker.local.LocalTrackerPlugin;
 
 public class 
 BuddyPlugin 
@@ -107,12 +106,6 @@ BuddyPlugin
 	protected static final int RT_INTERNAL_REPLY_CLOSE		= 4;
 	protected static final int RT_INTERNAL_FRAGMENT			= 5;
 	
-	public static final int RT_AZ2_REQUEST_MESSAGE		= 1;
-	public static final int RT_AZ2_REPLY_MESSAGE		= 2;
-	
-	public static final int RT_AZ2_REQUEST_SEND_TORRENT	= 3;
-	public static final int RT_AZ2_REPLY_SEND_TORRENT	= 4;
-
 	protected static final boolean TRACE = false; 
 
 	private static final String VIEW_ID = "azbuddy";
@@ -598,6 +591,12 @@ BuddyPlugin
 				updatePublish( new_publish );
 			}
 		}
+	}
+	
+	public String
+	getMyNick()
+	{
+		return(  nick_name_param.getValue());
 	}
 	
 	protected void

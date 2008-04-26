@@ -536,7 +536,7 @@ BuddyPluginViewInstance
 								
 								BuddyPluginBuddy buddy = (BuddyPluginBuddy)selection[i].getData();
 								
-								plugin.getAZ2Handler().queueAZ2Message( buddy, text );
+								plugin.getAZ2Handler().sendAZ2Message( buddy, text );
 							}
 						}
 					}catch( Throwable e ){
@@ -544,6 +544,34 @@ BuddyPluginViewInstance
 					}
 				};
 			});
+		
+			// chat
+		
+		final  MenuItem chat_item = new MenuItem(menu, SWT.PUSH);
+
+		chat_item.setText( lu.getLocalisedMessageText( "azbuddy.ui.menu.chat" ) );
+
+		chat_item.addSelectionListener(
+			new SelectionAdapter() 
+			{
+				public void 
+				widgetSelected(
+					SelectionEvent event ) 
+				{
+					TableItem[] selection = buddy_table.getSelection();
+					
+					BuddyPluginViewChat chat = new BuddyPluginViewChat( plugin, lu );
+					
+					for (int i=0;i<selection.length;i++){
+						
+						BuddyPluginBuddy buddy = (BuddyPluginBuddy)selection[i].getData();
+
+						chat.addBuddy( buddy );
+					}
+				};
+			});
+		
+			// ping
 		
 		final MenuItem ping_item = new MenuItem(menu, SWT.PUSH);
 
@@ -951,6 +979,7 @@ BuddyPluginViewInstance
 					remove_item.setEnabled( selection.length > 0 );
 					get_pk_item.setEnabled( available && selection.length > 0 );
 					send_msg_item.setEnabled(available && selection.length > 0);
+					chat_item.setEnabled(available && selection.length > 0);
 					ping_item.setEnabled(available && selection.length > 0);
 					ygm_item.setEnabled(available && selection.length > 0);
 					encrypt_item.setEnabled(selection.length > 0);
