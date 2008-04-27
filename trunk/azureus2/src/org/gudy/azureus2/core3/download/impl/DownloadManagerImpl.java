@@ -827,7 +827,7 @@ DownloadManagerImpl
 		         
 				 //trackerUrl = torrent.getAnnounceURL().toString();
 	         
-				torrent_comment = locale_decoder.decodeString(torrent.getComment());
+				torrent_comment = StringInterner.intern(locale_decoder.decodeString(torrent.getComment()));
 	         
 				if ( torrent_comment == null ){
 					

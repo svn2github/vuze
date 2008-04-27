@@ -58,6 +58,7 @@ public class AZHandshake implements AZMessage {
   private int udp_port;
   private int udp_non_data_port;
   private final int handshake_type;
+  private final boolean uploadOnly;
   
   
   public AZHandshake( byte[] peer_identity,
@@ -71,7 +72,8 @@ public class AZHandshake implements AZMessage {
                       String[] avail_msg_ids,
                       byte[] avail_msg_versions,
                       int _handshake_type,
-                      byte _version ) {
+                      byte _version,
+                      boolean uploadOnly) {
     
     this.identity = peer_identity;
     this.sessionID = sessionID;
@@ -85,6 +87,7 @@ public class AZHandshake implements AZMessage {
     this.udp_non_data_port = udp_non_data_listen_port;
     this.handshake_type = _handshake_type;
     this.version = _version;
+    this.uploadOnly = uploadOnly;
     
     //verify given port info is ok
     if( tcp_port < 0 || tcp_port > 65535 ) {
@@ -108,6 +111,7 @@ public class AZHandshake implements AZMessage {
   public byte[] getIdentity() {  return identity;  }
   public HashWrapper getRemoteSessionID() { return sessionID; }
   public HashWrapper getReconnectSessionID() { return reconnectID; }
+  public boolean isUploadOnly() {return uploadOnly;}
   
   
   public String getClient() {  return client;  }
@@ -156,55 +160,52 @@ public class AZHandshake implements AZMessage {
     
     return description;
   }
-  
-  
-  public DirectByteBuffer[] getData() {
-    if( buffer == null ) {
-      Map payload_map = new HashMap();
-      
-      //client info
-      payload_map.put( "identity", identity );
-      if(sessionID != null)
-    	  payload_map.put( "session", sessionID.getBytes());
-      if(reconnectID != null)
-    	  payload_map.put( "reconn", reconnectID.getBytes());
-      payload_map.put( "client", client );
-      payload_map.put( "version", client_version );
-      payload_map.put( "tcp_port", new Long( tcp_port ) );
-      payload_map.put( "udp_port", new Long( udp_port ) );
-      payload_map.put( "udp2_port", new Long( udp_non_data_port ) );
-      payload_map.put( "handshake_type", new Long( handshake_type ) );
-          
-      //available message list
-      List message_list = new ArrayList();
-      for( int i=0; i < avail_ids.length; i++ ) {
-        String id = avail_ids[ i ];
-        byte ver = avail_versions[ i ];
-        
-        if( id.equals( getID() ))  continue;  //skip ourself
 
-        Map msg = new HashMap();
-        msg.put( "id", id );
-        msg.put( "ver", new byte[]{ ver } );
-          
-        message_list.add( msg );
-      }
-      payload_map.put( "messages", message_list );
+	public DirectByteBuffer[] getData() {
+		if (buffer == null)
+		{
+			Map payload_map = new HashMap();
+			//client info
+			payload_map.put("identity", identity);
+			if (sessionID != null)
+				payload_map.put("session", sessionID.getBytes());
+			if (reconnectID != null)
+				payload_map.put("reconn", reconnectID.getBytes());
+			payload_map.put("client", client);
+			payload_map.put("version", client_version);
+			payload_map.put("tcp_port", new Long(tcp_port));
+			payload_map.put("udp_port", new Long(udp_port));
+			payload_map.put("udp2_port", new Long(udp_non_data_port));
+			payload_map.put("handshake_type", new Long(handshake_type));
+			payload_map.put("upload_only", new Long(uploadOnly ? 1L : 0L));
 
-      	// random padding if crypto
-      
-      if ( handshake_type == AZHandshake.HANDSHAKE_TYPE_CRYPTO ){
-    	  
-    	  payload_map.put( "pad", new byte[(int)( Math.random() * AZMessageFactory.AZ_HANDSHAKE_PAD_MAX )]);
-      }
-      
-      buffer = MessagingUtil.convertPayloadToBencodedByteStream( payload_map, DirectByteBuffer.AL_MSG_AZ_HAND );
+			//available message list
+			List message_list = new ArrayList();
+			for (int i = 0; i < avail_ids.length; i++)
+			{
+				String id = avail_ids[i];
+				byte ver = avail_versions[i];
+				if (id.equals(getID()))
+					continue; //skip ourself
+				Map msg = new HashMap();
+				msg.put("id", id);
+				msg.put("ver", new byte[] { ver });
+				message_list.add(msg);
+			}
 
-      if( buffer.remaining( bss ) > 1200 )  System.out.println( "Generated AZHandshake size = " +buffer.remaining( bss )+ " bytes" );
-    }
-    
-    return new DirectByteBuffer[]{ buffer };
-  }
+			payload_map.put("messages", message_list);
+
+			// random padding if crypto
+			if (handshake_type == AZHandshake.HANDSHAKE_TYPE_CRYPTO)
+				payload_map.put("pad", new byte[(int) (Math.random() * AZMessageFactory.AZ_HANDSHAKE_PAD_MAX)]);
+
+			buffer = MessagingUtil.convertPayloadToBencodedByteStream(payload_map, DirectByteBuffer.AL_MSG_AZ_HAND);
+			if (buffer.remaining(bss) > 1200)
+				System.out.println("Generated AZHandshake size = " + buffer.remaining(bss) + " bytes");
+		}
+		
+		return new DirectByteBuffer[] { buffer };
+	}
   
   
   public Message deserialize( DirectByteBuffer data, byte version ) throws MessageException {
@@ -268,8 +269,11 @@ public class AZHandshake implements AZMessage {
 
       pos++;
     }
+    
+    Long ulOnly = (Long)root.get("upload_only");
+    boolean uploadOnly = ulOnly != null && ulOnly.longValue() > 0L ? true : false;
 
-    return new AZHandshake( id, session == null ? null : new HashWrapper(session),reconnect == null ? null : new HashWrapper(reconnect), name, client_version, tcp_lport.intValue(), udp_lport.intValue(), udp2_lport.intValue(), ids, vers, h_type.intValue(), version );
+    return new AZHandshake( id, session == null ? null : new HashWrapper(session),reconnect == null ? null : new HashWrapper(reconnect), name, client_version, tcp_lport.intValue(), udp_lport.intValue(), udp2_lport.intValue(), ids, vers, h_type.intValue(), version , uploadOnly);
   }
   
   

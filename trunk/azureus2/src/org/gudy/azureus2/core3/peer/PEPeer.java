@@ -167,7 +167,9 @@ PEPeer
 	public boolean isSeed();
 	
 	/**
-	 * @return true if we are (partially) seeding and the peer has at least the same pieces that we have 
+	 * @return true if the peer is only uploading and can't use the data we have
+	 *         to offer (we're seeding) or we can't use the data he has to offer
+	 *         (we're downloading)
 	 */
 	public boolean isRelativeSeed();
  

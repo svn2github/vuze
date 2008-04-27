@@ -111,7 +111,13 @@ implements PEPeerTransport
 	private boolean handshake_sent;
 
 	private boolean seeding = false;
-	private boolean relativeSeeding = false;
+	
+	private static final byte RELATIVE_SEEDING_NONE = 0x00;
+	// indicates that the peer told us that he's uploading only
+	private static final byte RELATIVE_SEEDING_UPLOAD_ONLY_INDICATED = 0x01;
+	// peer is not useful to us
+	private static final byte RELATIVE_SEEDING_UPLOAD_ONLY_SEED = 0x02;
+	private byte relativeSeeding = RELATIVE_SEEDING_NONE;
 
 	private final boolean incoming;
 
@@ -224,12 +230,12 @@ implements PEPeerTransport
 			{
 				Iterator it = values().iterator();
 				
-				long now = SystemTime.getCurrentTime();
+				long now = SystemTime.getMonotonousTime();
 			
 				while(it.hasNext() && size() > 20)
 				{
 					QueueEntry eldest = (QueueEntry)it.next();
-					if( now < eldest.addTime || now - eldest.addTime > MAX_CACHE_AGE){
+					if( now - eldest.addTime > MAX_CACHE_AGE){
 						it.remove();
 					}else{
 						break;
@@ -245,7 +251,7 @@ implements PEPeerTransport
 			}
 
 			final PEPeerTransportProtocol transport;
-			final long addTime = SystemTime.getCurrentTime();
+			final long addTime = SystemTime.getMonotonousTime();
 		}
 		
 		// hardcap at 100
@@ -927,6 +933,7 @@ implements PEPeerTransport
 		data_dict.put("v", client_name);
 		data_dict.put("p", new Integer(localTcpPort));
 		data_dict.put("e", new Long(require_crypto ? 1L : 0L));
+		data_dict.put("upload_only", new Long(manager.isSeeding() && !ENABLE_LAZY_BITFIELD ? 1L : 0L));
 		LTHandshake lt_handshake = new LTHandshake(
 				data_dict, other_peer_bt_lt_ext_version
 		);
@@ -971,8 +978,9 @@ implements PEPeerTransport
 				local_udp2_port,
 				avail_ids,
 				avail_vers,
-        require_crypto ? AZHandshake.HANDSHAKE_TYPE_CRYPTO : AZHandshake.HANDSHAKE_TYPE_PLAIN,
-        other_peer_handshake_version );        
+				require_crypto ? AZHandshake.HANDSHAKE_TYPE_CRYPTO : AZHandshake.HANDSHAKE_TYPE_PLAIN,
+				other_peer_handshake_version,
+				manager.isSeeding() && !ENABLE_LAZY_BITFIELD);        
 
 		connection.getOutgoingMessageQueue().addMessage( az_handshake, false );
 	}
@@ -1029,28 +1037,47 @@ implements PEPeerTransport
 	{
 		// seed implicitly means *something* to send (right?)
 		if (peerHavePieces !=null && nbPieces >0)
-		{
 			setSeed((peerHavePieces.nbSet ==nbPieces));
-			if(isSeed())
-				relativeSeeding = true;
-			else if(manager.isSeeding() && manager.getPiecePicker().getNbPiecesDone() <= peerHavePieces.nbSet)
-			{
-				DiskManagerPiece[] dmPieces = diskManager.getPieces();
-				boolean couldBeSeed = true;
+		else
+			setSeed(false);
+		
+		if(manager.isSeeding() && isSeed())
+			// we're seeding, peer is a real seed so it's also a relative seed
+			relativeSeeding |= RELATIVE_SEEDING_UPLOAD_ONLY_SEED;
+		else if(manager.isSeeding() && (relativeSeeding & RELATIVE_SEEDING_UPLOAD_ONLY_INDICATED) != 0)
+			// peer indicated upload-only, we're seeding so he's a relative seed
+			relativeSeeding |= RELATIVE_SEEDING_UPLOAD_ONLY_SEED;
+		else if(peerHavePieces !=null && nbPieces > 0)
+		{ 
+			int piecesDone = manager.getPiecePicker().getNbPiecesDone();
+			DiskManagerPiece[] dmPieces = diskManager.getPieces();
+			boolean couldBeSeed = true;
+			
+			if(!manager.isSeeding() &&	(relativeSeeding & RELATIVE_SEEDING_UPLOAD_ONLY_INDICATED) != 0 && piecesDone >= peerHavePieces.nbSet)
+			{ // peer indicated upload-only, check if we can use any of the data, otherwise flag as relative seed
 				for(int i = peerHavePieces.start;i <= peerHavePieces.end;i++)
 				{
+					// relative seed if peer doesn't have the piece, we already have it or we don't need it
+					couldBeSeed &= !peerHavePieces.flags[i] || dmPieces[i].isDone() || !dmPieces[i].isNeeded();
+					if(!couldBeSeed)
+						break;					
+				}
+			} else if(manager.isSeeding() && piecesDone <= peerHavePieces.nbSet)
+			{ // we're seeding, check if peer has all the data we have (and more), flag as relative seed if so 
+				for(int i = peerHavePieces.start;i <= peerHavePieces.end;i++)
+				{
+					// relative seed if we don't have the piece or we have it and the peer has it too
 					couldBeSeed &= !(dmPieces[i].isDone()) || peerHavePieces.flags[i];
 					if(!couldBeSeed)
 						break;
 				}
-				relativeSeeding = couldBeSeed;
 			} else
-				relativeSeeding = false;
-				 
-		} else {
-			setSeed(false);
-			relativeSeeding = false;
-		}
+				couldBeSeed = false;
+			
+			if(couldBeSeed)
+				relativeSeeding |= RELATIVE_SEEDING_UPLOAD_ONLY_SEED;
+		} else
+			relativeSeeding &= ~RELATIVE_SEEDING_UPLOAD_ONLY_SEED;
 			
 	}
 
@@ -1482,7 +1509,7 @@ implements PEPeerTransport
 	 */
 	public boolean isInterested() {  return other_peer_interested_in_me;  }
 	public boolean isSeed() {  return seeding;  }
-	public boolean isRelativeSeed() { return relativeSeeding; }
+	public boolean isRelativeSeed() { return (relativeSeeding & RELATIVE_SEEDING_UPLOAD_ONLY_SEED) != 0; }
 	
 	private void
 	setSeed(
@@ -2230,6 +2257,14 @@ implements PEPeerTransport
 			  );
 	  }
 	  
+	  if(handshake.isUploadOnly())
+	  {
+		  relativeSeeding |= RELATIVE_SEEDING_UPLOAD_ONLY_INDICATED;
+		  checkSeed();
+	  }
+		  
+	  
+	  
 	  LTMessageEncoder encoder = (LTMessageEncoder)connection.getOutgoingMessageQueue().getEncoder();
 	  encoder.updateSupportedExtensions(handshake.getExtensionMapping());
 	  this.ut_pex_enabled = UTPeerExchange.ENABLED && encoder.supportsUTPEX();
@@ -2287,7 +2322,13 @@ implements PEPeerTransport
 			peerSessionID = handshake.getRemoteSessionID();
 		else
 			generateFallbackSessionId();
-			 
+
+		if (handshake.isUploadOnly())
+		{
+			relativeSeeding |= RELATIVE_SEEDING_UPLOAD_ONLY_INDICATED;
+			checkSeed();			
+		}
+
 
 		String[] supported_message_ids = handshake.getMessageIDs();
 		byte[] supported_message_versions = handshake.getMessageVersions();
@@ -3197,7 +3238,7 @@ implements PEPeerTransport
 		}
 
 		request_hint_supported = peerSupportsMessageType( AZMessage.ID_AZ_REQUEST_HINT );
-    bad_piece_supported 	= peerSupportsMessageType( AZMessage.ID_AZ_BAD_PIECE );
+		bad_piece_supported 	= peerSupportsMessageType( AZMessage.ID_AZ_BAD_PIECE );
 	}
 
 

@@ -106,6 +106,11 @@ public class LTHandshake implements LTMessage {
 		catch (java.io.IOException ioe) {return null;}
 	}
 	
+	public boolean isUploadOnly() {
+		Long ulOnly = (Long)data_dict.get("upload_only");
+		return ulOnly != null && ulOnly.longValue() > 0L;
+	}
+	
 	public int getTCPListeningPort()
 	{
 		Long port = (Long)data_dict.get("p");

@@ -476,11 +476,9 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 			checkCompletionState();	// pick up changes in completion caused by dnd file changes
 
-			if ( seeding_mode ){
+			checkSeeds();
 
-				checkSeeds();
-
-			}else{
+			if(!seeding_mode) {
 				// if we're not finished
 
 				checkRequests();
@@ -1665,7 +1663,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 	}
 
-//	Method that checks if we are connected to another seed, and if so, disconnect from him.
+	// Method that checks if we are connected to another seed, and if so, disconnect from him.
 	private void checkSeeds() {
 		//proceed on mainloop 1 second intervals if we're a seed and we want to force disconnects
 		if ((mainloop_loop_count % MAINLOOP_ONE_SECOND_INTERVAL) != 0)
@@ -1681,7 +1679,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 		for (int i = 0; i < peer_transports.size(); i++) {
 			final PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
 
-			if (pc != null && pc.getPeerState() == PEPeer.TRANSFERING && (pc.isSeed() || pc.isRelativeSeed())) {
+			if (pc != null && pc.getPeerState() == PEPeer.TRANSFERING && ((isSeeding() && pc.isSeed()) || pc.isRelativeSeed())) {
 				if( to_close == null )  to_close = new ArrayList();
 				to_close.add( pc );
 			}

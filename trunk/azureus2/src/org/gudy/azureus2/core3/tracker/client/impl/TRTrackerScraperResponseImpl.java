@@ -30,6 +30,7 @@ package org.gudy.azureus2.core3.tracker.client.impl;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.StringInterner;
 
 public abstract class 
 TRTrackerScraperResponseImpl 
@@ -143,7 +144,7 @@ TRTrackerScraperResponseImpl
     if (!sLastStatus.equals(sStatus)) {
       sLastStatus = sStatus;
     }
-    sStatus = sNewStatus;
+    sStatus = StringInterner.intern(sNewStatus);
   }
   
   public void revertStatus() {
