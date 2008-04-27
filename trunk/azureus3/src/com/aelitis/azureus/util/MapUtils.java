@@ -105,4 +105,16 @@ public class MapUtils
 		}
 	}
 
+	public static Map getMapMap(Map map, String key, Map def) {
+		try {
+			Map valMap = (Map) map.get(key);
+			if (valMap == null && !map.containsKey(key)) {
+				return def;
+			}
+			return valMap;
+		} catch (Exception t) {
+			return def;
+		}
+	}
+
 }
