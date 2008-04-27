@@ -801,23 +801,18 @@ UtilitiesImpl
 		return FileUtil.convertOSSpecificChars(f_name);
 	}
 	
-	public DelayedTask
-	createDelayedTask()
-	{
-		return( addDelayedTask( pi.getPluginName()));
+	public DelayedTask createDelayedTask(Runnable target) {
+		return addDelayedTask(pi.getPluginName(), target); 
 	}
 	
 	private static List			delayed_tasks = new ArrayList();
 	private static AESemaphore	delayed_tasks_sem	= new AESemaphore( "Utilities:delayedTask" );
 	private static AEThread2	delayed_task_thread;
 	
-	public static DelayedTask
-	addDelayedTask(
-		String		name )
-	{
-		DelayedTask result = new DelayedTaskImpl( name );
-	
-		return( result );
+	public static DelayedTaskImpl addDelayedTask(String	name, Runnable r) {
+		DelayedTaskImpl res = new DelayedTaskImpl(name);
+		res.setTask(r);
+		return res;
 	}
 	
 	private static void

@@ -24,10 +24,6 @@ package org.gudy.azureus2.plugins.utils;
 public interface 
 DelayedTask 
 {
-	public void
-	setTask(
-		Runnable		target );
-	
 		/**
 		 * Queue the task for execution. The task MUST have been set prior to this. If successful
 		 * this will result in the runnable target being invoked when all prior delayed tasks

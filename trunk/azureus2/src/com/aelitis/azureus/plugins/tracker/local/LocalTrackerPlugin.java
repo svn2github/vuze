@@ -196,10 +196,7 @@ LocalTrackerPlugin
 		processSubNets(subnets.getValue(), include_wellknown.getValue());
 		processAutoAdd(autoadd.getValue());
 
-		final DelayedTask dt = plugin_interface.getUtilities().createDelayedTask();
-
-		dt.setTask(
-			new Runnable()
+		final DelayedTask dt = plugin_interface.getUtilities().createDelayedTask(new Runnable()
 			{
 				public void 
 				run() 

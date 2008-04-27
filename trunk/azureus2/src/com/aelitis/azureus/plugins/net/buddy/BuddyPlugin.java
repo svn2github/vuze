@@ -460,10 +460,7 @@ BuddyPlugin
 				public void
 				initializationComplete()
 				{
-					final DelayedTask dt = plugin_interface.getUtilities().createDelayedTask();
-
-					dt.setTask(
-						new Runnable()
+					final DelayedTask dt = plugin_interface.getUtilities().createDelayedTask(new Runnable()
 						{
 							public void 
 							run() 

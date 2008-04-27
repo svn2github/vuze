@@ -321,8 +321,7 @@ Utilities
 	 * @return
 	 */
 	
-	public DelayedTask
-	createDelayedTask();
+	public DelayedTask createDelayedTask(Runnable r);
 }
 
 

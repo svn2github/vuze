@@ -122,10 +122,7 @@ ExternalSeedPlugin
 		
 		Utilities utilities = plugin_interface.getUtilities();
 		
-		final DelayedTask dt = plugin_interface.getUtilities().createDelayedTask();
-
-		dt.setTask(
-			new Runnable()
+		final DelayedTask dt = plugin_interface.getUtilities().createDelayedTask(new Runnable()
 			{
 				public void 
 				run() 
