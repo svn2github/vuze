@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Debug;
 
+import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.crypto.VuzeCryptoException;
 import com.aelitis.azureus.core.crypto.VuzeCryptoManager;
 import com.aelitis.azureus.core.messenger.PlatformMessage;
@@ -54,24 +55,19 @@ public class PlatformKeyExchangeMessenger
 
 			public void replyReceived(PlatformMessage message, String replyType,
 					Map reply) {
-			}
-
-			public void messageSent(PlatformMessage message) {
-
-				Map parameters = message.getParameters();
-
-				String sMessage = MapUtils.getMapString(parameters, "message", "");
-				if (sMessage.toLowerCase().equals("ok")) {
-					String pw = MapUtils.getMapString(parameters, "password", null);
-					if (pw != null) {
-						// for session
-						VuzeCryptoManager.getSingleton().setPassword(pw);
-						if (l != null) {
-							l.passwordRetrieved();
-						}
+				String pw = MapUtils.getMapString(reply, "password", null);
+				if (pw != null && pw.length() > 0) {
+					// for session
+					VuzeBuddyManager.log("Got PW from webapp");
+					VuzeCryptoManager.getSingleton().setPassword(pw);
+					if (l != null) {
+						l.passwordRetrieved();
 					}
 				}
 
+			}
+
+			public void messageSent(PlatformMessage message) {
 			}
 		};
 
@@ -86,7 +82,7 @@ public class PlatformKeyExchangeMessenger
 			Debug.out(e);
 			return;
 		}
-		
+
 		PlatformMessage message = new PlatformMessage(PREFIX, LISTENER_ID,
 				OP_SETPUBLICKEY, new Object[] {
 					"azid",
