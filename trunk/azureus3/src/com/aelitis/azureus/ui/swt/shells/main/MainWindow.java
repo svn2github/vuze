@@ -1056,6 +1056,7 @@ public class MainWindow
 		views.put(SkinConstants.VIEWID_FOOTER, Footer.class);
 		
 		views.put(SkinConstants.VIEWID_DETAIL_PANEL, DetailPanel.class);
+		views.put(SkinConstants.VIEWID_BUDDIES_VIEWER, BuddiesViewer.class);
 
 		SWTSkinObjectListener l = new SWTSkinObjectListener() {
 			public Object eventOccured(SWTSkinObject skinObject, int eventType,
@@ -1343,6 +1344,8 @@ public class MainWindow
 		 */
 		new UserAreaUtils(skin, uiFunctions);
 
+		
+		
 		shell.layout(true, true);
 	}
 
@@ -2109,8 +2112,13 @@ public class MainWindow
 			//TODO:
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_MENU) {
 			//TODO:
-		}else if (windowElement == IMainWindow.WINDOW_ELEMENT_FOOTER) {
+		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_FOOTER) {
 			SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_FOOTER);
+			if (skinObject != null) {
+				return skinObject.isVisible();
+			}
+		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_BUTTON_BAR) {
+			SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_BUTTON_BAR);
 			if (skinObject != null) {
 				return skinObject.isVisible();
 			}
@@ -2141,9 +2149,12 @@ public class MainWindow
 			//TODO:
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_FOOTER) {
 
-			SWTSkinUtils.setVisibility(skin, "Footer.visible", SkinConstants.VIEWID_FOOTER, value);
+			SWTSkinUtils.setVisibility(skin, "Footer.visible",
+					SkinConstants.VIEWID_FOOTER, value);
 
-		} 
+		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_BUTTON_BAR) {
+			// We don't allow the button bar to ever be hidden
+		}
 
 	}
 
@@ -2182,12 +2193,19 @@ public class MainWindow
 			Rectangle r = getMetrics(IMainWindow.WINDOW_CLIENT_AREA);
 			r.x += getMetrics(IMainWindow.WINDOW_ELEMENT_SEARCHBAR).x;
 			r.height -= getMetrics(IMainWindow.WINDOW_ELEMENT_SEARCHBAR).height;
-			
+
 			r.x += getMetrics(IMainWindow.WINDOW_ELEMENT_TABBAR).x;
 			r.height -= getMetrics(IMainWindow.WINDOW_ELEMENT_TABBAR).height;
-			
+
 			r.height -= getMetrics(IMainWindow.WINDOW_ELEMENT_STATUSBAR).height;
 			return r;
+
+		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_BUTTON_BAR) {
+
+			SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_BUTTON_BAR);
+			if (skinObject != null) {
+				return skinObject.getControl().getBounds();
+			}
 
 		}
 

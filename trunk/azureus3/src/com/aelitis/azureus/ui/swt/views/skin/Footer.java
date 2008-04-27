@@ -1,9 +1,5 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import org.eclipse.swt.layout.RowLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.gudy.azureus2.ui.swt.Utils;
-
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
@@ -24,21 +20,8 @@ public class Footer
 
 		skin = skinObject.getSkin();
 
-		SWTSkinObject buddiesSkin = skin.getSkinObject(SkinConstants.VIEWID_BUDDIES_AVATARS_VIEWER);
-		if (null != buddiesSkin) {
-			createBuddiesViewer((Composite) buddiesSkin.getControl());
-		}
-
-		Utils.relayout(skinObject.getControl());
+		SWTSkinObject buddiesSkin = skin.getSkinObject(SkinConstants.VIEWID_BUDDIES_VIEWER);
 		return null;
 	}
 
-	private void createBuddiesViewer(Composite parent) {
-		RowLayout rLayout = new RowLayout();
-		rLayout.marginLeft = 5;
-		rLayout.wrap = false;
-		parent.setLayout(rLayout);
-		new BuddiesViewer(parent, skin);
-
-	}
 }

@@ -34,7 +34,8 @@ public class InvitePage
 
 	private void init() {
 		browser = new Browser(content, SWT.NONE);
-		browser.setUrl(Constants.URL_FAQ);
+		String url = Constants.URL_PREFIX + "share.start";
+		browser.setUrl(url);
 
 		blinder = new Composite(content, SWT.NONE);
 		stackLayout.topControl = browser;

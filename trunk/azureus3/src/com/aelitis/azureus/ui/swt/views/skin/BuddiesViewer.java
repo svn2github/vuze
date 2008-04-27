@@ -12,23 +12,17 @@ import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
-import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
-import org.gudy.azureus2.ui.swt.components.shell.LightBoxShell;
-import org.gudy.azureus2.ui.swt.mainwindow.IMainWindow;
 
 import com.aelitis.azureus.ui.skin.SkinConstants;
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
 import com.aelitis.azureus.ui.swt.buddy.impl.VuzeBuddyUtils;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 
 public class BuddiesViewer
+	extends SkinView
 {
 	private Composite avatarsPanel = null;
 
@@ -53,87 +47,45 @@ public class BuddiesViewer
 
 	private Color textLinkColor = null;
 
-	public BuddiesViewer(Composite parent, SWTSkin skin) {
-		this.parent = parent;
-		this.skin = skin;
-
-		init();
-		hookScrollers();
-		hookEditButton();
-		hookShareButon();
-		hookAddBuddyButon();
-		hookShowHideButon();
+	public BuddiesViewer() {
 	}
 
-	private void init() {
-		if (null == parent || true == parent.isDisposed()) {
-			throw new NullPointerException(
-					"The variable 'parent' can not be null or disposed");
+	public Object showSupport(SWTSkinObject skinObject, Object params) {
+		skin = skinObject.getSkin();
+
+		SWTSkinObject viewer = skin.getSkinObject(SkinConstants.VIEWID_BUDDIES_VIEWER);
+
+		if (null != viewer) {
+
+			parent = (Composite) viewer.getControl();
+			//			parent.setBackground(Colors.colorError);
+			//			parent.setLayout(new FillLayout());
+
+			Composite content = new Composite(parent, SWT.NONE);
+			RowLayout layout = new RowLayout();
+			content.setLayout(layout);
+
+			avatarsPanel = new Composite(content, SWT.NONE);
+
+			textColor = skin.getSkinProperties().getColor("color.links.normal");
+			textLinkColor = skin.getSkinProperties().getColor("color.links.hover");
+
+			RowLayout rLayout = new RowLayout(SWT.HORIZONTAL);
+			rLayout.wrap = false;
+			rLayout.spacing = 10;
+			rLayout.marginTop = 0;
+			rLayout.marginBottom = 0;
+			rLayout.marginLeft = 0;
+			rLayout.marginRight = 0;
+			avatarsPanel.setLayout(rLayout);
+
+			fillBuddies(avatarsPanel);
+
+			parent.layout(true);
+
+			hookScrollers();
 		}
-
-		avatarsPanel = new Composite(parent, SWT.NONE);
-
-		textColor = skin.getSkinProperties().getColor("color.links.normal");
-		textLinkColor = skin.getSkinProperties().getColor("color.links.hover");
-
-		RowLayout rLayout = new RowLayout(SWT.HORIZONTAL);
-		rLayout.wrap = false;
-		rLayout.spacing = 10;
-		rLayout.marginTop = 0;
-		rLayout.marginBottom = 0;
-		rLayout.marginLeft = 0;
-		rLayout.marginRight = 0;
-		avatarsPanel.setLayout(rLayout);
-
-		fillBuddies(avatarsPanel);
-
-		parent.layout(true);
-
-		Listener l = new Listener() {
-			int startX, startY;
-
-			public void handleEvent(Event e) {
-
-				if (e.type == SWT.MouseDown && e.button == 1
-						&& (e.stateMask & SWT.CONTROL) != 0) {
-					startX = e.x;
-					startY = e.y;
-					avatarsPanel.setCursor(parent.getDisplay().getSystemCursor(
-							SWT.CURSOR_HAND));
-					System.out.println("Mouse down");
-				}
-				if (e.type == SWT.MouseMove && (e.stateMask & SWT.BUTTON1) != 0
-						&& (e.stateMask & SWT.CONTROL) != 0) {
-					Point p = avatarsPanel.toDisplay(e.x, e.y);
-					p.x -= startX;
-					p.y -= startY;
-					//					content.setLocation(p);
-					System.err.println("X:" + p.x);
-					System.out.println("Mouse moving...");
-				}
-				if (e.type == SWT.MouseUp) {
-					avatarsPanel.setCursor(null);
-					System.out.println("Mouse up");
-				}
-
-				if (e.type == SWT.KeyDown && (e.stateMask & SWT.BUTTON1) != 0
-						&& (e.stateMask & SWT.CONTROL) != 0) {
-					avatarsPanel.setCursor(parent.getDisplay().getSystemCursor(
-							SWT.CURSOR_HAND));
-				}
-				if (e.type == SWT.Resize) {
-					System.out.println("panel: " + avatarsPanel.getSize().x);
-					System.out.println("parent: " + parent.getSize().x);
-				}
-
-			}
-		};
-		avatarsPanel.addListener(SWT.MouseDown, l);
-		avatarsPanel.addListener(SWT.MouseMove, l);
-		avatarsPanel.addListener(SWT.MouseUp, l);
-		avatarsPanel.addListener(SWT.KeyDown, l);
-		avatarsPanel.addListener(SWT.Resize, l);
-		//		avatarsPanel.addListener(SWT.Dispose, l);
+		return null;
 
 	}
 
@@ -175,48 +127,6 @@ public class BuddiesViewer
 				enableScroll(leftScroll, rightScroll);
 			}
 		});
-	}
-
-	private void hookEditButton() {
-
-		final SWTSkinObject editBuddies = skin.getSkinObject("button-buddy-edit");
-		if (null != editBuddies) {
-			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(editBuddies);
-			btnGo.addSelectionListener(new ButtonListenerAdapter() {
-
-				private LightBoxShell lbShell = null;
-
-				public void pressed(SWTSkinButtonUtility buttonUtility) {
-
-					setEditMode(!isEditMode());
-
-					UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-
-					if (null != uiFunctions) {
-						IMainWindow mainWindow = uiFunctions.getMainWindow();
-
-						if (true == isEditMode()) {
-							lbShell = new LightBoxShell(uiFunctions.getMainShell(), false);
-							SWTSkinObject footerObject = skin.getSkinObject("footer");
-
-							int insetHeight = footerObject.getControl().getSize().y;
-							insetHeight += mainWindow.getMetrics(IMainWindow.WINDOW_ELEMENT_STATUSBAR).height;
-							lbShell.setInsets(0, insetHeight, 0, 0);
-							lbShell.open();
-						} else {
-							if (null != lbShell) {
-								lbShell.close();
-								lbShell = null;
-							}
-						}
-
-					}
-
-				}
-			});
-
-			//			btnGo.setDisabled(true);
-		}
 
 	}
 
@@ -330,72 +240,4 @@ public class BuddiesViewer
 		}
 	}
 
-	private void hookShareButon() {
-
-		final SWTSkinObject showHideBuddiesObject = skin.getSkinObject("button-buddy-share");
-		if (null != showHideBuddiesObject) {
-			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(
-					showHideBuddiesObject);
-			btnGo.addSelectionListener(new ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility) {
-
-					setShareMode(!isShareMode());
-
-					SkinView detailPanelView = SkinViewManager.get(DetailPanel.class);
-					if (detailPanelView instanceof DetailPanel) {
-						((DetailPanel) detailPanelView).show(isShareMode(),
-								SharePage.PAGE_ID);
-					}
-				}
-			});
-		}
-	}
-
-	private void hookAddBuddyButon() {
-
-		final SWTSkinObject showHideBuddiesObject = skin.getSkinObject("button-buddy-add");
-		if (null != showHideBuddiesObject) {
-			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(
-					showHideBuddiesObject);
-			btnGo.addSelectionListener(new ButtonListenerAdapter() {
-				boolean dummy = false;
-
-				public void pressed(SWTSkinButtonUtility buttonUtility) {
-
-					dummy = !dummy;
-
-					/*
-					 * Turn off share mode when we enter add buddy flow
-					 */
-					if(true == isShareMode()){
-						setShareMode(false);
-					}
-					
-					SkinView detailPanelView = SkinViewManager.get(DetailPanel.class);
-					if (detailPanelView instanceof DetailPanel) {
-						((DetailPanel) detailPanelView).show(dummy, InvitePage.PAGE_ID);
-					}
-				}
-			});
-		}
-	}
-
-	private void hookShowHideButon() {
-
-		final SWTSkinObject showHideBuddiesObject = skin.getSkinObject("button-buddy-show-hide");
-		if (null != showHideBuddiesObject) {
-			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(
-					showHideBuddiesObject);
-			btnGo.addSelectionListener(new ButtonListenerAdapter() {
-
-				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_FOOTER);
-					if (skinObject != null) {
-						SWTSkinUtils.setVisibility(skin, "Footer.visible",
-								SkinConstants.VIEWID_FOOTER, !skinObject.isVisible());
-					}
-				}
-			});
-		}
-	}
 }

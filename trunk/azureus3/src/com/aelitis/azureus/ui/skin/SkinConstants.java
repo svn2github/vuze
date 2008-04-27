@@ -58,7 +58,7 @@ public class SkinConstants
 	
 	public static final String VIEWID_DETAIL_PANEL = "detail-panel";
 	
-	public static final String VIEWID_BUDDIES_AVATARS_VIEWER = "avatars-viewer";
+	public static final String VIEWID_BUDDIES_VIEWER = "buddies-viewer";
 	
 	
 }

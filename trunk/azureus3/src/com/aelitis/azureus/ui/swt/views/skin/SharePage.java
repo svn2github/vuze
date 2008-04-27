@@ -32,7 +32,7 @@ public class SharePage
 
 	private Composite browserPanel = null;
 
-	static Label shareMessage;
+	private Label shareMessage;
 
 	private Label buddyListDescription;
 
@@ -186,7 +186,8 @@ public class SharePage
 		FillLayout fLayout = new FillLayout();
 		browserPanel.setLayout(fLayout);
 		Browser browser = new Browser(browserPanel, SWT.NONE);
-		browser.setUrl(Constants.URL_FAQ);
+		String url = Constants.URL_PREFIX + "share.start";
+		browser.setUrl(url);
 	}
 
 	private void hookListeners() {

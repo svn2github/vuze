@@ -3,7 +3,6 @@ package com.aelitis.azureus.ui.swt.views.skin;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
@@ -195,7 +194,7 @@ public class DetailPanel
 					size.y -= buttonBarObject.getControl().getSize().y;
 				}
 
-				size.y -= 19; // minus the margin height
+				size.y -= 9; // minus the margin height
 
 				/*
 				 * Hack into the SWTSkinUtils.setVisibility() behavior by overriding the height
