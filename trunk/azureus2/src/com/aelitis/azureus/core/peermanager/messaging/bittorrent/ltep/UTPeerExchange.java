@@ -23,17 +23,12 @@ package com.aelitis.azureus.core.peermanager.messaging.bittorrent.ltep;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.peer.PEPeer;
-import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
-import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
-import org.gudy.azureus2.core3.peer.impl.transport.PEPeerTransportProtocol;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 import com.aelitis.azureus.core.peermanager.messaging.azureus.AZStylePeerExchange;
@@ -52,32 +47,25 @@ import com.aelitis.azureus.core.peermanager.peerdb.PeerItemFactory;
 public class UTPeerExchange implements AZStylePeerExchange, LTMessage {
 	
 	// Debug flag for testing purposes - currently disabled by default.
-	public static final boolean	ENABLED				= true;
-
-	private static final LogIDs	LOGID				= LogIDs.NET;
-	private static final int	IPv4_SIZE_WITH_PORT	= 6;
-	private static final int	IPv6_SIZE_WITH_PORT	= 18;
-
-	private DirectByteBuffer	buffer				= null;
+    public static final boolean ENABLED = true; 
 	
-	private String				description			= null;
-	private final byte			version;
-	private final PeerItem[]	peers_added;
-	private final PeerItem[]	peers_dropped;
-	private PEPeerControl		manager;
+	  private static final LogIDs LOGID = LogIDs.NET;
 
-	public UTPeerExchange(PEPeerControl manager, PeerItem[] _peers_added, PeerItem[] _peers_dropped, byte version)
-	{
-		this(_peers_added, _peers_dropped, version);
-		this.manager = manager;
-	}
+	  private static final int IPv4_SIZE_WITH_PORT = 6;
+	  private static final int IPv6_SIZE_WITH_PORT = 18;
 
-	public UTPeerExchange(PeerItem[] _peers_added, PeerItem[] _peers_dropped, byte version)
-	{
-		this.peers_added = _peers_added;
-		this.peers_dropped = _peers_dropped;
-		this.version = version;
-	}
+	  private DirectByteBuffer buffer = null;
+	  private String description = null;
+	  
+	  private final byte version;
+	  private final PeerItem[] peers_added;
+	  private final PeerItem[] peers_dropped;
+	  
+	  public UTPeerExchange(PeerItem[] _peers_added, PeerItem[] _peers_dropped, byte version ) {
+	    this.peers_added = _peers_added;
+	    this.peers_dropped = _peers_dropped;
+	    this.version = version;
+	  }
 	  
 	  private void insertPeers(String key_name, Map root_map, boolean include_flags, PeerItem[] peers) {
 		  if (peers == null) {return;}
@@ -106,48 +94,30 @@ public class UTPeerExchange implements AZStylePeerExchange, LTMessage {
 	  }
 	  
 	  private void insertPeers(String key_name, Map root_map, boolean include_flags, List peers, int peer_byte_size) {
-		if (peers == null || peers.isEmpty())
-			return;
-
-		byte[] raw_peers = new byte[peers.size() * peer_byte_size];
-		byte[] peer_flags = (include_flags) ? new byte[peers.size()] : null;
-		
-		Map itemToTransport = new HashMap();
-		if (manager != null)
-		{
-			List peerTransports = manager.getPeers();
-			for (Iterator it = peerTransports.iterator(); it.hasNext();)
-			{
-				PEPeerTransport pt = (PEPeerTransport) it.next();
-				itemToTransport.put(pt.getPeerItemIdentity(), pt); 
-			}
-		}
-		
-		PeerItem peer;
-		for (int i = 0; i < peers.size(); i++)
-		{
-			peer = (PeerItem) peers.get(i);
-			byte[] serialised_peer = peer.getSerialization();
-			if (serialised_peer.length != peer_byte_size)
-			{
-				System.out.println("> " + serialised_peer.length + ":" + peer_byte_size);
-			}
-			System.arraycopy(serialised_peer, 0, raw_peers, i * peer_byte_size, peer_byte_size);
-			if (peer_flags != null)
-			{
-				if (NetworkManager.getCryptoRequired(peer.getCryptoLevel()))
-					peer_flags[i] |= 0x01; // Encrypted connection.
-				PEPeerTransport pt = (PEPeerTransport)itemToTransport.get(peer);
-				if(pt != null && pt.isSeed())
-					peer_flags[i] |= 0x02;
-			}
-		} // end for
-		root_map.put(key_name, raw_peers);
-		if (peer_flags != null)
-		{
-			root_map.put(key_name + ".f", peer_flags);
-		}
-	}
+		  if (peers == null) {return;}
+		  if (peers.isEmpty()) {return;}
+		  
+		  byte[] raw_peers = new byte[peers.size() * peer_byte_size];
+		  byte[] peer_flags = (include_flags) ? new byte[peers.size()] : null;
+	      
+		  PeerItem peer;
+	      for (int i=0; i<peers.size(); i++ ) {
+	    	  peer = (PeerItem)peers.get(i);
+	    	  byte[] serialised_peer = peer.getSerialization();
+	    	  if (serialised_peer.length != peer_byte_size) {System.out.println("> " + serialised_peer.length + ":" + peer_byte_size);}
+	    	  System.arraycopy(serialised_peer, 0, raw_peers, i * peer_byte_size, peer_byte_size);
+	    	  if (peer_flags != null && NetworkManager.getCryptoRequired(peer.getCryptoLevel())) {
+	    		  peer_flags[i] |= 0x01; // Encrypted connection. 
+	    	  }
+	    	  // 0x02 indicates if the peer is a seed, but that's difficult to determine
+	    	  // so we'll leave it.
+	      } // end for
+	      
+	      root_map.put(key_name, raw_peers);
+	      if (peer_flags != null) {
+	         root_map.put(key_name + ".f", peer_flags);
+	      }
+	  }
 	  
 	  private PeerItem[] extractPeers(String key_name, Map root_map, int peer_byte_size) {
 	    PeerItem[] return_peers = null;
