@@ -153,6 +153,7 @@ public class AZHandshake implements AZMessage {
       description = getID()+ " from [" +ByteFormatter.nicePrint( identity, true )+ ", " +
       							client+ " " +client_version+ ", TCP/UDP ports " +tcp_port+ "/" +udp_port+ "/" + udp_non_data_port +
       							", handshake " + (getHandshakeType() == HANDSHAKE_TYPE_PLAIN ? "plain" : "crypto") +
+      							", upload_only = " + (isUploadOnly() ? "1" : "0") + 
       							(sessionID != null ? ", sessionID: "+sessionID.toBase32String() : "") +
       							(reconnectID != null ? ", reconnect request: "+reconnectID.toBase32String() : "") +
       							"] supports " +msgs_desc;
