@@ -111,10 +111,7 @@ public class Initializer
 
 	public void run() {
 		
-		DelayedTask delayed_task = UtilitiesImpl.addDelayedTask( "SWT Initialisation" );
-
-		delayed_task.setTask(
-				new Runnable()
+		DelayedTask delayed_task = UtilitiesImpl.addDelayedTask( "SWT Initialisation", new Runnable()
 				{
 					public void
 					run()
