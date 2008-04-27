@@ -50,8 +50,6 @@ public class AvatarWidget
 
 	private boolean isSelected = false;
 
-	
-
 	private boolean nameLinkActive = false;
 
 	private boolean isEditMode = false;
@@ -93,7 +91,7 @@ public class AvatarWidget
 
 		imageOffsetX = (avatarSize.x / 2) - (avatarImageSize.x / 2);
 
-//		avatarCanvas = new Canvas(parent, SWT.NONE);
+		//		avatarCanvas = new Canvas(parent, SWT.NONE);
 
 		Utils.createTorrentDropTarget(avatarCanvas, true);
 
@@ -216,12 +214,9 @@ public class AvatarWidget
 						e.gc.setForeground(textColor);
 					}
 					GCStringPrinter.printString(e.gc, vuzeBuddy.getDisplayName(),
-							new Rectangle(0, avatarImageSize.y, 64, 26), false, false,
-							SWT.TOP | SWT.CENTER | SWT.WRAP);
+							new Rectangle(0, avatarImageSize.y, avatarSize.x, avatarSize.y
+									- avatarImageSize.y), false, false, SWT.TOP | SWT.CENTER);
 
-				}
-				else{
-					System.err.println("Color is still null");//KN: sysout
 				}
 			}
 		});
@@ -328,8 +323,8 @@ public class AvatarWidget
 		if (null != uiFunctions) {
 			String url = Constants.URL_PREFIX + Constants.URL_PROFILE + "?"
 					+ Constants.URL_SUFFIX;
-			uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0, 0,
-					true, true);
+			uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0, 0, true,
+					true);
 		}
 	}
 

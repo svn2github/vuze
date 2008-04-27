@@ -32,10 +32,10 @@ public class BuddiesViewer
 
 	private int borderWidth = 3;
 
-	private Point avatarImageSize = new Point(32 + borderWidth, 32 + borderWidth);
+	private Point avatarImageSize = new Point(40 + borderWidth, 40 + borderWidth);
 
 	private Point avatarSize = new Point(avatarImageSize.x * 2,
-			avatarImageSize.y + 26);
+			avatarImageSize.y + 16);
 
 	private List avatarWidgets = new ArrayList();
 
