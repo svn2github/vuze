@@ -134,11 +134,12 @@ public class VuzeActivitiesView
 				} else if (e.keyCode == SWT.F12) {
 
 					if (e.stateMask == SWT.ALT) {
-						//InputShell is = new InputShell("Invite", "Enter Public Key:");
-						//String txt = is.open();
-						//if (txt != null) {
-						//	VuzeBuddyManager.invitePKs(new String[] { txt }, null);
-						//}
+						InputShell is = new InputShell("Open URL", "Enter URL to open:");
+						String txt = is.open();
+						if (txt != null) {
+		  				UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
+		  				uif.viewURL(txt, "browse", 0, 0, false, false);
+						}
 					} else {
 						//VuzeActivitiesEntryBuddyRequest entry = new VuzeActivitiesEntryBuddyRequest(
 						//		"ArronM", "TuxPaper");
