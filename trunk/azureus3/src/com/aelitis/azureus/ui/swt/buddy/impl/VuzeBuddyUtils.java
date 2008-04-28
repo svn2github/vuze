@@ -44,7 +44,7 @@ public class VuzeBuddyUtils
 		VuzeBuddySWTImpl buddy = new VuzeBuddySWTImpl("StupidKey" + x);
 		buddy.setLoginID("Login" + x);
 		buddy.setDisplayName("Mr Random " + x);
-		buddy.setAvatarImage(ImageRepository.getImage("azureus128"));
+		buddy.setAvatarImage(ImageRepository.getRandomImage());
 		
 		VuzeBuddyManager.addBuddy(buddy, false);
 		
