@@ -39,14 +39,20 @@ import com.aelitis.azureus.util.MapUtils;
  */
 public class PlatformBuddyMessenger
 {
-	public static final String LISTENER_ID = "buddy";
+	public static final String LISTENER_ID_BUDDY = "buddy";
+
+	public static final String LISTENER_ID_INVITE = "invite";
 
 	public static String OP_SYNC = "sync";
 
-	public static String OP_GETINVITES = "get-invites";
+	public static String OP_GETINVITES = "fetch";
+
+	public static String OP_COUNTINVITES = "count";
+
+	public static String OP_INVITE = "invite";
 
 	public static void sync(final VuzeBuddySyncListener l) {
-		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
+		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID_BUDDY,
 				OP_SYNC, new Object[0], 1000);
 
 		PlatformMessengerListener listener = new PlatformMessengerListener() {
@@ -101,28 +107,46 @@ public class PlatformBuddyMessenger
 	 * @since 3.0.5.3
 	 */
 	public static void getInvites() {
-		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
+		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID_INVITE,
 				OP_GETINVITES, new Object[0], 1000);
 
 		PlatformMessengerListener listener = new PlatformMessengerListener() {
 
 			public void replyReceived(PlatformMessage message, String replyType,
 					Map reply) {
-				List buddies = MapUtils.getMapList(reply, "buddies",
+				List invitations = MapUtils.getMapList(reply, "invitations",
 						Collections.EMPTY_LIST);
 
-				if (buddies.size() == 0) {
+				if (invitations.size() == 0) {
 					return;
 				}
 
-				for (Iterator iter = buddies.iterator(); iter.hasNext();) {
-					Map mapBuddy = (Map) iter.next();
+				for (Iterator iter = invitations.iterator(); iter.hasNext();) {
+					Map mapInvitation = (Map) iter.next();
 
+					Map mapBuddy = MapUtils.getMapMap(mapInvitation, "buddy-info",
+							Collections.EMPTY_MAP);
+
+					String inviteCode = MapUtils.getMapString(mapInvitation, "code", null);
+					String acceptURL = MapUtils.getMapString(mapInvitation, "accept-url",
+							null);
+
+					if (mapBuddy.isEmpty() || inviteCode == null || acceptURL == null) {
+						continue;
+					}
+
+					// XXX This will still create a v2 buddy, which we need to fix before
+					//     release
 					VuzeBuddy futureBuddy = VuzeBuddyManager.createNewBuddyNoAdd(mapBuddy);
 
+					if (futureBuddy == null) {
+						continue;
+					}
+
+					futureBuddy.setCode(inviteCode);
+
 					VuzeActivitiesEntryBuddyRequest entry = new VuzeActivitiesEntryBuddyRequest(
-							futureBuddy.getPublicKeys()[0], futureBuddy.getLoginID(),
-							futureBuddy.getDisplayName());
+							futureBuddy, acceptURL);
 					VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
 						entry
 					});
@@ -132,5 +156,59 @@ public class PlatformBuddyMessenger
 			public void messageSent(PlatformMessage message) {
 			}
 		};
+
+		message.setRequiresAuthorization(true);
+
+		PlatformMessenger.queueMessage(message, listener);
+	}
+
+	public static void getNumPendingInvites() {
+		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID_INVITE,
+				OP_COUNTINVITES, new Object[0], 1000);
+
+		PlatformMessengerListener listener = new PlatformMessengerListener() {
+
+			public void replyReceived(PlatformMessage message, String replyType,
+					Map reply) {
+
+				int count = MapUtils.getMapInt(reply, "count", 0);
+
+				// TODO fire off listener
+			}
+
+			public void messageSent(PlatformMessage message) {
+			}
+		};
+
+		message.setRequiresAuthorization(false);
+		PlatformMessenger.queueMessage(message, listener);
+	}
+	
+	public static void invite(String loginID, String userMessage) {
+		
+		Map parameters = new HashMap();
+		parameters.put("message", userMessage);
+		
+		List invitations = new ArrayList();
+		Map invitation = new HashMap();
+		parameters.put("invitations", invitation);
+		invitation.put("type", "username");
+		invitation.put("value", loginID);
+		
+		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID_INVITE,
+				OP_INVITE, parameters, 1000);
+
+		PlatformMessengerListener listener = new PlatformMessengerListener() {
+
+			public void replyReceived(PlatformMessage message, String replyType,
+					Map reply) {
+			}
+
+			public void messageSent(PlatformMessage message) {
+			}
+		};
+
+		message.setRequiresAuthorization(true);
+		PlatformMessenger.queueMessage(message, listener);
 	}
 }
