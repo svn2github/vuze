@@ -181,6 +181,11 @@ public class BuddiesViewer
 				widget.setEditMode(value);
 				widget.refreshVisual();
 			}
+			
+			if(true == value){
+				setShareMode(false);
+				setAddBuddyMode(false);
+			}
 		}
 	}
 

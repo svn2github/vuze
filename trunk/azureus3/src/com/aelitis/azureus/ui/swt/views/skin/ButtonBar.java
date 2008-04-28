@@ -13,6 +13,12 @@ public class ButtonBar
 {
 	private SWTSkin skin;
 
+	private SWTSkinButtonUtility editButton = null;
+
+	private SWTSkinButtonUtility addBuddyButton = null;
+
+	private SWTSkinButtonUtility shareButton = null;
+
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
 		skin = skinObject.getSkin();
 
@@ -83,8 +89,8 @@ public class ButtonBar
 
 		final SWTSkinObject editBuddies = skin.getSkinObject("button-buddy-edit");
 		if (null != editBuddies) {
-			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(editBuddies);
-			btnGo.addSelectionListener(new ButtonListenerAdapter() {
+			editButton = new SWTSkinButtonUtility(editBuddies);
+			editButton.addSelectionListener(new ButtonListenerAdapter() {
 
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
 
@@ -94,6 +100,13 @@ public class ButtonBar
 					}
 
 					viewer.setEditMode(!viewer.isEditMode());
+					if(true == viewer.isEditMode()){
+						shareButton.setDisabled(true);
+						addBuddyButton.setDisabled(true);
+					} else {
+						shareButton.setDisabled(false);
+						addBuddyButton.setDisabled(false);
+					}
 
 				}
 			});
@@ -105,9 +118,8 @@ public class ButtonBar
 
 		final SWTSkinObject showHideBuddiesObject = skin.getSkinObject("button-buddy-share");
 		if (null != showHideBuddiesObject) {
-			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(
-					showHideBuddiesObject);
-			btnGo.addSelectionListener(new ButtonListenerAdapter() {
+			shareButton = new SWTSkinButtonUtility(showHideBuddiesObject);
+			shareButton.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
 
 					BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
@@ -132,6 +144,12 @@ public class ButtonBar
 								invitePage.getMessageContext().executeInBrowser(
 										"inviteFromShare(" + true + ")");
 							}
+
+							editButton.setDisabled(true);
+							addBuddyButton.setDisabled(true);
+						} else {
+							editButton.setDisabled(false);
+							addBuddyButton.setDisabled(false);
 						}
 					}
 				}
@@ -143,9 +161,8 @@ public class ButtonBar
 
 		final SWTSkinObject showHideBuddiesObject = skin.getSkinObject("button-buddy-add");
 		if (null != showHideBuddiesObject) {
-			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(
-					showHideBuddiesObject);
-			btnGo.addSelectionListener(new ButtonListenerAdapter() {
+			addBuddyButton = new SWTSkinButtonUtility(showHideBuddiesObject);
+			addBuddyButton.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
 					BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
 					if (null == viewer) {
@@ -167,6 +184,12 @@ public class ButtonBar
 								invitePage.getMessageContext().executeInBrowser(
 										"inviteFromShare(" + false + ")");
 							}
+							editButton.setDisabled(true);
+							shareButton.setDisabled(true);
+						}
+						else{
+							editButton.setDisabled(false);
+							shareButton.setDisabled(false);
 						}
 					}
 				}

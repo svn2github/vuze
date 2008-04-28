@@ -77,6 +77,11 @@ public class InvitePage
 						System.out.println("'email-invites' called from invite buddy page");//KN: sysout
 
 					}
+
+					public void handleInviteConfirm() {
+						System.out.println("'invite-confirm' called from invite buddy page");//KN: sysout
+						
+					}
 				}
 
 		);

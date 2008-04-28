@@ -14,6 +14,10 @@ public interface IBuddyPageListener
 
 	public static final String OP_INVITEES_PARAM_EMAILS = "emails";
 
+	public static final String OP_INVITE_CONFIRM = "invite-confirm";
+	
+	public static final String OP_INVITE_CONFIRM_PARAM_MSG = "message";
+	
 	public void handleClose();
 
 	public void handleCancel();
@@ -21,6 +25,8 @@ public interface IBuddyPageListener
 	public void handleBuddyInvites();
 
 	public void handleEmailInvites();
+	
+	public void handleInviteConfirm();
 
 	/**
 	 * Returns a list of <code>VuzeBuddy</code>; the list may be empty but never <code>null</code>
@@ -29,4 +35,7 @@ public interface IBuddyPageListener
 	public List getInvitedBuddies();
 
 	public List getInvitedEmails();
+	
+	public String getInvitedConfirmationMessage();
+	
 }
