@@ -619,6 +619,8 @@ public class VuzeBuddyManager
 		} finally {
 			buddy_mon.exit();
 		}
+		
+		PlatformBuddyMessenger.remove(buddy);
 	}
 
 	/**
