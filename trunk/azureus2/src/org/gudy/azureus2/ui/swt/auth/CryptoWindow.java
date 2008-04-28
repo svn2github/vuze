@@ -220,10 +220,10 @@ CryptoWindow
 				Label reason_value = new Label(shell,SWT.NULL);
 				reason_value.setText(reason.replaceAll("&", "&&"));
 				gridData = new GridData(GridData.FILL_BOTH);
-				gridData.horizontalSpan = 1;
+				gridData.horizontalSpan = 2;
 				reason_value.setLayoutData(gridData);
 				
-				new Label(shell,SWT.NULL);
+				// new Label(shell,SWT.NULL);
 				
 				if ( last_pw_incorrect ){
 					

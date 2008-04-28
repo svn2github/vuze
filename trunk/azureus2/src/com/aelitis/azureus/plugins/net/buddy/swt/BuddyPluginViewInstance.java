@@ -560,7 +560,7 @@ BuddyPluginViewInstance
 				{
 					TableItem[] selection = buddy_table.getSelection();
 					
-					BuddyPluginViewChat chat = new BuddyPluginViewChat( plugin, lu );
+					BuddyPluginViewChat chat = new BuddyPluginViewChat( plugin, chat_item.getDisplay(), lu );
 					
 					for (int i=0;i<selection.length;i++){
 						

@@ -26,12 +26,15 @@ import java.util.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
@@ -43,7 +46,6 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.utils.LocaleUtilities;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
@@ -69,12 +71,13 @@ BuddyPluginViewChat
 	protected
 	BuddyPluginViewChat(
 		BuddyPlugin			_plugin,
+		Display 			_display,
 		LocaleUtilities		_lu )
 	{
 		plugin	= _plugin;
 		lu		= _lu;
 		
-		shell = ShellFactory.createShell(Utils.findAnyShell(), SWT.DIALOG_TRIM | SWT.RESIZE );
+		shell = new Shell( _display, SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MIN | SWT.MAX );
 
 		shell.setText( lu.getLocalisedMessageText( "azbuddy.chat.title" ));
 				
@@ -89,7 +92,7 @@ BuddyPluginViewChat
 		shell.setLayoutData(grid_data);
 
 		
-		log = new StyledText(shell,SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);
+		log = new StyledText(shell,SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER | SWT.NO_FOCUS );
 		grid_data = new GridData(GridData.FILL_BOTH);
 		grid_data.horizontalSpan = 1;
 		grid_data.horizontalIndent = 4;
@@ -98,6 +101,8 @@ BuddyPluginViewChat
 		log.setLayoutData(grid_data);
 		log.setIndent( 4 );
 		
+		log.setEditable( false );
+
 		Composite rhs = new Composite(shell, SWT.NONE);
 		layout = new GridLayout();
 		layout.numColumns = 1;
@@ -192,6 +197,8 @@ BuddyPluginViewChat
 				{
 				}
 			});
+		
+		text.setFocus();
 		
 		shell.addListener(
 			SWT.Traverse, 
