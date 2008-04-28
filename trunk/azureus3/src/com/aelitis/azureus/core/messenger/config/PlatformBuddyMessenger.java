@@ -43,13 +43,15 @@ public class PlatformBuddyMessenger
 
 	public static final String LISTENER_ID_INVITE = "invite";
 
-	public static String OP_SYNC = "sync";
+	public static final String OP_SYNC = "sync";
 
-	public static String OP_GETINVITES = "fetch";
+	public static final String OP_GETINVITES = "fetch";
 
-	public static String OP_COUNTINVITES = "count";
+	public static final String OP_COUNTINVITES = "count";
 
-	public static String OP_INVITE = "invite";
+	public static final String OP_INVITE = "invite";
+
+	public static final String OP_REMOVEBUDDY = "remove";
 
 	public static void sync(final VuzeBuddySyncListener l) {
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID_BUDDY,
@@ -197,6 +199,29 @@ public class PlatformBuddyMessenger
 		
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID_INVITE,
 				OP_INVITE, parameters, 1000);
+
+		PlatformMessengerListener listener = new PlatformMessengerListener() {
+
+			public void replyReceived(PlatformMessage message, String replyType,
+					Map reply) {
+			}
+
+			public void messageSent(PlatformMessage message) {
+			}
+		};
+
+		message.setRequiresAuthorization(true);
+		PlatformMessenger.queueMessage(message, listener);
+	}
+
+	/**
+	 * @param buddy
+	 *
+	 * @since 3.0.5.3
+	 */
+	public static void remove(VuzeBuddy buddy) {
+		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID_BUDDY,
+				OP_REMOVEBUDDY, new Object[] { "login-id", buddy.getLoginID() } , 1000);
 
 		PlatformMessengerListener listener = new PlatformMessengerListener() {
 
