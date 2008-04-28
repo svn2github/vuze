@@ -47,6 +47,7 @@ import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.GridData;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 
 public class 
 BufferedLabel
@@ -58,61 +59,21 @@ BufferedLabel
 	
 	public
 	BufferedLabel(
-		Composite		composite,
+		Composite	composite,
 		int			attrs )
 	{
 		super( new Label( composite, attrs ));
 		
 		label = (Label)getWidget();
 		
-		label.addMouseListener(
-			new MouseAdapter()
+		ClipboardCopy.addCopyToClipMenu(
+			label,
+			new ClipboardCopy.copyToClipProvider()
 			{
-				public void 
-				mouseDown(
-					MouseEvent e) 
+				public String 
+				getText() 
 				{
-					if ( label.getMenu() != null || value.length() == 0 ){
-						
-						return;
-					}
-					
-					if (!(e.button == 3 || (e.button == 1 && e.stateMask == SWT.CONTROL))){
-						
-						return;
-					}
-					
-					Menu menu = new Menu(label.getShell(),SWT.POP_UP);
-					
-					MenuItem   item = new MenuItem( menu,SWT.NONE );
-					
-					item.setText( MessageText.getString( "ConfigView.copy.to.clipboard.tooltip"));
-
-					item.addSelectionListener(
-						new SelectionAdapter()
-						{
-							public void 
-							widgetSelected(
-								SelectionEvent arg0) 
-							{
-				    			new Clipboard(label.getDisplay()).setContents(new Object[] {value}, new Transfer[] {TextTransfer.getInstance()});
-							}
-						});
-					
-					label.setMenu( menu );
-					
-					menu.addMenuListener(
-						new MenuAdapter()
-						{
-							public void 
-							menuHidden(
-								MenuEvent arg0 )
-							{
-								label.setMenu( null );
-							}
-						});
-					
-					menu.setVisible( true );
+					return( label.getText());
 				}
 			});
 	}

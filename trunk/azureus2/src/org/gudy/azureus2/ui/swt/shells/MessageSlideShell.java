@@ -72,6 +72,7 @@ import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -816,7 +817,7 @@ public class MessageSlideShell
 		boolean hasHTML = matcher.find();
 		if (tryLinkIfURLs && hasHTML) {
 			try {
-				Link linkLabel = new Link(cShell, SWT.WRAP);
+				final Link linkLabel = new Link(cShell, SWT.WRAP);
 				GridData gridData = new GridData(GridData.FILL_BOTH);
 				gridData.horizontalSpan = 3;
 				linkLabel.setLayoutData(gridData);
@@ -849,12 +850,23 @@ public class MessageSlideShell
 					tooltip += matcher.group(2) + ": " + url;
 				}
 				linkLabel.setToolTipText(tooltip);
+				
+				ClipboardCopy.addCopyToClipMenu( 
+						linkLabel,
+						new ClipboardCopy.copyToClipProvider()
+						{
+							public String 
+							getText() 
+							{
+								return( linkLabel.getText());
+							}
+						});
 			} catch (Throwable t) {
 				createLinkLabel(shell, false, popupParams);
 			}
 		} else {
 			// 3.0
-			Label linkLabel = new Label(cShell, SWT.WRAP);
+			final Label linkLabel = new Label(cShell, SWT.WRAP);
 			GridData gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 3;
 			linkLabel.setLayoutData(gridData);
@@ -874,6 +886,17 @@ public class MessageSlideShell
 
 			linkLabel.setForeground(shell.getDisplay().getSystemColor(SWT.COLOR_BLACK));
 			linkLabel.setText(popupParams.text);
+			
+			ClipboardCopy.addCopyToClipMenu( 
+					linkLabel,
+					new ClipboardCopy.copyToClipProvider()
+					{
+						public String 
+						getText() 
+						{
+							return( linkLabel.getText());
+						}
+					});
 		}
 	}
 
