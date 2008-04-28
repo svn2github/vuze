@@ -129,4 +129,11 @@ public class Constants
 				+ org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION + "&locale="
 				+ Locale.getDefault().toString();
 	}
+	
+	public static String appendURLSuffix(String url) {
+		if (url.indexOf("azid=") < 0) {
+			url += (url.indexOf('?') < 0 ? "?" : "&") + Constants.URL_SUFFIX;
+		}
+		return url;
+	}
 }
