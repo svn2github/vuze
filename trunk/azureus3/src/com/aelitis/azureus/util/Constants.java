@@ -97,7 +97,8 @@ public class Constants
 			+ System.getProperty("relay_port", DEFAULT_RELAY_PORT) + "/app";
 
 	public static final String URL_AUTHORIZED_RPC = System.getProperty(
-			"authorized_rpc", DEFAULT_AUTHORIZED_RPC);
+			"authorized_rpc", "1").equals("1") ? DEFAULT_AUTHORIZED_RPC : URL_PREFIX
+			+ "app";
 
 	public static final String URL_POP_UP = "?popup";
 
@@ -129,7 +130,7 @@ public class Constants
 				+ org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION + "&locale="
 				+ Locale.getDefault().toString();
 	}
-	
+
 	public static String appendURLSuffix(String url) {
 		if (url.indexOf("azid=") < 0) {
 			url += (url.indexOf('?') < 0 ? "?" : "&") + Constants.URL_SUFFIX;
