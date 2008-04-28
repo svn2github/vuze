@@ -63,4 +63,10 @@ public interface VuzeBuddy
 	public void shareDownload(DownloadManager dm, String message);
 
 	public void sendPayloadMap(Map map);
+
+	public Map toMap();
+
+	public String getCode();
+
+	public void setCode(String code);
 }

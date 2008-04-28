@@ -28,10 +28,10 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.buddy.VuzeBuddy;
-import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
-import com.aelitis.azureus.plugins.net.buddy.*;
-import com.aelitis.azureus.util.*;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
+import com.aelitis.azureus.util.LoginInfoManager;
+import com.aelitis.azureus.util.MapUtils;
 import com.aelitis.azureus.util.LoginInfoManager.LoginInfo;
 
 /**
@@ -47,6 +47,8 @@ public class VuzeBuddyImpl
 	private String displayName;
 
 	private String loginID;
+	
+	private String code;
 
 	private long lastUpdated;
 
@@ -95,6 +97,20 @@ public class VuzeBuddyImpl
 		if (avatarBytes != null) {
 			setAvatar(avatarBytes);
 		}
+		
+		setCode(MapUtils.getMapString(mapNewBuddy, "code", null));
+	}
+	
+	public Map toMap() {
+		Map map = new HashMap();
+		map.put("display-name", displayName);
+		map.put("login-id", loginID);
+		map.put("code", code);
+		
+		List pks = Arrays.asList(getPublicKeys());
+		map.put("pks", pks);
+
+		return map;
 	}
 
 	public String getDisplayName() {
@@ -264,6 +280,14 @@ public class VuzeBuddyImpl
 		map.put("VuzeMessageType", "CheckInvites");
 		
 		sendPayloadMap(map);
+	}
+
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
 	}
 
 }
