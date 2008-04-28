@@ -884,8 +884,6 @@ public class FakeTableCell
 			
 			composite.setMenu( menu );
 			
-			menu.setVisible( true );
-			
 			menu.addMenuListener(
 				new MenuAdapter()
 				{
@@ -899,6 +897,8 @@ public class FakeTableCell
 						}
 					}
 				});
+			
+			menu.setVisible( true );
 
 		}finally{
 		

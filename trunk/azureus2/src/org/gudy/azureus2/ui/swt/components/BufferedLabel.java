@@ -101,8 +101,6 @@ BufferedLabel
 					
 					label.setMenu( menu );
 					
-					menu.setVisible( true );
-					
 					menu.addMenuListener(
 						new MenuAdapter()
 						{
@@ -113,6 +111,8 @@ BufferedLabel
 								label.setMenu( null );
 							}
 						});
+					
+					menu.setVisible( true );
 				}
 			});
 	}
