@@ -1345,6 +1345,13 @@ public class MainWindow
 		new UserAreaUtils(skin, uiFunctions);
 
 		
+		/*
+		 * Hides the buddy bar unless a command line parameter is specified
+		 * WARNING: TODO -- This is temporary and must be removed once the buddies features are complete
+		 */
+		if(false == System.getProperty("debug.buddies.bar","0").equals("1")){
+			COConfigurationManager.setParameter("Footer.visible", false);
+		}
 		
 		shell.layout(true, true);
 	}
