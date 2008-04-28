@@ -90,7 +90,7 @@ public class PlatformBuddyMessenger
 					}
 				}
 
-				VuzeBuddyManager.removeBuddiesOlderThan(updateTime);
+				VuzeBuddyManager.removeBuddiesOlderThan(updateTime, false);
 
 				if (l != null) {
 					l.syncComplete();

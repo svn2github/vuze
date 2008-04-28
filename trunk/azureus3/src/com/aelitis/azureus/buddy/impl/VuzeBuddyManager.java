@@ -98,6 +98,8 @@ public class VuzeBuddyManager
 		}
 
 		try {
+			loadVuzeBuddies();
+
 			VuzeCryptoManager.getSingleton().addListener(new VuzeCryptoListener() {
 				public void sessionPasswordIncorrect() {
 					VuzeBuddyManager.log("Incorrect Password!");
@@ -576,6 +578,12 @@ public class VuzeBuddyManager
 		if (buddyPlugin == null) {
 			return null;
 		}
+
+		VuzeBuddy existingBuddy = getBuddyByLoginID((String) mapNewBuddy.get("login-id"));
+		if (existingBuddy != null) {
+			return existingBuddy;
+		}
+
 		VuzeBuddy newBuddy;
 		if (vuzeBuddyCreator == null) {
 			newBuddy = new VuzeBuddyImpl();
@@ -619,8 +627,10 @@ public class VuzeBuddyManager
 		} finally {
 			buddy_mon.exit();
 		}
-		
-		PlatformBuddyMessenger.remove(buddy);
+
+		if (buddy.getLoginID() != null) {
+			PlatformBuddyMessenger.remove(buddy);
+		}
 	}
 
 	/**
@@ -628,7 +638,8 @@ public class VuzeBuddyManager
 	 *
 	 * @since 3.0.5.3
 	 */
-	public static void removeBuddiesOlderThan(long updateTime) {
+	public static void removeBuddiesOlderThan(long updateTime,
+			boolean tellPlatform) {
 		try {
 			buddy_mon.enter();
 
@@ -646,6 +657,10 @@ public class VuzeBuddyManager
 
 					iter.remove();
 					triggerRemoveListener(buddy);
+
+					if (tellPlatform && buddy.getLoginID() != null) {
+						PlatformBuddyMessenger.remove(buddy);
+					}
 				}
 			}
 
@@ -983,7 +998,7 @@ public class VuzeBuddyManager
 		}
 	}
 
-	private void saveVuzeBuddies() {
+	private static void saveVuzeBuddies() {
 		Map mapSave = new HashMap();
 		List storedBuddyList = new ArrayList();
 		mapSave.put("buddies", storedBuddyList);
@@ -998,18 +1013,23 @@ public class VuzeBuddyManager
 					storedBuddyList.add(buddy.toMap());
 				}
 			}
+
+			FileUtil.writeResilientConfigFile(SAVE_FILENAME, mapSave);
 		} finally {
 			buddy_mon.exit();
 		}
-
-		FileUtil.writeResilientConfigFile(SAVE_FILENAME, mapSave);
 	}
 
-	private void loadVuzeBuddies() {
+	private static void loadVuzeBuddies() {
 		Map map = BDecoder.decodeStrings(FileUtil.readResilientConfigFile(SAVE_FILENAME));
 
 		List storedBuddyList = MapUtils.getMapList(map, "buddies",
 				Collections.EMPTY_LIST);
 
+		for (Iterator iter = storedBuddyList.iterator(); iter.hasNext();) {
+			Map mapBuddy = (Map) iter.next();
+
+			createNewBuddy(mapBuddy, false);
+		}
 	}
 }
