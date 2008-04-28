@@ -6,10 +6,14 @@ import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
+import com.aelitis.azureus.core.messenger.ClientMessageContext;
+import com.aelitis.azureus.ui.swt.browser.BrowserContext;
+import com.aelitis.azureus.ui.swt.browser.listener.AbstractBuddyPageListener;
 import com.aelitis.azureus.util.Constants;
 
 public class InvitePage
-	implements IDetailPage
+	extends AbstractDetailPage
+
 {
 
 	public static final String PAGE_ID = "invite.page";
@@ -22,7 +26,10 @@ public class InvitePage
 
 	private StackLayout stackLayout = null;
 
-	public InvitePage() {
+	private ClientMessageContext context = null;
+
+	public InvitePage(DetailPanel detailPanel) {
+		super(detailPanel, PAGE_ID);
 	}
 
 	public void createControls(Composite parent) {
@@ -33,20 +40,59 @@ public class InvitePage
 	}
 
 	private void init() {
+		blinder = new Composite(content, SWT.NONE);
+		createBrowser();
+	}
+
+	private void createBrowser() {
 		browser = new Browser(content, SWT.NONE);
 		String url = Constants.URL_PREFIX + "share.start";
 		browser.setUrl(url);
 
-		blinder = new Composite(content, SWT.NONE);
 		stackLayout.topControl = browser;
 		content.layout();
-	}
 
-	public String getPageID() {
-		return PAGE_ID;
+		/*
+		 * Add the appropriate messaging listeners
+		 */
+		getMessageContext().addMessageListener(
+				new AbstractBuddyPageListener(browser) {
+
+					public void handleCancel() {
+						System.out.println("'Cancel' called from invite buddy page");//KN: sysout
+						getDetailPanel().show(false);
+					}
+
+					public void handleClose() {
+						System.out.println("'Close' called from invite buddy page");//KN: sysout
+						getDetailPanel().show(false);
+
+					}
+
+					public void handleBuddyInvites() {
+						System.out.println("'buddy-invites' called from invite buddy page");//KN: sysout
+					}
+
+					public void handleEmailInvites() {
+						System.out.println("'email-invites' called from invite buddy page");//KN: sysout
+
+					}
+				}
+
+		);
+
 	}
 
 	public Control getControl() {
 		return content;
 	}
+
+	public ClientMessageContext getMessageContext() {
+		if (null == context) {
+			context = new BrowserContext("buddy-page-listener" + Math.random(),
+					browser, null, true);
+		}
+		return context;
+	}
+
 }

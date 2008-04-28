@@ -11,6 +11,8 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.LightBoxShell;
 import org.gudy.azureus2.ui.swt.mainwindow.IMainWindow;
 
@@ -90,12 +92,12 @@ public class DetailPanel
 		 * Create the Share flow page
 		 */
 
-		addPage(new SharePage());
+		addPage(new SharePage(this));
 		/*
 		 * Create the Invite flow page
 		 */
 
-		addPage(new InvitePage());
+		addPage(new InvitePage(this));
 	}
 
 	/**
@@ -131,6 +133,13 @@ public class DetailPanel
 		}
 	}
 
+	public IDetailPage getPage(String pageID) {
+		if (true == pages.containsKey(pageID)) {
+			return (IDetailPage) pages.get(pageID);
+		}
+		return null;
+	}
+
 	/**
 	 * Show/hide the detail panel
 	 * @param value if <code>true</code> show the panel; otherwise hide the panel
@@ -144,86 +153,95 @@ public class DetailPanel
 	 * @param value if <code>true</code> show the panel; otherwise hide the panel
 	 * @param pageID if <code>value</code> is <code>true</code> then optionally loaded this page if specified
 	 */
-	public void show(boolean value, String pageID) {
+	public void show(final boolean value, final String pageID) {
 
-		SWTSkinObject detailPanelObject = skin.getSkinObject(SkinConstants.VIEWID_DETAIL_PANEL);
-		Control control = detailPanelObject.getControl();
+		Utils.execSWTThread(new AERunnable() {
 
-		/*
-		 * Hack into SWTSkinUtils.setVisibility() behavior by inspecting whether this shell
-		 * is in the middle of sliding; if that's the case then ignore this button press
-		 * and do nothing.  The main problem this is overcoming is when the user click (or double-click)
-		 * the button multiple times; we want a single click to initiate and finish the sliding before 
-		 * handling the next click
-		 */
-		if (control.getData("Sliding") != null) {
-			return;
-		}
+			public void runSupport() {
 
-		Point size = detailPanelObject.getControl().getSize();
-		if (detailPanelObject != null) {
-
-			UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-
-			IMainWindow mainWindow = uiFunctions.getMainWindow();
-
-			if (true == value) {
+				SWTSkinObject detailPanelObject = skin.getSkinObject(SkinConstants.VIEWID_DETAIL_PANEL);
+				Control control = detailPanelObject.getControl();
 
 				/*
-				 * LightBox to cover the elements above this detail panel
+				 * Hack into SWTSkinUtils.setVisibility() behavior by inspecting whether this shell
+				 * is in the middle of sliding; if that's the case then ignore this button press
+				 * and do nothing.  The main problem this is overcoming is when the user click (or double-click)
+				 * the button multiple times; we want a single click to initiate and finish the sliding before 
+				 * handling the next click
 				 */
-				lbShell = new LightBoxShell(uiFunctions.getMainShell(), false);
-				int insetHeight = mainWindow.getMetrics(IMainWindow.WINDOW_CONTENT_DISPLAY_AREA).height;
-				insetHeight += mainWindow.getMetrics(IMainWindow.WINDOW_ELEMENT_STATUSBAR).height;
-				lbShell.setInsets(0, insetHeight, 0, 0);
-				lbShell.setStyleMask(LightBoxShell.RESIZE_HORIZONTAL);
-				lbShell.open();
-
-				/*
-				 * Calculate height of detail panel
-				 */
-				size.y = mainWindow.getMetrics(IMainWindow.WINDOW_CONTENT_DISPLAY_AREA).height;
-
-				SWTSkinObject footerObject = skin.getSkinObject(SkinConstants.VIEWID_FOOTER);
-				if (null != footerObject) {
-					size.y -= footerObject.getControl().getSize().y;
+				if (control.getData("Sliding") != null) {
+					return;
 				}
 
-				SWTSkinObject buttonBarObject = skin.getSkinObject(SkinConstants.VIEWID_BUTTON_BAR);
-				if (null != buttonBarObject) {
-					size.y -= buttonBarObject.getControl().getSize().y;
-				}
+				Point size = detailPanelObject.getControl().getSize();
+				if (detailPanelObject != null) {
 
-				size.y -= 9; // minus the margin height
+					UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 
-				/*
-				 * Hack into the SWTSkinUtils.setVisibility() behavior by overriding the height
-				 * of the detail panel dynamically; this parameter is not normally recalculated so if
-				 * the application window is resized then the previous value may not match with the new window size.
-				 * 
-				 * For other SkinView the existing behavior is OK because of the auto-layout built in but the detail panel
-				 * is different in that it needs to grow enough in height to 'push' other views up and
-				 * out of visibility.
-				 */
-				control.setData("v3.oldHeight", size);
+					IMainWindow mainWindow = uiFunctions.getMainWindow();
 
-			} else {
-				if (null != lbShell) {
-					lbShell.close();
-					lbShell = null;
+					if (true == value) {
+
+						/*
+						 * LightBox to cover the elements above this detail panel
+						 */
+						if (null != lbShell) {
+							lbShell.close();
+						}
+
+						lbShell = new LightBoxShell(uiFunctions.getMainShell(), false);
+						int insetHeight = mainWindow.getMetrics(IMainWindow.WINDOW_CONTENT_DISPLAY_AREA).height;
+						insetHeight += mainWindow.getMetrics(IMainWindow.WINDOW_ELEMENT_STATUSBAR).height;
+						lbShell.setInsets(0, insetHeight, 0, 0);
+						lbShell.setStyleMask(LightBoxShell.RESIZE_HORIZONTAL);
+						lbShell.open();
+
+						/*
+						 * Calculate height of detail panel
+						 */
+						size.y = mainWindow.getMetrics(IMainWindow.WINDOW_CONTENT_DISPLAY_AREA).height;
+
+						SWTSkinObject footerObject = skin.getSkinObject(SkinConstants.VIEWID_FOOTER);
+						if (null != footerObject) {
+							size.y -= footerObject.getControl().getSize().y;
+						}
+
+						SWTSkinObject buttonBarObject = skin.getSkinObject(SkinConstants.VIEWID_BUTTON_BAR);
+						if (null != buttonBarObject) {
+							size.y -= buttonBarObject.getControl().getSize().y;
+						}
+
+						size.y -= 1; // minus a pixel so it does not run into the tabbar above
+
+						/*
+						 * Hack into the SWTSkinUtils.setVisibility() behavior by overriding the height
+						 * of the detail panel dynamically; this parameter is not normally recalculated so if
+						 * the application window is resized then the previous value may not match with the new window size.
+						 * 
+						 * For other SkinView the existing behavior is OK because of the auto-layout built in but the detail panel
+						 * is different in that it needs to grow enough in height to 'push' other views up and
+						 * out of visibility.
+						 */
+						control.setData("v3.oldHeight", size);
+
+					} else {
+						if (null != lbShell) {
+							lbShell.close();
+							lbShell = null;
+						}
+					}
+					/*
+					 * Move the specified page on top if found
+					 */
+					if (true == pages.containsKey(pageID)) {
+						stackLayout.topControl = ((IDetailPage) pages.get(pageID)).getControl();
+						detailPanel.layout();
+					}
+
+					SWTSkinUtils.setVisibility(skin, null,
+							SkinConstants.VIEWID_DETAIL_PANEL, value, false, false);
 				}
 			}
-			/*
-			 * Move the specified page on top if found
-			 */
-			if (true == pages.containsKey(pageID)) {
-				stackLayout.topControl = ((IDetailPage) pages.get(pageID)).getControl();
-				detailPanel.layout();
-			}
-
-			SWTSkinUtils.setVisibility(skin, null, SkinConstants.VIEWID_DETAIL_PANEL,
-					value, false, false);
-		}
-
+		});
 	}
 }

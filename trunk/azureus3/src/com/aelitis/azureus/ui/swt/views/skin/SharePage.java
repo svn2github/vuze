@@ -1,5 +1,7 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import java.util.Iterator;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.StackLayout;
@@ -14,12 +16,18 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
+import com.aelitis.azureus.buddy.VuzeBuddy;
+import com.aelitis.azureus.core.messenger.ClientMessageContext;
+import com.aelitis.azureus.ui.swt.browser.BrowserContext;
+import com.aelitis.azureus.ui.swt.browser.listener.AbstractBuddyPageListener;
 import com.aelitis.azureus.util.Constants;
 
 public class SharePage
-	implements IDetailPage
+	extends AbstractDetailPage
 {
 
 	public static final String PAGE_ID = "share.page";
@@ -40,6 +48,10 @@ public class SharePage
 
 	private Composite buddyList;
 
+	private Composite inviteePanel;
+	
+	private Composite inviteeList;
+	
 	private Composite contentDetail;
 
 	private Button addBuddyButton;
@@ -54,7 +66,13 @@ public class SharePage
 
 	private Text commentText;
 
-	public SharePage() {
+	
+	private Browser browser = null;
+	
+	private ClientMessageContext context =null;
+	
+	public SharePage(DetailPanel detailPanel) {
+		super(detailPanel, PAGE_ID);
 	}
 
 	public void createControls(Composite parent) {
@@ -83,15 +101,54 @@ public class SharePage
 		buddyListDescription.setText("Selected buddies");
 		buddyListDescription.setForeground(Colors.white);
 
-		addBuddyLabel = new Label(firstPanel, SWT.NONE | SWT.WRAP | SWT.RIGHT);
+
+		buddyList = new Composite(firstPanel, SWT.BORDER);
+//============		
+		inviteePanel = new Composite(firstPanel, SWT.BORDER);
+		FormLayout fLayout = new FormLayout();
+		fLayout.marginTop=0;
+		fLayout.marginBottom=0;
+		
+		inviteePanel.setLayout(fLayout);
+		
+		inviteeList = new Composite(inviteePanel, SWT.BORDER);
+		
+		addBuddyLabel = new Label(inviteePanel, SWT.NONE | SWT.WRAP | SWT.RIGHT);
 		addBuddyLabel.setText("Invite more buddies to share with");
 		addBuddyLabel.setForeground(Colors.white);
 
-		buddyList = new Composite(firstPanel, SWT.BORDER);
+		addBuddyButton = new Button(inviteePanel, SWT.PUSH);
+		addBuddyButton.setText("Add Buddy");
+		
+		FormData inviteePanelData = new FormData();
+		inviteePanelData.top = new FormAttachment(buddyList, 10);
+		inviteePanelData.left = new FormAttachment(buddyList,0,SWT.LEFT);
+		inviteePanelData.right = new FormAttachment(buddyList,0,SWT.RIGHT);
+		inviteePanelData.height = 100;
+		inviteePanel.setLayoutData(inviteePanelData);
+		
+		FormData inviteeListData = new FormData();
+		inviteeListData.top = new FormAttachment(0, 0);
+		inviteeListData.left = new FormAttachment(0,0);
+		inviteeListData.right = new FormAttachment(100,0);
+		inviteeListData.height = 50;
+		inviteeList.setLayoutData(inviteeListData);
+		
+		FormData addBuddyButtonData = new FormData();
+		addBuddyButtonData.top = new FormAttachment(inviteeList, 8);
+		addBuddyButtonData.right = new FormAttachment(inviteeList, 0, SWT.RIGHT);
+		addBuddyButton.setLayoutData(addBuddyButtonData);
+
+		FormData addBuddyLabelData = new FormData();
+		addBuddyLabelData.top = new FormAttachment(inviteeList, 8);
+		addBuddyLabelData.right = new FormAttachment(addBuddyButton, -8);
+		addBuddyLabelData.left = new FormAttachment(inviteeList, 0, SWT.LEFT);
+		addBuddyLabel.setLayoutData(addBuddyLabelData);
+		
+//==============
+		
 		contentDetail = new Composite(firstPanel, SWT.BORDER);
 
-		addBuddyButton = new Button(firstPanel, SWT.PUSH);
-		addBuddyButton.setText("Add Buddy");
 
 		sendNowButton = new Button(firstPanel, SWT.PUSH);
 		sendNowButton.setText("Send Now");
@@ -124,16 +181,7 @@ public class SharePage
 		contentDetailData.bottom = new FormAttachment(buddyList, 0, SWT.BOTTOM);
 		contentDetail.setLayoutData(contentDetailData);
 
-		FormData addBuddyButtonData = new FormData();
-		addBuddyButtonData.top = new FormAttachment(buddyList, 8);
-		addBuddyButtonData.right = new FormAttachment(buddyList, 0, SWT.RIGHT);
-		addBuddyButton.setLayoutData(addBuddyButtonData);
 
-		FormData addBuddyLabelData = new FormData();
-		addBuddyLabelData.top = new FormAttachment(buddyList, 8);
-		addBuddyLabelData.right = new FormAttachment(addBuddyButton, -8);
-		addBuddyLabelData.left = new FormAttachment(buddyList, 0, SWT.LEFT);
-		addBuddyLabel.setLayoutData(addBuddyLabelData);
 
 		FormData sendNowButtonData = new FormData();
 		sendNowButtonData.top = new FormAttachment(contentDetail, 8);
@@ -185,9 +233,49 @@ public class SharePage
 		browserPanel = new Composite(content, SWT.NONE);
 		FillLayout fLayout = new FillLayout();
 		browserPanel.setLayout(fLayout);
-		Browser browser = new Browser(browserPanel, SWT.NONE);
+		browser = new Browser(browserPanel, SWT.NONE);
 		String url = Constants.URL_PREFIX + "share.start";
 		browser.setUrl(url);
+
+		/*
+		 * Add the appropriate messaging listeners
+		 */
+		getMessageContext().addMessageListener(new AbstractBuddyPageListener(browser) {
+
+			public void handleCancel() {
+				System.out.println("'Cancel' called from share->invite buddy page");//KN: sysout
+				activateFirstPanel();
+			}
+
+			public void handleClose() {
+				System.out.println("'Close' called from share->invite buddy page");//KN: sysout
+				activateFirstPanel();
+			}
+
+			public void handleBuddyInvites() {
+				for (Iterator iterator = getInvitedBuddies().iterator(); iterator.hasNext();) {
+					VuzeBuddy buddy = (VuzeBuddy)iterator.next();
+					System.out.println("Invited budy displayName: " + buddy.getDisplayName() + " loginID: " + buddy.getLoginID());//KN:
+				}
+				
+			}
+
+			public void handleEmailInvites() {
+				for (Iterator iterator = getInvitedEmails().iterator(); iterator.hasNext();) {
+					System.out.println("Invited email:" + iterator.next());//KN:
+				}
+			}
+		});
+	}
+
+	private void activateFirstPanel() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				stackLayout.topControl = firstPanel;
+				content.layout();
+			}
+		});
+
 	}
 
 	private void hookListeners() {
@@ -210,7 +298,12 @@ public class SharePage
 		return content;
 	}
 
-	public String getPageID() {
-		return PAGE_ID;
+	public ClientMessageContext getMessageContext() {
+		if (null == context) {
+			context = new BrowserContext("buddy-page-listener" + Math.random(),
+					browser, null, true);
+		}
+		return context;
 	}
+
 }

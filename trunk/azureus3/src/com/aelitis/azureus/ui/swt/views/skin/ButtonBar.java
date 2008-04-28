@@ -16,7 +16,14 @@ public class ButtonBar
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
 		skin = skinObject.getSkin();
 
-		hookShowHideButon();
+		/*
+		 * Skip hooking the show/hide button unless a command line parameter is specified
+		 * WARNING: TODO -- This is temporary and must be removed once the buddies features are complete
+		 */
+		if (true == System.getProperty("debug.buddies.bar", "0").equals("1")) {
+			hookShowHideButon();
+		}
+
 		hookEditButton();
 		hookShareButon();
 		hookAddBuddyButon();
@@ -112,8 +119,20 @@ public class ButtonBar
 
 					SkinView detailPanelView = SkinViewManager.get(DetailPanel.class);
 					if (detailPanelView instanceof DetailPanel) {
-						((DetailPanel) detailPanelView).show(viewer.isShareMode(),
-								SharePage.PAGE_ID);
+
+						DetailPanel detailPanel = ((DetailPanel) detailPanelView);
+						detailPanel.show(viewer.isShareMode(), SharePage.PAGE_ID);
+
+						/*
+						 * Calling the browser to set the inviteFromShare flag to false
+						 */
+						if (true == viewer.isShareMode()) {
+							IDetailPage invitePage = detailPanel.getPage(SharePage.PAGE_ID);
+							if (null != invitePage.getMessageContext()) {
+								invitePage.getMessageContext().executeInBrowser(
+										"inviteFromShare(" + true + ")");
+							}
+						}
 					}
 				}
 			});
@@ -127,26 +146,28 @@ public class ButtonBar
 			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(
 					showHideBuddiesObject);
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
-				boolean dummy = false;
-
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
 					BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
 					if (null == viewer) {
 						return;
 					}
 
-					dummy = !dummy;
-
-					/*
-					 * Turn off share mode when we enter add buddy flow
-					 */
-					if (true == viewer.isShareMode()) {
-						viewer.setShareMode(false);
-					}
+					viewer.setAddBuddyMode(!viewer.isAddBuddyMode());
 
 					SkinView detailPanelView = SkinViewManager.get(DetailPanel.class);
 					if (detailPanelView instanceof DetailPanel) {
-						((DetailPanel) detailPanelView).show(dummy, InvitePage.PAGE_ID);
+						DetailPanel detailPanel = ((DetailPanel) detailPanelView);
+						detailPanel.show(viewer.isAddBuddyMode(), InvitePage.PAGE_ID);
+						/*
+						 * Calling the browser to set the inviteFromShare flag to false
+						 */
+						if (true == viewer.isAddBuddyMode()) {
+							IDetailPage invitePage = detailPanel.getPage(InvitePage.PAGE_ID);
+							if (null != invitePage.getMessageContext()) {
+								invitePage.getMessageContext().executeInBrowser(
+										"inviteFromShare(" + false + ")");
+							}
+						}
 					}
 				}
 			});

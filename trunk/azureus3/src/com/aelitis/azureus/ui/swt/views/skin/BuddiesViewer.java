@@ -12,6 +12,7 @@ import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
+import org.gudy.azureus2.core3.util.AERunnable;
 
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
@@ -43,6 +44,8 @@ public class BuddiesViewer
 
 	private boolean isEditMode = false;
 
+	private boolean isAddBuddyMode = false;
+
 	private Color textColor = null;
 
 	private Color textLinkColor = null;
@@ -58,14 +61,11 @@ public class BuddiesViewer
 		if (null != viewer) {
 
 			parent = (Composite) viewer.getControl();
-			//			parent.setBackground(Colors.colorError);
-			//			parent.setLayout(new FillLayout());
 
 			Composite content = new Composite(parent, SWT.NONE);
-			RowLayout layout = new RowLayout();
-			content.setLayout(layout);
 
 			avatarsPanel = new Composite(content, SWT.NONE);
+			avatarsPanel.setLocation(0, 0);
 
 			textColor = skin.getSkinProperties().getColor("color.links.normal");
 			textLinkColor = skin.getSkinProperties().getColor("color.links.hover");
@@ -110,13 +110,14 @@ public class BuddiesViewer
 			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(rightScroll);
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					Point location = avatarsPanel.getLocation();
-					location.x -= parent.getSize().x;
-
-					//					if (location.x * -1 < avatarsPanel.getSize().x - parent.getSize().x) {
-					avatarsPanel.setLocation(location.x, location.y);
-					avatarsPanel.layout();
-					//					}
+					scrollPageRight();
+					//					Point location = avatarsPanel.getLocation();
+					//					location.x -= parent.getSize().x;
+					//
+					//					//					if (location.x * -1 < avatarsPanel.getSize().x - parent.getSize().x) {
+					//					avatarsPanel.setLocation(location.x, location.y);
+					//					avatarsPanel.layout();
+					//					//					}
 				}
 			});
 		}
@@ -125,6 +126,31 @@ public class BuddiesViewer
 		parent.addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event event) {
 				enableScroll(leftScroll, rightScroll);
+			}
+		});
+
+	}
+
+	private void scrollPageRight() {
+		final Point location = avatarsPanel.getLocation();
+
+		parent.getDisplay().asyncExec(new AERunnable() {
+
+			public void runSupport() {
+				int pageWidth = parent.getSize().x;
+				int incrementer = (int) (pageWidth * .5);
+				while (incrementer > 0) {
+					location.x -= incrementer;
+					avatarsPanel.setLocation(location.x, location.y);
+					parent.update();
+					incrementer = (int) (incrementer * .5);
+					try {
+						Thread.sleep(50);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+
 			}
 		});
 
@@ -166,6 +192,9 @@ public class BuddiesViewer
 			VuzeBuddySWT vuzeBuddy = buddies[i];
 			createBuddyControls(composite, vuzeBuddy);
 		}
+		composite.layout();
+		Point size = composite.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
+		composite.setSize(size);
 
 	}
 
@@ -216,6 +245,7 @@ public class BuddiesViewer
 		VuzeBuddySWT[] buddies = new VuzeBuddySWT[100];
 		for (int i = 0; i < buddies.length; i++) {
 			buddies[i] = (VuzeBuddySWT) VuzeBuddyUtils.createRandomBuddy();
+			buddies[i].setDisplayName("Mr Random " + i);
 		}
 
 		return buddies;
@@ -237,6 +267,21 @@ public class BuddiesViewer
 				widget.setShareMode(isShareMode);
 				widget.refreshVisual();
 			}
+		}
+	}
+
+	public boolean isAddBuddyMode() {
+		return isAddBuddyMode;
+	}
+
+	public void setAddBuddyMode(boolean isAddBuddyMode) {
+		this.isAddBuddyMode = isAddBuddyMode;
+		/*
+		 * Turn off share mode when we enter add buddy flow
+		 */
+		if (true == isAddBuddyMode) {
+			setShareMode(false);
+			setEditMode(false);
 		}
 	}
 
