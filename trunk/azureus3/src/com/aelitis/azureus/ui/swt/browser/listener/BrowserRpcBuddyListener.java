@@ -58,13 +58,6 @@ extends AbstractMessageListener
 				String code = MapUtils.getMapString(mapBuddy, "code", null);
 				VuzeBuddyManager.log("buddy accept " + mapBuddy.get("login-id") + "/" + code);
 				
-				// XXX Cheat..
-				UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
-				String url;
-				url = Constants.URL_PREFIX + "invitation/" + code;
-				uif.viewURL(url, "browse", 0, 0, false, false);
-				
-
 				if (mapBuddy.size() > 0) {
 					List pkList = MapUtils.getMapList(mapBuddy, "pks",
 							Collections.EMPTY_LIST);
