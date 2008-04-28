@@ -27,6 +27,7 @@ import org.eclipse.swt.browser.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
@@ -71,6 +72,8 @@ public class MessageDispatcher implements StatusTextListener, TitleListener
 		
 		private AEMonitor class_mon = new AEMonitor("MessageDispatcher");
 
+		private Browser browser;
+
 
     /**
      * Registers itself as a listener to receive sequence number reset message.
@@ -87,7 +90,8 @@ public class MessageDispatcher implements StatusTextListener, TitleListener
      * @param browser {@link Browser} which will send events
      */
     public void registerBrowser ( Browser browser ) {
-        browser.addStatusTextListener(this);
+        this.browser = browser;
+				browser.addStatusTextListener(this);
         browser.addTitleListener(this);
     }
 
@@ -219,7 +223,10 @@ public class MessageDispatcher implements StatusTextListener, TitleListener
         if ( message == null ) {
             return;
         }
-        context.debug("Received " + message);
+        context.debug("Received " + message );
+        if (browser != null && !browser.isDisposed() && Utils.isThisThreadSWT()) {
+        	context.debug("   browser url: " + browser.getUrl());
+        }
         
         // handle messages for dispatcher and context regardless of sequence number
         String listenerId = message.getListenerId();
