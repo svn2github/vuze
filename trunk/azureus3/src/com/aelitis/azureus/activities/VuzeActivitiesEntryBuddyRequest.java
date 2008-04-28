@@ -21,9 +21,10 @@ package com.aelitis.azureus.activities;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.UrlUtils;
 
+import com.aelitis.azureus.buddy.VuzeBuddy;
+import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.JSONUtils;
 import com.aelitis.azureus.util.MapUtils;
@@ -38,40 +39,30 @@ public class VuzeActivitiesEntryBuddyRequest
 {
 	public static final String TYPEID_BUDDYREQUEST = "buddy-request";
 
-	String futureBuddyLoginID;
-
-	String futureBuddyDisplayName;
+	private VuzeBuddy buddy;
 
 	public VuzeActivitiesEntryBuddyRequest() {
 		super();
 	}
 
-	public VuzeActivitiesEntryBuddyRequest(String pk, String loginID,
-			String displayName) {
-		futureBuddyLoginID = loginID;
-		futureBuddyDisplayName = displayName;
-
-		String urlUser = Constants.URL_PREFIX + Constants.URL_PROFILE + loginID
+	public VuzeActivitiesEntryBuddyRequest(VuzeBuddy buddy, String acceptURL) {
+		this.buddy = buddy;
+	
+		String urlUser = Constants.URL_PREFIX + Constants.URL_PROFILE + buddy.getLoginID()
 				+ "?" + Constants.URL_SUFFIX + "&client_ref=buddy-request";
-		String urlAccept = Constants.URL_PREFIX + Constants.URL_BUDDY_ACCEPT
-				+ loginID + "?" + Constants.URL_SUFFIX;
+		String urlAccept = Constants.appendURLSuffix(acceptURL);
+
 		// temporary
 		Map map = new HashMap();
-		Map mapBuddy = new HashMap();
-		mapBuddy.put("pks", new String[] {
-			pk
-		});
-		mapBuddy.put("login-id", loginID);
-		mapBuddy.put("display-name", displayName);
-		map.put("buddy", mapBuddy);
+		map.put("buddy", buddy.toMap());
 		urlAccept = UrlUtils.encode("AZMSG;0;buddy;accept;"
 				+ JSONUtils.encodeToJSON(map));
 
-		setText("<A HREF=\"" + urlUser + "\">" + displayName
+		setText("<A HREF=\"" + urlUser + "\">" + buddy.getDisplayName()
 				+ "</A> wants to be your buddy\n \n" + "  <A HREF=\"" + urlAccept
 				+ "\">OMG, OF COURSE I ACCEPT!</A>");
 		setTypeID(TYPEID_BUDDYREQUEST, true);
-		setID(TYPEID_BUDDYREQUEST + "-" + Math.random());
+		setID(TYPEID_BUDDYREQUEST + "-" + buddy.getCode());
 	}
 
 	// @see com.aelitis.azureus.activities.VuzeActivitiesEntry#loadFromExternalMap(java.util.Map)
@@ -89,29 +80,17 @@ public class VuzeActivitiesEntryBuddyRequest
 	private void loadOtherValuesFromMap(Map map) {
 		Map mapFutureBuddy = (Map) MapUtils.getMapObject(map, "buddy",
 				new HashMap(), Map.class);
-		futureBuddyLoginID = MapUtils.getMapString(mapFutureBuddy, "login-id",
-				"unknown");
-		futureBuddyDisplayName = MapUtils.getMapString(mapFutureBuddy,
-				"display-name", "Mr Unkown");
+
+		buddy = VuzeBuddyManager.createNewBuddyNoAdd(mapFutureBuddy);
 	}
 
 	// @see com.aelitis.azureus.activities.VuzeActivitiesEntry#toMap()
 	public Map toMap() {
 		Map map = super.toMap();
 
-		Map mapFutureBuddy = new HashMap();
-		mapFutureBuddy.put("login-id", futureBuddyLoginID);
-		mapFutureBuddy.put("display-name", futureBuddyDisplayName);
-
-		map.put("buddy", mapFutureBuddy);
+		if (buddy != null) {
+			map.put("buddy", buddy.toMap());
+		}
 		return map;
-	}
-
-	public String getFutureBuddyLoginID() {
-		return futureBuddyLoginID;
-	}
-
-	public String getFutureBuddyDisplayName() {
-		return futureBuddyDisplayName;
 	}
 }

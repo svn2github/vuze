@@ -21,6 +21,9 @@ package com.aelitis.azureus.buddy.impl;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
@@ -33,6 +36,7 @@ import com.aelitis.azureus.core.crypto.VuzeCryptoListener;
 import com.aelitis.azureus.core.crypto.VuzeCryptoManager;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.*;
+import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.plugins.net.buddy.*;
 import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.Constants;
@@ -124,6 +128,7 @@ public class VuzeBuddyManager
 							PlatformKeyExchangeMessenger.setPublicKey();
 						}
 
+						//PlatformKeyExchangeMessenger.getPassword(null);
 						if (VuzeCryptoManager.getSingleton().isUnlocked()) {
 							log("Logging in.. already unlocked");
 						} else {
@@ -133,9 +138,8 @@ public class VuzeBuddyManager
 						}
 
 						PlatformBuddyMessenger.sync(null);
+						PlatformBuddyMessenger.getInvites();
 					}
-
-					PlatformBuddyMessenger.getInvites();
 				}
 			});
 
@@ -470,7 +474,8 @@ public class VuzeBuddyManager
 			buddy_mon.enter();
 
 			if (!buddyList.contains(buddy)) {
-				log("Add new buddy '" + buddy.getDisplayName() + "' to Manager");
+				log("Add new buddy '" + buddy.getDisplayName() + "' to Manager; #pk:"
+						+ buddy.getPublicKeys().length);
 				buddyList.add(buddy);
 
 				if (createActivityEntry) {
@@ -686,44 +691,136 @@ public class VuzeBuddyManager
 		return pluginBuddy;
 	}
 
-	public static void invitePKs(String[] pks) {
-		final String myPK;
-		try {
-			myPK = VuzeCryptoManager.getSingleton().getPublicKey(null);
-		} catch (VuzeCryptoException e) {
-			Debug.out(e);
-			return;
+	private static void invitePKs(String[] pks, String code) {
+		if (pks != null && pks.length > 0) {
+			final String myPK;
+			try {
+				myPK = VuzeCryptoManager.getSingleton().getPublicKey(null);
+			} catch (VuzeCryptoException e) {
+				Debug.out(e);
+				return;
+			}
+			final LoginInfo userInfo = LoginInfoManager.getInstance().getUserInfo();
+
+			final BuddyPluginBuddy[] pluginBuddies = new BuddyPluginBuddy[pks.length];
+			for (int i = 0; i < pks.length; i++) {
+				String pk = pks[i];
+
+				pluginBuddies[i] = buddyPlugin.addBuddy(pk, BuddyPlugin.SUBSYSTEM_AZ3);
+			}
+
+			// Webapp will store invite info for User B.  We just need to tell them
+			// to sync up if we can
+
+			// Wait 10 seconds after adding a buddy as we might find out they are online
+			// within that time (and be able to send the message directly)
+			SimpleTimer.addEvent("send invites", SystemTime.getOffsetTime(10000),
+					new TimerEventPerformer() {
+						public void perform(TimerEvent event) {
+							Map map = new HashMap();
+							map.put("VuzeMessageType", "CheckInvites");
+
+							sendPayloadMap(map, pluginBuddies);
+						}
+					});
 		}
-		final LoginInfo userInfo = LoginInfoManager.getInstance().getUserInfo();
-
-		final BuddyPluginBuddy[] pluginBuddies = new BuddyPluginBuddy[pks.length];
-		for (int i = 0; i < pks.length; i++) {
-			String pk = pks[i];
-
-			pluginBuddies[i] = buddyPlugin.addBuddy(pk, BuddyPlugin.SUBSYSTEM_AZ3);
-		}
-
-		// Webapp will store invite info for User B.  We just need to tell them
-		// to sync up if we can
-
-		// Wait 10 seconds after adding a buddy as we might find out they are online
-		// within that time (and be able to send the message directly)
-		SimpleTimer.addEvent("send invites", SystemTime.getOffsetTime(10000),
-				new TimerEventPerformer() {
-					public void perform(TimerEvent event) {
-						Map map = new HashMap();
-						map.put("VuzeMessageType", "CheckInvites");
-
-						sendPayloadMap(map, pluginBuddies);
-					}
-				});
 	}
 
-	public static void inviteNonVuzers(String[] codes) {
-		for (int i = 0; i < codes.length; i++) {
-			String code = codes[i];
-			VuzeQueuedShares.add(code);
+	/**
+	 * 
+	 * @param invites This is the map that comes from the webpage after it
+	 *                sends outs the invites
+	 * @param dm The download you wish to share
+	 * @param shareMessage The message the user typed to go with the share
+	 * @param existingPKs The public keys that should be notified
+	 *
+	 * @since 3.0.5.3
+	 */
+	public static void inviteWithShare(Map invites, DownloadManager dm,
+			String shareMessage, String[] existingPKs) {
+		
+		if (existingPKs != null) {
+  		for (int i = 0; i < existingPKs.length; i++) {
+  			String pk = existingPKs[i];
+  			VuzeBuddy v3Buddy = getBuddyByPK(pk);
+  			if (v3Buddy != null) {
+  				v3Buddy.shareDownload(dm, shareMessage);
+  			} else {
+  				// this is odd, maybe we are out of sync.. should store this
+  				// via queueShare, except with a PK..
+  			}
+  		}
 		}
+		
+		String inviteMessage = MapUtils.getMapString(invites, "message", null);
+		List sentInvitations = MapUtils.getMapList(invites, "sentInvitations",
+				Collections.EMPTY_LIST);
+
+		for (Iterator iter = sentInvitations.iterator(); iter.hasNext();) {
+			Map mapInvitation = (Map) iter.next();
+
+			boolean success = MapUtils.getMapBoolean(mapInvitation, "success", false);
+			if (success) {
+				String code = MapUtils.getMapString(mapInvitation, "code", null);
+
+				if (dm != null) {
+					queueShare(dm, shareMessage, code);
+				}
+				
+				List pkList = MapUtils.getMapList(mapInvitation, "pks",
+						Collections.EMPTY_LIST);
+				String[] newPKs = (String[]) pkList.toArray(new String[0]);
+
+				VuzeBuddyManager.invitePKs(newPKs, code);
+			}
+		}
+	}
+
+	private static void queueShare(DownloadManager dm, String message, String code) {
+		if (dm == null) {
+			return;
+		}
+		TOTorrent torrent = dm.getTorrent();
+		if (torrent == null) {
+			return;
+		}
+
+		HashWrapper hashWrapper = null;
+		try {
+			hashWrapper = torrent.getHashWrapper();
+		} catch (TOTorrentException e) {
+		}
+
+		if (hashWrapper == null) {
+			return;
+		}
+
+		LoginInfo userInfo = LoginInfoManager.getInstance().getUserInfo();
+		if (userInfo == null || userInfo.userID == null) {
+			// TODO: Login!
+			VuzeBuddyManager.log("Can't share download: Not logged in");
+		}
+
+		VuzeActivitiesEntry entry = new VuzeActivitiesEntry();
+
+		// make all shares unique (so if the user shares the same content twice,
+		// their buddy gets two entries)
+		entry.setID("Buddy-share-" + SystemTime.getCurrentTime());
+		String text = userInfo.userName + " is sharing "
+				+ PlatformTorrentUtils.getContentTitle(torrent) + " with you.";
+		if (message != null) {
+			text += "\n \nMessage from " + userInfo.userName + ":\n" + message;
+		}
+		entry.setText(text);
+		entry.setAssetHash(hashWrapper.toBase32String());
+		entry.setDownloadManager(dm);
+		entry.setShowThumb(true);
+		entry.setTypeID("buddy-share", true);
+		entry.setImageBytes(PlatformTorrentUtils.getContentThumbnail(torrent));
+
+		QueuedVuzeShare vuzeShare = VuzeQueuedShares.add(code);
+		vuzeShare.setDownloadHash(hashWrapper.toBase32String());
+		vuzeShare.setActivityEntry(entry);
 	}
 
 	/**
@@ -735,6 +832,7 @@ public class VuzeBuddyManager
 	 * @since 3.0.5.3
 	 */
 	public static void acceptInvite(final String code, final String pks[]) {
+		// sync will get new buddy connection
 		PlatformBuddyMessenger.sync(new VuzeBuddySyncListener() {
 			public void syncComplete() {
 				Map map = new HashMap();
@@ -882,6 +980,20 @@ public class VuzeBuddyManager
 		for (int i = 0; i < listenersArray.length; i++) {
 			VuzeBuddyListener l = (VuzeBuddyListener) listenersArray[i];
 			l.buddyChanged(buddy);
+		}
+	}
+
+	private void saveVuzeBuddies() {
+		try {
+			buddy_mon.enter();
+
+			// NOTE: Could probably be optimized so we don't search via walk through 
+			for (Iterator iter = buddyList.iterator(); iter.hasNext();) {
+				VuzeBuddy buddy = (VuzeBuddy) iter.next();
+
+			}
+		} finally {
+			buddy_mon.exit();
 		}
 	}
 }
