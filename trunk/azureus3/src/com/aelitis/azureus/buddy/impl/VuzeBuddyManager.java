@@ -60,6 +60,8 @@ public class VuzeBuddyManager
 
 	protected static final boolean ALLOW_ONLY_AZ3 = false;
 
+	private static final String SAVE_FILENAME = "v3.Buddies";
+
 	private static BuddyPlugin buddyPlugin = null;
 
 	private static List buddyList = new ArrayList();
@@ -732,26 +734,22 @@ public class VuzeBuddyManager
 	 *                sends outs the invites
 	 * @param dm The download you wish to share
 	 * @param shareMessage The message the user typed to go with the share
-	 * @param existingPKs The public keys that should be notified
+	 * @param buddies The buddies that should be notified
 	 *
 	 * @since 3.0.5.3
 	 */
 	public static void inviteWithShare(Map invites, DownloadManager dm,
-			String shareMessage, String[] existingPKs) {
-		
-		if (existingPKs != null) {
-  		for (int i = 0; i < existingPKs.length; i++) {
-  			String pk = existingPKs[i];
-  			VuzeBuddy v3Buddy = getBuddyByPK(pk);
-  			if (v3Buddy != null) {
-  				v3Buddy.shareDownload(dm, shareMessage);
-  			} else {
-  				// this is odd, maybe we are out of sync.. should store this
-  				// via queueShare, except with a PK..
-  			}
-  		}
+			String shareMessage, VuzeBuddy[] buddies) {
+
+		if (buddies != null) {
+			for (int i = 0; i < buddies.length; i++) {
+				VuzeBuddy v3Buddy = buddies[i];
+				if (v3Buddy != null) {
+					v3Buddy.shareDownload(dm, shareMessage);
+				}
+			}
 		}
-		
+
 		String inviteMessage = MapUtils.getMapString(invites, "message", null);
 		List sentInvitations = MapUtils.getMapList(invites, "sentInvitations",
 				Collections.EMPTY_LIST);
@@ -766,7 +764,7 @@ public class VuzeBuddyManager
 				if (dm != null) {
 					queueShare(dm, shareMessage, code);
 				}
-				
+
 				List pkList = MapUtils.getMapList(mapInvitation, "pks",
 						Collections.EMPTY_LIST);
 				String[] newPKs = (String[]) pkList.toArray(new String[0]);
@@ -984,16 +982,32 @@ public class VuzeBuddyManager
 	}
 
 	private void saveVuzeBuddies() {
+		Map mapSave = new HashMap();
+		List storedBuddyList = new ArrayList();
+		mapSave.put("buddies", storedBuddyList);
+
 		try {
 			buddy_mon.enter();
 
-			// NOTE: Could probably be optimized so we don't search via walk through 
 			for (Iterator iter = buddyList.iterator(); iter.hasNext();) {
 				VuzeBuddy buddy = (VuzeBuddy) iter.next();
 
+				if (buddy != null) {
+					storedBuddyList.add(buddy.toMap());
+				}
 			}
 		} finally {
 			buddy_mon.exit();
 		}
+
+		FileUtil.writeResilientConfigFile(SAVE_FILENAME, mapSave);
+	}
+
+	private void loadVuzeBuddies() {
+		Map map = BDecoder.decodeStrings(FileUtil.readResilientConfigFile(SAVE_FILENAME));
+
+		List storedBuddyList = MapUtils.getMapList(map, "buddies",
+				Collections.EMPTY_LIST);
+
 	}
 }
