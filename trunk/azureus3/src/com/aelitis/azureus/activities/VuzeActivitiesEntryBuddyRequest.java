@@ -52,12 +52,6 @@ public class VuzeActivitiesEntryBuddyRequest
 				+ "?" + Constants.URL_SUFFIX + "&client_ref=buddy-request";
 		String urlAccept = Constants.appendURLSuffix(acceptURL);
 
-		// temporary
-		Map map = new HashMap();
-		map.put("buddy", buddy.toMap());
-		urlAccept = UrlUtils.encode("AZMSG;0;buddy;accept;"
-				+ JSONUtils.encodeToJSON(map));
-
 		setText("<A HREF=\"" + urlUser + "\">" + buddy.getDisplayName()
 				+ "</A> wants to be your buddy\n \n" + "  <A HREF=\"" + urlAccept
 				+ "\">OMG, OF COURSE I ACCEPT!</A>");
