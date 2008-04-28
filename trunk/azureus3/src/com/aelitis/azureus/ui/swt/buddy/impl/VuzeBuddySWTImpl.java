@@ -19,9 +19,13 @@
 package com.aelitis.azureus.ui.swt.buddy.impl;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -43,13 +47,13 @@ public class VuzeBuddySWTImpl
 	private Image avatarImage;
 
 	private boolean ourAvatarImage;
-	
+
 	/**
 	 * 
 	 */
 	public VuzeBuddySWTImpl(String publicKey) {
 		super(publicKey);
-		
+
 		//temp.. give user an icon..
 		setAvatarImage(ImageRepository.getImage("azureus128"));
 	}
@@ -58,8 +62,6 @@ public class VuzeBuddySWTImpl
 	}
 
 	public void setAvatar(byte[] avatar) {
-		super.setAvatar(avatar);
-
 		disposeOldAvatarImage();
 
 		if (avatar == null) {
@@ -74,17 +76,33 @@ public class VuzeBuddySWTImpl
 		InputStream is = new ByteArrayInputStream(avatar);
 		avatarImage = new Image(display, is);
 		ourAvatarImage = true;
+
+		// triggers listener
+		super.setAvatar(avatar);
 	}
 
 	public Image getAvatarImage() {
 		return avatarImage;
 	}
 
-	public void setAvatarImage(Image avatarImage) {
+	public void setAvatarImage(final Image avatarImage) {
 		disposeOldAvatarImage();
 
 		this.avatarImage = avatarImage;
 		ourAvatarImage = false;
+
+		if (avatarImage != null) {
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					ImageLoader loader = new ImageLoader();
+					ByteArrayOutputStream os = new ByteArrayOutputStream();
+					loader.data = new ImageData[] {
+						avatarImage.getImageData()
+					};
+					loader.save(os, SWT.IMAGE_PNG);
+				}
+			});
+		}
 	}
 
 	private void disposeOldAvatarImage() {

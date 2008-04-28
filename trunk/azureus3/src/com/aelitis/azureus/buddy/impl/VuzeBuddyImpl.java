@@ -30,6 +30,7 @@ import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
+import com.aelitis.azureus.util.ImageDownloader;
 import com.aelitis.azureus.util.LoginInfoManager;
 import com.aelitis.azureus.util.MapUtils;
 import com.aelitis.azureus.util.LoginInfoManager.LoginInfo;
@@ -53,6 +54,8 @@ public class VuzeBuddyImpl
 	private long lastUpdated;
 
 	private byte[] avatar;
+	
+	private String avatarURL;
 
 	private List pluginBuddies = new ArrayList();
 
@@ -87,9 +90,15 @@ public class VuzeBuddyImpl
 				if (avatarB32 != null) {
 					avatarBytes = Base32.decode(avatarB32);
 				} else {
-					String avatarURL = MapUtils.getMapString(mapNewBuddy, "avatar.URL", null);
-					if (avatarURL != null) {
-						
+					String newAvatarURL = MapUtils.getMapString(mapNewBuddy, "avatar.url", null);
+					if (newAvatarURL != null && !newAvatarURL.equals(avatarURL)) {
+						avatarURL = newAvatarURL;
+						ImageDownloader.loadImage(avatarURL, new ImageDownloader.ImageDownloaderListener() {
+							public void imageDownloaded(byte[] image) {
+								VuzeBuddyManager.log("Got new avatar!");
+								setAvatar(image);
+							}
+						});
 					}
 				}
 			}
@@ -109,6 +118,8 @@ public class VuzeBuddyImpl
 		
 		List pks = Arrays.asList(getPublicKeys());
 		map.put("pks", pks);
+		
+		map.put("avatar", avatar);
 
 		return map;
 	}
@@ -147,6 +158,7 @@ public class VuzeBuddyImpl
 
 	public void setAvatar(byte[] avatar) {
 		this.avatar = avatar;
+		VuzeBuddyManager.triggerChangeListener(this);
 	}
 
 	public boolean isOnline() {
