@@ -850,7 +850,7 @@ public class FakeTableCell
 
 	public void mouseDown(MouseEvent e) {
 		try{
-			if ( 	composite == null || 
+			if ( 	composite == null || composite.getMenu() != null || 
 					( cellMouseListeners != null && cellMouseListeners.size() > 0 ) ||
 					text == null || text.length() == 0 ){
 		
