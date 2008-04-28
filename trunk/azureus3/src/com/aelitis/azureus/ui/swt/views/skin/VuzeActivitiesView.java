@@ -40,6 +40,7 @@ import com.aelitis.azureus.activities.VuzeActivitiesListener;
 import com.aelitis.azureus.activities.VuzeActivitiesManager;
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
+import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
 import com.aelitis.azureus.ui.common.RememberedDecisionsManager;
 import com.aelitis.azureus.ui.common.table.*;
@@ -128,14 +129,16 @@ public class VuzeActivitiesView
 					}
 				} else if (e.keyCode == SWT.F11) {
 					PlatformRelayMessenger.fetch(0);
+					PlatformBuddyMessenger.sync(null);
+					PlatformBuddyMessenger.getInvites();
 				} else if (e.keyCode == SWT.F12) {
 
 					if (e.stateMask == SWT.ALT) {
-						InputShell is = new InputShell("Invite", "Enter Public Key:");
-						String txt = is.open();
-						if (txt != null) {
-							VuzeBuddyManager.invitePKs(new String[] { txt });
-						}
+						//InputShell is = new InputShell("Invite", "Enter Public Key:");
+						//String txt = is.open();
+						//if (txt != null) {
+						//	VuzeBuddyManager.invitePKs(new String[] { txt }, null);
+						//}
 					} else {
 						//VuzeActivitiesEntryBuddyRequest entry = new VuzeActivitiesEntryBuddyRequest(
 						//		"ArronM", "TuxPaper");
