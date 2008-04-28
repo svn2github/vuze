@@ -45,6 +45,7 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.components.BufferedLabel;
 import org.gudy.azureus2.ui.swt.views.table.impl.FakeTableCell;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 
@@ -142,11 +143,11 @@ TorrentInfoView
 		label.setText( MessageText.getString( TEXT_PREFIX + "torrent.encoding" ) + ": " );
 
 		TOTorrent	torrent = download_manager.getTorrent();
-		label = new Label(gTorrentInfo, SWT.NULL);
+		BufferedLabel blabel = new BufferedLabel(gTorrentInfo, SWT.NULL);
 		gridData = new GridData();
 		
-		label.setLayoutData( gridData );
-		label.setText(torrent==null?"":LocaleTorrentUtil.getCurrentTorrentEncoding( torrent ));
+		blabel.setLayoutData( gridData );
+		blabel.setText(torrent==null?"":LocaleTorrentUtil.getCurrentTorrentEncoding( torrent ));
 		
 			// trackers
 		
@@ -228,10 +229,10 @@ TorrentInfoView
 			}
 		}
 		
-		label = new Label(gTorrentInfo, SWT.NULL);
+		blabel = new BufferedLabel(gTorrentInfo, SWT.NULL);
 		gridData = new GridData();
-		label.setLayoutData( gridData );
-		label.setText( trackers );
+		blabel.setLayoutData( gridData );
+		blabel.setText( trackers );
 
 		
 			// columns

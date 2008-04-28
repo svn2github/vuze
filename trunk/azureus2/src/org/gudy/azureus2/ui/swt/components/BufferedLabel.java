@@ -26,13 +26,27 @@ package org.gudy.azureus2.ui.swt.components;
  *
  */
 
+
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.MenuAdapter;
+import org.eclipse.swt.events.MenuEvent;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.GridData;
+import org.gudy.azureus2.core3.internat.MessageText;
 
 public class 
 BufferedLabel
@@ -50,6 +64,57 @@ BufferedLabel
 		super( new Label( composite, attrs ));
 		
 		label = (Label)getWidget();
+		
+		label.addMouseListener(
+			new MouseAdapter()
+			{
+				public void 
+				mouseDown(
+					MouseEvent e) 
+				{
+					if ( label.getMenu() != null || value.length() == 0 ){
+						
+						return;
+					}
+					
+					if (!(e.button == 3 || (e.button == 1 && e.stateMask == SWT.CONTROL))){
+						
+						return;
+					}
+					
+					Menu menu = new Menu(label.getShell(),SWT.POP_UP);
+					
+					MenuItem   item = new MenuItem( menu,SWT.NONE );
+					
+					item.setText( MessageText.getString( "ConfigView.copy.to.clipboard.tooltip"));
+
+					item.addSelectionListener(
+						new SelectionAdapter()
+						{
+							public void 
+							widgetSelected(
+								SelectionEvent arg0) 
+							{
+				    			new Clipboard(label.getDisplay()).setContents(new Object[] {value}, new Transfer[] {TextTransfer.getInstance()});
+							}
+						});
+					
+					label.setMenu( menu );
+					
+					menu.setVisible( true );
+					
+					menu.addMenuListener(
+						new MenuAdapter()
+						{
+							public void 
+							menuHidden(
+								MenuEvent arg0 )
+							{
+								label.setMenu( null );
+							}
+						});
+				}
+			});
 	}
 		
 	public boolean

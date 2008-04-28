@@ -24,13 +24,19 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
@@ -843,7 +849,61 @@ public class FakeTableCell
 	}
 
 	public void mouseDown(MouseEvent e) {
-		invokeMouseListeners(buildMouseEvent(e, TableCellMouseEvent.EVENT_MOUSEDOWN));
+		try{
+			if ( 	composite == null || 
+					( cellMouseListeners != null && cellMouseListeners.size() > 0 ) ||
+					text == null || text.length() == 0 ){
+		
+				return;
+			}
+			
+			if (!(e.button == 3 || (e.button == 1 && e.stateMask == SWT.CONTROL))){
+			
+				return;
+			}
+		
+			Menu menu = new Menu(composite.getShell(),SWT.POP_UP);
+			
+			MenuItem   item = new MenuItem( menu,SWT.NONE );
+			
+			item.setText( MessageText.getString( "ConfigView.copy.to.clipboard.tooltip"));
+	
+			item.addSelectionListener(
+				new SelectionAdapter()
+				{
+					public void 
+					widgetSelected(
+						SelectionEvent arg0) 
+					{
+						if ( !composite.isDisposed() && text != null && text.length() > 0 ){
+		    			
+							new Clipboard(composite.getDisplay()).setContents(new Object[] {text}, new Transfer[] {TextTransfer.getInstance()});
+						}
+					}
+				});
+			
+			composite.setMenu( menu );
+			
+			menu.setVisible( true );
+			
+			menu.addMenuListener(
+				new MenuAdapter()
+				{
+					public void 
+					menuHidden(
+						MenuEvent arg0 )
+					{
+						if ( !composite.isDisposed()){
+						
+							composite.setMenu( null );
+						}
+					}
+				});
+
+		}finally{
+		
+			invokeMouseListeners(buildMouseEvent(e, TableCellMouseEvent.EVENT_MOUSEDOWN));
+		}
 	}
 
 	public void mouseDoubleClick(MouseEvent e) {
