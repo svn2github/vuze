@@ -116,10 +116,11 @@ public class VuzeQueuedShares
 
 	/**
 	 * @param code
+	 * @return 
 	 *
 	 * @since 3.0.5.3
 	 */
-	public static void add(String code) {
+	public static QueuedVuzeShare add(String code) {
 		QueuedVuzeShare share = new QueuedVuzeShare();
 		share.setCode(code);
 		
@@ -129,5 +130,6 @@ public class VuzeQueuedShares
 		} finally {
 			shares_mon.exit();
 		}
+		return share;
 	}
 }
