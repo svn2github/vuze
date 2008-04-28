@@ -27,17 +27,16 @@ package org.gudy.azureus2.pluginsimpl.local.ui.components;
  *
  */
 
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
-import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.core3.util.FrequencyLimitedDispatcher;
-
-import org.gudy.azureus2.plugins.ui.components.*;
+import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.ui.components.UIPropertyChangeListener;
+import org.gudy.azureus2.plugins.ui.components.UITextArea;
 
 
 public class 
@@ -46,6 +45,7 @@ UITextAreaImpl
 	implements 	UITextArea
 {
 	private int	max_size		= DEFAULT_MAX_SIZE;
+	private int max_file_size = 20 * max_size;
 	
 	PrintWriter pw;
 	
@@ -126,6 +126,11 @@ UITextAreaImpl
 		if (useFile && pw != null) {
 			try {
 				file_mon.enter();
+				
+				// shrink the file occasionally
+				if(file.length() > max_file_size)
+					getFileText();
+				
 				pw.print(text);
 				pw.flush();
 				return;
