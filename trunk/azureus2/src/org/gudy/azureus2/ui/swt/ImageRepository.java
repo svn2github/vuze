@@ -258,6 +258,12 @@ public class ImageRepository {
         im.dispose();
     }
   }
+  
+  public static Image getRandomImage() {
+		Object[] ids = imagesToPath.keySet().toArray();
+		int rnd = (int) (Math.random() * ids.length);
+		return getImage((String) ids[rnd]);
+	}
 
   public static Image getImage(String name) {
   	if (NO_IMAGES) {
