@@ -26,8 +26,8 @@ import java.util.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.events.FocusEvent;
-import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.graphics.Color;
@@ -50,35 +50,47 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAZ2;
-import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAZ2Listener;
-import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAZ2ChatListener;
 
 public class 
 BuddyPluginViewChat 
-	implements BuddyPluginAZ2Listener
+	implements BuddyPluginAZ2ChatListener
 {
-	public static final int CHAT_MSG_TYPE_TEXT	= 1;
+	private BuddyPlugin						plugin;
+	private BuddyPluginAZ2.chatInstance		chat;
 	
-	private BuddyPlugin			plugin;
 	private LocaleUtilities		lu;
 	
 	private Shell 		shell;
 	private StyledText 	log;
 	private Table		buddy_table;
 	
-	private List		buddies = new ArrayList();
+	private List		participants = new ArrayList();
 	
 	protected
 	BuddyPluginViewChat(
-		BuddyPlugin			_plugin,
-		Display 			_display,
-		LocaleUtilities		_lu )
+		BuddyPlugin						_plugin,
+		Display 						_display,
+		BuddyPluginAZ2.chatInstance		_chat )
 	{
 		plugin	= _plugin;
-		lu		= _lu;
+		chat	= _chat;
+		
+		lu		= plugin.getPluginInterface().getUtilities().getLocaleUtilities();
 		
 		shell = new Shell( _display, SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MIN | SWT.MAX );
 
+		shell.addDisposeListener(
+			new DisposeListener()
+			{
+				public void 
+				widgetDisposed(
+					DisposeEvent arg0 ) 
+				{
+					closed();
+				}
+			});
+		
 		shell.setText( lu.getLocalisedMessageText( "azbuddy.chat.title" ));
 				
 		Utils.setShellIcon(shell);
@@ -152,14 +164,14 @@ BuddyPluginViewChat
 					
 					int index = buddy_table.indexOf(item);
 	
-					if ( index < 0 || index >= buddies.size()){
+					if ( index < 0 || index >= participants.size()){
 						
 						return;
 					}
 					
-					BuddyPluginBuddy	buddy = (BuddyPluginBuddy)buddies.get(index);
+					BuddyPluginAZ2.chatParticipant	participant = (BuddyPluginAZ2.chatParticipant)participants.get(index);
 					
-					item.setText(0, buddy.getName());					
+					item.setText(0, participant.getNickName());					
 				}
 			});
 		
@@ -215,7 +227,16 @@ BuddyPluginViewChat
 			}
 		});
 		
-		plugin.getAZ2Handler().addListener( this );
+		BuddyPluginAZ2.chatParticipant[] existing_participants = chat.getParticipants();
+		
+		synchronized( participants ){
+			
+			participants.addAll( Arrays.asList( existing_participants ));
+		}
+		
+		updateTable();
+		
+		chat.addListener( this );
 		
 	    shell.pack();
 	    Utils.createURLDropTarget(shell, text);
@@ -226,7 +247,7 @@ BuddyPluginViewChat
 	protected void
 	updateTable()
 	{
-		buddy_table.setItemCount( buddies.size());
+		buddy_table.setItemCount( participants.size());
 		buddy_table.clearAll();
 		buddy_table.redraw();
 	}
@@ -234,18 +255,24 @@ BuddyPluginViewChat
 	protected void
 	close()
 	{
-		plugin.getAZ2Handler().removeListener( this );
-		
 		shell.dispose();
 	}
 	
 	protected void
-	addBuddy(
-		BuddyPluginBuddy		buddy )
+	closed()
 	{
-		synchronized( buddies ){
+		chat.removeListener( this );
+		
+		chat.destroy();
+	}
+	
+	public void
+	participantAdded(
+		BuddyPluginAZ2.chatParticipant		participant )
+	{
+		synchronized( participants ){
 			
-			buddies.add( buddy );
+			participants.add( participant );
 		}
 		
 		if ( !buddy_table.isDisposed()){
@@ -275,32 +302,16 @@ BuddyPluginViewChat
 		
 		Map	msg = new HashMap();
 		
-		msg.put( "type", new Long( CHAT_MSG_TYPE_TEXT ));
-		
 		msg.put( "line", text );
 		
-		for (int i=0;i<buddies.size();i++){
-			
-			plugin.getAZ2Handler().sendAZ2Chat((BuddyPluginBuddy)buddies.get(i), msg );
-		}
+		chat.sendMessage( msg );
 	}
 	
 	public void
 	messageReceived(
-		final BuddyPluginBuddy		buddy,
-		final int					type,
-		final Map					msg )
+		final BuddyPluginAZ2.chatParticipant	participant,
+		final Map								msg )
 	{
-		if ( type != BuddyPluginAZ2.RT_AZ2_REQUEST_CHAT ){
-			
-			return;
-		}
-		
-		if ( !buddies.contains( buddy )){
-			
-			return;
-		}
-		
 		if ( !log.isDisposed()){
 
 			log.getDisplay().asyncExec(
@@ -314,19 +325,14 @@ BuddyPluginViewChat
 								return;
 							}
 							
-							int	type = ((Long)msg.get( "type")).intValue();
+							byte[]	line = (byte[])msg.get( "line" );
 							
-							if ( type == CHAT_MSG_TYPE_TEXT ){
-							
-								byte[]	line = (byte[])msg.get( "line" );
+							try{
+								logChatMessage( participant.getNickName(), Colors.blue,new String( line, "UTF-8" ));
 								
-								try{
-									logChatMessage( buddy.getNickName(), Colors.blue,new String( line, "UTF-8" ));
-									
-								}catch( Throwable e ){
-									
-									Debug.printStackTrace(e);
-								}
+							}catch( Throwable e ){
+								
+								Debug.printStackTrace(e);
 							}
 						}
 					});

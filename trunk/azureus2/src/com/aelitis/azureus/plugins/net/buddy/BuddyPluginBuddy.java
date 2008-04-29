@@ -872,6 +872,9 @@ BuddyPluginBuddy
 	{
 		buddyConnection	bc = null;
 		
+		buddyMessage 	failed_msg 			= null;
+		Throwable		failed_msg_error 	= null;
+		
 		synchronized( this ){
 	
 			if ( current_message != null || messages.size() == 0 ){
@@ -914,11 +917,19 @@ BuddyPluginBuddy
 
 				}catch( Throwable e ){
 			
-					current_message.reportFailed( e );
-					
-					return;
+					failed_msg 			= current_message;
+					failed_msg_error	= e;
 				}
 			}
+		}
+		
+			// take outside sync block
+		
+		if ( failed_msg != null ){
+			
+			failed_msg.reportFailed( failed_msg_error );
+			
+			return;
 		}
 		
 		try{
@@ -1656,17 +1667,17 @@ BuddyPluginBuddy
 		{
 			boolean	send = false;
 			
+			BuddyPluginException	failed_error = null;
+			
+			buddyMessage 	cancelled_msg 		= null;
+
 			synchronized( this ){
 				
 				if ( active_message != null && !force ){
 					
 					Debug.out( "Inconsistent: active message already set" );
 					
-					BuddyPluginException error = new BuddyPluginException( "Inconsistent state" );
-					
-					failed( error );
-					
-					throw( error );
+					failed_error = new BuddyPluginException( "Inconsistent state" );
 					
 				}else if ( failed || closing ){
 					
@@ -1676,13 +1687,25 @@ BuddyPluginBuddy
 					
 					if ( active_message != null ){
 						
-						active_message.reportFailed( new BuddyPluginException( "Message cancelled" ));
+						cancelled_msg = active_message;
 					}
 					
 					active_message = message;
 					
 					send	= connected;
 				}
+			}
+			
+			if ( failed_error != null ){
+				
+				failed( failed_error );
+				
+				throw( failed_error );
+			}
+			
+			if ( cancelled_msg != null ){
+				
+				cancelled_msg.reportFailed( new BuddyPluginException( "Message cancelled" ));
 			}
 			
 			if ( send ){

@@ -21,11 +21,11 @@
 
 package com.aelitis.azureus.plugins.net.buddy;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.security.SecureRandom;
+import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.torrent.Torrent;
@@ -45,9 +45,17 @@ BuddyPluginAZ2
 	public static final int RT_AZ2_REQUEST_CHAT			= 5;
 	public static final int RT_AZ2_REPLY_CHAT			= 6;
 
+	
+	public static final int CHAT_MSG_TYPE_TEXT						= 1;
+	public static final int CHAT_MSG_TYPE_PARTICIPANTS_ADDED		= 2;
+	public static final int CHAT_MSG_TYPE_PARTICIPANTS_REMOVED		= 3;
+	
+
 	private static final int SEND_TIMEOUT = 2*60*1000;
 	
 	private BuddyPlugin		plugin;
+	
+	private Map				chats 		= new HashMap();
 	
 	private CopyOnWriteList	listeners = new CopyOnWriteList();
 	
@@ -154,31 +162,118 @@ BuddyPluginAZ2
 				throw( new BuddyPluginException( "Torrent receive failed " + type ));
 			}
 		}else if (  type == RT_AZ2_REQUEST_CHAT ){
-
-			Iterator	it = listeners.iterator();
 			
 			Map msg = (Map)request.get( "msg" );
 			
-			while( it.hasNext()){
+			String	id = new String((byte[])msg.get( "id" ));
 			
-				try{
-					((BuddyPluginAZ2Listener)it.next()).messageReceived( from_buddy, type, msg );
-					
-				}catch( Throwable e ){
-					
-					Debug.printStackTrace(e);
-				}
+			chatInstance	chat;
+			boolean			new_chat = false;
+			
+			synchronized( chats ){
+				
+				 chat = (chatInstance)chats.get( id );
+				 
+				 if ( chat == null ){
+					 
+					 if ( chats.size() > 32 ){
+						 
+						 throw( new BuddyPluginException( "Too many chats" ));
+					 }
+					 
+					 chat = new chatInstance( id );
+					 
+					 chats.put( id, chat );
+					 
+					 new_chat = true;
+				 }
 			}
 			
+			if ( new_chat ){
+			
+				informCreated( chat );
+			}
+			
+			chat.addParticipant( from_buddy );
+			
+			chat.process( from_buddy, msg );
+						
 			reply.put( "type", new Long( RT_AZ2_REPLY_CHAT ));
 			
 			return( reply );
+			
 		}else{
 			
 			throw( new BuddyPluginException( "Unrecognised request type " + type ));
 		}
 	}
 		
+	public chatInstance
+	createChat(
+		BuddyPluginBuddy[]		buddies )
+	{
+		byte[]	id_bytes = new byte[20];
+		
+		new SecureRandom().nextBytes( id_bytes );
+		
+		String	id = Base32.encode( id_bytes );
+		
+		chatInstance	chat;
+		
+		synchronized( chats ){
+
+			chat = new chatInstance( id );
+			
+			chats.put( id, chat );
+		}
+		
+		logMessage( "Chat " + chat.getID() + " created" );
+
+		informCreated( chat );
+					
+		chat.addParticipants( buddies, true );
+		
+		return( chat );
+	}
+	
+	protected void
+	destroyChat(
+		chatInstance	chat )
+	{
+		synchronized( chats ){
+
+			chats.remove( chat.getID());
+		}
+		
+		logMessage( "Chat " + chat.getID() + " destroyed" );
+		
+		informDestroyed( chat );
+	}
+	
+	protected void
+	informCreated(
+		chatInstance		chat )
+	{
+		Iterator	it = listeners.iterator();
+		
+		while( it.hasNext()){
+			
+			((BuddyPluginAZ2Listener)it.next()).chatCreated( chat );
+		}
+	}
+	
+	protected void
+	informDestroyed(
+		chatInstance		chat )
+	{
+		Iterator	it = listeners.iterator();
+		
+		while( it.hasNext()){
+			
+			((BuddyPluginAZ2Listener)it.next()).chatDestroyed( chat );
+		}
+	}
+	
 	public void
 	sendAZ2Message(
 		BuddyPluginBuddy	buddy,
@@ -198,7 +293,7 @@ BuddyPluginAZ2
 		}
 	}
 	
-	public void
+	protected void
 	sendAZ2Chat(
 		BuddyPluginBuddy	buddy,
 		Map					msg )
@@ -296,5 +391,283 @@ BuddyPluginAZ2
 		Throwable 	e )
 	{
 		plugin.logMessage( str + ": " + Debug.getNestedExceptionMessage(e));
+	}
+	
+	public class
+	chatInstance
+	{
+		private String		id;
+		
+		private Map				participants 	= new HashMap();
+		private CopyOnWriteList	listeners 		= new CopyOnWriteList();
+		
+		protected
+		chatInstance(
+			String		_id )
+		{
+			id		= _id;
+		}
+		
+		public String
+		getID()
+		{
+			return( id );
+		}
+		
+		protected void
+		process(
+			BuddyPluginBuddy	from_buddy,
+			Map					msg )
+		{
+			chatParticipant p = getParticipant( from_buddy );
+			
+			int	type = ((Long)msg.get( "type")).intValue();
+			
+			if ( type == CHAT_MSG_TYPE_TEXT ){
+		
+				Iterator it = listeners.iterator();
+				
+				while( it.hasNext()){
+					
+					try{
+						((BuddyPluginAZ2ChatListener)it.next()).messageReceived( p, msg );
+						
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
+					}
+				}
+			}else if ( type == CHAT_MSG_TYPE_PARTICIPANTS_ADDED ){
+				
+				List added = (List)msg.get( "p" );
+				
+				for (int i=0;i<added.size();i++){
+					
+					Map	participant = (Map)added.get(i);
+					
+					String pk = new String((byte[])participant.get( "pk" ));
+					
+					if ( !pk.equals( plugin.getPublicKey())){
+					
+						addParticipant( pk );
+					}
+				}
+			}
+		}
+		
+		public void
+		sendMessage(
+			Map		msg )
+		{
+			msg.put( "type", new Long( CHAT_MSG_TYPE_TEXT ));
+			
+			sendMessageBase( msg );
+		}
+		
+		protected void
+		sendMessageBase(
+			Map		msg )
+		{
+			Map	ps;
+			
+			synchronized( participants ){
+				
+				ps = new HashMap( participants );
+			}
+			
+			msg.put( "id", id );
+			
+			Iterator it = ps.values().iterator();
+			
+			while( it.hasNext()){
+				
+				chatParticipant participant = (chatParticipant)it.next();
+				
+				if ( participant.isAuthorised()){
+					
+					sendAZ2Chat( participant.getBuddy(), msg );
+				}
+			}
+		}
+		
+		protected chatParticipant
+		getParticipant(
+			BuddyPluginBuddy	buddy )
+		{
+			return( addParticipant( buddy ));
+		}
+		
+		public chatParticipant
+		addParticipant(
+			String		pk )
+		{
+			chatParticipant p;
+			
+			BuddyPluginBuddy buddy = plugin.getBuddyFromPublicKey( pk );
+			
+			synchronized( participants ){
+				
+				p = (chatParticipant)participants.get( pk );
+
+				if ( p != null ){
+					
+					return( p );
+				}
+				
+				if ( buddy == null ){
+				
+					p = new chatParticipant( pk );
+					
+				}else{
+					
+					p = new chatParticipant( buddy );
+				}
+				
+				participants.put( pk, p );
+			}
+			
+			Iterator it = listeners.iterator();
+			
+			while( it.hasNext()){
+				
+				try{
+					((BuddyPluginAZ2ChatListener)it.next()).participantAdded( p );
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
+			
+			return( p );
+		}
+		
+		public chatParticipant
+		addParticipant(
+			BuddyPluginBuddy	buddy )
+		{
+			return( addParticipant( buddy.getPublicKey()));
+		}
+		
+		public void
+		addParticipants(
+			BuddyPluginBuddy[]		buddies,
+			boolean					inform_others )
+		{
+			for (int i=0;i<buddies.length;i++ ){
+				
+				addParticipant( buddies[i] );
+			}
+			
+			if ( inform_others ){
+			
+				Map	msg = new HashMap();
+				
+				msg.put( "type", new Long( CHAT_MSG_TYPE_PARTICIPANTS_ADDED ));
+				
+				List	added = new ArrayList();
+				
+				msg.put( "p", added );
+				
+				for ( int i=0;i<buddies.length;i++){
+				
+					Map map = new HashMap();
+					
+					map.put( "pk", buddies[i].getPublicKey());
+					
+					added.add( map );
+				}
+				
+				sendMessageBase( msg );
+			}
+		}
+
+		public chatParticipant[]
+		getParticipants()
+		{
+			synchronized( participants ){
+
+				chatParticipant[]	res = new chatParticipant[participants.size()];
+				
+				participants.values().toArray( res );
+				
+				return( res );
+			}
+		}
+		
+		public void
+		destroy()
+		{
+			destroyChat( this );
+		}
+		
+		public void
+		addListener(
+			BuddyPluginAZ2ChatListener		listener )
+		{
+			listeners.add( listener );
+		}
+		
+		public void
+		removeListener(
+			BuddyPluginAZ2ChatListener		listener )
+		{
+			listeners.remove( listener );
+		}
+	}
+	
+	public class
+	chatParticipant
+	{
+		private BuddyPluginBuddy	buddy;
+		private String				public_key;
+		
+		protected
+		chatParticipant(
+			BuddyPluginBuddy		_buddy )
+		{
+			buddy = _buddy;
+		}
+		
+		protected
+		chatParticipant(
+			String			pk  )
+		{
+			public_key = pk;
+		}
+		
+		public boolean
+		isAuthorised()
+		{
+			return( buddy != null );
+		}
+		
+		public BuddyPluginBuddy
+		getBuddy()
+		{
+			return( buddy );
+		}
+		
+		public String
+		getPublicKey()
+		{
+			if ( buddy != null ){
+				
+				return( buddy.getPublicKey());
+			}
+			
+			return( public_key );
+		}
+		
+		public String
+		getNickName()
+		{
+			if ( buddy != null ){
+				
+				return( buddy.getNickName());
+			}
+			
+			return( public_key.substring( 0,16) + "...");
+		}
 	}
 }

@@ -560,14 +560,16 @@ BuddyPluginViewInstance
 				{
 					TableItem[] selection = buddy_table.getSelection();
 					
-					BuddyPluginViewChat chat = new BuddyPluginViewChat( plugin, chat_item.getDisplay(), lu );
+					BuddyPluginBuddy[] buddies = new BuddyPluginBuddy[selection.length];
 					
 					for (int i=0;i<selection.length;i++){
 						
 						BuddyPluginBuddy buddy = (BuddyPluginBuddy)selection[i].getData();
 
-						chat.addBuddy( buddy );
+						buddies[i] = buddy;
 					}
+								
+					plugin.getAZ2Handler().createChat( buddies );
 				};
 			});
 		
@@ -1103,7 +1105,7 @@ BuddyPluginViewInstance
 				{
 					if ( !buddy_table.isDisposed()){
 						
-						buddy_table.getDisplay().syncExec(
+						buddy_table.getDisplay().asyncExec(
 							new Runnable()
 							{
 								public void

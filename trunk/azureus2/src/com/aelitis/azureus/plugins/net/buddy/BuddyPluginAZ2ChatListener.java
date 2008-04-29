@@ -1,5 +1,5 @@
 /*
- * Created on Apr 26, 2008
+ * Created on Apr 29, 2008
  * Created by Paul Gardner
  * 
  * Copyright 2008 Vuze, Inc.  All rights reserved.
@@ -21,15 +21,17 @@
 
 package com.aelitis.azureus.plugins.net.buddy;
 
+import java.util.Map;
 
 public interface 
-BuddyPluginAZ2Listener 
+BuddyPluginAZ2ChatListener 
 {
 	public void
-	chatCreated(
-		BuddyPluginAZ2.chatInstance		chat );
+	messageReceived(
+		BuddyPluginAZ2.chatParticipant	participant,
+		Map								msg );
 	
 	public void
-	chatDestroyed(
-		BuddyPluginAZ2.chatInstance		chat );
+	participantAdded(
+		BuddyPluginAZ2.chatParticipant	participant );
 }

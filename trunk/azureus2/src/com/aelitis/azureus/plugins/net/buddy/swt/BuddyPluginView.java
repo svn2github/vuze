@@ -21,12 +21,17 @@
 
 package com.aelitis.azureus.plugins.net.buddy.swt;
 
+import java.util.Map;
+
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAZ2;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAZ2Listener;
 
 
 public class 
@@ -45,6 +50,39 @@ BuddyPluginView
 	{
 		plugin			= _plugin;
 		ui_instance		= _ui_instance;
+		
+		plugin.getAZ2Handler().addListener(
+			new BuddyPluginAZ2Listener()
+			{
+				public void
+				chatCreated(
+					final BuddyPluginAZ2.chatInstance		chat )
+				{
+					final Display display = ui_instance.getDisplay();
+					
+					if ( !display.isDisposed()){
+						
+						display.asyncExec(
+							new Runnable()
+							{
+								public void
+								run()
+								{
+									if ( !display.isDisposed()){
+									
+										new BuddyPluginViewChat( plugin, display, chat );
+									}
+								}
+							});
+					}
+				}
+				
+				public void
+				chatDestroyed(
+					BuddyPluginAZ2.chatInstance		chat )
+				{
+				}
+			});
 	}
 	
 	public boolean 
