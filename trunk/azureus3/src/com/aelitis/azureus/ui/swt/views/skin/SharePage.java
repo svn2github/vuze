@@ -1,5 +1,6 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -9,8 +10,12 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -18,6 +23,7 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -28,6 +34,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
+import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractBuddyPageListener;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
@@ -208,7 +215,7 @@ public class SharePage
 		detailLayout.marginHeight = 8;
 		contentDetail.setLayout(detailLayout);
 
-		buddyImage = new Label(contentDetail, SWT.BORDER);
+		buddyImage = new Label(contentDetail, SWT.NONE);
 		FormData buddyImageData = new FormData();
 		buddyImageData.top = new FormAttachment(0, 8);
 		buddyImageData.left = new FormAttachment(0, 8);
@@ -349,7 +356,6 @@ public class SharePage
 				VuzeBuddy[] buddies = (VuzeBuddy[]) selectedBuddies.toArray(new VuzeBuddy[selectedBuddies.size()]);
 				VuzeBuddyManager.inviteWithShare(confirmationResponse,
 						getDownloadManager(), "share message goes here", buddies);
-				
 
 			}
 
@@ -418,10 +424,47 @@ public class SharePage
 
 	public void setDownloadManager(DownloadManager dm) {
 		this.dm = dm;
+
+		if (null != dm) {
+			BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
+			if (null != viewer) {
+				viewer.setShareMode(true);
+			}
+			getDetailPanel().show(true, PAGE_ID);
+		}
 	}
 
 	public DownloadManager getDownloadManager() {
 		return dm;
+	}
+
+	public void refresh() {
+		BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
+		if (null != viewer) {
+			setBuddies(viewer.getSelection());
+		}
+
+		ByteArrayInputStream bis = new ByteArrayInputStream(
+				PlatformTorrentUtils.getContentThumbnail(dm.getTorrent()));
+		final Image img = new Image(Display.getDefault(), bis);
+
+		Rectangle bounds = img.getBounds();
+		
+		buddyImage.setImage(img);
+		FormData fData = (FormData)buddyImage.getLayoutData();
+		fData.height = bounds.height;
+		fData.width = bounds.width;
+		contentDetail.layout(true);
+		
+		contentDetail.addDisposeListener(new DisposeListener() {
+
+			public void widgetDisposed(DisposeEvent e) {
+				if (null != img && false == img.isDisposed()) {
+					img.dispose();
+				}
+
+			}
+		});
 	}
 
 }

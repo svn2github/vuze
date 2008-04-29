@@ -92,7 +92,15 @@ public class DetailPanel
 		 * Create the Share flow page
 		 */
 
-		addPage(new SharePage(this));
+		SharePage sharePage = new SharePage(this);
+
+		/*
+		 * Add to manager to make it accessible from the menu and other places
+		 */
+		VuzeShareUtils.getInstance().setSharePage(sharePage);
+
+		addPage(sharePage);
+
 		/*
 		 * Create the Invite flow page
 		 */
@@ -234,7 +242,9 @@ public class DetailPanel
 					 * Move the specified page on top if found
 					 */
 					if (true == pages.containsKey(pageID)) {
-						stackLayout.topControl = ((IDetailPage) pages.get(pageID)).getControl();
+						IDetailPage page = ((IDetailPage) pages.get(pageID));
+						page.refresh();
+						stackLayout.topControl = page.getControl();
 						detailPanel.layout();
 					}
 

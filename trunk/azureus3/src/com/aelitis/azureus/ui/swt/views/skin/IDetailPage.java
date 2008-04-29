@@ -14,6 +14,8 @@ public interface IDetailPage
 	public Control getControl();
 
 	public DetailPanel getDetailPanel();
-	
+
 	public ClientMessageContext getMessageContext();
+
+	public void refresh();
 }

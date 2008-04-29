@@ -17,9 +17,6 @@ public class VuzeShareUtils
 	}
 
 	public void shareTorrent(DownloadManager dm) {
-		System.out.println("Sharing:");//KN: sysout
-		System.out.println("\t: " + dm.getDisplayName());//KN: sysout
-
 		dm.getTorrent();
 
 		if (null != sharePage) {

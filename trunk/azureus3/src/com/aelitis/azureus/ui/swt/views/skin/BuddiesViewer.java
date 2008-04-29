@@ -271,7 +271,7 @@ public class BuddiesViewer
 	}
 
 	private VuzeBuddySWT[] getBuddies() {
-		VuzeBuddySWT[] buddies = new VuzeBuddySWT[100];
+		VuzeBuddySWT[] buddies = new VuzeBuddySWT[50];
 		for (int i = 0; i < buddies.length; i++) {
 			buddies[i] = (VuzeBuddySWT) VuzeBuddyUtils.createRandomBuddy();
 			buddies[i].setDisplayName("Mr Random " + i);
