@@ -23,8 +23,6 @@ public class LoginInfoManager
 
 	private String userID = "no.user.id.has.been.set";
 
-	private boolean isNewOrUpdated = true;
-	
 	private String pk = null;
 
 	private List listeners = new ArrayList();
@@ -64,20 +62,35 @@ public class LoginInfoManager
 		return new LoginInfo();
 	}
 
-	public void setUserInfo(String userName, String userID, boolean isNewOrUpdated, String pk) {
-		if (this.userName != userName || this.userID != userID) {
+	public void setUserInfo(String userName, String userID, String pk) {
+		boolean changed = false;
+		boolean isNewLoginID = false;
+		if (!("" + userName).equals(this.userName)) {
+			System.out.println("name changed from " + this.userName + " to " + userName);
 			this.userName = userName;
+			changed = true;
+			isNewLoginID = true;
+		}
+		if (!("" + userID).equals(this.userID)) {
+			System.out.println("uid changed from " + this.userID + " to " + userID);
 			this.userID = userID;
-			this.isNewOrUpdated = isNewOrUpdated;
+			changed = true;
+		}
+		if (!("" + pk).equals(this.pk)) {
+			System.out.println("pk changed from " + this.pk + " to " + pk);
 			this.pk = pk;
-			notifyListeners();
+			changed = true;
+		}
+
+		if (changed) {
+			notifyListeners(isNewLoginID);
 		}
 	}
 
-	private void notifyListeners() {
+	private void notifyListeners(boolean isNewLoginID) {
 
 		for (Iterator iterator = listeners.iterator(); iterator.hasNext();) {
-			((ILoginInfoListener) iterator.next()).loginUpdate(new LoginInfo());
+			((ILoginInfoListener) iterator.next()).loginUpdate(new LoginInfo(), isNewLoginID);
 		}
 
 	}
@@ -87,8 +100,6 @@ public class LoginInfoManager
 		public final String userName = LoginInfoManager.this.userName;
 
 		public final String userID = LoginInfoManager.this.userID;
-
-		public final boolean isNewOrUpdated = LoginInfoManager.this.isNewOrUpdated;
 
 		/**
 		 * The public key that the webapp thinks we have

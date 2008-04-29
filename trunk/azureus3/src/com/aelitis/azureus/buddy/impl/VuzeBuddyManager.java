@@ -113,7 +113,10 @@ public class VuzeBuddyManager
 			});
 
 			LoginInfoManager.getInstance().addListener(new ILoginInfoListener() {
-				public void loginUpdate(LoginInfo info) {
+				public void loginUpdate(LoginInfo info, boolean isNewLoginID) {
+					if (!isNewLoginID) {
+						return;
+					}
 					if (info.userID == null || info.userID.length() == 0) {
 						// not logged in
 						log("Logging out.. clearing password");

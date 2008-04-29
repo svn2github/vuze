@@ -186,8 +186,8 @@ public class UserAreaUtils
 		 * Listens for changes in the login state and update the UI appropriately
 		 */
 		LoginInfoManager.getInstance().addListener(new ILoginInfoListener() {
-			public void loginUpdate(LoginInfo info) {
-				synchLoginStates(info.userName, info.userID, info.isNewOrUpdated);
+			public void loginUpdate(LoginInfo info, boolean isNewLoginID) {
+				synchLoginStates(info.userName, info.userID, isNewLoginID);
 			}
 		});
 	}
@@ -200,7 +200,7 @@ public class UserAreaUtils
 	 */
 	private void synchLoginStates(String userName, String userID,
 			boolean isNewOrUpdated) {
-		updateLoginLabels(userName, userID);
+		updateLoginLabels(userName, userID); 
 		/*
 		 * Reset browser tabs if the login state has changed
 		 */

@@ -7,5 +7,5 @@ import com.aelitis.azureus.util.LoginInfoManager.LoginInfo;
 
 public interface ILoginInfoListener
 {
-	public void loginUpdate(LoginInfo info);
+	public void loginUpdate(LoginInfo info, boolean isNewLoginID);
 }
