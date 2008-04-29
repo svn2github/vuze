@@ -160,7 +160,16 @@ UIManagerImpl
 		String		section_name )
 	{
 		final BasicPluginConfigModel	model = new BasicPluginConfigModelImpl( this, parent_section, section_name );
-		configModels.add(model);
+		
+		try{
+  			class_mon.enter();
+		
+			configModels.add(model);
+			
+		}finally{
+			
+			class_mon.exit();
+		}
 		
 		fireEvent( UIManagerEvent.ET_PLUGIN_CONFIG_MODEL_CREATED, model );
 		
@@ -171,12 +180,31 @@ UIManagerImpl
 	destroy(
 		final BasicPluginConfigModel		model )
 	{
-		configModels.remove(model);
+		try{
+  			class_mon.enter();
+				
+			configModels.remove(model);
+	
+		}finally{
+			
+			class_mon.exit();
+		}
+		
 		fireEvent( UIManagerEvent.ET_PLUGIN_CONFIG_MODEL_DESTROYED, model );
 	}
 
-	public PluginConfigModel[] getPluginConfigModels() {
-		return (PluginConfigModel[]) configModels.toArray(new PluginConfigModel[0]);
+	public PluginConfigModel[] 
+	getPluginConfigModels() 
+	{
+		try{
+  			class_mon.enter();
+		
+			return (PluginConfigModel[]) configModels.toArray(new PluginConfigModel[0]);
+			
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
 	
 	public void
@@ -400,26 +428,37 @@ UIManagerImpl
   	addUIEventListener(
   		UIManagerEventListener listener )
   	{
+  		List	ui_event_history_copy;
+  		
 		try{
   			class_mon.enter();
   			
   			ui_event_listeners.add( listener );
+  			
+  			ui_event_history_copy = new ArrayList( ui_event_history );
   			
   		}finally{
   			
   			class_mon.exit();
   		} 
   		
-  		for (int i=0;i<ui_event_history.size();i++){
-  			
-  			try{
-  				listener.eventOccurred((UIManagerEvent)ui_event_history.get(i));
-  				
-  			}catch( Throwable e ){
-  				
-  				Debug.printStackTrace(e);
-  			}
-  		}
+		try{
+  			class_mon.enter();
+		
+	  		for (int i=0;i<ui_event_history_copy.size();i++){
+	  			
+	  			try{
+	  				listener.eventOccurred((UIManagerEvent)ui_event_history_copy.get(i));
+	  				
+	  			}catch( Throwable e ){
+	  				
+	  				Debug.printStackTrace(e);
+	  			}
+	  		}
+		}finally{
+			
+			class_mon.exit();
+		}
   	}
   	
  	public void
@@ -499,7 +538,15 @@ UIManagerImpl
  			
  			delivered = true;
  			
- 			ui_event_history.add( event );
+ 			try{
+ 	  			class_mon.enter();
+ 			
+ 	  			ui_event_history.add( event );
+ 	  			
+ 			}finally{
+ 				
+ 				class_mon.exit();
+ 			}
  			
  		}else if ( 	type == UIManagerEvent.ET_PLUGIN_VIEW_MODEL_DESTROYED ||
  					type == UIManagerEvent.ET_PLUGIN_CONFIG_MODEL_DESTROYED ){
@@ -508,25 +555,32 @@ UIManagerImpl
  			
  			delivered = true;
  			
- 			Iterator 	history_it = ui_event_history.iterator();
+ 			try{
+ 	  			class_mon.enter();
  			
- 			while( history_it.hasNext()){
- 				
- 				UIManagerEvent	e = (UIManagerEvent)history_it.next();
- 			
- 				int	e_type = e.getType();
- 				
- 				if ( 	e_type == UIManagerEvent.ET_PLUGIN_VIEW_MODEL_CREATED ||
- 		 				e_type == UIManagerEvent.ET_PLUGIN_CONFIG_MODEL_CREATED ){
- 		 
- 					if ( e.getData() == event.getData()){
- 						
- 						history_it.remove();
- 						
- 						break;
- 					}
- 				}
- 			}
+	 			Iterator 	history_it = ui_event_history.iterator();
+	 			
+	 			while( history_it.hasNext()){
+	 				
+	 				UIManagerEvent	e = (UIManagerEvent)history_it.next();
+	 			
+	 				int	e_type = e.getType();
+	 				
+	 				if ( 	e_type == UIManagerEvent.ET_PLUGIN_VIEW_MODEL_CREATED ||
+	 		 				e_type == UIManagerEvent.ET_PLUGIN_CONFIG_MODEL_CREATED ){
+	 		 
+	 					if ( e.getData() == event.getData()){
+	 						
+	 						history_it.remove();
+	 						
+	 						break;
+	 					}
+	 				}
+	 			}
+	 		}finally{
+	 				
+	 			class_mon.exit();
+	 		}
  		}
  		
  		return( delivered );
