@@ -74,6 +74,8 @@ public class VuzeBuddyManager
 
 	private static List listeners = new ArrayList();
 
+	private static boolean skipSave = true;
+
 	/**
 	 * @param vuzeBuddyCreator
 	 *
@@ -172,6 +174,8 @@ public class VuzeBuddyManager
 		} catch (Throwable t) {
 			Debug.out(t);
 		}
+
+		skipSave = false;
 	}
 
 	/**
@@ -296,8 +300,10 @@ public class VuzeBuddyManager
 
 		// TODO create an addListener that triggers for existing buddies
 		buddyPlugin.addListener(listener);
+		boolean saveAfterAdd = false;
 		buddyPlugin.addRequestListener(requestListener);
 		List buddies = buddyPlugin.getBuddies();
+		saveAfterAdd = buddies.size() > 0;
 		for (int i = 0; i < buddies.size(); i++) {
 			BuddyPluginBuddy buddy = (BuddyPluginBuddy) buddies.get(i);
 			if (canHandleBuddy(buddy)) {
@@ -502,6 +508,8 @@ public class VuzeBuddyManager
 					});
 				}
 				triggerAddListener(buddy);
+
+				saveVuzeBuddies();
 			}
 
 		} finally {
@@ -850,6 +858,12 @@ public class VuzeBuddyManager
 	 * @since 3.0.5.3
 	 */
 	public static void acceptInvite(final String code, final String pks[]) {
+		VuzeActivitiesEntry entry = VuzeActivitiesManager.getEntryByID(VuzeActivitiesEntryBuddyRequest.buildID(code));
+		if (entry != null) {
+			VuzeActivitiesManager.removeEntries(new VuzeActivitiesEntry[] {
+				entry
+			});
+		}
 		// sync will get new buddy connection
 		PlatformBuddyMessenger.sync(new VuzeBuddySyncListener() {
 			public void syncComplete() {
@@ -1002,6 +1016,9 @@ public class VuzeBuddyManager
 	}
 
 	private static void saveVuzeBuddies() {
+		if (skipSave) {
+			return;
+		}
 		Map mapSave = new HashMap();
 		List storedBuddyList = new ArrayList();
 		mapSave.put("buddies", storedBuddyList);
