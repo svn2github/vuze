@@ -159,6 +159,12 @@ VuzeCryptoManager
 		}
 	}
 	
+	public boolean
+	hasPublicKey()
+	{
+		return crypt_man.getECCHandler().peekPublicKey() != null;
+	}
+	
 	public void
 	createNewKeys()
 	
