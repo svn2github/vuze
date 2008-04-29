@@ -51,7 +51,7 @@ public class PlatformBuddyMessenger
 
 	public static final String OP_INVITE = "invite";
 
-	public static final String OP_REMOVEBUDDY = "remove";
+	public static final String OP_REMOVEBUDDY = "ditch";
 
 	public static void sync(final VuzeBuddySyncListener l) {
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID_BUDDY,
@@ -221,7 +221,7 @@ public class PlatformBuddyMessenger
 	 */
 	public static void remove(VuzeBuddy buddy) {
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID_BUDDY,
-				OP_REMOVEBUDDY, new Object[] { "login-id", buddy.getLoginID() } , 1000);
+				OP_REMOVEBUDDY, new Object[] { "username", buddy.getLoginID() } , 1000);
 
 		PlatformMessengerListener listener = new PlatformMessengerListener() {
 
