@@ -441,24 +441,17 @@ UIManagerImpl
   			
   			class_mon.exit();
   		} 
-  		
-		try{
-  			class_mon.enter();
-		
-	  		for (int i=0;i<ui_event_history_copy.size();i++){
-	  			
-	  			try{
-	  				listener.eventOccurred((UIManagerEvent)ui_event_history_copy.get(i));
-	  				
-	  			}catch( Throwable e ){
-	  				
-	  				Debug.printStackTrace(e);
-	  			}
-	  		}
-		}finally{
-			
-			class_mon.exit();
-		}
+	
+  		for (int i=0;i<ui_event_history_copy.size();i++){
+  			
+  			try{
+  				listener.eventOccurred((UIManagerEvent)ui_event_history_copy.get(i));
+  				
+  			}catch( Throwable e ){
+  				
+  				Debug.printStackTrace(e);
+  			}
+  		}
   	}
   	
  	public void
