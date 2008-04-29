@@ -20,6 +20,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -79,6 +80,8 @@ public class SharePage
 	private List selectedBuddies = new ArrayList();
 
 	private Map confirmationResponse = null;
+
+	private DownloadManager dm = null;
 
 	public SharePage(DetailPanel detailPanel) {
 		super(detailPanel, PAGE_ID);
@@ -344,8 +347,9 @@ public class SharePage
 				getMessageContext().executeInBrowser("shareSubmit()");
 
 				VuzeBuddy[] buddies = (VuzeBuddy[]) selectedBuddies.toArray(new VuzeBuddy[selectedBuddies.size()]);
-				VuzeBuddyManager.inviteWithShare(confirmationResponse, null,
-						"share message goes here", buddies);
+				VuzeBuddyManager.inviteWithShare(confirmationResponse,
+						getDownloadManager(), "share message goes here", buddies);
+				
 
 			}
 
@@ -410,6 +414,14 @@ public class SharePage
 					browser, null, true);
 		}
 		return context;
+	}
+
+	public void setDownloadManager(DownloadManager dm) {
+		this.dm = dm;
+	}
+
+	public DownloadManager getDownloadManager() {
+		return dm;
 	}
 
 }
