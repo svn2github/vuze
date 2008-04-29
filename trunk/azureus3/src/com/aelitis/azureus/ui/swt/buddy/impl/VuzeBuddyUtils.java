@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
- 
+
 package com.aelitis.azureus.ui.swt.buddy.impl;
 
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -30,6 +30,7 @@ import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
  */
 public class VuzeBuddyUtils
 {
+
 	/**
 	 * Creates a random buddy.  Not actually stored anywhere..
 	 * 
@@ -38,16 +39,16 @@ public class VuzeBuddyUtils
 	 *
 	 * @since 3.0.5.3
 	 */
-	
+
 	public static VuzeBuddy createRandomBuddy() {
 		int x = (int) (Math.random() * 10000);
-		VuzeBuddySWTImpl buddy = new VuzeBuddySWTImpl("StupidKey" + x);
+		VuzeBuddySWTImpl buddy = new VuzeBuddySWTImpl();
 		buddy.setLoginID("Login" + x);
 		buddy.setDisplayName("Mr Random " + x);
 		buddy.setAvatarImage(ImageRepository.getRandomImage());
-		
+
 		VuzeBuddyManager.addBuddy(buddy, false);
-		
+
 		return buddy;
 	}
 }
