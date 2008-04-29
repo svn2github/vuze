@@ -65,18 +65,18 @@ public class LoginInfoManager
 	public void setUserInfo(String userName, String userID, String pk) {
 		boolean changed = false;
 		boolean isNewLoginID = false;
-		if (!("" + userName).equals(this.userName)) {
+		if (!("" + userName).equals("" + this.userName)) {
 			System.out.println("name changed from " + this.userName + " to " + userName);
 			this.userName = userName;
 			changed = true;
-			isNewLoginID = true;
 		}
-		if (!("" + userID).equals(this.userID)) {
+		if (!("" + userID).equals("" + this.userID)) {
 			System.out.println("uid changed from " + this.userID + " to " + userID);
 			this.userID = userID;
 			changed = true;
+			isNewLoginID = true;
 		}
-		if (!("" + pk).equals(this.pk)) {
+		if (!("" + pk).equals("" + this.pk)) {
 			System.out.println("pk changed from " + this.pk + " to " + pk);
 			this.pk = pk;
 			changed = true;

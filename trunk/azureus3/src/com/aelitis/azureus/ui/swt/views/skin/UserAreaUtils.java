@@ -40,6 +40,8 @@ public class UserAreaUtils
 
 	private UIFunctionsSWT uiFunctions = null;
 
+	private boolean firstLoginStateSync = true;
+
 	public UserAreaUtils(SWTSkin skin, UIFunctionsSWT uiFunctions) {
 		this.skin = skin;
 		this.uiFunctions = uiFunctions;
@@ -196,15 +198,21 @@ public class UserAreaUtils
 	 * Updates the login/logout labels and also resets all embedded browsers
 	 * @param userName
 	 * @param userID
-	 * @param isNewOrUpdated
+	 * @param isNewLoginID
 	 */
 	private void synchLoginStates(String userName, String userID,
-			boolean isNewOrUpdated) {
-		updateLoginLabels(userName, userID); 
+			boolean isNewLoginID) {
+		updateLoginLabels(userName, userID);
+		
+		if (firstLoginStateSync) {
+			firstLoginStateSync  = false;
+			return;
+		}
+		
 		/*
 		 * Reset browser tabs if the login state has changed
 		 */
-		if (true == isNewOrUpdated) {
+		if (true == isNewLoginID) {
 			/*
 			 * If the user has logged out (user name is null) then reset all pages to their original URL's
 			 */
