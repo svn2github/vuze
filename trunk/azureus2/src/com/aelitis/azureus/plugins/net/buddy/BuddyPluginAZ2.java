@@ -401,6 +401,8 @@ BuddyPluginAZ2
 		private Map				participants 	= new HashMap();
 		private CopyOnWriteList	listeners 		= new CopyOnWriteList();
 		
+		private List			history			= new ArrayList();
+		
 		protected
 		chatInstance(
 			String		_id )
@@ -426,6 +428,16 @@ BuddyPluginAZ2
 			if ( type == CHAT_MSG_TYPE_TEXT ){
 		
 				Iterator it = listeners.iterator();
+				
+				synchronized( history ){
+				
+					history.add( new chatMessage( p.getNickName(), msg ));
+					
+					if ( history.size() > 128 ){
+						
+						history.remove(0);
+					}
+				}
 				
 				while( it.hasNext()){
 					
@@ -490,6 +502,19 @@ BuddyPluginAZ2
 			}
 		}
 		
+		public chatMessage[]
+		getHistory()
+		{
+			synchronized( history ){
+				
+				chatMessage[]	res = new chatMessage[history.size()];
+				
+				history.toArray( res );
+				
+				return( res );
+			}
+		}
+	
 		protected chatParticipant
 		getParticipant(
 			BuddyPluginBuddy	buddy )
@@ -667,7 +692,35 @@ BuddyPluginAZ2
 				return( buddy.getNickName());
 			}
 			
-			return( public_key.substring( 0,16) + "...");
+			return( public_key );
+		}
+	}
+	
+	public class
+	chatMessage
+	{
+		private String		nick;
+		private Map			map;
+		
+		protected
+		chatMessage(
+			String			_nick,
+			Map				_map )
+		{
+			nick		= _nick;
+			map			= _map;
+		}
+		
+		public String
+		getNickName()
+		{
+			return( nick );
+		}
+		
+		public Map
+		getMessage()
+		{
+			return( map );
 		}
 	}
 }

@@ -236,6 +236,13 @@ BuddyPluginViewChat
 		
 		updateTable();
 		
+		BuddyPluginAZ2.chatMessage[] history = chat.getHistory();
+		
+		for (int i=0;i<history.length;i++){
+			
+			logChatMessage( history[i].getNickName(), Colors.blue, history[i].getMessage());
+		}
+		
 		chat.addListener( this );
 		
 	    shell.pack();
@@ -298,11 +305,17 @@ BuddyPluginViewChat
 	sendMessage(
 		String		text )
 	{
-		logChatMessage( plugin.getMyNick(), Colors.green, text );
-		
 		Map	msg = new HashMap();
 		
-		msg.put( "line", text );
+		try{
+			msg.put( "line", text.getBytes( "UTF-8" ));
+		
+		}catch( Throwable e ){
+			
+			msg.put( "line", text.getBytes());
+		}
+		
+		logChatMessage( plugin.getMyNick(), Colors.green, msg );
 		
 		chat.sendMessage( msg );
 	}
@@ -325,10 +338,8 @@ BuddyPluginViewChat
 								return;
 							}
 							
-							byte[]	line = (byte[])msg.get( "line" );
-							
 							try{
-								logChatMessage( participant.getNickName(), Colors.blue,new String( line, "UTF-8" ));
+								logChatMessage( participant.getNickName(), Colors.blue, msg );
 								
 							}catch( Throwable e ){
 								
@@ -343,8 +354,20 @@ BuddyPluginViewChat
 	logChatMessage(
 		String		buddy_name,
 		Color 		colour,
-		String		msg )
+		Map			map )
 	{
+		byte[]	line = (byte[])map.get( "line" );
+		
+		String msg;
+		
+		try{
+			msg = new String( line, "UTF-8" );
+			
+		}catch( Throwable e ){
+			
+			msg = new String( line );
+		}
+
 		if ( buddy_name.length() > 32 ){
 			
 			buddy_name = buddy_name.substring(0,16) + "...";
