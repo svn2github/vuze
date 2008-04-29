@@ -1,8 +1,6 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.MouseMoveListener;
@@ -17,6 +15,8 @@ import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.MessageBox;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -60,6 +60,12 @@ public class AvatarWidget
 
 	private Color textLinkColor = null;
 
+	private Rectangle decoratorBounds = null;
+
+	private int alpha = 255;
+	
+	private boolean sharedAlready = false;
+
 	public AvatarWidget(BuddiesViewer viewer, Point avatarSize,
 			Point avatarImageSize, VuzeBuddySWT vuzeBuddy) {
 
@@ -90,6 +96,8 @@ public class AvatarWidget
 		final Image add_to_share_Image = ImageRepository.getImage("add_to_share");
 
 		imageOffsetX = (avatarSize.x / 2) - (avatarImageSize.x / 2);
+		decoratorBounds = new Rectangle(imageOffsetX + avatarImageSize.x - 13, 0,
+				16, 16);
 
 		//		avatarCanvas = new Canvas(parent, SWT.NONE);
 
@@ -148,6 +156,8 @@ public class AvatarWidget
 		rData.height = avatarSize.y;
 		avatarCanvas.setLayoutData(rData);
 
+		avatarCanvas.setToolTipText(vuzeBuddy.getLoginID());
+
 		final Image avatar = vuzeBuddy.getAvatarImage();
 		final Rectangle bounds = avatar.getBounds();
 		avatarCanvas.addPaintListener(new PaintListener() {
@@ -155,6 +165,7 @@ public class AvatarWidget
 			public void paintControl(PaintEvent e) {
 
 				e.gc.setAntialias(SWT.ON);
+				e.gc.setAlpha(alpha);
 
 				/*
 				 * Draw backgound if the widget is selected
@@ -162,18 +173,18 @@ public class AvatarWidget
 				if (true == isSelected) {
 
 					e.gc.setBackground(Colors.grey);
-					e.gc.setAlpha(128);
+					e.gc.setAlpha((int) (alpha * .5));
 
 					Rectangle bounds = avatarCanvas.getBounds();
 
 					e.gc.fillRoundRectangle(0, 0, bounds.width - 1, bounds.height - 1,
 							10, 10);
-					e.gc.setAlpha(255);
+					e.gc.setAlpha(alpha);
 					e.gc.setBackground(avatarCanvas.getBackground());
 				}
 
 				/*
-				 * Draw hightlight borders is the widget is activated (being hovered over)
+				 * Draw hightlight borders if the widget is activated (being hovered over)
 				 */
 				if (true == isActivated) {
 
@@ -188,19 +199,30 @@ public class AvatarWidget
 				/*
 				 * Draw the avatar image
 				 */
-				e.gc.drawImage(avatar, 0, 0, bounds.width, bounds.height, imageOffsetX
-						+ borderWidth, borderWidth, avatarImageSize.x - (2 * borderWidth),
-						avatarImageSize.y - (2 * borderWidth));
-
 				if (true == isEditMode) {
-					e.gc.drawImage(removeImage, 0, 0, removeImage.getBounds().width,
-							removeImage.getBounds().height, 46, 0, 16, 16);
+					e.gc.setAlpha((int) (alpha * .7));
+					e.gc.drawImage(avatar, 0, 0, bounds.width, bounds.height,
+							imageOffsetX + borderWidth, borderWidth, avatarImageSize.x
+									- (2 * borderWidth), avatarImageSize.y - (2 * borderWidth));
+					e.gc.setAlpha(alpha);
+				} else {
+					e.gc.drawImage(avatar, 0, 0, bounds.width, bounds.height,
+							imageOffsetX + borderWidth, borderWidth, avatarImageSize.x
+									- (2 * borderWidth), avatarImageSize.y - (2 * borderWidth));
 				}
 
-				if (true == isShareMode) {
+				/*
+				 * Draw decorator
+				 */
+				if (true == isEditMode) {
+					e.gc.drawImage(removeImage, 0, 0, removeImage.getBounds().width,
+							removeImage.getBounds().height, decoratorBounds.x,
+							decoratorBounds.y, decoratorBounds.width, decoratorBounds.height);
+				} else if (true == isShareMode && false == sharedAlready) {
 					e.gc.drawImage(add_to_share_Image, 0, 0,
 							removeImage.getBounds().width, removeImage.getBounds().height,
-							46, 18, 16, 16);
+							decoratorBounds.x, decoratorBounds.y, decoratorBounds.width,
+							decoratorBounds.height);
 				}
 
 				/*
@@ -217,19 +239,6 @@ public class AvatarWidget
 							new Rectangle(0, avatarImageSize.y, avatarSize.x, avatarSize.y
 									- avatarImageSize.y), false, false, SWT.TOP | SWT.CENTER);
 
-				}
-			}
-		});
-
-		avatarCanvas.addDisposeListener(new DisposeListener() {
-
-			public void widgetDisposed(DisposeEvent e) {
-				if (null != removeImage && false == removeImage.isDisposed()) {
-					removeImage.dispose();
-				}
-				if (null != add_to_share_Image
-						&& false == add_to_share_Image.isDisposed()) {
-					add_to_share_Image.dispose();
 				}
 			}
 		});
@@ -261,6 +270,12 @@ public class AvatarWidget
 			public void mouseDown(MouseEvent e) {
 				if (e.y > avatarImageSize.y && e.stateMask != SWT.MOD1) {
 					doLinkClicked();
+				} else if (decoratorBounds.contains(e.x, e.y)) {
+					if (true == isEditMode()) {
+						doRemoveBuddy();
+					} else if (true == isShareMode()) {
+						doAddBuddyToShare();
+					}
 				} else {
 					if (e.stateMask == SWT.MOD1) {
 						viewer.select(vuzeBuddy, !isSelected, true);
@@ -278,9 +293,34 @@ public class AvatarWidget
 		avatarCanvas.addMouseMoveListener(new MouseMoveListener() {
 			private boolean lastActiveState = false;
 
+			private String lastTooltipText = avatarCanvas.getToolTipText();
+
 			public void mouseMove(MouseEvent e) {
 				if (e.stateMask == SWT.MOD1) {
 					return;
+				}
+
+				/*
+				 * Optimization employed to minimize how often the tooltip text is updated;
+				 * updating too frequently causes the tooltip to 'stick' to the cursor which
+				 * can be annoying
+				 */
+				String tooltipText = "";
+				if (decoratorBounds.contains(e.x, e.y)) {
+					if (true == isEditMode()) {
+						tooltipText = "Remove";
+					} else if (true == isShareMode() && false == sharedAlready) {
+						tooltipText = "Add to share";
+					} else {
+						tooltipText = vuzeBuddy.getLoginID();
+					}
+				} else {
+					tooltipText = vuzeBuddy.getLoginID();
+				}
+
+				if (false == tooltipText.equals(lastTooltipText)) {
+					avatarCanvas.setToolTipText(tooltipText);
+					lastTooltipText = tooltipText;
 				}
 
 				if (e.y > avatarImageSize.y) {
@@ -299,6 +339,43 @@ public class AvatarWidget
 
 			}
 		});
+	}
+
+	private void doRemoveBuddy() {
+		MessageBox mBox = new MessageBox(parent.getShell(), SWT.ICON_QUESTION
+				| SWT.YES | SWT.NO);
+		mBox.setMessage("Really delete?");
+		if (SWT.NO == mBox.open()) {
+			return;
+		}
+
+		parent.getDisplay().asyncExec(new AERunnable() {
+
+			public void runSupport() {
+
+				while (alpha > 20) {
+					alpha -= 30;
+					avatarCanvas.redraw();
+					avatarCanvas.update();
+
+					try {
+						Thread.sleep(50);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+
+				viewer.remove(AvatarWidget.this);
+			}
+		});
+
+	}
+
+	private void doAddBuddyToShare() {
+		viewer.addToShare(this);
+		sharedAlready = true;
+		avatarCanvas.redraw();
+		avatarCanvas.update();
 	}
 
 	public void doHover() {
@@ -322,7 +399,7 @@ public class AvatarWidget
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if (null != uiFunctions) {
 			String url = Constants.URL_PREFIX + Constants.URL_PROFILE + "?"
-					+ Constants.URL_SUFFIX;
+					+ getVuzeBuddy().getLoginID() + Constants.URL_SUFFIX;
 			uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0, 0, true,
 					true);
 		}
@@ -389,5 +466,11 @@ public class AvatarWidget
 
 	public void setTextLinkColor(Color textLinkColor) {
 		this.textLinkColor = textLinkColor;
+	}
+
+	public void dispose() {
+		if (null != avatarCanvas && false == avatarCanvas.isDisposed()) {
+			avatarCanvas.dispose();
+		}
 	}
 }

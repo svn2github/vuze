@@ -46,6 +46,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.ui.swt.views.list.ListRow;
 import com.aelitis.azureus.ui.swt.views.list.ListView;
+import com.aelitis.azureus.ui.swt.views.skin.ShareUtils;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 import com.aelitis.azureus.util.Constants;
 
@@ -865,6 +866,15 @@ public class TorrentListView
 		});
 		itemExplore.setEnabled(hasSelection);
 
+		final MenuItem itemShare = new MenuItem(menu, SWT.PUSH);
+		Messages.setLanguageText(itemShare, "v3.Share.menu");
+		itemShare.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				shareTorrents();
+			}
+		});
+		itemShare.setEnabled(hasSelection);
+
 		if (org.gudy.azureus2.core3.util.Constants.isCVSVersion()) {
 			MenuItem itemAdvanced = new MenuItem(menu, SWT.CASCADE);
 			itemAdvanced.setText("CVS Version");
@@ -887,6 +897,20 @@ public class TorrentListView
 			DownloadManager dm = (DownloadManager) dataSources[i];
 			if (dm != null) {
 				ManagerUtils.open(dm);
+			}
+		}
+	}
+
+	private void shareTorrents() {
+		Object[] dataSources = getSelectedDataSources();
+		for (int i = dataSources.length - 1; i >= 0; i--) {
+			DownloadManager dm = (DownloadManager) dataSources[i];
+			if (dm != null) {
+				ShareUtils.getInstance().shareTorrent(dm);
+				/*
+				 * KN: we're only supporting sharing a single content right now
+				 */
+				break;
 			}
 		}
 	}

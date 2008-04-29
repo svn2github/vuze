@@ -1,5 +1,7 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import org.gudy.azureus2.ui.swt.Utils;
+
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
@@ -12,6 +14,14 @@ public class ButtonBar
 	extends SkinView
 {
 	private SWTSkin skin;
+
+	public static final int none_active_mode = 0;
+
+	public static final int edit_mode = 1;
+
+	public static final int share_mode = 2;
+
+	public static final int invite_mode = 3;
 
 	private SWTSkinButtonUtility editButton = null;
 
@@ -34,6 +44,45 @@ public class ButtonBar
 		hookShareButon();
 		hookAddBuddyButon();
 		return null;
+	}
+
+	public void setActiveMode(int mode) {
+
+		BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
+		if (null == viewer) {
+			return;
+		}
+
+		if (mode == none_active_mode) {
+			editButton.setDisabled(false);
+			shareButton.setDisabled(false);
+			addBuddyButton.setDisabled(false);
+			viewer.setEditMode(false);
+			viewer.setShareMode(false);
+			viewer.setAddBuddyMode(false);
+			return;
+
+		}
+		editButton.setDisabled(true);
+		shareButton.setDisabled(true);
+		addBuddyButton.setDisabled(true);
+		viewer.setEditMode(false);
+		viewer.setShareMode(false);
+		viewer.setAddBuddyMode(false);
+
+		if (mode == edit_mode) {
+			viewer.setEditMode(true);
+			shareButton.setDisabled(false);
+			addBuddyButton.setDisabled(false);
+		} else if (mode == share_mode) {
+			viewer.setShareMode(true);
+			editButton.setDisabled(false);
+			addBuddyButton.setDisabled(false);
+		} else if (mode == invite_mode) {
+			viewer.setAddBuddyMode(true);
+			shareButton.setDisabled(false);
+			editButton.setDisabled(false);
+		}
 	}
 
 	private void hookShowHideButon() {
@@ -60,6 +109,16 @@ public class ButtonBar
 								} else if (eventType == SWTSkinObjectListener.EVENT_SHOW) {
 									btnGo.setTextID("Button.bar.hide");
 								}
+								
+								Utils.execSWTThread(new Runnable() {
+									public void run() {
+										SWTSkinObject skinObject = showHideBuddiesObject;//skin.getSkinObject("user-area");
+										if (null != skinObject) {
+											Utils.relayout(skinObject.getControl().getParent());
+										}
+									}
+								});
+//								Utils.relayout(showHideBuddiesObject.getControl());
 								return null;
 							}
 						});
@@ -100,7 +159,7 @@ public class ButtonBar
 					}
 
 					viewer.setEditMode(!viewer.isEditMode());
-					if(true == viewer.isEditMode()){
+					if (true == viewer.isEditMode()) {
 						shareButton.setDisabled(true);
 						addBuddyButton.setDisabled(true);
 					} else {
@@ -139,12 +198,14 @@ public class ButtonBar
 						 * Calling the browser to set the inviteFromShare flag to false
 						 */
 						if (true == viewer.isShareMode()) {
-							IDetailPage invitePage = detailPanel.getPage(SharePage.PAGE_ID);
-							if (null != invitePage.getMessageContext()) {
-								invitePage.getMessageContext().executeInBrowser(
+							SharePage sharePage = (SharePage)detailPanel.getPage(SharePage.PAGE_ID);
+							if (null != sharePage.getMessageContext()) {
+								sharePage.getMessageContext().executeInBrowser(
 										"inviteFromShare(" + true + ")");
 							}
 
+							sharePage.setBuddies(viewer.getSelection());
+							
 							editButton.setDisabled(true);
 							addBuddyButton.setDisabled(true);
 						} else {
@@ -186,8 +247,7 @@ public class ButtonBar
 							}
 							editButton.setDisabled(true);
 							shareButton.setDisabled(true);
-						}
-						else{
+						} else {
 							editButton.setDisabled(false);
 							shareButton.setDisabled(false);
 						}
@@ -195,5 +255,17 @@ public class ButtonBar
 				}
 			});
 		}
+	}
+
+	public SWTSkinButtonUtility getEditButton() {
+		return editButton;
+	}
+
+	public SWTSkinButtonUtility getAddBuddyButton() {
+		return addBuddyButton;
+	}
+
+	public SWTSkinButtonUtility getShareButton() {
+		return shareButton;
 	}
 }

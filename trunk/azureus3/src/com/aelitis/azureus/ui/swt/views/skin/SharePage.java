@@ -1,6 +1,9 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
@@ -22,9 +25,11 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
+import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractBuddyPageListener;
+import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
 import com.aelitis.azureus.util.Constants;
 
 public class SharePage
@@ -47,12 +52,12 @@ public class SharePage
 
 	private Label addBuddyLabel;
 
-	private Composite buddyList;
+	private StyledText buddyList;
 
 	private Composite inviteePanel;
-	
+
 	private StyledText inviteeList;
-	
+
 	private Composite contentDetail;
 
 	private Button addBuddyButton;
@@ -67,11 +72,14 @@ public class SharePage
 
 	private Text commentText;
 
-	
 	private Browser browser = null;
-	
-	private ClientMessageContext context =null;
-	
+
+	private ClientMessageContext context = null;
+
+	private List selectedBuddies = new ArrayList();
+
+	private Map confirmationResponse = null;
+
 	public SharePage(DetailPanel detailPanel) {
 		super(detailPanel, PAGE_ID);
 	}
@@ -102,40 +110,40 @@ public class SharePage
 		buddyListDescription.setText("Selected buddies");
 		buddyListDescription.setForeground(Colors.white);
 
-
-		buddyList = new Composite(firstPanel, SWT.BORDER);
-//============		
+		buddyList = new StyledText(firstPanel, SWT.BORDER);
+		buddyList.setForeground(Colors.red);
+		//============		
 		inviteePanel = new Composite(firstPanel, SWT.BORDER);
 		FormLayout fLayout = new FormLayout();
-		fLayout.marginTop=0;
-		fLayout.marginBottom=0;
-		
+		fLayout.marginTop = 0;
+		fLayout.marginBottom = 0;
+
 		inviteePanel.setLayout(fLayout);
-		
+
 		inviteeList = new StyledText(inviteePanel, SWT.BORDER);
 		inviteeList.setForeground(Colors.yellow);
-		
+
 		addBuddyLabel = new Label(inviteePanel, SWT.NONE | SWT.WRAP | SWT.RIGHT);
 		addBuddyLabel.setText("Invite more buddies to share with");
 		addBuddyLabel.setForeground(Colors.white);
 
 		addBuddyButton = new Button(inviteePanel, SWT.PUSH);
 		addBuddyButton.setText("Add Buddy");
-		
+
 		FormData inviteePanelData = new FormData();
 		inviteePanelData.top = new FormAttachment(buddyList, 10);
-		inviteePanelData.left = new FormAttachment(buddyList,0,SWT.LEFT);
-		inviteePanelData.right = new FormAttachment(buddyList,0,SWT.RIGHT);
+		inviteePanelData.left = new FormAttachment(buddyList, 0, SWT.LEFT);
+		inviteePanelData.right = new FormAttachment(buddyList, 0, SWT.RIGHT);
 		inviteePanelData.height = 125;
 		inviteePanel.setLayoutData(inviteePanelData);
-		
+
 		FormData inviteeListData = new FormData();
 		inviteeListData.top = new FormAttachment(0, 0);
-		inviteeListData.left = new FormAttachment(0,0);
-		inviteeListData.right = new FormAttachment(100,0);
+		inviteeListData.left = new FormAttachment(0, 0);
+		inviteeListData.right = new FormAttachment(100, 0);
 		inviteeListData.height = 75;
 		inviteeList.setLayoutData(inviteeListData);
-		
+
 		FormData addBuddyButtonData = new FormData();
 		addBuddyButtonData.top = new FormAttachment(inviteeList, 8);
 		addBuddyButtonData.right = new FormAttachment(inviteeList, -8, SWT.RIGHT);
@@ -146,11 +154,10 @@ public class SharePage
 		addBuddyLabelData.right = new FormAttachment(addBuddyButton, -8);
 		addBuddyLabelData.left = new FormAttachment(inviteeList, 0, SWT.LEFT);
 		addBuddyLabel.setLayoutData(addBuddyLabelData);
-		
-//==============
-		
-		contentDetail = new Composite(firstPanel, SWT.BORDER);
 
+		//==============
+
+		contentDetail = new Composite(firstPanel, SWT.BORDER);
 
 		sendNowButton = new Button(firstPanel, SWT.PUSH);
 		sendNowButton.setText("Send Now");
@@ -182,8 +189,6 @@ public class SharePage
 		contentDetailData.right = new FormAttachment(100, -8);
 		contentDetailData.bottom = new FormAttachment(inviteePanel, 0, SWT.BOTTOM);
 		contentDetail.setLayoutData(contentDetailData);
-
-
 
 		FormData sendNowButtonData = new FormData();
 		sendNowButtonData.top = new FormAttachment(contentDetail, 8);
@@ -242,51 +247,66 @@ public class SharePage
 		/*
 		 * Add the appropriate messaging listeners
 		 */
-		getMessageContext().addMessageListener(new AbstractBuddyPageListener(browser) {
+		getMessageContext().addMessageListener(
+				new AbstractBuddyPageListener(browser) {
 
-			public void handleCancel() {
-				System.out.println("'Cancel' called from share->invite buddy page");//KN: sysout
-				activateFirstPanel();
-			}
+					public void handleCancel() {
+						System.out.println("'Cancel' called from share->invite buddy page");//KN: sysout
+						activateFirstPanel();
+					}
 
-			public void handleClose() {
-				System.out.println("'Close' called from share->invite buddy page");//KN: sysout
-				activateFirstPanel();
-			}
+					public void handleClose() {
+						System.out.println("'Close' called from share->invite buddy page");//KN: sysout
+						activateFirstPanel();
+					}
 
-			public void handleBuddyInvites() {
-				
-				Utils.execSWTThread(new AERunnable() {
-					public void runSupport() {
-						inviteeList.setText("");
-						for (Iterator iterator = getInvitedBuddies().iterator(); iterator.hasNext();) {
-							VuzeBuddy buddy = (VuzeBuddy)iterator.next();
-							inviteeList.append(buddy.getDisplayName() + "\n");
-							System.out.println("Invited budy displayName: " + buddy.getDisplayName() + " loginID: " + buddy.getLoginID());//KN:
-						}
-						inviteePanel.layout();
+					public void handleBuddyInvites() {
+
+						Utils.execSWTThread(new AERunnable() {
+							public void runSupport() {
+								inviteeList.setText("");
+								for (Iterator iterator = getInvitedBuddies().iterator(); iterator.hasNext();) {
+									VuzeBuddy buddy = (VuzeBuddy) iterator.next();
+									inviteeList.append(buddy.getDisplayName() + "\n");
+									System.out.println("Invited budy displayName: "
+											+ buddy.getDisplayName() + " loginID: "
+											+ buddy.getLoginID());//KN:
+								}
+								if (true == inviteeList.getCharCount() > 0) {
+									addBuddyButton.setText("Add or Remove Buddy");
+								} else {
+									addBuddyButton.setText("Add Buddy");
+								}
+								inviteePanel.layout();
+							}
+						});
+
+					}
+
+					public void handleEmailInvites() {
+						Utils.execSWTThread(new AERunnable() {
+							public void runSupport() {
+								for (Iterator iterator = getInvitedEmails().iterator(); iterator.hasNext();) {
+									inviteeList.append(iterator.next() + "\n");//KN:
+								}
+
+								if (true == inviteeList.getCharCount() > 0) {
+									addBuddyButton.setText("Add or Remove Buddy");
+								} else {
+									addBuddyButton.setText("Add Buddy");
+								}
+
+								inviteePanel.layout();
+							}
+						});
+
+					}
+
+					public void handleInviteConfirm() {
+						confirmationResponse = getConfirmationResponse();
+
 					}
 				});
-				
-			}
-
-			public void handleEmailInvites() {
-				Utils.execSWTThread(new AERunnable() {
-					public void runSupport() {
-						for (Iterator iterator = getInvitedEmails().iterator(); iterator.hasNext();) {
-							inviteeList.append(iterator.next() + "\n");//KN:
-						}
-						inviteePanel.layout();
-					}
-				});
-				
-			}
-
-			public void handleInviteConfirm() {
-				System.err.println("\tmessage" + getInvitedConfirmationMessage());//KN: sysout
-				
-			}
-		});
 	}
 
 	private void activateFirstPanel() {
@@ -313,28 +333,71 @@ public class SharePage
 				widgetSelected(e);
 			}
 		});
-		
-		
+
 		sendNowButton.addSelectionListener(new SelectionListener() {
-		
+
 			public void widgetSelected(SelectionEvent e) {
-//				String dummyBuddies
-				
-				getMessageContext().executeInBrowser(
-				"sendSharingBuddies('kkkkkkk')");
-				
-				getMessageContext().executeInBrowser(
-				"shareSubmit()");
-//				//TODO: send list of buddies to web
-//				getMessageContext().executeInBrowser(
-//						"getInviteConfirm()");
-		
+				//				String dummyBuddies
+
+				getMessageContext().executeInBrowser("sendSharingBuddies('kkkkkkk')");
+
+				getMessageContext().executeInBrowser("shareSubmit()");
+
+				VuzeBuddy[] buddies = (VuzeBuddy[]) selectedBuddies.toArray(new VuzeBuddy[selectedBuddies.size()]);
+				VuzeBuddyManager.inviteWithShare(confirmationResponse, null,
+						"share message goes here", buddies);
+
 			}
-		
+
 			public void widgetDefaultSelected(SelectionEvent e) {
 				widgetSelected(e);
 			}
 		});
+
+		cancelButton.addSelectionListener(new SelectionListener() {
+
+			public void widgetSelected(SelectionEvent e) {
+
+				/*
+				 * Tell the browser that we're canceling so it can re-initialize it's states
+				 */
+				getMessageContext().executeInBrowser("initialize()");
+
+				ButtonBar buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
+				if (null != buttonBar) {
+					buttonBar.setActiveMode(ButtonBar.none_active_mode);
+				}
+
+				getDetailPanel().show(false);
+
+			}
+
+			public void widgetDefaultSelected(SelectionEvent e) {
+				widgetSelected(e);
+			}
+		});
+	}
+
+	public void setBuddies(List buddies) {
+		selectedBuddies.clear();
+		buddyList.setText("");
+		for (Iterator iterator = buddies.iterator(); iterator.hasNext();) {
+			Object vuzeBuddy = iterator.next();
+			if (vuzeBuddy instanceof VuzeBuddySWT) {
+				selectedBuddies.add(vuzeBuddy);
+				buddyList.append(((VuzeBuddySWT) vuzeBuddy).getDisplayName() + "\n");
+			} else {
+				System.err.println("Bogus buddy: " + vuzeBuddy);//KN: sysout
+			}
+		}
+	}
+
+	public void addBuddy(VuzeBuddySWT vuzeBuddy) {
+		if (false == selectedBuddies.contains(vuzeBuddy)) {
+			selectedBuddies.add(vuzeBuddy);
+			buddyList.append(vuzeBuddy.getDisplayName() + "\n");
+			buddyList.layout();
+		}
 	}
 
 	public Control getControl() {

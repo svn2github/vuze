@@ -36,7 +36,9 @@ public abstract class AbstractBuddyPageListener
 
 	private List invitedEmails = new ArrayList();
 
-	private String confirmationMessage = null;
+	private Map confirmationResponse = null;
+
+	private String invitationMessage = "";
 
 	public AbstractBuddyPageListener(Browser browser) {
 		super(LISTENER_ID);
@@ -65,7 +67,6 @@ public abstract class AbstractBuddyPageListener
 					VuzeBuddy vBuddy = new VuzeBuddyImpl();
 					vBuddy.setDisplayName(map.get("displayName").toString());
 					vBuddy.setLoginID(map.get("name").toString());
-					//					vBuddy.addPublicKey(pk)
 					invitedBuddies.add(vBuddy);
 				}
 
@@ -79,10 +80,9 @@ public abstract class AbstractBuddyPageListener
 			}
 
 		} else if (true == OP_INVITE_CONFIRM.equals(opID)) {
-			if (true == decodedMap.containsKey(OP_INVITEES_PARAM_BUDDIES)) {
-				confirmationMessage = MapUtils.getMapString(decodedMap,
-						OP_INVITE_CONFIRM_PARAM_MSG, "");
-				handleInviteConfirm();
+			if (true == decodedMap.containsKey(OP_INVITE_CONFIRM_PARAM_MSG)) {
+				confirmationResponse = (Map) decodedMap.get(OP_INVITE_CONFIRM_PARAM_MSG);
+
 			}
 		}
 	}
@@ -95,7 +95,11 @@ public abstract class AbstractBuddyPageListener
 		return invitedEmails;
 	}
 
-	public String getInvitedConfirmationMessage() {
-		return confirmationMessage;
+	public Map getConfirmationResponse() {
+		return confirmationResponse;
+	}
+
+	public String getInvitationMessage() {
+		return invitationMessage;
 	}
 }

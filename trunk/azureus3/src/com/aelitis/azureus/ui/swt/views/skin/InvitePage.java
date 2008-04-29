@@ -60,11 +60,24 @@ public class InvitePage
 
 					public void handleCancel() {
 						System.out.println("'Cancel' called from invite buddy page");//KN: sysout
+						
+						ButtonBar	buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
+						if(null != buttonBar){
+							buttonBar.setActiveMode(ButtonBar.none_active_mode);
+						}
+
 						getDetailPanel().show(false);
+						
 					}
 
 					public void handleClose() {
 						System.out.println("'Close' called from invite buddy page");//KN: sysout
+						
+						ButtonBar	buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
+						if(null != buttonBar){
+							buttonBar.setActiveMode(ButtonBar.none_active_mode);
+						}
+
 						getDetailPanel().show(false);
 
 					}
@@ -79,7 +92,7 @@ public class InvitePage
 					}
 
 					public void handleInviteConfirm() {
-						System.out.println("'invite-confirm' called from invite buddy page");//KN: sysout
+						System.err.println("\t'invite-confirm' called from invite buddy page: " + getConfirmationResponse());//KN: sysout
 						
 					}
 				}

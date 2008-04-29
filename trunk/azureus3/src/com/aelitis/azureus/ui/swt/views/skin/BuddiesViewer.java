@@ -31,7 +31,7 @@ public class BuddiesViewer
 
 	private SWTSkin skin = null;
 
-	private int borderWidth = 3;
+	private int borderWidth = 5;
 
 	private Point avatarImageSize = new Point(40 + borderWidth, 40 + borderWidth);
 
@@ -49,6 +49,8 @@ public class BuddiesViewer
 	private Color textColor = null;
 
 	private Color textLinkColor = null;
+
+	private List sharedAvatars = new ArrayList();
 
 	public BuddiesViewer() {
 	}
@@ -181,8 +183,8 @@ public class BuddiesViewer
 				widget.setEditMode(value);
 				widget.refreshVisual();
 			}
-			
-			if(true == value){
+
+			if (true == value) {
 				setShareMode(false);
 				setAddBuddyMode(false);
 			}
@@ -219,6 +221,28 @@ public class BuddiesViewer
 		avatarWidgets.add(avatarWidget);
 
 		return avatarWidget;
+	}
+
+	public void remove(AvatarWidget widget) {
+		avatarWidgets.remove(widget);
+		widget.dispose();
+		avatarsPanel.layout(true);
+
+	}
+
+	/**
+	 * Return a list of <code>VuzeBuddySWT</code> that are currently selected
+	 * @return
+	 */
+	public List getSelection() {
+		List selected = new ArrayList();
+		for (Iterator iterator = avatarWidgets.iterator(); iterator.hasNext();) {
+			AvatarWidget widget = (AvatarWidget) iterator.next();
+			if (true == widget.isSelected()) {
+				selected.add(widget.getVuzeBuddy());
+			}
+		}
+		return selected;
 	}
 
 	public void select(VuzeBuddySWT buddy, boolean value, boolean appendSelection) {
@@ -264,9 +288,32 @@ public class BuddiesViewer
 		return isShareMode;
 	}
 
+	public void addToShare(AvatarWidget widget) {
+		sharedAvatars.add(widget);
+		
+		SkinView detailPanelView = SkinViewManager.get(DetailPanel.class);
+		if (detailPanelView instanceof DetailPanel) {
+			DetailPanel detailPanel = ((DetailPanel) detailPanelView);
+			SharePage sharePage = (SharePage)detailPanel.getPage(SharePage.PAGE_ID);
+			sharePage.addBuddy(widget.getVuzeBuddy());
+		}
+	}
+
+	public void removeFromShare(AvatarWidget widget) {
+		if (true == sharedAvatars.contains(widget)) {
+			sharedAvatars.remove(widget);
+		}
+	}
+
 	public void setShareMode(boolean isShareMode) {
 		if (this.isShareMode != isShareMode) {
 			this.isShareMode = isShareMode;
+
+			/*
+			 * Clears the shared list
+			 */
+			sharedAvatars.clear();
+
 			for (Iterator iterator = avatarWidgets.iterator(); iterator.hasNext();) {
 				AvatarWidget widget = (AvatarWidget) iterator.next();
 				widget.setShareMode(isShareMode);
