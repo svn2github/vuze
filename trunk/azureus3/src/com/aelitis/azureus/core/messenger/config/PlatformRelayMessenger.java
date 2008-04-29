@@ -260,6 +260,10 @@ public class PlatformRelayMessenger
 	}
 
 	public static void relayCheck() {
+		if (!VuzeCryptoManager.getSingleton().hasPublicKey()) {
+			return;
+		}
+
 		String myPK;
 		try {
 			myPK = VuzeCryptoManager.getSingleton().getPublicKey(null);
