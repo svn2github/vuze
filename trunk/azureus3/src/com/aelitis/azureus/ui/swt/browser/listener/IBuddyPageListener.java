@@ -1,6 +1,7 @@
 package com.aelitis.azureus.ui.swt.browser.listener;
 
 import java.util.List;
+import java.util.Map;
 
 public interface IBuddyPageListener
 {
@@ -36,6 +37,8 @@ public interface IBuddyPageListener
 
 	public List getInvitedEmails();
 	
-	public String getInvitedConfirmationMessage();
+	public Map getConfirmationResponse();
+	
+	public String getInvitationMessage();
 	
 }

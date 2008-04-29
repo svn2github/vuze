@@ -2,14 +2,14 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 
-public class ShareUtils
+public class VuzeShareUtils
 {
 
-	private static ShareUtils instance;
+	private static VuzeShareUtils instance;
 
-	public static ShareUtils getInstance() {
+	public static VuzeShareUtils getInstance() {
 		if (null == instance) {
-			instance = new ShareUtils();
+			instance = new VuzeShareUtils();
 		}
 		return instance;
 	}

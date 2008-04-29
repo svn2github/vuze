@@ -46,7 +46,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.ui.swt.views.list.ListRow;
 import com.aelitis.azureus.ui.swt.views.list.ListView;
-import com.aelitis.azureus.ui.swt.views.skin.ShareUtils;
+import com.aelitis.azureus.ui.swt.views.skin.VuzeShareUtils;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 import com.aelitis.azureus.util.Constants;
 
@@ -906,7 +906,7 @@ public class TorrentListView
 		for (int i = dataSources.length - 1; i >= 0; i--) {
 			DownloadManager dm = (DownloadManager) dataSources[i];
 			if (dm != null) {
-				ShareUtils.getInstance().shareTorrent(dm);
+				VuzeShareUtils.getInstance().shareTorrent(dm);
 				/*
 				 * KN: we're only supporting sharing a single content right now
 				 */

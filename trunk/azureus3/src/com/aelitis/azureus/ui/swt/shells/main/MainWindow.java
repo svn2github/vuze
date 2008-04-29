@@ -750,6 +750,8 @@ public class MainWindow
 			setVisible(WINDOW_ELEMENT_FOOTER,
 					COConfigurationManager.getBooleanParameter(configID));
 			
+			
+			
 			//================
 
 			increaseProgress(uiInitializer, null);
@@ -1052,11 +1054,10 @@ public class MainWindow
 		views.put("vuzeevents-list", VuzeActivitiesView.class);
 		
 		views.put(SkinConstants.VIEWID_BUTTON_BAR, ButtonBar.class);
-		
+		views.put(SkinConstants.VIEWID_BUDDIES_VIEWER, BuddiesViewer.class);
 		views.put(SkinConstants.VIEWID_FOOTER, Footer.class);
 		
 		views.put(SkinConstants.VIEWID_DETAIL_PANEL, DetailPanel.class);
-		views.put(SkinConstants.VIEWID_BUDDIES_VIEWER, BuddiesViewer.class);
 
 		SWTSkinObjectListener l = new SWTSkinObjectListener() {
 			public Object eventOccured(SWTSkinObject skinObject, int eventType,
@@ -1259,6 +1260,15 @@ public class MainWindow
 	private void initWidgets() {
 		SWTSkinObject skinObject;
 
+		skinObject = skin.getSkinObject(SkinConstants.VIEWID_BUDDIES_VIEWER);
+		if(null != skinObject){
+			BuddiesViewer skinView = new BuddiesViewer();
+			SkinViewManager.add(skinView);
+			skinObject.addListener(skinView);	
+		}
+		
+		
+		
 		skinObject = skin.getSkinObject("statusbar");
 		if (skinObject != null) {
 			final Composite cArea = (Composite) skinObject.getControl();
