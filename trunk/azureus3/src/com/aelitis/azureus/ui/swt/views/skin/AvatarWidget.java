@@ -184,8 +184,9 @@ public class AvatarWidget
 					} else {
 						e.gc.setForeground(textColor);
 					}
+
 					GCStringPrinter.printString(e.gc, vuzeBuddy.getDisplayName(),
-							new Rectangle(0, avatarImageSize.y, avatarSize.x, avatarSize.y
+							new Rectangle(1, avatarImageSize.y, avatarSize.x-2, avatarSize.y
 									- avatarImageSize.y), false, false, SWT.TOP | SWT.CENTER);
 
 				}

@@ -1,7 +1,10 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.io.ByteArrayInputStream;
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +15,8 @@ import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
@@ -40,6 +45,7 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractBuddyPageListener;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.util.Constants;
 
 public class SharePage
@@ -70,13 +76,15 @@ public class SharePage
 
 	private Composite contentDetail;
 
+	private StyledText contentStats;
+
 	private Button addBuddyButton;
 
 	private Button sendNowButton;
 
 	private Button cancelButton;
 
-	private Label buddyImage;
+	private Label contentThumbnail;
 
 	private Label commentLabel;
 
@@ -122,17 +130,23 @@ public class SharePage
 		buddyListDescription.setText("Selected buddies");
 		buddyListDescription.setForeground(Colors.white);
 
-		buddyList = new StyledText(firstPanel, SWT.BORDER);
+		buddyList = new StyledText(firstPanel, SWT.NONE);
 		buddyList.setForeground(Colors.red);
-		//============		
-		inviteePanel = new Composite(firstPanel, SWT.BORDER);
-		FormLayout fLayout = new FormLayout();
-		fLayout.marginTop = 0;
-		fLayout.marginBottom = 0;
+		buddyList.setIndent(3);
+		applyRoundedBorder(buddyList);
 
+		//============		
+		inviteePanel = new Composite(firstPanel, SWT.NONE);
+		applyRoundedBorder(inviteePanel);
+
+		FormLayout fLayout = new FormLayout();
+		fLayout.marginTop = 3;
+		fLayout.marginBottom = 3;
+		fLayout.marginLeft = 3;
+		fLayout.marginRight = 3;
 		inviteePanel.setLayout(fLayout);
 
-		inviteeList = new StyledText(inviteePanel, SWT.BORDER);
+		inviteeList = new StyledText(inviteePanel, SWT.NONE);
 		inviteeList.setForeground(Colors.yellow);
 
 		addBuddyLabel = new Label(inviteePanel, SWT.NONE | SWT.WRAP | SWT.RIGHT);
@@ -169,8 +183,8 @@ public class SharePage
 
 		//==============
 
-		contentDetail = new Composite(firstPanel, SWT.BORDER);
-
+		contentDetail = new Composite(firstPanel, SWT.NONE);
+		applyRoundedBorder(contentDetail);
 		sendNowButton = new Button(firstPanel, SWT.PUSH);
 		sendNowButton.setText("Send Now");
 
@@ -217,25 +231,34 @@ public class SharePage
 		detailLayout.marginHeight = 8;
 		contentDetail.setLayout(detailLayout);
 
-		buddyImage = new Label(contentDetail, SWT.NONE);
+		contentThumbnail = new Label(contentDetail, SWT.NONE);
 		FormData buddyImageData = new FormData();
 		buddyImageData.top = new FormAttachment(0, 8);
 		buddyImageData.left = new FormAttachment(0, 8);
-		buddyImageData.width = 100;
-		buddyImageData.height = 100;
-		buddyImage.setLayoutData(buddyImageData);
+		buddyImageData.width = 142;
+		buddyImageData.height = 82;
+		contentThumbnail.setLayoutData(buddyImageData);
+
+		contentStats = new StyledText(contentDetail, SWT.NONE);
+		FormData contentStatsData = new FormData();
+		contentStatsData.top = new FormAttachment(0, 8);
+		contentStatsData.left = new FormAttachment(contentThumbnail, 8);
+		contentStatsData.right = new FormAttachment(100, -8);
+		contentStatsData.bottom = new FormAttachment(contentThumbnail, 0,
+				SWT.BOTTOM);
+		contentStats.setLayoutData(contentStatsData);
 
 		commentLabel = new Label(contentDetail, SWT.NONE);
 		commentLabel.setText("Optional message:");
 		commentLabel.setForeground(Colors.white);
 		FormData commentLabelData = new FormData();
-		commentLabelData.top = new FormAttachment(buddyImage, 16);
+		commentLabelData.top = new FormAttachment(contentThumbnail, 16);
 		commentLabelData.left = new FormAttachment(0, 8);
 		commentLabel.setLayoutData(commentLabelData);
 
 		commentText = new Text(contentDetail, SWT.BORDER);
 		FormData commentTextData = new FormData();
-		commentTextData.top = new FormAttachment(commentLabel, 16);
+		commentTextData.top = new FormAttachment(commentLabel, 8);
 		commentTextData.left = new FormAttachment(0, 8);
 		commentTextData.right = new FormAttachment(100, -8);
 		commentTextData.bottom = new FormAttachment(100, -8);
@@ -246,6 +269,20 @@ public class SharePage
 
 		hookListeners();
 
+	}
+
+	private void applyRoundedBorder(final Control control) {
+		control.addPaintListener(new PaintListener() {
+
+			public void paintControl(PaintEvent e) {
+				e.gc.setForeground(ColorCache.getColor(control.getDisplay(), 200, 200,
+						200));
+				e.gc.setAntialias(SWT.ON);
+				Rectangle r = control.getBounds();
+				e.gc.drawRoundRectangle(0, 0, r.width - 1, r.height - 1, 10, 10);
+
+			}
+		});
 	}
 
 	private void createBrowserPanel() {
@@ -480,24 +517,37 @@ public class SharePage
 			}
 
 			if (null != img) {
-				Rectangle bounds = img.getBounds();
-
-				if (null != buddyImage.getImage()
-						&& false == buddyImage.getImage().isDisposed()) {
-					Image image = buddyImage.getImage();
-					buddyImage.setImage(null);
+				if (null != contentThumbnail.getImage()
+						&& false == contentThumbnail.getImage().isDisposed()) {
+					Image image = contentThumbnail.getImage();
+					contentThumbnail.setImage(null);
 					image.dispose();
 				}
-				
-				buddyImage.setImage(img);
-				FormData fData = (FormData) buddyImage.getLayoutData();
-				fData.height = bounds.height;
-				fData.width = bounds.width;
-				contentDetail.layout(true);
+
+				contentThumbnail.setImage(img);
 			} else {
 				Debug.out("Problem getting image for torrent in SharePage.refresh()");
 			}
 
+			
+			updateContentStats();
 		}
+	}
+	
+	private void updateContentStats(){
+		contentStats.setText("");
+		contentStats.setIndent(3);
+		contentStats.setForeground(Colors.yellow);
+		
+		String publisher = PlatformTorrentUtils.getContentPublisher(dm.getTorrent());
+		
+		if(publisher.startsWith("az")){
+			publisher = publisher.substring(2);
+		}
+		contentStats.append("From: " + publisher + "\n");
+		
+		contentStats.append("Published: " + DateFormat.getDateInstance().format(new Date(PlatformTorrentUtils.getContentLastUpdated(dm.getTorrent()) ))   + "\n");
+//		contentStats.append("Published: " + PlatformTorrentUtils.getContentLastUpdated(dm.getTorrent())   + "\n");
+		contentStats.append("File size: " + dm.getSize()/1000000 + " MB");
 	}
 }
