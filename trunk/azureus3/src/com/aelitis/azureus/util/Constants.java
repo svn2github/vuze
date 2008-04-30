@@ -92,9 +92,9 @@ public class Constants
 
 	public static final String URL_RPC = "rpc/";
 
-	public static String URL_RELAY_RPC = "http://"
+	public static String URL_RELAY_RPC = System.getProperty("relay_url", "http://"
 			+ System.getProperty("relay_address", DEFAULT_RELAY_ADDRESS) + ":"
-			+ System.getProperty("relay_port", DEFAULT_RELAY_PORT) + "/app";
+			+ System.getProperty("relay_port", DEFAULT_RELAY_PORT) + "/app");
 
 	public static final String URL_AUTHORIZED_RPC = System.getProperty(
 			"authorized_rpc", "1").equals("1") ? DEFAULT_AUTHORIZED_RPC : URL_PREFIX
