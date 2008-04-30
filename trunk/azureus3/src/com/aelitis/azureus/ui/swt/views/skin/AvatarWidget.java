@@ -18,7 +18,6 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.MessageBox;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.ImageRepository;
-import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 
@@ -63,7 +62,7 @@ public class AvatarWidget
 	private Rectangle decoratorBounds = null;
 
 	private int alpha = 255;
-	
+
 	private boolean sharedAlready = false;
 
 	public AvatarWidget(BuddiesViewer viewer, Point avatarSize,
@@ -99,57 +98,7 @@ public class AvatarWidget
 		decoratorBounds = new Rectangle(imageOffsetX + avatarImageSize.x - 13, 0,
 				16, 16);
 
-		//		avatarCanvas = new Canvas(parent, SWT.NONE);
-
-		Utils.createTorrentDropTarget(avatarCanvas, true);
-
-		//		Transfer[] types = new Transfer[] {
-		//			TextTransfer.getInstance()
-		//		};
-		//
-		//		DropTarget dt = new DropTarget(avatarCanvas, DND.DROP_COPY);
-		//		dt.setTransfer(types);
-		//		dt.addDropListener(new DropTargetListener() {
-		//
-		//			public void dropAccept(DropTargetEvent event) {
-		//				// TODO Auto-generated method stub
-		//
-		//			}
-		//
-		//			public void drop(DropTargetEvent event) {
-		//				// TODO Auto-generated method stub
-		//
-		//			}
-		//
-		//			public void dragOver(DropTargetEvent event) {
-		//				if (false == isActivated) {
-		//					isActivated = true;
-		//					showInfo = true;
-		//					region.add(new Rectangle(79, 0, 18, 16));
-		//					avatarCanvas.setRegion(region);
-		//					avatarCanvas.redraw();
-		//				}
-		//			}
-		//
-		//			public void dragOperationChanged(DropTargetEvent event) {
-		//				// TODO Auto-generated method stub
-		//
-		//			}
-		//
-		//			public void dragLeave(DropTargetEvent event) {
-		//				isActivated = false;
-		//				showInfo = false;
-		//				region.subtract(new Rectangle(79, 0, 18, 16));
-		//				avatarCanvas.setRegion(region);
-		//				avatarCanvas.redraw();
-		//
-		//			}
-		//
-		//			public void dragEnter(DropTargetEvent event) {
-		//				// TODO Auto-generated method stub
-		//
-		//			}
-		//		});
+		//		Utils.createTorrentDropTarget(avatarCanvas, true);
 
 		RowData rData = new RowData();
 		rData.width = avatarSize.x;
@@ -395,7 +344,6 @@ public class AvatarWidget
 	}
 
 	public void doLinkClicked() {
-		System.out.println("Link is clicked");
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if (null != uiFunctions) {
 			String url = Constants.URL_PREFIX + Constants.URL_PROFILE + "?"

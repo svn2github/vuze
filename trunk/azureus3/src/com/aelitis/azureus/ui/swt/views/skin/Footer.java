@@ -1,7 +1,5 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import com.aelitis.azureus.ui.skin.SkinConstants;
-import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 
 /**
@@ -14,13 +12,10 @@ public class Footer
 	extends SkinView
 {
 
-	private SWTSkin skin = null;
-
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
-
-		skin = skinObject.getSkin();
-
-		SWTSkinObject buddiesSkin = skin.getSkinObject(SkinConstants.VIEWID_BUDDIES_VIEWER);
+		/*
+		 * Nothing is done for the footer now... this is here fore future use
+		 */
 		return null;
 	}
 

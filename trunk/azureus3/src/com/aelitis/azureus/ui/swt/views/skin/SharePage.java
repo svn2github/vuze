@@ -28,6 +28,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
@@ -444,27 +446,58 @@ public class SharePage
 			setBuddies(viewer.getSelection());
 		}
 
-		ByteArrayInputStream bis = new ByteArrayInputStream(
-				PlatformTorrentUtils.getContentThumbnail(dm.getTorrent()));
-		final Image img = new Image(Display.getDefault(), bis);
+		if (null != dm && null != dm.getTorrent()) {
+			Image img = null;
 
-		Rectangle bounds = img.getBounds();
-		
-		buddyImage.setImage(img);
-		FormData fData = (FormData)buddyImage.getLayoutData();
-		fData.height = bounds.height;
-		fData.width = bounds.width;
-		contentDetail.layout(true);
-		
-		contentDetail.addDisposeListener(new DisposeListener() {
+			byte[] imageBytes = PlatformTorrentUtils.getContentThumbnail(dm.getTorrent());
+			if (null != imageBytes && imageBytes.length > 0) {
+				ByteArrayInputStream bis = new ByteArrayInputStream(imageBytes);
+				img = new Image(Display.getDefault(), bis);
 
-			public void widgetDisposed(DisposeEvent e) {
-				if (null != img && false == img.isDisposed()) {
-					img.dispose();
+				/*
+				 * Dispose this mage when the canvas is disposed
+				 */
+				final Image img_final = img;
+				contentDetail.addDisposeListener(new DisposeListener() {
+
+					public void widgetDisposed(DisposeEvent e) {
+						if (null != img_final && false == img_final.isDisposed()) {
+							img_final.dispose();
+						}
+					}
+				});
+
+			} else {
+				String path = dm == null ? null
+						: dm.getDownloadState().getPrimaryFile();
+				if (path != null) {
+					img = ImageRepository.getPathIcon(path, true, dm.getTorrent() != null
+							&& !dm.getTorrent().isSimpleTorrent());
+					/*
+					 * DO NOT dispose the image from .getPathIcon()!!!!
+					 */
 				}
-
 			}
-		});
-	}
 
+			if (null != img) {
+				Rectangle bounds = img.getBounds();
+
+				if (null != buddyImage.getImage()
+						&& false == buddyImage.getImage().isDisposed()) {
+					Image image = buddyImage.getImage();
+					buddyImage.setImage(null);
+					image.dispose();
+				}
+				
+				buddyImage.setImage(img);
+				FormData fData = (FormData) buddyImage.getLayoutData();
+				fData.height = bounds.height;
+				fData.width = bounds.width;
+				contentDetail.layout(true);
+			} else {
+				Debug.out("Problem getting image for torrent in SharePage.refresh()");
+			}
+
+		}
+	}
 }

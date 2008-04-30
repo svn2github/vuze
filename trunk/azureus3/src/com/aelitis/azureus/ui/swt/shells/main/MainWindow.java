@@ -1054,9 +1054,7 @@ public class MainWindow
 		views.put("vuzeevents-list", VuzeActivitiesView.class);
 		
 		views.put(SkinConstants.VIEWID_BUTTON_BAR, ButtonBar.class);
-		views.put(SkinConstants.VIEWID_BUDDIES_VIEWER, BuddiesViewer.class);
 		views.put(SkinConstants.VIEWID_FOOTER, Footer.class);
-		
 		views.put(SkinConstants.VIEWID_DETAIL_PANEL, DetailPanel.class);
 
 		SWTSkinObjectListener l = new SWTSkinObjectListener() {

@@ -271,7 +271,7 @@ public class BuddiesViewer
 	}
 
 	private VuzeBuddySWT[] getBuddies() {
-		VuzeBuddySWT[] buddies = new VuzeBuddySWT[50];
+		VuzeBuddySWT[] buddies = new VuzeBuddySWT[25];
 		for (int i = 0; i < buddies.length; i++) {
 			buddies[i] = (VuzeBuddySWT) VuzeBuddyUtils.createRandomBuddy();
 			buddies[i].setDisplayName("Mr Random " + i);
@@ -290,11 +290,11 @@ public class BuddiesViewer
 
 	public void addToShare(AvatarWidget widget) {
 		sharedAvatars.add(widget);
-		
+
 		SkinView detailPanelView = SkinViewManager.get(DetailPanel.class);
 		if (detailPanelView instanceof DetailPanel) {
 			DetailPanel detailPanel = ((DetailPanel) detailPanelView);
-			SharePage sharePage = (SharePage)detailPanel.getPage(SharePage.PAGE_ID);
+			SharePage sharePage = (SharePage) detailPanel.getPage(SharePage.PAGE_ID);
 			sharePage.addBuddy(widget.getVuzeBuddy());
 		}
 	}
@@ -318,6 +318,11 @@ public class BuddiesViewer
 				AvatarWidget widget = (AvatarWidget) iterator.next();
 				widget.setShareMode(isShareMode);
 				widget.refreshVisual();
+			}
+			
+			if(true == isShareMode){
+				setEditMode(false);
+				setAddBuddyMode(false);
 			}
 		}
 	}
