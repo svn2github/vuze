@@ -431,7 +431,7 @@ BuddyPluginAZ2
 				
 				synchronized( history ){
 				
-					history.add( new chatMessage( p.getNickName(), msg ));
+					history.add( new chatMessage( p.getName(), msg ));
 					
 					if ( history.size() > 128 ){
 						
@@ -685,11 +685,11 @@ BuddyPluginAZ2
 		}
 		
 		public String
-		getNickName()
+		getName()
 		{
 			if ( buddy != null ){
 				
-				return( buddy.getNickName());
+				return( buddy.getName());
 			}
 			
 			return( public_key );

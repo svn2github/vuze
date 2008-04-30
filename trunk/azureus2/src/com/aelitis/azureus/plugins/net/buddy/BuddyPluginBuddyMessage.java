@@ -37,7 +37,7 @@ BuddyPluginBuddyMessage
 		BuddyPluginBuddyMessageHandler		_handler,
 		int									_id,
 		int									_subsystem,
-		Map									_content,
+		Map									_request,
 		int									_timeout,
 		long								_create_time )
 	
@@ -49,9 +49,9 @@ BuddyPluginBuddyMessage
 		timeout		= _timeout;
 		create_time	= _create_time;
 		
-		if ( _content != null ){
+		if ( _request != null ){
 			
-			handler.writeContent( this, _content );
+			handler.writeRequest( this, _request );
 		}
 	}
 	
@@ -67,10 +67,32 @@ BuddyPluginBuddyMessage
 		return( id );
 	}
 	
-	protected int
+	public int
 	getSubsystem()
 	{
 		return( subsystem );
+	}
+	
+	public Map
+	getRequest()
+	
+		throws BuddyPluginException
+	{
+		return( handler.readRequest( this ));
+	}
+	
+		/**
+		 * Only available for pending-success messages, so don't make public 
+		 * @return
+		 * @throws BuddyPluginException
+		 */
+	
+	protected Map
+	getReply()
+	
+		throws BuddyPluginException
+	{
+		return( handler.readReply( this ));
 	}
 	
 	protected int
@@ -85,17 +107,9 @@ BuddyPluginBuddyMessage
 		return( create_time );
 	}
 	
-	protected Map
-	getContent()
-	
-		throws BuddyPluginException
-	{
-		return( handler.readContent( this ));
-	}
-	
 	public void
 	delete()
 	{
-		handler.delete( this );
+		handler.deleteMessage( this );
 	}
 }

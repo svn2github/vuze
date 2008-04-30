@@ -39,6 +39,8 @@ BuddyPluginBuddyMessageHandler
 	
 	private Map	config_map;
 	private int	message_count;
+	private int pending_deletes;
+	
 	private int	next_message_id;
 	
 	private CopyOnWriteList			listeners = new CopyOnWriteList();
@@ -46,6 +48,8 @@ BuddyPluginBuddyMessageHandler
 	private BuddyPluginBuddyMessage	active_message;
 	
 	private long					last_failure;
+	private long					last_pending_success;
+	
 	
 	protected
 	BuddyPluginBuddyMessageHandler(
@@ -118,23 +122,34 @@ BuddyPluginBuddyMessageHandler
 	protected void
 	checkPersistentDispatch()
 	{
-		boolean	request_dispatch;
+		boolean	request_dispatch = false;
 		
 		synchronized( this ){
 
-			if ( active_message != null || message_count == 0 || last_failure == 0 ){
-				
-				return;
-			}
-			
 			long	now = SystemTime.getCurrentTime();
 
 			if ( now < last_failure ){
 				
 				last_failure = now;
 			}
-			
-			request_dispatch = now - last_failure >= BuddyPlugin.PERSISTENT_MSG_RETRY_PERIOD;
+
+			if ( now < last_pending_success ){
+				
+				last_pending_success = now;
+			}
+
+			if ( now - last_pending_success >= BuddyPlugin.PERSISTENT_MSG_RETRY_PERIOD ){
+				
+				request_dispatch = true;
+				
+			}else if ( active_message != null || message_count == 0 || last_failure == 0 ){
+				
+					// no messages pending
+				
+			}else{
+				
+				request_dispatch = now - last_failure >= BuddyPlugin.PERSISTENT_MSG_RETRY_PERIOD;
+			}
 		}
 		
 		if ( request_dispatch ){
@@ -146,6 +161,8 @@ BuddyPluginBuddyMessageHandler
 	protected void
 	persistentDispatch()
 	{
+		checkPendingSuccess();
+		
 		synchronized( this ){
 
 			if ( active_message != null || message_count == 0 ){
@@ -167,9 +184,7 @@ BuddyPluginBuddyMessageHandler
 				Debug.out( "Failed to restore message, deleting it", e );
 				
 				messages.remove(0);
-				
-				deleteContent( 0 );
-				
+								
 				try{
 					saveConfig();
 					
@@ -180,16 +195,16 @@ BuddyPluginBuddyMessageHandler
 			}
 		}
 		
-		boolean	content_ok = false;
+		boolean	request_ok = false;
 		
 		try{
-			Map	content = active_message.getContent();
+			Map	request = active_message.getRequest();
 		
-			content_ok = true;
+			request_ok = true;
 			
 			buddy.sendMessage(
 					active_message.getSubsystem(),
-					content,
+					request,
 					active_message.getTimeout(),
 					new BuddyPluginBuddyReplyListener()
 					{
@@ -200,11 +215,105 @@ BuddyPluginBuddyMessageHandler
 						{
 							BuddyPluginBuddyMessage message = active_message;
 							
-							active_message.delete();
+								// inform listeners before deleting message as it gives them one
+								// last chance to do something with the message if they so desire
+							
+							Iterator it = listeners.iterator();
+							
+							boolean	processing_ok = true;
+							
+								// prematurely reduce message count when informing listeners
+								// so they see the "correct" value
+							
+							try{
+								synchronized( BuddyPluginBuddyMessageHandler.this ){
+									
+									pending_deletes++;
+								}
+								
+								while( it.hasNext()){
+									
+									try{
+										if ( !((BuddyPluginBuddyMessageListener)it.next()).deliverySucceeded( message, reply )){
+											
+											processing_ok = false;
+										}
+										
+									}catch( Throwable e ){
+										
+										Debug.printStackTrace(e);
+									}
+								}
+							}finally{
+								
+								synchronized( BuddyPluginBuddyMessageHandler.this ){
+									
+									pending_deletes--;
+								}
+							}
+							if ( processing_ok ){
+							
+								message.delete();
+								
+							}else{
+								synchronized( BuddyPluginBuddyMessageHandler.this ){
+									
+									boolean found = false;
+									
+									List	messages = (List)config_map.get( "messages" );
 
+									if ( messages != null ){
+										
+										for ( int i=0;i<messages.size();i++){
+											
+											Map	msg = (Map)messages.get(i);
+											
+											if ( message.getID() == ((Long)msg.get( "id")).intValue()){
+												
+												found = true;
+												
+												messages.remove(i);
+												
+												try{
+													writeReply( message, reply );
+
+													List pending_success = (List)config_map.get( "pending_success" );
+													
+													if ( pending_success == null ){
+														
+														pending_success = new ArrayList();
+														
+														config_map.put( "pending_success", pending_success );
+													}
+													
+													pending_success.add( msg );
+													
+													last_pending_success = SystemTime.getCurrentTime();
+													
+													buddy.log( "Message moved to pending success queue after listener failed" );
+													
+													saveConfig();
+													
+												}catch( Throwable e ){
+													
+													buddy.log( "Config save failed during message pending queueing", e );
+												}
+												
+												break;
+											}
+										}	
+									}
+									
+									if ( !found ){
+																				
+										buddy.log( "Failed to find message " + message.getID());
+									}
+								}
+							}
+							
 							boolean messages_queued;
 							
-							synchronized( this ){
+							synchronized( BuddyPluginBuddyMessageHandler.this ){
 
 								active_message 	= null;
 								
@@ -212,20 +321,7 @@ BuddyPluginBuddyMessageHandler
 								
 								last_failure	= 0;
 							}
-								
-							Iterator it = listeners.iterator();
-							
-							while( it.hasNext()){
-								
-								try{
-									((BuddyPluginBuddyMessageListener)it.next()).deliverySucceeded( message, reply );
-									
-								}catch( Throwable e ){
-									
-									Debug.printStackTrace(e);
-								}
-							}
-							
+															
 							if ( messages_queued ){
 							
 								buddy.persistentDispatchPending();
@@ -239,7 +335,7 @@ BuddyPluginBuddyMessageHandler
 						{
 							BuddyPluginBuddyMessage message = active_message;
 							
-							synchronized( this ){
+							synchronized( BuddyPluginBuddyMessageHandler.this ){
 
 								active_message 	= null;
 								
@@ -272,9 +368,9 @@ BuddyPluginBuddyMessageHandler
 				last_failure	= SystemTime.getCurrentTime();
 			}
 			
-			if ( !content_ok ){
+			if ( !request_ok ){
 				
-				buddy.logMessage( "Message content unavailable, deleting message" );
+				buddy.logMessage( "Message request unavailable, deleting message" );
 				
 				message.delete();
 				
@@ -319,48 +415,166 @@ BuddyPluginBuddyMessageHandler
 		}
 	}
 	
-	public int
-	getMessageCount()
-	{
-		return( message_count );
-	}
-	
 	protected void
-	delete(
-		BuddyPluginBuddyMessage		message )
+	checkPendingSuccess()
 	{
+		last_pending_success	= 0;
+		
+		List	pending_messages = new ArrayList();
+		
+		boolean	save_pending = false;
+		
 		synchronized( this ){
-			
-			List	messages = (List)config_map.get( "messages" );
 
-			if ( messages != null ){
+			List pending_success = (List)config_map.get( "pending_success" );
 
-				boolean	found = false;
+			if ( pending_success == null || pending_success.size() == 0 ){
 				
-				for ( int i=0;i<messages.size();i++){
+				return;
+			}
+			
+			Iterator it = pending_success.iterator();
+			
+			while( it.hasNext()){
+				
+				Map	map = (Map)it.next();
+			
+				try{
+					pending_messages.add( restoreMessage( map ));
 					
-					Map	msg = (Map)messages.get(i);
+				}catch( Throwable e ){
 					
-					if ( message.getID() == ((Long)msg.get( "id")).intValue()){
-						
-						messages.remove(i);
-						
-						found	= true;
-						
-						break;
-					}
+					buddy.log( "Failed to restore message from pending success queue", e );
+					
+					it.remove();
+					
+					save_pending = true;
 				}
+			}
+		}
+		
+		for ( int i=0;i<pending_messages.size();i++){
+	
+			BuddyPluginBuddyMessage message = (BuddyPluginBuddyMessage)pending_messages.get(i);
 			
-				if ( found ){
+			try{
+				Map	reply = message.getReply();
 				
-					deleteContent( message );
+				Iterator it = listeners.iterator();
+				
+				boolean	processing_ok = true;
+				
+				while( it.hasNext()){
 					
 					try{
-						saveConfig();
+						if ( !((BuddyPluginBuddyMessageListener)it.next()).deliverySucceeded( message, reply )){
+							
+							processing_ok = false;
+						}
 						
 					}catch( Throwable e ){
 						
-						buddy.log( "Config save failed during message delete", e );
+						Debug.printStackTrace(e);
+					}
+				}
+	
+				if ( processing_ok ){
+				
+					message.delete();
+					
+				}else{
+					synchronized( this ){
+	
+						last_pending_success = SystemTime.getCurrentTime();
+					}
+				}
+			}catch( Throwable e ){
+				
+				buddy.log( "Failed to restore message reply - deleting message", e );
+
+				message.delete();
+			}
+		}
+		
+		if ( save_pending ){
+			
+			try{
+				saveConfig();
+				
+			}catch( Throwable e ){
+				
+				buddy.log( "Save failed during pending success processing", e );
+			}
+		}
+	}
+	
+	public int
+	getMessageCount()
+	{
+		synchronized( this ){
+		
+			return( message_count - pending_deletes );
+		}
+	}
+	
+	protected void
+	deleteMessage(
+		BuddyPluginBuddyMessage		message )
+	{
+		Iterator it = listeners.iterator();
+		
+		while( it.hasNext()){
+			
+			try{
+				((BuddyPluginBuddyMessageListener)it.next()).messageDeleted( message );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+		
+		synchronized( this ){
+			
+			String[]	keys = { "messages", "pending_success" };
+			
+			for (int i=0;i<keys.length;i++){
+				
+				List	messages = (List)config_map.get( keys[i] );
+	
+				if ( messages != null ){
+	
+					boolean	found = false;
+					
+					for ( int j=0;j<messages.size();j++){
+						
+						Map	msg = (Map)messages.get(j);
+						
+						if ( message.getID() == ((Long)msg.get( "id")).intValue()){
+							
+							messages.remove(j);
+							
+							found	= true;
+							
+							break;
+						}
+					}
+				
+					if ( found ){
+					
+						deleteRequest( message );
+						
+						deleteReply( message );
+						
+						try{
+							saveConfig();
+							
+						}catch( Throwable e ){
+							
+							buddy.log( "Config save failed during message delete", e );
+						}
+						
+						return;
 					}
 				}
 			}
@@ -385,8 +599,46 @@ BuddyPluginBuddyMessageHandler
 	}
 	
 	protected void
-	writeContent(
+	writeRequest(
 		BuddyPluginBuddyMessage		message,
+		Map							content )
+	
+		throws BuddyPluginException
+	{
+		writeContent( message.getID() + ".req.dat", content );
+	}
+	
+	protected Map
+	readRequest(
+		BuddyPluginBuddyMessage		message )
+	
+		throws BuddyPluginException
+	{		
+		return( readContent( message.getID() + ".req.dat" ));
+	}
+	
+	protected void
+	writeReply(
+		BuddyPluginBuddyMessage		message,
+		Map							content )
+	
+		throws BuddyPluginException
+	{
+		writeContent( message.getID() + ".rep.dat", content );
+	}
+	
+	protected Map
+	readReply(
+		BuddyPluginBuddyMessage		message )
+	
+		throws BuddyPluginException
+	{		
+		return( readContent( message.getID() + ".rep.dat" ));
+	}
+	
+	protected void
+	writeContent(
+		String						target_str,
 		Map							content )
 	
 		throws BuddyPluginException
@@ -399,7 +651,7 @@ BuddyPluginBuddyMessageHandler
 			}
 		}
 		
-		File target = new File( store, message.getID() + ".dat" );
+		File target = new File( store, target_str );
 		
 		try{
 		
@@ -427,11 +679,11 @@ BuddyPluginBuddyMessageHandler
 	
 	protected Map
 	readContent(
-		BuddyPluginBuddyMessage		message )
+		String						target_str )
 	
 		throws BuddyPluginException
 	{		
-		File target = new File( store, message.getID() + ".dat" );
+		File target = new File( store, target_str );
 
 		if ( !target.exists()){
 
@@ -468,17 +720,39 @@ BuddyPluginBuddyMessageHandler
 	}
 	
 	protected void
-	deleteContent(
+	deleteRequest(
 		BuddyPluginBuddyMessage		message )
 	{
-		deleteContent( message.getID());
+		deleteRequest( message.getID());
 	}
 	
 	protected void
-	deleteContent(
+	deleteRequest(
 		int			id  )
 	{	
-		File target = new File( store, id + ".dat" );
+		File target = new File( store, id + ".req.dat" );
+		
+		if ( target.exists()){
+			
+			if ( !target.delete()){
+				
+				Debug.out( "Failed to delete " + target );
+			}
+		}
+	}
+	
+	protected void
+	deleteReply(
+		BuddyPluginBuddyMessage		message )
+	{
+		deleteReply( message.getID());
+	}
+	
+	protected void
+	deleteReply(
+		int			id  )
+	{	
+		File target = new File( store, id + ".rep.dat" );
 		
 		if ( target.exists()){
 			
@@ -558,6 +832,22 @@ BuddyPluginBuddyMessageHandler
 				next_message_id = ((Long)last_msg.get( "id")).intValue() + 1;
 			}
 		}
+		
+		List	pending_success = (List)config_map.get( "pending_success" );
+		
+		if ( pending_success != null ){
+			
+			int ps_count = pending_success.size();
+		
+			if ( ps_count > 0 ){
+										
+				Map	last_msg = (Map)pending_success.get( ps_count - 1 );
+					
+				next_message_id = Math.max( next_message_id, ((Long)last_msg.get( "id")).intValue() + 1 );
+				
+				last_pending_success = SystemTime.getCurrentTime();
+			}
+		}
 	}
 	
 	protected void
@@ -567,9 +857,11 @@ BuddyPluginBuddyMessageHandler
 	{
 		File	config_file = new File( store, "messages.dat" );
 		
-		List	messages = (List)config_map.get( "messages" );
+		List	messages 	= (List)config_map.get( "messages" );
+		List	pending 	= (List)config_map.get( "pending_success" );
 
-		if ( messages == null || messages.size() == 0 ){
+		if ( 	( messages == null || messages.size() == 0 ) && 
+				( pending == null || pending.size() == 0 )){
 			
 			if ( store.exists()){
 			

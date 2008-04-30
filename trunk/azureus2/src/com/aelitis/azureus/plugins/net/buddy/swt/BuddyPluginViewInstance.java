@@ -1081,13 +1081,24 @@ BuddyPluginViewInstance
 				}
 				
 				public void
+				messageDeleted(
+					BuddyPluginBuddyMessage		message )
+				{
+					print( message.getBuddy().getName() + ": message deleted, id=" + message.getID());
+					
+					update();
+				}
+				
+				public boolean
 				deliverySucceeded(
 					BuddyPluginBuddyMessage		message,
 					Map							reply )
 				{
-					print( message.getBuddy().getName() + ": message delivered, id=" + message.getID());
+					print( message.getBuddy().getName() + ": message delivered, id=" + message.getID() + ", reply=" + reply );
 					
 					update();
+					
+					return( true );
 				}
 				
 				public void

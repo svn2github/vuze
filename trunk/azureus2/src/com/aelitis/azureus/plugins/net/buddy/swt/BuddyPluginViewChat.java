@@ -171,7 +171,7 @@ BuddyPluginViewChat
 					
 					BuddyPluginAZ2.chatParticipant	participant = (BuddyPluginAZ2.chatParticipant)participants.get(index);
 					
-					item.setText(0, participant.getNickName());					
+					item.setText(0, participant.getName());					
 				}
 			});
 		
@@ -339,7 +339,7 @@ BuddyPluginViewChat
 							}
 							
 							try{
-								logChatMessage( participant.getNickName(), Colors.blue, msg );
+								logChatMessage( participant.getName(), Colors.blue, msg );
 								
 							}catch( Throwable e ){
 								

@@ -30,7 +30,15 @@ BuddyPluginBuddyMessageListener
 	messageQueued(
 		BuddyPluginBuddyMessage		message );
 	
-	public void
+		/**
+		 * Indicates that a message has been delivered to the buddy
+		 * @param message
+		 * @param reply
+		 * @return true if message procesing complete, false if failed and require re-invocation of this listener periodically to 
+		 * attempt processing again
+		 */
+	
+	public boolean
 	deliverySucceeded(
 		BuddyPluginBuddyMessage		message,
 		Map							reply );
@@ -40,4 +48,7 @@ BuddyPluginBuddyMessageListener
 		BuddyPluginBuddyMessage		message,
 		BuddyPluginException		cause );
 	
+	public void
+	messageDeleted(
+		BuddyPluginBuddyMessage		message );
 }
