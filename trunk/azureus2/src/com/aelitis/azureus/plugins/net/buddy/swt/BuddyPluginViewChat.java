@@ -315,7 +315,7 @@ BuddyPluginViewChat
 			msg.put( "line", text.getBytes());
 		}
 		
-		logChatMessage( plugin.getMyNick(), Colors.green, msg );
+		logChatMessage( plugin.getNickname(), Colors.green, msg );
 		
 		chat.sendMessage( msg );
 	}

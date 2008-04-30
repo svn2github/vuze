@@ -441,7 +441,7 @@ BuddyPlugin
 					
 					if ( param != null ){
 					
-						setEnabled( enabled );
+						setEnabledInternal( enabled );
 					}
 				}
 			};
@@ -553,7 +553,7 @@ BuddyPlugin
 			
 			ready_to_publish	= true;
 			
-			setEnabled( enabled_param.getValue());
+			setEnabledInternal( enabled_param.getValue());
 			
 			checkBuddiesAndRepublish();
 			
@@ -573,8 +573,15 @@ BuddyPlugin
 		return( enabled_param.getValue());
 	}
 	
-	protected void
+	public void
 	setEnabled(
+		boolean		enabled )
+	{
+		enabled_param.setValue( enabled );
+	}
+	
+	protected void
+	setEnabledInternal(
 		boolean		_enabled )
 	{
 		synchronized( this ){
@@ -591,9 +598,16 @@ BuddyPlugin
 	}
 	
 	public String
-	getMyNick()
+	getNickname()
 	{
 		return(  nick_name_param.getValue());
+	}
+	
+	public void
+	setNickname(
+		String	str )
+	{
+		nick_name_param.setValue( str );
 	}
 	
 	protected void
