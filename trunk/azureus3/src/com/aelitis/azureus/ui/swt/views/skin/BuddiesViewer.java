@@ -7,6 +7,8 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -35,7 +37,7 @@ public class BuddiesViewer
 
 	private Point avatarImageSize = new Point(40 + borderWidth, 40 + borderWidth);
 
-	private Point avatarSize = new Point(avatarImageSize.x * 2,
+	private Point avatarSize = new Point(avatarImageSize.x + 20,
 			avatarImageSize.y + 16);
 
 	private List avatarWidgets = new ArrayList();
@@ -65,7 +67,13 @@ public class BuddiesViewer
 			parent = (Composite) viewer.getControl();
 
 			Composite content = new Composite(parent, SWT.NONE);
-
+			FormData fd = new FormData();
+			fd.top = new FormAttachment(0,0);
+			fd.bottom = new FormAttachment(100,0);
+			fd.left = new FormAttachment(0,0);
+			fd.right = new FormAttachment(100,0);
+			content.setLayoutData(fd);
+			
 			avatarsPanel = new Composite(content, SWT.NONE);
 			avatarsPanel.setLocation(0, 0);
 
@@ -75,10 +83,12 @@ public class BuddiesViewer
 			RowLayout rLayout = new RowLayout(SWT.HORIZONTAL);
 			rLayout.wrap = false;
 			rLayout.spacing = 10;
-			rLayout.marginTop = 0;
+			rLayout.marginTop = 6;
 			rLayout.marginBottom = 0;
 			rLayout.marginLeft = 0;
 			rLayout.marginRight = 0;
+			rLayout.marginWidth = 0;
+			rLayout.marginHeight = 0;
 			avatarsPanel.setLayout(rLayout);
 
 			fillBuddies(avatarsPanel);
@@ -213,10 +223,10 @@ public class BuddiesViewer
 		avatarWidget.setTextColor(textColor);
 		avatarWidget.setTextLinkColor(textLinkColor);
 
-		RowData rData = new RowData();
-		rData.width = avatarSize.x;
-		rData.height = avatarSize.y;
-		avatarWidget.getControl().setLayoutData(rData);
+//		RowData rData = new RowData();
+//		rData.width = avatarSize.x;
+//		rData.height = avatarSize.y;
+//		avatarWidget.getControl().setLayoutData(rData);
 
 		avatarWidgets.add(avatarWidget);
 
@@ -319,8 +329,8 @@ public class BuddiesViewer
 				widget.setShareMode(isShareMode);
 				widget.refreshVisual();
 			}
-			
-			if(true == isShareMode){
+
+			if (true == isShareMode) {
 				setEditMode(false);
 				setAddBuddyMode(false);
 			}
