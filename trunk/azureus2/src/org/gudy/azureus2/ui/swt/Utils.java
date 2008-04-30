@@ -1253,17 +1253,6 @@ public class Utils
 			return;
 		}
 
-		//========TODO=== fix the relayout before production
-		Composite parent_ = control.getParent();
-		while (parent_.getParent() !=null){
-			parent_ = parent_.getParent();
-		}
-		parent_.layout();
-		
-		if(1==1){
-			return;
-		}
-		//================
 		Composite parent = control.getParent();
 		Point targetSize = control.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
 		Point size = control.getSize();
