@@ -56,7 +56,11 @@ public class VuzeActivitiesEntryBuddyRequest
 				+ "</A> wants to be your buddy\n \n" + "  <A HREF=\"" + urlAccept
 				+ "\">OMG, OF COURSE I ACCEPT!</A>");
 		setTypeID(TYPEID_BUDDYREQUEST, true);
-		setID(TYPEID_BUDDYREQUEST + "-" + buddy.getCode());
+		setID(buildID(buddy.getCode()));
+	}
+	
+	public static String buildID(String code) {
+		return TYPEID_BUDDYREQUEST + "-" + code;
 	}
 
 	// @see com.aelitis.azureus.activities.VuzeActivitiesEntry#loadFromExternalMap(java.util.Map)
@@ -86,5 +90,9 @@ public class VuzeActivitiesEntryBuddyRequest
 			map.put("buddy", buddy.toMap());
 		}
 		return map;
+	}
+
+	public VuzeBuddy getBuddy() {
+		return buddy;
 	}
 }

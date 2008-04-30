@@ -701,6 +701,27 @@ public class VuzeActivitiesManager
 		saveEvents();
 	}
 
+	public static VuzeActivitiesEntry getEntryByID(String id) {
+		try {
+			allEntries_mon.enter();
+			
+			for (Iterator iter = allEntries.iterator(); iter.hasNext();) {
+				VuzeActivitiesEntry entry = (VuzeActivitiesEntry) iter.next();
+				if (entry == null) {
+					continue;
+				}
+				String entryID = entry.getID();
+				if (entryID != null && entryID.equals(id)) {
+					return entry;
+				}
+			}
+		} finally {
+			allEntries_mon.exit();
+		}
+		
+		return null;
+	}
+	
 	public static VuzeActivitiesEntry[] getAllEntries() {
 		return (VuzeActivitiesEntry[]) allEntries.toArray(new VuzeActivitiesEntry[allEntries.size()]);
 	}

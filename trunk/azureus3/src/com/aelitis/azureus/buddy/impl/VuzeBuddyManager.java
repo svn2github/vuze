@@ -529,6 +529,9 @@ public class VuzeBuddyManager
 				VuzeQueuedShares.remove(share);
 			}
 		}
+		if (createActivityEntry) {
+			removeInviteActivities(buddy.getLoginID());
+		}
 	}
 
 	/**
@@ -848,6 +851,27 @@ public class VuzeBuddyManager
 		vuzeShare.setDownloadHash(hashWrapper.toBase32String());
 		vuzeShare.setActivityEntry(entry);
 	}
+	
+	public static void removeInviteActivities(String fromLoginID) {
+		if (fromLoginID == null) {
+			return;
+		}
+		List requestEntries = new ArrayList();
+		VuzeActivitiesEntry[] allEntries = VuzeActivitiesManager.getAllEntries();
+		for (int i = 0; i < allEntries.length; i++) {
+			VuzeActivitiesEntry entry = allEntries[i];
+			if (entry instanceof VuzeActivitiesEntryBuddyRequest) {
+				VuzeActivitiesEntryBuddyRequest inviteEntry = (VuzeActivitiesEntryBuddyRequest) entry;
+				if (fromLoginID.equals(inviteEntry.getBuddy().getLoginID())) {
+					requestEntries.add(entry);
+				}
+			}
+		}
+		if (requestEntries.size() > 0) {
+			VuzeActivitiesEntry[] toRemove = (VuzeActivitiesEntry[]) requestEntries.toArray(new VuzeActivitiesEntry[requestEntries.size()]);
+			VuzeActivitiesManager.removeEntries(toRemove);
+		}
+	}
 
 	/**
 	 * You've accepted an invite
@@ -858,12 +882,6 @@ public class VuzeBuddyManager
 	 * @since 3.0.5.3
 	 */
 	public static void acceptInvite(final String code, final String pks[]) {
-		VuzeActivitiesEntry entry = VuzeActivitiesManager.getEntryByID(VuzeActivitiesEntryBuddyRequest.buildID(code));
-		if (entry != null) {
-			VuzeActivitiesManager.removeEntries(new VuzeActivitiesEntry[] {
-				entry
-			});
-		}
 		// sync will get new buddy connection
 		PlatformBuddyMessenger.sync(new VuzeBuddySyncListener() {
 			public void syncComplete() {
