@@ -60,7 +60,7 @@ public class VuzeBuddyManager
 
 	protected static final boolean ALLOW_ONLY_AZ3 = false;
 
-	private static final String SAVE_FILENAME = "v3.Buddies";
+	private static final String SAVE_FILENAME = "v3.Buddies.config";
 
 	private static BuddyPlugin buddyPlugin = null;
 
@@ -140,14 +140,18 @@ public class VuzeBuddyManager
 						//PlatformKeyExchangeMessenger.getPassword(null);
 						if (VuzeCryptoManager.getSingleton().isUnlocked()) {
 							log("Logging in.. already unlocked");
+							PlatformBuddyMessenger.sync(null);
+							PlatformBuddyMessenger.getInvites();
 						} else {
 							log("Logging in.. getting pw from webapp");
 							// getPassword will set the password viz VuzeCryptoManager
-							PlatformKeyExchangeMessenger.getPassword(null);
+							PlatformKeyExchangeMessenger.getPassword(new PlatformKeyExchangeMessenger.platformPasswordListener() {
+								public void passwordRetrieved() {
+									PlatformBuddyMessenger.sync(null);
+									PlatformBuddyMessenger.getInvites();
+								}
+							});
 						}
-
-						PlatformBuddyMessenger.sync(null);
-						PlatformBuddyMessenger.getInvites();
 					}
 				}
 			});
@@ -851,7 +855,7 @@ public class VuzeBuddyManager
 		vuzeShare.setDownloadHash(hashWrapper.toBase32String());
 		vuzeShare.setActivityEntry(entry);
 	}
-	
+
 	public static void removeInviteActivities(String fromLoginID) {
 		if (fromLoginID == null) {
 			return;
