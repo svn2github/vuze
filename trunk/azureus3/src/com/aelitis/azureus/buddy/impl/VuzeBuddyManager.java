@@ -232,7 +232,7 @@ public class VuzeBuddyManager
 
 					VuzeBuddy vuzeBuddy = (VuzeBuddy) mapPKtoVuzeBuddy.get(pk);
 					if (vuzeBuddy != null) {
-						vuzeBuddy.setDisplayName(buddy.getNickName());
+						vuzeBuddy.setDisplayName(buddy.getName());
 					} else {
 						buddyAdded(buddy);
 					}
