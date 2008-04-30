@@ -76,6 +76,86 @@ public class VuzeBuddyManager
 
 	private static boolean skipSave = true;
 
+	
+	private static BuddyPluginBuddyMessageListener buddy_message_handler_listener = 
+		new BuddyPluginBuddyMessageListener()
+		{
+			public void
+			messageQueued(
+				BuddyPluginBuddyMessage		message )
+			{			
+			}
+			
+			public void
+			messageDeleted(
+				BuddyPluginBuddyMessage		message )
+			{
+			}
+			
+			public boolean
+			deliverySucceeded(
+				BuddyPluginBuddyMessage		message,
+				Map							reply )
+			{
+				if ( message.getSubsystem() != BuddyPlugin.SUBSYSTEM_AZ3 ){
+					
+					return( true );
+				}
+				
+				VuzeBuddyManager.log("REPLY REC " + JSONUtils.encodeToJSON(reply));
+				
+				String response = MapUtils.getMapString(reply, "response", "");
+				
+				if ( response.toLowerCase().equals("ok")){
+					
+					return( true );
+					
+				}else{
+					
+					try{
+						Map	request = message.getRequest();
+					
+						return( sendViaRelayServer( message.getBuddy(), request ));
+						
+					}catch( Throwable e ){
+						
+						VuzeBuddyManager.log( "REPLY REC: Message lost: " + e );
+						
+						return( true );
+					}
+				}
+			}
+			
+			public void
+			deliveryFailed(
+				BuddyPluginBuddyMessage		message,
+				BuddyPluginException		cause )
+			{
+				if ( message.getSubsystem() != BuddyPlugin.SUBSYSTEM_AZ3 ){
+					
+					return;
+				}
+				
+				BuddyPluginBuddy buddy = message.getBuddy();
+				
+				VuzeBuddyManager.log("SEND FAILED " + buddy.getPublicKey() + "\n" + cause);
+				
+				try{
+					Map	request = message.getRequest();
+
+					if ( sendViaRelayServer(buddy, request )){
+					
+						message.delete();
+					}
+				}catch( Throwable e ){
+					
+					VuzeBuddyManager.log( "SEND FAILED: Message lost: " + e );
+					
+					message.delete();
+				}
+			}
+		};
+		
 	/**
 	 * @param vuzeBuddyCreator
 	 *
@@ -249,7 +329,9 @@ public class VuzeBuddyManager
 				if (!canHandleBuddy(buddy)) {
 					return;
 				}
-
+   
+				buddy.getMessageHandler().addListener( buddy_message_handler_listener );
+					
 				String pk = buddy.getPublicKey();
 
 				VuzeBuddy vuzeBuddy = (VuzeBuddy) mapPKtoVuzeBuddy.get(pk);
@@ -915,21 +997,29 @@ public class VuzeBuddyManager
 	 *
 	 * @since 3.0.5.3
 	 */
-	protected static void sendViaRelayServer(BuddyPluginBuddy pluginBuddy, Map map) {
+	
+	protected static boolean sendViaRelayServer(BuddyPluginBuddy pluginBuddy, Map map) {
+		
+		boolean	stored_ok = false;
+		
 		try {
 			PlatformRelayMessenger.put(new String[] {
 				pluginBuddy.getPublicKey()
 			}, JSONUtils.encodeToJSON(map).getBytes("utf-8"), 0);
 
+			stored_ok = true;
+			
 			pluginBuddy.setMessagePending();
 		} catch (BuddyPluginException be) {
 			// set message pending failed.. probably because plugin isn't fully
 			// initialized.
 			// We could try send YGM later..
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			// TODO: Store for later
 			Debug.out(e);
 		}
+		
+		return( stored_ok );
 	}
 
 	protected static void sendActivity(VuzeActivitiesEntry entry,
@@ -953,26 +1043,15 @@ public class VuzeBuddyManager
 			for (int i = 0; i < buddies.length; i++) {
 				BuddyPluginBuddy pluginBuddy = buddies[i];
 				if (pluginBuddy.isOnline()) {
-					pluginBuddy.sendMessage(BuddyPlugin.SUBSYSTEM_AZ3, map,
-							SEND_P2P_TIMEOUT, new BuddyPluginBuddyReplyListener() {
-
-								public void sendFailed(BuddyPluginBuddy to_buddy,
-										BuddyPluginException cause) {
-									VuzeBuddyManager.log("SEND FAILED " + to_buddy.getPublicKey()
-											+ "\n" + cause);
-									sendViaRelayServer(to_buddy, map);
-								}
-
-								public void replyReceived(BuddyPluginBuddy from_buddy, Map reply) {
-									VuzeBuddyManager.log("REPLY REC "
-											+ JSONUtils.encodeToJSON(reply));
-									String response = MapUtils.getMapString(reply, "response", "");
-									if (!response.toLowerCase().equals("ok")) {
-										sendViaRelayServer(from_buddy, map);
-									}
-								}
-							});
-				} else {
+					
+						// outcome reported via buddy's message handler listener
+					
+					pluginBuddy.getMessageHandler().queueMessage(
+							BuddyPlugin.SUBSYSTEM_AZ3,
+							map,
+							SEND_P2P_TIMEOUT );
+					
+				}else{
 					VuzeBuddyManager.log("NOT ONLINE: " + pluginBuddy.getPublicKey());
 					sendViaRelayServer(pluginBuddy, map);
 				}
