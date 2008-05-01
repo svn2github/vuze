@@ -56,7 +56,7 @@ import org.gudy.azureus2.plugins.PluginInterface;
  */
 public class VuzeBuddyManager
 {
-	private static final int SEND_P2P_TIMEOUT = 1000 * 60 * 3;
+	private static final int SEND_P2P_TIMEOUT = 1000* 60 * 3;
 
 	protected static final boolean ALLOW_ONLY_AZ3 = true;
 
@@ -113,9 +113,8 @@ public class VuzeBuddyManager
 				}else{
 					
 					try{
-						Map	request = message.getRequest();
 					
-						return( sendViaRelayServer( message.getBuddy(), request ));
+						return( sendViaRelayServer( message.getBuddy(), message ));
 						
 					}catch( Throwable e ){
 						
@@ -139,18 +138,8 @@ public class VuzeBuddyManager
 				BuddyPluginBuddy buddy = message.getBuddy();
 				
 				VuzeBuddyManager.log("SEND FAILED " + buddy.getPublicKey() + "\n" + cause);
-				
-				try{
-					Map	request = message.getRequest();
 
-					if ( sendViaRelayServer(buddy, request )){
-					
-						message.delete();
-					}
-				}catch( Throwable e ){
-					
-					VuzeBuddyManager.log( "SEND FAILED: Message lost: " + e );
-					
+				if (!sendViaRelayServer(buddy, message )) {
 					message.delete();
 				}
 			}
@@ -990,21 +979,13 @@ public class VuzeBuddyManager
 		});
 	}
 
-	/**
-	 * @param publicKey
-	 * @param map
-	 *
-	 * @since 3.0.5.3
-	 */
-	
-	protected static boolean sendViaRelayServer(BuddyPluginBuddy pluginBuddy, Map map) {
-		
+
+	protected static boolean sendViaRelayServer(BuddyPluginBuddy pluginBuddy,
+			BuddyPluginBuddyMessage message) {
 		boolean	stored_ok = false;
 		
 		try {
-			PlatformRelayMessenger.put(new String[] {
-				pluginBuddy.getPublicKey()
-			}, JSONUtils.encodeToJSON(map).getBytes("utf-8"), 0);
+			PlatformRelayMessenger.put(message, 0);
 
 			stored_ok = true;
 			
@@ -1014,7 +995,8 @@ public class VuzeBuddyManager
 			// initialized.
 			// We could try send YGM later..
 		} catch (Throwable e) {
-			// TODO: Store for later
+			VuzeBuddyManager.log( "SEND FAILED: Message lost: " + e);
+
 			Debug.out(e);
 		}
 		
@@ -1039,21 +1021,15 @@ public class VuzeBuddyManager
 	 */
 	public static void sendPayloadMap(final Map map, BuddyPluginBuddy[] buddies) {
 		try {
+			log("sending map to " + buddies.length + " buddies");
 			for (int i = 0; i < buddies.length; i++) {
 				BuddyPluginBuddy pluginBuddy = buddies[i];
-				if (pluginBuddy.isOnline()) {
-					
-						// outcome reported via buddy's message handler listener
-					
-					pluginBuddy.getMessageHandler().queueMessage(
-							BuddyPlugin.SUBSYSTEM_AZ3,
-							map,
-							SEND_P2P_TIMEOUT );
-					
-				}else{
-					VuzeBuddyManager.log("NOT ONLINE: " + pluginBuddy.getPublicKey());
-					sendViaRelayServer(pluginBuddy, map);
-				}
+
+				// outcome reported via buddy's message handler listener
+				BuddyPluginBuddyMessage message = pluginBuddy.getMessageHandler().queueMessage(
+						BuddyPlugin.SUBSYSTEM_AZ3,
+						map,
+						SEND_P2P_TIMEOUT );
 			}
 		} catch (BuddyPluginException e) {
 			// TODO Auto-generated catch block

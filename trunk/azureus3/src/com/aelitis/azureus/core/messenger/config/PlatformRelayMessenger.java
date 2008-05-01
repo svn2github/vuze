@@ -18,6 +18,7 @@
 
 package com.aelitis.azureus.core.messenger.config;
 
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
@@ -29,10 +30,9 @@ import com.aelitis.azureus.core.crypto.VuzeCryptoManager;
 import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
-import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
-import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
-import com.aelitis.azureus.plugins.net.buddy.BuddyPluginException;
+import com.aelitis.azureus.plugins.net.buddy.*;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin.cryptoResult;
+import com.aelitis.azureus.util.JSONUtils;
 import com.aelitis.azureus.util.MapUtils;
 
 /**
@@ -68,7 +68,34 @@ public class PlatformRelayMessenger
 		};
 	}
 
-	public static final void put(String[] pks, byte[] payload, long maxDelayMS) {
+	/**
+	 * Put a message on the relay server.
+	 * <p>
+	 * Note: There should be only one pk if your payload is encrypted or
+	 *       has a buddyMessage
+	 * 
+	 * @param pks
+	 * @param buddyMessage
+	 * @param maxDelayMS
+	 *
+	 * @since 3.0.5.3
+	 */
+	public static final void put(BuddyPluginBuddyMessage buddyMessage,
+			long maxDelayMS) {
+		try {
+			_put(buddyMessage, maxDelayMS);
+		} catch (Exception e) {
+			PlatformMessenger.debug("Relay: put error " + e.toString());
+			handleFailedPut_neverRelay(buddyMessage);
+		}
+	}
+
+	private static final void _put(final BuddyPluginBuddyMessage buddyMessage,
+			long maxDelayMS) {
+		if (buddyMessage == null) {
+			return;
+		}
+
 		String myPK;
 		try {
 			myPK = VuzeCryptoManager.getSingleton().getPublicKey(null);
@@ -82,55 +109,61 @@ public class PlatformRelayMessenger
 			return;
 		}
 
-		for (int i = 0; i < pks.length; i++) {
-			try {
-				final String pk = pks[i];
+		try {
+			BuddyPluginBuddy pluginBuddy = buddyMessage.getBuddy();
 
-				BuddyPluginBuddy pluginBuddy = buddyPlugin.getBuddyFromPublicKey(pk);
+			if (pluginBuddy == null) {
+				throw new NullPointerException("No plugin buddy to put message to");
+			}
 
-				if (pluginBuddy == null) {
-					System.err.println("uhoh, should create a temp one?");
-					continue;
+			final String pk = pluginBuddy.getPublicKey();
+
+			byte[] payload = JSONUtils.encodeToJSON(buddyMessage.getRequest()).getBytes(
+					"utf-8");
+
+			cryptoResult encryptResult = pluginBuddy.encrypt(payload);
+
+			Map mapParameters = new HashMap();
+			mapParameters.put("sender_pk", myPK);
+			mapParameters.put("recipient_pk", pk);
+			mapParameters.put("payload", Base32.encode(encryptResult.getPayload()));
+			mapParameters.put("ack_hash", Base32.encode(encryptResult.getChallenge()));
+
+			PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
+					OP_PUT, mapParameters, maxDelayMS);
+
+			PlatformMessengerListener listener = new PlatformMessengerListener() {
+
+				public void messageSent(PlatformMessage message) {
 				}
 
-				cryptoResult encryptResult = pluginBuddy.encrypt(payload);
+				public void replyReceived(PlatformMessage message, String replyType,
+						Map reply) {
+					String replyMessage = MapUtils.getMapString(reply, "message", null);
 
-				Map mapParameters = new HashMap();
-				mapParameters.put("sender_pk", myPK);
-				mapParameters.put("recipient_pk", pk);
-				mapParameters.put("payload", Base32.encode(encryptResult.getPayload()));
-				mapParameters.put("ack_hash",
-						Base32.encode(encryptResult.getChallenge()));
+					if (replyMessage != null && replyMessage.equals("Ok")) {
+						// good
+						PlatformMessenger.debug("Relay: Ok to " + pk);
 
-				PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
-						OP_PUT, mapParameters, maxDelayMS);
+						buddyMessage.delete();
+					} else {
+						// bad
+						PlatformMessenger.debug("Relay: FAILED for " + pk);
 
-				PlatformMessengerListener listener = new PlatformMessengerListener() {
-
-					public void messageSent(PlatformMessage message) {
+						handleFailedPut_tryRelayAgain(buddyMessage);
 					}
 
-					public void replyReceived(PlatformMessage message, String replyType,
-							Map reply) {
-						String replyMessage = MapUtils.getMapString(reply, "message", null);
+				}
 
-						if (replyMessage != null && replyMessage.equals("Ok")) {
-							// good
-							PlatformMessenger.debug("Relay: Ok to " + pk);
-						} else {
-							// bad
-							PlatformMessenger.debug("Relay: FAILED for " + pk);
-						}
+			};
 
-					}
-
-				};
-
-				PlatformMessenger.queueMessage(message, listener);
-			} catch (BuddyPluginException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			PlatformMessenger.queueMessage(message, listener);
+		} catch (BuddyPluginException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 
@@ -309,5 +342,33 @@ public class PlatformRelayMessenger
 				}, 0);
 
 		PlatformMessenger.queueMessage(message, listener);
+	}
+
+	/**
+	 * @param pk
+	 * @param payload
+	 * @param buddyMessage
+	 *
+	 * @since 3.0.5.3
+	 */
+	protected static void handleFailedPut_tryRelayAgain(
+			BuddyPluginBuddyMessage buddyMessage) {
+		if (buddyMessage == null) {
+			return;
+		}
+		// TODO: put logic to 
+	}
+
+	/**
+	 * @param payload
+	 * @param buddyMessage
+	 *
+	 * @since 3.0.5.3
+	 */
+	private static void handleFailedPut_neverRelay(
+			BuddyPluginBuddyMessage buddyMessage) {
+		if (buddyMessage != null) {
+			// TODO: we can retry via direct, but relay is never going to work..
+		}
 	}
 }
