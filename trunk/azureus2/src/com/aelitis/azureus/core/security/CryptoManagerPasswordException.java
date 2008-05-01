@@ -26,18 +26,32 @@ public class
 CryptoManagerPasswordException 
 	extends CryptoManagerException
 {
+	private boolean	incorrect;
+	
 	public
 	CryptoManagerPasswordException(
-		String		str )
+		boolean		_incorrect,
+		String		_str )
 	{
-		super( str );
+		super( _str );
+		
+		incorrect = _incorrect;
 	}
 	
 	public
 	CryptoManagerPasswordException(
-		String		str,
-		Throwable 	cause )
+		boolean		_incorrect,
+		String		_str,
+		Throwable 	_cause )
 	{
-		super( str, cause );
+		super( _str, _cause );
+		
+		incorrect = _incorrect;
+	}
+	
+	public boolean
+	wasIncorrect()
+	{
+		return( incorrect );
 	}
 }

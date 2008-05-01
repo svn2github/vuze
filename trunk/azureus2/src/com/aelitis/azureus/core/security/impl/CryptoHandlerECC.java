@@ -108,6 +108,12 @@ CryptoHandlerECC
 		getMyPrivateKey( "unlock" );
 	}
 	
+	public synchronized boolean
+	isUnlocked()
+	{
+		return( use_method_private_key != null );
+	}
+	
 	public synchronized void
 	lock()
 	{
@@ -412,7 +418,7 @@ CryptoHandlerECC
 				
 					if ( !checkKeysOK( reason )){
 											
-						throw( new CryptoManagerPasswordException( "Password incorrect" ));
+						throw( new CryptoManagerPasswordException( true, "Password incorrect" ));
 					}
 					
 					ok = true;
@@ -504,8 +510,7 @@ CryptoHandlerECC
 	public int
 	getDefaultPasswordHandlerType()
 	{
-		return( COConfigurationManager.getBooleanParameter( CONFIG_PREFIX + "default_pwtype" )?
-				CryptoManagerPasswordHandler.HANDLER_TYPE_SYSTEM:CryptoManagerPasswordHandler.HANDLER_TYPE_USER	);
+		return( COConfigurationManager.getIntParameter( CONFIG_PREFIX + "default_pwtype", CryptoManagerPasswordHandler.HANDLER_TYPE_USER ));
 	}
 	
 	public void

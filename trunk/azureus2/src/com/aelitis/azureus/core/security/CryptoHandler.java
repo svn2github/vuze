@@ -47,6 +47,9 @@ CryptoHandler
 	public void
 	lock();
 	
+	public boolean
+	isUnlocked();
+	
 	public int
 	getUnlockTimeoutSeconds();
 	

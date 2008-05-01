@@ -240,7 +240,7 @@ CryptoManagerImpl
 			
 			if ( fail_is_pw_error ){
 				
-				throw( new CryptoManagerPasswordException( "Password incorrect", e ));
+				throw( new CryptoManagerPasswordException( true, "Password incorrect", e ));
 				
 			}else{
 				throw( new CryptoManagerException( "PBE decryption failed", e ));
@@ -438,7 +438,7 @@ CryptoManagerImpl
 			}
 		}
 		
-		throw( new CryptoManagerPasswordException( "No password handlers returned a password" ));
+		throw( new CryptoManagerPasswordException( false, "No password handlers returned a password" ));
 	}
 	
 	protected byte[]

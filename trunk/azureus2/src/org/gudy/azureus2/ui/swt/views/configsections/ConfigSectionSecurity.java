@@ -66,6 +66,7 @@ import com.aelitis.azureus.core.security.CryptoHandler;
 import com.aelitis.azureus.core.security.CryptoManager;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
 import com.aelitis.azureus.core.security.CryptoManagerKeyChangeListener;
+import com.aelitis.azureus.core.security.CryptoManagerPasswordException;
 import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -345,6 +346,23 @@ ConfigSectionSecurity
     						
     						error = null;
     						
+    					}catch( CryptoManagerPasswordException e ){
+    						
+    						if ( e.wasIncorrect()){
+    							
+    							error = MessageText.getString( "ConfigView.section.security.unlockkey.error" );
+    							
+    						}else{
+    							
+    							if ( existing_value || !ecc_handler.isUnlocked()){
+    								
+    								error = MessageText.getString( "Torrent.create.progress.cancelled" );
+    						    	
+    							}else{
+    								
+    								error = MessageText.getString( "ConfigView.section.security.vuze.login" );
+    							}
+    						}
     					}catch( Throwable e ){
     						
     						error = Debug.getNestedExceptionMessage( e );
@@ -392,10 +410,12 @@ ConfigSectionSecurity
 					        					        		
 					        	}catch( Throwable e ){
 					        		
+					        		
+					        		
 					        		Utils.openMessageBox( 
 					        			parent.getShell(),SWT.ICON_ERROR | SWT.OK,
 					        			MessageText.getString( "ConfigView.section.security.resetkey.error.title"),
-					        			MessageText.getString( "ConfigView.section.security.resetkey.error" ) + ": " + Debug.getNestedExceptionMessage(e));
+					        			getError( e ));
 					        	}
 		 					}
 				        }
@@ -426,7 +446,7 @@ ConfigSectionSecurity
 			 						parent.getShell(),
 			 						SWT.ICON_ERROR | SWT.OK,
 			 						MessageText.getString( "ConfigView.section.security.resetkey.error.title" ),
-			 						MessageText.getString( "ConfigView.section.security.unlockkey.error" ));
+			 						getError( e ));
 				        	}
 				        }
 				    });
@@ -547,4 +567,28 @@ ConfigSectionSecurity
 	    
 	    return gSecurity;
 	  }
+	
+	protected String
+	getError(
+		Throwable e )
+	{
+		String	error;
+		
+		if ( e instanceof CryptoManagerPasswordException ){
+			
+			if (((CryptoManagerPasswordException)e).wasIncorrect()){
+				
+				error = MessageText.getString( "ConfigView.section.security.resetkey.error.title");
+				
+			}else{
+				
+				error = MessageText.getString( "Torrent.create.progress.cancelled" );
+			}
+		}else{
+			
+			error = MessageText.getString( "ConfigView.section.security.resetkey.error" ) + ": " + Debug.getNestedExceptionMessage(e);
+		}
+		
+		return( error );
 	}
+}
