@@ -58,7 +58,7 @@ public class VuzeBuddyManager
 {
 	private static final int SEND_P2P_TIMEOUT = 1000 * 60 * 3;
 
-	protected static final boolean ALLOW_ONLY_AZ3 = false;
+	protected static final boolean ALLOW_ONLY_AZ3 = true;
 
 	private static final String SAVE_FILENAME = "v3.Buddies.config";
 
@@ -332,15 +332,19 @@ public class VuzeBuddyManager
    
 				buddy.getMessageHandler().addListener( buddy_message_handler_listener );
 					
-				String pk = buddy.getPublicKey();
+				if (false) {
+					// XXX To remove.  We don't need to add plugin buddies anymore
+					//     because we store the info ourselves in v3.Buddies.config
+					String pk = buddy.getPublicKey();
 
-				VuzeBuddy vuzeBuddy = (VuzeBuddy) mapPKtoVuzeBuddy.get(pk);
-				if (vuzeBuddy != null) {
-					// already exists
-					return;
+					VuzeBuddy vuzeBuddy = (VuzeBuddy) mapPKtoVuzeBuddy.get(pk);
+					if (vuzeBuddy != null) {
+						// already exists
+						return;
+					}
+
+					createNewBuddy(buddy, true);
 				}
-
-				createNewBuddy(buddy, true);
 			}
 		};
 
@@ -748,9 +752,9 @@ public class VuzeBuddyManager
 			for (Iterator iter = buddyList.iterator(); iter.hasNext();) {
 				VuzeBuddy buddy = (VuzeBuddy) iter.next();
 				
-				log("Removing Buddy " + buddy.getDisplayName() + ";" + buddy.getLoginID());
-
 				if (buddy.getLastUpdated() < updateTime) {
+					log("Removing Buddy " + buddy.getDisplayName() + ";" + buddy.getLoginID() + ";updateTime=" + updateTime + ";buddyTime" + buddy.getLastUpdated());
+
 					String[] publicKeys = buddy.getPublicKeys();
 					for (int i = 0; i < publicKeys.length; i++) {
 						String pk = publicKeys[i];
@@ -767,6 +771,8 @@ public class VuzeBuddyManager
 					}
 				}
 			}
+			
+			saveVuzeBuddies();
 
 		} finally {
 			buddy_mon.exit();
@@ -1107,6 +1113,7 @@ public class VuzeBuddyManager
 	 * @since 3.0.5.3
 	 */
 	protected static void triggerChangeListener(VuzeBuddy buddy) {
+		saveVuzeBuddies();
 		Object[] listenersArray = listeners.toArray();
 		for (int i = 0; i < listenersArray.length; i++) {
 			VuzeBuddyListener l = (VuzeBuddyListener) listenersArray[i];
@@ -1118,6 +1125,8 @@ public class VuzeBuddyManager
 		if (skipSave) {
 			return;
 		}
+		
+		log("save");
 		Map mapSave = new HashMap();
 		List storedBuddyList = new ArrayList();
 		mapSave.put("buddies", storedBuddyList);
