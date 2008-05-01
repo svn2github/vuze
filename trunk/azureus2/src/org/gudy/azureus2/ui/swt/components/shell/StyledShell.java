@@ -260,12 +260,12 @@ public class StyledShell
 		 * so it is not obscured by the other shell(s); conversely DO NOT bring this shell on top if the 
 		 * above condition is false so that it will not obscure other windows like external browser, etc...
 		 */
-		if (true == Utils.anyShellHaveStyle(SWT.ON_TOP | SWT.TITLE)) {
-			UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-			if (uiFunctions != null && uiFunctions.getMainShell() != null) {
-				style |= SWT.ON_TOP;
-			}
-		}
+//		if (true == Utils.anyShellHaveStyle(SWT.ON_TOP | SWT.TITLE)) {
+//			UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+//			if (uiFunctions != null && uiFunctions.getMainShell() != null) {
+//				style |= SWT.ON_TOP;
+//			}
+//		}
 
 		/*
 		 * 

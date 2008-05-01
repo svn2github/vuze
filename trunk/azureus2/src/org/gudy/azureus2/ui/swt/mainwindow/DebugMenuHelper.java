@@ -74,6 +74,14 @@ public class DebugMenuHelper
 		});
 
 		item = new MenuItem(menuSS, SWT.NONE);
+		item.setText("1024x768");
+		item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				uiFunctions.getMainShell().setSize(1024, 768);
+			}
+		});
+		
+		item = new MenuItem(menuSS, SWT.NONE);
 		item.setText("1152x784");
 		item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
@@ -89,6 +97,13 @@ public class DebugMenuHelper
 			}
 		});
 
+		item = new MenuItem(menuSS, SWT.NONE);
+		item.setText("1280x1024");
+		item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				uiFunctions.getMainShell().setSize(1280, 1024);
+			}
+		});
 		item = new MenuItem(menuSS, SWT.NONE);
 		item.setText("1440x820");
 		item.addSelectionListener(new SelectionAdapter() {
