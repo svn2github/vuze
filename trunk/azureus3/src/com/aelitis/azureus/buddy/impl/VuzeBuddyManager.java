@@ -713,6 +713,8 @@ public class VuzeBuddyManager
 		try {
 			buddy_mon.enter();
 
+			log("Removing Buddy " + buddy.getDisplayName() + ";" + buddy.getLoginID());
+
 			buddyList.remove(buddy);
 
 			String[] publicKeys = buddy.getPublicKeys();
@@ -745,6 +747,8 @@ public class VuzeBuddyManager
 
 			for (Iterator iter = buddyList.iterator(); iter.hasNext();) {
 				VuzeBuddy buddy = (VuzeBuddy) iter.next();
+				
+				log("Removing Buddy " + buddy.getDisplayName() + ";" + buddy.getLoginID());
 
 				if (buddy.getLastUpdated() < updateTime) {
 					String[] publicKeys = buddy.getPublicKeys();
@@ -812,15 +816,6 @@ public class VuzeBuddyManager
 
 	private static void invitePKs(String[] pks, String code) {
 		if (pks != null && pks.length > 0) {
-			final String myPK;
-			try {
-				myPK = VuzeCryptoManager.getSingleton().getPublicKey(null);
-			} catch (VuzeCryptoException e) {
-				Debug.out(e);
-				return;
-			}
-			final LoginInfo userInfo = LoginInfoManager.getInstance().getUserInfo();
-
 			final BuddyPluginBuddy[] pluginBuddies = new BuddyPluginBuddy[pks.length];
 			for (int i = 0; i < pks.length; i++) {
 				String pk = pks[i];
@@ -858,7 +853,8 @@ public class VuzeBuddyManager
 	public static void inviteWithShare(Map invites, DownloadManager dm,
 			String shareMessage, VuzeBuddy[] buddies) {
 
-		if (buddies != null) {
+		if (buddies != null && dm != null) {
+			log("share " + dm.toString() + " with " + buddies.length);
 			for (int i = 0; i < buddies.length; i++) {
 				VuzeBuddy v3Buddy = buddies[i];
 				if (v3Buddy != null) {
@@ -870,6 +866,8 @@ public class VuzeBuddyManager
 		String inviteMessage = MapUtils.getMapString(invites, "message", null);
 		List sentInvitations = MapUtils.getMapList(invites, "sentInvitations",
 				Collections.EMPTY_LIST);
+
+		log("invite " + sentInvitations.size() + " sharing " + dm);
 
 		for (Iterator iter = sentInvitations.iterator(); iter.hasNext();) {
 			Map mapInvitation = (Map) iter.next();
