@@ -227,10 +227,10 @@ public class VuzeBuddyImpl
 					ret[x++] = pluginBuddy.getPublicKey();
 				}
 			}
+			return ret;
 		} finally {
 			mon_pluginBuddies.exit();
 		}
-		return new String[0];
 	}
 
 	// @see com.aelitis.azureus.buddy.VuzeBuddy#sendActivity(com.aelitis.azureus.util.VuzeActivitiesEntry)
