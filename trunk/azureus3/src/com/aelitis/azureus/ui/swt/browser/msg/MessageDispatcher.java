@@ -25,7 +25,7 @@ import java.util.Map;
 import org.eclipse.swt.browser.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 
@@ -246,12 +246,12 @@ public class MessageDispatcher implements StatusTextListener, TitleListener
                     context.debug("No listener registered with ID " + listenerId);
                 }
                 else {
-                	new AEThread("dispatch for " + listenerId, false) {
-										public void runSupport() {
-	                    listener.handleMessage(message);
-	                    message.complete(true, true, null);
-										}
-									}.start();
+                	new AEThread2("dispatch for " + listenerId, true) {
+                		public void run() {
+                			listener.handleMessage(message);
+                			message.complete(true, true, null);
+                		}
+                	}.start();
                 }
             }
         }
