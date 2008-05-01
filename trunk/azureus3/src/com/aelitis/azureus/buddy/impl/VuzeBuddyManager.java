@@ -707,6 +707,12 @@ public class VuzeBuddyManager
 		try {
 			buddy_mon.enter();
 
+			if (!buddyList.contains(buddy)) {
+				log("Buddy " + buddy.getDisplayName() + ";" + buddy.getLoginID()
+						+ " already removed");
+				return;
+			}
+			
 			log("Removing Buddy " + buddy.getDisplayName() + ";" + buddy.getLoginID());
 
 			buddyList.remove(buddy);
