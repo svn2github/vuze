@@ -239,9 +239,6 @@ public class VuzeBuddyManager
 					} else {
 						// logged in
 
-	
-						//PlatformKeyExchangeMessenger.getPassword(null);
-						
 						log("Logging in.. getting pw from webapp");
 						
 							// getPassword will set the password viz VuzeCryptoManager
@@ -262,7 +259,7 @@ public class VuzeBuddyManager
 									PlatformKeyExchangeMessenger.setPublicKey();
 								}
 
-								PlatformBuddyMessenger.sync(null);
+								PlatformRelayMessenger.relayCheck();
 								PlatformBuddyMessenger.getInvites();
 							}
 						});
@@ -350,7 +347,7 @@ public class VuzeBuddyManager
 
 					VuzeBuddy vuzeBuddy = (VuzeBuddy) mapPKtoVuzeBuddy.get(pk);
 					if (vuzeBuddy != null) {
-						vuzeBuddy.setDisplayName(buddy.getName());
+						//vuzeBuddy.setDisplayName(buddy.getName());
 					} else {
 						buddyAdded(buddy);
 					}
@@ -448,6 +445,8 @@ public class VuzeBuddyManager
 	protected static String processPayloadMap(String pkSender, Map mapPayload,
 			boolean authorizedBuddy) {
 		String mt = MapUtils.getMapString(mapPayload, "VuzeMessageType", "");
+		
+		log("processing payload " + mt);
 
 		if (mt.equals("ActivityEntry")) {
 			Map mapEntry = (Map) MapUtils.getMapObject(mapPayload, "ActivityEntry",
@@ -1058,7 +1057,7 @@ public class VuzeBuddyManager
 				BuddyPluginBuddy pluginBuddy = buddies[i];
 
 				// outcome reported via buddy's message handler listener
-				BuddyPluginBuddyMessage message = pluginBuddy.getMessageHandler().queueMessage(
+				pluginBuddy.getMessageHandler().queueMessage(
 						BuddyPlugin.SUBSYSTEM_AZ3,
 						map,
 						SEND_P2P_TIMEOUT );
