@@ -93,7 +93,7 @@ public class InvitePage
 
 					public void handleInviteConfirm() {
 						System.err.println("\t'invite-confirm' called from invite buddy page: "
-								+ getConfirmationResponse());//KN: sysout
+								+ getConfirmationMessage());//KN: sysout
 
 					}
 				}

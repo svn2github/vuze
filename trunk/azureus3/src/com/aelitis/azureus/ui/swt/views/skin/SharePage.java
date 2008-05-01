@@ -3,7 +3,6 @@ package com.aelitis.azureus.ui.swt.views.skin;
 import java.io.ByteArrayInputStream;
 import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -19,6 +18,7 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
@@ -35,8 +35,8 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
@@ -45,8 +45,10 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractBuddyPageListener;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.JSONUtils;
 
 public class SharePage
 	extends AbstractDetailPage
@@ -62,11 +64,13 @@ public class SharePage
 
 	private Composite browserPanel = null;
 
-	private Label shareMessage;
+	private Label shareHeaderLabel;
+
+	private Label shareHeaderMessageLabel;
 
 	private Label buddyListDescription;
 
-	private Label addBuddyLabel;
+	private Label addBuddyPromptLabel;
 
 	private StyledText buddyList;
 
@@ -86,7 +90,7 @@ public class SharePage
 
 	private Label contentThumbnail;
 
-	private Label commentLabel;
+	private Label optionalMessageLabel;
 
 	private Text commentText;
 
@@ -100,61 +104,71 @@ public class SharePage
 
 	private DownloadManager dm = null;
 
+	private Color textColor = null;
+
 	public SharePage(DetailPanel detailPanel) {
 		super(detailPanel, PAGE_ID);
 	}
 
 	public void createControls(Composite parent) {
-		content = new Composite(parent, SWT.NONE);
 
-		stackLayout = new StackLayout();
-		stackLayout.marginHeight = 0;
-		stackLayout.marginWidth = 0;
-		content.setLayout(stackLayout);
+		textColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
+				"color.text.fg");
+
+		content = new Composite(parent, SWT.NONE);
 
 		createFirstPanel();
 		createBrowserPanel();
 	}
 
 	private void createFirstPanel() {
+		createControls();
+		formatControls();
+		layoutControls();
+		hookListeners();
+	}
+
+	private void createControls() {
+
 		firstPanel = new Composite(content, SWT.NONE);
-		//		firstPanel.setBackground(ColorCache.getColor(parent.getDisplay(), 12, 30, 67));
-		firstPanel.setLayout(new FormLayout());
-		//		firstPanel.setBackground(Colors.black);
 
-		shareMessage = new Label(firstPanel, SWT.NONE);
-		shareMessage.setText("Share this content...");
-		shareMessage.setForeground(Colors.white);
-
+		shareHeaderLabel = new Label(firstPanel, SWT.NONE);
+		shareHeaderMessageLabel = new Label(firstPanel, SWT.NONE);
 		buddyListDescription = new Label(firstPanel, SWT.NONE);
-		buddyListDescription.setText("Selected buddies");
-		buddyListDescription.setForeground(Colors.white);
-
 		buddyList = new StyledText(firstPanel, SWT.NONE);
-		buddyList.setForeground(Colors.red);
+		inviteePanel = new Composite(firstPanel, SWT.NONE);
+		inviteeList = new StyledText(inviteePanel, SWT.NONE);
+		addBuddyPromptLabel = new Label(inviteePanel, SWT.NONE | SWT.WRAP
+				| SWT.RIGHT);
+		addBuddyButton = new Button(inviteePanel, SWT.PUSH);
+		contentDetail = new Composite(firstPanel, SWT.NONE);
+		sendNowButton = new Button(firstPanel, SWT.PUSH);
+		cancelButton = new Button(firstPanel, SWT.PUSH);
+		contentThumbnail = new Label(contentDetail, SWT.BORDER);
+		contentStats = new StyledText(contentDetail, SWT.NONE);
+		optionalMessageLabel = new Label(contentDetail, SWT.NONE);
+		commentText = new Text(contentDetail, SWT.BORDER);
+
+	}
+
+	private void layoutControls() {
+
+		stackLayout = new StackLayout();
+		stackLayout.marginHeight = 0;
+		stackLayout.marginWidth = 0;
+		content.setLayout(stackLayout);
+
+		firstPanel.setLayout(new FormLayout());
+
 		buddyList.setIndent(3);
-		applyRoundedBorder(buddyList);
 
 		//============		
-		inviteePanel = new Composite(firstPanel, SWT.NONE);
-		applyRoundedBorder(inviteePanel);
-
 		FormLayout fLayout = new FormLayout();
 		fLayout.marginTop = 3;
 		fLayout.marginBottom = 3;
 		fLayout.marginLeft = 3;
 		fLayout.marginRight = 3;
 		inviteePanel.setLayout(fLayout);
-
-		inviteeList = new StyledText(inviteePanel, SWT.NONE);
-		inviteeList.setForeground(Colors.yellow);
-
-		addBuddyLabel = new Label(inviteePanel, SWT.NONE | SWT.WRAP | SWT.RIGHT);
-		addBuddyLabel.setText("Invite more buddies to share with");
-		addBuddyLabel.setForeground(Colors.white);
-
-		addBuddyButton = new Button(inviteePanel, SWT.PUSH);
-		addBuddyButton.setText("Add Buddy");
 
 		FormData inviteePanelData = new FormData();
 		inviteePanelData.top = new FormAttachment(buddyList, 10);
@@ -179,26 +193,24 @@ public class SharePage
 		addBuddyLabelData.top = new FormAttachment(inviteeList, 8);
 		addBuddyLabelData.right = new FormAttachment(addBuddyButton, -8);
 		addBuddyLabelData.left = new FormAttachment(inviteeList, 0, SWT.LEFT);
-		addBuddyLabel.setLayoutData(addBuddyLabelData);
+		addBuddyPromptLabel.setLayoutData(addBuddyLabelData);
 
 		//==============
 
-		contentDetail = new Composite(firstPanel, SWT.NONE);
-		applyRoundedBorder(contentDetail);
-		sendNowButton = new Button(firstPanel, SWT.PUSH);
-		sendNowButton.setText("Send Now");
+		FormData shareHeaderData = new FormData();
+		shareHeaderData.top = new FormAttachment(0, 8);
+		shareHeaderData.left = new FormAttachment(0, 8);
+		shareHeaderLabel.setLayoutData(shareHeaderData);
 
-		cancelButton = new Button(firstPanel, SWT.PUSH);
-		cancelButton.setText("&Cancel");
-
-		FormData shareMessageData = new FormData();
-		shareMessageData.top = new FormAttachment(0, 8);
-		shareMessageData.left = new FormAttachment(0, 8);
-		shareMessageData.right = new FormAttachment(100, -8);
-		shareMessage.setLayoutData(shareMessageData);
+		FormData shareHeaderMessageData = new FormData();
+		shareHeaderMessageData.top = new FormAttachment(shareHeaderLabel, 8);
+		shareHeaderMessageData.left = new FormAttachment(0, 30);
+		shareHeaderMessageData.right = new FormAttachment(100, -8);
+		shareHeaderMessageLabel.setLayoutData(shareHeaderMessageData);
 
 		FormData buddyListDescriptionData = new FormData();
-		buddyListDescriptionData.top = new FormAttachment(shareMessage, 8);
+		buddyListDescriptionData.top = new FormAttachment(shareHeaderMessageLabel,
+				8);
 		buddyListDescriptionData.left = new FormAttachment(buddyList, 0, SWT.LEFT);
 		buddyListDescription.setLayoutData(buddyListDescriptionData);
 
@@ -231,7 +243,6 @@ public class SharePage
 		detailLayout.marginHeight = 8;
 		contentDetail.setLayout(detailLayout);
 
-		contentThumbnail = new Label(contentDetail, SWT.NONE);
 		FormData buddyImageData = new FormData();
 		buddyImageData.top = new FormAttachment(0, 8);
 		buddyImageData.left = new FormAttachment(0, 8);
@@ -239,7 +250,6 @@ public class SharePage
 		buddyImageData.height = 82;
 		contentThumbnail.setLayoutData(buddyImageData);
 
-		contentStats = new StyledText(contentDetail, SWT.NONE);
 		FormData contentStatsData = new FormData();
 		contentStatsData.top = new FormAttachment(0, 8);
 		contentStatsData.left = new FormAttachment(contentThumbnail, 8);
@@ -248,17 +258,13 @@ public class SharePage
 				SWT.BOTTOM);
 		contentStats.setLayoutData(contentStatsData);
 
-		commentLabel = new Label(contentDetail, SWT.NONE);
-		commentLabel.setText("Optional message:");
-		commentLabel.setForeground(Colors.white);
 		FormData commentLabelData = new FormData();
 		commentLabelData.top = new FormAttachment(contentThumbnail, 16);
 		commentLabelData.left = new FormAttachment(0, 8);
-		commentLabel.setLayoutData(commentLabelData);
+		optionalMessageLabel.setLayoutData(commentLabelData);
 
-		commentText = new Text(contentDetail, SWT.BORDER);
 		FormData commentTextData = new FormData();
-		commentTextData.top = new FormAttachment(commentLabel, 8);
+		commentTextData.top = new FormAttachment(optionalMessageLabel, 8);
 		commentTextData.left = new FormAttachment(0, 8);
 		commentTextData.right = new FormAttachment(100, -8);
 		commentTextData.bottom = new FormAttachment(100, -8);
@@ -266,9 +272,37 @@ public class SharePage
 
 		stackLayout.topControl = firstPanel;
 		content.layout();
+	}
 
-		hookListeners();
+	private void formatControls() {
+		optionalMessageLabel.setForeground(textColor);
+		addBuddyPromptLabel.setForeground(textColor);
+		inviteeList.setForeground(textColor);
+		buddyList.setForeground(textColor);
+		buddyListDescription.setForeground(textColor);
+		shareHeaderMessageLabel.setForeground(textColor);
+		shareHeaderLabel.setForeground(textColor);
 
+		contentStats.setForeground(textColor);
+
+		applyRoundedBorder(contentDetail);
+		applyRoundedBorder(inviteePanel);
+		applyRoundedBorder(buddyList);
+
+		Messages.setLanguageText(addBuddyPromptLabel,
+				"v3.Share.invite.buddies.prompt");
+		Messages.setLanguageText(addBuddyButton, "v3.Share.add.buddy");
+		Messages.setLanguageText(sendNowButton, "v3.Share.send.now");
+		Messages.setLanguageText(optionalMessageLabel, "v3.Share.optional.message");
+		Messages.setLanguageText(cancelButton, "v3.MainWindow.button.cancel");
+		//		Messages.setLanguageText(, "v3.Share.add.buddy.all");
+
+		Messages.setLanguageText(shareHeaderLabel, "v3.Share.header");
+		Messages.setLanguageText(shareHeaderMessageLabel, "v3.Share.header.message");
+		Messages.setLanguageText(buddyListDescription, "v3.Share.add.buddy.all");
+
+		shareHeaderMessageLabel.setText("Share this content...");
+		buddyListDescription.setText("Selected buddies");
 	}
 
 	private void applyRoundedBorder(final Control control) {
@@ -301,6 +335,7 @@ public class SharePage
 
 					public void handleCancel() {
 						System.out.println("'Cancel' called from share->invite buddy page");//KN: sysout
+						
 						activateFirstPanel();
 					}
 
@@ -317,14 +352,12 @@ public class SharePage
 								for (Iterator iterator = getInvitedBuddies().iterator(); iterator.hasNext();) {
 									VuzeBuddy buddy = (VuzeBuddy) iterator.next();
 									inviteeList.append(buddy.getDisplayName() + "\n");
-									System.out.println("Invited budy displayName: "
-											+ buddy.getDisplayName() + " loginID: "
-											+ buddy.getLoginID());//KN:
 								}
 								if (true == inviteeList.getCharCount() > 0) {
-									addBuddyButton.setText("Add or Remove Buddy");
+									Messages.setLanguageText(addBuddyButton,
+											"v3.Share.add.or.remove.buddy");
 								} else {
-									addBuddyButton.setText("Add Buddy");
+									Messages.setLanguageText(addBuddyButton, "v3.Share.add.buddy");
 								}
 								inviteePanel.layout();
 							}
@@ -340,9 +373,10 @@ public class SharePage
 								}
 
 								if (true == inviteeList.getCharCount() > 0) {
-									addBuddyButton.setText("Add or Remove Buddy");
+									Messages.setLanguageText(addBuddyButton,
+											"v3.Share.add.or.remove.buddy");
 								} else {
-									addBuddyButton.setText("Add Buddy");
+									Messages.setLanguageText(addBuddyButton, "v3.Share.add.buddy");
 								}
 
 								inviteePanel.layout();
@@ -353,6 +387,10 @@ public class SharePage
 
 					public void handleInviteConfirm() {
 						confirmationResponse = getConfirmationResponse();
+						
+						//Display pop-up here!!!
+						System.err.println("\t'invite-confirm' called from share page: "
+								+ getConfirmationMessage());//KN: sysout
 
 					}
 				});
@@ -388,13 +426,14 @@ public class SharePage
 			public void widgetSelected(SelectionEvent e) {
 				//				String dummyBuddies
 
-				getMessageContext().executeInBrowser("sendSharingBuddies('kkkkkkk')");
+				getMessageContext().executeInBrowser(
+						"sendSharingBuddies('" + getCommitJSONMessage() + "')");
 
 				getMessageContext().executeInBrowser("shareSubmit()");
 
 				VuzeBuddy[] buddies = (VuzeBuddy[]) selectedBuddies.toArray(new VuzeBuddy[selectedBuddies.size()]);
 				VuzeBuddyManager.inviteWithShare(confirmationResponse,
-						getDownloadManager(), "share message goes here", buddies);
+						getDownloadManager(), shareHeaderMessageLabel.getText(), buddies);
 
 			}
 
@@ -416,7 +455,7 @@ public class SharePage
 				if (null != buttonBar) {
 					buttonBar.setActiveMode(ButtonBar.none_active_mode);
 				}
-
+				inviteeList.setText(""); //TODO finish clearing out when user canceled!!!!!
 				getDetailPanel().show(false);
 
 			}
@@ -425,6 +464,19 @@ public class SharePage
 				widgetSelected(e);
 			}
 		});
+	}
+
+	private String getCommitJSONMessage() {
+		List buddieloginIDsAndContentHash = new ArrayList();
+		List loginIDs = new ArrayList();
+		for (Iterator iterator = selectedBuddies.iterator(); iterator.hasNext();) {
+			VuzeBuddySWT vuzeBuddy = (VuzeBuddySWT) iterator.next();
+			loginIDs.add(vuzeBuddy.getLoginID());
+		}
+		buddieloginIDsAndContentHash.add(loginIDs);
+		buddieloginIDsAndContentHash.add(PlatformTorrentUtils.getContentHash(dm.getTorrent()));
+
+		return JSONUtils.encodeToJSON(buddieloginIDsAndContentHash);
 	}
 
 	public void setBuddies(List buddies) {
@@ -492,7 +544,7 @@ public class SharePage
 				img = new Image(Display.getDefault(), bis);
 
 				/*
-				 * Dispose this mage when the canvas is disposed
+				 * Dispose this image when the canvas is disposed
 				 */
 				final Image img_final = img;
 				contentDetail.addDisposeListener(new DisposeListener() {
@@ -517,37 +569,34 @@ public class SharePage
 			}
 
 			if (null != img) {
-				if (null != contentThumbnail.getImage()
-						&& false == contentThumbnail.getImage().isDisposed()) {
-					Image image = contentThumbnail.getImage();
-					contentThumbnail.setImage(null);
-					image.dispose();
-				}
-
 				contentThumbnail.setImage(img);
 			} else {
 				Debug.out("Problem getting image for torrent in SharePage.refresh()");
 			}
 
-			
 			updateContentStats();
 		}
 	}
-	
-	private void updateContentStats(){
+
+	private void updateContentStats() {
 		contentStats.setText("");
 		contentStats.setIndent(3);
-		contentStats.setForeground(Colors.yellow);
-		
+
 		String publisher = PlatformTorrentUtils.getContentPublisher(dm.getTorrent());
-		
-		if(publisher.startsWith("az")){
-			publisher = publisher.substring(2);
+
+		if (null != publisher && publisher.length() > 0) {
+			if (publisher.startsWith("az")) {
+				publisher = publisher.substring(2);
+			}
+			contentStats.append("From: " + publisher + "\n");
 		}
-		contentStats.append("From: " + publisher + "\n");
-		
-		contentStats.append("Published: " + DateFormat.getDateInstance().format(new Date(PlatformTorrentUtils.getContentLastUpdated(dm.getTorrent()) ))   + "\n");
-//		contentStats.append("Published: " + PlatformTorrentUtils.getContentLastUpdated(dm.getTorrent())   + "\n");
-		contentStats.append("File size: " + dm.getSize()/1000000 + " MB");
+
+		contentStats.append("Published: "
+				+ DateFormat.getDateInstance().format(
+						new Date(
+								PlatformTorrentUtils.getContentLastUpdated(dm.getTorrent())))
+				+ "\n");
+		//		contentStats.append("Published: " + PlatformTorrentUtils.getContentLastUpdated(dm.getTorrent())   + "\n");
+		contentStats.append("File size: " + dm.getSize() / 1000000 + " MB");
 	}
 }

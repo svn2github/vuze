@@ -459,6 +459,12 @@ public class MainWindow
 		ImageRepository.loadImagesForSplashWindow(display);
 		ImageRepository.addPath("com/aelitis/azureus/ui/images/azureus.jpg",
 				"azureus_splash");
+		
+		/*
+		 * KN: Adding default profile image for buddies
+		 */
+		ImageRepository.addPath("com/aelitis/azureus/ui/images/buddy_default_avatar.png",
+		"buddy_default_avatar");
 
 		ImageRepository.loadImages(display);
 

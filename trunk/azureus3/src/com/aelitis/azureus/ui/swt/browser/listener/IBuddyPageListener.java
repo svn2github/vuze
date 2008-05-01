@@ -16,9 +16,9 @@ public interface IBuddyPageListener
 	public static final String OP_INVITEES_PARAM_EMAILS = "emails";
 
 	public static final String OP_INVITE_CONFIRM = "invite-confirm";
-	
+
 	public static final String OP_INVITE_CONFIRM_PARAM_MSG = "message";
-	
+
 	public void handleClose();
 
 	public void handleCancel();
@@ -26,7 +26,7 @@ public interface IBuddyPageListener
 	public void handleBuddyInvites();
 
 	public void handleEmailInvites();
-	
+
 	public void handleInviteConfirm();
 
 	/**
@@ -36,9 +36,11 @@ public interface IBuddyPageListener
 	public List getInvitedBuddies();
 
 	public List getInvitedEmails();
-	
+
 	public Map getConfirmationResponse();
-	
+
 	public String getInvitationMessage();
-	
+
+	public String getConfirmationMessage();
+
 }

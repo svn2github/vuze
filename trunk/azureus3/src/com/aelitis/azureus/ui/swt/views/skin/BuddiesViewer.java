@@ -16,6 +16,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.util.AERunnable;
 
+import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
 import com.aelitis.azureus.ui.swt.buddy.impl.VuzeBuddyUtils;
@@ -281,13 +282,18 @@ public class BuddiesViewer
 	}
 
 	private VuzeBuddySWT[] getBuddies() {
-		VuzeBuddySWT[] buddies = new VuzeBuddySWT[25];
-		for (int i = 0; i < buddies.length; i++) {
-			buddies[i] = (VuzeBuddySWT) VuzeBuddyUtils.createRandomBuddy();
-			buddies[i].setDisplayName("Mr Random " + i);
-		}
-
-		return buddies;
+		
+		List buddiesList = VuzeBuddyManager.getAllVuzeBuddies();
+		return (VuzeBuddySWT[]) buddiesList.toArray(new VuzeBuddySWT[buddiesList.size()]);
+		
+//		VuzeBuddySWT[] buddies = new VuzeBuddySWT[25];
+//		
+//		for (int i = 0; i < buddies.length; i++) {
+//			buddies[i] = (VuzeBuddySWT) VuzeBuddyUtils.createRandomBuddy();
+//			buddies[i].setDisplayName("Mr Random " + i);
+//		}
+//
+//		return buddies;
 	}
 
 	public Composite getControl() {

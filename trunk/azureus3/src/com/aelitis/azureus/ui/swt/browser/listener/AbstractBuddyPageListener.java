@@ -38,6 +38,8 @@ public abstract class AbstractBuddyPageListener
 
 	private Map confirmationResponse = null;
 
+	private String confirmationMessage = null;
+
 	private String invitationMessage = "";
 
 	public AbstractBuddyPageListener(Browser browser) {
@@ -81,8 +83,13 @@ public abstract class AbstractBuddyPageListener
 
 		} else if (true == OP_INVITE_CONFIRM.equals(opID)) {
 			if (true == decodedMap.containsKey(OP_INVITE_CONFIRM_PARAM_MSG)) {
-				confirmationResponse = (Map) decodedMap.get(OP_INVITE_CONFIRM_PARAM_MSG);
-
+				Object getmessageObj = decodedMap.get(OP_INVITE_CONFIRM_PARAM_MSG);
+				if (getmessageObj instanceof Map) {
+					confirmationResponse = (Map) getmessageObj;
+				} else if (getmessageObj instanceof String) {
+					confirmationMessage = getmessageObj.toString();
+					System.out.println("confirmationMessage revived: " + confirmationMessage);//KN: sysout
+				}
 			}
 		}
 	}
@@ -101,5 +108,13 @@ public abstract class AbstractBuddyPageListener
 
 	public String getInvitationMessage() {
 		return invitationMessage;
+	}
+
+	public String getConfirmationMessage() {
+		return confirmationMessage;
+	}
+
+	public void setConfirmationMessage(String confirmationMessage) {
+		this.confirmationMessage = confirmationMessage;
 	}
 }
