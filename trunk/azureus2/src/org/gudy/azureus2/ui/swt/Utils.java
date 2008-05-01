@@ -836,7 +836,47 @@ public class Utils
 		}
 		return buttonVals[ret].intValue();
 	}
+	
+	public static int openMessageBox(Shell parent, int style, int default_style, String title,
+			String text) {
+		if (parent == null) {
+			parent = findAnyShell();
+		}
+		if ((style & (0x7f << 5)) == 0) {
+			// need at least one button
+			style |= SWT.OK;
+		}
 
+		Object[] buttonInfo = swtButtonStylesToText(style);
+		
+		Object[] defaultButtonInfo = swtButtonStylesToText(default_style);
+		
+		int	defaultIndex = 0;
+		
+		if ( defaultButtonInfo.length > 0 ){
+			String name = ((String[])defaultButtonInfo[0])[0];
+			
+			String[] names = (String[])buttonInfo[0];
+			
+			for (int i=0;i<names.length;i++){
+				if ( names[i].equals(name)){
+					defaultIndex = i;
+					break;
+				}
+			}
+		}
+		MessageBoxShell mb = new MessageBoxShell(parent, title, text,
+				(String[]) buttonInfo[0], defaultIndex);
+		mb.setLeftImage(style & 0x1f);
+		int ret = mb.open();
+
+		Integer[] buttonVals = (Integer[]) buttonInfo[1];
+		if (ret < 0 || ret > buttonVals.length) {
+			return SWT.CANCEL;
+		}
+		return buttonVals[ret].intValue();
+	}
+	
 	private static Object[] swtButtonStylesToText(int style) {
 		List buttons = new ArrayList(2);
 		List buttonVal = new ArrayList(2);

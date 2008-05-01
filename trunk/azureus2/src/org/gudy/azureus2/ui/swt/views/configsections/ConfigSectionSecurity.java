@@ -401,7 +401,7 @@ ConfigSectionSecurity
 						handleEvent(Event event) 
 				        {
 				        	if ( Utils.openMessageBox(
-				        			parent.getShell(),SWT.ICON_WARNING | SWT.OK | SWT.CANCEL,
+				        			parent.getShell(),SWT.ICON_WARNING | SWT.OK | SWT.CANCEL, SWT.CANCEL,
 				        			MessageText.getString("ConfigView.section.security.resetkey.warning.title"),
 				        			MessageText.getString("ConfigView.section.security.resetkey.warning")) == SWT.OK ){ 
 		 									
