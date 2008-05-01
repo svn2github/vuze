@@ -80,6 +80,8 @@ public class VuzeBuddyManager
 	private static BuddyPluginBuddyMessageListener buddy_message_handler_listener = 
 		new BuddyPluginBuddyMessageListener()
 		{
+			private Set		pending_messages = new HashSet();
+			
 			public void
 			messageQueued(
 				BuddyPluginBuddyMessage		message )
@@ -106,23 +108,16 @@ public class VuzeBuddyManager
 				
 				String response = MapUtils.getMapString(reply, "response", "");
 				
-				if ( response.toLowerCase().equals("ok")){
+				if ( !response.toLowerCase().equals("ok")){
 					
-					return( true );
+					sendViaRelayServer( message );
 					
-				}else{
+						// false here will re-attempt this call later (and keep message around)
 					
-					try{
-					
-						return( sendViaRelayServer( message.getBuddy(), message ));
-						
-					}catch( Throwable e ){
-						
-						VuzeBuddyManager.log( "REPLY REC: Message lost: " + e );
-						
-						return( true );
-					}
+					return( false );
 				}
+				
+				return( true );
 			}
 			
 			public void
@@ -139,9 +134,58 @@ public class VuzeBuddyManager
 				
 				VuzeBuddyManager.log("SEND FAILED " + buddy.getPublicKey() + "\n" + cause);
 
-				if (!sendViaRelayServer(buddy, message )) {
-					message.delete();
+				sendViaRelayServer( message );
+			}
+			
+			protected void
+			sendViaRelayServer(
+				BuddyPluginBuddyMessage	message )
+			{
+					// we can get in here > once for same message in theory if relay
+					// server dispatch slow and async the buddy plugin retries delivery
+				
+				synchronized( pending_messages ){
+					
+					if ( pending_messages.contains( message )){
+						
+						return;
+					}
+					
+					pending_messages.add( message );
 				}
+				
+				PlatformRelayMessenger.put(
+					message,
+					0,
+					new PlatformRelayMessenger.putListener()
+					{
+						public void
+						putOK(
+							BuddyPluginBuddyMessage		message )
+						{
+							try{
+							
+								message.delete();
+								
+							}finally{
+								
+								synchronized( pending_messages ){
+									
+									pending_messages.remove( message );
+								}
+							}
+						}
+						
+						public void
+						putFailed(
+							BuddyPluginBuddyMessage		message )
+						{
+							synchronized( pending_messages ){
+								
+								pending_messages.remove( message );
+							}
+						}
+					});
 			}
 		};
 		
@@ -989,30 +1033,6 @@ public class VuzeBuddyManager
 				}
 			}
 		});
-	}
-
-
-	protected static boolean sendViaRelayServer(BuddyPluginBuddy pluginBuddy,
-			BuddyPluginBuddyMessage message) {
-		boolean	stored_ok = false;
-		
-		try {
-			PlatformRelayMessenger.put(message, 0);
-
-			stored_ok = true;
-			
-			pluginBuddy.setMessagePending();
-		} catch (BuddyPluginException be) {
-			// set message pending failed.. probably because plugin isn't fully
-			// initialized.
-			// We could try send YGM later..
-		} catch (Throwable e) {
-			VuzeBuddyManager.log( "SEND FAILED: Message lost: " + e);
-
-			Debug.out(e);
-		}
-		
-		return( stored_ok );
 	}
 
 	protected static void sendActivity(VuzeActivitiesEntry entry,

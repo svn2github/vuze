@@ -80,46 +80,21 @@ public class PlatformRelayMessenger
 	 *
 	 * @since 3.0.5.3
 	 */
-	public static final void put(BuddyPluginBuddyMessage buddyMessage,
-			long maxDelayMS) {
-		try {
-			_put(buddyMessage, maxDelayMS);
-		} catch (Exception e) {
-			PlatformMessenger.debug("Relay: put error " + e.toString());
-			handleFailedPut_neverRelay(buddyMessage);
-		}
-	}
 
-	private static final void _put(final BuddyPluginBuddyMessage buddyMessage,
-			long maxDelayMS) {
-		if (buddyMessage == null) {
-			return;
-		}
-
-		String myPK;
-		try {
-			myPK = VuzeCryptoManager.getSingleton().getPublicKey(null);
-		} catch (VuzeCryptoException e) {
-			Debug.out(e);
-			return;
-		}
-
-		BuddyPlugin buddyPlugin = VuzeBuddyManager.getBuddyPlugin();
-		if (buddyPlugin == null) {
-			return;
-		}
-
-		try {
+	public static final void 
+	put(
+		final BuddyPluginBuddyMessage 	buddyMessage,
+		long 							maxDelayMS,
+		final putListener				putListener )
+	{
+		try{
+			String myPK = VuzeCryptoManager.getSingleton().getPublicKey( "RelayMessenger put");
+			
 			BuddyPluginBuddy pluginBuddy = buddyMessage.getBuddy();
-
-			if (pluginBuddy == null) {
-				throw new NullPointerException("No plugin buddy to put message to");
-			}
 
 			final String pk = pluginBuddy.getPublicKey();
 
-			byte[] payload = JSONUtils.encodeToJSON(buddyMessage.getRequest()).getBytes(
-					"utf-8");
+			byte[] payload = JSONUtils.encodeToJSON(buddyMessage.getRequest()).getBytes("utf-8");
 
 			cryptoResult encryptResult = pluginBuddy.encrypt(payload);
 
@@ -132,38 +107,55 @@ public class PlatformRelayMessenger
 			PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
 					OP_PUT, mapParameters, maxDelayMS);
 
-			PlatformMessengerListener listener = new PlatformMessengerListener() {
-
-				public void messageSent(PlatformMessage message) {
+			PlatformMessengerListener listener = 
+				new PlatformMessengerListener() 
+			{
+				public void 
+				messageSent(
+					PlatformMessage message) 
+				{
 				}
 
-				public void replyReceived(PlatformMessage message, String replyType,
-						Map reply) {
-					String replyMessage = MapUtils.getMapString(reply, "message", null);
-
-					if (replyMessage != null && replyMessage.equals("Ok")) {
-						// good
-						PlatformMessenger.debug("Relay: Ok to " + pk);
-
-						buddyMessage.delete();
-					} else {
-						// bad
-						PlatformMessenger.debug("Relay: FAILED for " + pk);
-
-						handleFailedPut_tryRelayAgain(buddyMessage);
+				public void 
+				replyReceived(
+					PlatformMessage message, 
+					String replyType,
+					Map reply) 
+				{
+					boolean ok = false;
+					
+					try{
+						String replyMessage = MapUtils.getMapString(reply, "message", null);
+	
+						if (replyMessage != null && replyMessage.equals("Ok")) {
+							// good
+							PlatformMessenger.debug("Relay: Ok to " + pk);
+	
+							putListener.putOK( buddyMessage );
+							
+							ok = true;
+							
+						} else {
+							// bad
+							PlatformMessenger.debug("Relay: FAILED for " + pk);
+	
+						}
+					}finally{
+						
+						if ( !ok ){
+							
+							putListener.putFailed( buddyMessage );
+						}
 					}
-
 				}
 
 			};
 
 			PlatformMessenger.queueMessage(message, listener);
-		} catch (BuddyPluginException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			
+		}catch( Throwable e ){
+			
+			putListener.putFailed( buddyMessage );
 		}
 	}
 
@@ -344,31 +336,15 @@ public class PlatformRelayMessenger
 		PlatformMessenger.queueMessage(message, listener);
 	}
 
-	/**
-	 * @param pk
-	 * @param payload
-	 * @param buddyMessage
-	 *
-	 * @since 3.0.5.3
-	 */
-	protected static void handleFailedPut_tryRelayAgain(
-			BuddyPluginBuddyMessage buddyMessage) {
-		if (buddyMessage == null) {
-			return;
-		}
-		// TODO: put logic to 
-	}
-
-	/**
-	 * @param payload
-	 * @param buddyMessage
-	 *
-	 * @since 3.0.5.3
-	 */
-	private static void handleFailedPut_neverRelay(
-			BuddyPluginBuddyMessage buddyMessage) {
-		if (buddyMessage != null) {
-			// TODO: we can retry via direct, but relay is never going to work..
-		}
+	public interface
+	putListener
+	{
+		public void
+		putOK(
+			BuddyPluginBuddyMessage		message );
+		
+		public void
+		putFailed(
+			BuddyPluginBuddyMessage		message );
 	}
 }
