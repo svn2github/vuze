@@ -181,8 +181,6 @@ PluginInitializer
   				"safepeer", 		"SafePeer",				"1.2.4" },
   		{ "org.gudy.azureus2.countrylocator.Plugin", 
   				"CountryLocator", 	"Country Locator",		"1.0" },
-		{ "org.gudy.azureus2.ui.webplugin.remoteui.xml.server.XMLHTTPServerPlugin", 
-  				"xml_http_if",		"XML over HTTP",		"1.0" },
 		{ "org.cneclipse.bdcc.BDCCPlugin", 
   				"bdcc", 			"BitTorrent IRC Bot",	"2.1" },
 		{ "org.cneclipse.multiport.MultiPortPlugin", 
