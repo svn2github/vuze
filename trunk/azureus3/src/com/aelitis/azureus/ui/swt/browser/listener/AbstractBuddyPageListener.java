@@ -10,6 +10,7 @@ import org.eclipse.swt.browser.Browser;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyImpl;
+import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 import com.aelitis.azureus.util.MapUtils;
@@ -86,6 +87,12 @@ public abstract class AbstractBuddyPageListener
 				Object getmessageObj = decodedMap.get(OP_INVITE_CONFIRM_PARAM_MSG);
 				if (getmessageObj instanceof Map) {
 					confirmationResponse = (Map) getmessageObj;
+					// TUX: not sure if this opID gets called for just invite, or
+					//      for both invite and share.  If it's the latter, we need
+					//      need a way to determine it's a invite only (no share)
+					//      so we only call inviteWithShare in that case.
+					VuzeBuddyManager.inviteWithShare(confirmationResponse, null, null,
+							null);
 				} else if (getmessageObj instanceof String) {
 					confirmationMessage = getmessageObj.toString();
 					System.out.println("confirmationMessage revived: " + confirmationMessage);//KN: sysout
