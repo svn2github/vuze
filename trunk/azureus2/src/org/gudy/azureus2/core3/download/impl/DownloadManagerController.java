@@ -324,6 +324,11 @@ DownloadManagerController
 		tracker_client.setAnnounceDataProvider(
 	    		new TRTrackerAnnouncerDataProvider()
 	    		{
+	    			private long	last_reported_total_received;
+	    			private long	last_reported_total_received_data;
+	    			private long	last_reported_total_received_discard;
+	    			private long	last_reported_total_received_failed;
+	    			
 	    			public String
 					getName()
 	    			{
@@ -338,11 +343,41 @@ DownloadManagerController
 	    			public long
 	    			getTotalReceived()
 	    			{
-	    				long verified = 
-	    					temp.getStats().getTotalDataBytesReceived() - 
-	    					( temp.getStats().getTotalDiscarded() + temp.getStats().getTotalHashFailBytes());
+	    				long received 	= temp.getStats().getTotalDataBytesReceived();
+	    				long discarded 	= temp.getStats().getTotalDiscarded();
+	    				long failed		= temp.getStats().getTotalHashFailBytes();
 	    				
+	    				long verified = received - ( discarded + failed );
+
 	    				verified -= temp.getHiddenBytes();
+	    				
+	    					// ensure we don't go backwards. due to lack of atomicity of updates and possible
+	    					// miscounting somewhere we have seen this occur
+	    				
+	    				if ( verified < last_reported_total_received ){
+	    					
+	    					verified = last_reported_total_received;
+	    					
+	    						// use -1 as indicator that we've reported this event
+	    					
+	    					if ( last_reported_total_received_data != -1 ){
+	    							    	    						
+	    						Debug.out( 
+	    								getDisplayName() + ": decrease in overall downloaded - " +
+	    								"data=" + received + "/" + last_reported_total_received_data +
+	    								",discard=" + discarded + "/" + last_reported_total_received_discard +
+	    								",fail=" + failed + "/" + last_reported_total_received_failed );
+	    						
+	    						last_reported_total_received_data = -1;
+	    					}
+	    				}else{
+	    					
+	    					last_reported_total_received = verified;
+	    				
+	    					last_reported_total_received_data		= received;
+	    					last_reported_total_received_discard	= discarded;
+	    					last_reported_total_received_failed		= failed;
+	    				}
 	    				
 	    				return( verified < 0?0:verified );
 	    			}
