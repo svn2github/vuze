@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.util.*;
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
 import com.aelitis.azureus.util.ImageDownloader;
 import com.aelitis.azureus.util.LoginInfoManager;
@@ -204,7 +205,9 @@ public class VuzeBuddyImpl
 				BuddyPluginBuddy pluginBuddy = (BuddyPluginBuddy) iter.next();
 				if (pluginBuddy.getPublicKey().equals(pk)) {
 					iter.remove();
-					pluginBuddy.remove();
+					if (pluginBuddy.getSubsystem() == BuddyPlugin.SUBSYSTEM_AZ3) {
+						pluginBuddy.remove();
+					}
 				}
 			}
 		} finally {
