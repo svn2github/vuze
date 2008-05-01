@@ -25,6 +25,7 @@ import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.util.Constants;
 
 public class AvatarWidget
@@ -64,6 +65,10 @@ public class AvatarWidget
 	private int alpha = 255;
 
 	private boolean sharedAlready = false;
+
+	private Image avatarImage = null;
+
+	private Rectangle avatarBounds = null;
 
 	public AvatarWidget(BuddiesViewer viewer, Point avatarSize,
 			Point avatarImageSize, VuzeBuddySWT vuzeBuddy) {
@@ -107,8 +112,13 @@ public class AvatarWidget
 
 		avatarCanvas.setToolTipText(vuzeBuddy.getLoginID());
 
-		final Image avatar = vuzeBuddy.getAvatarImage();
-		final Rectangle bounds = avatar.getBounds();
+		avatarImage = vuzeBuddy.getAvatarImage();
+
+		if (null == avatarImage) {
+			avatarImage = ImageRepository.getImage("buddy_default_avatar");
+		}
+		avatarBounds = null == avatarImage ? null : avatarImage.getBounds();
+
 		avatarCanvas.addPaintListener(new PaintListener() {
 
 			public void paintControl(PaintEvent e) {
@@ -148,18 +158,24 @@ public class AvatarWidget
 				/*
 				 * Draw the avatar image
 				 */
-				if (true == isEditMode) {
-					e.gc.setAlpha((int) (alpha * .7));
-					e.gc.drawImage(avatar, 0, 0, bounds.width, bounds.height,
-							imageOffsetX + borderWidth, borderWidth, avatarImageSize.x
-									- (2 * borderWidth), avatarImageSize.y - (2 * borderWidth));
-					e.gc.setAlpha(alpha);
+				if (null == avatarImage) {
+					//Do something if no Avatar like display default
 				} else {
-					e.gc.drawImage(avatar, 0, 0, bounds.width, bounds.height,
-							imageOffsetX + borderWidth, borderWidth, avatarImageSize.x
-									- (2 * borderWidth), avatarImageSize.y - (2 * borderWidth));
-				}
+					if (true == isEditMode) {
+						e.gc.setAlpha((int) (alpha * .7));
+						e.gc.drawImage(avatarImage, 0, 0, avatarBounds.width,
+								avatarBounds.height, imageOffsetX + borderWidth, borderWidth,
+								avatarImageSize.x - (2 * borderWidth), avatarImageSize.y
+										- (2 * borderWidth));
+						e.gc.setAlpha(alpha);
+					} else {
 
+						e.gc.drawImage(avatarImage, 0, 0, avatarBounds.width,
+								avatarBounds.height, imageOffsetX + borderWidth, borderWidth,
+								avatarImageSize.x - (2 * borderWidth), avatarImageSize.y
+										- (2 * borderWidth));
+					}
+				}
 				/*
 				 * Draw decorator
 				 */
@@ -186,8 +202,9 @@ public class AvatarWidget
 					}
 
 					GCStringPrinter.printString(e.gc, vuzeBuddy.getDisplayName(),
-							new Rectangle(1, avatarImageSize.y, avatarSize.x-2, avatarSize.y
-									- avatarImageSize.y), false, false, SWT.TOP | SWT.CENTER);
+							new Rectangle(1, avatarImageSize.y, avatarSize.x - 2,
+									avatarSize.y - avatarImageSize.y), false, false, SWT.TOP
+									| SWT.CENTER);
 
 				}
 			}
@@ -399,6 +416,10 @@ public class AvatarWidget
 
 	public void setShareMode(boolean isShareMode) {
 		this.isShareMode = isShareMode;
+
+		if (false == isShareMode) {
+			setSharedAlready(false);
+		}
 	}
 
 	public Color getTextColor() {
@@ -421,5 +442,13 @@ public class AvatarWidget
 		if (null != avatarCanvas && false == avatarCanvas.isDisposed()) {
 			avatarCanvas.dispose();
 		}
+	}
+
+	public boolean isSharedAlready() {
+		return sharedAlready;
+	}
+
+	public void setSharedAlready(boolean sharedAlready) {
+		this.sharedAlready = sharedAlready;
 	}
 }
