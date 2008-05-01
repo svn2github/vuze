@@ -155,8 +155,6 @@ public class ImageRepository {
 
 		addPath("org/gudy/azureus2/ui/icons/statusbar/status_warning.gif","sb_warning");
 		addPath("org/gudy/azureus2/ui/icons/statusbar/user_count.png", "sb_count");
-		addPath("org/gudy/azureus2/ui/icons/statusbar/speed_up.png", "speed_up");
-		addPath("org/gudy/azureus2/ui/icons/statusbar/speed_down.png", "speed_down");
 
 		addPath("org/gudy/azureus2/ui/icons/smallx.png", "smallx");
 		addPath("org/gudy/azureus2/ui/icons/smallx-gray.png", "smallx-gray");
@@ -260,9 +258,9 @@ public class ImageRepository {
   }
   
   public static Image getRandomImage() {
-		Object[] ids = imagesToPath.keySet().toArray();
-		int rnd = (int) (Math.random() * ids.length);
-		return getImage((String) ids[rnd]);
+		Object[] imageArray = images.values().toArray();
+		int rnd = (int) (Math.random() * imageArray.length);
+		return (Image) imageArray[rnd];
 	}
 
   public static Image getImage(String name) {
