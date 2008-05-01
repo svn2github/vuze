@@ -218,20 +218,15 @@ public class VuzeBuddyManager
 						}
 
 						//PlatformKeyExchangeMessenger.getPassword(null);
-						if (VuzeCryptoManager.getSingleton().isUnlocked()) {
-							log("Logging in.. already unlocked");
-							PlatformBuddyMessenger.sync(null);
-							PlatformBuddyMessenger.getInvites();
-						} else {
-							log("Logging in.. getting pw from webapp");
-							// getPassword will set the password viz VuzeCryptoManager
-							PlatformKeyExchangeMessenger.getPassword(new PlatformKeyExchangeMessenger.platformPasswordListener() {
-								public void passwordRetrieved() {
-									PlatformBuddyMessenger.sync(null);
-									PlatformBuddyMessenger.getInvites();
-								}
-							});
-						}
+						
+						log("Logging in.. getting pw from webapp");
+						// getPassword will set the password viz VuzeCryptoManager
+						PlatformKeyExchangeMessenger.getPassword(new PlatformKeyExchangeMessenger.platformPasswordListener() {
+							public void passwordRetrieved() {
+								PlatformBuddyMessenger.sync(null);
+								PlatformBuddyMessenger.getInvites();
+							}
+						});
 					}
 				}
 			});

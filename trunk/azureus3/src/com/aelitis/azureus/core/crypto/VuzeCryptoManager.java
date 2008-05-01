@@ -127,17 +127,6 @@ VuzeCryptoManager
 			});
 	}
 	
-	public
-	boolean isUnlocked()
-	{
-		try {
-			crypt_man.getECCHandler().unlock();
-			return true;
-		} catch (CryptoManagerException e) {
-			return false;
-		}
-	}
-	
 	public byte[]
 	getPlatformAZID()
 	{
