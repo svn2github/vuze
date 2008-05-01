@@ -184,7 +184,7 @@ public class VuzeBuddyManager
 			});
 
 			LoginInfoManager.getInstance().addListener(new ILoginInfoListener() {
-				public void loginUpdate(LoginInfo info, boolean isNewLoginID) {
+				public void loginUpdate(final LoginInfo info, boolean isNewLoginID) {
 					if (!isNewLoginID) {
 						return;
 					}
@@ -195,23 +195,29 @@ public class VuzeBuddyManager
 					} else {
 						// logged in
 
-						String myPK = null;
-						try {
-							myPK = VuzeCryptoManager.getSingleton().getPublicKey(null);
-						} catch (VuzeCryptoException e) {
-						}
-						if (myPK != null && !myPK.equals(info.pk)) {
-							log("webapp's PK (" + info.pk
-									+ ") doesn't match.  Sending out PK");
-							PlatformKeyExchangeMessenger.setPublicKey();
-						}
-
+	
 						//PlatformKeyExchangeMessenger.getPassword(null);
 						
 						log("Logging in.. getting pw from webapp");
-						// getPassword will set the password viz VuzeCryptoManager
+						
+							// getPassword will set the password viz VuzeCryptoManager
+						
 						PlatformKeyExchangeMessenger.getPassword(new PlatformKeyExchangeMessenger.platformPasswordListener() {
 							public void passwordRetrieved() {
+									// now password is set we can get access to the public key (or
+									// create one if first time)
+								
+								String myPK = null;
+								try {
+									myPK = VuzeCryptoManager.getSingleton().getPublicKey(null);
+								} catch (VuzeCryptoException e) {
+								}
+								if (myPK != null && !myPK.equals(info.pk)) {
+									log("webapp's PK (" + info.pk
+											+ ") doesn't match.  Sending out PK");
+									PlatformKeyExchangeMessenger.setPublicKey();
+								}
+
 								PlatformBuddyMessenger.sync(null);
 								PlatformBuddyMessenger.getInvites();
 							}

@@ -23,11 +23,17 @@ package com.aelitis.azureus.core.crypto;
 
 import java.util.Iterator;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.Plugin;
+import org.gudy.azureus2.plugins.PluginInterface;
 
+import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.security.*;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 
 public class 
 VuzeCryptoManager 
@@ -206,6 +212,52 @@ VuzeCryptoManager
 					return( -1 );	// session 
 				}
 			};
+			
+			// auto enable buddy plugin and system handler 
+		
+		boolean	init_done = COConfigurationManager.getBooleanParameter( "vuze.crypto.manager.initial.login.done", false );
+		
+		if ( !init_done ){
+			
+			PluginInterface pi =  AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID( "azbuddy" );
+
+			if ( pi != null ){
+				
+				Plugin plugin = pi.getPlugin();
+				
+				if ( plugin instanceof BuddyPlugin ){
+					
+					BuddyPlugin buddy_plugin = (BuddyPlugin)plugin;
+					
+					if ( !buddy_plugin.isEnabled()){
+						
+						CryptoHandler handler = crypt_man.getECCHandler();
+						
+							// try and switch password handler if no keys yet defined
+						
+						if ( handler.peekPublicKey() == null ){
+							
+							try{
+								handler.setDefaultPasswordHandlerType(
+									CryptoManagerPasswordHandler.HANDLER_TYPE_SYSTEM );
+							
+							}catch( Throwable e ){
+								
+								VuzeBuddyManager.log( "CRYPTO: Failed to set default password handler type: " + Debug.getNestedExceptionMessage( e ));
+							}
+						}
+						
+						buddy_plugin.setEnabled( true );
+						
+						COConfigurationManager.setParameter( "vuze.crypto.manager.initial.login.done", true );
+						
+						COConfigurationManager.save();
+						
+						VuzeBuddyManager.log( "CRYPTO: initialised buddy plugin and default handler type" );
+					}
+				}
+			}
+		}
 	}
 	
 	public void
