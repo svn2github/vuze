@@ -1,9 +1,26 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.ui.swt.Utils;
+import java.util.Iterator;
+import java.util.List;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.widgets.*;
+
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.shells.InputShell;
+
+import com.aelitis.azureus.activities.VuzeActivitiesEntry;
+import com.aelitis.azureus.buddy.VuzeBuddy;
+import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
+import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
+import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
@@ -45,7 +62,55 @@ public class ButtonBar
 		hookEditButton();
 		hookShareButon();
 		hookAddBuddyButon();
+		hookTuxGoodies();
 		return null;
+	}
+
+	/**
+	 * 
+	 *
+	 * @since 3.0.5.3
+	 */
+	private void hookTuxGoodies() {
+		if (!Constants.isCVSVersion()) {
+			return;
+		}
+		SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_ACTIVITY_TAB);
+		if (skinObject != null) {
+			Menu menu = new Menu(skinObject.getControl());
+			MenuItem menuItem;
+			menuItem = new MenuItem(menu, SWT.PUSH);
+			menuItem.setText("buddy sync up");
+			menuItem.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e) {
+					PlatformRelayMessenger.fetch(0);
+					PlatformBuddyMessenger.sync(null);
+					PlatformBuddyMessenger.getInvites();
+				}
+			});
+
+			menuItem = new MenuItem(menu, SWT.PUSH);
+			menuItem.setText("send msg to all buddies");
+			menuItem.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e) {
+					InputShell is = new InputShell("Moo", "Message:");
+					String txt = is.open();
+					if (txt != null) {
+						VuzeActivitiesEntry entry = new VuzeActivitiesEntry(
+								SystemTime.getCurrentTime(), txt, "Test");
+						List buddies = VuzeBuddyManager.getAllVuzeBuddies();
+						for (Iterator iter = buddies.iterator(); iter.hasNext();) {
+							VuzeBuddy buddy = (VuzeBuddy) iter.next();
+							System.out.println("sending to " + buddy.getDisplayName());
+							buddy.sendActivity(entry);
+						}
+					}
+				}
+			});
+
+			skinObject.getControl().setMenu(menu);
+		}
+
 	}
 
 	public void setActiveMode(int mode) {

@@ -127,40 +127,6 @@ public class VuzeActivitiesView
 						System.out.println("pull latest vuze news entries");
 						VuzeActivitiesManager.pullActivitiesNow(0);
 					}
-				} else if (e.keyCode == SWT.F11) {
-					PlatformRelayMessenger.fetch(0);
-					PlatformBuddyMessenger.sync(null);
-					PlatformBuddyMessenger.getInvites();
-				} else if (e.keyCode == SWT.F12) {
-
-					if (e.stateMask == SWT.ALT) {
-						InputShell is = new InputShell("Open URL", "Enter URL to open:");
-						String txt = is.open();
-						if (txt != null) {
-		  				UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
-		  				uif.viewURL(txt, "browse", 0, 0, false, false);
-						}
-					} else {
-						//VuzeActivitiesEntryBuddyRequest entry = new VuzeActivitiesEntryBuddyRequest(
-						//		"ArronM", "TuxPaper");
-						//VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
-						//	entry
-						//});
-						InputShell is = new InputShell("Moo", "Message:");
-						String txt = is.open();
-						if (txt != null) {
-							VuzeActivitiesEntry entry = new VuzeActivitiesEntry(
-									SystemTime.getCurrentTime(), txt, "Test");
-							List buddies = VuzeBuddyManager.getAllVuzeBuddies();
-							for (Iterator iter = buddies.iterator(); iter.hasNext();) {
-								VuzeBuddy buddy = (VuzeBuddy) iter.next();
-								if (buddy.getDisplayName().toLowerCase().indexOf("tux") >= 0) {
-									System.out.println("sending to " + buddy.getDisplayName());
-									buddy.sendActivity(entry);
-								}
-							}
-						}
-					}
 				}
 			}
 		});
