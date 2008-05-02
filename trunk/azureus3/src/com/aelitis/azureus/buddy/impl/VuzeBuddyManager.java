@@ -71,98 +71,119 @@ public class VuzeBuddyManager
 
 	private static boolean skipSave = true;
 
-	private static BuddyPluginBuddyMessageListener buddy_message_handler_listener = new BuddyPluginBuddyMessageListener() {
-		private Set pending_messages = new HashSet();
-
-		public void messageQueued(BuddyPluginBuddyMessage message) {
-		}
-
-		public void messageDeleted(BuddyPluginBuddyMessage message) {
-		}
-
-		public boolean deliverySucceeded(BuddyPluginBuddyMessage message, Map reply) {
-			if (message.getSubsystem() != BuddyPlugin.SUBSYSTEM_AZ3) {
-
-				return (true);
+	
+	private static BuddyPluginBuddyMessageListener buddy_message_handler_listener = 
+		new BuddyPluginBuddyMessageListener()
+		{
+			private Set		pending_messages = new HashSet();
+			
+			public void
+			messageQueued(
+				BuddyPluginBuddyMessage		message )
+			{			
 			}
-
-			VuzeBuddyManager.log("REPLY REC " + JSONUtils.encodeToJSON(reply));
-
-			String response = MapUtils.getMapString(reply, "response", "");
-
-			if (!response.toLowerCase().equals("ok")) {
-
-				sendViaRelayServer(message);
-
-				// false here will re-attempt this call later (and keep message around)
-
-				return (false);
+			
+			public void
+			messageDeleted(
+				BuddyPluginBuddyMessage		message )
+			{
 			}
-
-			return (true);
-		}
-
-		public void deliveryFailed(BuddyPluginBuddyMessage message,
-				BuddyPluginException cause) {
-			if (message.getSubsystem() != BuddyPlugin.SUBSYSTEM_AZ3) {
-
-				return;
+			
+			public boolean
+			deliverySucceeded(
+				BuddyPluginBuddyMessage		message,
+				Map							reply )
+			{
+				if ( message.getSubsystem() != BuddyPlugin.SUBSYSTEM_AZ3 ){
+					
+					return( true );
+				}
+				
+				VuzeBuddyManager.log("REPLY REC " + JSONUtils.encodeToJSON(reply));
+				
+				String response = MapUtils.getMapString(reply, "response", "");
+				
+				if ( !response.toLowerCase().equals("ok")){
+					
+					sendViaRelayServer( message );
+					
+						// false here will re-attempt this call later (and keep message around)
+					
+					return( false );
+				}
+				
+				return( true );
 			}
-
-			BuddyPluginBuddy buddy = message.getBuddy();
-
-			VuzeBuddyManager.log("SEND FAILED " + buddy.getPublicKey() + "\n" + cause);
-
-			sendViaRelayServer(message);
-		}
-
-		protected void sendViaRelayServer(BuddyPluginBuddyMessage message) {
-			// we can get in here > once for same message in theory if relay
-			// server dispatch slow and async the buddy plugin retries delivery
-
-			synchronized (pending_messages) {
-
-				if (pending_messages.contains(message)) {
-
+			
+			public void
+			deliveryFailed(
+				BuddyPluginBuddyMessage		message,
+				BuddyPluginException		cause )
+			{
+				if ( message.getSubsystem() != BuddyPlugin.SUBSYSTEM_AZ3 ){
+					
 					return;
 				}
+				
+				BuddyPluginBuddy buddy = message.getBuddy();
+				
+				VuzeBuddyManager.log("SEND FAILED " + buddy.getPublicKey() + "\n" + cause);
 
-				pending_messages.add(message);
+				sendViaRelayServer( message );
 			}
-
-			log("sendViaRelayServer to " + message.getBuddy().getPublicKey());
-
-			PlatformRelayMessenger.put(message, 0,
-					new PlatformRelayMessenger.putListener() {
-						public void putOK(BuddyPluginBuddyMessage message) {
-							try {
-
+			
+			protected void
+			sendViaRelayServer(
+				BuddyPluginBuddyMessage	message )
+			{
+					// we can get in here > once for same message in theory if relay
+					// server dispatch slow and async the buddy plugin retries delivery
+				
+				synchronized( pending_messages ){
+					
+					if ( pending_messages.contains( message )){
+						
+						return;
+					}
+					
+					pending_messages.add( message );
+				}
+				
+				PlatformRelayMessenger.put(
+					message,
+					0,
+					new PlatformRelayMessenger.putListener()
+					{
+						public void
+						putOK(
+							BuddyPluginBuddyMessage		message )
+						{
+							try{
+							
 								message.delete();
-
-							} finally {
-
-								synchronized (pending_messages) {
-
-									pending_messages.remove(message);
+								
+							}finally{
+								
+								synchronized( pending_messages ){
+									
+									pending_messages.remove( message );
 								}
 							}
-
-							log("OK: sendViaRelayServer to "
-									+ message.getBuddy().getPublicKey());
 						}
-
-						public void putFailed(BuddyPluginBuddyMessage message) {
-							synchronized (pending_messages) {
-
-								pending_messages.remove(message);
+						
+						public void
+						putFailed(
+							BuddyPluginBuddyMessage		message )
+						{
+							synchronized( pending_messages ){
+								
+								pending_messages.remove( message );
 							}
-							log("FAIL: sendViaRelayServer to "
-									+ message.getBuddy().getPublicKey());
 						}
 					});
-		}
-	};
-
+			}
+		};
+		
 	/**
 	 * @param vuzeBuddyCreator
 	 *
@@ -214,14 +235,14 @@ public class VuzeBuddyManager
 						// logged in
 
 						log("Logging in.. getting pw from webapp");
-
-						// getPassword will set the password viz VuzeCryptoManager
-
+						
+							// getPassword will set the password viz VuzeCryptoManager
+						
 						PlatformKeyExchangeMessenger.getPassword(new PlatformKeyExchangeMessenger.platformPasswordListener() {
 							public void passwordRetrieved() {
-								// now password is set we can get access to the public key (or
-								// create one if first time)
-
+									// now password is set we can get access to the public key (or
+									// create one if first time)
+								
 								String myPK = null;
 								try {
 									myPK = VuzeCryptoManager.getSingleton().getPublicKey(null);
@@ -334,9 +355,9 @@ public class VuzeBuddyManager
 				if (!canHandleBuddy(buddy)) {
 					return;
 				}
-
-				buddy.getMessageHandler().addListener(buddy_message_handler_listener);
-
+   
+				buddy.getMessageHandler().addListener( buddy_message_handler_listener );
+					
 				if (false) {
 					// XXX To remove.  We don't need to add plugin buddies anymore
 					//     because we store the info ourselves in v3.Buddies.config
