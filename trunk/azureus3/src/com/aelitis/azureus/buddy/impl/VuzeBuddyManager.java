@@ -835,23 +835,27 @@ public class VuzeBuddyManager
 		try {
 			buddy_mon.enter();
 
-			for (Iterator iter = buddyList.iterator(); iter.hasNext();) {
-				VuzeBuddy buddy = (VuzeBuddy) iter.next();
-
+			Object[] buddyArray = buddyList.toArray();
+			for (int i = 0; i < buddyArray.length; i++) {
+				VuzeBuddy buddy = (VuzeBuddy) buddyArray[i];
+				
 				if (buddy.getLastUpdated() < updateTime) {
 					log("Removing Buddy " + buddy.getDisplayName() + ";"
 							+ buddy.getLoginID() + ";updateTime=" + updateTime + ";buddyTime"
 							+ buddy.getLastUpdated());
 
+					// removal of all public keys will trigger a buddy removal
 					String[] publicKeys = buddy.getPublicKeys();
-					for (int i = 0; i < publicKeys.length; i++) {
-						String pk = publicKeys[i];
+					for (int j = 0; j < publicKeys.length; j++) {
+						String pk = publicKeys[j];
 
 						buddy.removePublicKey(pk);
-						mapPKtoVuzeBuddy.remove(pk);
 					}
 
-					iter.remove();
+					
+					// try a remove, just in case
+					buddyList.remove(buddy);
+
 					triggerRemoveListener(buddy);
 
 					if (tellPlatform && buddy.getLoginID() != null) {
@@ -948,7 +952,7 @@ public class VuzeBuddyManager
 			String shareMessage, VuzeBuddy[] buddies) {
 
 		if (buddies != null && dm != null) {
-			log("share " + dm.toString() + " with " + buddies.length);
+			log("share " + dm.toString() + " with " + buddies.length + " existing buddies");
 			for (int i = 0; i < buddies.length; i++) {
 				VuzeBuddy v3Buddy = buddies[i];
 				if (v3Buddy != null) {
@@ -961,7 +965,7 @@ public class VuzeBuddyManager
 		List sentInvitations = MapUtils.getMapList(invites, "sentInvitations",
 				Collections.EMPTY_LIST);
 
-		log("invite " + sentInvitations.size() + " sharing " + dm);
+		log("invite " + sentInvitations.size() + " ppl, sharing " + dm);
 
 		for (Iterator iter = sentInvitations.iterator(); iter.hasNext();) {
 			Map mapInvitation = (Map) iter.next();
