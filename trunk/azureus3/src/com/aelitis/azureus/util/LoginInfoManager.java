@@ -16,6 +16,8 @@ import org.gudy.azureus2.core3.util.UrlUtils;
  */
 public class LoginInfoManager
 {
+	private static final String ID_NOT_SET_VALUE = "no.user.id.has.been.set";
+
 	private static LoginInfoManager INSTANCE;
 
 	/*
@@ -23,7 +25,7 @@ public class LoginInfoManager
 	 */
 	private String userName = "no.user.name.has.been.set";
 
-	private String userID = "no.user.id.has.been.set";
+	private String userID = ID_NOT_SET_VALUE;
 
 	private String pk = null;
 
@@ -87,6 +89,10 @@ public class LoginInfoManager
 		if (changed) {
 			notifyListeners(isNewLoginID);
 		}
+	}
+	
+	public boolean isLoggedIn() {
+		return this.userID != null && !this.userID.equals(ID_NOT_SET_VALUE);
 	}
 
 	private void notifyListeners(boolean isNewLoginID) {
