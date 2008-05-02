@@ -28,6 +28,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectListener;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
+import com.aelitis.azureus.util.LoginInfoManager;
 
 public class ButtonBar
 	extends SkinView
@@ -83,6 +84,10 @@ public class ButtonBar
 			menuItem.setText("buddy sync up");
 			menuItem.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e) {
+					if (!LoginInfoManager.getInstance().isLoggedIn()) {
+						Utils.openMessageBox(null, SWT.ICON_ERROR, "No", "not logged in. no can do");
+						return;
+					}
 					PlatformRelayMessenger.fetch(0);
 					PlatformBuddyMessenger.sync(null);
 					PlatformBuddyMessenger.getInvites();
@@ -93,6 +98,10 @@ public class ButtonBar
 			menuItem.setText("send msg to all buddies");
 			menuItem.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e) {
+					if (!LoginInfoManager.getInstance().isLoggedIn()) {
+						Utils.openMessageBox(null, SWT.ICON_ERROR, "No", "not logged in. no can do");
+						return;
+					}
 					InputShell is = new InputShell("Moo", "Message:");
 					String txt = is.open();
 					if (txt != null) {
