@@ -26,7 +26,11 @@ import org.eclipse.swt.browser.Browser;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 import com.aelitis.azureus.util.MapUtils;
@@ -39,11 +43,13 @@ import com.aelitis.azureus.util.MapUtils;
 public class ConfigListener
 	extends AbstractMessageListener
 {
-	private static final String DEFAULT_LISTENER_ID = "config";
+	public static final String DEFAULT_LISTENER_ID = "config";
 
 	public static final String OP_GET_VERSION = "get-version";
 
 	public static final String OP_NEW_INSTALL = "is-new-install";
+
+	public static final String OP_CHECK_FOR_UPDATES = "check-for-updates";
 
 	public ConfigListener(String id, Browser browser) {
 		super(id);
@@ -77,9 +83,25 @@ public class ConfigListener
 				} else {
 					message.debug("bad or no callback param");
 				}
+			} else if (OP_CHECK_FOR_UPDATES.equals(opid)) {
+				checkForUpdates();
 			}
 		} catch (Throwable t) {
 			message.debug("handle Config message", t);
 		}
+	}
+
+	/**
+	 * 
+	 *
+	 * @since 3.0.5.3
+	 */
+	public static void checkForUpdates() {
+		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+		if (uiFunctions != null) {
+			uiFunctions.bringToFront();
+		}
+		UpdateMonitor.getSingleton(AzureusCoreFactory.getSingleton()).performCheck(
+				true, false, false, null);
 	}
 }

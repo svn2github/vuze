@@ -85,6 +85,7 @@ public class StimulusRPC
 					BrowserMessage browserMsg = new BrowserMessage(value);
 					context.debug("Received External message: " + browserMsg);
 					String opId = browserMsg.getOperationId();
+					String lId = browserMsg.getListenerId();
 					if (opId.equals(DisplayListener.OP_OPEN_URL)) {
 						Map decodedMap = browserMsg.getDecodedMap();
 						String url = MapUtils.getMapString(decodedMap, "url", null);
@@ -161,8 +162,12 @@ public class StimulusRPC
 								}
 							}
 						}
-					} else if (opId.equals(ConfigListener.OP_NEW_INSTALL)) {
-						return COConfigurationManager.isNewInstall();
+					} else if (ConfigListener.DEFAULT_LISTENER_ID.equals(lId)) {
+						if (ConfigListener.OP_NEW_INSTALL.equals(opId)) {
+							return COConfigurationManager.isNewInstall();
+						} else if (ConfigListener.OP_CHECK_FOR_UPDATES.equals(opId)) {
+							ConfigListener.checkForUpdates();
+						}
 					}
 				} catch (Exception e) {
 					Debug.out(e);
