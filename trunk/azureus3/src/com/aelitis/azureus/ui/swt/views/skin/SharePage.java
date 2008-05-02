@@ -440,7 +440,7 @@ public class SharePage
 
 	public ClientMessageContext getMessageContext() {
 		if (null == context) {
-			context = new BrowserContext("buddy-page-listener" + Math.random(),
+			context = new BrowserContext("buddy-page-listener-share" + Math.random(),
 					getBrowser(), null, true);
 		}
 		return context;

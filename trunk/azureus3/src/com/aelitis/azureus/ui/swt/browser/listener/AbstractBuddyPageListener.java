@@ -85,18 +85,14 @@ public abstract class AbstractBuddyPageListener
 		} else if (true == OP_INVITE_CONFIRM.equals(opID)) {
 			if (true == decodedMap.containsKey(OP_INVITE_CONFIRM_PARAM_MSG)) {
 				Object getmessageObj = decodedMap.get(OP_INVITE_CONFIRM_PARAM_MSG);
+				System.out.println("------CONFIRM: " + getmessageObj);
 				if (getmessageObj instanceof Map) {
 					confirmationResponse = (Map) getmessageObj;
-					// TUX: not sure if this opID gets called for just invite, or
-					//      for both invite and share.  If it's the latter, we need
-					//      need a way to determine it's a invite only (no share)
-					//      so we only call inviteWithShare in that case.
-					VuzeBuddyManager.inviteWithShare(confirmationResponse, null, null,
-							null);
 				} else if (getmessageObj instanceof String) {
 					confirmationMessage = getmessageObj.toString();
 					System.out.println("confirmationMessage revived: " + confirmationMessage);//KN: sysout
 				}
+				handleInviteConfirm();
 			}
 		}
 	}

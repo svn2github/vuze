@@ -6,6 +6,7 @@ import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
+import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractBuddyPageListener;
@@ -92,6 +93,9 @@ public class InvitePage
 						}
 
 						public void handleInviteConfirm() {
+							VuzeBuddyManager.inviteWithShare(getConfirmationResponse(), null,
+									null, null);
+
 							System.err.println("\t'invite-confirm' called from invite buddy page: "
 									+ getConfirmationMessage());//KN: sysout
 
@@ -110,7 +114,7 @@ public class InvitePage
 
 	public ClientMessageContext getMessageContext() {
 		if (null == context) {
-			context = new BrowserContext("buddy-page-listener" + Math.random(),
+			context = new BrowserContext("buddy-page-listener-invite" + Math.random(),
 					getBrowser(), null, true);
 		}
 		return context;
