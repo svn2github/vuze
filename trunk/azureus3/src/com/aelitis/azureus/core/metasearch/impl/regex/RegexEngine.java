@@ -72,7 +72,7 @@ public class RegexEngine implements Engine {
 				SearchParameter parameter = searchParameters[i];
 				//String escapedKeyword = URLEncoder.encode(parameter.getValue(),"UTF-8");
 				String escapedKeyword = parameter.getValue();
-				searchURL = searchURL.replace("%" + parameter.getMatchPattern(), escapedKeyword);
+				searchURL = searchURL.replaceAll("%" + parameter.getMatchPattern(), escapedKeyword);
 			}
 			
 			URLConnection conn = new URL(searchURL).openConnection();

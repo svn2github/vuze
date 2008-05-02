@@ -122,7 +122,7 @@ public class DateParser {
 					}
 				}
 				
-			} else if(s.length() == 9 && s.contains(" ")){
+			} else if(s.length() == 9 && s.indexOf(" ") != -1){
 				//"21 Mar 08" case
 				try {
 					return ddMMMyyFormat.parse(s);
@@ -142,8 +142,13 @@ public class DateParser {
 		}
 		
 		//Age based stuff
-		if(s.endsWith(" ago") || s.contains("month") || s.contains("hour") || s.contains("day") || s.contains("year")) {
-			s= s.replace(" ago", "");
+		if(		s.endsWith(" ago") ||
+				s.indexOf("month")!= -1 || 
+				s.indexOf("hour") != -1 || 
+				s.indexOf("day") != -1 || 
+				s.indexOf("year") != -1) {
+			
+			s= s.replaceAll(" ago", "");
 			StringTokenizer st = new StringTokenizer(s," ");
 			if(st.countTokens() >= 2) {
 				try {
