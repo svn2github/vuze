@@ -138,7 +138,7 @@ BuddyPluginBuddyMessageHandler
 				last_pending_success = now;
 			}
 
-			if ( now - last_pending_success >= BuddyPlugin.PERSISTENT_MSG_RETRY_PERIOD ){
+			if ( last_pending_success > 0 && now - last_pending_success >= BuddyPlugin.PERSISTENT_MSG_RETRY_PERIOD ){
 				
 				request_dispatch = true;
 				
@@ -154,7 +154,7 @@ BuddyPluginBuddyMessageHandler
 		
 		if ( request_dispatch ){
 			
-			buddy.persistentDispatch();
+			buddy.persistentDispatchPending();
 		}
 	}
 	
