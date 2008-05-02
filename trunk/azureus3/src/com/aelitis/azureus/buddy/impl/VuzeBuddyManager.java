@@ -131,7 +131,10 @@ public class VuzeBuddyManager
 				
 				VuzeBuddyManager.log("SEND FAILED " + buddy.getPublicKey() + "\n" + cause);
 
-				sendViaRelayServer( message );
+				if ( !message.isDeleted()){
+				
+					sendViaRelayServer( message );
+				}
 			}
 			
 			protected void

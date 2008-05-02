@@ -233,6 +233,12 @@ public class PlatformRelayMessenger
 						}
 
 						ack(ack_id, decrypt.getChallenge());
+						
+					} catch (BuddyPluginPasswordException e) {
+						
+						// TODO we don't want to negative ack the message when we failed
+						// to decrypt because not logged in...
+						
 					} catch (BuddyPluginException e) {
 						// TODO send ack_fail here
 						PlatformMessenger.debug("Relay: TODO send ack_fail here");
