@@ -23,6 +23,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.util.Constants;
 
 public class DetailPanel
 	extends SkinView
@@ -250,6 +251,13 @@ public class DetailPanel
 
 					SWTSkinUtils.setVisibility(skin, null,
 							SkinConstants.VIEWID_DETAIL_PANEL, value, false, false);
+
+					/*
+					 * For OSX after the layout operation is done must set focus so the ui will repaint properly
+					 */
+					if (true == Constants.isOSX && true == value) {
+						detailPanel.setFocus();
+					}
 				}
 			}
 		});

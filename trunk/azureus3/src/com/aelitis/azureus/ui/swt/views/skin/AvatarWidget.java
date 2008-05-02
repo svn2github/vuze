@@ -21,6 +21,7 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 
+import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -314,27 +315,7 @@ public class AvatarWidget
 		if (SWT.NO == mBox.open()) {
 			return;
 		}
-
-		parent.getDisplay().asyncExec(new AERunnable() {
-
-			public void runSupport() {
-
-				while (alpha > 20) {
-					alpha -= 30;
-					avatarCanvas.redraw();
-					avatarCanvas.update();
-
-					try {
-						Thread.sleep(50);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
-
-				viewer.remove(AvatarWidget.this);
-			}
-		});
-
+		VuzeBuddyManager.removeBuddy(vuzeBuddy);
 	}
 
 	private void doAddBuddyToShare() {
@@ -436,9 +417,31 @@ public class AvatarWidget
 		this.textLinkColor = textLinkColor;
 	}
 
-	public void dispose() {
+	public void dispose(boolean animate) {
 		if (null != avatarCanvas && false == avatarCanvas.isDisposed()) {
-			avatarCanvas.dispose();
+			if (true == animate) {
+				parent.getDisplay().asyncExec(new AERunnable() {
+
+					public void runSupport() {
+
+						while (alpha > 20) {
+							alpha -= 30;
+							avatarCanvas.redraw();
+							avatarCanvas.update();
+
+							try {
+								Thread.sleep(50);
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+						}
+						avatarCanvas.dispose();
+					}
+				});
+			} else {
+				avatarCanvas.dispose();
+			}
+
 		}
 	}
 
@@ -448,5 +451,21 @@ public class AvatarWidget
 
 	public void setSharedAlready(boolean sharedAlready) {
 		this.sharedAlready = sharedAlready;
+	}
+
+	public void setVuzeBuddy(VuzeBuddySWT vuzeBuddy) {
+		if (this.vuzeBuddy != vuzeBuddy && null != vuzeBuddy) {
+			this.vuzeBuddy = vuzeBuddy;
+
+			/*
+			 * Resets the image and image bounds since this is the only info cached;
+			 * all other info is asked for on-demand so no need to update them 
+			 */
+			avatarImage = vuzeBuddy.getAvatarImage();
+			if (null == avatarImage) {
+				avatarImage = ImageRepository.getImage("buddy_default_avatar");
+			}
+			avatarBounds = null == avatarImage ? null : avatarImage.getBounds();
+		}
 	}
 }

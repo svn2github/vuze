@@ -9,17 +9,18 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
 
+import com.aelitis.azureus.buddy.VuzeBuddy;
+import com.aelitis.azureus.buddy.VuzeBuddyListener;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
-import com.aelitis.azureus.ui.swt.buddy.impl.VuzeBuddyUtils;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
@@ -69,12 +70,12 @@ public class BuddiesViewer
 
 			Composite content = new Composite(parent, SWT.NONE);
 			FormData fd = new FormData();
-			fd.top = new FormAttachment(0,0);
-			fd.bottom = new FormAttachment(100,0);
-			fd.left = new FormAttachment(0,0);
-			fd.right = new FormAttachment(100,0);
+			fd.top = new FormAttachment(0, 0);
+			fd.bottom = new FormAttachment(100, 0);
+			fd.left = new FormAttachment(0, 0);
+			fd.right = new FormAttachment(100, 0);
 			content.setLayoutData(fd);
-			
+
 			avatarsPanel = new Composite(content, SWT.NONE);
 			avatarsPanel.setLocation(0, 0);
 
@@ -204,10 +205,10 @@ public class BuddiesViewer
 
 	private void fillBuddies(Composite composite) {
 
-		VuzeBuddySWT[] buddies = getBuddies();
+		List buddies = getBuddies();
 
-		for (int i = 0; i < buddies.length; i++) {
-			VuzeBuddySWT vuzeBuddy = buddies[i];
+		for (Iterator iterator = buddies.iterator(); iterator.hasNext();) {
+			VuzeBuddySWT vuzeBuddy = (VuzeBuddySWT) iterator.next();
 			createBuddyControls(composite, vuzeBuddy);
 		}
 		composite.layout();
@@ -224,21 +225,64 @@ public class BuddiesViewer
 		avatarWidget.setTextColor(textColor);
 		avatarWidget.setTextLinkColor(textLinkColor);
 
-//		RowData rData = new RowData();
-//		rData.width = avatarSize.x;
-//		rData.height = avatarSize.y;
-//		avatarWidget.getControl().setLayoutData(rData);
-
 		avatarWidgets.add(avatarWidget);
 
 		return avatarWidget;
 	}
 
-	public void remove(AvatarWidget widget) {
+	public void removeBuddy(AvatarWidget widget) {
 		avatarWidgets.remove(widget);
-		widget.dispose();
+		widget.dispose(true);
 		avatarsPanel.layout(true);
 
+	}
+
+	public void removeBuddy(VuzeBuddy buddy) {
+		AvatarWidget widget = findWidget(buddy);
+		if (null != widget) {
+			removeBuddy(widget);
+		} else {
+			Debug.out("Unknown VuzeBuddy; can not remove from viewer since we don't have it.");
+		}
+	}
+
+	public void updateBuddy(VuzeBuddy buddy) {
+		if (buddy instanceof VuzeBuddySWT) {
+			AvatarWidget widget = findWidget(buddy);
+			if (null != widget) {
+				widget.setVuzeBuddy((VuzeBuddySWT) buddy);
+				widget.getVuzeBuddy();
+			} else {
+				Debug.out("Unknown VuzeBuddy; can not update widget since we don't have it.");
+			}
+		}
+	}
+
+	public void addBuddy(VuzeBuddy buddy) {
+		if (buddy instanceof VuzeBuddySWT) {
+			createBuddyControls(avatarsPanel, (VuzeBuddySWT) buddy);
+
+			avatarsPanel.layout();
+			Point size = avatarsPanel.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
+			avatarsPanel.setSize(size);
+
+		} else {
+			Debug.out("Wrong type VuzeBuddy... must be of type VuzeBuddySWT");
+		}
+	}
+
+	private AvatarWidget findWidget(VuzeBuddy buddy) {
+		if (null != buddy) {
+			for (Iterator iterator = avatarWidgets.iterator(); iterator.hasNext();) {
+				AvatarWidget widget = (AvatarWidget) iterator.next();
+				if (true == buddy.equals(widget.getVuzeBuddy())) {
+					return widget;
+				}
+
+			}
+		}
+
+		return null;
 	}
 
 	/**
@@ -281,19 +325,29 @@ public class BuddiesViewer
 		}
 	}
 
-	private VuzeBuddySWT[] getBuddies() {
-		
+	private List getBuddies() {
+
 		List buddiesList = VuzeBuddyManager.getAllVuzeBuddies();
-		return (VuzeBuddySWT[]) buddiesList.toArray(new VuzeBuddySWT[buddiesList.size()]);
-		
-//		VuzeBuddySWT[] buddies = new VuzeBuddySWT[25];
-//		
-//		for (int i = 0; i < buddies.length; i++) {
-//			buddies[i] = (VuzeBuddySWT) VuzeBuddyUtils.createRandomBuddy();
-//			buddies[i].setDisplayName("Mr Random " + i);
-//		}
-//
-//		return buddies;
+
+		VuzeBuddyManager.addListener(new VuzeBuddyListener() {
+
+			public void buddyRemoved(VuzeBuddy buddy) {
+				System.out.println("VuzeBuddyManager.buddyRemoved");//KN: sysout
+				removeBuddy(buddy);
+			}
+
+			public void buddyChanged(VuzeBuddy buddy) {
+				System.out.println("VuzeBuddyManager.buddyChanged");//KN: sysout
+				updateBuddy(buddy);
+			}
+
+			public void buddyAdded(VuzeBuddy buddy) {
+				System.out.println("VuzeBuddyManager.buddyAdded");//KN: sysout
+				addBuddy(buddy);
+			}
+		}, false);
+
+		return buddiesList;
 	}
 
 	public Composite getControl() {

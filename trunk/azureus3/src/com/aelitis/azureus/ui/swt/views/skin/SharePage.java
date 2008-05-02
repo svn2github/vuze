@@ -157,6 +157,7 @@ public class SharePage
 		stackLayout.marginHeight = 0;
 		stackLayout.marginWidth = 0;
 		content.setLayout(stackLayout);
+		stackLayout.topControl = firstPanel;
 
 		firstPanel.setLayout(new FormLayout());
 
@@ -270,7 +271,6 @@ public class SharePage
 		commentTextData.bottom = new FormAttachment(100, -8);
 		commentText.setLayoutData(commentTextData);
 
-		stackLayout.topControl = firstPanel;
 		content.layout();
 	}
 
@@ -289,10 +289,12 @@ public class SharePage
 		applyRoundedBorder(inviteePanel);
 		applyRoundedBorder(buddyList);
 
+		sendNowButton.setEnabled(false);
+		Messages.setLanguageText(sendNowButton, "v3.Share.send.now");
+
 		Messages.setLanguageText(addBuddyPromptLabel,
 				"v3.Share.invite.buddies.prompt");
 		Messages.setLanguageText(addBuddyButton, "v3.Share.add.buddy");
-		Messages.setLanguageText(sendNowButton, "v3.Share.send.now");
 		Messages.setLanguageText(optionalMessageLabel, "v3.Share.optional.message");
 		Messages.setLanguageText(cancelButton, "v3.MainWindow.button.cancel");
 		//		Messages.setLanguageText(, "v3.Share.add.buddy.all");
@@ -301,8 +303,6 @@ public class SharePage
 		Messages.setLanguageText(shareHeaderMessageLabel, "v3.Share.header.message");
 		Messages.setLanguageText(buddyListDescription, "v3.Share.add.buddy.all");
 
-		shareHeaderMessageLabel.setText("Share this content...");
-		buddyListDescription.setText("Selected buddies");
 	}
 
 	private void applyRoundedBorder(final Control control) {
@@ -323,77 +323,7 @@ public class SharePage
 		browserPanel = new Composite(content, SWT.NONE);
 		FillLayout fLayout = new FillLayout();
 		browserPanel.setLayout(fLayout);
-		browser = new Browser(browserPanel, SWT.NONE);
-		String url = Constants.URL_PREFIX + "share.start";
-		browser.setUrl(url);
 
-		/*
-		 * Add the appropriate messaging listeners
-		 */
-		getMessageContext().addMessageListener(
-				new AbstractBuddyPageListener(browser) {
-
-					public void handleCancel() {
-						System.out.println("'Cancel' called from share->invite buddy page");//KN: sysout
-						
-						activateFirstPanel();
-					}
-
-					public void handleClose() {
-						System.out.println("'Close' called from share->invite buddy page");//KN: sysout
-						activateFirstPanel();
-					}
-
-					public void handleBuddyInvites() {
-
-						Utils.execSWTThread(new AERunnable() {
-							public void runSupport() {
-								inviteeList.setText("");
-								for (Iterator iterator = getInvitedBuddies().iterator(); iterator.hasNext();) {
-									VuzeBuddy buddy = (VuzeBuddy) iterator.next();
-									inviteeList.append(buddy.getDisplayName() + "\n");
-								}
-								if (true == inviteeList.getCharCount() > 0) {
-									Messages.setLanguageText(addBuddyButton,
-											"v3.Share.add.or.remove.buddy");
-								} else {
-									Messages.setLanguageText(addBuddyButton, "v3.Share.add.buddy");
-								}
-								inviteePanel.layout();
-							}
-						});
-
-					}
-
-					public void handleEmailInvites() {
-						Utils.execSWTThread(new AERunnable() {
-							public void runSupport() {
-								for (Iterator iterator = getInvitedEmails().iterator(); iterator.hasNext();) {
-									inviteeList.append(iterator.next() + "\n");//KN:
-								}
-
-								if (true == inviteeList.getCharCount() > 0) {
-									Messages.setLanguageText(addBuddyButton,
-											"v3.Share.add.or.remove.buddy");
-								} else {
-									Messages.setLanguageText(addBuddyButton, "v3.Share.add.buddy");
-								}
-
-								inviteePanel.layout();
-							}
-						});
-
-					}
-
-					public void handleInviteConfirm() {
-						confirmationResponse = getConfirmationResponse();
-						
-						//Display pop-up here!!!
-						System.err.println("\t'invite-confirm' called from share page: "
-								+ getConfirmationMessage());//KN: sysout
-
-					}
-				});
 	}
 
 	private void activateFirstPanel() {
@@ -467,6 +397,9 @@ public class SharePage
 	}
 
 	private String getCommitJSONMessage() {
+		if (null == dm) {
+			return null;
+		}
 		List buddieloginIDsAndContentHash = new ArrayList();
 		List loginIDs = new ArrayList();
 		for (Iterator iterator = selectedBuddies.iterator(); iterator.hasNext();) {
@@ -508,9 +441,89 @@ public class SharePage
 	public ClientMessageContext getMessageContext() {
 		if (null == context) {
 			context = new BrowserContext("buddy-page-listener" + Math.random(),
-					browser, null, true);
+					getBrowser(), null, true);
 		}
 		return context;
+	}
+
+	private Browser getBrowser() {
+		if (null == browser) {
+			browser = new Browser(browserPanel, SWT.NONE);
+			String url = Constants.URL_PREFIX + "share.start";
+			browser.setUrl(url);
+
+			/*
+			 * Add the appropriate messaging listeners
+			 */
+			getMessageContext().addMessageListener(
+					new AbstractBuddyPageListener(browser) {
+
+						public void handleCancel() {
+							System.out.println("'Cancel' called from share->invite buddy page");//KN: sysout
+
+							activateFirstPanel();
+						}
+
+						public void handleClose() {
+							System.out.println("'Close' called from share->invite buddy page");//KN: sysout
+							activateFirstPanel();
+						}
+
+						public void handleBuddyInvites() {
+
+							Utils.execSWTThread(new AERunnable() {
+								public void runSupport() {
+									inviteeList.setText("");
+									for (Iterator iterator = getInvitedBuddies().iterator(); iterator.hasNext();) {
+										VuzeBuddy buddy = (VuzeBuddy) iterator.next();
+										inviteeList.append(buddy.getDisplayName() + "\n");
+									}
+									if (true == inviteeList.getCharCount() > 0) {
+										Messages.setLanguageText(addBuddyButton,
+												"v3.Share.add.or.remove.buddy");
+									} else {
+										Messages.setLanguageText(addBuddyButton,
+												"v3.Share.add.buddy");
+									}
+									inviteePanel.layout();
+								}
+							});
+
+						}
+
+						public void handleEmailInvites() {
+							Utils.execSWTThread(new AERunnable() {
+								public void runSupport() {
+									for (Iterator iterator = getInvitedEmails().iterator(); iterator.hasNext();) {
+										inviteeList.append(iterator.next() + "\n");//KN:
+									}
+
+									if (true == inviteeList.getCharCount() > 0) {
+										Messages.setLanguageText(addBuddyButton,
+												"v3.Share.add.or.remove.buddy");
+									} else {
+										Messages.setLanguageText(addBuddyButton,
+												"v3.Share.add.buddy");
+									}
+
+									inviteePanel.layout();
+								}
+							});
+
+						}
+
+						public void handleInviteConfirm() {
+							confirmationResponse = getConfirmationResponse();
+
+							//Display pop-up here!!!
+							System.err.println("\t'invite-confirm' called from share page: "
+									+ getConfirmationMessage());//KN: sysout
+
+						}
+					});
+		}
+
+		return browser;
 	}
 
 	public void setDownloadManager(DownloadManager dm) {
@@ -522,6 +535,7 @@ public class SharePage
 				viewer.setShareMode(true);
 			}
 			getDetailPanel().show(true, PAGE_ID);
+			sendNowButton.setEnabled(true);
 		}
 	}
 
@@ -580,7 +594,10 @@ public class SharePage
 
 	private void updateContentStats() {
 		contentStats.setText("");
-		contentStats.setIndent(3);
+
+		if (null == dm) {
+			return;
+		}
 
 		String publisher = PlatformTorrentUtils.getContentPublisher(dm.getTorrent());
 

@@ -41,65 +41,67 @@ public class InvitePage
 
 	private void init() {
 		blinder = new Composite(content, SWT.NONE);
-		createBrowser();
 	}
 
-	private void createBrowser() {
-		browser = new Browser(content, SWT.NONE);
-		String url = Constants.URL_PREFIX + "share.start";
-		browser.setUrl(url);
+	private Browser getBrowser() {
+		if (null == browser) {
+			browser = new Browser(content, SWT.NONE);
+			String url = Constants.URL_PREFIX + "share.start";
+			browser.setUrl(url);
 
-		stackLayout.topControl = browser;
-		content.layout();
+			stackLayout.topControl = browser;
+			content.layout();
 
-		/*
-		 * Add the appropriate messaging listeners
-		 */
-		getMessageContext().addMessageListener(
-				new AbstractBuddyPageListener(browser) {
+			/*
+			 * Add the appropriate messaging listeners
+			 */
+			getMessageContext().addMessageListener(
+					new AbstractBuddyPageListener(browser) {
 
-					public void handleCancel() {
-						System.out.println("'Cancel' called from invite buddy page");//KN: sysout
+						public void handleCancel() {
+							System.out.println("'Cancel' called from invite buddy page");//KN: sysout
 
-						ButtonBar buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
-						if (null != buttonBar) {
-							buttonBar.setActiveMode(ButtonBar.none_active_mode);
+							ButtonBar buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
+							if (null != buttonBar) {
+								buttonBar.setActiveMode(ButtonBar.none_active_mode);
+							}
+
+							getDetailPanel().show(false);
+
 						}
 
-						getDetailPanel().show(false);
+						public void handleClose() {
+							System.out.println("'Close' called from invite buddy page");//KN: sysout
 
-					}
+							ButtonBar buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
+							if (null != buttonBar) {
+								buttonBar.setActiveMode(ButtonBar.none_active_mode);
+							}
 
-					public void handleClose() {
-						System.out.println("'Close' called from invite buddy page");//KN: sysout
+							getDetailPanel().show(false);
 
-						ButtonBar buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
-						if (null != buttonBar) {
-							buttonBar.setActiveMode(ButtonBar.none_active_mode);
 						}
 
-						getDetailPanel().show(false);
+						public void handleBuddyInvites() {
+							System.out.println("'buddy-invites' called from invite buddy page");//KN: sysout
+						}
 
+						public void handleEmailInvites() {
+							System.out.println("'email-invites' called from invite buddy page");//KN: sysout
+
+						}
+
+						public void handleInviteConfirm() {
+							System.err.println("\t'invite-confirm' called from invite buddy page: "
+									+ getConfirmationMessage());//KN: sysout
+
+						}
 					}
 
-					public void handleBuddyInvites() {
-						System.out.println("'buddy-invites' called from invite buddy page");//KN: sysout
-					}
+			);
 
-					public void handleEmailInvites() {
-						System.out.println("'email-invites' called from invite buddy page");//KN: sysout
-
-					}
-
-					public void handleInviteConfirm() {
-						System.err.println("\t'invite-confirm' called from invite buddy page: "
-								+ getConfirmationMessage());//KN: sysout
-
-					}
-				}
-
-		);
-
+		}
+		return browser;
 	}
 
 	public Control getControl() {
@@ -109,7 +111,7 @@ public class InvitePage
 	public ClientMessageContext getMessageContext() {
 		if (null == context) {
 			context = new BrowserContext("buddy-page-listener" + Math.random(),
-					browser, null, true);
+					getBrowser(), null, true);
 		}
 		return context;
 	}
