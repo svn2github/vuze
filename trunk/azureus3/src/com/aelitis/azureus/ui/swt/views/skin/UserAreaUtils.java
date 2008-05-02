@@ -62,10 +62,7 @@ public class UserAreaUtils
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
 
-					String url = Constants.URL_PREFIX + Constants.URL_LOGIN + "?"
-							+ Constants.URL_SUFFIX;
-					new LightBoxBrowserWindow(url, Constants.URL_PAGE_VERIFIER_VALUE,
-							380, 280);
+					openLoginWindow();
 
 				}
 			});
@@ -192,6 +189,19 @@ public class UserAreaUtils
 				synchLoginStates(info.userName, info.userID, isNewLoginID);
 			}
 		});
+	}
+
+	/**
+	 * 
+	 *
+	 * @return 
+	 * @since 3.0.5.3
+	 */
+	public static LightBoxBrowserWindow openLoginWindow() {
+		String url = Constants.URL_PREFIX + Constants.URL_LOGIN + "?"
+				+ Constants.URL_SUFFIX;
+		return new LightBoxBrowserWindow(url, Constants.URL_PAGE_VERIFIER_VALUE,
+				380, 280);
 	}
 
 	/**
