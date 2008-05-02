@@ -69,4 +69,15 @@ public interface VuzeBuddy
 	public String getCode();
 
 	public void setCode(String code);
+
+	/**
+	 * Get the URL of the user's profile.
+	 * 
+	 * @param referer referer id passed to webpage when profile link is loaded
+	 *                so the webpage knows where the load came from
+	 * @return
+	 *
+	 * @since 3.0.5.3
+	 */
+	String getProfileUrl(String referer);
 }

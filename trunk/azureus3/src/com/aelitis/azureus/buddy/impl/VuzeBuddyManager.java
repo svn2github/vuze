@@ -22,13 +22,9 @@ import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.activities.VuzeActivitiesEntry;
-import com.aelitis.azureus.activities.VuzeActivitiesEntryBuddyRequest;
-import com.aelitis.azureus.activities.VuzeActivitiesManager;
+import com.aelitis.azureus.activities.*;
 import com.aelitis.azureus.buddy.*;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.crypto.VuzeCryptoException;
@@ -36,7 +32,6 @@ import com.aelitis.azureus.core.crypto.VuzeCryptoListener;
 import com.aelitis.azureus.core.crypto.VuzeCryptoManager;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.*;
-import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.plugins.net.buddy.*;
 import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.Constants;
@@ -56,7 +51,7 @@ import org.gudy.azureus2.plugins.PluginInterface;
  */
 public class VuzeBuddyManager
 {
-	private static final int SEND_P2P_TIMEOUT = 1000* 60 * 3;
+	private static final int SEND_P2P_TIMEOUT = 1000 * 60 * 3;
 
 	protected static final boolean ALLOW_ONLY_AZ3 = true;
 
@@ -76,119 +71,98 @@ public class VuzeBuddyManager
 
 	private static boolean skipSave = true;
 
-	
-	private static BuddyPluginBuddyMessageListener buddy_message_handler_listener = 
-		new BuddyPluginBuddyMessageListener()
-		{
-			private Set		pending_messages = new HashSet();
-			
-			public void
-			messageQueued(
-				BuddyPluginBuddyMessage		message )
-			{			
+	private static BuddyPluginBuddyMessageListener buddy_message_handler_listener = new BuddyPluginBuddyMessageListener() {
+		private Set pending_messages = new HashSet();
+
+		public void messageQueued(BuddyPluginBuddyMessage message) {
+		}
+
+		public void messageDeleted(BuddyPluginBuddyMessage message) {
+		}
+
+		public boolean deliverySucceeded(BuddyPluginBuddyMessage message, Map reply) {
+			if (message.getSubsystem() != BuddyPlugin.SUBSYSTEM_AZ3) {
+
+				return (true);
 			}
-			
-			public void
-			messageDeleted(
-				BuddyPluginBuddyMessage		message )
-			{
+
+			VuzeBuddyManager.log("REPLY REC " + JSONUtils.encodeToJSON(reply));
+
+			String response = MapUtils.getMapString(reply, "response", "");
+
+			if (!response.toLowerCase().equals("ok")) {
+
+				sendViaRelayServer(message);
+
+				// false here will re-attempt this call later (and keep message around)
+
+				return (false);
 			}
-			
-			public boolean
-			deliverySucceeded(
-				BuddyPluginBuddyMessage		message,
-				Map							reply )
-			{
-				if ( message.getSubsystem() != BuddyPlugin.SUBSYSTEM_AZ3 ){
-					
-					return( true );
-				}
-				
-				VuzeBuddyManager.log("REPLY REC " + JSONUtils.encodeToJSON(reply));
-				
-				String response = MapUtils.getMapString(reply, "response", "");
-				
-				if ( !response.toLowerCase().equals("ok")){
-					
-					sendViaRelayServer( message );
-					
-						// false here will re-attempt this call later (and keep message around)
-					
-					return( false );
-				}
-				
-				return( true );
+
+			return (true);
+		}
+
+		public void deliveryFailed(BuddyPluginBuddyMessage message,
+				BuddyPluginException cause) {
+			if (message.getSubsystem() != BuddyPlugin.SUBSYSTEM_AZ3) {
+
+				return;
 			}
-			
-			public void
-			deliveryFailed(
-				BuddyPluginBuddyMessage		message,
-				BuddyPluginException		cause )
-			{
-				if ( message.getSubsystem() != BuddyPlugin.SUBSYSTEM_AZ3 ){
-					
+
+			BuddyPluginBuddy buddy = message.getBuddy();
+
+			VuzeBuddyManager.log("SEND FAILED " + buddy.getPublicKey() + "\n" + cause);
+
+			sendViaRelayServer(message);
+		}
+
+		protected void sendViaRelayServer(BuddyPluginBuddyMessage message) {
+			// we can get in here > once for same message in theory if relay
+			// server dispatch slow and async the buddy plugin retries delivery
+
+			synchronized (pending_messages) {
+
+				if (pending_messages.contains(message)) {
+
 					return;
 				}
-				
-				BuddyPluginBuddy buddy = message.getBuddy();
-				
-				VuzeBuddyManager.log("SEND FAILED " + buddy.getPublicKey() + "\n" + cause);
 
-				sendViaRelayServer( message );
+				pending_messages.add(message);
 			}
-			
-			protected void
-			sendViaRelayServer(
-				BuddyPluginBuddyMessage	message )
-			{
-					// we can get in here > once for same message in theory if relay
-					// server dispatch slow and async the buddy plugin retries delivery
-				
-				synchronized( pending_messages ){
-					
-					if ( pending_messages.contains( message )){
-						
-						return;
-					}
-					
-					pending_messages.add( message );
-				}
-				
-				PlatformRelayMessenger.put(
-					message,
-					0,
-					new PlatformRelayMessenger.putListener()
-					{
-						public void
-						putOK(
-							BuddyPluginBuddyMessage		message )
-						{
-							try{
-							
+
+			log("sendViaRelayServer to " + message.getBuddy().getPublicKey());
+
+			PlatformRelayMessenger.put(message, 0,
+					new PlatformRelayMessenger.putListener() {
+						public void putOK(BuddyPluginBuddyMessage message) {
+							try {
+
 								message.delete();
-								
-							}finally{
-								
-								synchronized( pending_messages ){
-									
-									pending_messages.remove( message );
+
+							} finally {
+
+								synchronized (pending_messages) {
+
+									pending_messages.remove(message);
 								}
 							}
+
+							log("OK: sendViaRelayServer to "
+									+ message.getBuddy().getPublicKey());
 						}
-						
-						public void
-						putFailed(
-							BuddyPluginBuddyMessage		message )
-						{
-							synchronized( pending_messages ){
-								
-								pending_messages.remove( message );
+
+						public void putFailed(BuddyPluginBuddyMessage message) {
+							synchronized (pending_messages) {
+
+								pending_messages.remove(message);
 							}
+							log("FAIL: sendViaRelayServer to "
+									+ message.getBuddy().getPublicKey());
 						}
 					});
-			}
-		};
-		
+		}
+	};
+
 	/**
 	 * @param vuzeBuddyCreator
 	 *
@@ -240,14 +214,14 @@ public class VuzeBuddyManager
 						// logged in
 
 						log("Logging in.. getting pw from webapp");
-						
-							// getPassword will set the password viz VuzeCryptoManager
-						
+
+						// getPassword will set the password viz VuzeCryptoManager
+
 						PlatformKeyExchangeMessenger.getPassword(new PlatformKeyExchangeMessenger.platformPasswordListener() {
 							public void passwordRetrieved() {
-									// now password is set we can get access to the public key (or
-									// create one if first time)
-								
+								// now password is set we can get access to the public key (or
+								// create one if first time)
+
 								String myPK = null;
 								try {
 									myPK = VuzeCryptoManager.getSingleton().getPublicKey(null);
@@ -360,9 +334,9 @@ public class VuzeBuddyManager
 				if (!canHandleBuddy(buddy)) {
 					return;
 				}
-   
-				buddy.getMessageHandler().addListener( buddy_message_handler_listener );
-					
+
+				buddy.getMessageHandler().addListener(buddy_message_handler_listener);
+
 				if (false) {
 					// XXX To remove.  We don't need to add plugin buddies anymore
 					//     because we store the info ourselves in v3.Buddies.config
@@ -445,7 +419,7 @@ public class VuzeBuddyManager
 	protected static String processPayloadMap(String pkSender, Map mapPayload,
 			boolean authorizedBuddy) {
 		String mt = MapUtils.getMapString(mapPayload, "VuzeMessageType", "");
-		
+
 		log("processing payload " + mt);
 
 		if (mt.equals("ActivityEntry")) {
@@ -615,11 +589,8 @@ public class VuzeBuddyManager
 				buddyList.add(buddy);
 
 				if (createActivityEntry) {
-					String urlUser = Constants.URL_PREFIX + Constants.URL_PROFILE
-							+ buddy.getLoginID() + "?" + Constants.URL_SUFFIX
-							+ "&client_ref=new-buddy-inform";
-
-					String s = "<A HREF=\"" + urlUser + "\">" + buddy.getDisplayName()
+					String s = "<A HREF=\"" + buddy.getProfileUrl("new-buddy-inform")
+							+ "\">" + buddy.getDisplayName()
 							+ "</A> has become your buddy.  Huzzah! :D";
 
 					VuzeActivitiesEntry entry = new VuzeActivitiesEntry();
@@ -755,7 +726,7 @@ public class VuzeBuddyManager
 						+ " already removed");
 				return;
 			}
-			
+
 			log("Removing Buddy " + buddy.getDisplayName() + ";" + buddy.getLoginID());
 
 			buddyList.remove(buddy);
@@ -790,9 +761,11 @@ public class VuzeBuddyManager
 
 			for (Iterator iter = buddyList.iterator(); iter.hasNext();) {
 				VuzeBuddy buddy = (VuzeBuddy) iter.next();
-				
+
 				if (buddy.getLastUpdated() < updateTime) {
-					log("Removing Buddy " + buddy.getDisplayName() + ";" + buddy.getLoginID() + ";updateTime=" + updateTime + ";buddyTime" + buddy.getLastUpdated());
+					log("Removing Buddy " + buddy.getDisplayName() + ";"
+							+ buddy.getLoginID() + ";updateTime=" + updateTime + ";buddyTime"
+							+ buddy.getLastUpdated());
 
 					String[] publicKeys = buddy.getPublicKeys();
 					for (int i = 0; i < publicKeys.length; i++) {
@@ -810,7 +783,7 @@ public class VuzeBuddyManager
 					}
 				}
 			}
-			
+
 			saveVuzeBuddies();
 
 		} finally {
@@ -938,46 +911,11 @@ public class VuzeBuddyManager
 		if (dm == null) {
 			return;
 		}
-		TOTorrent torrent = dm.getTorrent();
-		if (torrent == null) {
-			return;
-		}
 
-		HashWrapper hashWrapper = null;
-		try {
-			hashWrapper = torrent.getHashWrapper();
-		} catch (TOTorrentException e) {
-		}
-
-		if (hashWrapper == null) {
-			return;
-		}
-
-		LoginInfo userInfo = LoginInfoManager.getInstance().getUserInfo();
-		if (userInfo == null || userInfo.userID == null) {
-			// TODO: Login!
-			VuzeBuddyManager.log("Can't share download: Not logged in");
-		}
-
-		VuzeActivitiesEntry entry = new VuzeActivitiesEntry();
-
-		// make all shares unique (so if the user shares the same content twice,
-		// their buddy gets two entries)
-		entry.setID("Buddy-share-" + SystemTime.getCurrentTime());
-		String text = userInfo.userName + " is sharing "
-				+ PlatformTorrentUtils.getContentTitle(torrent) + " with you.";
-		if (message != null) {
-			text += "\n \nMessage from " + userInfo.userName + ":\n" + message;
-		}
-		entry.setText(text);
-		entry.setAssetHash(hashWrapper.toBase32String());
-		entry.setDownloadManager(dm);
-		entry.setShowThumb(true);
-		entry.setTypeID("buddy-share", true);
-		entry.setImageBytes(PlatformTorrentUtils.getContentThumbnail(torrent));
+		VuzeActivitiesEntry entry = new VuzeActivitiesEntryContentShare(dm, message);
 
 		QueuedVuzeShare vuzeShare = VuzeQueuedShares.add(code);
-		vuzeShare.setDownloadHash(hashWrapper.toBase32String());
+		vuzeShare.setDownloadHash(entry.getAssetHash());
 		vuzeShare.setActivityEntry(entry);
 	}
 
@@ -1057,10 +995,8 @@ public class VuzeBuddyManager
 				BuddyPluginBuddy pluginBuddy = buddies[i];
 
 				// outcome reported via buddy's message handler listener
-				pluginBuddy.getMessageHandler().queueMessage(
-						BuddyPlugin.SUBSYSTEM_AZ3,
-						map,
-						SEND_P2P_TIMEOUT );
+				pluginBuddy.getMessageHandler().queueMessage(BuddyPlugin.SUBSYSTEM_AZ3,
+						map, SEND_P2P_TIMEOUT);
 			}
 		} catch (BuddyPluginException e) {
 			// TODO Auto-generated catch block
@@ -1127,7 +1063,7 @@ public class VuzeBuddyManager
 		if (skipSave) {
 			return;
 		}
-		
+
 		log("save");
 		Map mapSave = new HashMap();
 		List storedBuddyList = new ArrayList();

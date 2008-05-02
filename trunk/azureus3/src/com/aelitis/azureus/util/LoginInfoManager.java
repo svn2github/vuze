@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.gudy.azureus2.core3.util.UrlUtils;
+
 /**
  * A manager class to store login info
  * <P>
@@ -105,6 +107,12 @@ public class LoginInfoManager
 		 * The public key that the webapp thinks we have
 		 */
 		public final String pk = LoginInfoManager.this.pk;
+		
+		public String getProfileUrl(String referer) {
+			return Constants.URL_PREFIX + Constants.URL_PROFILE
+					+ UrlUtils.encode(userID) + "?" + Constants.URL_SUFFIX
+					+ "&client_ref=" + UrlUtils.encode(referer);
+		}
 	}
 
 }

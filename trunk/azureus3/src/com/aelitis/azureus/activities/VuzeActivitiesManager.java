@@ -558,17 +558,17 @@ public class VuzeActivitiesManager
 				}
 
 				VuzeActivitiesEntry entry = createEntryFromMap((Map) value, true);
-				
+
 				if (entry != null) {
-  				if (VuzeActivitiesEntry.TYPEID_RATING_REMINDER.equals(entry.getTypeID())) {
-  					entry.setShowThumb(true);
-  				}
-  
-  				if (entry.getTimestamp() > cutoffTime) {
-  					addEntries(new VuzeActivitiesEntry[] {
-  						entry
-  					});
-  				}
+					if (VuzeActivitiesEntry.TYPEID_RATING_REMINDER.equals(entry.getTypeID())) {
+						entry.setShowThumb(true);
+					}
+
+					if (entry.getTimestamp() > cutoffTime) {
+						addEntries(new VuzeActivitiesEntry[] {
+							entry
+						});
+					}
 				}
 			}
 		} finally {
@@ -704,7 +704,7 @@ public class VuzeActivitiesManager
 	public static VuzeActivitiesEntry getEntryByID(String id) {
 		try {
 			allEntries_mon.enter();
-			
+
 			for (Iterator iter = allEntries.iterator(); iter.hasNext();) {
 				VuzeActivitiesEntry entry = (VuzeActivitiesEntry) iter.next();
 				if (entry == null) {
@@ -718,10 +718,10 @@ public class VuzeActivitiesManager
 		} finally {
 			allEntries_mon.exit();
 		}
-		
+
 		return null;
 	}
-	
+
 	public static VuzeActivitiesEntry[] getAllEntries() {
 		return (VuzeActivitiesEntry[]) allEntries.toArray(new VuzeActivitiesEntry[allEntries.size()]);
 	}
@@ -752,11 +752,15 @@ public class VuzeActivitiesManager
 	 *
 	 * @since 3.0.5.3
 	 */
-	public static VuzeActivitiesEntry createEntryFromMap(Map map, boolean internalMap) {
+	public static VuzeActivitiesEntry createEntryFromMap(Map map,
+			boolean internalMap) {
 		VuzeActivitiesEntry entry;
-		String typeID = MapUtils.getMapString(map, "type-id", null);
+		String typeID = MapUtils.getMapString(map, "typeID", MapUtils.getMapString(
+				map, "type-id", null));
 		if (VuzeActivitiesEntryBuddyRequest.TYPEID_BUDDYREQUEST.equals(typeID)) {
 			entry = new VuzeActivitiesEntryBuddyRequest();
+		} else if (VuzeActivitiesEntryContentShare.TYPEID_BUDDYSHARE.equals(typeID)) {
+			entry = new VuzeActivitiesEntryContentShare();
 		} else {
 			entry = new VuzeActivitiesEntry();
 		}
@@ -765,7 +769,6 @@ public class VuzeActivitiesManager
 		} else {
 			entry.loadFromExternalMap(map);
 		}
-		entry.setAssetImageURL(MapUtils.getMapString(map, "related-image-url", null));
 		return entry;
 	}
 }

@@ -363,8 +363,7 @@ public class AvatarWidget
 	public void doLinkClicked() {
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if (null != uiFunctions) {
-			String url = Constants.URL_PREFIX + Constants.URL_PROFILE + "?"
-					+ getVuzeBuddy().getLoginID() + Constants.URL_SUFFIX;
+			String url = getVuzeBuddy().getProfileUrl("buddy-bar");
 			uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0, 0, true,
 					true);
 		}

@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableColumnSortObject;
 import com.aelitis.azureus.util.MapUtils;
@@ -122,6 +123,8 @@ public class VuzeActivitiesEntry
 		setTypeID(MapUtils.getMapString(platformEntry, "type-id", null), true);
 		setAssetHash(MapUtils.getMapString(platformEntry, "related-asset-hash",
 				null));
+		setAssetImageURL(MapUtils.getMapString(platformEntry, "related-image-url",
+				null));
 	}
 
 	// @see java.lang.Object#equals(java.lang.Object)
@@ -206,6 +209,14 @@ public class VuzeActivitiesEntry
 		map.put("typeID", getTypeID());
 		map.put("assetImageURL", assetImageURL);
 		map.put("showThumb", new Long(getShowThumb() ? 1 : 0));
+		if (imageBytes != null) {
+			map.put("imageBytes", imageBytes);
+		} else if (dm != null) {
+			byte[] thumbnail = PlatformTorrentUtils.getContentThumbnail(dm.getTorrent());
+			if (thumbnail != null) {
+				map.put("imageBytes", thumbnail);
+			}
+		}
 
 		return map;
 	}
@@ -293,7 +304,8 @@ public class VuzeActivitiesEntry
 		this.assetHash = assetHash;
 		if (assetHash != null) {
 			GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-			setDownloadManager(gm.getDownloadManager(new HashWrapper(Base32.decode(assetHash))));
+			setDownloadManager(gm.getDownloadManager(new HashWrapper(
+					Base32.decode(assetHash))));
 		} else {
 			setDownloadManager(null);
 		}

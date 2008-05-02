@@ -22,19 +22,17 @@ import java.util.*;
 
 import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentException;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Base32;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
+import com.aelitis.azureus.activities.VuzeActivitiesEntryContentShare;
 import com.aelitis.azureus.buddy.VuzeBuddy;
-import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
+import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.ImageDownloader;
-import com.aelitis.azureus.util.LoginInfoManager;
 import com.aelitis.azureus.util.MapUtils;
-import com.aelitis.azureus.util.LoginInfoManager.LoginInfo;
 
 /**
  * BuddyPluginBuddy plus some vuze specific stuff
@@ -49,13 +47,13 @@ public class VuzeBuddyImpl
 	private String displayName;
 
 	private String loginID;
-	
+
 	private String code;
 
 	private long lastUpdated;
 
 	private byte[] avatar;
-	
+
 	private String avatarURL;
 
 	private List pluginBuddies = new ArrayList();
@@ -91,15 +89,17 @@ public class VuzeBuddyImpl
 				if (avatarB32 != null) {
 					avatarBytes = Base32.decode(avatarB32);
 				} else {
-					String newAvatarURL = MapUtils.getMapString(mapNewBuddy, "avatar.url", null);
+					String newAvatarURL = MapUtils.getMapString(mapNewBuddy,
+							"avatar.url", null);
 					if (newAvatarURL != null && !newAvatarURL.equals(avatarURL)) {
 						avatarURL = newAvatarURL;
-						ImageDownloader.loadImage(avatarURL, new ImageDownloader.ImageDownloaderListener() {
-							public void imageDownloaded(byte[] image) {
-								VuzeBuddyManager.log("Got new avatar!");
-								setAvatar(image);
-							}
-						});
+						ImageDownloader.loadImage(avatarURL,
+								new ImageDownloader.ImageDownloaderListener() {
+									public void imageDownloaded(byte[] image) {
+										VuzeBuddyManager.log("Got new avatar!");
+										setAvatar(image);
+									}
+								});
 					}
 				}
 			}
@@ -107,19 +107,19 @@ public class VuzeBuddyImpl
 		if (avatarBytes != null) {
 			setAvatar(avatarBytes);
 		}
-		
+
 		setCode(MapUtils.getMapString(mapNewBuddy, "code", null));
 	}
-	
+
 	public Map toMap() {
 		Map map = new HashMap();
 		map.put("display-name", displayName);
 		map.put("login-id", loginID);
 		map.put("code", code);
-		
+
 		List pks = Arrays.asList(getPublicKeys());
 		map.put("pks", pks);
-		
+
 		map.put("avatar", avatar);
 
 		return map;
@@ -238,7 +238,7 @@ public class VuzeBuddyImpl
 		BuddyPluginBuddy[] buddies = (BuddyPluginBuddy[]) pluginBuddies.toArray(new BuddyPluginBuddy[0]);
 		VuzeBuddyManager.sendActivity(entry, buddies);
 	}
-	
+
 	// @see com.aelitis.azureus.buddy.VuzeBuddy#sendPayloadMap(java.util.Map)
 	public void sendPayloadMap(Map map) {
 		BuddyPluginBuddy[] buddies = (BuddyPluginBuddy[]) pluginBuddies.toArray(new BuddyPluginBuddy[0]);
@@ -249,43 +249,10 @@ public class VuzeBuddyImpl
 		if (dm == null) {
 			return;
 		}
-		TOTorrent torrent = dm.getTorrent();
-		if (torrent == null) {
-			return;
-		}
 
-		HashWrapper hashWrapper = null;
-		try {
-			hashWrapper = torrent.getHashWrapper();
-		} catch (TOTorrentException e) {
-		}
-
-		if (hashWrapper == null) {
-			return;
-		}
-
-		LoginInfo userInfo = LoginInfoManager.getInstance().getUserInfo();
-		if (userInfo == null || userInfo.userID == null) {
-			// TODO: Login!
-			VuzeBuddyManager.log("Can't share download: Not logged in");
-		}
-
-		VuzeActivitiesEntry entry = new VuzeActivitiesEntry();
-
-		// make all shares unique (so if the user shares the same content twice,
-		// their buddy gets two entries)
-		entry.setID("Buddy-share-" + SystemTime.getCurrentTime());
-		String text = userInfo.userName + " is sharing "
-				+ PlatformTorrentUtils.getContentTitle(torrent) + " with you.";
-		if (message != null) {
-			text += "\n \nMessage from " + userInfo.userName + ":\n" + message;
-		}
-		entry.setText(text);
-		entry.setAssetHash(hashWrapper.toBase32String());
-		entry.setDownloadManager(dm);
-		entry.setShowThumb(true);
-		entry.setTypeID("buddy-share", true);
-		entry.setImageBytes(PlatformTorrentUtils.getContentThumbnail(torrent));
+		VuzeActivitiesEntryContentShare entry = new VuzeActivitiesEntryContentShare(
+				dm, message);
+		entry.setBuddy(this);
 
 		sendActivity(entry);
 	}
@@ -293,7 +260,7 @@ public class VuzeBuddyImpl
 	public void tellBuddyToSyncUp() {
 		Map map = new HashMap();
 		map.put("VuzeMessageType", "CheckInvites");
-		
+
 		sendPayloadMap(map);
 	}
 
@@ -305,4 +272,8 @@ public class VuzeBuddyImpl
 		this.code = code;
 	}
 
+	public String getProfileUrl(String referer) {
+		return Constants.URL_PREFIX + Constants.URL_PROFILE + getLoginID() + "?"
+				+ Constants.URL_SUFFIX + "&client_ref=" + referer;
+	}
 }

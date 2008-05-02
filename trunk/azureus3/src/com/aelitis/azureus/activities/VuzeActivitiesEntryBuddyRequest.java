@@ -21,12 +21,9 @@ package com.aelitis.azureus.activities;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.gudy.azureus2.core3.util.UrlUtils;
-
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.util.Constants;
-import com.aelitis.azureus.util.JSONUtils;
 import com.aelitis.azureus.util.MapUtils;
 
 /**
@@ -47,18 +44,16 @@ public class VuzeActivitiesEntryBuddyRequest
 
 	public VuzeActivitiesEntryBuddyRequest(VuzeBuddy buddy, String acceptURL) {
 		this.buddy = buddy;
-	
-		String urlUser = Constants.URL_PREFIX + Constants.URL_PROFILE + buddy.getLoginID()
-				+ "?" + Constants.URL_SUFFIX + "&client_ref=buddy-request";
+
 		String urlAccept = Constants.appendURLSuffix(acceptURL);
 
-		setText("<A HREF=\"" + urlUser + "\">" + buddy.getDisplayName()
-				+ "</A> wants to be your buddy\n \n" + "  <A HREF=\"" + urlAccept
-				+ "\">OMG, OF COURSE I ACCEPT!</A>");
+		setText("<A HREF=\"" + buddy.getProfileUrl(TYPEID_BUDDYREQUEST) + "\">"
+				+ buddy.getDisplayName() + "</A> wants to be your buddy\n \n"
+				+ "  <A HREF=\"" + urlAccept + "\">OMG, OF COURSE I ACCEPT!</A>");
 		setTypeID(TYPEID_BUDDYREQUEST, true);
 		setID(buildID(buddy.getCode()));
 	}
-	
+
 	public static String buildID(String code) {
 		return TYPEID_BUDDYREQUEST + "-" + code;
 	}
