@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -365,6 +366,8 @@ public class SharePage
 				VuzeBuddyManager.inviteWithShare(confirmationResponse,
 						getDownloadManager(), shareHeaderMessageLabel.getText(), buddies);
 
+				getDetailPanel().show(false);
+
 			}
 
 			public void widgetDefaultSelected(SelectionEvent e) {
@@ -519,6 +522,17 @@ public class SharePage
 							System.err.println("\t'invite-confirm' called from share page: "
 									+ getConfirmationMessage());//KN: sysout
 
+							if (null != getConfirmationMessage()) {
+								Utils.execSWTThread(new AERunnable() {
+
+									public void runSupport() {
+										MessageBox mb = new MessageBox(inviteePanel.getShell(),
+												SWT.ICON_INFORMATION | SWT.OK);
+										mb.setMessage(getConfirmationMessage());
+										mb.open();
+									}
+								});
+							}
 						}
 					});
 		}
