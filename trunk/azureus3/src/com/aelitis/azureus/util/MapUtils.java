@@ -48,6 +48,9 @@ public class MapUtils
 	public static String getMapString(Map map, String key, String def) {
 		try {
 			Object o = map.get(key);
+			if (o == null && !map.containsKey(key)) {
+				return def;
+			}
 			if (o instanceof String) {
 				return (String) o;
 			}
