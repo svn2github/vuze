@@ -770,7 +770,7 @@ public class VuzeBuddyManager
 
 			if (!buddyList.contains(buddy)) {
 				log("Buddy " + buddy.getDisplayName() + ";" + buddy.getLoginID()
-						+ " already removed");
+						+ " already removed via " + Debug.getCompressedStackTrace());
 				return;
 			}
 
@@ -1098,6 +1098,10 @@ public class VuzeBuddyManager
 	 * @since 3.0.5.3
 	 */
 	protected static void triggerChangeListener(VuzeBuddy buddy) {
+		if (!buddyList.contains(buddy)) {
+			return;
+		}
+
 		saveVuzeBuddies();
 		Object[] listenersArray = listeners.toArray();
 		for (int i = 0; i < listenersArray.length; i++) {
