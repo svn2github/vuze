@@ -246,7 +246,7 @@ BuddyPlugin
 		
 		sec_man = plugin_interface.getUtilities().getSecurityManager();
 
-		logger = plugin_interface.getLogger().getChannel( "Buddy" );
+		logger = plugin_interface.getLogger().getChannel( "Friends" );
 		
 		logger.setDiagnostic();
 				
@@ -670,7 +670,7 @@ BuddyPlugin
 							}
 							
 							try{
-								String reason = "Buddy: Incoming connection establishment (" + originator + ")";
+								String reason = "Friend: Incoming connection establishment (" + originator + ")";
 									
 								addRateLimiters( connection );
 
@@ -1175,7 +1175,7 @@ BuddyPlugin
 						{
 						}
 					},
-					getStatusKey( key_to_remove, "Buddy status de-registration for old key" ));
+					getStatusKey( key_to_remove, "Friend status de-registration for old key" ));
 				
 			}catch( Throwable e ){	
 			
@@ -1240,7 +1240,7 @@ BuddyPlugin
 										
 				DistributedDatabaseKey	key = getStatusKey( details.getPublicKey(), "My buddy status registration " + payload );
 	
-				byte[] signature = ecc_handler.sign( data, "Buddy online status" );
+				byte[] signature = ecc_handler.sign( data, "Friend online status" );
 			
 				byte[]	signed_payload = new byte[ 1 + signature.length + data.length ];
 				
@@ -1368,7 +1368,7 @@ BuddyPlugin
 								}
 							}
 						},
-						getStatusKey( key_to_remove, "Buddy status de-registration for closedown" ),
+						getStatusKey( key_to_remove, "Friend status de-registration for closedown" ),
 						contact_a );
 					
 				}catch( Throwable e ){	
@@ -1435,7 +1435,7 @@ BuddyPlugin
 			
 			Map map = readConfig(); 
 					
-			List	buddies_config = (List)map.get( "buddies" );
+			List	buddies_config = (List)map.get( "friends" );
 				
 			if ( buddies_config != null ){
 							
@@ -1555,7 +1555,7 @@ BuddyPlugin
 				
 				Map	map = new HashMap();
 				
-				map.put( "buddies", buddies_config );
+				map.put( "friends", buddies_config );
 				
 				writeConfig( map );
 				
@@ -1657,7 +1657,7 @@ BuddyPlugin
 		
 			buddies_map.remove( buddy.getPublicKey());
 						
-			logMessage( "Removed buddy " + buddy.getString());
+			logMessage( "Removed friend " + buddy.getString());
 
 			saveConfig( true );
 		}
@@ -1673,7 +1673,7 @@ BuddyPlugin
 	protected Map
 	readConfig()
 	{
-		File	config_file = new File( plugin_interface.getUtilities().getAzureusUserDir(), "buddies.config" );
+		File	config_file = new File( plugin_interface.getUtilities().getAzureusUserDir(), "friends.config" );
 		
 		return( readConfigFile( config_file ));
 	}
@@ -1682,7 +1682,7 @@ BuddyPlugin
 	writeConfig(
 		Map		map )
 	{
-		File	config_file = new File( plugin_interface.getUtilities().getAzureusUserDir(), "buddies.config" );
+		File	config_file = new File( plugin_interface.getUtilities().getAzureusUserDir(), "friends.config" );
 		
 		writeConfigFile( config_file, map );
 	}
@@ -1716,7 +1716,7 @@ BuddyPlugin
 	protected File
 	getBuddyConfigDir()
 	{
-		return( new File( plugin_interface.getUtilities().getAzureusUserDir(), "buddies" ));
+		return( new File( plugin_interface.getUtilities().getAzureusUserDir(), "friends" ));
 	}
 	
 	public BuddyPluginAZ2
@@ -1729,7 +1729,7 @@ BuddyPlugin
 	getPublicKey()
 	{
 		try{
-			return( Base32.encode(ecc_handler.getPublicKey( "Buddy get key" )));
+			return( Base32.encode(ecc_handler.getPublicKey( "Friend get key" )));
 			
 		}catch( Throwable e ){
 			
@@ -1864,7 +1864,7 @@ BuddyPlugin
 			final byte[]	public_key = buddy.getRawPublicKey();
 
 			DistributedDatabaseKey	key = 
-				getStatusKey( public_key, "Buddy status check for " + buddy.getName());
+				getStatusKey( public_key, "Friend status check for " + buddy.getName());
 			
 			ddb.read(
 				new DistributedDatabaseListener()
@@ -1942,7 +1942,7 @@ BuddyPlugin
 			
 			buddy.statusCheckFailed();
 			
-			log( "Buddy status update failed: " + buddy.getString(), e );
+			log( "Friend status update failed: " + buddy.getString(), e );
 		}
 	}
 	
@@ -2059,7 +2059,7 @@ BuddyPlugin
 	{ 
 		try{
 		
-			return( ecc_handler.sign( payload, "Buddy message signing" ));
+			return( ecc_handler.sign( payload, "Friend message signing" ));
 
 		}catch( Throwable e ){
 			
@@ -2199,7 +2199,7 @@ BuddyPlugin
 		try{
 			checkAvailable();
 
-			final String	reason = "Buddy YGM write for " + buddy.getName();
+			final String	reason = "Friend YGM write for " + buddy.getName();
 			
 			Map	payload = new HashMap();
 			
@@ -2257,7 +2257,7 @@ BuddyPlugin
 		log( "Checking YGM" );
 
 		try{	
-			String	reason = "Buddy YGM check";
+			String	reason = "Friend YGM check";
 			
 			byte[] public_key = ecc_handler.getPublicKey( reason );
 
@@ -2291,11 +2291,11 @@ BuddyPlugin
 								
 								if ( buddy == null ){
 									
-									log( "YGM entry from unknown buddy '" + pk_str + "' - ignoring" );
+									log( "YGM entry from unknown friend '" + pk_str + "' - ignoring" );
 									
 								}else if ( !buddy.isAuthorised()){
 									
-									log( "YGM entry from unauthorised buddy '" + pk_str + "' - ignoring" );
+									log( "YGM entry from unauthorised friend '" + pk_str + "' - ignoring" );
 
 								}else{
 									

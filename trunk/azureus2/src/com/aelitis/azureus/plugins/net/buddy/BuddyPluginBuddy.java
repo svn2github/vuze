@@ -899,7 +899,7 @@ BuddyPluginBuddy
 				try{
 					if ( destroyed ){
 						
-						throw( new BuddyPluginException( "Buddy destroyed" ));
+						throw( new BuddyPluginException( "Friend destroyed" ));
 					}
 					
 					if ( connections.size() >= MAX_ACTIVE_CONNECTIONS ){
@@ -1276,7 +1276,7 @@ BuddyPluginBuddy
 		
 		if ( ip == null ){
 						
-			throw( new BuddyPluginException( "Buddy offline (no usable IP address)" ));
+			throw( new BuddyPluginException( "Friend offline (no usable IP address)" ));
 		}
 		
 		InetSocketAddress	tcp_target	= null;
@@ -1305,7 +1305,7 @@ BuddyPluginBuddy
 		
 		if ( notional_target == null ){
 						
-			throw( new BuddyPluginException( "Buddy offline (no usable protocols)" ));
+			throw( new BuddyPluginException( "Friend offline (no usable protocols)" ));
 		}
 		
 		GenericMessageEndpoint	endpoint = msg_registration.createEndpoint( notional_target );
@@ -1327,7 +1327,7 @@ BuddyPluginBuddy
 				
 			plugin.addRateLimiters( con );
 			
-			String reason = "Buddy: Outgoing connection establishment";
+			String reason = "Friend: Outgoing connection establishment";
 	
 			SESecurityManager sec_man = plugin.getSecurityManager();
 			
@@ -1403,7 +1403,7 @@ BuddyPluginBuddy
 			
 			if ( destroyed ){
 				
-				throw( new BuddyPluginException( "Buddy has been destroyed" ));
+				throw( new BuddyPluginException( "Friend has been destroyed" ));
 			}
 			
 			connections.add( bc );
