@@ -368,7 +368,7 @@ BuddyPluginBuddyMessageHandler
 				last_failure	= SystemTime.getCurrentTime();
 			}
 			
-			if ( !request_ok ){
+			if ( !request_ok && !( cause instanceof BuddyPluginPasswordException )){
 				
 				buddy.logMessage( "Message request unavailable, deleting message" );
 				
@@ -488,6 +488,12 @@ BuddyPluginBuddyMessageHandler
 						last_pending_success = SystemTime.getCurrentTime();
 					}
 				}
+			}catch( BuddyPluginPasswordException e ){
+				
+				buddy.log( "Failed to restore message reply", e );
+
+					// we don't want to delete the message if failed due to password issue
+				
 			}catch( Throwable e ){
 				
 				buddy.log( "Failed to restore message reply - deleting message", e );

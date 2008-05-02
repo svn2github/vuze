@@ -31,6 +31,7 @@ BuddyPluginBuddyMessage
 	private int									subsystem;
 	private int									timeout;
 	private long								create_time;
+	private boolean								deleted;
 	
 	protected
 	BuddyPluginBuddyMessage(
@@ -110,6 +111,14 @@ BuddyPluginBuddyMessage
 	public void
 	delete()
 	{
+		deleted = true;
+		
 		handler.deleteMessage( this );
+	}
+	
+	public boolean
+	isDeleted()
+	{
+		return( deleted );
 	}
 }

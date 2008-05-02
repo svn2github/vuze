@@ -85,6 +85,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.security.CryptoHandler;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
 import com.aelitis.azureus.core.security.CryptoManagerKeyChangeListener;
+import com.aelitis.azureus.core.security.CryptoManagerPasswordException;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
@@ -1973,9 +1974,9 @@ BuddyPlugin
 			}
 		}catch( Throwable e ){
 			
-			logMessage( "Signature verification failed", e );
+			rethrow( "Verification failed", e );
 			
-			throw( new BuddyPluginException( "Signature verification failed", e ));
+			return( null );
 		}
 	}
 	
@@ -2002,9 +2003,9 @@ BuddyPlugin
 			
 		}catch( Throwable e ){
 			
-			logMessage( "Signing failed", e );
+			rethrow( "Signing failed", e );
 			
-			throw( new BuddyPluginException( "Signing failed", e ));
+			return( null );
 		}
 	}
 	
@@ -2044,9 +2045,9 @@ BuddyPlugin
 			
 		}catch( Throwable e ){
 			
-			logMessage( "Signature verification failed", e );
+			rethrow( "Verification failed", e );
 			
-			throw( new BuddyPluginException( "Signature verification failed", e ));
+			return( false );
 		}
 	}
 	
@@ -2062,9 +2063,9 @@ BuddyPlugin
 
 		}catch( Throwable e ){
 			
-			logMessage( "Signing failed", e );
+			rethrow( "Signing failed", e );
 			
-			throw( new BuddyPluginException( "Signing failed", e ));
+			return( null );
 		}
 	}
 	
@@ -2108,9 +2109,9 @@ BuddyPlugin
 			
 		}catch( Throwable e ){
 			
-			logMessage( "Encryption failed", e );
+			rethrow( "Encryption failed", e );
 			
-			throw( new BuddyPluginException( "Encryption failed", e ));
+			return( null );
 		}
 	}
 	
@@ -2145,9 +2146,9 @@ BuddyPlugin
 			
 		}catch( Throwable e ){
 			
-			logMessage( "Decryption failed", e );
+			rethrow( "Decryption failed", e );
 			
-			throw( new BuddyPluginException( "Decryption failed", e ));
+			return( null );
 		}
 	}
 
@@ -2182,9 +2183,9 @@ BuddyPlugin
 			
 		}catch( Throwable e ){
 			
-			logMessage( "Decryption failed", e );
+			rethrow( "Decryption failed", e );
 			
-			throw( new BuddyPluginException( "Decryption failed", e ));
+			return( null );
 		}
 	}
 
@@ -2240,16 +2241,9 @@ BuddyPlugin
 
 		}catch( Throwable e ){
 			
-			try{
-				logMessage( "Failed to publish YGM", e );
-				
-				if ( e instanceof BuddyPluginException ){
-					
-					throw((BuddyPluginException)e);
-				}
-				
-				throw( new BuddyPluginException( "Failed to publish YGM", e ));
-				
+			try{				
+				rethrow( "Failed to publish YGM", e );
+								
 			}finally{
 				
 				listener.complete();
@@ -2594,6 +2588,27 @@ BuddyPlugin
    			}
    		}
    	}
+	
+	protected void
+	rethrow(
+		String		reason,
+		Throwable	e )
+	
+		throws BuddyPluginException
+	{
+		logMessage( reason, e );
+
+		if ( e instanceof CryptoManagerPasswordException ){
+		
+		
+			throw( new BuddyPluginPasswordException(((CryptoManagerPasswordException)e).wasIncorrect(), reason, e ));
+		
+		}else{
+		
+			throw( new BuddyPluginException( reason, e ));
+		}
+	}
+	
 	public void
 	addRequestListener(
 		BuddyPluginBuddyRequestListener	listener )
