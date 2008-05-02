@@ -15,6 +15,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddyListener;
@@ -230,11 +231,14 @@ public class BuddiesViewer
 		return avatarWidget;
 	}
 
-	public void removeBuddy(AvatarWidget widget) {
-		avatarWidgets.remove(widget);
-		widget.dispose(true);
-		avatarsPanel.layout(true);
-
+	public void removeBuddy(final AvatarWidget widget) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+    		avatarWidgets.remove(widget);
+    		widget.dispose(true);
+    		avatarsPanel.layout(true);
+			}
+		});
 	}
 
 	public void removeBuddy(VuzeBuddy buddy) {
@@ -258,13 +262,17 @@ public class BuddiesViewer
 		}
 	}
 
-	public void addBuddy(VuzeBuddy buddy) {
+	public void addBuddy(final VuzeBuddy buddy) {
 		if (buddy instanceof VuzeBuddySWT) {
-			createBuddyControls(avatarsPanel, (VuzeBuddySWT) buddy);
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					createBuddyControls(avatarsPanel, (VuzeBuddySWT) buddy);
 
-			avatarsPanel.layout();
-			Point size = avatarsPanel.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
-			avatarsPanel.setSize(size);
+					avatarsPanel.layout();
+					Point size = avatarsPanel.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
+					avatarsPanel.setSize(size);
+				}
+			});
 
 		} else {
 			Debug.out("Wrong type VuzeBuddy... must be of type VuzeBuddySWT");
