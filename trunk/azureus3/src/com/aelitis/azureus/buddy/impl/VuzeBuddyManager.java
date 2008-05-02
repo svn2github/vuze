@@ -75,7 +75,9 @@ public class VuzeBuddyManager
 	private static BuddyPluginBuddyMessageListener buddy_message_handler_listener = 
 		new BuddyPluginBuddyMessageListener()
 		{
-			private Set		pending_messages = new HashSet();
+			private Set		pending_messages 	= new HashSet();
+			private int		consecutive_fails	= 0;
+			private long	last_send_attempt;
 			
 			public void
 			messageQueued(
@@ -139,6 +141,9 @@ public class VuzeBuddyManager
 					// we can get in here > once for same message in theory if relay
 					// server dispatch slow and async the buddy plugin retries delivery
 				
+					// so, all messages will auto-retry entry here every n minutes. so this is
+					// a reasonable place to rate limit on failure
+				
 				synchronized( pending_messages ){
 					
 					if ( pending_messages.contains( message )){
@@ -146,7 +151,15 @@ public class VuzeBuddyManager
 						return;
 					}
 					
+					long now = SystemTime.getCurrentTime();
+					
+					if ( consecutive_fails > 2 ){
+						
+					}
+					
 					pending_messages.add( message );
+					
+					last_send_attempt = now;
 				}
 				
 				PlatformRelayMessenger.put(
@@ -167,17 +180,26 @@ public class VuzeBuddyManager
 								synchronized( pending_messages ){
 									
 									pending_messages.remove( message );
+									
+									consecutive_fails	= 0;
+									
+									VuzeBuddyManager.log( "RELAY: put ok - resetting consec fails" );
 								}
 							}
 						}
 						
 						public void
 						putFailed(
-							BuddyPluginBuddyMessage		message )
+							BuddyPluginBuddyMessage		message,
+							Throwable					cause )
 						{
 							synchronized( pending_messages ){
 								
 								pending_messages.remove( message );
+								
+								consecutive_fails++;
+								
+								VuzeBuddyManager.log( "RELAY: put failed - " + Debug.getNestedExceptionMessage( cause ) + ", consec fails=" + consecutive_fails );
 							}
 						}
 					});

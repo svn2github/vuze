@@ -88,6 +88,7 @@ public class PlatformRelayMessenger
 		final putListener				putListener )
 	{
 		try{
+			// if ( true ) throw( new Exception( "bork bork" ));
 			String myPK = VuzeCryptoManager.getSingleton().getPublicKey( "RelayMessenger put");
 			
 			BuddyPluginBuddy pluginBuddy = buddyMessage.getBuddy();
@@ -144,7 +145,7 @@ public class PlatformRelayMessenger
 						
 						if ( !ok ){
 							
-							putListener.putFailed( buddyMessage );
+							putListener.putFailed( buddyMessage, new Exception( "Reply indicated failure: " + reply ));
 						}
 					}
 				}
@@ -155,7 +156,7 @@ public class PlatformRelayMessenger
 			
 		}catch( Throwable e ){
 			
-			putListener.putFailed( buddyMessage );
+			putListener.putFailed( buddyMessage, e );
 		}
 	}
 
@@ -345,6 +346,7 @@ public class PlatformRelayMessenger
 		
 		public void
 		putFailed(
-			BuddyPluginBuddyMessage		message );
+			BuddyPluginBuddyMessage		message,
+			Throwable					cause );
 	}
 }
