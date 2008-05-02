@@ -234,9 +234,9 @@ public class BuddiesViewer
 	public void removeBuddy(final AvatarWidget widget) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-    		avatarWidgets.remove(widget);
-    		widget.dispose(true);
-    		avatarsPanel.layout(true);
+				avatarWidgets.remove(widget);
+				widget.dispose(true);
+				avatarsPanel.layout(true);
 			}
 		});
 	}
@@ -257,7 +257,7 @@ public class BuddiesViewer
 				widget.setVuzeBuddy((VuzeBuddySWT) buddy);
 				widget.getVuzeBuddy();
 			} else {
-				Debug.out("Unknown VuzeBuddy; can not update widget since we don't have it.");
+				addBuddy(buddy);
 			}
 		}
 	}
@@ -267,7 +267,6 @@ public class BuddiesViewer
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					createBuddyControls(avatarsPanel, (VuzeBuddySWT) buddy);
-
 					avatarsPanel.layout();
 					Point size = avatarsPanel.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
 					avatarsPanel.setSize(size);
@@ -336,21 +335,26 @@ public class BuddiesViewer
 	private List getBuddies() {
 
 		List buddiesList = VuzeBuddyManager.getAllVuzeBuddies();
+		for (Iterator iterator = buddiesList.iterator(); iterator.hasNext();) {
+			System.out.println("Got friend: "
+					+ ((VuzeBuddy) iterator.next()).getLoginID());//KN: sysout			
+		}
 
 		VuzeBuddyManager.addListener(new VuzeBuddyListener() {
 
 			public void buddyRemoved(VuzeBuddy buddy) {
-				System.out.println("VuzeBuddyManager.buddyRemoved");//KN: sysout
+				System.out.println("VuzeBuddyManager.buddyRemoved: "
+						+ buddy.getLoginID());//KN: sysout
 				removeBuddy(buddy);
 			}
 
 			public void buddyChanged(VuzeBuddy buddy) {
-				System.out.println("VuzeBuddyManager.buddyChanged");//KN: sysout
+				System.out.println("VuzeBuddyManager.buddyChanged" + buddy.getLoginID());//KN: sysout
 				updateBuddy(buddy);
 			}
 
 			public void buddyAdded(VuzeBuddy buddy) {
-				System.out.println("VuzeBuddyManager.buddyAdded");//KN: sysout
+				System.out.println("VuzeBuddyManager.buddyAdded" + buddy.getLoginID());//KN: sysout
 				addBuddy(buddy);
 			}
 		}, false);
