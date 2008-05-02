@@ -280,6 +280,7 @@ public class VuzeBuddyManager
 								}
 
 								PlatformRelayMessenger.relayCheck();
+								PlatformBuddyMessenger.sync(null);
 								PlatformBuddyMessenger.getInvites();
 							}
 						});
