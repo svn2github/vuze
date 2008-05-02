@@ -156,8 +156,37 @@ public class VuzeBuddyManager
 					
 					long now = SystemTime.getCurrentTime();
 					
-					if ( consecutive_fails > 2 ){
+					if ( last_send_attempt > now ){
 						
+						last_send_attempt = now;
+					}
+										
+					if ( consecutive_fails > 1 ){
+					
+						long delay = 5*60*1000;
+						
+						final int MAX_DELAY =  4*60*60*1000;
+						
+						for (int i=2;i<=consecutive_fails;i++){
+							
+							delay <<= 1;
+							
+							if ( delay > MAX_DELAY){
+								
+								delay = MAX_DELAY;
+								
+								break;
+							}
+						}
+						
+						long delay_remaining = delay - (now - last_send_attempt);
+						
+						if ( delay_remaining > 0 ){
+							
+							VuzeBuddyManager.log( "RELAY: deferring put due to repeated failures (retry in " + delay_remaining + ")" );
+
+							return;
+						}
 					}
 					
 					pending_messages.add( message );
