@@ -131,7 +131,7 @@ public class MomentsAgoDateFormatter {
            Integer field) {
        String result = null;
        long diff = now.getTimeInMillis() - then.getTimeInMillis();
-       long comparison = ((Integer)CONVERSION_MAP.get(field)).longValue();
+       long comparison = ((Long)CONVERSION_MAP.get(field)).longValue();
        if (diff > comparison) {
            long timeAgo = diff / comparison;
            result = String.valueOf(timeAgo).concat((String)UNIT_MAP.get(field));
