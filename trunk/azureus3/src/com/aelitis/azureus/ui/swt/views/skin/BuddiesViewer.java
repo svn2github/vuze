@@ -257,6 +257,10 @@ public class BuddiesViewer
 				widget.setVuzeBuddy((VuzeBuddySWT) buddy);
 				widget.getVuzeBuddy();
 			} else {
+				/*
+				 * If not found yet then we create the avatar for it; this really should not happen
+				 * but we'll handle it just in case
+				 */
 				addBuddy(buddy);
 			}
 		}
@@ -282,10 +286,12 @@ public class BuddiesViewer
 		if (null != buddy) {
 			for (Iterator iterator = avatarWidgets.iterator(); iterator.hasNext();) {
 				AvatarWidget widget = (AvatarWidget) iterator.next();
-				if (true == buddy.equals(widget.getVuzeBuddy())) {
-					return widget;
+				if (null != widget.getVuzeBuddy()) {
+					if (true == buddy.getLoginID().equals(
+							widget.getVuzeBuddy().getLoginID())) {
+						return widget;
+					}
 				}
-
 			}
 		}
 
