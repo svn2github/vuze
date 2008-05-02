@@ -67,9 +67,9 @@ public class PlatformBuddyMessenger
 				long updateTime = SystemTime.getCurrentTime();
 
 				List buddies = MapUtils.getMapList(reply, "buddies",
-						Collections.EMPTY_LIST);
+						null);
 
-				if (buddies.size() == 0) {
+				if (buddies == null) {
 					return;
 				}
 
