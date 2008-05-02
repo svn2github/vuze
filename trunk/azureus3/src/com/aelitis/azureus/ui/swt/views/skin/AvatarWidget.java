@@ -18,6 +18,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.MessageBox;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 
@@ -26,7 +27,6 @@ import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
-import com.aelitis.azureus.util.Constants;
 
 public class AvatarWidget
 {
@@ -375,9 +375,13 @@ public class AvatarWidget
 	}
 
 	public void refreshVisual() {
-		if (null != avatarCanvas && false == avatarCanvas.isDisposed()) {
-			avatarCanvas.redraw();
-		}
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (null != avatarCanvas && false == avatarCanvas.isDisposed()) {
+					avatarCanvas.redraw();
+				}
+			}
+		});
 
 	}
 
@@ -466,6 +470,7 @@ public class AvatarWidget
 				avatarImage = ImageRepository.getImage("buddy_default_avatar");
 			}
 			avatarBounds = null == avatarImage ? null : avatarImage.getBounds();
+			refreshVisual();
 		}
 	}
 }
