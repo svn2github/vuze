@@ -1705,9 +1705,18 @@ public class MainWindow
 		skin.setActiveTab(SkinConstants.TABSET_MAIN,
 				SkinConstants.VIEWID_BROWSE_TAB);
 
+		
+		
 		String sURL = Constants.URL_PREFIX + Constants.URL_ADD_SEARCH
 				+ UrlUtils.encode(sSearchText) + "&" + Constants.URL_SUFFIX + "&rand="
 				+ SystemTime.getCurrentTime();
+		
+		if(System.getProperty("metasearch","0").equals("1")) {
+			sURL = Constants.URL_PREFIX + "xsearch/index.html?search=" + 
+			UrlUtils.encode(sSearchText) + "&" + Constants.URL_SUFFIX + "&rand="
+			+ SystemTime.getCurrentTime();
+		}
+		
 		System.out.println(sURL);
 
 		UIFunctions functions = UIFunctionsManager.getUIFunctions();

@@ -113,6 +113,7 @@ public class SWTSkinObjectBrowser
 		context.addMessageListener(new LightBoxBrowserRequestListener());
 		context.addMessageListener(new StatusListener());
 		context.addMessageListener(new BrowserRpcBuddyListener());
+		context.addMessageListener(new MetaSearchListener());
 
 		PublishUtils.setupContext(context);
 
