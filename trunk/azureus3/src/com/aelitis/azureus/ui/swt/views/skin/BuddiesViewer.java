@@ -255,7 +255,6 @@ public class BuddiesViewer
 			AvatarWidget widget = findWidget(buddy);
 			if (null != widget) {
 				widget.setVuzeBuddy((VuzeBuddySWT) buddy);
-				widget.getVuzeBuddy();
 			} else {
 				/*
 				 * If not found yet then we create the avatar for it; this really should not happen

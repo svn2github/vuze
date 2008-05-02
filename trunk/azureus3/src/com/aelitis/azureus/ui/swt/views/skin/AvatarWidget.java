@@ -454,7 +454,7 @@ public class AvatarWidget
 	}
 
 	public void setVuzeBuddy(VuzeBuddySWT vuzeBuddy) {
-		if (this.vuzeBuddy != vuzeBuddy && null != vuzeBuddy) {
+		if (null != vuzeBuddy) {
 			this.vuzeBuddy = vuzeBuddy;
 
 			/*
