@@ -26,16 +26,25 @@ import java.nio.ByteBuffer;
 import java.security.SecureRandom;
 import java.util.*;
 
-import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.disk.DiskManager;
+import org.gudy.azureus2.core3.disk.DiskManagerPiece;
+import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.peer.*;
-import org.gudy.azureus2.core3.peer.impl.*;
-import org.gudy.azureus2.core3.peer.util.*;
+import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.core3.peer.PEPeerListener;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.peer.PEPeerStats;
+import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
+import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
+import org.gudy.azureus2.core3.peer.impl.PEPeerTransportFactory;
+import org.gudy.azureus2.core3.peer.util.PeerIdentityDataID;
+import org.gudy.azureus2.core3.peer.util.PeerIdentityManager;
+import org.gudy.azureus2.core3.peer.util.PeerUtils;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.plugins.dht.mainline.MainlineDHTProvider;
-import org.gudy.azureus2.pluginsimpl.local.messaging.GenericMessage;
+import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
 
 import com.aelitis.azureus.core.impl.AzureusCoreImpl;
@@ -44,11 +53,14 @@ import com.aelitis.azureus.core.networkmanager.impl.tcp.ProtocolEndpointTCP;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.udp.ProtocolEndpointUDP;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
-import com.aelitis.azureus.core.peermanager.messaging.*;
+import com.aelitis.azureus.core.peermanager.messaging.Message;
+import com.aelitis.azureus.core.peermanager.messaging.MessageManager;
 import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.ltep.*;
-import com.aelitis.azureus.core.peermanager.peerdb.*;
+import com.aelitis.azureus.core.peermanager.peerdb.PeerExchangerItem;
+import com.aelitis.azureus.core.peermanager.peerdb.PeerItem;
+import com.aelitis.azureus.core.peermanager.peerdb.PeerItemFactory;
 import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 import com.aelitis.azureus.core.peermanager.utils.*;
@@ -3264,7 +3276,7 @@ implements PEPeerTransport
 
 			if( (adds != null && adds.length > 0) || (drops != null && drops.length > 0) ) {
 				if (ut_pex_enabled) {
-					connection.getOutgoingMessageQueue().addMessage( new UTPeerExchange(adds, drops, (byte)0), false);
+					connection.getOutgoingMessageQueue().addMessage( new UTPeerExchange(adds, drops, null, (byte)0), false);
 				}
 				else {
 					connection.getOutgoingMessageQueue().addMessage( new AZPeerExchange( manager.getHash(), adds, drops, other_peer_pex_version ), false );
@@ -3277,7 +3289,8 @@ implements PEPeerTransport
 
 	protected void decodePeerExchange( AZStylePeerExchange exchange ) {
 		
-		final PeerItem[] added = exchange.getAddedPeers();
+		// if we're seeding ignore µT-PEXed seeds, Az won't send them in the first place 
+		final PeerItem[] added = exchange instanceof UTPeerExchange ? ((UTPeerExchange)exchange).getAddedPeers(!manager.isSeeding()) : exchange.getAddedPeers();
 		final PeerItem[] dropped = exchange.getDroppedPeers();
 		
 		//make sure they're not spamming us

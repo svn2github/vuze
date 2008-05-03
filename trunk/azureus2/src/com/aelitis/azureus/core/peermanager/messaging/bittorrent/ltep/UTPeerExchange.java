@@ -20,22 +20,18 @@
  */
 package com.aelitis.azureus.core.peermanager.messaging.bittorrent.ltep;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
-import com.aelitis.azureus.core.peermanager.messaging.azureus.AZStylePeerExchange;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.messaging.MessageException;
 import com.aelitis.azureus.core.peermanager.messaging.MessagingUtil;
+import com.aelitis.azureus.core.peermanager.messaging.azureus.AZStylePeerExchange;
 import com.aelitis.azureus.core.peermanager.peerdb.PeerItem;
 import com.aelitis.azureus.core.peermanager.peerdb.PeerItemFactory;
 
@@ -59,12 +55,14 @@ public class UTPeerExchange implements AZStylePeerExchange, LTMessage {
 	  
 	  private final byte version;
 	  private final PeerItem[] peers_added;
+	  private final PeerItem[] peersAddedNoSeeds;
 	  private final PeerItem[] peers_dropped;
 	  
-	  public UTPeerExchange(PeerItem[] _peers_added, PeerItem[] _peers_dropped, byte version ) {
+	  public UTPeerExchange(PeerItem[] _peers_added, PeerItem[] _peers_dropped, PeerItem[] peersAddedNoSeeds,  byte version ) {
 	    this.peers_added = _peers_added;
 	    this.peers_dropped = _peers_dropped;
 	    this.version = version;
+	    this.peersAddedNoSeeds = peersAddedNoSeeds != null ? peersAddedNoSeeds : _peers_added;
 	  }
 	  
 	  private void insertPeers(String key_name, Map root_map, boolean include_flags, PeerItem[] peers) {
@@ -119,8 +117,7 @@ public class UTPeerExchange implements AZStylePeerExchange, LTMessage {
 	      }
 	  }
 	  
-	  private PeerItem[] extractPeers(String key_name, Map root_map, int peer_byte_size) {
-	    PeerItem[] return_peers = null;
+	  private List extractPeers(String key_name, Map root_map, int peer_byte_size, boolean noSeeds) {
 	    ArrayList peers = new ArrayList();
 
 	    byte[] raw_peer_data = (byte[])root_map.get(key_name);
@@ -154,9 +151,11 @@ public class UTPeerExchange implements AZStylePeerExchange, LTMessage {
 	    	  byte[] full_address = new byte[peer_byte_size];
 	    	  System.arraycopy(raw_peer_data, i * peer_byte_size, full_address, 0, peer_byte_size);
 	    	  byte type = PeerItemFactory.HANDSHAKE_TYPE_PLAIN;        
-	    	  if (flags != null && (flags[i] & 0x01) == 0x01) {
+	    	  if (flags != null && (flags[i] & 0x01) != 0)
 	    		  type = PeerItemFactory.HANDSHAKE_TYPE_CRYPTO;
-	    	  }
+	    	  if (flags != null && (flags[i] & 0x02) != 0 && noSeeds)
+	    		  continue;
+	    	  
 	    	  try {
 	    		  PeerItem peer = PeerItemFactory.createPeerItem(full_address, PeerItemFactory.PEER_SOURCE_PEER_EXCHANGE, type, 0);
 	    		  peers.add(peer);
@@ -167,14 +166,11 @@ public class UTPeerExchange implements AZStylePeerExchange, LTMessage {
 		      }
 	      }
 	      
-	      if(!peers.isEmpty()) {
-	    	  return_peers = new PeerItem[peers.size()];
-	    	  peers.toArray(return_peers);
-	      }
 	    }
-	    return return_peers;
+	    return peers;
 	  }
 	  
+	  public PeerItem[] getAddedPeers(boolean seeds) {return seeds ? peers_added : peersAddedNoSeeds; }
 	  public PeerItem[] getAddedPeers() {  return peers_added;  }
 	  public PeerItem[] getDroppedPeers() {  return peers_dropped;  }
 	  public String getID() {  return LTMessage.ID_UT_PEX;  }
@@ -211,30 +207,19 @@ public class UTPeerExchange implements AZStylePeerExchange, LTMessage {
 	  
 	  public Message deserialize( DirectByteBuffer data, byte version ) throws MessageException {
 	    Map root = MessagingUtil.convertBencodedByteStreamToPayload(data, 2, getID());
-	    PeerItem[] added = extractPeers("added", root, IPv4_SIZE_WITH_PORT);
-	    PeerItem[] dropped = extractPeers("dropped", root, IPv4_SIZE_WITH_PORT);
+	    List added = extractPeers("added", root, IPv4_SIZE_WITH_PORT,false);
+	    List addedNoSeeds = extractPeers("added", root, IPv4_SIZE_WITH_PORT,true);
+	    List dropped = extractPeers("dropped", root, IPv4_SIZE_WITH_PORT,false);
 	    
-	    PeerItem[] added_6 = extractPeers("added6", root, IPv6_SIZE_WITH_PORT);
-	    PeerItem[] dropped_6 = extractPeers("dropped6", root, IPv6_SIZE_WITH_PORT);
-	    
-	    if (added == null && added_6 != null) {added = added_6; added_6 = null;}
-	    if (dropped == null && dropped_6 != null) {dropped = dropped_6; dropped_6 = null;}
-	    
-	    if (added_6 != null && added_6.length > 0) {
-	    	PeerItem[] new_peers = new PeerItem[added.length + added_6.length];
-	    	System.arraycopy(added, 0, new_peers, 0, added.length);
-	    	System.arraycopy(added_6, 0, new_peers, added.length, added_6.length);
-	    	added = new_peers;
-	    }
-	    
-	    if (dropped_6 != null && dropped_6.length > 0) {
-	    	PeerItem[] new_peers = new PeerItem[dropped.length + dropped_6.length];
-	    	System.arraycopy(dropped, 0, new_peers, 0, dropped.length);
-	    	System.arraycopy(dropped_6, 0, new_peers, dropped.length, dropped_6.length);
-	    	dropped = new_peers;
-	    }
+	    added.addAll(extractPeers("added6", root, IPv6_SIZE_WITH_PORT,false));
+	    addedNoSeeds.addAll(extractPeers("added6", root, IPv6_SIZE_WITH_PORT,true));
+	    dropped.addAll(extractPeers("dropped6", root, IPv6_SIZE_WITH_PORT,false));
+
+	    PeerItem[] addedArr = (PeerItem[])added.toArray(new PeerItem[added.size()]);
+	    PeerItem[] addedNoSeedsArr = (PeerItem[])addedNoSeeds.toArray(new PeerItem[addedNoSeeds.size()]);
+	    PeerItem[] droppedArr = (PeerItem[])dropped.toArray(new PeerItem[dropped.size()]);
 	      
-	    return new UTPeerExchange(added, dropped, version);
+	    return new UTPeerExchange(addedArr, droppedArr,addedNoSeedsArr, version);
 	  }
 	  
 	  

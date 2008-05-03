@@ -56,7 +56,7 @@ PeerControlSchedulerPrioritised
 	schedule()
 	{
 		latest_time	= SystemTime.getCurrentTime();
-		SystemTime.registerConsumer(
+		SystemTime.registerMonotonousConsumer(
 			new SystemTime.TickConsumer()
 			{
 				public void
