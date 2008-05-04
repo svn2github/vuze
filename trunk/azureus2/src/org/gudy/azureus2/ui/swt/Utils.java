@@ -1497,7 +1497,7 @@ public class Utils
 
 	/**
 	 * Runs code within the SWT thread, waits for code to complete executing,
-	 * (using a sempaphore), and then returns a value.
+	 * (using a semaphore), and then returns a value.
 	 * 
 	 * @note USE WITH CAUTION.  If the calling function synchronizes, and the
 	 *       runnable code ends up synchronizing on the same object, an indefinite
@@ -1563,7 +1563,7 @@ public class Utils
 
 	/**
 	 * Runs code within the SWT thread, waits for code to complete executing,
-	 * (using a sempaphore), and then returns a value.
+	 * (using a semaphore), and then returns a value.
 	 * 
 	 * @note USE WITH CAUTION.  If the calling function synchronizes, and the
 	 *       runnable code ends up synchronizing on the same object, an indefinite
