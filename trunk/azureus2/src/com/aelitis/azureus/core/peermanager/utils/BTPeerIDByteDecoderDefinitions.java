@@ -269,6 +269,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("MT", "MoonlightTorrent");
 		addAzStyle("NE", "BT Next Evolution", VER_AZ_THREE_DIGITS);
 		addAzStyle("NX", "Net Transport");
+		addAzStyle("OT", "OmegaTorrent");
 		addAzStyle("PC", PeerClassifier.CACHE_LOGIC);
 		addAzStyle("PD", "Pando");
 		addAzStyle("qB", "qBittorrent", VER_AZ_THREE_DIGITS);
