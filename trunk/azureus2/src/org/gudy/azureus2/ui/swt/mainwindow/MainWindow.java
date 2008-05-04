@@ -1491,6 +1491,7 @@ public class MainWindow
 	}
 
 	protected boolean showConfig(String id) {
+		boolean has_rebuilt = config_view == null;
 		showConfig();
 		if (config_view == null) {
 			return false;
@@ -1498,7 +1499,13 @@ public class MainWindow
 		if (id == null) {
 			return true;
 		}
-		return config_view.selectSection(id);
+		boolean result = config_view.selectSection(id);
+		if (!result && !has_rebuilt) {
+			config.dispose();
+			if (config_view != null) {throw new RuntimeException("something has gone wrong");}
+			return showConfig(id);
+		}
+		return result;	
 	}
 
 	protected void showConsole() {
