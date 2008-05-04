@@ -26,6 +26,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.UIInstance;
+import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
@@ -240,4 +241,13 @@ public interface UISWTInstance extends UIInstance {
 	 * @since 3.0.5.3
 	 */
 	public boolean openView(BasicPluginViewModel model);
+
+	/**
+	 * Opens the window linked to a given BasicPluginViewModel object.
+	 * 
+	 * @return <tt>true</tt> if the view was opened successfully.
+	 * @since 3.0.5.3
+	 */
+	public void openConfig(BasicPluginConfigModel model);
+
 }

@@ -769,6 +769,14 @@ UISWTInstanceImpl
 		return openView(VIEW_MAIN, model.getName().replaceAll(" ", "."), null);
 	}
 	
+	public void openConfig(final BasicPluginConfigModel model) {
+		Utils.execSWTThread(new Runnable() {
+			public void run() {
+				uiFunctions.showConfig(model.getSection());
+			}
+		});
+	}
+	
 	protected static class
 	instanceWrapper
 		implements UISWTInstance
@@ -897,7 +905,10 @@ UISWTInstanceImpl
 		public boolean openView(BasicPluginViewModel model) {
 			return delegate.openView(model);
 		}
-		
+
+		public void openConfig(BasicPluginConfigModel model) {
+			delegate.openConfig(model);
+		}
 		
 	}
 	
