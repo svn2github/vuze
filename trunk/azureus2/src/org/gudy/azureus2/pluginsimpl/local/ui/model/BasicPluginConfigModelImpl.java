@@ -309,4 +309,10 @@ BasicPluginConfigModelImpl
 			((ParameterImpl)parameters.get(i)).destroy();
 		}
 	}
+	
+	public void setLocalizedName(String name) {
+		Properties props = new Properties();
+		props.put("ConfigView.section." + this.section, name);
+		this.pi.getUtilities().getLocaleUtilities().integrateLocalisedMessageBundle(props);
+	}
 }

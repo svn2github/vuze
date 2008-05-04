@@ -296,4 +296,13 @@ BasicPluginConfigModel
 	 */
 	public Parameter[]
 	getParameters();
+	
+	/**
+	 * Sets the name of the configuration model - this is useful in
+	 * situations where the configuration section is being dynamically
+	 * created (perhaps with user input).
+	 * 
+	 * @since 3.0.5.3
+	 */
+	public void setLocalizedName(String name);
 }
