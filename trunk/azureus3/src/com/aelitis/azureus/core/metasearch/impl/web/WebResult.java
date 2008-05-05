@@ -1,4 +1,4 @@
-package com.aelitis.azureus.core.metasearch.impl.regex;
+package com.aelitis.azureus.core.metasearch.impl.web;
 
 import java.net.URL;
 import java.util.Date;

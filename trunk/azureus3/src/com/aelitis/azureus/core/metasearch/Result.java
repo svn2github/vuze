@@ -8,7 +8,6 @@ import com.aelitis.azureus.core.metasearch.utils.MomentsAgoDateFormatter;
 
 public abstract class Result {
 
-
 	public abstract Date getPublishedDate();
 	
 	public abstract String getCategory();
