@@ -22,6 +22,10 @@ package com.aelitis.azureus.util;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.Base32;
+
+import com.sun.org.apache.xml.internal.security.utils.Base64;
+
 /**
  * @author TuxPaper
  * @created Jun 1, 2007
@@ -69,6 +73,23 @@ public class MapUtils
 			if (o instanceof byte[]) {
 				return (byte[]) o;
 			}
+
+			String b64Key = key + ".B64";
+			if (map.containsKey(b64Key)) {
+				o = map.get(b64Key);
+				if (o instanceof String) {
+					return Base64.decode((String) o);
+				}
+			}
+
+			String b32Key = key + ".B32";
+			if (map.containsKey(b32Key)) {
+				o = map.get(b32Key);
+				if (o instanceof String) {
+					return Base32.decode((String) o);
+				}
+			}
+
 			return def;
 		} catch (Exception t) {
 			return def;
