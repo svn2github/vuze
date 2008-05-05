@@ -27,6 +27,12 @@ package org.gudy.azureus2.pluginsimpl.local.ui.model;
  *
  */
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.plugins.logging.LoggerChannel;
+import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
 import org.gudy.azureus2.plugins.ui.model.*;
 import org.gudy.azureus2.plugins.ui.components.*;
 import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
@@ -106,5 +112,38 @@ BasicPluginViewModelImpl
 	destroy()
 	{
 		ui_manager.destroy( this );
+	}
+	
+	public void attachLoggerChannel(LoggerChannel channel) {
+		channel.addListener(new LoggerChannelListener() {
+			public void messageLogged(String message, Throwable t) {
+				messageLogged(LoggerChannel.LT_ERROR, message, t);
+			}
+			public void messageLogged(int logtype, String message) {
+				messageLogged(logtype, message, null);
+			}
+			public void messageLogged(int logtype, String message, Throwable t) {
+				String log_type_s = null;
+				switch(logtype) {
+					case LoggerChannel.LT_WARNING:
+						log_type_s = "warning";
+						break;
+					case LoggerChannel.LT_ERROR:
+						log_type_s = "error";
+						break;
+				}
+				if (log_type_s != null) {
+					String prefix = MessageText.getString("AlertMessageBox." + log_type_s);
+					log.appendText("[" + prefix.toUpperCase() + "] ");
+				}
+				log.appendText(message + "\n");
+				if (t != null) {
+					StringWriter sw = new StringWriter();
+					PrintWriter pw = new PrintWriter(sw);
+					t.printStackTrace(pw);
+					log.appendText(sw.toString() + "\n");
+				}
+			}
+		});
 	}
 }
