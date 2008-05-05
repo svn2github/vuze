@@ -18,7 +18,6 @@
 
 package com.aelitis.azureus.core.messenger.config;
 
-import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
@@ -30,9 +29,10 @@ import com.aelitis.azureus.core.crypto.VuzeCryptoManager;
 import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
+import com.aelitis.azureus.core.security.CryptoHandler;
+import com.aelitis.azureus.core.security.CryptoManagerFactory;
 import com.aelitis.azureus.plugins.net.buddy.*;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin.cryptoResult;
-import com.aelitis.azureus.util.JSONUtils;
 import com.aelitis.azureus.util.MapUtils;
 
 /**
@@ -51,6 +51,8 @@ public class PlatformRelayMessenger
 	public static String OP_PUT = "put";
 
 	public static String OP_ACK = "ack";
+
+	public static String OP_ERRORACK = "error_ack";
 
 	public static String OP_COUNT = "count";
 
@@ -81,23 +83,20 @@ public class PlatformRelayMessenger
 	 * @since 3.0.5.3
 	 */
 
-	public static final void 
-	put(
-		final BuddyPluginBuddyMessage 	buddyMessage,
-		long 							maxDelayMS,
-		final putListener				putListener )
-	{
-		try{
+	public static final void put(final BuddyPluginBuddyMessage buddyMessage,
+			long maxDelayMS, final putListener putListener) {
+		try {
 			// if ( true ) throw( new Exception( "bork bork" ));
-			String myPK = VuzeCryptoManager.getSingleton().getPublicKey( "RelayMessenger put");
-			
+			String myPK = VuzeCryptoManager.getSingleton().getPublicKey(
+					"RelayMessenger put");
+
 			BuddyPluginBuddy pluginBuddy = buddyMessage.getBuddy();
 
 			final String pk = pluginBuddy.getPublicKey();
 
-			byte[] payload = JSONUtils.encodeToJSON(buddyMessage.getRequest()).getBytes("utf-8");
+			byte[] encode = BEncoder.encode(buddyMessage.getRequest());
 
-			cryptoResult encryptResult = pluginBuddy.encrypt(payload);
+			cryptoResult encryptResult = pluginBuddy.encrypt(encode);
 
 			Map mapParameters = new HashMap();
 			mapParameters.put("sender_pk", myPK);
@@ -225,23 +224,25 @@ public class PlatformRelayMessenger
 
 						byte[] payload = decrypt.getPayload();
 
+						Map decodedMap = BDecoder.decode(payload);
+
 						PlatformMessenger.debug("Relay: got message from " + pkSender);
 
 						for (Iterator iter2 = listeners.iterator(); iter2.hasNext();) {
 							VuzeRelayListener l = (VuzeRelayListener) iter2.next();
-							l.newRelayServerPayLoad(buddy, pkSender, payload);
+							l.newRelayServerPayLoad(buddy, pkSender, decodedMap);
 						}
 
 						ack(ack_id, decrypt.getChallenge());
-						
+
 					} catch (BuddyPluginPasswordException e) {
-						
+
 						// TODO we don't want to negative ack the message when we failed
 						// to decrypt because not logged in...
-						
-					} catch (BuddyPluginException e) {
-						// TODO send ack_fail here
-						PlatformMessenger.debug("Relay: TODO send ack_fail here");
+
+					} catch (Exception e) {
+						PlatformMessenger.debug("Relay: send ack_fail: " + e.toString());
+						errorAck(ack_id);
 					}
 				}
 				// "date" also sent, but not needed (?)
@@ -287,6 +288,63 @@ public class PlatformRelayMessenger
 
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID, OP_ACK,
 				mapParameters, 0);
+
+		PlatformMessenger.queueMessage(message, listener);
+	}
+
+	private static final void errorAck(long id) {
+		String myPK;
+		try {
+			myPK = VuzeCryptoManager.getSingleton().getPublicKey("errorAck");
+		} catch (VuzeCryptoException e) {
+			Debug.out(e);
+			return;
+		}
+
+		// The ack is a String version of the id, encrypted, and base32 encoded
+		byte[] encryptBytes;
+		try {
+			byte[] content = String.valueOf(id).getBytes("UTF-8");
+			CryptoHandler ecc_handler = CryptoManagerFactory.getSingleton().getECCHandler();
+			encryptBytes = ecc_handler.sign(content, "Encrypting message for " + myPK);
+
+			//try {
+			//	System.err.println("Verify says: "
+			//			+ ecc_handler.verify(Base32.decode(myPK), content, encryptBytes));
+			//} catch (CryptoManagerException ee) {
+			//	ee.printStackTrace();
+			//}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return;
+		}
+		String s = Base32.encode(encryptBytes);
+
+		Map mapACK = new HashMap();
+		mapACK.put("id", new Long(id));
+		mapACK.put("signature", s);
+
+		Map mapParameters = new HashMap();
+		mapParameters.put("recipient_pk", myPK);
+		mapParameters.put("error_acks", new Object[] {
+			mapACK
+		});
+
+		PlatformMessengerListener listener = new PlatformMessengerListener() {
+
+			public void replyReceived(PlatformMessage message, String replyType,
+					Map reply) {
+				int numDeleted = MapUtils.getMapInt(reply, "deleted", 0);
+				PlatformMessenger.debug("Relay: deleted " + numDeleted);
+			}
+
+			public void messageSent(PlatformMessage message) {
+			}
+		};
+
+		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
+				OP_ERRORACK, mapParameters, 0);
 
 		PlatformMessenger.queueMessage(message, listener);
 	}
