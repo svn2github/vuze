@@ -303,7 +303,7 @@ BuddyPluginBuddy
 	
 		throws BuddyPluginException
 	{
-		return( plugin.decrypt( this, payload ));
+		return( plugin.decrypt( this, payload, getName() ));
 	}
 	
 	public boolean

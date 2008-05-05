@@ -2076,13 +2076,14 @@ BuddyPlugin
 	
 		throws BuddyPluginException
 	{
-		return encrypt(buddy.getPublicKey(), payload);
+		return encrypt(buddy.getPublicKey(), payload, buddy.getName());
 	}
 
 	public cryptoResult
 	encrypt(
 		String				pk,
-		byte[]				payload )
+		byte[]				payload,
+		String				forWho )
 	
 		throws BuddyPluginException
 	{
@@ -2097,7 +2098,7 @@ BuddyPlugin
 			content.put( "h", hash );
 			content.put( "p", payload );
 			
-			final byte[] encrypted = ecc_handler.encrypt( Base32.decode(pk), BEncoder.encode( content ), "Encrypting message for " + pk);
+			final byte[] encrypted = ecc_handler.encrypt( Base32.decode(pk), BEncoder.encode( content ), "Encrypting message for " + forWho);
 			
 			final byte[] sha1_hash = new SHA1Simple().calculateHash( hash );
 			
@@ -2128,7 +2129,8 @@ BuddyPlugin
 	protected cryptoResult
 	decrypt(
 		BuddyPluginBuddy	buddy,
-		byte[]				content )
+		byte[]				content,
+		String forName)
 	
 		throws BuddyPluginException
 	{
