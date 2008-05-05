@@ -35,7 +35,7 @@ public abstract class WebEngine implements Engine {
 	
 	protected DateParser dateParser;
 	
-	public WebEngine(long id,String name,String searchURLFormat,String timeZone) {
+	public WebEngine(long id,String name,String searchURLFormat,String timeZone,boolean automaticDateParser,String userDateFormat) {
 		this.id = id;
 		this.name = name;
 		this.searchURLFormat = searchURLFormat;
@@ -60,10 +60,8 @@ public abstract class WebEngine implements Engine {
 			this.basePage = null;
 		}
 		
-		this.dateParser = new DateParser(timeZone);
+		this.dateParser = new DateParser(timeZone,automaticDateParser,userDateFormat);
 	}
-	
-	abstract public Result[] search(SearchParameter[] searchParameters);
 	
 	protected String getWebPageContent(SearchParameter[] searchParameters) {
 		

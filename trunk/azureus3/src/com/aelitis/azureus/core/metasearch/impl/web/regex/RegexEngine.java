@@ -6,6 +6,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.aelitis.azureus.core.metasearch.Result;
+import com.aelitis.azureus.core.metasearch.SearchException;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
 import com.aelitis.azureus.core.metasearch.impl.web.FieldMapping;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
@@ -17,15 +18,15 @@ public class RegexEngine extends WebEngine {
 	
 	FieldMapping[] mappings;
 	
-	public RegexEngine(long id,String name,String searchURLFormat,String resultPattern,String timeZone,FieldMapping[] mappings) {
-		super(id,name,searchURLFormat,timeZone);
+	public RegexEngine(long id,String name,String searchURLFormat,String resultPattern,String timeZone,boolean automaticDateFormat,String userDateFormat,FieldMapping[] mappings) {
+		super(id,name,searchURLFormat,timeZone,automaticDateFormat,userDateFormat);
 
 		this.pattern = Pattern.compile(resultPattern);
 		this.mappings = mappings;
 	}
 	
 	
-	public Result[] search(SearchParameter[] searchParameters) {
+	public Result[] search(SearchParameter[] searchParameters) throws SearchException {
 		
 		String page = super.getWebPageContent(searchParameters);
 		
@@ -84,11 +85,11 @@ public class RegexEngine extends WebEngine {
 				return (Result[]) results.toArray(new Result[results.size()]);
 			
 			} catch (Exception e) {
-				e.printStackTrace();
+				throw new SearchException(e);
 			}
+		} else {
+			throw new SearchException("Web Page is empty");
 		}
-		
-		return new Result[0];
 	}
 	
 }

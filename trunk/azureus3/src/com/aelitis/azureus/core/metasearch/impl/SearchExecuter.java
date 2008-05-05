@@ -17,9 +17,13 @@ public class SearchExecuter {
 	public void search(final Engine engine,final SearchParameter[] searchParameters) {
 		Thread t = new Thread(engine.getName() + " runner") {
 			public void run() {
-				Result[] results = engine.search(searchParameters);
-				listener.resultsReceived(engine,results);
-				listener.resultsComplete(engine);
+				try {
+					Result[] results = engine.search(searchParameters);
+					listener.resultsReceived(engine,results);
+					listener.resultsComplete(engine);
+				} catch(Exception e) {
+					listener.engineFailed(engine);
+				}
 			}
 		};
 		t.setDaemon(false);

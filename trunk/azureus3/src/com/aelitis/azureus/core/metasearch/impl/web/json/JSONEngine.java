@@ -8,6 +8,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
 import com.aelitis.azureus.core.metasearch.Result;
+import com.aelitis.azureus.core.metasearch.SearchException;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
 import com.aelitis.azureus.core.metasearch.impl.web.FieldMapping;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
@@ -18,16 +19,17 @@ public class JSONEngine extends WebEngine {
 	String resultsEntry;
 	FieldMapping[] mappings;
 
-	public JSONEngine(long id,String name,String searchURLFormat,String resultPattern,String timeZone,String resultsEntry,FieldMapping[] mappings) {
-		super(id,name,searchURLFormat,timeZone);
+	public JSONEngine(long id,String name,String searchURLFormat,String resultPattern,String timeZone,boolean automaticDateFormat,String userDateFormat,String resultsEntry,FieldMapping[] mappings) {
+		super(id,name,searchURLFormat,timeZone,automaticDateFormat,userDateFormat);
 		
 		this.mappings = mappings;
 	}
 	
 	
-	public Result[] search(SearchParameter[] searchParameters) {
+	public Result[] search(SearchParameter[] searchParameters) throws SearchException {
 		
 		String page = super.getWebPageContent(searchParameters);
+		
 		if(page != null) {
 			try {
 					Object jsonObject = JSONValue.parse(page);
@@ -101,8 +103,10 @@ public class JSONEngine extends WebEngine {
 					}
 
 			} catch (Exception e) {
-				e.printStackTrace();
+				throw new SearchException(e);
 			}
+		} else {
+			throw new SearchException("Web Page is empty");
 		}
 		
 		return new Result[0];

@@ -17,13 +17,27 @@ public class DateParser {
 	DateFormat ddMMMyyFormat;
 	DateFormat MMddyyyyFormat;
 	
+	DateFormat userDateFormat;
+	
+	boolean auto;
+	
 	public DateParser() {
-		this("GMT");
+		this("GMT",true,null);
 	}
 	
-	public DateParser(String timeZone) {
+	public DateParser(String timeZone,boolean auto, String dateFormat) {
 		
 		this.timeZone = TimeZone.getTimeZone(timeZone);
+		this.auto = auto;
+		
+		if(!auto) {
+			if(dateFormat != null) {
+				userDateFormat = new SimpleDateFormat(dateFormat);
+				userDateFormat.setTimeZone(this.timeZone);
+			} else {
+				//TODO : in debug mode throw an Exception telling the user he needs to provide a dateFormat in manual mode
+			}
+		}
 		
 		ddMMMyyyyFormat = new SimpleDateFormat("dd MMM yyyy");
 		ddMMMyyyyFormat.setTimeZone(this.timeZone);
@@ -37,7 +51,18 @@ public class DateParser {
 	}
 	
 	public Date parseDate(String date) {
-		Date result = parseDateInternal(date);
+		Date result =  null;
+		if(auto) {
+			 result = parseDateInternal(date);
+		} else {
+			if(userDateFormat != null) {
+				try {
+					result = userDateFormat.parse(date);
+				} catch(Exception e) {
+					//TODO : in debug mode, throw an exception to tell the user that his dateFormat is invalid / didn't parse a date
+				}
+			}
+		}
 		if(DEBUG) {
 			System.out.println(date + " > " + result.toString());
 		}

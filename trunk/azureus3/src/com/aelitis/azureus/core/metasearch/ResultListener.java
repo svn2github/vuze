@@ -6,5 +6,7 @@ public interface ResultListener {
 	public void resultsReceived(Engine engine,Result[] results);
 	
 	public void resultsComplete(Engine engine);
+	
+	public void engineFailed(Engine engine);
 
 }

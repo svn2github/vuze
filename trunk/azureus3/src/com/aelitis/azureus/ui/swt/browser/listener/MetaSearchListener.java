@@ -52,12 +52,21 @@ public class MetaSearchListener extends AbstractMessageListener {
 		if (OP_SEARCH.equals(opid)) {
 			Map decodedMap = message.getDecodedMap();
 			ResultListener listener = new ResultListener() {
+				
+				public void engineFailed(Engine engine) {
+					Map params = new HashMap();
+					params.put("id", new Long(engine.getId()));
+					params.put("name", engine.getName());
+					params.put("favicon", engine.getIcon());
+					context.sendBrowserMessage("metasearch", "engineFailed",params);
+				}
+				
 				public void resultsComplete(Engine engine) {
 					Map params = new HashMap();
 					params.put("id", new Long(engine.getId()));
 					params.put("name", engine.getName());
 					params.put("favicon", engine.getIcon());
-					context.sendBrowserMessage("metasearch", "engineComplete",params);
+					context.sendBrowserMessage("metasearch", "engineCompleted",params);
 				}
 				
 				public void resultsReceived(Engine engine,Result[] results) {
