@@ -1,7 +1,5 @@
 package com.aelitis.azureus.core.metasearch;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,7 +8,6 @@ import com.aelitis.azureus.core.metasearch.utils.MomentsAgoDateFormatter;
 
 public abstract class Result {
 
-	final static DateFormat outputDateFormat = new SimpleDateFormat("d-MM-y hh:mm");
 
 	public abstract Date getPublishedDate();
 	
@@ -21,19 +18,24 @@ public abstract class Result {
 	public abstract int getNbSeeds();
 	
 	//Links
-	public abstract String getCategoryLink();
 	public abstract String getDownloadLink();
 	public abstract String getCDPLink();
 	
-	public abstract String getEngineName();
 	
 	public String toString() {
-		return outputDateFormat.format(getPublishedDate()) + " : " + getName() + " (" + getDownloadLink() + ") " + getNbSeeds() + " s, " + getNbPeers() + "p, "  ;
+		return getName() + " : " + getNbSeeds() + " s, " + getNbPeers() + "p, "  ;
 	}
 	
 	public Map toMap() {
 		Map object = new HashMap();
-		object.put("d", MomentsAgoDateFormatter.getMomentsAgoString(this.getPublishedDate()));
+		try {
+			object.put("d", MomentsAgoDateFormatter.getMomentsAgoString(this.getPublishedDate()));
+			object.put("ts", "" + this.getPublishedDate().getTime());
+		} catch(Exception e) {
+			object.put("d", "unknown");
+			object.put("ts", "0");
+		}
+		
 		object.put("c", this.getCategory());
 		object.put("n",this.getName());
 		object.put("s","" +this.getNbSeeds());

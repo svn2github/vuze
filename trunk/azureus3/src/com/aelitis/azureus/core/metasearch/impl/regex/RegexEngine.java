@@ -3,13 +3,11 @@ package com.aelitis.azureus.core.metasearch.impl.regex;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.aelitis.azureus.core.metasearch.CookieParameter;
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.Result;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
@@ -28,12 +26,17 @@ public class RegexEngine implements Engine {
 	public static final int GROUP_TORRENTLINK = 102;
 	public static final int GROUP_CDPLINK = 103;
 	
+	//Base Page : (?i)<base.*?href="([^"]+)".*?>
+	
+	static final Pattern baseTagPattern = Pattern.compile("(?i)<base.*?href=\"([^\"]+)\".*?>");
+	static final Pattern rootURLPattern = Pattern.compile("(https?://[^/]+)");
+	static final Pattern baseURLPattern = Pattern.compile("(https?://.*/)");
 	
 	long id;
 	String name;
-	String icon;
 	
-	String mainPage;
+	String rootPage;
+	String basePage;
 	String searchURLFormat;
 	
 	Pattern pattern;
@@ -42,12 +45,29 @@ public class RegexEngine implements Engine {
 	
 	DateParser dateParser;
 	
-	public RegexEngine(long id,String name,String icon,String mainPage,String searchURLFormat,String resultPattern,String timeZone,int[] matchOrder) {
+	public RegexEngine(long id,String name,String searchURLFormat,String resultPattern,String timeZone,int[] matchOrder) {
 		this.id = id;
-		this.icon = icon;
 		this.name = name;
-		this.mainPage = mainPage;
 		this.searchURLFormat = searchURLFormat;
+		
+		try {
+			Matcher m = rootURLPattern.matcher(searchURLFormat);
+			if(m.find()) {
+				this.rootPage = m.group(1);
+			}
+		} catch(Exception e) {
+			//Didn't find the root url within the URL
+		}
+		
+		try {
+			Matcher m = baseURLPattern.matcher(searchURLFormat);
+			if(m.find()) {
+				this.basePage = m.group(1);
+			}
+		} catch(Exception e) {
+			//Didn't find the root url within the URL
+		}
+		
 		this.dateParser = new DateParser(timeZone);
 		this.pattern = Pattern.compile(resultPattern);
 		this.matchOrder = matchOrder;
@@ -109,7 +129,7 @@ public class RegexEngine implements Engine {
 				
 				
 				while(m.find()) {
-					WebResult result = new WebResult(name,mainPage,dateParser);
+					WebResult result = new WebResult(rootPage,basePage,dateParser);
 					for(int i = 0 ; i < matchOrder.length ; i++) {
 						int group = matchOrder[i];
 						String groupContent = m.group(i+1);
@@ -163,7 +183,10 @@ public class RegexEngine implements Engine {
 	}
 	
 	public String getIcon() {
-		return icon;
+		if(rootPage != null) {
+			return rootPage + "/favicon.ico";
+		}
+		return null;
 	}
 	
 	public long getId() {

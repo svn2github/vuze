@@ -39,6 +39,7 @@ public class MetaSearchListener extends AbstractMessageListener {
 			metaSearch = (MetaSearch) clazz.newInstance();
 		} catch(Exception e) {
 			//Test implementation in progress, Test class not publicly available
+			e.printStackTrace();
 		}
 	}
 	

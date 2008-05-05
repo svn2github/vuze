@@ -1,6 +1,6 @@
 package com.aelitis.azureus.core.metasearch.impl.regex;
 
-import java.text.DateFormat;
+import java.net.URL;
 import java.util.Date;
 import java.util.StringTokenizer;
 
@@ -12,7 +12,8 @@ import com.aelitis.azureus.core.metasearch.impl.DateParser;
 public class WebResult extends Result {
 	
 	
-	String mainPageURL;
+	String rootPageURL;
+	String basePageURL;
 	DateParser dateParser;
 	
 	String name;
@@ -28,30 +29,33 @@ public class WebResult extends Result {
 	String torrentLink;
 	String categoryLink;
 	
-	String source;
 	
-	public WebResult(String source,String mainPageURL,DateParser dateParser) {
-		this.source = source;
-		this.mainPageURL = mainPageURL;
+	public WebResult(String rootPageURL,String basePageURL,DateParser dateParser) {
+		this.rootPageURL = rootPageURL;
+		this.basePageURL = basePageURL;
 		this.dateParser = dateParser;
 	}
 	
-	
+	private String removeHTMLTags(String input) {
+		return input.replaceAll("(\\<(/?[^\\>]+)\\>)", " ");
+	}
 	
 	public void setNameFromHTML(String name) {
 		if(name != null) {
+			name = removeHTMLTags(name);
 			this.name = Entities.HTML40.unescape(name);
 		}
 	}
 	
 	public void setCategoryFromHTML(String category) {
 		if(category != null) {
+			category = removeHTMLTags(category);
 			this.category = Entities.HTML40.unescape(category).trim();
-			int separator = this.category.indexOf(">");
+			/*int separator = this.category.indexOf(">");
 			
 			if(separator != -1) {
 				this.category = this.category.substring(separator+1).trim();
-			}
+			}*/
 		}
 	}
 	
@@ -92,7 +96,12 @@ public class WebResult extends Result {
 			try {
 				StringTokenizer st = new StringTokenizer(sizeS," ");
 				double base = Double.parseDouble(st.nextToken());
-				String unit = st.nextToken().toLowerCase();
+				String unit = "b";
+				try {
+					unit = st.nextToken().toLowerCase();
+				} catch(Exception e) {
+					//No unit
+				}
 				long multiplier = 1;
 				if("mb".equals(unit)) {
 					multiplier = 1000*1000;
@@ -129,35 +138,45 @@ public class WebResult extends Result {
 	
 
 	public String getCDPLink() {
-		if(cdpLink.startsWith("http")) {
-			return cdpLink;
-		}
-		if(cdpLink.startsWith("/")) {
-			return mainPageURL + cdpLink;
+		
+		if(cdpLink != null) {
+			
+			if(cdpLink.startsWith("http://") || cdpLink.startsWith("https://")) {
+				return cdpLink;
+			}
+			
+			if(cdpLink.startsWith("/")) {
+				return rootPageURL + cdpLink;
+			}
+			
+			return basePageURL + cdpLink;
 		}
 		
-		/*
-		 * TODO : this is obviously wrong, and we should use the relative url scheme here.
-		 */
-		return mainPageURL + "/" + cdpLink;
+		return "";
+		
 	}
 
 	public String getCategory() {
 		return category;
 	}
 
-	public String getCategoryLink() {
-		if(categoryLink.startsWith("http")) {
-			return categoryLink;
-		}
-		return mainPageURL + categoryLink;
-	}
-
 	public String getDownloadLink() {
-		if(torrentLink.startsWith("http")) {
-			return torrentLink;
+
+		if(torrentLink != null) {
+			
+			if(torrentLink.startsWith("http://") || torrentLink.startsWith("https://")) {
+				return torrentLink;
+			}
+			
+			if(torrentLink.startsWith("/")) {
+				return rootPageURL + torrentLink;
+			}
+			
+			return basePageURL + torrentLink;
 		}
-		return mainPageURL + torrentLink;
+		
+		return "";
+		
 	}
 
 	public String getName() {
@@ -180,9 +199,4 @@ public class WebResult extends Result {
 		return size;
 	}
 	
-	public String getEngineName() {
-		return source;
-	}
-	
-
 }
