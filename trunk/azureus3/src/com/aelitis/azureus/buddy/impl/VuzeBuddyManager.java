@@ -18,7 +18,6 @@
 
 package com.aelitis.azureus.buddy.impl;
 
-import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -318,17 +317,10 @@ public class VuzeBuddyManager
 			});
 
 			VuzeRelayListener vuzeRelayListener = new VuzeRelayListener() {
-				// @see com.aelitis.azureus.core.messenger.config.VuzeRelayListener#newRelayServerPayLoad(com.aelitis.azureus.buddy.VuzeBuddy, java.lang.String, byte[])
+				// @see com.aelitis.azureus.core.messenger.config.VuzeRelayListener#newRelayServerPayLoad(com.aelitis.azureus.buddy.VuzeBuddy, java.lang.String, java.util.Map)
 				public void newRelayServerPayLoad(VuzeBuddy sender, String pkSender,
-						byte[] payload) {
-					try {
-						String s = new String(payload, "utf-8");
-						Map mapPayload = JSONUtils.decodeJSON(s);
-
-						processPayloadMap(pkSender, mapPayload, sender != null);
-					} catch (UnsupportedEncodingException e) {
-						Debug.out(e);
-					}
+						Map decodedMap) {
+					processPayloadMap(pkSender, decodedMap, sender != null);
 				}
 			};
 
