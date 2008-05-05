@@ -18,6 +18,8 @@
 
 package com.aelitis.azureus.core.messenger.config;
 
+import java.util.Map;
+
 import com.aelitis.azureus.buddy.VuzeBuddy;
 
 /**
@@ -28,5 +30,5 @@ import com.aelitis.azureus.buddy.VuzeBuddy;
 public interface VuzeRelayListener
 {
 	public void newRelayServerPayLoad(VuzeBuddy sender, String pkSender,
-			byte[] payload);
+			Map decodedMap);
 }
