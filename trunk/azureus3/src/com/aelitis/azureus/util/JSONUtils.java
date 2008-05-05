@@ -23,11 +23,11 @@ package com.aelitis.azureus.util;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 
+import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.util.Debug;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
-
 
 /**
  * @author TuxPaper
@@ -74,13 +74,18 @@ public class JSONUtils
 	 */
 	public static Map encodeToJSONObject(Map map) {
 		Map newMap = new JSONObject();
-		
+
 		for (Iterator iter = map.keySet().iterator(); iter.hasNext();) {
-			Object key = (Object) iter.next();
+			String key = (String) iter.next();
 			Object value = map.get(key);
-			
+
+			if (value instanceof byte[]) {
+				key += ".B64";
+				value = Base64.encode((byte[]) value);
+			}
+
 			value = coerce(value);
-			
+
 			newMap.put(key, value);
 		}
 		return newMap;
@@ -100,7 +105,7 @@ public class JSONUtils
 	public static String encodeToJSON(Map map) {
 		return encodeToJSONObject(map).toString();
 	}
-	
+
 	public static String encodeToJSON(Collection list) {
 		return encodeToJSONArray(list).toString();
 	}
@@ -133,20 +138,38 @@ public class JSONUtils
 
 		for (int i = 0; i < newList.size(); i++) {
 			Object value = newList.get(i);
-			
+
 			newList.set(i, coerce(value));
 		}
-		
+
 		return newList;
 	}
-	
+
 	public static void main(String[] args) {
+
+		Map mapBefore = new HashMap();
+		byte[] b = {
+			0,
+			1,
+			2
+		};
+		mapBefore.put("Hi", b);
+		String jsonByteArray = JSONUtils.encodeToJSON(mapBefore);
+		System.out.println(jsonByteArray);
+		Map mapAfter = JSONUtils.decodeJSON(jsonByteArray);
+		b = MapUtils.getMapByteArray(mapAfter, "Hi", null);
+		System.out.println(b.length);
+		for (int i = 0; i < b.length; i++) {
+			byte c = b[i];
+			System.out.println("--" + c);
+		}
+
 		Map map = new HashMap();
 		map.put("Test", "TestValue");
 		Map map2 = new HashMap();
 		map2.put("Test2", "test2value");
 		map.put("TestMap", map2);
-		
+
 		List list = new ArrayList();
 		list.add(new Long(5));
 		list.add("five");
