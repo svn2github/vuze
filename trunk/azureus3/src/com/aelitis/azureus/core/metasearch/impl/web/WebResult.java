@@ -62,6 +62,8 @@ public class WebResult extends Result {
 	public void setNbPeersFromHTML(String nbPeers) {
 		if(nbPeers != null) {
 			String nbPeersS = Entities.HTML40.unescape(nbPeers);
+			nbPeersS = nbPeersS.replaceAll(",", "");
+			nbPeersS = nbPeersS.replaceAll(" ", "");
 			try {
 				this.nbPeers = Integer.parseInt(nbPeersS);
 			} catch(Exception e) {
@@ -73,6 +75,8 @@ public class WebResult extends Result {
 	public void setNbSeedsFromHTML(String nbSeeds) {
 		if(nbSeeds != null) {
 			String nbSeedsS = Entities.HTML40.unescape(nbSeeds);
+			nbSeedsS = nbSeedsS.replaceAll(",", "");
+			nbSeedsS = nbSeedsS.replaceAll(" ", "");
 			try {
 				this.nbSeeds = Integer.parseInt(nbSeedsS);
 			} catch(Exception e) {

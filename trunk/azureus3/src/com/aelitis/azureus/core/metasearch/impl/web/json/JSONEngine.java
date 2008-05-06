@@ -2,6 +2,7 @@ package com.aelitis.azureus.core.metasearch.impl.web.json;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -16,12 +17,13 @@ import com.aelitis.azureus.core.metasearch.impl.web.WebResult;
 
 public class JSONEngine extends WebEngine {
 	
-	String resultsEntry;
+	String resultsEntryPath;
 	FieldMapping[] mappings;
 
-	public JSONEngine(long id,String name,String searchURLFormat,String resultPattern,String timeZone,boolean automaticDateFormat,String userDateFormat,String resultsEntry,FieldMapping[] mappings) {
+	public JSONEngine(long id,String name,String searchURLFormat,String timeZone,boolean automaticDateFormat,String userDateFormat,String resultsEntryPath,FieldMapping[] mappings) {
 		super(id,name,searchURLFormat,timeZone,automaticDateFormat,userDateFormat);
 		
+		this.resultsEntryPath = resultsEntryPath;
 		this.mappings = mappings;
 	}
 	
@@ -32,37 +34,50 @@ public class JSONEngine extends WebEngine {
 		
 		if(page != null) {
 			try {
-					Object jsonObject = JSONValue.parse(page);
-					JSONArray resultArray = null;
-					if(jsonObject instanceof JSONArray) {
-						resultArray = (JSONArray) resultArray;
-					} else if(jsonObject instanceof JSONObject) {
-						if(resultsEntry != null) {
-							jsonObject = ((JSONObject)jsonObject).get(resultsEntry);
-							if(jsonObject instanceof JSONArray) {
-								resultArray = (JSONArray) resultArray;
-							} else {
-								//TODO : in debug mode, fire an exception telling the user that the object is of invalid type
-							}
-						} else {
-							//TODO : in debug mode, fire an exception telling the user that he needs to provide a top-level object name
+				Object jsonObject = JSONValue.parse(page);
+				
+				JSONArray resultArray = null;
+				
+				if(resultsEntryPath != null) {
+					StringTokenizer st = new StringTokenizer(resultsEntryPath,";");
+					if(jsonObject instanceof JSONArray && st.countTokens() > 0) {
+						JSONArray array = (JSONArray) jsonObject;
+						if(array.size() == 1) {
+							jsonObject = array.get(0);
 						}
 					}
+					while(st.hasMoreTokens()) {
+						try {
+							jsonObject = ((JSONObject)jsonObject).get(st.nextToken());
+						} catch(Throwable t) {
+							throw new SearchException("Invalid entry path : " + resultsEntryPath,t);
+						}
+					}
+				}
+				
+				try {
+					resultArray = (JSONArray) jsonObject;
+				} catch (Throwable t) {
+					throw new SearchException("Object is not a result array. Check the JSON service and/or the entry path");
+				}
 					
-					if(resultArray != null) {
-						
-						List results = new ArrayList();
-						
-						for(int i = 0 ; i < resultArray.size() ; i++) {
-							Object obj = resultArray.get(i);
-							if(obj instanceof JSONObject) {
-								JSONObject jsonEntry = (JSONObject) obj;
-								WebResult result = new WebResult(rootPage,basePage,dateParser);
-								for(int j = 0 ; j < mappings.length ; j++) {
-									String fieldFrom = mappings[i].name;
-									if(fieldFrom != null) {
-										int fieldTo = mappings[i].field;
-										String fieldContent = ((Object)jsonEntry.get(fieldFrom)).toString();
+					
+				if(resultArray != null) {
+					
+					List results = new ArrayList();
+					
+					for(int i = 0 ; i < resultArray.size() ; i++) {
+						Object obj = resultArray.get(i);
+						if(obj instanceof JSONObject) {
+							JSONObject jsonEntry = (JSONObject) obj;
+							WebResult result = new WebResult(rootPage,basePage,dateParser);
+							for(int j = 0 ; j < mappings.length ; j++) {
+								String fieldFrom = mappings[j].name;
+								if(fieldFrom != null) {
+									int fieldTo = mappings[j].field;
+									Object fieldContentObj = ((Object)jsonEntry.get(fieldFrom));
+									if(fieldContentObj != null) {
+										String fieldContent = fieldContentObj.toString();
 										switch(fieldTo) {
 										case FIELD_NAME :
 											result.setNameFromHTML(fieldContent);
@@ -93,16 +108,18 @@ public class JSONEngine extends WebEngine {
 										}
 									}
 								}
-								results.add(result);
-								
 							}
+							results.add(result);
+							
 						}
-						
-						return (Result[]) results.toArray(new Result[results.size()]);
-						
 					}
+					
+					return (Result[]) results.toArray(new Result[results.size()]);
+					
+				}
 
 			} catch (Exception e) {
+				e.printStackTrace();
 				throw new SearchException(e);
 			}
 		} else {
