@@ -33,7 +33,6 @@ import java.net.URI;
 import java.net.URL;
 import java.util.*;
 
-import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
 import org.gudy.azureus2.core3.logging.*;

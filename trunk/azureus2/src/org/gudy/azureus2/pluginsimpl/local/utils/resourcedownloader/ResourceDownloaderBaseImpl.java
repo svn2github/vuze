@@ -37,6 +37,8 @@ public abstract class
 ResourceDownloaderBaseImpl
 	implements ResourceDownloader
 {
+	private static final String PR_PROPERTIES_SET = "!!!! properties set !!!!";
+	
 	private List			listeners		= new ArrayList();
 	
 	private boolean		result_informed;
@@ -48,7 +50,7 @@ ResourceDownloaderBaseImpl
 	private boolean		download_cancelled;
 	
 	private Map			properties	= new HashMap();
-	
+		
 	protected AEMonitor		this_mon	= new AEMonitor( "ResourceDownloader" );
 
 	protected
@@ -77,6 +79,13 @@ ResourceDownloaderBaseImpl
 	
 		throws ResourceDownloaderException
 	{
+		Object res = getPropertySupport( name );
+		
+		if ( res != null || getPropertySupport( PR_PROPERTIES_SET ) != null ){
+			
+			return( res );
+		}
+		
 			// hack this, properties are read during size acquisition - should treat size as a property
 			// too....
 		
@@ -90,6 +99,12 @@ ResourceDownloaderBaseImpl
 		String	name )
 	{
 		return( properties.get( name ));
+	}
+	
+	protected Map
+	getProperties()
+	{
+		return( properties );
 	}
 	
 	protected String
@@ -107,11 +122,30 @@ ResourceDownloaderBaseImpl
 	}
 	
 	protected void
+	setPropertiesSet()
+	
+		throws ResourceDownloaderException
+	{
+		setProperty( PR_PROPERTIES_SET, "true" );
+	}
+	
+	protected void
 	setPropertySupport(
 		String	name,
 		Object	value )
 	{
-		properties.put( name, value );
+		boolean already_set = properties.put( name, value ) == value;
+		
+		if ( parent != null && !already_set ){
+			
+			try{
+				parent.setProperty( name, value );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
 	}
 
 	protected void

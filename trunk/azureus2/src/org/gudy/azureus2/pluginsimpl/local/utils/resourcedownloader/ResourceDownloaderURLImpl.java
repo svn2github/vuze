@@ -32,6 +32,8 @@ import java.net.*;
 
 import javax.net.ssl.*;
 import java.net.PasswordAuthentication;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.InflaterInputStream;
 
@@ -259,7 +261,7 @@ ResourceDownloaderURLImpl
 							
 							con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
 				  
-							setProperties( con );
+							setRequestProperties( con );
 							
 							con.connect();
 				
@@ -270,7 +272,7 @@ ResourceDownloaderURLImpl
 								throw( new ResourceDownloaderException("Error on connect for '" + url.toString() + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
 							}
 															
-							setProperty( ResourceDownloader.PR_STRING_CONTENT_TYPE, con.getContentType() );
+							getRequestProperties( con );
 							
 							return( con.getContentLength());
 							
@@ -492,7 +494,7 @@ ResourceDownloaderURLImpl
 								wr.flush();
 							}
 
-							setProperties( con );
+							setRequestProperties( con );
 							
 							con.connect();
 				
@@ -503,6 +505,8 @@ ResourceDownloaderURLImpl
 								throw( new ResourceDownloaderException("Error on connect for '" + url.toString() + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
 							}
 								
+							getRequestProperties( con );
+							
 							boolean compressed = false;
 							
 							try{
@@ -744,14 +748,56 @@ ResourceDownloaderURLImpl
 	}
 	
 	protected void
-	setProperties(
+	setRequestProperties(
 		HttpURLConnection		con )
 	{
-		String ua = getStringPropertySupport( ResourceDownloader.PR_USER_AGENT_TYPE );
+		Map properties = getProperties();
 		
-		if ( ua != null ){
+		Iterator	it = properties.entrySet().iterator();
+		
+		while( it.hasNext()){
 			
-			con.setRequestProperty( "User-Agent" , ua );
+			Map.Entry entry = (Map.Entry)it.next();
+			
+			String	key 	= (String)entry.getKey();
+			Object	value	= entry.getValue();
+			
+			if ( key.startsWith( "URL_" ) && value instanceof String ){
+			
+				con.setRequestProperty(key.substring(4),(String)value);
+			}
+		}
+	}
+	
+	protected void
+	getRequestProperties(
+		HttpURLConnection		con )
+	{
+		try{
+			setProperty( ResourceDownloader.PR_STRING_CONTENT_TYPE, con.getContentType() );
+			
+			Map	headers = con.getHeaderFields();
+			
+			Iterator it = headers.entrySet().iterator();
+			
+			while( it.hasNext()){
+				
+				Map.Entry	entry = (Map.Entry)it.next();
+				
+				String	key = (String)entry.getKey();
+				Object	val	= entry.getValue();
+				
+				if ( key != null ){
+					
+					setProperty( "URL_" + key, val );
+				}
+			}
+			
+			setPropertiesSet();
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
 		}
 	}
 	
