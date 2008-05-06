@@ -85,8 +85,7 @@ public abstract class WebEngine implements Engine {
 			ResourceDownloaderFactory rdf = StaticUtilities.getResourceDownloaderFactory();
 			
 			ResourceDownloader url_rd = rdf.create( url );
-						
-
+									
 			/*if(cookieParameters!= null && cookieParameters.length > 0) {
 				String 	cookieString = "";
 				String separator = "";
@@ -97,10 +96,13 @@ public abstract class WebEngine implements Engine {
 				url_rd.setProperty( "URL_Cookie", cookieString );
 			}*/
 			
+			ResourceDownloader mr_rd = rdf.getMetaRefreshDownloader( url_rd );
+
 			StringBuffer sb = new StringBuffer();
+			
 			byte[] data = new byte[8192];
 
-			InputStream is = url_rd.download();
+			InputStream is = mr_rd.download();
 
 			int nbRead = 0;
 			while((nbRead = is.read(data)) != -1) {
