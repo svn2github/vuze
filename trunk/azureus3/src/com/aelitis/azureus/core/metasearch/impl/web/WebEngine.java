@@ -64,10 +64,11 @@ public abstract class WebEngine extends EngineImpl {
 	{
 		super( map );
 		
-		searchURLFormat 	= new String((byte[])map.get( "web.search_url_format" ), "UTF-8" );
-		timeZone			= new String((byte[])map.get( "web.time_zone" ), "UTF-8" );
+		searchURLFormat 	= importString( map, "web.search_url_format" );
+		timeZone			= importString( map, "web.time_zone" );
+		userDateFormat		= importString( map, "web.date_format" );
+
 		automaticDateParser	= ((Long)map.get( "web.auto_date" )).longValue()==1;
-		userDateFormat		= new String((byte[])map.get( "web.date_format" ), "UTF-8" );
 
 		List	maps = (List)map.get( "web.maps" );
 		
@@ -79,7 +80,7 @@ public abstract class WebEngine extends EngineImpl {
 			
 			mappings[i] = 
 				new FieldMapping(
-					new String((byte[])m.get( "name" ), "UTF-8" ),
+					importString( m, "name" ),
 					((Long)m.get( "field")).intValue());
 		}
 		
@@ -94,10 +95,11 @@ public abstract class WebEngine extends EngineImpl {
 	{
 		super.exportToBencodedMap( map );
 		
-		map.put( "web.search_url_format", 	searchURLFormat.getBytes( "UTF-8" ));
-		map.put( "web.time_zone", 			timeZone.getBytes( "UTF-8" ));
+		exportString( map, "web.search_url_format", searchURLFormat );
+		exportString( map, "web.time_zone", 		timeZone );		
+		exportString( map, "web.date_format", 		userDateFormat );
+		
 		map.put( "web.auto_date", 			new Long( automaticDateParser?1:0));
-		map.put( "web.date_format", 		userDateFormat.getBytes( "UTF-8" ));
 
 		List	maps = new ArrayList();
 		
@@ -109,8 +111,8 @@ public abstract class WebEngine extends EngineImpl {
 			
 			Map m = new HashMap();
 			
-			map.put( "name", fm.getName().getBytes( "UTF-8" ));
-			map.put( "field", new Long( fm.getField()));
+			exportString( m, "name", fm.getName());
+			m.put( "field", new Long( fm.getField()));
 			
 			maps.add( m );
 		}

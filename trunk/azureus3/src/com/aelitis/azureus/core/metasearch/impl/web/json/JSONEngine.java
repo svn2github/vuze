@@ -53,7 +53,7 @@ JSONEngine
 	{
 		super( map );
 		
-		this.resultsEntryPath = new String((byte[])map.get( "json.path" ), "UTF-8" );
+		this.resultsEntryPath = importString( map, "json.path" );
 	}
 	
 	public Map 
@@ -63,7 +63,7 @@ JSONEngine
 	{
 		Map	res = new HashMap();
 		
-		res.put( "json.path", resultsEntryPath.getBytes( "UTF-8" ));
+		exportString( res, "json.path", resultsEntryPath );
 		
 		super.exportToBencodedMap( res );
 		

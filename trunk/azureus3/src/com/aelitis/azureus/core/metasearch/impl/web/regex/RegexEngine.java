@@ -46,7 +46,7 @@ RegexEngine
 	{
 		super( map );
 		
-		String	resultPattern = new String((byte[])map.get( "regex.pattern" ), "UTF-8" );
+		String	resultPattern = importString( map, "regex.pattern" );
 
 		init( resultPattern );
 	}
@@ -58,7 +58,7 @@ RegexEngine
 	{
 		Map	res = new HashMap();
 		
-		res.put( "regex.pattern", pattern_str.getBytes( "UTF-8" ));
+		exportString( res, "regex.pattern", pattern_str );
 		
 		super.exportToBencodedMap( res );
 		

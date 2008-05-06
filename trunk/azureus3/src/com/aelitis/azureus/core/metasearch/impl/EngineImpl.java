@@ -82,6 +82,37 @@ EngineImpl
 	}
 	
 	protected void
+	exportString(
+		Map		map,
+		String	key,
+		String	value )
+	
+		throws IOException
+	{
+		if ( value != null ){
+	
+			map.put( key, value.getBytes( "UTF-8" ));
+		}
+	}
+	
+	protected String
+	importString(
+		Map		map,
+		String	key )
+	
+		throws IOException
+	{
+		Object	obj = map.get( key );
+		
+		if ( obj instanceof byte[]){
+			
+			return( new String((byte[])obj, "UTF-8" ));
+		}
+		
+		return( null );
+	}
+	
+	protected void
 	exportToBencodedMap(
 		Map		map )
 	

@@ -2,8 +2,8 @@ package com.aelitis.azureus.core.metasearch;
 
 public class SearchParameter {
 	
-	String matchPattern;
-	String value;
+	private String matchPattern;
+	private String value;
 	
 	
 	public SearchParameter(String matchPattern, String value) {

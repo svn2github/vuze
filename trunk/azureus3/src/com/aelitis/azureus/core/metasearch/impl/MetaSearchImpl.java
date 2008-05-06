@@ -23,13 +23,22 @@ package com.aelitis.azureus.core.metasearch.impl;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AEDiagnostics;
+import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
+
 import com.aelitis.azureus.core.metasearch.*;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.util.Constants;
 
 public class 
 MetaSearchImpl
 	implements MetaSearch
 {
+	private static final String	LOGGER_NAME = "MetaSearch";
+	private static final String	CONFIG_FILE = "metasearch.config";
+	
 	private static final MetaSearch singleton = new MetaSearchImpl();
 	
 	private CopyOnWriteList 	engines = new CopyOnWriteList();
@@ -43,6 +52,8 @@ MetaSearchImpl
 	protected 
 	MetaSearchImpl() 
 	{
+		loadConfig();
+		
 		try{
 			Class clazz = Class.forName( "com.aelitis.azureus.core.metasearch.impl.MetaSearchTestImpl" );
 		
@@ -60,14 +71,51 @@ MetaSearchImpl
 	addEngine(
 		Engine 	engine )
 	{
-		engines.add( engine );
+		addEngine( engine, false );
+	}
+	
+	public void 
+	addEngine(
+		Engine 	engine,
+		boolean	loading )
+	{
+		synchronized( this ){
+			
+			Iterator	it = engines.iterator();
+			
+			while( it.hasNext()){
+				
+				Engine e = (Engine)it.next();
+				
+				if ( e.getId() == engine.getId()){
+					
+					log( "Removing old engine with same ID: " + e.getName());
+					
+					it.remove();
+				}
+			}
+			
+			engines.add( engine );
+		}
+		
+		if ( !loading ){
+			
+			log( "Engine '" + engine.getName() + "' added" );
+			
+			saveConfig();
+		}
 	}
 	
 	public void 
 	removeEngine(
 		Engine 	engine )
 	{
-		engines.remove( engine );
+		if ( engines.remove( engine )){
+		
+			log( "Engine '" + engine.getName() + "' removed" );
+			
+			saveConfig();
+		}
 	}
 	
 	public Engine[] 
@@ -83,6 +131,17 @@ MetaSearchImpl
 		ResultListener 		listener,
 		SearchParameter[] 	searchParameters ) 
 	{
+		String	str = "";
+		
+		for (int i=0;i<searchParameters.length;i++){
+		
+			SearchParameter param = searchParameters[i];
+			
+			str += (i==0?"":",") + param.getMatchPattern() + "->" + param.getValue();
+		}
+		
+		log( "Search: " + str );
+		
 		SearchExecuter se = new SearchExecuter(listener);
 		
 		Iterator it  = engines.iterator();
@@ -90,6 +149,104 @@ MetaSearchImpl
 		while( it.hasNext()){
 			
 			se.search((Engine)it.next(), searchParameters);
+		}
+	}
+	
+	public static void 
+	log(
+		String 		s,
+		Throwable 	e )
+	{
+		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger( LOGGER_NAME );
+		
+		diag_logger.log( s );
+		diag_logger.log( e );
+		
+		if ( Constants.DIAG_TO_STDOUT ){
+			
+			System.out.println(Thread.currentThread().getName() + "|"
+					+ System.currentTimeMillis() + "] " + s + ": " + Debug.getNestedExceptionMessage(e));
+		}	
+	}
+	
+	public static void 
+	log(
+		String 	s )
+	{
+		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger( LOGGER_NAME );
+		
+		diag_logger.log( s );
+		
+		if ( Constants.DIAG_TO_STDOUT ){
+			
+			System.out.println(Thread.currentThread().getName() + "|"
+					+ System.currentTimeMillis() + "] " + s);
+		}
+	}
+	
+	protected void
+	loadConfig()
+	{
+		log( "Loading configuration" );
+		
+		synchronized( this ){
+			
+			Map map = FileUtil.readResilientConfigFile( CONFIG_FILE );
+			
+			List	l_engines = (List)map.get( "engines" );
+			
+			if( l_engines != null ){
+				
+				for (int i=0;i<l_engines.size();i++){
+					
+					Map	m = (Map)l_engines.get(i);
+					
+					try{
+						Engine e = EngineFactory.importFromBEncodedMap( m );
+						
+						addEngine( e, true );
+						
+						log( "    loaded " + e.getName());
+						
+					}catch( Throwable e ){
+						
+						log( "Failed to import engine from " + m, e );
+					}
+				}
+			}
+		}
+	}
+	
+	protected void
+	saveConfig()
+	{
+		log( "Saving configuration" );
+		
+		synchronized( this ){
+			
+			Map map = new HashMap();
+			
+			List	l_engines = new ArrayList();
+			
+			map.put( "engines", l_engines );
+			
+			Iterator	it = engines.iterator();
+			
+			while( it.hasNext()){
+				
+				Engine e = (Engine)it.next();
+			
+				try{
+					
+					l_engines.add( e.exportToBencodedMap());
+					
+				}catch( Throwable f ){
+					
+					log( "Failed to export engine " + e.getName(), f );
+				}
+			}
+			
+			FileUtil.writeResilientConfigFile( CONFIG_FILE, map );
 		}
 	}
 }
