@@ -1,37 +1,81 @@
 package com.aelitis.azureus.core.metasearch.impl.web.json;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
+import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.Result;
 import com.aelitis.azureus.core.metasearch.SearchException;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
 import com.aelitis.azureus.core.metasearch.impl.web.FieldMapping;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.WebResult;
+import com.aelitis.azureus.core.metasearch.impl.web.regex.RegexEngine;
 
-public class JSONEngine extends WebEngine {
+public class 
+JSONEngine 
+	extends WebEngine 
+{
+	public static Engine
+	importFromBEncodedMap(
+		Map		map )
 	
-	String resultsEntryPath;
-	FieldMapping[] mappings;
-
-	public JSONEngine(long id,String name,String searchURLFormat,String timeZone,boolean automaticDateFormat,String userDateFormat,String resultsEntryPath,FieldMapping[] mappings) {
-		super(id,name,searchURLFormat,timeZone,automaticDateFormat,userDateFormat);
-		
-		this.resultsEntryPath = resultsEntryPath;
-		this.mappings = mappings;
+		throws IOException
+	{
+		return( new JSONEngine( map ));
 	}
 	
+
+	
+	private String resultsEntryPath;
+
+	
+
+	public JSONEngine(long id,String name,String searchURLFormat,String timeZone,boolean automaticDateFormat,String userDateFormat,String resultsEntryPath,FieldMapping[] mappings) {
+		super( Engine.ENGINE_TYPE_JSON, id,name,searchURLFormat,timeZone,automaticDateFormat,userDateFormat,mappings);
+		
+		this.resultsEntryPath = resultsEntryPath;
+	}
+	
+	protected 
+	JSONEngine(
+		Map		map )
+	
+		throws IOException
+	{
+		super( map );
+		
+		this.resultsEntryPath = new String((byte[])map.get( "json.path" ), "UTF-8" );
+	}
+	
+	public Map 
+	exportToBencodedMap() 
+	
+		throws IOException
+	{
+		Map	res = new HashMap();
+		
+		res.put( "json.path", resultsEntryPath.getBytes( "UTF-8" ));
+		
+		super.exportToBencodedMap( res );
+		
+		return( res );
+	}
 	
 	public Result[] search(SearchParameter[] searchParameters) throws SearchException {
 		
 		String page = super.getWebPageContent(searchParameters);
 		
+		FieldMapping[] mappings = getMappings();
+
 		if(page != null) {
 			try {
 				Object jsonObject = JSONValue.parse(page);
@@ -70,11 +114,11 @@ public class JSONEngine extends WebEngine {
 						Object obj = resultArray.get(i);
 						if(obj instanceof JSONObject) {
 							JSONObject jsonEntry = (JSONObject) obj;
-							WebResult result = new WebResult(rootPage,basePage,dateParser);
+							WebResult result = new WebResult(getRootPage(),getBasePage(),getDateParser());
 							for(int j = 0 ; j < mappings.length ; j++) {
-								String fieldFrom = mappings[j].name;
+								String fieldFrom = mappings[j].getName();
 								if(fieldFrom != null) {
-									int fieldTo = mappings[j].field;
+									int fieldTo = mappings[j].getField();
 									Object fieldContentObj = ((Object)jsonEntry.get(fieldFrom));
 									if(fieldContentObj != null) {
 										String fieldContent = fieldContentObj.toString();
@@ -128,20 +172,16 @@ public class JSONEngine extends WebEngine {
 		
 		return new Result[0];
 	}
-
-	public String getName() {
-		return name;
-	}
 	
 	public String getIcon() {
+		
+		String rootPage = getRootPage();
+		
 		if(rootPage != null) {
 			return rootPage + "/favicon.ico";
 		}
 		return null;
 	}
 	
-	public long getId() {
-		return id;
-	}
-	
+
 }

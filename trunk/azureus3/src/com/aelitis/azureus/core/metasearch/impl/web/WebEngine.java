@@ -1,9 +1,9 @@
 package com.aelitis.azureus.core.metasearch.impl.web;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.net.URLConnection;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -11,12 +11,10 @@ import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
 
-import com.aelitis.azureus.core.metasearch.Engine;
-import com.aelitis.azureus.core.metasearch.Result;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
-import com.aelitis.azureus.core.metasearch.impl.DateParser;
+import com.aelitis.azureus.core.metasearch.impl.*;
 
-public abstract class WebEngine implements Engine {
+public abstract class WebEngine extends EngineImpl {
 
 	public static final int FIELD_NAME = 1;
 	public static final int FIELD_DATE = 2;
@@ -31,20 +29,96 @@ public abstract class WebEngine implements Engine {
 	static private final Pattern rootURLPattern = Pattern.compile("(https?://[^/]+)");
 	static private final Pattern baseURLPattern = Pattern.compile("(https?://.*/)");
 	
-	protected long id;
-	protected String name;
 	
-	protected String rootPage;
-	protected String basePage;
-	protected String searchURLFormat;
+	private String 			searchURLFormat;
+	private String 			timeZone;
+	private boolean			automaticDateParser;
+	private String 			userDateFormat;
+	private FieldMapping[]	mappings;
+
 	
-	protected DateParser dateParser;
+	private String rootPage;
+	private String basePage;
+
+	private DateParser dateParser;
 	
-	public WebEngine(long id,String name,String searchURLFormat,String timeZone,boolean automaticDateParser,String userDateFormat) {
-		this.id = id;
-		this.name = name;
-		this.searchURLFormat = searchURLFormat;
+
+	public WebEngine(int type, long id,String name,String searchURLFormat,String timeZone,boolean automaticDateParser,String userDateFormat, FieldMapping[] mappings ) {
 		
+		super( type, id, name );
+
+		this.searchURLFormat 		= searchURLFormat;
+		this.timeZone 				= timeZone;
+		this.automaticDateParser 	= automaticDateParser;
+		this.userDateFormat 		= userDateFormat;
+		this.mappings				= mappings;
+		
+		init();
+	}
+	
+	protected 
+	WebEngine(
+		Map		map )
+	
+		throws IOException
+	{
+		super( map );
+		
+		searchURLFormat 	= new String((byte[])map.get( "web.search_url_format" ), "UTF-8" );
+		timeZone			= new String((byte[])map.get( "web.time_zone" ), "UTF-8" );
+		automaticDateParser	= ((Long)map.get( "web.auto_date" )).longValue()==1;
+		userDateFormat		= new String((byte[])map.get( "web.date_format" ), "UTF-8" );
+
+		List	maps = (List)map.get( "web.maps" );
+		
+		mappings = new FieldMapping[maps.size()];
+		
+		for (int i=0;i<mappings.length;i++){
+			
+			Map	m = (Map)maps.get(i);
+			
+			mappings[i] = 
+				new FieldMapping(
+					new String((byte[])m.get( "name" ), "UTF-8" ),
+					((Long)m.get( "field")).intValue());
+		}
+		
+		init();
+	}
+	
+	protected void
+	exportToBencodedMap(
+		Map		map )
+	
+		throws IOException
+	{
+		super.exportToBencodedMap( map );
+		
+		map.put( "web.search_url_format", 	searchURLFormat.getBytes( "UTF-8" ));
+		map.put( "web.time_zone", 			timeZone.getBytes( "UTF-8" ));
+		map.put( "web.auto_date", 			new Long( automaticDateParser?1:0));
+		map.put( "web.date_format", 		userDateFormat.getBytes( "UTF-8" ));
+
+		List	maps = new ArrayList();
+		
+		map.put( "web.maps", maps );
+		
+		for (int i=0;i<mappings.length;i++){
+			
+			FieldMapping fm = mappings[i];
+			
+			Map m = new HashMap();
+			
+			map.put( "name", fm.getName().getBytes( "UTF-8" ));
+			map.put( "field", new Long( fm.getField()));
+			
+			maps.add( m );
+		}
+	}
+	
+	protected void
+	init()
+	{
 		try {
 			Matcher m = rootURLPattern.matcher(searchURLFormat);
 			if(m.find()) {
@@ -129,10 +203,6 @@ public abstract class WebEngine implements Engine {
 		return null;
 	}
 
-	public String getName() {
-		return name;
-	}
-	
 	public String getIcon() {
 		if(rootPage != null) {
 			return rootPage + "/favicon.ico";
@@ -140,8 +210,27 @@ public abstract class WebEngine implements Engine {
 		return null;
 	}
 	
-	public long getId() {
-		return id;
+	protected FieldMapping[]
+	getMappings()
+	{
+		return( mappings );
 	}
 	
+	protected String
+	getRootPage()
+	{
+		return( rootPage );
+	}
+	
+	protected String
+	getBasePage()
+	{
+		return( basePage );
+	}
+	
+	protected DateParser
+	getDateParser()
+	{
+		return( dateParser );
+	}
 }

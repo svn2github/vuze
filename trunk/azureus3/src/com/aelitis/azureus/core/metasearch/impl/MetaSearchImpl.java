@@ -48,8 +48,10 @@ MetaSearchImpl
 		
 			clazz.getConstructor( new Class[]{ MetaSearch.class }).newInstance( new Object[]{ this });
 			
-		} catch(Exception e) {
-			//Test implementation in progress, Test class not publicly available
+		}catch( Exception e ){
+			
+				//Test implementation in progress, Test class not publicly available
+			
 			e.printStackTrace();
 		}
 	}

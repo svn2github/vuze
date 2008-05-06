@@ -1,10 +1,10 @@
 package com.aelitis.azureus.core.metasearch.impl.web.regex;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.io.IOException;
+import java.util.*;
+import java.util.regex.*;
 
+import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.Result;
 import com.aelitis.azureus.core.metasearch.SearchException;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
@@ -12,23 +12,72 @@ import com.aelitis.azureus.core.metasearch.impl.web.FieldMapping;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.WebResult;
 
-public class RegexEngine extends WebEngine {
+public class 
+RegexEngine 
+	extends WebEngine 
+{
+	public static Engine
+	importFromBEncodedMap(
+		Map		map )
 	
-	Pattern pattern;
-	
-	FieldMapping[] mappings;
-	
-	public RegexEngine(long id,String name,String searchURLFormat,String resultPattern,String timeZone,boolean automaticDateFormat,String userDateFormat,FieldMapping[] mappings) {
-		super(id,name,searchURLFormat,timeZone,automaticDateFormat,userDateFormat);
-
-		this.pattern = Pattern.compile(resultPattern);
-		this.mappings = mappings;
+		throws IOException
+	{
+		return( new RegexEngine( map ));
 	}
 	
+
+	private String	pattern_str;
+	private Pattern pattern;
+
+	
+		
+	public RegexEngine(long id,String name,String searchURLFormat,String resultPattern,String timeZone,boolean automaticDateFormat,String userDateFormat,FieldMapping[] mappings) 
+	{
+		super(Engine.ENGINE_TYPE_REGEX, id,name,searchURLFormat,timeZone,automaticDateFormat,userDateFormat, mappings );
+
+		init( resultPattern );
+	}
+	
+	protected 
+	RegexEngine(
+		Map		map )
+	
+		throws IOException
+	{
+		super( map );
+		
+		String	resultPattern = new String((byte[])map.get( "regex.pattern" ), "UTF-8" );
+
+		init( resultPattern );
+	}
+	
+	public Map 
+	exportToBencodedMap() 
+	
+		throws IOException
+	{
+		Map	res = new HashMap();
+		
+		res.put( "regex.pattern", pattern_str.getBytes( "UTF-8" ));
+		
+		super.exportToBencodedMap( res );
+		
+		return( res );
+	}
+
+	protected void
+	init(
+		String			resultPattern )
+	{
+		this.pattern_str 	= resultPattern;
+		this.pattern		= Pattern.compile(resultPattern);
+	}
 	
 	public Result[] search(SearchParameter[] searchParameters) throws SearchException {
 		
-		String page = super.getWebPageContent(searchParameters);
+		String page = getWebPageContent(searchParameters);
+		
+		FieldMapping[] mappings = getMappings();
 		
 		if(page != null) {
 			try {
@@ -38,16 +87,16 @@ public class RegexEngine extends WebEngine {
 				Matcher m = pattern.matcher(page);
 					
 				while(m.find()) {
-					WebResult result = new WebResult(rootPage,basePage,dateParser);
+					WebResult result = new WebResult(getRootPage(),getBasePage(),getDateParser());
 					for(int i = 0 ; i < mappings.length ; i++) {
 						int group = -1;
 						try {
-							group = Integer.parseInt(mappings[i].name);
+							group = Integer.parseInt(mappings[i].getName());
 						} catch(Exception e) {
 							//In "Debug/Test" mode, we should fire an exception / notification
 						}
 						if(group > 0 && group <= m.groupCount()) {
-							int field = mappings[i].field;
+							int field = mappings[i].getField();
 							String groupContent = m.group(group);
 							switch(field) {
 							case FIELD_NAME :
@@ -91,5 +140,4 @@ public class RegexEngine extends WebEngine {
 			throw new SearchException("Web Page is empty");
 		}
 	}
-	
 }
