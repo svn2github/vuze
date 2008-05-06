@@ -31,6 +31,7 @@ import com.aelitis.azureus.core.crypto.VuzeCryptoListener;
 import com.aelitis.azureus.core.crypto.VuzeCryptoManager;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.*;
+import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.plugins.net.buddy.*;
 import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.Constants;
@@ -270,7 +271,7 @@ public class VuzeBuddyManager
 
 				public char[] getSessionPassword(String reason)
 						throws VuzeCryptoException {
-					VuzeBuddyManager.log("Someone requested password: " + reason);
+					VuzeBuddyManager.log("PW Request: " + reason + "; " + Debug.getCompressedStackTrace());
 					throw new VuzeCryptoException("Not Logged In", null);
 				}
 			});
@@ -288,19 +289,20 @@ public class VuzeBuddyManager
 						// logged in
 
 						log("Logging in.. getting pw from webapp");
-						
-							// getPassword will set the password viz VuzeCryptoManager
-						
+
+						// getPassword will set the password viz VuzeCryptoManager
+
 						PlatformKeyExchangeMessenger.getPassword(new PlatformKeyExchangeMessenger.platformPasswordListener() {
 							public void passwordRetrieved() {
-									// now password is set we can get access to the public key (or
-									// create one if first time)
-								
+								// now password is set we can get access to the public key (or
+								// create one if first time)
+
 								String myPK = null;
 								try {
 									myPK = VuzeCryptoManager.getSingleton().getPublicKey(null);
 								} catch (VuzeCryptoException e) {
 								}
+								System.out.println("myPK=" + myPK + ";" + info.pk);
 								if (myPK != null && !myPK.equals(info.pk)) {
 									log("webapp's PK (" + info.pk
 											+ ") doesn't match.  Sending out PK");
@@ -308,8 +310,14 @@ public class VuzeBuddyManager
 								}
 
 								PlatformRelayMessenger.relayCheck();
-								PlatformBuddyMessenger.sync(null);
-								PlatformBuddyMessenger.getInvites();
+								try {
+									PlatformBuddyMessenger.sync(null);
+									PlatformBuddyMessenger.getInvites();
+								} catch (NotLoggedInException e) {
+									// this really shouldn't happen unless the user logs in and
+									// our really really fast
+									log("OOPS, sync or getInvite failed because you were no longer logged in");
+								}
 							}
 						});
 					}
@@ -321,6 +329,20 @@ public class VuzeBuddyManager
 				public void newRelayServerPayLoad(VuzeBuddy sender, String pkSender,
 						Map decodedMap) {
 					processPayloadMap(pkSender, decodedMap, sender != null);
+				}
+
+				// @see com.aelitis.azureus.core.messenger.config.VuzeRelayListener#hasPendingRelayMessage(int)
+				public void hasPendingRelayMessage(int count) {
+					if (count == 0) {
+						return;
+					}
+					try {
+						PlatformRelayMessenger.fetch(0);
+						log("have " + count + " pending relay messages. Attempting fetch");
+					} catch (NotLoggedInException e) {
+						log("have " + count + " pending relay messages. Not logged in");
+						// not logged in? oh well, we'd do a fetch on login
+					}
 				}
 			};
 
@@ -402,9 +424,9 @@ public class VuzeBuddyManager
 				if (!canHandleBuddy(buddy)) {
 					return;
 				}
-   
-				buddy.getMessageHandler().addListener( buddy_message_handler_listener );
-					
+
+				buddy.getMessageHandler().addListener(buddy_message_handler_listener);
+
 				if (false) {
 					// XXX To remove.  We don't need to add plugin buddies anymore
 					//     because we store the info ourselves in v3.Buddies.config
@@ -452,7 +474,7 @@ public class VuzeBuddyManager
 					VuzeBuddy vuzeBuddy = getBuddyByPK(pk);
 					if (vuzeBuddy != null) {
 						PlatformMessenger.debug("Relay: YGM from " + pk);
-						PlatformRelayMessenger.fetch(0);
+						PlatformRelayMessenger.relayCheck();
 					} else {
 						PlatformMessenger.debug("Relay: YGM from non vuzer " + pk);
 					}
@@ -517,16 +539,29 @@ public class VuzeBuddyManager
 				}
 			}
 		} else if (authorizedBuddy && mt.equals("BuddySync")) {
-			PlatformBuddyMessenger.sync(null);
+			try {
+				PlatformBuddyMessenger.sync(null);
+			} catch (NotLoggedInException e) {
+			}
 			return "Ok";
 		} else if (mt.equals("CheckInvites")) {
-			PlatformBuddyMessenger.getInvites();
+			// TODO: Should call getNumPendingInvites once that's hooked up properly
+			//       For now, this will do
+			try {
+				PlatformBuddyMessenger.getInvites();
+			} catch (NotLoggedInException e) {
+			}
 			return "Ok";
 		} else if (mt.equals("BuddyAccept")) {
 			String code = MapUtils.getMapString(mapPayload, "BuddyAcceptCode", null);
 			VuzeQueuedShares.updateSharePK(code, pkSender);
 			// Once sync is done, we will get a buddy add, and send the queued share(s)
-			PlatformBuddyMessenger.sync(null);
+			try {
+				PlatformBuddyMessenger.sync(null);
+			} catch (NotLoggedInException e) {
+				log("Not Logged in, yet we were able to decrype the BuddyAccept message.  Amazing!");
+				log(e);
+			}
 		}
 
 		return "Unknown Message Type";
@@ -643,6 +678,23 @@ public class VuzeBuddyManager
 	}
 
 	/**
+	 * @param string
+	 * @param e
+	 *
+	 * @since 3.0.5.3
+	 */
+	public static void log(Exception e) {
+		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.Buddy");
+		diag_logger.log(e);
+		if (Constants.DIAG_TO_STDOUT) {
+			System.err.println(Thread.currentThread().getName() + "|"
+					+ System.currentTimeMillis() + "] ");
+			e.printStackTrace();
+		}
+	}
+
+	
+	/**
 	 * @param buddy
 	 *
 	 * @since 3.0.5.3
@@ -686,9 +738,12 @@ public class VuzeBuddyManager
 			for (Iterator iter = shares.iterator(); iter.hasNext();) {
 				QueuedVuzeShare share = (QueuedVuzeShare) iter.next();
 				VuzeActivitiesEntry entry = share.getActivityEntry();
-				buddy.sendActivity(entry);
-
-				VuzeQueuedShares.remove(share);
+				try {
+					buddy.sendActivity(entry);
+					VuzeQueuedShares.remove(share);
+				} catch (NotLoggedInException e) {
+					log("Not logged in: Sending Queued Share");
+				}
 			}
 		}
 		if (createActivityEntry) {
@@ -755,7 +810,8 @@ public class VuzeBuddyManager
 			return null;
 		}
 
-		VuzeBuddy existingBuddy = getBuddyByLoginID((String) mapNewBuddy.get("login-id"));
+		VuzeBuddy existingBuddy = getBuddyByLoginID(MapUtils.getMapString(
+				mapNewBuddy, "login-id", null));
 		if (existingBuddy != null) {
 			return existingBuddy;
 		}
@@ -830,7 +886,7 @@ public class VuzeBuddyManager
 			Object[] buddyArray = buddyList.toArray();
 			for (int i = 0; i < buddyArray.length; i++) {
 				VuzeBuddy buddy = (VuzeBuddy) buddyArray[i];
-				
+
 				if (buddy.getLastUpdated() < updateTime) {
 					log("Removing Buddy " + buddy.getDisplayName() + ";"
 							+ buddy.getLoginID() + ";updateTime=" + updateTime + ";buddyTime"
@@ -844,7 +900,6 @@ public class VuzeBuddyManager
 						buddy.removePublicKey(pk);
 					}
 
-					
 					// try a remove, just in case
 					buddyList.remove(buddy);
 
@@ -873,8 +928,18 @@ public class VuzeBuddyManager
 		try {
 			buddy_mon.enter();
 
-			log("add PK " + pk);
-			mapPKtoVuzeBuddy.put(pk, buddy);
+			VuzeBuddy existingBuddy = (VuzeBuddy) mapPKtoVuzeBuddy.get(pk);
+			
+			if (existingBuddy != null) {
+				if (!existingBuddy.getLoginID().equalsIgnoreCase(buddy.getLoginID())) {
+					log("DANGER: Changing PK's user from " + existingBuddy.getLoginID() + " to " + buddy.getLoginID());
+					mapPKtoVuzeBuddy.put(pk, buddy);
+				}
+			} else {
+				log("add PK " + pk + " to " + buddy.getLoginID());
+				mapPKtoVuzeBuddy.put(pk, buddy);
+			}
+			
 
 		} finally {
 			buddy_mon.exit();
@@ -924,7 +989,11 @@ public class VuzeBuddyManager
 							Map map = new HashMap();
 							map.put("VuzeMessageType", "CheckInvites");
 
-							sendPayloadMap(map, pluginBuddies);
+							try {
+								sendPayloadMap(map, pluginBuddies);
+							} catch (NotLoggedInException e) {
+								log(e);
+							}
 						}
 					});
 		}
@@ -937,14 +1006,20 @@ public class VuzeBuddyManager
 	 * @param dm The download you wish to share
 	 * @param shareMessage The message the user typed to go with the share
 	 * @param buddies The buddies that should be notified
+	 * @throws NotLoggedInException 
 	 *
 	 * @since 3.0.5.3
 	 */
 	public static void inviteWithShare(Map invites, DownloadManager dm,
-			String shareMessage, VuzeBuddy[] buddies) {
+			String shareMessage, VuzeBuddy[] buddies) throws NotLoggedInException {
+
+		if (!LoginInfoManager.getInstance().isLoggedIn()) {
+			throw new NotLoggedInException();
+		}
 
 		if (buddies != null && dm != null) {
-			log("share " + dm.toString() + " with " + buddies.length + " existing buddies");
+			log("share " + dm.toString() + " with " + buddies.length
+					+ " existing buddies");
 			for (int i = 0; i < buddies.length; i++) {
 				VuzeBuddy v3Buddy = buddies[i];
 				if (v3Buddy != null) {
@@ -984,11 +1059,16 @@ public class VuzeBuddyManager
 			return;
 		}
 
-		VuzeActivitiesEntry entry = new VuzeActivitiesEntryContentShare(dm, message);
+		VuzeActivitiesEntry entry;
+		try {
+			entry = new VuzeActivitiesEntryContentShare(dm, message);
 
-		QueuedVuzeShare vuzeShare = VuzeQueuedShares.add(code);
-		vuzeShare.setDownloadHash(entry.getAssetHash());
-		vuzeShare.setActivityEntry(entry);
+			QueuedVuzeShare vuzeShare = VuzeQueuedShares.add(code);
+			vuzeShare.setDownloadHash(entry.getAssetHash());
+			vuzeShare.setActivityEntry(entry);
+		} catch (NotLoggedInException e) {
+			Debug.out(e);
+		}
 	}
 
 	public static void removeInviteActivities(String fromLoginID) {
@@ -1017,10 +1097,12 @@ public class VuzeBuddyManager
 	 * 
 	 * @param code Invite code or somesuch id that the webapp gave you
 	 * @param pks Public Keys of the user you accepted the invite from
+	 * @throws NotLoggedInException 
 	 *
 	 * @since 3.0.5.3
 	 */
-	public static void acceptInvite(final String code, final String pks[]) {
+	public static void acceptInvite(final String code, final String pks[])
+			throws NotLoggedInException {
 		// sync will get new buddy connection
 		PlatformBuddyMessenger.sync(new VuzeBuddySyncListener() {
 			public void syncComplete() {
@@ -1034,7 +1116,11 @@ public class VuzeBuddyManager
 					VuzeBuddy buddy = getBuddyByPK(pk);
 
 					if (buddy != null) {
-						buddy.sendPayloadMap(map);
+						try {
+							buddy.sendPayloadMap(map);
+						} catch (NotLoggedInException e) {
+							log("Not Logged In: Accept Invite");
+						}
 						// send will send to all public keys of buddy, so there's no need
 						// to go through the rest of the pks
 						break;
@@ -1045,7 +1131,7 @@ public class VuzeBuddyManager
 	}
 
 	protected static void sendActivity(VuzeActivitiesEntry entry,
-			BuddyPluginBuddy[] buddies) {
+			BuddyPluginBuddy[] buddies) throws NotLoggedInException {
 		final Map map = new HashMap();
 
 		map.put("VuzeMessageType", "ActivityEntry");
@@ -1057,10 +1143,15 @@ public class VuzeBuddyManager
 	/**
 	 * @param map
 	 * @param buddies
+	 * @throws NotLoggedInException 
 	 *
 	 * @since 3.0.5.3
 	 */
-	public static void sendPayloadMap(final Map map, BuddyPluginBuddy[] buddies) {
+	public static void sendPayloadMap(final Map map, BuddyPluginBuddy[] buddies)
+			throws NotLoggedInException {
+		if (!LoginInfoManager.getInstance().isLoggedIn()) {
+			throw new NotLoggedInException();
+		}
 		try {
 			log("sending map to " + buddies.length + " buddies");
 			for (int i = 0; i < buddies.length; i++) {

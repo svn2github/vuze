@@ -47,6 +47,13 @@ public class PlatformKeyExchangeMessenger
 	public static String OP_SETPUBLICKEY = "setPublicKey";
 
 	public static void getPassword(final platformPasswordListener l) {
+		if (true) {
+			VuzeCryptoManager.getSingleton().setPassword("test");
+			if (l != null) {
+				l.passwordRetrieved();
+			}
+			return;
+		}
 		PlatformMessage message = new PlatformMessage(PREFIX, LISTENER_ID,
 				OP_GETPASSWORD, new Object[0], 1000);
 		message.setRequiresAuthorization(true);

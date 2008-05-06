@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -117,7 +118,7 @@ public class ColumnMediaThumb
 
 		//System.out.println("refresh " + bForce + " via " + Debug.getCompressedStackTrace(10));
 
-		TOTorrent newTorrent = dm == null ? null : dm.getTorrent();
+		TOTorrent newTorrent = getTorrent(ds);
 		long lastUpdated = PlatformTorrentUtils.getContentLastUpdated(newTorrent);
 		// xxx hack.. cell starts with 0 sort value
 		if (lastUpdated == 0) {
@@ -162,10 +163,18 @@ public class ColumnMediaThumb
 
 		if (b == null) {
 			// Don't ever dispose of PathIcon, it's cached and may be used elsewhere
-			String path = dm == null ? null : dm.getDownloadState().getPrimaryFile();
+			String path = null;
+			if (dm == null) {
+				TOTorrentFile[] files = torrent.getFiles();
+				if (files.length > 0) {
+					path = files[0].getRelativePath();
+				}
+			} else {
+				path = dm.getDownloadState().getPrimaryFile();
+			}
 			if (path != null) {
-				Image icon = ImageRepository.getPathIcon(path, true,
-						dm.getTorrent() != null && !dm.getTorrent().isSimpleTorrent());
+				Image icon = ImageRepository.getPathIcon(path, true, torrent != null
+						&& !torrent.isSimpleTorrent());
 				Graphic graphic = new UISWTGraphicImpl(icon);
 				cell.setGraphic(graphic);
 			} else {
@@ -276,6 +285,22 @@ public class ColumnMediaThumb
 			dm = ((VuzeActivitiesEntry) ds).getDownloadManger();
 		}
 		return dm;
+	}
+	
+	private TOTorrent getTorrent(Object ds) {
+		TOTorrent torrent = null;
+		if (ds instanceof DownloadManager) {
+			torrent = ((DownloadManager) ds).getTorrent();
+		} else if (ds instanceof VuzeActivitiesEntry) {
+			torrent = ((VuzeActivitiesEntry) ds).getTorrent();
+			if (torrent == null) {
+				DownloadManager dm = ((VuzeActivitiesEntry) ds).getDownloadManger();
+				if (dm != null) {
+					torrent = dm.getTorrent();
+				}
+			}
+		}
+		return torrent;
 	}
 
 	/**

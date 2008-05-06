@@ -23,12 +23,14 @@ import java.util.Map;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
+import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.LoginInfoManager;
 import com.aelitis.azureus.util.MapUtils;
@@ -50,8 +52,8 @@ public class VuzeActivitiesEntryContentShare
 		super();
 	}
 
-	public VuzeActivitiesEntryContentShare(DownloadManager dm,
-			String message) {
+	public VuzeActivitiesEntryContentShare(DownloadManager dm, String message)
+	throws NotLoggedInException{
 		if (dm == null) {
 			return;
 		}
@@ -69,7 +71,7 @@ public class VuzeActivitiesEntryContentShare
 		if (hashWrapper == null) {
 			return;
 		}
-		
+
 		String hash = hashWrapper.toBase32String();
 		boolean ourContent = PlatformTorrentUtils.isContent(torrent, false);
 
@@ -77,22 +79,28 @@ public class VuzeActivitiesEntryContentShare
 		if (userInfo == null || userInfo.userID == null) {
 			// TODO: Login!
 			VuzeBuddyManager.log("Can't share download: Not logged in");
+			throw new NotLoggedInException();
 		}
 
 		setTypeID(TYPEID_BUDDYSHARE, true);
 		setID(TYPEID_BUDDYSHARE + "-" + SystemTime.getCurrentTime());
+		setTorrent(torrent);
 
 		String text = "<A HREF=\"" + userInfo.getProfileUrl(TYPEID_BUDDYSHARE)
 				+ "\">" + userInfo.userName + "</A> is sharing ";
-		
+
 		if (ourContent) {
 			String url = Constants.URL_PREFIX + Constants.URL_DETAILS + hash
-			+ ".html?" + Constants.URL_SUFFIX + "&client_ref=" + TYPEID_BUDDYSHARE;
-			text += "\n<A HREF=\"" + url + "\">" + PlatformTorrentUtils.getContentTitle(torrent) + "</A>";
+					+ ".html?" + Constants.URL_SUFFIX + "&client_ref="
+					+ TYPEID_BUDDYSHARE;
+			text += "\n<A HREF=\"" + url + "\">"
+					+ PlatformTorrentUtils.getContentTitle(torrent) + "</A>";
 		} else {
-			text += PlatformTorrentUtils.getContentTitle(torrent);
+			setTorrent(torrent);
+
+			text += PlatformTorrentUtils.getContentTitle2(dm);
 		}
-		
+
 		text += " with you.";
 
 		if (message != null) {
@@ -122,6 +130,18 @@ public class VuzeActivitiesEntryContentShare
 		if (buddyID != null) {
 			buddy = VuzeBuddyManager.getBuddyByLoginID(buddyID);
 		}
+
+		Map torrentMap = MapUtils.getMapMap(map, "torrent", null);
+		if (torrentMap != null) {
+			try {
+				setTorrent(TOTorrentFactory.deserialiseFromMap(torrentMap));
+			} catch (TOTorrentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		setDRM(MapUtils.getMapBoolean(torrentMap, "isDRM", false));
 	}
 
 	// @see com.aelitis.azureus.activities.VuzeActivitiesEntry#toMap()

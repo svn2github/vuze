@@ -23,6 +23,7 @@ import java.util.Map;
 import org.gudy.azureus2.core3.download.DownloadManager;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
+import com.aelitis.azureus.login.NotLoggedInException;
 
 /**
  * @author TuxPaper
@@ -56,13 +57,13 @@ public interface VuzeBuddy
 	
 	public void removePublicKey(String pk);
 	
-	public void sendActivity(VuzeActivitiesEntry entry);
+	public void sendActivity(VuzeActivitiesEntry entry) throws NotLoggedInException;
 
 	public void loadFromMap(Map mapNewBuddy);
 
-	public void shareDownload(DownloadManager dm, String message);
+	public void shareDownload(DownloadManager dm, String message) throws NotLoggedInException;
 
-	public void sendPayloadMap(Map map);
+	public void sendPayloadMap(Map map) throws NotLoggedInException;
 
 	public Map toMap();
 

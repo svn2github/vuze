@@ -8,6 +8,7 @@ import org.eclipse.swt.widgets.Control;
 
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
+import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractBuddyPageListener;
 import com.aelitis.azureus.util.Constants;
@@ -93,8 +94,13 @@ public class InvitePage
 						}
 
 						public void handleInviteConfirm() {
-							VuzeBuddyManager.inviteWithShare(getConfirmationResponse(), null,
-									null, null);
+							try {
+								VuzeBuddyManager.inviteWithShare(getConfirmationResponse(), null,
+										null, null);
+							} catch (NotLoggedInException e) {
+								// XXX Handle me!
+								e.printStackTrace();
+							}
 
 							System.err.println("\t'invite-confirm' called from invite buddy page: "
 									+ getConfirmationMessage());//KN: sysout

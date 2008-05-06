@@ -25,7 +25,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 
-import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
@@ -36,7 +35,6 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
-import com.aelitis.azureus.activities.VuzeActivitiesManager;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableCellCore;
@@ -154,6 +152,8 @@ public class ColumnVuzeActivity
 			cell.setSortValue(entry.getTimestamp());
 			return;
 		}
+		
+		boolean canShowThumb = canShowThumb(entry);
 
 		Image image = null;
 
@@ -242,7 +242,7 @@ public class ColumnVuzeActivity
 			}
 			style |= SWT.TOP;
 
-			if (entry.getShowThumb() && (entry.getDownloadManger() != null || entry.getImageBytes() != null)) {
+			if (canShowThumb) {
 				height += 60;
 			}
 
@@ -319,7 +319,7 @@ public class ColumnVuzeActivity
 			stringPrinter.printString(gc, drawRect, style);
 			entry.urlInfo = stringPrinter;
 
-			if (entry.getShowThumb() && (entry.getDownloadManger() != null || entry.getImageBytes() != null)) {
+			if (canShowThumb) {
 				Rectangle dmThumbRect = getDMImageRect(height);
 				if (thumbCell == null) {
 					ListCell listCell = new ListCellGraphic((ListRow) cell.getTableRow(),
@@ -341,7 +341,7 @@ public class ColumnVuzeActivity
 				thumbCell.refresh(true);
 
 				if (VuzeActivitiesEntry.TYPEID_RATING_REMINDER.equals(entry.getTypeID())) {
-					if (entry.getDownloadManger() != null
+					if (canShowThumb
 							&& PlatformTorrentUtils.isContent(entry.getDownloadManger().getTorrent(), true)) {
 						Rectangle dmRatingRect = getDMRatingRect(width, height);
 						if (ratingCell == null) {
@@ -372,6 +372,21 @@ public class ColumnVuzeActivity
 		disposeExisting(cell, image);
 
 		cell.setGraphic(new UISWTGraphicImpl(image));
+	}
+
+	/**
+	 * @param entry
+	 * @return
+	 *
+	 * @since 3.0.5.3
+	 */
+	private boolean canShowThumb(VuzeActivitiesEntry entry) {
+		if (!entry.getShowThumb()) {
+			return false;
+		}
+
+		return entry.getDownloadManger() != null || entry.getTorrent() != null
+				|| entry.getImageBytes() != null;
 	}
 
 	private void disposeExisting(TableCell cell, Image exceptIfThisImage) {
@@ -455,6 +470,8 @@ public class ColumnVuzeActivity
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellMouseListener#cellMouseTrigger(org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent)
 	public void cellMouseTrigger(TableCellMouseEvent event) {
+		String tooltip = null;
+
 		TableCellImpl thumbCell = getThumbCell(event.cell);
 		TableCellImpl ratingCell = getRatingCell(event.cell);
 		if (thumbCell != null || ratingCell != null) {
@@ -587,6 +604,7 @@ public class ColumnVuzeActivity
 					}
 
 					((TableCellSWT) event.cell).setCursorID(SWT.CURSOR_HAND);
+					//tooltip = hitUrl.url;
 				} else {
 					((TableCellSWT) event.cell).setCursorID(SWT.CURSOR_ARROW);
 				}
@@ -602,12 +620,11 @@ public class ColumnVuzeActivity
 			boolean isHeader = VuzeActivitiesEntry.TYPEID_HEADER.equals(entry.getTypeID());
 			if (!isHeader && inHitArea) {
 				String ts = timeFormat.format(new Date(entry.getTimestamp()));
-				event.cell.setToolTip("Activity occurred on " + ts);
-			} else {
-				event.cell.setToolTip(null);
+				tooltip = "Activity occurred on " + ts;
 			}
 		}
 
+		event.cell.setToolTip(tooltip);
 		refresh(event.cell, true);
 	}
 

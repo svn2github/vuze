@@ -6,8 +6,8 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Constants;
@@ -21,12 +21,9 @@ import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
+import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.ui.skin.SkinConstants;
-import com.aelitis.azureus.ui.swt.skin.SWTSkin;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectListener;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
+import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.util.LoginInfoManager;
 
@@ -88,9 +85,12 @@ public class ButtonBar
 						Utils.openMessageBox(null, SWT.ICON_ERROR, "No", "not logged in. no can do");
 						return;
 					}
-					PlatformRelayMessenger.fetch(0);
-					PlatformBuddyMessenger.sync(null);
-					PlatformBuddyMessenger.getInvites();
+					try {
+						PlatformRelayMessenger.fetch(0);
+						PlatformBuddyMessenger.sync(null);
+						PlatformBuddyMessenger.getInvites();
+					} catch (NotLoggedInException e1) {
+					}
 				}
 			});
 
@@ -111,7 +111,11 @@ public class ButtonBar
 						for (Iterator iter = buddies.iterator(); iter.hasNext();) {
 							VuzeBuddy buddy = (VuzeBuddy) iter.next();
 							System.out.println("sending to " + buddy.getDisplayName());
-							buddy.sendActivity(entry);
+							try {
+								buddy.sendActivity(entry);
+							} catch (NotLoggedInException e1) {
+								Debug.out("Shouldn't Happen", e1);
+							}
 						}
 					}
 				}

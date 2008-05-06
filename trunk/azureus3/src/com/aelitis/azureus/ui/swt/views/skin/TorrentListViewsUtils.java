@@ -34,6 +34,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.ForceRecheckListener;
+import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
@@ -41,6 +42,7 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnEditorWindow;
@@ -220,6 +222,23 @@ public class TorrentListViewsUtils
 		}
 		return null;
 	}
+	
+	private static TOTorrent getTorrentFromDS(Object ds) {
+		TOTorrent torrent = null;
+		if (ds instanceof DownloadManager) {
+			torrent = ((DownloadManager) ds).getTorrent();
+		} else if (ds instanceof VuzeActivitiesEntry) {
+			torrent = ((VuzeActivitiesEntry) ds).getTorrent();
+			if (torrent == null) {
+				DownloadManager dm = ((VuzeActivitiesEntry) ds).getDownloadManger();
+				if (dm != null) {
+					torrent = dm.getTorrent();
+				}
+			}
+		}
+		return torrent;
+	}
+
 
 	public static void viewDetails(DownloadManager dm) {
 		if (dm == null) {
@@ -356,16 +375,21 @@ public class TorrentListViewsUtils
 
 		DownloadManager dm = getDMFromDS(ds);
 		if (dm == null) {
-			String hash = getAssetHashFromDS(ds);
-			if (hash != null) {
-				// Note: the only case where there's no DM, and a hash present is
-				//       in a VuzeNewsEntry, which is displayed on the Dashboard's
-				//       Activity tab.  For now, we hardcode the referal to that
-				//       but we really should pass it in somehow
-				String url = Constants.URL_PREFIX + Constants.URL_DOWNLOAD + hash
-						+ ".torrent?referal=playdashboardactivity";
-				AzureusCore core = AzureusCoreFactory.getSingleton();
-				TorrentUIUtilsV3.loadTorrent(core, url, null, true, false, true);
+			TOTorrent torrent = getTorrentFromDS(ds);
+			if (torrent != null) {
+				TorrentUIUtilsV3.addTorrentToGM(torrent);
+			} else {
+  			String hash = getAssetHashFromDS(ds);
+  			if (hash != null) {
+  				// Note: the only case where there's no DM, and a hash present is
+  				//       in a VuzeNewsEntry, which is displayed on the Dashboard's
+  				//       Activity tab.  For now, we hardcode the referal to that
+  				//       but we really should pass it in somehow
+  				String url = Constants.URL_PREFIX + Constants.URL_DOWNLOAD + hash
+  						+ ".torrent?referal=playdashboardactivity";
+  				AzureusCore core = AzureusCoreFactory.getSingleton();
+  				TorrentUIUtilsV3.loadTorrent(core, url, null, true, false, true);
+  			}
 			}
 		} else {
 			playOrStream(dm, btn);

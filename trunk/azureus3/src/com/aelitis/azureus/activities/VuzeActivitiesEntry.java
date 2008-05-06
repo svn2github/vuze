@@ -25,6 +25,9 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
+import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -87,6 +90,12 @@ public class VuzeActivitiesEntry
 	private byte[] imageBytes;
 
 	private boolean showThumb = true;
+	
+
+	private TOTorrent torrent;
+
+	private boolean isDRM;
+
 
 	public VuzeActivitiesEntry(long timestamp, String text, String typeID) {
 		this.setText(text);
@@ -117,14 +126,42 @@ public class VuzeActivitiesEntry
 	public void loadFromExternalMap(Map platformEntry) {
 		timestamp = SystemTime.getCurrentTime()
 				- MapUtils.getMapLong(platformEntry, "age-ms", 0);
-		setText(MapUtils.getMapString(platformEntry, "text", null));
 		setIconID(MapUtils.getMapString(platformEntry, "icon-id", null));
-		setID(MapUtils.getMapString(platformEntry, "id", null));
 		setTypeID(MapUtils.getMapString(platformEntry, "type-id", null), true);
 		setAssetHash(MapUtils.getMapString(platformEntry, "related-asset-hash",
 				null));
 		setAssetImageURL(MapUtils.getMapString(platformEntry, "related-image-url",
 				null));
+		setDRM(MapUtils.getMapBoolean(platformEntry, "no-play", false));
+		loadCommonFromMap(platformEntry);
+	}
+
+	public void loadFromInternalMap(Map map) {
+		timestamp = MapUtils.getMapLong(map, "timestamp", 0);
+		setAssetHash(MapUtils.getMapString(map, "assetHash", null));
+		setIconID(MapUtils.getMapString(map, "icon", null));
+		setTypeID(MapUtils.getMapString(map, "typeID", null), true);
+		setShowThumb(MapUtils.getMapLong(map, "showThumb", 1) == 1);
+		setAssetImageURL(MapUtils.getMapString(map, "assetImageURL", null));
+		setImageBytes(MapUtils.getMapByteArray(map, "imageBytes", null));
+		setDRM(MapUtils.getMapBoolean(map, "isDRM", false));
+		loadCommonFromMap(map);
+	}
+	
+	public void loadCommonFromMap(Map map) {
+		setID(MapUtils.getMapString(map, "id", null));
+		setText(MapUtils.getMapString(map, "text", null));
+		Map torrentMap = MapUtils.getMapMap(map, "torrent", null);
+		if (torrentMap == null) {
+			setTorrent(null);
+		} else {
+			TOTorrent torrent = null;
+			try {
+				torrent = TOTorrentFactory.deserialiseFromMap(torrentMap);
+			} catch (TOTorrentException e) {
+			}
+			setTorrent(torrent);
+		}
 	}
 
 	// @see java.lang.Object#equals(java.lang.Object)
@@ -144,18 +181,6 @@ public class VuzeActivitiesEntry
 		}
 		// we are bigger
 		return 1;
-	}
-
-	public void loadFromInternalMap(Map map) {
-		timestamp = MapUtils.getMapLong(map, "timestamp", 0);
-		setAssetHash(MapUtils.getMapString(map, "assetHash", null));
-		setIconID(MapUtils.getMapString(map, "icon", null));
-		setID(MapUtils.getMapString(map, "id", null));
-		setText(MapUtils.getMapString(map, "text", null));
-		setTypeID(MapUtils.getMapString(map, "typeID", null), true);
-		setShowThumb(MapUtils.getMapLong(map, "showThumb", 1) == 1);
-		setAssetImageURL(MapUtils.getMapString(map, "assetImageURL", null));
-		setImageBytes(MapUtils.getMapByteArray(map, "imageBytes", null));
 	}
 
 	public void setAssetImageURL(final String url) {
@@ -200,7 +225,10 @@ public class VuzeActivitiesEntry
 	public Map toMap() {
 		Map map = new HashMap();
 		map.put("timestamp", new Long(timestamp));
-		if (assetHash != null) {
+		// don't store asset hash when torrent is non-null, as we can get
+		// the hash from it, and generally when there's a torrent object,
+		// it's not one of 'ours'
+		if (assetHash != null && torrent == null) {
 			map.put("assetHash", assetHash);
 		}
 		map.put("icon", getIconID());
@@ -218,6 +246,23 @@ public class VuzeActivitiesEntry
 			}
 		}
 
+		if (torrent != null) {
+			try {
+				// make a copy of the torrent
+
+				TOTorrent	torrent_to_send = TOTorrentFactory.deserialiseFromMap(torrent.serialiseToMap());
+
+				// remove any non-standard stuff (e.g. resume data)
+
+				torrent_to_send.removeAdditionalProperties();
+				
+				map.put("torrent", torrent_to_send.serialiseToMap());
+			} catch (TOTorrentException e) {
+				Debug.out(e);
+			}
+		}
+		map.put("isDRM", new Long(isDRM() ? 1 : 0));
+		
 		return map;
 	}
 
@@ -324,11 +369,16 @@ public class VuzeActivitiesEntry
 	public void setDownloadManager(DownloadManager dm) {
 		this.dm = dm;
 		if (dm != null) {
+			setDRM(PlatformTorrentUtils.isContentDRM(dm.getTorrent()));
+
 			try {
 				assetHash = dm.getTorrent().getHashWrapper().toBase32String();
 			} catch (Exception e) {
 			}
+		} else {
+			setDRM(false);
 		}
+
 	}
 
 	/**
@@ -364,5 +414,39 @@ public class VuzeActivitiesEntry
 	 */
 	public boolean getShowThumb() {
 		return showThumb;
+	}
+
+	/**
+	 * Independant for {@link #getDownloadManger()}.  This will be written to
+	 * the map.
+	 * 
+	 * @return Only returns TOTorrent set via {@link #setTorrent(TOTorrent)}
+	 *
+	 * @since 3.0.5.3
+	 */
+	public TOTorrent getTorrent() {
+		return torrent;
+	}
+
+	/**
+	 * Not needed if you {@link #setDownloadManager(DownloadManager)}. This will
+	 * be written the map.
+	 * 
+	 * @param torrent
+	 *
+	 * @since 3.0.5.3
+	 */
+	public void setTorrent(TOTorrent torrent) {
+		this.torrent = torrent;
+
+		setDRM(torrent == null ? false : PlatformTorrentUtils.isContentDRM(torrent));
+	}
+
+	public boolean isDRM() {
+		return isDRM;
+	}
+
+	public void setDRM(boolean isDRM) {
+		this.isDRM = isDRM;
 	}
 }

@@ -31,4 +31,6 @@ public interface VuzeRelayListener
 {
 	public void newRelayServerPayLoad(VuzeBuddy sender, String pkSender,
 			Map decodedMap);
+
+	public void hasPendingRelayMessage(int count);
 }

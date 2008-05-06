@@ -194,7 +194,7 @@ public class PlatformMessenger
 		} finally {
 			queue_mon.exit();
 		}
-		debug("about to process " + mapProcessing.size());
+		//debug("about to process " + mapProcessing.size());
 
 		if (mapProcessing.size() == 0) {
 			return;

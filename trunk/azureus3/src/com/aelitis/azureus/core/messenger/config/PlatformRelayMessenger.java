@@ -31,8 +31,10 @@ import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
 import com.aelitis.azureus.core.security.CryptoHandler;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
+import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.plugins.net.buddy.*;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin.cryptoResult;
+import com.aelitis.azureus.util.LoginInfoManager;
 import com.aelitis.azureus.util.MapUtils;
 
 /**
@@ -44,7 +46,9 @@ public class PlatformRelayMessenger
 {
 	public static final String LISTENER_ID = "relay";
 
-	public static final long DEFAULT_RECHECKIN_MINS = 60 * 2; // every 2 hours
+	public static final long DEFAULT_RECHECKIN_MINS = 30;
+
+	private static final long ERROR_RECHECKIN_MINS = 90;
 
 	public static String OP_FETCH = "fetch";
 
@@ -61,6 +65,8 @@ public class PlatformRelayMessenger
 	private static TimerEventPerformer relayCheckPerformer;
 
 	private static TimerEvent timerEvent;
+
+	private static long lastPendingCount = 0;
 
 	static {
 		relayCheckPerformer = new TimerEventPerformer() {
@@ -107,44 +113,36 @@ public class PlatformRelayMessenger
 			PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
 					OP_PUT, mapParameters, maxDelayMS);
 
-			PlatformMessengerListener listener = 
-				new PlatformMessengerListener() 
-			{
-				public void 
-				messageSent(
-					PlatformMessage message) 
-				{
+			PlatformMessengerListener listener = new PlatformMessengerListener() {
+				public void messageSent(PlatformMessage message) {
 				}
 
-				public void 
-				replyReceived(
-					PlatformMessage message, 
-					String replyType,
-					Map reply) 
-				{
+				public void replyReceived(PlatformMessage message, String replyType,
+						Map reply) {
 					boolean ok = false;
-					
-					try{
+
+					try {
 						String replyMessage = MapUtils.getMapString(reply, "message", null);
-	
+
 						if (replyMessage != null && replyMessage.equals("Ok")) {
 							// good
 							PlatformMessenger.debug("Relay: Ok to " + pk);
-	
-							putListener.putOK( buddyMessage );
-							
+
+							putListener.putOK(buddyMessage);
+
 							ok = true;
-							
+
 						} else {
 							// bad
 							PlatformMessenger.debug("Relay: FAILED for " + pk);
-	
+
 						}
-					}finally{
-						
-						if ( !ok ){
-							
-							putListener.putFailed( buddyMessage, new Exception( "Reply indicated failure: " + reply ));
+					} finally {
+
+						if (!ok) {
+
+							putListener.putFailed(buddyMessage, new Exception(
+									"Reply indicated failure: " + reply));
 						}
 					}
 				}
@@ -152,21 +150,24 @@ public class PlatformRelayMessenger
 			};
 
 			PlatformMessenger.queueMessage(message, listener);
-			
-		}catch( Throwable e ){
-			
-			putListener.putFailed( buddyMessage, e );
+
+		} catch (Throwable e) {
+
+			putListener.putFailed(buddyMessage, e);
 		}
 	}
 
-	public static final void fetch(long maxDelayMS) {
-		// XXX A successful fetch will result in data that we require login for
-		// TODO: Handle this
+	public static final void fetch(long maxDelayMS) throws NotLoggedInException {
+		if (!LoginInfoManager.getInstance().isLoggedIn()) {
+			resetTimerEvent(DEFAULT_RECHECKIN_MINS);
+			throw new NotLoggedInException();
+		}
 
 		String myPK;
 		try {
 			myPK = VuzeCryptoManager.getSingleton().getPublicKey(null);
 		} catch (VuzeCryptoException e) {
+			resetTimerEvent(DEFAULT_RECHECKIN_MINS);
 			Debug.out(e);
 			return;
 		}
@@ -179,6 +180,7 @@ public class PlatformRelayMessenger
 
 		final BuddyPlugin buddyPlugin = VuzeBuddyManager.getBuddyPlugin();
 		if (buddyPlugin == null) {
+			resetTimerEvent(DEFAULT_RECHECKIN_MINS);
 			return;
 		}
 
@@ -192,15 +194,11 @@ public class PlatformRelayMessenger
 				List list = (List) MapUtils.getMapObject(reply, "messages",
 						Collections.EMPTY_LIST, List.class);
 				long recheckInMins = MapUtils.getMapLong(reply, "recheck-in-mins",
-						DEFAULT_RECHECKIN_MINS);
+						PlatformMessenger.REPLY_EXCEPTION.equals(replyType)
+								? ERROR_RECHECKIN_MINS : DEFAULT_RECHECKIN_MINS);
 
 				PlatformMessenger.debug("Relay: rechecking in " + recheckInMins + "m");
-				if (timerEvent != null) {
-					timerEvent.cancel();
-				}
-				timerEvent = SimpleTimer.addEvent("Relay Server Check",
-						SystemTime.getOffsetTime(recheckInMins * 1000l * 60),
-						relayCheckPerformer);
+				resetTimerEvent(recheckInMins);
 
 				for (Iterator iter = list.iterator(); iter.hasNext();) {
 					Map map = (Map) iter.next();
@@ -249,6 +247,23 @@ public class PlatformRelayMessenger
 			}
 		};
 		PlatformMessenger.queueMessage(message, listener);
+	}
+
+	/**
+	 * 
+	 *
+	 * @param recheckInMins 
+	 * @since 3.0.5.3
+	 */
+	protected static void resetTimerEvent(long recheckInMins) {
+		PlatformMessenger.debug("Relay: rechecking in " + recheckInMins + "m");
+
+		if (timerEvent != null) {
+			timerEvent.cancel();
+		}
+		timerEvent = SimpleTimer.addEvent("Relay Server Check",
+				SystemTime.getOffsetTime(recheckInMins * 1000l * 60),
+				relayCheckPerformer);
 	}
 
 	public static final void addRelayServerListener(VuzeRelayListener l) {
@@ -368,23 +383,16 @@ public class PlatformRelayMessenger
 					Map reply) {
 				int count = MapUtils.getMapInt(reply, "count", 0);
 				long recheckInMins = MapUtils.getMapLong(reply, "recheck-in-mins",
-						DEFAULT_RECHECKIN_MINS);
+						PlatformMessenger.REPLY_EXCEPTION.equals(replyType)
+								? ERROR_RECHECKIN_MINS : DEFAULT_RECHECKIN_MINS);
+				resetTimerEvent(recheckInMins);
 
-				if (timerEvent != null) {
-					timerEvent.cancel();
-				}
-
-				if (count > 0) {
-					PlatformMessenger.debug("Relay: You got messages on the relay server");
-					PlatformRelayMessenger.fetch(1000);
-				} else {
-					// only setup another check if we aren't doing a fetch, since
-					// fetch will setup the timer
-					PlatformMessenger.debug("Relay: rechecking via count in "
-							+ recheckInMins + "m");
-					timerEvent = SimpleTimer.addEvent("Relay Server Check",
-							SystemTime.getOffsetTime(recheckInMins * 1000l * 60),
-							relayCheckPerformer);
+				if (count > 0 || lastPendingCount != count) {
+					lastPendingCount = count;
+					for (Iterator iter2 = listeners.iterator(); iter2.hasNext();) {
+						VuzeRelayListener l = (VuzeRelayListener) iter2.next();
+						l.hasPendingRelayMessage(count);
+					}
 				}
 			}
 
@@ -401,16 +409,10 @@ public class PlatformRelayMessenger
 		PlatformMessenger.queueMessage(message, listener);
 	}
 
-	public interface
-	putListener
+	public interface putListener
 	{
-		public void
-		putOK(
-			BuddyPluginBuddyMessage		message );
-		
-		public void
-		putFailed(
-			BuddyPluginBuddyMessage		message,
-			Throwable					cause );
+		public void putOK(BuddyPluginBuddyMessage message);
+
+		public void putFailed(BuddyPluginBuddyMessage message, Throwable cause);
 	}
 }

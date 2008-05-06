@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
+import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.util.*;
@@ -42,12 +43,15 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 import com.aelitis.azureus.util.Constants;
+
+import org.gudy.azureus2.plugins.torrent.TorrentManager;
 
 /**
  * @author TuxPaper
@@ -229,5 +233,35 @@ public class TorrentUIUtilsV3
 				}
 			}
 		}.start();
+	}
+	
+	/**
+	 * No clue if we have a easy way to add a TOTorrent to the GM, so here it is
+	 * @param torrent
+	 * @return
+	 *
+	 * @since 3.0.5.3
+	 */
+	public static boolean addTorrentToGM(TOTorrent torrent) {
+		File tempTorrentFile;
+		try {
+			tempTorrentFile = File.createTempFile("AZU", ".torrent");
+			tempTorrentFile.deleteOnExit();
+			String filename = tempTorrentFile.getAbsolutePath();
+			torrent.serialiseToBEncodedFile(tempTorrentFile);
+
+
+			String savePath = COConfigurationManager.getStringParameter("Default save path");
+			if (savePath == null || savePath.length() == 0) {
+				savePath = ".";
+			}
+
+			AzureusCore core = AzureusCoreFactory.getSingleton();
+			core.getGlobalManager().addDownloadManager(filename, savePath);
+		} catch (Throwable t) {
+			Debug.out(t);
+			return false;
+		}
+		return true;
 	}
 }

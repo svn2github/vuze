@@ -24,10 +24,12 @@ import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.activities.VuzeActivitiesEntryContentShare;
 import com.aelitis.azureus.buddy.VuzeBuddy;
+import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
 import com.aelitis.azureus.util.Constants;
@@ -68,16 +70,18 @@ public class VuzeBuddyImpl
 	}
 
 	public void loadFromMap(Map mapNewBuddy) {
+		setDisplayName(MapUtils.getMapString(mapNewBuddy, "display-name", ""
+				+ mapNewBuddy.hashCode()));
+		setLoginID(MapUtils.getMapString(mapNewBuddy, "login-id", ""
+				+ mapNewBuddy.hashCode()));
+
 		List pkList = MapUtils.getMapList(mapNewBuddy, "pks",
 				Collections.EMPTY_LIST);
 		for (Iterator iter = pkList.iterator(); iter.hasNext();) {
 			String pk = (String) iter.next();
 			addPublicKey(pk);
 		}
-		setDisplayName(MapUtils.getMapString(mapNewBuddy, "display-name", ""
-				+ mapNewBuddy.hashCode()));
-		setLoginID(MapUtils.getMapString(mapNewBuddy, "login-id", ""
-				+ mapNewBuddy.hashCode()));
+
 		byte[] avatarBytes = MapUtils.getMapByteArray(mapNewBuddy, "avatar", null);
 		if (avatarBytes == null) {
 			String avatarB64 = MapUtils.getMapString(mapNewBuddy, "avatar.B64", null);
@@ -234,30 +238,32 @@ public class VuzeBuddyImpl
 	}
 
 	// @see com.aelitis.azureus.buddy.VuzeBuddy#sendActivity(com.aelitis.azureus.util.VuzeActivitiesEntry)
-	public void sendActivity(VuzeActivitiesEntry entry) {
+	public void sendActivity(VuzeActivitiesEntry entry)
+			throws NotLoggedInException {
 		BuddyPluginBuddy[] buddies = (BuddyPluginBuddy[]) pluginBuddies.toArray(new BuddyPluginBuddy[0]);
 		VuzeBuddyManager.sendActivity(entry, buddies);
 	}
 
 	// @see com.aelitis.azureus.buddy.VuzeBuddy#sendPayloadMap(java.util.Map)
-	public void sendPayloadMap(Map map) {
+	public void sendPayloadMap(Map map) throws NotLoggedInException {
 		BuddyPluginBuddy[] buddies = (BuddyPluginBuddy[]) pluginBuddies.toArray(new BuddyPluginBuddy[0]);
 		VuzeBuddyManager.sendPayloadMap(map, buddies);
 	}
 
-	public void shareDownload(DownloadManager dm, String message) {
+	public void shareDownload(DownloadManager dm, String message)
+			throws NotLoggedInException {
 		if (dm == null) {
 			return;
 		}
 
-		VuzeActivitiesEntryContentShare entry = new VuzeActivitiesEntryContentShare(
-				dm, message);
+		VuzeActivitiesEntryContentShare entry;
+		entry = new VuzeActivitiesEntryContentShare(dm, message);
 		entry.setBuddy(this);
 
 		sendActivity(entry);
 	}
 
-	public void tellBuddyToSyncUp() {
+	public void tellBuddyToSyncUp() throws NotLoggedInException {
 		Map map = new HashMap();
 		map.put("VuzeMessageType", "CheckInvites");
 

@@ -30,6 +30,8 @@ import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
+import com.aelitis.azureus.login.NotLoggedInException;
+import com.aelitis.azureus.util.LoginInfoManager;
 import com.aelitis.azureus.util.MapUtils;
 
 /**
@@ -53,7 +55,12 @@ public class PlatformBuddyMessenger
 
 	public static final String OP_REMOVEBUDDY = "ditch";
 
-	public static void sync(final VuzeBuddySyncListener l) {
+	public static void sync(final VuzeBuddySyncListener l)
+			throws NotLoggedInException {
+		if (!LoginInfoManager.getInstance().isLoggedIn()) {
+			throw new NotLoggedInException();
+		}
+
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID_BUDDY,
 				OP_SYNC, new Object[0], 1000);
 
@@ -64,10 +71,11 @@ public class PlatformBuddyMessenger
 
 			public void replyReceived(PlatformMessage message, String replyType,
 					Map reply) {
+				// TODO: It's possible we got a error message back that says we
+				//       are logged out.  handle?
 				long updateTime = SystemTime.getCurrentTime();
 
-				List buddies = MapUtils.getMapList(reply, "buddies",
-						null);
+				List buddies = MapUtils.getMapList(reply, "buddies", null);
 
 				if (buddies == null) {
 					return;
@@ -106,9 +114,14 @@ public class PlatformBuddyMessenger
 	/**
 	 * 
 	 *
+	 * @throws NotLoggedInException 
 	 * @since 3.0.5.3
 	 */
-	public static void getInvites() {
+	public static void getInvites() throws NotLoggedInException {
+		if (!LoginInfoManager.getInstance().isLoggedIn()) {
+			throw new NotLoggedInException();
+		}
+		
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID_INVITE,
 				OP_GETINVITES, new Object[0], 1000);
 
@@ -185,18 +198,19 @@ public class PlatformBuddyMessenger
 		message.setRequiresAuthorization(false);
 		PlatformMessenger.queueMessage(message, listener);
 	}
-	
+
 	public static void invite(String loginID, String userMessage) {
-		
+
 		Map parameters = new HashMap();
 		parameters.put("message", userMessage);
-		
+
 		List invitations = new ArrayList();
 		Map invitation = new HashMap();
-		parameters.put("invitations", invitation);
+		parameters.put("invitations", invitations);
 		invitation.put("type", "username");
 		invitation.put("value", loginID);
-		
+		invitations.add(invitation);
+
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID_INVITE,
 				OP_INVITE, parameters, 1000);
 
@@ -221,7 +235,10 @@ public class PlatformBuddyMessenger
 	 */
 	public static void remove(VuzeBuddy buddy) {
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID_BUDDY,
-				OP_REMOVEBUDDY, new Object[] { "username", buddy.getLoginID() } , 1000);
+				OP_REMOVEBUDDY, new Object[] {
+					"username",
+					buddy.getLoginID()
+				}, 1000);
 
 		PlatformMessengerListener listener = new PlatformMessengerListener() {
 

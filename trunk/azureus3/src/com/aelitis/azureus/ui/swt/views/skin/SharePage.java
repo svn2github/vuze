@@ -43,6 +43,7 @@ import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractBuddyPageListener;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
@@ -363,8 +364,13 @@ public class SharePage
 				getMessageContext().executeInBrowser("shareSubmit()");
 
 				VuzeBuddy[] buddies = (VuzeBuddy[]) selectedBuddies.toArray(new VuzeBuddy[selectedBuddies.size()]);
-				VuzeBuddyManager.inviteWithShare(confirmationResponse,
-						getDownloadManager(), shareHeaderMessageLabel.getText(), buddies);
+				try {
+					VuzeBuddyManager.inviteWithShare(confirmationResponse,
+							getDownloadManager(), commentText.getText(), buddies);
+				} catch (NotLoggedInException e1) {
+					// XXX Handle me!
+					e1.printStackTrace();
+				}
 
 				getDetailPanel().show(false);
 
