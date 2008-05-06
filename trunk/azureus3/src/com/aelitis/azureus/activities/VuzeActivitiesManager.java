@@ -518,8 +518,7 @@ public class VuzeActivitiesManager
 		skipAutoSave = true;
 
 		try {
-
-			Map map = BDecoder.decodeStrings(FileUtil.readResilientConfigFile(SAVE_FILENAME));
+			Map map = FileUtil.readResilientConfigFile(SAVE_FILENAME);
 
 			lastVuzeNewsAt = MapUtils.getMapLong(map, "LastCheck", 0);
 			long cutoffTime = getCutoffTime();
