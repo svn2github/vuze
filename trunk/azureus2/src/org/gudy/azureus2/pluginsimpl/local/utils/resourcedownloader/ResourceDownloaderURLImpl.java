@@ -33,6 +33,7 @@ import java.net.*;
 import javax.net.ssl.*;
 import java.net.PasswordAuthentication;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.InflaterInputStream;
 
 import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
 import org.gudy.azureus2.core3.util.AEThread2;
@@ -64,7 +65,7 @@ ResourceDownloaderURLImpl
 	protected boolean		download_initiated;
 	protected long			size		 	= -2;	// -1 -> unknown
 
-	private final String postData;
+	private final String post_data;
 	
 	public 
 	ResourceDownloaderURLImpl(
@@ -109,7 +110,7 @@ ResourceDownloaderURLImpl
 	ResourceDownloaderURLImpl(
 		ResourceDownloaderBaseImpl	_parent,
 		URL							_url,
-		String _data,
+		String 						_data,
 		boolean						_auth_supplied,
 		String						_user_name,
 		String						_password )
@@ -128,7 +129,7 @@ ResourceDownloaderURLImpl
 		*/
 		
 		original_url	= _url;
-		postData = _data;
+		post_data 		= _data;
 		auth_supplied	= _auth_supplied;
 		user_name		= _user_name;
 		password		= _password;
@@ -183,10 +184,12 @@ ResourceDownloaderURLImpl
 		size	= l;
 	}
 	
-	protected void
+	public void
 	setProperty(
 		String	name,
 		Object	value )
+	
+		throws ResourceDownloaderException
 	{
 		setPropertySupport( name, value );
 	}
@@ -256,6 +259,8 @@ ResourceDownloaderURLImpl
 							
 							con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
 				  
+							setProperties( con );
+							
 							con.connect();
 				
 							int response = con.getResponseCode();
@@ -327,7 +332,7 @@ ResourceDownloaderURLImpl
 	getClone(
 		ResourceDownloaderBaseImpl	parent )
 	{
-		ResourceDownloaderURLImpl c = new ResourceDownloaderURLImpl( parent, original_url, postData, auth_supplied, user_name, password );
+		ResourceDownloaderURLImpl c = new ResourceDownloaderURLImpl( parent, original_url, post_data, auth_supplied, user_name, password );
 		
 		c.setSize( size );
 		
@@ -474,14 +479,21 @@ ResourceDownloaderURLImpl
 
 							con.addRequestProperty( "Accept-Encoding", "gzip" );
 							 
-							if (postData != null) {
+							if ( post_data != null ){
+								
 								con.setDoOutput(true);
+								
 								con.setRequestMethod("POST");
+								
 								OutputStreamWriter wr = new OutputStreamWriter(con.getOutputStream());
-								wr.write(postData);
+								
+								wr.write(post_data);
+								
 								wr.flush();
 							}
 
+							setProperties( con );
+							
 							con.connect();
 				
 							int response = con.getResponseCode();
@@ -491,7 +503,8 @@ ResourceDownloaderURLImpl
 								throw( new ResourceDownloaderException("Error on connect for '" + url.toString() + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
 							}
 								
-							boolean gzip = false;
+							boolean compressed = false;
+							
 							try{
 								this_mon.enter();
 								
@@ -499,11 +512,20 @@ ResourceDownloaderURLImpl
 								
 								String encoding = con.getHeaderField( "content-encoding");
 				 				
-				 				gzip = encoding != null && encoding.equalsIgnoreCase("gzip");
-				 								 				
-				 				if ( gzip ){
-				 									 					
-				 					input_stream = new GZIPInputStream( input_stream );
+				 				if ( encoding != null ){
+				 					
+				 					if ( encoding.equalsIgnoreCase( "gzip"  )){
+
+						 				compressed = true;
+					 									 					
+					 					input_stream = new GZIPInputStream( input_stream );
+					 					
+				 					}else if ( encoding.equalsIgnoreCase( "deflate" )){
+
+				 						compressed = true;
+				 						
+				 						input_stream = new InflaterInputStream( input_stream );
+				 					}
 				 				}
 							}finally{
 								
@@ -529,7 +551,7 @@ ResourceDownloaderURLImpl
 										the length of the incoming data from the client and not the
 										byte count of the decompressed data stream.
 								 */
-								int size = gzip ? -1 : con.getContentLength();					
+								int size = compressed ? -1 : con.getContentLength();					
 								
 								baos = size>0?new ByteArrayOutputStream(size>MAX_IN_MEM_READ_SIZE?MAX_IN_MEM_READ_SIZE:size):new ByteArrayOutputStream();
 								
@@ -719,6 +741,18 @@ ResourceDownloaderURLImpl
 		}
 		
 		informFailed( new ResourceDownloaderCancelledException());
+	}
+	
+	protected void
+	setProperties(
+		HttpURLConnection		con )
+	{
+		String ua = getStringPropertySupport( ResourceDownloader.PR_USER_AGENT_TYPE );
+		
+		if ( ua != null ){
+			
+			con.setRequestProperty( "User-Agent" , ua );
+		}
 	}
 	
 	public PasswordAuthentication

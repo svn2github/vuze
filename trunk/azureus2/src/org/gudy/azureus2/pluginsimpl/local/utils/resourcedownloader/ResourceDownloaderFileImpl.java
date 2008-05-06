@@ -98,7 +98,7 @@ ResourceDownloaderFileImpl
 		return( FileUtil.getFileOrDirectorySize( file ));
 	}
 	
-	protected void
+	public void
 	setProperty(
 		String	name,
 		Object	value )

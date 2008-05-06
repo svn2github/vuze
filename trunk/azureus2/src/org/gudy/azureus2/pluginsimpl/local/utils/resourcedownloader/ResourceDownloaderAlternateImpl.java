@@ -174,10 +174,12 @@ ResourceDownloaderAlternateImpl
 		}
 	}
 	
-	protected void
+	public void
 	setProperty(
 		String	name,
 		Object	value )
+	
+		throws ResourceDownloaderException
 	{
 		setPropertySupport( name, value );
 		

@@ -32,7 +32,8 @@ public interface
 ResourceDownloader 
 {
 	public static final String	PR_STRING_CONTENT_TYPE		= "ContentType";
-	
+	public static final String	PR_USER_AGENT_TYPE			= "UserAgent";
+
 		/**
 		 * Get a sensible name for the download based on its details (e.g. URL)
 		 * @return
@@ -75,6 +76,13 @@ ResourceDownloader
 	
 		throws ResourceDownloaderException;
 
+	public void
+	setProperty(
+		String		name,
+		Object		value )
+	
+		throws ResourceDownloaderException;
+	
 	public Object
 	getProperty(
 		String		name )

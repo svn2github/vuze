@@ -80,7 +80,7 @@ ResourceDownloaderErrorImpl
 	{
 	}
 	
-	protected void
+	public void
 	setProperty(
 		String	name,
 		Object	value )

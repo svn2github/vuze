@@ -82,7 +82,28 @@ ResourceDownloaderBaseImpl
 		
 		getSize();
 		
+		return( getPropertySupport( name ));
+	}
+	
+	protected Object
+	getPropertySupport(
+		String	name )
+	{
 		return( properties.get( name ));
+	}
+	
+	protected String
+	getStringPropertySupport(
+		String	name )
+	{
+		Object	 obj = properties.get( name );
+		
+		if ( obj instanceof String ){
+			
+			return((String)obj);
+		}
+		
+		return( null );
 	}
 	
 	protected void
@@ -105,14 +126,15 @@ ResourceDownloaderBaseImpl
 			
 			String	key = (String)it.next();
 			
-			setProperty( key, p.get(key));
+			try{
+				setProperty( key, p.get(key));
+				
+			}catch( Throwable e ){
+			
+				Debug.printStackTrace(e);
+			}
 		}
 	}
-	
-	protected abstract void
-	setProperty(
-		String	name,
-		Object	value );
 
 	protected void
 	setParent(
