@@ -6,8 +6,8 @@ public interface MetaSearch {
 	
 	public Engine[] getEngines();
 	
-	public void addEngine(int id);
+	public void addEngine( Engine engine);
 	
-	public void removeEngine(int id);
+	public void removeEngine(Engine engine );
 	
 }

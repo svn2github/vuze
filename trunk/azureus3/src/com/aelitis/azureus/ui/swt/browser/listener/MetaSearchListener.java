@@ -5,11 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.UrlUtils;
 
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearch;
+import com.aelitis.azureus.core.metasearch.MetaSearchFactory;
 import com.aelitis.azureus.core.metasearch.Result;
 import com.aelitis.azureus.core.metasearch.ResultListener;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
@@ -30,17 +29,10 @@ public class MetaSearchListener extends AbstractMessageListener {
 
 	public static final String OP_SET_MODE = "set-mode";
 	
-	private MetaSearch metaSearch;
+	private MetaSearch metaSearch = MetaSearchFactory.getSingleton();
 
 	public MetaSearchListener() {
 		super(LISTENER_ID);
-		try {
-			Class clazz = Class.forName("com.aelitis.azureus.core.metasearch.impl.MetaSearchTestImpl");
-			metaSearch = (MetaSearch) clazz.newInstance();
-		} catch(Exception e) {
-			//Test implementation in progress, Test class not publicly available
-			e.printStackTrace();
-		}
 	}
 	
 	public void handleMessage(BrowserMessage message) {
