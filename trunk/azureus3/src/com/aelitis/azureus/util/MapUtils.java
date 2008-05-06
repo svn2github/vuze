@@ -110,7 +110,16 @@ public class MapUtils
 
 	public static boolean getMapBoolean(Map map, String key, boolean def) {
 		try {
-			return ((Boolean) map.get(key)).booleanValue();
+			Object o = map.get(key);
+			if (o instanceof Boolean) {
+				return ((Boolean) o).booleanValue();
+			}
+			
+			if (o instanceof Long) {
+				return ((Long) o).longValue() == 1;
+			}
+			
+			return def;
 		} catch (Exception e) {
 			return def;
 		}
