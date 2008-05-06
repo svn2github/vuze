@@ -20,12 +20,16 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import org.eclipse.swt.widgets.Composite;
 
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
+import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
 
 /**
  * @author TuxPaper
@@ -55,6 +59,8 @@ extends SkinView
 
 	private SWTSkinButtonUtility btnColumnSetup;
 
+	private SWTSkinObjectText soTitle;
+
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
 		final SWTSkin skin = skinObject.getSkin();
 		AzureusCore core = AzureusCoreFactory.getSingleton();
@@ -77,6 +83,34 @@ extends SkinView
 		view = new TorrentListView(core, skin, skin.getSkinProperties(), cHeaders,
 				lblCountArea, cData, TorrentListView.VIEW_MY_MEDIA, true, true);
 
+		if (Constants.isCVSVersion()) {
+  		SWTSkinObject skinObjectTab = skin.getSkinObject(SkinConstants.VIEWID_MINILIBRARY_TAB);
+  		if (skinObjectTab instanceof SWTSkinObjectContainer){
+  			SWTSkinObjectContainer soTab = (SWTSkinObjectContainer) skinObjectTab;
+  			SWTSkinObject[] children = soTab.getChildren();
+  			for (int i = 0; i < children.length; i++) {
+  				SWTSkinObject child = children[i];
+  				if (child instanceof SWTSkinObjectText) {
+  					soTitle = (SWTSkinObjectText) child;
+  					break;
+  				}
+  			}
+  		}
+  
+  
+  		if (soTitle != null) {
+    		view.addListener(new TorrentListViewListener() {
+    			public void countChanged() {
+    				String s = MessageText.getString("v3.MainWindow.tab.minilibrary");
+    				int count = view.size(false);
+    				if (count > 0) {
+    					s += " - " + count;
+    				}
+    				soTitle.setText(s);
+    			}
+    		});
+  		}
+		}
 
 		skinObject = skin.getSkinObject(PREFIX + "add");
 		if (skinObject instanceof SWTSkinObject) {
