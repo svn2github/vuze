@@ -3,8 +3,13 @@ package com.aelitis.azureus.core.metasearch.impl.web;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
 
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.Result;
@@ -67,6 +72,7 @@ public abstract class WebEngine implements Engine {
 		
 		try {
 			String searchURL = searchURLFormat;
+			
 			for(int i = 0 ; i < searchParameters.length ; i++){
 				SearchParameter parameter = searchParameters[i];
 				//String escapedKeyword = URLEncoder.encode(parameter.getValue(),"UTF-8");
@@ -74,41 +80,46 @@ public abstract class WebEngine implements Engine {
 				searchURL = searchURL.replaceAll("%" + parameter.getMatchPattern(), escapedKeyword);
 			}
 			
-			URLConnection conn = new URL(searchURL).openConnection();
+			URL url = new URL(searchURL);
 			
+			ResourceDownloaderFactory rdf = StaticUtilities.getResourceDownloaderFactory();
+			
+			ResourceDownloader url_rd = rdf.create( url );
+						
+
 			/*if(cookieParameters!= null && cookieParameters.length > 0) {
 				String 	cookieString = "";
 				String separator = "";
 				for(CookieParameter parameter : cookieParameters) {
 					cookieString += separator + parameter.getName() + "=" + parameter.getValue();
 					separator = "; ";
-				}
-				conn.setRequestProperty("Cookie", cookieString);
+				}				
+				url_rd.setProperty( "URL_Cookie", cookieString );
 			}*/
 			
-			conn.connect();
-				
-				
-				StringBuffer sb = new StringBuffer();
-				byte[] data = new byte[8192];
-				
-				InputStream is = conn.getInputStream();
-				int nbRead = 0;
-				while((nbRead = is.read(data)) != -1) {
-					sb.append(new String(data,0,nbRead));
+			StringBuffer sb = new StringBuffer();
+			byte[] data = new byte[8192];
+
+			InputStream is = url_rd.download();
+
+			int nbRead = 0;
+			while((nbRead = is.read(data)) != -1) {
+				sb.append(new String(data,0,nbRead));
+			}
+
+			String page = sb.toString();
+
+			// List 	cookie = (List)url_rd.getProperty( "URL_Set-Cookie" );
+			
+			try {
+				Matcher m = baseTagPattern.matcher(page);
+				if(m.find()) {
+					basePage = m.group(1);
 				}
-				
-				String page = sb.toString();
-				
-				try {
-					Matcher m = baseTagPattern.matcher(page);
-					if(m.find()) {
-						basePage = m.group(1);
-					}
-				} catch(Exception e) {
-					//No BASE tag in the page
-				}
-				return page;
+			} catch(Exception e) {
+				//No BASE tag in the page
+			}
+			return page;
 				
 		} catch (Exception e) {
 			e.printStackTrace();
