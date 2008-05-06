@@ -224,8 +224,6 @@ implements PEPeerTransport
 	//lazy mode makes sure we never send a complete (seed) bitfield
 	protected static boolean ENABLE_LAZY_BITFIELD;
 	
-	private static final Random rnd = new SecureRandom();
-	
 	private static final class DisconnectedTransportQueue extends LinkedHashMap
 	{
 		public DisconnectedTransportQueue()
@@ -291,9 +289,13 @@ implements PEPeerTransport
 	
 	private static boolean 	fast_unchoke_new_peers;
 	
+	private static final Random rnd = new SecureRandom();
+	private static final byte[] sessionSecret;
+	
 	static {
-		
-		rnd.setSeed(SystemTime.getCurrentTime());
+		rnd.setSeed(SystemTime.getHighPrecisionCounter());
+		sessionSecret = new byte[20];
+		rnd.nextBytes(sessionSecret);
 		
 		COConfigurationManager.addAndFireParameterListeners(
 				new String[]{ 
@@ -321,11 +323,6 @@ implements PEPeerTransport
 	// reconnect stuff
 	private HashWrapper peerSessionID;
 	private HashWrapper mySessionID;
-	{
-		byte[] newSession = new byte[20];
-		rnd.nextBytes(newSession);				
-		mySessionID = new HashWrapper(newSession);	
-	}
 
 	// allow reconnect if we've sent or recieved at least 1 piece over the current connection
 	private boolean allowReconnect; 
@@ -369,7 +366,7 @@ implements PEPeerTransport
 
 		ip    = notional_address.getAddress().getHostAddress();
 		port  = notional_address.getPort();
-
+		
 		peer_item_identity = PeerItemFactory.createPeerItem( ip, port, PeerItem.convertSourceID( _peer_source ), PeerItemFactory.HANDSHAKE_TYPE_PLAIN, 0, PeerItemFactory.CRYPTO_LEVEL_1, 0 );  //this will be recreated upon az handshake decode
 
 		plugin_connection = new ConnectionImpl(connection);
@@ -402,6 +399,8 @@ implements PEPeerTransport
 							Logger.log(new LogEvent(PEPeerTransportProtocol.this, LOGID,
 							"In: Established incoming connection"));
 
+						generateSessionId();
+						
 						initializeConnection();
 
 						/*
@@ -477,7 +476,6 @@ implements PEPeerTransport
 		crypto_level	= _crypto_level;
 		data			= _initial_user_data;
 		
-
 		udp_non_data_port = UDPNetworkManager.getSingleton().getUDPNonDataListeningPortNumber();
 
 		peer_item_identity = PeerItemFactory.createPeerItem( ip, tcp_listen_port, PeerItem.convertSourceID( _peer_source ), PeerItemFactory.HANDSHAKE_TYPE_PLAIN, _udp_port, crypto_level, 0 );  //this will be recreated upon az handshake decode
@@ -602,6 +600,8 @@ implements PEPeerTransport
 							//Debug.out( "PEPeerTransportProtocol::connectSuccess() called when closing." );
 							return;
 						}
+						
+						generateSessionId();
 
 						if (Logger.isEnabled())
 							Logger.log(new LogEvent(PEPeerTransportProtocol.this, LOGID,
@@ -871,10 +871,11 @@ implements PEPeerTransport
 		}
 	}
 	
-	private void generateFallbackSessionId()
+	private void generateSessionId()
 	{
 		SHA1Hasher sha1 = new SHA1Hasher();
-		sha1.update(peer_id);
+		sha1.update(sessionSecret);
+		sha1.update(manager.getHash());
 		sha1.update(getIp().getBytes());
 		mySessionID = sha1.getHash();
 		checkForReconnect(mySessionID);
@@ -976,6 +977,11 @@ implements PEPeerTransport
 		
 		boolean require_crypto = NetworkManager.getCryptoRequired(manager.getAdapter().getCryptoLevel());
 
+		/*
+		 * we always send the Az-handshake immediately after the BT-handshake, before decoding the
+		 * other side's Az-handshake, thus there should be no peerSessionID unless this is a
+		 * reconnect
+		 */
 		if(peerSessionID != null)
 			Logger.log(new LogEvent(this, LOGID, LogEvent.LT_INFORMATION,"notifying peer of reconnect attempt"));
   
@@ -2148,7 +2154,7 @@ implements PEPeerTransport
 			connection.getIncomingMessageQueue().setDecoder(new LTMessageDecoder());
 			connection.getOutgoingMessageQueue().setEncoder(new LTMessageEncoder(this));
 			
-			generateFallbackSessionId();
+			generateSessionId();
 			
 			/**
 			 * We don't need to wait for the LT handshake, nor do we require it, nor
@@ -2164,7 +2170,6 @@ implements PEPeerTransport
 			
 			connection.getIncomingMessageQueue().getDecoder().resumeDecoding();
 			
-			generateFallbackSessionId();
 			this.initPostConnection(handshake);
 		}
 		
@@ -2332,8 +2337,6 @@ implements PEPeerTransport
 			
 		if(handshake.getRemoteSessionID() != null)
 			peerSessionID = handshake.getRemoteSessionID();
-		else
-			generateFallbackSessionId();
 
 		if (handshake.isUploadOnly())
 		{
