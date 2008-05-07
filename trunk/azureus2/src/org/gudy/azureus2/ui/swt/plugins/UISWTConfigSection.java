@@ -36,7 +36,7 @@ UISWTConfigSection
 	  /**
 	   * Create your own configuration panel here.  It can be anything that inherits
 	   * from SWT's Composite class.
-	   * Please be mindfull of small screen resolutions
+	   * Please be mindful of small screen resolutions
 	   *
 	   * @param parent The parent of your configuration panel
 	   * @return your configuration panel
