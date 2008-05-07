@@ -17,9 +17,8 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -74,6 +73,8 @@ public class LightBoxBrowserWindow
 	private Color contentBackgroundColor = null;
 
 	private UIFunctionsSWT uiFunctions;
+
+	private closeListener closeListener;
 
 	public LightBoxBrowserWindow(String url, String prefixVerifier, int width,
 			int height) {
@@ -234,7 +235,7 @@ public class LightBoxBrowserWindow
 		 */
 		browser.addCloseWindowListener(new CloseWindowListener() {
 			public void close(WindowEvent event) {
-				lightBoxShell.close();
+				LightBoxBrowserWindow.this.close();
 			}
 		});
 
@@ -364,6 +365,9 @@ public class LightBoxBrowserWindow
 
 	public void close() {
 		lightBoxShell.close();
+		if (closeListener != null) {
+			closeListener.close();
+		}
 	}
 
 	public void refresh() {
@@ -400,5 +404,13 @@ public class LightBoxBrowserWindow
 
 	public void setRedirectURL(String redirectURL) {
 		this.redirectURL = redirectURL;
+	}
+	
+	public void setCloseListener(closeListener l) {
+		closeListener = l;
+	}
+	
+	public interface closeListener {
+		public void close();
 	}
 }

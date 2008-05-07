@@ -18,15 +18,24 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.swt.widgets.Composite;
 
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
+import com.aelitis.azureus.ui.common.table.TableSelectionListener;
 import com.aelitis.azureus.ui.skin.SkinConstants;
+import com.aelitis.azureus.ui.swt.currentlyselectedcontent.CurrentContent;
+import com.aelitis.azureus.ui.swt.currentlyselectedcontent.CurrentlySelectedContentManager;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
 import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
@@ -61,7 +70,21 @@ extends SkinView
 
 	private SWTSkinObjectText soTitle;
 
+	private SWTSkinObject soData;
+
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
+		soData = skinObject;
+		soData.addListener(new SWTSkinObjectListener() {
+			public Object eventOccured(SWTSkinObject skinObject, int eventType,
+					Object params) {
+				if (eventType == SWTSkinObjectListener.EVENT_SHOW) {
+					System.out.println("SHOW MINILIB");
+					CurrentlySelectedContentManager.changeCurrentlySelectedContent(getCurrentlySelectedContent());
+				}
+				return null;
+			}
+		});
+
 		final SWTSkin skin = skinObject.getSkin();
 		AzureusCore core = AzureusCoreFactory.getSingleton();
 
@@ -78,11 +101,26 @@ extends SkinView
 		if (skinObject instanceof SWTSkinObjectText) {
 			lblCountArea = (SWTSkinObjectText) skinObject;
 		}
-		
 
 		view = new TorrentListView(core, skin, skin.getSkinProperties(), cHeaders,
 				lblCountArea, cData, TorrentListView.VIEW_MY_MEDIA, true, true);
-
+		
+		view.addSelectionListener(new TableSelectionAdapter() {
+			public void selected(TableRowCore[] row) {
+				selectionChanged();
+			}
+		
+			public void deselected(TableRowCore[] rows) {
+				selectionChanged();
+			}
+		
+			public void selectionChanged() {
+				if (soData.isVisible()) {
+					CurrentlySelectedContentManager.changeCurrentlySelectedContent(getCurrentlySelectedContent());
+				}
+			}
+		}, false);
+		
 		if (Constants.isCVSVersion()) {
   		SWTSkinObject skinObjectTab = skin.getSkinObject(SkinConstants.VIEWID_MINILIBRARY_TAB);
   		if (skinObjectTab instanceof SWTSkinObjectContainer){
@@ -150,5 +188,22 @@ extends SkinView
 				buttonsNeedingPlatform, buttonsNeedingSingleSelection, btnStop);
 
 		return null;
+	}
+
+	public TorrentListView getView() {
+		return view;
+	}
+	
+	public CurrentContent[] getCurrentlySelectedContent() {
+		List listContent = new ArrayList();
+		Object[] selectedDataSources = view.getSelectedDataSources(true);
+		for (int i = 0; i < selectedDataSources.length; i++) {
+			DownloadManager dm = (DownloadManager) selectedDataSources[i];
+			if (dm != null) {
+				CurrentContent currentContent = new CurrentContent(dm);
+				listContent.add(currentContent);
+			}
+		}
+		return (CurrentContent[]) listContent.toArray(new CurrentContent[listContent.size()]);
 	}
 }

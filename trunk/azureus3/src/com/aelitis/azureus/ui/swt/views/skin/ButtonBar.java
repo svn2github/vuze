@@ -23,8 +23,12 @@ import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
 import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.ui.skin.SkinConstants;
+import com.aelitis.azureus.ui.swt.currentlyselectedcontent.CurrentContent;
+import com.aelitis.azureus.ui.swt.currentlyselectedcontent.CurrentlySelectedContentListener;
+import com.aelitis.azureus.ui.swt.currentlyselectedcontent.CurrentlySelectedContentManager;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
+import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
 import com.aelitis.azureus.util.LoginInfoManager;
 
 public class ButtonBar
@@ -61,6 +65,17 @@ public class ButtonBar
 		hookShareButon();
 		hookAddBuddyButon();
 		hookTuxGoodies();
+		
+		CurrentlySelectedContentManager.addCurrentlySelectedContentListener(new CurrentlySelectedContentListener() {
+			public void currentlySectedContentChanged(CurrentContent[] currentContent) {
+				if (shareButton != null) {
+					boolean disable = currentContent.length == 0;
+					if (shareButton.isDisabled() != disable) {
+						shareButton.setDisabled(disable);
+					}
+				}
+			}
+		});
 		return null;
 	}
 
@@ -298,45 +313,61 @@ public class ButtonBar
 		if (null != showHideBuddiesObject) {
 			shareButton = new SWTSkinButtonUtility(showHideBuddiesObject);
 			shareButton.addSelectionListener(new ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility) {
+				public void pressed(final SWTSkinButtonUtility buttonUtility) {
 
-					BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
-					if (null == viewer) {
-						return;
-					}
-
-					viewer.setShareMode(!viewer.isShareMode());
-
-					SkinView detailPanelView = SkinViewManager.get(DetailPanel.class);
-					if (detailPanelView instanceof DetailPanel) {
-
-						DetailPanel detailPanel = ((DetailPanel) detailPanelView);
-						detailPanel.show(viewer.isShareMode(), SharePage.PAGE_ID);
-
-						/*
-						 * Calling the browser to set the inviteFromShare flag to false
-						 */
-						if (true == viewer.isShareMode()) {
-							SharePage sharePage = (SharePage) detailPanel.getPage(SharePage.PAGE_ID);
-							if (null != sharePage.getMessageContext()) {
-								sharePage.getMessageContext().executeInBrowser(
-										"inviteFromShare(" + true + ")");
-							}
-
-							sharePage.setBuddies(viewer.getSelection());
-
-							editButton.setDisabled(true);
-							addBuddyButton.setDisabled(true);
-						} else {
-							editButton.setDisabled(false);
-							addBuddyButton.setDisabled(false);
+					SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
+						public void loginComplete() {
+							share();
 						}
-					}
+					});
+
 				}
 			});
 		}
 	}
 
+	private void share() {
+		CurrentContent[] selectedContent = CurrentlySelectedContentManager.getCurrentlySelectedContent();
+		if (selectedContent.length == 0) {
+			return;
+		}
+
+		BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
+		if (null == viewer) {
+			return;
+		}
+
+		viewer.setShareMode(!viewer.isShareMode());
+
+		SkinView detailPanelView = SkinViewManager.get(DetailPanel.class);
+		if (detailPanelView instanceof DetailPanel) {
+
+			DetailPanel detailPanel = ((DetailPanel) detailPanelView);
+			detailPanel.show(viewer.isShareMode(), SharePage.PAGE_ID);
+
+			/*
+			 * Calling the browser to set the inviteFromShare flag to false
+			 */
+			if (true == viewer.isShareMode()) {
+				SharePage sharePage = (SharePage) detailPanel.getPage(SharePage.PAGE_ID);
+				if (null != sharePage.getMessageContext()) {
+					sharePage.getMessageContext().executeInBrowser(
+							"inviteFromShare(" + true + ")");
+				}
+
+				sharePage.setBuddies(viewer.getSelection());
+				// TODO: Handle dm == null  (should just pass selectedContent[0])
+				sharePage.setDownloadManager(selectedContent[0].dm);
+
+				editButton.setDisabled(true);
+				addBuddyButton.setDisabled(true);
+			} else {
+				editButton.setDisabled(false);
+				addBuddyButton.setDisabled(false);
+			}
+		}
+	}
+		
 	private void hookAddBuddyButon() {
 
 		final SWTSkinObject showHideBuddiesObject = skin.getSkinObject("button-buddy-add");
@@ -344,35 +375,50 @@ public class ButtonBar
 			addBuddyButton = new SWTSkinButtonUtility(showHideBuddiesObject);
 			addBuddyButton.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
-					if (null == viewer) {
-						return;
-					}
 
-					viewer.setAddBuddyMode(!viewer.isAddBuddyMode());
-
-					SkinView detailPanelView = SkinViewManager.get(DetailPanel.class);
-					if (detailPanelView instanceof DetailPanel) {
-						DetailPanel detailPanel = ((DetailPanel) detailPanelView);
-						detailPanel.show(viewer.isAddBuddyMode(), InvitePage.PAGE_ID);
-						/*
-						 * Calling the browser to set the inviteFromShare flag to false
-						 */
-						if (true == viewer.isAddBuddyMode()) {
-							IDetailPage invitePage = detailPanel.getPage(InvitePage.PAGE_ID);
-							if (null != invitePage.getMessageContext()) {
-								invitePage.getMessageContext().executeInBrowser(
-										"inviteFromShare(" + false + ")");
-							}
-							editButton.setDisabled(true);
-							shareButton.setDisabled(true);
-						} else {
-							editButton.setDisabled(false);
-							shareButton.setDisabled(false);
+					SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
+						public void loginComplete() {
+							addBuddy();
 						}
-					}
+					});
+
 				}
 			});
+		}
+	}
+
+	/**
+	 * 
+	 *
+	 * @since 3.0.5.3
+	 */
+	protected void addBuddy() {
+		BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
+		if (null == viewer) {
+			return;
+		}
+
+		viewer.setAddBuddyMode(!viewer.isAddBuddyMode());
+
+		SkinView detailPanelView = SkinViewManager.get(DetailPanel.class);
+		if (detailPanelView instanceof DetailPanel) {
+			DetailPanel detailPanel = ((DetailPanel) detailPanelView);
+			detailPanel.show(viewer.isAddBuddyMode(), InvitePage.PAGE_ID);
+			/*
+			 * Calling the browser to set the inviteFromShare flag to false
+			 */
+			if (true == viewer.isAddBuddyMode()) {
+				IDetailPage invitePage = detailPanel.getPage(InvitePage.PAGE_ID);
+				if (null != invitePage.getMessageContext()) {
+					invitePage.getMessageContext().executeInBrowser(
+							"inviteFromShare(" + false + ")");
+				}
+				editButton.setDisabled(true);
+				shareButton.setDisabled(true);
+			} else {
+				editButton.setDisabled(false);
+				shareButton.setDisabled(false);
+			}
 		}
 	}
 

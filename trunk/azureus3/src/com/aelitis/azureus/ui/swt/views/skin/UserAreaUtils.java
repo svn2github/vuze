@@ -29,6 +29,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.shells.LightBoxBrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
+import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.ILoginInfoListener;
 import com.aelitis.azureus.util.LoginInfoManager;
@@ -62,7 +63,7 @@ public class UserAreaUtils
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
 
-					openLoginWindow();
+					SWTLoginUtils.openLoginWindow();
 
 				}
 			});
@@ -189,19 +190,6 @@ public class UserAreaUtils
 				synchLoginStates(info.userName, info.userID, isNewLoginID);
 			}
 		});
-	}
-
-	/**
-	 * 
-	 *
-	 * @return 
-	 * @since 3.0.5.3
-	 */
-	public static LightBoxBrowserWindow openLoginWindow() {
-		String url = Constants.URL_PREFIX + Constants.URL_LOGIN + "?"
-				+ Constants.URL_SUFFIX;
-		return new LightBoxBrowserWindow(url, Constants.URL_PAGE_VERIFIER_VALUE,
-				380, 280);
 	}
 
 	/**

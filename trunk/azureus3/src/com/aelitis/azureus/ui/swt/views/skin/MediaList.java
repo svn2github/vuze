@@ -21,6 +21,8 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
@@ -49,6 +51,8 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableCountChangeListener;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
+import com.aelitis.azureus.ui.swt.currentlyselectedcontent.CurrentContent;
+import com.aelitis.azureus.ui.swt.currentlyselectedcontent.CurrentlySelectedContentManager;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.utils.PublishUtils;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
@@ -106,8 +110,22 @@ public class MediaList
 
 	private SWTSkinButtonUtility btnColumnSetup;
 
+	private SWTSkinObject soData;
+
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
+		soData = skinObject;
+		soData.addListener(new SWTSkinObjectListener() {
+			public Object eventOccured(SWTSkinObject skinObject, int eventType,
+					Object params) {
+				if (eventType == SWTSkinObjectListener.EVENT_SHOW) {
+					System.out.println("SHOW MINILIB");
+					CurrentlySelectedContentManager.changeCurrentlySelectedContent(getCurrentlySelectedContent());
+				}
+				return null;
+			}
+		});
+
 		final SWTSkin skin = skinObject.getSkin();
 		core = AzureusCoreFactory.getSingleton();
 
@@ -170,6 +188,22 @@ public class MediaList
 			}
 		};
 
+		view.addSelectionListener(new TableSelectionAdapter() {
+			public void selected(TableRowCore[] row) {
+				selectionChanged();
+			}
+		
+			public void deselected(TableRowCore[] rows) {
+				selectionChanged();
+			}
+		
+			public void selectionChanged() {
+				if (soData.isVisible()) {
+					CurrentlySelectedContentManager.changeCurrentlySelectedContent(getCurrentlySelectedContent());
+				}
+			}
+		}, false);
+		
 		btnColumnSetup = TorrentListViewsUtils.addColumnSetupButton(skin, PREFIX,
 				view);
 
@@ -581,4 +615,16 @@ public class MediaList
 		});
 	}
 
+	public CurrentContent[] getCurrentlySelectedContent() {
+		List listContent = new ArrayList();
+		Object[] selectedDataSources = view.getSelectedDataSources(true);
+		for (int i = 0; i < selectedDataSources.length; i++) {
+			DownloadManager dm = (DownloadManager) selectedDataSources[i];
+			if (dm != null) {
+				CurrentContent currentContent = new CurrentContent(dm);
+				listContent.add(currentContent);
+			}
+		}
+		return (CurrentContent[]) listContent.toArray(new CurrentContent[listContent.size()]);
+	}
 }
