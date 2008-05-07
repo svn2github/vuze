@@ -1,34 +1,33 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import java.util.Iterator;
+import java.util.List;
+
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseListener;
-import org.eclipse.swt.events.MouseMoveListener;
-import org.eclipse.swt.events.MouseTrackListener;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.RowData;
-import org.eclipse.swt.widgets.Canvas;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.MessageBox;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Debug;
+import org.eclipse.swt.widgets.*;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
+import org.gudy.azureus2.ui.swt.shells.InputShell;
 
+import com.aelitis.azureus.activities.VuzeActivitiesEntry;
+import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
+import com.aelitis.azureus.util.LoginInfoManager;
 
 public class AvatarWidget
 {
@@ -237,6 +236,9 @@ public class AvatarWidget
 			}
 
 			public void mouseDown(MouseEvent e) {
+				if (e.button != 1) {
+					return;
+				}
 				if (e.y > avatarImageSize.y && e.stateMask != SWT.MOD1) {
 					doLinkClicked();
 				} else if (decoratorBounds.contains(e.x, e.y)) {
@@ -308,6 +310,58 @@ public class AvatarWidget
 
 			}
 		});
+
+		initMenu();
+	}
+	
+	private void initMenu() {
+		Menu menu = new Menu(avatarCanvas);
+		avatarCanvas.setMenu(menu);
+		MenuItem item;
+
+		item = new MenuItem(menu, SWT.PUSH);
+		Messages.setLanguageText(item, "v3.buddy.menu.viewprofile");
+		item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				doLinkClicked();
+			}
+		});
+
+		item = new MenuItem(menu, SWT.PUSH);
+		Messages.setLanguageText(item, "v3.buddy.menu.remove");
+		item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				doRemoveBuddy();
+			}
+		});
+
+		if (Constants.isCVSVersion()) {
+			item = new MenuItem(menu, SWT.PUSH);
+			item.setText("Send Activity Message");
+			item.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e) {
+					if (!LoginInfoManager.getInstance().isLoggedIn()) {
+						Utils.openMessageBox(null, SWT.ICON_ERROR, "No",
+								"not logged in. no can do");
+						return;
+					}
+					InputShell is = new InputShell("Moo", "Message:");
+					String txt = is.open();
+					if (txt != null) {
+						txt = LoginInfoManager.getInstance().getUserInfo().userName
+								+ " says: \n" + txt;
+						VuzeActivitiesEntry entry = new VuzeActivitiesEntry(
+								SystemTime.getCurrentTime(), txt, "Test");
+						System.out.println("sending to " + vuzeBuddy.getDisplayName());
+						try {
+							vuzeBuddy.sendActivity(entry);
+						} catch (NotLoggedInException e1) {
+							Debug.out("Shouldn't Happen", e1);
+						}
+					}
+				}
+			});
+		}
 	}
 
 	private void doRemoveBuddy() {
