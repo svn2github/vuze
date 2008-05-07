@@ -19,16 +19,39 @@
  */
 
 
-package com.aelitis.azureus.core.metasearch;
+package com.aelitis.azureus.core.metasearch.impl;
 
-import com.aelitis.azureus.core.metasearch.impl.MetaSearchImpl;
+import com.aelitis.azureus.core.messenger.config.PlatformMetaSearchMessenger;
+import com.aelitis.azureus.core.metasearch.MetaSearch;
+import com.aelitis.azureus.core.metasearch.MetaSearchManager;
 
 public class 
-MetaSearchFactory 
+MetaSearchManagerImpl
+	implements MetaSearchManager
 {
-	public static MetaSearch
+	private static final MetaSearchManager	singleton = new MetaSearchManagerImpl();
+	
+	public static MetaSearchManager
 	getSingleton()
 	{
+		return( singleton );
+	}
+	
+	protected
+	MetaSearchManagerImpl()
+	{
+		
+	}
+	
+	public MetaSearch 
+	getMetaSearch() 
+	{
 		return( MetaSearchImpl.getSingleton());
+	}
+	
+	public void 
+	getMostPopularTemplates() 
+	{
+		PlatformMetaSearchMessenger.getMostPopularTemplates();
 	}
 }

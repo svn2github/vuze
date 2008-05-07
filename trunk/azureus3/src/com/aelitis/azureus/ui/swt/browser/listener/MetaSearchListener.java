@@ -8,7 +8,8 @@ import java.util.Map;
 
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearch;
-import com.aelitis.azureus.core.metasearch.MetaSearchFactory;
+import com.aelitis.azureus.core.metasearch.MetaSearchManager;
+import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.metasearch.Result;
 import com.aelitis.azureus.core.metasearch.ResultListener;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
@@ -29,13 +30,15 @@ public class MetaSearchListener extends AbstractMessageListener {
 
 	public static final String OP_SET_MODE = "set-mode";
 	
-	private MetaSearch metaSearch = MetaSearchFactory.getSingleton();
+	private MetaSearchManager metaSearchManager = MetaSearchManagerFactory.getSingleton();
 
 	public MetaSearchListener() {
 		super(LISTENER_ID);
 	}
 	
 	public void handleMessage(BrowserMessage message) {
+		
+		//MetaSearchManagerFactory.getSingleton().getMostPopularTemplates();
 		
 		System.out.println("Got message : " + message);
 		
@@ -77,32 +80,36 @@ public class MetaSearchListener extends AbstractMessageListener {
 				}
 			};
 			
-			if(metaSearch != null) {
-				String searchText = (String) decodedMap.get("searchText");
-				SearchParameter parameter = new com.aelitis.azureus.core.metasearch.SearchParameter("s",searchText);
-				SearchParameter[] parameters = new com.aelitis.azureus.core.metasearch.SearchParameter[] {parameter};
-				metaSearch.search(listener, parameters);
-			}
+			String searchText = (String) decodedMap.get("searchText");
+			SearchParameter parameter = new com.aelitis.azureus.core.metasearch.SearchParameter("s",searchText);
+			SearchParameter[] parameters = new com.aelitis.azureus.core.metasearch.SearchParameter[] {parameter};
+			metaSearchManager.getMetaSearch().search(listener, parameters);
+
 		} else if(OP_GET_ENGINES.equals(opid)) {
-			if(metaSearch != null) {
-				Engine[] engines = metaSearch.getEngines();
-				List params = new ArrayList();
-				for(int i = 0 ; i < engines.length ; i++) {
-					Engine engine = engines[i];
-					Map engineMap = new HashMap();
-					engineMap.put("id", new Long(engine.getId()));
-					engineMap.put("name", engine.getName());
-					engineMap.put("favicon", engine.getIcon());
-					params.add(engineMap);
-				}
-				context.sendBrowserMessage("metasearch", "enginesUsed",params);
+
+			Engine[] engines = metaSearchManager.getMetaSearch().getEngines();
+			List params = new ArrayList();
+			for(int i = 0 ; i < engines.length ; i++) {
+				Engine engine = engines[i];
+				Map engineMap = new HashMap();
+				engineMap.put("id", new Long(engine.getId()));
+				engineMap.put("name", engine.getName());
+				engineMap.put("favicon", engine.getIcon());
+				params.add(engineMap);
 			}
+			context.sendBrowserMessage("metasearch", "enginesUsed",params);
 		} else if(OP_SET_MODE.equals(opid)) {
 			//TODO : set the mode
+			
+			//metaSearchManager.aaaaa
 		} else if(OP_ADD_ENGINE.equals(opid)) {
 			//TODO : add an engine
+			
+			//metaSearchManager.getMetaSearch().addEngine( engine );
 		} else if(OP_REMOVE_ENGINE.equals(opid)) {
 			//TODO: remove an engine
+			
+			//metaSearchManager.getMetaSearch().removeEngine( engine );
 		}
 	}
 
