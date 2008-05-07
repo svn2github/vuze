@@ -34,11 +34,13 @@ public interface PlatformAuthorizedSender
 	 * @param url
 	 * @param data
 	 * @param sem_waitDL 
+	 * @param loginAndRetry 
 	 * @return
 	 *
 	 * @since 3.0.5.3
 	 */
-	void startDownload(URL url, String data, AESemaphore sem_waitDL);
+	void startDownload(URL url, String data, AESemaphore sem_waitDL,
+			boolean loginAndRetry);
 
 	String getResults();
 }

@@ -278,49 +278,7 @@ public class VuzeBuddyManager
 
 			LoginInfoManager.getInstance().addListener(new ILoginInfoListener() {
 				public void loginUpdate(final LoginInfo info, boolean isNewLoginID) {
-					if (!isNewLoginID) {
-						return;
-					}
-					if (info.userID == null || info.userID.length() == 0) {
-						// not logged in
-						log("Logging out.. clearing password");
-						VuzeCryptoManager.getSingleton().clearPassword();
-					} else {
-						// logged in
-
-						log("Logging in.. getting pw from webapp");
-
-						// getPassword will set the password viz VuzeCryptoManager
-
-						PlatformKeyExchangeMessenger.getPassword(new PlatformKeyExchangeMessenger.platformPasswordListener() {
-							public void passwordRetrieved() {
-								// now password is set we can get access to the public key (or
-								// create one if first time)
-
-								String myPK = null;
-								try {
-									myPK = VuzeCryptoManager.getSingleton().getPublicKey(null);
-								} catch (VuzeCryptoException e) {
-								}
-								System.out.println("myPK=" + myPK + ";" + info.pk);
-								if (myPK != null && !myPK.equals(info.pk)) {
-									log("webapp's PK (" + info.pk
-											+ ") doesn't match.  Sending out PK");
-									PlatformKeyExchangeMessenger.setPublicKey();
-								}
-
-								PlatformRelayMessenger.relayCheck();
-								try {
-									PlatformBuddyMessenger.sync(null);
-									PlatformBuddyMessenger.getInvites();
-								} catch (NotLoggedInException e) {
-									// this really shouldn't happen unless the user logs in and
-									// our really really fast
-									log("OOPS, sync or getInvite failed because you were no longer logged in");
-								}
-							}
-						});
-					}
+					loginUpdateTriggered(info, isNewLoginID);
 				}
 			});
 
@@ -358,6 +316,69 @@ public class VuzeBuddyManager
 	}
 
 	/**
+	 * @param info
+	 * @param isNewLoginID
+	 *
+	 * @since 3.0.5.3
+	 */
+	protected static void loginUpdateTriggered(
+			final LoginInfo info,
+			boolean isNewLoginID) {
+		if (!isNewLoginID) {
+			return;
+		}
+		if (info.userID == null || info.userID.length() == 0) {
+			// not logged in
+			log("Logging out.. clearing password");
+			VuzeCryptoManager.getSingleton().clearPassword();
+		} else {
+			// logged in
+
+			log("Logging in.. getting pw from webapp");
+
+			// getPassword will set the password viz VuzeCryptoManager
+
+			try {
+				PlatformKeyExchangeMessenger.getPassword(new PlatformKeyExchangeMessenger.platformPasswordListener() {
+					public void passwordRetrieved() {
+						// now password is set we can get access to the public key (or
+						// create one if first time)
+
+						String myPK = null;
+						try {
+							myPK = VuzeCryptoManager.getSingleton().getPublicKey(null);
+						} catch (VuzeCryptoException e) {
+						}
+						System.out.println("myPK=" + myPK + ";" + info.pk);
+						if (myPK != null && !myPK.equals(info.pk)) {
+							log("webapp's PK (" + info.pk
+									+ ") doesn't match.  Sending out PK");
+							try {
+								PlatformKeyExchangeMessenger.setPublicKey();
+							} catch (NotLoggedInException e) {
+								log("SPK failed. User must have logged out between getPassword and setPK");
+							}
+						}
+
+						PlatformRelayMessenger.relayCheck();
+						try {
+							PlatformBuddyMessenger.sync(null);
+							PlatformBuddyMessenger.getInvites();
+						} catch (NotLoggedInException e) {
+							// this really shouldn't happen unless the user logs in and
+							// our really really fast
+							log("OOPS, sync or getInvite failed because you were no longer logged in");
+						}
+					}
+				});
+			} catch (NotLoggedInException e) {
+				// ignore.. we should be logged in!
+				log("calling getPassword RPC afer login failed because we aren't logged in?");
+			}
+		}
+	}
+
+	/**
 	 * Set and listen to buddy plugin.  Process incoming buddy plugin messages
 	 * that are for vuze 
 	 * 
@@ -391,7 +412,12 @@ public class VuzeBuddyManager
 					if (vuzeBuddy != null) {
 						vuzeBuddy.removePublicKey(pk);
 						if (vuzeBuddy.getPublicKeys().length == 0) {
-							removeBuddy(vuzeBuddy);
+							try {
+								removeBuddy(vuzeBuddy, true);
+							} catch (NotLoggedInException e) {
+								// should not happen, as we ask user to log in
+								log(e);
+							}
 						}
 					}
 				} finally {
@@ -834,10 +860,15 @@ public class VuzeBuddyManager
 
 	/**
 	 * @param loginID
+	 * @throws NotLoggedInException 
 	 *
 	 * @since 3.0.5.3
 	 */
-	public static void removeBuddy(VuzeBuddy buddy) {
+	public static void removeBuddy(
+			VuzeBuddy buddy,
+			boolean login)
+		throws NotLoggedInException {
+
 		if (buddy == null) {
 			return;
 		}
@@ -869,7 +900,7 @@ public class VuzeBuddyManager
 		}
 
 		if (buddy.getLoginID() != null) {
-			PlatformBuddyMessenger.remove(buddy);
+			PlatformBuddyMessenger.remove(buddy, login);
 		}
 	}
 
@@ -907,7 +938,13 @@ public class VuzeBuddyManager
 					triggerRemoveListener(buddy);
 
 					if (tellPlatform && buddy.getLoginID() != null) {
-						PlatformBuddyMessenger.remove(buddy);
+						try {
+							PlatformBuddyMessenger.remove(buddy, false);
+						} catch (NotLoggedInException e) {
+							// ignore.. we should be logged in since this is called via
+							// sync.  If we aren't, it doesn't matter too much, we'll
+							// remove them next sync
+						}
 					}
 				}
 			}

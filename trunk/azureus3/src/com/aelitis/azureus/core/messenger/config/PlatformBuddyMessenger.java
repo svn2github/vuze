@@ -55,21 +55,23 @@ public class PlatformBuddyMessenger
 
 	public static final String OP_REMOVEBUDDY = "ditch";
 
-	public static void sync(final VuzeBuddySyncListener l)
-			throws NotLoggedInException {
-		if (!LoginInfoManager.getInstance().isLoggedIn()) {
-			throw new NotLoggedInException();
-		}
+	public static void sync(
+			final VuzeBuddySyncListener l)
+		throws NotLoggedInException {
 
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID_BUDDY,
 				OP_SYNC, new Object[0], 1000);
+		message.setRequiresAuthorization(true, false);
 
 		PlatformMessengerListener listener = new PlatformMessengerListener() {
 
-			public void messageSent(PlatformMessage message) {
+			public void messageSent(
+					PlatformMessage message) {
 			}
 
-			public void replyReceived(PlatformMessage message, String replyType,
+			public void replyReceived(
+					PlatformMessage message,
+					String replyType,
 					Map reply) {
 				// TODO: It's possible we got a error message back that says we
 				//       are logged out.  handle?
@@ -106,8 +108,6 @@ public class PlatformBuddyMessenger
 			}
 		};
 
-		message.setRequiresAuthorization(true);
-
 		PlatformMessenger.queueMessage(message, listener);
 	}
 
@@ -117,17 +117,18 @@ public class PlatformBuddyMessenger
 	 * @throws NotLoggedInException 
 	 * @since 3.0.5.3
 	 */
-	public static void getInvites() throws NotLoggedInException {
-		if (!LoginInfoManager.getInstance().isLoggedIn()) {
-			throw new NotLoggedInException();
-		}
-		
+	public static void getInvites()
+		throws NotLoggedInException {
+
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID_INVITE,
 				OP_GETINVITES, new Object[0], 1000);
+		message.setRequiresAuthorization(true, false);
 
 		PlatformMessengerListener listener = new PlatformMessengerListener() {
 
-			public void replyReceived(PlatformMessage message, String replyType,
+			public void replyReceived(
+					PlatformMessage message,
+					String replyType,
 					Map reply) {
 				List invitations = MapUtils.getMapList(reply, "invitations",
 						Collections.EMPTY_LIST);
@@ -168,11 +169,10 @@ public class PlatformBuddyMessenger
 				}
 			}
 
-			public void messageSent(PlatformMessage message) {
+			public void messageSent(
+					PlatformMessage message) {
 			}
 		};
-
-		message.setRequiresAuthorization(true);
 
 		PlatformMessenger.queueMessage(message, listener);
 	}
@@ -183,7 +183,9 @@ public class PlatformBuddyMessenger
 
 		PlatformMessengerListener listener = new PlatformMessengerListener() {
 
-			public void replyReceived(PlatformMessage message, String replyType,
+			public void replyReceived(
+					PlatformMessage message,
+					String replyType,
 					Map reply) {
 
 				int count = MapUtils.getMapInt(reply, "count", 0);
@@ -191,15 +193,18 @@ public class PlatformBuddyMessenger
 				// TODO fire off listener
 			}
 
-			public void messageSent(PlatformMessage message) {
+			public void messageSent(
+					PlatformMessage message) {
 			}
 		};
 
-		message.setRequiresAuthorization(false);
 		PlatformMessenger.queueMessage(message, listener);
 	}
 
-	public static void invite(String loginID, String userMessage) {
+	public static void invite(
+			String loginID,
+			String userMessage)
+		throws NotLoggedInException {
 
 		Map parameters = new HashMap();
 		parameters.put("message", userMessage);
@@ -213,44 +218,55 @@ public class PlatformBuddyMessenger
 
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID_INVITE,
 				OP_INVITE, parameters, 1000);
+		message.setRequiresAuthorization(true, false);
 
 		PlatformMessengerListener listener = new PlatformMessengerListener() {
 
-			public void replyReceived(PlatformMessage message, String replyType,
+			public void replyReceived(
+					PlatformMessage message,
+					String replyType,
 					Map reply) {
 			}
 
-			public void messageSent(PlatformMessage message) {
+			public void messageSent(
+					PlatformMessage message) {
 			}
 		};
 
-		message.setRequiresAuthorization(true);
 		PlatformMessenger.queueMessage(message, listener);
 	}
 
 	/**
 	 * @param buddy
+	 * @param login 
+	 * @throws NotLoggedInException 
 	 *
 	 * @since 3.0.5.3
 	 */
-	public static void remove(VuzeBuddy buddy) {
+	public static void remove(
+			VuzeBuddy buddy,
+			boolean login)
+		throws NotLoggedInException {
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID_BUDDY,
 				OP_REMOVEBUDDY, new Object[] {
 					"username",
 					buddy.getLoginID()
 				}, 1000);
+		message.setRequiresAuthorization(true, login);
 
 		PlatformMessengerListener listener = new PlatformMessengerListener() {
 
-			public void replyReceived(PlatformMessage message, String replyType,
+			public void replyReceived(
+					PlatformMessage message,
+					String replyType,
 					Map reply) {
 			}
 
-			public void messageSent(PlatformMessage message) {
+			public void messageSent(
+					PlatformMessage message) {
 			}
 		};
 
-		message.setRequiresAuthorization(true);
 		PlatformMessenger.queueMessage(message, listener);
 	}
 }

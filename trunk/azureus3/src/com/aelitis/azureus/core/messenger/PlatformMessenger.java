@@ -170,6 +170,7 @@ public class PlatformMessenger
 
 		final Map mapProcessing = new HashMap();
 
+		boolean loginAndRetry = false;
 		queue_mon.enter();
 		try {
 			// add one at a time, ensure relay server messages are seperate
@@ -187,6 +188,15 @@ public class PlatformMessenger
 
 				iter.remove();
 
+				// split up ones that requre login and retry and ones that don't
+				if (mapProcessing.size() == 1) {
+					loginAndRetry = message.getLoginAndRetry();
+				} else {
+					if (loginAndRetry != message.getLoginAndRetry()) {
+						break;
+					}
+				}
+				
 				if (isRelayServer) {
 					break;
 				}
@@ -266,13 +276,14 @@ public class PlatformMessenger
 
 		final String fURL = sURL;
 		final String fPostData = sPostData;
+		final boolean fLoginAndRetry = loginAndRetry; 
 
 		// proccess queue on a new thread
 		AEThread2 thread = new AEThread2("v3.PlatformMessenger", true) {
 			public void run() {
 				try {
 					processQueueAsync(fURL, fPostData, mapProcessing,
-							requiresAuthorization);
+							requiresAuthorization, fLoginAndRetry);
 				} catch (Throwable e) {
 					if (e instanceof ResourceDownloaderException) {
 						Debug.out("Error while sending message(s) to Platform: "
@@ -306,7 +317,8 @@ public class PlatformMessenger
 	 * @throws Exception 
 	 */
 	protected static void processQueueAsync(String sURL, String sData,
-			Map mapProcessing, boolean requiresAuthorization) throws Exception {
+			Map mapProcessing, boolean requiresAuthorization,
+			boolean loginAndRetry) throws Exception {
 		URL url;
 		url = new URL(sURL);
 		AzureusCore core = AzureusCoreFactory.getSingleton();
@@ -315,7 +327,7 @@ public class PlatformMessenger
 		String s;
 		if (requiresAuthorization && authorizedSender != null) {
 			AESemaphore sem_waitDL = new AESemaphore("Waiting for DL");
-			authorizedSender.startDownload(url, sData, sem_waitDL);
+			authorizedSender.startDownload(url, sData, sem_waitDL, loginAndRetry);
 			sem_waitDL.reserve();
 			s = authorizedSender.getResults();
 		} else {

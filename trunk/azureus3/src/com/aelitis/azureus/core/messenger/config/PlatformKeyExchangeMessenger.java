@@ -28,6 +28,7 @@ import com.aelitis.azureus.core.crypto.VuzeCryptoManager;
 import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
+import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.MapUtils;
 
@@ -46,21 +47,18 @@ public class PlatformKeyExchangeMessenger
 
 	public static String OP_SETPUBLICKEY = "setPublicKey";
 
-	public static void getPassword(final platformPasswordListener l) {
-		if (true) {
-			VuzeCryptoManager.getSingleton().setPassword("test");
-			if (l != null) {
-				l.passwordRetrieved();
-			}
-			return;
-		}
+	public static void getPassword(
+			final platformPasswordListener l)
+		throws NotLoggedInException {
 		PlatformMessage message = new PlatformMessage(PREFIX, LISTENER_ID,
 				OP_GETPASSWORD, new Object[0], 1000);
-		message.setRequiresAuthorization(true);
+		message.setRequiresAuthorization(true, false);
 
 		PlatformMessengerListener listener = new PlatformMessengerListener() {
 
-			public void replyReceived(PlatformMessage message, String replyType,
+			public void replyReceived(
+					PlatformMessage message,
+					String replyType,
 					Map reply) {
 				String pw = MapUtils.getMapString(reply, "password", null);
 				if (pw != null && pw.length() > 0) {
@@ -74,14 +72,16 @@ public class PlatformKeyExchangeMessenger
 
 			}
 
-			public void messageSent(PlatformMessage message) {
+			public void messageSent(
+					PlatformMessage message) {
 			}
 		};
 
 		PlatformMessenger.queueMessage(message, listener);
 	}
 
-	public static void setPublicKey() {
+	public static void setPublicKey()
+		throws NotLoggedInException {
 		final String myPK;
 		try {
 			myPK = VuzeCryptoManager.getSingleton().getPublicKey(null);
@@ -97,15 +97,18 @@ public class PlatformKeyExchangeMessenger
 					"publicKey",
 					myPK
 				}, 1000);
-		message.setRequiresAuthorization(true);
+		message.setRequiresAuthorization(true, false);
 
 		PlatformMessengerListener listener = new PlatformMessengerListener() {
 
-			public void replyReceived(PlatformMessage message, String replyType,
+			public void replyReceived(
+					PlatformMessage message,
+					String replyType,
 					Map reply) {
 			}
 
-			public void messageSent(PlatformMessage message) {
+			public void messageSent(
+					PlatformMessage message) {
 				Map parameters = message.getParameters();
 
 				String sMessage = MapUtils.getMapString(parameters, "message", "");

@@ -25,7 +25,9 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
+import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.util.JSONUtils;
+import com.aelitis.azureus.util.LoginInfoManager;
 
 /**
  * @author TuxPaper
@@ -49,6 +51,8 @@ public class PlatformMessage
 	private long lSequenceNo = -1;
 	
 	private boolean requiresAuthorization = false;
+	
+	private boolean loginAndRetry = false;
 
 	/**
 	 * @param messageID
@@ -147,9 +151,18 @@ public class PlatformMessage
 
 	/**
 	 * @param requiresAuthorization the requiresAuthorization to set
+	 * @throws NotLoggedInException 
 	 */
-	public void setRequiresAuthorization(boolean requiresAuthorization) {
+	public void setRequiresAuthorization(
+		boolean requiresAuthorization,
+		boolean promptUser)
+	throws NotLoggedInException {
 		this.requiresAuthorization = requiresAuthorization;
+		this.loginAndRetry = promptUser;
+
+		if (!promptUser && !LoginInfoManager.getInstance().isLoggedIn()) {
+			throw new NotLoggedInException();
+		}
 	}
 
 	/**
@@ -157,5 +170,19 @@ public class PlatformMessage
 	 */
 	public boolean requiresAuthorization() {
 		return requiresAuthorization;
+	}
+
+	/**
+	 * @param loginAndRetry the loginAndRetry to set
+	 */
+	public void setLoginAndRetry(boolean loginAndRetry) {
+		this.loginAndRetry = loginAndRetry;
+	}
+
+	/**
+	 * @return the loginAndRetry
+	 */
+	public boolean getLoginAndRetry() {
+		return loginAndRetry;
 	}
 }

@@ -17,12 +17,14 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.MessageBox;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
+import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -315,7 +317,12 @@ public class AvatarWidget
 		if (SWT.NO == mBox.open()) {
 			return;
 		}
-		VuzeBuddyManager.removeBuddy(vuzeBuddy);
+		try {
+			VuzeBuddyManager.removeBuddy(vuzeBuddy, true);
+		} catch (NotLoggedInException e) {
+			// should not happen, unless the user cancelled
+			Debug.out(e);
+		}
 	}
 
 	private void doAddBuddyToShare() {

@@ -116,8 +116,8 @@ public class MainWindow
 
 	private final AzureusCore core;
 
-	private final IUIIntializer	uiInitializer;
-	
+	private final IUIIntializer uiInitializer;
+
 	private SWTSkin skin;
 
 	private org.gudy.azureus2.ui.swt.mainwindow.MainWindow oldMainWindow;
@@ -163,7 +163,7 @@ public class MainWindow
 		this.core = core;
 		this.display = display;
 		this.uiInitializer = uiInitializer;
-		
+
 		disposedOrDisposing = false;
 
 		VuzeBuddyManager.init(new VuzeBuddyCreator() {
@@ -177,7 +177,7 @@ public class MainWindow
 				return new VuzeBuddySWTImpl();
 			}
 		});
-		
+
 		// Hack for 3014 -> 3016 upgrades on Vista who become an Administrator
 		// user after restart.
 		if (Constants.isWindows
@@ -468,13 +468,16 @@ public class MainWindow
 		PlatformMessenger.setAuthorizedTransferListener(new PlatformAuthorizedSender() {
 			String s = null;
 
-			public void 
-			startDownload(
-				final URL url, 
+			// @see com.aelitis.azureus.core.messenger.PlatformAuthorizedSender#startDownload(java.net.URL, java.lang.String, org.gudy.azureus2.core3.util.AESemaphore, boolean)
+			public void startDownload(
+				final URL url,
 				final String data,
-				final AESemaphore sem_waitDL) 
+				final AESemaphore sem_waitDL,
+				final boolean loginAndRetry)
 			{
 				Utils.execSWTThread(new AERunnable() {
+					boolean isRetry = false;
+
 					public void 
 					runSupport() 
 					{
@@ -482,7 +485,7 @@ public class MainWindow
 							final Browser browser = new Browser(shell, SWT.NONE);
 							browser.setVisible(false);
 	
-							String url = Constants.URL_AUTHORIZED_RPC + "?" + data;
+							final String url = Constants.URL_AUTHORIZED_RPC + "?" + data;
 							PlatformMessenger.debug("Open Auth URL: " + url);
 							browser.setUrl(url);
 	
@@ -491,9 +494,29 @@ public class MainWindow
 									try{
 										s = browser.getText();
 										PlatformMessenger.debug("Got Auth Reply: " + s);
-										int i = s.indexOf("0;");
-										if (i > 0) {
-											s = s.substring(i);
+										
+										boolean authFail = s.indexOf(";exception;") > 0
+												&& s.indexOf("authenticated session required") > 0;
+
+										if (authFail && loginAndRetry && !isRetry) {
+											s = null;
+											
+											// add a reserve because finally will release and
+											// we still need to wait for login
+											sem_waitDL.reserve();
+											isRetry = true;
+											
+											SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
+												public void loginComplete()
+												{
+													browser.refresh();
+												}
+											});
+										} else {
+  										int i = s.indexOf("0;");
+  										if (i > 0) {
+  											s = s.substring(i);
+  										}
 										}
 										browser.dispose();
 									}finally{
@@ -764,7 +787,7 @@ public class MainWindow
 			}
 			setVisible(WINDOW_ELEMENT_TABBAR,
 					COConfigurationManager.getBooleanParameter(configID));
-			
+
 			configID = "Footer.visible";
 			if (false == ConfigurationDefaults.getInstance().doesParameterDefaultExist(
 					configID)) {
@@ -949,17 +972,17 @@ public class MainWindow
 			}
 		}
 
-			// do this before other checks as these are blocking dialogs to force order
-		
-		if (  uiInitializer != null ){
-			
+		// do this before other checks as these are blocking dialogs to force order
+
+		if (uiInitializer != null) {
+
 			uiInitializer.initializationComplete();
 		}
-		
+
 		AssociationChecker.checkAssociations();
 
 		core.triggerLifeCycleComponentCreated(uiFunctions);
-		
+
 		isReady = true;
 	}
 
@@ -1075,7 +1098,7 @@ public class MainWindow
 		views.put("minilibrary-list", MiniLibraryList.class);
 
 		views.put("vuzeevents-list", VuzeActivitiesView.class);
-		
+
 		views.put(SkinConstants.VIEWID_BUTTON_BAR, ButtonBar.class);
 		views.put(SkinConstants.VIEWID_FOOTER, Footer.class);
 		views.put(SkinConstants.VIEWID_DETAIL_PANEL, DetailPanel.class);
@@ -1178,8 +1201,16 @@ public class MainWindow
 					public void skinBeforeComponents(Composite composite,
 							Object skinnableObject, Object[] relatedObjects) {
 						if (skinnableObject instanceof MessageSlideShell) {
-							Color bg = skin.getSkinProperties().getColor("color.mainshell");
-							bg = composite.getBackground(); // temp disable
+							Color colorBG = skin.getSkinProperties().getColor(
+									"color.mainshell");
+							Color colorLink = skin.getSkinProperties().getColor(
+									"color.links.normal");
+							Color colorText = skin.getSkinProperties().getColor(
+									"color.text.fg");
+
+							composite.setBackground(colorBG);
+							composite.setForeground(colorText);
+							//bg = composite.getBackground(); // temp disable
 
 							final Image image = new Image(composite.getDisplay(), 250, 300);
 
@@ -1193,53 +1224,54 @@ public class MainWindow
 										relatedObjects, TOTorrent.class);
 							}
 
-							if (torrent != null) {
-								byte[] contentThumbnail = PlatformTorrentUtils.getContentThumbnail(torrent);
+							MessageSlideShell shell = (MessageSlideShell) skinnableObject;
+							shell.setUrlColor(colorLink);
+							shell.setColorFG(colorText);
+
+							byte[] contentThumbnail = PlatformTorrentUtils.getContentThumbnail(torrent);
+							GC gc = new GC(image);
+							try {
+								if (colorBG != null) {
+									gc.setBackground(colorBG);
+									gc.fillRectangle(image.getBounds());
+								}
 								if (contentThumbnail != null) {
-									GC gc = new GC(image);
+
 									try {
-										if (bg != null) {
-											gc.setBackground(bg);
-											gc.fillRectangle(image.getBounds());
-										}
+										ByteArrayInputStream bis = new ByteArrayInputStream(
+												contentThumbnail);
+										final Image img = new Image(Display.getDefault(), bis);
+										Rectangle imgBounds = img.getBounds();
+										double pct = 35.0 / imgBounds.height;
+										int w = (int) (imgBounds.width * pct);
 
 										try {
-											ByteArrayInputStream bis = new ByteArrayInputStream(
-													contentThumbnail);
-											final Image img = new Image(Display.getDefault(), bis);
-											Rectangle imgBounds = img.getBounds();
-											double pct = 35.0 / imgBounds.height;
-											int w = (int) (imgBounds.width * pct);
-
-											try {
-												gc.setAdvanced(true);
-												gc.setInterpolation(SWT.HIGH);
-											} catch (Exception e) {
-												// not important if we can't set advanced
-											}
-
-											gc.drawImage(img, 0, 0, imgBounds.width,
-													imgBounds.height, 0, 265, w, 35);
-											img.dispose();
+											gc.setAdvanced(true);
+											gc.setInterpolation(SWT.HIGH);
 										} catch (Exception e) {
-
+											// not important if we can't set advanced
 										}
-									} finally {
-										gc.dispose();
+
+										gc.drawImage(img, 0, 0, imgBounds.width, imgBounds.height,
+												0, 265, w, 35);
+										img.dispose();
+									} catch (Exception e) {
+
 									}
 
-									MessageSlideShell shell = (MessageSlideShell) skinnableObject;
-									shell.setImgPopup(image);
-
-									composite.addListener(SWT.Dispose, new Listener() {
-										public void handleEvent(Event event) {
-											if (!image.isDisposed()) {
-												image.dispose();
-											}
-										}
-									});
 								}
+							} finally {
+								gc.dispose();
 							}
+							shell.setImgPopup(image);
+
+							composite.addListener(SWT.Dispose, new Listener() {
+								public void handleEvent(Event event) {
+									if (!image.isDisposed()) {
+										image.dispose();
+									}
+								}
+							});
 						}
 					}
 
@@ -1375,15 +1407,14 @@ public class MainWindow
 		 */
 		new UserAreaUtils(skin, uiFunctions);
 
-		
 		/*
 		 * Hides the buddy bar unless a command line parameter is specified
 		 * WARNING: TODO -- This is temporary and must be removed once the buddies features are complete
 		 */
-		if(false == System.getProperty("debug.buddies.bar","0").equals("1")){
+		if (false == System.getProperty("debug.buddies.bar", "0").equals("1")) {
 			COConfigurationManager.setParameter("Footer.visible", false);
 		}
-		
+
 		shell.layout(true, true);
 	}
 
