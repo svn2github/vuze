@@ -468,32 +468,48 @@ public class MainWindow
 		PlatformMessenger.setAuthorizedTransferListener(new PlatformAuthorizedSender() {
 			String s = null;
 
-			public void startDownload(final URL url, final String data,
-					final AESemaphore sem_waitDL) {
+			public void 
+			startDownload(
+				final URL url, 
+				final String data,
+				final AESemaphore sem_waitDL) 
+			{
 				Utils.execSWTThread(new AERunnable() {
-					public void runSupport() {
-						final Browser browser = new Browser(shell, SWT.NONE);
-						browser.setVisible(false);
-
-						String url = Constants.URL_AUTHORIZED_RPC + "?" + data;
-						PlatformMessenger.debug("Open Auth URL: " + url);
-						browser.setUrl(url);
-
-						browser.addProgressListener(new ProgressListener() {
-							public void completed(ProgressEvent event) {
-								s = browser.getText();
-								PlatformMessenger.debug("Got Auth Reply: " + s);
-								int i = s.indexOf("0;");
-								if (i > 0) {
-									s = s.substring(i);
+					public void 
+					runSupport() 
+					{
+						try{
+							final Browser browser = new Browser(shell, SWT.NONE);
+							browser.setVisible(false);
+	
+							String url = Constants.URL_AUTHORIZED_RPC + "?" + data;
+							PlatformMessenger.debug("Open Auth URL: " + url);
+							browser.setUrl(url);
+	
+							browser.addProgressListener(new ProgressListener() {
+								public void completed(ProgressEvent event) {
+									try{
+										s = browser.getText();
+										PlatformMessenger.debug("Got Auth Reply: " + s);
+										int i = s.indexOf("0;");
+										if (i > 0) {
+											s = s.substring(i);
+										}
+										browser.dispose();
+									}finally{
+										sem_waitDL.release();
+									}
 								}
-								browser.dispose();
-								sem_waitDL.release();
-							}
-
-							public void changed(ProgressEvent event) {
-							}
-						});
+	
+								public void changed(ProgressEvent event) {
+								}
+							});
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+							
+							sem_waitDL.release();
+						}
 					}
 				});
 			}

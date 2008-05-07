@@ -261,7 +261,7 @@ public class BrowserMessage
 			MessageCompletionListener l = (MessageCompletionListener) iterator.next();
 			try {
 				l.completed(success, data);
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				Debug.out(e);
 			}
 		}

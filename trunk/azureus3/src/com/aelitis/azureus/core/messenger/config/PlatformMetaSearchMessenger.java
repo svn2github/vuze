@@ -47,7 +47,10 @@ PlatformMetaSearchMessenger
 					new Object[0], 
 					0 );
 
-		PlatformMessengerListener listener = 
+		message.setRequiresAuthorization( false );
+
+		PlatformMessenger.queueMessage( 
+			message, 
 			new PlatformMessengerListener()
 			{
 				public void 
@@ -64,10 +67,6 @@ PlatformMetaSearchMessenger
 				{
 					System.out.println( "got reply: " + reply );
 				}
-			};
-
-		message.setRequiresAuthorization( false );
-
-		PlatformMessenger.queueMessage( message, listener );
+			});
 	}
 }

@@ -273,7 +273,7 @@ public class PlatformMessenger
 				try {
 					processQueueAsync(fURL, fPostData, mapProcessing,
 							requiresAuthorization);
-				} catch (Exception e) {
+				} catch (Throwable e) {
 					if (e instanceof ResourceDownloaderException) {
 						Debug.out("Error while sending message(s) to Platform: "
 								+ e.toString());
@@ -289,7 +289,7 @@ public class PlatformMessenger
 								map.put("text", e.toString());
 								map.put("Throwable", e);
 								l.replyReceived(message, REPLY_EXCEPTION, map);
-							} catch (Exception e2) {
+							} catch (Throwable e2) {
 								Debug.out("Error while sending replyReceived", e2);
 							}
 						}
@@ -336,7 +336,7 @@ public class PlatformMessenger
 						HashMap map = new HashMap();
 						map.put("text", "result was " + s);
 						l.replyReceived(message, REPLY_EXCEPTION, map);
-					} catch (Exception e2) {
+					} catch (Throwable e2) {
 						Debug.out("Error while sending replyReceived" + "\nurl: " + sURL
 								+ "\nPostData: " + sData, e2);
 					}
@@ -432,7 +432,7 @@ public class PlatformMessenger
 												try {
 													fListener.replyReceived(fMessage, replySections[1],
 															fActionResults);
-												} catch (Exception e2) {
+												} catch (Throwable e2) {
 													Debug.out("Error while sending replyReceived", e2);
 												}
 											}
@@ -455,7 +455,7 @@ public class PlatformMessenger
 												try {
 													fListener.replyReceived(fMessage, replySections[1],
 															fActionResults);
-												} catch (Exception e2) {
+												} catch (Throwable e2) {
 													Debug.out("Error while sending replyReceived", e2);
 												}
 											}
