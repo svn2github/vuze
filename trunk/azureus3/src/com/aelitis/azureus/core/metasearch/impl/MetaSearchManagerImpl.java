@@ -21,7 +21,13 @@
 
 package com.aelitis.azureus.core.metasearch.impl;
 
+import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
+
 import com.aelitis.azureus.core.messenger.config.PlatformMetaSearchMessenger;
+import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearch;
 import com.aelitis.azureus.core.metasearch.MetaSearchManager;
 
@@ -29,6 +35,8 @@ public class
 MetaSearchManagerImpl
 	implements MetaSearchManager
 {
+	private static final int REFRESH_MILLIS = 23*60*60*1000;
+	
 	private static final MetaSearchManager	singleton = new MetaSearchManagerImpl();
 	
 	public static MetaSearchManager
@@ -40,7 +48,46 @@ MetaSearchManagerImpl
 	protected
 	MetaSearchManagerImpl()
 	{
+		SimpleTimer.addPeriodicEvent(
+			"MetaSearchRefresh",
+			REFRESH_MILLIS,
+			new TimerEventPerformer()
+			{
+				public void 
+				perform(
+					TimerEvent 	event ) 
+				{
+					refresh();
+				}
+			});
 		
+		refresh();
+	}
+	
+	protected void
+	refresh()
+	{
+		new AEThread2( "MetaSearchRefresh", true ){
+			public void
+			run()
+			{
+				refreshSupport();
+			}
+		}.start();
+	}
+	
+	protected void
+	refreshSupport()
+	{
+		Engine[]	engines = getMetaSearch().getEngines();
+		
+		for (int i=0;i<engines.length;i++){
+			
+			Engine	engine = engines[i];
+			
+			long	id = engine.getId();
+			
+		}
 	}
 	
 	public MetaSearch 
@@ -50,8 +97,8 @@ MetaSearchManagerImpl
 	}
 	
 	public void 
-	getMostPopularTemplates() 
+	listPopularTemplates() 
 	{
-		PlatformMetaSearchMessenger.getMostPopularTemplates();
+		PlatformMetaSearchMessenger.listPopularTemplates();
 	}
 }

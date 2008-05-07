@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.messenger.config;
 
+import java.util.HashMap;
 import java.util.Map;
 
 
@@ -33,21 +34,25 @@ PlatformMetaSearchMessenger
 {
 	public static final String LISTENER_ID_TEMPLATE = "searchtemplate";
 
-	public static final String OP_GETMOSTPOPULARTEMPLATES = "list-popular";
+	public static final String OP_GET_TEMPLATE					= "get-template";
+	public static final String OP_LIST_POPULAR_TEMPLATES 		= "list-popular";
+	public static final String OP_LIST_FEATURED_TEMPLATES 		= "list-featured";
+	public static final String OP_TEMPLATE_EXISTS				= "template-exists";
+	public static final String OP_TEMPLATE_SELECTED				= "template-selected";
+	public static final String OP_TEMPLATE_UNSELECTED			= "template-unselected";
 
 
 	public static void 
-	getMostPopularTemplates()
+	getTemplate(
+		long	template_id )
 	{
 		PlatformMessage message = 
 			new PlatformMessage( 
 					"AZMSG", 
-					LISTENER_ID_TEMPLATE,
-					OP_GETMOSTPOPULARTEMPLATES, 
-					new Object[0], 
+					OP_GET_TEMPLATE,
+					OP_LIST_POPULAR_TEMPLATES, 
+					getParameter( template_id ), 
 					0 );
-
-		message.setRequiresAuthorization( false );
 
 		PlatformMessenger.queueMessage( 
 			message, 
@@ -68,5 +73,179 @@ PlatformMetaSearchMessenger
 					System.out.println( "got reply: " + reply );
 				}
 			});
+	}
+	
+	public static void 
+	listPopularTemplates()
+	{
+		PlatformMessage message = 
+			new PlatformMessage( 
+					"AZMSG", 
+					LISTENER_ID_TEMPLATE,
+					OP_LIST_POPULAR_TEMPLATES, 
+					new Object[0], 
+					0 );
+
+		PlatformMessenger.queueMessage( 
+			message, 
+			new PlatformMessengerListener()
+			{
+				public void 
+				messageSent(
+					PlatformMessage 	message ) 
+				{
+				}
+	
+				public void 
+				replyReceived(
+					PlatformMessage 	message, 
+					String 				replyType,
+					Map 				reply )
+				{
+					System.out.println( "got reply: " + reply );
+				}
+			});
+	}
+	
+	public static void 
+	listFeaturedTemplates()
+	{
+		PlatformMessage message = 
+			new PlatformMessage( 
+					"AZMSG", 
+					LISTENER_ID_TEMPLATE,
+					OP_LIST_FEATURED_TEMPLATES, 
+					new Object[0], 
+					0 );
+
+		PlatformMessenger.queueMessage( 
+			message, 
+			new PlatformMessengerListener()
+			{
+				public void 
+				messageSent(
+					PlatformMessage 	message ) 
+				{
+				}
+	
+				public void 
+				replyReceived(
+					PlatformMessage 	message, 
+					String 				replyType,
+					Map 				reply )
+				{
+					System.out.println( "got reply: " + reply );
+				}
+			});
+	}
+	
+	public static void 
+	templateExists(
+		long	template_id )
+	{
+		PlatformMessage message = 
+			new PlatformMessage( 
+					"AZMSG", 
+					LISTENER_ID_TEMPLATE,
+					OP_TEMPLATE_EXISTS, 
+					getParameter( template_id ), 
+					0 );
+
+		PlatformMessenger.queueMessage( 
+			message, 
+			new PlatformMessengerListener()
+			{
+				public void 
+				messageSent(
+					PlatformMessage 	message ) 
+				{
+				}
+	
+				public void 
+				replyReceived(
+					PlatformMessage 	message, 
+					String 				replyType,
+					Map 				reply )
+				{
+					System.out.println( "got reply: " + reply );
+				}
+			});
+	}
+	
+	public static void 
+	templateSelected(
+		long	template_id )
+	{
+		PlatformMessage message = 
+			new PlatformMessage( 
+					"AZMSG", 
+					LISTENER_ID_TEMPLATE,
+					OP_TEMPLATE_SELECTED, 
+					getParameter( template_id ), 
+					0 );
+
+		PlatformMessenger.queueMessage( 
+			message, 
+			new PlatformMessengerListener()
+			{
+				public void 
+				messageSent(
+					PlatformMessage 	message ) 
+				{
+				}
+	
+				public void 
+				replyReceived(
+					PlatformMessage 	message, 
+					String 				replyType,
+					Map 				reply )
+				{
+					System.out.println( "got reply: " + reply );
+				}
+			});
+	}
+	
+	public static void 
+	templateUnselected(
+		long	template_id )
+	{
+		PlatformMessage message = 
+			new PlatformMessage( 
+					"AZMSG", 
+					LISTENER_ID_TEMPLATE,
+					OP_TEMPLATE_UNSELECTED, 
+					getParameter( template_id ), 
+					0 );
+
+		PlatformMessenger.queueMessage( 
+			message, 
+			new PlatformMessengerListener()
+			{
+				public void 
+				messageSent(
+					PlatformMessage 	message ) 
+				{
+				}
+	
+				public void 
+				replyReceived(
+					PlatformMessage 	message, 
+					String 				replyType,
+					Map 				reply )
+				{
+					System.out.println( "got reply: " + reply );
+				}
+			});
+	}
+	
+	protected static Map
+	getParameter(
+		long		template_id )
+	{
+		Map parameters = new HashMap();
+		
+		parameters.put( "templateId", new Long( template_id ));
+
+		return( parameters );
 	}
 }

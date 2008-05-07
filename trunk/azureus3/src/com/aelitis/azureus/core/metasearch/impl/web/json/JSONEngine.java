@@ -39,8 +39,8 @@ JSONEngine
 
 	
 
-	public JSONEngine(long id,String name,String searchURLFormat,String timeZone,boolean automaticDateFormat,String userDateFormat,String resultsEntryPath,FieldMapping[] mappings) {
-		super( Engine.ENGINE_TYPE_JSON, id,name,searchURLFormat,timeZone,automaticDateFormat,userDateFormat,mappings);
+	public JSONEngine(long id,long last_updated,String name,String searchURLFormat,String timeZone,boolean automaticDateFormat,String userDateFormat,String resultsEntryPath,FieldMapping[] mappings) {
+		super( Engine.ENGINE_TYPE_JSON, id,last_updated,name,searchURLFormat,timeZone,automaticDateFormat,userDateFormat,mappings);
 		
 		this.resultsEntryPath = resultsEntryPath;
 	}

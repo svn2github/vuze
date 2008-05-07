@@ -56,6 +56,7 @@ EngineImpl
 	
 	private int			type;
 	private long		id;
+	private long		last_updated;
 	private String		name;
 	
 	
@@ -63,11 +64,13 @@ EngineImpl
 	EngineImpl(
 		int 	_type, 
 		long 	_id,
+		long	_last_updated,
 		String 	_name )
 	{
-		type		= _type;
-		id			= _id;
-		name		= _name;
+		type			= _type;
+		id				= _id;
+		last_updated	= _last_updated;
+		name			= _name;
 	}
 	
 	protected 
@@ -76,9 +79,23 @@ EngineImpl
 	
 		throws IOException
 	{
-		type		= ((Long)map.get( "type" )).intValue();
-		id			= ((Long)map.get( "id")).longValue();
-		name		= new String((byte[])map.get( "name" ), "UTF-8" );
+		type			= ((Long)map.get( "type" )).intValue();
+		id				= ((Long)map.get( "id")).longValue();
+		last_updated	= importLong( map, "last_updated" );
+		name			= importString( map, "name" );
+	}
+		
+	protected void
+	exportToBencodedMap(
+		Map		map )
+	
+		throws IOException
+	{
+		map.put( "type", new Long( type ));
+		map.put( "id", new Long( id ));
+		map.put( "last_updated", new Long( last_updated ));
+		
+		exportString( map, "name", name );
 	}
 	
 	protected void
@@ -112,17 +129,23 @@ EngineImpl
 		return( null );
 	}
 	
-	protected void
-	exportToBencodedMap(
-		Map		map )
+	protected long
+	importLong(
+		Map		map,
+		String	key )
 	
 		throws IOException
 	{
-		map.put( "type", new Long( type ));
-		map.put( "id", new Long( id ));
-		map.put( "name", name.getBytes( "UTF-8" ));
+		Object	obj = map.get( key );
+		
+		if ( obj instanceof Long){
+			
+			return(((Long)obj).longValue());
+		}
+		
+		return( 0 );
 	}
-	
+
 	public int
 	getType()
 	{
@@ -133,6 +156,12 @@ EngineImpl
 	getId()
 	{
 		return id;
+	}
+	
+	public long
+	getLastUpdated()
+	{
+		return( last_updated );
 	}
 	
 	public String 

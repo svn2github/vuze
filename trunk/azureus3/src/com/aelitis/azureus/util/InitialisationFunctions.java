@@ -25,6 +25,7 @@ package com.aelitis.azureus.util;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.content.AzureusPlatformContentDirectory;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
+import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.peer.cache.CacheDiscovery;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 
@@ -56,8 +57,21 @@ public class InitialisationFunctions
 		CacheDiscovery.initialise( dme );
 	}
 
-	public static void lateInitialisation(AzureusCore core) {
+	public static void 
+	lateInitialisation(
+		AzureusCore core ) 
+	{
 		ExternalStimulusHandler.initialise(core);
+		
+		core.getPluginManager().getDefaultPluginInterface().getUtilities().createDelayedTask(
+			new Runnable()
+			{
+				public void 
+				run() 
+				{
+					MetaSearchManagerFactory.getSingleton();
+				}
+			}).queue();
 	}
 
 	protected static void 

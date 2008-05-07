@@ -19,6 +19,8 @@ Engine
 	
 	public long getId();
 	
+	public long getLastUpdated();
+	
 	public String getIcon();
 
 	public Map exportToBencodedMap() throws IOException;

@@ -31,9 +31,9 @@ RegexEngine
 
 	
 		
-	public RegexEngine(long id,String name,String searchURLFormat,String resultPattern,String timeZone,boolean automaticDateFormat,String userDateFormat,FieldMapping[] mappings) 
+	public RegexEngine(long id,long last_updated,String name,String searchURLFormat,String resultPattern,String timeZone,boolean automaticDateFormat,String userDateFormat,FieldMapping[] mappings) 
 	{
-		super(Engine.ENGINE_TYPE_REGEX, id,name,searchURLFormat,timeZone,automaticDateFormat,userDateFormat, mappings );
+		super(Engine.ENGINE_TYPE_REGEX, id,last_updated,name,searchURLFormat,timeZone,automaticDateFormat,userDateFormat, mappings );
 
 		init( resultPattern );
 	}

@@ -28,5 +28,5 @@ MetaSearchManager
 	getMetaSearch();
 	
 	public void
-	getMostPopularTemplates();
+	listPopularTemplates();
 }

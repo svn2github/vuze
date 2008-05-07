@@ -30,8 +30,6 @@ public class MetaSearchListener extends AbstractMessageListener {
 
 	public static final String OP_SET_MODE = "set-mode";
 	
-	private MetaSearchManager metaSearchManager = MetaSearchManagerFactory.getSingleton();
-
 	public MetaSearchListener() {
 		super(LISTENER_ID);
 	}
@@ -44,6 +42,8 @@ public class MetaSearchListener extends AbstractMessageListener {
 		
 		String opid = message.getOperationId();
 
+		MetaSearchManager metaSearchManager = MetaSearchManagerFactory.getSingleton();
+		
 		if (OP_SEARCH.equals(opid)) {
 			Map decodedMap = message.getDecodedMap();
 			ResultListener listener = new ResultListener() {

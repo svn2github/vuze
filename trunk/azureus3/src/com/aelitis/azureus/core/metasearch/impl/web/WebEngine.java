@@ -43,9 +43,9 @@ public abstract class WebEngine extends EngineImpl {
 	private DateParser dateParser;
 	
 
-	public WebEngine(int type, long id,String name,String searchURLFormat,String timeZone,boolean automaticDateParser,String userDateFormat, FieldMapping[] mappings ) {
+	public WebEngine(int type, long id, long last_updated, String name,String searchURLFormat,String timeZone,boolean automaticDateParser,String userDateFormat, FieldMapping[] mappings ) {
 		
-		super( type, id, name );
+		super( type, id, last_updated, name );
 
 		this.searchURLFormat 		= searchURLFormat;
 		this.timeZone 				= timeZone;
@@ -99,7 +99,7 @@ public abstract class WebEngine extends EngineImpl {
 		exportString( map, "web.time_zone", 		timeZone );		
 		exportString( map, "web.date_format", 		userDateFormat );
 		
-		map.put( "web.auto_date", 			new Long( automaticDateParser?1:0));
+		map.put( "web.auto_date", new Long( automaticDateParser?1:0));
 
 		List	maps = new ArrayList();
 		
