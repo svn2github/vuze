@@ -68,14 +68,10 @@ import com.aelitis.azureus.buddy.VuzeBuddyCreator;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.crypto.VuzeCryptoException;
-import com.aelitis.azureus.core.crypto.VuzeCryptoListener;
-import com.aelitis.azureus.core.crypto.VuzeCryptoManager;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.PlatformAuthorizedSender;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
-import com.aelitis.azureus.core.messenger.config.VuzeRelayListener;
 import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.launcher.Launcher;
@@ -100,7 +96,6 @@ import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.DCAdManager;
 
-import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 
@@ -621,6 +616,11 @@ public class MainWindow
 
 						minimizeToTray(event);
 					}
+
+					SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
+					if (tabSetMain != null) {
+						updateMapTrackUsage(tabSetMain.getActiveTab().getSkinObjectID());
+					}
 				}
 
 				public void shellDeiconified(ShellEvent e) {
@@ -631,6 +631,7 @@ public class MainWindow
 							shell.setVisible(true);
 						}
 					}
+					updateMapTrackUsage("minimized");
 				}
 			});
 
@@ -1879,8 +1880,9 @@ public class MainWindow
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinTabSetListener#tabChanged(com.aelitis.azureus.ui.swt.skin.SWTSkinTabSet, java.lang.String, java.lang.String)
 	public void tabChanged(SWTSkinTabSet tabSet, String oldTabID, String newTabID) {
-		updateMapTrackUsage(oldTabID);
 		if (tabSet.getID().equals(SkinConstants.TABSET_MAIN)) {
+			updateMapTrackUsage(oldTabID);
+
 			// TODO: Don't use internal skin IDs.  Skin needs to provide an ViewID
 			//        we can query (or is passed in)
 			if (newTabID.equals("maintabs.advanced")) {
@@ -2052,6 +2054,18 @@ public class MainWindow
 			return oldMainWindow.getUIFunctions();
 		}
 		return null;
+	}
+
+	private String getActiveTab() {
+		SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
+		if (tabSetMain == null) {
+			return "";
+		}
+		SWTSkinObjectTab activeTab = tabSetMain.getActiveTab();
+		if (activeTab == null) {
+			return ""; 
+		}
+		return activeTab.getViewID();
 	}
 
 	public void switchToAdvancedTab() {
