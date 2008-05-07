@@ -124,6 +124,7 @@ public class MediaList
 				return null;
 			}
 		});
+		CurrentlySelectedContentManager.changeCurrentlySelectedContent(null);
 
 		final SWTSkin skin = skinObject.getSkin();
 		core = AzureusCoreFactory.getSingleton();

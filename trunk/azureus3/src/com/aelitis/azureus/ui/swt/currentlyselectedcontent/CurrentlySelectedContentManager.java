@@ -46,7 +46,7 @@ public class CurrentlySelectedContentManager
 		Object[] listenerArray = listeners.toArray();
 		for (int i = 0; i < listenerArray.length; i++) {
 			CurrentlySelectedContentListener l = (CurrentlySelectedContentListener) listenerArray[i];
-			l.currentlySectedContentChanged(currentlySelectedContent);
+			l.currentlySectedContentChanged(CurrentlySelectedContentManager.currentlySelectedContent);
 		}
 	}
 

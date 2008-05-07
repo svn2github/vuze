@@ -83,6 +83,7 @@ extends SkinView
 				return null;
 			}
 		});
+		CurrentlySelectedContentManager.changeCurrentlySelectedContent(null);
 
 		final SWTSkin skin = skinObject.getSkin();
 		AzureusCore core = AzureusCoreFactory.getSingleton();
