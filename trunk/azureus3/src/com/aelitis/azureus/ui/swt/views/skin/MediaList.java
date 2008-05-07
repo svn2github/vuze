@@ -119,7 +119,6 @@ public class MediaList
 			public Object eventOccured(SWTSkinObject skinObject, int eventType,
 					Object params) {
 				if (eventType == SWTSkinObjectListener.EVENT_SHOW) {
-					System.out.println("SHOW MINILIB");
 					CurrentlySelectedContentManager.changeCurrentlySelectedContent(getCurrentlySelectedContent());
 				}
 				return null;
