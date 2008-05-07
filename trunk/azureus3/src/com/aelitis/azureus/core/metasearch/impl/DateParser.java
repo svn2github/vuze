@@ -171,6 +171,7 @@ public class DateParser {
 				s.indexOf("month")!= -1 || 
 				s.indexOf("hour") != -1 || 
 				s.indexOf("day") != -1 || 
+				s.indexOf("week") != -1 || 
 				s.indexOf("year") != -1) {
 			
 			s= s.replaceAll(" ago", "");
@@ -191,6 +192,9 @@ public class DateParser {
 						}
 						if(unit.startsWith("day")) {
 							calendar.add(Calendar.DATE, -(int)value);
+						}
+						if(unit.startsWith("week")) {
+							calendar.add(Calendar.WEEK_OF_YEAR, -(int)value);
 						}
 						if(unit.startsWith("month")) {
 							calendar.add(Calendar.MONTH, -(int)value);
