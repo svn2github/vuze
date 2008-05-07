@@ -15,6 +15,7 @@ public abstract class Result {
 	public abstract long getSize();
 	public abstract int getNbPeers();
 	public abstract int getNbSeeds();
+	public abstract int getComments();
 	
 	//Links
 	public abstract String getDownloadLink();
@@ -39,6 +40,7 @@ public abstract class Result {
 		object.put("n",this.getName());
 		object.put("s","" +this.getNbSeeds());
 		object.put("p","" + this.getNbPeers());
+		object.put( "co", "" + getComments());
 		int size = (int) (this.getSize() / (1024 * 1024 / 100));
 		int sizeI = size / 100;
 		int sizeD = size % 100;

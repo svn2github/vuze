@@ -141,6 +141,9 @@ JSONEngine
 										case FIELD_DATE :
 											result.setPublishedDateFromHTML(fieldContent);
 											break;
+										case FIELD_COMMENTS :
+											result.setCommentsFromHTML(fieldContent);
+											break;
 										case FIELD_CDPLINK :
 											result.setCDPLink(fieldContent);
 											break;

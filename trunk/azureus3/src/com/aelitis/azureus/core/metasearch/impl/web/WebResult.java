@@ -24,6 +24,7 @@ public class WebResult extends Result {
 	long size;
 	int nbPeers;
 	int nbSeeds;
+	int	comments;
 	
 	String cdpLink;
 	String torrentLink;
@@ -47,6 +48,17 @@ public class WebResult extends Result {
 		}
 	}
 	
+	public void setCommentsFromHTML(String comments) {
+		if(comments != null) {
+			comments = removeHTMLTags(comments);
+			comments = Entities.HTML40.unescape(comments);
+			try{
+				this.comments = Integer.parseInt(comments);
+			}catch( Throwable e ){
+				e.printStackTrace();
+			}
+		}
+	}
 	public void setCategoryFromHTML(String category) {
 		if(category != null) {
 			category = removeHTMLTags(category);
@@ -66,7 +78,7 @@ public class WebResult extends Result {
 			nbPeersS = nbPeersS.replaceAll(" ", "");
 			try {
 				this.nbPeers = Integer.parseInt(nbPeersS);
-			} catch(Exception e) {
+			} catch(Throwable e) {
 				e.printStackTrace();
 			}
 		}
@@ -79,7 +91,7 @@ public class WebResult extends Result {
 			nbSeedsS = nbSeedsS.replaceAll(" ", "");
 			try {
 				this.nbSeeds = Integer.parseInt(nbSeedsS);
-			} catch(Exception e) {
+			} catch(Throwable e) {
 				e.printStackTrace();
 			}
 		}
@@ -103,7 +115,7 @@ public class WebResult extends Result {
 				String unit = "b";
 				try {
 					unit = st.nextToken().toLowerCase();
-				} catch(Exception e) {
+				} catch(Throwable e) {
 					//No unit
 				}
 				long multiplier = 1;
@@ -122,7 +134,7 @@ public class WebResult extends Result {
 				}
 				
 				this.size = (long) (base * multiplier);
-			} catch(Exception e) {
+			} catch(Throwable e) {
 				e.printStackTrace();
 			}
 		}
@@ -203,4 +215,9 @@ public class WebResult extends Result {
 		return size;
 	}
 	
+	public int
+	getComments()
+	{
+		return( comments );
+	}
 }

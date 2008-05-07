@@ -22,6 +22,7 @@ public abstract class WebEngine extends EngineImpl {
 	public static final int FIELD_PEERS = 4;
 	public static final int FIELD_SEEDS = 5;
 	public static final int FIELD_CATEGORY = 6;
+	public static final int FIELD_COMMENTS = 7;
 	public static final int FIELD_TORRENTLINK = 102;
 	public static final int FIELD_CDPLINK = 103;
 	
