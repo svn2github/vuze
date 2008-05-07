@@ -44,6 +44,8 @@ import com.aelitis.azureus.util.MapUtils;
  */
 public class PlatformRelayMessenger
 {
+	public static final String MSG_ID = "AZMSG";
+
 	public static final String LISTENER_ID = "relay";
 
 	public static final long DEFAULT_RECHECKIN_MINS = 30;
@@ -110,7 +112,7 @@ public class PlatformRelayMessenger
 			mapParameters.put("payload", Base32.encode(encryptResult.getPayload()));
 			mapParameters.put("ack_hash", Base32.encode(encryptResult.getChallenge()));
 
-			PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
+			PlatformMessage message = new PlatformMessage(MSG_ID, LISTENER_ID,
 					OP_PUT, mapParameters, maxDelayMS);
 
 			PlatformMessengerListener listener = new PlatformMessengerListener() {
@@ -172,7 +174,7 @@ public class PlatformRelayMessenger
 			return;
 		}
 
-		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
+		PlatformMessage message = new PlatformMessage(MSG_ID, LISTENER_ID,
 				OP_FETCH, new Object[] {
 					"pk",
 					myPK
@@ -301,7 +303,7 @@ public class PlatformRelayMessenger
 			}
 		};
 
-		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID, OP_ACK,
+		PlatformMessage message = new PlatformMessage(MSG_ID, LISTENER_ID, OP_ACK,
 				mapParameters, 0);
 
 		PlatformMessenger.queueMessage(message, listener);
@@ -358,7 +360,7 @@ public class PlatformRelayMessenger
 			}
 		};
 
-		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
+		PlatformMessage message = new PlatformMessage(MSG_ID, LISTENER_ID,
 				OP_ERRORACK, mapParameters, 0);
 
 		PlatformMessenger.queueMessage(message, listener);
@@ -400,7 +402,7 @@ public class PlatformRelayMessenger
 			}
 		};
 
-		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
+		PlatformMessage message = new PlatformMessage(MSG_ID, LISTENER_ID,
 				OP_COUNT, new Object[] {
 					"pk",
 					myPK

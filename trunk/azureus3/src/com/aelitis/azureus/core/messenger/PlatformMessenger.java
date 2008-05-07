@@ -225,7 +225,7 @@ public class PlatformMessenger
 			} catch (UnsupportedEncodingException e) {
 			}
 			if (server == null) {
-				server = listenerID;
+				server = message.getMessageID() + "-" + listenerID;
 			} else if (!server.equals(listenerID)) {
 				server = "multi";
 			}
@@ -243,7 +243,7 @@ public class PlatformMessenger
 
 		// Build base RPC url based on listener and server
 		String sURL_RPC;
-		boolean isRelayServer = PlatformRelayMessenger.LISTENER_ID.equals(server);
+		boolean isRelayServer = (PlatformRelayMessenger.MSG_ID + "-" + PlatformRelayMessenger.LISTENER_ID).equals(server);
 		if (isRelayServer) {
 			sURL_RPC = Constants.URL_RELAY_RPC;
 		} else {
