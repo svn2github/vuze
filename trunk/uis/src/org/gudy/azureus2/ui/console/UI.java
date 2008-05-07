@@ -225,7 +225,8 @@ UI
 			}
 			default:
 			{
-				console.out.println( "Unrecognised UI event '" + event.getType() + "'" );
+				if (console != null && console.out != null)
+					console.out.println( "Unrecognised UI event '" + event.getType() + "'" );
 			}
 		}
 		
