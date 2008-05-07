@@ -142,7 +142,7 @@ public class GCStringPrinter
 			return false;
 		}
 
-		if (printArea.isEmpty()) {
+		if (printArea == null || printArea.isEmpty()) {
 			return false;
 		}
 
@@ -156,6 +156,8 @@ public class GCStringPrinter
 		if (string.indexOf('\t') > 0) {
 			string = string.replace('\t', ' ');
 		}
+		
+		string = string.replaceAll("\n\n", "\n \n").replaceAll("  +", " ");
 
 		boolean fullLinesOnly = (printFlags & FLAG_FULLLINESONLY) > 0;
 		boolean skipClip = (printFlags & FLAG_SKIPCLIP) > 0;
