@@ -31,7 +31,7 @@ import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
 public class 
 PlatformMetaSearchMessenger 
 {
-	public static final String LISTENER_ID_TEMPLATE = "template";
+	public static final String LISTENER_ID_TEMPLATE = "searchtemplate";
 
 	public static final String OP_GETMOSTPOPULARTEMPLATES = "list-popular";
 
@@ -41,17 +41,18 @@ PlatformMetaSearchMessenger
 	{
 		PlatformMessage message = 
 			new PlatformMessage( 
-					"search", 
+					"AZMSG", 
 					LISTENER_ID_TEMPLATE,
 					OP_GETMOSTPOPULARTEMPLATES, 
 					new Object[0], 
 					0 );
 
 		PlatformMessengerListener listener = 
-			new PlatformMessengerListener() {
+			new PlatformMessengerListener()
+			{
 				public void 
 				messageSent(
-					PlatformMessage message) 
+					PlatformMessage 	message ) 
 				{
 				}
 	
@@ -61,11 +62,11 @@ PlatformMetaSearchMessenger
 					String 				replyType,
 					Map 				reply )
 				{
-	
+					System.out.println( "got reply: " + reply );
 				}
 			};
 
-		message.setRequiresAuthorization(false);
+		message.setRequiresAuthorization( false );
 
 		PlatformMessenger.queueMessage( message, listener );
 	}
