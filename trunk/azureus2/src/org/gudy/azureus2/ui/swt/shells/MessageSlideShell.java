@@ -20,65 +20,29 @@
 package org.gudy.azureus2.ui.swt.shells;
 
 import java.util.ArrayList;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseTrackAdapter;
-import org.eclipse.swt.events.MouseTrackListener;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.RGB;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Link;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.layout.*;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
-import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
+import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
 
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-import com.aelitis.azureus.ui.swt.UISkinnableManagerSWT;
-import com.aelitis.azureus.ui.swt.UISkinnableSWTListener;
+import com.aelitis.azureus.ui.swt.*;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 /**
  * 
@@ -173,6 +137,12 @@ public class MessageSlideShell
 
 	/** Forces the timer feature to be active; overriding the default behavior */
 	private boolean forceTimer = true;
+
+	protected Color colorURL;
+	
+	private Color colorFG;
+
+	private int shellWidth;
 
 	/** Open a popup using resource keys for title/text
 	 * 
@@ -303,7 +273,6 @@ public class MessageSlideShell
 		firstUnreadMessage = -1; // Reset the last read message counter.
 
 		GridData gridData;
-		int shellWidth;
 		int style = SWT.ON_TOP;
 
 		boolean bDisableSliding = COConfigurationManager.getBooleanParameter("GUI_SWT_DisableAlertSliding");
@@ -437,6 +406,10 @@ public class MessageSlideShell
 				Debug.out(e);
 			}
 		}
+		
+		if (colorFG == null) {
+			colorFG = display.getSystemColor(SWT.COLOR_BLACK);
+		}
 
 		FormLayout shellLayout = new FormLayout();
 		shell.setLayout(shellLayout);
@@ -460,7 +433,7 @@ public class MessageSlideShell
 		if (SWT.getVersion() < 3100)
 			gridData.widthHint = 140;
 		lblTitle.setLayoutData(gridData);
-		lblTitle.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
+		lblTitle.setForeground(colorFG);
 		lblTitle.setText(popupParams.title);
 		FontData[] fontData = lblTitle.getFont().getFontData();
 		fontData[0].setStyle(SWT.BOLD);
@@ -470,7 +443,7 @@ public class MessageSlideShell
 		lblTitle.setFont(boldFont);
 
 		final Button btnDetails = new Button(cShell, SWT.TOGGLE);
-		btnDetails.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
+		btnDetails.setForeground(colorFG);
 		Messages.setLanguageText(btnDetails, "popup.error.details");
 		gridData = new GridData();
 		btnDetails.setLayoutData(gridData);
@@ -522,7 +495,7 @@ public class MessageSlideShell
 		createLinkLabel(cShell, true, popupParams);
 
 		lblCloseIn = new Label(cShell, SWT.TRAIL);
-		lblCloseIn.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
+		lblCloseIn.setForeground(colorFG);
 		// Ensure computeSize computes for 2 lined label
 		lblCloseIn.setText("\n");
 		gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
@@ -810,94 +783,74 @@ public class MessageSlideShell
 	 * @since 3.0.0.9
 	 */
 	private void createLinkLabel(Composite shell, boolean tryLinkIfURLs,
-			PopupParams popupParams) {
+			final PopupParams popupParams) {
 
-		Matcher matcher = Pattern.compile(REGEX_URLHTML, Pattern.CASE_INSENSITIVE).matcher(
-				popupParams.text);
-		boolean hasHTML = matcher.find();
-		if (tryLinkIfURLs && hasHTML) {
-			try {
-				final Link linkLabel = new Link(cShell, SWT.WRAP);
-				GridData gridData = new GridData(GridData.FILL_BOTH);
-				gridData.horizontalSpan = 3;
-				linkLabel.setLayoutData(gridData);
-				linkLabel.setForeground(shell.getDisplay().getSystemColor(
-						SWT.COLOR_BLACK));
-				linkLabel.setText(popupParams.text);
-				linkLabel.addSelectionListener(new SelectionAdapter() {
-					public void widgetSelected(SelectionEvent e) {
-						if (e.text.startsWith(":")) {
-							return;
+		final Canvas canvas = new Canvas(shell, SWT.None) {
+			public Point computeSize(int wHint, int hHint, boolean changed) {
+				Rectangle area = new Rectangle(0, 0, shellWidth, 5000);
+				GC gc = new GC(this);
+				GCStringPrinter sp = new GCStringPrinter(gc, popupParams.text, area, true,
+						false, SWT.WRAP | SWT.TOP);
+				sp.calculateMetrics();
+				gc.dispose();
+				Point size = sp.getCalculatedSize();
+				return size;
+			}
+		};
+
+		Listener l = new Listener() {
+			GCStringPrinter sp;
+
+			public void handleEvent(Event e) {
+				if (e.type == SWT.Paint) {
+					Rectangle area = canvas.getClientArea();
+					sp = new GCStringPrinter(e.gc, popupParams.text, area, true, false,
+							SWT.WRAP | SWT.TOP);
+					sp.setUrlColor(ColorCache.getColor(e.gc.getDevice(), "#0000ff"));
+					if (colorURL != null) {
+						sp.setUrlColor(colorURL);
+					}
+					if (colorFG != null) {
+						e.gc.setForeground(colorFG);
+					}
+					sp.printString();
+				} else if (e.type == SWT.MouseMove) {
+					if (sp != null) {
+						URLInfo hitUrl = sp.getHitUrl(e.x, e.y);
+						if (hitUrl != null) {
+							canvas.setCursor(canvas.getDisplay().getSystemCursor(
+									SWT.CURSOR_HAND));
+							canvas.setToolTipText(hitUrl.url);
+						} else {
+							canvas.setCursor(canvas.getDisplay().getSystemCursor(
+									SWT.CURSOR_ARROW));
+							canvas.setToolTipText(null);
 						}
-						if (e.text.endsWith(".torrent"))
-							TorrentOpener.openTorrent(e.text);
-						else
-							Utils.launch(e.text);
+					}
+				} else if (e.type == SWT.MouseUp) {
+					if (sp != null) {
+						URLInfo hitUrl = sp.getHitUrl(e.x, e.y);
+						if (hitUrl != null) {
+							Utils.launch(hitUrl.url);
+						}
+					}
+				}
+			}
+		};
+		canvas.addListener(SWT.Paint, l);
+		canvas.addListener(SWT.MouseMove, l);
+		canvas.addListener(SWT.MouseUp, l);
+
+		ClipboardCopy.addCopyToClipMenu(canvas,
+				new ClipboardCopy.copyToClipProvider() {
+					public String getText() {
+						return (popupParams.title + "\n\n" + popupParams.text);
 					}
 				});
 
-				String tooltip = null;
-				matcher.reset();
-				while (matcher.find()) {
-					if (tooltip == null)
-						tooltip = "";
-					else
-						tooltip += "\n";
-					String url = matcher.group(1);
-					if (url != null && url.startsWith(":")) {
-						url = url.substring(1);
-					}
-					tooltip += matcher.group(2) + ": " + url;
-				}
-				linkLabel.setToolTipText(tooltip);
-				
-				ClipboardCopy.addCopyToClipMenu( 
-						linkLabel,
-						new ClipboardCopy.copyToClipProvider()
-						{
-							public String 
-							getText() 
-							{
-								return( linkLabel.getText());
-							}
-						});
-			} catch (Throwable t) {
-				createLinkLabel(shell, false, popupParams);
-			}
-		} else {
-			// 3.0
-			final Label linkLabel = new Label(cShell, SWT.WRAP);
-			GridData gridData = new GridData(GridData.FILL_BOTH);
-			gridData.horizontalSpan = 3;
-			linkLabel.setLayoutData(gridData);
-
-			//<a href="http://atorre.s">test</A> and <a href="http://atorre.s">test2</A>
-
-			if (hasHTML) {
-				matcher.reset();
-				popupParams.text = matcher.replaceAll("$2 ($1)");
-
-				if (sDetails == null) {
-					sDetails = popupParams.text;
-				} else {
-					sDetails = popupParams.text + "\n---------\n" + sDetails;
-				}
-			}
-
-			linkLabel.setForeground(shell.getDisplay().getSystemColor(SWT.COLOR_BLACK));
-			linkLabel.setText(popupParams.text);
-			
-			ClipboardCopy.addCopyToClipMenu( 
-					linkLabel,
-					new ClipboardCopy.copyToClipProvider()
-					{
-						public String 
-						getText() 
-						{
-							return( linkLabel.getText());
-						}
-					});
-		}
+		GridData gridData = new GridData(GridData.FILL_BOTH);
+		gridData.horizontalSpan = 3;
+		canvas.setLayoutData(gridData);
 	}
 
 	/**
@@ -1130,6 +1083,11 @@ public class MessageSlideShell
 		});
 	}
 
+	public static String stripOutHyperlinks(String message) {
+		return Pattern.compile(REGEX_URLHTML, Pattern.CASE_INSENSITIVE).matcher(
+				message).replaceAll("$2");
+	}
+
 	/**
 	 * Waits until all slideys are closed before returning to caller.
 	 */
@@ -1142,11 +1100,6 @@ public class MessageSlideShell
 			if (!display.readAndDispatch())
 				display.sleep();
 		}
-	}
-
-	public static String stripOutHyperlinks(String message) {
-		return Pattern.compile(REGEX_URLHTML, Pattern.CASE_INSENSITIVE).matcher(
-				message).replaceAll("$2");
 	}
 
 	private static class PopupParams
@@ -1276,5 +1229,21 @@ public class MessageSlideShell
 	 */
 	public void setImgPopup(Image imgPopup) {
 		this.imgPopup = imgPopup;
+	}
+
+	public Color getUrlColor() {
+		return colorURL;
+	}
+
+	public void setUrlColor(Color urlColor) {
+		this.colorURL = urlColor;
+	}
+
+	public Color getColorFG() {
+		return colorFG;
+	}
+
+	public void setColorFG(Color colorFG) {
+		this.colorFG = colorFG;
 	}
 }
