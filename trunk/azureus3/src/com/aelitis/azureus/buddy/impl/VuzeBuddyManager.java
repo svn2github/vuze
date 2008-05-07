@@ -892,16 +892,17 @@ public class VuzeBuddyManager
 							+ buddy.getLoginID() + ";updateTime=" + updateTime + ";buddyTime"
 							+ buddy.getLastUpdated());
 
-					// removal of all public keys will trigger a buddy removal
+					// remove from list first, otherwise removing public keys will
+					// trigger a removeBuddy(VuzeBuddy)
+					buddyList.remove(buddy);
+
 					String[] publicKeys = buddy.getPublicKeys();
 					for (int j = 0; j < publicKeys.length; j++) {
 						String pk = publicKeys[j];
 
+						mapPKtoVuzeBuddy.remove(pk);
 						buddy.removePublicKey(pk);
 					}
-
-					// try a remove, just in case
-					buddyList.remove(buddy);
 
 					triggerRemoveListener(buddy);
 
