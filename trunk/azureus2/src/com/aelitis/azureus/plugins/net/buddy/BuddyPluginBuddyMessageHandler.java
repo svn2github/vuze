@@ -342,7 +342,7 @@ BuddyPluginBuddyMessageHandler
 								last_failure	= SystemTime.getCurrentTime();
 							}
 							
-							reportFailed( message, cause );
+							reportFailed( message, cause, true );
 						}
 					});
 					
@@ -356,6 +356,8 @@ BuddyPluginBuddyMessageHandler
 				
 				last_failure	= SystemTime.getCurrentTime();
 			}
+			
+			boolean do_subsequent = true;
 			
 			if ( !request_ok && !( cause instanceof BuddyPluginPasswordException )){
 				
@@ -374,18 +376,21 @@ BuddyPluginBuddyMessageHandler
 					
 				if ( messages_queued ){
 				
+					do_subsequent = false;
+					
 					buddy.persistentDispatchPending();
 				}
 			}
 			
-			reportFailed( message, cause );
+			reportFailed( message, cause, do_subsequent );
 		}
 	}
 	
 	protected void
 	reportFailed(
 		BuddyPluginBuddyMessage		message,
-		Throwable					cause )
+		Throwable					cause,
+		boolean						do_subsequent )
 	{	
 		BuddyPluginException b_cause;
 		
@@ -400,34 +405,37 @@ BuddyPluginBuddyMessageHandler
 		
 		reportFailedSupport( message, b_cause );
 		
-		List	other_messages = new ArrayList();
-		
-		synchronized( this ){
-
-			List	messages = (List)config_map.get( "messages" );
-
-			for (int i=0;i<messages.size();i++){
+		if ( do_subsequent ){
 			
-				try{
-					BuddyPluginBuddyMessage msg = restoreMessage((Map)messages.get(i));
-
-					if ( msg.getID() != message.getID()){
+			List	other_messages = new ArrayList();
+			
+			synchronized( this ){
+	
+				List	messages = (List)config_map.get( "messages" );
+	
+				for (int i=0;i<messages.size();i++){
+				
+					try{
+						BuddyPluginBuddyMessage msg = restoreMessage((Map)messages.get(i));
+	
+						if ( msg.getID() != message.getID()){
+							
+							other_messages.add( msg );
+						}
+					}catch( Throwable e ){
 						
-						other_messages.add( msg );
 					}
-				}catch( Throwable e ){
-					
 				}
 			}
-		}
-
-		if ( other_messages.size() > 0 ){
-			
-			BuddyPluginException o_cause = new BuddyPluginException( "Reporting probable failure to subsequent messages" );
-			
-			for (int i=0;i<other_messages.size();i++){
+	
+			if ( other_messages.size() > 0 ){
 				
-				reportFailedSupport((BuddyPluginBuddyMessage)other_messages.get(i), o_cause );
+				BuddyPluginException o_cause = new BuddyPluginException( "Reporting probable failure to subsequent messages" );
+				
+				for (int i=0;i<other_messages.size();i++){
+					
+					reportFailedSupport((BuddyPluginBuddyMessage)other_messages.get(i), o_cause );
+				}
 			}
 		}
 	}
