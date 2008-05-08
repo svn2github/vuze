@@ -342,18 +342,7 @@ BuddyPluginBuddyMessageHandler
 								last_failure	= SystemTime.getCurrentTime();
 							}
 							
-							Iterator it = listeners.iterator();
-							
-							while( it.hasNext()){
-								
-								try{
-									((BuddyPluginBuddyMessageListener)it.next()).deliveryFailed( message, cause );
-									
-								}catch( Throwable e ){
-									
-									Debug.printStackTrace(e);
-								}
-							}
+							reportFailed( message, cause );
 						}
 					});
 					
@@ -389,28 +378,75 @@ BuddyPluginBuddyMessageHandler
 				}
 			}
 			
-			Iterator it = listeners.iterator();
+			reportFailed( message, cause );
+		}
+	}
+	
+	protected void
+	reportFailed(
+		BuddyPluginBuddyMessage		message,
+		Throwable					cause )
+	{	
+		BuddyPluginException b_cause;
+		
+		if ( cause instanceof BuddyPluginException ){
 			
-			while( it.hasNext()){
-				
-				BuddyPluginException b_cause;
-				
-				if ( cause instanceof BuddyPluginException ){
-					
-					b_cause = (BuddyPluginException)cause;
-					
-				}else{
-					
-					b_cause = new BuddyPluginException( "Failed to send message", cause );
-				}
-				
+			b_cause = (BuddyPluginException)cause;
+			
+		}else{
+			
+			b_cause = new BuddyPluginException( "Failed to send message", cause );
+		}
+		
+		reportFailedSupport( message, b_cause );
+		
+		List	other_messages = new ArrayList();
+		
+		synchronized( this ){
+
+			List	messages = (List)config_map.get( "messages" );
+
+			for (int i=0;i<messages.size();i++){
+			
 				try{
-					((BuddyPluginBuddyMessageListener)it.next()).deliveryFailed( message, b_cause );
-					
+					BuddyPluginBuddyMessage msg = restoreMessage((Map)messages.get(i));
+
+					if ( msg.getID() != message.getID()){
+						
+						other_messages.add( msg );
+					}
 				}catch( Throwable e ){
 					
-					Debug.printStackTrace(e);
 				}
+			}
+		}
+
+		if ( other_messages.size() > 0 ){
+			
+			BuddyPluginException o_cause = new BuddyPluginException( "Reporting probable failure to subsequent messages" );
+			
+			for (int i=0;i<other_messages.size();i++){
+				
+				reportFailedSupport((BuddyPluginBuddyMessage)other_messages.get(i), o_cause );
+			}
+		}
+	}
+	
+	protected void
+	reportFailedSupport(
+		BuddyPluginBuddyMessage		message,
+		BuddyPluginException		cause )
+	{	
+		Iterator it = listeners.iterator();
+	
+		while( it.hasNext()){
+			
+			try{
+				((BuddyPluginBuddyMessageListener)it.next()).deliveryFailed( message, cause );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
 			}
 		}
 	}
