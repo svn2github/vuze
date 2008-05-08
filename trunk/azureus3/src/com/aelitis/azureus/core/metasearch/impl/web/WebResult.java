@@ -1,6 +1,5 @@
 package com.aelitis.azureus.core.metasearch.impl.web;
 
-import java.net.URL;
 import java.util.Date;
 import java.util.StringTokenizer;
 
@@ -24,7 +23,7 @@ public class WebResult extends Result {
 	long size;
 	int nbPeers;
 	int nbSeeds;
-	int	comments;
+	int	comments	= -1;
 	
 	String cdpLink;
 	String torrentLink;

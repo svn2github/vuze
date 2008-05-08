@@ -1,5 +1,5 @@
 /*
- * Created on May 6, 2008
+ * Created on May 7, 2008
  * Created by Paul Gardner
  * 
  * Copyright 2008 Vuze, Inc.  All rights reserved.
@@ -19,21 +19,24 @@
  */
 
 
-package com.aelitis.azureus.core.metasearch;
+package com.aelitis.azureus.core.messenger;
 
-public interface 
-MetaSearchManager 
+public class 
+PlatformMessengerException
+	extends Exception
 {
-	public MetaSearch
-	getMetaSearch();
+	public
+	PlatformMessengerException(
+		String		str )
+	{
+		super( str );
+	}
 	
-	public boolean
-	isAutoMode();
-	
-	public void
-	setAutoMode(
-		boolean		auto );
-	
-	public void
-	listPopularTemplates();
+	public 
+	PlatformMessengerException(
+		String		str,
+		Throwable 	cause )
+	{
+		super( str, cause );
+	}
 }

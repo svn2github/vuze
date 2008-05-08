@@ -10,18 +10,54 @@ Engine
 	public static final int ENGINE_TYPE_REGEX		= 1;
 	public static final int ENGINE_TYPE_JSON		= 2;
 	
+	public static final int	ENGINE_SOURCE_UNKNOWN	= 0;
+	public static final int	ENGINE_SOURCE_FEATURED	= 1;
+	public static final int	ENGINE_SOURCE_POPULAR	= 2;
+	public static final int	ENGINE_SOURCE_MANUAL	= 3;
+	
 	
 	public int getType();
 	
-	public Result[] search(SearchParameter[] searchParameters) throws SearchException;
+	public Result[] 
+	search(
+		SearchParameter[] searchParameters ) 
 	
-	public String getName();
+		throws SearchException;
 	
-	public long getId();
+	public String 
+	getName();
 	
-	public long getLastUpdated();
+	public long 
+	getId();
 	
-	public String getIcon();
+	public long 
+	getLastUpdated();
+	
+	public String 
+	getIcon();
 
-	public Map exportToBencodedMap() throws IOException;
+	public boolean
+	isSelected();
+	
+	public void
+	setSelected(
+		boolean		selected );
+	
+	public boolean
+	isSelectionStateRecorded();
+	
+	public void
+	setSelectionStateRecorded();
+	
+	public int
+	getSource();
+	
+	public void
+	setSource(
+		int		source );
+	
+	public Map 
+	exportToBencodedMap() 
+	
+		throws IOException;
 }

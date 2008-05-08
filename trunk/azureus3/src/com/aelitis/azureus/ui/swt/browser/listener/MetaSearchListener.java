@@ -36,7 +36,7 @@ public class MetaSearchListener extends AbstractMessageListener {
 	
 	public void handleMessage(BrowserMessage message) {
 		
-		//MetaSearchManagerFactory.getSingleton().getMostPopularTemplates();
+		MetaSearchManagerFactory.getSingleton().listPopularTemplates();
 		
 		System.out.println("Got message : " + message);
 		

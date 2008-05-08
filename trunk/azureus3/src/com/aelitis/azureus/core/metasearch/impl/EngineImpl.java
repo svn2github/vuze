@@ -59,6 +59,10 @@ EngineImpl
 	private long		last_updated;
 	private String		name;
 	
+	private boolean		selected;
+	private boolean		selection_state_recorded	= true;
+	
+	private int			source	= ENGINE_SOURCE_UNKNOWN;
 	
 	protected
 	EngineImpl(
@@ -83,6 +87,8 @@ EngineImpl
 		id				= ((Long)map.get( "id")).longValue();
 		last_updated	= importLong( map, "last_updated" );
 		name			= importString( map, "name" );
+		
+		selected		= importBoolean( map, "selected" );
 	}
 		
 	protected void
@@ -96,6 +102,8 @@ EngineImpl
 		map.put( "last_updated", new Long( last_updated ));
 		
 		exportString( map, "name", name );
+		
+		exportBoolean( map, "selected", selected );
 	}
 	
 	protected void
@@ -146,6 +154,34 @@ EngineImpl
 		return( 0 );
 	}
 
+	protected void
+	exportBoolean(
+		Map		map,
+		String	key,
+		boolean	value )
+	
+		throws IOException
+	{
+		map.put( key, new Long( value?1:0 ));
+	}
+	
+	protected boolean
+	importBoolean(
+		Map		map,
+		String	key )
+	
+		throws IOException
+	{
+		Object	obj = map.get( key );
+		
+		if ( obj instanceof Long){
+			
+			return(((Long)obj).longValue() == 1 );
+		}
+		
+		return( false );
+	}
+	
 	public int
 	getType()
 	{
@@ -168,5 +204,54 @@ EngineImpl
 	getName() 
 	{
 		return name;
+	}
+	
+	public boolean
+	isSelected()
+	{
+		return( selected );
+	}
+	
+	public void
+	setSelected(
+		boolean		b )
+	{
+		if ( b != selected ){
+		
+			selected	= b;
+			
+			selection_state_recorded = false;
+			
+			MetaSearchImpl.getSingleton().configDirty();
+		}
+	}
+	
+	public boolean
+	isSelectionStateRecorded()
+	{
+		return( selection_state_recorded );
+	}
+	
+	public void
+	setSelectionStateRecorded()
+	{
+		selection_state_recorded = true;
+		
+		MetaSearchImpl.getSingleton().configDirty();
+	}
+	
+	public int
+	getSource()
+	{
+		return( source );
+	}
+	
+	public void
+	setSource(
+		int		_source )
+	{
+		source	= _source;
+		
+		MetaSearchImpl.getSingleton().configDirty();
 	}
 }

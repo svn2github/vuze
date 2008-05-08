@@ -23,27 +23,24 @@ package com.aelitis.azureus.core.metasearch.impl;
 
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.AEDiagnostics;
-import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.FileUtil;
 
 import com.aelitis.azureus.core.metasearch.*;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
-import com.aelitis.azureus.util.Constants;
 
 public class 
 MetaSearchImpl
 	implements MetaSearch
 {
-	private static final String	LOGGER_NAME = "MetaSearch";
 	private static final String	CONFIG_FILE = "metasearch.config";
 	
-	private static final MetaSearch singleton = new MetaSearchImpl();
+	private static final MetaSearchImpl singleton = new MetaSearchImpl();
 	
 	private CopyOnWriteList 	engines = new CopyOnWriteList();
 	
-	public static MetaSearch
+	protected static MetaSearchImpl
 	getSingleton()
 	{
 		return( singleton );
@@ -59,7 +56,7 @@ MetaSearchImpl
 		
 			clazz.getConstructor( new Class[]{ MetaSearch.class }).newInstance( new Object[]{ this });
 			
-		}catch( Exception e ){
+		}catch( Throwable e ){
 			
 				//Test implementation in progress, Test class not publicly available
 			
@@ -128,8 +125,8 @@ MetaSearchImpl
 	
 	public void 
 	search(
-		ResultListener 		listener,
-		SearchParameter[] 	searchParameters ) 
+		final ResultListener 	original_listener,
+		SearchParameter[] 		searchParameters ) 
 	{
 		String	str = "";
 		
@@ -142,6 +139,60 @@ MetaSearchImpl
 		
 		log( "Search: " + str );
 		
+		ResultListener	listener = 
+			new ResultListener()
+			{
+					// 	single thread listener calls
+			
+				private AsyncDispatcher dispatcher = new AsyncDispatcher( 5000 );
+
+				public void 
+				resultsReceived(
+					final Engine 	engine,
+					final Result[] 	results )
+				{
+					dispatcher.dispatch(
+						new AERunnable()
+						{
+							public void
+							runSupport()
+							{
+								original_listener.resultsReceived( engine, results );
+							}
+						});
+				}
+			
+				public void 
+				resultsComplete(
+					final Engine engine )
+				{
+					dispatcher.dispatch(
+							new AERunnable()
+							{
+								public void
+								runSupport()
+								{
+									original_listener.resultsComplete( engine );
+								}
+							});
+				}
+			
+				public void 
+				engineFailed(
+					final Engine engine )
+				{
+					dispatcher.dispatch(
+							new AERunnable()
+							{
+								public void
+								runSupport()
+								{
+									original_listener.engineFailed( engine );
+								}
+							});
+				}
+			};
+			
 		SearchExecuter se = new SearchExecuter(listener);
 		
 		Iterator it  = engines.iterator();
@@ -149,38 +200,6 @@ MetaSearchImpl
 		while( it.hasNext()){
 			
 			se.search((Engine)it.next(), searchParameters);
-		}
-	}
-	
-	public static void 
-	log(
-		String 		s,
-		Throwable 	e )
-	{
-		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger( LOGGER_NAME );
-		
-		diag_logger.log( s );
-		diag_logger.log( e );
-		
-		if ( Constants.DIAG_TO_STDOUT ){
-			
-			System.out.println(Thread.currentThread().getName() + "|"
-					+ System.currentTimeMillis() + "] " + s + ": " + Debug.getNestedExceptionMessage(e));
-		}	
-	}
-	
-	public static void 
-	log(
-		String 	s )
-	{
-		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger( LOGGER_NAME );
-		
-		diag_logger.log( s );
-		
-		if ( Constants.DIAG_TO_STDOUT ){
-			
-			System.out.println(Thread.currentThread().getName() + "|"
-					+ System.currentTimeMillis() + "] " + s);
 		}
 	}
 	
@@ -218,6 +237,12 @@ MetaSearchImpl
 	}
 	
 	protected void
+	configDirty()
+	{
+		
+	}
+	
+	protected void
 	saveConfig()
 	{
 		log( "Saving configuration" );
@@ -248,5 +273,20 @@ MetaSearchImpl
 			
 			FileUtil.writeResilientConfigFile( CONFIG_FILE, map );
 		}
+	}
+	
+	protected void
+	log(
+		String	str )
+	{
+		MetaSearchManagerImpl.log( "search :"  + str );
+	}
+	
+	protected void
+	log(
+		String		str,
+		Throwable 	e )
+	{
+		MetaSearchManagerImpl.log( "search :"  +  str, e );
 	}
 }
