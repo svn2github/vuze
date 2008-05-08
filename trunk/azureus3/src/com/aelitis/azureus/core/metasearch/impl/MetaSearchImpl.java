@@ -25,6 +25,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
+import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.FileUtil;
 
 import com.aelitis.azureus.core.metasearch.*;
@@ -45,6 +46,8 @@ MetaSearchImpl
 	{
 		return( singleton );
 	}
+	
+	private boolean config_dirty;
 	
 	protected 
 	MetaSearchImpl() 
@@ -239,7 +242,34 @@ MetaSearchImpl
 	protected void
 	configDirty()
 	{
+		synchronized( this ){
+			
+			if ( config_dirty ){
+				
+				return;
+			}
+			
+			config_dirty = true;
 		
+			new DelayedEvent( 
+				"MetaSearch:save", 5000,
+				new AERunnable()
+				{
+					public void 
+					runSupport() 
+					{
+						synchronized( this ){
+							
+							if ( !config_dirty ){
+
+								return;
+							}
+							
+							saveConfig();
+						}	
+					}
+				});
+		}
 	}
 	
 	protected void
@@ -248,6 +278,8 @@ MetaSearchImpl
 		log( "Saving configuration" );
 		
 		synchronized( this ){
+			
+			config_dirty = false;
 			
 			Map map = new HashMap();
 			
