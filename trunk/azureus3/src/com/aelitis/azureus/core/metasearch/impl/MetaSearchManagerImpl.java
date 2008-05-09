@@ -35,7 +35,6 @@ import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
 import com.aelitis.azureus.core.messenger.config.PlatformMetaSearchMessenger;
 import com.aelitis.azureus.core.metasearch.Engine;
-import com.aelitis.azureus.core.metasearch.EngineFactory;
 import com.aelitis.azureus.core.metasearch.MetaSearch;
 import com.aelitis.azureus.core.metasearch.MetaSearchManager;
 import com.aelitis.azureus.util.Constants;
@@ -56,11 +55,14 @@ MetaSearchManagerImpl
 		return( singleton );
 	}
 	
+	private MetaSearchImpl	meta_search;
 	private AsyncDispatcher	dispatcher = new AsyncDispatcher( 10000 );
 	
 	protected
 	MetaSearchManagerImpl()
 	{
+		meta_search = new MetaSearchImpl();
+		
 		SimpleTimer.addPeriodicEvent(
 			"MetaSearchRefresh",
 			REFRESH_MILLIS,
@@ -109,9 +111,7 @@ MetaSearchManagerImpl
 		Set		popular_ids 		= new HashSet();
 		
 		boolean		auto_mode = isAutoMode();
-		
-		MetaSearch meta_search = getMetaSearch();
-		
+				
 		Engine[]	engines = meta_search.getEngines( false );
 
 		try{
@@ -245,7 +245,7 @@ MetaSearchManagerImpl
 						
 						try{
 							Engine e = 
-								EngineFactory.importFromJSONString( 
+								meta_search.importFromJSONString( 
 									details.getType()==PlatformMetaSearchMessenger.templateDetails.ENGINE_TYPE_JSON?Engine.ENGINE_TYPE_JSON:Engine.ENGINE_TYPE_REGEX,
 									details.getId(),
 									details.getModifiedDate(),
@@ -332,7 +332,7 @@ MetaSearchManagerImpl
 	public MetaSearch 
 	getMetaSearch() 
 	{
-		return( MetaSearchImpl.getSingleton());
+		return( meta_search );
 	}
 	
 	public boolean

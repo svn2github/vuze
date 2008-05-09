@@ -24,9 +24,6 @@ package com.aelitis.azureus.core.metasearch.impl;
 import java.io.IOException;
 import java.util.Map;
 
-import org.json.simple.JSONValue;
-import org.json.simple.parser.JSONParser;
-
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.impl.web.json.JSONEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.regex.RegexEngine;
@@ -38,7 +35,8 @@ EngineImpl
 {
 	protected static Engine
 	importFromBEncodedMap(
-		Map		map )
+		MetaSearchImpl		meta_search,
+		Map					map )
 	
 		throws IOException
 	{
@@ -46,11 +44,11 @@ EngineImpl
 		
 		if ( type == Engine.ENGINE_TYPE_JSON ){
 			
-			return( JSONEngine.importFromBEncodedMap( map ));
+			return( JSONEngine.importFromBEncodedMap( meta_search, map ));
 			
 		}else if ( type == Engine.ENGINE_TYPE_REGEX ){
 			
-			return( RegexEngine.importFromBEncodedMap( map ));
+			return( RegexEngine.importFromBEncodedMap( meta_search, map ));
 			
 		}else{
 			
@@ -60,11 +58,12 @@ EngineImpl
 	
 	public static Engine
 	importFromJSONString(
-		int			type,
-		long		id,
-		long		last_updated,
-		String		name,
-		String		content )
+		MetaSearchImpl	meta_search,
+		int				type,
+		long			id,
+		long			last_updated,
+		String			name,
+		String			content )
 	
 		throws IOException
 	{
@@ -72,17 +71,19 @@ EngineImpl
 		
 		if ( type == Engine.ENGINE_TYPE_JSON ){
 			
-			return( JSONEngine.importFromJSONString( id, last_updated, name, map ));
+			return( JSONEngine.importFromJSONString( meta_search, id, last_updated, name, map ));
 			
 		}else if ( type == Engine.ENGINE_TYPE_REGEX ){
 			
-			return( RegexEngine.importFromJSONString( id, last_updated, name, map ));
+			return( RegexEngine.importFromJSONString( meta_search, id, last_updated, name, map ));
 			
 		}else{
 			
 			throw( new IOException( "Unknown engine type " + type ));
 		}	
 	}
+	
+	private MetaSearchImpl	meta_search;
 	
 	private int			type;
 	private long		id;
@@ -98,11 +99,13 @@ EngineImpl
 	
 	protected
 	EngineImpl(
-		int 	_type, 
-		long 	_id,
-		long	_last_updated,
-		String 	_name )
+		MetaSearchImpl	_meta_search,
+		int 			_type, 
+		long 			_id,
+		long			_last_updated,
+		String 			_name )
 	{
+		meta_search		= _meta_search;
 		type			= _type;
 		id				= _id;
 		last_updated	= _last_updated;
@@ -111,10 +114,13 @@ EngineImpl
 	
 	protected 
 	EngineImpl(
-		Map		map )
+		MetaSearchImpl	_meta_search,
+		Map				map )
 	
 		throws IOException
 	{
+		meta_search		= _meta_search;
+		
 		type			= ((Long)map.get( "type" )).intValue();
 		id				= ((Long)map.get( "id")).longValue();
 		last_updated	= importLong( map, "last_updated" );
@@ -276,7 +282,7 @@ EngineImpl
 			
 			selection_state_recorded = false;
 			
-			MetaSearchImpl.getSingleton().configDirty();
+			meta_search.configDirty();
 		}
 	}
 	
@@ -291,7 +297,7 @@ EngineImpl
 	{
 		selection_state_recorded = true;
 		
-		MetaSearchImpl.getSingleton().configDirty();
+		meta_search.configDirty();
 	}
 	
 	public int
@@ -306,14 +312,14 @@ EngineImpl
 	{
 		source	= _source;
 		
-		MetaSearchImpl.getSingleton().configDirty();
+		meta_search.configDirty();
 	}
 	
 	protected void
 	log(
 		String		str )
 	{
-		MetaSearchImpl.getSingleton().log( "Engine " + getId() + ": " + str );
+		meta_search.log( "Engine " + getId() + ": " + str );
 	}
 	
 	protected void
@@ -321,7 +327,6 @@ EngineImpl
 		String		str,
 		Throwable	e )
 	{
-		MetaSearchImpl.getSingleton().log( "Engine " + getId() + ": " + str, e );
-
+		meta_search.log( "Engine " + getId() + ": " + str, e );
 	}
 }

@@ -15,6 +15,7 @@ import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.Result;
 import com.aelitis.azureus.core.metasearch.SearchException;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
+import com.aelitis.azureus.core.metasearch.impl.MetaSearchImpl;
 import com.aelitis.azureus.core.metasearch.impl.web.FieldMapping;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.WebResult;
@@ -25,23 +26,25 @@ JSONEngine
 {
 	public static Engine
 	importFromBEncodedMap(
-		Map		map )
+		MetaSearchImpl	meta_search,
+		Map				map )
 	
 		throws IOException
 	{
-		return( new JSONEngine( map ));
+		return( new JSONEngine( meta_search, map ));
 	}
 	
 	public static Engine
 	importFromJSONString(
-		long		id,
-		long		last_updated,
-		String		name,
-		Map			map )
+		MetaSearchImpl	meta_search,
+		long			id,
+		long			last_updated,
+		String			name,
+		Map				map )
 	
 		throws IOException
 	{
-		return( new JSONEngine( id, last_updated, name, map ));
+		return( new JSONEngine( meta_search, id, last_updated, name, map ));
 	}
 	
 	private String resultsEntryPath;
@@ -51,6 +54,7 @@ JSONEngine
 
 	public 
 	JSONEngine(
+		MetaSearchImpl		meta_search,
 		long 				id,
 		long 				last_updated,
 		String 				name,
@@ -61,7 +65,7 @@ JSONEngine
 		String 				resultsEntryPath,
 		FieldMapping[] 		mappings) 
 	{
-		super( Engine.ENGINE_TYPE_JSON, id,last_updated,name,searchURLFormat,timeZone,automaticDateFormat,userDateFormat,mappings);
+		super( meta_search, Engine.ENGINE_TYPE_JSON, id,last_updated,name,searchURLFormat,timeZone,automaticDateFormat,userDateFormat,mappings);
 		
 		this.resultsEntryPath = resultsEntryPath;
 		
@@ -74,11 +78,12 @@ JSONEngine
 	
 	protected 
 	JSONEngine(
-		Map		map )
+		MetaSearchImpl	meta_search,
+		Map				map )
 	
 		throws IOException
 	{
-		super( map );
+		super( meta_search, map );
 		
 		resultsEntryPath = importString( map, "json.path" );
 	}
@@ -87,14 +92,15 @@ JSONEngine
 	
 	protected 
 	JSONEngine(
-		long	id,
-		long	last_updated,
-		String	name,
-		Map		map )
+		MetaSearchImpl	meta_search,
+		long			id,
+		long			last_updated,
+		String			name,
+		Map				map )
 	
 		throws IOException
 	{
-		super( Engine.ENGINE_TYPE_JSON, id, last_updated, name, map );
+		super( meta_search, Engine.ENGINE_TYPE_JSON, id, last_updated, name, map );
 				
 		resultsEntryPath = importString( map, "aaaaa" );
 	}

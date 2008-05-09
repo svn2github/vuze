@@ -45,9 +45,22 @@ public abstract class WebEngine extends EngineImpl {
 	private DateParser dateParser;
 	
 
-	public WebEngine(int type, long id, long last_updated, String name,String searchURLFormat,String timeZone,boolean automaticDateParser,String userDateFormat, FieldMapping[] mappings ) {
+		// manual test constructor
+	
+	public 
+	WebEngine(
+		MetaSearchImpl	meta_search,
+		int 			type, 
+		long 			id, 
+		long 			last_updated, 
+		String 			name,
+		String 			searchURLFormat,
+		String 			timeZone,
+		boolean 		automaticDateParser,
+		String 			userDateFormat, 
+		FieldMapping[] 	mappings ) {
 		
-		super( type, id, last_updated, name );
+		super( meta_search, type, id, last_updated, name );
 
 		this.searchURLFormat 		= searchURLFormat;
 		this.timeZone 				= timeZone;
@@ -62,11 +75,12 @@ public abstract class WebEngine extends EngineImpl {
 	
 	protected 
 	WebEngine(
-		Map		map )
+		MetaSearchImpl	meta_search,
+		Map				map )
 	
 		throws IOException
 	{
-		super( map );
+		super( meta_search, map );
 		
 		searchURLFormat 	= importString( map, "web.search_url_format" );
 		timeZone			= importString( map, "web.time_zone" );
@@ -95,15 +109,16 @@ public abstract class WebEngine extends EngineImpl {
 	
 	protected 
 	WebEngine(
-		int			type,
-		long		id,
-		long		last_updated,
-		String		name,
-		Map			map )
+		MetaSearchImpl	meta_search,
+		int				type,
+		long			id,
+		long			last_updated,
+		String			name,
+		Map				map )
 	
 		throws IOException
 	{
-		super( type, id, last_updated, name );
+		super( meta_search, type, id, last_updated, name );
 		
 		searchURLFormat 	= importString( map, "searchURL" );
 		timeZone			= importString( map, "timezone" );

@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.metasearch.impl;
 
+import java.io.IOException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -40,13 +41,7 @@ MetaSearchImpl
 	private static final MetaSearchImpl singleton = new MetaSearchImpl();
 	
 	private CopyOnWriteList 	engines = new CopyOnWriteList();
-	
-	protected static MetaSearchImpl
-	getSingleton()
-	{
-		return( singleton );
-	}
-	
+		
 	private boolean config_dirty;
 	
 	protected 
@@ -65,7 +60,7 @@ MetaSearchImpl
 						Class clazz = Class.forName( "com.aelitis.azureus.core.metasearch.impl.MetaSearchTestImpl" );
 					
 						clazz.getConstructor( 
-								new Class[]{ MetaSearch.class }).newInstance( new Object[]{ MetaSearchImpl.this });
+								new Class[]{ MetaSearchImpl.class }).newInstance( new Object[]{ MetaSearchImpl.this });
 						
 					}catch( Throwable e ){
 						
@@ -75,6 +70,28 @@ MetaSearchImpl
 					}
 				}
 			});
+	}
+	
+	public Engine
+	importFromBEncodedMap(
+		Map		map )
+	
+		throws IOException
+	{
+		return( EngineImpl.importFromBEncodedMap( this, map ));
+	}
+	
+	public Engine
+	importFromJSONString(
+		int			type,
+		long		id,
+		long		last_updated,
+		String		name,
+		String		content )
+	
+		throws IOException
+	{
+		return( EngineImpl.importFromJSONString( this, type, id, last_updated, name, content ));
 	}
 	
 	public void 
@@ -257,7 +274,7 @@ MetaSearchImpl
 					Map	m = (Map)l_engines.get(i);
 					
 					try{
-						Engine e = EngineFactory.importFromBEncodedMap( m );
+						Engine e = importFromBEncodedMap( m );
 						
 						addEngine( e, true );
 						
