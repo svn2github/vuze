@@ -86,7 +86,6 @@ public class MiniBrowse
 		this.browserSkinObject = browserSkinObject;
 		browserSkinObject.setURL(Constants.URL_PREFIX + Constants.URL_MINI_BROWSE
 				+ "?" + Constants.URL_SUFFIX);
-//		browserSkinObject.setURL("c:\\test\\BrowserMessaging.html");
 	}
 
 	/**

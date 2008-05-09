@@ -49,7 +49,7 @@ public class VuzeActivitiesEntryBuddyRequest
 
 		setText("<A HREF=\"" + buddy.getProfileUrl(TYPEID_BUDDYREQUEST) + "\">"
 				+ buddy.getDisplayName() + "</A> wants to be your buddy\n \n"
-				+ "  <A HREF=\"" + urlAccept + "&debug=1" + "\">OMG, OF COURSE I ACCEPT!</A>");
+				+ "  <A HREF=\"" + urlAccept + "\">OMG, OF COURSE I ACCEPT!</A>");
 		setTypeID(TYPEID_BUDDYREQUEST, true);
 		setID(buildID(buddy.getCode()));
 	}

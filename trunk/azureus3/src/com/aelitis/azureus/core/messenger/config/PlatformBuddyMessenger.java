@@ -26,7 +26,6 @@ import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.activities.VuzeActivitiesEntryBuddyRequest;
 import com.aelitis.azureus.activities.VuzeActivitiesManager;
 import com.aelitis.azureus.buddy.VuzeBuddy;
-import com.aelitis.azureus.buddy.impl.VuzeBuddyFakeImpl;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
@@ -38,7 +37,6 @@ import com.aelitis.azureus.util.MapUtils;
  * @author TuxPaper
  * @created Apr 18, 2008
  *
- * TODO: poll invites occasionally
  */
 public class PlatformBuddyMessenger
 {
@@ -133,24 +131,8 @@ public class PlatformBuddyMessenger
 					Map reply) {
 				List invitations = MapUtils.getMapList(reply, "invitations",
 						Collections.EMPTY_LIST);
-				
-				VuzeActivitiesEntry[] allEntries = VuzeActivitiesManager.getAllEntries();
-				List existingInvites = new ArrayList();
-				for (int i = 0; i < allEntries.length; i++) {
-					VuzeActivitiesEntry entry = allEntries[i];
-					if (entry instanceof VuzeActivitiesEntryBuddyRequest) {
-						VuzeActivitiesEntryBuddyRequest inviteEntry = (VuzeActivitiesEntryBuddyRequest) entry;
-						if (inviteEntry.getBuddy() != null) {
-							existingInvites.add(entry);
-						}
-					}
-				}
-
-				// XXX Remove invite activity entries if they aren't on the list!
 
 				if (invitations.size() == 0) {
-					VuzeActivitiesEntry[] entries = (VuzeActivitiesEntry[]) existingInvites.toArray(new VuzeActivitiesEntry[0]);
-					VuzeActivitiesManager.removeEntries(entries);
 					return;
 				}
 
@@ -167,16 +149,15 @@ public class PlatformBuddyMessenger
 					if (mapBuddy.isEmpty() || inviteCode == null || acceptURL == null) {
 						continue;
 					}
-					
-					for (Iterator iter2 = existingInvites.iterator(); iter2.hasNext();) {
-						VuzeActivitiesEntryBuddyRequest entry = (VuzeActivitiesEntryBuddyRequest) iter2.next();
-						if (inviteCode.equals(entry.getBuddy().getCode())) {
-							iter2.remove();
-						}
+
+					// XXX This will still create a v2 buddy, which we need to fix before
+					//     release
+					VuzeBuddy futureBuddy = VuzeBuddyManager.createNewBuddyNoAdd(mapBuddy);
+
+					if (futureBuddy == null) {
+						continue;
 					}
 
-					VuzeBuddy futureBuddy = new VuzeBuddyFakeImpl();
-					futureBuddy.loadFromMap(mapBuddy);
 					futureBuddy.setCode(inviteCode);
 
 					VuzeActivitiesEntryBuddyRequest entry = new VuzeActivitiesEntryBuddyRequest(
@@ -185,9 +166,6 @@ public class PlatformBuddyMessenger
 						entry
 					});
 				}
-
-				VuzeActivitiesEntry[] entries = (VuzeActivitiesEntry[]) existingInvites.toArray(new VuzeActivitiesEntry[existingInvites.size()]);
-				VuzeActivitiesManager.removeEntries(entries);
 			}
 
 			public void messageSent(
