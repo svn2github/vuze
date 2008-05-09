@@ -151,7 +151,7 @@ public abstract class WebEngine extends EngineImpl {
 				
 				field_id	= FIELD_DATE;
 				
-			}else if ( field_name.equals( "")){
+			}else if ( field_name.equals( "SIZE")){
 				
 				field_id	= FIELD_SIZE;
 				
@@ -167,11 +167,11 @@ public abstract class WebEngine extends EngineImpl {
 				
 				field_id	= FIELD_CATEGORY;
 				
-			}else if ( field_name.equals( "")){
+			}else if ( field_name.equals( "COMMENTS")){
 				
 				field_id	= FIELD_COMMENTS;
 				
-			}else if ( field_name.equals( "")){
+			}else if ( field_name.equals( "TORRENT")){
 				
 				field_id	= FIELD_TORRENTLINK;
 				
