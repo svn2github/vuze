@@ -1567,6 +1567,16 @@ implements PiecePicker
 		if (peerHavePieces ==null ||peerHavePieces.nbSet <=0)
 			return -1;
 
+		for (int i = peerHavePieces.start; i <= peerHavePieces.end; i++) {
+//		for (int i = peerHavePieces.end; i >= peerHavePieces.start; i--) {
+    final DiskManagerPiece dmPiece =dmPieces[i];
+
+    if (dmPiece.isDownloadable() && (pePieces[i] == null || pePieces[i].hasUnrequestedBlock()) && peerHavePieces.flags[i]) {
+    	//System.out.println("test ;" + i + ";" + diskManager.getFiles()[0].getFile(false).getName());
+    	return i;
+    }
+		}
+
 		// piece number and its block number that we'll try to DL
 
 		int reservedPieceNumber = pt.getReservedPieceNumber();

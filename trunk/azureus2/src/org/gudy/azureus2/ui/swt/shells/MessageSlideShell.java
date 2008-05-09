@@ -328,24 +328,24 @@ public class MessageSlideShell
 			shellWidth = SHELL_DEF_WIDTH;
 			imgPopupBounds = null;
 		}
-		Image imgIcon = null;
-		switch (popupParams.iconID) {
-			case SWT.ICON_ERROR:
-				imgIcon = ImageRepository.getImage("error");
-				break;
-
-			case SWT.ICON_WARNING:
-				imgIcon = ImageRepository.getImage("warning");
-				break;
-
-			case SWT.ICON_INFORMATION:
-				imgIcon = ImageRepository.getImage("info");
-				break;
-
-			default:
-				imgIcon = null;
-				break;
-		}
+		Image imgIcon = popupParams.iconID <= 0 ? null : display.getSystemImage(popupParams.iconID);
+//		switch (popupParams.iconID) {
+//			case SWT.ICON_ERROR:
+//				imgIcon = ImageRepository.getImage("error");
+//				break;
+//
+//			case SWT.ICON_WARNING:
+//				imgIcon = ImageRepository.getImage("warning");
+//				break;
+//
+//			case SWT.ICON_INFORMATION:
+//				imgIcon = ImageRepository.getImage("info");
+//				break;
+//
+//			default:
+//				imgIcon = null;
+//				break;
+//		}
 
 		/*
 		 * If forceTimer is true then we always show the counter for auto-closing the shell;
