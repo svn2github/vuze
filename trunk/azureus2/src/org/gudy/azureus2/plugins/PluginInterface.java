@@ -298,9 +298,7 @@ public interface PluginInterface {
   public String getPluginDirectoryName();
   
   /**
-   * Returns the value of plugin.name if it exists in the properties file, dirctory name otherwise
-   * @return
-   *
+   * Returns the value of "plugin.name" if it exists in the properties file, otherwise the directory name is returned.
    * @since 2.1.0.0
    */
   public String getPluginName();
