@@ -86,7 +86,7 @@ public class VuzeBuddyImpl
 				} catch (UnsupportedEncodingException e) {
 				}
 			} else if (o instanceof String) {
-				pk = (String) iter.next();
+				pk = (String) o;
 			}
 			if (pk != null) {
 				addPublicKey(pk);
