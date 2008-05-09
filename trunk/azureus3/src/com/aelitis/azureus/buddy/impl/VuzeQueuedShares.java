@@ -91,13 +91,17 @@ public class VuzeQueuedShares
 	 */
 	public static List getSharesByPK(String pk) {
 		List results = new ArrayList();
+		
+		if (pk == null) {
+			return results;
+		}
 
 		shares_mon.enter();
 		try {
 			for (Iterator iter = shares.iterator(); iter.hasNext();) {
 				QueuedVuzeShare share = (QueuedVuzeShare) iter.next();
 
-				if (share.getPk().equals(pk)) {
+				if (pk.equals(share.getPk())) {
 					results.add(share);
 				}
 			}
