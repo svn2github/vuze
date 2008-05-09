@@ -88,7 +88,7 @@ public class VuzeActivitiesEntryContentShare
 		text += " with you.";
 
 		if (message != null) {
-			text += "\n \nMessage from " + userInfo.userName + ":\n" + message;
+			text += "\n \nMessage from " + userInfo.displayName + ":\n" + message;
 		}
 		setText(text);
 		setAssetHash(content.hash);
