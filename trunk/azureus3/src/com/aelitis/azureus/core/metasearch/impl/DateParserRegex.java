@@ -311,7 +311,10 @@ public class DateParserRegex {
 			}
 		}
 		
-
+		int nbBack = 0;
+		while(calendar.after(new GregorianCalendar()) && nbBack++ < 50) {
+			calendar.add(Calendar.YEAR, -1);
+		}
 		
 		return calendar.getTime();
 	}
@@ -357,7 +360,7 @@ public class DateParserRegex {
 		dateParser.parseDate("02:10");		// at 2:10am today
 		dateParser.parseDate("2005-02-26 20:55:10");	//
 		dateParser.parseDate("2005-02-26 10:55:10 PM");
-				dateParser.parseDate("2005-02-26 10:55:10 AM");
+		dateParser.parseDate("2005-02-26 10:55:10 AM");
 		dateParser.parseDate("25-04-08");	//
 		dateParser.parseDate("142 Day(s) ago");	//
 		dateParser.parseDate("6 Minute(s) ago");	//
