@@ -114,7 +114,7 @@ public abstract class TableViewImpl
 	}
 
 	protected void triggerDeselectionListeners(TableRowCore[] rows) {
-		if (rows == null || rows.length == 0) {
+		if (rows == null) {
 			return;
 		}
 		Object[] listeners = listenersSelection.toArray();
