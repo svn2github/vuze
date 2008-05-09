@@ -69,10 +69,9 @@ public class VuzeActivitiesEntryContentShare
 
 		setTypeID(TYPEID_BUDDYSHARE, true);
 		setID(TYPEID_BUDDYSHARE + "-" + SystemTime.getCurrentTime());
-		setTorrent(torrent);
 
 		String text = "<A HREF=\"" + userInfo.getProfileUrl(TYPEID_BUDDYSHARE)
-				+ "\">" + userInfo.displayName + "</A> is sharing ";
+				+ "\">" + userInfo.displayName + "</A> wants to share ";
 
 		if (ourContent || torrent == null) {
 			String url = Constants.URL_PREFIX + Constants.URL_DETAILS + content.hash
