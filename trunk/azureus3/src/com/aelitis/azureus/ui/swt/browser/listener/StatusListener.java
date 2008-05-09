@@ -12,12 +12,12 @@ public class StatusListener
 	}
 
 	public void handleLoginUpdate() {
-		LoginInfoManager.getInstance().setUserInfo(getUserName(), getUserID(),
+		LoginInfoManager.getInstance().setUserInfo(getUserName(), getDisplayName(),
 				getPK());
 	}
 
 	public void handleLoginStatus() {
-		LoginInfoManager.getInstance().setUserInfo(getUserName(), getUserID(),
+		LoginInfoManager.getInstance().setUserInfo(getUserName(), getDisplayName(),
 				getPK());
 	}
 }

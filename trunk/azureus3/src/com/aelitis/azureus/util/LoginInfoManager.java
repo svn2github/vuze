@@ -16,16 +16,16 @@ import org.gudy.azureus2.core3.util.UrlUtils;
  */
 public class LoginInfoManager
 {
-	private static final String ID_NOT_SET_VALUE = "no.user.id.has.been.set";
+	private static final String NAME_NOT_SET_VALUE = "no.user.name.has.been.set";
 
 	private static LoginInfoManager INSTANCE;
 
 	/*
 	 * DO NOT initialize userName and userID to null because null is a valid value for these variables
 	 */
-	private String userName = "no.user.name.has.been.set";
-
-	private String userID = ID_NOT_SET_VALUE;
+	private String userName = NAME_NOT_SET_VALUE;
+	
+	private String displayName = null;
 
 	private String pk = null;
 
@@ -66,22 +66,19 @@ public class LoginInfoManager
 		return new LoginInfo();
 	}
 
-	public void setUserInfo(String userName, String userID, String pk) {
+	public void setUserInfo(String userName, String displayName, String pk) {
 		boolean changed = false;
 		boolean isNewLoginID = false;
 		if (!("" + userName).equals("" + this.userName)) {
-			System.out.println("name changed from " + this.userName + " to " + userName);
 			this.userName = userName;
-			changed = true;
-		}
-		if (!("" + userID).equals("" + this.userID)) {
-			System.out.println("uid changed from " + this.userID + " to " + userID);
-			this.userID = userID;
 			changed = true;
 			isNewLoginID = true;
 		}
+		if (!("" + displayName).equals("" + this.displayName)) {
+			this.displayName = displayName;
+			changed = true;
+		}
 		if (!("" + pk).equals("" + this.pk)) {
-			System.out.println("pk changed from " + this.pk + " to " + pk);
 			this.pk = pk;
 			changed = true;
 		}
@@ -92,7 +89,7 @@ public class LoginInfoManager
 	}
 	
 	public boolean isLoggedIn() {
-		return this.userID != null && !this.userID.equals(ID_NOT_SET_VALUE);
+		return this.userName != null && !this.userName.equals(NAME_NOT_SET_VALUE);
 	}
 
 	private void notifyListeners(boolean isNewLoginID) {
@@ -107,7 +104,8 @@ public class LoginInfoManager
 	{
 		public final String userName = LoginInfoManager.this.userName;
 
-		public final String userID = LoginInfoManager.this.userID;
+		public final String displayName = LoginInfoManager.this.displayName == null
+				? LoginInfoManager.this.userName : LoginInfoManager.this.displayName;
 
 		/**
 		 * The public key that the webapp thinks we have
@@ -116,7 +114,7 @@ public class LoginInfoManager
 		
 		public String getProfileUrl(String referer) {
 			return Constants.URL_PREFIX + Constants.URL_PROFILE
-					+ UrlUtils.encode(userID) + "?" + Constants.URL_SUFFIX
+					+ UrlUtils.encode(userName) + "?" + Constants.URL_SUFFIX
 					+ "&client_ref=" + UrlUtils.encode(referer);
 		}
 	}

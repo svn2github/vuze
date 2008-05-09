@@ -187,7 +187,7 @@ public class UserAreaUtils
 		 */
 		LoginInfoManager.getInstance().addListener(new ILoginInfoListener() {
 			public void loginUpdate(LoginInfo info, boolean isNewLoginID) {
-				synchLoginStates(info.userName, info.userID, isNewLoginID);
+				synchLoginStates(info.userName, info.displayName, isNewLoginID);
 			}
 		});
 	}
@@ -195,12 +195,12 @@ public class UserAreaUtils
 	/**
 	 * Updates the login/logout labels and also resets all embedded browsers
 	 * @param userName
-	 * @param userID
+	 * @param displayName
 	 * @param isNewLoginID
 	 */
-	private void synchLoginStates(String userName, String userID,
+	private void synchLoginStates(String userName, String displayName,
 			boolean isNewLoginID) {
-		updateLoginLabels(userName, userID);
+		updateLoginLabels(userName, displayName);
 		
 		if (firstLoginStateSync) {
 			firstLoginStateSync  = false;
@@ -233,9 +233,9 @@ public class UserAreaUtils
 	/**
 	 * Updates the login/logout labels to reflect the user's login state
 	 * @param userName
-	 * @param userID
+	 * @param displayName
 	 */
-	private void updateLoginLabels(String userName, String userID) {
+	private void updateLoginLabels(String userName, String displayName) {
 
 		SWTSkinObject skinObject = null;
 
@@ -247,7 +247,12 @@ public class UserAreaUtils
 
 			skinObject = skin.getSkinObject("text-user-name");
 			if (skinObject instanceof SWTSkinObjectText) {
-				((SWTSkinObjectText) skinObject).setText(userName + " ");
+				if (displayName.equals(userName)) {
+					((SWTSkinObjectText) skinObject).setText(userName + " ");
+				} else {
+					((SWTSkinObjectText) skinObject).setText(userName + " ("
+							+ displayName + ") ");
+				}
 			}
 
 		} else {

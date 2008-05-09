@@ -9,7 +9,7 @@ public interface IStatusMessageListener
 
 	public static final String OP_LOGIN_UPDATE_PARAM_USER_NAME = "user-name";
 
-	public static final String OP_LOGIN_UPDATE_PARAM_USER_ID = "user-id";
+	public static final String OP_LOGIN_UPDATE_PARAM_DISPLAY_NAME = "display-name";
 
 	public static final String OP_PK = "pk";
 	
@@ -19,7 +19,7 @@ public interface IStatusMessageListener
 
 	public String getUserName();
 
-	public String getUserID();
+	public String getDisplayName();
 	
 	public String getPK();
 

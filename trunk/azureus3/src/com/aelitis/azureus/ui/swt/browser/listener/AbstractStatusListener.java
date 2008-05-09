@@ -46,9 +46,9 @@ public abstract class AbstractStatusListener
 
 	}
 
-	public String getUserID() {
-		if (true == decodedMap.containsKey(OP_LOGIN_UPDATE_PARAM_USER_ID)) {
-			return MapUtils.getMapString(decodedMap, OP_LOGIN_UPDATE_PARAM_USER_ID,
+	public String getDisplayName() {
+		if (true == decodedMap.containsKey(OP_LOGIN_UPDATE_PARAM_DISPLAY_NAME)) {
+			return MapUtils.getMapString(decodedMap, OP_LOGIN_UPDATE_PARAM_DISPLAY_NAME,
 					"");
 		}
 
