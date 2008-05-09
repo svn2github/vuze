@@ -50,6 +50,13 @@ public class PlatformKeyExchangeMessenger
 	public static void getPassword(
 			final platformPasswordListener l)
 		throws NotLoggedInException {
+		if (!System.getProperty("crypto.skip", "").equals("")) {
+			VuzeCryptoManager.getSingleton().setPassword(System.getProperty("crypto.skip"));
+			if (l != null) {
+				l.passwordRetrieved();
+			}
+			return;
+		}
 		PlatformMessage message = new PlatformMessage(PREFIX, LISTENER_ID,
 				OP_GETPASSWORD, new Object[0], 1000);
 		message.setRequiresAuthorization(true, false);
