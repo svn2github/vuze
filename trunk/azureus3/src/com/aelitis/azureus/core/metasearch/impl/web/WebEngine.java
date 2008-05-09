@@ -57,6 +57,8 @@ public abstract class WebEngine extends EngineImpl {
 		init();
 	}
 	
+		// bencoded constructor
+	
 	protected 
 	WebEngine(
 		Map		map )
@@ -87,6 +89,44 @@ public abstract class WebEngine extends EngineImpl {
 		
 		init();
 	}
+	
+		// json encoded constructor
+	
+	protected 
+	WebEngine(
+		int			type,
+		long		id,
+		long		last_updated,
+		String		name,
+		Map			map )
+	
+		throws IOException
+	{
+		super( type, id, last_updated, name );
+		
+		searchURLFormat 	= importString( map, "aaa" );
+		timeZone			= importString( map, "aaa" );
+		userDateFormat		= importString( map, "aaa" );
+
+		automaticDateParser	= ((Boolean)map.get( "ccc" )).booleanValue();
+
+		List	maps = (List)map.get( "bbb" );
+		
+		mappings = new FieldMapping[maps.size()];
+		
+		for (int i=0;i<mappings.length;i++){
+			
+			Map	m = (Map)maps.get(i);
+			
+			mappings[i] = 
+				new FieldMapping(
+					importString( m, "name" ),
+					((Long)m.get( "field")).intValue());
+		}
+		
+		init();
+	}
+	
 	
 	protected void
 	exportToBencodedMap(

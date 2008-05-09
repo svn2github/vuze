@@ -25,18 +25,46 @@ RegexEngine
 		return( new RegexEngine( map ));
 	}
 	
+	public static Engine
+	importFromJSONString(
+		long		id,
+		long		last_updated,
+		String		name,
+		Map			map )
+	
+		throws IOException
+	{
+		return( new RegexEngine( id, last_updated, name, map ));
+	}
 
 	private String	pattern_str;
 	private Pattern pattern;
 
 	
-		
-	public RegexEngine(long id,long last_updated,String name,String searchURLFormat,String resultPattern,String timeZone,boolean automaticDateFormat,String userDateFormat,FieldMapping[] mappings) 
+		// explicit test constructor
+	
+	public 
+	RegexEngine(
+		long 			id,
+		long 			last_updated,
+		String 			name,
+		String 			searchURLFormat,
+		String 			resultPattern,
+		String 			timeZone,
+		boolean 		automaticDateFormat,
+		String 			userDateFormat,
+		FieldMapping[] 	mappings) 
 	{
 		super(Engine.ENGINE_TYPE_REGEX, id,last_updated,name,searchURLFormat,timeZone,automaticDateFormat,userDateFormat, mappings );
 
 		init( resultPattern );
+		
+		setSource( Engine.ENGINE_SOURCE_MANUAL );
+		
+		setSelected( true );
 	}
+	
+		// bencoded 
 	
 	protected 
 	RegexEngine(
@@ -47,6 +75,24 @@ RegexEngine
 		super( map );
 		
 		String	resultPattern = importString( map, "regex.pattern" );
+
+		init( resultPattern );
+	}
+	
+		// json
+	
+	protected 
+	RegexEngine(
+		long	id,
+		long	last_updated,
+		String	name,
+		Map		map )
+	
+		throws IOException
+	{
+		super( Engine.ENGINE_TYPE_REGEX, id, last_updated, name, map );
+		
+		String	resultPattern = importString( map, "aaaa" );
 
 		init( resultPattern );
 	}

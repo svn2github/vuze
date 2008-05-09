@@ -119,11 +119,32 @@ MetaSearchImpl
 	}
 	
 	public Engine[] 
-	getEngines() 
+	getEngines(
+		boolean	active_only )
 	{
 		List l = engines.getList();
 				
-		return( (Engine[])l.toArray( new Engine[ l.size() ]));
+		List result;
+		
+		if ( active_only ){
+			
+			result = new ArrayList();
+			
+			for (int i=0;i<l.size();i++){
+				
+				Engine	e = (Engine)l.get(i);
+				
+				if ( e.isSelected()){
+					
+					result.add( e );
+				}
+			}
+		}else{
+			
+			result = l;
+		}
+		
+		return( (Engine[])result.toArray( new Engine[ result.size() ]));
 	}
 	
 	public void 

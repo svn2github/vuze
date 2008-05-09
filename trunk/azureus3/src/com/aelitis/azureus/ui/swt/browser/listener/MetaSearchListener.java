@@ -7,7 +7,6 @@ import java.util.Map;
 
 
 import com.aelitis.azureus.core.metasearch.Engine;
-import com.aelitis.azureus.core.metasearch.MetaSearch;
 import com.aelitis.azureus.core.metasearch.MetaSearchManager;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.metasearch.Result;
@@ -35,8 +34,6 @@ public class MetaSearchListener extends AbstractMessageListener {
 	}
 	
 	public void handleMessage(BrowserMessage message) {
-		
-		MetaSearchManagerFactory.getSingleton().listPopularTemplates();
 		
 		System.out.println("Got message : " + message);
 		
@@ -81,13 +78,13 @@ public class MetaSearchListener extends AbstractMessageListener {
 			};
 			
 			String searchText = (String) decodedMap.get("searchText");
-			SearchParameter parameter = new com.aelitis.azureus.core.metasearch.SearchParameter("s",searchText);
-			SearchParameter[] parameters = new com.aelitis.azureus.core.metasearch.SearchParameter[] {parameter};
+			SearchParameter parameter = new SearchParameter("s",searchText);
+			SearchParameter[] parameters = new SearchParameter[] {parameter};
 			metaSearchManager.getMetaSearch().search(listener, parameters);
 
 		} else if(OP_GET_ENGINES.equals(opid)) {
 
-			Engine[] engines = metaSearchManager.getMetaSearch().getEngines();
+			Engine[] engines = metaSearchManager.getMetaSearch().getEngines( true );
 			List params = new ArrayList();
 			for(int i = 0 ; i < engines.length ; i++) {
 				Engine engine = engines[i];
@@ -101,7 +98,7 @@ public class MetaSearchListener extends AbstractMessageListener {
 		} else if(OP_SET_MODE.equals(opid)) {
 			//TODO : set the mode
 			
-			//metaSearchManager.aaaaa
+			//metaSearchManager.setAutoMode(auto);
 		} else if(OP_ADD_ENGINE.equals(opid)) {
 			//TODO : add an engine
 			

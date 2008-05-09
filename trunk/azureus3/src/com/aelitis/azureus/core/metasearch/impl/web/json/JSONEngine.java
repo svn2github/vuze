@@ -18,7 +18,6 @@ import com.aelitis.azureus.core.metasearch.SearchParameter;
 import com.aelitis.azureus.core.metasearch.impl.web.FieldMapping;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.WebResult;
-import com.aelitis.azureus.core.metasearch.impl.web.regex.RegexEngine;
 
 public class 
 JSONEngine 
@@ -33,17 +32,45 @@ JSONEngine
 		return( new JSONEngine( map ));
 	}
 	
-
+	public static Engine
+	importFromJSONString(
+		long		id,
+		long		last_updated,
+		String		name,
+		Map			map )
+	
+		throws IOException
+	{
+		return( new JSONEngine( id, last_updated, name, map ));
+	}
 	
 	private String resultsEntryPath;
 
 	
+		// explicit test constructor
 
-	public JSONEngine(long id,long last_updated,String name,String searchURLFormat,String timeZone,boolean automaticDateFormat,String userDateFormat,String resultsEntryPath,FieldMapping[] mappings) {
+	public 
+	JSONEngine(
+		long 				id,
+		long 				last_updated,
+		String 				name,
+		String 				searchURLFormat,
+		String 				timeZone,
+		boolean 			automaticDateFormat,
+		String 				userDateFormat,
+		String 				resultsEntryPath,
+		FieldMapping[] 		mappings) 
+	{
 		super( Engine.ENGINE_TYPE_JSON, id,last_updated,name,searchURLFormat,timeZone,automaticDateFormat,userDateFormat,mappings);
 		
 		this.resultsEntryPath = resultsEntryPath;
+		
+		setSource( Engine.ENGINE_SOURCE_MANUAL );
+		
+		setSelected( true );
 	}
+	
+		// bencoded constructor
 	
 	protected 
 	JSONEngine(
@@ -53,7 +80,23 @@ JSONEngine
 	{
 		super( map );
 		
-		this.resultsEntryPath = importString( map, "json.path" );
+		resultsEntryPath = importString( map, "json.path" );
+	}
+	
+		// json constructor
+	
+	protected 
+	JSONEngine(
+		long	id,
+		long	last_updated,
+		String	name,
+		Map		map )
+	
+		throws IOException
+	{
+		super( Engine.ENGINE_TYPE_JSON, id, last_updated, name, map );
+				
+		resultsEntryPath = importString( map, "aaaaa" );
 	}
 	
 	public Map 

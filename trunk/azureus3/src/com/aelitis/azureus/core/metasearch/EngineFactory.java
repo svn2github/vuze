@@ -37,4 +37,17 @@ EngineFactory
 	{
 		return( EngineFactoryImpl.importFromBEncodedMap( map ));
 	}
+	
+	public static Engine
+	importFromJSONString(
+		int			type,
+		long		id,
+		long		last_updated,
+		String		name,
+		String		content )
+	
+		throws IOException
+	{
+		return( EngineFactoryImpl.importFromJSONString( type, id, last_updated, name, content ));
+	}
 }

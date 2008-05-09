@@ -24,9 +24,13 @@ package com.aelitis.azureus.core.metasearch.impl;
 import java.io.IOException;
 import java.util.Map;
 
+import org.json.simple.JSONValue;
+import org.json.simple.parser.JSONParser;
+
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.impl.web.json.JSONEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.regex.RegexEngine;
+import com.aelitis.azureus.util.JSONUtils;
 
 public abstract class 
 EngineImpl
@@ -54,10 +58,38 @@ EngineImpl
 		}
 	}
 	
+	public static Engine
+	importFromJSONString(
+		int			type,
+		long		id,
+		long		last_updated,
+		String		name,
+		String		content )
+	
+		throws IOException
+	{
+		Map map = JSONUtils.decodeJSON( content );
+		
+		if ( type == Engine.ENGINE_TYPE_JSON ){
+			
+			return( JSONEngine.importFromJSONString( id, last_updated, name, map ));
+			
+		}else if ( type == Engine.ENGINE_TYPE_REGEX ){
+			
+			return( RegexEngine.importFromJSONString( id, last_updated, name, map ));
+			
+		}else{
+			
+			throw( new IOException( "Unknown engine type " + type ));
+		}	
+	}
+	
 	private int			type;
 	private long		id;
 	private long		last_updated;
 	private String		name;
+	
+		// selection state indicates manually selected
 	
 	private boolean		selected;
 	private boolean		selection_state_recorded	= true;
@@ -90,7 +122,7 @@ EngineImpl
 		
 		selected		= importBoolean( map, "selected" );
 	}
-		
+	
 	protected void
 	exportToBencodedMap(
 		Map		map )
@@ -129,7 +161,11 @@ EngineImpl
 	{
 		Object	obj = map.get( key );
 		
-		if ( obj instanceof byte[]){
+		if ( obj instanceof String ){
+			
+			return((String)obj);
+			
+		}else if ( obj instanceof byte[]){
 			
 			return( new String((byte[])obj, "UTF-8" ));
 		}

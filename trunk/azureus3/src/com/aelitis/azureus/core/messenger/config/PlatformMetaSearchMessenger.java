@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.messenger.config;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AESemaphore;
@@ -39,14 +40,13 @@ PlatformMetaSearchMessenger
 	public static final String LISTENER_ID_TEMPLATE = "searchtemplate";
 
 	public static final String OP_GET_TEMPLATE					= "get-template";
+	public static final String OP_GET_TEMPLATES					= "get-templates";
 	public static final String OP_LIST_POPULAR_TEMPLATES 		= "list-popular";
 	public static final String OP_LIST_FEATURED_TEMPLATES 		= "list-featured";
-	public static final String OP_TEMPLATE_EXISTS				= "template-exists";
 	public static final String OP_TEMPLATE_SELECTED				= "template-selected";
-	public static final String OP_TEMPLATE_UNSELECTED			= "template-unselected";
 
 
-	public static void 
+	public static templateDetails 
 	getTemplate(
 		long	template_id )
 	
@@ -54,9 +54,69 @@ PlatformMetaSearchMessenger
 	{
 		Map reply = syncInvoke(	OP_GET_TEMPLATE, getParameter( template_id ) ); 
 
+		templateInfo info = getTemplateInfo( reply );
+		
+		if ( info == null ){
+			
+			throw( new PlatformMessengerException( "Invalid reply: " + reply ));
+		}
+		
+		String name 		= (String)reply.get( "name" );
+		String value		= (String)reply.get( "value" );
+		String engine_type	= (String)reply.get( "engine-id" );
+		
+		if ( name == null || value == null || engine_type == null ){
+			
+			throw( new PlatformMessengerException( "Invalid reply; field missing: " + reply ));
+		}
+		
+		int	type;
+		
+		if ( engine_type.equals( "json" )){
+		
+			type = templateDetails.ENGINE_TYPE_JSON;
+			
+		}else if ( engine_type.equals( "regexp" )){
+			
+			type = templateDetails.ENGINE_TYPE_REGEXP;
+			
+		}else{
+			
+			throw( new PlatformMessengerException( "Invalid type '" + engine_type + ": " + reply ));
+
+		}
+		
+		return( new templateDetails( info, type, name, value ));
 	}
 	
-	public static void 
+	public static templateInfo[] 
+   	getTemplates(
+   		long[]		ids )
+   	
+   		throws PlatformMessengerException
+   	{
+		if( ids.length == 0 ){
+			
+			return( new templateInfo[0]);
+		}
+		
+		String	str = "";
+		
+		for (int i=0;i<ids.length;i++){
+			
+			str += (i==0?"":",") + ids[i];
+		}
+		
+   		Map parameters = new HashMap();
+   		
+   		parameters.put( "templateIds", str );
+
+   		Map reply = syncInvoke(	OP_GET_TEMPLATES, parameters ); 
+
+   		return( getTemplatesInfo( reply ));
+   	}
+	
+	public static templateInfo[] 
 	listPopularTemplates()
 	
 		throws PlatformMessengerException
@@ -68,17 +128,10 @@ PlatformMetaSearchMessenger
 
 		Map reply = syncInvoke(	OP_LIST_POPULAR_TEMPLATES, parameters ); 
 
-		List	templates = (List)reply.get( "templates" );
-		
-		for (int i=0;i<templates.size();i++){
-			
-			Map m = (Map)templates.get(i);
-			
-			m.get( "id" );
-		}
+		return( getTemplatesInfo( reply ));
 	}
 	
-	public static void 
+	public static templateInfo[] 
 	listFeaturedTemplates()
 	
 		throws PlatformMessengerException
@@ -90,43 +143,88 @@ PlatformMetaSearchMessenger
 
 		Map reply = syncInvoke(	OP_LIST_FEATURED_TEMPLATES, parameters ); 
 
+		return( getTemplatesInfo( reply ));
+	}
+	
+	protected static templateInfo[]
+	getTemplatesInfo(
+		Map		reply )
+	{		
 		List	templates = (List)reply.get( "templates" );
+
+		List	res = new ArrayList();
 		
 		for (int i=0;i<templates.size();i++){
 			
 			Map m = (Map)templates.get(i);
 			
-			m.get( "id" );
+			templateInfo info = getTemplateInfo( m );
+			
+			if ( info != null ){
+				
+				res.add( info );
+			}
 		}
+		
+		templateInfo[] res_a = new templateInfo[ templates.size()];
+
+		res.toArray( res_a );
+		
+		return( res_a );
 	}
-	
+		
+	protected static templateInfo
+  	getTemplateInfo(
+  		Map		m )
+	{		
+		Long	id 		= (Long)m.get( "id" );
+		Boolean	show	= (Boolean)m.get( "show" );
+		Long	date 	= (Long)m.get( "modified_dt" );
+
+		if ( id == null || show == null || date == null ){
+
+			PlatformMessenger.debug( "field missing from template info (" + m + ")" );
+
+		}else{
+
+			return( new templateInfo( id.longValue(), date.longValue(), show.booleanValue()));
+
+			/*
+			SimpleDateFormat format = new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss.S");
+
+			format.setTimeZone( TimeZone.getTimeZone( "UTC" ));
+
+			try{
+
+				long	millis = format.parse( date ).getTime();
+
+				return( new templateInfo( id.longValue(), millis, show.booleanValue()));
+
+			}catch( Throwable e ){
+
+				PlatformMessenger.debug( "Invalid date received in template: " + m );
+			}
+			*/
+		}
+		
+		return( null );
+	}
+	                         	
 	public static void 
-	templateExists(
-		long	template_id )
+	setTemplatetSelected(
+		long		template_id,
+		String		user_id,
+		boolean		is_selected )
 	
 		throws PlatformMessengerException
 	{
-		Map reply = syncInvoke(	OP_LIST_FEATURED_TEMPLATES, getParameter( template_id ) ); 
+		Map	parameters = getParameter( template_id );
+		
+		parameters.put( "userId", user_id );
+		parameters.put( "selected", new Boolean( is_selected ));
+		
+		syncInvoke(	OP_TEMPLATE_SELECTED, parameters ); 
 	}
-	
-	public static void 
-	templateSelected(
-		long	template_id )
-	
-		throws PlatformMessengerException
-	{
-		Map reply = syncInvoke(	OP_TEMPLATE_SELECTED, getParameter( template_id ) ); 
-	}
-	
-	public static void 
-	templateUnselected(
-		long	template_id )
-	
-		throws PlatformMessengerException
-	{
-		Map reply = syncInvoke(	OP_TEMPLATE_UNSELECTED, getParameter( template_id ) ); 
-	}
-	
 	
 	
 	
@@ -218,5 +316,104 @@ PlatformMetaSearchMessenger
 		parameters.put( "templateId", new Long( template_id ));
 
 		return( parameters );
+	}
+	
+	public static class
+	templateInfo
+	{
+		private long		id;
+		private long		date;
+		private boolean		visible;
+		
+		protected
+		templateInfo(
+			long		_id,
+			long		_date,
+			boolean		_visible )
+		{
+			id			= _id;
+			date		= _date;
+			visible		= _visible;
+		}
+		
+		public long
+		getId()
+		{
+			return( id );
+		}
+		
+		public long
+		getModifiedDate()
+		{
+			return( date );
+		}
+		
+		public boolean
+		isVisible()
+		{
+			return( visible );
+		}
+	}
+	
+	public static class
+	templateDetails
+	{
+		public static final int ENGINE_TYPE_JSON	= 1;
+		public static final int ENGINE_TYPE_REGEXP	= 2;
+		
+		private templateInfo		info;
+		
+		private int			type;
+		private String		name;
+		private String		value;
+		
+		protected
+		templateDetails(
+			templateInfo	_info,
+			int				_type,
+			String			_name,
+			String			_value )
+		{	
+			info		= _info;
+			type		= _type;
+			name		= _name;
+			value		= _value;
+		}
+		
+		public int
+		getType()
+		{
+			return( type );
+		}
+		
+		public long
+		getId()
+		{
+			return( info.getId());
+		}
+		
+		public long
+		getModifiedDate()
+		{
+			return( info.getModifiedDate());
+		}
+		
+		public boolean
+		isVisible()
+		{
+			return( info.isVisible());
+		}
+		
+		public String
+		getName()
+		{
+			return( name );
+		}
+		
+		public String
+		getValue()
+		{
+			return( value );
+		}
 	}
 }
