@@ -501,7 +501,7 @@ public class FileUtil {
  		if ( !use_backups ){
  			
  				// override if a backup file exists. This is needed to cope with backups
- 				// of the main config file itself as when boostrapping we can't get the
+ 				// of the main config file itself as when bootstrapping we can't get the
  				// "use backups" 
  			
  			if ( new File( parent_dir, file_name + ".bak").exists()){
