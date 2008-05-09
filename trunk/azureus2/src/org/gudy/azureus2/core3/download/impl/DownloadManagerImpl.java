@@ -118,8 +118,6 @@ DownloadManagerImpl
 					Object[]	value = (Object[])_value;
 					
 					DownloadManagerImpl	dm = (DownloadManagerImpl)value[0];
-					long start = System.currentTimeMillis();
-
 					
 					if ( type == LDT_STATECHANGED ){
 						
@@ -142,11 +140,6 @@ DownloadManagerImpl
 						listener.positionChanged( dm, ((Integer)value[1]).intValue(), ((Integer)value[2]).intValue());
 						                         
 					}
-					long diff = System.currentTimeMillis() - start;
-					if (diff > 100) {
-						System.out.println(type + "; ms = " + diff + ";" + listener);
-					}
-					
 				}
 			});		
 	
