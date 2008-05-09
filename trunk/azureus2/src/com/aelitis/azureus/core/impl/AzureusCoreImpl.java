@@ -84,6 +84,7 @@ AzureusCoreImpl
 	protected static AEMonitor			class_mon	= new AEMonitor( "AzureusCore:class" );
 	
 	private static final String DM_ANNOUNCE_KEY	= "AzureusCore:announce_key";
+	private static final boolean LOAD_PLUGINS_IN_OTHER_THREAD = true;
 	
 	public static AzureusCore
 	create()
@@ -512,7 +513,13 @@ AzureusCoreImpl
 					Logger.log(new LogEvent(LOGID, "Loading of Plugins complete"));
 			}
 		};
-		pluginload.start();
+		
+		if (LOAD_PLUGINS_IN_OTHER_THREAD) {
+			pluginload.start();
+		}
+		else {
+			pluginload.run();
+		}
 
 
 		
@@ -546,7 +553,9 @@ AzureusCoreImpl
 				}, 0);
 
 		// wait until plugin loading is done
-		pluginload.join();
+		if (LOAD_PLUGINS_IN_OTHER_THREAD) {
+			pluginload.join();
+		}
 		
 		triggerLifeCycleComponentCreated(global_manager);
 
