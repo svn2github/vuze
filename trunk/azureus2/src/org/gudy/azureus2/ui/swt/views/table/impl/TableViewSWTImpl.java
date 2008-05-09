@@ -2336,6 +2336,8 @@ public class TableViewSWTImpl
 					return;
 				}
 				
+				int numSelected = table.getSelectionCount();
+				
 				mainComposite.getParent().setCursor(table.getDisplay().getSystemCursor(SWT.CURSOR_WAIT));
 
 				StringBuffer sbWillRemove = null;
@@ -2434,6 +2436,10 @@ public class TableViewSWTImpl
 					debug("<< Remove " + itemsToRemove.size() + " rows. now "
 							+ mapDataSourceToRow.size() + "ds; tc=" + table.getItemCount());
 				mainComposite.getParent().setCursor(null);
+				
+				if (numSelected != table.getSelectionCount()) {
+					triggerDeselectionListeners(new TableRowCore[0]);
+				}
 			}
 		});
 
