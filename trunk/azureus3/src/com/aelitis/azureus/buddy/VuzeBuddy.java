@@ -20,10 +20,9 @@ package com.aelitis.azureus.buddy;
 
 import java.util.Map;
 
-import org.gudy.azureus2.core3.download.DownloadManager;
-
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.login.NotLoggedInException;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 
 /**
  * @author TuxPaper
@@ -61,7 +60,7 @@ public interface VuzeBuddy
 
 	public void loadFromMap(Map mapNewBuddy);
 
-	public void shareDownload(DownloadManager dm, String message) throws NotLoggedInException;
+	public void shareDownload(SelectedContent content, String message) throws NotLoggedInException;
 
 	public void sendPayloadMap(Map map) throws NotLoggedInException;
 

@@ -18,7 +18,12 @@
 
 package com.aelitis.azureus.buddy;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
+import com.aelitis.azureus.activities.VuzeActivitiesManager;
+import com.aelitis.azureus.util.MapUtils;
 
 /**
  * @author TuxPaper
@@ -32,8 +37,21 @@ public class QueuedVuzeShare
 	private String pk;
 
 	private String downloadHash;
-	
+
 	private VuzeActivitiesEntry entry;
+
+	/**
+	 * @param map
+	 */
+	public QueuedVuzeShare(Map map) {
+		loadFromMap(map);
+	}
+
+	/**
+	 * 
+	 */
+	public QueuedVuzeShare() {
+	}
 
 	/**
 	 * @param code the code to set
@@ -89,5 +107,41 @@ public class QueuedVuzeShare
 	 */
 	public VuzeActivitiesEntry getActivityEntry() {
 		return entry;
+	}
+
+	/**
+	 * @return
+	 *
+	 * @since 3.0.5.3
+	 */
+	public Map toMap() {
+		Map map = new HashMap();
+		map.put("code", code);
+		if (entry != null) {
+			map.put("ActivityEntry", entry.toMap());
+		}
+		map.put("hash", downloadHash);
+		map.put("pk", pk);
+
+		return map;
+	}
+
+	/**
+	 * @param map
+	 *
+	 * @since 3.0.5.3
+	 */
+	private void loadFromMap(Map map) {
+		setCode(MapUtils.getMapString(map, "code", null));
+		Map entryMap = MapUtils.getMapMap(map, "ActivityEntry", null);
+		if (entryMap != null) {
+			VuzeActivitiesEntry entry = VuzeActivitiesManager.createEntryFromMap(
+					entryMap, true);
+			setActivityEntry(entry);
+		} else {
+			setActivityEntry(null);
+		}
+		setDownloadHash(MapUtils.getMapString(map, "hash", null));
+		setPk(MapUtils.getMapString(map, "pk", null));
 	}
 }

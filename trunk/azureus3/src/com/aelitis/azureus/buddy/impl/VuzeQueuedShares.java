@@ -15,17 +15,17 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
- 
+
 package com.aelitis.azureus.buddy.impl;
 
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
 
 import com.aelitis.azureus.buddy.QueuedVuzeShare;
+import com.aelitis.azureus.util.MapUtils;
 
 /**
  * @author TuxPaper
@@ -35,8 +35,10 @@ import com.aelitis.azureus.buddy.QueuedVuzeShare;
 public class VuzeQueuedShares
 {
 	private static List shares = new ArrayList();
-	
+
 	private static AEMonitor shares_mon = new AEMonitor("Qd Shares");
+
+	private static String SAVE_FILENAME = "v3.QdShares.dat";
 
 	/**
 	 * @param code
@@ -46,7 +48,7 @@ public class VuzeQueuedShares
 	 */
 	public static List getSharesByCode(String code) {
 		List results = new ArrayList();
-		
+
 		shares_mon.enter();
 		try {
 			for (Iterator iter = shares.iterator(); iter.hasNext();) {
@@ -69,11 +71,16 @@ public class VuzeQueuedShares
 	 */
 	public static void updateSharePK(String code, String pkSender) {
 		List sharesByCode = VuzeQueuedShares.getSharesByCode(code);
+
+		log("Updating " + sharesByCode.size() + " shares with code " + code
+				+ " to pk " + pkSender);
+
 		for (Iterator iter = sharesByCode.iterator(); iter.hasNext();) {
 			QueuedVuzeShare share = (QueuedVuzeShare) iter.next();
 
 			share.setPk(pkSender);
 		}
+		save();
 	}
 
 	/**
@@ -84,7 +91,7 @@ public class VuzeQueuedShares
 	 */
 	public static List getSharesByPK(String pk) {
 		List results = new ArrayList();
-		
+
 		shares_mon.enter();
 		try {
 			for (Iterator iter = shares.iterator(); iter.hasNext();) {
@@ -112,6 +119,7 @@ public class VuzeQueuedShares
 		} finally {
 			shares_mon.exit();
 		}
+		log("Remove");
 	}
 
 	/**
@@ -123,13 +131,80 @@ public class VuzeQueuedShares
 	public static QueuedVuzeShare add(String code) {
 		QueuedVuzeShare share = new QueuedVuzeShare();
 		share.setCode(code);
-		
+
 		shares_mon.enter();
 		try {
 			shares.add(share);
 		} finally {
 			shares_mon.exit();
 		}
+
+		log("Share Added");
 		return share;
+	}
+
+	public static void save() {
+		log("Qd Shares Save");
+
+		Map mapSave = new HashMap();
+		List storedShareList = new ArrayList();
+		mapSave.put("shares", storedShareList);
+
+		try {
+			shares_mon.enter();
+
+			for (Iterator iter = shares.iterator(); iter.hasNext();) {
+				QueuedVuzeShare share = (QueuedVuzeShare) iter.next();
+
+				if (share != null) {
+					storedShareList.add(share.toMap());
+				}
+			}
+
+			FileUtil.writeResilientConfigFile(SAVE_FILENAME, mapSave);
+		} finally {
+			shares_mon.exit();
+		}
+	}
+
+	private static void load() {
+		Map map = FileUtil.readResilientConfigFile(SAVE_FILENAME);
+
+		List storedBuddyList = MapUtils.getMapList(map, "shares",
+				Collections.EMPTY_LIST);
+
+		shares_mon.enter();
+		try {
+			shares.clear();
+
+			for (Iterator iter = storedBuddyList.iterator(); iter.hasNext();) {
+				Map mapBuddy = (Map) iter.next();
+
+				QueuedVuzeShare share = new QueuedVuzeShare(mapBuddy);
+
+				shares.add(share);
+			}
+		} finally {
+			shares_mon.exit();
+		}
+
+		log("Qd Shares Load.  Size=" + shares.size());
+	}
+
+	/**
+	 * 
+	 *
+	 * @since 3.0.5.3
+	 */
+	public static void init() {
+		try {
+			load();
+		} catch (Exception e) {
+			Debug.out(e);
+		}
+	}
+
+	private static void log(String s) {
+		VuzeBuddyManager.log("[Qd Shares] " + s);
 	}
 }

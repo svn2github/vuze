@@ -23,7 +23,7 @@ package com.aelitis.azureus.ui.swt.views.skin;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.browser.*;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.Composite;
@@ -36,6 +36,8 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
@@ -54,12 +56,48 @@ public class Browse
 
 	private SWTSkinObjectBrowser browserSkinObject;
 
+	protected String title;
+
 	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.swt.views.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	 */
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
 		browserSkinObject = (SWTSkinObjectBrowser) skinObject.getSkin().getSkinObject(
 				SkinConstants.VIEWID_BROWSER_BROWSE);
+
+		browserSkinObject.addListener(new SWTSkinObjectListener() {
+			public Object eventOccured(SWTSkinObject skinObject, int eventType,
+					Object params) {
+				if (eventType == SWTSkinObjectListener.EVENT_SHOW) {
+					SelectedContentManager.changeCurrentlySelectedContent(getCurrentlySelectedContent());
+				} else if (eventType == SWTSkinObjectListener.EVENT_HIDE) {
+					SelectedContentManager.changeCurrentlySelectedContent(null);
+				}
+				return null;
+			}
+		});
+		SelectedContentManager.changeCurrentlySelectedContent(null);
+
+		Browser browser = browserSkinObject.getBrowser();
+		browser.addTitleListener(new TitleListener() {
+			public void changed(TitleEvent event) {
+				title = event.title;
+				int i = title.toLowerCase().indexOf("details:");
+				if (i > 0) {
+					title = title.substring(i + 9);
+				}
+			}
+		});
+		
+		browser.addLocationListener(new LocationListener() {
+			public void changing(LocationEvent event) {
+			}
+		
+			public void changed(LocationEvent event) {
+				SelectedContentManager.changeCurrentlySelectedContent(getCurrentlySelectedContent());
+			}
+		});
+
 		if (PULL_TABS) {
 			PlatformConfigMessenger.getBrowseSections(
 					PlatformConfigMessenger.SECTION_TYPE_BIGBROWSE, 0,
@@ -84,6 +122,39 @@ public class Browse
 	}
 
 	/**
+	 * @return
+	 *
+	 * @since 3.0.5.3
+	 */
+	protected SelectedContent[] getCurrentlySelectedContent() {
+		Browser browser = browserSkinObject.getBrowser();
+		if (browser == null) {
+			return null;
+		}
+		String url = browser.getUrl();
+		int i = url.indexOf(Constants.URL_DETAILS);
+		if (i > 0) {
+			i += Constants.URL_DETAILS.length();
+			int end1 = url.indexOf("?", i);
+			int end2 = url.indexOf(".", i);
+			int end = end1 < 0 ? end2 : Math.min(end1, end2);
+			
+			String hash;
+			if (end < 0 || end < i) {
+				hash = url.substring(i);
+			} else {
+				hash = url.substring(i, end);
+			}
+
+			return new SelectedContent[] {
+				new SelectedContent(hash, title)
+			};
+		}
+
+		return null;
+	}
+
+	/**
 	 * 
 	 */
 	private void createBrowseArea(SWTSkinObjectBrowser browserSkinObject) {
@@ -104,7 +175,8 @@ public class Browse
 		FormData formData;
 		Composite cArea = (Composite) skinObject.getControl();
 
-		final Browser browser = new Browser(cArea, Utils.getInitialBrowserStyle(SWT.NONE));
+		final Browser browser = new Browser(cArea,
+				Utils.getInitialBrowserStyle(SWT.NONE));
 		final ClientMessageContext context = new BrowserContext("big", browser,
 				null, true);
 		context.addMessageListener(new TorrentListener(core));

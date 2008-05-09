@@ -30,12 +30,13 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
 import com.aelitis.azureus.ui.common.table.TableSelectionListener;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
-import com.aelitis.azureus.ui.swt.currentlyselectedcontent.CurrentContent;
-import com.aelitis.azureus.ui.swt.currentlyselectedcontent.CurrentlySelectedContentManager;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
 import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
@@ -78,12 +79,14 @@ extends SkinView
 			public Object eventOccured(SWTSkinObject skinObject, int eventType,
 					Object params) {
 				if (eventType == SWTSkinObjectListener.EVENT_SHOW) {
-					CurrentlySelectedContentManager.changeCurrentlySelectedContent(getCurrentlySelectedContent());
+					SelectedContentManager.changeCurrentlySelectedContent(getCurrentlySelectedContent());
+				} else if (eventType == SWTSkinObjectListener.EVENT_HIDE) {
+					SelectedContentManager.changeCurrentlySelectedContent(null);
 				}
 				return null;
 			}
 		});
-		CurrentlySelectedContentManager.changeCurrentlySelectedContent(null);
+		SelectedContentManager.changeCurrentlySelectedContent(null);
 
 		final SWTSkin skin = skinObject.getSkin();
 		AzureusCore core = AzureusCoreFactory.getSingleton();
@@ -116,7 +119,7 @@ extends SkinView
 		
 			public void selectionChanged() {
 				if (soData.isVisible()) {
-					CurrentlySelectedContentManager.changeCurrentlySelectedContent(getCurrentlySelectedContent());
+					SelectedContentManager.changeCurrentlySelectedContent(getCurrentlySelectedContent());
 				}
 			}
 		}, false);
@@ -194,16 +197,17 @@ extends SkinView
 		return view;
 	}
 	
-	public CurrentContent[] getCurrentlySelectedContent() {
+	public SelectedContent[] getCurrentlySelectedContent() {
 		List listContent = new ArrayList();
 		Object[] selectedDataSources = view.getSelectedDataSources(true);
 		for (int i = 0; i < selectedDataSources.length; i++) {
 			DownloadManager dm = (DownloadManager) selectedDataSources[i];
 			if (dm != null) {
-				CurrentContent currentContent = new CurrentContent(dm);
+				SelectedContent currentContent = new SelectedContent(dm);
+				currentContent.displayName = PlatformTorrentUtils.getContentTitle2(dm);
 				listContent.add(currentContent);
 			}
 		}
-		return (CurrentContent[]) listContent.toArray(new CurrentContent[listContent.size()]);
+		return (SelectedContent[]) listContent.toArray(new SelectedContent[listContent.size()]);
 	}
 }

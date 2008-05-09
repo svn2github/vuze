@@ -44,6 +44,7 @@ import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.login.NotLoggedInException;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractBuddyPageListener;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
@@ -104,9 +105,11 @@ public class SharePage
 
 	private Map confirmationResponse = null;
 
-	private DownloadManager dm = null;
-
 	private Color textColor = null;
+
+	private SelectedContent shareItem = null;
+
+	private DownloadManager dm = null;
 
 	public SharePage(DetailPanel detailPanel) {
 		super(detailPanel, PAGE_ID);
@@ -366,7 +369,7 @@ public class SharePage
 				VuzeBuddy[] buddies = (VuzeBuddy[]) selectedBuddies.toArray(new VuzeBuddy[selectedBuddies.size()]);
 				try {
 					VuzeBuddyManager.inviteWithShare(confirmationResponse,
-							getDownloadManager(), commentText.getText(), buddies);
+							getShareItem(), commentText.getText(), buddies);
 				} catch (NotLoggedInException e1) {
 					// XXX Handle me!
 					e1.printStackTrace();
@@ -406,7 +409,7 @@ public class SharePage
 	}
 
 	private String getCommitJSONMessage() {
-		if (null == dm) {
+		if (null == shareItem || null == shareItem.hash) {
 			return null;
 		}
 		List buddieloginIDsAndContentHash = new ArrayList();
@@ -416,7 +419,7 @@ public class SharePage
 			loginIDs.add(vuzeBuddy.getLoginID());
 		}
 		buddieloginIDsAndContentHash.add(loginIDs);
-		buddieloginIDsAndContentHash.add(PlatformTorrentUtils.getContentHash(dm.getTorrent()));
+		buddieloginIDsAndContentHash.add(shareItem.hash);
 
 		return JSONUtils.encodeToJSON(buddieloginIDsAndContentHash);
 	}
@@ -546,10 +549,11 @@ public class SharePage
 		return browser;
 	}
 
-	public void setDownloadManager(DownloadManager dm) {
-		this.dm = dm;
+	public void setShareItem(SelectedContent content) {
+		this.shareItem = content;
+		this.dm = shareItem.dm;
 
-		if (null != dm) {
+		if (null != shareItem) {
 			BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
 			if (null != viewer) {
 				viewer.setShareMode(true);
@@ -559,8 +563,8 @@ public class SharePage
 		}
 	}
 
-	public DownloadManager getDownloadManager() {
-		return dm;
+	public SelectedContent getShareItem() {
+		return shareItem;
 	}
 
 	public void refresh() {
@@ -608,17 +612,25 @@ public class SharePage
 				Debug.out("Problem getting image for torrent in SharePage.refresh()");
 			}
 
-			updateContentStats();
+		} else {
+			contentThumbnail.setImage(null);
 		}
+		updateContentStats();
 	}
 
 	private void updateContentStats() {
 		contentStats.setText("");
 
-		if (null == dm) {
+		if (shareItem == null) {
 			return;
 		}
 
+		contentStats.append(shareItem.displayName + "\n");
+
+		if (null == dm) {
+			return;
+		}
+		
 		String publisher = PlatformTorrentUtils.getContentPublisher(dm.getTorrent());
 
 		if (null != publisher && publisher.length() > 0) {

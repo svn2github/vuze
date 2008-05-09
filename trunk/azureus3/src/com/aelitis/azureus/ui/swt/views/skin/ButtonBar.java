@@ -22,10 +22,10 @@ import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
 import com.aelitis.azureus.login.NotLoggedInException;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentListener;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
-import com.aelitis.azureus.ui.swt.currentlyselectedcontent.CurrentContent;
-import com.aelitis.azureus.ui.swt.currentlyselectedcontent.CurrentlySelectedContentListener;
-import com.aelitis.azureus.ui.swt.currentlyselectedcontent.CurrentlySelectedContentManager;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
@@ -66,8 +66,8 @@ public class ButtonBar
 		hookAddBuddyButon();
 		hookTuxGoodies();
 		
-		CurrentlySelectedContentManager.addCurrentlySelectedContentListener(new CurrentlySelectedContentListener() {
-			public void currentlySectedContentChanged(CurrentContent[] currentContent) {
+		SelectedContentManager.addCurrentlySelectedContentListener(new SelectedContentListener() {
+			public void currentlySectedContentChanged(SelectedContent[] currentContent) {
 				if (shareButton != null) {
 					boolean disable = currentContent.length == 0;
 					if (shareButton.isDisabled() != disable) {
@@ -327,7 +327,7 @@ public class ButtonBar
 	}
 
 	private void share() {
-		CurrentContent[] selectedContent = CurrentlySelectedContentManager.getCurrentlySelectedContent();
+		SelectedContent[] selectedContent = SelectedContentManager.getCurrentlySelectedContent();
 		if (selectedContent.length == 0) {
 			return;
 		}
@@ -356,8 +356,7 @@ public class ButtonBar
 				}
 
 				sharePage.setBuddies(viewer.getSelection());
-				// TODO: Handle dm == null  (should just pass selectedContent[0])
-				sharePage.setDownloadManager(selectedContent[0].dm);
+				sharePage.setShareItem(selectedContent[0]);
 
 				editButton.setDisabled(true);
 				addBuddyButton.setDisabled(true);

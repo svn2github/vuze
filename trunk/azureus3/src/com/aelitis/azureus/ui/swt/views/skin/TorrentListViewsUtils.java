@@ -171,7 +171,7 @@ public class TorrentListViewsUtils
 	}
 
 	public static SWTSkinButtonUtility addDetailsButton(final SWTSkin skin,
-			String PREFIX, final ListView view) {
+			final String PREFIX, final ListView view) {
 		SWTSkinObject skinObject = skin.getSkinObject(PREFIX + "viewdetails");
 		if (skinObject == null) {
 			return null;
@@ -183,7 +183,7 @@ public class TorrentListViewsUtils
 			public void pressed(SWTSkinButtonUtility buttonUtility) {
 				TableRowCore[] selectedRows = view.getSelectedRows();
 				if (selectedRows.length > 0) {
-					viewDetails(selectedRows[0]);
+					viewDetails(selectedRows[0], PREFIX.substring(0, PREFIX.length() - 1));
 				}
 			}
 		});
@@ -191,8 +191,8 @@ public class TorrentListViewsUtils
 		return btn;
 	}
 
-	public static void viewDetails(TableRowCore row) {
-		viewDetails(getAssetHashFromDS(row.getDataSource(true)));
+	public static void viewDetails(TableRowCore row, String ref) {
+		viewDetails(getAssetHashFromDS(row.getDataSource(true)), ref);
 	}
 
 	private static String getAssetHashFromDS(Object ds) {
@@ -240,7 +240,7 @@ public class TorrentListViewsUtils
 	}
 
 
-	public static void viewDetails(DownloadManager dm) {
+	public static void viewDetails(DownloadManager dm, String ref) {
 		if (dm == null) {
 			return;
 		}
@@ -249,19 +249,19 @@ public class TorrentListViewsUtils
 		}
 
 		try {
-			viewDetails(dm.getTorrent().getHashWrapper().toBase32String());
+			viewDetails(dm.getTorrent().getHashWrapper().toBase32String(), ref);
 		} catch (TOTorrentException e) {
 			Debug.out(e);
 		}
 	}
 
-	public static void viewDetails(String hash) {
+	public static void viewDetails(String hash, String ref) {
 		if (hash == null) {
 			return;
 		}
 
 		String url = Constants.URL_PREFIX + Constants.URL_DETAILS + hash + ".html?"
-				+ Constants.URL_SUFFIX;
+				+ Constants.URL_SUFFIX + "&client_ref=" + ref;
 
 		UIFunctions functions = UIFunctionsManager.getUIFunctions();
 		if (functions != null) {

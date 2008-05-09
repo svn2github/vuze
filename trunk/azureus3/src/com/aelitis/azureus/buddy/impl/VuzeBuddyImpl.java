@@ -18,13 +18,12 @@
 
 package com.aelitis.azureus.buddy.impl;
 
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 import org.bouncycastle.util.encoders.Base64;
-import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Base32;
-import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.activities.VuzeActivitiesEntryContentShare;
@@ -32,6 +31,7 @@ import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.ImageDownloader;
 import com.aelitis.azureus.util.MapUtils;
@@ -78,8 +78,19 @@ public class VuzeBuddyImpl
 		List pkList = MapUtils.getMapList(mapNewBuddy, "pks",
 				Collections.EMPTY_LIST);
 		for (Iterator iter = pkList.iterator(); iter.hasNext();) {
-			String pk = (String) iter.next();
-			addPublicKey(pk);
+			Object o = iter.next();
+			String pk = null;
+			if (o instanceof byte[]) {
+				try {
+					pk = new String((byte[]) o, "utf-8");
+				} catch (UnsupportedEncodingException e) {
+				}
+			} else if (o instanceof String) {
+				pk = (String) iter.next();
+			}
+			if (pk != null) {
+				addPublicKey(pk);
+			}
 		}
 
 		byte[] avatarBytes = MapUtils.getMapByteArray(mapNewBuddy, "avatar", null);
@@ -245,25 +256,28 @@ public class VuzeBuddyImpl
 	}
 
 	// @see com.aelitis.azureus.buddy.VuzeBuddy#sendPayloadMap(java.util.Map)
-	public void sendPayloadMap(Map map) throws NotLoggedInException {
+	public void sendPayloadMap(Map map)
+			throws NotLoggedInException {
 		BuddyPluginBuddy[] buddies = (BuddyPluginBuddy[]) pluginBuddies.toArray(new BuddyPluginBuddy[0]);
 		VuzeBuddyManager.sendPayloadMap(map, buddies);
 	}
 
-	public void shareDownload(DownloadManager dm, String message)
+	// @see com.aelitis.azureus.buddy.VuzeBuddy#shareDownload(com.aelitis.azureus.ui.swt.currentlyselectedcontent.CurrentContent, java.lang.String)
+	public void shareDownload(SelectedContent content, String message)
 			throws NotLoggedInException {
-		if (dm == null) {
+		if (content == null) {
 			return;
 		}
 
 		VuzeActivitiesEntryContentShare entry;
-		entry = new VuzeActivitiesEntryContentShare(dm, message);
+		entry = new VuzeActivitiesEntryContentShare(content, message);
 		entry.setBuddy(this);
 
 		sendActivity(entry);
 	}
 
-	public void tellBuddyToSyncUp() throws NotLoggedInException {
+	public void tellBuddyToSyncUp()
+			throws NotLoggedInException {
 		Map map = new HashMap();
 		map.put("VuzeMessageType", "CheckInvites");
 

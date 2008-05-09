@@ -20,17 +20,16 @@ package com.aelitis.azureus.activities;
 
 import java.util.Map;
 
-import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
-import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.login.NotLoggedInException;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.LoginInfoManager;
 import com.aelitis.azureus.util.MapUtils;
@@ -52,53 +51,38 @@ public class VuzeActivitiesEntryContentShare
 		super();
 	}
 
-	public VuzeActivitiesEntryContentShare(DownloadManager dm, String message)
-	throws NotLoggedInException{
-		if (dm == null) {
+	public VuzeActivitiesEntryContentShare(SelectedContent content, String message)
+			throws NotLoggedInException {
+		if (content == null) {
 			return;
 		}
-		TOTorrent torrent = dm.getTorrent();
-		if (torrent == null) {
-			return;
-		}
+		TOTorrent torrent = content.dm == null ? null : content.dm.getTorrent();
 
-		HashWrapper hashWrapper = null;
-		try {
-			hashWrapper = torrent.getHashWrapper();
-		} catch (TOTorrentException e) {
-		}
-
-		if (hashWrapper == null) {
-			return;
-		}
-
-		String hash = hashWrapper.toBase32String();
 		boolean ourContent = PlatformTorrentUtils.isContent(torrent, false);
 
-		LoginInfo userInfo = LoginInfoManager.getInstance().getUserInfo();
-		if (userInfo == null || userInfo.userID == null) {
+		if (!LoginInfoManager.getInstance().isLoggedIn()) {
 			// TODO: Login!
 			VuzeBuddyManager.log("Can't share download: Not logged in");
 			throw new NotLoggedInException();
 		}
+		LoginInfo userInfo = LoginInfoManager.getInstance().getUserInfo();
 
 		setTypeID(TYPEID_BUDDYSHARE, true);
 		setID(TYPEID_BUDDYSHARE + "-" + SystemTime.getCurrentTime());
 		setTorrent(torrent);
 
 		String text = "<A HREF=\"" + userInfo.getProfileUrl(TYPEID_BUDDYSHARE)
-				+ "\">" + userInfo.userName + "</A> is sharing ";
+				+ "\">" + userInfo.displayName + "</A> is sharing ";
 
-		if (ourContent) {
-			String url = Constants.URL_PREFIX + Constants.URL_DETAILS + hash
+		if (ourContent || torrent == null) {
+			String url = Constants.URL_PREFIX + Constants.URL_DETAILS + content.hash
 					+ ".html?" + Constants.URL_SUFFIX + "&client_ref="
 					+ TYPEID_BUDDYSHARE;
-			text += "\n<A HREF=\"" + url + "\">"
-					+ PlatformTorrentUtils.getContentTitle(torrent) + "</A>";
+			text += "\n<A HREF=\"" + url + "\">" + content.displayName + "</A>";
 		} else {
 			setTorrent(torrent);
 
-			text += PlatformTorrentUtils.getContentTitle2(dm);
+			text += content.displayName;
 		}
 
 		text += " with you.";
@@ -107,8 +91,10 @@ public class VuzeActivitiesEntryContentShare
 			text += "\n \nMessage from " + userInfo.userName + ":\n" + message;
 		}
 		setText(text);
-		setAssetHash(hash);
-		setDownloadManager(dm);
+		setAssetHash(content.hash);
+		if (content.dm != null) {
+			setDownloadManager(content.dm);
+		}
 		setShowThumb(true);
 		setImageBytes(PlatformTorrentUtils.getContentThumbnail(torrent));
 	}
