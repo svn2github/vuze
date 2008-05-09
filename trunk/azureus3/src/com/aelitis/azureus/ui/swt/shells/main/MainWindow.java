@@ -493,10 +493,19 @@ public class MainWindow
 								public void completed(ProgressEvent event) {
 									try{
 										s = browser.getText();
-										PlatformMessenger.debug("Got Auth Reply: " + s);
 										
 										boolean authFail = s.indexOf(";exception;") > 0
-												&& s.indexOf("authenticated session required") > 0;
+												&& (s.indexOf("authenticated session required") > 0 || s.indexOf("user must be logged in") > 0);
+
+										int i = s.indexOf("0;");
+
+										if (i > 0) {
+											PlatformMessenger.debug("Got Auth Reply: " + s);
+										} else {
+											String partial = s.length() == 0 ? "" : s.substring(0,
+													Math.min(100, s.length()));
+											PlatformMessenger.debug("Got BAD Auth Reply: " + partial);
+										}
 
 										if (authFail && loginAndRetry && !isRetry) {
 											s = null;
@@ -513,7 +522,6 @@ public class MainWindow
 												}
 											});
 										} else {
-  										int i = s.indexOf("0;");
   										if (i > 0) {
   											s = s.substring(i);
   										}
