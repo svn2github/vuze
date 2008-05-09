@@ -145,7 +145,7 @@ DHTPlugin
 	private boolean				port_changing;
 	private int					port_change_outstanding;
 	
-	private BooleanParameter	ipfilter_logging;
+	private boolean[]           ipfilter_logging = new boolean[1];
 	private BooleanParameter	warn_user;
 	
 	private UPnPMapping			upnp_mapping;
@@ -213,7 +213,14 @@ DHTPlugin
 		config.createGroup( "dht.reseed.group",
 				new Parameter[]{ reseed_label, reseed_ip, reseed_port, reseed });
 		
-		ipfilter_logging = config.addBooleanParameter2( "dht.ipfilter.log", "dht.ipfilter.log", true );
+		final BooleanParameter ipfilter_logging_param = config.addBooleanParameter2( "dht.ipfilter.log", "dht.ipfilter.log", true );
+		ipfilter_logging[0] = ipfilter_logging_param.getValue();
+		ipfilter_logging_param.addListener(new ParameterListener() {
+			public void parameterChanged(Parameter p) {
+				ipfilter_logging[0] = ipfilter_logging_param.getValue();
+				System.out.println("ipfilter logging is " + ipfilter_logging[0]);
+			}
+		});
 
 		warn_user = config.addBooleanParameter2( "dht.warn.user", "dht.warn.user", true );
 
@@ -543,7 +550,7 @@ DHTPlugin
 				{
 					if ( log_type == DHTLogger.LT_IP_FILTER ){
 						
-						return( ipfilter_logging.getValue());
+						return ipfilter_logging[0];
 					}
 					
 					return( true );
