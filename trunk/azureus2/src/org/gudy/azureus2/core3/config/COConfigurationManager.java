@@ -296,7 +296,10 @@ COConfigurationManager
 	{
 		return ConfigurationManager.getInstance().setRGBParameter( parameter, red, green, blue);
 	}
-
+	
+	public static boolean setRGBParameter(String parameter, int[] rgb, boolean override) {
+		return ConfigurationManager.getInstance().setRGBParameter(parameter, rgb, override);
+	}
 
 	public static float
 	getFloatParameter(
@@ -545,7 +548,11 @@ COConfigurationManager
   
   public static boolean removeParameter(String parameter) {
 		return ConfigurationManager.getInstance().removeParameter(parameter);
-	}
+  }
+  
+  public static boolean removeRGBParameter(String parameter) {
+		return ConfigurationManager.getInstance().removeRGBParameter(parameter);
+  }
   
   public interface
   ParameterVerifier

@@ -46,6 +46,7 @@ ConfigurationManager
  
 		  
   private Map propertiesMap;	// leave this NULL - it picks up errors caused by initialisation sequence errors
+  private List transient_properties     = new ArrayList();
   
   private List		listeners 			= new ArrayList();
   private Hashtable parameterListeners 	= new Hashtable();
@@ -216,7 +217,20 @@ ConfigurationManager
 		return;
 	}
 	
-  	FileUtil.writeResilientConfigFile( filename, propertiesMap );
+	/**
+	 * Note - propertiesMap isn't synchronised! We'll clone the map
+	 * now, because we need to modify it. The BEncoding code will
+	 * create a new map object (TreeMap) because it needs to be
+	 * sorted, so we might as well do it here too.
+	 */ 
+	TreeMap properties_clone = new TreeMap(propertiesMap);
+	
+	// Remove any transient parameters.
+	if (!this.transient_properties.isEmpty()) {
+		properties_clone.keySet().removeAll(this.transient_properties);
+	}
+	
+  	FileUtil.writeResilientConfigFile( filename, properties_clone );
     
   	List	listeners_copy;
   	
@@ -621,6 +635,24 @@ ConfigurationManager
 
     return bAnyChanged;
 	}
+	
+	public boolean setRGBParameter(String parameter, int[] rgb, boolean override) {
+		boolean changed = false;
+		if (rgb == null) {
+			changed |= removeParameter(parameter + ".override");
+			changed |= removeParameter(parameter + ".red");
+			changed |= removeParameter(parameter + ".green");
+			changed |= removeParameter(parameter + ".blue");
+		}
+		else {
+			changed |= setParameter(parameter + ".override", override);
+			changed |= setRGBParameter(parameter, rgb[0], rgb[1], rgb[2]);
+		}
+		if (changed) {
+			notifyParameterListeners(parameter);
+		}
+		return changed;
+	}
   
   // Sets a parameter back to its default
   public boolean setParameter(String parameter) throws ConfigurationParameterNotFoundException {
@@ -647,6 +679,28 @@ ConfigurationManager
   }
   
   /**
+   * Set the raw parameter value to store in the properties map. This should
+   * only be used by trusted callers, and has been added to support external
+   * plugin config files.
+   * 
+   * @param parameter Parameter name.
+   * @param value A bencode-ably safe value.
+   */
+  public void setParameterRawNoNotify(String parameter, Object value) {
+	  this.propertiesMap.put(parameter, value);
+  }
+  
+  /**
+   * Use this method to record a parameter as one which can be stored
+   * here, but shouldn't be saved in azureus.config. Instead, some external
+   * object should be responsible for the parameter's persistency (if it
+   * should have any at all).
+   */
+  public void registerTransientParameter(String param) {
+	  this.transient_properties.add(param);
+  }
+  
+  /**
    * Remove the given configuration parameter completely.
    * @param parameter to remove
    * @return true if found and removed, false if not
@@ -663,6 +717,7 @@ ConfigurationManager
     bAnyChanged |= removeParameter(parameter + ".red");
     bAnyChanged |= removeParameter(parameter + ".green");
     bAnyChanged |= removeParameter(parameter + ".blue");
+    bAnyChanged |= removeParameter(parameter + ".override");
     if (bAnyChanged)
       notifyParameterListeners(parameter);
 
