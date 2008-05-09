@@ -100,6 +100,7 @@ public class VuzeBuddySWTImpl
 						avatarImage.getImageData()
 					};
 					loader.save(os, SWT.IMAGE_PNG);
+					VuzeBuddySWTImpl.super.setAvatar(os.toByteArray());
 				}
 			});
 		}
