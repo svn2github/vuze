@@ -144,9 +144,18 @@ public class PlatformMessage
 	}
 
 	public String toString() {
-		return "PlaformMessage {" + lSequenceNo + ", " + messageID + ", "
-				+ listenerID + ", " + operationID + ","
-				+ parameters + "}";
+		String paramString = parameters.toString();
+		return "PlaformMessage {"
+				+ lSequenceNo
+				+ ", "
+				+ messageID
+				+ ", "
+				+ listenerID
+				+ ", "
+				+ operationID
+				+ ", "
+				+ (paramString.length() > 32767 ? paramString.substring(0, 32767)
+						: paramString) + "}";
 	}
 
 	/**
