@@ -282,7 +282,7 @@ EngineImpl
 			
 			selection_state_recorded = false;
 			
-			meta_search.configDirty();
+			configDirty();
 		}
 	}
 	
@@ -297,7 +297,7 @@ EngineImpl
 	{
 		selection_state_recorded = true;
 		
-		meta_search.configDirty();
+		configDirty();
 	}
 	
 	public int
@@ -312,14 +312,26 @@ EngineImpl
 	{
 		source	= _source;
 		
-		meta_search.configDirty();
+		configDirty();
+	}
+	
+	protected void
+	configDirty()
+	{
+		if ( meta_search != null ){
+			
+			meta_search.configDirty();
+		}
 	}
 	
 	protected void
 	log(
 		String		str )
 	{
-		meta_search.log( "Engine " + getId() + ": " + str );
+		if ( meta_search != null ){
+		
+			meta_search.log( "Engine " + getId() + ": " + str );
+		}
 	}
 	
 	protected void
@@ -327,6 +339,9 @@ EngineImpl
 		String		str,
 		Throwable	e )
 	{
-		meta_search.log( "Engine " + getId() + ": " + str, e );
+		if ( meta_search != null ){
+		
+			meta_search.log( "Engine " + getId() + ": " + str, e );
+		}
 	}
 }
