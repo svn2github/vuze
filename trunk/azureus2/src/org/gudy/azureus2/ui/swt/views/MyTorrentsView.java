@@ -65,6 +65,8 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.common.table.*;
 
@@ -136,6 +138,7 @@ public class MyTorrentsView
 	private boolean bDNDalwaysIncomplete;
 	private TableViewSWT tv;
 	private Composite cTableParentPanel;
+	protected boolean viewActive;
 
   /**
    * Initialize
@@ -252,6 +255,22 @@ public class MyTorrentsView
   
   // @see org.gudy.azureus2.ui.swt.views.table.TableViewSWTPanelCreator#createTableViewPanel(org.eclipse.swt.widgets.Composite)
   public Composite createTableViewPanel(Composite composite) {
+  	composite.addListener(SWT.Activate, new Listener() {
+			public void handleEvent(Event event) {
+				viewActive = true;
+		    refreshIconBar();
+		    updateSelectedContent();
+			}
+		});
+  	composite.addListener(SWT.Deactivate, new Listener() {
+			public void handleEvent(Event event) {
+				viewActive = false;
+				// don't updateSelectedContent() because we may have switched
+				// to a button or a text field, and we still want out content to be
+				// selected
+			}
+		});
+  	
     GridData gridData;
     cTableParentPanel = new Composite(composite, SWT.NULL);
     GridLayout layout = new GridLayout();
@@ -814,18 +833,34 @@ public class MyTorrentsView
   public void selected(TableRowCore[] rows) {
   	refreshIconBar();
   	refreshTorrentMenu();
+  	updateSelectedContent();
   }
 
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#deselected(com.aelitis.azureus.ui.common.table.TableRowCore[])
 	public void deselected(TableRowCore[] rows) {
   	refreshIconBar();
   	refreshTorrentMenu();
+  	updateSelectedContent();
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#focusChanged(com.aelitis.azureus.ui.common.table.TableRowCore)
 	public void focusChanged(TableRowCore focus) {
   	refreshIconBar();
   	refreshTorrentMenu();
+	}
+
+	protected void updateSelectedContent() {
+		if (!viewActive) {
+			SelectedContentManager.changeCurrentlySelectedContent(null);
+			return;
+		}
+		DownloadManager[] dms = getSelectedDownloads();
+		SelectedContent[] sc = new SelectedContent[dms.length];
+		for (int i = 0; i < dms.length; i++) {
+			DownloadManager dm = dms[i];
+			sc[i] = new SelectedContent(dm);
+		}
+		SelectedContentManager.changeCurrentlySelectedContent(sc);
 	}
 
   private void refreshIconBar() {
@@ -1074,7 +1109,6 @@ public class MyTorrentsView
     
     isTrackerOn = TRTrackerUtils.isTrackerEnabled();
     
-    refreshIconBar();
     refreshTorrentMenu();
   }
 
@@ -1779,7 +1813,8 @@ public class MyTorrentsView
 	}
 
 	public boolean isTableFocus() {
-		return tv.isTableFocus();
+		return viewActive;
+		//return tv.isTableFocus();
 	}
 	
 	public Image obfusticatedImage(final Image image, Point shellOffset) {
