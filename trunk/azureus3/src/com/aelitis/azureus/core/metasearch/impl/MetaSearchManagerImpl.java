@@ -193,7 +193,6 @@ MetaSearchManagerImpl
 				}
 				
 				log( "Manual templates: " + manual_str );
-
 			}
 			
 			Map existing_engine_map = new HashMap();
@@ -252,6 +251,8 @@ MetaSearchManagerImpl
 									details.getModifiedDate(),
 									details.getName(),
 									details.getValue());
+							
+							e.setSource( source );
 							
 							meta_search.addEngine( e );
 							

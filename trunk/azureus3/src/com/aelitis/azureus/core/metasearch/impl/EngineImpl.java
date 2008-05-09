@@ -185,6 +185,10 @@ EngineImpl
 		if ( obj instanceof Long){
 			
 			return(((Long)obj).longValue());
+			
+		}else if ( obj instanceof String ){
+			
+			return( Long.parseLong((String)obj));
 		}
 		
 		return( 0 );
@@ -208,14 +212,28 @@ EngineImpl
 	
 		throws IOException
 	{
+		return( importBoolean( map, key, false ));
+	}
+	
+	protected boolean
+	importBoolean(
+		Map		map,
+		String	key,
+		boolean	def )
+	
+		throws IOException
+	{
 		Object	obj = map.get( key );
 		
 		if ( obj instanceof Long){
 			
 			return(((Long)obj).longValue() == 1 );
+		}else if ( obj instanceof Boolean ){
+			
+			return(((Boolean)obj).booleanValue());
 		}
 		
-		return( false );
+		return( def );
 	}
 	
 	public int
@@ -289,5 +307,21 @@ EngineImpl
 		source	= _source;
 		
 		MetaSearchImpl.getSingleton().configDirty();
+	}
+	
+	protected void
+	log(
+		String		str )
+	{
+		MetaSearchImpl.getSingleton().log( "Engine " + getId() + ": " + str );
+	}
+	
+	protected void
+	log(
+		String		str,
+		Throwable	e )
+	{
+		MetaSearchImpl.getSingleton().log( "Engine " + getId() + ": " + str, e );
+
 	}
 }

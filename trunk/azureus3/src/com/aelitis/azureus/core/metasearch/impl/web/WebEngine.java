@@ -3,6 +3,7 @@ package com.aelitis.azureus.core.metasearch.impl.web;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -71,7 +72,7 @@ public abstract class WebEngine extends EngineImpl {
 		timeZone			= importString( map, "web.time_zone" );
 		userDateFormat		= importString( map, "web.date_format" );
 
-		automaticDateParser	= ((Long)map.get( "web.auto_date" )).longValue()==1;
+		automaticDateParser	= importBoolean( map, "web.auto_date", true );
 
 		List	maps = (List)map.get( "web.maps" );
 		
@@ -104,13 +105,15 @@ public abstract class WebEngine extends EngineImpl {
 	{
 		super( type, id, last_updated, name );
 		
-		searchURLFormat 	= importString( map, "aaa" );
-		timeZone			= importString( map, "aaa" );
+		searchURLFormat 	= importString( map, "searchURL" );
+		timeZone			= importString( map, "timezone" );
 		userDateFormat		= importString( map, "aaa" );
 
-		automaticDateParser	= ((Boolean)map.get( "ccc" )).booleanValue();
+		searchURLFormat = URLDecoder.decode( searchURLFormat, "UTF-8" );
+		
+		automaticDateParser	= importBoolean( map, "xxxx", true );
 
-		List	maps = (List)map.get( "bbb" );
+		List	maps = (List)map.get( "column_map" );
 		
 		mappings = new FieldMapping[maps.size()];
 		
@@ -118,15 +121,61 @@ public abstract class WebEngine extends EngineImpl {
 			
 			Map	m = (Map)maps.get(i);
 			
-			mappings[i] = 
-				new FieldMapping(
-					importString( m, "name" ),
-					((Long)m.get( "field")).intValue());
+			m = (Map)m.get( "mapping" );
+			
+			String	field_name 	= importString( m, "vuze_field" ).toUpperCase();
+			String	field_group	= importString( m, "group_nb" );
+			
+			int	field_id;
+			
+			if ( field_name.equals( "TITLE")){
+				
+				field_id	= FIELD_NAME;
+				
+			}else if ( field_name.equals( "DATE")){
+				
+				field_id	= FIELD_DATE;
+				
+			}else if ( field_name.equals( "")){
+				
+				field_id	= FIELD_SIZE;
+				
+			}else if ( field_name.equals( "PEERS")){
+				
+				field_id	= FIELD_PEERS;
+				
+			}else if ( field_name.equals( "SEEDS")){
+				
+				field_id	= FIELD_SEEDS;
+				
+			}else if ( field_name.equals( "CAT")){
+				
+				field_id	= FIELD_CATEGORY;
+				
+			}else if ( field_name.equals( "")){
+				
+				field_id	= FIELD_COMMENTS;
+				
+			}else if ( field_name.equals( "")){
+				
+				field_id	= FIELD_TORRENTLINK;
+				
+			}else if ( field_name.equals( "CDP")){
+				
+				field_id	= FIELD_CDPLINK;
+				
+			}else{
+				
+				log( "Unrecognised field mapping '" + field_name + "'" );
+				
+				continue;
+			}
+			
+			mappings[i] = new FieldMapping( field_group, field_id );
 		}
 		
 		init();
 	}
-	
 	
 	protected void
 	exportToBencodedMap(

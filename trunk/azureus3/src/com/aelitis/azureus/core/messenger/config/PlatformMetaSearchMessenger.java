@@ -63,7 +63,7 @@ PlatformMetaSearchMessenger
 		
 		String name 		= (String)reply.get( "name" );
 		String value		= (String)reply.get( "value" );
-		String engine_type	= (String)reply.get( "engine-id" );
+		String engine_type	= (String)reply.get( "engine_id" );
 		
 		if ( name == null || value == null || engine_type == null ){
 			

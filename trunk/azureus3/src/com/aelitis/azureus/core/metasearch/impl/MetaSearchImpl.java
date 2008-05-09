@@ -54,17 +54,27 @@ MetaSearchImpl
 	{
 		loadConfig();
 		
-		try{
-			Class clazz = Class.forName( "com.aelitis.azureus.core.metasearch.impl.MetaSearchTestImpl" );
-		
-			clazz.getConstructor( new Class[]{ MetaSearch.class }).newInstance( new Object[]{ this });
-			
-		}catch( Throwable e ){
-			
-				//Test implementation in progress, Test class not publicly available
-			
-			e.printStackTrace();
-		}
+		new DelayedEvent(
+			"delayinit", 0, 
+			new AERunnable()
+			{
+				public void 
+				runSupport() 
+				{
+					try{
+						Class clazz = Class.forName( "com.aelitis.azureus.core.metasearch.impl.MetaSearchTestImpl" );
+					
+						clazz.getConstructor( 
+								new Class[]{ MetaSearch.class }).newInstance( new Object[]{ MetaSearchImpl.this });
+						
+					}catch( Throwable e ){
+						
+							//Test implementation in progress, Test class not publicly available
+						
+						e.printStackTrace();
+					}
+				}
+			});
 	}
 	
 	public void 
@@ -134,7 +144,9 @@ MetaSearchImpl
 				
 				Engine	e = (Engine)l.get(i);
 				
-				if ( e.isSelected()){
+				if ( 	e.isSelected() || 
+						e.getSource() == Engine.ENGINE_SOURCE_FEATURED ||
+						e.getSource() == Engine.ENGINE_SOURCE_POPULAR ){
 					
 					result.add( e );
 				}
@@ -219,11 +231,11 @@ MetaSearchImpl
 			
 		SearchExecuter se = new SearchExecuter(listener);
 		
-		Iterator it  = engines.iterator();
+		Engine[] engines = getEngines( true );
 		
-		while( it.hasNext()){
+		for (int i=0;i<engines.length;i++){
 			
-			se.search((Engine)it.next(), searchParameters);
+			se.search( engines[i], searchParameters);
 		}
 	}
 	

@@ -1,6 +1,7 @@
 package com.aelitis.azureus.core.metasearch.impl.web.regex;
 
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.util.*;
 import java.util.regex.*;
 
@@ -92,8 +93,10 @@ RegexEngine
 	{
 		super( Engine.ENGINE_TYPE_REGEX, id, last_updated, name, map );
 		
-		String	resultPattern = importString( map, "aaaa" );
+		String	resultPattern = importString( map, "regexp" );
 
+		resultPattern = URLDecoder.decode( resultPattern, "UTF-8" );
+		
 		init( resultPattern );
 	}
 	
