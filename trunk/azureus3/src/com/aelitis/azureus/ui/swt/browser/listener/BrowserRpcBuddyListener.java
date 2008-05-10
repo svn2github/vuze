@@ -55,7 +55,7 @@ extends AbstractMessageListener
 
 			if (OP_ACCEPT.equals(opid)) {
 				Map mapBuddy = MapUtils.getMapMap(decodedMap, "buddy", Collections.EMPTY_MAP);
-				String code = MapUtils.getMapString(mapBuddy, "code", null);
+				String code = MapUtils.getMapString(decodedMap, "code", null);
 				VuzeBuddyManager.log("buddy accept " + mapBuddy.get("login-id") + "/" + code);
 				
 				if (mapBuddy.size() > 0) {
