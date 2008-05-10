@@ -95,8 +95,7 @@ PluginInterfaceImpl
   private String 				pluginConfigKey;
   private Properties 			props;
   private String 				pluginDir;
-  private PluginConfig 			config;
-  private String				plugin_id;
+  private PluginConfigImpl		config;
   private String				plugin_version;
   private boolean				operational;
   private boolean				disabled;
@@ -104,6 +103,20 @@ PluginInterfaceImpl
   private IPCInterfaceImpl		ipc_interface;
   private List					children		= new ArrayList();
   private List configSections = new ArrayList();
+  
+  /**
+   * This is the plugin ID value we were given when we were created.
+   * 
+   * We might use it, but it depends what value is the plugins properties
+   * (which will override this value).
+   */ 
+  private String				given_plugin_id;
+  
+  /**
+   * We store this value as soon as someone calls getPluginID(), meaning
+   * we will return a consistent value for the plugin's lifetime.
+   */
+  private String                plugin_id_to_use;
   
   public 
   PluginInterfaceImpl(
@@ -126,7 +139,7 @@ PluginInterfaceImpl
     props 				= new propertyWrapper(_props );
     pluginDir 			= _pluginDir;
     config 				= new PluginConfigImpl(this,pluginConfigKey);
-    plugin_id			= _plugin_id;
+    given_plugin_id     = _plugin_id;
     plugin_version		= _plugin_version;
     ipc_interface		= new IPCInterfaceImpl( initialiser, plugin );
   }
@@ -279,14 +292,17 @@ PluginInterfaceImpl
   public String
   getPluginID()
   {
-  	String	id = (String)props.get("plugin.id");
+	  if (this.plugin_id_to_use != null) {return this.plugin_id_to_use;}
+	  
+	// Calculate what plugin ID value to use - look at the properties file
+	// first, and if that isn't correct, base it on the given plugin ID
+	// value we were given.
+  	String id = (String)props.get("plugin.id");
+  	if (id == null) {id = given_plugin_id;}
+  	if (id == null) {id = "<none>";}
   	
-  	if ( id == null ){
-  		
-  		id = plugin_id;
-  	}
-  	
-  	return( id==null?"<none>":id );
+  	this.plugin_id_to_use = id;
+  	return this.plugin_id_to_use;
   }
 
   public boolean
@@ -716,6 +732,12 @@ PluginInterfaceImpl
 	{
 		try{
 			Plugin	p = (Plugin)plugin_class.newInstance();
+			
+			// Discard plugin.id from the properties, we want the
+			// plugin ID we create to take priority - not a value
+			// from the original plugin ID properties file.
+			Properties local_props = new Properties(props);
+			local_props.remove("plugin.id");
 	
 			PluginInterfaceImpl pi =
 				new PluginInterfaceImpl(
@@ -724,9 +746,9 @@ PluginInterfaceImpl
 					initialiser_key,
 					class_loader,
 					key + "." + id,
-					props,
+					local_props,
 					pluginDir,
-					plugin_id + "." + id,
+					getPluginID() + "." + id,
 					plugin_version ); 
 			
 			p.initialize( pi );
