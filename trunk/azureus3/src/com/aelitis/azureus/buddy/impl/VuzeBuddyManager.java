@@ -594,12 +594,18 @@ public class VuzeBuddyManager
 		} else if (mt.equals("BuddyAccept")) {
 			String code = MapUtils.getMapString(mapPayload, "BuddyAcceptCode", null);
 			VuzeQueuedShares.updateSharePK(code, pkSender);
-			// Once sync is done, we will get a buddy add, and send the queued share(s)
-			try {
-				PlatformBuddyMessenger.sync(null);
-			} catch (NotLoggedInException e) {
-				log("Not Logged in, yet we were able to decrypt the BuddyAccept message.  Amazing!");
-				log(e);
+			
+			VuzeBuddy buddyByPK = getBuddyByPK(pkSender);
+			if (buddyByPK != null) {
+				sendQueudShares(buddyByPK);
+			} else {
+  			// Once sync is done, we will get a buddy add, and send the queued share(s)
+  			try {
+  				PlatformBuddyMessenger.sync(null);
+  			} catch (NotLoggedInException e) {
+  				log("Not Logged in, yet we were able to decrypt the BuddyAccept message.  Amazing!");
+  				log(e);
+  			}
 			}
 		}
 
@@ -770,6 +776,18 @@ public class VuzeBuddyManager
 		}
 
 		// Send Queued Shares
+		sendQueudShares(buddy);
+		if (createActivityEntry) {
+			removeInviteActivities(buddy.getLoginID());
+		}
+	}
+
+	/**
+	 * @param publicKeys
+	 *
+	 * @since 3.0.5.3
+	 */
+	private static void sendQueudShares(VuzeBuddy buddy) {
 		String[] publicKeys = buddy.getPublicKeys();
 		for (int i = 0; i < publicKeys.length; i++) {
 			String pk = publicKeys[i];
@@ -784,9 +802,6 @@ public class VuzeBuddyManager
 					log("Not logged in: Sending Queued Share");
 				}
 			}
-		}
-		if (createActivityEntry) {
-			removeInviteActivities(buddy.getLoginID());
 		}
 	}
 
