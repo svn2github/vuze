@@ -873,7 +873,7 @@ DiskManagerImpl
 				{
 					try
 					{
-						cache_file.delete();
+						data_file.delete();
 					} catch (Exception e)
 					{
 						Debug.printStackTrace(e);
@@ -2818,25 +2818,6 @@ DiskManagerImpl
 									cache_file.close();
 
 									toSkip[i] = newStroageType == FileSkeleton.ST_COMPACT && !res[i].isSkipped();
-
-									// download's not running, update resume data as necessary
-
-									int cleared = RDResumeHandler.storageTypeChanged( download_manager, res[i] );
-
-									// try and maintain reasonable figures for downloaded. Note that because
-									// we don't screw with the first and last pieces of the file during
-									// storage type changes we don't have the problem of dealing with
-									// the last piece being smaller than torrent piece size
-
-									if ( cleared > 0 ){
-
-										res[i].downloaded = res[i].downloaded - cleared * res[i].getTorrentFile().getTorrent().getPieceLength();
-
-										if ( res[i].downloaded < 0 ){
-
-											res[i].downloaded = 0;
-										}
-									}
 								}
 
 
@@ -2859,6 +2840,36 @@ DiskManagerImpl
 							}
 
 							types[i] = newStroageType== FileSkeleton.ST_LINEAR?"L":"C";
+						}
+						
+						/*
+						 * set storage type and skipped before we do piece clearing and file
+						 * clearing checks as those checks work better when skipped/stype is set
+						 * properly
+						 */
+						dmState.setListAttribute( DownloadManagerState.AT_FILE_STORE_TYPES, types);
+						setSkipped(toSkip, true);
+						
+						
+						for(int i=0;i<res.length;i++)
+						{
+							if(!toChange[i])
+								continue;
+							
+							// download's not running, update resume data as necessary
+
+							int cleared = RDResumeHandler.storageTypeChanged( download_manager, res[i] );
+
+							// try and maintain reasonable figures for downloaded. Note that because
+							// we don't screw with the first and last pieces of the file during
+							// storage type changes we don't have the problem of dealing with
+							// the last piece being smaller than torrent piece size
+
+							if (cleared > 0)
+							{
+								res[i].downloaded = res[i].downloaded - cleared * res[i].getTorrentFile().getTorrent().getPieceLength();
+								if (res[i].downloaded < 0) res[i].downloaded = 0;
+							}
 						}
 
 						storeFileDownloaded( download_manager, res, true );
@@ -2905,10 +2916,6 @@ DiskManagerImpl
 
 
 						}
-
-						dmState.setListAttribute( DownloadManagerState.AT_FILE_STORE_TYPES, types);
-						
-						setSkipped(toSkip, true);
 					} finally {
 						dmState.supressStateSave(false);
 						dmState.save();
