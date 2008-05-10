@@ -23,7 +23,7 @@
 package org.gudy.azureus2.core3.download.impl;
 
 import java.io.File;
-import java.io.IOException; 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,25 +31,19 @@ import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.disk.DiskManager;
-import org.gudy.azureus2.core3.disk.DiskManagerFactory;
-import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
-import org.gudy.azureus2.core3.disk.DiskManagerFileInfoListener;
-import org.gudy.azureus2.core3.disk.DiskManagerListener;
-import org.gudy.azureus2.core3.disk.DiskManagerPiece;
-import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
-import org.gudy.azureus2.core3.disk.DiskManagerReadRequestListener;
-import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerDiskListener;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.download.ForceRecheckListener;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.peer.PEPeer;
-import org.gudy.azureus2.core3.peer.PEPeerManager;
-import org.gudy.azureus2.core3.peer.PEPeerManagerAdapter;
-import org.gudy.azureus2.core3.peer.PEPeerManagerFactory;
-import org.gudy.azureus2.core3.peer.PEPeerSource;
-import org.gudy.azureus2.core3.peer.PEPiece;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.LogRelation;
+import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
@@ -57,7 +51,6 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerDataProvider;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.*;
-
 import org.gudy.azureus2.plugins.network.ConnectionManager;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -150,8 +143,6 @@ DownloadManagerController
 	
 	protected AEMonitor	this_mon		= new AEMonitor( "DownloadManagerController" );
 	protected AEMonitor	state_mon		= new AEMonitor( "DownloadManagerController:State" );
-	protected AEMonitor	facade_mon	= new AEMonitor( "DownloadManagerController:Facade" );
-
 	
 	private DownloadManagerImpl			download_manager;
 	private DownloadManagerStatsImpl	stats;
@@ -170,7 +161,7 @@ DownloadManagerController
 	private volatile DiskManager 			disk_manager_use_accessors;
 	private DiskManagerListener				disk_manager_listener_use_accessors;
 	
-	private fileInfoFacade[]		files_facade		= new fileInfoFacade[0];	// default before torrent avail
+	private FileInfoFacadeSet		fileFacadeSet = new FileInfoFacadeSet();
 	private boolean					files_facade_destroyed;
 	
 	private boolean					cached_complete_excluding_dnd;
@@ -594,7 +585,7 @@ DownloadManagerController
 			  						// good time to trigger minimum file info fixup as the disk manager's
 		  							// files are now in a good state
 
-			  					makeSureFilesFacadeFilled(true);
+			  					fileFacadeSet.makeSureFilesFacadeFilled(true);
 
 			  					stats.setDownloadCompleted(stats.getDownloadCompleted(true));
 			  						
@@ -1192,7 +1183,7 @@ DownloadManagerController
 			peer_manager_registration	= null;
 		}
 		
-		destroyFileInfo();
+		fileFacadeSet.destroyFileInfo();
 	}
 	
 	public boolean
@@ -1555,10 +1546,12 @@ DownloadManagerController
 			return dm.filesExist();
 		}
 
-		makeSureFilesFacadeFilled(false);
+		fileFacadeSet.makeSureFilesFacadeFilled(false);
+		
+		DiskManagerFileInfo[] files = fileFacadeSet.getFiles();
 
-		for (int i = 0; i < files_facade.length; i++) {
-			fileInfoFacade fileInfo = files_facade[i];
+		for (int i = 0; i < files.length; i++) {
+			DiskManagerFileInfo fileInfo = files[i];
 			if (!fileInfo.isSkipped()) {
 				File file = fileInfo.getFile(true);
 				try {
@@ -1601,48 +1594,35 @@ DownloadManagerController
 		return true;
 	}
 	
-	private void makeSureFilesFacadeFilled(boolean refresh) {
-		if (!bInitialized) {
-			// too early
-			return;
-		}
-
-		if (files_facade.length == 0) {
-			fileInfoFacade[] new_files_facade = new fileInfoFacade[download_manager.getTorrent() == null
-					? 0 : download_manager.getTorrent().getFiles().length];
-
-			for (int i = 0; i < new_files_facade.length; i++) {
-
-				new_files_facade[i] = new fileInfoFacade();
-			}
-			
-			// no need to set files_facade, it gets set to new_files_facade in
-			// fixup
-			fixupFileInfo(new_files_facade);
-		} else if (refresh) {
-			fixupFileInfo(files_facade);
-		}
+	public DiskManagerFileInfoSet getDiskManagerFileInfoSet()
+	{
+		fileFacadeSet.makeSureFilesFacadeFilled(false);
+		
+		return fileFacadeSet;
 	}
 	
+	/**
+	 * @deprecated use getDiskManagerFileInfoSet() instead 
+	 */
    	public DiskManagerFileInfo[]
     getDiskManagerFileInfo()
    	{
-  		makeSureFilesFacadeFilled(false);
+   		fileFacadeSet.makeSureFilesFacadeFilled(false);
   		
-   		return( files_facade );
+   		return( fileFacadeSet.getFiles() );
    	}
 	
 	protected void
 	fileInfoChanged()
 	{
-		makeSureFilesFacadeFilled(true);
+		fileFacadeSet.makeSureFilesFacadeFilled(true);
 	}
 	
 	protected void
 	filePriorityChanged(DiskManagerFileInfo file)
 	{
 		if (!cached_values_set) {
-			makeSureFilesFacadeFilled(false);
+			fileFacadeSet.makeSureFilesFacadeFilled(false);
 		}
 
 		// no need to calculate completeness if there are no DND files and the
@@ -1650,8 +1630,8 @@ DownloadManagerController
 		if (!cached_has_dnd_files && !file.isSkipped()){
 			return;
 		}
-		makeSureFilesFacadeFilled(false);
-		calculateCompleteness( files_facade );
+		fileFacadeSet.makeSureFilesFacadeFilled(false);
+		calculateCompleteness( fileFacadeSet.facadeFiles );
 	}
 	
 	protected void
@@ -1700,7 +1680,7 @@ DownloadManagerController
 	 */
 	protected boolean isDownloadComplete(boolean bIncludeDND) {
 		if (!cached_values_set) {
-			makeSureFilesFacadeFilled(false);
+			fileFacadeSet.makeSureFilesFacadeFilled(false);
 		}
 
 		// The calculate from stats doesn't take into consideration DND
@@ -2110,147 +2090,135 @@ DownloadManagerController
 		return( interfaces.toArray());
 	}
 	
-	protected void
-	destroyFileInfo()
-	{
-		try{
-			facade_mon.enter();
+	protected class FileInfoFacadeSet implements DiskManagerFileInfoSet {
 
-			if ( files_facade == null || files_facade_destroyed ){
-				
-				return;
-			}
-			
-			files_facade_destroyed = true;
-			
-			for (int i=0;i<files_facade.length;i++){
-				
-				files_facade[i].close();
-			}
-		}finally{
-			
-			facade_mon.exit();
+		AEMonitor	facade_mon	= new AEMonitor( "DownloadManagerController:Facade" );
+		DiskManagerFileInfoSet delegate;
+		fileInfoFacade[] facadeFiles = new fileInfoFacade[0];	// default before torrent avail
+
+		public DiskManagerFileInfo[] getFiles() {
+			return facadeFiles;
 		}
-	}
-	
-	/** XXX Don't call me, call makeSureFilesFacadeFilled() */
-	protected void
-	fixupFileInfo(
-		fileInfoFacade[]	info )
-	{
-		if ( info.length == 0 ){
-		
-				// too early in initialisation sequence to action this - it'll get reinvoked later anyway
-			
-			return;
+
+		public int nbFiles() {
+			return delegate.nbFiles();
 		}
-		
-		final List	delayed_prio_changes = new ArrayList();
 
-		try{
-			facade_mon.enter();
-				
-			if ( files_facade_destroyed ){
-				
-				return;
-			}
+		public void setPriority(boolean[] toChange, boolean setPriority) {
+			delegate.setPriority(toChange, setPriority);
+		}
+
+		public void setSkipped(boolean[] toChange, boolean setSkipped) {
+			delegate.setSkipped(toChange, setSkipped);
+		}
+
+		public boolean[] setStorageTypes(boolean[] toChange, int newStroageType) {
+			return delegate.setStorageTypes(toChange, newStroageType);
+		}
+
+		/** XXX Don't call me, call makeSureFilesFacadeFilled() */
+		protected void fixupFileInfo(fileInfoFacade[] info) {
+
+			// too early in initialisation sequence to action this - it'll get reinvoked later anyway
+			if (info.length == 0) return;
 			
-			DiskManager	dm = DownloadManagerController.this.getDiskManager();
+			final List delayed_prio_changes = new ArrayList();
+			
+			try {
+				facade_mon.enter();
+				if (files_facade_destroyed)	return;
 
-			DiskManagerFileInfo[]	active	= null;
-   		
-			if ( dm != null ){
-   			
-				int	dm_state = dm.getState();
-   			
-   					// grab the live file info if available
-   			
-				if ( dm_state == DiskManager.CHECKING || dm_state == DiskManager.READY ){
-   			  			
-					active = dm.getFiles();
+				DiskManager dm = DownloadManagerController.this.getDiskManager();
+				DiskManagerFileInfoSet active = null;
+				
+				if (dm != null) {
+					int dm_state = dm.getState();
+					// grab the live file info if available
+					if (dm_state == DiskManager.CHECKING || dm_state == DiskManager.READY)
+						active = dm.getFileSet();
+
 				}
-   			}
-   		
-			if ( active == null ){
-   		  					
-	   			final boolean[]	initialising = { true };
-	   				
-   					// chance of recursion with this listener as the file-priority-changed is triggered
-   					// synchronously during construction and this can cause a listener to reenter the
-   					// incomplete fixup logic here + instantiate new skeletons.....
-   				
-	   			try{
-	   				skeleton_builds++;
-	   				
-	   				if ( skeleton_builds % 1000 == 0 ){
-	   					
-	   					Debug.outNoStack( "Skeleton builds: " + skeleton_builds );
-	   				}
-	   				
-	   				active = DiskManagerFactory.getFileInfoSkeleton( 
-							download_manager,
-							new DiskManagerListener()
-							{
-								public void
-								stateChanged(
-									int oldState, 
-									int	newState )
-								{
+				if (active == null) {
+					final boolean[] initialising = { true };
+					// chance of recursion with this listener as the file-priority-changed is triggered
+					// synchronously during construction and this can cause a listener to reenter the
+					// incomplete fixup logic here + instantiate new skeletons.....
+					try {
+						skeleton_builds++;
+						if (skeleton_builds % 1000 == 0) {
+							Debug.outNoStack("Skeleton builds: " + skeleton_builds);
+						}
+						active = DiskManagerFactory.getFileInfoSkeleton(download_manager, new DiskManagerListener() {
+							public void stateChanged(int oldState, int newState) {}
+
+							public void filePriorityChanged(DiskManagerFileInfo file) {
+								if (initialising[0]) {
+									delayed_prio_changes.add(file);
+								} else {
+									download_manager.informPriorityChange(file);
 								}
-								
-								public void
-								filePriorityChanged(
-									DiskManagerFileInfo		file )
-								{
-									if ( initialising[0] ){
-										
-										delayed_prio_changes.add( file );
-										
-									}else{
-										
-										download_manager.informPriorityChange( file );
-									}
-								}
-	
-								public void
-								pieceDoneChanged(
-									DiskManagerPiece		piece )
-								{
-								}
-								
-								public void
-								fileAccessModeChanged(
-									DiskManagerFileInfo		file,
-									int						old_mode,
-									int						new_mode )
-								{
-								}
-							});
-	   			}finally{
-	   				
-	   				initialising[0]	= false;
-	   			}
-	   			
-	   			calculateCompleteness( active );
-			}
-   
-			for (int i=0;i<info.length;i++){
+							}
+
+							public void pieceDoneChanged(DiskManagerPiece piece) {}
+
+							public void fileAccessModeChanged(DiskManagerFileInfo file, int old_mode, int new_mode) {}
+						});
+					} finally {
+						initialising[0] = false;
+					}
+					calculateCompleteness(active.getFiles());
+				}
 				
-				info[i].setDelegate( active[i] );
+				DiskManagerFileInfo[] activeFiles = active.getFiles();
+				
+				for (int i = 0; i < info.length; i++)
+					info[i].setDelegate(activeFiles[i]);
+				
+				delegate = active;
+				
+			} finally {
+				facade_mon.exit();
 			}
-		}finally{
-   				
-   			facade_mon.exit();
-   		}
-   			
-		files_facade	= info;
+			
+			fileFacadeSet.facadeFiles = info;
+			for (int i = 0; i < delayed_prio_changes.size(); i++)
+				download_manager.informPriorityChange((DiskManagerFileInfo) delayed_prio_changes.get(i));
+
+			delayed_prio_changes.clear();
+		}
 		
-   		for (int i=0;i<delayed_prio_changes.size();i++){
-   					
-   			download_manager.informPriorityChange((DiskManagerFileInfo)delayed_prio_changes.get(i));
-   		}
-   				
-   		delayed_prio_changes.clear();
+		private void makeSureFilesFacadeFilled(boolean refresh) {
+			if (!bInitialized) return; // too early
+
+			if (facadeFiles.length == 0) {
+				fileInfoFacade[] newFacadeFiles = new fileInfoFacade[download_manager.getTorrent() == null
+						? 0 : download_manager.getTorrent().getFiles().length];
+
+				for (int i = 0; i < newFacadeFiles.length; i++)
+					newFacadeFiles[i] = new fileInfoFacade();
+				
+				// no need to set facadeFiles, it gets set to newFacadeFiles in fixup
+				fileFacadeSet.fixupFileInfo(newFacadeFiles);
+			} else if (refresh) {
+				fixupFileInfo(facadeFiles);
+			}
+		}
+		
+		
+		protected void destroyFileInfo() {
+			try {
+				facade_mon.enter();
+				if (fileFacadeSet == null || files_facade_destroyed)
+					return;
+
+				files_facade_destroyed = true;
+
+				for (int i = 0; i < facadeFiles.length; i++)
+					facadeFiles[i].close();
+			} finally {
+				facade_mon.exit();
+			}
+		}
 	}
 	
 	protected class
@@ -2333,10 +2301,6 @@ DownloadManagerController
 			int		type )
 		{
 			return( delegate.setStorageType( type ));
-		}
-		
-		public boolean setStorageTypeNoAtomic(int type, String[] types) {
-			return delegate.setStorageTypeNoAtomic(type, types);
 		}
 		
 		public int
@@ -2489,7 +2453,7 @@ DownloadManagerController
 			writer.println("Complete w/DND? " + isDownloadComplete(true)
 					+ "; w/o DND? " + isDownloadComplete(false));
 
-			writer.println("filesFacade length: " + files_facade.length);
+			writer.println("filesFacade length: " + fileFacadeSet.nbFiles());
 
 			if (force_start) {
 				writer.println("Force Start");
@@ -2542,7 +2506,7 @@ DownloadManagerController
 			
 			if (newDMState == DiskManager.CHECKING) {
 
-				makeSureFilesFacadeFilled(true);
+				fileFacadeSet.makeSureFilesFacadeFilled(true);
 			}
 
 			if (newDMState == DiskManager.READY || newDMState == DiskManager.FAULTY) {

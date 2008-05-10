@@ -176,6 +176,7 @@ DiskManager
 	getNbPieces();
 
 	public DiskManagerFileInfo[] getFiles();
+	public DiskManagerFileInfoSet getFileSet();
 	public DiskManagerPiece getPiece(int PieceNumber);
 
 	public DMPieceList getPieceList(int pieceNumber);

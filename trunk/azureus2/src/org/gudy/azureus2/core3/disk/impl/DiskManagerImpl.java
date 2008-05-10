@@ -22,26 +22,45 @@
 
 package org.gudy.azureus2.core3.disk.impl;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
 import java.util.*;
 
-import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.disk.impl.access.*;
+import org.gudy.azureus2.core3.disk.impl.access.DMAccessFactory;
+import org.gudy.azureus2.core3.disk.impl.access.DMChecker;
+import org.gudy.azureus2.core3.disk.impl.access.DMReader;
+import org.gudy.azureus2.core3.disk.impl.access.DMWriter;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.*;
 import org.gudy.azureus2.core3.disk.impl.resume.RDResumeHandler;
-import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerException;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerDefaultPaths;
-import org.gudy.azureus2.core3.internat.*;
+import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
+import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
+import org.gudy.azureus2.core3.internat.LocaleUtilEncodingException;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
+import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.platform.*;
+import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerCapabilities;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
-import com.aelitis.azureus.core.diskmanager.access.*;
-import com.aelitis.azureus.core.diskmanager.cache.*;
+import com.aelitis.azureus.core.diskmanager.access.DiskAccessController;
+import com.aelitis.azureus.core.diskmanager.access.DiskAccessControllerFactory;
+import com.aelitis.azureus.core.diskmanager.cache.CacheFile;
+import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerException;
+import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerFactory;
+import com.aelitis.azureus.core.diskmanager.cache.CacheFileOwner;
 import com.aelitis.azureus.core.diskmanager.file.FMFileManagerFactory;
 import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
 
@@ -136,7 +155,9 @@ DiskManagerImpl
 	private DMPieceMap				piece_map_use_accessor;
 	private long					piece_map_use_accessor_time;
 
-    private DiskManagerFileInfoImpl[]   files;
+    private DiskManagerFileInfoImpl[]				files;
+	private DiskManagerFileInfoSet					fileset;
+	
     protected DownloadManager       download_manager;
 
     private boolean alreadyMoved = false;
@@ -1018,6 +1039,7 @@ DiskManagerImpl
                 // entries have been populated
 
             files   = allocated_files;
+            fileset = new DiskManagerFileInfoSetImpl(files,this);
 
             loadFilePriorities();
 
@@ -1326,6 +1348,10 @@ DiskManagerImpl
     getFiles()
     {
         return files;
+    }
+    
+    public DiskManagerFileInfoSet getFileSet() {
+    	return fileset;
     }
 
     public String getErrorMessage() {
@@ -2540,31 +2566,6 @@ DiskManagerImpl
         return( types );
     }
     
-    public static boolean setStorageTypes(DownloadManager dm, DiskManagerFileInfo[] files, int[] new_types) {
-    	    	
-    	// This array will be mutated.
-    	String[] types = getStorageTypes(dm);
-       	if (types.length != new_types.length) {
-    		throw new RuntimeException("types.length != new_types.length");
-    	}
-    	
-    	boolean is_ok = true;
-    	try {
-    		for (int i=0; i<files.length; i++) {
-    			is_ok = files[i].setStorageTypeNoAtomic(new_types[files[i].getIndex()], types);
-    			
-    			// If we fail once, then stop.
-    			if (!is_ok) {break;}
-    		}
-    		return is_ok;
-    	}
-    	finally {
-    		DownloadManagerState dm_state = dm.getDownloadState();
-    		dm_state.setListAttribute(DownloadManagerState.AT_FILE_STORE_TYPES, types);
-    		dm_state.save();
-    	}
-    }
-
     private static boolean
     setFileLink(
         DownloadManager         download_manager,
@@ -2659,8 +2660,14 @@ DiskManagerImpl
 
         return( true );
     }
-
-    public static DiskManagerFileInfo[]
+    
+    static abstract class FileSkeleton implements DiskManagerFileInfoHelper {
+        protected boolean priority;
+        protected boolean skipped;
+    	protected long    downloaded;
+    }
+    
+    public static DiskManagerFileInfoSet
     getFileInfoSkeleton(
         final DownloadManager       download_manager,
         final DiskManagerListener   listener )
@@ -2669,7 +2676,7 @@ DiskManagerImpl
 
         if ( torrent == null ){
 
-            return( new DiskManagerFileInfo[0]);
+            return( new DiskManagerFileInfoSetImpl(new DiskManagerFileInfoImpl[0],null) );
         }
 
         String  tempRootDir = download_manager.getAbsoluteSaveLocation().getParent();
@@ -2691,7 +2698,225 @@ DiskManagerImpl
 
             TOTorrentFile[] torrent_files = torrent.getFiles();
 
-            final DiskManagerFileInfoHelper[]   res = new DiskManagerFileInfoHelper[ torrent_files.length ];
+            final FileSkeleton[]   res = new FileSkeleton[ torrent_files.length ];
+            
+            final DiskManagerFileInfoSet fileSetSkeleton = new DiskManagerFileInfoSet() {
+
+				public DiskManagerFileInfo[] getFiles() {
+					return res;
+				}
+
+				public int nbFiles() {
+					return res.length;
+				}
+
+				public void setPriority(boolean[] toChange, boolean setPriority) {
+					if(toChange.length != res.length)
+						throw new IllegalArgumentException("array length mismatches the number of files");
+					
+					for(int i=0;i<res.length;i++)
+						if(toChange[i])
+							res[i].priority = setPriority;
+					
+					storeFilePriorities( download_manager, res);
+					
+					for(int i=0;i<res.length;i++)
+						if(toChange[i])
+							listener.filePriorityChanged(res[i]);
+				}
+
+				public void setSkipped(boolean[] toChange, boolean setSkipped) {
+					if(toChange.length != res.length)
+						throw new IllegalArgumentException("array length mismatches the number of files");
+					
+            		if (!setSkipped && !Arrays.equals(toChange,setStorageTypes(toChange, FileSkeleton.ST_LINEAR))){
+            			return;
+            		}
+            		
+					for(int i=0;i<res.length;i++)
+						if(toChange[i])
+							res[i].skipped = setSkipped;
+							
+					storeFilePriorities( download_manager, res);
+					
+					for(int i=0;i<res.length;i++)
+						if(toChange[i])
+							listener.filePriorityChanged(res[i]);
+				}
+
+				public boolean[] setStorageTypes(boolean[] toChange, int newStroageType) {
+					if(toChange.length != res.length)
+						throw new IllegalArgumentException("array length mismatches the number of files");
+					
+					String[] types = getStorageTypes(download_manager);
+					boolean[] modified = new boolean[res.length];
+					boolean[] toSkip = new boolean[res.length];
+					DownloadManagerState dmState = download_manager.getDownloadState();
+					
+					try {
+						dmState.supressStateSave(true);
+
+						for(int i=0;i<res.length;i++)
+						{
+							if(!toChange[i])
+								continue;
+
+
+							final int idx = i;
+
+							int old_type = types[i].equals( "L")?FileSkeleton.ST_LINEAR:FileSkeleton.ST_COMPACT;
+
+							System.out.println(old_type + " <> " + newStroageType);
+
+							if ( newStroageType == old_type )
+							{
+								modified[i] = true;
+								continue;
+							}
+
+							try{
+								File    target_file = res[i].getFile( true );
+
+								// if the file doesn't exist then this is the start-of-day, most likely
+								// being called from the torrent-opener, so we don't need to do any
+								// file fiddling (in fact, if we do, we end up leaving zero length
+								// files for dnd files which then force a recheck when the download
+								// starts for the first time)
+
+								if ( target_file.exists()){
+
+									CacheFile cache_file =
+										CacheFileManagerFactory.getSingleton().createFile(
+											new CacheFileOwner()
+											{
+												public String
+												getCacheFileOwnerName()
+												{
+													return( download_manager.getInternalName());
+												}
+
+												public TOTorrentFile
+												getCacheFileTorrentFile()
+												{
+													return( res[idx].getTorrentFile() );
+												}
+
+												public File
+												getCacheFileControlFile(String name)
+												{
+													return( download_manager.getDownloadState().getStateFile( name ));
+												}
+												public int
+												getCacheMode()
+												{
+													return( CacheFileOwner.CACHE_MODE_NORMAL );
+												}
+											},
+											target_file,
+											newStroageType==FileSkeleton.ST_LINEAR?CacheFile.CT_LINEAR:CacheFile.CT_COMPACT );
+
+									cache_file.close();
+
+									toSkip[i] = newStroageType == FileSkeleton.ST_COMPACT && !res[i].isSkipped();
+
+									// download's not running, update resume data as necessary
+
+									int cleared = RDResumeHandler.storageTypeChanged( download_manager, res[i] );
+
+									// try and maintain reasonable figures for downloaded. Note that because
+									// we don't screw with the first and last pieces of the file during
+									// storage type changes we don't have the problem of dealing with
+									// the last piece being smaller than torrent piece size
+
+									if ( cleared > 0 ){
+
+										res[i].downloaded = res[i].downloaded - cleared * res[i].getTorrentFile().getTorrent().getPieceLength();
+
+										if ( res[i].downloaded < 0 ){
+
+											res[i].downloaded = 0;
+										}
+									}
+								}
+
+
+								modified[i] = true;
+
+							}catch( Throwable e ){
+
+								Debug.printStackTrace(e);
+
+								Logger.log(
+									new LogAlert(download_manager,
+										LogAlert.REPEATABLE,
+										LogAlert.AT_ERROR,
+										"Failed to change storage type for '" + res[i].getFile(true) +"': " + Debug.getNestedExceptionMessage(e)));
+
+								// download's not running - tag for recheck
+
+								RDResumeHandler.recheckFile( download_manager, res[i] );
+
+							}
+
+							types[i] = newStroageType== FileSkeleton.ST_LINEAR?"L":"C";
+						}
+
+						storeFileDownloaded( download_manager, res, true );
+						
+						int lastPieceScanned = -1;
+						int windowStart = -1;
+						int windowEnd = -1;
+
+						// sweep over all files to see if adjacent files of changed files can be deleted or need allocation
+						for(int i = 0; i< res.length;i++)
+						{
+							int firstPiece = res[i].getFirstPieceNumber();
+							int lastPiece = res[i].getLastPieceNumber();
+							
+							if(toChange[i])
+							{ // found a file that changed, scan adjacent files
+								if(lastPieceScanned < firstPiece)
+								{ // haven't checked the preceding files, slide backwards
+									windowStart = firstPiece;
+									while(i > 0 && res[i-1].getLastPieceNumber() >= windowStart)
+										i--;
+								}
+									
+								if(windowEnd < lastPiece)
+									windowEnd = lastPiece;
+							}
+							
+							if((windowStart <= firstPiece && firstPiece <= windowEnd) || (windowStart <= lastPiece && lastPiece <= windowEnd))
+							{ // file falls in current scanning window, check it
+								File currentFile = res[i].getFile(true);
+								if(!RDResumeHandler.fileMustExist(download_manager, res[i]))
+								{
+									if(types[i] == "C")
+										currentFile.delete();
+								} else if(!currentFile.exists() && newStroageType== FileSkeleton.ST_LINEAR)	{
+									/*
+									 * file must exist, does not exist and we just changed to linear
+									 * mode, assume that (re)allocation of adjacent files is necessary
+									 */
+									download_manager.setDataAlreadyAllocated(false);
+								}
+								lastPieceScanned = lastPiece;
+							}
+
+
+						}
+
+						dmState.setListAttribute( DownloadManagerState.AT_FILE_STORE_TYPES, types);
+						
+						setSkipped(toSkip, true);
+					} finally {
+						dmState.supressStateSave(false);
+						dmState.save();
+					}
+					
+					return modified;
+				}
+            };
 
             for (int i=0;i<res.length;i++){
 
@@ -2699,488 +2924,360 @@ DiskManagerImpl
 
                 final int file_index = i;
 
-                DiskManagerFileInfoHelper   info =
-                    new DiskManagerFileInfoHelper()
-                    {
-                        private boolean priority;
-                        private boolean skipped;
-                        private long    downloaded;
-
-                        private CacheFile   read_cache_file;
-                        // do not access this field directly, use lazyGetFile() instead 
-                        private WeakReference dataFile = new WeakReference(null);
-
-                        public void
-                        setPriority(boolean b)
-                        {
-                            priority    = b;
-
-                            storeFilePriorities( download_manager, res );
-
-                            listener.filePriorityChanged( this );
-                        }
-
-                        public void
-                        setSkipped(boolean _skipped)
-                        {
-                            if ( !_skipped && getStorageType() == ST_COMPACT ){
-
-                                if ( !setStorageType( ST_LINEAR )){
-
-                                    return;
-                                }
-                            }
-
-                            skipped = _skipped;
-
-                            storeFilePriorities( download_manager, res );
-
-                            listener.filePriorityChanged( this );
-                        }
-
-                        public int
-                        getAccessMode()
-                        {
-                            return( READ );
-                        }
-
-                        public long
-                        getDownloaded()
-                        {
-                            return( downloaded );
-                        }
-
-                        public void
-                        setDownloaded(
-                            long    l )
-                        {
-                            downloaded  = l;
-                        }
-
-                        public String
-                        getExtension()
-                        {
-                            String    data_name   = lazyGetFile().getName();
-                            int separator = data_name.lastIndexOf(".");
-                            if (separator == -1)
-                                separator = 0;
-                            return data_name.substring(separator);
-                        }
-
-                        public int
-                        getFirstPieceNumber()
-                        {
-                            return( torrent_file.getFirstPieceNumber());
-                        }
-
-                        public int
-                        getLastPieceNumber()
-                        {
-                            return( torrent_file.getLastPieceNumber());
-                        }
-
-                        public long
-                        getLength()
-                        {
-                            return( torrent_file.getLength());
-                        }
-
-                        public int
-                        getIndex()
-                        {
-                            return( file_index );
-                        }
-
-                        public int
-                        getNbPieces()
-                        {
-                            return( torrent_file.getNumberOfPieces());
-                        }
-
-                        public boolean
-                        isPriority()
-                        {
-                            return( priority );
-                        }
-
-                        public boolean
-                        isSkipped()
-                        {
-                            return( skipped );
-                        }
-
-                        public DiskManager
-                        getDiskManager()
-                        {
-                            return( null );
-                        }
-
-                        public DownloadManager
-                        getDownloadManager()
-                        {
-                            return( download_manager );
-                        }
-
-                        public File
-                        getFile(
-                            boolean follow_link )
-                        {
-                            if ( follow_link ){
-
-                                File link = getLink();
-
-                                if ( link != null ){
-
-                                    return( link );
-                                }
-                            }
-                            return lazyGetFile();
-                        }
-                        
-                        private File lazyGetFile()
-                        {
-                        	File toReturn = (File)dataFile.get();
-                        	if(toReturn != null)
-                        		return toReturn;
-                        	
-                        	TOTorrent tor = download_manager.getTorrent();
-                        	
-                            String  path_str = root_dir;
-                            File simpleFile = null;
-
-                                 // for a simple torrent the target file can be changed
-
-                            if ( tor.isSimpleTorrent()){
-
-                                simpleFile = download_manager.getAbsoluteSaveLocation();
-
-                            }else{
-                                byte[][]path_comps = torrent_file.getPathComponents();
-
-                                for (int j=0;j<path_comps.length;j++){
-
-                                    String comp;
-									try
-									{
-										comp = locale_decoder.decodeString( path_comps[j] );
-									} catch (UnsupportedEncodingException e)
-									{
-										Debug.printStackTrace(e);
-										comp = "undecodableFileName"+file_index;
-									}
-
-                                    comp = FileUtil.convertOSSpecificChars( comp );
-
-                                    path_str += (j==0?"":File.separator) + comp;
-                                }
-                            }
-                            
-                            dataFile = new WeakReference(toReturn = simpleFile != null ? simpleFile : new File( path_str ));
-                            
-                            //System.out.println("new file:"+toReturn);
-                            return toReturn;
-                        }
-
-                        public TOTorrentFile
-                        getTorrentFile()
-                        {
-                            return( torrent_file );
-                        }
-
-                        public boolean
-                        setLink(
-                            File    link_destination )
-                        {
-                        	/**
-                        	 * If we a simple torrent, then we'll redirect the call to the download and move the
-                        	 * data files that way - that'll keep everything in sync.
-                        	 */  
-                        	if (download_manager.getTorrent().isSimpleTorrent()) {
-                        		try {
-                        			download_manager.moveDataFiles(link_destination.getParentFile(), link_destination.getName());
-                        			return true;
-                        		}
-                        		catch (DownloadManagerException e) {
-                        			// What should we do with the error?
-                        			return false;
-                        		}
-                        	}
-                            return setLinkAtomic(link_destination);
-                        }
-
-                        public boolean
-                        setLinkAtomic(
-                            File    link_destination )
-                        {
-                            return( setFileLink( download_manager, res, this, lazyGetFile(), link_destination ));
-                        }
-                        
-                        public File
-                        getLink()
-                        {
-                            return( download_manager.getDownloadState().getFileLink( lazyGetFile() ));
-                        }
-
-                        public boolean setStorageType(int type) {
-                        	return setStorageType0(type, getStorageTypes(download_manager), true);
-                        }
-                        
-                        public boolean setStorageTypeNoAtomic(int type, String[] existing_storage_types) {
-                        	return setStorageType0(type, existing_storage_types, false);
-                        }
-
-                        private boolean setStorageType0(int type, String[] types, boolean dm_save) {
-
-                            int old_type = types[file_index].equals( "L")?ST_LINEAR:ST_COMPACT;
-                            
-                    		System.out.println(old_type + " <> " + type);
-
-                            if ( type == old_type ){
-
-                                return( true );
-                            }
-
-                            boolean set_skipped = false;
-
-                            try{
-                                File    target_file = getFile( true );
-
-                                    // if the file doesn't exist then this is the start-of-day, most likely
-                                    // being called from the torrent-opener, so we don't need to do any
-                                    // file fiddling (in fact, if we do, we end up leaving zero length
-                                    // files for dnd files which then force a recheck when the download
-                                    // starts for the first time)
-
-                                if ( target_file.exists()){
-
-                                    CacheFile cache_file =
-                                        CacheFileManagerFactory.getSingleton().createFile(
-                                                new CacheFileOwner()
-                                                {
-                                                    public String
-                                                    getCacheFileOwnerName()
-                                                    {
-                                                        return( download_manager.getInternalName());
-                                                    }
-
-                                                    public TOTorrentFile
-                                                    getCacheFileTorrentFile()
-                                                    {
-                                                        return( torrent_file );
-                                                    }
-
-                                                    public File
-                                                    getCacheFileControlFile(String name)
-                                                    {
-                                                        return( download_manager.getDownloadState().getStateFile( name ));
-                                                    }
-                               						public int
-                            						getCacheMode()
-                            						{
-                            							return( CacheFileOwner.CACHE_MODE_NORMAL );
-                            						}
-                                                },
-                                                target_file,
-                                                type==ST_LINEAR?CacheFile.CT_LINEAR:CacheFile.CT_COMPACT );
-
-                                    cache_file.close();
-
-                                    set_skipped = type == ST_COMPACT && !isSkipped();
-
-                                        // download's not running, update resume data as necessary
-
-                                    int cleared = RDResumeHandler.storageTypeChanged( download_manager, this );
-
-                                        // try and maintain reasonable figures for downloaded. Note that because
-                                        // we don't screw with the first and last pieces of the file during
-                                        // storage type changes we don't have the problem of dealing with
-                                        // the last piece being smaller than torrent piece size
-
-                                    if ( cleared > 0 ){
-
-                                        downloaded = downloaded - cleared * torrent_file.getTorrent().getPieceLength();
-
-                                        if ( downloaded < 0 ){
-
-                                            downloaded = 0;
-                                        }
-
-                                        storeFileDownloaded( download_manager, res, true );
-                                    }
-                                }
-
-                                return( true );
-
-                            }catch( Throwable e ){
-
-                                Debug.printStackTrace(e);
-
-                                Logger.log(
-                                    new LogAlert(download_manager,
-                                            LogAlert.REPEATABLE,
-                                            LogAlert.AT_ERROR,
-                                            "Failed to change storage type for '" + getFile(true) +"': " + Debug.getNestedExceptionMessage(e)));
-
-                                    // download's not running - tag for recheck
-
-                                RDResumeHandler.recheckFile( download_manager, this );
-
-                                return( false );
-
-                            }finally{
-                            	
-                            	types[file_index] = type==ST_LINEAR?"L":"C";
-                                
-                                // XXX: quick hack, we might have to allocate adjacent files; this needs to be improved with mass-operations, checking all files if they need to be allocated or not
-                                if(type == ST_LINEAR)
-                                	download_manager.setDataAlreadyAllocated(false);
-
-                            	if (dm_save) {
-                            		DownloadManagerState dm_state = download_manager.getDownloadState();
-                            		dm_state.setListAttribute( DownloadManagerState.AT_FILE_STORE_TYPES, types );
-                            		dm_state.save();
-                            	}
-
-                                if ( set_skipped )
-                                    setSkipped( true );
-                                
-                                
-                                if(type == ST_COMPACT && !RDResumeHandler.fileMustExist(download_manager, this))
-                                	getFile(true).delete();
-                            }
-                        }
-
-                        public int
-                        getStorageType()
-                        {
-                            String[]    types = getStorageTypes( download_manager );
-
-                            return( types[file_index].equals( "L")?ST_LINEAR:ST_COMPACT );
-                        }
-
-                        public void
-                        flushCache()
-                        {
-                        }
-
-                        public DirectByteBuffer
-                        read(
-                            long    offset,
-                            int     length )
-
-                            throws IOException
-                        {
-                            try{
-                                cache_read_mon.enter();
-
-                                if ( read_cache_file == null ){
-
-                                    try{
-                                        String[]    types = getStorageTypes( download_manager );
-
-                                        int type = types[file_index].equals( "L")?ST_LINEAR:ST_COMPACT;
-
-                                        read_cache_file =
-                                            CacheFileManagerFactory.getSingleton().createFile(
-                                                    new CacheFileOwner()
-                                                    {
-                                                        public String
-                                                        getCacheFileOwnerName()
-                                                        {
-                                                            return( download_manager.getInternalName());
-                                                        }
-
-                                                        public TOTorrentFile
-                                                        getCacheFileTorrentFile()
-                                                        {
-                                                            return( torrent_file );
-                                                        }
-
-                                                        public File
-                                                        getCacheFileControlFile(String name)
-                                                        {
-                                                            return( download_manager.getDownloadState().getStateFile( name ));
-                                                        }
-                                						public int
-                                						getCacheMode()
-                                						{
-                                							return( CacheFileOwner.CACHE_MODE_NORMAL );
-                                						}
-                                                    },
-                                                    getFile( true ),
-                                                    type==ST_LINEAR?CacheFile.CT_LINEAR:CacheFile.CT_COMPACT );
-
-                                    }catch( Throwable e ){
-
-                                        Debug.printStackTrace(e);
-
-                                        throw( new IOException( e.getMessage()));
-                                    }
-                                }
-                            }finally{
-
-                                cache_read_mon.exit();
-                            }
-
-                            DirectByteBuffer    buffer =
-                                DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_DM_READ, length );
-
-                            try{
-                                read_cache_file.read( buffer, offset, CacheFile.CP_READ_CACHE );
-
-                            }catch( Throwable e ){
-
-                                buffer.returnToPool();
-
-                                Debug.printStackTrace(e);
-
-                                throw( new IOException( e.getMessage()));
-                            }
-
-                            return( buffer );
-                        }
-
-                        public void
-                        close()
-                        {
-                            if ( read_cache_file != null ){
-
-                                try{
-                                    read_cache_file.close();
-
-                                }catch( Throwable e ){
-
-                                    Debug.printStackTrace(e);
-                                }
-
-                                read_cache_file = null;
-                            }
-                        }
-
-                        public void
-                        addListener(
-                            DiskManagerFileInfoListener listener )
-                        {
-                            if ( getDownloaded() == getLength()){
-
-                                try{
-                                    listener.dataWritten( 0, getLength());
-
-                                    listener.dataChecked( 0, getLength());
-
-                                }catch( Throwable e ){
-
-                                    Debug.printStackTrace(e);
-                                }
-                            }
-                        }
-
-                        public void
-                        removeListener(
-                            DiskManagerFileInfoListener listener )
-                        {
-                        }
-                    };
+                FileSkeleton info = new FileSkeleton() {
+
+                	private CacheFile   read_cache_file;
+                	// do not access this field directly, use lazyGetFile() instead 
+                	private WeakReference dataFile = new WeakReference(null);
+
+                	public void
+                	setPriority(boolean b)
+                	{
+                		priority    = b;
+
+                		storeFilePriorities( download_manager, res );
+
+                		listener.filePriorityChanged( this );
+                	}
+
+                	public void
+                	setSkipped(boolean _skipped)
+                	{
+                		if ( !_skipped && getStorageType() == ST_COMPACT ){
+
+                			if ( !setStorageType( ST_LINEAR )){
+
+                				return;
+                			}
+                		}
+
+                		skipped = _skipped;
+
+                		storeFilePriorities( download_manager, res );
+
+                		listener.filePriorityChanged( this );
+                	}
+
+                	public int
+                	getAccessMode()
+                	{
+                		return( READ );
+                	}
+
+                	public long
+                	getDownloaded()
+                	{
+                		return( downloaded );
+                	}
+
+                	public void
+                	setDownloaded(
+                		long    l )
+                	{
+                		downloaded  = l;
+                	}
+
+                	public String
+                	getExtension()
+                	{
+                		String    data_name   = lazyGetFile().getName();
+                		int separator = data_name.lastIndexOf(".");
+                		if (separator == -1)
+                			separator = 0;
+                		return data_name.substring(separator);
+                	}
+
+                	public int
+                	getFirstPieceNumber()
+                	{
+                		return( torrent_file.getFirstPieceNumber());
+                	}
+
+                	public int
+                	getLastPieceNumber()
+                	{
+                		return( torrent_file.getLastPieceNumber());
+                	}
+
+                	public long
+                	getLength()
+                	{
+                		return( torrent_file.getLength());
+                	}
+
+                	public int
+                	getIndex()
+                	{
+                		return( file_index );
+                	}
+
+                	public int
+                	getNbPieces()
+                	{
+                		return( torrent_file.getNumberOfPieces());
+                	}
+
+                	public boolean
+                	isPriority()
+                	{
+                		return( priority );
+                	}
+
+                	public boolean
+                	isSkipped()
+                	{
+                		return( skipped );
+                	}
+
+                	public DiskManager
+                	getDiskManager()
+                	{
+                		return( null );
+                	}
+
+                	public DownloadManager
+                	getDownloadManager()
+                	{
+                		return( download_manager );
+                	}
+
+                	public File
+                	getFile(
+                		boolean follow_link )
+                	{
+                		if ( follow_link ){
+
+                			File link = getLink();
+
+                			if ( link != null ){
+
+                				return( link );
+                			}
+                		}
+                		return lazyGetFile();
+                	}
+
+                	private File lazyGetFile()
+                	{
+                		File toReturn = (File)dataFile.get();
+                		if(toReturn != null)
+                			return toReturn;
+
+                		TOTorrent tor = download_manager.getTorrent();
+
+                		String  path_str = root_dir;
+                		File simpleFile = null;
+
+                		// for a simple torrent the target file can be changed
+
+                		if ( tor.isSimpleTorrent()){
+
+                			simpleFile = download_manager.getAbsoluteSaveLocation();
+
+                		}else{
+                			byte[][]path_comps = torrent_file.getPathComponents();
+
+                			for (int j=0;j<path_comps.length;j++){
+
+                				String comp;
+                				try
+                				{
+                					comp = locale_decoder.decodeString( path_comps[j] );
+                				} catch (UnsupportedEncodingException e)
+                				{
+                					Debug.printStackTrace(e);
+                					comp = "undecodableFileName"+file_index;
+                				}
+
+                				comp = FileUtil.convertOSSpecificChars( comp );
+
+                				path_str += (j==0?"":File.separator) + comp;
+                			}
+                		}
+
+                		dataFile = new WeakReference(toReturn = simpleFile != null ? simpleFile : new File( path_str ));
+
+                		//System.out.println("new file:"+toReturn);
+                		return toReturn;
+                	}
+
+                	public TOTorrentFile
+                	getTorrentFile()
+                	{
+                		return( torrent_file );
+                	}
+
+                	public boolean
+                	setLink(
+                		File    link_destination )
+                	{
+                		/**
+                		 * If we a simple torrent, then we'll redirect the call to the download and move the
+                		 * data files that way - that'll keep everything in sync.
+                		 */  
+                		if (download_manager.getTorrent().isSimpleTorrent()) {
+                			try {
+                				download_manager.moveDataFiles(link_destination.getParentFile(), link_destination.getName());
+                				return true;
+                			}
+                			catch (DownloadManagerException e) {
+                				// What should we do with the error?
+                				return false;
+                			}
+                		}
+                		return setLinkAtomic(link_destination);
+                	}
+
+                	public boolean
+                	setLinkAtomic(
+                		File    link_destination )
+                	{
+                		return( setFileLink( download_manager, res, this, lazyGetFile(), link_destination ));
+                	}
+
+                	public File
+                	getLink()
+                	{
+                		return( download_manager.getDownloadState().getFileLink( lazyGetFile() ));
+                	}
+
+                	public boolean setStorageType(int type) {
+                		boolean[] change = new boolean[res.length];
+                		change[file_index] = true;
+                		return fileSetSkeleton.setStorageTypes(change, type)[file_index];
+                	}
+
+                	public int
+                	getStorageType()
+                	{
+                		String[]    types = getStorageTypes( download_manager );
+
+                		return( types[file_index].equals( "L")?ST_LINEAR:ST_COMPACT );
+                	}
+
+                	public void
+                	flushCache()
+                	{
+                	}
+
+                	public DirectByteBuffer
+                	read(
+                		long    offset,
+                		int     length )
+
+                	throws IOException
+                	{
+                		try{
+                			cache_read_mon.enter();
+
+                			if ( read_cache_file == null ){
+
+                				try{
+                					String[]    types = getStorageTypes( download_manager );
+
+                					int type = types[file_index].equals( "L")?ST_LINEAR:ST_COMPACT;
+
+                					read_cache_file =
+                						CacheFileManagerFactory.getSingleton().createFile(
+                							new CacheFileOwner()
+                							{
+                								public String
+                								getCacheFileOwnerName()
+                								{
+                									return( download_manager.getInternalName());
+                								}
+
+                								public TOTorrentFile
+                								getCacheFileTorrentFile()
+                								{
+                									return( torrent_file );
+                								}
+
+                								public File
+                								getCacheFileControlFile(String name)
+                								{
+                									return( download_manager.getDownloadState().getStateFile( name ));
+                								}
+                								public int
+                								getCacheMode()
+                								{
+                									return( CacheFileOwner.CACHE_MODE_NORMAL );
+                								}
+                							},
+                							getFile( true ),
+                							type==ST_LINEAR?CacheFile.CT_LINEAR:CacheFile.CT_COMPACT );
+
+                				}catch( Throwable e ){
+
+                					Debug.printStackTrace(e);
+
+                					throw( new IOException( e.getMessage()));
+                				}
+                			}
+                		}finally{
+
+                			cache_read_mon.exit();
+                		}
+
+                		DirectByteBuffer    buffer =
+                			DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_DM_READ, length );
+
+                		try{
+                			read_cache_file.read( buffer, offset, CacheFile.CP_READ_CACHE );
+
+                		}catch( Throwable e ){
+
+                			buffer.returnToPool();
+
+                			Debug.printStackTrace(e);
+
+                			throw( new IOException( e.getMessage()));
+                		}
+
+                		return( buffer );
+                	}
+
+                	public void
+                	close()
+                	{
+                		if ( read_cache_file != null ){
+
+                			try{
+                				read_cache_file.close();
+
+                			}catch( Throwable e ){
+
+                				Debug.printStackTrace(e);
+                			}
+
+                			read_cache_file = null;
+                		}
+                	}
+
+                	public void
+                	addListener(
+                		DiskManagerFileInfoListener listener )
+                	{
+                		if ( getDownloaded() == getLength()){
+
+                			try{
+                				listener.dataWritten( 0, getLength());
+
+                				listener.dataChecked( 0, getLength());
+
+                			}catch( Throwable e ){
+
+                				Debug.printStackTrace(e);
+                			}
+                		}
+                	}
+
+                	public void
+                	removeListener(
+                		DiskManagerFileInfoListener listener )
+                	{
+                	}
+                };
 
                 res[i]  = info;
             }
@@ -3189,13 +3286,13 @@ DiskManagerImpl
 
             loadFileDownloaded( download_manager, res );
 
-            return( res );
+            return( fileSetSkeleton );
 
         }catch( Throwable e ){
 
             Debug.printStackTrace(e);
 
-            return( new DiskManagerFileInfo[0]);
+            return( new DiskManagerFileInfoSetImpl(new DiskManagerFileInfoImpl[0],null) );
 
         }
     }

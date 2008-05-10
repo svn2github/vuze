@@ -16,7 +16,7 @@ FEATURE: Plug | Added various convenience methods for using log views and config
 
 CHANGE: Core  | added "upload_only" flag to AZMP/LTEP handshakes, disconnect any uploading_only peers we don't need / that don't need us when disconnect seeds when seeding is set [The 8472]
 CHANGE: Core  | Further startup speed improvements [The 8472, amc1, parg]
-CHANGE: Core  | Quicker to change a batch of files to "Do Not Download" in files view [amc1]
+CHANGE: Core  | Speedup of various file batch operations (priority changes) [amc1, The 8472]
 CHANGE: Core  | Added option to allow the removal of files linked outside the save directory when removing data [amc1]
 CHANGE: UI    | Column menu option to disable fast renaming in files view, changed fast rename to behave more like the windows explorer [The 8472]
 

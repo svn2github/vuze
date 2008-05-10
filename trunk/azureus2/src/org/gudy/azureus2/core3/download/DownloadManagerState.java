@@ -329,5 +329,14 @@ DownloadManagerState
 	
 	public void generateEvidence(IndentWriter writer);
 	
+	/**
+	 * This method should only be invoked in matching try-finally pairs. If it is invoked with true
+	 * multiple times it must be invoked with false the equal amount of times to reallow state
+	 * writes
+	 * 
+	 * @param supress
+	 *            when set to true prevents flushing of the state/increments the internal nesting
+	 *            counter, decrements/allows flush otherwise
+	 */
 	public void supressStateSave(boolean supress);
 }

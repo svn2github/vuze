@@ -22,7 +22,6 @@ package org.gudy.azureus2.core3.disk;
 import java.io.File;
 import java.io.IOException;
 
-import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
@@ -71,15 +70,6 @@ DiskManagerFileInfo
 		 */
 	
 	public boolean setStorageType(int type );
-	
-	/**
-	 * Variant of setStorageType, but this is intended to be used
-	 * as part of a batch operation - it won't save the download
-	 * manager state.
-	 * 
-	 * Note - the array that it is passed will be mutated.
-	 */
-	public boolean setStorageTypeNoAtomic(int type, String[] existing_storage_types);
 	
 	public int
 	getStorageType();

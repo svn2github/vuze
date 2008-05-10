@@ -23,11 +23,16 @@ package org.gudy.azureus2.core3.download;
 
 import java.io.File;
 
-import org.gudy.azureus2.core3.global.*;
-import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.peer.*;
-import org.gudy.azureus2.core3.torrent.*;
-import org.gudy.azureus2.core3.tracker.client.*;
+import org.gudy.azureus2.core3.disk.DiskManager;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfoSet;
+import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.peer.PEPiece;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
@@ -167,6 +172,8 @@ DownloadManager
 
     public DiskManagerFileInfo[]
     getDiskManagerFileInfo();
+    
+    public DiskManagerFileInfoSet getDiskManagerFileInfoSet();
 
     public PEPeerManager
     getPeerManager();
@@ -657,7 +664,6 @@ DownloadManager
         IndentWriter        writer );
     
     public int[] getStorageType(DiskManagerFileInfo[] infos);
-    public boolean setStorageType(DiskManagerFileInfo[] infos, int[] types);
     
     /**
      * @since 3.0.5.1

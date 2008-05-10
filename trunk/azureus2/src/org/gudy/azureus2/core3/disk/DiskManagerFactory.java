@@ -27,10 +27,11 @@ package org.gudy.azureus2.core3.disk;
  */
 
 
-import org.gudy.azureus2.core3.torrent.*;
-import org.gudy.azureus2.core3.disk.impl.*;
-import org.gudy.azureus2.core3.disk.impl.resume.*;
-import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.core3.disk.impl.DiskManagerImpl;
+import org.gudy.azureus2.core3.disk.impl.resume.RDResumeHandler;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 
 import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
 
@@ -107,7 +108,7 @@ DiskManagerFactory
 	  DiskManagerImpl.deleteDataFiles(torrent, torrent_save_dir, torrent_save_file );
 	}
 	
-	public static DiskManagerFileInfo[]
+	public static DiskManagerFileInfoSet
    	getFileInfoSkeleton(
 		DownloadManager			download_manager,
 		DiskManagerListener		listener )

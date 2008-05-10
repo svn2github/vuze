@@ -31,14 +31,13 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.DownloadManagerStateEvent;
 import org.gudy.azureus2.core3.download.DownloadManagerStateListener;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.MessageBoxWindow;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -54,7 +53,6 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCoreOperation;
 import com.aelitis.azureus.core.AzureusCoreOperationTask;
-import com.aelitis.azureus.ui.common.RememberedDecisionsManager;
 import com.aelitis.azureus.ui.common.table.*;
 
 /**
@@ -520,8 +518,12 @@ public class FilesView
 	}
 	
 	int[] existing_storage_types = manager.getStorageType(infos);
-	int[] new_storage_types = new int[existing_storage_types.length];
-	System.arraycopy(existing_storage_types, 0, new_storage_types, 0, existing_storage_types.length);
+	int nbFiles = manager.getDiskManagerFileInfoSet().nbFiles();
+	boolean[] setLinear = new boolean[nbFiles];
+	boolean[] setCompact = new boolean[nbFiles];
+	int compactCount = 0;
+	int linearCount = 0;
+
 
 	// This should hopefully reduce the number of "exists" checks.
 	File save_location = manager.getAbsoluteSaveLocation();
@@ -572,14 +574,25 @@ public class FilesView
 		type_has_been_changed = 
 			existing_storage_type != new_storage_type;
 		
-		new_storage_types[infos[i].getIndex()] = new_storage_type;
+		if(new_storage_type == DiskManagerFileInfo.ST_COMPACT)
+		{
+			setCompact[infos[i].getIndex()] = true;
+			compactCount++;
+		} else
+		{
+			setLinear[infos[i].getIndex()] = true;
+			linearCount++;			
+		}
 	}
 	
 	boolean ok = true;
 	boolean paused = false;
 	if (type_has_been_changed) {
-		if (requires_pausing) {paused = manager.pause();}
-		ok = manager.setStorageType(infos, new_storage_types);
+		if (requires_pausing) paused = manager.pause();
+		if(linearCount > 0)
+			ok &= Arrays.equals(setLinear, manager.getDiskManagerFileInfoSet().setStorageTypes(setLinear, DiskManagerFileInfo.ST_LINEAR));
+		if(compactCount > 0)
+			ok &= Arrays.equals(setCompact, manager.getDiskManagerFileInfoSet().setStorageTypes(setCompact, DiskManagerFileInfo.ST_COMPACT));
 	}	
 	
 	if (ok) {

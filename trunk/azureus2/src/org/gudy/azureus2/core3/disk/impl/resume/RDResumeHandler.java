@@ -22,24 +22,28 @@
 
 package org.gudy.azureus2.core3.disk.impl.resume;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.util.*;
-
-import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.download.*;
-import org.gudy.azureus2.core3.disk.impl.*;
-import org.gudy.azureus2.core3.disk.impl.access.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.disk.DiskManagerCheckRequest;
+import org.gudy.azureus2.core3.disk.DiskManagerCheckRequestListener;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.disk.DiskManagerPiece;
+import org.gudy.azureus2.core3.disk.impl.DiskManagerFileInfoImpl;
+import org.gudy.azureus2.core3.disk.impl.DiskManagerImpl;
+import org.gudy.azureus2.core3.disk.impl.DiskManagerRecheckInstance;
+import org.gudy.azureus2.core3.disk.impl.access.DMChecker;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapEntry;
-import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerException;
 
@@ -876,38 +880,41 @@ RDResumeHandler
 		
 		byte[]	resume_pieces = (byte[])resume_data.get("resume data");
 		
-		int	first_piece = file.getFirstPieceNumber();
-		int last_piece	= file.getLastPieceNumber();
+		int firstPiece = file.getFirstPieceNumber();
+		int lastPiece = file.getLastPieceNumber();
 		
 		if ( onlyClearUnsharedFirstLast ){
 			DiskManagerFileInfo[] files = download_manager.getDiskManagerFileInfo();
 			boolean firstPieceShared = false;
 			boolean lastPieceShared = false;
-			for(int i = 0;i<files.length;i++)
+			
+			int firstFile = findFirstFileWithPieceN(firstPiece, files); 
+			
+			for(int i = firstFile;i<files.length;i++)
 			{
 				DiskManagerFileInfo currentFile = files[i];
-				if(currentFile.getLastPieceNumber() < first_piece)
+				if(currentFile.getLastPieceNumber() < firstPiece)
 					continue;
 				if(currentFile.getIndex() == file.getIndex())
 					continue;
-				if(currentFile.getFirstPieceNumber() > last_piece)
+				if(currentFile.getFirstPieceNumber() > lastPiece)
 					break;
-				if(currentFile.getFirstPieceNumber() <= first_piece && first_piece <= currentFile.getLastPieceNumber())
+				if(currentFile.getFirstPieceNumber() <= firstPiece && firstPiece <= currentFile.getLastPieceNumber())
 					firstPieceShared |= !currentFile.isSkipped();
-				if(currentFile.getFirstPieceNumber() <= last_piece && last_piece <= currentFile.getLastPieceNumber())
+				if(currentFile.getFirstPieceNumber() <= lastPiece && lastPiece <= currentFile.getLastPieceNumber())
 					lastPieceShared |= !currentFile.isSkipped();
 			}
 			
 			if(firstPieceShared)
-				first_piece++;
+				firstPiece++;
 
 			if(lastPieceShared)
-				last_piece--;
+				lastPiece--;
 		}
 		
 		if ( resume_pieces != null ){
 			
-			for (int i=first_piece;i<=last_piece;i++){
+			for (int i=firstPiece;i<=lastPiece;i++){
 				
 				if ( i >= resume_pieces.length ){
 					
@@ -934,7 +941,7 @@ RDResumeHandler
 			
 				int piece_number = Integer.parseInt((String)iter.next());
 	
-				if ( piece_number >= first_piece && piece_number <= last_piece ){
+				if ( piece_number >= firstPiece && piece_number <= lastPiece ){
 					
 					iter.remove();
 				}
@@ -951,6 +958,36 @@ RDResumeHandler
 		
 		return( pieces_cleared );
 	}
+
+	/**
+	 * finds the first affected file via binary search, this is necessary as some methods might be
+	 * invoked for all files, which would result in O(n²) if we'd scan the whole file array every
+	 * time
+	 */	
+	private static int findFirstFileWithPieceN(int firstPiece, DiskManagerFileInfo[] files)
+	{
+		int start = 0;
+		int end = files.length-1;
+		int pivot = 0;
+		
+		while (start <= end) {
+		    pivot = (start + end) >>> 1;
+		    int midVal = files[pivot].getLastPieceNumber();
+
+		    if (midVal < firstPiece)
+		    	start = pivot + 1;
+		    else if (midVal > firstPiece)
+		    	end = pivot - 1;
+		    else {
+		    	// some matching file, now slide leftwards to find the first one, shouldn't be that many
+		    	while(pivot > 0 && files[pivot-1].getLastPieceNumber() == firstPiece)
+		    		pivot--;
+		    	break;
+		    }
+		}
+		
+		return pivot;		
+	}
 	
 	public static boolean fileMustExist(DownloadManager download_manager, DiskManagerFileInfo file) {
 		
@@ -959,15 +996,18 @@ RDResumeHandler
 		byte[]	resumePieces = resumeData != null ? (byte[])resumeData.get("resume data") : null;
 		
 		boolean sharesAnyNeededPieces = false;
-		
+
 		DiskManagerFileInfo[] files = download_manager.getDiskManagerFileInfo();
 		int firstPiece = file.getFirstPieceNumber();
 		int lastPiece = file.getLastPieceNumber();
-		// we must sweep over all files, as any number of files could share the first/last piece of the file we're probing
-		for (int i = 0; i < files.length && !sharesAnyNeededPieces; i++)
+		
+		int firstFile = findFirstFileWithPieceN(firstPiece, files); 
+		
+		// we must sweep over the files, as any number of files could share the first/last piece of the file we're probing
+		for (int i = firstFile; i < files.length && !sharesAnyNeededPieces; i++)
 		{
 			DiskManagerFileInfo currentFile = files[i];
-			if (currentFile.getLastPieceNumber() < firstPiece)
+			if(currentFile.getLastPieceNumber() < firstPiece)
 				continue;
 			if (currentFile.getIndex() == file.getIndex() && file.getStorageType() != DiskManagerFileInfo.ST_COMPACT && resumePieces != null)
 				for (int j = firstPiece; j <= lastPiece && !sharesAnyNeededPieces; j++)
@@ -980,7 +1020,6 @@ RDResumeHandler
 				sharesAnyNeededPieces |= !currentFile.isSkipped();
 		}
 
-		
 		return sharesAnyNeededPieces;
 	}
 	

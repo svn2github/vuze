@@ -35,8 +35,14 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManagerFactory;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
-import org.gudy.azureus2.core3.download.*;
-import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.download.DownloadManagerStateEvent;
+import org.gudy.azureus2.core3.download.DownloadManagerStateListener;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.LogRelation;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
@@ -130,7 +136,7 @@ DownloadManagerStateImpl
 	
 	private boolean firstPrimaryFileRead = true;
 	
-	private boolean supressWrites = false;
+	private int supressWrites = 0;
 
 
 	private static DownloadManagerState
@@ -723,13 +729,16 @@ DownloadManagerStateImpl
 	}
 	
 	public void supressStateSave(boolean supress) {
-		supressWrites = supress;
+		if(supress)
+			supressWrites++;
+		else if(supressWrites > 0)
+			supressWrites--;
 	}
 	
 	public void
 	save()
 	{
-		if(supressWrites)
+		if(supressWrites > 0)
 			return;
 			
  		boolean do_write;

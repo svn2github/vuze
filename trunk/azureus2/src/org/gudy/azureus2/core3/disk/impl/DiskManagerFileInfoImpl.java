@@ -31,10 +31,15 @@ import java.util.Iterator;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
-import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 
-import com.aelitis.azureus.core.diskmanager.cache.*;
+import com.aelitis.azureus.core.diskmanager.cache.CacheFile;
+import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerException;
+import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerFactory;
+import com.aelitis.azureus.core.diskmanager.cache.CacheFileOwner;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 /**
@@ -55,8 +60,8 @@ DiskManagerFileInfoImpl
   private DiskManagerHelper 	diskManager;
   private TOTorrentFile			torrent_file;
   
-  private boolean priority = false;  
-  private boolean skipped = false;
+  boolean priority = false;  
+  boolean skipped = false;
   
   private CopyOnWriteList	listeners;
   
@@ -229,60 +234,10 @@ DiskManagerFileInfoImpl
 	}
 	
 	public boolean setStorageType(int type) {
-		return setStorageType0(type, diskManager.getStorageTypes(), true);
-	}
-	
-	public boolean setStorageTypeNoAtomic(int type, String[] existing_storage_types) {
-		return setStorageType0(type, existing_storage_types, false);
-	}
-	
-	private boolean setStorageType0(int type, String[] types, boolean dm_save) {		
-		int	old_type = types[file_index].equals( "L")?ST_LINEAR:ST_COMPACT;
-		
-		if ( type == old_type ){
-			
-			return( true );
-		}
-	
-		if ( type == ST_COMPACT ){
-			
-			Debug.out( "Download must be stopped for linear -> compact conversion" );
-			
-			return( false );
-		}
-	
-		boolean	set_skipped	= false;	// currently compact files must be skipped
-		
-		try{
-			
-			cache_file.setStorageType( type==ST_LINEAR?CacheFile.CT_LINEAR:CacheFile.CT_COMPACT );	
-			
-			set_skipped	= type == ST_COMPACT && !isSkipped();
-			
-			return( true );
-			
-		}catch( Throwable e ){
-			
-			Debug.printStackTrace(e);
-			
-			diskManager.setFailed( this, "Failed to change storage type for '" + getFile(true) + "': " + Debug.getNestedExceptionMessage(e));
-			
-			return( false );
-			
-		}finally{
-			
-			types[file_index] = cache_file.getStorageType()==CacheFile.CT_LINEAR?"L":"C";
-			if (dm_save) {
-				DownloadManagerState	dm_state = diskManager.getDownloadState();
-				dm_state.setListAttribute( DownloadManagerState.AT_FILE_STORE_TYPES, types );
-				dm_state.save();
-			}
-			
-			if ( set_skipped ){
-				
-				setSkipped( true );
-			}
-		}
+		DiskManagerFileInfoSet set = diskManager.getFileSet();
+		boolean[] toSet = new boolean[set.nbFiles()];
+		toSet[file_index] = true;
+		return set.setStorageTypes(toSet, type)[file_index];
 	}
 	
 	public int

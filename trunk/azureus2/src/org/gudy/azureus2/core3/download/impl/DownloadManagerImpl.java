@@ -29,24 +29,32 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
 import java.util.*;
-import java.net.*;
 
-
-import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
-import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.disk.DiskManager;
+import org.gudy.azureus2.core3.disk.DiskManagerFactory;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfoSet;
 import org.gudy.azureus2.core3.disk.impl.DiskManagerImpl;
+import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
-import org.gudy.azureus2.core3.internat.*;
+import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
+import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.peer.*;
+import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.peer.PEPiece;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.tracker.client.*;
-import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.download.*;
-
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.network.ConnectionManager;
@@ -2244,6 +2252,11 @@ DownloadManagerImpl
 	{
 		return( controller.getDiskManager());
 	}
+	
+	public DiskManagerFileInfoSet getDiskManagerFileInfoSet()
+	{
+		return controller.getDiskManagerFileInfoSet();
+	}
   
 	public DiskManagerFileInfo[]
    	getDiskManagerFileInfo()
@@ -3598,10 +3611,6 @@ DownloadManagerImpl
 			result[i] = is_linear ? DiskManagerFileInfo.ST_LINEAR : DiskManagerFileInfo.ST_COMPACT;
 		}
 		return result;
-	}
-	
-	public boolean setStorageType(DiskManagerFileInfo[] infos, int[] types) {
-		return DiskManagerImpl.setStorageTypes(this, infos, types);
 	}
 	
 	public boolean canMoveDataFiles() {
