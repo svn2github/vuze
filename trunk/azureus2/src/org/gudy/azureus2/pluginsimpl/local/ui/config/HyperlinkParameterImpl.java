@@ -3,8 +3,8 @@
  */
 package org.gudy.azureus2.pluginsimpl.local.ui.config;
 
-import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.ui.config.HyperlinkParameter;
+import org.gudy.azureus2.pluginsimpl.local.PluginConfigImpl;
 
 /**
  * @author Allan Crooks
@@ -15,7 +15,7 @@ public class HyperlinkParameterImpl extends LabelParameterImpl implements
 	
 	private String hyperlink;
 
-	public HyperlinkParameterImpl(PluginConfig config, String key, String label, String hyperlink) {
+	public HyperlinkParameterImpl(PluginConfigImpl config, String key, String label, String hyperlink) {
 		super(config, key, label);
 		this.hyperlink = hyperlink;
 	}

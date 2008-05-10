@@ -20,10 +20,9 @@
  */
 package org.gudy.azureus2.pluginsimpl.local.ui.config;
 
-import org.gudy.azureus2.plugins.PluginConfig;
-import org.gudy.azureus2.plugins.ui.config.ColorParameter;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.plugins.ui.config.ColorParameter;
+import org.gudy.azureus2.pluginsimpl.local.PluginConfigImpl;
 
 /**
  * @author Allan Crooks
@@ -39,9 +38,10 @@ public class ColorParameterImpl extends ParameterImpl implements ColorParameter 
 	private final int orig_g;
 	private final int orig_b;
 	
-	public ColorParameterImpl(PluginConfig config, String key, String label, int _r, int _g, int _b) {
+	public ColorParameterImpl(PluginConfigImpl config, String key, String label, int _r, int _g, int _b) {
 		super(config, key, label);
 		
+		config.notifyRGBParamExists(getKey());
 		COConfigurationManager.setIntDefault(getKey() + ".red", r);
 		COConfigurationManager.setIntDefault(getKey() + ".green", g);
 		COConfigurationManager.setIntDefault(getKey() + ".blue", b);
@@ -57,25 +57,24 @@ public class ColorParameterImpl extends ParameterImpl implements ColorParameter 
 	public int getBlueValue() {return this.b;}
 	
 	public void reloadParamDataFromConfig(boolean override) {
-		this.r = COConfigurationManager.getIntParameter(getKey() + ".red");
-		this.g = COConfigurationManager.getIntParameter(getKey() + ".green");
-		this.b = COConfigurationManager.getIntParameter(getKey() + ".blue");
-		COConfigurationManager.setParameter(getKey() + ".override", override);
+		int[] rgb = config.getUnsafeColorParameter(getKey());
+		this.r = rgb[0];
+		this.g = rgb[1];
+		this.b = rgb[2];
+		config.setUnsafeBooleanParameter(getKey() + ".override", override);
 	}
 
 	public void setRGBValue(int r, int g, int b) {
 		this.r = r; this.g = g; this.b = b;
-		COConfigurationManager.setParameter(getKey() + ".override", true);
-		COConfigurationManager.setRGBParameter(getKey(), r, g, b);
+		config.setUnsafeColorParameter(getKey(), new int[] {r, g, b}, true);
 	}
 	
 	public void resetToDefault() {
-		COConfigurationManager.setParameter(getKey() + ".override", false);
-		COConfigurationManager.setRGBParameter(getKey(), orig_r, orig_g, orig_b);
+		config.setUnsafeColorParameter(getKey(), new int[] {orig_r, orig_g, orig_b}, false);
 	}
 	
 	public boolean isOverridden() {
-		return COConfigurationManager.getBooleanParameter(getKey() + ".override"); 
+		return config.getUnsafeBooleanParameter(getKey() + ".override"); 
 	}
 
 }

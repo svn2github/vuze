@@ -24,7 +24,8 @@ package org.gudy.azureus2.pluginsimpl.local.ui.config;
 import org.gudy.azureus2.plugins.ui.config.EnablerParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.PluginConfigUIFactory;
-import org.gudy.azureus2.plugins.PluginConfig;
+
+import org.gudy.azureus2.pluginsimpl.local.PluginConfigImpl;
 
 /**
  * @author epall
@@ -34,11 +35,11 @@ public class PluginConfigUIFactoryImpl implements PluginConfigUIFactory
 {
 
   String 		pluginKey;
-  PluginConfig	config;
+  PluginConfigImpl	config;
   
   public 
   PluginConfigUIFactoryImpl(
-  	PluginConfig	_config,
+  	PluginConfigImpl	_config,
   	String 			_pluginKey) 
   {
   	config		= _config;

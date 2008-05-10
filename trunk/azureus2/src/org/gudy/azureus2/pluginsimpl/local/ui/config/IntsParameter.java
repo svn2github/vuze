@@ -26,9 +26,8 @@ package org.gudy.azureus2.pluginsimpl.local.ui.config;
  * @author epall
  *
  */
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.plugins.PluginConfig;
+import org.gudy.azureus2.pluginsimpl.local.PluginConfigImpl;
 
 public class IntsParameter extends ParameterImpl
 {
@@ -38,7 +37,7 @@ public class IntsParameter extends ParameterImpl
 	
 	
 	public IntsParameter(
-			PluginConfig config,
+			PluginConfigImpl config,
 			String key,
 			String label,
 			int defaultValue,

@@ -21,13 +21,9 @@
  
 package org.gudy.azureus2.pluginsimpl.local.ui.config;
 
-
-
-import org.gudy.azureus2.plugins.PluginConfig;
-import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
-import org.gudy.azureus2.core3.config.impl.ConfigurationParameterNotFoundException;
+import org.gudy.azureus2.pluginsimpl.local.PluginConfigImpl;
+import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 
 /**
  * @author Olivier
@@ -38,37 +34,31 @@ BooleanParameterImpl
 	extends 	ParameterImpl 
 	implements 	BooleanParameter
 {
+	
+	private boolean default_value;
+	
 	public 
 	BooleanParameterImpl(
-		PluginConfig	config,
+		PluginConfigImpl	config,
 		String 			key, 
 		String 			label, 
 		boolean 		defaultValue)
 	{ 
 		super( config, key, label);
- 
+		this.default_value = defaultValue;
+		config.notifyParamExists(getKey());
 		COConfigurationManager.setBooleanDefault( getKey(), defaultValue );
 	}
 	
-	public boolean getDefaultValue()
-	{
-		try {
-			return ConfigurationDefaults.getInstance().getBooleanParameter(getKey());
-		} catch (ConfigurationParameterNotFoundException e) {
-		}
-		return false;
+	public boolean getDefaultValue() {
+		return this.default_value;
 	}
 
-	public boolean
-	getValue()
-	{
-		return( config.getBooleanParameter( getKey(), getDefaultValue()));
+	public boolean getValue() {
+		return config.getUnsafeBooleanParameter(getKey(), getDefaultValue());
 	}
 	
-	public void
-	setValue(
-		boolean	b )
-	{
-		COConfigurationManager.setParameter( getKey(), b );
+	public void setValue(boolean b) {
+		config.setUnsafeBooleanParameter(getKey(), b);
 	}
 }

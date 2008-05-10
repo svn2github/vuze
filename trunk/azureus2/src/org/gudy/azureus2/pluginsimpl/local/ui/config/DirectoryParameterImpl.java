@@ -28,8 +28,8 @@ package org.gudy.azureus2.pluginsimpl.local.ui.config;
  */
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.ui.config.DirectoryParameter;
+import org.gudy.azureus2.pluginsimpl.local.PluginConfigImpl;
 
 public class 
 DirectoryParameterImpl 
@@ -40,7 +40,7 @@ DirectoryParameterImpl
 	
 	public 
 	DirectoryParameterImpl(
-		PluginConfig 	config,
+		PluginConfigImpl 	config,
 		String 			key, 
 		String 			label, 
 		String 			defaultValue)
@@ -49,6 +49,7 @@ DirectoryParameterImpl
 		
 		this.defaultValue = defaultValue;
     
+		config.notifyParamExists(getKey());
 		COConfigurationManager.setStringDefault(getKey(), getDefaultValue());
 	}
 	/**
@@ -62,6 +63,6 @@ DirectoryParameterImpl
 	public String
 	getValue()
 	{
-		return( config.getStringParameter( getKey(), getDefaultValue()));
+		return( config.getUnsafeStringParameter( getKey(), getDefaultValue()));
 	}
 }

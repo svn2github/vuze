@@ -22,17 +22,17 @@
 
 package org.gudy.azureus2.pluginsimpl.local.ui.config;
 
+
 /**
  * @author parg
  *
  */
 import java.security.MessageDigest;
-
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
-import org.gudy.azureus2.plugins.PluginConfig;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.plugins.ui.config.PasswordParameter;
+import org.gudy.azureus2.pluginsimpl.local.PluginConfigImpl;
 
 public class 
 PasswordParameterImpl 
@@ -44,7 +44,7 @@ PasswordParameterImpl
 	
 	public 
 	PasswordParameterImpl(
-		PluginConfig 	config,
+		PluginConfigImpl 	config,
 		String 			key, 
 		String 			label,
 		int				_encoding_type,
@@ -77,7 +77,8 @@ PasswordParameterImpl
 				}
 			}
 		}
-		
+	
+		config.notifyParamExists(getKey());
 		COConfigurationManager.setByteDefault( getKey(), defaultValue );
 
 		encoding_type	= _encoding_type;
@@ -97,6 +98,6 @@ PasswordParameterImpl
 	public byte[]
 	getValue()
 	{
-		return( config.getByteParameter( getKey(), getDefaultValue()));
+		return config.getUnsafeByteParameter(getKey(), getDefaultValue());
 	}
 }

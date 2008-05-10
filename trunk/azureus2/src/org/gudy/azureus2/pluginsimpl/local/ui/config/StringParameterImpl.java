@@ -21,27 +21,21 @@
  
 package org.gudy.azureus2.pluginsimpl.local.ui.config;
 
-
-/**
- * @author epall
- *
- */
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.plugins.PluginConfig;
+import org.gudy.azureus2.pluginsimpl.local.PluginConfigImpl;
 import org.gudy.azureus2.plugins.ui.config.StringParameter;
 
 public class StringParameterImpl extends ParameterImpl implements StringParameter
 {
 	private String defaultValue;
-	public StringParameterImpl(PluginConfig config,String key, String label, String defaultValue)
+	public StringParameterImpl(PluginConfigImpl config,String key, String label, String defaultValue)
 	{ 
 		super(config,key, label);
-		
-		COConfigurationManager.setStringDefault( getKey(), defaultValue );
-
+		config.notifyParamExists(getKey());
+		COConfigurationManager.setStringDefault(getKey(), defaultValue);
 		this.defaultValue = defaultValue;
 	}
+
 	/**
 	 * @return Returns the defaultValue.
 	 */
@@ -53,13 +47,13 @@ public class StringParameterImpl extends ParameterImpl implements StringParamete
 	public String
 	getValue()
 	{
-		return( config.getStringParameter( getKey(), getDefaultValue()));
+		return( config.getUnsafeStringParameter( getKey(), getDefaultValue()));
 	}
 	
 	public void
 	setValue(
 		String	s )
 	{
-		COConfigurationManager.setParameter( getKey(), s );
+		config.setUnsafeStringParameter(getKey(), s);
 	}
 }

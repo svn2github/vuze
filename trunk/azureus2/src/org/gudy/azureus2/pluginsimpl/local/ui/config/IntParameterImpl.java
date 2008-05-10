@@ -29,7 +29,7 @@ package org.gudy.azureus2.pluginsimpl.local.ui.config;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.plugins.ui.config.IntParameter;
-import org.gudy.azureus2.plugins.PluginConfig;
+import org.gudy.azureus2.pluginsimpl.local.PluginConfigImpl;
 
 public class IntParameterImpl extends ParameterImpl implements IntParameter
 {
@@ -37,17 +37,17 @@ public class IntParameterImpl extends ParameterImpl implements IntParameter
 	private boolean limited;
 	private int min_value;
 	private int max_value;
-	public IntParameterImpl(PluginConfig config,String key, String label, int defaultValue)
+	public IntParameterImpl(PluginConfigImpl config,String key, String label, int defaultValue)
 	{ 
 		super(config,key, label);
-		
+		config.notifyParamExists(getKey());
 		COConfigurationManager.setIntDefault( getKey(), defaultValue );
 
 		this.defaultValue = defaultValue;
 		this.limited = false;
 	}
 
-	public IntParameterImpl(PluginConfig config,String key, String label, int defaultValue, int min_value, int max_value)
+	public IntParameterImpl(PluginConfigImpl config,String key, String label, int defaultValue, int min_value, int max_value)
 	{ 
 		this(config,key, label, defaultValue);
 		this.min_value = min_value;
@@ -66,14 +66,14 @@ public class IntParameterImpl extends ParameterImpl implements IntParameter
 	public int
 	getValue()
 	{
-		return( config.getIntParameter( getKey(), getDefaultValue()));
+		return( config.getUnsafeIntParameter( getKey(), getDefaultValue()));
 	}
 	
 	public void
 	setValue(
 		int	b )
 	{
-		COConfigurationManager.setParameter( getKey(), b );
+		config.setUnsafeIntParameter( getKey(), b );
 	}
 	
 	public boolean isLimited() {return limited;}

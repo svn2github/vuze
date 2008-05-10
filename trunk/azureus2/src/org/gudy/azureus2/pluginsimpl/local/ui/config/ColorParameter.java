@@ -21,8 +21,8 @@
  
 package org.gudy.azureus2.pluginsimpl.local.ui.config;
 
-import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.pluginsimpl.local.PluginConfigImpl;
 
 /**
  * @author Olivier
@@ -34,13 +34,14 @@ public class ColorParameter extends ParameterImpl
 	private int defaultGreen;
 	private int defaultBlue;
 	
-	public ColorParameter(PluginConfig config,String key, String label, int red,int green,int blue)
+	public ColorParameter(PluginConfigImpl config,String key, String label, int red,int green,int blue)
 	{ 
 		super(config,key, label);
 	    this.defaultRed = red;
 	    this.defaultGreen = green;
 	    this.defaultBlue = blue;
 	    
+	    config.notifyRGBParamExists(getKey());
 	    COConfigurationManager.setIntDefault(getKey() + ".red", getDefaultRed());
 	    COConfigurationManager.setIntDefault(getKey() + ".green", getDefaultGreen());
 	    COConfigurationManager.setIntDefault(getKey() + ".blue", getDefaultBlue());

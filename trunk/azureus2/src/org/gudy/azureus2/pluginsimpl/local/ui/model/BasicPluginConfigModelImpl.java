@@ -36,6 +36,7 @@ import org.gudy.azureus2.plugins.ui.config.LabelParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterGroup;
 
+import org.gudy.azureus2.pluginsimpl.local.PluginConfigImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.*;
 
@@ -56,6 +57,8 @@ BasicPluginConfigModelImpl
 	
 	private String				key_prefix;
 	
+	private PluginConfigImpl    configobj;
+	
 	public
 	BasicPluginConfigModelImpl(
 		UIManagerImpl		_ui_manager,
@@ -69,6 +72,7 @@ BasicPluginConfigModelImpl
 		pi				= ui_manager.getPluginInterface();
 
 		key_prefix		= pi.getPluginconfig().getPluginConfigKeyPrefix();
+		configobj       = (PluginConfigImpl)pi.getPluginconfig();
 	}
 
 	public String
@@ -114,7 +118,7 @@ BasicPluginConfigModelImpl
 		String 		resource_name,
 		boolean 	defaultValue )
 	{
-		BooleanParameterImpl res = new BooleanParameterImpl( pi.getPluginconfig(), key_prefix + key, resource_name, defaultValue );
+		BooleanParameterImpl res = new BooleanParameterImpl(configobj, key_prefix + key, resource_name, defaultValue );
 		
 		parameters.add( res );
 		
@@ -136,7 +140,7 @@ BasicPluginConfigModelImpl
 		String 		resource_name,
 		String  	defaultValue )
 	{
-		StringParameterImpl res = new StringParameterImpl( pi.getPluginconfig(), key_prefix + key, resource_name, defaultValue );
+		StringParameterImpl res = new StringParameterImpl(configobj, key_prefix + key, resource_name, defaultValue );
 	
 		parameters.add( res );
 		
@@ -150,7 +154,7 @@ BasicPluginConfigModelImpl
 		String[]	values,
 		String	 	defaultValue )
 	{
-		StringListParameterImpl res = new StringListParameterImpl( pi.getPluginconfig(), key_prefix + key, resource_name, defaultValue, values, values );
+		StringListParameterImpl res = new StringListParameterImpl(configobj, key_prefix + key, resource_name, defaultValue, values, values );
 		
 		parameters.add( res );
 			
@@ -165,8 +169,8 @@ BasicPluginConfigModelImpl
 		String[]	labels,
 		String	 	defaultValue )
 	{
-		StringListParameterImpl res = new StringListParameterImpl(pi
-				.getPluginconfig(), key_prefix + key, resource_name, defaultValue,
+		StringListParameterImpl res = new StringListParameterImpl(configobj,
+				key_prefix + key, resource_name, defaultValue,
 				values, labels);
 
 		parameters.add(res);
@@ -181,7 +185,7 @@ BasicPluginConfigModelImpl
 		int			encoding_type,	
 		byte[]	 	defaultValue )
 	{
-		PasswordParameterImpl res = new PasswordParameterImpl( pi.getPluginconfig(), key_prefix + key, resource_name, encoding_type, defaultValue );
+		PasswordParameterImpl res = new PasswordParameterImpl(configobj, key_prefix + key, resource_name, encoding_type, defaultValue );
 		
 		parameters.add( res );
 			
@@ -194,7 +198,7 @@ BasicPluginConfigModelImpl
 		String 		resource_name,
 		int	 		defaultValue )
 	{
-		IntParameterImpl res = new IntParameterImpl( pi.getPluginconfig(), key_prefix + key, resource_name, defaultValue );
+		IntParameterImpl res = new IntParameterImpl(configobj, key_prefix + key, resource_name, defaultValue );
 		
 		parameters.add( res );
 		
@@ -209,7 +213,7 @@ BasicPluginConfigModelImpl
 		int         min_value,
 		int         max_value)
 	{
-		IntParameterImpl res = new IntParameterImpl( pi.getPluginconfig(), key_prefix + key, resource_name, defaultValue, min_value, max_value );
+		IntParameterImpl res = new IntParameterImpl(configobj, key_prefix + key, resource_name, defaultValue, min_value, max_value );
 		parameters.add( res );
 		return( res );	
 	}
@@ -220,7 +224,7 @@ BasicPluginConfigModelImpl
 		String 		resource_name,
 		String 		defaultValue )
 	{
-		DirectoryParameterImpl res = new DirectoryParameterImpl( pi.getPluginconfig(), key_prefix + key, resource_name, defaultValue );
+		DirectoryParameterImpl res = new DirectoryParameterImpl(configobj, key_prefix + key, resource_name, defaultValue );
 		
 		parameters.add( res );
 		
@@ -241,7 +245,7 @@ BasicPluginConfigModelImpl
 			String 		resource_name,
 			String 		defaultValue,
 		    String[]    file_extensions) {
-		FileParameter res = new FileParameter(pi.getPluginconfig(), key_prefix + key, resource_name, defaultValue, file_extensions);
+		FileParameter res = new FileParameter(configobj, key_prefix + key, resource_name, defaultValue, file_extensions);
 		parameters.add(res);
 		return res;
 	}
@@ -251,7 +255,7 @@ BasicPluginConfigModelImpl
 	addLabelParameter2(
 		String		resource_name )
 	{
-		LabelParameterImpl res = new LabelParameterImpl( pi.getPluginconfig(), key_prefix, resource_name );
+		LabelParameterImpl res = new LabelParameterImpl(configobj, key_prefix, resource_name );
 		
 		parameters.add( res );
 		
@@ -260,14 +264,14 @@ BasicPluginConfigModelImpl
 	
 	public org.gudy.azureus2.plugins.ui.config.HyperlinkParameter
 	addHyperlinkParameter2(String resource_name, String url_location) {
-		HyperlinkParameterImpl res = new HyperlinkParameterImpl(pi.getPluginconfig(), key_prefix, resource_name, url_location);
+		HyperlinkParameterImpl res = new HyperlinkParameterImpl(configobj, key_prefix, resource_name, url_location);
 		parameters.add(res);
 		return res;
 	}
 
 	public org.gudy.azureus2.plugins.ui.config.ColorParameter
 	addColorParameter2(String key, String resource_name, int r, int g, int b) {
-		ColorParameterImpl res = new ColorParameterImpl(pi.getPluginconfig(), key_prefix + key, resource_name, r, g, b);
+		ColorParameterImpl res = new ColorParameterImpl(configobj, key_prefix + key, resource_name, r, g, b);
 		parameters.add(res);
 		return res;
 	}
@@ -277,7 +281,7 @@ BasicPluginConfigModelImpl
 		String 		label_resource_name,
 		String		action_resource_name )	
 	{
-		ActionParameterImpl res = new ActionParameterImpl( pi.getPluginconfig(), label_resource_name, action_resource_name );
+		ActionParameterImpl res = new ActionParameterImpl(configobj, label_resource_name, action_resource_name );
 		
 		parameters.add( res );
 		
@@ -315,4 +319,5 @@ BasicPluginConfigModelImpl
 		props.put("ConfigView.section." + this.section, name);
 		this.pi.getUtilities().getLocaleUtilities().integrateLocalisedMessageBundle(props);
 	}
+	
 }

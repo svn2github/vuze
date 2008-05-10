@@ -28,21 +28,23 @@ package org.gudy.azureus2.pluginsimpl.local.ui.config;
  */
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.plugins.PluginConfig;
+import org.gudy.azureus2.pluginsimpl.local.PluginConfigImpl;
+
 
 public class FileParameter extends ParameterImpl implements org.gudy.azureus2.plugins.ui.config.FileParameter
 {
 	private String defaultValue;
 	private String[] file_extensions;
-	public FileParameter(PluginConfig config,String key, String label, String defaultValue) {
+	public FileParameter(PluginConfigImpl config,String key, String label, String defaultValue) {
 		this(config, key, label, defaultValue, null);
 	}
 	
-	public FileParameter(PluginConfig config,String key, String label, String defaultValue, String[] file_extensions) {
+	public FileParameter(PluginConfigImpl config,String key, String label, String defaultValue, String[] file_extensions) {
 		super(config, key, label);
 		
 		this.defaultValue = defaultValue;
 		this.file_extensions = file_extensions;
+		config.notifyParamExists(getKey());
 		COConfigurationManager.setStringDefault(getKey(), getDefaultValue());
 
 	}
@@ -55,7 +57,7 @@ public class FileParameter extends ParameterImpl implements org.gudy.azureus2.pl
 	}
 	
 	public String getValue() {
-		return( config.getStringParameter( getKey(), getDefaultValue()));
+		return( config.getUnsafeStringParameter( getKey(), getDefaultValue()));
 	}
 	
 	public String[] getFileExtensions() {

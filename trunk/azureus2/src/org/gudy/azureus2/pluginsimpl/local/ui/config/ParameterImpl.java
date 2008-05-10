@@ -23,6 +23,7 @@ package org.gudy.azureus2.pluginsimpl.local.ui.config;
 
 import java.util.*;
 
+import org.gudy.azureus2.pluginsimpl.local.PluginConfigImpl;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
@@ -40,7 +41,7 @@ public class
 ParameterImpl 
 	implements EnablerParameter, org.gudy.azureus2.core3.config.ParameterListener
 {
-	protected 	PluginConfig	config;
+	protected 	PluginConfigImpl	config;
 	private 	String 			key;
 	private 	String 			labelKey;
 	private 	String 			label;
@@ -59,7 +60,7 @@ ParameterImpl
 	
 	public 
 	ParameterImpl(
-		PluginConfig	_config,
+		PluginConfigImpl	_config,
 		String 			_key, 
 		String 			_label )
 	{
