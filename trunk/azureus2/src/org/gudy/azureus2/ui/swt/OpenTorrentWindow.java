@@ -37,7 +37,6 @@ import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -60,7 +59,10 @@ import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
-import org.gudy.azureus2.ui.swt.mainwindow.*;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.mainwindow.GUIUpdater;
+import org.gudy.azureus2.ui.swt.mainwindow.Refreshable;
+import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -2189,6 +2191,10 @@ public class OpenTorrentWindow
 						try
 						{
 							dm.getDownloadState().supressStateSave(true);
+							
+							boolean[] toSkip = new boolean[fileInfos.length];
+							boolean[] toCompact = new boolean[fileInfos.length];
+							
 							for (int iIndex = 0; iIndex < fileInfos.length; iIndex++)
 							{
 								DiskManagerFileInfo fileInfo = fileInfos[iIndex];
@@ -2203,12 +2209,15 @@ public class OpenTorrentWindow
 									}
 									if (!files[iIndex].bDownload)
 									{
-										fileInfo.setSkipped(true);
+										toSkip[iIndex] = true;
 										if (!fDest.exists())
-											fileInfo.setStorageType(DiskManagerFileInfo.ST_COMPACT);
+											toCompact[iIndex] = true;
 									}
 								}
 							}
+							
+							dm.getDiskManagerFileInfoSet().setStorageTypes(toSkip, DiskManagerFileInfo.ST_COMPACT);
+							dm.getDiskManagerFileInfoSet().setSkipped(toSkip, true);
 						} finally
 						{
 							dm.getDownloadState().supressStateSave(false);

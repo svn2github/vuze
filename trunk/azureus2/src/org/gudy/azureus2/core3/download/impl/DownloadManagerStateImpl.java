@@ -1889,12 +1889,21 @@ DownloadManagerStateImpl
 						
 						byte[]	bytes = (byte[])o;
 						
+						String s = null;
+						
 						try{
-							res.add( new String( bytes, Constants.DEFAULT_ENCODING ));
+							
+							s = new String( bytes, Constants.DEFAULT_ENCODING );
 							
 						}catch( UnsupportedEncodingException e ){
 							
 							Debug.printStackTrace(e);					
+						}
+						
+						if(s != null)
+						{
+							res.add(s);
+							values.set(i, s);
 						}
 					}else if ( o instanceof String ){
 						

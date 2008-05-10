@@ -22,8 +22,10 @@
 
 package com.aelitis.azureus.core.diskmanager.file.impl;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.RandomAccessFile;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
@@ -125,9 +127,12 @@ FMFileAccessCompact
 							+ control_file);
 				}
 			
-				write_required	= true;
-				
-				writeState();
+				if(current_length > 0)
+				{
+					write_required	= true;
+					writeState();
+				}
+					
 				
 			}else{
 				

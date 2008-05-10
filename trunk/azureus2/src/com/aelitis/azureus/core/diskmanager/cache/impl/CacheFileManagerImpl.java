@@ -30,10 +30,13 @@ package com.aelitis.azureus.core.diskmanager.cache.impl;
 import java.io.File;
 import java.util.*;
 
-import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.logging.*;
 
 import com.aelitis.azureus.core.diskmanager.cache.*;
 import com.aelitis.azureus.core.diskmanager.file.*;
@@ -85,7 +88,7 @@ CacheFileManagerImpl
 	
 		// copy on update semantics
 	
-	protected Map	torrent_to_cache_file_map	= new HashMap();
+	protected Map	torrent_to_cache_file_map	= new LightHashMap();
 	
 	protected long				cache_bytes_written;
 	protected long				cache_bytes_read;
@@ -257,7 +260,7 @@ CacheFileManagerImpl
 					if ( tf != null ){
 		
 									
-						Map	new_map = new HashMap( torrent_to_cache_file_map );
+						Map	new_map = new LightHashMap( torrent_to_cache_file_map );
 								
 						new_map.put( tf, cf );
 				
@@ -804,7 +807,7 @@ CacheFileManagerImpl
 			try{
 				this_mon.enter();
 						
-				Map	new_map = new HashMap( torrent_to_cache_file_map );
+				Map	new_map = new LightHashMap( torrent_to_cache_file_map );
 				
 				new_map.remove( tf );
 	

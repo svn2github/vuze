@@ -2395,26 +2395,36 @@ DiskManagerImpl
   private void
   loadFilePriorities()
   {
-      loadFilePriorities( download_manager, files );
+      loadFilePriorities( download_manager, fileset );
   }
 
   private static void
   loadFilePriorities(
     DownloadManager         download_manager,
-    DiskManagerFileInfo[]   files )
+    DiskManagerFileInfoSet   fileSet )
   {
     //  TODO: remove this try/catch.  should only be needed for those upgrading from previous snapshot
     try {
+    	DiskManagerFileInfo[] files = fileSet.getFiles();
+    	
         if ( files == null ) return;
         List file_priorities = (List)download_manager.getData( "file_priorities" );
         if ( file_priorities == null ) return;
+        
+        boolean[] toSkip = new boolean[files.length];
+        boolean[] prio = new boolean[files.length];
+        
         for (int i=0; i < files.length; i++) {
             DiskManagerFileInfo file = files[i];
             if (file == null) return;
             int priority = ((Long)file_priorities.get( i )).intValue();
-            if ( priority == 0 ) file.setSkipped( true );
-            else if (priority == 1) file.setPriority( true );
+            if ( priority == 0 ) toSkip[i] = true;
+            else if (priority == 1) prio[i] = true;
         }
+        
+        fileSet.setPriority(prio, true);
+        fileSet.setSkipped(toSkip, true);
+        
     }
     catch (Throwable t) {Debug.printStackTrace( t );}
   }
@@ -2751,6 +2761,7 @@ DiskManagerImpl
 					String[] types = getStorageTypes(download_manager);
 					boolean[] modified = new boolean[res.length];
 					boolean[] toSkip = new boolean[res.length];
+					int toSkipCount = 0;
 					DownloadManagerState dmState = download_manager.getDownloadState();
 					
 					try {
@@ -2766,7 +2777,7 @@ DiskManagerImpl
 
 							int old_type = types[i].equals( "L")?FileSkeleton.ST_LINEAR:FileSkeleton.ST_COMPACT;
 
-							System.out.println(old_type + " <> " + newStroageType);
+							//System.out.println(old_type + " <> " + newStroageType);
 
 							if ( newStroageType == old_type )
 							{
@@ -2818,6 +2829,8 @@ DiskManagerImpl
 									cache_file.close();
 
 									toSkip[i] = newStroageType == FileSkeleton.ST_COMPACT && !res[i].isSkipped();
+									if(toSkip[i])
+										toSkipCount++;
 								}
 
 
@@ -2848,7 +2861,8 @@ DiskManagerImpl
 						 * properly
 						 */
 						dmState.setListAttribute( DownloadManagerState.AT_FILE_STORE_TYPES, types);
-						setSkipped(toSkip, true);
+						if(toSkipCount > 0)
+							setSkipped(toSkip, true);
 						
 						
 						for(int i=0;i<res.length;i++)
@@ -3289,7 +3303,7 @@ DiskManagerImpl
                 res[i]  = info;
             }
 
-            loadFilePriorities( download_manager, res );
+            loadFilePriorities( download_manager, fileSetSkeleton);
 
             loadFileDownloaded( download_manager, res );
 

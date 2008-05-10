@@ -26,19 +26,32 @@ package org.gudy.azureus2.core3.security.impl;
  *
  */
 
-import java.util.*;
-import java.net.*;
 import java.io.*;
+import java.net.Authenticator;
+import java.net.MalformedURLException;
+import java.net.PasswordAuthentication;
+import java.net.URL;
+import java.security.Key;
+import java.security.KeyStore;
+import java.security.Permission;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
+import java.util.*;
+
 import javax.net.ssl.*;
 
-import java.security.*;
-import java.security.cert.*;
-import java.security.cert.Certificate;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.security.*;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.security.SECertificateListener;
+import org.gudy.azureus2.core3.security.SEKeyDetails;
+import org.gudy.azureus2.core3.security.SEPasswordListener;
+import org.gudy.azureus2.core3.security.SESecurityManager;
+import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
 
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
@@ -233,6 +246,14 @@ SESecurityManagerImpl
 			System.setSecurityManager(
 				new SecurityManager()
 				{
+					public void checkRead(String file) {
+						// do nothing
+					}
+					
+					public void checkWrite(String file) {
+						// do nothing
+					}
+					
 					public void 
 					checkExit(int status) 
 					{
