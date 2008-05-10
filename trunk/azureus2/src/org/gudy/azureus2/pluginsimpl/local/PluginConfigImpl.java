@@ -33,23 +33,19 @@ import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.PluginConfigListener;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.config.ConfigParameter;
+import org.gudy.azureus2.plugins.config.PluginConfigSource;
 import org.gudy.azureus2.pluginsimpl.local.config.*;
 
 import com.aelitis.net.magneturi.MagnetURIHandler;
 
-/**
- * @author Eric Allen
- *
- * To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Generation - Code and Comments
- */
 public class 
 PluginConfigImpl
 	implements PluginConfig 
 {
 
 	protected static Map	external_to_internal_key_map = new HashMap();
-	
+	private PluginConfigSourceImpl external_source = null;
+
 	static{
 		
 		external_to_internal_key_map.put( CORE_PARAM_INT_MAX_UPLOAD_SPEED_KBYTES_PER_SEC, 		CORE_PARAM_INT_MAX_UPLOAD_SPEED_KBYTES_PER_SEC );
@@ -169,6 +165,7 @@ PluginConfigImpl
 	
 	private PluginInterface	plugin_interface;
 	private String 			key;
+	private boolean         allow_key_modification;
   
 	public 
 	PluginConfigImpl(
@@ -178,6 +175,7 @@ PluginConfigImpl
 		plugin_interface	= _plugin_interface;
 		
 		key = _key + ".";
+		allow_key_modification = true;
 	}
 
 	public boolean
@@ -193,6 +191,10 @@ PluginConfigImpl
 	}
 	
 	public void setPluginConfigKeyPrefix(String _key) {
+		if (!allow_key_modification) {
+			throw new RuntimeException("cannot modify key prefix - already in use");
+		}
+		
 		if (_key.length() > 0 || plugin_interface.isBuiltIn()) {
 			key = _key;
 		} else {
@@ -212,9 +214,67 @@ PluginConfigImpl
 			return(((Boolean)obj).booleanValue());
 		}
 		if (map_name) {name = mapKeyName(name, false);}
+		
+		notifyParamExists(name);
 		if (set_default) {COConfigurationManager.setBooleanDefault(name, _default);}
 		else if (!hasParameter(name)) {return _default;}
 		return COConfigurationManager.getBooleanParameter(name);
+	}
+	
+	private int[] getColorParameter(String name, int[] _default, boolean map_name, boolean set_default) {
+		Object obj = getFakeValueWhenDisabled(key, name);
+		if (obj != null) {return (int[])obj;}
+		
+		if (map_name) {name = mapKeyName(name, false);}
+		int[] result = getColorParameter0(name, _default, set_default);
+		
+		// Result array...
+		if (result == null) {return null;}
+		if (result.length == 3) {
+			int[] result2 = new int[4];
+			System.arraycopy(result, 0, result2, 0, 3);
+			
+			// Not sure what's the default result to return here for the override flag.
+			//
+			// I've just chosen zero for now.
+			result2[3] = getIntParameter(name, 0, false, false);
+			result = result2;
+		}
+		
+		return result;
+	}
+	
+	private int[] getColorParameter0(String name, int[] _default, boolean set_default) {
+		Object obj = getFakeValueWhenDisabled(key, name);
+		if (obj != null){
+			return((int[])obj);
+		}
+		
+		notifyRGBParamExists(name);
+		if (set_default) {
+			
+			// No idea what to do with the override flag, and no idea what to do
+			// when the value is null.
+			if (_default != null) {
+				COConfigurationManager.setIntDefault(name + ".red", _default[0]);
+				COConfigurationManager.setIntDefault(name + ".green", _default[1]);
+				COConfigurationManager.setIntDefault(name + ".blue", _default[2]);
+			}
+			
+			else {
+				// I'm not expecting this branch to be executed by any callers.
+				throw new RuntimeException("color parameter default is null");
+			}
+			
+		}
+		else if (!hasParameter(name + ".red")) {return _default;}
+		
+		return new int[] {
+			COConfigurationManager.getIntParameter(name + ".red"),
+			COConfigurationManager.getIntParameter(name + ".green"),
+			COConfigurationManager.getIntParameter(name + ".blue"),
+			COConfigurationManager.getIntParameter(name + ".override"),
+		};
 	}
 	
 	private byte[] getByteParameter(String name, byte[] _default, boolean map_name, boolean set_default) {
@@ -223,6 +283,8 @@ PluginConfigImpl
 			return((byte[])obj);
 		}
 		if (map_name) {name = mapKeyName(name, false);}
+		
+		notifyParamExists(name);
 		if (set_default) {COConfigurationManager.setByteDefault(name, _default);}
 		else if (!hasParameter(name)) {return _default;}
 		return COConfigurationManager.getByteParameter(name);
@@ -234,6 +296,8 @@ PluginConfigImpl
 			return(((Float)obj).floatValue());
 		}
 		if (map_name) {name = mapKeyName(name, false);}
+		
+		notifyParamExists(name);
 		if (set_default) {COConfigurationManager.setFloatDefault(name, _default);}
 		else if (!hasParameter(name)) {return _default;}
 		return COConfigurationManager.getFloatParameter(name);
@@ -245,6 +309,8 @@ PluginConfigImpl
 			return(((Long)obj).intValue());
 		}
 		if (map_name) {name = mapKeyName(name, false);}
+		
+		notifyParamExists(name);
 		if (set_default) {COConfigurationManager.setIntDefault(name, _default);}
 		else if (!hasParameter(name)) {return _default;}
 		return COConfigurationManager.getIntParameter(name);
@@ -256,6 +322,8 @@ PluginConfigImpl
 			return(((Long)obj).longValue());
 		}
 		if (map_name) {name = mapKeyName(name, false);}
+		
+		notifyParamExists(name);
 		if (set_default) {COConfigurationManager.setLongDefault(name, _default);}
 		else if (!hasParameter(name)) {return _default;}
 		return COConfigurationManager.getLongParameter(name);
@@ -267,6 +335,8 @@ PluginConfigImpl
 			return((String)obj);
 		}
 		if (map_name) {name = mapKeyName(name, false);}
+		
+		notifyParamExists(name);		
 		if (set_default) {COConfigurationManager.setStringDefault(name, _default);}
 		else if (!hasParameter(name)) {return _default;}
 		return COConfigurationManager.getStringParameter(name);
@@ -287,6 +357,16 @@ PluginConfigImpl
 	
 	private byte[] getDefaultedByteParameter(String name, boolean map_name) {
 		return getByteParameter(name, ConfigurationDefaults.def_bytes, map_name, false);
+	}
+	
+	private int[] getDefaultedColorParameter(String name, boolean map_name) {
+		int[] default_value = new int[] {
+				ConfigurationDefaults.def_int,
+				ConfigurationDefaults.def_int,
+				ConfigurationDefaults.def_int,
+				1
+		};
+		return getColorParameter(name, default_value, map_name, false);
 	}
 	
 	private float getDefaultedFloatParameter(String name, boolean map_name) {
@@ -313,50 +393,86 @@ PluginConfigImpl
 	//
 	//
 
+	/**
+	 * @deprecated
+	 */
 	public boolean getBooleanParameter(String name) {
 		return getDefaultedBooleanParameter(name, true);
 	}
 
+	/**
+	 * @deprecated
+	 */
 	public boolean getBooleanParameter(String name, boolean default_value) {
 		return getBooleanParameter(name, default_value, true, false);
 	}
 	
+	/**
+	 * @deprecated
+	 */
 	public byte[] getByteParameter(String name) {
 		return getDefaultedByteParameter(name, true);
 	}
 
+	/**
+	 * @deprecated
+	 */
 	public byte[] getByteParameter(String name, byte[] default_value) {
 		return getByteParameter(name, default_value, true, false);
 	}
-	
+
+	/**
+	 * @deprecated
+	 */
 	public float getFloatParameter(String name) {
 		return getDefaultedFloatParameter(name, true);
 	}
 
+	/**
+	 * @deprecated
+	 */
 	public float getFloatParameter(String name, float default_value) {
 		return getFloatParameter(name, default_value, true, false);
 	}
 
+	/**
+	 * @deprecated
+	 */
 	public int getIntParameter(String name) {
 		return getDefaultedIntParameter(name, true);
 	}
 
+	/**
+	 * @deprecated
+	 */
 	public int getIntParameter(String name, int default_value) {
 		return getIntParameter(name, default_value, true, false);
 	}
 
+	/**
+	 * @deprecated
+	 */
 	public long getLongParameter(String name) {
 		return getDefaultedLongParameter(name, true);
 	}
 
+	/**
+	 * @deprecated
+	 */
 	public long getLongParameter(String name, long default_value) {
 		return getLongParameter(name, default_value, true, false);
 	}
 	
+	/**
+	 * @deprecated
+	 */
 	public String getStringParameter(String name) {
 		return getDefaultedStringParameter(name, true);
 	}
 
+	/**
+	 * @deprecated
+	 */
     public String getStringParameter(String name, String default_value) {
     	return getStringParameter(name, default_value, true, false);
     }
@@ -385,6 +501,16 @@ PluginConfigImpl
 	public byte[] getCoreByteParameter(String name, byte[] default_value) {
 		checkValidCoreParam(name);
 		return getByteParameter(name, default_value, true, false);
+	}
+	
+	public int[] getCoreColorParameter(String name) {
+		checkValidCoreParam(name);
+		return getDefaultedColorParameter(name, true);
+	}
+
+	public int[] getCoreColorParameter(String name, int[] default_value) {
+		checkValidCoreParam(name);
+		return getColorParameter(name, default_value, true, false);
 	}
 	
 	public float getCoreFloatParameter(String name) {
@@ -446,6 +572,17 @@ PluginConfigImpl
     	COConfigurationManager.setParameter(mapKeyName(name, true), value);
     }
 
+    public void setColorParameter(String name, int[] value) {
+    	setColorParameter(name, value, true);
+    }
+    
+    public void setColorParameter(String name, int[] value, boolean override) {
+		if ( setFakeValueWhenDisabled(key, name, value )){
+			return;
+		}
+		COConfigurationManager.setRGBParameter(mapKeyName(name, true), value, override);
+    }
+    
     public void setFloatParameter(String name, float value) {
 		if ( setFakeValueWhenDisabled(key, name, new Float( value))){
 			return;
@@ -493,6 +630,18 @@ PluginConfigImpl
 			return;
 		}
     	COConfigurationManager.setParameter(mapKeyName(name, true), value);
+    }
+
+    public void setCoreColorParameter(String name, int[] value) {
+    	setCoreColorParameter(name, value, true);
+    }
+    
+    public void setCoreColorParameter(String name, int[] value, boolean override) {
+    	checkValidCoreParam(name);
+		if ( setFakeValueWhenDisabled(key, name, value)) {
+			return;
+		}
+		COConfigurationManager.setRGBParameter(mapKeyName(name, true), value, override);
     }
 
     public void setCoreFloatParameter(String name, float value) {
@@ -548,7 +697,15 @@ PluginConfigImpl
 	public byte[] getPluginByteParameter(String name, byte[] default_value) {
 		return getByteParameter(this.key + name, default_value, false, true);
 	}
-	
+
+	public int[] getPluginColorParameter(String name) {
+		return getDefaultedColorParameter(this.key + name, false);
+	}
+
+	public int[] getPluginColorParameter(String name, int[] default_value) {
+		return getColorParameter(this.key + name, default_value, false, true);
+	}
+		
 	public float getPluginFloatParameter(String name) {
 		return getDefaultedFloatParameter(this.key + name, false);
 	}
@@ -587,30 +744,45 @@ PluginConfigImpl
 	//
 	//
     public void setPluginParameter(String name, boolean value) {
+    	notifyParamExists(this.key + name);
     	COConfigurationManager.setParameter(this.key + name, value);
     }
 
     public void setPluginParameter(String name, byte[] value) {
+    	notifyParamExists(this.key + name);
     	COConfigurationManager.setParameter(this.key + name, value);
     }
 
     public void setPluginParameter(String name, float value) {
+    	notifyParamExists(this.key + name);
     	COConfigurationManager.setParameter(this.key + name, value);
     }
 
     public void setPluginParameter(String name, int value) {
+    	notifyParamExists(this.key + name);
     	COConfigurationManager.setParameter(this.key + name, value);
     }
 
     public void setPluginParameter(String name, long value) {
+    	notifyParamExists(this.key + name);
     	COConfigurationManager.setParameter(this.key + name, value);
     }
 
     public void setPluginParameter(String name, String value) {
+    	notifyParamExists(this.key + name);
     	COConfigurationManager.setParameter(this.key + name, value);
     }
+
+    public void setPluginColorParameter(String name, int[] value) {
+    	setPluginColorParameter(name, value, true);
+    }
+
+    public void setPluginColorParameter(String name, int[] value, boolean override) {
+    	notifyParamExists(this.key + name);
+    	COConfigurationManager.setRGBParameter(this.key + name, value, override);
+    }
     
-	//
+   	//
 	//
 	// Core "unsafe" get parameter methods.
 	//
@@ -630,6 +802,14 @@ PluginConfigImpl
 
 	public byte[] getUnsafeByteParameter(String name, byte[] default_value) {
 		return getByteParameter(name, default_value, false, false);
+	}
+
+	public int[] getUnsafeColorParameter(String name) {
+		return getDefaultedColorParameter(name, false);
+	}
+
+	public int[] getUnsafeColorParameter(String name, int[] default_value) {
+		return getColorParameter(name, default_value, false, false);
 	}
 	
 	public float getUnsafeFloatParameter(String name) {
@@ -673,20 +853,35 @@ PluginConfigImpl
 		if ( setFakeValueWhenDisabled(key, name, new Boolean( value))){
 			return;
 		}
-    	COConfigurationManager.setParameter(name, value);
+		notifyParamExists(name);
+		COConfigurationManager.setParameter(name, value);
     }
 
     public void setUnsafeByteParameter(String name, byte[] value) {
 		if ( setFakeValueWhenDisabled(key, name, value)){
 			return;
 		}
-    	COConfigurationManager.setParameter(name, value);
+		notifyParamExists(name);
+		COConfigurationManager.setParameter(name, value);
     }
 
+    public void setUnsafeColorParameter(String name, int[] value) {
+    	setUnsafeColorParameter(name, value, true);
+    }
+    
+    public void setUnsafeColorParameter(String name, int[] value, boolean override) {
+   		if ( setFakeValueWhenDisabled(key, name, value)){
+			return;
+		}
+   		notifyRGBParamExists(name);
+   		COConfigurationManager.setRGBParameter(name, value, override);
+    }
+    
     public void setUnsafeFloatParameter(String name, float value) {
 		if ( setFakeValueWhenDisabled(key, name, new Float( value))){
 			return;
 		}
+		notifyParamExists(name);
     	COConfigurationManager.setParameter(name, value);
     }
 
@@ -694,6 +889,7 @@ PluginConfigImpl
 		if ( setFakeValueWhenDisabled(key, name, new Long( value))){
 			return;
 		}
+		notifyParamExists(name);
     	COConfigurationManager.setParameter(name, value);
     }
 
@@ -701,6 +897,7 @@ PluginConfigImpl
 		if ( setFakeValueWhenDisabled(key, name, new Long( value))){
 			return;
 		}
+		notifyParamExists(name);
     	COConfigurationManager.setParameter(name, value);
     }
 
@@ -708,6 +905,7 @@ PluginConfigImpl
 		if ( setFakeValueWhenDisabled(key, name, value )){
 			return;
 		}
+		notifyParamExists(name);
     	COConfigurationManager.setParameter(name, value);
     }
     
@@ -718,22 +916,27 @@ PluginConfigImpl
     //
     
 	 public List getPluginListParameter(String key, List default_value) {
+		 notifyParamExists(this.key + key);
 		return COConfigurationManager.getListParameter(this.key+key, default_value); 
 	 }
 	 
 	 public void setPluginListParameter(String key, List value) {
+		 notifyParamExists(this.key + key);
 		 COConfigurationManager.setParameter(this.key+key, value);
 	 }
 
 	 public Map getPluginMapParameter(String key, Map default_value) {
+		 notifyParamExists(this.key + key);
 		return COConfigurationManager.getMapParameter(this.key+key, default_value); 
 	 }
 	 
 	 public void setPluginMapParameter(String key, Map value) {
+		 notifyParamExists(this.key + key);
 		 COConfigurationManager.setParameter(this.key+key, value);
 	 }
 	 
 	 public void setPluginParameter(String key, int value, boolean global) {
+		 notifyParamExists(this.key + key);
 		COConfigurationManager.setParameter(this.key+key, value);
 		if (global) {
 			MagnetURIHandler.getSingleton().addInfo(this.key+key, value);
@@ -755,10 +958,14 @@ PluginConfigImpl
 	}
 	
 	public boolean removePluginParameter(String key) {
+		notifyParamExists(this.key + key);
 		return COConfigurationManager.removeParameter(this.key + key);
 	}
 	
-
+	public boolean removePluginColorParameter(String key) {
+		notifyParamExists(this.key + key);
+		return COConfigurationManager.removeRGBParameter(this.key + key);
+	}
 
 	  public Map
 	  getUnsafeParameterList()
@@ -819,7 +1026,8 @@ PluginConfigImpl
 	public void
 	save()
 	{
-		COConfigurationManager.save();
+		if (this.external_source != null) {this.external_source.save(true);}
+		else {COConfigurationManager.save();}
 	}
 		
 	public File
@@ -901,7 +1109,49 @@ PluginConfigImpl
 	public boolean hasPluginParameter(String param_name) {
 		// We should not have default settings for plugins in configuration
 		// defaults, so we don't bother doing an implicit check.
+		notifyParamExists(this.key + param_name);
 		return COConfigurationManager.hasParameter(this.key + param_name, true);
+	}
+	
+	public void notifyRGBParamExists(String param) {
+		notifyParamExists(param + ".red");
+		notifyParamExists(param + ".blue");
+		notifyParamExists(param + ".green");
+		notifyParamExists(param + ".override");
+	}
+		
+	// Not exposed in the plugin API.
+	public void notifyParamExists(String param) {
+		if (allow_key_modification && param.startsWith(this.key)) {
+			allow_key_modification = false;
+		}
+		if (external_source != null && param.startsWith(this.key)) {
+			external_source.registerParameter(param);
+		}
+	}
+	
+	public PluginConfigSource enableExternalConfigSource() {
+		PluginConfigSourceImpl source = new PluginConfigSourceImpl(this, this.plugin_interface.getPluginID());
+		setPluginConfigSource(source);
+		return source;
+	}
+	
+	public PluginConfigSource getPluginConfigSource() {
+		return this.external_source;
+	}
+	
+	public void setPluginConfigSource(PluginConfigSource source) {
+		if (this.external_source != null) {
+			throw new RuntimeException("external config source already associated!");
+		}
+		
+		// We need a common key prefix, otherwise this won't work correctly.
+		PluginConfigSourceImpl source_impl = (PluginConfigSourceImpl)source;
+	    String used_key = source_impl.getUsedKeyPrefix();
+	    if (used_key != null && !this.getPluginConfigKeyPrefix().startsWith(used_key)) {
+	    	throw new RuntimeException("cannot use this config source object - incompatible prefix keys: " + used_key + " / " + this.getPluginConfigKeyPrefix());
+	    }
+		this.external_source = (PluginConfigSourceImpl)source;
 	}
 	
 }

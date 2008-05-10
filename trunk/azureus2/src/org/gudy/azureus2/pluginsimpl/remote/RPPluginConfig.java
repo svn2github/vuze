@@ -21,6 +21,8 @@
 
 package org.gudy.azureus2.pluginsimpl.remote;
 
+import org.gudy.azureus2.plugins.config.PluginConfigSource;
+
 /**
  * @author parg
  *
@@ -532,6 +534,7 @@ RPPluginConfig
 		public boolean hasParameter(String x) {notSupported(); return false;}
 		public boolean hasPluginParameter(String x) {notSupported(); return false;}
 		public boolean removePluginParameter(String x) {notSupported(); return false;}
+		public boolean removePluginColorParameter(String x) {notSupported(); return false;}
 		
 		  public byte[] getByteParameter(String key) {notSupported(); return null;}
 		  public float getFloatParameter(String key, float default_value) {notSupported(); return 0;}
@@ -575,6 +578,22 @@ RPPluginConfig
 		  public void setCoreIntParameter(String key, int value) {notSupported();}
 		  public void setCoreLongParameter(String key, long value) {notSupported();}
 		  public void setCoreStringParameter(String key, String value) {notSupported();}
-
+		  
+		  public int[] getCoreColorParameter(String key) {notSupported(); return null;}
+		  public int[] getCoreColorParameter(String key, int[] default_value) {notSupported(); return null;}
+		  public void setCoreColorParameter(String key, int[] value) {notSupported();}
+		  public void setCoreColorParameter(String key, int[] value, boolean override) {notSupported();}
+		  public int[] getPluginColorParameter(String key) {notSupported(); return null;}
+		  public int[] getPluginColorParameter(String key, int[] default_value) {notSupported(); return null;}
+		  public int[] getPluginColorParameter(String key, int[] default_value, boolean override) {notSupported(); return null;}
+		  public void setPluginColorParameter(String key, int[] value) {notSupported();}
+		  public void setPluginColorParameter(String key, int[] value, boolean override) {notSupported();}
+		  public int[] getUnsafeColorParameter(String key) {notSupported(); return null;}
+		  public int[] getUnsafeColorParameter(String key, int[] default_value) {notSupported(); return null;}
+		  public void setUnsafeColorParameter(String key, int[] default_value) {notSupported();}
+		  public void setUnsafeColorParameter(String key, int[] default_value, boolean override) {notSupported();}
+		  public PluginConfigSource getPluginConfigSource() {notSupported(); return null;}
+		  public void setPluginConfigSource(PluginConfigSource source) {notSupported();}
+		  public PluginConfigSource enableExternalConfigSource() {notSupported(); return null;}
 		  
 }

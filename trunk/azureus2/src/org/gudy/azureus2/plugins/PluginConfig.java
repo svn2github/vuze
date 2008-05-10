@@ -339,10 +339,53 @@ PluginConfig
    * @param default_value The default value to return if one is not defined.
    * @return The value of the parameter.
    *
-   * @since 3.0.4.3
+   * @since 3.0.5.3
    */
   public byte[] getCoreByteParameter(String key, byte[] default_value);
-	
+
+  /**
+   * Returns the value of a core color parameter.
+   * 
+   * <p>
+   * 
+   * It will return <tt>null</tt> if no color parameter is stored, or an
+   * integer array of size 4 representing the red, green and blue values,
+   * and a flag indicating if the color is an override of the default or
+   * not (<tt>0</tt> indicates no override, <tt>1</tt> means it is overridden).
+   * 
+   * <p>
+   * 
+   * In many cases, the override flag can just be ignored.
+   * 
+   * @param key The parameter name.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.5.3
+   */
+  public int[] getCoreColorParameter(String key);
+	  
+  /**
+   * Returns the value of a core color parameter.
+   * 
+   * <p>
+   * 
+   * It will return <tt>null</tt> if no color parameter is stored, or an
+   * integer array of size 4 representing the red, green and blue values,
+   * and a flag indicating if the color is an override of the default or
+   * not (<tt>0</tt> indicates no override, <tt>1</tt> means it is overridden).
+   * 
+   * <p>
+   * 
+   * In many cases, the override flag can just be ignored.
+   *  
+   * @param key The parameter name.
+   * @param default_value The default value to return if one is not defined.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.5.3
+   */
+  public int[] getCoreColorParameter(String key, int[] default_value);
+  
   /**
    * Returns the value of a core float parameter.
    * 
@@ -446,7 +489,43 @@ PluginConfig
    * @since 3.0.4.2
    */
   public void setCoreByteParameter(String key, byte[] value);
-  
+
+  /**
+   * Sets the value of a core byte array parameter.
+   * 
+   * <p>
+   * 
+   * The value should be an integer array of size 3 representing
+   * the red, green and blue values - or <tt>null</tt> to disable it.
+   *   
+   * @param key	The parameter name, which must be one defined from the above core constants.
+   * @param value The new value for the parameter.
+   *
+   * @since 3.0.5.3
+   */
+  public void setCoreColorParameter(String key, int[] value);
+
+  /**
+   * Sets the value of a core byte array parameter.
+   * 
+   * <p>
+   * 
+   * The value should be an integer array of size 3 representing
+   * the red, green and blue values - or <tt>null</tt> to disable it.
+   * 
+   * <p>
+   * 
+   * The override flag is used to indicate if the value being set is overriding
+   * the default value. This is mainly used for interface purposes.
+   *   
+   * @param key	The parameter name, which must be one defined from the above core constants.
+   * @param value The new value for the parameter.
+   * @param override <tt>true</tt> if the value is overridden from the default.
+   *
+   * @since 3.0.5.3
+   */
+  public void setCoreColorParameter(String key, int[] value, boolean override);
+
   
   /**
    * Sets the value of a core float parameter.
@@ -530,7 +609,51 @@ PluginConfig
    * @since 2.2.0.3
    */
   public byte[] getPluginByteParameter(String key, byte[] default_value);
-	
+
+  /**
+   * Returns the value of a plugin color parameter.
+   * 
+   * <p>
+   * 
+   * It will return <tt>null</tt> if no color parameter is stored, or an
+   * integer array of size 4 representing the red, green and blue values,
+   * and a flag indicating if the color is an override of the default or
+   * not (<tt>0</tt> indicates no override, <tt>1</tt> means it is overridden).
+   * 
+   * <p>
+   * 
+   * In many cases, the override flag can just be ignored.
+   * 
+   * @param key The parameter name.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.5.3
+   */
+  public int[] getPluginColorParameter(String key);
+	  
+  /**
+   * Returns the value of a plugin color parameter.
+   * 
+   * <p>
+   * 
+   * It will return <tt>null</tt> if no color parameter is stored, or an
+   * integer array of size 4 representing the red, green and blue values,
+   * and a flag indicating if the color is an override of the default or
+   * not (<tt>0</tt> indicates no override, <tt>1</tt> means it is overridden).
+   * 
+   * <p>
+   * 
+   * In many cases, the override flag can just be ignored.
+   * 
+   * @param key The parameter name.
+   * @param default_value The default value to return if one is not defined.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.5.3
+   */
+  public int[] getPluginColorParameter(String key, int[] default_value);
+
+  
   /**
    * Returns the value of a plugin float parameter.
    * 
@@ -714,6 +837,45 @@ PluginConfig
   public void setPluginParameter(String key, String value);
 
   /**
+   * Sets the value of a plugin color parameter.
+   * 
+   * <p>
+   * 
+   * The value should be an integer array of size 3 representing
+   * the red, green and blue values - or <tt>null</tt> to disable it.
+   * 
+   * @param key The parameter name.
+   * @param value The new value for the parameter.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.5.3
+   */
+  public void setPluginColorParameter(String key, int[] value);
+
+  /**
+   * Sets the value of a plugin color parameter.
+   * 
+   * <p>
+   * 
+   * The value should be an integer array of size 3 representing
+   * the red, green and blue values - or <tt>null</tt> to disable it.
+   * 
+   * <p>
+   * 
+   * The override flag is used to indicate if the value being set is overriding
+   * the default value. This is mainly used for interface purposes.
+   * 
+   * @param key The parameter name.
+   * @param value The new value for the parameter.
+   * @param override <tt>true</tt> if the value is overridden from the default.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.5.3
+   */
+  public void setPluginColorParameter(String key, int[] value, boolean override);
+
+
+  /**
    * Sets the value of a plugin list parameter. The contents of the list must conform
    * to <i>bencodable</i> rules (e.g. <tt>Map</tt>, <tt>Long</tt>, <tt>byte[]</tt>, <tt>List</tt>)
    * 
@@ -789,7 +951,56 @@ PluginConfig
    * @since 3.0.0.7
    */
   public byte[] getUnsafeByteParameter(String key, byte[] default_value);
-	
+
+  /**
+   * Returns the value of a core color parameter. Note: the semantics of this
+   * method will not be guaranteed - core parameter names may change in the future,
+   * and this method will not do any parameter name mapping for you, so take care when
+   * using this method.
+   * 
+   * <p>
+   * 
+   * It will return <tt>null</tt> if no color parameter is stored, or an
+   * integer array of size 4 representing the red, green and blue values,
+   * and a flag indicating if the color is an override of the default or
+   * not (<tt>0</tt> indicates no override, <tt>1</tt> means it is overridden).
+   * 
+   * <p>
+   * 
+   * In many cases, the override flag can just be ignored.
+   * 
+   * @param key The parameter name.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.5.3
+   */
+  public int[] getUnsafeColorParameter(String key);
+  
+  /**
+   * Returns the value of a core color parameter. Note: the semantics of this
+   * method will not be guaranteed - core parameter names may change in the future,
+   * and this method will not do any parameter name mapping for you, so take care when
+   * using this method.
+   * 
+   * <p>
+   * 
+   * It will return <tt>null</tt> if no color parameter is stored, or an
+   * integer array of size 4 representing the red, green and blue values,
+   * and a flag indicating if the color is an override of the default or
+   * not (<tt>0</tt> indicates no override, <tt>1</tt> means it is overridden).
+   * 
+   * <p>
+   * 
+   * In many cases, the override flag can just be ignored.
+   *    
+   * @param key The parameter name.
+   * @param default_value The default value to return if one is not defined.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.5.3
+   */
+  public int[] getUnsafeColorParameter(String key, int[] default_value);
+  
   /**
    * Returns the value of a core float parameter. Note: the semantics of this
    * method will not be guaranteed - core parameter names may change in the future,
@@ -923,6 +1134,48 @@ PluginConfig
    * @since 3.0.0.7
    */
   public void setUnsafeByteParameter(String key, byte[] value);
+
+  /**
+   * Returns the value of a core color parameter. Note: the semantics of this
+   * method will not be guaranteed - core parameter names may change in the future,
+   * and this method will not do any parameter name mapping for you, so take care when
+   * using this method.
+   * 
+   * <p>
+   * 
+   * The value should be an integer array of size 3 representing
+   * the red, green and blue values - or <tt>null</tt> to disable it.
+   * 
+   * @param key The parameter name.
+   * @param value The new value for the parameter.
+   *
+   * @since 3.0.5.3
+   */
+  public void setUnsafeColorParameter(String key, int[] value);
+
+  /**
+   * Returns the value of a core color parameter. Note: the semantics of this
+   * method will not be guaranteed - core parameter names may change in the future,
+   * and this method will not do any parameter name mapping for you, so take care when
+   * using this method.
+   * 
+   * <p>
+   * 
+   * The value should be an integer array of size 3 representing
+   * the red, green and blue values - or <tt>null</tt> to disable it.
+   * 
+   * <p>
+   * 
+   * The override flag is used to indicate if the value being set is overriding
+   * the default value. This is mainly used for interface purposes.
+   * 
+   * @param key The parameter name.
+   * @param value The default value to return if one is not defined.
+   * @param override <tt>true</tt> if the value is overridden from the default.
+   *
+   * @since 3.0.5.3
+   */
+  public void setUnsafeColorParameter(String key, int[] value, boolean override);
   
   /**
    * Sets the value of a core float parameter. Note: the semantics of this
@@ -983,6 +1236,16 @@ PluginConfig
 	 * @return <tt>true</tt> if the parameter was found and removed.
 	 */
 	public boolean removePluginParameter(String key);
+	
+	/**
+	 * Removes the plugin color parameter with the given name.
+	 * 
+	 * @param key Name of the parameter.
+	 * @return <tt>true</tt> if the parameter was found and removed.
+	 * 
+	 * @since 3.0.5.3
+	 */
+	public boolean removePluginColorParameter(String key);
 
   /**
    * @return the prefix used when storing configuration values in the config file for
@@ -1030,9 +1293,7 @@ PluginConfig
    *
    * @since 2.0.8.0
    */
-	public void
-	save()
-		throws PluginException;
+	public void save() throws PluginException;
 	
 		/**
 		 * Returns a file that can be used by the plugin to save user-specific state
@@ -1069,4 +1330,69 @@ PluginConfig
 	 * @since 2.5.0.1
 	 */
 	public void setPluginConfigKeyPrefix(String _key);
+	
+	/**
+	 * Enable the plugin to store configuration parameters into a separate
+	 * external configuration file. <b>Note:</b> once this method is called,
+	 * you need to invoke {@link PluginConfigSource#initialize()} for the
+	 * external configuration file to be properly integrated with Azureus.
+	 * 
+	 * <p>
+	 * 
+	 * When a plugin is first initialised, it should call this method as
+	 * soon as possible during the initialization stage. This then configures
+	 * the PluginConfig object to store any parameter values into an external
+	 * configuration file (rather than storing it directly with the main
+	 * configuration file used by Azureus).
+	 * 
+	 * <p>
+	 * 
+	 * When this method is invoked, it will return an object which allows
+	 * the filename to be chosen - it allows a limited amount of manipulation
+	 * of the configuration file. This method only needs to be invoked once.
+	 * 
+	 * <p>
+	 * 
+	 * All methods which get and set plugin parameters on this object will store
+	 * data in the external configuration file. The use of classes like
+	 * {@link org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel BasicPluginConfigModel}
+	 * will automatically integrate parameters to the external configuration
+	 * source.
+	 * 
+	 * <p>
+	 * 
+	 * However, if you use any other mechanism to store parameter data, you may need to call
+	 * the {@link org.gudy.azureus2.plugins.ui.config.PluginConfigSource#registerParameter registerParameter}
+	 * to integrate the parameter properly.
+	 * 
+	 * @since 3.0.5.3
+	 * @return The <tt>PluginConfigSource</tt> object representing the external configuration file.
+	 */
+	public PluginConfigSource enableExternalConfigSource();
+	
+	/**
+	 * Returns the <tt>PluginConfigSource</tt> object used for this plugin configuration (or
+	 * <tt>null</tt> if an external configuration object isn't used).
+	 * 
+	 * @since 3.0.5.3
+	 * @return The PluginConfigSource object.
+	 */
+	public PluginConfigSource getPluginConfigSource();
+	
+	/**
+	 * Sets the plugin configuration source object to use for storing parameters for this
+	 * plugin config object.
+	 * 
+	 * <p>
+	 * 
+	 * This method should only be used as an alternative to {@link #enableExternalConfigSource()}.
+	 * You will only need to use this method if you use the
+	 * {@link PluginInterface#getLocalPluginInterface(Class, String) getLocalPluginInterface}
+	 * method to store data in a separate namespace, but want to use the same configuration file to
+	 * store data in.
+	 * 
+	 * @param source The PluginConfigSource object to use.
+	 * @since 3.0.5.3
+	 */
+	public void setPluginConfigSource(PluginConfigSource source);
 }
