@@ -25,17 +25,18 @@ package com.aelitis.azureus.core.diskmanager.file.impl;
  *
  */
 
-import java.util.*;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.diskmanager.file.*;
+import com.aelitis.azureus.core.diskmanager.file.FMFile;
+import com.aelitis.azureus.core.diskmanager.file.FMFileManagerException;
+import com.aelitis.azureus.core.diskmanager.file.FMFileOwner;
 
 public abstract class 
 FMFileImpl
@@ -98,7 +99,10 @@ FMFileImpl
 		try{
       
 			try {
+				
 				canonical_path = linked_file.getCanonicalPath();
+				if(canonical_path.equals(linked_file.getPath()))
+					canonical_path = linked_file.getPath();
 				
 			}catch( IOException ioe ) {
 				
