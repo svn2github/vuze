@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapperFile;
 import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.StringInterner;
 
 /**
  * @author parg
@@ -361,7 +362,7 @@ PieceMapperImpl
 			String 			_name )
 		{
 			torrent_file	= _torrent_file;
-			path			= _path;
+			path			= StringInterner.intern(_path);
 			name 			= _name;
 		}
 		

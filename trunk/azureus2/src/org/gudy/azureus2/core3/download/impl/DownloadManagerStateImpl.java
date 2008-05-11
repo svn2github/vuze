@@ -1893,7 +1893,7 @@ DownloadManagerStateImpl
 						
 						try{
 							
-							s = new String( bytes, Constants.DEFAULT_ENCODING );
+							s = StringInterner.intern(new String( bytes, Constants.DEFAULT_ENCODING ));
 							
 						}catch( UnsupportedEncodingException e ){
 							
