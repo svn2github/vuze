@@ -1619,7 +1619,7 @@ DownloadManagerController
 	}
 	
 	protected void
-	filePriorityChanged(DiskManagerFileInfo file)
+	filePrioritiesChanged(List files)
 	{
 		if (!cached_values_set) {
 			fileFacadeSet.makeSureFilesFacadeFilled(false);
@@ -1627,9 +1627,10 @@ DownloadManagerController
 
 		// no need to calculate completeness if there are no DND files and the
 		// file being changed is not DND
-		if (!cached_has_dnd_files && !file.isSkipped()){
+		if (!cached_has_dnd_files && files.size() == 1 && !((DiskManagerFileInfo)files.get(0)).isSkipped()){
 			return;
 		}
+		// if it's more than one file just do the scan anyway
 		fileFacadeSet.makeSureFilesFacadeFilled(false);
 		calculateCompleteness( fileFacadeSet.facadeFiles );
 	}
@@ -1654,13 +1655,10 @@ DownloadManagerController
 
 				complete_excluding_dnd = false;
 				
-				if ( has_dnd_files ){
-					
-						// we can bail out early 
-					
-					break;
-				}
 			}
+			
+			if(has_dnd_files && !complete_excluding_dnd)
+				break; // we can bail out early
 		}
 
 		cached_complete_excluding_dnd = complete_excluding_dnd;
@@ -2181,8 +2179,7 @@ DownloadManagerController
 			}
 			
 			fileFacadeSet.facadeFiles = info;
-			for (int i = 0; i < delayed_prio_changes.size(); i++)
-				download_manager.informPriorityChange((DiskManagerFileInfo) delayed_prio_changes.get(i));
+			download_manager.informPrioritiesChange(delayed_prio_changes);
 
 			delayed_prio_changes.clear();
 		}

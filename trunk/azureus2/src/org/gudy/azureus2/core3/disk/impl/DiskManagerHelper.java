@@ -90,6 +90,8 @@ DiskManagerHelper
 	public String[]
 	getStorageTypes();
 	
+	public String getStorageType(int fileIndex);
+	
 	public void
 	accessModeChanged(
 		DiskManagerFileInfoImpl		file,

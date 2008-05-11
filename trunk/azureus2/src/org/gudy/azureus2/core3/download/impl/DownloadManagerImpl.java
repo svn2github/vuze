@@ -2365,23 +2365,31 @@ DownloadManagerImpl
 		}
 	}
 	
+	 void informPrioritiesChange(
+			List	files )
+		{
+			controller.filePrioritiesChanged(files);
+			
+			try{
+				listeners_mon.enter();
+
+				for(int i=0;i<files.size();i++)
+					listeners.dispatch( LDT_FILEPRIORITYCHANGED, new Object[]{ this, (DiskManagerFileInfo)files.get(i) });
+			
+			}finally{
+				
+				listeners_mon.exit();
+			}
+			
+			requestAssumedCompleteMode();
+		}
+	
+	
 	protected void
 	informPriorityChange(
 		DiskManagerFileInfo	file )
 	{
-		controller.filePriorityChanged(file);
-		
-		try{
-			listeners_mon.enter();
-
-			listeners.dispatch( LDT_FILEPRIORITYCHANGED, new Object[]{ this, file });
-		
-		}finally{
-			
-			listeners_mon.exit();
-		}
-		
-		requestAssumedCompleteMode();
+		informPrioritiesChange(Collections.singletonList(file));
 	}
 	
 	protected void

@@ -105,9 +105,9 @@ DiskManagerFileInfoImpl
 	}
 	
 	public File 
-	getCacheFileControlFile(String name) 
+	getCacheFileControlFileDir() 
 	{
-		return( diskManager.getDownloadState().getStateFile( name ));
+		return( diskManager.getDownloadState().getStateFile( ));
 	}
 	
 	public int
@@ -243,10 +243,7 @@ DiskManagerFileInfoImpl
 	public int
 	getStorageType()
 	{
-		String[]	types = diskManager.getStorageTypes();
-		
-		return( types[file_index].equals( "L")?ST_LINEAR:ST_COMPACT );
-
+		return( diskManager.getStorageType(file_index).equals( "L")?ST_LINEAR:ST_COMPACT );
 	}
 	
 	protected boolean

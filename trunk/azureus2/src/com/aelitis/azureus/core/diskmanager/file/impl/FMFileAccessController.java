@@ -42,7 +42,8 @@ FMFileAccessController
 	
 	private int		type		= FMFile.FT_LINEAR;
 	
-	private File	control_file;
+	private File	controlPath;
+	private String	controlFileName;
 	
 	private FMFileAccess	file_access;
 		
@@ -62,9 +63,9 @@ FMFileAccessController
 
 		// in the future, if we support format conversion, this obviously changes
 	
-		control_file = getControlFile();
+		setControlFile();
 	
-		if ( control_file == null ){
+		if ( controlPath == null ){
 			
 			// Debug.out( "No control file" ); in optimised environments we don't support compact and return null here
 			
@@ -79,7 +80,7 @@ FMFileAccessController
 
 		}else{
 		
-			boolean	control_file_existed = control_file.exists();
+			boolean	control_file_existed = new File(controlPath,controlFileName).exists();
 			
 			type = control_file_existed?FMFile.FT_COMPACT:FMFile.FT_LINEAR;
 						
@@ -91,8 +92,8 @@ FMFileAccessController
 				
 				file_access = 
 					new FMFileAccessCompact(
-							owner.getOwner().getTorrentFile(),
-							control_file,  
+							owner.getOwner().getTorrentFile(),controlPath,
+							controlFileName,  
 							new FMFileAccessLinear( owner ));
 			}				
 			
@@ -125,8 +126,8 @@ FMFileAccessController
 			}else{
 				
 				target_access = new FMFileAccessCompact(
-										owner.getOwner().getTorrentFile(),
-										control_file,  
+										owner.getOwner().getTorrentFile(),controlPath,
+										controlFileName,  
 										new FMFileAccessLinear( owner ));
 			}
 
@@ -261,20 +262,21 @@ FMFileAccessController
 				
 				if ( type == FMFile.FT_LINEAR ){
 					
-					control_file.delete();	
+					new File(controlPath,controlFileName).delete();	
 				}
 			}
 		}
 	}
 	
-	protected File
-	getControlFile()
+	protected void
+	setControlFile()
 	{
 		TOTorrentFile	tf = owner.getOwner().getTorrentFile();
 		
 		if ( tf == null ){
 
-			return( null );
+			controlFileName = null;
+			controlPath = null;
 		}
 		
 		TOTorrent	torrent = tf.getTorrent();
@@ -297,13 +299,14 @@ FMFileAccessController
 			
 			Debug.out("File '" + owner.getName() + "' not found in torrent!" );
 			
-			return( null );
+			controlFileName = null;
+			controlPath = null;
 			
 		}else{
 			
-			File	control = owner.getOwner().getControlFile( "fmfile" + file_index + ".dat" );
-		
-			return( control );
+			controlPath = owner.getOwner().getControlFileDir( );
+			controlFileName =  "fmfile" + file_index + ".dat";
+			
 		}
 	}
 	

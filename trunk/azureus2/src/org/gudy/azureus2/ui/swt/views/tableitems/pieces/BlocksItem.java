@@ -161,8 +161,7 @@ public class BlocksItem
 		Arrays.fill(offsets,
 				(long) pePiece.getManager().getDiskManager().getPieceLength()
 						* (long) pieceNumber);
-		for (int i = 0; i < lNumBlocks; lengths[i] = pePiece.getBlockSize(i), offsets[i] += DiskManager.BLOCK_SIZE
-				* i, i++)
+		for (int i = 0; i < lNumBlocks; lengths[i] = pePiece.getBlockSize(i), offsets[i] += DiskManager.BLOCK_SIZE * i, i++)
 			;
 
 		boolean[] isCached = cacheStats == null ? null

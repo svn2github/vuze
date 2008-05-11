@@ -43,7 +43,8 @@ FMFileAccessCompact
 	private TOTorrentFile		torrent_file;
 	private int					piece_size;
 	
-	private File				control_file;
+	private File				controlFileDir;
+	private String				controlFileName;
 	private FMFileAccess		delegate;
 	
 	private volatile long		current_length;
@@ -59,13 +60,15 @@ FMFileAccessCompact
 	protected
 	FMFileAccessCompact(
 		TOTorrentFile	_torrent_file,
-		File			_control_file,
+		File			controlFileDir,
+		String			controlFileName,
 		FMFileAccess	_delegate )
 	
 		throws FMFileManagerException
 	{
 		torrent_file	= _torrent_file;
-		control_file	= _control_file;
+		this.controlFileDir	= controlFileDir;
+		this.controlFileName = controlFileName;
 		delegate		= _delegate;
 
 		try{
@@ -120,11 +123,10 @@ FMFileAccessCompact
 					", lp = " + last_piece_start + "/" + last_piece_length );
 			*/
 			
-			if ( !control_file.exists()){
+			if ( !new File(controlFileDir,controlFileName).exists()){
 				
-				if (!FileUtil.mkdirs(control_file)) {
-					throw new FMFileManagerException("Directory creation failed: "
-							+ control_file);
+				if (!controlFileDir.isDirectory() && !FileUtil.mkdirs(controlFileDir)) {
+					throw new FMFileManagerException("Directory creation failed: "	+ controlFileDir);
 				}
 			
 				if(current_length > 0)
@@ -184,9 +186,11 @@ FMFileAccessCompact
 	
 		throws FMFileManagerException
 	{
+		if(length != current_length)
+			write_required = true;
+		
 		current_length	= length;
 		
-		write_required	= true;
 	}
 	
 	protected void
@@ -455,8 +459,7 @@ FMFileAccessCompact
 	{
 		try{
 			Map	data = 			
-				FileUtil.readResilientFile(
-					control_file.getParentFile(), control_file.getName(), false );
+				FileUtil.readResilientFile( controlFileDir, controlFileName, false );
 			
 			if ( data != null && data.size() > 0 ){
 				
@@ -491,7 +494,7 @@ FMFileAccessCompact
 				data.put( "length", new Long( current_length ));
 				
 				FileUtil.writeResilientFile(
-						control_file.getParentFile(), control_file.getName(), data, false );
+						controlFileDir, controlFileName, data, false );
 				
 			}catch( Throwable e ){
 				

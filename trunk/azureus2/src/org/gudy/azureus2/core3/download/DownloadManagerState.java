@@ -116,8 +116,7 @@ DownloadManagerState
 	getDownloadManager();
 	
 	public File 
-	getStateFile(
-		String	name );
+	getStateFile( );
 	
 	public void
 	setFlag(
@@ -289,6 +288,7 @@ DownloadManagerState
 	public Map getMapAttribute(String name);
 	public void	setListAttribute(String	name, String[] values);
 	public String[]	getListAttribute(String	name);
+	public String getListAttribute(String name, int idx);
 	public void setIntAttribute(String name, int value);
 	public int getIntAttribute(String name);
 	public void setLongAttribute(String name, long value);

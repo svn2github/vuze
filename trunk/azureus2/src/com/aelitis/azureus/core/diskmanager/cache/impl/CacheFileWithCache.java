@@ -102,7 +102,7 @@ CacheFileWithCache
 	protected TOTorrent      			torrent;
 	protected long						file_offset_in_torrent;
 	
-	protected long[]					read_history		= new long[ READAHEAD_HISTORY ];
+	protected long[]					read_history; // lazy allocation
 	protected int						read_history_next	= 0;
 	
 	protected TreeSet					cache			= new TreeSet(comparator);
@@ -138,8 +138,6 @@ CacheFileWithCache
 		manager		= _manager;
 		file		= _file;
 				
-		Arrays.fill( read_history, -1 );
-		
 		if ( _torrent_file != null ){
 			
 			torrent_file	= _torrent_file;
@@ -255,7 +253,7 @@ CacheFileWithCache
 	
 		try{
 			if ( manager.isCacheEnabled()){
-			
+				
 				if (TRACE)
 					Logger.log(new LogEvent(torrent, LOGID, "readCache: " + getName()
 							+ ", " + file_position + " - "
@@ -282,6 +280,13 @@ CacheFileWithCache
 				try{
 						
 					this_mon.enter();
+					
+					
+					if(read_history == null)
+					{
+						read_history = new long[ READAHEAD_HISTORY ];
+						Arrays.fill( read_history, -1 );
+					}
 	
 						// record the position of the byte *following* the end of this read
 					
@@ -412,7 +417,8 @@ CacheFileWithCache
 							boolean	do_read_ahead	= 
 										i == 0 &&		// first time round
 										!recursive &&
-										!disable_read_cache && 
+										!disable_read_cache &&
+										read_history != null &&
 										manager.isReadCacheEnabled() &&
 										read_length <  current_read_ahead_size &&
 										file_position + current_read_ahead_size <= file.getLength();

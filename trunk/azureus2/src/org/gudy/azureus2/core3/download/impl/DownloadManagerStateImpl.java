@@ -572,13 +572,12 @@ DownloadManagerStateImpl
 	}
 	
 	public File
-	getStateFile(
-		String	name )
+	getStateFile( )
 	{
 		try{
-			File	parent = new File( ACTIVE_DIR, ByteFormatter.encodeString( torrent.getHash()));
+			File	parent = new File( ACTIVE_DIR, ByteFormatter.encodeString( torrent.getHash()) + File.separatorChar);
 		
-			return( new File( parent, name ));
+			return( StringInterner.internFile(parent));
 
 		}catch( Throwable e ){
 
@@ -1823,6 +1822,37 @@ DownloadManagerStateImpl
 		setListAttribute( name, list );
 	}
 	
+	public String getListAttribute(String name, int idx) {
+		if (name.equals(AT_NETWORKS) || name.equals(AT_PEER_SOURCES))
+			throw new UnsupportedOperationException("not supported right now, implement it yourself :P");
+		
+		informWillRead(name);
+		
+		try {
+			this_mon.enter();
+			List values = (List) attributes.get(name);
+			Object o = values.get(idx);
+			if (o instanceof byte[]) {
+				byte[] bytes = (byte[]) o;
+				String s = null;
+				try {
+					s = StringInterner.intern(new String(bytes, Constants.DEFAULT_ENCODING));
+				} catch (UnsupportedEncodingException e) {
+					Debug.printStackTrace(e);
+				}
+				if (s != null)
+					values.set(idx, s);
+				return s;
+			} else if (o instanceof String) {
+				return (String) o;
+			}
+		} finally {
+			this_mon.exit();
+		}
+		
+		return null;
+	}
+	
 	public String[]
 	getListAttribute(
 		String	attribute_name )
@@ -1846,21 +1876,15 @@ DownloadManagerStateImpl
 			
 			String[]	res = new String[l.size()];
 			
-			for (int i=0;i<l.size();i++){
+			try {
+				res = (String[])l.toArray(res);
+			} catch (ArrayStoreException e)
+			{
+				Debug.out( "getListAttribute( " + attribute_name + ") - object isnt String - " + e );
 				
-				Object	 o = l.get(i);
-				
-				if ( o instanceof String ){
-					
-					res[i] = (String)o;
-					
-				}else{
-					
-					Debug.out( "getListAttribute( " + attribute_name + ") - object isnt String - " + o );
-					
-					return( null );
-				}
+				return( null );
 			}
+
 			
 			return( res );
 		}
@@ -2276,8 +2300,7 @@ DownloadManagerStateImpl
 		}
 		
 		public File
-		getStateFile(
-			String	name )
+		getStateFile( )
 		{
 			return( null );
 		}
@@ -2421,6 +2444,11 @@ DownloadManagerStateImpl
 			String		name,
 			String[]	values )
 		{
+		}
+		
+
+		public String getListAttribute(String name, int idx) {
+			return null;
 		}
 		
 		public String[]

@@ -117,15 +117,18 @@ public class Average {
    * @param value the value to be added to the Average
    */
   public void addValue(long value) {
-    //We get the current time factor.
-    long timeFactor = getEffectiveTime() / refreshRate;
-    //We first update the buffer.
-    update(timeFactor);
-    //And then we add our value to current element
     if(values == null && value != 0)
     	values = new long[nbElements];
     if(values != null)
+    {
+        //We get the current time factor.
+        long timeFactor = getEffectiveTime() / refreshRate;
+        //We first update the buffer.
+        update(timeFactor);
+        //And then we add our value to current element
     	values[(int) (timeFactor % nbElements)] += value;
+    }
+    	
   }
 
   /**
@@ -178,16 +181,15 @@ public class Average {
   }
   
   protected final long getSum() {
-    //We get the current timeFactor
-    long timeFactor = getEffectiveTime() / refreshRate;
-    //We first update the buffer
-    update(timeFactor);
-
     //The sum of all elements used for the average.
     long sum = 0;
     
     if(values != null)
     {
+        //We get the current timeFactor
+        long timeFactor = getEffectiveTime() / refreshRate;
+        //We first update the buffer
+        update(timeFactor);
         //Starting on oldest one (the one after the next one)
         //Ending on last one fully updated (the one previous current one)
         for (long i = timeFactor + 2; i < timeFactor + nbElements; i++) {

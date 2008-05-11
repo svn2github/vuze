@@ -2562,6 +2562,10 @@ DiskManagerImpl
     {
         return( getStorageTypes( download_manager ));
     }
+    
+    public String getStorageType(int fileIndex) {
+    	return( getStorageType( download_manager , fileIndex));
+    }
 
     // Used by DownloadManagerImpl too.
     public static String[] getStorageTypes(DownloadManager download_manager) {
@@ -2574,6 +2578,14 @@ DiskManagerImpl
             }
         }
         return( types );
+    }
+    
+    // Used by DownloadManagerImpl too.
+    public static String getStorageType(DownloadManager download_manager, int fileIndex) {
+        DownloadManagerState state = download_manager.getDownloadState();
+        String type = state.getListAttribute(DownloadManagerState.AT_FILE_STORE_TYPES,fileIndex);
+        
+        return type != null ? type : "L";
     }
     
     private static boolean
@@ -2813,9 +2825,9 @@ DiskManagerImpl
 												}
 
 												public File
-												getCacheFileControlFile(String name)
+												getCacheFileControlFileDir()
 												{
-													return( download_manager.getDownloadState().getStateFile( name ));
+													return( download_manager.getDownloadState().getStateFile( ));
 												}
 												public int
 												getCacheMode()
@@ -3171,9 +3183,7 @@ DiskManagerImpl
                 	public int
                 	getStorageType()
                 	{
-                		String[]    types = getStorageTypes( download_manager );
-
-                		return( types[file_index].equals( "L")?ST_LINEAR:ST_COMPACT );
+                		return( DiskManagerImpl.getStorageType(download_manager, file_index).equals("L")?ST_LINEAR:ST_COMPACT );
                 	}
 
                 	public void
@@ -3194,9 +3204,7 @@ DiskManagerImpl
                 			if ( read_cache_file == null ){
 
                 				try{
-                					String[]    types = getStorageTypes( download_manager );
-
-                					int type = types[file_index].equals( "L")?ST_LINEAR:ST_COMPACT;
+                					int type = DiskManagerImpl.getStorageType(download_manager, file_index).equals( "L")?ST_LINEAR:ST_COMPACT;
 
                 					read_cache_file =
                 						CacheFileManagerFactory.getSingleton().createFile(
@@ -3215,9 +3223,9 @@ DiskManagerImpl
                 								}
 
                 								public File
-                								getCacheFileControlFile(String name)
+                								getCacheFileControlFileDir()
                 								{
-                									return( download_manager.getDownloadState().getStateFile( name ));
+                									return( download_manager.getDownloadState().getStateFile( ));
                 								}
                 								public int
                 								getCacheMode()

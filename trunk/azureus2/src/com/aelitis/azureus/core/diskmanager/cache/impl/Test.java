@@ -93,7 +93,7 @@ Test
 							return( null );
 						}
 						public File 
-						getCacheFileControlFile(String name) 
+						getCacheFileControlFileDir() 
 						{
 							return null;
 						}
@@ -159,7 +159,7 @@ Test
 							return( null );
 						}
 						public File 
-						getCacheFileControlFile(String name) 
+						getCacheFileControlFileDir() 
 						{
 							return null;
 						}
@@ -226,7 +226,7 @@ Test
 							return( null );
 						}
 						public File 
-						getCacheFileControlFile(String name) 
+						getCacheFileControlFileDir() 
 						{
 							return null;
 						}

@@ -39,6 +39,5 @@ FMFileOwner
 	getTorrentFile();
 	
 	public File
-	getControlFile(
-		String	name );
+	getControlFileDir( );
 }

@@ -220,10 +220,9 @@ CacheFileManagerImpl
 							return( owner.getCacheFileTorrentFile());
 						}
 						public File
-						getControlFile(
-							String	name )
+						getControlFileDir( )
 						{
-							return( owner.getCacheFileControlFile( name ));
+							return( owner.getCacheFileControlFileDir( ));
 						}
 					}, file,
 					type==CacheFile.CT_LINEAR?FMFile.FT_LINEAR:FMFile.FT_COMPACT );

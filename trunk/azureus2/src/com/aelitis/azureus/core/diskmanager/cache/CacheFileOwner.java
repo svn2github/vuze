@@ -45,8 +45,7 @@ CacheFileOwner
 	getCacheFileTorrentFile();
 	
 	public File
-	getCacheFileControlFile(
-		String	name );
+	getCacheFileControlFileDir( );
 	
 	public int
 	getCacheMode();
