@@ -18,6 +18,7 @@
 
 package com.aelitis.azureus.buddy.impl;
 
+import java.io.File;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
@@ -39,6 +40,8 @@ public class VuzeQueuedShares
 	private static AEMonitor shares_mon = new AEMonitor("Qd Shares");
 
 	private static String SAVE_FILENAME = "v3.QdShares.dat";
+
+	private static File configDir;
 
 	/**
 	 * @param code
@@ -165,14 +168,14 @@ public class VuzeQueuedShares
 				}
 			}
 
-			FileUtil.writeResilientConfigFile(SAVE_FILENAME, mapSave);
+			FileUtil.writeResilientFile(configDir, SAVE_FILENAME, mapSave, true);
 		} finally {
 			shares_mon.exit();
 		}
 	}
 
 	private static void load() {
-		Map map = FileUtil.readResilientConfigFile(SAVE_FILENAME);
+		Map map = FileUtil.readResilientFile(configDir, SAVE_FILENAME, true);
 
 		List storedBuddyList = MapUtils.getMapList(map, "shares",
 				Collections.EMPTY_LIST);
@@ -198,9 +201,11 @@ public class VuzeQueuedShares
 	/**
 	 * 
 	 *
+	 * @param configDir 
 	 * @since 3.0.5.3
 	 */
-	public static void init() {
+	public static void init(File configDir) {
+		VuzeQueuedShares.configDir = configDir;
 		try {
 			load();
 		} catch (Exception e) {

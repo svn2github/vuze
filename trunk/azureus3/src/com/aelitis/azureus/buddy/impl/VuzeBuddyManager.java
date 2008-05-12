@@ -18,6 +18,7 @@
 
 package com.aelitis.azureus.buddy.impl;
 
+import java.io.File;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
@@ -55,7 +56,17 @@ public class VuzeBuddyManager
 
 	protected static final boolean ALLOW_ONLY_AZ3 = true;
 
-	private static final String SAVE_FILENAME = "v3.Buddies.config";
+	private static final String SAVE_FILENAME = "v3.Friends.dat";
+	
+	private static final String VUZE_MESSAGE_TYPE = "VuzeMessageType";
+
+	private static final String VMT_CHECKINVITES = "CheckInvites";
+
+	private static final String VMT_BUDDYACCEPT = "BuddyAccept";
+
+	private static final String VMT_ACTIVITYENTRY = "ActivityEntry";
+
+	private static final String VMT_BUDDYSYNC = "BuddySync"; 
 
 	private static BuddyPlugin buddyPlugin = null;
 
@@ -70,6 +81,8 @@ public class VuzeBuddyManager
 	private static List listeners = new ArrayList();
 
 	private static boolean skipSave = true;
+
+	private static File configDir;
 
 	
 	private static BuddyPluginBuddyMessageListener buddy_message_handler_listener = 
@@ -237,7 +250,7 @@ public class VuzeBuddyManager
 					});
 			}
 		};
-		
+
 	/**
 	 * @param vuzeBuddyCreator
 	 *
@@ -261,7 +274,11 @@ public class VuzeBuddyManager
 			Debug.out(t);
 		}
 		
-		VuzeQueuedShares.init();
+		if (buddyPlugin == null) {
+			return;
+		}
+		
+		VuzeQueuedShares.init(configDir);
 
 		try {
 			loadVuzeBuddies();
@@ -363,9 +380,9 @@ public class VuzeBuddyManager
 						}
 
 						try {
+							// Don't do relay grab until first sync!
 							PlatformBuddyMessenger.sync(new VuzeBuddySyncListener() {
 								public void syncComplete() {
-									// XXX Don't do relay grab until first sync!
 									PlatformRelayMessenger.relayCheck();
 								}
 							});
@@ -399,7 +416,8 @@ public class VuzeBuddyManager
 			return;
 		}
 		buddyPlugin = _buddyPlugin;
-
+		configDir = buddyPlugin.getBuddyConfigDir();
+		
 		BuddyPluginListener listener = new BuddyPluginListener() {
 			public void messageLogged(String str) {
 			}
@@ -460,20 +478,6 @@ public class VuzeBuddyManager
 				}
 
 				buddy.getMessageHandler().addListener(buddy_message_handler_listener);
-
-				if (false) {
-					// XXX To remove.  We don't need to add plugin buddies anymore
-					//     because we store the info ourselves in v3.Buddies.config
-					String pk = buddy.getPublicKey();
-
-					VuzeBuddy vuzeBuddy = (VuzeBuddy) mapPKtoVuzeBuddy.get(pk);
-					if (vuzeBuddy != null) {
-						// already exists
-						return;
-					}
-
-					createNewBuddy(buddy, true);
-				}
 			}
 		};
 
@@ -519,10 +523,8 @@ public class VuzeBuddyManager
 
 		// TODO create an addListener that triggers for existing buddies
 		buddyPlugin.addListener(listener);
-		boolean saveAfterAdd = false;
 		buddyPlugin.addRequestListener(requestListener);
 		List buddies = buddyPlugin.getBuddies();
-		saveAfterAdd = buddies.size() > 0;
 		for (int i = 0; i < buddies.size(); i++) {
 			BuddyPluginBuddy buddy = (BuddyPluginBuddy) buddies.get(i);
 			if (canHandleBuddy(buddy)) {
@@ -545,11 +547,11 @@ public class VuzeBuddyManager
 		// TODO: Allow for "try again later" for non auth buddy
 		//       (ie.  A sync up will get the new pk and the message will be valid..)
 
-		String mt = MapUtils.getMapString(mapPayload, "VuzeMessageType", "");
+		String mt = MapUtils.getMapString(mapPayload, VUZE_MESSAGE_TYPE, "");
 
 		log("processing payload " + mt + ";auth=" + authorizedBuddy);
 
-		if (mt.equals("ActivityEntry")) {
+		if (mt.equals(VMT_ACTIVITYENTRY)) {
 			Map mapEntry = (Map) MapUtils.getMapObject(mapPayload, "ActivityEntry",
 					new HashMap(), Map.class);
 			VuzeActivitiesEntry entry = VuzeActivitiesManager.createEntryFromMap(
@@ -577,13 +579,13 @@ public class VuzeBuddyManager
 					return "Not Authorized";
 				}
 			}
-		} else if (authorizedBuddy && mt.equals("BuddySync")) {
+		} else if (authorizedBuddy && mt.equals(VMT_BUDDYSYNC)) {
 			try {
 				PlatformBuddyMessenger.sync(null);
 			} catch (NotLoggedInException e) {
 			}
 			return "Ok";
-		} else if (mt.equals("CheckInvites")) {
+		} else if (mt.equals(VMT_CHECKINVITES)) {
 			// TODO: Should call getNumPendingInvites once that's hooked up properly
 			//       For now, this will do
 			try {
@@ -591,7 +593,7 @@ public class VuzeBuddyManager
 			} catch (NotLoggedInException e) {
 			}
 			return "Ok";
-		} else if (mt.equals("BuddyAccept")) {
+		} else if (mt.equals(VMT_BUDDYACCEPT)) {
 			String code = MapUtils.getMapString(mapPayload, "BuddyAcceptCode", null);
 			VuzeQueuedShares.updateSharePK(code, pkSender);
 			
@@ -748,10 +750,14 @@ public class VuzeBuddyManager
 		try {
 			buddy_mon.enter();
 
-			if (!buddyList.contains(buddy)) {
+			int index = Collections.binarySearch(buddyList, buddy);
+			if (index < 0) {
 				log("Add new buddy '" + buddy.getDisplayName() + "' to Manager; #pk:"
 						+ buddy.getPublicKeys().length);
-				buddyList.add(buddy);
+				
+				index = -1 * index - 1; // best guess
+
+				buddyList.add(index, buddy);
 
 				if (createActivityEntry) {
 					String s = "<A HREF=\"" + buddy.getProfileUrl("new-buddy-inform")
@@ -779,6 +785,24 @@ public class VuzeBuddyManager
 		sendQueudShares(buddy);
 		if (createActivityEntry) {
 			removeInviteActivities(buddy.getLoginID());
+		}
+	}
+	
+	/**
+	 * Position of the buddy.
+	 * 
+	 * @param buddy
+	 * @return >= 0: position; < 0: Buddy not in list
+	 *
+	 * @since 3.0.5.3
+	 */
+	public static long getBuddyPosition(VuzeBuddy buddy) {
+		try {
+			buddy_mon.enter();
+
+			return Collections.binarySearch(buddyList, buddy);
+		} finally {
+			buddy_mon.exit();
 		}
 	}
 
@@ -1053,7 +1077,7 @@ public class VuzeBuddyManager
 					new TimerEventPerformer() {
 						public void perform(TimerEvent event) {
 							Map map = new HashMap();
-							map.put("VuzeMessageType", "CheckInvites");
+							map.put(VUZE_MESSAGE_TYPE, VMT_CHECKINVITES);
 
 							try {
 								sendPayloadMap(map, pluginBuddies);
@@ -1099,7 +1123,7 @@ public class VuzeBuddyManager
 			}
 		}
 
-		String inviteMessage = MapUtils.getMapString(invites, "message", null);
+		//String inviteMessage = MapUtils.getMapString(invites, "message", null);
 		List sentInvitations = MapUtils.getMapList(invites, "sentInvitations",
 				Collections.EMPTY_LIST);
 
@@ -1179,7 +1203,7 @@ public class VuzeBuddyManager
 		PlatformBuddyMessenger.sync(new VuzeBuddySyncListener() {
 			public void syncComplete() {
 				Map map = new HashMap();
-				map.put("VuzeMessageType", "BuddyAccept");
+				map.put(VUZE_MESSAGE_TYPE, VMT_BUDDYACCEPT);
 				map.put("BuddyAcceptCode", code);
 
 				for (int i = 0; i < pks.length; i++) {
@@ -1206,7 +1230,7 @@ public class VuzeBuddyManager
 			BuddyPluginBuddy[] buddies) throws NotLoggedInException {
 		final Map map = new HashMap();
 
-		map.put("VuzeMessageType", "ActivityEntry");
+		map.put(VUZE_MESSAGE_TYPE, VMT_ACTIVITYENTRY);
 		map.put("ActivityEntry", entry.toMap());
 
 		sendPayloadMap(map, buddies);
@@ -1234,8 +1258,7 @@ public class VuzeBuddyManager
 						map, SEND_P2P_TIMEOUT);
 			}
 		} catch (BuddyPluginException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log(e);
 		}
 	}
 
@@ -1319,14 +1342,14 @@ public class VuzeBuddyManager
 				}
 			}
 
-			FileUtil.writeResilientConfigFile(SAVE_FILENAME, mapSave);
+			FileUtil.writeResilientFile(configDir, SAVE_FILENAME, mapSave, true);
 		} finally {
 			buddy_mon.exit();
 		}
 	}
 
 	private static void loadVuzeBuddies() {
-		Map map = FileUtil.readResilientConfigFile(SAVE_FILENAME);
+		Map map = FileUtil.readResilientFile(configDir, SAVE_FILENAME, true);
 
 		List storedBuddyList = MapUtils.getMapList(map, "buddies",
 				Collections.EMPTY_LIST);
