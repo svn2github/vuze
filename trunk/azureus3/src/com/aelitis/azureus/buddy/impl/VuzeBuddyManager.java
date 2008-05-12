@@ -1209,6 +1209,7 @@ public class VuzeBuddyManager
 		// sync will get new buddy connection
 		PlatformBuddyMessenger.sync(new VuzeBuddySyncListener() {
 			public void syncComplete() {
+				log("Sending Invite Accept; code=" + code);
 				Map map = new HashMap();
 				map.put(VUZE_MESSAGE_TYPE, VMT_BUDDYACCEPT);
 				map.put("BuddyAcceptCode", code);

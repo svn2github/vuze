@@ -237,7 +237,10 @@ public class VuzeBuddyImpl
 				if (pluginBuddy.getPublicKey().equals(pk)) {
 					iter.remove();
 					if (pluginBuddy.getSubsystem() == BuddyPlugin.SUBSYSTEM_AZ3) {
+						VuzeBuddyManager.log("Remove pk " + pk);
 						pluginBuddy.remove();
+					} else {
+						VuzeBuddyManager.log("Can't remove pk as it's not az3: " + pk);
 					}
 				}
 			}
