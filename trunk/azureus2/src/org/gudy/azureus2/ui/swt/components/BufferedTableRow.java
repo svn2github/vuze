@@ -22,15 +22,11 @@
 package org.gudy.azureus2.ui.swt.components;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.RGB;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
-
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -292,11 +288,23 @@ BufferedTableRow
 		int index = table.indexOf(item);
 		if (index == -1)
 			return false;
-
+		
 		int iTopIndex = table.getTopIndex();
 		if (index < iTopIndex)
 			return false;
 
+		Rectangle b = item.getBounds();
+		
+		if(!Constants.isLinux)
+		{
+			int minY = table.getItem(iTopIndex).getBounds().y;
+			int maxY = minY+table.getClientArea().height-table.getHeaderHeight();
+			
+			return  minY <= b.y && b.y <= maxY;			
+		}
+
+				
+		
 		int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
 		if (index > iBottomIndex)
 			return false;
