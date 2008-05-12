@@ -74,8 +74,10 @@ public class PlatformBuddyMessenger
 					PlatformMessage message,
 					String replyType,
 					Map reply) {
-				// TODO: It's possible we got a error message back that says we
-				//       are logged out.  handle?
+				if (!replyType.equals(PlatformMessenger.REPLY_RESULT)) {
+					return;
+				}
+
 				long updateTime = SystemTime.getCurrentTime();
 
 				List buddies = MapUtils.getMapList(reply, "buddies", null);
@@ -131,6 +133,10 @@ public class PlatformBuddyMessenger
 					PlatformMessage message,
 					String replyType,
 					Map reply) {
+				if (!replyType.equals(PlatformMessenger.REPLY_RESULT)) {
+					return;
+				}
+
 				List invitations = MapUtils.getMapList(reply, "invitations",
 						Collections.EMPTY_LIST);
 				
@@ -263,7 +269,7 @@ public class PlatformBuddyMessenger
 	 * @since 3.0.5.3
 	 */
 	public static void remove(
-			VuzeBuddy buddy,
+			final VuzeBuddy buddy,
 			boolean login)
 		throws NotLoggedInException {
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID_BUDDY,
@@ -279,6 +285,8 @@ public class PlatformBuddyMessenger
 					PlatformMessage message,
 					String replyType,
 					Map reply) {
+				VuzeBuddyManager.log("removal of " + buddy.getLoginID()
+						+ " from webapp: " + replyType);
 			}
 
 			public void messageSent(
