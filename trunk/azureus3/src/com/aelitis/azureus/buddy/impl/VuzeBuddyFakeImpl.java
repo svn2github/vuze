@@ -32,6 +32,12 @@ public class VuzeBuddyFakeImpl
 	extends VuzeBuddyImpl
 {
 	private List pks = new ArrayList();
+	
+	/**
+	 * 
+	 */
+	protected VuzeBuddyFakeImpl() {
+	}
 
 	public void addPublicKey(String pk) {
 		if (!pks.contains(pk)) {

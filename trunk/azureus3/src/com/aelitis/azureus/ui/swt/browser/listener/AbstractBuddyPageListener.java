@@ -1,15 +1,10 @@
 package com.aelitis.azureus.ui.swt.browser.listener;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.eclipse.swt.browser.Browser;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
-import com.aelitis.azureus.buddy.impl.VuzeBuddyImpl;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
@@ -67,7 +62,7 @@ public abstract class AbstractBuddyPageListener
 
 				for (Iterator iterator = invitedBuddyMaps.iterator(); iterator.hasNext();) {
 					Map map = (HashMap) iterator.next();
-					VuzeBuddy vBuddy = new VuzeBuddyImpl();
+					VuzeBuddy vBuddy = VuzeBuddyManager.createPotentialBuddy();
 					vBuddy.setDisplayName(map.get("displayName").toString());
 					vBuddy.setLoginID(map.get("name").toString());
 					invitedBuddies.add(vBuddy);

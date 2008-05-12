@@ -26,7 +26,6 @@ import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.activities.VuzeActivitiesEntryBuddyRequest;
 import com.aelitis.azureus.activities.VuzeActivitiesManager;
 import com.aelitis.azureus.buddy.VuzeBuddy;
-import com.aelitis.azureus.buddy.impl.VuzeBuddyFakeImpl;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
@@ -179,7 +178,7 @@ public class PlatformBuddyMessenger
 						}
 					}
 
-					VuzeBuddy futureBuddy = new VuzeBuddyFakeImpl();
+					VuzeBuddy futureBuddy = VuzeBuddyManager.createPotentialBuddy();
 					futureBuddy.loadFromMap(mapBuddy);
 					futureBuddy.setCode(inviteCode);
 
