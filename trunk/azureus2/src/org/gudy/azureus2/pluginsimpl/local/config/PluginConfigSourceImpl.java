@@ -21,7 +21,6 @@
 package org.gudy.azureus2.pluginsimpl.local.config;
 
 import java.io.File;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import org.gudy.azureus2.core3.config.COConfigurationListener;
@@ -29,6 +28,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.LightHashSet;
 import org.gudy.azureus2.plugins.config.PluginConfigSource;
 import org.gudy.azureus2.plugins.PluginConfig;
 
@@ -45,13 +45,13 @@ public class PluginConfigSourceImpl implements COConfigurationListener, Paramete
 	private String key_prefix = null;
 	private boolean dirty = false;
 	private boolean migrate_settings = false;
-	private HashSet params_monitored;
+	private LightHashSet params_monitored;
 	
 	public PluginConfigSourceImpl(PluginConfig plugin_config, String plugin_id) {
 		this.plugin_config = plugin_config;
 		this.key_prefix = null; // Grab the value at initialising.
 		this.initialised = false;
-		this.params_monitored = new HashSet();
+		this.params_monitored = new LightHashSet();
 		setConfigFilename(plugin_id + ".config");
 	}
   	
