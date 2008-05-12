@@ -416,7 +416,7 @@ public class VuzeBuddyManager
 			return;
 		}
 		buddyPlugin = _buddyPlugin;
-		configDir = buddyPlugin.getBuddyConfigDir();
+		configDir = new File(SystemProperties.getUserPath());
 		
 		BuddyPluginListener listener = new BuddyPluginListener() {
 			public void messageLogged(String str) {
