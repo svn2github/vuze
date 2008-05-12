@@ -97,8 +97,7 @@ public class SWTSkinObjectBasic
 		switchSuffix("", 1, false);
 
 		// setvisible is one time only
-		if (properties.getStringValue(sConfigID + ".visible", "true").equalsIgnoreCase(
-				"false")) {
+		if (!properties.getBooleanValue(sConfigID + ".visible", true)) {
 			setVisible(false);
 		}
 
