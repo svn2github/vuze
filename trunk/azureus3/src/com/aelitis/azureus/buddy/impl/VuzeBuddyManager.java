@@ -29,7 +29,6 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.crypto.VuzeCryptoException;
 import com.aelitis.azureus.core.crypto.VuzeCryptoListener;
 import com.aelitis.azureus.core.crypto.VuzeCryptoManager;
-import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.*;
 import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.plugins.net.buddy.*;
@@ -217,6 +216,14 @@ public class VuzeBuddyManager
 							BuddyPluginBuddyMessage		message )
 						{
 							try{
+								
+								try {
+									BuddyPluginBuddy buddy = message.getBuddy();
+									buddy.setMessagePending();
+									log("Sending YGM to " + buddy.getName());
+								} catch (Exception e) {
+									log(e);
+								}
 							
 								message.delete();
 								
@@ -511,10 +518,10 @@ public class VuzeBuddyManager
 					String pk = pluginBuddy.getPublicKey();
 					VuzeBuddy vuzeBuddy = getBuddyByPK(pk);
 					if (vuzeBuddy != null) {
-						PlatformMessenger.debug("Relay: YGM from " + pk);
+						log("Relay: YGM from " + pk);
 						PlatformRelayMessenger.relayCheck();
 					} else {
-						PlatformMessenger.debug("Relay: YGM from non vuzer " + pk);
+						log("Relay: YGM from non vuzer " + pk);
 					}
 				}
 			}
