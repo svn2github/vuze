@@ -43,6 +43,11 @@ import com.aelitis.azureus.util.MapUtils;
  * @created Apr 14, 2008
  *
  */
+/**
+ * @author TuxPaper
+ * @created May 11, 2008
+ *
+ */
 public class VuzeBuddyImpl
 	implements VuzeBuddy
 {
@@ -53,6 +58,8 @@ public class VuzeBuddyImpl
 	private String code;
 
 	private long lastUpdated;
+
+	private long createdOn;
 
 	private byte[] avatar;
 
@@ -124,6 +131,7 @@ public class VuzeBuddyImpl
 		}
 
 		setCode(MapUtils.getMapString(mapNewBuddy, "code", null));
+		setCreatedOn(MapUtils.getMapLong(mapNewBuddy, "created-on", 0));
 	}
 
 	public Map toMap() {
@@ -131,6 +139,7 @@ public class VuzeBuddyImpl
 		map.put("display-name", displayName);
 		map.put("login-id", loginID);
 		map.put("code", code);
+		map.put("created-on", new Long(createdOn));
 
 		List pks = Arrays.asList(getPublicKeys());
 		map.put("pks", pks);
@@ -295,5 +304,38 @@ public class VuzeBuddyImpl
 	public String getProfileUrl(String referer) {
 		return Constants.URL_PREFIX + Constants.URL_PROFILE + getLoginID() + "?"
 				+ Constants.URL_SUFFIX + "&client_ref=" + referer;
+	}
+
+	// @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+	public int compare(Object arg0, Object arg1) {
+		if (!(arg0 instanceof VuzeBuddy) || !(arg1 instanceof VuzeBuddy)) {
+			return 0;
+		}
+		
+		String c0 = ((VuzeBuddy) arg0).getDisplayName();
+		String c1 = ((VuzeBuddy) arg1).getDisplayName();
+		
+		if (c0 == null) {
+			c0 = "";
+		}
+		if (c1 == null) {
+			c1 = "";
+		}
+		return c0.compareToIgnoreCase(c1);
+	}
+	
+	// @see java.lang.Comparable#compareTo(java.lang.Object)
+	public int compareTo(Object arg0) {
+		return compare(this, arg0);
+	}
+
+	// @see com.aelitis.azureus.buddy.VuzeBuddy#setCreatedOn(long)
+	public void setCreatedOn(long createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	// @see com.aelitis.azureus.buddy.VuzeBuddy#getCreatedOn()
+	public long getCreatedOn() {
+		return createdOn;
 	}
 }

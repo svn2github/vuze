@@ -18,6 +18,7 @@
 
 package com.aelitis.azureus.buddy;
 
+import java.util.Comparator;
 import java.util.Map;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
@@ -30,6 +31,7 @@ import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
  *
  */
 public interface VuzeBuddy
+	extends Comparator, Comparable
 {
 
 	public String getDisplayName();
@@ -80,4 +82,18 @@ public interface VuzeBuddy
 	 * @since 3.0.5.3
 	 */
 	String getProfileUrl(String referer);
+
+	/**
+	 * @param createdOn
+	 *
+	 * @since 3.0.5.3
+	 */
+	void setCreatedOn(long createdOn);
+
+	/**
+	 * @return
+	 *
+	 * @since 3.0.5.3
+	 */
+	long getCreatedOn();
 }
