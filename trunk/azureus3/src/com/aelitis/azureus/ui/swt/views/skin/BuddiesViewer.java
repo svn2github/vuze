@@ -63,6 +63,8 @@ public class BuddiesViewer
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
 		skin = skinObject.getSkin();
 
+		soNoBuddies = skin.getSkinObject("buddies-viewer-nobuddies");
+		
 		SWTSkinObject viewer = skin.getSkinObject(SkinConstants.VIEWID_BUDDIES_VIEWER);
 
 		if (null != viewer) {
@@ -101,8 +103,6 @@ public class BuddiesViewer
 			hookScrollers();
 		}
 
-		soNoBuddies = skin.getSkinObject("buddies-viewer-nobuddies");
-		
 		return null;
 
 	}
