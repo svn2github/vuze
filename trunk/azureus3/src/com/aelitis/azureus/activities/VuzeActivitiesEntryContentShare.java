@@ -95,6 +95,8 @@ public class VuzeActivitiesEntryContentShare
 		}
 		setShowThumb(true);
 		setImageBytes(PlatformTorrentUtils.getContentThumbnail(torrent));
+		// The recipient will set the timestamp
+		setTimestamp(0);
 	}
 
 	// @see com.aelitis.azureus.activities.VuzeActivitiesEntry#loadFromExternalMap(java.util.Map)

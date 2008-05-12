@@ -126,6 +126,9 @@ public class VuzeActivitiesEntry
 	public void loadFromExternalMap(Map platformEntry) {
 		timestamp = SystemTime.getCurrentTime()
 				- MapUtils.getMapLong(platformEntry, "age-ms", 0);
+		if (timestamp == 0) {
+			timestamp = SystemTime.getCurrentTime();
+		}
 		setIconID(MapUtils.getMapString(platformEntry, "icon-id", null));
 		setTypeID(MapUtils.getMapString(platformEntry, "type-id", null), true);
 		setAssetHash(MapUtils.getMapString(platformEntry, "related-asset-hash",
@@ -138,6 +141,9 @@ public class VuzeActivitiesEntry
 
 	public void loadFromInternalMap(Map map) {
 		timestamp = MapUtils.getMapLong(map, "timestamp", 0);
+		if (timestamp == 0) {
+			timestamp = SystemTime.getCurrentTime();
+		}
 		setAssetHash(MapUtils.getMapString(map, "assetHash", null));
 		setIconID(MapUtils.getMapString(map, "icon", null));
 		setTypeID(MapUtils.getMapString(map, "typeID", null), true);
