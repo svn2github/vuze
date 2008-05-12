@@ -36,8 +36,6 @@ import com.aelitis.azureus.core.util.Java15Utils;
 public class 
 ThreadPool 
 {
-	private static final int	IDLE_LINGER_TIME	= 10000;
-	
 	private static final boolean	LOG_WARNINGS	= false;
 	private static final int		WARN_TIME		= 10000;
 	
@@ -195,8 +193,8 @@ ThreadPool
 		execution_limit	= millis;
 	}
 	
-	public void run(AERunnable runnable) {
-		run(runnable, false, false);
+	public threadPoolWorker run(AERunnable runnable) {
+		return( run(runnable, false, false));
 	}
 
 	
@@ -206,7 +204,7 @@ ThreadPool
 	 * @param high_priority
 	 *            inserts at front if tasks queueing
 	 */
-	public void run(AERunnable runnable, boolean high_priority, boolean manualRelease) {
+	public threadPoolWorker run(AERunnable runnable, boolean high_priority, boolean manualRelease) {
 		
 		if(manualRelease && !(runnable instanceof ThreadPoolTask))
 			throw new IllegalArgumentException("manual release only allowed for ThreadPoolTasks");
@@ -256,7 +254,7 @@ ThreadPool
 						runIt( runnable );
 					}
 
-					return;
+					return( recursive_worker );
 				}
 			}
 		}
@@ -285,7 +283,7 @@ ThreadPool
 			}
 		}
 		
-		return;
+		return( allocated_worker );
 	}
 	
 	protected void
