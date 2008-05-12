@@ -50,6 +50,13 @@ public class PlatformKeyExchangeMessenger
 	public static void getPassword(
 			final platformPasswordListener l)
 		throws NotLoggedInException {
+		if (!System.getProperty("crypto.skip", "").equals("")) {
+			VuzeCryptoManager.getSingleton().setPassword(System.getProperty("crypto.skip"));
+			if (l != null) {
+				l.passwordRetrieved();
+			}
+			return;
+		}
 		PlatformMessage message = new PlatformMessage(PREFIX, LISTENER_ID,
 				OP_GETPASSWORD, new Object[0], 1000);
 		message.setRequiresAuthorization(true, false);
@@ -60,6 +67,10 @@ public class PlatformKeyExchangeMessenger
 					PlatformMessage message,
 					String replyType,
 					Map reply) {
+				if (!replyType.equals(PlatformMessenger.REPLY_RESULT)) {
+					return;
+				}
+
 				String pw = MapUtils.getMapString(reply, "password", null);
 				if (pw != null && pw.length() > 0) {
 					// for session
@@ -105,16 +116,11 @@ public class PlatformKeyExchangeMessenger
 					PlatformMessage message,
 					String replyType,
 					Map reply) {
+				VuzeBuddyManager.log("Webapp setPK: " + replyType);
 			}
 
 			public void messageSent(
 					PlatformMessage message) {
-				Map parameters = message.getParameters();
-
-				String sMessage = MapUtils.getMapString(parameters, "message", "");
-				if (sMessage.toLowerCase().equals("ok")) {
-					// do something here?
-				}
 			}
 		};
 		PlatformMessenger.queueMessage(message, listener);
