@@ -54,7 +54,7 @@ public abstract class Result {
 
 
 		object.put("l", DisplayFormatters.formatByteCountToKiBEtc( size ));
-		object.put("lb", new Long( size ));
+		object.put("lb", "" + size  );
 		object.put("cdp", this.getCDPLink());
 		return object;
 	}
