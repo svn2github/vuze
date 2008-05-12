@@ -937,7 +937,7 @@ DownloadManagerImpl
 	}
 	
 	public void setSaveLocationManager(SaveLocationManager manager) {
-		DownloadManagerDefaultPaths.CURRENT_HANDLER = manager;
+		DownloadManagerDefaultPaths.CURRENT_HANDLER = (manager == null) ? getDefaultSaveLocationManager() : manager;				
 	}
 	
 	public SaveLocationManager getSaveLocationManager() {
