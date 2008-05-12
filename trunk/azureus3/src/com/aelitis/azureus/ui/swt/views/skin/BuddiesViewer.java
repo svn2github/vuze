@@ -22,9 +22,7 @@ import com.aelitis.azureus.buddy.VuzeBuddyListener;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
-import com.aelitis.azureus.ui.swt.skin.SWTSkin;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 
 public class BuddiesViewer
@@ -56,6 +54,8 @@ public class BuddiesViewer
 	private Color textLinkColor = null;
 
 	private List sharedAvatars = new ArrayList();
+
+	private SWTSkinObject soNoBuddies;
 
 	public BuddiesViewer() {
 	}
@@ -100,6 +100,9 @@ public class BuddiesViewer
 
 			hookScrollers();
 		}
+
+		soNoBuddies = skin.getSkinObject("buddies-viewer-nobuddies");
+		
 		return null;
 
 	}
@@ -208,6 +211,10 @@ public class BuddiesViewer
 
 		List buddies = getBuddies();
 
+		if (soNoBuddies != null) {
+			soNoBuddies.setVisible(buddies.size() == 0);
+		}
+
 		for (Iterator iterator = buddies.iterator(); iterator.hasNext();) {
 			VuzeBuddySWT vuzeBuddy = (VuzeBuddySWT) iterator.next();
 			createBuddyControls(composite, vuzeBuddy);
@@ -269,6 +276,9 @@ public class BuddiesViewer
 		if (buddy instanceof VuzeBuddySWT) {
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
+					if (soNoBuddies != null) {
+						soNoBuddies.setVisible(false);
+					}
 					createBuddyControls(avatarsPanel, (VuzeBuddySWT) buddy);
 					avatarsPanel.layout();
 					Point size = avatarsPanel.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
