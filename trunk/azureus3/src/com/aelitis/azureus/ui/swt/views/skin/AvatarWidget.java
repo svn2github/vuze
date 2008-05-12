@@ -159,7 +159,7 @@ public class AvatarWidget
 				/*
 				 * Draw the avatar image
 				 */
-				if (null == avatarImage) {
+				if (null == avatarImage || avatarImage.isDisposed()) {
 					//Do something if no Avatar like display default
 				} else {
 					if (true == isEditMode) {
