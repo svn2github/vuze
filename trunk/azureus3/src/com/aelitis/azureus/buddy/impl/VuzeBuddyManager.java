@@ -723,7 +723,7 @@ public class VuzeBuddyManager
 	}
 
 	public static void log(String s) {
-		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.Buddy");
+		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.Friends");
 		diag_logger.log(s);
 		if (Constants.DIAG_TO_STDOUT) {
 			System.out.println(Thread.currentThread().getName() + "|"
@@ -738,7 +738,7 @@ public class VuzeBuddyManager
 	 * @since 3.0.5.3
 	 */
 	public static void log(Exception e) {
-		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.Buddy");
+		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.Friends");
 		diag_logger.log(e);
 		if (Constants.DIAG_TO_STDOUT) {
 			System.err.println(Thread.currentThread().getName() + "|"
@@ -1256,7 +1256,7 @@ public class VuzeBuddyManager
 			throw new NotLoggedInException();
 		}
 		try {
-			log("sending map to " + buddies.length + " buddies");
+			log("sending map to " + buddies.length + " PKs");
 			for (int i = 0; i < buddies.length; i++) {
 				BuddyPluginBuddy pluginBuddy = buddies[i];
 
