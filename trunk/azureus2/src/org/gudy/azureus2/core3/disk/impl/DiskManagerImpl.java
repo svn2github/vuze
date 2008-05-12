@@ -870,15 +870,7 @@ DiskManagerImpl
                 
                 // delete compact files that do not contain pieces we need
                 if(!mustExistOrAllocate && cache_file.exists())
-				{
-					try
-					{
-						data_file.delete();
-					} catch (Exception e)
-					{
-						Debug.printStackTrace(e);
-					}
-				}
+					data_file.delete();
 
                 if ( cache_file.exists() ){
 

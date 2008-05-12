@@ -86,8 +86,7 @@ CacheFileManagerImpl
 	
 	protected CacheFileManagerStatsImpl	stats;
 	
-		// copy on update semantics
-	
+
 	protected Map	torrent_to_cache_file_map	= new LightHashMap();
 	
 	protected long				cache_bytes_written;
@@ -257,13 +256,8 @@ CacheFileManagerImpl
 					updated_cache_files.put( cf, null );
 										
 					if ( tf != null ){
-		
-									
-						Map	new_map = new LightHashMap( torrent_to_cache_file_map );
-								
-						new_map.put( tf, cf );
-				
-						torrent_to_cache_file_map	= new_map;
+
+						torrent_to_cache_file_map.put( tf, cf );
 					}	
 				}finally{
 					
@@ -806,14 +800,9 @@ CacheFileManagerImpl
 			try{
 				this_mon.enter();
 						
-				Map	new_map = new LightHashMap( torrent_to_cache_file_map );
-				
-				new_map.remove( tf );
-	
-				torrent_to_cache_file_map	= new_map;
+				torrent_to_cache_file_map.remove( tf );
 				
 			}finally{
-				
 				this_mon.exit();
 			}
 		}
@@ -833,33 +822,60 @@ CacheFileManagerImpl
     	}
     	
     	
-		Map	map = torrent_to_cache_file_map;
-		
 		TOTorrentFile[]	files = torrent.getFiles();
+		long[] fileOffsets = new long[files.length]; 
 	
 		boolean[] results = new boolean[absoluteOffsets.length];
 		Arrays.fill(results, true); // assume everything to be cached, then check for the opposite 
 		
 		final long first = absoluteOffsets[0];
 		final long last = absoluteOffsets[absoluteOffsets.length-1]+lengths[lengths.length-1];
-		boolean foundFile = false;
 		long fileOffset = 0;
-		for (int i=0;i<files.length;i++){
+		int firstFile = -1;
+		boolean lockAcquired = false;
+		
+		Map localCacheMap = new LightHashMap();
+		
+		try {
+			for(int i=0;i<files.length;i++)
+			{
+				TOTorrentFile	tf = files[i];
+				long length = tf.getLength();
+				fileOffsets[i] = fileOffset;
+				if(firstFile == -1 && fileOffset <= first && first <= fileOffset+length)
+				{
+					firstFile = i;
+					this_mon.enter();
+					lockAcquired = true;
+				}
+				
+				if(fileOffset > last)
+					break;
+
+				if(lockAcquired)
+				{
+					CacheFileWithCache	cache_file = (CacheFileWithCache)torrent_to_cache_file_map.get( tf );
+					localCacheMap.put(tf, cache_file);
+				}
+
+				fileOffset += length;
+			}
+		} finally {
+			if(lockAcquired)
+				this_mon.exit();
+		}
+		
+
+		
+		for (int i=firstFile;-1 < i && i <files.length;i++){
 			TOTorrentFile	tf = files[i];
-			
-			CacheFileWithCache	cache_file = (CacheFileWithCache)map.get( tf );
+			CacheFileWithCache	cache_file = (CacheFileWithCache)localCacheMap.get( tf );
 			
 			long length = tf.getLength();
 			
-			
-			if(fileOffset > last || fileOffset+length < first)
-			{
-				fileOffset += length;
-				continue; // no chunk falls within that file, skip it
-			}
-				
-			
-			foundFile = true;
+			fileOffset = fileOffsets[i];
+			if(fileOffset > last)
+				break;
 			
 			if(cache_file != null)
 				cache_file.getBytesInCache(results,absoluteOffsets,lengths);
@@ -867,11 +883,9 @@ CacheFileManagerImpl
 				for(int j=0;j<results.length;j++) // check if any chunks fall into this non-file
 					if((absoluteOffsets[j] < fileOffset+length && absoluteOffsets[j] > fileOffset) || (absoluteOffsets[j]+lengths[j] < fileOffset+length &&  absoluteOffsets[j]+lengths[j] > fileOffset))
 						results[j] = false; // no file -> no cache entry
-			
-			fileOffset += length;
 		}
 		
-		if(!foundFile)
+		if(!lockAcquired) // never found a matching torrentfile
 			Arrays.fill(results, false);
 		
 
