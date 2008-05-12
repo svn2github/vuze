@@ -2404,9 +2404,15 @@ implements PEPeerTransport
 		}
 
 		supported_messages = (Message[]) messages.toArray(new Message[messages.size()]);
-		if(outgoing_piece_message_handler != null)
+		
+		if(outgoing_piece_message_handler != null){
 			outgoing_piece_message_handler.setPieceVersion(other_peer_piece_version);
-		outgoing_have_message_aggregator.setHaveVersion(other_peer_bt_have_version, other_peer_az_have_version);
+		}
+		
+		if ( outgoing_have_message_aggregator != null ){
+			outgoing_have_message_aggregator.setHaveVersion(other_peer_bt_have_version, other_peer_az_have_version);
+		}
+		
 		this.initPostConnection(handshake);
 	}
   
