@@ -60,6 +60,7 @@ public class BTMessageFactory {
       MessageManager.getSingleton().registerMessageType( new BTUnchoke( MESSAGE_VERSION_SUPPORTS_PADDING ));
       MessageManager.getSingleton().registerMessageType( new BTUninterested( MESSAGE_VERSION_SUPPORTS_PADDING ));
       MessageManager.getSingleton().registerMessageType( new BTLTMessage( null, MESSAGE_VERSION_SUPPORTS_PADDING ));
+      MessageManager.getSingleton().registerMessageType( new BTDHTPort(-1));
     }
     catch( MessageException me ) {  me.printStackTrace();  }
   }

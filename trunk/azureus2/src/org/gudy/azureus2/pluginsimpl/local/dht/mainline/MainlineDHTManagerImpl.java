@@ -50,14 +50,19 @@ public class MainlineDHTManagerImpl implements MainlineDHTManager {
 		// Registering new provider, so enable global DHT support.
 		if (old_provider == null && provider != null) {
 			BTHandshake.setMainlineDHTEnabled(true);
-			try {MessageManager.getSingleton().registerMessageType(new BTDHTPort(-1));}
-			catch (MessageException me) {Debug.printStackTrace(me);}
+			
+			// We no longer dynamically register and unregister the message type.
+			//
+			// This is because if the message type is tied to the BT protocol itself,
+			// which we don't support dynamic registering / unregistering of.
+			//try {MessageManager.getSingleton().registerMessageType(new BTDHTPort(-1));}
+			//catch (MessageException me) {Debug.printStackTrace(me);}
 		}
 		
 		// Deregistering existing provider, so disable global DHT support.
 		else if (old_provider != null && provider == null) {
 			BTHandshake.setMainlineDHTEnabled(false);
-			MessageManager.getSingleton().deregisterMessageType(new BTDHTPort(-1));
+			//MessageManager.getSingleton().deregisterMessageType(new BTDHTPort(-1));
 		}
 		
 	}
