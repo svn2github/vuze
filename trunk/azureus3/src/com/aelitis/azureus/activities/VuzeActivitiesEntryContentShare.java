@@ -61,7 +61,6 @@ public class VuzeActivitiesEntryContentShare
 		boolean ourContent = PlatformTorrentUtils.isContent(torrent, false);
 
 		if (!LoginInfoManager.getInstance().isLoggedIn()) {
-			// TODO: Login!
 			VuzeBuddyManager.log("Can't share download: Not logged in");
 			throw new NotLoggedInException();
 		}
