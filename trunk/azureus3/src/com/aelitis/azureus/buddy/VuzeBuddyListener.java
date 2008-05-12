@@ -18,6 +18,8 @@
  
 package com.aelitis.azureus.buddy;
 
+import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
+
 /**
  * @author TuxPaper
  * @created Apr 23, 2008
@@ -25,20 +27,36 @@ package com.aelitis.azureus.buddy;
  */
 public interface VuzeBuddyListener
 {
-	public void buddyRemoved(VuzeBuddy buddy);
-
 	/**
+	 * A buddy has been removed from the {@link VuzeBuddyManager}
 	 * @param buddy
 	 *
 	 * @since 3.0.5.3
 	 */
-	public void buddyAdded(VuzeBuddy buddy);
+	public void buddyRemoved(VuzeBuddy buddy);
 
 	/**
+	 * A buddy has been added to {@link VuzeBuddyManager}
+	 * 
+	 * @param buddy
+	 *
+	 * @since 3.0.5.3
+	 */
+	public void buddyAdded(VuzeBuddy buddy, int position);
+
+	/**
+	 * A buddy's information has changed (not including position)
+	 * 
 	 * @param buddy
 	 *
 	 * @since 3.0.5.3
 	 */
 	public void buddyChanged(VuzeBuddy buddy);
 
+	/**
+	 * The order of the Buddy List has changed 
+	 *
+	 * @since 3.0.5.3
+	 */
+	public void buddyOrderChanged();
 }

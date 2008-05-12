@@ -779,7 +779,7 @@ public class VuzeBuddyManager
 						entry
 					});
 				}
-				triggerAddListener(buddy);
+				triggerAddListener(buddy, index);
 
 				saveVuzeBuddies();
 			}
@@ -1275,7 +1275,7 @@ public class VuzeBuddyManager
 			Object[] buddies = buddyList.toArray();
 			for (int i = 0; i < buddies.length; i++) {
 				VuzeBuddy buddy = (VuzeBuddy) buddies[i];
-				l.buddyAdded(buddy);
+				l.buddyAdded(buddy, i);
 			}
 		}
 	}
@@ -1302,11 +1302,11 @@ public class VuzeBuddyManager
 	 *
 	 * @since 3.0.5.3
 	 */
-	private static void triggerAddListener(VuzeBuddy buddy) {
+	private static void triggerAddListener(VuzeBuddy buddy, int position) {
 		Object[] listenersArray = listeners.toArray();
 		for (int i = 0; i < listenersArray.length; i++) {
 			VuzeBuddyListener l = (VuzeBuddyListener) listenersArray[i];
-			l.buddyAdded(buddy);
+			l.buddyAdded(buddy, position);
 		}
 	}
 
@@ -1325,6 +1325,14 @@ public class VuzeBuddyManager
 		for (int i = 0; i < listenersArray.length; i++) {
 			VuzeBuddyListener l = (VuzeBuddyListener) listenersArray[i];
 			l.buddyChanged(buddy);
+		}
+	}
+
+	protected static void triggerOrderChangedListener() {
+		Object[] listenersArray = listeners.toArray();
+		for (int i = 0; i < listenersArray.length; i++) {
+			VuzeBuddyListener l = (VuzeBuddyListener) listenersArray[i];
+			l.buddyOrderChanged();
 		}
 	}
 
@@ -1366,5 +1374,16 @@ public class VuzeBuddyManager
 
 			createNewBuddy(mapBuddy, false);
 		}
+	}
+
+	/**
+	 * Created a Buddy object but without a true relationship to the user.
+	 * 
+	 * @return
+	 *
+	 * @since 3.0.5.3
+	 */
+	public static VuzeBuddy createPotentialBuddy() {
+		return new VuzeBuddyFakeImpl();
 	}
 }

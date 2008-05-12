@@ -154,7 +154,14 @@ public class VuzeBuddyImpl
 	}
 
 	public void setDisplayName(String displayName) {
+		if (displayName == null) {
+			displayName = "";
+		}
+		if (displayName.equals(this.displayName)){
+			return;
+		}
 		this.displayName = displayName;
+		VuzeBuddyManager.triggerOrderChangedListener();
 	}
 
 	public String getLoginID() {

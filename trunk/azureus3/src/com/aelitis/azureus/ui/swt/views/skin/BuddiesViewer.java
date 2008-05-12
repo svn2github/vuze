@@ -368,9 +368,14 @@ public class BuddiesViewer
 				updateBuddy(buddy);
 			}
 
-			public void buddyAdded(VuzeBuddy buddy) {
+			public void buddyAdded(VuzeBuddy buddy, int position) {
 				System.out.println("VuzeBuddyManager.buddyAdded" + buddy.getLoginID());//KN: sysout
 				addBuddy(buddy);
+			}
+
+			public void buddyOrderChanged() {
+				// TODO Auto-generated method stub
+				
 			}
 		}, false);
 
