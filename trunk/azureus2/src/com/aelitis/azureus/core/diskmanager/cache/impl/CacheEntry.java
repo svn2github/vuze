@@ -27,7 +27,9 @@ package com.aelitis.azureus.core.diskmanager.cache.impl;
  *
  */
 
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 public class 
 CacheEntry 
@@ -48,6 +50,15 @@ CacheEntry
 	
 	protected int				entry_type;
 	protected int				usage_count;
+	
+	/**
+	 * Constructs a dummy cache entry used to search in a Set 
+	 * @param offset
+	 */
+	CacheEntry(long offset)
+	{
+		this.offset = offset;
+	}
 	
 	protected
 	CacheEntry(

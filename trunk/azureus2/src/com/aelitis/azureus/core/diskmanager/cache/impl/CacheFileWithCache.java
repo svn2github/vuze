@@ -30,13 +30,18 @@ package com.aelitis.azureus.core.diskmanager.cache.impl;
 import java.io.File;
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentFile;
+import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.diskmanager.cache.*;
-import com.aelitis.azureus.core.diskmanager.file.*;
+import com.aelitis.azureus.core.diskmanager.cache.CacheFile;
+import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerException;
+import com.aelitis.azureus.core.diskmanager.file.FMFile;
+import com.aelitis.azureus.core.diskmanager.file.FMFileManagerException;
 
 public class 
 CacheFileWithCache 
@@ -65,11 +70,9 @@ CacheFileWithCache
 				long	offset2 = o2.getFilePosition();
 				int		length2	= o2.getLength();
 				
-				if (	offset1 + length1 <= offset2 ||
-						offset2 + length2 <= offset1 ){
-					
+				if (offset1 + length1 <= offset2 || offset2 + length2 <= offset1 ||  length1 == 0 || length2 == 0)
+				{				
 				}else{
-					
 					Debug.out( "Overlapping cache entries - " + o1.getString() + "/" + o2.getString());
 				}
 		   	
@@ -1201,7 +1204,9 @@ CacheFileWithCache
 		}
 
 		try{
-			Iterator it = cache.iterator();
+			Iterator it = cache.subSet(new CacheEntry(first-1), new CacheEntry(last)).iterator();
+			
+			//cache.subSet(new CacheEntry())
 
 			while(it.hasNext())
 			{

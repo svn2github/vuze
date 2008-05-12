@@ -842,7 +842,7 @@ CacheFileManagerImpl
 				TOTorrentFile	tf = files[i];
 				long length = tf.getLength();
 				fileOffsets[i] = fileOffset;
-				if(firstFile == -1 && fileOffset <= first && first <= fileOffset+length)
+				if(firstFile == -1 && fileOffset <= first && first < fileOffset+length)
 				{
 					firstFile = i;
 					this_mon.enter();
