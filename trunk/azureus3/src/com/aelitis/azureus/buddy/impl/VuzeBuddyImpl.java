@@ -69,11 +69,11 @@ public class VuzeBuddyImpl
 
 	private AEMonitor mon_pluginBuddies = new AEMonitor("pluginBuddies");
 
-	public VuzeBuddyImpl(String publicKey) {
+	protected VuzeBuddyImpl(String publicKey) {
 		addPublicKey(publicKey);
 	}
 
-	public VuzeBuddyImpl() {
+	protected VuzeBuddyImpl() {
 	}
 
 	public void loadFromMap(Map mapNewBuddy) {
