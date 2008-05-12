@@ -1716,7 +1716,11 @@ BuddyPlugin
 	public File
 	getBuddyConfigDir()
 	{
-		return( new File( plugin_interface.getUtilities().getAzureusUserDir(), "friends" ));
+		File path = new File( plugin_interface.getUtilities().getAzureusUserDir(), "friends" );
+		if (!path.isDirectory()) {
+			path.mkdirs();
+		}
+		return( path );
 	}
 	
 	public BuddyPluginAZ2
