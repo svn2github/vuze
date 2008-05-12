@@ -293,18 +293,6 @@ BufferedTableRow
 		if (index < iTopIndex)
 			return false;
 
-		Rectangle b = item.getBounds();
-		
-		if(!Constants.isLinux)
-		{
-			int minY = table.getItem(iTopIndex).getBounds().y;
-			int maxY = minY+table.getClientArea().height-table.getHeaderHeight();
-			
-			return  minY <= b.y && b.y <= maxY;			
-		}
-
-				
-		
 		int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
 		if (index > iBottomIndex)
 			return false;
