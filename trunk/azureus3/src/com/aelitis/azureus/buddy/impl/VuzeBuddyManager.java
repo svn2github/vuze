@@ -519,10 +519,10 @@ public class VuzeBuddyManager
 					VuzeBuddy vuzeBuddy = getBuddyByPK(pk);
 					if (vuzeBuddy != null) {
 						log("Relay: YGM from " + pk);
-						PlatformRelayMessenger.relayCheck();
 					} else {
 						log("Relay: YGM from non vuzer " + pk);
 					}
+					PlatformRelayMessenger.relayCheck();
 				}
 			}
 
