@@ -1713,7 +1713,7 @@ BuddyPlugin
 		return( name.exists());
 	}
 	
-	protected File
+	public File
 	getBuddyConfigDir()
 	{
 		return( new File( plugin_interface.getUtilities().getAzureusUserDir(), "friends" ));
