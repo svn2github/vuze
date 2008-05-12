@@ -28,10 +28,12 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.*;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -40,6 +42,9 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.Timer;
+import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
+import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
+import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -53,18 +58,16 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.table.*;
-import org.gudy.azureus2.ui.swt.views.table.utils.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnEditorWindow;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableContextMenuManager;
 import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.impl.TableViewImpl;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-
-import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
-import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
-
-import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 
 /** 
  * An IView with a sortable table.  Handles composite/menu/table creation
@@ -225,10 +228,10 @@ public class TableViewSWTImpl
 	private ColumnMoveListener columnMoveListener = new ColumnMoveListener();
 
 	/** Queue added datasources and add them on refresh */
-	private ArrayList dataSourcesToAdd = new ArrayList(4);
+	private LightHashSet dataSourcesToAdd = new LightHashSet(4);
 
 	/** Queue removed datasources and add them on refresh */
-	private ArrayList dataSourcesToRemove = new ArrayList(4);
+	private LightHashSet dataSourcesToRemove = new LightHashSet(4);
 
 	private Timer timerProcessDataSources = new Timer("Process Data Sources");
 
@@ -1773,20 +1776,11 @@ public class TableViewSWTImpl
 		try {
 			dataSourceToRow_mon.enter();
 			if (dataSourcesToAdd.size() > 0) {
+				if(dataSourcesToAdd.removeAll(dataSourcesToRemove) && DEBUGADDREMOVE)
+					debug("Saved time by not adding a row that was removed");
 				dataSourcesAdd = dataSourcesToAdd.toArray();
-				dataSourcesToAdd.clear();
-				dataSourcesToAdd.trimToSize();
 
-				// remove the ones we are going to add then delete
-				if (dataSourcesToRemove.size() > 0) {
-					for (int i = 0; i < dataSourcesAdd.length; i++)
-						if (dataSourcesToRemove.contains(dataSourcesAdd[i])) {
-							dataSourcesToRemove.remove(dataSourcesAdd[i]);
-							dataSourcesAdd[i] = null;
-							if (DEBUGADDREMOVE)
-								debug("Saved time by not adding a row that was removed");
-						}
-				}
+				dataSourcesToAdd.clear();
 			}
 			
 			if (dataSourcesToRemove.size() > 0) {
@@ -1794,7 +1788,6 @@ public class TableViewSWTImpl
 				if (DEBUGADDREMOVE && dataSourcesRemove.length > 1)
 					debug("Streamlining removing " + dataSourcesRemove.length + " rows");
 				dataSourcesToRemove.clear();
-				dataSourcesToRemove.trimToSize();
 			}
 		} finally {
 			dataSourceToRow_mon.exit();
