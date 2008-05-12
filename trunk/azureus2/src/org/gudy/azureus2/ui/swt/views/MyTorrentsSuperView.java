@@ -60,6 +60,8 @@ public class MyTorrentsSuperView extends AbstractIView implements
 
 	private Composite form;
 
+	private MyTorrentsView lastSelectedView;
+
   public MyTorrentsSuperView(AzureusCore	_azureus_core) {
   	azureus_core		= _azureus_core;
 
@@ -227,12 +229,12 @@ public class MyTorrentsSuperView extends AbstractIView implements
     // wrap in a try, since the controls may be disposed
     try {
       if (torrentview.isTableFocus())
-        return torrentview;
+        lastSelectedView = torrentview;
       else if (seedingview.isTableFocus())
-        return seedingview;
+      	lastSelectedView = seedingview;
     } catch (Exception ignore) {/*ignore*/}
 
-    return null;
+    return lastSelectedView;
   }
 
   // IconBarEnabler
