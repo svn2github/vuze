@@ -8,6 +8,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -67,6 +68,8 @@ public class AvatarWidget
 
 	private Rectangle avatarBounds = null;
 
+	private Menu menu;
+
 	public AvatarWidget(BuddiesViewer viewer, Point avatarSize,
 			Point avatarImageSize, VuzeBuddySWT vuzeBuddy) {
 
@@ -87,6 +90,7 @@ public class AvatarWidget
 		this.avatarImageSize = avatarImageSize;
 		this.vuzeBuddy = vuzeBuddy;
 		avatarCanvas = new Canvas(parent, SWT.NONE);
+		avatarCanvas.setData("AvatarWidget", this);
 
 		init();
 	}
@@ -311,28 +315,79 @@ public class AvatarWidget
 	}
 	
 	private void initMenu() {
-		Menu menu = new Menu(avatarCanvas);
+		menu = new Menu(avatarCanvas);
 		avatarCanvas.setMenu(menu);
+		
+		menu.addMenuListener(new MenuListener() {
+			boolean bShown = false;
+
+			public void menuHidden(MenuEvent e) {
+				bShown = false;
+
+				if (Constants.isOSX) {
+					return;
+				}
+
+				// Must dispose in an asyncExec, otherwise SWT.Selection doesn't
+				// get fired (async workaround provided by Eclipse Bug #87678)
+				e.widget.getDisplay().asyncExec(new AERunnable() {
+					public void runSupport() {
+						if (bShown || menu.isDisposed()) {
+							return;
+						}
+						MenuItem[] items = menu.getItems();
+						for (int i = 0; i < items.length; i++) {
+							items[i].dispose();
+						}
+					}
+				});
+			}
+
+			public void menuShown(MenuEvent e) {
+				MenuItem[] items = menu.getItems();
+				for (int i = 0; i < items.length; i++) {
+					items[i].dispose();
+				}
+
+				bShown = true;
+
+				fillMenu(menu);
+			}
+		});
+	}
+
+	protected void fillMenu(Menu menu) {
 		MenuItem item;
 
 		item = new MenuItem(menu, SWT.PUSH);
 		Messages.setLanguageText(item, "v3.buddy.menu.viewprofile");
 		item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				doLinkClicked();
-			}
-		});
-
-		item = new MenuItem(menu, SWT.PUSH);
-		Messages.setLanguageText(item, "v3.buddy.menu.remove");
-		item.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent e) {
-				doRemoveBuddy();
+				AvatarWidget aw = (AvatarWidget) avatarCanvas.getData("AvatarWidget");
+				if (aw != null) {
+					aw.doLinkClicked();
+				}
 			}
 		});
 
 		if (Constants.isCVSVersion()) {
-			item = new MenuItem(menu, SWT.PUSH);
+			MenuItem itemMenuDebug = new MenuItem(menu, SWT.CASCADE);
+			itemMenuDebug.setText("Debug");
+			Menu menuCVS = new Menu(menu);
+			itemMenuDebug.setMenu(menuCVS);
+
+			item = new MenuItem(menuCVS, SWT.PUSH);
+			Messages.setLanguageText(item, "v3.buddy.menu.remove");
+			item.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e) {
+					AvatarWidget aw = (AvatarWidget) avatarCanvas.getData("AvatarWidget");
+					if (aw != null) {
+						doRemoveBuddy();
+					}
+				}
+			});
+
+			item = new MenuItem(menuCVS, SWT.PUSH);
 			item.setText("Send Activity Message");
 			item.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e) {
