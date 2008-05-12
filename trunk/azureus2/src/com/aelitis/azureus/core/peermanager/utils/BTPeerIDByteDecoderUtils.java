@@ -206,10 +206,13 @@ class BTPeerIDByteDecoderUtils {
 		 * yet tries to give an Az style peer ID... oh dear.
 		 * 
 		 * BT Next Evolution seems to be in the same boat as well. 
+		 * 
+		 * KTorrent 3 appears to use a dash rather than a final character. 
 		 */
 		if (peer_id.substring(1, 3).equals("FG")) {return true;}
 		if (peer_id.substring(1, 3).equals("LH")) {return true;}
 		if (peer_id.substring(1, 3).equals("NE")) {return true;}
+		if (peer_id.substring(1, 3).equals("KT")) {return true;}
 		return false;
 	}
 	
