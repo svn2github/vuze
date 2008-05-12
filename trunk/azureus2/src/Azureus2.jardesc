@@ -38,6 +38,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.progress"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.ui.SWT"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.pluginsimpl.local.utils"/>
+        <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.ui.selectedcontent"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.mainwindow"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.plugins.magnet"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.pluginsimpl.local.messaging"/>
