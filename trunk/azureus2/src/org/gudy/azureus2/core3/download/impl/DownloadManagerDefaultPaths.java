@@ -13,7 +13,34 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.FileUtil;
 
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.savelocation.SaveLocationChange;
+import org.gudy.azureus2.plugins.download.savelocation.SaveLocationManager;
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+
+
 public class DownloadManagerDefaultPaths {
+	
+	public final static SaveLocationManager DEFAULT_HANDLER = new SaveLocationManager() {
+		public SaveLocationChange onInitialization(Download d) {
+			DownloadManager dm = ((DownloadImpl)d).getDownload();
+			return determinePaths(dm, UPDATE_FOR_MOVE_DETAILS[1]); // 1 - incomplete downloads
+		}
+		public SaveLocationChange onCompletion(Download d) {
+			DownloadManager dm = ((DownloadImpl)d).getDownload();
+			return determinePaths(dm, COMPLETION_DETAILS);
+		}
+		public SaveLocationChange onRemoval(Download d) {
+			DownloadManager dm = ((DownloadImpl)d).getDownload();
+			return determinePaths(dm, REMOVAL_DETAILS);
+		}
+		public SaveLocationChange recalculatePath(Download d) {
+			return null;
+		}
+	};
+	
+	public static SaveLocationManager CURRENT_HANDLER = DEFAULT_HANDLER;
 
     private final static MovementInformation[] COMPLETION_DETAILS;
     private final static MovementInformation[] REMOVAL_DETAILS;
@@ -249,7 +276,7 @@ public class DownloadManagerDefaultPaths {
     /**
      * This does the guts of determining appropriate file paths.
      */
-    private static TransferDetails determinePaths(DownloadManager dm, MovementInformation mi) {
+    private static SaveLocationChange determinePaths(DownloadManager dm, MovementInformation mi) {
 		LogRelation lr = (dm instanceof LogRelation) ? (LogRelation)dm : null;
 		boolean proceed = mi.source.matchesDownload(dm, lr, mi);
 		if (!proceed) {
@@ -269,8 +296,8 @@ public class DownloadManagerDefaultPaths {
 		return mi.transfer.getTransferDetails(dm, lr, mi, target_path);
 	}
 
-	private static TransferDetails determinePaths(DownloadManager dm, MovementInformation[] mis) {
-	    TransferDetails result = null;
+	private static SaveLocationChange determinePaths(DownloadManager dm, MovementInformation[] mis) {
+		SaveLocationChange result = null;
 		for (int i=0; i<mis.length; i++) {
 			result = determinePaths(dm, mis[i]);
 			if (result != null) {return result;}
@@ -286,6 +313,7 @@ public class DownloadManagerDefaultPaths {
 		return source.checkDefaultDir(dm.getSaveLocation().getParentFile(), getDefaultDirs(null));
 	}
 
+	/*
     public static class TransferDetails {
 		public File transfer_destination;
 		public boolean move_torrent;
@@ -296,6 +324,7 @@ public class DownloadManagerDefaultPaths {
 		}
 		
 	}
+	*/
     
     private static interface ContextDescriptor {
     	public String getContext(); 
@@ -462,14 +491,16 @@ public class DownloadManagerDefaultPaths {
 
 	private static class TransferSpecification extends ParameterHelper {
 
-		public TransferDetails getTransferDetails(DownloadManager dm, LogRelation lr,
+		public SaveLocationChange getTransferDetails(DownloadManager dm, LogRelation lr,
 			ContextDescriptor cd, File target_path) {
 			
 			if (target_path == null) {throw new NullPointerException();}
 
-			TransferDetails result = new TransferDetails();
-			result.transfer_destination = target_path;
-			result.move_torrent = this.getBoolean("torrent");
+			SaveLocationChange result = new SaveLocationChange();
+			result.download_location = target_path;
+			if (this.getBoolean("torrent")) {
+				result.torrent_location = target_path;
+			}
 			return result;
 		}
 
@@ -479,31 +510,32 @@ public class DownloadManagerDefaultPaths {
 		return COMPLETION_DETAILS[0].target.getTarget(dm, null, null);
 	}
 	
-	public static TransferDetails onInitialisation(DownloadManager dm) {
-		return determinePaths(dm, UPDATE_FOR_MOVE_DETAILS[1]); // 1 - incomplete downloads
+	public static SaveLocationChange onInitialisation(DownloadManager dm) {
+		return CURRENT_HANDLER.onInitialization(PluginCoreUtils.wrap(dm)); 
 	}
 
-	public static TransferDetails onCompletion(DownloadManager dm, boolean set_on_completion_flag) {
-		TransferDetails td = determinePaths(dm, COMPLETION_DETAILS);
+	public static SaveLocationChange onCompletion(DownloadManager dm, boolean set_on_completion_flag) {
+		LogRelation lr = (dm instanceof LogRelation) ? (LogRelation)dm : null;
 		
-		// Not sure what we should do if we don't have any transfer details w.r.t the
-		// completion flag. I think we probably should - we only want to consider the
-		// settings once - when completion has actually occurred.
-		if (set_on_completion_flag) {
-			LogRelation lr = (dm instanceof LogRelation) ? (LogRelation)dm : null;
-			logInfo("Setting completion flag on " + describe(dm, null) + ", may have been set before.", lr);
-			dm.getDownloadState().setFlag(DownloadManagerState.FLAG_MOVE_ON_COMPLETION_DONE, true);
+		if (dm.getDownloadState().getFlag(DownloadManagerState.FLAG_MOVE_ON_COMPLETION_DONE)) {
+			logInfo("Completion flag already set on " + describe(dm, null) + ", skip move-on-completion behaviour.", lr);
+			return null;
 		}
-		return td;
+		
+		SaveLocationChange sc = CURRENT_HANDLER.onCompletion(PluginCoreUtils.wrap(dm)); 
+		logInfo("Setting completion flag on " + describe(dm, null) + ", may have been set before.", lr);
+		dm.getDownloadState().setFlag(DownloadManagerState.FLAG_MOVE_ON_COMPLETION_DONE, true);
+		return sc;
 	}
 
-	public static TransferDetails onRemoval(DownloadManager dm) {
-		return determinePaths(dm, REMOVAL_DETAILS);
+	public static SaveLocationChange onRemoval(DownloadManager dm) {
+		return CURRENT_HANDLER.onRemoval(PluginCoreUtils.wrap(dm)); 
 	}
 
+	// Hmm... we'll have to remove this.
 	public static File[] getDefaultSavePaths(DownloadManager dm, boolean for_moving) {
 		MovementInformation[] mi = (for_moving) ? UPDATE_FOR_MOVE_DETAILS : UPDATE_FOR_LOGIC_DETAILS;
-		TransferDetails details = determinePaths(dm, mi);
+		SaveLocationChange slc = determinePaths(dm, mi);
 
 		// Always return an array of size two.
 		File[] result = new File[2];
@@ -514,11 +546,9 @@ public class DownloadManagerDefaultPaths {
 			result[1] = new File(dm.getTorrentFileName()).getParentFile();
 		}
 
-		if (details != null) {
-			result[0] = details.transfer_destination;
-			if (details.move_torrent) {
-				result[1] = result[0];
-			}
+		if (slc != null) {
+			result[0] = slc.download_location;
+			result[1] = slc.torrent_location;
 		}
 
 		return result;

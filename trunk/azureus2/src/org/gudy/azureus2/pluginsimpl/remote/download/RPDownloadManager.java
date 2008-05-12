@@ -29,7 +29,9 @@ package org.gudy.azureus2.pluginsimpl.remote.download;
 import java.io.*;
 import java.net.*;
 
+import org.gudy.azureus2.core3.download.impl.DownloadManagerDefaultPaths;
 import org.gudy.azureus2.plugins.download.*;
+import org.gudy.azureus2.plugins.download.savelocation.SaveLocationManager;
 import org.gudy.azureus2.plugins.torrent.*;
 
 import org.gudy.azureus2.pluginsimpl.remote.*;
@@ -444,6 +446,20 @@ RPDownloadManager
 	}
 	
 	public DownloadEventNotifier getGlobalDownloadEventNotifier() {
+		notSupported();
+		return null;
+	}
+	
+	public void setSaveLocationManager(SaveLocationManager manager) {
+		notSupported();
+	}
+	
+	public SaveLocationManager getSaveLocationManager() {
+		notSupported();
+		return null;
+	}	
+
+	public SaveLocationManager getDefaultSaveLocationManager() {
 		notSupported();
 		return null;
 	}

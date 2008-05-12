@@ -53,6 +53,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.plugins.download.savelocation.SaveLocationChange;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
 import com.aelitis.azureus.core.diskmanager.access.DiskAccessController;
@@ -450,10 +451,10 @@ DiskManagerImpl
         	// Check the files don't already exist in their current location.
         	if (!files_exist) {files_exist = this.filesExist();}
         	if (!files_exist) {
-        		DownloadManagerDefaultPaths.TransferDetails transfer = 
+        		SaveLocationChange transfer = 
         			DownloadManagerDefaultPaths.onInitialisation(download_manager);
         		if (transfer != null) {
-        			download_manager.setTorrentSaveDir(transfer.transfer_destination.getAbsolutePath());
+        			download_manager.setTorrentSaveDir(transfer.download_location.getAbsolutePath());
         		}
         	}
         }
@@ -1667,7 +1668,7 @@ DiskManagerImpl
             this.alreadyMoved = true;
         }
 
-        DownloadManagerDefaultPaths.TransferDetails move_details;
+        SaveLocationChange move_details;
         if (removing) {
         	move_details = DownloadManagerDefaultPaths.onRemoval(this.download_manager);
         }
@@ -1678,7 +1679,8 @@ DiskManagerImpl
         if (move_details == null) {return false;}
 
         //Debug.out("Moving data files: -> " + mdi.location);
-        moveFiles(move_details.transfer_destination.getPath(), null, move_details.move_torrent && torrent_file_exists, true);
+        boolean move_torrent = move_details.download_location.equals(move_details.torrent_location);
+        moveFiles(move_details.download_location.getPath(), null, move_torrent && torrent_file_exists, true);
         return true;
 
       }

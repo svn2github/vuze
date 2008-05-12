@@ -57,6 +57,7 @@ import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
+import org.gudy.azureus2.plugins.download.savelocation.SaveLocationChange;
 import org.gudy.azureus2.plugins.network.ConnectionManager;
 
 import com.aelitis.azureus.core.AzureusCoreOperation;
@@ -3569,7 +3570,7 @@ DownloadManagerImpl
 		    		return;
 		    	}
 		    	    	
-		    	DownloadManagerDefaultPaths.TransferDetails move_details;
+		    	SaveLocationChange move_details;
 		    	move_details = DownloadManagerDefaultPaths.onRemoval(this);
 		    	if (move_details == null) {
 		    		return;
@@ -3577,7 +3578,7 @@ DownloadManagerImpl
 		    	
 		    	boolean moved_files = false;
 		    	try {
-		    		this.moveDataFiles(move_details.transfer_destination);
+		    		this.moveDataFiles(move_details.download_location);
 		    		moved_files = true;
 		    	}
 		    	catch (Exception e) {
@@ -3586,9 +3587,9 @@ DownloadManagerImpl
 		    	}
 		    	
 		    	// This code will silently fail if the torrent file doesn't exist.
-		    	if (moved_files && move_details.move_torrent) {
+		    	if (moved_files && move_details.torrent_location != null) {
 		  		    try {
-			    		this.moveTorrentFile(move_details.transfer_destination);
+			    		this.moveTorrentFile(move_details.torrent_location);
 			    	}
 			    	catch (Exception e) {
 			    		Logger.log(new LogAlert(this, true, 

@@ -10,6 +10,7 @@ FEATURE: UI   | Plugin log views now support autoscrolling, pausing and regex fi
 FEATURE: UI   | Plugin menu items which in the right-click menu now appear in the "Torrent" menu also [amc1] 
 FEATURE: UIv3 | Experimental option to use Mozilla/Firefox as browser widget on any platform (XulRunner or Firefox 3 must be installed) [The 8472]
 FEATURE: Plug | Added support for plugins to easily use an external configuration file for settings [amc1]
+FEATURE: Plug | Plugins can now have full control over on-complete and on-removal file moving [amc1]
 FEATURE: Plug | Added resource downloader to provide way to download files from Sourceforge [amc1]
 FEATURE: Plug | Added API methods to generically pop up the message box to a user [amc1]
 FEATURE: Plug | Added various convenience methods for using log views and config models [amc1]

@@ -44,12 +44,14 @@ import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.download.DownloadManagerStats;
 import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
 import org.gudy.azureus2.plugins.download.DownloadWillBeAddedListener;
+import org.gudy.azureus2.plugins.download.savelocation.SaveLocationManager;
 
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.core3.download.impl.DownloadManagerDefaultPaths;
 import org.gudy.azureus2.core3.util.*;
 
 
@@ -933,4 +935,17 @@ DownloadManagerImpl
 	{
 		return( !( download instanceof DownloadImpl ));
 	}
+	
+	public void setSaveLocationManager(SaveLocationManager manager) {
+		DownloadManagerDefaultPaths.CURRENT_HANDLER = manager;
+	}
+	
+	public SaveLocationManager getSaveLocationManager() {
+		return DownloadManagerDefaultPaths.CURRENT_HANDLER;
+	}	
+
+	public SaveLocationManager getDefaultSaveLocationManager() {
+		return DownloadManagerDefaultPaths.DEFAULT_HANDLER;
+	}	
+	
 }

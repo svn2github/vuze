@@ -25,6 +25,7 @@ import java.io.File;
 import java.net.URL;
 
 import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.download.savelocation.SaveLocationManager;
 
 /**
  * The DownloadManager gives access to functions used to monitor and manage Azureus's downloads
@@ -338,4 +339,37 @@ DownloadManager
 	 * @since 3.0.1.5
 	 */
 	public DownloadEventNotifier getGlobalDownloadEventNotifier();
+	
+	/**
+	 * Registers an object to be in control of determining the default save
+	 * location for downloads. You can set it to <tt>null</tt> to remove any
+	 * object which was previously set.
+	 * 
+	 * <p>
+	 * 
+	 * By default, Azureus will use its default save location manager which
+	 * handles <tt>on-completion</tt> and <tt>on-removal</tt> events.
+	 * 
+	 * @param manager The new manager object to use.
+	 * @since 3.0.5.3
+	 */
+	public void setSaveLocationManager(SaveLocationManager manager);
+	
+	/**
+	 * Returns the current {@link SaveLocationManager} object which decides
+	 * where downloads should be placed.
+	 * 
+	 * @return The manager object currently in use.
+	 * @since 3.0.5.3 
+	 */
+	public SaveLocationManager getSaveLocationManager();
+	
+	/**
+	 * Returns the default {@link SaveLocationManager} object that controls
+	 * where downloads should be placed.
+	 * 
+	 * @return The manager object currently in use.
+	 * @since 3.0.5.3 
+	 */
+	public SaveLocationManager getDefaultSaveLocationManager();
 }
