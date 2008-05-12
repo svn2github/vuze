@@ -4,6 +4,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.util.DisplayFormatters;
+
 import com.aelitis.azureus.core.metasearch.utils.MomentsAgoDateFormatter;
 
 public abstract class Result {
@@ -48,15 +50,11 @@ public abstract class Result {
 			object.put( "co", "" + comments );
 		}
 		
-		int size = (int) (this.getSize() / (1024 * 1024 / 100));
-		int sizeI = size / 100;
-		int sizeD = size % 100;
-		String sizeS = sizeI + ".";
-		if(sizeD < 10) {
-			sizeS += "0";
-		}
-		sizeS += sizeD + " MB";
-		object.put("l", sizeS);
+		long size = this.getSize();
+
+
+		object.put("l", DisplayFormatters.formatByteCountToKiBEtc( size ));
+		object.put("lb", new Long( size ));
 		object.put("cdp", this.getCDPLink());
 		return object;
 	}
