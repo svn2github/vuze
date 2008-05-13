@@ -392,7 +392,10 @@ DHTTransportUDPImpl
 	recordSkew(
 		long		skew )
 	{
-		stats.recordSkew( skew );
+		if ( stats != null ){
+		
+			stats.recordSkew( skew );
+		}
 	}
 	
 	protected int
