@@ -25,6 +25,7 @@ package org.gudy.azureus2.core3.download;
 /**
  * @author parg
  *
+ * @deprecated Don't use this class, use DownloadManagerStateAttributeListener instead.
  */
 
 public interface 
