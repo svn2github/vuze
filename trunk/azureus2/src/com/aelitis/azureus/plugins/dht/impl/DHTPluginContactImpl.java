@@ -28,6 +28,7 @@ import java.util.Map;
 import com.aelitis.azureus.core.dht.nat.DHTNATPuncher;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.plugins.dht.DHTPluginContact;
+import com.aelitis.azureus.plugins.dht.DHTPluginProgressListener;
 
 public class
 DHTPluginContactImpl
@@ -43,6 +44,12 @@ DHTPluginContactImpl
 	{
 		plugin	= _plugin;
 		contact	= _contact;
+	}
+	
+	public DHTPluginImpl
+	getDHT()
+	{
+		return( plugin );
 	}
 	
 	protected DHTTransportContact
@@ -93,5 +100,15 @@ DHTPluginContactImpl
 		}
 		
 		return( puncher.punch( "Tunnel", contact, null, null ));
+	}
+
+	public byte[]
+    read(
+    	DHTPluginProgressListener	listener,
+    	byte[]						handler_key,
+    	byte[]						key,
+    	long						timeout )
+	{
+		return( plugin.read( listener, this, handler_key, key, timeout ));
 	}
 }

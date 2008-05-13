@@ -27,6 +27,7 @@ package com.aelitis.azureus.plugins.dht;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -69,6 +70,7 @@ import com.aelitis.azureus.core.dht.transport.udp.impl.DHTTransportUDPImpl;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
+import com.aelitis.azureus.plugins.dht.impl.DHTPluginContactImpl;
 import com.aelitis.azureus.plugins.dht.impl.DHTPluginImpl;
 import com.aelitis.azureus.plugins.dht.impl.DHTPluginImplAdapter;
 
@@ -1339,69 +1341,92 @@ DHTPlugin
 	
 	public void
 	remove(
-		final DHTPluginContact[]			targets,
-		final byte[]						key,
-		final String						description,
-		final DHTPluginOperationListener	listener )
+		DHTPluginContact[]			targets,
+		byte[]						key,
+		String						description,
+		DHTPluginOperationListener	listener )
 	{
 		if ( !isEnabled()){
 			
 			throw( new RuntimeException( "DHT isn't enabled" ));
 		}
-				
-		dhts[0].remove( targets, key, description, listener );
-		
-		for (int i=1;i<dhts.length;i++){
-
-			final int f_i	= i;
 			
-			new AEThread2( "multi-dht: remove", true )
-			{
-				public void
-				run()
-				{
-					dhts[f_i].remove( 
-							targets,
-							key, description, 
-							new DHTPluginOperationListener()
+		Map	dht_map = new HashMap();
+		
+		for (int i=0;i<targets.length;i++){
+			
+			DHTPluginContactImpl target = (DHTPluginContactImpl)targets[i];
+			
+			DHTPluginImpl dht = target.getDHT();
+			
+			List	c = (List)dht_map.get(dht);
+			
+			if ( c == null ){
+				
+				c = new ArrayList();
+				
+				dht_map.put( dht, c );
+			}
+			
+			c.add( target );
+		}
+		
+		Iterator	it = dht_map.entrySet().iterator();
+		
+		boolean 	primary = true;
+		
+		while( it.hasNext()){
+			
+			Map.Entry entry = (Map.Entry)it.next();
+			
+			DHTPluginImpl 	dht 		= (DHTPluginImpl)entry.getKey();
+			List			contacts 	= (List)entry.getValue();
+			
+			DHTPluginContact[]	dht_targets = new DHTPluginContact[contacts.size()];
+			
+			contacts.toArray( dht_targets );
+			
+			if ( primary ){
+				
+				primary = false;
+				
+				dht.remove( dht_targets, key, description, listener );
+				
+			}else{
+				
+					// lazy - just report ops on one dht
+				
+				dht.remove(
+						dht_targets, key, description,
+						new DHTPluginOperationListener()
+						{
+							public void
+							diversified()
 							{
-								public void
-								diversified()
-								{
-								}
-								
-								public void
-								valueRead(
-									DHTPluginContact	originator,
-									DHTPluginValue		value )
-								{
-									if ( TRACE_NON_MAIN ){
-										System.out.println( "DHT_" + f_i + ":remove valueRead" );
-									}
-								}
-								
-								public void
-								valueWritten(
-									DHTPluginContact	target,
-									DHTPluginValue		value )
-								{
-									if ( TRACE_NON_MAIN ){
-										System.out.println( "DHT_" + f_i + ":remove valueWritten" );
-									}
-								}
-								
-								public void
-								complete(
-									byte[]	key,
-									boolean	timeout_occurred )
-								{
-									if ( TRACE_NON_MAIN ){
-										System.out.println( "DHT_" + f_i + ":remove complete, timeout=" + timeout_occurred );
-									}
-								}
-							});
-				}
-			}.start();
+							}
+							
+							public void
+							valueRead(
+								DHTPluginContact	originator,
+								DHTPluginValue		value )
+							{
+							}
+							
+							public void
+							valueWritten(
+								DHTPluginContact	target,
+								DHTPluginValue		value )
+							{
+							}
+							
+							public void
+							complete(
+								byte[]	key,
+								boolean	timeout_occurred )
+							{
+							}
+						});
+			}
 		}
 	}
 	
@@ -1448,66 +1473,6 @@ DHTPlugin
 			
 			dhts[i].registerHandler( handler_key, handler );
 		}
-	}
-	
-	public byte[]
-	read(
-		final DHTPluginProgressListener	listener,
-		final DHTPluginContact			target,
-		final byte[]					handler_key,
-		final byte[]					key,
-		final long						timeout )
-	{
-		if ( !isEnabled()){
-			
-			throw( new RuntimeException( "DHT isn't enabled" ));
-		}
-		
-		for (int i=1;i<dhts.length;i++){
-
-			final int f_i	= i;
-			
-			new AEThread2( "mutli-dht: readXfer", true )
-			{
-				public void
-				run()
-				{
-					dhts[f_i].read( 
-							new DHTPluginProgressListener()
-							{
-								public void
-								reportSize(
-									long	size )
-								{
-									if ( TRACE_NON_MAIN ){
-										System.out.println( "DHT_" + f_i + ":readXfer: size = " + size );
-									}
-								}
-								
-								public void
-								reportActivity(
-									String	str )
-								{
-									if ( TRACE_NON_MAIN ){
-										System.out.println( "DHT_" + f_i + ":readXfer: act = " + str );
-									}
-								}
-								
-								public void
-								reportCompleteness(
-									int		percent )
-								{
-									if ( TRACE_NON_MAIN ){
-										System.out.println( "DHT_" + f_i + ":readXfer: % = " + percent );
-									}
-								}
-							},
-							target, handler_key, key, timeout );
-				}
-			}.start();
-		}
-		
-		return( dhts[0].read( listener, target, handler_key, key, timeout ));
 	}
 
 	public int

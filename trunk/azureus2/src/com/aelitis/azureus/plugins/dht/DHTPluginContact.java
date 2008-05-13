@@ -25,6 +25,7 @@ package com.aelitis.azureus.plugins.dht;
 import java.net.InetSocketAddress;
 import java.util.Map;
 
+
 /**
  * @author parg
  *
@@ -51,4 +52,11 @@ DHTPluginContact
 	
 	public Map
 	openTunnel();
+	
+	public byte[]
+	read(
+		final DHTPluginProgressListener	listener,
+		final byte[]					handler_key,
+		final byte[]					key,
+		final long						timeout );
 }

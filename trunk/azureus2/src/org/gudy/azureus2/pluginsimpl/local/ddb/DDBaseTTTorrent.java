@@ -317,7 +317,7 @@ DDBaseTTTorrent
 			System.out.println( "TorrentXfer: sending via sha1(hash)" );
 		}
 		
-		byte[]	data = ddb.getDHT().read( 
+		byte[]	data = contact.getContact().read( 
 							new DHTPluginProgressListener()
 							{
 								public void
@@ -341,7 +341,6 @@ DDBaseTTTorrent
 									listener.reportCompleteness( percent );
 								}
 							},
-							contact.getContact(),
 							DDBaseHelpers.getKey(type.getClass()).getHash(),
 							lookup_key,
 							timeout );

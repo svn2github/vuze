@@ -627,7 +627,9 @@ DDBaseImpl
 			
 		}else{
 			
-			byte[]	data = getDHT().read( 
+			DHTPluginContact plugin_contact = contact.getContact();
+			
+			byte[]	data = plugin_contact.read( 
 								new DHTPluginProgressListener()
 								{
 									public void
@@ -651,7 +653,6 @@ DDBaseImpl
 										listener.reportCompleteness( percent );
 									}
 								},
-								contact.getContact(),
 								DDBaseHelpers.getKey(type.getClass()).getHash(),
 								((DDBaseKeyImpl)key).getBytes(),
 								timeout );
