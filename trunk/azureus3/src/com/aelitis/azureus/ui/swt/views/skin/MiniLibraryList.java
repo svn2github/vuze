@@ -203,9 +203,13 @@ extends SkinView
 		for (int i = 0; i < selectedDataSources.length; i++) {
 			DownloadManager dm = (DownloadManager) selectedDataSources[i];
 			if (dm != null) {
-				SelectedContent currentContent = new SelectedContent(dm);
-				currentContent.displayName = PlatformTorrentUtils.getContentTitle2(dm);
-				listContent.add(currentContent);
+				SelectedContent currentContent;
+				try {
+					currentContent = new SelectedContent(dm);
+					currentContent.displayName = PlatformTorrentUtils.getContentTitle2(dm);
+					listContent.add(currentContent);
+				} catch (Exception e) {
+				}
 			}
 		}
 		return (SelectedContent[]) listContent.toArray(new SelectedContent[listContent.size()]);

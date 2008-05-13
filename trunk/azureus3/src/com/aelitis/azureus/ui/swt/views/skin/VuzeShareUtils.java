@@ -21,10 +21,14 @@ public class VuzeShareUtils
 
 	public void shareTorrent(DownloadManager dm) {
 		if (null != sharePage) {
-			SelectedContent currentContent = new SelectedContent(dm);
-			currentContent.displayName = PlatformTorrentUtils.getContentTitle2(dm);
+			SelectedContent currentContent;
+			try {
+				currentContent = new SelectedContent(dm);
+				currentContent.displayName = PlatformTorrentUtils.getContentTitle2(dm);
 
-			sharePage.setShareItem(currentContent);
+				sharePage.setShareItem(currentContent);
+			} catch (Exception e) {
+			}
 		}
 	}
 
