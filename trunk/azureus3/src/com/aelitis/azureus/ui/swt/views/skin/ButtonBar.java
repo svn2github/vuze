@@ -28,7 +28,9 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
+import com.aelitis.azureus.util.ILoginInfoListener;
 import com.aelitis.azureus.util.LoginInfoManager;
+import com.aelitis.azureus.util.LoginInfoManager.LoginInfo;
 
 public class ButtonBar
 	extends SkinView
@@ -56,16 +58,6 @@ public class ButtonBar
 		hookAddBuddyButon();
 		hookTuxGoodies();
 
-		//		SelectedContentManager.addCurrentlySelectedContentListener(new SelectedContentListener() {
-		//			public void currentlySectedContentChanged(SelectedContent[] currentContent) {
-		//				if (shareButton != null) {
-		//					boolean disable = currentContent.length == 0;
-		//					if (shareButton.isDisabled() != disable) {
-		//						shareButton.setDisabled(disable);
-		//					}
-		//				}
-		//			}
-		//		});
 		return null;
 	}
 
@@ -146,6 +138,7 @@ public class ButtonBar
 			cancelEditBuddies.setVisible(false);
 		} else if (mode == BuddiesViewer.edit_mode) {
 			cancelEditBuddies.setVisible(true);
+			editButton.setDisabled(true);
 		} else {
 			editButton.setDisabled(true);
 			addBuddyButton.setDisabled(true);
@@ -216,6 +209,19 @@ public class ButtonBar
 			Debug.out("Edit button is not found... skin may not be initialized properly");
 			return;
 		}
+
+		
+		/*
+		 * If the user logs out then turn off the edit mode
+		 */
+		LoginInfoManager.getInstance().addListener(new ILoginInfoListener() {
+			public void loginUpdate(LoginInfo info, boolean isNewLoginID) {
+				if (null == info.userName) {
+					setActiveMode(BuddiesViewer.none_active_mode);
+				}
+			}
+		});
+
 		if (null != editBuddies) {
 			editButton = new SWTSkinButtonUtility(editBuddies);
 			editButton.addSelectionListener(new ButtonListenerAdapter() {
@@ -227,22 +233,18 @@ public class ButtonBar
 						return;
 					}
 
-					if (true == viewer.isEditMode()) {
-						setActiveMode(BuddiesViewer.none_active_mode);
+					/*
+					 * If it was not in edit mode then attempt a login before setting the viewer to edit mode
+					 */
+					if (false == viewer.isEditMode()) {
+						SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
+							public void loginComplete() {
+								setActiveMode(BuddiesViewer.edit_mode);
+							}
+						});
 					} else {
-						setActiveMode(BuddiesViewer.edit_mode);
+						setActiveMode(BuddiesViewer.none_active_mode);
 					}
-					//					
-					//					viewer.setEditMode(!viewer.isEditMode());
-					//					if (true == viewer.isEditMode()) {
-					//						addBuddyButton.setDisabled(true);
-					//						cancelEditBuddies.setVisible(true);
-					//						editBuddies.setVisible(false);
-					//					} else {
-					//						addBuddyButton.setDisabled(false);
-					//						cancelEditBuddies.setVisible(false);
-					//					}
-
 				}
 			});
 		}
@@ -258,11 +260,6 @@ public class ButtonBar
 					if (null != viewer) {
 						setActiveMode(BuddiesViewer.none_active_mode);
 					}
-
-					//					viewer.setEditMode(false);
-					//					addBuddyButton.setDisabled(false);
-					//					cancelEditBuddies.setVisible(false);
-					//					editBuddies.setVisible(true);
 				}
 			});
 		}
@@ -287,8 +284,10 @@ public class ButtonBar
 			public void loginComplete() {
 				_addBuddy();
 			}
+			
 		});
 	}
+
 	/**
 	 * 
 	 *
