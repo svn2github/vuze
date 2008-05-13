@@ -103,7 +103,7 @@ PluginConfig
    * @param key The parameter name.
    * @return The value of the parameter.
    *
-   * @deprecated Use {@link #getCoreBooleanParameter(String)}.
+   * @deprecated Use {@link #getUnsafeBooleanParameter(String)} for internal core parameters, or {@link #getCoreBooleanParameter(String)} for core parameters defined here.
    * @since 2.0.4.2
    */
   public boolean getBooleanParameter(String key);
@@ -115,7 +115,7 @@ PluginConfig
    * @param default_value The default value to return if one is not defined.
    * @return The value of the parameter.
    *
-   * @deprecated Use {@link #getCoreBooleanParameter(String, boolean)}.
+   * @deprecated Use {@link #getUnsafeBooleanParameter(String, boolean)} for internal core parameters, or {@link #getCoreBooleanParameter(String, boolean)} for core parameters defined here.
    * @since 2.0.6.0
    */
   public boolean getBooleanParameter(String key, boolean default_value);
@@ -126,7 +126,7 @@ PluginConfig
    * @param key The parameter name.
    * @return The value of the parameter.
    *
-   * @deprecated Use {@link #getCoreByteParameter(String)}.
+   * @deprecated Use {@link #getUnsafeByteParameter(String)} for internal core parameters, or {@link #getCoreByteParameter(String)} for core parameters defined here.
    * @since 3.0.0.7
    */
   public byte[] getByteParameter(String key);
@@ -138,7 +138,7 @@ PluginConfig
    * @param default_value The default value to return if one is not defined.
    * @return The value of the parameter.
    *
-   * @deprecated Use {@link #getCoreByteParameter(String, byte[])}.
+   * @deprecated Use {@link #getUnsafeByteParameter(String, byte[])} for internal core parameters, or {@link #getCoreByteParameter(String, byte[])} for core parameters defined here.
    * @since 2.1.0.2
    */
   public byte[] getByteParameter(String key, byte[] default_value);
@@ -149,7 +149,7 @@ PluginConfig
    * @param key The parameter name.
    * @return The value of the parameter.
    *
-   * @deprecated Use {@link #getCoreFloatParameter(String)}.
+   * @deprecated Use {@link #getUnsafeFloatParameter(String)} for internal core parameters, or {@link #getCoreFloatParameter(String)} for core parameters defined here.
    * @since 2.1.0.0
    */
   public float getFloatParameter(String key);
@@ -161,7 +161,7 @@ PluginConfig
    * @param default_value The default value to return if one is not defined.
    * @return The value of the parameter.
    *
-   * @deprecated Use {@link #getCoreFloatParameter(String, float)}.
+   * @deprecated Use {@link #getUnsafeFloatParameter(String, float)} for internal core parameters, or {@link #getCoreFloatParameter(String, float)} for core parameters defined here.
    * @since 3.0.0.7
    */
   public float getFloatParameter(String key, float default_value);
@@ -172,7 +172,7 @@ PluginConfig
    * @param key The parameter name.
    * @return The value of the parameter.
    *
-   * @deprecated Use {@link #getCoreIntParameter(String)}.
+   * @deprecated Use {@link #getUnsafeIntParameter(String)} for internal core parameters, or {@link #getCoreIntParameter(String)} for core parameters defined here.
    * @since 2.0.4.2
    */
   public int getIntParameter(String key);
@@ -184,7 +184,7 @@ PluginConfig
    * @param default_value The default value to return if one is not defined.
    * @return The value of the parameter.
    *
-   * @deprecated Use {@link #getCoreIntParameter(String, int)}.
+   * @deprecated Use {@link #getUnsafeIntParameter(String, int)} for internal core parameters, or {@link #getCoreIntParameter(String, int)} for core parameters defined here.
    * @since 2.0.7.0
    */
   public int getIntParameter(String key, int default_value);
@@ -195,7 +195,7 @@ PluginConfig
    * @param key The parameter name.
    * @return The value of the parameter.
    *
-   * @deprecated Use {@link #getCoreLongParameter(String)}. 
+   * @deprecated Use {@link #getUnsafeLongParameter(String)} for internal core parameters, or {@link #getCoreLongParameter(String)} for core parameters defined here.
    * @since 3.0.0.7
    */
   public long getLongParameter(String key);
@@ -207,7 +207,7 @@ PluginConfig
    * @param default_value The default value to return if one is not defined.
    * @return The value of the parameter.
    *
-   * @deprecated Use {@link #getCoreLongParameter(String, long)}.
+   * @deprecated Use {@link #getUnsafeLongParameter(String, long)} for internal core parameters, or {@link #getCoreLongParameter(String, long)} for core parameters defined here.
    * @since 3.0.0.7
    */
   public long getLongParameter(String key, long default_value);
@@ -218,7 +218,7 @@ PluginConfig
    * @param key The parameter name.
    * @return The value of the parameter.
    *
-   * @deprecated Use {@link #getCoreStringParameter(String)}.
+   * @deprecated Use {@link #getUnsafeStringParameter(String)} for internal core parameters, or {@link #getCoreStringParameter(String)} for core parameters defined here.
    * @since 2.0.4.2
    */
   public String getStringParameter(String key);
@@ -230,7 +230,7 @@ PluginConfig
    * @param default_value The default value to return if one is not defined.
    * @return The value of the parameter.
    *
-   * @deprecated Use {@link #getCoreStringParameter(String, String)}.
+   * @deprecated Use {@link #getUnsafeStringParameter(String, String)} for internal core parameters, or {@link #getCoreStringParameter(String, String)} for core parameters defined here.
    * @since 2.1.0.0
    */
   public String getStringParameter(String key, String default_value);
@@ -241,7 +241,7 @@ PluginConfig
    * @param key	The parameter name, which must be one defined from the above core constants.
    * @param value The new value for the parameter.
    * 
-   * @deprecated Use {@link #setCoreBooleanParameter(String, boolean)}.
+   * @deprecated Use {@link #setUnsafeBooleanParameter(String, boolean)} for internal core parameters, or {@link #setCoreBooleanParameter(String, boolean)} for core parameters defined here.
    */
   public void setBooleanParameter(String key, boolean value);
   
@@ -251,7 +251,7 @@ PluginConfig
    * @param key	The parameter name, which must be one defined from the above core constants.
    * @param value The new value for the parameter.
    *
-   * @deprecated Use {@link #setCoreByteParameter(String, byte[])}.
+   * @deprecated Use {@link #setUnsafeByteParameter(String, byte[])} for internal core parameters, or {@link #setCoreByteParameter(String, byte[])} for core parameters defined here.
    * @since 3.0.0.7
    */
   public void setByteParameter(String key, byte[] value);
@@ -263,7 +263,7 @@ PluginConfig
    * @param key	The parameter name, which must be one defined from the above core constants.
    * @param value The new value for the parameter.
    *
-   * @deprecated Use {@link #setCoreFloatParameter(String, float)}.
+   * @deprecated Use {@link #setUnsafeFloatParameter(String, float)} for internal core parameters, or {@link #setCoreFloatParameter(String, float)} for core parameters defined here.
    * @since 3.0.0.7
    */
   public void setFloatParameter(String key, float value);
@@ -274,7 +274,7 @@ PluginConfig
    * @param key	The parameter name, which must be one defined from the above core constants.
    * @param value The new value for the parameter.
    *
-   * @deprecated Use {@link #setIntLongParameter(String, int)}.
+   * @deprecated Use {@link #setUnsafeIntParameter(String, int)} for internal core parameters, or {@link #setCoreIntParameter(String, int)} for core parameters defined here.
    * @since 2.0.8.0
    */
   public void setIntParameter(String key, int value);
@@ -285,7 +285,7 @@ PluginConfig
    * @param key	The parameter name, which must be one defined from the above core constants.
    * @param value The new value for the parameter.
    *
-   * @deprecated Use {@link #setCoreLongParameter(String, long)}.
+   * @deprecated Use {@link #setUnsafeLongParameter(String, long)} for internal core parameters, or {@link #setCoreLongParameter(String, long)} for core parameters defined here.
    * @since 3.0.0.7
    */
   public void setLongParameter(String key, long value);
@@ -296,7 +296,7 @@ PluginConfig
    * @param key	The parameter name, which must be one defined from the above core constants.
    * @param value The new value for the parameter.
    *
-   * @deprecated Use {@link #setCoreStringParameter(String, String)}.
+   * @deprecated Use {@link #setUnsafeStringParameter(String, String)} for internal core parameters, or {@link #setCoreStringParameter(String, String)} for core parameters defined here.
    * @since 3.0.0.7
    */
   public void setStringParameter(String key, String value);
