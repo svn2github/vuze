@@ -166,7 +166,7 @@ PlatformMetaSearchMessenger
 			}
 		}
 		
-		templateInfo[] res_a = new templateInfo[ templates.size()];
+		templateInfo[] res_a = new templateInfo[ res.size()];
 
 		res.toArray( res_a );
 		
@@ -181,6 +181,11 @@ PlatformMetaSearchMessenger
 		Boolean	show	= (Boolean)m.get( "show" );
 		Long	date 	= (Long)m.get( "modified_dt" );
 
+		if ( show == null ){
+			
+			show = new Boolean( true );
+		}
+		
 		if ( id == null || show == null || date == null ){
 
 			PlatformMessenger.debug( "field missing from template info (" + m + ")" );

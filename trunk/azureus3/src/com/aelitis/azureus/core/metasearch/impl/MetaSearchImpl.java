@@ -37,9 +37,7 @@ MetaSearchImpl
 	implements MetaSearch
 {
 	private static final String	CONFIG_FILE = "metasearch.config";
-	
-	private static final MetaSearchImpl singleton = new MetaSearchImpl();
-	
+		
 	private CopyOnWriteList 	engines = new CopyOnWriteList();
 		
 	private boolean config_dirty;
