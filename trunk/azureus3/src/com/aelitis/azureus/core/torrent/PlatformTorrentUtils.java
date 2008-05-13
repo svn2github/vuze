@@ -445,7 +445,7 @@ public class PlatformTorrentUtils
 		host = host.toLowerCase();
 
 		if (!platformHosts.contains(host)) {
-			platformHosts.add(platformHosts);
+			platformHosts.add(host);
 			mapPlatformTrackerTorrents.clear();
 		}
 	}
