@@ -1026,8 +1026,13 @@ PluginConfigImpl
 	public void
 	save()
 	{
-		if (this.external_source != null) {this.external_source.save(true);}
-		else {COConfigurationManager.save();}
+		/**
+		 * We won't redirect the save method to the external source if there is one
+		 * (despite that being the previous behaviour) - the plugin might be setting
+		 * core values.
+		 */
+		//if (this.external_source != null) {this.external_source.save(true);}
+		COConfigurationManager.save();
 	}
 		
 	public File
