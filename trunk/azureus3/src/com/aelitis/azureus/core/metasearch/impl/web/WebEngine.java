@@ -15,8 +15,10 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFact
 import com.aelitis.azureus.core.metasearch.SearchParameter;
 import com.aelitis.azureus.core.metasearch.impl.*;
 
-public abstract class WebEngine extends EngineImpl {
-
+public abstract class 
+WebEngine 
+	extends EngineImpl 
+{
 	public static final int FIELD_NAME = 1;
 	public static final int FIELD_DATE = 2;
 	public static final int FIELD_SIZE = 3;
@@ -260,6 +262,8 @@ public abstract class WebEngine extends EngineImpl {
 				String escapedKeyword = parameter.getValue();
 				searchURL = searchURL.replaceAll("%" + parameter.getMatchPattern(), escapedKeyword);
 			}
+			
+			debugLog( "searchURL=" + searchURL );
 			
 			URL url = new URL(searchURL);
 			

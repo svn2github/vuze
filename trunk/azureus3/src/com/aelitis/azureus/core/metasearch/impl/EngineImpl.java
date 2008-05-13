@@ -325,6 +325,16 @@ EngineImpl
 	}
 	
 	protected void
+	debugLog(
+		String		str )
+	{
+		if ( id == 3 ){
+			
+			log( str );
+		}
+	}
+	
+	protected void
 	log(
 		String		str )
 	{

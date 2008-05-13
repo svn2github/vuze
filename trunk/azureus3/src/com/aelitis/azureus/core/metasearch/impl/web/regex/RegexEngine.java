@@ -17,7 +17,7 @@ import com.aelitis.azureus.core.metasearch.impl.web.WebResult;
 public class 
 RegexEngine 
 	extends WebEngine 
-{
+{	
 	public static Engine
 	importFromBEncodedMap(
 		MetaSearchImpl		meta_search,
@@ -128,9 +128,21 @@ RegexEngine
 		this.pattern		= Pattern.compile(resultPattern);
 	}
 	
-	public Result[] search(SearchParameter[] searchParameters) throws SearchException {
+	public Result[] 
+	search(
+		SearchParameter[] searchParameters ) 
+	
+		throws SearchException 
+	{
+		
+		debugLog( "Search starts" );
 		
 		String page = getWebPageContent(searchParameters);
+		
+		debugLog( "page=" );
+		debugLog( page );
+		
+		debugLog( "pattern=" + pattern_str );
 		
 		FieldMapping[] mappings = getMappings();
 		
@@ -142,6 +154,9 @@ RegexEngine
 				Matcher m = pattern.matcher(page);
 					
 				while(m.find()) {
+					
+					debugLog( "Found match:" );
+					
 					WebResult result = new WebResult(getRootPage(),getBasePage(),getDateParser());
 					for(int i = 0 ; i < mappings.length ; i++) {
 						int group = -1;
@@ -151,8 +166,12 @@ RegexEngine
 							//In "Debug/Test" mode, we should fire an exception / notification
 						}
 						if(group > 0 && group <= m.groupCount()) {
+							
 							int field = mappings[i].getField();
 							String groupContent = m.group(group);
+							
+							debugLog( "    " + field + "=" + groupContent );
+							
 							switch(field) {
 							case FIELD_NAME :
 								result.setNameFromHTML(groupContent);
