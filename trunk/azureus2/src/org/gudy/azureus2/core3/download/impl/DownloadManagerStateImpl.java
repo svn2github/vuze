@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.disk.DiskManagerFactory;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.download.DownloadManagerStateAttributeListener;
 import org.gudy.azureus2.core3.download.DownloadManagerStateEvent;
 import org.gudy.azureus2.core3.download.DownloadManagerStateListener;
 import org.gudy.azureus2.core3.logging.LogEvent;
@@ -51,6 +52,7 @@ import org.gudy.azureus2.core3.util.*;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.core.util.CopyOnWriteMap;
 
 /**
  * @author parg
@@ -126,6 +128,9 @@ DownloadManagerStateImpl
 	private Category 	category;
 
 	private CopyOnWriteList		listeners_cow	= new CopyOnWriteList();
+	
+	private CopyOnWriteMap listeners_read_map_cow  = new CopyOnWriteMap();
+	private CopyOnWriteMap listeners_write_map_cow = new CopyOnWriteMap();
 	
 	private List		will_be_read_list	= new ArrayList();
 	
@@ -2172,6 +2177,19 @@ DownloadManagerStateImpl
 				Debug.printStackTrace(e);
 			}
 		}
+		
+		listeners_ref = null;
+		CopyOnWriteList write_listeners = (CopyOnWriteList)listeners_write_map_cow.get(attribute_name);
+		if (write_listeners != null) {listeners_ref = write_listeners.getList();}
+		
+		if (listeners_ref != null) {
+			for (int i=0;i<listeners_ref.size();i++) {
+				try {((DownloadManagerStateAttributeListener)listeners_ref.get(i)).attributeEventOccurred(download_manager, attribute_name, DownloadManagerStateAttributeListener.WRITTEN);}
+				catch (Throwable t) {Debug.printStackTrace(t);}
+			}
+		}
+
+		
 	}
 	
 	protected void
@@ -2228,6 +2246,20 @@ DownloadManagerStateImpl
 						Debug.printStackTrace(e);
 					}
 				}
+				
+				listeners_ref = null;
+				CopyOnWriteList read_listeners = null;
+				
+				read_listeners = (CopyOnWriteList)listeners_read_map_cow.get(attribute_name);
+				if (read_listeners != null) {listeners_ref = read_listeners.getList();}
+				
+				if (listeners_ref != null) {
+					for (int i=0;i<listeners_ref.size();i++) {
+						try {((DownloadManagerStateAttributeListener)listeners_ref.get(i)).attributeEventOccurred(download_manager, attribute_name, DownloadManagerStateAttributeListener.WILL_BE_READ);}
+						catch (Throwable t) {Debug.printStackTrace(t);}
+					}
+				}
+				
 			}
 		}finally{
 			
@@ -2258,6 +2290,22 @@ DownloadManagerStateImpl
 		DownloadManagerStateListener	l )
 	{
 		listeners_cow.remove(l);
+	}
+	
+	public void addListener(DownloadManagerStateAttributeListener l, String attribute, int event_type) {
+		CopyOnWriteMap map_to_use = (event_type == DownloadManagerStateAttributeListener.WILL_BE_READ) ? this.listeners_read_map_cow : this.listeners_write_map_cow;
+		CopyOnWriteList lst = (CopyOnWriteList)map_to_use.get(attribute);
+		if (lst == null) {
+			lst = new CopyOnWriteList();
+			map_to_use.put(attribute, lst);
+		}
+		lst.add(l);
+	}
+
+	public void removeListener(DownloadManagerStateAttributeListener l, String attribute, int event_type) {
+		CopyOnWriteMap map_to_use = (event_type == DownloadManagerStateAttributeListener.WILL_BE_READ) ? this.listeners_read_map_cow : this.listeners_write_map_cow;
+		CopyOnWriteList lst = (CopyOnWriteList)map_to_use.get(attribute);
+		if (lst != null) {lst.remove(l);}
 	}
 	
 	public void 
@@ -2601,6 +2649,10 @@ DownloadManagerStateImpl
 		removeListener(
 			DownloadManagerStateListener	l )
 		{}
+		
+		public void addListener(DownloadManagerStateAttributeListener l, String attribute, int event_type) {}
+		public void removeListener(DownloadManagerStateAttributeListener l, String attribute, int event_type) {}
+		
         public void setDisplayName(String name) {}
         public String getDisplayName() {return null;}
 

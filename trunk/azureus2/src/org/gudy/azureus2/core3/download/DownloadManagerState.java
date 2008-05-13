@@ -339,4 +339,7 @@ DownloadManagerState
 	 *            counter, decrements/allows flush otherwise
 	 */
 	public void supressStateSave(boolean supress);
+	
+	public void addListener(DownloadManagerStateAttributeListener l, String attribute, int event_type);
+	public void removeListener(DownloadManagerStateAttributeListener l, String attribute, int event_type);
 }
