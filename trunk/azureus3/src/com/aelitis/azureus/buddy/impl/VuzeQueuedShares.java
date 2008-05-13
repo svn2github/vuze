@@ -146,7 +146,7 @@ public class VuzeQueuedShares
 			shares_mon.exit();
 		}
 
-		log("Share Added");
+		log("Share Added for code " + code);
 		return share;
 	}
 
