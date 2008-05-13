@@ -276,6 +276,14 @@ AEDiagnostics
 		return( startup_complete );
 	}
 	
+	public static File
+	getLogDir()
+	{
+		startup();
+
+		return( debug_dir );
+	}
+	
 	public static synchronized AEDiagnosticsLogger
 	getLogger(
 		String		name )
