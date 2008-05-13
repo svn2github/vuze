@@ -8,6 +8,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
@@ -263,14 +264,16 @@ WebEngine
 				searchURL = searchURL.replaceAll("%" + parameter.getMatchPattern(), escapedKeyword);
 			}
 			
-			debugLog( "searchURL=" + searchURL );
+			debugLog( "search_url: " + searchURL );
 			
 			URL url = new URL(searchURL);
 			
 			ResourceDownloaderFactory rdf = StaticUtilities.getResourceDownloaderFactory();
 			
 			ResourceDownloader url_rd = rdf.create( url );
-									
+						
+			setHeaders( url_rd );
+			
 			/*if(cookieParameters!= null && cookieParameters.length > 0) {
 				String 	cookieString = "";
 				String separator = "";
@@ -296,16 +299,23 @@ WebEngine
 
 			String page = sb.toString();
 
+			debugLog( "page:" );
+			debugLog( page );
+
 			// List 	cookie = (List)url_rd.getProperty( "URL_Set-Cookie" );
 			
 			try {
 				Matcher m = baseTagPattern.matcher(page);
 				if(m.find()) {
 					basePage = m.group(1);
+					
+					debugLog( "base_page: " + basePage );
 				}
 			} catch(Exception e) {
 				//No BASE tag in the page
 			}
+			
+			
 			return page;
 				
 		} catch (Exception e) {
@@ -314,6 +324,42 @@ WebEngine
 		return null;
 	}
 
+	protected void
+	setHeaders(
+		ResourceDownloader	rd )
+	{
+			// test headers
+		
+		String s = "SG9zdDogbG9jYWxob3N0OjQ1MTAwClVzZXItQWdlbnQ6IE1vemlsbGEvNS4wIChXaW5kb3dzOyBVOyBXaW5kb3dzIE5UIDUuMTsgZW4tVVM7IHJ2OjEuOC4xLjE0KSBHZWNrby8yMDA4MDQwNCBGaXJlZm94LzIuMC4wLjE0CkFjY2VwdDogdGV4dC94bWwsYXBwbGljYXRpb24veG1sLGFwcGxpY2F0aW9uL3hodG1sK3htbCx0ZXh0L2h0bWw7cT0wLjksdGV4dC9wbGFpbjtxPTAuOCxpbWFnZS9wbmcsKi8qO3E9MC41CkFjY2VwdC1MYW5ndWFnZTogZW4tdXMsZW47cT0wLjUKQWNjZXB0LUVuY29kaW5nOiBnemlwLGRlZmxhdGUKQWNjZXB0LUNoYXJzZXQ6IElTTy04ODU5LTEsdXRmLTg7cT0wLjcsKjtxPTAuNwpLZWVwLUFsaXZlOiAzMDAKQ29ubmVjdGlvbjoga2VlcC1hbGl2ZQ==";
+		
+		try{
+		
+			String header_string = new String( Base64.decode( s ), "UTF-8" );
+		
+			String[]	headers = header_string.split( "\n" );
+			
+			for (int i=0;i<headers.length;i++ ){
+			
+				String	header = headers[i];
+				
+				int	pos = header.indexOf( ':' );
+				
+				if ( pos != -1 ){
+					
+					String	lhs = header.substring(0,pos).trim();
+					String	rhs	= header.substring(pos+1).trim();
+					
+					if ( !lhs.toLowerCase().equals("host")){
+						
+						rd.setProperty( "URL_" + lhs, rhs );
+					}
+				}
+			}
+		}catch( Throwable e ){
+			
+		}
+	}
+	
 	public String getIcon() {
 		if(rootPage != null) {
 			return rootPage + "/favicon.ico";

@@ -134,15 +134,11 @@ RegexEngine
 	
 		throws SearchException 
 	{
-		
-		debugLog( "Search starts" );
-		
+		debugStart();
+				
 		String page = getWebPageContent(searchParameters);
-		
-		debugLog( "page=" );
-		debugLog( page );
-		
-		debugLog( "pattern=" + pattern_str );
+				
+		debugLog( "pattern: " + pattern_str );
 		
 		FieldMapping[] mappings = getMappings();
 		

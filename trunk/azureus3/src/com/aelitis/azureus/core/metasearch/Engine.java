@@ -60,4 +60,7 @@ Engine
 	exportToBencodedMap() 
 	
 		throws IOException;
+	
+	public String
+	getString();
 }

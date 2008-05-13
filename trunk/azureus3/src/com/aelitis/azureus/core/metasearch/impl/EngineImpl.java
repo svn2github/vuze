@@ -21,8 +21,13 @@
 
 package com.aelitis.azureus.core.metasearch.impl;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Map;
+
+import org.gudy.azureus2.core3.util.AEDiagnostics;
 
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.impl.web.json.JSONEngine;
@@ -127,6 +132,7 @@ EngineImpl
 		name			= importString( map, "name" );
 		
 		selected		= importBoolean( map, "selected" );
+		source			= (int)importLong( map, "source", ENGINE_SOURCE_UNKNOWN );
 	}
 	
 	protected void
@@ -142,6 +148,8 @@ EngineImpl
 		exportString( map, "name", name );
 		
 		exportBoolean( map, "selected", selected );
+		
+		map.put( "source", new Long( source ));
 	}
 	
 	protected void
@@ -186,6 +194,17 @@ EngineImpl
 	
 		throws IOException
 	{
+		return( importLong( map, key, 0 ));
+	}
+	
+	protected long
+	importLong(
+		Map		map,
+		String	key,
+		long	def )
+	
+		throws IOException
+	{
 		Object	obj = map.get( key );
 		
 		if ( obj instanceof Long){
@@ -197,7 +216,7 @@ EngineImpl
 			return( Long.parseLong((String)obj));
 		}
 		
-		return( 0 );
+		return( def );
 	}
 
 	protected void
@@ -324,13 +343,39 @@ EngineImpl
 		}
 	}
 	
-	protected void
+	protected File
+	getDebugFile()
+	{
+		return( new File( AEDiagnostics.getLogDir(), "MetaSearch_Engine_" + getId() + ".txt" ));
+	}
+	
+	protected synchronized void
+	debugStart()
+	{
+		getDebugFile().delete();
+	}
+	
+	protected synchronized void
 	debugLog(
 		String		str )
 	{
-		if ( id == 3 ){
+		File f = getDebugFile();
+		
+		PrintWriter	 pw = null;
+		
+		try{
+			pw = new PrintWriter(new FileWriter( f, true ));
 			
-			log( str );
+			pw.println( str );
+			
+		}catch( Throwable e ){
+			
+		}finally{
+			
+			if ( pw != null ){
+				
+				pw.close();
+			}
 		}
 	}
 	
@@ -353,5 +398,11 @@ EngineImpl
 		
 			meta_search.log( "Engine " + getId() + ": " + str, e );
 		}
+	}
+	
+	public String
+	getString()
+	{
+		return( "id=" + getId() + ", name=" + getName() + ", source=" + getSource() + ", selected=" + isSelected());
 	}
 }
