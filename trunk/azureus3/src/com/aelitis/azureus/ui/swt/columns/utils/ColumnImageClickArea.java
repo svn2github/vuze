@@ -21,6 +21,7 @@ package com.aelitis.azureus.ui.swt.columns.utils;
 import org.eclipse.swt.graphics.*;
 
 import com.aelitis.azureus.ui.common.table.TableCellCore;
+import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
@@ -45,6 +46,8 @@ public class ColumnImageClickArea
 
 	private Image image;
 	
+	private Rectangle imageArea;
+	
 	private Image imgOnRow;
 	
 	private Image imgOffRow;
@@ -52,6 +55,10 @@ public class ColumnImageClickArea
 	private boolean mouseDownOn;
 
 	private boolean containsMouse;
+	
+	private float scale = 1.0f;
+	
+	private String tooltip;
 
 	/**
 	 * @param id
@@ -74,8 +81,12 @@ public class ColumnImageClickArea
 			imgOffRow = null;
 			imgOnRow = null;
 		} else {
-			imgOnRow = ImageLoaderFactory.getInstance().getImage(imageID + "-mouseonrow");
-			imgOffRow = ImageLoaderFactory.getInstance().getImage(imageID + "-mouseoffrow");
+			ImageLoader imageLoader = ImageLoaderFactory.getInstance();
+			imgOnRow = imageLoader.getImage(imageID + "-mouseonrow");
+			imgOffRow = imageLoader.getImage(imageID);
+			if (!ImageLoader.isRealImage(imgOnRow)) {
+				imgOnRow = imgOffRow;
+			}
 		}
 		setImage(containsMouse ? imgOnRow : imgOffRow);
 	}
@@ -123,26 +134,21 @@ public class ColumnImageClickArea
 	 * @param image the image to set
 	 */
 	public void setImage(Image image) {
-		Rectangle bounds;
-		
-		if (image == this.image) {
-			return;
-		}
-
 		if (!ImageLoader.isRealImage(image)) {
 			this.image = null;
-			bounds = new Rectangle(0, 0, 0, 0);
+			imageArea = new Rectangle(0, 0, 0, 0);
 		} else {
 			this.image = image;
-			bounds = image.getBounds();
+			imageArea = image.getBounds();
 		}
 
 		if (area == null) {
-			area = bounds;
+			area = new Rectangle(imageArea.x, imageArea.y, imageArea.width, imageArea.height);
 			return;
 		}
-		area.width = bounds.width;
-		area.height = bounds.height;
+		area.width = (int) (imageArea.width * scale);
+		area.height = (int) (imageArea.height * scale);
+		//System.out.println("setImage scale " + scale + ";" + area + ";" + imageArea);
 	}
 
 	public void setPosition(int x, int y) {
@@ -165,8 +171,10 @@ public class ColumnImageClickArea
 					mouseDownOn ? "#ffff00" : "#ff0000"));
 			gcImage.fillRectangle(getArea());
 		}
+		//System.out.println("DI " + image + ";" + imageArea + ";" + area);
 		if (image != null && !image.isDisposed()) {
-			gcImage.drawImage(image, area.x, area.y);
+			gcImage.drawImage(image, imageArea.x, imageArea.y, imageArea.width,
+					imageArea.height, area.x, area.y, area.width, area.height);
 		}
 	}
 
@@ -180,8 +188,10 @@ public class ColumnImageClickArea
 			Point pt = new Point(event.x, event.y);
 			mouseDownOn = getArea().contains(pt);
 			TableCellCore cell = (TableCellCore) event.row.getTableCell(columnID);
-			cell.invalidate();
-			cell.refresh();
+			if (cell != null) {
+				cell.invalidate();
+				cell.refresh();
+			}
 		} else if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP
 				&& mouseDownOn) {
 			mouseDownOn = false;
@@ -194,6 +204,7 @@ public class ColumnImageClickArea
 			mouseEvent.x = event.x; // TODO: Convert to coord relative to image?
 			mouseEvent.y = event.y;
 			mouseEvent.data = this;
+			((TableColumnCore)event.cell.getTableColumn()).invokeCellMouseListeners(mouseEvent);
 			((TableCellCore) event.cell).invokeMouseListeners(mouseEvent);
 		} else if (event.eventType == TableCellMouseEvent.EVENT_MOUSEMOVE) {
 			boolean contains = getArea().contains(event.x, event.y);
@@ -212,14 +223,18 @@ public class ColumnImageClickArea
 			setContainsMouse(null, false);
 			//System.out.println("d=" + image);
 			TableCellCore cell = (TableCellCore) event.row.getTableCell(columnID);
-			cell.invalidate();
-			cell.refresh();
+			if (cell != null) {
+				cell.invalidate();
+				cell.refresh();
+			}
 		} else if (event.eventType == TableCellMouseEvent.EVENT_MOUSEENTER) {
 			setImage(imgOnRow);
 			//System.out.println("e=" + image);
 			TableCellCore cell = (TableCellCore) event.row.getTableCell(columnID);
-			cell.invalidate();
-			cell.refresh();
+			if (cell != null) {
+  			cell.invalidate();
+  			cell.refresh();
+			}
 		}
 	}
 	
@@ -230,7 +245,38 @@ public class ColumnImageClickArea
 				TableCellCore cellCore = (TableCellCore) cell;
 				cellCore.invalidate();
 				cellCore.refresh();
+				if (tooltip != null) {
+  				if (containsMouse) {
+  					cellCore.setToolTip(tooltip);
+  				} else {
+  					Object oldTT = cellCore.getToolTip();
+  					if (tooltip.equals(oldTT)) {
+  						cellCore.setToolTip(null);
+  					}
+  				}
+				}
 			}
 		}
+	}
+
+	public float getScale() {
+		return scale;
+	}
+
+	public void setScale(float scale) {
+		this.scale = scale;
+		setImage(image);
+	}
+
+	public Rectangle getImageArea() {
+		return new Rectangle(imageArea.x, imageArea.y, imageArea.width, imageArea.height);
+	}
+
+	public String getTooltip() {
+		return tooltip;
+	}
+
+	public void setTooltip(String tooltip) {
+		this.tooltip = tooltip;
 	}
 }
