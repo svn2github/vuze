@@ -352,16 +352,18 @@ public class ButtonBar
 			addBuddyButton = new SWTSkinButtonUtility(showHideBuddiesObject);
 			addBuddyButton.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-
-					SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
-						public void loginComplete() {
-							addBuddy();
-						}
-					});
-
+					addBuddy();
 				}
 			});
 		}
+	}
+
+	protected void addBuddy() {
+		SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
+			public void loginComplete() {
+				_addBuddy();
+			}
+		});
 	}
 
 	/**
@@ -369,7 +371,7 @@ public class ButtonBar
 	 *
 	 * @since 3.0.5.3
 	 */
-	protected void addBuddy() {
+	protected void _addBuddy() {
 		BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
 		if (null == viewer) {
 			return;
