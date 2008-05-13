@@ -860,7 +860,11 @@ public class MyTorrentsView
 		for (int i = 0; i < dms.length; i++) {
 			DownloadManager dm = dms[i];
 			if (dm != null) {
-				sc[pos++] = new SelectedContent(dm);
+				try {
+					sc[pos] = new SelectedContent(dm);
+					pos++;
+				} catch (Exception e) {
+				}
 			}
 		}
 		if (pos != dms.length) {

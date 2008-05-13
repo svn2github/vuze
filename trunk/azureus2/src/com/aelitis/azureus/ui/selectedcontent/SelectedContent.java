@@ -36,13 +36,11 @@ public class SelectedContent
 
 	/**
 	 * @param dm2
+	 * @throws Exception 
 	 */
-	public SelectedContent(DownloadManager dm) {
+	public SelectedContent(DownloadManager dm) throws Exception {
 		this.dm = dm;
-		try {
-			this.hash = dm.getTorrent().getHashWrapper().toBase32String();
-		} catch (TOTorrentException e) {
-		}
+		this.hash = dm.getTorrent().getHashWrapper().toBase32String();
 		displayName = dm.getDisplayName();
 	}
 
