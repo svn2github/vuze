@@ -92,6 +92,7 @@ public class PlatformMessenger
 		context.addMessageListener(new LightBoxBrowserRequestListener());
 		context.addMessageListener(new StatusListener());
 		context.addMessageListener(new BrowserRpcBuddyListener());
+		context.addMessageListener(new MetaSearchListener());
 	}
 
 	public static void setAuthorizedTransferListener(
@@ -548,49 +549,59 @@ public class PlatformMessenger
 	private static class fakeContext
 		extends ClientMessageContextImpl
 	{
+		private void
+		log(
+			String str )
+		{
+			if ( System.getProperty( "browser.route.all.external.stimuli.for.testing", "false" ).equalsIgnoreCase( "true" )){
+				
+				System.err.println( str );
+			}
+			debug( str );
+		}
 
 		public fakeContext() {
 			super("fakeContext");
 		}
 
 		public void deregisterBrowser() {
-			debug("deregisterBrowser");
+			log("deregisterBrowser");
 		}
 
 		public void displayBrowserMessage(String message) {
-			debug("displayBrowserMessage");
+			log("displayBrowserMessage - " + message );
 		}
 
 		public boolean executeInBrowser(String javascript) {
-			debug("executeInBrowser");
+			log("executeInBrowser - " + javascript );
 			return false;
 		}
 
 		public Object getBrowserData(String key) {
-			debug("getBrowserData");
+			log("getBrowserData - " + key );
 			return null;
 		}
 
 		public void handleMessage(BrowserMessage message) {
-			debug("handleMessage");
+			log("handleMessage - " + message);
 		}
 
 		public boolean sendBrowserMessage(String key, String op) {
-			debug("sendBrowserMessage");
+			log("sendBrowserMessage - " + key + "/" + op );
 			return false;
 		}
 
 		public boolean sendBrowserMessage(String key, String op, Map params) {
-			debug("sendBrowserMessage");
+			log("sendBrowserMessage - " + key + "/" + op + "/" + params );
 			return false;
 		}
 
 		public void setBrowserData(String key, Object value) {
-			debug("setBrowserData");
+			log("setBrowserData - " + key + "/" + value );
 		}
 
 		public boolean sendBrowserMessage(String key, String op, Collection params) {
-			debug("sendBrowserMessage");
+			log("sendBrowserMessage - " + key + "/" + op + "/" + params );
 			return false;
 		}
 	}

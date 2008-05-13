@@ -168,6 +168,15 @@ public class StimulusRPC
 						} else if (ConfigListener.OP_CHECK_FOR_UPDATES.equals(opId)) {
 							ConfigListener.checkForUpdates();
 						}
+					}else{
+						
+						if ( System.getProperty( "browser.route.all.external.stimuli.for.testing", "false" ).equalsIgnoreCase( "true" )){
+							
+							context.getMessageDispatcher().dispatch(browserMsg);
+						}else{
+							
+							System.err.println( "Unhandled external stimulus: " + browserMsg );
+						}
 					}
 				} catch (Exception e) {
 					Debug.out(e);
