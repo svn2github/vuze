@@ -102,6 +102,10 @@ CopyOnWriteList
 		return( list.size());
 	}
 	
+	public boolean isEmpty() {
+		return list.isEmpty();
+	}
+	
 	/*
 	public int
 	getVersion()
