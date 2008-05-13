@@ -87,6 +87,10 @@ public abstract class AbstractBuddyPageListener
 					confirmationMessage = getmessageObj.toString();
 					System.out.println("confirmationMessage revived: " + confirmationMessage);//KN: sysout
 				}
+				else{
+					confirmationResponse=null;
+					confirmationMessage=null;
+				}
 				handleInviteConfirm();
 			}
 		}

@@ -8,7 +8,6 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
@@ -23,10 +22,12 @@ import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
 import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContentListener;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
-import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.skin.SWTSkin;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
 import com.aelitis.azureus.util.LoginInfoManager;
@@ -48,8 +49,6 @@ public class ButtonBar
 
 	private SWTSkinButtonUtility addBuddyButton = null;
 
-	private SWTSkinButtonUtility shareButton = null;
-
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
 		skin = skinObject.getSkin();
 
@@ -62,20 +61,19 @@ public class ButtonBar
 		}
 
 		hookEditButton();
-		hookShareButon();
 		hookAddBuddyButon();
 		hookTuxGoodies();
-		
-		SelectedContentManager.addCurrentlySelectedContentListener(new SelectedContentListener() {
-			public void currentlySectedContentChanged(SelectedContent[] currentContent) {
-				if (shareButton != null) {
-					boolean disable = currentContent.length == 0;
-					if (shareButton.isDisabled() != disable) {
-						shareButton.setDisabled(disable);
-					}
-				}
-			}
-		});
+
+		//		SelectedContentManager.addCurrentlySelectedContentListener(new SelectedContentListener() {
+		//			public void currentlySectedContentChanged(SelectedContent[] currentContent) {
+		//				if (shareButton != null) {
+		//					boolean disable = currentContent.length == 0;
+		//					if (shareButton.isDisabled() != disable) {
+		//						shareButton.setDisabled(disable);
+		//					}
+		//				}
+		//			}
+		//		});
 		return null;
 	}
 
@@ -97,7 +95,8 @@ public class ButtonBar
 			menuItem.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e) {
 					if (!LoginInfoManager.getInstance().isLoggedIn()) {
-						Utils.openMessageBox(null, SWT.ICON_ERROR, "No", "not logged in. no can do");
+						Utils.openMessageBox(null, SWT.ICON_ERROR, "No",
+								"not logged in. no can do");
 						return;
 					}
 					try {
@@ -114,7 +113,8 @@ public class ButtonBar
 			menuItem.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e) {
 					if (!LoginInfoManager.getInstance().isLoggedIn()) {
-						Utils.openMessageBox(null, SWT.ICON_ERROR, "No", "not logged in. no can do");
+						Utils.openMessageBox(null, SWT.ICON_ERROR, "No",
+								"not logged in. no can do");
 						return;
 					}
 					InputShell is = new InputShell("Moo", "Message:");
@@ -150,7 +150,6 @@ public class ButtonBar
 
 		if (mode == none_active_mode) {
 			editButton.setDisabled(false);
-			shareButton.setDisabled(false);
 			addBuddyButton.setDisabled(false);
 			viewer.setEditMode(false);
 			viewer.setShareMode(false);
@@ -159,7 +158,6 @@ public class ButtonBar
 
 		}
 		editButton.setDisabled(true);
-		shareButton.setDisabled(true);
 		addBuddyButton.setDisabled(true);
 		viewer.setEditMode(false);
 		viewer.setShareMode(false);
@@ -167,7 +165,6 @@ public class ButtonBar
 
 		if (mode == edit_mode) {
 			viewer.setEditMode(true);
-			shareButton.setDisabled(false);
 			addBuddyButton.setDisabled(false);
 		} else if (mode == share_mode) {
 			viewer.setShareMode(true);
@@ -175,78 +172,62 @@ public class ButtonBar
 			addBuddyButton.setDisabled(false);
 		} else if (mode == invite_mode) {
 			viewer.setAddBuddyMode(true);
-			shareButton.setDisabled(false);
 			editButton.setDisabled(false);
 		}
 	}
 
 	private void hookShowHideButon() {
 
-		final SWTSkinObject showHideBuddiesObject = skin.getSkinObject("text-buddy-show-hide");
 		final SWTSkinObject showImageObject = skin.getSkinObject("button-show-footer");
 		final SWTSkinObject hideImageObject = skin.getSkinObject("button-hide-footer");
 		final SWTSkinObject buttonBarObject = skin.getSkinObject("global-button-bar");
-
 		boolean footerVisible = COConfigurationManager.getBooleanParameter("Footer.visible");
-		if (footerVisible) {
-			showImageObject.setVisible(false);
-			hideImageObject.setVisible(true);
-		} else {
-			showImageObject.setVisible(true);
-			hideImageObject.setVisible(false);
-		}
 
-		if (null != showHideBuddiesObject) {
-			final SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(
-					showHideBuddiesObject);
-			btnGo.addSelectionListener(new ButtonListenerAdapter() {
+		if (null != showImageObject && null != hideImageObject) {
 
+			/*
+			 * Initial visibility state of the footer
+			 */
+			if (true == footerVisible) {
+				showImageObject.setVisible(false);
+				hideImageObject.setVisible(true);
+			} else {
+				showImageObject.setVisible(true);
+				hideImageObject.setVisible(false);
+			}
+
+			/*
+			 * Hook 'show' button; when pressed hide it and show the 'hide' button
+			 */
+			final SWTSkinButtonUtility btnShow = new SWTSkinButtonUtility(
+					showImageObject);
+			btnShow.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					/*
-					 * Sets the text according to the visibility of the footer when ever the footer is shown or hidden
-					 */
-					SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_FOOTER);
-					if (skinObject != null) {
-						skinObject.addListener(new SWTSkinObjectListener() {
-
-							public Object eventOccured(SWTSkinObject skinObject,
-									final int eventType, Object params) {
-
-								if (eventType == SWTSkinObjectListener.EVENT_HIDE) {
-									btnGo.setTextID("Button.bar.show");
-									showImageObject.setVisible(true);
-									hideImageObject.setVisible(false);
-
-								} else if (eventType == SWTSkinObjectListener.EVENT_SHOW) {
-									btnGo.setTextID("Button.bar.hide");
-									showImageObject.setVisible(false);
-									hideImageObject.setVisible(true);
-								}
-								return null;
-							}
-						});
-
-						SWTSkinUtils.setVisibility(skin, "Footer.visible",
-								SkinConstants.VIEWID_FOOTER, !skinObject.isVisible());
-
-						Utils.relayout(buttonBarObject.getControl());
-					}
+					hideImageObject.setVisible(true);
+					showImageObject.setVisible(false);
+					SWTSkinUtils.setVisibility(skin, "Footer.visible",
+							SkinConstants.VIEWID_FOOTER, true);
+					Utils.relayout(buttonBarObject.getControl());
 				}
-
 			});
 
 			/*
-			 * Sets the text according to the visibility of the footer on initialization
+			 * Hook 'hide' button; when pressed hide it and show the 'show' button
 			 */
-			SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_FOOTER);
-			if (skinObject != null) {
-				if (true == skinObject.isVisible()) {
-					btnGo.setTextID("Button.bar.hide");
-				} else {
-					btnGo.setTextID("Button.bar.show");
+			final SWTSkinButtonUtility btnHide = new SWTSkinButtonUtility(
+					hideImageObject);
+			btnHide.addSelectionListener(new ButtonListenerAdapter() {
+				public void pressed(SWTSkinButtonUtility buttonUtility) {
+					showImageObject.setVisible(true);
+					hideImageObject.setVisible(false);
+					SWTSkinUtils.setVisibility(skin, "Footer.visible",
+							SkinConstants.VIEWID_FOOTER, false);
+					Utils.relayout(buttonBarObject.getControl());
 				}
-			}
+			});
+
 		}
+
 	}
 
 	private void hookEditButton() {
@@ -270,12 +251,10 @@ public class ButtonBar
 
 					viewer.setEditMode(!viewer.isEditMode());
 					if (true == viewer.isEditMode()) {
-						shareButton.setDisabled(true);
 						addBuddyButton.setDisabled(true);
 						cancelEditBuddies.setVisible(true);
 						editBuddies.setVisible(false);
 					} else {
-						shareButton.setDisabled(false);
 						addBuddyButton.setDisabled(false);
 						cancelEditBuddies.setVisible(false);
 					}
@@ -297,7 +276,6 @@ public class ButtonBar
 					}
 
 					viewer.setEditMode(false);
-					shareButton.setDisabled(false);
 					addBuddyButton.setDisabled(false);
 					cancelEditBuddies.setVisible(false);
 					editBuddies.setVisible(true);
@@ -307,24 +285,24 @@ public class ButtonBar
 
 	}
 
-	private void hookShareButon() {
-
-		final SWTSkinObject showHideBuddiesObject = skin.getSkinObject("button-buddy-share");
-		if (null != showHideBuddiesObject) {
-			shareButton = new SWTSkinButtonUtility(showHideBuddiesObject);
-			shareButton.addSelectionListener(new ButtonListenerAdapter() {
-				public void pressed(final SWTSkinButtonUtility buttonUtility) {
-
-					SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
-						public void loginComplete() {
-							share();
-						}
-					});
-
-				}
-			});
-		}
-	}
+	//	private void hookShareButon() {
+	//
+	//		final SWTSkinObject showHideBuddiesObject = skin.getSkinObject("button-buddy-share");
+	//		if (null != showHideBuddiesObject) {
+	//			shareButton = new SWTSkinButtonUtility(showHideBuddiesObject);
+	//			shareButton.addSelectionListener(new ButtonListenerAdapter() {
+	//				public void pressed(final SWTSkinButtonUtility buttonUtility) {
+	//
+	//					SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
+	//						public void loginComplete() {
+	//							share();
+	//						}
+	//					});
+	//
+	//				}
+	//			});
+	//		}
+	//	}
 
 	private void share() {
 		SelectedContent[] selectedContent = SelectedContentManager.getCurrentlySelectedContent();
@@ -366,7 +344,7 @@ public class ButtonBar
 			}
 		}
 	}
-		
+
 	private void hookAddBuddyButon() {
 
 		final SWTSkinObject showHideBuddiesObject = skin.getSkinObject("button-buddy-add");
@@ -413,10 +391,8 @@ public class ButtonBar
 							"inviteFromShare(" + false + ")");
 				}
 				editButton.setDisabled(true);
-				shareButton.setDisabled(true);
 			} else {
 				editButton.setDisabled(false);
-				shareButton.setDisabled(false);
 			}
 		}
 	}
@@ -429,7 +405,4 @@ public class ButtonBar
 		return addBuddyButton;
 	}
 
-	public SWTSkinButtonUtility getShareButton() {
-		return shareButton;
-	}
 }
