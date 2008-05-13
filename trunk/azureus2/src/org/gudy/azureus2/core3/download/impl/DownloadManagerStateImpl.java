@@ -1836,6 +1836,8 @@ DownloadManagerStateImpl
 		try {
 			this_mon.enter();
 			List values = (List) attributes.get(name);
+			if(values == null || idx >= values.size() || idx < 0)
+				return null;
 			Object o = values.get(idx);
 			if (o instanceof byte[]) {
 				byte[] bytes = (byte[]) o;
