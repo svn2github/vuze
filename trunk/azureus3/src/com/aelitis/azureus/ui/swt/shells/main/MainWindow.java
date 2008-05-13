@@ -493,9 +493,12 @@ public class MainWindow
 								public void completed(ProgressEvent event) {
 									try{
 										s = browser.getText();
-										
+
+										// authFail message is "authentication required"
+										// catch a little bit more, just in case 
 										boolean authFail = s.indexOf(";exception;") > 0
-												&& (s.indexOf("authenticated session required") > 0 || s.indexOf("user must be logged in") > 0);
+												&& s.indexOf("authenticat") > 0
+												&& s.indexOf("required") > 0;
 
 										int i = s.indexOf("0;");
 
