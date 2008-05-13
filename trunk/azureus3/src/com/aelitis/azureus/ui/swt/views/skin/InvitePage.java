@@ -55,17 +55,40 @@ public class InvitePage
 			content.layout();
 
 			/*
+			 * Calling to initialize the context
+			 */
+			getMessageContext();
+
+		}
+		return browser;
+	}
+
+	public Control getControl() {
+		return content;
+	}
+
+	public ClientMessageContext getMessageContext() {
+		if (null == context) {
+			context = new BrowserContext("buddy-page-listener-invite" + Math.random(),
+					getBrowser(), null, true);
+			
+			/*
+			 * Setting inviteFromShare to false in the browser
+			 */
+			context.executeInBrowser("inviteFromShare(" + false + ")");
+			
+			/*
 			 * Add the appropriate messaging listeners
 			 */
 			getMessageContext().addMessageListener(
-					new AbstractBuddyPageListener(browser) {
+					new AbstractBuddyPageListener(getBrowser()) {
 
 						public void handleCancel() {
 							System.out.println("'Cancel' called from invite buddy page");//KN: sysout
 
 							ButtonBar buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
 							if (null != buttonBar) {
-								buttonBar.setActiveMode(ButtonBar.none_active_mode);
+								buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
 							}
 
 							getDetailPanel().show(false);
@@ -77,7 +100,7 @@ public class InvitePage
 
 							ButtonBar buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
 							if (null != buttonBar) {
-								buttonBar.setActiveMode(ButtonBar.none_active_mode);
+								buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
 							}
 
 							getDetailPanel().show(false);
@@ -109,25 +132,17 @@ public class InvitePage
 					}
 
 			);
-
-		}
-		return browser;
-	}
-
-	public Control getControl() {
-		return content;
-	}
-
-	public ClientMessageContext getMessageContext() {
-		if (null == context) {
-			context = new BrowserContext("buddy-page-listener-invite" + Math.random(),
-					getBrowser(), null, true);
 		}
 		return context;
 	}
 
 	public void refresh() {
-		// Does nothing
+		/*
+		 * Calling to init the browser if it's not been done already
+		 */
+		if(null == browser){
+			getBrowser();
+		}
 
 	}
 

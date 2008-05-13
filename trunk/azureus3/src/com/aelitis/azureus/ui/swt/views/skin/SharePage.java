@@ -395,7 +395,7 @@ public class SharePage
 
 				ButtonBar buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
 				if (null != buttonBar) {
-					buttonBar.setActiveMode(ButtonBar.none_active_mode);
+					buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
 				}
 				inviteeList.setText(""); //TODO finish clearing out when user canceled!!!!!
 				getDetailPanel().show(false);
@@ -454,6 +454,88 @@ public class SharePage
 		if (null == context) {
 			context = new BrowserContext("buddy-page-listener-share" + Math.random(),
 					getBrowser(), null, true);
+			/*
+			 * Setting inviteFromShare to true in the browser
+			 */
+			context.executeInBrowser("inviteFromShare(" + true + ")");
+
+			/*
+			 * Add the appropriate messaging listeners
+			 */
+			context.addMessageListener(new AbstractBuddyPageListener(getBrowser()) {
+
+				public void handleCancel() {
+					System.out.println("'Cancel' called from share->invite buddy page");//KN: sysout
+
+					activateFirstPanel();
+				}
+
+				public void handleClose() {
+					System.out.println("'Close' called from share->invite buddy page");//KN: sysout
+					activateFirstPanel();
+				}
+
+				public void handleBuddyInvites() {
+
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							inviteeList.setText("");
+							for (Iterator iterator = getInvitedBuddies().iterator(); iterator.hasNext();) {
+								VuzeBuddy buddy = (VuzeBuddy) iterator.next();
+								inviteeList.append(buddy.getDisplayName() + "\n");
+							}
+							if (true == inviteeList.getCharCount() > 0) {
+								Messages.setLanguageText(addBuddyButton,
+										"v3.Share.add.or.remove.buddy");
+							} else {
+								Messages.setLanguageText(addBuddyButton, "v3.Share.add.buddy");
+							}
+							inviteePanel.layout();
+						}
+					});
+
+				}
+
+				public void handleEmailInvites() {
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							for (Iterator iterator = getInvitedEmails().iterator(); iterator.hasNext();) {
+								inviteeList.append(iterator.next() + "\n");//KN:
+							}
+
+							if (true == inviteeList.getCharCount() > 0) {
+								Messages.setLanguageText(addBuddyButton,
+										"v3.Share.add.or.remove.buddy");
+							} else {
+								Messages.setLanguageText(addBuddyButton, "v3.Share.add.buddy");
+							}
+
+							inviteePanel.layout();
+						}
+					});
+
+				}
+
+				public void handleInviteConfirm() {
+					confirmationResponse = getConfirmationResponse();
+
+					//Display pop-up here!!!
+					System.err.println("\t'invite-confirm' called from share page: "
+							+ getConfirmationMessage());//KN: sysout
+
+					if (null != getConfirmationMessage()) {
+						Utils.execSWTThread(new AERunnable() {
+
+							public void runSupport() {
+								MessageBox mb = new MessageBox(inviteePanel.getShell(),
+										SWT.ICON_INFORMATION | SWT.OK);
+								mb.setMessage(getConfirmationMessage());
+								mb.open();
+							}
+						});
+					}
+				}
+			});
 		}
 		return context;
 	}
@@ -463,87 +545,12 @@ public class SharePage
 			browser = new Browser(browserPanel, SWT.NONE);
 			String url = Constants.URL_PREFIX + "share.start";
 			browser.setUrl(url);
-
+			
 			/*
-			 * Add the appropriate messaging listeners
+			 * Calling to initialize the context
 			 */
-			getMessageContext().addMessageListener(
-					new AbstractBuddyPageListener(browser) {
+			getMessageContext();
 
-						public void handleCancel() {
-							System.out.println("'Cancel' called from share->invite buddy page");//KN: sysout
-
-							activateFirstPanel();
-						}
-
-						public void handleClose() {
-							System.out.println("'Close' called from share->invite buddy page");//KN: sysout
-							activateFirstPanel();
-						}
-
-						public void handleBuddyInvites() {
-
-							Utils.execSWTThread(new AERunnable() {
-								public void runSupport() {
-									inviteeList.setText("");
-									for (Iterator iterator = getInvitedBuddies().iterator(); iterator.hasNext();) {
-										VuzeBuddy buddy = (VuzeBuddy) iterator.next();
-										inviteeList.append(buddy.getDisplayName() + "\n");
-									}
-									if (true == inviteeList.getCharCount() > 0) {
-										Messages.setLanguageText(addBuddyButton,
-												"v3.Share.add.or.remove.buddy");
-									} else {
-										Messages.setLanguageText(addBuddyButton,
-												"v3.Share.add.buddy");
-									}
-									inviteePanel.layout();
-								}
-							});
-
-						}
-
-						public void handleEmailInvites() {
-							Utils.execSWTThread(new AERunnable() {
-								public void runSupport() {
-									for (Iterator iterator = getInvitedEmails().iterator(); iterator.hasNext();) {
-										inviteeList.append(iterator.next() + "\n");//KN:
-									}
-
-									if (true == inviteeList.getCharCount() > 0) {
-										Messages.setLanguageText(addBuddyButton,
-												"v3.Share.add.or.remove.buddy");
-									} else {
-										Messages.setLanguageText(addBuddyButton,
-												"v3.Share.add.buddy");
-									}
-
-									inviteePanel.layout();
-								}
-							});
-
-						}
-
-						public void handleInviteConfirm() {
-							confirmationResponse = getConfirmationResponse();
-
-							//Display pop-up here!!!
-							System.err.println("\t'invite-confirm' called from share page: "
-									+ getConfirmationMessage());//KN: sysout
-
-							if (null != getConfirmationMessage()) {
-								Utils.execSWTThread(new AERunnable() {
-
-									public void runSupport() {
-										MessageBox mb = new MessageBox(inviteePanel.getShell(),
-												SWT.ICON_INFORMATION | SWT.OK);
-										mb.setMessage(getConfirmationMessage());
-										mb.open();
-									}
-								});
-							}
-						}
-					});
 		}
 
 		return browser;
@@ -568,6 +575,22 @@ public class SharePage
 	}
 
 	public void refresh() {
+		/*
+		 * Init the browser if it was not done already
+		 */
+		if (null == browser) {
+			getBrowser();
+		}
+		
+		/*
+		 * Setting the button bar to Share mode
+		 */
+		ButtonBar buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
+		if (null != buttonBar) {
+			buttonBar.setActiveMode(BuddiesViewer.share_mode);
+		}
+		
+		
 		BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
 		if (null != viewer) {
 			setBuddies(viewer.getSelection());
@@ -630,7 +653,7 @@ public class SharePage
 		if (null == dm) {
 			return;
 		}
-		
+
 		String publisher = PlatformTorrentUtils.getContentPublisher(dm.getTorrent());
 
 		if (null != publisher && publisher.length() > 0) {

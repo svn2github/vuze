@@ -1,15 +1,31 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.*;
+import org.eclipse.swt.events.MenuEvent;
+import org.eclipse.swt.events.MenuListener;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.events.MouseMoveListener;
+import org.eclipse.swt.events.MouseTrackListener;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.RowData;
-import org.eclipse.swt.widgets.*;
-
-import org.gudy.azureus2.core3.util.*;
+import org.eclipse.swt.widgets.Canvas;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.MessageBox;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -50,9 +66,9 @@ public class AvatarWidget
 
 	private boolean nameLinkActive = false;
 
-	private boolean isEditMode = false;
-
-	private boolean isShareMode = false;
+	//	private boolean isEditMode = false;
+	//
+	//	private boolean isShareMode = false;
 
 	private Color textColor = null;
 
@@ -162,7 +178,7 @@ public class AvatarWidget
 				if (null == avatarImage || avatarImage.isDisposed()) {
 					//Do something if no Avatar like display default
 				} else {
-					if (true == isEditMode) {
+					if (true == viewer.isEditMode()) {
 						e.gc.setAlpha((int) (alpha * .7));
 						e.gc.drawImage(avatarImage, 0, 0, avatarBounds.width,
 								avatarBounds.height, imageOffsetX + borderWidth, borderWidth,
@@ -180,11 +196,11 @@ public class AvatarWidget
 				/*
 				 * Draw decorator
 				 */
-				if (true == isEditMode) {
+				if (true == viewer.isEditMode()) {
 					e.gc.drawImage(removeImage, 0, 0, removeImage.getBounds().width,
 							removeImage.getBounds().height, decoratorBounds.x,
 							decoratorBounds.y, decoratorBounds.width, decoratorBounds.height);
-				} else if (true == isShareMode && false == sharedAlready) {
+				} else if (true == viewer.isShareMode() && false == isSharedAlready()) {
 					e.gc.drawImage(add_to_share_Image, 0, 0,
 							removeImage.getBounds().width, removeImage.getBounds().height,
 							decoratorBounds.x, decoratorBounds.y, decoratorBounds.width,
@@ -242,9 +258,9 @@ public class AvatarWidget
 				if (e.y > avatarImageSize.y && e.stateMask != SWT.MOD1) {
 					doLinkClicked();
 				} else if (decoratorBounds.contains(e.x, e.y)) {
-					if (true == isEditMode()) {
+					if (true == viewer.isEditMode()) {
 						doRemoveBuddy();
-					} else if (true == isShareMode()) {
+					} else if (true == viewer.isShareMode()) {
 						doAddBuddyToShare();
 					}
 				} else {
@@ -278,9 +294,9 @@ public class AvatarWidget
 				 */
 				String tooltipText = "";
 				if (decoratorBounds.contains(e.x, e.y)) {
-					if (true == isEditMode()) {
+					if (true == viewer.isEditMode()) {
 						tooltipText = "Remove";
-					} else if (true == isShareMode() && false == sharedAlready) {
+					} else if (true == viewer.isShareMode() && false == isSharedAlready()) {
 						tooltipText = "Add to share";
 					} else {
 						tooltipText = vuzeBuddy.getLoginID();
@@ -313,11 +329,11 @@ public class AvatarWidget
 
 		initMenu();
 	}
-	
+
 	private void initMenu() {
 		menu = new Menu(avatarCanvas);
 		avatarCanvas.setMenu(menu);
-		
+
 		menu.addMenuListener(new MenuListener() {
 			boolean bShown = false;
 
@@ -497,26 +513,6 @@ public class AvatarWidget
 
 	}
 
-	public boolean isEditMode() {
-		return isEditMode;
-	}
-
-	public void setEditMode(boolean isEditMode) {
-		this.isEditMode = isEditMode;
-	}
-
-	public boolean isShareMode() {
-		return isShareMode;
-	}
-
-	public void setShareMode(boolean isShareMode) {
-		this.isShareMode = isShareMode;
-
-		if (false == isShareMode) {
-			setSharedAlready(false);
-		}
-	}
-
 	public Color getTextColor() {
 		return textColor;
 	}
@@ -540,7 +536,11 @@ public class AvatarWidget
 
 					public void runSupport() {
 
-						while (alpha > 20) {
+						/*
+						 * KN: TODO: disposal check is still not complete since it could still happen
+						 * between the .isDisposed() check and the .redraw() or .update() calls.
+						 */
+						while (alpha > 20 && false == avatarCanvas.isDisposed()) {
 							alpha -= 30;
 							avatarCanvas.redraw();
 							avatarCanvas.update();
@@ -551,11 +551,16 @@ public class AvatarWidget
 								e.printStackTrace();
 							}
 						}
-						avatarCanvas.dispose();
+
+						if (false == avatarCanvas.isDisposed()) {
+							avatarCanvas.dispose();
+						}
 					}
 				});
 			} else {
-				avatarCanvas.dispose();
+				if (false == avatarCanvas.isDisposed()) {
+					avatarCanvas.dispose();
+				}
 			}
 
 		}

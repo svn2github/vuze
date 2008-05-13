@@ -22,12 +22,24 @@ import com.aelitis.azureus.buddy.VuzeBuddyListener;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
+import com.aelitis.azureus.ui.swt.buddy.impl.VuzeBuddyUtils;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
+import com.aelitis.azureus.util.Constants;
 
 public class BuddiesViewer
 	extends SkinView
 {
+	public static final int none_active_mode = 0;
+
+	public static final int edit_mode = 1;
+
+	public static final int share_mode = 2;
+
+	public static final int invite_mode = 3;
+
+	public static final int add_buddy_mode = 4;
+
 	private Composite avatarsPanel = null;
 
 	private Composite parent = null;
@@ -64,7 +76,7 @@ public class BuddiesViewer
 		skin = skinObject.getSkin();
 
 		soNoBuddies = skin.getSkinObject("buddies-viewer-nobuddies");
-		
+
 		SWTSkinObject viewer = skin.getSkinObject(SkinConstants.VIEWID_BUDDIES_VIEWER);
 
 		if (null != viewer) {
@@ -196,7 +208,6 @@ public class BuddiesViewer
 			isEditMode = value;
 			for (Iterator iterator = avatarWidgets.iterator(); iterator.hasNext();) {
 				AvatarWidget widget = (AvatarWidget) iterator.next();
-				widget.setEditMode(value);
 				widget.refreshVisual();
 			}
 
@@ -350,14 +361,30 @@ public class BuddiesViewer
 	private List getBuddies() {
 
 		List buddiesList = VuzeBuddyManager.getAllVuzeBuddies();
-		for (Iterator iterator = buddiesList.iterator(); iterator.hasNext();) {
-			System.out.println("Got friend: "
-					+ ((VuzeBuddy) iterator.next()).getLoginID());//KN: sysout			
-		}
+
+		/*
+		 * Adding fake friends to test scrolling
+		 * TODO: Should remove for production
+		 */
+//		final List fakes = new ArrayList();
+//		if (true == org.gudy.azureus2.core3.util.Constants.isCVSVersion()) {
+//			int fakeBuddies = 20 - buddiesList.size();
+//			for (int i = 0; i < fakeBuddies; i++) {
+//				VuzeBuddy vb = VuzeBuddyUtils.createRandomBuddy();
+//				vb.setDisplayName("Fake " + i);
+//				System.out.println("Created: " + vb.getDisplayName());//KN: sysout
+//				buddiesList.add(vb);
+//				fakes.add(vb);
+//			}
+//		}
 
 		VuzeBuddyManager.addListener(new VuzeBuddyListener() {
 
 			public void buddyRemoved(VuzeBuddy buddy) {
+//				if (true == fakes.contains(buddy)) {
+//					return;
+//				}
+
 				System.out.println("VuzeBuddyManager.buddyRemoved: "
 						+ buddy.getLoginID());//KN: sysout
 				removeBuddy(buddy);
@@ -375,7 +402,7 @@ public class BuddiesViewer
 
 			public void buddyOrderChanged() {
 				// TODO Auto-generated method stub
-				
+
 			}
 		}, false);
 
@@ -418,7 +445,6 @@ public class BuddiesViewer
 
 			for (Iterator iterator = avatarWidgets.iterator(); iterator.hasNext();) {
 				AvatarWidget widget = (AvatarWidget) iterator.next();
-				widget.setShareMode(isShareMode);
 				widget.refreshVisual();
 			}
 
@@ -444,4 +470,17 @@ public class BuddiesViewer
 		}
 	}
 
+	public void setMode(int mode) {
+		if (mode == none_active_mode) {
+			setShareMode(false);
+			setEditMode(false);
+			setAddBuddyMode(false);
+		} else if (mode == edit_mode) {
+			setEditMode(true);
+		} else if (mode == share_mode) {
+			setShareMode(true);
+		} else if (mode == add_buddy_mode) {
+			setAddBuddyMode(true);
+		}
+	}
 }
