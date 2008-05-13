@@ -477,8 +477,8 @@ public class PlatformMessenger
 								});
 							}
 
-							new AEThread("v3.Msg.Dispatch") {
-								public void runSupport() {
+							new AEThread2("v3.Msg.Dispatch", true) {
+								public void run() {
 									context.getMessageDispatcher().dispatch(browserMsg);
 								}
 							}.start();
