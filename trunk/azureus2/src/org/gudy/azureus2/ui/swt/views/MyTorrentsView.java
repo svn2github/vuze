@@ -856,9 +856,15 @@ public class MyTorrentsView
 		}
 		DownloadManager[] dms = getSelectedDownloads();
 		SelectedContent[] sc = new SelectedContent[dms.length];
+		int pos = 0;
 		for (int i = 0; i < dms.length; i++) {
 			DownloadManager dm = dms[i];
-			sc[i] = new SelectedContent(dm);
+			if (dm != null) {
+				sc[pos++] = new SelectedContent(dm);
+			}
+		}
+		if (pos != dms.length) {
+			System.arraycopy(sc, 0, sc, 0, pos);
 		}
 		SelectedContentManager.changeCurrentlySelectedContent(sc);
 	}
