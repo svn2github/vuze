@@ -191,7 +191,7 @@ public class DownloadManagerDefaultPaths {
     	if (name.equals(".") || name.equals("..")) {
     		return null;
     	}
-    	return FileUtil.convertOSSpecificChars(name).trim();
+    	return FileUtil.convertOSSpecificChars(name, false).trim();
     }
     
     public static File normaliseRelativePath(File path) {

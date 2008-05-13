@@ -80,7 +80,7 @@ TorrentImpl
 	{
 		String	name = decode( torrent.getName());
 		
-		name = FileUtil.convertOSSpecificChars( name );
+		name = FileUtil.convertOSSpecificChars( name, false );
 
 		return( name );
 	}
@@ -276,7 +276,7 @@ TorrentImpl
 				
 				String	comp = decode(comps[j]);
 			
-				comp = FileUtil.convertOSSpecificChars( comp );
+				comp = FileUtil.convertOSSpecificChars( comp, j != comps.length-1 );
 				
 				name += (j==0?"":File.separator)+comp;
 			}

@@ -289,7 +289,8 @@ public class FileUtil {
   
   public static String
   convertOSSpecificChars(
-  	String	file_name_in )
+  	String		file_name_in,
+  	boolean		is_folder )
   {
   		// this rule originally from DiskManager
  
@@ -318,12 +319,12 @@ public class FileUtil {
   		  		}
   		  	}
   		 	
-  		 	// windows doesn't like trailing dots and whitespaces, replace them
-  		 	// parg - taking out this the8472 change as it will bork existing downloads with trailing spaces or .
-  		 	// as a rule we can't go around amending the rules for file-name mappings
-  		 	// for(int i = chars.length-1;i >= 0 && (chars[i] == '.' || chars[i] == ' ');chars[i] = '_',i--);
-  		 		
-
+  		 	// windows doesn't like trailing dots and whitespaces in folders, replace them
+   		 	
+  		 	if ( is_folder ){
+  		 	
+  		 		for(int i = chars.length-1;i >= 0 && (chars[i] == '.' || chars[i] == ' ');chars[i] = '_',i--);
+  		 	}
   		}
   		
   			// '/' is valid in mac file names, replace with space

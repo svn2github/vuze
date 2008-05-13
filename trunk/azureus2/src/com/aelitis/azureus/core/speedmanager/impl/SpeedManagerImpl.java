@@ -204,7 +204,7 @@ SpeedManagerImpl
 							as = "default";
 						}
 						
-						File history = new File( config_dir, "pm_" + FileUtil.convertOSSpecificChars( as ) + ".dat" );
+						File history = new File( config_dir, "pm_" + FileUtil.convertOSSpecificChars( as, false ) + ".dat" );
 						
 						ping_mapper.loadHistory( history );
 						

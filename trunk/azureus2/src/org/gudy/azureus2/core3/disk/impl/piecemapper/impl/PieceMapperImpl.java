@@ -152,7 +152,7 @@ PieceMapperImpl
 			
 			String	comp = locale_decoder.decodeString( path_components[j]);
 			
-			comp = FileUtil.convertOSSpecificChars( comp );
+			comp = FileUtil.convertOSSpecificChars( comp,  true);
 			
 			pathBuffer.append(comp);
 			pathBuffer.append(separator);
@@ -163,7 +163,7 @@ PieceMapperImpl
 		
 		String	last_comp = locale_decoder.decodeString(path_components[lastIndex]);
 		
-		last_comp = FileUtil.convertOSSpecificChars( last_comp );
+		last_comp = FileUtil.convertOSSpecificChars( last_comp, false );
 		
 		btFileList.add(
 			new fileInfo(

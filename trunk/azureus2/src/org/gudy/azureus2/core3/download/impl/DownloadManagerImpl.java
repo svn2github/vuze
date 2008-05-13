@@ -661,7 +661,7 @@ DownloadManagerImpl
 				 	// if its a simple torrent and an explicit save file wasn't supplied, use
 				 	// the torrent name itself
 
-				 display_name = FileUtil.convertOSSpecificChars(locale_decoder.decodeString(torrent.getName()));
+				 display_name = FileUtil.convertOSSpecificChars(locale_decoder.decodeString(torrent.getName()),false);
 				 
 				 internal_name = ByteFormatter.nicePrint(torrent.getHash(),true);
 	
@@ -3156,7 +3156,7 @@ DownloadManagerImpl
 		  throw new RuntimeException("canMoveDataFiles is false!");
 	  }
 	  
-	  if (new_filename != null) {new_filename = FileUtil.convertOSSpecificChars(new_filename);}
+	  if (new_filename != null) {new_filename = FileUtil.convertOSSpecificChars(new_filename,false);}
 	  		  
 			// old file will be a "file" for simple torrents, a dir for non-simple
 

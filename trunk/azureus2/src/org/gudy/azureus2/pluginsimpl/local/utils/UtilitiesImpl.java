@@ -798,7 +798,7 @@ UtilitiesImpl
 	}
 	
 	public String normaliseFileName(String f_name) {
-		return FileUtil.convertOSSpecificChars(f_name);
+		return FileUtil.convertOSSpecificChars(f_name,false);
 	}
 	
 	public DelayedTask createDelayedTask(Runnable target) {

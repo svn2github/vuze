@@ -84,7 +84,7 @@ public class PluginConfigSourceImpl implements COConfigurationListener, Paramete
 	
 	public void setConfigFilename(String filename) {
 		shouldBeInitialised(false);
-		this.source_file = plugin_config.getPluginUserFile(FileUtil.convertOSSpecificChars(filename));
+		this.source_file = plugin_config.getPluginUserFile(FileUtil.convertOSSpecificChars(filename, false));
 	}
 
 	public void save(boolean force) {

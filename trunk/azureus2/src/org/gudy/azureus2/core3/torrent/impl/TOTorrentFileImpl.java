@@ -220,7 +220,7 @@ TOTorrentFileImpl
 						}
 					}
 	
-					comp = FileUtil.convertOSSpecificChars(comp);
+					comp = FileUtil.convertOSSpecificChars(comp, j != path_components.length-1 );
 	
 					sRelativePath += (j == 0 ? "" : File.separator) + comp;
 				} catch (Exception ex) {

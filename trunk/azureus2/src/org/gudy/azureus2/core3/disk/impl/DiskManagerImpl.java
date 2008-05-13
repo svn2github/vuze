@@ -2246,7 +2246,7 @@ DiskManagerImpl
 
                     String comp = locale_decoder.decodeString( path_comps[j] );
 
-                    comp = FileUtil.convertOSSpecificChars( comp );
+                    comp = FileUtil.convertOSSpecificChars( comp, j != path_comps.length-1 );
 
                     path_str += (j==0?"":File.separator) + comp;
                 }
@@ -2311,7 +2311,7 @@ DiskManagerImpl
 
                     String comp = locale_decoder.decodeString( path_comps[j] );
 
-                    comp = FileUtil.convertOSSpecificChars( comp );
+                    comp = FileUtil.convertOSSpecificChars( comp, j != path_comps.length-1 );
 
                     path_str += (j==0?"":File.separator) + comp;
 
@@ -3116,7 +3116,7 @@ DiskManagerImpl
                 					comp = "undecodableFileName"+file_index;
                 				}
 
-                				comp = FileUtil.convertOSSpecificChars( comp );
+                				comp = FileUtil.convertOSSpecificChars( comp,  j != path_comps.length-1 );
 
                 				path_str += (j==0?"":File.separator) + comp;
                 			}

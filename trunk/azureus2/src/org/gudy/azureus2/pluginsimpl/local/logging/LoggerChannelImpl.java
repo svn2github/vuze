@@ -85,7 +85,7 @@ LoggerChannelImpl
 	{
 		if ( diagnostic_logger == null ){
 			
-			diagnostic_logger = AEDiagnostics.getLogger( FileUtil.convertOSSpecificChars( name ));
+			diagnostic_logger = AEDiagnostics.getLogger( FileUtil.convertOSSpecificChars( name, false ));
 			
 			addListener(
 				new LoggerChannelListener()
