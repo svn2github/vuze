@@ -4,6 +4,8 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
+import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
+import com.aelitis.azureus.util.LoginInfoManager;
 
 public class VuzeShareUtils
 {
@@ -19,17 +21,21 @@ public class VuzeShareUtils
 		return instance;
 	}
 
-	public void shareTorrent(DownloadManager dm) {
-		if (null != sharePage) {
-			SelectedContent currentContent;
-			try {
-				currentContent = new SelectedContent(dm);
-				currentContent.displayName = PlatformTorrentUtils.getContentTitle2(dm);
+	public void shareTorrent(final DownloadManager dm) {
+		SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
+			public void loginComplete() {
+				if (null != sharePage) {
+					SelectedContent currentContent;
+					try {
+						currentContent = new SelectedContent(dm);
+						currentContent.displayName = PlatformTorrentUtils.getContentTitle2(dm);
 
-				sharePage.setShareItem(currentContent);
-			} catch (Exception e) {
+						sharePage.setShareItem(currentContent);
+					} catch (Exception e) {
+					}
+				}
 			}
-		}
+		});
 	}
 
 	public SharePage getSharePage() {
