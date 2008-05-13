@@ -319,7 +319,9 @@ public class FileUtil {
   		  	}
   		 	
   		 	// windows doesn't like trailing dots and whitespaces, replace them
-  		 	for(int i = chars.length-1;i >= 0 && (chars[i] == '.' || chars[i] == ' ');chars[i] = '_',i--);
+  		 	// parg - taking out this the8472 change as it will bork existing downloads with trailing spaces or .
+  		 	// as a rule we can't go around amending the rules for file-name mappings
+  		 	// for(int i = chars.length-1;i >= 0 && (chars[i] == '.' || chars[i] == ' ');chars[i] = '_',i--);
   		 		
 
   		}
