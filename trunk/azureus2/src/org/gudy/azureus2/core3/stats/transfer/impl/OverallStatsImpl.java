@@ -22,7 +22,6 @@ package org.gudy.azureus2.core3.stats.transfer.impl;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,8 +29,6 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.global.impl.GlobalManagerAdpater;
 import org.gudy.azureus2.core3.stats.transfer.OverallStats;
-import org.gudy.azureus2.core3.tracker.server.TRTrackerServer;
-import org.gudy.azureus2.core3.tracker.server.TRTrackerServerStats;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.AzureusCore;

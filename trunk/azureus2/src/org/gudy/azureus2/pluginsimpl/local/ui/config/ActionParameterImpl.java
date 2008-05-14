@@ -22,7 +22,6 @@
 
 package org.gudy.azureus2.pluginsimpl.local.ui.config;
 
-import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.ui.config.ActionParameter;
 import org.gudy.azureus2.pluginsimpl.local.PluginConfigImpl;
 

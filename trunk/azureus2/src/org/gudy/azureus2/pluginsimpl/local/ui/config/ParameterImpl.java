@@ -31,7 +31,6 @@ import org.gudy.azureus2.plugins.config.*;
 import org.gudy.azureus2.plugins.ui.config.EnablerParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterListener;
-import org.gudy.azureus2.plugins.PluginConfig;
 
 /**
  * @author epall

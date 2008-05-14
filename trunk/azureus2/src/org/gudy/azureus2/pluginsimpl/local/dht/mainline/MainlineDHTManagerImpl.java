@@ -21,15 +21,11 @@
 package org.gudy.azureus2.pluginsimpl.local.dht.mainline;
 
 import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.peermanager.messaging.MessageException;
-import com.aelitis.azureus.core.peermanager.messaging.MessageManager;
-import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTDHTPort;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTHandshake;
 
 import org.gudy.azureus2.plugins.dht.mainline.MainlineDHTManager;
 import org.gudy.azureus2.plugins.dht.mainline.MainlineDHTProvider;
 
-import org.gudy.azureus2.core3.util.Debug;
 
 /**
  * @author Allan Crooks
