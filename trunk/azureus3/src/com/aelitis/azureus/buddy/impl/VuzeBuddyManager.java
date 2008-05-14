@@ -57,15 +57,15 @@ public class VuzeBuddyManager
 
 	private static final String SAVE_FILENAME = "v3.Friends.dat";
 	
-	private static final String VUZE_MESSAGE_TYPE = "VuzeMessageType";
+	public static final String VUZE_MESSAGE_TYPE = "VuzeMessageType";
 
-	private static final String VMT_CHECKINVITES = "CheckInvites";
+	public static final String VMT_CHECKINVITES = "CheckInvites";
 
-	private static final String VMT_BUDDYACCEPT = "BuddyAccept";
+	public static final String VMT_BUDDYACCEPT = "BuddyAccept";
 
-	private static final String VMT_ACTIVITYENTRY = "ActivityEntry";
+	public static final String VMT_ACTIVITYENTRY = "ActivityEntry";
 
-	private static final String VMT_BUDDYSYNC = "BuddySync"; 
+	public static final String VMT_BUDDYSYNC = "BuddySync"; 
 
 	private static BuddyPlugin buddyPlugin = null;
 
@@ -944,6 +944,15 @@ public class VuzeBuddyManager
 			log("Removing Buddy " + buddy.getDisplayName() + ";" + buddy.getLoginID());
 
 			buddyList.remove(buddy);
+
+			// Would be nice to call buddy.tellBuddyToSyncUp, but since we
+			// are removing the BuddyPluginBuddy almost immediately, we probably
+			// wouldn't get the message out in time.
+			// try {
+			//	buddy.tellBuddyToSyncUp();
+			// } catch (Exception e) {
+			// 	// sync up not super important
+			// }
 
 			String[] publicKeys = buddy.getPublicKeys();
 			for (int i = 0; i < publicKeys.length; i++) {
