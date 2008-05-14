@@ -1,6 +1,11 @@
 package com.aelitis.azureus.core.metasearch.impl.web.regex;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.LineNumberReader;
+import java.io.PrintWriter;
 import java.net.URLDecoder;
 import java.util.*;
 import java.util.regex.*;
@@ -124,8 +129,8 @@ RegexEngine
 	init(
 		String			resultPattern )
 	{
-		this.pattern_str 	= resultPattern;
-		this.pattern		= Pattern.compile(resultPattern);
+		pattern_str 	= resultPattern.trim();
+		pattern			= Pattern.compile(pattern_str);
 	}
 	
 	public Result[] 
@@ -140,16 +145,32 @@ RegexEngine
 				
 		debugLog( "pattern: " + pattern_str );
 		
+		/*
+		if ( getId() == 3 ){
+			
+			writeToFile( "C:\\temp\\template.txt", page );
+			writeToFile( "C:\\temp\\pattern.txt", pattern.pattern());
+			
+		}
+		
+		try{
+			regexptest();
+		}catch( Throwable e ){
+			
+		}
+		*/
+		
 		FieldMapping[] mappings = getMappings();
 		
-		if(page != null) {
+		if ( page != null ){
+			
 			try {
 				
 				List results = new ArrayList();
 					
-				Matcher m = pattern.matcher(page);
+				Matcher m = pattern.matcher( page );
 					
-				while(m.find()) {
+				while( m.find()){
 					
 					debugLog( "Found match:" );
 					
@@ -200,7 +221,9 @@ RegexEngine
 					}
 					results.add(result);
 				}
-				//}
+				
+				System.out.println( "m=" + m );
+				
 				return (Result[]) results.toArray(new Result[results.size()]);
 			
 			} catch (Exception e) {
@@ -210,4 +233,74 @@ RegexEngine
 			throw new SearchException("Web Page is empty");
 		}
 	}
+	
+	/*
+	protected void
+	writeToFile(
+		String		file,
+		String		str )
+	{
+		try{
+			PrintWriter pw = new PrintWriter( new FileWriter( new File( file )));
+			
+			pw.println( str );
+			
+			pw.close();
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+	}
+	
+	private static String
+	readFile(
+		String	file )
+	{
+		try{
+			StringBuffer sb = new StringBuffer();
+			
+			LineNumberReader lnr = new LineNumberReader( new FileReader( new File( file )));
+			
+			while( true ){
+				
+				String 	line = lnr.readLine();
+				
+				if ( line == null ){
+					
+					break;
+				}
+				
+				sb.append( line );
+			}
+			
+			return( sb.toString());
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+			
+			return( null );
+		}
+	}
+	
+	private static void
+	regexptest()
+	
+		throws Exception
+	{
+		Pattern pattern = Pattern.compile( readFile( "C:\\temp\\pattern.txt" ));
+		
+		String	page = readFile( "C:\\temp\\template.txt" );
+		
+		Matcher m = pattern.matcher( page);
+		
+		while(m.find()) {
+			
+			int groups = m.groupCount();
+			
+			System.out.println( "found match: groups = " + groups );
+		}
+	}
+	*/
 }

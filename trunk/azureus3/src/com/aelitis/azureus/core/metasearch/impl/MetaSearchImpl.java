@@ -159,9 +159,7 @@ MetaSearchImpl
 				
 				Engine	e = (Engine)l.get(i);
 				
-				if ( 	e.isSelected() || 
-						e.getSource() == Engine.ENGINE_SOURCE_FEATURED ||
-						e.getSource() == Engine.ENGINE_SOURCE_POPULAR ){
+				if ( e.isActive()){
 					
 					result.add( e );
 				}

@@ -15,6 +15,10 @@ Engine
 	public static final int	ENGINE_SOURCE_POPULAR	= 2;
 	public static final int	ENGINE_SOURCE_MANUAL	= 3;
 	
+		/**
+		 * don't change these as they are externalised
+		 */
+	public static final String[] ENGINE_SOURCE_STRS = {"unknown","feat","pop","local" };
 	
 	public int getType();
 	
@@ -36,6 +40,9 @@ Engine
 	public String 
 	getIcon();
 
+	public boolean
+	isActive();
+	
 	public boolean
 	isSelected();
 	

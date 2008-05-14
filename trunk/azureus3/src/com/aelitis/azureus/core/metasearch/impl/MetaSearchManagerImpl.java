@@ -269,6 +269,8 @@ MetaSearchManagerImpl
 					}
 				}else{
 					
+					log( "Not updating " + existing.getString() + " as unchanged" );
+					
 						// ensure we attribute to latest source
 					
 					existing.setSource( source );

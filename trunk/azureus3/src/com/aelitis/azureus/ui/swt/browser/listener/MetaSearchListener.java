@@ -22,10 +22,11 @@ public class MetaSearchListener extends AbstractMessageListener {
 
 	public static final String OP_SEARCH = "search";
 	
-	public static final String OP_ADD_ENGINE = "add-engine";
+	public static final String OP_ADD_ENGINE 	= "add-engine";
 	public static final String OP_REMOVE_ENGINE = "remove-engine";
 	
-	public static final String OP_GET_ENGINES = "get-engines";
+	public static final String OP_GET_ENGINES 		= "get-engines";
+	public static final String OP_GET_ALL_ENGINES 	= "get-all-engines";
 
 	public static final String OP_SET_MODE = "set-mode";
 	
@@ -95,6 +96,27 @@ public class MetaSearchListener extends AbstractMessageListener {
 				params.add(engineMap);
 			}
 			context.sendBrowserMessage("metasearch", "enginesUsed",params);
+			
+		} else if(OP_GET_ALL_ENGINES.equals(opid)) {
+
+			Engine[] engines = metaSearchManager.getMetaSearch().getEngines( false );
+			List params = new ArrayList();
+			for(int i = 0 ; i < engines.length ; i++) {
+				Engine engine = engines[i];
+				
+				if ( engine.getSource() == Engine.ENGINE_SOURCE_UNKNOWN ){
+					continue;
+				}
+				
+				Map engineMap = new HashMap();
+				engineMap.put("id", new Long(engine.getId()));
+				engineMap.put("name", engine.getName());
+				engineMap.put("favicon", engine.getIcon());
+				engineMap.put("selected", new Boolean( engine.isActive()));
+				engineMap.put("type", Engine.ENGINE_SOURCE_STRS[ engine.getSource()]);
+				params.add(engineMap);
+			}
+			context.sendBrowserMessage("metasearch", "engineList",params);
 		} else if(OP_SET_MODE.equals(opid)) {
 			//TODO : set the mode
 			

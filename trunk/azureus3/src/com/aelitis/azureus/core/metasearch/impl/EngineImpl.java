@@ -286,6 +286,14 @@ EngineImpl
 	}
 	
 	public boolean
+	isActive()
+	{
+		return(	isSelected() || 
+				getSource() == Engine.ENGINE_SOURCE_FEATURED ||
+				getSource() == Engine.ENGINE_SOURCE_POPULAR );
+	}
+	
+	public boolean
 	isSelected()
 	{
 		return( selected );
