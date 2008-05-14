@@ -24,7 +24,7 @@ package org.gudy.azureus2.core3.disk;
  * @create 22.01.2008
  */
 public class DiskManagerException extends Exception {
-
+	private static final long serialVersionUID = -1L;
 	public DiskManagerException()
 	{
 		

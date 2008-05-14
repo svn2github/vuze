@@ -28,6 +28,8 @@ package org.gudy.azureus2.core3.config.impl;
  */
 
 public class ConfigurationParameterNotFoundException extends Exception {
+	
+	private static final long serialVersionUID = -1L;
   
   /** Creates a new instance of ConfigurationNotFoundException */
   public ConfigurationParameterNotFoundException() {

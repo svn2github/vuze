@@ -26,6 +26,7 @@ public class
 ExternalSeedException 
 	extends Exception
 {
+	private static final long serialVersionUID = -1L;
 	private boolean	permanent	= false;
 	
 	public

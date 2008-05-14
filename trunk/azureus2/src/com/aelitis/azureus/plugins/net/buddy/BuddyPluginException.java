@@ -25,6 +25,9 @@ public class
 BuddyPluginException
 	extends Exception
 {
+	
+	private static final long serialVersionUID = -1L;
+	
 	public
 	BuddyPluginException(
 		String	str )

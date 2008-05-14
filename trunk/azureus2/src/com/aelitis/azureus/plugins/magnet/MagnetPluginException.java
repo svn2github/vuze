@@ -31,6 +31,7 @@ public class
 MagnetPluginException
 	extends Exception
 {
+	private static final long serialVersionUID = -1L;
 	public
 	MagnetPluginException(
 		String		str,

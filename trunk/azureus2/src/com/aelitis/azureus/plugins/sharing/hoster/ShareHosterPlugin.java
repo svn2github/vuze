@@ -39,8 +39,6 @@ import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 
-import com.aelitis.azureus.plugins.tracker.local.LocalTrackerPlugin;
-
 public class 
 ShareHosterPlugin
 	implements Plugin, PluginListener, ShareManagerListener
