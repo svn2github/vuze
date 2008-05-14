@@ -798,8 +798,9 @@ public class ListView
 				}
 			} finally {
 				if (isOurGC && gcImgView != null) {
-					gcImgView.dispose();
+					GC gcDispose = gcImgView;
 					gcImgView = null;
+					gcDispose.dispose();
 				}
 			}
 		}
