@@ -96,4 +96,12 @@ public interface VuzeBuddy
 	 * @since 3.0.5.3
 	 */
 	long getCreatedOn();
+
+	/**
+	 * @throws NotLoggedInException
+	 *
+	 * @since 3.0.5.3
+	 */
+	void tellBuddyToSyncUp()
+			throws NotLoggedInException;
 }
