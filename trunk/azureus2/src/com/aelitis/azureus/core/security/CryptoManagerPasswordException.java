@@ -26,6 +26,8 @@ public class
 CryptoManagerPasswordException 
 	extends CryptoManagerException
 {
+	
+	private static final long serialVersionUID = -1L;
 	private boolean	incorrect;
 	
 	public

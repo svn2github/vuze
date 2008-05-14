@@ -31,6 +31,9 @@ public class
 AzureusCoreException
 	extends RuntimeException
 {
+	
+	private static final long serialVersionUID = -1L;
+	
 	public
 	AzureusCoreException(
 		String		str )
