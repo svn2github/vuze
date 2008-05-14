@@ -22,13 +22,11 @@
 package org.gudy.azureus2.ui.swt.components;
 
 import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 
 /**
  * @author Olivier

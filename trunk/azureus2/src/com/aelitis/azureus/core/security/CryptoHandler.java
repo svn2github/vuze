@@ -22,8 +22,6 @@
 
 package com.aelitis.azureus.core.security;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
-
 public interface 
 CryptoHandler 
 {

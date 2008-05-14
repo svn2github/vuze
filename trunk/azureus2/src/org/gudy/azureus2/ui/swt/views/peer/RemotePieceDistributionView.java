@@ -23,9 +23,6 @@ import java.util.Arrays;
 
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.impl.transport.PEPeerTransportProtocol;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.plugins.ui.tables.peers.PeerTableItem;
-import org.gudy.azureus2.ui.swt.mainwindow.GUIUpdater;
 import org.gudy.azureus2.ui.swt.views.PieceDistributionView;
 
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;

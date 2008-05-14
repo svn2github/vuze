@@ -24,8 +24,6 @@ package com.aelitis.azureus.plugins.net.netstatus.swt;
 import java.util.*;
 import java.net.*;
 
-import javax.swing.text.html.HTMLDocument.HTMLReader.IsindexAction;
-
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.admin.*;

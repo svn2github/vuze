@@ -34,7 +34,6 @@ import com.aelitis.azureus.plugins.extseed.ExternalSeedException;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedReader;
 import com.aelitis.azureus.plugins.extseed.impl.ExternalSeedReaderImpl;
-import com.aelitis.azureus.plugins.extseed.impl.ExternalSeedReaderRequest;
 import com.aelitis.azureus.plugins.extseed.util.ExternalSeedHTTPDownloader;
 import com.aelitis.azureus.plugins.extseed.util.ExternalSeedHTTPDownloaderListener;
 

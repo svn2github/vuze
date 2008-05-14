@@ -26,7 +26,6 @@ package org.gudy.azureus2.ui.swt.views.tableitems.files;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;

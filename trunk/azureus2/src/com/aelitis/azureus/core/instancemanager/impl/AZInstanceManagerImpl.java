@@ -22,8 +22,6 @@
 
 package com.aelitis.azureus.core.instancemanager.impl;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;

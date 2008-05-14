@@ -46,7 +46,6 @@ import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-import org.gudy.azureus2.pluginsimpl.local.ui.config.LabelParameterImpl;
 
 public class ConfigSectionFile implements UISWTConfigSection {
   public String configSectionGetParentSection() {

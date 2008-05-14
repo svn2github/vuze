@@ -22,8 +22,6 @@
 
 package com.aelitis.azureus.core.speedmanager.impl.v2;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
-
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingSource;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProvider;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProviderAdapter;

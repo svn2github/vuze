@@ -41,7 +41,6 @@ import org.gudy.azureus2.ui.swt.components.LinkArea;
 import org.gudy.azureus2.ui.swt.components.StringListChooser;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
 import com.aelitis.azureus.core.AzureusCore;
