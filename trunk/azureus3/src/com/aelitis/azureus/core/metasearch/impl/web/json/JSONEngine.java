@@ -102,7 +102,7 @@ JSONEngine
 	{
 		super( meta_search, Engine.ENGINE_TYPE_JSON, id, last_updated, name, map );
 				
-		resultsEntryPath = importString( map, "aaaaa" );
+		resultsEntryPath = importString( map, "json_result_key" );
 	}
 	
 	public Map 
@@ -132,7 +132,7 @@ JSONEngine
 				JSONArray resultArray = null;
 				
 				if(resultsEntryPath != null) {
-					StringTokenizer st = new StringTokenizer(resultsEntryPath,";");
+					StringTokenizer st = new StringTokenizer(resultsEntryPath,".");
 					if(jsonObject instanceof JSONArray && st.countTokens() > 0) {
 						JSONArray array = (JSONArray) jsonObject;
 						if(array.size() == 1) {

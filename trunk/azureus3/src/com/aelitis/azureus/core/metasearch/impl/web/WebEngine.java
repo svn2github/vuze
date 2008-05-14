@@ -125,11 +125,11 @@ WebEngine
 		
 		searchURLFormat 	= importString( map, "searchURL" );
 		timeZone			= importString( map, "timezone" );
-		userDateFormat		= importString( map, "aaa" );
+		userDateFormat		= importString( map, "time_format" );
 
 		searchURLFormat = URLDecoder.decode( searchURLFormat, "UTF-8" );
 		
-		automaticDateParser	= importBoolean( map, "xxxx", true );
+		automaticDateParser	= userDateFormat == null || userDateFormat.trim().length() == 0;
 
 		List	maps = (List)map.get( "column_map" );
 		
@@ -141,55 +141,61 @@ WebEngine
 			
 			m = (Map)m.get( "mapping" );
 			
-			String	field_name 	= importString( m, "vuze_field" ).toUpperCase();
-			String	field_group	= importString( m, "group_nb" );
+			String	vuze_field 	= importString( m, "vuze_field" ).toUpperCase();
+			
+			String	field_name	= importString( m, "group_nb" );	// regexp case
+			
+			if ( field_name == null ){
+				
+				field_name = importString( m, "field_name" );	// json case
+			}
 			
 			int	field_id;
 			
-			if ( field_name.equals( "TITLE")){
+			if ( vuze_field.equals( "TITLE")){
 				
 				field_id	= FIELD_NAME;
 				
-			}else if ( field_name.equals( "DATE")){
+			}else if ( vuze_field.equals( "DATE")){
 				
 				field_id	= FIELD_DATE;
 				
-			}else if ( field_name.equals( "SIZE")){
+			}else if ( vuze_field.equals( "SIZE")){
 				
 				field_id	= FIELD_SIZE;
 				
-			}else if ( field_name.equals( "PEERS")){
+			}else if ( vuze_field.equals( "PEERS")){
 				
 				field_id	= FIELD_PEERS;
 				
-			}else if ( field_name.equals( "SEEDS")){
+			}else if ( vuze_field.equals( "SEEDS")){
 				
 				field_id	= FIELD_SEEDS;
 				
-			}else if ( field_name.equals( "CAT")){
+			}else if ( vuze_field.equals( "CAT")){
 				
 				field_id	= FIELD_CATEGORY;
 				
-			}else if ( field_name.equals( "COMMENTS")){
+			}else if ( vuze_field.equals( "COMMENTS")){
 				
 				field_id	= FIELD_COMMENTS;
 				
-			}else if ( field_name.equals( "TORRENT")){
+			}else if ( vuze_field.equals( "TORRENT")){
 				
 				field_id	= FIELD_TORRENTLINK;
 				
-			}else if ( field_name.equals( "CDP")){
+			}else if ( vuze_field.equals( "CDP")){
 				
 				field_id	= FIELD_CDPLINK;
 				
 			}else{
 				
-				log( "Unrecognised field mapping '" + field_name + "'" );
+				log( "Unrecognised field mapping '" + vuze_field + "'" );
 				
 				continue;
 			}
 			
-			mappings[i] = new FieldMapping( field_group, field_id );
+			mappings[i] = new FieldMapping( field_name, field_id );
 		}
 		
 		init();

@@ -151,6 +151,29 @@ RegexEngine
 			writeToFile( "C:\\temp\\template.txt", page );
 			writeToFile( "C:\\temp\\pattern.txt", pattern.pattern());
 			
+			String page2 = readFile( "C:\\temp\\template.txt" );
+			
+			Set s1 = new HashSet();
+			Set s2 = new HashSet();
+			
+			for (int i=0;i<page.length();i++){
+				s1.add( new Character( page.charAt(i)));
+			}
+			for (int i=0;i<page2.length();i++){
+				s2.add( new Character( page2.charAt(i)));
+			}
+			
+			s1.removeAll(s2);
+			
+			Iterator it = s1.iterator();
+			
+			while( it.hasNext()){
+				
+				Character c = (Character)it.next();
+				
+				System.out.println( "diff: " + c + "/" + (int)c.charValue());
+			}
+			
 		}
 		
 		try{
@@ -158,7 +181,7 @@ RegexEngine
 		}catch( Throwable e ){
 			
 		}
-		*/
+		 */
 		
 		FieldMapping[] mappings = getMappings();
 		
@@ -221,9 +244,7 @@ RegexEngine
 					}
 					results.add(result);
 				}
-				
-				System.out.println( "m=" + m );
-				
+								
 				return (Result[]) results.toArray(new Result[results.size()]);
 			
 			} catch (Exception e) {
@@ -234,7 +255,7 @@ RegexEngine
 		}
 	}
 	
-	/*
+
 	protected void
 	writeToFile(
 		String		file,
@@ -302,5 +323,5 @@ RegexEngine
 			System.out.println( "found match: groups = " + groups );
 		}
 	}
-	*/
+
 }

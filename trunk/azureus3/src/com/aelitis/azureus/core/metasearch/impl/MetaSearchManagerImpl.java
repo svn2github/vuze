@@ -237,9 +237,10 @@ MetaSearchManagerImpl
 
 				if ( update ){
 					
-					log( "Downloading definition of template " + id );
-					
 					PlatformMetaSearchMessenger.templateDetails details = PlatformMetaSearchMessenger.getTemplate( id );
+
+					log( "Downloading definition of template " + id );
+					log( details.getValue());
 					
 					if ( details.isVisible()){
 						
