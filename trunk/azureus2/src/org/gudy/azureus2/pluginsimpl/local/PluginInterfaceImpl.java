@@ -292,17 +292,26 @@ PluginInterfaceImpl
   public String
   getPluginID()
   {
-	  if (this.plugin_id_to_use != null) {return this.plugin_id_to_use;}
+	  String id = (String)props.get("plugin.id");
+	  
+	  // hack alert - azupdater needs to change its plugin id due to general hackage
+	  
+	  if ( id != null && id.equals( "azupdater" )){
+		  
+		  plugin_id_to_use = id;
+	  }
+	  
+	  if (plugin_id_to_use != null) {return plugin_id_to_use;}
 	  
 	// Calculate what plugin ID value to use - look at the properties file
 	// first, and if that isn't correct, base it on the given plugin ID
 	// value we were given.
-  	String id = (String)props.get("plugin.id");
+  	
   	if (id == null) {id = given_plugin_id;}
   	if (id == null) {id = "<none>";}
   	
-  	this.plugin_id_to_use = id;
-  	return this.plugin_id_to_use;
+  	plugin_id_to_use = id;
+  	return plugin_id_to_use;
   }
 
   public boolean
