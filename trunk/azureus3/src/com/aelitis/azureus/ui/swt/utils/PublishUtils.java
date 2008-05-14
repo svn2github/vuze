@@ -142,6 +142,8 @@ public class PublishUtils
 			if ( mapAttr == null ){
 				
 				mapAttr = new HashMap();
+			}else{
+				mapAttr = new HashMap(mapAttr);
 			}
 			
 			mapAttr.put( COMPLETE_ATTRIBUTE_KEY, new Long(1));
