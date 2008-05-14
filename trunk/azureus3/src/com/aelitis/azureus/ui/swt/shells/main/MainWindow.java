@@ -1645,7 +1645,8 @@ public class MainWindow
 				text.setLayoutData(filledFormData);
 
 				FormData fd = (FormData) cArea.getParent().getLayoutData();
-				fd.height = text.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
+				fd.height = 24; //text.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
+				fd.top = new FormAttachment(0, -3);
 				cArea.getParent().setLayoutData(fd);
 				cArea.getParent().layout(true);
 			} catch (Throwable t) {
