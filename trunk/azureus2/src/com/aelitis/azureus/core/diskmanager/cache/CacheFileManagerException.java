@@ -30,7 +30,6 @@ public class
 CacheFileManagerException 
 	extends Exception
 {
-	private static final long serialVersionUID = -1L;
 	private CacheFile	file;
 	private int			fail_index;
 	

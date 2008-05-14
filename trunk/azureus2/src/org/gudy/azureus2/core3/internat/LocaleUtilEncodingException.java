@@ -31,7 +31,6 @@ public class
 LocaleUtilEncodingException 
 	extends Exception
 {
-	private static final long serialVersionUID = -1L;
 	protected String[]		valid_charsets;
 	protected String[]		valid_names;
 	

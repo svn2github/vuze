@@ -34,8 +34,6 @@ AEWin32AccessExceptionImpl
 	extends AEWin32AccessException
 {
 	
-	private static final long serialVersionUID = -1L;
-	
 	public
 	AEWin32AccessExceptionImpl(
 		String		operation,

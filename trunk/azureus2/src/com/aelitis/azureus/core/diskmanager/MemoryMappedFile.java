@@ -164,7 +164,6 @@ public class MemoryMappedFile {
   	private final AEMonitor		buffers_mon		= new AEMonitor( "MemoryMappedFile:buffers" );
 
     private final Map buffers = new LinkedHashMap( (int)(MAX_SIZE/BLOCK_SIZE), .75F, true ){
-    	private static final long serialVersionUID = -1L;
     	
     	//This method is called just after a new entry has been added
       public boolean removeEldestEntry(Map.Entry eldest) {

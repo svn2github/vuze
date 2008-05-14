@@ -23,8 +23,6 @@
 package org.gudy.azureus2.plugins.download.session;
 
 public class SessionAuthenticatorException extends Exception {
-
-	private static final long serialVersionUID = -1L;
   public SessionAuthenticatorException( String reason ) {
     super( reason );
   }

@@ -31,8 +31,6 @@ public class
 ClientIDException 
 	extends Exception
 {
-	
-	private static final long serialVersionUID = -1L;
 	public 
 	ClientIDException(
 		String	str )

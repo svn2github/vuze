@@ -27,8 +27,6 @@ package org.gudy.azureus2.plugins.ipc;
  *
  */
 public class IPCException extends Exception {
-
-	private static final long serialVersionUID = -1L;
 	public IPCException() {
 		super();
 	}

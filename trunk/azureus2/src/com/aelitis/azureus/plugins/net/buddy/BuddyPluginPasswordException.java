@@ -27,7 +27,6 @@ BuddyPluginPasswordException
 	extends BuddyPluginException
 {
 	
-	private static final long serialVersionUID = -1L;
 	private boolean 	was_incorrecte;
 	
 	public 

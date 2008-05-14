@@ -32,7 +32,6 @@ DHTTransportException
 	extends Exception
 {
 	
-	private static final long serialVersionUID = -1L;
 	public 
 	DHTTransportException(
 		String	str )

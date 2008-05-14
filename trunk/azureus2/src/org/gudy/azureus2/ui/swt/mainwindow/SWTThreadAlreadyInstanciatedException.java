@@ -25,7 +25,6 @@ package org.gudy.azureus2.ui.swt.mainwindow;
  * 
  */
 public class SWTThreadAlreadyInstanciatedException extends Exception {
-	private static final long serialVersionUID = -1L;
   public SWTThreadAlreadyInstanciatedException() {
     super("The SWT Thread has already been instanciated");
   }

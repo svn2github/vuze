@@ -25,8 +25,6 @@ import org.gudy.azureus2.pluginsimpl.remote.RPException;
 
 public class RPInternalProcessException extends RPException {
 
-	private static final long serialVersionUID = -1L;
-	
     public RPInternalProcessException(Throwable t) {
         super(t);
     }

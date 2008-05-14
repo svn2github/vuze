@@ -30,7 +30,6 @@ public class
 ResourceUploaderException
 	extends Exception
 {
-	private static final long serialVersionUID = -1L;
 	public
 	ResourceUploaderException(
 		String	str )

@@ -30,7 +30,6 @@ public class
 GlobalManagerDownloadRemovalVetoException
 	extends Exception
 {
-	private static final long serialVersionUID = -1L;
 	private boolean silent;
 	
 	public

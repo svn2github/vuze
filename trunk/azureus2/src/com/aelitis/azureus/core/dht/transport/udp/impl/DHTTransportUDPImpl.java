@@ -143,7 +143,6 @@ DHTTransportUDPImpl
 	private Map	contact_history = 
 		new LinkedHashMap(CONTACT_HISTORY_MAX,0.75f,true)
 		{
-			private static final long serialVersionUID = -1L;
 			protected boolean 
 			removeEldestEntry(
 		   		Map.Entry eldest) 
@@ -157,7 +156,6 @@ DHTTransportUDPImpl
 	private Map	routable_contact_history = 
 		new LinkedHashMap(ROUTABLE_CONTACT_HISTORY_MAX,0.75f,true)
 		{
-		private static final long serialVersionUID = -1L;
 			protected boolean 
 			removeEldestEntry(
 		   		Map.Entry eldest) 
@@ -175,7 +173,6 @@ DHTTransportUDPImpl
 	private Map	recent_reports = 
 			new LinkedHashMap(RECENT_REPORTS_HISTORY_MAX,0.75f,true)
 			{
-			private static final long serialVersionUID = -1L;
 				protected boolean 
 				removeEldestEntry(
 			   		Map.Entry eldest) 

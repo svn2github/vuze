@@ -26,7 +26,6 @@ public class
 DownloadManagerException
 	extends Exception
 {
-	private static final long serialVersionUID = -1L;
 	public
 	DownloadManagerException(
 		String	str )

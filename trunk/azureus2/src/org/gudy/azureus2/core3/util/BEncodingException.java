@@ -30,8 +30,6 @@ import java.io.IOException;
  */
 public class BEncodingException extends IOException {
 	
-	private static final long serialVersionUID = -1L;
-	
 	public BEncodingException(){}
 	public BEncodingException(String message) {	super(message); }
 }

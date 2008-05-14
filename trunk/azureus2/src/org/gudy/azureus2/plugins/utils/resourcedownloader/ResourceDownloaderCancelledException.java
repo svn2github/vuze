@@ -24,7 +24,6 @@ package org.gudy.azureus2.plugins.utils.resourcedownloader;
  * @since 3.0.5.3
  */
 public class ResourceDownloaderCancelledException extends ResourceDownloaderException {
-	private static final long serialVersionUID = -1L;
 	public ResourceDownloaderCancelledException() {
 		super("Download cancelled");
 	}

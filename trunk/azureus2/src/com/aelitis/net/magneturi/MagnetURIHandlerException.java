@@ -31,7 +31,6 @@ public class
 MagnetURIHandlerException
 	extends Exception
 {
-	private static final long serialVersionUID = -1L;
 	public
 	MagnetURIHandlerException(
 		String		str,

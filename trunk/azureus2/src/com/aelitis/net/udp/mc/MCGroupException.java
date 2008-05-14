@@ -31,7 +31,6 @@ public class
 MCGroupException
 	extends Exception
 {
-	private static final long serialVersionUID = -1L;
 	public 
 	MCGroupException(
 		String		str )

@@ -30,7 +30,6 @@ public class
 FMFileManagerException
 	extends Exception
 {
-	private static final long serialVersionUID = -1L;
 	public
 	FMFileManagerException(
 		String		str )

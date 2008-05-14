@@ -134,7 +134,6 @@ DHTControlImpl
 	private Map	local_estimate_values = 
 		new LinkedHashMap(LOCAL_ESTIMATE_HISTORY,0.75f,true)
 		{
-			private static final long serialVersionUID = -1L;
 			protected boolean 
 			removeEldestEntry(
 		   		Map.Entry eldest) 

@@ -25,7 +25,6 @@ import org.gudy.azureus2.pluginsimpl.remote.RPException;
 
 public class RPThrowableAsReplyException extends RPException {
 
-	private static final long serialVersionUID = -1L;
     public RPThrowableAsReplyException(Throwable t) {
         super(t);
     }

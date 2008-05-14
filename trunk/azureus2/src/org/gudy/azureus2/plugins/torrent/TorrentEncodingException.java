@@ -31,8 +31,6 @@ public class
 TorrentEncodingException
 	extends TorrentException
 {
-	private static final long serialVersionUID = -1L;
-	
 		// needs to be public for xml serialisation
 	
 	public String[]		valid_charsets;

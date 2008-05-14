@@ -27,7 +27,6 @@ public class
 NetworkAdminException
 	extends Exception
 {
-	private static final long serialVersionUID = -1L;
 	public
 	NetworkAdminException(
 		String		str )

@@ -130,7 +130,6 @@ DHTNATPuncherImpl
 	private Map		failed_rendezvous	= 
 		new LinkedHashMap(FAILED_RENDEZVOUS_HISTORY_MAX,0.75f,true)
 		{
-			private static final long serialVersionUID = -1L;
 			protected boolean 
 			removeEldestEntry(
 		   		Map.Entry eldest) 
