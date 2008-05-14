@@ -298,7 +298,7 @@ public class VuzeBuddyImpl
 	public void tellBuddyToSyncUp()
 			throws NotLoggedInException {
 		Map map = new HashMap();
-		map.put("VuzeMessageType", "CheckInvites");
+		map.put(VuzeBuddyManager.VUZE_MESSAGE_TYPE, VuzeBuddyManager.VMT_BUDDYSYNC);
 
 		sendPayloadMap(map);
 	}
