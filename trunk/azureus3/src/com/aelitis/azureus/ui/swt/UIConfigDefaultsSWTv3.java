@@ -145,6 +145,7 @@ public class UIConfigDefaultsSWTv3
 		defaults.addParameter("v3.topbar.show.frog", false);
 		defaults.addParameter("v3.topbar.show.plugin", false);
 		defaults.addParameter("ui.toolbar.uiswitcher", false);
+		defaults.addParameter(SkinConstants.VIEWID_PLUGINBAR + ".visible", false);
 		defaults.addParameter("v3.home-tab.starttab", SkinConstants.VIEWID_ACTIVITY_TAB);
 		
 		

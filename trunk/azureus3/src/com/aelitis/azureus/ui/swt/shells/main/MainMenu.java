@@ -176,18 +176,18 @@ public class MainMenu
 			 * NOTE: The following menu items must be created on-demand because
 			 * their creation code relies on the main window being in proper size already.
 			 * Adding these menus before the window is fully opened will result in improper
-			 * layout of the SearchBar and TabBar
+			 * layout of the PluginBar and TabBar
 			 */
 			viewMenu.addMenuListener(new MenuListener() {
 
 				public void menuShown(MenuEvent e) {
 
 					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3
-							+ ".view.searchbar")) {
-						MenuFactory.setEnablementKeys(
-								createViewMenuItem(skin, viewMenu, PREFIX_V3
-										+ ".view.searchbar", "SearchBar.visible", "searchbar"),
-								FOR_AZ3_ADV);
+							+ ".view." + SkinConstants.VIEWID_PLUGINBAR)) {
+						MenuFactory.setEnablementKeys(createViewMenuItem(skin, viewMenu,
+								PREFIX_V3 + ".view." + SkinConstants.VIEWID_PLUGINBAR,
+								SkinConstants.VIEWID_PLUGINBAR + ".visible",
+								SkinConstants.VIEWID_PLUGINBAR), FOR_AZ3_ADV);
 					}
 
 					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3
@@ -384,10 +384,10 @@ public class MainMenu
 		SWTSkinUtils.setVisibility(skin, configID, viewID,
 				COConfigurationManager.getBooleanParameter(configID), false, true);
 
-		final MenuItem itemViewSearchBar = item;
+		final MenuItem itemViewPluginBar = item;
 		final ParameterListener listener = new ParameterListener() {
 			public void parameterChanged(String parameterName) {
-				itemViewSearchBar.setSelection(COConfigurationManager.getBooleanParameter(parameterName));
+				itemViewPluginBar.setSelection(COConfigurationManager.getBooleanParameter(parameterName));
 			}
 		};
 

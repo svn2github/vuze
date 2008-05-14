@@ -609,8 +609,8 @@ public class MainWindow
 				Listener toggleListener = new Listener() {
 					public void handleEvent(Event event) {
 						boolean bVisible = (event.type == SWT.Expand);
-						SWTSkinUtils.setVisibility(skin, "SearchBar.visible", "searchbar",
-								bVisible);
+						SWTSkinUtils.setVisibility(skin, SkinConstants.VIEWID_PLUGINBAR
+								+ ".visible", SkinConstants.VIEWID_PLUGINBAR, bVisible);
 					}
 				};
 				shell.addListener(SWT.Expand, toggleListener);
@@ -775,7 +775,7 @@ public class MainWindow
 			showMainWindow();
 
 			System.out.println("sb="
-					+ COConfigurationManager.getBooleanParameter("SearchBar.visible")
+					+ COConfigurationManager.getBooleanParameter(SkinConstants.VIEWID_PLUGINBAR + ".visible")
 					+ ";tb="
 					+ COConfigurationManager.getBooleanParameter("TabBar.visible"));
 			/*
@@ -783,7 +783,7 @@ public class MainWindow
 			 * because these elements require the window to be in it's proper size before they
 			 * can calculate their own placement coordinates
 			 */
-			String configID = "SearchBar.visible";
+			String configID = SkinConstants.VIEWID_PLUGINBAR + ".visible";
 			if (false == ConfigurationDefaults.getInstance().doesParameterDefaultExist(
 					configID)) {
 				COConfigurationManager.setBooleanDefault(configID, true);
@@ -1364,13 +1364,10 @@ public class MainWindow
 			attachSearchBox(skinObject);
 		}
 
-		skinObject = skin.getSkinObject("searchbar");
+		skinObject = skin.getSkinObject(SkinConstants.VIEWID_PLUGINBAR);
 		if (skinObject != null) {
 			Menu topbarMenu = new Menu(shell, SWT.POP_UP);
 			String[] ids = {
-				"logo",
-				"plugin",
-				"search",
 				"frog"
 			};
 			final MenuItem[] items = new MenuItem[ids.length];
@@ -1384,7 +1381,9 @@ public class MainWindow
 
 			new MenuItem(topbarMenu, SWT.SEPARATOR);
 			MainMenu.createViewMenuItem(skin, topbarMenu,
-					"v3.MainWindow.menu.view.searchbar", "SearchBar.visible", "searchbar");
+					"v3.MainWindow.menu.view."
+					+ SkinConstants.VIEWID_PLUGINBAR, SkinConstants.VIEWID_PLUGINBAR
+					+ ".visible", SkinConstants.VIEWID_PLUGINBAR);
 
 			topbarMenu.addMenuListener(new MenuListener() {
 				public void menuShown(MenuEvent e) {
@@ -2201,7 +2200,7 @@ public class MainWindow
 				return oldMainWindow.isVisible(windowElement);
 			}
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_SEARCHBAR) {
-			SWTSkinObject skinObject = skin.getSkinObject("searchbar");
+			SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_PLUGINBAR);
 			if (skinObject != null) {
 				return skinObject.isVisible();
 			}
@@ -2239,7 +2238,7 @@ public class MainWindow
 			}
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_SEARCHBAR) {
 
-			SWTSkinUtils.setVisibility(skin, "SearchBar.visible", "searchbar", value);
+			SWTSkinUtils.setVisibility(skin, SkinConstants.VIEWID_PLUGINBAR + ".visible", SkinConstants.VIEWID_PLUGINBAR, value);
 
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_TABBAR) {
 
@@ -2270,7 +2269,7 @@ public class MainWindow
 			}
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_SEARCHBAR) {
 
-			SWTSkinObject skinObject = skin.getSkinObject("searchbar");
+			SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_PLUGINBAR);
 			if (skinObject != null) {
 				return skinObject.getControl().getBounds();
 			}

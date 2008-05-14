@@ -60,5 +60,6 @@ public class SkinConstants
 	
 	public static final String VIEWID_BUDDIES_VIEWER = "buddies-viewer";
 	
+	public static final String VIEWID_PLUGINBAR = "pluginbar";
 	
 }
