@@ -522,8 +522,8 @@ public class VuzeBuddyManager
 					} else {
 						log("Relay: YGM from non vuzer " + pk);
 					}
-					PlatformRelayMessenger.relayCheck();
 				}
+				PlatformRelayMessenger.relayCheck();
 			}
 
 		};
