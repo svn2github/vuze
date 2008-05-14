@@ -25,9 +25,6 @@ package com.aelitis.azureus.core.speedmanager.impl;
 
 import java.util.Random;
 
-import com.aelitis.azureus.core.speedmanager.SpeedManager;
-
-
 public class 
 TestPingSourceRandom 
 	extends TestPingSourceImpl

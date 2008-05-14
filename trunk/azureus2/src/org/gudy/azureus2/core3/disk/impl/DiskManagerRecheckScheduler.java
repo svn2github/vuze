@@ -30,7 +30,6 @@ import java.util.List;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.ConcurrentHasher;
 import org.gudy.azureus2.core3.util.RealTimeInfo;
 
 public class 
