@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.util;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
@@ -131,10 +132,17 @@ public class AzpdFileAccess {
     public static File determineAzpdFileLocation(DownloadManager dm)
         throws TOTorrentException
     {
+    	try {
         File azpdDir = getAzpdDir();
 
         String fileNamePrefix = dm.getTorrent().getHashWrapper().toBase32String();
         return new File( azpdDir ,fileNamePrefix+"."+EXT_AZUREUS_PLAYER_DATA );
+    	} catch (TOTorrentException te) {
+    		throw te;
+    	} catch (Exception e) {
+    		Debug.out("determineAzpdFileLocation: " + e.toString());
+    		return null;
+    	}
     }
 
     public static File getAzpdDir() {
