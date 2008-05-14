@@ -30,6 +30,7 @@ import java.io.FileNotFoundException;
  */
 public class FileIsADirectoryException extends FileNotFoundException {
 
+	private static final long serialVersionUID = -1L;
 	/**
 	 * @param string
 	 */

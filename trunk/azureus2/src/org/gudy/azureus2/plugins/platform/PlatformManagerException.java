@@ -30,6 +30,7 @@ public class
 PlatformManagerException
 	extends Exception
 {
+	private static final long serialVersionUID = -1L;
 	public
 	PlatformManagerException(
 		String		str )

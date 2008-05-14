@@ -30,6 +30,7 @@ public class
 ResourceDownloaderException
 	extends Exception
 {
+	private static final long serialVersionUID = -1L;
 	public
 	ResourceDownloaderException(
 		String	str )

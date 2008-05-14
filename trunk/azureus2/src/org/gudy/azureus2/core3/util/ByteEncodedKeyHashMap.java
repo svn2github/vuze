@@ -31,4 +31,6 @@ public class
 ByteEncodedKeyHashMap
 	extends HashMap 
 {
+	private static final long serialVersionUID = -1L;
+	
 }

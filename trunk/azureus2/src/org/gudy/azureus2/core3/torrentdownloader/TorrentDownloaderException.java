@@ -29,6 +29,7 @@ public class
 TorrentDownloaderException 
 	extends Exception
 {
+	private static final long serialVersionUID = -1L;
 	public
 	TorrentDownloaderException(
 		String	str )

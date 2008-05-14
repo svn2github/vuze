@@ -31,6 +31,7 @@ public class
 SFPluginDetailsException
 	extends Exception
 {
+	private static final long serialVersionUID = -1L;
 	public
 	SFPluginDetailsException(
 		String		str )

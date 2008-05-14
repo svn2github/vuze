@@ -27,6 +27,7 @@ public class
 TRTrackerServerException 
 	extends Exception
 {
+	private static final long serialVersionUID = -1L;
 	private int		response_code	= -1;
 	private String	response_text;
 	private Map		response_headers;

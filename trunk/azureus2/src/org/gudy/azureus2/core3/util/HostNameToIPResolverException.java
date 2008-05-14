@@ -33,6 +33,7 @@ public class
 HostNameToIPResolverException
 	extends UnknownHostException
 {
+	private static final long serialVersionUID = -1L;
 	protected boolean	is_anonymous	= false;
 	
 	protected

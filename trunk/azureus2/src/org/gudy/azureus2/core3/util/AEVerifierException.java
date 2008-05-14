@@ -26,6 +26,9 @@ public class
 AEVerifierException
 	extends Exception
 {
+	
+	private static final long serialVersionUID = -1L;
+	
 	public static final int FT_SIGNATURE_MISSING	= 1;
 	public static final int FT_SIGNATURE_BAD		= 2;
 	

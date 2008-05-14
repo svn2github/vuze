@@ -25,6 +25,7 @@ public class
 TOTorrentException
 	extends Exception
 {
+	private static final long serialVersionUID = -1L;
 	public static final int		RT_FILE_NOT_FOUND			= 1;
 	public static final int		RT_ZERO_LENGTH				= 2;
 	public static final int		RT_TOO_BIG					= 3;

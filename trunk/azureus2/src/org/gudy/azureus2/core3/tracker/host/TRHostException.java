@@ -29,6 +29,7 @@ public class
 TRHostException 
 	extends Exception
 {
+	private static final long serialVersionUID = -1L;
 	public 
 	TRHostException(
 		String	str )

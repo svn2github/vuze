@@ -26,6 +26,7 @@ public class
 TRTrackerAnnouncerException
 	extends Exception 
 {
+	private static final long serialVersionUID = -1L;
 	public
 	TRTrackerAnnouncerException(
 		String	str )

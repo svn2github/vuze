@@ -85,6 +85,7 @@ DDBaseTTTorrent
 	private Map	data_cache = 
 		new LinkedHashMap(5,0.75f,true)
 		{
+			private static final long serialVersionUID = -1L;
 			protected boolean 
 			removeEldestEntry(
 		   		Map.Entry eldest) 

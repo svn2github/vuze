@@ -25,6 +25,8 @@ import org.gudy.azureus2.pluginsimpl.remote.RPException;
 
 public class RPNoObjectIDException extends RPException {
 
+	private static final long serialVersionUID = -1L;
+	
     public RPNoObjectIDException() {
         super("Object identifier missing from request");
     }

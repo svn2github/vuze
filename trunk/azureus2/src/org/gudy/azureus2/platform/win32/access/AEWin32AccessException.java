@@ -30,6 +30,9 @@ public class
 AEWin32AccessException
 	extends Exception
 {
+	
+	private static final long serialVersionUID = -1L;
+	
 	public
 	AEWin32AccessException(
 		String	str )

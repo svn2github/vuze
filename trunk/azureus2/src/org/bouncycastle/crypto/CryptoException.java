@@ -6,6 +6,9 @@ package org.bouncycastle.crypto;
 public class CryptoException 
     extends Exception
 {
+	
+	private static final long serialVersionUID = -1L;
+	
     /**
      * base constructor.
      */

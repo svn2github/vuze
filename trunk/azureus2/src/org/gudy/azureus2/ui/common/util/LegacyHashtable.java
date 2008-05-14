@@ -30,7 +30,7 @@ import java.util.Hashtable;
  * @author  tobi
  */
 public class LegacyHashtable extends Hashtable {
-  
+	private static final long serialVersionUID = -1L;
   /** Creates a new instance of LegacyHashtable */
   public LegacyHashtable() {
     super();

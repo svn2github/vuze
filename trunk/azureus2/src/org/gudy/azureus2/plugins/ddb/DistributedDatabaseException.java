@@ -31,6 +31,7 @@ public class
 DistributedDatabaseException 
 	extends Exception
 {
+	private static final long serialVersionUID = -1L;
 	public
 	DistributedDatabaseException(
 		String	str )

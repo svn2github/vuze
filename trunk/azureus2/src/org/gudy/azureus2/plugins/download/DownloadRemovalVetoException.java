@@ -31,7 +31,7 @@ public class
 DownloadRemovalVetoException
 	extends Exception
 {
-	
+	private static final long serialVersionUID = -1L;
 	private boolean silent;
 	
 	public DownloadRemovalVetoException(
