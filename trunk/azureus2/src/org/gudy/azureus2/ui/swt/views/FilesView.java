@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.download.DownloadManagerStateAttributeListener;
 import org.gudy.azureus2.core3.download.DownloadManagerStateEvent;
 import org.gudy.azureus2.core3.download.DownloadManagerStateListener;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -63,7 +64,7 @@ import com.aelitis.azureus.ui.common.table.*;
 public class FilesView
 	extends TableViewTab
 	implements TableDataSourceChangedListener, TableSelectionListener,
-	TableViewSWTMenuFillListener, TableRefreshListener, DownloadManagerStateListener,
+	TableViewSWTMenuFillListener, TableRefreshListener, DownloadManagerStateAttributeListener,
 	TableLifeCycleListener
 {
 	boolean refreshing = false;
@@ -138,10 +139,10 @@ public class FilesView
 			manager = (DownloadManager)newDataSource;
 		
 		if (old_manager != null) {
-			old_manager.getDownloadState().removeListener(this);
+			old_manager.getDownloadState().removeListener(this, DownloadManagerState.AT_FILE_LINKS, DownloadManagerStateAttributeListener.WRITTEN);
 		}
 		if (manager != null) {
-			manager.getDownloadState().addListener(this);
+			manager.getDownloadState().addListener(this, DownloadManagerState.AT_FILE_LINKS, DownloadManagerStateAttributeListener.WRITTEN);
 		}
 
 		tv.removeAllTableRows();
@@ -718,17 +719,15 @@ public class FilesView
   // Used to notify us of when we need to refresh - normally for external changes to the
   // file links.
   private boolean is_changing_links = false;
-  public void stateChanged(DownloadManagerState state, DownloadManagerStateEvent event) {
+  public void attributeEventOccurred(DownloadManager dm, String attribute_name, int event_type) {
 	  if (is_changing_links) {return;}
-	  if (!DownloadManagerState.AT_FILE_LINKS.equals(event.getData())) {return;}
-	  if (event.getType() != DownloadManagerStateEvent.ET_ATTRIBUTE_WRITTEN) {return;}
 	  this.force_refresh = true;
   }
   
   public void tableViewInitialized() {}
   public void tableViewDestroyed() {
 	  if (manager != null) {
-		  manager.getDownloadState().removeListener(this);
+		  manager.getDownloadState().removeListener(this, DownloadManagerState.AT_FILE_LINKS, DownloadManagerStateAttributeListener.WRITTEN);
 	  }
   }
   
