@@ -375,28 +375,32 @@ public class TorrentListViewsUtils
 
 		DownloadManager dm = getDMFromDS(ds);
 		if (dm == null) {
-			TOTorrent torrent = getTorrentFromDS(ds);
-			if (torrent != null) {
-				TorrentUIUtilsV3.addTorrentToGM(torrent);
-			} else {
-  			String hash = getAssetHashFromDS(ds);
-  			if (hash != null) {
-  				// Note: the only case where there's no DM, and a hash present is
-  				//       in a VuzeNewsEntry, which is displayed on the Dashboard's
-  				//       Activity tab.  For now, we hardcode the referal to that
-  				//       but we really should pass it in somehow
-  				String url = Constants.URL_PREFIX + Constants.URL_DOWNLOAD + hash
-  						+ ".torrent?referal=playdashboardactivity";
-  				AzureusCore core = AzureusCoreFactory.getSingleton();
-  				TorrentUIUtilsV3.loadTorrent(core, url, null, true, false, true);
-  			}
-			}
+			downloadDataSource(ds);
 		} else {
 			playOrStream(dm, btn);
 		}
 
 		debugDCAD("exit - playOrStreamDataSource");
 
+	}
+	
+	public static void downloadDataSource(Object ds) {
+		TOTorrent torrent = getTorrentFromDS(ds);
+		if (torrent != null) {
+			TorrentUIUtilsV3.addTorrentToGM(torrent);
+		} else {
+			String hash = getAssetHashFromDS(ds);
+			if (hash != null) {
+				// Note: the only case where there's no DM, and a hash present is
+				//       in a VuzeNewsEntry, which is displayed on the Dashboard's
+				//       Activity tab.  For now, we hardcode the referal to that
+				//       but we really should pass it in somehow
+				String url = Constants.URL_PREFIX + Constants.URL_DOWNLOAD + hash
+						+ ".torrent?referal=playdashboardactivity";
+				AzureusCore core = AzureusCoreFactory.getSingleton();
+				TorrentUIUtilsV3.loadTorrent(core, url, null, true, false, true);
+			}
+		}
 	}
 
 	/**
