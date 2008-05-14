@@ -126,7 +126,9 @@ BuddyPlugin
 
 	private static final int	CHECK_YGM_PERIOD			= 5*60*1000;
 	private static final int	CHECK_YGM_TICKS				= CHECK_YGM_PERIOD/TIMER_PERIOD;
-	
+	private static final int	YGM_BLOOM_LIFE_PERIOD		= 60*60*1000;
+	private static final int	YGM_BLOOM_LIFE_TICKS		= YGM_BLOOM_LIFE_PERIOD/TIMER_PERIOD;
+
 	private static final int	SAVE_CONFIG_PERIOD			= 60*1000;
 	private static final int	SAVE_CONFIG_TICKS			= SAVE_CONFIG_PERIOD/TIMER_PERIOD;
 
@@ -142,6 +144,7 @@ BuddyPlugin
 	private static final int	BLOOM_CHECK_PERIOD			= UNAUTH_BLOOM_RECREATE/2;
 	private static final int	BLOOM_CHECK_TICKS			= BLOOM_CHECK_PERIOD/TIMER_PERIOD;
 
+	private static BloomFilter	ygm_unauth_bloom;
 
 	
 	private volatile int	 initialisation_state = INIT_UNKNOWN;
@@ -1780,7 +1783,7 @@ BuddyPlugin
 					
 					if ( tick_count % CHECK_YGM_TICKS == 0 ){
 
-						checkMessagePending();
+						checkMessagePending( tick_count );
 					}
 					
 					if ( tick_count % BLOOM_CHECK_TICKS == 0 ){
@@ -2264,9 +2267,18 @@ BuddyPlugin
 	}
 	
 	public void
-	checkMessagePending()
+	checkMessagePending(
+		int	tick_count )
 	{
 		log( "Checking YGM" );
+
+		if ( tick_count % YGM_BLOOM_LIFE_TICKS == 0 ){
+			
+			synchronized( this ){
+				
+				ygm_unauth_bloom = null;
+			}
+		}
 
 		try{	
 			String	reason = "Friend YGM check";
@@ -2278,7 +2290,8 @@ BuddyPlugin
 			ddb.read(
 				new DistributedDatabaseListener()
 				{	
-					private List	new_ygm_buddies = new ArrayList();
+					private List		new_ygm_buddies = new ArrayList();
+					private boolean	 	unauth_permitted = false;;
 					
 					public void
 					event(
@@ -2300,15 +2313,34 @@ BuddyPlugin
 								String	pk_str = Base32.encode( pk );
 								
 								BuddyPluginBuddy buddy = getBuddyFromPublicKey( pk_str );
-								
-								if ( buddy == null ){
+																
+								if ( buddy == null || !buddy.isAuthorised() ){
 									
-									log( "YGM entry from unknown friend '" + pk_str + "' - ignoring" );
+									if ( buddy == null ){
 									
-								}else if ( !buddy.isAuthorised()){
+										log( "YGM entry from unknown friend '" + pk_str + "' - ignoring" );
+										
+									}else{								
 									
-									log( "YGM entry from unauthorised friend '" + pk_str + "' - ignoring" );
+										log( "YGM entry from unauthorised friend '" + pk_str + "' - ignoring" );
+									}
 
+									byte[] address = event.getContact().getAddress().getAddress().getAddress();
+									
+									synchronized( BuddyPlugin.this ){
+									
+										if ( ygm_unauth_bloom == null ){
+										
+											ygm_unauth_bloom = BloomFilterFactory.createAddOnly(512);
+										}
+										
+										if ( !ygm_unauth_bloom.contains( address )){
+											
+											ygm_unauth_bloom.add( address );
+											
+											unauth_permitted = true;
+										}
+									}
 								}else{
 									
 									byte[]	signed_stuff = (byte[])map.get( "ss" );
@@ -2332,7 +2364,7 @@ BuddyPlugin
 						}else if ( 	type == DistributedDatabaseEvent.ET_OPERATION_TIMEOUT ||
 									type == DistributedDatabaseEvent.ET_OPERATION_COMPLETE ){
 							
-							if ( new_ygm_buddies.size() > 0 ){
+							if ( new_ygm_buddies.size() > 0 || unauth_permitted ){
 								
 								BuddyPluginBuddy[] b = new BuddyPluginBuddy[new_ygm_buddies.size()];
 								
