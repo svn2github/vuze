@@ -496,8 +496,8 @@ public class ColumnVuzeActivity
 					subCellEvent.eventType = isMouseOverThumbCell
 							? TableCellMouseEvent.EVENT_MOUSEENTER
 							: TableCellMouseEvent.EVENT_MOUSEEXIT;
-					subCellEvent.x = event.x - dmThumbRect.x;
-					subCellEvent.y = event.y - dmThumbRect.y;
+					subCellEvent.x = event.x - dmThumbRect.x - MARGIN_WIDTH;
+					subCellEvent.y = event.y - dmThumbRect.y - MARGIN_WIDTH;
 					subCellEvent.cell = thumbCell;
 
 					TableColumn tc = thumbCell.getTableColumn();
@@ -526,8 +526,8 @@ public class ColumnVuzeActivity
 							? TableCellMouseEvent.EVENT_MOUSEENTER
 							: TableCellMouseEvent.EVENT_MOUSEEXIT;
 					subCellEvent.cell = ratingCell;
-					subCellEvent.x = event.x - dmRatingRect.x;
-					subCellEvent.y = event.y - dmRatingRect.y;
+					subCellEvent.x = event.x - dmRatingRect.x - MARGIN_WIDTH;
+					subCellEvent.y = event.y - dmRatingRect.y - MARGIN_WIDTH;
 
 					TableColumn tc = ratingCell.getTableColumn();
 					if (tc instanceof TableColumnCore) {
@@ -547,8 +547,8 @@ public class ColumnVuzeActivity
 
 			if (thumbCell != null && isMouseOverThumbCell) {
 				subCellEvent.cell = thumbCell;
-				subCellEvent.x = event.x - dmThumbRect.x;
-				subCellEvent.y = event.y - dmThumbRect.y;
+				subCellEvent.x = event.x - dmThumbRect.x - MARGIN_WIDTH;
+				subCellEvent.y = event.y - dmThumbRect.y - MARGIN_WIDTH;
 
 				if (thumbCell instanceof TableCellCore) {
 					TableRowCore row = ((TableCellCore) thumbCell).getTableRowCore();
@@ -565,8 +565,8 @@ public class ColumnVuzeActivity
 			}
 			if (ratingCell != null && isMouseOverRatingCell) {
 				subCellEvent.cell = ratingCell;
-				subCellEvent.x = event.x - dmRatingRect.x;
-				subCellEvent.y = event.y - dmRatingRect.y;
+				subCellEvent.x = event.x - dmRatingRect.x - MARGIN_WIDTH;
+				subCellEvent.y = event.y - dmRatingRect.y - MARGIN_WIDTH;
 
 				if (ratingCell instanceof TableCellCore) {
 					((TableCellCore) ratingCell).getTableRowCore().invokeMouseListeners(
@@ -630,7 +630,7 @@ public class ColumnVuzeActivity
 
 	private Rectangle getDMImageRect(int cellHeight) {
 		//return new Rectangle(0, cellHeight - 50 - MARGIN_HEIGHT, 16, 50);
-		return new Rectangle(EVENT_INDENT, cellHeight - 50 - MARGIN_HEIGHT, 87, 50);
+		return new Rectangle(EVENT_INDENT, cellHeight - 50 - MARGIN_HEIGHT, 105, 50);
 	}
 
 	private Rectangle getDMRatingRect(int cellWidth, int cellHeight) {
