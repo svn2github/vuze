@@ -5,7 +5,6 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
-import com.aelitis.azureus.util.LoginInfoManager;
 
 public class VuzeShareUtils
 {
