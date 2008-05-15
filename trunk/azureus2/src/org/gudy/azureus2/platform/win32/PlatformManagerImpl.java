@@ -53,6 +53,7 @@ PlatformManagerImpl
 	
 	public static final String					DLL_NAME = "aereg";
 	
+	public static final String				VUZE_ASSOC		= "Vuze";
 	public static final String				NEW_MAIN_ASSOC	= "Azureus";
 	public static final String				OLD_MAIN_ASS0C	= "BitTorrent";
 	
@@ -475,6 +476,15 @@ PlatformManagerImpl
 			reg	= true;
 		}
 		
+			// always register .vuze association
+		
+		boolean	vuze_reg = isAdditionalFileTypeRegistered( VUZE_ASSOC, ".vuze" );
+
+		if ( !vuze_reg ){
+			
+			registerAdditionalFileType( VUZE_ASSOC, "Vuze File", ".vuze", "application/x-vuze" );
+		}
+		
 		return( reg );
 	}
 	
@@ -604,6 +614,8 @@ PlatformManagerImpl
 		registerMagnet();
 		
 		registerAdditionalFileType( NEW_MAIN_ASSOC, "Azureus Download", ".torrent", "application/x-bittorrent" );
+		
+		registerAdditionalFileType( VUZE_ASSOC, "Vuze File", ".vuze", "application/x-vuze" );
 	}
 	
 	protected void
