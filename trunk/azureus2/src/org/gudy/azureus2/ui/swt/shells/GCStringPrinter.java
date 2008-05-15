@@ -237,13 +237,8 @@ public class GCStringPrinter
 							//fullLinesOnly = true; // <-- don't know why we needed this
 							lines.add(lineInfo);
 						} else if (isOverY && fullLinesOnly) {
-							String excess;
-							if (fullLinesOnly) {
-								excess = sLastExcess;
-							} else {
-								excess = lineInfo.excessPos >= 0
-										? sLine.substring(lineInfo.excessPos) : null;
-							}
+							String excess = lineInfo.excessPos >= 0
+									? sLine.substring(lineInfo.excessPos) : null;
 							if (excess != null) {
 								if (fullLinesOnly) {
 									if (lines.size() > 0) {
@@ -283,6 +278,7 @@ public class GCStringPrinter
 									System.out.println("No Excess");
 								}
 							}
+							cutoff = true;
 							return false;
 						} else {
 							lines.add(lineInfo);
