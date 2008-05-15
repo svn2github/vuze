@@ -847,7 +847,7 @@ TOTorrentImpl
 		String		name,
 		Object		value )
 	{
-		if ( name instanceof String ){
+		if ( value instanceof String ){
 			
 			setAdditionalStringProperty(name,(String)value);
 			
