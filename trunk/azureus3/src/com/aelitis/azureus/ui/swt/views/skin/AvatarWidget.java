@@ -140,8 +140,13 @@ public class AvatarWidget
 
 			public void paintControl(PaintEvent e) {
 
-				e.gc.setAntialias(SWT.ON);
-				e.gc.setAlpha(alpha);
+				try {
+  				e.gc.setAntialias(SWT.ON);
+  				e.gc.setAlpha(alpha);
+  				e.gc.setInterpolation(SWT.HIGH);
+				} catch (Exception ex) {
+					// ignore.. some of these may not be avail
+				}
 
 				/*
 				 * Draw backgound if the widget is selected
