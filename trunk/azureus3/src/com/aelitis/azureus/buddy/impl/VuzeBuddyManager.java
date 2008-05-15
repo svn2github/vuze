@@ -413,6 +413,12 @@ public class VuzeBuddyManager
 							// out really really fast
 							log("OOPS, sync or getInvite failed because you were no longer logged in");
 						}
+						
+						String nickname = buddyPlugin.getNickname();
+						if (nickname == null || nickname.length() == 0) {
+							buddyPlugin.setNickname(info.userName + " ("
+									+ info.pk.substring(0, 2) + ")");
+						}
 					}
 				});
 			} catch (NotLoggedInException e) {
