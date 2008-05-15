@@ -11,10 +11,7 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
@@ -85,6 +82,8 @@ public class AvatarWidget
 	private Rectangle avatarBounds = null;
 
 	private Menu menu;
+	
+	private static Font fontDisplayName;
 
 	public AvatarWidget(BuddiesViewer viewer, Point avatarSize,
 			Point avatarImageSize, VuzeBuddySWT vuzeBuddy) {
@@ -139,9 +138,14 @@ public class AvatarWidget
 		avatarCanvas.addPaintListener(new PaintListener() {
 
 			public void paintControl(PaintEvent e) {
+				
+				if (fontDisplayName == null || fontDisplayName.isDisposed()) {
+					fontDisplayName = Utils.getFontWithHeight(avatarCanvas.getFont(), e.gc, 10);
+				}
 
 				try {
   				e.gc.setAntialias(SWT.ON);
+  				e.gc.setTextAntialias(SWT.ON);
   				e.gc.setAlpha(alpha);
   				e.gc.setInterpolation(SWT.HIGH);
 				} catch (Exception ex) {
@@ -223,10 +227,21 @@ public class AvatarWidget
 						e.gc.setForeground(textColor);
 					}
 
-					GCStringPrinter.printString(e.gc, vuzeBuddy.getDisplayName(),
-							new Rectangle(1, avatarImageSize.y, avatarSize.x - 2,
-									avatarSize.y - avatarImageSize.y), false, false, SWT.TOP
-									| SWT.CENTER);
+					Rectangle r = new Rectangle(1, avatarImageSize.y - 2,
+							avatarSize.x - 2, avatarSize.y - avatarImageSize.y - 3);
+					int flags = SWT.CENTER | SWT.WRAP;
+					GCStringPrinter stringPrinter = new GCStringPrinter(e.gc,
+							vuzeBuddy.getDisplayName(), r, false, true, flags);
+					stringPrinter.calculateMetrics();
+
+					if (stringPrinter.isCutoff()) {
+						e.gc.setFont(fontDisplayName);
+						r.height += 9;
+						r.y -= 4;
+					}
+
+					stringPrinter.printString(e.gc, r, SWT.CENTER | SWT.WRAP);
+					e.gc.setFont(null);
 
 				}
 			}
