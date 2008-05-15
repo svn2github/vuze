@@ -127,7 +127,7 @@ public class SWTSkinUtils
 			if (control != null && !control.isDisposed()) {
 				Boolean wasVisible = (Boolean) control.getData("lastSlideVis");
 				if (wasVisible != null && wasVisible.booleanValue() == visible) {
-					return;
+					fast = true;
 				}
 
 				if (control.getData("Sliding") != null) {
