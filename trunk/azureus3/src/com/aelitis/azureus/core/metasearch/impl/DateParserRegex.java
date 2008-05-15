@@ -10,7 +10,7 @@ import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class DateParserRegex {
+public class DateParserRegex extends DateParser {
 	
 	static boolean DEBUG = false;
 	
