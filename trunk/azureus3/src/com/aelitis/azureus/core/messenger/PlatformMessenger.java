@@ -79,6 +79,8 @@ public class PlatformMessenger
 
 	private static PlatformAuthorizedSender authorizedSender;
 
+	private static boolean authorizedDelayed;
+
 	public static synchronized void init() {
 		if (initialized) {
 			return;
@@ -109,37 +111,53 @@ public class PlatformMessenger
 
 	public static void queueMessage(PlatformMessage message,
 			PlatformMessengerListener listener) {
+		queueMessage(message, listener, true);
+	}
+
+	public static void queueMessage(PlatformMessage message,
+			PlatformMessengerListener listener, boolean addToBottom) {
 		if (!initialized) {
 			init();
 		}
 
-		debug("q msg " + message + " for " + new Date(message.getFireBefore()));
+		if (message != null) {
+			debug("q msg " + message + " for " + new Date(message.getFireBefore()));
+		} else {
+			debug("fire timerevent");
+		}
 		queue_mon.enter();
 		try {
-			if (message.requiresAuthorization()) {
-				mapQueueAuthorized.put(message, listener);
+			long fireBefore;
+			if (message != null) {
+  			if (message.requiresAuthorization()) {
+  				mapQueueAuthorized.put(message, listener);
+  			} else {
+  				mapQueue.put(message, listener);
+  			}
+  			fireBefore = message.getFireBefore();
 			} else {
-				mapQueue.put(message, listener);
+				fireBefore = SystemTime.getCurrentTime();
 			}
 
 			if (timerEvent == null || timerEvent.hasRun()) {
-				timerEvent = timerProcess.addEvent(message.getFireBefore(),
+				timerEvent = timerProcess.addEvent(fireBefore,
 						new TimerEventPerformer() {
 							public void perform(TimerEvent event) {
 								timerEvent = null;
 								while (mapQueue.size() > 0) {
 									processQueue(mapQueue, false);
 								}
-								while (mapQueueAuthorized.size() > 0) {
-									processQueue(mapQueueAuthorized, true);
+								if (!authorizedDelayed) {
+  								while (mapQueueAuthorized.size() > 0) {
+  									processQueue(mapQueueAuthorized, true);
+  								}
 								}
 							}
 						});
 			} else {
 				// Move the time up if we have to
-				if (message.getFireBefore() < timerEvent.getWhen()) {
-					timerProcess.adjustAllBy(message.getFireBefore()
-							- timerEvent.getWhen());
+				if (fireBefore < timerEvent.getWhen()) {
+					timerProcess.adjustAllBy(fireBefore - timerEvent.getWhen());
 				}
 			}
 		} finally {
@@ -157,6 +175,19 @@ public class PlatformMessenger
 			System.out.println(Thread.currentThread().getName() + "|"
 					+ System.currentTimeMillis() + "] " + string);
 		}
+	}
+	
+	/**
+	 * Sends the message almost immediately, skipping delayauthorization check 
+	 * @param message
+	 * @param listener
+	 *
+	 * @since 3.0.5.3
+	 */
+	public static void pushMessageNow(PlatformMessage message, PlatformMessengerListener listener) {
+		Map map = new HashMap(1);
+		map.put(message, listener);
+		processQueue(map, message.requiresAuthorization());
 	}
 
 	/**
@@ -604,5 +635,22 @@ public class PlatformMessenger
 			log("sendBrowserMessage - " + key + "/" + op + "/" + params );
 			return false;
 		}
+	}
+
+	/**
+	 * @param b
+	 *
+	 * @since 3.0.5.3
+	 */
+	public static void setAuthorizedDelayed(boolean authorizedDelayed) {
+		debug("setDelayAuthorized " + authorizedDelayed);
+		PlatformMessenger.authorizedDelayed = authorizedDelayed;
+		if (!authorizedDelayed && mapQueueAuthorized.size() > 0) {
+			queueMessage(null, null);
+		}
+	}
+
+	public static boolean isAuthorizedDelayed() {
+		return authorizedDelayed;
 	}
 }

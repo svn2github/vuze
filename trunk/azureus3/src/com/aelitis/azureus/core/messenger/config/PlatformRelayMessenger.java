@@ -160,7 +160,8 @@ public class PlatformRelayMessenger
 	}
 
 	public static final void fetch(long maxDelayMS) throws NotLoggedInException {
-		if (!LoginInfoManager.getInstance().isLoggedIn()) {
+		if (!LoginInfoManager.getInstance().isLoggedIn()
+				|| PlatformMessenger.isAuthorizedDelayed()) {
 			resetTimerEvent(DEFAULT_RECHECKIN_MINS);
 			throw new NotLoggedInException();
 		}

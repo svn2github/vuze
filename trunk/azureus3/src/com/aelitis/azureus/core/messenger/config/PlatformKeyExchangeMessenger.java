@@ -88,7 +88,8 @@ public class PlatformKeyExchangeMessenger
 			}
 		};
 
-		PlatformMessenger.queueMessage(message, listener);
+		// we want to do this immediately, before any other queued items
+		PlatformMessenger.pushMessageNow(message, listener);
 	}
 
 	public static void setPublicKey()
@@ -123,7 +124,8 @@ public class PlatformKeyExchangeMessenger
 					PlatformMessage message) {
 			}
 		};
-		PlatformMessenger.queueMessage(message, listener);
+		// we want to do this immediately, before any other queued items
+		PlatformMessenger.pushMessageNow(message, listener);
 	}
 
 	public static interface platformPasswordListener
