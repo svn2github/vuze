@@ -502,7 +502,7 @@ public class MainWindow
 
 										int i = s.indexOf("0;");
 
-										if (i > 0) {
+										if (i >= 0) {
 											PlatformMessenger.debug("Got Auth Reply: " + s);
 										} else {
 											String partial = s.length() == 0 ? "" : s.substring(0,
