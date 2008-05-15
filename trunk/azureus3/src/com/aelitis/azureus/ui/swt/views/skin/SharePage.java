@@ -10,6 +10,8 @@ import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.browser.ProgressEvent;
+import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.DisposeEvent;
@@ -543,13 +545,31 @@ public class SharePage
 	private Browser getBrowser() {
 		if (null == browser) {
 			browser = new Browser(browserPanel, SWT.NONE);
+
+			/*
+			 * Adding a completion listener before we set the url; only when the page is fully loaded
+			 * can we reliably call getMessageContext().
+			 * Additionally this call only needs to be made once
+			 */
+			browser.addProgressListener(new ProgressListener() {
+				private boolean runOnce = false;
+
+				public void completed(ProgressEvent event) {
+					/*
+					 * Calling to initialize the context
+					 */
+					if (false == runOnce) {
+						getMessageContext();
+						runOnce = true;
+					}
+				}
+
+				public void changed(ProgressEvent event) {
+				}
+			});
+
 			String url = Constants.URL_PREFIX + "share.start";
 			browser.setUrl(url);
-			
-			/*
-			 * Calling to initialize the context
-			 */
-			getMessageContext();
 
 		}
 
@@ -581,7 +601,7 @@ public class SharePage
 		if (null == browser) {
 			getBrowser();
 		}
-		
+
 		/*
 		 * Setting the button bar to Share mode
 		 */
@@ -589,8 +609,7 @@ public class SharePage
 		if (null != buttonBar) {
 			buttonBar.setActiveMode(BuddiesViewer.share_mode);
 		}
-		
-		
+
 		BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
 		if (null != viewer) {
 			setBuddies(viewer.getSelection());

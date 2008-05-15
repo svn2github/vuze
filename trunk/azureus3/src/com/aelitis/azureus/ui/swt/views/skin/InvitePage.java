@@ -2,6 +2,8 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.browser.ProgressEvent;
+import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -48,16 +50,34 @@ public class InvitePage
 	private Browser getBrowser() {
 		if (null == browser) {
 			browser = new Browser(content, SWT.NONE);
+
+			/*
+			 * Adding a completion listener before we set the url; only when the page is fully loaded
+			 * can we reliably call getMessageContext().
+			 * Additionally this call only needs to be made once
+			 */
+			browser.addProgressListener(new ProgressListener() {
+				private boolean runOnce = false;
+
+				public void completed(ProgressEvent event) {
+					/*
+					 * Calling to initialize the context
+					 */
+					if (false == runOnce) {
+						getMessageContext();
+						runOnce = true;
+					}
+				}
+
+				public void changed(ProgressEvent event) {
+				}
+			});
+
 			String url = Constants.URL_PREFIX + "share.start";
 			browser.setUrl(url);
 
 			stackLayout.topControl = browser;
 			content.layout();
-
-			/*
-			 * Calling to initialize the context
-			 */
-			getMessageContext();
 
 		}
 		return browser;
@@ -69,14 +89,15 @@ public class InvitePage
 
 	public ClientMessageContext getMessageContext() {
 		if (null == context) {
-			context = new BrowserContext("buddy-page-listener-invite" + Math.random(),
-					getBrowser(), null, true);
-			
+			context = new BrowserContext(
+					"buddy-page-listener-invite" + Math.random(), getBrowser(), null,
+					true);
+
 			/*
 			 * Setting inviteFromShare to false in the browser
 			 */
 			context.executeInBrowser("inviteFromShare(" + false + ")");
-			
+
 			/*
 			 * Add the appropriate messaging listeners
 			 */
@@ -118,8 +139,8 @@ public class InvitePage
 
 						public void handleInviteConfirm() {
 							try {
-								VuzeBuddyManager.inviteWithShare(getConfirmationResponse(), null,
-										null, null);
+								VuzeBuddyManager.inviteWithShare(getConfirmationResponse(),
+										null, null, null);
 							} catch (NotLoggedInException e) {
 								// XXX Handle me!
 								e.printStackTrace();
@@ -140,7 +161,7 @@ public class InvitePage
 		/*
 		 * Calling to init the browser if it's not been done already
 		 */
-		if(null == browser){
+		if (null == browser) {
 			getBrowser();
 		}
 
