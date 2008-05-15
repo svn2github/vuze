@@ -601,30 +601,19 @@ DownloadManagerImpl
 				 readParameters();
 				 
 					// establish any file links
-					
-				 download_manager_state.addListener(
-						new DownloadManagerStateListener()
-						{
-							public void
-							stateChanged(
-								DownloadManagerState			state,
-								DownloadManagerStateEvent		event )
-							{
-								if ( event.getType() == DownloadManagerStateEvent.ET_ATTRIBUTE_WRITTEN ){
-									
-									String	attribute_name = (String)event.getData();
-									
-									if ( attribute_name.equals( DownloadManagerState.AT_FILE_LINKS )){
-										
-										setFileLinks();
-										
-									}else if ( attribute_name.equals( DownloadManagerState.AT_PARAMETERS )){
-										
-										readParameters();
-									}
-								}
-							}
-						});
+				 DownloadManagerStateAttributeListener attr_listener = new DownloadManagerStateAttributeListener() {
+					 public void attributeEventOccurred(DownloadManager dm, String attribute_name, int event_type) {
+						 if (attribute_name.equals(DownloadManagerState.AT_FILE_LINKS)) {
+							 setFileLinks();
+						 }
+						 else if (attribute_name.equals(DownloadManagerState.AT_PARAMETERS)) {
+							 readParameters();
+						 }
+					 }
+				 };
+
+				 download_manager_state.addListener(attr_listener, DownloadManagerState.AT_FILE_LINKS, DownloadManagerStateAttributeListener.WRITTEN);
+				 download_manager_state.addListener(attr_listener, DownloadManagerState.AT_PARAMETERS, DownloadManagerStateAttributeListener.WRITTEN);
 						
 				 torrent	= download_manager_state.getTorrent();
 				 

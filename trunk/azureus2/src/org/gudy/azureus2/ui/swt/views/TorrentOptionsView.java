@@ -50,7 +50,7 @@ import org.gudy.azureus2.ui.swt.config.generic.GenericParameterAdapter;
 public class 
 TorrentOptionsView
 	extends AbstractIView
-	implements DownloadManagerStateListener
+	implements DownloadManagerStateAttributeListener
 {
 	private static final String	TEXT_PREFIX	= "TorrentOptionsView.param.";
 	
@@ -356,9 +356,8 @@ TorrentOptionsView
 			        }
 			    });
 		
-	    for (int i=0;i<managers.length;i++){
-		
-	    	managers[i].getDownloadState().addListener( this );
+	    for (int i=0;i<managers.length;i++){		
+	    	managers[i].getDownloadState().addListener(this, DownloadManagerState.AT_PARAMETERS, DownloadManagerStateAttributeListener.WRITTEN);
 	    }
 	}
 	
@@ -394,59 +393,31 @@ TorrentOptionsView
 			}
 		}
 	}
-	
-	public void
-	stateChanged(
-		final DownloadManagerState			state,
-		DownloadManagerStateEvent			event )
-	{
-		if ( event.getType() == DownloadManagerStateEvent.ET_ATTRIBUTE_WRITTEN ){
-			
-			String	attribute_name = (String)event.getData();
-			
-			if ( attribute_name.equals( DownloadManagerState.AT_PARAMETERS )){
-				
-				Utils.execSWTThread(
-					new Runnable()
-					{
-						public void
-						run()
-						{
-							Iterator	it = ds_parameters.entrySet().iterator();
-							
-							while( it.hasNext()){
+
+	public void attributeEventOccurred(DownloadManager dm, String attribute_name, int event_type) {
+		final DownloadManagerState state = dm.getDownloadState();
+		Utils.execSWTThread(new Runnable() {
+			public void	run() {
+				Iterator it = ds_parameters.entrySet().iterator();
+				while (it.hasNext()) {
+					Map.Entry	entry = (Map.Entry)it.next();
+					String	key 	= (String)entry.getKey();
+					Object	param 	= entry.getValue();
 								
-								Map.Entry	entry = (Map.Entry)it.next();
-								
-								String	key 	= (String)entry.getKey();
-								Object	param 	= entry.getValue();
-								
-								if ( param instanceof GenericIntParameter ){
-								
-									GenericIntParameter	int_param = (GenericIntParameter)param;
-									
-									int	value = state.getIntParameter( key );
-									
-									int_param.setValue( value );
-									
-								}else if ( param instanceof GenericBooleanParameter ){
-									
-									GenericBooleanParameter	bool_param = (GenericBooleanParameter)param;
-									
-									boolean	value = state.getBooleanParameter( key );
-									
-									bool_param.setSelected( value );
-									
-								}else{
-									
-									Debug.out( "Unknown parameter type: " + param.getClass());
-								}
-							}
-						}
-					},
-					true );
+					if (param instanceof GenericIntParameter) {
+						GenericIntParameter	int_param = (GenericIntParameter)param;
+						int	value = state.getIntParameter( key );
+						int_param.setValue( value );
+					} else if (param instanceof GenericBooleanParameter) {
+						GenericBooleanParameter	bool_param = (GenericBooleanParameter)param;
+						boolean	value = state.getBooleanParameter( key );
+						bool_param.setSelected( value );
+					} else {		
+						Debug.out( "Unknown parameter type: " + param.getClass());
+					}
+				} 
 			}
-		}
+		}, true);
 	}
 	
 	public Composite 
@@ -478,7 +449,7 @@ TorrentOptionsView
 		}
 		
 		for (int i=0;i<managers.length;i++){
-			managers[i].getDownloadState().removeListener( this );
+			managers[i].getDownloadState().removeListener(this, DownloadManagerState.AT_PARAMETERS, DownloadManagerStateAttributeListener.WRITTEN);
 		}
 	}
 	
