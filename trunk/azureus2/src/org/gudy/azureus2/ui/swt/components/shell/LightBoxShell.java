@@ -89,6 +89,8 @@ public class LightBoxShell
 	public static final int RESIZE_HORIZONTAL = 1 << 2;
 
 	private int styleMask = RESIZE_VERTICAL | RESIZE_HORIZONTAL;
+	
+	private int alphaLevel = 178;
 
 	public LightBoxShell() {
 		this(false);
@@ -265,7 +267,7 @@ public class LightBoxShell
 			lbShell.setBackground(Colors.black);
 
 			try {
-				lbShell.setAlpha(178);
+				lbShell.setAlpha(alphaLevel);
 			} catch (Throwable t) {
 				//Do nothing if alpha is not supported
 			}
@@ -556,5 +558,26 @@ public class LightBoxShell
 
 	public void setStyleMask(int styleMask) {
 		this.styleMask = styleMask;
+	}
+
+	public int getAlphaLevel() {
+		return alphaLevel;
+	}
+
+	public void setAlphaLevel(final int alphaLevel) {
+		this.alphaLevel = alphaLevel;
+
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (lbShell.isDisposed()) {
+					return;
+				}
+				try {
+					lbShell.setAlpha(alphaLevel);
+				} catch (Throwable t) {
+					//Do nothing if alpha is not supported
+				}
+			}
+		});
 	}
 }
