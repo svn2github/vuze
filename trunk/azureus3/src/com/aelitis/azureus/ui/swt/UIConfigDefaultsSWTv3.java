@@ -147,6 +147,7 @@ public class UIConfigDefaultsSWTv3
 		defaults.addParameter("ui.toolbar.uiswitcher", false);
 		defaults.addParameter(SkinConstants.VIEWID_PLUGINBAR + ".visible", false);
 		defaults.addParameter("v3.home-tab.starttab", SkinConstants.VIEWID_ACTIVITY_TAB);
+		defaults.addParameter("v3.topbar.height", 60);
 		
 		
 		//=== defaults used by MainWindow

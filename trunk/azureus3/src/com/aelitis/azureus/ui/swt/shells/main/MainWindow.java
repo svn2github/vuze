@@ -610,7 +610,8 @@ public class MainWindow
 					public void handleEvent(Event event) {
 						boolean bVisible = (event.type == SWT.Expand);
 						SWTSkinUtils.setVisibility(skin, SkinConstants.VIEWID_PLUGINBAR
-								+ ".visible", SkinConstants.VIEWID_PLUGINBAR, bVisible);
+								+ ".visible", SkinConstants.VIEWID_PLUGINBAR, bVisible, true,
+								true);
 					}
 				};
 				shell.addListener(SWT.Expand, toggleListener);
@@ -772,17 +773,14 @@ public class MainWindow
 				});
 			}
 		} finally {
-			showMainWindow();
+			
+			shell.layout(true, true);
 
 			System.out.println("sb="
 					+ COConfigurationManager.getBooleanParameter(SkinConstants.VIEWID_PLUGINBAR + ".visible")
 					+ ";tb="
 					+ COConfigurationManager.getBooleanParameter("TabBar.visible"));
-			/*
-			 * Sets the visibility of the Search and Tab bars after the window has been opened
-			 * because these elements require the window to be in it's proper size before they
-			 * can calculate their own placement coordinates
-			 */
+
 			String configID = SkinConstants.VIEWID_PLUGINBAR + ".visible";
 			if (false == ConfigurationDefaults.getInstance().doesParameterDefaultExist(
 					configID)) {
@@ -808,7 +806,8 @@ public class MainWindow
 					COConfigurationManager.getBooleanParameter(configID));
 			
 			
-			
+			showMainWindow();
+
 			//================
 
 			increaseProgress(uiInitializer, null);
@@ -947,7 +946,6 @@ public class MainWindow
 				&& (bPassworded || COConfigurationManager.getBooleanParameter("Start Minimized"));
 
 		if (!bStartMinimize) {
-			shell.layout();
 			shell.open();
 			if (!isOSX) {
 				shell.forceActive();
@@ -956,8 +954,6 @@ public class MainWindow
 			shell.setMinimized(true);
 			shell.setVisible(true);
 		}
-
-		shell.layout(true, true);
 
 		if (bEnableTray) {
 
@@ -1367,42 +1363,12 @@ public class MainWindow
 		skinObject = skin.getSkinObject(SkinConstants.VIEWID_PLUGINBAR);
 		if (skinObject != null) {
 			Menu topbarMenu = new Menu(shell, SWT.POP_UP);
-			String[] ids = {
-				"frog"
-			};
-			final MenuItem[] items = new MenuItem[ids.length];
-			for (int i = 0; i < ids.length; i++) {
-				final String id = ids[i];
 
-				items[i] = MainMenu.createViewMenuItem(skin, topbarMenu,
-						"v3.topbar.menu.show." + id, "v3.topbar.show." + id, "topbar-area-"
-								+ id);
-			}
-
-			new MenuItem(topbarMenu, SWT.SEPARATOR);
 			MainMenu.createViewMenuItem(skin, topbarMenu,
 					"v3.MainWindow.menu.view."
 					+ SkinConstants.VIEWID_PLUGINBAR, SkinConstants.VIEWID_PLUGINBAR
-					+ ".visible", SkinConstants.VIEWID_PLUGINBAR);
+					+ ".visible", SkinConstants.VIEWID_PLUGINBAR, true);
 
-			topbarMenu.addMenuListener(new MenuListener() {
-				public void menuShown(MenuEvent e) {
-					for (int i = 0; i < items.length; i++) {
-						MenuItem item = items[i];
-
-						String id = (String) item.getData("id");
-						if (id != null) {
-							SWTSkinObject so = skin.getSkinObject("topbar-area-" + id);
-							if (so != null) {
-								item.setSelection(so.isVisible());
-							}
-						}
-					}
-				}
-
-				public void menuHidden(MenuEvent e) {
-				}
-			});
 			addMenuAndNonTextChildren((Composite) skinObject.getControl(), topbarMenu);
 
 			skinObject = skin.getSkinObject("tabbar");
@@ -1590,6 +1556,49 @@ public class MainWindow
 						}
 					}
 				});
+			}
+			
+			skinObject = skin.getSkinObject(SkinConstants.VIEWID_PLUGINBAR);
+			if (skinObject != null) {
+				Listener l = new Listener() {
+					private int mouseDownAt = 0;
+
+					public void handleEvent(Event event) {
+						Composite c = (Composite)event.widget;
+						if (event.type == SWT.MouseDown) {
+							Rectangle clientArea = c.getClientArea();
+							if (event.y > clientArea.height - 10) {
+								mouseDownAt = event.y;
+							}
+							c.setCursor(c.getDisplay().getSystemCursor(SWT.CURSOR_SIZENS));
+						} else if (event.type == SWT.MouseUp && mouseDownAt > 0) {
+							int diff = event.y - mouseDownAt;
+							mouseDownAt = 0;
+							FormData formData = (FormData)c.getLayoutData();
+							formData.height += diff;
+							if (formData.height < 50) {
+								formData.height = 50;
+							} else {
+								Rectangle clientArea = c.getShell().getClientArea();
+								int max = clientArea.height - 350;
+								if (formData.height > max) {
+									formData.height = max;
+								}
+							}
+							COConfigurationManager.setParameter("v3.topbar.height",
+									formData.height);
+							Utils.relayout(c);
+							c.setCursor(null);
+						}
+					}
+				};
+				Control control = skinObject.getControl();
+				control.addListener(SWT.MouseDown, l);
+				control.addListener(SWT.MouseUp, l);
+				int h = COConfigurationManager.getIntParameter("v3.topbar.height");
+				//control.setData("v3.oldHeight", new Point(SWT.DEFAULT, h));
+				FormData formData = (FormData) control.getLayoutData();
+				formData.height = h;
 			}
 		} catch (Exception e) {
 			Debug.out(e);
@@ -2239,7 +2248,7 @@ public class MainWindow
 			}
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_SEARCHBAR) {
 
-			SWTSkinUtils.setVisibility(skin, SkinConstants.VIEWID_PLUGINBAR + ".visible", SkinConstants.VIEWID_PLUGINBAR, value);
+			SWTSkinUtils.setVisibility(skin, SkinConstants.VIEWID_PLUGINBAR + ".visible", SkinConstants.VIEWID_PLUGINBAR, value, true, true);
 
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_TABBAR) {
 
