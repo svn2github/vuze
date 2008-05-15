@@ -5,12 +5,17 @@ package com.aelitis.azureus.ui.swt.skin;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.shell.LightBoxShell;
+
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 /**
  * @author TuxPaper
@@ -113,8 +118,8 @@ public class SWTSkinUtils
 	}
 
 	public static void setVisibility(SWTSkin skin, String configID,
-			String viewID, boolean visible, boolean save, boolean fast) {
-		SWTSkinObject skinObject = skin.getSkinObject(viewID);
+			String viewID, final boolean visible, boolean save, boolean fast) {
+		final SWTSkinObject skinObject = skin.getSkinObject(viewID);
 		// XXX Following wont work at startup because main window is invisible..
 		//		if (skinObject != null && skinObject.isVisible() != visible) {
 		if (skinObject != null) {
@@ -192,6 +197,52 @@ public class SWTSkinUtils
 		}
 	}
 
+	public static void fade(final Composite c, final boolean fadeIn) {
+		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+		final LightBoxShell lbShell = new LightBoxShell(uiFunctions.getMainShell(), false);
+		
+		// assumed: c is on shell
+		Rectangle clientArea = c.getClientArea();
+		lbShell.setInsets(0, c.getShell().getClientArea().height - clientArea.height, 0, 0);
+		lbShell.setStyleMask(LightBoxShell.RESIZE_HORIZONTAL);
+		lbShell.setAlphaLevel(fadeIn ? 255 : 0);
+		lbShell.open();
+		AERunnable runnable = new AERunnable() {
+			public void runSupport() {
+				if (c.isDisposed()) {
+					return;
+				}
+				
+				int alphaLevel = lbShell.getAlphaLevel();
+				if (fadeIn) {
+  				alphaLevel -= 5;
+  				if (alphaLevel < 0) {
+  					lbShell.close();
+  					return;
+  				}
+				} else {
+  				alphaLevel += 5;
+  				if (alphaLevel > 255) {
+  					lbShell.close();
+  					return;
+  				}
+				}
+				lbShell.setAlphaLevel(alphaLevel);
+				
+				final AERunnable r = this;
+				SimpleTimer.addEvent("fade", SystemTime.getCurrentTime() + 10,
+						new TimerEventPerformer() {
+							public void perform(TimerEvent event) {
+								c.getDisplay().asyncExec(r);
+							}
+						});
+			}
+		};
+		
+		c.getDisplay().asyncExec(runnable);
+	}
+
+	
 	public static void slide(final Control control, final FormData fd,
 			final Point size) {
 		//System.out.println("slid to " + size);
