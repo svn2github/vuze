@@ -30,7 +30,9 @@ import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
 
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
+import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 import com.aelitis.azureus.core.security.*;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
@@ -137,45 +139,56 @@ VuzeCryptoManager
 		boolean	init_done = COConfigurationManager.getBooleanParameter( "vuze.crypto.manager.initial.login.done", false );
 		
 		if ( !init_done ){
+		
+				// back this off until core started otherwise plugin not loaded...
 			
-			PluginInterface pi =  AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID( "azbuddy" );
-
-			if ( pi != null ){
-				
-				Plugin plugin = pi.getPlugin();
-				
-				if ( plugin instanceof BuddyPlugin ){
-					
-					BuddyPlugin buddy_plugin = (BuddyPlugin)plugin;
-					
-					if ( !buddy_plugin.isEnabled()){
-						
-						CryptoHandler handler = crypt_man.getECCHandler();
-						
-							// try and switch password handler if no keys yet defined
-						
-						if ( handler.peekPublicKey() == null ){
+			AzureusCoreFactory.getSingleton().addLifecycleListener(
+				new AzureusCoreLifecycleAdapter()
+				{
+					public void
+					started(
+						AzureusCore		core )
+					{			
+						PluginInterface pi =  core.getPluginManager().getPluginInterfaceByID( "azbuddy" );
+			
+						if ( pi != null ){
 							
-							try{
-								handler.setDefaultPasswordHandlerType(
-									CryptoManagerPasswordHandler.HANDLER_TYPE_SYSTEM );
+							Plugin plugin = pi.getPlugin();
 							
-							}catch( Throwable e ){
+							if ( plugin instanceof BuddyPlugin ){
 								
-								VuzeBuddyManager.log( "CRYPTO: Failed to set default password handler type: " + Debug.getNestedExceptionMessage( e ));
+								BuddyPlugin buddy_plugin = (BuddyPlugin)plugin;
+								
+								if ( !buddy_plugin.isEnabled()){
+									
+									CryptoHandler handler = crypt_man.getECCHandler();
+									
+										// try and switch password handler if no keys yet defined
+									
+									if ( handler.peekPublicKey() == null ){
+										
+										try{
+											handler.setDefaultPasswordHandlerType(
+												CryptoManagerPasswordHandler.HANDLER_TYPE_SYSTEM );
+										
+										}catch( Throwable e ){
+											
+											VuzeBuddyManager.log( "CRYPTO: Failed to set default password handler type: " + Debug.getNestedExceptionMessage( e ));
+										}
+									}
+									
+									buddy_plugin.setEnabled( true );
+									
+									COConfigurationManager.setParameter( "vuze.crypto.manager.initial.login.done", true );
+									
+									COConfigurationManager.save();
+									
+									VuzeBuddyManager.log( "CRYPTO: initialised buddy plugin and default handler type" );
+								}
 							}
 						}
-						
-						buddy_plugin.setEnabled( true );
-						
-						COConfigurationManager.setParameter( "vuze.crypto.manager.initial.login.done", true );
-						
-						COConfigurationManager.save();
-						
-						VuzeBuddyManager.log( "CRYPTO: initialised buddy plugin and default handler type" );
 					}
-				}
-			}
+				});
 		}
 	}
 	
