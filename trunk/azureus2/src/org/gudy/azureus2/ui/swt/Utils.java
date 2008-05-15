@@ -1049,8 +1049,10 @@ public class Utils
 		}
 
 		boolean isMaximized = COConfigurationManager.getBooleanParameter(sConfigPrefix
-				+ ".maximized")
-				&& !Constants.isOSX;
+				+ ".maximized");
+		if (Constants.isOSX && windowRectangle != null) {
+				isMaximized = false;
+		}
 		shell.setMaximized(isMaximized);
 
 		new ShellMetricsResizeListener(shell, sConfigPrefix);
