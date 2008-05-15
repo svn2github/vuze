@@ -190,6 +190,14 @@ public class MainMenu
 								SkinConstants.VIEWID_PLUGINBAR, true);
 					}
 
+					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3
+							+ ".view." + SkinConstants.VIEWID_FOOTER)) {
+						createViewMenuItem(skin, viewMenu,
+								PREFIX_V3 + ".view." + SkinConstants.VIEWID_FOOTER,
+								"Footer.visible",
+								SkinConstants.VIEWID_FOOTER, true);
+					}
+
 				}
 
 				public void menuHidden(MenuEvent e) {
