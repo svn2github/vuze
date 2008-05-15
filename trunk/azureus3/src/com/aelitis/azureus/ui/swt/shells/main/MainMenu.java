@@ -187,16 +187,9 @@ public class MainMenu
 						MenuFactory.setEnablementKeys(createViewMenuItem(skin, viewMenu,
 								PREFIX_V3 + ".view." + SkinConstants.VIEWID_PLUGINBAR,
 								SkinConstants.VIEWID_PLUGINBAR + ".visible",
-								SkinConstants.VIEWID_PLUGINBAR), FOR_AZ3_ADV);
+								SkinConstants.VIEWID_PLUGINBAR, true), FOR_AZ3_ADV);
 					}
 
-					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3
-							+ ".view.tabbar")) {
-						MenuFactory.setEnablementKeys(createViewMenuItem(skin, viewMenu,
-								PREFIX_V3 + ".view.tabbar", "TabBar.visible", "tabbar"),
-								FOR_AZ3_ADV);
-					}
-					
 				}
 
 				public void menuHidden(MenuEvent e) {
@@ -344,7 +337,8 @@ public class MainMenu
 	 * @param string2
 	 */
 	public static MenuItem createViewMenuItem(final SWTSkin skin, Menu viewMenu,
-			final String textID, final String configID, final String viewID) {
+			final String textID, final String configID, final String viewID, 
+			final boolean fast) {
 		MenuItem item;
 
 		if (!ConfigurationDefaults.getInstance().doesParameterDefaultExist(configID)) {
@@ -377,7 +371,7 @@ public class MainMenu
 						}
 					}
 
-					SWTSkinUtils.setVisibility(skin, configID, viewID, newVisibility);
+					SWTSkinUtils.setVisibility(skin, configID, viewID, newVisibility, true, fast);
 				}
 			}
 		});
