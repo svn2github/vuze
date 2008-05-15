@@ -184,10 +184,10 @@ public class MainMenu
 
 					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3
 							+ ".view." + SkinConstants.VIEWID_PLUGINBAR)) {
-						MenuFactory.setEnablementKeys(createViewMenuItem(skin, viewMenu,
+						createViewMenuItem(skin, viewMenu,
 								PREFIX_V3 + ".view." + SkinConstants.VIEWID_PLUGINBAR,
 								SkinConstants.VIEWID_PLUGINBAR + ".visible",
-								SkinConstants.VIEWID_PLUGINBAR, true), FOR_AZ3_ADV);
+								SkinConstants.VIEWID_PLUGINBAR, true);
 					}
 
 				}
