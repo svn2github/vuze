@@ -34,6 +34,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 import com.aelitis.azureus.util.MapUtils;
+import com.aelitis.net.magneturi.MagnetURIHandler;
 
 /**
  * @author TuxPaper
@@ -50,6 +51,8 @@ public class ConfigListener
 	public static final String OP_NEW_INSTALL = "is-new-install";
 
 	public static final String OP_CHECK_FOR_UPDATES = "check-for-updates";
+	
+	public static final String OP_GET_MAGNET_PORT = "get-magnet-port";
 
 	public ConfigListener(String id, Browser browser) {
 		super(id);
@@ -84,7 +87,23 @@ public class ConfigListener
 					message.debug("bad or no callback param");
 				}
 			} else if (OP_CHECK_FOR_UPDATES.equals(opid)) {
+				
 				checkForUpdates();
+				
+			} else if (OP_GET_MAGNET_PORT.equals(opid)) {
+				
+				Map decodedMap = message.getDecodedMap();
+
+				String callback = MapUtils.getMapString(decodedMap, "callback", null);
+				
+				if (callback != null) {
+					
+					context.executeInBrowser(callback + "('" + MagnetURIHandler.getSingleton().getPort() + "')");
+					
+				} else {
+					
+					message.debug("bad or no callback param");
+				}
 			}
 		} catch (Throwable t) {
 			message.debug("handle Config message", t);
