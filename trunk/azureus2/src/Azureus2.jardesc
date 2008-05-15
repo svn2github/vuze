@@ -360,6 +360,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.peermanager"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.views.peer"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.net.magneturi"/>
+        <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.download.savelocation"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.clientmessageservice.impl"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.speedmanager.impl.v2"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.dht.transport.loopback"/>
