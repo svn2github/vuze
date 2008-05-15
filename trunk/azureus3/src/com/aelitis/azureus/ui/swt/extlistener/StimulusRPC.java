@@ -86,6 +86,7 @@ public class StimulusRPC
 					context.debug("Received External message: " + browserMsg);
 					String opId = browserMsg.getOperationId();
 					String lId = browserMsg.getListenerId();
+										
 					if (opId.equals(DisplayListener.OP_OPEN_URL)) {
 						Map decodedMap = browserMsg.getDecodedMap();
 						String url = MapUtils.getMapString(decodedMap, "url", null);
@@ -102,6 +103,7 @@ public class StimulusRPC
 							// and return the boolean result if we wanted/needed
 							context.getMessageDispatcher().dispatch(browserMsg);
 							context.getMessageDispatcher().resetSequence();
+														
 							return true;
 						}
 						context.debug("no target or open url");
@@ -125,9 +127,6 @@ public class StimulusRPC
 									bringToFront);
 
 							return true;
-
-						} else {
-							return false;
 						}
 					} else if (opId.equals("is-ready")) {
 						// The platform needs to know when it can call open-url, and it
@@ -144,9 +143,9 @@ public class StimulusRPC
 												org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION,
 												version) >= 0;
 							}
-							return false;
-
 						}
+						return false;
+
 					} else if (opId.equals("is-active-tab")) {
 						Map decodedMap = browserMsg.getDecodedMap();
 						if (decodedMap.containsKey("tab")) {
@@ -162,21 +161,24 @@ public class StimulusRPC
 								}
 							}
 						}
+							
+						return false;
+					
 					} else if (ConfigListener.DEFAULT_LISTENER_ID.equals(lId)) {
 						if (ConfigListener.OP_NEW_INSTALL.equals(opId)) {
 							return COConfigurationManager.isNewInstall();
 						} else if (ConfigListener.OP_CHECK_FOR_UPDATES.equals(opId)) {
 							ConfigListener.checkForUpdates();
+							return true;
 						}
+					}
+											
+					if ( System.getProperty( "browser.route.all.external.stimuli.for.testing", "false" ).equalsIgnoreCase( "true" )){
+							
+						context.getMessageDispatcher().dispatch(browserMsg);
 					}else{
-						
-						if ( System.getProperty( "browser.route.all.external.stimuli.for.testing", "false" ).equalsIgnoreCase( "true" )){
 							
-							context.getMessageDispatcher().dispatch(browserMsg);
-						}else{
-							
-							System.err.println( "Unhandled external stimulus: " + browserMsg );
-						}
+						System.err.println( "Unhandled external stimulus: " + browserMsg );
 					}
 				} catch (Exception e) {
 					Debug.out(e);
