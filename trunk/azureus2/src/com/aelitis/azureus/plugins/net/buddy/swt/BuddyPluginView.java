@@ -21,8 +21,6 @@
 
 package com.aelitis.azureus.plugins.net.buddy.swt;
 
-import java.util.Map;
-
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
