@@ -86,6 +86,8 @@ public class BuddiesViewer
 
 	private SharePage sharePage;
 
+	private PaginationWidget pWidget;
+
 	public BuddiesViewer() {
 	}
 
@@ -143,11 +145,15 @@ public class BuddiesViewer
 			content.addControlListener(new ControlAdapter() {
 				public void controlResized(ControlEvent e) {
 					calculatePagination();
+					if(null != pWidget){
+						pWidget.setPageCount(pageCount);
+					}
 				}
 			});
 
 			parent.layout(true);
 			calculatePagination();
+			hookPaginationWidget();
 			hookScrollers();
 		}
 
@@ -155,14 +161,29 @@ public class BuddiesViewer
 
 	}
 
+	private void hookPaginationWidget() {
+		final SWTSkinObject paginationObject = skin.getSkinObject("panel-navigation-thumbnails");
+		if (null != paginationObject) {
+			Composite control = (Composite) paginationObject.getControl();
+			pWidget = new PaginationWidget(control);
+			pWidget.setPageCount(pageCount);
+		}
+	}
+
 	private void calculatePagination() {
-//		pageWindowWidth = content.getClientArea().width;
-//		pageCount = Math.max(1, avatarsPanel.getBounds().width / pageWindowWidth);
-//
-//		if (pageWindowWidth < avatarsPanel.getBounds().width) {
-//			pageCount++;
-//		}
-//		System.out.println("# of pages " + pageCount);//KN: sysout
+
+		pageWindowWidth = content.getClientArea().width;
+
+		if (pageWindowWidth < 1) {
+			pageCount = 1;
+		} else {
+			pageCount = Math.max(1, avatarsPanel.getBounds().width / pageWindowWidth);
+
+			if (pageWindowWidth < avatarsPanel.getBounds().width) {
+				pageCount++;
+			}
+		}
+		System.out.println("# of pages " + pageCount);//KN: sysout
 
 	}
 
@@ -421,22 +442,21 @@ public class BuddiesViewer
 		 * Adding fake friends to test scrolling
 		 * TODO: Should remove for production
 		 */
-//		final List fakes = new ArrayList();
-//		if (true == org.gudy.azureus2.core3.util.Constants.isCVSVersion()) {
-//			for (int i = buddiesList.size() + 1; i < 20; i++) {
-//				VuzeBuddy vb = VuzeBuddyUtils.createRandomBuddy();
-//				vb.setDisplayName("Fake " + i);
-//				buddiesList.add(vb);
-//				fakes.add(vb);
-//			}
-//		}
-
+		//		final List fakes = new ArrayList();
+		//		if (true == org.gudy.azureus2.core3.util.Constants.isCVSVersion()) {
+		//			for (int i = buddiesList.size() + 1; i < 20; i++) {
+		//				VuzeBuddy vb = VuzeBuddyUtils.createRandomBuddy();
+		//				vb.setDisplayName("Fake " + i);
+		//				buddiesList.add(vb);
+		//				fakes.add(vb);
+		//			}
+		//		}
 		VuzeBuddyManager.addListener(new VuzeBuddyListener() {
 
 			public void buddyRemoved(VuzeBuddy buddy) {
-//				if (true == fakes.contains(buddy)) {
-//					return;
-//				}
+				//				if (true == fakes.contains(buddy)) {
+				//					return;
+				//				}
 
 				removeBuddy(buddy);
 			}
@@ -506,7 +526,7 @@ public class BuddiesViewer
 
 			for (Iterator iterator = avatarWidgets.iterator(); iterator.hasNext();) {
 				AvatarWidget widget = (AvatarWidget) iterator.next();
-				if(false == isShareMode){
+				if (false == isShareMode) {
 					widget.setSharedAlready(false);
 				}
 				widget.refreshVisual();

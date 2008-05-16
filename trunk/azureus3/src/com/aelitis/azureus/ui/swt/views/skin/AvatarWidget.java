@@ -104,7 +104,7 @@ public class AvatarWidget
 		this.avatarSize = avatarSize;
 		this.avatarImageSize = avatarImageSize;
 		this.vuzeBuddy = vuzeBuddy;
-		avatarCanvas = new Canvas(parent, SWT.NONE);
+		avatarCanvas = new Canvas(parent,SWT.NONE );
 		avatarCanvas.setData("AvatarWidget", this);
 
 		init();
