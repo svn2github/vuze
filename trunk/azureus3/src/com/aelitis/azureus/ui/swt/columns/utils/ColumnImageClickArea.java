@@ -36,6 +36,8 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 public class ColumnImageClickArea
 	implements TableCellMouseMoveListener, TableRowMouseListener
 {
+	private static final boolean DEBUG = false;
+
 	private String imageID;
 
 	private final String columnID;
@@ -49,6 +51,8 @@ public class ColumnImageClickArea
 	private Rectangle imageArea;
 	
 	private Image imgOnRow;
+	
+	private Image imgOver;
 	
 	private Image imgOffRow;
 
@@ -83,12 +87,16 @@ public class ColumnImageClickArea
 		} else {
 			ImageLoader imageLoader = ImageLoaderFactory.getInstance();
 			imgOnRow = imageLoader.getImage(imageID + "-mouseonrow");
+			imgOver = imageLoader.getImage(imageID + "-over");
 			imgOffRow = imageLoader.getImage(imageID);
 			if (!ImageLoader.isRealImage(imgOnRow)) {
 				imgOnRow = imgOffRow;
 			}
+			if (!ImageLoader.isRealImage(imgOver)) {
+				imgOver = imgOffRow;
+			}
 		}
-		setImage(containsMouse ? imgOnRow : imgOffRow);
+		setImage(containsMouse ? imgOver : imgOffRow);
 	}
 
 	public void addCell(TableCell cell) {
@@ -166,7 +174,7 @@ public class ColumnImageClickArea
 	 * @since 3.0.1.7
 	 */
 	public void drawImage(GC gcImage) {
-		if (containsMouse) {
+		if (DEBUG && containsMouse) {
 			gcImage.setBackground(ColorCache.getColor(gcImage.getDevice(),
 					mouseDownOn ? "#ffff00" : "#ff0000"));
 			gcImage.fillRectangle(getArea());
@@ -241,6 +249,7 @@ public class ColumnImageClickArea
 	private void setContainsMouse(TableCell cell, boolean contains) {
 		if (containsMouse != contains) {
 			containsMouse = contains;
+			setImageID(imageID);
 			if (cell != null) {
 				TableCellCore cellCore = (TableCellCore) cell;
 				cellCore.invalidate();
