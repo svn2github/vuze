@@ -10,6 +10,7 @@ import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -112,12 +113,14 @@ public class PaginationWidget
 							if (false == tooltipText.equals(canvas.getToolTipText())) {
 								canvas.setToolTipText(tooltipText);
 							}
+							canvas.setCursor(canvas.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 							pageFound = true;
 							break;
 						}
 					}
 
 					if (false == pageFound) {
+						canvas.setCursor(null);
 						canvas.setToolTipText(null);
 					}
 				}
