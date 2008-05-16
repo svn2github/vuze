@@ -45,6 +45,12 @@ public class SWTLoginUtils
 			}
 		};
 
+		final AERunnable loginCancelRunnable = new AERunnable() {
+			public void runSupport() {
+				l.loginCanceled();
+			}
+		};
+
 		final LoginInfoManager loginManager = LoginInfoManager.getInstance();
 		if (loginManager.isLoggedIn()) {
 			Utils.execSWTThread(loginCompleteRunnable);
@@ -64,9 +70,12 @@ public class SWTLoginUtils
 		loginWindow.setCloseListener(new LightBoxBrowserWindow.closeListener() {
 			public void close() {
 				SimpleTimer.addEvent("cancel login wiat",
-						SystemTime.getOffsetTime(20000), new TimerEventPerformer() {
+						SystemTime.getOffsetTime(10000), new TimerEventPerformer() {
 							public void perform(TimerEvent event) {
 								loginManager.removeListener(loginInfoListener);
+								if (!loginManager.isLoggedIn()) {
+									Utils.execSWTThread(loginCancelRunnable);
+								}
 							}
 						});
 			}
@@ -86,14 +95,16 @@ public class SWTLoginUtils
 				380, 280);
 	}
 
-	public interface loginWaitListener
+	public static abstract class loginWaitListener
 	{
 		/**
 		 * This will be on the SWT thread
 		 *
 		 * @since 3.0.5.3
 		 */
-		public void loginComplete();
+		public abstract void loginComplete();
+
+		public void loginCanceled() {};
 	}
 
 }
