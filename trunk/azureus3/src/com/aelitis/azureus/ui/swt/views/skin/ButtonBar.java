@@ -9,6 +9,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -17,6 +18,7 @@ import org.gudy.azureus2.ui.swt.shells.InputShell;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.buddy.VuzeBuddy;
+import com.aelitis.azureus.buddy.VuzeBuddyListener;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
@@ -25,6 +27,7 @@ import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
@@ -43,6 +46,8 @@ public class ButtonBar
 
 	private SWTSkinObject cancelEditBuddies = null;
 
+	private SWTSkinObject shareAllBuddiesObject;
+
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
 		skin = skinObject.getSkin();
 
@@ -54,11 +59,66 @@ public class ButtonBar
 			hookShowHideButon();
 		}
 
+		hookBuddyCountLabel();
 		hookEditButton();
 		hookAddBuddyButon();
+		hookShareAllBuddiesButton();
 		hookTuxGoodies();
 
 		return null;
+	}
+
+	private void hookBuddyCountLabel() {
+		SWTSkinObject showImageObject = skin.getSkinObject("text-buddy-count");
+		if (showImageObject instanceof SWTSkinObjectText) {
+			/*
+			 * Initial Friends count
+			 */
+			final SWTSkinObjectText buddyCountObject = (SWTSkinObjectText) showImageObject;
+			buddyCountObject.setTextID("v3.buddies.count", new String[] {
+				VuzeBuddyManager.getAllVuzeBuddies().size() + ""
+			});
+			buddyCountObject.setVisible(true);
+			Utils.relayout(buddyCountObject.getControl());
+
+			/*
+			 * Update when the number of Friends changes
+			 */
+			VuzeBuddyManager.addListener(new VuzeBuddyListener() {
+
+				public void buddyRemoved(VuzeBuddy buddy) {
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							buddyCountObject.setTextID("v3.buddies.count", new String[] {
+								VuzeBuddyManager.getAllVuzeBuddies().size() + ""
+							});
+							Utils.relayout(buddyCountObject.getControl());
+						}
+					});
+
+				}
+
+				public void buddyAdded(VuzeBuddy buddy, int position) {
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							buddyCountObject.setTextID("v3.buddies.count", new String[] {
+								VuzeBuddyManager.getAllVuzeBuddies().size() + ""
+							});
+
+							Utils.relayout(buddyCountObject.getControl());
+						}
+					});
+				}
+
+				public void buddyOrderChanged() {
+				}
+
+				public void buddyChanged(VuzeBuddy buddy) {
+				}
+
+			}, false);
+		}
+
 	}
 
 	/**
@@ -131,18 +191,23 @@ public class ButtonBar
 		if (null == viewer) {
 			return;
 		}
+		shareAllBuddiesObject.setVisible(false);
+		cancelEditBuddies.setVisible(false);
 
 		if (mode == BuddiesViewer.none_active_mode) {
 			editButton.setDisabled(false);
 			addBuddyButton.setDisabled(false);
-			cancelEditBuddies.setVisible(false);
 		} else if (mode == BuddiesViewer.edit_mode) {
+			addBuddyButton.setDisabled(true);
 			cancelEditBuddies.setVisible(true);
 			editButton.setDisabled(true);
+		} else if (mode == BuddiesViewer.share_mode) {
+			editButton.setDisabled(true);
+			addBuddyButton.setDisabled(true);
+			shareAllBuddiesObject.setVisible(true);
 		} else {
 			editButton.setDisabled(true);
 			addBuddyButton.setDisabled(true);
-			cancelEditBuddies.setVisible(false);
 		}
 		viewer.setMode(mode);
 	}
@@ -210,7 +275,6 @@ public class ButtonBar
 			return;
 		}
 
-		
 		/*
 		 * If the user logs out then turn off the edit mode
 		 */
@@ -279,12 +343,32 @@ public class ButtonBar
 		}
 	}
 
+	private void hookShareAllBuddiesButton() {
+		shareAllBuddiesObject = skin.getSkinObject("button-buddy-share-all");
+		if (null != shareAllBuddiesObject) {
+			SWTSkinButtonUtility shareAllBuddiesButton = new SWTSkinButtonUtility(
+					shareAllBuddiesObject);
+			shareAllBuddiesButton.addSelectionListener(new ButtonListenerAdapter() {
+				public void pressed(SWTSkinButtonUtility buttonUtility) {
+					shareAllBuddies();
+				}
+			});
+		}
+	}
+
+	protected void shareAllBuddies() {
+		BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
+		if (null != viewer) {
+			viewer.addAllToShare();
+		}
+	}
+
 	protected void addBuddy() {
 		SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
 			public void loginComplete() {
 				_addBuddy();
 			}
-			
+
 		});
 	}
 

@@ -592,6 +592,7 @@ public class AvatarWidget
 
 	public void setSharedAlready(boolean sharedAlready) {
 		this.sharedAlready = sharedAlready;
+		refreshVisual();
 	}
 
 	public void setVuzeBuddy(VuzeBuddySWT vuzeBuddy) {

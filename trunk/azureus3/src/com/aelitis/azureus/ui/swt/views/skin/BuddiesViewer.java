@@ -5,6 +5,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FormAttachment;
@@ -22,10 +24,10 @@ import com.aelitis.azureus.buddy.VuzeBuddyListener;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
-import com.aelitis.azureus.ui.swt.buddy.impl.VuzeBuddyUtils;
-import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.skin.SWTSkin;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
-import com.aelitis.azureus.util.Constants;
 
 public class BuddiesViewer
 	extends SkinView
@@ -39,6 +41,8 @@ public class BuddiesViewer
 	public static final int invite_mode = 3;
 
 	public static final int add_buddy_mode = 4;
+
+	private Composite content = null;
 
 	private Composite avatarsPanel = null;
 
@@ -69,6 +73,19 @@ public class BuddiesViewer
 
 	private SWTSkinObject soNoBuddies;
 
+	private int currentPage = 0;
+
+	private int pageCount = 1;
+
+	/**
+	 * The width of the visible window for the avatarPanel
+	 */
+	private int pageWindowWidth = 0;
+
+	private DetailPanel detailPanel;
+
+	private SharePage sharePage;
+
 	public BuddiesViewer() {
 	}
 
@@ -81,9 +98,19 @@ public class BuddiesViewer
 
 		if (null != viewer) {
 
+			SkinView detailPanelView = SkinViewManager.get(DetailPanel.class);
+			if (detailPanelView instanceof DetailPanel) {
+				detailPanel = ((DetailPanel) detailPanelView);
+				sharePage = (SharePage) detailPanel.getPage(SharePage.PAGE_ID);
+
+			} else {
+				throw new IllegalArgumentException(
+						"Oops.. looks like the DetailPanel skin is not properly initialized");
+			}
+
 			parent = (Composite) viewer.getControl();
 
-			Composite content = new Composite(parent, SWT.NONE);
+			content = new Composite(parent, SWT.NONE);
 			FormData fd = new FormData();
 			fd.top = new FormAttachment(0, 0);
 			fd.bottom = new FormAttachment(100, 0);
@@ -110,12 +137,32 @@ public class BuddiesViewer
 
 			fillBuddies(avatarsPanel);
 
-			parent.layout(true);
+			/*
+			 * Get a new page width when the content panel is resized
+			 */
+			content.addControlListener(new ControlAdapter() {
+				public void controlResized(ControlEvent e) {
+					calculatePagination();
+				}
+			});
 
+			parent.layout(true);
+			calculatePagination();
 			hookScrollers();
 		}
 
 		return null;
+
+	}
+
+	private void calculatePagination() {
+//		pageWindowWidth = content.getClientArea().width;
+//		pageCount = Math.max(1, avatarsPanel.getBounds().width / pageWindowWidth);
+//
+//		if (pageWindowWidth < avatarsPanel.getBounds().width) {
+//			pageCount++;
+//		}
+//		System.out.println("# of pages " + pageCount);//KN: sysout
 
 	}
 
@@ -191,11 +238,19 @@ public class BuddiesViewer
 			return;
 		}
 		if (avatarsPanel.getSize().x > parent.getSize().x) {
-			leftScroll.setVisible(true);
-			rightScroll.setVisible(true);
+			if (false == leftScroll.isVisible()) {
+				leftScroll.setVisible(true);
+			}
+			if (false == rightScroll.isVisible()) {
+				rightScroll.setVisible(true);
+			}
 		} else {
-			leftScroll.setVisible(false);
-			rightScroll.setVisible(false);
+			if (true == leftScroll.isVisible()) {
+				leftScroll.setVisible(false);
+			}
+			if (true == rightScroll.isVisible()) {
+				rightScroll.setVisible(false);
+			}
 		}
 	}
 
@@ -368,11 +423,9 @@ public class BuddiesViewer
 		 */
 //		final List fakes = new ArrayList();
 //		if (true == org.gudy.azureus2.core3.util.Constants.isCVSVersion()) {
-//			int fakeBuddies = 20 - buddiesList.size();
-//			for (int i = 0; i < fakeBuddies; i++) {
+//			for (int i = buddiesList.size() + 1; i < 20; i++) {
 //				VuzeBuddy vb = VuzeBuddyUtils.createRandomBuddy();
 //				vb.setDisplayName("Fake " + i);
-//				System.out.println("Created: " + vb.getDisplayName());//KN: sysout
 //				buddiesList.add(vb);
 //				fakes.add(vb);
 //			}
@@ -385,18 +438,14 @@ public class BuddiesViewer
 //					return;
 //				}
 
-				System.out.println("VuzeBuddyManager.buddyRemoved: "
-						+ buddy.getLoginID());//KN: sysout
 				removeBuddy(buddy);
 			}
 
 			public void buddyChanged(VuzeBuddy buddy) {
-				System.out.println("VuzeBuddyManager.buddyChanged" + buddy.getLoginID());//KN: sysout
 				updateBuddy(buddy);
 			}
 
 			public void buddyAdded(VuzeBuddy buddy, int position) {
-				System.out.println("VuzeBuddyManager.buddyAdded" + buddy.getLoginID());//KN: sysout
 				addBuddy(buddy);
 			}
 
@@ -417,20 +466,32 @@ public class BuddiesViewer
 		return isShareMode;
 	}
 
-	public void addToShare(AvatarWidget widget) {
-		sharedAvatars.add(widget);
+	public void addAllToShare() {
+		addToShare(avatarWidgets);
+	}
 
-		SkinView detailPanelView = SkinViewManager.get(DetailPanel.class);
-		if (detailPanelView instanceof DetailPanel) {
-			DetailPanel detailPanel = ((DetailPanel) detailPanelView);
-			SharePage sharePage = (SharePage) detailPanel.getPage(SharePage.PAGE_ID);
+	public void addToShare(List avatars) {
+
+		for (Iterator iterator = avatars.iterator(); iterator.hasNext();) {
+			Object object = (Object) iterator.next();
+			if (object instanceof AvatarWidget) {
+				addToShare((AvatarWidget) object);
+			}
+		}
+	}
+
+	public void addToShare(AvatarWidget widget) {
+		if (false == sharedAvatars.contains(widget)) {
+			sharedAvatars.add(widget);
 			sharePage.addBuddy(widget.getVuzeBuddy());
+			widget.setSharedAlready(true);
 		}
 	}
 
 	public void removeFromShare(AvatarWidget widget) {
 		if (true == sharedAvatars.contains(widget)) {
 			sharedAvatars.remove(widget);
+			widget.setSharedAlready(false);
 		}
 	}
 
@@ -445,6 +506,9 @@ public class BuddiesViewer
 
 			for (Iterator iterator = avatarWidgets.iterator(); iterator.hasNext();) {
 				AvatarWidget widget = (AvatarWidget) iterator.next();
+				if(false == isShareMode){
+					widget.setSharedAlready(false);
+				}
 				widget.refreshVisual();
 			}
 
@@ -483,4 +547,18 @@ public class BuddiesViewer
 			setAddBuddyMode(true);
 		}
 	}
+
+	public int getCurrentPage() {
+		return currentPage;
+	}
+
+	public void setCurrentPage(int currentPage) {
+		this.currentPage = currentPage;
+		System.out.println("Showing page: " + currentPage);//KN: sysout
+	}
+
+	public int getPageCount() {
+		return pageCount;
+	}
+
 }

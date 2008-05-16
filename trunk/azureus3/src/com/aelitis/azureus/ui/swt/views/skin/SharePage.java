@@ -304,7 +304,6 @@ public class SharePage
 		Messages.setLanguageText(addBuddyButton, "v3.Share.add.buddy");
 		Messages.setLanguageText(optionalMessageLabel, "v3.Share.optional.message");
 		Messages.setLanguageText(cancelButton, "v3.MainWindow.button.cancel");
-		//		Messages.setLanguageText(, "v3.Share.add.buddy.all");
 
 		Messages.setLanguageText(shareHeaderLabel, "v3.Share.header");
 		Messages.setLanguageText(shareHeaderMessageLabel, "v3.Share.header.message");
@@ -361,7 +360,6 @@ public class SharePage
 		sendNowButton.addSelectionListener(new SelectionListener() {
 
 			public void widgetSelected(SelectionEvent e) {
-				//				String dummyBuddies
 
 				getMessageContext().executeInBrowser(
 						"sendSharingBuddies('" + getCommitJSONMessage() + "')");
@@ -377,6 +375,11 @@ public class SharePage
 					e1.printStackTrace();
 				}
 
+				ButtonBar buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
+				if (null != buttonBar) {
+					buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
+				}
+				resetControls();
 				getDetailPanel().show(false);
 
 			}
@@ -399,7 +402,8 @@ public class SharePage
 				if (null != buttonBar) {
 					buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
 				}
-				inviteeList.setText(""); //TODO finish clearing out when user canceled!!!!!
+				
+				resetControls();
 				getDetailPanel().show(false);
 
 			}
@@ -410,6 +414,10 @@ public class SharePage
 		});
 	}
 
+	private void resetControls(){
+		inviteeList.setText("");
+		commentText.setText("");
+	}
 	private String getCommitJSONMessage() {
 		if (null == shareItem || null == shareItem.hash) {
 			return null;
@@ -436,6 +444,15 @@ public class SharePage
 				buddyList.append(((VuzeBuddySWT) vuzeBuddy).getDisplayName() + "\n");
 			} else {
 				System.err.println("Bogus buddy: " + vuzeBuddy);//KN: sysout
+			}
+		}
+	}
+
+	public void addBuddies(List buddies) {
+		for (Iterator iterator = buddies.iterator(); iterator.hasNext();) {
+			Object object = (Object) iterator.next();
+			if (object instanceof VuzeBuddySWT) {
+				addBuddy((VuzeBuddySWT) object);
 			}
 		}
 	}
