@@ -1,5 +1,5 @@
 /*
- * Created on May 6, 2008
+ * Created on May 15, 2008
  * Created by Paul Gardner
  * 
  * Copyright 2008 Vuze, Inc.  All rights reserved.
@@ -21,19 +21,15 @@
 
 package com.aelitis.azureus.core.metasearch;
 
-public interface 
-MetaSearchManager 
+public class 
+MetaSearchException
+	extends Exception
 {
-	public MetaSearch
-	getMetaSearch();
-	
-	public boolean
-	isAutoMode();
-			
-	public void
-	setSelectedEngines(
-		long[]		ids,
-		boolean		auto )
-	
-		throws MetaSearchException;
+	public
+	MetaSearchException(
+		String			str,
+		Throwable		cause )
+	{
+		super( str, cause );
+	}
 }

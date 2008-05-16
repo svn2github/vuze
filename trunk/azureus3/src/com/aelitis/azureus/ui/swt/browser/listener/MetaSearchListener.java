@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.util.Debug;
+
 
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearchManager;
@@ -20,16 +22,15 @@ public class MetaSearchListener extends AbstractMessageListener {
 	
 	public static final String LISTENER_ID = "metasearch";
 
-	public static final String OP_SEARCH = "search";
-	
-	public static final String OP_ADD_ENGINE 	= "add-engine";
-	public static final String OP_REMOVE_ENGINE = "remove-engine";
-	
-	public static final String OP_GET_ENGINES 		= "get-engines";
-	public static final String OP_GET_ALL_ENGINES 	= "get-all-engines";
+	public static final String OP_SEARCH				= "search";
+		
+	public static final String OP_GET_ENGINES 			= "get-engines";
+	public static final String OP_GET_ALL_ENGINES 		= "get-all-engines";
 
-	public static final String OP_SET_MODE = "set-mode";
-	
+	public static final String OP_SET_SELECTED_ENGINES 	= "set-selected-engines";
+	public static final String OP_GET_AUTO_MODE		 	= "get-auto-mode";
+
+		
 	public MetaSearchListener() {
 		super(LISTENER_ID);
 	}
@@ -89,10 +90,16 @@ public class MetaSearchListener extends AbstractMessageListener {
 			List params = new ArrayList();
 			for(int i = 0 ; i < engines.length ; i++) {
 				Engine engine = engines[i];
+				
+				if ( !engine.isActive() || engine.getSource() == Engine.ENGINE_SOURCE_UNKNOWN ){
+					continue;
+				}
 				Map engineMap = new HashMap();
 				engineMap.put("id", new Long(engine.getId()));
 				engineMap.put("name", engine.getName());
 				engineMap.put("favicon", engine.getIcon());
+				engineMap.put("selected", Engine.SEL_STATE_STRINGS[ engine.getSelectionState()]);
+				engineMap.put("type", Engine.ENGINE_SOURCE_STRS[ engine.getSource()]);
 				params.add(engineMap);
 			}
 			context.sendBrowserMessage("metasearch", "enginesUsed",params);
@@ -112,24 +119,48 @@ public class MetaSearchListener extends AbstractMessageListener {
 				engineMap.put("id", new Long(engine.getId()));
 				engineMap.put("name", engine.getName());
 				engineMap.put("favicon", engine.getIcon());
-				engineMap.put("selected", new Boolean( engine.isActive()));
+				engineMap.put("selected", Engine.SEL_STATE_STRINGS[ engine.getSelectionState()]);
 				engineMap.put("type", Engine.ENGINE_SOURCE_STRS[ engine.getSource()]);
 				params.add(engineMap);
 			}
 			context.sendBrowserMessage("metasearch", "engineList",params);
-		} else if(OP_SET_MODE.equals(opid)) {
-			//TODO : set the mode
 			
-			//metaSearchManager.setAutoMode(auto);
-		} else if(OP_ADD_ENGINE.equals(opid)) {
-			//TODO : add an engine
+		} else if( OP_SET_SELECTED_ENGINES.equals(opid)){
 			
-			//metaSearchManager.getMetaSearch().addEngine( engine );
-		} else if(OP_REMOVE_ENGINE.equals(opid)) {
-			//TODO: remove an engine
+			Map decodedMap = message.getDecodedMap();
+
+			List template_ids = (List)decodedMap.get( "template_ids" );
 			
-			//metaSearchManager.getMetaSearch().removeEngine( engine );
+			long[] ids = new long[template_ids.size()];
+			
+			for (int i=0;i<ids.length;i++ ){
+				
+				ids[i] = ((Long)template_ids.get(i)).longValue();
+			}
+			
+			boolean	auto = ((Boolean)decodedMap.get( "auto" )).booleanValue();
+			
+			try{
+				metaSearchManager.setSelectedEngines( ids, auto );
+				
+				Map params = new HashMap();
+				context.sendBrowserMessage("metasearch", "setSelectedCompleted",params);
+
+			}catch( Throwable e ){
+				
+				Map params = new HashMap();
+				params.put("error",Debug.getNestedExceptionMessage(e));
+
+				context.sendBrowserMessage("metasearch", "setSelectedFailed",params);
+			}	
+		} else if(OP_GET_AUTO_MODE.equals(opid)) {
+						
+			boolean mode = metaSearchManager.isAutoMode();
+			
+			Map params = new HashMap();
+			params.put( "auto", new Boolean( mode ));
+
+			context.sendBrowserMessage("metasearch", "getAutoModeResult",params);
 		}
 	}
-
 }

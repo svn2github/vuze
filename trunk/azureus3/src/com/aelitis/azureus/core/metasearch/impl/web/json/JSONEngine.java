@@ -69,9 +69,9 @@ JSONEngine
 		
 		this.resultsEntryPath = resultsEntryPath;
 		
-		setSource( Engine.ENGINE_SOURCE_MANUAL );
+		setSource( Engine.ENGINE_SOURCE_LOCAL );
 		
-		setSelected( true );
+		setSelectionState( SEL_STATE_MANUAL_SELECTED );
 	}
 	
 		// bencoded constructor

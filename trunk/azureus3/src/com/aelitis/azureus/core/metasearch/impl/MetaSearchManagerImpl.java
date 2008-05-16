@@ -27,15 +27,18 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
+import com.aelitis.azureus.core.messenger.PlatformMessengerException;
 import com.aelitis.azureus.core.messenger.config.PlatformMetaSearchMessenger;
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearch;
+import com.aelitis.azureus.core.metasearch.MetaSearchException;
 import com.aelitis.azureus.core.metasearch.MetaSearchManager;
 import com.aelitis.azureus.util.Constants;
 
@@ -57,6 +60,8 @@ MetaSearchManagerImpl
 	
 	private MetaSearchImpl	meta_search;
 	private AsyncDispatcher	dispatcher = new AsyncDispatcher( 10000 );
+	
+	private AESemaphore	refresh_sem = new AESemaphore( "MetaSearch:refresh", 1 );
 	
 	protected
 	MetaSearchManagerImpl()
@@ -90,90 +95,101 @@ MetaSearchManagerImpl
 				{
 					if ( dispatcher.getQueueSize() == 0 ){
 						
-						refreshSupport();
+						try{
+							syncRefresh();
+							
+						}catch( Throwable e ){
+							
+						}
 					}
 				}
 			});
 	}
 	
 	protected void
-	refreshSupport()
+	syncRefresh()
+	
+		throws MetaSearchException
 	{
-		log( "Refreshing engines" );
-				
-			// featured templates are always shown - can't be deselected
-			// popular ones are selected if in 'auto' mode - can't be deselected
-			// manually selected ones are, well, manually selected
-		
-		Map		selected_ids 		= new HashMap();
-		
-		Set		featured_ids 		= new HashSet();
-		Set		popular_ids 		= new HashSet();
-		
-		boolean		auto_mode = isAutoMode();
-				
-		Engine[]	engines = meta_search.getEngines( false );
-
 		try{
-			PlatformMetaSearchMessenger.templateInfo[] featured = PlatformMetaSearchMessenger.listFeaturedTemplates();
+			refresh_sem.reserve();
 			
-			String featured_str = "";
-			
-			for (int i=0;i<featured.length;i++){
-				
-				PlatformMetaSearchMessenger.templateInfo template = featured[i];
-				
-				if ( !template.isVisible()){
+			log( "Refreshing engines" );
 					
-					continue;
-				}
-				
-				Long key = new Long( template.getId());
-				
-				selected_ids.put( 
-					key, 
-					new Object[]{ new Long( template.getModifiedDate()), new Long( Engine.ENGINE_SOURCE_FEATURED )});
-				
-				featured_ids.add( key );
-				
-				featured_str += (featured_str.length()==0?"":",") + key;
-			}
-				
-			log( "Featured templates: " + featured_str );
+				// featured templates are always shown - can't be deselected
+				// popular ones are selected if in 'auto' mode
+				// manually selected ones are, well, manually selected
 			
-			if ( auto_mode ){
-				
-				PlatformMetaSearchMessenger.templateInfo[] popular = PlatformMetaSearchMessenger.listPopularTemplates();
-				
-				String popular_str = "";
-				
-				for (int i=0;i<popular.length;i++){
+			Map		vuze_selected_ids 		= new HashMap();
+			
+			Set		featured_ids 			= new HashSet();
+			Set		popular_ids 			= new HashSet();
+			
+			boolean		auto_mode = isAutoMode();
 					
-					PlatformMetaSearchMessenger.templateInfo template = popular[i];
+			Engine[]	engines = meta_search.getEngines( false );
+	
+			try{
+				PlatformMetaSearchMessenger.templateInfo[] featured = PlatformMetaSearchMessenger.listFeaturedTemplates();
+				
+				String featured_str = "";
+				
+				for (int i=0;i<featured.length;i++){
+					
+					PlatformMetaSearchMessenger.templateInfo template = featured[i];
 					
 					if ( !template.isVisible()){
 						
 						continue;
 					}
 					
-					Long	key = new Long( template.getId());
+					Long key = new Long( template.getId());
 					
-					if ( !selected_ids.containsKey( key )){
-						
-						selected_ids.put( 
-							key, 
-							new Object[]{ new Long( template.getModifiedDate()), new Long( Engine.ENGINE_SOURCE_POPULAR )});
-						
-						popular_ids.add( key );
-						
-						popular_str += (popular_str.length()==0?"":",") + key;
-					}
+					vuze_selected_ids.put( 
+						key, 
+						new Long( template.getModifiedDate()));
+					
+					featured_ids.add( key );
+					
+					featured_str += (featured_str.length()==0?"":",") + key;
 				}
-				
-				log( "Popular templates: " + popular_str );
-
-			}else{
 					
+				log( "Featured templates: " + featured_str );
+				
+				if ( auto_mode ){
+					
+					PlatformMetaSearchMessenger.templateInfo[] popular = PlatformMetaSearchMessenger.listTopPopularTemplates();
+					
+					String popular_str = "";
+					
+					for (int i=0;i<popular.length;i++){
+						
+						PlatformMetaSearchMessenger.templateInfo template = popular[i];
+						
+						if ( !template.isVisible()){
+							
+							continue;
+						}
+						
+						Long	key = new Long( template.getId());
+						
+						if ( !vuze_selected_ids.containsKey( key )){
+							
+							vuze_selected_ids.put( 
+								key, 
+								new Long( template.getModifiedDate()));
+							
+							popular_ids.add( key );
+							
+							popular_str += (popular_str.length()==0?"":",") + key;
+						}
+					}
+					
+					log( "Popular templates: " + popular_str );
+				}
+						
+					// pick up explicitly selected vuze ones
+				
 				String manual_str = "";
 				
 				for (int i=0;i<engines.length;i++){
@@ -182,153 +198,127 @@ MetaSearchManagerImpl
 					
 					Long key = new Long( engine.getId());
 					
-					if ( engine.isSelected() && !selected_ids.containsKey( key )){
+					if ( 	engine.getSource() == Engine.ENGINE_SOURCE_VUZE &&
+							engine.getSelectionState() == Engine.SEL_STATE_MANUAL_SELECTED &&
+							!vuze_selected_ids.containsKey( key )){
 					
-						selected_ids.put( 
+						vuze_selected_ids.put( 
 							key, 
-							new Object[]{ new Long( engine.getLastUpdated()), new Long( Engine.ENGINE_SOURCE_MANUAL )});
+							new Long( engine.getLastUpdated()));
 						
 						manual_str += (manual_str.length()==0?"":",") + key;
 					}
 				}
 				
 				log( "Manual templates: " + manual_str );
-			}
-			
-			Map existing_engine_map = new HashMap();
-			
-			String existing_str = "";
-			
-			for (int i=0;i<engines.length;i++){
 				
-				Engine	engine = engines[i];
+				Map existing_engine_map = new HashMap();
 				
-				Long key = new Long( engine.getId());
-
-				existing_engine_map.put( key, engine );
+				String existing_str = "";
 				
-				existing_str += (existing_str.length()==0?"":",") + key + 
-									"[source=" + engine.getSource() +
-									",type=" + engine.getType() + 
-									",selected=" + engine.isSelected() + "]";
-			}
-			
-			log( "Existing templates: " + existing_str );
-			
-				// we've compiled a list of the engines we should have and their latest dates
-			
-				// update any that are out of date
-			
-			Iterator it = selected_ids.entrySet().iterator();
-			
-			while( it.hasNext()){
-				
-				Map.Entry entry = (Map.Entry)it.next();
-				
-				long		id 		= ((Long)entry.getKey()).longValue();
-				Object[]	value 	= (Object[])entry.getValue();
-				
-				long	modified 	= ((Long)value[0]).longValue();
-				int		source		= ((Long)value[1]).intValue();
-				
-				Engine existing = (Engine)existing_engine_map.get( new Long(id));
-				
-				boolean	update = existing == null || existing.getLastUpdated() < modified;
-
-				if ( update ){
+				for (int i=0;i<engines.length;i++){
 					
-					PlatformMetaSearchMessenger.templateDetails details = PlatformMetaSearchMessenger.getTemplate( id );
-
-					log( "Downloading definition of template " + id );
-					log( details.getValue());
+					Engine	engine = engines[i];
 					
-					if ( details.isVisible()){
+					Long key = new Long( engine.getId());
+	
+					existing_engine_map.put( key, engine );
+					
+					existing_str += (existing_str.length()==0?"":",") + key + 
+										"[source=" + Engine.ENGINE_SOURCE_STRS[engine.getSource()] +
+										",type=" + engine.getType() + 
+										",selected=" + Engine.SEL_STATE_STRINGS[engine.getSelectionState()] + "]";
+				}
+				
+				log( "Existing templates: " + existing_str );
+				
+					// we've compiled a list of the engines we should have and their latest dates
+				
+					// update any that are out of date
+				
+				Iterator it = vuze_selected_ids.entrySet().iterator();
+				
+				while( it.hasNext()){
+					
+					Map.Entry entry = (Map.Entry)it.next();
+					
+					long	id 			= ((Long)entry.getKey()).longValue();
+					long	modified 	= ((Long)entry.getValue()).longValue();
+									
+					Engine this_engine = (Engine)existing_engine_map.get( new Long(id));
+					
+					boolean	update = this_engine == null || this_engine.getLastUpdated() < modified;
+	
+					if ( update ){
 						
-						try{
-							Engine e = 
-								meta_search.importFromJSONString( 
-									details.getType()==PlatformMetaSearchMessenger.templateDetails.ENGINE_TYPE_JSON?Engine.ENGINE_TYPE_JSON:Engine.ENGINE_TYPE_REGEX,
-									details.getId(),
-									details.getModifiedDate(),
-									details.getName(),
-									details.getValue());
+						PlatformMetaSearchMessenger.templateDetails details = PlatformMetaSearchMessenger.getTemplate( id );
+	
+						log( "Downloading definition of template " + id );
+						log( details.getValue());
+						
+						if ( details.isVisible()){
 							
-							e.setSource( source );
-							
-							meta_search.addEngine( e );
-							
-						}catch( Throwable e ){
-							
-							log( "Failed to import engine '" + details.getValue() + "'", e );
+							try{
+								this_engine = 
+									meta_search.importFromJSONString( 
+										details.getType()==PlatformMetaSearchMessenger.templateDetails.ENGINE_TYPE_JSON?Engine.ENGINE_TYPE_JSON:Engine.ENGINE_TYPE_REGEX,
+										details.getId(),
+										details.getModifiedDate(),
+										details.getName(),
+										details.getValue());
+								
+								this_engine.setSource( Engine.ENGINE_SOURCE_VUZE );
+								
+								meta_search.addEngine( this_engine );
+								
+							}catch( Throwable e ){
+								
+								log( "Failed to import engine '" + details.getValue() + "'", e );
+							}
 						}
+				
 					}else{
 						
-						if ( existing != null ){
-							
-							existing.setSelected( false );
-						}
+						log( "Not updating " + this_engine.getString() + " as unchanged" );
 					}
-				}else{
 					
-					log( "Not updating " + existing.getString() + " as unchanged" );
-					
-						// ensure we attribute to latest source
-					
-					existing.setSource( source );
-				}
-			}
-			
-				// deselect any not in use
-			
-			for (int i=0;i<engines.length;i++){
-				
-				Engine	engine = engines[i];
-				
-				if ( !selected_ids.containsKey( new Long( engine.getId()))){
-					
-					engine.setSelected( false );
-					
-						// update selected state if not featured/popular
-					
-					if ( 	engine.getSource() == Engine.ENGINE_SOURCE_MANUAL && 
-							!engine.isSelectionStateRecorded()){
+					if ( this_engine.getSelectionState() == Engine.SEL_STATE_DESELECTED ){
 						
-						log( "Marking template id " + engine.getId() + " as selected=" + engine.isSelected());
-						
-						PlatformMetaSearchMessenger.setTemplatetSelected(
-								engine.getId(), Constants.AZID, engine.isSelected());
-						
-						engine.setSelectionStateRecorded();
+						this_engine.setSelectionState( Engine.SEL_STATE_AUTO_SELECTED );
 					}
 				}
-			}
-			
-				// finally pick up any unreported selection changes and re-affirm positive selections
-			
-			for (int i=0;i<engines.length;i++){
 				
-				Engine	engine = engines[i];
+					// deselect any not in use
 				
-					// only ever report selection state for manual engines
-				
-				if ( engine.getSource() == Engine.ENGINE_SOURCE_MANUAL ){
+				for (int i=0;i<engines.length;i++){
 					
-					boolean	selected = engine.isSelected();
+					Engine	engine = engines[i];
 					
-					if ( selected || !engine.isSelectionStateRecorded()){
-					
-						log( "Marking template id " + engine.getId() + " as selected=" + engine.isSelected());
-
-						PlatformMetaSearchMessenger.setTemplatetSelected(
-							engine.getId(), Constants.AZID, engine.isSelected());
+					if ( 	engine.getSource() == Engine.ENGINE_SOURCE_VUZE &&
+							engine.getSelectionState() == Engine.SEL_STATE_AUTO_SELECTED &&
+							!vuze_selected_ids.containsKey( new Long( engine.getId()))){
 						
-						engine.setSelectionStateRecorded();
+						engine.setSelectionState( Engine.SEL_STATE_DESELECTED );
 					}
 				}
+				
+					// finally pick up any unreported selection changes and re-affirm positive selections
+				
+				for (int i=0;i<engines.length;i++){
+					
+					Engine	engine = engines[i];
+					
+					engine.checkSelectionStateRecorded();
+				}
+			}catch( Throwable e ){
+				
+				log( "Refresh failed", e );
+				
+				throw( new MetaSearchException( "Refresh failed", e ));
 			}
-		}catch( Throwable e ){
+		}finally{
 			
-			log( "Refresh failed", e );
+			refresh_sem.release();
 		}
 	}
 	
@@ -345,26 +335,112 @@ MetaSearchManagerImpl
 	}
 	
 	public void
-	setAutoMode(
+	setSelectedEngines(
+		long[]		ids,
 		boolean		auto )
-	{
-		if ( auto != isAutoMode()){
-		
-			COConfigurationManager.setParameter( "metasearch.auto.mode", auto );
-			
-			refresh();
-		}
-	}
 	
-	public void 
-	listPopularTemplates() 
+		throws MetaSearchException
 	{
 		try{
-			PlatformMetaSearchMessenger.listPopularTemplates();
+			String	s = "";
 			
+			for (int i=0;i<ids.length;i++){
+				
+				s += (i==0?"":",") + ids[i];
+			}
+			
+			log( "setSelectedIds: " + s + ", auto=" + auto );
+			
+				// first update state of auto and existing engines 
+			
+			COConfigurationManager.setParameter( "metasearch.auto.mode", auto );
+
+			Engine[]	engines = meta_search.getEngines( false );
+			
+			Map	engine_map = new HashMap();
+			
+			for( int i=0;i<engines.length;i++){
+				
+				engine_map.put( new Long( engines[i].getId()), engines[i] );
+			}
+				
+			Set selected_engine_set = new HashSet();
+			
+			for (int i=0;i<ids.length;i++){
+				
+				long	 id = ids[i];
+				
+				Engine existing = (Engine)engine_map.get(new Long(id));
+				
+				if ( existing != null ){
+					
+					existing.setSelectionState( Engine.SEL_STATE_MANUAL_SELECTED );
+					
+					selected_engine_set.add( existing );
+				}
+			}
+		
+				// now refresh - this will pick up latest state of things
+			
+			syncRefresh();
+			
+			engines = meta_search.getEngines( false );
+
+				// next add in any missing engines
+			
+			for (int i=0;i<ids.length;i++){
+				
+				long	 id = ids[i];
+				
+				Engine existing = (Engine)engine_map.get(new Long(id));
+				
+				if ( existing == null ){
+														
+					PlatformMetaSearchMessenger.templateDetails details = PlatformMetaSearchMessenger.getTemplate( id );
+	
+					log( "Downloading definition of template " + id );
+					log( details.getValue());
+					
+					Engine new_engine = 
+						meta_search.importFromJSONString( 
+							details.getType()==PlatformMetaSearchMessenger.templateDetails.ENGINE_TYPE_JSON?Engine.ENGINE_TYPE_JSON:Engine.ENGINE_TYPE_REGEX,
+							details.getId(),
+							details.getModifiedDate(),
+							details.getName(),
+							details.getValue());
+							
+					new_engine.setSelectionState( Engine.SEL_STATE_MANUAL_SELECTED );
+										
+					new_engine.setSource( Engine.ENGINE_SOURCE_VUZE );
+						
+					meta_search.addEngine( new_engine );
+					
+					selected_engine_set.add( new_engine );
+				}
+			}
+			
+				// deselect any existing manually selected ones that are no longer selected
+			
+			for( int i=0;i<engines.length;i++){
+
+				Engine e = engines[i];
+				
+				if ( e.getSelectionState() == Engine.SEL_STATE_MANUAL_SELECTED ){
+					
+					if ( !selected_engine_set.contains( e )){
+				
+						e.setSelectionState( Engine.SEL_STATE_DESELECTED  );
+					}
+				}
+			}
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			if ( e instanceof MetaSearchException ){
+				
+				throw((MetaSearchException)e);
+			}
+			
+			throw( new MetaSearchException( "Failed to set selected engines", e ));
 		}
 	}
 	

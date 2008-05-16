@@ -29,9 +29,11 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 
+import com.aelitis.azureus.core.messenger.config.PlatformMetaSearchMessenger;
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.impl.web.json.JSONEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.regex.RegexEngine;
+import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.JSONUtils;
 
 public abstract class 
@@ -95,9 +97,8 @@ EngineImpl
 	private long		last_updated;
 	private String		name;
 	
-		// selection state indicates manually selected
 	
-	private boolean		selected;
+	private int			selection_state				= SEL_STATE_DESELECTED;
 	private boolean		selection_state_recorded	= true;
 	
 	private int			source	= ENGINE_SOURCE_UNKNOWN;
@@ -131,7 +132,7 @@ EngineImpl
 		last_updated	= importLong( map, "last_updated" );
 		name			= importString( map, "name" );
 		
-		selected		= importBoolean( map, "selected" );
+		selection_state	= (int)importLong( map, "selected", SEL_STATE_DESELECTED );
 		source			= (int)importLong( map, "source", ENGINE_SOURCE_UNKNOWN );
 	}
 	
@@ -147,7 +148,7 @@ EngineImpl
 		
 		exportString( map, "name", name );
 		
-		exportBoolean( map, "selected", selected );
+		map.put( "selected", new Long( selection_state ));
 		
 		map.put( "source", new Long( source ));
 	}
@@ -288,43 +289,59 @@ EngineImpl
 	public boolean
 	isActive()
 	{
-		return(	isSelected() || 
-				getSource() == Engine.ENGINE_SOURCE_FEATURED ||
-				getSource() == Engine.ENGINE_SOURCE_POPULAR );
+		return(	getSelectionState() != SEL_STATE_DESELECTED );
 	}
 	
-	public boolean
-	isSelected()
+	public int
+	getSelectionState()
 	{
-		return( selected );
+		return( selection_state );
 	}
 	
 	public void
-	setSelected(
-		boolean		b )
+	setSelectionState(
+		int		state )
 	{
-		if ( b != selected ){
+		if ( state != selection_state ){
 		
-			selected	= b;
+				// only record transitions to or from manual selection for non-local templates
 			
-			selection_state_recorded = false;
+			if ( getSource() == ENGINE_SOURCE_VUZE ){
+				
+				if ( 	state == SEL_STATE_MANUAL_SELECTED || 
+						selection_state == SEL_STATE_MANUAL_SELECTED ){
+					
+					selection_state_recorded = false;
+					
+					checkSelectionStateRecorded();
+				}
+			}
 			
+			selection_state	= state;
+						
 			configDirty();
 		}
 	}
 	
-	public boolean
-	isSelectionStateRecorded()
-	{
-		return( selection_state_recorded );
-	}
-	
 	public void
-	setSelectionStateRecorded()
+	checkSelectionStateRecorded()
 	{
-		selection_state_recorded = true;
-		
-		configDirty();
+		if ( !selection_state_recorded ){
+			
+			try{
+				boolean selected = selection_state != SEL_STATE_DESELECTED;
+				
+				log( "Marking template id " + getId() + " as selected=" + selected );
+				
+				PlatformMetaSearchMessenger.setTemplatetSelected( getId(), Constants.AZID, selected);
+				
+				selection_state_recorded = true;
+				
+			}catch( Throwable e ){
+				
+				log( "Failed to record selection state", e );
+			}
+		}
 	}
 	
 	public int
@@ -411,6 +428,6 @@ EngineImpl
 	public String
 	getString()
 	{
-		return( "id=" + getId() + ", name=" + getName() + ", source=" + getSource() + ", selected=" + isSelected());
+		return( "id=" + getId() + ", name=" + getName() + ", source=" + ENGINE_SOURCE_STRS[getSource()] + ", selected=" + SEL_STATE_STRINGS[getSelectionState()]);
 	}
 }

@@ -69,9 +69,9 @@ RegexEngine
 
 		init( resultPattern );
 		
-		setSource( Engine.ENGINE_SOURCE_MANUAL );
+		setSource( ENGINE_SOURCE_LOCAL );
 		
-		setSelected( true );
+		setSelectionState( SEL_STATE_MANUAL_SELECTED );
 	}
 	
 		// bencoded 
