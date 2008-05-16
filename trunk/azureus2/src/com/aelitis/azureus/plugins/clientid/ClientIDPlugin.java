@@ -50,7 +50,7 @@ ClientIDPlugin
 
 		final String	param = "Tracker Client Send OS and Java Version";
 		
-		send_os = plugin_interface.getPluginconfig().getBooleanParameter( param );
+		send_os = plugin_interface.getPluginconfig().getUnsafeBooleanParameter( param );
 
 		plugin_interface.getPluginconfig().addListener(
 			new PluginConfigListener()
@@ -58,7 +58,7 @@ ClientIDPlugin
 				public void 
 				configSaved() 
 				{
-					send_os = plugin_interface.getPluginconfig().getBooleanParameter( param );				
+					send_os = plugin_interface.getPluginconfig().getUnsafeBooleanParameter( param );				
 				}
 			});
 		
