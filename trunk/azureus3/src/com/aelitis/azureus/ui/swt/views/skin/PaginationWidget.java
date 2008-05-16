@@ -1,14 +1,23 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
@@ -19,17 +28,25 @@ public class PaginationWidget
 
 	private Canvas canvas = null;
 
-	private int hSpacing = 5;
+	private int hSpacing = 3;
 
 	private int yOffset = 4;
 
 	private Rectangle[] pages = new Rectangle[1];
 
-	private int height = 8;
+	private int currentPage = 0;
 
-	private int width = 6;
+	private int height = 5;
+
+	private int width = 8;
 
 	private FormData fd;
+
+	private Color color_normal = null;
+
+	private Color color_selected = null;
+
+	private List listeners = new ArrayList();
 
 	public PaginationWidget(Composite parent) {
 		if (null == parent || true == parent.isDisposed()) {
@@ -42,6 +59,7 @@ public class PaginationWidget
 	}
 
 	private void init() {
+
 		canvas = new Canvas(parent, SWT.NONE);
 
 		parent.setLayout(new FormLayout());
@@ -52,18 +70,63 @@ public class PaginationWidget
 		fd.right = new FormAttachment(100, 0);
 		canvas.setLayoutData(fd);
 
+		color_selected = ColorCache.getColor(canvas.getDisplay(), 204, 204, 204);
+		color_normal = ColorCache.getColor(canvas.getDisplay(), 99, 99, 99);
+
 		canvas.addPaintListener(new PaintListener() {
 
 			public void paintControl(PaintEvent e) {
 				if (pages.length > 1) {
-					e.gc.setBackground(ColorCache.getColor(canvas.getDisplay(), 150, 150,
-							150));
+
 					for (int i = 0; i < pages.length; i++) {
+						if (i == currentPage) {
+							e.gc.setBackground(color_selected);
+						} else {
+							e.gc.setBackground(color_normal);
+						}
 						e.gc.fillRectangle(pages[i]);
 					}
 				}
 			}
 		});
+
+		Listener listener = new Listener() {
+
+			public void handleEvent(Event event) {
+
+				if (event.type == SWT.MouseDown) {
+					for (int i = 0; i < pages.length; i++) {
+						if (pages[i].contains(event.x, event.y)) {
+							currentPage = i;
+							canvas.redraw();
+							notifyListeners(i);
+							break;
+						}
+					}
+				}
+				if (event.type == SWT.MouseMove) {
+					boolean pageFound = false;
+					for (int i = 0; i < pages.length; i++) {
+						if (pages[i].contains(event.x, event.y)) {
+							String tooltipText = "Page " + (i + 1);
+							if (false == tooltipText.equals(canvas.getToolTipText())) {
+								canvas.setToolTipText(tooltipText);
+							}
+							pageFound = true;
+							break;
+						}
+					}
+
+					if (false == pageFound) {
+						canvas.setToolTipText(null);
+					}
+				}
+			}
+		};
+
+		canvas.addListener(SWT.MouseDown, listener);
+		canvas.addListener(SWT.MouseMove, listener);
+
 	}
 
 	public void setPageCount(int pageCount) {
@@ -82,9 +145,33 @@ public class PaginationWidget
 			pages[i] = new Rectangle(xOffset, yOffset, width, height);
 			xOffset += width + hSpacing;
 		}
+
+		if (parent.getLayoutData() instanceof FormData) {
+			FormData pfd = (FormData) parent.getLayoutData();
+			pfd.width = pageCount * (hSpacing + width);
+		}
 		fd.width = pageCount * (hSpacing + width);
 		canvas.setSize(pageCount * (hSpacing + width), 16);
 
-		Utils.relayout(canvas);
+		Utils.relayout(parent);
 	}
+
+	public interface PageSelectionListener
+	{
+		public void pageSelected(int pageNumber);
+	}
+
+	public void addPageSelectionListener(PageSelectionListener listener) {
+		if (false == listeners.contains(listener) && null != listener) {
+			listeners.add(listener);
+		}
+	}
+
+	private void notifyListeners(int selectedPage) {
+		for (Iterator iterator = listeners.iterator(); iterator.hasNext();) {
+			PageSelectionListener listener = (PageSelectionListener) iterator.next();
+			listener.pageSelected(selectedPage);
+		}
+	}
+
 }

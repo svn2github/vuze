@@ -57,6 +57,10 @@ public class BuddiesViewer
 	private Point avatarSize = new Point(avatarImageSize.x + 20,
 			avatarImageSize.y + 16);
 
+	private int hSpacing = 10;
+
+	private int avatarWidthPlusSpacing = hSpacing + avatarSize.x;
+
 	private List avatarWidgets = new ArrayList();
 
 	private boolean isShareMode = false;
@@ -87,6 +91,8 @@ public class BuddiesViewer
 	private SharePage sharePage;
 
 	private PaginationWidget pWidget;
+
+	private int[] pageXOffsets = null;
 
 	public BuddiesViewer() {
 	}
@@ -128,7 +134,7 @@ public class BuddiesViewer
 
 			RowLayout rLayout = new RowLayout(SWT.HORIZONTAL);
 			rLayout.wrap = false;
-			rLayout.spacing = 10;
+			rLayout.spacing = hSpacing;
 			rLayout.marginTop = 6;
 			rLayout.marginBottom = 0;
 			rLayout.marginLeft = 0;
@@ -139,13 +145,15 @@ public class BuddiesViewer
 
 			fillBuddies(avatarsPanel);
 
+			avatarsPanel.pack();
+
 			/*
 			 * Get a new page width when the content panel is resized
 			 */
 			content.addControlListener(new ControlAdapter() {
 				public void controlResized(ControlEvent e) {
 					calculatePagination();
-					if(null != pWidget){
+					if (null != pWidget) {
 						pWidget.setPageCount(pageCount);
 					}
 				}
@@ -167,24 +175,131 @@ public class BuddiesViewer
 			Composite control = (Composite) paginationObject.getControl();
 			pWidget = new PaginationWidget(control);
 			pWidget.setPageCount(pageCount);
+
+			pWidget.addPageSelectionListener(new PaginationWidget.PageSelectionListener() {
+				public void pageSelected(int pageNumber) {
+					showPage(pageNumber, false);
+				}
+			});
 		}
+	}
+
+	public void showPage(final int pageNumber, boolean animateTransition) {
+
+		if (avatarsPanel.getLocation().x == -pageXOffsets[pageNumber]) {
+			//Do nothing if page is still the same
+			return;
+		}
+
+		if (false == animateTransition) {
+			avatarsPanel.setLocation(-pageXOffsets[pageNumber],
+					avatarsPanel.getLocation().y);
+		} else {
+
+//			parent.getDisplay().asyncExec(new AERunnable() {
+//				public void runSupport() {
+//					int newOffset = pageXOffsets[pageNumber];
+//					int currentOffset = pageXOffsets[currentPage];
+//
+//
+//					/*
+//					 * Scroll left
+//					 */
+//					if (newOffset > currentOffset) {
+//						int diff = newOffset - currentOffset;
+//
+//						for (int i = diff; i > 1; i -= (int) (i * .6)) {
+//							System.out.println(diff - i);//KN: sysout
+//							avatarsPanel.setLocation(-(currentOffset + diff),
+//									avatarsPanel.getLocation().y);
+//							avatarsPanel.redraw();
+//							avatarsPanel.update();
+//							try {
+//								Thread.sleep(500);
+//							} catch (InterruptedException e) {
+//								e.printStackTrace();
+//							}
+//						}
+//
+//					}
+//
+//					/*
+//					 * Scroll right
+//					 */
+//					else {
+//
+//					}
+//
+//					//					while (incrementer > 0) {
+//					//						location.x -= incrementer;
+//					//						avatarsPanel.setLocation(location.x, location.y);
+//					//						parent.update();
+//					//						incrementer = (int) (incrementer * .5);
+//					//						try {
+//					//							Thread.sleep(50);
+//					//						} catch (InterruptedException e) {
+//					//							e.printStackTrace();
+//					//						}
+//					//					}
+//
+//				}
+//			});
+		}
+
 	}
 
 	private void calculatePagination() {
 
 		pageWindowWidth = content.getClientArea().width;
 
+		/*
+		 * Avoid divide by zero when the viewer is collapsed
+		 */
 		if (pageWindowWidth < 1) {
 			pageCount = 1;
-		} else {
-			pageCount = Math.max(1, avatarsPanel.getBounds().width / pageWindowWidth);
 
-			if (pageWindowWidth < avatarsPanel.getBounds().width) {
-				pageCount++;
+			/*
+			 * Single page offset
+			 */
+			pageXOffsets = new int[] {
+				0
+			};
+		} else {
+			int avatarsPerPage = 0;
+			/*
+			 * If windowWidth can only fully show 1 avatar then the number of pages
+			 * would equal the number of avatars
+			 */
+			if (pageWindowWidth <= avatarWidthPlusSpacing) {
+				pageCount = avatarWidgets.size();
+				avatarsPerPage = 1;
+			} else {
+
+				avatarsPerPage = (pageWindowWidth / avatarWidthPlusSpacing);
+				pageCount = Math.max(1, avatarsPanel.getBounds().width
+						/ (avatarsPerPage * avatarWidthPlusSpacing));
+
+				if (pageWindowWidth < avatarsPanel.getBounds().width) {
+					pageCount++;
+				}
+			}
+
+			/*
+			 * Create the new offset array which is used for pagination
+			 */
+			pageXOffsets = new int[pageCount];
+
+			int xOffset = 0;
+			/*
+			 * First page has no offset
+			 */
+			pageXOffsets[0] = 0;
+
+			for (int i = 1; i < pageXOffsets.length; i++) {
+				xOffset += (avatarsPerPage * avatarWidthPlusSpacing);
+				pageXOffsets[i] = xOffset;
 			}
 		}
-		System.out.println("# of pages " + pageCount);//KN: sysout
-
 	}
 
 	private void hookScrollers() {
