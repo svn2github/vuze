@@ -2,8 +2,11 @@ package com.aelitis.azureus.core.metasearch.impl.web.regex;
 
 import java.io.*;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.*;
 import java.util.regex.*;
+
+import org.json.simple.JSONObject;
 
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.Result;
@@ -120,6 +123,17 @@ RegexEngine
 		return( res );
 	}
 
+	protected void
+	exportToJSONObject(
+		JSONObject		res )
+	
+		throws IOException
+	{
+		res.put( "regexp", URLEncoder.encode( pattern_str, "UTF-8" ));
+
+		super.exportToJSONObject( res );
+	}
+	
 	protected void
 	init(
 		String			resultPattern )

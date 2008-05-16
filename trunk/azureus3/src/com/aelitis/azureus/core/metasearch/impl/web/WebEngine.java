@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,6 +13,8 @@ import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 import com.aelitis.azureus.core.metasearch.SearchParameter;
 import com.aelitis.azureus.core.metasearch.impl.*;
@@ -108,6 +111,37 @@ WebEngine
 		init();
 	}
 	
+	protected void
+	exportToBencodedMap(
+		Map		map )
+	
+		throws IOException
+	{
+		super.exportToBencodedMap( map );
+		
+		exportString( map, "web.search_url_format", searchURLFormat );
+		exportString( map, "web.time_zone", 		timeZone );		
+		exportString( map, "web.date_format", 		userDateFormat );
+		
+		map.put( "web.auto_date", new Long( automaticDateParser?1:0));
+
+		List	maps = new ArrayList();
+		
+		map.put( "web.maps", maps );
+		
+		for (int i=0;i<mappings.length;i++){
+			
+			FieldMapping fm = mappings[i];
+			
+			Map m = new HashMap();
+			
+			exportString( m, "name", fm.getName());
+			m.put( "field", new Long( fm.getField()));
+			
+			maps.add( m );
+		}
+	}
+	
 		// json encoded constructor
 	
 	protected 
@@ -202,34 +236,96 @@ WebEngine
 	}
 	
 	protected void
-	exportToBencodedMap(
-		Map		map )
+	exportToJSONObject(
+		JSONObject		res )
 	
 		throws IOException
-	{
-		super.exportToBencodedMap( map );
+	{		
+		res.put( "searchURL", 	URLEncoder.encode(searchURLFormat,"UTF-8"));
+		res.put( "timezone", 		timeZone );	
 		
-		exportString( map, "web.search_url_format", searchURLFormat );
-		exportString( map, "web.time_zone", 		timeZone );		
-		exportString( map, "web.date_format", 		userDateFormat );
+		if ( !automaticDateParser ){
+			
+			res.put( "time_format",	userDateFormat );
+		}
 		
-		map.put( "web.auto_date", new Long( automaticDateParser?1:0));
+		JSONArray	maps = new JSONArray();
+		
+		res.put( "column_map", maps );
 
-		List	maps = new ArrayList();
-		
-		map.put( "web.maps", maps );
-		
 		for (int i=0;i<mappings.length;i++){
 			
 			FieldMapping fm = mappings[i];
 			
-			Map m = new HashMap();
+			int	field_id = fm.getField();
 			
-			exportString( m, "name", fm.getName());
-			m.put( "field", new Long( fm.getField()));
+			String	field_value;
 			
-			maps.add( m );
-		}
+			if ( field_id == FIELD_NAME ){
+				
+				field_value = "TITLE";
+				
+			}else if ( field_id == FIELD_DATE ){
+				
+				field_value = "DATE";
+
+			}else if ( field_id == FIELD_SIZE ){
+				
+				field_value = "SIZE";
+
+			}else if ( field_id == FIELD_PEERS ){
+				
+				field_value = "PEERS";
+
+			}else if ( field_id == FIELD_SEEDS ){
+				
+				field_value = "SEEDS";
+
+			}else if ( field_id == FIELD_CATEGORY ){
+				
+				field_value = "CAT";
+
+			}else if ( field_id == FIELD_COMMENTS ){
+				
+				field_value = "COMMENTS";
+
+			}else if ( field_id == FIELD_TORRENTLINK ){
+				
+				field_value = "TORRENT";
+
+			}else if ( field_id == FIELD_CDPLINK ){
+				
+				field_value = "CDP";
+
+			}else{
+				
+				log( "JSON export: unknown field id " + field_id );
+				
+				field_value = null;
+			}
+			
+			if ( field_value != null ){
+				
+				Map m = new HashMap();
+
+				maps.add( m );
+				
+				Map entry = new HashMap();
+				
+				m.put( "mapping", entry );
+				
+				entry.put( "vuze_field", field_value );
+				
+				if ( getType() == ENGINE_TYPE_JSON ){
+					
+					entry.put( "field_name", fm.getName());
+					
+				}else{
+					
+					entry.put( "group_nb", fm.getName());
+				}
+			}
+		}	
 	}
 	
 	protected void
@@ -255,7 +351,7 @@ WebEngine
 			this.basePage = null;
 		}
 		
-		this.dateParser = new DateParserRegex(timeZone,automaticDateParser,userDateFormat);
+		this.dateParser = new DateParser(timeZone,automaticDateParser,userDateFormat);
 	}
 	
 	protected String getWebPageContent(SearchParameter[] searchParameters) {

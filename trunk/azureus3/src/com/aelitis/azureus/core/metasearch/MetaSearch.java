@@ -12,6 +12,10 @@ MetaSearch
 	getEngines(
 		boolean		active_only );
 	
+	public Engine
+	getEngine(
+		long		id );
+	
 	public void 
 	addEngine( 
 		Engine 		engine );

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.json.simple.JSONObject;
 
 
 import com.aelitis.azureus.core.metasearch.Engine;
@@ -31,6 +32,7 @@ public class MetaSearchListener extends AbstractMessageListener {
 	public static final String OP_GET_AUTO_MODE		 	= "get-auto-mode";
 	
 	public static final String OP_SAVE_TEMPLATE		 	= "save-template";
+	public static final String OP_LOAD_TEMPLATE		 	= "load-template";
 
 		
 	public MetaSearchListener() {
@@ -197,6 +199,40 @@ public class MetaSearchListener extends AbstractMessageListener {
 				params.put("error",Debug.getNestedExceptionMessage(e));
 
 				context.sendBrowserMessage("metasearch", "saveTemplateFailed",params);
+			}
+		} else if( OP_LOAD_TEMPLATE.equals(opid)){
+			
+			Map decodedMap = message.getDecodedMap();
+
+			long	id	= ((Long)decodedMap.get( "id" )).longValue();
+			
+			Engine engine = metaSearchManager.getMetaSearch().getEngine( id );
+		
+			if ( engine == null ){
+			
+				Map params = new HashMap();
+				params.put("error","Template not found");
+
+				context.sendBrowserMessage("metasearch", "loadTemplateFailed",params);
+				
+			}else{
+				
+				try{
+					Map params = new HashMap();
+					params.put("id", new Long(engine.getId()));
+					params.put("name", engine.getName());
+					params.put("type", Engine.ENGINE_TYPE_STRS[ engine.getType()]);
+					params.put("value", JSONObject.escape( engine.exportToJSONString()));
+				
+					context.sendBrowserMessage( "metasearch", "loadTemplateCompleted", params );
+					
+				}catch( Throwable e ){
+					
+					Map params = new HashMap();
+					params.put("error",Debug.getNestedExceptionMessage(e));
+
+					context.sendBrowserMessage("metasearch", "loadTemplateFailed",params);
+				}
 			}		
 		}
 	}

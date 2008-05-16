@@ -119,6 +119,17 @@ JSONEngine
 		return( res );
 	}
 	
+	protected void
+	exportToJSONObject(
+		JSONObject		res )
+	
+		throws IOException
+	{
+		res.put( "json_result_key", resultsEntryPath );
+
+		super.exportToJSONObject( res );
+	}
+	
 	public Result[] search(SearchParameter[] searchParameters) throws SearchException {
 		
 		String page = super.getWebPageContent(searchParameters);

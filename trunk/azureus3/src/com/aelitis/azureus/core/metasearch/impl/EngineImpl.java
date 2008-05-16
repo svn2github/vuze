@@ -28,6 +28,7 @@ import java.io.PrintWriter;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.AEDiagnostics;
+import org.json.simple.JSONObject;
 
 import com.aelitis.azureus.core.messenger.config.PlatformMetaSearchMessenger;
 import com.aelitis.azureus.core.metasearch.Engine;
@@ -152,6 +153,24 @@ EngineImpl
 		
 		map.put( "source", new Long( source ));
 	}
+	
+	public String
+	exportToJSONString()
+	
+		throws IOException
+	{
+		JSONObject	obj = new JSONObject();
+		
+		exportToJSONObject( obj );
+		
+		return( obj.toString());
+	}
+	
+	protected abstract void
+	exportToJSONObject(
+		JSONObject		obj )
+	
+		throws IOException;
 	
 	protected void
 	exportString(

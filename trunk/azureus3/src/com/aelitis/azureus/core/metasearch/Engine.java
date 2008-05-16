@@ -23,6 +23,7 @@ Engine
 		 */
 	public static final String[] ENGINE_SOURCE_STRS = { "unknown","vuze","local","unused","unused" };
 	public static final String[] SEL_STATE_STRINGS	= { "no", "auto", "manual" };
+	public static final String[] ENGINE_TYPE_STRS 	= { "unknown","regexp","json" };
 	
 	public int getType();
 	
@@ -66,6 +67,11 @@ Engine
 	
 	public Map 
 	exportToBencodedMap() 
+	
+		throws IOException;
+	
+	public String
+	exportToJSONString()
 	
 		throws IOException;
 	
