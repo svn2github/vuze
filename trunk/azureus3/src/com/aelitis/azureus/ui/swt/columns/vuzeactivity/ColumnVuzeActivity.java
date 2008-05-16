@@ -65,7 +65,7 @@ public class ColumnVuzeActivity
 	extends CoreTableColumn
 	implements TableCellRefreshListener, TableCellDisposeListener,
 	TableCellAddedListener, TableCellMouseMoveListener,
-	TableCellVisibilityListener
+	TableCellVisibilityListener, TableCellToolTipListener
 {
 	private static final int MARGIN_WIDTH = 8 - ListView.COLUMN_MARGIN_WIDTH;
 
@@ -466,6 +466,32 @@ public class ColumnVuzeActivity
 			return (TableCellImpl) tableRowCore.getData("RatingCell");
 		}
 		return null;
+	}
+	
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener#cellHover(org.gudy.azureus2.plugins.ui.tables.TableCell)
+	public void cellHover(TableCell cell) {
+		TableCellImpl thumbCell = getThumbCell(cell);
+		if (thumbCell != null) {
+			if (getIsMouseOverCell("Thumb", cell)) {
+				Object toolTip = thumbCell.getToolTip();
+				if (toolTip != null) {
+					cell.setToolTip(toolTip);
+				}
+			}
+		}
+	}
+	
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener#cellHoverComplete(org.gudy.azureus2.plugins.ui.tables.TableCell)
+	public void cellHoverComplete(TableCell cell) {
+		TableCellImpl thumbCell = getThumbCell(cell);
+		if (thumbCell != null) {
+			if (getIsMouseOverCell("Thumb", cell)) {
+				Object toolTip = thumbCell.getToolTip();
+				if (toolTip != null) {
+					cell.setToolTip(null);
+				}
+			}
+		}
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellMouseListener#cellMouseTrigger(org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent)
