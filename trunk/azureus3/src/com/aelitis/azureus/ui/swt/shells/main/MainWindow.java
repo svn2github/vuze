@@ -83,6 +83,7 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.*;
 import com.aelitis.azureus.ui.swt.Initializer;
+import com.aelitis.azureus.ui.swt.browser.PlatformAuthorizedSenderImpl;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcher;
 import com.aelitis.azureus.ui.swt.buddy.impl.VuzeBuddySWTImpl;
@@ -465,94 +466,8 @@ public class MainWindow
 
 		shell = new Shell(display, SWT.SHELL_TRIM);
 
-		PlatformMessenger.setAuthorizedTransferListener(new PlatformAuthorizedSender() {
-			String s = null;
-
-			// @see com.aelitis.azureus.core.messenger.PlatformAuthorizedSender#startDownload(java.net.URL, java.lang.String, org.gudy.azureus2.core3.util.AESemaphore, boolean)
-			public void startDownload(
-				final URL url,
-				final String data,
-				final AESemaphore sem_waitDL,
-				final boolean loginAndRetry)
-			{
-				Utils.execSWTThread(new AERunnable() {
-					boolean isRetry = false;
-
-					public void 
-					runSupport() 
-					{
-						try{
-							final Browser browser = new Browser(shell, SWT.NONE);
-							browser.setVisible(false);
-	
-							final String url = Constants.URL_AUTHORIZED_RPC + "?" + data;
-							PlatformMessenger.debug("Open Auth URL: " + url);
-							browser.setUrl(url);
-	
-							browser.addProgressListener(new ProgressListener() {
-								public void completed(ProgressEvent event) {
-									try{
-										s = browser.getText();
-
-										// authFail message is "authentication required"
-										// catch a little bit more, just in case 
-										boolean authFail = s.indexOf(";exception;") > 0
-												&& s.indexOf("authenticat") > 0
-												&& s.indexOf("required") > 0;
-
-										int i = s.indexOf("0;");
-
-										if (i >= 0) {
-											PlatformMessenger.debug("Got Auth Reply: " + s);
-										} else {
-											String partial = s.length() == 0 ? "" : s.substring(0,
-													Math.min(100, s.length()));
-											PlatformMessenger.debug("Got BAD Auth Reply: " + partial);
-										}
-
-										if (authFail && loginAndRetry && !isRetry) {
-											s = null;
-											
-											// add a reserve because finally will release and
-											// we still need to wait for login
-											sem_waitDL.reserve();
-											isRetry = true;
-											
-											SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
-												public void loginComplete()
-												{
-													browser.refresh();
-												}
-											});
-										} else {
-  										if (i > 0) {
-  											s = s.substring(i);
-  										}
-										}
-										browser.dispose();
-									}finally{
-										sem_waitDL.release();
-									}
-								}
-	
-								public void changed(ProgressEvent event) {
-								}
-							});
-						}catch( Throwable e ){
-							
-							Debug.printStackTrace(e);
-							
-							sem_waitDL.release();
-						}
-					}
-				});
-			}
-
-			public String getResults() {
-				return s;
-			}
-		});
-
+		PlatformMessenger.setAuthorizedTransferListener(new PlatformAuthorizedSenderImpl(shell));
+		
 		try {
 			shell.setData("class", this);
 			shell.setText("Azureus");
@@ -1532,9 +1447,11 @@ public class MainWindow
 				cTitle.addPaintListener(new PaintListener() {
 					public void paintControl(PaintEvent e) {
 						e.gc.setAdvanced(true);
+						//Font font = new Font(e.gc.getDevice(), "Sans", 8, SWT.NORMAL);
+						//e.gc.setFont(font);
 						if (e.gc.getAdvanced() && activeTopBar != null) {
 							try {
-								e.gc.setAntialias(SWT.ON);
+								e.gc.setTextAntialias(SWT.ON);
 							} catch (Exception ex) {
 								// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
 							}
@@ -1553,6 +1470,7 @@ public class MainWindow
 								// setTransform can trhow a ERROR_NO_GRAPHICS_LIBRARY error
 								// no use trying to draw.. it would look weird
 							}
+							//font.dispose();
 						}
 					}
 				});
