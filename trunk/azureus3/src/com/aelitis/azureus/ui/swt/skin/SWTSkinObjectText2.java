@@ -134,9 +134,9 @@ public class SWTSkinObjectText2
 				if (antialiasMode != SWT.DEFAULT) {
 					try {
 						gc.setTextAntialias(antialiasMode);
-				  } catch (Exception e) {
-				  	// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
-				  }
+					} catch (Exception e) {
+						// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
+					}
 				}
 
 				pt = gc.textExtent(sDisplayText);
@@ -310,7 +310,7 @@ public class SWTSkinObjectText2
 			if (iFontWeight >= 0) {
 				tempFontData[0].setStyle(iFontWeight);
 			}
-			
+
 			String sSize = properties.getStringValue(sPrefix + ".size" + suffix);
 			if (sSize != null) {
 				FontData[] fd = canvas.getFont().getFontData();
@@ -330,7 +330,8 @@ public class SWTSkinObjectText2
 					} else {
 						if (sSize.endsWith("px")) {
 							//iFontSize = Utils.getFontHeightFromPX(canvas.getFont(), null, (int) dSize);
-							iFontSize = Utils.getFontHeightFromPX(canvas.getDisplay(), tempFontData, null, (int) dSize);
+							iFontSize = Utils.getFontHeightFromPX(canvas.getDisplay(),
+									tempFontData, null, (int) dSize);
 							//iFontSize = Utils.pixelsToPoint(dSize, canvas.getDisplay().getDPI().y);
 						} else {
 							iFontSize = (int) dSize;
@@ -423,9 +424,9 @@ public class SWTSkinObjectText2
 		if (antialiasMode != SWT.DEFAULT) {
 			try {
 				e.gc.setTextAntialias(antialiasMode);
-		  } catch (Exception ex) {
-		  	// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
-		  }
+			} catch (Exception ex) {
+				// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
+			}
 		}
 		GCStringPrinter.printString(e.gc, sDisplayText, clientArea, true, false,
 				style);
@@ -436,11 +437,34 @@ public class SWTSkinObjectText2
 			setText("");
 		}
 
-		if (key.equals(sKey)) {
+		else if (key.equals(sKey)) {
 			return;
 		}
 
 		this.sText = MessageText.getString(key);
+		this.sDisplayText = allcaps && sText != null ? sText.toUpperCase() : sText;
+		this.sKey = key;
+		bIsTextDefault = false;
+
+		Utils.execSWTThreadLater(0, new AERunnable() {
+			public void runSupport() {
+				canvas.redraw();
+				canvas.layout(true);
+				Utils.relayout(canvas);
+			}
+		});
+	}
+
+	public void setTextID(String key, String[] params) {
+		if (key == null) {
+			setText("");
+		}
+
+		else if (key.equals(sKey)) {
+			return;
+		}
+
+		this.sText = MessageText.getString(key, params);
 		this.sDisplayText = allcaps && sText != null ? sText.toUpperCase() : sText;
 		this.sKey = key;
 		bIsTextDefault = false;

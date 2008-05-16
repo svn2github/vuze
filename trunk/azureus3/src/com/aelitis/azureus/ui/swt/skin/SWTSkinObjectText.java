@@ -30,4 +30,6 @@ public interface SWTSkinObjectText
 	public void setText(String text);
 
 	public void setTextID(String id);
+	
+	public void setTextID(String id, String[] params);
 }

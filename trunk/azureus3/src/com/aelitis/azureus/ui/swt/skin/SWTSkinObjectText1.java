@@ -266,7 +266,7 @@ public class SWTSkinObjectText1
 			setText("");
 		}
 
-		if (key.equals(sKey)) {
+		else if (key.equals(sKey)) {
 			return;
 		}
 
@@ -278,6 +278,27 @@ public class SWTSkinObjectText1
 			public void runSupport() {
 				if (label != null && !label.isDisposed()) {
 					Messages.setLanguageText(label, key);
+					Utils.relayout(label);
+				}
+			}
+		});
+	}
+
+	public void setTextID(final String key, final String[] params) {
+		if (key == null) {
+			setText("");
+		} else if (key.equals(sKey)) {
+			return;
+		}
+
+		this.sText = MessageText.getString(key);
+		this.sKey = key;
+		bIsTextDefault = false;
+
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (label != null && !label.isDisposed()) {
+					Messages.setLanguageText(label, key, params);
 					Utils.relayout(label);
 				}
 			}
