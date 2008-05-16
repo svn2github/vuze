@@ -394,10 +394,6 @@ public class TorrentListViewsUtils
 		} else {
 			String hash = getAssetHashFromDS(ds);
 			if (hash != null) {
-				// Note: the only case where there's no DM, and a hash present is
-				//       in a VuzeNewsEntry, which is displayed on the Dashboard's
-				//       Activity tab.  For now, we hardcode the referal to that
-				//       but we really should pass it in somehow
 				String url = Constants.URL_PREFIX + Constants.URL_DOWNLOAD + hash
 						+ ".torrent?referal=" + referal;
 				AzureusCore core = AzureusCoreFactory.getSingleton();
