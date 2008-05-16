@@ -36,8 +36,8 @@ public class SpeedManagerLogger
 
     public static void log(String str){
 
-        LogEvent e = new LogEvent(ID,str);
-        Logger.log(e);
+        //LogEvent e = new LogEvent(ID,str);
+        //Logger.log(e);
 
         if(dLog!=null){
             dLog.log(str);
