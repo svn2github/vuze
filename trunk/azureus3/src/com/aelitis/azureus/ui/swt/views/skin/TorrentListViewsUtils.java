@@ -377,7 +377,7 @@ public class TorrentListViewsUtils
 
 		DownloadManager dm = getDMFromDS(ds);
 		if (dm == null) {
-			downloadDataSource(ds);
+			downloadDataSource(ds, true, "playdashboardactivity");
 		} else {
 			playOrStream(dm, btn);
 		}
@@ -386,7 +386,8 @@ public class TorrentListViewsUtils
 
 	}
 	
-	public static void downloadDataSource(Object ds) {
+	public static void downloadDataSource(Object ds, boolean playNow,
+			String referal) {
 		TOTorrent torrent = getTorrentFromDS(ds);
 		if (torrent != null) {
 			TorrentUIUtilsV3.addTorrentToGM(torrent);
@@ -398,9 +399,9 @@ public class TorrentListViewsUtils
 				//       Activity tab.  For now, we hardcode the referal to that
 				//       but we really should pass it in somehow
 				String url = Constants.URL_PREFIX + Constants.URL_DOWNLOAD + hash
-						+ ".torrent?referal=playdashboardactivity";
+						+ ".torrent?referal=" + referal;
 				AzureusCore core = AzureusCoreFactory.getSingleton();
-				TorrentUIUtilsV3.loadTorrent(core, url, null, true, false, true);
+				TorrentUIUtilsV3.loadTorrent(core, url, null, playNow, false, true);
 			}
 		}
 	}

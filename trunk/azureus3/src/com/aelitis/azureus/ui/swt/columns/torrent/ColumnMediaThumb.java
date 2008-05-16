@@ -221,12 +221,6 @@ public class ColumnMediaThumb
 			if (path != null) {
 				firstImage = ImageRepository.getPathIcon(path, true, torrent != null
 						&& !torrent.isSimpleTorrent());
-				Rectangle bounds = firstImage.getBounds();
-
-				//Graphic graphic = new UISWTGraphicImpl(icon);
-				//cell.setGraphic(graphic);
-			} else {
-				//cell.setGraphic(null);
 			}
 		}
 
@@ -487,7 +481,8 @@ public class ColumnMediaThumb
 				TorrentListViewsUtils.playOrStreamDataSource(
 						event.cell.getDataSource(), null);
 			} else if (id.equals("download")) {
-				TorrentListViewsUtils.downloadDataSource(event.cell.getDataSource());
+				TorrentListViewsUtils.downloadDataSource(event.cell.getDataSource(),
+						false, "dldashboardactivity");
 			} else if (id.equals("details")) {
 				String hash = getHash(event.cell.getDataSource(), true);
 				if (hash != null) {
