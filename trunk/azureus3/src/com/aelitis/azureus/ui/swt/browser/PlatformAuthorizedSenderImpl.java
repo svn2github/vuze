@@ -21,9 +21,7 @@ package com.aelitis.azureus.ui.swt.browser;
 import java.net.URL;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.browser.ProgressEvent;
-import org.eclipse.swt.browser.ProgressListener;
+import org.eclipse.swt.browser.*;
 import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -66,23 +64,24 @@ public class PlatformAuthorizedSenderImpl
 					final Browser browser = new Browser(shell, SWT.NONE);
 					browser.setVisible(false);
 
-					final String url = Constants.URL_AUTHORIZED_RPC + "?" + data;
+					// Safari doesn't return getText() when results aren't text/html
+					// IE removes /n when in text/html mode
+					String responseType = Constants.isOSX ? "text/html" : "text/plain";
+					final String url = Constants.URL_AUTHORIZED_RPC + "?" + data
+							+ "&responseType=" + responseType;
 					PlatformMessenger.debug("Open Auth URL: " + url);
 					browser.setUrl(url);
 
 					browser.addProgressListener(new ProgressListener() {
 						public void completed(ProgressEvent event) {
-							Utils.execSWTThreadLater(500, new AERunnable() {
-								public void runSupport() {
-									parseAuthorizedListenerResult(browser, sem_waitDL, isRetry,
-											loginAndRetry);
-								}
-							});
+							parseAuthorizedListenerResult(browser, sem_waitDL, isRetry,
+									loginAndRetry);
 						}
 
 						public void changed(ProgressEvent event) {
 						}
 					});
+					
 				} catch (Throwable e) {
 
 					Debug.printStackTrace(e);
@@ -94,7 +93,10 @@ public class PlatformAuthorizedSenderImpl
 	}
 
 	private void parseAuthorizedListenerResult(final Browser browser,
-			AESemaphore sem_waitDL, boolean isRetry, boolean loginAndRetry) {
+			final AESemaphore sem_waitDL, boolean isRetry, boolean loginAndRetry) {
+		if (browser.isDisposed()) {
+			return;
+		}
 		try {
 			s = browser.getText();
 
@@ -126,13 +128,19 @@ public class PlatformAuthorizedSenderImpl
 					public void loginComplete() {
 						browser.refresh();
 					}
+					
+					public void loginCanceled() {
+						browser.dispose();
+						sem_waitDL.release();
+					}
 				});
+				// TODO: fail and dispose?
 			} else {
 				if (i > 0) {
 					s = s.substring(i);
 				}
+				browser.dispose();
 			}
-			browser.dispose();
 		} finally {
 			sem_waitDL.release();
 		}
