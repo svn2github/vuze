@@ -85,7 +85,7 @@ public class VuzeActivitiesEntryContentShare
 
 		text += " with you.";
 
-		if (message != null) {
+		if (message != null && message.length() > 0) {
 			text += "\n \nMessage from " + userInfo.displayName + ":\n" + message;
 		}
 		setText(text);
