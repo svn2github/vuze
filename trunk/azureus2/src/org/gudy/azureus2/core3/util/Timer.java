@@ -376,11 +376,6 @@ public class Timer
 		
 		if ( log ){
 			
-			if ( !(performer instanceof TimerEventPerformer )){
-				
-				System.out.println( "Timer '" + thread_pool.getName() + "' - added " + event.getString());
-			}
-					
 			if ( events.size() > max_events_logged ){
 		
 				max_events_logged = events.size();
