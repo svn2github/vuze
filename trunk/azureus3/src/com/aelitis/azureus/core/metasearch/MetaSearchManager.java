@@ -36,4 +36,13 @@ MetaSearchManager
 		boolean		auto )
 	
 		throws MetaSearchException;
+	
+	public Engine
+	addEngine(
+		long		id,
+		int			type,
+		String		name,
+		String		json_value )
+	
+		throws MetaSearchException;
 }

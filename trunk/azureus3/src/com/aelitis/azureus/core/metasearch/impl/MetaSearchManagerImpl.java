@@ -31,10 +31,10 @@ import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
-import com.aelitis.azureus.core.messenger.PlatformMessengerException;
 import com.aelitis.azureus.core.messenger.config.PlatformMetaSearchMessenger;
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearch;
@@ -441,6 +441,47 @@ MetaSearchManagerImpl
 			}
 			
 			throw( new MetaSearchException( "Failed to set selected engines", e ));
+		}
+	}
+	
+	public Engine
+	addEngine(
+		long		id,
+		int			type,
+		String		name,
+		String		json_value )
+	
+		throws MetaSearchException
+	{
+		if ( id == -1 ){
+			
+			Random random = new Random();
+			
+			while( true ){
+			
+				id = Integer.MAX_VALUE + Math.abs(random.nextInt());
+				
+				if ( meta_search.getEngine( id ) == null ){
+					
+					break;
+				}
+			}
+		}
+		
+		try{
+			Engine engine = meta_search.importFromJSONString( type,	id,	SystemTime.getCurrentTime(),name, json_value );
+			
+			engine.setSource( Engine.ENGINE_SOURCE_LOCAL );
+			
+			engine.setSelectionState( Engine.SEL_STATE_MANUAL_SELECTED );
+			
+			meta_search.addEngine( engine );
+			
+			return( engine );
+			
+		}catch( Throwable e ){
+			
+			throw( new MetaSearchException( "Failed to add engine", e ));
 		}
 	}
 	

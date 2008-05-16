@@ -172,6 +172,25 @@ MetaSearchImpl
 		return( (Engine[])result.toArray( new Engine[ result.size() ]));
 	}
 	
+	public Engine
+	getEngine(
+		long		id )
+	{
+		List l = engines.getList();
+		
+		for( int i=0;i<l.size();i++){
+			
+			Engine e = (Engine)l.get(i);
+			
+			if ( e.getId() == id ){
+				
+				return( e );
+			}
+		}
+
+		return( null );
+	}
+	
 	public void 
 	search(
 		final ResultListener 	original_listener,

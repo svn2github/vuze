@@ -29,6 +29,8 @@ public class MetaSearchListener extends AbstractMessageListener {
 
 	public static final String OP_SET_SELECTED_ENGINES 	= "set-selected-engines";
 	public static final String OP_GET_AUTO_MODE		 	= "get-auto-mode";
+	
+	public static final String OP_SAVE_TEMPLATE		 	= "save-template";
 
 		
 	public MetaSearchListener() {
@@ -161,6 +163,41 @@ public class MetaSearchListener extends AbstractMessageListener {
 			params.put( "auto", new Boolean( mode ));
 
 			context.sendBrowserMessage("metasearch", "getAutoModeResult",params);
+			
+		} else if( OP_SAVE_TEMPLATE.equals(opid)){
+			
+			Map decodedMap = message.getDecodedMap();
+
+			String	type_str = (String)decodedMap.get( "type" );
+			
+			String	name = (String)decodedMap.get( "name" );
+			
+			Long	l_id	= (Long)decodedMap.get( "id" );
+			
+			long	id = l_id == null?-1:l_id.longValue();
+			
+			String	json = (String)decodedMap.get( "value" );
+			
+			try{
+				Engine engine = 
+					metaSearchManager.addEngine( 
+							id, 
+							type_str.equals( "json" )?Engine.ENGINE_TYPE_JSON:Engine.ENGINE_TYPE_REGEX, 
+							name, 
+							json );
+				
+				Map params = new HashMap();
+				params.put( "id", new Long( engine.getId() ));
+	
+				context.sendBrowserMessage( "metasearch", "saveTemplateCompleted", params );
+				
+			}catch( Throwable e ){
+				
+				Map params = new HashMap();
+				params.put("error",Debug.getNestedExceptionMessage(e));
+
+				context.sendBrowserMessage("metasearch", "saveTemplateFailed",params);
+			}		
 		}
 	}
 }
