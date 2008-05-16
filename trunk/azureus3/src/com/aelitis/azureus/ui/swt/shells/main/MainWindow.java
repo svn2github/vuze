@@ -21,15 +21,11 @@ package com.aelitis.azureus.ui.swt.shells.main;
 
 import java.io.*;
 import java.lang.reflect.Method;
-import java.net.URL;
 import java.net.URLDecoder;
 import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.browser.ProgressEvent;
-import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FormAttachment;
@@ -69,7 +65,6 @@ import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
-import com.aelitis.azureus.core.messenger.PlatformAuthorizedSender;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
