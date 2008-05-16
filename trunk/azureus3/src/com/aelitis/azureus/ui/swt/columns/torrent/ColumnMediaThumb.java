@@ -261,25 +261,28 @@ public class ColumnMediaThumb
 				w2 = h2 * w / h;
 			}
 			
-			//if (cellWidth - 15 > w2) {
-				//dx = (cellWidth - 15 - w2) / 2;
-			//}
-			dx += 16;
+			if (cellWidth - 15 > w2) {
+				dx = (cellWidth - 15 - w2) / 2;
+			}
+			//dx += 18;
+			
+			newImg = Utils.createAlphaImage(firstImage.getDevice(), cellWidth, h2,
+					(byte) 255);
 
-			newImg = new Image(firstImage.getDevice(), cellWidth, h2);
+			//newImg = new Image(firstImage.getDevice(), cellWidth, h2);
 
 			GC gc = new GC(newImg);
-			int[] bg = cell.getBackground();
-			if (bg != null) {
-				gc.setBackground(ColorCache.getColor(firstImage.getDevice(), bg));
-			}
-			gc.fillRectangle(0, 0, cellWidth, h2);
 			gc.setAdvanced(true);
 			try {
 				gc.setInterpolation(SWT.HIGH);
 			} catch (Exception e) {
 				// may not be avail
 			}
+
+			gc.setBackground(ColorCache.getColor(firstImage.getDevice(), 60, 60, 60));
+
+			gc.setForeground(ColorCache.getColor(firstImage.getDevice(), 0, 0, 0));
+			gc.fillRoundRectangle(0, 0, cellWidth, h2, 15, 15);
 			if (showPlayButton && SET_ALPHA) {
 				try {
 					gc.setAlpha(40);
@@ -287,7 +290,7 @@ public class ColumnMediaThumb
 					// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
 				}
 			}
-			gc.drawImage(firstImage, 0, 0, w, h, dx, dy, w2, h2);
+			gc.drawImage(firstImage, 0, 0, w, h, dx + 2, dy + 2, w2 - 4, h2 - 4);
 
 			if (cell instanceof TableCellSWT) {
 				TableCellSWT cellSWT = (TableCellSWT) cell;
@@ -353,15 +356,9 @@ public class ColumnMediaThumb
 				}
 
 				Rectangle imageArea = clickArea.getImageArea();
-				if (id.equals("download")) {
-					clickArea.setPosition(2, areaY + 3);
-					float scale = (float) areaYinc / (float) (imageArea.height + 4);
-					clickArea.setScale(scale);
-				} else {
-					clickArea.setPosition(0, areaY);
-					float scale = (float) areaYinc / (float) imageArea.height;
-					clickArea.setScale(scale);
-				}
+				clickArea.setPosition(cellWidth - 16, areaY);
+				float scale = (float) areaYinc / (float) imageArea.height;
+				clickArea.setScale(scale);
 				areaY += areaYinc;
 
 				//System.out.println("AS:" +  scale + ";" + imageArea.height + ";" + areaYinc);
