@@ -13,6 +13,7 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
@@ -46,6 +47,7 @@ import org.gudy.azureus2.ui.swt.welcome.WelcomeWindow;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -260,6 +262,48 @@ public class MenuFactory
 		return file_new_torrent_for_tracking;
 	}
 
+	public static MenuItem addOpenVuzeFileMenuItem(final Menu menuParent) {
+		return addMenuItem(menuParent, MENU_ID_OPEN_VUZE_FILE, new Listener() {
+			public void handleEvent(Event e){
+				Display display = menuParent.getDisplay();       
+					
+				display.asyncExec(new AERunnable() {
+					public void runSupport()
+					{
+						FileDialog dialog = 
+							new FileDialog(menuParent.getShell(), SWT.SYSTEM_MODAL | SWT.OPEN);
+						
+						dialog.setFilterPath( TorrentOpener.getFilterPathData() );
+												
+						dialog.setText(MessageText.getString("MainWindow.dialog.select.vuze.file"));
+						
+						dialog.setFilterExtensions(new String[] {
+								"*.vuze",
+								"*.vuz",
+								Constants.FILE_WILDCARD
+							});
+						dialog.setFilterNames(new String[] {
+								"*.vuze",
+								"*.vuz",
+								Constants.FILE_WILDCARD
+							});
+						
+						String path = TorrentOpener.setFilterPathData( dialog.open());
+
+						if ( path != null ){
+							
+							VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
+							
+							if ( !vfh.loadAndHandleVuzeFIle(path)){
+								
+								TorrentOpener.openTorrent(path );
+							}
+						}
+					}
+				});
+			}
+		});
+	}
 	public static MenuItem createShareMenuItem(Menu menuParent) {
 		MenuItem file_share = createTopLevelMenuItem(menuParent, MENU_ID_SHARE);
 		return file_share;

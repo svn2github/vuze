@@ -24,6 +24,9 @@ package org.gudy.azureus2.ui.swt.mainwindow;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
@@ -47,6 +50,8 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 
 import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.vuzefile.VuzeFile;
+import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 /**
@@ -184,6 +189,15 @@ public class TorrentOpener {
 					openTorrentWindow(null, new String[] { sURL }, bOverrideToStopped);
 				} else if (source.isFile()) {
 					String filename = source.getAbsolutePath();
+					
+					VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
+					
+					if ( vfh.loadAndHandleVuzeFIle( filename )){
+						
+						return;
+					}
+					
+					
 					try {
 						if (!TorrentUtils.isTorrentFile(filename) && bAllowShareAdd) {
 							Logger.log(new LogEvent(LogIDs.GUI,
@@ -281,8 +295,63 @@ public class TorrentOpener {
   }
 
   private static void openTorrentWindow(final String path,
-			final String[] torrents, final boolean bOverrideStartModeToStopped)
+			String[] torrents, final boolean bOverrideStartModeToStopped)
 	{
+	  		// this is a good place to trim out any .vuze files
+	  
+	  	if ( torrents != null && torrents.length > 0 ){
+	  		
+	  		VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
+	  		
+	  		List	non_vuze_files 	= new ArrayList();
+	  		List	vuze_files		= new ArrayList();
+	  		
+	  		for (int i=0;i<torrents.length;i++){
+	  			
+	  			String	torrent = torrents[i];
+	  			
+	  			try{			
+	  				VuzeFile vf = vfh.loadVuzeFile( torrent );
+
+	  				if ( vf == null ){
+	  					
+	  					non_vuze_files.add( torrent );
+	  					
+	  				}else{
+	  					
+	  					vuze_files.add( vf );
+	  				}
+	  			}catch( Throwable e ){
+	  				
+	  				Debug.printStackTrace(e);
+	  				
+	  				non_vuze_files.add( torrent );
+	  			}
+	  		}
+	  		
+	  		if ( vuze_files.size() > 0 ){
+	  			
+	  			VuzeFile[]	vfs = new VuzeFile[vuze_files.size()];
+	  			
+	  			vuze_files.toArray( vfs );
+	  			
+	  			vfh.handleFiles( vfs );
+	  		}
+	  		
+	  		if ( non_vuze_files.size() == 0 && vuze_files.size() > 0 ){
+	  			
+	  			return;
+	  		}
+	  		
+	  		String[]	t = new String[non_vuze_files.size()];
+	  		
+	  		non_vuze_files.toArray( t );
+	  		
+	  		torrents = t;
+	  	}
+	  
+	  	final String[] f_torrents = torrents;
+	  	
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				Shell shell = Utils.findAnyShell();
@@ -297,7 +366,7 @@ public class TorrentOpener {
 					core.addLifecycleListener(new AzureusCoreLifecycleAdapter() {
 						public void componentCreated(AzureusCore core, AzureusCoreComponent component) {
 							if (component instanceof UIFunctionsSWT) {
-								openTorrentWindow(path, torrents, bOverrideStartModeToStopped);
+								openTorrentWindow(path, f_torrents, bOverrideStartModeToStopped);
 							}
 						}
 					});
@@ -309,7 +378,7 @@ public class TorrentOpener {
 					return;
 				}
 
-				OpenTorrentWindow.invoke(shell, gm, path, torrents,
+				OpenTorrentWindow.invoke(shell, gm, path, f_torrents,
 						bOverrideStartModeToStopped, false, false);
 			}
 		});

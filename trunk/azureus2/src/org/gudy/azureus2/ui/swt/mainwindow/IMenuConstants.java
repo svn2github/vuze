@@ -76,6 +76,8 @@ public interface IMenuConstants
 
 	public static final String MENU_ID_OPEN_TORRENT_FOR_TRACKING = "MainWindow.menu.file.open.torrentfortracking";
 
+	public static final String MENU_ID_OPEN_VUZE_FILE = "MainWindow.menu.file.open.vuze";
+
 	public static final String MENU_ID_SHARE = "MainWindow.menu.file.share";
 
 	public static final String MENU_ID_SHARE_FILE = "MainWindow.menu.file.share.file";

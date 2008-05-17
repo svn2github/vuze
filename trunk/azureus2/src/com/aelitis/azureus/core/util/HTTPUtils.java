@@ -54,6 +54,8 @@ public class HTTPUtils {
 		file_types.put("png", "image/png");
 		file_types.put("torrent", "application/x-bittorrent");
 		file_types.put("tor", "application/x-bittorrent");
+		file_types.put("vuze", "application/x-vuze");
+		file_types.put("vuz", "application/x-vuze");
 		file_types.put("zip", "application/zip");
 		file_types.put("txt", "text/plain");
 		file_types.put("jar", "application/java-archive");
