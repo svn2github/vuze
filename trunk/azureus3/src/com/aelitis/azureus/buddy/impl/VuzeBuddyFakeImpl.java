@@ -20,6 +20,7 @@ package com.aelitis.azureus.buddy.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Buddy Object not linked to an buddypluginbuddy
@@ -37,6 +38,13 @@ public class VuzeBuddyFakeImpl
 	 * 
 	 */
 	protected VuzeBuddyFakeImpl() {
+	}
+
+	/**
+	 * @param mapFakeBuddy
+	 */
+	public VuzeBuddyFakeImpl(Map mapFakeBuddy) {
+		loadFromMap(mapFakeBuddy);
 	}
 
 	public void addPublicKey(String pk) {
