@@ -454,7 +454,20 @@ DiskManagerImpl
         		SaveLocationChange transfer = 
         			DownloadManagerDefaultPaths.onInitialisation(download_manager);
         		if (transfer != null) {
-        			download_manager.setTorrentSaveDir(transfer.download_location.getAbsolutePath());
+        			if (transfer.download_location != null || transfer.download_name != null) {
+        				File dl_location = transfer.download_location;
+        				if (dl_location == null) {dl_location = download_manager.getAbsoluteSaveLocation().getParentFile();}
+        				if (transfer.download_name == null) {
+        					download_manager.setTorrentSaveDir(dl_location.getAbsolutePath());
+        				}
+        				else {
+        					download_manager.setTorrentSaveDir(dl_location.getAbsolutePath(), transfer.download_name);
+        				}
+        			}
+        			if (transfer.torrent_location != null || transfer.torrent_name != null) {
+        				try {download_manager.setTorrentFile(transfer.torrent_location, transfer.torrent_name);}
+        				catch (DownloadManagerException e) {Debug.printStackTrace(e);}	
+        			}
         		}
         	}
         }
