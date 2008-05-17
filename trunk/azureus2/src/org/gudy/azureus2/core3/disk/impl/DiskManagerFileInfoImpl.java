@@ -332,6 +332,12 @@ DiskManagerFileInfoImpl
 	}
 	skipped = _skipped;
 	diskManager.skippedFileSetChanged( this );
+	if(!_skipped)
+	{
+		boolean[] toCheck = new boolean[diskManager.getFileSet().nbFiles()];
+		toCheck[file_index] = true;
+		DiskManagerUtil.doFileExistenceChecks(diskManager.getFileSet(), toCheck, diskManager.getDownloadState().getDownloadManager(), true);                			
+	}
   }
 
   public DiskManager getDiskManager() {

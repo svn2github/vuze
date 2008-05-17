@@ -87,6 +87,10 @@ public class DiskManagerFileInfoSetImpl implements DiskManagerFileInfoSet {
 					files[i].skipped = setSkipped;
 					diskManager.skippedFileSetChanged(files[i]);
 				}
+
+			if(!setSkipped)
+				DiskManagerUtil.doFileExistenceChecks(this, toChange, diskManager.getDownloadState().getDownloadManager(), true);
+			
 		} finally {
 			dmState.supressStateSave(false);
 		}
@@ -103,6 +107,12 @@ public class DiskManagerFileInfoSetImpl implements DiskManagerFileInfoSet {
 		
 		boolean[] modified = new boolean[files.length];
 		DownloadManagerState	dm_state = diskManager.getDownloadState();
+
+		if (newStroageType == DiskManagerFileInfo.ST_COMPACT)
+		{
+			Debug.out("Download must be stopped for linear -> compact conversion");
+			return modified;
+		}
 		
 		try	{
 			dm_state.supressStateSave(true);
@@ -119,12 +129,6 @@ public class DiskManagerFileInfoSetImpl implements DiskManagerFileInfoSet {
 					continue;
 				}
 			
-				if (newStroageType == DiskManagerFileInfo.ST_COMPACT)
-				{
-					Debug.out("Download must be stopped for linear -> compact conversion");
-					continue;
-				}
-				
 				DiskManagerFileInfoImpl file = files[i];
 				
 				try	{
@@ -140,6 +144,9 @@ public class DiskManagerFileInfoSetImpl implements DiskManagerFileInfoSet {
 			}
 			
 			dm_state.setListAttribute(DownloadManagerState.AT_FILE_STORE_TYPES, types);
+			
+			DiskManagerUtil.doFileExistenceChecks(this, toChange, dm_state.getDownloadManager(), true);
+			
 		} finally {
 			dm_state.supressStateSave(false);
 			dm_state.save();

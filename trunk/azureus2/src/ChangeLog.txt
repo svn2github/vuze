@@ -24,6 +24,7 @@ CHANGE: UI    | Column menu option to disable fast renaming in files view, chang
 
 BUGFIX: Core  | Made change so that plugins could not inadvertently turn off Azureus extension protocol [amc1]
 BUGFIX: Core  | The UDP tracker client option has been nonfunctional for quite a while now -> fixed [The 8472]
+BUGFIX: Core  | Fixed various file-priority-change related bugs that resulted in error states [The 8472] 
 
 
 2008.04.10 | Azureus Vuze 3.0.5.2

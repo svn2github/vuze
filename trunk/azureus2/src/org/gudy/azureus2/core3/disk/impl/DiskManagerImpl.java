@@ -2749,6 +2749,8 @@ DiskManagerImpl
 					
 					storeFilePriorities( download_manager, res);
 					
+					
+					
 					for(int i=0;i<res.length;i++)
 						if(toChange[i])
 							listener.filePriorityChanged(res[i]);
@@ -2765,7 +2767,10 @@ DiskManagerImpl
 					for(int i=0;i<res.length;i++)
 						if(toChange[i])
 							res[i].skipped = setSkipped;
-							
+					
+					if(!setSkipped)
+						DiskManagerUtil.doFileExistenceChecks(this, toChange, download_manager, true);
+					
 					storeFilePriorities( download_manager, res);
 					
 					for(int i=0;i<res.length;i++)
@@ -2906,49 +2911,9 @@ DiskManagerImpl
 						}
 
 						storeFileDownloaded( download_manager, res, true );
-						
-						int lastPieceScanned = -1;
-						int windowStart = -1;
-						int windowEnd = -1;
 
-						// sweep over all files to see if adjacent files of changed files can be deleted or need allocation
-						for(int i = 0; i< res.length;i++)
-						{
-							int firstPiece = res[i].getFirstPieceNumber();
-							int lastPiece = res[i].getLastPieceNumber();
-							
-							if(toChange[i])
-							{ // found a file that changed, scan adjacent files
-								if(lastPieceScanned < firstPiece)
-								{ // haven't checked the preceding files, slide backwards
-									windowStart = firstPiece;
-									while(i > 0 && res[i-1].getLastPieceNumber() >= windowStart)
-										i--;
-								}
-									
-								if(windowEnd < lastPiece)
-									windowEnd = lastPiece;
-							}
-							
-							if((windowStart <= firstPiece && firstPiece <= windowEnd) || (windowStart <= lastPiece && lastPiece <= windowEnd))
-							{ // file falls in current scanning window, check it
-								File currentFile = res[i].getFile(true);
-								if(!RDResumeHandler.fileMustExist(download_manager, res[i]))
-								{
-									if(types[i] == "C")
-										currentFile.delete();
-								} else if(!currentFile.exists() && newStroageType== FileSkeleton.ST_LINEAR)	{
-									/*
-									 * file must exist, does not exist and we just changed to linear
-									 * mode, assume that (re)allocation of adjacent files is necessary
-									 */
-									download_manager.setDataAlreadyAllocated(false);
-								}
-								lastPieceScanned = lastPiece;
-							}
+						DiskManagerUtil.doFileExistenceChecks(this, toChange, download_manager, newStroageType == FileSkeleton.ST_LINEAR);
 
-
-						}
 					} finally {
 						dmState.supressStateSave(false);
 						dmState.save();
@@ -2984,9 +2949,7 @@ DiskManagerImpl
                 	setSkipped(boolean _skipped)
                 	{
                 		if ( !_skipped && getStorageType() == ST_COMPACT ){
-
                 			if ( !setStorageType( ST_LINEAR )){
-
                 				return;
                 			}
                 		}
@@ -2994,6 +2957,14 @@ DiskManagerImpl
                 		skipped = _skipped;
 
                 		storeFilePriorities( download_manager, res );
+                		
+                		if(!_skipped)
+                		{
+                			boolean[] toCheck = new boolean[fileSetSkeleton.nbFiles()];
+                			toCheck[file_index] = true;
+                			DiskManagerUtil.doFileExistenceChecks(fileSetSkeleton, toCheck, download_manager, true);                			
+                		}
+                		
 
                 		listener.filePriorityChanged( this );
                 	}
