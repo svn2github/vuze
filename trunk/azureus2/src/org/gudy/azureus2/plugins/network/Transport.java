@@ -53,4 +53,9 @@ public interface Transport {
    * @throws IOException on write error
    */
   public long write( ByteBuffer[] buffers, int array_offset, int length ) throws IOException;
+  
+  /**
+   * @since 3.0.5.3
+   */
+  public void setFilter(TransportFilter filter) throws IOException;
 }

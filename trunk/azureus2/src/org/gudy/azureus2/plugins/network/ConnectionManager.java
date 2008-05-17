@@ -56,6 +56,11 @@ ConnectionManager
   /**
    * @since 3.0.5.3
    */
-  public TransportCipher createTransportCipher(String algorithm, int mode, SecretKeySpec key_spec, AlgorithmParameterSpec params) throws Exception;
+  public TransportCipher createTransportCipher(String algorithm, int mode, SecretKeySpec key_spec, AlgorithmParameterSpec params) throws TransportException;
+  
+  /**
+   * @since 3.0.5.3
+   */
+  public TransportFilter createTransportFilter(Transport transport, TransportCipher read_cipher, TransportCipher write_cipher) throws TransportException;
   
 }

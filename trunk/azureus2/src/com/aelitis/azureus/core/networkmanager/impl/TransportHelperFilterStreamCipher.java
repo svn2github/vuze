@@ -34,7 +34,7 @@ TransportHelperFilterStreamCipher
 	private TransportCipher					read_cipher;
 	private TransportCipher					write_cipher;
 		
-	protected
+	public
 	TransportHelperFilterStreamCipher(
 		TransportHelper			_transport,
 		TransportCipher			_read_cipher,

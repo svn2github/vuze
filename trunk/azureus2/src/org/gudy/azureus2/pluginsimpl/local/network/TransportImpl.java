@@ -26,14 +26,14 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.plugins.network.Transport;
-
+import org.gudy.azureus2.plugins.network.TransportFilter;
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 
 /**
  *
  */
 public class TransportImpl implements Transport {
-  private com.aelitis.azureus.core.networkmanager.Transport core_transport;
+  com.aelitis.azureus.core.networkmanager.Transport core_transport;
   private NetworkConnection	core_network;
   
   public TransportImpl( NetworkConnection core_network ) {
@@ -45,24 +45,27 @@ public class TransportImpl implements Transport {
   }
   
   public long read( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {
-	if ( core_transport == null ){
-		core_transport = core_network.getTransport();
-		if ( core_transport == null ){
-			throw( new IOException( "Not connected" ));
-		}
-	}
-    return core_transport.read( buffers, array_offset, length );
+    return coreTransport().read( buffers, array_offset, length );
+  }
+   
+  public long write( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {
+    return coreTransport().write( buffers, array_offset, length );
   }
   
- 
-  public long write( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {
+  private com.aelitis.azureus.core.networkmanager.Transport coreTransport() throws IOException {
 	if ( core_transport == null ){
 		core_transport = core_network.getTransport();
 		if ( core_transport == null ){
 			throw( new IOException( "Not connected" ));
 		}
 	}
-    return core_transport.write( buffers, array_offset, length );
+	return this.core_transport;
+  }
+  
+  public void setFilter(TransportFilter filter) throws IOException {
+	  ((com.aelitis.azureus.core.networkmanager.impl.TransportImpl)coreTransport()).setFilter(
+	      ((TransportFilterImpl)filter).filter
+	  );
   }
  
 }
