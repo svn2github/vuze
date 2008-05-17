@@ -21,6 +21,8 @@ package com.aelitis.azureus.activities;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.internat.MessageText;
+
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.util.Constants;
@@ -47,9 +49,16 @@ public class VuzeActivitiesEntryBuddyRequest
 
 		String urlAccept = Constants.appendURLSuffix(acceptURL);
 
-		setText("<A HREF=\"" + buddy.getProfileUrl(TYPEID_BUDDYREQUEST) + "\">"
-				+ buddy.getDisplayName() + "</A> wants to be your buddy\n \n"
-				+ "  <A HREF=\"" + urlAccept + "\">OMG, OF COURSE I ACCEPT!</A>");
+		String buddyURL = "<A HREF=\"" + buddy.getProfileUrl(TYPEID_BUDDYREQUEST)
+				+ "\">" + buddy.getDisplayName() + "</A>";
+
+		String text = MessageText.getString("v3.activity.buddy-request",
+				new String[] {
+					buddyURL,
+					urlAccept
+				});
+		
+		setText(text);
 		setTypeID(TYPEID_BUDDYREQUEST, true);
 		setID(buildID(buddy.getCode()));
 	}
@@ -74,7 +83,7 @@ public class VuzeActivitiesEntryBuddyRequest
 		Map mapFutureBuddy = (Map) MapUtils.getMapObject(map, "buddy",
 				new HashMap(), Map.class);
 
-		buddy = VuzeBuddyManager.createNewBuddyNoAdd(mapFutureBuddy);
+		buddy = VuzeBuddyManager.getOrCreatePotentialBuddy(mapFutureBuddy);
 	}
 
 	// @see com.aelitis.azureus.activities.VuzeActivitiesEntry#toMap()

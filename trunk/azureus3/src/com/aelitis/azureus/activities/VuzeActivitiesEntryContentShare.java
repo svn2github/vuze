@@ -20,6 +20,7 @@ package com.aelitis.azureus.activities;
 
 import java.util.Map;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
@@ -69,25 +70,31 @@ public class VuzeActivitiesEntryContentShare
 		setTypeID(TYPEID_BUDDYSHARE, true);
 		setID(TYPEID_BUDDYSHARE + "-" + SystemTime.getCurrentTime());
 
-		String text = "<A HREF=\"" + userInfo.getProfileUrl(TYPEID_BUDDYSHARE)
-				+ "\">" + userInfo.displayName + "</A> wants to share ";
+		String profileURL = "<A HREF=\"" + userInfo.getProfileUrl(TYPEID_BUDDYSHARE)
+				+ "\">" + userInfo.displayName + "</A>";
+		String contentString;
 
 		if (ourContent || torrent == null) {
 			String url = Constants.URL_PREFIX + Constants.URL_DETAILS + content.hash
 					+ ".html?" + Constants.URL_SUFFIX + "&client_ref="
 					+ TYPEID_BUDDYSHARE;
-			text += "\n<A HREF=\"" + url + "\">" + content.displayName + "</A>";
+			contentString = "\n<A HREF=\"" + url + "\">" + content.displayName + "</A>";
 		} else {
 			setTorrent(torrent);
 
-			text += content.displayName;
+			contentString = content.displayName;
 		}
 
-		text += " with you.";
+		String textid = (message != null && message.length() > 0)
+				? "v3.activity.share-content.no-msg" : "v3.activity.share-content";
+		
+		String text = MessageText.getString(textid, new String[] {
+			profileURL,
+			contentString,
+			userInfo.displayName,
+			message
+		});
 
-		if (message != null && message.length() > 0) {
-			text += "\n \nMessage from " + userInfo.displayName + ":\n" + message;
-		}
 		setText(text);
 		setAssetHash(content.hash);
 		if (content.dm != null) {
@@ -99,19 +106,11 @@ public class VuzeActivitiesEntryContentShare
 		setTimestamp(0);
 	}
 
-	// @see com.aelitis.azureus.activities.VuzeActivitiesEntry#loadFromExternalMap(java.util.Map)
-	public void loadFromExternalMap(Map platformEntry) {
-		super.loadFromExternalMap(platformEntry);
-		loadOtherValuesFromMap(platformEntry);
-	}
+	
+	// @see com.aelitis.azureus.activities.VuzeActivitiesEntry#loadCommonFromMap(java.util.Map)
+	public void loadCommonFromMap(Map map) {
+		super.loadCommonFromMap(map);
 
-	// @see com.aelitis.azureus.activities.VuzeActivitiesEntry#loadFromInternalMap(java.util.Map)
-	public void loadFromInternalMap(Map map) {
-		super.loadFromInternalMap(map);
-		loadOtherValuesFromMap(map);
-	}
-
-	private void loadOtherValuesFromMap(Map map) {
 		String buddyID = MapUtils.getMapString(map, "buddyID", null);
 		if (buddyID != null) {
 			buddy = VuzeBuddyManager.getBuddyByLoginID(buddyID);
