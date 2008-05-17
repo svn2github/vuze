@@ -114,7 +114,9 @@ public class VuzeBuddyManager
 					return( true );
 				}
 				
-				VuzeBuddyManager.log("REPLY REC " + JSONUtils.encodeToJSON(reply));
+				VuzeBuddyManager.log("REPLY REC "
+					+ (message.getBuddy() == null ? "" : message.getBuddy().getName())
+					+ JSONUtils.encodeToJSON(reply));
 				
 				String response = MapUtils.getMapString(reply, "response", "");
 				
@@ -315,8 +317,8 @@ public class VuzeBuddyManager
 			VuzeRelayListener vuzeRelayListener = new VuzeRelayListener() {
 				// @see com.aelitis.azureus.core.messenger.config.VuzeRelayListener#newRelayServerPayLoad(com.aelitis.azureus.buddy.VuzeBuddy, java.lang.String, java.util.Map)
 				public void newRelayServerPayLoad(VuzeBuddy sender, String pkSender,
-						Map decodedMap) {
-					processPayloadMap(pkSender, decodedMap, sender != null);
+						Map decodedMap, long addedOn) {
+					processPayloadMap(pkSender, decodedMap, sender != null, addedOn);
 				}
 
 				// @see com.aelitis.azureus.core.messenger.config.VuzeRelayListener#hasPendingRelayMessage(int)
@@ -520,7 +522,7 @@ public class VuzeBuddyManager
 					String pk = from_buddy.getPublicKey();
 
 					String reply = processPayloadMap(pk, request,
-							from_buddy.isAuthorised());
+							from_buddy.isAuthorised(), SystemTime.getCurrentTime());
 					mapResponse.put("response", reply);
 				} catch (Exception e) {
 					mapResponse.put("response", "Exception: " + e.toString());
@@ -566,10 +568,11 @@ public class VuzeBuddyManager
 	 * @param mapPayload
 	 *s
 	 * @param authorizedBuddy 
+	 * @param addedOn 
 	 * @since 3.0.5.3
 	 */
 	protected static String processPayloadMap(String pkSender, Map mapPayload,
-			boolean authorizedBuddy) {
+			boolean authorizedBuddy, long addedOn) {
 		// TODO: Allow for "try again later" for non auth buddy
 		//       (ie.  A sync up will get the new pk and the message will be valid..)
 
@@ -584,11 +587,7 @@ public class VuzeBuddyManager
 					mapEntry, true);
 
 			if (entry != null) {
-				// NOTE: in the future the relay server may return a relative time
-				//       so that we can set an accurate time.  For now though,
-				//       the entries time is not reliable, as the originator's clock
-				//       may be off.
-				entry.setTimestamp(SystemTime.getCurrentTime());
+				entry.setTimestamp(addedOn);
 				if (authorizedBuddy) {
 					VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
 						entry
@@ -788,14 +787,7 @@ public class VuzeBuddyManager
 				buddyList.add(index, buddy);
 
 				if (createActivityEntry) {
-					String s = "<A HREF=\"" + buddy.getProfileUrl("new-buddy-inform")
-							+ "\">" + buddy.getDisplayName()
-							+ "</A> has become your buddy.  Huzzah! :D";
-
-					VuzeActivitiesEntry entry = new VuzeActivitiesEntry();
-					entry.setTypeID("buddy-new", true);
-					entry.setID("buddy-new-" + buddy.getLoginID());
-					entry.setText(s);
+					VuzeActivitiesEntry entry = new VuzeActivitiesEntryBuddyLinkup(buddy);
 					VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
 						entry
 					});
@@ -1416,5 +1408,32 @@ public class VuzeBuddyManager
 	 */
 	public static VuzeBuddy createPotentialBuddy() {
 		return new VuzeBuddyFakeImpl();
+	}
+
+	/**
+	 * @param mapBuddy
+	 * @return
+	 *
+	 * @since 3.0.5.3
+	 */
+	public static VuzeBuddy createPotentialBuddy(Map mapBuddy) {
+		return new VuzeBuddyFakeImpl(mapBuddy);
+	}
+
+	/**
+	 * @param mapBuddy
+	 * @return
+	 *
+	 * @since 3.0.5.3
+	 */
+	public static VuzeBuddy getOrCreatePotentialBuddy(Map mapBuddy) {
+		String loginID = MapUtils.getMapString(mapBuddy, "login-id", null);
+		if (loginID != null) {
+			VuzeBuddy vuzeBuddy = getBuddyByLoginID(loginID);
+			if (vuzeBuddy != null) {
+				return vuzeBuddy;
+			}
+		}
+		return new VuzeBuddyFakeImpl(mapBuddy);
 	}
 }
