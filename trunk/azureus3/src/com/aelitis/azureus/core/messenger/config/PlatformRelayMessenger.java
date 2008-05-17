@@ -207,6 +207,8 @@ public class PlatformRelayMessenger
 					Map map = (Map) iter.next();
 
 					String pkSender = MapUtils.getMapString(map, "sender", null);
+					long addedOn = SystemTime.getOffsetTime(MapUtils.getMapLong(map,
+							"added-secs-ago", 0) * 1000);
 					VuzeBuddy buddy = VuzeBuddyManager.getBuddyByPK(pkSender);
 
 					BuddyPluginBuddy pluginBuddy = buddyPlugin.getBuddyFromPublicKey(pkSender);
@@ -231,7 +233,7 @@ public class PlatformRelayMessenger
 
 						for (Iterator iter2 = listeners.iterator(); iter2.hasNext();) {
 							VuzeRelayListener l = (VuzeRelayListener) iter2.next();
-							l.newRelayServerPayLoad(buddy, pkSender, decodedMap);
+							l.newRelayServerPayLoad(buddy, pkSender, decodedMap, addedOn);
 						}
 
 						ack(ack_id, decrypt.getChallenge());

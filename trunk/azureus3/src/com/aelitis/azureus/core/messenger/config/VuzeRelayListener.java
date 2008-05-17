@@ -30,7 +30,7 @@ import com.aelitis.azureus.buddy.VuzeBuddy;
 public interface VuzeRelayListener
 {
 	public void newRelayServerPayLoad(VuzeBuddy sender, String pkSender,
-			Map decodedMap);
+			Map decodedMap, long addedOn);
 
 	public void hasPendingRelayMessage(int count);
 }

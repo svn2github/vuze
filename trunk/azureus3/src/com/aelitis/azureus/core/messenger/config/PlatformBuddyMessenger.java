@@ -162,6 +162,8 @@ public class PlatformBuddyMessenger
 
 					Map mapBuddy = MapUtils.getMapMap(mapInvitation, "buddy-info",
 							Collections.EMPTY_MAP);
+					long addedOn = SystemTime.getOffsetTime(MapUtils.getMapLong(mapInvitation,
+							"added-secs-ago", 0) * 1000);
 
 					String inviteCode = MapUtils.getMapString(mapInvitation, "code", null);
 					String acceptURL = MapUtils.getMapString(mapInvitation, "accept-url",
@@ -184,6 +186,7 @@ public class PlatformBuddyMessenger
 
 					VuzeActivitiesEntryBuddyRequest entry = new VuzeActivitiesEntryBuddyRequest(
 							futureBuddy, acceptURL);
+					entry.setTimestamp(addedOn);
 					VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
 						entry
 					});
