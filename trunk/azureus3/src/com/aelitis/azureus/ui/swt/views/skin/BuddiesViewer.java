@@ -28,6 +28,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 public class BuddiesViewer
 	extends SkinView
@@ -50,14 +51,14 @@ public class BuddiesViewer
 
 	private SWTSkin skin = null;
 
-	private int borderWidth = 5;
+	private int borderWidth = 1;
 
 	private Point avatarImageSize = new Point(40 + borderWidth, 40 + borderWidth);
 
-	private Point avatarSize = new Point(avatarImageSize.x + 20,
+	private Point avatarSize = new Point(avatarImageSize.x + 8,
 			avatarImageSize.y + 16);
 
-	private int hSpacing = 10;
+	private int hSpacing = 6;
 
 	private int avatarWidthPlusSpacing = hSpacing + avatarSize.x;
 
@@ -72,6 +73,8 @@ public class BuddiesViewer
 	private Color textColor = null;
 
 	private Color textLinkColor = null;
+
+	private Color imageBorderColor = null;
 
 	private List sharedAvatars = new ArrayList();
 
@@ -131,6 +134,8 @@ public class BuddiesViewer
 
 			textColor = skin.getSkinProperties().getColor("color.links.normal");
 			textLinkColor = skin.getSkinProperties().getColor("color.links.hover");
+			imageBorderColor = ColorCache.getColor(avatarsPanel.getDisplay(), 23, 23,
+					23);
 
 			RowLayout rLayout = new RowLayout(SWT.HORIZONTAL);
 			rLayout.wrap = false;
@@ -196,54 +201,54 @@ public class BuddiesViewer
 					avatarsPanel.getLocation().y);
 		} else {
 
-//			parent.getDisplay().asyncExec(new AERunnable() {
-//				public void runSupport() {
-//					int newOffset = pageXOffsets[pageNumber];
-//					int currentOffset = pageXOffsets[currentPage];
-//
-//
-//					/*
-//					 * Scroll left
-//					 */
-//					if (newOffset > currentOffset) {
-//						int diff = newOffset - currentOffset;
-//
-//						for (int i = diff; i > 1; i -= (int) (i * .6)) {
-//							System.out.println(diff - i);//KN: sysout
-//							avatarsPanel.setLocation(-(currentOffset + diff),
-//									avatarsPanel.getLocation().y);
-//							avatarsPanel.redraw();
-//							avatarsPanel.update();
-//							try {
-//								Thread.sleep(500);
-//							} catch (InterruptedException e) {
-//								e.printStackTrace();
-//							}
-//						}
-//
-//					}
-//
-//					/*
-//					 * Scroll right
-//					 */
-//					else {
-//
-//					}
-//
-//					//					while (incrementer > 0) {
-//					//						location.x -= incrementer;
-//					//						avatarsPanel.setLocation(location.x, location.y);
-//					//						parent.update();
-//					//						incrementer = (int) (incrementer * .5);
-//					//						try {
-//					//							Thread.sleep(50);
-//					//						} catch (InterruptedException e) {
-//					//							e.printStackTrace();
-//					//						}
-//					//					}
-//
-//				}
-//			});
+			//			parent.getDisplay().asyncExec(new AERunnable() {
+			//				public void runSupport() {
+			//					int newOffset = pageXOffsets[pageNumber];
+			//					int currentOffset = pageXOffsets[currentPage];
+			//
+			//
+			//					/*
+			//					 * Scroll left
+			//					 */
+			//					if (newOffset > currentOffset) {
+			//						int diff = newOffset - currentOffset;
+			//
+			//						for (int i = diff; i > 1; i -= (int) (i * .6)) {
+			//							System.out.println(diff - i);//KN: sysout
+			//							avatarsPanel.setLocation(-(currentOffset + diff),
+			//									avatarsPanel.getLocation().y);
+			//							avatarsPanel.redraw();
+			//							avatarsPanel.update();
+			//							try {
+			//								Thread.sleep(500);
+			//							} catch (InterruptedException e) {
+			//								e.printStackTrace();
+			//							}
+			//						}
+			//
+			//					}
+			//
+			//					/*
+			//					 * Scroll right
+			//					 */
+			//					else {
+			//
+			//					}
+			//
+			//					//					while (incrementer > 0) {
+			//					//						location.x -= incrementer;
+			//					//						avatarsPanel.setLocation(location.x, location.y);
+			//					//						parent.update();
+			//					//						incrementer = (int) (incrementer * .5);
+			//					//						try {
+			//					//							Thread.sleep(50);
+			//					//						} catch (InterruptedException e) {
+			//					//							e.printStackTrace();
+			//					//						}
+			//					//					}
+			//
+			//				}
+			//			});
 		}
 
 	}
@@ -434,6 +439,7 @@ public class BuddiesViewer
 		avatarWidget.setBorderWidth(borderWidth);
 		avatarWidget.setTextColor(textColor);
 		avatarWidget.setTextLinkColor(textLinkColor);
+//		avatarWidget.setImageBorderColor(imageBorderColor);
 
 		avatarWidgets.add(avatarWidget);
 
