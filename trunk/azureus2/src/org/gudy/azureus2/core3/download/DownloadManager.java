@@ -684,5 +684,14 @@ DownloadManager
      * @since 3.0.5.1
      */
     public void moveTorrentFile(File parent_dir, String new_name) throws DownloadManagerException;
+    
+    /**
+     * Sets the torrent file name (will perform a move of the torrent file) - 
+     * this shouldn't be used unless you know what you are doing (it requires
+     * the download to be stopped!) - it is safer to use moveTorrentFile instead.
+     * 
+     * @since 3.0.5.3
+     */
+    public void setTorrentFile(File new_parent_dir, String new_name) throws DownloadManagerException;
 
 }

@@ -3288,6 +3288,11 @@ DownloadManagerImpl
 		  throw new DownloadManagerException("download not stopped or in error state");
 		  
 	  }
+	  
+	  setTorrentFile(new_parent_dir, new_name);
+  }
+  
+  public void setTorrentFile(File new_parent_dir, String new_name) throws DownloadManagerException {
 		  
 	  File	old_file = new File( getTorrentFileName() );
 		  
