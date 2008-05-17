@@ -42,7 +42,7 @@ TransportCipher
 	private Cipher		cipher;
 	private RC4Engine	rc4_engine;
 	
-	protected
+	public
 	TransportCipher(
 		String					algorithm,
 		int						mode,

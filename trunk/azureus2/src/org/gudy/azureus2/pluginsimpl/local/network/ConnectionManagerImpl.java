@@ -23,11 +23,14 @@
 package org.gudy.azureus2.pluginsimpl.local.network;
 
 import java.net.InetSocketAddress;
+import java.security.spec.AlgorithmParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 
 import org.gudy.azureus2.plugins.messaging.MessageStreamDecoder;
 import org.gudy.azureus2.plugins.messaging.MessageStreamEncoder;
 import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.plugins.network.ConnectionManager;
+import org.gudy.azureus2.plugins.network.TransportCipher;
 import org.gudy.azureus2.pluginsimpl.local.messaging.MessageStreamDecoderAdapter;
 import org.gudy.azureus2.pluginsimpl.local.messaging.MessageStreamEncoderAdapter;
 
@@ -35,6 +38,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.networkmanager.ConnectionEndpoint;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.ProtocolEndpointTCP;
+
 
 /**
  *
@@ -84,6 +88,11 @@ public class ConnectionManagerImpl implements ConnectionManager {
   getNATStatus()
   {
 	  return( azureus_core.getGlobalManager().getNATStatus());
+  }
+  
+  public TransportCipher createTransportCipher(String algorithm, int mode, SecretKeySpec key_spec, AlgorithmParameterSpec params) throws Exception {
+	  com.aelitis.azureus.core.networkmanager.impl.TransportCipher cipher = new com.aelitis.azureus.core.networkmanager.impl.TransportCipher(algorithm, mode, key_spec, params);
+	  return new TransportCipherImpl(cipher);
   }
   
 }

@@ -23,6 +23,8 @@
 package org.gudy.azureus2.plugins.network;
 
 import java.net.InetSocketAddress;
+import java.security.spec.AlgorithmParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 
 import org.gudy.azureus2.plugins.messaging.*;
 
@@ -49,8 +51,11 @@ ConnectionManager
   	 * Returns the current view on whether or not we are inwardly connectable via our listener port
   	 * @return
   	 */
+  public int getNATStatus();
   
-  public int
-  getNATStatus();
+  /**
+   * @since 3.0.5.3
+   */
+  public TransportCipher createTransportCipher(String algorithm, int mode, SecretKeySpec key_spec, AlgorithmParameterSpec params) throws Exception;
   
 }
