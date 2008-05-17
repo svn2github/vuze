@@ -266,23 +266,26 @@ public class ColumnMediaThumb
 			}
 			//dx += 18;
 			
-			newImg = Utils.createAlphaImage(firstImage.getDevice(), cellWidth, h2,
-					(byte) 255);
-
-			//newImg = new Image(firstImage.getDevice(), cellWidth, h2);
+			newImg = new Image(firstImage.getDevice(), cellWidth, h2);
 
 			GC gc = new GC(newImg);
 			gc.setAdvanced(true);
 			try {
 				gc.setInterpolation(SWT.HIGH);
+				gc.setAntialias(SWT.ON);
 			} catch (Exception e) {
 				// may not be avail
 			}
 
+			int[] bg = cell.getBackground();
+			if (bg != null) {
+				gc.setBackground(ColorCache.getColor(firstImage.getDevice(), bg));
+				gc.fillRectangle(newImg.getBounds());
+			}
+			
 			gc.setBackground(ColorCache.getColor(firstImage.getDevice(), 60, 60, 60));
 
-			gc.setForeground(ColorCache.getColor(firstImage.getDevice(), 0, 0, 0));
-			gc.fillRoundRectangle(0, 0, cellWidth, h2, 15, 15);
+			gc.fillRoundRectangle(0, 0, cellWidth, h2, 7, 7);
 			if (showPlayButton && SET_ALPHA) {
 				try {
 					gc.setAlpha(40);
@@ -472,14 +475,21 @@ public class ColumnMediaThumb
 		if (event.data instanceof ColumnImageClickArea) {
 			ColumnImageClickArea clickArea = (ColumnImageClickArea) event.data;
 			String id = clickArea.getId();
-			System.err.println("CLICK ON " + id);
 
 			if (id.equals("play")) {
-				TorrentListViewsUtils.playOrStreamDataSource(
-						event.cell.getDataSource(), null);
+				String referal = null;
+				Object ds = event.cell.getDataSource();
+				if (ds instanceof VuzeActivitiesEntry) {
+					referal = "playdashboardactivity-" + ((VuzeActivitiesEntry)ds).getTypeID();
+				}
+				TorrentListViewsUtils.playOrStreamDataSource(ds, null, referal);
 			} else if (id.equals("download")) {
-				TorrentListViewsUtils.downloadDataSource(event.cell.getDataSource(),
-						false, "dldashboardactivity");
+				String referal = null;
+				Object ds = event.cell.getDataSource();
+				if (ds instanceof VuzeActivitiesEntry) {
+					referal = "dashboardactivity-" + ((VuzeActivitiesEntry)ds).getTypeID();
+				}
+				TorrentListViewsUtils.downloadDataSource(ds, false, referal);
 			} else if (id.equals("details")) {
 				String hash = getHash(event.cell.getDataSource(), true);
 				if (hash != null) {
@@ -533,6 +543,10 @@ public class ColumnMediaThumb
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener#cellHover(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void cellHover(TableCell cell) {
+		if (cell.getToolTip() != null) {
+			return;
+		}
+		
 		Object ds = cell.getDataSource();
 		DownloadManager dm = getDM(ds);
 		if (dm != null) {

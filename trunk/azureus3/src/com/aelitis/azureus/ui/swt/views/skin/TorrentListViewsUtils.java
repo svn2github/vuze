@@ -224,7 +224,7 @@ public class TorrentListViewsUtils
 		}
 		return null;
 	}
-	
+
 	private static TOTorrent getTorrentFromDS(Object ds) {
 		TOTorrent torrent = null;
 		if (ds instanceof DownloadManager) {
@@ -240,7 +240,6 @@ public class TorrentListViewsUtils
 		}
 		return torrent;
 	}
-
 
 	public static void viewDetails(DownloadManager dm, String ref) {
 		if (dm == null) {
@@ -372,12 +371,28 @@ public class TorrentListViewsUtils
 	}
 
 	public static void playOrStreamDataSource(Object ds, SWTSkinButtonUtility btn) {
+		String referal = "unknown";
+		if (ds instanceof VuzeActivitiesEntry) {
+			referal = "playdashboardactivity";
+		} else if (ds instanceof DownloadManager) {
+			referal = "playdownloadmanager";
+		} else {
+			referal = "unknown";
+		}
+		playOrStreamDataSource(ds, btn, referal);
+	}
+
+	public static void playOrStreamDataSource(Object ds,
+			SWTSkinButtonUtility btn, String referal) {
 
 		debugDCAD("enter - playOrStreamDataSource");
 
 		DownloadManager dm = getDMFromDS(ds);
 		if (dm == null) {
-			downloadDataSource(ds, true, "playdashboardactivity");
+			if (referal.startsWith("play")) {
+				referal = referal.substring(4);
+			}
+			downloadDataSource(ds, true, referal);
 		} else {
 			playOrStream(dm, btn);
 		}
@@ -385,7 +400,7 @@ public class TorrentListViewsUtils
 		debugDCAD("exit - playOrStreamDataSource");
 
 	}
-	
+
 	public static void downloadDataSource(Object ds, boolean playNow,
 			String referal) {
 		TOTorrent torrent = getTorrentFromDS(ds);
