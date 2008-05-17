@@ -574,12 +574,14 @@ public class AvatarWidget
 
 						if (false == avatarCanvas.isDisposed()) {
 							avatarCanvas.dispose();
+							parent.layout(true);
 						}
 					}
 				});
 			} else {
 				if (false == avatarCanvas.isDisposed()) {
 					avatarCanvas.dispose();
+					parent.layout(true);
 				}
 			}
 

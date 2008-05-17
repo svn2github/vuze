@@ -445,7 +445,6 @@ public class BuddiesViewer
 			public void runSupport() {
 				avatarWidgets.remove(widget);
 				widget.dispose(true);
-				avatarsPanel.layout(true);
 			}
 		});
 	}
