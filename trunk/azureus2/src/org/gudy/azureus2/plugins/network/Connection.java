@@ -64,6 +64,12 @@ public interface Connection {
   public void startMessageProcessing();
   
   /**
+   * Returns the transport object for this connection.
+   * @since 3.0.5.3
+   */
+  public Transport getTransport();
+  
+  /**
    * descriptive text for the connection
    * @return
    */
