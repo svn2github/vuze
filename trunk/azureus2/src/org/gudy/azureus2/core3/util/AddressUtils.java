@@ -22,6 +22,7 @@
 
 package org.gudy.azureus2.core3.util;
 
+import java.util.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URL;
@@ -39,13 +40,76 @@ AddressUtils
 	
 	private static AZInstanceManager	instance_manager;
 	
+	private static Map	host_map = null;
+	
 	public static URL
 	adjustURL(
 		URL		url )
 	{
 		url = AEProxyFactory.getAddressMapper().internalise( url );
 
+		if ( host_map != null ){
+			
+			String	rewrite = (String)host_map.get( url.getHost());
+			
+			if ( rewrite != null ){
+		
+				String str = url.toExternalForm();
+				
+				try{
+					int pos = str.indexOf( "//" ) + 2;
+					
+					int pos2 = str.indexOf( "/", pos );
+					
+					String	host_bit = str.substring( pos, pos2 );
+					
+					int	pos3 = host_bit.indexOf(':');
+					
+					String	port_bit;
+					
+					if ( pos3 == -1 ){
+						
+						port_bit = "";
+						
+					}else{
+						
+						port_bit = host_bit.substring(pos3);
+					}
+					
+					String new_str = str.substring(0,pos) + rewrite + port_bit + str.substring( pos2 );
+										
+					url = new URL( new_str );
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
+		}
+		
 		return( url );
+	}
+	
+	public static synchronized void
+	addHostRedirect(
+		String	from_host,
+		String	to_host )
+	{
+		System.out.println( "AddressUtils::addHostRedirect - " + from_host + " -> " + to_host );
+		
+		Map	new_map;
+		
+		if ( host_map == null ){
+			
+			new_map = new HashMap();
+		}else{
+			
+			new_map = new HashMap( host_map );
+		}
+		
+		new_map.put( from_host, to_host );
+		
+		host_map = new_map;
 	}
 	
 	public static InetSocketAddress
