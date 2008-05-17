@@ -5,12 +5,9 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -31,7 +28,7 @@ public class PaginationWidget
 
 	private int hSpacing = 3;
 
-	private int yOffset = 4;
+	private int yOffset = 5;
 
 	private Rectangle[] pages = new Rectangle[1];
 
