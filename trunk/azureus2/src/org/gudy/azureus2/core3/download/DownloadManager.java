@@ -226,6 +226,10 @@ DownloadManager
     public void
     setTorrentFileName(String string);
 
+    /**
+     * Returns the file location where we save the torrent, this includes the parent
+     * directory and the actual file name.
+     */
     public File
     getAbsoluteSaveLocation();
 
@@ -502,14 +506,12 @@ DownloadManager
      * location of the torrent file or download.
      * 
      * @since 2.5.0.2
-     * @param for_moving Indicates whether you want this information for the purposes
-     *     of moving the download or not.
      * @author amc1
      * @return An array of type <tt>File</tt> of size 2, first element containing the
      *     calculated location for the download's data files, and the second element
      *     containing the location for the download's torrent file.
      */
-    public File[] calculateDefaultPaths(boolean for_moving);
+    public File[] calculateDefaultPaths();
     
     /**
      * Returns <tt>true</tt> if the download is being saved to one of the default

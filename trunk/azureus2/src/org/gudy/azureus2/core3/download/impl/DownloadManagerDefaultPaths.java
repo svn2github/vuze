@@ -45,7 +45,6 @@ public class DownloadManagerDefaultPaths {
     private final static MovementInformation[] COMPLETION_DETAILS;
     private final static MovementInformation[] REMOVAL_DETAILS;
     private final static MovementInformation[] UPDATE_FOR_MOVE_DETAILS;
-    private final static MovementInformation[] UPDATE_FOR_LOGIC_DETAILS;
     private final static TargetSpecification[] DEFAULT_DIRS;
 
     private final static String STATE_INCOMPLETE = "incomplete download";
@@ -167,22 +166,6 @@ public class DownloadManagerDefaultPaths {
 		mi_2 = new MovementInformation(source, dest, trans, "Update incomplete download");
 		UPDATE_FOR_MOVE_DETAILS = new MovementInformation[] {mi_1, mi_2};
 
-		/**
-		 * Now we have a copy of the exact same settings for updates, except we
-		 * disable the logic regarding default directory requirements.
-		 */
-		UPDATE_FOR_LOGIC_DETAILS = new MovementInformation[UPDATE_FOR_MOVE_DETAILS.length];
-		for (int i=0; i<UPDATE_FOR_MOVE_DETAILS.length; i++) {
-			MovementInformation mi = UPDATE_FOR_MOVE_DETAILS[i];
-		    source = new SourceSpecification();
-		    source.updateSettings(mi.source.getSettings());
-		    source.setBoolean("default dir", false);
-		    source.setBoolean("persistent only", false);
-		    source.setBoolean("check exclusion flag", false);
-		    UPDATE_FOR_LOGIC_DETAILS[i] = new MovementInformation(source,
-		        mi.target, mi.transfer, mi.title.replaceAll("Update", "Calculate path for"));
-	    }
-
     }
     
     private static String normaliseRelativePathPart(String name) {
@@ -234,7 +217,7 @@ public class DownloadManagerDefaultPaths {
 		File location = null;
 		TargetSpecification ts = null;
 		for (int i=0; i<DEFAULT_DIRS.length; i++) {
-			ts = (TargetSpecification)DEFAULT_DIRS[i];
+			ts = DEFAULT_DIRS[i];
 			location = ts.getTarget(null, lr, ts);
 			if (location != null) {
 				results.add(location);
@@ -531,20 +514,23 @@ public class DownloadManagerDefaultPaths {
 	public static SaveLocationChange onRemoval(DownloadManager dm) {
 		return CURRENT_HANDLER.onRemoval(PluginCoreUtils.wrap(dm)); 
 	}
+	
+	/*
+	private static boolean isApplicableDownload(DownloadManager dm) {
+		LogRelation lr = (dm instanceof LogRelation) ? (LogRelation)dm : null;
+		if (!dm.isPersistent()) {
+			logWarn(describe(dm, context) + " is not persistent.", lr);
+			return false;
+		}		
+	} */
 
 	// Hmm... we'll have to remove this.
-	public static File[] getDefaultSavePaths(DownloadManager dm, boolean for_moving) {
-		MovementInformation[] mi = (for_moving) ? UPDATE_FOR_MOVE_DETAILS : UPDATE_FOR_LOGIC_DETAILS;
+	public static File[] getDefaultSavePaths(DownloadManager dm) {
+		MovementInformation[] mi = UPDATE_FOR_MOVE_DETAILS;
 		SaveLocationChange slc = determinePaths(dm, mi);
 
 		// Always return an array of size two.
 		File[] result = new File[2];
-
-		// Set default values first.
-		if (!for_moving) {
-			result[0] = dm.getSaveLocation();
-			result[1] = new File(dm.getTorrentFileName()).getParentFile();
-		}
 
 		if (slc != null) {
 			result[0] = slc.download_location;

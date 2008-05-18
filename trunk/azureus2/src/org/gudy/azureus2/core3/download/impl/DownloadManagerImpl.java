@@ -3327,8 +3327,8 @@ DownloadManagerImpl
 	  }
   }
   
-  public File[] calculateDefaultPaths(boolean for_moving) {
-	  return DownloadManagerDefaultPaths.getDefaultSavePaths(this, for_moving);
+  public File[] calculateDefaultPaths() {
+	  return DownloadManagerDefaultPaths.getDefaultSavePaths(this);
   }
   
   public boolean isInDefaultSaveDir() {

@@ -1594,8 +1594,10 @@ DownloadImpl
  		}  	
  	}
   	
+  	// I added this for my save path plugin, I think I might want to get rid of it...
   	public File[] calculateDefaultPaths(boolean for_moving) {
-  		return download_manager.calculateDefaultPaths(for_moving);
+  		if (!for_moving) {throw new RuntimeException("for_moving is false");}
+  		return download_manager.calculateDefaultPaths();
   	}
   	
   	public boolean isInDefaultSaveDir() {
