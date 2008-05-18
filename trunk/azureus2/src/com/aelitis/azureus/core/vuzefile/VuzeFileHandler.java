@@ -21,9 +21,17 @@
 
 package com.aelitis.azureus.core.vuzefile;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
+import java.util.Map;
+
+import org.gudy.azureus2.core3.util.BDecoder;
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 
 
 public class 
@@ -51,15 +59,43 @@ VuzeFileHandler
 			File test_file = new File( target );
 	
 			if ( test_file.isFile()){
-	
-				System.out.println( "loadVuzeFile - " + test_file );
+					
+				return( getVuzeFile( new FileInputStream( test_file )));
+				
 			}else{
 				
 				URL	url = new URI( target ).toURL();
 				
-				System.out.println( "loadVuzeFile - " + url );
+				ResourceDownloader rd = StaticUtilities.getResourceDownloaderFactory().create( url );
+				
+				return( getVuzeFile(rd.download()));
 			}
 	
+		}catch( Throwable e ){
+		}
+		
+		return( null );
+	}
+	
+	protected VuzeFile
+	getVuzeFile(
+		InputStream		is )
+	{
+		try{
+			BufferedInputStream bis = new BufferedInputStream( is );
+			
+			try{
+				Map	map = BDecoder.decode(bis);
+				
+				if ( map.containsKey( "vuze" ) && !map.containsKey( "info" )){
+					
+					return( new VuzeFileImpl( map ));
+				}
+				
+			}finally{
+				
+				is.close();
+			}
 		}catch( Throwable e ){
 		}
 		
