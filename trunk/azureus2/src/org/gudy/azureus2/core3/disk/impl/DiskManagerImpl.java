@@ -1689,11 +1689,7 @@ DiskManagerImpl
         	move_details = DownloadManagerDefaultPaths.onCompletion(this.download_manager, true);
         }
         
-        if (move_details == null) {return false;}
-
-        //Debug.out("Moving data files: -> " + mdi.location);
-        boolean move_torrent = move_details.download_location.equals(move_details.torrent_location);
-        moveFiles(move_details.download_location.getPath(), null, move_torrent && torrent_file_exists, true);
+        if (move_details != null) {moveFiles(move_details, true);}
         return true;
 
       }
@@ -1711,12 +1707,18 @@ DiskManagerImpl
     }
     
     public void moveDataFiles(File new_parent_dir, String new_name) {
-    	moveFiles(new_parent_dir.toString(), new_name, false, false);
+    	SaveLocationChange loc_change = new SaveLocationChange();
+    	loc_change.download_location = new_parent_dir;
+    	loc_change.download_name = new_name;
+    	moveFiles(loc_change, false);
     }
 
-    protected void moveFiles(String move_to_dir, String new_name, boolean move_torrent, boolean change_to_read_only) {
-
-        boolean move_files = !isFileDestinationIsItself(move_to_dir, new_name);
+    protected void moveFiles(SaveLocationChange loc_change, boolean change_to_read_only) {
+    	boolean move_files = false;
+    	if (loc_change.hasDownloadChange()) {
+    		move_files = !this.isFileDestinationIsItself(loc_change);
+    	}
+    	
         try {
             start_stop_mon.enter();
 
@@ -1726,11 +1728,11 @@ DiskManagerImpl
              */
             boolean files_moved = true;
             if (move_files) {
-                files_moved = moveDataFiles0(move_to_dir, new_name, change_to_read_only);
+                files_moved = moveDataFiles0(loc_change, change_to_read_only);
             }
 
-            if (move_torrent && files_moved) {
-                moveTorrentFile0(move_to_dir);
+            if (loc_change.hasTorrentChange() && files_moved) {
+                moveTorrentFile(loc_change);
             }
         }
         catch(Exception e) {
@@ -1749,59 +1751,34 @@ DiskManagerImpl
                       LogAlert.AT_ERROR, "DiskManager.alert.movefilefails"),
                       new String[] {destination_path, message});
   }
+  
+  private boolean isFileDestinationIsItself(SaveLocationChange loc_change) {
+	  File old_location = download_manager.getAbsoluteSaveLocation();
+	  File new_location = loc_change.normaliseDownloadLocation(old_location);
+	  try {
+		  old_location = old_location.getCanonicalFile();
+		  new_location = new_location.getCanonicalFile();
+          if (old_location.equals(new_location)) {return true;}
+          if (!download_manager.getTorrent().isSimpleTorrent() && FileUtil.isAncestorOf(new_location, old_location)) {
+       		String msg = "Target is sub-directory of files";
+       		logMoveFileError(new_location.toString(), msg);
+       		return true;
+          }
+	  }          
+	  catch (Throwable e) {
+		  Debug.out(e);
+	  }
+	  return false;
+  }
 	  
-  private boolean isFileDestinationIsItself(String move_to_dir, String new_name) {
+    private boolean moveDataFiles0(SaveLocationChange loc_change, final boolean change_to_read_only) throws Exception  {
+    	
+    	File move_to_dir_name = loc_change.download_location;
+    	if (move_to_dir_name == null) {move_to_dir_name = download_manager.getAbsoluteSaveLocation().getParentFile();}
 
-        File save_location = download_manager.getAbsoluteSaveLocation();
-        String move_from_dir = save_location.getParent();
-
-         // sanity check - never move a dir into itself
-        try{
-            File from_file, to_file;
-            if (new_name == null) {
-            	from_file = new File(move_from_dir).getCanonicalFile();
-            	to_file   = new File(move_to_dir).getCanonicalFile();
-            }
-            else {
-            	from_file = save_location.getCanonicalFile();
-            	to_file   = new File(move_to_dir, new_name);
-            }
-
-            save_location   = save_location.getCanonicalFile();
-
-            move_from_dir   = from_file.getPath();
-            move_to_dir     = to_file.getPath();
-
-            if (from_file.equals(to_file)){
-                return true;
-            }else{
-                if ( !download_manager.getTorrent().isSimpleTorrent()){
-                	if (FileUtil.isAncestorOf(save_location, to_file)) {
-                    //if ( to_file.getPath().startsWith( save_location.getPath())){
-                        String msg = "Target is sub-directory of files";
-                        logMoveFileError(save_location.toString(), msg);
-                        return true;
-                    }
-                }
-            }
-
-        }catch( Throwable e ){
-
-                // carry on
-
-            Debug.out(e);
-        }
-        return false;
-    }
-
-    private boolean 
-    moveDataFiles0(
-    	final String 		move_to_dir, 
-    	final String 		new_name, 
-    	final boolean 		change_to_read_only )
-    
-    	throws Exception 
-    {
+    	final String move_to_dir = move_to_dir_name.toString();
+    	final String new_name = loc_change.download_name;
+    	
     		// consider the two cases:
     		//		simple torrent:  /temp/simple.avi
     		// 		complex torrent: /temp/complex[/other.avi]
@@ -1816,9 +1793,7 @@ DiskManagerImpl
    	
     	if ( files == null ){return false;}
     	
-        if ( isFileDestinationIsItself( move_to_dir, new_name )) {return false;}
-
-
+        if (isFileDestinationIsItself(loc_change)) {return false;}
         
     	boolean simple_torrent = download_manager.getTorrent().isSimpleTorrent();
     	
@@ -2077,47 +2052,35 @@ DiskManagerImpl
         return true;
 
     }
+    
+    private void moveTorrentFile(SaveLocationChange loc_change) {
+    	if (!loc_change.hasTorrentChange()) {return;}
 
-    private void moveTorrentFile0(String move_to_dir) throws Exception {
-              String oldFullName = download_manager.getTorrentFileName();
+		File old_torrent_file = new File(download_manager.getTorrentFileName());
+		File new_torrent_file = loc_change.normaliseTorrentLocation(old_torrent_file);
+		
+		if (!old_torrent_file.exists()) {
+            // torrent file's been removed in the meantime, just log a warning
+            if (Logger.isEnabled())
+                  Logger.log(new LogEvent(this, LOGID, LogEvent.LT_WARNING, "Torrent file '" + old_torrent_file.getPath() + "' has been deleted, move operation ignored" ));
+            return;
+		}
+    	
+    	try {download_manager.setTorrentFile(loc_change.torrent_location, loc_change.torrent_name);}
+    	catch (DownloadManagerException e) {
+            String msg = "Failed to move " + old_torrent_file.toString() + " to " + new_torrent_file.toString();
 
-              File oldTorrentFile = new File(oldFullName);
+            if (Logger.isEnabled())
+                Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR, msg));
 
-              if ( oldTorrentFile.exists()){
+            Logger.logTextResource(new LogAlert(this, LogAlert.REPEATABLE,
+                            LogAlert.AT_ERROR, "DiskManager.alert.movefilefails"),
+                            new String[] { old_torrent_file.toString(),
+                                    new_torrent_file.toString() });
 
-                  String oldFileName = oldTorrentFile.getName();
-
-                  File newTorrentFile = new File(move_to_dir, oldFileName);
-
-                  if (!newTorrentFile.equals(oldTorrentFile)){
-
-                    if ( TorrentUtils.move( oldTorrentFile, newTorrentFile )){
-
-                        download_manager.setTorrentFileName(newTorrentFile.getCanonicalPath());
-
-                    }else{
-
-                        String msg = "Failed to move " + oldTorrentFile.toString() + " to " + newTorrentFile.toString();
-
-                        if (Logger.isEnabled())
-                            Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR, msg));
-
-                        Logger.logTextResource(new LogAlert(this, LogAlert.REPEATABLE,
-                                        LogAlert.AT_ERROR, "DiskManager.alert.movefilefails"),
-                                        new String[] { oldTorrentFile.toString(),
-                                                newTorrentFile.toString() });
-
-                        Debug.out(msg);
-                    }
-                  }
-              }else{
-                    // torrent file's been removed in the meantime, just log a warning
-
-                  if (Logger.isEnabled())
-                        Logger.log(new LogEvent(this, LOGID, LogEvent.LT_WARNING, "Torrent file '" + oldFullName + "' has been deleted, move operation ignored" ));
-
-              }
-          }
+            Debug.out(msg);
+       	}
+    }
 
     public TOTorrent
     getTorrent()
