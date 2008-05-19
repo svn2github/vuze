@@ -217,6 +217,10 @@ public class PlatformConfigMessenger
 	}
 
 	public static boolean isURLBlocked(String url) {
+		return isURLBlocked(url,true);
+	}
+	
+	public static boolean isURLBlocked(String url,boolean showDebug) {
 		if (url == null) {
 			Debug.out("URL null and should be blocked");
 			return true;
@@ -228,8 +232,10 @@ public class PlatformConfigMessenger
 				return false;
 			}
 		}
-		Debug.out("URL '" + url + "' " + " does not match one of the "
-				+ whitelist.length + " whitelist entries");
+		if(showDebug) {
+			Debug.out("URL '" + url + "' " + " does not match one of the "
+					+ whitelist.length + " whitelist entries");
+		}
 		return true;
 	}
 
