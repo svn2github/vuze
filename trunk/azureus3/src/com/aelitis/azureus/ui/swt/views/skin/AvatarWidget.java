@@ -11,8 +11,11 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.layout.RowData;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -41,21 +44,27 @@ import com.aelitis.azureus.util.LoginInfoManager;
 
 public class AvatarWidget
 {
-	private Canvas avatarCanvas = null;
+	private Canvas canvas = null;
 
 	private BuddiesViewer viewer = null;
 
 	private Composite parent = null;
 
-	private int borderWidth = 0;
+	private int highlightBorder = 1;
 
-	private Point avatarImageSize = null;
+	private int imageBorder = 1;
 
-	private Point avatarSize = null;
+	private Point imageSize = null;
+
+	private Point size = null;
+
+	private Point nameAreaSize = null;
+
+	private Rectangle imageBounds = null;
+
+	private Rectangle nameAreaBounds = null;
 
 	private VuzeBuddySWT vuzeBuddy = null;
-
-	private int imageOffsetX = 0;
 
 	private boolean isActivated = false;
 
@@ -63,13 +72,11 @@ public class AvatarWidget
 
 	private boolean nameLinkActive = false;
 
-	//	private boolean isEditMode = false;
-	//
-	//	private boolean isShareMode = false;
-
 	private Color textColor = null;
 
 	private Color textLinkColor = null;
+
+	private Color imageBorderColor = null;
 
 	private Rectangle decoratorBounds = null;
 
@@ -77,16 +84,16 @@ public class AvatarWidget
 
 	private boolean sharedAlready = false;
 
-	private Image avatarImage = null;
+	private Image image = null;
 
-	private Rectangle avatarBounds = null;
+	private Rectangle sourceImageBounds = null;
 
 	private Menu menu;
-	
+
 	private static Font fontDisplayName;
 
 	public AvatarWidget(BuddiesViewer viewer, Point avatarSize,
-			Point avatarImageSize, VuzeBuddySWT vuzeBuddy) {
+			Point avatarImageSize, Point avatarNameSize, VuzeBuddySWT vuzeBuddy) {
 
 		if (null == viewer || null == vuzeBuddy) {
 			throw new NullPointerException(
@@ -101,11 +108,12 @@ public class AvatarWidget
 		}
 
 		this.parent = viewer.getControl();
-		this.avatarSize = avatarSize;
-		this.avatarImageSize = avatarImageSize;
+		this.size = avatarSize;
+		this.imageSize = avatarImageSize;
+		this.nameAreaSize = avatarNameSize;
 		this.vuzeBuddy = vuzeBuddy;
-		avatarCanvas = new Canvas(parent,SWT.NONE );
-		avatarCanvas.setData("AvatarWidget", this);
+		canvas = new Canvas(parent, SWT.NONE);
+		canvas.setData("AvatarWidget", this);
 
 		init();
 	}
@@ -115,91 +123,124 @@ public class AvatarWidget
 		final Image removeImage = ImageRepository.getImage("progress_remove");
 		final Image add_to_share_Image = ImageRepository.getImage("add_to_share");
 
-		imageOffsetX = (avatarSize.x / 2) - (avatarImageSize.x / 2);
-		decoratorBounds = new Rectangle(imageOffsetX + avatarImageSize.x - 13, 0,
+		/*
+		 * Centers the image and name horizontally
+		 */
+		imageBounds = new Rectangle((size.x / 2) - (imageSize.x / 2), 4,
+				imageSize.x, imageSize.y);
+
+		nameAreaBounds = new Rectangle((size.x / 2) - (nameAreaSize.x / 2),
+				imageBounds.y + imageBounds.height, nameAreaSize.x, nameAreaSize.y);
+
+		/*
+		 * Position the decorator icons
+		 */
+		decoratorBounds = new Rectangle(imageBounds.x + imageBounds.width - 13, 0,
 				16, 16);
 
-		//		Utils.createTorrentDropTarget(avatarCanvas, true);
-
-		RowData rData = new RowData();
-		rData.width = avatarSize.x;
-		rData.height = avatarSize.y;
-		avatarCanvas.setLayoutData(rData);
-
-		avatarCanvas.setToolTipText(vuzeBuddy.getLoginID());
-
-		avatarImage = vuzeBuddy.getAvatarImage();
-
-		if (null == avatarImage) {
-			avatarImage = ImageRepository.getImage("buddy_default_avatar");
+		/*
+		 * Get the avatar image and create a default image if none was found
+		 */
+		image = vuzeBuddy.getAvatarImage();
+		if (null == image) {
+			image = ImageRepository.getImage("buddy_default_avatar");
 		}
-		avatarBounds = null == avatarImage ? null : avatarImage.getBounds();
 
-		avatarCanvas.addPaintListener(new PaintListener() {
+		sourceImageBounds = null == image ? null : image.getBounds();
+
+		canvas.addPaintListener(new PaintListener() {
 
 			public void paintControl(PaintEvent e) {
-				
+
 				if (fontDisplayName == null || fontDisplayName.isDisposed()) {
-					fontDisplayName = Utils.getFontWithHeight(avatarCanvas.getFont(), e.gc, 10);
+					fontDisplayName = Utils.getFontWithHeight(canvas.getFont(), e.gc, 10);
 				}
 
 				try {
-  				e.gc.setAntialias(SWT.ON);
-  				e.gc.setTextAntialias(SWT.ON);
-  				e.gc.setAlpha(alpha);
-  				e.gc.setInterpolation(SWT.HIGH);
+					e.gc.setAntialias(SWT.ON);
+					e.gc.setTextAntialias(SWT.ON);
+					e.gc.setAlpha(alpha);
+					e.gc.setInterpolation(SWT.HIGH);
 				} catch (Exception ex) {
 					// ignore.. some of these may not be avail
 				}
 
 				/*
-				 * Draw backgound if the widget is selected
+				 * Draw background if the widget is selected
 				 */
 				if (true == isSelected) {
 
 					e.gc.setBackground(Colors.grey);
 					e.gc.setAlpha((int) (alpha * .5));
 
-					Rectangle bounds = avatarCanvas.getBounds();
-
-					e.gc.fillRoundRectangle(0, 0, bounds.width - 1, bounds.height - 1,
-							10, 10);
+					Rectangle bounds = canvas.getBounds();
+					e.gc.fillRoundRectangle(highlightBorder, highlightBorder,
+							bounds.width - (2 * highlightBorder), bounds.height
+									- (2 * highlightBorder), 10, 10);
 					e.gc.setAlpha(alpha);
-					e.gc.setBackground(avatarCanvas.getBackground());
+					e.gc.setBackground(canvas.getBackground());
 				}
 
 				/*
-				 * Draw hightlight borders if the widget is activated (being hovered over)
+				 * Draw highlight borders if the widget is activated (being hovered over)
 				 */
-				if (true == isActivated) {
+				if (true == isActivated && highlightBorder > 0) {
 
 					e.gc.setForeground(Colors.grey);
-					Rectangle bounds = avatarCanvas.getBounds();
-					e.gc.drawRoundRectangle(0, 0, bounds.width - 1, bounds.height - 1,
-							10, 10);
-					e.gc.setForeground(avatarCanvas.getForeground());
-
+					e.gc.setLineWidth(highlightBorder);
+					Rectangle bounds = canvas.getBounds();
+					e.gc.drawRoundRectangle(highlightBorder, highlightBorder,
+							bounds.width - (2 * highlightBorder), bounds.height
+									- (2 * highlightBorder), 10, 10);
+					e.gc.setForeground(canvas.getForeground());
+					e.gc.setLineWidth(1);
 				}
 
 				/*
 				 * Draw the avatar image
 				 */
-				if (null == avatarImage || avatarImage.isDisposed()) {
-					//Do something if no Avatar like display default
+				if (null == image || image.isDisposed()) {
+					/*
+					 * Paint nothing if the buddy has no avatar AND the default image is not found,
+					 * OR the image has been disposed
+					 */
 				} else {
 					if (true == viewer.isEditMode()) {
 						e.gc.setAlpha((int) (alpha * .7));
-						e.gc.drawImage(avatarImage, 0, 0, avatarBounds.width,
-								avatarBounds.height, imageOffsetX + borderWidth, borderWidth,
-								avatarImageSize.x - (2 * borderWidth), avatarImageSize.y
-										- (2 * borderWidth));
+						/*
+						 * Image
+						 */
+						e.gc.drawImage(image, 0, 0, sourceImageBounds.width,
+								sourceImageBounds.height, imageBounds.x, imageBounds.y,
+								imageBounds.width, imageBounds.height);
 						e.gc.setAlpha(alpha);
+						/*
+						 * Image border
+						 */
+						if (imageBorder > 0) {
+							e.gc.setForeground(imageBorderColor);
+							e.gc.drawRectangle(imageBounds.x - imageBorder, imageBounds.y
+									- imageBorder, imageBounds.width + imageBorder,
+									imageBounds.height + imageBorder);
+							e.gc.setForeground(canvas.getForeground());
+						}
 					} else {
-
-						e.gc.drawImage(avatarImage, 0, 0, avatarBounds.width,
-								avatarBounds.height, imageOffsetX + borderWidth, borderWidth,
-								avatarImageSize.x - (2 * borderWidth), avatarImageSize.y
-										- (2 * borderWidth));
+						/*
+						 * Image
+						 */
+						e.gc.drawImage(image, 0, 0, sourceImageBounds.width,
+								sourceImageBounds.height, imageBounds.x, imageBounds.y,
+								imageBounds.width, imageBounds.height);
+						/*
+						 * Image border
+						 */
+						if (imageBorder > 0) {
+							e.gc.setForeground(imageBorderColor);
+							e.gc.drawRectangle(imageBounds.x - imageBorder, imageBounds.y
+									- imageBorder, imageBounds.width + imageBorder,
+									imageBounds.height + imageBorder);
+							e.gc.setForeground(canvas.getForeground());
+						}
 					}
 				}
 				/*
@@ -227,27 +268,30 @@ public class AvatarWidget
 						e.gc.setForeground(textColor);
 					}
 
-					Rectangle r = new Rectangle(1, avatarImageSize.y - 2,
-							avatarSize.x - 2, avatarSize.y - avatarImageSize.y - 3);
-					int flags = SWT.CENTER | SWT.WRAP;
-					GCStringPrinter stringPrinter = new GCStringPrinter(e.gc,
-							vuzeBuddy.getDisplayName(), r, false, true, flags);
-					stringPrinter.calculateMetrics();
-
-					if (stringPrinter.isCutoff()) {
-						e.gc.setFont(fontDisplayName);
-						r.height += 9;
-						r.y -= 4;
-					}
-
-					stringPrinter.printString(e.gc, r, SWT.CENTER | SWT.WRAP);
-					e.gc.setFont(null);
+					/*
+					 * The multi-line display of name is disabled for now 
+					 */
+					//					int flags = SWT.CENTER | SWT.WRAP;
+					//					GCStringPrinter stringPrinter = new GCStringPrinter(e.gc,
+					//							vuzeBuddy.getDisplayName(), avatarNameBounds, false, true, flags);
+					//					stringPrinter.calculateMetrics();
+					//
+					//					if (stringPrinter.isCutoff()) {
+					//						e.gc.setFont(fontDisplayName);
+					//						avatarNameBounds.height += 9;
+					//						avatarNameBounds.y -= 4;
+					//					}
+					//					stringPrinter.printString(e.gc, avatarNameBounds, SWT.CENTER);
+					//					e.gc.setFont(null);
+					e.gc.setFont(fontDisplayName);
+					GCStringPrinter.printString(e.gc, vuzeBuddy.getDisplayName(),
+							nameAreaBounds, false, true, SWT.CENTER);
 
 				}
 			}
 		});
 
-		avatarCanvas.addMouseTrackListener(new MouseTrackListener() {
+		canvas.addMouseTrackListener(new MouseTrackListener() {
 
 			public void mouseHover(MouseEvent e) {
 
@@ -255,18 +299,18 @@ public class AvatarWidget
 
 			public void mouseExit(MouseEvent e) {
 				isActivated = false;
-				avatarCanvas.redraw();
+				canvas.redraw();
 			}
 
 			public void mouseEnter(MouseEvent e) {
 				if (false == isActivated) {
 					isActivated = true;
-					avatarCanvas.redraw();
+					canvas.redraw();
 				}
 			}
 		});
 
-		avatarCanvas.addMouseListener(new MouseListener() {
+		canvas.addMouseListener(new MouseListener() {
 
 			public void mouseUp(MouseEvent e) {
 			}
@@ -275,7 +319,8 @@ public class AvatarWidget
 				if (e.button != 1) {
 					return;
 				}
-				if (e.y > avatarImageSize.y && e.stateMask != SWT.MOD1) {
+				if (true == nameAreaBounds.contains(e.x, e.y)
+						&& e.stateMask != SWT.MOD1) {
 					doLinkClicked();
 				} else if (decoratorBounds.contains(e.x, e.y)) {
 					if (true == viewer.isEditMode()) {
@@ -289,7 +334,7 @@ public class AvatarWidget
 					} else {
 						viewer.select(vuzeBuddy, !isSelected, false);
 					}
-					avatarCanvas.redraw();
+					canvas.redraw();
 				}
 			}
 
@@ -297,10 +342,10 @@ public class AvatarWidget
 			}
 		});
 
-		avatarCanvas.addMouseMoveListener(new MouseMoveListener() {
+		canvas.addMouseMoveListener(new MouseMoveListener() {
 			private boolean lastActiveState = false;
 
-			private String lastTooltipText = avatarCanvas.getToolTipText();
+			private String lastTooltipText = canvas.getToolTipText();
 
 			public void mouseMove(MouseEvent e) {
 				if (e.stateMask == SWT.MOD1) {
@@ -326,20 +371,20 @@ public class AvatarWidget
 				}
 
 				if (false == tooltipText.equals(lastTooltipText)) {
-					avatarCanvas.setToolTipText(tooltipText);
+					canvas.setToolTipText(tooltipText);
 					lastTooltipText = tooltipText;
 				}
 
-				if (e.y > avatarImageSize.y) {
+				if (true == nameAreaBounds.contains(e.x, e.y)) {
 					if (false == lastActiveState) {
 						nameLinkActive = true;
-						avatarCanvas.redraw();
+						canvas.redraw();
 						lastActiveState = true;
 					}
 				} else {
 					if (true == lastActiveState) {
 						nameLinkActive = false;
-						avatarCanvas.redraw();
+						canvas.redraw();
 						lastActiveState = false;
 					}
 				}
@@ -351,8 +396,8 @@ public class AvatarWidget
 	}
 
 	private void initMenu() {
-		menu = new Menu(avatarCanvas);
-		avatarCanvas.setMenu(menu);
+		menu = new Menu(canvas);
+		canvas.setMenu(menu);
 
 		menu.addMenuListener(new MenuListener() {
 			boolean bShown = false;
@@ -399,7 +444,7 @@ public class AvatarWidget
 		Messages.setLanguageText(item, "v3.buddy.menu.viewprofile");
 		item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				AvatarWidget aw = (AvatarWidget) avatarCanvas.getData("AvatarWidget");
+				AvatarWidget aw = (AvatarWidget) canvas.getData("AvatarWidget");
 				if (aw != null) {
 					aw.doLinkClicked();
 				}
@@ -416,7 +461,7 @@ public class AvatarWidget
 			Messages.setLanguageText(item, "v3.buddy.menu.remove");
 			item.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e) {
-					AvatarWidget aw = (AvatarWidget) avatarCanvas.getData("AvatarWidget");
+					AvatarWidget aw = (AvatarWidget) canvas.getData("AvatarWidget");
 					if (aw != null) {
 						doRemoveBuddy();
 					}
@@ -469,8 +514,8 @@ public class AvatarWidget
 	private void doAddBuddyToShare() {
 		viewer.addToShare(this);
 		sharedAlready = true;
-		avatarCanvas.redraw();
-		avatarCanvas.update();
+		canvas.redraw();
+		canvas.update();
 	}
 
 	public void doHover() {
@@ -499,15 +544,15 @@ public class AvatarWidget
 	}
 
 	public Control getControl() {
-		return avatarCanvas;
+		return canvas;
 	}
 
 	public int getBorderWidth() {
-		return borderWidth;
+		return highlightBorder;
 	}
 
 	public void setBorderWidth(int borderWidth) {
-		this.borderWidth = borderWidth;
+		this.highlightBorder = borderWidth;
 	}
 
 	public VuzeBuddySWT getVuzeBuddy() {
@@ -525,8 +570,8 @@ public class AvatarWidget
 	public void refreshVisual() {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				if (null != avatarCanvas && false == avatarCanvas.isDisposed()) {
-					avatarCanvas.redraw();
+				if (null != canvas && false == canvas.isDisposed()) {
+					canvas.redraw();
 				}
 			}
 		});
@@ -550,7 +595,7 @@ public class AvatarWidget
 	}
 
 	public void dispose(boolean animate) {
-		if (null != avatarCanvas && false == avatarCanvas.isDisposed()) {
+		if (null != canvas && false == canvas.isDisposed()) {
 			if (true == animate) {
 				parent.getDisplay().asyncExec(new AERunnable() {
 
@@ -560,10 +605,10 @@ public class AvatarWidget
 						 * KN: TODO: disposal check is still not complete since it could still happen
 						 * between the .isDisposed() check and the .redraw() or .update() calls.
 						 */
-						while (alpha > 20 && false == avatarCanvas.isDisposed()) {
+						while (alpha > 20 && false == canvas.isDisposed()) {
 							alpha -= 30;
-							avatarCanvas.redraw();
-							avatarCanvas.update();
+							canvas.redraw();
+							canvas.update();
 
 							try {
 								Thread.sleep(50);
@@ -572,15 +617,15 @@ public class AvatarWidget
 							}
 						}
 
-						if (false == avatarCanvas.isDisposed()) {
-							avatarCanvas.dispose();
+						if (false == canvas.isDisposed()) {
+							canvas.dispose();
 							parent.layout(true);
 						}
 					}
 				});
 			} else {
-				if (false == avatarCanvas.isDisposed()) {
-					avatarCanvas.dispose();
+				if (false == canvas.isDisposed()) {
+					canvas.dispose();
 					parent.layout(true);
 				}
 			}
@@ -605,12 +650,60 @@ public class AvatarWidget
 			 * Resets the image and image bounds since this is the only info cached;
 			 * all other info is asked for on-demand so no need to update them 
 			 */
-			avatarImage = vuzeBuddy.getAvatarImage();
-			if (null == avatarImage) {
-				avatarImage = ImageRepository.getImage("buddy_default_avatar");
+			image = vuzeBuddy.getAvatarImage();
+			if (null == image) {
+				image = ImageRepository.getImage("buddy_default_avatar");
 			}
-			avatarBounds = null == avatarImage ? null : avatarImage.getBounds();
+			sourceImageBounds = null == image ? null : image.getBounds();
 			refreshVisual();
 		}
+	}
+
+	public Point getAvatarImageSize() {
+		return imageSize;
+	}
+
+	public void setAvatarImageSize(Point avatarImageSize) {
+		this.imageSize = avatarImageSize;
+	}
+
+	public Point getAvatarNameSize() {
+		return nameAreaSize;
+	}
+
+	public void setAvatarNameSize(Point avatarNameSize) {
+		this.nameAreaSize = avatarNameSize;
+	}
+
+	public Image getAvatarImage() {
+		return image;
+	}
+
+	public void setAvatarImage(Image avatarImage) {
+		this.image = avatarImage;
+	}
+
+	public Color getImageBorderColor() {
+		return imageBorderColor;
+	}
+
+	public void setImageBorderColor(Color imageBorderColor) {
+		this.imageBorderColor = imageBorderColor;
+	}
+
+	public int getAvatarImageBorder() {
+		return imageBorder;
+	}
+
+	public void setAvatarImageBorder(int avatarImageBorder) {
+		this.imageBorder = avatarImageBorder;
+	}
+
+	public int getImageBorder() {
+		return imageBorder;
+	}
+
+	public void setImageBorder(int imageBorder) {
+		this.imageBorder = imageBorder;
 	}
 }

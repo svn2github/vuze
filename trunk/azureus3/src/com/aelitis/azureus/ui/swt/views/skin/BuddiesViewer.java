@@ -11,6 +11,7 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
@@ -51,16 +52,19 @@ public class BuddiesViewer
 
 	private SWTSkin skin = null;
 
-	private int borderWidth = 1;
+	private int avatarHightLightBorder;
 
-	private Point avatarImageSize = new Point(40 + borderWidth, 40 + borderWidth);
+	private int avatarImageBorder;
 
-	private Point avatarSize = new Point(avatarImageSize.x + 8,
-			avatarImageSize.y + 16);
+	private Point avatarImageSize = null;
 
-	private int hSpacing = 6;
+	private Point avatarNameSize = null;
 
-	private int avatarWidthPlusSpacing = hSpacing + avatarSize.x;
+	private Point avatarSize = null;
+
+	private int hSpacing;
+
+	private int avatarWidthPlusSpacing;
 
 	private List avatarWidgets = new ArrayList();
 
@@ -132,23 +136,38 @@ public class BuddiesViewer
 			avatarsPanel = new Composite(content, SWT.NONE);
 			avatarsPanel.setLocation(0, 0);
 
+			/*
+			 * Specify avatar dimensions and attributes before creating the avatars
+			 */
 			textColor = skin.getSkinProperties().getColor("color.links.normal");
 			textLinkColor = skin.getSkinProperties().getColor("color.links.hover");
-			imageBorderColor = ColorCache.getColor(avatarsPanel.getDisplay(), 23, 23,
-					23);
+			imageBorderColor = ColorCache.getColor(avatarsPanel.getDisplay(), 38, 38,
+					38);
+
+			avatarHightLightBorder = 1;
+			avatarImageBorder = 1;
+			hSpacing = 6;
+			avatarImageSize = new Point(40, 40);
+			avatarNameSize = new Point(50, 20);
+			avatarSize = new Point(0, 0);
+			avatarSize.x = Math.max(avatarNameSize.x, avatarImageSize.x)
+					+ (2 * (avatarHightLightBorder + avatarImageBorder));
+			avatarSize.y = avatarNameSize.y + avatarImageSize.y
+					+ (2 * (avatarHightLightBorder + avatarImageBorder));
+			avatarWidthPlusSpacing = hSpacing + avatarSize.x;
+
+			fillBuddies(avatarsPanel);
 
 			RowLayout rLayout = new RowLayout(SWT.HORIZONTAL);
 			rLayout.wrap = false;
 			rLayout.spacing = hSpacing;
-			rLayout.marginTop = 6;
-			rLayout.marginBottom = 0;
+			rLayout.marginTop = 4;
+			rLayout.marginBottom = 4;
 			rLayout.marginLeft = 0;
 			rLayout.marginRight = 0;
 			rLayout.marginWidth = 0;
 			rLayout.marginHeight = 0;
 			avatarsPanel.setLayout(rLayout);
-
-			fillBuddies(avatarsPanel);
 
 			avatarsPanel.pack();
 
@@ -435,11 +454,17 @@ public class BuddiesViewer
 	private AvatarWidget createBuddyControls(Composite composite,
 			final VuzeBuddySWT vuzeBuddy) {
 		AvatarWidget avatarWidget = new AvatarWidget(this, avatarSize,
-				avatarImageSize, vuzeBuddy);
-		avatarWidget.setBorderWidth(borderWidth);
+				avatarImageSize, avatarNameSize, vuzeBuddy);
+		avatarWidget.setBorderWidth(avatarHightLightBorder);
 		avatarWidget.setTextColor(textColor);
 		avatarWidget.setTextLinkColor(textLinkColor);
-//		avatarWidget.setImageBorderColor(imageBorderColor);
+		avatarWidget.setImageBorderColor(imageBorderColor);
+		avatarWidget.setImageBorder(avatarImageBorder);
+
+		RowData rData = new RowData();
+		rData.width = avatarSize.x;
+		rData.height = avatarSize.y;
+		avatarWidget.getControl().setLayoutData(rData);
 
 		avatarWidgets.add(avatarWidget);
 
