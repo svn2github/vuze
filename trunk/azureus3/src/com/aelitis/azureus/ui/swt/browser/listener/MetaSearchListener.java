@@ -49,29 +49,25 @@ public class MetaSearchListener extends AbstractMessageListener {
 		
 		if (OP_SEARCH.equals(opid)) {
 			Map decodedMap = message.getDecodedMap();
+			
+			String searchText = (String) decodedMap.get("searchText");
+			
+			final Long	sid = (Long)decodedMap.get( "sid" );
+
 			ResultListener listener = new ResultListener() {
 				
 				public void engineFailed(Engine engine) {
-					Map params = new HashMap();
-					params.put("id", new Long(engine.getId()));
-					params.put("name", engine.getName());
-					params.put("favicon", engine.getIcon());
-					context.sendBrowserMessage("metasearch", "engineFailed",params);
+					
+					context.sendBrowserMessage("metasearch", "engineFailed",getParams( engine ));
 				}
 				
 				public void resultsComplete(Engine engine) {
-					Map params = new HashMap();
-					params.put("id", new Long(engine.getId()));
-					params.put("name", engine.getName());
-					params.put("favicon", engine.getIcon());
-					context.sendBrowserMessage("metasearch", "engineCompleted",params);
+				
+					context.sendBrowserMessage("metasearch", "engineCompleted",getParams( engine ));
 				}
 				
 				public void resultsReceived(Engine engine,Result[] results) {
-					Map params = new HashMap();
-					params.put("id", new Long(engine.getId()));
-					params.put("name", engine.getName());
-					params.put("favicon", engine.getIcon());
+					Map params = getParams(engine);
 					List resultsList = new ArrayList(results.length);
 					for(int i = 0 ; i < results.length ; i++) {
 						Result result = results[i];
@@ -81,9 +77,24 @@ public class MetaSearchListener extends AbstractMessageListener {
 					params.put("results", resultsList);
 					context.sendBrowserMessage("metasearch", "resultsReceived",params);
 				}
+				
+				protected Map
+				getParams(
+					Engine	engine )
+				{
+					Map params = new HashMap();
+					params.put("id", new Long(engine.getId()));
+					params.put("name", engine.getName());
+					params.put("favicon", engine.getIcon());
+					
+					if ( sid != null ){
+						params.put( "sid", sid );
+					}
+					return( params );
+				}
 			};
 			
-			String searchText = (String) decodedMap.get("searchText");
+			
 			SearchParameter parameter = new SearchParameter("s",searchText);
 			SearchParameter[] parameters = new SearchParameter[] {parameter};
 			metaSearchManager.getMetaSearch().search(listener, parameters);
