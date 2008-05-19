@@ -22,6 +22,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.MessageBox;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
@@ -360,9 +361,9 @@ public class AvatarWidget
 				String tooltipText = "";
 				if (decoratorBounds.contains(e.x, e.y)) {
 					if (true == viewer.isEditMode()) {
-						tooltipText = "Remove";
+						tooltipText = MessageText.getString("v3.buddies.remove");
 					} else if (true == viewer.isShareMode() && false == isSharedAlready()) {
-						tooltipText = "Add to share";
+						tooltipText = MessageText.getString("v3.buddies.add.to.share");
 					} else {
 						tooltipText = getNameTooltip();
 					}
