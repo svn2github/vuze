@@ -3544,7 +3544,13 @@ implements PEPeerTransport
 	public boolean
 	isTCP()
 	{
-		return( connection.getEndpoint().getProtocols()[0].getType() == ProtocolEndpoint.PROTOCOL_TCP );
+		try {
+			return( connection.getEndpoint().getProtocols()[0].getType() == ProtocolEndpoint.PROTOCOL_TCP );
+		}
+		// XXX: AMC - I only need this temporarily for logging code, remove before release!
+		catch (Throwable t) {
+			return true;
+		}
 	}
 
 	public long getUnchokedTimeTotal()
