@@ -351,7 +351,7 @@ WebEngine
 			this.basePage = null;
 		}
 		
-		this.dateParser = new DateParserClassic(timeZone,automaticDateParser,userDateFormat);
+		this.dateParser = new DateParserRegex(timeZone,automaticDateParser,userDateFormat);
 	}
 	
 	protected String getWebPageContent(SearchParameter[] searchParameters) {
