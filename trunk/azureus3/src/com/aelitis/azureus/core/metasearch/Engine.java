@@ -1,6 +1,6 @@
 package com.aelitis.azureus.core.metasearch;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.Map;
 
 
@@ -74,6 +74,22 @@ Engine
 	exportToJSONString()
 	
 		throws IOException;
+	
+	public void
+	exportToVuzeFile(
+		File	target )
+	
+		throws IOException;
+	
+		/**
+		 * Tests for sameness in terms of function (ignores id, selection state etc)
+		 * @param other
+		 * @return
+		 */
+	
+	public boolean
+	sameAs(
+		Engine	other );
 	
 	public String
 	getString();

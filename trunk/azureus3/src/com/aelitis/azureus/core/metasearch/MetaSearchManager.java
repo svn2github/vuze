@@ -21,6 +21,8 @@
 
 package com.aelitis.azureus.core.metasearch;
 
+import java.util.Map;
+
 public interface 
 MetaSearchManager 
 {
@@ -43,6 +45,13 @@ MetaSearchManager
 		int			type,
 		String		name,
 		String		json_value )
+	
+		throws MetaSearchException;
+	
+	public Engine
+	addEngine(
+		long		id,
+		Map			map )
 	
 		throws MetaSearchException;
 }

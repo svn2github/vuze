@@ -26,6 +26,12 @@ import com.aelitis.azureus.core.metasearch.impl.MetaSearchManagerImpl;
 public class 
 MetaSearchManagerFactory 
 {
+	public static void
+	preInitialise()
+	{
+		MetaSearchManagerImpl.preInitialise();
+	}
+	
 	public static MetaSearchManager
 	getSingleton()
 	{

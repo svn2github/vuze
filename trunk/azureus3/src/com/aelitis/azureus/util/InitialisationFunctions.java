@@ -31,10 +31,8 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.DownloadManagerStateAttributeListener;
-import org.gudy.azureus2.core3.download.DownloadManagerStateEvent;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.download.DownloadAttributeListener;
 import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.download.DownloadWillBeAddedListener;
@@ -56,6 +54,8 @@ public class InitialisationFunctions
 		AzureusPlatformContentDirectory.register();
 
 		CacheDiscovery.initialise( dme );
+		
+		MetaSearchManagerFactory.preInitialise();
 	}
 
 	public static void 

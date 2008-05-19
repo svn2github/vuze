@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.metasearch.impl;
 
+import java.io.File;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -40,6 +41,10 @@ import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearch;
 import com.aelitis.azureus.core.metasearch.MetaSearchException;
 import com.aelitis.azureus.core.metasearch.MetaSearchManager;
+import com.aelitis.azureus.core.vuzefile.VuzeFile;
+import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
+import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
+import com.aelitis.azureus.core.vuzefile.VuzeFileProcessor;
 import com.aelitis.azureus.util.Constants;
 
 public class 
@@ -50,11 +55,53 @@ MetaSearchManagerImpl
 	
 	private static final int REFRESH_MILLIS = 23*60*60*1000;
 	
-	private static final MetaSearchManager	singleton = new MetaSearchManagerImpl();
+	private static MetaSearchManager singleton;	
 	
-	public static MetaSearchManager
+	public static void
+	preInitialise()
+	{
+		VuzeFileHandler.getSingleton().addProcessor(
+			new VuzeFileProcessor()
+			{
+				public void
+				process(
+					VuzeFile[]		files )
+				{
+					for (int i=0;i<files.length;i++){
+						
+						VuzeFile	vf = files[i];
+						
+						VuzeFileComponent[] comps = vf.getComponents();
+						
+						for (int j=0;j<comps.length;j++){
+							
+							VuzeFileComponent comp = comps[j];
+							
+							if ( comp.getType() == VuzeFileComponent.COMP_TYPE_METASEARCH_TEMPLATE ){
+								
+								try{
+									getSingleton().addEngine( -1, comp.getContent());
+									
+									comp.setProcessed();
+									
+								}catch( Throwable e ){
+									
+									Debug.printStackTrace(e);
+								}
+							}
+						}
+					}
+				}
+			});
+	}
+	
+	public static synchronized MetaSearchManager
 	getSingleton()
 	{
+		if ( singleton == null ){
+			
+			singleton = new MetaSearchManagerImpl();
+		}
 		return( singleton );
 	}
 	
@@ -482,6 +529,88 @@ MetaSearchManagerImpl
 		}catch( Throwable e ){
 			
 			throw( new MetaSearchException( "Failed to add engine", e ));
+		}
+	}
+	
+	public Engine
+	addEngine(
+		long		id,
+		Map			map )
+	
+		throws MetaSearchException
+	{
+		try{
+			EngineImpl engine = meta_search.importFromBEncodedMap(map);
+			
+			Engine existing = meta_search.getEngine( id==-1?engine.getId() : id );
+			
+			if ( existing != null ){
+				
+				if ( existing.sameAs( engine )){
+					
+					return( existing );
+				}
+			}
+			
+				// already got one for this id but different - allocate a new id
+			
+			if ( id == -1 ){
+				
+				Random random = new Random();
+				
+				while( true ){
+				
+					id = Integer.MAX_VALUE + Math.abs(random.nextInt());
+					
+					if ( meta_search.getEngine( id ) == null ){
+						
+						break;
+					}
+				}
+			}
+			
+			
+			engine.setId( id );
+			
+			engine.setSource( Engine.ENGINE_SOURCE_LOCAL );
+			
+			engine.setSelectionState( Engine.SEL_STATE_MANUAL_SELECTED );
+			
+			meta_search.addEngine( engine );
+			
+			return( engine );
+			
+		}catch( Throwable e ){
+			
+			throw( new MetaSearchException( "Failed to add engine", e ));
+		}
+	}
+	
+	public void
+	loadFromVuzeFile(
+		File		file )
+	{
+		VuzeFile vf = VuzeFileHandler.getSingleton().loadVuzeFile( file.getAbsolutePath());
+		
+		if ( vf != null ){
+			
+			VuzeFileComponent[] comps = vf.getComponents();
+			
+			for (int j=0;j<comps.length;j++){
+				
+				VuzeFileComponent comp = comps[j];
+				
+				if ( comp.getType() == VuzeFileComponent.COMP_TYPE_METASEARCH_TEMPLATE ){
+					
+					try{
+						addEngine( -1, comp.getContent());
+												
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
+					}
+				}
+			}
 		}
 	}
 	

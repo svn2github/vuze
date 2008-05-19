@@ -70,13 +70,13 @@ MetaSearchImpl
 			});
 	}
 	
-	public Engine
+	public EngineImpl
 	importFromBEncodedMap(
 		Map		map )
 	
 		throws IOException
 	{
-		return( EngineImpl.importFromBEncodedMap( this, map ));
+		return( EngineImpl.importFromBEncodedMap( this, map )); 
 	}
 	
 	public Engine

@@ -12,6 +12,7 @@ import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.Result;
 import com.aelitis.azureus.core.metasearch.SearchException;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
+import com.aelitis.azureus.core.metasearch.impl.EngineImpl;
 import com.aelitis.azureus.core.metasearch.impl.MetaSearchImpl;
 import com.aelitis.azureus.core.metasearch.impl.web.FieldMapping;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
@@ -21,7 +22,7 @@ public class
 RegexEngine 
 	extends WebEngine 
 {	
-	public static Engine
+	public static EngineImpl
 	importFromBEncodedMap(
 		MetaSearchImpl		meta_search,
 		Map					map )

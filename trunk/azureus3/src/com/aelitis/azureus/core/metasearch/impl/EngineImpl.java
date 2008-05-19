@@ -28,12 +28,17 @@ import java.io.PrintWriter;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.AEDiagnostics;
+import org.gudy.azureus2.core3.util.BEncoder;
+import org.gudy.azureus2.core3.util.Debug;
 import org.json.simple.JSONObject;
 
 import com.aelitis.azureus.core.messenger.config.PlatformMetaSearchMessenger;
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.impl.web.json.JSONEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.regex.RegexEngine;
+import com.aelitis.azureus.core.vuzefile.VuzeFile;
+import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
+import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.JSONUtils;
 
@@ -41,7 +46,7 @@ public abstract class
 EngineImpl
 	implements Engine
 {
-	protected static Engine
+	protected static EngineImpl
 	importFromBEncodedMap(
 		MetaSearchImpl		meta_search,
 		Map					map )
@@ -134,7 +139,36 @@ EngineImpl
 		name			= importString( map, "name" );
 		
 		selection_state	= (int)importLong( map, "selected", SEL_STATE_DESELECTED );
+		
+		selection_state_recorded = importBoolean(map,"select_rec", true );
+		
 		source			= (int)importLong( map, "source", ENGINE_SOURCE_UNKNOWN );
+	}
+	
+	public boolean
+	sameAs(
+		Engine	other )
+	{
+		try{
+			Map	m1 = exportToBencodedMap();
+			Map	m2 = other.exportToBencodedMap();
+		
+			String[]	to_remove = {"type","id","last_updated","selected","select_rec","source"};
+			
+			for (int i=0;i<to_remove.length;i++){
+				
+				m1.remove( to_remove[i] );
+				m2.remove( to_remove[i] );
+			}
+			
+			return( BEncoder.mapsAreIdentical( m1, m2 ));
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+			
+			return( false );
+		}
 	}
 	
 	protected void
@@ -150,6 +184,8 @@ EngineImpl
 		exportString( map, "name", name );
 		
 		map.put( "selected", new Long( selection_state ));
+		
+		exportBoolean( map, "select_rec", selection_state_recorded );
 		
 		map.put( "source", new Long( source ));
 	}
@@ -287,6 +323,13 @@ EngineImpl
 		return( type );
 	}
 	
+	protected void
+	setId(
+		long		_id )
+	{
+		id	= _id;
+	}
+	
 	public long 
 	getId()
 	{
@@ -385,6 +428,21 @@ EngineImpl
 			
 			meta_search.configDirty();
 		}
+	}
+	
+	public void
+	exportToVuzeFile(
+		File	target )
+	
+		throws IOException
+	{
+		VuzeFile	vf = VuzeFileHandler.getSingleton().create();
+		
+		vf.addComponent(
+			VuzeFileComponent.COMP_TYPE_METASEARCH_TEMPLATE,
+			exportToBencodedMap());
+		
+		vf.write( target );
 	}
 	
 	protected File
