@@ -21,16 +21,154 @@
 
 package com.aelitis.azureus.core.vuzefile;
 
-import java.util.Map;
+import java.io.*;
+import java.util.*;
+
+import org.gudy.azureus2.core3.util.BEncoder;
 
 public class 
 VuzeFileImpl
 	implements VuzeFile
 {
+	private VuzeFileHandler			handler;
+	private VuzeFileComponent[]		components;
+	
 	protected
 	VuzeFileImpl(
-		Map		map )
+		VuzeFileHandler		_handler )
 	{
-		System.out.println( "VuzeFile: " + map );
+		handler = _handler;
+		
+		components = new VuzeFileComponent[0];
+	}
+	
+	protected
+	VuzeFileImpl(
+		VuzeFileHandler		_handler,
+		Map					map )
+	{
+		handler = _handler;
+		
+		List	l_comps = (List)map.get( "components" );
+		
+		components = new VuzeFileComponent[l_comps.size()];
+		
+		for (int i=0;i<l_comps.size();i++){
+			
+			Map	comp = (Map)l_comps.get(i);
+			
+			int	type 	= ((Long)comp.get( "type" )).intValue();
+			Map	content	= (Map)comp.get( "content" );
+			
+			components[i] = new comp( type, content );
+		}
+	}
+	
+	public VuzeFileComponent[] 
+	getComponents()
+	{
+		return( components ); 
+	}
+	
+	public VuzeFileComponent
+	addComponent(
+		int		type,
+		Map		content )
+	{
+		VuzeFileComponent comp = new comp( type, content );
+		
+		int	old_len = components.length;
+		
+		VuzeFileComponent[] res = new VuzeFileComponent[old_len+1];
+		
+		System.arraycopy( components, 0, res, 0, old_len );
+		
+		res[ old_len ] = comp;
+		
+		components = res;
+		
+		return( comp );
+	}
+	
+	public void 
+	write(
+		File target )
+	
+		throws IOException 
+	{
+		Map	map = new HashMap();
+		
+		Map vuze_map = new HashMap();
+		
+		map.put( "vuze", vuze_map );
+		
+		List	list = new ArrayList();
+		
+		vuze_map.put( "components", list );
+		
+		for (int i=0;i<components.length;i++){
+			
+			VuzeFileComponent comp = components[i];
+			
+			Map	entry = new HashMap();
+			
+			entry.put( "type", new Long( comp.getType()));
+			
+			entry.put( "content", comp.getContent());
+			
+			list.add( entry );
+		}
+		
+		FileOutputStream	fos = new FileOutputStream( target );
+		
+		try{
+			fos.write( BEncoder.encode( map ));
+			
+		}finally{
+			
+			fos.close();
+		}
+	}
+	
+	protected class
+	comp
+		implements VuzeFileComponent
+	{
+		private int			type;
+		private Map			contents;
+		private boolean		processed;
+		
+		protected
+		comp(
+			int		_type,
+			Map		_contents )
+		{
+			type		= _type;
+			contents	= _contents;
+		}
+		
+		public int
+		getType()
+		{
+			return( type );
+		}
+		
+		public Map
+		getContent()
+		{
+			return( contents );
+		}
+		
+		public void
+		setProcessed()
+		{
+			processed	= true;
+		}
+		
+		public boolean
+		isProcessed()
+		{
+			return( processed );
+		}
 	}
 }

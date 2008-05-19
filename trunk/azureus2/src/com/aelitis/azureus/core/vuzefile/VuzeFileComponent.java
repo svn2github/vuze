@@ -1,5 +1,5 @@
 /*
- * Created on May 16, 2008
+ * Created on May 19, 2008
  * Created by Paul Gardner
  * 
  * Copyright 2008 Vuze, Inc.  All rights reserved.
@@ -21,24 +21,22 @@
 
 package com.aelitis.azureus.core.vuzefile;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Map;
+import java.util.*;
 
 public interface 
-VuzeFile 
+VuzeFileComponent 
 {
-	public VuzeFileComponent[]
-	getComponents();
+	public static final int COMP_TYPE_METASEARCH_TEMPLATE	= 1;
 	
-	public VuzeFileComponent
-	addComponent(
-		int		type,
-		Map		content );
+	public int
+	getType();
+	
+	public Map
+	getContent();
 	
 	public void
-	write(
-		File	target )
+	setProcessed();
 	
-		throws IOException;
+	public boolean
+	isProcessed();
 }

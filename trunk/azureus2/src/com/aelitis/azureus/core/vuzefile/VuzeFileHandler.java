@@ -27,11 +27,14 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
-import java.util.Map;
+import java.util.*;
 
 import org.gudy.azureus2.core3.util.BDecoder;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
+
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 
 public class 
@@ -44,6 +47,9 @@ VuzeFileHandler
 	{
 		return( singleton );
 	}
+	
+	private CopyOnWriteList	processors = new CopyOnWriteList();
+	
 	
 	protected
 	VuzeFileHandler()
@@ -89,7 +95,7 @@ VuzeFileHandler
 				
 				if ( map.containsKey( "vuze" ) && !map.containsKey( "info" )){
 					
-					return( new VuzeFileImpl( map ));
+					return( new VuzeFileImpl( this, (Map)map.get( "vuze" )));
 				}
 				
 			}finally{
@@ -122,6 +128,49 @@ VuzeFileHandler
 	handleFiles(
 		VuzeFile[]		files )
 	{
+		Iterator it = processors.iterator();
 		
+		while( it.hasNext()){
+			
+			VuzeFileProcessor	proc = (VuzeFileProcessor)it.next();
+			
+			try{
+				proc.process( files );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+		
+		for (int i=0;i<files.length;i++){
+			
+			VuzeFile vf = files[i];
+			
+			VuzeFileComponent[] comps = vf.getComponents();
+			
+			for (int j=0;j<comps.length;j++){
+				
+				VuzeFileComponent comp = comps[j];
+				
+				if ( !comp.isProcessed()){
+				
+					Debug.out( "Failed to handle Vuze file component " + comp.getContent());
+				}
+			}
+		}
+	}
+	
+	public VuzeFile
+	create()
+	{
+		return( new VuzeFileImpl( this ));
+	}
+			
+	public void
+	addProcessor(
+		VuzeFileProcessor		proc )
+	{
+		processors.add( proc );
 	}
 }

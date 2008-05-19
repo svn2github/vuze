@@ -34,6 +34,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.util.jar"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.welcome"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.ipfilter.impl.tests"/>
+        <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.vuzefile"/>
         <javaElement handleIdentifier="=azdiag/&lt;com.aelitis.azureus.vivaldi.ver2"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.progress"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.ui.SWT"/>
