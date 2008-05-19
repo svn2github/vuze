@@ -61,6 +61,6 @@ ConnectionManager
   /**
    * @since 3.0.5.3
    */
-  public TransportFilter createTransportFilter(Transport transport, TransportCipher read_cipher, TransportCipher write_cipher) throws TransportException;
+  public TransportFilter createTransportFilter(Connection connection, TransportCipher read_cipher, TransportCipher write_cipher) throws TransportException;
   
 }

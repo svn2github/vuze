@@ -22,6 +22,7 @@
 
 package org.gudy.azureus2.pluginsimpl.local.network;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.security.spec.AlgorithmParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
@@ -40,11 +41,14 @@ import org.gudy.azureus2.pluginsimpl.local.messaging.MessageStreamEncoderAdapter
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.networkmanager.ConnectionEndpoint;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.networkmanager.impl.TransportHelper;
+import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.TransportHelperFilterStreamCipher;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.ProtocolEndpointTCP;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPTransportHelper;
-
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPTransportImpl;
+import com.aelitis.azureus.core.networkmanager.impl.udp.UDPTransport;
+import com.aelitis.azureus.core.networkmanager.impl.udp.UDPTransportHelper;
 
 
 /**
@@ -88,7 +92,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
 	  com.aelitis.azureus.core.networkmanager.NetworkConnection core_conn =
 		  NetworkManager.getSingleton().createConnection( connection_endpoint, new MessageStreamEncoderAdapter( encoder ), new MessageStreamDecoderAdapter( decoder ), false, false, null );
     
-	  return new ConnectionImpl( core_conn );
+	  return new ConnectionImpl( core_conn, false );
   }
   
   public int
@@ -107,13 +111,35 @@ public class ConnectionManagerImpl implements ConnectionManager {
 	  }
   }
   
-  public TransportFilter createTransportFilter(Transport transport, TransportCipher read_cipher, TransportCipher write_cipher) throws TransportException {
-	  if (!(((TransportImpl)transport).core_transport instanceof TCPTransportImpl)) {
-		  throw new TransportException("transport type not supported - " + ((TransportImpl)transport).core_transport);
-	  }
+  public TransportFilter createTransportFilter(Connection connection, TransportCipher read_cipher, TransportCipher write_cipher) throws TransportException {
+	  Transport transport = connection.getTransport();
+	  com.aelitis.azureus.core.networkmanager.Transport core_transport = ((TransportImpl)transport).core_transport;
+	  TransportHelper helper;
 	  
-	  TCPTransportImpl core_transport = (TCPTransportImpl)((TransportImpl)transport).core_transport;
-	  TCPTransportHelper helper = new TCPTransportHelper(core_transport.getSocketChannel());
+	  if (core_transport instanceof TCPTransportImpl) {
+			helper = new TCPTransportHelper(((TCPTransportImpl)(core_transport)).getSocketChannel());
+	  } else if (core_transport instanceof UDPTransport) {
+		  InetSocketAddress addr = core_transport.getTransportEndpoint().getProtocolEndpoint().getConnectionEndpoint().getNotionalAddress();
+		  if (!connection.isIncoming()) {
+				try {helper = new UDPTransportHelper(UDPNetworkManager.getSingleton().getConnectionManager(), addr, (UDPTransport)core_transport);}
+				catch (IOException ioe) {throw new TransportException(ioe);}
+		  }
+		  else {
+			/**
+			 * Not sure how I can grab the UDPConnection object to pass to the incoming
+			 * connection constructor. The only time I can figure out where we can link
+			 * up the UDPConnection object is in UDPConnectionManager.accept - we have a
+			 * transport object and we construct a UDPConnection object, so we could link
+			 * them there - but I don't know if we really should associate the UDP connection
+			 * with the transport (might breaks encapsulation).
+			 */
+			//helper = new UDPTransportHelper(UDPNetworkManager.getSingleton().getConnectionManager(), addr, (UDPTransport)core_transport);
+			throw new TransportException("udp incoming transport type not supported - " + core_transport);
+		  }
+		} else {
+			throw new TransportException("transport type not supported - " + core_transport);
+	  }
+
 	  TransportHelperFilterStreamCipher core_filter = new TransportHelperFilterStreamCipher(helper, ((TransportCipherImpl)read_cipher).cipher, ((TransportCipherImpl)write_cipher).cipher);
 	  return new TransportFilterImpl(core_filter);
   }

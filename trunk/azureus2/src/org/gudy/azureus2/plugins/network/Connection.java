@@ -70,6 +70,14 @@ public interface Connection {
   public Transport getTransport();
   
   /**
+   * Returns <tt>true</tt> if the connection represents an incoming
+   * connection.
+   * 
+   * @since 3.0.5.3
+   */
+  public boolean isIncoming();
+  
+  /**
    * descriptive text for the connection
    * @return
    */

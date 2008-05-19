@@ -63,7 +63,7 @@ UDPTransportHelper
 		
 	private Map	user_data;
 	
-	protected
+	public
 	UDPTransportHelper(
 		UDPConnectionManager	_manager,
 		InetSocketAddress		_address,
@@ -85,7 +85,7 @@ UDPTransportHelper
 
 	}
 	
-	protected
+	public
 	UDPTransportHelper(
 		UDPConnectionManager	_manager,
 		InetSocketAddress		_address, 

@@ -39,13 +39,15 @@ public class ConnectionImpl implements Connection {
   private final OutgoingMessageQueueImpl out_queue;
   private final IncomingMessageQueueImpl in_queue;
   private final TransportImpl transport;
+  private final boolean incoming;
   
   
-  public ConnectionImpl( com.aelitis.azureus.core.networkmanager.NetworkConnection core_connection ) {
+  public ConnectionImpl( com.aelitis.azureus.core.networkmanager.NetworkConnection core_connection, boolean incoming ) {
     this.core_connection = core_connection;
     this.out_queue = new OutgoingMessageQueueImpl( core_connection.getOutgoingMessageQueue() );
     this.in_queue = new IncomingMessageQueueImpl( core_connection.getIncomingMessageQueue() );
     this.transport = new TransportImpl( core_connection );
+    this.incoming = incoming;
   }
   
   
@@ -90,6 +92,10 @@ public class ConnectionImpl implements Connection {
   
   public com.aelitis.azureus.core.networkmanager.NetworkConnection getCoreConnection() {
     return core_connection;
+  }
+  
+  public boolean isIncoming() {
+	  return this.incoming;
   }
   
   public String

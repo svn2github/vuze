@@ -369,7 +369,7 @@ implements PEPeerTransport
 		
 		peer_item_identity = PeerItemFactory.createPeerItem( ip, port, PeerItem.convertSourceID( _peer_source ), PeerItemFactory.HANDSHAKE_TYPE_PLAIN, 0, PeerItemFactory.CRYPTO_LEVEL_1, 0 );  //this will be recreated upon az handshake decode
 
-		plugin_connection = new ConnectionImpl(connection);
+		plugin_connection = new ConnectionImpl(connection, incoming);
 
 		peer_stats = manager.createPeerStats( this );
 
@@ -526,7 +526,7 @@ implements PEPeerTransport
 					!_require_crypto_handshake, 
 					manager.getSecrets( _crypto_level ));
 
-		plugin_connection = new ConnectionImpl(connection);
+		plugin_connection = new ConnectionImpl(connection, incoming);
 
 		changePeerState( PEPeer.CONNECTING );
 
