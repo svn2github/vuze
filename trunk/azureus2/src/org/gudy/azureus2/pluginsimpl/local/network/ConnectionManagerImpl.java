@@ -42,6 +42,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.networkmanager.ConnectionEndpoint;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.TransportHelper;
+import com.aelitis.azureus.core.networkmanager.impl.TransportHelperFilter;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.TransportHelperFilterStreamCipher;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.ProtocolEndpointTCP;
@@ -117,24 +118,33 @@ public class ConnectionManagerImpl implements ConnectionManager {
 	  TransportHelper helper;
 	  
 	  if (core_transport instanceof TCPTransportImpl) {
-			helper = new TCPTransportHelper(((TCPTransportImpl)(core_transport)).getSocketChannel());
+		  TransportHelperFilter hfilter = ((TCPTransportImpl)core_transport).getFilter();
+		  if (hfilter != null) {helper = hfilter.getHelper();}
+		  else {
+			  helper = new TCPTransportHelper(((TCPTransportImpl)(core_transport)).getSocketChannel());
+		  }
 	  } else if (core_transport instanceof UDPTransport) {
-		  InetSocketAddress addr = core_transport.getTransportEndpoint().getProtocolEndpoint().getConnectionEndpoint().getNotionalAddress();
-		  if (!connection.isIncoming()) {
+		  TransportHelperFilter hfilter = ((UDPTransport)core_transport).getFilter();
+		  if (hfilter != null) {helper = hfilter.getHelper();}
+		  else {
+			  helper = ((UDPTransport)core_transport).getFilter().getHelper();
+			  InetSocketAddress addr = core_transport.getTransportEndpoint().getProtocolEndpoint().getConnectionEndpoint().getNotionalAddress();
+			  if (!connection.isIncoming()) {
 				try {helper = new UDPTransportHelper(UDPNetworkManager.getSingleton().getConnectionManager(), addr, (UDPTransport)core_transport);}
 				catch (IOException ioe) {throw new TransportException(ioe);}
-		  }
-		  else {
-			/**
-			 * Not sure how I can grab the UDPConnection object to pass to the incoming
-			 * connection constructor. The only time I can figure out where we can link
-			 * up the UDPConnection object is in UDPConnectionManager.accept - we have a
-			 * transport object and we construct a UDPConnection object, so we could link
-			 * them there - but I don't know if we really should associate the UDP connection
-			 * with the transport (might breaks encapsulation).
-			 */
-			//helper = new UDPTransportHelper(UDPNetworkManager.getSingleton().getConnectionManager(), addr, (UDPTransport)core_transport);
-			throw new TransportException("udp incoming transport type not supported - " + core_transport);
+			  }
+			  else {
+				/**
+				 * Not sure how I can grab the UDPConnection object to pass to the incoming
+				 * connection constructor. The only time I can figure out where we can link
+				 * up the UDPConnection object is in UDPConnectionManager.accept - we have a
+				 * transport object and we construct a UDPConnection object, so we could link
+				 * them there - but I don't know if we really should associate the UDP connection
+				 * with the transport (might breaks encapsulation).
+				 */
+				  //helper = new UDPTransportHelper(UDPNetworkManager.getSingleton().getConnectionManager(), addr, (UDPTransport)core_transport);
+				  throw new TransportException("udp incoming transport type not supported - " + core_transport);
+			  }
 		  }
 		} else {
 			throw new TransportException("transport type not supported - " + core_transport);

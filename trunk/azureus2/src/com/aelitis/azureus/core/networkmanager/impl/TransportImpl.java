@@ -68,7 +68,7 @@ TransportImpl
 		}
 	}
 	
-	protected TransportHelperFilter
+	public TransportHelperFilter
 	getFilter()
 	{
 		return( filter );
