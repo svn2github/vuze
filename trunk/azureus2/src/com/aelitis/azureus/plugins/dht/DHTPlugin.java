@@ -397,7 +397,7 @@ DHTPlugin
 											}else if ( lhs.equals( "stats" )){
 												
 												try{
-													pos = rhs.indexOf( ":" );
+													pos = rhs.lastIndexOf( ":" );
 													
 													DHTTransportContact	contact;
 													
@@ -415,6 +415,8 @@ DHTPlugin
 																		new InetSocketAddress( host, port ),
 																		transport.getProtocolVersion());
 													}
+													
+													log.log( "Stats request to " + contact.getName());
 													
 													DHTTransportFullStats stats = contact.getStats();
 														
