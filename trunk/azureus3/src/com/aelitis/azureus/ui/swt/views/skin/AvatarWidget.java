@@ -364,10 +364,10 @@ public class AvatarWidget
 					} else if (true == viewer.isShareMode() && false == isSharedAlready()) {
 						tooltipText = "Add to share";
 					} else {
-						tooltipText = vuzeBuddy.getLoginID();
+						tooltipText = getNameTooltip();
 					}
 				} else {
-					tooltipText = vuzeBuddy.getLoginID();
+					tooltipText = getNameTooltip();
 				}
 
 				if (false == tooltipText.equals(lastTooltipText)) {
@@ -393,6 +393,10 @@ public class AvatarWidget
 		});
 
 		initMenu();
+	}
+
+	private String getNameTooltip() {
+		return vuzeBuddy.getDisplayName() + " (" + vuzeBuddy.getLoginID() + ")";
 	}
 
 	private void initMenu() {
