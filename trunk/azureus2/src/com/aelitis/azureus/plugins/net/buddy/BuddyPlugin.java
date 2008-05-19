@@ -73,9 +73,7 @@ import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
-import org.gudy.azureus2.plugins.utils.DelayedTask;
-import org.gudy.azureus2.plugins.utils.UTTimerEvent;
-import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
+import org.gudy.azureus2.plugins.utils.*;
 import org.gudy.azureus2.plugins.utils.security.SEPublicKey;
 import org.gudy.azureus2.plugins.utils.security.SEPublicKeyLocator;
 import org.gudy.azureus2.plugins.utils.security.SESecurityManager;
@@ -409,7 +407,7 @@ BuddyPlugin
 			{
 				public void
 				UIAttached(
-					UIInstance		instance )
+					final UIInstance		instance )
 				{
 					if ( instance instanceof UISWTInstance ){
 						
@@ -421,6 +419,8 @@ BuddyPlugin
 						
 						//swt_ui.openMainView( VIEW_ID, view, null );
 					}
+					
+					setupDisablePrompt(instance);
 				}
 
 				public void
@@ -438,6 +438,17 @@ BuddyPlugin
 					Parameter	param )
 				{
 					boolean enabled = enabled_param.getValue();
+
+					if (param != null && !enabled) {
+						UIInstance[] uis = plugin_interface.getUIManager().getUIInstances();
+						if (uis != null && uis.length > 0) {
+							int i = promptUserOnDisable(uis[0]);
+  						if (i != 0) {
+    						enabled_param.setValue(true);
+  							return;
+  						}
+						}
+					}
 					
 					nick_name_param.setEnabled( enabled );
 					
@@ -498,6 +509,54 @@ BuddyPlugin
 			});
 	}
 	
+	/**
+	 * 
+	 *
+	 * @since 3.0.5.3
+	 */
+	protected void 
+	setupDisablePrompt(
+			final UIInstance ui) 
+	{
+		if (plugin_interface == null) {
+			return;
+		}
+
+		String enabledConfigID = "PluginInfo." + plugin_interface.getPluginID()
+				+ ".enabled";
+		COConfigurationManager.addParameterListener(enabledConfigID,
+				new org.gudy.azureus2.core3.config.ParameterListener() {
+					public void parameterChanged(
+							String parameterName) 
+					{
+						if (COConfigurationManager.getBooleanParameter(parameterName)) {
+							return;
+						}
+
+						if (promptUserOnDisable(ui) != 0) {
+							COConfigurationManager.setParameter(parameterName, true);
+							plugin_interface.setDisabled(false);
+						}
+					}
+				});
+	}
+	
+	protected int
+	promptUserOnDisable(UIInstance ui)
+	{
+		if ("az2".equals(COConfigurationManager.getStringParameter("ui", "az3"))) {
+			return 0;
+		}
+		LocaleUtilities localeUtil = plugin_interface.getUtilities().getLocaleUtilities();
+		return ui.promptUser(
+				localeUtil.getLocalisedMessageText("azbuddy.ui.dialog.disable.title"),
+				localeUtil.getLocalisedMessageText("azbuddy.ui.dialog.disable.text"),
+				new String[] {
+					localeUtil.getLocalisedMessageText("Button.yes"),
+					localeUtil.getLocalisedMessageText("Button.no"),
+				}, 1);
+	}
+
 	protected void
 	startup()
 	{
