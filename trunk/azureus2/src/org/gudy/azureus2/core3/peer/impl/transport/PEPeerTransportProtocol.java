@@ -462,6 +462,11 @@ implements PEPeerTransport
 			byte			_crypto_level,
 			Map				_initial_user_data )
 	{
+
+		if (Logger.isEnabled())
+			Logger.log(new LogEvent(this, LOGID,
+			"Out: About to create outgoing connection"));
+		
 		manager = _manager;
 		diskManager =manager.getDiskManager();
 		piecePicker =manager.getPiecePicker();
