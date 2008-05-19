@@ -27,23 +27,16 @@ import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.plugins.PluginException;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-import org.gudy.azureus2.plugins.ui.config.Parameter;
-import org.gudy.azureus2.pluginsimpl.local.PluginInterfaceImpl;
-import org.gudy.azureus2.pluginsimpl.local.ui.config.BooleanParameterImpl;
-import org.gudy.azureus2.pluginsimpl.local.ui.config.ParameterRepository;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -57,6 +50,15 @@ import org.gudy.azureus2.ui.swt.views.ConfigView;
 
 import com.aelitis.azureus.core.AzureusCore;
 
+import org.gudy.azureus2.plugins.PluginException;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+import org.gudy.azureus2.plugins.ui.config.Parameter;
+
+import org.gudy.azureus2.pluginsimpl.local.PluginInterfaceImpl;
+import org.gudy.azureus2.pluginsimpl.local.ui.config.BooleanParameterImpl;
+import org.gudy.azureus2.pluginsimpl.local.ui.config.ParameterRepository;
+
 /**
  * Configuration Section that lists all the plugins and sets up
  * subsections for plugins that used the PluginConfigModel object.
@@ -66,7 +68,7 @@ import com.aelitis.azureus.core.AzureusCore;
  * @author TuxPaper
  *
  */
-public class ConfigSectionPlugins implements UISWTConfigSection {
+public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListener {
 	private final static String HEADER_PREFIX = "ConfigView.pluginlist.column.";
 
 	private final static String[] COLUMN_HEADERS = { "loadAtStartup", "type",
@@ -84,6 +86,8 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 	FilterComparator comparator;
 	
 	List pluginIFs;
+
+	private Table table;
 	
 	class FilterComparator implements Comparator {
 		boolean ascending = true;
@@ -384,7 +388,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 			}
 		});
 
-		pluginIFs = Arrays.asList(azureusCore.getPluginManager().getPlugins());
+		pluginIFs = rebuildPluginIFs();
 
 		Collections.sort(pluginIFs, new Comparator() {
 			public int compare(Object o1, Object o2) {
@@ -397,8 +401,8 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 		labelInfo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		Messages.setLanguageText(labelInfo, "ConfigView.pluginlist.info");
 
-		final Table table = new Table(infoGroup, SWT.BORDER | SWT.SINGLE
-				| SWT.CHECK | SWT.VIRTUAL | SWT.FULL_SELECTION);
+		table = new Table(infoGroup, SWT.BORDER | SWT.SINGLE | SWT.CHECK
+				| SWT.VIRTUAL | SWT.FULL_SELECTION);
 		gridData = new GridData(GridData.FILL_BOTH);
 		gridData.heightHint = 200;
 		gridData.widthHint = 200;
@@ -451,7 +455,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 								}
 							}
 						}
-						pluginIFs = Arrays.asList(azureusCore.getPluginManager().getPlugins());
+						pluginIFs = rebuildPluginIFs();
 						table.setItemCount(pluginIFs.size());
 						Collections.sort(pluginIFs, comparator);
 						table.clearAll();
@@ -482,7 +486,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 								e1.printStackTrace();
 							}
 						}
-						pluginIFs = Arrays.asList(azureusCore.getPluginManager().getPlugins());
+						pluginIFs = rebuildPluginIFs();
 						table.setItemCount(pluginIFs.size());
 						Collections.sort(pluginIFs, comparator);
 						table.clearAll();
@@ -499,7 +503,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 		btnScan.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				azureusCore.getPluginManager().refreshPluginList();
-				pluginIFs = Arrays.asList(azureusCore.getPluginManager().getPlugins());
+				pluginIFs = rebuildPluginIFs();
 				table.setItemCount(pluginIFs.size());
 				Collections.sort(pluginIFs, comparator);
 				table.clearAll();
@@ -561,6 +565,35 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 		
 
 		return infoGroup;
+	}
+
+	/**
+	 * @return
+	 *
+	 * @since 3.0.5.3
+	 */
+	private List rebuildPluginIFs() {
+		List pluginIFs = Arrays.asList(azureusCore.getPluginManager().getPlugins());
+		for (Iterator iter = pluginIFs.iterator(); iter.hasNext();) {
+			PluginInterface pi = (PluginInterface) iter.next();
+			// COConfigurationManager will not add the same listener twice
+			COConfigurationManager.addParameterListener("PluginInfo."
+					+ pi.getPluginID() + ".enabled", this);
+		}
+		return pluginIFs;
+	}
+	
+	// @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
+	public void parameterChanged(String parameterName) {
+		if (table != null) {
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					if (table != null && !table.isDisposed()) {
+						table.clearAll();
+					}
+				}
+			});
+		}
 	}
 
 	public void initPluginSubSections() {
