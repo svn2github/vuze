@@ -160,10 +160,12 @@ DDBaseTTTorrent
 					break;
 				}
 			}
-								
+				
+			String	originator = contact.getName();
+			
 			if ( download == null ){
 				
-				String msg = "TorrentDownload: request for '" + pi.getUtilities().getFormatters().encodeBytesToString( search_key ) + "' not found";
+				String msg = "TorrentDownload: request from " + originator + " for '" + pi.getUtilities().getFormatters().encodeBytesToString( search_key ) + "' not found";
 				
 				if ( TRACE ){
 					
@@ -184,7 +186,7 @@ DDBaseTTTorrent
 				
 				Debug.out( "Attempt to download private torrent" );
 				
-				ddb.log( "TorrentDownload: request for '" + download.getName() + "' denied as it is private" );
+				ddb.log( "TorrentDownload: request from " + originator + "  for '" + download.getName() + "' denied as it is private" );
 				
 					// should never happen as private torrents are not tracked so they can't be found for
 					// download
@@ -192,7 +194,7 @@ DDBaseTTTorrent
 				return( null );
 			}
 			
-			String	msg = "TorrentDownload: request for '" + download.getName() + "' OK";		
+			String	msg = "TorrentDownload: request from " + originator + "  for '" + download.getName() + "' OK";		
 
 			if ( TRACE ){
 				
