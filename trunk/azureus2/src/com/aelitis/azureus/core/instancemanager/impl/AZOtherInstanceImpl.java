@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.instancemanager.impl;
 
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.util.*;
 
@@ -56,7 +57,14 @@ AZOtherInstanceImpl
 
 			InetAddress	external_address = InetAddress.getByName( ext_ip );
 			
-			return( new AZOtherInstanceImpl(id, internal_address, external_address, tcp, udp, udp_other ));
+				// ignore incompatible address mappings
+			
+			if ( internal_address instanceof Inet4Address == external_address instanceof Inet4Address ){
+				
+				return( new AZOtherInstanceImpl(id, internal_address, external_address, tcp, udp, udp_other ));
+			}
+			
+			return( null );
 			
 		}catch( Throwable e ){
 			

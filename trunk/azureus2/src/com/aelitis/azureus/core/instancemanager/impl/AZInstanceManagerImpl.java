@@ -422,59 +422,62 @@ AZInstanceManagerImpl
 			
 			AZOtherInstanceImpl	instance = AZOtherInstanceImpl.decode( originator_address, (Map)map.get( "orig" ));
 			
-			if ( type == MT_ALIVE ){
+			if ( instance != null ){
 				
-				checkAdd( instance );
-				
-			}else if ( type == MT_BYE ){
-				
-				checkRemove( instance );
-				
-			}else{
-				
-				checkAdd( instance );
-				
-				Map	body = (Map)map.get( "body" );
-				
-				if ( type == MT_REQUEST ){
+				if ( type == MT_ALIVE ){
 					
-					String	originator_id	= instance.getID();
+					checkAdd( instance );
 					
-					if ( !originator_id.equals( my_instance.getID())){
+				}else if ( type == MT_BYE ){
+					
+					checkRemove( instance );
+					
+				}else{
+					
+					checkAdd( instance );
+					
+					Map	body = (Map)map.get( "body" );
+					
+					if ( type == MT_REQUEST ){
 						
-						Map	reply = requestReceived( instance, body );
-					
-						if ( reply != null ){
+						String	originator_id	= instance.getID();
 						
-							reply.put( "oid", originator_id.getBytes());
-							reply.put( "rid", body.get( "rid" ));
+						if ( !originator_id.equals( my_instance.getID())){
 							
-							sendMessage( MT_REPLY, reply, originator );
-						}
-					}
-				}else if ( 	type == MT_REPLY ){
-					
-					String	originator_id	= new String((byte[])body.get( "oid" ));
-					
-					if ( originator_id.equals( my_instance.getID())){
+							Map	reply = requestReceived( instance, body );
 						
-						long req_id = ((Long)body.get("rid")).longValue();
-						
-						try{
-							this_mon.enter();
+							if ( reply != null ){
 							
-							for (int i=0;i<requests.size();i++){
+								reply.put( "oid", originator_id.getBytes());
+								reply.put( "rid", body.get( "rid" ));
 								
-								request	req = (request)requests.get(i);
-								
-								if ( req.getID() == req_id ){
-									
-									req.addReply( instance, body );
-								}
+								sendMessage( MT_REPLY, reply, originator );
 							}
-						}finally{
+						}
+					}else if ( 	type == MT_REPLY ){
+						
+						String	originator_id	= new String((byte[])body.get( "oid" ));
+						
+						if ( originator_id.equals( my_instance.getID())){
 							
-							this_mon.exit();
+							long req_id = ((Long)body.get("rid")).longValue();
+							
+							try{
+								this_mon.enter();
+								
+								for (int i=0;i<requests.size();i++){
+									
+									request	req = (request)requests.get(i);
+									
+									if ( req.getID() == req_id ){
+										
+										req.addReply( instance, body );
+									}
+								}
+							}finally{
+								
+								this_mon.exit();
+							}
 						}
 					}
 				}

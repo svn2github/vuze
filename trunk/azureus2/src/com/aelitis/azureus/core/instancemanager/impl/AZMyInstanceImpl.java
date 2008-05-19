@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.instancemanager.impl;
 
+import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 
 import org.gudy.azureus2.core3.config.COConfigurationListener;
@@ -123,10 +125,15 @@ AZMyInstanceImpl
 				        			localAddressChanged(
 				        				DHTPluginContact	local_contact )
 				        			{
-				        				dht_address 		= local_contact.getAddress().getAddress();
-				        				dht_address_time	= SystemTime.getCurrentTime();
+				        				InetAddress latest_dht_address = local_contact.getAddress().getAddress();
+				        								        				
+				        				if ( sameFamily( internal_address, latest_dht_address )){
 				        				
-				        				manager.informChanged( AZMyInstanceImpl.this );
+					        				dht_address 		= latest_dht_address;
+					        				dht_address_time	= SystemTime.getCurrentTime();
+					        				
+					        				manager.informChanged( AZMyInstanceImpl.this );
+				        				}
 				        			}
 				        		});
 				    	}
@@ -248,7 +255,14 @@ AZMyInstanceImpl
 				// version above
 			
 			try{
-				external_address = dht.getLocalAddress().getAddress().getAddress();
+				InetAddress latest_dht_address = dht.getLocalAddress().getAddress().getAddress();
+				
+					// ignore any v6 addresses from DHT
+				
+				if ( sameFamily( internal_address, latest_dht_address )){
+					
+					external_address = latest_dht_address;
+				}
 	        	
 			}catch( Throwable e ){
 			}
@@ -341,6 +355,14 @@ AZMyInstanceImpl
 		return( external_address );
 	}
 	
+	protected boolean
+	sameFamily(
+		InetAddress	a1,
+		InetAddress a2 )
+	{		
+		return( a1 instanceof Inet4Address == a2 instanceof Inet4Address );
+	}
+			
 	public String
 	getID()
 	{
