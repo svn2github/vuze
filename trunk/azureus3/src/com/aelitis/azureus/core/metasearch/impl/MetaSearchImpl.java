@@ -213,6 +213,38 @@ MetaSearchImpl
 				private AsyncDispatcher dispatcher = new AsyncDispatcher( 5000 );
 
 				public void 
+				contentReceived(
+					final Engine engine, 
+					final String content ) 
+				{
+					dispatcher.dispatch(
+							new AERunnable()
+							{
+								public void
+								runSupport()
+								{
+									original_listener.contentReceived( engine, content );
+								}
+							});
+				}
+				
+				public void 
+				matchFound(
+					final Engine 	engine, 
+					final String[] 	fields )
+				{
+					dispatcher.dispatch(
+							new AERunnable()
+							{
+								public void
+								runSupport()
+								{
+									original_listener.matchFound( engine, fields );
+								}
+							});	
+				}
+				
+				public void 
 				resultsReceived(
 					final Engine 	engine,
 					final Result[] 	results )
@@ -245,7 +277,8 @@ MetaSearchImpl
 			
 				public void 
 				engineFailed(
-					final Engine engine )
+					final Engine 	engine,
+					final Throwable	e )
 				{
 					dispatcher.dispatch(
 							new AERunnable()
@@ -253,7 +286,7 @@ MetaSearchImpl
 								public void
 								runSupport()
 								{
-									original_listener.engineFailed( engine );
+									original_listener.engineFailed( engine, e );
 								}
 							});
 				}

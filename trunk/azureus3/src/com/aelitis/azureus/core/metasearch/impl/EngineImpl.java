@@ -34,6 +34,10 @@ import org.json.simple.JSONObject;
 
 import com.aelitis.azureus.core.messenger.config.PlatformMetaSearchMessenger;
 import com.aelitis.azureus.core.metasearch.Engine;
+import com.aelitis.azureus.core.metasearch.Result;
+import com.aelitis.azureus.core.metasearch.ResultListener;
+import com.aelitis.azureus.core.metasearch.SearchException;
+import com.aelitis.azureus.core.metasearch.SearchParameter;
 import com.aelitis.azureus.core.metasearch.impl.web.json.JSONEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.regex.RegexEngine;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
@@ -170,6 +174,42 @@ EngineImpl
 			return( false );
 		}
 	}
+	
+	public Result[]
+  	search(
+  		SearchParameter[] 	params )
+  	
+  		throws SearchException
+  	{
+		return( searchSupport( params, -1, null ));
+  	}
+	
+	public void
+	search(
+		SearchParameter[] 	params,
+		int					max_matches,
+		ResultListener		listener )
+	{
+		try{
+			Result[] results = searchSupport( params, max_matches, listener) ;
+			
+			listener.resultsReceived( this, results );
+			
+			listener.resultsComplete( this );
+			
+		}catch( Throwable e ){
+			
+			listener.engineFailed( this, e);
+		}
+	}
+	
+	protected abstract Result[]
+	searchSupport(
+		SearchParameter[] 	params,
+		int					max_matches,
+		ResultListener		listener )
+	
+		throws SearchException;
 	
 	public void
 	delete()

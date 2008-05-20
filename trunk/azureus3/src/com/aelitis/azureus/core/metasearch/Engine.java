@@ -27,11 +27,17 @@ Engine
 	
 	public int getType();
 	
-	public Result[] 
+	public Result[]
 	search(
-		SearchParameter[] searchParameters ) 
+		SearchParameter[] 	searchParameters )
 	
 		throws SearchException;
+	
+	public void
+	search(
+		SearchParameter[] 	searchParameters,
+		int					max_matches,
+		ResultListener		listener );
 	
 	public String 
 	getName();

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 
@@ -34,7 +35,8 @@ public class MetaSearchListener extends AbstractMessageListener {
 	public static final String OP_SAVE_TEMPLATE		 	= "save-template";
 	public static final String OP_LOAD_TEMPLATE		 	= "load-template";
 	public static final String OP_DELETE_TEMPLATE		= "delete-template";
-
+	public static final String OP_TEST_TEMPLATE			= "test-template";
+	
 		
 	public MetaSearchListener() {
 		super(LISTENER_ID);
@@ -57,7 +59,16 @@ public class MetaSearchListener extends AbstractMessageListener {
 
 			ResultListener listener = new ResultListener() {
 				
-				public void engineFailed(Engine engine) {
+				public void contentReceived(Engine engine, String content) {
+					// TODO Auto-generated method stub
+
+				}
+				
+				public void matchFound(Engine engine, String[] fields) {
+					// TODO Auto-generated method stub
+					
+				}
+				public void engineFailed(Engine engine, Throwable e) {
 					
 					context.sendBrowserMessage("metasearch", "engineFailed",getParams( engine ));
 				}
@@ -280,6 +291,117 @@ public class MetaSearchListener extends AbstractMessageListener {
 				Map params = new HashMap();
 				params.put( "id", new Long( id ));
 				context.sendBrowserMessage( "metasearch", "deleteTemplateCompleted", params );
+			}
+		} else if( OP_TEST_TEMPLATE.equals(opid)){
+			
+			Map decodedMap = message.getDecodedMap();
+
+			final long	id		= ((Long)decodedMap.get( "id" )).longValue();
+			long	match_count	= ((Long)decodedMap.get( "max_matches" )).longValue();
+			
+			String searchText = (String) decodedMap.get("searchText");
+			
+			final Long	sid = (Long)decodedMap.get( "sid" );
+
+			Engine engine = metaSearchManager.getMetaSearch().getEngine( id );
+			
+			if ( engine == null ){
+			
+				Map params = new HashMap();
+				params.put( "id", new Long( id ));
+				params.put( "error", "Template not found" );
+				if ( sid != null )params.put( "sid", sid );
+
+				context.sendBrowserMessage("metasearch", "testTemplateFailed",params);
+			
+			}else{
+				
+				try{
+					SearchParameter parameter = new SearchParameter("s",searchText);
+					SearchParameter[] parameters = new SearchParameter[] {parameter};
+
+					engine.search(
+							parameters, 
+							(int)match_count,
+							new ResultListener()
+							{
+								private String	content;
+								private List	matches = new ArrayList();
+								
+								public void 
+								contentReceived(
+									Engine 		engine, 
+									String 		_content )
+								{
+									content = _content;
+								}
+								
+								public void 
+								matchFound(
+									Engine 		engine,
+									String[] 	fields) 
+								{
+									matches.add( fields );
+								}
+								
+								public void 
+								resultsReceived(
+									Engine 		engine,
+									Result[] 	results )
+								{								
+								}
+								
+								public void 
+								resultsComplete(
+									Engine 		engine )
+								{
+									Map params = new HashMap();
+									params.put( "id", new Long( id ));
+									params.put( "page", JSONObject.escape( content ));
+
+									JSONArray	l_matches = new JSONArray();
+									
+									params.put( "matches", l_matches );
+									
+									for (int i=0;i<matches.size();i++){
+										
+										String[]	match = (String[])matches.get(i);
+										
+										JSONArray	l_match = new JSONArray();
+										
+										l_matches.add( l_match );
+										
+										for (int j=0;j<match.length;j++){
+											
+											l_match.add( match[j] );
+										}
+									}
+									
+									if ( sid != null )params.put( "sid", sid );
+								
+									context.sendBrowserMessage( "metasearch", "testTemplateCompleted", params );
+				
+								}
+								
+								public void 
+								engineFailed(
+									Engine 		engine,
+									Throwable 	e )
+								{
+									
+								}
+							});
+										
+				}catch( Throwable e ){
+					
+					Map params = new HashMap();
+					params.put( "id", new Long( id ));
+					params.put("error",Debug.getNestedExceptionMessage(e));
+					if ( sid != null )params.put( "sid", sid );
+
+					context.sendBrowserMessage("metasearch", "testTemplateFailed",params);
+		
+				}
 			}		
 		}
 	}

@@ -13,6 +13,7 @@ import org.json.simple.JSONValue;
 
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.Result;
+import com.aelitis.azureus.core.metasearch.ResultListener;
 import com.aelitis.azureus.core.metasearch.SearchException;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
 import com.aelitis.azureus.core.metasearch.impl.EngineImpl;
@@ -131,9 +132,19 @@ JSONEngine
 		super.exportToJSONObject( res );
 	}
 	
-	public Result[] search(SearchParameter[] searchParameters) throws SearchException {
-		
+	protected Result[]
+	searchSupport(
+		SearchParameter[] 	searchParameters,
+		int					max_matches,
+		ResultListener		listener )
+	
+		throws SearchException
+	{	
 		String page = super.getWebPageContent(searchParameters);
+		
+		if ( listener != null ){
+			listener.contentReceived( this, page );
+		}
 		
 		FieldMapping[] mappings = getMappings();
 
@@ -172,10 +183,22 @@ JSONEngine
 					List results = new ArrayList();
 					
 					for(int i = 0 ; i < resultArray.size() ; i++) {
+						
 						Object obj = resultArray.get(i);
+						
 						if(obj instanceof JSONObject) {
 							JSONObject jsonEntry = (JSONObject) obj;
+							
+							if ( max_matches >= 0 ){
+								if ( --max_matches < 0 ){
+									break;
+								}
+							}
+							
 							WebResult result = new WebResult(getRootPage(),getBasePage(),getDateParser());
+							
+							List bits = listener==null?null:new ArrayList();
+							
 							for(int j = 0 ; j < mappings.length ; j++) {
 								String fieldFrom = mappings[j].getName();
 								if(fieldFrom != null) {
@@ -183,6 +206,11 @@ JSONEngine
 									Object fieldContentObj = ((Object)jsonEntry.get(fieldFrom));
 									if(fieldContentObj != null) {
 										String fieldContent = fieldContentObj.toString();
+
+										if ( bits != null ){
+											bits.add( fieldContent );
+										}
+										
 										switch(fieldTo) {
 										case FIELD_NAME :
 											result.setNameFromHTML(fieldContent);
@@ -217,6 +245,12 @@ JSONEngine
 									}
 								}
 							}
+							
+							if ( bits != null ){
+								
+								listener.matchFound( this,(String[])bits.toArray(new String[bits.size()]));
+							}
+							
 							results.add(result);
 							
 						}

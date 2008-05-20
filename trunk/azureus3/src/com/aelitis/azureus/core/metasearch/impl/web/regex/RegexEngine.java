@@ -10,6 +10,7 @@ import org.json.simple.JSONObject;
 
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.Result;
+import com.aelitis.azureus.core.metasearch.ResultListener;
 import com.aelitis.azureus.core.metasearch.SearchException;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
 import com.aelitis.azureus.core.metasearch.impl.EngineImpl;
@@ -143,16 +144,23 @@ RegexEngine
 		pattern			= Pattern.compile(pattern_str);
 	}
 	
-	public Result[] 
-	search(
-		SearchParameter[] searchParameters ) 
+	protected Result[] 
+	searchSupport(
+		SearchParameter[] 	searchParameters,
+		int					max_matches,
+		ResultListener		listener )
 	
 		throws SearchException 
 	{
 		debugStart();
 				
 		String page = getWebPageContent(searchParameters);
-				
+			
+		if ( listener != null ){
+			
+			listener.contentReceived( this, page );
+		}
+		
 		debugLog( "pattern: " + pattern_str );
 		
 		/*
@@ -205,6 +213,23 @@ RegexEngine
 					
 				while( m.find()){
 					
+					if ( max_matches >= 0 ){
+						if ( --max_matches < 0 ){
+							break;
+						}
+					}
+					
+					if ( listener != null ){
+						
+						String[]	groups = new String[m.groupCount()-1];
+						
+						for (int i=0;i<groups.length;i++){
+							groups[i] = m.group(i+1);
+						}
+						
+						listener.matchFound( this, groups );
+					}
+					
 					debugLog( "Found match:" );
 					
 					WebResult result = new WebResult(getRootPage(),getBasePage(),getDateParser());
@@ -252,6 +277,7 @@ RegexEngine
 							}
 						}
 					}
+					
 					results.add(result);
 				}
 								
