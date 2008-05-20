@@ -171,6 +171,12 @@ EngineImpl
 		}
 	}
 	
+	public void
+	delete()
+	{
+		meta_search.removeEngine( this );
+	}
+	
 	protected void
 	exportToBencodedMap(
 		Map		map )

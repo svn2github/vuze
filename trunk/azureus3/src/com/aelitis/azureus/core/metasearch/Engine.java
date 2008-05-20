@@ -91,6 +91,9 @@ Engine
 	sameAs(
 		Engine	other );
 	
+	public void
+	delete();
+	
 	public String
 	getString();
 }

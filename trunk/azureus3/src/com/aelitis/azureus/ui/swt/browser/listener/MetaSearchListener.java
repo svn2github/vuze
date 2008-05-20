@@ -33,6 +33,7 @@ public class MetaSearchListener extends AbstractMessageListener {
 	
 	public static final String OP_SAVE_TEMPLATE		 	= "save-template";
 	public static final String OP_LOAD_TEMPLATE		 	= "load-template";
+	public static final String OP_DELETE_TEMPLATE		= "delete-template";
 
 		
 	public MetaSearchListener() {
@@ -207,6 +208,7 @@ public class MetaSearchListener extends AbstractMessageListener {
 			}catch( Throwable e ){
 				
 				Map params = new HashMap();
+				params.put( "id", new Long( id ));
 				params.put("error",Debug.getNestedExceptionMessage(e));
 
 				context.sendBrowserMessage("metasearch", "saveTemplateFailed",params);
@@ -222,6 +224,7 @@ public class MetaSearchListener extends AbstractMessageListener {
 			if ( engine == null ){
 			
 				Map params = new HashMap();
+				params.put( "id", new Long( id ));
 				params.put("error","Template not found");
 
 				context.sendBrowserMessage("metasearch", "loadTemplateFailed",params);
@@ -240,10 +243,43 @@ public class MetaSearchListener extends AbstractMessageListener {
 				}catch( Throwable e ){
 					
 					Map params = new HashMap();
+					params.put( "id", new Long( id ));
 					params.put("error",Debug.getNestedExceptionMessage(e));
 
 					context.sendBrowserMessage("metasearch", "loadTemplateFailed",params);
 				}
+			}		
+		} else if( OP_DELETE_TEMPLATE.equals(opid)){
+			
+			Map decodedMap = message.getDecodedMap();
+
+			long	id	= ((Long)decodedMap.get( "id" )).longValue();
+			
+			Engine engine = metaSearchManager.getMetaSearch().getEngine( id );
+			
+			if ( engine == null ){
+			
+				Map params = new HashMap();
+				params.put( "id", new Long( id ));
+				params.put( "error", "Template not found" );
+
+				context.sendBrowserMessage("metasearch", "deleteTemplateFailed",params);
+			
+			}else if ( engine.getSource() != Engine.ENGINE_SOURCE_LOCAL ){
+			
+				Map params = new HashMap();
+				params.put( "id", new Long( id ));
+				params.put( "error", "Template is not local" );
+
+				context.sendBrowserMessage("metasearch", "deleteTemplateFailed",params);
+				
+			}else{
+				
+				engine.delete();
+				
+				Map params = new HashMap();
+				params.put( "id", new Long( id ));
+				context.sendBrowserMessage( "metasearch", "deleteTemplateCompleted", params );
 			}		
 		}
 	}
