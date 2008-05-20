@@ -933,7 +933,8 @@ BuddyPluginBuddy
 		}
 		
 		try{
-			logMessage( "Allocating msg " + current_message.getString() + " to con " + bc.getString());
+			String bc_string = (bc == null) ? "null" : bc.getString();
+			logMessage( "Allocating msg " + current_message.getString() + " to con " + bc_string);
 
 			bc.sendMessage( current_message, false );
 		
