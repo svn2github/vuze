@@ -395,8 +395,6 @@ DHTDBImpl
 			
 			for (int i=0;i<values.length;i++){
 				
-				DHTTransportValue	t_value = values[i];
-								
 					// last check, verify that the contact is who they say they are, only for non-forwards
 					// as cache forwards are only accepted if they are "close enough" and we can't 
 					// rely on their identify due to the way that cache republish works (it doesn't
