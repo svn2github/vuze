@@ -365,7 +365,7 @@ public class ButtonBar
 
 	protected void addBuddy() {
 		if (!VuzeBuddyManager.isEnabled()) {
-			Utils.openMessageBox(Utils.findAnyShell(), SWT.OK, "DISABLED", "DUH! DISABLED DOOD");
+			VuzeBuddyManager.showDisabledDialog();
 			return;
 		}
 

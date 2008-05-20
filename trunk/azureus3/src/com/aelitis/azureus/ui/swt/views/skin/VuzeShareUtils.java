@@ -26,7 +26,7 @@ public class VuzeShareUtils
 
 	public void shareTorrent(final SelectedContent currentContent) {
 		if (!VuzeBuddyManager.isEnabled()) {
-			Utils.openMessageBox(Utils.findAnyShell(), SWT.OK, "DISABLED", "DUH! DISABLED DOOD");
+			VuzeBuddyManager.showDisabledDialog();
 			return;
 		}
 

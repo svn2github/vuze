@@ -33,6 +33,8 @@ import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.*;
 import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.plugins.net.buddy.*;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.Constants;
@@ -1280,6 +1282,10 @@ public class VuzeBuddyManager
 	 */
 	public static void acceptInvite(final String code, final String pks[])
 			throws NotLoggedInException {
+		if (!isEnabled()) {
+			showDisabledDialog();
+			return;
+		}
 		// sync will get new buddy connection
 		PlatformBuddyMessenger.sync(new VuzeBuddySyncListener() {
 			public void syncComplete() {
@@ -1500,5 +1506,16 @@ public class VuzeBuddyManager
 	 */
 	public static boolean isEnabled() {
 		return pluginEnabled;
+	}
+	
+	public static void showDisabledDialog() {
+		UIFunctions uif = UIFunctionsManager.getUIFunctions();
+		if (uif != null) {
+			uif.promptUser("DISABLED",
+					"DUH! DISABLED DOOD\nNo Invites, No Shares, No Buddies.",
+					new String[] {
+						"HAHA, I Knew that"
+					}, 0, null, null, false, 0);
+		}
 	}
 }
