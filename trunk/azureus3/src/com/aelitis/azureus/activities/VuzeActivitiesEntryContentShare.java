@@ -70,8 +70,6 @@ public class VuzeActivitiesEntryContentShare
 		setTypeID(TYPEID_BUDDYSHARE, true);
 		setID(TYPEID_BUDDYSHARE + "-" + SystemTime.getCurrentTime());
 
-		String profileURL = "<A HREF=\"" + userInfo.getProfileUrl(TYPEID_BUDDYSHARE)
-				+ "\">" + userInfo.displayName + "</A>";
 		String contentString;
 
 		if (ourContent || torrent == null) {
@@ -92,7 +90,7 @@ public class VuzeActivitiesEntryContentShare
 				? "v3.activity.share-content.no-msg" : "v3.activity.share-content";
 		
 		String text = MessageText.getString(textid, new String[] {
-			profileURL,
+			userInfo.getProfileAHREF(TYPEID_BUDDYSHARE),
 			contentString,
 			userInfo.displayName,
 			message

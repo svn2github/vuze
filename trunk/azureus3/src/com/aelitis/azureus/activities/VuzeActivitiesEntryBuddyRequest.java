@@ -49,12 +49,9 @@ public class VuzeActivitiesEntryBuddyRequest
 
 		String urlAccept = Constants.appendURLSuffix(acceptURL);
 
-		String buddyURL = "<A HREF=\"" + buddy.getProfileUrl(TYPEID_BUDDYREQUEST)
-				+ "\">" + buddy.getDisplayName() + "</A>";
-
 		String text = MessageText.getString("v3.activity.buddy-request",
 				new String[] {
-					buddyURL,
+					buddy.getProfileAHREF(TYPEID_BUDDYREQUEST),
 					urlAccept
 				});
 		

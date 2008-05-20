@@ -21,6 +21,7 @@ package com.aelitis.azureus.buddy.impl;
 import java.io.File;
 import java.util.*;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.activities.*;
@@ -1511,10 +1512,9 @@ public class VuzeBuddyManager
 	public static void showDisabledDialog() {
 		UIFunctions uif = UIFunctionsManager.getUIFunctions();
 		if (uif != null) {
-			uif.promptUser("DISABLED",
-					"DUH! DISABLED DOOD\nNo Invites, No Shares, No Buddies.",
-					new String[] {
-						"HAHA, I Knew that"
+			uif.promptUser(MessageText.getString("v3.buddies.disabled.title"),
+					MessageText.getString("v3.buddies.disabled.text"), new String[] {
+						MessageText.getString("Button.ok")
 					}, 0, null, null, false, 0);
 		}
 	}

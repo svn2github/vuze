@@ -45,12 +45,9 @@ public class VuzeActivitiesEntryBuddyLinkup
 	}
 
 	public VuzeActivitiesEntryBuddyLinkup(VuzeBuddy buddy) {
-		String url = "<A HREF=\"" + buddy.getProfileUrl("new-buddy-inform") + "\">"
-				+ buddy.getDisplayName() + "</A>";
-
 		String text = MessageText.getString("v3.activity.buddy-linkup",
 				new String[] {
-					url
+					buddy.getProfileAHREF("new-buddy-inform")
 				});
 
 		setTypeID("buddy-new", true);

@@ -112,10 +112,27 @@ public class LoginInfoManager
 		 */
 		public final String pk = LoginInfoManager.this.pk;
 		
-		public String getProfileUrl(String referer) {
-			return Constants.URL_PREFIX + Constants.URL_PROFILE
-					+ UrlUtils.encode(userName) + "?" + Constants.URL_SUFFIX
-					+ "&client_ref=" + UrlUtils.encode(referer);
+		public String getProfileAHREF(String referer) {
+			StringBuffer buf = new StringBuffer();
+			buf.append("<A HREF=\"");
+			buf.append(Constants.URL_PREFIX);
+			buf.append(Constants.URL_PROFILE);
+			buf.append(UrlUtils.encode(userName));
+			buf.append("?");
+			buf.append(Constants.URL_SUFFIX);
+			buf.append("&client_ref=");
+			buf.append(UrlUtils.encode(referer));
+			buf.append("\" TITLE=\"");
+			buf.append(displayName);
+			if (!displayName.equals(userName)) {
+				buf.append(" (");
+				buf.append(userName);
+				buf.append(")");
+			}
+			buf.append("\">");
+			buf.append(displayName);
+			buf.append("</A>");
+			return buf.toString();
 		}
 	}
 

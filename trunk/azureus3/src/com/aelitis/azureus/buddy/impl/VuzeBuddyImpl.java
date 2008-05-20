@@ -24,6 +24,7 @@ import java.util.*;
 import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.UrlUtils;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.activities.VuzeActivitiesEntryContentShare;
@@ -309,6 +310,30 @@ public class VuzeBuddyImpl
 
 	public void setCode(String code) {
 		this.code = code;
+	}
+
+	public String getProfileAHREF(String referer) {
+		StringBuffer buf = new StringBuffer();
+
+		buf.append("<A HREF=\"");
+		buf.append(Constants.URL_PREFIX);
+		buf.append(Constants.URL_PROFILE);
+		buf.append(UrlUtils.encode(loginID));
+		buf.append("?");
+		buf.append(Constants.URL_SUFFIX);
+		buf.append("&client_ref=");
+		buf.append(UrlUtils.encode(referer));
+		buf.append("\" TITLE=\"");
+		buf.append(displayName);
+		if (!loginID.equals(displayName)) {
+			buf.append(" (");
+			buf.append(loginID);
+			buf.append(")");
+		}
+		buf.append("\">");
+		buf.append(displayName);
+		buf.append("</A>");
+		return buf.toString();
 	}
 
 	public String getProfileUrl(String referer) {
