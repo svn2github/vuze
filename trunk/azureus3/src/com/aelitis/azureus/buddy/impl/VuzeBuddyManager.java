@@ -600,7 +600,7 @@ public class VuzeBuddyManager
   						String nickname = buddyPlugin.getNickname();
   						if (nickname == null || nickname.length() == 0) {
   							buddyPlugin.setNickname(info.userName + " ("
-  									+ info.pk.substring(0, 2) + ")");
+  									+ info.pk.substring(0, 3) + ")");
   						}
 						}
 					}
