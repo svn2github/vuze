@@ -404,10 +404,6 @@ public class VivaldiPanel {
 		gc.drawLine(x0, y0-15, x0, y0+15); // Vertical
   }
   
-  private void drawBorder(GC gc) {
-    
-  }
-
 	public int getAlpha() {
 		return alpha;
 	}
