@@ -275,6 +275,10 @@ public class PlatformRelayMessenger
 		listeners.add(l);
 	}
 
+	public static final void removeRelayServerListener(VuzeRelayListener l) {
+		listeners.remove(l);
+	}
+
 	private static final void ack(long id, byte[] ack) {
 		String myPK;
 		try {
