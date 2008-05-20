@@ -3096,6 +3096,8 @@ DownloadManagerImpl
 		  throw new RuntimeException("canMoveDataFiles is false!");
 	  }
 	  
+	  Debug.out("moveDataFiles called for " + this.getDisplayName() + ": " + destination + " <-> " + new_name);
+	  
 	  try{
 		  FileUtil.runAsTask(
 				new AzureusCoreOperationTask()
