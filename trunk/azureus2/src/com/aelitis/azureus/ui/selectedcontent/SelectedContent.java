@@ -15,11 +15,10 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
- 
+
 package com.aelitis.azureus.ui.selectedcontent;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.torrent.TOTorrentException;
 
 /**
  * Represents a piece of content (torrent) that is selected
@@ -31,14 +30,17 @@ import org.gudy.azureus2.core3.torrent.TOTorrentException;
 public class SelectedContent
 {
 	public String hash;
+
 	public DownloadManager dm;
+
 	public String displayName;
 
 	/**
 	 * @param dm2
 	 * @throws Exception 
 	 */
-	public SelectedContent(DownloadManager dm) throws Exception {
+	public SelectedContent(DownloadManager dm)
+			throws Exception {
 		this.dm = dm;
 		this.hash = dm.getTorrent().getHashWrapper().toBase32String();
 		displayName = dm.getDisplayName();
@@ -50,5 +52,8 @@ public class SelectedContent
 	public SelectedContent(String hash, String displayName) {
 		this.hash = hash;
 		this.displayName = displayName;
+	}
+
+	public SelectedContent() {
 	}
 }
