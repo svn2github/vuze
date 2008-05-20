@@ -2,11 +2,10 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import org.eclipse.swt.SWT;
 
-import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
-import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
 
@@ -27,6 +26,13 @@ public class VuzeShareUtils
 	public void shareTorrent(final SelectedContent currentContent) {
 		if (!VuzeBuddyManager.isEnabled()) {
 			VuzeBuddyManager.showDisabledDialog();
+			return;
+		}
+		
+		if (currentContent.dm != null
+				&& TorrentUtils.getPrivate(currentContent.dm.getTorrent())) {
+			Utils.openMessageBox(Utils.findAnyShell(), SWT.OK, "v3.share.private",
+					(String[]) null);
 			return;
 		}
 
