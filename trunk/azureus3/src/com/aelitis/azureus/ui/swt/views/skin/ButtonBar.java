@@ -364,6 +364,11 @@ public class ButtonBar
 	}
 
 	protected void addBuddy() {
+		if (!VuzeBuddyManager.isEnabled()) {
+			Utils.openMessageBox(Utils.findAnyShell(), SWT.OK, "DISABLED", "DUH! DISABLED DOOD");
+			return;
+		}
+
 		SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
 			public void loginComplete() {
 				_addBuddy();
