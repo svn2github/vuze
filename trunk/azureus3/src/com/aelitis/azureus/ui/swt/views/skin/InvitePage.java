@@ -7,6 +7,10 @@ import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.MessageBox;
+
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
@@ -149,6 +153,16 @@ public class InvitePage
 
 							System.err.println("\t'invite-confirm' called from invite buddy page: "
 									+ getConfirmationMessage());//KN: sysout
+
+							if (null != getConfirmationMessage()) {
+								Utils.execSWTThread(new AERunnable() {
+
+									public void runSupport() {
+										Utils.openMessageBox(content.getShell(), SWT.OK, "Invite",
+												getConfirmationMessage());
+									}
+								});
+							}
 
 						}
 					}

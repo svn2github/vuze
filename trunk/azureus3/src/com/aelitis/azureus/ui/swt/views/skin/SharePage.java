@@ -547,10 +547,8 @@ public class SharePage
 						Utils.execSWTThread(new AERunnable() {
 
 							public void runSupport() {
-								MessageBox mb = new MessageBox(inviteePanel.getShell(),
-										SWT.ICON_INFORMATION | SWT.OK);
-								mb.setMessage(getConfirmationMessage());
-								mb.open();
+								Utils.openMessageBox(content.getShell(), SWT.OK, "Share",
+										getConfirmationMessage());
 							}
 						});
 					}

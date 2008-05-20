@@ -83,6 +83,7 @@ public abstract class AbstractBuddyPageListener
 				System.out.println("------CONFIRM: " + getmessageObj);
 				if (getmessageObj instanceof Map) {
 					confirmationResponse = (Map) getmessageObj;
+					confirmationMessage = MapUtils.getMapString(confirmationResponse, "message", null);
 				} else if (getmessageObj instanceof String) {
 					confirmationMessage = getmessageObj.toString();
 					System.out.println("confirmationMessage revived: " + confirmationMessage);//KN: sysout
