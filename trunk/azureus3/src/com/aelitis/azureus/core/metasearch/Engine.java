@@ -28,8 +28,15 @@ Engine
 	public int getType();
 	
 	public Result[]
+  	search(
+  		SearchParameter[] 	searchParameters )
+  	
+  		throws SearchException;
+	
+	public Result[]
 	search(
-		SearchParameter[] 	searchParameters )
+		SearchParameter[] 	searchParameters,
+		String				headers )
 	
 		throws SearchException;
 	
@@ -37,6 +44,7 @@ Engine
 	search(
 		SearchParameter[] 	searchParameters,
 		int					max_matches,
+		String				headers,
 		ResultListener		listener );
 	
 	public String 

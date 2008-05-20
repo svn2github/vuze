@@ -6,7 +6,8 @@ MetaSearch
 	public void 
 	search(
 		ResultListener 		listener,
-		SearchParameter[] 	searchParameters );
+		SearchParameter[] 	searchParameters,
+		String				headers );
 	
 	public Engine[] 
 	getEngines(

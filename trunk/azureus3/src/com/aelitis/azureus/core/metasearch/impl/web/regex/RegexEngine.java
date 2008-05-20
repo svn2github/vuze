@@ -148,13 +148,14 @@ RegexEngine
 	searchSupport(
 		SearchParameter[] 	searchParameters,
 		int					max_matches,
+		String				headers,
 		ResultListener		listener )
 	
 		throws SearchException 
 	{
 		debugStart();
 				
-		String page = getWebPageContent(searchParameters);
+		String page = getWebPageContent( searchParameters, headers );
 			
 		if ( listener != null ){
 			

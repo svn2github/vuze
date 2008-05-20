@@ -136,11 +136,12 @@ JSONEngine
 	searchSupport(
 		SearchParameter[] 	searchParameters,
 		int					max_matches,
+		String				headers, 
 		ResultListener		listener )
 	
 		throws SearchException
 	{	
-		String page = super.getWebPageContent(searchParameters);
+		String page = super.getWebPageContent( searchParameters, headers );
 		
 		if ( listener != null ){
 			listener.contentReceived( this, page );

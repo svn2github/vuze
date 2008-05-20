@@ -194,7 +194,8 @@ MetaSearchImpl
 	public void 
 	search(
 		final ResultListener 	original_listener,
-		SearchParameter[] 		searchParameters ) 
+		SearchParameter[] 		searchParameters,
+		String					headers )
 	{
 		String	param_str = "";
 		
@@ -308,7 +309,7 @@ MetaSearchImpl
 
 		for (int i=0;i<engines.length;i++){
 			
-			se.search( engines[i], searchParameters);
+			se.search( engines[i], searchParameters, headers );
 		}
 	}
 	

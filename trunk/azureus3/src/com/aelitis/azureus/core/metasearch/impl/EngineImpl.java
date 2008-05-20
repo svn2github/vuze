@@ -176,22 +176,33 @@ EngineImpl
 	}
 	
 	public Result[]
+	search(
+		SearchParameter[] 	params )
+	
+		throws SearchException
+	{
+		return( searchSupport( params, -1, null, null ));
+	}
+	
+	public Result[]
   	search(
-  		SearchParameter[] 	params )
+  		SearchParameter[] 	params,
+  		String				headers )
   	
   		throws SearchException
   	{
-		return( searchSupport( params, -1, null ));
+		return( searchSupport( params, -1, headers, null ));
   	}
 	
 	public void
 	search(
 		SearchParameter[] 	params,
 		int					max_matches,
+		String				headers,
 		ResultListener		listener )
 	{
 		try{
-			Result[] results = searchSupport( params, max_matches, listener) ;
+			Result[] results = searchSupport( params, max_matches, headers, listener) ;
 			
 			listener.resultsReceived( this, results );
 			
@@ -207,6 +218,7 @@ EngineImpl
 	searchSupport(
 		SearchParameter[] 	params,
 		int					max_matches,
+		String				headers,
 		ResultListener		listener )
 	
 		throws SearchException;

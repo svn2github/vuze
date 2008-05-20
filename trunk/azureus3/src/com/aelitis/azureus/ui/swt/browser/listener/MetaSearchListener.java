@@ -55,6 +55,8 @@ public class MetaSearchListener extends AbstractMessageListener {
 			
 			String searchText = (String) decodedMap.get("searchText");
 			
+			String headers = (String)decodedMap.get( "headers" );
+			
 			final Long	sid = (Long)decodedMap.get( "sid" );
 
 			ResultListener listener = new ResultListener() {
@@ -109,7 +111,7 @@ public class MetaSearchListener extends AbstractMessageListener {
 			
 			SearchParameter parameter = new SearchParameter("s",searchText);
 			SearchParameter[] parameters = new SearchParameter[] {parameter};
-			metaSearchManager.getMetaSearch().search(listener, parameters);
+			metaSearchManager.getMetaSearch().search(listener, parameters,headers);
 
 		} else if(OP_GET_ENGINES.equals(opid)) {
 
@@ -299,7 +301,8 @@ public class MetaSearchListener extends AbstractMessageListener {
 			final long	id		= ((Long)decodedMap.get( "id" )).longValue();
 			long	match_count	= ((Long)decodedMap.get( "max_matches" )).longValue();
 			
-			String searchText = (String) decodedMap.get("searchText");
+			String searchText 	= (String) decodedMap.get("searchText");
+			String headers		= (String) decodedMap.get("headers");
 			
 			final Long	sid = (Long)decodedMap.get( "sid" );
 
@@ -316,92 +319,86 @@ public class MetaSearchListener extends AbstractMessageListener {
 			
 			}else{
 				
-				try{
-					SearchParameter parameter = new SearchParameter("s",searchText);
-					SearchParameter[] parameters = new SearchParameter[] {parameter};
+				SearchParameter parameter = new SearchParameter("s",searchText);
+				SearchParameter[] parameters = new SearchParameter[] {parameter};
 
-					engine.search(
-							parameters, 
-							(int)match_count,
-							new ResultListener()
+				engine.search(
+						parameters, 
+						(int)match_count,
+						headers,
+						new ResultListener()
+						{
+							private String	content;
+							private List	matches = new ArrayList();
+							
+							public void 
+							contentReceived(
+								Engine 		engine, 
+								String 		_content )
 							{
-								private String	content;
-								private List	matches = new ArrayList();
-								
-								public void 
-								contentReceived(
-									Engine 		engine, 
-									String 		_content )
-								{
-									content = _content;
-								}
-								
-								public void 
-								matchFound(
-									Engine 		engine,
-									String[] 	fields) 
-								{
-									matches.add( fields );
-								}
-								
-								public void 
-								resultsReceived(
-									Engine 		engine,
-									Result[] 	results )
-								{								
-								}
-								
-								public void 
-								resultsComplete(
-									Engine 		engine )
-								{
-									Map params = new HashMap();
-									params.put( "id", new Long( id ));
-									params.put( "page", JSONObject.escape( content ));
+								content = _content;
+							}
+							
+							public void 
+							matchFound(
+								Engine 		engine,
+								String[] 	fields) 
+							{
+								matches.add( fields );
+							}
+							
+							public void 
+							resultsReceived(
+								Engine 		engine,
+								Result[] 	results )
+							{								
+							}
+							
+							public void 
+							resultsComplete(
+								Engine 		engine )
+							{
+								Map params = new HashMap();
+								params.put( "id", new Long( id ));
+								if ( sid != null )params.put( "sid", sid );
+								params.put( "content", JSONObject.escape( content ));
 
-									JSONArray	l_matches = new JSONArray();
+								JSONArray	l_matches = new JSONArray();
+								
+								params.put( "matches", l_matches );
+								
+								for (int i=0;i<matches.size();i++){
 									
-									params.put( "matches", l_matches );
+									String[]	match = (String[])matches.get(i);
 									
-									for (int i=0;i<matches.size();i++){
+									JSONArray	l_match = new JSONArray();
+									
+									l_matches.add( l_match );
+									
+									for (int j=0;j<match.length;j++){
 										
-										String[]	match = (String[])matches.get(i);
-										
-										JSONArray	l_match = new JSONArray();
-										
-										l_matches.add( l_match );
-										
-										for (int j=0;j<match.length;j++){
-											
-											l_match.add( match[j] );
-										}
+										l_match.add( match[j] );
 									}
-									
-									if ( sid != null )params.put( "sid", sid );
-								
-									context.sendBrowserMessage( "metasearch", "testTemplateCompleted", params );
-				
 								}
-								
-								public void 
-								engineFailed(
-									Engine 		engine,
-									Throwable 	e )
-								{
-									
-								}
-							});
-										
-				}catch( Throwable e ){
-					
-					Map params = new HashMap();
-					params.put( "id", new Long( id ));
-					params.put("error",Debug.getNestedExceptionMessage(e));
-					if ( sid != null )params.put( "sid", sid );
+															
+								context.sendBrowserMessage( "metasearch", "testTemplateCompleted", params );
+			
+							}
+							
+							public void 
+							engineFailed(
+								Engine 		engine,
+								Throwable 	e )
+							{
+								Map params = new HashMap();
+								params.put( "id", new Long( id ));
+								params.put( "error", Debug.getNestedExceptionMessage( e ));
+								if ( sid != null )params.put( "sid", sid );
 
-					context.sendBrowserMessage("metasearch", "testTemplateFailed",params);
-		
-				}
+								context.sendBrowserMessage("metasearch", "testTemplateFailed",params);
+							}
+						});
+
 			}		
 		}
 	}
