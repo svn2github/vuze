@@ -539,25 +539,27 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 
 		table.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
+				TableItem item = (TableItem) e.item;
+				int index = table.indexOf(item);
+				PluginInterface pluginIF = (PluginInterface) pluginIFs.get(index);
+
 				if (e.detail == SWT.CHECK){
 						
-					TableItem item = (TableItem) e.item;
 					if (item.getGrayed()) {
 						if (!item.getChecked())
 							item.setChecked(true);
 						return;
 					}
+					pluginIF.setDisabled(!item.getChecked());
 					COConfigurationManager.setParameter("PluginInfo."
 							+ item.getData("PluginID") + ".enabled", item.getChecked());
 				}
 				
-				TableItem item = (TableItem) e.item;
-				int index = table.indexOf(item);
-				PluginInterface pluginIF = (PluginInterface) pluginIFs.get(index);
 				btnUnload.setEnabled( pluginIF.isUnloadable());
 				boolean bEnabled = COConfigurationManager.getBooleanParameter("PluginInfo."
 						+ pluginIF.getPluginID() + ".enabled", true);
-				btnLoad.setEnabled(pluginIF.isDisabled() && !bEnabled );
+				btnLoad.setEnabled(pluginIF.isDisabled() && pluginIF.isOperational()
+						&& !bEnabled);
 			}
 		});
 
