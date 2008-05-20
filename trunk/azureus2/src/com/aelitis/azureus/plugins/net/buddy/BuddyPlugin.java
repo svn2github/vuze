@@ -538,8 +538,8 @@ BuddyPlugin
 						}
 
 						if (promptUserOnDisable(ui) != 0) {
-							COConfigurationManager.setParameter(parameterName, true);
 							plugin_interface.setDisabled(false);
+							COConfigurationManager.setParameter(parameterName, true);
 						} else {
 							fireEnabledStateChanged();
 						}
