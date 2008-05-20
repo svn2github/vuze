@@ -25,6 +25,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 
+import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
@@ -77,6 +78,8 @@ public class ColumnVuzeActivity
 
 	private static Font headerFont = null;
 
+	private static Font vuzeNewsFont = null;
+	
 	private static SimpleDateFormat timeFormat = new SimpleDateFormat(
 			"h:mm:ss a, EEEE, MMMM d, yyyy");
 
@@ -87,10 +90,12 @@ public class ColumnVuzeActivity
 	private Color colorHeaderBG;
 
 	private Color colorHeaderFG;
+	
+	private Color colorNewsFG;
 
-	private Color colorDivider;
+	private Color colorNewsBG;
 
-	private Color colorNormalBG;
+	private static Image imgDelete;
 
 	/** Default Constructor */
 	public ColumnVuzeActivity(String sTableID) {
@@ -104,8 +109,10 @@ public class ColumnVuzeActivity
 		colorLinkHover = skinProperties.getColor("color.links.hover");
 		colorHeaderBG = skinProperties.getColor("color.activity.row.header.bg");
 		colorHeaderFG = skinProperties.getColor("color.activity.row.header.fg");
-		colorDivider = skinProperties.getColor("color.activity.row.divider");
-		colorNormalBG = skinProperties.getColor("color.table.bg");
+		colorNewsBG = skinProperties.getColor("color.vuze-entry.news.bg");
+		colorNewsFG = skinProperties.getColor("color.vuze-entry.news.fg");
+		
+		imgDelete = ImageRepository.getImage("progress_remove"); 
 	}
 
 	public void cellAdded(TableCell cell) {
@@ -194,10 +201,11 @@ public class ColumnVuzeActivity
 		}
 
 		boolean isHeader = VuzeActivitiesEntry.TYPEID_HEADER.equals(entry.getTypeID());
-		int x = VuzeActivitiesEntry.TYPEID_HEADER.equals(entry.getTypeID()) ? 0
-				: EVENT_INDENT;
+		int x = isHeader ? 0 : EVENT_INDENT;
 		int y = 0;
 
+		boolean isVuzeNewsEntry = !isHeader && VuzeActivitiesEntry.TYPEID_VUZENEWS.equalsIgnoreCase(entry.getTypeID());
+		
 		int style = SWT.WRAP;
 		Device device = Display.getDefault();
 		GCStringPrinter stringPrinter;
@@ -222,6 +230,13 @@ public class ColumnVuzeActivity
 					headerFont = new Font(device, fontData);
 				}
 				gcQuery.setFont(headerFont);
+			} else if (isVuzeNewsEntry) {
+				if (vuzeNewsFont == null) {
+					FontData[] fontData = gcQuery.getFont().getFontData();
+					fontData[0].setStyle(SWT.BOLD);
+					vuzeNewsFont = new Font(device, fontData);
+				}
+				gcQuery.setFont(vuzeNewsFont);
 			}
 			Rectangle potentialArea = new Rectangle(x, 2, width - x - 4, 10000);
 			stringPrinter = new GCStringPrinter(gcQuery, entry.getText(), potentialArea,
@@ -303,8 +318,20 @@ public class ColumnVuzeActivity
 				gc.fillRectangle(imgBounds);
 				height = height - 5;
 			} else {
-				TableRow row = cell.getTableRow();
-				gc.setBackground(((ListRow) row).getBackground());
+				if (isVuzeNewsEntry) {
+					if (colorNewsBG != null) {
+						gc.setBackground(colorNewsBG);
+	  				ListRow row = (ListRow) cell.getTableRow();
+	  				row.setBackgroundColor(colorNewsBG);
+					}
+					if (colorNewsFG != null) {
+						gc.setForeground(colorNewsFG);
+					}
+					gc.setFont(vuzeNewsFont);
+				} else {
+  				TableRow row = cell.getTableRow();
+  				gc.setBackground(((ListRow) row).getBackground());
+				}
 
 				gc.fillRectangle(imgBounds);
 				if (imgIcon != null) {
@@ -364,6 +391,12 @@ public class ColumnVuzeActivity
 						ratingCell.refresh(true);
 					}
 				}
+			}
+			
+			
+			if (!isHeader && ((TableCellCore)cell).isMouseOver() && imgDelete != null) {
+				gc.setAlpha(50);
+				gc.drawImage(imgDelete, width - imgDelete.getBounds().width - 5, 2);
 			}
 		} finally {
 			gc.dispose();
@@ -568,6 +601,9 @@ public class ColumnVuzeActivity
 
 			if (event.eventType == TableRowMouseEvent.EVENT_MOUSEENTER
 					|| event.eventType == TableRowMouseEvent.EVENT_MOUSEEXIT) {
+				if (event.eventType == TableRowMouseEvent.EVENT_MOUSEEXIT) {
+					refresh(event.cell, true);
+				}
 				return;
 			}
 
