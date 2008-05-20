@@ -33,7 +33,6 @@ import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.peer.PeerInfoView;
 import org.gudy.azureus2.ui.swt.views.peer.RemotePieceDistributionView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
@@ -154,11 +153,7 @@ public class PeersView
   
 	// @see com.aelitis.azureus.ui.common.table.TableLifeCycleListener#tableViewInitialized()
 	public void tableViewInitialized() {
-		if (tv instanceof TableViewSWT) {
-			shell = ((TableViewSWT)tv).getComposite().getShell();
-		} else {
-			shell = Utils.findAnyShell();
-		}
+		shell = tv.getComposite().getShell();
 
 		if (manager != null) {
   		manager.removePeerListener(this);
