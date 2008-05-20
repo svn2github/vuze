@@ -283,9 +283,13 @@ public class ColumnMediaThumb
 				gc.fillRectangle(newImg.getBounds());
 			}
 			
-			gc.setBackground(ColorCache.getColor(firstImage.getDevice(), 60, 60, 60));
+			gc.setBackground(ColorCache.getColor(firstImage.getDevice(), 40, 40, 40));
 
 			gc.fillRoundRectangle(0, 0, cellWidth, h2, 7, 7);
+
+			gc.setBackground(ColorCache.getColor(firstImage.getDevice(), 30, 30, 30));
+			gc.fillRectangle(2, 2, (int)(h2 * 1.77f) - 4, h2 - 4);
+
 			if (showPlayButton && SET_ALPHA) {
 				try {
 					gc.setAlpha(40);
@@ -359,7 +363,7 @@ public class ColumnMediaThumb
 				}
 
 				Rectangle imageArea = clickArea.getImageArea();
-				clickArea.setPosition(cellWidth - 16, areaY);
+				clickArea.setPosition(cellWidth - 17, areaY);
 				float scale = (float) areaYinc / (float) imageArea.height;
 				clickArea.setScale(scale);
 				areaY += areaYinc;
@@ -495,6 +499,10 @@ public class ColumnMediaThumb
 				if (hash != null) {
 					TorrentListViewsUtils.viewDetails(hash, "thumb");
 				}
+			} else if (id.equals("run")) {
+				// run via play or stream so we get the security warning
+				Object ds = event.cell.getDataSource();
+				TorrentListViewsUtils.playOrStreamDataSource(ds, null, "unknown");
 			}
 
 			return;
