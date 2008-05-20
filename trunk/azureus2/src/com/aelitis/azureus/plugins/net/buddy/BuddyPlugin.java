@@ -445,6 +445,7 @@ BuddyPlugin
 							int i = promptUserOnDisable(uis[0]);
   						if (i != 0) {
     						enabled_param.setValue(true);
+    						fireEnabledStateChanged();
   							return;
   						}
 						}
@@ -457,6 +458,7 @@ BuddyPlugin
 					if ( param != null ){
 					
 						setEnabledInternal( enabled );
+						fireEnabledStateChanged();
 					}
 				}
 			};
@@ -529,13 +531,17 @@ BuddyPlugin
 					public void parameterChanged(
 							String parameterName) 
 					{
-						if (COConfigurationManager.getBooleanParameter(parameterName)) {
+						boolean enabled = COConfigurationManager.getBooleanParameter(parameterName);
+						if (enabled) {
+							fireEnabledStateChanged();
 							return;
 						}
 
 						if (promptUserOnDisable(ui) != 0) {
 							COConfigurationManager.setParameter(parameterName, true);
 							plugin_interface.setDisabled(false);
+						} else {
+							fireEnabledStateChanged();
 						}
 					}
 				});
@@ -2691,6 +2697,25 @@ BuddyPlugin
    			}
    		}
    	}
+
+	protected void
+ 	fireEnabledStateChanged()
+ 	{
+		final boolean enabled = !plugin_interface.isDisabled() && isEnabled();
+
+ 		List	 listeners_ref = listeners.getList();
+ 		
+ 		for (int i=0;i<listeners_ref.size();i++){
+ 			
+ 			try{
+ 				((BuddyPluginListener)listeners_ref.get(i)).enabledStateChanged( enabled );
+
+ 			}catch( Throwable e ){
+ 				
+ 				Debug.printStackTrace( e );
+ 			}
+ 		}
+ 	}
 	
 	protected void
 	rethrow(

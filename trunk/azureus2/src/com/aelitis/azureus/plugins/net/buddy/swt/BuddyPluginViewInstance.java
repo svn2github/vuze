@@ -1199,6 +1199,12 @@ BuddyPluginViewInstance
 	{
 		print( str, LOG_NORMAL, false, false );
 	}
+	
+	// @see com.aelitis.azureus.plugins.net.buddy.BuddyPluginListener#enabledStateChanged(boolean)
+	public void 
+	enabledStateChanged(
+			boolean enabled) {
+	}
 
 	public Map
 	requestReceived(
