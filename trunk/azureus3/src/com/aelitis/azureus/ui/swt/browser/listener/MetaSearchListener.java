@@ -164,7 +164,9 @@ public class MetaSearchListener extends AbstractMessageListener {
 			
 			for (int i=0;i<ids.length;i++ ){
 				
-				ids[i] = ((Long)template_ids.get(i)).longValue();
+				Map m = (Map)template_ids.get(i);
+				
+				ids[i] = ((Long)m.get("id")).longValue();
 			}
 			
 			boolean	auto = ((Boolean)decodedMap.get( "auto" )).booleanValue();
