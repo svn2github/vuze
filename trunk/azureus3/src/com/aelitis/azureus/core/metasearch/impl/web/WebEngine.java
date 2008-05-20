@@ -309,11 +309,11 @@ WebEngine
 			
 			if ( field_value != null ){
 				
-				Map m = new HashMap();
+				JSONObject m = new JSONObject();
 
 				maps.add( m );
 				
-				Map entry = new HashMap();
+				JSONObject entry = new JSONObject();
 				
 				m.put( "mapping", entry );
 				
