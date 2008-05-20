@@ -81,8 +81,9 @@ public class ManageCdList
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
 		final SWTSkin skin = skinObject.getSkin();
 		core = AzureusCoreFactory.getSingleton();
+		
+		SWTSkinObject soData = skinObject;
 
-		Composite cData = (Composite) skinObject.getControl();
 		Composite cHeaders = null;
 
 		skinObject = skin.getSkinObject(PREFIX + "list-headers");
@@ -128,8 +129,10 @@ public class ManageCdList
 			});
 		}
 
+		btnShare = TorrentListViewsUtils.addShareButton(skin, PREFIX, view);
+
 		view = new TorrentListView(core, skin, skin.getSkinProperties(), cHeaders,
-				null, cData, TorrentListView.VIEW_RECENT_DOWNLOADED, false, true) {
+				null, soData, btnShare, TorrentListView.VIEW_RECENT_DOWNLOADED, false, true) {
 			public boolean isOurDownload(DownloadManager dm) {
 				if (dm == null) {
 					Debug.out("DM == null");
@@ -146,7 +149,6 @@ public class ManageCdList
 			}
 		};
 
-		btnShare = TorrentListViewsUtils.addShareButton(skin, PREFIX, view);
 		btnStop = TorrentListViewsUtils.addStopButton(skin, PREFIX, view);
 		btnDetails = TorrentListViewsUtils.addDetailsButton(skin, PREFIX, view);
 		btnComments = TorrentListViewsUtils.addCommentsButton(skin, PREFIX, view);
@@ -239,12 +241,10 @@ public class ManageCdList
 		SWTSkinButtonUtility[] buttonsNeedingPlatform = {
 			btnDetails,
 			btnComments,
-			btnShare,
 		};
 		SWTSkinButtonUtility[] buttonsNeedingSingleSelection = {
 			btnDetails,
 			btnComments,
-			btnShare,
 		};
 		TorrentListViewsUtils.addButtonSelectionDisabler(view, buttonsNeedingRow,
 				buttonsNeedingPlatform, buttonsNeedingSingleSelection, btnStop);

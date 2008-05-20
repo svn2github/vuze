@@ -68,7 +68,8 @@ public class MiniRecentList
 		final SWTSkin skin = skinObject.getSkin();
 		AzureusCore core = AzureusCoreFactory.getSingleton();
 
-		final Composite cData = (Composite) skinObject.getControl();
+		SWTSkinObject soData = skinObject;
+		
 		Composite cHeaders = null;
 		SWTSkinObjectText lblCountArea = null;
 
@@ -98,14 +99,15 @@ public class MiniRecentList
 			});
 		}
 
+		btnShare = TorrentListViewsUtils.addShareButton(skin, PREFIX, view);
+
 		view = new TorrentListView(core, skin, skin.getSkinProperties(), cHeaders,
-				lblCountArea, cData, TorrentListView.VIEW_RECENT_DOWNLOADED, true,
-				false);
+				lblCountArea, soData, btnShare, TorrentListView.VIEW_RECENT_DOWNLOADED,
+				true, false);
 
 		btnColumnSetup = TorrentListViewsUtils.addColumnSetupButton(skin, PREFIX,
 				view);
 
-		btnShare = TorrentListViewsUtils.addShareButton(skin, PREFIX, view);
 		btnStop = TorrentListViewsUtils.addStopButton(skin, PREFIX, view);
 		btnDetails = TorrentListViewsUtils.addDetailsButton(skin, PREFIX, view);
 		btnComments = TorrentListViewsUtils.addCommentsButton(skin, PREFIX, view);
@@ -134,12 +136,10 @@ public class MiniRecentList
 		SWTSkinButtonUtility[] buttonsNeedingPlatform = {
 			btnDetails,
 			btnComments,
-			btnShare
 		};
 		SWTSkinButtonUtility[] buttonsNeedingSingleSelection = {
 			btnDetails,
 			btnComments,
-			btnShare,
 		};
 		TorrentListViewsUtils.addButtonSelectionDisabler(view, buttonsNeedingRow,
 				buttonsNeedingPlatform, buttonsNeedingSingleSelection, btnStop);

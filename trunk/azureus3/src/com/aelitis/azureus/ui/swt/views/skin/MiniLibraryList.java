@@ -75,17 +75,6 @@ extends SkinView
 
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
 		soData = skinObject;
-		soData.addListener(new SWTSkinObjectListener() {
-			public Object eventOccured(SWTSkinObject skinObject, int eventType,
-					Object params) {
-				if (eventType == SWTSkinObjectListener.EVENT_SHOW) {
-					SelectedContentManager.changeCurrentlySelectedContent(getCurrentlySelectedContent());
-				} else if (eventType == SWTSkinObjectListener.EVENT_HIDE) {
-					SelectedContentManager.changeCurrentlySelectedContent(null);
-				}
-				return null;
-			}
-		});
 		SelectedContentManager.changeCurrentlySelectedContent(null);
 
 		final SWTSkin skin = skinObject.getSkin();
@@ -105,24 +94,11 @@ extends SkinView
 			lblCountArea = (SWTSkinObjectText) skinObject;
 		}
 
+		btnShare = TorrentListViewsUtils.addShareButton(skin, PREFIX, view);
+
 		view = new TorrentListView(core, skin, skin.getSkinProperties(), cHeaders,
-				lblCountArea, cData, TorrentListView.VIEW_MY_MEDIA, true, true);
-		
-		view.addSelectionListener(new TableSelectionAdapter() {
-			public void selected(TableRowCore[] row) {
-				selectionChanged();
-			}
-		
-			public void deselected(TableRowCore[] rows) {
-				selectionChanged();
-			}
-		
-			public void selectionChanged() {
-				if (soData.isVisible()) {
-					SelectedContentManager.changeCurrentlySelectedContent(getCurrentlySelectedContent());
-				}
-			}
-		}, false);
+				lblCountArea, soData, btnShare, TorrentListView.VIEW_MY_MEDIA, true,
+				true);
 		
 		if (Constants.isCVSVersion()) {
   		SWTSkinObject skinObjectTab = skin.getSkinObject(SkinConstants.VIEWID_MINILIBRARY_TAB);
@@ -166,7 +142,6 @@ extends SkinView
 
 		btnColumnSetup = TorrentListViewsUtils.addColumnSetupButton(skin, PREFIX, view);
 		
-		btnShare = TorrentListViewsUtils.addShareButton(skin, PREFIX, view);
 		btnStop = TorrentListViewsUtils.addStopButton(skin, PREFIX, view);
 		btnDetails = TorrentListViewsUtils.addDetailsButton(skin, PREFIX, view);
 		btnComments = TorrentListViewsUtils.addCommentsButton(skin, PREFIX, view);
@@ -180,12 +155,10 @@ extends SkinView
 		SWTSkinButtonUtility[] buttonsNeedingPlatform = {
 			btnDetails,
 			btnComments,
-			btnShare,
 		};
 		SWTSkinButtonUtility[] buttonsNeedingSingleSelection = {
 			btnDetails,
 			btnComments,
-			btnShare,
 		};
 		TorrentListViewsUtils.addButtonSelectionDisabler(view, buttonsNeedingRow,
 				buttonsNeedingPlatform, buttonsNeedingSingleSelection, btnStop);
@@ -195,23 +168,5 @@ extends SkinView
 
 	public TorrentListView getView() {
 		return view;
-	}
-	
-	public SelectedContent[] getCurrentlySelectedContent() {
-		List listContent = new ArrayList();
-		Object[] selectedDataSources = view.getSelectedDataSources(true);
-		for (int i = 0; i < selectedDataSources.length; i++) {
-			DownloadManager dm = (DownloadManager) selectedDataSources[i];
-			if (dm != null) {
-				SelectedContent currentContent;
-				try {
-					currentContent = new SelectedContent(dm);
-					currentContent.displayName = PlatformTorrentUtils.getContentTitle2(dm);
-					listContent.add(currentContent);
-				} catch (Exception e) {
-				}
-			}
-		}
-		return (SelectedContent[]) listContent.toArray(new SelectedContent[listContent.size()]);
 	}
 }

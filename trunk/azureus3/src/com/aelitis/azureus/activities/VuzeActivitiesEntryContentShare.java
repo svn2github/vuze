@@ -81,6 +81,9 @@ public class VuzeActivitiesEntryContentShare
 			contentString = "\n<A HREF=\"" + url + "\">" + content.displayName + "</A>";
 		} else {
 			setTorrent(torrent);
+			if (content.dm != null) {
+				setTorrentName(content.dm.getDisplayName());
+			}
 
 			contentString = content.displayName;
 		}

@@ -71,8 +71,9 @@ public class ManageDlList
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
 		final SWTSkin skin = skinObject.getSkin();
 		AzureusCore core = AzureusCoreFactory.getSingleton();
+		
+		SWTSkinObject soData = skinObject;
 
-		Composite cData = (Composite) skinObject.getControl();
 		Composite cHeaders = null;
 
 		skinObject = skin.getSkinObject(PREFIX + "list-headers");
@@ -85,8 +86,11 @@ public class ManageDlList
 			lblCountArea = (SWTSkinObjectText) skinObject;
 		}
 
+		btnShare = TorrentListViewsUtils.addShareButton(skin, PREFIX, view);
+
 		view = new TorrentListView(core, skin, skin.getSkinProperties(), cHeaders,
-				lblCountArea, cData, TorrentListView.VIEW_DOWNLOADING, false, true);
+				lblCountArea, soData, btnShare, TorrentListView.VIEW_DOWNLOADING,
+				false, true);
 
 		skinObject = skin.getSkinObject(PREFIX + "add");
 		if (skinObject instanceof SWTSkinObjectContainer) {
@@ -99,7 +103,6 @@ public class ManageDlList
 			});
 		}
 
-		btnShare = TorrentListViewsUtils.addShareButton(skin, PREFIX, view);
 		btnStop = TorrentListViewsUtils.addStopButton(skin, PREFIX, view);
 		btnDetails = TorrentListViewsUtils.addDetailsButton(skin, PREFIX, view);
 		btnComments = TorrentListViewsUtils.addCommentsButton(skin, PREFIX, view);
@@ -141,12 +144,10 @@ public class ManageDlList
 		SWTSkinButtonUtility[] buttonsNeedingPlatform = {
 			btnDetails,
 			btnComments,
-			btnShare,
 		};
 		SWTSkinButtonUtility[] buttonsNeedingSingleSelection = {
 			btnDetails,
 			btnComments,
-			btnShare,
 		};
 		TorrentListViewsUtils.addButtonSelectionDisabler(view, buttonsNeedingRow,
 				buttonsNeedingPlatform, buttonsNeedingSingleSelection, btnStop);

@@ -36,18 +36,17 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
-import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.columns.torrent.*;
-import com.aelitis.azureus.ui.swt.skin.SWTSkin;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
+import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.ui.swt.views.list.ListRow;
 import com.aelitis.azureus.ui.swt.views.list.ListView;
-import com.aelitis.azureus.ui.swt.views.skin.VuzeShareUtils;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
+import com.aelitis.azureus.ui.swt.views.skin.VuzeShareUtils;
 import com.aelitis.azureus.util.Constants;
 
 /**
@@ -94,18 +93,31 @@ public class TorrentListView
 
 	public TorrentListView(final AzureusCore core, final SWTSkin skin,
 			SWTSkinProperties skinProperties, Composite headerArea,
-			SWTSkinObjectText countArea, final Composite dataArea, int viewMode,
+			SWTSkinObjectText countArea, final SWTSkinObject soData,
+			final SWTSkinButtonUtility btnShare, int viewMode,
 			final boolean bMiniMode, final boolean bAllowScrolling) {
 
 		super(TABLE_IDS[viewMode] + ((bMiniMode) ? "-Mini" : ""), skinProperties,
-				dataArea, headerArea, bAllowScrolling ? SWT.V_SCROLL : SWT.NONE);
+				(Composite) soData.getControl(), headerArea, bAllowScrolling ? SWT.V_SCROLL : SWT.NONE);
 		this.core = core;
 		this.countArea = countArea;
-		this.dataArea = dataArea;
+		this.dataArea = (Composite) soData.getControl();
 		this.viewMode = viewMode;
 		this.bAllowScrolling = bAllowScrolling;
 		dmListener = new dowloadManagerListener(this);
 
+		soData.addListener(new SWTSkinObjectListener() {
+			public Object eventOccured(SWTSkinObject skinObject, int eventType,
+					Object params) {
+				if (eventType == SWTSkinObjectListener.EVENT_SHOW) {
+					SelectedContentManager.changeCurrentlySelectedContent(getCurrentlySelectedContent());
+				} else if (eventType == SWTSkinObjectListener.EVENT_HIDE) {
+					SelectedContentManager.changeCurrentlySelectedContent(null);
+				}
+				return null;
+			}
+		});
+		
 		// Setting up tables should really be in their respective class..
 		if (viewMode == VIEW_DOWNLOADING) {
 			setupDownloadingTable(bMiniMode);
@@ -270,6 +282,30 @@ public class TorrentListView
 				}
 			}
 		});
+
+		addSelectionListener(new TableSelectionAdapter() {
+			public void selected(TableRowCore[] row) {
+				selectionChanged();
+			}
+		
+			public void deselected(TableRowCore[] rows) {
+				selectionChanged();
+			}
+		
+			public void selectionChanged() {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						SelectedContent[] contents = getCurrentlySelectedContent();
+						if (soData.isVisible()) {
+							SelectedContentManager.changeCurrentlySelectedContent(contents);
+						}
+						if (btnShare != null) {
+							btnShare.setDisabled(contents.length != 1);
+						}
+					}
+				});
+			}
+		}, false);
 	}
 
 	/**
@@ -902,20 +938,34 @@ public class TorrentListView
 	}
 
 	private void shareTorrents() {
-		Object[] dataSources = getSelectedDataSources();
-		for (int i = dataSources.length - 1; i >= 0; i--) {
-			DownloadManager dm = (DownloadManager) dataSources[i];
-			if (dm != null) {
-				VuzeShareUtils.getInstance().shareTorrent(dm);
-				/*
-				 * KN: we're only supporting sharing a single content right now
-				 */
-				break;
-			}
+		SelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
+		if (contents.length > 0) {
+			/*
+			 * KN: we're only supporting sharing a single content right now
+			 */
+			VuzeShareUtils.getInstance().shareTorrent(contents[0]);
 		}
 	}
 
 	public boolean getAllowScrolling() {
 		return bAllowScrolling;
+	}
+
+	public SelectedContent[] getCurrentlySelectedContent() {
+		List listContent = new ArrayList();
+		Object[] selectedDataSources = getSelectedDataSources(true);
+		for (int i = 0; i < selectedDataSources.length; i++) {
+			DownloadManager dm = (DownloadManager) selectedDataSources[i];
+			if (dm != null) {
+				SelectedContent currentContent;
+				try {
+					currentContent = new SelectedContent(dm);
+					currentContent.displayName = PlatformTorrentUtils.getContentTitle2(dm);
+					listContent.add(currentContent);
+				} catch (Exception e) {
+				}
+			}
+		}
+		return (SelectedContent[]) listContent.toArray(new SelectedContent[listContent.size()]);
 	}
 }

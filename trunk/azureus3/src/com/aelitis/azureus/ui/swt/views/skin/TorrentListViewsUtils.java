@@ -68,6 +68,8 @@ import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
 import com.aelitis.azureus.ui.common.table.TableStructureEventDispatcher;
 import com.aelitis.azureus.ui.common.table.TableView;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -105,18 +107,16 @@ public class TorrentListViewsUtils
 
 		btn.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
 			public void pressed(SWTSkinButtonUtility buttonUtility) {
-				TableRowCore[] selectedRows = view.getSelectedRows();
-				if (selectedRows.length > 0) {
+				SelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
+				if (contents.length > 0) {
 					/*
 					 * KN: we're only supporting sharing a single content right now
 					 */
-					DownloadManager dm = getDMFromDS(selectedRows[0].getDataSource(true));
-					if (dm != null) {
-						VuzeShareUtils.getInstance().shareTorrent(dm);
-					}
+					VuzeShareUtils.getInstance().shareTorrent(contents[0]);
 				}
 			}
 		});
+		btn.setDisabled(true);
 		return btn;
 	}
 

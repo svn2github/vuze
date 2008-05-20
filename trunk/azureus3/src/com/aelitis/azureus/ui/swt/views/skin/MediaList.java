@@ -115,23 +115,11 @@ public class MediaList
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
 		soData = skinObject;
-		soData.addListener(new SWTSkinObjectListener() {
-			public Object eventOccured(SWTSkinObject skinObject, int eventType,
-					Object params) {
-				if (eventType == SWTSkinObjectListener.EVENT_SHOW) {
-					SelectedContentManager.changeCurrentlySelectedContent(getCurrentlySelectedContent());
-				} else if (eventType == SWTSkinObjectListener.EVENT_HIDE) {
-					SelectedContentManager.changeCurrentlySelectedContent(null);
-				}
-				return null;
-			}
-		});
 		SelectedContentManager.changeCurrentlySelectedContent(null);
 
 		final SWTSkin skin = skinObject.getSkin();
 		core = AzureusCoreFactory.getSingleton();
 
-		final Composite cData = (Composite) skinObject.getControl();
 		Composite cHeaders = null;
 
 		skinObject = skin.getSkinObject(PREFIX + "list-headers");
@@ -139,8 +127,10 @@ public class MediaList
 			cHeaders = (Composite) skinObject.getControl();
 		}
 
+		btnShare = TorrentListViewsUtils.addShareButton(skin, PREFIX, view);
+
 		view = new TorrentListView(core, skin, skin.getSkinProperties(), cHeaders,
-				null, cData, TorrentListView.VIEW_MY_MEDIA, false, true) {
+				null, soData, btnShare, TorrentListView.VIEW_MY_MEDIA, false, true) {
 			public boolean isOurDownload(DownloadManager dm) {
 				if (PlatformTorrentUtils.getAdId(dm.getTorrent()) != null) {
 					return false;
@@ -189,27 +179,10 @@ public class MediaList
 				return bOurs;
 			}
 		};
-
-		view.addSelectionListener(new TableSelectionAdapter() {
-			public void selected(TableRowCore[] row) {
-				selectionChanged();
-			}
-		
-			public void deselected(TableRowCore[] rows) {
-				selectionChanged();
-			}
-		
-			public void selectionChanged() {
-				if (soData.isVisible()) {
-					SelectedContentManager.changeCurrentlySelectedContent(getCurrentlySelectedContent());
-				}
-			}
-		}, false);
 		
 		btnColumnSetup = TorrentListViewsUtils.addColumnSetupButton(skin, PREFIX,
 				view);
 
-		btnShare = TorrentListViewsUtils.addShareButton(skin, PREFIX, view);
 		btnStop = TorrentListViewsUtils.addStopButton(skin, PREFIX, view);
 		btnDetails = TorrentListViewsUtils.addDetailsButton(skin, PREFIX, view);
 		btnComments = TorrentListViewsUtils.addCommentsButton(skin, PREFIX, view);
@@ -299,12 +272,10 @@ public class MediaList
 		SWTSkinButtonUtility[] buttonsNeedingPlatform = {
 			btnDetails,
 			btnComments,
-			btnShare,
 		};
 		SWTSkinButtonUtility[] buttonsNeedingSingleSelection = {
 			btnDetails,
 			btnComments,
-			btnShare,
 		};
 		TorrentListViewsUtils.addButtonSelectionDisabler(view, buttonsNeedingRow,
 				buttonsNeedingPlatform, buttonsNeedingSingleSelection, btnStop);
@@ -615,23 +586,5 @@ public class MediaList
 				skinImgThumb.setImage(image);
 			}
 		});
-	}
-
-	public SelectedContent[] getCurrentlySelectedContent() {
-		List listContent = new ArrayList();
-		Object[] selectedDataSources = view.getSelectedDataSources(true);
-		for (int i = 0; i < selectedDataSources.length; i++) {
-			DownloadManager dm = (DownloadManager) selectedDataSources[i];
-			if (dm != null) {
-				SelectedContent currentContent;
-				try {
-					currentContent = new SelectedContent(dm);
-					currentContent.displayName = PlatformTorrentUtils.getContentTitle2(dm);
-					listContent.add(currentContent);
-				} catch (Exception e) {
-				}
-			}
-		}
-		return (SelectedContent[]) listContent.toArray(new SelectedContent[listContent.size()]);
 	}
 }

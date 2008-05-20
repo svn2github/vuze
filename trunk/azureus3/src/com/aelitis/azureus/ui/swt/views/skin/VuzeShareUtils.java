@@ -1,7 +1,11 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import org.gudy.azureus2.core3.download.DownloadManager;
+import org.eclipse.swt.SWT;
 
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.ui.swt.Utils;
+
+import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
@@ -20,15 +24,16 @@ public class VuzeShareUtils
 		return instance;
 	}
 
-	public void shareTorrent(final DownloadManager dm) {
+	public void shareTorrent(final SelectedContent currentContent) {
+		if (!VuzeBuddyManager.isEnabled()) {
+			Utils.openMessageBox(Utils.findAnyShell(), SWT.OK, "DISABLED", "DUH! DISABLED DOOD");
+			return;
+		}
+
 		SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
 			public void loginComplete() {
 				if (null != sharePage) {
-					SelectedContent currentContent;
 					try {
-						currentContent = new SelectedContent(dm);
-						currentContent.displayName = PlatformTorrentUtils.getContentTitle2(dm);
-
 						sharePage.setShareItem(currentContent);
 					} catch (Exception e) {
 					}
