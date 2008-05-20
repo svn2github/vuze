@@ -27,6 +27,7 @@ public interface
 VuzeFileComponent 
 {
 	public static final int COMP_TYPE_METASEARCH_TEMPLATE	= 1;
+	public static final int COMP_TYPE_V3_NAVIGATION			= 2;
 	
 	public int
 	getType();
