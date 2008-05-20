@@ -39,10 +39,10 @@ import com.aelitis.azureus.activities.VuzeActivitiesListener;
 import com.aelitis.azureus.activities.VuzeActivitiesManager;
 import com.aelitis.azureus.ui.common.RememberedDecisionsManager;
 import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.columns.vuzeactivity.ColumnVuzeActivity;
-import com.aelitis.azureus.ui.swt.skin.SWTSkin;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.list.ListView;
 
 /**
@@ -90,14 +90,54 @@ public class VuzeActivitiesView
 
 	private long lastShiftedOn;
 
+	private SWTSkinObject soData;
+
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
-		final SWTSkin skin = skinObject.getSkin();
-		Composite cData = (Composite) skinObject.getControl();
+		this.soData = skinObject;
+		final SWTSkin skin = soData.getSkin();
+
+		soData.addListener(new SWTSkinObjectListener() {
+			public Object eventOccured(SWTSkinObject skinObject, int eventType,
+					Object params) {
+				if (eventType == SWTSkinObjectListener.EVENT_SHOW) {
+					SelectedContentManager.changeCurrentlySelectedContent(getCurrentlySelectedContent());
+				} else if (eventType == SWTSkinObjectListener.EVENT_HIDE) {
+					SelectedContentManager.changeCurrentlySelectedContent(null);
+				}
+				return null;
+			}
+		});
+
+		Composite cData = (Composite) soData.getControl();
 		view = new ListView(TABLE_ID, skin.getSkinProperties(), cData, null,
 				SWT.V_SCROLL);
 		view.setRowMarginHeight(1);
 
+		view.addSelectionListener(new TableSelectionAdapter() {
+			public void selected(TableRowCore[] row) {
+				selectionChanged();
+			}
+		
+			public void deselected(TableRowCore[] rows) {
+				selectionChanged();
+			}
+			
+			public void selectionChanged() {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						SelectedContent[] contents = getCurrentlySelectedContent();
+						if (soData.isVisible()) {
+							SelectedContentManager.changeCurrentlySelectedContent(contents);
+						}
+						if (btnShare != null) {
+							btnShare.setDisabled(contents.length != 1);
+						}
+					}
+				});
+			}
+		}, false);
+		
 		skipShift = true;
 
 		view.addKeyListener(new KeyListener() {
@@ -213,12 +253,10 @@ public class VuzeActivitiesView
 		SWTSkinButtonUtility[] buttonsNeedingPlatform = {
 			btnDetails,
 			btnComments,
-			btnShare,
 		};
 		SWTSkinButtonUtility[] buttonsNeedingSingleSelection = {
 			btnDetails,
 			btnComments,
-			btnShare,
 		};
 		TorrentListViewsUtils.addButtonSelectionDisabler(view, buttonsNeedingRow,
 				buttonsNeedingPlatform, buttonsNeedingSingleSelection, btnStop);
@@ -464,5 +502,25 @@ public class VuzeActivitiesView
 		if (row != null) {
 			row.invalidate();
 		}
+	}
+
+	public SelectedContent[] getCurrentlySelectedContent() {
+		List listContent = new ArrayList();
+		Object[] selectedDataSources = view.getSelectedDataSources(true);
+		for (int i = 0; i < selectedDataSources.length; i++) {
+			
+			VuzeActivitiesEntry ds = (VuzeActivitiesEntry) selectedDataSources[i];
+			if (ds != null) {
+				SelectedContent currentContent;
+				try {
+					currentContent = ds.createSelectedContentObject();
+					if (ds != null) {
+						listContent.add(currentContent);
+					}
+				} catch (Exception e) {
+				}
+			}
+		}
+		return (SelectedContent[]) listContent.toArray(new SelectedContent[listContent.size()]);
 	}
 }

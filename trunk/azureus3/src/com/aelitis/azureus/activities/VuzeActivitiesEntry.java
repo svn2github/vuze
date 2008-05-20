@@ -34,6 +34,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableColumnSortObject;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.util.MapUtils;
 
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
@@ -63,6 +64,8 @@ public class VuzeActivitiesEntry
 
 	public static final String TYPEID_HEADER = "Header";
 
+	public static final String TYPEID_VUZENEWS = "VUZE_NEWS_ITEM";
+	
 	public static int SORT_DATE = 0;
 
 	public static int sortBy = SORT_DATE;
@@ -91,6 +94,7 @@ public class VuzeActivitiesEntry
 
 	private boolean showThumb = true;
 	
+	private String torrentName; 
 
 	private TOTorrent torrent;
 
@@ -167,6 +171,9 @@ public class VuzeActivitiesEntry
 			} catch (TOTorrentException e) {
 			}
 			setTorrent(torrent);
+		}
+		if (dm == null) {
+			setTorrentName(MapUtils.getMapString(map, "torrent-name", null));
 		}
 	}
 
@@ -268,6 +275,9 @@ public class VuzeActivitiesEntry
 			}
 		}
 		map.put("isDRM", new Long(isDRM() ? 1 : 0));
+		if (torrentName != null) {
+			map.put("torrent-name", torrentName);
+		}
 		
 		return map;
 	}
@@ -454,5 +464,40 @@ public class VuzeActivitiesEntry
 
 	public void setDRM(boolean isDRM) {
 		this.isDRM = isDRM;
+	}
+
+	public String getTorrentName() {
+		return torrentName;
+	}
+
+	public void setTorrentName(String torrentName) {
+		this.torrentName = torrentName;
+	}
+
+	public SelectedContent createSelectedContentObject()
+			throws Exception {
+
+		SelectedContent sc = new SelectedContent();
+		dm = getDownloadManger();
+		if (dm != null) {
+			sc.hash = dm.getTorrent().getHashWrapper().toBase32String();
+			sc.displayName = dm.getDisplayName();
+			return sc;
+		}
+
+		sc.displayName = getTorrentName();
+		if (sc.displayName == null) {
+			TOTorrent torrent = getTorrent();
+			if (torrent != null) {
+				sc.displayName = new String(torrent.getName());
+				sc.hash = torrent.getHashWrapper().toBase32String();
+			}
+		}
+
+		if (sc.hash == null) {
+			throw new Exception("No Download Info");
+		}
+		return sc;
+
 	}
 }
