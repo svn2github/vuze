@@ -91,6 +91,7 @@ import com.aelitis.azureus.ui.swt.views.ViewUpSpeedGraph;
 import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.DCAdManager;
+import com.aelitis.azureus.util.NavigationHelper;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
@@ -737,6 +738,30 @@ public class MainWindow
 			System.out.println("vuzeactivities init took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
+			
+			NavigationHelper.addListener(
+				new NavigationHelper.navigationListener()
+				{
+					public void 
+					processCommand(
+						final int 		type, 
+						final String[] 	args ) 
+					{
+						Utils.execSWTThread(new AERunnable() {
+							public void runSupport() {
+							
+								if ( type == NavigationHelper.COMMAND_SWITCH_TO_TAB ){
+									
+									SWTSkin skin = SWTSkinFactory.getInstance();
+									SWTSkinObject skinObject = skin.getSkinObject(args[0]);
+									if (skinObject != null) {
+										skin.activateTab(skinObject);
+									}
+								}
+							}
+						});
+					}
+				});
 		}
 	}
 

@@ -56,6 +56,8 @@ public class InitialisationFunctions
 		CacheDiscovery.initialise( dme );
 		
 		MetaSearchManagerFactory.preInitialise();
+		
+		NavigationHelper.initialise();
 	}
 
 	public static void 
