@@ -2565,7 +2565,7 @@ public class TableViewSWTImpl
 		if (lOfs != null) {
 			newWidth += lOfs.intValue();
 		}
-		if (column == null || column.isDisposed()
+		if (column.isDisposed()
 				|| (column.getWidth() == newWidth))
 			return;
 
