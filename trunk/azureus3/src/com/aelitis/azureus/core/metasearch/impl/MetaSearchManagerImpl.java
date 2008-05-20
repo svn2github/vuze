@@ -570,7 +570,7 @@ MetaSearchManagerImpl
 						"!" + details + "!",
 						UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
 				
-				if ( res == UIManagerEvent.MT_NO ){
+				if ( res != UIManagerEvent.MT_YES ){
 					
 					throw( new MetaSearchException( "User declined the template" ));
 				}
