@@ -126,8 +126,8 @@ public class SWTSkinTabSet
 
 				String sOldID = activeTab == null ? "" : activeTab.getSkinObjectID();
 
-				SWTSkinObject[] objects = setTabVisible(newTab, true, null);
 				if (newTab != activeTab) {
+					SWTSkinObject[] objects = setTabVisible(newTab, true, null);
 					if (activeTab != null) {
 						setTabVisible(activeTab, false, objects);
 					}
