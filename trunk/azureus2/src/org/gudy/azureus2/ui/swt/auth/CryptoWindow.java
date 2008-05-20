@@ -29,11 +29,14 @@ package org.gudy.azureus2.ui.swt.auth;
 import java.util.Arrays;
 
 import org.eclipse.swt.*;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -327,6 +330,25 @@ CryptoWindow
 			
 			new Label(shell,SWT.NULL);
 			
+				// wiki
+						
+			final Label linkLabel = new Label(shell, SWT.NULL);
+			linkLabel.setText(MessageText.getString("ConfigView.label.please.visit.here"));
+			linkLabel.setData("http://www.azureuswiki.com/index.php?title=Public_Private_Keys");
+			linkLabel.setCursor(Cursors.handCursor);
+			linkLabel.setForeground(Colors.blue);
+			gridData = new GridData();
+			gridData.horizontalSpan = 3;
+			linkLabel.setLayoutData(gridData);
+			linkLabel.addMouseListener(new MouseAdapter() {
+				public void mouseDoubleClick(MouseEvent arg0) {
+					Utils.launch((String) ((Label) arg0.widget).getData());
+				}
+
+				public void mouseDown(MouseEvent arg0) {
+					Utils.launch((String) ((Label) arg0.widget).getData());
+				}
+			});
 				// line
 			
 			Label labelSeparator = new Label(shell,SWT.SEPARATOR | SWT.HORIZONTAL);

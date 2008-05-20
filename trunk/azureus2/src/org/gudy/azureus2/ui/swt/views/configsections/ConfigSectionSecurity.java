@@ -225,6 +225,27 @@ ConfigSectionSecurity
 		    
 			Messages.setLanguageText(crypto_group,"ConfigView.section.security.group.crypto");
 			
+				// wiki link
+			
+			final Label linkLabel = new Label(crypto_group, SWT.NULL);
+			linkLabel.setText(MessageText.getString("ConfigView.label.please.visit.here"));
+			linkLabel.setData("http://www.azureuswiki.com/index.php?title=Public_Private_Keys");
+			linkLabel.setCursor(Cursors.handCursor);
+			linkLabel.setForeground(Colors.blue);
+			gridData = new GridData();
+			gridData.horizontalSpan = 3;
+			linkLabel.setLayoutData(gridData);
+			linkLabel.addMouseListener(new MouseAdapter() {
+				public void mouseDoubleClick(MouseEvent arg0) {
+					Utils.launch((String) ((Label) arg0.widget).getData());
+				}
+
+				public void mouseDown(MouseEvent arg0) {
+					Utils.launch((String) ((Label) arg0.widget).getData());
+				}
+			});
+			
+			
 				// publick key display
 
 			byte[]	public_key = crypt_man.getECCHandler().peekPublicKey();
