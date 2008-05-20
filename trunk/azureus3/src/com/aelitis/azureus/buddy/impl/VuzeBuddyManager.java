@@ -261,6 +261,160 @@ public class VuzeBuddyManager
 			}
 		};
 
+	private static VuzeCryptoListener vuzeCryptoListener = new VuzeCryptoListener() {
+		public void sessionPasswordIncorrect() {
+			VuzeBuddyManager.log("Incorrect Password!");
+		}
+
+		public char[] getSessionPassword(String reason)
+				throws VuzeCryptoException {
+			VuzeBuddyManager.log("PW Request: " + reason + "; "
+					+ Debug.getCompressedStackTrace());
+			throw new VuzeCryptoException("Not Logged In", null);
+		}
+	};
+	
+	private static ILoginInfoListener loginInfoListener = new ILoginInfoListener() {
+		public void loginUpdate(final LoginInfo info, boolean isNewLoginID) {
+			loginUpdateTriggered(info, isNewLoginID);
+		}
+	};
+
+	private static VuzeRelayListener vuzeRelayListener = new VuzeRelayListener() {
+		// @see com.aelitis.azureus.core.messenger.config.VuzeRelayListener#newRelayServerPayLoad(com.aelitis.azureus.buddy.VuzeBuddy, java.lang.String, java.util.Map)
+		public void newRelayServerPayLoad(VuzeBuddy sender, String pkSender,
+				Map decodedMap, long addedOn) {
+			processPayloadMap(pkSender, decodedMap, sender != null, addedOn);
+		}
+
+		// @see com.aelitis.azureus.core.messenger.config.VuzeRelayListener#hasPendingRelayMessage(int)
+		public void hasPendingRelayMessage(int count) {
+			if (count == 0) {
+				return;
+			}
+			try {
+				PlatformRelayMessenger.fetch(0);
+				log("have " + count + " pending relay messages. Attempting fetch");
+			} catch (NotLoggedInException e) {
+				log("have " + count + " pending relay messages. Not logged in");
+				// not logged in? oh well, we'd do a fetch on login
+			}
+		}
+	};
+
+
+	private static BuddyPluginListener buddyPluginListener = new BuddyPluginListener() {
+		public void messageLogged(String str) {
+		}
+
+		public void initialised(boolean available) {
+		}
+
+		public void buddyRemoved(BuddyPluginBuddy buddy) {
+			if (!canHandleBuddy(buddy)) {
+				return;
+			}
+			try {
+				buddy_mon.enter();
+
+				String pk = buddy.getPublicKey();
+
+				VuzeBuddy vuzeBuddy = (VuzeBuddy) mapPKtoVuzeBuddy.remove(pk);
+				if (vuzeBuddy != null) {
+					vuzeBuddy.removePublicKey(pk);
+					if (vuzeBuddy.getPublicKeys().length == 0) {
+						try {
+							removeBuddy(vuzeBuddy, true);
+						} catch (NotLoggedInException e) {
+							// should not happen, as we ask user to log in
+							log(e);
+						}
+					}
+				}
+			} finally {
+				buddy_mon.exit();
+			}
+		}
+
+		public void buddyChanged(BuddyPluginBuddy buddy) {
+			if (!canHandleBuddy(buddy)) {
+				return;
+			}
+
+			try {
+				buddy_mon.enter();
+
+				String pk = buddy.getPublicKey();
+
+				VuzeBuddy vuzeBuddy = (VuzeBuddy) mapPKtoVuzeBuddy.get(pk);
+				if (vuzeBuddy != null) {
+					//vuzeBuddy.setDisplayName(buddy.getName());
+				} else {
+					buddyAdded(buddy);
+				}
+			} finally {
+				buddy_mon.exit();
+			}
+		}
+
+		public void buddyAdded(BuddyPluginBuddy buddy) {
+			if (!canHandleBuddy(buddy)) {
+				return;
+			}
+
+			buddy.getMessageHandler().addListener(buddy_message_handler_listener);
+		}
+		
+		// @see com.aelitis.azureus.plugins.net.buddy.BuddyPluginListener#enabledStateChanged(boolean)
+		public void enabledStateChanged(boolean enabled) {
+			setupBuddyPlugin();
+		}
+	};
+
+	private static BuddyPluginBuddyRequestListener buddyPluginBuddyRequestListener = new BuddyPluginBuddyRequestListener() {
+		public Map requestReceived(BuddyPluginBuddy from_buddy, int subsystem,
+				Map request)
+				throws BuddyPluginException {
+			if (subsystem != BuddyPlugin.SUBSYSTEM_AZ3) {
+				return null;
+			}
+
+			Map mapResponse = new HashMap();
+
+			try {
+				String pk = from_buddy.getPublicKey();
+
+				String reply = processPayloadMap(pk, request,
+						from_buddy.isAuthorised(), SystemTime.getCurrentTime());
+				mapResponse.put("response", reply);
+			} catch (Exception e) {
+				mapResponse.put("response", "Exception: " + e.toString());
+				Debug.out(e);
+			}
+
+			return mapResponse;
+		}
+
+		public void pendingMessages(BuddyPluginBuddy[] from_buddies) {
+			for (int i = 0; i < from_buddies.length; i++) {
+				BuddyPluginBuddy pluginBuddy = from_buddies[i];
+
+				String pk = pluginBuddy.getPublicKey();
+				VuzeBuddy vuzeBuddy = getBuddyByPK(pk);
+				if (vuzeBuddy != null) {
+					log("Relay: YGM from " + pk);
+				} else {
+					log("Relay: YGM from non vuzer " + pk);
+				}
+			}
+			PlatformRelayMessenger.relayCheck();
+		}
+
+	};
+
+	private static boolean pluginEnabled = false;
+
+	
 	/**
 	 * @param vuzeBuddyCreator
 	 *
@@ -271,6 +425,16 @@ public class VuzeBuddyManager
 
 		PlatformMessenger.setAuthorizedDelayed(true);
 
+		configDir = new File(SystemProperties.getUserPath());
+
+		setupBuddyPlugin();
+	}
+	
+	private static void setupBuddyPlugin() {
+		skipSave = true;
+
+		boolean newPluginEnabled = false;
+
 		try {
 			PluginInterface pi;
 			pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
@@ -278,8 +442,9 @@ public class VuzeBuddyManager
 
 			if (pi != null) {
 				Plugin plugin = pi.getPlugin();
-				if (plugin instanceof BuddyPlugin) {
-					linkupBuddyPlugin((BuddyPlugin) plugin);
+				if (!pi.isDisabled() && (plugin instanceof BuddyPlugin)) {
+					buddyPlugin = (BuddyPlugin) plugin;
+					newPluginEnabled = buddyPlugin.isEnabled();
 				}
 			}
 		} catch (Throwable t) {
@@ -289,52 +454,65 @@ public class VuzeBuddyManager
 		if (buddyPlugin == null) {
 			return;
 		}
+		
+		if (newPluginEnabled == pluginEnabled) {
+			return;
+		}
+		pluginEnabled = newPluginEnabled;
 
+		// always add BuddyPluginListener because we need to track disabled state
+		buddyPlugin.removeListener(buddyPluginListener);
+		buddyPlugin.addListener(buddyPluginListener);
+
+		if (!pluginEnabled) {
+			buddyPlugin.removeRequestListener(buddyPluginBuddyRequestListener);
+			buddyPlugin = null;
+			
+			VuzeCryptoManager.getSingleton().removeListener(vuzeCryptoListener);
+
+			LoginInfoManager.getInstance().removeListener(loginInfoListener);
+
+			PlatformRelayMessenger.removeRelayServerListener(vuzeRelayListener);
+			
+			
+			try {
+				buddy_mon.enter();
+
+				Object[] buddyArray = buddyList.toArray();
+				for (int i = 0; i < buddyArray.length; i++) {
+					VuzeBuddy buddy = (VuzeBuddy) buddyArray[i];
+
+					try {
+						removeBuddy(buddy, false);
+					} catch (NotLoggedInException e) {
+					}
+				}
+
+			} finally {
+				buddy_mon.exit();
+			}
+
+			return;
+		}
+
+		// TODO create an addListener that triggers for existing buddies
+		buddyPlugin.addRequestListener(buddyPluginBuddyRequestListener);
+		List buddies = buddyPlugin.getBuddies();
+		for (int i = 0; i < buddies.size(); i++) {
+			BuddyPluginBuddy buddy = (BuddyPluginBuddy) buddies.get(i);
+			if (canHandleBuddy(buddy)) {
+				buddyPluginListener.buddyAdded(buddy);
+			}
+		}
+		
 		VuzeQueuedShares.init(configDir);
 
 		try {
 			loadVuzeBuddies();
 
-			VuzeCryptoManager.getSingleton().addListener(new VuzeCryptoListener() {
-				public void sessionPasswordIncorrect() {
-					VuzeBuddyManager.log("Incorrect Password!");
-				}
+			VuzeCryptoManager.getSingleton().addListener(vuzeCryptoListener);
 
-				public char[] getSessionPassword(String reason)
-						throws VuzeCryptoException {
-					VuzeBuddyManager.log("PW Request: " + reason + "; "
-							+ Debug.getCompressedStackTrace());
-					throw new VuzeCryptoException("Not Logged In", null);
-				}
-			});
-
-			LoginInfoManager.getInstance().addListener(new ILoginInfoListener() {
-				public void loginUpdate(final LoginInfo info, boolean isNewLoginID) {
-					loginUpdateTriggered(info, isNewLoginID);
-				}
-			});
-
-			VuzeRelayListener vuzeRelayListener = new VuzeRelayListener() {
-				// @see com.aelitis.azureus.core.messenger.config.VuzeRelayListener#newRelayServerPayLoad(com.aelitis.azureus.buddy.VuzeBuddy, java.lang.String, java.util.Map)
-				public void newRelayServerPayLoad(VuzeBuddy sender, String pkSender,
-						Map decodedMap, long addedOn) {
-					processPayloadMap(pkSender, decodedMap, sender != null, addedOn);
-				}
-
-				// @see com.aelitis.azureus.core.messenger.config.VuzeRelayListener#hasPendingRelayMessage(int)
-				public void hasPendingRelayMessage(int count) {
-					if (count == 0) {
-						return;
-					}
-					try {
-						PlatformRelayMessenger.fetch(0);
-						log("have " + count + " pending relay messages. Attempting fetch");
-					} catch (NotLoggedInException e) {
-						log("have " + count + " pending relay messages. Not logged in");
-						// not logged in? oh well, we'd do a fetch on login
-					}
-				}
-			};
+			LoginInfoManager.getInstance().addListener(loginInfoListener);
 
 			PlatformRelayMessenger.addRelayServerListener(vuzeRelayListener);
 
@@ -416,147 +594,18 @@ public class VuzeBuddyManager
 							log("OOPS, sync or getInvite failed because you were no longer logged in");
 						}
 						
-						String nickname = buddyPlugin.getNickname();
-						if (nickname == null || nickname.length() == 0) {
-							buddyPlugin.setNickname(info.userName + " ("
-									+ info.pk.substring(0, 2) + ")");
+						if (buddyPlugin != null) {
+  						String nickname = buddyPlugin.getNickname();
+  						if (nickname == null || nickname.length() == 0) {
+  							buddyPlugin.setNickname(info.userName + " ("
+  									+ info.pk.substring(0, 2) + ")");
+  						}
 						}
 					}
 				});
 			} catch (NotLoggedInException e) {
 				// ignore.. we should be logged in!
 				log("calling getPassword RPC afer login failed because we aren't logged in?");
-			}
-		}
-	}
-
-	/**
-	 * Set and listen to buddy plugin.  Process incoming buddy plugin messages
-	 * that are for vuze 
-	 * 
-	 * @param _buddyPlugin
-	 *
-	 * @since 3.0.5.3
-	 */
-	private static void linkupBuddyPlugin(final BuddyPlugin _buddyPlugin) {
-		if (_buddyPlugin == null) {
-			return;
-		}
-		buddyPlugin = _buddyPlugin;
-		configDir = new File(SystemProperties.getUserPath());
-
-		BuddyPluginListener listener = new BuddyPluginListener() {
-			public void messageLogged(String str) {
-			}
-
-			public void initialised(boolean available) {
-			}
-
-			public void buddyRemoved(BuddyPluginBuddy buddy) {
-				if (!canHandleBuddy(buddy)) {
-					return;
-				}
-				try {
-					buddy_mon.enter();
-
-					String pk = buddy.getPublicKey();
-
-					VuzeBuddy vuzeBuddy = (VuzeBuddy) mapPKtoVuzeBuddy.remove(pk);
-					if (vuzeBuddy != null) {
-						vuzeBuddy.removePublicKey(pk);
-						if (vuzeBuddy.getPublicKeys().length == 0) {
-							try {
-								removeBuddy(vuzeBuddy, true);
-							} catch (NotLoggedInException e) {
-								// should not happen, as we ask user to log in
-								log(e);
-							}
-						}
-					}
-				} finally {
-					buddy_mon.exit();
-				}
-			}
-
-			public void buddyChanged(BuddyPluginBuddy buddy) {
-				if (!canHandleBuddy(buddy)) {
-					return;
-				}
-
-				try {
-					buddy_mon.enter();
-
-					String pk = buddy.getPublicKey();
-
-					VuzeBuddy vuzeBuddy = (VuzeBuddy) mapPKtoVuzeBuddy.get(pk);
-					if (vuzeBuddy != null) {
-						//vuzeBuddy.setDisplayName(buddy.getName());
-					} else {
-						buddyAdded(buddy);
-					}
-				} finally {
-					buddy_mon.exit();
-				}
-			}
-
-			public void buddyAdded(BuddyPluginBuddy buddy) {
-				if (!canHandleBuddy(buddy)) {
-					return;
-				}
-
-				buddy.getMessageHandler().addListener(buddy_message_handler_listener);
-			}
-		};
-
-		BuddyPluginBuddyRequestListener requestListener = new BuddyPluginBuddyRequestListener() {
-			public Map requestReceived(BuddyPluginBuddy from_buddy, int subsystem,
-					Map request)
-					throws BuddyPluginException {
-				if (subsystem != BuddyPlugin.SUBSYSTEM_AZ3) {
-					return null;
-				}
-
-				Map mapResponse = new HashMap();
-
-				try {
-					String pk = from_buddy.getPublicKey();
-
-					String reply = processPayloadMap(pk, request,
-							from_buddy.isAuthorised(), SystemTime.getCurrentTime());
-					mapResponse.put("response", reply);
-				} catch (Exception e) {
-					mapResponse.put("response", "Exception: " + e.toString());
-					Debug.out(e);
-				}
-
-				return mapResponse;
-			}
-
-			public void pendingMessages(BuddyPluginBuddy[] from_buddies) {
-				for (int i = 0; i < from_buddies.length; i++) {
-					BuddyPluginBuddy pluginBuddy = from_buddies[i];
-
-					String pk = pluginBuddy.getPublicKey();
-					VuzeBuddy vuzeBuddy = getBuddyByPK(pk);
-					if (vuzeBuddy != null) {
-						log("Relay: YGM from " + pk);
-					} else {
-						log("Relay: YGM from non vuzer " + pk);
-					}
-				}
-				PlatformRelayMessenger.relayCheck();
-			}
-
-		};
-
-		// TODO create an addListener that triggers for existing buddies
-		buddyPlugin.addListener(listener);
-		buddyPlugin.addRequestListener(requestListener);
-		List buddies = buddyPlugin.getBuddies();
-		for (int i = 0; i < buddies.size(); i++) {
-			BuddyPluginBuddy buddy = (BuddyPluginBuddy) buddies.get(i);
-			if (canHandleBuddy(buddy)) {
-				listener.buddyAdded(buddy);
 			}
 		}
 	}
@@ -651,7 +700,7 @@ public class VuzeBuddyManager
 	 * @since 3.0.5.3
 	 */
 	private static boolean canHandleBuddy(BuddyPluginBuddy buddy) {
-		if (buddy == null) {
+		if (!isEnabled() || buddy == null) {
 			return false;
 		}
 		if (ALLOW_ONLY_AZ3) {
@@ -978,7 +1027,7 @@ public class VuzeBuddyManager
 			buddy_mon.exit();
 		}
 
-		if (buddy.getLoginID() != null) {
+		if (buddy.getLoginID() != null && buddyPlugin != null) {
 			PlatformBuddyMessenger.remove(buddy, login);
 		}
 	}
@@ -1087,6 +1136,10 @@ public class VuzeBuddyManager
 	}
 
 	private static void invitePKs(String[] pks, String code) {
+		if (buddyPlugin == null) {
+			return;
+		}
+
 		if (pks != null && pks.length > 0) {
 			final BuddyPluginBuddy[] pluginBuddies = new BuddyPluginBuddy[pks.length];
 			for (int i = 0; i < pks.length; i++) {
@@ -1275,6 +1328,9 @@ public class VuzeBuddyManager
 	 */
 	public static void sendPayloadMap(final Map map, BuddyPluginBuddy[] buddies)
 			throws NotLoggedInException {
+		if (buddyPlugin == null) {
+			return;
+		}
 		if (!LoginInfoManager.getInstance().isLoggedIn()) {
 			throw new NotLoggedInException();
 		}
@@ -1435,5 +1491,14 @@ public class VuzeBuddyManager
 			}
 		}
 		return new VuzeBuddyFakeImpl(mapBuddy);
+	}
+
+	/**
+	 * @return
+	 *
+	 * @since 3.0.5.3
+	 */
+	public static boolean isEnabled() {
+		return pluginEnabled;
 	}
 }
