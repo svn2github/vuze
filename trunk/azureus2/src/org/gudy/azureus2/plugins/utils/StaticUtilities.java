@@ -22,8 +22,11 @@
 
 package org.gudy.azureus2.plugins.utils;
 
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
+
+import com.aelitis.azureus.core.AzureusCoreFactory;
 
 /**
  * Plugin utility class for easy access to static helper methods,
@@ -52,5 +55,11 @@ public class StaticUtilities {
   getResourceDownloaderFactory()
   {
 	  return( ResourceDownloaderFactoryImpl.getSingleton());
+  }
+  
+  public static PluginInterface
+  getDefaultPluginInterface()
+  {
+	  return( AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface());
   }
 }
