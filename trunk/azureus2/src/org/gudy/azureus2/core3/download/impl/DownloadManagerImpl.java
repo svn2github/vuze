@@ -3570,20 +3570,23 @@ DownloadManagerImpl
 		    		return;
 		    	}
 		    	
-		    	boolean moved_files = false;
+		    	boolean can_move_torrent = move_details.hasTorrentChange();
+		    	
 		    	try {
-		    		this.moveDataFiles(move_details.download_location);
-		    		moved_files = true;
+		    		if (move_details.hasDownloadChange()) {
+		    			this.moveDataFiles(move_details.download_location, move_details.download_name);
+		    		}
 		    	}
 		    	catch (Exception e) {
+		    		can_move_torrent = false;
 		    		Logger.log(new LogAlert(this, true,
 							"Problem moving files to removed download directory", e));
 		    	}
 		    	
 		    	// This code will silently fail if the torrent file doesn't exist.
-		    	if (moved_files && move_details.torrent_location != null) {
+		    	if (can_move_torrent) {
 		  		    try {
-			    		this.moveTorrentFile(move_details.torrent_location);
+			    		this.moveTorrentFile(move_details.torrent_location, move_details.torrent_name);
 			    	}
 			    	catch (Exception e) {
 			    		Logger.log(new LogAlert(this, true, 
