@@ -1,6 +1,5 @@
 package org.gudy.azureus2.ui.swt.shells;
 
-import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,8 +43,6 @@ public class MessageBoxShell
 
 	private static int numOpen = 0;
 
-	private static ArrayList skinnableListeners = new ArrayList();
-
 	private Shell parent;
 
 	private final String title;
@@ -76,14 +73,6 @@ public class MessageBoxShell
 
 	private Image imgLeft;
 	
-	public static void addSkinnableListener(UISkinnableSWTListener l) {
-		skinnableListeners.add(l);
-	}
-
-	public static void removeSkinnableListener(UISkinnableSWTListener l) {
-		skinnableListeners.remove(l);
-	}
-
 	public static int open(final Shell parent, final String title,
 			final String text, final String[] buttons, final int defaultOption) {
 		return open(parent, title, text, buttons, defaultOption, null, false, -1);
@@ -192,6 +181,8 @@ public class MessageBoxShell
 		final Shell shell = ShellFactory.createShell(parent, SWT.DIALOG_TRIM
 				| SWT.RESIZE | SWT.APPLICATION_MODAL);
 		shell.setText(title);
+		shell.setBackgroundMode(SWT.INHERIT_DEFAULT);
+		
 		GridLayout gridLayout = new GridLayout();
 		shell.setLayout(gridLayout);
 		Utils.setShellIcon(shell);
@@ -259,6 +250,8 @@ public class MessageBoxShell
 
 			linkLabel.setText(urlText);
 		}
+		
+		linkControl.setForeground(shell.getForeground());
 
 		if ((html != null && html.length() > 0)
 				|| (url != null && url.length() > 0)) {
@@ -316,6 +309,7 @@ public class MessageBoxShell
 		// Closing in..
 		if (autoCloseInMS > 0) {
 			final Label lblCloseIn = new Label(shell, SWT.WRAP);
+			linkControl.setForeground(shell.getForeground());
 			lblCloseIn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			long endOn = SystemTime.getCurrentTime() + autoCloseInMS;
 			lblCloseIn.setData("CloseOn", new Long(endOn));
