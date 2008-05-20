@@ -51,7 +51,8 @@ MetaSearchManager
 	public Engine
 	addEngine(
 		long		id,
-		Map			map )
+		Map			map,
+		boolean		is_import )
 	
 		throws MetaSearchException;
 }

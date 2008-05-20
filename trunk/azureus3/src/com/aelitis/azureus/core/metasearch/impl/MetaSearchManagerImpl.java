@@ -25,6 +25,7 @@ import java.io.File;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -35,6 +36,9 @@ import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.ui.UIManagerEvent;
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
 
 import com.aelitis.azureus.core.messenger.config.PlatformMetaSearchMessenger;
 import com.aelitis.azureus.core.metasearch.Engine;
@@ -80,7 +84,7 @@ MetaSearchManagerImpl
 							if ( comp.getType() == VuzeFileComponent.COMP_TYPE_METASEARCH_TEMPLATE ){
 								
 								try{
-									getSingleton().addEngine( -1, comp.getContent());
+									getSingleton().addEngine( -1, comp.getContent(), true );
 									
 									comp.setProcessed();
 									
@@ -535,7 +539,8 @@ MetaSearchManagerImpl
 	public Engine
 	addEngine(
 		long		id,
-		Map			map )
+		Map			map,
+		boolean		is_import )
 	
 		throws MetaSearchException
 	{
@@ -552,6 +557,24 @@ MetaSearchManagerImpl
 				}
 			}
 			
+			if ( is_import ){
+				
+				PluginInterface pi = StaticUtilities.getDefaultPluginInterface();
+				
+				String details = MessageText.getString(
+						"metasearch.addtemplate.desc",
+						new String[]{ engine.getName() });
+				
+				long res = pi.getUIManager().showMessageBox(
+						"metasearch.addtemplate.title",
+						"!" + details + "!",
+						UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
+				
+				if ( res == UIManagerEvent.MT_NO ){
+					
+					throw( new MetaSearchException( "User declined the template" ));
+				}
+			}
 				// already got one for this id but different - allocate a new id
 			
 			if ( id == -1 ){
@@ -603,7 +626,7 @@ MetaSearchManagerImpl
 				if ( comp.getType() == VuzeFileComponent.COMP_TYPE_METASEARCH_TEMPLATE ){
 					
 					try{
-						addEngine( -1, comp.getContent());
+						addEngine( -1, comp.getContent(), false );
 												
 					}catch( Throwable e ){
 						

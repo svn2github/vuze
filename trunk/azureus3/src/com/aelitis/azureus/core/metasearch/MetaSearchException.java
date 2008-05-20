@@ -27,6 +27,13 @@ MetaSearchException
 {
 	public
 	MetaSearchException(
+		String			str )
+	{
+		super( str );
+	}
+	
+	public
+	MetaSearchException(
 		String			str,
 		Throwable		cause )
 	{
