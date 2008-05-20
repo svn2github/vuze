@@ -107,6 +107,7 @@ public class InvitePage
 						public void handleCancel() {
 							System.out.println("'Cancel' called from invite buddy page");//KN: sysout
 
+							
 							ButtonBar buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
 							if (null != buttonBar) {
 								buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
@@ -164,7 +165,7 @@ public class InvitePage
 		if (null == browser) {
 			getBrowser();
 		}
-
+		browser.refresh();
 	}
 
 }

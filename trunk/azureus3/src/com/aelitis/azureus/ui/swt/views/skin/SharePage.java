@@ -402,7 +402,7 @@ public class SharePage
 				if (null != buttonBar) {
 					buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
 				}
-				
+
 				resetControls();
 				getDetailPanel().show(false);
 
@@ -414,10 +414,11 @@ public class SharePage
 		});
 	}
 
-	private void resetControls(){
+	private void resetControls() {
 		inviteeList.setText("");
 		commentText.setText("");
 	}
+
 	private String getCommitJSONMessage() {
 		if (null == shareItem || null == shareItem.hash) {
 			return null;
@@ -618,6 +619,7 @@ public class SharePage
 		if (null == browser) {
 			getBrowser();
 		}
+		browser.refresh();
 
 		/*
 		 * Setting the button bar to Share mode
