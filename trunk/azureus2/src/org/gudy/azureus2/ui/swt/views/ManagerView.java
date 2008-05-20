@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
@@ -182,12 +183,22 @@ public class ManagerView extends AbstractIView implements
 			System.out.println("ManagerView::initialize : folder isn't null !!!");
 		}
   	
-	  IView views[] = { new GeneralView(), new PeersView(),
-			new PeersGraphicView(), new PiecesView(), new FilesView(), new TorrentInfoView( manager ),
-			new TorrentOptionsView( manager ), new LoggerView() };
+  	ArrayList iviews_to_use = new ArrayList();
+  	iviews_to_use.add(new GeneralView());
+  	iviews_to_use.add(new PeersView());
+  	iviews_to_use.add(new PeersGraphicView());
+  	iviews_to_use.add(new PiecesView());
+  	iviews_to_use.add(new FilesView());
+  	iviews_to_use.add(new TorrentInfoView(manager));
+  	iviews_to_use.add(new TorrentOptionsView(manager));
+  	if (Logger.isEnabled()) {
+  		iviews_to_use.add(new LoggerView());
+  	}
+  	
+  	IView[] views = (IView[])iviews_to_use.toArray(new IView[iviews_to_use.size()]);
 
-		for (int i = 0; i < views.length; i++)
-			addSection(views[i], manager);
+  	for (int i = 0; i < views.length; i++)
+		addSection(views[i], manager);
 
     // Call plugin listeners
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
