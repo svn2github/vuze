@@ -1084,6 +1084,18 @@ public class MainWindow
 				new UISkinnableSWTListener() {
 					public void skinBeforeComponents(Composite composite,
 							Object skinnableObject, Object[] relatedObjects) {
+						Color colorBG = skin.getSkinProperties().getColor(
+								"color.mainshell");
+						Color colorLink = skin.getSkinProperties().getColor(
+								"color.links.normal");
+						Color colorText = skin.getSkinProperties().getColor(
+								"color.text.fg");
+
+						composite.setBackground(colorBG);
+						composite.setForeground(colorText);
+
+						MessageBoxShell shell = (MessageBoxShell) skinnableObject;
+						
 						TOTorrent torrent = null;
 						DownloadManager dm = (DownloadManager) LogRelationUtils.queryForClass(
 								relatedObjects, DownloadManager.class);
@@ -1102,9 +1114,7 @@ public class MainWindow
 											contentThumbnail);
 									final Image img = new Image(Display.getDefault(), bis);
 
-									if (skinnableObject instanceof MessageBoxShell) {
-										((MessageBoxShell) skinnableObject).setLeftImage(img);
-									}
+									shell.setLeftImage(img);
 
 									composite.addDisposeListener(new DisposeListener() {
 										public void widgetDisposed(DisposeEvent e) {
