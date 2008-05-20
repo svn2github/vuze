@@ -257,9 +257,18 @@ public class Timer
 							}
 						}
 						
-						// System.out.println( "    adjusted: " + old_when + " -> " + new_when );
+						// don't wrap around by accident
 						
-						event.setWhen( new_when );
+						if ( old_when > 0 && new_when < 0 && offset > 0 ){
+
+							// Debug.out( "Ignoring wrap around for " + event.getName());
+							
+						}else{
+							
+							// System.out.println( "    adjusted: " + old_when + " -> " + new_when );
+						
+							event.setWhen( new_when );
+						}
 					}
 				}
 				
@@ -291,10 +300,19 @@ public class Timer
 
 				long old_when = event.getWhen();
 				long new_when = old_when + offset;
+				
+					// don't wrap around by accident
+				
+				if ( old_when > 0 && new_when < 0 && offset > 0 ){
 
-				// System.out.println( "    adjusted: " + old_when + " -> " + new_when );
+					// Debug.out( "Ignoring wrap around for " + event.getName());
+					
+				}else{
+					
+					// System.out.println( "    adjusted: " + old_when + " -> " + new_when );
 
-				event.setWhen(new_when);
+					event.setWhen( new_when );
+				}
 			}
 
 			notify();
