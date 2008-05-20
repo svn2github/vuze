@@ -79,7 +79,9 @@ public class AvatarWidget
 
 	private Color imageBorderColor = null;
 
-	private Rectangle decoratorBounds = null;
+	private Rectangle decorator_remove_friend = null;
+
+	private Rectangle decorator_add_to_share = null;
 
 	private int alpha = 255;
 
@@ -92,6 +94,12 @@ public class AvatarWidget
 	private Menu menu;
 
 	private static Font fontDisplayName;
+
+	private String tooltip_remove_friend;
+
+	private String tooltip_add_to_share;
+
+	private String tooltip;
 
 	public AvatarWidget(BuddiesViewer viewer, Point avatarSize,
 			Point avatarImageSize, Point avatarNameSize, VuzeBuddySWT vuzeBuddy) {
@@ -124,10 +132,14 @@ public class AvatarWidget
 		final Image removeImage = ImageRepository.getImage("progress_remove");
 		final Image add_to_share_Image = ImageRepository.getImage("add_to_share");
 
+		tooltip_remove_friend = MessageText.getString("v3.buddies.remove");
+		tooltip_add_to_share = MessageText.getString("v3.buddies.add.to.share");
+		tooltip = vuzeBuddy.getDisplayName() + " (" + vuzeBuddy.getLoginID() + ")";
+
 		/*
 		 * Centers the image and name horizontally
 		 */
-		imageBounds = new Rectangle((size.x / 2) - (imageSize.x / 2), 4,
+		imageBounds = new Rectangle((size.x / 2) - (imageSize.x / 2), 8,
 				imageSize.x, imageSize.y);
 
 		nameAreaBounds = new Rectangle((size.x / 2) - (nameAreaSize.x / 2),
@@ -136,9 +148,12 @@ public class AvatarWidget
 		/*
 		 * Position the decorator icons
 		 */
-		decoratorBounds = new Rectangle(imageBounds.x + imageBounds.width - 13, 0,
+		decorator_remove_friend = new Rectangle(size.x
+				- (highlightBorder + imageBorder) - 16, highlightBorder + imageBorder,
 				16, 16);
 
+		decorator_add_to_share = new Rectangle(highlightBorder + imageBorder,
+				highlightBorder + imageBorder, 16, 16);
 		/*
 		 * Get the avatar image and create a default image if none was found
 		 */
@@ -152,6 +167,10 @@ public class AvatarWidget
 		canvas.addPaintListener(new PaintListener() {
 
 			public void paintControl(PaintEvent e) {
+
+				if (false == isFullyVisible()) {
+					return;
+				}
 
 				if (fontDisplayName == null || fontDisplayName.isDisposed()) {
 					fontDisplayName = Utils.getFontWithHeight(canvas.getFont(), e.gc, 10);
@@ -249,13 +268,14 @@ public class AvatarWidget
 				 */
 				if (true == viewer.isEditMode()) {
 					e.gc.drawImage(removeImage, 0, 0, removeImage.getBounds().width,
-							removeImage.getBounds().height, decoratorBounds.x,
-							decoratorBounds.y, decoratorBounds.width, decoratorBounds.height);
+							removeImage.getBounds().height, decorator_remove_friend.x,
+							decorator_remove_friend.y, decorator_remove_friend.width,
+							decorator_remove_friend.height);
 				} else if (true == viewer.isShareMode() && false == isSharedAlready()) {
 					e.gc.drawImage(add_to_share_Image, 0, 0,
 							removeImage.getBounds().width, removeImage.getBounds().height,
-							decoratorBounds.x, decoratorBounds.y, decoratorBounds.width,
-							decoratorBounds.height);
+							decorator_add_to_share.x, decorator_add_to_share.y,
+							decorator_add_to_share.width, decorator_add_to_share.height);
 				}
 
 				/*
@@ -299,11 +319,17 @@ public class AvatarWidget
 			}
 
 			public void mouseExit(MouseEvent e) {
+				if (false == isFullyVisible()) {
+					return;
+				}
 				isActivated = false;
 				canvas.redraw();
 			}
 
 			public void mouseEnter(MouseEvent e) {
+				if (false == isFullyVisible()) {
+					return;
+				}
 				if (false == isActivated) {
 					isActivated = true;
 					canvas.redraw();
@@ -317,16 +343,21 @@ public class AvatarWidget
 			}
 
 			public void mouseDown(MouseEvent e) {
+				if (false == isFullyVisible()) {
+					return;
+				}
 				if (e.button != 1) {
 					return;
 				}
 				if (true == nameAreaBounds.contains(e.x, e.y)
 						&& e.stateMask != SWT.MOD1) {
 					doLinkClicked();
-				} else if (decoratorBounds.contains(e.x, e.y)) {
+				} else if (decorator_remove_friend.contains(e.x, e.y)) {
 					if (true == viewer.isEditMode()) {
 						doRemoveBuddy();
-					} else if (true == viewer.isShareMode()) {
+					}
+				} else if (decorator_add_to_share.contains(e.x, e.y)) {
+					if (true == viewer.isShareMode()) {
 						doAddBuddyToShare();
 					}
 				} else {
@@ -349,6 +380,9 @@ public class AvatarWidget
 			private String lastTooltipText = canvas.getToolTipText();
 
 			public void mouseMove(MouseEvent e) {
+				if (false == isFullyVisible()) {
+					return;
+				}
 				if (e.stateMask == SWT.MOD1) {
 					return;
 				}
@@ -359,16 +393,20 @@ public class AvatarWidget
 				 * can be annoying
 				 */
 				String tooltipText = "";
-				if (decoratorBounds.contains(e.x, e.y)) {
+				if (decorator_remove_friend.contains(e.x, e.y)) {
 					if (true == viewer.isEditMode()) {
-						tooltipText = MessageText.getString("v3.buddies.remove");
-					} else if (true == viewer.isShareMode() && false == isSharedAlready()) {
-						tooltipText = MessageText.getString("v3.buddies.add.to.share");
+						tooltipText = tooltip_remove_friend;
 					} else {
-						tooltipText = getNameTooltip();
+						tooltipText = tooltip;
+					}
+				} else if (decorator_add_to_share.contains(e.x, e.y)) {
+					if (true == viewer.isShareMode() && false == isSharedAlready()) {
+						tooltipText = tooltip_add_to_share;
+					} else {
+						tooltipText = tooltip;
 					}
 				} else {
-					tooltipText = getNameTooltip();
+					tooltipText = tooltip;
 				}
 
 				if (false == tooltipText.equals(lastTooltipText)) {
@@ -396,8 +434,8 @@ public class AvatarWidget
 		initMenu();
 	}
 
-	private String getNameTooltip() {
-		return vuzeBuddy.getDisplayName() + " (" + vuzeBuddy.getLoginID() + ")";
+	private boolean isFullyVisible() {
+		return viewer.isFullyVisible(AvatarWidget.this);
 	}
 
 	private void initMenu() {

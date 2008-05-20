@@ -9,6 +9,7 @@ import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.RowData;
@@ -148,7 +149,7 @@ public class BuddiesViewer
 			avatarImageBorder = 1;
 			hSpacing = 6;
 			avatarImageSize = new Point(40, 40);
-			avatarNameSize = new Point(50, 20);
+			avatarNameSize = new Point(52, 18);
 			avatarSize = new Point(0, 0);
 			avatarSize.x = Math.max(avatarNameSize.x, avatarImageSize.x)
 					+ (2 * (avatarHightLightBorder + avatarImageBorder));
@@ -161,12 +162,6 @@ public class BuddiesViewer
 			RowLayout rLayout = new RowLayout(SWT.HORIZONTAL);
 			rLayout.wrap = false;
 			rLayout.spacing = hSpacing;
-			rLayout.marginTop = 4;
-			rLayout.marginBottom = 4;
-			rLayout.marginLeft = 0;
-			rLayout.marginRight = 0;
-			rLayout.marginWidth = 0;
-			rLayout.marginHeight = 0;
 			avatarsPanel.setLayout(rLayout);
 
 			avatarsPanel.pack();
@@ -469,6 +464,22 @@ public class BuddiesViewer
 		avatarWidgets.add(avatarWidget);
 
 		return avatarWidget;
+	}
+
+	/**
+	 * Returns whether the given <code>AvatarWidget</code> is fully visible in the view port of the viewer
+	 */
+	public boolean isFullyVisible(AvatarWidget avatarWidget) {
+		if (null != avatarWidget && null != avatarWidget.getControl()
+				&& false == avatarWidget.getControl().isDisposed()) {
+
+			Rectangle controlBounds = avatarWidget.getControl().getBounds();
+			if (controlBounds.x + controlBounds.width < content.getBounds().width
+					- avatarsPanel.getBounds().x) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public void removeBuddy(final AvatarWidget widget) {
