@@ -55,16 +55,22 @@ PeerControlSchedulerPrioritised
 	protected void
 	schedule()
 	{
+		final boolean printTicks = System.getProperty("trace.monotone","0").equals("1");
+		
 		latest_time	= SystemTime.getCurrentTime();
 		//SystemTime.registerMonotonousConsumer(
-		SystemTime.registerConsumer(
+		SystemTime.registerMonotonousConsumer(
 			new SystemTime.TickConsumer()
 			{
+				
+				
 				public void
 				consume( long	time )
 				{
 					synchronized( PeerControlSchedulerPrioritised.this ){
 						latest_time	= time;
+						if(printTicks)
+							System.out.println(time);
 						PeerControlSchedulerPrioritised.this.notify();
 					}
 				}
@@ -121,7 +127,8 @@ PeerControlSchedulerPrioritised
 					break; // too early for next task, continue waiting
 				if (i == 0 || !useWeights)
 					tokenDispenser.refill();
-				// System.out.println("scheduling "+i+" time:"+latest_time);
+				if(printTicks)
+					System.out.println("scheduling "+i+" time:"+latest_time);
 				inst.schedule();
 				schedule_count++;
 				scheduledNext++;
