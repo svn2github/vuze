@@ -4,13 +4,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
@@ -244,8 +244,8 @@ WebEngine
 	
 		throws IOException
 	{		
-		res.put( "searchURL", 	URLEncoder.encode(searchURLFormat,"UTF-8"));
-		res.put( "timezone", 		timeZone );	
+		res.put( "searchURL", 	UrlUtils.encode( searchURLFormat));
+		res.put( "timezone", 	timeZone );	
 		
 		if ( !automaticDateParser ){
 			
@@ -368,7 +368,6 @@ WebEngine
 			
 			for(int i = 0 ; i < searchParameters.length ; i++){
 				SearchParameter parameter = searchParameters[i];
-				//String escapedKeyword = URLEncoder.encode(parameter.getValue(),"UTF-8");
 				String escapedKeyword = parameter.getValue();
 				searchURL = searchURL.replaceAll("%" + parameter.getMatchPattern(), escapedKeyword);
 			}
