@@ -1004,6 +1004,10 @@ DiskManagerImpl
 
                             	try {
                             		successfulAlloc = writer.zeroFile( fileInfo, target_length );
+                            	} catch(Exception e) {
+                            		// in case an error occured set the error message before we set it to FAULTY in the finally clause, the exception handler further down is too late 
+                                    this.errorMessage = Debug.getNestedExceptionMessage(e) + " (allocateFiles new:" + data_file.toString() + ")";
+                                    throw e;
                             	} finally
                             	{
                             		if (!successfulAlloc)
