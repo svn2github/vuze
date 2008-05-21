@@ -122,6 +122,9 @@ public class PlatformMessenger
 
 		if (message != null) {
 			debug("q msg " + message + " for " + new Date(message.getFireBefore()));
+			if (message.requiresAuthorization() && authorizedDelayed) {
+				debug("   authorized msg is delayed");
+			}
 		} else {
 			debug("fire timerevent");
 		}
