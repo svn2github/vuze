@@ -270,7 +270,7 @@ VuzeCryptoManager
 	{
 		session_pw	= null;
 	
-		crypt_man.clearPasswords();
+		crypt_man.clearPasswords( CryptoManagerPasswordHandler.HANDLER_TYPE_SYSTEM );
 	}
 	
 		/**

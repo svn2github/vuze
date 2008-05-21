@@ -1,11 +1,20 @@
 package com.aelitis.azureus.ui.swt.browser.listener;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Shell;
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -16,6 +25,8 @@ import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.metasearch.Result;
 import com.aelitis.azureus.core.metasearch.ResultListener;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
+import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
+import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 
@@ -37,7 +48,11 @@ public class MetaSearchListener extends AbstractMessageListener {
 	public static final String OP_DELETE_TEMPLATE		= "delete-template";
 	public static final String OP_TEST_TEMPLATE			= "test-template";
 	
-		
+	public static final String OP_EXPORT_TEMPLATE		= "export-template";
+	public static final String OP_IMPORT_TEMPLATE		= "import-template";
+	
+	
+	
 	public MetaSearchListener() {
 		super(LISTENER_ID);
 	}
@@ -401,7 +416,122 @@ public class MetaSearchListener extends AbstractMessageListener {
 							}
 						});
 
-			}		
+			}	
+		} else if ( OP_EXPORT_TEMPLATE.equals(opid)){
+			
+			Map decodedMap = message.getDecodedMap();
+
+			final long	id		= ((Long)decodedMap.get( "id" )).longValue();
+			
+			final Engine engine = metaSearchManager.getMetaSearch().getEngine( id );
+			
+			if ( engine == null ){
+				
+				Map params = new HashMap();
+				params.put( "error", "template '" + id + "' not found" );
+
+				context.sendBrowserMessage("metasearch", "exportTemplateFailed",params);
+				
+			}else{
+				final Shell shell = Utils.findAnyShell();
+				
+				shell.getDisplay().asyncExec(
+					new AERunnable() 
+					{
+						public void 
+						runSupport()
+						{
+							FileDialog dialog = 
+								new FileDialog( shell, SWT.SYSTEM_MODAL | SWT.SAVE );
+							
+							dialog.setFilterPath( TorrentOpener.getFilterPathData() );
+													
+							dialog.setText(MessageText.getString("metasearch.export.select.template.file"));
+							
+							dialog.setFilterExtensions(new String[] {
+									"*.vuze",
+									"*.vuz",
+									Constants.FILE_WILDCARD
+								});
+							dialog.setFilterNames(new String[] {
+									"*.vuze",
+									"*.vuz",
+									Constants.FILE_WILDCARD
+								});
+							
+							String path = TorrentOpener.setFilterPathData( dialog.open());
+		
+							if ( path != null ){
+								
+								try{
+									engine.exportToVuzeFile( new File( path ));
+									
+									context.sendBrowserMessage( "metasearch", "exportTemplateCompleted", new HashMap() );
+
+								}catch( Throwable e ){
+									
+									Map params = new HashMap();
+									params.put( "error", "save failed: " + Debug.getNestedExceptionMessage(e));
+
+									context.sendBrowserMessage("metasearch", "exportTemplateFailed",params);
+								}
+							}else{
+								
+								Map params = new HashMap();
+								params.put( "error", "operation cancelled" );
+
+								context.sendBrowserMessage("metasearch", "exportTemplateFailed",params);
+							}
+						}
+					});
+			}
+		}else if ( OP_IMPORT_TEMPLATE.equals(opid)){
+						
+			final Shell shell = Utils.findAnyShell();
+			
+			shell.getDisplay().asyncExec(
+				new AERunnable() 
+				{
+					public void 
+					runSupport()
+					{
+						FileDialog dialog = 
+							new FileDialog( shell, SWT.SYSTEM_MODAL | SWT.OPEN );
+						
+						dialog.setFilterPath( TorrentOpener.getFilterPathData() );
+												
+						dialog.setText(MessageText.getString("metasearch.import.select.template.file"));
+						
+						dialog.setFilterExtensions(new String[] {
+								"*.vuze",
+								"*.vuz",
+								Constants.FILE_WILDCARD
+							});
+						dialog.setFilterNames(new String[] {
+								"*.vuze",
+								"*.vuz",
+								Constants.FILE_WILDCARD
+							});
+						
+						String path = TorrentOpener.setFilterPathData( dialog.open());
+	
+						if ( path != null ){
+							
+							VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
+							
+							vfh.loadAndHandleVuzeFile( path, VuzeFileComponent.COMP_TYPE_METASEARCH_TEMPLATE );
+							
+							context.sendBrowserMessage( "metasearch", "importTemplateCompleted", new HashMap() );
+
+						}else{
+							
+							Map params = new HashMap();
+							params.put( "error", "operation cancelled" );
+
+							context.sendBrowserMessage("metasearch", "importTemplateFailed",params);
+						}
+					}
+				});
 		}
 	}
 }

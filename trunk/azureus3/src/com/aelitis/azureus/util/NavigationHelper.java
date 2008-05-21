@@ -49,7 +49,8 @@ NavigationHelper
 			{
 				public void
 				process(
-					VuzeFile[]		files )
+					VuzeFile[]		files,
+					int				expected_types )
 				{
 					for (int i=0;i<files.length;i++){
 						

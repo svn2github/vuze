@@ -69,7 +69,8 @@ MetaSearchManagerImpl
 			{
 				public void
 				process(
-					VuzeFile[]		files )
+					VuzeFile[]		files,
+					int				expected_types )
 				{
 					for (int i=0;i<files.length;i++){
 						
@@ -84,7 +85,11 @@ MetaSearchManagerImpl
 							if ( comp.getType() == VuzeFileComponent.COMP_TYPE_METASEARCH_TEMPLATE ){
 								
 								try{
-									getSingleton().addEngine( -1, comp.getContent(), true );
+									getSingleton().addEngine(
+										-1, 
+										comp.getContent(), 
+										true,
+										(expected_types & VuzeFileComponent.COMP_TYPE_METASEARCH_TEMPLATE) == 0 );
 									
 									comp.setProcessed();
 									
@@ -510,7 +515,7 @@ MetaSearchManagerImpl
 			
 			while( true ){
 			
-				id = Integer.MAX_VALUE + Math.abs(random.nextInt());
+				id = (long)Integer.MAX_VALUE + (long)Math.abs(random.nextInt());
 				
 				if ( meta_search.getEngine( id ) == null ){
 					
@@ -540,7 +545,8 @@ MetaSearchManagerImpl
 	addEngine(
 		long		id,
 		Map			map,
-		boolean		is_import )
+		boolean		is_import,
+		boolean		warn_user )
 	
 		throws MetaSearchException
 	{
@@ -553,11 +559,25 @@ MetaSearchManagerImpl
 				
 				if ( existing.sameAs( engine )){
 					
+					if ( is_import && warn_user ){
+						
+						PluginInterface pi = StaticUtilities.getDefaultPluginInterface();
+						
+						String details = MessageText.getString(
+								"metasearch.addtemplate.dup.desc",
+								new String[]{ engine.getName() });
+						
+						pi.getUIManager().showMessageBox(
+								"metasearch.addtemplate.dup.title",
+								"!" + details + "!",
+								UIManagerEvent.MT_OK );
+					}
+					
 					return( existing );
 				}
 			}
 			
-			if ( is_import ){
+			if ( is_import && warn_user ){
 				
 				PluginInterface pi = StaticUtilities.getDefaultPluginInterface();
 				
@@ -626,7 +646,7 @@ MetaSearchManagerImpl
 				if ( comp.getType() == VuzeFileComponent.COMP_TYPE_METASEARCH_TEMPLATE ){
 					
 					try{
-						addEngine( -1, comp.getContent(), false );
+						addEngine( -1, comp.getContent(), false, false );
 												
 					}catch( Throwable e ){
 						
