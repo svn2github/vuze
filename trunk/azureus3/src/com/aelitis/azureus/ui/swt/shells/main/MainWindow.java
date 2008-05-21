@@ -738,12 +738,24 @@ public class MainWindow
 					Utils.execSWTThread(new AERunnable() {
 						public void runSupport() {
 
-							if (type == NavigationHelper.COMMAND_SWITCH_TO_TAB) {
+							if ( type == NavigationHelper.COMMAND_SWITCH_TO_TAB) {
 
 								SWTSkin skin = SWTSkinFactory.getInstance();
 								SWTSkinObject skinObject = skin.getSkinObject(args[0]);
 								if (skinObject != null) {
 									skin.activateTab(skinObject);
+								}
+							}else if ( type == NavigationHelper.COMMAND_CONDITION_CHECK ){
+								
+								if ( args[0].equals( NavigationHelper.COMMAND_CHECK_BUDDY_MANAGER )){
+									
+									if ( args[1].equals( NavigationHelper.COMMAND_CHECK_BUDDY_MANAGER_ENABLED )){
+										
+								 		if (!VuzeBuddyManager.isEnabled()){
+								 			
+								 			VuzeBuddyManager.showDisabledDialog();
+								 		}
+									}
 								}
 							}
 						}

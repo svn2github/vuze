@@ -37,7 +37,12 @@ public class
 NavigationHelper 
 {
 	public static final int COMMAND_SWITCH_TO_TAB	= 1;
+	public static final int COMMAND_CONDITION_CHECK	= 2;
 	
+	public static final String COMMAND_CHECK_BUDDY_MANAGER			= "buddy-manager";
+	public static final String COMMAND_CHECK_BUDDY_MANAGER_ENABLED	= "enabled";
+	
+		
 	private static CopyOnWriteList	listeners = new CopyOnWriteList();
 	private static List				command_queue;
 	
@@ -62,7 +67,8 @@ NavigationHelper
 							
 							VuzeFileComponent comp = comps[j];
 								
-							if ( comp.getType() == VuzeFileComponent.COMP_TYPE_V3_NAVIGATION ){
+							if ( 	comp.getType() == VuzeFileComponent.COMP_TYPE_V3_NAVIGATION ||
+									comp.getType() == VuzeFileComponent.COMP_TYPE_V3_CONDITION_CHECK ){
 
 								try{
 
@@ -203,6 +209,8 @@ NavigationHelper
 			
 			content.put( "commands", commands );
 			
+				// home tab
+			
 			Map	command1 = new HashMap();
 			
 			commands.add( command1 );
@@ -214,7 +222,7 @@ NavigationHelper
 			command1.put( "type", new Long( COMMAND_SWITCH_TO_TAB ));
 			command1.put( "args", l_args1 );
 
-			
+				// activity tab
 			
 			Map	command2 = new HashMap();
 			
@@ -226,6 +234,20 @@ NavigationHelper
 			
 			command2.put( "type", new Long( COMMAND_SWITCH_TO_TAB ));
 			command2.put( "args", l_args2 );
+			
+				// check plugin available
+			
+			Map	command3 = new HashMap();
+			
+			commands.add( command3 );
+			
+			List	l_args3 = new ArrayList();
+			
+			l_args3.add( COMMAND_CHECK_BUDDY_MANAGER );
+			l_args3.add( COMMAND_CHECK_BUDDY_MANAGER_ENABLED );
+			
+			command3.put( "type", new Long( COMMAND_CONDITION_CHECK ));
+			command3.put( "args", l_args3 );
 			
 			vf.addComponent( VuzeFileComponent.COMP_TYPE_V3_NAVIGATION, content );
 			
