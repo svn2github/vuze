@@ -463,10 +463,6 @@ implements PEPeerTransport
 			Map				_initial_user_data )
 	{
 
-		if (Logger.isEnabled())
-			Logger.log(new LogEvent(this, LOGID,
-			"Out: About to create outgoing connection"));
-		
 		manager = _manager;
 		diskManager =manager.getDiskManager();
 		piecePicker =manager.getPiecePicker();
@@ -3544,13 +3540,7 @@ implements PEPeerTransport
 	public boolean
 	isTCP()
 	{
-		try {
-			return( connection.getEndpoint().getProtocols()[0].getType() == ProtocolEndpoint.PROTOCOL_TCP );
-		}
-		// XXX: AMC - I only need this temporarily for logging code, remove before release!
-		catch (Throwable t) {
-			return true;
-		}
+		return( connection.getEndpoint().getProtocols()[0].getType() == ProtocolEndpoint.PROTOCOL_TCP );
 	}
 
 	public long getUnchokedTimeTotal()
