@@ -26,5 +26,6 @@ VuzeFileProcessor
 {
 	public void
 	process(
-		VuzeFile[]		files );
+		VuzeFile[]		files,
+		int				expected_types );
 }

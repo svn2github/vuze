@@ -43,6 +43,10 @@ CryptoManager
 	clearPasswords();
 	
 	public void
+	clearPasswords(
+		int	password_handler_type );
+
+	public void
 	addPasswordHandler(
 		CryptoManagerPasswordHandler		handler );
 	

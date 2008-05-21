@@ -51,6 +51,7 @@ import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 
 import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
+import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
@@ -192,7 +193,7 @@ public class TorrentOpener {
 					
 					VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
 					
-					if ( vfh.loadAndHandleVuzeFIle( filename )){
+					if ( vfh.loadAndHandleVuzeFile( filename, VuzeFileComponent.COMP_TYPE_NONE )){
 						
 						return;
 					}
@@ -335,7 +336,7 @@ public class TorrentOpener {
 	  			
 	  			vuze_files.toArray( vfs );
 	  			
-	  			vfh.handleFiles( vfs );
+	  			vfh.handleFiles( vfs, VuzeFileComponent.COMP_TYPE_NONE );
 	  		}
 	  		
 	  		if ( non_vuze_files.size() == 0 && vuze_files.size() > 0 ){

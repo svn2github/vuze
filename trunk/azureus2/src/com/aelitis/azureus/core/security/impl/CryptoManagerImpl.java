@@ -94,9 +94,9 @@ CryptoManagerImpl
 			String persist_pw_key 		= CryptoManager.CRYPTO_CONFIG_PREFIX + "pw." + handler + ".persist_value";
 
 			long	timeout = COConfigurationManager.getLongParameter( persist_timeout_key, 0 );
-							
+									
 			if ( now > timeout ){
-			
+							
 				COConfigurationManager.setParameter( persist_timeout_key, 0 );
 				COConfigurationManager.setParameter( persist_pw_key, "" );
 				
@@ -127,7 +127,7 @@ CryptoManagerImpl
 					synchronized( CryptoManagerImpl.this ){
 						
 						if ( COConfigurationManager.getLongParameter( timeout_key, 0 ) == timeout ){
-							
+														
 							COConfigurationManager.removeParameter( timeout_key );
 							COConfigurationManager.removeParameter( pw_key );
 						}
@@ -251,25 +251,40 @@ CryptoManagerImpl
 	public void
 	clearPasswords()
 	{
+		clearPasswords( CryptoManagerPasswordHandler.HANDLER_TYPE_ALL );
+	}
+	
+	public void
+	clearPasswords(
+		int		password_handler_type )
+	{
 		ecc_handler.lock();
 		
 		session_passwords.clear();
 		
 		for (int i=0;i<CryptoManager.HANDLERS.length;i++){
 			
-			clearPassword( CryptoManager.HANDLERS[i] );
+			clearPassword( CryptoManager.HANDLERS[i], password_handler_type );
 		}
 	}
 	
 	protected void
    	clearPassword(
-   		int		handler )
+   		int		handler,
+   		int		password_handler_type )
    	{
    		final String persist_timeout_key 	= CryptoManager.CRYPTO_CONFIG_PREFIX + "pw." + handler + ".persist_timeout";
    		final String persist_pw_key 		= CryptoManager.CRYPTO_CONFIG_PREFIX + "pw." + handler + ".persist_value";
-   		
-		COConfigurationManager.removeParameter( persist_timeout_key );
-		COConfigurationManager.removeParameter( persist_pw_key );
+		final String persist_pw_key_type	= CryptoManager.CRYPTO_CONFIG_PREFIX + "pw." + handler + ".persist_type";
+
+		int	pw_type = (int)COConfigurationManager.getLongParameter( persist_pw_key_type, CryptoManagerPasswordHandler.HANDLER_TYPE_USER );
+
+		if ( 	password_handler_type == CryptoManagerPasswordHandler.HANDLER_TYPE_ALL ||
+				password_handler_type == pw_type ){
+						
+			COConfigurationManager.removeParameter( persist_timeout_key );
+			COConfigurationManager.removeParameter( persist_pw_key );
+		}
    	}
 	
 	protected passwordDetails
@@ -287,7 +302,7 @@ CryptoManagerImpl
 		final String persist_pw_key_type	= CryptoManager.CRYPTO_CONFIG_PREFIX + "pw." + handler + ".persist_type";
 
 		long	current_timeout = COConfigurationManager.getLongParameter( persist_timeout_key, 0 );
-		
+
 			// session timeout 
 		
 		if ( current_timeout < 0 ){

@@ -109,8 +109,9 @@ VuzeFileHandler
 	}
 	
 	public boolean
-	loadAndHandleVuzeFIle(
-		String	target )
+	loadAndHandleVuzeFile(
+		String		target,
+		int			expected_types )
 	{
 		VuzeFile vf = loadVuzeFile( target );
 		
@@ -119,14 +120,15 @@ VuzeFileHandler
 			return( false );
 		}
 		
-		handleFiles( new VuzeFile[]{ vf });
+		handleFiles( new VuzeFile[]{ vf }, expected_types );
 		
 		return( true );
 	}
 	
 	public void
 	handleFiles(
-		VuzeFile[]		files )
+		VuzeFile[]		files,
+		int				expected_types )
 	{
 		Iterator it = processors.iterator();
 		
@@ -135,7 +137,7 @@ VuzeFileHandler
 			VuzeFileProcessor	proc = (VuzeFileProcessor)it.next();
 			
 			try{
-				proc.process( files );
+				proc.process( files, expected_types );
 				
 			}catch( Throwable e ){
 				

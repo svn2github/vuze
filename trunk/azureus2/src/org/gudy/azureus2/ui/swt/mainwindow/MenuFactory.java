@@ -47,6 +47,7 @@ import org.gudy.azureus2.ui.swt.welcome.WelcomeWindow;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -294,7 +295,7 @@ public class MenuFactory
 							
 							VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
 							
-							if ( !vfh.loadAndHandleVuzeFIle(path)){
+							if ( !vfh.loadAndHandleVuzeFile(path, VuzeFileComponent.COMP_TYPE_NONE )){
 								
 								TorrentOpener.openTorrent(path );
 							}

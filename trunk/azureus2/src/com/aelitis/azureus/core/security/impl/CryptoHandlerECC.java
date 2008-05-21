@@ -305,7 +305,7 @@ CryptoHandlerECC
 			use_method_private_key	= null;
 			use_method_public_key	= null;
 			
-			manager.clearPassword( CryptoManager.HANDLER_ECC );
+			manager.clearPassword( CryptoManager.HANDLER_ECC, CryptoManagerPasswordHandler.HANDLER_TYPE_ALL );
 			
 			COConfigurationManager.setParameter( CONFIG_PREFIX + "publickey", public_key );
 				
@@ -336,7 +336,7 @@ CryptoHandlerECC
 			use_method_private_key	= null;
 			use_method_public_key	= null;
 			
-			manager.clearPassword( CryptoManager.HANDLER_ECC );
+			manager.clearPassword( CryptoManager.HANDLER_ECC, CryptoManagerPasswordHandler.HANDLER_TYPE_ALL );
 			
 			COConfigurationManager.removeParameter( CONFIG_PREFIX + "publickey" );
 				
@@ -435,7 +435,7 @@ CryptoHandlerECC
 					
 					if ( !ok ){
 													
-						manager.clearPassword( CryptoManager.HANDLER_ECC );
+						manager.clearPassword( CryptoManager.HANDLER_ECC, CryptoManagerPasswordHandler.HANDLER_TYPE_ALL );
 						
 						use_method_private_key	= null;
 					}
