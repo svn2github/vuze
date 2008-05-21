@@ -451,19 +451,14 @@ public class MainWindow
 		ImageRepository.loadImagesForSplashWindow(display);
 		ImageRepository.addPath("com/aelitis/azureus/ui/images/azureus.jpg",
 				"azureus_splash");
-		
-		/*
-		 * KN: Adding default profile image for buddies
-		 */
-		ImageRepository.addPath("com/aelitis/azureus/ui/images/buddy_default_avatar.png",
-		"buddy_default_avatar");
 
 		ImageRepository.loadImages(display);
 
 		shell = new Shell(display, SWT.SHELL_TRIM);
 
-		PlatformMessenger.setAuthorizedTransferListener(new PlatformAuthorizedSenderImpl(shell));
-		
+		PlatformMessenger.setAuthorizedTransferListener(new PlatformAuthorizedSenderImpl(
+				shell));
+
 		try {
 			shell.setData("class", this);
 			shell.setText("Azureus");
@@ -684,12 +679,12 @@ public class MainWindow
 				});
 			}
 		} finally {
-			
+
 			shell.layout(true, true);
 
 			System.out.println("sb="
-					+ COConfigurationManager.getBooleanParameter(SkinConstants.VIEWID_PLUGINBAR + ".visible")
-					+ ";tb="
+					+ COConfigurationManager.getBooleanParameter(SkinConstants.VIEWID_PLUGINBAR
+							+ ".visible") + ";tb="
 					+ COConfigurationManager.getBooleanParameter("TabBar.visible"));
 
 			String configID = SkinConstants.VIEWID_PLUGINBAR + ".visible";
@@ -715,8 +710,7 @@ public class MainWindow
 			}
 			setVisible(WINDOW_ELEMENT_FOOTER,
 					COConfigurationManager.getBooleanParameter(configID));
-			
-			
+
 			showMainWindow();
 
 			//================
@@ -738,30 +732,24 @@ public class MainWindow
 			System.out.println("vuzeactivities init took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
-			
-			NavigationHelper.addListener(
-				new NavigationHelper.navigationListener()
-				{
-					public void 
-					processCommand(
-						final int 		type, 
-						final String[] 	args ) 
-					{
-						Utils.execSWTThread(new AERunnable() {
-							public void runSupport() {
-							
-								if ( type == NavigationHelper.COMMAND_SWITCH_TO_TAB ){
-									
-									SWTSkin skin = SWTSkinFactory.getInstance();
-									SWTSkinObject skinObject = skin.getSkinObject(args[0]);
-									if (skinObject != null) {
-										skin.activateTab(skinObject);
-									}
+
+			NavigationHelper.addListener(new NavigationHelper.navigationListener() {
+				public void processCommand(final int type, final String[] args) {
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+
+							if (type == NavigationHelper.COMMAND_SWITCH_TO_TAB) {
+
+								SWTSkin skin = SWTSkinFactory.getInstance();
+								SWTSkinObject skinObject = skin.getSkinObject(args[0]);
+								if (skinObject != null) {
+									skin.activateTab(skinObject);
 								}
 							}
-						});
-					}
-				});
+						}
+					});
+				}
+			});
 		}
 	}
 
@@ -1084,18 +1072,16 @@ public class MainWindow
 				new UISkinnableSWTListener() {
 					public void skinBeforeComponents(Composite composite,
 							Object skinnableObject, Object[] relatedObjects) {
-						Color colorBG = skin.getSkinProperties().getColor(
-								"color.mainshell");
+						Color colorBG = skin.getSkinProperties().getColor("color.mainshell");
 						Color colorLink = skin.getSkinProperties().getColor(
 								"color.links.normal");
-						Color colorText = skin.getSkinProperties().getColor(
-								"color.text.fg");
+						Color colorText = skin.getSkinProperties().getColor("color.text.fg");
 
 						composite.setBackground(colorBG);
 						composite.setForeground(colorText);
 
 						MessageBoxShell shell = (MessageBoxShell) skinnableObject;
-						
+
 						TOTorrent torrent = null;
 						DownloadManager dm = (DownloadManager) LogRelationUtils.queryForClass(
 								relatedObjects, DownloadManager.class);
@@ -1265,15 +1251,17 @@ public class MainWindow
 	private void initWidgets() {
 		SWTSkinObject skinObject;
 
+		/*
+		 * Directly loading the buddies viewer since we need to access it
+		 * before it's even shown for the first time
+		 */
 		skinObject = skin.getSkinObject(SkinConstants.VIEWID_BUDDIES_VIEWER);
-		if(null != skinObject){
+		if (null != skinObject) {
 			BuddiesViewer skinView = new BuddiesViewer();
 			SkinViewManager.add(skinView);
-			skinObject.addListener(skinView);	
+			skinObject.addListener(skinView);
 		}
-		
-		
-		
+
 		skinObject = skin.getSkinObject("statusbar");
 		if (skinObject != null) {
 			final Composite cArea = (Composite) skinObject.getControl();
@@ -1309,8 +1297,7 @@ public class MainWindow
 		if (skinObject != null) {
 			Menu topbarMenu = new Menu(shell, SWT.POP_UP);
 
-			MainMenu.createViewMenuItem(skin, topbarMenu,
-					"v3.MainWindow.menu.view."
+			MainMenu.createViewMenuItem(skin, topbarMenu, "v3.MainWindow.menu.view."
 					+ SkinConstants.VIEWID_PLUGINBAR, SkinConstants.VIEWID_PLUGINBAR
 					+ ".visible", SkinConstants.VIEWID_PLUGINBAR, true);
 
@@ -1505,14 +1492,14 @@ public class MainWindow
 					}
 				});
 			}
-			
+
 			skinObject = skin.getSkinObject(SkinConstants.VIEWID_PLUGINBAR);
 			if (skinObject != null) {
 				Listener l = new Listener() {
 					private int mouseDownAt = 0;
 
 					public void handleEvent(Event event) {
-						Composite c = (Composite)event.widget;
+						Composite c = (Composite) event.widget;
 						if (event.type == SWT.MouseDown) {
 							Rectangle clientArea = c.getClientArea();
 							if (event.y > clientArea.height - 10) {
@@ -1522,7 +1509,7 @@ public class MainWindow
 						} else if (event.type == SWT.MouseUp && mouseDownAt > 0) {
 							int diff = event.y - mouseDownAt;
 							mouseDownAt = 0;
-							FormData formData = (FormData)c.getLayoutData();
+							FormData formData = (FormData) c.getLayoutData();
 							formData.height += diff;
 							if (formData.height < 50) {
 								formData.height = 50;
@@ -1721,18 +1708,16 @@ public class MainWindow
 		skin.setActiveTab(SkinConstants.TABSET_MAIN,
 				SkinConstants.VIEWID_BROWSE_TAB);
 
-		
-		
 		String sURL = Constants.URL_PREFIX + Constants.URL_ADD_SEARCH
 				+ UrlUtils.encode(sSearchText) + "&" + Constants.URL_SUFFIX + "&rand="
 				+ SystemTime.getCurrentTime();
-		
-		if(System.getProperty("metasearch","0").equals("1")) {
-			sURL = Constants.URL_PREFIX + "xsearch/index.html?search=" + 
-			UrlUtils.encode(sSearchText) + "&" + Constants.URL_SUFFIX + "&rand="
-			+ SystemTime.getCurrentTime();
+
+		if (System.getProperty("metasearch", "0").equals("1")) {
+			sURL = Constants.URL_PREFIX + "xsearch/index.html?search="
+					+ UrlUtils.encode(sSearchText) + "&" + Constants.URL_SUFFIX
+					+ "&rand=" + SystemTime.getCurrentTime();
 		}
-		
+
 		System.out.println(sURL);
 
 		UIFunctions functions = UIFunctionsManager.getUIFunctions();
@@ -2078,7 +2063,7 @@ public class MainWindow
 		}
 		SWTSkinObjectTab activeTab = tabSetMain.getActiveTab();
 		if (activeTab == null) {
-			return ""; 
+			return "";
 		}
 		return activeTab.getViewID();
 	}
@@ -2196,7 +2181,8 @@ public class MainWindow
 			}
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_SEARCHBAR) {
 
-			SWTSkinUtils.setVisibility(skin, SkinConstants.VIEWID_PLUGINBAR + ".visible", SkinConstants.VIEWID_PLUGINBAR, value, true, true);
+			SWTSkinUtils.setVisibility(skin, SkinConstants.VIEWID_PLUGINBAR
+					+ ".visible", SkinConstants.VIEWID_PLUGINBAR, value, true, true);
 
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_TABBAR) {
 
