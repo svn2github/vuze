@@ -3093,7 +3093,26 @@ DownloadManagerImpl
 	  }
 	  
 	  if (!canMoveDataFiles()) {
-		  throw new RuntimeException("canMoveDataFiles is false!");
+		  throw new DownloadManagerException("canMoveDataFiles is false!");
+	  }
+
+	  
+	  /**
+	   * Test to see if the download is to be moved somewhere where it already
+	   * exists. Perhaps you might think it is slightly unnecessary to check this,
+	   * but I would prefer this test left in - we want to prevent pausing
+	   * unnecessarily pausing a running torrent (it fires off listeners, which
+	   * might try to move the download).
+	   * 
+	   * This helps us avoid a situation with AzCatDest...
+	   */
+	  SaveLocationChange slc = new SaveLocationChange();
+	  slc.download_location = destination;
+	  slc.download_name = new_name;
+	  
+	  File current_location = getSaveLocation();
+	  if (slc.normaliseDownloadLocation(current_location).equals(current_location)) {
+		  return;
 	  }
 	  
 	  Debug.out("moveDataFiles called for " + this.getDisplayName() + ": " + destination + " <-> " + new_name);
