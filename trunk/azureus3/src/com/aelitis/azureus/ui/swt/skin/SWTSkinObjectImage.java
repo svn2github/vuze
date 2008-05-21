@@ -10,9 +10,7 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
 
-import org.gudy.azureus2.core3.util.AECallback;
-import org.gudy.azureus2.core3.util.AERunnableWithCallback;
-import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
@@ -180,12 +178,13 @@ public class SWTSkinObjectImage
 					return null;
 				}
 
-				if (sImageID.equals(label.getData("ImageID"))) {
+				if (sImageID != null && sImageID.equals(label.getData("ImageID"))) {
 					return label.getImage();
 				}
 
 				ImageLoader imageLoader = skin.getImageLoader(properties);
-				Image image = imageLoader.getImage(sImageID);
+				Image image = sImageID == null || sImageID.length() == 0 ? null
+						: imageLoader.getImage(sImageID);
 
 				Image imageLeft = imageLoader.getImage(sImageID + ".left");
 				if (ImageLoader.isRealImage(imageLeft)) {
@@ -229,8 +228,8 @@ public class SWTSkinObjectImage
 					Image oldImage = label.getImage();
 					label.setImage(image);
 					label.setData("ImageID", sImageID);
-					if (oldImage != null && image != null
-							&& !oldImage.getBounds().equals(image.getBounds())) {
+					if (oldImage == null || image == null
+							|| !oldImage.getBounds().equals(image.getBounds())) {
 						Utils.relayout(label);
 					}
 				}
