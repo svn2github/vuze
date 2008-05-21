@@ -163,7 +163,7 @@ Initializer
 					public void
 					run()
 					{
-						//init_task.reserve();
+						init_task.reserve();
 					}
 				});
 
