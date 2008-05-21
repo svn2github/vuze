@@ -148,6 +148,7 @@ extends SkinView
 		btnPlay = TorrentListViewsUtils.addPlayButton(skin, PREFIX, view, true,
 				true);
 		btnDelete = TorrentListViewsUtils.addDeleteButton(skin, PREFIX, view);
+		TorrentListViewsUtils.addNewTagButton(skin, PREFIX, view);
 
 		SWTSkinButtonUtility[] buttonsNeedingRow = {
 			btnDelete,

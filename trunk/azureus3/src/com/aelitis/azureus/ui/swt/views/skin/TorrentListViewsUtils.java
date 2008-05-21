@@ -120,6 +120,23 @@ public class TorrentListViewsUtils
 		return btn;
 	}
 
+	public static SWTSkinButtonUtility addNewTagButton(final SWTSkin skin,
+			String PREFIX, final ListView view) {
+		SWTSkinObject skinObject = skin.getSkinObject(PREFIX + "newtag");
+		if (skinObject == null) {
+			return null;
+		}
+
+		final SWTSkinButtonUtility btn = new SWTSkinButtonUtility(skinObject);
+
+		btn.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
+			public void pressed(SWTSkinButtonUtility buttonUtility) {
+				btn.setImage("");
+			}
+		});
+		return btn;
+	}
+
 	public static SWTSkinButtonUtility addStopButton(final SWTSkin skin,
 			String PREFIX, final TorrentListView view) {
 		SWTSkinObject skinObject = skin.getSkinObject(PREFIX + "stop");

@@ -188,6 +188,8 @@ public class MediaList
 		btnComments = TorrentListViewsUtils.addCommentsButton(skin, PREFIX, view);
 		btnPlay = TorrentListViewsUtils.addPlayButton(skin, PREFIX, view, false,
 				true);
+		TorrentListViewsUtils.addNewTagButton(skin, PREFIX, view);
+		
 
 		if (view instanceof ListView) {
 			((ListView) view).addCountChangeListener(new TableCountChangeListener() {

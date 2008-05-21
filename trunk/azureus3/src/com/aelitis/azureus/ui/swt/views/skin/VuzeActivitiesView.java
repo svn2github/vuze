@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.shells.InputShell;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
@@ -41,6 +42,7 @@ import com.aelitis.azureus.ui.common.RememberedDecisionsManager;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.columns.vuzeactivity.ColumnVuzeActivity;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.list.ListView;
@@ -159,6 +161,13 @@ public class VuzeActivitiesView
 						System.out.println("pull latest vuze news entries");
 						VuzeActivitiesManager.pullActivitiesNow(0);
 					}
+				} else if (e.keyCode == SWT.F2) {
+					InputShell is = new InputShell("Moo", "url:");
+					String txt = is.open();
+					if (txt != null) {
+						UIFunctionsManagerSWT.getUIFunctionsSWT().viewURL(txt,
+								"minibrowse", 0, 0, false, false);
+					}
 				}
 			}
 		});
@@ -203,6 +212,7 @@ public class VuzeActivitiesView
 		btnComments = TorrentListViewsUtils.addCommentsButton(skin, PREFIX, view);
 		btnPlay = TorrentListViewsUtils.addPlayButton(skin, PREFIX, view, false,
 				true);
+		TorrentListViewsUtils.addNewTagButton(skin, PREFIX, view);
 
 		skinObject = skin.getSkinObject(PREFIX + "delete");
 		if (skinObject instanceof SWTSkinObject) {
