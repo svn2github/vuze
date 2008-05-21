@@ -2577,6 +2577,10 @@ BuddyPlugin
 	addListener(
 		BuddyPluginListener	listener )
 	{
+		if ( listeners.contains(listener) ){
+			return;
+		}
+
 		listeners.add( listener );
 		
 		if ( initialisation_state != INIT_UNKNOWN ){
