@@ -33,6 +33,8 @@ public abstract class AbstractStatusListener
 			handleLoginUpdate();
 		} else if (true == OP_LOGIN_STATUS.equals(opID)) {
 			handleLoginStatus();
+		} else if (true == OP_PAGE_LOAD_COMPLETED.equals(opID)) {
+			handlePageLoadCompleted();
 		}
 
 	}
@@ -48,8 +50,8 @@ public abstract class AbstractStatusListener
 
 	public String getDisplayName() {
 		if (true == decodedMap.containsKey(OP_LOGIN_UPDATE_PARAM_DISPLAY_NAME)) {
-			return MapUtils.getMapString(decodedMap, OP_LOGIN_UPDATE_PARAM_DISPLAY_NAME,
-					"");
+			return MapUtils.getMapString(decodedMap,
+					OP_LOGIN_UPDATE_PARAM_DISPLAY_NAME, "");
 		}
 
 		return null;
@@ -62,4 +64,26 @@ public abstract class AbstractStatusListener
 
 		return null;
 	}
+
+	/**
+	 * Called when a login state has changed
+	 * Default implementation does nothing; subclasses may override
+	 */
+	public void handleLoginUpdate() {
+	}
+
+	/**
+	 * Called to report the current login status
+	 * Default implementation does nothing; subclasses may override
+	 */
+	public void handleLoginStatus() {
+	}
+
+	/**
+	 * Called when a browser page has completed loading it's content
+	 * Default implementation does nothing; subclasses may override
+	 */
+	public void handlePageLoadCompleted() {
+	}
+
 }

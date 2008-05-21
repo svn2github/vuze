@@ -17,6 +17,7 @@ import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractBuddyPageListener;
+import com.aelitis.azureus.ui.swt.browser.listener.AbstractStatusListener;
 import com.aelitis.azureus.util.Constants;
 
 public class InvitePage
@@ -54,34 +55,15 @@ public class InvitePage
 	private Browser getBrowser() {
 		if (null == browser) {
 			browser = new Browser(content, SWT.NONE);
-
-			/*
-			 * Adding a completion listener before we set the url; only when the page is fully loaded
-			 * can we reliably call getMessageContext().
-			 * Additionally this call only needs to be made once
-			 */
-			browser.addProgressListener(new ProgressListener() {
-				private boolean runOnce = false;
-
-				public void completed(ProgressEvent event) {
-					/*
-					 * Calling to initialize the context
-					 */
-					if (false == runOnce) {
-						getMessageContext();
-						runOnce = true;
-					}
-				}
-
-				public void changed(ProgressEvent event) {
-				}
-			});
-
 			String url = Constants.URL_PREFIX + "share.start";
 			browser.setUrl(url);
-
 			stackLayout.topControl = browser;
 			content.layout();
+
+			/*
+			 * Calling to initialize the listeners
+			 */
+			getMessageContext();
 
 		}
 		return browser;
@@ -98,9 +80,17 @@ public class InvitePage
 					true);
 
 			/*
-			 * Setting inviteFromShare to false in the browser
+			 * Add listener to call the 'inviteFromShare' script; this listener is only called
+			 * once whenever a web page is loaded the first time or when it's refreshed
 			 */
-			context.executeInBrowser("inviteFromShare(" + false + ")");
+			context.addMessageListener(new AbstractStatusListener("status") {
+				public void handlePageLoadCompleted() {
+					/*
+					 * Setting inviteFromShare to false in the browser
+					 */
+					context.executeInBrowser("inviteFromShare(" + false + ")");
+				}
+			});
 
 			/*
 			 * Add the appropriate messaging listeners
@@ -111,7 +101,6 @@ public class InvitePage
 						public void handleCancel() {
 							System.out.println("'Cancel' called from invite buddy page");//KN: sysout
 
-							
 							ButtonBar buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
 							if (null != buttonBar) {
 								buttonBar.setActiveMode(BuddiesViewer.none_active_mode);

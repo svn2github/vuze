@@ -21,6 +21,8 @@ import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
@@ -32,7 +34,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -49,6 +50,7 @@ import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractBuddyPageListener;
+import com.aelitis.azureus.ui.swt.browser.listener.AbstractStatusListener;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
@@ -206,27 +208,29 @@ public class SharePage
 		//==============
 
 		FormData shareHeaderData = new FormData();
-		shareHeaderData.top = new FormAttachment(0, 8);
-		shareHeaderData.left = new FormAttachment(0, 8);
+		shareHeaderData.top = new FormAttachment(0, 18);
+		shareHeaderData.left = new FormAttachment(0, 28);
 		shareHeaderLabel.setLayoutData(shareHeaderData);
 
 		FormData shareHeaderMessageData = new FormData();
 		shareHeaderMessageData.top = new FormAttachment(shareHeaderLabel, 8);
-		shareHeaderMessageData.left = new FormAttachment(0, 30);
+		shareHeaderMessageData.left = new FormAttachment(shareHeaderLabel, 0,
+				SWT.LEFT);
 		shareHeaderMessageData.right = new FormAttachment(100, -8);
 		shareHeaderMessageLabel.setLayoutData(shareHeaderMessageData);
 
 		FormData buddyListDescriptionData = new FormData();
 		buddyListDescriptionData.top = new FormAttachment(shareHeaderMessageLabel,
 				8);
-		buddyListDescriptionData.left = new FormAttachment(buddyList, 0, SWT.LEFT);
+		buddyListDescriptionData.left = new FormAttachment(shareHeaderLabel, 30,
+				SWT.LEFT);
 		buddyListDescription.setLayoutData(buddyListDescriptionData);
 
 		FormData buddyListData = new FormData();
 		buddyListData.top = new FormAttachment(buddyListDescription, 0);
-		buddyListData.left = new FormAttachment(0, 30);
-		buddyListData.width = 200;
-		buddyListData.height = 150;
+		buddyListData.left = new FormAttachment(shareHeaderLabel, 30, SWT.LEFT);
+		buddyListData.width = 346;
+		buddyListData.height = 115;
 		buddyList.setLayoutData(buddyListData);
 
 		FormData contentDetailData = new FormData();
@@ -288,7 +292,21 @@ public class SharePage
 		buddyList.setForeground(textColor);
 		buddyListDescription.setForeground(textColor);
 		shareHeaderMessageLabel.setForeground(textColor);
+
 		shareHeaderLabel.setForeground(textColor);
+		FontData[] fData = shareHeaderLabel.getFont().getFontData();
+		for (int i = 0; i < fData.length; i++) {
+			fData[i].height = 16;
+		}
+		final Font newFont = new Font(content.getDisplay(), fData);
+		shareHeaderLabel.setFont(newFont);
+		shareHeaderLabel.addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent e) {
+				if (null != newFont && false == newFont.isDisposed()) {
+					newFont.dispose();
+				}
+			}
+		});
 
 		contentStats.setForeground(textColor);
 
@@ -307,7 +325,8 @@ public class SharePage
 
 		Messages.setLanguageText(shareHeaderLabel, "v3.Share.header");
 		Messages.setLanguageText(shareHeaderMessageLabel, "v3.Share.header.message");
-		Messages.setLanguageText(buddyListDescription, "v3.Share.add.buddy.all");
+		Messages.setLanguageText(buddyListDescription,
+				"v3.Share.add.buddy.existing");
 
 	}
 
@@ -474,10 +493,19 @@ public class SharePage
 		if (null == context) {
 			context = new BrowserContext("buddy-page-listener-share" + Math.random(),
 					getBrowser(), null, true);
+
 			/*
-			 * Setting inviteFromShare to true in the browser
+			 * Add listener to call the 'inviteFromShare' script; this listener is only called
+			 * once whenever a web page is loaded the first time or when it's refreshed
 			 */
-			context.executeInBrowser("inviteFromShare(" + true + ")");
+			context.addMessageListener(new AbstractStatusListener("status") {
+				public void handlePageLoadCompleted() {
+					/*
+					 * Setting inviteFromShare to true in the browser
+					 */
+					context.executeInBrowser("inviteFromShare(" + true + ")");
+				}
+			});
 
 			/*
 			 * Add the appropriate messaging listeners
@@ -504,12 +532,6 @@ public class SharePage
 								VuzeBuddy buddy = (VuzeBuddy) iterator.next();
 								inviteeList.append(buddy.getDisplayName() + "\n");
 							}
-							if (true == inviteeList.getCharCount() > 0) {
-								Messages.setLanguageText(addBuddyButton,
-										"v3.Share.add.or.remove.buddy");
-							} else {
-								Messages.setLanguageText(addBuddyButton, "v3.Share.add.buddy");
-							}
 							inviteePanel.layout();
 						}
 					});
@@ -522,14 +544,6 @@ public class SharePage
 							for (Iterator iterator = getInvitedEmails().iterator(); iterator.hasNext();) {
 								inviteeList.append(iterator.next() + "\n");//KN:
 							}
-
-							if (true == inviteeList.getCharCount() > 0) {
-								Messages.setLanguageText(addBuddyButton,
-										"v3.Share.add.or.remove.buddy");
-							} else {
-								Messages.setLanguageText(addBuddyButton, "v3.Share.add.buddy");
-							}
-
 							inviteePanel.layout();
 						}
 					});
@@ -561,31 +575,13 @@ public class SharePage
 	private Browser getBrowser() {
 		if (null == browser) {
 			browser = new Browser(browserPanel, SWT.NONE);
-
-			/*
-			 * Adding a completion listener before we set the url; only when the page is fully loaded
-			 * can we reliably call getMessageContext().
-			 * Additionally this call only needs to be made once
-			 */
-			browser.addProgressListener(new ProgressListener() {
-				private boolean runOnce = false;
-
-				public void completed(ProgressEvent event) {
-					/*
-					 * Calling to initialize the context
-					 */
-					if (false == runOnce) {
-						getMessageContext();
-						runOnce = true;
-					}
-				}
-
-				public void changed(ProgressEvent event) {
-				}
-			});
-
 			String url = Constants.URL_PREFIX + "share.start";
 			browser.setUrl(url);
+
+			/*
+			 * Calling to initialize the listeners
+			 */
+			getMessageContext();
 
 		}
 

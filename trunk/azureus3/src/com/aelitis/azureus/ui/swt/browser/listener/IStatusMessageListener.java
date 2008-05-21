@@ -3,6 +3,8 @@ package com.aelitis.azureus.ui.swt.browser.listener;
 public interface IStatusMessageListener
 {
 
+	public static final String OP_PAGE_LOAD_COMPLETED = "page_load_completed";
+	
 	public static final String OP_LOGIN_STATUS = "login-status";
 	
 	public static final String OP_LOGIN_UPDATE = "login-update";
@@ -16,6 +18,8 @@ public interface IStatusMessageListener
 	public void handleLoginStatus();
 	
 	public void handleLoginUpdate();
+	
+	public void handlePageLoadCompleted();
 
 	public String getUserName();
 
