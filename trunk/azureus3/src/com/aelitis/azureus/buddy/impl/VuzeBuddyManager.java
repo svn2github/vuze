@@ -21,6 +21,7 @@ package com.aelitis.azureus.buddy.impl;
 import java.io.File;
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 
@@ -370,7 +371,13 @@ public class VuzeBuddyManager
 		
 		// @see com.aelitis.azureus.plugins.net.buddy.BuddyPluginListener#enabledStateChanged(boolean)
 		public void enabledStateChanged(boolean enabled) {
+			log("buddy plugin enabled state changed to " + enabled);
 			setupBuddyPlugin();
+			// if we are logged in, fire off a login update trigger, because
+			// it didn't run when we we had the plugin disabled
+			if (LoginInfoManager.getInstance().isLoggedIn()) {
+				loginUpdateTriggered(LoginInfoManager.getInstance().getUserInfo(), true);
+			}
 		}
 	};
 
@@ -436,96 +443,95 @@ public class VuzeBuddyManager
 	private static void setupBuddyPlugin() {
 		skipSave = true;
 
-		boolean newPluginEnabled = false;
-
 		try {
-			PluginInterface pi;
-			pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
-					"azbuddy");
+			LoginInfoManager.getInstance().addListener(loginInfoListener);
+			log("setupBuddyPlugin");
 
-			if (pi != null) {
-				Plugin plugin = pi.getPlugin();
-				if (!pi.isDisabled() && (plugin instanceof BuddyPlugin)) {
-					buddyPlugin = (BuddyPlugin) plugin;
-					newPluginEnabled = buddyPlugin.isEnabled();
-				}
-			}
-		} catch (Throwable t) {
-			Debug.out(t);
-		}
+			boolean newPluginEnabled = false;
 
-		if (buddyPlugin == null) {
-			return;
-		}
-		
-		if (newPluginEnabled == pluginEnabled) {
-			return;
-		}
-		pluginEnabled = newPluginEnabled;
-
-		// always add BuddyPluginListener because we need to track disabled state
-		buddyPlugin.removeListener(buddyPluginListener);
-		buddyPlugin.addListener(buddyPluginListener);
-
-		if (!pluginEnabled) {
-			buddyPlugin.removeRequestListener(buddyPluginBuddyRequestListener);
-			buddyPlugin = null;
-			
-			VuzeCryptoManager.getSingleton().removeListener(vuzeCryptoListener);
-
-			LoginInfoManager.getInstance().removeListener(loginInfoListener);
-
-			PlatformRelayMessenger.removeRelayServerListener(vuzeRelayListener);
-			
-			
 			try {
-				buddy_mon.enter();
+				PluginInterface pi;
+				pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
+						"azbuddy");
 
-				Object[] buddyArray = buddyList.toArray();
-				for (int i = 0; i < buddyArray.length; i++) {
-					VuzeBuddy buddy = (VuzeBuddy) buddyArray[i];
-
-					try {
-						removeBuddy(buddy, false);
-					} catch (NotLoggedInException e) {
+				if (pi != null) {
+					Plugin plugin = pi.getPlugin();
+					if (plugin instanceof BuddyPlugin) {
+						((BuddyPlugin) plugin).addListener(buddyPluginListener);
+						if (!pi.isDisabled()) {
+							buddyPlugin = (BuddyPlugin) plugin;
+							newPluginEnabled = buddyPlugin.isEnabled();
+						}
 					}
 				}
-
-			} finally {
-				buddy_mon.exit();
+			} catch (Throwable t) {
+				Debug.out(t);
 			}
 
-			return;
-		}
-
-		// TODO create an addListener that triggers for existing buddies
-		buddyPlugin.addRequestListener(buddyPluginBuddyRequestListener);
-		List buddies = buddyPlugin.getBuddies();
-		for (int i = 0; i < buddies.size(); i++) {
-			BuddyPluginBuddy buddy = (BuddyPluginBuddy) buddies.get(i);
-			if (canHandleBuddy(buddy)) {
-				buddyPluginListener.buddyAdded(buddy);
+			if (buddyPlugin == null) {
+				return;
 			}
+
+			if (newPluginEnabled == pluginEnabled) {
+				return;
+			}
+			pluginEnabled = newPluginEnabled;
+
+			if (!pluginEnabled) {
+				buddyPlugin.removeRequestListener(buddyPluginBuddyRequestListener);
+				buddyPlugin = null;
+
+				VuzeCryptoManager.getSingleton().removeListener(vuzeCryptoListener);
+
+				PlatformRelayMessenger.removeRelayServerListener(vuzeRelayListener);
+
+				try {
+					buddy_mon.enter();
+
+					Object[] buddyArray = buddyList.toArray();
+					for (int i = 0; i < buddyArray.length; i++) {
+						VuzeBuddy buddy = (VuzeBuddy) buddyArray[i];
+
+						try {
+							removeBuddy(buddy, false);
+						} catch (NotLoggedInException e) {
+						}
+					}
+
+				} finally {
+					buddy_mon.exit();
+				}
+
+				return;
+			}
+
+			// TODO create an addListener that triggers for existing buddies
+			buddyPlugin.addRequestListener(buddyPluginBuddyRequestListener);
+			List buddies = buddyPlugin.getBuddies();
+			for (int i = 0; i < buddies.size(); i++) {
+				BuddyPluginBuddy buddy = (BuddyPluginBuddy) buddies.get(i);
+				if (canHandleBuddy(buddy)) {
+					buddyPluginListener.buddyAdded(buddy);
+				}
+			}
+
+			VuzeQueuedShares.init(configDir);
+
+			try {
+				loadVuzeBuddies();
+
+				VuzeCryptoManager.getSingleton().addListener(vuzeCryptoListener);
+
+				PlatformRelayMessenger.addRelayServerListener(vuzeRelayListener);
+
+				// do one relay check, which will setup a recheck cycle
+				PlatformRelayMessenger.relayCheck();
+			} catch (Throwable t) {
+				Debug.out(t);
+			}
+		} finally {
+			skipSave = false;
 		}
-		
-		VuzeQueuedShares.init(configDir);
-
-		try {
-			loadVuzeBuddies();
-
-			VuzeCryptoManager.getSingleton().addListener(vuzeCryptoListener);
-
-			LoginInfoManager.getInstance().addListener(loginInfoListener);
-
-			PlatformRelayMessenger.addRelayServerListener(vuzeRelayListener);
-
-			// do one relay check, which will setup a recheck cycle
-			PlatformRelayMessenger.relayCheck();
-		} catch (Throwable t) {
-			Debug.out(t);
-		}
-
-		skipSave = false;
 	}
 
 	/**
@@ -539,6 +545,18 @@ public class VuzeBuddyManager
 		if (!isNewLoginID) {
 			return;
 		}
+
+		// disable buddy communication when plugin is disabled by user
+		if (!pluginEnabled) {
+			// disabled by user or just not enabled yet?
+			boolean inited = COConfigurationManager.getBooleanParameter(
+					"vuze.crypto.manager.initial.login.done", false);
+			if (inited) {
+				// not inited yet, that will happen when we set PW
+				return;
+			}
+		}
+		
 		if (info.userName == null || info.userName.length() == 0) {
 			// not logged in
 			log("Logging out.. clearing password");
@@ -599,9 +617,10 @@ public class VuzeBuddyManager
 						
 						if (buddyPlugin != null) {
   						String nickname = buddyPlugin.getNickname();
-  						if (nickname == null || nickname.length() == 0) {
+  						if (myPK != null
+									&& (nickname == null || nickname.length() == 0)) {
   							buddyPlugin.setNickname(info.userName + " ("
-  									+ info.pk.substring(0, 3) + ")");
+  									+ myPK.substring(0, 3) + ")");
   						}
 						}
 					}
