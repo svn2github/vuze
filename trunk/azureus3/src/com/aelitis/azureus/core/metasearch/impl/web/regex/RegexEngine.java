@@ -202,6 +202,15 @@ RegexEngine
 		}
 		 */
 		
+		String searchQuery = null;
+		
+		for(int i = 0 ; i < searchParameters.length ; i++) {
+			if(searchParameters[i].getMatchPattern().equals("s")) {
+				searchQuery = searchParameters[i].getValue();
+			}
+		}
+		
+		
 		FieldMapping[] mappings = getMappings();
 		
 		if ( page != null ){
@@ -233,7 +242,7 @@ RegexEngine
 					
 					debugLog( "Found match:" );
 					
-					WebResult result = new WebResult(getRootPage(),getBasePage(),getDateParser());
+					WebResult result = new WebResult(getRootPage(),getBasePage(),getDateParser(),searchQuery);
 					for(int i = 0 ; i < mappings.length ; i++) {
 						int group = -1;
 						try {

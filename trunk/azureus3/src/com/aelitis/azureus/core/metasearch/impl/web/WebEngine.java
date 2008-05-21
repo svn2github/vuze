@@ -368,6 +368,8 @@ WebEngine
 			
 			for(int i = 0 ; i < searchParameters.length ; i++){
 				SearchParameter parameter = searchParameters[i];
+				//TODO :  METASEARCH Change this as soon as Gouss sends a non escaped string
+				// ie, escape it
 				String escapedKeyword = parameter.getValue();
 				searchURL = searchURL.replaceAll("%" + parameter.getMatchPattern(), escapedKeyword);
 			}

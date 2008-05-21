@@ -10,6 +10,7 @@ import com.aelitis.azureus.core.metasearch.impl.DateParser;
 
 public class WebResult extends Result {
 	
+	String searchQuery;
 	
 	String rootPageURL;
 	String basePageURL;
@@ -30,10 +31,11 @@ public class WebResult extends Result {
 	String categoryLink;
 	
 	
-	public WebResult(String rootPageURL,String basePageURL,DateParser dateParser) {
+	public WebResult(String rootPageURL,String basePageURL,DateParser dateParser,String searchQuery) {
 		this.rootPageURL = rootPageURL;
 		this.basePageURL = basePageURL;
 		this.dateParser = dateParser;
+		this.searchQuery = searchQuery;
 	}
 	
 	private String removeHTMLTags(String input) {
@@ -218,5 +220,9 @@ public class WebResult extends Result {
 	getComments()
 	{
 		return( comments );
+	}
+	
+	public String getSearchQuery() {
+		return searchQuery;
 	}
 }

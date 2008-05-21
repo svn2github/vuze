@@ -147,6 +147,15 @@ JSONEngine
 			listener.contentReceived( this, page );
 		}
 		
+		
+		String searchQuery = null;
+		
+		for(int i = 0 ; i < searchParameters.length ; i++) {
+			if(searchParameters[i].getMatchPattern().equals("s")) {
+				searchQuery = searchParameters[i].getValue();
+			}
+		}
+		
 		FieldMapping[] mappings = getMappings();
 
 		if(page != null) {
@@ -196,7 +205,7 @@ JSONEngine
 								}
 							}
 							
-							WebResult result = new WebResult(getRootPage(),getBasePage(),getDateParser());
+							WebResult result = new WebResult(getRootPage(),getBasePage(),getDateParser(),searchQuery);
 							
 							List bits = listener==null?null:new ArrayList();
 							
