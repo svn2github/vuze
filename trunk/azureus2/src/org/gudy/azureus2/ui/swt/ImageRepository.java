@@ -175,9 +175,6 @@ public class ImageRepository {
 			addPath("org/gudy/azureus2/ui/icons/progress_cancel.png", "progress_cancel");
 			addPath("org/gudy/azureus2/ui/icons/progress_remove.png", "progress_remove");
 		}
-		
-		addPath("org/gudy/azureus2/ui/icons/transparent16x16.png", "transparent");
-		addPath("org/gudy/azureus2/ui/icons/add_to_share.png", "add_to_share");
 	}
 
   public static void addPath(String path, String id) {
