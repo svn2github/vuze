@@ -33,6 +33,8 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
+
 /**
  * Text Skin Object.  This one paints text on parent.
  * 
@@ -61,6 +63,8 @@ public class SWTSkinObjectText2
 	private int antialiasMode = SWT.DEFAULT;
 
 	private boolean allcaps;
+	
+	private boolean shadow;
 
 	private static Font font = null;
 
@@ -146,6 +150,9 @@ public class SWTSkinObjectText2
 
 				if (bUnderline) {
 					pt.y++;
+				}
+				if (shadow) {
+					pt.x++;
 				}
 
 				int fixedWidth = skinProperties.getIntValue(sConfigID + ".width", -1);
@@ -302,6 +309,10 @@ public class SWTSkinObjectText2
 					if (s.equals("normal")) {
 						bNewFont = true;
 					}
+					
+					if (s.equals("shadow")) {
+						shadow = true;
+					}
 				}
 				this.sDisplayText = allcaps && sText != null ? sText.toUpperCase()
 						: sText;
@@ -417,6 +428,7 @@ public class SWTSkinObjectText2
 		if (existingFont != null) {
 			e.gc.setFont(existingFont);
 		}
+		
 		if (existingColor != null) {
 			e.gc.setForeground(existingColor);
 		}
@@ -428,6 +440,22 @@ public class SWTSkinObjectText2
 				// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
 			}
 		}
+	
+		if (shadow) {
+			Rectangle r = new Rectangle(clientArea.x + 1, clientArea.y + 1, clientArea.width,
+					clientArea.height);
+			
+			Color foreground = e.gc.getForeground();
+			Color color = ColorCache.getColor(e.gc.getDevice(), 0, 0, 0);
+			e.gc.setForeground(color);
+			e.gc.setAlpha(128);
+			GCStringPrinter.printString(e.gc, sDisplayText, r, true, false,
+					style);
+			e.gc.setAlpha(255);
+			e.gc.setForeground(foreground);
+		}
+		
+
 		GCStringPrinter.printString(e.gc, sDisplayText, clientArea, true, false,
 				style);
 	}
