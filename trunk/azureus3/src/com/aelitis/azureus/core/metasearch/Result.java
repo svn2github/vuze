@@ -86,7 +86,7 @@ public abstract class Result {
 		
 
 		
-		float rank = (float) (speed / (1 + Math.log10(ageInWeeks)));
+		float rank = (float) (speed / (1 + Math.log(ageInWeeks)/Math.log( 10 )));
 		
 		if(rank > 1f) rank = 1f;
 		
