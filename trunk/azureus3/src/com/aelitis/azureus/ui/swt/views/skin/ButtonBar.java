@@ -195,21 +195,46 @@ public class ButtonBar
 		cancelEditBuddies.setVisible(false);
 
 		if (mode == BuddiesViewer.none_active_mode) {
+			disabledForEdit(false);
 			editButton.setDisabled(false);
 			addBuddyButton.setDisabled(false);
 		} else if (mode == BuddiesViewer.edit_mode) {
+			disabledForEdit(true);
 			addBuddyButton.setDisabled(true);
 			cancelEditBuddies.setVisible(true);
 			editButton.setDisabled(true);
 		} else if (mode == BuddiesViewer.share_mode) {
+			disabledForEdit(true);
 			editButton.setDisabled(true);
 			addBuddyButton.setDisabled(true);
 			shareAllBuddiesObject.setVisible(true);
 		} else {
+			disabledForEdit(true);
 			editButton.setDisabled(true);
 			addBuddyButton.setDisabled(true);
 		}
 		viewer.setMode(mode);
+	}
+
+	private void disabledForEdit(boolean value) {
+		SWTSkinObject showImageObject = skin.getSkinObject("button-show-footer");
+		SWTSkinObject hideImageObject = skin.getSkinObject("button-hide-footer");
+		SWTSkinObject buttonBarObject = skin.getSkinObject("global-button-bar");
+		SWTSkinObject buddyCountObject = skin.getSkinObject("text-buddy-count");
+		SWTSkinObject buddyAddObject = skin.getSkinObject("button-buddy-add");
+		SWTSkinObject buddyPanelObject = skin.getSkinObject("panel-buddies");
+		SWTSkinObject footerObject = skin.getSkinObject("footer");
+
+		String suffix = value ? "-disabled" : "";
+
+		showImageObject.switchSuffix(suffix, 1, false);
+		hideImageObject.switchSuffix(suffix, 1, false);
+		buddyCountObject.switchSuffix(suffix, 1, false);
+		buddyAddObject.switchSuffix(suffix, 1, false);
+		footerObject.switchSuffix(suffix, 1, false);
+		buttonBarObject.switchSuffix(suffix, 1, true);
+		buddyPanelObject.switchSuffix(suffix, 1, false);
+
 	}
 
 	private void hookShowHideButon() {

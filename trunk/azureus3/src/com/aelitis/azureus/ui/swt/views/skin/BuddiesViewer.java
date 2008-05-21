@@ -197,13 +197,14 @@ public class BuddiesViewer
 
 			pWidget.addPageSelectionListener(new PaginationWidget.PageSelectionListener() {
 				public void pageSelected(int pageNumber) {
-					showPage(pageNumber, false);
+					setCurrentPage(pageNumber);
+
 				}
 			});
 		}
 	}
 
-	public void showPage(final int pageNumber, boolean animateTransition) {
+	private void showPage(final int pageNumber, boolean animateTransition) {
 
 		if (avatarsPanel.getLocation().x == -pageXOffsets[pageNumber]) {
 			//Do nothing if page is still the same
@@ -327,11 +328,8 @@ public class BuddiesViewer
 			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(leftScroll);
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					Point location = avatarsPanel.getLocation();
-					if (location.x < 0) {
-						avatarsPanel.setLocation(location.x + parent.getSize().x,
-								location.y);
-						avatarsPanel.layout();
+					if (getCurrentPage() > 0) {
+						setCurrentPage(getCurrentPage() - 1);
 					}
 				}
 			});
@@ -342,14 +340,9 @@ public class BuddiesViewer
 			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(rightScroll);
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					scrollPageRight();
-					//					Point location = avatarsPanel.getLocation();
-					//					location.x -= parent.getSize().x;
-					//
-					//					//					if (location.x * -1 < avatarsPanel.getSize().x - parent.getSize().x) {
-					//					avatarsPanel.setLocation(location.x, location.y);
-					//					avatarsPanel.layout();
-					//					//					}
+					if (getCurrentPage() < getPageCount() - 1) {
+						setCurrentPage(getCurrentPage() + 1);
+					}
 				}
 			});
 		}
@@ -363,36 +356,13 @@ public class BuddiesViewer
 
 	}
 
-	private void scrollPageRight() {
-		final Point location = avatarsPanel.getLocation();
-
-		parent.getDisplay().asyncExec(new AERunnable() {
-
-			public void runSupport() {
-				int pageWidth = parent.getSize().x;
-				int incrementer = (int) (pageWidth * .5);
-				while (incrementer > 0) {
-					location.x -= incrementer;
-					avatarsPanel.setLocation(location.x, location.y);
-					parent.update();
-					incrementer = (int) (incrementer * .5);
-					try {
-						Thread.sleep(50);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
-
-			}
-		});
-
-	}
-
 	private void enableScroll(SWTSkinObject leftScroll, SWTSkinObject rightScroll) {
 		if (null == leftScroll || null == rightScroll) {
 			return;
 		}
-		if (avatarsPanel.getSize().x > parent.getSize().x) {
+
+		if (avatarsPanel.getSize().x > parent.getSize().x
+				|| avatarsPanel.getLocation().x < 0) {
 			if (false == leftScroll.isVisible()) {
 				leftScroll.setVisible(true);
 			}
@@ -594,40 +564,24 @@ public class BuddiesViewer
 
 		List buddiesList = VuzeBuddyManager.getAllVuzeBuddies();
 
-		/*
-		 * Adding fake friends to test scrolling
-		 * TODO: Should remove for production
-		 */
-		//		final List fakes = new ArrayList();
-		//		if (true == org.gudy.azureus2.core3.util.Constants.isCVSVersion()) {
-		//			for (int i = buddiesList.size() + 1; i < 20; i++) {
-		//				VuzeBuddy vb = VuzeBuddyUtils.createRandomBuddy();
-		//				vb.setDisplayName("Fake " + i);
-		//				buddiesList.add(vb);
-		//				fakes.add(vb);
-		//			}
-		//		}
 		VuzeBuddyManager.addListener(new VuzeBuddyListener() {
 
 			public void buddyRemoved(VuzeBuddy buddy) {
-				//				if (true == fakes.contains(buddy)) {
-				//					return;
-				//				}
-
+				System.out.println("Remove: " + buddy.getLoginID());//KN: sysout
 				removeBuddy(buddy);
 			}
 
 			public void buddyChanged(VuzeBuddy buddy) {
+				System.out.println("Change: " + buddy.getLoginID());//KN: sysout
 				updateBuddy(buddy);
 			}
 
 			public void buddyAdded(VuzeBuddy buddy, int position) {
+				System.out.println("Add: " + buddy.getLoginID());//KN: sysout
 				addBuddy(buddy);
 			}
 
 			public void buddyOrderChanged() {
-				// TODO Auto-generated method stub
-
 			}
 		}, false);
 
@@ -729,8 +683,12 @@ public class BuddiesViewer
 	}
 
 	public void setCurrentPage(int currentPage) {
-		this.currentPage = currentPage;
-		System.out.println("Showing page: " + currentPage);//KN: sysout
+		if (this.currentPage != currentPage) {
+			this.currentPage = currentPage;
+			showPage(currentPage, false);
+			pWidget.setCurrentPage(currentPage);
+
+		}
 	}
 
 	public int getPageCount() {

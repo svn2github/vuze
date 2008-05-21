@@ -110,7 +110,8 @@ public class PaginationWidget
 							if (false == tooltipText.equals(canvas.getToolTipText())) {
 								canvas.setToolTipText(tooltipText);
 							}
-							canvas.setCursor(canvas.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+							canvas.setCursor(canvas.getDisplay().getSystemCursor(
+									SWT.CURSOR_HAND));
 							pageFound = true;
 							break;
 						}
@@ -171,6 +172,17 @@ public class PaginationWidget
 		for (Iterator iterator = listeners.iterator(); iterator.hasNext();) {
 			PageSelectionListener listener = (PageSelectionListener) iterator.next();
 			listener.pageSelected(selectedPage);
+		}
+	}
+
+	public int getCurrentPage() {
+		return currentPage;
+	}
+
+	public void setCurrentPage(int currentPage) {
+		if (this.currentPage != currentPage) {
+			this.currentPage = currentPage;
+			canvas.redraw();
 		}
 	}
 

@@ -41,6 +41,8 @@ import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
+import com.aelitis.azureus.ui.swt.utils.ImageLoader;
+import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.util.LoginInfoManager;
 
 public class AvatarWidget
@@ -121,7 +123,7 @@ public class AvatarWidget
 		this.imageSize = avatarImageSize;
 		this.nameAreaSize = avatarNameSize;
 		this.vuzeBuddy = vuzeBuddy;
-		canvas = new Canvas(parent, SWT.NONE);
+		canvas = new Canvas(parent, SWT.NONE | SWT.DOUBLE_BUFFERED);
 		canvas.setData("AvatarWidget", this);
 
 		init();
@@ -129,8 +131,11 @@ public class AvatarWidget
 
 	private void init() {
 
-		final Image removeImage = ImageRepository.getImage("progress_remove");
-		final Image add_to_share_Image = ImageRepository.getImage("add_to_share");
+		ImageLoader imageLoader = ImageLoaderFactory.getInstance();
+		final Image removeImage = imageLoader.getImage("image.buddy.remove");
+		final Image add_to_share_Image = imageLoader.getImage("image.buddy.add.to.share");
+		final Image removeImage_over = imageLoader.getImage("image.buddy.remove-over");
+		final Image add_to_share_Image_over = imageLoader.getImage("image.buddy.add.to.share-over");
 
 		tooltip_remove_friend = MessageText.getString("v3.buddies.remove");
 		tooltip_add_to_share = MessageText.getString("v3.buddies.add.to.share");
@@ -149,17 +154,17 @@ public class AvatarWidget
 		 * Position the decorator icons
 		 */
 		decorator_remove_friend = new Rectangle(size.x
-				- (highlightBorder + imageBorder) - 16, highlightBorder + imageBorder,
-				16, 16);
+				- (highlightBorder + imageBorder) - 12 - 1, highlightBorder
+				+ imageBorder + 1, 12, 12);
 
-		decorator_add_to_share = new Rectangle(highlightBorder + imageBorder,
-				highlightBorder + imageBorder, 16, 16);
+		decorator_add_to_share = new Rectangle(highlightBorder + imageBorder + 1,
+				highlightBorder + imageBorder + 1, 12, 12);
 		/*
 		 * Get the avatar image and create a default image if none was found
 		 */
 		image = vuzeBuddy.getAvatarImage();
 		if (null == image) {
-			image = ImageRepository.getImage("buddy_default_avatar");
+			image = imageLoader.getImage("image.buddy.default.avatar");
 		}
 
 		sourceImageBounds = null == image ? null : image.getBounds();
