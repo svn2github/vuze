@@ -144,6 +144,7 @@ public abstract class Result {
 		
 		object.put("r", "" + this.getRank());
 		
+		object.put("ct", this.getContentType());
 		
 		object.put("cdp", this.getCDPLink());
 		return object;
