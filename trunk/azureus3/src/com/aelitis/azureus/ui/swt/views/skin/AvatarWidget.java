@@ -166,7 +166,7 @@ public class AvatarWidget
 				imageSize.x, imageSize.y);
 
 		nameAreaBounds = new Rectangle((size.x / 2) - ((nameAreaSize.x - 6) / 2),
-				imageBounds.y + imageBounds.height, nameAreaSize.x - 6, nameAreaSize.y);
+				imageBounds.y + imageBounds.height +2 , nameAreaSize.x - 6, nameAreaSize.y);
 
 		/*
 		 * Position the decorator icons
@@ -326,7 +326,7 @@ public class AvatarWidget
 					//					e.gc.setFont(null);
 					e.gc.setFont(fontDisplayName);
 					GCStringPrinter.printString(e.gc, vuzeBuddy.getDisplayName(),
-							nameAreaBounds, false, true, SWT.CENTER);
+							nameAreaBounds, false, true, SWT.CENTER );
 
 				}
 			}
