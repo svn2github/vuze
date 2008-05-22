@@ -138,6 +138,8 @@ VuzeFileImpl
 		private Map			contents;
 		private boolean		processed;
 		
+		private Map			user_data;
+		
 		protected
 		comp(
 			int		_type,
@@ -169,6 +171,31 @@ VuzeFileImpl
 		isProcessed()
 		{
 			return( processed );
+		}
+		
+		public synchronized void
+		setData(
+			Object	key,
+			Object	value )
+		{
+			if ( user_data == null ){
+				
+				user_data = new HashMap();
+			}
+			
+			user_data.put( key, value );
+		}
+		
+		public synchronized Object
+		getData(
+			Object	key )
+		{
+			if ( user_data == null ){
+				
+				return( null );
+			}
+			
+			return( user_data.get( key ));
 		}
 	}
 }

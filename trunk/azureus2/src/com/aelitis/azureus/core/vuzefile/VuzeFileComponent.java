@@ -42,4 +42,13 @@ VuzeFileComponent
 	
 	public boolean
 	isProcessed();
+	
+	public void
+	setData(
+		Object	key,
+		Object	value );
+	
+	public Object
+	getData(
+		Object	key );
 }

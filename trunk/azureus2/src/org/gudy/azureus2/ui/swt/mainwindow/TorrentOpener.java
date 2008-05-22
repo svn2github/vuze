@@ -193,7 +193,7 @@ public class TorrentOpener {
 					
 					VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
 					
-					if ( vfh.loadAndHandleVuzeFile( filename, VuzeFileComponent.COMP_TYPE_NONE )){
+					if ( vfh.loadAndHandleVuzeFile( filename, VuzeFileComponent.COMP_TYPE_NONE ) != null ){
 						
 						return;
 					}

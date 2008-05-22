@@ -108,7 +108,7 @@ VuzeFileHandler
 		return( null );
 	}
 	
-	public boolean
+	public VuzeFile
 	loadAndHandleVuzeFile(
 		String		target,
 		int			expected_types )
@@ -117,12 +117,12 @@ VuzeFileHandler
 		
 		if ( vf == null ){
 			
-			return( false );
+			return( null );
 		}
 		
 		handleFiles( new VuzeFile[]{ vf }, expected_types );
 		
-		return( true );
+		return( vf );
 	}
 	
 	public void

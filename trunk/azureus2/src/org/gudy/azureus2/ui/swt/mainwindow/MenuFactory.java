@@ -295,7 +295,7 @@ public class MenuFactory
 							
 							VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
 							
-							if ( !vfh.loadAndHandleVuzeFile(path, VuzeFileComponent.COMP_TYPE_NONE )){
+							if ( vfh.loadAndHandleVuzeFile(path, VuzeFileComponent.COMP_TYPE_NONE ) == null ){
 								
 								TorrentOpener.openTorrent(path );
 							}
