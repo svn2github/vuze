@@ -81,6 +81,10 @@ public class BuddiesViewer
 
 	private Color imageBorderColor = null;
 
+	private Color selectedColor = null;
+
+	private Color highlightedColor = null;
+	
 	private List sharedAvatars = new ArrayList();
 
 	private SWTSkinObject soNoBuddies;
@@ -145,11 +149,17 @@ public class BuddiesViewer
 			imageBorderColor = ColorCache.getColor(avatarsPanel.getDisplay(), 38, 38,
 					38);
 
-			avatarHightLightBorder = 1;
+			selectedColor = ColorCache.getColor(avatarsPanel.getDisplay(), 16, 16,
+					16);
+
+			highlightedColor = ColorCache.getColor(avatarsPanel.getDisplay(), 45, 45,
+					45);
+			
+			avatarHightLightBorder = 0;
 			avatarImageBorder = 1;
-			hSpacing = 6;
+			hSpacing = 1;
 			avatarImageSize = new Point(40, 40);
-			avatarNameSize = new Point(52, 18);
+			avatarNameSize = new Point(60, 22);
 			avatarSize = new Point(0, 0);
 			avatarSize.x = Math.max(avatarNameSize.x, avatarImageSize.x)
 					+ (2 * (avatarHightLightBorder + avatarImageBorder));
@@ -425,7 +435,9 @@ public class BuddiesViewer
 		avatarWidget.setTextLinkColor(textLinkColor);
 		avatarWidget.setImageBorderColor(imageBorderColor);
 		avatarWidget.setImageBorder(avatarImageBorder);
-
+		avatarWidget.setSelectedColor(selectedColor);
+		avatarWidget.setHighlightedColor(highlightedColor);
+		
 		RowData rData = new RowData();
 		rData.width = avatarSize.x;
 		rData.height = avatarSize.y;

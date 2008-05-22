@@ -30,7 +30,6 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.shells.InputShell;
 
@@ -53,7 +52,7 @@ public class AvatarWidget
 
 	private Composite parent = null;
 
-	private int highlightBorder = 1;
+	private int highlightBorder = 0;
 
 	private int imageBorder = 1;
 
@@ -81,6 +80,10 @@ public class AvatarWidget
 
 	private Color imageBorderColor = null;
 
+	private Color selectedColor = null;
+
+	private Color highlightedColor = null;
+
 	private Rectangle decorator_remove_friend = null;
 
 	private Rectangle decorator_add_to_share = null;
@@ -102,6 +105,18 @@ public class AvatarWidget
 	private String tooltip_add_to_share;
 
 	private String tooltip;
+
+	private Image removeImage = null;
+
+	private Image add_to_share_Image = null;
+
+	private Image removeImage_normal = null;
+
+	private Image add_to_share_Image_normal = null;
+
+	private Image removeImage_over = null;
+
+	private Image add_to_share_Image_over = null;
 
 	public AvatarWidget(BuddiesViewer viewer, Point avatarSize,
 			Point avatarImageSize, Point avatarNameSize, VuzeBuddySWT vuzeBuddy) {
@@ -132,10 +147,13 @@ public class AvatarWidget
 	private void init() {
 
 		ImageLoader imageLoader = ImageLoaderFactory.getInstance();
-		final Image removeImage = imageLoader.getImage("image.buddy.remove");
-		final Image add_to_share_Image = imageLoader.getImage("image.buddy.add.to.share");
-		final Image removeImage_over = imageLoader.getImage("image.buddy.remove-over");
-		final Image add_to_share_Image_over = imageLoader.getImage("image.buddy.add.to.share-over");
+		removeImage_normal = imageLoader.getImage("image.buddy.remove");
+		add_to_share_Image_normal = imageLoader.getImage("image.buddy.add.to.share");
+		removeImage_over = imageLoader.getImage("image.buddy.remove-over");
+		add_to_share_Image_over = imageLoader.getImage("image.buddy.add.to.share-over");
+
+		removeImage = removeImage_normal;
+		add_to_share_Image = add_to_share_Image_normal;
 
 		tooltip_remove_friend = MessageText.getString("v3.buddies.remove");
 		tooltip_add_to_share = MessageText.getString("v3.buddies.add.to.share");
@@ -147,8 +165,8 @@ public class AvatarWidget
 		imageBounds = new Rectangle((size.x / 2) - (imageSize.x / 2), 8,
 				imageSize.x, imageSize.y);
 
-		nameAreaBounds = new Rectangle((size.x / 2) - (nameAreaSize.x / 2),
-				imageBounds.y + imageBounds.height, nameAreaSize.x, nameAreaSize.y);
+		nameAreaBounds = new Rectangle((size.x / 2) - ((nameAreaSize.x - 6) / 2),
+				imageBounds.y + imageBounds.height, nameAreaSize.x - 6, nameAreaSize.y);
 
 		/*
 		 * Position the decorator icons
@@ -191,36 +209,33 @@ public class AvatarWidget
 				}
 
 				/*
-				 * Draw background if the widget is selected
+				 * Draw background if the widget is activated or selected
 				 */
-				if (true == isSelected) {
+				if (true == isActivated || true == isSelected) {
 
-					e.gc.setBackground(Colors.grey);
-					e.gc.setAlpha((int) (alpha * .5));
-
+					e.gc.setBackground(true == isActivated ? highlightedColor
+							: selectedColor);
 					Rectangle bounds = canvas.getBounds();
 					e.gc.fillRoundRectangle(highlightBorder, highlightBorder,
 							bounds.width - (2 * highlightBorder), bounds.height
-									- (2 * highlightBorder), 10, 10);
-					e.gc.setAlpha(alpha);
+									- (2 * highlightBorder), 6, 6);
 					e.gc.setBackground(canvas.getBackground());
 				}
 
 				/*
 				 * Draw highlight borders if the widget is activated (being hovered over)
 				 */
-				if (true == isActivated && highlightBorder > 0) {
-
-					e.gc.setForeground(Colors.grey);
-					e.gc.setLineWidth(highlightBorder);
-					Rectangle bounds = canvas.getBounds();
-					e.gc.drawRoundRectangle(highlightBorder, highlightBorder,
-							bounds.width - (2 * highlightBorder), bounds.height
-									- (2 * highlightBorder), 10, 10);
-					e.gc.setForeground(canvas.getForeground());
-					e.gc.setLineWidth(1);
-				}
-
+				//				if (true == isActivated && highlightBorder > 0) {
+				//
+				//					e.gc.setForeground(Colors.grey);
+				//					e.gc.setLineWidth(highlightBorder);
+				//					Rectangle bounds = canvas.getBounds();
+				//					e.gc.drawRoundRectangle(highlightBorder, highlightBorder,
+				//							bounds.width - (2 * highlightBorder), bounds.height
+				//									- (2 * highlightBorder), 10, 10);
+				//					e.gc.setForeground(canvas.getForeground());
+				//					e.gc.setLineWidth(1);
+				//				}
 				/*
 				 * Draw the avatar image
 				 */
@@ -600,7 +615,7 @@ public class AvatarWidget
 	}
 
 	public void setBorderWidth(int borderWidth) {
-		this.highlightBorder = borderWidth;
+		//		this.highlightBorder = borderWidth;
 	}
 
 	public VuzeBuddySWT getVuzeBuddy() {
@@ -753,5 +768,21 @@ public class AvatarWidget
 
 	public void setImageBorder(int imageBorder) {
 		this.imageBorder = imageBorder;
+	}
+
+	public Color getSelectedColor() {
+		return selectedColor;
+	}
+
+	public void setSelectedColor(Color selectedColor) {
+		this.selectedColor = selectedColor;
+	}
+
+	public Color getHighlightedColor() {
+		return highlightedColor;
+	}
+
+	public void setHighlightedColor(Color highlightedColor) {
+		this.highlightedColor = highlightedColor;
 	}
 }
