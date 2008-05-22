@@ -206,6 +206,10 @@ public class SWTSkinObjectBasic
 			imageBGLeft = images[0];
 			imageBG = images[1];
 			imageBGRight = images[2];
+		} else if (images.length == 2 && ImageLoader.isRealImage(images[1])) {
+			imageBGLeft = images[0];
+			imageBG = images[1];
+			imageBGRight = imageLoader.getImage(sConfigID + sSuffix + "-right");
 		} else {
 			return;
 		}
