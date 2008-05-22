@@ -1714,7 +1714,7 @@ public class MainWindow
 				+ SystemTime.getCurrentTime();
 
 		if (System.getProperty("metasearch", "0").equals("1")) {
-			sURL = Constants.URL_PREFIX + "xsearch/index.html?search="
+			sURL = Constants.URL_PREFIX + "xsearch?q="
 					+ UrlUtils.encode(sSearchText) + "&" + Constants.URL_SUFFIX
 					+ "&rand=" + SystemTime.getCurrentTime();
 		}
