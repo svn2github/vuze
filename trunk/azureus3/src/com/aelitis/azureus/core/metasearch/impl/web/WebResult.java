@@ -16,6 +16,8 @@ public class WebResult extends Result {
 	String basePageURL;
 	DateParser dateParser;
 	
+	
+	String contentType = "";
 	String name;
 	String category = "";
 	
@@ -28,7 +30,7 @@ public class WebResult extends Result {
 	
 	String cdpLink;
 	String torrentLink;
-	String categoryLink;
+	String playLink;
 	
 	
 	public WebResult(String rootPageURL,String basePageURL,DateParser dateParser,String searchQuery) {
@@ -149,8 +151,35 @@ public class WebResult extends Result {
 		this.torrentLink = torrentLink;
 	}
 	
-	public void setCategoryLink(String categoryLink) {
-		this.categoryLink = categoryLink;
+	public String getContentType() {
+		return this.contentType;
+	}
+	
+	public String getPlayLink() {
+		if(playLink != null) {
+			
+			if(playLink.startsWith("http://") || playLink.startsWith("https://")) {
+				return playLink;
+			}
+			
+			if(playLink.startsWith("/")) {
+				return rootPageURL + playLink;
+			}
+			
+			return basePageURL + playLink;
+		}
+		
+		return "";
+	}
+	
+	public void setCategory(String category) {
+		this.category = category;
+		
+	}
+	
+	public void setContentType(String contentType) {
+		this.contentType = contentType;
+		
 	}
 	
 

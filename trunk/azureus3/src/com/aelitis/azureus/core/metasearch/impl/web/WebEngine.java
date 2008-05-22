@@ -25,15 +25,6 @@ public abstract class
 WebEngine 
 	extends EngineImpl 
 {
-	public static final int FIELD_NAME = 1;
-	public static final int FIELD_DATE = 2;
-	public static final int FIELD_SIZE = 3;
-	public static final int FIELD_PEERS = 4;
-	public static final int FIELD_SEEDS = 5;
-	public static final int FIELD_CATEGORY = 6;
-	public static final int FIELD_COMMENTS = 7;
-	public static final int FIELD_TORRENTLINK = 102;
-	public static final int FIELD_CDPLINK = 103;
 	
 	static private final Pattern baseTagPattern = Pattern.compile("(?i)<base.*?href=\"([^\"]+)\".*?>");
 	static private final Pattern rootURLPattern = Pattern.compile("(https?://[^/]+)");

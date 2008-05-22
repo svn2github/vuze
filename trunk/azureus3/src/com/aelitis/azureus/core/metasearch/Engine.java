@@ -7,6 +7,20 @@ import java.util.Map;
 public interface 
 Engine 
 {
+	public static final int FIELD_NAME = 1;
+	public static final int FIELD_DATE = 2;
+	public static final int FIELD_SIZE = 3;
+	public static final int FIELD_PEERS = 4;
+	public static final int FIELD_SEEDS = 5;
+	public static final int FIELD_CATEGORY = 6;
+	public static final int FIELD_COMMENTS = 7;
+	public static final int FIELD_CONTENT_TYPE = 8;
+	
+	public static final int FIELD_TORRENTLINK = 102;
+	public static final int FIELD_CDPLINK = 103;
+	public static final int FIELD_PLAYLINK = 104;
+	
+	
 	public static final int ENGINE_TYPE_REGEX		= 1;
 	public static final int ENGINE_TYPE_JSON		= 2;
 	

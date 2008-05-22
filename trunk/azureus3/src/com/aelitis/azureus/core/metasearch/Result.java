@@ -17,6 +17,11 @@ public abstract class Result {
 	public abstract Date getPublishedDate();
 	
 	public abstract String getCategory();
+	public abstract void setCategory(String category);
+	
+	public abstract String getContentType();
+	public abstract void setContentType(String contentType);
+	
 	public abstract String getName();
 	public abstract long getSize();
 	public abstract int getNbPeers();
@@ -26,6 +31,8 @@ public abstract class Result {
 	//Links
 	public abstract String getDownloadLink();
 	public abstract String getCDPLink();
+	public abstract String getPlayLink();
+	
 	
 	public abstract String getSearchQuery();
 	
