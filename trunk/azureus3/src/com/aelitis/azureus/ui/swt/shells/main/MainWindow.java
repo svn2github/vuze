@@ -1089,8 +1089,8 @@ public class MainWindow
 								"color.links.normal");
 						Color colorText = skin.getSkinProperties().getColor("color.text.fg");
 
-						composite.setBackground(colorBG);
-						composite.setForeground(colorText);
+						//composite.setBackground(colorBG);
+						//composite.setForeground(colorText);
 
 						MessageBoxShell shell = (MessageBoxShell) skinnableObject;
 						shell.setUrlColor(colorLink);
@@ -1131,18 +1131,6 @@ public class MainWindow
 
 					public void skinAfterComponents(Composite composite,
 							Object skinnableObject, Object[] relatedObjects) {
-						if (true) {
-							return; // temp disable
-						}
-						Color bg = skin.getSkinProperties().getColor("color.mainshell");
-						if (bg != null) {
-							composite.setBackground(bg);
-						}
-						Color fg = skin.getSkinProperties().getColor("color.section.header");
-						if (fg != null) {
-							setChildrenFG(composite, fg);
-						}
-						composite.setBackgroundMode(SWT.INHERIT_DEFAULT);
 					}
 				});
 
