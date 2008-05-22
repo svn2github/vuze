@@ -76,7 +76,7 @@ public class VuzeActivitiesEntryContentShare
 			String url = Constants.URL_PREFIX + Constants.URL_DETAILS + content.hash
 					+ ".html?" + Constants.URL_SUFFIX + "&client_ref="
 					+ TYPEID_BUDDYSHARE;
-			contentString = "\n<A HREF=\"" + url + "\">" + content.displayName + "</A>";
+			contentString = "<A HREF=\"" + url + "\">" + content.displayName + "</A>";
 		} else {
 			setTorrent(torrent);
 			if (content.dm != null) {
