@@ -18,6 +18,7 @@
 
 package com.aelitis.azureus.ui.swt.columns.utils;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 
 import com.aelitis.azureus.ui.common.table.TableCellCore;
@@ -254,6 +255,7 @@ public class ColumnImageClickArea
 				TableCellCore cellCore = (TableCellCore) cell;
 				cellCore.invalidate();
 				cellCore.refresh();
+				cellCore.setCursorID(containsMouse ? SWT.CURSOR_HAND : SWT.CURSOR_ARROW);
 				if (tooltip != null) {
   				if (containsMouse) {
   					cellCore.setToolTip(tooltip);
