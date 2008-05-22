@@ -49,19 +49,19 @@ FrequencyLimitedDispatcher
 		
 		synchronized( this ){
 			
-			long	delay = min_millis - (now - last_run );
-
-			if ( now < last_run || delay <= 0 ){
+			if ( delay_event == null ){
 				
-				last_run	= now;
-				
-				run_it		= true;
-				
-			}else{
-				
-					// run too recently
-				
-				if ( delay_event == null ){
+				long	delay = min_millis - (now - last_run );
+	
+				if ( now < last_run || delay <= 0 ){
+					
+					last_run	= now;
+					
+					run_it		= true;
+					
+				}else{
+					
+						// run too recently
 											
 					delay_event = 
 						new DelayedEvent(
@@ -74,7 +74,7 @@ FrequencyLimitedDispatcher
 								{
 									long	now = SystemTime.getCurrentTime();
 
-									synchronized( this ){
+									synchronized( FrequencyLimitedDispatcher.this ){
 
 										last_run = now;
 										
