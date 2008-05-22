@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -402,9 +403,48 @@ WebEngine
 
 			InputStream is = mr_rd.download();
 
+			List cts = (List)url_rd.getProperty( "URL_Content-Type" );
+			
+			String content_charset = "UTF-8";
+			
+			if ( cts != null && cts.size() > 0 ){
+				
+				String	content_type = (String)cts.get(0);
+				
+				int	pos = content_type.toLowerCase().indexOf( "charset" );
+				
+				if ( pos != -1 ){
+					
+					content_type = content_type.substring( pos+1 );
+					
+					pos = content_type.indexOf('=');
+					
+					if ( pos != -1 ){
+						
+						content_type = content_type.substring( pos+1 ).trim();
+						
+						pos = content_type.indexOf(';');
+						
+						if ( pos != -1 ){
+							
+							content_type = content_type.substring(0,pos).trim();
+						}
+						
+						if ( Charset.isSupported( content_type )){
+							
+							debugLog( "charset: " + content_type );
+							
+							content_charset = content_type;
+						}
+					}
+				}
+			}
+			
 			int nbRead = 0;
-			while((nbRead = is.read(data)) != -1) {
-				sb.append(new String(data,0,nbRead));
+			
+			while((nbRead = is.read(data)) != -1){
+				
+				sb.append(new String(data,0,nbRead, content_charset ));
 			}
 
 			String page = sb.toString();
