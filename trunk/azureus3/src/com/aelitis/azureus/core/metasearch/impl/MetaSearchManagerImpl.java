@@ -85,14 +85,19 @@ MetaSearchManagerImpl
 							if ( comp.getType() == VuzeFileComponent.COMP_TYPE_METASEARCH_TEMPLATE ){
 								
 								try{
-									getSingleton().addEngine(
-										-1, 
-										comp.getContent(), 
-										true,
-										(expected_types & VuzeFileComponent.COMP_TYPE_METASEARCH_TEMPLATE) == 0 );
+									Engine e = 
+										getSingleton().addEngine(
+											-1, 
+											comp.getContent(), 
+											true,
+											(expected_types & VuzeFileComponent.COMP_TYPE_METASEARCH_TEMPLATE) == 0 );
 									
 									comp.setProcessed();
 									
+									if ( e != null ){
+										
+										comp.setData( Engine.VUZE_FILE_COMPONENT_ENGINE_KEY, e );
+									}
 								}catch( Throwable e ){
 									
 									Debug.printStackTrace(e);

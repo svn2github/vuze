@@ -25,6 +25,7 @@ import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.metasearch.Result;
 import com.aelitis.azureus.core.metasearch.ResultListener;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
+import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
@@ -466,11 +467,14 @@ public class MetaSearchListener extends AbstractMessageListener {
 								try{
 									engine.exportToVuzeFile( new File( path ));
 									
-									context.sendBrowserMessage( "metasearch", "exportTemplateCompleted", new HashMap() );
+									Map params = new HashMap();
+									params.put( "id", new Long( id ));
+									context.sendBrowserMessage( "metasearch", "exportTemplateCompleted", params );
 
 								}catch( Throwable e ){
 									
 									Map params = new HashMap();
+									params.put( "id", new Long( id ));
 									params.put( "error", "save failed: " + Debug.getNestedExceptionMessage(e));
 
 									context.sendBrowserMessage("metasearch", "exportTemplateFailed",params);
@@ -478,6 +482,7 @@ public class MetaSearchListener extends AbstractMessageListener {
 							}else{
 								
 								Map params = new HashMap();
+								params.put( "id", new Long( id ));
 								params.put( "error", "operation cancelled" );
 
 								context.sendBrowserMessage("metasearch", "exportTemplateFailed",params);
@@ -519,10 +524,43 @@ public class MetaSearchListener extends AbstractMessageListener {
 							
 							VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
 							
-							vfh.loadAndHandleVuzeFile( path, VuzeFileComponent.COMP_TYPE_METASEARCH_TEMPLATE );
+							VuzeFile vf = vfh.loadAndHandleVuzeFile( path, VuzeFileComponent.COMP_TYPE_METASEARCH_TEMPLATE );
 							
-							context.sendBrowserMessage( "metasearch", "importTemplateCompleted", new HashMap() );
+							if ( vf == null ){
+								
+								Map params = new HashMap();
+								params.put( "error", "invalid .vuze file" );
 
+								context.sendBrowserMessage("metasearch", "importTemplateFailed",params);
+								
+							}else{
+								
+								VuzeFileComponent[] comps = vf.getComponents();
+								
+								for (int i=0;i<comps.length;i++){
+									
+									VuzeFileComponent comp = comps[i];
+									
+									if ( comp.getType() == VuzeFileComponent.COMP_TYPE_METASEARCH_TEMPLATE ){
+										
+										Engine engine = (Engine)comp.getData( Engine.VUZE_FILE_COMPONENT_ENGINE_KEY );
+										
+										if ( engine != null ){
+											
+											Map params = new HashMap();
+											params.put( "id", new Long( engine.getId()));
+											context.sendBrowserMessage( "metasearch", "importTemplateCompleted", params );
+
+											return;
+										}
+									}
+								}
+								
+								Map params = new HashMap();
+								params.put( "error", "invalid search template file" );
+
+								context.sendBrowserMessage("metasearch", "importTemplateFailed",params);
+							}
 						}else{
 							
 							Map params = new HashMap();

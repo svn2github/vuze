@@ -6,7 +6,9 @@ import java.util.Map;
 
 public interface 
 Engine 
-{
+{	
+	public static final Object	VUZE_FILE_COMPONENT_ENGINE_KEY = new Object();
+	
 	public static final int FIELD_NAME = 1;
 	public static final int FIELD_DATE = 2;
 	public static final int FIELD_SIZE = 3;
