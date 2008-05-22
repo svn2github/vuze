@@ -475,7 +475,7 @@ public class MessageSlideShell
 			}
 		});
 
-		createLinkLabel(cShell, true, popupParams);
+		createLinkLabel(cShell, popupParams);
 
 		lblCloseIn = new Label(cShell, SWT.TRAIL);
 		lblCloseIn.setForeground(colorFG);
@@ -765,8 +765,7 @@ public class MessageSlideShell
 	 *
 	 * @since 3.0.0.9
 	 */
-	private void createLinkLabel(Composite shell, boolean tryLinkIfURLs,
-			final PopupParams popupParams) {
+	private void createLinkLabel(Composite shell, final PopupParams popupParams) {
 
 		final Canvas canvas = new Canvas(shell, SWT.None) {
 			public Point computeSize(int wHint, int hHint, boolean changed) {
