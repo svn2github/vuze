@@ -730,7 +730,13 @@ Download extends DownloadEventNotifier
   	
   		/**
   		 * Move a download's data files to a new location. Download must be stopped and persistent
-  		 * @since 2.3.0.5
+  		 * 
+  		 * <p>
+  		 * 
+  		 * If a download is running, it will be automatically paused and resumed afterwards - be
+  		 * aware that this behaviour may generate <tt>stateChanged</tt> events being fired.
+		 *
+		 * @since 2.3.0.5
   		 * @param new_parent_dir
   		 * @throws DownloadException
   		 */
@@ -747,6 +753,11 @@ Download extends DownloadEventNotifier
   	 * and then <tt>renameDownload[String]</tt>.
   	 * 
   	 * For convenience, either argument can be <tt>null</tt>, but not both.
+  	 * 
+  	 * <p>
+  	 * 
+  	 * If a download is running, it will be automatically paused and resumed afterwards - be
+  	 * aware that this behaviour may generate <tt>stateChanged</tt> events being fired.
   	 * 
   	 * @since 3.0.2
   	 * @throws DownloadException
@@ -777,6 +788,11 @@ Download extends DownloadEventNotifier
   	 * 
   	 * This will not rename the displayed name for the torrent - if you wish to do that, you must do it via
   	 * the {@link org.gudy.azureus2.plugins.torrent.TorrentAttribute TorrentAttribute} class.
+  	 * 
+  	 * <p>
+  	 * 
+  	 * If a download is running, it will be automatically paused and resumed afterwards - be
+  	 * aware that this behaviour may generate <tt>stateChanged</tt> events being fired.
   	 * 
   	 * @param name New name for the download.
   	 * @see #moveDataFiles(File)
