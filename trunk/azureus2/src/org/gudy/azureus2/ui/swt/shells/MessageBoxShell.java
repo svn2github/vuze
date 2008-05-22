@@ -1,13 +1,9 @@
 package org.gudy.azureus2.ui.swt.shells;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.*;
 import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
@@ -16,12 +12,14 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
-import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
+import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
 
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
 import com.aelitis.azureus.ui.common.RememberedDecisionsManager;
 import com.aelitis.azureus.ui.swt.UISkinnableManagerSWT;
 import com.aelitis.azureus.ui.swt.UISkinnableSWTListener;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 /**
  * A messagebox that allows you config the button
@@ -31,8 +29,6 @@ import com.aelitis.azureus.ui.swt.UISkinnableSWTListener;
 public class MessageBoxShell
 	implements UIFunctionsUserPrompter
 {
-	private final static String REGEX_URLHTML = "<A HREF=\"(.+?)\">(.+?)</A>";
-
 	private final static int MIN_SIZE_X = 300;
 
 	private final static int MIN_SIZE_Y = 120;
@@ -72,6 +68,8 @@ public class MessageBoxShell
 	private Object[] relatedObjects;
 
 	private Image imgLeft;
+
+	protected Color urlColor;
 	
 	public static int open(final Shell parent, final String title,
 			final String text, final String[] buttons, final int defaultOption) {
@@ -199,6 +197,7 @@ public class MessageBoxShell
 		Composite textComposite = shell;
 		if (imgLeft != null) {
 			textComposite = new Composite(shell, SWT.NONE);
+			textComposite.setForeground(shell.getForeground());
 			textComposite.setLayout(new GridLayout(2, false));
 			textComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
 			Label lblImage = new Label(textComposite, SWT.NONE);
@@ -207,51 +206,7 @@ public class MessageBoxShell
 		}
 
 		Control linkControl;
-		try {
-			Link linkLabel = new Link(textComposite, SWT.WRAP);
-
-			linkControl = linkLabel;
-
-			linkLabel.setText(text.replaceAll(" &", " &&"));
-			linkLabel.addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent e) {
-					if (e.text.startsWith(":")) {
-						return;
-					}
-					if (e.text.endsWith(".torrent"))
-						TorrentOpener.openTorrent(e.text);
-					else
-						Utils.launch(e.text);
-				}
-			});
-
-			Matcher matcher = Pattern.compile(REGEX_URLHTML, Pattern.CASE_INSENSITIVE).matcher(
-					text);
-			String tooltip = null;
-			while (matcher.find()) {
-				if (tooltip == null)
-					tooltip = "";
-				else
-					tooltip += "\n";
-				String url = matcher.group(1);
-				if (url != null && url.startsWith(":")) {
-					url = url.substring(1);
-				}
-				tooltip += matcher.group(2) + ": " + url;
-			}
-			linkLabel.setToolTipText(tooltip);
-		} catch (Throwable t) {
-			// 3.0
-			Label linkLabel = new Label(textComposite, SWT.WRAP);
-			linkControl = linkLabel;
-
-			String urlText = Pattern.compile(REGEX_URLHTML, Pattern.CASE_INSENSITIVE).matcher(
-					text).replaceAll("$2 ($1)");
-
-			linkLabel.setText(urlText);
-		}
-		
-		linkControl.setForeground(shell.getForeground());
+		linkControl = createLinkLabel(textComposite, text);
 
 		if ((html != null && html.length() > 0)
 				|| (url != null && url.length() > 0)) {
@@ -309,7 +264,7 @@ public class MessageBoxShell
 		// Closing in..
 		if (autoCloseInMS > 0) {
 			final Label lblCloseIn = new Label(shell, SWT.WRAP);
-			linkControl.setForeground(shell.getForeground());
+			lblCloseIn.setForeground(shell.getForeground());
 			lblCloseIn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			long endOn = SystemTime.getCurrentTime() + autoCloseInMS;
 			lblCloseIn.setData("CloseOn", new Long(endOn));
@@ -555,6 +510,73 @@ public class MessageBoxShell
 				control.addMouseTrackListener(listener);
 		}
 	}
+	
+	private Canvas createLinkLabel(final Composite shell, final String text) {
+
+		final Canvas canvas = new Canvas(shell, SWT.None) {
+			public Point computeSize(int wHint, int hHint, boolean changed) {
+				Rectangle area = new Rectangle(0, 0, MAX_SIZE_X, 5000);
+				GC gc = new GC(this);
+				GCStringPrinter sp = new GCStringPrinter(gc, text, area, true,
+						false, SWT.WRAP | SWT.TOP);
+				sp.calculateMetrics();
+				gc.dispose();
+				Point size = sp.getCalculatedSize();
+				return size;
+			}
+		};
+
+		Listener l = new Listener() {
+			GCStringPrinter sp;
+
+			public void handleEvent(Event e) {
+				if (e.type == SWT.Paint) {
+					Rectangle area = canvas.getClientArea();
+					sp = new GCStringPrinter(e.gc, text, area, true, false,
+							SWT.WRAP | SWT.TOP);
+					sp.setUrlColor(ColorCache.getColor(e.gc.getDevice(), "#0000ff"));
+					if (urlColor != null) {
+						sp.setUrlColor(urlColor);
+					}
+					e.gc.setForeground(shell.getForeground());
+					sp.printString();
+				} else if (e.type == SWT.MouseMove) {
+					if (sp != null) {
+						URLInfo hitUrl = sp.getHitUrl(e.x, e.y);
+						if (hitUrl != null) {
+							canvas.setCursor(canvas.getDisplay().getSystemCursor(
+									SWT.CURSOR_HAND));
+							canvas.setToolTipText(hitUrl.url);
+						} else {
+							canvas.setCursor(canvas.getDisplay().getSystemCursor(
+									SWT.CURSOR_ARROW));
+							canvas.setToolTipText(null);
+						}
+					}
+				} else if (e.type == SWT.MouseUp) {
+					if (sp != null) {
+						URLInfo hitUrl = sp.getHitUrl(e.x, e.y);
+						if (hitUrl != null) {
+							Utils.launch(hitUrl.url);
+						}
+					}
+				}
+			}
+		};
+		canvas.addListener(SWT.Paint, l);
+		canvas.addListener(SWT.MouseMove, l);
+		canvas.addListener(SWT.MouseUp, l);
+
+		ClipboardCopy.addCopyToClipMenu(canvas,
+				new ClipboardCopy.copyToClipProvider() {
+					public String getText() {
+						return (text);
+					}
+				});
+
+		return canvas;
+	}
+
 
 	public String getHtml() {
 		return html;
@@ -705,5 +727,13 @@ public class MessageBoxShell
 
 	public void setRememberOnlyIfButton(int rememberOnlyIfButton) {
 		this.rememberOnlyIfButton = rememberOnlyIfButton;
+	}
+
+	public Color getUrlColor() {
+		return urlColor;
+	}
+
+	public void setUrlColor(Color colorURL) {
+		this.urlColor = colorURL;
 	}
 }
