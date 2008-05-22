@@ -3115,8 +3115,6 @@ DownloadManagerImpl
 		  return;
 	  }
 	  
-	  Debug.out("moveDataFiles called for " + this.getDisplayName() + ": " + destination + " <-> " + new_name);
-	  
 	  try{
 		  FileUtil.runAsTask(
 				new AzureusCoreOperationTask()
@@ -3163,7 +3161,7 @@ DownloadManagerImpl
 			File new_parent_dir, 
 			String new_filename) throws DownloadManagerException {
 	  if (!canMoveDataFiles()){
-		  throw new RuntimeException("canMoveDataFiles is false!");
+		  throw new DownloadManagerException("canMoveDataFiles is false!");
 	  }
 	  
 	  if (new_filename != null) {new_filename = FileUtil.convertOSSpecificChars(new_filename,false);}
