@@ -57,13 +57,10 @@ PeerControlSchedulerPrioritised
 	{
 		final boolean printTicks = System.getProperty("trace.monotone","0").equals("1");
 		
-		latest_time	= SystemTime.getCurrentTime();
-		//SystemTime.registerMonotonousConsumer(
+		latest_time	= SystemTime.getMonotonousTime();
 		SystemTime.registerMonotonousConsumer(
 			new SystemTime.TickConsumer()
 			{
-				
-				
 				public void
 				consume( long	time )
 				{
