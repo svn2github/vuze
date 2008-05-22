@@ -90,7 +90,7 @@ public class SaveLocationChange {
 	 * to store the download.
 	 */
 	public final File normaliseDownloadLocation(File old_download_location) {
-		return this.normaliseTorrentLocation(old_download_location.getParentFile(), old_download_location.getName());
+		return this.normaliseDownloadLocation(old_download_location.getParentFile(), old_download_location.getName());
 	}
 
 	/**
