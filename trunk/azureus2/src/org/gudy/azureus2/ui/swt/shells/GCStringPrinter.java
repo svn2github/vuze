@@ -47,13 +47,14 @@ public class GCStringPrinter
 	private static final int FLAG_KEEP_URL_INFO = 8;
 
 	private static final Pattern patHREF = Pattern.compile(
-			"<\\s*?a\\s.*?href\\s*?=\\s*?\"(.+?)\".*?>(.*?)<\\s*?/a\\s*?>", Pattern.CASE_INSENSITIVE);
+			"<\\s*?a\\s.*?href\\s*?=\\s*?\"(.+?)\".*?>(.*?)<\\s*?/a\\s*?>",
+			Pattern.CASE_INSENSITIVE);
 
 	private boolean cutoff;
 
 	private GC gc;
 
-	private final String string;
+	private String string;
 
 	private Rectangle printArea;
 
@@ -134,8 +135,7 @@ public class GCStringPrinter
 	 *
 	 * @since 3.0.4.3
 	 */
-	private boolean _printString(GC gc, String string, Rectangle printArea,
-			int printFlags, int swtFlags) {
+	private boolean _printString() {
 		size = new Point(0, 0);
 
 		if (string == null) {
@@ -156,7 +156,7 @@ public class GCStringPrinter
 		if (string.indexOf('\t') > 0) {
 			string = string.replace('\t', ' ');
 		}
-		
+
 		string = string.replaceAll("\n\n", "\n \n").replaceAll("  +", " ");
 
 		boolean fullLinesOnly = (printFlags & FLAG_FULLLINESONLY) > 0;
@@ -165,32 +165,32 @@ public class GCStringPrinter
 		boolean wrap = (swtFlags & SWT.WRAP) > 0;
 
 		if ((printFlags & FLAG_KEEP_URL_INFO) == 0) {
-  		Matcher htmlMatcher = patHREF.matcher(string);
-  		boolean hasURL = htmlMatcher.find();
-  		if (hasURL) {
-  			listUrlInfo = new ArrayList(1);
-  
-  			while (hasURL) {
-  				URLInfo urlInfo = new URLInfo();
-  				urlInfo.url = htmlMatcher.group(1);
-  				// For now, replace spaces with dashes so url title is always on 1 line
-  				String s = htmlMatcher.group(2); //.replaceAll(" ", "`");
-  
-  				urlInfo.title = s;
-  				urlInfo.relStartPos = htmlMatcher.start(0);
-  				urlInfo.titleLength = s.length();
-  
-  				//System.out.println("URLINFO! " + s + ";" + s.length() + ";" + urlInfo.relStartPos);
-  
-  				string = htmlMatcher.replaceFirst(s.replaceAll("\\$", "\\\\\\$"));
-  
-  				listUrlInfo.add(urlInfo);
-  				htmlMatcher = patHREF.matcher(string);
-  				hasURL = htmlMatcher.find(urlInfo.relStartPos);
-  			}
-  		}
+			Matcher htmlMatcher = patHREF.matcher(string);
+			boolean hasURL = htmlMatcher.find();
+			if (hasURL) {
+				listUrlInfo = new ArrayList(1);
+
+				while (hasURL) {
+					URLInfo urlInfo = new URLInfo();
+					urlInfo.url = htmlMatcher.group(1);
+					// For now, replace spaces with dashes so url title is always on 1 line
+					String s = htmlMatcher.group(2); //.replaceAll(" ", "`");
+
+					urlInfo.title = s;
+					urlInfo.relStartPos = htmlMatcher.start(0);
+					urlInfo.titleLength = s.length();
+
+					//System.out.println("URLINFO! " + s + ";" + s.length() + ";" + urlInfo.relStartPos);
+
+					string = htmlMatcher.replaceFirst(s.replaceAll("\\$", "\\\\\\$"));
+
+					listUrlInfo.add(urlInfo);
+					htmlMatcher = patHREF.matcher(string);
+					hasURL = htmlMatcher.find(urlInfo.relStartPos);
+				}
+			}
 		} else {
-  		Matcher htmlMatcher = patHREF.matcher(string);
+			Matcher htmlMatcher = patHREF.matcher(string);
 			string = htmlMatcher.replaceAll("$2");
 		}
 
@@ -213,7 +213,6 @@ public class GCStringPrinter
 			StringTokenizer stLine = new StringTokenizer(string, "\n");
 			while (stLine.hasMoreElements()) {
 				String sLine = stLine.nextToken();
-				String sLastExcess = null;
 
 				do {
 					LineInfo lineInfo = new LineInfo(sLine, currentCharPos);
@@ -285,7 +284,6 @@ public class GCStringPrinter
 						}
 						sLine = lineInfo.excessPos >= 0 && wrap
 								? sLine.substring(lineInfo.excessPos) : null;
-						sLastExcess = sLine;
 					} else {
 						if (DEBUG) {
 							System.out.println("Line process resulted in no text: " + sLine);
@@ -293,7 +291,7 @@ public class GCStringPrinter
 						return false;
 					}
 
-					currentCharPos += lineInfo.excessPos >= 0 ? lineInfo.excessPos 
+					currentCharPos += lineInfo.excessPos >= 0 ? lineInfo.excessPos
 							: lineInfo.lineOutputed.length();
 					//System.out.println("output: " + lineInfo.lineOutputed.length() + ";" 
 					//		+ lineInfo.lineOutputed + ";xc=" + lineInfo.excessPos + ";ccp=" + currentCharPos);
@@ -556,93 +554,97 @@ public class GCStringPrinter
 
 		int lineInfoRelEndPos = lineInfo.relStartPos
 				+ lineInfo.lineOutputed.length();
+		int relStartPos = lineInfo.relStartPos;
+		int lineStartPos = 0;
 
 		URLInfo urlInfo = null;
 		boolean drawURL = hasHitUrl();
+		
 		if (drawURL) {
-			drawURL = false;
-			for (Iterator iter = listUrlInfo.iterator(); iter.hasNext();) {
-				urlInfo = (URLInfo) iter.next();
-
-				drawURL = (urlInfo.relStartPos < lineInfoRelEndPos)
-						&& (urlInfo.relStartPos + urlInfo.titleLength > lineInfo.relStartPos);
-				if (drawURL) {
-					break;
-				}
-			}
+  		URLInfo[] hitUrlInfo = getHitUrlInfo();
+  		int nextHitUrlInfoPos = 0;
+  
+  		while (drawURL) {
+  			drawURL = false;
+  			for (int i = nextHitUrlInfoPos; i < hitUrlInfo.length; i++) {
+					urlInfo = hitUrlInfo[i];
+					
+  				drawURL = (urlInfo.relStartPos < lineInfoRelEndPos)
+  						&& (urlInfo.relStartPos + urlInfo.titleLength > relStartPos)
+  						&& (relStartPos >= lineInfo.relStartPos)
+  						&& (relStartPos < lineInfoRelEndPos);
+  				if (drawURL) {
+  					nextHitUrlInfoPos = i + 1;
+  					break;
+  				}
+  			}
+  
+  			if (!drawURL) {
+  				break;
+  			}
+  
+  			//int numHitUrlsAlready = urlInfo.hitAreas == null ? 0 : urlInfo.hitAreas.size();
+  
+  			// draw text before url
+  			int i = lineStartPos + urlInfo.relStartPos - relStartPos;
+  			//System.out.println("numHitUrlsAlready = " + numHitUrlsAlready + ";i=" + i);
+  			if (i > 0 && i > lineStartPos && i <= text.length()) {
+  				String s = text.substring(lineStartPos, i);
+  				if (!noDraw) {
+  					//gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_RED));
+  					gc.drawText(s, x0, y0, false);
+  				}
+  
+  				Point textExtent = gc.textExtent(s, SWT.DRAW_TRANSPARENT
+  						| SWT.DRAW_DELIMITER | SWT.DRAW_TAB);
+  				x0 += textExtent.x;
+  				relStartPos += (i - lineStartPos);
+  				lineStartPos += (i - lineStartPos);
+  				//System.out.println("|" + s + "|" + textExtent.x);
+  			}
+  
+  			// draw url text
+  			int end = i + urlInfo.titleLength;
+  			if (i < 0) {
+  				i = 0;
+  			}
+  			//System.out.println("end=" + end + ";" + text.length() + ";titlelen=" + urlInfo.titleLength);
+  			if (end > text.length()) {
+  				end = text.length();
+  			}
+  			String s = text.substring(i, end);
+  			relStartPos += (end - i);
+  			lineStartPos += (end - i);
+  			//System.out.println("|" + s + "|");
+  			if (!noDraw) {
+  				Color fgColor = gc.getForeground();
+  				if (urlInfo.urlColor != null) {
+  					gc.setForeground(urlInfo.urlColor);
+  				} else if (urlColor != null) {
+  					gc.setForeground(urlColor);
+  				}
+  				gc.drawText(s, x0, y0, true);
+  				gc.setForeground(fgColor);
+  			}
+  			Point textExtent = gc.textExtent(s);
+  
+  			if (urlInfo.hitAreas == null) {
+  				urlInfo.hitAreas = new ArrayList(1);
+  			}
+  			urlInfo.hitAreas.add(new Rectangle(x0, y0, textExtent.x, textExtent.y));
+  
+  			x0 += textExtent.x;
+  		}
 		}
-		//System.out.println(urlInfo + "\n" + lineInfo);
-		if (drawURL) {
-			//int numHitUrlsAlready = urlInfo.hitAreas == null ? 0 : urlInfo.hitAreas.size();
-			
-			// draw text before url
-			int i = urlInfo.relStartPos - lineInfo.relStartPos;
-			//System.out.println("numHitUrlsAlready = " + numHitUrlsAlready + ";i=" + i);
-			if (i > 0) {
-				String s = text.substring(0, i);
-				if (!noDraw) {
-					//gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_RED));
-					gc.drawText(s, x0, y0, false);
-				}
-				
-				Point textExtent = gc.textExtent(s, SWT.DRAW_TRANSPARENT | SWT.DRAW_DELIMITER | SWT.DRAW_TAB);
-				x0 += textExtent.x;
-				//System.out.println("|" + s + "|" + textExtent.x);
-			}
 
-			// draw url text
-			int end = i + urlInfo.titleLength;
-			if (i < 0) {
-				i = 0;
-			}
-			//System.out.println("end=" + end + ";" + text.length() + ";titlelen=" + urlInfo.titleLength);
-			if (end > text.length()) {
-				end = text.length();
-			}
-			String s = text.substring(i, end);
-			//System.out.println("|" + s + "|");
+		// draw text after url
+		if (lineStartPos < text.length()) {
+			String s = text.substring(lineStartPos);
 			if (!noDraw) {
-				Color fgColor = gc.getForeground();
-				if (urlInfo.urlColor != null) {
-					gc.setForeground(urlInfo.urlColor);
-				} else if (urlColor != null) {
-					gc.setForeground(urlColor);
-				}
 				gc.drawText(s, x0, y0, true);
-				gc.setForeground(fgColor);
-			}
-			Point textExtent = gc.textExtent(s);
-
-			if (urlInfo.hitAreas == null) {
-				urlInfo.hitAreas = new ArrayList(1);
-			}
-			urlInfo.hitAreas.add(new Rectangle(x0, y0, textExtent.x, textExtent.y));
-
-			// draw text after url
-			if (end < text.length() - 1) {
-				x0 += textExtent.x;
-				s = text.substring(end);
-				if (!noDraw) {
-					gc.drawText(s, x0, y0, true);
-				}
-			}
-		}
-
-		if (!drawURL) {
-			if (!noDraw) {
-				//System.out.println("text|" + text + "|");
-				gc.drawText(text, x0, y0, true);
 			}
 		}
 		printArea.y += drawSize.y;
-	}
-
-	private static int getAdvanceWidth(GC gc, String s) {
-		int result = 0;
-		for (int i = 0; i < s.length(); i++) {
-			result += gc.getAdvanceWidth(s.charAt(i)) - 1;
-		}
-		return result;
 	}
 
 	public static void main(String[] args) {
@@ -657,10 +659,11 @@ public class GCStringPrinter
 		//	return;
 		//}
 
-		Display display = Display.getDefault();
+		final Display display = Display.getDefault();
 		final Shell shell = new Shell(display, SWT.SHELL_TRIM);
 
-		final String text = "Opil Wrir, Na Poys Iysk, Yann Only. test of the string printer averlongwordthisisyesindeed";
+		//final String text = "Opil Wrir, Na Poys Iysk, Yann Only. test of the string printer averlongwordthisisyesindeed";
+		final String text = "Apple <A HREF=\"aa\">Banana</a>, Cow <A HREF=\"ss\">Dug Ergo</a>, Flip Only. test of the string printer averlongwordthisisyesindeed";
 
 		shell.setSize(500, 500);
 
@@ -717,16 +720,67 @@ public class GCStringPrinter
 		btnWrap.setSelection(true);
 		btnWrap.addListener(SWT.Selection, l);
 
-		cPaint.addListener(SWT.Paint, new Listener() {
+		Listener l2 = new Listener() {
+			URLInfo lastHitInfo = null;
+
 			public void handleEvent(Event event) {
+				GC gc = event.gc;
+				System.out.println("HE" + event.type);
+				boolean ourGC = gc == null;
+				if (ourGC) {
+					gc = new GC(cPaint);
+				}
+				try {
+					GCStringPrinter sp = buildSP(gc);
+					Color colorURL = gc.getDevice().getSystemColor(SWT.COLOR_RED);
+					Color colorURL2 = gc.getDevice().getSystemColor(
+							SWT.COLOR_DARK_MAGENTA);
 
-				GC gc = new GC(cPaint);
+					if (event.type == SWT.MouseMove) {
+						Point pt = cPaint.toControl(display.getCursorLocation());
+						URLInfo hitUrl = sp.getHitUrl(pt.x, pt.y);
+						String url1 = hitUrl == null || hitUrl.url == null ? ""
+								: hitUrl.url;
+						String url2 = lastHitInfo == null || lastHitInfo.url == null ? ""
+								: lastHitInfo.url;
 
-				Color colorBox = gc.getDevice().getSystemColor(SWT.COLOR_YELLOW);
-				Color colorText = gc.getDevice().getSystemColor(SWT.COLOR_BLACK);
-				Color colorURL = gc.getDevice().getSystemColor(SWT.COLOR_RED);
+						if (url1.equals(url2)) {
+							return;
+						}
+						lastHitInfo = hitUrl;
+					}
 
-				gc.setForeground(colorText);
+					Rectangle bounds = cPaint.getClientArea();
+
+					Color colorBox = gc.getDevice().getSystemColor(SWT.COLOR_YELLOW);
+					Color colorText = gc.getDevice().getSystemColor(SWT.COLOR_BLACK);
+
+					gc.setForeground(colorText);
+
+					Point pt = cPaint.toControl(display.getCursorLocation());
+					sp.setUrlColor(colorURL);
+					URLInfo hitUrl = sp.getHitUrl(pt.x, pt.y);
+					if (hitUrl != null) {
+						hitUrl.urlColor = colorURL2;
+					}
+					sp.printString();
+
+					bounds.width--;
+					bounds.height--;
+
+					gc.setForeground(colorBox);
+					gc.drawRectangle(bounds);
+
+					//System.out.println("-         " + System.currentTimeMillis());
+
+				} finally {
+					if (ourGC) {
+						gc.dispose();
+					}
+				}
+			}
+
+			private GCStringPrinter buildSP(GC gc) {
 				Rectangle bounds = cPaint.getClientArea();
 
 				int style = btnWrap.getSelection() ? SWT.WRAP : 0;
@@ -746,20 +800,13 @@ public class GCStringPrinter
 
 				GCStringPrinter sp = new GCStringPrinter(gc, txtText.getText(), bounds,
 						btnSkipClip.getSelection(), btnFullOnly.getSelection(), style);
-				sp.setUrlColor(colorURL);
-				sp.printString();
+				sp.calculateMetrics();
 
-				bounds.width--;
-				bounds.height--;
-
-				gc.setForeground(colorBox);
-				gc.drawRectangle(bounds);
-
-				//System.out.println("-         " + System.currentTimeMillis());
-
-				gc.dispose();
+				return sp;
 			}
-		});
+		};
+		cPaint.addListener(SWT.Paint, l2);
+		cPaint.addListener(SWT.MouseMove, l2);
 
 		shell.open();
 
@@ -799,15 +846,22 @@ public class GCStringPrinter
 	}
 
 	public boolean printString() {
-		return _printString(gc, string, printArea, printFlags, swtFlags);
+		return _printString();
 	}
 
 	public boolean printString(int printFlags) {
-		return _printString(gc, string, printArea, printFlags, swtFlags);
+		int oldPrintFlags = this.printFlags;
+		printFlags |= printFlags;
+		boolean b = _printString();
+		this.printFlags = oldPrintFlags;
+		return b;
 	}
 
 	public void calculateMetrics() {
-		_printString(gc, string, printArea, printFlags | FLAG_NODRAW, swtFlags);
+		int oldPrintFlags = printFlags;
+		printFlags |= FLAG_NODRAW;
+		_printString();
+		printFlags = oldPrintFlags;
 	}
 
 	/**
