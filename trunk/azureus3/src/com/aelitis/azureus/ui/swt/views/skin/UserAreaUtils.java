@@ -250,8 +250,8 @@ public class UserAreaUtils
 				if (displayName.equals(userName)) {
 					((SWTSkinObjectText) skinObject).setText(userName + " ");
 				} else {
-					((SWTSkinObjectText) skinObject).setText(userName + " ("
-							+ displayName + ") ");
+					((SWTSkinObjectText) skinObject).setText(userName + "\n"
+							+ displayName);
 				}
 			}
 
