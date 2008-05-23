@@ -44,16 +44,20 @@ public class VuzeActivitiesEntryBuddyRequest
 		super();
 	}
 
-	public VuzeActivitiesEntryBuddyRequest(VuzeBuddy buddy, String acceptURL) {
+	public VuzeActivitiesEntryBuddyRequest(VuzeBuddy buddy, String acceptURL, long attempNumber) {
 		this.buddy = buddy;
 
 		String urlAccept = Constants.appendURLSuffix(acceptURL);
 
-		String text = MessageText.getString("v3.activity.buddy-request",
-				new String[] {
-					buddy.getProfileAHREF(TYPEID_BUDDYREQUEST),
-					urlAccept
-				});
+		String textID = "v3.activity.buddy-request";
+		if (attempNumber > 1) {
+			textID += ".multi";
+		}
+		String text = MessageText.getString(textID, new String[] {
+			buddy.getProfileAHREF(TYPEID_BUDDYREQUEST),
+			urlAccept,
+			"" + attempNumber
+		});
 		
 		setText(text);
 		setTypeID(TYPEID_BUDDYREQUEST, true);

@@ -168,6 +168,7 @@ public class PlatformBuddyMessenger
 					String inviteCode = MapUtils.getMapString(mapInvitation, "code", null);
 					String acceptURL = MapUtils.getMapString(mapInvitation, "accept-url",
 							null);
+					long attempNumber = MapUtils.getMapLong(mapInvitation, "number", 0);
 
 					if (mapBuddy.isEmpty() || inviteCode == null || acceptURL == null) {
 						continue;
@@ -185,7 +186,7 @@ public class PlatformBuddyMessenger
 					futureBuddy.setCode(inviteCode);
 
 					VuzeActivitiesEntryBuddyRequest entry = new VuzeActivitiesEntryBuddyRequest(
-							futureBuddy, acceptURL);
+							futureBuddy, acceptURL, attempNumber);
 					entry.setTimestamp(addedOn);
 					VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
 						entry
