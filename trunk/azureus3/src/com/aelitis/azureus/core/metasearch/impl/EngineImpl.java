@@ -206,9 +206,8 @@ EngineImpl
 	{
 		this( meta_search, type, id, last_updated, name );
 		
-		//first_level_mapping 	= importJSONMappings( map, "l1_map" );
-		//second_level_mapping 	= importJSONMappings( map, "l2_map" );
-
+		first_level_mapping 	= importJSONMappings( map, "l1_map" );
+		second_level_mapping 	= importJSONMappings( map, "l2_map" );
 		
 	}
 	
@@ -220,12 +219,33 @@ EngineImpl
 	
 		throws IOException
 	{
-		//exportJSONMappings( res, "l1_map", first_level_mapping );
-		//exportJSONMappings( res, "l2_map", second_level_mapping );
+		exportJSONMappings( res, "l1_map", first_level_mapping );
+		exportJSONMappings( res, "l2_map", second_level_mapping );
 
 	
 	}
 	
+	protected List
+	importJSONMappings(
+		Map				map,
+		String			str )
+	{
+		List	result = new ArrayList();
+		
+		//map.get( "??" );
+		
+		return( result );
+	}
+	
+	protected void
+	exportJSONMappings(
+		JSONObject			res,
+		String				str,
+		List				l )
+	{
+		//asdasd
+	}
+			
 	protected List
 	importBEncodedMappings(
 		Map		map,
