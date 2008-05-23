@@ -31,6 +31,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.util.Constants;
 
 public class BuddiesViewer
 	extends SkinView
@@ -191,6 +192,7 @@ public class BuddiesViewer
 			calculatePagination();
 			hookPaginationWidget();
 			hookScrollers();
+			hookFAQLink();
 		}
 
 		return null;
@@ -706,4 +708,15 @@ public class BuddiesViewer
 		return pageCount;
 	}
 
+	public void hookFAQLink() {
+		final SWTSkinObject FAQObject = skin.getSkinObject("buddies-viewer-nobuddies-link");
+		if (null != FAQObject) {
+			SWTSkinButtonUtility FAQButton = new SWTSkinButtonUtility(FAQObject);
+			FAQButton.addSelectionListener(new ButtonListenerAdapter() {
+				public void pressed(SWTSkinButtonUtility buttonUtility) {
+					Utils.launch(Constants.URL_FAQ);
+				}
+			});
+		}
+	}
 }
