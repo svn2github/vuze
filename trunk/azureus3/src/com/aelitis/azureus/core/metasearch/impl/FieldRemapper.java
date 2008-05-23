@@ -13,17 +13,40 @@ public class FieldRemapper {
 	private FieldRemapping[] fieldRemappings;
 
 	
-	public FieldRemapper(int inField, int outField,
-			FieldRemapping[] fieldRemappings) {
+	public 
+	FieldRemapper(
+		int 				inField, 
+		int 				outField,
+		FieldRemapping[] 	fieldRemappings) 
+	{
 		super();
 		this.inField = inField;
 		this.outField = outField;
 		this.fieldRemappings = fieldRemappings;
 	}
 
+	public int
+	getInField()
+	{
+		return( inField );
+	}
+	
+	public int
+	getOutField()
+	{
+		return( outField );
+	}
+	
+	public FieldRemapping[]
+	getMappings()
+	{
+		return( fieldRemappings );
+	}
 
-
-	public void remap(Result r) {
+	public void 
+	remap(
+		Result r )
+	{
 		String input = null;
 		switch(inField) {
 			case Engine.FIELD_CATEGORY :

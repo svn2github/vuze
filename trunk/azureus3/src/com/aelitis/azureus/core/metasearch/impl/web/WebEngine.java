@@ -150,7 +150,7 @@ WebEngine
 	
 		throws IOException
 	{
-		super( meta_search, type, id, last_updated, name );
+		super( meta_search, type, id, last_updated, name, map );
 		
 		searchURLFormat 	= importString( map, "searchURL" );
 		timeZone			= importString( map, "timezone" );
@@ -236,6 +236,8 @@ WebEngine
 	
 		throws IOException
 	{		
+		super.exportToJSONObject( res );
+		
 		res.put( "searchURL", 	UrlUtils.encode( searchURLFormat));
 		res.put( "timezone", 	timeZone );	
 		

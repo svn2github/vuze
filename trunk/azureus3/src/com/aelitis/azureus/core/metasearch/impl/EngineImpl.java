@@ -25,7 +25,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Map;
+import java.util.*;
+
 
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.BEncoder;
@@ -113,6 +114,18 @@ EngineImpl
 	
 	private int			source	= ENGINE_SOURCE_UNKNOWN;
 	
+		// first mappings used to canonicalise names and map field to same field
+		// typically used for categories (musak->music)
+	
+	List		first_level_mapping	= new ArrayList();
+	
+		// second mappings used to generate derived field values
+		// typically used to derive content_type from category (music->AUDIO)
+	
+	List		second_level_mapping	= new ArrayList();
+
+		// manual constructor
+	
 	protected
 	EngineImpl(
 		MetaSearchImpl	_meta_search,
@@ -127,6 +140,8 @@ EngineImpl
 		last_updated	= _last_updated;
 		name			= _name;
 	}
+	
+		// bencoded constructor
 	
 	protected 
 	EngineImpl(
@@ -147,8 +162,167 @@ EngineImpl
 		selection_state_recorded = importBoolean(map,"select_rec", true );
 		
 		source			= (int)importLong( map, "source", ENGINE_SOURCE_UNKNOWN );
+		
+		first_level_mapping 	= importBEncodedMappings( map, "l1_map" );
+		second_level_mapping 	= importBEncodedMappings( map, "l2_map" );
 	}
 	
+		// bencoded export
+	
+	protected void
+	exportToBencodedMap(
+		Map		map )
+	
+		throws IOException
+	{
+		map.put( "type", new Long( type ));
+		map.put( "id", new Long( id ));
+		map.put( "last_updated", new Long( last_updated ));
+		
+		exportString( map, "name", name );
+		
+		map.put( "selected", new Long( selection_state ));
+		
+		exportBoolean( map, "select_rec", selection_state_recorded );
+		
+		map.put( "source", new Long( source ));
+		
+		exportBEncodedMappings( map, "l1_map", first_level_mapping );
+		exportBEncodedMappings( map, "l2_map", second_level_mapping );
+	}
+	
+		// json constructor
+	
+	protected 
+	EngineImpl(
+		MetaSearchImpl	meta_search,
+		int				type,
+		long			id,
+		long			last_updated,
+		String			name,
+		Map				map )
+	
+		throws IOException
+	{
+		this( meta_search, type, id, last_updated, name );
+		
+		//first_level_mapping 	= importJSONMappings( map, "l1_map" );
+		//second_level_mapping 	= importJSONMappings( map, "l2_map" );
+
+		
+	}
+	
+		// json export
+	
+	protected void
+	exportToJSONObject(
+		JSONObject		res )
+	
+		throws IOException
+	{
+		//exportJSONMappings( res, "l1_map", first_level_mapping );
+		//exportJSONMappings( res, "l2_map", second_level_mapping );
+
+	
+	}
+	
+	protected List
+	importBEncodedMappings(
+		Map		map,
+		String	name )
+	
+		throws IOException
+	{
+		List	result = new ArrayList();
+		
+		List	l = (List)map.get(name);
+		
+		if ( l != null ){
+			
+			for (int i=0;i<l.size();i++){
+				
+				Map	entry = (Map)l.get(i);
+				
+				int	from_field 	= ((Long)entry.get( "from" )).intValue();
+				int	to_field 	= ((Long)entry.get( "to" )).intValue();
+				
+				List	l2 = (List)entry.get( "maps" );
+				
+				FieldRemapping[]	mappings = new FieldRemapping[ l2.size() ];
+				
+				for (int j=0;j<mappings.length;j++){
+					
+					Map	entry2 = (Map)l2.get(j);
+					
+					String	from_str 	= importString( entry2, "from" );
+					String	to_str 		= importString( entry2, "to" );
+					
+					mappings[j] = new FieldRemapping( from_str, to_str );
+				}
+				
+				result.add( new FieldRemapper( from_field, to_field, mappings ));
+			}
+		}
+		
+		return( result );
+	}
+	
+	protected void
+	exportBEncodedMappings(
+		Map		map,
+		String	name,
+		List	mappings )
+	
+		throws IOException
+	{
+		List	l = new ArrayList();
+		
+		map.put( name, l );
+		
+		for ( int i=0;i<mappings.size();i++){
+			
+			FieldRemapper mapper = (FieldRemapper)mappings.get(i);
+			
+			Map m = new HashMap();
+			
+			l.add( m );
+			
+			m.put( "from", new Long( mapper.getInField()));
+			m.put( "to", new Long( mapper.getOutField()));
+			
+			List l2 = new ArrayList();
+			
+			m.put( "maps", l2 );
+			
+			FieldRemapping[] frs = mapper.getMappings();
+			
+			for (int j=0;j<frs.length;j++){
+				
+				FieldRemapping fr = frs[j];
+				
+				Map m2 = new HashMap();
+				
+				l2.add( m2 );
+				
+				exportString( m2, "from", fr.getMatchString());
+				exportString( m2, "to", fr.getReplacement());
+			}
+		}
+	}
+	
+	public String
+	exportToJSONString()
+	
+		throws IOException
+	{
+		JSONObject	obj = new JSONObject();
+		
+		exportToJSONObject( obj );
+		
+		return( obj.toString());
+	}
+	
+
 	public boolean
 	sameAs(
 		Engine	other )
@@ -181,7 +355,7 @@ EngineImpl
 	
 		throws SearchException
 	{
-		return( searchSupport( params, -1, null, null ));
+		return( searchAndMap( params, -1, null, null ));
 	}
 	
 	public Result[]
@@ -191,7 +365,7 @@ EngineImpl
   	
   		throws SearchException
   	{
-		return( searchSupport( params, -1, headers, null ));
+		return( searchAndMap( params, -1, headers, null ));
   	}
 	
 	public void
@@ -202,7 +376,7 @@ EngineImpl
 		ResultListener		listener )
 	{
 		try{
-			Result[] results = searchSupport( params, max_matches, headers, listener) ;
+			Result[] results = searchAndMap( params, max_matches, headers, listener) ;
 			
 			listener.resultsReceived( this, results );
 			
@@ -212,6 +386,101 @@ EngineImpl
 			
 			listener.engineFailed( this, e);
 		}
+	}
+	
+	protected Result[]
+	searchAndMap(
+		SearchParameter[] 			params,
+		int							max_matches,
+		String						headers,
+		final ResultListener		listener )
+	
+		throws SearchException
+	{
+		 Result[] results = 
+			 searchSupport( 
+					params, 
+					max_matches, 
+					headers, 
+					new ResultListener()
+					{
+						public void 
+						contentReceived(
+							Engine 		engine, 
+							String 		content )
+						{
+							if ( listener != null ){
+								listener.contentReceived(engine, content);
+							}
+						}
+					
+						public void 
+						matchFound( 
+							Engine 		engine, 
+							String[] 	fields )
+						{
+							if ( listener != null ){
+								listener.matchFound(engine, fields);
+							}
+						}
+						
+						public void 
+						resultsReceived(
+							Engine 		engine,
+							Result[] 	results)
+						{
+							if ( listener != null ){
+								listener.resultsReceived(engine, mapResults( results ));
+							}
+						}
+						
+						public void 
+						resultsComplete(
+							Engine engine )
+						{
+							if ( listener != null ){
+								listener.resultsComplete(engine);
+							}
+						}
+						
+						public void 
+						engineFailed(
+							Engine engine, 
+							Throwable cause )
+						{
+							if ( listener != null ){
+								listener.engineFailed(engine, cause);
+							}
+						}
+					});
+		 
+		 return( mapResults( results ));
+	}
+	
+	protected Result[]
+	mapResults(
+		Result[]	results )
+	{
+		for (int i=0;i<results.length;i++){
+			
+			Result result = results[i];
+			
+			for (int j=0;j<first_level_mapping.size();j++){
+				
+				FieldRemapper mapper = (FieldRemapper)first_level_mapping.get(j);
+				
+				mapper.remap( result );
+			}
+			
+			for (int j=0;j<second_level_mapping.size();j++){
+				
+				FieldRemapper mapper = (FieldRemapper)second_level_mapping.get(j);
+				
+				mapper.remap( result );
+			}
+		}
+		
+		return( results );
 	}
 	
 	protected abstract Result[]
@@ -229,42 +498,6 @@ EngineImpl
 		meta_search.removeEngine( this );
 	}
 	
-	protected void
-	exportToBencodedMap(
-		Map		map )
-	
-		throws IOException
-	{
-		map.put( "type", new Long( type ));
-		map.put( "id", new Long( id ));
-		map.put( "last_updated", new Long( last_updated ));
-		
-		exportString( map, "name", name );
-		
-		map.put( "selected", new Long( selection_state ));
-		
-		exportBoolean( map, "select_rec", selection_state_recorded );
-		
-		map.put( "source", new Long( source ));
-	}
-	
-	public String
-	exportToJSONString()
-	
-		throws IOException
-	{
-		JSONObject	obj = new JSONObject();
-		
-		exportToJSONObject( obj );
-		
-		return( obj.toString());
-	}
-	
-	protected abstract void
-	exportToJSONObject(
-		JSONObject		obj )
-	
-		throws IOException;
 	
 	protected void
 	exportString(
