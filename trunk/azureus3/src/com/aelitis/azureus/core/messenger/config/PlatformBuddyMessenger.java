@@ -31,6 +31,7 @@ import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
 import com.aelitis.azureus.login.NotLoggedInException;
+import com.aelitis.azureus.util.LoginInfoManager;
 import com.aelitis.azureus.util.MapUtils;
 
 /**
@@ -55,6 +56,8 @@ public class PlatformBuddyMessenger
 
 	public static final String OP_REMOVEBUDDY = "ditch";
 
+	public static final String OP_STARTSHARE = "start-share";
+	
 	public static void sync(
 			final VuzeBuddySyncListener l)
 		throws NotLoggedInException {
@@ -298,5 +301,17 @@ public class PlatformBuddyMessenger
 		};
 
 		PlatformMessenger.queueMessage(message, listener);
+	}
+
+	public static void startShare(String referer) {
+		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID_BUDDY,
+				OP_STARTSHARE, new Object[] {
+					"referer",
+					referer,
+					"logged-in",
+					new Boolean(LoginInfoManager.getInstance().isLoggedIn())
+				}, 1000);
+
+		PlatformMessenger.queueMessage(message, null);
 	}
 }
