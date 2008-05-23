@@ -20,9 +20,8 @@
  */
 package org.gudy.azureus2.ui.swt;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -34,6 +33,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.components.BufferedToolItem;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
@@ -54,6 +54,8 @@ public class IconBar {
   
   IconBarEnabler currentEnabler;
 	private Composite cIconBar;
+	
+	private static List listeners = new ArrayList(0);
   
   public IconBar(Composite parent) {
     this.parent = parent;
@@ -132,6 +134,10 @@ public class IconBar {
     refreshEnableItems();
   }
   
+  public IconBarEnabler getCurrentEnabler() {
+  	return this.currentEnabler;
+  }
+  
   private void refreshEnableItems() {
     Iterator iter = itemKeyToControl.keySet().iterator();
     while(iter.hasNext()) {
@@ -167,6 +173,10 @@ public class IconBar {
     return bufferedToolItem;
   }  
   
+  public void addITemKeyToControl(String key, BufferedToolItem item) {
+  	itemKeyToControl.put(key, item);
+  }
+  
   private void initBar() {
     //The File Menu
     CoolItem coolItem = new CoolItem(coolBar,SWT.NULL);
@@ -182,7 +192,7 @@ public class IconBar {
     coolItem.setMinimumSize(p.x,p.y);
     
     
-    coolItem = new CoolItem(coolBar,SWT.NULL); 
+    coolItem = new CoolItem(coolBar,SWT.NULL);
     toolBar = new ToolBar(coolBar,SWT.FLAT);    
     createBufferedToolItem(toolBar,SWT.PUSH,"top","cb_top","iconBar.top.tooltip");
     createBufferedToolItem(toolBar,SWT.PUSH,"up","cb_up","iconBar.up.tooltip");
@@ -196,6 +206,15 @@ public class IconBar {
     createBufferedToolItem(toolBar,SWT.PUSH,"stop","cb_stop","iconBar.stop.tooltip");
     createBufferedToolItem(toolBar,SWT.PUSH,"remove","cb_remove","iconBar.remove.tooltip");
 
+    for (Iterator iter = listeners.iterator(); iter.hasNext();) {
+    	try {
+    		IconBarListener l = (IconBarListener) iter.next();
+    		l.iconBarInitialized(coolBar, this);
+    	} catch (Exception e) {
+    		Debug.out(e);
+    	}
+		}
+    
     toolBar.pack();
     p = toolBar.getSize();
     coolItem.setControl(toolBar);
@@ -240,4 +259,13 @@ public class IconBar {
 		currentEnabler = null;
 	}
 
+	public static void addListener(IconBarListener l) {
+		if (!listeners.contains(l)) {
+			listeners.add(l);
+		}
+	}
+	
+	public static interface IconBarListener {
+		public void iconBarInitialized(CoolBar coolBar, IconBar ib);
+	}
 }
