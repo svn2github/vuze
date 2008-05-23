@@ -266,7 +266,7 @@ public class SharePage
 		FormData contentDetailData = new FormData();
 		contentDetailData.top = new FormAttachment(buddyList, 0, SWT.TOP);
 		contentDetailData.left = new FormAttachment(buddyList, 30);
-		contentDetailData.right = new FormAttachment(100, -8);
+		contentDetailData.right = new FormAttachment(100, -58);
 		contentDetailData.bottom = new FormAttachment(inviteePanel, 0, SWT.BOTTOM);
 		contentDetail.setLayoutData(contentDetailData);
 

@@ -25,32 +25,35 @@ public class BubbleButton
 
 	private Image[] backgroundImages = new Image[3];
 
-	private Image[] backgroundImages_disabled = new Image[3];
+	private Image[] backgroundImages_hover = new Image[3];
 
 	private Color[] foregroundColors = new Color[3];
 
 	public BubbleButton(Composite parent) {
 		super(parent);
 
-		if (null == ImageRepository.getImage("button-left")) {
-			ImageRepository.addPath(imagePath + "button-left.png", "button-left");
-			ImageRepository.addPath(imagePath + "button-center.png", "button-center");
-			ImageRepository.addPath(imagePath + "button-right.png", "button-right");
-			ImageRepository.addPath(imagePath + "button_left-disabled.png",
-					"button-left-disabled");
-			ImageRepository.addPath(imagePath + "button-center-disabled.png",
-					"button-center-disabled");
-			ImageRepository.addPath(imagePath + "button-right-disabled.png",
-					"button-right-disabled");
+		if (null == ImageRepository.getImage("button_dialog_left")) {
+			ImageRepository.addPath(imagePath + "button_dialog_left.png",
+					"button_dialog_left");
+			ImageRepository.addPath(imagePath + "button_dialog_center.png",
+					"button_dialog_center");
+			ImageRepository.addPath(imagePath + "button_dialog_right.png",
+					"button_dialog_right");
+			ImageRepository.addPath(imagePath + "button_dialog_left-over.png",
+					"button_dialog_left-over");
+			ImageRepository.addPath(imagePath + "button_dialog_center-over.png",
+					"button_dialog_center-over");
+			ImageRepository.addPath(imagePath + "button_dialog_right-over.png",
+					"button_dialog_right-over");
 		}
 
-		backgroundImages[0] = ImageRepository.getImage("button-left");
-		backgroundImages[1] = ImageRepository.getImage("button-center");
-		backgroundImages[2] = ImageRepository.getImage("button-right");
+		backgroundImages[0] = ImageRepository.getImage("button_dialog_left");
+		backgroundImages[1] = ImageRepository.getImage("button_dialog_center");
+		backgroundImages[2] = ImageRepository.getImage("button_dialog_right");
 
-		backgroundImages_disabled[0] = ImageRepository.getImage("button_left-disabled");
-		backgroundImages_disabled[1] = ImageRepository.getImage("button_center-disabled");
-		backgroundImages_disabled[2] = ImageRepository.getImage("button_right-disabled");
+		backgroundImages_hover[0] = ImageRepository.getImage("button_dialog_left-over");
+		backgroundImages_hover[1] = ImageRepository.getImage("button_dialog_center-over");
+		backgroundImages_hover[2] = ImageRepository.getImage("button_dialog_right-over");
 
 		SWTSkin skin = SWTSkinFactory.getInstance();
 		foregroundColors[0] = skin.getSkinProperties().getColor("color.text.fg");
@@ -58,9 +61,7 @@ public class BubbleButton
 		foregroundColors[2] = skin.getSkinProperties().getColor(
 				"color.text.disabled");
 
-		int marginWidth = skin.getSkinProperties().getIntValue(
-				"template.footer.button.horizontal.spacing", 10);
-		setInset(new Inset(marginWidth, marginWidth, 0, 0));
+		setInset(new Inset(20, 20, 0, 0));
 
 		/*
 		 * Increase default font height by 1 so the text for this button is a little bit taller
@@ -86,11 +87,11 @@ public class BubbleButton
 	}
 
 	public Image[] getBackgroundImages_disabled() {
-		return backgroundImages_disabled;
+		return null;
 	}
 
 	public Image[] getBackgroundImages_hover() {
-		return null;
+		return backgroundImages_hover;
 	}
 
 	public Color[] getForegroundColors() {
