@@ -61,6 +61,8 @@ public class PlatformConfigMessenger
 	};
 
 	private static String playAfterURL = null;
+
+	private static boolean sendStats;
 	
 	public static void getBrowseSections(String sectionType, long maxDelayMS,
 			final GetBrowseSectionsReplyListener replyListener) {
@@ -168,6 +170,12 @@ public class PlatformConfigMessenger
 				} catch (Exception e) {
 					Debug.out(e);
 				}
+				
+				try {
+					sendStats = MapUtils.getMapBoolean(reply, "send-stats", true);
+				} catch (Exception e) {
+					Debug.out(e);
+				}
 
 				try {
   				iRPCVersion = MapUtils.getMapInt(reply, "rpc-version", 0);
@@ -188,9 +196,12 @@ public class PlatformConfigMessenger
 
 	public static void sendUsageStats(Map stats, long timestamp,
 			PlatformMessengerListener l) {
+		if (!sendStats) {
+			return;
+		}
 		try {
 			PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
-					"send-usage-stats", new Object[] {
+					"send-usage-stats2", new Object[] {
 						"stats",
 						stats,
 						"version",
@@ -248,5 +259,9 @@ public class PlatformConfigMessenger
 
 	public static String getPlayAfterURL() {
 		return playAfterURL;
+	}
+
+	public static boolean allowSendStats() {
+		return sendStats;
 	}
 }

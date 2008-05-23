@@ -925,7 +925,8 @@ public class MainWindow
 	private void setupUsageTracker() {
 		mapTrackUsage_mon.enter();
 		try {
-			if (COConfigurationManager.getBooleanParameter("Send Version Info")) {
+			if (COConfigurationManager.getBooleanParameter("Send Version Info")
+					&& PlatformConfigMessenger.allowSendStats()) {
 
 				mapTrackUsage = new HashMap();
 
