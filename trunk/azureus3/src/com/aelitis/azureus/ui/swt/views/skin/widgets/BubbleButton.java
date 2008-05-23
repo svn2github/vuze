@@ -53,6 +53,10 @@ public class BubbleButton
 		foregroundColors[1] = skin.getSkinProperties().getColor("color.text.over");
 		foregroundColors[2] = skin.getSkinProperties().getColor(
 				"color.text.disabled");
+		
+		int marginWidth = skin.getSkinProperties().getIntValue(
+				"template.footer.button.horizontal.spacing", 10);
+		setInset(new Inset(marginWidth, marginWidth, 0, 0));
 	}
 
 	public Image[] getBackgroundImages() {

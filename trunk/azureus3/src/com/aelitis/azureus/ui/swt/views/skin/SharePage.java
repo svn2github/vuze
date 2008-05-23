@@ -382,12 +382,10 @@ public class SharePage
 				"v3.Share.add.buddy.existing");
 		Messages.setLanguageText(inviteeListDescription, "v3.Share.add.buddy.new");
 
-		addBuddyButton.setInset(new Inset(20, 20, 0, 0));
 		addBuddyButton.setText(MessageText.getString("v3.Share.add.buddy"));
 		ImageLoader imageLoader = ImageLoaderFactory.getInstance();
 		addBuddyButton.setImage(imageLoader.getImage("image.buddy.add"));
 
-		cancelButton.setInset(new Inset(20, 20, 0, 0));
 		cancelButton.setText(MessageText.getString("v3.MainWindow.button.cancel"));
 
 		sendNowButton.setInset(new Inset(20, 20, 0, 0));

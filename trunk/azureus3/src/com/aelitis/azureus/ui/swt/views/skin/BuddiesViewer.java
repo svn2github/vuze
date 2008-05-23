@@ -7,6 +7,8 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
@@ -188,6 +190,18 @@ public class BuddiesViewer
 				}
 			});
 
+			avatarsPanel.addMouseListener(new MouseAdapter() {
+				public void mouseDown(MouseEvent e) {
+					select(null, false, false);
+				}
+			});
+			
+			content.addMouseListener(new MouseAdapter() {
+				public void mouseDown(MouseEvent e) {
+					select(null, false, false);
+				}
+			});
+			
 			parent.layout(true);
 			calculatePagination();
 			hookPaginationWidget();
@@ -576,6 +590,18 @@ public class BuddiesViewer
 						widget.setSelected(false);
 						widget.refreshVisual();
 					}
+				}
+			}
+		}
+		/*
+		 * De-select all buddies if the given 'buddy' is null
+		 */
+		else {
+			for (Iterator iterator = avatarWidgets.iterator(); iterator.hasNext();) {
+				AvatarWidget widget = (AvatarWidget) iterator.next();
+				if (true == widget.isSelected()) {
+					widget.setSelected(false);
+					widget.refreshVisual();
 				}
 			}
 		}
