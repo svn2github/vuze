@@ -48,6 +48,7 @@ UITextAreaImpl
 	private int max_file_size = 20 * max_size;
 	
 	PrintWriter pw;
+	int current_file_size;
 	
 	File file;
 	
@@ -91,6 +92,7 @@ UITextAreaImpl
 						pw = new PrintWriter(fr);
 
 						pw.print(text);
+						current_file_size = text.length();
 						pw.flush();
 
 						return;
@@ -128,10 +130,11 @@ UITextAreaImpl
 				file_mon.enter();
 				
 				// shrink the file occasionally
-				if(file.length() > max_file_size)
+				if(current_file_size > max_file_size)
 					getFileText();
 				
 				pw.print(text);
+				current_file_size += text.length();
 				pw.flush();
 				return;
 			} finally {
@@ -242,8 +245,10 @@ UITextAreaImpl
 
 			if (recreate) {
 				try {
-					FileWriter fr = new FileWriter(file, true);
+					FileWriter fr = new FileWriter(file);
 					pw = new PrintWriter(fr);
+					pw.print(text);
+					current_file_size = text.length();
 				} catch (IOException e) {
 					useFile = false;
 					e.printStackTrace();
