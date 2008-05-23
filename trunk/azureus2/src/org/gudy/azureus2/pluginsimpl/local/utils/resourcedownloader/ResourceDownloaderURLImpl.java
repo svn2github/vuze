@@ -36,6 +36,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.InflaterInputStream;
+import java.util.zip.ZipException;
 
 import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
 import org.gudy.azureus2.core3.util.AEThread2;
@@ -261,7 +262,7 @@ ResourceDownloaderURLImpl
 							
 							con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
 				  
-							setRequestProperties( con );
+							setRequestProperties( con, false );
 							
 							con.connect();
 				
@@ -440,6 +441,8 @@ ResourceDownloaderURLImpl
 						SESecurityManager.setPasswordHandler( url, this );
 					}
 
+					boolean	use_compression = true;
+					
 					for (int i=0;i<2;i++){
 				
 						File					temp_file	= null;
@@ -479,8 +482,11 @@ ResourceDownloaderURLImpl
 				  
 					 		con.setRequestProperty( "Connection", "close" );
 
-							con.addRequestProperty( "Accept-Encoding", "gzip" );
-							 
+					 		if ( use_compression ){
+							
+					 			con.addRequestProperty( "Accept-Encoding", "gzip" );
+					 		}
+					 		
 							if ( post_data != null ){
 								
 								con.setDoOutput(true);
@@ -494,8 +500,8 @@ ResourceDownloaderURLImpl
 								wr.flush();
 							}
 
-							setRequestProperties( con );
-							
+							setRequestProperties( con, use_compression );
+														
 							con.connect();
 				
 							int response = con.getResponseCode();
@@ -671,6 +677,35 @@ ResourceDownloaderURLImpl
 
 							throw( e );
 							
+						}catch( ZipException e ){
+							
+							if ( i == 0 ){
+								
+								use_compression = false;
+								
+								continue;
+							}
+						}catch( IOException e ){
+							
+							if ( i == 0 ){
+								
+								String	msg = e.getMessage();
+								
+								if ( msg != null ){
+									
+									msg = msg.toLowerCase();
+									
+									if ( msg.indexOf( "gzip" ) != -1 ){
+							
+										use_compression = false;
+										
+										continue;
+									}
+								}
+							}
+							
+							throw( e );
+							
 						}finally{
 							
 							if ( temp_file != null ){
@@ -749,7 +784,8 @@ ResourceDownloaderURLImpl
 	
 	protected void
 	setRequestProperties(
-		HttpURLConnection		con )
+		HttpURLConnection		con,
+		boolean					use_compression )
 	{
 		Map properties = getProperties();
 		
@@ -764,7 +800,16 @@ ResourceDownloaderURLImpl
 			
 			if ( key.startsWith( "URL_" ) && value instanceof String ){
 			
-				con.setRequestProperty(key.substring(4),(String)value);
+				key = key.substring(4);
+				
+				if ( key.equalsIgnoreCase( "Accept-Encoding" ) && !use_compression ){
+					
+					//skip
+					
+				}else{
+					
+					con.setRequestProperty(key,(String)value);
+				}
 			}
 		}
 	}
