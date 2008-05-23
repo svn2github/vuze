@@ -113,7 +113,7 @@ public class BuddiesViewer
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
 		skin = skinObject.getSkin();
 
-		soNoBuddies = skin.getSkinObject("buddies-viewer-nobuddies");
+		soNoBuddies = skin.getSkinObject("buddies-viewer-nobuddies-panel");
 
 		SWTSkinObject viewer = skin.getSkinObject(SkinConstants.VIEWID_BUDDIES_VIEWER);
 
@@ -413,9 +413,7 @@ public class BuddiesViewer
 
 		List buddies = getBuddies();
 
-		if (soNoBuddies != null) {
-			soNoBuddies.setVisible(buddies.size() == 0);
-		}
+		showNoBuddiesPanel(buddies.size() == 0);
 
 		for (Iterator iterator = buddies.iterator(); iterator.hasNext();) {
 			VuzeBuddySWT vuzeBuddy = (VuzeBuddySWT) iterator.next();
@@ -425,6 +423,12 @@ public class BuddiesViewer
 		Point size = composite.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
 		composite.setSize(size);
 
+	}
+
+	private void showNoBuddiesPanel(boolean value) {
+		if (soNoBuddies != null && soNoBuddies.isVisible() != value) {
+			soNoBuddies.setVisible(value);
+		}
 	}
 
 	private AvatarWidget createBuddyControls(Composite composite,
@@ -470,6 +474,10 @@ public class BuddiesViewer
 			public void runSupport() {
 				avatarWidgets.remove(widget);
 				widget.dispose(true);
+
+				if (avatarWidgets.size() < 1) {
+					showNoBuddiesPanel(true);
+				}
 			}
 		});
 	}
@@ -709,7 +717,7 @@ public class BuddiesViewer
 	}
 
 	public void hookFAQLink() {
-		final SWTSkinObject FAQObject = skin.getSkinObject("buddies-viewer-nobuddies-link");
+		SWTSkinObject FAQObject = skin.getSkinObject("buddies-viewer-nobuddies-link");
 		if (null != FAQObject) {
 			SWTSkinButtonUtility FAQButton = new SWTSkinButtonUtility(FAQObject);
 			FAQButton.addSelectionListener(new ButtonListenerAdapter() {
