@@ -26,6 +26,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.*;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
@@ -43,6 +44,7 @@ import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.MapUtils;
 
 /**
  * @author TuxPaper
@@ -58,12 +60,14 @@ public class Browse
 
 	protected String title;
 
+	private SWTSkin skin;
+
 	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.swt.views.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	 */
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
-		browserSkinObject = (SWTSkinObjectBrowser) skinObject.getSkin().getSkinObject(
-				SkinConstants.VIEWID_BROWSER_BROWSE);
+		skin = skinObject.getSkin();
+		browserSkinObject = (SWTSkinObjectBrowser) skin.getSkinObject(SkinConstants.VIEWID_BROWSER_BROWSE);
 
 		browserSkinObject.addListener(new SWTSkinObjectListener() {
 			public Object eventOccured(SWTSkinObject skinObject, int eventType,
@@ -88,11 +92,11 @@ public class Browse
 				}
 			}
 		});
-		
+
 		browser.addLocationListener(new LocationListener() {
 			public void changing(LocationEvent event) {
 			}
-		
+
 			public void changed(LocationEvent event) {
 				SelectedContentManager.changeCurrentlySelectedContent(getCurrentlySelectedContent());
 			}
@@ -138,7 +142,7 @@ public class Browse
 			int end1 = url.indexOf("?", i);
 			int end2 = url.indexOf(".", i);
 			int end = end1 < 0 ? end2 : Math.min(end1, end2);
-			
+
 			String hash;
 			if (end < 0 || end < i) {
 				hash = url.substring(i);
@@ -169,7 +173,6 @@ public class Browse
 	 */
 	protected void createBrowseTabs(SWTSkinObject skinObject,
 			final Map[] browseSections) {
-		SWTSkin skin = skinObject.getSkin();
 		AzureusCore core = AzureusCoreFactory.getSingleton();
 
 		FormData formData;
@@ -251,5 +254,64 @@ public class Browse
 		if (browserSkinObject != null) {
 			browserSkinObject.restart();
 		}
+	}
+
+	public void openSearchResults(final Map params) {
+		Utils.execSWTThread(new AERunnable() {
+
+			public void runSupport() {
+				SWTSkinObject soSearchResults = skin.getSkinObject("browse-search-results");
+				if (soSearchResults == null) {
+					return;
+				}
+
+				Control browser = browserSkinObject.getControl();
+				Browser search = (Browser) soSearchResults.getControl();
+				search.setUrl(MapUtils.getMapString(params, "url",
+						"http://google.com/?q=" + Math.random()));
+
+				FormData gd = (FormData) search.getLayoutData();
+				gd.top = new FormAttachment(browser, 0);
+				gd.height = SWT.DEFAULT;
+				search.setLayoutData(gd);
+				soSearchResults.setVisible(true);
+
+				gd = (FormData) browser.getLayoutData();
+				gd.bottom = null;
+				gd.height = MapUtils.getMapInt(params, "top-height", 120);
+				browser.setLayoutData(gd);
+
+				search.getParent().layout(true);
+			}
+		});
+	}
+
+	public void closeSearchResults(final Map params) {
+		Utils.execSWTThread(new AERunnable() {
+
+			public void runSupport() {
+				SWTSkinObject soSearchResults = skin.getSkinObject("browse-search-results");
+				if (soSearchResults == null) {
+					return;
+				}
+
+				Control browser = browserSkinObject.getControl();
+				Browser search = (Browser) soSearchResults.getControl();
+
+				FormData gd = (FormData) search.getLayoutData();
+				gd.top = null;
+				gd.height = 0;
+				search.setLayoutData(gd);
+				soSearchResults.setVisible(false);
+
+				gd = (FormData) browser.getLayoutData();
+				gd.bottom = new FormAttachment(search, 0);
+				gd.height = SWT.DEFAULT;
+				browser.setLayoutData(gd);
+
+				search.getParent().layout(true);
+				search.setUrl("about:blank");
+			}
+		});
 	}
 }

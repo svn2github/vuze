@@ -1,14 +1,12 @@
 package com.aelitis.azureus.ui.swt.browser.listener;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
+
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
@@ -18,18 +16,14 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-
-import com.aelitis.azureus.core.metasearch.Engine;
-import com.aelitis.azureus.core.metasearch.MetaSearchManager;
-import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
-import com.aelitis.azureus.core.metasearch.Result;
-import com.aelitis.azureus.core.metasearch.ResultListener;
-import com.aelitis.azureus.core.metasearch.SearchParameter;
+import com.aelitis.azureus.core.metasearch.*;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
+import com.aelitis.azureus.ui.swt.views.skin.Browse;
+import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 
 
 public class MetaSearchListener extends AbstractMessageListener {
@@ -52,6 +46,8 @@ public class MetaSearchListener extends AbstractMessageListener {
 	public static final String OP_EXPORT_TEMPLATE		= "export-template";
 	public static final String OP_IMPORT_TEMPLATE		= "import-template";
 	
+	public static final String OP_OPEN_SEARCH_RESULTS	= "open-search-results";
+	public static final String OP_CLOSE_SEARCH_RESULTS	= "close-search-results";
 	
 	
 	public MetaSearchListener() {
@@ -570,6 +566,15 @@ public class MetaSearchListener extends AbstractMessageListener {
 						}
 					}
 				});
+		} else if ( OP_OPEN_SEARCH_RESULTS.equals(opid)){
+			Map decodedMap = message.getDecodedMap();
+			Browse view = (Browse) SkinViewManager.get(Browse.class);
+			view.openSearchResults(decodedMap);
+		} else if ( OP_CLOSE_SEARCH_RESULTS.equals(opid)){
+			Map decodedMap = message.getDecodedMap();
+			Browse view = (Browse) SkinViewManager.get(Browse.class);
+			view.closeSearchResults(decodedMap);
 		}
 	}
+
 }

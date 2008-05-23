@@ -66,6 +66,8 @@ public class SWTSkinObjectBrowser
 
 	private BrowserContext context;
 
+	private boolean noListeners;
+
 	/**
 	 * @param skin
 	 * @param properties
@@ -103,19 +105,26 @@ public class SWTSkinObjectBrowser
 		if (browserID == null) {
 			browserID = sID;
 		}
-
+		
+		noListeners = properties.getBooleanValue(sConfigID + ".browser.nolisteners", false);
+		
 		context = new BrowserContext(browserID, browser, widgetIndicator,
 				properties.getBooleanValue(sConfigID + ".forceVisibleAfterLoad", true));
-		context.addMessageListener(new TorrentListener(core));
-		context.addMessageListener(new DisplayListener(browser));
-		context.addMessageListener(new ConfigListener(browser));
-		context.addMessageListener(new PublishListener(skin.getShell(), this));
-		context.addMessageListener(new LightBoxBrowserRequestListener());
-		context.addMessageListener(new StatusListener());
-		context.addMessageListener(new BrowserRpcBuddyListener());
-		context.addMessageListener(new MetaSearchListener());
 
-		PublishUtils.setupContext(context);
+		if (!noListeners) {
+  		context.addMessageListener(new TorrentListener(core));
+  		context.addMessageListener(new DisplayListener(browser));
+  		context.addMessageListener(new ConfigListener(browser));
+  		context.addMessageListener(new PublishListener(skin.getShell(), this));
+  		context.addMessageListener(new LightBoxBrowserRequestListener());
+  		context.addMessageListener(new StatusListener());
+  		context.addMessageListener(new BrowserRpcBuddyListener());
+  		context.addMessageListener(new MetaSearchListener());
+
+  		PublishUtils.setupContext(context);
+		} else {
+			context.setCheckBlocked(false);
+		}
 
 		setControl(browser);
 	}

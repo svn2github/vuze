@@ -1,5 +1,7 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import java.util.HashMap;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MenuListener;
@@ -554,6 +556,24 @@ public class AvatarWidget
 							Debug.out("Shouldn't Happen", e1);
 						}
 					}
+				}
+			});
+
+			item = new MenuItem(menuCVS, SWT.PUSH);
+			item.setText("slide");
+			item.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e) {
+					Browse view = (Browse) SkinViewManager.get(Browse.class);
+					view.openSearchResults(new HashMap());
+					
+				}
+			});
+			item = new MenuItem(menuCVS, SWT.PUSH);
+			item.setText("unslide");
+			item.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e) {
+					Browse view = (Browse) SkinViewManager.get(Browse.class);
+					view.closeSearchResults(new HashMap());
 				}
 			});
 		}

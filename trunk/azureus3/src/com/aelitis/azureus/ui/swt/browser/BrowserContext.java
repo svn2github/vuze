@@ -70,6 +70,8 @@ public class BrowserContext
 
 	private TimerEventPeriodic checkURLEvent;
 
+	private boolean checkBlocked = true;
+
 	/**
 	 * Creates a context and registers the given browser.
 	 * 
@@ -278,7 +280,7 @@ public class BrowserContext
 				// https://moo.com/dr
 				// https://moo.com:80/dr
 
-				boolean blocked = PlatformConfigMessenger.isURLBlocked(event.location);
+				boolean blocked = checkBlocked && PlatformConfigMessenger.isURLBlocked(event.location);
 
 				if (blocked) {
 					event.doit = false;
@@ -472,5 +474,13 @@ public class BrowserContext
 		result.append("...");
 		result.append(javascript.substring(javascript.length() - 256));
 		return result.toString();
+	}
+
+	public boolean getCheckBlocked() {
+		return checkBlocked;
+	}
+
+	public void setCheckBlocked(boolean checkBlocked) {
+		this.checkBlocked = checkBlocked;
 	}
 }
