@@ -1,6 +1,10 @@
 package com.aelitis.azureus.ui.swt.views.skin.widgets;
 
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -53,10 +57,28 @@ public class BubbleButton
 		foregroundColors[1] = skin.getSkinProperties().getColor("color.text.over");
 		foregroundColors[2] = skin.getSkinProperties().getColor(
 				"color.text.disabled");
-		
+
 		int marginWidth = skin.getSkinProperties().getIntValue(
 				"template.footer.button.horizontal.spacing", 10);
 		setInset(new Inset(marginWidth, marginWidth, 0, 0));
+
+		/*
+		 * Increase default font height by 1 so the text for this button is a little bit taller
+		 */
+		FontData[] fData = getFont().getFontData();
+		for (int i = 0; i < fData.length; i++) {
+			fData[i].height += 1;
+		}
+		final Font newFont = new Font(getDisplay(), fData);
+		setFont(newFont);
+		addDisposeListener(new DisposeListener() {
+
+			public void widgetDisposed(DisposeEvent e) {
+				if (null != newFont && false == newFont.isDisposed()) {
+					newFont.dispose();
+				}
+			}
+		});
 	}
 
 	public Image[] getBackgroundImages() {
