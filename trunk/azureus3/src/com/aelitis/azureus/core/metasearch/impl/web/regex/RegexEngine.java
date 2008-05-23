@@ -39,7 +39,7 @@ RegexEngine
 		long				id,
 		long				last_updated,
 		String				name,
-		Map					map )
+		JSONObject			map )
 	
 		throws IOException
 	{
@@ -98,7 +98,7 @@ RegexEngine
 		long				id,
 		long				last_updated,
 		String				name,
-		Map					map )
+		JSONObject			map )
 	
 		throws IOException
 	{

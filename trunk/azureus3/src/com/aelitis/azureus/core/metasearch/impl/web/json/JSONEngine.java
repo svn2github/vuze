@@ -42,7 +42,7 @@ JSONEngine
 		long			id,
 		long			last_updated,
 		String			name,
-		Map				map )
+		JSONObject		map )
 	
 		throws IOException
 	{
@@ -98,7 +98,7 @@ JSONEngine
 		long			id,
 		long			last_updated,
 		String			name,
-		Map				map )
+		JSONObject		map )
 	
 		throws IOException
 	{

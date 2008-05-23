@@ -127,7 +127,7 @@ MetaSearchManagerImpl
 	protected
 	MetaSearchManagerImpl()
 	{
-		meta_search = new MetaSearchImpl();
+		meta_search = new MetaSearchImpl( this );
 		
 		SimpleTimer.addPeriodicEvent(
 			"MetaSearchRefresh",
@@ -662,7 +662,7 @@ MetaSearchManagerImpl
 		}
 	}
 	
-	public static void 
+	public void 
 	log(
 		String 		s,
 		Throwable 	e )
@@ -679,7 +679,7 @@ MetaSearchManagerImpl
 		}	
 	}
 	
-	public static void 
+	public void 
 	log(
 		String 	s )
 	{

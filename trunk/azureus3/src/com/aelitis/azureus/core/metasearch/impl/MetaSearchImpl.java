@@ -38,13 +38,18 @@ MetaSearchImpl
 {
 	private static final String	CONFIG_FILE = "metasearch.config";
 		
+	private MetaSearchManagerImpl	manager;
+	
 	private CopyOnWriteList 	engines = new CopyOnWriteList();
 		
 	private boolean config_dirty;
 	
 	protected 
-	MetaSearchImpl() 
+	MetaSearchImpl(
+		MetaSearchManagerImpl		_manager )
 	{
+		manager	= _manager;
+		
 		loadConfig();
 		
 		new DelayedEvent(
@@ -418,7 +423,7 @@ MetaSearchImpl
 	log(
 		String	str )
 	{
-		MetaSearchManagerImpl.log( "search :"  + str );
+		manager.log( "search :"  + str );
 	}
 	
 	protected void
@@ -426,6 +431,6 @@ MetaSearchImpl
 		String		str,
 		Throwable 	e )
 	{
-		MetaSearchManagerImpl.log( "search :"  +  str, e );
+		manager.log( "search :"  +  str, e );
 	}
 }

@@ -146,7 +146,7 @@ WebEngine
 		long			id,
 		long			last_updated,
 		String			name,
-		Map				map )
+		JSONObject		map )
 	
 		throws IOException
 	{
@@ -167,9 +167,7 @@ WebEngine
 		for (int i=0;i<mappings.length;i++){
 			
 			Map	m = (Map)maps.get(i);
-			
-			m = (Map)m.get( "mapping" );
-			
+						
 			String	vuze_field 	= importString( m, "vuze_field" ).toUpperCase();
 			
 			String	field_name	= importString( m, "group_nb" );	// regexp case
@@ -179,45 +177,9 @@ WebEngine
 				field_name = importString( m, "field_name" );	// json case
 			}
 			
-			int	field_id;
+			int	field_id = vuzeFieldToID( vuze_field );
 			
-			if ( vuze_field.equals( "TITLE")){
-				
-				field_id	= FIELD_NAME;
-				
-			}else if ( vuze_field.equals( "DATE")){
-				
-				field_id	= FIELD_DATE;
-				
-			}else if ( vuze_field.equals( "SIZE")){
-				
-				field_id	= FIELD_SIZE;
-				
-			}else if ( vuze_field.equals( "PEERS")){
-				
-				field_id	= FIELD_PEERS;
-				
-			}else if ( vuze_field.equals( "SEEDS")){
-				
-				field_id	= FIELD_SEEDS;
-				
-			}else if ( vuze_field.equals( "CAT")){
-				
-				field_id	= FIELD_CATEGORY;
-				
-			}else if ( vuze_field.equals( "COMMENTS")){
-				
-				field_id	= FIELD_COMMENTS;
-				
-			}else if ( vuze_field.equals( "TORRENT")){
-				
-				field_id	= FIELD_TORRENTLINK;
-				
-			}else if ( vuze_field.equals( "CDP")){
-				
-				field_id	= FIELD_CDPLINK;
-				
-			}else{
+			if ( field_id == -1 ){
 				
 				log( "Unrecognised field mapping '" + vuze_field + "'" );
 				
@@ -256,53 +218,14 @@ WebEngine
 			
 			int	field_id = fm.getField();
 			
-			String	field_value;
+			String	field_value = vuzeIDToField( field_id );
 			
-			if ( field_id == FIELD_NAME ){
-				
-				field_value = "TITLE";
-				
-			}else if ( field_id == FIELD_DATE ){
-				
-				field_value = "DATE";
-
-			}else if ( field_id == FIELD_SIZE ){
-				
-				field_value = "SIZE";
-
-			}else if ( field_id == FIELD_PEERS ){
-				
-				field_value = "PEERS";
-
-			}else if ( field_id == FIELD_SEEDS ){
-				
-				field_value = "SEEDS";
-
-			}else if ( field_id == FIELD_CATEGORY ){
-				
-				field_value = "CAT";
-
-			}else if ( field_id == FIELD_COMMENTS ){
-				
-				field_value = "COMMENTS";
-
-			}else if ( field_id == FIELD_TORRENTLINK ){
-				
-				field_value = "TORRENT";
-
-			}else if ( field_id == FIELD_CDPLINK ){
-				
-				field_value = "CDP";
-
-			}else{
+			if ( field_value == null ){
 				
 				log( "JSON export: unknown field id " + field_id );
 				
-				field_value = null;
-			}
-			
-			if ( field_value != null ){
-				
+			}else{
+							
 				JSONObject m = new JSONObject();
 
 				maps.add( m );

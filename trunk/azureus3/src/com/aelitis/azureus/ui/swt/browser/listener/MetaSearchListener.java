@@ -1,7 +1,11 @@
 package com.aelitis.azureus.ui.swt.browser.listener;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.FileDialog;
@@ -56,11 +60,11 @@ public class MetaSearchListener extends AbstractMessageListener {
 	
 	public void handleMessage(BrowserMessage message) {
 		
-		System.out.println("Got message : " + message);
-		
 		String opid = message.getOperationId();
 
 		MetaSearchManager metaSearchManager = MetaSearchManagerFactory.getSingleton();
+		
+		metaSearchManager.log( "BrowserListener: received " + message );
 		
 		if (OP_SEARCH.equals(opid)) {
 			Map decodedMap = message.getDecodedMap();
@@ -84,12 +88,12 @@ public class MetaSearchListener extends AbstractMessageListener {
 				}
 				public void engineFailed(Engine engine, Throwable e) {
 					
-					context.sendBrowserMessage("metasearch", "engineFailed",getParams( engine ));
+					sendBrowserMessage("metasearch", "engineFailed",getParams( engine ));
 				}
 				
 				public void resultsComplete(Engine engine) {
 				
-					context.sendBrowserMessage("metasearch", "engineCompleted",getParams( engine ));
+					sendBrowserMessage("metasearch", "engineCompleted",getParams( engine ));
 				}
 				
 				public void resultsReceived(Engine engine,Result[] results) {
@@ -101,7 +105,7 @@ public class MetaSearchListener extends AbstractMessageListener {
 						resultsList.add(result.toMap());
 					}
 					params.put("results", resultsList);
-					context.sendBrowserMessage("metasearch", "resultsReceived",params);
+					sendBrowserMessage("metasearch", "resultsReceived",params);
 				}
 				
 				protected Map
@@ -143,7 +147,7 @@ public class MetaSearchListener extends AbstractMessageListener {
 				engineMap.put("type", Engine.ENGINE_SOURCE_STRS[ engine.getSource()]);
 				params.add(engineMap);
 			}
-			context.sendBrowserMessage("metasearch", "enginesUsed",params);
+			sendBrowserMessage("metasearch", "enginesUsed",params);
 			
 		} else if(OP_GET_ALL_ENGINES.equals(opid)) {
 
@@ -164,7 +168,7 @@ public class MetaSearchListener extends AbstractMessageListener {
 				engineMap.put("type", Engine.ENGINE_SOURCE_STRS[ engine.getSource()]);
 				params.add(engineMap);
 			}
-			context.sendBrowserMessage("metasearch", "engineList",params);
+			sendBrowserMessage("metasearch", "engineList",params);
 			
 		} else if( OP_SET_SELECTED_ENGINES.equals(opid)){
 			
@@ -187,14 +191,14 @@ public class MetaSearchListener extends AbstractMessageListener {
 				metaSearchManager.setSelectedEngines( ids, auto );
 				
 				Map params = new HashMap();
-				context.sendBrowserMessage("metasearch", "setSelectedCompleted",params);
+				sendBrowserMessage("metasearch", "setSelectedCompleted",params);
 
 			}catch( Throwable e ){
 				
 				Map params = new HashMap();
 				params.put("error",Debug.getNestedExceptionMessage(e));
 
-				context.sendBrowserMessage("metasearch", "setSelectedFailed",params);
+				sendBrowserMessage("metasearch", "setSelectedFailed",params);
 			}	
 		} else if(OP_GET_AUTO_MODE.equals(opid)) {
 						
@@ -203,7 +207,7 @@ public class MetaSearchListener extends AbstractMessageListener {
 			Map params = new HashMap();
 			params.put( "auto", new Boolean( mode ));
 
-			context.sendBrowserMessage("metasearch", "getAutoModeResult",params);
+			sendBrowserMessage("metasearch", "getAutoModeResult",params);
 			
 		} else if( OP_SAVE_TEMPLATE.equals(opid)){
 			
@@ -230,7 +234,7 @@ public class MetaSearchListener extends AbstractMessageListener {
 				Map params = new HashMap();
 				params.put( "id", new Long( engine.getId() ));
 	
-				context.sendBrowserMessage( "metasearch", "saveTemplateCompleted", params );
+				sendBrowserMessage( "metasearch", "saveTemplateCompleted", params );
 				
 			}catch( Throwable e ){
 				
@@ -238,7 +242,7 @@ public class MetaSearchListener extends AbstractMessageListener {
 				params.put( "id", new Long( id ));
 				params.put("error",Debug.getNestedExceptionMessage(e));
 
-				context.sendBrowserMessage("metasearch", "saveTemplateFailed",params);
+				sendBrowserMessage("metasearch", "saveTemplateFailed",params);
 			}
 		} else if( OP_LOAD_TEMPLATE.equals(opid)){
 			
@@ -254,7 +258,7 @@ public class MetaSearchListener extends AbstractMessageListener {
 				params.put( "id", new Long( id ));
 				params.put("error","Template not found");
 
-				context.sendBrowserMessage("metasearch", "loadTemplateFailed",params);
+				sendBrowserMessage("metasearch", "loadTemplateFailed",params);
 				
 			}else{
 				
@@ -265,7 +269,7 @@ public class MetaSearchListener extends AbstractMessageListener {
 					params.put("type", Engine.ENGINE_TYPE_STRS[ engine.getType()]);
 					params.put("value", JSONObject.escape( engine.exportToJSONString()));
 				
-					context.sendBrowserMessage( "metasearch", "loadTemplateCompleted", params );
+					sendBrowserMessage( "metasearch", "loadTemplateCompleted", params );
 					
 				}catch( Throwable e ){
 					
@@ -273,7 +277,7 @@ public class MetaSearchListener extends AbstractMessageListener {
 					params.put( "id", new Long( id ));
 					params.put("error",Debug.getNestedExceptionMessage(e));
 
-					context.sendBrowserMessage("metasearch", "loadTemplateFailed",params);
+					sendBrowserMessage("metasearch", "loadTemplateFailed",params);
 				}
 			}		
 		} else if( OP_DELETE_TEMPLATE.equals(opid)){
@@ -290,7 +294,7 @@ public class MetaSearchListener extends AbstractMessageListener {
 				params.put( "id", new Long( id ));
 				params.put( "error", "Template not found" );
 
-				context.sendBrowserMessage("metasearch", "deleteTemplateFailed",params);
+				sendBrowserMessage("metasearch", "deleteTemplateFailed",params);
 			
 			}else if ( engine.getSource() != Engine.ENGINE_SOURCE_LOCAL ){
 			
@@ -298,7 +302,7 @@ public class MetaSearchListener extends AbstractMessageListener {
 				params.put( "id", new Long( id ));
 				params.put( "error", "Template is not local" );
 
-				context.sendBrowserMessage("metasearch", "deleteTemplateFailed",params);
+				sendBrowserMessage("metasearch", "deleteTemplateFailed",params);
 				
 			}else{
 				
@@ -306,7 +310,7 @@ public class MetaSearchListener extends AbstractMessageListener {
 				
 				Map params = new HashMap();
 				params.put( "id", new Long( id ));
-				context.sendBrowserMessage( "metasearch", "deleteTemplateCompleted", params );
+				sendBrowserMessage( "metasearch", "deleteTemplateCompleted", params );
 			}
 		} else if( OP_TEST_TEMPLATE.equals(opid)){
 			
@@ -329,7 +333,7 @@ public class MetaSearchListener extends AbstractMessageListener {
 				params.put( "error", "Template not found" );
 				if ( sid != null )params.put( "sid", sid );
 
-				context.sendBrowserMessage("metasearch", "testTemplateFailed",params);
+				sendBrowserMessage("metasearch", "testTemplateFailed",params);
 			
 			}else{
 				
@@ -395,7 +399,7 @@ public class MetaSearchListener extends AbstractMessageListener {
 									}
 								}
 															
-								context.sendBrowserMessage( "metasearch", "testTemplateCompleted", params );
+								sendBrowserMessage( "metasearch", "testTemplateCompleted", params );
 			
 							}
 							
@@ -409,7 +413,7 @@ public class MetaSearchListener extends AbstractMessageListener {
 								params.put( "error", Debug.getNestedExceptionMessage( e ));
 								if ( sid != null )params.put( "sid", sid );
 
-								context.sendBrowserMessage("metasearch", "testTemplateFailed",params);
+								sendBrowserMessage("metasearch", "testTemplateFailed",params);
 							}
 						});
 
@@ -427,7 +431,7 @@ public class MetaSearchListener extends AbstractMessageListener {
 				Map params = new HashMap();
 				params.put( "error", "template '" + id + "' not found" );
 
-				context.sendBrowserMessage("metasearch", "exportTemplateFailed",params);
+				sendBrowserMessage("metasearch", "exportTemplateFailed",params);
 				
 			}else{
 				final Shell shell = Utils.findAnyShell();
@@ -465,7 +469,7 @@ public class MetaSearchListener extends AbstractMessageListener {
 									
 									Map params = new HashMap();
 									params.put( "id", new Long( id ));
-									context.sendBrowserMessage( "metasearch", "exportTemplateCompleted", params );
+									sendBrowserMessage( "metasearch", "exportTemplateCompleted", params );
 
 								}catch( Throwable e ){
 									
@@ -473,7 +477,7 @@ public class MetaSearchListener extends AbstractMessageListener {
 									params.put( "id", new Long( id ));
 									params.put( "error", "save failed: " + Debug.getNestedExceptionMessage(e));
 
-									context.sendBrowserMessage("metasearch", "exportTemplateFailed",params);
+									sendBrowserMessage("metasearch", "exportTemplateFailed",params);
 								}
 							}else{
 								
@@ -481,7 +485,7 @@ public class MetaSearchListener extends AbstractMessageListener {
 								params.put( "id", new Long( id ));
 								params.put( "error", "operation cancelled" );
 
-								context.sendBrowserMessage("metasearch", "exportTemplateFailed",params);
+								sendBrowserMessage("metasearch", "exportTemplateFailed",params);
 							}
 						}
 					});
@@ -527,7 +531,7 @@ public class MetaSearchListener extends AbstractMessageListener {
 								Map params = new HashMap();
 								params.put( "error", "invalid .vuze file" );
 
-								context.sendBrowserMessage("metasearch", "importTemplateFailed",params);
+								sendBrowserMessage("metasearch", "importTemplateFailed",params);
 								
 							}else{
 								
@@ -545,7 +549,7 @@ public class MetaSearchListener extends AbstractMessageListener {
 											
 											Map params = new HashMap();
 											params.put( "id", new Long( engine.getId()));
-											context.sendBrowserMessage( "metasearch", "importTemplateCompleted", params );
+											sendBrowserMessage( "metasearch", "importTemplateCompleted", params );
 
 											return;
 										}
@@ -555,14 +559,15 @@ public class MetaSearchListener extends AbstractMessageListener {
 								Map params = new HashMap();
 								params.put( "error", "invalid search template file" );
 
-								context.sendBrowserMessage("metasearch", "importTemplateFailed",params);
+								sendBrowserMessage("metasearch", "importTemplateFailed",params);
 							}
 						}else{
 							
 							Map params = new HashMap();
+								// don't change this message as the UI uses it!
 							params.put( "error", "operation cancelled" );
 
-							context.sendBrowserMessage("metasearch", "importTemplateFailed",params);
+							sendBrowserMessage("metasearch", "importTemplateFailed",params);
 						}
 					}
 				});
@@ -575,6 +580,28 @@ public class MetaSearchListener extends AbstractMessageListener {
 			Browse view = (Browse) SkinViewManager.get(Browse.class);
 			view.closeSearchResults(decodedMap);
 		}
+	}
+	
+	public boolean 
+	sendBrowserMessage(
+		String 		key, 
+		String 		op, 
+		Map 		params )
+	{
+		MetaSearchManagerFactory.getSingleton().log( "BrowserListener: sent " + op + ": " + params );
+
+		return( context.sendBrowserMessage(key, op, params));
+	}
+	
+	public boolean 
+	sendBrowserMessage(
+		String 			key, 
+		String 			op, 
+		Collection 		params )
+	{
+		MetaSearchManagerFactory.getSingleton().log( "BrowserListener: sent " + op + ": " + params );
+
+		return( context.sendBrowserMessage(key, op, params));
 	}
 
 }

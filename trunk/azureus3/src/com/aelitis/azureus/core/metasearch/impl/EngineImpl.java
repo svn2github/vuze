@@ -25,12 +25,15 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URLDecoder;
 import java.util.*;
 
 
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.UrlUtils;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import com.aelitis.azureus.core.messenger.config.PlatformMetaSearchMessenger;
@@ -85,7 +88,7 @@ EngineImpl
 	
 		throws IOException
 	{
-		Map map = JSONUtils.decodeJSON( content );
+		JSONObject map = (JSONObject)JSONUtils.decodeJSON( content );
 		
 		if ( type == Engine.ENGINE_TYPE_JSON ){
 			
@@ -200,15 +203,14 @@ EngineImpl
 		long			id,
 		long			last_updated,
 		String			name,
-		Map				map )
+		JSONObject		map )
 	
 		throws IOException
 	{
 		this( meta_search, type, id, last_updated, name );
 		
-		first_level_mapping 	= importJSONMappings( map, "l1_map" );
-		second_level_mapping 	= importJSONMappings( map, "l2_map" );
-		
+		first_level_mapping 	= importJSONMappings( map, "value_map", true );
+		second_level_mapping 	= importJSONMappings( map, "ctype_map", false );
 	}
 	
 		// json export
@@ -219,20 +221,55 @@ EngineImpl
 	
 		throws IOException
 	{
-		exportJSONMappings( res, "l1_map", first_level_mapping );
-		exportJSONMappings( res, "l2_map", second_level_mapping );
-
-	
+		exportJSONMappings( res, "value_map", first_level_mapping, true );
+		exportJSONMappings( res, "ctype_map", second_level_mapping, false );
 	}
 	
 	protected List
 	importJSONMappings(
-		Map				map,
-		String			str )
+		JSONObject		map,
+		String			str,
+		boolean			level_1 )
+	
+		throws IOException
 	{
 		List	result = new ArrayList();
+			
+		JSONObject	field_map = (JSONObject)map.get( str );
 		
-		//map.get( "??" );
+		if ( field_map != null ){
+			
+			Iterator	it = field_map.entrySet().iterator();
+			
+			while( it.hasNext()){
+				
+				Map.Entry	entry = (Map.Entry)it.next();
+				
+				String	key 		= (String)entry.getKey();
+				List	mappings 	= (List)entry.getValue();
+				
+					// limited support for the moment: 
+					//		level one always maps to same field
+					//		level two always maps to content type
+				
+				int	from_field 	= vuzeFieldToID( key );
+				int	to_field	= level_1?from_field:FIELD_CONTENT_TYPE;
+				
+				FieldRemapping[]	frs = new FieldRemapping[mappings.size()];
+				
+				for (int i=0;i<mappings.size();i++){
+					
+					JSONObject mapping = (JSONObject)mappings.get(i);
+					
+					String	from_str 	= URLDecoder.decode((String)mapping.get( level_1?"from_string":"cat_string" ), "UTF-8" );
+					String	to_str 		= (String)mapping.get( level_1?"to_string":"media_type" );
+					
+					frs[i] = new FieldRemapping( from_str,to_str );
+				}
+				
+				result.add( new FieldRemapper( from_field, to_field, frs ));
+			}
+		}
 		
 		return( result );
 	}
@@ -241,9 +278,44 @@ EngineImpl
 	exportJSONMappings(
 		JSONObject			res,
 		String				str,
-		List				l )
+		List				l,
+		boolean				level_1 )
 	{
-		//asdasd
+		JSONObject	field_map = new JSONObject();
+		
+		res.put( str, field_map );
+		
+		for (int i=0;i<l.size();i++){
+			
+			FieldRemapper remapper = (FieldRemapper)l.get(i);
+			
+			int	from_field	= remapper.getInField();
+			//int	to_field	= remapper.getOutField();
+			
+			String from_field_str = vuzeIDToField( from_field );
+			
+			JSONArray	mappings = new JSONArray();
+			
+			field_map.put( from_field_str, mappings );
+			
+			FieldRemapping[] frs = remapper.getMappings();
+			
+			for (int j=0;j<frs.length;j++){
+				
+				FieldRemapping fr = frs[j];
+				
+				String from_str = UrlUtils.encode( fr.getMatchString());
+				
+				String to_str	= fr.getReplacement();
+				
+				JSONObject map = new JSONObject();
+				
+				mappings.add( map );
+				
+				map.put( level_1?"from_string":"cat_string", from_str );
+				map.put( level_1?"to_string":"media_type", to_str );
+			}
+		}
 	}
 			
 	protected List
@@ -518,6 +590,35 @@ EngineImpl
 		meta_search.removeEngine( this );
 	}
 	
+	protected int
+	vuzeFieldToID(
+		String	field )
+	{
+		for (int i=0;i<FIELD_NAMES.length;i++){
+			
+			if ( field.equalsIgnoreCase( FIELD_NAMES[i] )){
+				
+				return( FIELD_IDS[i]);
+			}
+		}
+		
+		return( -1 );
+	}
+	
+	protected String
+	vuzeIDToField(
+		int		id )
+	{
+		for (int i=0;i<FIELD_IDS.length;i++){
+			
+			if ( id == FIELD_IDS[i] ){
+				
+				return( FIELD_NAMES[i]);
+			}
+		}
+		
+		return( null );
+	}
 	
 	protected void
 	exportString(

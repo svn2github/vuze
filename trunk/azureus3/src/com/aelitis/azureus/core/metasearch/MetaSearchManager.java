@@ -56,4 +56,8 @@ MetaSearchManager
 		boolean		warn_user )
 	
 		throws MetaSearchException;
+	
+	public void
+	log(
+		String		str );
 }

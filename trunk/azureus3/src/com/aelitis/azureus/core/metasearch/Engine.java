@@ -9,19 +9,29 @@ Engine
 {	
 	public static final Object	VUZE_FILE_COMPONENT_ENGINE_KEY = new Object();
 	
-	public static final int FIELD_NAME = 1;
-	public static final int FIELD_DATE = 2;
-	public static final int FIELD_SIZE = 3;
-	public static final int FIELD_PEERS = 4;
-	public static final int FIELD_SEEDS = 5;
-	public static final int FIELD_CATEGORY = 6;
-	public static final int FIELD_COMMENTS = 7;
-	public static final int FIELD_CONTENT_TYPE = 8;
+		// Don't change these values as they get persisted
 	
-	public static final int FIELD_TORRENTLINK = 102;
-	public static final int FIELD_CDPLINK = 103;
-	public static final int FIELD_PLAYLINK = 104;
+	public static final int FIELD_NAME 			= 1;
+	public static final int FIELD_DATE 			= 2;
+	public static final int FIELD_SIZE 			= 3;
+	public static final int FIELD_PEERS 		= 4;
+	public static final int FIELD_SEEDS 		= 5;
+	public static final int FIELD_CATEGORY 		= 6;
+	public static final int FIELD_COMMENTS 		= 7;
+	public static final int FIELD_CONTENT_TYPE 	= 8;
+	public static final int FIELD_TORRENTLINK 	= 102;
+	public static final int FIELD_CDPLINK 		= 103;
+	public static final int FIELD_PLAYLINK 		= 104;
 	
+	public static final int[] FIELD_IDS = {
+		FIELD_NAME, FIELD_DATE, FIELD_SIZE, FIELD_PEERS, FIELD_SEEDS, FIELD_CATEGORY,
+		FIELD_COMMENTS, FIELD_CONTENT_TYPE, FIELD_TORRENTLINK, FIELD_CDPLINK, FIELD_PLAYLINK,
+	};
+		
+	public static final String[] FIELD_NAMES = {
+		"TITLE", "DATE", "SIZE", "PEERS", "SEEDS", "CAT",
+		"COMMENTS", "CONTENT_TYPE", "TORRENT", "CDP", "PLAY",
+	};
 	
 	public static final int ENGINE_TYPE_REGEX		= 1;
 	public static final int ENGINE_TYPE_JSON		= 2;
