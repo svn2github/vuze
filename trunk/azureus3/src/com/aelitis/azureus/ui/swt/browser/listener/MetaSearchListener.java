@@ -571,12 +571,16 @@ public class MetaSearchListener extends AbstractMessageListener {
 						}
 					}
 				});
-		} else if ( OP_OPEN_SEARCH_RESULTS.equals(opid)){
-			Map decodedMap = message.getDecodedMap();
+		}else if ( OP_OPEN_SEARCH_RESULTS.equals(opid)){
+			
+			Map decodedMap = message.isParamObject() ? message.getDecodedMap()
+					: new HashMap();
 			Browse view = (Browse) SkinViewManager.get(Browse.class);
 			view.openSearchResults(decodedMap);
-		} else if ( OP_CLOSE_SEARCH_RESULTS.equals(opid)){
-			Map decodedMap = message.getDecodedMap();
+		}else if ( OP_CLOSE_SEARCH_RESULTS.equals(opid)){
+			
+			Map decodedMap = message.isParamObject() ? message.getDecodedMap()
+					: new HashMap();
 			Browse view = (Browse) SkinViewManager.get(Browse.class);
 			view.closeSearchResults(decodedMap);
 		}
