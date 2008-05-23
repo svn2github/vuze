@@ -131,7 +131,7 @@ public class MainWindow
 
 	private SystemTraySWT systemTraySWT;
 
-	private Map mapTrackUsage = new HashMap();
+	private Map mapTrackUsage = null;
 
 	private AEMonitor mapTrackUsage_mon = new AEMonitor("mapTrackUsage");
 
@@ -1012,7 +1012,6 @@ public class MainWindow
 
 					public void handleEvent(Event event) {
 						if (event.type == SWT.Activate) {
-							System.err.println("Activate; was " + lastShellStatus);
 							if (start > 0 && lastShellStatus != null) {
 								lCurrentTrackTime = SystemTime.getCurrentTime() - start;
 								updateMapTrackUsage(lastShellStatus);
@@ -1025,7 +1024,6 @@ public class MainWindow
 							}
 							lastShellStatus = shell.getMinimized() || !shell.isVisible()
 									? "minimized" : "notfocused";
-							System.err.println("DEActivate");
 							start = SystemTime.getCurrentTime();
 						}
 					}
@@ -2121,23 +2119,25 @@ public class MainWindow
 		if (mapTrackUsage != null) {
 			mapTrackUsage_mon.enter();
 			try {
-				Long currentLength = (Long) mapTrackUsage.get(sTabID);
-				if (currentLength == null) {
-					currentLength = new Long(lCurrentTrackTime);
-				} else {
-					currentLength = new Long(currentLength.longValue()
-							+ lCurrentTrackTime);
+				if (lCurrentTrackTime > 0) {
+  				Long currentLength = (Long) mapTrackUsage.get(sTabID);
+  				if (currentLength == null) {
+  					currentLength = new Long(lCurrentTrackTime);
+  				} else {
+  					currentLength = new Long(currentLength.longValue()
+  							+ lCurrentTrackTime);
+  				}
+  				mapTrackUsage.put(sTabID, currentLength);
 				}
-				mapTrackUsage.put(sTabID, currentLength);
 
-				String id = "idle-" + sTabID;
-				Long currentLengthIdle = (Long) mapTrackUsage.get(id);
-				currentLengthIdle = new Long(currentLengthIdle == null
-						? lCurrentTrackTimeIdle : currentLengthIdle.longValue()
-								+ lCurrentTrackTimeIdle);
-				mapTrackUsage.put(id, currentLengthIdle);
-				System.err.println(sTabID + ";" + lCurrentTrackTime);
-				System.err.println(id + ";" + lCurrentTrackTimeIdle);
+				if (lCurrentTrackTimeIdle > 0) {
+  				String id = "idle-" + sTabID;
+  				Long currentLengthIdle = (Long) mapTrackUsage.get(id);
+  				currentLengthIdle = new Long(currentLengthIdle == null
+  						? lCurrentTrackTimeIdle : currentLengthIdle.longValue()
+  								+ lCurrentTrackTimeIdle);
+  				mapTrackUsage.put(id, currentLengthIdle);
+				}
 			} finally {
 				mapTrackUsage_mon.exit();
 			}
