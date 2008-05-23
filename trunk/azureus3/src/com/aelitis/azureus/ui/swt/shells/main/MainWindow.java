@@ -44,6 +44,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
+import org.gudy.azureus2.ui.swt.components.BufferedToolItem;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.minibar.MiniBarManager;
@@ -64,8 +65,8 @@ import com.aelitis.azureus.buddy.VuzeBuddyCreator;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.messenger.ClientMessageContext;
-import com.aelitis.azureus.core.messenger.PlatformMessenger;
+import com.aelitis.azureus.core.messenger.*;
+import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
@@ -75,6 +76,8 @@ import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesFP
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.*;
 import com.aelitis.azureus.ui.swt.Initializer;
@@ -86,6 +89,7 @@ import com.aelitis.azureus.ui.swt.extlistener.StimulusRPC;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.*;
+import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.views.ViewDownSpeedGraph;
 import com.aelitis.azureus.ui.swt.views.ViewUpSpeedGraph;
 import com.aelitis.azureus.ui.swt.views.skin.*;
@@ -127,11 +131,13 @@ public class MainWindow
 
 	private SystemTraySWT systemTraySWT;
 
-	private Map mapTrackUsage;
+	private Map mapTrackUsage = new HashMap();
 
 	private AEMonitor mapTrackUsage_mon = new AEMonitor("mapTrackUsage");
 
 	private long lCurrentTrackTime = 0;
+
+	private long lCurrentTrackTimeIdle = 0;
 
 	private boolean disposedOrDisposing;
 
@@ -144,6 +150,8 @@ public class MainWindow
 	private IView activeTopBar;
 
 	private MainStatusBar statusBar;
+	
+	private String lastShellStatus = null;
 
 	public static void main(String args[]) {
 		if (Launcher.checkAndLaunch(MainWindow.class, args))
@@ -465,6 +473,8 @@ public class MainWindow
 			Utils.setShellIcon(shell);
 			Utils.linkShellMetricsToConfig(shell, "window");
 
+			setupUsageTracker();
+
 			increaseProgress(uiInitializer, "v3.splash.initSkin");
 
 			skin = SWTSkinFactory.getInstance();
@@ -573,11 +583,6 @@ public class MainWindow
 
 						minimizeToTray(event);
 					}
-
-					SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
-					if (tabSetMain != null) {
-						updateMapTrackUsage(tabSetMain.getActiveTab().getSkinObjectID());
-					}
 				}
 
 				public void shellDeiconified(ShellEvent e) {
@@ -588,10 +593,9 @@ public class MainWindow
 							shell.setVisible(true);
 						}
 					}
-					updateMapTrackUsage("minimized");
 				}
 			});
-
+			
 			increaseProgress(uiInitializer, null);
 			System.out.println("pre skin widgets init took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
@@ -678,6 +682,51 @@ public class MainWindow
 					}
 				});
 			}
+			
+			IconBar.addListener(new IconBar.IconBarListener() {
+				// @see org.gudy.azureus2.ui.swt.IconBar.IconBarListener#iconBarInitialized(org.eclipse.swt.widgets.CoolBar, org.gudy.azureus2.ui.swt.IconBar)
+				public void iconBarInitialized(CoolBar cb, IconBar ib) {
+					final CoolItem coolItem = new CoolItem(cb, SWT.NULL);
+					final ToolBar tb = new ToolBar(cb, SWT.FLAT);
+
+					ImageLoader imageLoader = ImageLoaderFactory.getInstance();
+					final BufferedToolItem tiShare = new BufferedToolItem(tb, SWT.PUSH);
+					final String id = "share";
+					tiShare.setData(id, "share");
+					((ToolItem) tiShare.getWidget()).setToolTipText(MessageText.getString("v3.MainWindow.button.sendtofriend"));
+					final Image shareImage = imageLoader.getImage("image.button.share");
+					Image newTagImage = imageLoader.getImage("image.newtag");
+					final Rectangle shareBounds = shareImage.getBounds();
+					int width = shareBounds.width + newTagImage.getBounds().width;
+					Image bg = Utils.createAlphaImage(display, width,
+							shareImage.getBounds().height, (byte) 0);
+
+					final Image dstImage1 = Utils.renderTransparency(display, bg, shareImage,
+							new Point(0, 0), 255);
+					Image dstImage = Utils.renderTransparency(display, dstImage1,
+							newTagImage, new Point(shareBounds.width, 0), 255);
+
+					bg.dispose();
+					tiShare.setImage(dstImage);
+
+					ib.addITemKeyToControl(id, tiShare);
+					tb.pack();
+					Point p = tb.getSize();
+					coolItem.setControl(tb);
+					coolItem.setSize(p.x, p.y);
+					coolItem.setMinimumSize(p.x, p.y);
+
+					tiShare.addListener(SWT.Selection, new Listener() {
+						public void handleEvent(Event e) {
+							tiShare.setImage(dstImage1);
+							SelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
+							if (contents.length > 0) {
+								VuzeShareUtils.getInstance().shareTorrent(contents[0]);
+							}
+						}
+					});
+				}
+			});
 		} finally {
 
 			shell.layout(true, true);
@@ -854,7 +903,10 @@ public class MainWindow
 			if (mapTrackUsage != null) {
 				SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
 				if (tabSetMain != null) {
-					updateMapTrackUsage(tabSetMain.getActiveTab().getSkinObjectID());
+					if (lastShellStatus == null) {
+						lastShellStatus = tabSetMain.getActiveTab().getSkinObjectID();
+					}
+					updateMapTrackUsage(lastShellStatus);
 				}
 
 				FileUtil.writeResilientFile(new File(SystemProperties.getUserPath(),
@@ -865,6 +917,129 @@ public class MainWindow
 		}
 
 		return true;
+	}
+
+	/**
+	 * 
+	 */
+	private void setupUsageTracker() {
+		mapTrackUsage_mon.enter();
+		try {
+			if (COConfigurationManager.getBooleanParameter("Send Version Info")) {
+
+				mapTrackUsage = new HashMap();
+
+				File f = new File(SystemProperties.getUserPath(), "timingstats.dat");
+				if (f.exists()) {
+					final Map oldMapTrackUsage = FileUtil.readResilientFile(f);
+					PlatformConfigMessenger.sendUsageStats(oldMapTrackUsage,
+							f.lastModified(), new PlatformMessengerListener() {
+						
+								public void messageSent(PlatformMessage message) {
+								}
+
+								public void replyReceived(PlatformMessage message,
+										String replyType, Map reply) {
+									if (mapTrackUsage == null) {
+										return;
+									}
+									mapTrackUsage_mon.enter();
+									try {
+										if (replyType.equals(PlatformMessenger.REPLY_EXCEPTION)) {
+											for (Iterator iterator = oldMapTrackUsage.keySet().iterator(); iterator.hasNext();) {
+												String key = (String) iterator.next();
+												Long value = (Long) oldMapTrackUsage.get(key);
+
+												Long oldValue = (Long) mapTrackUsage.get(key);
+												if (oldValue != null) {
+													value = new Long(value.longValue()
+															+ oldValue.longValue());
+												}
+												mapTrackUsage.put(key, value);
+											}
+										}
+									} finally {
+										mapTrackUsage_mon.exit();
+									}
+								}
+
+							});
+				}
+
+				SimpleTimer.addPeriodicEvent("UsageTracker", 1000,
+						new TimerEventPerformer() {
+							long lLastMouseMove = SystemTime.getCurrentTime();
+
+							Point ptLastMousePos = new Point(0, 0);
+
+							public void perform(TimerEvent event) {
+								Utils.execSWTThread(new AERunnable() {
+									public void runSupport() {
+										if (shell == null || shell.isDisposed()
+												|| shell.getDisplay().getActiveShell() == null) {
+											// so when we become active again, we count a few
+											// seconds (if the mouse moves)
+											if (ptLastMousePos.x > 0) {
+												ptLastMousePos.x = 0;
+												ptLastMousePos.y = 0;
+												lLastMouseMove = SystemTime.getCurrentTime();
+											}
+											return;
+										}
+
+										Point pt = shell.getDisplay().getCursorLocation();
+										if (pt.equals(ptLastMousePos)) {
+											return;
+										}
+										ptLastMousePos = pt;
+
+										long now = SystemTime.getCurrentTime();
+										long diff = now - lLastMouseMove;
+										if (diff < 10000) {
+											lCurrentTrackTime += diff;
+										} else {
+											lCurrentTrackTimeIdle += diff;
+										}
+										lLastMouseMove = now;
+									}
+								});
+							}
+						});
+
+				Listener lActivateDeactivate = new Listener() {
+					long start;
+
+					public void handleEvent(Event event) {
+						if (event.type == SWT.Activate) {
+							System.err.println("Activate; was " + lastShellStatus);
+							if (start > 0 && lastShellStatus != null) {
+								lCurrentTrackTime = SystemTime.getCurrentTime() - start;
+								updateMapTrackUsage(lastShellStatus);
+							}
+							lastShellStatus = null;
+						} else {
+							SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
+							if (tabSetMain != null) {
+								updateMapTrackUsage(tabSetMain.getActiveTab().getSkinObjectID());
+							}
+							lastShellStatus = shell.getMinimized() || !shell.isVisible()
+									? "minimized" : "notfocused";
+							System.err.println("DEActivate");
+							start = SystemTime.getCurrentTime();
+						}
+					}
+				};
+				shell.addListener(SWT.Activate, lActivateDeactivate);
+				shell.addListener(SWT.Deactivate, lActivateDeactivate); 
+
+			} else {
+				mapTrackUsage = null;
+			}
+		} catch (Exception e) {
+			Debug.out(e);
+		} finally {
+			mapTrackUsage_mon.exit();
+		}
 	}
 
 	private void showMainWindow() {
@@ -1953,12 +2128,22 @@ public class MainWindow
 							+ lCurrentTrackTime);
 				}
 				mapTrackUsage.put(sTabID, currentLength);
+
+				String id = "idle-" + sTabID;
+				Long currentLengthIdle = (Long) mapTrackUsage.get(id);
+				currentLengthIdle = new Long(currentLengthIdle == null
+						? lCurrentTrackTimeIdle : currentLengthIdle.longValue()
+								+ lCurrentTrackTimeIdle);
+				mapTrackUsage.put(id, currentLengthIdle);
+				System.err.println(sTabID + ";" + lCurrentTrackTime);
+				System.err.println(id + ";" + lCurrentTrackTimeIdle);
 			} finally {
 				mapTrackUsage_mon.exit();
 			}
 		}
 
 		lCurrentTrackTime = 0;
+		lCurrentTrackTimeIdle = 0;
 	}
 
 	/**
