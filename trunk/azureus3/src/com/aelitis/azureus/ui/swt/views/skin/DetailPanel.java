@@ -76,8 +76,8 @@ public class DetailPanel
 				e.gc.setForeground(borderColor);
 				int r = 6;
 				e.gc.setLineWidth(r);
-				e.gc.drawRoundRectangle(bounds.x + 3, bounds.y + 3, bounds.width - r,
-						bounds.height - r, 15, 15);
+				e.gc.drawRectangle(bounds.x + 3, bounds.y + 3, bounds.width - r,
+						bounds.height - r);
 			}
 		});
 

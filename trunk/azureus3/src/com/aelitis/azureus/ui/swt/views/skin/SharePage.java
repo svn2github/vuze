@@ -10,32 +10,28 @@ import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.browser.ProgressEvent;
-import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -54,6 +50,12 @@ import com.aelitis.azureus.ui.swt.browser.listener.AbstractStatusListener;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.ui.swt.utils.ImageLoader;
+import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
+import com.aelitis.azureus.ui.swt.views.skin.widgets.BubbleButton;
+import com.aelitis.azureus.ui.swt.views.skin.widgets.FlatButton;
+import com.aelitis.azureus.ui.swt.views.skin.widgets.Inset;
+import com.aelitis.azureus.ui.swt.views.skin.widgets.SkinLinkLabel;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.JSONUtils;
 
@@ -77,6 +79,8 @@ public class SharePage
 
 	private Label buddyListDescription;
 
+	private Label inviteeListDescription;
+
 	private Label addBuddyPromptLabel;
 
 	private StyledText buddyList;
@@ -89,15 +93,19 @@ public class SharePage
 
 	private StyledText contentStats;
 
-	private Button addBuddyButton;
+	private FlatButton addBuddyButton;
 
-	private Button sendNowButton;
+	private BubbleButton sendNowButton;
 
-	private Button cancelButton;
+	private BubbleButton cancelButton;
 
 	private Label contentThumbnail;
 
 	private Label optionalMessageLabel;
+
+	private Label optionalMessageDisclaimerLabel;
+
+	private SkinLinkLabel optionalMessageDisclaimerLinkLabel;
 
 	private Text commentText;
 
@@ -111,6 +119,10 @@ public class SharePage
 
 	private Color textColor = null;
 
+	private Color textDarkerColor = null;
+
+	private Color widgetBackgroundColor = null;
+
 	private SelectedContent shareItem = null;
 
 	private DownloadManager dm = null;
@@ -120,11 +132,14 @@ public class SharePage
 	}
 
 	public void createControls(Composite parent) {
+		content = new Composite(parent, SWT.NONE);
 
 		textColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
 				"color.text.fg");
-
-		content = new Composite(parent, SWT.NONE);
+		textDarkerColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
+				"color.widget.heading");
+		widgetBackgroundColor = ColorCache.getColor(content.getDisplay(), 35, 35,
+				35);
 
 		createFirstPanel();
 		createBrowserPanel();
@@ -144,19 +159,25 @@ public class SharePage
 		shareHeaderLabel = new Label(firstPanel, SWT.NONE);
 		shareHeaderMessageLabel = new Label(firstPanel, SWT.NONE);
 		buddyListDescription = new Label(firstPanel, SWT.NONE);
+		inviteeListDescription = new Label(firstPanel, SWT.NONE);
+
 		buddyList = new StyledText(firstPanel, SWT.NONE);
 		inviteePanel = new Composite(firstPanel, SWT.NONE);
 		inviteeList = new StyledText(inviteePanel, SWT.NONE);
 		addBuddyPromptLabel = new Label(inviteePanel, SWT.NONE | SWT.WRAP
 				| SWT.RIGHT);
-		addBuddyButton = new Button(inviteePanel, SWT.PUSH);
+		addBuddyButton = new FlatButton(inviteePanel);
 		contentDetail = new Composite(firstPanel, SWT.NONE);
-		sendNowButton = new Button(firstPanel, SWT.PUSH);
-		cancelButton = new Button(firstPanel, SWT.PUSH);
+		sendNowButton = new BubbleButton(firstPanel);
+		cancelButton = new BubbleButton(firstPanel);
 		contentThumbnail = new Label(contentDetail, SWT.BORDER);
 		contentStats = new StyledText(contentDetail, SWT.NONE);
 		optionalMessageLabel = new Label(contentDetail, SWT.NONE);
+		optionalMessageDisclaimerLabel = new Label(firstPanel, SWT.NONE);
 		commentText = new Text(contentDetail, SWT.BORDER);
+
+		optionalMessageDisclaimerLinkLabel = new SkinLinkLabel(firstPanel,
+				Constants.URL_FAQ);
 
 	}
 
@@ -172,41 +193,6 @@ public class SharePage
 
 		buddyList.setIndent(3);
 
-		//============		
-		FormLayout fLayout = new FormLayout();
-		fLayout.marginTop = 3;
-		fLayout.marginBottom = 3;
-		fLayout.marginLeft = 3;
-		fLayout.marginRight = 3;
-		inviteePanel.setLayout(fLayout);
-
-		FormData inviteePanelData = new FormData();
-		inviteePanelData.top = new FormAttachment(buddyList, 10);
-		inviteePanelData.left = new FormAttachment(buddyList, 0, SWT.LEFT);
-		inviteePanelData.right = new FormAttachment(buddyList, 0, SWT.RIGHT);
-		inviteePanelData.height = 125;
-		inviteePanel.setLayoutData(inviteePanelData);
-
-		FormData inviteeListData = new FormData();
-		inviteeListData.top = new FormAttachment(0, 0);
-		inviteeListData.left = new FormAttachment(0, 0);
-		inviteeListData.right = new FormAttachment(100, 0);
-		inviteeListData.height = 75;
-		inviteeList.setLayoutData(inviteeListData);
-
-		FormData addBuddyButtonData = new FormData();
-		addBuddyButtonData.top = new FormAttachment(inviteeList, 8);
-		addBuddyButtonData.right = new FormAttachment(inviteeList, -8, SWT.RIGHT);
-		addBuddyButton.setLayoutData(addBuddyButtonData);
-
-		FormData addBuddyLabelData = new FormData();
-		addBuddyLabelData.top = new FormAttachment(inviteeList, 8);
-		addBuddyLabelData.right = new FormAttachment(addBuddyButton, -8);
-		addBuddyLabelData.left = new FormAttachment(inviteeList, 0, SWT.LEFT);
-		addBuddyPromptLabel.setLayoutData(addBuddyLabelData);
-
-		//==============
-
 		FormData shareHeaderData = new FormData();
 		shareHeaderData.top = new FormAttachment(0, 18);
 		shareHeaderData.left = new FormAttachment(0, 28);
@@ -221,17 +207,61 @@ public class SharePage
 
 		FormData buddyListDescriptionData = new FormData();
 		buddyListDescriptionData.top = new FormAttachment(shareHeaderMessageLabel,
-				8);
+				24);
 		buddyListDescriptionData.left = new FormAttachment(shareHeaderLabel, 30,
 				SWT.LEFT);
 		buddyListDescription.setLayoutData(buddyListDescriptionData);
 
 		FormData buddyListData = new FormData();
-		buddyListData.top = new FormAttachment(buddyListDescription, 0);
+		buddyListData.top = new FormAttachment(buddyListDescription, 6);
 		buddyListData.left = new FormAttachment(shareHeaderLabel, 30, SWT.LEFT);
-		buddyListData.width = 346;
+		buddyListData.width = 315;
 		buddyListData.height = 115;
 		buddyList.setLayoutData(buddyListData);
+
+		FormData inviteeListDescriptionData = new FormData();
+		inviteeListDescriptionData.top = new FormAttachment(buddyList, 8);
+		inviteeListDescriptionData.left = new FormAttachment(shareHeaderLabel, 30,
+				SWT.LEFT);
+		inviteeListDescription.setLayoutData(inviteeListDescriptionData);
+
+		//============		
+		FormLayout fLayout = new FormLayout();
+		fLayout.marginTop = 3;
+		fLayout.marginBottom = 3;
+		fLayout.marginLeft = 3;
+		fLayout.marginRight = 3;
+		inviteePanel.setLayout(fLayout);
+
+		FormData inviteePanelData = new FormData();
+		inviteePanelData.top = new FormAttachment(inviteeListDescription, 6);
+		inviteePanelData.left = new FormAttachment(buddyList, 0, SWT.LEFT);
+		inviteePanelData.right = new FormAttachment(buddyList, 0, SWT.RIGHT);
+		inviteePanelData.height = 115;
+		inviteePanel.setLayoutData(inviteePanelData);
+
+		FormData inviteeListData = new FormData();
+		inviteeListData.top = new FormAttachment(0, 0);
+		inviteeListData.left = new FormAttachment(0, 0);
+		inviteeListData.right = new FormAttachment(100, 0);
+		inviteeListData.height = 75;
+		inviteeList.setLayoutData(inviteeListData);
+
+		FormData addBuddyButtonData = new FormData();
+		addBuddyButtonData.top = new FormAttachment(inviteeList, 8);
+		addBuddyButtonData.right = new FormAttachment(inviteeList, -8, SWT.RIGHT);
+		Point size = addBuddyButton.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		addBuddyButtonData.width = size.x;
+		addBuddyButtonData.height = size.y;
+		addBuddyButton.setLayoutData(addBuddyButtonData);
+
+		FormData addBuddyLabelData = new FormData();
+		addBuddyLabelData.top = new FormAttachment(inviteeList, 8);
+		addBuddyLabelData.right = new FormAttachment(addBuddyButton, -8);
+		addBuddyLabelData.left = new FormAttachment(0, 8);
+		addBuddyPromptLabel.setLayoutData(addBuddyLabelData);
+
+		//==============
 
 		FormData contentDetailData = new FormData();
 		contentDetailData.top = new FormAttachment(buddyList, 0, SWT.TOP);
@@ -239,16 +269,6 @@ public class SharePage
 		contentDetailData.right = new FormAttachment(100, -8);
 		contentDetailData.bottom = new FormAttachment(inviteePanel, 0, SWT.BOTTOM);
 		contentDetail.setLayoutData(contentDetailData);
-
-		FormData sendNowButtonData = new FormData();
-		sendNowButtonData.top = new FormAttachment(contentDetail, 8);
-		sendNowButtonData.right = new FormAttachment(contentDetail, 0, SWT.RIGHT);
-		sendNowButton.setLayoutData(sendNowButtonData);
-
-		FormData cancelButtonData = new FormData();
-		cancelButtonData.right = new FormAttachment(sendNowButton, -8);
-		cancelButtonData.top = new FormAttachment(contentDetail, 8);
-		cancelButton.setLayoutData(cancelButtonData);
 
 		FormLayout detailLayout = new FormLayout();
 		detailLayout.marginWidth = 8;
@@ -282,15 +302,47 @@ public class SharePage
 		commentTextData.bottom = new FormAttachment(100, -8);
 		commentText.setLayoutData(commentTextData);
 
+		FormData disclaimerLabelData = new FormData();
+		disclaimerLabelData.top = new FormAttachment(contentDetail, 6);
+		disclaimerLabelData.left = new FormAttachment(contentDetail, 0, SWT.LEFT);
+		optionalMessageDisclaimerLabel.setLayoutData(disclaimerLabelData);
+
+		FormData disclaimerLinkLabelData = new FormData();
+		disclaimerLinkLabelData.top = new FormAttachment(contentDetail, 6);
+		disclaimerLinkLabelData.left = new FormAttachment(
+				optionalMessageDisclaimerLabel, 6);
+		optionalMessageDisclaimerLinkLabel.getControl().setLayoutData(
+				disclaimerLinkLabelData);
+
+		FormData sendNowButtonData = new FormData();
+		sendNowButtonData.top = new FormAttachment(optionalMessageDisclaimerLabel,
+				8);
+		sendNowButtonData.right = new FormAttachment(contentDetail, 0, SWT.RIGHT);
+		size = cancelButton.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		sendNowButtonData.width = size.x;
+		sendNowButtonData.height = size.y;
+		sendNowButton.setLayoutData(sendNowButtonData);
+
+		FormData cancelButtonData = new FormData();
+		cancelButtonData.right = new FormAttachment(sendNowButton, -8);
+		cancelButtonData.top = new FormAttachment(optionalMessageDisclaimerLabel, 8);
+		size = cancelButton.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		cancelButtonData.width = size.x;
+		cancelButtonData.height = size.y;
+		cancelButton.setLayoutData(cancelButtonData);
+
 		content.layout();
 	}
 
 	private void formatControls() {
-		optionalMessageLabel.setForeground(textColor);
+		buddyListDescription.setForeground(textDarkerColor);
+		inviteeListDescription.setForeground(textDarkerColor);
+		optionalMessageLabel.setForeground(textDarkerColor);
+		optionalMessageDisclaimerLabel.setForeground(textDarkerColor);
+
 		addBuddyPromptLabel.setForeground(textColor);
 		inviteeList.setForeground(textColor);
 		buddyList.setForeground(textColor);
-		buddyListDescription.setForeground(textColor);
 		shareHeaderMessageLabel.setForeground(textColor);
 
 		shareHeaderLabel.setForeground(textColor);
@@ -310,38 +362,38 @@ public class SharePage
 
 		contentStats.setForeground(textColor);
 
-		applyRoundedBorder(contentDetail);
-		applyRoundedBorder(inviteePanel);
-		applyRoundedBorder(buddyList);
-
-		sendNowButton.setEnabled(false);
-		Messages.setLanguageText(sendNowButton, "v3.Share.send.now");
+		contentDetail.setBackground(widgetBackgroundColor);
+		buddyList.setBackground(widgetBackgroundColor);
+		inviteePanel.setBackground(widgetBackgroundColor);
 
 		Messages.setLanguageText(addBuddyPromptLabel,
 				"v3.Share.invite.buddies.prompt");
-		Messages.setLanguageText(addBuddyButton, "v3.Share.add.buddy");
+
 		Messages.setLanguageText(optionalMessageLabel, "v3.Share.optional.message");
-		Messages.setLanguageText(cancelButton, "v3.MainWindow.button.cancel");
+		Messages.setLanguageText(optionalMessageDisclaimerLabel,
+				"v3.Share.disclaimer");
+
+		Messages.setLanguageText(optionalMessageDisclaimerLinkLabel.getControl(),
+				"v3.Share.disclaimer.link");
 
 		Messages.setLanguageText(shareHeaderLabel, "v3.Share.header");
 		Messages.setLanguageText(shareHeaderMessageLabel, "v3.Share.header.message");
 		Messages.setLanguageText(buddyListDescription,
 				"v3.Share.add.buddy.existing");
+		Messages.setLanguageText(inviteeListDescription, "v3.Share.add.buddy.new");
 
-	}
+		addBuddyButton.setInset(new Inset(20, 20, 0, 0));
+		addBuddyButton.setText(MessageText.getString("v3.Share.add.buddy"));
+		ImageLoader imageLoader = ImageLoaderFactory.getInstance();
+		addBuddyButton.setImage(imageLoader.getImage("image.buddy.add"));
 
-	private void applyRoundedBorder(final Control control) {
-		control.addPaintListener(new PaintListener() {
+		cancelButton.setInset(new Inset(20, 20, 0, 0));
+		cancelButton.setText(MessageText.getString("v3.MainWindow.button.cancel"));
 
-			public void paintControl(PaintEvent e) {
-				e.gc.setForeground(ColorCache.getColor(control.getDisplay(), 200, 200,
-						200));
-				e.gc.setAntialias(SWT.ON);
-				Rectangle r = control.getBounds();
-				e.gc.drawRoundRectangle(0, 0, r.width - 1, r.height - 1, 10, 10);
+		sendNowButton.setInset(new Inset(20, 20, 0, 0));
+		sendNowButton.setText(MessageText.getString("v3.Share.send.now"));
+		//		sendNowButton.setEnabled(false);
 
-			}
-		});
 	}
 
 	private void createBrowserPanel() {
@@ -363,23 +415,27 @@ public class SharePage
 
 	private void hookListeners() {
 
-		addBuddyButton.addSelectionListener(new SelectionListener() {
-
-			public void widgetSelected(SelectionEvent e) {
+		addBuddyButton.addListener(SWT.MouseDown, new Listener() {
+			public void handleEvent(Event event) {
 				stackLayout.topControl = browserPanel;
 				content.layout();
-
-			}
-
-			public void widgetDefaultSelected(SelectionEvent e) {
-				widgetSelected(e);
 			}
 		});
 
-		sendNowButton.addSelectionListener(new SelectionListener() {
+		cancelButton.addListener(SWT.MouseDown, new Listener() {
+			public void handleEvent(Event event) {
+				ButtonBar buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
+				if (null != buttonBar) {
+					buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
+				}
 
-			public void widgetSelected(SelectionEvent e) {
+				resetControls();
+				getDetailPanel().show(false);
+			}
+		});
 
+		sendNowButton.addListener(SWT.MouseDown, new Listener() {
+			public void handleEvent(Event event) {
 				getMessageContext().executeInBrowser(
 						"sendSharingBuddies('" + getCommitJSONMessage() + "')");
 
@@ -400,37 +456,9 @@ public class SharePage
 				}
 				resetControls();
 				getDetailPanel().show(false);
-
-			}
-
-			public void widgetDefaultSelected(SelectionEvent e) {
-				widgetSelected(e);
 			}
 		});
 
-		cancelButton.addSelectionListener(new SelectionListener() {
-
-			public void widgetSelected(SelectionEvent e) {
-
-				/*
-				 * Tell the browser that we're canceling so it can re-initialize it's states
-				 */
-				getMessageContext().executeInBrowser("initialize()");
-
-				ButtonBar buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
-				if (null != buttonBar) {
-					buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
-				}
-
-				resetControls();
-				getDetailPanel().show(false);
-
-			}
-
-			public void widgetDefaultSelected(SelectionEvent e) {
-				widgetSelected(e);
-			}
-		});
 	}
 
 	private void resetControls() {

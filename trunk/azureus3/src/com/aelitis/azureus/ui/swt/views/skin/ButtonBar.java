@@ -221,20 +221,19 @@ public class ButtonBar
 		SWTSkinObject hideImageObject = skin.getSkinObject("button-hide-footer");
 		SWTSkinObject buttonBarObject = skin.getSkinObject("global-button-bar");
 		SWTSkinObject buddyCountObject = skin.getSkinObject("text-buddy-count");
-		SWTSkinObject buddyAddObject = skin.getSkinObject("button-buddy-add");
 		SWTSkinObject buddyPanelObject = skin.getSkinObject("panel-buddies");
 		SWTSkinObject footerObject = skin.getSkinObject("footer");
-
+		SWTSkinObject buddyEditObject = skin.getSkinObject("button-buddy-edit");
+		
 		String suffix = value ? "-disabled" : "";
 
+		footerObject.switchSuffix(suffix, 1, true);
+		buttonBarObject.switchSuffix(suffix, 1, true);
+		buddyPanelObject.switchSuffix(suffix, 1, false);
 		showImageObject.switchSuffix(suffix, 1, false);
 		hideImageObject.switchSuffix(suffix, 1, false);
 		buddyCountObject.switchSuffix(suffix, 1, false);
-		buddyAddObject.switchSuffix(suffix, 1, false);
-		footerObject.switchSuffix(suffix, 1, false);
-		buttonBarObject.switchSuffix(suffix, 1, true);
-		buddyPanelObject.switchSuffix(suffix, 1, false);
-
+		buddyEditObject.switchSuffix(suffix, 1, false);
 	}
 
 	private void hookShowHideButon() {
