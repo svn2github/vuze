@@ -1539,6 +1539,8 @@ public class MyTorrentsView
       return up;
     if(itemKey.equals("down"))
       return down;
+    if(itemKey.equals("share"))
+      return remove;
     return false;
   }
 
