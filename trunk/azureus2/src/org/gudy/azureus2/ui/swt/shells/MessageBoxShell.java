@@ -290,7 +290,7 @@ public class MessageBoxShell
 								} else {
 									String sText = "";
 
-									if (lblCloseIn == null || lblCloseIn.isDisposed())
+									if (lblCloseIn.isDisposed())
 										return;
 
 									if (!bDelayPaused) {
