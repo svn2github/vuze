@@ -112,7 +112,7 @@ public class ColumnVuzeActivity
 		colorNewsBG = skinProperties.getColor("color.vuze-entry.news.bg");
 		colorNewsFG = skinProperties.getColor("color.vuze-entry.news.fg");
 		
-		imgDelete = ImageRepository.getImage("progress_remove"); 
+		//imgDelete = ImageRepository.getImage("progress_remove"); 
 	}
 
 	public void cellAdded(TableCell cell) {
