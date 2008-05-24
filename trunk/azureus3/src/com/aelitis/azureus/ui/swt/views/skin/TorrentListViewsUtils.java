@@ -97,7 +97,7 @@ public class TorrentListViewsUtils
 {
 
 	public static SWTSkinButtonUtility addShareButton(final SWTSkin skin,
-			String PREFIX, final ListView view) {
+			final String PREFIX, final ListView view) {
 		SWTSkinObject skinObject = skin.getSkinObject(PREFIX + "send-selected");
 		if (skinObject == null) {
 			return null;
@@ -113,7 +113,7 @@ public class TorrentListViewsUtils
 					 * KN: we're only supporting sharing a single content right now
 					 */
 					VuzeShareUtils.getInstance().shareTorrent(contents[0],
-							view.getTableID() + "-btn");
+							PREFIX + "-btn");
 				}
 			}
 		});
