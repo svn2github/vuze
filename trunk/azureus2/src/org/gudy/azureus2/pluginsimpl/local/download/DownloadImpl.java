@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.category.*;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.core3.download.impl.DownloadManagerMoveHandler;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.torrent.*;
@@ -64,6 +65,7 @@ import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
 import org.gudy.azureus2.plugins.download.DownloadWillBeRemovedListener;
 import org.gudy.azureus2.plugins.download.session.SessionAuthenticator;
+import org.gudy.azureus2.plugins.download.savelocation.SaveLocationChange;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogRelation;
@@ -842,16 +844,19 @@ DownloadImpl
 		// System.out.println("Plug: dl = " + getName() + ", prev = " + prev_state + ", curr = " + latest_state + ", signalled state = " + state);
 		
 		boolean curr_forcedStart = isForceStart();
-	
+		
+		// Copy reference in case any attempts to remove or add listeners are tried.
+		List listeners_to_use = listeners;
+		
 		if ( prev_state != latest_state || latest_forcedStart != curr_forcedStart ){
 			
 			latest_forcedStart = curr_forcedStart;
 			
-			for (int i=0;i<listeners.size();i++){
+			for (int i=0;i<listeners_to_use.size();i++){
 				
 				try{
 					long startTime = SystemTime.getCurrentTime();
-					DownloadListener listener = (DownloadListener)listeners.get(i);
+					DownloadListener listener = (DownloadListener)listeners_to_use.get(i);
 
 					listener.stateChanged( this, prev_state, latest_state );
 					
@@ -1594,10 +1599,13 @@ DownloadImpl
  		}  	
  	}
   	
-  	// I added this for my save path plugin, I think I might want to get rid of it...
+  	/**
+  	 * @deprecated
+  	 */
   	public File[] calculateDefaultPaths(boolean for_moving) {
-  		if (!for_moving) {throw new RuntimeException("for_moving is false");}
-  		return download_manager.calculateDefaultPaths();
+  	  SaveLocationChange slc = this.calculateDefaultDownloadLocation(); 
+	  if (slc == null) {return null;}
+	  return new File[] {slc.download_location, slc.torrent_location};
   	}
   	
   	public boolean isInDefaultSaveDir() {
@@ -1700,6 +1708,10 @@ DownloadImpl
 			try {dal.attributeEventOccurred(this, attr, event_type);}
 			catch (Throwable t) {Debug.printStackTrace(t);}
 		}
+	}
+	
+	public SaveLocationChange calculateDefaultDownloadLocation() {
+		return DownloadManagerMoveHandler.recalculatePath(this.download_manager);
 	}
 	
 }
