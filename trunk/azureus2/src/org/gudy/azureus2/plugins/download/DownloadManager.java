@@ -25,6 +25,7 @@ import java.io.File;
 import java.net.URL;
 
 import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.download.savelocation.DefaultSaveLocationManager;
 import org.gudy.azureus2.plugins.download.savelocation.SaveLocationManager;
 
 /**
@@ -368,8 +369,8 @@ DownloadManager
 	 * Returns the default {@link SaveLocationManager} object that controls
 	 * where downloads should be placed.
 	 * 
-	 * @return The manager object currently in use.
+	 * @return The default save location manager object.
 	 * @since 3.0.5.3 
 	 */
-	public SaveLocationManager getDefaultSaveLocationManager();
+	public DefaultSaveLocationManager getDefaultSaveLocationManager();
 }
