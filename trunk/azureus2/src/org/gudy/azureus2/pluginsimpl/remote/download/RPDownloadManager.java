@@ -30,7 +30,7 @@ import java.io.*;
 import java.net.*;
 
 import org.gudy.azureus2.plugins.download.*;
-import org.gudy.azureus2.plugins.download.savelocation.SaveLocationManager;
+import org.gudy.azureus2.plugins.download.savelocation.*;
 import org.gudy.azureus2.plugins.torrent.*;
 
 import org.gudy.azureus2.pluginsimpl.remote.*;
@@ -458,7 +458,7 @@ RPDownloadManager
 		return null;
 	}	
 
-	public SaveLocationManager getDefaultSaveLocationManager() {
+	public DefaultSaveLocationManager getDefaultSaveLocationManager() {
 		notSupported();
 		return null;
 	}
