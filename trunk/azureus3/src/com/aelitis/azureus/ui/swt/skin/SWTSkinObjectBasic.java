@@ -7,10 +7,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -55,6 +53,10 @@ public class SWTSkinObjectBasic
 
 	private boolean isVisible;
 
+	protected Color bgColor;
+
+	private boolean roundedBorder;
+	
 	/**
 	 * @param properties TODO
 	 * 
@@ -348,7 +350,14 @@ public class SWTSkinObjectBasic
 
 				Color color = properties.getColor(sConfigID + ".color" + sSuffix);
 				if (color != null) {
-					control.setBackground(color);
+					bgColor = color;
+					String colorStyle = properties.getStringValue(sConfigID
+							+ ".color.style" + sSuffix);
+					if (colorStyle != null) {
+						roundedBorder = colorStyle.equals("rounded");
+					} else {
+						control.setBackground(bgColor);
+					}
 				}
 
 				Color fg = properties.getColor(sConfigID + ".fgcolor" + sSuffix);
@@ -507,5 +516,22 @@ public class SWTSkinObjectBasic
 				control.setToolTipText(MessageText.getString(id));
 			}
 		});
+	}
+
+	public void paintControl(GC gc) {
+		if (bgColor != null) {
+			gc.setBackground(bgColor);
+		}
+
+		if (roundedBorder) {
+			try {
+				gc.setAdvanced(true);
+				gc.setAntialias(SWT.ON);
+			} catch (Exception e) {
+				
+			}
+			Rectangle bounds = control.getBounds();
+  		gc.fillRoundRectangle(0, 0, bounds.width, bounds.height, 10, 8);
+		}
 	}
 }

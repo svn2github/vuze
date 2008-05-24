@@ -65,6 +65,10 @@ public class SWTSkinObjectText2
 	private boolean allcaps;
 	
 	private boolean shadow;
+	
+	private int hpadding;
+
+	private int vpadding;
 
 	private static Font font = null;
 
@@ -144,8 +148,8 @@ public class SWTSkinObjectText2
 				}
 
 				pt = gc.textExtent(sDisplayText);
-				pt.x += border;
-				pt.y += border;
+				pt.x += border + hpadding;
+				pt.y += border + vpadding;
 				gc.dispose();
 
 				if (bUnderline) {
@@ -234,6 +238,9 @@ public class SWTSkinObjectText2
 		if (color != null) {
 			canvas.setData("color", color);
 		}
+		
+		hpadding = properties.getIntValue(sPrefix + ".h-padding", 0);
+		vpadding = properties.getIntValue(sPrefix + ".v-padding", 0);
 
 		Font existingFont = (Font) canvas.getData("Font" + suffix);
 		if (existingFont != null && !existingFont.isDisposed()) {
@@ -384,6 +391,7 @@ public class SWTSkinObjectText2
 				canvas.setData("Font" + suffix, canvasFont);
 			}
 		}
+		
 
 		canvas.redraw();
 	}
@@ -418,6 +426,8 @@ public class SWTSkinObjectText2
 		if (sText == null || sText.length() == 0) {
 			return;
 		}
+		
+		super.paintControl(e.gc);
 
 		Composite composite = (Composite) e.widget;
 		Rectangle clientArea = composite.getClientArea();
@@ -455,7 +465,6 @@ public class SWTSkinObjectText2
 			e.gc.setForeground(foreground);
 		}
 		
-
 		GCStringPrinter.printString(e.gc, sDisplayText, clientArea, true, false,
 				style);
 	}
