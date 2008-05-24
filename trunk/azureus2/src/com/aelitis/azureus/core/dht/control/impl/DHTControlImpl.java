@@ -1455,7 +1455,7 @@ DHTControlImpl
 
 	
 	static ArrayList running = new ArrayList();
-	final boolean useBlocking = false;
+	final boolean useBlocking = true;
 
 	
 	protected void lookup(ThreadPool thread_pool, boolean high_priority, final byte[] lookup_id, final String description, final byte flags, final boolean value_search, final long timeout, final int concurrency, final int max_values, final int search_accuracy, final lookupResultHandler handler)
