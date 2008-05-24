@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
@@ -138,8 +139,8 @@ public class SharePage
 				"color.text.fg");
 		textDarkerColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
 				"color.widget.heading");
-		widgetBackgroundColor = ColorCache.getColor(content.getDisplay(), 35, 35,
-				35);
+		widgetBackgroundColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
+				"color.widget.container.bg");
 
 		createFirstPanel();
 		createBrowserPanel();
@@ -170,11 +171,11 @@ public class SharePage
 		contentDetail = new Composite(firstPanel, SWT.NONE);
 		sendNowButton = new BubbleButton(firstPanel);
 		cancelButton = new BubbleButton(firstPanel);
-		contentThumbnail = new Label(contentDetail, SWT.BORDER);
+		contentThumbnail = new Label(contentDetail, SWT.NONE);
 		contentStats = new StyledText(contentDetail, SWT.NONE);
 		optionalMessageLabel = new Label(contentDetail, SWT.NONE);
 		optionalMessageDisclaimerLabel = new Label(firstPanel, SWT.NONE);
-		commentText = new Text(contentDetail, SWT.BORDER);
+		commentText = new Text(contentDetail, SWT.NONE);
 
 		optionalMessageDisclaimerLinkLabel = new SkinLinkLabel(firstPanel,
 				Constants.URL_FAQ);
@@ -208,20 +209,20 @@ public class SharePage
 		FormData buddyListDescriptionData = new FormData();
 		buddyListDescriptionData.top = new FormAttachment(shareHeaderMessageLabel,
 				24);
-		buddyListDescriptionData.left = new FormAttachment(shareHeaderLabel, 30,
+		buddyListDescriptionData.left = new FormAttachment(shareHeaderLabel, 35,
 				SWT.LEFT);
 		buddyListDescription.setLayoutData(buddyListDescriptionData);
 
 		FormData buddyListData = new FormData();
 		buddyListData.top = new FormAttachment(buddyListDescription, 6);
-		buddyListData.left = new FormAttachment(shareHeaderLabel, 30, SWT.LEFT);
+		buddyListData.left = new FormAttachment(buddyListDescription, -2, SWT.LEFT);
 		buddyListData.width = 315;
 		buddyListData.height = 115;
 		buddyList.setLayoutData(buddyListData);
 
 		FormData inviteeListDescriptionData = new FormData();
 		inviteeListDescriptionData.top = new FormAttachment(buddyList, 8);
-		inviteeListDescriptionData.left = new FormAttachment(shareHeaderLabel, 30,
+		inviteeListDescriptionData.left = new FormAttachment(shareHeaderLabel, 35,
 				SWT.LEFT);
 		inviteeListDescription.setLayoutData(inviteeListDescriptionData);
 
@@ -339,8 +340,9 @@ public class SharePage
 		inviteeListDescription.setForeground(textDarkerColor);
 		optionalMessageLabel.setForeground(textDarkerColor);
 		optionalMessageDisclaimerLabel.setForeground(textDarkerColor);
+		addBuddyPromptLabel.setForeground(textDarkerColor);
 
-		addBuddyPromptLabel.setForeground(textColor);
+		contentStats.setForeground(textColor);
 		inviteeList.setForeground(textColor);
 		buddyList.setForeground(textColor);
 		shareHeaderMessageLabel.setForeground(textColor);
@@ -360,8 +362,6 @@ public class SharePage
 			}
 		});
 
-		contentStats.setForeground(textColor);
-
 		contentDetail.setBackground(widgetBackgroundColor);
 		buddyList.setBackground(widgetBackgroundColor);
 		inviteePanel.setBackground(widgetBackgroundColor);
@@ -380,6 +380,7 @@ public class SharePage
 		Messages.setLanguageText(shareHeaderMessageLabel, "v3.Share.header.message");
 		Messages.setLanguageText(buddyListDescription,
 				"v3.Share.add.buddy.existing");
+
 		Messages.setLanguageText(inviteeListDescription, "v3.Share.add.buddy.new");
 
 		addBuddyButton.setText(MessageText.getString("v3.Share.add.buddy"));

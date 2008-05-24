@@ -57,9 +57,12 @@ public class BubbleButton
 
 		SWTSkin skin = SWTSkinFactory.getInstance();
 		foregroundColors[0] = skin.getSkinProperties().getColor("color.text.fg");
-		foregroundColors[1] = skin.getSkinProperties().getColor("color.text.over");
+		foregroundColors[1] = skin.getSkinProperties().getColor("color.text.fg");
 		foregroundColors[2] = skin.getSkinProperties().getColor(
-				"color.text.disabled");
+				"color.text.fg");
+//		foregroundColors[1] = skin.getSkinProperties().getColor("color.text.over");
+//		foregroundColors[2] = skin.getSkinProperties().getColor(
+//				"color.text.disabled");
 
 		setInset(new Inset(20, 20, 0, 0));
 

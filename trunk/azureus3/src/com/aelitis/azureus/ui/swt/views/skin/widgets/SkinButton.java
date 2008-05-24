@@ -16,6 +16,7 @@ import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 
 public abstract class SkinButton
 	extends Canvas
@@ -62,6 +63,9 @@ public abstract class SkinButton
 	}
 
 	private void init() {
+		
+		setCursor(Cursors.handCursor);
+		
 		addPaintListener(new PaintListener() {
 
 			public void paintControl(PaintEvent e) {

@@ -167,7 +167,7 @@ public class DetailPanel
 		Utils.execSWTThread(new AERunnable() {
 
 			public void runSupport() {
-
+				int DETAIL_PANEL_HEIGHT = 463;
 				SWTSkinObject detailPanelObject = skin.getSkinObject(SkinConstants.VIEWID_DETAIL_PANEL);
 				Control control = detailPanelObject.getControl();
 
@@ -183,8 +183,8 @@ public class DetailPanel
 				}
 
 				Point size = detailPanelObject.getControl().getSize();
-				if (detailPanelObject != null) {
 
+				if (detailPanelObject != null) {
 					UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 
 					IMainWindow mainWindow = uiFunctions.getMainWindow();
@@ -199,28 +199,27 @@ public class DetailPanel
 						}
 
 						lbShell = new LightBoxShell(uiFunctions.getMainShell(), false);
-						int insetHeight = mainWindow.getMetrics(IMainWindow.WINDOW_CONTENT_DISPLAY_AREA).height;
-						insetHeight += mainWindow.getMetrics(IMainWindow.WINDOW_ELEMENT_STATUSBAR).height;
-						lbShell.setInsets(0, insetHeight, 0, 0);
-						lbShell.setStyleMask(LightBoxShell.RESIZE_HORIZONTAL);
-						lbShell.open();
-
 						/*
-						 * Calculate height of detail panel
+						 * Calculate the offset from the bottom for the lightbox
+						 * We're subtracting the status bar
 						 */
-						size.y = mainWindow.getMetrics(IMainWindow.WINDOW_CONTENT_DISPLAY_AREA).height;
-
+						int offsetHeight = DETAIL_PANEL_HEIGHT;
+						offsetHeight += mainWindow.getMetrics(IMainWindow.WINDOW_ELEMENT_STATUSBAR).height;
 						SWTSkinObject footerObject = skin.getSkinObject(SkinConstants.VIEWID_FOOTER);
 						if (null != footerObject) {
-							size.y -= footerObject.getControl().getSize().y;
+							offsetHeight += footerObject.getControl().getSize().y;
 						}
 
 						SWTSkinObject buttonBarObject = skin.getSkinObject(SkinConstants.VIEWID_BUTTON_BAR);
 						if (null != buttonBarObject) {
-							size.y -= buttonBarObject.getControl().getSize().y;
+							offsetHeight += buttonBarObject.getControl().getSize().y;
 						}
 
-						size.y -= 1; // minus a pixel so it does not run into the tabbar above
+						lbShell.setInsets(0, offsetHeight, 0, 0);
+						lbShell.setStyleMask(LightBoxShell.RESIZE_HORIZONTAL
+								| LightBoxShell.RESIZE_VERTICAL);
+						lbShell.setAlphaLevel(200);
+						lbShell.open();
 
 						/*
 						 * Hack into the SWTSkinUtils.setVisibility() behavior by overriding the height
@@ -231,6 +230,8 @@ public class DetailPanel
 						 * is different in that it needs to grow enough in height to 'push' other views up and
 						 * out of visibility.
 						 */
+
+						size.y = DETAIL_PANEL_HEIGHT;
 						control.setData("v3.oldHeight", size);
 
 					} else {
