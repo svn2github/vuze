@@ -37,7 +37,6 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
@@ -50,7 +49,6 @@ import com.aelitis.azureus.ui.swt.browser.listener.AbstractBuddyPageListener;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractStatusListener;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
-import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.views.skin.widgets.BubbleButton;
@@ -157,10 +155,10 @@ public class SharePage
 
 		firstPanel = new Composite(content, SWT.NONE);
 
-		shareHeaderLabel = new Label(firstPanel, SWT.NONE);
-		shareHeaderMessageLabel = new Label(firstPanel, SWT.NONE);
-		buddyListDescription = new Label(firstPanel, SWT.NONE);
-		inviteeListDescription = new Label(firstPanel, SWT.NONE);
+		shareHeaderLabel = new Label(firstPanel, SWT.READ_ONLY);
+		shareHeaderMessageLabel = new Label(firstPanel, SWT.READ_ONLY);
+		buddyListDescription = new Label(firstPanel, SWT.READ_ONLY);
+		inviteeListDescription = new Label(firstPanel, SWT.READ_ONLY);
 
 		buddyList = new StyledText(firstPanel, SWT.NONE);
 		inviteePanel = new Composite(firstPanel, SWT.NONE);
@@ -175,7 +173,7 @@ public class SharePage
 		contentStats = new StyledText(contentDetail, SWT.NONE);
 		optionalMessageLabel = new Label(contentDetail, SWT.NONE);
 		optionalMessageDisclaimerLabel = new Label(firstPanel, SWT.NONE);
-		commentText = new Text(contentDetail, SWT.NONE);
+		commentText = new Text(contentDetail, SWT.WRAP);
 
 		optionalMessageDisclaimerLinkLabel = new SkinLinkLabel(firstPanel,
 				Constants.URL_FAQ);
@@ -343,6 +341,9 @@ public class SharePage
 		addBuddyPromptLabel.setForeground(textDarkerColor);
 
 		contentStats.setForeground(textColor);
+		contentStats.getCaret().setVisible(false);
+		contentStats.setEditable(false);
+		
 		inviteeList.setForeground(textColor);
 		buddyList.setForeground(textColor);
 		shareHeaderMessageLabel.setForeground(textColor);
