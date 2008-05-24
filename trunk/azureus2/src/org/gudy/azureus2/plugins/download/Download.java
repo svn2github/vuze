@@ -24,6 +24,9 @@ package org.gudy.azureus2.plugins.download;
 import java.io.File;
 import java.util.Map;
 
+import org.gudy.azureus2.plugins.download.savelocation.DefaultSaveLocationManager;
+import org.gudy.azureus2.plugins.download.savelocation.SaveLocationChange;
+import org.gudy.azureus2.plugins.download.savelocation.SaveLocationManager;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.disk.DiskManager;
@@ -937,21 +940,23 @@ Download extends DownloadEventNotifier
    * @param for_moving Indicates whether you want this information for the purposes
    *     of moving the download or not.
    * @author amc1
+   * @deprecated Use {@link #calculateDefaultDownloadLocation()} instead.
    * @return An array of type <tt>File</tt> of size 2, first element containing the
    *     calculated location for the download's data files, and the second element
    *     containing the location for the download's torrent file.
    */
   public File[] calculateDefaultPaths(boolean for_moving);
-  
+
   /**
    * Returns <tt>true</tt> if the download is being saved to one of the default
    * save directories.
    * 
    * @since 2.5.0.2
+   * @deprecated Use {@link DefaultSaveLocationManager#isInDefaultSaveDir(Download)} instead.
    * @author amc1
    */
   public boolean isInDefaultSaveDir();
-
+  
   /**
    * @since 3.4.0.3
    * @return
@@ -966,5 +971,15 @@ Download extends DownloadEventNotifier
    * @since 3.5.0.1
    */
   public boolean canMoveDataFiles();
+  
+  /**
+   * Returns a {@link SaveLocationChange} object describing the appropriate location
+   * for the download (and torrent file) to exist in, based on the download's completion
+   * state, the <tt>for-completion</tt> rules in place, and the {@link SaveLocationManager}
+   * object in use.
+   * 
+   * @since 3.0.5.3 
+   */
+  public SaveLocationChange calculateDefaultDownloadLocation();
 
 }
