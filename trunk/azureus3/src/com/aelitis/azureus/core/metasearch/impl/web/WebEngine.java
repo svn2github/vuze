@@ -167,7 +167,16 @@ WebEngine
 		for (int i=0;i<mappings.length;i++){
 			
 			Map	m = (Map)maps.get(i);
-						
+				
+				// backwards compact from when there was a mapping entry
+			
+			Map test = (Map)m.get( "mapping" );
+			
+			if ( test != null ){
+				
+				m = test;
+			}
+			
 			String	vuze_field 	= importString( m, "vuze_field" ).toUpperCase();
 			
 			String	field_name	= importString( m, "group_nb" );	// regexp case

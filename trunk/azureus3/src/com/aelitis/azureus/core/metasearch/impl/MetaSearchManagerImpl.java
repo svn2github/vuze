@@ -343,9 +343,12 @@ MetaSearchManagerImpl
 						log( "Not updating " + this_engine.getString() + " as unchanged" );
 					}
 					
-					if ( this_engine.getSelectionState() == Engine.SEL_STATE_DESELECTED ){
+					if ( this_engine != null ){
+							
+						if ( this_engine.getSelectionState() == Engine.SEL_STATE_DESELECTED ){
 						
-						this_engine.setSelectionState( Engine.SEL_STATE_AUTO_SELECTED );
+							this_engine.setSelectionState( Engine.SEL_STATE_AUTO_SELECTED );
+						}
 					}
 				}
 				
