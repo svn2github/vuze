@@ -32,6 +32,7 @@ import java.util.Map;
 import org.gudy.azureus2.plugins.disk.DiskManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.*;
+import org.gudy.azureus2.plugins.download.savelocation.*;
 import org.gudy.azureus2.plugins.download.session.SessionAuthenticator;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.torrent.*;
@@ -988,4 +989,5 @@ RPDownload
 	
 	public boolean isRemoved() {notSupported();	return false; }
 	public boolean canMoveDataFiles() {notSupported(); return false;}
+	public SaveLocationChange calculateDefaultDownloadLocation() {notSupported(); return null;}
 }
