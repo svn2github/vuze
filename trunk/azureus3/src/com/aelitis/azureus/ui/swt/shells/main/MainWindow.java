@@ -1758,56 +1758,33 @@ public class MainWindow
 
 		Text text = null;
 
-		if (Constants.isOSX) {
-			try {
-				cArea.setVisible(false);
-				cArea.getParent().setBackgroundImage(null);
+		text = new Text(cArea, SWT.NONE);
+		FormData filledFormData = Utils.getFilledFormData();
+		text.setLayoutData(filledFormData);
 
-				text = new Text(cArea.getParent(), SWT.SEARCH | SWT.CANCEL);
+		text.addListener(SWT.Resize, new Listener() {
+			// @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
+			public void handleEvent(Event event) {
+				Text text = (Text) event.widget;
 
-				FormData filledFormData = Utils.getFilledFormData();
-				text.setLayoutData(filledFormData);
+				int h = text.getClientArea().height - 2;
+				Font font = Utils.getFontWithHeight(text.getFont(), null, h);
+				if (font != null) {
+					text.setFont(font);
+					final Font fFont = font;
 
-				FormData fd = (FormData) cArea.getParent().getLayoutData();
-				fd.height = 24; //text.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
-				fd.top = new FormAttachment(0, -3);
-				cArea.getParent().setLayoutData(fd);
-				cArea.getParent().layout(true);
-			} catch (Throwable t) {
-				// >= 3.3 has the SWT.SEARCH type 
-			}
-		}
-
-		if (text == null) {
-			text = new Text(cArea, SWT.NONE);
-			FormData filledFormData = Utils.getFilledFormData();
-			text.setLayoutData(filledFormData);
-
-			text.addListener(SWT.Resize, new Listener() {
-				// @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
-				public void handleEvent(Event event) {
-					Text text = (Text) event.widget;
-
-					int h = text.getClientArea().height - 2;
-					Font font = Utils.getFontWithHeight(text.getFont(), null, h);
-					if (font != null) {
-						text.setFont(font);
-						final Font fFont = font;
-
-						text.addDisposeListener(new DisposeListener() {
-							public void widgetDisposed(DisposeEvent e) {
-								Text text = (Text) e.widget;
-								if (!fFont.isDisposed()) {
-									text.setFont(null);
-									fFont.dispose();
-								}
+					text.addDisposeListener(new DisposeListener() {
+						public void widgetDisposed(DisposeEvent e) {
+							Text text = (Text) e.widget;
+							if (!fFont.isDisposed()) {
+								text.setFont(null);
+								fFont.dispose();
 							}
-						});
-					}
+						}
+					});
 				}
-			});
-
-		}
+			}
+		});
 		text.setTextLimit(254);
 
 		final String sDefault = MessageText.getString("v3.MainWindow.search.defaultText");
