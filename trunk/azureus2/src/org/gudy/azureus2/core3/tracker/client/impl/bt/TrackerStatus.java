@@ -534,7 +534,7 @@ public class TrackerStatus {
 					TRTrackerUtils.setAZTracker( tracker_url, az_tracker );
 				}
 				
-				Map mapFiles = map == null ? null : (Map) map.get("files");
+				Map mapFiles = (Map) map.get("files");
 
 				if (Logger.isEnabled())
 					Logger.log(new LogEvent(LOGID, "Response from scrape interface "
