@@ -694,7 +694,7 @@ public class MainWindow
 					final String id = "share";
 					tiShare.setData(id, "share");
 					((ToolItem) tiShare.getWidget()).setToolTipText(MessageText.getString("v3.MainWindow.button.sendtofriend"));
-					final Image shareImage = imageLoader.getImage("image.button.share");
+					final Image shareImage = imageLoader.getImage("image.button.sharewhite");
 					Image newTagImage = imageLoader.getImage("image.newtag");
 					final Rectangle shareBounds = shareImage.getBounds();
 					int width = shareBounds.width + newTagImage.getBounds().width;
@@ -721,7 +721,8 @@ public class MainWindow
 							tiShare.setImage(dstImage1);
 							SelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
 							if (contents.length > 0) {
-								VuzeShareUtils.getInstance().shareTorrent(contents[0]);
+								VuzeShareUtils.getInstance().shareTorrent(contents[0],
+										"advanced");
 							}
 						}
 					});
@@ -983,11 +984,11 @@ public class MainWindow
 											if (ptLastMousePos.x > 0) {
 												ptLastMousePos.x = 0;
 												ptLastMousePos.y = 0;
-												lLastMouseMove = SystemTime.getCurrentTime();
+												lLastMouseMove = 0;
 											}
 											return;
 										}
-
+										
 										Point pt = shell.getDisplay().getCursorLocation();
 										if (pt.equals(ptLastMousePos)) {
 											return;
@@ -995,12 +996,15 @@ public class MainWindow
 										ptLastMousePos = pt;
 
 										long now = SystemTime.getCurrentTime();
-										long diff = now - lLastMouseMove;
-										if (diff < 10000) {
-											lCurrentTrackTime += diff;
-										} else {
-											lCurrentTrackTimeIdle += diff;
+										if (lLastMouseMove > 0) {
+  										long diff = now - lLastMouseMove;
+  										if (diff < 10000) {
+  											lCurrentTrackTime += diff;
+  										} else {
+  											lCurrentTrackTimeIdle += diff;
+  										}
 										}
+
 										lLastMouseMove = now;
 									}
 								});
@@ -1012,6 +1016,7 @@ public class MainWindow
 
 					public void handleEvent(Event event) {
 						if (event.type == SWT.Activate) {
+							lCurrentTrackTimeIdle = 0;
 							if (start > 0 && lastShellStatus != null) {
 								lCurrentTrackTime = SystemTime.getCurrentTime() - start;
 								updateMapTrackUsage(lastShellStatus);

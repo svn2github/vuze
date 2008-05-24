@@ -6,6 +6,7 @@ import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
+import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
 
@@ -23,7 +24,9 @@ public class VuzeShareUtils
 		return instance;
 	}
 
-	public void shareTorrent(final SelectedContent currentContent) {
+	public void shareTorrent(final SelectedContent currentContent, String referer) {
+		PlatformBuddyMessenger.startShare(referer);
+
 		if (!VuzeBuddyManager.isEnabled()) {
 			VuzeBuddyManager.showDisabledDialog();
 			return;

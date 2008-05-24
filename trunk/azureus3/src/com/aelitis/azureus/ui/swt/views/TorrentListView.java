@@ -906,7 +906,7 @@ public class TorrentListView
 		Messages.setLanguageText(itemShare, "v3.Share.menu");
 		itemShare.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				shareTorrents();
+				shareTorrents(getTableID() + "-menu");
 			}
 		});
 		itemShare.setEnabled(hasSelection);
@@ -937,13 +937,13 @@ public class TorrentListView
 		}
 	}
 
-	private void shareTorrents() {
+	private void shareTorrents(String referer) {
 		SelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
 		if (contents.length > 0) {
 			/*
 			 * KN: we're only supporting sharing a single content right now
 			 */
-			VuzeShareUtils.getInstance().shareTorrent(contents[0]);
+			VuzeShareUtils.getInstance().shareTorrent(contents[0], referer);
 		}
 	}
 

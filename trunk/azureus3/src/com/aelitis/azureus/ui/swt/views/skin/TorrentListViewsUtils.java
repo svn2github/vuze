@@ -112,7 +112,8 @@ public class TorrentListViewsUtils
 					/*
 					 * KN: we're only supporting sharing a single content right now
 					 */
-					VuzeShareUtils.getInstance().shareTorrent(contents[0]);
+					VuzeShareUtils.getInstance().shareTorrent(contents[0],
+							view.getTableID() + "-btn");
 				}
 			}
 		});
