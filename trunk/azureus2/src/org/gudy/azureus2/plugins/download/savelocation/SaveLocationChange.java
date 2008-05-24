@@ -120,4 +120,24 @@ public class SaveLocationChange {
 		return this.torrent_location != null || this.torrent_name != null;
 	}
 	
+	/**
+	 * Returns <tt>true</tt> if this object represents a download location
+	 * different to the one provided - it will check whether the location
+	 * represented here is already the same as the one provided.
+	 */
+	public final boolean isDifferentDownloadLocation(File current_location) {
+		if (!hasDownloadChange()) {return false;}
+		return current_location.equals(this.normaliseDownloadLocation(current_location));
+	}
+
+	/**
+	 * Returns <tt>true</tt> if this object represents a torrent location
+	 * different to the one provided - it will check whether the location
+	 * represented here is already the same as the one provided.
+	 */
+	public final boolean isDifferentTorrentLocation(File current_location) {
+		if (!hasTorrentChange()) {return false;}
+		return current_location.equals(this.normaliseTorrentLocation(current_location));
+	}
+	
 }
