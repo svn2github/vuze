@@ -85,9 +85,9 @@ ThreadPoolTask
 			manualRelease = RELEASE_AUTO;
 		else if(manualRelease == RELEASE_MANUAL_ALLOWED)
 		{
-			manualRelease = RELEASE_AUTO;
-			worker.getOwner(); // release semaphore here
 			taskCompleted();
+			worker.getOwner().releaseManual(this);
+			manualRelease = RELEASE_AUTO;
 		}
 	}
 }

@@ -26,7 +26,9 @@ package org.gudy.azureus2.core3.util;
  *
  */
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -120,7 +122,7 @@ ThreadPool
 	private boolean	queue_when_full;
 	private List	task_queue	= new ArrayList();
 	
-	private AESemaphore	thread_sem;
+	AESemaphore	thread_sem;
 	
 	private int			thread_priority	= Thread.NORM_PRIORITY;
 	private boolean		warn_when_full;
@@ -463,6 +465,30 @@ ThreadPool
 		return (name);
 	}
 
+	void releaseManual(ThreadPoolTask toRelease) {
+		if(!busy.contains(toRelease.worker) || toRelease.manualRelease != ThreadPoolTask.RELEASE_MANUAL_ALLOWED)
+			throw new IllegalStateException("task already released or not manually releasable");
+
+		synchronized (ThreadPool.this)
+		{
+			long elapsed = SystemTime.getCurrentTime() - toRelease.worker.run_start_time;
+			if (elapsed > WARN_TIME && LOG_WARNINGS)
+				DebugLight.out(toRelease.worker.getWorkerName() + ": terminated, elapsed = " + elapsed + ", state = " + toRelease.worker.state);
+			
+			busy.remove(toRelease.worker);
+			
+			// if debug is on we leave the pool registered so that we
+			// can trace on the timeout events
+			if (busy.size() == 0 && !debug_thread_pool)
+				synchronized (busy_pools)
+				{
+					busy_pools.remove(ThreadPool.this);
+				}
+		}
+		
+		thread_sem.release();
+	}
+
 	
 	class threadPoolWorker extends AEThread2 {
 		private final String		worker_name;
@@ -570,21 +596,24 @@ ThreadPool
 						DebugLight.printStackTrace(e);
 					} finally
 					{
-						synchronized (ThreadPool.this)
+						if(autoRelease)
 						{
-							long elapsed = SystemTime.getCurrentTime() - run_start_time;
-							if (elapsed > WARN_TIME && LOG_WARNINGS)
-								DebugLight.out(getWorkerName() + ": terminated, elapsed = " + elapsed + ", state = " + state);
-							
-							busy.remove(threadPoolWorker.this);
-							
-							// if debug is on we leave the pool registered so that we
-							// can trace on the timeout events
-							if (busy.size() == 0 && !debug_thread_pool)
-								synchronized (busy_pools)
-								{
-									busy_pools.remove(ThreadPool.this);
-								}
+							synchronized (ThreadPool.this)
+							{
+								long elapsed = SystemTime.getCurrentTime() - run_start_time;
+								if (elapsed > WARN_TIME && LOG_WARNINGS)
+									DebugLight.out(getWorkerName() + ": terminated, elapsed = " + elapsed + ", state = " + state);
+								
+								busy.remove(threadPoolWorker.this);
+								
+								// if debug is on we leave the pool registered so that we
+								// can trace on the timeout events
+								if (busy.size() == 0 && !debug_thread_pool)
+									synchronized (busy_pools)
+									{
+										busy_pools.remove(ThreadPool.this);
+									}
+							}							
 						}
 					}
 				} while (runnable != null);
@@ -597,8 +626,7 @@ ThreadPool
 					thread_sem.release();
 			}
 		}
-
-
+		
 		public void setState(String _state) {
 			//System.out.println( "state = " + _state );
 			state = _state;

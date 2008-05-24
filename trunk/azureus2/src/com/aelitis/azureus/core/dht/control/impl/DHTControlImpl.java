@@ -690,7 +690,7 @@ DHTControlImpl
 				// we don't want this to be blocking as it'll stuff the stats
 			
 			external_lookup_pool.run(
-				new task(external_lookup_pool)
+				new DhtTask(external_lookup_pool)
 				{
 					private byte[]	target = {};
 					
@@ -1452,152 +1452,261 @@ DHTControlImpl
 		 * @param lookup_id
 		 * @return
 		 */
+
 	
-	protected void
-	lookup(
-		ThreadPool					thread_pool,
-		boolean						high_priority,
-		final byte[]				lookup_id,
-		final String				description,
-		final byte					flags,
-		final boolean				value_search,
-		final long					timeout,
-		final int					concurrency,
-		final int					max_values,
-		final int					search_accuracy,
-		final lookupResultHandler	handler )
+	static ArrayList running = new ArrayList();
+	final boolean useBlocking = false;
+
+	
+	protected void lookup(ThreadPool thread_pool, boolean high_priority, final byte[] lookup_id, final String description, final byte flags, final boolean value_search, final long timeout, final int concurrency, final int max_values, final int search_accuracy, final lookupResultHandler handler)
 	{
 		thread_pool.run(
-			new task(thread_pool)
+			new DhtTask(thread_pool)
 			{
-				public void
-				runSupport()
+				boolean timeout_occurred = false;
+
+				// keep querying successively closer nodes until we have got responses from the K
+				// closest nodes that we've seen. We might get a bunch of closer nodes that then
+				// fail to respond, which means we have reconsider further away nodes
+				// we keep a list of nodes that we have queried to avoid re-querying them
+				// we keep a list of nodes discovered that we have yet to query
+				// we have a parallel search limit of A. For each A we effectively loop grabbing
+				// the currently closest unqueried node, querying it and adding the results to the
+				// yet-to-query-set (unless already queried)
+				// we terminate when we have received responses from the K closest nodes we know
+				// about (excluding failed ones)
+				// Note that we never widen the root of our search beyond the initial K closest
+				// that we know about - this could be relaxed
+				// contacts remaining to query
+				// closest at front
+
+				final Set contacts_to_query = getClosestContactsSet(lookup_id, false);
+				final AEMonitor contacts_to_query_mon = new AEMonitor("DHTControl:ctq");
+				final Map level_map = new LightHashMap();
+
+				// record the set of contacts we've queried to avoid re-queries
+				final Map contacts_queried = new LightHashMap();
+				// record the set of contacts that we've had a reply from
+				// furthest away at front
+				final Set ok_contacts = new sortedTransportContactSet(lookup_id, false).getSet();
+				// this handles the search concurrency
+				AESemaphore search_sem = new AESemaphore("DHTControl:search", concurrency);
+				int idle_searches;
+				int active_searches;
+				int values_found;
+				int value_replies;
+				final Set values_found_set = new HashSet();
+				boolean key_blocked;
+				long start = SystemTime.getMonotonousTime();
+				
+
+				// start the lookup
+				public void	runSupport()
 				{
-					try{
-						lookupSupportSync( lookup_id, flags, value_search, timeout, concurrency, max_values, search_accuracy, handler, this );
+					running.add(this);
+					startLookup();
+				}
+
+				TimerEvent timeoutEvent;
+				
+				private void startLookup()
+				{
+					last_lookup = SystemTime.getCurrentTime();
+					handler.incrementCompletes();
+					
+					Iterator it = contacts_to_query.iterator();
+					while (it.hasNext())
+					{
+						DHTTransportContact contact = (DHTTransportContact) it.next();
+						handler.found(contact);
+						level_map.put(contact, new Integer(0));
+					}
+					
+					DHTLog.log("lookup for " + DHTLog.getString(lookup_id));
+					if (value_search && database.isKeyBlocked(lookup_id))
+					{
+						DHTLog.log("lookup: terminates - key blocked");
+						// bail out and pretend everything worked with zero results
+						terminateLookup(false);
+						return;
+					}
+					
+					if (timeout > 0 && !useBlocking)
+					{
+						timeoutEvent = SimpleTimer.addEvent("DHT lookup timeout", SystemTime.getCurrentTime()+timeout, new TimerEventPerformer() {
+							public void perform(TimerEvent event) {
+								DHTLog.log("lookup: terminates - timeout");
+								//System.out.println("timeout");
+								timeout_occurred = true;
+								terminateLookup(false);
+							}
+						});
+					}
 						
-					}catch( Throwable e ){
+					
+					
+					lookupSteps();
+				}
+				
+				private void terminateLookup(boolean error)
+				{
+					if(timeoutEvent != null)
+						timeoutEvent.cancel();
+					
+					synchronized (this)
+					{
+						if(runningState == -1)
+							return;
+						runningState = -1;						
+					}
+
+					running.remove(this);
+					
+					if(!error)
+					{
+						// maybe unterminated searches still going on so protect ourselves
+						// against concurrent modification of result set
+						List closest_res = null;
+						try
+						{
+							contacts_to_query_mon.enter();
+
+							if (DHTLog.isOn())
+							{
+								DHTLog.log("lookup complete for " + DHTLog.getString(lookup_id));
+								DHTLog.log("    queried = " + DHTLog.getString(contacts_queried));
+								DHTLog.log("    to query = " + DHTLog.getString(contacts_to_query));
+								DHTLog.log("    ok = " + DHTLog.getString(ok_contacts));
+							}
+
+							closest_res = new ArrayList(ok_contacts);
+							// we need to reverse the list as currently closest is at the end
+							Collections.reverse(closest_res);
+
+							if (timeout <= 0 && !value_search)
+								// we can use the results of this to estimate the DHT size
+								estimateDHTSize(lookup_id, contacts_queried, search_accuracy);
+
+						} finally
+						{
+							contacts_to_query_mon.exit();
+						}
 						
-						Debug.printStackTrace(e);
+						handler.closest(closest_res);
+					}
+					
+					handler.complete(timeout_occurred);
+					
+					releaseToPool();
+				}
+				
+				private int runningState = 1; // -1 terminated, 0 waiting, 1 running
+				private int freeTasksCount = concurrency;
+				
+				private synchronized boolean reserve()
+				{
+					if(freeTasksCount <= 0 || runningState == -1)
+					{
+						//System.out.println("reserve-exit");
+						if(runningState == 1)
+							runningState = 0;
+						return false;
+					}
+						
+					freeTasksCount--;
+					return true;
+				}
+				
+				private synchronized void release()
+				{
+					freeTasksCount++;
+					if(runningState == 0)
+					{
+						//System.out.println("release-start");
+						runningState = 1;
+						new AEThread2("DHT lookup runner",true) {
+							public void run() {
+								lookupSteps();
+							}
+						}.start();
 					}
 				}
 				
-				protected void lookupSupportSync(final byte[] lookup_id, byte flags, boolean value_search, long timeout, int concurrency, int max_values, final int search_accuracy, final lookupResultHandler result_handler, final ThreadPoolTask poolTask) {
-					boolean timeout_occurred = false;
-					last_lookup = SystemTime.getCurrentTime();
-					result_handler.incrementCompletes();
+				
+				// individual lookup steps
+				private void lookupSteps() {
 					try
 					{
-						DHTLog.log("lookup for " + DHTLog.getString(lookup_id));
-						if (value_search && database.isKeyBlocked(lookup_id))
-						{
-							DHTLog.log("lookup: terminates - key blocked");
-							// bail out and pretend everything worked with zero results
-							return;
-						}
-
-						// keep querying successively closer nodes until we have got responses from the K
-						// closest nodes that we've seen. We might get a bunch of closer nodes that then
-						// fail to respond, which means we have reconsider further away nodes
-						// we keep a list of nodes that we have queried to avoid re-querying them
-						// we keep a list of nodes discovered that we have yet to query
-						// we have a parallel search limit of A. For each A we effectively loop grabbing
-						// the currently closest unqueried node, querying it and adding the results to the
-						// yet-to-query-set (unless already queried)
-						// we terminate when we have received responses from the K closest nodes we know
-						// about (excluding failed ones)
-						// Note that we never widen the root of our search beyond the initial K closest
-						// that we know about - this could be relaxed
-						// contacts remaining to query
-						// closest at front
-
-						final Set contacts_to_query = getClosestContactsSet(lookup_id, false);
-						final AEMonitor contacts_to_query_mon = new AEMonitor("DHTControl:ctq");
-						final Map level_map = new LightHashMap();
-
-						Iterator it = contacts_to_query.iterator();
-						while (it.hasNext())
-						{
-							DHTTransportContact contact = (DHTTransportContact) it.next();
-							result_handler.found(contact);
-							level_map.put(contact, new Integer(0));
-						}
-						
-						// record the set of contacts we've queried to avoid re-queries
-						final Map contacts_queried = new LightHashMap();
-						// record the set of contacts that we've had a reply from
-						// furthest away at front
-						final Set ok_contacts = new sortedTransportContactSet(lookup_id, false).getSet();
-						// this handles the search concurrency
-						final AESemaphore search_sem = new AESemaphore("DHTControl:search", concurrency);
-						final int[] idle_searches = { 0 };
-						final int[] active_searches = { 0 };
-						final int[] values_found = { 0 };
-						final int[] value_replies = { 0 };
-						final Set values_found_set = new HashSet();
-						final boolean[] key_blocked = { false };
-						long start = SystemTime.getCurrentTime();
-						
-						
-						
-						
 						while (true)
 						{
 							if (timeout > 0)
 							{
-								long now = SystemTime.getCurrentTime();
-								// check for clock being set back
-								if (now < start)
-									start = now;
+								long now = SystemTime.getMonotonousTime();
 
 								long remaining = timeout - (now - start);
 								if (remaining <= 0)
 								{
 									DHTLog.log("lookup: terminates - timeout");
 									timeout_occurred = true;
+									if(!useBlocking)
+										terminateLookup(false);
 									break;
 								}
-								// get permission to kick off another search
-								if (!search_sem.reserve(remaining))
+								
+								if(useBlocking)
 								{
-									DHTLog.log("lookup: terminates - timeout");
-									timeout_occurred = true;
-									break;
-								}
+									if(!search_sem.reserve(remaining))
+									{
+										DHTLog.log("lookup: terminates - timeout");
+										timeout_occurred = true;
+										break;
+									}
+								} else if(!reserve())
+									break; // temporary stop, will be revived by release() or until a timeout occurs
+								
+
 							} else
-								search_sem.reserve();
-							
+								if(useBlocking)
+									search_sem.reserve();
+								else if(!reserve())
+									break; // temporary stop, will be revived by release()*/
+
 							try
 							{
 								contacts_to_query_mon.enter();
 
-								if (values_found[0] >= max_values || value_replies[0] >= 2)
-								// all hits should have the same values anyway...	
+								if (values_found >= max_values || value_replies >= 2)
+								{
+									// all hits should have the same values anyway...
+									if(!useBlocking)
+										terminateLookup(false);
 									break;
-								
+								}
+
 								// if we've received a key block then easiest way to terminate the query is to
 								// dump any outstanding targets
-								if (key_blocked[0])
-								{
+								if (key_blocked)
 									contacts_to_query.clear();
-								}
+
 								// if nothing pending then we need to wait for the results of a previous
 								// search to arrive. Of course, if there are no searches active then
 								// we've run out of things to do
 								if (contacts_to_query.size() == 0)
 								{
-									if (active_searches[0] == 0)
+									if (active_searches == 0)
 									{
 										DHTLog.log("lookup: terminates - no contacts left to query");
+										if(!useBlocking)
+											terminateLookup(false);
 										break;
 									}
-									idle_searches[0]++;
+									idle_searches++;
 									continue;
 								}
-								
+
 								// select the next contact to search
 								DHTTransportContact closest = (DHTTransportContact) contacts_to_query.iterator().next();
-								
+
 								// if the next closest is further away than the furthest successful hit so 
 								// far and we have K hits, we're done
 								if (ok_contacts.size() == search_accuracy)
@@ -1607,6 +1716,8 @@ DHTControlImpl
 									if (distance <= 0)
 									{
 										DHTLog.log("lookup: terminates - we've searched the closest " + search_accuracy + " contacts");
+										if(!useBlocking)
+											terminateLookup(false);
 										break;
 									}
 								}
@@ -1633,7 +1744,7 @@ DHTControlImpl
 											vp_closest = entry;
 											// System.out.println( start + ": lookup for " + DHTLog.getString2( lookup_id ) + ": vp override (dist = " + dist + ")");
 										}
-										
+
 										if (vp_closest != null) // override ID closest with VP closes
 											closest = vp_closest;
 									}
@@ -1643,15 +1754,18 @@ DHTControlImpl
 								// never search ourselves!
 								if (router.isID(closest.getID()))
 								{
-									search_sem.release();
+									if(useBlocking)
+										search_sem.release();
+									else
+										release();
 									continue;
 								}
 								final int search_level = ((Integer) level_map.get(closest)).intValue();
-								active_searches[0]++;
-								result_handler.searching(closest, search_level, active_searches[0]);
-								
-								
-								DHTTransportReplyHandlerAdapter handler = new DHTTransportReplyHandlerAdapter() {
+								active_searches++;
+								handler.searching(closest, search_level, active_searches);
+
+
+								DHTTransportReplyHandlerAdapter replyHandler = new DHTTransportReplyHandlerAdapter() {
 									private boolean	value_reply_received	= false;
 
 									public void findNodeReply(DHTTransportContact target_contact, DHTTransportContact[] reply_contacts) {
@@ -1691,12 +1805,15 @@ DHTControlImpl
 													{
 														DHTLog.log("    new contact for query: " + DHTLog.getString(contact));
 														contacts_to_query.add(contact);
-														result_handler.found(contact);
+														handler.found(contact);
 														level_map.put(contact, new Integer(search_level + 1));
-														if (idle_searches[0] > 0)
+														if (idle_searches > 0)
 														{
-															idle_searches[0]--;
-															search_sem.release();
+															idle_searches--;
+															if(useBlocking)
+																search_sem.release();
+															else
+																release();
 														}
 													} else
 													{
@@ -1712,27 +1829,29 @@ DHTControlImpl
 											try
 											{
 												contacts_to_query_mon.enter();
-												active_searches[0]--;
+												active_searches--;
 											} finally
 											{
 												contacts_to_query_mon.exit();
 											}
-											search_sem.release();
-										}
+											if(useBlocking)
+												search_sem.release();
+											else
+												release();										}
 									}
 
 									public void findValueReply(DHTTransportContact contact, DHTTransportValue[] values, byte diversification_type, boolean more_to_come) {
 										DHTLog.log("findValueReply: " + DHTLog.getString(values) + ",mtc=" + more_to_come + ", dt=" + diversification_type);
 										try
 										{
-											if (!key_blocked[0] && diversification_type != DHT.DT_NONE)
+											if (!key_blocked && diversification_type != DHT.DT_NONE)
 												// diversification instruction									
-												result_handler.diversify(contact, diversification_type);
+												handler.diversify(contact, diversification_type);
 
 											value_reply_received = true;
 											router.contactAlive(contact.getID(), new DHTControlContactImpl(contact));
 											int new_values = 0;
-											if (!key_blocked[0])
+											if (!key_blocked)
 											{
 												for (int i = 0; i < values.length; i++)
 												{
@@ -1749,7 +1868,7 @@ DHTControlImpl
 													{
 														new_values++;
 														values_found_set.add(x);
-														result_handler.read(contact, values[i]);
+														handler.read(contact, values[i]);
 													}
 												}
 											}
@@ -1757,8 +1876,8 @@ DHTControlImpl
 											{
 												contacts_to_query_mon.enter();
 												if (!more_to_come)
-													value_replies[0]++;
-												values_found[0] += new_values;
+													value_replies++;
+												values_found += new_values;
 											} finally
 											{
 												contacts_to_query_mon.exit();
@@ -1770,12 +1889,15 @@ DHTControlImpl
 												try
 												{
 													contacts_to_query_mon.enter();
-													active_searches[0]--;
+													active_searches--;
 												} finally
 												{
 													contacts_to_query_mon.exit();
 												}
-												search_sem.release();
+												if(useBlocking)
+													search_sem.release();
+												else
+													release();
 											}
 										}
 									}
@@ -1800,91 +1922,68 @@ DHTControlImpl
 											try
 											{
 												contacts_to_query_mon.enter();
-												active_searches[0]--;
+												active_searches--;
 											} finally
 											{
 												contacts_to_query_mon.exit();
 											}
-											search_sem.release();
+											if(useBlocking)
+												search_sem.release();
+											else
+												release();
 										}
 									}
-
+									
 									public void keyBlockRequest(DHTTransportContact contact, byte[] request, byte[] key_signature) {
 										// we don't want to kill the contact due to this so indicate that
 										// it is ok by setting the flag
 										if (database.keyBlockRequest(null, request, key_signature) != null)
-											key_blocked[0] = true;
+											key_blocked = true;
 									}
 								};
 
-								
+
 								router.recordLookup(lookup_id);
 								if (value_search)
 								{
-									int rem = max_values - values_found[0];
+									int rem = max_values - values_found;
 									if (rem <= 0)
 									{
 										Debug.out("eh?");
 										rem = 1;
 									}
-									closest.sendFindValue(handler, lookup_id, rem, flags);
+									closest.sendFindValue(replyHandler, lookup_id, rem, flags);
 								} else
 								{
-									closest.sendFindNode(handler, lookup_id);
+									closest.sendFindNode(replyHandler, lookup_id);
 								}
 							} finally
 							{
 								contacts_to_query_mon.exit();
 							}
 						}
+						
+						
+						if(useBlocking)
+							terminateLookup(false);
 
-						// maybe unterminated searches still going on so protect ourselves
-						// against concurrent modification of result set
-						List closest_res = null;
-						try
-						{
-							contacts_to_query_mon.enter();
-							
-							if (DHTLog.isOn())
-							{
-								DHTLog.log("lookup complete for " + DHTLog.getString(lookup_id));
-								DHTLog.log("    queried = " + DHTLog.getString(contacts_queried));
-								DHTLog.log("    to query = " + DHTLog.getString(contacts_to_query));
-								DHTLog.log("    ok = " + DHTLog.getString(ok_contacts));
-							}
 
-							closest_res = new ArrayList(ok_contacts);
-							// we need to reverse the list as currently closest is at the end
-							Collections.reverse(closest_res);
-
-							if (timeout <= 0 && !value_search)
-								// we can use the results of this to estimate the DHT size
-								estimateDHTSize(lookup_id, contacts_queried, search_accuracy);
-							
-						} finally
-						{
-							contacts_to_query_mon.exit();
-						}
-						result_handler.closest(closest_res);
-					} finally
-					{
-						result_handler.complete(timeout_occurred);
+					} catch (Exception e) {
+						Debug.printStackTrace(e);
+						terminateLookup(true);
 					}
 				}
+				
 
-				
-				public byte[]
-				getTarget()
-				{
-					return( lookup_id ); 
+
+				public byte[] getTarget() {
+					return (lookup_id);
 				}
-				
-				public String
-				getDescription()
-				{
-					return( description );
+
+				public String getDescription() {
+					return (description);
 				}
-			}, high_priority, false );
+			}, high_priority, !useBlocking);
 	}
 	
 
@@ -3246,13 +3345,13 @@ DHTControlImpl
 	}
 	
 	protected abstract class
-	task
+	DhtTask
 		extends ThreadPoolTask
 	{
 		private controlActivity	activity;
 		
 		protected 
-		task(
+		DhtTask(
 			ThreadPool	thread_pool )
 		{
 			activity = new controlActivity( thread_pool, this );
@@ -3316,13 +3415,13 @@ DHTControlImpl
 		implements DHTControlActivity
 	{
 		protected ThreadPool	tp;
-		protected task			task;
+		protected DhtTask			task;
 		protected int			type;
 		
 		protected
 		controlActivity(
 			ThreadPool	_tp,
-			task		_task )
+			DhtTask		_task )
 		{
 			tp		= _tp;
 			task	= _task;
