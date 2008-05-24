@@ -3281,6 +3281,13 @@ DownloadManagerImpl
   }
 
   public void moveTorrentFile(File new_parent_dir, String new_name) throws DownloadManagerException {
+	  SaveLocationChange slc = new SaveLocationChange();
+	  slc.torrent_location = new_parent_dir;
+	  slc.torrent_name = new_name;
+	  
+	  File torrent_file_now = new File(getTorrentFileName());
+	  if (!slc.isDifferentTorrentLocation(torrent_file_now)) {return;}
+
 	  boolean is_paused = this.pause();
 	  try {moveTorrentFile0(new_parent_dir, new_name);}
 	  finally {if (is_paused) {this.resume();}}
@@ -3297,15 +3304,6 @@ DownloadManagerImpl
 	  if ( !canMoveDataFiles()){
 		  
 		  throw( new DownloadManagerException( "Cannot move torrent file" ));
-	  }	  
-	  
-	  int	state = getState();
-
-	  if ( 	state != DownloadManager.STATE_STOPPED &&
-			state != DownloadManager.STATE_ERROR ) {
-		  
-		  throw new DownloadManagerException("download not stopped or in error state");
-		  
 	  }
 	  
 	  setTorrentFile(new_parent_dir, new_name);
@@ -3347,9 +3345,11 @@ DownloadManagerImpl
   }
   
   public File[] calculateDefaultPaths() {
-	  return DownloadManagerDefaultPaths.getDefaultSavePaths(this);
+	  SaveLocationChange slc = DownloadManagerMoveHandler.recalculatePath(this); 
+	  if (slc == null) {return null;}
+	  return new File[] {slc.download_location, slc.torrent_location};
   }
-  
+    
   public boolean isInDefaultSaveDir() {
 	  return DownloadManagerDefaultPaths.isInDefaultDownloadDir(this);
   }
