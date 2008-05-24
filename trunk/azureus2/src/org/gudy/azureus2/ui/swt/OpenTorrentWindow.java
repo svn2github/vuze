@@ -2446,7 +2446,7 @@ public class OpenTorrentWindow
 		public String getDataDir() {
 			if (torrent.isSimpleTorrent())
 				return sDestDir;
-			return new File(sDestDir, sDestSubDir == null ? getTorrentName()
+			return new File(sDestDir, sDestSubDir == null ? FileUtil.convertOSSpecificChars(getTorrentName(), true) 
 					: sDestSubDir).getPath();
 		}
 
