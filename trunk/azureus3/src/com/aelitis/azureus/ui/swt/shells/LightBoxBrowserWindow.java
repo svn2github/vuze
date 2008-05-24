@@ -11,14 +11,15 @@ import org.eclipse.swt.browser.WindowEvent;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.widgets.*;
-
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -33,6 +34,7 @@ import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.ConfigListener;
 import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
 import com.aelitis.azureus.ui.swt.browser.listener.LightBoxBrowserListener;
+import com.aelitis.azureus.ui.swt.views.skin.widgets.BubbleButton;
 import com.aelitis.azureus.util.Constants;
 
 /**
@@ -135,13 +137,23 @@ public class LightBoxBrowserWindow
 		errorMessageLabel.setBackground(errorPanel.getBackground());
 		errorMessageLabel.setForeground(Colors.grey);
 
-		Button closeButton = new Button(errorPanel, SWT.NONE);
+		BubbleButton closeButton = new BubbleButton(errorPanel);
 		closeButton.setText(MessageText.getString("wizard.close"));
-
 		FormData fData = new FormData();
 		fData.width = 100;
 		fData.bottom = new FormAttachment(100, -20);
 		fData.right = new FormAttachment(100, -20);
+		
+		/*
+		 * TODO: remove the following 4 lines once the automatic behavior is implemented for
+		 * size calculation and background painting 
+		 */
+		Point size = closeButton.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		fData.width=size.x;
+		fData.height=size.y;
+		closeButton.setBackground(contentBackgroundColor);
+
+		
 		closeButton.setLayoutData(fData);
 
 		fData = new FormData();
@@ -155,16 +167,23 @@ public class LightBoxBrowserWindow
 		/*
 		 * This close button is only on the error panel
 		 */
-		closeButton.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(SelectionEvent e) {
-				widgetDefaultSelected(e);
-			}
+		closeButton.addMouseListener(new MouseAdapter() {
 
-			public void widgetDefaultSelected(SelectionEvent e) {
+			public void mouseDown(MouseEvent e) {
 				close();
 			}
 
 		});
+		//		closeButton.addSelectionListener(new SelectionListener() {
+		//			public void widgetSelected(SelectionEvent e) {
+		//				widgetDefaultSelected(e);
+		//			}
+		//
+		//			public void widgetDefaultSelected(SelectionEvent e) {
+		//				close();
+		//			}
+		//
+		//		});
 
 		/*
 		 * Disposing resources when the LightBoxShell is disposed
@@ -405,12 +424,13 @@ public class LightBoxBrowserWindow
 	public void setRedirectURL(String redirectURL) {
 		this.redirectURL = redirectURL;
 	}
-	
+
 	public void setCloseListener(closeListener l) {
 		closeListener = l;
 	}
-	
-	public interface closeListener {
+
+	public interface closeListener
+	{
 		public void close();
 	}
 }
