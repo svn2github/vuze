@@ -681,8 +681,6 @@ WebPlugin
 			return(true);
 		}
 		
-		OutputStream os = response.getOutputStream();
-		
 		String	url = request.getURL();
 		
 		if (url.equals("/")){
