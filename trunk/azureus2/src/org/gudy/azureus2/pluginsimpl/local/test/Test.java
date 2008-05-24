@@ -51,7 +51,6 @@ import org.gudy.azureus2.plugins.utils.security.SEPublicKeyLocator;
 import org.gudy.azureus2.plugins.utils.security.SESecurityManager;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler;
-import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler.passwordDetails;
 
 import java.io.File;
 import java.net.InetSocketAddress;
