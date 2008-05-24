@@ -47,9 +47,12 @@ public interface SaveLocationManager {
 	 * location). 
 	 * 
 	 * @param download Download to handle.
+	 * @param is_moving <tt>true</tt> if the download really is being initialised, or
+	 *   <tt>false</tt> if we are just determining the appropriate location for an incomplete
+	 *   download.
 	 * @return The new save location instructions.
 	 */
-	public SaveLocationChange onInitialization(Download download);
+	public SaveLocationChange onInitialization(Download download, boolean is_moving);
 
 	/**
 	 * Return the location to move the download to when it is completed (or
@@ -57,9 +60,12 @@ public interface SaveLocationManager {
 	 * location).
 	 * 
 	 * @param download Download to handle.
+	 * @param is_moving <tt>true</tt> if the download really is being moved for completion, or
+	 *   <tt>false</tt> if we are just determining the appropriate location for an complete
+	 *   download.
 	 * @return The new save location instructions.
 	 */
-	public SaveLocationChange onCompletion(Download download);
+	public SaveLocationChange onCompletion(Download download, boolean is_moving);
 
 	/**
 	 * Return the location to move the download to when it is removed (or
@@ -67,20 +73,11 @@ public interface SaveLocationManager {
 	 * location).
 	 * 
 	 * @param download Download to handle.
+	 * @param is_moving <tt>true</tt> if the download really is being removed, or
+	 *   <tt>false</tt> if we are just determining the appropriate location for the download
+	 *   when it is removed.
 	 * @return The new save location instructions.
 	 */
-	public SaveLocationChange onRemoval(Download download);
-	
-	/**
-	 * Determines the location where the download should be stored at any
-	 * arbitrary point. This might be used to manually force a download to
-	 * be stored at an appropriate location.
-	 * 
-	 * <p>
-	 * 
-	 * @param download Download to handle.
-	 * @return The new save location instructions.
-	 */
-	public SaveLocationChange recalculatePath(Download download);
+	public SaveLocationChange onRemoval(Download download, boolean is_moving);
 
 }
