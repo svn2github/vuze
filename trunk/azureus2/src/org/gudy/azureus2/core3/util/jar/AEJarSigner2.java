@@ -233,7 +233,7 @@ AEJarSigner2
 		}finally{
 		
 			try{
-				fis.close();
+				if (fis != null) {fis.close();}
 				
 			}catch( Throwable e ){
 				
