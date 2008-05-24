@@ -8,48 +8,41 @@ import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.FileUtil;
 
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.savelocation.DefaultSaveLocationManager;
 import org.gudy.azureus2.plugins.download.savelocation.SaveLocationChange;
-import org.gudy.azureus2.plugins.download.savelocation.SaveLocationManager;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
-import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 
-public class DownloadManagerDefaultPaths {
+public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandler {
 	
-	public final static SaveLocationManager DEFAULT_HANDLER = new SaveLocationManager() {
-		public SaveLocationChange onInitialization(Download d) {
+	public final static DefaultSaveLocationManager DEFAULT_HANDLER = new DefaultSaveLocationManager() {
+		public SaveLocationChange onInitialization(Download d, boolean moving) {
 			DownloadManager dm = ((DownloadImpl)d).getDownload();
 			return determinePaths(dm, UPDATE_FOR_MOVE_DETAILS[1]); // 1 - incomplete downloads
 		}
-		public SaveLocationChange onCompletion(Download d) {
+		public SaveLocationChange onCompletion(Download d, boolean moving) {
 			DownloadManager dm = ((DownloadImpl)d).getDownload();
 			return determinePaths(dm, COMPLETION_DETAILS);
 		}
-		public SaveLocationChange onRemoval(Download d) {
+		public SaveLocationChange onRemoval(Download d, boolean moving) {
 			DownloadManager dm = ((DownloadImpl)d).getDownload();
 			return determinePaths(dm, REMOVAL_DETAILS);
 		}
-		public SaveLocationChange recalculatePath(Download d) {
-			return null;
+		public boolean isInDefaultSaveDir(Download d) {
+			DownloadManager dm = ((DownloadImpl)d).getDownload();
+			return DownloadManagerDefaultPaths.isInDefaultDownloadDir(dm);
 		}
 	};
 	
-	public static SaveLocationManager CURRENT_HANDLER = DEFAULT_HANDLER;
-
-    private final static MovementInformation[] COMPLETION_DETAILS;
-    private final static MovementInformation[] REMOVAL_DETAILS;
+    private final static MovementInformation COMPLETION_DETAILS;
+    private final static MovementInformation REMOVAL_DETAILS;
     private final static MovementInformation[] UPDATE_FOR_MOVE_DETAILS;
     private final static TargetSpecification[] DEFAULT_DIRS;
-
-    private final static String STATE_INCOMPLETE = "incomplete download";
-    private final static String STATE_COMPLETE_DND = "dnd-complete download";
-    private final static String STATE_COMPLETE = "fully-complete download";
 
     private final static String SUBDIR_PARAM = "File.move.subdir_is_default";
 
@@ -75,17 +68,11 @@ public class DownloadManagerDefaultPaths {
         dest.setContext("default save dir");
         DEFAULT_DIRS[0] = dest;
 
-
         // First - download completion details.
 		source = new SourceSpecification();
 		source.setBoolean("default dir", "Move Only When In Default Save Dir");
 		source.setBoolean("default subdir", SUBDIR_PARAM);
-		source.setBoolean("persistent only", true);
-		source.setBoolean("check exclusion flag", true);
-		source.setBoolean("check completion flag", true);
-		source.setBoolean(STATE_INCOMPLETE, false);
-		source.setBoolean(STATE_COMPLETE_DND, true);
-		source.setBoolean(STATE_COMPLETE, true); // Only handle fully complete downloads at moment.
+		source.setBoolean("incomplete dl", false);
 
 		dest = new TargetSpecification();
 		dest.setBoolean("enabled", "Move Completed When Done");
@@ -96,19 +83,14 @@ public class DownloadManagerDefaultPaths {
 		trans.setBoolean("torrent", "Move Torrent When Done");
 
 		mi_1 = new MovementInformation(source, dest, trans, "Move on completion");
-		COMPLETION_DETAILS = new MovementInformation[] {mi_1};
+		COMPLETION_DETAILS = mi_1;
 		DEFAULT_DIRS[1] = dest;
 
 		// Next - download removal details.
 		source = new SourceSpecification();
 		source.setBoolean("default dir", "File.move.download.removed.only_in_default");
 		source.setBoolean("default subdir", SUBDIR_PARAM);
-		source.setBoolean("persistent only", true);
-		source.setBoolean("check exclusion flag", true);
-		source.setBoolean("check completion flag", false);
-		source.setBoolean(STATE_INCOMPLETE, false);
-		source.setBoolean(STATE_COMPLETE_DND, "File.move.download.removed.move_partial");
-		source.setBoolean(STATE_COMPLETE, true);
+		source.setBoolean("incomplete dl", false);
 
 		dest = new TargetSpecification();
 		dest.setBoolean("enabled", "File.move.download.removed.enabled");
@@ -119,7 +101,7 @@ public class DownloadManagerDefaultPaths {
 		trans.setBoolean("torrent", "File.move.download.removed.move_torrent");
 
 		mi_1 = new MovementInformation(source, dest, trans, "Move on removal");
-		REMOVAL_DETAILS = new MovementInformation[] {mi_1};
+		REMOVAL_DETAILS = mi_1;
 		DEFAULT_DIRS[2] = dest;
 
 	    /**
@@ -137,23 +119,18 @@ public class DownloadManagerDefaultPaths {
 	     * section isn't active.
 	     */
 		source = new SourceSpecification();
-		source.updateSettings(COMPLETION_DETAILS[0].source.getSettings());
+		source.updateSettings(COMPLETION_DETAILS.source.getSettings());
 		source.setBoolean("default dir", true);
 
-		mi_1 = new MovementInformation(source, COMPLETION_DETAILS[0].target,
-				COMPLETION_DETAILS[0].transfer, "Update completed download");
+		mi_1 = new MovementInformation(source, COMPLETION_DETAILS.target,
+				COMPLETION_DETAILS.transfer, "Update completed download");
 		
 		// Now incomplete downloads. We have to define completely new settings for
 		// it, since we've never defined it before.
 		source = new SourceSpecification();
 		source.setBoolean("default dir", true); // Must be in default directory to update.
 		source.setBoolean("default subdir", SUBDIR_PARAM);
-		source.setBoolean("persistent only", true);
-		source.setBoolean("check exclusion flag", true);
-		source.setBoolean("check completion flag", false);
-		source.setBoolean(STATE_INCOMPLETE, true);
-		source.setBoolean(STATE_COMPLETE_DND, true);
-		source.setBoolean(STATE_COMPLETE, true);
+		source.setBoolean("incomplete dl", true);
 
 		dest = new TargetSpecification();
 		dest.setBoolean("enabled", true);
@@ -166,6 +143,10 @@ public class DownloadManagerDefaultPaths {
 		mi_2 = new MovementInformation(source, dest, trans, "Update incomplete download");
 		UPDATE_FOR_MOVE_DETAILS = new MovementInformation[] {mi_1, mi_2};
 
+    }
+    
+    private static interface ContextDescriptor {
+    	public String getContext(); 
     }
     
     private static String normaliseRelativePathPart(String name) {
@@ -212,13 +193,13 @@ public class DownloadManagerDefaultPaths {
     	return new File(sb.toString());
     }
     	
-    private static File[] getDefaultDirs(LogRelation lr) {
+    private static File[] getDefaultDirs() {
 		List results = new ArrayList();
 		File location = null;
 		TargetSpecification ts = null;
 		for (int i=0; i<DEFAULT_DIRS.length; i++) {
 			ts = DEFAULT_DIRS[i];
-			location = ts.getTarget(null, lr, ts);
+			location = ts.getTarget(null, ts);
 			if (location != null) {
 				results.add(location);
 			}
@@ -226,92 +207,37 @@ public class DownloadManagerDefaultPaths {
 		return (File[])results.toArray(new File[results.size()]);
 	}
 
-	private static String getStateDescriptor(DownloadManager dm) {
-		if (dm.isDownloadComplete(true)) {return STATE_COMPLETE;}
-		else if (dm.isDownloadComplete(false)) {return STATE_COMPLETE_DND;}
-		else {return STATE_INCOMPLETE;}
-	}
 
-    // Helper log functions.
-	private static void logInfo(String message, LogRelation lr) {
-		if (lr == null) {return;}
-		if (!Logger.isEnabled()) {return;}
-		Logger.log(new LogEvent(lr, LogIDs.CORE, LogEvent.LT_INFORMATION, message));
-	}
-
-	private static void logWarn(String message, LogRelation lr) {
-		if (lr == null) {return;}
-		if (!Logger.isEnabled()) {return;}
-		Logger.log(new LogEvent(lr, LogIDs.CORE, LogEvent.LT_WARNING, message));
-	}
-
-	private static String describe(DownloadManager dm, ContextDescriptor cs) {
-		if (cs == null) {
-			if (dm == null) {return "";}
-			return "\"" + dm.getDisplayName() + "\"";
-		}
-		if (dm == null) {
-			return "\"" + cs.getContext() + "\"";
-		}
-		return "\"" + dm.getDisplayName() + "\" with regard to \"" + cs.getContext() + "\"";
-	}
 
     /**
      * This does the guts of determining appropriate file paths.
      */
     private static SaveLocationChange determinePaths(DownloadManager dm, MovementInformation mi) {
-		LogRelation lr = (dm instanceof LogRelation) ? (LogRelation)dm : null;
-		boolean proceed = mi.source.matchesDownload(dm, lr, mi);
+		boolean proceed = mi.source.matchesDownload(dm, mi);
 		if (!proceed) {
 			logInfo("Cannot consider " + describe(dm, mi) +
-			    " - does not match source criteria.", lr);
+			    " - does not match source criteria.", dm);
 			return null;
 		}
 
-		File target_path = mi.target.getTarget(dm, lr, mi);
+		File target_path = mi.target.getTarget(dm, mi);
 		if (target_path == null) {
 			logInfo("Unable to determine an appropriate target for " +
-			    describe(dm, mi) + ".", lr);
+			    describe(dm, mi) + ".", dm);
 			return null;
 		}
 
-        logInfo("Determined path for " + describe(dm, mi) + ".", lr);
-		return mi.transfer.getTransferDetails(dm, lr, mi, target_path);
+        logInfo("Determined path for " + describe(dm, mi) + ".", dm);
+		return mi.transfer.getTransferDetails(dm, mi, target_path);
 	}
 
-	private static SaveLocationChange determinePaths(DownloadManager dm, MovementInformation[] mis) {
-		SaveLocationChange result = null;
-		for (int i=0; i<mis.length; i++) {
-			result = determinePaths(dm, mis[i]);
-			if (result != null) {return result;}
-		}
-		return null;
-	}
-	
-	public static boolean isInDefaultDownloadDir(DownloadManager dm) {
+	static boolean isInDefaultDownloadDir(DownloadManager dm) {
 		// We don't create this object properly, but just enough to get it
 		// to be usable.
 		SourceSpecification source = new SourceSpecification();
 		source.setBoolean("default subdir", SUBDIR_PARAM);
-		return source.checkDefaultDir(dm.getSaveLocation().getParentFile(), getDefaultDirs(null));
+		return source.checkDefaultDir(dm.getSaveLocation().getParentFile(), getDefaultDirs());
 	}
-
-	/*
-    public static class TransferDetails {
-		public File transfer_destination;
-		public boolean move_torrent;
-		
-		public String toString() {
-			return "TransferDetails [dest: " + this.transfer_destination.getPath() +
-				", move-torrent: " + this.move_torrent + "]";
-		}
-		
-	}
-	*/
-    
-    private static interface ContextDescriptor {
-    	public String getContext(); 
-    }
     
     private static class MovementInformation implements ContextDescriptor {
         final SourceSpecification source;
@@ -370,25 +296,10 @@ public class DownloadManagerDefaultPaths {
 
     private static class SourceSpecification extends ParameterHelper {
 
-		public boolean matchesDownload(DownloadManager dm, LogRelation lr, ContextDescriptor context) {
-			if (this.getBoolean("persistent only") && !dm.isPersistent()) {
-				logWarn(describe(dm, context) + " is not persistent.", lr);
-				return false;
-			}
-			
-			if (this.getBoolean("check exclusion flag") && dm.getDownloadState().getFlag(DownloadManagerState.FLAG_DISABLE_AUTO_FILE_MOVE)) {
-				logWarn(describe(dm, context) + " has exclusion flag set.", lr);
-				return false;
-			}
-			
-			if (this.getBoolean("check completion flag") && dm.getDownloadState().getFlag(DownloadManagerState.FLAG_MOVE_ON_COMPLETION_DONE)) {
-				logInfo(describe(dm, context) + " has completion flag set.", lr);
-				return false;
-			}
-			
+		public boolean matchesDownload(DownloadManager dm, ContextDescriptor context) {
 			if (this.getBoolean("default dir")) {
-				logInfo("Checking if " + describe(dm, context) + " is inside default dirs.", lr);
-				File[] default_dirs = getDefaultDirs(lr);
+				logInfo("Checking if " + describe(dm, context) + " is inside default dirs.", dm);
+				File[] default_dirs = getDefaultDirs();
 				File current_location = dm.getSaveLocation().getParentFile();
 				
 				/**
@@ -396,7 +307,7 @@ public class DownloadManagerDefaultPaths {
                  * to have a blank / malformed download path.
 				 */ 
 				if (current_location == null) {
-					logWarn(describe(dm, context) + " appears to have a malformed save directory, skipping.", lr);
+					logWarn(describe(dm, context) + " appears to have a malformed save directory, skipping.", dm);
 					return false;
 				}
 				
@@ -404,22 +315,23 @@ public class DownloadManagerDefaultPaths {
 					logWarn(describe(dm, context) +
 					    " doesn't exist in any of the following default directories" +
 					    " (current dir: " + current_location + ", subdirectories checked: " +
-					    this.getBoolean("default subdir") + ") - " + Arrays.asList(default_dirs), lr);
+					    this.getBoolean("default subdir") + ") - " + Arrays.asList(default_dirs), dm);
 					return false;
 				}
-				logInfo(describe(dm, context) + " does exist inside default dirs.", lr);
+				logInfo(describe(dm, context) + " does exist inside default dirs.", dm);
 			}
 
-  			String current_state = getStateDescriptor(dm);
-  			boolean can_move = this.getBoolean(current_state);
-  			String log_message = describe(dm, context) + " is " +
-  			    ((can_move) ? "" : "not ") + "in an appropriate state (is " +
-  			    "currently \"" + current_state + "\").";
-  			if (!can_move) {
-  				logWarn(log_message, lr);
-  				return false;
+			// Does it work for incomplete downloads?
+  			if (!dm.isDownloadComplete(false)) {
+  				boolean can_move = this.getBoolean("incomplete dl");
+  				String log_message = describe(dm, context) + " is incomplete which is " +
+  			    	((can_move) ? "" : "not ") + "an appropriate state.";
+  				if (!can_move) {
+  					logInfo(log_message, dm);
+  					return false;
+  				}
   			}
-  			logInfo(log_message, lr);
+  			
 			return true;
 		}
 		
@@ -441,15 +353,15 @@ public class DownloadManagerDefaultPaths {
 			
 	private static class TargetSpecification extends ParameterHelper {
 
-		public File getTarget(DownloadManager dm, LogRelation lr, ContextDescriptor cd) {
+		public File getTarget(DownloadManager dm, ContextDescriptor cd) {
 			//logInfo("Calculating target location for " + describe(dm, cd), lr);
 			if (!this.getBoolean("enabled")) {
-				logInfo("Target for " + describe(dm, cd) + " is not enabled.", lr);
+				logInfo("Target for " + describe(dm, cd) + " is not enabled.", dm);
 				return null;
 			}
 		    String location = this.getString("target").trim();
 		    if (location.length() == 0) {
-				logInfo("No explicit target for " + describe(dm, cd) + ".", lr);
+				logInfo("No explicit target for " + describe(dm, cd) + ".", dm);
 				return null;
 			}
 		    
@@ -461,7 +373,7 @@ public class DownloadManagerDefaultPaths {
           }
 		    
           if (relative_path != null && relative_path.length() > 0) {
-		    	logInfo("Consider relative save path: " + relative_path, lr);
+		    	logInfo("Consider relative save path: " + relative_path, dm);
 		    	
 		    	// Doesn't matter if File.separator is required or not, it seems to
 		    	// remove duplicate file separators.
@@ -474,8 +386,8 @@ public class DownloadManagerDefaultPaths {
 
 	private static class TransferSpecification extends ParameterHelper {
 
-		public SaveLocationChange getTransferDetails(DownloadManager dm, LogRelation lr,
-			ContextDescriptor cd, File target_path) {
+		public SaveLocationChange getTransferDetails(DownloadManager dm, 
+				ContextDescriptor cd, File target_path) {
 			
 			if (target_path == null) {throw new NullPointerException();}
 
@@ -490,55 +402,15 @@ public class DownloadManagerDefaultPaths {
 	}
 	
 	public static File getCompletionDirectory(DownloadManager dm) {
-		return COMPLETION_DETAILS[0].target.getTarget(dm, null, null);
+		return COMPLETION_DETAILS.target.getTarget(dm, null);
 	}
 	
-	public static SaveLocationChange onInitialisation(DownloadManager dm) {
-		return CURRENT_HANDLER.onInitialization(PluginCoreUtils.wrap(dm)); 
-	}
-
-	public static SaveLocationChange onCompletion(DownloadManager dm, boolean set_on_completion_flag) {
-		LogRelation lr = (dm instanceof LogRelation) ? (LogRelation)dm : null;
-		
-		if (dm.getDownloadState().getFlag(DownloadManagerState.FLAG_MOVE_ON_COMPLETION_DONE)) {
-			logInfo("Completion flag already set on " + describe(dm, null) + ", skip move-on-completion behaviour.", lr);
-			return null;
+	static String describe(DownloadManager dm, ContextDescriptor cs) {
+		if (cs == null) {return describe(dm);}
+		if (dm == null) {
+			return "\"" + cs.getContext() + "\"";
 		}
-		
-		SaveLocationChange sc = CURRENT_HANDLER.onCompletion(PluginCoreUtils.wrap(dm)); 
-		logInfo("Setting completion flag on " + describe(dm, null) + ", may have been set before.", lr);
-		dm.getDownloadState().setFlag(DownloadManagerState.FLAG_MOVE_ON_COMPLETION_DONE, true);
-		return sc;
-	}
-
-	public static SaveLocationChange onRemoval(DownloadManager dm) {
-		return CURRENT_HANDLER.onRemoval(PluginCoreUtils.wrap(dm)); 
-	}
-	
-	/*
-	private static boolean isApplicableDownload(DownloadManager dm) {
-		LogRelation lr = (dm instanceof LogRelation) ? (LogRelation)dm : null;
-		if (!dm.isPersistent()) {
-			logWarn(describe(dm, context) + " is not persistent.", lr);
-			return false;
-		}		
-	} */
-
-	// Hmm... we'll have to remove this.
-	public static File[] getDefaultSavePaths(DownloadManager dm) {
-		MovementInformation[] mi = UPDATE_FOR_MOVE_DETAILS;
-		SaveLocationChange slc = determinePaths(dm, mi);
-
-		// Always return an array of size two.
-		File[] result = new File[2];
-
-		if (slc != null) {
-			result[0] = slc.download_location;
-			result[1] = slc.torrent_location;
-		}
-
-		return result;
-
+		return "\"" + dm.getDisplayName() + "\" with regard to \"" + cs.getContext() + "\"";
 	}
 
 }
