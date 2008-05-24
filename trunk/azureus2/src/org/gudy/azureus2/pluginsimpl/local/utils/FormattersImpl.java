@@ -156,16 +156,6 @@ FormattersImpl
 						String	s1 = (String)o1;
 						String	s2 = (String)o2;
 						
-						if ( s1 == null ){
-							
-							return( -1 );
-						}
-						
-						if ( s2 == null ){
-							
-							return( -1 );
-						}
-						
 						int	l1 = s1.length();
 						int	l2 = s2.length();
 								
