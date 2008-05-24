@@ -41,6 +41,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerException;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerDefaultPaths;
+import org.gudy.azureus2.core3.download.impl.DownloadManagerMoveHandler;
 import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
 import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
 import org.gudy.azureus2.core3.internat.LocaleUtilEncodingException;
@@ -452,7 +453,7 @@ DiskManagerImpl
         	if (!files_exist) {files_exist = this.filesExist();}
         	if (!files_exist) {
         		SaveLocationChange transfer = 
-        			DownloadManagerDefaultPaths.onInitialisation(download_manager);
+        			DownloadManagerMoveHandler.onInitialisation(download_manager);
         		if (transfer != null) {
         			if (transfer.download_location != null || transfer.download_name != null) {
         				File dl_location = transfer.download_location;
@@ -1687,10 +1688,10 @@ DiskManagerImpl
 
         SaveLocationChange move_details;
         if (removing) {
-        	move_details = DownloadManagerDefaultPaths.onRemoval(this.download_manager);
+        	move_details = DownloadManagerMoveHandler.onRemoval(this.download_manager);
         }
         else {
-        	move_details = DownloadManagerDefaultPaths.onCompletion(this.download_manager, true);
+        	move_details = DownloadManagerMoveHandler.onCompletion(this.download_manager);
         }
         
         if (move_details != null) {moveFiles(move_details, true);}
