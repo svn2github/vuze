@@ -224,7 +224,7 @@ public class ButtonBar
 		SWTSkinObject buddyPanelObject = skin.getSkinObject("panel-buddies");
 		SWTSkinObject footerObject = skin.getSkinObject("footer");
 		SWTSkinObject buddyEditObject = skin.getSkinObject("button-buddy-edit");
-		
+
 		String suffix = value ? "-disabled" : "";
 
 		footerObject.switchSuffix(suffix, 1, true);
@@ -412,20 +412,12 @@ public class ButtonBar
 			return;
 		}
 
-		viewer.setAddBuddyMode(!viewer.isAddBuddyMode());
+		setActiveMode(BuddiesViewer.add_buddy_mode);
 
 		SkinView detailPanelView = SkinViewManager.get(DetailPanel.class);
 		if (detailPanelView instanceof DetailPanel) {
 			DetailPanel detailPanel = ((DetailPanel) detailPanelView);
-			detailPanel.show(viewer.isAddBuddyMode(), InvitePage.PAGE_ID);
-			/*
-			 * Calling the browser to set the inviteFromShare flag to false
-			 */
-			if (true == viewer.isAddBuddyMode()) {
-				editButton.setDisabled(true);
-			} else {
-				editButton.setDisabled(false);
-			}
+			detailPanel.show(true, InvitePage.PAGE_ID);
 		}
 	}
 
