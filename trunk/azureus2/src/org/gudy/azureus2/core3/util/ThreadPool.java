@@ -247,6 +247,8 @@ ThreadPool
 							
 							runIt( runnable );
 							
+							task.join();
+							
 						}finally{
 							
 							task.taskCompleted();  
@@ -488,6 +490,22 @@ ThreadPool
 		
 		thread_sem.release();
 	}
+	
+	public void registerThreadAsChild(threadPoolWorker parent)
+	{
+		if(tls.get() == null || tls.get() == parent)
+			tls.set(parent);
+		else
+			throw new IllegalStateException("another parent is already set for this thread");
+	}
+	
+	public void deregisterThreadAsChild(threadPoolWorker parent)
+	{
+		if(tls.get() == parent)
+			tls.set(null);
+		else
+			throw new IllegalStateException("tls is not set to parent");
+	}
 
 	
 	class threadPoolWorker extends AEThread2 {
@@ -624,6 +642,8 @@ ThreadPool
 			{
 				if(autoRelease)
 					thread_sem.release();
+				
+				tls.set(null);
 			}
 		}
 		

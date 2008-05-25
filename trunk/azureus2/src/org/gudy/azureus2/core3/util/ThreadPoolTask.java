@@ -71,6 +71,28 @@ ThreadPoolTask
 	{
 	}
 	
+	/**
+	 * only invoke this method after the first run of the threadpooltask as it is only meant to join
+	 * on a task when it has child tasks and thus is running in manual release mode
+	 */
+	synchronized void join()
+	{
+		while(manualRelease != RELEASE_AUTO)
+		{
+			try
+			{
+				wait();
+			} catch (Exception e)
+			{
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+
+	/**
+	 * only invoke this method after the first run of the threadpooltask as it is only meant to
+	 * update the state of a task when it has child tasks and thus is running in manual release mode
+	 */
 	synchronized boolean isAutoReleaseAndAllowManual()
 	{
 		if(manualRelease == RELEASE_MANUAL)
@@ -88,6 +110,9 @@ ThreadPoolTask
 			taskCompleted();
 			worker.getOwner().releaseManual(this);
 			manualRelease = RELEASE_AUTO;
-		}
+		} else if(manualRelease == RELEASE_AUTO)
+			Debug.out("this should not happen");
+		
+		notifyAll();
 	}
 }

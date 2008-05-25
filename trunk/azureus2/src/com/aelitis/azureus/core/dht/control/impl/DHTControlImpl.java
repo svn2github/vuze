@@ -1455,10 +1455,10 @@ DHTControlImpl
 
 	
 	static ArrayList running = new ArrayList();
-	final boolean useBlocking = true;
+	final boolean useBlocking = false;
 
 	
-	protected void lookup(ThreadPool thread_pool, boolean high_priority, final byte[] lookup_id, final String description, final byte flags, final boolean value_search, final long timeout, final int concurrency, final int max_values, final int search_accuracy, final lookupResultHandler handler)
+	protected void lookup(final ThreadPool thread_pool, boolean high_priority, final byte[] lookup_id, final String description, final byte flags, final boolean value_search, final long timeout, final int concurrency, final int max_values, final int search_accuracy, final lookupResultHandler handler)
 	{
 		thread_pool.run(
 			new DhtTask(thread_pool)
@@ -1626,7 +1626,9 @@ DHTControlImpl
 						runningState = 1;
 						new AEThread2("DHT lookup runner",true) {
 							public void run() {
+								thread_pool.registerThreadAsChild(worker);
 								lookupSteps();
+								thread_pool.deregisterThreadAsChild(worker);
 							}
 						}.start();
 					}
@@ -1637,6 +1639,8 @@ DHTControlImpl
 				private void lookupSteps() {
 					try
 					{
+						boolean terminate = false;
+						
 						while (true)
 						{
 							if (timeout > 0)
@@ -1648,8 +1652,7 @@ DHTControlImpl
 								{
 									DHTLog.log("lookup: terminates - timeout");
 									timeout_occurred = true;
-									if(!useBlocking)
-										terminateLookup(false);
+									terminate = true;
 									break;
 								}
 								
@@ -1678,8 +1681,7 @@ DHTControlImpl
 								if (values_found >= max_values || value_replies >= 2)
 								{
 									// all hits should have the same values anyway...
-									if(!useBlocking)
-										terminateLookup(false);
+									terminate = true;
 									break;
 								}
 
@@ -1696,8 +1698,7 @@ DHTControlImpl
 									if (active_searches == 0)
 									{
 										DHTLog.log("lookup: terminates - no contacts left to query");
-										if(!useBlocking)
-											terminateLookup(false);
+										terminate = true;
 										break;
 									}
 									idle_searches++;
@@ -1716,8 +1717,7 @@ DHTControlImpl
 									if (distance <= 0)
 									{
 										DHTLog.log("lookup: terminates - we've searched the closest " + search_accuracy + " contacts");
-										if(!useBlocking)
-											terminateLookup(false);
+										terminate = true;
 										break;
 									}
 								}
@@ -1964,7 +1964,7 @@ DHTControlImpl
 						}
 						
 						
-						if(useBlocking)
+						if(useBlocking || terminate)
 							terminateLookup(false);
 
 
