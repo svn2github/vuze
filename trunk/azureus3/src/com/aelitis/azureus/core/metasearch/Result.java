@@ -64,6 +64,14 @@ public abstract class Result {
 		int seeds = getNbSeeds();
 		int peers = getNbPeers();
 		
+		if ( seeds < 0 ){
+			seeds = 0;
+		}
+		
+		if ( peers < 0 ){
+			peers = 0;
+		}
+		
 		int totalPeers = seeds + peers;
 		int expectedDLSpeedKBS = 20 * (peers+seeds+1) / (peers+1);
 		
