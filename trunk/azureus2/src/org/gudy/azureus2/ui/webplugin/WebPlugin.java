@@ -644,6 +644,7 @@ WebPlugin
 			// System.out.println( "client = " + client );
 			
 			try{
+				boolean valid_ip = true;
 				InetAddress ia = InetAddress.getByName( client );
 				
 				if ( ip_range == null ){
@@ -651,18 +652,28 @@ WebPlugin
 					if ( !ia.isLoopbackAddress()){
 				
 						log.log( LoggerChannel.LT_ERROR, "Client '" + client + "' is not local, rejecting" );
-						
-						return( false );
+						valid_ip = false;
 					}
 				}else{
 					
 					if ( !ip_range.isInRange( ia.getHostAddress())){
 						
 						log.log( LoggerChannel.LT_ERROR, "Client '" + client + "' (" + ia.getHostAddress() + ") is not in range, rejecting" );
-						
-						return( false );
+						valid_ip = false;
 					}
 				}
+				
+				if (!valid_ip) {
+					response.setReplyStatus(403);
+					response.setContentType("text/plain");
+
+					PrintWriter pw = new PrintWriter(response.getOutputStream());
+					pw.println("Cannot access resource from this IP address.");
+					pw.flush();
+					pw.close();
+					return true;
+				}
+				
 			}catch( Throwable e ){
 				
 				Debug.printStackTrace( e );
