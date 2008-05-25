@@ -93,7 +93,17 @@ PluginConfig
 	 * @since 3.4.0.3
 	 */
 	public static final String CORE_PARAM_BOOLEAN_NEW_TORRENTS_START_AS_STOPPED = "CORE_PARAM_BOOLEAN_NEW_TORRENTS_START_AS_STOPPED"; 
-	
+
+	/**
+	 * @since 3.5.0.3
+	 */
+	public static final String CORE_PARAM_INT_INCOMING_TCP_PORT = "Incoming TCP Port";
+
+	/**
+	 * @since 3.5.0.3
+	 */
+	public static final String CORE_PARAM_INT_INCOMING_UDP_PORT = "Incoming UDP Port";
+
 	
 	
 

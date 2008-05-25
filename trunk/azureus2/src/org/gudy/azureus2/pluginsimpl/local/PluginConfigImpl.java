@@ -67,6 +67,8 @@ PluginConfigImpl
 		external_to_internal_key_map.put( CORE_PARAM_BOOLEAN_FRIENDLY_HASH_CHECKING, 			"diskmanager.friendly.hashchecking" );
 		external_to_internal_key_map.put( GUI_PARAM_INT_SWT_REFRESH_IN_MS,                      "GUI Refresh");
 		external_to_internal_key_map.put( CORE_PARAM_BOOLEAN_NEW_TORRENTS_START_AS_STOPPED,     "Default Start Torrents Stopped");
+		external_to_internal_key_map.put( CORE_PARAM_INT_INCOMING_TCP_PORT, "TCP.Listen.Port");
+		external_to_internal_key_map.put( CORE_PARAM_INT_INCOMING_UDP_PORT, "UDP.Listen.Port");
 		
 		// Note: Not in PluginConfig.java because it's an UI option and
 		//       not applicable to all UIs
