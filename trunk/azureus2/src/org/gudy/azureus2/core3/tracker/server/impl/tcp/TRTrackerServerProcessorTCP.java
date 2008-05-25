@@ -188,7 +188,7 @@ TRTrackerServerProcessorTCP
 						
 					}else{
 						
-						os.write( ("HTTP/1.1 404 Not Found" + NL + NL ).getBytes() );
+						os.write( ("HTTP/1.1 404 Not Found" + NL + NL + "Page not found." + NL).getBytes() );
 					}
 					
 					os.flush();
