@@ -208,8 +208,9 @@ public class SWTThread {
         // if we've falled out of the loop without being explicitly terminated then
         // this appears to have been caused by a non-specific exit/restart request (as the
         // specific ones should terminate us before disposing of the window...)
-        
-        app.stopIt( false, false );
+        if (app != null) {
+        	app.stopIt( false, false );
+        }
         terminated = true;
       }
 
