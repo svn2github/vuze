@@ -35,9 +35,9 @@ import org.gudy.azureus2.plugins.download.DownloadManager;
  * instructions which allows both the download and the torrent to be moved and
  * renamed.
  * 
- * @since 3.0.5.3
- *
  * <p><b>Note:</b> This interface is intended to be implemented by plugins.</p>
+ * 
+ * @since 3.0.5.3
  */
 public interface SaveLocationManager {
 
