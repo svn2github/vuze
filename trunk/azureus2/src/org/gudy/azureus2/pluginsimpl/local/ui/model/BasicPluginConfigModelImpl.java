@@ -275,6 +275,13 @@ BasicPluginConfigModelImpl
 		parameters.add(res);
 		return res;
 	}
+	
+	public org.gudy.azureus2.plugins.ui.config.UIParameter
+	addUIParameter2(org.gudy.azureus2.plugins.ui.config.UIParameterContext context, String resource_name) {
+		UIParameterImpl res = new UIParameterImpl(configobj, context, key_prefix, resource_name);
+		parameters.add(res);
+		return res;
+	}
 		
 	public ActionParameter
 	addActionParameter2(

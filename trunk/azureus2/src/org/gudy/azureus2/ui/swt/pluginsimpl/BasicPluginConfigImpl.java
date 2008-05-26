@@ -36,6 +36,7 @@ import java.util.Map;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
@@ -56,6 +57,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
+import org.gudy.azureus2.ui.swt.plugins.UISWTParameterContext;
 
 public class 
 BasicPluginConfigImpl
@@ -406,6 +408,18 @@ BasicPluginConfigImpl
 								}
 							}
 						});
+			} else if ( param instanceof UIParameterImpl) {
+				if (((UIParameterImpl)param).getContext() instanceof UISWTParameterContext) {
+					UISWTParameterContext context = (UISWTParameterContext)((UIParameterImpl)param).getContext();
+					Composite internal_composite = new Composite(current_composite, SWT.NULL);
+					GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
+					internal_composite.setLayoutData(gridData);
+					swt_param = new UISWTParameter(context.create(internal_composite), param.getKey());
+				}
+				else {
+					swt_param = null;
+				}
+				
 			}else{
 				
 					// label
