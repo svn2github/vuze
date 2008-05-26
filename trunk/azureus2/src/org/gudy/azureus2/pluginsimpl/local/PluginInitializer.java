@@ -413,9 +413,29 @@ PluginInitializer
   
   	public List 
 	loadPlugins(
-			AzureusCore		core,
-			boolean bSkipAlreadyLoaded) 
+		AzureusCore		core,
+		boolean bSkipAlreadyLoaded) 
   	{
+  		if ( bSkipAlreadyLoaded ){
+  		
+  				// discard any failed ones
+  			
+  			List pis = new ArrayList( plugin_interfaces );
+  			
+  			for (int i=0;i<pis.size();i++){
+  		  		
+  				PluginInterfaceImpl pi = (PluginInterfaceImpl)pis.get(i);
+  				
+  		  		Plugin p = pi.getPlugin();
+  		  		
+  		  		if ( p instanceof FailedPlugin ){
+  		  			
+  		  			unloadPlugin( pi );
+  		  		}
+  		  	} 
+  			
+  		}
+  		
   		List pluginLoaded = new ArrayList();
   		
   		PluginManagerImpl.setStartDetails( core );
