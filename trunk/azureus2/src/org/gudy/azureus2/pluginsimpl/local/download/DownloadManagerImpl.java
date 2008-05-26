@@ -931,13 +931,6 @@ DownloadManagerImpl
 		return this.global_dl_notifier;
 	}
 	
-	public boolean
-	isExteralDownload(
-		Download	download )
-	{
-		return( !( download instanceof DownloadImpl ));
-	}
-	
 	public void setSaveLocationManager(SaveLocationManager manager) {
 		DownloadManagerMoveHandler.setHandler(manager);				
 	}
