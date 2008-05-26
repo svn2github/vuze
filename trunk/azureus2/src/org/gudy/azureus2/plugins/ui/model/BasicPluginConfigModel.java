@@ -261,6 +261,13 @@ BasicPluginConfigModel
 	public ColorParameter addColorParameter2(String key, String resource_name, int r, int g, int b);
 	
 	/**
+	 * Creates a {@link UIParameter} object to add to this config model object.
+	 * 
+	 * @since 3.0.5.3
+	 */
+	public UIParameter addUIParameter2(UIParameterContext context, String name);
+	
+	/**
 	 * 
 	 * @param resource_name
 	 * @param parameters

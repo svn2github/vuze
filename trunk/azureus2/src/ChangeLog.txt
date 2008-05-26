@@ -14,6 +14,7 @@ FEATURE: Plug | Plugins can now have full control over on-complete and on-remova
 FEATURE: Plug | Added resource downloader to provide way to download files from Sourceforge [amc1]
 FEATURE: Plug | Added API methods to generically pop up the message box to a user [amc1]
 FEATURE: Plug | Added various convenience methods for using log views and config models [amc1]
+FEATURE: Plug | Added API to allow native UI objects to be added to config views [amc1]
 FEATURE: Plug | Added some more methods for plugins to control some transport mechanisms [amc1]
 
 CHANGE: Core  | added "upload_only" flag to AZMP/LTEP handshakes, disconnect any uploading_only peers we don't need / that don't need us when disconnect seeds when seeding is set [The 8472]
