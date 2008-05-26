@@ -38,7 +38,7 @@ import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
  */
 public class DownloadManagerMoveHandler {
 	
-	public static SaveLocationManager CURRENT_HANDLER = DownloadManagerDefaultPaths.DEFAULT_HANDLER;
+	private static SaveLocationManager CURRENT_HANDLER = null;
     
     // Helper log functions.
 	static void logInfo(String message, DownloadManager dm) {
@@ -83,7 +83,7 @@ public class DownloadManagerMoveHandler {
 
 	public static SaveLocationChange onInitialisation(DownloadManager dm) {
 		if (!isApplicableDownload(dm)) {return null;}
-		try {return CURRENT_HANDLER.onInitialization(PluginCoreUtils.wrap(dm), true);}
+		try {return getHandler().onInitialization(PluginCoreUtils.wrap(dm), true);}
 		catch (Exception e) {
 			logError("Error trying to determine initial download location.", dm, e);
 			return null;
@@ -92,7 +92,7 @@ public class DownloadManagerMoveHandler {
 	
 	public static SaveLocationChange onRemoval(DownloadManager dm) {
 		if (!isApplicableDownload(dm)) {return null;}
-		try {return CURRENT_HANDLER.onRemoval(PluginCoreUtils.wrap(dm), true);}
+		try {return getHandler().onRemoval(PluginCoreUtils.wrap(dm), true);}
 		catch (Exception e) {
 			logError("Error trying to determine on-removal location.", dm, e);
 			return null;
@@ -108,7 +108,7 @@ public class DownloadManagerMoveHandler {
 		}
 		
 		SaveLocationChange sc;
-		try {sc = CURRENT_HANDLER.onCompletion(PluginCoreUtils.wrap(dm), true);}
+		try {sc = getHandler().onCompletion(PluginCoreUtils.wrap(dm), true);}
 		catch (Exception e) {
 			logError("Error trying to determine on-completion location.", dm, e);
 			return null;
@@ -128,12 +128,20 @@ public class DownloadManagerMoveHandler {
 		Download download = PluginCoreUtils.wrap(dm);
 		SaveLocationChange result = null;
 		if (canGoToCompleteDir(dm)) {
-			result = CURRENT_HANDLER.onCompletion(download, false);
+			result = getHandler().onCompletion(download, false);
 		}
 		if (result == null) {
-			result = CURRENT_HANDLER.onInitialization(download, false);
+			result = getHandler().onInitialization(download, false);
 		}
 		return result;
+	}
+	
+	public static SaveLocationManager getHandler() {
+		return (CURRENT_HANDLER == null) ? DownloadManagerDefaultPaths.DEFAULT_HANDLER : CURRENT_HANDLER;
+	}
+	
+	public static void setHandler(SaveLocationManager manager) {
+		CURRENT_HANDLER = manager;
 	}
 
 	
