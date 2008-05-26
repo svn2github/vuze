@@ -658,7 +658,6 @@ UISWTInstanceImpl
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (uiFunctions != null) {
-					System.out.println("mainview: " + l + " " + " " + setfocus + " " + (setfocus && !bUIAttaching));
 					uiFunctions.openPluginView(sParentID, sViewID, l, dataSource,
 							setfocus && !bUIAttaching);
 				}
@@ -679,7 +678,6 @@ UISWTInstanceImpl
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (uiFunctions != null) {
-					System.out.println("mainview: " + l + " " + " " + setfocus + " " + (setfocus && !bUIAttaching));
 					uiFunctions.openPluginView(UISWTInstance.VIEW_MAIN, sViewID, l, dataSource, setfocus && !bUIAttaching);
 				}
 			}
