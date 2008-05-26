@@ -82,7 +82,7 @@ TrackerTorrentImpl
 			
 		}catch( Throwable e ){
 			
-			throw( new TrackerException("Start failed", e ));
+			throw( new TrackerException("Stop failed", e ));
 		}
 	}
 	
