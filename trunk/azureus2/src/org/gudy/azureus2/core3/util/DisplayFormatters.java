@@ -823,48 +823,48 @@ DisplayFormatters
   public static String formatIntToTwoDigits(int n) {
     return n < 10 ? "0".concat(String.valueOf(n)) : String.valueOf(n);
   }
-
-  public static String
-  formatDate(
-  	long		date )
-  {
-  	if ( date == 0 ){
-  		return( "" );
-  	}
-
-  	SimpleDateFormat temp = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
-
-  	return( temp.format(new Date(date)));
+  
+  private static String formatDate(long date, String format) {
+	  if (date == 0) {return "";}
+	  SimpleDateFormat temp = new SimpleDateFormat(format);
+	  return temp.format(new Date(date));
   }
 
-  public static String
-  formatDateShort(
-    long    date )
-  {
-    if ( date == 0 ){
-      return( "" );
+  public static String formatDate(long date) {
+  	return formatDate(date, "dd-MMM-yyyy HH:mm:ss");
+  }
+
+  public static String formatDateShort(long date) {
+	  return formatDate(date, "MMM dd, HH:mm");
     }
 
-    	// 24 hour clock, no point in including AM/PM
-
-    SimpleDateFormat temp = new SimpleDateFormat("MMM dd, HH:mm");
-
-    return( temp.format(new Date(date)));
+  public static String formatDateNum(long date) {
+	  return formatDate(date, "yyyy-MM-dd HH:mm:ss");
   }
   
-  public static String
-  formatDateNum(
-  	long		date )
-  {
-  	if ( date == 0 ){
-  		return( "" );
-  	}
-
-  	SimpleDateFormat temp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-  	return( temp.format(new Date(date)));
+  //
+  // These methods will be exposed in the plugin API.
+  //
+  
+  public static String formatCustomDateOnly(long date) {
+	  if (date == 0) {return "";}
+	  return formatDate(date, "dd-MMM-yyyy");
   }
 
+  public static String formatCustomTimeOnly(long date) {
+	  if (date == 0) {return "";}
+	  return formatDate(date, "HH:mm");
+  }
+  
+  public static String formatCustomDateTime(long date) {
+	  if (date == 0) {return "";}
+	  return formatDate(date);
+  }
+
+  //
+  // End methods
+  //
+  
   public static String
   formatTime(
     long    time )

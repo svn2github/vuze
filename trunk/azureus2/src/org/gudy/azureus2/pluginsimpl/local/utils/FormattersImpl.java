@@ -86,12 +86,18 @@ FormattersImpl
 		return( ByteFormatter.decodeString( str ));
 	}
 	
-	public String
-	formatDate(
-		long		millis )
-	{
-		return( DisplayFormatters.formatDate( millis ));
+	public String formatDate(long millis) {
+		return DisplayFormatters.formatCustomDateTime(millis);
 	}
+
+	public String formatTimeOnly(long millis) {
+		return DisplayFormatters.formatCustomTimeOnly(millis);
+	}
+
+	public String formatDateOnly(long millis) {
+		return DisplayFormatters.formatCustomDateOnly(millis);
+	}
+
 	
 	public String
 	formatTimeFromSeconds(

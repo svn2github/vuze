@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.util.Comparator;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.util.DisplayFormatters;
+
 /**
  * @author parg
  *
@@ -60,6 +62,17 @@ Formatters
 	public String
 	formatDate(
 		long		millis );
+	
+	/**
+	 * @since 3.0.5.3
+	 */
+	public String formatTimeOnly(long millis);
+
+	/**
+	 * @since 3.0.5.3
+	 */
+	public String formatDateOnly(long millis);
+
 	
 	public String
 	formatTimeFromSeconds(
