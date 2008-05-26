@@ -117,9 +117,10 @@ BuddyPlugin
 	
 	private static final int	TIMER_PERIOD	= 10*1000;
 	
-	private static final int	BUDDY_STATUS_CHECK_PERIOD	= 60*1000;
+	private static final int	BUDDY_STATUS_CHECK_PERIOD_MIN	= 3*60*1000;
+	private static final int	BUDDY_STATUS_CHECK_PERIOD_INC	= 1*60*1000;
 	
-	protected static final int	STATUS_REPUBLISH_PERIOD		= 5*60*1000;
+	protected static final int	STATUS_REPUBLISH_PERIOD		= 10*60*1000;
 	private static final int	STATUS_REPUBLISH_TICKS		= STATUS_REPUBLISH_PERIOD/TIMER_PERIOD;
 
 	private static final int	CHECK_YGM_PERIOD			= 5*60*1000;
@@ -1889,7 +1890,9 @@ BuddyPlugin
 			
 			buddy.checkTimeouts();
 			
-			if ( last_check > now || now - last_check > BUDDY_STATUS_CHECK_PERIOD ){
+			int	period = BUDDY_STATUS_CHECK_PERIOD_MIN + BUDDY_STATUS_CHECK_PERIOD_INC*buddies_copy.size()/5;
+			
+			if ( last_check > now || now - last_check > period ){
 				
 				if ( !buddy.statusCheckActive()){
 			
