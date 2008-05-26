@@ -201,7 +201,7 @@ public class AboutWindow {
             finished[0] = true;
             break;
           }
-          if(display == null || display.isDisposed()) {
+          if(display.isDisposed()) {
             finished[0] = true;
             break;
           }
