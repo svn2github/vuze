@@ -737,14 +737,16 @@ public class OpenTorrentWindow
 
 			file = new File(info.getDataDir());
 			
-			// Need to make directory now, or single file torrent will take the 
-			// "dest dir" as their filename.  ie:
-			// - Dest Dir: C:\Test\dl\moo
-			// - Single file torrent: hi.exe
-			// - directory C:\test\dl exists
-			// When torrent is started, hi.exe will be downloaded as "moo" in 
-			// c:\test\dl
-			if (file.isFile() && !FileUtil.mkdirs(file)) {
+			/**
+			 * For a simple torrent, file is the parent directory.
+			 * For a multi-file torrent, file is the parent directory + torrent name.
+			 * 
+			 * We want to make sure that the parent directory for an existing
+			 * torrent is not a file! And same with all the files that will exist
+			 * inside a multi-file torrent, we want to make sure that the directory
+			 * that all files will reside in isn't already a file.
+			 */
+			if (file.isFile()) {
 				Utils.openMessageBox(shellForChildren, SWT.OK | SWT.ICON_ERROR,
 						"OpenTorrentWindow.mb.noDestDir", new String[] {
 							file.toString(),
