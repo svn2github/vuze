@@ -22,18 +22,27 @@
 
 package org.gudy.azureus2.plugins.ui.model;
 
-/**
- * @author parg
- *
- */
-
 import org.gudy.azureus2.plugins.ui.config.*;
 import org.gudy.azureus2.plugins.ui.config.FileParameter;
 
+/**
+ * This object represents a configuration section.
+ *
+ * <p>
+ * 
+ * If you specify "_blank" as a resource name (the label for the parameter),
+ * (or use the {@link #BLANK_RESOURCE} constant defined here), then this will
+ * be a blank label (available since 3.0.5.3).
+ */
 public interface 
 BasicPluginConfigModel 
-	extends PluginConfigModel
-{
+	extends PluginConfigModel {
+	
+	/**
+	 * @since 3.0.5.3
+	 */
+	public String BLANK_RESOURCE = "_blank";
+	
 	/**
 	 * @deprecated use addBooleanParameter2
 	 * @param key

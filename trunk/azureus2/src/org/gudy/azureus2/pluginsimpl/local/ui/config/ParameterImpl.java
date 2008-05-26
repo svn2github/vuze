@@ -66,6 +66,9 @@ ParameterImpl
 		config	= _config;
 		key		= _key;
 		labelKey 	= _label;
+		if ("_blank".equals(labelKey)) {
+			labelKey = "!!";
+		}
 		label = MessageText.getString(labelKey);
 	}
 	/**
