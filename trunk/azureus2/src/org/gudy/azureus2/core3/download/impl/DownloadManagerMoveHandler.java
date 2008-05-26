@@ -20,13 +20,12 @@
  */
 package org.gudy.azureus2.core3.download.impl;
 
+import java.io.File;
+import java.util.ArrayList;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
-import org.gudy.azureus2.core3.logging.LogEvent;
-import org.gudy.azureus2.core3.logging.LogIDs;
-import org.gudy.azureus2.core3.logging.LogRelation;
-import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.savelocation.SaveLocationChange;
 import org.gudy.azureus2.plugins.download.savelocation.SaveLocationManager;
@@ -36,37 +35,10 @@ import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
  * @author Allan Crooks
  *
  */
-public class DownloadManagerMoveHandler {
+public class DownloadManagerMoveHandler extends DownloadManagerMoveHandlerUtils {
 	
-	private static SaveLocationManager CURRENT_HANDLER = null;
+	public static SaveLocationManager CURRENT_HANDLER = DownloadManagerDefaultPaths.DEFAULT_HANDLER;
     
-    // Helper log functions.
-	static void logInfo(String message, DownloadManager dm) {
-		LogRelation lr = (dm instanceof LogRelation) ? (LogRelation)dm : null;
-		if (lr == null) {return;}
-		if (!Logger.isEnabled()) {return;}
-		Logger.log(new LogEvent(lr, LogIDs.CORE, LogEvent.LT_INFORMATION, message));
-	}
-
-	static void logWarn(String message, DownloadManager dm) {
-		LogRelation lr = (dm instanceof LogRelation) ? (LogRelation)dm : null;
-		if (lr == null) {return;}
-		if (!Logger.isEnabled()) {return;}
-		Logger.log(new LogEvent(lr, LogIDs.CORE, LogEvent.LT_WARNING, message));
-	}
-	
-	static void logError(String message, DownloadManager dm, Throwable e) {
-		LogRelation lr = (dm instanceof LogRelation) ? (LogRelation)dm : null;
-		if (lr == null) {return;}
-		if (!Logger.isEnabled()) {return;}
-		Logger.log(new LogEvent(lr, LogIDs.CORE, message, e));
-	}
-	
-	static String describe(DownloadManager dm) {
-		if (dm == null) {return "";}
-		return "\"" + dm.getDisplayName() + "\"";
-	}
-
 	private static boolean isApplicableDownload(DownloadManager dm) {
 		if (!dm.isPersistent()) {
 			logInfo(describe(dm) + " is not persistent.", dm);
@@ -83,7 +55,7 @@ public class DownloadManagerMoveHandler {
 
 	public static SaveLocationChange onInitialisation(DownloadManager dm) {
 		if (!isApplicableDownload(dm)) {return null;}
-		try {return getHandler().onInitialization(PluginCoreUtils.wrap(dm), true);}
+		try {return CURRENT_HANDLER.onInitialization(PluginCoreUtils.wrap(dm), true);}
 		catch (Exception e) {
 			logError("Error trying to determine initial download location.", dm, e);
 			return null;
@@ -92,7 +64,7 @@ public class DownloadManagerMoveHandler {
 	
 	public static SaveLocationChange onRemoval(DownloadManager dm) {
 		if (!isApplicableDownload(dm)) {return null;}
-		try {return getHandler().onRemoval(PluginCoreUtils.wrap(dm), true);}
+		try {return CURRENT_HANDLER.onRemoval(PluginCoreUtils.wrap(dm), true);}
 		catch (Exception e) {
 			logError("Error trying to determine on-removal location.", dm, e);
 			return null;
@@ -108,7 +80,7 @@ public class DownloadManagerMoveHandler {
 		}
 		
 		SaveLocationChange sc;
-		try {sc = getHandler().onCompletion(PluginCoreUtils.wrap(dm), true);}
+		try {sc = CURRENT_HANDLER.onCompletion(PluginCoreUtils.wrap(dm), true);}
 		catch (Exception e) {
 			logError("Error trying to determine on-completion location.", dm, e);
 			return null;
@@ -120,29 +92,60 @@ public class DownloadManagerMoveHandler {
 	}
 	
 	public static boolean canGoToCompleteDir(DownloadManager dm) {
-		if (!dm.isDownloadComplete(false)) {return false;}
+		return (dm.isDownloadComplete(false) && isOnCompleteEnabled());
+	}
+
+	public static boolean isOnCompleteEnabled() {
 		return COConfigurationManager.getBooleanParameter("Move Completed When Done");
+	}
+
+	public static boolean isOnRemovalEnabled() {
+		return COConfigurationManager.getBooleanParameter("File.move.download.removed.enabled");
 	}
 	
 	public static SaveLocationChange recalculatePath(DownloadManager dm) {
 		Download download = PluginCoreUtils.wrap(dm);
 		SaveLocationChange result = null;
 		if (canGoToCompleteDir(dm)) {
-			result = getHandler().onCompletion(download, false);
+			result = CURRENT_HANDLER.onCompletion(download, false);
 		}
 		if (result == null) {
-			result = getHandler().onInitialization(download, false);
+			result = CURRENT_HANDLER.onInitialization(download, false);
 		}
 		return result;
 	}
 	
-	public static SaveLocationManager getHandler() {
-		return (CURRENT_HANDLER == null) ? DownloadManagerDefaultPaths.DEFAULT_HANDLER : CURRENT_HANDLER;
+	/**
+	 * Find all file locations that a download might exist in - this is used
+	 * to see locate existing files to reuse to prevent downloads being re-added.
+	 */
+	public static File[] getRelatedDirs(DownloadManager dm) {
+		ArrayList result = new ArrayList();
+		Download d = PluginCoreUtils.wrap(dm);
+		
+		if (isOnCompleteEnabled()) {
+			addFile(result, COConfigurationManager.getStringParameter("Completed Files Directory"));
+			addFile(result, CURRENT_HANDLER.onCompletion(d, false));
+			addFile(result, DownloadManagerDefaultPaths.DEFAULT_HANDLER.onCompletion(d, false));
+		}
+		if (isOnRemovalEnabled()) {
+			addFile(result, COConfigurationManager.getStringParameter("File.move.download.removed.path"));
+			addFile(result, CURRENT_HANDLER.onRemoval(d, false));
+			addFile(result, DownloadManagerDefaultPaths.DEFAULT_HANDLER.onRemoval(d, false));
+		}
+		return (File[])result.toArray(new File[result.size()]);
 	}
 	
-	public static void setHandler(SaveLocationManager manager) {
-		CURRENT_HANDLER = manager;
+	private static void addFile(ArrayList l, SaveLocationChange slc) {
+		if (slc != null) {addFile(l, slc.download_location);}
 	}
-
+	
+	private static void addFile(ArrayList l, File f) {
+		if (f != null && !l.contains(f)) {l.add(f);}
+	}
+	
+	private static void addFile(ArrayList l, String s) {
+		if (s != null && s.trim().length()!=0) {addFile(l, new File(s));}
+	}
 	
 }

@@ -9,7 +9,6 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.FileUtil;
 
 import org.gudy.azureus2.plugins.download.Download;
@@ -18,20 +17,20 @@ import org.gudy.azureus2.plugins.download.savelocation.SaveLocationChange;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 
 
-public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandler {
+public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils {
 	
 	public final static DefaultSaveLocationManager DEFAULT_HANDLER = new DefaultSaveLocationManager() {
 		public SaveLocationChange onInitialization(Download d, boolean moving) {
 			DownloadManager dm = ((DownloadImpl)d).getDownload();
-			return determinePaths(dm, UPDATE_FOR_MOVE_DETAILS[1]); // 1 - incomplete downloads
+			return determinePaths(dm, UPDATE_FOR_MOVE_DETAILS[1], moving); // 1 - incomplete downloads
 		}
 		public SaveLocationChange onCompletion(Download d, boolean moving) {
 			DownloadManager dm = ((DownloadImpl)d).getDownload();
-			return determinePaths(dm, COMPLETION_DETAILS);
+			return determinePaths(dm, COMPLETION_DETAILS, moving);
 		}
 		public SaveLocationChange onRemoval(Download d, boolean moving) {
 			DownloadManager dm = ((DownloadImpl)d).getDownload();
-			return determinePaths(dm, REMOVAL_DETAILS);
+			return determinePaths(dm, REMOVAL_DETAILS, moving);
 		}
 		public boolean isInDefaultSaveDir(Download d) {
 			DownloadManager dm = ((DownloadImpl)d).getDownload();
@@ -212,8 +211,8 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandler {
     /**
      * This does the guts of determining appropriate file paths.
      */
-    private static SaveLocationChange determinePaths(DownloadManager dm, MovementInformation mi) {
-		boolean proceed = mi.source.matchesDownload(dm, mi);
+    private static SaveLocationChange determinePaths(DownloadManager dm, MovementInformation mi, boolean check_source) {
+		boolean proceed = !check_source || mi.source.matchesDownload(dm, mi);
 		if (!proceed) {
 			logInfo("Cannot consider " + describe(dm, mi) +
 			    " - does not match source criteria.", dm);

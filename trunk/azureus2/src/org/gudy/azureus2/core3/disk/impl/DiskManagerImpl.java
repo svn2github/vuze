@@ -40,7 +40,6 @@ import org.gudy.azureus2.core3.disk.impl.resume.RDResumeHandler;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerException;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
-import org.gudy.azureus2.core3.download.impl.DownloadManagerDefaultPaths;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerMoveHandler;
 import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
 import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
@@ -415,24 +414,20 @@ DiskManagerImpl
     startSupport()
     {
             //if the data file is already in the completed files dir, we want to use it
-
-        boolean moveWhenDone = COConfigurationManager.getBooleanParameter("Move Completed When Done");
-
-        String moveToDir = COConfigurationManager.getStringParameter("Completed Files Directory", "");
-        
         boolean files_exist = false;
 
-        if ( moveWhenDone && moveToDir.length() > 0 && download_manager.isPersistent()){
+        if (download_manager.isPersistent()){
         	
         	/**
         	 * Try one of these candidate directories, see if the data already exists there.
         	 */
-        	String[] move_to_dirs = new String[] {moveToDir, DownloadManagerDefaultPaths.getCompletionDirectory(download_manager).getAbsolutePath()};
+        	File[] move_to_dirs = DownloadManagerMoveHandler.getRelatedDirs(download_manager); 
         	
         	for (int i=0; i<move_to_dirs.length; i++) {
-        		if (filesExist (move_to_dirs[i])) {
+        		String move_to_dir = move_to_dirs[i].getAbsolutePath();
+        		if (filesExist (move_to_dir)) {
                     alreadyMoved = files_exist = true;
-                    download_manager.setTorrentSaveDir(move_to_dirs[i]);
+                    download_manager.setTorrentSaveDir(move_to_dir);
                     break;
                 }
         	}

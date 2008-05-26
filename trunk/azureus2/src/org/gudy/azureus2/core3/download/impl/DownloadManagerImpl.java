@@ -3584,7 +3584,7 @@ DownloadManagerImpl
 		    	}
 		    	    	
 		    	SaveLocationChange move_details;
-		    	move_details = DownloadManagerDefaultPaths.onRemoval(this);
+		    	move_details = DownloadManagerMoveHandler.onRemoval(this);
 		    	if (move_details == null) {
 		    		return;
 		    	}

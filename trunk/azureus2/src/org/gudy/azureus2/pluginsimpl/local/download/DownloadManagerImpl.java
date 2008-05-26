@@ -932,11 +932,12 @@ DownloadManagerImpl
 	}
 	
 	public void setSaveLocationManager(SaveLocationManager manager) {
-		DownloadManagerMoveHandler.setHandler(manager);				
+		if (manager == null) {manager = getDefaultSaveLocationManager();}
+		DownloadManagerMoveHandler.CURRENT_HANDLER = manager;				
 	}
 	
 	public SaveLocationManager getSaveLocationManager() {
-		return DownloadManagerMoveHandler.getHandler();
+		return DownloadManagerMoveHandler.CURRENT_HANDLER;
 	}	
 
 	public DefaultSaveLocationManager getDefaultSaveLocationManager() {
