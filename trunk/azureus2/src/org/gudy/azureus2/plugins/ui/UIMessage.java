@@ -49,7 +49,7 @@ package org.gudy.azureus2.plugins.ui;
  * <p><b>Note:</b> Only for implementation by Azureus, not plugins.</p>
  * 
  * @author Allan Crooks
- * @since 3.0.5.3
+ * @since 3.5.0.3
  */
 public interface UIMessage {
 	

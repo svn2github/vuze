@@ -21,7 +21,7 @@
 package org.gudy.azureus2.plugins.network;
 
 /**
- * @since 3.0.5.3
+ * @since 3.5.0.3
  */
 public interface TransportCipher {
 }

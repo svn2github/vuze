@@ -26,7 +26,7 @@ import java.io.File;
  * Used by {@link SaveLocationManager} - you create an instance, set the
  * attributes here and return the value.
  * 
- * @since 3.0.5.3
+ * @since 3.5.0.3
  */
 public class SaveLocationChange {
 	

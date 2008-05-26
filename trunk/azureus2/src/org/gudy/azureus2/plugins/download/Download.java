@@ -978,7 +978,7 @@ Download extends DownloadEventNotifier
    * state, the <tt>for-completion</tt> rules in place, and the {@link SaveLocationManager}
    * object in use.
    * 
-   * @since 3.0.5.3 
+   * @since 3.5.0.3 
    */
   public SaveLocationChange calculateDefaultDownloadLocation();
 

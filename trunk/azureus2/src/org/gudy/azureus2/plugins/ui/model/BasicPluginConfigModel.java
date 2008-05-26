@@ -32,14 +32,14 @@ import org.gudy.azureus2.plugins.ui.config.FileParameter;
  * 
  * If you specify "_blank" as a resource name (the label for the parameter),
  * (or use the {@link #BLANK_RESOURCE} constant defined here), then this will
- * be a blank label (available since 3.0.5.3).
+ * be a blank label (available since 3.5.0.3).
  */
 public interface 
 BasicPluginConfigModel 
 	extends PluginConfigModel {
 	
 	/**
-	 * @since 3.0.5.3
+	 * @since 3.5.0.3
 	 */
 	public String BLANK_RESOURCE = "_blank";
 	
@@ -272,7 +272,7 @@ BasicPluginConfigModel
 	/**
 	 * Creates a {@link UIParameter} object to add to this config model object.
 	 * 
-	 * @since 3.0.5.3
+	 * @since 3.5.0.3
 	 */
 	public UIParameter addUIParameter2(UIParameterContext context, String name);
 	
@@ -318,7 +318,7 @@ BasicPluginConfigModel
 	 * situations where the configuration section is being dynamically
 	 * created (perhaps with user input).
 	 * 
-	 * @since 3.0.5.3
+	 * @since 3.5.0.3
 	 */
 	public void setLocalizedName(String name);
 }

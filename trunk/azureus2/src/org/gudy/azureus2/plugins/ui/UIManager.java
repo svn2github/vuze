@@ -145,7 +145,7 @@ UIManager
 	 * @param message
 	 * @param message_map - see UIManagerEvent.MT_x
 	 * @return selected value
-	 * @since 3.0.5.3
+	 * @since 3.5.0.3
 	 */
 	
 	public long
