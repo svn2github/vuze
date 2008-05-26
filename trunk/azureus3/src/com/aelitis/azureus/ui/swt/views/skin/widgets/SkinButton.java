@@ -55,7 +55,7 @@ public abstract class SkinButton
 	}
 
 	public SkinButton(Composite parent, String buttonText, Image buttonImage) {
-		super(parent, SWT.DOUBLE_BUFFERED);
+		super(parent, SWT.DOUBLE_BUFFERED | SWT.INHERIT_DEFAULT);
 		this.buttonImage = buttonImage;
 		this.buttonText = buttonText;
 
@@ -63,9 +63,7 @@ public abstract class SkinButton
 	}
 
 	private void init() {
-		
 		setCursor(Cursors.handCursor);
-		
 		addPaintListener(new PaintListener() {
 
 			public void paintControl(PaintEvent e) {

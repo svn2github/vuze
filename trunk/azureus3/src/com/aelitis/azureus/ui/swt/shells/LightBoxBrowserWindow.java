@@ -132,7 +132,7 @@ public class LightBoxBrowserWindow
 		errorPanel = new Composite(contentPanel, SWT.NONE);
 		errorPanel.setBackground(contentBackgroundColor);
 		errorPanel.setLayout(new FormLayout());
-
+		errorPanel.setBackgroundMode(SWT.INHERIT_DEFAULT);
 		errorMessageLabel = new Label(errorPanel, SWT.WRAP);
 		errorMessageLabel.setBackground(errorPanel.getBackground());
 		errorMessageLabel.setForeground(Colors.grey);
@@ -145,13 +145,12 @@ public class LightBoxBrowserWindow
 		fData.right = new FormAttachment(100, -20);
 		
 		/*
-		 * TODO: remove the following 4 lines once the automatic behavior is implemented for
-		 * size calculation and background painting 
+		 * TODO: remove the following 3 lines once the automatic behavior is implemented for
+		 * size calculation
 		 */
 		Point size = closeButton.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		fData.width=size.x;
 		fData.height=size.y;
-		closeButton.setBackground(contentBackgroundColor);
 
 		
 		closeButton.setLayoutData(fData);
