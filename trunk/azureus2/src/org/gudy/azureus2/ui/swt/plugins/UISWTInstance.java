@@ -128,6 +128,20 @@ public interface UISWTInstance extends UIInstance {
 	 * @since 2.5.0.1
 	 */
 	public boolean openView(String sParentID, String sViewID, Object dataSource);
+
+	/**
+	 * Open a previously added view
+	 * 
+	 * @param sParentID ParentID of the view to be shown
+	 * @param sViewID id of the view to be shown
+	 * @param dataSource any data you need to pass the view
+	 * @param setfocus <tt>true</tt> if you want to display the view immediately,
+	 *   <tt>false</tt> if you want to display it in the background.
+	 * @return success level
+	 * @since 3.5.0.3
+	 */
+	public boolean openView(String sParentID, String sViewID, Object dataSource, boolean setfocus);
+
 	
 	/** 
 	 * Create and open a view in the main window immediately.  If you are calling
@@ -145,6 +159,25 @@ public interface UISWTInstance extends UIInstance {
 	 */
 	public void openMainView(String sViewID, UISWTViewEventListener l,
 			Object dataSource);
+	
+	/** 
+	 * Create and open a view in the main window immediately.  If you are calling
+	 * this from {@link org.gudy.azureus2.plugins.ui.UIManagerListener#UIAttached(UIInstance)},
+	 * the view will not gain focus.
+	 * <p>
+	 * Tip: You can add a menu item to a table view, and when triggered, have
+	 *      it open a new window, passing the datasources that were selected
+	 * 
+	 * @param sViewID ID to give your view
+	 * @param l Listener to be triggered when View Events occur
+	 * @param dataSource objects to set {@link UISWTView#getDataSource()} with
+	 * @param setfocus <tt>true</tt> if you want to display the view immediately,
+	 *   <tt>false</tt> if you want to display it in the background.
+	 *
+	 * @since 3.5.0.3
+	 */
+	public void openMainView(String sViewID, UISWTViewEventListener l,
+			Object dataSource, boolean setfocus);
 
 	/**
 	 * Remove all views that belong to a specific parent and of a specific View 
@@ -238,7 +271,7 @@ public interface UISWTInstance extends UIInstance {
 	 * Opens the window linked to a given BasicPluginViewModel object.
 	 * 
 	 * @return <tt>true</tt> if the view was opened successfully.
-	 * @since 3.0.5.3
+	 * @since 3.5.0.3
 	 */
 	public boolean openView(BasicPluginViewModel model);
 
@@ -246,7 +279,7 @@ public interface UISWTInstance extends UIInstance {
 	 * Opens the window linked to a given BasicPluginViewModel object.
 	 * 
 	 * @return <tt>true</tt> if the view was opened successfully.
-	 * @since 3.0.5.3
+	 * @since 3.5.0.3
 	 */
 	public void openConfig(BasicPluginConfigModel model);
 

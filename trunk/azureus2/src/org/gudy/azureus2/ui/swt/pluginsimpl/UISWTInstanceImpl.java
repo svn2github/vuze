@@ -637,9 +637,14 @@ UISWTInstanceImpl
 		}
 		subViews.remove(sViewID);
 	}
-	
+
 	public boolean openView(final String sParentID, final String sViewID,
 			final Object dataSource) {
+		return openView(sParentID, sViewID, dataSource, true);
+	}
+	
+	public boolean openView(final String sParentID, final String sViewID,
+			final Object dataSource, final boolean setfocus) {
 		Map subViews = (Map) views.get(sParentID);
 		if (subViews == null) {
 			return false;
@@ -653,8 +658,9 @@ UISWTInstanceImpl
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (uiFunctions != null) {
+					System.out.println("mainview: " + l + " " + " " + setfocus + " " + (setfocus && !bUIAttaching));
 					uiFunctions.openPluginView(sParentID, sViewID, l, dataSource,
-							!bUIAttaching);
+							setfocus && !bUIAttaching);
 				}
 			}
 		});
@@ -664,10 +670,17 @@ UISWTInstanceImpl
 
 	public void openMainView(final String sViewID,
 			final UISWTViewEventListener l, final Object dataSource) {
+		openMainView(sViewID, l, dataSource, true);
+	}
+	
+	public void openMainView(final String sViewID,
+			final UISWTViewEventListener l, final Object dataSource,
+			final boolean setfocus) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (uiFunctions != null) {
-					uiFunctions.openPluginView(UISWTInstance.VIEW_MAIN, sViewID, l, dataSource, !bUIAttaching);
+					System.out.println("mainview: " + l + " " + " " + setfocus + " " + (setfocus && !bUIAttaching));
+					uiFunctions.openPluginView(UISWTInstance.VIEW_MAIN, sViewID, l, dataSource, setfocus && !bUIAttaching);
 				}
 			}
 		});
@@ -833,6 +846,13 @@ UISWTInstanceImpl
 		}
 
 		public void 
+		openMainView(String sViewID, UISWTViewEventListener l,Object dataSource, boolean setfocus)
+		{
+			delegate.openMainView( sViewID, l, dataSource, setfocus );
+		}
+
+		
+		public void 
 		removeViews(String sParentID, String sViewID)
 		{
 			delegate.removeViews(sParentID, sViewID );
@@ -879,6 +899,10 @@ UISWTInstanceImpl
 
 		public boolean openView(String sParentID, String sViewID, Object dataSource) {
 			return delegate.openView(sParentID, sViewID, dataSource);
+		}
+		
+		public boolean openView(String sParentID, String sViewID, Object dataSource, boolean setfocus) {
+			return delegate.openView(sParentID, sViewID, dataSource, setfocus);
 		}
 		
 		public UIInputReceiver getInputReceiver() {
