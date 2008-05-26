@@ -195,7 +195,7 @@ ShareResourceFileOrDirImpl
 
 			boolean	private_torrent = COConfigurationManager.getBooleanParameter( "Sharing Torrent Private" );
 			
-			boolean	dht_backup_enabled = COConfigurationManager.getBooleanParameter( "Sharing Permit DHT", true );
+			boolean	dht_backup_enabled = COConfigurationManager.getBooleanParameter( "Sharing Permit DHT" );
 
 			TorrentAttribute ta_props = TorrentManagerImpl.getSingleton().getAttribute( TorrentAttribute.TA_SHARE_PROPERTIES );
 			
