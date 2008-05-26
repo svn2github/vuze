@@ -34,7 +34,7 @@ Parameter
 {
 	/**
 	 * Sets whether the UI object for this parameter is enabled (changeable) or
-	 * disabled (not changeable, and usualy grayed out)
+	 * disabled (not changeable, and usually grayed out)
 	 * 
 	 * @param enabled The new enabled state
 	 * 
@@ -56,7 +56,7 @@ Parameter
 
 	
 	/**
-	 * Sets whether the UI object for this parameter is visble to the user
+	 * Sets whether the UI object for this parameter is visible to the user
 	 * 
 	 * @param visible The new visibility state
 	 * 
