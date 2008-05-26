@@ -737,19 +737,14 @@ public class OpenTorrentWindow
 
 			file = new File(info.getDataDir());
 			
-			/**
-			 * AMC: Not sure what the original check was meant for.
-			 * It went from:
-			 *    !file.isDirectory()
-			 * to:
-			 *    !file.isDirectory() && !FileUtil.mkdirs(file)
-			 *
-			 * Perhaps it was to check whether there was a file that
-			 * existed with the same name - so that's what I'm changing
-			 * the code to. I don't want to create a directory before
-			 * a torrent has started.
-			 */ 
-			if (file.isFile()) {
+			// Need to make directory now, or single file torrent will take the 
+			// "dest dir" as their filename.  ie:
+			// - Dest Dir: C:\Test\dl\moo
+			// - Single file torrent: hi.exe
+			// - directory C:\test\dl exists
+			// When torrent is started, hi.exe will be downloaded as "moo" in 
+			// c:\test\dl
+			if (file.isFile() && !FileUtil.mkdirs(file)) {
 				Utils.openMessageBox(shellForChildren, SWT.OK | SWT.ICON_ERROR,
 						"OpenTorrentWindow.mb.noDestDir", new String[] {
 							file.toString(),
