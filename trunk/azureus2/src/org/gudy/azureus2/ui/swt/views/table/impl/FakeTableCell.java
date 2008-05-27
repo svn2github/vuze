@@ -1174,4 +1174,9 @@ public class FakeTableCell
 	public int getMarginWidth() {
 		return marginWidth;
 	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableCellCore#refreshAsync()
+	public void refreshAsync() {
+		refresh();
+	}
 }

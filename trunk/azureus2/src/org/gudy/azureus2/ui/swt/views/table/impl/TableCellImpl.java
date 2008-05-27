@@ -119,12 +119,15 @@ public class TableCellImpl
   private static final String CFG_PAINT = "GUI_SWT_bAlternateTablePainting";
   private static boolean bAlternateTablePainting;
 
-	private static int MAX_REFRESHES = 5;
+	private static int MAX_REFRESHES = 10;
 	private static int MAX_REFRESHES_WITHIN_MS = 100;
 
 	private boolean bInRefresh = false;
 	private long lastRefresh;
 	private int numFastRefreshes;
+
+	private byte restartRefresh = 0;
+	private boolean bInRefreshAsync = false;
 	
   static {
   	COConfigurationManager.addAndFireParameterListener(CFG_PAINT,
@@ -922,10 +925,38 @@ public class TableCellImpl
   	}
   }
   
+  // @see com.aelitis.azureus.ui.common.table.TableCellCore#refresh()
   public boolean refresh() {
     return refresh(true);
   }
   
+  // @see com.aelitis.azureus.ui.common.table.TableCellCore#refreshAsync()
+  public void refreshAsync() {
+  	if (bInRefreshAsync) {
+  		//System.out.println(System.currentTimeMillis() + "] SKIP " + restartRefresh);
+  		if (restartRefresh < Byte.MAX_VALUE) {
+  			restartRefresh++;
+  		}
+  		return;
+  	}
+  	bInRefreshAsync = true;
+
+		AERunnable runnable = new AERunnable() {
+			public void runSupport() {
+				//System.out.println(System.currentTimeMillis() + "] REFRESH!");
+				restartRefresh = 0;
+				refresh(true);
+				bInRefreshAsync = false;
+				//System.out.println(System.currentTimeMillis() + "] REFRESH OUT!");
+				if (restartRefresh > 0) {
+					refreshAsync();
+				}
+			}
+		};
+		Utils.execSWTThreadLater(25, runnable);
+  }
+  
+  // @see com.aelitis.azureus.ui.common.table.TableCellCore#refresh(boolean)
   public boolean refresh(boolean bDoGraphics) {
   	TableView view = tableRow.getView();
 		boolean isRowShown = view.isRowVisible(tableRow);
@@ -933,11 +964,13 @@ public class TableCellImpl
 		return refresh(bDoGraphics, isRowShown, isCellShown);
   }
 
+  // @see com.aelitis.azureus.ui.common.table.TableCellCore#refresh(boolean, boolean)
   public boolean refresh(boolean bDoGraphics, boolean bRowVisible) {
 		boolean isCellShown = bRowVisible && isShown();
 		return refresh(bDoGraphics, bRowVisible, isCellShown);
   }
 
+  // @see com.aelitis.azureus.ui.common.table.TableCellCore#refresh(boolean, boolean, boolean)
   public boolean refresh(boolean bDoGraphics, boolean bRowVisible,  boolean bCellVisible)
   {
 	  boolean ret = getVisuallyChangedSinceRefresh();
@@ -1135,7 +1168,7 @@ public class TableCellImpl
   		if (bDebug) {
   			debug("doPaint: invoke refresh");
   		}
-  		refresh();
+  		refresh(true);
   	}
 
 		if (bDebug) {

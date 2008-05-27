@@ -170,4 +170,11 @@ public interface TableCellCore extends TableCell, Comparable
 	 * @return visually changed since refresh state
 	 */
 	boolean getVisuallyChangedSinceRefresh();
+
+	/**
+	 * 
+	 *
+	 * @since 3.0.5.3
+	 */
+	void refreshAsync();
 }
