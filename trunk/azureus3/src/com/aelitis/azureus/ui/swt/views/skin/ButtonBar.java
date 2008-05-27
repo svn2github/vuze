@@ -191,6 +191,7 @@ public class ButtonBar
 		if (null == viewer) {
 			return;
 		}
+
 		shareAllBuddiesObject.setVisible(false);
 		cancelEditBuddies.setVisible(false);
 
@@ -203,11 +204,15 @@ public class ButtonBar
 			addBuddyButton.setDisabled(true);
 			cancelEditBuddies.setVisible(true);
 			editButton.setDisabled(true);
+			showFooter(true);
+
 		} else if (mode == BuddiesViewer.share_mode) {
 			disabledForEdit(true);
 			editButton.setDisabled(true);
 			addBuddyButton.setDisabled(true);
 			shareAllBuddiesObject.setVisible(true);
+			showFooter(true);
+
 		} else {
 			disabledForEdit(true);
 			editButton.setDisabled(true);
@@ -238,9 +243,8 @@ public class ButtonBar
 
 	private void hookShowHideButon() {
 
-		final SWTSkinObject showImageObject = skin.getSkinObject("button-show-footer");
-		final SWTSkinObject hideImageObject = skin.getSkinObject("button-hide-footer");
-		final SWTSkinObject buttonBarObject = skin.getSkinObject("global-button-bar");
+		SWTSkinObject showImageObject = skin.getSkinObject("button-show-footer");
+		SWTSkinObject hideImageObject = skin.getSkinObject("button-hide-footer");
 		boolean footerVisible = COConfigurationManager.getBooleanParameter("Footer.visible");
 
 		if (null != showImageObject && null != hideImageObject) {
@@ -263,11 +267,7 @@ public class ButtonBar
 					showImageObject);
 			btnShow.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					hideImageObject.setVisible(true);
-					showImageObject.setVisible(false);
-					SWTSkinUtils.setVisibility(skin, "Footer.visible",
-							SkinConstants.VIEWID_FOOTER, true);
-					Utils.relayout(buttonBarObject.getControl());
+					showFooter(true);
 				}
 			});
 
@@ -278,16 +278,29 @@ public class ButtonBar
 					hideImageObject);
 			btnHide.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					showImageObject.setVisible(true);
-					hideImageObject.setVisible(false);
-					SWTSkinUtils.setVisibility(skin, "Footer.visible",
-							SkinConstants.VIEWID_FOOTER, false);
-					Utils.relayout(buttonBarObject.getControl());
+					showFooter(false);
 				}
 			});
 
 		}
 
+	}
+
+	private void showFooter(boolean value) {
+		SWTSkinObject showImageObject = skin.getSkinObject("button-show-footer");
+		SWTSkinObject hideImageObject = skin.getSkinObject("button-hide-footer");
+		SWTSkinObject buttonBarObject = skin.getSkinObject("global-button-bar");
+		SWTSkinObject footerObject = skin.getSkinObject("footer");
+
+		if (footerObject.isVisible() != value) {
+			showImageObject.setVisible(!value);
+			hideImageObject.setVisible(value);
+
+			SWTSkinUtils.setVisibility(skin, "Footer.visible",
+					SkinConstants.VIEWID_FOOTER, value);
+
+			Utils.relayout(buttonBarObject.getControl());
+		}
 	}
 
 	private void hookEditButton() {
