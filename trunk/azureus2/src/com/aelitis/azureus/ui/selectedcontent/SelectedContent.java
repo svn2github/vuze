@@ -34,6 +34,8 @@ public class SelectedContent
 	public DownloadManager dm;
 
 	public String displayName;
+	
+	public String thumbURL;
 
 	/**
 	 * @param dm2
@@ -55,5 +57,13 @@ public class SelectedContent
 	}
 
 	public SelectedContent() {
+	}
+
+	public String getThumbURL() {
+		return thumbURL;
+	}
+
+	public void setThumbURL(String thumbURL) {
+		this.thumbURL = thumbURL;
 	}
 }
