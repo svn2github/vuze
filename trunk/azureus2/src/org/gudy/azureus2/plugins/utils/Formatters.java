@@ -64,12 +64,12 @@ Formatters
 		long		millis );
 	
 	/**
-	 * @since 3.5.0.3
+	 * @since 3.0.5.3
 	 */
 	public String formatTimeOnly(long millis);
 
 	/**
-	 * @since 3.5.0.3
+	 * @since 3.0.5.3
 	 */
 	public String formatDateOnly(long millis);
 

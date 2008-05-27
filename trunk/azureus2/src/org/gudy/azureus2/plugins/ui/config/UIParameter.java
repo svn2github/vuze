@@ -26,7 +26,7 @@ package org.gudy.azureus2.plugins.ui.config;
  *
  * <p><b>Note:</b> Only for implementation by Azureus, not plugins.</p>
  * 
- * @since 3.5.0.3
+ * @since 3.0.5.3
  */
 public interface UIParameter extends Parameter {
 	public UIParameterContext getContext();

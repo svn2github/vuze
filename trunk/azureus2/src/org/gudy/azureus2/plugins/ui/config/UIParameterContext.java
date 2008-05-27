@@ -30,7 +30,7 @@ package org.gudy.azureus2.plugins.ui.config;
  * <p><b>Note:</b> This interface is intended to be implemented by plugins.</p>
  * 
  * @author Allan Crooks
- * @since 3.5.0.3
+ * @since 3.0.5.3
  */
 public interface UIParameterContext {
 

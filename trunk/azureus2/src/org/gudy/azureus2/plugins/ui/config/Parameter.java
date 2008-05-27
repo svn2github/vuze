@@ -80,7 +80,7 @@ Parameter
 	 * Controls whether or not 'parameter change' events are fired for each incremental value change
 	 * @param b
 	 * 
-	 * @since 3.5.0.1
+	 * @since 3.0.5.1
 	 */
 	
 	public void
@@ -91,7 +91,7 @@ Parameter
 	 * 
 	 * @return
 	 * 
-	 * @since 3.5.0.1
+	 * @since 3.0.5.1
 	 */
 	
 	public boolean

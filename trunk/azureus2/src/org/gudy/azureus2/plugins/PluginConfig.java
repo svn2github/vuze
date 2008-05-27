@@ -85,22 +85,22 @@ PluginConfig
 	public static final String CORE_PARAM_BOOLEAN_FRIENDLY_HASH_CHECKING				= "CORE_PARAM_BOOLEAN_FRIENDLY_HASH_CHECKING";
 	
 	/**
-	 * @since 3.4.0.3
+	 * @since 3.0.4.3
 	 */
 	public static final String GUI_PARAM_INT_SWT_REFRESH_IN_MS = "GUI_PARAM_INT_SWT_REFRESH_IN_MS";
 	
 	/**
-	 * @since 3.4.0.3
+	 * @since 3.0.4.3
 	 */
 	public static final String CORE_PARAM_BOOLEAN_NEW_TORRENTS_START_AS_STOPPED = "CORE_PARAM_BOOLEAN_NEW_TORRENTS_START_AS_STOPPED"; 
 
 	/**
-	 * @since 3.5.0.3
+	 * @since 3.0.5.3
 	 */
 	public static final String CORE_PARAM_INT_INCOMING_TCP_PORT = "Incoming TCP Port";
 
 	/**
-	 * @since 3.5.0.3
+	 * @since 3.0.5.3
 	 */
 	public static final String CORE_PARAM_INT_INCOMING_UDP_PORT = "Incoming UDP Port";
 
@@ -370,7 +370,7 @@ PluginConfig
    * @param key The parameter name.
    * @return The value of the parameter.
    *
-   * @since 3.5.0.3
+   * @since 3.0.5.3
    */
   public int[] getCoreColorParameter(String key);
 	  
@@ -392,7 +392,7 @@ PluginConfig
    * @param default_value The default value to return if one is not defined.
    * @return The value of the parameter.
    *
-   * @since 3.5.0.3
+   * @since 3.0.5.3
    */
   public int[] getCoreColorParameter(String key, int[] default_value);
   
@@ -511,7 +511,7 @@ PluginConfig
    * @param key	The parameter name, which must be one defined from the above core constants.
    * @param value The new value for the parameter.
    *
-   * @since 3.5.0.3
+   * @since 3.0.5.3
    */
   public void setCoreColorParameter(String key, int[] value);
 
@@ -532,7 +532,7 @@ PluginConfig
    * @param value The new value for the parameter.
    * @param override <tt>true</tt> if the value is overridden from the default.
    *
-   * @since 3.5.0.3
+   * @since 3.0.5.3
    */
   public void setCoreColorParameter(String key, int[] value, boolean override);
 
@@ -637,7 +637,7 @@ PluginConfig
    * @param key The parameter name.
    * @return The value of the parameter.
    *
-   * @since 3.5.0.3
+   * @since 3.0.5.3
    */
   public int[] getPluginColorParameter(String key);
 	  
@@ -659,7 +659,7 @@ PluginConfig
    * @param default_value The default value to return if one is not defined.
    * @return The value of the parameter.
    *
-   * @since 3.5.0.3
+   * @since 3.0.5.3
    */
   public int[] getPluginColorParameter(String key, int[] default_value);
 
@@ -858,7 +858,7 @@ PluginConfig
    * @param value The new value for the parameter.
    * @return The value of the parameter.
    *
-   * @since 3.5.0.3
+   * @since 3.0.5.3
    */
   public void setPluginColorParameter(String key, int[] value);
 
@@ -880,7 +880,7 @@ PluginConfig
    * @param override <tt>true</tt> if the value is overridden from the default.
    * @return The value of the parameter.
    *
-   * @since 3.5.0.3
+   * @since 3.0.5.3
    */
   public void setPluginColorParameter(String key, int[] value, boolean override);
 
@@ -982,7 +982,7 @@ PluginConfig
    * @param key The parameter name.
    * @return The value of the parameter.
    *
-   * @since 3.5.0.3
+   * @since 3.0.5.3
    */
   public int[] getUnsafeColorParameter(String key);
   
@@ -1007,7 +1007,7 @@ PluginConfig
    * @param default_value The default value to return if one is not defined.
    * @return The value of the parameter.
    *
-   * @since 3.5.0.3
+   * @since 3.0.5.3
    */
   public int[] getUnsafeColorParameter(String key, int[] default_value);
   
@@ -1159,7 +1159,7 @@ PluginConfig
    * @param key The parameter name.
    * @param value The new value for the parameter.
    *
-   * @since 3.5.0.3
+   * @since 3.0.5.3
    */
   public void setUnsafeColorParameter(String key, int[] value);
 
@@ -1183,7 +1183,7 @@ PluginConfig
    * @param value The default value to return if one is not defined.
    * @param override <tt>true</tt> if the value is overridden from the default.
    *
-   * @since 3.5.0.3
+   * @since 3.0.5.3
    */
   public void setUnsafeColorParameter(String key, int[] value, boolean override);
   
@@ -1253,7 +1253,7 @@ PluginConfig
 	 * @param key Name of the parameter.
 	 * @return <tt>true</tt> if the parameter was found and removed.
 	 * 
-	 * @since 3.5.0.3
+	 * @since 3.0.5.3
 	 */
 	public boolean removePluginColorParameter(String key);
 
@@ -1384,7 +1384,7 @@ PluginConfig
 	 * Returns the <tt>PluginConfigSource</tt> object used for this plugin configuration (or
 	 * <tt>null</tt> if an external configuration object isn't used).
 	 * 
-	 * @since 3.5.0.3
+	 * @since 3.0.5.3
 	 * @return The PluginConfigSource object.
 	 */
 	public PluginConfigSource getPluginConfigSource();
@@ -1402,7 +1402,7 @@ PluginConfig
 	 * store data in.
 	 * 
 	 * @param source The PluginConfigSource object to use.
-	 * @since 3.5.0.3
+	 * @since 3.0.5.3
 	 */
 	public void setPluginConfigSource(PluginConfigSource source);
 }

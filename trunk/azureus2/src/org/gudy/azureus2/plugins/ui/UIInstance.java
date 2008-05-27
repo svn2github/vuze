@@ -61,7 +61,7 @@ UIInstance
 	 * ability for a plugin to ask a user in this manner, in which case
 	 * they will return <code>null</code> for this method.
 	 * 
-	 * @since 3.5.0.3
+	 * @since 3.0.5.3
 	 */
 	public UIMessage createMessage();
 

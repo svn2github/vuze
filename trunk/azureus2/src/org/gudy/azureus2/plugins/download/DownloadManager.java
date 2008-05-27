@@ -352,7 +352,7 @@ DownloadManager
 	 * handles <tt>on-completion</tt> and <tt>on-removal</tt> events.
 	 * 
 	 * @param manager The new manager object to use.
-	 * @since 3.5.0.3
+	 * @since 3.0.5.3
 	 */
 	public void setSaveLocationManager(SaveLocationManager manager);
 	
@@ -361,7 +361,7 @@ DownloadManager
 	 * where downloads should be placed.
 	 * 
 	 * @return The manager object currently in use.
-	 * @since 3.5.0.3
+	 * @since 3.0.5.3
 	 */
 	public SaveLocationManager getSaveLocationManager();
 	
@@ -370,7 +370,7 @@ DownloadManager
 	 * where downloads should be placed.
 	 * 
 	 * @return The default save location manager object.
-	 * @since 3.5.0.3 
+	 * @since 3.0.5.3 
 	 */
 	public DefaultSaveLocationManager getDefaultSaveLocationManager();
 }

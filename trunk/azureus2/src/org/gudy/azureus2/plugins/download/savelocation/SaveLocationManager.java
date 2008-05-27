@@ -37,7 +37,7 @@ import org.gudy.azureus2.plugins.download.DownloadManager;
  * 
  * <p><b>Note:</b> This interface is intended to be implemented by plugins.</p>
  * 
- * @since 3.5.0.3
+ * @since 3.0.5.3
  */
 public interface SaveLocationManager {
 

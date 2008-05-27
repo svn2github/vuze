@@ -958,7 +958,7 @@ Download extends DownloadEventNotifier
   public boolean isInDefaultSaveDir();
   
   /**
-   * @since 3.4.0.3
+   * @since 3.0.4.3
    * @return
    */
   
@@ -968,7 +968,7 @@ Download extends DownloadEventNotifier
    * Returns <tt>true</tt> if Azureus will allow the data files for the torrent
    * to be moved.
    * 
-   * @since 3.5.0.1
+   * @since 3.0.5.1
    */
   public boolean canMoveDataFiles();
   
@@ -978,7 +978,7 @@ Download extends DownloadEventNotifier
    * state, the <tt>for-completion</tt> rules in place, and the {@link SaveLocationManager}
    * object in use.
    * 
-   * @since 3.5.0.3 
+   * @since 3.0.5.3 
    */
   public SaveLocationChange calculateDefaultDownloadLocation();
 

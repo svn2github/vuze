@@ -21,7 +21,7 @@
 package org.gudy.azureus2.plugins.utils.resourcedownloader;
 
 /**
- * @since 3.5.0.3
+ * @since 3.0.5.3
  */
 public class ResourceDownloaderCancelledException extends ResourceDownloaderException {
 	public ResourceDownloaderCancelledException() {

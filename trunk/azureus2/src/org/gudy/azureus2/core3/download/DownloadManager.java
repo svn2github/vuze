@@ -668,7 +668,7 @@ DownloadManager
     public int[] getStorageType(DiskManagerFileInfo[] infos);
     
     /**
-     * @since 3.5.0.1
+     * @since 3.0.5.1
      */
     public boolean canMoveDataFiles();
     
@@ -678,12 +678,12 @@ DownloadManager
     public void rename(String new_name) throws DownloadManagerException;
 
     /**
-     * @since 3.5.0.1
+     * @since 3.0.5.1
      */
     public void renameTorrent(String new_name) throws DownloadManagerException;
 
     /**
-     * @since 3.5.0.1
+     * @since 3.0.5.1
      */
     public void moveTorrentFile(File parent_dir, String new_name) throws DownloadManagerException;
     
@@ -692,7 +692,7 @@ DownloadManager
      * this shouldn't be used unless you know what you are doing (it requires
      * the download to be stopped!) - it is safer to use moveTorrentFile instead.
      * 
-     * @since 3.5.0.3
+     * @since 3.0.5.3
      */
     public void setTorrentFile(File new_parent_dir, String new_name) throws DownloadManagerException;
 

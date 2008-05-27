@@ -54,12 +54,12 @@ ConnectionManager
   public int getNATStatus();
   
   /**
-   * @since 3.5.0.3
+   * @since 3.0.5.3
    */
   public TransportCipher createTransportCipher(String algorithm, int mode, SecretKeySpec key_spec, AlgorithmParameterSpec params) throws TransportException;
   
   /**
-   * @since 3.5.0.3
+   * @since 3.0.5.3
    */
   public TransportFilter createTransportFilter(Connection connection, TransportCipher read_cipher, TransportCipher write_cipher) throws TransportException;
   

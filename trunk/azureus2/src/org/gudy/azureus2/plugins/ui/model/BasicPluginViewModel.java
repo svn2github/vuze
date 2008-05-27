@@ -82,7 +82,7 @@ BasicPluginViewModel
 	 * {@link LoggerChannelListener} instance and making it append to the
 	 * log area on this object.
 	 *
-	 * @since 3.5.0.3
+	 * @since 3.0.5.3
 	 * @param channel The log channel to listen to.
 	 */
 	public void attachLoggerChannel(LoggerChannel channel);

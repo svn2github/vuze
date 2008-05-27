@@ -138,7 +138,7 @@ public interface UISWTInstance extends UIInstance {
 	 * @param setfocus <tt>true</tt> if you want to display the view immediately,
 	 *   <tt>false</tt> if you want to display it in the background.
 	 * @return success level
-	 * @since 3.5.0.3
+	 * @since 3.0.5.3
 	 */
 	public boolean openView(String sParentID, String sViewID, Object dataSource, boolean setfocus);
 
@@ -174,7 +174,7 @@ public interface UISWTInstance extends UIInstance {
 	 * @param setfocus <tt>true</tt> if you want to display the view immediately,
 	 *   <tt>false</tt> if you want to display it in the background.
 	 *
-	 * @since 3.5.0.3
+	 * @since 3.0.5.3
 	 */
 	public void openMainView(String sViewID, UISWTViewEventListener l,
 			Object dataSource, boolean setfocus);
@@ -271,7 +271,7 @@ public interface UISWTInstance extends UIInstance {
 	 * Opens the window linked to a given BasicPluginViewModel object.
 	 * 
 	 * @return <tt>true</tt> if the view was opened successfully.
-	 * @since 3.5.0.3
+	 * @since 3.0.5.3
 	 */
 	public boolean openView(BasicPluginViewModel model);
 
@@ -279,7 +279,7 @@ public interface UISWTInstance extends UIInstance {
 	 * Opens the window linked to a given BasicPluginViewModel object.
 	 * 
 	 * @return <tt>true</tt> if the view was opened successfully.
-	 * @since 3.5.0.3
+	 * @since 3.0.5.3
 	 */
 	public void openConfig(BasicPluginConfigModel model);
 

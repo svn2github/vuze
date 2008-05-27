@@ -197,7 +197,7 @@ ResourceDownloaderFactory
 	 * a file from a Sourceforge project (from different mirrors). The resulting
 	 * downloaders can then be passed to a method such as {@link #getRandomDownloader(ResourceDownloader[])}.
 	 * 
-	 * @since 3.5.0.3
+	 * @since 3.0.5.3
 	 */
 	public ResourceDownloader[] getSourceforgeDownloaders(String project_name, String file_name);
 
@@ -205,7 +205,7 @@ ResourceDownloaderFactory
 	 * Creates a resource downloader which can be used to download
 	 * a file from a Sourceforge project (from different mirrors).
 	 * 
-	 * @since 3.5.0.3
+	 * @since 3.0.5.3
 	 */
 	public ResourceDownloader getSourceforgeDownloader(String project_name, String file_name);
 	
