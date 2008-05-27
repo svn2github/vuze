@@ -614,6 +614,10 @@ public class ListRow
 	public boolean isFocused() {
 		return this.equals(view.getRowFocused());
 	}
+	
+	public boolean setTableItem(int newIndex, boolean isVisible) {
+		return setTableItem(newIndex); // might use some optimization with isVisible?
+	}
 
 	/**
 	 * Fixes up layout, and if something changed, it makes sure items near it 
