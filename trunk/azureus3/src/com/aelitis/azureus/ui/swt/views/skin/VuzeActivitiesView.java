@@ -66,6 +66,10 @@ public class VuzeActivitiesView
 
 	private static final String PREFIX = "vuzeevents-";
 
+	private static final long ORDER_TYPE = 1;
+
+	private static final long ORDER_DATE = 0;
+
 	private static String TABLE_ID = "VuzeActivity";
 
 	private ListView view;
@@ -88,11 +92,17 @@ public class VuzeActivitiesView
 
 	private SWTSkinButtonUtility btnComments;
 
-	private SWTSkinButtonUtility btnColumnSetup;
-
 	private long lastShiftedOn;
 
 	private SWTSkinObject soData;
+
+	private long sortOrder = ORDER_DATE;
+	
+	private static Comparator sortByType = new Comparator() {
+		public int compare(Object arg0, Object arg1) {
+			return 0;
+		}
+	};
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
@@ -203,9 +213,6 @@ public class VuzeActivitiesView
 		VuzeActivitiesManager.addListener(this);
 
 		view.addDataSources(VuzeActivitiesManager.getAllEntries());
-
-		btnColumnSetup = TorrentListViewsUtils.addColumnSetupButton(skin, PREFIX,
-				view);
 
 		btnShare = TorrentListViewsUtils.addShareButton(skin, PREFIX, view);
 		btnDetails = TorrentListViewsUtils.addDetailsButton(skin, PREFIX, view);
@@ -436,6 +443,14 @@ public class VuzeActivitiesView
 		if (skipShift) {
 			return;
 		}
+		
+		if (sortOrder == ORDER_TYPE) {
+			VuzeActivitiesEntry[] allEntries = VuzeActivitiesManager.getAllEntries();
+			Arrays.sort(allEntries);
+			
+			return;
+		}
+		
 		Calendar cal = Calendar.getInstance();
 		cal.setTimeInMillis(System.currentTimeMillis());
 		cal.roll(Calendar.DATE, true);
