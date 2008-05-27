@@ -93,7 +93,8 @@ public abstract class BufferedGraphicTableItem1 extends BufferedTableItemImpl
 
     doPaint(bDoRedraw);
 
-    return bImageSet;
+    // can't assume image bits haven't changed
+    return true;
   }
 
   public boolean needsPainting() {
