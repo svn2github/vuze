@@ -425,7 +425,9 @@ public class TableCellImpl
   	if (bufferedTableItem == null) {
   		return false;
   	}
-    return bufferedTableItem.isShown();
+
+    return bufferedTableItem.isShown()
+				|| tableRow.getView().isColumnVisible(tableColumn);
   }
   
   public boolean setSortValue(Comparable valueToSort) {
@@ -927,14 +929,12 @@ public class TableCellImpl
   public boolean refresh(boolean bDoGraphics) {
   	TableView view = tableRow.getView();
 		boolean isRowShown = view.isRowVisible(tableRow);
-		boolean isCellShown = isRowShown && isShown()
-				&& view.isColumnVisible(tableColumn);
+		boolean isCellShown = isRowShown && isShown();
 		return refresh(bDoGraphics, isRowShown, isCellShown);
   }
 
   public boolean refresh(boolean bDoGraphics, boolean bRowVisible) {
-		boolean isCellShown = bRowVisible && isShown()
-				&& tableRow.getView().isColumnVisible(tableColumn);
+		boolean isCellShown = bRowVisible && isShown();
 		return refresh(bDoGraphics, bRowVisible, isCellShown);
   }
 
