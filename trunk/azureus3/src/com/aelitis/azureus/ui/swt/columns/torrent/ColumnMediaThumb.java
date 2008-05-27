@@ -525,7 +525,20 @@ public class ColumnMediaThumb
 			changed = true;
 		}
 		if (changed && event.cell != null) {
-			refresh(event.cell, true);
+			invalidateAndRefresh(event.cell);
+		}
+	}
+
+	/**
+	 * @param cell
+	 *
+	 * @since 3.0.5.3
+	 */
+	private void invalidateAndRefresh(TableCell cell) {
+		cell.invalidate();
+		if (cell instanceof TableCellCore) {
+			TableCellCore cellCore = (TableCellCore) cell;
+			cellCore.refreshAsync();
 		}
 	}
 
@@ -545,7 +558,8 @@ public class ColumnMediaThumb
 			changed = true;
 		}
 		if (changed && cell != null) {
-			refresh(cell, true);
+			cell.invalidate();
+			invalidateAndRefresh(cell);
 		}
 	}
 

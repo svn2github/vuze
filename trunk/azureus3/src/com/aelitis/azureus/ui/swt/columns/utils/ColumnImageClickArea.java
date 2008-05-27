@@ -199,7 +199,7 @@ public class ColumnImageClickArea
 			TableCellCore cell = (TableCellCore) event.row.getTableCell(columnID);
 			if (cell != null) {
 				cell.invalidate();
-				cell.refresh();
+				cell.refreshAsync();
 			}
 		} else if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP
 				&& mouseDownOn) {
@@ -234,7 +234,7 @@ public class ColumnImageClickArea
 			TableCellCore cell = (TableCellCore) event.row.getTableCell(columnID);
 			if (cell != null) {
 				cell.invalidate();
-				cell.refresh();
+				cell.refreshAsync();
 			}
 		} else if (event.eventType == TableCellMouseEvent.EVENT_MOUSEENTER) {
 			setImage(imgOnRow);
@@ -242,7 +242,7 @@ public class ColumnImageClickArea
 			TableCellCore cell = (TableCellCore) event.row.getTableCell(columnID);
 			if (cell != null) {
   			cell.invalidate();
-  			cell.refresh();
+  			cell.refreshAsync();
 			}
 		}
 	}
@@ -254,7 +254,7 @@ public class ColumnImageClickArea
 			if (cell != null) {
 				TableCellCore cellCore = (TableCellCore) cell;
 				cellCore.invalidate();
-				cellCore.refresh();
+				cellCore.refreshAsync();
 				cellCore.setCursorID(containsMouse ? SWT.CURSOR_HAND : SWT.CURSOR_ARROW);
 				if (tooltip != null) {
   				if (containsMouse) {

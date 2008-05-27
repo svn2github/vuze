@@ -268,7 +268,7 @@ public class ColumnTitle
 				if (oldCursorID != newCursorID) {
 					((TableCellSWT) event.cell).setCursorID(newCursorID);
 					event.cell.invalidate();
-					refresh(event.cell);
+					((TableCellSWT) event.cell).refreshAsync();
 				}
 			}
 		}

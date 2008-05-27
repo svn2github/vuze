@@ -25,7 +25,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 
-import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
@@ -130,21 +130,16 @@ public class ColumnVuzeActivity
 	}
 
 	public void refresh(TableCell cell) {
-		refresh(cell, false);
-	}
-
-	public void refresh(final TableCell cell, boolean force) {
 		TableCellImpl thumbCell = getThumbCell(cell);
 		TableCellImpl ratingCell = getRatingCell(cell);
-		if (!force) {
-			if (thumbCell != null
-					&& (!thumbCell.isValid() || thumbCell.getVisuallyChangedSinceRefresh())) {
-				force = true;
-			}
-			if (ratingCell != null
-					&& (!ratingCell.isValid() || ratingCell.getVisuallyChangedSinceRefresh())) {
-				force = true;
-			}
+		boolean force = !cell.isValid();
+		if (thumbCell != null
+				&& (!thumbCell.isValid() || thumbCell.getVisuallyChangedSinceRefresh())) {
+			force = true;
+		}
+		if (ratingCell != null
+				&& (!ratingCell.isValid() || ratingCell.getVisuallyChangedSinceRefresh())) {
+			force = true;
 		}
 
 		Object ds = cell.getDataSource();
@@ -364,8 +359,7 @@ public class ColumnVuzeActivity
 
 				((ListCell) thumbCell.getBufferedTableItem()).setBackground(gc.getBackground());
 				((ListCell) thumbCell.getBufferedTableItem()).setBounds(dmThumbRect);
-				thumbCell.invalidate();
-				thumbCell.refresh(true);
+				invalidateAndRefresh(thumbCell);
 
 				if (VuzeActivitiesEntry.TYPEID_RATING_REMINDER.equals(entry.getTypeID())) {
 					if (canShowThumb
@@ -387,8 +381,7 @@ public class ColumnVuzeActivity
 
 						((ListCell) ratingCell.getBufferedTableItem()).setBackground(gc.getBackground());
 						((ListCell) ratingCell.getBufferedTableItem()).setBounds(dmRatingRect);
-						ratingCell.invalidate();
-						ratingCell.refresh(true);
+						invalidateAndRefresh(ratingCell);
 					}
 				}
 			}
@@ -530,7 +523,7 @@ public class ColumnVuzeActivity
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellMouseListener#cellMouseTrigger(org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent)
 	public void cellMouseTrigger(TableCellMouseEvent event) {
 		String tooltip = null;
-
+		
 		TableCellImpl thumbCell = getThumbCell(event.cell);
 		TableCellImpl ratingCell = getRatingCell(event.cell);
 		if (thumbCell != null || ratingCell != null) {
@@ -572,8 +565,6 @@ public class ColumnVuzeActivity
 				}
 			}
 
-			boolean ok;
-
 			boolean isMouseOverRatingCell = false;
 			if (ratingCell != null) {
 				isMouseOverRatingCell = dmRatingRect.contains(event.x, event.y);
@@ -602,7 +593,7 @@ public class ColumnVuzeActivity
 			if (event.eventType == TableRowMouseEvent.EVENT_MOUSEENTER
 					|| event.eventType == TableRowMouseEvent.EVENT_MOUSEEXIT) {
 				if (event.eventType == TableRowMouseEvent.EVENT_MOUSEEXIT) {
-					refresh(event.cell, true);
+					invalidateAndRefresh(event.cell);
 				}
 				return;
 			}
@@ -687,8 +678,17 @@ public class ColumnVuzeActivity
 		}
 
 		event.cell.setToolTip(tooltip);
-		refresh(event.cell, true);
+		invalidateAndRefresh(event.cell);
 	}
+
+	private void invalidateAndRefresh(TableCell cell) {
+		cell.invalidate();
+		if (cell instanceof TableCellCore) {
+			TableCellCore cellCore = (TableCellCore) cell;
+			cellCore.refreshAsync();
+		}
+	}
+
 
 	private Rectangle getDMImageRect(int cellHeight) {
 		//return new Rectangle(0, cellHeight - 50 - MARGIN_HEIGHT, 16, 50);
