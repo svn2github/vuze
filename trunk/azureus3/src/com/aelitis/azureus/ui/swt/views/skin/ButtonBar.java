@@ -51,6 +51,12 @@ public class ButtonBar
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
 		skin = skinObject.getSkin();
 
+		hookBuddyCountLabel();
+		hookEditButton();
+		hookAddBuddyButon();
+		hookShareAllBuddiesButton();
+		hookTuxGoodies();
+
 		/*
 		 * Skip hooking the show/hide button unless a command line parameter is specified
 		 * WARNING: TODO -- This is temporary and must be removed once the buddies features are complete
@@ -58,12 +64,10 @@ public class ButtonBar
 		if (!com.aelitis.azureus.util.Constants.DISABLE_BUDDIES_BAR) {
 			hookShowHideButon();
 		}
+		else{
+			disabledForEdit(true);
+		}
 
-		hookBuddyCountLabel();
-		hookEditButton();
-		hookAddBuddyButon();
-		hookShareAllBuddiesButton();
-		hookTuxGoodies();
 
 		return null;
 	}
