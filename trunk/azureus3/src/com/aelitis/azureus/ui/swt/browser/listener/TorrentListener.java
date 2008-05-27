@@ -17,9 +17,11 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
+import com.aelitis.azureus.ui.swt.views.skin.VuzeShareUtils;
 import com.aelitis.azureus.util.MapUtils;
 
 public class TorrentListener
@@ -32,6 +34,8 @@ public class TorrentListener
 	public static final String OP_LOAD_TORRENT = "load-torrent";
 
 	public static final String OP_UPDATE_RATING = "update-rating";
+
+	public static final String OP_SHARE = "share-torrent";
 
 	private AzureusCore core;
 
@@ -55,37 +59,52 @@ public class TorrentListener
 	}
 
 	public void handleMessage(BrowserMessage message) {
-		if (OP_LOAD_TORRENT.equals(message.getOperationId())
-				|| OP_LOAD_TORRENT_OLD.equals(message.getOperationId())) {
+		String opid = message.getOperationId();
+		if (OP_LOAD_TORRENT.equals(opid) || OP_LOAD_TORRENT_OLD.equals(opid)) {
 			Map decodedMap = message.getDecodedMap();
 			String url = MapUtils.getMapString(decodedMap, "url", null);
 			boolean playNow = MapUtils.getMapBoolean(decodedMap, "play-now", false);
-			boolean playPrepare = MapUtils.getMapBoolean(decodedMap, "play-prepare", false);
-			boolean bringToFront = MapUtils.getMapBoolean(decodedMap, "bring-to-front", true);
+			boolean playPrepare = MapUtils.getMapBoolean(decodedMap, "play-prepare",
+					false);
+			boolean bringToFront = MapUtils.getMapBoolean(decodedMap,
+					"bring-to-front", true);
 			if (url != null) {
-				TorrentUIUtilsV3.loadTorrent(core, url, message.getReferer(), playNow, playPrepare, bringToFront);
+				TorrentUIUtilsV3.loadTorrent(core, url, message.getReferer(), playNow,
+						playPrepare, bringToFront);
 			} else {
 				loadTorrentByB64(core, message, MapUtils.getMapString(decodedMap,
 						"b64", null));
 			}
-		} else if (OP_UPDATE_RATING.equals(message.getOperationId())) {
+		} else if (OP_UPDATE_RATING.equals(opid)) {
 			Map decodedMap = message.getDecodedMap();
 			String hash = MapUtils.getMapString(decodedMap, "torrent-hash", null);
 			if (hash != null) {
-				DownloadManager dm = core.getGlobalManager().getDownloadManager(new HashWrapper(Base32.decode(hash)));
+				DownloadManager dm = core.getGlobalManager().getDownloadManager(
+						new HashWrapper(Base32.decode(hash)));
 				if (dm != null && dm.getTorrent() != null) {
-  				PlatformRatingMessenger.getUserRating(new String[] {
-  					PlatformRatingMessenger.RATE_TYPE_CONTENT
-  				}, new String[] {
-  					hash
-  				}, 7000);
-  				
-  				PlatformRatingMessenger.updateGlobalRating(dm.getTorrent(), 7000);
+					PlatformRatingMessenger.getUserRating(new String[] {
+						PlatformRatingMessenger.RATE_TYPE_CONTENT
+					}, new String[] {
+						hash
+					}, 7000);
+
+					PlatformRatingMessenger.updateGlobalRating(dm.getTorrent(), 7000);
 				}
 			}
+		} else if (OP_SHARE.equals(opid)) {
+			Map decodedMap = message.getDecodedMap();
+			String hash = MapUtils.getMapString(decodedMap, "torrent-hash", null);
+			String displayName = MapUtils.getMapString(decodedMap, "display-name",
+					null);
+			if (hash != null && displayName != null) {
+				String referer = MapUtils.getMapString(decodedMap, "referer",
+						"torrentlistener");
+				SelectedContent content = new SelectedContent(hash, displayName, true);
+				content.setThumbURL(MapUtils.getMapString(decodedMap, "thumbnail", null));
+				VuzeShareUtils.getInstance().shareTorrent(content, referer);
+			}
 		} else {
-			throw new IllegalArgumentException("Unknown operation: "
-					+ message.getOperationId());
+			throw new IllegalArgumentException("Unknown operation: " + opid);
 		}
 	}
 
