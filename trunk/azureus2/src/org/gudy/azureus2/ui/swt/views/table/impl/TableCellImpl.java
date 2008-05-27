@@ -1163,13 +1163,15 @@ public class TableCellImpl
   }
   
   public void doPaint(GC gc) {
-  	if ((!hasFlag(FLAG_UPTODATE) || !hasFlag(FLAG_VALID))
-				&& (refreshListeners != null || tableColumn.hasCellRefreshListener())) {
-  		if (bDebug) {
-  			debug("doPaint: invoke refresh");
-  		}
-  		refresh(true);
-  	}
+  	//This sometimes causes a infinite loop if the listener invalidates
+  	//the drawing area
+  	//if ((!hasFlag(FLAG_UPTODATE) || !hasFlag(FLAG_VALID)) && !bInRefresh && !bInRefreshAsync
+		//		&& (refreshListeners != null || tableColumn.hasCellRefreshListener())) {
+  	//	if (bDebug) {
+  	//		debug("doPaint: invoke refresh");
+  	//	}
+  	//	refresh(true);
+  	//}
 
 		if (bDebug) {
 			debug("doPaint up2date:" + hasFlag(FLAG_UPTODATE) + ";v:" + hasFlag(FLAG_VALID) + ";rl=" + refreshListeners);
