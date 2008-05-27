@@ -252,9 +252,6 @@ public abstract class BufferedGraphicTableItem1 extends BufferedTableItemImpl
     boolean ourGC = (gc == null);
     if (ourGC) {
       gc = new GC(table);
-      if (gc == null) {
-        return;
-      }
     }
 
     Point srcStart = new Point(clipping.x - bounds.x, clipping.y - bounds.y); 

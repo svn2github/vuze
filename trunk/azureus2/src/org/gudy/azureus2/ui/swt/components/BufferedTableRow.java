@@ -571,7 +571,7 @@ BufferedTableRow
   	}
 
   	if (newRow == item) {
-  		if (newRow == null || newRow.getData("TableRow") == this) {
+  		if (newRow.getData("TableRow") == this) {
      		setAlternatingBGColor(false);
   			return false;
   		}

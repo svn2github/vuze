@@ -83,11 +83,6 @@ public class SimpleBrowserWindow
 			return;
 		}
 		
-		if (browser == null) {
-			shell.dispose();
-			return;
-		}
-
 		browser.addProgressListener(new ProgressListener() {
 			public void completed(ProgressEvent event) {
 				shell.open();

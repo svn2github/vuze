@@ -45,7 +45,7 @@ public class ShellSlider
 		Display display = shell.getDisplay();
 		display.syncExec(new Runnable() {
 			public void run() {
-				if (shell == null || shell.isDisposed())
+				if (shell.isDisposed())
 					return;
 
 				switch (ShellSlider.this.direction) {

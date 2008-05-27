@@ -229,9 +229,6 @@ public abstract class BufferedGraphicTableItem2 extends BufferedTableItemImpl
         // Enable this for semi-fast visual update with some flicker
         cBlockView.setSize(bounds.width, bounds.height);
         GC gc = new GC(cBlockView);
-        if (gc == null) {
-          return;
-        }
         gc.drawImage(image, 0, 0, imageBounds.width, imageBounds.height, 
                      0, 0, bounds.width, bounds.height);
         gc.dispose();
@@ -267,9 +264,6 @@ public abstract class BufferedGraphicTableItem2 extends BufferedTableItemImpl
     
 
     GC gc = new GC(cBlockView);
-    if (gc == null) {
-      return;
-    }
     if (orientation == SWT.FILL) {
       gc.setClipping(clipping);
       gc.drawImage(image, 0, 0);
