@@ -419,8 +419,9 @@ public class TableRowImpl
 	public int getRealIndex() {
 		return super.getIndex();
 	}
-
-	public boolean setTableItem(int newIndex) {
+	
+	public boolean setTableItem(int newIndex, boolean isVisible)
+	{
 		if (bDisposed) {
 			System.out.println("XXX setTI: bDisposed from " + Debug.getCompressedStackTrace());
 			return false;
@@ -429,9 +430,13 @@ public class TableRowImpl
 		//if (getRealIndex() != newIndex) {
 		//	((TableViewSWTImpl)tableView).debug("sTI " + newIndex + "; via " + Debug.getCompressedStackTrace(4));
 		//}
-		boolean changed = setTableItem(newIndex, false);
+		boolean changed = super.setTableItem(newIndex, false, isVisible);
 		setShown(tableView.isRowVisible(this), changed);
 		return changed; 
+	}
+
+	public boolean setTableItem(int newIndex) {
+		return setTableItem(newIndex,true);
 	}
 	
 	// @see org.gudy.azureus2.ui.swt.components.BufferedTableRow#setForeground(int, int, int)

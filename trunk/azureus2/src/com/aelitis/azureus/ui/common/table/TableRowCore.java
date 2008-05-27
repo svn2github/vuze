@@ -93,6 +93,10 @@ public interface TableRowCore extends TableRow
 	 * @return false - already linked to that item at that index
 	 */
 	public boolean setTableItem(int newIndex);
+	
+	public boolean setTableItem(int newIndex, boolean isVisible);
+	
+	
 
 	public void setSelected(boolean bSelected);
 

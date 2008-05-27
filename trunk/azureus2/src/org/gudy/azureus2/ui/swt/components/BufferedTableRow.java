@@ -550,6 +550,10 @@ BufferedTableRow
    * @return success level
    */
   public boolean setTableItem(int newIndex, boolean bCopyFromOld) {
+	  return setTableItem(newIndex, bCopyFromOld, true);	  
+  }
+  
+  public boolean setTableItem(int newIndex, boolean bCopyFromOld, boolean isVisible) {
   	TableItem newRow;
   	try {
   		newRow = table.getItem(newIndex);
@@ -572,50 +576,51 @@ BufferedTableRow
 
   	if (newRow == item) {
   		if (newRow.getData("TableRow") == this) {
-     		setAlternatingBGColor(false);
+  			if(isVisible)
+  				setAlternatingBGColor(false);
   			return false;
   		}
   	}
 
-  	if (newRow != null) {
-  		if (newRow.getParent() != table)
-  			return false;
+  	if (newRow.getParent() != table)
+  		return false;
 
-	    if (bCopyFromOld) {
-	      copyToItem(newRow);
-	    } else if (newRow.getData("SD") != null) {
-	    	// clear causes too much flicker
-	    	//table.clear(table.indexOf(newRow));
-	  		newRow.setForeground(null);
-	  		//newRow.setBackground(null);
+  	if (bCopyFromOld) {
+  		copyToItem(newRow);
+  	} else if (newRow.getData("SD") != null) {
+  		// clear causes too much flicker
+  		//table.clear(table.indexOf(newRow));
+  		newRow.setForeground(null);
+  		//newRow.setBackground(null);
 
-	  		int numColumns = table.getColumnCount();
-	  		for (int i = 0; i < numColumns; i++) {
-	        try {
-        		newRow.setImage(i, null);
-        		newRow.setForeground(i, null);
-	        } catch (NoSuchMethodError e) {
-	          /* Ignore for Pre 3.0 SWT.. */
-	        }
-	  		}
-	 		} else {
-	 			newRow.setData("SD", "1");
-	 			setIconSize(ptIconSize);
-	 		}
-
-   		setAlternatingBGColor(false);
-
-	    try {
-	    	newRow.setData("TableRow", this);
-	    } catch (Exception e) {
-	    	e.printStackTrace();
-	    	System.out.println("Disposed? " + newRow.isDisposed());
-	    	if (!newRow.isDisposed()) {
-		    	System.out.println("TR? " + newRow.getData("TableRow"));
-		    	System.out.println("SD? " + newRow.getData("SD"));
-	    	}
-	    }
+  		int numColumns = table.getColumnCount();
+  		for (int i = 0; i < numColumns; i++) {
+  			try {
+  				newRow.setImage(i, null);
+  				newRow.setForeground(i, null);
+  			} catch (NoSuchMethodError e) {
+  				/* Ignore for Pre 3.0 SWT.. */
+  			}
+  		}
+  	} else {
+  		newRow.setData("SD", "1");
+  		setIconSize(ptIconSize);
   	}
+
+  	if(isVisible)
+  		setAlternatingBGColor(false);
+
+  	try {
+  		newRow.setData("TableRow", this);
+  	} catch (Exception e) {
+  		e.printStackTrace();
+  		System.out.println("Disposed? " + newRow.isDisposed());
+  		if (!newRow.isDisposed()) {
+  			System.out.println("TR? " + newRow.getData("TableRow"));
+  			System.out.println("SD? " + newRow.getData("SD"));
+  		}
+  	}
+
 	  image_values	= new Image[0];
 	  foreground_colors	= new Color[0];
     foreground = null;
@@ -635,7 +640,7 @@ BufferedTableRow
     }
 
     item = newRow;
- 		invalidate();
+   	invalidate();
 
     return true;
   }

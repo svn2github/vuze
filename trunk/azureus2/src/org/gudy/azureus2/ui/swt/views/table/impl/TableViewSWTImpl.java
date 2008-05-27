@@ -3369,13 +3369,15 @@ public class TableViewSWTImpl
 				sortedRows_mon.enter();
 
 				if (bForceDataRefresh && sortColumn != null) {
+					int i = 0;
 					String sColumnID = sortColumn.getName();
 					for (Iterator iter = sortedRows.iterator(); iter.hasNext();) {
 						TableRowSWT row = (TableRowSWT) iter.next();
 						TableCellSWT cell = row.getTableCellSWT(sColumnID);
 						if (cell != null) {
-							cell.refresh(true);
+							cell.refresh(true,i>=iTopIndex&&i<=iBottomIndex);
 						}
+						i++;
 					}
 				}
 
@@ -3420,7 +3422,7 @@ public class TableViewSWTImpl
 					for (int i = 0; i < sortedRows.size(); i++) {
 						boolean visible = i >= iTopIndex && i <= iBottomIndex;
 						TableRowSWT row = (TableRowSWT) sortedRows.get(i);
-						if (row.setTableItem(i)) {
+						if (row.setTableItem(i,visible)) {
 							iNumMoves++;
 						} else {
 							if (row instanceof TableRowImpl) {
