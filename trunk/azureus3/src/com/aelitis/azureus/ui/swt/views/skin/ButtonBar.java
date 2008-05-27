@@ -55,7 +55,7 @@ public class ButtonBar
 		 * Skip hooking the show/hide button unless a command line parameter is specified
 		 * WARNING: TODO -- This is temporary and must be removed once the buddies features are complete
 		 */
-		if (true == System.getProperty("debug.buddies.bar", "0").equals("1")) {
+		if (!com.aelitis.azureus.util.Constants.DISABLE_BUDDIES_BAR) {
 			hookShowHideButon();
 		}
 
@@ -401,6 +401,9 @@ public class ButtonBar
 	}
 
 	protected void addBuddy() {
+		if (com.aelitis.azureus.util.Constants.DISABLE_BUDDIES_BAR) {
+			return;
+		}
 		if (!VuzeBuddyManager.isEnabled()) {
 			VuzeBuddyManager.showDisabledDialog();
 			return;

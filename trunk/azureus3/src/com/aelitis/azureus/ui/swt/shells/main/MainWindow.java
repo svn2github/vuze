@@ -1499,7 +1499,7 @@ public class MainWindow
 		 * Hides the buddy bar unless a command line parameter is specified
 		 * WARNING: TODO -- This is temporary and must be removed once the buddies features are complete
 		 */
-		if (false == System.getProperty("debug.buddies.bar", "0").equals("1")) {
+		if (Constants.DISABLE_BUDDIES_BAR) {
 			COConfigurationManager.setParameter("Footer.visible", false);
 		}
 

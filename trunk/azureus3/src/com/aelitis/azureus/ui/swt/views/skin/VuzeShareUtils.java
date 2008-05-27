@@ -9,6 +9,7 @@ import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
+import com.aelitis.azureus.util.Constants;
 
 public class VuzeShareUtils
 {
@@ -25,6 +26,9 @@ public class VuzeShareUtils
 	}
 
 	public void shareTorrent(final SelectedContent currentContent, String referer) {
+		if (Constants.DISABLE_BUDDIES_BAR) {
+			return;
+		}
 		PlatformBuddyMessenger.startShare(referer);
 
 		if (!VuzeBuddyManager.isEnabled()) {
