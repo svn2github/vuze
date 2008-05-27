@@ -70,6 +70,8 @@ public class SWTSkinObjectText2
 
 	private int vpadding;
 
+	private boolean relayoutOnTextChange;
+
 	private static Font font = null;
 
 	public SWTSkinObjectText2(SWTSkin skin,
@@ -109,6 +111,9 @@ public class SWTSkinObjectText2
 			antialiasMode = (sAntiAlias.equals("1") || sAntiAlias.toLowerCase().equals(
 					"true")) ? SWT.ON : SWT.OFF;
 		}
+		
+		relayoutOnTextChange = skinProperties.getBooleanValue(sConfigID
+				+ ".text.relayoutOnChange", true);
 
 		Composite createOn;
 		if (parent == null) {
@@ -412,11 +417,13 @@ public class SWTSkinObjectText2
 		this.sDisplayText = allcaps && sText != null ? sText.toUpperCase() : sText;
 		this.sKey = null;
 		bIsTextDefault = false;
-		Utils.execSWTThread(new AERunnable() {
+		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				if (canvas != null && !canvas.isDisposed()) {
 					canvas.redraw();
-					Utils.relayout(canvas);
+					if (relayoutOnTextChange) {
+						Utils.relayout(canvas);
+					}
 				}
 			}
 		});
@@ -486,8 +493,10 @@ public class SWTSkinObjectText2
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				canvas.redraw();
-				canvas.layout(true);
-				Utils.relayout(canvas);
+				if (relayoutOnTextChange) {
+					canvas.layout(true);
+					Utils.relayout(canvas);
+				}
 			}
 		});
 	}
@@ -509,8 +518,10 @@ public class SWTSkinObjectText2
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				canvas.redraw();
-				canvas.layout(true);
-				Utils.relayout(canvas);
+				if (relayoutOnTextChange) {
+					canvas.layout(true);
+					Utils.relayout(canvas);
+				}
 			}
 		});
 	}
