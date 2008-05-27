@@ -56,7 +56,9 @@ import com.aelitis.azureus.ui.swt.views.skin.widgets.FlatButton;
 import com.aelitis.azureus.ui.swt.views.skin.widgets.Inset;
 import com.aelitis.azureus.ui.swt.views.skin.widgets.SkinLinkLabel;
 import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ImageDownloader;
 import com.aelitis.azureus.util.JSONUtils;
+import com.aelitis.azureus.util.ImageDownloader.ImageDownloaderListener;
 
 public class SharePage
 	extends AbstractDetailPage
@@ -467,7 +469,7 @@ public class SharePage
 	}
 
 	private String getCommitJSONMessage() {
-		if (null == shareItem || null == shareItem.hash) {
+		if (null == shareItem || null == shareItem.getHash()) {
 			return null;
 		}
 		List buddieloginIDsAndContentHash = new ArrayList();
@@ -477,7 +479,7 @@ public class SharePage
 			loginIDs.add(vuzeBuddy.getLoginID());
 		}
 		buddieloginIDsAndContentHash.add(loginIDs);
-		buddieloginIDsAndContentHash.add(shareItem.hash);
+		buddieloginIDsAndContentHash.add(shareItem.getHash());
 
 		return JSONUtils.encodeToJSON(buddieloginIDsAndContentHash);
 	}
@@ -618,7 +620,33 @@ public class SharePage
 
 	public void setShareItem(SelectedContent content) {
 		this.shareItem = content;
-		this.dm = shareItem.dm;
+		this.dm = shareItem.getDM();
+		
+		if (content != null && content.getThumbURL() != null) {
+			ImageDownloader.loadImage(content.getThumbURL(), new ImageDownloaderListener() {
+				public void imageDownloaded(final byte[] image) {
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							if (contentThumbnail != null && !contentThumbnail.isDisposed()) {
+								ByteArrayInputStream bis = new ByteArrayInputStream(image);
+								final Image img = new Image(Display.getDefault(), bis);
+								if (img != null) {
+									contentThumbnail.addDisposeListener(new DisposeListener() {
+										public void widgetDisposed(DisposeEvent e) {
+											if (img != null && !img.isDisposed()) {
+												img.dispose();
+											}
+										}
+									});
+									contentThumbnail.setImage(img);
+								}
+							}
+							refresh();
+						}
+					});
+				}
+			});
+		}
 
 		if (null != shareItem) {
 			BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
@@ -708,7 +736,7 @@ public class SharePage
 			return;
 		}
 
-		contentStats.append(shareItem.displayName + "\n");
+		contentStats.append(shareItem.getDisplayName() + "\n");
 
 		if (null == dm) {
 			return;

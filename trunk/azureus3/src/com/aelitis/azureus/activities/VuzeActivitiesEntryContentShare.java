@@ -20,6 +20,7 @@ package com.aelitis.azureus.activities;
 
 import java.util.Map;
 
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
@@ -57,9 +58,11 @@ public class VuzeActivitiesEntryContentShare
 		if (content == null) {
 			return;
 		}
-		TOTorrent torrent = content.dm == null ? null : content.dm.getTorrent();
+		DownloadManager dm = content.getDM();
+		TOTorrent torrent = dm == null ? null
+				: dm.getTorrent();
 
-		boolean ourContent = PlatformTorrentUtils.isContent(torrent, false);
+		boolean ourContent = content.isPlatformContent();
 
 		if (!LoginInfoManager.getInstance().isLoggedIn()) {
 			VuzeBuddyManager.log("Can't share download: Not logged in");
@@ -73,17 +76,17 @@ public class VuzeActivitiesEntryContentShare
 		String contentString;
 
 		if (ourContent || torrent == null) {
-			String url = Constants.URL_PREFIX + Constants.URL_DETAILS + content.hash
+			String url = Constants.URL_PREFIX + Constants.URL_DETAILS + content.getHash()
 					+ ".html?" + Constants.URL_SUFFIX + "&client_ref="
 					+ TYPEID_BUDDYSHARE;
-			contentString = "<A HREF=\"" + url + "\">" + content.displayName + "</A>";
+			contentString = "<A HREF=\"" + url + "\">" + content.getDisplayName() + "</A>";
 		} else {
 			setTorrent(torrent);
-			if (content.dm != null) {
-				setTorrentName(content.dm.getDisplayName());
+			if (dm != null) {
+				setTorrentName(dm.getDisplayName());
 			}
 
-			contentString = content.displayName;
+			contentString = content.getDisplayName();
 		}
 		
 		setAssetImageURL(content.getThumbURL());
@@ -99,9 +102,9 @@ public class VuzeActivitiesEntryContentShare
 		});
 
 		setText(text);
-		setAssetHash(content.hash);
-		if (content.dm != null) {
-			setDownloadManager(content.dm);
+		setAssetHash(content.getHash());
+		if (content.getDM() != null) {
+			setDownloadManager(content.getDM());
 		}
 		setShowThumb(true);
 		setImageBytes(PlatformTorrentUtils.getContentThumbnail(torrent));

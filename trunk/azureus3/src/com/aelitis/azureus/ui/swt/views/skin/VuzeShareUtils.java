@@ -32,8 +32,8 @@ public class VuzeShareUtils
 			return;
 		}
 		
-		if (currentContent.dm != null
-				&& TorrentUtils.getPrivate(currentContent.dm.getTorrent())) {
+		if (currentContent.getDM() != null
+				&& TorrentUtils.getPrivate(currentContent.getDM().getTorrent())) {
 			Utils.openMessageBox(Utils.findAnyShell(), SWT.OK, "v3.share.private",
 					(String[]) null);
 			return;

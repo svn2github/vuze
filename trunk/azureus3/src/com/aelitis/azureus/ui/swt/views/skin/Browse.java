@@ -151,7 +151,7 @@ public class Browse
 			}
 
 			return new SelectedContent[] {
-				new SelectedContent(hash, title)
+				new SelectedContent(hash, title, true)
 			};
 		}
 

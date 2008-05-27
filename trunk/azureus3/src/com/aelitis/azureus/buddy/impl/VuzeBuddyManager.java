@@ -1212,7 +1212,8 @@ public class VuzeBuddyManager
 
 		String name = "na";
 		if (content != null) {
-			name = content.dm == null ? content.displayName : content.dm.toString();
+			name = content.getDM() == null ? content.getDisplayName()
+					: content.getDM().toString();
 		}
 
 		if (buddies != null && content != null) {

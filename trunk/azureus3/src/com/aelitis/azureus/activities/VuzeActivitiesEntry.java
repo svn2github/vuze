@@ -18,8 +18,6 @@
 
 package com.aelitis.azureus.activities;
 
-import java.io.InputStream;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,12 +33,9 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableColumnSortObject;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
+import com.aelitis.azureus.util.ImageDownloader;
 import com.aelitis.azureus.util.MapUtils;
-
-import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
-import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderAdapter;
-
-import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
+import com.aelitis.azureus.util.ImageDownloader.ImageDownloaderListener;
 
 /**
  * 
@@ -200,7 +195,7 @@ public class VuzeActivitiesEntry
 		if (url == null && assetImageURL == null) {
 			return;
 		}
-		if (url == null) {
+		if (url == null || url.length() == 0) {
 			assetImageURL = null;
 			VuzeActivitiesManager.triggerEntryChanged(VuzeActivitiesEntry.this);
 			return;
@@ -210,29 +205,12 @@ public class VuzeActivitiesEntry
 		}
 
 		assetImageURL = url;
-		try {
-			ResourceDownloader rd = ResourceDownloaderFactoryImpl.getSingleton().create(
-					new URL(url));
-			rd.addListener(new ResourceDownloaderAdapter() {
-				public boolean completed(ResourceDownloader downloader, InputStream is) {
-					try {
-						if (is != null && is.available() > 0) {
-							byte[] newImageBytes = new byte[is.available()];
-							is.read(newImageBytes);
-							setImageBytes(newImageBytes);
-						}
-						VuzeActivitiesManager.triggerEntryChanged(VuzeActivitiesEntry.this);
-						return true;
-					} catch (Exception e) {
-						Debug.out(e);
-					}
-					return false;
-				}
-			});
-			rd.asyncDownload();
-		} catch (Exception e) {
-			Debug.out(e);
-		}
+		ImageDownloader.loadImage(url, new ImageDownloaderListener() {
+			public void imageDownloaded(byte[] image) {
+				setImageBytes(image);
+				VuzeActivitiesManager.triggerEntryChanged(VuzeActivitiesEntry.this);
+			}
+		});
 	}
 
 	public Map toMap() {
@@ -480,21 +458,22 @@ public class VuzeActivitiesEntry
 		SelectedContent sc = new SelectedContent();
 		dm = getDownloadManger();
 		if (dm != null) {
-			sc.hash = dm.getTorrent().getHashWrapper().toBase32String();
-			sc.displayName = dm.getDisplayName();
+			sc.setDisplayName(dm.getDisplayName());
+			sc.setDM(dm, PlatformTorrentUtils.isContent(dm.getTorrent(), true));
 			return sc;
 		}
 
-		sc.displayName = getTorrentName();
-		if (sc.displayName == null) {
+		sc.setDisplayName(getTorrentName());
+		if (sc.getDisplayName() == null) {
 			TOTorrent torrent = getTorrent();
 			if (torrent != null) {
-				sc.displayName = new String(torrent.getName());
-				sc.hash = torrent.getHashWrapper().toBase32String();
+				sc.setDisplayName(TorrentUtils.getLocalisedName(torrent));
+				sc.setHash(torrent.getHashWrapper().toBase32String(),
+						PlatformTorrentUtils.isContent(torrent, true));
 			}
 		}
 
-		if (sc.hash == null) {
+		if (sc.getHash() == null) {
 			throw new Exception("No Download Info");
 		}
 		return sc;

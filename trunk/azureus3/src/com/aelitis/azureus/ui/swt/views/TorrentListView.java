@@ -960,7 +960,7 @@ public class TorrentListView
 				SelectedContent currentContent;
 				try {
 					currentContent = new SelectedContent(dm);
-					currentContent.displayName = PlatformTorrentUtils.getContentTitle2(dm);
+					currentContent.setDisplayName(PlatformTorrentUtils.getContentTitle2(dm));
 					listContent.add(currentContent);
 				} catch (Exception e) {
 				}
