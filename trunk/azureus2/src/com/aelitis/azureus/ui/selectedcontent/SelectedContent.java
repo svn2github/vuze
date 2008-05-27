@@ -29,13 +29,15 @@ import org.gudy.azureus2.core3.download.DownloadManager;
  */
 public class SelectedContent
 {
-	public String hash;
+	private String hash;
 
-	public DownloadManager dm;
+	private DownloadManager dm;
 
-	public String displayName;
+	private String displayName;
 	
-	public String thumbURL;
+	private String thumbURL;
+	
+	private boolean isPlatformContent;
 
 	/**
 	 * @param dm2
@@ -51,9 +53,10 @@ public class SelectedContent
 	/**
 	 * 
 	 */
-	public SelectedContent(String hash, String displayName) {
+	public SelectedContent(String hash, String displayName, boolean isPlatformContent) {
 		this.hash = hash;
 		this.displayName = displayName;
+		this.isPlatformContent = isPlatformContent;
 	}
 
 	public SelectedContent() {
@@ -65,5 +68,46 @@ public class SelectedContent
 
 	public void setThumbURL(String thumbURL) {
 		this.thumbURL = thumbURL;
+	}
+
+	public String getHash() {
+		return hash;
+	}
+
+	public void setHash(String hash, boolean isPlatformContent) {
+		this.hash = hash;
+		this.isPlatformContent = isPlatformContent;
+	}
+
+	public DownloadManager getDM() {
+		return dm;
+	}
+
+	public void setDM(DownloadManager dm, boolean isPlatformContent) {
+		this.dm = dm;
+		this.isPlatformContent = isPlatformContent;
+		if (this.dm != null) {
+			try {
+				hash = this.dm.getTorrent().getHashWrapper().toBase32String();
+			} catch (Exception e) {
+				hash = null;
+			}
+		}
+	}
+
+	public String getDisplayName() {
+		return displayName;
+	}
+
+	public void setDisplayName(String displayName) {
+		this.displayName = displayName;
+	}
+
+	public boolean isPlatformContent() {
+		return isPlatformContent;
+	}
+
+	public void setPlatformContent(boolean isPlatformContent) {
+		this.isPlatformContent = isPlatformContent;
 	}
 }
