@@ -427,7 +427,7 @@ public class TableCellImpl
   	}
 
     return bufferedTableItem.isShown()
-				|| tableRow.getView().isColumnVisible(tableColumn);
+				&& tableRow.getView().isColumnVisible(tableColumn);
   }
   
   public boolean setSortValue(Comparable valueToSort) {
