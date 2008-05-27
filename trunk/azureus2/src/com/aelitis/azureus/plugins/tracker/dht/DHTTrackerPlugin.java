@@ -2403,12 +2403,6 @@ DHTTrackerPlugin
 			desc		= _desc;
 		}
 		
-		private int
-		getType()
-		{
-			return( type );
-		}
-		
 		protected byte[]
 		getHash()
 		{
