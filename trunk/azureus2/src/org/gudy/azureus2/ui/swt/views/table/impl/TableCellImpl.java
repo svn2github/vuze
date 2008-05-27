@@ -49,9 +49,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnSWTUtils;
 
-import com.aelitis.azureus.ui.common.table.TableColumnCore;
-import com.aelitis.azureus.ui.common.table.TableColumnSortObject;
-import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.common.table.*;
 
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.UIRuntimeException;
@@ -927,20 +925,21 @@ public class TableCellImpl
   }
   
   public boolean refresh(boolean bDoGraphics) {
-		boolean isCellShown = isShown();
-		boolean isRowShown = tableRow.getView().isRowVisible(tableRow);
+  	TableView view = tableRow.getView();
+		boolean isRowShown = view.isRowVisible(tableRow);
+		boolean isCellShown = isRowShown && isShown()
+				&& view.isColumnVisible(tableColumn);
 		return refresh(bDoGraphics, isRowShown, isCellShown);
   }
 
   public boolean refresh(boolean bDoGraphics, boolean bRowVisible) {
-  	return refresh(bDoGraphics, bRowVisible, isShown());
+		boolean isCellShown = bRowVisible && isShown()
+				&& tableRow.getView().isColumnVisible(tableColumn);
+		return refresh(bDoGraphics, bRowVisible, isCellShown);
   }
 
   public boolean refresh(boolean bDoGraphics, boolean bRowVisible,  boolean bCellVisible)
   {
-	  bCellVisible &= bRowVisible;
-	  bCellVisible &= tableRow.getView().isColumnVisible(tableColumn);
-	  
 	  boolean ret = getVisuallyChangedSinceRefresh();
   	clearFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
 
