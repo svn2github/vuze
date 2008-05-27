@@ -121,6 +121,13 @@ public class TableCellImpl
   private static final String CFG_PAINT = "GUI_SWT_bAlternateTablePainting";
   private static boolean bAlternateTablePainting;
 
+	private static int MAX_REFRESHES = 5;
+	private static int MAX_REFRESHES_WITHIN_MS = 100;
+
+	private boolean bInRefresh = false;
+	private long lastRefresh;
+	private int numFastRefreshes;
+	
   static {
   	COConfigurationManager.addAndFireParameterListener(CFG_PAINT,
 				new ParameterListener() {
@@ -206,6 +213,19 @@ public class TableCellImpl
         " (" + MessageText.getString(sTitleLanguageKey) + ")";
     Logger.log(new LogEvent(LOGID, "Table Cell Plugin for Column #" + sPosition
 				+ " generated an exception ", e));
+  }
+
+  private void pluginError(String s) {
+    String sTitleLanguageKey = tableColumn.getTitleLanguageKey();
+
+		String sPosition = "r"
+				+ tableRow.getIndex()
+				+ (bufferedTableItem == null ? "null" : "c"
+						+ bufferedTableItem.getPosition() + " ("
+						+ MessageText.getString(sTitleLanguageKey) + ")");
+		Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+				"Table Cell Plugin for Column #" + sPosition + ":" + s + "\n  "
+						+ Debug.getStackTrace(true, true)));
   }
   
   private void checkCellForSetting() {
@@ -573,6 +593,11 @@ public class TableCellImpl
     if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
       return false;
 
+    if (img == graphic && numFastRefreshes >= MAX_REFRESHES) {
+    	pluginError("TableCellImpl::setGraphic to same Graphic object. "
+					+ "Forcing refresh.");
+    }
+    
     graphic = img;
 
     if (img == null) {
@@ -910,36 +935,53 @@ public class TableCellImpl
   public boolean refresh(boolean bDoGraphics, boolean bRowVisible) {
   	return refresh(bDoGraphics, bRowVisible, isShown());
   }
-  
-  private boolean bInRefresh = false;
+
   public boolean refresh(boolean bDoGraphics, boolean bRowVisible,  boolean bCellVisible)
   {
 	  bCellVisible &= bRowVisible;
 	  bCellVisible &= tableRow.getView().isColumnVisible(tableColumn);
 	  
 	  boolean ret = getVisuallyChangedSinceRefresh();
+  	clearFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
 
 	  int iErrCount = 0;
+	  if (refreshErrLoopCount > 2) {
+		  return ret;
+	  }
+
+	  iErrCount = tableColumn.getConsecutiveErrCount();
+	  if (iErrCount > 10) {
+		  refreshErrLoopCount = 3;
+		  return ret;
+	  }
+
+	  if (bInRefresh) {
+		  // Skip a Refresh call when being called from within refresh.
+		  // This could happen on virtual tables where SetData calls us again, or
+		  // if we ever introduce plugins to refresh.
+		  if (bDebug)
+			  debug("Calling Refresh from Refresh :) Skipping.");
+		  return ret;
+	  }
 	  try {
-		  if (refreshErrLoopCount > 2) {
-			  return ret;
-		  }
-
-		  iErrCount = tableColumn.getConsecutiveErrCount();
-		  if (iErrCount > 10) {
-			  refreshErrLoopCount = 3;
-			  return ret;
-		  }
-
-		  if (bInRefresh) {
-			  // Skip a Refresh call when being called from within refresh.
-			  // This could happen on virtual tables where SetData calls us again, or
-			  // if we ever introduce plugins to refresh.
-			  if (bDebug)
-				  debug("Calling Refresh from Refresh :) Skipping.");
-			  return ret;
-		  }
 		  bInRefresh = true;
+		  if (ret) {
+  		  long now = SystemTime.getCurrentTime();
+  		  if (now - lastRefresh < MAX_REFRESHES_WITHIN_MS) {
+  		  	numFastRefreshes++;
+  		  	if (numFastRefreshes >= MAX_REFRESHES) {
+  		  		if ((numFastRefreshes % MAX_REFRESHES) == 0) {
+    			  	pluginError("this plugin is crazy. tried to refresh "
+									+ numFastRefreshes + " times in " + (now - lastRefresh)
+									+ "ms");
+  		  		}
+  		  		return ret;
+  		  	}
+  		  } else {
+  		  	numFastRefreshes = 0;
+  			  lastRefresh = now;
+  		  }
+		  }
 
 		  // See bIsUpToDate variable comments
 		  if (bCellVisible && !isUpToDate()) {
@@ -1017,7 +1059,6 @@ public class TableCellImpl
 			  Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
 				  "TableCell will not be refreshed anymore this session."));
 	  } finally {
-	  	clearFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
 		  bInRefresh = false;
 	  }
 
