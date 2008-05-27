@@ -1376,6 +1376,8 @@ public class TableViewSWTImpl
 				continue;
 			}
 
+			columnsVisible[i] = true;
+
 			String sName = tableColumns[i].getName();
 			// +1 for Eclipse Bug 43910 (see above)
 			// user has reported a problem here with index-out-of-bounds - not sure why
