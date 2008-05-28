@@ -50,6 +50,7 @@ import com.aelitis.azureus.launcher.Launcher;
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.InitializerListener;
 import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
+import com.aelitis.azureus.ui.swt.utils.UIMagnetHandler;
 import com.aelitis.azureus.ui.swt.utils.UIUpdaterFactory;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.InitialisationFunctions;
@@ -126,8 +127,10 @@ public class Initializer
 		long startTime = SystemTime.getCurrentTime();
 
 		new LocaleUtilSWT(core);
-
+		
 		final Display display = SWTThread.getInstance().getDisplay();
+
+		new UIMagnetHandler(core);
 
 		UIConfigDefaultsSWT.initialize();
 
