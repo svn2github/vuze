@@ -992,7 +992,7 @@ Download extends DownloadEventNotifier
   public Object getUserData( Object key );
   
   	/**
-  	 * set user defined value
+  	 * set user defined value. this is TRANSIENT and not persisted over Azureus stop/start
   	 * @param key
   	 * @param data
   	 */
