@@ -182,17 +182,7 @@ public class VuzeActivitiesView
 			}
 		});
 
-		view.addSelectionListener(new TableSelectionListener() {
-
-			public void selected(TableRowCore[] row) {
-			}
-
-			public void focusChanged(TableRowCore focus) {
-			}
-
-			public void deselected(TableRowCore[] rows) {
-			}
-
+		view.addSelectionListener(new TableSelectionAdapter() {
 			public void defaultSelected(TableRowCore[] rows) {
 				if (rows.length == 1) {
 					TorrentListViewsUtils.playOrStreamDataSource(rows[0].getDataSource(),

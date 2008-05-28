@@ -96,6 +96,8 @@ import com.aelitis.azureus.util.win32.Win32Utils;
 public class TorrentListViewsUtils
 {
 
+	public static final boolean ENABLE_ON_HOVER = false;
+
 	public static SWTSkinButtonUtility addShareButton(final SWTSkin skin,
 			final String PREFIX, final ListView view) {
 		SWTSkinObject skinObject = skin.getSkinObject(PREFIX + "send-selected");
@@ -349,6 +351,18 @@ public class TorrentListViewsUtils
 		});
 
 		view.addSelectionListener(new TableSelectionAdapter() {
+			public void mouseEnter(TableRowCore row) {
+				if (ENABLE_ON_HOVER) {
+					update();
+				}
+			}
+
+			public void mouseExit(TableRowCore row) {
+				if (ENABLE_ON_HOVER) {
+					update();
+				}
+			}
+
 			public void deselected(TableRowCore[] rows) {
 				update();
 			}
@@ -362,9 +376,15 @@ public class TorrentListViewsUtils
 			}
 
 			private void update() {
-				boolean bDisabled = view.getSelectedRowsSize() != 1;
+				TableRowCore rowWithCursor = ENABLE_ON_HOVER ? view.getTableRowWithCursor() : null;
+
+				boolean bDisabled = rowWithCursor == null
+						? view.getSelectedRowsSize() != 1 : false;
 				if (!bDisabled) {
-					TableRowCore[] rows = view.getSelectedRows();
+					TableRowCore[] rows = rowWithCursor == null ? view.getSelectedRows()
+							: new TableRowCore[] {
+								rowWithCursor
+							};
 					Object ds = rows[0].getDataSource(true);
 					DownloadManager dm = getDMFromDS(ds);
 					if (dm == null) {
@@ -1044,6 +1064,18 @@ public class TorrentListViewsUtils
 			final SWTSkinButtonUtility btnStop) {
 
 		view.addSelectionListener(new TableSelectionAdapter() {
+			public void mouseEnter(TableRowCore row) {
+				if (ENABLE_ON_HOVER) {
+					update();
+				}
+			}
+			
+			public void mouseExit(TableRowCore row) {
+				if (ENABLE_ON_HOVER) {
+					update();
+				}
+			}
+
 			public void deselected(TableRowCore[] rows) {
 				update();
 			}
@@ -1057,8 +1089,17 @@ public class TorrentListViewsUtils
 			}
 
 			private void update() {
-				int size = view.getSelectedRowsSize();
-				boolean bDisabled = size == 0;
+				TableRowCore rowWithCursor = ENABLE_ON_HOVER ? view.getTableRowWithCursor() : null;
+
+				boolean bDisabled;
+				int size;
+				if (rowWithCursor == null) {
+					size = view.getSelectedRowsSize();
+					bDisabled = size == 0;
+				} else {
+					bDisabled = false;
+					size = 1;
+				}
 
 				for (int i = 0; i < buttonsNeedingRow.length; i++) {
 					if (buttonsNeedingRow[i] != null) {
@@ -1068,7 +1109,10 @@ public class TorrentListViewsUtils
 
 				// now for buttons that require platform torrents
 				if (!bDisabled) {
-					TableRowCore[] rows = view.getSelectedRows();
+					TableRowCore[] rows = rowWithCursor == null ? view.getSelectedRows()
+							: new TableRowCore[] {
+								rowWithCursor
+							};
 					for (int i = 0; i < rows.length; i++) {
 						TableRowCore row = rows[i];
 						Object ds = row.getDataSource(true);

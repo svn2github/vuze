@@ -284,6 +284,24 @@ public class TorrentListView
 		});
 
 		addSelectionListener(new TableSelectionAdapter() {
+			public void mouseEnter(TableRowCore row) {
+				{//if (TorrentListViewsUtils.ENABLE_ON_HOVER) {
+					if (btnShare != null) {
+						btnShare.setDisabled(false);
+						btnShare.setImage("image.button.share.excited");
+					}
+				}
+			}
+			
+			public void mouseExit(TableRowCore row) {
+				{//if (TorrentListViewsUtils.ENABLE_ON_HOVER) {
+					if (btnShare != null) {
+						btnShare.setImage("image.button.share");
+						btnShare.setDisabled(SelectedContentManager.getCurrentlySelectedContent().length != 1);
+					}
+				}
+			}
+
 			public void selected(TableRowCore[] row) {
 				selectionChanged();
 			}
