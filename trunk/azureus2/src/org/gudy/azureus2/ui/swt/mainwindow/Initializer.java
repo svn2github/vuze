@@ -55,6 +55,7 @@ import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.InitializerListener;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.utils.UIMagnetHandler;
 
 /**
  * this class initiatize all GUI and Core components which are :
@@ -176,6 +177,8 @@ Initializer
 	    new LocaleUtilSWT( azureus_core );
 
 			Display display = SWTThread.getInstance().getDisplay();
+
+			new UIMagnetHandler(azureus_core);
 
 			UIConfigDefaultsSWT.initialize();
 			
