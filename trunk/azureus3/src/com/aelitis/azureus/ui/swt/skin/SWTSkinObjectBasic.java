@@ -25,6 +25,10 @@ import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 public class SWTSkinObjectBasic
 	implements SWTSkinObject
 {
+	protected static final int BORDER_ROUNDED = 1;
+
+	protected static final int BORDER_ROUNDED_FILL = 2;
+
 	protected Control control;
 
 	protected String type;
@@ -55,7 +59,7 @@ public class SWTSkinObjectBasic
 
 	protected Color bgColor;
 
-	private boolean roundedBorder;
+	private int borderType;
 	
 	/**
 	 * @param properties TODO
@@ -354,7 +358,11 @@ public class SWTSkinObjectBasic
 					String colorStyle = properties.getStringValue(sConfigID
 							+ ".color.style" + sSuffix);
 					if (colorStyle != null) {
-						roundedBorder = colorStyle.equals("rounded");
+						if (colorStyle.equals("rounded")) {
+							borderType = BORDER_ROUNDED;
+						} else if (colorStyle.equals("rounded-fill")) {
+							borderType = BORDER_ROUNDED_FILL;
+						}
 					} else {
 						control.setBackground(bgColor);
 					}
@@ -523,7 +531,7 @@ public class SWTSkinObjectBasic
 			gc.setBackground(bgColor);
 		}
 
-		if (roundedBorder) {
+		if (borderType > 0) {
 			try {
 				gc.setAdvanced(true);
 				gc.setAntialias(SWT.ON);
@@ -531,7 +539,14 @@ public class SWTSkinObjectBasic
 				
 			}
 			Rectangle bounds = control.getBounds();
-  		gc.fillRoundRectangle(0, 0, bounds.width, bounds.height, 10, 8);
+			if (borderType == BORDER_ROUNDED_FILL) {
+				gc.fillRoundRectangle(0, 0, bounds.width, bounds.height, 10, 8);
+			} else {
+				Color oldFG = gc.getForeground();
+				gc.setForeground(bgColor);
+				gc.drawRoundRectangle(0, 0, bounds.width - 1, bounds.height - 1, 10, 8);
+				gc.setForeground(oldFG);
+			}
 		}
 	}
 }
