@@ -455,6 +455,7 @@ public class ListView
 							event.row = lastRow;
 							lastRow.invokeMouseListeners(event);
 						}
+						triggerMouseEnterExitRow(lastRow, false);
 					}
 
 					// Enter new
@@ -485,6 +486,7 @@ public class ListView
 								row.invokeMouseListeners(event);
 							}
 							lastRow = row;
+							triggerMouseEnterExitRow(row, true);
 						}
 					}
 
