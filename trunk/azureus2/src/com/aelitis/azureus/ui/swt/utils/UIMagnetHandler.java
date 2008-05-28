@@ -114,6 +114,7 @@ public class UIMagnetHandler
 	private static void uiswitch(final UIFunctions uif) {
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
+				uif.bringToFront();
 				int i = uif.promptUser(MessageText.getString("dialog.uiswitch.title"),
 						MessageText.getString("dialog.uiswitch.text"), new String[] {
 							MessageText.getString("dialog.uiswitch.button"),
