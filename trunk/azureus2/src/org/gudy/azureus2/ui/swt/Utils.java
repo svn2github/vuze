@@ -1388,7 +1388,7 @@ public class Utils
 
 				gc.setFont(font);
 
-			} while (font != null && gc.textExtent(GOOD_STRING).y > heightInPixels
+			} while (gc.textExtent(GOOD_STRING).y > heightInPixels
 					&& size > 1);
 
 		} finally {

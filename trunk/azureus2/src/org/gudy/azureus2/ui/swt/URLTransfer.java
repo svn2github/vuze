@@ -206,11 +206,6 @@ public class URLTransfer extends ByteArrayTransfer {
 				data = new String(text, 0, j);
 			}
 
-			if (data == null) {
-				if (DEBUG) System.out.println("data null");
-				return null;
-			}
-
 			int iPos = data.indexOf("\nURL=");
 			if (iPos > 0) {
 				int iEndPos = data.indexOf("\r", iPos);
