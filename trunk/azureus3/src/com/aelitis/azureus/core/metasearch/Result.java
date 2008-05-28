@@ -154,8 +154,18 @@ public abstract class Result {
 		
 		object.put("c", this.getCategoryHTML());
 		object.put("n",this.getNameHTML());
-		object.put("s","" +this.getNbSeeds());
-		object.put("p","" + this.getNbPeers());
+		
+		if(this.getNbSeeds() >= 0) {
+			object.put("s","" + this.getNbSeeds());
+		} else {
+			object.put("s","--");
+		}
+			
+		if(this.getNbPeers() >= 0) {
+			object.put("p","" + this.getNbPeers());
+		} else {
+			object.put("p","--");
+		}
 		
 		int	comments = getComments();
 		
@@ -165,10 +175,13 @@ public abstract class Result {
 		}
 		
 		long size = this.getSize();
-
-
-		object.put("l", DisplayFormatters.formatByteCountToKiBEtc( size ));
-		object.put("lb", "" + size  );
+		if(size >= 0) {
+			object.put("l", DisplayFormatters.formatByteCountToKiBEtc( size ));
+			object.put("lb", "" + size  );
+		} else {
+			object.put("l", "--");
+			object.put("lb", "0");
+		}
 		
 		object.put("r", "" + this.getRank());
 		

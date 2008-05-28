@@ -30,6 +30,11 @@ import com.aelitis.azureus.core.metasearch.impl.DateParser;
 
 public class WebResult extends Result {
 	
+	
+	private static final String HTML_TAGS = "(\\<(/?[^\\>]+)\\>)" ;
+	private static final String DUPLICATE_SPACES = "\\s{2,}";
+	
+	
 	String searchQuery;
 	
 	String rootPageURL;
@@ -43,9 +48,9 @@ public class WebResult extends Result {
 	
 	Date publishedDate;
 	
-	long size;
-	int nbPeers;
-	int nbSeeds;
+	long size = -1;
+	int nbPeers = -1;
+	int nbSeeds = -1;
 	int	comments	= -1;
 	
 	String cdpLink;
@@ -60,8 +65,9 @@ public class WebResult extends Result {
 		this.searchQuery = searchQuery;
 	}
 	
-	private String removeHTMLTags(String input) {
-		return input.replaceAll("(\\<(/?[^\\>]+)\\>)", " ");
+	private static final String removeHTMLTags(String input) {
+		String result = input.replaceAll(HTML_TAGS, " ");
+		return result.replaceAll(DUPLICATE_SPACES, " ").trim();
 	}
 	
 	public void setNameFromHTML(String name) {
@@ -96,6 +102,7 @@ public class WebResult extends Result {
 	
 	public void setNbPeersFromHTML(String nbPeers) {
 		if(nbPeers != null) {
+			nbPeers = removeHTMLTags(nbPeers);
 			String nbPeersS = Entities.HTML40.unescape(nbPeers);
 			nbPeersS = nbPeersS.replaceAll(",", "");
 			nbPeersS = nbPeersS.replaceAll(" ", "");
@@ -109,6 +116,7 @@ public class WebResult extends Result {
 	
 	public void setNbSeedsFromHTML(String nbSeeds) {
 		if(nbSeeds != null) {
+			nbSeeds = removeHTMLTags(nbSeeds);
 			String nbSeedsS = Entities.HTML40.unescape(nbSeeds);
 			nbSeedsS = nbSeedsS.replaceAll(",", "");
 			nbSeedsS = nbSeedsS.replaceAll(" ", "");
@@ -122,6 +130,7 @@ public class WebResult extends Result {
 	
 	public void setPublishedDateFromHTML(String publishedDate) {
 		if(publishedDate != null) {
+			publishedDate = removeHTMLTags(publishedDate);
 			String publishedDateS = Entities.HTML40.unescape(publishedDate).replace((char)160,(char)32);
 			this.publishedDate = dateParser.parseDate(publishedDateS);
 		}
@@ -130,8 +139,11 @@ public class WebResult extends Result {
 
 	public void setSizeFromHTML(String size) {
 		if(size != null) {
+			size = removeHTMLTags(size);
 			String sizeS = Entities.HTML40.unescape(size).replace((char)160,(char)32);
 			sizeS = sizeS.replaceAll("<[^>]+>", " ");
+			//Add a space between the digits and unit if there is none
+			sizeS = sizeS.replaceFirst("(\\d)([a-zA-Z])", "$1 $2");
 			try {
 				StringTokenizer st = new StringTokenizer(sizeS," ");
 				double base = Double.parseDouble(st.nextToken());

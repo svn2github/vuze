@@ -77,10 +77,12 @@ public class FieldRemapper {
 		String output = null;
 		if(input != null) {
 			for(int i = 0 ; i < fieldRemappings.length ; i++) {
-				Matcher matcher = fieldRemappings[i].getMatch().matcher(input);
-				if(matcher.matches()) {
-					output = matcher.replaceAll(fieldRemappings[i].getReplacement());
-					i = fieldRemappings.length;
+				if(fieldRemappings[i].getMatch() != null && fieldRemappings[i].getReplacement() != null) {
+					Matcher matcher = fieldRemappings[i].getMatch().matcher(input);
+					if(matcher.matches()) {
+						output = matcher.replaceAll(fieldRemappings[i].getReplacement());
+						i = fieldRemappings.length;
+					}
 				}
 			}
 		}
