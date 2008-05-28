@@ -352,12 +352,14 @@ DownloadManagerController
 	    						// use -1 as indicator that we've reported this event
 	    					
 	    					if ( last_reported_total_received_data != -1 ){
-	    							    	    						
+	    							
+	    						/*
 	    						Debug.out( 
 	    								getDisplayName() + ": decrease in overall downloaded - " +
 	    								"data=" + received + "/" + last_reported_total_received_data +
 	    								",discard=" + discarded + "/" + last_reported_total_received_discard +
 	    								",fail=" + failed + "/" + last_reported_total_received_failed );
+	    						*/
 	    						
 	    						last_reported_total_received_data = -1;
 	    					}
