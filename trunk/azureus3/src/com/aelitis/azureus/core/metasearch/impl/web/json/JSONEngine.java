@@ -1,12 +1,35 @@
+/*
+ * Created on May 6, 2008
+ * Created by Paul Gardner
+ * 
+ * Copyright 2008 Vuze, Inc.  All rights reserved.
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License only.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
+ */
+
 package com.aelitis.azureus.core.metasearch.impl.web.json;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.TreeMap;
 
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -205,10 +228,38 @@ JSONEngine
 								}
 							}
 							
+							if ( listener != null ){
+								
+									// sort for consistent order
+								
+								Iterator it = new TreeMap( jsonEntry ).entrySet().iterator();
+								
+								String[]	groups = new String[ jsonEntry.size()];
+								
+								int	pos = 0;
+								
+								while( it.hasNext()){
+									
+									Map.Entry entry = (Map.Entry)it.next();
+									
+									Object key 		= entry.getKey();
+									Object value 	= entry.getValue();
+									
+									if ( key != null && value != null ){
+									
+										groups[pos++] = key.toString() + "=" + UrlUtils.encode( value.toString());
+										
+									}else{
+										
+										groups[pos++] = "";
+									}
+								}
+								
+								listener.matchFound( this, groups );
+							}
+							
 							WebResult result = new WebResult(getRootPage(),getBasePage(),getDateParser(),searchQuery);
-							
-							List bits = listener==null?null:new ArrayList();
-							
+														
 							for(int j = 0 ; j < mappings.length ; j++) {
 								String fieldFrom = mappings[j].getName();
 								if(fieldFrom != null) {
@@ -216,10 +267,6 @@ JSONEngine
 									Object fieldContentObj = ((Object)jsonEntry.get(fieldFrom));
 									if(fieldContentObj != null) {
 										String fieldContent = fieldContentObj.toString();
-
-										if ( bits != null ){
-											bits.add( fieldContent );
-										}
 										
 										switch(fieldTo) {
 										case FIELD_NAME :
@@ -255,14 +302,8 @@ JSONEngine
 									}
 								}
 							}
-							
-							if ( bits != null ){
-								
-								listener.matchFound( this,(String[])bits.toArray(new String[bits.size()]));
-							}
-							
+														
 							results.add(result);
-							
 						}
 					}
 					

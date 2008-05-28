@@ -540,6 +540,8 @@ EngineImpl
 							Engine engine, 
 							Throwable cause )
 						{
+							log( "Search failed", cause );
+							
 							if ( listener != null ){
 								listener.engineFailed(engine, cause);
 							}
