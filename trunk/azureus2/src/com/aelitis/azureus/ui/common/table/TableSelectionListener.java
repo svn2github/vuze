@@ -35,4 +35,8 @@ public interface TableSelectionListener
 	public void focusChanged(TableRowCore focus);
 
 	public void defaultSelected(TableRowCore[] rows);
+
+	public void mouseEnter(TableRowCore row);
+
+	public void mouseExit(TableRowCore row);
 }

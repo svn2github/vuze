@@ -124,6 +124,21 @@ public abstract class TableViewImpl
 		}
 	}
 
+	protected void triggerMouseEnterExitRow(TableRowCore row, boolean enter) {
+		if (row == null) {
+			return;
+		}
+		Object[] listeners = listenersSelection.toArray();
+		for (int i = 0; i < listeners.length; i++) {
+			TableSelectionListener l = (TableSelectionListener) listeners[i];
+			if (enter) {
+				l.mouseEnter(row);
+			} else {
+				l.mouseExit(row);
+			}
+		}
+	}
+
 	protected void triggerFocusChangedListeners(TableRowCore row) {
 		Object[] listeners = listenersSelection.toArray();
 		for (int i = 0; i < listeners.length; i++) {

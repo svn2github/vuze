@@ -728,5 +728,13 @@ public class FilesView
 		  manager.getDownloadState().removeListener(this, DownloadManagerState.AT_FILE_LINKS, DownloadManagerStateAttributeListener.WRITTEN);
 	  }
   }
-  
+
+
+	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#mouseEnter(com.aelitis.azureus.ui.common.table.TableRowCore)
+	public void mouseEnter(TableRowCore row) {
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#mouseExit(com.aelitis.azureus.ui.common.table.TableRowCore)
+	public void mouseExit(TableRowCore row) {
+	}
 }

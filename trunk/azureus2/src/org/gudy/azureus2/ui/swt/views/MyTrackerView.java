@@ -570,4 +570,12 @@ public class MyTrackerView
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#selected(com.aelitis.azureus.ui.common.table.TableRowCore[])
 	public void selected(TableRowCore[] rows) {
 	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#mouseEnter(com.aelitis.azureus.ui.common.table.TableRowCore)
+	public void mouseEnter(TableRowCore row) {
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#mouseExit(com.aelitis.azureus.ui.common.table.TableRowCore)
+	public void mouseExit(TableRowCore row) {
+	}
 }
