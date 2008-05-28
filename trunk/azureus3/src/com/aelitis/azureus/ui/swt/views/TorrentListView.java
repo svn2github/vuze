@@ -374,7 +374,7 @@ public class TorrentListView
 					}
 				});
 			}
-		}, false);
+		}, true);
 	}
 
 	/**
