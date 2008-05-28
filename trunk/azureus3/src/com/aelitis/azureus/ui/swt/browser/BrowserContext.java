@@ -317,7 +317,7 @@ public class BrowserContext
 					event.doit = false;
 					browser.back();
 				} else {
-					if(event.top) {
+					if(event.top || checkBlocked) {
 						lastValidURL = event.location;
 						if (widgetWaitIndicator != null && !widgetWaitIndicator.isDisposed()) {
 							widgetWaitIndicator.setVisible(true);
