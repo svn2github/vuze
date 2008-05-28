@@ -910,14 +910,16 @@ UtilitiesImpl
 			
 			target.run();
 			
-			long	now = SystemTime.getCurrentTime();
+			long now = SystemTime.getCurrentTime();
 			
-     		Logger.log(	
-     			new LogEvent(
-     				LogIDs.PLUGIN, LogEvent.LT_ERROR,
-     				"Delayed task '" + getName() + 
-     					"': queue_time=" + ( run_time - create_time ) +
-     					", exec_time=" + ( now - run_time )));
+			if (Logger.isEnabled()) {
+	     		Logger.log(	
+	     			new LogEvent(
+	     				LogIDs.PLUGIN, LogEvent.LT_INFORMATION,
+	     				"Delayed task '" + getName() + 
+	     					"': queue_time=" + ( run_time - create_time ) +
+	     					", exec_time=" + ( now - run_time )));
+			}
 		}
 		
 		protected String
