@@ -2103,22 +2103,26 @@ public class MainWindow
 			try {
 				if (lCurrentTrackTime > 0) {
   				Long currentLength = (Long) mapTrackUsage.get(sTabID);
+  				long newLength;
   				if (currentLength == null) {
-  					currentLength = new Long(lCurrentTrackTime);
+  					newLength = lCurrentTrackTime;
   				} else {
-  					currentLength = new Long(currentLength.longValue()
-  							+ lCurrentTrackTime);
+  					newLength = currentLength.longValue() + lCurrentTrackTime;
   				}
-  				mapTrackUsage.put(sTabID, currentLength);
+  				if (newLength > 1000) {
+  					mapTrackUsage.put(sTabID + "-secs", new Long(newLength / 1000));
+  				}
 				}
 
 				if (lCurrentTrackTimeIdle > 0) {
   				String id = "idle-" + sTabID;
   				Long currentLengthIdle = (Long) mapTrackUsage.get(id);
-  				currentLengthIdle = new Long(currentLengthIdle == null
+  				long newLengthIdle = currentLengthIdle == null
   						? lCurrentTrackTimeIdle : currentLengthIdle.longValue()
-  								+ lCurrentTrackTimeIdle);
-  				mapTrackUsage.put(id, currentLengthIdle);
+  								+ lCurrentTrackTimeIdle;
+  				if (newLengthIdle > 1000) {
+  					mapTrackUsage.put(id + "-secs", new Long(newLengthIdle / 1000));
+  				}
 				}
 			} finally {
 				mapTrackUsage_mon.exit();
