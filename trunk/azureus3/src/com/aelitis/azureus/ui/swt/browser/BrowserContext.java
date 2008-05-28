@@ -19,6 +19,8 @@
  */
 package com.aelitis.azureus.ui.swt.browser;
 
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Collection;
 import java.util.Map;
 
@@ -27,11 +29,14 @@ import org.eclipse.swt.browser.*;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.internal.Platform;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.core.impl.AzureusCoreImpl;
 import com.aelitis.azureus.core.messenger.ClientMessageContextImpl;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
@@ -228,6 +233,30 @@ public class BrowserContext
 		checkURLEvent = SimpleTimer.addPeriodicEvent("checkURL", 10000,
 				checkURLEventPerformer);
 
+		
+		browser.addOpenWindowListener(new OpenWindowListener() {
+			public void open(WindowEvent event) {
+				if(! event.required) return;
+				if(checkBlocked) return;
+				final Browser subBrowser = new Browser(browser,SWT.NONE);
+				subBrowser.addLocationListener(new LocationListener() {
+					public void changed(LocationEvent arg0) {
+						// TODO Auto-generated method stub
+						
+					}
+					public void changing(LocationEvent event) {
+						event.doit = false;
+						System.out.println("SubBrowser URL : " + event.location);
+						if(event.location.startsWith("http://") || event.location.startsWith("https://")) {
+							Program.launch(event.location);
+						}
+						subBrowser.dispose();
+					}
+				});
+				event.browser = subBrowser;
+			}
+		});
+		
 		browser.addLocationListener(new LocationListener() {
 			private TimerEvent timerevent;
 
@@ -279,6 +308,8 @@ public class BrowserContext
 				// http://moo.com:8080/dr
 				// https://moo.com/dr
 				// https://moo.com:80/dr
+				
+				
 
 				boolean blocked = checkBlocked && PlatformConfigMessenger.isURLBlocked(event.location);
 
@@ -286,14 +317,55 @@ public class BrowserContext
 					event.doit = false;
 					browser.back();
 				} else {
-					lastValidURL = event.location;
-					if (widgetWaitIndicator != null && !widgetWaitIndicator.isDisposed()) {
-						widgetWaitIndicator.setVisible(true);
+					if(event.top) {
+						lastValidURL = event.location;
+						if (widgetWaitIndicator != null && !widgetWaitIndicator.isDisposed()) {
+							widgetWaitIndicator.setVisible(true);
+						}
+	
+						// Backup in case changed(..) is never called
+						timerevent = SimpleTimer.addEvent("Hide Indicator",
+								System.currentTimeMillis() + 20000, hideIndicatorPerformer);
+					} else {
+						boolean isTorrent = false;
+						//Try to catch .torrent files
+						if(event.location.endsWith(".torrent")) {
+							isTorrent = true;
+						} else {
+							//If it's not obviously a web page
+							if(event.location.indexOf(".htm") == -1) {
+								try {
+									//See what the content type is
+									URL url = new URL(event.location);
+									URLConnection conn = url.openConnection();
+									String contentType = conn.getContentType();
+									if(contentType != null && contentType.indexOf("torrent") != -1) {
+										isTorrent = true;
+									}
+									String contentDisposition = conn.getHeaderField("Content-Disposition");
+									if(contentDisposition != null && contentDisposition.indexOf(".torrent") != -1) {
+										isTorrent = true;
+									}
+									
+								} catch(Exception e) {
+									e.printStackTrace();
+								}
+							}
+						}
+						
+						if(isTorrent) {
+							event.doit = false;
+							try {
+								AzureusCoreImpl.getSingleton().getPluginManager().getDefaultPluginInterface().getDownloadManager().addDownload(new URL(event.location),true);
+							} catch(Exception e) {
+								e.printStackTrace();
+							}
+						}
+						
+						if(event.location.indexOf("utorrent.com") != -1) {
+							event.doit = false;
+						}
 					}
-
-					// Backup in case changed(..) is never called
-					timerevent = SimpleTimer.addEvent("Hide Indicator",
-							System.currentTimeMillis() + 20000, hideIndicatorPerformer);
 				}
 			}
 		});
