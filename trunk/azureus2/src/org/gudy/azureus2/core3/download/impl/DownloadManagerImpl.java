@@ -473,7 +473,7 @@ DownloadManagerImpl
 	
 	private long						scrape_random_seed	= SystemTime.getCurrentTime();
 
-	private HashMap data;
+	private Map		data;
   
 	private boolean data_already_allocated = false;
   
@@ -2985,18 +2985,18 @@ DownloadManagerImpl
   
   
   /** To retreive arbitrary objects against a download. */
-  public Object getData (String key) {
+  public Object getData (Object key) {
   	if (data == null) return null;
     return data.get(key);
   }
 
   /** To store arbitrary objects against a download. */
-  public void setData (String key, Object value) {
+  public void setData (Object key, Object value) {
   	try{
   		peer_listeners_mon.enter();
   	
 	  	if (data == null) {
-	  	  data = new HashMap();
+	  	  data = new LightHashMap();
 	  	}
 	    if (value == null) {
 	      if (data.containsKey(key))

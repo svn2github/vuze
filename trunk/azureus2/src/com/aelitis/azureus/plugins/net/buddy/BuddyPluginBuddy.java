@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.messaging.MessageException;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnection;
@@ -105,6 +106,8 @@ BuddyPluginBuddy
 	
 	private BuddyPluginBuddyMessageHandler		persistent_msg_handler;
 
+	private Map			user_data = new LightHashMap();
+	
 	private boolean	destroyed;
 	
 	protected
@@ -1415,6 +1418,26 @@ BuddyPluginBuddy
 		logMessage( "Con " + bc.getString() + " added: num=" + size );
 	}
 	
+	public void
+	setUserData(
+		Object		key,
+		Object		value )
+	{
+		synchronized( user_data ){
+			
+			user_data.put(key, value);
+		}
+	}
+	
+	public Object
+	getUserData(
+		Object		key )
+	{
+		synchronized( user_data ){
+
+			return( user_data.get( key ));
+		}
+	}
 	
 	protected void
 	log(

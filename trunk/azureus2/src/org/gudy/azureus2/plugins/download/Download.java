@@ -982,4 +982,19 @@ Download extends DownloadEventNotifier
    */
   public SaveLocationChange calculateDefaultDownloadLocation();
 
+  	/**
+  	 * get user-defined key/value
+  	 * @param key
+  	 * @return
+  	 * @since 3.0.5.3
+  	 */
+  
+  public Object getUserData( Object key );
+  
+  	/**
+  	 * set user defined value
+  	 * @param key
+  	 * @param data
+  	 */
+  public void setUserData( Object key, Object data );
 }

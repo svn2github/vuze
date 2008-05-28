@@ -990,4 +990,13 @@ RPDownload
 	public boolean isRemoved() {notSupported();	return false; }
 	public boolean canMoveDataFiles() {notSupported(); return false;}
 	public SaveLocationChange calculateDefaultDownloadLocation() {notSupported(); return null;}
+	
+	public Object getUserData(Object key) {
+		notSupported();
+		return null;
+	}
+	
+	public void setUserData(Object key, Object data) {
+		notSupported();
+	}
 }

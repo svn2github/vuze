@@ -379,9 +379,9 @@ DownloadManager
     saveDownload();
 
       /** To retreive arbitrary objects against this object. */
-    public Object getData (String key);
+    public Object getData (Object key);
       /** To store arbitrary objects against this object. */
-    public void setData (String key, Object value);
+    public void setData (Object key, Object value);
 
 
       /**

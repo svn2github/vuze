@@ -73,6 +73,8 @@ import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
 
+import com.aelitis.azureus.core.AzureusCoreComponent;
+
 
 
 /**
@@ -81,7 +83,7 @@ import org.gudy.azureus2.core3.logging.*;
  */
 public class 
 PluginInterfaceImpl 
-	implements PluginInterface 
+	implements PluginInterface, AzureusCoreComponent
 {
 	private static final LogIDs LOGID = org.gudy.azureus2.core3.logging.LogIDs.PLUGIN;
 
@@ -759,6 +761,8 @@ PluginInterfaceImpl
 					pluginDir,
 					getPluginID() + "." + id,
 					plugin_version ); 
+			
+			initialiser.fireCreated( pi );
 			
 			p.initialize( pi );
 			

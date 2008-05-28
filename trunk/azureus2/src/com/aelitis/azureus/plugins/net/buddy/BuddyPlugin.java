@@ -88,6 +88,7 @@ import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 import com.aelitis.azureus.plugins.net.buddy.swt.BuddyPluginView;
+import com.aelitis.azureus.plugins.net.buddy.tracker.BuddyPluginTracker;
 
 public class 
 BuddyPlugin 
@@ -115,7 +116,7 @@ BuddyPlugin
 	
 	private static final int	MAX_UNAUTH_BUDDIES	= 16;
 	
-	private static final int	TIMER_PERIOD	= 10*1000;
+	public static final int	TIMER_PERIOD	= 10*1000;
 	
 	private static final int	BUDDY_STATUS_CHECK_PERIOD_MIN	= 3*60*1000;
 	private static final int	BUDDY_STATUS_CHECK_PERIOD_INC	= 1*60*1000;
@@ -221,6 +222,9 @@ BuddyPlugin
 	private AESemaphore	pd_queue_sem	= new AESemaphore( "BuddyPlugin:persistDispatch");
 	private AEThread2	pd_thread;
 	
+	private boolean		bogus_ygm_written;
+	
+	private BuddyPluginTracker	buddy_tracker;
 	
 	public static void
 	load(
@@ -1866,6 +1870,11 @@ BuddyPlugin
 						
 						checkPersistentDispatch();
 					}
+					
+					if ( buddy_tracker != null ){
+						
+						buddy_tracker.tick( tick_count );
+					}
 				}
 			});
 	}
@@ -2378,6 +2387,11 @@ BuddyPlugin
 								
 								byte[]	pk = (byte[])map.get( "pk" );
 								
+								if ( pk == null ){
+									
+									return;
+								}
+								
 								String	pk_str = Base32.encode( pk );
 								
 								BuddyPluginBuddy buddy = getBuddyFromPublicKey( pk_str );
@@ -2447,6 +2461,44 @@ BuddyPlugin
 				120*1000,
 				DistributedDatabase.OP_EXHAUSTIVE_READ );
 			
+			boolean	write_bogus_ygm = false;
+			
+			synchronized( this ){
+			
+				if ( !bogus_ygm_written ){
+					
+					bogus_ygm_written = write_bogus_ygm = true;
+				}
+			}
+			
+			if ( write_bogus_ygm ){
+				
+				final String	reason2 = "Friend YGM write for myself";
+				
+				Map	envelope = new HashMap();
+								
+				DistributedDatabaseValue	value = ddb.createValue( BEncoder.encode( envelope ));
+											
+				logMessage( reason2 + " starts" );
+				
+				ddb.write(
+					new DistributedDatabaseListener()
+					{
+						public void
+						event(
+							DistributedDatabaseEvent		event )
+						{
+							int	type = event.getType();
+						
+							if ( type == DistributedDatabaseEvent.ET_OPERATION_COMPLETE ){
+								
+								logMessage( reason2 + " complete"  );
+							}
+						}
+					},
+					key,
+					value );
+			}
 			
 		}catch( Throwable e ){
 						
@@ -2561,6 +2613,11 @@ BuddyPlugin
 		}
 		      
 		persistentDispatchInit();
+		
+		if ( ok ){
+			
+			buddy_tracker = new BuddyPluginTracker( this );
+		}
 		
 		List	 listeners_ref = listeners.getList();
 		

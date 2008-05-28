@@ -405,6 +405,13 @@ PluginInitializer
     UpdaterUtils.checkBootstrapPlugins();
   }
   
+  protected void
+  fireCreated(
+	PluginInterfaceImpl pi )
+  {
+	  azureus_core.triggerLifeCycleComponentCreated( pi );
+  }
+  
   protected boolean
   isInitialisationThread()
   {
@@ -1322,6 +1329,8 @@ PluginInitializer
       	
 				UtilitiesImpl.setPluginThreadContext( plugin_interface );
 				
+				fireCreated( plugin_interface );
+				
   				plugin.initialize(plugin_interface);
       	  				
   				if (!(plugin instanceof FailedPlugin)){
@@ -1439,6 +1448,8 @@ PluginInitializer
 			 core_operation.reportCurrentTask(MessageText.getString("splash.plugin.init") + " " + plugin_interface.getPluginName());
 		 }
 
+		 fireCreated( plugin_interface );
+		 
   		plugin.initialize(plugin_interface);
   		
   		if (!(plugin instanceof FailedPlugin)){
@@ -1487,6 +1498,8 @@ PluginInitializer
   		
 		UtilitiesImpl.setPluginThreadContext( plugin_interface );
 
+		fireCreated( plugin_interface );
+		
   		plugin.initialize(plugin_interface);
   		
   		if (!(plugin instanceof FailedPlugin)){

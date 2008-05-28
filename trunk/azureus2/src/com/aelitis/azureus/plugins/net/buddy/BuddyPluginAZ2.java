@@ -45,6 +45,9 @@ BuddyPluginAZ2
 	public static final int RT_AZ2_REQUEST_CHAT			= 5;
 	public static final int RT_AZ2_REPLY_CHAT			= 6;
 
+	public static final int RT_AZ2_REQUEST_TRACK		= 7;
+	public static final int RT_AZ2_REPLY_TRACK			= 8;
+
 	
 	public static final int CHAT_MSG_TYPE_TEXT						= 1;
 	public static final int CHAT_MSG_TYPE_PARTICIPANTS_ADDED		= 2;
@@ -58,6 +61,8 @@ BuddyPluginAZ2
 	private Map				chats 		= new HashMap();
 	
 	private CopyOnWriteList	listeners = new CopyOnWriteList();
+	
+	private CopyOnWriteList	track_listeners = new CopyOnWriteList();
 	
 	protected 
 	BuddyPluginAZ2(
@@ -202,6 +207,32 @@ BuddyPluginAZ2
 			
 			return( reply );
 			
+		}else if (  type == RT_AZ2_REQUEST_TRACK ){
+			
+			Map msg = (Map)request.get( "msg" );
+
+			Iterator it = track_listeners.iterator();
+			
+			while( it.hasNext()){
+				
+				try{
+			
+					Map res = ((BuddyPluginAZ2TrackerListener)it.next()).messageReceived( from_buddy, msg);
+					
+					if ( res != null ){
+						
+						reply.put( "msg", res );
+						reply.put( "type", new Long( RT_AZ2_REPLY_TRACK ));
+
+						return( reply );
+					}
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
+			
+			throw( new BuddyPluginException( "Unhandled request type " + type ));
 		}else{
 			
 			throw( new BuddyPluginException( "Unrecognised request type " + type ));
@@ -332,6 +363,47 @@ BuddyPluginAZ2
 		}
 	}
 	
+	public void
+	sendAZ2TrackerMessage(
+		BuddyPluginBuddy						buddy,
+		Map										msg,
+		final BuddyPluginAZ2TrackerListener		listener )
+	{
+		try{
+			Map	request = new HashMap();
+			
+			request.put( "type", new Long( RT_AZ2_REQUEST_TRACK ));
+			request.put( "msg", msg );
+			
+			buddy.sendMessage(
+				BuddyPlugin.SUBSYSTEM_AZ2,
+				request,
+				SEND_TIMEOUT,
+				new BuddyPluginBuddyReplyListener()
+				{
+					public void
+					replyReceived(
+						BuddyPluginBuddy		from_buddy,
+						Map						reply )
+					{
+						listener.messageReceived( from_buddy, reply );
+					}
+					
+					public void
+					sendFailed(
+						BuddyPluginBuddy		to_buddy,
+						BuddyPluginException	cause )
+					{
+						listener.messageFailed( to_buddy, cause );
+					}
+				});
+				
+		}catch( Throwable e ){
+			
+			logMessageAndPopup( "Send message failed", e );
+		}
+	}
+	
 	protected void
 	sendMessage(
 		BuddyPluginBuddy	buddy,
@@ -356,9 +428,22 @@ BuddyPluginAZ2
 	removeListener(
 		BuddyPluginAZ2Listener		listener )
 	{
-		listeners.add( listener );
+		listeners.remove( listener );
 	}
 	
+	public void
+	addTrackerListener(
+		BuddyPluginAZ2TrackerListener		listener )
+	{
+		track_listeners.add( listener );
+	}
+	
+	public void
+	removeTrackerListener(
+		BuddyPluginAZ2TrackerListener		listener )
+	{
+		track_listeners.remove( listener );
+	}
 	
 	protected void
 	logMessageAndPopup(

@@ -1714,4 +1714,11 @@ DownloadImpl
 		return DownloadManagerMoveHandler.recalculatePath(this.download_manager);
 	}
 	
+	 public Object getUserData( Object key ){
+		 return( download_manager.getData(key));
+	 }
+
+	 public void setUserData( Object key, Object data ){
+		 download_manager.setData(key, data);
+	 }
 }
