@@ -100,7 +100,8 @@ public class TorrentListener
 				String referer = MapUtils.getMapString(decodedMap, "referer",
 						"torrentlistener");
 				SelectedContent content = new SelectedContent(hash, displayName, true);
-				content.setThumbURL(MapUtils.getMapString(decodedMap, "thumbnail", null));
+				content.setThumbURL(MapUtils.getMapString(decodedMap, "thumbnail.url",
+						null));
 				VuzeShareUtils.getInstance().shareTorrent(content, referer);
 			}
 		} else {
