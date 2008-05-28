@@ -414,7 +414,7 @@ public class PieceInfoView
 				}
 
 				int colorIndex;
-				boolean done = (dm_pieces == null) ? false : dm_pieces[i].isDone();
+				boolean done = dm_pieces[i].isDone();
 				int iXPos = iCol * BLOCK_SIZE + 1;
 				int iYPos = iRow * BLOCK_SIZE + 1;
 
@@ -425,8 +425,7 @@ public class PieceInfoView
 					gcImg.fillRectangle(iXPos, iYPos, BLOCK_FILLSIZE, BLOCK_FILLSIZE);
 				} else {
 					// !done
-					boolean partiallyDone = (dm_pieces == null) ? false
-							: dm_pieces[i].getNbWritten() > 0;
+					boolean partiallyDone = dm_pieces[i].getNbWritten() > 0;
 
 					int x = iXPos;
 					int width = BLOCK_FILLSIZE;
