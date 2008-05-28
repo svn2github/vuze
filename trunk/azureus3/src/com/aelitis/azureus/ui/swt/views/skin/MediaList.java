@@ -21,8 +21,6 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.io.ByteArrayInputStream;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
@@ -51,7 +49,6 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableCountChangeListener;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.utils.PublishUtils;
@@ -78,19 +75,7 @@ public class MediaList
 
 	private String PREFIX = "my-media-";
 
-	private SWTSkinButtonUtility btnShare;
-
-	private SWTSkinButtonUtility btnStop;
-
-	private SWTSkinButtonUtility btnDelete;
-
-	private SWTSkinButtonUtility btnDetails;
-
 	private AzureusCore core;
-
-	private SWTSkinButtonUtility btnComments;
-
-	private SWTSkinButtonUtility btnPlay;
 
 	private SWTSkinObjectImage skinImgThumb;
 
@@ -107,8 +92,6 @@ public class MediaList
 	private Label lblX;
 
 	private TimerEvent searchUpdateEvent;
-
-	private SWTSkinButtonUtility btnColumnSetup;
 
 	private SWTSkinObject soData;
 
@@ -127,10 +110,8 @@ public class MediaList
 			cHeaders = (Composite) skinObject.getControl();
 		}
 
-		btnShare = TorrentListViewsUtils.addShareButton(skin, PREFIX, view);
-
 		view = new TorrentListView(core, skin, skin.getSkinProperties(), cHeaders,
-				null, soData, btnShare, TorrentListView.VIEW_MY_MEDIA, false, true) {
+				null, soData, PREFIX, TorrentListView.VIEW_MY_MEDIA, false, true) {
 			public boolean isOurDownload(DownloadManager dm) {
 				if (PlatformTorrentUtils.getAdId(dm.getTorrent()) != null) {
 					return false;
@@ -180,17 +161,6 @@ public class MediaList
 			}
 		};
 		
-		btnColumnSetup = TorrentListViewsUtils.addColumnSetupButton(skin, PREFIX,
-				view);
-
-		btnStop = TorrentListViewsUtils.addStopButton(skin, PREFIX, view);
-		btnDetails = TorrentListViewsUtils.addDetailsButton(skin, PREFIX, view);
-		btnComments = TorrentListViewsUtils.addCommentsButton(skin, PREFIX, view);
-		btnPlay = TorrentListViewsUtils.addPlayButton(skin, PREFIX, view, false,
-				true);
-		TorrentListViewsUtils.addNewTagButton(skin, PREFIX, view);
-		
-
 		if (view instanceof ListView) {
 			((ListView) view).addCountChangeListener(new TableCountChangeListener() {
 
@@ -265,22 +235,6 @@ public class MediaList
 				});
 			}
 		});
-
-		btnDelete = TorrentListViewsUtils.addDeleteButton(skin, PREFIX, view);
-
-		SWTSkinButtonUtility[] buttonsNeedingRow = {
-			btnDelete,
-		};
-		SWTSkinButtonUtility[] buttonsNeedingPlatform = {
-			btnDetails,
-			btnComments,
-		};
-		SWTSkinButtonUtility[] buttonsNeedingSingleSelection = {
-			btnDetails,
-			btnComments,
-		};
-		TorrentListViewsUtils.addButtonSelectionDisabler(view, buttonsNeedingRow,
-				buttonsNeedingPlatform, buttonsNeedingSingleSelection, btnStop);
 
 		skinObject = skin.getSkinObject(PREFIX + "bigthumb");
 		if (skinObject instanceof SWTSkinObjectImage) {

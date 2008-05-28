@@ -25,6 +25,7 @@ import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
@@ -94,7 +95,7 @@ public class TorrentListView
 	public TorrentListView(final AzureusCore core, final SWTSkin skin,
 			SWTSkinProperties skinProperties, Composite headerArea,
 			SWTSkinObjectText countArea, final SWTSkinObject soData,
-			final SWTSkinButtonUtility btnShare, int viewMode,
+			final String skinPrefix, int viewMode,
 			final boolean bMiniMode, final boolean bAllowScrolling) {
 
 		super(TABLE_IDS[viewMode] + ((bMiniMode) ? "-Mini" : ""), skinProperties,
@@ -283,21 +284,68 @@ public class TorrentListView
 			}
 		});
 
+		addSkinButtons(skin, skinPrefix);
+	}
+
+	/**
+	 * @param skin
+	 * @param skinPrefix
+	 *
+	 * @since 3.0.5.3
+	 */
+	private void addSkinButtons(
+			SWTSkin skin,
+			String skinPrefix) {
+		SWTSkinObject skinObject = skin.getSkinObject(skinPrefix + "add");
+		if (skinObject instanceof SWTSkinObject) {
+			SWTSkinButtonUtility btnAdd = new SWTSkinButtonUtility(skinObject);
+
+			btnAdd.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
+				public void pressed(SWTSkinButtonUtility buttonUtility) {
+					TorrentOpener.openTorrentWindow();
+				}
+			});
+		}
+
+		SWTSkinButtonUtility btnColumnSetup = TorrentListViewsUtils.addColumnSetupButton(skin, skinPrefix, this);
+		
+		SWTSkinButtonUtility btnStop = TorrentListViewsUtils.addStopButton(skin, skinPrefix, this);
+		SWTSkinButtonUtility btnDetails = TorrentListViewsUtils.addDetailsButton(skin, skinPrefix, this);
+		SWTSkinButtonUtility btnComments = TorrentListViewsUtils.addCommentsButton(skin, skinPrefix, this);
+		SWTSkinButtonUtility btnPlay = TorrentListViewsUtils.addPlayButton(skin, skinPrefix, this, true,
+				true);
+		SWTSkinButtonUtility btnDelete = TorrentListViewsUtils.addDeleteButton(skin, skinPrefix, this);
+
+		SWTSkinButtonUtility[] buttonsNeedingRow = {
+			btnDelete,
+		};
+		SWTSkinButtonUtility[] buttonsNeedingPlatform = {
+			btnDetails,
+			btnComments,
+		};
+		SWTSkinButtonUtility[] buttonsNeedingSingleSelection = {
+			btnDetails,
+			btnComments,
+		};
+		TorrentListViewsUtils.addButtonSelectionDisabler(this, buttonsNeedingRow,
+				buttonsNeedingPlatform, buttonsNeedingSingleSelection, btnStop);
+
+		final SWTSkinButtonUtility btnShare = TorrentListViewsUtils.addShareButton(skin, skinPrefix, this);
+		final SWTSkinButtonUtility btnTag = TorrentListViewsUtils.addNewTagButton(skin, skinPrefix, this);
+
 		addSelectionListener(new TableSelectionAdapter() {
 			public void mouseEnter(TableRowCore row) {
-				{//if (TorrentListViewsUtils.ENABLE_ON_HOVER) {
-					if (btnShare != null) {
-						btnShare.setDisabled(false);
-						btnShare.setImage("image.button.share.excited");
+				{
+					if (btnTag != null) {
+						btnTag.setDisabled(false);
 					}
 				}
 			}
 			
 			public void mouseExit(TableRowCore row) {
-				{//if (TorrentListViewsUtils.ENABLE_ON_HOVER) {
-					if (btnShare != null) {
-						btnShare.setImage("image.button.share");
-						btnShare.setDisabled(SelectedContentManager.getCurrentlySelectedContent().length != 1);
+				{
+					if (btnTag != null) {
+						btnTag.setDisabled(getCurrentlySelectedContent().length != 1);
 					}
 				}
 			}
@@ -314,11 +362,14 @@ public class TorrentListView
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
 						SelectedContent[] contents = getCurrentlySelectedContent();
-						if (soData.isVisible()) {
+						if (dataArea.isVisible()) {
 							SelectedContentManager.changeCurrentlySelectedContent(contents);
 						}
 						if (btnShare != null) {
 							btnShare.setDisabled(contents.length != 1);
+						}
+						if (btnTag != null) {
+							btnTag.setDisabled(contents.length != 1);
 						}
 					}
 				});

@@ -51,21 +51,8 @@ public class ManageDlList
 
 	private TorrentListView view;
 
-	private SWTSkinButtonUtility btnAdd;
-
-	private SWTSkinButtonUtility btnStop;
-
-	private SWTSkinButtonUtility btnDelete;
 
 	private SWTSkinObjectText statusObject;
-
-	private SWTSkinButtonUtility btnShare;
-
-	private SWTSkinButtonUtility btnDetails;
-
-	private SWTSkinButtonUtility btnComments;
-
-	private SWTSkinButtonUtility btnPlay;
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
@@ -86,28 +73,10 @@ public class ManageDlList
 			lblCountArea = (SWTSkinObjectText) skinObject;
 		}
 
-		btnShare = TorrentListViewsUtils.addShareButton(skin, PREFIX, view);
-
 		view = new TorrentListView(core, skin, skin.getSkinProperties(), cHeaders,
-				lblCountArea, soData, btnShare, TorrentListView.VIEW_DOWNLOADING,
+				lblCountArea, soData, PREFIX, TorrentListView.VIEW_DOWNLOADING,
 				false, true);
 
-		skinObject = skin.getSkinObject(PREFIX + "add");
-		if (skinObject instanceof SWTSkinObjectContainer) {
-			btnAdd = new SWTSkinButtonUtility(skinObject);
-
-			btnAdd.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					TorrentOpener.openTorrentWindow();
-				}
-			});
-		}
-
-		btnStop = TorrentListViewsUtils.addStopButton(skin, PREFIX, view);
-		btnDetails = TorrentListViewsUtils.addDetailsButton(skin, PREFIX, view);
-		btnComments = TorrentListViewsUtils.addCommentsButton(skin, PREFIX, view);
-		btnPlay = TorrentListViewsUtils.addPlayButton(skin, PREFIX, view, true,
-				false);
 
 		skinObject = skin.getSkinObject(PREFIX + "status");
 		if (skinObject instanceof SWTSkinObjectText) {
@@ -120,37 +89,6 @@ public class ManageDlList
 				}
 			});
 		}
-
-		skinObject = skin.getSkinObject(PREFIX + "delete");
-		if (skinObject instanceof SWTSkinObjectContainer) {
-			btnDelete = new SWTSkinButtonUtility(skinObject);
-
-			btnDelete.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					TableRowCore[] selectedRows = view.getSelectedRows();
-					for (int i = 0; i < selectedRows.length; i++) {
-						DownloadManager dm = (DownloadManager) selectedRows[i].getDataSource(true);
-						ManagerUtils.remove(dm,
-								btnDelete.getSkinObject().getControl().getShell(), true, true);
-					}
-				}
-			});
-		}
-
-		SWTSkinButtonUtility[] buttonsNeedingRow = {
-			btnDelete,
-			btnStop,
-		};
-		SWTSkinButtonUtility[] buttonsNeedingPlatform = {
-			btnDetails,
-			btnComments,
-		};
-		SWTSkinButtonUtility[] buttonsNeedingSingleSelection = {
-			btnDetails,
-			btnComments,
-		};
-		TorrentListViewsUtils.addButtonSelectionDisabler(view, buttonsNeedingRow,
-				buttonsNeedingPlatform, buttonsNeedingSingleSelection, btnStop);
 
 		view.addSelectionListener(new TableSelectionAdapter() {
 			public void deselected(TableRowCore[] rows) {
