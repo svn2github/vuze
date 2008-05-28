@@ -129,7 +129,12 @@ ExternalStimulusHandler
 						String		name,
 						Map		values )
 					{
-						return( listener.receive( name, values ));
+						try {
+							return( listener.receive( name, values ));
+						} catch (Exception e) {
+							Debug.out(e);
+							return false;
+						}
 					}
 					
 					public int
