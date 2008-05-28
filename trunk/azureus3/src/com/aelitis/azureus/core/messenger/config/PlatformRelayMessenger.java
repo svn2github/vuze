@@ -208,7 +208,7 @@ public class PlatformRelayMessenger
 
 					String pkSender = MapUtils.getMapString(map, "sender", null);
 					long addedOn = SystemTime.getOffsetTime(MapUtils.getMapLong(map,
-							"added-secs-ago", 0) * 1000);
+							"added-secs-ago", 0) * -1000);
 					VuzeBuddy buddy = VuzeBuddyManager.getBuddyByPK(pkSender);
 
 					BuddyPluginBuddy pluginBuddy = buddyPlugin.getBuddyFromPublicKey(pkSender);
