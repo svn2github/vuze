@@ -217,7 +217,7 @@ BuddyPluginAZ2
 				
 				try{
 			
-					Map res = ((BuddyPluginAZ2TrackerListener)it.next()).messageReceived( from_buddy, msg);
+					Map res = ((BuddyPluginAZ2TrackerListener)it.next()).messageReceived( from_buddy, msg );
 					
 					if ( res != null ){
 						
@@ -386,7 +386,14 @@ BuddyPluginAZ2
 						BuddyPluginBuddy		from_buddy,
 						Map						reply )
 					{
-						listener.messageReceived( from_buddy, reply );
+						int type = ((Long)reply.get( "type")).intValue();
+						
+						if ( type != RT_AZ2_REPLY_TRACK ){
+							
+							sendFailed( from_buddy, new BuddyPluginException( "Mismatched reply type" ));
+						}
+						
+						listener.messageReceived( from_buddy, (Map)reply.get( "msg" ));
 					}
 					
 					public void

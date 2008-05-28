@@ -26,6 +26,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SHA1;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.torrent.Torrent;
@@ -40,13 +41,16 @@ BuddyPluginTracker
 	private static final int	TRACK_CHECK_TICKS		= TRACK_CHECK_PERIOD/BuddyPlugin.TIMER_PERIOD;
 
 	private static final int	SHORT_ID_SIZE			= 4;
+	private static final int	FULL_ID_SIZE			= 20;
 	
 	private static final int	REQUEST_TRACKER_SUMMARY	= 1;
 	private static final int	REPLY_TRACKER_SUMMARY	= 2;
 	
+	private static final int	RETRY_SEND_MIN			= 5*60*1000;
+	private static final int	RETRY_SEND_MAX			= 60*60*1000;
 	
 	private BuddyPlugin		plugin;
-	private boolean			enabled;
+	private boolean			plugin_enabled;
 	
 	private Set				online_buddies 			= new HashSet();
 	private Set				tracked_downloads		= new HashSet();
@@ -64,7 +68,7 @@ BuddyPluginTracker
 	{
 		plugin		= _plugin;
 		
-		enabled = plugin.isEnabled();
+		plugin_enabled = plugin.isEnabled();
 		
 		List buddies = plugin.getBuddies();
 		
@@ -75,6 +79,8 @@ BuddyPluginTracker
 		
 		plugin.addListener( this );
 		
+		plugin.getAZ2Handler().addTrackerListener( this );
+
 		plugin.getPluginInterface().getDownloadManager().addListener( this, true );
 	}
 	
@@ -91,7 +97,7 @@ BuddyPluginTracker
 	protected void
 	checkTracking()
 	{
-		if ( !enabled ){
+		if ( !plugin_enabled ){
 			
 			return;
 		}
@@ -128,14 +134,7 @@ BuddyPluginTracker
 			
 			buddyData buddy_data = (buddyData)buddy.getUserData( BuddyPluginTracker.class );
 			
-			if ( buddy_data == null ){
-				
-				buddy_data = new buddyData( buddy );
-				
-				buddy.setUserData( BuddyPluginTracker.class, buddy_data );
-			}
-			
-			buddy_data.update( downloads, downloads_id, diff_map );
+			buddy_data.updateLocal( downloads, downloads_id, diff_map );
 		}
 	}		
 	
@@ -149,26 +148,14 @@ BuddyPluginTracker
 	buddyAdded(
 		BuddyPluginBuddy	buddy )
 	{
-		if ( buddy.isOnline()){
-			
-			synchronized( online_buddies ){
-				
-				if ( !online_buddies.contains( buddy )){
-					
-					online_buddies.add( buddy );
-				}
-			}
-		}
+		buddyChanged( buddy );
 	}
 	
 	public void
 	buddyRemoved(
 		BuddyPluginBuddy	buddy )
 	{
-		synchronized( online_buddies ){
-
-			online_buddies.remove( buddy );
-		}
+		buddyChanged( buddy );
 	}
 
 	public void
@@ -177,19 +164,46 @@ BuddyPluginTracker
 	{	
 		if ( buddy.isOnline()){
 			
-			synchronized( online_buddies ){
-				
-				if ( !online_buddies.contains( buddy )){
-					
-					online_buddies.add( buddy );
-				}
-			}
+			addBuddy( buddy );
+			
 		}else{
 			
-			synchronized( online_buddies ){
-
-				online_buddies.remove( buddy );
+			removeBuddy( buddy );
+		}
+	}
+	
+	
+	protected buddyData
+	addBuddy(
+		BuddyPluginBuddy		buddy )
+	{
+		synchronized( online_buddies ){
+			
+			if ( !online_buddies.contains( buddy )){
+				
+				online_buddies.add( buddy );
 			}
+
+			buddyData buddy_data = (buddyData)buddy.getUserData( BuddyPluginTracker.class );
+
+			if ( buddy_data == null ){
+				
+				buddy_data = new buddyData( buddy );
+				
+				buddy.setUserData( BuddyPluginTracker.class, buddy_data );
+			}
+			
+			return( buddy_data );
+		}
+	}
+		
+	protected void
+	removeBuddy(
+		BuddyPluginBuddy		buddy )
+	{
+		synchronized( online_buddies ){
+
+			online_buddies.remove( buddy );
 		}
 	}
 	
@@ -203,7 +217,7 @@ BuddyPluginTracker
 	enabledStateChanged(
 		boolean 	_enabled )
 	{
-		enabled = _enabled;
+		plugin_enabled = _enabled;
 	}
 	
 	public void
@@ -314,7 +328,13 @@ BuddyPluginTracker
 		BuddyPluginBuddy	buddy,
 		Map					message )
 	{
-		return( null );
+		buddyData buddy_data = buddyAlive( buddy );
+		
+		int type = ((Long)message.get( "type" )).intValue();
+		
+		Map msg = (Map)message.get( "msg" );
+		
+		return( buddy_data.receiveMessage( type, msg ));
 	}
 	
 	public void
@@ -323,6 +343,31 @@ BuddyPluginTracker
 		Throwable			cause )
 	{
 		log( "Failed to send message to " + buddy.getName(), cause );
+		
+		buddyDead( buddy );
+	}
+	
+	protected buddyData
+	buddyAlive(
+		BuddyPluginBuddy		buddy )
+	{
+		buddyData buddy_data = addBuddy( buddy );
+		
+		buddy_data.setAlive( true );
+		
+		return( buddy_data );
+	}
+	
+	protected void
+	buddyDead(
+		BuddyPluginBuddy		buddy )
+	{
+		buddyData buddy_data = (buddyData)buddy.getUserData( BuddyPluginTracker.class );
+
+		if ( buddy_data != null ){
+			
+			buddy_data.setAlive( false );
+		}
 	}
 	
 	protected void
@@ -348,6 +393,9 @@ BuddyPluginTracker
 		private Set	downloads_sent;
 		private int	downloads_sent_id;
 		
+		private int		consecutive_fails;
+		private long	last_fail;
+		
 		protected
 		buddyData(
 			BuddyPluginBuddy		_buddy )
@@ -356,11 +404,56 @@ BuddyPluginTracker
 		}
 		
 		protected void
-		update(
+		setAlive(
+			boolean		alive )
+		{
+			synchronized( this ){
+				
+				if ( alive ){
+					
+					consecutive_fails		= 0;
+					last_fail				= 0;
+
+				}else{
+					
+					consecutive_fails++;
+					
+					last_fail	= SystemTime.getMonotonousTime();
+				}
+			}
+		}
+		
+		protected void
+		updateLocal(
 			Set		downloads,
 			int		id,
 			Map		diff_map )
 		{
+			if ( consecutive_fails > 0 ){
+				
+				long	retry_millis = RETRY_SEND_MIN;
+				
+				for (int i=0;i<consecutive_fails-1;i++){
+					
+					retry_millis <<= 2;
+					
+					if ( retry_millis > RETRY_SEND_MAX ){
+						
+						retry_millis = RETRY_SEND_MAX;
+						
+						break;
+					}
+				}
+				
+				long	now = SystemTime.getMonotonousTime();
+				
+				if ( now - last_fail >= retry_millis ){
+					
+					downloads_sent 		= null;
+					downloads_sent_id	= 0;
+				}
+			}
+			
 			if ( id == downloads_sent_id ){
 				
 				return;
@@ -372,6 +465,8 @@ BuddyPluginTracker
 			
 			byte[]	added_bytes;
 			byte[]	removed_bytes;
+			
+			boolean	incremental = downloads_sent != null;
 			
 			if ( map == null ){
 				
@@ -435,9 +530,59 @@ BuddyPluginTracker
 			
 			msg.put( "added", 	added_bytes );
 			msg.put( "removed", removed_bytes );
+			msg.put( "inc", 	new Long( incremental?1:0 ));
 			
 			sendMessage( buddy, REQUEST_TRACKER_SUMMARY, msg );
 		}	
+		
+		protected Map
+		updateRemote(
+			Map		msg )
+		{			
+			List	added 	= importShortIDs((byte[])msg.get( "added" ));
+			List	removed = importShortIDs((byte[])msg.get( "removed" ));
+			
+			Map	reply = new HashMap();
+			
+			reply.put( "added", exportFullIDs( added ));
+			reply.put( "removed", exportFullIDs( removed ));
+			
+			return( reply );
+		}
+		
+		protected Map
+		receiveMessage(
+			int			type,
+			Map			msg )
+		{
+			if ( type == REQUEST_TRACKER_SUMMARY ){
+		
+				Map	reply = new HashMap();
+				
+				reply.put( "type", new Long( REPLY_TRACKER_SUMMARY ));
+
+				reply.put( "msg", updateRemote( msg ));
+				
+				return( reply );
+				
+			}else if ( type == REPLY_TRACKER_SUMMARY ){
+				
+					// full hashes on reply
+				
+				byte[]	possible_matches = (byte[])msg.get( "added" );
+				
+				if ( possible_matches != null ){
+					
+					System.out.println( "Possible matches!" );
+				}
+				
+				return( null );
+				
+			}else{
+				
+				return( null );
+			}
+		}
 		
 		protected byte[]
 		exportShortIDs(
@@ -464,6 +609,57 @@ BuddyPluginTracker
 			
 			return( res );
 		}
+		
+		protected List
+		importShortIDs(
+			byte[]		ids )
+		{
+			List	res = new ArrayList();
+			
+			if ( ids != null ){
+				
+				synchronized( tracked_downloads ){
+
+					for (int i=0;i<ids.length;i+= SHORT_ID_SIZE ){
+					
+						List dls = (List)short_id_map.get( new HashWrapper( ids, i, SHORT_ID_SIZE ));
+						
+						if ( dls != null ){
+							
+							res.addAll( dls );
+						}
+					}
+				}
+			}
+			
+			return( res );
+		}
+		
+		protected byte[]
+   		exportFullIDs(
+   			List	downloads )
+   		{
+   			byte[]	res = new byte[ FULL_ID_SIZE * downloads.size() ];
+   			
+   			for (int i=0;i<downloads.size();i++ ){
+   				
+   				Download download = (Download)downloads.get(i);
+   				
+   				downloadData download_data = (downloadData)download.getUserData( BuddyPluginTracker.class );
+   				
+   				if ( download_data != null ){
+
+   					System.arraycopy(
+   						download_data.getID().getBytes(),
+   						0,
+   						res,
+   						i * FULL_ID_SIZE,
+   						FULL_ID_SIZE );
+   				}
+   			}
+   			
+   			return( res );
+   		}
 	}
 	
 	private static class
