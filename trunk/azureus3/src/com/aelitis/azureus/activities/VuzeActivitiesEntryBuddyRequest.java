@@ -36,8 +36,6 @@ import com.aelitis.azureus.util.MapUtils;
 public class VuzeActivitiesEntryBuddyRequest
 	extends VuzeActivitiesEntry
 {
-	public static final String TYPEID_BUDDYREQUEST = "buddy-request";
-
 	private VuzeBuddy buddy;
 
 	public VuzeActivitiesEntryBuddyRequest() {
@@ -54,18 +52,18 @@ public class VuzeActivitiesEntryBuddyRequest
 			textID += ".multi";
 		}
 		String text = MessageText.getString(textID, new String[] {
-			buddy.getProfileAHREF(TYPEID_BUDDYREQUEST),
+			buddy.getProfileAHREF(VuzeActivitiesConstants.TYPEID_BUDDYREQUEST),
 			urlAccept,
 			"" + attempNumber
 		});
 		
 		setText(text);
-		setTypeID(TYPEID_BUDDYREQUEST, true);
+		setTypeID(VuzeActivitiesConstants.TYPEID_BUDDYREQUEST, true);
 		setID(buildID(buddy.getCode()));
 	}
 
 	public static String buildID(String code) {
-		return TYPEID_BUDDYREQUEST + "-" + code;
+		return VuzeActivitiesConstants.TYPEID_BUDDYREQUEST + "-" + code;
 	}
 
 	// @see com.aelitis.azureus.activities.VuzeActivitiesEntry#loadFromExternalMap(java.util.Map)

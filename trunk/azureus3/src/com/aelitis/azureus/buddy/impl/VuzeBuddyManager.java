@@ -667,7 +667,7 @@ public class VuzeBuddyManager
 				}
 
 				// not Authorized
-				if (VuzeActivitiesEntryBuddyRequest.TYPEID_BUDDYREQUEST.equals(entry.getTypeID())) {
+				if (VuzeActivitiesConstants.TYPEID_BUDDYREQUEST.equals(entry.getTypeID())) {
 					VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
 						entry
 					});

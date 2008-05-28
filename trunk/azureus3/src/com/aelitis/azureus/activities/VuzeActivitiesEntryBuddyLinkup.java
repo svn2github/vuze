@@ -36,8 +36,6 @@ import com.aelitis.azureus.util.MapUtils;
 public class VuzeActivitiesEntryBuddyLinkup
 	extends VuzeActivitiesEntry
 {
-	public static final String TYPEID_BUDDYLINKUP = "buddy-new";
-
 	private VuzeBuddy buddy;
 
 	public VuzeActivitiesEntryBuddyLinkup() {

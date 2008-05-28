@@ -45,8 +45,6 @@ import com.aelitis.azureus.util.LoginInfoManager.LoginInfo;
 public class VuzeActivitiesEntryContentShare
 	extends VuzeActivitiesEntry
 {
-	public static final String TYPEID_BUDDYSHARE = "buddy-share";
-
 	private VuzeBuddy buddy;
 
 	public VuzeActivitiesEntryContentShare() {
@@ -59,8 +57,7 @@ public class VuzeActivitiesEntryContentShare
 			return;
 		}
 		DownloadManager dm = content.getDM();
-		TOTorrent torrent = dm == null ? null
-				: dm.getTorrent();
+		TOTorrent torrent = dm == null ? null : dm.getTorrent();
 
 		boolean ourContent = content.isPlatformContent();
 
@@ -70,16 +67,18 @@ public class VuzeActivitiesEntryContentShare
 		}
 		LoginInfo userInfo = LoginInfoManager.getInstance().getUserInfo();
 
-		setTypeID(TYPEID_BUDDYSHARE, true);
-		setID(TYPEID_BUDDYSHARE + "-" + SystemTime.getCurrentTime());
+		setTypeID(VuzeActivitiesConstants.TYPEID_BUDDYSHARE, true);
+		setID(VuzeActivitiesConstants.TYPEID_BUDDYSHARE + "-"
+				+ SystemTime.getCurrentTime());
 
 		String contentString;
 
 		if (ourContent || torrent == null) {
-			String url = Constants.URL_PREFIX + Constants.URL_DETAILS + content.getHash()
-					+ ".html?" + Constants.URL_SUFFIX + "&client_ref="
-					+ TYPEID_BUDDYSHARE;
-			contentString = "<A HREF=\"" + url + "\">" + content.getDisplayName() + "</A>";
+			String url = Constants.URL_PREFIX + Constants.URL_DETAILS
+					+ content.getHash() + ".html?" + Constants.URL_SUFFIX
+					+ "&client_ref=" + VuzeActivitiesConstants.TYPEID_BUDDYSHARE;
+			contentString = "<A HREF=\"" + url + "\">" + content.getDisplayName()
+					+ "</A>";
 		} else {
 			setTorrent(torrent);
 			if (dm != null) {
@@ -88,14 +87,14 @@ public class VuzeActivitiesEntryContentShare
 
 			contentString = content.getDisplayName();
 		}
-		
+
 		setAssetImageURL(content.getThumbURL());
 
 		String textid = (message != null && message.length() > 0)
 				? "v3.activity.share-content.no-msg" : "v3.activity.share-content";
-		
+
 		String text = MessageText.getString(textid, new String[] {
-			userInfo.getProfileAHREF(TYPEID_BUDDYSHARE),
+			userInfo.getProfileAHREF(VuzeActivitiesConstants.TYPEID_BUDDYSHARE),
 			contentString,
 			userInfo.displayName,
 			message
@@ -112,7 +111,6 @@ public class VuzeActivitiesEntryContentShare
 		setTimestamp(0);
 	}
 
-	
 	// @see com.aelitis.azureus.activities.VuzeActivitiesEntry#loadCommonFromMap(java.util.Map)
 	public void loadCommonFromMap(Map map) {
 		super.loadCommonFromMap(map);

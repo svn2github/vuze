@@ -40,7 +40,7 @@ import com.aelitis.azureus.util.ImageDownloader.ImageDownloaderListener;
 /**
  * 
  * Comparable implementation sorts on timestamp.<P>
- * equals() implementation compared IDs
+ * equals() implementation compares IDs
  * 
  * @author TuxPaper
  * @created Jan 28, 2008
@@ -49,22 +49,6 @@ import com.aelitis.azureus.util.ImageDownloader.ImageDownloaderListener;
 public class VuzeActivitiesEntry
 	implements TableColumnSortObject
 {
-	public static final String TYPEID_DL_COMPLETE = "DL-Complete";
-
-	public static final String TYPEID_DL_ADDED = "DL-Added";
-
-	public static final String TYPEID_DL_REMOVE = "DL-Remove";
-
-	public static final String TYPEID_RATING_REMINDER = "Rating-Reminder";
-
-	public static final String TYPEID_HEADER = "Header";
-
-	public static final String TYPEID_VUZENEWS = "VUZE_NEWS_ITEM";
-	
-	public static int SORT_DATE = 0;
-
-	public static int sortBy = SORT_DATE;
-
 	private String text;
 
 	private String iconID;
@@ -88,13 +72,12 @@ public class VuzeActivitiesEntry
 	private byte[] imageBytes;
 
 	private boolean showThumb = true;
-	
-	private String torrentName; 
+
+	private String torrentName;
 
 	private TOTorrent torrent;
 
 	private boolean isDRM;
-
 
 	public VuzeActivitiesEntry(long timestamp, String text, String typeID) {
 		this.setText(text);
@@ -149,7 +132,7 @@ public class VuzeActivitiesEntry
 		setDRM(MapUtils.getMapBoolean(map, "isDRM", false));
 		loadCommonFromMap(map);
 	}
-	
+
 	public void loadCommonFromMap(Map map) {
 		setID(MapUtils.getMapString(map, "id", null));
 		setText(MapUtils.getMapString(map, "text", null));
@@ -180,8 +163,47 @@ public class VuzeActivitiesEntry
 	// @see java.lang.Comparable#compareTo(java.lang.Object)
 	public int compareTo(Object obj) {
 		if (obj instanceof VuzeActivitiesEntry) {
+			VuzeActivitiesEntry otherEntry = (VuzeActivitiesEntry) obj;
 			//System.out.println("EQ" + timestamp + ";" + text.substring(0, 8) + (int) (timestamp - ((VuzeNewsEntry) obj).timestamp));
-			long x = (timestamp - ((VuzeActivitiesEntry) obj).timestamp);
+			if (VuzeActivitiesConstants.sortBy == VuzeActivitiesConstants.SORT_TYPE) {
+				String ourTypeID = getTypeID();
+				String theirTypeID = otherEntry.getTypeID();
+
+				boolean isHeader = VuzeActivitiesConstants.TYPEID_HEADER.equals(ourTypeID);
+				boolean isOtherHeader = VuzeActivitiesConstants.TYPEID_HEADER.equals(theirTypeID);
+				
+				if (isHeader) {
+					ourTypeID = getID();
+					System.out.println(ourTypeID);
+				}
+				if (isOtherHeader) {
+					theirTypeID = otherEntry.getID();
+					System.out.println(theirTypeID);
+				}
+
+				long ourIDpos = MapUtils.getMapLong(
+						VuzeActivitiesConstants.SORT_TYPE_ORDER, ourTypeID, 100);
+				long theirIDpos = MapUtils.getMapLong(
+						VuzeActivitiesConstants.SORT_TYPE_ORDER, theirTypeID, 100);
+				if (ourIDpos < theirIDpos) {
+					return 1;
+				}
+				if (ourIDpos > theirIDpos) {
+					return -1;
+				}
+				
+				// same
+				if (isHeader) {
+					return 1;
+				}
+				if (isOtherHeader) {
+					return -1;
+				}
+				
+				// FALLTHROUGH to date sort
+			}
+
+			long x = (timestamp - otherEntry.timestamp);
 			return x == 0 ? 0 : x > 0 ? 1 : -1;
 		}
 		// we are bigger
@@ -238,12 +260,12 @@ public class VuzeActivitiesEntry
 			try {
 				// make a copy of the torrent
 
-				TOTorrent	torrent_to_send = TOTorrentFactory.deserialiseFromMap(torrent.serialiseToMap());
+				TOTorrent torrent_to_send = TOTorrentFactory.deserialiseFromMap(torrent.serialiseToMap());
 
 				// remove any non-standard stuff (e.g. resume data)
 
 				torrent_to_send.removeAdditionalProperties();
-				
+
 				map.put("torrent", torrent_to_send.serialiseToMap());
 			} catch (TOTorrentException e) {
 				Debug.out(e);
@@ -253,7 +275,7 @@ public class VuzeActivitiesEntry
 		if (torrentName != null) {
 			map.put("torrent-name", torrentName);
 		}
-		
+
 		return map;
 	}
 

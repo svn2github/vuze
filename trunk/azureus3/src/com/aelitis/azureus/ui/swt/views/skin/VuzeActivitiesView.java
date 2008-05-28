@@ -35,16 +35,17 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.InputShell;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
-import com.aelitis.azureus.activities.VuzeActivitiesEntry;
-import com.aelitis.azureus.activities.VuzeActivitiesListener;
-import com.aelitis.azureus.activities.VuzeActivitiesManager;
+import com.aelitis.azureus.activities.*;
 import com.aelitis.azureus.ui.common.RememberedDecisionsManager;
-import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.columns.vuzeactivity.ColumnVuzeActivity;
 import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.views.list.ListView;
 
 /**
@@ -65,10 +66,6 @@ public class VuzeActivitiesView
 	private static final boolean TEST_ENTRIES = false;
 
 	private static final String PREFIX = "vuzeevents-";
-
-	private static final long ORDER_TYPE = 1;
-
-	private static final long ORDER_DATE = 0;
 
 	private static String TABLE_ID = "VuzeActivity";
 
@@ -96,14 +93,12 @@ public class VuzeActivitiesView
 
 	private SWTSkinObject soData;
 
-	private long sortOrder = ORDER_DATE;
-	
-	private static Comparator sortByType = new Comparator() {
-		public int compare(Object arg0, Object arg1) {
-			return 0;
-		}
-	};
+	private SWTSkinButtonUtility btnTag;
 
+	private SWTSkinButtonUtility btnSortByType;
+
+	private SWTSkinButtonUtility btnSortByDate;
+	
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
 		this.soData = skinObject;
@@ -126,30 +121,6 @@ public class VuzeActivitiesView
 				SWT.V_SCROLL);
 		view.setRowMarginHeight(1);
 
-		view.addSelectionListener(new TableSelectionAdapter() {
-			public void selected(TableRowCore[] row) {
-				selectionChanged();
-			}
-		
-			public void deselected(TableRowCore[] rows) {
-				selectionChanged();
-			}
-			
-			public void selectionChanged() {
-				Utils.execSWTThread(new AERunnable() {
-					public void runSupport() {
-						SelectedContent[] contents = getCurrentlySelectedContent();
-						if (soData.isVisible()) {
-							SelectedContentManager.changeCurrentlySelectedContent(contents);
-						}
-						if (btnShare != null) {
-							btnShare.setDisabled(contents.length != 1);
-						}
-					}
-				});
-			}
-		}, false);
-		
 		skipShift = true;
 
 		view.addKeyListener(new KeyListener() {
@@ -205,6 +176,7 @@ public class VuzeActivitiesView
 		view.addDataSources(VuzeActivitiesManager.getAllEntries());
 
 		btnShare = TorrentListViewsUtils.addShareButton(skin, PREFIX, view);
+		btnTag = TorrentListViewsUtils.addNewTagButton(skin, PREFIX, view);
 		btnDetails = TorrentListViewsUtils.addDetailsButton(skin, PREFIX, view);
 		btnComments = TorrentListViewsUtils.addCommentsButton(skin, PREFIX, view);
 		btnPlay = TorrentListViewsUtils.addPlayButton(skin, PREFIX, view, false,
@@ -241,7 +213,7 @@ public class VuzeActivitiesView
 						for (int i = 0; i < selectedDataSources.length; i++) {
 							if (selectedDataSources[i] instanceof VuzeActivitiesEntry) {
 								VuzeActivitiesEntry entry = (VuzeActivitiesEntry) selectedDataSources[i];
-								boolean isHeader = VuzeActivitiesEntry.TYPEID_HEADER.equals(entry.getTypeID());
+								boolean isHeader = VuzeActivitiesConstants.TYPEID_HEADER.equals(entry.getTypeID());
 								if (!isHeader) {
 									disable = false;
 									break;
@@ -268,35 +240,111 @@ public class VuzeActivitiesView
 		TorrentListViewsUtils.addButtonSelectionDisabler(view, buttonsNeedingRow,
 				buttonsNeedingPlatform, buttonsNeedingSingleSelection, btnStop);
 
+		view.addSelectionListener(new TableSelectionAdapter() {
+			public void mouseEnter(TableRowCore row) {
+				{
+					if (btnTag != null) {
+						btnTag.setDisabled(false);
+					}
+				}
+			}
+			
+			public void mouseExit(TableRowCore row) {
+				{
+					if (btnTag != null) {
+						btnTag.setDisabled(getCurrentlySelectedContent().length != 1);
+					}
+				}
+			}
+
+			public void selected(TableRowCore[] row) {
+				selectionChanged();
+			}
+		
+			public void deselected(TableRowCore[] rows) {
+				selectionChanged();
+			}
+			
+			public void selectionChanged() {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						SelectedContent[] contents = getCurrentlySelectedContent();
+						if (soData.isVisible()) {
+							SelectedContentManager.changeCurrentlySelectedContent(contents);
+						}
+						if (btnShare != null) {
+							btnShare.setDisabled(contents.length != 1);
+						}
+						if (btnTag != null) {
+							btnTag.setDisabled(contents.length != 1);
+						}
+					}
+				});
+			}
+		}, true);
+		
+		
+		skinObject = skin.getSkinObject(PREFIX + "sortby-date");
+		if (skinObject != null) {
+			btnSortByDate = new SWTSkinButtonUtility(skinObject);
+			btnSortByDate.addSelectionListener(new ButtonListenerAdapter() {
+				public void pressed(SWTSkinButtonUtility buttonUtility) {
+					VuzeActivitiesConstants.sortBy = VuzeActivitiesConstants.SORT_DATE;
+					shiftVuzeNews();
+					btnSortByDate.getSkinObject().switchSuffix("-selected", 1, false);
+					if (btnSortByType != null) {
+						btnSortByType.getSkinObject().switchSuffix("", 1, false);
+					}
+				}
+			});
+		}
+
+		skinObject = skin.getSkinObject(PREFIX + "sortby-type");
+		if (skinObject != null) {
+			btnSortByType = new SWTSkinButtonUtility(skinObject);
+			btnSortByType.addSelectionListener(new ButtonListenerAdapter() {
+				public void pressed(SWTSkinButtonUtility buttonUtility) {
+					VuzeActivitiesConstants.sortBy = VuzeActivitiesConstants.SORT_TYPE;
+					shiftVuzeNews();
+					btnSortByType.getSkinObject().switchSuffix("-selected", 1, false);
+					if (btnSortByDate != null) {
+						btnSortByDate.getSkinObject().switchSuffix("", 1, false);
+					}
+				}
+			});
+		}
+
+
+		
 		VuzeActivitiesEntry headerEntry;
 		headerEntry = new VuzeActivitiesEntry(0,
 				MessageText.getString("v3.activity.header.today"),
-				VuzeActivitiesEntry.TYPEID_HEADER);
+				VuzeActivitiesConstants.TYPEID_HEADER);
 		headerEntries.add(headerEntry);
 
 		headerEntry = new VuzeActivitiesEntry(0,
 				MessageText.getString("v3.activity.header.yesterday"),
-				VuzeActivitiesEntry.TYPEID_HEADER);
+				VuzeActivitiesConstants.TYPEID_HEADER);
 		headerEntries.add(headerEntry);
 
 		for (int i = 2; i < 7; i++) {
 			headerEntry = new VuzeActivitiesEntry(0, MessageText.getString(
 					"v3.activity.header.xdaysago", new String[] {
 						"" + i
-					}), VuzeActivitiesEntry.TYPEID_HEADER);
+					}), VuzeActivitiesConstants.TYPEID_HEADER);
 			headerEntries.add(headerEntry);
 		}
 
 		headerEntry = new VuzeActivitiesEntry(0,
 				MessageText.getString("v3.activity.header.1weekago"),
-				VuzeActivitiesEntry.TYPEID_HEADER);
+				VuzeActivitiesConstants.TYPEID_HEADER);
 		headerEntries.add(headerEntry);
 
 		for (int i = 2; i < 5; i++) {
 			headerEntry = new VuzeActivitiesEntry(0, MessageText.getString(
 					"v3.activity.header.xweeksago", new String[] {
 						"" + i
-					}), VuzeActivitiesEntry.TYPEID_HEADER);
+					}), VuzeActivitiesConstants.TYPEID_HEADER);
 			headerEntries.add(headerEntry);
 		}
 
@@ -368,7 +416,7 @@ public class VuzeActivitiesView
 					for (int i = 0; i < selectedDataSources.length; i++) {
 						if (selectedDataSources[i] instanceof VuzeActivitiesEntry) {
 							VuzeActivitiesEntry entry = (VuzeActivitiesEntry) selectedDataSources[i];
-							boolean isHeader = VuzeActivitiesEntry.TYPEID_HEADER.equals(entry.getTypeID());
+							boolean isHeader = VuzeActivitiesConstants.TYPEID_HEADER.equals(entry.getTypeID());
 							if (isHeader) {
 								continue;
 							}
@@ -384,7 +432,7 @@ public class VuzeActivitiesView
 					for (int i = 0; i < selectedDataSources.length; i++) {
 						if (selectedDataSources[i] instanceof VuzeActivitiesEntry) {
 							VuzeActivitiesEntry entry = (VuzeActivitiesEntry) selectedDataSources[i];
-							boolean isHeader = VuzeActivitiesEntry.TYPEID_HEADER.equals(entry.getTypeID());
+							boolean isHeader = VuzeActivitiesConstants.TYPEID_HEADER.equals(entry.getTypeID());
 							if (isHeader) {
 								continue;
 							}
@@ -434,10 +482,18 @@ public class VuzeActivitiesView
 			return;
 		}
 		
-		if (sortOrder == ORDER_TYPE) {
+		if (VuzeActivitiesConstants.sortBy == VuzeActivitiesConstants.SORT_TYPE) {
 			VuzeActivitiesEntry[] allEntries = VuzeActivitiesManager.getAllEntries();
-			Arrays.sort(allEntries);
+			for (int j = allEntries.length - 1; j >= 0; j--) {
+				VuzeActivitiesEntry entry = allEntries[j];
+				boolean isHeader = VuzeActivitiesConstants.TYPEID_HEADER.equals(entry.getTypeID());
+				if (isHeader) {
+					view.removeDataSource(entry);
+				}
+			}
 			
+			view.addDataSources(VuzeActivitiesConstants.HEADERS_SORTBY_TYPE);
+			view.refreshTable(false);
 			return;
 		}
 		
@@ -467,7 +523,7 @@ public class VuzeActivitiesView
 		VuzeActivitiesEntry lastEntry = null;
 		for (int j = allEntries.length - 1; j >= 0; j--) {
 			VuzeActivitiesEntry entry = allEntries[j];
-			boolean isHeader = VuzeActivitiesEntry.TYPEID_HEADER.equals(entry.getTypeID());
+			boolean isHeader = VuzeActivitiesConstants.TYPEID_HEADER.equals(entry.getTypeID());
 			if (lastWasHeader && lastEntry != null) {
 				if (isHeader) {
 					TableRowCore row = view.getRow(lastEntry);
@@ -492,7 +548,7 @@ public class VuzeActivitiesView
 	// @see com.aelitis.azureus.util.VuzeNewsListener#vuzeNewsEntriesAdded(com.aelitis.azureus.util.VuzeNewsEntry[])
 	public void vuzeNewsEntriesAdded(VuzeActivitiesEntry[] entries) {
 		if (skipShift
-				&& VuzeActivitiesEntry.TYPEID_HEADER.equals(entries[0].getTypeID())) {
+				&& VuzeActivitiesConstants.TYPEID_HEADER.equals(entries[0].getTypeID())) {
 			return;
 		}
 		view.addDataSources(entries);

@@ -35,6 +35,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
+import com.aelitis.azureus.activities.VuzeActivitiesConstants;
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
@@ -195,11 +196,11 @@ public class ColumnVuzeActivity
 			}
 		}
 
-		boolean isHeader = VuzeActivitiesEntry.TYPEID_HEADER.equals(entry.getTypeID());
+		boolean isHeader = VuzeActivitiesConstants.TYPEID_HEADER.equals(entry.getTypeID());
 		int x = isHeader ? 0 : EVENT_INDENT;
 		int y = 0;
 
-		boolean isVuzeNewsEntry = !isHeader && VuzeActivitiesEntry.TYPEID_VUZENEWS.equalsIgnoreCase(entry.getTypeID());
+		boolean isVuzeNewsEntry = !isHeader && VuzeActivitiesConstants.TYPEID_VUZENEWS.equalsIgnoreCase(entry.getTypeID());
 		
 		int style = SWT.WRAP;
 		Device device = Display.getDefault();
@@ -361,7 +362,7 @@ public class ColumnVuzeActivity
 				((ListCell) thumbCell.getBufferedTableItem()).setBounds(dmThumbRect);
 				invalidateAndRefresh(thumbCell);
 
-				if (VuzeActivitiesEntry.TYPEID_RATING_REMINDER.equals(entry.getTypeID())) {
+				if (VuzeActivitiesConstants.TYPEID_RATING_REMINDER.equals(entry.getTypeID())) {
 					if (canShowThumb
 							&& PlatformTorrentUtils.isContent(entry.getDownloadManger().getTorrent(), true)) {
 						Rectangle dmRatingRect = getDMRatingRect(width, height);
@@ -670,7 +671,7 @@ public class ColumnVuzeActivity
 			boolean inHitArea = new Rectangle(0, 0, EVENT_INDENT, EVENT_INDENT).contains(
 					event.x, event.y);
 
-			boolean isHeader = VuzeActivitiesEntry.TYPEID_HEADER.equals(entry.getTypeID());
+			boolean isHeader = VuzeActivitiesConstants.TYPEID_HEADER.equals(entry.getTypeID());
 			if (!isHeader && inHitArea) {
 				String ts = timeFormat.format(new Date(entry.getTimestamp()));
 				tooltip = "Activity occurred on " + ts;
