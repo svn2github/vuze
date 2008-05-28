@@ -410,7 +410,7 @@ public class VirtualChannelSelectorImpl {
               Debug.out( "data == null" );
             }
             
-            if( data.channel == null ) {
+            else if( data.channel == null ) {
               Debug.out( "data.channel == null" );
             }
             
