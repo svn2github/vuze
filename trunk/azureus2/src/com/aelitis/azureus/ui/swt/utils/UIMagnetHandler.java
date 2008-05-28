@@ -25,14 +25,12 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.plugins.magnet.MagnetPlugin;
 import com.aelitis.azureus.plugins.magnet.MagnetPluginListener;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.net.magneturi.MagnetURIHandler;
 
 import org.gudy.azureus2.plugins.PluginInterface;
