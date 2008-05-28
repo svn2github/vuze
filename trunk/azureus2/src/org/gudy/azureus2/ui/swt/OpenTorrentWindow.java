@@ -2198,7 +2198,7 @@ public class OpenTorrentWindow
 						DiskManagerFileInfo[] fileInfos = dm.getDiskManagerFileInfo();
 						try
 						{
-							dm.getDownloadState().supressStateSave(true);
+							dm.getDownloadState().suppressStateSave(true);
 							
 							boolean[] toSkip = new boolean[fileInfos.length];
 							boolean[] toCompact = new boolean[fileInfos.length];
@@ -2228,7 +2228,7 @@ public class OpenTorrentWindow
 							dm.getDiskManagerFileInfoSet().setSkipped(toSkip, true);
 						} finally
 						{
-							dm.getDownloadState().supressStateSave(false);
+							dm.getDownloadState().suppressStateSave(false);
 						}
 					}
 				});

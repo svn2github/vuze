@@ -732,8 +732,8 @@ DownloadManagerStateImpl
 		torrent.setDiscardFluff(true);
 	}
 	
-	public void supressStateSave(boolean supress) {
-		if(supress)
+	public void suppressStateSave(boolean suppress) {
+		if(suppress)
 			supressWrites++;
 		else if(supressWrites > 0)
 			supressWrites--;
@@ -2586,7 +2586,7 @@ DownloadManagerStateImpl
 	      return false;
 	    }
 	    
-	    public void supressStateSave(boolean supress) {}
+	    public void suppressStateSave(boolean suppress) {}
 		
 		public void
 		setPeerSources(

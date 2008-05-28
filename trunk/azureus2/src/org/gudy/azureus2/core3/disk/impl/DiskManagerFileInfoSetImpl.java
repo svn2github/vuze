@@ -58,14 +58,14 @@ public class DiskManagerFileInfoSetImpl implements DiskManagerFileInfoSet {
 		DownloadManagerState dmState = diskManager.getDownloadState();
 		
 		try	{
-			dmState.supressStateSave(true);
+			dmState.suppressStateSave(true);
 
 		
 			for(int i=0;i<files.length;i++)
 				if(toChange[i])
 					files[i].setPriority(setPriority);
 		} finally {
-			dmState.supressStateSave(false);
+			dmState.suppressStateSave(false);
 		}
 	}
 
@@ -76,7 +76,7 @@ public class DiskManagerFileInfoSetImpl implements DiskManagerFileInfoSet {
 		DownloadManagerState dmState = diskManager.getDownloadState();
 		
 		try	{
-			dmState.supressStateSave(true);
+			dmState.suppressStateSave(true);
 			
 			if (!setSkipped && !Arrays.equals(toChange, setStorageTypes(toChange, FileSkeleton.ST_LINEAR)))
 				return;
@@ -92,7 +92,7 @@ public class DiskManagerFileInfoSetImpl implements DiskManagerFileInfoSet {
 				DiskManagerUtil.doFileExistenceChecks(this, toChange, diskManager.getDownloadState().getDownloadManager(), true);
 			
 		} finally {
-			dmState.supressStateSave(false);
+			dmState.suppressStateSave(false);
 		}
 
 	}
@@ -115,7 +115,7 @@ public class DiskManagerFileInfoSetImpl implements DiskManagerFileInfoSet {
 		}
 		
 		try	{
-			dm_state.supressStateSave(true);
+			dm_state.suppressStateSave(true);
 
 			for (int i = 0; i < files.length; i++)
 			{
@@ -148,7 +148,7 @@ public class DiskManagerFileInfoSetImpl implements DiskManagerFileInfoSet {
 			DiskManagerUtil.doFileExistenceChecks(this, toChange, dm_state.getDownloadManager(), true);
 			
 		} finally {
-			dm_state.supressStateSave(false);
+			dm_state.suppressStateSave(false);
 			dm_state.save();
 		}
 		

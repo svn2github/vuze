@@ -2752,7 +2752,7 @@ DiskManagerImpl
 					DownloadManagerState dmState = download_manager.getDownloadState();
 					
 					try {
-						dmState.supressStateSave(true);
+						dmState.suppressStateSave(true);
 
 						for(int i=0;i<res.length;i++)
 						{
@@ -2878,7 +2878,7 @@ DiskManagerImpl
 						DiskManagerUtil.doFileExistenceChecks(this, toChange, download_manager, newStroageType == FileSkeleton.ST_LINEAR);
 
 					} finally {
-						dmState.supressStateSave(false);
+						dmState.suppressStateSave(false);
 						dmState.save();
 					}
 					

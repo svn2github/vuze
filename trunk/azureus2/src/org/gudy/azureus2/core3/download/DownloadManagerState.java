@@ -334,11 +334,11 @@ DownloadManagerState
 	 * multiple times it must be invoked with false the equal amount of times to reallow state
 	 * writes
 	 * 
-	 * @param supress
+	 * @param suppress
 	 *            when set to true prevents flushing of the state/increments the internal nesting
 	 *            counter, decrements/allows flush otherwise
 	 */
-	public void supressStateSave(boolean supress);
+	public void suppressStateSave(boolean suppress);
 	
 	public void addListener(DownloadManagerStateAttributeListener l, String attribute, int event_type);
 	public void removeListener(DownloadManagerStateAttributeListener l, String attribute, int event_type);
