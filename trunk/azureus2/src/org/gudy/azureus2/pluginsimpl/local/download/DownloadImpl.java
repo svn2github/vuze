@@ -1715,10 +1715,10 @@ DownloadImpl
 	}
 	
 	 public Object getUserData( Object key ){
-		 return( download_manager.getData(key));
+		 return( download_manager.getUserData(key));
 	 }
 
 	 public void setUserData( Object key, Object data ){
-		 download_manager.setData(key, data);
+		 download_manager.setUserData(key, data);
 	 }
 }

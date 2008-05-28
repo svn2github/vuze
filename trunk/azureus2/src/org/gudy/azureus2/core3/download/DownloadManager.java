@@ -378,11 +378,20 @@ DownloadManager
     public void
     saveDownload();
 
-      /** To retreive arbitrary objects against this object. */
-    public Object getData (Object key);
-      /** To store arbitrary objects against this object. */
-    public void setData (Object key, Object value);
+      /** 
+       * To retreive arbitrary objects against this object. 
+       * @deprecated Use getUserData */
+    
+    public Object getData (String key);
+      /** To store arbitrary objects against this object.
+       *  @deprecated @deprecated Use setUserData
+       *  */
+    
+    public void setData (String key, Object value);
 
+    public Object getUserData (Object key);
+    /** To store arbitrary objects against this object. */
+ 	public void setUserData (Object key, Object value);
 
       /**
        * Determine whether disk allocation has already been done.

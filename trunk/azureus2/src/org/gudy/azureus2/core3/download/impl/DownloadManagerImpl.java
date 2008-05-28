@@ -2983,15 +2983,19 @@ DownloadManagerImpl
 		return( download_manager_state );
 	}
   
-  
+	public Object getData (String key){ return( getUserData( key ));}
+
+	    
+	public void setData (String key, Object value){ setUserData( key, value ); }
+	
   /** To retreive arbitrary objects against a download. */
-  public Object getData (Object key) {
+  public Object getUserData (Object key) {
   	if (data == null) return null;
     return data.get(key);
   }
 
   /** To store arbitrary objects against a download. */
-  public void setData (Object key, Object value) {
+  public void setUserData (Object key, Object value) {
   	try{
   		peer_listeners_mon.enter();
   	
