@@ -475,6 +475,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 					int index = items[i];
 					if (index >= 0 && index < pluginIFs.size()) {
 						PluginInterface pluginIF = (PluginInterface) pluginIFs.get(index);
+
 						if (pluginIF.isDisabled()) {
 							try {
 								COConfigurationManager.setParameter("PluginInfo."
@@ -528,7 +529,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 					item.setText(i, sText);
 				}
 
-				item.setGrayed(pluginIF.isMandatory());
+				item.setGrayed(pluginIF.isMandatory() || pluginIF.isBuiltIn());
 				boolean bEnabled = COConfigurationManager.getBooleanParameter("PluginInfo."
 						+ pluginIF.getPluginID() + ".enabled", true);
 		    Utils.setCheckedInSetData(item, bEnabled);
@@ -550,6 +551,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 							item.setChecked(true);
 						return;
 					}
+
 					pluginIF.setDisabled(!item.getChecked());
 					COConfigurationManager.setParameter("PluginInfo."
 							+ item.getData("PluginID") + ".enabled", item.getChecked());
