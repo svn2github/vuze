@@ -174,11 +174,9 @@ public class VuzeActivitiesEntry
 				
 				if (isHeader) {
 					ourTypeID = getID();
-					System.out.println(ourTypeID);
 				}
 				if (isOtherHeader) {
 					theirTypeID = otherEntry.getID();
-					System.out.println(theirTypeID);
 				}
 
 				long ourIDpos = MapUtils.getMapLong(
