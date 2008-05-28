@@ -493,7 +493,7 @@ public class VuzeActivitiesView
 			}
 			
 			view.addDataSources(VuzeActivitiesConstants.HEADERS_SORTBY_TYPE);
-			view.refreshTable(false);
+			view.refreshTable(true);
 			return;
 		}
 		
