@@ -131,8 +131,11 @@ ExternalStimulusHandler
 					{
 						try {
 							return( listener.receive( name, values ));
-						} catch (Exception e) {
+							
+						} catch (Throwable e) {
+							
 							Debug.out(e);
+							
 							return false;
 						}
 					}
@@ -142,7 +145,15 @@ ExternalStimulusHandler
 						String		name,
 						Map			values )
 					{
-						return( listener.query( name, values ));
+						try{
+							return( listener.query( name, values ));
+							
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+							
+							return( Integer.MIN_VALUE );
+						}
 					}
 				});
 		}
