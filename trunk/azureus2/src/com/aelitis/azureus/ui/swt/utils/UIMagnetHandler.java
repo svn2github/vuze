@@ -24,6 +24,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.ui.swt.UISwitcherUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.*;
@@ -70,6 +71,16 @@ public class UIMagnetHandler
 								if (name.equals("AZMSG") && values != null) {
 									String val = (String) values.get("value");
 									if (val.indexOf(";switch-ui;") > 0) {
+
+										if (COConfigurationManager.getStringParameter("ui", "az3").equals(
+												"az3")) {
+											return false;
+										}
+
+										if (!UISwitcherUtil.isAZ3Avail()) {
+											return false;
+										}
+
 										UIFunctions uif = UIFunctionsManager.getUIFunctions();
 										if (uif == null) {
 											core.addLifecycleListener(new AzureusCoreLifecycleAdapter() {
@@ -109,6 +120,7 @@ public class UIMagnetHandler
 						}, 0, null, null, false, 0);
 				if (i == 0) {
 					COConfigurationManager.setParameter("ui", "az3");
+					COConfigurationManager.save();
 					AzureusCore core = AzureusCoreFactory.getSingleton();
 					if (core != null) {
 						core.requestRestart();
