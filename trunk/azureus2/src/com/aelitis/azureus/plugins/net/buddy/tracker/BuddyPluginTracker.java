@@ -24,13 +24,21 @@ package com.aelitis.azureus.plugins.net.buddy.tracker;
 import java.nio.ByteBuffer;
 import java.util.*;
 
+import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
+import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SHA1;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
+import org.gudy.azureus2.plugins.ui.config.Parameter;
+import org.gudy.azureus2.plugins.ui.config.ParameterListener;
+import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.plugins.net.buddy.*;
 
 public class 
@@ -50,7 +58,15 @@ BuddyPluginTracker
 	private static final int	RETRY_SEND_MAX			= 60*60*1000;
 	
 	private BuddyPlugin		plugin;
+	
 	private boolean			plugin_enabled;
+	private boolean			tracker_enabled;
+	private boolean			seeding_only;
+	
+	private boolean			old_plugin_enabled;
+	private boolean			old_tracker_enabled;
+	private boolean			old_seeding_only;
+	
 	
 	private Set				online_buddies 			= new HashSet();
 	private Set				tracked_downloads		= new HashSet();
@@ -64,11 +80,54 @@ BuddyPluginTracker
 	
 	public
 	BuddyPluginTracker(
-		BuddyPlugin		_plugin )
+		BuddyPlugin					_plugin,
+		BasicPluginConfigModel		_config )
 	{
 		plugin		= _plugin;
 		
+		final BooleanParameter te = _config.addBooleanParameter2("azbuddy.tracker.enabled", "azbuddy.tracker.enabled", true );
+		
+		tracker_enabled = te.getValue();
+		
+		te.addListener(
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					Parameter param )
+				{
+					tracker_enabled = te.getValue();
+					
+					checkEnabledState();
+				}
+			});
+		
+		GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+		
+		gm.addListener(
+			new GlobalManagerAdapter()
+			{
+				public void 
+				seedingStatusChanged( 
+					boolean seeding_only_mode )
+				{
+					seeding_only = seeding_only_mode;
+					
+					checkEnabledState();
+				}
+			}, false );
+		
+		seeding_only = gm.isSeedingOnly();
+		
+		checkEnabledState();
+	}
+	
+	public void
+	initialise()
+	{
 		plugin_enabled = plugin.isEnabled();
+		
+		checkEnabledState();
 		
 		List buddies = plugin.getBuddies();
 		
@@ -97,7 +156,7 @@ BuddyPluginTracker
 	protected void
 	checkTracking()
 	{
-		if ( !plugin_enabled ){
+		if ( !( plugin_enabled && tracker_enabled )){
 			
 			return;
 		}
@@ -218,6 +277,51 @@ BuddyPluginTracker
 		boolean 	_enabled )
 	{
 		plugin_enabled = _enabled;
+		
+		checkEnabledState();
+	}
+	
+	protected void
+	checkEnabledState()
+	{
+		boolean	seeding_change = false;
+		
+		synchronized( this ){
+			
+			if ( plugin_enabled != old_plugin_enabled ){
+				
+				log( "Plugin enabled state changed to " + plugin_enabled );
+				
+				old_plugin_enabled = plugin_enabled;
+			}
+			
+			if ( tracker_enabled != old_tracker_enabled ){
+				
+				log( "Tracker enabled state changed to " + tracker_enabled );
+				
+				old_tracker_enabled = tracker_enabled;
+			}
+			
+			if ( seeding_only != old_seeding_only ){
+				
+				log( "Seeding-only state changed to " + seeding_only );
+				
+				old_seeding_only = seeding_only;
+				
+				seeding_change = true;
+			}
+		}
+		
+		if ( seeding_change ){
+			
+			updateSeedingMode();
+		}
+	}
+	
+	protected void
+	updateSeedingMode()
+	{
+		// TODO: enable/disable priorities
 	}
 	
 	public void
@@ -573,7 +677,12 @@ BuddyPluginTracker
 				
 				if ( possible_matches != null ){
 					
-					System.out.println( "Possible matches!" );
+					List downloads = importFullIDs( possible_matches );
+					
+					for (int i=0;i<downloads.size();i++){
+					
+						System.out.println( buddy.getName() + ": same content " + downloads.get(i));
+					}
 				}
 				
 				return( null );
@@ -660,6 +769,31 @@ BuddyPluginTracker
    			
    			return( res );
    		}
+		
+		protected List
+		importFullIDs(
+			byte[]		ids )
+		{
+			List	res = new ArrayList();
+			
+			if ( ids != null ){
+				
+				synchronized( tracked_downloads ){
+
+					for (int i=0;i<ids.length;i+= FULL_ID_SIZE ){
+					
+						Download dl = (Download)full_id_map.get( new HashWrapper( ids, i, FULL_ID_SIZE ));
+						
+						if ( dl != null ){
+							
+							res.add( dl );
+						}
+					}
+				}
+			}
+			
+			return( res );
+		}
 	}
 	
 	private static class

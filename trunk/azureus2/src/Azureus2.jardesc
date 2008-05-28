@@ -139,6 +139,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.net.natpmp.impl"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.disk.impl"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.networkmanager.impl.udp"/>
+        <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.plugins.net.buddy.tracker"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.pluginsimpl.local"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.pluginsimpl.local.utils.security"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.pluginsimpl.remote.tracker"/>

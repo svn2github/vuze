@@ -44,6 +44,7 @@ ParameterImpl
 	private 	String 			key;
 	private 	String 			labelKey;
 	private 	String 			label;
+	private		int				mode = MODE_BEGINNER;
 	
 	private	boolean	enabled							= true;
 	private boolean	visible							= true;
@@ -142,6 +143,19 @@ ParameterImpl
 	isEnabled()
 	{
 		return( enabled );
+	}
+	
+	public int 
+	getMode() 
+	{
+		return( mode );
+	}
+	
+	public void 
+	setMode(
+		int 	_mode )
+	{
+		mode	= _mode;
 	}
 	
 	public void

@@ -34,7 +34,6 @@ import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Base32;
-import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SHA1Simple;
@@ -245,11 +244,6 @@ BuddyPlugin
 		
 		az2_handler = new BuddyPluginAZ2( this );
 				
-		if ( !Constants.isCVSVersion()){
-			
-			return;
-		}
-		
 		sec_man = plugin_interface.getUtilities().getSecurityManager();
 
 		logger = plugin_interface.getLogger().getChannel( "Friends" );
@@ -279,18 +273,20 @@ BuddyPlugin
 					}
 				});
 		
-		final IntParameter	speed = config.addIntParameter2( "azbuddy.downspeed", "azbuddy.downspeed", 32 );
+		final IntParameter	protocol_speed = config.addIntParameter2( "azbuddy.protocolspeed", "azbuddy.protocolspeed", 32 );
 		
-		inbound_limit = speed.getValue()*1024;
+		protocol_speed.setMode( Parameter.MODE_ADVANCED );
 		
-		speed.addListener(
+		inbound_limit = protocol_speed.getValue()*1024;
+		
+		protocol_speed.addListener(
 				new ParameterListener()
 				{
 					public void
 					parameterChanged(
 						Parameter	param )
 					{
-						inbound_limit = speed.getValue()*1024;
+						inbound_limit = protocol_speed.getValue()*1024;
 					}
 				});
 		
@@ -406,6 +402,8 @@ BuddyPlugin
 			
 		menu_item_itorrents.addFillListener( menu_fill_listener );
 		menu_item_ctorrents.addFillListener( menu_fill_listener );
+		
+		buddy_tracker = new BuddyPluginTracker( this, config );
 		
 		plugin_interface.getUIManager().addUIListener(
 			new UIManagerListener()
@@ -2616,7 +2614,7 @@ BuddyPlugin
 		
 		if ( ok ){
 			
-			buddy_tracker = new BuddyPluginTracker( this );
+			buddy_tracker.initialise();
 		}
 		
 		List	 listeners_ref = listeners.getList();

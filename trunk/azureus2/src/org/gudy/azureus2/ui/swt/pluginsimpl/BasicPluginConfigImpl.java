@@ -43,6 +43,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
@@ -109,8 +110,24 @@ BasicPluginConfigImpl
 		
 	}
 	
-	public int maxUserMode() {
-		return 0;
+	public int 
+	maxUserMode() 
+	{
+		org.gudy.azureus2.plugins.ui.config.Parameter[] parameters = model.getParameters();
+		
+		int	max_mode = 0;
+		
+		for (int i=0;i<parameters.length;i++){
+			
+			final ParameterImpl	param = 	(ParameterImpl)parameters[i];
+		
+			if ( param.getMode() > max_mode ){
+				
+				max_mode = param.getMode();
+			}
+		}
+		
+		return( max_mode );
 	}
 
 
@@ -118,7 +135,8 @@ BasicPluginConfigImpl
 	configSectionCreate(
 		final Composite parent ) 
 	{
-		
+		int userMode = COConfigurationManager.getIntParameter("User Mode");
+
 			// main tab set up
 		
 		Composite main_tab = new Composite(parent, SWT.NULL);
@@ -147,6 +165,11 @@ BasicPluginConfigImpl
 			
 			final ParameterImpl	param = 	(ParameterImpl)parameters[i];
 		
+			if ( param.getMode() > userMode ){
+				
+				continue;
+			}
+			
 			ParameterGroupImpl	pg = param.getGroup();
 			
 			if ( pg == null ){

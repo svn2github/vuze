@@ -32,6 +32,10 @@ public interface
 Parameter
 	extends ConfigParameter
 {
+	public static final int MODE_BEGINNER		= 0;
+	public static final int MODE_INTERMEDIATE	= 1;
+	public static final int MODE_ADVANCED		= 2;
+	
 	/**
 	 * Sets whether the UI object for this parameter is enabled (changeable) or
 	 * disabled (not changeable, and usually grayed out)
@@ -54,6 +58,27 @@ Parameter
 	public boolean
 	isEnabled();
 
+	/** 
+	 * Gets the user mode for this parameter
+	 * @return MODE_ constants above
+	 * 
+	 * @since 3.0.5.3
+	 */
+	
+	public int
+	getMode();
+	
+	/**
+	 * Sets the user mode for this parameter
+	 * 
+	 * @param mode see MODE_ constants above
+	 * 
+	 * @since 3.0.5.3
+	 */
+	
+	public void
+	setMode(
+		int		mode );
 	
 	/**
 	 * Sets whether the UI object for this parameter is visible to the user
