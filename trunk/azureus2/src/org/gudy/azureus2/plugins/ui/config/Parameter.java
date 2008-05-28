@@ -59,25 +59,23 @@ Parameter
 	isEnabled();
 
 	/** 
-	 * Gets the user mode for this parameter
-	 * @return MODE_ constants above
+	 * Gets the lowest user mode required for this parameter to be displayed.
 	 * 
+	 * @return MODE_ constants above
 	 * @since 3.0.5.3
 	 */
-	
 	public int
-	getMode();
+	getMinimumRequiredUserMode();
 	
 	/**
-	 * Sets the user mode for this parameter
+	 * Sets the lowest user mode required for this parameter to be displayed.
 	 * 
-	 * @param mode see MODE_ constants above
-	 * 
+	 * @param mode see MODE_ constants defined above 
 	 * @since 3.0.5.3
 	 */
 	
 	public void
-	setMode(
+	setMinimumRequiredUserMode(
 		int		mode );
 	
 	/**

@@ -275,7 +275,7 @@ BuddyPlugin
 		
 		final IntParameter	protocol_speed = config.addIntParameter2( "azbuddy.protocolspeed", "azbuddy.protocolspeed", 32 );
 		
-		protocol_speed.setMode( Parameter.MODE_ADVANCED );
+		protocol_speed.setMinimumRequiredUserMode( Parameter.MODE_ADVANCED );
 		
 		inbound_limit = protocol_speed.getValue()*1024;
 		

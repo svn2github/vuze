@@ -146,13 +146,13 @@ ParameterImpl
 	}
 	
 	public int 
-	getMode() 
+	getMinimumRequiredUserMode() 
 	{
 		return( mode );
 	}
 	
 	public void 
-	setMode(
+	setMinimumRequiredUserMode(
 		int 	_mode )
 	{
 		mode	= _mode;

@@ -121,9 +121,9 @@ BasicPluginConfigImpl
 			
 			final ParameterImpl	param = 	(ParameterImpl)parameters[i];
 		
-			if ( param.getMode() > max_mode ){
+			if ( param.getMinimumRequiredUserMode() > max_mode ){
 				
-				max_mode = param.getMode();
+				max_mode = param.getMinimumRequiredUserMode();
 			}
 		}
 		
@@ -165,7 +165,7 @@ BasicPluginConfigImpl
 			
 			final ParameterImpl	param = 	(ParameterImpl)parameters[i];
 		
-			if ( param.getMode() > userMode ){
+			if ( param.getMinimumRequiredUserMode() > userMode ){
 				
 				continue;
 			}
