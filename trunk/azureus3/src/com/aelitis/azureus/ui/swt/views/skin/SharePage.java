@@ -723,7 +723,6 @@ public class SharePage
 											contentThumbnail.setImage(img);
 										}
 									}
-									refresh();
 								}
 							});
 						}
