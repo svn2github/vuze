@@ -486,6 +486,13 @@ public class MetaSearchListener extends AbstractMessageListener {
 		
 							if ( path != null ){
 								
+								String lc = path.toLowerCase();
+								
+								if ( !lc.endsWith( ".vuze" ) && !lc.endsWith( ".vuz" )){
+									
+									path += ".vuze";
+								}
+								
 								try{
 									engine.exportToVuzeFile( new File( path ));
 									

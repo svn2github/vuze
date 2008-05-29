@@ -262,14 +262,10 @@ WebEngine
 				
 			}else{
 							
-				JSONObject m = new JSONObject();
-
-				maps.add( m );
-				
 				JSONObject entry = new JSONObject();
-				
-				m.put( "mapping", entry );
-				
+
+				maps.add( entry );
+					
 				entry.put( "vuze_field", field_value );
 				
 				if ( getType() == ENGINE_TYPE_JSON ){
