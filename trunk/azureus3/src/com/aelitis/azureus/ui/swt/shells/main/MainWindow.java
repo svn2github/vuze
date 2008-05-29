@@ -1909,8 +1909,7 @@ public class MainWindow
 		}
 
 		// Switch to browse tab
-		skin.setActiveTab(SkinConstants.TABSET_MAIN,
-				SkinConstants.VIEWID_BROWSE_TAB);
+		SearchResultsTabArea.closeSearchResults(Collections.EMPTY_MAP);
 
 		String sURL = Constants.URL_PREFIX + Constants.URL_ADD_SEARCH
 				+ UrlUtils.encode(sSearchText) + "&" + Constants.URL_SUFFIX + "&rand="
