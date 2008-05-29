@@ -51,28 +51,6 @@ MetaSearchImpl
 		manager	= _manager;
 		
 		loadConfig();
-		
-		new DelayedEvent(
-			"delayinit", 0, 
-			new AERunnable()
-			{
-				public void 
-				runSupport() 
-				{
-					try{
-						Class clazz = Class.forName( "com.aelitis.azureus.core.metasearch.impl.MetaSearchTestImpl" );
-					
-						clazz.getConstructor( 
-								new Class[]{ MetaSearchImpl.class }).newInstance( new Object[]{ MetaSearchImpl.this });
-						
-					}catch( Throwable e ){
-						
-							//Test implementation in progress, Test class not publicly available
-						
-						e.printStackTrace();
-					}
-				}
-			});
 	}
 	
 	public EngineImpl
