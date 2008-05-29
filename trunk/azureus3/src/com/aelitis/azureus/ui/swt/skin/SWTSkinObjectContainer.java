@@ -22,10 +22,10 @@ package com.aelitis.azureus.ui.swt.skin;
 import java.util.ArrayList;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
@@ -80,7 +80,51 @@ public class SWTSkinObjectContainer
 			((Group) parentComposite).setText(sConfigID);
 			parentComposite.setData("DEBUG", "1");
 		} else {
-			parentComposite = new Composite(createOn, style);
+			// Lovely SWT has a default size of 64x64 if no children have sizes.
+			// Let's fix that..
+			parentComposite = new Composite(createOn, style) {
+				// @see org.eclipse.swt.widgets.Composite#computeSize(int, int, boolean)
+				public Point computeSize(int wHint, int hHint, boolean changed) {
+					Point size = super.computeSize(wHint, hHint, changed);
+					
+					if (size.x == 64 || size.y == 64) {
+  					Control[] children = getChildren();
+  					boolean anyVis = false;
+  					for (int i = 0; i < children.length; i++) {
+  						Control child = children[i];
+  						if (child.isVisible()) {
+  							anyVis = true;
+  							break;
+  						}
+  					}
+  					if (!anyVis) {
+  						return new Point(1,1);
+  					}
+					}
+					return size;
+				}
+				
+				// @see org.eclipse.swt.widgets.Control#computeSize(int, int)
+				public Point computeSize(int wHint, int hHint) {
+					Point size = super.computeSize(wHint, hHint);
+					
+					if (size.x == 64 || size.y == 64) {
+  					Control[] children = getChildren();
+  					boolean anyVis = false;
+  					for (int i = 0; i < children.length; i++) {
+  						Control child = children[i];
+  						if (child.isVisible()) {
+  							anyVis = true;
+  							break;
+  						}
+  					}
+  					if (!anyVis) {
+  						return new Point(1, 1);
+  					}
+					}
+					return size;
+				}
+			};
 		}
 
 		parentComposite.setLayout(new FormLayout());
