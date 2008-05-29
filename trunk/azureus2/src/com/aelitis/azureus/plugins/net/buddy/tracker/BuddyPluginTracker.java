@@ -63,6 +63,8 @@ BuddyPluginTracker
 	private static final int	REPLY_TRACKER_STATUS	= 4;
 	private static final int	REQUEST_TRACKER_CHANGE	= 5;
 	private static final int	REPLY_TRACKER_CHANGE	= 6;
+	private static final int	REQUEST_TRACKER_ADD		= 7;
+	private static final int	REPLY_TRACKER_ADD		= 8;
 	
 	private static final int	RETRY_SEND_MIN			= 5*60*1000;
 	private static final int	RETRY_SEND_MAX			= 60*60*1000;
@@ -884,40 +886,74 @@ BuddyPluginTracker
 		}
 		
 		protected void
-		changeRemote(
-			Map		msg )
-		{			
+		updateCommonDownloads(
+			Map			downloads,
+			boolean		incremental )
+		{
 			synchronized( this ){
 
-				if ( downloads_in_common != null ){
-
-					Map changed = importFullIDs( (byte[])msg.get( "changed" ), (byte[])msg.get( "changed_s" ) );
+				if ( downloads_in_common == null ){
 					
-					Iterator it = changed.entrySet().iterator();
+					downloads_in_common = new HashMap();
 					
-					while( it.hasNext()){
+				}else{
+					
+						// if not incremental then remove any downloads that no longer
+						// are in common
+					
+					if ( !incremental ){
 						
-						Map.Entry	entry = (Map.Entry)it.next();
-				
-						Download d = (Download)entry.getKey();
-
-						buddyDownloadData	bdd = (buddyDownloadData)entry.getValue();
+						Iterator it = downloads_in_common.keySet().iterator();
 						
-						buddyDownloadData existing = (buddyDownloadData)downloads_in_common.get( d );
-						
-						if ( existing != null ){
-						
-							boolean	old_rc = existing.isRemoteComplete();
-							boolean	new_rc = bdd.isRemoteComplete();
+						while( it.hasNext()){
 							
-							if ( old_rc != new_rc ){
+							Download download = (Download)it.next();
 							
-								existing.setRemoteComplete( new_rc ); 
+							if ( !downloads.containsKey( download )){
 								
-								log( "Changing " + d.getName() + " common downloads (bdd=" + existing.getString() + ")");
-							}	
+								log( "Removing " + download.getName() + " from common downloads");
+
+								it.remove();
+							}
 						}
 					}
+				}
+				
+				Iterator it = downloads.entrySet().iterator();
+				
+				while( it.hasNext()){
+					
+					Map.Entry	entry = (Map.Entry)it.next();
+			
+					Download d = (Download)entry.getKey();
+
+					buddyDownloadData	bdd = (buddyDownloadData)entry.getValue();
+					
+					buddyDownloadData existing = (buddyDownloadData)downloads_in_common.get( d );
+					
+					if ( existing == null ){
+						
+						log( "Adding " + d.getName() + " to common downloads (bdd=" + bdd.getString() + ")");
+						
+						downloads_in_common.put( d, bdd );
+						
+					}else{
+						
+						boolean	old_rc = existing.isRemoteComplete();
+						boolean	new_rc = bdd.isRemoteComplete();
+						
+						if ( old_rc != new_rc ){
+						
+							existing.setRemoteComplete( new_rc ); 
+							
+							log( "Changing " + d.getName() + " common downloads (bdd=" + existing.getString() + ")");
+						}				
+					}
+				}
+				
+				if ( downloads_in_common.size() == 0 ){
+					
+					downloads_in_common = null;
 				}
 			}
 		}
@@ -937,6 +973,9 @@ BuddyPluginTracker
 			int			type,
 			Map			msg_in )
 		{
+			int	reply_type	= -1;
+			Map	msg_out		= null;
+
 			Long	l_seeding = (Long)msg_in.get( "seeding" );
 			
 			if( l_seeding != null ){
@@ -953,52 +992,32 @@ BuddyPluginTracker
 			
 			if ( type == REQUEST_TRACKER_SUMMARY ){
 		
-				Map	reply = new HashMap();
-				
-				reply.put( "type", new Long( REPLY_TRACKER_SUMMARY ));
-
-				Map	msg_out;
+				reply_type	= REPLY_TRACKER_SUMMARY;
 				
 				msg_out = updateRemote( msg_in );
 				
-				msg_out.put( "seeding", new Long( seeding_only?1:0 ));
-
 				msg_out.put( "inc", msg_in.get( "inc" ));
-				
-				reply.put( "msg", msg_out );
-
-				return( reply );
-				
+								
 			}else if ( type == REQUEST_TRACKER_STATUS ){
 				
-				Map	reply = new HashMap();
+				reply_type	= REPLY_TRACKER_STATUS;
 				
-				reply.put( "type", new Long( REPLY_TRACKER_STATUS ));
-
-				Map	msg_out = new HashMap();
-
-				msg_out.put( "seeding", new Long( seeding_only?1:0 ));
-
-				reply.put( "msg", msg_out );
-				
-				return( reply );
-
 			}else if ( type == REQUEST_TRACKER_CHANGE ){
 
-				Map	reply = new HashMap();
-				
-				reply.put( "type", new Long( REPLY_TRACKER_CHANGE ));
-
-				Map	msg_out = new HashMap();
+				reply_type	= REPLY_TRACKER_STATUS;
 									
-				changeRemote( msg_in );
-				
-				msg_out.put( "seeding", new Long( seeding_only?1:0 ));
-				
-				reply.put( "msg", msg_out );
-				
-				return( reply );
-				
+				Map downloads = importFullIDs( (byte[])msg_in.get( "changed" ), (byte[])msg_in.get( "changed_s" ) );
+
+				updateCommonDownloads( downloads, true );
+								
+			}else if ( type == REQUEST_TRACKER_ADD ){
+
+				reply_type	= REPLY_TRACKER_ADD;
+										
+				Map downloads = importFullIDs( (byte[])msg_in.get( "added" ), (byte[])msg_in.get( "added_s" ) );
+
+				updateCommonDownloads( downloads, true );
+
 			}else if ( type == REPLY_TRACKER_SUMMARY ){
 				
 					// full hashes on reply
@@ -1013,77 +1032,54 @@ BuddyPluginTracker
 					Map downloads = importFullIDs( possible_matches, possible_match_states );
 						
 					if ( downloads.size() > 0 ){
+												
+						updateCommonDownloads( downloads, incremental );
 						
-						synchronized( this ){
-
-							if ( downloads_in_common == null ){
-								
-								downloads_in_common = new HashMap();
-								
-							}else{
-								
-									// if not incremental then remove any downloads that no longer
-									// are in common
-								
-								if ( !incremental ){
-									
-									Iterator it = downloads_in_common.keySet().iterator();
-									
-									while( it.hasNext()){
-										
-										if ( !downloads.containsKey( it.next())){
-											
-											it.remove();
-										}
-									}
-								}
-							}
-							
-							Iterator it = downloads.entrySet().iterator();
-							
-							while( it.hasNext()){
-								
-								Map.Entry	entry = (Map.Entry)it.next();
+						byte[][] common_details = exportFullIDs( new ArrayList( downloads.keySet()));
 						
-								Download d = (Download)entry.getKey();
+						if( common_details[0].length > 0 ){
+							
+							Map	msg = new HashMap();
+												
+							msg.put( "seeding", new Long( seeding_only?1:0 ));
+							
+							msg.put( "added", 	common_details[0] );
+							msg.put( "added_s", common_details[1] );
 
-								buddyDownloadData	bdd = (buddyDownloadData)entry.getValue();
-								
-								buddyDownloadData existing = (buddyDownloadData)downloads_in_common.get( d );
-								
-								if ( existing == null ){
-									
-									log( "Adding " + d.getName() + " to common downloads (bdd=" + bdd.getString() + ")");
-									
-									downloads_in_common.put( d, bdd );
-									
-								}else{
-									
-									boolean	old_rc = existing.isRemoteComplete();
-									boolean	new_rc = bdd.isRemoteComplete();
-									
-									if ( old_rc != new_rc ){
-									
-										existing.setRemoteComplete( new_rc ); 
-										
-										log( "Adding " + d.getName() + " common downloads (bdd=" + existing.getString() + ")");
-									}				
-								}
-							}
+							sendMessage( buddy, REQUEST_TRACKER_ADD, msg );
 						}
 					}
 				}
+								
+			}else if ( 	type == REPLY_TRACKER_CHANGE ||
+						type == REPLY_TRACKER_STATUS ||
+						type == REPLY_TRACKER_ADD ){
 				
-				return( null );
-				
-			}else if ( type == REPLY_TRACKER_CHANGE ){
-
-				return( null );
-				
+					// nothing interesting in reply for these
 			}else{
 				
-				return( null );
+				log( "Unrecognised type " + type );
 			}
+			
+			if ( reply_type != -1 ){
+				
+				Map	reply = new HashMap();
+			
+				reply.put( "type", new Long( reply_type ));
+		
+				if ( msg_out == null ){
+					
+					msg_out = new HashMap();
+				}
+				
+				msg_out.put( "seeding", new Long( seeding_only?1:0 ));
+			
+				reply.put( "msg", msg_out );
+
+				return( reply );
+			}
+			
+			return( null );
 		}
 		
 		protected byte[]
@@ -1240,7 +1236,10 @@ BuddyPluginTracker
 						
 					}else{
 						
-						if ( now - bdd.getTrackTime() >= TRACK_INTERVAL ){
+						long	last_track = bdd.getTrackTime();
+						
+						if ( 	last_track == 0 || 
+								now - last_track >= TRACK_INTERVAL ){
 							
 							log( d.getName() + " - tracking" );
 
