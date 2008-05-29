@@ -42,6 +42,7 @@ import com.aelitis.azureus.core.metasearch.Result;
 import com.aelitis.azureus.core.metasearch.ResultListener;
 import com.aelitis.azureus.core.metasearch.SearchException;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
+import com.aelitis.azureus.core.metasearch.impl.web.FieldMapping;
 import com.aelitis.azureus.core.metasearch.impl.web.json.JSONEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.regex.RegexEngine;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
@@ -253,20 +254,48 @@ EngineImpl
 					//		level two always maps to content type
 				
 				int	from_field 	= vuzeFieldToID( key );
+				
+				if ( from_field == -1 ){
+					
+					log( "Unrecognised remapping key '" + key + "'" );
+					
+					continue;
+				
+				}
+				
 				int	to_field	= level_1?from_field:FIELD_CONTENT_TYPE;
 				
-				FieldRemapping[]	frs = new FieldRemapping[mappings.size()];
+				List	frs_l = new ArrayList();
 				
 				for (int i=0;i<mappings.size();i++){
 					
 					JSONObject mapping = (JSONObject)mappings.get(i);
 					
-					String	from_str 	= URLDecoder.decode((String)mapping.get( level_1?"from_string":"cat_string" ), "UTF-8" );
+					String	from_str 	= (String)mapping.get( level_1?"from_string":"cat_string" );
+
+					if ( from_str == null ){
+						
+						log( "'from' value missing in " + mapping );
+						
+						continue;
+					}
+					
+					from_str 	= URLDecoder.decode( from_str, "UTF-8" );
+					
 					String	to_str 		= (String)mapping.get( level_1?"to_string":"media_type" );
 					
-					frs[i] = new FieldRemapping( from_str,to_str );
+					if ( to_str == null ){
+						
+						log( "'to' value missing in " + mapping );
+						
+						continue;
+					}
+					
+					frs_l.add( new FieldRemapping( from_str, to_str ));
 				}
 				
+				FieldRemapping[] frs = (FieldRemapping[])frs_l.toArray( new FieldRemapping[frs_l.size()]);
+
 				result.add( new FieldRemapper( from_field, to_field, frs ));
 			}
 		}

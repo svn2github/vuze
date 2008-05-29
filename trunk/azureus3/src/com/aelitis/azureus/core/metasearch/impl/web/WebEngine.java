@@ -182,9 +182,9 @@ WebEngine
 
 		List	maps = (List)map.get( "column_map" );
 		
-		mappings = new FieldMapping[maps.size()];
+		List	conv_maps = new ArrayList();
 		
-		for (int i=0;i<mappings.length;i++){
+		for (int i=0;i<maps.size();i++){
 			
 			Map	m = (Map)maps.get(i);
 				
@@ -206,6 +206,11 @@ WebEngine
 				field_name = importString( m, "field_name" );	// json case
 			}
 			
+			if ( vuze_field == null || field_name == null ){
+				
+				log( "Missing field mapping name/value in '" + m + "'" );
+
+			}
 			int	field_id = vuzeFieldToID( vuze_field );
 			
 			if ( field_id == -1 ){
@@ -215,8 +220,10 @@ WebEngine
 				continue;
 			}
 			
-			mappings[i] = new FieldMapping( field_name, field_id );
+			conv_maps.add( new FieldMapping( field_name, field_id ));
 		}
+		
+		mappings = (FieldMapping[])conv_maps.toArray( new FieldMapping[conv_maps.size()]);
 		
 		init();
 	}

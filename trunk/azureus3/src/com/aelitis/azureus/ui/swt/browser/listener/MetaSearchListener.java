@@ -46,9 +46,7 @@ import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
-import com.aelitis.azureus.ui.swt.views.skin.Browse;
 import com.aelitis.azureus.ui.swt.views.skin.SearchResultsTabArea;
-import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 
 
 public class MetaSearchListener extends AbstractMessageListener {
@@ -126,7 +124,6 @@ public class MetaSearchListener extends AbstractMessageListener {
 					List resultsList = new ArrayList(results.length);
 					for(int i = 0 ; i < results.length ; i++) {
 						Result result = results[i];
-						System.out.println(result);
 						resultsList.add(result.toMap());
 					}
 					params.put("results", resultsList);
