@@ -1455,7 +1455,7 @@ DHTControlImpl
 
 	
 	static ArrayList running = new ArrayList();
-	final boolean useBlocking = false;
+	final boolean useBlocking = true;
 
 	
 	protected void lookup(final ThreadPool thread_pool, boolean high_priority, final byte[] lookup_id, final String description, final byte flags, final boolean value_search, final long timeout, final int concurrency, final int max_values, final int search_accuracy, final lookupResultHandler handler)
@@ -1597,7 +1597,9 @@ DHTControlImpl
 					
 					handler.complete(timeout_occurred);
 					
-					releaseToPool();
+					if ( !useBlocking ){
+						releaseToPool();
+					}
 				}
 				
 				private int runningState = 1; // -1 terminated, 0 waiting, 1 running
