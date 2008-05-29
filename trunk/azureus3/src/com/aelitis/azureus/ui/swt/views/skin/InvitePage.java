@@ -2,13 +2,9 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.browser.ProgressEvent;
-import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.MessageBox;
-
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
 
@@ -55,7 +51,9 @@ public class InvitePage
 	private Browser getBrowser() {
 		if (null == browser) {
 			browser = new Browser(content, SWT.NONE);
-			String url = Constants.URL_PREFIX + "share.start";
+			String url = Constants.URL_PREFIX + "share.start?ts="
+					+ Math.random();
+			System.out.println(url);//KN: sysout
 			browser.setUrl(url);
 			stackLayout.topControl = browser;
 			content.layout();

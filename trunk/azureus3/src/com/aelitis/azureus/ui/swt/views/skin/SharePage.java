@@ -685,7 +685,7 @@ public class SharePage
 	private Browser getBrowser() {
 		if (null == browser) {
 			browser = new Browser(browserPanel, SWT.NONE);
-			String url = Constants.URL_PREFIX + "share.start";
+			String url = Constants.URL_PREFIX + "share.start?ts=" + Math.random();
 			browser.setUrl(url);
 
 			/*
