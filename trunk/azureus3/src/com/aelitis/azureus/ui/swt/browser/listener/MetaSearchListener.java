@@ -47,6 +47,7 @@ import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 import com.aelitis.azureus.ui.swt.views.skin.Browse;
+import com.aelitis.azureus.ui.swt.views.skin.SearchResultsTabArea;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 
 
@@ -599,14 +600,12 @@ public class MetaSearchListener extends AbstractMessageListener {
 			
 			Map decodedMap = message.isParamObject() ? message.getDecodedMap()
 					: new HashMap();
-			Browse view = (Browse) SkinViewManager.get(Browse.class);
-			view.openSearchResults(decodedMap);
+			SearchResultsTabArea.openSearchResults(decodedMap);
 		}else if ( OP_CLOSE_SEARCH_RESULTS.equals(opid)){
 			
 			Map decodedMap = message.isParamObject() ? message.getDecodedMap()
 					: new HashMap();
-			Browse view = (Browse) SkinViewManager.get(Browse.class);
-			view.closeSearchResults(decodedMap);
+			SearchResultsTabArea.closeSearchResults(decodedMap);
 		}
 	}
 	

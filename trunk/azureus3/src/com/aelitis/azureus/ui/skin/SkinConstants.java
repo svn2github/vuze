@@ -34,6 +34,8 @@ public class SkinConstants
 
 	public static final String VIEWID_BROWSER_BROWSE = "browse";
 
+	public static final String VIEWID_BROWSER_SEARCHRESULTS = "searchresults";
+
 	public static final String VIEWID_BROWSER_MINI = "minibrowse";
 	
 	public static final String VIEWID_BROWSER_PUBLISH = "publish";
@@ -51,6 +53,8 @@ public class SkinConstants
 	public static final String VIEWID_ACTIVITY_TAB = "tab-activities";
 
 	public static final String VIEWID_MINILIBRARY_TAB = "tab-minilibrary";
+
+	public static final String VIEWID_SEARCHRESULTS_TAB = "tab-searchresults";
 	
 	public static final String VIEWID_BUTTON_BAR = "global-button-bar";
 	

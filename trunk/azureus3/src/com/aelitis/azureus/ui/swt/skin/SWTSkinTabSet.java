@@ -66,12 +66,25 @@ public class SWTSkinTabSet
 		return (SWTSkinObjectTab[]) tabs.toArray(new SWTSkinObjectTab[0]);
 	}
 
-	public SWTSkinObjectTab getTab(String sID) {
+	public SWTSkinObjectTab getTabByID(String sID) {
 		for (int i = 0; i < tabs.size(); i++) {
 			SWTSkinObjectTab tab = (SWTSkinObjectTab) tabs.get(i);
 			String sTabID = tab.getSkinObjectID();
 
 			if (sTabID.equals(sID)) {
+				return tab;
+			}
+		}
+
+		return null;
+	}
+
+	public SWTSkinObjectTab getTab(String sViewID) {
+		for (int i = 0; i < tabs.size(); i++) {
+			SWTSkinObjectTab tab = (SWTSkinObjectTab) tabs.get(i);
+			String sTabViewID = tab.getViewID();
+
+			if (sTabViewID.equals(sViewID)) {
 				return tab;
 			}
 		}

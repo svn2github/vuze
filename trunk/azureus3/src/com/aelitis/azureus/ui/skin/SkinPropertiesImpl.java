@@ -167,6 +167,8 @@ public class SkinPropertiesImpl
 
 						if (i < params.length) {
 							value = value.replaceAll("\\Q{" + key + "}\\E", params[i]);
+						} else {
+							value = value.replaceAll("\\Q{" + key + "}\\E", "");
 						}
 					} catch (Exception e) {
 					}

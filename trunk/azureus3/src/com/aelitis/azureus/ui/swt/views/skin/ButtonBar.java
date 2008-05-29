@@ -1,7 +1,6 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -24,11 +23,7 @@ import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
 import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.ui.skin.SkinConstants;
-import com.aelitis.azureus.ui.swt.skin.SWTSkin;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
+import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
 import com.aelitis.azureus.util.ILoginInfoListener;
@@ -183,6 +178,22 @@ public class ButtonBar
 					}
 				}
 			});
+
+			menuItem = new MenuItem(menu, SWT.PUSH);
+			menuItem.setText("slide");
+			menuItem.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e) {
+					SearchResultsTabArea.openSearchResults(Collections.EMPTY_MAP);
+				}
+			});
+			menuItem = new MenuItem(menu, SWT.PUSH);
+			menuItem.setText("unslide");
+			menuItem.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e) {
+					SearchResultsTabArea.closeSearchResults(Collections.EMPTY_MAP);
+				}
+			});
+
 
 			skinObject.getControl().setMenu(menu);
 		}

@@ -902,10 +902,10 @@ public class MainWindow
 		mapTrackUsage_mon.enter();
 		try {
 			if (mapTrackUsage != null) {
-				SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
-				if (tabSetMain != null) {
+				String id = getUsageActiveTabID();
+				if (id != null) {
 					if (lastShellStatus == null) {
-						lastShellStatus = tabSetMain.getActiveTab().getSkinObjectID();
+						lastShellStatus = id;
 					}
 					updateMapTrackUsage(lastShellStatus);
 				}
@@ -918,6 +918,24 @@ public class MainWindow
 		}
 
 		return true;
+	}
+	
+	private String getUsageActiveTabID() {
+		try {
+			SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
+			if (tabSetMain != null && tabSetMain.getActiveTab() != null) {
+				String id = tabSetMain.getActiveTab().getSkinObjectID();
+				if (id.equals(SkinConstants.VIEWID_HOME_TAB)) {
+					SWTSkinTabSet tabSetLeft = skin.getTabSet(SkinConstants.TABSET_DASHBOARD_LEFT);
+					if (tabSetLeft != null && tabSetLeft.getActiveTab() != null) {
+						id += "-" + tabSetLeft.getActiveTab().getSkinObjectID();
+					}
+				}
+				return id;
+			}
+		} catch (Exception e) {
+		}
+		return "unknown";
 	}
 
 	/**
@@ -1023,10 +1041,7 @@ public class MainWindow
 							}
 							lastShellStatus = null;
 						} else {
-							SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
-							if (tabSetMain != null) {
-								updateMapTrackUsage(tabSetMain.getActiveTab().getSkinObjectID());
-							}
+							updateMapTrackUsage(getUsageActiveTabID());
 							lastShellStatus = shell.getMinimized() || !shell.isVisible()
 									? "minimized" : "notfocused";
 							start = SystemTime.getCurrentTime();
@@ -1204,6 +1219,7 @@ public class MainWindow
 
 		// List of all views ids we use
 		views.put("minibrowse-area", MiniBrowse.class);
+		views.put("searchresults-area", SearchResultsTabArea.class);
 		views.put("minidownload-list", MiniDownloadList.class);
 		views.put("minirecent-list", MiniRecentList.class);
 
@@ -1879,8 +1895,8 @@ public class MainWindow
 
 		UIFunctions functions = UIFunctionsManager.getUIFunctions();
 		if (functions != null) {
-			functions.viewURL(sURL, SkinConstants.VIEWID_BROWSER_BROWSE, 0, 0, false,
-					false);
+			functions.viewURL(sURL, SkinConstants.VIEWID_BROWSER_SEARCHRESULTS, 0, 0,
+					false, false);
 			return;
 		}
 
@@ -2037,9 +2053,20 @@ public class MainWindow
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinTabSetListener#tabChanged(com.aelitis.azureus.ui.swt.skin.SWTSkinTabSet, java.lang.String, java.lang.String)
 	public void tabChanged(SWTSkinTabSet tabSet, String oldTabID, String newTabID) {
-		if (tabSet.getID().equals(SkinConstants.TABSET_MAIN)) {
-			updateMapTrackUsage(oldTabID);
+		boolean isDashboardTab = tabSet.getID().equals(
+				SkinConstants.TABSET_DASHBOARD_LEFT);
+		if (mapTrackUsage != null) {
+			String id = oldTabID;
+			if (oldTabID.equals("maintabs.home") || isDashboardTab) {
+				SWTSkinTabSet tabSetLeft = skin.getTabSet(SkinConstants.TABSET_DASHBOARD_LEFT);
+				if (tabSetLeft != null && tabSetLeft.getActiveTab() != null) {
+					id += "-" + tabSetLeft.getActiveTab().getSkinObjectID();
+				}
+			}
+			updateMapTrackUsage(id);
+		}
 
+		if (tabSet.getID().equals(SkinConstants.TABSET_MAIN)) {
 			// TODO: Don't use internal skin IDs.  Skin needs to provide an ViewID
 			//        we can query (or is passed in)
 			if (newTabID.equals("maintabs.advanced")) {
@@ -2083,7 +2110,7 @@ public class MainWindow
 			 */
 			MenuFactory.isAZ3_ADV = newTabID.equals("maintabs.advanced");
 			MenuFactory.updateEnabledStates(menu.getMenu(IMenuConstants.MENU_ID_MENU_BAR));
-		} else if (tabSet.getID().equals(SkinConstants.TABSET_DASHBOARD_LEFT)) {
+		} else if (isDashboardTab) {
 			String newTabViewID = tabSet.getActiveTab().getViewID();
 			if (newTabViewID.equals("tab-activities")) {
 				skin.getSkinObjectByID("main.area.events").setVisible(true);

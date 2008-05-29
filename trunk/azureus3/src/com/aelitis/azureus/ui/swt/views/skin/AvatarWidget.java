@@ -558,24 +558,6 @@ public class AvatarWidget
 					}
 				}
 			});
-
-			item = new MenuItem(menuCVS, SWT.PUSH);
-			item.setText("slide");
-			item.addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent e) {
-					Browse view = (Browse) SkinViewManager.get(Browse.class);
-					view.openSearchResults(new HashMap());
-					
-				}
-			});
-			item = new MenuItem(menuCVS, SWT.PUSH);
-			item.setText("unslide");
-			item.addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent e) {
-					Browse view = (Browse) SkinViewManager.get(Browse.class);
-					view.closeSearchResults(new HashMap());
-				}
-			});
 		}
 	}
 
