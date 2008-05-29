@@ -20,7 +20,6 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
@@ -96,7 +95,7 @@ public class SearchResultsTabArea
 				Control browser = browserSkinObject.getControl();
 				Browser search = (Browser) soSearchResults.getControl();
 				search.setUrl(MapUtils.getMapString(params, "url",
-						"http://google.com/?q=" + Math.random()));
+						"http://google.com/search?q=" + Math.random()));
 
 				FormData gd = (FormData) search.getLayoutData();
 				gd.top = new FormAttachment(browser, 0);
@@ -122,31 +121,29 @@ public class SearchResultsTabArea
 	}
 	
 	private static SearchResultsTabArea ensureSearchTab() {
-		SearchResultsTabArea view = (SearchResultsTabArea) SkinViewManager.get(SearchResultsTabArea.class);
-		if (view == null) {
-			// not avail yet!
-			SWTSkin skin = SWTSkinFactory.getInstance();
-			SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
-			if (tabSetMain != null) {
-				SWTSkinObjectTab tab = tabSetMain.getTab(SkinConstants.VIEWID_SEARCHRESULTS_TAB);
-				if (tab != null) {
-					tabSetMain.setActiveTab(tab);
-					view = (SearchResultsTabArea) SkinViewManager.get(SearchResultsTabArea.class);
-					if (view == null) {
-						return null;
-					}
-
-					SWTSkinObject[] children = tab.getChildren();
-					for (int i = 0; i < children.length; i++) {
-						SWTSkinObject child = children[i];
-						
-						if (child instanceof SWTSkinObjectText) {
-							SWTSkinObjectText soTxt = (SWTSkinObjectText) child;
-							soTxt.setText("Last\nSearch");
-						}
-					}
-					tabSetMain.setActiveTab(tab);
+		SearchResultsTabArea view = null;
+		// not avail yet!
+		SWTSkin skin = SWTSkinFactory.getInstance();
+		SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
+		if (tabSetMain != null) {
+			SWTSkinObjectTab tab = tabSetMain.getTab(SkinConstants.VIEWID_SEARCHRESULTS_TAB);
+			if (tab != null) {
+				tabSetMain.setActiveTab(tab);
+				view = (SearchResultsTabArea) SkinViewManager.get(SearchResultsTabArea.class);
+				if (view == null) {
+					return null;
 				}
+
+				SWTSkinObject[] children = tab.getChildren();
+				for (int i = 0; i < children.length; i++) {
+					SWTSkinObject child = children[i];
+					
+					if (child instanceof SWTSkinObjectText) {
+						SWTSkinObjectText soTxt = (SWTSkinObjectText) child;
+						soTxt.setText("Last\nSearch");
+					}
+				}
+				tabSetMain.setActiveTab(tab);
 			}
 		}
 		return view;
