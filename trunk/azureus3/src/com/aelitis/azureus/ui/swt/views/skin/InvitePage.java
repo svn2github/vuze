@@ -53,7 +53,6 @@ public class InvitePage
 			browser = new Browser(content, SWT.NONE);
 			String url = Constants.URL_PREFIX + "share.start?ts="
 					+ Math.random();
-			System.out.println(url);//KN: sysout
 			browser.setUrl(url);
 			stackLayout.topControl = browser;
 			content.layout();
@@ -97,8 +96,6 @@ public class InvitePage
 					new AbstractBuddyPageListener(getBrowser()) {
 
 						public void handleCancel() {
-							System.out.println("'Cancel' called from invite buddy page");//KN: sysout
-
 							ButtonBar buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
 							if (null != buttonBar) {
 								buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
@@ -109,8 +106,6 @@ public class InvitePage
 						}
 
 						public void handleClose() {
-							System.out.println("'Close' called from invite buddy page");//KN: sysout
-
 							ButtonBar buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
 							if (null != buttonBar) {
 								buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
@@ -121,12 +116,9 @@ public class InvitePage
 						}
 
 						public void handleBuddyInvites() {
-							System.out.println("'buddy-invites' called from invite buddy page");//KN: sysout
 						}
 
 						public void handleEmailInvites() {
-							System.out.println("'email-invites' called from invite buddy page");//KN: sysout
-
 						}
 
 						public void handleInviteConfirm() {
@@ -137,9 +129,6 @@ public class InvitePage
 								// XXX Handle me!
 								e.printStackTrace();
 							}
-
-							System.err.println("\t'invite-confirm' called from invite buddy page: "
-									+ getConfirmationMessage());//KN: sysout
 
 							if (null != getConfirmationMessage()) {
 								Utils.execSWTThread(new AERunnable() {

@@ -268,7 +268,7 @@ public class SharePage
 		inviteeListData.top = new FormAttachment(0, 0);
 		inviteeListData.left = new FormAttachment(0, 0);
 		inviteeListData.right = new FormAttachment(100, 0);
-		inviteeListData.height = 75;
+		inviteeListData.height = 0;
 		inviteeList.getControl().setLayoutData(inviteeListData);
 
 		FormData addBuddyButtonData = new FormData();
@@ -295,7 +295,8 @@ public class SharePage
 				SWT.TOP);
 		contentDetailData.left = new FormAttachment(buddyList.getControl(), 30);
 		contentDetailData.right = new FormAttachment(100, -58);
-		contentDetailData.bottom = new FormAttachment(inviteePanel, 0, SWT.BOTTOM);
+//		contentDetailData.bottom = new FormAttachment(inviteePanel, 0, SWT.BOTTOM);
+		contentDetailData.height = 259;
 		contentDetail.setLayoutData(contentDetailData);
 
 		FormLayout detailLayout = new FormLayout();
@@ -559,16 +560,21 @@ public class SharePage
 				selectedBuddies.add(vuzeBuddy);
 				buddyList.addFriend((VuzeBuddy) vuzeBuddy);
 				buddiesViewer.addToShare((VuzeBuddy) vuzeBuddy);
-				showHidePreview();
+				adjustLayout();
 			}
 		}
 	}
 
-	private void showHidePreview() {
+	private void adjustLayout() {
 		if (buddyList.getContentCount() > 0 || inviteeList.getContentCount() > 0) {
 			previewButton.setVisible(true);
 		} else {
 			previewButton.setVisible(false);
+		}
+		if (inviteeList.getContentCount() > 0) {
+			showInviteeList(true);
+		} else {
+			showInviteeList(false);
 		}
 	}
 
@@ -585,7 +591,7 @@ public class SharePage
 		if (false == selectedBuddies.contains(vuzeBuddy)) {
 			selectedBuddies.add(vuzeBuddy);
 			buddyList.addFriend((VuzeBuddy) vuzeBuddy);
-			showHidePreview();
+			adjustLayout();
 		}
 	}
 
@@ -593,7 +599,7 @@ public class SharePage
 		if (true == selectedBuddies.contains(vuzeBuddy)) {
 			selectedBuddies.remove(vuzeBuddy);
 			buddyList.removeFriend((VuzeBuddy) vuzeBuddy);
-			showHidePreview();
+			adjustLayout();
 		}
 	}
 
@@ -625,13 +631,10 @@ public class SharePage
 			context.addMessageListener(new AbstractBuddyPageListener(getBrowser()) {
 
 				public void handleCancel() {
-					System.out.println("'Cancel' called from share->invite buddy page");//KN: sysout
-
 					activateFirstPanel();
 				}
 
 				public void handleClose() {
-					System.out.println("'Close' called from share->invite buddy page");//KN: sysout
 					activateFirstPanel();
 				}
 
@@ -644,7 +647,7 @@ public class SharePage
 								VuzeBuddy buddy = (VuzeBuddy) iterator.next();
 								inviteeList.addFriend(buddy);
 							}
-							inviteePanel.layout();
+							adjustLayout();
 						}
 					});
 
@@ -658,7 +661,7 @@ public class SharePage
 								buddy.setDisplayName((iterator.next()).toString());
 								inviteeList.addFriend(buddy);
 							}
-							inviteePanel.layout();
+							adjustLayout();
 						}
 					});
 
@@ -666,10 +669,6 @@ public class SharePage
 
 				public void handleInviteConfirm() {
 					confirmationResponse = getConfirmationResponse();
-
-					//Display pop-up here!!!
-					System.err.println("\t'invite-confirm' called from share page: "
-							+ getConfirmationMessage());//KN: sysout
 
 					if (null != getConfirmationMessage()) {
 						Utils.execSWTThread(new AERunnable() {
@@ -810,6 +809,8 @@ public class SharePage
 			contentThumbnail.setImage(null);
 		}
 		updateContentStats();
+		
+		adjustLayout();
 	}
 
 	private void updateContentStats() {
@@ -843,4 +844,20 @@ public class SharePage
 		contentStats.append("File size: " + dm.getSize() / 1000000 + " MB");
 	}
 
+	private void showInviteeList(boolean value) {
+		int listHeight = 0;
+		if (true == value) {
+			listHeight = 80;
+		}
+
+		Object layoutData = inviteeList.getControl().getLayoutData();
+		if (layoutData instanceof FormData) {
+			FormData fData = (FormData) layoutData;
+			if (fData.height != listHeight) {
+				fData.height = listHeight;
+				firstPanel.layout(true, true);
+			}
+		}
+
+	}
 }
