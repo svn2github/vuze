@@ -26,6 +26,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddyListener;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
@@ -614,15 +615,21 @@ public class BuddiesViewer
 		VuzeBuddyManager.addListener(new VuzeBuddyListener() {
 
 			public void buddyRemoved(VuzeBuddy buddy) {
+				System.err.println("\tStart Removing: " + buddy.getLoginID());//KN: sysout
 				removeBuddy(buddy);
+				System.err.println("\tEnd Removing: " + buddy.getLoginID());//KN: sysout
 			}
 
 			public void buddyChanged(VuzeBuddy buddy) {
+				System.err.println("\tStart Changing: " + buddy.getLoginID());//KN: sysout
 				updateBuddy(buddy);
+				System.err.println("\tDone Changing: " + buddy.getLoginID());//KN: sysout
 			}
 
 			public void buddyAdded(VuzeBuddy buddy, int position) {
+				System.err.println("\tStart Adding : " + buddy.getLoginID());//KN: sysout
 				addBuddy(buddy);
+				System.err.println("\tDone Adding : " + buddy.getLoginID());//KN: sysout
 			}
 
 			public void buddyOrderChanged() {
@@ -671,20 +678,15 @@ public class BuddiesViewer
 	public void removeFromShare(VuzeBuddy buddy) {
 
 		if (null != buddy) {
-			AvatarWidget widget = null;
 			for (Iterator iterator = avatarWidgets.iterator(); iterator.hasNext();) {
-				widget = (AvatarWidget) iterator.next();
+				AvatarWidget widget = (AvatarWidget) iterator.next();
 				if (null != widget.getVuzeBuddy()) {
 					if (true == buddy.getLoginID().equals(
 							widget.getVuzeBuddy().getLoginID())) {
 						sharePage.removeBuddy(widget.getVuzeBuddy());
 						widget.setSharedAlready(false);
 						break;
-					} else {
-						widget = null;
 					}
-				} else {
-					widget = null;
 				}
 			}
 		}
