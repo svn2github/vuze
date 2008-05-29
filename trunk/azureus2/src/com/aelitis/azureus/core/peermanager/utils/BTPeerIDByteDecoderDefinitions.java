@@ -323,7 +323,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addSimpleClient("BTugaXP", "oernu");
 		addSimpleClient("Deadman Walking", "BTDWV-");
 		addSimpleClient("Deadman", "Deadman Walking-");
-		addSimpleClient("External Webseed", "ext");
+		addSimpleClient("External Webseed", "Ext");
 		addSimpleClient("G3 Torrent", "-G3");
 		addSimpleClient("GreedBT 2.7.1", "271-");
 		addSimpleClient("Hurricane Electric", "arclight");
