@@ -124,6 +124,12 @@ VuzeCryptoManager
 							
 								return( session_pw );
 								
+						}catch (VuzeCryptoException ve) {
+
+							Debug.out( "Listener failed " + ve.toString() + " on " + reason );
+							if (ve.getCause() != null) {
+								Debug.out(ve.getCause());
+							}
 						}catch( Throwable e ){
 							
 							Debug.out( "Listener failed", e );
