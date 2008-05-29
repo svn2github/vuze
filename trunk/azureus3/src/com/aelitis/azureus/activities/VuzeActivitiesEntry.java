@@ -115,6 +115,7 @@ public class VuzeActivitiesEntry
 		setAssetImageURL(MapUtils.getMapString(platformEntry, "related-image-url",
 				null));
 		setDRM(MapUtils.getMapBoolean(platformEntry, "no-play", false));
+		setTorrentName(MapUtils.getMapString(platformEntry, "related-asset-name", null));
 		loadCommonFromMap(platformEntry);
 	}
 
@@ -147,7 +148,7 @@ public class VuzeActivitiesEntry
 			}
 			setTorrent(torrent);
 		}
-		if (dm == null) {
+		if (dm == null && torrentName == null) {
 			setTorrentName(MapUtils.getMapString(map, "torrent-name", null));
 		}
 	}
@@ -487,12 +488,18 @@ public class VuzeActivitiesEntry
 				sc.setDisplayName(TorrentUtils.getLocalisedName(torrent));
 				sc.setHash(torrent.getHashWrapper().toBase32String(),
 						PlatformTorrentUtils.isContent(torrent, true));
+			} else {
+				throw new Exception("No Display Name");
 			}
 		}
 
-		if (sc.getHash() == null) {
+		if (sc.getHash() == null && assetHash != null) {
+			sc.setHash(assetHash, true);
+		} else {
 			throw new Exception("No Download Info");
 		}
+
+		sc.setThumbURL(assetImageURL);
 		return sc;
 
 	}
