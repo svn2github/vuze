@@ -33,8 +33,10 @@ import org.gudy.azureus2.core3.util.SHA1;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
+import org.gudy.azureus2.plugins.download.DownloadPeerListener;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.peers.PeerManager;
+import org.gudy.azureus2.plugins.peers.PeerManagerListener;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
@@ -89,6 +91,8 @@ BuddyPluginTracker
 	
 	private Map				short_id_map	= new HashMap();
 	private Map				full_id_map		= new HashMap();
+	
+	private Set				actively_tracking	= new HashSet();
 	
 	public
 	BuddyPluginTracker(
@@ -180,6 +184,8 @@ BuddyPluginTracker
 
 		Map	to_do = new HashMap();
 		
+		Set active_set = new HashSet();
+		
 		synchronized( online_buddies ){
 
 			Iterator it = online_buddies.iterator();
@@ -190,11 +196,64 @@ BuddyPluginTracker
 				
 				buddyData buddy_data = getBuddyData( buddy );
 				
-				List l = buddy_data.getDownloadsToTrack();
+				Map active = buddy_data.getDownloadsToTrack();
 				
-				if ( l.size() > 0 ){
+				if ( active.size() > 0 ){
 					
-					to_do.put( buddy, l );
+					Iterator it2 = active.entrySet().iterator();
+					
+					List track_now = new ArrayList();
+					
+					while( it2.hasNext()){
+						
+						Map.Entry entry = (Map.Entry)it2.next();
+						
+						Download 	dl 	= (Download)entry.getKey();
+						boolean		now = ((Boolean)entry.getValue()).booleanValue();
+						
+						if ( now ){
+							
+							track_now.add( dl );
+						}
+						
+						active_set.add( dl );
+					}
+					
+					if( track_now.size() > 0 ){
+					
+						to_do.put( buddy, track_now );
+					}
+				}
+			}
+		}
+		
+		synchronized( actively_tracking ){
+			
+			Iterator it = active_set.iterator();
+			
+			while( it.hasNext()){
+				
+				Download dl = (Download)it.next();
+				
+				if ( !actively_tracking.contains( dl )){
+					
+					actively_tracking.add( dl );
+					
+					trackPeers( dl );
+				}
+			}
+			
+			it = actively_tracking.iterator();
+			
+			while( it.hasNext()){
+				
+				Download dl = (Download)it.next();
+				
+				if ( !active_set.contains( dl )){
+					
+					it.remove();
+					
+					untrackPeers( dl );
 				}
 			}
 		}
@@ -249,9 +308,13 @@ BuddyPluginTracker
 				
 				if ( connected ){
 					
+					log( download.getName() + " - peer " + ip.getHostAddress() + " already connected" );
+					
 					continue;
 				}
 				
+				log( download.getName() + " - connecting to peer " + ip.getHostAddress());
+
 				PEPeerManager c_pm = PluginCoreUtils.unwrap( pm ); 
 				
 				c_pm.addPeer( ip.getHostAddress(), tcp_port, udp_port, true );
@@ -540,6 +603,85 @@ BuddyPluginTracker
 				download_set_id++;
 			}
 		}
+		
+		synchronized( actively_tracking ){
+
+			actively_tracking.remove( download );
+		}
+	}
+	
+	protected void
+	trackPeers(
+		Download		download )
+	{
+		log( "Tracking peers for " + download.getName());
+		
+		download.addPeerListener(
+			new DownloadPeerListener()
+			{
+				public void
+				peerManagerAdded(
+					Download		download,
+					PeerManager		peer_manager )
+				{
+					trackPeers( download, peer_manager );
+				}
+				
+				public void
+				peerManagerRemoved(
+					Download		download,
+					PeerManager		peer_manager )
+				{
+					
+				}
+			});
+		
+		PeerManager pm = download.getPeerManager();
+		
+		if ( pm != null ){
+			
+			trackPeers( download, pm );
+		}
+	}
+	
+	protected void
+	trackPeers(
+		final Download	download,
+		PeerManager		pm )
+	{
+		pm.addListener(
+			new PeerManagerListener()
+			{
+				public void
+				peerAdded(
+					PeerManager	manager,
+					Peer		peer )
+				{
+					synchronized( actively_tracking ){
+						
+						if ( !actively_tracking.contains( download )){
+							
+							manager.removeListener( this );
+							
+							return;
+						}
+					}
+				}
+				
+				public void
+				peerRemoved(
+					PeerManager	manager,
+					Peer		peer )
+				{
+				}
+			});
+	}
+	
+	protected void
+	untrackPeers(
+		Download		download )
+	{
+		log( "Not tracking peers for " + download.getName());
 	}
 	
 	protected void
@@ -1195,10 +1337,10 @@ BuddyPluginTracker
 			return( res );
 		}
 		
-		public List
+		public Map
 		getDownloadsToTrack()
 		{
-			List	res = new ArrayList();
+			Map	res = new HashMap();
 
 			if ( seeding_only == buddy_seeding_only ){
 				
@@ -1245,7 +1387,11 @@ BuddyPluginTracker
 
 							bdd.setTrackTime( now );
 							
-							res.add( d );
+							res.put( d, new Boolean( true ));
+							
+						}else{
+							
+							res.put( d, new Boolean( false ));
 						}
 					}
 				}
