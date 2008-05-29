@@ -160,8 +160,12 @@ public class SWTSkinUtils
 							}
 						}
 					} else {
-						fd.width = SWT.DEFAULT;
-						fd.height = SWT.DEFAULT;
+						if (fd.width == 0) {
+							fd.width = SWT.DEFAULT;
+						}
+						if (fd.height == 0) {
+							fd.height = SWT.DEFAULT;
+						}
 						control.setLayoutData(fd);
 						Utils.relayout(control);
 					}
