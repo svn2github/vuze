@@ -57,6 +57,7 @@ import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.stats.VivaldiView;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
+import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils.RunDownloadManager;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 
 import com.aelitis.azureus.activities.VuzeActivitiesManager;
@@ -746,6 +747,16 @@ public class MainWindow
 					coolItem.setControl(tb);
 					coolItem.setSize(p.x, p.y);
 					coolItem.setMinimumSize(p.x, p.y);
+				}
+			});
+			
+			ManagerUtils.setRunRunnable(new RunDownloadManager() {
+				public void run(DownloadManager dm) {
+					if (PlatformTorrentUtils.isContent(dm.getTorrent(), true)) {
+						TorrentListViewsUtils.playOrStream(dm);
+					} else {
+		    		Utils.launch(dm.getSaveLocation().toString());
+					}
 				}
 			});
 		} finally {
