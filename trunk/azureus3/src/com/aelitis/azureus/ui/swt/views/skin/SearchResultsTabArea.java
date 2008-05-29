@@ -78,46 +78,16 @@ public class SearchResultsTabArea
 	}
 
 	public static void openSearchResults(final Map params) {
-		SearchResultsTabArea view = (SearchResultsTabArea) SkinViewManager.get(SearchResultsTabArea.class);
-		if (view == null) {
-			// not avail yet!
-			SWTSkin skin = SWTSkinFactory.getInstance();
-			SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
-			if (tabSetMain != null) {
-				SWTSkinObjectTab tab = tabSetMain.getTab(SkinConstants.VIEWID_SEARCHRESULTS_TAB);
-				if (tab != null) {
-					tabSetMain.setActiveTab(tab);
-					view = (SearchResultsTabArea) SkinViewManager.get(SearchResultsTabArea.class);
-					if (view == null) {
-						return;
-					}
-				}
-			}
-			view._openSearchResults(params);
-		}
+  	SearchResultsTabArea view = ensureSearchTab();
+  	if (view != null) {
+  		view._openSearchResults(params);
+  	}
 	}
 
 	private void _openSearchResults(final Map params) {
 		Utils.execSWTThread(new AERunnable() {
 
 			public void runSupport() {
-				SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
-				if (tabSetMain != null) {
-					SWTSkinObjectTab tab = tabSetMain.getTab(SkinConstants.VIEWID_SEARCHRESULTS_TAB);
-					if (tab != null) {
-						SWTSkinObject[] children = tab.getChildren();
-						for (int i = 0; i < children.length; i++) {
-							SWTSkinObject child = children[i];
-							
-							if (child instanceof SWTSkinObjectText) {
-								SWTSkinObjectText soTxt = (SWTSkinObjectText) child;
-								soTxt.setText("Last Search");
-							}
-						}
-						tabSetMain.setActiveTab(tab);
-					}
-				}
-				
 				SWTSkinObject soSearchResults = skin.getSkinObject("searchresults-search-results");
 				if (soSearchResults == null) {
 					return;
@@ -145,6 +115,13 @@ public class SearchResultsTabArea
 	}
 
 	public static void closeSearchResults(final Map params) {
+  	SearchResultsTabArea view = ensureSearchTab();
+  	if (view != null) {
+  		view._closeSearchResults(params);
+  	}
+	}
+	
+	private static SearchResultsTabArea ensureSearchTab() {
 		SearchResultsTabArea view = (SearchResultsTabArea) SkinViewManager.get(SearchResultsTabArea.class);
 		if (view == null) {
 			// not avail yet!
@@ -156,12 +133,23 @@ public class SearchResultsTabArea
 					tabSetMain.setActiveTab(tab);
 					view = (SearchResultsTabArea) SkinViewManager.get(SearchResultsTabArea.class);
 					if (view == null) {
-						return;
+						return null;
 					}
+
+					SWTSkinObject[] children = tab.getChildren();
+					for (int i = 0; i < children.length; i++) {
+						SWTSkinObject child = children[i];
+						
+						if (child instanceof SWTSkinObjectText) {
+							SWTSkinObjectText soTxt = (SWTSkinObjectText) child;
+							soTxt.setText("Last\nSearch");
+						}
+					}
+					tabSetMain.setActiveTab(tab);
 				}
 			}
-			view._closeSearchResults(params);
 		}
+		return view;
 	}
 		
 	private void _closeSearchResults(final Map params) {
