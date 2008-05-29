@@ -53,7 +53,7 @@ import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.views.skin.widgets.BubbleButton;
 import com.aelitis.azureus.ui.swt.views.skin.widgets.FlatButton;
-import com.aelitis.azureus.ui.swt.views.skin.widgets.Inset;
+import com.aelitis.azureus.ui.swt.views.skin.widgets.FriendsList;
 import com.aelitis.azureus.ui.swt.views.skin.widgets.SkinLinkLabel;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.ImageDownloader;
@@ -84,11 +84,11 @@ public class SharePage
 
 	private Label addBuddyPromptLabel;
 
-	private StyledText buddyList;
+	private FriendsList buddyList;
 
 	private Composite inviteePanel;
 
-	private StyledText inviteeList;
+	private FriendsList inviteeList;
 
 	private Composite contentDetail;
 
@@ -97,6 +97,8 @@ public class SharePage
 	private FlatButton addBuddyButton;
 
 	private BubbleButton sendNowButton;
+
+	private BubbleButton previewButton;
 
 	private BubbleButton cancelButton;
 
@@ -128,6 +130,8 @@ public class SharePage
 
 	private DownloadManager dm = null;
 
+	private BuddiesViewer buddiesViewer;
+
 	public SharePage(DetailPanel detailPanel) {
 		super(detailPanel, PAGE_ID);
 	}
@@ -141,6 +145,8 @@ public class SharePage
 				"color.widget.heading");
 		widgetBackgroundColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
 				"color.widget.container.bg");
+
+		buddiesViewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
 
 		createFirstPanel();
 		createBrowserPanel();
@@ -162,15 +168,16 @@ public class SharePage
 		buddyListDescription = new Label(firstPanel, SWT.READ_ONLY);
 		inviteeListDescription = new Label(firstPanel, SWT.READ_ONLY);
 
-		buddyList = new StyledText(firstPanel, SWT.NONE);
+		buddyList = new FriendsList(firstPanel);
 		inviteePanel = new Composite(firstPanel, SWT.NONE);
-		inviteeList = new StyledText(inviteePanel, SWT.NONE);
+		inviteeList = new FriendsList(inviteePanel);
 		addBuddyPromptLabel = new Label(inviteePanel, SWT.NONE | SWT.WRAP
 				| SWT.RIGHT);
 		addBuddyButton = new FlatButton(inviteePanel);
 		contentDetail = new Composite(firstPanel, SWT.NONE);
 		sendNowButton = new BubbleButton(firstPanel);
 		cancelButton = new BubbleButton(firstPanel);
+		previewButton = new BubbleButton(firstPanel);
 		contentThumbnail = new Label(contentDetail, SWT.NONE);
 		contentStats = new StyledText(contentDetail, SWT.NONE);
 		optionalMessageLabel = new Label(contentDetail, SWT.NONE);
@@ -191,8 +198,6 @@ public class SharePage
 		stackLayout.topControl = firstPanel;
 
 		firstPanel.setLayout(new FormLayout());
-
-		buddyList.setIndent(3);
 
 		FormData shareHeaderData = new FormData();
 		shareHeaderData.top = new FormAttachment(0, 18);
@@ -218,26 +223,29 @@ public class SharePage
 		buddyListData.left = new FormAttachment(buddyListDescription, -2, SWT.LEFT);
 		buddyListData.width = 315;
 		buddyListData.height = 115;
-		buddyList.setLayoutData(buddyListData);
+		buddyList.getControl().setLayoutData(buddyListData);
 
 		FormData inviteeListDescriptionData = new FormData();
-		inviteeListDescriptionData.top = new FormAttachment(buddyList, 8);
+		inviteeListDescriptionData.top = new FormAttachment(buddyList.getControl(),
+				8);
 		inviteeListDescriptionData.left = new FormAttachment(shareHeaderLabel, 35,
 				SWT.LEFT);
 		inviteeListDescription.setLayoutData(inviteeListDescriptionData);
 
 		//============		
 		FormLayout fLayout = new FormLayout();
-		fLayout.marginTop = 3;
-		fLayout.marginBottom = 3;
-		fLayout.marginLeft = 3;
-		fLayout.marginRight = 3;
+		fLayout.marginTop = 0;
+		fLayout.marginBottom = 0;
+		fLayout.marginLeft = 0;
+		fLayout.marginRight = 0;
 		inviteePanel.setLayout(fLayout);
 
 		FormData inviteePanelData = new FormData();
 		inviteePanelData.top = new FormAttachment(inviteeListDescription, 6);
-		inviteePanelData.left = new FormAttachment(buddyList, 0, SWT.LEFT);
-		inviteePanelData.right = new FormAttachment(buddyList, 0, SWT.RIGHT);
+		inviteePanelData.left = new FormAttachment(buddyList.getControl(), 0,
+				SWT.LEFT);
+		inviteePanelData.right = new FormAttachment(buddyList.getControl(), 0,
+				SWT.RIGHT);
 		inviteePanelData.height = 115;
 		inviteePanel.setLayoutData(inviteePanelData);
 
@@ -246,18 +254,19 @@ public class SharePage
 		inviteeListData.left = new FormAttachment(0, 0);
 		inviteeListData.right = new FormAttachment(100, 0);
 		inviteeListData.height = 75;
-		inviteeList.setLayoutData(inviteeListData);
+		inviteeList.getControl().setLayoutData(inviteeListData);
 
 		FormData addBuddyButtonData = new FormData();
-		addBuddyButtonData.top = new FormAttachment(inviteeList, 8);
-		addBuddyButtonData.right = new FormAttachment(inviteeList, -8, SWT.RIGHT);
+		addBuddyButtonData.top = new FormAttachment(inviteeList.getControl(), 8);
+		addBuddyButtonData.right = new FormAttachment(inviteeList.getControl(), -8,
+				SWT.RIGHT);
 		Point size = addBuddyButton.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		addBuddyButtonData.width = size.x;
 		addBuddyButtonData.height = size.y;
 		addBuddyButton.setLayoutData(addBuddyButtonData);
 
 		FormData addBuddyLabelData = new FormData();
-		addBuddyLabelData.top = new FormAttachment(inviteeList, 8);
+		addBuddyLabelData.top = new FormAttachment(inviteeList.getControl(), 8);
 		addBuddyLabelData.right = new FormAttachment(addBuddyButton, -8);
 		addBuddyLabelData.left = new FormAttachment(0, 8);
 		addBuddyPromptLabel.setLayoutData(addBuddyLabelData);
@@ -265,8 +274,9 @@ public class SharePage
 		//==============
 
 		FormData contentDetailData = new FormData();
-		contentDetailData.top = new FormAttachment(buddyList, 0, SWT.TOP);
-		contentDetailData.left = new FormAttachment(buddyList, 30);
+		contentDetailData.top = new FormAttachment(buddyList.getControl(), 0,
+				SWT.TOP);
+		contentDetailData.left = new FormAttachment(buddyList.getControl(), 30);
 		contentDetailData.right = new FormAttachment(100, -58);
 		contentDetailData.bottom = new FormAttachment(inviteePanel, 0, SWT.BOTTOM);
 		contentDetail.setLayoutData(contentDetailData);
@@ -319,7 +329,7 @@ public class SharePage
 		sendNowButtonData.top = new FormAttachment(optionalMessageDisclaimerLabel,
 				8);
 		sendNowButtonData.right = new FormAttachment(contentDetail, 0, SWT.RIGHT);
-		size = cancelButton.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		size = sendNowButton.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		sendNowButtonData.width = size.x;
 		sendNowButtonData.height = size.y;
 		sendNowButton.setLayoutData(sendNowButtonData);
@@ -331,6 +341,15 @@ public class SharePage
 		cancelButtonData.width = size.x;
 		cancelButtonData.height = size.y;
 		cancelButton.setLayoutData(cancelButtonData);
+
+		FormData previewButtonData = new FormData();
+		previewButtonData.right = new FormAttachment(cancelButton, -8);
+		previewButtonData.top = new FormAttachment(optionalMessageDisclaimerLabel,
+				8);
+		size = previewButton.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		previewButtonData.width = size.x;
+		previewButtonData.height = size.y;
+		previewButton.setLayoutData(previewButtonData);
 
 		content.layout();
 	}
@@ -345,9 +364,9 @@ public class SharePage
 		contentStats.setForeground(textColor);
 		contentStats.getCaret().setVisible(false);
 		contentStats.setEditable(false);
-		
-		inviteeList.setForeground(textColor);
-		buddyList.setForeground(textColor);
+
+		inviteeList.setEmailDisplayOnly(true);
+
 		shareHeaderMessageLabel.setForeground(textColor);
 
 		shareHeaderLabel.setForeground(textColor);
@@ -366,7 +385,10 @@ public class SharePage
 		});
 
 		contentDetail.setBackground(widgetBackgroundColor);
-		buddyList.setBackground(widgetBackgroundColor);
+
+		buddyList.getControl().setBackground(widgetBackgroundColor);
+		buddyList.setBuddiesViewer(buddiesViewer);
+
 		inviteePanel.setBackground(widgetBackgroundColor);
 
 		Messages.setLanguageText(addBuddyPromptLabel,
@@ -392,7 +414,9 @@ public class SharePage
 
 		cancelButton.setText(MessageText.getString("v3.MainWindow.button.cancel"));
 
-		sendNowButton.setInset(new Inset(20, 20, 0, 0));
+		previewButton.setText(MessageText.getString("v3.MainWindow.button.preview"));
+		previewButton.setVisible(false);
+
 		sendNowButton.setText(MessageText.getString("v3.Share.send.now"));
 		//		sendNowButton.setEnabled(false);
 
@@ -436,6 +460,18 @@ public class SharePage
 			}
 		});
 
+		previewButton.addListener(SWT.MouseDown, new Listener() {
+			public void handleEvent(Event event) {
+				getMessageContext().executeInBrowser(
+						"sendSharingBuddies('" + getCommitJSONMessage() + "')");
+				
+				getMessageContext().executeInBrowser("preview()");
+				
+				stackLayout.topControl = browserPanel;
+				content.layout();
+			}
+		});
+
 		sendNowButton.addListener(SWT.MouseDown, new Listener() {
 			public void handleEvent(Event event) {
 				getMessageContext().executeInBrowser(
@@ -464,7 +500,8 @@ public class SharePage
 	}
 
 	private void resetControls() {
-		inviteeList.setText("");
+		inviteeList.clear();
+		buddiesViewer.setMode(BuddiesViewer.none_active_mode);
 		commentText.setText("");
 	}
 
@@ -486,15 +523,23 @@ public class SharePage
 
 	public void setBuddies(List buddies) {
 		selectedBuddies.clear();
-		buddyList.setText("");
+		buddyList.clear();
 		for (Iterator iterator = buddies.iterator(); iterator.hasNext();) {
 			Object vuzeBuddy = iterator.next();
-			if (vuzeBuddy instanceof VuzeBuddySWT) {
+			if (vuzeBuddy instanceof VuzeBuddy) {
 				selectedBuddies.add(vuzeBuddy);
-				buddyList.append(((VuzeBuddySWT) vuzeBuddy).getDisplayName() + "\n");
-			} else {
-				System.err.println("Bogus buddy: " + vuzeBuddy);//KN: sysout
+				buddyList.addFriend((VuzeBuddy) vuzeBuddy);
+				buddiesViewer.addToShare((VuzeBuddy) vuzeBuddy);
+				showHidePreview();
 			}
+		}
+	}
+
+	private void showHidePreview() {
+		if (buddyList.getContentCount() > 0 || inviteeList.getContentCount() > 0) {
+			previewButton.setVisible(true);
+		} else {
+			previewButton.setVisible(false);
 		}
 	}
 
@@ -510,8 +555,16 @@ public class SharePage
 	public void addBuddy(VuzeBuddySWT vuzeBuddy) {
 		if (false == selectedBuddies.contains(vuzeBuddy)) {
 			selectedBuddies.add(vuzeBuddy);
-			buddyList.append(vuzeBuddy.getDisplayName() + "\n");
-			buddyList.layout();
+			buddyList.addFriend((VuzeBuddy) vuzeBuddy);
+			showHidePreview();
+		}
+	}
+
+	public void removeBuddy(VuzeBuddySWT vuzeBuddy) {
+		if (true == selectedBuddies.contains(vuzeBuddy)) {
+			selectedBuddies.remove(vuzeBuddy);
+			buddyList.removeFriend((VuzeBuddy) vuzeBuddy);
+			showHidePreview();
 		}
 	}
 
@@ -557,10 +610,10 @@ public class SharePage
 
 					Utils.execSWTThread(new AERunnable() {
 						public void runSupport() {
-							inviteeList.setText("");
+							inviteeList.clear();
 							for (Iterator iterator = getInvitedBuddies().iterator(); iterator.hasNext();) {
 								VuzeBuddy buddy = (VuzeBuddy) iterator.next();
-								inviteeList.append(buddy.getDisplayName() + "\n");
+								inviteeList.addFriend(buddy);
 							}
 							inviteePanel.layout();
 						}
@@ -572,7 +625,9 @@ public class SharePage
 					Utils.execSWTThread(new AERunnable() {
 						public void runSupport() {
 							for (Iterator iterator = getInvitedEmails().iterator(); iterator.hasNext();) {
-								inviteeList.append(iterator.next() + "\n");//KN:
+								VuzeBuddy buddy = VuzeBuddyManager.createPotentialBuddy();
+								buddy.setDisplayName((iterator.next()).toString());
+								inviteeList.addFriend(buddy);
 							}
 							inviteePanel.layout();
 						}
@@ -621,37 +676,38 @@ public class SharePage
 	public void setShareItem(SelectedContent content) {
 		this.shareItem = content;
 		this.dm = shareItem.getDM();
-		
+
 		if (content != null && content.getThumbURL() != null) {
-			ImageDownloader.loadImage(content.getThumbURL(), new ImageDownloaderListener() {
-				public void imageDownloaded(final byte[] image) {
-					Utils.execSWTThread(new AERunnable() {
-						public void runSupport() {
-							if (contentThumbnail != null && !contentThumbnail.isDisposed()) {
-								ByteArrayInputStream bis = new ByteArrayInputStream(image);
-								final Image img = new Image(Display.getDefault(), bis);
-								if (img != null) {
-									contentThumbnail.addDisposeListener(new DisposeListener() {
-										public void widgetDisposed(DisposeEvent e) {
-											if (img != null && !img.isDisposed()) {
-												img.dispose();
-											}
+			ImageDownloader.loadImage(content.getThumbURL(),
+					new ImageDownloaderListener() {
+						public void imageDownloaded(final byte[] image) {
+							Utils.execSWTThread(new AERunnable() {
+								public void runSupport() {
+									if (contentThumbnail != null
+											&& !contentThumbnail.isDisposed()) {
+										ByteArrayInputStream bis = new ByteArrayInputStream(image);
+										final Image img = new Image(Display.getDefault(), bis);
+										if (img != null) {
+											contentThumbnail.addDisposeListener(new DisposeListener() {
+												public void widgetDisposed(DisposeEvent e) {
+													if (img != null && !img.isDisposed()) {
+														img.dispose();
+													}
+												}
+											});
+											contentThumbnail.setImage(img);
 										}
-									});
-									contentThumbnail.setImage(img);
+									}
+									refresh();
 								}
-							}
-							refresh();
+							});
 						}
 					});
-				}
-			});
 		}
 
 		if (null != shareItem) {
-			BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
-			if (null != viewer) {
-				viewer.setShareMode(true);
+			if (null != buddiesViewer) {
+				buddiesViewer.setShareMode(true);
 			}
 			getDetailPanel().show(true, PAGE_ID);
 			sendNowButton.setEnabled(true);
@@ -679,9 +735,8 @@ public class SharePage
 			buttonBar.setActiveMode(BuddiesViewer.share_mode);
 		}
 
-		BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
-		if (null != viewer) {
-			setBuddies(viewer.getSelection());
+		if (null != buddiesViewer) {
+			setBuddies(buddiesViewer.getSelection());
 		}
 
 		if (null != dm && null != dm.getTorrent()) {
@@ -759,4 +814,5 @@ public class SharePage
 		//		contentStats.append("Published: " + PlatformTorrentUtils.getContentLastUpdated(dm.getTorrent())   + "\n");
 		contentStats.append("File size: " + dm.getSize() / 1000000 + " MB");
 	}
+
 }

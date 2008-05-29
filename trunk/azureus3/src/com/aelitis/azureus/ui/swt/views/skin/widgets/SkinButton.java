@@ -10,8 +10,6 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -354,11 +352,12 @@ public abstract class SkinButton
 
 	public void setVisible(boolean visible) {
 		if (isVisible() != visible) {
-			setVisible(visible);
+			super.setVisible(visible);
 			if (false == visible) {
 				currentState = WIDGET_STATE_NOT_VISIBLE;
+			} else {
+				refreshVisuals();
 			}
-			refreshVisuals();
 		}
 	}
 

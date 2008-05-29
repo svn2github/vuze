@@ -1,4 +1,4 @@
-package com.aelitis.azureus.ui.swt.views.skin;
+package com.aelitis.azureus.ui.swt.views.skin.widgets;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -20,6 +20,16 @@ import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
+/**
+ * A simple pagination widget that displays a set of selectable graphic elements; each
+ * one representing a page
+ * 
+ * To use just create the widget on a parent, set the page count, and add a <code>PageSelectionListener</code>
+ * to be notified when the user clicks on a page.
+ * 
+ * @author khai
+ *
+ */
 public class PaginationWidget
 {
 	private Composite parent = null;

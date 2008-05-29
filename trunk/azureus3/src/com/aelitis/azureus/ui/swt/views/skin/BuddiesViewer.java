@@ -33,6 +33,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.ui.swt.views.skin.widgets.PaginationWidget;
 import com.aelitis.azureus.util.Constants;
 
 public class BuddiesViewer
@@ -195,13 +196,13 @@ public class BuddiesViewer
 					select(null, false, false);
 				}
 			});
-			
+
 			content.addMouseListener(new MouseAdapter() {
 				public void mouseDown(MouseEvent e) {
 					select(null, false, false);
 				}
 			});
-			
+
 			parent.layout(true);
 			calculatePagination();
 			hookPaginationWidget();
@@ -614,17 +615,14 @@ public class BuddiesViewer
 		VuzeBuddyManager.addListener(new VuzeBuddyListener() {
 
 			public void buddyRemoved(VuzeBuddy buddy) {
-				System.out.println("Remove: " + buddy.getLoginID());//KN: sysout
 				removeBuddy(buddy);
 			}
 
 			public void buddyChanged(VuzeBuddy buddy) {
-				System.out.println("Change: " + buddy.getLoginID());//KN: sysout
 				updateBuddy(buddy);
 			}
 
 			public void buddyAdded(VuzeBuddy buddy, int position) {
-				System.out.println("Add: " + buddy.getLoginID());//KN: sysout
 				addBuddy(buddy);
 			}
 
@@ -665,14 +663,44 @@ public class BuddiesViewer
 		}
 	}
 
-	public void removeFromShare(AvatarWidget widget) {
-		if (true == sharedAvatars.contains(widget)) {
-			sharedAvatars.remove(widget);
-			widget.setSharedAlready(false);
+	public void addToShare(VuzeBuddy buddy) {
+		AvatarWidget widget = findWidget(buddy);
+		if (null != widget) {
+			if (false == widget.isSharedAlready()) {
+				addToShare(widget);
+			}
 		}
 	}
 
+	public void removeFromShare(VuzeBuddy buddy) {
+
+		if (null != buddy) {
+			AvatarWidget widget = null;
+			for (Iterator iterator = sharedAvatars.iterator(); iterator.hasNext();) {
+				widget = (AvatarWidget) iterator.next();
+				if (null != widget.getVuzeBuddy()) {
+					if (true == buddy.getLoginID().equals(
+							widget.getVuzeBuddy().getLoginID())) {
+						sharePage.removeBuddy(widget.getVuzeBuddy());
+						widget.setSharedAlready(false);
+						break;
+					} else {
+						widget = null;
+					}
+				} else {
+					widget = null;
+				}
+			}
+
+			if (null != widget) {
+				sharedAvatars.remove(widget);
+			}
+		}
+
+	}
+
 	public void setShareMode(boolean isShareMode) {
+
 		if (this.isShareMode != isShareMode) {
 			this.isShareMode = isShareMode;
 
@@ -694,6 +722,7 @@ public class BuddiesViewer
 				setAddBuddyMode(false);
 			}
 		}
+
 	}
 
 	public boolean isAddBuddyMode() {
