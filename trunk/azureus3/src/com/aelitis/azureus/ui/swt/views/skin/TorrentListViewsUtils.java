@@ -434,9 +434,6 @@ public class TorrentListViewsUtils
 
 		DownloadManager dm = getDMFromDS(ds);
 		if (dm == null) {
-			if (referal.startsWith("play")) {
-				referal = referal.substring(4);
-			}
 			downloadDataSource(ds, true, referal);
 		} else {
 			playOrStream(dm, btn);
