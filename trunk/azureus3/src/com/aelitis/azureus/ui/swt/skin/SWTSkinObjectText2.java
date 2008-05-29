@@ -70,7 +70,7 @@ public class SWTSkinObjectText2
 
 	private int vpadding;
 
-	private boolean relayoutOnTextChange;
+	private boolean relayoutOnTextChange = true;
 
 	private static Font font = null;
 
@@ -417,7 +417,11 @@ public class SWTSkinObjectText2
 		this.sDisplayText = allcaps && sText != null ? sText.toUpperCase() : sText;
 		this.sKey = null;
 		bIsTextDefault = false;
-		Utils.execSWTThreadLater(0, new AERunnable() {
+		// Doing execSWTThreadLater delays the relayout for too long at skin startup
+		// Since there are a lot of async execs at skin startup, we generally
+		// see the window a second or two before this async call would get called
+		// (if it were async)
+		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (canvas != null && !canvas.isDisposed()) {
 					canvas.redraw();
