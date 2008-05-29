@@ -54,6 +54,7 @@ import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.views.skin.widgets.BubbleButton;
 import com.aelitis.azureus.ui.swt.views.skin.widgets.FlatButton;
 import com.aelitis.azureus.ui.swt.views.skin.widgets.FriendsList;
+import com.aelitis.azureus.ui.swt.views.skin.widgets.MiniCloseButton;
 import com.aelitis.azureus.ui.swt.views.skin.widgets.SkinLinkLabel;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.ImageDownloader;
@@ -132,6 +133,8 @@ public class SharePage
 
 	private BuddiesViewer buddiesViewer;
 
+	private MiniCloseButton miniCloseButton;
+
 	public SharePage(DetailPanel detailPanel) {
 		super(detailPanel, PAGE_ID);
 	}
@@ -162,6 +165,8 @@ public class SharePage
 	private void createControls() {
 
 		firstPanel = new Composite(content, SWT.NONE);
+
+		miniCloseButton = new MiniCloseButton(firstPanel);
 
 		shareHeaderLabel = new Label(firstPanel, SWT.READ_ONLY);
 		shareHeaderMessageLabel = new Label(firstPanel, SWT.READ_ONLY);
@@ -198,6 +203,14 @@ public class SharePage
 		stackLayout.topControl = firstPanel;
 
 		firstPanel.setLayout(new FormLayout());
+
+		FormData miniCloseButtonData = new FormData();
+		miniCloseButtonData.top = new FormAttachment(0, 10);
+		miniCloseButtonData.right = new FormAttachment(100, -18);
+		Point size = miniCloseButton.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		miniCloseButtonData.width = size.x;
+		miniCloseButtonData.height = size.y;
+		miniCloseButton.setLayoutData(miniCloseButtonData);
 
 		FormData shareHeaderData = new FormData();
 		shareHeaderData.top = new FormAttachment(0, 18);
@@ -260,7 +273,7 @@ public class SharePage
 		addBuddyButtonData.top = new FormAttachment(inviteeList.getControl(), 8);
 		addBuddyButtonData.right = new FormAttachment(inviteeList.getControl(), -8,
 				SWT.RIGHT);
-		Point size = addBuddyButton.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		size = addBuddyButton.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		addBuddyButtonData.width = size.x;
 		addBuddyButtonData.height = size.y;
 		addBuddyButton.setLayoutData(addBuddyButtonData);
@@ -460,13 +473,25 @@ public class SharePage
 			}
 		});
 
+		miniCloseButton.addListener(SWT.MouseDown, new Listener() {
+			public void handleEvent(Event event) {
+				ButtonBar buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
+				if (null != buttonBar) {
+					buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
+				}
+
+				resetControls();
+				getDetailPanel().show(false);
+			}
+		});
+
 		previewButton.addListener(SWT.MouseDown, new Listener() {
 			public void handleEvent(Event event) {
 				getMessageContext().executeInBrowser(
 						"sendSharingBuddies('" + getCommitJSONMessage() + "')");
-				
+
 				getMessageContext().executeInBrowser("preview()");
-				
+
 				stackLayout.topControl = browserPanel;
 				content.layout();
 			}

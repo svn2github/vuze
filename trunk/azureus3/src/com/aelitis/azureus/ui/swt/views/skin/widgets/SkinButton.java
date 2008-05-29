@@ -239,9 +239,19 @@ public abstract class SkinButton
 
 		Image[] bgImages = getBackgroundImages();
 		if (null != bgImages) {
-			backgroundExtent.x = bgImages[0].getImageData().width
-					+ bgImages[1].getImageData().width + bgImages[2].getImageData().width;
-			backgroundExtent.y = bgImages[1].getImageData().height;
+			if (null != bgImages[0]) {
+				backgroundExtent.x = bgImages[0].getImageData().width;
+				backgroundExtent.y = bgImages[0].getImageData().height;
+			}
+			if (null != bgImages[1]) {
+				backgroundExtent.x += bgImages[1].getImageData().width;
+				backgroundExtent.y = bgImages[1].getImageData().height;
+			}
+			if (null != bgImages[2]) {
+				backgroundExtent.x += bgImages[2].getImageData().width;
+				backgroundExtent.y = bgImages[2].getImageData().height;
+			}
+
 		}
 
 		int maxHeight = Math.max(backgroundExtent.y, imageExtent.y + inset.top
