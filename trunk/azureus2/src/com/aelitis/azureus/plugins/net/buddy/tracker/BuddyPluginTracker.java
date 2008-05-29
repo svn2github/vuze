@@ -26,7 +26,6 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
-import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SHA1;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -48,11 +47,15 @@ BuddyPluginTracker
 	private static final int	TRACK_CHECK_PERIOD		= 30*1000;
 	private static final int	TRACK_CHECK_TICKS		= TRACK_CHECK_PERIOD/BuddyPlugin.TIMER_PERIOD;
 
+	private static final int	TRACK_INTERVAL			= 10*60*1000;
+	
 	private static final int	SHORT_ID_SIZE			= 4;
 	private static final int	FULL_ID_SIZE			= 20;
 	
 	private static final int	REQUEST_TRACKER_SUMMARY	= 1;
 	private static final int	REPLY_TRACKER_SUMMARY	= 2;
+	private static final int	REQUEST_TRACKER_STATUS	= 3;
+	private static final int	REPLY_TRACKER_STATUS	= 4;
 	
 	private static final int	RETRY_SEND_MIN			= 5*60*1000;
 	private static final int	RETRY_SEND_MAX			= 60*60*1000;
@@ -151,6 +154,34 @@ BuddyPluginTracker
 			
 			checkTracking();
 		}
+		
+		if ( tick_count-1 % TRACK_CHECK_TICKS == 0 ){
+			
+			doTracking();
+		}
+	}
+	
+	protected void
+	doTracking()
+	{
+		if ( !( plugin_enabled && tracker_enabled )){
+			
+			return;
+		}
+
+		synchronized( online_buddies ){
+
+			Iterator it = online_buddies.iterator();
+				
+			while( it.hasNext()){
+				
+				BuddyPluginBuddy	buddy = (BuddyPluginBuddy)it.next();
+				
+				buddyData buddy_data = getBuddyData( buddy );
+				
+				buddy_data.getDownloadsToTrack();
+			}
+		}
 	}
 	
 	protected void
@@ -191,7 +222,7 @@ BuddyPluginTracker
 			
 			BuddyPluginBuddy	buddy = (BuddyPluginBuddy)online.get(i);
 			
-			buddyData buddy_data = (buddyData)buddy.getUserData( BuddyPluginTracker.class );
+			buddyData buddy_data = getBuddyData( buddy );
 			
 			buddy_data.updateLocal( downloads, downloads_id, diff_map );
 		}
@@ -231,6 +262,24 @@ BuddyPluginTracker
 		}
 	}
 	
+	protected buddyData
+	getBuddyData(
+		BuddyPluginBuddy		buddy )
+	{
+		synchronized( online_buddies ){
+			
+			buddyData buddy_data = (buddyData)buddy.getUserData( BuddyPluginTracker.class );
+
+			if ( buddy_data == null ){
+				
+				buddy_data = new buddyData( buddy );
+				
+				buddy.setUserData( BuddyPluginTracker.class, buddy_data );
+			}
+			
+			return( buddy_data );
+		}
+	}
 	
 	protected buddyData
 	addBuddy(
@@ -243,16 +292,7 @@ BuddyPluginTracker
 				online_buddies.add( buddy );
 			}
 
-			buddyData buddy_data = (buddyData)buddy.getUserData( BuddyPluginTracker.class );
-
-			if ( buddy_data == null ){
-				
-				buddy_data = new buddyData( buddy );
-				
-				buddy.setUserData( BuddyPluginTracker.class, buddy_data );
-			}
-			
-			return( buddy_data );
+			return( getBuddyData( buddy ));
 		}
 	}
 		
@@ -321,6 +361,23 @@ BuddyPluginTracker
 	protected void
 	updateSeedingMode()
 	{
+		List	online;
+		
+		synchronized( online_buddies ){
+
+			online = new ArrayList( online_buddies );
+		}
+		
+		for (int i=0;i<online.size();i++){
+			
+			buddyData buddy_data = getBuddyData((BuddyPluginBuddy)online.get(i));
+			
+			if ( buddy_data.hasDownloadsInCommon()){
+				
+				buddy_data.updateStatus();
+			}
+		}
+		
 		// TODO: enable/disable priorities
 	}
 	
@@ -466,7 +523,7 @@ BuddyPluginTracker
 	buddyDead(
 		BuddyPluginBuddy		buddy )
 	{
-		buddyData buddy_data = (buddyData)buddy.getUserData( BuddyPluginTracker.class );
+		buddyData buddy_data = getBuddyData( buddy );
 
 		if ( buddy_data != null ){
 			
@@ -497,6 +554,9 @@ BuddyPluginTracker
 		private Set	downloads_sent;
 		private int	downloads_sent_id;
 		
+		private Map		downloads_in_common;
+		private boolean	buddy_seeding_only;
+		
 		private int		consecutive_fails;
 		private long	last_fail;
 		
@@ -505,6 +565,15 @@ BuddyPluginTracker
 			BuddyPluginBuddy		_buddy )
 		{
 			buddy	= _buddy;
+		}
+		
+		protected boolean
+		hasDownloadsInCommon()
+		{
+			synchronized( this ){
+			
+				return( downloads_in_common != null );
+			}
 		}
 		
 		protected void
@@ -564,15 +633,12 @@ BuddyPluginTracker
 			}
 			
 			Long	key = new Long(((long)id) << 32 | (long)downloads_sent_id);
-			
-			Object[] map = (Object[])diff_map.get( key );
-			
-			byte[]	added_bytes;
-			byte[]	removed_bytes;
+						
+			byte[]	added_bytes = (byte[])diff_map.get( key );
 			
 			boolean	incremental = downloads_sent != null;
 			
-			if ( map == null ){
+			if ( added_bytes == null ){
 				
 				List	added;
 				List	removed	= new ArrayList();
@@ -592,9 +658,12 @@ BuddyPluginTracker
 					
 						Download download = (Download)it1.next();
 						
-						if ( !downloads_sent.contains( download )){
+						if ( okToTrack( download )){
 							
-							added.add( download );
+							if ( !downloads_sent.contains( download )){
+								
+								added.add( download );
+							}
 						}
 					}
 					
@@ -612,20 +681,14 @@ BuddyPluginTracker
 				}
 				
 				added_bytes 	= exportShortIDs( added );
-				removed_bytes 	= exportShortIDs( removed );
 				
-				diff_map.put( key, new Object[]{ added_bytes, removed_bytes });
-				
-			}else{
-				
-				added_bytes 	= (byte[])map[0];
-				removed_bytes	= (byte[])map[1];
+				diff_map.put( key, added_bytes );
 			}
 				
 			downloads_sent 		= downloads;
 			downloads_sent_id	= id;
 			
-			if ( added_bytes.length == 0 && removed_bytes.length == 0 ){
+			if ( added_bytes.length == 0 ){
 				
 				return;
 			}
@@ -633,8 +696,8 @@ BuddyPluginTracker
 			Map	msg = new HashMap();
 			
 			msg.put( "added", 	added_bytes );
-			msg.put( "removed", removed_bytes );
 			msg.put( "inc", 	new Long( incremental?1:0 ));
+			msg.put( "seeding", new Long( seeding_only?1:0 ));
 			
 			sendMessage( buddy, REQUEST_TRACKER_SUMMARY, msg );
 		}	
@@ -644,44 +707,119 @@ BuddyPluginTracker
 			Map		msg )
 		{			
 			List	added 	= importShortIDs((byte[])msg.get( "added" ));
-			List	removed = importShortIDs((byte[])msg.get( "removed" ));
 			
 			Map	reply = new HashMap();
 			
-			reply.put( "added", exportFullIDs( added ));
-			reply.put( "removed", exportFullIDs( removed ));
+			byte[][] add_details = exportFullIDs( added );
+			
+			reply.put( "added", 	add_details[0] );
+			reply.put( "added_s", 	add_details[1] );
+
 			
 			return( reply );
+		}
+		
+		protected void
+		updateStatus()
+		{
+			Map	msg = new HashMap();
+			
+			msg.put( "seeding", new Long( seeding_only?1:0 ));
+			
+			sendMessage( buddy, REQUEST_TRACKER_STATUS, msg );
 		}
 		
 		protected Map
 		receiveMessage(
 			int			type,
-			Map			msg )
+			Map			msg_in )
 		{
+			Long	l_seeding = (Long)msg_in.get( "seeding" );
+			
+			if( l_seeding != null ){
+				
+				buddy_seeding_only = l_seeding.intValue() == 1;
+			}
+			
 			if ( type == REQUEST_TRACKER_SUMMARY ){
 		
 				Map	reply = new HashMap();
 				
 				reply.put( "type", new Long( REPLY_TRACKER_SUMMARY ));
 
-				reply.put( "msg", updateRemote( msg ));
+				Map	msg_out;
 				
+				if ( plugin_enabled && tracker_enabled ){
+					
+					msg_out = updateRemote( msg_in );
+					
+				}else{
+					
+					msg_out = new HashMap();
+				}
+				
+				msg_out.put( "seeding", new Long( seeding_only?1:0 ));
+
+				reply.put( "msg", msg_out );
+
 				return( reply );
 				
+			}else if ( type == REQUEST_TRACKER_STATUS ){
+				
+				Map	reply = new HashMap();
+				
+				reply.put( "type", new Long( REPLY_TRACKER_STATUS ));
+
+				Map	msg_out = new HashMap();
+
+				msg_out.put( "seeding", new Long( seeding_only?1:0 ));
+
+				reply.put( "msg", msg_out );
+				
+				return( reply );
+
 			}else if ( type == REPLY_TRACKER_SUMMARY ){
 				
 					// full hashes on reply
 				
-				byte[]	possible_matches = (byte[])msg.get( "added" );
-				
-				if ( possible_matches != null ){
-					
-					List downloads = importFullIDs( possible_matches );
-					
-					for (int i=0;i<downloads.size();i++){
-					
-						System.out.println( buddy.getName() + ": same content " + downloads.get(i));
+				byte[]	possible_matches 		= (byte[])msg_in.get( "added" );
+				byte[]	possible_match_states 	= (byte[])msg_in.get( "added_s" );
+
+				if ( possible_matches != null && possible_match_states != null ){
+							
+					Map downloads = importFullIDs( possible_matches, possible_match_states );
+						
+					if ( downloads.size() > 0 ){
+						
+						synchronized( this ){
+
+							if ( downloads_in_common == null ){
+								
+								downloads_in_common = new HashMap();
+							}
+							
+							Iterator it = downloads.entrySet().iterator();
+							
+							while( it.hasNext()){
+								
+								Map.Entry	entry = (Map.Entry)it.next();
+						
+								Download d = (Download)entry.getKey();
+
+								buddyDownloadData	bdd = (buddyDownloadData)entry.getValue();
+								
+								buddyDownloadData existing = (buddyDownloadData)downloads_in_common.get( d );
+								
+								if ( existing == null ){
+									
+									downloads_in_common.put( d, bdd );
+									
+								}else{
+									
+									existing.setComplete( bdd.isComplete());
+								}
+							}
+						}
 					}
 				}
 				
@@ -744,11 +882,12 @@ BuddyPluginTracker
 			return( res );
 		}
 		
-		protected byte[]
+		protected byte[][]
    		exportFullIDs(
    			List	downloads )
    		{
-   			byte[]	res = new byte[ FULL_ID_SIZE * downloads.size() ];
+   			byte[]	hashes 	= new byte[ FULL_ID_SIZE * downloads.size() ];
+   			byte[] 	states	= new byte[ downloads.size()];
    			
    			for (int i=0;i<downloads.size();i++ ){
    				
@@ -761,20 +900,23 @@ BuddyPluginTracker
    					System.arraycopy(
    						download_data.getID().getBytes(),
    						0,
-   						res,
+   						hashes,
    						i * FULL_ID_SIZE,
    						FULL_ID_SIZE );
+   					
+   					states[i] = download.isComplete( false )?(byte)0x01:(byte)0x00;
    				}
    			}
    			
-   			return( res );
+   			return( new byte[][]{ hashes, states });
    		}
 		
-		protected List
+		protected Map
 		importFullIDs(
-			byte[]		ids )
+			byte[]		ids,
+			byte[]		states )
 		{
-			List	res = new ArrayList();
+			Map	res = new HashMap();
 			
 			if ( ids != null ){
 				
@@ -786,13 +928,117 @@ BuddyPluginTracker
 						
 						if ( dl != null ){
 							
-							res.add( dl );
+							buddyDownloadData bdd = new buddyDownloadData();
+							
+							bdd.setComplete(( states[i/FULL_ID_SIZE] & 0x01 ) != 0 );
+							
+							res.put( dl, bdd );
 						}
 					}
 				}
 			}
 			
 			return( res );
+		}
+		
+		public List
+		getDownloadsToTrack()
+		{
+			List	res = new ArrayList();
+
+			if ( seeding_only == buddy_seeding_only ){
+				
+				System.out.println( buddy.getName() + ": not tracking, buddy and me both " + (seeding_only?"seeding":"downloading" ));
+
+				return( res );
+			}			
+		
+			long	now = SystemTime.getMonotonousTime();
+			
+			synchronized( this ){
+
+				if ( downloads_in_common == null ){
+					
+					System.out.println( buddy.getName() + ": not tracking, buddy has nothing in common" );
+
+					return( res );
+				}
+				
+				Iterator it = downloads_in_common.entrySet().iterator();
+				
+				while( it.hasNext()){
+					
+					Map.Entry	entry = (Map.Entry)it.next();
+			
+					Download d = (Download)entry.getKey();
+
+					buddyDownloadData	bdd = (buddyDownloadData)entry.getValue();
+					
+					if ( d.isComplete( false ) && bdd.isComplete()){
+						
+							// both complete, nothing to do!
+						
+						System.out.println( buddy.getName() + ": " + d.getName() + " - not tracking, both complete" );
+						
+					}else{
+						
+						if ( now - bdd.getTrackTime() >= TRACK_INTERVAL ){
+							
+							System.out.println( buddy.getName() + ": " + d.getName() + " - tracking" );
+
+							bdd.setTrackTime( now );
+							
+							res.add( d );
+						}
+					}
+				}
+			}
+			
+			return( res );
+		}
+		
+		protected boolean
+		okToTrack(
+			Download	d )
+		{
+			int state = d.getState();
+			
+			return( 	state != Download.ST_ERROR && 
+						state != Download.ST_STOPPING && 
+						state != Download.ST_STOPPED );
+		}
+	}
+	
+	private static class
+	buddyDownloadData
+	{
+		private boolean	is_complete;
+		private long	last_track;
+		
+		protected void
+		setComplete(
+			boolean		b )
+		{
+			is_complete	= b;
+		}
+	
+		protected boolean
+		isComplete()
+		{
+			return( is_complete );
+		}
+		
+		protected void
+		setTrackTime(
+			long	time )
+		{
+			last_track	= time;
+		}
+		
+		protected long
+		getTrackTime()
+		{
+			return( last_track );
 		}
 	}
 	
