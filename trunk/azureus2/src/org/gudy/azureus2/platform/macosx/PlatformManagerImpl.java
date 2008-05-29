@@ -123,6 +123,8 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 	        capabilitySet.add(PlatformManagerCapabilities.GetVersion);
         }
         AEDiagnostics.addEvidenceGenerator(this);
+        
+        checkPList();
     }
 
     /**
@@ -145,6 +147,25 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
     	return OSXAccess.getVersion();
     }
 
+    protected void
+    checkPList()
+    {
+    	try{
+			String	plist = 
+				System.getProperty("user.dir") +
+				SystemProperties.SEP+ SystemProperties.getApplicationName() + ".app/Contents/Info.plist";
+
+    		PListEditor editor = new PListEditor( plist );
+		
+    		editor.setFileTypeExtensions(new String[] {"torrent","tor","vuze","vuz"});
+    		
+    	}catch( Throwable e ){
+    		
+    		Debug.out( "Failed to update plist", e );
+    	}
+	
+    }
+    
     /**
      * {@inheritDoc}
      * @see org.gudy.azureus2.core3.util.SystemProperties#getUserPath()
