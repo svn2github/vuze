@@ -90,7 +90,7 @@ public class VuzeActivitiesEntryContentShare
 
 		setAssetImageURL(content.getThumbURL());
 
-		String textid = (message != null && message.length() > 0)
+		String textid = (message == null || message.length() == 0)
 				? "v3.activity.share-content.no-msg" : "v3.activity.share-content";
 
 		String text = MessageText.getString(textid, new String[] {
