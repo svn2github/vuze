@@ -111,18 +111,17 @@ public class SWTSkinObjectBrowser
 		context = new BrowserContext(browserID, browser, widgetIndicator,
 				properties.getBooleanValue(sConfigID + ".forceVisibleAfterLoad", true));
 
-		if (!noListeners) {
-  		context.addMessageListener(new TorrentListener(core));
-  		context.addMessageListener(new DisplayListener(browser));
-  		context.addMessageListener(new ConfigListener(browser));
-  		context.addMessageListener(new PublishListener(skin.getShell(), this));
-  		context.addMessageListener(new LightBoxBrowserRequestListener());
-  		context.addMessageListener(new StatusListener());
-  		context.addMessageListener(new BrowserRpcBuddyListener());
-  		context.addMessageListener(new MetaSearchListener());
+		context.addMessageListener(new TorrentListener(core));
+		context.addMessageListener(new DisplayListener(browser));
+		context.addMessageListener(new ConfigListener(browser));
+		context.addMessageListener(new PublishListener(skin.getShell(), this));
+		context.addMessageListener(new LightBoxBrowserRequestListener());
+		context.addMessageListener(new StatusListener());
+		context.addMessageListener(new BrowserRpcBuddyListener());
+		context.addMessageListener(new MetaSearchListener());
 
-  		PublishUtils.setupContext(context);
-		} else {
+		PublishUtils.setupContext(context);
+		if (noListeners) {
 			context.setCheckBlocked(false);
 		}
 

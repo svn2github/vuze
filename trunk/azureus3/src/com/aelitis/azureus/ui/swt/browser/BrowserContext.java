@@ -29,7 +29,6 @@ import org.eclipse.swt.browser.*;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.internal.Platform;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
 
@@ -383,7 +382,8 @@ public class BrowserContext
 			}
 		});
 
-		getMessageDispatcher().registerBrowser(browser);
+		// check if blocked only if we aren't already blocking
+		getMessageDispatcher().registerBrowser(browser, !checkBlocked);
 		this.browser = browser;
 		this.display = browser.getDisplay();
 	}

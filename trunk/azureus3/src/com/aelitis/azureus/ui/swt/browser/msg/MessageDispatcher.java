@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
+import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 
 /**
@@ -74,6 +75,8 @@ public class MessageDispatcher implements StatusTextListener, TitleListener
 
 		private Browser browser;
 
+		private boolean checkBlocked;
+
 
     /**
      * Registers itself as a listener to receive sequence number reset message.
@@ -83,14 +86,20 @@ public class MessageDispatcher implements StatusTextListener, TitleListener
     }
 
 
+    public void registerBrowser ( Browser browser ) {
+    	registerBrowser(browser, false);
+    }
+
     /**
      * Attaches this dispatcher to the given {@link Browser} to receive
      * status text change and dispose events.
      * 
      * @param browser {@link Browser} which will send events
+     * @param checkBlocked 
      */
-    public void registerBrowser ( Browser browser ) {
+    public void registerBrowser ( Browser browser, boolean checkBlocked ) {
         this.browser = browser;
+				this.checkBlocked = checkBlocked;
 				browser.addStatusTextListener(this);
         browser.addTitleListener(this);
     }
@@ -186,6 +195,11 @@ public class MessageDispatcher implements StatusTextListener, TitleListener
 		
 	private void processIncomingMessage(String msg, String referer) {
 		if (msg == null) {
+			return;
+		}
+		
+		if (checkBlocked && PlatformConfigMessenger.isURLBlocked(referer)) {
+			context.debug("blocked " + msg + "\n  " + referer);
 			return;
 		}
 
