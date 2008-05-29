@@ -57,6 +57,7 @@ import com.aelitis.azureus.ui.swt.views.skin.widgets.FriendsList;
 import com.aelitis.azureus.ui.swt.views.skin.widgets.MiniCloseButton;
 import com.aelitis.azureus.ui.swt.views.skin.widgets.SkinLinkLabel;
 import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.FAQTopics;
 import com.aelitis.azureus.util.ImageDownloader;
 import com.aelitis.azureus.util.JSONUtils;
 import com.aelitis.azureus.util.ImageDownloader.ImageDownloaderListener;
@@ -189,8 +190,9 @@ public class SharePage
 		optionalMessageDisclaimerLabel = new Label(firstPanel, SWT.NONE);
 		commentText = new Text(contentDetail, SWT.WRAP);
 
-		optionalMessageDisclaimerLinkLabel = new SkinLinkLabel(firstPanel,
-				Constants.URL_FAQ);
+		String url = Constants.URL_FAQ_BY_TOPIC_ENTRY
+				+ FAQTopics.FAQ_TOPIC_WHAT_IS_SECURE_SHARING;
+		optionalMessageDisclaimerLinkLabel = new SkinLinkLabel(firstPanel, url);
 
 	}
 
@@ -259,7 +261,7 @@ public class SharePage
 				SWT.LEFT);
 		inviteePanelData.right = new FormAttachment(buddyList.getControl(), 0,
 				SWT.RIGHT);
-		inviteePanelData.height = 115;
+		//		inviteePanelData.height = 115;
 		inviteePanel.setLayoutData(inviteePanelData);
 
 		FormData inviteeListData = new FormData();
@@ -271,6 +273,7 @@ public class SharePage
 
 		FormData addBuddyButtonData = new FormData();
 		addBuddyButtonData.top = new FormAttachment(inviteeList.getControl(), 8);
+		addBuddyButtonData.bottom = new FormAttachment(100, -8);
 		addBuddyButtonData.right = new FormAttachment(inviteeList.getControl(), -8,
 				SWT.RIGHT);
 		size = addBuddyButton.computeSize(SWT.DEFAULT, SWT.DEFAULT);
@@ -280,6 +283,7 @@ public class SharePage
 
 		FormData addBuddyLabelData = new FormData();
 		addBuddyLabelData.top = new FormAttachment(inviteeList.getControl(), 8);
+		addBuddyLabelData.bottom = new FormAttachment(100, -8);
 		addBuddyLabelData.right = new FormAttachment(addBuddyButton, -8);
 		addBuddyLabelData.left = new FormAttachment(0, 8);
 		addBuddyPromptLabel.setLayoutData(addBuddyLabelData);

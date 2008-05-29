@@ -36,6 +36,10 @@ public class SkinLinkLabel
 		linkLabel.setForeground(textLinkColor);
 		linkLabel.setCursor(Cursors.handCursor);
 
+		if (null != url && url.length() > 0) {
+			linkLabel.setToolTipText(url);
+		}
+
 		Listener linkListener = new Listener() {
 			public void handleEvent(Event event) {
 				if (event.type == SWT.MouseDown) {

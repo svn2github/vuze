@@ -88,13 +88,19 @@ public class Constants
 
 	public static final String URL_FAQ = URL_PREFIX + "Support.html";
 
+	/**
+	 * To use this append the topic number to the end or use a pre-defined topic constant found in
+	 * <code>FAQTopics</code>
+	 */
+	public static final String URL_FAQ_BY_TOPIC_ENTRY = "http://faq.vuze.com/?View=entry&EntryID=";
+
 	public static final String URL_PUBLISH_INFO = URL_PREFIX + "Publish.html";
 
 	public static final String URL_RPC = "rpc/";
 
-	public static String URL_RELAY_RPC = System.getProperty("relay_url", "http://"
-			+ System.getProperty("relay_address", DEFAULT_RELAY_ADDRESS) + ":"
-			+ System.getProperty("relay_port", DEFAULT_RELAY_PORT) + "/app");
+	public static String URL_RELAY_RPC = System.getProperty("relay_url",
+			"http://" + System.getProperty("relay_address", DEFAULT_RELAY_ADDRESS)
+					+ ":" + System.getProperty("relay_port", DEFAULT_RELAY_PORT) + "/app");
 
 	public static final String URL_AUTHORIZED_RPC = System.getProperty(
 			"authorized_rpc", "1").equals("1") ? DEFAULT_AUTHORIZED_RPC : URL_PREFIX
@@ -111,9 +117,10 @@ public class Constants
 	public static final String URL_MY_PROFILE = "profile.start";
 
 	public static final String URL_ACCOUNT = "account.start";
-	
+
 	// WARNING: TODO -- This is temporary and must be removed once the buddies features are complete
-	public static final boolean DISABLE_BUDDIES_BAR = System.getProperty("debug.buddies.bar", "0").equals("0");
+	public static final boolean DISABLE_BUDDIES_BAR = System.getProperty(
+			"debug.buddies.bar", "0").equals("0");
 
 	/**
 	 * This verifier value is only used to validate that the page we're loading is

@@ -35,6 +35,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapte
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.views.skin.widgets.PaginationWidget;
 import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.FAQTopics;
 
 public class BuddiesViewer
 	extends SkinView
@@ -777,7 +778,8 @@ public class BuddiesViewer
 			SWTSkinButtonUtility FAQButton = new SWTSkinButtonUtility(FAQObject);
 			FAQButton.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					Utils.launch(Constants.URL_FAQ);
+					String url = Constants.URL_FAQ_BY_TOPIC_ENTRY + FAQTopics.FAQ_TOPIC_WHAT_ARE_FRIENDS;
+					Utils.launch(url);
 				}
 			});
 		}
