@@ -131,6 +131,9 @@ public class Browse
 	 * @since 3.0.5.3
 	 */
 	protected SelectedContent[] getCurrentlySelectedContent() {
+		if (browserSkinObject == null) {
+			return null;
+		}
 		Browser browser = browserSkinObject.getBrowser();
 		if (browser == null) {
 			return null;

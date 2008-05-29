@@ -9,6 +9,7 @@ import java.util.Iterator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -283,6 +284,29 @@ public class SWTSkinObjectBasic
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (control != null && !control.isDisposed()) {
+					Object ld = control.getLayoutData();
+					if (ld instanceof FormData) {
+						FormData fd = (FormData) ld;
+						if (!visible) {
+							if (fd.width != 0 && fd.height != 0) {
+								control.setData("oldSize", new Point(fd.width, fd.height));
+							}
+							fd.width = 0;
+							fd.height = 0;
+						} else {
+							Object oldSize = control.getData("oldSize");
+							Point oldSizePoint = (oldSize instanceof Point) ? (Point) oldSize
+									: new Point(SWT.DEFAULT, SWT.DEFAULT);
+							if (fd.width <= 0) {
+								fd.width = oldSizePoint.x;
+							}
+							if (fd.height <= 0) {
+								fd.height = oldSizePoint.y;
+							}
+						}
+						control.setLayoutData(fd);
+						Utils.relayout(control);
+					}
 					control.setVisible(visible);
 					setIsVisible(visible);
 				}
@@ -296,8 +320,12 @@ public class SWTSkinObjectBasic
 			return;
 		}
 
-		setVisible(properties.getStringValue(sConfigID + ".visible", "true").equalsIgnoreCase(
-				"true"));
+		setVisible(getDefaultVisibility());
+	}
+	
+	public boolean getDefaultVisibility() {
+		return properties.getStringValue(sConfigID + ".visible", "true").equalsIgnoreCase(
+		"true");
 	}
 
 	public boolean isVisible() {
@@ -436,6 +464,10 @@ public class SWTSkinObjectBasic
 			listeners.add(listener);
 		} finally {
 			listeners_mon.exit();
+		}
+		
+		if (isVisible) {
+			listener.eventOccured(this, SWTSkinObjectListener.EVENT_SHOW, null);
 		}
 	}
 

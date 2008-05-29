@@ -1757,10 +1757,21 @@ public class MainWindow
 				Control control = skinObject.getControl();
 				control.addListener(SWT.MouseDown, l);
 				control.addListener(SWT.MouseUp, l);
-				int h = COConfigurationManager.getIntParameter("v3.topbar.height");
-				//control.setData("v3.oldHeight", new Point(SWT.DEFAULT, h));
-				FormData formData = (FormData) control.getLayoutData();
-				formData.height = h;
+
+				skinObject.addListener(new SWTSkinObjectListener() {
+					public Object eventOccured(SWTSkinObject skinObject, int eventType,
+							Object params) {
+						if (eventType == EVENT_SHOW) {
+							int h = COConfigurationManager.getIntParameter("v3.topbar.height");
+							Control control = skinObject.getControl();
+							FormData formData = (FormData) control.getLayoutData();
+							formData.height = h;
+							control.setLayoutData(formData);
+							Utils.relayout(control);
+						}
+						return null;
+					}
+				});
 			}
 		} catch (Exception e) {
 			Debug.out(e);

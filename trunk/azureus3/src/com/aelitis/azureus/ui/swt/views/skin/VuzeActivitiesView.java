@@ -577,6 +577,9 @@ public class VuzeActivitiesView
 	}
 
 	public SelectedContent[] getCurrentlySelectedContent() {
+		if (view == null) {
+			return null;
+		}
 		List listContent = new ArrayList();
 		Object[] selectedDataSources = view.getSelectedDataSources(true);
 		for (int i = 0; i < selectedDataSources.length; i++) {

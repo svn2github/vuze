@@ -723,6 +723,13 @@ public class SWTSkin
 				newFormData.height);
 		newFormData.width = properties.getIntValue(sConfigID + ".width",
 				newFormData.width);
+		if (!skinObject.getDefaultVisibility()) {
+			if (newFormData.width != 0 && newFormData.height != 0) {
+				controlToLayout.setData("oldSize", new Point(newFormData.width, newFormData.height));
+			}
+			newFormData.width = 0;
+			newFormData.height = 0;
+		}
 		controlToLayout.setLayoutData(newFormData);
 	}
 
