@@ -90,8 +90,6 @@ public class BuddiesViewer
 
 	private Color highlightedColor = null;
 
-	private List sharedAvatars = new ArrayList();
-
 	private SWTSkinObject soNoBuddies;
 
 	private int currentPage = 0;
@@ -657,11 +655,8 @@ public class BuddiesViewer
 	}
 
 	public void addToShare(AvatarWidget widget) {
-		if (false == sharedAvatars.contains(widget)) {
-			sharedAvatars.add(widget);
-			sharePage.addBuddy(widget.getVuzeBuddy());
-			widget.setSharedAlready(true);
-		}
+		sharePage.addBuddy(widget.getVuzeBuddy());
+		widget.setSharedAlready(true);
 	}
 
 	public void addToShare(VuzeBuddy buddy) {
@@ -677,7 +672,7 @@ public class BuddiesViewer
 
 		if (null != buddy) {
 			AvatarWidget widget = null;
-			for (Iterator iterator = sharedAvatars.iterator(); iterator.hasNext();) {
+			for (Iterator iterator = avatarWidgets.iterator(); iterator.hasNext();) {
 				widget = (AvatarWidget) iterator.next();
 				if (null != widget.getVuzeBuddy()) {
 					if (true == buddy.getLoginID().equals(
@@ -692,10 +687,6 @@ public class BuddiesViewer
 					widget = null;
 				}
 			}
-
-			if (null != widget) {
-				sharedAvatars.remove(widget);
-			}
 		}
 
 	}
@@ -704,12 +695,6 @@ public class BuddiesViewer
 
 		if (this.isShareMode != isShareMode) {
 			this.isShareMode = isShareMode;
-
-			/*
-			 * Clears the shared list
-			 */
-			sharedAvatars.clear();
-
 			for (Iterator iterator = avatarWidgets.iterator(); iterator.hasNext();) {
 				AvatarWidget widget = (AvatarWidget) iterator.next();
 				if (false == isShareMode) {
@@ -778,7 +763,8 @@ public class BuddiesViewer
 			SWTSkinButtonUtility FAQButton = new SWTSkinButtonUtility(FAQObject);
 			FAQButton.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					String url = Constants.URL_FAQ_BY_TOPIC_ENTRY + FAQTopics.FAQ_TOPIC_WHAT_ARE_FRIENDS;
+					String url = Constants.URL_FAQ_BY_TOPIC_ENTRY
+							+ FAQTopics.FAQ_TOPIC_WHAT_ARE_FRIENDS;
 					Utils.launch(url);
 				}
 			});
