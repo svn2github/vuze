@@ -56,10 +56,24 @@ import org.gudy.azureus2.plugins.platform.PlatformManagerException;
  *
  */
 public class ManagerUtils {
+	
+	private static RunDownloadManager run;
+
+	public static interface RunDownloadManager {
+		public void run(DownloadManager dm);
+	}
+	
+	public static void setRunRunnable(RunDownloadManager run) {
+		ManagerUtils.run = run;
+	}
   
   public static void run(DownloadManager dm) {
     if(dm != null) {
-    	Utils.launch(dm.getSaveLocation().toString());
+    	if (run != null) {
+    		run.run(dm);
+    	} else {
+    		Utils.launch(dm.getSaveLocation().toString());
+    	}
     }
   }
   
