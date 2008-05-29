@@ -694,20 +694,51 @@ public class MainWindow
 					final String id = "share";
 					tiShare.setData(id, "share");
 					((ToolItem) tiShare.getWidget()).setToolTipText(MessageText.getString("v3.MainWindow.button.sendtofriend"));
+					boolean newTag = COConfigurationManager.getBooleanParameter("ui.adv.share.newtag", true);
+
 					final Image shareImage = imageLoader.getImage("image.button.sharewhite");
-					Image newTagImage = imageLoader.getImage("image.newtag");
-					final Rectangle shareBounds = shareImage.getBounds();
-					int width = shareBounds.width + newTagImage.getBounds().width;
-					Image bg = Utils.createAlphaImage(display, width,
-							shareImage.getBounds().height, (byte) 0);
+					
+					if (newTag) {
+  					Image newTagImage = imageLoader.getImage("image.newtag");
+  					final Rectangle shareBounds = shareImage.getBounds();
+  					int width = shareBounds.width + newTagImage.getBounds().width;
+  					Image bg = Utils.createAlphaImage(display, width,
+  							shareImage.getBounds().height, (byte) 0);
+  
+  					final Image dstImage1 = Utils.renderTransparency(display, bg, shareImage,
+  							new Point(0, 0), 255);
+  					
+  					
+  					Image dstImage = Utils.renderTransparency(display, dstImage1,
+  							newTagImage, new Point(shareBounds.width, 0), 255);
+  
+  					bg.dispose();
+  					tiShare.setImage(dstImage);
 
-					final Image dstImage1 = Utils.renderTransparency(display, bg, shareImage,
-							new Point(0, 0), 255);
-					Image dstImage = Utils.renderTransparency(display, dstImage1,
-							newTagImage, new Point(shareBounds.width, 0), 255);
+  					tiShare.addListener(SWT.Selection, new Listener() {
+  						public void handleEvent(Event e) {
+  							COConfigurationManager.setParameter("ui.adv.share.newtag", false);
+  							tiShare.setImage(dstImage1);
+  							SelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
+  							if (contents.length > 0) {
+  								VuzeShareUtils.getInstance().shareTorrent(contents[0],
+  										"advanced");
+  							}
+  						}
+  					});
+					} else {
+						tiShare.setImage(shareImage);
 
-					bg.dispose();
-					tiShare.setImage(dstImage);
+						tiShare.addListener(SWT.Selection, new Listener() {
+							public void handleEvent(Event e) {
+								SelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
+								if (contents.length > 0) {
+									VuzeShareUtils.getInstance().shareTorrent(contents[0],
+											"advanced");
+								}
+							}
+						});
+					}
 
 					ib.addITemKeyToControl(id, tiShare);
 					tb.pack();
@@ -715,17 +746,6 @@ public class MainWindow
 					coolItem.setControl(tb);
 					coolItem.setSize(p.x, p.y);
 					coolItem.setMinimumSize(p.x, p.y);
-
-					tiShare.addListener(SWT.Selection, new Listener() {
-						public void handleEvent(Event e) {
-							tiShare.setImage(dstImage1);
-							SelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
-							if (contents.length > 0) {
-								VuzeShareUtils.getInstance().shareTorrent(contents[0],
-										"advanced");
-							}
-						}
-					});
 				}
 			});
 		} finally {

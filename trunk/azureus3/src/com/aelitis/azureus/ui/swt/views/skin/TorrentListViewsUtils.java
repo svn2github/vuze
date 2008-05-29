@@ -124,7 +124,7 @@ public class TorrentListViewsUtils
 	}
 
 	public static SWTSkinButtonUtility addNewTagButton(final SWTSkin skin,
-			String PREFIX, final ListView view) {
+			final String PREFIX, final ListView view) {
 		SWTSkinObject skinObject = skin.getSkinObject(PREFIX + "newtag");
 		if (skinObject == null) {
 			return null;
@@ -134,7 +134,14 @@ public class TorrentListViewsUtils
 
 		btn.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
 			public void pressed(SWTSkinButtonUtility buttonUtility) {
-				btn.setImage("");
+				SelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
+				if (contents.length > 0) {
+					/*
+					 * KN: we're only supporting sharing a single content right now
+					 */
+					VuzeShareUtils.getInstance().shareTorrent(contents[0],
+							PREFIX + "-btn");
+				}
 			}
 		});
 		return btn;
