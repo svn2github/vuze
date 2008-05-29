@@ -297,6 +297,7 @@ public class VuzeActivitiesView
 					}
 				}
 			});
+			btnSortByDate.getSkinObject().switchSuffix("-selected", 1, false);
 		}
 
 		skinObject = skin.getSkinObject(PREFIX + "sortby-type");
