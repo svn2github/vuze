@@ -2096,18 +2096,38 @@ public class MainWindow
 	public void tabChanged(SWTSkinTabSet tabSet, String oldTabID, String newTabID) {
 		boolean isDashboardTab = tabSet.getID().equals(
 				SkinConstants.TABSET_DASHBOARD_LEFT);
+		boolean isMainTab = tabSet.getID().equals(SkinConstants.TABSET_MAIN);
 		if (mapTrackUsage != null) {
-			String id = oldTabID;
-			if (oldTabID.equals("maintabs.home") || isDashboardTab) {
-				SWTSkinTabSet tabSetLeft = skin.getTabSet(SkinConstants.TABSET_DASHBOARD_LEFT);
-				if (tabSetLeft != null && tabSetLeft.getActiveTab() != null) {
-					id += "-" + tabSetLeft.getActiveTab().getSkinObjectID();
+			String id = "";
+			if (isMainTab) {
+				id = oldTabID;
+			} else {
+				SWTSkinTabSet tabMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
+				SWTSkinObjectTab tab = tabMain.getActiveTab();
+				if (tab != null) {
+					id = tab.getSkinObjectID();
 				}
 			}
-			updateMapTrackUsage(id);
+			if (id.length() > 9) {
+				id = id.substring(9);
+			}
+			String id2 = "";
+			if (isDashboardTab) {
+				id2 = oldTabID;
+			} else if (oldTabID.equals("maintabs.home")) {
+				SWTSkinTabSet tabSetLeft = skin.getTabSet(SkinConstants.TABSET_DASHBOARD_LEFT);
+				if (tabSetLeft != null && tabSetLeft.getActiveTab() != null) {
+					id2 = tabSetLeft.getActiveTab().getSkinObjectID();
+				}
+			}
+			if (id2.length() > 8) {
+				id2 = "-" + id2.substring(8);
+			}
+
+			updateMapTrackUsage(id + id2);
 		}
 
-		if (tabSet.getID().equals(SkinConstants.TABSET_MAIN)) {
+		if (isMainTab) {
 			// TODO: Don't use internal skin IDs.  Skin needs to provide an ViewID
 			//        we can query (or is passed in)
 			if (newTabID.equals("maintabs.advanced")) {
