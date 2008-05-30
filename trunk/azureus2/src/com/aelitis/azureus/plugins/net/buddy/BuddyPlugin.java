@@ -37,7 +37,10 @@ import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SHA1Simple;
+import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
@@ -158,6 +161,7 @@ BuddyPlugin
 	private boolean			ready_to_publish;
 	private publishDetails	current_publish		= new publishDetails();
 	private publishDetails	latest_publish		= current_publish;
+	private long			last_publish_start;
 	
 	
 	private AsyncDispatcher	publish_dispatcher = new AsyncDispatcher();
@@ -1312,6 +1316,8 @@ BuddyPlugin
 			
 			payload.put( "s", new Long( next_seq ));
 			
+			boolean	failed_to_get_key = true;
+			
 			try{
 				byte[] data = BEncoder.encode( payload );
 										
@@ -1319,6 +1325,8 @@ BuddyPlugin
 	
 				byte[] signature = ecc_handler.sign( data, "Friend online status" );
 			
+				failed_to_get_key = false;
+				
 				byte[]	signed_payload = new byte[ 1 + signature.length + data.length ];
 				
 				signed_payload[0] = (byte)signature.length;
@@ -1334,6 +1342,8 @@ BuddyPlugin
 					
 					logMessage( "Publishing status starts: " + details.getString());
 				}
+				
+				last_publish_start = SystemTime.getMonotonousTime();
 				
 				ddb.write(
 					new DistributedDatabaseListener()
@@ -1376,6 +1386,36 @@ BuddyPlugin
 			}catch( Throwable e ){
 				
 				logMessage( "Failed to publish online status", e );
+				
+				if ( failed_to_get_key ){
+					
+					if ( 	last_publish_start == 0 ||
+							SystemTime.getMonotonousTime() - last_publish_start > STATUS_REPUBLISH_PERIOD ){
+					
+						log( "Rescheduling publish as failed to get key" );
+					
+						SimpleTimer.addEvent(
+							"BuddyPlugin:republish",
+							SystemTime.getCurrentTime() + 60*1000,
+							new TimerEventPerformer()
+							{
+								public void 
+								perform(
+									TimerEvent event) 
+								{
+									if ( 	last_publish_start == 0 ||
+											SystemTime.getMonotonousTime() - last_publish_start > STATUS_REPUBLISH_PERIOD ){
+									
+										if ( latest_publish.isEnabled()){
+											
+											updatePublish( latest_publish );
+										}
+									}
+								}
+							});
+							
+					}	
+				}
 			}
 		}
 	}
