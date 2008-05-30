@@ -109,10 +109,11 @@ public class WebResult extends Result {
 			try {
 				this.nbPeers = Integer.parseInt(nbPeersS);
 			} catch(Throwable e) {
-				e.printStackTrace();
+				this.nbPeers = 0;
+				//e.printStackTrace();
 			}
 		}
-	}
+	}	
 	
 	public void setNbSeedsFromHTML(String nbSeeds) {
 		if(nbSeeds != null) {
@@ -123,7 +124,8 @@ public class WebResult extends Result {
 			try {
 				this.nbSeeds = Integer.parseInt(nbSeedsS);
 			} catch(Throwable e) {
-				e.printStackTrace();
+				this.nbSeeds = 0;
+				//e.printStackTrace();
 			}
 		}
 	}
