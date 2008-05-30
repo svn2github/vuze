@@ -40,7 +40,7 @@ public class DateParserRegex extends DateParser {
 	private static final Pattern hasLettersPattern = Pattern.compile("(?i).*[a-z]");
 	private static final Pattern isAgeBasedPattern = Pattern.compile("(?i)(ago)|(min)|(hour)|(day)|(week)|(month)|(year)|([0-9](h|d|w|m|y))");
 	private static final Pattern getTimeComponent = Pattern.compile("(?i)([0-9]{2}):([0-9]{2})(:([0-9]{2}))?( ?(a|p)m)?");
-	private static final Pattern timeBasedDateWithLettersPattern = Pattern.compile("(?i)([0-9]{1,2})[^ ]{0,2} ([a-z]{3,10})\\.? ?([0-9]{2,4})?");
+	private static final Pattern timeBasedDateWithLettersPattern = Pattern.compile("(?i)([0-9]{1,2})[^ ]{0,2}(?: |-)([a-z]{3,10})\\.?(?: |-)?([0-9]{2,4})?");
 	private static final Pattern todayPattern = Pattern.compile("(?i)(t.?day)");
 	private static final Pattern yesterdayPattern = Pattern.compile("(?i)(y[a-z\\-]+day)");
 	private static final Pattern agoSpacerPattern = Pattern.compile("(?i)([0-9])([a-z])");
@@ -396,6 +396,7 @@ public class DateParserRegex extends DateParser {
 		dateParser.parseDate("2007-07-14");	//
 		dateParser.parseDate("2008.04.28");	//
 		dateParser.parseDate("16/04/08");	//
+		dateParser.parseDate("20-Dec-07");	//
 		
 	}
 	
