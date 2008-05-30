@@ -271,7 +271,7 @@ EngineImpl
 					
 					JSONObject mapping = (JSONObject)mappings.get(i);
 					
-					String	from_str 	= (String)mapping.get( level_1?"from_string":"cat_string" );
+					String	from_str 	= URLDecoder.decode((String)mapping.get( level_1?"from_string":"cat_string" ),"UTF-8");
 
 					if ( from_str == null ){
 						
@@ -282,7 +282,7 @@ EngineImpl
 					
 					from_str 	= URLDecoder.decode( from_str, "UTF-8" );
 					
-					String	to_str 		= (String)mapping.get( level_1?"to_string":"media_type" );
+					String	to_str 		= URLDecoder.decode((String)mapping.get( level_1?"to_string":"media_type" ),"UTF-8");
 					
 					if ( to_str == null ){
 						
