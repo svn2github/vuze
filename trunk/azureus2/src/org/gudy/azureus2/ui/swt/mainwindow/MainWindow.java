@@ -776,6 +776,8 @@ public class MainWindow
 	}
 
 	private void showMainWindow() {
+		COConfigurationManager.addAndFireParameterListener("Show Download Basket",this);
+
 		if (!bShowMainWindow) {
 			return;
 		}
@@ -821,8 +823,6 @@ public class MainWindow
 				}
 			}
 		}
-
-		COConfigurationManager.addAndFireParameterListener("Show Download Basket",this);
 
 			// do this before other checks as these are blocking dialogs to force order
 
