@@ -360,17 +360,6 @@ public abstract class SkinButton
 		}, false);
 	}
 
-	public void setVisible(boolean visible) {
-		if (isVisible() != visible) {
-			super.setVisible(visible);
-			if (false == visible) {
-				currentState = WIDGET_STATE_NOT_VISIBLE;
-			} else {
-				refreshVisuals();
-			}
-		}
-	}
-
 	public Color getForegroundHover() {
 		return foregroundHover;
 	}

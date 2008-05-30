@@ -1,8 +1,15 @@
 package com.aelitis.azureus.ui.swt.browser.listener;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import org.eclipse.swt.browser.Browser;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
@@ -28,10 +35,6 @@ public abstract class AbstractBuddyPageListener
 
 	protected Browser browser;
 
-	private List invitedBuddies = new ArrayList();
-
-	private List invitedEmails = new ArrayList();
-
 	private Map confirmationResponse = null;
 
 	private String confirmationMessage = null;
@@ -43,66 +46,75 @@ public abstract class AbstractBuddyPageListener
 		this.browser = browser;
 	}
 
-	public void handleMessage(BrowserMessage message) {
-		System.out.println(message.getFullMessage());//KN: sysout
-		String opID = message.getOperationId();
-		decodedMap = message.getDecodedMap();
-		if (true == OP_CLOSE.equals(opID)) {
-			handleClose();
-		} else if (true == OP_CANCEL.equals(opID)) {
-			handleCancel();
-		} else if (true == OP_INVITEES.equals(opID)) {
+	public void handleMessage(final BrowserMessage message) {
 
-			if (true == decodedMap.containsKey(OP_INVITEES_PARAM_BUDDIES)) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				String opID = message.getOperationId();
+				decodedMap = message.getDecodedMap();
+				if (true == OP_CLOSE.equals(opID)) {
+					handleClose();
+				} else if (true == OP_CANCEL.equals(opID)) {
+					handleCancel();
+				} else if (true == OP_INVITEES.equals(opID)) {
 
-				invitedBuddies.clear();
+					if (true == decodedMap.containsKey(OP_INVITEES_PARAM_BUDDIES)) {
+						handleBuddyInvites();
+					}
+					if (true == decodedMap.containsKey(OP_INVITEES_PARAM_EMAILS)) {
+						handleEmailInvites();
+					}
 
-				List invitedBuddyMaps = MapUtils.getMapList(decodedMap,
-						OP_INVITEES_PARAM_BUDDIES, new ArrayList());
-
-				for (Iterator iterator = invitedBuddyMaps.iterator(); iterator.hasNext();) {
-					Map map = (HashMap) iterator.next();
-					VuzeBuddy vBuddy = VuzeBuddyManager.createPotentialBuddy();
-					vBuddy.setDisplayName(map.get("displayName").toString());
-					vBuddy.setLoginID(map.get("name").toString());
-					invitedBuddies.add(vBuddy);
+				} else if (true == OP_INVITE_CONFIRM.equals(opID)) {
+					if (true == decodedMap.containsKey(OP_INVITE_CONFIRM_PARAM_MSG)) {
+						Object getmessageObj = decodedMap.get(OP_INVITE_CONFIRM_PARAM_MSG);
+						if (getmessageObj instanceof Map) {
+							confirmationResponse = (Map) getmessageObj;
+							confirmationMessage = MapUtils.getMapString(confirmationResponse,
+									"message", null);
+						} else if (getmessageObj instanceof String) {
+							confirmationMessage = getmessageObj.toString();
+						} else {
+							confirmationResponse = null;
+							confirmationMessage = null;
+						}
+						handleInviteConfirm();
+					}
 				}
-
-				handleBuddyInvites();
 			}
+		});
 
-			if (true == decodedMap.containsKey(OP_INVITEES_PARAM_EMAILS)) {
-				invitedEmails = MapUtils.getMapList(decodedMap,
-						OP_INVITEES_PARAM_EMAILS, new ArrayList());
-				handleEmailInvites();
-			}
-
-		} else if (true == OP_INVITE_CONFIRM.equals(opID)) {
-			if (true == decodedMap.containsKey(OP_INVITE_CONFIRM_PARAM_MSG)) {
-				Object getmessageObj = decodedMap.get(OP_INVITE_CONFIRM_PARAM_MSG);
-				System.out.println("------CONFIRM: " + getmessageObj);
-				if (getmessageObj instanceof Map) {
-					confirmationResponse = (Map) getmessageObj;
-					confirmationMessage = MapUtils.getMapString(confirmationResponse, "message", null);
-				} else if (getmessageObj instanceof String) {
-					confirmationMessage = getmessageObj.toString();
-					System.out.println("confirmationMessage revived: " + confirmationMessage);//KN: sysout
-				}
-				else{
-					confirmationResponse=null;
-					confirmationMessage=null;
-				}
-				handleInviteConfirm();
-			}
-		}
 	}
 
 	public List getInvitedBuddies() {
-		return invitedBuddies;
+
+		if (true == decodedMap.containsKey(OP_INVITEES_PARAM_BUDDIES)) {
+
+			List invitedBuddies = new ArrayList();
+
+			List invitedBuddyMaps = MapUtils.getMapList(decodedMap,
+					OP_INVITEES_PARAM_BUDDIES, new ArrayList());
+
+			for (Iterator iterator = invitedBuddyMaps.iterator(); iterator.hasNext();) {
+				Map map = (HashMap) iterator.next();
+				VuzeBuddy vBuddy = VuzeBuddyManager.createPotentialBuddy();
+				vBuddy.setDisplayName(map.get("displayName").toString());
+				vBuddy.setLoginID(map.get("name").toString());
+				invitedBuddies.add(vBuddy);
+			}
+
+			return invitedBuddies;
+		}
+
+		return Collections.EMPTY_LIST;
 	}
 
 	public List getInvitedEmails() {
-		return invitedEmails;
+		if (true == decodedMap.containsKey(OP_INVITEES_PARAM_EMAILS)) {
+			return MapUtils.getMapList(decodedMap, OP_INVITEES_PARAM_EMAILS,
+					new ArrayList());
+		}
+		return Collections.EMPTY_LIST;
 	}
 
 	public Map getConfirmationResponse() {

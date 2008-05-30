@@ -295,7 +295,7 @@ public class SharePage
 				SWT.TOP);
 		contentDetailData.left = new FormAttachment(buddyList.getControl(), 30);
 		contentDetailData.right = new FormAttachment(100, -58);
-//		contentDetailData.bottom = new FormAttachment(inviteePanel, 0, SWT.BOTTOM);
+		//		contentDetailData.bottom = new FormAttachment(inviteePanel, 0, SWT.BOTTOM);
 		contentDetailData.height = 259;
 		contentDetail.setLayoutData(contentDetailData);
 
@@ -451,6 +451,7 @@ public class SharePage
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				stackLayout.topControl = firstPanel;
+				adjustLayout();
 				content.layout();
 			}
 		});
@@ -631,11 +632,20 @@ public class SharePage
 			context.addMessageListener(new AbstractBuddyPageListener(getBrowser()) {
 
 				public void handleCancel() {
-					activateFirstPanel();
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							activateFirstPanel();
+						}
+					});
 				}
 
 				public void handleClose() {
-					activateFirstPanel();
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							activateFirstPanel();
+						}
+					});
+
 				}
 
 				public void handleBuddyInvites() {
@@ -647,7 +657,7 @@ public class SharePage
 								VuzeBuddy buddy = (VuzeBuddy) iterator.next();
 								inviteeList.addFriend(buddy);
 							}
-							adjustLayout();
+							//							adjustLayout();
 						}
 					});
 
@@ -661,7 +671,7 @@ public class SharePage
 								buddy.setDisplayName((iterator.next()).toString());
 								inviteeList.addFriend(buddy);
 							}
-							adjustLayout();
+							//							adjustLayout();
 						}
 					});
 
@@ -809,7 +819,7 @@ public class SharePage
 			contentThumbnail.setImage(null);
 		}
 		updateContentStats();
-		
+
 		adjustLayout();
 	}
 
