@@ -63,8 +63,11 @@ public class CopyOnWriteMap {
 		return this.map.isEmpty();
 	}
 	
+	/*
+	 * shouldn't return underlying map directly as open to abuse. either wrap in unmodifyable
+	 * map or implement desired features explicitly
 	public Map getMap() {
 		return this.map;
 	}
-	
+	*/
 }
