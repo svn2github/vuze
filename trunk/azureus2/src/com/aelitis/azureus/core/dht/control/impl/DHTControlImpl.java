@@ -1454,7 +1454,8 @@ DHTControlImpl
 		 */
 
 	
-	static ArrayList running = new ArrayList();
+	static ArrayList running_tasks = new ArrayList();
+	
 	final boolean useBlocking = true;
 
 	
@@ -1503,7 +1504,11 @@ DHTControlImpl
 				// start the lookup
 				public void	runSupport()
 				{
-					running.add(this);
+					synchronized( running_tasks ){
+					
+						running_tasks.add(this);
+					}
+					
 					startLookup();
 				}
 
@@ -1560,7 +1565,10 @@ DHTControlImpl
 						runningState = -1;						
 					}
 
-					running.remove(this);
+					synchronized( running_tasks ){
+						
+						running_tasks.remove(this);
+					}
 					
 					if(!error)
 					{
