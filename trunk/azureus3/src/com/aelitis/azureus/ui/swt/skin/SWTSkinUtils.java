@@ -125,6 +125,7 @@ public class SWTSkinUtils
 		if (skinObject != null) {
 			final Control control = skinObject.getControl();
 			if (control != null && !control.isDisposed()) {
+				control.setData("oldSize", new Point(1,1));
 				Boolean wasVisible = (Boolean) control.getData("lastSlideVis");
 				if (wasVisible != null && wasVisible.booleanValue() == visible) {
 					fast = true;
@@ -137,7 +138,7 @@ public class SWTSkinUtils
 				if (visible) {
 					final FormData fd = (FormData) control.getLayoutData();
 					Point size = (Point) control.getData("v3.oldHeight");
-					//System.out.println(control.getData("SkinID") + " oldHeight = " + size + ";v=" + control.getVisible() + ";s=" + control.getSize());
+					System.out.println(control.getData("SkinID") + " oldHeight = " + size + ";v=" + control.getVisible() + ";s=" + control.getSize());
 					if (size == null && control.getSize().y < 2) {
 						size = control.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 						if (fd.height > 0) {
