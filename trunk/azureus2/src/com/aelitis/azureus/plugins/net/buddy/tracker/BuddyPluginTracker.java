@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.util.Average;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SHA1;
@@ -1328,6 +1329,16 @@ BuddyPluginTracker
 	}
 	
 	protected void
+	logVerbose(
+		String		str )
+	{
+		if ( Constants.isCVSVersion()){
+			
+			log( str );
+		}
+	}
+	
+	protected void
 	log(
 		String		str,
 		Throwable 	e )
@@ -1620,7 +1631,7 @@ BuddyPluginTracker
 						
 						if ( downloads_in_common.remove( d ) != null ){
 							
-							log( "Removed " + d.getName() + " common download" );
+							logNoBuddy( "Removed " + d.getName() + " common download" );
 						}
 					}
 				
@@ -1660,7 +1671,7 @@ BuddyPluginTracker
 							
 							if ( !downloads.containsKey( download )){
 								
-								log( "Removing " + download.getName() + " from common downloads");
+								logNoBuddy( "Removing " + download.getName() + " from common downloads");
 
 								it.remove();
 							}
@@ -1682,7 +1693,7 @@ BuddyPluginTracker
 					
 					if ( existing == null ){
 						
-						log( "Adding " + d.getName() + " to common downloads (bdd=" + bdd.getString() + ")");
+						logNoBuddy( "Adding " + d.getName() + " to common downloads (bdd=" + bdd.getString() + ")");
 						
 						downloads_in_common.put( d, bdd );
 						
@@ -1695,7 +1706,7 @@ BuddyPluginTracker
 						
 							existing.setRemoteComplete( new_rc ); 
 							
-							log( "Changing " + d.getName() + " common downloads (bdd=" + existing.getString() + ")");
+							logNoBuddy( "Changing " + d.getName() + " common downloads (bdd=" + existing.getString() + ")");
 						}				
 					}
 				}
@@ -1951,7 +1962,7 @@ BuddyPluginTracker
 
 			if ( seeding_only == buddy_seeding_only ){
 				
-				log( "Not tracking, buddy and me both " + (seeding_only?"seeding":"downloading" ));
+				logVerbose( "Not tracking, buddy and me both " + (seeding_only?"seeding":"downloading" ));
 
 				return( res );
 			}			
@@ -1962,7 +1973,7 @@ BuddyPluginTracker
 
 				if ( downloads_in_common == null ){
 					
-					log( "Not tracking, buddy has nothing in common" );
+					logVerbose( "Not tracking, buddy has nothing in common" );
 
 					return( res );
 				}
@@ -1981,7 +1992,7 @@ BuddyPluginTracker
 						
 							// both complete, nothing to do!
 						
-						log( d.getName() + " - not tracking, both complete" );
+						logVerbose( d.getName() + " - not tracking, both complete" );
 						
 					}else{
 						
@@ -1990,7 +2001,7 @@ BuddyPluginTracker
 						if ( 	last_track == 0 || 
 								now - last_track >= TRACK_INTERVAL ){
 							
-							log( d.getName() + " - tracking" );
+							logNoBuddy( d.getName() + " - tracking" );
 
 							bdd.setTrackTime( now );
 							
@@ -2032,6 +2043,20 @@ BuddyPluginTracker
 			String	str )
 		{
 			BuddyPluginTracker.this.log( buddy.getName() + ": " + str );
+		}
+		
+		protected void
+		logNoBuddy(
+			String	str )
+		{
+			BuddyPluginTracker.this.log( str );
+		}
+		
+		protected void
+		logVerbose(
+			String	str )
+		{
+			BuddyPluginTracker.this.logVerbose( buddy.getName() + ": " + str );
 		}
 	}
 	
