@@ -282,9 +282,18 @@ public class SWTSkinObjectSash
 		};
 		createOn.addListener(SWT.Resize, l);
 		sash.addListener(SWT.Selection, l);
-		createOn.addListener(SWT.Show, l);
 		sash.addListener(SWT.MouseUp, l);
-		createOn.getParent().addListener(SWT.Show, l);
+		
+		addListener(new SWTSkinObjectListener() {
+			public Object eventOccured(SWTSkinObject skinObject, int eventType,
+					Object params) {
+				Event event = new Event();
+				event.type = SWT.Show;
+				
+				l.handleEvent(event);
+				return null;
+			}
+		});
 
 		String sDblClick = properties.getStringValue(sConfigID + ".dblclick");
 		if (sDblClick != null) {
