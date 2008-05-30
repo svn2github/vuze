@@ -2,6 +2,7 @@ package com.aelitis.azureus.ui.swt.views.skin.widgets;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
@@ -60,5 +61,13 @@ public class SkinLinkLabel
 
 	public Control getControl() {
 		return linkLabel;
+	}
+
+	public Font getFont() {
+		return linkLabel.getFont();
+	}
+
+	public void setFont(Font font) {
+		linkLabel.setFont(font);
 	}
 }

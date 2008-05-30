@@ -136,6 +136,8 @@ public class SharePage
 
 	private MiniCloseButton miniCloseButton;
 
+	private Font smallFont = null;
+
 	public SharePage(DetailPanel detailPanel) {
 		super(detailPanel, PAGE_ID);
 	}
@@ -152,6 +154,18 @@ public class SharePage
 
 		buddiesViewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
 
+		FontData[] fDatas = parent.getFont().getFontData();
+		for (int i = 0; i < fDatas.length; i++) {
+			fDatas[i].height -= 1;
+		}
+		smallFont = new Font(parent.getDisplay(), fDatas);
+		content.addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent e) {
+				if (null != smallFont && false == smallFont.isDisposed()) {
+					smallFont.dispose();
+				}
+			}
+		});
 		createFirstPanel();
 		createBrowserPanel();
 	}
@@ -376,7 +390,10 @@ public class SharePage
 		buddyListDescription.setForeground(textDarkerColor);
 		inviteeListDescription.setForeground(textDarkerColor);
 		optionalMessageLabel.setForeground(textDarkerColor);
+		
 		optionalMessageDisclaimerLabel.setForeground(textDarkerColor);
+		optionalMessageDisclaimerLabel.setFont(smallFont);
+		
 		addBuddyPromptLabel.setForeground(textDarkerColor);
 
 		contentStats.setForeground(textColor);
@@ -418,7 +435,8 @@ public class SharePage
 
 		Messages.setLanguageText(optionalMessageDisclaimerLinkLabel.getControl(),
 				"v3.Share.disclaimer.link");
-
+		optionalMessageDisclaimerLinkLabel.setFont(smallFont);
+		
 		Messages.setLanguageText(shareHeaderLabel, "v3.Share.header");
 		Messages.setLanguageText(shareHeaderMessageLabel, "v3.Share.header.message");
 		Messages.setLanguageText(buddyListDescription,
