@@ -195,21 +195,27 @@ PListEditor
 	private void 
 	touchFile()
 	{
-		String command[] = new String[] { "touch", plistFile };
-		
-		try{
-			Runtime.getRuntime().exec(command);
-			
-		} catch(Exception e) {
-			
-			e.printStackTrace();
+		File	file  = new File( plistFile );
+		for(int i = 0 ; i <= 2 ; i++) {
+			if(file != null) {
+				String command[] = new String[] { "touch", file.getAbsolutePath() };
+				
+				try{
+					Runtime.getRuntime().exec(command);
+					
+				} catch(Exception e) {
+					
+					e.printStackTrace();
+				}
+			}
+			file = file.getParentFile();
 		}
 	}
 	
 	public static void main(String args[]) {
 		try{
-			PListEditor editor = new PListEditor("/Applications/Azureus.app/Contents/Info.plist");
-			editor.setFileTypeExtensions(new String[] {"torrent","tor","vuze"});
+			PListEditor editor = new PListEditor("/Applications/Vuze.app/Contents/Info.plist");
+			editor.setFileTypeExtensions(new String[] {"torrent","tor","vuze","vuz"});
 			editor.setSimpleStringValue("CFBundleName", "Vuze");
 			editor.setSimpleStringValue("CFBundleTypeName", "Vuze Download");
 			editor.setSimpleStringValue("CFBundleGetInfoString","Vuze");
