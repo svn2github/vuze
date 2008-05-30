@@ -54,7 +54,7 @@ import com.aelitis.azureus.plugins.net.buddy.*;
 
 public class 
 BuddyPluginTracker 
-	implements BuddyPluginListener, DownloadManagerListener, BuddyPluginAZ2TrackerListener
+	implements BuddyPluginListener, DownloadManagerListener, BuddyPluginAZ2TrackerListener, DownloadPeerListener
 {
 	public static final Object	PEER_KEY	= new Object();
 	
@@ -68,7 +68,7 @@ BuddyPluginTracker
 	private static final int	PEER_CHECK_PERIOD		= 60*1000;
 	private static final int	PEER_CHECK_TICKS		= PEER_CHECK_PERIOD/BuddyPlugin.TIMER_PERIOD;
 
-	private static final int	TRACK_INTERVAL			= 1*60*1000;	//TODO!
+	private static final int	TRACK_INTERVAL			= 10*60*1000;
 	
 	private static final int	SHORT_ID_SIZE			= 4;
 	private static final int	FULL_ID_SIZE			= 20;
@@ -776,10 +776,12 @@ BuddyPluginTracker
 	{
 		synchronized( tracked_downloads ){
 			
-			downloadData download_data = (downloadData)download.getUserData( BuddyPluginTracker.class );
-			
-			if ( download_data != null ){
+			if ( tracked_downloads.remove( download )){
 				
+				download_set_id++;
+				
+				downloadData download_data = (downloadData)download.getUserData( BuddyPluginTracker.class );
+								
 				download.setUserData( BuddyPluginTracker.class, null );
 				
 				HashWrapper	full_id		= download_data.getID();
@@ -800,10 +802,19 @@ BuddyPluginTracker
 					}
 				}
 			}
-			
-			if ( tracked_downloads.remove( download )){
+		}
+		
+		synchronized( online_buddies ){
+
+			Iterator it = online_buddies.iterator();
 				
-				download_set_id++;
+			while( it.hasNext()){
+				
+				BuddyPluginBuddy	buddy = (BuddyPluginBuddy)it.next();
+				
+				buddyData buddy_data = getBuddyData( buddy );
+				
+				buddy_data.resetTracking( download );
 			}
 		}
 		
@@ -830,32 +841,30 @@ BuddyPluginTracker
 		}else{
 			
 			log( "Tracking peers for " + download.getName());
-			
-			download.addPeerListener(
-				new DownloadPeerListener()
-				{
-					public void
-					peerManagerAdded(
-						Download		download,
-						PeerManager		peer_manager )
-					{
-						trackPeers( download, peer_manager );
-					}
-					
-					public void
-					peerManagerRemoved(
-						Download		download,
-						PeerManager		peer_manager )
-					{
-						synchronized( actively_tracking ){
-	
-							actively_tracking.remove( download );
-						}
 						
-						download.removePeerListener( this );
-					}
-				});
+			download.addPeerListener( this );
 		}
+	}
+	
+	public void
+	peerManagerAdded(
+		Download		download,
+		PeerManager		peer_manager )
+	{
+		trackPeers( download, peer_manager );
+	}
+	
+	public void
+	peerManagerRemoved(
+		Download		download,
+		PeerManager		peer_manager )
+	{
+		synchronized( actively_tracking ){
+
+			actively_tracking.remove( download );
+		}
+		
+		download.removePeerListener( this );
 	}
 	
 	protected void
@@ -941,6 +950,8 @@ BuddyPluginTracker
 		Download		download )
 	{
 		log( "Not tracking peers for " + download.getName());
+		
+		download.removePeerListener( this );
 		
 		PeerManager pm = download.getPeerManager();
 		
@@ -1848,7 +1859,7 @@ BuddyPluginTracker
 			return( res );
 		}
 		
-		public Map
+		protected Map
 		getDownloadsToTrack()
 		{
 			Map	res = new HashMap();
@@ -1912,6 +1923,26 @@ BuddyPluginTracker
 		}
 		
 		protected void
+		resetTracking(
+			Download		download )
+		{
+			synchronized( downloads_in_common ){
+				
+				if ( downloads_in_common == null ){
+					
+					return;
+				}
+				
+				buddyDownloadData bdd = (buddyDownloadData)downloads_in_common.get( download );
+				
+				if ( bdd != null ){
+					
+					bdd.resetTrackTime();
+				}
+			}
+		}
+		
+		protected void
 		log(
 			String	str )
 		{
@@ -1970,6 +2001,12 @@ BuddyPluginTracker
 		getTrackTime()
 		{
 			return( last_track );
+		}
+		
+		protected void
+		resetTrackTime()
+		{
+			last_track	= 0;
 		}
 		
 		protected String
