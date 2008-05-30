@@ -548,15 +548,6 @@ public class BuddiesViewer
 
 	private AvatarWidget findWidget(VuzeBuddy buddy) {
 		if (null != buddy) {
-			//			AvatarWidget[] widgets = (AvatarWidget[]) avatarWidgets.toArray(new AvatarWidget[avatarWidgets.size()]);
-			//			for (int i = 0; i < widgets.length; i++) {
-			//				if (null != widgets[i].getVuzeBuddy()) {
-			//					if (true == buddy.getLoginID().equals(
-			//							widgets[i].getVuzeBuddy().getLoginID())) {
-			//						return widgets[i];
-			//					}
-			//				}
-			//			}
 			for (Iterator iterator = avatarWidgets.iterator(); iterator.hasNext();) {
 				AvatarWidget widget = (AvatarWidget) iterator.next();
 				if (null != widget.getVuzeBuddy()) {
