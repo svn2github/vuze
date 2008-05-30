@@ -164,22 +164,27 @@ GenericMessageConnectionIndirect
 						
 						synchronized( remote_connections ){
 							
-							Iterator	it = remote_connections.values().iterator();
-							
-							while( it.hasNext()){
+							if ( remote_connections.size() > 0 ){
 								
-								GenericMessageConnectionIndirect con = (GenericMessageConnectionIndirect)it.next();
-						
-								long	last_receive = con.getLastMessageReceivedTime();
+									// copy the connections here as we can recursively modify  the set when closing
 								
-								if ( now - last_receive > KEEP_ALIVE_MIN * 3 ){
+								Iterator	it = new ArrayList( remote_connections.values()).iterator();
+								
+								while( it.hasNext()){
 									
-									try{
-										con.close( new Throwable( "Timeout" ));
+									GenericMessageConnectionIndirect con = (GenericMessageConnectionIndirect)it.next();
+							
+									long	last_receive = con.getLastMessageReceivedTime();
+									
+									if ( now - last_receive > KEEP_ALIVE_MIN * 3 ){
 										
-									}catch( Throwable e ){
-										
-										Debug.printStackTrace(e);
+										try{
+											con.close( new Throwable( "Timeout" ));
+											
+										}catch( Throwable e ){
+											
+											Debug.printStackTrace(e);
+										}
 									}
 								}
 							}
