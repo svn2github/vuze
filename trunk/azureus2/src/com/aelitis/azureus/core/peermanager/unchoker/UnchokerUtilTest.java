@@ -214,6 +214,14 @@ public class UnchokerUtilTest {
 			// TODO Auto-generated method stub
 			return 0;
 		}
+		public Object getUserData(Object key) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+		public void setUserData(Object key, Object value) {
+			// TODO Auto-generated method stub
+			
+		}
       };
       
      f_stats[0] = new PEPeerStats() {

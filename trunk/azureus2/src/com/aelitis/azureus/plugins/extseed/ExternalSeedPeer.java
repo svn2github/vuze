@@ -32,6 +32,8 @@ import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.utils.*;
 
+import com.aelitis.azureus.core.util.CopyOnWriteList;
+
 
 public class 
 ExternalSeedPeer
@@ -59,8 +61,8 @@ ExternalSeedPeer
 	
 	private List					request_list = new ArrayList();
 	
-	private List					listenerList;
-	private Monitor					listenerListMon;
+	private CopyOnWriteList			listeners;
+	private Monitor					listeners_mon;
 		
 	private boolean					doing_allocations;
 	
@@ -91,8 +93,8 @@ ExternalSeedPeer
 		peer_id[2]='t';
 		peer_id[3]=' ';
 		
-		listenerList =new ArrayList();
-		listenerListMon	= plugin.getPluginInterface().getUtilities().getMonitor();
+		listeners = new CopyOnWriteList();
+		listeners_mon	= plugin.getPluginInterface().getUtilities().getMonitor();
 		
 		_reader.addListener( this );
 	}
@@ -207,7 +209,7 @@ ExternalSeedPeer
 			setState(Peer.TRANSFERING);
 	
 			try{
-				listenerListMon.enter();
+				listeners_mon.enter();
 	
 				if ( availabilityAdded ){
 					
@@ -222,7 +224,7 @@ ExternalSeedPeer
 			
 			}finally{
 				
-				listenerListMon.exit();
+				listeners_mon.exit();
 			}
 		}
 	}
@@ -233,7 +235,7 @@ ExternalSeedPeer
 		setState(Peer.CLOSING);
 	
 		try{
-			listenerListMon.enter();
+			listeners_mon.enter();
 			
 			if ( availabilityAdded ){
 				
@@ -243,7 +245,7 @@ ExternalSeedPeer
 			}
 		}finally{
 			
-			listenerListMon.exit();
+			listeners_mon.exit();
 		}
 				
 		manager.removePeer( this );
@@ -625,7 +627,7 @@ ExternalSeedPeer
 			peer_added	= false;
 			
 			try{
-				listenerListMon.enter();
+				listeners_mon.enter();
 				
 				if ( availabilityAdded ){
 								
@@ -635,7 +637,7 @@ ExternalSeedPeer
 				}
 			}finally{
 				
-				listenerListMon.exit();
+				listeners_mon.exit();
 			}
 		}finally{
 			
@@ -661,13 +663,13 @@ ExternalSeedPeer
 		PeerListener	listener )
 	{
 		try{
-			listenerListMon.enter();
+			listeners_mon.enter();
 						
-			listenerList.add(listener);
+			listeners.add(listener);
 			
 		}finally{
 			
-			listenerListMon.exit();
+			listeners_mon.exit();
 		}
 	}
 	
@@ -676,13 +678,13 @@ ExternalSeedPeer
 		PeerListener listener )
 	{	
 		try{
-			listenerListMon.enter();
+			listeners_mon.enter();
 		
-			listenerList.remove(listener);
+			listeners.remove(listener);
 		
 		}finally{
 			
-			listenerListMon.exit();
+			listeners_mon.exit();
 		}
 	}
 	
@@ -691,13 +693,13 @@ ExternalSeedPeer
 		PeerListener2	listener )
 	{
 		try{
-			listenerListMon.enter();
+			listeners_mon.enter();
 						
-			listenerList.add(listener);
+			listeners.add(listener);
 			
 		}finally{
 			
-			listenerListMon.exit();
+			listeners_mon.exit();
 		}
 	}
 	
@@ -706,13 +708,13 @@ ExternalSeedPeer
 		PeerListener2 listener )
 	{	
 		try{
-			listenerListMon.enter();
+			listeners_mon.enter();
 		
-			listenerList.remove(listener);
+			listeners.remove(listener);
 		
 		}finally{
 			
-			listenerListMon.exit();
+			listeners_mon.exit();
 		}
 	}
   
@@ -722,12 +724,14 @@ ExternalSeedPeer
 		final Object	data )
 	{
 		try{
-			listenerListMon.enter();
+			listeners_mon.enter();
 
-			for (int i =0; i <listenerList.size(); i++){
+			List	ref = listeners.getList();
+			
+			for (int i =0; i <ref.size(); i++){
 				
 				try{
-					Object	 _listener = listenerList.get(i);
+					Object	 _listener = ref.get(i);
 						
 					if ( _listener instanceof PeerListener ){
 						
@@ -770,7 +774,7 @@ ExternalSeedPeer
 			}
 		}finally{
 			
-			listenerListMon.exit();
+			listeners_mon.exit();
 		}
 	}
 	public Connection 

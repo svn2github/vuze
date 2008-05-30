@@ -48,9 +48,7 @@ PeerImpl
 	protected PeerManagerImpl	manager;
 	protected PEPeer			delegate;
 	protected AEMonitor			this_mon	= new AEMonitor( "Peer" );
-  
-	private Map		user_data;
-	
+  	
 	private HashMap peer_listeners;
   	
 
@@ -529,24 +527,14 @@ PeerImpl
 		Object		key,
 		Object		value )
 	{
-		if ( user_data == null ){
-			
-			user_data	= new HashMap();
-		}
-		
-		user_data.put( key, value );
+		delegate.setUserData( key, value );
 	}
 	
 	public Object
 	getUserData(
 		Object	key )
 	{
-		if ( user_data == null ){
-			
-			return( null );
-		}
-		
-		return( user_data.get( key ));
+		return( delegate.getUserData( key ));
 	}
 	
 		// as we don't maintain a 1-1 mapping between these and delegates make sure

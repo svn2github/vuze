@@ -229,7 +229,10 @@ PEPeer
   /** To store arbitrary objects against a peer. */
   public void setData (String key, Object value);
   
-  
+  public Object getUserData (Object key);
+  /** To store arbitrary objects against a peer. */
+  public void setUserData (Object key, Object value);
+
   /**
    * Get the connection that backs this peer.
    * @return connection

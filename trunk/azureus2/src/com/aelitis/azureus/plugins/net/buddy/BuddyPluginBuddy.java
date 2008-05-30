@@ -27,6 +27,7 @@ import java.net.InetSocketAddress;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Base32;
@@ -255,6 +256,30 @@ BuddyPluginBuddy
 	public InetAddress
 	getIP()
 	{
+		return( ip );
+	}
+	
+	public InetAddress
+	getAdjustedIP()
+	{
+		InetSocketAddress address = new InetSocketAddress( ip, tcp_port );
+		
+		InetSocketAddress adjusted_address = AddressUtils.adjustTCPAddress( address, true );
+		
+		if ( adjusted_address != address ){
+			
+			return( adjusted_address.getAddress());
+		}
+		
+		address = new InetSocketAddress( ip, udp_port );
+		
+		adjusted_address = AddressUtils.adjustUDPAddress( address, true );
+		
+		if ( adjusted_address != address ){
+			
+			return( adjusted_address.getAddress());
+		}
+	
 		return( ip );
 	}
 	

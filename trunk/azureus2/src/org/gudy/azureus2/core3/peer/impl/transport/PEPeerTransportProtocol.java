@@ -1591,32 +1591,53 @@ implements PEPeerTransport
 
 
 
-	/** To retreive arbitrary objects against a peer. */
-	public Object getData (String key) {
-		if (data == null) return null;
-		return data.get(key);
+	public Object getData(String key) {
+		
+		return( getUserData( key ));
 	}
-
-	/** To store arbitrary objects against a peer. */
-	public void setData (String key, Object value) {
+	
+	public void 
+	setData(String key, Object value)
+	{
+		setUserData( key, value );
+	}
+	
+	/** To retreive arbitrary objects against a peer. */
+	public Object getUserData (Object key) {
 		try{
 			general_mon.enter();
 
-			if (data == null) {
-				data = new HashMap();
-			}
-			if (value == null) {
-				if (data.containsKey(key))
-					data.remove(key);
-			} else {
-				data.put(key, value);
-			}
+			if (data == null) return null;
+			return data.get(key);
 		}finally{
+
 			general_mon.exit();
 		}
 	}
 
+	/** To store arbitrary objects against a peer. */
+	public void setUserData (Object key, Object value) {
+		try{
+			general_mon.enter();
 
+			if (data == null) {
+				data = new LightHashMap();
+			}
+			if (value == null) {
+				if (data.containsKey(key)){
+					data.remove(key);
+					if ( data.size()==0 ){
+						data = null;
+					}
+				}
+			} else {
+				data.put(key, value);
+			}
+		}finally{
+
+			general_mon.exit();
+		}
+	}
 
 
 	public String

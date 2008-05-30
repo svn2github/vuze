@@ -24,12 +24,15 @@ package com.aelitis.azureus.plugins.net.buddy.swt;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntry;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAZ2;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAZ2Listener;
+import com.aelitis.azureus.plugins.net.buddy.tracker.BuddyPluginTracker;
+import com.aelitis.azureus.plugins.net.buddy.tracker.BuddyPluginTrackerListener;
 
 
 public class 
@@ -40,6 +43,8 @@ BuddyPluginView
 	private UISWTInstance	ui_instance;
 	
 	private BuddyPluginViewInstance		current_instance;
+	
+	private UISWTStatusEntry		status;
 	
 	public
 	BuddyPluginView(
@@ -79,6 +84,40 @@ BuddyPluginView
 				chatDestroyed(
 					BuddyPluginAZ2.chatInstance		chat )
 				{
+				}
+			});
+				
+		status = ui_instance.createStatusEntry();
+		
+		status.setText( "BBB" );
+		status.setTooltipText( "Idle" );
+		status.setImage( UISWTStatusEntry.IMAGE_LED_GREY );
+		status.setImageEnabled( true );
+		
+		status.setVisible( true );
+		
+		plugin.getTracker().addListener(
+			new BuddyPluginTrackerListener()
+			{
+				public void
+				networkStatusChanged(
+					BuddyPluginTracker	tracker,
+					int					new_status )
+				{
+					if ( new_status == BuddyPluginTracker.BUDDY_NETWORK_IDLE ){
+						
+						status.setImage( UISWTStatusEntry.IMAGE_LED_GREY );
+						status.setTooltipText( "Idle" );
+						
+					}else if ( new_status == BuddyPluginTracker.BUDDY_NETWORK_INBOUND ){
+						
+						status.setImage( UISWTStatusEntry.IMAGE_LED_GREEN );
+						status.setTooltipText( "Incoming" );
+					}else{
+						
+						status.setImage( UISWTStatusEntry.IMAGE_LED_YELLOW );
+						status.setTooltipText( "Outgoing" );
+					}
 				}
 			});
 	}

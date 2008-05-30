@@ -669,6 +669,12 @@ BuddyPlugin
 		}
 	}
 	
+	public BuddyPluginTracker
+	getTracker()
+	{
+		return( buddy_tracker );
+	}
+	
 	public String
 	getNickname()
 	{
