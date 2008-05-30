@@ -34,7 +34,6 @@ import org.gudy.azureus2.core3.category.*;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerMoveHandler;
-import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.*;
@@ -77,7 +76,7 @@ public class
 DownloadImpl
 	extends LogRelation
 	implements 	Download, DownloadManagerListener, 
-				DownloadManagerTrackerListener, DownloadManagerPeerListener,
+				DownloadManagerTrackerListener,
 				DownloadManagerStateListener, DownloadManagerActivationListener,
 				DownloadManagerStateAttributeListener
 {
@@ -98,7 +97,7 @@ DownloadImpl
 	private AEMonitor	tracker_listeners_mon	= new AEMonitor( "Download:TL");
 	private List		removal_listeners 		= new ArrayList();
 	private AEMonitor	removal_listeners_mon	= new AEMonitor( "Download:RL");
-	private List		peer_listeners			= new ArrayList();
+	private Map			peer_listeners			= new HashMap();
 	private AEMonitor	peer_listeners_mon		= new AEMonitor( "Download:PL");
 	
 	private CopyOnWriteMap read_attribute_listeners_map_cow  = new CopyOnWriteMap();
@@ -1276,48 +1275,87 @@ DownloadImpl
 	
 	public void
 	addPeerListener(
-		DownloadPeerListener	l )
+		final DownloadPeerListener	listener )
 	{
+		DownloadManagerPeerListener delegate =
+			new DownloadManagerPeerListener()
+			{
+				
+				public void
+				peerManagerAdded(
+					PEPeerManager	manager )
+				{
+					PeerManager pm = PeerManagerImpl.getPeerManager( manager);
+					
+					listener.peerManagerAdded( DownloadImpl.this, pm );
+				}
+				
+				public void
+				peerManagerRemoved(
+					PEPeerManager	manager )
+				{
+					PeerManager pm = PeerManagerImpl.getPeerManager( manager);
+					
+					listener.peerManagerRemoved( DownloadImpl.this, pm );
+
+				}
+				
+				public void
+				peerManagerWillBeAdded(
+					PEPeerManager	manager )
+				{
+				}
+
+				public void
+				peerAdded(
+					PEPeer 	peer )
+				{				
+				}
+					
+				public void
+				peerRemoved(
+					PEPeer	peer )
+				{	
+				}
+			};
+		
 		try{
 			peer_listeners_mon.enter();
+							
+			peer_listeners.put( listener, delegate );
 		
-			List	new_peer_listeners	= new ArrayList( peer_listeners );
-			
-			new_peer_listeners.add( l );
-			
-			peer_listeners	= new_peer_listeners;
-			
-			if ( peer_listeners.size() == 1 ){
-				
-				download_manager.addPeerListener( this );
-			}
 		}finally{
 			
 			peer_listeners_mon.exit();
 		}
+		
+		download_manager.addPeerListener( delegate );
 	}
 	
 	
 	public void
 	removePeerListener(
-		DownloadPeerListener	l )
+		DownloadPeerListener	listener )
 	{
+		DownloadManagerPeerListener delegate;
+		
 		try{
 			peer_listeners_mon.enter();
+			
+			delegate = (DownloadManagerPeerListener)peer_listeners.remove( listener );
 
-			List	new_peer_listeners	= new ArrayList( peer_listeners );
-			
-			new_peer_listeners.remove( l );
-			
-			peer_listeners	= new_peer_listeners;
-			
-			if ( peer_listeners.size() == 0 ){
-				
-				download_manager.removePeerListener( this );
-			}
 		}finally{
 			
 			peer_listeners_mon.exit();
+		}
+		
+		if ( delegate == null ){
+			
+			Debug.out( "Listener not found for removal" );
+			
+		}else{
+			
+			download_manager.removePeerListener( delegate );
 		}
 	}
 	
@@ -1402,43 +1440,7 @@ DownloadImpl
 			peer_listeners_mon.exit();
 		}
 	}
-	
-	public void
-	peerManagerWillBeAdded(
-		PEPeerManager	manager )
-	{
-	}
-	
-	public void
-	peerManagerAdded(
-		PEPeerManager	manager )
-	{
-		if ( peer_listeners.size() > 0 ){
-			
-			PeerManager pm = PeerManagerImpl.getPeerManager( manager);
 		
-			for (int i=0;i<peer_listeners.size();i++){
-		
-				((DownloadPeerListener)peer_listeners.get(i)).peerManagerAdded( this, pm );
-			}
-		}
-	}
-	
-	public void
-	peerManagerRemoved(
-		PEPeerManager	manager )
-	{
-		if ( peer_listeners.size() > 0 ){
-			
-			PeerManager pm = PeerManagerImpl.getPeerManager( manager);
-		
-			for (int i=0;i<peer_listeners.size();i++){
-		
-				((DownloadPeerListener)peer_listeners.get(i)).peerManagerRemoved( this, pm );
-			}
-		}	
-	}
-	
  	public PeerManager
 	getPeerManager()
  	{
@@ -1485,20 +1487,6 @@ DownloadImpl
 		}
 		
 		return( res );
-	}
-	
-	public void
-	peerAdded(
-		PEPeer 	peer )
-	{
-		
-	}
-		
-	public void
-	peerRemoved(
-		PEPeer	peer )
-	{
-		
 	}
 	
  	public void
