@@ -28,10 +28,15 @@ import java.util.*;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.util.Average;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SHA1;
+import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadListener;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
@@ -41,6 +46,7 @@ import org.gudy.azureus2.plugins.peers.PeerEvent;
 import org.gudy.azureus2.plugins.peers.PeerListener2;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.peers.PeerManagerListener;
+import org.gudy.azureus2.plugins.peers.PeerStats;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
@@ -50,13 +56,15 @@ import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.core.util.CopyOnWriteSet;
 import com.aelitis.azureus.plugins.net.buddy.*;
 
 public class 
 BuddyPluginTracker 
 	implements BuddyPluginListener, DownloadManagerListener, BuddyPluginAZ2TrackerListener, DownloadPeerListener
 {
-	public static final Object	PEER_KEY	= new Object();
+	public static final Object	PEER_KEY		= new Object();
+	private static final Object	PEER_STATS_KEY	= new Object();
 	
 	public static final int BUDDY_NETWORK_IDLE		= 1;
 	public static final int BUDDY_NETWORK_OUTBOUND	= 2;
@@ -115,10 +123,17 @@ BuddyPluginTracker
 	
 	private Set				actively_tracking	= new HashSet();
 	
-	private Set				buddy_peers	= new HashSet();
+	private CopyOnWriteSet	buddy_peers	= new CopyOnWriteSet();
 	
 	private CopyOnWriteList	listeners = new CopyOnWriteList();
 	
+	private TimerEventPeriodic	buddy_stats_timer;
+	
+	private Average buddy_receive_speed = Average.getInstance(1000, 10);
+	private long	last_buddy_received;
+	
+	private Average buddy_send_speed 	= Average.getInstance(1000, 10);
+	private long	last_buddy_sent;
 	
 	public
 	BuddyPluginTracker(
@@ -203,6 +218,24 @@ BuddyPluginTracker
 			
 			checkPeers();
 		}
+	}
+	
+	public int
+	getNetworkStatus()
+	{
+		return( network_status );
+	}
+	
+	public long
+	getNetworkReceiveBytesPerSecond()
+	{
+		return( buddy_receive_speed.getAverage());
+	}
+	
+	public long
+	getNetworkSendBytesPerSecond()
+	{
+		return( buddy_send_speed.getAverage());
 	}
 	
 	protected void
@@ -982,6 +1015,49 @@ BuddyPluginTracker
 				
 				if ( buddy_peers.size() == 0 ){
 					
+					if ( buddy_stats_timer == null ){
+						
+						buddy_stats_timer = 
+							SimpleTimer.addPeriodicEvent(
+								"BuddyTracker:stats",
+								1000,
+								new TimerEventPerformer()
+								{
+									public void 
+									perform(
+										TimerEvent event )
+									{
+										Iterator it = buddy_peers.iterator();
+										
+										long	total_sent		= 0;
+										long	total_received	= 0;
+										
+										while( it.hasNext()){
+											
+											Peer	p = (Peer)it.next();
+											
+											PeerStats ps = p.getStats();
+											
+											long sent		= ps.getTotalSent();
+											long received 	= ps.getTotalReceived();
+											
+											long[]	last = (long[])p.getUserData( PEER_STATS_KEY );
+											
+											if ( last != null ){
+												
+												total_sent 		+= sent - last[0];
+												total_received	+= received - last[1];
+											}
+											
+											p.setUserData( PEER_STATS_KEY, new long[]{ sent, received });
+										}
+										
+										buddy_receive_speed.addValue( total_received );
+										buddy_send_speed.addValue( total_sent );
+									}
+								});
+					}
+					
 					state_changed 	= true;
 				}
 				
@@ -1040,9 +1116,18 @@ BuddyPluginTracker
 				
 				log( "Removing buddy peer " + peer.getIp());
 				
-				state_changed = buddy_peers.size() == 0;
+				if ( buddy_peers.size() == 0 ){
+					
+					state_changed = true;
+					
+					if ( buddy_stats_timer != null ){
+						
+						buddy_stats_timer.cancel();
+						
+						buddy_stats_timer = null;
+					}
+				}
 			}
-
 			
 			peer.setUserData( PEER_KEY, null );
 		}	

@@ -23,6 +23,11 @@ package com.aelitis.azureus.plugins.net.buddy.swt;
 
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntry;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
@@ -87,7 +92,7 @@ BuddyPluginView
 				}
 			});
 		
-		BuddyPluginTracker	tracker = plugin.getTracker();
+		final BuddyPluginTracker	tracker = plugin.getTracker();
 		
 		status = ui_instance.createStatusEntry();
 		
@@ -101,6 +106,8 @@ BuddyPluginView
 		tracker.addListener(
 			new BuddyPluginTrackerListener()
 			{
+				private TimerEventPeriodic	update_event;
+				
 				public void
 				networkStatusChanged(
 					BuddyPluginTracker	tracker,
@@ -111,14 +118,68 @@ BuddyPluginView
 						status.setImage( UISWTStatusEntry.IMAGE_LED_GREY );
 						status.setTooltipText( "Idle" );
 						
+						disableUpdates();
+						
 					}else if ( new_status == BuddyPluginTracker.BUDDY_NETWORK_INBOUND ){
 						
 						status.setImage( UISWTStatusEntry.IMAGE_LED_GREEN );
-						status.setTooltipText( "Incoming" );
+						
+						enableUpdates();
 					}else{
 						
 						status.setImage( UISWTStatusEntry.IMAGE_LED_YELLOW );
-						status.setTooltipText( "Outgoing" );
+						
+						enableUpdates();
+					}
+				}
+				
+				protected synchronized void
+				enableUpdates()
+				{
+					if ( update_event == null ){
+						
+						update_event = SimpleTimer.addPeriodicEvent(
+							"Buddy:guiupdate",
+							2500,
+							new TimerEventPerformer()
+							{
+								public void 
+								perform(
+									TimerEvent event ) 
+								{	
+									String	tt;
+									
+									
+									int ns = tracker.getNetworkStatus();
+									
+									if ( ns == BuddyPluginTracker.BUDDY_NETWORK_IDLE ){
+										
+										tt = "Idle";
+										
+									}else if ( ns == BuddyPluginTracker.BUDDY_NETWORK_INBOUND ){
+										
+										tt = "In: " + DisplayFormatters.formatByteCountToKiBEtcPerSec( tracker.getNetworkReceiveBytesPerSecond());
+										
+									}else{
+										
+										tt = "Out: " + DisplayFormatters.formatByteCountToKiBEtcPerSec( tracker.getNetworkSendBytesPerSecond());
+									}
+																			
+									status.setTooltipText( tt );
+								}
+								
+							});
+					}
+				}
+				
+				protected synchronized void
+				disableUpdates()
+				{
+					if ( update_event != null ){
+
+						update_event.cancel();
+						
+						update_event = null;
 					}
 				}
 				
