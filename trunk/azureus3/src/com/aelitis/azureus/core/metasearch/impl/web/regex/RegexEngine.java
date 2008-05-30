@@ -252,7 +252,7 @@ RegexEngine
 					
 					if ( listener != null ){
 						
-						String[]	groups = new String[m.groupCount()-1];
+						String[]	groups = new String[m.groupCount()];
 						
 						for (int i=0;i<groups.length;i++){
 							
