@@ -64,7 +64,9 @@ public class
 BuddyPluginTracker 
 	implements BuddyPluginListener, DownloadManagerListener, BuddyPluginAZ2TrackerListener, DownloadPeerListener
 {
-	public static final Object	PEER_KEY		= new Object();
+	public static final Object	PEER_KEY		= new Object();		// maps to Download object
+	public static final Object	DOWNLOAD_KEY	= new Object();		// maps to Integer count of buddy peers
+	
 	private static final Object	PEER_STATS_KEY	= new Object();
 	
 	public static final int BUDDY_NETWORK_IDLE		= 1;
@@ -131,10 +133,8 @@ BuddyPluginTracker
 	private TimerEventPeriodic	buddy_stats_timer;
 	
 	private Average buddy_receive_speed = Average.getInstance(1000, 10);
-	private long	last_buddy_received;
 	
 	private Average buddy_send_speed 	= Average.getInstance(1000, 10);
-	private long	last_buddy_sent;
 	
 	public
 	BuddyPluginTracker(
@@ -924,7 +924,7 @@ BuddyPluginTracker
 						}
 					}
 				
-					trackPeer( peer );
+					trackPeer( download, peer );
 				}
 				
 				public void
@@ -939,19 +939,20 @@ BuddyPluginTracker
 		
 		for (int i=0;i<peers.length;i++){
 			
-			trackPeer( peers[i] );
+			trackPeer( download, peers[i] );
 		}
 	}
 	
 	protected void
 	trackPeer(
+		final Download	download,
 		final Peer		peer )
 	{
 		int type = isBuddy( peer );
 		
 		if ( type == BUDDY_YES ){
 			
-			markBuddyPeer( peer );
+			markBuddyPeer( download, peer );
 			
 		}else if ( type == BUDDY_MAYBE ){
 									
@@ -970,7 +971,7 @@ BuddyPluginTracker
 								
 								if ( isBuddy( peer ) == BUDDY_YES ){
 									
-									markBuddyPeer( peer );
+									markBuddyPeer( download, peer );
 								}
 							}
 						}
@@ -1004,7 +1005,8 @@ BuddyPluginTracker
 	
 	protected void
 	markBuddyPeer(
-		final Peer		peer )
+		final Download		download,
+		final Peer			peer )
 	{
 		boolean	state_changed 	= false;
 		
@@ -1064,8 +1066,23 @@ BuddyPluginTracker
 				
 				buddy_peers.add( peer );
 				
-				peer.setUserData( PEER_KEY, "" );
+				peer.setUserData( PEER_KEY, download );
 				
+				Integer count = (Integer)download.getUserData( DOWNLOAD_KEY );
+				
+				if ( count == null ){
+					
+					count = new Integer(1);
+					
+				}else{
+					
+					count = new Integer( count.intValue() + 1 );
+				}
+				
+				download.setUserData( DOWNLOAD_KEY, count );
+				
+				log( download.getName() + ": adding buddy peer " + peer.getIp() + ", count=" + count );
+
 				peer.addListener(
 					new PeerListener2()
 					{ 
@@ -1108,14 +1125,14 @@ BuddyPluginTracker
 		
 		synchronized( buddy_peers ){
 
-			if ( peer.getUserData( PEER_KEY ) == null ){
+			Download download = (Download)peer.getUserData( PEER_KEY );
+				
+			if ( download == null ){
 				
 				return;
 			}
 
 			if ( buddy_peers.remove( peer )){
-				
-				log( "Removing buddy peer " + peer.getIp());
 				
 				if ( buddy_peers.size() == 0 ){
 					
@@ -1128,6 +1145,26 @@ BuddyPluginTracker
 						buddy_stats_timer = null;
 					}
 				}
+				
+				Integer count = (Integer)download.getUserData( DOWNLOAD_KEY );
+				
+				int	val = 0;
+				
+				if ( count != null ){
+					
+					val = count.intValue() - 1;
+					
+					if ( val == 0 ){
+						
+						download.setUserData( DOWNLOAD_KEY, null );
+						
+					}else{
+	
+						download.setUserData( DOWNLOAD_KEY, new Integer( val-1 ));
+					}
+				}
+				
+				log( download.getName() + ": removing buddy peer " + peer.getIp() + ", count=" + val );
 			}
 			
 			peer.setUserData( PEER_KEY, null );

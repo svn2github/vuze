@@ -39,6 +39,9 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -52,6 +55,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Sash;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
@@ -365,7 +369,7 @@ BuddyPluginViewInstance
 		
 		buddy_table = new Table(child1, SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION | SWT.VIRTUAL);
 
-		String[] headers = { 
+		final String[] headers = { 
 				"azbuddy.ui.table.name", 
 				"azbuddy.ui.table.online",  
 				"azbuddy.ui.table.lastseen", 
@@ -450,6 +454,127 @@ BuddyPluginViewInstance
 				}
 			});
 		
+		final Listener tt_label_listener = 
+			new Listener() 
+			{
+				public void handleEvent(Event event) {
+					Label label = (Label) event.widget;
+					Shell shell = label.getShell();
+					switch (event.type) {
+					case SWT.MouseDown:
+						Event e = new Event();
+						e.item = (TableItem) label.getData("_TABLEITEM");
+						buddy_table.setSelection(new TableItem[] { (TableItem) e.item });
+						buddy_table.notifyListeners(SWT.Selection, e);
+						// fall through
+					case SWT.MouseExit:
+						shell.dispose();
+						break;
+					}
+				}
+			};
+
+
+		Listener	tt_table_listener = 
+			new Listener()
+			{
+				private Shell tip = null;
+
+				private Label label = null;
+
+				public void 
+				handleEvent(
+					Event event ) 
+				{
+					switch (event.type){
+						case SWT.Dispose:
+						case SWT.KeyDown:
+						case SWT.MouseMove: {
+							if (tip == null)
+								break;
+							tip.dispose();
+							tip = null;
+							label = null;
+							break;
+						}
+						case SWT.MouseHover: 
+						{
+							Point mouse_position = new Point(event.x, event.y);
+							
+							TableItem item = buddy_table.getItem( mouse_position );
+														
+							if (item != null) {
+								
+								if (tip != null && !tip.isDisposed()){
+									
+									tip.dispose();
+									
+									tip = null;
+								}
+								
+								int index = buddy_table.indexOf(item);
+								
+								if ( index < 0 || index >= buddies.size()){
+									
+									return;
+								}
+
+								BuddyPluginBuddy	buddy = (BuddyPluginBuddy)buddies.get(index);
+
+								int	item_index = 0;
+								
+								for (int i=0;i<headers.length;i++){
+									
+									Rectangle bounds = item.getBounds(i);
+									
+									if ( bounds.contains( mouse_position )){
+										
+										item_index = i;
+										
+										break;
+									}
+								}
+								
+								if( item_index != 0 ){
+									
+									return;
+								}
+								
+								tip = new Shell(buddy_table.getShell(), SWT.ON_TOP | SWT.TOOL);
+								tip.setLayout(new FillLayout());
+								label = new Label(tip, SWT.NONE);
+								label.setForeground(buddy_table.getDisplay()
+										.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
+								label.setBackground(buddy_table.getDisplay()
+										.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+								label.setData("_TABLEITEM", item);
+								
+								String tt = "ip=" + buddy.getIP() + "/" + buddy.getAdjustedIP() +
+												",tcp=" + buddy.getTCPPort() +
+												",udp=" + buddy.getUDPPort();
+							
+								label.setText( tt );
+								
+								label.addListener(SWT.MouseExit, tt_label_listener);
+								label.addListener(SWT.MouseDown, tt_label_listener);
+								Point size = tip.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+								Rectangle rect = item.getBounds(item_index);
+								Point pt = buddy_table.toDisplay(rect.x, rect.y);
+								tip.setBounds(pt.x, pt.y, size.x, size.y);
+								tip.setVisible(true);
+							}
+						}
+					}
+				}
+			};
+			
+		buddy_table.addListener(SWT.Dispose, tt_table_listener);
+		buddy_table.addListener(SWT.KeyDown, tt_table_listener);
+		buddy_table.addListener(SWT.MouseMove, tt_table_listener);
+		buddy_table.addListener(SWT.MouseHover, tt_table_listener);
+		    			
+
+
 		final Menu menu = new Menu(buddy_table);
 		
 		final MenuItem remove_item = new MenuItem(menu, SWT.PUSH);
