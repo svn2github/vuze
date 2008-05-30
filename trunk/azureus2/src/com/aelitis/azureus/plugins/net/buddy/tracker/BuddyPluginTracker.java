@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SHA1;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadListener;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.download.DownloadPeerListener;
 import org.gudy.azureus2.plugins.peers.Peer;
@@ -61,10 +62,13 @@ BuddyPluginTracker
 	public static final int BUDDY_NETWORK_OUTBOUND	= 2;
 	public static final int BUDDY_NETWORK_INBOUND	= 3;
 	
-	private static final int	TRACK_CHECK_PERIOD		= 30*1000;
+	private static final int	TRACK_CHECK_PERIOD		= 15*1000;
 	private static final int	TRACK_CHECK_TICKS		= TRACK_CHECK_PERIOD/BuddyPlugin.TIMER_PERIOD;
 
-	private static final int	TRACK_INTERVAL			= 10*60*1000;
+	private static final int	PEER_CHECK_PERIOD		= 60*1000;
+	private static final int	PEER_CHECK_TICKS		= PEER_CHECK_PERIOD/BuddyPlugin.TIMER_PERIOD;
+
+	private static final int	TRACK_INTERVAL			= 1*60*1000;	//TODO!
 	
 	private static final int	SHORT_ID_SIZE			= 4;
 	private static final int	FULL_ID_SIZE			= 20;
@@ -194,6 +198,11 @@ BuddyPluginTracker
 			
 			doTracking();
 		}
+		
+		if ( tick_count % PEER_CHECK_TICKS == 0 ){
+			
+			checkPeers();
+		}
 	}
 	
 	protected void
@@ -294,6 +303,12 @@ BuddyPluginTracker
 			}
 			
 			InetAddress ip 			= buddy.getAdjustedIP();
+			
+			if ( ip == null ){
+				
+				continue;
+			}
+			
 			int			tcp_port	= buddy.getTCPPort();
 			int			udp_port	= buddy.getUDPPort();
 			
@@ -457,15 +472,18 @@ BuddyPluginTracker
 				
 				String	ip = bd.getIP();
 				
-				List	l = (List)online_buddy_ips.get( ip );
-				
-				if ( l != null ){
+				if ( ip != null ){
 					
-					l.remove( buddy );
+					List	l = (List)online_buddy_ips.get( ip );
 					
-					if ( l.size() == 0 ){
+					if ( l != null ){
 						
-						online_buddy_ips.remove( ip );
+						l.remove( buddy );
+						
+						if ( l.size() == 0 ){
+							
+							online_buddy_ips.remove( ip );
+						}
 					}
 				}
 				
@@ -473,16 +491,19 @@ BuddyPluginTracker
 				
 				ip = bd.getIP();
 				
-				l = (List)online_buddy_ips.get( ip );
+				if ( ip != null ){
+					
+					List l = (List)online_buddy_ips.get( ip );
+					
+					if ( l == null ){
+						
+						l = new ArrayList();
+						
+						online_buddy_ips.put( ip, l );
+					}
 				
-				if ( l == null ){
-					
-					l = new ArrayList();
-					
-					online_buddy_ips.put( ip, l );
+					l.add( buddy );
 				}
-				
-				l.add( buddy );
 			}
 			
 			return( bd );
@@ -503,15 +524,18 @@ BuddyPluginTracker
 				
 				String	ip = bd.getIP();
 				
-				List	l = (List)online_buddy_ips.get( ip );
-				
-				if ( l != null ){
+				if ( ip != null ){
 					
-					l.remove( buddy );
+					List	l = (List)online_buddy_ips.get( ip );
 					
-					if ( l.size() == 0 ){
+					if ( l != null ){
 						
-						online_buddy_ips.remove( ip );
+						l.remove( buddy );
+						
+						if ( l.size() == 0 ){
+							
+							online_buddy_ips.remove( ip );
+						}
 					}
 				}
 			}
@@ -572,12 +596,24 @@ BuddyPluginTracker
 		checkEnabledState();
 	}
 	
+	public boolean
+	isEnabled()
+	{
+		synchronized( this ){
+			
+			return( plugin_enabled && tracker_enabled );
+		}
+	}
+	
 	protected void
 	checkEnabledState()
 	{
-		boolean	seeding_change = false;
+		boolean	seeding_change 	= false;
+		boolean	enabled_change	= false;
 		
 		synchronized( this ){
+			
+			boolean	old_enabled = old_plugin_enabled && old_tracker_enabled;
 			
 			if ( plugin_enabled != old_plugin_enabled ){
 				
@@ -601,11 +637,18 @@ BuddyPluginTracker
 				
 				seeding_change = true;
 			}
+			
+			enabled_change = old_enabled != ( plugin_enabled && tracker_enabled );
 		}
 		
 		if ( seeding_change ){
 			
 			updateSeedingMode();
+		}
+		
+		if ( enabled_change ){
+			
+			fireEnabledChanged( isEnabled());
 		}
 	}
 	
@@ -648,6 +691,51 @@ BuddyPluginTracker
 			return;
 		}
 		
+		if ( okToTrack( download )){
+			
+			trackDownload( download );
+		}
+		
+		download.addListener(
+			new DownloadListener()
+			{
+				public void
+				stateChanged(
+					Download		download,
+					int				old_state,
+					int				new_state )
+				{
+					if ( okToTrack( download )){
+						
+						trackDownload( download );
+						
+					}else{
+						
+						untrackDownload( download );
+					}
+				}
+
+				public void
+				positionChanged(
+					Download	download, 
+					int 		oldPosition,
+					int 		newPosition )
+				{
+				}
+			});
+	}
+	
+	public void
+	downloadRemoved(
+		Download	download )
+	{
+		untrackDownload( download );
+	}
+	
+	protected void
+	trackDownload(
+		Download	download )
+	{
 		synchronized( tracked_downloads ){
 			
 			if ( tracked_downloads.contains( download )){
@@ -682,8 +770,8 @@ BuddyPluginTracker
 		}
 	}
 	
-	public void
-	downloadRemoved(
+	protected void
+	untrackDownload(
 		Download	download )
 	{
 		synchronized( tracked_downloads ){
@@ -691,6 +779,8 @@ BuddyPluginTracker
 			downloadData download_data = (downloadData)download.getUserData( BuddyPluginTracker.class );
 			
 			if ( download_data != null ){
+				
+				download.setUserData( BuddyPluginTracker.class, null );
 				
 				HashWrapper	full_id		= download_data.getID();
 				
@@ -725,34 +815,11 @@ BuddyPluginTracker
 	
 	protected void
 	trackPeers(
-		Download		download )
+		final Download		download )
 	{
-		log( "Tracking peers for " + download.getName());
-		
-		download.addPeerListener(
-			new DownloadPeerListener()
-			{
-				public void
-				peerManagerAdded(
-					Download		download,
-					PeerManager		peer_manager )
-				{
-					trackPeers( download, peer_manager );
-				}
-				
-				public void
-				peerManagerRemoved(
-					Download		download,
-					PeerManager		peer_manager )
-				{
-					synchronized( actively_tracking ){
-
-						actively_tracking.remove( download );
-					}
-				}
-			});
-		
 		PeerManager pm = download.getPeerManager();
+		
+			// not running
 		
 		if ( pm == null ){
 
@@ -760,6 +827,34 @@ BuddyPluginTracker
 
 				actively_tracking.remove( download );
 			}
+		}else{
+			
+			log( "Tracking peers for " + download.getName());
+			
+			download.addPeerListener(
+				new DownloadPeerListener()
+				{
+					public void
+					peerManagerAdded(
+						Download		download,
+						PeerManager		peer_manager )
+					{
+						trackPeers( download, peer_manager );
+					}
+					
+					public void
+					peerManagerRemoved(
+						Download		download,
+						PeerManager		peer_manager )
+					{
+						synchronized( actively_tracking ){
+	
+							actively_tracking.remove( download );
+						}
+						
+						download.removePeerListener( this );
+					}
+				});
 		}
 	}
 	
@@ -906,6 +1001,11 @@ BuddyPluginTracker
 			}
 		}
 		
+		if ( peer.getState() == Peer.CLOSING || peer.getState() == Peer.DISCONNECTED ){
+			
+			unmarkBuddyPeer( peer );
+		}
+		
 		if ( state_changed ){
 			
 			updateNetworkStatus();
@@ -939,6 +1039,32 @@ BuddyPluginTracker
 		if ( state_changed ){
 			
 			updateNetworkStatus();
+		}
+	}
+	
+	protected void
+	checkPeers()
+	{
+		List	to_unmark = new ArrayList();
+		
+		synchronized( buddy_peers ){
+
+			Iterator	it = buddy_peers.iterator();
+			
+			while( it.hasNext()){
+				
+				Peer	peer = (Peer)it.next();
+				
+				if ( peer.getState() == Peer.CLOSING || peer.getState() == Peer.DISCONNECTED ){
+					
+					to_unmark.add( peer );
+				}
+			}
+		}
+		
+		for (int i=0;i<to_unmark.size();i++){
+			
+			unmarkBuddyPeer((Peer)to_unmark.get(i));
 		}
 	}
 	
@@ -997,6 +1123,24 @@ BuddyPluginTracker
 			
 			try{
 				((BuddyPluginTrackerListener)it.next()).networkStatusChanged( this, state );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+	}
+	
+	protected void
+	fireEnabledChanged(
+		boolean	enabled )
+	{
+		Iterator	it = listeners.iterator();
+		
+		while( it.hasNext()){
+			
+			try{
+				((BuddyPluginTrackerListener)it.next()).enabledStateChanged( this, enabled );
 				
 			}catch( Throwable e ){
 				
@@ -1069,6 +1213,17 @@ BuddyPluginTracker
 		}
 	}
 	
+	protected boolean
+	okToTrack(
+		Download	d )
+	{
+		int state = d.getState();
+		
+		return( 	state != Download.ST_ERROR && 
+					state != Download.ST_STOPPING && 
+					state != Download.ST_STOPPED );
+	}
+	
 	protected void
 	log(
 		String		str )
@@ -1105,20 +1260,33 @@ BuddyPluginTracker
 			BuddyPluginBuddy		_buddy )
 		{
 			buddy	= _buddy;
-			
-			updateIP();
 		}
 		
 		protected void
 		updateIP()
 		{
 			current_ip	= buddy.getAdjustedIP().getHostAddress();
+			
+			log( "IP set to " + current_ip );
 		}
 			
 		protected boolean
 		hasIPChanged()
 		{
-			return(	!current_ip.equals( buddy.getAdjustedIP()));
+			InetAddress	latest_ip = buddy.getAdjustedIP();
+			
+			if ( latest_ip == null && current_ip == null ){
+				
+				return( false );
+				
+			}else if ( latest_ip == null || current_ip == null ){
+				
+				return( true );
+				
+			}else{
+			
+				return(	!current_ip.equals( latest_ip.getHostAddress()));
+			}
 		}
 		
 		protected String
@@ -1741,17 +1909,6 @@ BuddyPluginTracker
 			}
 			
 			return( res );
-		}
-		
-		protected boolean
-		okToTrack(
-			Download	d )
-		{
-			int state = d.getState();
-			
-			return( 	state != Download.ST_ERROR && 
-						state != Download.ST_STOPPING && 
-						state != Download.ST_STOPPED );
 		}
 		
 		protected void

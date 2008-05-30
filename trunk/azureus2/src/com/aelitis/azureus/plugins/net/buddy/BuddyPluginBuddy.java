@@ -262,6 +262,11 @@ BuddyPluginBuddy
 	public InetAddress
 	getAdjustedIP()
 	{
+		if ( ip == null ){
+			
+			return( null );
+		}
+		
 		InetSocketAddress address = new InetSocketAddress( ip, tcp_port );
 		
 		InetSocketAddress adjusted_address = AddressUtils.adjustTCPAddress( address, true );

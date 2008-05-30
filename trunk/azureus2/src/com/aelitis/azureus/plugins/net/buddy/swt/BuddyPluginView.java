@@ -86,7 +86,9 @@ BuddyPluginView
 				{
 				}
 			});
-				
+		
+		BuddyPluginTracker	tracker = plugin.getTracker();
+		
 		status = ui_instance.createStatusEntry();
 		
 		status.setText( "BBB" );
@@ -94,9 +96,9 @@ BuddyPluginView
 		status.setImage( UISWTStatusEntry.IMAGE_LED_GREY );
 		status.setImageEnabled( true );
 		
-		status.setVisible( true );
+		status.setVisible( tracker.isEnabled());
 		
-		plugin.getTracker().addListener(
+		tracker.addListener(
 			new BuddyPluginTrackerListener()
 			{
 				public void
@@ -118,6 +120,14 @@ BuddyPluginView
 						status.setImage( UISWTStatusEntry.IMAGE_LED_YELLOW );
 						status.setTooltipText( "Outgoing" );
 					}
+				}
+				
+				public void 
+				enabledStateChanged(
+					BuddyPluginTracker 		tracker,
+					boolean 				enabled ) 
+				{
+					status.setVisible( enabled );
 				}
 			});
 	}
