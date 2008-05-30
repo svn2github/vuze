@@ -41,7 +41,6 @@ public interface UISWTParameterContext extends UIParameterContext {
 	 * in a SWT user interface.
 	 * 
 	 * @param c The parent composite object which will contain the SWT object.
-	 * @return A control object which represents the SWT object that was created.
 	 */
-	public Control create(Composite c);
+	public void create(Composite c);
 }
