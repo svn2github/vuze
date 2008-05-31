@@ -223,8 +223,9 @@ public class SeedingUnchoker implements Unchoker {
 			  num_unchoked++;			  
 		  }
 	  }	  
-	  
-	  Collections.shuffle( friends );   //we want to give all friends a chance if there happens to be more than max_friends
+	 
+	  //we want to give all connected friends an equal chance if there are more than max_friends allowed
+	  Collections.shuffle( friends );
 	  
 	  while( num_unchoked < max_friends && !friends.isEmpty() ) {   //we need to add more friends		
 		  
