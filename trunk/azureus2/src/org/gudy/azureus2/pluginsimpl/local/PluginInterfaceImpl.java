@@ -74,6 +74,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
 
 import com.aelitis.azureus.core.AzureusCoreComponent;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 
 
@@ -91,8 +92,8 @@ PluginInterfaceImpl
   private PluginInitializer		initialiser;
   private Object				initialiser_key;
   private ClassLoader			class_loader;
-  private List					listeners 		= new ArrayList();
-  private List					event_listeners	= new ArrayList();
+  private CopyOnWriteList		listeners 		= new CopyOnWriteList();
+  private CopyOnWriteList		event_listeners	= new CopyOnWriteList();
   private String				key;
   private String 				pluginConfigKey;
   private Properties 			props;
@@ -650,82 +651,90 @@ PluginInterfaceImpl
   protected void
   initialisationComplete()
   {
-  	for (int i=0;i<listeners.size();i++){
-  		
-  		try{
-  			((PluginListener)listeners.get(i)).initializationComplete();
-  			
-  		}catch( Throwable e ){
-  			
-  			Debug.printStackTrace( e );
-  		}
-  	}
-  	
-  	for (int i=0;i<children.size();i++){
-  		
-  		((PluginInterfaceImpl)children.get(i)).initialisationComplete();
-  	}
+	  Iterator it = listeners.iterator();
+	  
+	  while( it.hasNext()){
+
+		  try{
+			  ((PluginListener)it.next()).initializationComplete();
+
+		  }catch( Throwable e ){
+
+			  Debug.printStackTrace( e );
+		  }
+	  }
+
+	  for (int i=0;i<children.size();i++){
+
+		  ((PluginInterfaceImpl)children.get(i)).initialisationComplete();
+	  }
   }
   
   protected void
   closedownInitiated()
   {
-  	for (int i=0;i<listeners.size();i++){
-  		
-  		try{
-  			((PluginListener)listeners.get(i)).closedownInitiated();
-  			
-  		}catch( Throwable e ){
-  			
-  			Debug.printStackTrace( e );
-  		}
-  	}
-  	
-  	for (int i=0;i<children.size();i++){
-  		
-  		((PluginInterfaceImpl)children.get(i)).closedownInitiated();
-  	}
+	  Iterator it = listeners.iterator();
+	  
+	  while( it.hasNext()){
+
+		  try{
+			  ((PluginListener)it.next()).closedownInitiated();
+
+		  }catch( Throwable e ){
+
+			  Debug.printStackTrace( e );
+		  }
+	  }
+
+	  for (int i=0;i<children.size();i++){
+
+		  ((PluginInterfaceImpl)children.get(i)).closedownInitiated();
+	  }
   }
   
   protected void
   closedownComplete()
   {
-  	for (int i=0;i<listeners.size();i++){
-  		
-  		try{
-  			((PluginListener)listeners.get(i)).closedownComplete();
-  			
-  		}catch( Throwable e ){
-  			
-  			Debug.printStackTrace( e );
-  		}
-  	}
-  	
- 	for (int i=0;i<children.size();i++){
-  		
-  		((PluginInterfaceImpl)children.get(i)).closedownComplete();
-  	}
+	  Iterator it = listeners.iterator();
+	  
+	  while( it.hasNext()){
+
+		  try{
+			  ((PluginListener)it.next()).closedownComplete();
+
+		  }catch( Throwable e ){
+
+			  Debug.printStackTrace( e );
+		  }
+	  }
+
+	  for (int i=0;i<children.size();i++){
+
+		  ((PluginInterfaceImpl)children.get(i)).closedownComplete();
+	  }
   }
   
   public void
   firePluginEvent(
 	PluginEvent		event )
   {
-  	for (int i=0;i<event_listeners.size();i++){
-  		
-  		try{
-  			((PluginEventListener)event_listeners.get(i)).handleEvent( event );
-  			
-  		}catch( Throwable e ){
-  			
-  			Debug.printStackTrace( e );
-  		}
-  	} 
-  	
-	for (int i=0;i<children.size();i++){
-  		
-  		((PluginInterfaceImpl)children.get(i)).firePluginEvent(event);
-  	}
+	  Iterator it = event_listeners.iterator();
+	  
+	  while( it.hasNext()){
+
+		  try{
+			  ((PluginEventListener)it.next()).handleEvent( event );
+
+		  }catch( Throwable e ){
+
+			  Debug.printStackTrace( e );
+		  }
+	  } 
+
+	  for (int i=0;i<children.size();i++){
+
+		  ((PluginInterfaceImpl)children.get(i)).firePluginEvent(event);
+	  }
   }
   
   public ClassLoader
