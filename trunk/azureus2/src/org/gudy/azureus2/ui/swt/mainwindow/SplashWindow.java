@@ -293,7 +293,7 @@ public class SplashWindow
 
 				gc.dispose();
 
-				canvas.redraw();
+				canvas.redraw(0, height - 30, width, 30, true);
 			}
 		});
 	}
