@@ -117,6 +117,27 @@ PluginUpdatePlugin
 		
 		config.addBooleanParameter2( "enable.update", "Plugin.pluginupdate.enablecheck", true );
 				
+		plugin_interface.addEventListener(
+			new PluginEventListener()
+			{
+				public void 
+				handleEvent(
+					PluginEvent 	ev ) 
+				{
+					if ( ev.getType() == PluginEvent.PEV_ALL_PLUGINS_INITIALISED ){
+						
+						plugin_interface.removeEventListener( this );
+						
+						initComplete( plugin_config );
+					}
+				}
+			});
+	}
+	
+	protected void
+	initComplete(
+		final PluginConfig		plugin_config )
+	{
 		UpdateManager	update_manager = plugin_interface.getUpdateManager();
 		
 		update_manager.addListener(

@@ -45,7 +45,16 @@ PluginEvent
 	 *   
 	 * @since 2403
 	 */
-	public static final int	PEV_INITIALISATION_UI_COMPLETES	= 6;
+	public static final int	PEV_INITIALISATION_UI_COMPLETES		= 6;
+
+	/**
+	 * This event is triggered when all plugins have had their 'initialize' method called
+	 * on startup. This differs from the 'initialisationComplete' callback on PluginListener
+	 * in that it is *guranteed* to be triggered before any other initialisation actions
+	 * take place.
+	 */
+	
+	public static final int	PEV_ALL_PLUGINS_INITIALISED			= 7;
 
 		/**
 		 * Plugin specific events can be raised by a plugin to communicate with

@@ -1295,6 +1295,8 @@ PluginInitializer
 			secondaryInitializer.join();
 			
 			registration_queue.clear();
+			
+			fireEvent( PluginEvent.PEV_ALL_PLUGINS_INITIALISED );
 	  }finally{
 		  
 		  initThreads = null;
