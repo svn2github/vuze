@@ -33,17 +33,15 @@ import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.ForceRecheckListener;
+import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AEThread2;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.*;
+
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.download.Download;
@@ -238,13 +236,21 @@ public class TorrentListViewsUtils
 		return null;
 	}
 
-	private static DownloadManager getDMFromDS(Object ds) {
+	public static DownloadManager getDMFromDS(Object ds) {
 		try {
 			if (ds instanceof DownloadManager) {
 				return (DownloadManager) ds;
 			} else if (ds instanceof VuzeActivitiesEntry) {
 				VuzeActivitiesEntry entry = (VuzeActivitiesEntry) ds;
-				return entry.getDownloadManger();
+				DownloadManager dm = entry.getDownloadManger();
+				if (dm == null) {
+					String assetHash = entry.getAssetHash();
+					if (assetHash != null) {
+						GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+						dm = gm.getDownloadManager(new HashWrapper(Base32.decode(assetHash)));
+					}
+				}
+				return dm;
 			}
 		} catch (Exception e) {
 			Debug.printStackTrace(e);
@@ -252,7 +258,7 @@ public class TorrentListViewsUtils
 		return null;
 	}
 
-	private static TOTorrent getTorrentFromDS(Object ds) {
+	public static TOTorrent getTorrentFromDS(Object ds) {
 		TOTorrent torrent = null;
 		if (ds instanceof DownloadManager) {
 			torrent = ((DownloadManager) ds).getTorrent();
@@ -446,7 +452,9 @@ public class TorrentListViewsUtils
 	public static void downloadDataSource(Object ds, boolean playNow,
 			String referal) {
 		TOTorrent torrent = getTorrentFromDS(ds);
-		if (torrent != null) {
+		// we want to re-download the torrent if it's ours, since the existing
+		// one is likely stale
+		if (torrent != null && !PlatformTorrentUtils.isContent(torrent, true)) {
 			TorrentUIUtilsV3.addTorrentToGM(torrent);
 		} else {
 			String hash = getAssetHashFromDS(ds);
