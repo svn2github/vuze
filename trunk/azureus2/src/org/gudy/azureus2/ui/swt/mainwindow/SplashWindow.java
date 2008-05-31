@@ -21,12 +21,24 @@
  */
 package org.gudy.azureus2.ui.swt.mainwindow;
 
+import javax.media.j3d.Background;
+
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 
@@ -43,8 +55,21 @@ public class SplashWindow implements InitializerListener {
   IUIIntializer initializer;
   
   Shell splash;
-  Label currentTask;
-  ProgressBar percentDone;
+  //Label currentTask;
+  //ProgressBar percentDone;
+  
+  Canvas canvas;
+  
+  Image background;
+  int width;
+  int height;
+  
+  Image current;
+  Color progressBarColor;
+  Color textColor;
+  Font textFont;
+  
+  
 	private String task;
 	private int percent;
 	private boolean updating;
@@ -53,16 +78,49 @@ public class SplashWindow implements InitializerListener {
   public SplashWindow(Display display) {
   	this(display, null);
   }
+  
+  public static void main(String args[]) {
+	  Display display = new Display();
+	  ImageRepository.loadImagesForSplashWindow(display);
+	  
+	  final SplashWindow splash = new SplashWindow(display);
+	  
+	  Thread t = new Thread() {
+		  @Override
+		public void run() {
+			  try {
+				  int percent = 0;
+				  while(percent <= 100) {
+					  splash.reportPercent(percent++);
+					  splash.reportCurrentTask("Loading dbnvsudn vjksfdh fgshdu fbhsduh bvsfd fbsd fbvsdb fsuid : " + percent);
+					  Thread.sleep(200);
+				  }
+			  } catch (Exception e) {
+				// TODO: handle exception
+			}
+			splash.closeSplash();
+		}
+	  };
+	  t.start();
+	  
+	  while(!splash.splash.isDisposed()) {
+		  if(!display.readAndDispatch()) {
+			  display.sleep();
+		  }
+	  }
+	  display.dispose();
+  }
 
-  public SplashWindow(Display display,IUIIntializer initializer) {
-    this.display = display;
+  public SplashWindow(Display _display,IUIIntializer initializer) {
+    this.display = _display;
     this.initializer = initializer;
     
     splash = new Shell(display, SWT.NULL);
     splash.setText("Vuze");
     Utils.setShellIcon(splash);
-
-    GridLayout layout = new GridLayout();
+    
+    
+    /*GridLayout layout = new GridLayout();
     layout.numColumns = 1;
     layout.horizontalSpacing = 0;
     layout.verticalSpacing = 0;
@@ -82,9 +140,37 @@ public class SplashWindow implements InitializerListener {
     this.percentDone.setMinimum(0);
     this.percentDone.setMaximum(100);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    this.percentDone.setLayoutData(gridData);
+    this.percentDone.setLayoutData(gridData);*/
+    
+    
+    splash.setLayout(new FillLayout());
+    canvas = new Canvas(splash,SWT.NONE);
 
-    splash.pack();
+    background = ImageRepository.getImage("azureus_splash");
+    current = new Image(display,background,SWT.IMAGE_COPY);
+    
+    progressBarColor = new Color(display,21,92,198);
+    textColor = new Color(display,180,180,180);
+    
+    width = background.getBounds().width;
+    height = background.getBounds().height;
+    
+    canvas.setSize(width,height);
+    Font font = canvas.getFont();
+    FontData[] fdata = font.getFontData();
+    fdata[0].setHeight(10);
+    textFont = new Font(display,fdata);
+    
+    
+    canvas.addPaintListener(new PaintListener() {
+    	public void paintControl(PaintEvent event) {
+    		GC gc = event.gc;
+    		gc.drawImage(current, 0, 0);
+    	}
+    });
+    
+    //splash.pack();
+    splash.setSize(width,height);
     splash.layout();
     Utils.centreWindow(splash);
     splash.open();
@@ -119,6 +205,19 @@ public class SplashWindow implements InitializerListener {
 					if (splash != null && !splash.isDisposed())
 						splash.dispose();
 					ImageRepository.unloadImage("azureus_splash");
+					if(current != null && ! current.isDisposed()) {
+						current.dispose();
+					}
+					if(progressBarColor != null && !progressBarColor.isDisposed()) {
+						progressBarColor.dispose();
+					}
+					if(textColor != null && !textColor.isDisposed()) {
+						textColor.dispose();
+					}
+					if(textFont != null && !textFont.isDisposed()) {
+						textFont.dispose();
+					}
+					
 				} catch (Exception e) {
 					//ignore
 				}
@@ -154,24 +253,48 @@ public class SplashWindow implements InitializerListener {
 		}
 		
 		updating = true;
-    //Post runnable to SWTThread
-    Utils.execSWTThread(new AERunnable(){
-      public void runSupport() {
-      	updating = false;
-      	if (splash == null || splash.isDisposed()) {
-      		return;
-      	}
-        //Ensure than the task Label is created and not disposed
-        if(currentTask != null && !currentTask.isDisposed() && task != null) {
-        	currentTask.setText(task);
-        }
-        //Ensure than the percentDone ProgressBar is created and not disposed
-        if(percentDone != null && !percentDone.isDisposed()) {
-        	percentDone.setSelection(percent);
-        }
-        splash.update();
-      }
-    });
+	    //Post runnable to SWTThread
+	    Utils.execSWTThread(new AERunnable(){
+	      public void runSupport() {
+	      	updating = false;
+	      	if (splash == null || splash.isDisposed()) {
+	      		return;
+	      	}
+	        
+	      	Image newCurrent = new Image(display,background,SWT.IMAGE_COPY);
+	      	GC gc = new GC(newCurrent);
+	      	
+	      	try {
+	      		gc.setAntialias(SWT.ON);
+	      		gc.setTextAntialias(SWT.ON);
+	      	} catch(Exception e) {
+	      		
+	      	}
+	      	
+	      	if(task!= null) {
+	      		if(task.length() > 60) {
+	      			task = task.substring(0,60);
+	      		}
+	      		gc.setFont(textFont);
+	      		gc.setForeground(textColor);
+	      		gc.drawText(task, 10, height-26, true);
+	      	}
+	      	
+	      	gc.setForeground(progressBarColor);
+	      	gc.setBackground(progressBarColor);
+	      	gc.fillRectangle(10,height-10,percent*(width-20)/100,2);
+	      	
+	      	Image old = current;
+	      	current = newCurrent;
+	      	if(old != null && !old.isDisposed()) {
+	      		old.dispose();
+	      	}
+	      	
+	      	gc.dispose();
+	      	
+	        canvas.redraw();
+	      }
+	    });
 	}
 	
 	public int getPercent() {
