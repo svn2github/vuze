@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
@@ -77,10 +78,10 @@ public class FriendsList
 				"color.widget.border");
 		normalColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
 				"color.table.bg");
-		
+
 		widgetBackgroundColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
-		"color.widget.container.bg");
-		
+				"color.widget.container.bg");
+
 		scrollable.setContent(canvas);
 
 		init();
@@ -101,7 +102,6 @@ public class FriendsList
 
 			}
 		});
-		
 
 		canvas.setBackground(widgetBackgroundColor);
 
@@ -116,37 +116,46 @@ public class FriendsList
 		content.layout(true, true);
 	}
 
-	public void addFriend(VuzeBuddy buddy) {
-		if (false == friends.contains(buddy)) {
-			friends.add(buddy);
+	public void addFriend(final VuzeBuddy buddy) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (false == friends.contains(buddy)) {
+					friends.add(buddy);
 
-			FriendWidget widget = new FriendWidget(canvas, buddy);
+					FriendWidget widget = new FriendWidget(canvas, buddy);
 
-			Rectangle r = scrollable.getClientArea();
+					Rectangle r = scrollable.getClientArea();
 
-			friendsWidgets.add(widget);
-			GridData gData = new GridData(GridData.FILL_HORIZONTAL);
-			gData.heightHint = 22;
-			widget.getControl().setLayoutData(gData);
-			canvas.layout(true, true);
-			scrollable.setMinSize(canvas.computeSize(r.width, SWT.DEFAULT, true));
-			content.layout(true, true);
-		}
+					friendsWidgets.add(widget);
+					GridData gData = new GridData(GridData.FILL_HORIZONTAL);
+					gData.heightHint = 22;
+					widget.getControl().setLayoutData(gData);
+					canvas.layout(true, true);
+					scrollable.setMinSize(canvas.computeSize(r.width, SWT.DEFAULT, true));
+					content.layout(true, true);
+				}
+			}
+		});
 	}
 
-	public void removeFriend(VuzeBuddy buddy) {
-		if (true == friends.contains(buddy)) {
-			friends.remove(buddy);
-			FriendWidget widget = findWidget(buddy);
-			if (null != widget) {
-				friendsWidgets.remove(widget);
-				widget.dispose(true);
-				canvas.layout(true);
-				Rectangle r = scrollable.getClientArea();
-				scrollable.setMinSize(canvas.computeSize(r.width, SWT.DEFAULT));
+	public void removeFriend(final VuzeBuddy buddy) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (true == friends.contains(buddy)) {
+					FriendWidget widget = findWidget(buddy);
+					if (null != widget) {
+						friendsWidgets.remove(widget);
+						widget.dispose(true);
+						canvas.layout(true);
+						Rectangle r = scrollable.getClientArea();
+						scrollable.setMinSize(canvas.computeSize(r.width, SWT.DEFAULT));
+					}
+					friends.remove(buddy);
+					getBuddiesViewer().removeFromShare(buddy);
+				}
 			}
-			getBuddiesViewer().removeFromShare(buddy);
-		}
+		});
+
 	}
 
 	public void clear() {
