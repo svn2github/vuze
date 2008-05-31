@@ -100,7 +100,7 @@ public class SharePage
 
 	private BubbleButton sendNowButton;
 
-	private BubbleButton previewButton;
+//	private BubbleButton previewButton;
 
 	private BubbleButton cancelButton;
 
@@ -198,7 +198,7 @@ public class SharePage
 		contentDetail = new Composite(firstPanel, SWT.NONE);
 		sendNowButton = new BubbleButton(firstPanel);
 		cancelButton = new BubbleButton(firstPanel);
-		previewButton = new BubbleButton(firstPanel);
+//		previewButton = new BubbleButton(firstPanel);
 		contentThumbnail = new Label(contentDetail, SWT.NONE);
 		contentStats = new StyledText(contentDetail, SWT.NONE);
 		optionalMessageLabel = new Label(contentDetail, SWT.NONE);
@@ -373,14 +373,14 @@ public class SharePage
 		cancelButtonData.height = size.y;
 		cancelButton.setLayoutData(cancelButtonData);
 
-		FormData previewButtonData = new FormData();
-		previewButtonData.right = new FormAttachment(cancelButton, -8);
-		previewButtonData.top = new FormAttachment(optionalMessageDisclaimerLabel,
-				8);
-		size = previewButton.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-		previewButtonData.width = size.x;
-		previewButtonData.height = size.y;
-		previewButton.setLayoutData(previewButtonData);
+//		FormData previewButtonData = new FormData();
+//		previewButtonData.right = new FormAttachment(cancelButton, -8);
+//		previewButtonData.top = new FormAttachment(optionalMessageDisclaimerLabel,
+//				8);
+//		size = previewButton.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+//		previewButtonData.width = size.x;
+//		previewButtonData.height = size.y;
+//		previewButton.setLayoutData(previewButtonData);
 
 		content.layout();
 	}
@@ -449,8 +449,8 @@ public class SharePage
 
 		cancelButton.setText(MessageText.getString("v3.MainWindow.button.cancel"));
 
-		previewButton.setText(MessageText.getString("v3.MainWindow.button.preview"));
-		previewButton.setVisible(false);
+//		previewButton.setText(MessageText.getString("v3.MainWindow.button.preview"));
+//		previewButton.setVisible(false);
 
 		sendNowButton.setText(MessageText.getString("v3.Share.send.now"));
 		sendNowButton.setEnabled(false);
@@ -498,17 +498,17 @@ public class SharePage
 			}
 		});
 
-		previewButton.addListener(SWT.MouseDown, new Listener() {
-			public void handleEvent(Event event) {
-				getMessageContext().executeInBrowser(
-						"sendSharingBuddies('" + getCommitJSONMessage() + "')");
-
-				getMessageContext().executeInBrowser("preview()");
-
-				stackLayout.topControl = browserPanel;
-				content.layout();
-			}
-		});
+//		previewButton.addListener(SWT.MouseDown, new Listener() {
+//			public void handleEvent(Event event) {
+//				getMessageContext().executeInBrowser(
+//						"sendSharingBuddies('" + getCommitJSONMessage() + "')");
+//
+//				getMessageContext().executeInBrowser("preview()");
+//
+//				stackLayout.topControl = browserPanel;
+//				content.layout();
+//			}
+//		});
 
 		sendNowButton.addListener(SWT.MouseDown, new Listener() {
 			public void handleEvent(Event event) {
@@ -572,10 +572,10 @@ public class SharePage
 
 	private void adjustLayout() {
 		if (buddyList.getContentCount() > 0 || inviteeList.getContentCount() > 0) {
-			previewButton.setVisible(true);
+//			previewButton.setVisible(true);
 			sendNowButton.setEnabled(true);
 		} else {
-			previewButton.setVisible(false);
+//			previewButton.setVisible(false);
 			sendNowButton.setEnabled(false);
 		}
 		if (inviteeList.getContentCount() > 0) {
