@@ -216,7 +216,7 @@ public class PublishTransaction extends Transaction
 				String errmsg = e.getMessage();
 				
 				params.put("message",
-						"Azureus cannot process this image. " + 
+						"Vuze cannot process this image. " + 
 						"Please select another one.\n\nDetailed Error: " + errmsg);
 				sendBrowserMessage("page", "error", params);
 			}
@@ -226,7 +226,7 @@ public class PublishTransaction extends Transaction
                         	sendBrowserMessage("thumb", "clear", elements);
                             
                             Map params = new HashMap();
-                            params.put("message", "Azureus cannot process this image (likely reason is that it is too big). Please select another one.");
+                            params.put("message", "Vuze cannot process this image (likely reason is that it is too big). Please select another one.");
                             sendBrowserMessage("page", "error",params);
                         	
                         }
@@ -290,7 +290,7 @@ public class PublishTransaction extends Transaction
     	sendBrowserMessage("torrent","failed");
     	
     	Map params = new HashMap();
-		params.put("message", "Azureus cannot process this file. Please select another file.");
+		params.put("message", "Vuze cannot process this file. Please select another file.");
 		sendBrowserMessage("page", "error",params);
 		
     }

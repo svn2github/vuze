@@ -458,8 +458,6 @@ public class MainWindow
 
 		// XXX Temporary.  We'll use our own images
 		ImageRepository.loadImagesForSplashWindow(display);
-		ImageRepository.addPath("com/aelitis/azureus/ui/images/azureus.jpg",
-				"azureus_splash");
 
 		ImageRepository.loadImages(display);
 
@@ -470,7 +468,7 @@ public class MainWindow
 
 		try {
 			shell.setData("class", this);
-			shell.setText("Azureus");
+			shell.setText("Vuze");
 			Utils.setShellIcon(shell);
 			Utils.linkShellMetricsToConfig(shell, "window");
 

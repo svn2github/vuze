@@ -138,9 +138,6 @@ public class Initializer
 
 		ImageRepository.loadImagesForSplashWindow(display);
 
-		ImageRepository.addPath("com/aelitis/azureus/ui/images/azureus.jpg",
-				"azureus_splash");
-
 		if (COConfigurationManager.getBooleanParameter("Show Splash")) {
 			display.syncExec(new AERunnable() {
 				public void runSupport() {
