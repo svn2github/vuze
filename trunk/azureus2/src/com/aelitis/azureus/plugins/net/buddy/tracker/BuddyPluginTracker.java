@@ -79,6 +79,9 @@ BuddyPluginTracker
 
 	private static final int	PEER_CHECK_PERIOD		= 60*1000;
 	private static final int	PEER_CHECK_TICKS		= PEER_CHECK_PERIOD/BuddyPlugin.TIMER_PERIOD;
+	
+	private static final int	PEER_RECHECK_PERIOD		= 120*1000;
+	private static final int	PEER_RECHECK_TICKS		= PEER_RECHECK_PERIOD/BuddyPlugin.TIMER_PERIOD;
 
 	private static final int	TRACK_INTERVAL			= 10*60*1000;
 	
@@ -126,7 +129,7 @@ BuddyPluginTracker
 	private Map				full_id_map		= new HashMap();
 	
 	private Set				actively_tracking	= new HashSet();
-	
+		
 	private CopyOnWriteSet	buddy_peers	= new CopyOnWriteSet();
 	
 	private CopyOnWriteList	listeners = new CopyOnWriteList();
@@ -219,6 +222,11 @@ BuddyPluginTracker
 		if ( tick_count % PEER_CHECK_TICKS == 0 ){
 			
 			checkPeers();
+		}
+		
+		if ( tick_count % PEER_RECHECK_TICKS == 0 ){
+			
+			recheckPeers();
 		}
 	}
 	
@@ -1221,6 +1229,36 @@ outer:
 		for (int i=0;i<to_unmark.size();i++){
 			
 			unmarkBuddyPeer((Peer)to_unmark.get(i));
+		}
+	}
+	
+	protected void
+	recheckPeers()
+	{
+			// go over peers for active torrents to see if we've missed and. can really only
+			// happen with multi-homed LAN setups where a new (and utilised) route is found
+			// after we start tracking 
+		
+		synchronized( actively_tracking ){
+			
+			Iterator it = actively_tracking.iterator();
+			
+			while( it.hasNext()){
+				
+				Download download = (Download)it.next();
+				
+				PeerManager pm = download.getPeerManager();
+				
+				if ( pm != null ){
+					
+					Peer[] peers = pm.getPeers();
+					
+					for (int i=0;i<peers.length;i++){
+						
+						trackPeer( download, peers[i] );
+					}
+				}
+			}
 		}
 	}
 	
