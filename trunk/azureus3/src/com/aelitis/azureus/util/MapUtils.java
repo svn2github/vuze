@@ -58,7 +58,7 @@ public class MapUtils
 				return (String) o;
 			}
 			if (o instanceof byte[]) {
-				return new String((byte[]) o);
+				return new String((byte[]) o, "utf-8");
 			}
 			return def;
 		} catch (Exception t) {
