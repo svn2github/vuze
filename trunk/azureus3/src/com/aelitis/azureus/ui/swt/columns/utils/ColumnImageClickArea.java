@@ -64,6 +64,8 @@ public class ColumnImageClickArea
 	private float scale = 1.0f;
 	
 	private String tooltip;
+	
+	private boolean isVisible = true;
 
 	/**
 	 * @param id
@@ -175,6 +177,9 @@ public class ColumnImageClickArea
 	 * @since 3.0.1.7
 	 */
 	public void drawImage(GC gcImage) {
+		if (!isVisible) { 
+			return;
+		}
 		if (DEBUG && containsMouse) {
 			gcImage.setBackground(ColorCache.getColor(gcImage.getDevice(),
 					mouseDownOn ? "#ffff00" : "#ff0000"));
@@ -189,6 +194,9 @@ public class ColumnImageClickArea
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellMouseListener#cellMouseTrigger(org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent)
 	public void cellMouseTrigger(TableCellMouseEvent event) {
+		if (!isVisible) { 
+			return;
+		}
 		//		System.out.println(event.cell + ": " + event.eventType + ";" + event.x + "x" + event.y + "; b"
 		//				+ event.button + "; " + event.keyboardState);
 
@@ -227,6 +235,9 @@ public class ColumnImageClickArea
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableRowMouseListener#rowMouseTrigger(org.gudy.azureus2.plugins.ui.tables.TableRowMouseEvent)
 	public void rowMouseTrigger(TableRowMouseEvent event) {
+		if (!isVisible) { 
+			return;
+		}
 		if (event.eventType == TableCellMouseEvent.EVENT_MOUSEEXIT) {
 			setImage(imgOffRow);
 			setContainsMouse(null, false);
@@ -289,5 +300,13 @@ public class ColumnImageClickArea
 
 	public void setTooltip(String tooltip) {
 		this.tooltip = tooltip;
+	}
+
+	public boolean isVisible() {
+		return isVisible;
+	}
+
+	public void setVisible(boolean isVisible) {
+		this.isVisible = isVisible;
 	}
 }
