@@ -57,6 +57,11 @@ public class DetailPanel
 			return null;
 		}
 
+		/*
+		 * Move the panel above all others since we want it to overlap all other widgets
+		 */
+		detailPanel.moveAbove(null);
+
 		stackLayout = new StackLayout();
 		stackLayout.marginHeight = 6;
 		stackLayout.marginWidth = 6;

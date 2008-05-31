@@ -118,8 +118,6 @@ public class SharePage
 
 	private ClientMessageContext context = null;
 
-	//	private List selectedBuddies = new ArrayList();
-
 	private Map confirmationResponse = null;
 
 	private Color textColor = null;
@@ -138,6 +136,8 @@ public class SharePage
 
 	private Font smallFont = null;
 
+	private ButtonBar buttonBar;
+
 	public SharePage(DetailPanel detailPanel) {
 		super(detailPanel, PAGE_ID);
 	}
@@ -153,6 +153,7 @@ public class SharePage
 				"color.widget.container.bg");
 
 		buddiesViewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
+		buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
 
 		FontData[] fDatas = parent.getFont().getFontData();
 		for (int i = 0; i < fDatas.length; i++) {
@@ -275,7 +276,6 @@ public class SharePage
 				SWT.LEFT);
 		inviteePanelData.right = new FormAttachment(buddyList.getControl(), 0,
 				SWT.RIGHT);
-		//		inviteePanelData.height = 115;
 		inviteePanel.setLayoutData(inviteePanelData);
 
 		FormData inviteeListData = new FormData();
@@ -309,7 +309,6 @@ public class SharePage
 				SWT.TOP);
 		contentDetailData.left = new FormAttachment(buddyList.getControl(), 30);
 		contentDetailData.right = new FormAttachment(100, -58);
-		//		contentDetailData.bottom = new FormAttachment(inviteePanel, 0, SWT.BOTTOM);
 		contentDetailData.height = 259;
 		contentDetail.setLayoutData(contentDetailData);
 
@@ -487,11 +486,6 @@ public class SharePage
 
 		cancelButton.addListener(SWT.MouseDown, new Listener() {
 			public void handleEvent(Event event) {
-				ButtonBar buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
-				if (null != buttonBar) {
-					buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
-				}
-
 				resetControls();
 				getDetailPanel().show(false);
 			}
@@ -499,11 +493,6 @@ public class SharePage
 
 		miniCloseButton.addListener(SWT.MouseDown, new Listener() {
 			public void handleEvent(Event event) {
-				ButtonBar buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
-				if (null != buttonBar) {
-					buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
-				}
-
 				resetControls();
 				getDetailPanel().show(false);
 			}
@@ -538,10 +527,6 @@ public class SharePage
 					e1.printStackTrace();
 				}
 
-				ButtonBar buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
-				if (null != buttonBar) {
-					buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
-				}
 				resetControls();
 				getDetailPanel().show(false);
 			}
@@ -552,7 +537,9 @@ public class SharePage
 	private void resetControls() {
 		buddyList.clear();
 		inviteeList.clear();
-		buddiesViewer.setMode(BuddiesViewer.none_active_mode);
+		if (null != buttonBar) {
+			buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
+		}
 		commentText.setText("");
 	}
 
@@ -760,8 +747,8 @@ public class SharePage
 		}
 
 		if (null != shareItem) {
-			if (null != buddiesViewer) {
-				buddiesViewer.setShareMode(true);
+			if (null != buttonBar) {
+				buttonBar.setActiveMode(BuddiesViewer.share_mode);
 			}
 			getDetailPanel().show(true, PAGE_ID);
 		}

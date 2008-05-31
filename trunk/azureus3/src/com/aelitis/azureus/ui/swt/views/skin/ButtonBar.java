@@ -58,11 +58,9 @@ public class ButtonBar
 		 */
 		if (!com.aelitis.azureus.util.Constants.DISABLE_BUDDIES_BAR) {
 			hookShowHideButon();
-		}
-		else{
+		} else {
 			disabledForEdit(true);
 		}
-
 
 		return null;
 	}
@@ -194,7 +192,6 @@ public class ButtonBar
 				}
 			});
 
-
 			skinObject.getControl().setMenu(menu);
 		}
 
@@ -219,14 +216,14 @@ public class ButtonBar
 			addBuddyButton.setDisabled(true);
 			cancelEditBuddies.setVisible(true);
 			editButton.setDisabled(true);
-			showFooter(true);
+			showFooter(true, true);
 
 		} else if (mode == BuddiesViewer.share_mode) {
 			disabledForEdit(true);
 			editButton.setDisabled(true);
 			addBuddyButton.setDisabled(true);
 			shareAllBuddiesObject.setVisible(true);
-			showFooter(true);
+			showFooter(true, true);
 
 		} else {
 			disabledForEdit(true);
@@ -282,7 +279,7 @@ public class ButtonBar
 					showImageObject);
 			btnShow.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					showFooter(true);
+					showFooter(true, false);
 				}
 			});
 
@@ -293,7 +290,7 @@ public class ButtonBar
 					hideImageObject);
 			btnHide.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					showFooter(false);
+					showFooter(false, false);
 				}
 			});
 
@@ -301,7 +298,7 @@ public class ButtonBar
 
 	}
 
-	private void showFooter(boolean value) {
+	private void showFooter(boolean value, boolean fast) {
 		SWTSkinObject showImageObject = skin.getSkinObject("button-show-footer");
 		SWTSkinObject hideImageObject = skin.getSkinObject("button-hide-footer");
 		SWTSkinObject buttonBarObject = skin.getSkinObject("global-button-bar");
@@ -312,7 +309,7 @@ public class ButtonBar
 			hideImageObject.setVisible(value);
 
 			SWTSkinUtils.setVisibility(skin, "Footer.visible",
-					SkinConstants.VIEWID_FOOTER, value);
+					SkinConstants.VIEWID_FOOTER, value, true, fast);
 
 			Utils.relayout(buttonBarObject.getControl());
 		}

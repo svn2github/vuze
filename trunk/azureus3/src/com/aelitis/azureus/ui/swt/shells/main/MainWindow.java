@@ -151,7 +151,7 @@ public class MainWindow
 	private IView activeTopBar;
 
 	private MainStatusBar statusBar;
-	
+
 	private String lastShellStatus = null;
 
 	public static void main(String args[]) {
@@ -594,7 +594,7 @@ public class MainWindow
 					}
 				}
 			});
-			
+
 			increaseProgress(uiInitializer, null);
 			System.out.println("pre skin widgets init took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
@@ -681,7 +681,7 @@ public class MainWindow
 					}
 				});
 			}
-			
+
 			IconBar.addListener(new IconBar.IconBarListener() {
 				// @see org.gudy.azureus2.ui.swt.IconBar.IconBarListener#iconBarInitialized(org.eclipse.swt.widgets.CoolBar, org.gudy.azureus2.ui.swt.IconBar)
 				public void iconBarInitialized(CoolBar cb, IconBar ib) {
@@ -693,38 +693,39 @@ public class MainWindow
 					final String id = "share";
 					tiShare.setData(id, "share");
 					((ToolItem) tiShare.getWidget()).setToolTipText(MessageText.getString("v3.MainWindow.button.sendtofriend"));
-					boolean newTag = COConfigurationManager.getBooleanParameter("ui.adv.share.newtag", true);
+					boolean newTag = COConfigurationManager.getBooleanParameter(
+							"ui.adv.share.newtag", true);
 
 					final Image shareImage = imageLoader.getImage("image.button.sharewhite");
-					
-					if (newTag) {
-  					Image newTagImage = imageLoader.getImage("image.newtag");
-  					final Rectangle shareBounds = shareImage.getBounds();
-  					int width = shareBounds.width + newTagImage.getBounds().width;
-  					Image bg = Utils.createAlphaImage(display, width,
-  							shareImage.getBounds().height, (byte) 0);
-  
-  					final Image dstImage1 = Utils.renderTransparency(display, bg, shareImage,
-  							new Point(0, 0), 255);
-  					
-  					
-  					Image dstImage = Utils.renderTransparency(display, dstImage1,
-  							newTagImage, new Point(shareBounds.width, 0), 255);
-  
-  					bg.dispose();
-  					tiShare.setImage(dstImage);
 
-  					tiShare.addListener(SWT.Selection, new Listener() {
-  						public void handleEvent(Event e) {
-  							COConfigurationManager.setParameter("ui.adv.share.newtag", false);
-  							tiShare.setImage(dstImage1);
-  							SelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
-  							if (contents.length > 0) {
-  								VuzeShareUtils.getInstance().shareTorrent(contents[0],
-  										"advanced");
-  							}
-  						}
-  					});
+					if (newTag) {
+						Image newTagImage = imageLoader.getImage("image.newtag");
+						final Rectangle shareBounds = shareImage.getBounds();
+						int width = shareBounds.width + newTagImage.getBounds().width;
+						Image bg = Utils.createAlphaImage(display, width,
+								shareImage.getBounds().height, (byte) 0);
+
+						final Image dstImage1 = Utils.renderTransparency(display, bg,
+								shareImage, new Point(0, 0), 255);
+
+						Image dstImage = Utils.renderTransparency(display, dstImage1,
+								newTagImage, new Point(shareBounds.width, 0), 255);
+
+						bg.dispose();
+						tiShare.setImage(dstImage);
+
+						tiShare.addListener(SWT.Selection, new Listener() {
+							public void handleEvent(Event e) {
+								COConfigurationManager.setParameter("ui.adv.share.newtag",
+										false);
+								tiShare.setImage(dstImage1);
+								SelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
+								if (contents.length > 0) {
+									VuzeShareUtils.getInstance().shareTorrent(contents[0],
+											"advanced");
+								}
+							}
+						});
 					} else {
 						tiShare.setImage(shareImage);
 
@@ -747,13 +748,13 @@ public class MainWindow
 					coolItem.setMinimumSize(p.x, p.y);
 				}
 			});
-			
+
 			ManagerUtils.setRunRunnable(new RunDownloadManager() {
 				public void run(DownloadManager dm) {
 					if (PlatformTorrentUtils.isContent(dm.getTorrent(), true)) {
 						TorrentListViewsUtils.playOrStream(dm);
 					} else {
-		    		Utils.launch(dm.getSaveLocation().toString());
+						Utils.launch(dm.getSaveLocation().toString());
 					}
 				}
 			});
@@ -818,34 +819,34 @@ public class MainWindow
 						public void runSupport() {
 
 							UIFunctions uif = UIFunctionsManager.getUIFunctions();
-							
-							if ( type == NavigationHelper.COMMAND_SWITCH_TO_TAB ){
+
+							if (type == NavigationHelper.COMMAND_SWITCH_TO_TAB) {
 
 								SWTSkin skin = SWTSkinFactory.getInstance();
 								SWTSkinObject skinObject = skin.getSkinObject(args[0]);
 								if (skinObject != null) {
 									skin.activateTab(skinObject);
 								}
-								
-								if ( uif != null ){
-									
+
+								if (uif != null) {
+
 									uif.bringToFront();
 								}
-							}else if ( type == NavigationHelper.COMMAND_CONDITION_CHECK ){
-								
-								if ( args[0].equals( NavigationHelper.COMMAND_CHECK_BUDDY_MANAGER )){
-									
-									if ( args[1].equals( NavigationHelper.COMMAND_CHECK_BUDDY_MANAGER_ENABLED )){
-										
-								 		if (!VuzeBuddyManager.isEnabled()){
-								 			
-								 			VuzeBuddyManager.showDisabledDialog();
-								 			
-											if ( uif != null ){
-												
+							} else if (type == NavigationHelper.COMMAND_CONDITION_CHECK) {
+
+								if (args[0].equals(NavigationHelper.COMMAND_CHECK_BUDDY_MANAGER)) {
+
+									if (args[1].equals(NavigationHelper.COMMAND_CHECK_BUDDY_MANAGER_ENABLED)) {
+
+										if (!VuzeBuddyManager.isEnabled()) {
+
+											VuzeBuddyManager.showDisabledDialog();
+
+											if (uif != null) {
+
 												uif.bringToFront();
 											}
-								 		}
+										}
 									}
 								}
 							}
@@ -960,7 +961,7 @@ public class MainWindow
 
 		return true;
 	}
-	
+
 	private String getUsageActiveTabID() {
 		try {
 			SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
@@ -995,7 +996,7 @@ public class MainWindow
 					final Map oldMapTrackUsage = FileUtil.readResilientFile(f);
 					PlatformConfigMessenger.sendUsageStats(oldMapTrackUsage,
 							f.lastModified(), new PlatformMessengerListener() {
-						
+
 								public void messageSent(PlatformMessage message) {
 								}
 
@@ -1047,7 +1048,7 @@ public class MainWindow
 											}
 											return;
 										}
-										
+
 										Point pt = shell.getDisplay().getCursorLocation();
 										if (pt.equals(ptLastMousePos)) {
 											return;
@@ -1056,12 +1057,12 @@ public class MainWindow
 
 										long now = SystemTime.getCurrentTime();
 										if (lLastMouseMove > 0) {
-  										long diff = now - lLastMouseMove;
-  										if (diff < 10000) {
-  											lCurrentTrackTime += diff;
-  										} else {
-  											lCurrentTrackTimeIdle += diff;
-  										}
+											long diff = now - lLastMouseMove;
+											if (diff < 10000) {
+												lCurrentTrackTime += diff;
+											} else {
+												lCurrentTrackTimeIdle += diff;
+											}
 										}
 
 										lLastMouseMove = now;
@@ -1090,7 +1091,7 @@ public class MainWindow
 					}
 				};
 				shell.addListener(SWT.Activate, lActivateDeactivate);
-				shell.addListener(SWT.Deactivate, lActivateDeactivate); 
+				shell.addListener(SWT.Deactivate, lActivateDeactivate);
 
 			} else {
 				mapTrackUsage = null;
@@ -1495,6 +1496,17 @@ public class MainWindow
 		skinObject = skin.getSkinObject(SkinConstants.VIEWID_BUDDIES_VIEWER);
 		if (null != skinObject) {
 			BuddiesViewer skinView = new BuddiesViewer();
+			SkinViewManager.add(skinView);
+			skinObject.addListener(skinView);
+		}
+
+		/*
+		 * Directly loading the Button Bar since we need to access it
+		 * before it's even shown for the first time
+		 */
+		skinObject = skin.getSkinObject(SkinConstants.VIEWID_BUTTON_BAR);
+		if (null != skinObject) {
+			ButtonBar skinView = new ButtonBar();
 			SkinViewManager.add(skinView);
 			skinObject.addListener(skinView);
 		}
@@ -1937,9 +1949,8 @@ public class MainWindow
 				+ SystemTime.getCurrentTime();
 
 		if (System.getProperty("metasearch", "0").equals("1")) {
-			sURL = Constants.URL_PREFIX + "xsearch?q="
-					+ UrlUtils.encode(sSearchText) + "&" + Constants.URL_SUFFIX
-					+ "&rand=" + SystemTime.getCurrentTime();
+			sURL = Constants.URL_PREFIX + "xsearch?q=" + UrlUtils.encode(sSearchText)
+					+ "&" + Constants.URL_SUFFIX + "&rand=" + SystemTime.getCurrentTime();
 		}
 
 		System.out.println(sURL);
@@ -2200,27 +2211,27 @@ public class MainWindow
 			mapTrackUsage_mon.enter();
 			try {
 				if (lCurrentTrackTime > 0) {
-  				Long currentLength = (Long) mapTrackUsage.get(sTabID);
-  				long newLength;
-  				if (currentLength == null) {
-  					newLength = lCurrentTrackTime;
-  				} else {
-  					newLength = currentLength.longValue() + lCurrentTrackTime;
-  				}
-  				if (newLength > 1000) {
-  					mapTrackUsage.put(sTabID + "-secs", new Long(newLength / 1000));
-  				}
+					Long currentLength = (Long) mapTrackUsage.get(sTabID);
+					long newLength;
+					if (currentLength == null) {
+						newLength = lCurrentTrackTime;
+					} else {
+						newLength = currentLength.longValue() + lCurrentTrackTime;
+					}
+					if (newLength > 1000) {
+						mapTrackUsage.put(sTabID + "-secs", new Long(newLength / 1000));
+					}
 				}
 
 				if (lCurrentTrackTimeIdle > 0) {
-  				String id = "idle-" + sTabID;
-  				Long currentLengthIdle = (Long) mapTrackUsage.get(id);
-  				long newLengthIdle = currentLengthIdle == null
-  						? lCurrentTrackTimeIdle : currentLengthIdle.longValue()
-  								+ lCurrentTrackTimeIdle;
-  				if (newLengthIdle > 1000) {
-  					mapTrackUsage.put(id + "-secs", new Long(newLengthIdle / 1000));
-  				}
+					String id = "idle-" + sTabID;
+					Long currentLengthIdle = (Long) mapTrackUsage.get(id);
+					long newLengthIdle = currentLengthIdle == null
+							? lCurrentTrackTimeIdle : currentLengthIdle.longValue()
+									+ lCurrentTrackTimeIdle;
+					if (newLengthIdle > 1000) {
+						mapTrackUsage.put(id + "-secs", new Long(newLengthIdle / 1000));
+					}
 				}
 			} finally {
 				mapTrackUsage_mon.exit();
