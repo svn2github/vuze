@@ -158,13 +158,13 @@ public abstract class Result {
 		if(this.getNbSeeds() >= 0) {
 			object.put("s","" + this.getNbSeeds());
 		} else {
-			object.put("s","--");
+			object.put("s","-1");
 		}
 			
 		if(this.getNbPeers() >= 0) {
 			object.put("p","" + this.getNbPeers());
 		} else {
-			object.put("p","--");
+			object.put("p","-1");
 		}
 		
 		int	comments = getComments();
@@ -179,7 +179,7 @@ public abstract class Result {
 			object.put("l", DisplayFormatters.formatByteCountToKiBEtc( size ));
 			object.put("lb", "" + size  );
 		} else {
-			object.put("l", "--");
+			object.put("l", "-1");
 			object.put("lb", "0");
 		}
 		
@@ -187,11 +187,17 @@ public abstract class Result {
 		
 		object.put("ct", this.getContentType());
 		
-		object.put("cdp", this.getCDPLink());
+		if ( this.getCDPLink().length() > 0 ){
+			object.put("cdp", this.getCDPLink());
+		}
 		
-		object.put("dl", this.getDownloadLink());
+		if ( this.getDownloadLink().length() > 0 ){
+			object.put("dl", this.getDownloadLink());
+		}
 		
-		object.put("pl", this.getPlayLink());
+		if ( this.getPlayLink().length() > 0 ){
+			object.put("pl", this.getPlayLink());
+		}
 		
 		return object;
 	}
