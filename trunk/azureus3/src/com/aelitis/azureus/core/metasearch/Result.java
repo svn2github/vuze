@@ -188,6 +188,11 @@ public abstract class Result {
 		object.put("ct", this.getContentType());
 		
 		object.put("cdp", this.getCDPLink());
+		
+		object.put("dl", this.getDownloadLink());
+		
+		object.put("pl", this.getPlayLink());
+		
 		return object;
 	}
 	

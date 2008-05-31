@@ -304,6 +304,9 @@ RegexEngine
 							case FIELD_TORRENTLINK :
 								result.setTorrentLink(groupContent);
 								break;
+							case FIELD_PLAYLINK :
+								result.setPlayLink(groupContent);
+								break;
 							default:
 								break;
 							}

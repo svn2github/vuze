@@ -296,6 +296,9 @@ JSONEngine
 										case FIELD_TORRENTLINK :
 											result.setTorrentLink(fieldContent);
 											break;
+										case FIELD_PLAYLINK :
+											result.setPlayLink(fieldContent);
+											break;
 										default:
 											break;
 										}

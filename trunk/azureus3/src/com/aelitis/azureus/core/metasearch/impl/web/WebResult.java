@@ -185,6 +185,10 @@ public class WebResult extends Result {
 		this.torrentLink = torrentLink;
 	}
 	
+	public void setPlayLink(String playLink) {
+		this.playLink = playLink;
+	}
+	
 	public String getContentType() {
 		return this.contentType;
 	}
