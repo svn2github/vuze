@@ -85,7 +85,9 @@ public class SeedingUnchoker implements Unchoker {
   
 
   public void calculateUnchokes( int max_to_unchoke, ArrayList all_peers, boolean force_refresh ) {
-    
+	  
+	int max_optimistic = ((max_to_unchoke - 1) / 5) + 1;  //one optimistic unchoke for every 5 upload slots
+	  
     //get all the currently unchoked peers
     for( int i=0; i < all_peers.size(); i++ ) {
     	PEPeerTransport peer = (PEPeerTransport)all_peers.get( i );
@@ -107,9 +109,8 @@ public class SeedingUnchoker implements Unchoker {
     }
     
     
-    //we only recalculate the uploads when we're force to refresh the optimistic unchokes
-    if( force_refresh ) {
-      int max_optimistic = ((max_to_unchoke - 1) / 5) + 1;  //one optimistic unchoke for every 5 upload slots
+    //we only recalculate the uploads when we're forced to refresh the optimistic unchokes
+    if( force_refresh ) {      
 
       //we need to make room for new opt unchokes by finding the "worst" peers
       ArrayList peers_ordered_by_rate = new ArrayList();
@@ -184,8 +185,69 @@ public class SeedingUnchoker implements Unchoker {
       }
       
     }
+    
+    
+    //TODO for performance reasons, would be nice to have a flag
+    //to check if we should even run setFriendUnchokes() at all
+    //i.e. only run if there will actually be friend peers in the all_peers list
+    /*
+    if( buddy_bandwidth_peers_exist ) {
+    	//add Friend peers preferentially, leaving room for 1 non-friend peer for every 5 upload slots
+    	setFriendUnchokes( max_to_unchoke - max_optimistic, all_peers );
+    }
+    */
 
   }
+  
+  
+  
+  
+  private void setFriendUnchokes( int max_friends, ArrayList all_peers ) {	  
+	  ArrayList friends = new ArrayList();
+	  
+	  //find all friends
+	  for( int i=0; i < all_peers.size(); i++ ) {
+		  PEPeerTransport peer = (PEPeerTransport)all_peers.get( i );
+	    	
+		  if( UnchokerUtil.isUnchokable( peer, true ) && peer.getData( "isBandwidthBoosterBuddy" ) != null ) {
+			  friends.add( peer );	    		
+		  }
+	  }
+	  
+	  int num_unchoked = 0;
+	  	  
+	  for( int i=0; i < unchokes.size(); i++ ) {
+		  PEPeerTransport peer = (PEPeerTransport)unchokes.get( i );
+
+		  if( friends.remove( peer ) ) {   //check if this peer is a friend and already in the unchoke list
+			  num_unchoked++;			  
+		  }
+	  }	  
+	  
+	  Collections.shuffle( friends );   //we want to give all friends a chance if there happens to be more than max_friends
+	  
+	  while( num_unchoked < max_friends && !friends.isEmpty() ) {   //we need to add more friends		
+		  
+		  //drop end peer to make room for the friend
+		  PEPeerTransport peer = (PEPeerTransport)unchokes.remove( unchokes.size() - 1 );
+		  
+		  if( peer.getData( "isBandwidthBoosterBuddy" ) != null ) {  //oops, is already friend
+			  unchokes.add( 0, peer );   //so add back to front of list			  
+		  }
+		  else {
+			  PEPeerTransport friend = (PEPeerTransport)friends.remove( friends.size() - 1 );  //get next friend
+			  
+			  chokes.remove( friend );  //just in case
+			  
+			  unchokes.add( 0, friend );  	  	//add friend to front of list
+			  
+			  num_unchoked++;			  
+		  }
+	  }	  
+  }
+  
+  
+  
   
   
   public ArrayList getChokes() {
