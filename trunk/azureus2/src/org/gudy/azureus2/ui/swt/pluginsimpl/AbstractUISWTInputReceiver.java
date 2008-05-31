@@ -47,5 +47,30 @@ public abstract class AbstractUISWTInputReceiver extends AbstractUIInputReceiver
 		this.assertPrePrompt();
 		this.width_hint = width;
 	}
+
+	protected String[] choices = null;
+	protected boolean choices_allow_edit = true;
+	protected int choices_default = -1;
+	
+	public void setPreenteredText(String text, boolean as_suggested) {
+		if (!this.choices_allow_edit) {
+			throw new RuntimeException("cannot set pre-entered text if you have chosen to use non editable selected items");
+		}
+		super.setPreenteredText(text, as_suggested);
+	}
+	
+	public void setSelectableItems(String[] choices, int default_choice, boolean allow_edit) {
+		this.assertPrePrompt();
+		if (!allow_edit && this.preentered_text != null) {
+			throw new RuntimeException("cannot set allow_edit to false if you have already set pre-entered text");
+		} 
+		this.choices = choices;
+		this.choices_allow_edit = allow_edit;
+		this.choices_default = default_choice;
+		
+    	if (default_choice >= 0 && default_choice < choices.length) {
+    		this.preentered_text = choices[default_choice];
+    	}
+	}
 	
 }

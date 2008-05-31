@@ -81,23 +81,47 @@ public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
 	    	gridData.widthHint = width_hint;
 		    label.setLayoutData(gridData);
 	    }
-
-	    // We may, at a later date, allow more customisable behaviour w.r.t. to this.
-	    // (e.g. "Should we wrap this, should we provide H_SCROLL capabilities" etc.)
-	    int text_entry_flags = SWT.BORDER;
-	    if (this.multiline_mode) {
-	    	text_entry_flags |= SWT.MULTI | SWT.V_SCROLL | SWT.WRAP; 
-	    }
-	    else {
-	    	text_entry_flags |= SWT.SINGLE;
-	    }
 	    
 	    // Create Text object with pre-entered text.
-	    final Text text_entry = new Text(shell, text_entry_flags);
+	    final Scrollable text_entry;
+	    final Combo text_entry_combo;
+	    final Text text_entry_text;
+	    if (this.choices != null) {
+	    	int text_entry_flags = SWT.DROP_DOWN;
+	    	if (!this.choices_allow_edit) {
+	    		text_entry_flags |= SWT.READ_ONLY;
+	    	}
+	    	
+	    	text_entry_combo = new Combo(shell, text_entry_flags);
+	    	text_entry_combo.setItems(this.choices);
+	    	text_entry_text = null;
+	    	text_entry = text_entry_combo;
+	    }
+	    else {
+		    // We may, at a later date, allow more customisable behaviour w.r.t. to this.
+		    // (e.g. "Should we wrap this, should we provide H_SCROLL capabilities" etc.)
+		    int text_entry_flags = SWT.BORDER;
+		    if (this.multiline_mode) {
+		    	text_entry_flags |= SWT.MULTI | SWT.V_SCROLL | SWT.WRAP; 
+		    }
+		    else {
+		    	text_entry_flags |= SWT.SINGLE;
+		    }
+	    	
+	    	text_entry_text = new Text(shell, text_entry_flags);
+	    	
+	    	text_entry_combo = null;
+	    	text_entry = text_entry_text;
+	    }
 	    if (this.preentered_text != null) {
-	    	text_entry.setText(this.preentered_text);
-	    	if (this.select_preentered_text) {
-	    		text_entry.selectAll();
+	    	if (text_entry_text != null) {
+		    	text_entry_text.setText(this.preentered_text);
+		    	if (this.select_preentered_text) {
+		    		text_entry_text.selectAll();
+		    	}
+	    	}
+	    	else if (text_entry_combo != null ){
+		    	text_entry_combo.setText(this.preentered_text);
 	    	}
 	    }
 	    
@@ -119,7 +143,8 @@ public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
 	    
 	    gridData = new GridData();
 	    gridData.widthHint = width_hint;
-	    gridData.minimumHeight = text_entry.getLineHeight() * line_height;
+	    if (text_entry_text != null)
+	    	gridData.minimumHeight = text_entry_text.getLineHeight() * line_height;
 	    gridData.heightHint = gridData.minimumHeight;
 	    text_entry.setLayoutData(gridData);
 
@@ -160,12 +185,18 @@ public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
 	       */
 	      public void handleEvent(Event event) {
 	    	  try {
-	    		  String entered_data = text_entry.getText();
+	    		  String entered_data = "";
+	    		  if (text_entry_text != null) {
+	    			  entered_data = text_entry_text.getText();
+	    		  }
+	    		  else if (text_entry_combo != null) {
+	    			  entered_data = text_entry_combo.getText();
+	    		  }
+	    		  
+	    		  
 	    		  if (!SimpleTextEntryWindow.this.maintain_whitespace) {
 	    			  entered_data = entered_data.trim();
 	    		  }
-	    		  
-    		  
 	    		  
 	    		  if (!SimpleTextEntryWindow.this.allow_empty_input && entered_data.length() == 0) {
 	    			  showError(MessageText.getString("UI.cannot_submit_blank_text"));
@@ -212,7 +243,8 @@ public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
 		});
 		
 	    shell.pack();
-	    Utils.createURLDropTarget(shell, text_entry);
+	    if (text_entry_text != null)
+	    	Utils.createURLDropTarget(shell, text_entry_text);
 	    Utils.centreWindow(shell);
 	    shell.open();
 	    while (!shell.isDisposed())
