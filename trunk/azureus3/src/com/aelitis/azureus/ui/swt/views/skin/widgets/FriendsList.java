@@ -8,6 +8,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.MouseAdapter;
@@ -45,8 +46,6 @@ public class FriendsList
 	private ScrolledComposite scrollable;
 
 	private Canvas canvas;
-
-	private List friends = new ArrayList();
 
 	private List friendsWidgets = new ArrayList();
 
@@ -103,6 +102,19 @@ public class FriendsList
 			}
 		});
 
+		canvas.addControlListener(new ControlListener() {
+
+			public void controlResized(ControlEvent e) {
+				Rectangle r = scrollable.getClientArea();
+				scrollable.setMinSize(canvas.computeSize(r.width, SWT.DEFAULT));
+			}
+
+			public void controlMoved(ControlEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+		});
+
 		canvas.setBackground(widgetBackgroundColor);
 
 		GridLayout gLayout = new GridLayout();
@@ -119,11 +131,8 @@ public class FriendsList
 	public void addFriend(final VuzeBuddy buddy) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				if (false == friends.contains(buddy)) {
-					friends.add(buddy);
-
+				if (null == findWidget(buddy)) {
 					FriendWidget widget = new FriendWidget(canvas, buddy);
-
 					Rectangle r = scrollable.getClientArea();
 
 					friendsWidgets.add(widget);
@@ -131,7 +140,7 @@ public class FriendsList
 					gData.heightHint = 22;
 					widget.getControl().setLayoutData(gData);
 					canvas.layout(true, true);
-					scrollable.setMinSize(canvas.computeSize(r.width, SWT.DEFAULT, true));
+					scrollable.setMinSize(canvas.computeSize(r.width, SWT.DEFAULT));
 					content.layout(true, true);
 				}
 			}
@@ -141,16 +150,13 @@ public class FriendsList
 	public void removeFriend(final VuzeBuddy buddy) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				if (true == friends.contains(buddy)) {
-					FriendWidget widget = findWidget(buddy);
-					if (null != widget) {
-						friendsWidgets.remove(widget);
-						widget.dispose(true);
-						canvas.layout(true);
-						Rectangle r = scrollable.getClientArea();
-						scrollable.setMinSize(canvas.computeSize(r.width, SWT.DEFAULT));
-					}
-					friends.remove(buddy);
+				FriendWidget widget = findWidget(buddy);
+				if (null != widget) {
+					friendsWidgets.remove(widget);
+					widget.dispose(true);
+					canvas.layout(true);
+					Rectangle r = scrollable.getClientArea();
+					scrollable.setMinSize(canvas.computeSize(r.width, SWT.DEFAULT));
 					getBuddiesViewer().removeFromShare(buddy);
 				}
 			}
@@ -159,11 +165,11 @@ public class FriendsList
 	}
 
 	public void clear() {
-		friends.clear();
 		for (Iterator iterator = friendsWidgets.iterator(); iterator.hasNext();) {
 			FriendWidget widget = (FriendWidget) iterator.next();
 			widget.dispose(false);
 		}
+		friendsWidgets.clear();
 		canvas.layout(true);
 	}
 
@@ -471,6 +477,15 @@ public class FriendsList
 	}
 
 	public int getContentCount() {
-		return friends.size();
+		return friendsWidgets.size();
+	}
+
+	public List getFriends() {
+		List vuzeBuddies = new ArrayList();
+		for (Iterator iterator = friendsWidgets.iterator(); iterator.hasNext();) {
+			FriendWidget widget = (FriendWidget) iterator.next();
+			vuzeBuddies.add(widget.getBuddy());
+		}
+		return vuzeBuddies;
 	}
 }

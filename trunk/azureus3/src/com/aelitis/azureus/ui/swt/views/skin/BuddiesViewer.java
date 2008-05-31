@@ -675,6 +675,16 @@ public class BuddiesViewer
 		}
 	}
 
+	public void addSelectionToShare() {
+
+		for (Iterator iterator = avatarWidgets.iterator(); iterator.hasNext();) {
+			AvatarWidget widget = (AvatarWidget) iterator.next();
+			if (true == widget.isSelected()) {
+				addToShare(widget);
+			}
+		}
+	}
+
 	public void removeFromShare(VuzeBuddy buddy) {
 
 		if (null != buddy) {

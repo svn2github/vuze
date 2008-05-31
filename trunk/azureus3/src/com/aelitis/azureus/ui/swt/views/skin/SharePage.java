@@ -118,7 +118,7 @@ public class SharePage
 
 	private ClientMessageContext context = null;
 
-	private List selectedBuddies = new ArrayList();
+	//	private List selectedBuddies = new ArrayList();
 
 	private Map confirmationResponse = null;
 
@@ -390,10 +390,10 @@ public class SharePage
 		buddyListDescription.setForeground(textDarkerColor);
 		inviteeListDescription.setForeground(textDarkerColor);
 		optionalMessageLabel.setForeground(textDarkerColor);
-		
+
 		optionalMessageDisclaimerLabel.setForeground(textDarkerColor);
 		optionalMessageDisclaimerLabel.setFont(smallFont);
-		
+
 		addBuddyPromptLabel.setForeground(textDarkerColor);
 
 		contentStats.setForeground(textColor);
@@ -436,7 +436,7 @@ public class SharePage
 		Messages.setLanguageText(optionalMessageDisclaimerLinkLabel.getControl(),
 				"v3.Share.disclaimer.link");
 		optionalMessageDisclaimerLinkLabel.setFont(smallFont);
-		
+
 		Messages.setLanguageText(shareHeaderLabel, "v3.Share.header");
 		Messages.setLanguageText(shareHeaderMessageLabel, "v3.Share.header.message");
 		Messages.setLanguageText(buddyListDescription,
@@ -528,7 +528,8 @@ public class SharePage
 
 				getMessageContext().executeInBrowser("shareSubmit()");
 
-				VuzeBuddy[] buddies = (VuzeBuddy[]) selectedBuddies.toArray(new VuzeBuddy[selectedBuddies.size()]);
+				List buddiesToShareWith = buddyList.getFriends();
+				VuzeBuddy[] buddies = (VuzeBuddy[]) buddiesToShareWith.toArray(new VuzeBuddy[buddiesToShareWith.size()]);
 				try {
 					VuzeBuddyManager.inviteWithShare(confirmationResponse,
 							getShareItem(), commentText.getText(), buddies);
@@ -549,6 +550,7 @@ public class SharePage
 	}
 
 	private void resetControls() {
+		buddyList.clear();
 		inviteeList.clear();
 		buddiesViewer.setMode(BuddiesViewer.none_active_mode);
 		commentText.setText("");
@@ -560,7 +562,7 @@ public class SharePage
 		}
 		List buddieloginIDsAndContentHash = new ArrayList();
 		List loginIDs = new ArrayList();
-		for (Iterator iterator = selectedBuddies.iterator(); iterator.hasNext();) {
+		for (Iterator iterator = buddyList.getFriends().iterator(); iterator.hasNext();) {
 			VuzeBuddySWT vuzeBuddy = (VuzeBuddySWT) iterator.next();
 			loginIDs.add(vuzeBuddy.getLoginID());
 		}
@@ -571,14 +573,12 @@ public class SharePage
 	}
 
 	public void setBuddies(List buddies) {
-		selectedBuddies.clear();
 		buddyList.clear();
 		for (Iterator iterator = buddies.iterator(); iterator.hasNext();) {
 			Object vuzeBuddy = iterator.next();
 			if (vuzeBuddy instanceof VuzeBuddy) {
-				selectedBuddies.add(vuzeBuddy);
 				buddyList.addFriend((VuzeBuddy) vuzeBuddy);
-				buddiesViewer.addToShare((VuzeBuddy) vuzeBuddy);
+				//				buddiesViewer.addToShare((VuzeBuddy) vuzeBuddy);
 				adjustLayout();
 			}
 		}
@@ -595,6 +595,8 @@ public class SharePage
 		} else {
 			showInviteeList(false);
 		}
+
+		//		content.layout(true);
 	}
 
 	public void addBuddies(List buddies) {
@@ -607,16 +609,14 @@ public class SharePage
 	}
 
 	public void addBuddy(VuzeBuddySWT vuzeBuddy) {
-		if (false == selectedBuddies.contains(vuzeBuddy)) {
-			selectedBuddies.add(vuzeBuddy);
+		if (null == buddyList.findWidget(vuzeBuddy)) {
 			buddyList.addFriend((VuzeBuddy) vuzeBuddy);
 			adjustLayout();
 		}
 	}
 
 	public void removeBuddy(VuzeBuddySWT vuzeBuddy) {
-		if (true == selectedBuddies.contains(vuzeBuddy)) {
-			selectedBuddies.remove(vuzeBuddy);
+		if (null != buddyList.findWidget(vuzeBuddy)) {
 			buddyList.removeFriend((VuzeBuddy) vuzeBuddy);
 			adjustLayout();
 		}
@@ -792,6 +792,7 @@ public class SharePage
 
 		if (null != buddiesViewer) {
 			setBuddies(buddiesViewer.getSelection());
+			buddiesViewer.addSelectionToShare();
 		}
 
 		if (null != dm && null != dm.getTorrent()) {
