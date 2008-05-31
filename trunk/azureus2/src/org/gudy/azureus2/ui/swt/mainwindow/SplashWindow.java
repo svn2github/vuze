@@ -149,7 +149,7 @@ public class SplashWindow
 		this.percentDone.setLayoutData(gridData);*/
 
 		splash.setLayout(new FillLayout());
-		canvas = new Canvas(splash, SWT.NONE);
+		canvas = new Canvas(splash, SWT.DOUBLE_BUFFERED);
 
 		background = ImageRepository.getImage("azureus_splash");
 		current = new Image(display, background, SWT.IMAGE_COPY);
@@ -169,7 +169,8 @@ public class SplashWindow
 		canvas.addPaintListener(new PaintListener() {
 			public void paintControl(PaintEvent event) {
 				GC gc = event.gc;
-				gc.drawImage(current, 0, 0);
+				gc.drawImage(current, event.x, event.y, event.width, event.height,
+						event.x, event.y, event.width, event.height);
 			}
 		});
 
