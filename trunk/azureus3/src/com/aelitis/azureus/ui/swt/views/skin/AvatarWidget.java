@@ -1,7 +1,5 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import java.util.HashMap;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MenuListener;
@@ -29,7 +27,6 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
@@ -96,6 +93,8 @@ public class AvatarWidget
 
 	private Image image = null;
 
+	private Image imageDefaultAvatar = null;
+
 	private Rectangle sourceImageBounds = null;
 
 	private Menu menu;
@@ -153,6 +152,7 @@ public class AvatarWidget
 		add_to_share_Image_normal = imageLoader.getImage("image.buddy.add.to.share");
 		removeImage_over = imageLoader.getImage("image.buddy.remove-over");
 		add_to_share_Image_over = imageLoader.getImage("image.buddy.add.to.share-over");
+		imageDefaultAvatar = imageLoader.getImage("image.buddy.default.avatar");
 
 		removeImage = removeImage_normal;
 		add_to_share_Image = add_to_share_Image_normal;
@@ -168,7 +168,8 @@ public class AvatarWidget
 				imageSize.x, imageSize.y);
 
 		nameAreaBounds = new Rectangle((size.x / 2) - ((nameAreaSize.x - 6) / 2),
-				imageBounds.y + imageBounds.height +2 , nameAreaSize.x - 6, nameAreaSize.y);
+				imageBounds.y + imageBounds.height + 2, nameAreaSize.x - 6,
+				nameAreaSize.y);
 
 		/*
 		 * Position the decorator icons
@@ -184,7 +185,7 @@ public class AvatarWidget
 		 */
 		image = vuzeBuddy.getAvatarImage();
 		if (null == image) {
-			image = imageLoader.getImage("image.buddy.default.avatar");
+			image = imageDefaultAvatar;
 		}
 
 		sourceImageBounds = null == image ? null : image.getBounds();
@@ -246,6 +247,7 @@ public class AvatarWidget
 					 * Paint nothing if the buddy has no avatar AND the default image is not found,
 					 * OR the image has been disposed
 					 */
+					Debug.out("No avatar image found and no default image supplies?");
 				} else {
 					if (true == viewer.isEditMode()) {
 						e.gc.setAlpha((int) (alpha * .7));
@@ -328,7 +330,7 @@ public class AvatarWidget
 					//					e.gc.setFont(null);
 					e.gc.setFont(fontDisplayName);
 					GCStringPrinter.printString(e.gc, vuzeBuddy.getDisplayName(),
-							nameAreaBounds, false, true, SWT.CENTER );
+							nameAreaBounds, false, true, SWT.CENTER);
 
 				}
 			}
@@ -717,7 +719,7 @@ public class AvatarWidget
 			 */
 			image = vuzeBuddy.getAvatarImage();
 			if (null == image) {
-				image = ImageRepository.getImage("buddy_default_avatar");
+				image = imageDefaultAvatar;
 			}
 			sourceImageBounds = null == image ? null : image.getBounds();
 			refreshVisual();

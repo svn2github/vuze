@@ -251,7 +251,7 @@ public class SharePage
 		buddyListData.top = new FormAttachment(buddyListDescription, 6);
 		buddyListData.left = new FormAttachment(buddyListDescription, -2, SWT.LEFT);
 		buddyListData.width = 315;
-		buddyListData.height = 115;
+		buddyListData.height = 124;
 		buddyList.getControl().setLayoutData(buddyListData);
 
 		FormData inviteeListDescriptionData = new FormData();

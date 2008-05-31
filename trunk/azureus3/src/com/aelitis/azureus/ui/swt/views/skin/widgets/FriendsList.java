@@ -77,6 +77,10 @@ public class FriendsList
 				"color.widget.border");
 		normalColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
 				"color.table.bg");
+		
+		widgetBackgroundColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
+		"color.widget.container.bg");
+		
 		scrollable.setContent(canvas);
 
 		init();
@@ -97,8 +101,7 @@ public class FriendsList
 
 			}
 		});
-		widgetBackgroundColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
-				"color.widget.container.bg");
+		
 
 		canvas.setBackground(widgetBackgroundColor);
 
@@ -225,14 +228,14 @@ public class FriendsList
 			closeButtonBounds = new Rectangle(0, 0, closeButton.getImageData().width,
 					closeButton.getImageData().height);
 
-			activeColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
-					"color.row.selected");
+			//			activeColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
+			//					"color.row.selected");
 			normalColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
 					"color.table.bg");
 
 			borderColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
 					"color.widget.border");
-
+			activeColor = borderColor;
 			textColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
 					"color.text.fg");
 
@@ -267,7 +270,6 @@ public class FriendsList
 				}
 
 				public void mouseHover(MouseEvent e) {
-					// TODO Auto-generated method stub
 					super.mouseHover(e);
 				}
 
