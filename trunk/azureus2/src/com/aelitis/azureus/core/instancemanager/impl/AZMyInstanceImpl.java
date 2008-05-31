@@ -25,6 +25,8 @@ package com.aelitis.azureus.core.instancemanager.impl;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -373,6 +375,19 @@ AZMyInstanceImpl
 	getInternalAddress()
 	{
 		return( internal_address );
+	}
+	
+	public List 
+	getInternalAddresses() 
+	{
+		List	l = new ArrayList();
+		
+		if ( internal_address != null ){
+			
+			l.add( internal_address );
+		}
+		
+		return( l );
 	}
 	
 	public InetAddress

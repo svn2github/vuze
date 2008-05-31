@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.plugins.net.buddy.swt;
 
+import java.net.InetAddress;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -549,11 +550,7 @@ BuddyPluginViewInstance
 										.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
 								label.setData("_TABLEITEM", item);
 								
-								String tt = "ip=" + buddy.getIP() + "/" + buddy.getAdjustedIP() +
-												",tcp=" + buddy.getTCPPort() +
-												",udp=" + buddy.getUDPPort();
-							
-								label.setText( tt );
+								label.setText( getToolTip( buddy ));
 								
 								label.addListener(SWT.MouseExit, tt_label_listener);
 								label.addListener(SWT.MouseDown, tt_label_listener);
@@ -565,6 +562,41 @@ BuddyPluginViewInstance
 							}
 						}
 					}
+				}
+				
+				protected String
+				getToolTip(
+					BuddyPluginBuddy	buddy )
+				{
+					List addresses = buddy.getAdjustedIPs();
+					
+					InetAddress	ip	= buddy.getIP();
+					
+					InetAddress adj = buddy.getAdjustedIP();
+					
+					String	str = "";
+					
+					if ( ip == null ){
+						
+						str = "<none>";
+						
+					}else if ( ip == adj ){
+						
+						str = ip.getHostAddress();
+						
+					}else{
+						
+						str = ip.getHostAddress() + "{";
+					
+						for (int i=0;i<addresses.size();i++){
+							
+							str += (i==0?"":"/") + ((InetAddress)addresses.get(i)).getHostAddress();
+						}
+						
+						str += "}";
+					}
+					
+					return(  "ip=" + str + ",tcp=" + buddy.getTCPPort() + ",udp=" + buddy.getUDPPort());
 				}
 			};
 			

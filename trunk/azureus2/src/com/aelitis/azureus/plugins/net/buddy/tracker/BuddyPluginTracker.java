@@ -28,6 +28,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Average;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
@@ -580,38 +581,59 @@ BuddyPluginTracker
 	isBuddy(
 		Peer		peer )
 	{
-		synchronized( online_buddies ){
+		String	peer_ip = peer.getIp();
+		
+		List ips = AddressUtils.getLANAddresses( peer_ip );
 
-			List l =(List)online_buddy_ips.get( peer.getIp());
+		synchronized( online_buddies ){
 			
-			if ( l == null ){
+			int	result = BUDDY_NO;
+		
+			String	tested = "";
+outer:	
+			for (int i=0;i<ips.size();i++){
+
+				String ip = (String)ips.get(i);
 				
-				return( BUDDY_NO );
-			}
-			
-			if ( peer.getTCPListenPort() == 0 && peer.getUDPListenPort() == 0 ){
+				tested += ip;
 				
-				return( BUDDY_MAYBE );
-			}
+				List buddies =(List)online_buddy_ips.get( ip  );
 			
-			for (int i=0;i<l.size();i++){
-					
-				BuddyPluginBuddy	buddy = (BuddyPluginBuddy)l.get(i);
-					
-				if (	buddy.getTCPPort() == peer.getTCPListenPort() &&
-						buddy.getTCPPort() != 0 ){
-					
-					return( BUDDY_YES );
-				}
+				if ( buddies != null ){
+									
+					if ( peer.getTCPListenPort() == 0 && peer.getUDPListenPort() == 0 ){
 						
-				if (	buddy.getUDPPort() == peer.getUDPListenPort() &&
-						buddy.getUDPPort() != 0 ){
+						result = BUDDY_MAYBE;
+						
+					}else{
 					
-					return( BUDDY_YES );
+						for (int j=0;j<buddies.size();j++){
+								
+							BuddyPluginBuddy	buddy = (BuddyPluginBuddy)buddies.get(j);
+								
+							if (	buddy.getTCPPort() == peer.getTCPListenPort() &&
+									buddy.getTCPPort() != 0 ){
+								
+								result =  BUDDY_YES;
+								
+								break outer;
+							}
+									
+							if (	buddy.getUDPPort() == peer.getUDPListenPort() &&
+									buddy.getUDPPort() != 0 ){
+								
+								result =  BUDDY_YES;
+								
+								break outer;
+							}
+						}
+					}
 				}
 			}
 			
-			return( BUDDY_NO );
+			log( "isBuddy: " + peer_ip + " -> " + result + ",tested=" + tested );
+			
+			return( result );
 		}
 	}
 	
@@ -1160,7 +1182,7 @@ BuddyPluginTracker
 						
 					}else{
 	
-						download.setUserData( DOWNLOAD_KEY, new Integer( val-1 ));
+						download.setUserData( DOWNLOAD_KEY, new Integer( val ));
 					}
 				}
 				
@@ -2059,7 +2081,7 @@ BuddyPluginTracker
 		resetTracking(
 			Download		download )
 		{
-			synchronized( downloads_in_common ){
+			synchronized( this ){
 				
 				if ( downloads_in_common == null ){
 					

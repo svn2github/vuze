@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.instancemanager;
 
+import java.util.List;
 import java.net.InetAddress;
 
 public interface 
@@ -33,6 +34,9 @@ AZInstance
 	public InetAddress
 	getInternalAddress();
 	
+	public List
+	getInternalAddresses();
+
 	public InetAddress
 	getExternalAddress();
 	

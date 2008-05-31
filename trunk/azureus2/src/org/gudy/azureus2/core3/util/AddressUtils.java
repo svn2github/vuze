@@ -28,6 +28,7 @@ import java.net.InetSocketAddress;
 import java.net.URL;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.instancemanager.AZInstance;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
 
@@ -179,6 +180,66 @@ AddressUtils
 		}
 		
 		return( adjusted_address );
+	}
+	
+	public static List
+	getLANAddresses(
+		String		address )
+	{
+		List	result = new ArrayList();
+		
+		result.add( address );
+		
+		try{
+			InetAddress ad = InetAddress.getByName( address );
+
+			if ( isLANLocalAddress( address ) != LAN_LOCAL_NO ){
+
+				if ( instance_manager == null ){
+					
+					try{
+						instance_manager = AzureusCoreFactory.getSingleton().getInstanceManager();
+						
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
+					}
+				}
+				
+				if ( instance_manager == null || !instance_manager.isInitialized()){
+					
+					return( result );
+				}
+			
+				AZInstance[] instances = instance_manager.getOtherInstances();
+				
+				for (int i=0;i<instances.length;i++){
+					
+					AZInstance instance = instances[i];
+					
+					List addresses = instance.getInternalAddresses();
+					
+					if ( addresses.contains( ad )){
+						
+						for ( int j=0; j<addresses.size();j++){
+							
+							InetAddress ia = (InetAddress)addresses.get(j);
+							
+							String str = ia.getHostAddress();
+							
+							if ( !result.contains( str )){
+								
+								result.add( str );
+							}
+						}
+					}
+				}
+			}
+		}catch( Throwable e ){
+			
+		}
+		
+		return( result );
 	}
 	
 	public static byte

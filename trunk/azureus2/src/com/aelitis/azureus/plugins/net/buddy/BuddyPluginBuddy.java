@@ -288,6 +288,41 @@ BuddyPluginBuddy
 		return( ip );
 	}
 	
+	public List
+	getAdjustedIPs()
+	{
+		List	result = new ArrayList();
+		
+		if ( ip == null ){
+			
+			return( result );
+		}
+		
+		InetAddress adjusted = getAdjustedIP();
+		
+		if ( adjusted == ip ){
+			
+			result.add( ip );
+			
+		}else{
+			
+			List l = AddressUtils.getLANAddresses( adjusted.getHostAddress());
+			
+			for (int i=0;i<l.size();i++){
+				
+				try{
+					result.add( InetAddress.getByName((String)l.get(i)));
+					
+				}catch( Throwable e ){
+					
+				}
+			}
+		}
+		
+		return( result );
+	}
+
+	
 	public int
 	getTCPPort()
 	{

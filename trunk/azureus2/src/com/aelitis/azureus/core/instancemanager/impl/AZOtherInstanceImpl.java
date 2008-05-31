@@ -151,10 +151,10 @@ AZOtherInstanceImpl
 		return((InetAddress)internal_addresses.get(0));
 	}
 	
-	protected List
+	public List
 	getInternalAddresses()
 	{
-		return( internal_addresses );
+		return( new ArrayList( internal_addresses ));
 	}
 	
 	public InetAddress
