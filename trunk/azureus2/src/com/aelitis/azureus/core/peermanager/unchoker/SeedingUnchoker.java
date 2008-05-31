@@ -209,7 +209,7 @@ public class SeedingUnchoker implements Unchoker {
 	  for( int i=0; i < all_peers.size(); i++ ) {
 		  PEPeerTransport peer = (PEPeerTransport)all_peers.get( i );
 	    	
-		  if( UnchokerUtil.isUnchokable( peer, true ) && peer.getData( "isBandwidthBoosterBuddy" ) != null ) {
+		  if( peer.getData( "isBandwidthBoosterBuddy" ) != null && UnchokerUtil.isUnchokable( peer, true ) ) {
 			  friends.add( peer );	    		
 		  }
 	  }
