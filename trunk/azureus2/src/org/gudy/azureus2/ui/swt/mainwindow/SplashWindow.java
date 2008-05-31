@@ -21,8 +21,6 @@
  */
 package org.gudy.azureus2.ui.swt.mainwindow;
 
-import javax.media.j3d.Background;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
@@ -37,7 +35,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -86,7 +83,6 @@ public class SplashWindow implements InitializerListener {
 	  final SplashWindow splash = new SplashWindow(display);
 	  
 	  Thread t = new Thread() {
-		  @Override
 		public void run() {
 			  try {
 				  int percent = 0;
