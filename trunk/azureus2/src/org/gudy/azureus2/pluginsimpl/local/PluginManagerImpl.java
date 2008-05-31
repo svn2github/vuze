@@ -77,7 +77,7 @@ PluginManagerImpl
 			
 			if ( running ){
 				
-				throw( new RuntimeException( "Azureus is already running"));
+				throw( new RuntimeException( "Vuze is already running"));
 			}
 			
 			running	= true;
@@ -109,7 +109,7 @@ PluginManagerImpl
 					// some idiot (me) forgot to add the exception to the i/f and now we
 					// can't add it as is stuffs existing plugins...
 				
-				throw( new RuntimeException( "Azureus failed to start", e ));
+				throw( new RuntimeException( "Vuze failed to start", e ));
 			}
 		}else if ( ui_type == PluginManager.UI_SWT ){
 				
@@ -128,7 +128,7 @@ PluginManagerImpl
 		
 		if ( azureus_core == null ){
 			
-			throw( new RuntimeException( "Azureus core failed to initialise" ));
+			throw( new RuntimeException( "Vuze core failed to initialise" ));
 		}
 		
 		return( azureus_core.getPluginManager());
@@ -144,7 +144,7 @@ PluginManagerImpl
 		
 			if ( !running ){
 				
-				throw( new RuntimeException( "Azureus is not running"));
+				throw( new RuntimeException( "Vuze is not running"));
 			}
 						
 			try{
@@ -152,7 +152,7 @@ PluginManagerImpl
 				
 			}catch( Throwable e ){
 								
-				throw( new PluginException( "PluginManager: Azureus close action failed", e));
+				throw( new PluginException( "PluginManager: Vuze close action failed", e));
 			}
 	
 			running	= false;
@@ -170,7 +170,7 @@ PluginManagerImpl
 	{
 		if ( !running ){
 			
-			throw( new RuntimeException( "Azureus is not running"));
+			throw( new RuntimeException( "Vuze is not running"));
 		}
 		
 		try{
@@ -178,7 +178,7 @@ PluginManagerImpl
 			
 		}catch( Throwable e ){
 							
-			throw( new PluginException( "PluginManager: Azureus restart action failed", e));
+			throw( new PluginException( "PluginManager: Vuze restart action failed", e));
 		}
 			
 		running	= false;

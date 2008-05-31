@@ -64,6 +64,9 @@ public class ImageRepository {
   public static void loadImagesForSplashWindow(Display display) {
     ImageRepository.display = display; 
     addPath("org/gudy/azureus2/ui/icons/a16.png", "azureus");
+		addPath("org/gudy/azureus2/ui/icons/a32.png", "azureus32");
+		addPath("org/gudy/azureus2/ui/icons/a64.png", "azureus64");
+		addPath("org/gudy/azureus2/ui/icons/a128.png", "azureus128");
     addPath("org/gudy/azureus2/ui/splash/azureus.jpg", "azureus_splash");
   }
 
@@ -74,9 +77,6 @@ public class ImageRepository {
 	  		addPath("org/gudy/azureus2/ui/icons/az3_osx_tray_white.png", "azureus_white");
 	    	addPath("org/gudy/azureus2/ui/icons/az3_osx_tray.png", "azureus_grey");
 	  	}
-		addPath("org/gudy/azureus2/ui/icons/a32.png", "azureus32");
-		addPath("org/gudy/azureus2/ui/icons/a64.png", "azureus64");
-		addPath("org/gudy/azureus2/ui/icons/a128.png", "azureus128");
 		addPath("org/gudy/azureus2/ui/icons/Azureus_big.png", "tray");
 		addPath("org/gudy/azureus2/ui/icons/dragger.gif", "dragger");
 		addPath("org/gudy/azureus2/ui/icons/folder.gif", "folder");

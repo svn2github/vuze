@@ -168,7 +168,7 @@ public class MessageText {
 			  
 			  Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
 						"Failed to load resource bundle. One possible cause is "
-								+ "that you have installed Azureus into a directory "
+								+ "that you have installed Vuze into a directory "
 								+ "with a '!' in it. If so, please remove the '!'."));
 		  }
 		  

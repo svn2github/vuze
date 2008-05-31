@@ -125,7 +125,7 @@ public class SWTThread {
 			return;
 		}
     
-    Display.setAppName("Azureus");
+    Display.setAppName("Vuze");
     
     AEDiagnostics.addEvidenceGenerator(new AEDiagnosticsEvidenceGenerator() {
 			public void generate(IndentWriter writer) {

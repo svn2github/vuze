@@ -41,7 +41,7 @@ public class ScriptBeforeStartup
   		boolean argsSent = new AzureusCoreSingleInstanceClient().sendArgs(args, 500);
   		if (argsSent) {
   			// azureus was open..
-  			String msg = "Passing startup args to already-running Azureus java process listening on [127.0.0.1: 6880]";
+  			String msg = "Passing startup args to already-running Vuze java process listening on [127.0.0.1: 6880]";
   			log(msg);
   			sysout.println("exit");
   
@@ -58,7 +58,7 @@ public class ScriptBeforeStartup
 		COConfigurationManager.removeParameter("scriptaftershutdown");
 		COConfigurationManager.save();
 		if (scriptAfterShutdown != null) {
-			log("Script after Azureus shutdown did not run.. running now");
+			log("Script after Vuze shutdown did not run.. running now");
 
 			sysout.println(scriptAfterShutdown);
 
@@ -191,7 +191,7 @@ public class ScriptBeforeStartup
 
 		if (!canOpenBrowser()) {
 			log("Can't create browser.  Will try to set LD_LIBRARY_PATH and hope "
-					+ " Azureus has better luck.");
+					+ " Vuze has better luck.");
 		}
 
 		return grePath;

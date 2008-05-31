@@ -130,7 +130,7 @@ SpeedTestPanel
         azWiki.setText(MessageText.getString("Utils.link.visit"));
 
         final Label linkLabel = new Label(azWiki, SWT.NULL);
-        linkLabel.setText( "Azureus Wiki Speed Test" );
+        linkLabel.setText( "Vuze Wiki Speed Test" );
         linkLabel.setData("http://azureus.aelitis.com/wiki/index.php/Speed_Test_FAQ");
         linkLabel.setCursor(Cursors.handCursor);
         linkLabel.setForeground(Colors.blue);

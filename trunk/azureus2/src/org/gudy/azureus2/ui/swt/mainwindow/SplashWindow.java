@@ -59,7 +59,7 @@ public class SplashWindow implements InitializerListener {
     this.initializer = initializer;
     
     splash = new Shell(display, SWT.NULL);
-    splash.setText("Azureus");
+    splash.setText("Vuze");
     Utils.setShellIcon(splash);
 
     GridLayout layout = new GridLayout();
@@ -76,7 +76,7 @@ public class SplashWindow implements InitializerListener {
     GridData gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL);
     currentTask.setLayoutData(gridData);
     currentTask.setBackground(ColorCache.getColor(display, 255, 255, 255));
-    currentTask.setText("(: Azureus :)");
+    currentTask.setText("(: Vuze :)");
     
     this.percentDone = new ProgressBar(splash,SWT.HORIZONTAL);
     this.percentDone.setMinimum(0);

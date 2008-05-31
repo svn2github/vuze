@@ -546,7 +546,7 @@ public class ConfigSectionTransferAutoSpeedSelect
         azWiki.setText(MessageText.getString("Utils.link.visit"));
 
         final Label linkLabel = new Label(azWiki, SWT.NULL);
-        linkLabel.setText( "Azureus Wiki AutoSpeed (beta)" );
+        linkLabel.setText( "Vuze Wiki AutoSpeed (beta)" );
         linkLabel.setData("http://azureus.aelitis.com/wiki/index.php/Auto_Speed");
         linkLabel.setCursor(Cursors.handCursor);
         linkLabel.setForeground(Colors.blue);

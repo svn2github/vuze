@@ -28,6 +28,7 @@ import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -77,6 +78,13 @@ public class AboutWindow {
     window.setLayout(new GridLayout(3, false));
 
     image = new Image(display,ImageRepository.getImage("azureus_splash"),SWT.IMAGE_GRAY);
+    Image image2 = new Image(display, image.getBounds().width, image.getBounds().height);
+    GC gc = new GC(image2);
+    gc.setBackground(Colors.black);
+    gc.fillRectangle(image2.getBounds());
+    gc.dispose();
+    image = Utils.renderTransparency(display, image2, image, new Point(0, 0), 120);
+    image2.dispose();
     
     Group gDevelopers = new Group(window, SWT.NULL);
     gDevelopers.setLayout(new GridLayout());

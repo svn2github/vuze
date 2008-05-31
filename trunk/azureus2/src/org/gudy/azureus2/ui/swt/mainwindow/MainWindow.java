@@ -275,7 +275,7 @@ public class MainWindow
 				shell = new Shell(display, SWT.RESIZE | SWT.BORDER | SWT.CLOSE
 						| SWT.MAX | SWT.MIN);
 				shell.setData("class", this);
-				shell.setText("Azureus"); //$NON-NLS-1$
+				shell.setText("Vuze"); //$NON-NLS-1$
 				Utils.setShellIcon(shell);
 
 				if (parent == null) {
