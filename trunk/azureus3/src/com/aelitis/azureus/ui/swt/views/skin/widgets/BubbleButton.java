@@ -59,7 +59,7 @@ public class BubbleButton
 		foregroundColors[0] = skin.getSkinProperties().getColor("color.text.fg");
 		foregroundColors[1] = skin.getSkinProperties().getColor("color.text.fg");
 		foregroundColors[2] = skin.getSkinProperties().getColor(
-				"color.text.fg");
+				"color.text.disabled");
 //		foregroundColors[1] = skin.getSkinProperties().getColor("color.text.over");
 //		foregroundColors[2] = skin.getSkinProperties().getColor(
 //				"color.text.disabled");

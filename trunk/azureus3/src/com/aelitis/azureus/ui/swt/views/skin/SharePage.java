@@ -764,7 +764,6 @@ public class SharePage
 				buddiesViewer.setShareMode(true);
 			}
 			getDetailPanel().show(true, PAGE_ID);
-			sendNowButton.setEnabled(true);
 		}
 	}
 
