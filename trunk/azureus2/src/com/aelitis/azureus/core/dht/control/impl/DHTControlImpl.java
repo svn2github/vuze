@@ -1454,9 +1454,7 @@ DHTControlImpl
 		 */
 
 	
-	static ArrayList running_tasks = new ArrayList();
-	
-	final boolean useBlocking = true;
+	final boolean useBlocking = false;
 
 	
 	protected void lookup(final ThreadPool thread_pool, boolean high_priority, final byte[] lookup_id, final String description, final byte flags, final boolean value_search, final long timeout, final int concurrency, final int max_values, final int search_accuracy, final lookupResultHandler handler)
@@ -1504,11 +1502,6 @@ DHTControlImpl
 				// start the lookup
 				public void	runSupport()
 				{
-					synchronized( running_tasks ){
-					
-						running_tasks.add(this);
-					}
-					
 					startLookup();
 				}
 
@@ -1563,11 +1556,6 @@ DHTControlImpl
 						if(runningState == -1)
 							return;
 						runningState = -1;						
-					}
-
-					synchronized( running_tasks ){
-						
-						running_tasks.remove(this);
 					}
 					
 					if(!error)

@@ -486,9 +486,13 @@ ThreadPool
 				{
 					busy_pools.remove(ThreadPool.this);
 				}
+
+			if(busy.size() == 0)
+				thread_sem.release();
+			else
+				new threadPoolWorker();		
 		}
-		
-		thread_sem.release();
+
 	}
 	
 	public void registerThreadAsChild(threadPoolWorker parent)
