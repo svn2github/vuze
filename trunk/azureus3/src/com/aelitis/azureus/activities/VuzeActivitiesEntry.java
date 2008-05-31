@@ -234,10 +234,7 @@ public class VuzeActivitiesEntry
 	public Map toMap() {
 		Map map = new HashMap();
 		map.put("timestamp", new Long(timestamp));
-		// don't store asset hash when torrent is non-null, as we can get
-		// the hash from it, and generally when there's a torrent object,
-		// it's not one of 'ours'
-		if (assetHash != null && torrent == null) {
+		if (assetHash != null) {
 			map.put("assetHash", assetHash);
 		}
 		map.put("icon", getIconID());
@@ -450,6 +447,11 @@ public class VuzeActivitiesEntry
 	 */
 	public void setTorrent(TOTorrent torrent) {
 		this.torrent = torrent;
+
+		try {
+			assetHash = dm.getTorrent().getHashWrapper().toBase32String();
+		} catch (Exception e) {
+		}
 
 		setDRM(torrent == null ? false : PlatformTorrentUtils.isContentDRM(torrent));
 	}
