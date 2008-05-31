@@ -146,7 +146,12 @@ VuzeCryptoManager
 						}
 					}
 					
-					Debug.out( "VuzeCryptoManager: no listeners returned session key" );
+					if ( !error_logged ){
+						
+						error_logged = true;
+
+						Debug.out( "VuzeCryptoManager: no listeners returned session key" );
+					}
 					
 					return( null );
 				}
