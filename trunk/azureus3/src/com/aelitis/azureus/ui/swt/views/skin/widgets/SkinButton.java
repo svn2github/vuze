@@ -335,6 +335,7 @@ public abstract class SkinButton
 				currentState = WIDGET_STATE_DISABLED;
 				alpha = 128;
 			} else {
+				currentState = WIDGET_STATE_NORMAL;
 				alpha = 255;
 			}
 			reComputeSize();
