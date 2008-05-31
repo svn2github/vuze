@@ -693,7 +693,7 @@ public class ColumnVuzeActivity
 
 	private Rectangle getDMImageRect(int cellHeight) {
 		//return new Rectangle(0, cellHeight - 50 - MARGIN_HEIGHT, 16, 50);
-		return new Rectangle(EVENT_INDENT, cellHeight - 50 - MARGIN_HEIGHT, 105, 50);
+		return new Rectangle(EVENT_INDENT, cellHeight - 50 - MARGIN_HEIGHT, 88, 50);
 	}
 
 	private Rectangle getDMRatingRect(int cellWidth, int cellHeight) {

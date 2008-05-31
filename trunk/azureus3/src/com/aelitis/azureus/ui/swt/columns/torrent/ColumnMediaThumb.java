@@ -23,17 +23,18 @@ import java.io.ByteArrayInputStream;
 import java.util.*;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
@@ -70,7 +71,17 @@ public class ColumnMediaThumb
 
 	private static final boolean SET_ALPHA = true;
 
-	private static final int WIDTH = 68;
+	private static final int WIDTH = 60;
+
+	private static final String BTN_PLAY = "play";
+
+	private static final String BTN_DL = "download";
+
+	private static final String BTN_DETAILS = "details";
+
+	private static final String BTN_RUN = "run";
+
+	private static final int BORDER_SIZE = 0;
 
 	private Map mapCellTorrent = new HashMap();
 
@@ -81,6 +92,14 @@ public class ColumnMediaThumb
 	private Rectangle imgPlayBounds;
 
 	private List listClickAreas = new ArrayList();
+
+	private ColumnImageClickArea clickAreaRun;
+
+	private ColumnImageClickArea clickAreaPlay;
+
+	private ColumnImageClickArea clickAreaDetails;
+
+	private ColumnImageClickArea clickAreaDL;
 
 	/**
 	 * 
@@ -96,25 +115,27 @@ public class ColumnMediaThumb
 			loadImages();
 		}
 
-		ColumnImageClickArea clickArea;
+		final String IMG_PREFIX = "image.button.";
 
-		clickArea = new ColumnImageClickArea(COLUMN_ID, "play", "image.button.play");
-		clickArea.setTooltip("Play Content");
-		listClickAreas.add(clickArea);
+		clickAreaPlay = new ColumnImageClickArea(COLUMN_ID, BTN_PLAY, IMG_PREFIX
+				+ BTN_PLAY);
+		clickAreaPlay.setTooltip(MessageText.getString("v3.MainWindow.button.play"));
+		listClickAreas.add(clickAreaPlay);
 
-		clickArea = new ColumnImageClickArea(COLUMN_ID, "details",
-				"image.button.details");
-		clickArea.setTooltip("View Details");
-		listClickAreas.add(clickArea);
+		clickAreaDetails = new ColumnImageClickArea(COLUMN_ID, BTN_DETAILS,
+				IMG_PREFIX + BTN_DETAILS);
+		clickAreaDetails.setTooltip(MessageText.getString("v3.MainWindow.button.viewdetails"));
+		listClickAreas.add(clickAreaDetails);
 
-		clickArea = new ColumnImageClickArea(COLUMN_ID, "download",
-				"image.button.download");
-		clickArea.setTooltip("Download Content");
-		listClickAreas.add(clickArea);
+		clickAreaDL = new ColumnImageClickArea(COLUMN_ID, BTN_DL, IMG_PREFIX
+				+ BTN_DL);
+		clickAreaDL.setTooltip(MessageText.getString("v3.MainWindow.button.download"));
+		listClickAreas.add(clickAreaDL);
 
-		clickArea = new ColumnImageClickArea(COLUMN_ID, "run", "image.button.run");
-		clickArea.setTooltip("Launch Downloaded File");
-		listClickAreas.add(clickArea);
+		clickAreaRun = new ColumnImageClickArea(COLUMN_ID, BTN_RUN, IMG_PREFIX
+				+ BTN_RUN);
+		clickAreaRun.setTooltip(MessageText.getString("v3.MainWindow.button.run"));
+		listClickAreas.add(clickAreaRun);
 	}
 
 	private void loadImages() {
@@ -151,11 +172,11 @@ public class ColumnMediaThumb
 
 	public void refresh(final TableCell cell, final boolean bForce) {
 		Object ds = cell.getDataSource();
-		DownloadManager dm = getDM(ds);
+		DownloadManager dm = TorrentListViewsUtils.getDMFromDS(ds);
 
 		//System.out.println("refresh " + bForce + " via " + Debug.getCompressedStackTrace(10));
 
-		TOTorrent newTorrent = getTorrent(ds);
+		TOTorrent newTorrent = TorrentListViewsUtils.getTorrentFromDS(ds);
 		long lastUpdated = PlatformTorrentUtils.getContentLastUpdated(newTorrent);
 		// xxx hack.. cell starts with 0 sort value
 		if (lastUpdated == 0) {
@@ -183,6 +204,9 @@ public class ColumnMediaThumb
 			return;
 		}
 
+		boolean cellHasMouse = (cell instanceof TableCellCore)
+				? ((TableCellCore) cell).isMouseOver() : false;
+
 		torrent = newTorrent;
 		mapCellTorrent.put(cell, torrent);
 
@@ -199,7 +223,7 @@ public class ColumnMediaThumb
 			b = PlatformTorrentUtils.getContentThumbnail(torrent);
 		}
 
-		boolean canRun = !canPlay;
+		boolean canRun = !canPlay && dm != null;
 		if (canRun && dm != null && !dm.getAssumedComplete()) {
 			canRun = false;
 		}
@@ -232,20 +256,23 @@ public class ColumnMediaThumb
 					? ((TableRowCore) row).isMouseOver() : false;
 			showPlayButton &= rowHasMouse;
 		} else {
-			boolean cellHasMouse = (cell instanceof TableCellCore)
-					? ((TableCellCore) cell).isMouseOver() : false;
 			showPlayButton &= cellHasMouse;
 		}
 
 		boolean disposeImage = false;
 		if (firstImage == null) {
-			ByteArrayInputStream bis = new ByteArrayInputStream(b);
-			firstImage = new Image(Display.getDefault(), bis);
+			if (b != null) {
+				ByteArrayInputStream bis = new ByteArrayInputStream(b);
+				firstImage = new Image(Display.getDefault(), bis);
+			} else {
+				firstImage = new Image(Display.getDefault(), 1, 1);
+			}
 			disposeImage = true;
 		}
 		Image newImg = null;
 		try {
 			int cellWidth = cell.getWidth();
+			int cellHeight = cell.getHeight();
 
 			int w = firstImage.getBounds().width;
 			int h = firstImage.getBounds().height;
@@ -260,12 +287,12 @@ public class ColumnMediaThumb
 				h2 = MAXH;
 				w2 = h2 * w / h;
 			}
-			
-			if (cellWidth - 15 > w2) {
-				dx = (cellWidth - 15 - w2) / 2;
+
+			if (cellWidth > w2) {
+				dx = (cellWidth - w2) / 2;
 			}
 			//dx += 18;
-			
+
 			newImg = new Image(firstImage.getDevice(), cellWidth, h2);
 
 			GC gc = new GC(newImg);
@@ -277,27 +304,27 @@ public class ColumnMediaThumb
 				// may not be avail
 			}
 
-			int[] bg = cell.getBackground();
-			if (bg != null) {
-				gc.setBackground(ColorCache.getColor(firstImage.getDevice(), bg));
-				gc.fillRectangle(newImg.getBounds());
-			}
-			
-			gc.setBackground(ColorCache.getColor(firstImage.getDevice(), 40, 40, 40));
-
-			gc.fillRoundRectangle(0, 0, cellWidth, h2, 7, 7);
+			//gc.setBackground(ColorCache.getColor(firstImage.getDevice(), 40, 40, 40));
+			//gc.fillRoundRectangle(0, 0, cellWidth, h2, 7, 7);
 
 			gc.setBackground(ColorCache.getColor(firstImage.getDevice(), 30, 30, 30));
-			gc.fillRectangle(2, 2, (int)(h2 * 1.77f) - 4, h2 - 4);
+			//gc.fillRectangle(2, 2, (int) (h2 * 1.77f) - 4, h2 - 4);
+			gc.fillRectangle(newImg.getBounds());
 
-			if (showPlayButton && SET_ALPHA) {
+			if (cellHasMouse && SET_ALPHA) {
+				int[] bg = cell.getBackground();
+				if (bg != null) {
+					gc.setBackground(ColorCache.getColor(firstImage.getDevice(), bg));
+					gc.fillRectangle(newImg.getBounds());
+				}
 				try {
 					gc.setAlpha(40);
 				} catch (Exception e) {
 					// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
 				}
 			}
-			gc.drawImage(firstImage, 0, 0, w, h, dx + 2, dy + 2, w2 - 4, h2 - 4);
+			gc.drawImage(firstImage, 0, 0, w, h, dx + BORDER_SIZE, dy + BORDER_SIZE,
+					w2 - (BORDER_SIZE * 2), h2 - (BORDER_SIZE * 2));
 
 			if (cell instanceof TableCellSWT) {
 				TableCellSWT cellSWT = (TableCellSWT) cell;
@@ -312,67 +339,54 @@ public class ColumnMediaThumb
 					// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
 				}
 			}
-			if (showPlayButton) {
 
-				if (imgPlay != null) {
-					int imgW = imgPlayBounds.width;
-					int imgH = imgPlayBounds.height;
+			if (clickAreaDL != null) {
+				clickAreaDL.setPosition(cellWidth - 30, cellHeight / 2 - 14);
+				clickAreaDL.setVisible(dm == null);
+			}
+			if (clickAreaDetails != null) {
+				clickAreaDetails.setPosition(2, cellHeight / 2 - 14);
+				clickAreaDetails.setVisible(getHash(ds, true) != null);
+			}
+			if (clickAreaRun != null) {
+				clickAreaRun.setPosition(cellWidth - 30, cellHeight / 2 - 14);
+				clickAreaRun.setVisible(canRun);
+			}
+			if (clickAreaPlay != null) {
+				clickAreaPlay.setPosition(cellWidth / 2 - 16, cellHeight / 2 - 14);
+				clickAreaPlay.setVisible(canPlay);
+			}
+			
+			if (showPlayButton && imgPlay != null) {
+				int imgW = imgPlayBounds.width;
+				int imgH = imgPlayBounds.height;
 
-					float h3 = (int) (h2 * 0.8);
-					float w3 = h3 * imgW / imgH;
-					float x = (w2 - w3) / 2;
-					float y = (h2 - h3) / 2;
+				float h3 = (int) (h2 * 0.8);
+				float w3 = h3 * imgW / imgH;
+				float x = (w2 - w3) / 2;
+				float y = (h2 - h3) / 2;
 
-					gc.drawImage(imgPlay, 0, 0, imgW, imgH, (int) x, (int) y, (int) (w3),
-							(int) (h3));
-				}
+				gc.drawImage(imgPlay, 0, 0, imgW, imgH, (int) x, (int) y, (int) (w3),
+						(int) (h3));
 			}
 
-			int areaY = 0;
-			int numClickAreas = listClickAreas.size() - 1;
-			if (dm != null && !(ds instanceof VuzeActivitiesEntry)) {
-				numClickAreas--;
-			}
-			String hash = getHash(ds, true);
-			float areaYinc = (h2) / numClickAreas;
 			for (Iterator iter = listClickAreas.iterator(); iter.hasNext();) {
 				ColumnImageClickArea clickArea = (ColumnImageClickArea) iter.next();
 
-				String id = clickArea.getId();
-				boolean hideDownload = dm != null && id.equals("download");
-				if (hideDownload) {
-					if (torrent == null) {
-						areaY += areaYinc;
-					}
-					clickArea.setArea(null);
-					continue;
+				if (cellHasMouse) {
+					clickArea.drawImage(gc);
 				}
-				if (hash == null && id.equals("details")) {
-					clickArea.setArea(null);
-					continue;
-				}
-
-				if (!canRun && id.equals("run")) {
-					clickArea.setArea(null);
-					continue;
-				}
-
-				if (!canPlay && id.equals("play")) {
-					clickArea.setArea(null);
-					continue;
-				}
-
-				Rectangle imageArea = clickArea.getImageArea();
-				clickArea.setPosition(cellWidth - 17, areaY);
-				float scale = (float) areaYinc / (float) imageArea.height;
-				clickArea.setScale(scale);
-				areaY += areaYinc;
-
-				//System.out.println("AS:" +  scale + ";" + imageArea.height + ";" + areaYinc);
-
-				clickArea.drawImage(gc);
 			}
 
+			if (cellHasMouse && dm != null && !dm.getAssumedComplete()) {
+				gc.setForeground(Colors.white);
+				String sPercent = dm.getStats().getDownloadCompleted(
+						false) / 10 + "%";
+				Point extent = gc.textExtent(sPercent);
+				gc.drawText(sPercent, cellWidth - extent.x - 2, cellHeight / 2 - 6,
+						true);
+			}
+			
 			gc.dispose();
 
 			if (disposeImage) {
@@ -390,52 +404,24 @@ public class ColumnMediaThumb
 		}
 	}
 
-	/**
-	 * @param dataSource
-	 * @return
-	 *
-	 * @since 3.0.4.3
-	 */
-	private DownloadManager getDM(Object ds) {
-		DownloadManager dm = null;
-		if (ds instanceof DownloadManager) {
-			dm = (DownloadManager) ds;
-		} else if (ds instanceof VuzeActivitiesEntry) {
-			dm = ((VuzeActivitiesEntry) ds).getDownloadManger();
-		}
-		return dm;
-	}
-
 	private String getHash(Object ds, boolean onlyOurs) {
-		TOTorrent torrent = getTorrent(ds);
+		TOTorrent torrent = TorrentListViewsUtils.getTorrentFromDS(ds);
 		if (torrent != null) {
 			try {
-				if (onlyOurs && !PlatformTorrentUtils.isContent(torrent, false)) {
+				if (onlyOurs && !PlatformTorrentUtils.isContent(torrent, true)) {
 					return null;
 				}
 				return torrent.getHashWrapper().toBase32String();
 			} catch (Exception e) {
 			}
 		} else if (ds instanceof VuzeActivitiesEntry) {
-			return ((VuzeActivitiesEntry) ds).getAssetHash();
+			if (onlyOurs) {
+				return null;
+			}
+			VuzeActivitiesEntry entry = ((VuzeActivitiesEntry) ds);
+			return entry.getAssetHash();
 		}
 		return null;
-	}
-
-	private TOTorrent getTorrent(Object ds) {
-		TOTorrent torrent = null;
-		if (ds instanceof DownloadManager) {
-			torrent = ((DownloadManager) ds).getTorrent();
-		} else if (ds instanceof VuzeActivitiesEntry) {
-			torrent = ((VuzeActivitiesEntry) ds).getTorrent();
-			if (torrent == null) {
-				DownloadManager dm = ((VuzeActivitiesEntry) ds).getDownloadManger();
-				if (dm != null) {
-					torrent = dm.getTorrent();
-				}
-			}
-		}
-		return torrent;
 	}
 
 	/**
@@ -477,29 +463,35 @@ public class ColumnMediaThumb
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellMouseListener#cellMouseTrigger(org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent)
 	public void cellMouseTrigger(TableCellMouseEvent event) {
 		if (event.data instanceof ColumnImageClickArea) {
+			if (!((TableCellCore) event.cell).isMouseOver()) {
+				return;
+			}
+
 			ColumnImageClickArea clickArea = (ColumnImageClickArea) event.data;
 			String id = clickArea.getId();
 
-			if (id.equals("play")) {
+			if (id.equals(BTN_PLAY)) {
 				String referal = null;
 				Object ds = event.cell.getDataSource();
 				if (ds instanceof VuzeActivitiesEntry) {
-					referal = "playdashboardactivity-" + ((VuzeActivitiesEntry)ds).getTypeID();
+					referal = "playdashboardactivity-"
+							+ ((VuzeActivitiesEntry) ds).getTypeID();
 				}
 				TorrentListViewsUtils.playOrStreamDataSource(ds, null, referal);
-			} else if (id.equals("download")) {
+			} else if (id.equals(BTN_DL)) {
 				String referal = null;
 				Object ds = event.cell.getDataSource();
 				if (ds instanceof VuzeActivitiesEntry) {
-					referal = "dashboardactivity-" + ((VuzeActivitiesEntry)ds).getTypeID();
+					referal = "dashboardactivity-"
+							+ ((VuzeActivitiesEntry) ds).getTypeID();
 				}
 				TorrentListViewsUtils.downloadDataSource(ds, false, referal);
-			} else if (id.equals("details")) {
+			} else if (id.equals(BTN_DETAILS)) {
 				String hash = getHash(event.cell.getDataSource(), true);
 				if (hash != null) {
 					TorrentListViewsUtils.viewDetails(hash, "thumb");
 				}
-			} else if (id.equals("run")) {
+			} else if (id.equals(BTN_RUN)) {
 				// run via play or stream so we get the security warning
 				Object ds = event.cell.getDataSource();
 				TorrentListViewsUtils.playOrStreamDataSource(ds, null, "unknown");
@@ -508,16 +500,6 @@ public class ColumnMediaThumb
 			return;
 		}
 
-		ColumnImageClickArea clickArea = (ColumnImageClickArea) listClickAreas.get(0);
-		Rectangle area = clickArea.getArea();
-		if (event.x >= area.x) {
-			return;
-		}
-
-		if (event.eventType == TableRowMouseEvent.EVENT_MOUSEDOWN) {
-			TorrentListViewsUtils.playOrStreamDataSource(event.cell.getDataSource(),
-					null);
-		}
 		boolean changed = false;
 		if (event.eventType == TableRowMouseEvent.EVENT_MOUSEENTER) {
 			changed = true;
@@ -568,9 +550,9 @@ public class ColumnMediaThumb
 		if (cell.getToolTip() != null) {
 			return;
 		}
-		
+
 		Object ds = cell.getDataSource();
-		DownloadManager dm = getDM(ds);
+		DownloadManager dm = TorrentListViewsUtils.getDMFromDS(ds);
 		if (dm != null) {
 			cell.setToolTip(PlatformTorrentUtils.getContentTitle2(dm));
 		}
