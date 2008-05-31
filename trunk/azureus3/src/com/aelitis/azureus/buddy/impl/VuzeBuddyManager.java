@@ -1226,8 +1226,11 @@ public class VuzeBuddyManager
 			}
 		}
 
-		//String inviteMessage = MapUtils.getMapString(invites, "message", null);
-		List sentInvitations = MapUtils.getMapList(invites, "sentInvitations",
+		Map inviteMessage = MapUtils.getMapMap(invites, "message", null);
+		if (inviteMessage == null) {
+			inviteMessage = invites;
+		}
+		List sentInvitations = MapUtils.getMapList(inviteMessage, "sentInvitations",
 				Collections.EMPTY_LIST);
 
 		log("invite " + sentInvitations.size() + " ppl, sharing " + name);
