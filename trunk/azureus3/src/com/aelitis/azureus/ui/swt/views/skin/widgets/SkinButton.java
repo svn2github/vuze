@@ -44,6 +44,8 @@ public abstract class SkinButton
 
 	private Color foregroundDisabled = null;
 
+	private boolean enabled = true;
+
 	public SkinButton(Composite parent) {
 		this(parent, null, null);
 	}
@@ -326,15 +328,23 @@ public abstract class SkinButton
 	public abstract Color[] getForegroundColors();
 
 	public void setEnabled(boolean enabled) {
-		if (isEnabled() != enabled) {
-			setEnabled(enabled);
-			alpha = true == enabled ? 255 : 200;
+		if (this.enabled != enabled) {
+			this.enabled = enabled;
+			super.setEnabled(enabled);
 			if (false == enabled) {
 				currentState = WIDGET_STATE_DISABLED;
+				alpha = 128;
+			} else {
+				alpha = 255;
 			}
 			reComputeSize();
 			refreshVisuals();
+			update();
 		}
+	}
+
+	public boolean isEnabled() {
+		return enabled;
 	}
 
 	public Inset getInset() {

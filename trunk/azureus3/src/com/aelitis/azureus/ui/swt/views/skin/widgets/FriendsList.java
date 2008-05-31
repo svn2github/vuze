@@ -157,7 +157,7 @@ public class FriendsList
 					canvas.layout(true);
 					Rectangle r = scrollable.getClientArea();
 					scrollable.setMinSize(canvas.computeSize(r.width, SWT.DEFAULT));
-					getBuddiesViewer().removeFromShare(buddy);
+//					getBuddiesViewer().removeFromShare(buddy);
 				}
 			}
 		});
@@ -296,7 +296,8 @@ public class FriendsList
 					if (false == isEmailDisplayOnly()) {
 						if (true == closeButtonBounds.contains(e.x, e.y)) {
 							if (true == closeIsActive) {
-								removeFriend(FriendWidget.this.buddy);
+//								removeFriend(FriendWidget.this.buddy);
+								getBuddiesViewer().removeFromShare(FriendWidget.this.buddy);
 							}
 						}
 					}

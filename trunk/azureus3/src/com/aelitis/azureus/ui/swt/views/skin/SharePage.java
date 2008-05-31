@@ -454,7 +454,7 @@ public class SharePage
 		previewButton.setVisible(false);
 
 		sendNowButton.setText(MessageText.getString("v3.Share.send.now"));
-		//		sendNowButton.setEnabled(false);
+		sendNowButton.setEnabled(false);
 
 	}
 
@@ -578,7 +578,6 @@ public class SharePage
 			Object vuzeBuddy = iterator.next();
 			if (vuzeBuddy instanceof VuzeBuddy) {
 				buddyList.addFriend((VuzeBuddy) vuzeBuddy);
-				//				buddiesViewer.addToShare((VuzeBuddy) vuzeBuddy);
 				adjustLayout();
 			}
 		}
@@ -587,16 +586,16 @@ public class SharePage
 	private void adjustLayout() {
 		if (buddyList.getContentCount() > 0 || inviteeList.getContentCount() > 0) {
 			previewButton.setVisible(true);
+			sendNowButton.setEnabled(true);
 		} else {
 			previewButton.setVisible(false);
+			sendNowButton.setEnabled(false);
 		}
 		if (inviteeList.getContentCount() > 0) {
 			showInviteeList(true);
 		} else {
 			showInviteeList(false);
 		}
-
-		//		content.layout(true);
 	}
 
 	public void addBuddies(List buddies) {
